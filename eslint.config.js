@@ -1,6 +1,7 @@
 import eslint from '@eslint/js'
 import tseslint from 'typescript-eslint'
 import pluginVue from 'eslint-plugin-vue'
+import globals from 'globals'
 
 export default [
   // 忽略的文件和目录
@@ -14,6 +15,16 @@ export default [
 
   // Vue 配置
   ...pluginVue.configs['flat/recommended'],
+
+  // 浏览器环境全局变量
+  {
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node
+      }
+    }
+  },
 
   // 自定义规则
   {

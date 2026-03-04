@@ -1,11 +1,12 @@
-import { alovaInstance } from 'alova'
+import { createAlova } from 'alova'
 import VueHook from 'alova/vue'
-import adapter from 'alova/adapter/xhr'
+import adapterFetch from 'alova/fetch'
+import { env } from '@/config/env'
 
-export const apiClient = alovaInstance({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001/api/v1',
+export const apiClient = createAlova({
+  baseURL: env.apiBaseUrl,
   statesHook: VueHook,
-  requestAdapter: adapter,
+  requestAdapter: adapterFetch(),
   timeout: 10000,
 
   beforeRequest(method) {
@@ -16,18 +17,19 @@ export const apiClient = alovaInstance({
   },
 
   responded: {
-    onSuccess: (response) => {
-      const { code, data, message } = response.data
+    onSuccess: async (response) => {
+      const json = await response.json()
+      const { code, data, message } = json
       if (code !== 1000) {
         throw new Error(message || '请求失败')
       }
       return data
     },
     onError: (error) => {
-      if (error.response?.status === 401) {
-        localStorage.removeItem('access_token')
-        window.location.href = '/login'
-      }
+      // 对于网络错误或 fetch 抛出的异常
+      console.error('请求错误:', error)
+      // 可以在这里处理 401 等特定错误
+      // 注意: fetch adapter 的错误结构与 axios 不同
       throw error
     }
   }

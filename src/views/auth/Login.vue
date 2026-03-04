@@ -2,10 +2,15 @@
   <div class="login-container">
     <el-card class="login-card">
       <template #header>
-        <h2>P9 WES 登录</h2>
+        <h2>P9 WES 登录 {{ apiBaseUrl }}</h2>
       </template>
 
-      <el-form :model="form" :rules="rules" ref="formRef" @submit.prevent="handleLogin">
+      <el-form 
+        ref="formRef" 
+        label-width="100px"
+        :model="form" 
+        :rules="rules" 
+        @submit.prevent="handleLogin">
         <el-form-item prop="username">
           <el-input
             v-model="form.username"
@@ -31,8 +36,8 @@
             type="primary"
             size="large"
             :loading="loading"
-            @click="handleLogin"
             style="width: 100%"
+            @click="handleLogin"
           >
             登录
           </el-button>
@@ -46,10 +51,12 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useEnv } from '@/composables/useEnv'
 
 const router = useRouter()
 const formRef = ref()
 const loading = ref(false)
+const { apiBaseUrl } = useEnv()
 
 const form = reactive({
   username: '',
