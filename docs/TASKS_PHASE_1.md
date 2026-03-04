@@ -34,16 +34,16 @@
 | 1.1.7 | 配置 Tailwind CSS | ✅ 完成 | tailwind.config.js |
 | 1.1.8 | 配置 ESLint | ✅ 完成 | eslint.config.js (Flat Config) |
 
-### 1.2 依赖安装 ⚠️
+### 1.2 依赖安装 ✅
 
 | 任务ID | 任务描述 | 状态 | 产出 |
 |--------|----------|------|------|
-| 1.2.1 | 安装项目依赖 | ⚠️ 阻塞 | node_modules |
-| 1.2.2 | 验证依赖版本 | ⏳ 待开始 | 版本检查 |
+| 1.2.1 | 安装项目依赖 | ✅ 完成 | node_modules |
+| 1.2.2 | 验证依赖版本 | ✅ 完成 | 版本检查 |
 
-> **注意**: 由于 Node.js v24 内存问题，建议使用 **Node.js 22 LTS + pnpm 9** 安装依赖
+> **注意**: 使用 **Node.js 22 LTS + pnpm 10** 安装依赖
 > ```bash
-> # 建议执行方式
+> # 执行方式
 > nvm use 22
 > pnpm install
 > ```
@@ -216,7 +216,9 @@ docker-compose logs -f
 
 | 问题ID | 问题描述 | 解决方案 | 状态 |
 |--------|----------|----------|------|
-| #1 | pnpm install 内存溢出 | 使用 Node.js 22 LTS | ⏳ 待解决 |
+| #1 | ~~pnpm install 内存溢出~~ | 使用 Node.js 22 LTS | ✅ 已解决 |
+| #2 | ~~unplugin-vue-components 版本不存在~~ | 更新到 31.0.0 | ✅ 已解决 |
+| #3 | ~~pinia-plugin-persistedstate peer dependency~~ | 升级 Pinia 到 3.x | ✅ 已解决 |
 
 ---
 
