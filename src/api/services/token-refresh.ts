@@ -4,6 +4,7 @@
  * 处理401错误时的静默Token刷新和请求队列管理
  */
 
+import { getApiPath } from '../client'
 import router from '@/router'
 
 // ==================== 常量定义 ====================
@@ -16,7 +17,7 @@ export const REFRESH_TOKEN_COOKIE = 'refresh_token' as const
 export const TOKEN_EXPIRES_AT_KEY = 'token_expires_at' as const
 
 /** 刷新Token的API端点 */
-const REFRESH_ENDPOINT = '/api/v1/auth/refresh'
+const REFRESH_ENDPOINT = getApiPath('/auth/refresh')
 
 // ==================== 类型定义 ====================
 
@@ -273,7 +274,7 @@ export async function logout(apiClient?: any): Promise<void> {
   // 如果有apiClient，调用登出接口
   if (apiClient) {
     try {
-      await apiClient.Post('/api/v1/auth/logout')
+      await apiClient.Post(getApiPath('/auth/logout'))
     } catch {
       // 忽略登出接口错误
     }

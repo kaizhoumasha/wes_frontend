@@ -6,6 +6,7 @@
  */
 
 import { createCrudApi, CrudApi, type QueryOptions, type PaginationData } from '../base/crud-api'
+import { getApiPath } from '../client'
 
 // ==================== 类型定义 ====================
 
@@ -145,7 +146,7 @@ export interface UpdateDeviceInput {
  * ```
  */
 export const deviceApi = createCrudApi<Device, CreateDeviceInput, UpdateDeviceInput>({
-  prefix: '/api/v1/devices',
+  prefix: getApiPath('/devices'),
 })
 
 // ==================== 自定义查询方法 ====================
@@ -196,5 +197,5 @@ export class DeviceQuery extends CrudApi<Device, CreateDeviceInput, UpdateDevice
  * 带扩展查询的设备 API
  */
 export const deviceApiExtended = new DeviceQuery({
-  prefix: '/api/v1/devices',
+  prefix: getApiPath('/devices'),
 })

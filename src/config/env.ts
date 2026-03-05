@@ -10,7 +10,7 @@ export const env = {
 
   /** WebSocket URL */
   get wsUrl() {
-    return import.meta.env.VITE_WS_URL || 'ws://localhost:8001/api/v1/ws'
+    return import.meta.env.VITE_WS_URL || 'ws://localhost:8001/ws'
   },
 
   /** 应用标题 */

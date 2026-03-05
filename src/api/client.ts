@@ -7,6 +7,7 @@ import { createAlova } from 'alova'
 import VueHook from 'alova/vue'
 import adapterFetch from 'alova/fetch'
 import { env } from '@/config/env'
+import { getApiPath } from '@/config/api'
 import {
   getAccessToken,
   setAccessToken,
@@ -301,6 +302,9 @@ export const patch = <T = unknown>(url: string, data?: Record<string, unknown>) 
 export const del = <T = unknown>(url: string) => {
   return apiClient.Delete<T>(url)
 }
+
+// ==================== 导出 API 路径构建函数 ====================
+export { getApiPath }
 
 // ==================== 导出类型 ====================
 export type * from './types'

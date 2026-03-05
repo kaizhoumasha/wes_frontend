@@ -5,7 +5,7 @@
  * 对应后端: src/app/auth/v1/auth.py
  */
 
-import { apiClient } from '../client'
+import { apiClient, getApiPath } from '../client'
 import type { ApiResponse } from '../types'
 
 // ==================== 类型定义 ====================
@@ -193,7 +193,7 @@ export const authApi = {
    */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const response = await apiClient.Post<ApiResponse<LoginResponse>>(
-      '/api/v1/auth/login',
+      getApiPath('/auth/login'),
       credentials
     )
     return response as unknown as LoginResponse
@@ -209,7 +209,7 @@ export const authApi = {
    */
   async refreshToken(): Promise<RefreshTokenResponse> {
     const response = await apiClient.Post<ApiResponse<RefreshTokenResponse>>(
-      '/api/v1/auth/refresh',
+      getApiPath('/auth/refresh'),
       {}
     )
     return response as unknown as RefreshTokenResponse
@@ -224,7 +224,7 @@ export const authApi = {
    */
   async logout(): Promise<LogoutResponse> {
     const response = await apiClient.Post<ApiResponse<LogoutResponse>>(
-      '/api/v1/auth/logout',
+      getApiPath('/auth/logout'),
       {}
     )
     return response as unknown as LogoutResponse
@@ -239,7 +239,7 @@ export const authApi = {
    */
   async logoutAll(): Promise<LogoutResponse> {
     const response = await apiClient.Post<ApiResponse<LogoutResponse>>(
-      '/api/v1/auth/logout-all',
+      getApiPath('/auth/logout-all'),
       {}
     )
     return response as unknown as LogoutResponse
@@ -252,7 +252,7 @@ export const authApi = {
    */
   async getActiveSessions(): Promise<ActiveSessionsResponse> {
     const response = await apiClient.Get<ApiResponse<ActiveSessionsResponse>>(
-      '/api/v1/auth/sessions'
+      getApiPath('/auth/sessions')
     )
     return response as unknown as ActiveSessionsResponse
   },
@@ -265,7 +265,7 @@ export const authApi = {
    */
   async revokeSession(sessionUuid: string): Promise<RevokeSessionResponse> {
     const response = await apiClient.Delete<ApiResponse<RevokeSessionResponse>>(
-      `/api/v1/auth/sessions/${sessionUuid}`
+      getApiPath(`/auth/sessions/${sessionUuid}`)
     )
     return response as unknown as RevokeSessionResponse
   },
@@ -279,7 +279,7 @@ export const authApi = {
    */
   async getPermissions(): Promise<UserPermissionsResponse> {
     const response = await apiClient.Get<ApiResponse<UserPermissionsResponse>>(
-      '/api/v1/auth/permissions'
+      getApiPath('/auth/permissions')
     )
     return response as unknown as UserPermissionsResponse
   },
