@@ -8,14 +8,24 @@ export const env = {
     return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001/api/v1'
   },
 
+  /** WebSocket URL */
+  get wsUrl() {
+    return import.meta.env.VITE_WS_URL || 'ws://localhost:8001/api/v1/ws'
+  },
+
   /** 应用标题 */
   get appTitle() {
     return import.meta.env.VITE_APP_TITLE || 'P9 WES'
   },
 
+  /** 是否启用 Mock 数据 */
+  get isMock() {
+    return import.meta.env.VITE_APP_MOCK === 'true'
+  },
+
   /** 是否为开发环境 */
   get isDev() {
-    return import.meta.env.DEV
+    return import.meta.env.VITE_APP_DEV === 'true' || import.meta.env.DEV
   },
 
   /** 是否为生产环境 */

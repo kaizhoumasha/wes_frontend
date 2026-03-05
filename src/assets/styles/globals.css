@@ -1,5 +1,5 @@
 /* 全局样式 */
-@import 'tailwindcss';
+@import url('tailwindcss');
 
 * {
   margin: 0;

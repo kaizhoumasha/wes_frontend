@@ -2,7 +2,7 @@
   <div class="login-container">
     <el-card class="login-card">
       <template #header>
-        <h2>P9 WES 登录 {{ apiBaseUrl }}</h2>
+        <h2>P9 WES 登录</h2>
       </template>
 
       <el-form 
@@ -10,7 +10,8 @@
         label-width="100px"
         :model="form" 
         :rules="rules" 
-        @submit.prevent="handleLogin">
+        @submit.prevent="handleLogin"
+      >
         <el-form-item prop="username">
           <el-input
             v-model="form.username"
@@ -51,12 +52,10 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { useEnv } from '@/composables/useEnv'
 
 const router = useRouter()
 const formRef = ref()
 const loading = ref(false)
-const { apiBaseUrl } = useEnv()
 
 const form = reactive({
   username: '',

@@ -1,0 +1,21 @@
+{
+  "recommendations": [
+    // Vue 开发
+    "Vue.volar",
+    "Vue.vscode-typescript-vue-plugin",
+
+    // 代码质量
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "stylelint.vscode-stylelint",
+
+    // Tailwind CSS
+    "tailwindlabs.tailwindcss-intellisense",
+    "bradlc.vscode-tailwindcss",
+
+    // 辅助工具
+    "christian-kohler.path-intellisense",
+    "eamodio.gitlens",
+    "github.copilot"
+  ]
+}

@@ -3,29 +3,42 @@
     <el-container>
       <el-header>
         <h1>P9 WES - 休斯顿智能仓储执行系统</h1>
-        <el-button @click="handleLogout">退出</el-button>
+        <el-button @click="handleLogout">
+          退出
+        </el-button>
       </el-header>
 
       <el-main>
         <el-row :gutter="20">
-          <el-col :xs="24" :sm="12" :md="6" v-for="i in 4" :key="i">
+          <el-col
+            v-for="i in 4"
+            :key="i"
+            :xs="24"
+            :sm="12"
+            :md="6"
+          >
             <el-card class="stat-card">
               <div class="stat-content">
                 <h3>统计项 {{ i }}</h3>
-                <p class="stat-value">{{ i * 123 }}</p>
+                <p class="stat-value">
+                  {{ i * 123 }}
+                </p>
               </div>
             </el-card>
           </el-col>
         </el-row>
 
-        <el-row :gutter="20" style="margin-top: 20px">
+        <el-row
+          :gutter="20"
+          style="margin-top: 20px"
+        >
           <el-col :span="24">
             <el-card>
               <template #header>
                 <h3>系统状态</h3>
               </template>
               <p>欢迎使用 P9 WES 前端项目！</p>
-              <p>当前环境: {{ env }}</p>
+              <p>当前环境: {{ appTitle }}</p>
             </el-card>
           </el-col>
         </el-row>
@@ -35,12 +48,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useEnv } from '@/composables/useEnv'
 
 const router = useRouter()
-const env = computed(() => import.meta.env.VITE_APP_TITLE)
+const { appTitle } = useEnv()
 
 const handleLogout = () => {
   localStorage.removeItem('access_token')
@@ -60,7 +73,7 @@ const handleLogout = () => {
   align-items: center;
   justify-content: space-between;
   background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 10%);
 }
 
 .el-header h1 {
@@ -82,7 +95,7 @@ const handleLogout = () => {
 }
 
 .stat-content h3 {
-  margin: 0 0 10px 0;
+  margin: 0 0 10px;
   font-size: 14px;
   color: #999;
 }

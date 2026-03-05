@@ -1,0 +1,66 @@
+{
+  // 编辑器配置
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.fixAll.stylelint": "explicit"
+  },
+  "editor.rulers": [100],
+
+  // 文件配置
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+
+  // TypeScript & Vue 配置
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "volar.autoCompleteRefs": true,
+  "volar.codeLens.pugTools": false,
+
+  // 样式配置
+  "css.validate": false,
+  "less.validate": false,
+  "scss.validate": false,
+  "stylelint.validate": ["css", "less", "postcss", "scss", "vue"],
+
+  // Tailwind CSS 配置
+  "tailwindCSS.experimental.classRegex": [["c\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]],
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+
+  // Prettier 配置
+  "prettier.enable": true,
+  "prettier.semi": false,
+  "prettier.singleQuote": true,
+  "prettier.printWidth": 100,
+  "prettier.trailingComma": "none",
+  "prettier.arrowParens": "avoid",
+  "prettier.endOfLine": "lf",
+
+  // ESLint 配置
+  "eslint.enable": true,
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact", "vue"],
+
+  // 排除配置
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.git": true,
+    "**/.cache": true
+  },
+  "files.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/node_modules": false
+  },
+
+  // 其他配置
+  "emmet.includeLanguages": {
+    "vue": "html"
+  },
+  "vue.complete.casing.tags": "pascal",
+  "vue.complete.casing.props": "camel"
+}
