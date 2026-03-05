@@ -85,7 +85,7 @@ export interface SessionInfo {
   /** 创建时间 */
   created_at: string
   /** 最后活跃时间 */
-  last_active_at: string
+  last_active?: string
   /** 设备信息 */
   device_info?: {
     /** 用户代理 */

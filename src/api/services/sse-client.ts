@@ -1,7 +1,7 @@
 /**
  * SSE (Server-Sent Events) 客户端服务
  *
- * 连接后端 SSE 端点 /api/v1/sys/events/stream
+ * 连接后端 SSE 端点 /api/v1/events/stream
  * 处理实时事件推送，包括系统通知和业务状态更新
  */
 
@@ -15,9 +15,7 @@ import { getAccessToken } from './token-refresh'
  */
 export type SSEEventType =
   | 'system_notification' // 系统通知
-  | 'device_status' // 设备状态变化
-  | 'workline_status' // 作业线状态变化
-  | 'task_update' // 任务更新
+  | 'business_status' // 业务状态变化
   | 'message' // 通用消息事件
 
 /**
@@ -77,6 +75,7 @@ const MAX_RECONNECT_ATTEMPTS = 10
 
 /** 重连延迟（毫秒） */
 const RECONNECT_DELAY = 3000
+const CUSTOM_EVENTS: SSEEventType[] = ['system_notification', 'business_status']
 
 // ==================== 内部方法 ====================
 
@@ -103,8 +102,8 @@ function parseEventData(messageEvent: MessageEvent): SSEEvent {
     data = messageEvent.data
   }
 
-  // 从 event 字段获取事件类型（SSE 标准使用 event 字段）
-  const eventType = (messageEvent as MessageEvent & { event?: string }).event || 'message'
+  // 自定义事件通过 MessageEvent.type 传递事件名（默认为 message）
+  const eventType = messageEvent.type || 'message'
 
   return {
     type: eventType as SSEEventType,
@@ -208,6 +207,9 @@ export function connect(): void {
   eventSource.onopen = handleOpen
   eventSource.onmessage = handleMessage
   eventSource.onerror = handleError
+  CUSTOM_EVENTS.forEach(eventType => {
+    eventSource?.addEventListener(eventType, (event) => handleMessage(event as MessageEvent))
+  })
 
   console.log('[SSE] 正在连接...', url.toString())
 }
@@ -382,9 +384,9 @@ export function createAutoReconnectingSSE(autoReconnect = true): () => void {
  *
  * const { state, isConnected, on, connect, disconnect } = useSSE()
  *
- * // 订阅设备状态变化
- * on('device_status', (event) => {
- *   console.log('设备状态变化:', event.data)
+ * // 订阅业务状态变化
+ * on('business_status', (event) => {
+ *   console.log('业务状态变化:', event.data)
  * })
  *
  * // 连接

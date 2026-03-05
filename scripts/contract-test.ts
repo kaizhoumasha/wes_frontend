@@ -206,6 +206,43 @@ function checkAuthResponseContract(): FieldIssue[] {
   return issues
 }
 
+function checkSessionContract(): FieldIssue[] {
+  const issues: FieldIssue[] = []
+
+  const authModulePath = join(API_MODULES_DIR, 'auth.ts')
+  if (!existsSync(authModulePath)) {
+    issues.push({
+      field: 'SessionInfo',
+      type: 'missing',
+      severity: 'error',
+      expected: 'src/api/modules/auth.ts 应定义 SessionInfo 类型',
+    })
+    return issues
+  }
+
+  const authModuleContent = readFileSync(authModulePath, 'utf-8')
+
+  if (!authModuleContent.includes('last_active')) {
+    issues.push({
+      field: 'SessionInfo.last_active',
+      type: 'missing',
+      severity: 'error',
+      expected: 'SessionInfo 应包含 last_active 字段',
+    })
+  }
+
+  if (authModuleContent.includes('last_active_at')) {
+    issues.push({
+      field: 'SessionInfo.last_active_at',
+      type: 'type_mismatch',
+      severity: 'error',
+      expected: 'SessionInfo 不应使用 last_active_at，请统一为 last_active',
+    })
+  }
+
+  return issues
+}
+
 function checkApiPathContract(): FieldIssue[] {
   const issues: FieldIssue[] = []
 
@@ -255,6 +292,12 @@ async function main(): Promise<void> {
   const authIssues = checkAuthResponseContract()
   if (authIssues.length > 0) {
     allIssues.push({ endpoint: '/api/v1/auth/login', method: 'POST', issues: authIssues })
+  }
+
+  console.log('📋 检查会话响应契约...')
+  const sessionIssues = checkSessionContract()
+  if (sessionIssues.length > 0) {
+    allIssues.push({ endpoint: '/api/v1/auth/sessions', method: 'GET', issues: sessionIssues })
   }
 
   console.log('📋 检查 API 配置契约...')

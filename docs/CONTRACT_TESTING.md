@@ -113,6 +113,11 @@ jobs:
 - ✅ `expires_in` 字段存在（OAuth 2.0 标准）
 - ✅ `refresh_expires_in` 字段存在
 
+### 会话响应
+
+- ✅ `/api/v1/auth/sessions` 的 `SessionInfo` 包含 `last_active`
+- ❌ 不应使用历史字段 `last_active_at`
+
 ### API 配置
 
 - ✅ `credentials: 'include'` 配置（支持 HttpOnly Cookie）
