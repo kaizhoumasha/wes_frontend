@@ -1,6 +1,7 @@
 import eslint from '@eslint/js'
 import tseslint from 'typescript-eslint'
 import pluginVue from 'eslint-plugin-vue'
+import vueParser from 'vue-eslint-parser'
 import globals from 'globals'
 
 export default [
@@ -16,9 +17,32 @@ export default [
   // Vue 配置
   ...pluginVue.configs['flat/recommended'],
 
-  // 浏览器环境全局变量
+  // Vue 文件的 TypeScript 解析器配置
   {
+    files: ['**/*.vue'],
     languageOptions: {
+      parser: vueParser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        parser: tseslint.parser
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.node
+      }
+    }
+  },
+
+  // TypeScript 文件配置
+  {
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module'
+      },
       globals: {
         ...globals.browser,
         ...globals.node

@@ -129,7 +129,7 @@ export interface UpdateUserInput {
  * ```
  */
 export const userApi = createCrudApi<User, CreateUserInput, UpdateUserInput>({
-  prefix: '/api/v1/admin/users',
+  prefix: '/api/v1/users',
 })
 
 // ==================== 自定义查询方法 ====================
@@ -174,5 +174,5 @@ export class UserQuery extends CrudApi<User, CreateUserInput, UpdateUserInput> {
  * 带扩展查询的用户 API
  */
 export const userApiExtended = new UserQuery({
-  prefix: '/api/v1/admin/users',
+  prefix: '/api/v1/users',
 })

@@ -29,11 +29,112 @@ import type {
 
 // ==================== 类型定义 ====================
 
+type FilterOperator =
+  | 'eq'
+  | 'ne'
+  | 'gt'
+  | 'ge'
+  | 'lt'
+  | 'le'
+  | 'in'
+  | 'nin'
+  | 'ilike'
+  | 'between'
+  | 'is_null'
+  | 'not_null'
+
+interface FilterCondition {
+  field: string
+  op: FilterOperator
+  value?: unknown
+}
+
+interface FilterGroup {
+  couple: 'and' | 'or' | 'not'
+  conditions: Array<FilterCondition | FilterGroup>
+}
+
+const FILTER_OPERATORS = new Set<FilterOperator>([
+  'eq',
+  'ne',
+  'gt',
+  'ge',
+  'lt',
+  'le',
+  'in',
+  'nin',
+  'ilike',
+  'between',
+  'is_null',
+  'not_null',
+])
+
+function isFilterGroup(value: unknown): value is FilterGroup {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return false
+  }
+
+  const candidate = value as { couple?: unknown; conditions?: unknown }
+  return (
+    (candidate.couple === 'and' || candidate.couple === 'or' || candidate.couple === 'not') &&
+    Array.isArray(candidate.conditions)
+  )
+}
+
+function toFilterCondition(field: string, rawValue: unknown): FilterCondition | null {
+  if (rawValue === undefined) {
+    return null
+  }
+
+  if (rawValue && typeof rawValue === 'object' && !Array.isArray(rawValue)) {
+    const opCandidate = (rawValue as { op?: unknown }).op
+    if (typeof opCandidate === 'string' && FILTER_OPERATORS.has(opCandidate as FilterOperator)) {
+      const op = opCandidate as FilterOperator
+      if (op === 'is_null' || op === 'not_null') {
+        return { field, op }
+      }
+      return { field, op, value: (rawValue as { value?: unknown }).value }
+    }
+  }
+
+  if (rawValue === null) {
+    return { field, op: 'is_null' }
+  }
+  if (Array.isArray(rawValue)) {
+    return { field, op: 'in', value: rawValue }
+  }
+  return { field, op: 'eq', value: rawValue }
+}
+
+function normalizeFilters(filters: Record<string, unknown> | undefined): FilterGroup | undefined {
+  if (!filters) {
+    return undefined
+  }
+
+  // 运行时兼容：如果调用方已传入标准 FilterGroup，直接透传
+  if (isFilterGroup(filters)) {
+    return filters
+  }
+
+  const conditions = Object.entries(filters)
+    .map(([field, value]) => toFilterCondition(field, value))
+    .filter((condition): condition is FilterCondition => condition !== null)
+
+  if (conditions.length === 0) {
+    return undefined
+  }
+
+  return {
+    couple: 'and',
+    conditions,
+  }
+}
+
 /**
  * 查询选项（对应后端 QueryOptions）
  */
 export interface QueryOptions extends PaginationParams {
-  /** 过滤条件 */
+  /** 过滤条件（简写对象，内部自动转换为后端 FilterGroup） */
   filters?: Record<string, unknown>
   /** 排序 */
   sort?: Array<{ field: string; order: 'asc' | 'desc' }>
@@ -100,7 +201,7 @@ export interface CrudApiConfig<T, CreateInput, UpdateInput> {
  * }
  *
  * const userApi = new CrudApi<User, CreateUserInput, UpdateUserInput>({
- *   prefix: '/api/v1/admin/users',
+ *   prefix: '/api/v1/users',
  *   createSchema: CreateUserInput,
  *   updateSchema: UpdateUserInput,
  * })
@@ -146,13 +247,14 @@ export class CrudApi<T, CreateInput = Partial<T>, UpdateInput = Partial<T>> {
       max_depth = 2,
       include_deleted = false,
     } = options
+    const normalizedFilters = normalizeFilters(filters)
 
     const response = await apiClient.Post<ApiResponse<PaginationData<T>>>(
       `${this.config.prefix}/query`,
       {
         limit: pageSize,
         offset: (page - 1) * pageSize,
-        filters,
+        filters: normalizedFilters,
         sort,
         max_depth,
         include_deleted,
@@ -304,7 +406,7 @@ export class CrudApi<T, CreateInput = Partial<T>, UpdateInput = Partial<T>> {
  * @example
  * ```ts
  * export const userApi = createCrudApi<User, CreateUserInput, UpdateUserInput>({
- *   prefix: '/api/v1/admin/users',
+ *   prefix: '/api/v1/users',
  * })
  * ```
  */
