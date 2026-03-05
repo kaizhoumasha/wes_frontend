@@ -8,7 +8,6 @@ on:
 
 env:
   NODE_VERSION: '22.x'
-  PNPM_VERSION: '9'
 
 jobs:
   lint-and-test:
@@ -22,7 +21,7 @@ jobs:
       - name: 安装 pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: ${{ env.PNPM_VERSION }}
+          version: 10.10.0
 
       - name: 安装 Node.js
         uses: actions/setup-node@v4
@@ -54,7 +53,7 @@ jobs:
       - name: 安装 pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: ${{ env.PNPM_VERSION }}
+          version: 10.10.0
 
       - name: 安装 Node.js
         uses: actions/setup-node@v4
