@@ -3,6 +3,8 @@ name: CI/CD Pipeline
 # 部署策略说明：
 # - develop 分支 → Cloudflare Pages（预发布环境）
 # - main 分支   → 私有化部署（生产环境，不通过此 workflow）
+#
+# 注意：契约测试已在本地 pre-push hook 中执行，CI 不再重复检查
 
 on:
   push:

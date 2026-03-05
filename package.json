@@ -17,7 +17,10 @@
     "lint:stylelint": "stylelint \"./**/*.{vue,less,scss,css}\" --fix --cache --cache-location node_modules/.cache/stylelint/",
     "lint:all": "pnpm run type:check && pnpm run lint:eslint && pnpm run lint:prettier && pnpm run lint:stylelint",
     "lint": "pnpm run lint:all",
-    "check": "pnpm run type:check && pnpm run lint"
+    "check": "pnpm run type:check && pnpm run lint",
+    "type:generate": "tsx scripts/generate-api-types.ts",
+    "contract:test": "tsx scripts/contract-test.ts",
+    "ci:contract": "pnpm run contract:test"
   },
   "dependencies": {
     "@vueuse/core": "^14.2.1",
@@ -36,6 +39,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@hey-api/openapi-ts": "^0.94.0",
     "@iconify/vue": "^4.3.0",
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^22.10.7",
@@ -50,6 +54,7 @@
     "globals": "^17.4.0",
     "husky": "^9.1.7",
     "lint-staged": "^15.4.3",
+    "openapi-typescript": "^7.13.0",
     "postcss": "^8.5.8",
     "prettier": "^3.8.1",
     "sass-embedded": "^1.97.3",
@@ -57,6 +62,7 @@
     "stylelint-config-standard": "^40.0.0",
     "stylelint-config-standard-vue": "^1.0.0",
     "tailwindcss": "^4.2.1",
+    "tsx": "^4.21.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.56.1",
     "unplugin-auto-import": "^21.0.0",

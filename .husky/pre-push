@@ -1,5 +1,7 @@
 #!/bin/sh
-# pre-push hook - 在推送前检查 Git 工作流规范
+# pre-push hook - 在推送前检查 Git 工作流规范 + 前后端契约
+
+set -e
 
 # 获取当前分支名
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
@@ -23,33 +25,58 @@ COMMIT_MSG=$(git log -1 --pretty=%B $COMMIT_SHA)
 
 echo "当前分支: $CURRENT_BRANCH"
 echo "提交 SHA: $COMMIT_SHA"
-echo "提交信息: $COMMIT_MSG"
 echo "父提交数量: $PARENT_COUNT"
 
 # 检查是否是 merge commit
 if [ "$PARENT_COUNT" -ge 2 ]; then
-  echo "✅ 检测到 merge commit，允许推送"
+  echo "✅ 检测到 merge commit"
+else
+  # 检查提交信息是否包含 merge 关键字
+  if ! echo "$COMMIT_MSG" | grep -qE "^Merge (branch|pull request|commit)"; then
+    echo ""
+    echo "❌ 错误：禁止直接推送到 $CURRENT_BRANCH 分支！"
+    echo ""
+    echo "📋 正确的工作流程："
+    echo "   1. 创建 feature 分支 worktree: ./scripts/git-worktree.sh add feature-your-feature"
+    echo "   2. 在 worktree 中开发并提交"
+    echo "   3. 推送 feature 分支到远程: git push -u origin feature-your-feature"
+    echo "   4. 在 GitHub 创建 Pull Request"
+    echo "   5. 通过 PR 合并到 $CURRENT_BRANCH"
+    echo ""
+    echo "💡 如果确实需要直接推送到 $CURRENT_BRANCH，请使用 --no-verify 跳过检查："
+    echo "   git push --no-verify"
+    echo ""
+    exit 1
+  fi
+fi
+
+# Git 工作流检查通过，继续契约测试
+echo ""
+echo "🔍 运行前后端契约测试..."
+
+# 检查是否安装了依赖
+if [ ! -d "node_modules" ]; then
+  echo "⚠️  node_modules 不存在，跳过契约测试"
+  echo "   请先运行: pnpm install"
   exit 0
 fi
 
-# 检查提交信息是否包含 merge 关键字
-if echo "$COMMIT_MSG" | grep -qE "^Merge (branch|pull request|commit)"; then
-  echo "✅ 检测到 merge 提交，允许推送"
-  exit 0
+# 运行契约测试
+if pnpm run contract:test; then
+  echo ""
+  echo "✅ 契约测试通过"
+  echo ""
+else
+  echo ""
+  echo "❌ 契约测试失败，推送已中止"
+  echo ""
+  echo "💡 修复建议："
+  echo "   1. 检查前端类型定义是否与后端一致"
+  echo "   2. 更新 src/api/types/ 或 src/api/modules/ 中的类型"
+  echo "   3. 运行 pnpm run contract:test 验证修复"
+  echo ""
+  echo "💡 如需临时跳过契约测试，使用："
+  echo "   git push --no-verify"
+  echo ""
+  exit 1
 fi
-
-# 如果不是 merge commit，则拒绝推送
-echo ""
-echo "❌ 错误：禁止直接推送到 $CURRENT_BRANCH 分支！"
-echo ""
-echo "📋 正确的工作流程："
-echo "   1. 创建 feature 分支 worktree: ./scripts/git-worktree.sh add feature-your-feature"
-echo "   2. 在 worktree 中开发并提交"
-echo "   3. 推送 feature 分支到远程: git push -u origin feature-your-feature"
-echo "   4. 在 GitHub 创建 Pull Request"
-echo "   5. 通过 PR 合并到 $CURRENT_BRANCH"
-echo ""
-echo "💡 如果确实需要直接推送到 $CURRENT_BRANCH，请使用 --no-verify 跳过检查："
-echo "   git push --no-verify"
-echo ""
-exit 1
