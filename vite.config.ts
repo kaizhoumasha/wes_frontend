@@ -33,27 +33,31 @@ export default defineConfig(({ mode }) => {
     assetsDir: 'assets',
     assetsInlineLimit: 4096,
     cssCodeSplit: true,
-    sourcemap: false, // 生产环境不生成 sourcemap
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true, // 生产环境移除 console
-        drop_debugger: true
-      }
-    },
+    sourcemap: false,
+    // 使用 esbuild 压缩（Vite 内置，无需额外依赖）
+    minify: 'esbuild',
 
     rollupOptions: {
       output: {
-        // 细粒度的代码分割
-        manualChunks: {
-          // Vue 核心
-          'vue-vendor': ['vue', 'vue-router', 'pinia'],
-          // UI 框架
-          'ui-vendor': ['element-plus'],
-          // 工具库
-          'utils-vendor': ['lodash-es', 'date-fns', 'date-fns-tz', '@vueuse/core'],
-          // 其他第三方
-          'vendor': ['alova', 'clsx', 'tailwind-merge']
+        // 细粒度的代码分割 - 使用函数形式避免空 chunk
+        manualChunks(id) {
+          // node_modules 包分割
+          if (id.includes('node_modules')) {
+            // Vue 核心
+            if (id.includes('vue') || id.includes('pinia') || id.includes('vue-router')) {
+              return 'vue-vendor'
+            }
+            // UI 框架
+            if (id.includes('element-plus')) {
+              return 'ui-vendor'
+            }
+            // 工具库
+            if (id.includes('lodash-es') || id.includes('date-fns') || id.includes('@vueuse')) {
+              return 'utils-vendor'
+            }
+            // 其他第三方
+            return 'vendor'
+          }
         },
         // 文件名模板，便于长期缓存
         chunkFileNames: 'js/[name]-[hash].js',
