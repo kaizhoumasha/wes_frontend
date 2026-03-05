@@ -25,8 +25,9 @@ import { env } from '../env'
 export const API_BASE_URL = env.apiBaseUrl
 
 /**
- * WebSocket Base URL（不含版本前缀）
+ * SSE 实时事件流 Base URL
  *
- * 注意：此 URL 不应包含 /api/vX 等版本前缀
+ * 后端提供 Server-Sent Events (SSE) 实时事件推送
+ * 端点: /api/v1/sys/events/stream
  */
-export const WS_BASE_URL = env.wsUrl
+export const SSE_BASE_URL = env.sseUrl

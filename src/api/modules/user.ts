@@ -11,123 +11,73 @@ import { getApiPath } from '../client'
 // ==================== 类型定义 ====================
 
 /**
- * 用户状态枚举
+ * 角色信息（与后端 RoleResponse 对齐）
  */
-export enum UserStatus {
-  /** 活跃 */
-  ACTIVE = 'active',
-  /** 禁用 */
-  DISABLED = 'disabled',
-  /** 已删除 */
-  DELETED = 'deleted',
+export interface Role {
+  /** 角色 ID */
+  id: number
+  /** 角色名称 */
+  name: string
+  /** 角色代码 */
+  code: string
+  /** 是否为内置角色 */
+  is_builtin: boolean
+  /** 角色描述 */
+  description?: string
 }
 
 /**
- * 用户实体
+ * 用户实体（与后端 UserResponse 对齐）
  */
 export interface User {
-  /** 用户ID */
+  /** 用户 ID */
   id: number
-  /** 用户名 */
+  /** 用户名（3-50字符） */
   username: string
-  /** 邮箱 */
+  /** 邮箱（最大100字符） */
   email: string
-  /** 手机号 */
-  phone?: string
-  /** 姓名 */
+  /** 全名（最大100字符，可选） */
   full_name?: string
-  /** 用户状态 */
-  status: UserStatus
   /** 是否为超级用户 */
   is_superuser: boolean
+  /** 是否允许多端登录 */
+  is_multi_login: boolean
+  /** 用户角色列表 */
+  roles: Role[]
   /** 创建时间 */
   created_at: string
   /** 更新时间 */
   updated_at: string
-  /** 最后登录时间 */
-  last_login_at?: string
 }
 
 /**
- * 创建用户输入
+ * 创建用户输入（与后端 UserCreate 对齐）
  */
 export interface CreateUserInput {
   /** 用户名（3-50字符） */
   username: string
   /** 密码（6-100字符） */
   password: string
-  /** 邮箱 */
+  /** 邮箱（最大100字符） */
   email: string
-  /** 手机号 */
-  phone?: string
-  /** 姓名 */
+  /** 全名（最大100字符，可选） */
   full_name?: string
-  /** 是否为超级用户 */
-  is_superuser?: boolean
 }
 
 /**
- * 更新用户输入
+ * 更新用户输入（与后端 UserUpdate 对齐）
  */
 export interface UpdateUserInput {
-  /** 邮箱 */
+  /** 邮箱（最大100字符） */
   email?: string
-  /** 手机号 */
-  phone?: string
-  /** 姓名 */
+  /** 全名（最大100字符） */
   full_name?: string
-  /** 用户状态 */
-  status?: UserStatus
-  /** 是否为超级用户 */
-  is_superuser?: boolean
 }
 
 // ==================== API 实例 ====================
 
 /**
  * 用户管理 API
- *
- * @example
- * ```ts
- * import { userApi } from '@/api/modules/user'
- *
- * // 查询用户列表
- * const users = await userApi.query({ page: 1, pageSize: 10 })
- *
- * // 获取单个用户
- * const user = await userApi.getById(1)
- *
- * // 创建用户
- * const newUser = await userApi.create({
- *   username: 'john',
- *   password: 'password123',
- *   email: 'john@example.com'
- * })
- *
- * // 更新用户
- * await userApi.update(1, { email: 'newemail@example.com' })
- *
- * // 删除用户（软删除）
- * await userApi.delete(1)
- *
- * // 永久删除
- * await userApi.delete(1, true)
- *
- * // 批量删除
- * const result = await userApi.bulkDelete([1, 2, 3])
- *
- * // 恢复已删除的用户
- * await userApi.restore(1)
- *
- * // 获取回收站
- * const trash = await userApi.getTrash(1, 10)
- *
- * // 批量恢复
- * await userApi.bulkRestore([1, 2, 3])
- *
- * // 批量永久删除
- * await userApi.bulkPermanentDelete([1, 2, 3])
- * ```
  */
 export const userApi = createCrudApi<User, CreateUserInput, UpdateUserInput>({
   prefix: getApiPath('/users'),
@@ -140,34 +90,29 @@ export const userApi = createCrudApi<User, CreateUserInput, UpdateUserInput>({
  */
 export class UserQuery extends CrudApi<User, CreateUserInput, UpdateUserInput> {
   /**
-   * 按状态查询用户
+   * 按用户名搜索
    */
-  async getByStatus(status: UserStatus, options: QueryOptions = {}): Promise<PaginationData<User>> {
-    return this.query({
-      ...options,
-      filters: { ...options.filters, status },
-    })
-  }
-
-  /**
-   * 搜索用户
-   */
-  async search(keyword: string, options: QueryOptions = {}): Promise<PaginationData<User>> {
+  async searchByUsername(keyword: string, options: QueryOptions = {}): Promise<PaginationData<User>> {
     return this.query({
       ...options,
       filters: {
         ...options.filters,
-        // 后端支持的关键词搜索，具体字段根据后端实现调整
         keyword,
       },
     })
   }
 
   /**
-   * 获取活跃用户
+   * 获取超级用户
    */
-  async getActiveUsers(options: QueryOptions = {}): Promise<PaginationData<User>> {
-    return this.getByStatus(UserStatus.ACTIVE, options)
+  async getSuperUsers(options: QueryOptions = {}): Promise<PaginationData<User>> {
+    return this.query({
+      ...options,
+      filters: {
+        ...options.filters,
+        is_superuser: true,
+      },
+    })
   }
 }
 

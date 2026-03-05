@@ -11,61 +11,117 @@ import { getApiPath } from '../client'
 // ==================== 类型定义 ====================
 
 /**
- * 设备状态枚举
- */
-export enum DeviceStatus {
-  /** 在线 */
-  ONLINE = 'online',
-  /** 离线 */
-  OFFLINE = 'offline',
-  /** 维护中 */
-  MAINTENANCE = 'maintenance',
-  /** 故障 */
-  FAULT = 'fault',
-}
-
-/**
- * 设备类型枚举
+ * 设备类型枚举（与后端 DeviceType 对齐）
  */
 export enum DeviceType {
-  /** 输送线 */
-  CONVEYOR = 'conveyor',
+  /** PDA */
+  PDA = 'PDA',
+  /** 工业电脑 */
+  INDUSTRIAL_PC = 'INDUSTRIAL_PC',
+  /** 打印机 */
+  PRINTER = 'PRINTER',
+  /** 电脑 */
+  COMPUTER = 'COMPUTER',
+  /** LCR测试仪 */
+  LCR_TESTER = 'LCR_TESTER',
   /** 机械臂 */
-  ROBOT = 'robot',
-  /** 分拣机 */
-  SORTER = 'sorter',
-  /** 扫描器 */
-  SCANNER = 'scanner',
-  /** 其他 */
-  OTHER = 'other',
+  ROBOTIC_ARM = 'ROBOTIC_ARM',
+  /** 视觉相机 */
+  VISION_CAMERA = 'VISION_CAMERA',
+  /** 输送线 */
+  CONVEYOR = 'CONVEYOR',
+  /** 贴标机 */
+  LABELER = 'LABELER',
+  /** X-Ray */
+  XRAY = 'XRAY',
+  /** 扫码器 */
+  SCANNER = 'SCANNER',
 }
 
 /**
- * 设备实体
+ * 设备通信协议枚举（与后端 DeviceProtocol 对齐）
+ */
+export enum DeviceProtocol {
+  /** HTTP */
+  HTTP = 'HTTP',
+  /** HTTPS */
+  HTTPS = 'HTTPS',
+  /** TCP */
+  TCP = 'TCP',
+  /** MODBUS */
+  MODBUS = 'MODBUS',
+  /** MQTT */
+  MQTT = 'MQTT',
+}
+
+/**
+ * 设备状态枚举（与后端 DeviceStatus 对齐）
+ */
+export enum DeviceStatus {
+  /** 空闲，可接收新任务 */
+  IDLE = 'IDLE',
+  /** 忙碌，正在执行任务 */
+  RUNNING = 'RUNNING',
+  /** 故障，需人工介入 */
+  ERROR = 'ERROR',
+  /** 离线（WES 判定） */
+  OFFLINE = 'OFFLINE',
+}
+
+/**
+ * 设备实体（与后端 DeviceResponse 对齐）
  */
 export interface Device {
-  /** 设备ID */
+  /** 设备 ID */
   id: number
-  /** 设备编号 */
-  code: string
+  /** 设备编码（业务主键） */
+  device_code: string
   /** 设备名称 */
-  name: string
+  device_name: string
   /** 设备类型 */
   device_type: DeviceType
-  /** 设备状态 */
-  status: DeviceStatus
-  /** 所属作业线ID */
-  workline_id?: number
-  /** IP地址 */
-  ip_address?: string
-  /** 端口 */
-  port?: number
-  /** 位置描述 */
-  location?: string
-  /** 设备配置（JSON） */
-  config?: Record<string, unknown>
+  /** 所属作业线 ID */
+  work_line_id?: number
+  /** 设备用途说明 */
+  description?: string
   /** 是否启用 */
-  is_enabled: boolean
+  is_active: boolean
+  /** 排序顺序 */
+  sort_order: number
+
+  // ===== 通信配置 =====
+  /** 设备 IP 地址 */
+  host?: string
+  /** 服务端口 */
+  port?: number
+  /** 通信协议 */
+  protocol: DeviceProtocol
+  /** 认证 Token（Bearer Token） */
+  auth_token?: string
+  /** 请求超时时间（毫秒） */
+  timeout: number
+
+  // ===== 设备状态 =====
+  /** 设备实时状态 */
+  device_status: DeviceStatus
+  /** 当前执行的指令 ID */
+  current_command_id?: number
+  /** 最后心跳时间 */
+  last_heartbeat_at?: string
+  /** 错误代码（status=ERROR 时） */
+  error_code?: string
+
+  // ===== 能力配置 =====
+  /** 支持的指令类型 */
+  supported_commands: string[]
+  /** 最大并发任务数 */
+  max_concurrent_tasks: number
+
+  // ===== 幂等性配置 =====
+  /** 指令去重缓存时间（秒） */
+  idempotency_ttl: number
+
+  // ===== 时间戳 =====
   /** 创建时间 */
   created_at: string
   /** 更新时间 */
@@ -73,77 +129,89 @@ export interface Device {
 }
 
 /**
- * 创建设备输入
+ * 创建设备输入（与后端 DeviceCreate 对齐）
  */
 export interface CreateDeviceInput {
-  /** 设备编号 */
-  code: string
-  /** 设备名称 */
-  name: string
+  /** 设备编码（业务主键，1-50字符） */
+  device_code: string
+  /** 设备名称（1-100字符） */
+  device_name: string
   /** 设备类型 */
   device_type: DeviceType
-  /** 所属作业线ID */
-  workline_id?: number
-  /** IP地址 */
-  ip_address?: string
-  /** 端口 */
+  /** 所属作业线 ID */
+  work_line_id?: number
+  /** 设备用途说明（最大500字符） */
+  description?: string
+  /** 是否启用 */
+  is_active?: boolean
+  /** 排序顺序 */
+  sort_order?: number
+
+  // ===== 通信配置 =====
+  /** 设备 IP 地址（最大100字符） */
+  host?: string
+  /** 服务端口（1-65535） */
   port?: number
-  /** 位置描述 */
-  location?: string
-  /** 设备配置 */
-  config?: Record<string, unknown>
+  /** 通信协议 */
+  protocol?: DeviceProtocol
+  /** 认证 Token（最大500字符） */
+  auth_token?: string
+  /** 请求超时时间（毫秒，1000-300000） */
+  timeout?: number
+
+  // ===== 能力配置 =====
+  /** 支持的指令类型 */
+  supported_commands?: string[]
+  /** 最大并发任务数（1-10） */
+  max_concurrent_tasks?: number
+
+  // ===== 幂等性配置 =====
+  /** 指令去重缓存时间（秒，60-86400） */
+  idempotency_ttl?: number
 }
 
 /**
- * 更新设备输入
+ * 更新设备输入（与后端 DeviceUpdate 对齐）
  */
 export interface UpdateDeviceInput {
   /** 设备名称 */
-  name?: string
-  /** 设备状态 */
-  status?: DeviceStatus
-  /** 所属作业线ID */
-  workline_id?: number
-  /** IP地址 */
-  ip_address?: string
-  /** 端口 */
-  port?: number
-  /** 位置描述 */
-  location?: string
-  /** 设备配置 */
-  config?: Record<string, unknown>
+  device_name?: string
+  /** 所属作业线 ID */
+  work_line_id?: number
+  /** 设备用途说明 */
+  description?: string
   /** 是否启用 */
-  is_enabled?: boolean
+  is_active?: boolean
+  /** 排序顺序 */
+  sort_order?: number
+
+  // ===== 通信配置 =====
+  /** 设备 IP 地址 */
+  host?: string
+  /** 服务端口 */
+  port?: number
+  /** 通信协议 */
+  protocol?: DeviceProtocol
+  /** 认证 Token */
+  auth_token?: string
+  /** 请求超时时间（毫秒） */
+  timeout?: number
+
+  // ===== 能力配置 =====
+  /** 支持的指令类型 */
+  supported_commands?: string[]
+  /** 最大并发任务数 */
+  max_concurrent_tasks?: number
+
+  // ===== 幂等性配置 =====
+  /** 指令去重缓存时间（秒） */
+  idempotency_ttl?: number
 }
 
 // ==================== API 实例 ====================
 
 /**
  * 设备管理 API
- *
- * @example
- * ```ts
- * import { deviceApi } from '@/api/modules/device'
- *
- * // 查询设备列表
- * const devices = await deviceApi.query({ page: 1, pageSize: 10 })
- *
- * // 获取单个设备
- * const device = await deviceApi.getById(1)
- *
- * // 创建设备
- * const newDevice = await deviceApi.create({
- *   code: 'DEV001',
- *   name: '输送线1号',
- *   device_type: DeviceType.CONVEYOR
- * })
- *
- * // 更新设备
- * await deviceApi.update(1, { status: DeviceStatus.ONLINE })
- *
- * // 删除设备
- * await deviceApi.delete(1)
- * ```
  */
 export const deviceApi = createCrudApi<Device, CreateDeviceInput, UpdateDeviceInput>({
   prefix: getApiPath('/devices'),
@@ -161,7 +229,7 @@ export class DeviceQuery extends CrudApi<Device, CreateDeviceInput, UpdateDevice
   async getByStatus(status: DeviceStatus, options: QueryOptions = {}): Promise<PaginationData<Device>> {
     return this.query({
       ...options,
-      filters: { ...options.filters, status },
+      filters: { ...options.filters, device_status: status },
     })
   }
 
@@ -181,15 +249,29 @@ export class DeviceQuery extends CrudApi<Device, CreateDeviceInput, UpdateDevice
   async getByWorkline(worklineId: number, options: QueryOptions = {}): Promise<PaginationData<Device>> {
     return this.query({
       ...options,
-      filters: { ...options.filters, workline_id: worklineId },
+      filters: { ...options.filters, work_line_id: worklineId },
     })
   }
 
   /**
-   * 获取在线设备
+   * 获取空闲设备
    */
-  async getOnlineDevices(options: QueryOptions = {}): Promise<PaginationData<Device>> {
-    return this.getByStatus(DeviceStatus.ONLINE, options)
+  async getIdleDevices(options: QueryOptions = {}): Promise<PaginationData<Device>> {
+    return this.getByStatus(DeviceStatus.IDLE, options)
+  }
+
+  /**
+   * 获取故障设备
+   */
+  async getErrorDevices(options: QueryOptions = {}): Promise<PaginationData<Device>> {
+    return this.getByStatus(DeviceStatus.ERROR, options)
+  }
+
+  /**
+   * 获取离线设备
+   */
+  async getOfflineDevices(options: QueryOptions = {}): Promise<PaginationData<Device>> {
+    return this.getByStatus(DeviceStatus.OFFLINE, options)
   }
 }
 

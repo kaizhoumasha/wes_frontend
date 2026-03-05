@@ -242,6 +242,10 @@ export const apiClient = createAlova({
   timeout: 30000, // 30秒超时
 
   beforeRequest(method) {
+    // 设置 credentials 以支持 Cookie（HttpOnly Cookie 存储 refresh_token）
+    // 开发环境通过 Vite 代理（同源），生产环境前后端同域
+    method.config.credentials = 'include'
+
     // 添加Authorization头
     const token = getAccessToken()
     if (token) {

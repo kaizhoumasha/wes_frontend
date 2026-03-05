@@ -8,9 +8,9 @@ export const env = {
     return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001'
   },
 
-  /** WebSocket URL */
-  get wsUrl() {
-    return import.meta.env.VITE_WS_URL || 'ws://localhost:8001/ws'
+  /** SSE 实时事件流 URL */
+  get sseUrl() {
+    return import.meta.env.VITE_SSE_URL || 'http://localhost:8001/api/v1/sys/events/stream'
   },
 
   /** 应用标题 */
@@ -31,7 +31,7 @@ export const env = {
   /** 是否为生产环境 */
   get isProd() {
     return import.meta.env.PROD
-  },
+  }
 } as const
 
 // 类型导出
