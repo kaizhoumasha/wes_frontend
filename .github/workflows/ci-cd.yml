@@ -83,27 +83,11 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
-      - name: Checkout 代码
-        uses: actions/checkout@v4
-
-      - name: 安装 pnpm
-        uses: pnpm/action-setup@v4
+      - name: 下载构建产物
+        uses: actions/download-artifact@v4
         with:
-          version: 10.10.0
-
-      - name: 安装 Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-
-      - name: 安装依赖
-        run: pnpm install --frozen-lockfile
-
-      - name: 构建生产版本
-        run: pnpm run build
-        env:
-          NODE_ENV: production
+          name: dist
+          path: dist
 
       - name: 安装 Wrangler
         run: pnpm add -g wrangler
