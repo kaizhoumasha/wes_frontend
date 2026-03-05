@@ -42,11 +42,9 @@ export type {
   LoginResponse,
   RefreshTokenRequest,
   UserInfo,
-  CurrentUser,
   Role,
-  Permission,
-  MenuItem,
-  MenuType,
-  UserStatus,
-  PermissionType
+  LogoutRequest,
+  LogoutResponse,
+  ChangePasswordRequest,
+  ResetPasswordRequest
 } from './models/auth'

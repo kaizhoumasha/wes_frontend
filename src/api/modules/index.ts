@@ -24,7 +24,6 @@ export type {
 export { userApi, userApiExtended, UserQuery } from './user'
 export type {
   User,
-  UserStatus,
   CreateUserInput,
   UpdateUserInput,
 } from './user'
