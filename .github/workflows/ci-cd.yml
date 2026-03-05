@@ -14,6 +14,62 @@ env:
   NODE_VERSION: '22.x'
 
 jobs:
+  check-workflow:
+    name: 检查 Git 工作流规范
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    
+    steps:
+      - name: Checkout 代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      
+      - name: 检查禁止直接提交到 develop/main 分支
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          echo "当前分支: $BRANCH"
+          
+          # 只检查 develop 和 main 分支
+          if [[ "$BRANCH" != "develop" && "$BRANCH" != "main" ]]; then
+            echo "✅ 非保护分支，跳过检查"
+            exit 0
+          fi
+          
+          # 检查最近的提交是否是 merge commit
+          # 如果是 merge commit，则父提交数量应该 >= 2
+          PARENT_COUNT=$(git rev-parse --verify HEAD^@ 2>/dev/null | wc -l | tr -d ' ')
+          
+          # 获取提交信息
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          
+          echo "提交信息: $COMMIT_MSG"
+          echo "父提交数量: $PARENT_COUNT"
+          
+          # 检查是否是 merge commit
+          if [ "$PARENT_COUNT" -ge 2 ] || echo "$COMMIT_MSG" | grep -q "^Merge branch"; then
+            echo "✅ 检测到 merge commit，允许合并"
+            exit 0
+          fi
+          
+          # 检查是否是 PR merge（GitHub PR merge 会创建 merge commit）
+          if echo "$COMMIT_MSG" | grep -q "Merge pull request"; then
+            echo "✅ 检测到 PR merge，允许合并"
+            exit 0
+          fi
+          
+          # 如果不是 merge commit，则是直接提交，拒绝
+          echo "❌ 错误：禁止直接提交到 $BRANCH 分支！"
+          echo ""
+          echo "📋 请使用 Git Worktree 开发模式："
+          echo "   1. 创建 worktree: ./scripts/git-worktree.sh add feature-your-feature"
+          echo "   2. 在 worktree 中开发并提交"
+          echo "   3. 推送到远程并创建 PR"
+          echo "   4. 通过 PR 合并到 $BRANCH"
+          echo ""
+          echo "详细说明请参考 CLAUDE.md 中的 'Git 工作流规范' 章节"
+          exit 1
+
   lint-and-test:
     name: 代码检查与测试
     runs-on: ubuntu-latest

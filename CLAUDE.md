@@ -289,6 +289,84 @@ export default function formatDate() {}
 
 ---
 
+## Git 工作流规范
+
+### 🔴 CRITICAL: 强制使用 Git Worktree 开发模式
+
+**禁止在 `develop` 或 `main` 分支中直接开发代码**
+
+### 分支管理策略
+
+```
+main (生产) ←─ develop (开发基准) ←─ feature/* (功能分支)
+```
+
+| 分支        | 用途             | 是否可直接开发 | 部署目标         |
+| ----------- | ---------------- | -------------- | ---------------- |
+| `main`      | 生产版本         | ❌ 禁止        | 私有化部署       |
+| `develop`   | 开发基准（默认） | ❌ 禁止        | Cloudflare Pages |
+| `feature/*` | 功能开发         | ✅ 必须        | 无               |
+| `hotfix/*`  | 紧急修复         | ✅ 必须        | 无               |
+
+### Worktree 开发流程（强制）
+
+```bash
+# ❌ 错误做法：直接在 develop 分支开发
+git checkout develop
+# ... 编码 ...  # 禁止！
+
+
+# ✅ 正确做法：使用 worktree 开发
+# 1. 创建功能分支 worktree
+./scripts/git-worktree.sh add feature-auth
+
+# 2. 进入 worktree 开发
+cd ../wes_frontend-worktrees/feature-auth
+# ... 编码 ...
+git add .
+git commit -m "feat(auth): 添加登录功能"
+git push -u origin feature-auth
+
+# 3. 创建 PR 合并到 develop
+# 在 GitHub: feature-auth → develop
+
+# 4. 合并后删除 worktree
+cd ../../wes_frontend
+./scripts/git-worktree.sh remove feature-auth
+```
+
+### Worktree 目录结构
+
+```
+~/SynologyDrive/works/
+├── wes_frontend/                    # 主仓库（develop 分支）
+│   ├── .git/                        # Git 仓库
+│   ├── src/
+│   └── scripts/
+└── wes_frontend-worktrees/          # Worktree 基础目录
+    ├── feature-auth/                # 功能分支 worktree
+    ├── feature-inbound/             # 功能分支 worktree
+    └── hotfix-device-status/        # 热修复分支 worktree
+```
+
+### 为什么强制使用 Worktree？
+
+| 优势           | 说明                               |
+| -------------- | ---------------------------------- |
+| **并行开发**   | 同时在多个分支工作，无需频繁切换   |
+| **干净状态**   | 每个 worktree 独立，不影响其他分支 |
+| **快速切换**   | `cd` 到不同目录 = 切换分支         |
+| **防止误操作** | 避免在 develop/main 分支直接开发   |
+| **代码审查**   | 强制通过 PR 合并，确保代码质量     |
+
+### 违反规则的后果
+
+- ❌ 在 develop/main 分支直接提交的代码将被拒绝合并
+- ❌ 未通过 PR 的代码合并将被要求回退
+- ❌ CI/CD 检查不通过的代码不允许合并
+
+---
+
 ## Git 提交规范
 
 使用 Conventional Commits 格式：
