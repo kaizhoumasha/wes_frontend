@@ -20,6 +20,9 @@ print_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
+# Worktree 基础目录（放在项目外部，避免与源码混合）
+WORKTREES_BASE_DIR="$(dirname "$PROJECT_ROOT")/wes_frontend-worktrees"
+
 # 切换到项目根目录
 cd "$PROJECT_ROOT"
 
@@ -44,17 +47,21 @@ Git Worktree 管理脚本
   ./scripts/git-worktree.sh prune
 
 Worktree 目录结构:
-  wes_frontend/
-  ├── .git/                    # 主 Git 仓库
-  ├── main/                    # 主分支
-  ├── feature-auth/            # 功能分支
-  ├── feature-inbound/         # 功能分支
-  └── hotfix-device-status/   # 热修复分支
+  ~/SynologyDrive/works/
+  ├── wes_frontend/                    # 主仓库（develop 分支）
+  │   ├── .git/                        # Git 仓库
+  │   ├── src/
+  │   └── scripts/
+  └── wes_frontend-worktrees/          # Worktree 基础目录
+      ├── feature-auth/                # 功能分支 worktree
+      ├── feature-inbound/             # 功能分支 worktree
+      └── hotfix-device-status/        # 热修复分支 worktree
 
 注意:
   - 每个分支在独立的目录中开发
   - 共享同一个 .git 仓库
   - 切换分支只需切换目录
+  - Worktree 存放在项目外部，避免与源码混合
 EOF
 }
 
@@ -69,13 +76,16 @@ check_git_repo() {
 # 创建新的 worktree
 add_worktree() {
     local branch_name=$1
-    local worktree_path="$PROJECT_ROOT/$branch_name"
+    local worktree_path="$WORKTREES_BASE_DIR/$branch_name"
 
     if [ -z "$branch_name" ]; then
         print_error "请指定分支名称"
         echo "用法: ./scripts/git-worktree.sh add <branch-name>"
         exit 1
     fi
+
+    # 确保 worktree 基础目录存在
+    mkdir -p "$WORKTREES_BASE_DIR"
 
     # 检查 worktree 是否已存在
     if [ -d "$worktree_path" ]; then
@@ -84,6 +94,7 @@ add_worktree() {
     fi
 
     print_info "创建 worktree: $branch_name"
+    print_info "目标路径: $worktree_path"
 
     # 创建 worktree
     git worktree add "$worktree_path" -b "$branch_name"
@@ -125,14 +136,20 @@ list_worktrees() {
             local branch=$(git worktree list --porcelain | grep -A1 "^worktree $path" | grep "^branch " | cut -d' ' -f2)
             local current_branch=$(git branch --show-current)
 
-            # 转换为相对路径
-            local rel_path="${path#$PROJECT_ROOT/}"
-            if [ "$rel_path" == "$path" ]; then
-                rel_path="."
+            # 转换为友好的相对路径
+            local rel_path
+            if [ "$path" == "$PROJECT_ROOT" ]; then
+                rel_path="${GREEN}./${NC} (主仓库)"
+            elif [[ "$path" == "$WORKTREES_BASE_DIR"/* ]]; then
+                local branch_dir="${path#$WORKTREES_BASE_DIR/}"
+                rel_path="../worktrees/$branch_dir"
+            else
+                rel_path="$path"
             fi
 
             # 检查是否是当前 worktree
-            if [ "$rel_path" == "." ] || [ "$(basename "$path")" == "$(basename "$PROJECT_ROOT")" ]; then
+            local current_dir="$(pwd)"
+            if [ "$current_dir" == "$path" ] || [[ "$current_dir" == "$path"/* ]]; then
                 echo -e "  ${GREEN}★${NC} $rel_path ${YELLOW}($branch)${NC} ${GREEN}[当前]${NC}"
             else
                 echo -e "    $rel_path ($branch)"
@@ -147,7 +164,7 @@ list_worktrees() {
 # 删除 worktree
 remove_worktree() {
     local branch_name=$1
-    local worktree_path="$PROJECT_ROOT/$branch_name"
+    local worktree_path="$WORKTREES_BASE_DIR/$branch_name"
 
     if [ -z "$branch_name" ]; then
         print_error "请指定分支名称"
@@ -232,4 +249,3 @@ main() {
 }
 
 main "$@"
-EOF
