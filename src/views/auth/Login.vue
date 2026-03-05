@@ -52,6 +52,8 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { authApi } from '@/api/modules/auth'
+import { setAccessToken, setTokenExpiresAt } from '@/api/services/token-refresh'
 
 const router = useRouter()
 const formRef = ref()
@@ -63,8 +65,14 @@ const form = reactive({
 })
 
 const rules = {
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 3, max: 50, message: '用户名长度为 3-50 个字符', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, max: 100, message: '密码长度为 6-100 个字符', trigger: 'blur' }
+  ]
 }
 
 const handleLogin = async () => {
@@ -72,11 +80,27 @@ const handleLogin = async () => {
     await formRef.value.validate()
     loading.value = true
 
-    // TODO: 实现登录 API 调用
-    localStorage.setItem('access_token', 'demo-token')
+    // 调用登录 API
+    const result = await authApi.login({
+      username: form.username,
+      password: form.password
+    })
+
+    // 保存访问令牌到 localStorage
+    setAccessToken(result.access_token)
+
+    // 保存令牌过期时间
+    const expiresAt = Date.now() + result.expires_in * 1000
+    setTokenExpiresAt(expiresAt)
+
     ElMessage.success('登录成功')
-    router.push('/dashboard')
+
+    // 跳转到登录前的页面或默认页面
+    const redirect = sessionStorage.getItem('redirect_after_login')
+    sessionStorage.removeItem('redirect_after_login')
+    router.push(redirect || '/dashboard')
   } catch (error) {
+    // 错误已被统一处理（显示错误通知），这里只记录日志
     console.error('登录失败:', error)
   } finally {
     loading.value = false
