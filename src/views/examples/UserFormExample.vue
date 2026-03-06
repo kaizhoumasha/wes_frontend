@@ -11,7 +11,7 @@ import { ElMessage } from 'element-plus'
 
 // 使用泛型类型，让 vee-validate 自动推断类型
 const { handleSubmit, errors, defineField } = useForm<CreateUserInput>({
-  validationSchema: UserCreateSchema,
+  validationSchema: UserCreateSchema
 })
 
 // 定义表单字段
@@ -22,7 +22,7 @@ const [password, passwordAttrs] = defineField('password')
 
 // 提交处理
 // values 类型自动推断为 CreateUserInput
-const onSubmit = handleSubmit(async (values) => {
+const onSubmit = handleSubmit(async values => {
   try {
     await userApi.create(values)
     ElMessage.success('用户创建成功')
