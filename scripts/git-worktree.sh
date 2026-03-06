@@ -107,15 +107,6 @@ add_worktree() {
         cd "$worktree_path"
         pnpm install --no-frozen-lockfile
 
-        # 创建 .gitignore（排除 node_modules）
-        cat > .gitignore << EOF
-# Worktree 本地文件
-node_modules
-.env.local
-.env.*.local
-.cache
-EOF
-
         cd "$PROJECT_ROOT"
         print_success "Worktree 初始化完成"
     else
