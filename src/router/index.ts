@@ -17,6 +17,12 @@ const routes: RouteRecordRaw[] = [
     name: 'Dashboard',
     component: () => import('@/views/dashboard/Dashboard.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/examples/user-form',
+    name: 'UserFormExample',
+    component: () => import('@/views/examples/UserFormExample.vue'),
+    meta: { requiresAuth: false }
   }
 ]
 

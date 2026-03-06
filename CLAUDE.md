@@ -435,3 +435,80 @@ Closes #123
 - **技术栈详解**: `docs/WES_FRONTEND_TECH_STACK.md`
 - **时区处理**: `docs/TIMEZONE_HANDLING.md`
 - **第一阶段任务**: `docs/TASKS_PHASE_1.md`
+
+---
+
+## 表单验证最佳实践
+
+### vee-validate + Zod 集成（推荐）
+
+**✅ 正确用法（v4.6+）：**
+
+```typescript
+import { useForm } from 'vee-validate'
+import { UserCreateSchema } from '@/types/zod-extensions'
+import { userApi, type CreateUserInput } from '@/api/modules/user'
+
+// 关键：使用泛型参数实现类型推断
+const { handleSubmit, errors, defineField } = useForm<CreateUserInput>({
+  validationSchema: UserCreateSchema // 直接传递 Zod schema
+})
+
+const onSubmit = handleSubmit(async values => {
+  // values 自动推断为 CreateUserInput，无需类型断言
+  await userApi.create(values)
+})
+```
+
+**❌ 错误做法：**
+
+```typescript
+// ❌ 不要使用 toTypedSchema（v5 才不需要）
+validationSchema: toTypedSchema(UserCreateSchema)
+
+// ❌ 不要使用类型断言绕过
+validationSchema: toTypedSchema(UserCreateSchema) as any
+
+// ❌ 不要手动 infer 类型
+type FormValues = z.infer<typeof UserCreateSchema>
+const onSubmit = handleSubmit(async (values: FormValues) => {
+  await userApi.create(values as CreateUserInput) // 多余的类型断言
+})
+```
+
+### Zod Schema 生成与使用
+
+```bash
+# 1. 从后端 OpenAPI 生成 Zod schemas
+pnpm run zod:generate
+
+# 2. 在组件中使用
+import { UserCreateSchema } from '@/types/zod-extensions'
+```
+
+**生成的文件位置：**
+
+- `src/types/generated/zod-schemas.ts` - 自动生成（请勿手动编辑）
+- `src/types/zod-extensions.ts` - 自定义扩展
+
+### 调试技巧
+
+遇到类型问题时，按以下顺序排查：
+
+```bash
+# 1. 确认包版本
+pnpm list vee-validate zod
+
+# 2. 查看类型定义（比文档更准确）
+cat node_modules/vee-validate/dist/*.d.ts | grep "function useForm"
+
+# 3. 查看对应版本的官方文档
+# v4 文档 vs v5 文档可能有重大差异
+```
+
+📖 **详细经验教训**：已记录在 Serena memory 中
+
+- Memory Key: `debugging-lessons-typescript-framework-integration`
+- 查看方式：Serena memory → debugging-lessons-typescript-framework-integration
+
+---

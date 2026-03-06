@@ -28,6 +28,6 @@ export const API_BASE_URL = env.apiBaseUrl
  * SSE 实时事件流 Base URL
  *
  * 后端提供 Server-Sent Events (SSE) 实时事件推送
- * 端点: /api/v1/sys/events/stream
+ * 端点: /api/v1/events/stream
  */
 export const SSE_BASE_URL = env.sseUrl
