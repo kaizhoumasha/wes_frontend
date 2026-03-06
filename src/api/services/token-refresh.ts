@@ -22,13 +22,9 @@ const REFRESH_ENDPOINT = getApiPath('/auth/refresh')
 // ==================== 类型定义 ====================
 
 /**
- * 请求队列项
+ * 请求队列项（用于 Token 刷新期间的请求等待）
  */
- 
 interface QueuedRequest {
-  /** 请求方法 */
-  method: any
-   
   /** 解析函数 */
   resolve: (value: any) => void
   /** 拒绝函数 */
@@ -126,18 +122,6 @@ function processQueue(error?: unknown): void {
   failedQueue = []
 }
 
-/**
- * 添加请求到队列
- * @param method 请求方法
- * @returns Promise，当Token刷新后resolve
- */
- 
-export function enqueueRequest(method: any): Promise<any> {
-  return new Promise<any>((resolve, reject) => {
-    failedQueue.push({ method, resolve, reject })
-  })
-}
-
 // ==================== Token刷新 ====================
 
 /**
@@ -152,7 +136,7 @@ export async function refreshAccessToken(apiClient: any): Promise<string> {
   if (isRefreshing) {
     // 如果正在刷新，将请求加入队列等待
     await new Promise<any>((resolve, reject) => {
-      failedQueue.push({ method: null, resolve, reject })
+      failedQueue.push({ resolve, reject })
     })
     // 刷新完成后，返回新Token
     const newToken = getAccessToken()
@@ -269,22 +253,33 @@ export async function redirectToLogin(redirectUrl?: string): Promise<void> {
  */
  
 export async function logout(apiClient?: any): Promise<void> {
-  // 清除Token
-  clearTokens()
-
-  // 清除其他用户相关数据
-  sessionStorage.clear()
-
-  // 如果有apiClient，调用登出接口
+  // 第一步：调用后端登出接口（此时还有 token，可以正常鉴权）
   if (apiClient) {
     try {
       await apiClient.Post(getApiPath('/auth/logout'))
-    } catch {
-      // 忽略登出接口错误
+    } catch (error) {
+      console.error('调用后端登出接口失败:', error)
+      // 即使后端接口失败，也继续执行前端清理
     }
   }
 
-  // 跳转到登录页
+  // 第二步：清除权限
+  // 注意：这里需要懒加载导入避免循环依赖
+  try {
+    const { usePermission } = await import('@/composables/usePermission')
+    const { clearPermissions } = usePermission()
+    clearPermissions()
+  } catch {
+    // 忽略清除权限错误
+  }
+
+  // 第三步：清除Token
+  clearTokens()
+
+  // 第四步：清除其他用户相关数据
+  sessionStorage.clear()
+
+  // 第五步：跳转到登录页
   await router.push('/login')
 }
 

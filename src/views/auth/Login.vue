@@ -276,9 +276,11 @@ import { ElMessage } from 'element-plus'
 import { authApi } from '@/api/modules/auth'
 import { ApiResponseError } from '@/api/client'
 import { setAccessToken, setTokenExpiresAt } from '@/api/services/token-refresh'
+import { usePermission } from '@/composables/usePermission'
 import logoSvg from '@/assets/logo.svg'
 
 const router = useRouter()
+const { loadPermissions } = usePermission()
 const usernameInput = ref()
 const passwordInput = ref()
 const loading = ref(false)
@@ -303,7 +305,6 @@ const gridDotStyle = (index: number) => {
     animationDelay: `${(col + row) * 0.2}s`
   }
 }
-
 
 // 粒子样式生成
 const particleStyle = () => {
@@ -351,6 +352,19 @@ const handleLogin = async () => {
     setAccessToken(result.access_token)
     const expiresAt = Date.now() + result.expires_in * 1000
     setTokenExpiresAt(expiresAt)
+
+    // 强制刷新用户权限（不使用旧缓存）
+    try {
+      await loadPermissions(true)
+    } catch (permError) {
+      console.error('加载权限失败:', permError)
+      // 权限加载失败，清除 token 并提示
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('token_expires_at')
+      ElMessage.error('权限加载失败，请重试')
+      loading.value = false
+      return
+    }
 
     ElMessage.success('登录成功')
 
@@ -410,7 +424,12 @@ onMounted(() => {
   position: absolute;
   width: 4px;
   height: 4px;
-  background: radial-gradient(circle, rgb(0 243 255 / 40%) 0%, rgb(0 243 255 / 15%) 50%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgb(0 243 255 / 40%) 0%,
+    rgb(0 243 255 / 15%) 50%,
+    transparent 70%
+  );
   border-radius: 50%;
   animation: pulse 3s ease-in-out infinite;
 }

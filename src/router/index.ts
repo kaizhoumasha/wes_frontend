@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
+import { createPermissionGuard } from './guards/permission'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -19,6 +20,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/403',
+    name: 'Unauthorized',
+    component: () => import('@/views/error/Unauthorized.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
     path: '/examples/user-form',
     name: 'UserFormExample',
     component: () => import('@/views/examples/UserFormExample.vue'),
@@ -31,11 +38,17 @@ const router = createRouter({
   routes
 })
 
-// 路由守卫
+// ==================== 路由守卫 ====================
+
+// 认证守卫
 router.beforeEach((to) => {
   const token = localStorage.getItem('access_token')
 
   if (to.meta.requiresAuth !== false && !token) {
+    // 保存目标路径用于登录后重定向
+    if (to.path !== '/login') {
+      sessionStorage.setItem('redirect_after_login', to.fullPath)
+    }
     return '/login'
   }
 
@@ -43,5 +56,8 @@ router.beforeEach((to) => {
     return '/dashboard'
   }
 })
+
+// 权限守卫（在认证守卫之后执行）
+router.beforeEach(createPermissionGuard(router))
 
 export default router

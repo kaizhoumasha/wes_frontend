@@ -51,14 +51,22 @@
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useEnv } from '@/composables/useEnv'
+import { logout } from '@/api/services/token-refresh'
+import { apiClient } from '@/api/client'
 
 const router = useRouter()
 const { appTitle } = useEnv()
 
-const handleLogout = () => {
-  localStorage.removeItem('access_token')
-  ElMessage.success('已退出登录')
-  router.push('/login')
+const handleLogout = async () => {
+  try {
+    // 传递 apiClient 以调用后端登出接口
+    await logout(apiClient)
+    ElMessage.success('已退出登录')
+  } catch (error) {
+    console.error('登出失败:', error)
+    // 即使失败也跳转到登录页
+    await router.push('/login')
+  }
 }
 </script>
 

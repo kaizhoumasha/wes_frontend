@@ -216,10 +216,25 @@ export const authApi = {
   },
 
   /**
-   * 用户登出
+   * ⚠️ 已废弃：请使用 src/api/services/token-refresh.ts 的 logout() 函数
    *
-   * 撤销当前会话的令牌并删除刷新令牌 Cookie
+   * ❌ 不要直接调用此方法
+   * ✅ 正确做法：
+   *   ```ts
+   *   import { logout } from '@/api/services/token-refresh'
+   *   import { apiClient } from '@/api/client'
+   *   await logout(apiClient)
+   *   ```
    *
+   * 原因：此方法只调用后端 API，不执行本地清理（权限/token）
+   *
+   * 正确的退出流程：
+   * 1. 调用后端 /auth/logout（携带 token 鉴权）
+   * 2. 清除权限（usePermission.clearPermissions()）
+   * 3. 清除本地 token（localStorage）
+   * 4. 跳转到登录页
+   *
+   * @deprecated 使用 logout(apiClient) 代替
    * @returns 登出响应
    */
   async logout(): Promise<LogoutResponse> {
@@ -231,10 +246,11 @@ export const authApi = {
   },
 
   /**
-   * 强制登出所有设备
+   * ⚠️ 已废弃：logoutAll 同样需要完整的本地清理流程
    *
-   * 撤销用户所有活跃会话的令牌
+   * 请参考 logout() 方法的注释说明。
    *
+   * @deprecated 使用完整退出流程代替
    * @returns 登出响应
    */
   async logoutAll(): Promise<LogoutResponse> {
