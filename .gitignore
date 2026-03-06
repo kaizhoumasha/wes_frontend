@@ -2,4 +2,19 @@
 node_modules
 .env.local
 .env.*.local
+
+# 构建输出
+dist/
+dist-ssr/
+*.local
+
+# Cache
 .cache
+.eslintcache
+.stylelintcache
+
+# 临时文件
+*.tmp
+*.temp
+*.log
+.DS_Store
