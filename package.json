@@ -19,10 +19,12 @@
     "lint": "pnpm run lint:all",
     "check": "pnpm run type:check && pnpm run lint",
     "type:generate": "tsx scripts/generate-api-types.ts",
+    "zod:generate": "tsx scripts/generate-zod-from-openapi.ts",
     "contract:test": "tsx scripts/contract-test.ts",
     "ci:contract": "pnpm run contract:test"
   },
   "dependencies": {
+    "@vee-validate/zod": "^4.15.1",
     "@vueuse/core": "^14.2.1",
     "alova": "^3.5.1",
     "clsx": "^2.1.1",
@@ -33,9 +35,11 @@
     "pinia": "^3.0.4",
     "pinia-plugin-persistedstate": "^4.7.1",
     "tailwind-merge": "^3.5.0",
+    "vee-validate": "^4.15.1",
     "vue": "^3.5.29",
     "vue-i18n": "^11.0.0-rc.1",
-    "vue-router": "^5.0.3"
+    "vue-router": "^5.0.3",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
