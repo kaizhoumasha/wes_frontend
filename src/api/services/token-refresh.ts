@@ -167,7 +167,11 @@ export async function refreshAccessToken(apiClient: any): Promise<string> {
   try {
     // 调用刷新Token接口
     // 注意：Refresh Token存储在HttpOnly Cookie中，无需手动传递
-    const response = await apiClient.Post(REFRESH_ENDPOINT, {})
+    const response = await apiClient.Post(REFRESH_ENDPOINT, {}, {
+      meta: {
+        isRefreshRequest: true
+      }
+    })
 
     // 解析响应（alova会自动提取data字段）
     const data = response
