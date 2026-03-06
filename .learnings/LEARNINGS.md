@@ -222,13 +222,20 @@ Git Worktree 工作流规定所有开发必须在功能分支进行,但存在例
 
 **Logged**: 2026-03-07T01:00:00+08:00
 **Priority**: high
-**Status**: resolved
+**Status**: promoted
 **Category**: best_practice
 **Area**: frontend
 
 ### Summary
 
 使用语义化状态标志区分"未加载"和"加载后为空",避免重复请求
+
+### Resolution
+
+- **Resolved**: 2026-03-07T01:30:00Z
+- **Commit**: 073f64e
+- **Promoted**: state-management-semantic-flags (Serena memory)
+- **Notes**: 已提升到项目 memory，供后续复用
 
 ### Details
 
@@ -335,7 +342,7 @@ const loadData = async (forceRefresh = false) => {
 
 **Logged**: 2026-03-07T01:00:00+08:00
 **Priority**: high
-**Status**: resolved
+**Status**: promoted
 **Category**: correction
 **Area**: frontend
 
@@ -424,7 +431,7 @@ export interface ApiPermissionInfo {
 
 **Logged**: 2026-03-07T01:00:00+08:00
 **Priority**: medium
-**Status**: resolved
+**Status**: promoted
 **Category**: best_practice
 **Area**: frontend
 
@@ -497,7 +504,7 @@ if (!isMenuLoaded.value) {
 
 **Logged**: 2026-03-07T01:00:00+08:00
 **Priority**: low
-**Status**: resolved
+**Status**: promoted
 **Category**: best_practice
 **Area**: frontend
 
