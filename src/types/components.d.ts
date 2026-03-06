@@ -12,6 +12,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppHeader: typeof import('./../components/common/AppHeader.vue')['default']
+    AppIcon: typeof import('./../components/ui/AppIcon.vue')['default']
     AppSidebar: typeof import('./../components/common/AppSidebar.vue')['default']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']
     ElBreadcrumb: typeof import('element-plus/es')['ElBreadcrumb']
