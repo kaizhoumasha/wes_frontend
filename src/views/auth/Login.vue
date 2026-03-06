@@ -206,7 +206,6 @@
                 type="password"
                 @focus="passwordFocused = true"
                 @blur="passwordFocused = false"
-                @keyup.enter="handleLogin"
               >
               <div class="input-border" />
               <div class="input-icon">
@@ -275,6 +274,7 @@ import { reactive, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { authApi } from '@/api/modules/auth'
+import { ApiResponseError } from '@/api/client'
 import { setAccessToken, setTokenExpiresAt } from '@/api/services/token-refresh'
 import logoSvg from '@/assets/logo.svg'
 
@@ -359,6 +359,9 @@ const handleLogin = async () => {
     router.push(redirect || '/dashboard')
   } catch (error) {
     console.error('登录失败:', error)
+    if (!(error instanceof ApiResponseError)) {
+      ElMessage.error('登录失败，请稍后重试')
+    }
   } finally {
     loading.value = false
   }

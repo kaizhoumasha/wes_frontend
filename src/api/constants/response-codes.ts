@@ -304,7 +304,25 @@ const RESPONSE_CODE_METADATA: Record<string, ResponseCodeMetadata> = {
     defaultMessage: '未授权，请先登录',
     logLevel: LogLevel.WARN,
     retryable: false,
-    notificationType: NotificationType.SILENT
+    notificationType: NotificationType.MESSAGE
+  },
+  [ClientErrorCode.INVALID_CREDENTIALS]: {
+    code: ClientErrorCode.INVALID_CREDENTIALS,
+    range: ResponseCodeRange.CLIENT_ERROR,
+    severity: ErrorSeverity.MEDIUM,
+    defaultMessage: '用户名或密码错误',
+    logLevel: LogLevel.WARN,
+    retryable: false,
+    notificationType: NotificationType.MESSAGE
+  },
+  [ClientErrorCode.INVALID_TOKEN]: {
+    code: ClientErrorCode.INVALID_TOKEN,
+    range: ResponseCodeRange.CLIENT_ERROR,
+    severity: ErrorSeverity.HIGH,
+    defaultMessage: '无效的令牌',
+    logLevel: LogLevel.WARN,
+    retryable: false,
+    notificationType: NotificationType.MESSAGE
   },
   [ClientErrorCode.TOKEN_EXPIRED]: {
     code: ClientErrorCode.TOKEN_EXPIRED,
@@ -314,6 +332,15 @@ const RESPONSE_CODE_METADATA: Record<string, ResponseCodeMetadata> = {
     logLevel: LogLevel.WARN,
     retryable: false,
     notificationType: NotificationType.SILENT
+  },
+  [ClientErrorCode.TOKEN_MISSING]: {
+    code: ClientErrorCode.TOKEN_MISSING,
+    range: ResponseCodeRange.CLIENT_ERROR,
+    severity: ErrorSeverity.HIGH,
+    defaultMessage: '缺少令牌',
+    logLevel: LogLevel.WARN,
+    retryable: false,
+    notificationType: NotificationType.MESSAGE
   },
   [ClientErrorCode.FORBIDDEN]: {
     code: ClientErrorCode.FORBIDDEN,
