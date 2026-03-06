@@ -229,6 +229,20 @@ export function usePermission() {
   }
 
   /**
+   * 注入权限数据（用于 /auth/my 聚合接口）
+   *
+   * @param perms 权限列表
+   * @param persist 是否写入缓存（默认 true）
+   */
+  const hydratePermissions = (perms: ApiPermissionInfo[], persist = true): void => {
+    setPermissionsState(perms)
+    loadError.value = null
+    if (persist) {
+      setPermissionsToCache(perms)
+    }
+  }
+
+  /**
    * 清除权限状态
    *
    * @example
@@ -307,6 +321,7 @@ export function usePermission() {
 
     // 权限管理
     loadPermissions,
+    hydratePermissions,
     clearPermissions
   }
 }

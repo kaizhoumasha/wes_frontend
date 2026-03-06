@@ -14,22 +14,29 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: false }
   },
   {
-    path: '/dashboard',
-    name: 'Dashboard',
-    component: () => import('@/views/dashboard/Dashboard.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/403',
-    name: 'Unauthorized',
-    component: () => import('@/views/error/Unauthorized.vue'),
-    meta: { requiresAuth: false }
-  },
-  {
-    path: '/examples/user-form',
-    name: 'UserFormExample',
-    component: () => import('@/views/examples/UserFormExample.vue'),
-    meta: { requiresAuth: false }
+    path: '/',
+    component: () => import('@/layouts/DefaultLayout.vue'),
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: 'dashboard',
+        name: 'Dashboard',
+        component: () => import('@/views/dashboard/Dashboard.vue'),
+        meta: { requiresAuth: true, title: '仪表盘' }
+      },
+      {
+        path: '403',
+        name: 'Unauthorized',
+        component: () => import('@/views/error/Unauthorized.vue'),
+        meta: { requiresAuth: false }
+      },
+      {
+        path: 'examples/user-form',
+        name: 'UserFormExample',
+        component: () => import('@/views/examples/UserFormExample.vue'),
+        meta: { requiresAuth: false }
+      }
+    ]
   }
 ]
 
