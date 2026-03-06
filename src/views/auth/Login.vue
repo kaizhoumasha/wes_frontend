@@ -277,10 +277,12 @@ import { authApi } from '@/api/modules/auth'
 import { ApiResponseError } from '@/api/client'
 import { setAccessToken, setTokenExpiresAt } from '@/api/services/token-refresh'
 import { usePermission } from '@/composables/usePermission'
+import { useMenu } from '@/composables/useMenu'
 import logoSvg from '@/assets/logo.svg'
 
 const router = useRouter()
-const { loadPermissions } = usePermission()
+const { loadPermissions, hydratePermissions } = usePermission()
+const { loadMenus, hydrateMenus } = useMenu()
 const usernameInput = ref()
 const passwordInput = ref()
 const loading = ref(false)
@@ -353,17 +355,52 @@ const handleLogin = async () => {
     const expiresAt = Date.now() + result.expires_in * 1000
     setTokenExpiresAt(expiresAt)
 
-    // 强制刷新用户权限（不使用旧缓存）
+    // 优先使用聚合接口一次性加载用户上下文（权限 + 菜单）
+    let initializedFromMy = false
     try {
-      await loadPermissions(true)
-    } catch (permError) {
-      console.error('加载权限失败:', permError)
-      // 权限加载失败，清除 token 并提示
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('token_expires_at')
-      ElMessage.error('权限加载失败，请重试')
-      loading.value = false
-      return
+      const myContext = await authApi.getMy()
+      if (Array.isArray(myContext.permissions) && myContext.permissions.length > 0) {
+        hydratePermissions(myContext.permissions)
+      } else {
+        await loadPermissions(true)
+      }
+
+      if (Array.isArray(myContext.menus) && myContext.menus.length > 0) {
+        hydrateMenus(myContext.menus)
+      } else {
+        await loadMenus(true)
+      }
+
+      initializedFromMy = true
+    } catch (contextError) {
+      console.warn('加载 /auth/my 失败，回退到分步加载:', contextError)
+    }
+
+    // 回退方案：兼容旧后端，分步加载权限和菜单
+    if (!initializedFromMy) {
+      try {
+        await loadPermissions(true)
+      } catch (permError) {
+        console.error('加载权限失败:', permError)
+        // 权限加载失败，清除 token 并提示
+        localStorage.removeItem('access_token')
+        localStorage.removeItem('token_expires_at')
+        ElMessage.error('权限加载失败，请重试')
+        loading.value = false
+        return
+      }
+
+      try {
+        await loadMenus(true)
+      } catch (menuError) {
+        console.error('加载菜单失败:', menuError)
+        // 菜单加载失败，清除 token 并提示
+        localStorage.removeItem('access_token')
+        localStorage.removeItem('token_expires_at')
+        ElMessage.error('菜单加载失败，请重试')
+        loading.value = false
+        return
+      }
     }
 
     ElMessage.success('登录成功')

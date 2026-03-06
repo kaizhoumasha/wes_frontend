@@ -7,6 +7,7 @@
 
 import { apiClient, getApiPath } from '../client'
 import type { ApiResponse } from '../types'
+import type { MenuTreeResponse } from '@/types/menu'
 
 // ==================== 类型定义 ====================
 
@@ -119,6 +120,13 @@ export interface RevokeSessionResponse {
 
 /**
  * API 权限信息
+ *
+ * 对应后端: src/app/auth/v1/auth.py (ApiPermissionInfo)
+ *
+ * ## 字段可空性说明
+ *
+ * - category, resource, action: 后端为 `str | None`，前端使用可选类型
+ * - method, path: 后端为 `str | None`，前端使用可选类型
  */
 export interface ApiPermissionInfo {
   /** 权限 ID */
@@ -129,16 +137,16 @@ export interface ApiPermissionInfo {
   description: string
   /** 权限类型（user_api 或 app_api） */
   type: string
-  /** 权限分类 */
-  category?: string
-  /** 资源 */
-  resource?: string
-  /** 操作 */
-  action?: string
-  /** HTTP 方法 */
-  method: string
-  /** API 路径 */
-  path: string
+  /** 权限分类（后端为 str | None） */
+  category?: string | null
+  /** 资源（后端为 str | None） */
+  resource?: string | null
+  /** 操作（后端为 str | None） */
+  action?: string | null
+  /** HTTP 方法（后端为 str | None） */
+  method?: string | null
+  /** API 路径（后端为 str | None） */
+  path?: string | null
 }
 
 /**
@@ -149,6 +157,18 @@ export interface UserPermissionsResponse {
   total: number
   /** 权限列表 */
   permissions: ApiPermissionInfo[]
+}
+
+/**
+ * 当前登录用户初始化上下文
+ */
+export interface AuthMyResponse {
+  /** 当前用户信息 */
+  user: UserInfo
+  /** 当前用户 API 权限列表 */
+  permissions: ApiPermissionInfo[]
+  /** 当前用户菜单树 */
+  menus: MenuTreeResponse[]
 }
 
 /**
@@ -298,5 +318,17 @@ export const authApi = {
       getApiPath('/auth/permissions')
     )
     return response as unknown as UserPermissionsResponse
+  },
+
+  /**
+   * 获取当前用户初始化上下文（用户信息 + 权限 + 菜单）
+   *
+   * 用于登录后一次性加载前端所需核心数据，减少额外请求。
+   */
+  async getMy(): Promise<AuthMyResponse> {
+    const response = await apiClient.Get<ApiResponse<AuthMyResponse>>(
+      getApiPath('/auth/my')
+    )
+    return response as unknown as AuthMyResponse
   },
 }
