@@ -7,8 +7,9 @@
   >
     <template #title>
       <div class="menu-item-content">
-        <component
-          :is="menuItem.icon || 'Menu'"
+        <AppIcon
+          :icon="menuItem.icon"
+          :fallback="'Menu'"
           class="menu-icon"
         />
         <span
@@ -41,8 +42,9 @@
     @click="handleMenuClick"
   >
     <div class="menu-item-content">
-      <component
-        :is="menuItem.icon || 'Document'"
+      <AppIcon
+        :icon="menuItem.icon"
+        :fallback="'Document'"
         class="menu-icon"
       />
       <span
@@ -57,10 +59,8 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowRight } from '@element-plus/icons-vue'
+import AppIcon from '@/components/ui/AppIcon.vue'
 import type { MenuItem } from '@/types/menu'
-
-// Element Plus 图标通过全局注册自动解析
-// 参见: https://element-plus.org/zh-CN/component/icon.html
 
 // ==================== Props ====================
 
