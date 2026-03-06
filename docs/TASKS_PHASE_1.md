@@ -70,14 +70,24 @@
 
 ## 阶段二：核心功能开发（Week 2）
 
-### 2.1 认证模块 ⏳
+### 2.1 认证模块 ✅
 
-| 任务ID | 任务描述        | 依赖  | 产出                 |
-| ------ | --------------- | ----- | -------------------- |
-| 2.1.1  | 实现登录 API    | 1.2.1 | api/auth/auth.ts     |
-| 2.1.2  | 实现 Token 存储 | 2.1.1 | stores/user.ts       |
-| 2.1.3  | 完善登录页面    | 2.1.2 | views/auth/Login.vue |
-| 2.1.4  | 实现登出功能    | 2.1.3 | -                    |
+| 任务ID | 任务描述        | 依赖  | 产出                          | 状态 |
+| ------ | --------------- | ----- | ----------------------------- | ---- |
+| 2.1.1  | 实现登录 API    | 1.2.1 | api/modules/auth.ts           | ✅   |
+| 2.1.2  | 实现 Token 存储 | 2.1.1 | api/services/token-refresh.ts | ✅   |
+| 2.1.3  | 完善登录页面    | 2.1.2 | views/auth/Login.vue          | ✅   |
+| 2.1.4  | 实现登出功能    | 2.1.3 | auth.ts + token-refresh.ts    | ✅   |
+
+> **已完成功能**:
+>
+> - 登录 API (`authApi.login`)
+> - Token 自动刷新机制 (401 错误静默刷新)
+> - 登出功能 (`authApi.logout` + 清除本地 Token)
+> - 会话管理 (`getActiveSessions`, `revokeSession`)
+> - 权限查询 (`getPermissions`)
+>
+> **架构说明**: Token 管理采用服务层 (`api/services/token-refresh.ts`) 而非 Pinia Store，更贴近 API 层设计
 
 ### 2.2 权限模块 ⏳
 
