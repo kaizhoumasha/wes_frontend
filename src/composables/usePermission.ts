@@ -36,20 +36,12 @@
 import { computed, ref } from 'vue'
 import { authApi } from '@/api/modules/auth'
 import type { ApiPermissionInfo } from '@/api/modules/auth'
+import { PERMISSION_CACHE, getCachedData, setCachedData, clearCachedData } from '@/constants/cache'
 
 // ==================== 常量定义 ====================
 
 /** 超级用户权限标识 */
 const SUPERUSER_PERMISSION = '*'
-
-/** SessionStorage 权限缓存键 */
-const PERMISSIONS_CACHE_KEY = 'user_permissions'
-
-/** SessionStorage 权限缓存时间戳键 */
-const PERMISSIONS_CACHE_TIME_KEY = 'user_permissions_time'
-
-/** 权限缓存过期时间（5 分钟） */
-const PERMISSIONS_CACHE_TTL = 5 * 60 * 1000
 
 // ==================== 全局状态 ====================
 
@@ -71,6 +63,13 @@ const isSuperuser = computed(() => permissionNames.value.has(SUPERUSER_PERMISSIO
 // ==================== 权限检查函数 ====================
 
 /**
+ * 内部权限检查函数（统一超级用户判断逻辑）
+ */
+const checkPermission = (permissionName: string): boolean => {
+  return isSuperuser.value || permissionNames.value.has(permissionName)
+}
+
+/**
  * 检查是否拥有指定权限
  *
  * @param permissionName 权限标识（如 `admin:user:create`）
@@ -86,15 +85,8 @@ const isSuperuser = computed(() => permissionNames.value.has(SUPERUSER_PERMISSIO
  * ```
  */
 export function usePermission() {
-  /**
-   * 检查是否拥有指定权限
-   */
   const hasPermission = (permissionName: string): boolean => {
-    // 超级用户拥有所有权限
-    if (isSuperuser.value) {
-      return true
-    }
-    return permissionNames.value.has(permissionName)
+    return checkPermission(permissionName)
   }
 
   /**
@@ -113,11 +105,7 @@ export function usePermission() {
    * ```
    */
   const hasAnyPermission = (permissionNameList: string[]): boolean => {
-    // 超级用户拥有所有权限
-    if (isSuperuser.value) {
-      return true
-    }
-    return permissionNameList.some((name) => permissionNames.value.has(name))
+    return permissionNameList.some((name) => checkPermission(name))
   }
 
   /**
@@ -136,11 +124,7 @@ export function usePermission() {
    * ```
    */
   const hasAllPermissions = (permissionNameList: string[]): boolean => {
-    // 超级用户拥有所有权限
-    if (isSuperuser.value) {
-      return true
-    }
-    return permissionNameList.every((name) => permissionNames.value.has(name))
+    return permissionNameList.every((name) => checkPermission(name))
   }
 
   /**
@@ -257,8 +241,7 @@ export function usePermission() {
     permissions.value = []
     permissionNames.value = new Set()
     loadError.value = null
-    sessionStorage.removeItem(PERMISSIONS_CACHE_KEY)
-    sessionStorage.removeItem(PERMISSIONS_CACHE_TIME_KEY)
+    clearCachedData(PERMISSION_CACHE.KEY, PERMISSION_CACHE.TIME_KEY)
   }
 
   // ==================== 辅助函数 ====================
@@ -271,36 +254,16 @@ export function usePermission() {
 
   /** 从缓存获取权限 */
   const getPermissionsFromCache = (): ApiPermissionInfo[] | null => {
-    try {
-      const cachedData = sessionStorage.getItem(PERMISSIONS_CACHE_KEY)
-      const cachedTime = sessionStorage.getItem(PERMISSIONS_CACHE_TIME_KEY)
-
-      if (!cachedData || !cachedTime) {
-        return null
-      }
-
-      const cacheAge = Date.now() - Number.parseInt(cachedTime, 10)
-      if (cacheAge > PERMISSIONS_CACHE_TTL) {
-        // 缓存过期
-        sessionStorage.removeItem(PERMISSIONS_CACHE_KEY)
-        sessionStorage.removeItem(PERMISSIONS_CACHE_TIME_KEY)
-        return null
-      }
-
-      return JSON.parse(cachedData) as ApiPermissionInfo[]
-    } catch {
-      return null
-    }
+    return getCachedData<ApiPermissionInfo[]>(
+      PERMISSION_CACHE.KEY,
+      PERMISSION_CACHE.TIME_KEY,
+      PERMISSION_CACHE.TTL
+    )
   }
 
   /** 将权限写入缓存 */
   const setPermissionsToCache = (perms: ApiPermissionInfo[]): void => {
-    try {
-      sessionStorage.setItem(PERMISSIONS_CACHE_KEY, JSON.stringify(perms))
-      sessionStorage.setItem(PERMISSIONS_CACHE_TIME_KEY, Date.now().toString())
-    } catch (error) {
-      console.error('写入权限缓存失败:', error)
-    }
+    setCachedData(PERMISSION_CACHE.KEY, PERMISSION_CACHE.TIME_KEY, perms)
   }
 
   // ==================== 导出 ====================

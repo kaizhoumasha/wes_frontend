@@ -106,9 +106,7 @@ const onSubmit = handleSubmit(async values => {
         >
           创建用户
         </el-button>
-        <el-button @click="$router.back()">
-          取消
-        </el-button>
+        <el-button @click="$router.back()">取消</el-button>
       </el-form-item>
     </el-form>
 

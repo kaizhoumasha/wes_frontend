@@ -4,10 +4,7 @@ import { useDarkMode } from '@/composables/useDarkMode'
 
 const { isDark, toggle } = useDarkMode()
 
-const handleToggle = (event: MouseEvent) => {
-  event.preventDefault()
-  toggle()
-}
+const handleToggle = () => toggle()
 </script>
 
 <template>

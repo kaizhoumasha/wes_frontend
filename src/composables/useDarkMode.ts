@@ -1,4 +1,4 @@
-import { useDark, useToggle } from '@vueuse/core'
+import { useDark, useToggle, onKeyStroke } from '@vueuse/core'
 
 /**
  * 暗黑模式管理 Composable
@@ -23,6 +23,7 @@ import { useDark, useToggle } from '@vueuse/core'
  * </template>
  * ```
  */
+
 // 使用模块级单例，确保全局只初始化一次
 const isDark = useDark({
   selector: 'html',
@@ -34,39 +35,14 @@ const isDark = useDark({
 })
 
 const toggleDark = useToggle(isDark)
-let hotkeyBound = false
 
-const handleKeydown = (e: KeyboardEvent) => {
-  // Ctrl/Cmd + K (避免与浏览器快捷键冲突)
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+// 全局快捷键：Ctrl/Cmd + K
+onKeyStroke('k', (e) => {
+  if (e.ctrlKey || e.metaKey) {
     e.preventDefault()
     toggleDark()
   }
-}
-
-function bindHotkey() {
-  if (hotkeyBound) {
-    return
-  }
-
-  window.addEventListener('keydown', handleKeydown)
-  hotkeyBound = true
-}
-
-function unbindHotkey() {
-  if (!hotkeyBound) {
-    return
-  }
-
-  window.removeEventListener('keydown', handleKeydown)
-  hotkeyBound = false
-}
-
-if (import.meta.hot) {
-  import.meta.hot.dispose(() => {
-    unbindHotkey()
-  })
-}
+})
 
 export function useDarkMode() {
   return {
@@ -77,11 +53,8 @@ export function useDarkMode() {
 
 /**
  * 在应用启动时初始化主题（确保登录页等无 Header 页面也生效）
- * 同时注册全局快捷键 (Ctrl/Cmd + K)
+ * 返回 isDark 供其他模块使用
  */
 export function initDarkMode() {
-  bindHotkey()
-
-  // 返回 isDark 供其他模块使用
   return isDark
 }

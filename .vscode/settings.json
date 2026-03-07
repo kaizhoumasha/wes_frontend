@@ -4,9 +4,14 @@
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit",
-    "source.fixAll.stylelint": "explicit"
+    "source.fixAll.stylelint": "explicit",
+    "source.fixAll.prettier": "always"
   },
   "editor.rulers": [100],
+  "[vue]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
 
   // 文件配置
   "files.eol": "\n",
@@ -32,13 +37,8 @@
   },
 
   // Prettier 配置
-  "prettier.enable": true,
-  "prettier.semi": false,
-  "prettier.singleQuote": true,
-  "prettier.printWidth": 100,
-  "prettier.trailingComma": "none",
-  "prettier.arrowParens": "avoid",
-  "prettier.endOfLine": "lf",
+  "prettier.requireConfig": true,
+  "prettier.useEditorConfig": false,
 
   // ESLint 配置
   "eslint.enable": true,

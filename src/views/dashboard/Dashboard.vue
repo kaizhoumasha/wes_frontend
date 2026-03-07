@@ -4,11 +4,10 @@
     <div class="welcome-card">
       <div class="welcome-content">
         <h1 class="welcome-title">
-          <span class="title-highlight">欢迎使用</span> P9 WES
+          <span class="title-highlight">欢迎使用</span>
+          P9 WES
         </h1>
-        <p class="welcome-subtitle">
-          休斯顿智能仓储执行系统
-        </p>
+        <p class="welcome-subtitle">休斯顿智能仓储执行系统</p>
       </div>
       <div class="welcome-decoration">
         <div class="decoration-line" />
@@ -61,9 +60,7 @@
       <el-col :span="24">
         <div class="status-card">
           <div class="card-header">
-            <h3 class="card-title">
-              系统状态
-            </h3>
+            <h3 class="card-title">系统状态</h3>
             <div class="status-badge">
               <span class="status-dot" />
               <span>正常运行</span>
@@ -71,10 +68,17 @@
           </div>
           <div class="card-content">
             <p>
-              当前环境: <strong>{{ appTitle }}</strong>
+              当前环境:
+              <strong>{{ appTitle }}</strong>
             </p>
-            <p>系统版本: <strong>v0.1.0</strong></p>
-            <p>后端 API: <strong>已连接</strong></p>
+            <p>
+              系统版本:
+              <strong>v0.1.0</strong>
+            </p>
+            <p>
+              后端 API:
+              <strong>已连接</strong>
+            </p>
           </div>
         </div>
       </el-col>

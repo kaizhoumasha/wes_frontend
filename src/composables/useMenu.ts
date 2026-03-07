@@ -36,17 +36,10 @@ import { computed, ref } from 'vue'
 import { menuApi } from '@/api/modules/menu'
 import type { MenuItem, FlatMenuItem, MenuTreeResponse } from '@/types/menu'
 import { toMenuItem, flattenMenuTree, getMenuBreadcrumb as computeBreadcrumb } from '@/types/menu'
+import { MENU_CACHE, getCachedData, setCachedData, clearCachedData, restoreFromHMR } from '@/constants/cache'
 
 // ==================== 常量定义 ====================
-
-/** SessionStorage 菜单缓存键 */
-const MENU_CACHE_KEY = 'menu-tree'
-
-/** SessionStorage 菜单缓存时间戳键 */
-const MENU_CACHE_TIME_KEY = 'menu-time'
-
-/** 菜单缓存过期时间（5 分钟） */
-const MENU_CACHE_TTL = 5 * 60 * 1000
+// 缓存常量已迁移到 @/constants/cache
 
 // ==================== 全局状态 ====================
 
@@ -189,8 +182,7 @@ export function useMenu() {
     openedPaths.value = []
     loadError.value = null
     hasLoaded.value = false
-    sessionStorage.removeItem(MENU_CACHE_KEY)
-    sessionStorage.removeItem(MENU_CACHE_TIME_KEY)
+    clearCachedData(MENU_CACHE.KEY, MENU_CACHE.TIME_KEY)
   }
 
   /**
@@ -248,28 +240,25 @@ export function useMenu() {
   }
 
   /**
-   * 根据路径查找菜单项
+   * 根据路径查找菜单项（递归实现）
    *
    * @param path 菜单路径
+   * @param menus 菜单列表（默认使用全局菜单树）
    * @returns 找到的菜单项，未找到时返回 undefined
    */
-  const findMenuItem = (path: string): MenuItem | undefined => {
-    function find(menus: MenuItem[]): MenuItem | undefined {
-      for (const menu of menus) {
-        if (menu.path === path) {
-          return menu
-        }
-        if (menu.children.length > 0) {
-          const found = find(menu.children)
-          if (found) {
-            return found
-          }
+  const findMenuItem = (path: string, menus: MenuItem[] = menuTree.value): MenuItem | undefined => {
+    for (const menu of menus) {
+      if (menu.path === path) {
+        return menu
+      }
+      if (menu.children.length > 0) {
+        const found = findMenuItem(path, menu.children)
+        if (found) {
+          return found
         }
       }
-      return undefined
     }
-
-    return find(menuTree.value)
+    return undefined
   }
 
   /**
@@ -312,40 +301,19 @@ export function useMenu() {
 
   /** 从缓存获取菜单 */
   const getMenuFromCache = (): MenuItem[] | null => {
-    try {
-      const cachedData = sessionStorage.getItem(MENU_CACHE_KEY)
-      const cachedTime = sessionStorage.getItem(MENU_CACHE_TIME_KEY)
-
-      if (!cachedData || !cachedTime) {
-        return null
-      }
-
-      const cacheAge = Date.now() - Number.parseInt(cachedTime, 10)
-      if (cacheAge > MENU_CACHE_TTL) {
-        // 缓存过期
-        sessionStorage.removeItem(MENU_CACHE_KEY)
-        sessionStorage.removeItem(MENU_CACHE_TIME_KEY)
-        return null
-      }
-
-      const parsed = JSON.parse(cachedData)
-      if (!Array.isArray(parsed)) {
-        return null
-      }
-      return normalizeMenuTree(parsed as MenuItem[])
-    } catch {
-      return null
-    }
+    const cached = getCachedData<MenuItem[]>(
+      MENU_CACHE.KEY,
+      MENU_CACHE.TIME_KEY,
+      MENU_CACHE.TTL
+    )
+    if (!cached) return null
+    if (!Array.isArray(cached)) return null
+    return normalizeMenuTree(cached)
   }
 
   /** 将菜单写入缓存 */
   const setMenuToCache = (menus: MenuItem[]): void => {
-    try {
-      sessionStorage.setItem(MENU_CACHE_KEY, JSON.stringify(menus))
-      sessionStorage.setItem(MENU_CACHE_TIME_KEY, Date.now().toString())
-    } catch (error) {
-      console.error('写入菜单缓存失败:', error)
-    }
+    setCachedData(MENU_CACHE.KEY, MENU_CACHE.TIME_KEY, menus)
   }
 
   // ==================== HMR 支持 ====================
@@ -359,18 +327,20 @@ export function useMenu() {
    * - 如果有，则恢复菜单状态（无需重新请求 API）
    */
   const restoreMenuStateOnHMR = (): void => {
-    // 如果已经加载过（通过 sessionStorage 判断）但当前状态为空，说明是 HMR 导致的
-    const hasCachedMenu = sessionStorage.getItem(MENU_CACHE_KEY) !== null
-    const hasCachedTime = sessionStorage.getItem(MENU_CACHE_TIME_KEY) !== null
+    if (menuTree.value.length > 0) {
+      return // 已有数据，无需恢复
+    }
 
-    if (hasCachedMenu && hasCachedTime && menuTree.value.length === 0) {
-      // 尝试从缓存恢复
-      const cached = getMenuFromCache()
-      if (cached && cached.length > 0) {
-        setMenuState(cached)
-        hasLoaded.value = true
-        console.log('[useMenu] HMR: 从 sessionStorage 恢复菜单状态')
-      }
+    const cached = restoreFromHMR<MenuItem[]>(
+      MENU_CACHE.KEY,
+      MENU_CACHE.TIME_KEY,
+      normalizeMenuTree
+    )
+
+    if (cached && cached.length > 0) {
+      setMenuState(cached)
+      hasLoaded.value = true
+      console.log('[useMenu] HMR: 从 sessionStorage 恢复菜单状态')
     }
   }
 

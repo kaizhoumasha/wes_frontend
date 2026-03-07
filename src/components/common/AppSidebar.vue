@@ -14,13 +14,14 @@
           :src="logoSvg"
           alt="P9 WES"
           class="logo-image"
-        >
+        />
         <transition name="logo-text">
           <div
             v-show="!sidebarCollapsed"
             class="logo-text"
           >
-            <span class="logo-highlight">P9</span> WES
+            <span class="logo-highlight">P9</span>
+            WES
           </div>
         </transition>
       </div>
@@ -53,7 +54,7 @@
           v-show="!sidebarCollapsed"
           class="version-info"
         >
-          v{{ version }}
+          v{{ APP_VERSION }}
         </div>
       </transition>
     </div>
@@ -73,16 +74,13 @@ import logoSvg from '@/assets/logo.svg'
 import SidebarMenuItem from './SidebarMenuItem.vue'
 import { useLayout } from '@/composables/useLayout'
 import { useMenu } from '@/composables/useMenu'
+import { APP_VERSION } from '@/constants/app'
 
 // ==================== 状态管理 ====================
 
 const { sidebarCollapsed, isMobileMenuOpen, isMobile, closeMobileMenu } = useLayout()
 
 const { menuTree, selectedPath, openedPaths, selectMenu } = useMenu()
-
-// ==================== 常量 ====================
-
-const version = '0.1.0'
 
 // ==================== 计算属性 ====================
 
@@ -126,6 +124,56 @@ const handleMenuClose = (path: string) => {
 </script>
 
 <style scoped>
+/* ==================== CSS 变量定义 ==================== */
+
+/* 暗黑模式变量 */
+html.dark .app-sidebar {
+  --sidebar-bg: rgb(10 14 39 / 98%);
+  --sidebar-border: rgb(0 243 255 / 10%);
+  --sidebar-shadow: 2px 0 20px rgb(0 0 0 / 30%);
+  --header-bg: rgb(0 243 255 / 3%);
+  --header-border: rgb(0 243 255 / 8%);
+  --logo-text-color: #fff;
+  --logo-glow: rgb(0 243 255 / 50%);
+  --menu-color: rgb(255 255 255 / 70%);
+  --menu-hover-bg: rgb(0 243 255 / 8%);
+  --menu-hover-color: rgb(255 255 255 / 100%);
+  --menu-active-bg: rgb(0 243 255 / 12%);
+  --menu-active-color: #00f3ff;
+  --menu-active-shadow: 0 0 20px rgb(0 243 255 / 10%);
+  --menu-icon-glow: rgb(0 243 255 / 50%);
+  --menu-opened-bg: rgb(0 243 255 / 5%);
+  --menu-opened-color: rgb(255 255 255 / 90%);
+  --footer-border: rgb(0 243 255 / 8%);
+  --footer-color: rgb(255 255 255 / 30%);
+  --scrollbar-thumb: rgb(0 243 255 / 10%);
+  --scrollbar-thumb-hover: rgb(0 243 255 / 20%);
+}
+
+/* 亮模式变量 */
+html:not(.dark) .app-sidebar {
+  --sidebar-bg: #f5f6f7;
+  --sidebar-border: #e4e7ed;
+  --sidebar-shadow: 2px 0 8px rgb(0 0 0 / 5%);
+  --header-bg: #f5f7fa;
+  --header-border: #e4e7ed;
+  --logo-text-color: #303133;
+  --logo-glow: rgb(64 158 255 / 50%);
+  --menu-color: #606266;
+  --menu-hover-bg: #ecf5ff;
+  --menu-hover-color: #409eff;
+  --menu-active-bg: #409eff;
+  --menu-active-color: #fff;
+  --menu-active-shadow: 0 2px 8px rgb(64 158 255 / 30%);
+  --menu-icon-glow: rgb(64 158 255 / 50%);
+  --menu-opened-bg: #f5f7fa;
+  --menu-opened-color: #303133;
+  --footer-border: #e4e7ed;
+  --footer-color: #909399;
+  --scrollbar-thumb: rgb(0 0 0 / 10%);
+  --scrollbar-thumb-hover: rgb(0 0 0 / 20%);
+}
+
 /* ==================== 基础布局 ==================== */
 .app-sidebar {
   position: fixed;
@@ -136,21 +184,12 @@ const handleMenuClose = (path: string) => {
   z-index: 100;
   display: flex;
   flex-direction: column;
-}
 
-/* 暗黑模式侧边栏 */
-html.dark .app-sidebar {
-  background: rgb(10 14 39 / 98%);
-  border-right: 1px solid rgb(0 243 255 / 10%);
+  /* 使用 CSS 变量 */
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
   backdrop-filter: blur(20px);
-  box-shadow: 2px 0 20px rgb(0 0 0 / 30%);
-}
-
-/* 亮模式侧边栏 */
-html:not(.dark) .app-sidebar {
-  background: #f5f6f7;
-  border-right: 1px solid #e4e7ed;
-  box-shadow: 2px 0 8px rgb(0 0 0 / 5%);
+  box-shadow: var(--sidebar-shadow);
 }
 
 /* 桌面端宽度 */
@@ -180,18 +219,8 @@ html:not(.dark) .app-sidebar {
   justify-content: center;
   padding: 0 16px;
   flex-shrink: 0;
-}
-
-/* 暗黑模式 Logo 区域 */
-html.dark .sidebar-header {
-  border-bottom: 1px solid rgb(0 243 255 / 8%);
-  background: rgb(0 243 255 / 3%);
-}
-
-/* 亮模式 Logo 区域 */
-html:not(.dark) .sidebar-header {
-  border-bottom: 1px solid #e4e7ed;
-  background: #f5f7fa;
+  border-bottom: 1px solid var(--header-border);
+  background: var(--header-bg);
 }
 
 .logo-container {
@@ -206,7 +235,7 @@ html:not(.dark) .sidebar-header {
   width: 32px;
   height: 32px;
   flex-shrink: 0;
-  filter: drop-shadow(0 0 10px rgb(0 243 255 / 50%));
+  filter: drop-shadow(0 0 10px var(--logo-glow));
 }
 
 .logo-text {
@@ -214,16 +243,7 @@ html:not(.dark) .sidebar-header {
   font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.5px;
-}
-
-/* 暗黑模式 Logo 文字 */
-html.dark .logo-text {
-  color: #fff;
-}
-
-/* 亮模式 Logo 文字 */
-html:not(.dark) .logo-text {
-  color: #303133;
+  color: var(--logo-text-color);
 }
 
 .logo-highlight {
@@ -257,12 +277,12 @@ html:not(.dark) .logo-text {
 }
 
 .sidebar-menu::-webkit-scrollbar-thumb {
-  background: rgb(0 243 255 / 10%);
+  background: var(--scrollbar-thumb);
   border-radius: 3px;
 }
 
 .sidebar-menu::-webkit-scrollbar-thumb:hover {
-  background: rgb(0 243 255 / 20%);
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* Element Plus 菜单样式覆盖 */
@@ -275,10 +295,10 @@ html:not(.dark) .logo-text {
   display: none !important;
 }
 
-/* 暗黑模式菜单项 */
-html.dark .sidebar-menu :deep(.el-menu-item),
-html.dark .sidebar-menu :deep(.el-sub-menu__title) {
-  color: rgb(255 255 255 / 70%);
+/* 菜单项基础样式 */
+.sidebar-menu :deep(.el-menu-item),
+.sidebar-menu :deep(.el-sub-menu__title) {
+  color: var(--menu-color);
   background: transparent;
   border-radius: 8px;
   margin: 0 8px;
@@ -288,51 +308,21 @@ html.dark .sidebar-menu :deep(.el-sub-menu__title) {
   transition: all 0.3s ease;
 }
 
-html.dark .sidebar-menu :deep(.el-menu-item:hover),
-html.dark .sidebar-menu :deep(.el-sub-menu__title:hover) {
-  background: rgb(0 243 255 / 8%);
-  color: rgb(255 255 255 / 100%);
+.sidebar-menu :deep(.el-menu-item:hover),
+.sidebar-menu :deep(.el-sub-menu__title:hover) {
+  background: var(--menu-hover-bg);
+  color: var(--menu-hover-color);
 }
 
-html.dark .sidebar-menu :deep(.el-menu-item.is-active) {
-  background: rgb(0 243 255 / 12%);
-  color: #00f3ff;
-  box-shadow: 0 0 20px rgb(0 243 255 / 10%);
+.sidebar-menu :deep(.el-menu-item.is-active) {
+  background: var(--menu-active-bg);
+  color: var(--menu-active-color);
+  box-shadow: var(--menu-active-shadow);
 }
 
-html.dark .sidebar-menu :deep(.el-sub-menu.is-opened > .el-sub-menu__title) {
-  background: rgb(0 243 255 / 5%);
-  color: rgb(255 255 255 / 90%);
-}
-
-/* 亮模式菜单项 */
-html:not(.dark) .sidebar-menu :deep(.el-menu-item),
-html:not(.dark) .sidebar-menu :deep(.el-sub-menu__title) {
-  color: #606266;
-  background: transparent;
-  border-radius: 8px;
-  margin: 0 8px;
-  padding: 0 12px;
-  height: 44px;
-  line-height: 44px;
-  transition: all 0.3s ease;
-}
-
-html:not(.dark) .sidebar-menu :deep(.el-menu-item:hover),
-html:not(.dark) .sidebar-menu :deep(.el-sub-menu__title:hover) {
-  background: #ecf5ff;
-  color: #409eff;
-}
-
-html:not(.dark) .sidebar-menu :deep(.el-menu-item.is-active) {
-  background: #409eff;
-  color: #fff;
-  box-shadow: 0 2px 8px rgb(64 158 255 / 30%);
-}
-
-html:not(.dark) .sidebar-menu :deep(.el-sub-menu.is-opened > .el-sub-menu__title) {
-  background: #f5f7fa;
-  color: #303133;
+.sidebar-menu :deep(.el-sub-menu.is-opened > .el-sub-menu__title) {
+  background: var(--menu-opened-bg);
+  color: var(--menu-opened-color);
 }
 
 .sidebar-menu :deep(.el-sub-menu .el-menu-item) {
@@ -340,9 +330,23 @@ html:not(.dark) .sidebar-menu :deep(.el-sub-menu.is-opened > .el-sub-menu__title
   background: transparent;
 }
 
+/* 子菜单项选中状态（需要更高优先级） */
+.sidebar-menu :deep(.el-sub-menu .el-menu-item.is-active) {
+  background: var(--menu-active-bg) !important;
+  color: var(--menu-active-color) !important;
+  box-shadow: var(--menu-active-shadow);
+}
+
 /* 二级菜单缩进 */
 .sidebar-menu :deep(.el-sub-menu .el-sub-menu .el-menu-item) {
   padding-left: 68px;
+}
+
+/* 三级菜单项选中状态 */
+.sidebar-menu :deep(.el-sub-menu .el-sub-menu .el-menu-item.is-active) {
+  background: var(--menu-active-bg) !important;
+  color: var(--menu-active-color) !important;
+  box-shadow: var(--menu-active-shadow);
 }
 
 /* 子菜单容器样式 */
@@ -362,29 +366,13 @@ html:not(.dark) .sidebar-menu :deep(.el-sub-menu.is-opened > .el-sub-menu__title
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-}
-
-/* 暗黑模式底部 */
-html.dark .sidebar-footer {
-  border-top: 1px solid rgb(0 243 255 / 8%);
-}
-
-html.dark .version-info {
-  color: rgb(255 255 255 / 30%);
-}
-
-/* 亮模式底部 */
-html:not(.dark) .sidebar-footer {
-  border-top: 1px solid #e4e7ed;
-}
-
-html:not(.dark) .version-info {
-  color: #909399;
+  border-top: 1px solid var(--footer-border);
 }
 
 .version-info {
   font-size: 12px;
   font-family: 'Courier New', monospace;
+  color: var(--footer-color);
 }
 
 /* ==================== 移动端遮罩层 ==================== */

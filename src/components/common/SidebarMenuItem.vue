@@ -15,7 +15,9 @@
         <span
           v-show="!sidebarCollapsed"
           class="menu-title"
-        >{{ menuItem.title }}</span>
+        >
+          {{ menuItem.title }}
+        </span>
         <el-icon
           v-show="!sidebarCollapsed"
           class="menu-arrow"
@@ -50,7 +52,9 @@
       <span
         v-show="!sidebarCollapsed"
         class="menu-title"
-      >{{ menuItem.title }}</span>
+      >
+        {{ menuItem.title }}
+      </span>
     </div>
   </el-menu-item>
 </template>
@@ -113,99 +117,58 @@ const handleMenuClick = () => {
   transition: all 0.3s ease;
 }
 
-/* 暗黑模式菜单图标 */
-html.dark .menu-icon {
-  color: rgb(255 255 255 / 60%);
-}
-
-html.dark .el-menu-item:hover .menu-icon,
-html.dark .el-sub-menu__title:hover .menu-icon {
-  color: rgb(255 255 255 / 90%);
-}
-
-/* 亮模式菜单图标 */
-html:not(.dark) .menu-icon {
-  color: #606266;
-}
-
-html:not(.dark) .el-menu-item:hover .menu-icon,
-html:not(.dark) .el-sub-menu__title:hover .menu-icon {
-  color: #409eff;
-}
-
+/* 使用 CSS 变量的菜单样式 */
 .menu-icon {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
+  color: var(--menu-icon-color);
   transition: all 0.3s ease;
 }
 
-/* 暗黑模式菜单标题 */
-html.dark .menu-title {
-  color: rgb(255 255 255 / 80%);
-}
-
-html.dark .el-menu-item:hover .menu-title,
-html.dark .el-sub-menu__title:hover .menu-title {
-  color: rgb(255 255 255 / 100%);
-}
-
-/* 亮模式菜单标题 */
-html:not(.dark) .menu-title {
-  color: #606266;
-}
-
-html:not(.dark) .el-menu-item:hover .menu-title,
-html:not(.dark) .el-sub-menu__title:hover .menu-title {
-  color: #409eff;
+.el-menu-item:hover .menu-icon,
+.el-sub-menu__title:hover .menu-icon {
+  color: var(--menu-text-hover);
 }
 
 .menu-title {
   margin-left: 12px;
   font-size: 14px;
+  color: var(--menu-text-color);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   transition: all 0.3s ease;
 }
 
-/* 暗黑模式箭头 */
-html.dark .menu-arrow {
-  color: rgb(255 255 255 / 40%);
-}
-
-/* 亮模式箭头 */
-html:not(.dark) .menu-arrow {
-  color: #909399;
+.el-menu-item:hover .menu-title,
+.el-sub-menu__title:hover .menu-title {
+  color: var(--menu-text-hover);
 }
 
 .menu-arrow {
   margin-left: auto;
   font-size: 14px;
+  color: var(--menu-arrow-color);
   transition: all 0.3s ease;
 }
 
 /* ==================== 选中状态 ==================== */
 .el-menu-item.is-active .menu-icon {
-  color: #00f3ff;
-  filter: drop-shadow(0 0 8px rgb(0 243 255 / 50%));
+  color: var(--menu-text-active);
+  filter: drop-shadow(0 0 8px var(--menu-icon-glow));
 }
 
 .el-menu-item.is-active .menu-title {
-  color: #00f3ff;
+  color: var(--menu-text-active);
 }
 
-/* ==================== 悬停状态 ==================== */
-
 /* ==================== 子菜单展开状态 ==================== */
-
-/* 子菜单展开时，箭头向下旋转 90 度 */
 .el-sub-menu.is-opened > .el-sub-menu__title .menu-arrow,
 .el-sub-menu.is-active.is-opened > .el-sub-menu__title .menu-arrow {
   transform: rotate(90deg);
 }
 
-/* 子菜单收起时，箭头保持原样（向右） */
 .el-sub-menu > .el-sub-menu__title .menu-arrow {
   transform: rotate(0deg);
 }

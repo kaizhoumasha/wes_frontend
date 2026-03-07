@@ -38,6 +38,7 @@
 
 import { ref, computed, watch } from 'vue'
 import { useBreakpoints, useStorage } from '@vueuse/core'
+import { LAYOUT_CACHE } from '@/constants/cache'
 
 // ==================== 常量定义 ====================
 
@@ -48,13 +49,10 @@ const BREAKPOINTS = {
   desktop: 1280
 }
 
-/** LocalStorage 侧边栏状态键 */
-const SIDEBAR_COLLAPSED_KEY = 'sidebar_collapsed'
-
 // ==================== 全局状态 ====================
 
 /** 侧边栏折叠状态（持久化到 localStorage） */
-const sidebarCollapsed = useStorage(SIDEBAR_COLLAPSED_KEY, false)
+const sidebarCollapsed = useStorage(LAYOUT_CACHE.SIDEBAR_COLLAPSED_KEY, false)
 
 /** 移动端菜单打开状态 */
 const isMobileMenuOpen = ref(false)
@@ -173,13 +171,13 @@ export function useLayout() {
   // ==================== 导出 ====================
 
   return {
-    // 状态
-    sidebarCollapsed: computed(() => sidebarCollapsed.value),
-    isMobileMenuOpen: computed(() => isMobileMenuOpen.value),
+    // 状态（直接导出 ref，无需 computed 包装）
+    sidebarCollapsed,
+    isMobileMenuOpen,
     device,
-    isMobile: computed(() => isMobile.value),
-    isTablet: computed(() => isTablet.value),
-    isDesktop: computed(() => isDesktop.value),
+    isMobile,
+    isTablet,
+    isDesktop,
     sidebarWidth,
     contentMarginLeft,
 

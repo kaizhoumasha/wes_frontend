@@ -35,17 +35,11 @@
       </div>
 
       <!-- 标题 -->
-      <h1 class="title">
-        403
-      </h1>
-      <h2 class="subtitle">
-        访问受限
-      </h2>
+      <h1 class="title">403</h1>
+      <h2 class="subtitle">访问受限</h2>
 
       <!-- 说明信息 -->
-      <p class="description">
-        您没有访问此页面的权限
-      </p>
+      <p class="description">您没有访问此页面的权限</p>
 
       <!-- 所需权限提示 -->
       <div
@@ -73,9 +67,7 @@
       </div>
 
       <!-- 联系管理员提示 -->
-      <p class="hint">
-        如果您认为这是一个错误，请联系系统管理员
-      </p>
+      <p class="hint">如果您认为这是一个错误，请联系系统管理员</p>
     </div>
   </div>
 </template>

@@ -17,6 +17,19 @@ export default [
   // Vue 配置
   ...pluginVue.configs['flat/recommended'],
 
+  // 禁用 Vue 格式化规则，让 Prettier 处理（放在 Vue 配置之后）
+  {
+    rules: {
+      'vue/max-attributes-per-line': 'off',
+      'vue/first-attribute-linebreak': 'off',
+      'vue/html-indent': 'off',
+      'vue/html-closing-bracket-newline': 'off',
+      'vue/html-self-closing': 'off',
+      'vue/singleline-html-element-content-newline': 'off',
+      'vue/multiline-html-element-content-newline': 'off'
+    }
+  },
+
   // Vue 文件的 TypeScript 解析器配置
   {
     files: ['**/*.vue'],

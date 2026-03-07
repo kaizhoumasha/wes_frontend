@@ -31,114 +31,16 @@
       <div class="brand-section">
         <div class="brand-content">
           <!-- 3D 旋转 LOGO 立方体 -->
-          <div class="icon-container">
-            <div class="warehouse-icon">
-              <div class="cube-wrapper">
-                <div class="cube">
-                  <div class="cube-face cube-face-front">
-                    <img
-                      :src="logoSvg"
-                      alt="P9 WES"
-                      class="cube-logo"
-                    >
-                  </div>
-                  <div class="cube-face cube-face-back">
-                    <img
-                      :src="logoSvg"
-                      alt="P9 WES"
-                      class="cube-logo"
-                    >
-                  </div>
-                  <div class="cube-face cube-face-right">
-                    <img
-                      :src="logoSvg"
-                      alt="P9 WES"
-                      class="cube-logo"
-                    >
-                  </div>
-                  <div class="cube-face cube-face-left">
-                    <img
-                      :src="logoSvg"
-                      alt="P9 WES"
-                      class="cube-logo"
-                    >
-                  </div>
-                  <div class="cube-face cube-face-top">
-                    <img
-                      :src="logoSvg"
-                      alt="P9 WES"
-                      class="cube-logo"
-                    >
-                  </div>
-                  <div class="cube-face cube-face-bottom">
-                    <img
-                      :src="logoSvg"
-                      alt="P9 WES"
-                      class="cube-logo"
-                    >
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <LoginLogo />
 
           <h1 class="brand-title">
-            <span class="title-highlight">P9</span> WES
+            <span class="title-highlight">P9</span>
+            WES
           </h1>
-          <p class="brand-subtitle">
-            Houston Warehouse Execution System
-          </p>
+          <p class="brand-subtitle">Houston Warehouse Execution System</p>
 
-          <div class="brand-features">
-            <div class="feature-item">
-              <div class="feature-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
-                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                </svg>
-              </div>
-              <span>实时监控</span>
-            </div>
-            <div class="feature-item">
-              <div class="feature-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
-                  <path
-                    d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
-                  />
-                  <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-                  <line
-                    x1="12"
-                    y1="22.08"
-                    x2="12"
-                    y2="12"
-                  />
-                </svg>
-              </div>
-              <span>智能调度</span>
-            </div>
-            <div class="feature-item">
-              <div class="feature-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                </svg>
-              </div>
-              <span>安全可靠</span>
-            </div>
-          </div>
+          <!-- 功能特性 -->
+          <BrandFeatures />
         </div>
 
         <!-- 底部装饰线 -->
@@ -149,7 +51,9 @@
               :key="i"
               :style="{ animationDelay: `${i * 0.1}s` }"
               class="data-bit"
-            >0</span>
+            >
+              0
+            </span>
           </div>
         </div>
       </div>
@@ -179,7 +83,7 @@
                 type="text"
                 @focus="usernameFocused = true"
                 @blur="usernameFocused = false"
-              >
+              />
               <div class="input-border" />
               <div class="input-icon">
                 <svg
@@ -211,7 +115,7 @@
                 type="password"
                 @focus="passwordFocused = true"
                 @blur="passwordFocused = false"
-              >
+              />
               <div class="input-border" />
               <div class="input-icon">
                 <svg
@@ -254,9 +158,7 @@
 
           <!-- 底部信息 -->
           <div class="form-footer">
-            <div class="version-info">
-              v{{ version }}
-            </div>
+            <div class="version-info">v{{ APP_VERSION }}</div>
             <div class="status-indicator">
               <span class="status-dot" />
               <span>系统正常运行</span>
@@ -275,37 +177,29 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { authApi } from '@/api/modules/auth'
-import { ApiResponseError } from '@/api/client'
-import { setAccessToken, setTokenExpiresAt } from '@/api/services/token-refresh'
-import { usePermission } from '@/composables/usePermission'
-import { useMenu } from '@/composables/useMenu'
+import { onMounted } from 'vue'
 import ThemeToggle from '@/components/common/ThemeToggle.vue'
-import logoSvg from '@/assets/logo.svg'
+import LoginLogo from '@/components/common/LoginLogo.vue'
+import BrandFeatures from '@/components/common/BrandFeatures.vue'
+import { useLoginForm } from '@/composables/useLoginForm'
+import { APP_VERSION } from '@/constants/app'
 
-const router = useRouter()
-const { loadPermissions, hydratePermissions } = usePermission()
-const { loadMenus, hydrateMenus } = useMenu()
-const usernameInput = ref()
-const passwordInput = ref()
-const loading = ref(false)
-const usernameFocused = ref(false)
-const passwordFocused = ref(false)
-const version = ref('0.1.0')
-
-const form = reactive({
-  username: '',
-  password: ''
-})
+const {
+  loading,
+  usernameFocused,
+  passwordFocused,
+  form,
+  usernameInput,
+  passwordInput,
+  handleLogin,
+  focusUsernameInput
+} = useLoginForm()
 
 // 网格点样式生成 - 创建 20x15 网格
 const gridDotStyle = (index: number) => {
   const col = index % 20
   const row = Math.floor(index / 20)
-  const x = col * 5 + 2.5 // 偏移 5% 使点居中
+  const x = col * 5 + 2.5
   const y = row * 6.667 + 3.333
   return {
     left: `${x}%`,
@@ -326,109 +220,8 @@ const particleStyle = () => {
   }
 }
 
-const handleLogin = async () => {
-  // 基础验证
-  if (!form.username) {
-    ElMessage.warning('请输入用户名')
-    usernameInput.value?.focus()
-    return
-  }
-  if (form.username.length < 3) {
-    ElMessage.warning('用户名长度至少 3 个字符')
-    usernameInput.value?.focus()
-    return
-  }
-  if (!form.password) {
-    ElMessage.warning('请输入密码')
-    passwordInput.value?.focus()
-    return
-  }
-  if (form.password.length < 6) {
-    ElMessage.warning('密码长度至少 6 个字符')
-    passwordInput.value?.focus()
-    return
-  }
-
-  try {
-    loading.value = true
-
-    const result = await authApi.login({
-      username: form.username,
-      password: form.password
-    })
-
-    setAccessToken(result.access_token)
-    const expiresAt = Date.now() + result.expires_in * 1000
-    setTokenExpiresAt(expiresAt)
-
-    // 优先使用聚合接口一次性加载用户上下文（权限 + 菜单）
-    let initializedFromMy = false
-    try {
-      const myContext = await authApi.getMy()
-      if (Array.isArray(myContext.permissions) && myContext.permissions.length > 0) {
-        hydratePermissions(myContext.permissions)
-      } else {
-        await loadPermissions(true)
-      }
-
-      if (Array.isArray(myContext.menus) && myContext.menus.length > 0) {
-        hydrateMenus(myContext.menus)
-      } else {
-        await loadMenus(true)
-      }
-
-      initializedFromMy = true
-    } catch (contextError) {
-      console.warn('加载 /auth/my 失败，回退到分步加载:', contextError)
-    }
-
-    // 回退方案：兼容旧后端，分步加载权限和菜单
-    if (!initializedFromMy) {
-      try {
-        await loadPermissions(true)
-      } catch (permError) {
-        console.error('加载权限失败:', permError)
-        // 权限加载失败，清除 token 并提示
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('token_expires_at')
-        ElMessage.error('权限加载失败，请重试')
-        loading.value = false
-        return
-      }
-
-      try {
-        await loadMenus(true)
-      } catch (menuError) {
-        console.error('加载菜单失败:', menuError)
-        // 菜单加载失败，清除 token 并提示
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('token_expires_at')
-        ElMessage.error('菜单加载失败，请重试')
-        loading.value = false
-        return
-      }
-    }
-
-    ElMessage.success('登录成功')
-
-    const redirect = sessionStorage.getItem('redirect_after_login')
-    sessionStorage.removeItem('redirect_after_login')
-    router.push(redirect || '/dashboard')
-  } catch (error) {
-    console.error('登录失败:', error)
-    if (!(error instanceof ApiResponseError)) {
-      ElMessage.error('登录失败，请稍后重试')
-    }
-  } finally {
-    loading.value = false
-  }
-}
-
 onMounted(() => {
-  // 自动聚焦用户名输入框
-  setTimeout(() => {
-    usernameInput.value?.focus()
-  }, 500)
+  focusUsernameInput()
 })
 </script>
 
@@ -463,7 +256,7 @@ html.dark .login-page {
   background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0d1117 100%);
 }
 
-/* 亮模式登录页背景 - 使用更柔和的暖灰色 */
+/* 亮模式登录页背景 */
 html:not(.dark) .login-page {
   background: linear-gradient(135deg, #f0f2f5 0%, #e4e8eb 100%);
 }
@@ -525,7 +318,6 @@ html:not(.dark) .grid-dot {
     opacity: 0.8;
     transform: scale(1);
   }
-
   50% {
     opacity: 0.5;
     transform: scale(1.5);
@@ -563,15 +355,12 @@ html:not(.dark) .particle {
     transform: translateY(100vh) translateX(0);
     opacity: 0;
   }
-
   10% {
     opacity: 0.8;
   }
-
   90% {
     opacity: 0.8;
   }
-
   100% {
     transform: translateY(-100px) translateX(calc(100vw - 200% * var(--progress, 0)));
     opacity: 0;
@@ -602,7 +391,7 @@ html.dark .main-container {
     inset 0 1px 0 rgb(255 255 255 / 5%);
 }
 
-/* 亮模式主容器 - 使用柔和的灰白色 */
+/* 亮模式主容器 */
 html:not(.dark) .main-container {
   background: #f5f6f7;
   border: 1px solid #e4e7ed;
@@ -669,7 +458,6 @@ html:not(.dark) .brand-section::before {
     opacity: 0.5;
     transform: scale(1);
   }
-
   100% {
     opacity: 1;
     transform: scale(1.2);
@@ -679,87 +467,6 @@ html:not(.dark) .brand-section::before {
 .brand-content {
   position: relative;
   z-index: 1;
-}
-
-/* 3D 图标 */
-.icon-container {
-  margin-bottom: 40px;
-  perspective: 1000px;
-}
-
-.warehouse-icon {
-  width: 150px;
-  height: 150px;
-}
-
-.cube-wrapper {
-  width: 100%;
-  height: 100%;
-  animation: rotateCube 20s linear infinite;
-}
-
-@keyframes rotateCube {
-  0% {
-    transform: rotateX(-20deg) rotateY(0deg);
-  }
-
-  100% {
-    transform: rotateX(-20deg) rotateY(360deg);
-  }
-}
-
-.cube {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
-}
-
-.cube-face {
-  position: absolute;
-  width: 150px;
-  height: 150px;
-  border: 1px solid rgb(0 243 255 / 30%);
-  background: rgb(10 14 39 / 95%);
-  box-shadow:
-    inset 0 0 40px rgb(0 243 255 / 15%),
-    0 0 30px rgb(0 243 255 / 15%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  backdrop-filter: blur(10px);
-}
-
-.cube-logo {
-  width: 80%;
-  height: 80%;
-  object-fit: contain;
-  filter: drop-shadow(0 0 10px rgb(0 243 255 / 50%));
-}
-
-.cube-face-front {
-  transform: translateZ(75px);
-}
-
-.cube-face-back {
-  transform: rotateY(180deg) translateZ(75px);
-}
-
-.cube-face-right {
-  transform: rotateY(90deg) translateZ(75px);
-}
-
-.cube-face-left {
-  transform: rotateY(-90deg) translateZ(75px);
-}
-
-.cube-face-top {
-  transform: rotateX(90deg) translateZ(75px);
-}
-
-.cube-face-bottom {
-  transform: rotateX(-90deg) translateZ(75px);
 }
 
 /* 品牌标题 */
@@ -796,79 +503,6 @@ html:not(.dark) .brand-subtitle {
   color: #606266;
 }
 
-/* 功能特性 */
-.brand-features {
-  display: flex;
-  gap: 24px;
-}
-
-.feature-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 20px;
-  border-radius: 12px;
-  transition: all 0.3s ease;
-}
-
-/* 暗黑模式特性项 */
-html.dark .feature-item {
-  background: rgb(0 243 255 / 3%);
-  border: 1px solid rgb(0 243 255 / 10%);
-}
-
-html.dark .feature-item:hover {
-  background: rgb(0 243 255 / 8%);
-  border-color: rgb(0 243 255 / 30%);
-}
-
-html.dark .feature-item span {
-  color: rgb(255 255 255 / 70%);
-}
-
-/* 亮模式特性项 */
-html:not(.dark) .feature-item {
-  background: #f5f7fa;
-  border: 1px solid #e4e7ed;
-}
-
-html:not(.dark) .feature-item:hover {
-  background: #ecf5ff;
-  border-color: #409eff;
-}
-
-html:not(.dark) .feature-item span {
-  color: #606266;
-}
-
-.feature-item span {
-  font-size: 14px;
-}
-
-.feature-item:hover {
-  transform: translateY(-4px);
-}
-
-.feature-icon {
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.3s ease;
-}
-
-/* 暗黑模式图标颜色 */
-html.dark .feature-icon {
-  color: #00f3ff;
-}
-
-/* 亮模式图标颜色 */
-html:not(.dark) .feature-icon {
-  color: #409eff;
-}
-
 /* 底部数据流 */
 .brand-footer {
   position: absolute;
@@ -877,6 +511,10 @@ html:not(.dark) .feature-icon {
   right: 0;
   padding: 20px 60px;
   border-top: 1px solid rgb(0 243 255 / 10%);
+}
+
+html:not(.dark) .brand-footer {
+  border-top: 1px solid #e4e7ed;
 }
 
 .data-stream {
@@ -892,15 +530,17 @@ html:not(.dark) .feature-icon {
   animation: dataFlow 2s linear infinite;
 }
 
+html:not(.dark) .data-bit {
+  color: rgb(64 158 255 / 30%);
+}
+
 @keyframes dataFlow {
   0% {
     opacity: 0.8;
   }
-
   50% {
     opacity: 0.5;
   }
-
   100% {
     opacity: 0.5;
   }
@@ -1197,7 +837,6 @@ html:not(.dark) .login-button:hover:not(:disabled) {
     transform: scale(0.8);
     opacity: 0.5;
   }
-
   40% {
     transform: scale(1.2);
     opacity: 1;
@@ -1267,7 +906,6 @@ html:not(.dark) .status-indicator {
   100% {
     opacity: 1;
   }
-
   50% {
     opacity: 0.5;
   }
@@ -1281,11 +919,21 @@ html:not(.dark) .status-indicator {
   pointer-events: none;
 }
 
+/* 暗黑模式装饰线颜色 */
+html.dark .corner-decoration {
+  --corner-decoration-color: rgb(0 243 255 / 15%);
+}
+
+/* 亮模式装饰线颜色 */
+html:not(.dark) .corner-decoration {
+  --corner-decoration-color: rgb(64 158 255 / 15%);
+}
+
 .corner-decoration::before,
 .corner-decoration::after {
   content: '';
   position: absolute;
-  background: rgb(0 243 255 / 15%);
+  background: var(--corner-decoration-color);
 }
 
 .corner-decoration.top-left {
@@ -1365,7 +1013,7 @@ html:not(.dark) .status-indicator {
 }
 
 /* ==================== 响应式设计 ==================== */
-@media (width <=1024px) {
+@media (width <= 1024px) {
   .main-container {
     flex-direction: column;
     min-height: auto;
@@ -1391,7 +1039,7 @@ html:not(.dark) .status-indicator {
   }
 }
 
-@media (width <=768px) {
+@media (width <= 768px) {
   .page-theme-toggle {
     top: 16px;
     right: 16px;
@@ -1408,19 +1056,9 @@ html:not(.dark) .status-indicator {
   .form-section {
     padding: 40px 30px;
   }
-
-  .brand-features {
-    flex-direction: column;
-  }
-
-  .feature-item {
-    flex-direction: row;
-    justify-content: flex-start;
-    gap: 16px;
-  }
 }
 
-@media (width <=480px) {
+@media (width <= 480px) {
   .brand-title {
     font-size: 36px;
   }
