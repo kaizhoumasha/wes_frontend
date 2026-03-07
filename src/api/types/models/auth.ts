@@ -29,8 +29,6 @@ export interface TokenResponse {
   access_token: string
   /** 刷新令牌（用于获取新的访问令牌） */
   refresh_token?: string
-  /** Token类型（通常为 Bearer） */
-  token_type: string
   /** 访问令牌过期时间（秒） */
   expires_in: number
   /** 刷新令牌过期时间（秒） */
@@ -45,8 +43,6 @@ export interface LoginResponse {
   access_token: string
   /** 刷新令牌 */
   refresh_token: string
-  /** Token类型 */
-  token_type: string
   /** 过期时间（秒） */
   expires_in: number
   /** 用户信息 */

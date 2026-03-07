@@ -150,11 +150,23 @@ const statistics = ref([
   position: relative;
   padding: 40px;
   margin-bottom: 24px;
-  background: rgb(10 14 39 / 80%);
-  border: 1px solid rgb(0 243 255 / 10%);
   border-radius: 16px;
   backdrop-filter: blur(20px);
   overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* 暗黑模式欢迎卡片 */
+html.dark .welcome-card {
+  background: rgb(10 14 39 / 80%);
+  border: 1px solid rgb(0 243 255 / 10%);
+}
+
+/* 亮模式欢迎卡片 */
+html:not(.dark) .welcome-card {
+  background: #f5f6f7;
+  border: 1px solid #e4e7ed;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 10%);
 }
 
 .welcome-content {
@@ -177,10 +189,20 @@ const statistics = ref([
 
 .welcome-subtitle {
   font-size: 16px;
-  color: rgb(255 255 255 / 60%);
   margin: 0;
   letter-spacing: 2px;
   text-transform: uppercase;
+  transition: color 0.3s ease;
+}
+
+/* 暗黑模式副标题 */
+html.dark .welcome-subtitle {
+  color: rgb(255 255 255 / 60%);
+}
+
+/* 亮模式副标题 */
+html:not(.dark) .welcome-subtitle {
+  color: #606266;
 }
 
 /* 装饰元素 */
@@ -239,12 +261,32 @@ const statistics = ref([
   position: relative;
   padding: 24px;
   margin-bottom: 20px;
-  background: rgb(13 17 23 / 80%);
-  border: 1px solid rgb(0 243 255 / 10%);
   border-radius: 12px;
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
   overflow: hidden;
+}
+
+/* 暗黑模式统计卡片 */
+html.dark .stat-card {
+  background: rgb(13 17 23 / 80%);
+  border: 1px solid rgb(0 243 255 / 10%);
+}
+
+html.dark .stat-card:hover {
+  border-color: rgb(0 243 255 / 30%);
+}
+
+/* 亮模式统计卡片 */
+html:not(.dark) .stat-card {
+  background: #f5f6f7;
+  border: 1px solid #e4e7ed;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 5%);
+}
+
+html:not(.dark) .stat-card:hover {
+  border-color: #409eff;
+  box-shadow: 0 4px 16px rgb(64 158 255 / 15%);
 }
 
 .stat-card::before {
@@ -259,14 +301,26 @@ const statistics = ref([
   transition: opacity 0.3s ease;
 }
 
-.stat-card:hover {
-  border-color: rgb(0 243 255 / 30%);
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgb(0 0 0 / 40%);
-}
-
 .stat-card:hover::before {
   opacity: 1;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+}
+
+/* 暗黑模式统计图标 */
+html.dark .stat-icon {
+  color: #00f3ff;
+  background: rgb(0 243 255 / 8%);
+  border: 1px solid rgb(0 243 255 / 20%);
+}
+
+/* 亮模式统计图标 */
+html:not(.dark) .stat-icon {
+  color: #409eff;
+  background: #ecf5ff;
+  border: 1px solid #409eff;
 }
 
 .stat-icon {
@@ -276,9 +330,6 @@ const statistics = ref([
   width: 48px;
   height: 48px;
   margin-bottom: 16px;
-  color: #00f3ff;
-  background: rgb(0 243 255 / 8%);
-  border: 1px solid rgb(0 243 255 / 20%);
   border-radius: 10px;
   font-size: 24px;
 }
@@ -289,15 +340,35 @@ const statistics = ref([
 
 .stat-label {
   font-size: 14px;
-  color: rgb(255 255 255 / 60%);
   margin: 0 0 8px;
+  transition: color 0.3s ease;
+}
+
+/* 暗黑模式标签文字 */
+html.dark .stat-label {
+  color: rgb(255 255 255 / 60%);
+}
+
+/* 亮模式标签文字 */
+html:not(.dark) .stat-label {
+  color: #606266;
 }
 
 .stat-value {
   font-size: 32px;
   font-weight: 700;
-  color: #fff;
   margin: 0;
+  transition: color 0.3s ease;
+}
+
+/* 暗黑模式数值 */
+html.dark .stat-value {
+  color: #fff;
+}
+
+/* 亮模式数值 */
+html:not(.dark) .stat-value {
+  color: #303133;
 }
 
 .stat-indicator {
@@ -328,10 +399,22 @@ const statistics = ref([
 /* ==================== 状态卡片 ==================== */
 .status-card {
   padding: 24px;
-  background: rgb(13 17 23 / 80%);
-  border: 1px solid rgb(0 243 255 / 10%);
   border-radius: 12px;
   backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+/* 暗黑模式状态卡片 */
+html.dark .status-card {
+  background: rgb(13 17 23 / 80%);
+  border: 1px solid rgb(0 243 255 / 10%);
+}
+
+/* 亮模式状态卡片 */
+html:not(.dark) .status-card {
+  background: #f5f6f7;
+  border: 1px solid #e4e7ed;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 5%);
 }
 
 .card-header {
@@ -344,8 +427,18 @@ const statistics = ref([
 .card-title {
   font-size: 18px;
   font-weight: 600;
-  color: #fff;
   margin: 0;
+  transition: color 0.3s ease;
+}
+
+/* 暗黑模式标题 */
+html.dark .card-title {
+  color: #fff;
+}
+
+/* 亮模式标题 */
+html:not(.dark) .card-title {
+  color: #303133;
 }
 
 .status-badge {
@@ -381,12 +474,26 @@ const statistics = ref([
 
 .card-content p {
   font-size: 14px;
-  color: rgb(255 255 255 / 70%);
   margin: 0 0 8px;
+  transition: color 0.3s ease;
 }
 
-.card-content strong {
+/* 暗黑模式内容文字 */
+html.dark .card-content p {
+  color: rgb(255 255 255 / 70%);
+}
+
+html.dark .card-content strong {
   color: #00f3ff;
+}
+
+/* 亮模式内容文字 */
+html:not(.dark) .card-content p {
+  color: #606266;
+}
+
+html:not(.dark) .card-content strong {
+  color: #409eff;
 }
 
 /* ==================== 响应式设计 ==================== */

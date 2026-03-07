@@ -6,9 +6,13 @@ import 'element-plus/dist/index.css'
 import router from './router'
 import App from './App.vue'
 import './assets/styles/globals.css'
+import { initDarkMode } from './composables/useDarkMode'
 
 // 初始化错误通知服务
 import { initializeErrorNotification } from './api/services/error-notification'
+
+// 启动阶段初始化主题（确保所有路由页面都能正确应用主题）
+initDarkMode()
 
 // 初始化错误通知配置
 initializeErrorNotification({

@@ -132,14 +132,25 @@ const handleMenuClose = (path: string) => {
   top: 0;
   left: 0;
   height: 100vh;
-  background: rgb(10 14 39 / 98%);
-  border-right: 1px solid rgb(0 243 255 / 10%);
-  backdrop-filter: blur(20px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 100;
   display: flex;
   flex-direction: column;
+}
+
+/* 暗黑模式侧边栏 */
+html.dark .app-sidebar {
+  background: rgb(10 14 39 / 98%);
+  border-right: 1px solid rgb(0 243 255 / 10%);
+  backdrop-filter: blur(20px);
   box-shadow: 2px 0 20px rgb(0 0 0 / 30%);
+}
+
+/* 亮模式侧边栏 */
+html:not(.dark) .app-sidebar {
+  background: #f5f6f7;
+  border-right: 1px solid #e4e7ed;
+  box-shadow: 2px 0 8px rgb(0 0 0 / 5%);
 }
 
 /* 桌面端宽度 */
@@ -168,9 +179,19 @@ const handleMenuClose = (path: string) => {
   align-items: center;
   justify-content: center;
   padding: 0 16px;
+  flex-shrink: 0;
+}
+
+/* 暗黑模式 Logo 区域 */
+html.dark .sidebar-header {
   border-bottom: 1px solid rgb(0 243 255 / 8%);
   background: rgb(0 243 255 / 3%);
-  flex-shrink: 0;
+}
+
+/* 亮模式 Logo 区域 */
+html:not(.dark) .sidebar-header {
+  border-bottom: 1px solid #e4e7ed;
+  background: #f5f7fa;
 }
 
 .logo-container {
@@ -193,7 +214,16 @@ const handleMenuClose = (path: string) => {
   font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.5px;
+}
+
+/* 暗黑模式 Logo 文字 */
+html.dark .logo-text {
   color: #fff;
+}
+
+/* 亮模式 Logo 文字 */
+html:not(.dark) .logo-text {
+  color: #303133;
 }
 
 .logo-highlight {
@@ -245,8 +275,9 @@ const handleMenuClose = (path: string) => {
   display: none !important;
 }
 
-.sidebar-menu :deep(.el-menu-item),
-.sidebar-menu :deep(.el-sub-menu__title) {
+/* 暗黑模式菜单项 */
+html.dark .sidebar-menu :deep(.el-menu-item),
+html.dark .sidebar-menu :deep(.el-sub-menu__title) {
   color: rgb(255 255 255 / 70%);
   background: transparent;
   border-radius: 8px;
@@ -257,22 +288,51 @@ const handleMenuClose = (path: string) => {
   transition: all 0.3s ease;
 }
 
-.sidebar-menu :deep(.el-menu-item:hover),
-.sidebar-menu :deep(.el-sub-menu__title:hover) {
+html.dark .sidebar-menu :deep(.el-menu-item:hover),
+html.dark .sidebar-menu :deep(.el-sub-menu__title:hover) {
   background: rgb(0 243 255 / 8%);
   color: rgb(255 255 255 / 100%);
 }
 
-.sidebar-menu :deep(.el-menu-item.is-active) {
+html.dark .sidebar-menu :deep(.el-menu-item.is-active) {
   background: rgb(0 243 255 / 12%);
   color: #00f3ff;
   box-shadow: 0 0 20px rgb(0 243 255 / 10%);
 }
 
-/* 子菜单展开状态的标题样式 */
-.sidebar-menu :deep(.el-sub-menu.is-opened > .el-sub-menu__title) {
+html.dark .sidebar-menu :deep(.el-sub-menu.is-opened > .el-sub-menu__title) {
   background: rgb(0 243 255 / 5%);
   color: rgb(255 255 255 / 90%);
+}
+
+/* 亮模式菜单项 */
+html:not(.dark) .sidebar-menu :deep(.el-menu-item),
+html:not(.dark) .sidebar-menu :deep(.el-sub-menu__title) {
+  color: #606266;
+  background: transparent;
+  border-radius: 8px;
+  margin: 0 8px;
+  padding: 0 12px;
+  height: 44px;
+  line-height: 44px;
+  transition: all 0.3s ease;
+}
+
+html:not(.dark) .sidebar-menu :deep(.el-menu-item:hover),
+html:not(.dark) .sidebar-menu :deep(.el-sub-menu__title:hover) {
+  background: #ecf5ff;
+  color: #409eff;
+}
+
+html:not(.dark) .sidebar-menu :deep(.el-menu-item.is-active) {
+  background: #409eff;
+  color: #fff;
+  box-shadow: 0 2px 8px rgb(64 158 255 / 30%);
+}
+
+html:not(.dark) .sidebar-menu :deep(.el-sub-menu.is-opened > .el-sub-menu__title) {
+  background: #f5f7fa;
+  color: #303133;
 }
 
 .sidebar-menu :deep(.el-sub-menu .el-menu-item) {
@@ -301,13 +361,29 @@ const handleMenuClose = (path: string) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-top: 1px solid rgb(0 243 255 / 8%);
   flex-shrink: 0;
+}
+
+/* 暗黑模式底部 */
+html.dark .sidebar-footer {
+  border-top: 1px solid rgb(0 243 255 / 8%);
+}
+
+html.dark .version-info {
+  color: rgb(255 255 255 / 30%);
+}
+
+/* 亮模式底部 */
+html:not(.dark) .sidebar-footer {
+  border-top: 1px solid #e4e7ed;
+}
+
+html:not(.dark) .version-info {
+  color: #909399;
 }
 
 .version-info {
   font-size: 12px;
-  color: rgb(255 255 255 / 30%);
   font-family: 'Courier New', monospace;
 }
 

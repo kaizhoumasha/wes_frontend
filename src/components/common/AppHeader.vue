@@ -29,6 +29,9 @@
 
     <!-- 右侧：用户菜单 -->
     <div class="header-right">
+      <!-- 主题切换 -->
+      <ThemeToggle />
+
       <!-- 占位：全局搜索（后续实现） -->
       <div class="search-placeholder">
         <el-icon :size="18">
@@ -102,6 +105,7 @@ import { logout } from '@/api/services/token-refresh'
 import { apiClient } from '@/api/client'
 import { usePermission } from '@/composables/usePermission'
 import type { MenuItem } from '@/types/menu'
+import ThemeToggle from './ThemeToggle.vue'
 
 // ==================== 状态管理 ====================
 
@@ -208,12 +212,23 @@ const handleLogout = async () => {
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
+  z-index: 99;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 暗黑模式头部 */
+html.dark .app-header {
   background: rgb(13 17 23 / 80%);
   border-bottom: 1px solid rgb(0 243 255 / 10%);
   backdrop-filter: blur(20px);
-  z-index: 99;
-  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 20px rgb(0 0 0 / 30%);
+}
+
+/* 亮模式头部 */
+html:not(.dark) .app-header {
+  background: #f5f6f7;
+  border-bottom: 1px solid #e4e7ed;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 5%);
 }
 
 /* 折叠状态 */
@@ -235,24 +250,41 @@ const handleLogout = async () => {
   gap: 16px;
 }
 
+/* 暗黑模式折叠按钮 */
+html.dark .collapse-button {
+  color: rgb(255 255 255 / 70%);
+  background: transparent;
+  border: 1px solid rgb(255 255 255 / 10%);
+}
+
+html.dark .collapse-button:hover {
+  color: #00f3ff;
+  background: rgb(0 243 255 / 8%);
+  border-color: rgb(0 243 255 / 30%);
+}
+
+/* 亮模式折叠按钮 */
+html:not(.dark) .collapse-button {
+  color: #606266;
+  background: transparent;
+  border: 1px solid #dcdfe6;
+}
+
+html:not(.dark) .collapse-button:hover {
+  color: #409eff;
+  background: #ecf5ff;
+  border-color: #409eff;
+}
+
 .collapse-button {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 40px;
   height: 40px;
-  color: rgb(255 255 255 / 70%);
-  background: transparent;
-  border: 1px solid rgb(255 255 255 / 10%);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
-}
-
-.collapse-button:hover {
-  color: #00f3ff;
-  background: rgb(0 243 255 / 8%);
-  border-color: rgb(0 243 255 / 30%);
 }
 
 /* 面包屑导航 */
@@ -266,22 +298,43 @@ const handleLogout = async () => {
   align-items: center;
 }
 
-.breadcrumb :deep(.el-breadcrumb__inner) {
+/* 暗黑模式面包屑 */
+html.dark .breadcrumb :deep(.el-breadcrumb__inner) {
   color: rgb(255 255 255 / 60%);
   font-size: 14px;
   transition: all 0.3s ease;
 }
 
-.breadcrumb :deep(.el-breadcrumb__inner:hover) {
+html.dark .breadcrumb :deep(.el-breadcrumb__inner:hover) {
   color: #00f3ff;
 }
 
-.breadcrumb :deep(.el-breadcrumb__item:last-child .el-breadcrumb__inner) {
+html.dark .breadcrumb :deep(.el-breadcrumb__item:last-child .el-breadcrumb__inner) {
   color: rgb(255 255 255 / 90%);
 }
 
-.breadcrumb :deep(.el-breadcrumb__separator) {
+html.dark .breadcrumb :deep(.el-breadcrumb__separator) {
   color: rgb(255 255 255 / 30%);
+  margin: 0 8px;
+}
+
+/* 亮模式面包屑 */
+html:not(.dark) .breadcrumb :deep(.el-breadcrumb__inner) {
+  color: #909399;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+html:not(.dark) .breadcrumb :deep(.el-breadcrumb__inner:hover) {
+  color: #409eff;
+}
+
+html:not(.dark) .breadcrumb :deep(.el-breadcrumb__item:last-child .el-breadcrumb__inner) {
+  color: #303133;
+}
+
+html:not(.dark) .breadcrumb :deep(.el-breadcrumb__separator) {
+  color: #c0c4cc;
   margin: 0 8px;
 }
 
@@ -292,25 +345,41 @@ const handleLogout = async () => {
   gap: 16px;
 }
 
-/* 搜索占位符 */
+/* 暗黑模式搜索占位符 */
+html.dark .search-placeholder {
+  color: rgb(255 255 255 / 40%);
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 10%);
+}
+
+html.dark .search-placeholder:hover {
+  color: rgb(255 255 255 / 70%);
+  background: rgb(255 255 255 / 8%);
+  border-color: rgb(255 255 255 / 20%);
+}
+
+/* 亮模式搜索占位符 */
+html:not(.dark) .search-placeholder {
+  color: #909399;
+  background: #f5f7fa;
+  border: 1px solid #dcdfe6;
+}
+
+html:not(.dark) .search-placeholder:hover {
+  color: #409eff;
+  background: #ecf5ff;
+  border-color: #409eff;
+}
+
 .search-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 40px;
   height: 40px;
-  color: rgb(255 255 255 / 40%);
-  background: rgb(255 255 255 / 5%);
-  border: 1px solid rgb(255 255 255 / 10%);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
-}
-
-.search-placeholder:hover {
-  color: rgb(255 255 255 / 70%);
-  background: rgb(255 255 255 / 8%);
-  border-color: rgb(255 255 255 / 20%);
 }
 
 /* 用户下拉菜单 */
@@ -324,8 +393,38 @@ const handleLogout = async () => {
   transition: all 0.3s ease;
 }
 
-.user-dropdown:hover {
+/* 暗黑模式用户菜单 */
+html.dark .user-dropdown:hover {
   background: rgb(255 255 255 / 5%);
+}
+
+html.dark .user-name {
+  color: rgb(255 255 255 / 90%);
+}
+
+html.dark .dropdown-arrow {
+  color: rgb(255 255 255 / 40%);
+}
+
+html.dark .user-dropdown:hover .dropdown-arrow {
+  color: rgb(255 255 255 / 70%);
+}
+
+/* 亮模式用户菜单 */
+html:not(.dark) .user-dropdown:hover {
+  background: #f5f7fa;
+}
+
+html:not(.dark) .user-name {
+  color: #303133;
+}
+
+html:not(.dark) .dropdown-arrow {
+  color: #909399;
+}
+
+html:not(.dark) .user-dropdown:hover .dropdown-arrow {
+  color: #409eff;
 }
 
 .user-avatar {
@@ -337,7 +436,6 @@ const handleLogout = async () => {
 .user-name {
   font-size: 14px;
   font-weight: 500;
-  color: rgb(255 255 255 / 90%);
   max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -346,26 +444,58 @@ const handleLogout = async () => {
 
 .dropdown-arrow {
   font-size: 14px;
-  color: rgb(255 255 255 / 40%);
   transition: all 0.3s ease;
 }
 
-.user-dropdown:hover .dropdown-arrow {
-  color: rgb(255 255 255 / 70%);
-}
-
 /* ==================== 用户下拉菜单样式 ==================== */
-.user-dropdown-menu {
+
+/* 暗黑模式下拉菜单 */
+html.dark .user-dropdown-menu {
   background: rgb(10 14 39 / 98%);
   border: 1px solid rgb(0 243 255 / 10%);
   box-shadow: 0 0 40px rgb(0 243 255 / 10%);
   backdrop-filter: blur(20px);
+}
+
+html.dark .user-dropdown-menu :deep(.el-dropdown-menu__item) {
+  color: rgb(255 255 255 / 70%);
+}
+
+html.dark .user-dropdown-menu :deep(.el-dropdown-menu__item:hover) {
+  background: rgb(0 243 255 / 8%);
+  color: rgb(255 255 255 / 100%);
+}
+
+html.dark .user-dropdown-menu :deep(.el-dropdown-menu__item.is-divided) {
+  border-top: 1px solid rgb(0 243 255 / 10%);
+}
+
+/* 亮模式下拉菜单 */
+html:not(.dark) .user-dropdown-menu {
+  background: #f5f6f7;
+  border: 1px solid #e4e7ed;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 10%);
+}
+
+html:not(.dark) .user-dropdown-menu :deep(.el-dropdown-menu__item) {
+  color: #606266;
+}
+
+html:not(.dark) .user-dropdown-menu :deep(.el-dropdown-menu__item:hover) {
+  background: #ecf5ff;
+  color: #409eff;
+}
+
+html:not(.dark) .user-dropdown-menu :deep(.el-dropdown-menu__item.is-divided) {
+  border-top: 1px solid #e4e7ed;
+}
+
+.user-dropdown-menu {
   padding: 8px;
   min-width: 160px;
 }
 
 .user-dropdown-menu :deep(.el-dropdown-menu__item) {
-  color: rgb(255 255 255 / 70%);
   background: transparent;
   border-radius: 6px;
   padding: 8px 12px;
@@ -375,15 +505,9 @@ const handleLogout = async () => {
   transition: all 0.3s ease;
 }
 
-.user-dropdown-menu :deep(.el-dropdown-menu__item:hover) {
-  background: rgb(0 243 255 / 8%);
-  color: rgb(255 255 255 / 100%);
-}
-
 .user-dropdown-menu :deep(.el-dropdown-menu__item.is-divided) {
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px solid rgb(0 243 255 / 10%);
 }
 
 .user-dropdown-menu :deep(.el-dropdown-menu__item .el-icon) {

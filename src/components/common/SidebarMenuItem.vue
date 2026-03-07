@@ -113,28 +113,75 @@ const handleMenuClick = () => {
   transition: all 0.3s ease;
 }
 
+/* 暗黑模式菜单图标 */
+html.dark .menu-icon {
+  color: rgb(255 255 255 / 60%);
+}
+
+html.dark .el-menu-item:hover .menu-icon,
+html.dark .el-sub-menu__title:hover .menu-icon {
+  color: rgb(255 255 255 / 90%);
+}
+
+/* 亮模式菜单图标 */
+html:not(.dark) .menu-icon {
+  color: #606266;
+}
+
+html:not(.dark) .el-menu-item:hover .menu-icon,
+html:not(.dark) .el-sub-menu__title:hover .menu-icon {
+  color: #409eff;
+}
+
 .menu-icon {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
-  color: rgb(255 255 255 / 60%);
   transition: all 0.3s ease;
+}
+
+/* 暗黑模式菜单标题 */
+html.dark .menu-title {
+  color: rgb(255 255 255 / 80%);
+}
+
+html.dark .el-menu-item:hover .menu-title,
+html.dark .el-sub-menu__title:hover .menu-title {
+  color: rgb(255 255 255 / 100%);
+}
+
+/* 亮模式菜单标题 */
+html:not(.dark) .menu-title {
+  color: #606266;
+}
+
+html:not(.dark) .el-menu-item:hover .menu-title,
+html:not(.dark) .el-sub-menu__title:hover .menu-title {
+  color: #409eff;
 }
 
 .menu-title {
   margin-left: 12px;
   font-size: 14px;
-  color: rgb(255 255 255 / 80%);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   transition: all 0.3s ease;
 }
 
+/* 暗黑模式箭头 */
+html.dark .menu-arrow {
+  color: rgb(255 255 255 / 40%);
+}
+
+/* 亮模式箭头 */
+html:not(.dark) .menu-arrow {
+  color: #909399;
+}
+
 .menu-arrow {
   margin-left: auto;
   font-size: 14px;
-  color: rgb(255 255 255 / 40%);
   transition: all 0.3s ease;
 }
 
@@ -149,15 +196,6 @@ const handleMenuClick = () => {
 }
 
 /* ==================== 悬停状态 ==================== */
-.el-menu-item:hover .menu-icon,
-.el-sub-menu__title:hover .menu-icon {
-  color: rgb(255 255 255 / 90%);
-}
-
-.el-menu-item:hover .menu-title,
-.el-sub-menu__title:hover .menu-title {
-  color: rgb(255 255 255 / 100%);
-}
 
 /* ==================== 子菜单展开状态 ==================== */
 
@@ -179,25 +217,48 @@ const handleMenuClick = () => {
 }
 
 /* ==================== 子菜单弹出样式 ==================== */
-.sidebar-submenu-popup {
+
+/* 暗黑模式子菜单弹出层 */
+html.dark .sidebar-submenu-popup {
   background: rgb(10 14 39 / 98%) !important;
   border: 1px solid rgb(0 243 255 / 10%) !important;
   box-shadow: 0 0 40px rgb(0 243 255 / 10%) !important;
   backdrop-filter: blur(20px) !important;
 }
 
-.sidebar-submenu-popup .el-menu-item {
+html.dark .sidebar-submenu-popup .el-menu-item {
   color: rgb(255 255 255 / 70%) !important;
   background: transparent !important;
 }
 
-.sidebar-submenu-popup .el-menu-item:hover {
+html.dark .sidebar-submenu-popup .el-menu-item:hover {
   background: rgb(0 243 255 / 8%) !important;
 }
 
-.sidebar-submenu-popup .el-menu-item.is-active {
+html.dark .sidebar-submenu-popup .el-menu-item.is-active {
   background: rgb(0 243 255 / 12%) !important;
   color: #00f3ff !important;
+}
+
+/* 亮模式子菜单弹出层 */
+html:not(.dark) .sidebar-submenu-popup {
+  background: #fff !important;
+  border: 1px solid #e4e7ed !important;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 10%) !important;
+}
+
+html:not(.dark) .sidebar-submenu-popup .el-menu-item {
+  color: #606266 !important;
+  background: transparent !important;
+}
+
+html:not(.dark) .sidebar-submenu-popup .el-menu-item:hover {
+  background: #ecf5ff !important;
+}
+
+html:not(.dark) .sidebar-submenu-popup .el-menu-item.is-active {
+  background: #409eff !important;
+  color: #fff !important;
 }
 
 .sidebar-submenu-popup .el-menu-item .menu-title {
