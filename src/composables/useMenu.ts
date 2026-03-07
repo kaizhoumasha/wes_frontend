@@ -348,6 +348,35 @@ export function useMenu() {
     }
   }
 
+  // ==================== HMR 支持 ====================
+
+  /**
+   * 热更新（HMR）时恢复菜单状态
+   *
+   * 当 Vite 热更新导致模块重新加载时，模块级 ref 会重置为空。
+   * 此函数在每次调用 useMenu() 时执行，检查：
+   * - sessionStorage 中是否有有效缓存
+   * - 如果有，则恢复菜单状态（无需重新请求 API）
+   */
+  const restoreMenuStateOnHMR = (): void => {
+    // 如果已经加载过（通过 sessionStorage 判断）但当前状态为空，说明是 HMR 导致的
+    const hasCachedMenu = sessionStorage.getItem(MENU_CACHE_KEY) !== null
+    const hasCachedTime = sessionStorage.getItem(MENU_CACHE_TIME_KEY) !== null
+
+    if (hasCachedMenu && hasCachedTime && menuTree.value.length === 0) {
+      // 尝试从缓存恢复
+      const cached = getMenuFromCache()
+      if (cached && cached.length > 0) {
+        setMenuState(cached)
+        hasLoaded.value = true
+        console.log('[useMenu] HMR: 从 sessionStorage 恢复菜单状态')
+      }
+    }
+  }
+
+  // 立即执行恢复检查
+  restoreMenuStateOnHMR()
+
   // ==================== 导出 ====================
 
   return {

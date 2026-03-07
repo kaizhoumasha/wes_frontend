@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
+  darkMode: 'class', // 启用基于 class 的暗黑模式
   theme: {
     extend: {
       colors: {
@@ -33,12 +34,20 @@ export default {
         }
       },
       boxShadow: {
-        // 科技蓝发光效果
-        glow: '0 0 40px rgb(0 243 255 / 15%)',
-        'glow-sm': '0 0 20px rgb(0 243 255 / 10%)',
+        // 统一的发光效果等级体系 - 科技蓝
+        'glow-xs': '0 0 10px rgb(0 243 255 / 8%)',
+        'glow-sm': '0 0 20px rgb(0 243 255 / 12%)',
+        glow: '0 0 40px rgb(0 243 255 / 15%)', // 默认
+        'glow-md': '0 0 40px rgb(0 243 255 / 15%)', // 别名
         'glow-lg': '0 0 60px rgb(0 243 255 / 20%)',
-        // 绿色发光效果
-        'success-glow': '0 0 10px rgb(0 255 136 / 50%)'
+        'glow-xl': '0 0 80px rgb(0 243 255 / 25%)',
+        // 成功色发光效果等级体系
+        'success-glow-xs': '0 0 10px rgb(0 255 136 / 20%)',
+        'success-glow-sm': '0 0 20px rgb(0 255 136 / 30%)',
+        'success-glow': '0 0 30px rgb(0 255 136 / 40%)', // 默认
+        'success-glow-md': '0 0 30px rgb(0 255 136 / 40%)', // 别名
+        'success-glow-lg': '0 0 40px rgb(0 255 136 / 50%)',
+        'success-glow-xl': '0 0 50px rgb(0 255 136 / 60%)'
       },
       backdropBlur: {
         // 细粒度模糊（用于玻璃态效果）

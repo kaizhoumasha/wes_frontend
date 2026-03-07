@@ -29,8 +29,6 @@ export interface TokenResponse {
   access_token: string
   /** 刷新令牌（存储在 HttpOnly Cookie 中，不在响应中返回） */
   refresh_token?: string
-  /** 令牌类型（固定为 Bearer） */
-  token_type: string
   /** 过期时间（秒） */
   expires_in: number
 }
@@ -43,8 +41,6 @@ export interface LoginResponse {
   access_token: string
   /** 刷新令牌（HttpOnly Cookie，不在响应中） */
   refresh_token?: string
-  /** 令牌类型 */
-  token_type: string
   /** 过期时间（秒） */
   expires_in: number
   /** 用户信息 */
@@ -69,8 +65,6 @@ export interface RefreshTokenResponse {
   access_token: string
   /** 新的刷新令牌 */
   refresh_token: string
-  /** 令牌类型 */
-  token_type: string
   /** 过期时间（秒） */
   expires_in: number
 }
@@ -212,11 +206,11 @@ export const authApi = {
    * ```
    */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const response = await apiClient.Post<ApiResponse<LoginResponse>>(
+    const response = await apiClient.Post<LoginResponse>(
       getApiPath('/auth/login'),
       credentials
     )
-    return response as unknown as LoginResponse
+    return response
   },
 
   /**
@@ -228,11 +222,11 @@ export const authApi = {
    * @returns 刷新令牌响应
    */
   async refreshToken(): Promise<RefreshTokenResponse> {
-    const response = await apiClient.Post<ApiResponse<RefreshTokenResponse>>(
+    const response = await apiClient.Post<RefreshTokenResponse>(
       getApiPath('/auth/refresh'),
       {}
     )
-    return response as unknown as RefreshTokenResponse
+    return response
   },
 
   /**
@@ -326,9 +320,9 @@ export const authApi = {
    * 用于登录后一次性加载前端所需核心数据，减少额外请求。
    */
   async getMy(): Promise<AuthMyResponse> {
-    const response = await apiClient.Get<ApiResponse<AuthMyResponse>>(
+    const response = await apiClient.Get<AuthMyResponse>(
       getApiPath('/auth/my')
     )
-    return response as unknown as AuthMyResponse
+    return response
   },
 }

@@ -1,5 +1,10 @@
 <template>
   <div class="login-page">
+    <!-- 主题切换 -->
+    <div class="page-theme-toggle">
+      <ThemeToggle />
+    </div>
+
     <!-- 网格背景层 -->
     <div class="grid-background">
       <div
@@ -278,6 +283,7 @@ import { ApiResponseError } from '@/api/client'
 import { setAccessToken, setTokenExpiresAt } from '@/api/services/token-refresh'
 import { usePermission } from '@/composables/usePermission'
 import { useMenu } from '@/composables/useMenu'
+import ThemeToggle from '@/components/common/ThemeToggle.vue'
 import logoSvg from '@/assets/logo.svg'
 
 const router = useRouter()
@@ -434,7 +440,6 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0d1117 100%);
   overflow: hidden;
   font-family:
     'SF Pro Display',
@@ -442,6 +447,25 @@ onMounted(() => {
     BlinkMacSystemFont,
     'Segoe UI',
     sans-serif;
+  transition: background 0.3s ease;
+}
+
+/* 主题切换入口 */
+.page-theme-toggle {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 30;
+}
+
+/* 暗黑模式登录页背景 */
+html.dark .login-page {
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0d1117 100%);
+}
+
+/* 亮模式登录页背景 - 使用更柔和的暖灰色 */
+html:not(.dark) .login-page {
+  background: linear-gradient(135deg, #f0f2f5 0%, #e4e8eb 100%);
 }
 
 /* ==================== 网格背景 ==================== */
@@ -450,23 +474,47 @@ onMounted(() => {
   inset: 0;
   overflow: hidden;
   pointer-events: none;
+  background-size: 25px 25px;
+  background-position: -1px -1px;
+  transition: background-image 0.3s ease;
+}
+
+/* 暗黑模式网格 */
+html.dark .grid-background {
   background-image:
     linear-gradient(rgb(0 243 255 / 3%) 1px, transparent 1px),
     linear-gradient(90deg, rgb(0 243 255 / 3%) 1px, transparent 1px);
-  background-size: 25px 25px;
-  background-position: -1px -1px;
 }
 
-.grid-dot {
-  position: absolute;
-  width: 4px;
-  height: 4px;
+html.dark .grid-dot {
   background: radial-gradient(
     circle,
     rgb(0 243 255 / 40%) 0%,
     rgb(0 243 255 / 15%) 50%,
     transparent 70%
   );
+}
+
+/* 亮模式网格 */
+html:not(.dark) .grid-background {
+  background-image:
+    linear-gradient(rgb(64 158 255 / 5%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(64 158 255 / 5%) 1px, transparent 1px);
+}
+
+html:not(.dark) .grid-dot {
+  background: radial-gradient(
+    circle,
+    rgb(64 158 255 / 30%) 0%,
+    rgb(64 158 255 / 10%) 50%,
+    transparent 70%
+  );
+}
+
+.grid-dot {
+  position: absolute;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
   animation: pulse 3s ease-in-out infinite;
 }
@@ -494,10 +542,20 @@ onMounted(() => {
 
 .particle {
   position: absolute;
-  background: linear-gradient(180deg, rgb(0 243 255 / 80%) 0%, rgb(0 243 255 / 0%) 100%);
   border-radius: 50%;
   animation: float linear infinite;
   filter: blur(0.5px);
+  transition: background 0.3s ease;
+}
+
+/* 暗黑模式粒子 */
+html.dark .particle {
+  background: linear-gradient(180deg, rgb(0 243 255 / 80%) 0%, rgb(0 243 255 / 0%) 100%);
+}
+
+/* 亮模式粒子 */
+html:not(.dark) .particle {
+  background: linear-gradient(180deg, rgb(64 158 255 / 60%) 0%, rgb(64 158 255 / 0%) 100%);
 }
 
 @keyframes float {
@@ -528,15 +586,29 @@ onMounted(() => {
   width: 90%;
   max-width: 1200px;
   min-height: 600px;
-  background: rgb(13 17 23 / 80%);
-  border: 1px solid rgb(0 243 255 / 10%);
   border-radius: 24px;
   backdrop-filter: blur(20px);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* 暗黑模式主容器 */
+html.dark .main-container {
+  background: rgb(13 17 23 / 80%);
+  border: 1px solid rgb(0 243 255 / 10%);
   box-shadow:
     0 0 80px rgb(0 243 255 / 10%),
     0 20px 60px rgb(0 0 0 / 50%),
     inset 0 1px 0 rgb(255 255 255 / 5%);
-  overflow: hidden;
+}
+
+/* 亮模式主容器 - 使用柔和的灰白色 */
+html:not(.dark) .main-container {
+  background: #f5f6f7;
+  border: 1px solid #e4e7ed;
+  box-shadow:
+    0 20px 60px rgb(0 0 0 / 10%),
+    inset 0 1px 0 rgb(255 255 255 / 100%);
 }
 
 /* ==================== 品牌区 ==================== */
@@ -547,6 +619,12 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  overflow: hidden;
+  transition: background 0.3s ease;
+}
+
+/* 暗黑模式品牌区 */
+html.dark .brand-section {
   background:
     linear-gradient(135deg, rgb(0 243 255 / 5%) 0%, transparent 50%),
     repeating-linear-gradient(
@@ -556,14 +634,33 @@ onMounted(() => {
       rgb(0 243 255 / 2%) 2px,
       rgb(0 243 255 / 2%) 4px
     );
-  overflow: hidden;
+}
+
+html.dark .brand-section::before {
+  background: radial-gradient(circle at 30% 50%, rgb(0 243 255 / 10%) 0%, transparent 50%);
+}
+
+/* 亮模式品牌区 */
+html:not(.dark) .brand-section {
+  background:
+    linear-gradient(135deg, rgb(64 158 255 / 3%) 0%, transparent 50%),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgb(64 158 255 / 1%) 2px,
+      rgb(64 158 255 / 1%) 4px
+    );
+}
+
+html:not(.dark) .brand-section::before {
+  background: radial-gradient(circle at 30% 50%, rgb(64 158 255 / 5%) 0%, transparent 50%);
 }
 
 .brand-section::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 30% 50%, rgb(0 243 255 / 10%) 0%, transparent 50%);
   animation: glow 8s ease-in-out infinite alternate;
 }
 
@@ -682,11 +779,21 @@ onMounted(() => {
 
 .brand-subtitle {
   font-size: 18px;
-  color: rgb(255 255 255 / 50%);
   font-weight: 300;
   letter-spacing: 2px;
   text-transform: uppercase;
   margin: 0 0 60px;
+  transition: color 0.3s ease;
+}
+
+/* 暗黑模式副标题 */
+html.dark .brand-subtitle {
+  color: rgb(255 255 255 / 50%);
+}
+
+/* 亮模式副标题 */
+html:not(.dark) .brand-subtitle {
+  color: #606266;
 }
 
 /* 功能特性 */
@@ -701,15 +808,45 @@ onMounted(() => {
   align-items: center;
   gap: 12px;
   padding: 20px;
-  background: rgb(0 243 255 / 3%);
-  border: 1px solid rgb(0 243 255 / 10%);
   border-radius: 12px;
   transition: all 0.3s ease;
 }
 
-.feature-item:hover {
+/* 暗黑模式特性项 */
+html.dark .feature-item {
+  background: rgb(0 243 255 / 3%);
+  border: 1px solid rgb(0 243 255 / 10%);
+}
+
+html.dark .feature-item:hover {
   background: rgb(0 243 255 / 8%);
   border-color: rgb(0 243 255 / 30%);
+}
+
+html.dark .feature-item span {
+  color: rgb(255 255 255 / 70%);
+}
+
+/* 亮模式特性项 */
+html:not(.dark) .feature-item {
+  background: #f5f7fa;
+  border: 1px solid #e4e7ed;
+}
+
+html:not(.dark) .feature-item:hover {
+  background: #ecf5ff;
+  border-color: #409eff;
+}
+
+html:not(.dark) .feature-item span {
+  color: #606266;
+}
+
+.feature-item span {
+  font-size: 14px;
+}
+
+.feature-item:hover {
   transform: translateY(-4px);
 }
 
@@ -719,12 +856,17 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: color 0.3s ease;
+}
+
+/* 暗黑模式图标颜色 */
+html.dark .feature-icon {
   color: #00f3ff;
 }
 
-.feature-item span {
-  font-size: 14px;
-  color: rgb(255 255 255 / 70%);
+/* 亮模式图标颜色 */
+html:not(.dark) .feature-icon {
+  color: #409eff;
 }
 
 /* 底部数据流 */
@@ -772,8 +914,27 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.3s ease;
+}
+
+/* 暗黑模式表单区 */
+html.dark .form-section {
   background: rgb(10 14 39 / 50%);
   border-left: 1px solid rgb(0 243 255 / 10%);
+}
+
+html.dark .form-section::before {
+  background: radial-gradient(circle, rgb(0 243 255 / 10%) 0%, transparent 70%);
+}
+
+/* 亮模式表单区 */
+html:not(.dark) .form-section {
+  background: #f5f7fa;
+  border-left: 1px solid #e4e7ed;
+}
+
+html:not(.dark) .form-section::before {
+  background: radial-gradient(circle, rgb(64 158 255 / 5%) 0%, transparent 70%);
 }
 
 .form-section::before {
@@ -783,7 +944,6 @@ onMounted(() => {
   right: -100px;
   width: 200px;
   height: 200px;
-  background: radial-gradient(circle, rgb(0 243 255 / 10%) 0%, transparent 70%);
   filter: blur(60px);
 }
 
@@ -801,17 +961,35 @@ onMounted(() => {
 .form-header h2 {
   font-size: 32px;
   font-weight: 600;
-  color: #fff;
   margin: 0 0 8px;
   letter-spacing: -0.5px;
+  transition: color 0.3s ease;
 }
 
 .form-header p {
   font-size: 14px;
-  color: rgb(255 255 255 / 40%);
   margin: 0;
   letter-spacing: 1px;
   text-transform: uppercase;
+  transition: color 0.3s ease;
+}
+
+/* 暗黑模式表单头部 */
+html.dark .form-header h2 {
+  color: #fff;
+}
+
+html.dark .form-header p {
+  color: rgb(255 255 255 / 40%);
+}
+
+/* 亮模式表单头部 */
+html:not(.dark) .form-header h2 {
+  color: #303133;
+}
+
+html:not(.dark) .form-header p {
+  color: #909399;
 }
 
 /* 表单 */
@@ -832,9 +1010,28 @@ onMounted(() => {
   top: 50%;
   transform: translateY(-50%);
   font-size: 14px;
-  color: rgb(255 255 255 / 40%);
   pointer-events: none;
   transition: all 0.3s ease;
+}
+
+/* 暗黑模式标签 */
+html.dark .form-group label {
+  color: rgb(255 255 255 / 40%);
+}
+
+html.dark .form-group.focused label,
+html.dark .form-group.filled label {
+  color: #00f3ff;
+}
+
+/* 亮模式标签 */
+html:not(.dark) .form-group label {
+  color: #909399;
+}
+
+html:not(.dark) .form-group.focused label,
+html:not(.dark) .form-group.filled label {
+  color: #409eff;
 }
 
 .form-group.focused label,
@@ -842,7 +1039,6 @@ onMounted(() => {
   left: 0;
   top: 0;
   font-size: 12px;
-  color: #00f3ff;
 }
 
 .form-group input {
@@ -850,21 +1046,37 @@ onMounted(() => {
   height: 56px;
   padding: 0 48px;
   font-size: 16px;
-  color: #fff;
-  background: rgb(255 255 255 / 3%);
-  border: 1px solid rgb(255 255 255 / 10%);
   border-radius: 8px;
   outline: none;
   transition: all 0.3s ease;
 }
 
-.form-group input::placeholder {
-  color: transparent;
+/* 暗黑模式输入框 */
+html.dark .form-group input {
+  color: #fff;
+  background: rgb(255 255 255 / 3%);
+  border: 1px solid rgb(255 255 255 / 10%);
 }
 
-.form-group input:focus {
+html.dark .form-group input:focus {
   background: rgb(0 243 255 / 3%);
   border-color: rgb(0 243 255 / 30%);
+}
+
+/* 亮模式输入框 */
+html:not(.dark) .form-group input {
+  color: #303133;
+  background: #fff;
+  border: 1px solid #dcdfe6;
+}
+
+html:not(.dark) .form-group input:focus {
+  background: #ecf5ff;
+  border-color: #409eff;
+}
+
+.form-group input::placeholder {
+  color: transparent;
 }
 
 .input-border {
@@ -906,7 +1118,6 @@ onMounted(() => {
   font-size: 16px;
   font-weight: 600;
   color: #0a0e27;
-  background: linear-gradient(135deg, #00f3ff 0%, #0f8 100%);
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -914,9 +1125,24 @@ onMounted(() => {
   transition: all 0.3s ease;
 }
 
-.login-button:hover:not(:disabled) {
+/* 暗黑模式按钮 */
+html.dark .login-button {
+  background: linear-gradient(135deg, #00f3ff 0%, #0f8 100%);
+}
+
+html.dark .login-button:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 10px 40px rgb(0 243 255 / 30%);
+}
+
+/* 亮模式按钮 */
+html:not(.dark) .login-button {
+  background: linear-gradient(135deg, #409eff 0%, #337ecc 100%);
+}
+
+html:not(.dark) .login-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 40px rgb(64 158 255 / 30%);
 }
 
 .login-button:disabled {
@@ -985,12 +1211,38 @@ onMounted(() => {
   align-items: center;
   margin-top: 40px;
   padding-top: 24px;
+  border-top: 1px solid;
+  transition: border-color 0.3s ease;
+}
+
+/* 暗黑模式底部 */
+html.dark .form-footer {
   border-top: 1px solid rgb(255 255 255 / 5%);
+}
+
+html.dark .version-info {
+  color: rgb(255 255 255 / 30%);
+}
+
+html.dark .status-indicator {
+  color: rgb(255 255 255 / 40%);
+}
+
+/* 亮模式底部 */
+html:not(.dark) .form-footer {
+  border-top: 1px solid #e4e7ed;
+}
+
+html:not(.dark) .version-info {
+  color: #909399;
+}
+
+html:not(.dark) .status-indicator {
+  color: #606266;
 }
 
 .version-info {
   font-size: 12px;
-  color: rgb(255 255 255 / 30%);
   font-family: 'Courier New', monospace;
 }
 
@@ -999,7 +1251,6 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  color: rgb(255 255 255 / 40%);
 }
 
 .status-dot {
@@ -1136,11 +1387,16 @@ onMounted(() => {
   .form-section {
     width: 100%;
     border-left: none;
-    border-top: 1px solid rgb(0 243 255 / 10%);
+    border-top: 1px solid var(--el-border-color);
   }
 }
 
 @media (width <=768px) {
+  .page-theme-toggle {
+    top: 16px;
+    right: 16px;
+  }
+
   .main-container {
     width: 95%;
   }

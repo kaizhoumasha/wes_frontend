@@ -118,7 +118,6 @@ const goHome = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   font-family:
     'SF Pro Display',
     -apple-system,
@@ -126,11 +125,41 @@ const goHome = () => {
     'Segoe UI',
     sans-serif;
   padding: 20px;
+  transition: background 0.3s ease;
+}
+
+html.dark .unauthorized-page {
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 55%, #0d1117 100%);
+}
+
+html:not(.dark) .unauthorized-page {
+  background: linear-gradient(135deg, #f0f2f5 0%, #e4e8eb 100%);
 }
 
 .container {
   text-align: center;
   max-width: 480px;
+  width: 100%;
+  padding: 40px 32px;
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  transition: all 0.3s ease;
+}
+
+html.dark .container {
+  background: rgb(13 17 23 / 80%);
+  border: 1px solid rgb(0 243 255 / 10%);
+  box-shadow:
+    0 20px 60px rgb(0 0 0 / 45%),
+    inset 0 1px 0 rgb(255 255 255 / 5%);
+}
+
+html:not(.dark) .container {
+  background: #f5f6f7;
+  border: 1px solid #e4e7ed;
+  box-shadow:
+    0 20px 60px rgb(0 0 0 / 10%),
+    inset 0 1px 0 rgb(255 255 255 / 100%);
 }
 
 /* 图标区域 */
@@ -144,8 +173,15 @@ const goHome = () => {
 .icon-wrapper svg {
   width: 100%;
   height: 100%;
-  color: rgb(255 255 255 / 20%);
   animation: float 6s ease-in-out infinite;
+}
+
+html.dark .icon-wrapper svg {
+  color: rgb(0 243 255 / 28%);
+}
+
+html:not(.dark) .icon-wrapper svg {
+  color: rgb(64 158 255 / 28%);
 }
 
 @keyframes float {
@@ -185,25 +221,52 @@ const goHome = () => {
 .title {
   font-size: 120px;
   font-weight: 700;
-  color: #fff;
   margin: 0;
   line-height: 1;
+  transition: color 0.3s ease;
+}
+
+html.dark .title {
+  color: #fff;
   text-shadow:
     0 10px 30px rgb(0 0 0 / 30%),
     0 0 0 10px rgb(255 255 255 / 10%);
 }
 
+html:not(.dark) .title {
+  color: #303133;
+  text-shadow:
+    0 10px 30px rgb(0 0 0 / 10%),
+    0 0 0 10px rgb(255 255 255 / 50%);
+}
+
 .subtitle {
   font-size: 32px;
   font-weight: 600;
-  color: #fff;
   margin: 0 0 24px;
+  transition: color 0.3s ease;
+}
+
+html.dark .subtitle {
+  color: #fff;
+}
+
+html:not(.dark) .subtitle {
+  color: #303133;
 }
 
 .description {
   font-size: 18px;
-  color: rgb(255 255 255 / 70%);
   margin: 0 0 32px;
+  transition: color 0.3s ease;
+}
+
+html.dark .description {
+  color: rgb(255 255 255 / 70%);
+}
+
+html:not(.dark) .description {
+  color: #606266;
 }
 
 /* 权限信息 */
@@ -212,25 +275,53 @@ const goHome = () => {
   align-items: center;
   gap: 12px;
   padding: 16px 24px;
-  background: rgb(0 0 0 / 20%);
   border-radius: 12px;
   margin-bottom: 32px;
   backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+html.dark .permission-info {
+  background: rgb(0 0 0 / 20%);
+  border: 1px solid rgb(255 255 255 / 10%);
+}
+
+html:not(.dark) .permission-info {
+  background: #f5f7fa;
+  border: 1px solid #e4e7ed;
 }
 
 .permission-info .label {
-  color: rgb(255 255 255 / 70%);
   font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+html.dark .permission-info .label {
+  color: rgb(255 255 255 / 70%);
+}
+
+html:not(.dark) .permission-info .label {
+  color: #606266;
 }
 
 .permission-code {
   padding: 6px 12px;
-  background: rgb(239 68 68 / 20%);
-  border: 1px solid rgb(239 68 68 / 30%);
   border-radius: 6px;
-  color: #fca5a5;
   font-family: 'Courier New', monospace;
   font-size: 13px;
+  transition: all 0.3s ease;
+}
+
+html.dark .permission-code {
+  background: rgb(239 68 68 / 20%);
+  border: 1px solid rgb(239 68 68 / 30%);
+  color: #fca5a5;
+}
+
+html:not(.dark) .permission-code {
+  background: #fef0f0;
+  border: 1px solid #fbc4c4;
+  color: #d14141;
 }
 
 /* 操作按钮 */
@@ -245,43 +336,79 @@ const goHome = () => {
   padding: 14px 32px;
   font-size: 16px;
   font-weight: 600;
-  border: none;
+  border: 1px solid transparent;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.btn-primary {
-  background: #fff;
-  color: #667eea;
+html.dark .btn-primary {
+  background: linear-gradient(135deg, #00f3ff 0%, #0f8 100%);
+  color: #0a0e27;
 }
 
-.btn-primary:hover {
+html.dark .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgb(0 0 0 / 20%);
+  box-shadow: 0 10px 30px rgb(0 243 255 / 25%);
 }
 
-.btn-secondary {
-  background: rgb(255 255 255 / 10%);
+html.dark .btn-secondary {
+  background: rgb(255 255 255 / 6%);
+  color: rgb(255 255 255 / 90%);
+  border-color: rgb(255 255 255 / 20%);
+}
+
+html.dark .btn-secondary:hover {
+  background: rgb(255 255 255 / 12%);
+  border-color: rgb(0 243 255 / 30%);
   color: #fff;
-  border: 1px solid rgb(255 255 255 / 20%);
-  backdrop-filter: blur(10px);
+  transform: translateY(-2px);
 }
 
-.btn-secondary:hover {
-  background: rgb(255 255 255 / 20%);
+html:not(.dark) .btn-primary {
+  background: linear-gradient(135deg, #409eff 0%, #337ecc 100%);
+  color: #fff;
+}
+
+html:not(.dark) .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgb(64 158 255 / 25%);
+}
+
+html:not(.dark) .btn-secondary {
+  background: #fff;
+  color: #606266;
+  border-color: #dcdfe6;
+}
+
+html:not(.dark) .btn-secondary:hover {
+  background: #ecf5ff;
+  border-color: #409eff;
+  color: #409eff;
   transform: translateY(-2px);
 }
 
 /* 提示信息 */
 .hint {
   font-size: 14px;
-  color: rgb(255 255 255 / 50%);
   margin: 0;
+  transition: color 0.3s ease;
+}
+
+html.dark .hint {
+  color: rgb(255 255 255 / 50%);
+}
+
+html:not(.dark) .hint {
+  color: #909399;
 }
 
 /* 响应式 */
 @media (width <= 640px) {
+  .container {
+    padding: 32px 20px;
+  }
+
   .title {
     font-size: 80px;
   }

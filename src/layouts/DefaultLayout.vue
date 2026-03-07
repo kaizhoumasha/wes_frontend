@@ -68,8 +68,17 @@ onMounted(() => {
 /* ==================== 基础布局 ==================== */
 .default-layout {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0d1117 100%);
   overflow: hidden;
+}
+
+/* 暗黑模式背景 */
+html.dark .default-layout {
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0d1117 100%);
+}
+
+/* 亮模式背景 - 使用更柔和的暖灰色 */
+html:not(.dark) .default-layout {
+  background: linear-gradient(135deg, #f0f2f5 0%, #e4e8eb 100%);
 }
 
 /* ==================== 主内容区 ==================== */
