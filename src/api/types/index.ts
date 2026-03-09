@@ -16,8 +16,7 @@ export type {
   ApiResponse,
   ApiErrorResponse,
   PaginatedResponse,
-  BatchResponse,
-  PaginationParams
+  BatchResponse
 } from './response'
 
 // 请求相关

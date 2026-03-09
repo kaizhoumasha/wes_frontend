@@ -14,7 +14,6 @@ export type {
   PaginatedResponse,
   BatchResponse,
   PaginationData,
-  PaginationParams,
 } from '../types'
 
 export type {

@@ -23,7 +23,7 @@
  *
  * // 初始化加载数据
  * onMounted(() => {
- *   fetchList({ page: 1, pageSize: 10 })
+ *   fetchList({ offset: 0, limit: 10 })
  * })
  * </script>
  *
@@ -35,7 +35,7 @@
  *       {{ item.name }}
  *     </li>
  *   </ul>
- *   <button @click="fetchList({ page: pagination.page + 1 })">下一页</button>
+ *   <button @click="fetchList({ offset: pagination.page * pagination.pageSize, limit: pagination.pageSize })">下一页</button>
  * </template>
  * ```
  */
@@ -110,9 +110,12 @@ export function useCrudApi<T, CreateInput = Partial<T>, UpdateInput = Partial<T>
   const loading = ref(false)
   const error = ref<Error | null>(null)
 
+  const initialLimit = defaultOptions.limit ?? 10
+  const initialOffset = defaultOptions.offset ?? 0
+
   const pagination = reactive({
-    page: defaultOptions.page || 1,
-    pageSize: defaultOptions.pageSize || 10,
+    page: Math.floor(initialOffset / initialLimit) + 1,
+    pageSize: initialLimit,
     total: 0,
     pages: 0,
   })
@@ -128,8 +131,8 @@ export function useCrudApi<T, CreateInput = Partial<T>, UpdateInput = Partial<T>
 
     try {
       const mergedOptions: QueryOptions = {
-        page: pagination.page,
-        pageSize: pagination.pageSize,
+        offset: (pagination.page - 1) * pagination.pageSize,
+        limit: pagination.pageSize,
         ...defaultOptions,
         ...options,
       }
@@ -237,8 +240,8 @@ export function useCrudApi<T, CreateInput = Partial<T>, UpdateInput = Partial<T>
    */
   async function refresh(): Promise<void> {
     await fetchList({
-      page: pagination.page,
-      pageSize: pagination.pageSize,
+      offset: (pagination.page - 1) * pagination.pageSize,
+      limit: pagination.pageSize,
     })
   }
 
@@ -250,8 +253,8 @@ export function useCrudApi<T, CreateInput = Partial<T>, UpdateInput = Partial<T>
     currentItem.value = null
     loading.value = false
     error.value = null
-    pagination.page = defaultOptions.page || 1
-    pagination.pageSize = defaultOptions.pageSize || 10
+    pagination.page = Math.floor(initialOffset / initialLimit) + 1
+    pagination.pageSize = initialLimit
     pagination.total = 0
     pagination.pages = 0
   }

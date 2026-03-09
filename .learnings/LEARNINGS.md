@@ -562,3 +562,114 @@ if (!isMenuLoaded.value) {
 - Last-Seen: 2026-03-07
 
 ---
+
+## [LRN-20260307-003] correction
+
+**Logged**: 2026-03-07T00:00:00+08:00
+**Priority**: high
+**Status**: pending
+**Area**: frontend
+
+### Summary
+
+搜索能力参考项目修正为 happy-table，而非 happyGrid；后续分析应以 happy-table/packages/core/src/components/DataGrid.vue 为主。
+
+### Details
+
+用户明确指出此前给错参考项目。正确参考仓库为 /Users/kaizhou/SynologyDrive/works/happy-table，核心参考文件为 packages/core/src/components/DataGrid.vue。后续关于主搜索框、工具栏、Popover、Tag 条件、收藏夹等分析，必须优先依据 happy-table 的实现模式，而不是 happyGrid。
+
+### Suggested Action
+
+重新阅读 happy-table 中 DataGrid 及相关搜索组件、类型、事件流，重新提炼智能搜索设计。
+
+### Metadata
+
+- Source: user_feedback
+- Related Files: .learnings/LEARNINGS.md
+- Tags: correction, happy-table, datagrid, search, toolbar
+
+## [LRN-20260307-004] correction
+
+**Logged**: 2026-03-07T00:00:00+08:00
+**Priority**: high
+**Status**: pending
+**Area**: frontend
+
+### Summary
+
+Popover 中栏不应根据 keyword 动态生成候选条件；中栏应承载系统提供的固定快速搜索条件，keyword 仅用于左栏字段选择后的默认操作符条件生成。
+
+### Details
+
+用户明确说明：主搜索框打开 Popover 后，中栏应该是系统提供的一些快速搜索条件，如“最近 7 天登录”“超级管理员”等，不需要与 keyword 交互。正确交互是：当 keyword 有值时，打开 Popover 后聚焦到左侧字段列表；上下键快速切换字段，回车键选中字段，并使用该字段类型的默认操作符生成搜索条件。后续设计必须以此为准，而不是把中栏设计为 keyword 驱动的动态候选区。
+
+### Suggested Action
+
+修正搜索设计文档：中栏改为固定快速搜索条件面板；keyword 仅用于左栏字段选择后的一键生成逻辑；补充键盘交互规则（上下键/回车/ESC）。
+
+### Metadata
+
+- Source: user_feedback
+- Related Files: docs/SMART_SEARCH_DESIGN_V1.md, docs/SMART_SEARCH_COMPONENT_ARCHITECTURE.md, docs/TASKS_SMART_SEARCH.md, docs/USER_MANAGEMENT_SEARCH_CONFIG.md, docs/SMART_SEARCH_IMPLEMENTATION_PLAN_V1.md
+- Tags: correction, smart-search, popover, keyboard, quick-search
+
+---
+
+## [LRN-20260307-005] correction
+
+**Logged**: 2026-03-07T02:30:00+08:00
+**Priority**: high
+**Status**: pending
+**Area**: frontend
+
+### Summary
+
+主搜索框的键盘事件应驱动左栏字段高亮，但输入焦点必须继续停留在输入框；字段可选集合要随 keyword 类型扩展，而非只允许文本字段。
+
+### Details
+
+用户进一步澄清：当 keyword 有值时，打开 Popover 后“不是聚焦到左侧字段”，而是输入焦点仍在主输入框中，用户可继续输入；同时 `ArrowUp / ArrowDown` 驱动左栏字段高亮切换，`Enter` 选中当前字段，并按该字段默认操作符生成条件。字段可选规则也需更细：
+
+- 文本输入时至少可选文本字段
+- `1 / 0 / true / false / 是 / 否` 等布尔字面量输入时，可同时选中文本字段与布尔字段
+- 数值输入时，可同时选中文本字段与数值字段（若业务页存在数值列）
+
+这意味着搜索能力设计不能把“键盘高亮切换”误写成“焦点转移”，也不能把左栏字段候选简化为仅文本字段。
+
+### Suggested Action
+
+在智能搜索设计与实现方案中补充：输入焦点规则、keyword 类型解析规则、可选字段计算规则、默认操作符建条件规则。
+
+### Metadata
+
+- Source: user_feedback
+- Related Files: docs/SMART_SEARCH_DESIGN_V1.md, docs/SMART_SEARCH_COMPONENT_ARCHITECTURE.md, docs/TASKS_SMART_SEARCH.md, docs/USER_MANAGEMENT_SEARCH_CONFIG.md, docs/SMART_SEARCH_IMPLEMENTATION_PLAN_V1.md
+- Tags: correction, smart-search, keyboard, focus-management, field-eligibility
+- See Also: LRN-20260307-004
+
+## [LRN-20260308-001] correction
+
+**Logged**: 2026-03-08T00:00:00+08:00
+**Priority**: medium
+**Status**: pending
+**Area**: docs
+
+### Summary
+
+评审代码时误把“用户管理页未实现”当作智能搜索实现缺陷的一部分
+
+### Details
+
+用户明确指出当前阶段用户管理页尚未实现，因此代码评审应仅聚焦智能搜索能力本身（类型、编译器、composable、组件、调试页与基础集成能力），不应将业务页面未落地视作本轮功能性缺陷。
+
+### Suggested Action
+
+后续评审先确认本轮交付边界，再区分“智能搜索能力缺陷”和“业务接入尚未开始”。
+
+### Metadata
+
+- Source: user_feedback
+- Related Files: src/components/search/SmartSearchBar.vue, src/composables/useSmartSearch.ts, src/utils/search-compiler.ts
+- Tags: review-scope, correction, smart-search
+
+---

@@ -21,15 +21,11 @@
  */
 
 import { apiClient } from '../client'
-import type {
-  ApiResponse,
-  PaginationData,
-  PaginationParams,
-} from '../types'
+import type { ApiResponse, PaginationData } from '../types'
 
 // ==================== 类型定义 ====================
 
-type FilterOperator =
+export type FilterOperator =
   | 'eq'
   | 'ne'
   | 'gt'
@@ -43,105 +39,68 @@ type FilterOperator =
   | 'is_null'
   | 'not_null'
 
-interface FilterCondition {
+export interface FilterCondition {
   field: string
   op: FilterOperator
-  value?: unknown
+  value?: unknown | null
 }
 
-interface FilterGroup {
-  couple: 'and' | 'or' | 'not'
-  conditions: Array<FilterCondition | FilterGroup>
+export type FilterCouple = 'and' | 'or' | 'not'
+
+export interface FilterGroup {
+  couple?: FilterCouple
+  conditions?: Array<FilterCondition | FilterGroup>
 }
 
-const FILTER_OPERATORS = new Set<FilterOperator>([
-  'eq',
-  'ne',
-  'gt',
-  'ge',
-  'lt',
-  'le',
-  'in',
-  'nin',
-  'ilike',
-  'between',
-  'is_null',
-  'not_null',
-])
-
-function isFilterGroup(value: unknown): value is FilterGroup {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return false
-  }
-
-  const candidate = value as { couple?: unknown; conditions?: unknown }
-  return (
-    (candidate.couple === 'and' || candidate.couple === 'or' || candidate.couple === 'not') &&
-    Array.isArray(candidate.conditions)
-  )
+export interface SortField {
+  field: string
+  order?: 'asc' | 'desc'
 }
 
-function toFilterCondition(field: string, rawValue: unknown): FilterCondition | null {
-  if (rawValue === undefined) {
-    return null
-  }
-
-  if (rawValue && typeof rawValue === 'object' && !Array.isArray(rawValue)) {
-    const opCandidate = (rawValue as { op?: unknown }).op
-    if (typeof opCandidate === 'string' && FILTER_OPERATORS.has(opCandidate as FilterOperator)) {
-      const op = opCandidate as FilterOperator
-      if (op === 'is_null' || op === 'not_null') {
-        return { field, op }
-      }
-      return { field, op, value: (rawValue as { value?: unknown }).value }
-    }
-  }
-
-  if (rawValue === null) {
-    return { field, op: 'is_null' }
-  }
-  if (Array.isArray(rawValue)) {
-    return { field, op: 'in', value: rawValue }
-  }
-  return { field, op: 'eq', value: rawValue }
+export interface QueryOptions {
+  filters?: FilterGroup | null
+  sort?: SortField[] | null
+  offset?: number
+  limit?: number
+  max_depth?: number
+  include_deleted?: boolean
 }
 
-function normalizeFilters(filters: Record<string, unknown> | undefined): FilterGroup | undefined {
+function normalizeFilterGroup(filters: FilterGroup | null | undefined): FilterGroup | undefined {
   if (!filters) {
     return undefined
   }
 
-  // 运行时兼容：如果调用方已传入标准 FilterGroup，直接透传
-  if (isFilterGroup(filters)) {
-    return filters
+  return {
+    couple: filters.couple ?? 'and',
+    conditions: filters.conditions ?? []
+  }
+}
+
+export function appendAndFilter(
+  baseFilters: FilterGroup | null | undefined,
+  nextFilter: FilterCondition | FilterGroup
+): FilterGroup {
+  const normalizedBaseFilters = normalizeFilterGroup(baseFilters)
+
+  if (!normalizedBaseFilters) {
+    return {
+      couple: 'and',
+      conditions: [nextFilter]
+    }
   }
 
-  const conditions = Object.entries(filters)
-    .map(([field, value]) => toFilterCondition(field, value))
-    .filter((condition): condition is FilterCondition => condition !== null)
-
-  if (conditions.length === 0) {
-    return undefined
+  if (normalizedBaseFilters.couple === 'and') {
+    return {
+      couple: 'and',
+      conditions: [...(normalizedBaseFilters.conditions ?? []), nextFilter]
+    }
   }
 
   return {
     couple: 'and',
-    conditions,
+    conditions: [normalizedBaseFilters, nextFilter]
   }
-}
-
-/**
- * 查询选项（对应后端 QueryOptions）
- */
-export interface QueryOptions extends PaginationParams {
-  /** 过滤条件（简写对象，内部自动转换为后端 FilterGroup） */
-  filters?: Record<string, unknown>
-  /** 排序 */
-  sort?: Array<{ field: string; order: 'asc' | 'desc' }>
-  /** 关系加载深度 */
-  max_depth?: number
-  /** 是否包含已删除的记录 */
-  include_deleted?: boolean
 }
 
 /**
@@ -207,7 +166,7 @@ export interface CrudApiConfig<T, CreateInput, UpdateInput> {
  * })
  *
  * // 使用
- * const users = await userApi.query({ page: 1, pageSize: 10 })
+ * const users = await userApi.query({ offset: 0, limit: 10 })
  * const user = await userApi.getById(1)
  * const newUser = await userApi.create({ name: 'John', email: 'john@example.com', password: '123456' })
  * await userApi.update(1, { name: 'Jane' })
@@ -226,10 +185,9 @@ export class CrudApi<T, CreateInput = Partial<T>, UpdateInput = Partial<T>> {
    * @returns 实体数据
    */
   async getById(id: number, maxDepth = 2): Promise<T> {
-    const response = await apiClient.Get<ApiResponse<T>>(
-      `${this.config.prefix}/${id}`,
-      { max_depth: maxDepth } as Record<string, unknown>
-    )
+    const response = await apiClient.Get<ApiResponse<T>>(`${this.config.prefix}/${id}`, {
+      max_depth: maxDepth
+    } as Record<string, unknown>)
     return response as unknown as T
   }
 
@@ -240,24 +198,25 @@ export class CrudApi<T, CreateInput = Partial<T>, UpdateInput = Partial<T>> {
    */
   async query(options: QueryOptions = {}): Promise<PaginationData<T>> {
     const {
-      page = 1,
-      pageSize = 10,
-      filters = {},
+      limit = 10,
+      offset = 0,
+      filters,
       sort,
-      max_depth = 2,
-      include_deleted = false,
+      max_depth = 1,
+      include_deleted = false
     } = options
-    const normalizedFilters = normalizeFilters(filters)
+    const currentPage = Math.floor(offset / limit) + 1
+    const normalizedFilters = normalizeFilterGroup(filters)
 
     const response = await apiClient.Post<ApiResponse<PaginationData<T>>>(
       `${this.config.prefix}/query`,
       {
-        limit: pageSize,
-        offset: (page - 1) * pageSize,
+        limit,
+        offset,
         filters: normalizedFilters,
         sort,
         max_depth,
-        include_deleted,
+        include_deleted
       } as Record<string, unknown>
     )
 
@@ -266,9 +225,9 @@ export class CrudApi<T, CreateInput = Partial<T>, UpdateInput = Partial<T>> {
     return {
       items: data.items,
       total: data.total,
-      page,
-      size: pageSize,
-      pages: Math.ceil(data.total / pageSize),
+      page: currentPage,
+      size: limit,
+      pages: Math.ceil(data.total / limit)
     }
   }
 
@@ -336,10 +295,7 @@ export class CrudApi<T, CreateInput = Partial<T>, UpdateInput = Partial<T>> {
    * @returns 恢复后的实体
    */
   async restore(id: number): Promise<T> {
-    const response = await apiClient.Post<ApiResponse<T>>(
-      `${this.config.prefix}/${id}/restore`,
-      {}
-    )
+    const response = await apiClient.Post<ApiResponse<T>>(`${this.config.prefix}/${id}/restore`, {})
     return response as unknown as T
   }
 
@@ -354,7 +310,7 @@ export class CrudApi<T, CreateInput = Partial<T>, UpdateInput = Partial<T>> {
       `${this.config.prefix}/trash`,
       {
         offset: (page - 1) * pageSize,
-        limit: pageSize,
+        limit: pageSize
       } as Record<string, unknown>
     )
 
@@ -364,7 +320,7 @@ export class CrudApi<T, CreateInput = Partial<T>, UpdateInput = Partial<T>> {
       total: data.total,
       page,
       size: pageSize,
-      pages: Math.ceil(data.total / pageSize),
+      pages: Math.ceil(data.total / pageSize)
     }
   }
 
