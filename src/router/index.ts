@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { createPermissionGuard } from './guards/permission'
+import { setRouterInstance } from '@/api/services/auth-error-handler'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -54,12 +55,16 @@ const router = createRouter({
   routes
 })
 
+// 设置路由实例引用（供认证错误处理服务使用）
+setRouterInstance(router)
+
 // ==================== 路由守卫 ====================
 
 // 认证守卫
-router.beforeEach((to) => {
+router.beforeEach((to, from) => {
   const token = localStorage.getItem('access_token')
 
+  // 如果没有 token 且路由需要认证，重定向到登录页
   if (to.meta.requiresAuth !== false && !token) {
     // 保存目标路径用于登录后重定向
     if (to.path !== '/login') {
@@ -68,9 +73,14 @@ router.beforeEach((to) => {
     return '/login'
   }
 
-  if (to.path === '/login' && token) {
+  // 如果已登录且在登录页，重定向到 dashboard
+  // 但排除从登录页跳转到其他页面时的触发
+  if (to.path === '/login' && token && from.path !== '/login') {
     return '/dashboard'
   }
+
+  // 其他情况放行
+  return
 })
 
 // 权限守卫（在认证守卫之后执行）

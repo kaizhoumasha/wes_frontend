@@ -81,6 +81,7 @@
                 ref="usernameInput"
                 v-model="form.username"
                 type="text"
+                @keyup.enter="focusPasswordInput"
                 @focus="usernameFocused = true"
                 @blur="usernameFocused = false"
               />
@@ -192,7 +193,8 @@ const {
   usernameInput,
   passwordInput,
   handleLogin,
-  focusUsernameInput
+  focusUsernameInput,
+  focusPasswordInput
 } = useLoginForm()
 
 // 网格点样式生成 - 创建 20x15 网格

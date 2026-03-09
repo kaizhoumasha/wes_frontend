@@ -673,3 +673,285 @@ Popover 中栏不应根据 keyword 动态生成候选条件；中栏应承载系
 - Tags: review-scope, correction, smart-search
 
 ---
+
+## [LRN-20260309-006] vue*router_5*语法变更
+
+**Logged**: 2026-03-09T18:48:00+08:00
+**Priority**: high
+**Status**: resolved
+**Category**: best_practice
+**Area**: frontend
+
+### Summary
+
+Vue Router 5 弃用了导航守卫中的 `next()` 回调语法，应直接使用 return 返回。
+
+### Details
+
+在 Vue Router 5 中，导航守卫函数不再接收 `next()` 回调，而是直接返回值：
+
+**旧语法 (Vue Router 4):**
+
+```typescript
+router.beforeEach((to, from, next) => {
+  if (to.meta.requiresAuth !== false && !token) {
+    return next('/login')
+  }
+  return next()
+})
+```
+
+**新语法 (Vue Router 5):**
+
+```typescript
+router.beforeEach((to, from) => {
+  if (to.meta.requiresAuth !== false && !token) {
+    return '/login'
+  }
+  return
+})
+```
+
+**返回重定向对象:**
+
+```typescript
+// 旧写法
+return next({
+  path: '/403',
+  query: { redirect: to.fullPath }
+})
+
+// 新写法
+return {
+  path: '/403',
+  query: { redirect: to.fullPath }
+}
+```
+
+### Resolution
+
+- **Resolved**: 2026-03-09
+- **Notes**: 已更新 src/router/guards/permission.ts 和 src/router/index.ts
+
+### Metadata
+
+- Source: simplify
+- Related Files: src/router/guards/permission.ts, src/router/index.ts
+- Tags: vue-router, vue5, breaking-change
+
+---
+
+## [LRN-20260309-007] 组件响应式使用\_shallowRef
+
+**Logged**: 2026-03-09T18:48:00+08:00
+**Priority**: medium
+**Status**: resolved
+**Category**: best_practice
+**Area**: frontend
+
+### Summary
+
+Vue 组件存储在响应式对象中会导致性能警告，应使用 `shallowRef` 替代 `ref`。
+
+### Details
+
+当 Vue 组件被存储在 `ref()` 中时，Vue 会使组件对象变为响应式，从而触发警告：
+
+```
+[Vue warn]: Vue received a Component that was made a reactive object.
+This can lead to unnecessary performance overhead...
+```
+
+**问题代码:**
+
+```typescript
+import { ref } from 'vue'
+import { MonitorIcon } from '@/icons'
+
+const statistics = ref([
+  { icon: MonitorIcon, label: '设备' } // 组件被响应式化
+])
+```
+
+**解决方案:**
+
+```typescript
+import { shallowRef } from 'vue'
+
+const statistics = shallowRef([
+  { icon: MonitorIcon, label: '设备' } // 组件保持非响应式
+])
+```
+
+`shallowRef` 只跟踪引用本身，不跟踪对象/数组的内部属性。这对于不需要响应式的静态数据（如图标组件）非常适用。
+
+### Resolution
+
+- **Resolved**: 2026-03-09
+- **Notes**: 已更新 src/views/dashboard/Dashboard.vue
+
+### Metadata
+
+- Source: simplify
+- Related Files: src/views/dashboard/Dashboard.vue
+- Tags: vue3, performance, shallowref
+
+---
+
+## [LRN-20260309-008] 智能聚焦UX模式
+
+**Logged**: 2026-03-09T18:48:00+08:00
+**Priority**: low
+**Status**: resolved
+**Category**: best_practice
+**Area**: frontend
+
+### Summary
+
+登录表单出错时，根据已有输入智能定位最需要修正的输入框。
+
+### Details
+
+登录失败时，智能的焦点定位可以改善用户体验：
+
+1. **用户名为空** → 聚焦用户名输入框
+2. **用户名有值** → 聚焦密码输入框（密码错误的可能性更大）
+
+**实现方式:**
+
+```typescript
+// 登录失败时的智能聚焦
+const shouldFocusPassword = form.username.length > 0
+setTimeout(() => {
+  if (shouldFocusPassword) {
+    passwordInput.value?.focus()
+  } else {
+    usernameInput.value?.focus()
+  }
+}, 100)
+```
+
+**回车键导航:**
+
+- 用户名输入框 → 按回车键，验证后聚焦密码框
+- 密码输入框 → 按回车键，提交表单
+
+### Resolution
+
+- **Resolved**: 2026-03-09
+- **Notes**: 已在 src/composables/useLoginForm.ts 和 src/views/auth/Login.vue 实现
+
+### Metadata
+
+- Source: user_request
+- Related Files: src/composables/useLoginForm.ts, src/views/auth/Login.vue
+- Tags: ux, forms, accessibility
+
+---
+
+## [LRN-20260309-009] 使用常量替代字符串字面量
+
+**Logged**: 2026-03-09T18:48:00+08:00
+**Priority**: medium
+**Status**: resolved
+**Category**: best_practice
+**Area**: frontend
+
+### Summary
+
+使用定义的常量（ClientErrorCode）而非字符串字面量来表示错误码。
+
+### Details
+
+**问题代码 (字符串字面量):**
+
+```typescript
+const AUTH_ERROR_CODES = ['2010', '2011', '2012', '2014']
+if (code === '2013') { ... }
+```
+
+**解决方案 (使用常量):**
+
+```typescript
+import { ClientErrorCode } from '@/api/constants/response-codes'
+
+const AUTH_ERROR_CODES = [
+  ClientErrorCode.UNAUTHORIZED,      // '2010'
+  ClientErrorCode.INVALID_CREDENTIALS, // '2011'
+  ClientErrorCode.INVALID_TOKEN,      // '2012'
+  ClientErrorCode.TOKEN_MISSING        // '2014'
+]
+
+if (code === ClientErrorCode.TOKEN_EXPIRED) { ... }  // '2013'
+```
+
+**优势:**
+
+- 类型安全（自动补全、防止拼写错误）
+- 语义清晰（代码意图明确）
+- 易于重构（在一处修改即可）
+- 自带文档（悬停显示描述）
+
+### Resolution
+
+- **Resolved**: 2026-03-09
+- **Notes**: 已更新 src/api/client.ts, src/api/services/auth-error-handler.ts, src/utils/guard-error-handler.ts
+
+### Metadata
+
+- Source: simplify
+- Related Files: src/api/client.ts, src/api/services/auth-error-handler.ts, src/utils/guard-error-handler.ts
+- Tags: typescript, constants, maintainability
+
+---
+
+## [LRN-20260309-010] token刷新失败处理
+
+**Logged**: 2026-03-09T18:48:00+08:00
+**Priority**: high
+**Status**: resolved
+**Category**: best_practice
+**Area**: frontend
+
+### Summary
+
+当 token 刷新失败（2013 错误）时，应将其视为认证错误并清除所有认证状态。
+
+### Details
+
+Token 过期（2013）会触发刷新尝试。如果刷新失败，应用应该：
+
+1. 清除无效 token 和所有认证状态
+2. 重定向到登录页面
+3. 显示用户友好的提示消息
+
+**实现模式:**
+
+```typescript
+if (code === ClientErrorCode.TOKEN_EXPIRED) {
+  try {
+    const newToken = await handle401Error()
+    // 使用新 token 重试
+  } catch {
+    // 刷新失败 - 作为认证错误处理
+    const authError = new ApiResponseError(code, message, timestamp)
+    await handleAuthError(authError, { showMessage: true })
+    throw authError
+  }
+}
+```
+
+**不要静默忽略刷新失败** - 这会让用户处于看似已登录但无法调用 API 的损坏状态。
+
+### Resolution
+
+- **Resolved**: 2026-03-09
+- **Notes**: 已在 src/api/client.ts 实现统一错误处理
+
+### Metadata
+
+- Source: bug_fix
+- Related Files: src/api/client.ts, src/api/services/auth-error-handler.ts
+- Tags: auth, token-refresh, error-handling
+
+---
