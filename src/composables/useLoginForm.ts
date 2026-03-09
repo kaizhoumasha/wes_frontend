@@ -9,7 +9,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { authApi } from '@/api/modules/auth'
 import { ApiResponseError } from '@/api/client'
-import { setAccessToken, setTokenExpiresAt } from '@/api/services/token-refresh'
+import { setAccessToken, setTokenExpiresAt, clearTokens } from '@/api/services/token-refresh'
 import { usePermission } from '@/composables/usePermission'
 import { useMenu } from '@/composables/useMenu'
 
@@ -110,13 +110,7 @@ export function useLoginForm() {
     }
   }
 
-  /**
-   * 清除认证信息（登录失败时使用）
-   */
-  const clearAuth = (): void => {
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('token_expires_at')
-  }
+  // 清除认证信息使用统一的 clearTokens()
 
   /**
    * 处理登录提交
@@ -146,10 +140,9 @@ export function useLoginForm() {
         await loadUserContext()
       } catch (contextError) {
         console.error('加载用户上下文失败:', contextError)
-        clearAuth()
+        clearTokens()
         ElMessage.error('权限加载失败，请重试')
-        loading.value = false
-        return
+        throw contextError
       }
 
       ElMessage.success('登录成功')
@@ -157,12 +150,30 @@ export function useLoginForm() {
       // 跳转到目标页面
       const redirect = sessionStorage.getItem('redirect_after_login')
       sessionStorage.removeItem('redirect_after_login')
-      router.push(redirect || '/dashboard')
+
+      // 等待路由跳转完成，如果被阻止则强制跳转
+      const navigationResult = await router.push(redirect || '/dashboard')
+      if (navigationResult) {
+        // 导航被阻止（可能被路由守卫），使用强制跳转
+        window.location.href = redirect || '/dashboard'
+      }
     } catch (error) {
       console.error('登录失败:', error)
+      // ApiResponseError 已由 API 客户端的错误通知系统处理
       if (!(error instanceof ApiResponseError)) {
         ElMessage.error('登录失败，请稍后重试')
       }
+      // 智能聚焦：根据表单状态决定聚焦位置
+      // 如果用户名为空 → 聚焦用户名框
+      // 如果密码为空或已有输入 → 聚焦密码框（更可能是密码错误）
+      const shouldFocusPassword = form.username.length > 0
+      setTimeout(() => {
+        if (shouldFocusPassword) {
+          passwordInput.value?.focus()
+        } else {
+          usernameInput.value?.focus()
+        }
+      }, 100)
     } finally {
       loading.value = false
     }
@@ -177,6 +188,26 @@ export function useLoginForm() {
     }, 500)
   }
 
+  /**
+   * 聚焦密码输入框（仅在用户名验证通过后）
+   */
+  const focusPasswordInput = (): void => {
+    // 验证用户名
+    if (!form.username) {
+      ElMessage.warning(rules.username.required)
+      usernameInput.value?.focus()
+      return
+    }
+    if (form.username.length < rules.username.minLength.value) {
+      ElMessage.warning(rules.username.minLength.message)
+      usernameInput.value?.focus()
+      return
+    }
+
+    // 验证通过，聚焦密码框
+    passwordInput.value?.focus()
+  }
+
   return {
     // 状态
     loading,
@@ -188,6 +219,7 @@ export function useLoginForm() {
 
     // 方法
     handleLogin,
-    focusUsernameInput
+    focusUsernameInput,
+    focusPasswordInput
   }
 }

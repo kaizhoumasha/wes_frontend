@@ -15,8 +15,9 @@ import {
 } from './services/token-refresh'
 import { show, initializeErrorNotification } from './services/error-notification'
 import { classifyErrorByCode } from './utils/error-classifier'
-import { isSuccessCode } from './constants/response-codes'
+import { isSuccessCode, ClientErrorCode } from './constants/response-codes'
 import type { ApiResponse } from './types'
+import { handleAuthError } from './services/auth-error-handler'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -115,19 +116,35 @@ async function handleResponse(response: Response, method: any): Promise<unknown>
       return data
     }
 
-    // 只有2013（Token过期）才触发Token刷新
-    if (code === '2013') {
+    // 认证相关错误统一处理（2010/2011/2012/2014）
+    const AUTH_ERROR_CODES = [
+      ClientErrorCode.UNAUTHORIZED,
+      ClientErrorCode.INVALID_CREDENTIALS,
+      ClientErrorCode.INVALID_TOKEN,
+      ClientErrorCode.TOKEN_MISSING
+    ]
+    if (AUTH_ERROR_CODES.includes(code as ClientErrorCode)) {
+      const authError = new ApiResponseError(code, message, json.timestamp)
+      await handleAuthError(authError, { showMessage: true })
+      throw authError
+    }
+
+    // Token 过期（2013）：触发 Token 刷新
+    if (code === ClientErrorCode.TOKEN_EXPIRED) {
       try {
         const newToken = await handle401Error()
         setAccessToken(newToken)
         method.config.headers.Authorization = `Bearer ${newToken}`
         return await method.send()
       } catch {
-        throw new ApiResponseError(code, message, json.timestamp)
+        // Token 刷新失败，按认证错误处理
+        const authError = new ApiResponseError(code, message, json.timestamp)
+        await handleAuthError(authError, { showMessage: true })
+        throw authError
       }
     }
 
-    // 其他错误（2010/2011/2012/2014等），分类并显示通知
+    // 其他错误：分类并显示通知
     const classification = classifyErrorByCode(code, message)
     await show(classification)
     throw new ApiResponseError(code, message, json.timestamp)

@@ -25,6 +25,7 @@
 
 import type { RouteLocationNormalized, Router } from 'vue-router'
 import { usePermission } from '@/composables/usePermission'
+import { withGuardErrorHandling } from '@/utils/guard-error-handler'
 
 /** 扩展的路由元信息类型 */
 interface ExtendedRouteMeta {
@@ -59,10 +60,10 @@ const UNAUTHORIZED_PATH = '/403'
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function createPermissionGuard(_router: Router) {
-  return async (to: RouteLocationNormalized, _from: RouteLocationNormalized, next: (to?: string | object) => void) => {
+  return async (to: RouteLocationNormalized) => {
     // 跳过不需要权限的路由
     if (to.meta.requiresAuth === false) {
-      return next()
+      return
     }
 
     // 获取权限检查函数
@@ -71,7 +72,10 @@ export function createPermissionGuard(_router: Router) {
     // 权限预加载：如果内存中没有权限数据，先从缓存或后端加载
     // 解决刷新页面时因内存为空被误判 403
     if (permissions.value.length === 0 && !isLoading.value) {
-      await loadPermissions() // 非强制加载，优先使用缓存
+      await withGuardErrorHandling(
+        () => loadPermissions(),
+        '权限守卫'
+      )
     }
 
     // 检查是否需要权限验证
@@ -79,17 +83,17 @@ export function createPermissionGuard(_router: Router) {
 
     if (!requiredPermission) {
       // 没有指定权限要求，只需登录验证
-      return next()
+      return
     }
 
     // 超级用户拥有所有权限
     if (isSuperuser.value) {
-      return next()
+      return
     }
 
     // 检查用户是否拥有所需权限
     if (hasPermission(requiredPermission)) {
-      return next()
+      return
     }
 
     // 无权限处理
@@ -97,17 +101,17 @@ export function createPermissionGuard(_router: Router) {
 
     // 如果目标路由是 403 页面，避免循环
     if (to.path === UNAUTHORIZED_PATH) {
-      return next()
+      return
     }
 
     // 跳转到 403 页面，并保存原始目标路径和所需权限
-    return next({
+    return {
       path: UNAUTHORIZED_PATH,
       query: {
         redirect: to.fullPath,
         permission: requiredPermission
       }
-    })
+    }
   }
 }
 
@@ -133,10 +137,10 @@ export function createPermissionGuard(_router: Router) {
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function createPermissionsGuard(_router: Router) {
-  return async (to: RouteLocationNormalized, _from: RouteLocationNormalized, next: (to?: string | object) => void) => {
+  return async (to: RouteLocationNormalized) => {
     // 跳过不需要权限的路由
     if (to.meta.requiresAuth === false) {
-      return next()
+      return
     }
 
     // 获取权限检查函数
@@ -144,7 +148,10 @@ export function createPermissionsGuard(_router: Router) {
 
     // 权限预加载：如果内存中没有权限数据，先从缓存或后端加载
     if (permissions.value.length === 0 && !isLoading.value) {
-      await loadPermissions() // 非强制加载，优先使用缓存
+      await withGuardErrorHandling(
+        () => loadPermissions(),
+        '权限守卫'
+      )
     }
 
     // 检查是否需要权限验证
@@ -152,17 +159,17 @@ export function createPermissionsGuard(_router: Router) {
 
     if (!requiredPermissions || requiredPermissions.length === 0) {
       // 没有指定权限要求，只需登录验证
-      return next()
+      return
     }
 
     // 超级用户拥有所有权限
     if (isSuperuser.value) {
-      return next()
+      return
     }
 
     // 检查用户是否拥有所需权限中的任意一个
     if (hasAnyPermission(requiredPermissions)) {
-      return next()
+      return
     }
 
     // 无权限处理
@@ -170,17 +177,17 @@ export function createPermissionsGuard(_router: Router) {
 
     // 如果目标路由是 403 页面，避免循环
     if (to.path === UNAUTHORIZED_PATH) {
-      return next()
+      return
     }
 
     // 跳转到 403 页面，并保存原始目标路径和所需权限
-    return next({
+    return {
       path: UNAUTHORIZED_PATH,
       query: {
         redirect: to.fullPath,
         permission: requiredPermissions[0] // 显示第一个所需权限
       }
-    })
+    }
   }
 }
 
@@ -208,10 +215,10 @@ export function createPermissionsGuard(_router: Router) {
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function createResourcePermissionGuard(_router: Router) {
-  return async (to: RouteLocationNormalized, _from: RouteLocationNormalized, next: (to?: string | object) => void) => {
+  return async (to: RouteLocationNormalized) => {
     // 跳过不需要权限的路由
     if (to.meta.requiresAuth === false) {
-      return next()
+      return
     }
 
     // 获取权限检查函数
@@ -219,7 +226,10 @@ export function createResourcePermissionGuard(_router: Router) {
 
     // 权限预加载：如果内存中没有权限数据，先从缓存或后端加载
     if (permissions.value.length === 0 && !isLoading.value) {
-      await loadPermissions() // 非强制加载，优先使用缓存
+      await withGuardErrorHandling(
+        () => loadPermissions(),
+        '权限守卫'
+      )
     }
 
     // 检查是否需要权限验证
@@ -229,17 +239,17 @@ export function createResourcePermissionGuard(_router: Router) {
 
     if (!resource || !action) {
       // 没有指定资源和操作，只需登录验证
-      return next()
+      return
     }
 
     // 超级用户拥有所有权限
     if (isSuperuser.value) {
-      return next()
+      return
     }
 
     // 检查用户是否拥有资源和操作对应的权限
     if (hasResourcePermission(resource, action, module)) {
-      return next()
+      return
     }
 
     // 无权限处理
@@ -248,17 +258,17 @@ export function createResourcePermissionGuard(_router: Router) {
 
     // 如果目标路由是 403 页面，避免循环
     if (to.path === UNAUTHORIZED_PATH) {
-      return next()
+      return
     }
 
     // 跳转到 403 页面，并保存原始目标路径和所需权限
-    return next({
+    return {
       path: UNAUTHORIZED_PATH,
       query: {
         redirect: to.fullPath,
         permission: permissionName
       }
-    })
+    }
   }
 }
 

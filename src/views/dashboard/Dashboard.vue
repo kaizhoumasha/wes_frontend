@@ -87,7 +87,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { shallowRef } from 'vue'
 import { useEnv } from '@/composables/useEnv'
 import {
   Monitor,
@@ -102,7 +102,7 @@ import {
 const { appTitle } = useEnv()
 
 // 统计数据
-const statistics = ref([
+const statistics = shallowRef([
   {
     key: 'devices',
     label: '在线设备',
