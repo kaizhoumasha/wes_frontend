@@ -35,7 +35,16 @@ const routes: RouteRecordRaw[] = [
         name: 'UserFormExample',
         component: () => import('@/views/examples/UserFormExample.vue'),
         meta: { requiresAuth: false }
-      }
+      },
+      // 开发模式专属路由：调试页面
+      ...(import.meta.env.DEV ? [
+        {
+          path: 'debug/smart-search',
+          name: 'SmartSearchDebug',
+          component: () => import('@/views/debug/smart-search-debug.vue'),
+          meta: { requiresAuth: false, title: '智能搜索调试' }
+        }
+      ] : [])
     ]
   }
 ]

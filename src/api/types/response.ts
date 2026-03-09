@@ -81,20 +81,6 @@ export interface PaginationData<T = unknown> {
  */
 export type PaginatedResponse<T = unknown> = ApiResponse<PaginationData<T>>
 
-/**
- * 分页请求参数
- */
-export interface PaginationParams {
-  /** 页码（从1开始） */
-  page?: number
-  /** 每页数量 */
-  pageSize?: number
-  /** 排序字段 */
-  sortField?: string
-  /** 排序方向：asc 或 desc */
-  sortOrder?: 'asc' | 'desc'
-}
-
 // ==================== 批量操作响应类型 ====================
 
 /**

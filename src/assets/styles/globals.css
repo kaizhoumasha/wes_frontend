@@ -469,6 +469,134 @@
   html:not(.dark) .el-breadcrumb__item:last-child .el-breadcrumb__inner {
     color: #303133 !important;
   }
+
+  /* ==================== 搜索组件暗色模式增强 ==================== */
+
+  /* 智能搜索框 Popover - 宽度由 popper-options 动态控制 */
+  html.dark .smart-search-popover {
+    background-color: rgb(10 14 39 / 98%) !important;
+    border: 1px solid rgb(0 243 255 / 10%) !important;
+    box-shadow: 0 4px 20px rgb(0 0 0 / 40%) !important;
+    min-width: 0 !important;
+    max-width: calc(100vw - 24px) !important;
+  }
+
+  /* 搜索标签 - 暗色模式优化 */
+  html.dark .smart-search-bar .el-tag {
+    background-color: rgb(255 255 255 / 8%) !important;
+    border: 1px solid rgb(255 255 255 / 12%) !important;
+    color: rgb(255 255 255 / 85%) !important;
+  }
+
+  html.dark .smart-search-bar .el-tag--success {
+    background-color: rgb(0 255 136 / 10%) !important;
+    border: 1px solid rgb(0 255 136 / 20%) !important;
+    color: #0f8 !important;
+  }
+
+  html.dark .smart-search-bar .el-tag--warning {
+    background-color: rgb(230 162 60 / 10%) !important;
+    border: 1px solid rgb(230 162 60 / 20%) !important;
+    color: #e6a23c !important;
+  }
+
+  html.dark .smart-search-bar .el-tag--info {
+    background-color: rgb(0 243 255 / 8%) !important;
+    border: 1px solid rgb(0 243 255 / 15%) !important;
+    color: #00f3ff !important;
+  }
+
+  html.dark .smart-search-bar .el-tag__close {
+    color: rgb(255 255 255 / 50%) !important;
+  }
+
+  html.dark .smart-search-bar .el-tag__close:hover {
+    color: rgb(255 255 255 / 80%) !important;
+    background-color: rgb(255 255 255 / 8%) !important;
+  }
+
+  /* 智能搜索框容器 - 暗色模式 */
+  html.dark .smart-search-bar {
+    background-color: rgb(13 17 23 / 80%) !important;
+    border: 1px solid rgb(0 243 255 / 10%) !important;
+  }
+
+  html.dark .smart-search-bar:hover,
+  html.dark .smart-search-bar--focused {
+    border-color: rgb(0 243 255 / 30%) !important;
+    box-shadow: 0 0 0 1px rgb(0 243 255 / 10%) !important;
+  }
+
+  /* Popover 面板区域 - 暗色模式 */
+  html.dark .search-popover-panel {
+    background-color: rgb(10 14 39 / 95%) !important;
+  }
+
+  /* 字段/快捷/收藏面板 - 暗色模式 */
+  html.dark .search-field-panel,
+  html.dark .search-quick-panel,
+  html.dark .search-favorite-panel {
+    background-color: transparent !important;
+  }
+
+  html.dark .search-field-panel__header,
+  html.dark .search-quick-panel__header,
+  html.dark .search-favorite-panel__header {
+    border-bottom: 1px solid rgb(0 243 255 / 10%) !important;
+  }
+
+  html.dark .search-field-panel__header h4,
+  html.dark .search-quick-panel__header h4,
+  html.dark .search-favorite-panel__header h4 {
+    color: rgb(255 255 255 / 90%) !important;
+  }
+
+  html.dark .search-field-panel__item {
+    color: rgb(255 255 255 / 70%) !important;
+  }
+
+  html.dark .search-field-panel__item:hover {
+    background-color: rgb(0 243 255 / 8%) !important;
+    color: rgb(255 255 255 / 100%) !important;
+  }
+
+  html.dark .search-field-panel__item--active {
+    background-color: rgb(0 243 255 / 12%) !important;
+    color: #00f3ff !important;
+  }
+
+  /* 条件编辑行 - 暗色模式 */
+  html.dark .condition-editor-row {
+    background-color: rgb(255 255 255 / 3%) !important;
+    border: 1px solid rgb(0 243 255 / 10%) !important;
+  }
+
+  /* ==================== 搜索组件亮色模式 ==================== */
+
+  /* 智能搜索框 Popover - 亮色 */
+  html:not(.dark) .smart-search-popover {
+    background-color: #fff !important;
+    border: 1px solid #e4e7ed !important;
+    box-shadow: 0 4px 20px rgb(0 0 0 / 15%) !important;
+    min-width: 0 !important;
+    max-width: calc(100vw - 24px) !important;
+  }
+
+  /* 智能搜索框容器 - 亮色 */
+  html:not(.dark) .smart-search-bar {
+    background-color: #fff !important;
+    border: 1px solid #dcdfe6 !important;
+  }
+
+  html:not(.dark) .smart-search-bar:hover,
+  html:not(.dark) .smart-search-bar--focused {
+    border-color: #409eff !important;
+  }
+
+  /* Popover 面板区域 - 亮色 */
+  html:not(.dark) .search-popover-panel {
+    background-color: #fff !important;
+  }
 }
 
 /* ==================== 动画降级 - 可访问性增强 ==================== */

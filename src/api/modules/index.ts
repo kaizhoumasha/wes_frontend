@@ -21,7 +21,7 @@ export type {
 } from './auth'
 
 // ==================== 业务模块 ====================
-export { userApi, userApiExtended, UserQuery } from './user'
+export { userApi } from './user'
 export type {
   User,
   CreateUserInput,

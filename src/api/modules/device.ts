@@ -5,7 +5,7 @@
  * 对应后端: src/app/device/v1/device.py
  */
 
-import { createCrudApi, CrudApi, type QueryOptions, type PaginationData } from '../base/crud-api'
+import { createCrudApi, CrudApi, appendAndFilter, type QueryOptions, type PaginationData } from '../base/crud-api'
 import { getApiPath } from '../client'
 
 // ==================== 类型定义 ====================
@@ -229,7 +229,7 @@ export class DeviceQuery extends CrudApi<Device, CreateDeviceInput, UpdateDevice
   async getByStatus(status: DeviceStatus, options: QueryOptions = {}): Promise<PaginationData<Device>> {
     return this.query({
       ...options,
-      filters: { ...options.filters, device_status: status },
+      filters: appendAndFilter(options.filters, { field: 'device_status', op: 'eq', value: status }),
     })
   }
 
@@ -239,7 +239,7 @@ export class DeviceQuery extends CrudApi<Device, CreateDeviceInput, UpdateDevice
   async getByType(type: DeviceType, options: QueryOptions = {}): Promise<PaginationData<Device>> {
     return this.query({
       ...options,
-      filters: { ...options.filters, device_type: type },
+      filters: appendAndFilter(options.filters, { field: 'device_type', op: 'eq', value: type }),
     })
   }
 
@@ -249,7 +249,7 @@ export class DeviceQuery extends CrudApi<Device, CreateDeviceInput, UpdateDevice
   async getByWorkline(worklineId: number, options: QueryOptions = {}): Promise<PaginationData<Device>> {
     return this.query({
       ...options,
-      filters: { ...options.filters, work_line_id: worklineId },
+      filters: appendAndFilter(options.filters, { field: 'work_line_id', op: 'eq', value: worklineId }),
     })
   }
 

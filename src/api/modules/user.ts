@@ -5,7 +5,7 @@
  * 对应后端: src/app/admin/v1/user.py
  */
 
-import { createCrudApi, CrudApi, type QueryOptions, type PaginationData } from '../base/crud-api'
+import { createCrudApi } from '../base/crud-api'
 import { getApiPath } from '../client'
 
 // ==================== 类型定义 ====================
@@ -83,42 +83,42 @@ export const userApi = createCrudApi<User, CreateUserInput, UpdateUserInput>({
   prefix: getApiPath('/users'),
 })
 
-// ==================== 自定义查询方法 ====================
+// ==================== 使用示例 ====================
 
 /**
- * 用户查询扩展
+ * 推荐的查询方式：使用标准的 query 方法
+ *
+ * @example
+ * ```ts
+ * // 按用户名搜索（使用 ilike 模糊匹配）
+ * const { items } = await userApi.query({
+ *   filters: {
+ *     couple: 'and',
+ *     conditions: [
+ *       { field: 'username', op: 'ilike', value: '%admin%' }
+ *     ]
+ *   }
+ * })
+ *
+ * // 获取超级用户
+ * const { items } = await userApi.query({
+ *   filters: {
+ *     couple: 'and',
+ *     conditions: [
+ *       { field: 'is_superuser', op: 'eq', value: true }
+ *     ]
+ *   }
+ * })
+ *
+ * // 组合查询：超级用户且用户名包含 admin
+ * const { items } = await userApi.query({
+ *   filters: {
+ *     couple: 'and',
+ *     conditions: [
+ *       { field: 'is_superuser', op: 'eq', value: true },
+ *       { field: 'username', op: 'ilike', value: '%admin%' }
+ *     ]
+ *   }
+ * })
+ * ```
  */
-export class UserQuery extends CrudApi<User, CreateUserInput, UpdateUserInput> {
-  /**
-   * 按用户名搜索
-   */
-  async searchByUsername(keyword: string, options: QueryOptions = {}): Promise<PaginationData<User>> {
-    return this.query({
-      ...options,
-      filters: {
-        ...options.filters,
-        keyword,
-      },
-    })
-  }
-
-  /**
-   * 获取超级用户
-   */
-  async getSuperUsers(options: QueryOptions = {}): Promise<PaginationData<User>> {
-    return this.query({
-      ...options,
-      filters: {
-        ...options.filters,
-        is_superuser: true,
-      },
-    })
-  }
-}
-
-/**
- * 带扩展查询的用户 API
- */
-export const userApiExtended = new UserQuery({
-  prefix: getApiPath('/users'),
-})
