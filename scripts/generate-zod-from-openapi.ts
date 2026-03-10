@@ -50,6 +50,42 @@ interface PropertySchema {
 const BACKEND_OPENAPI_URL = 'http://localhost:8001/api/openapi.json'
 const OUTPUT_DIR = join(__dirname, '../src/types/generated')
 const OUTPUT_FILE = join(OUTPUT_DIR, 'zod-schemas.ts')
+const SYNC_RECORD_FILE = join(__dirname, '../.contract-sync-record.json')
+
+// ==================== 同步记录 ====================
+
+/**
+ * 计算字符串的简单哈希值
+ */
+function simpleHash(str: string): string {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash // Convert to 32bit integer
+  }
+  return Math.abs(hash).toString(36)
+}
+
+/**
+ * 写入同步记录
+ */
+interface SyncRecord {
+  lastSyncTime: string
+  openApiHash: string
+  backendUrl: string
+}
+
+function writeSyncRecord(openApiData: Record<string, unknown>): void {
+  const schemas = JSON.stringify(openApiData.components?.schemas || {})
+  const record: SyncRecord = {
+    lastSyncTime: new Date().toISOString(),
+    openApiHash: simpleHash(schemas),
+    backendUrl: BACKEND_OPENAPI_URL,
+  }
+  writeFileSync(SYNC_RECORD_FILE, JSON.stringify(record, null, 2), 'utf-8')
+  console.log(`✅ 记录同步状态: ${SYNC_RECORD_FILE}`)
+}
 
 // ==================== 工具函数 ====================
 
@@ -68,7 +104,10 @@ function openapiTypeToZod(type: string | undefined): string {
 /**
  * 获取 OpenAPI schema
  */
-async function fetchOpenAPISchema(): Promise<Record<string, OpenAPISchema>> {
+async function fetchOpenAPISchema(): Promise<{
+  schemas: Record<string, OpenAPISchema>
+  openApiData: Record<string, unknown>
+}> {
   console.log(`📡 从后端获取 OpenAPI schema: ${BACKEND_OPENAPI_URL}`)
 
   try {
@@ -77,11 +116,11 @@ async function fetchOpenAPISchema(): Promise<Record<string, OpenAPISchema>> {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
 
-    const openapi = await response.json()
-    const schemas = openapi.components?.schemas || {}
+    const openApiData = await response.json() as Record<string, unknown>
+    const schemas = (openApiData.components as { schemas?: Record<string, OpenAPISchema> })?.schemas || {}
 
     console.log(`✅ 成功获取 ${Object.keys(schemas).length} 个 schemas`)
-    return schemas
+    return { schemas, openApiData }
   } catch (error) {
     console.error('❌ 获取 OpenAPI schema 失败:', error)
     throw error
@@ -335,7 +374,7 @@ async function main(): Promise<void> {
 
   try {
     // 1. 获取 OpenAPI schema
-    const schemas = await fetchOpenAPISchema()
+    const { schemas, openApiData } = await fetchOpenAPISchema()
 
     // 2. 生成 Zod schemas 文件
     console.log('\n📝 生成 Zod schemas...')
@@ -353,13 +392,18 @@ async function main(): Promise<void> {
     // 5. 生成扩展文件
     generateExtensionFile()
 
+    // 6. 写入同步记录
+    writeSyncRecord(openApiData)
+
     console.log('\n✨ 完成！')
     console.log('\n📖 使用方法:')
     console.log('  import { UserCreateSchema } from "@/types/zod-extensions"')
     console.log('  import { useForm } from "vee-validate"')
-    console.log('  const { handleSubmit } = useForm({')
-    console.log('    validationSchema: toTypedSchema(UserCreateSchema)')
+    console.log('  const { handleSubmit } = useForm<CreateUserInput>({')
+    console.log('    validationSchema: UserCreateSchema  // 直接传递，无需 toTypedSchema')
     console.log('  })')
+    console.log('\n📖 详细文档: docs/ZOD_VALIDATION.md')
+    console.log('📖 同步流程: docs/CONTRACT_SYNC_WORKFLOW.md')
 
   } catch (error) {
     console.error('\n❌ 生成失败:', error)

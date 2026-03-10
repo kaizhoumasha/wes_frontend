@@ -20,6 +20,7 @@
     "check": "pnpm run type:check && pnpm run lint",
     "type:generate": "tsx scripts/generate-api-types.ts",
     "zod:generate": "tsx scripts/generate-zod-from-openapi.ts",
+    "contract:verify": "tsx scripts/verify-contract-sync.ts",
     "contract:test": "tsx scripts/contract-test.ts",
     "ci:contract": "pnpm run contract:test"
   },

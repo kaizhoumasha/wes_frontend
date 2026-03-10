@@ -83,6 +83,7 @@
       :keyword="keyword"
       :quick-presets="quickPresets"
       :favorites="favorites"
+      :container-width="searchBarWidth"
       @activate-field="handleActivateField"
       @apply-preset="handleApplyPreset"
       @apply-favorite="handleApplyFavorite"
@@ -147,8 +148,6 @@ interface Emits {
   (e: 'keydown-next'): void
   /** 键盘导航 - 上一个字段 */
   (e: 'keydown-prev'): void
-  /** 键盘确认 */
-  (e: 'keydown-enter'): void
   /** 触发搜索 */
   (e: 'search'): void
   /** 根据字段点击执行搜索或打开高级搜索 */
@@ -403,7 +402,8 @@ function handleKeyDown(event: KeyboardEvent) {
         break
       }
 
-      emit('keydown-enter')
+      // 没有高亮字段时，直接触发搜索
+      emit('search')
       break
     }
     case 'Escape':
@@ -448,6 +448,8 @@ function handleRemoveCondition(id: string) {
 function handleClear() {
   clearSelectedCondition()
   emit('clear')
+  // 清空条件后触发搜索（重置列表）
+  emit('search')
 }
 
 function handleOpenAdvanced() {
@@ -461,10 +463,12 @@ function handleActivateField(fieldKey: string) {
 
   if (keyword.value.trim()) {
     emit('activate-field', fieldKey)
-    return
+  } else {
+    emit('open-advanced-for-field', fieldKey)
   }
 
-  emit('open-advanced-for-field', fieldKey)
+  // 添加条件后触发搜索
+  emit('search')
 }
 
 function handleApplyPreset(presetId: string) {
@@ -593,6 +597,7 @@ defineExpose({
   // Element Plus 的 width 属性会自动设置宽度
   min-width: 300px !important;
   max-width: calc(100vw - 24px) !important;
+  overflow: hidden;
 
   // 确保背景色适配明暗模式
   background-color: var(--el-bg-color) !important;
@@ -604,14 +609,16 @@ defineExpose({
   // Popover 内容区域
   .el-popover__content {
     padding: 0 !important;
+    overflow: hidden;
+    border-radius: inherit;
   }
 
-  // 暗色模式增强
+  // 暗色模式阴影增强
   html.dark & {
     box-shadow: 0 4px 20px rgb(0 0 0 / 40%) !important;
   }
 
-  // 亮色模式增强
+  // 亮色模式阴影增强
   html:not(.dark) & {
     box-shadow: 0 4px 20px rgb(0 0 0 / 15%) !important;
   }

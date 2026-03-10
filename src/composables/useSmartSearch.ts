@@ -100,7 +100,7 @@ export interface UseSmartSearchReturn {
   /** 切换 Popover 状态 */
   togglePopover: () => void
   /** 打开高级搜索弹窗 */
-  openAdvancedDialog: () => void
+  openAdvancedDialog: (fieldKey?: string) => void
   /** 关闭高级搜索弹窗 */
   closeAdvancedDialog: () => void
 
@@ -144,6 +144,7 @@ export function useSmartSearch(options: UseSmartSearchOptions): UseSmartSearchRe
     favorites: initialFavorites,
     popoverOpen: false,
     advancedDialogOpen: false,
+    advancedDialogDraftSeed: undefined,
   })
 
   // ==================== 计算属性 ====================
@@ -480,8 +481,21 @@ export function useSmartSearch(options: UseSmartSearchOptions): UseSmartSearchRe
     state.value.popoverOpen = !state.value.popoverOpen
   }
 
-  function openAdvancedDialog(): void {
+  /**
+   * 打开高级搜索弹窗
+   * @param fieldKey - 可选，指定要打开的字段 key，用于预填条件
+   */
+  function openAdvancedDialog(fieldKey?: string): void {
     state.value.advancedDialogOpen = true
+    // 如果传入了 fieldKey，设置 draftSeed 触发预填
+    if (fieldKey) {
+      state.value.advancedDialogDraftSeed = {
+        fieldKey,
+        nonce: Date.now(), // 使用时间戳作为 nonce 触发 watch
+      }
+    } else {
+      state.value.advancedDialogDraftSeed = undefined
+    }
   }
 
   function closeAdvancedDialog(): void {

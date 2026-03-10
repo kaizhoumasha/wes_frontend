@@ -358,6 +358,11 @@ export interface SmartSearchState {
   popoverOpen: boolean
   /** 高级搜索弹窗是否打开 */
   advancedDialogOpen: boolean
+  /** 高级搜索弹窗的草稿种子（用于按字段打开时预填） */
+  advancedDialogDraftSeed?: {
+    fieldKey: string
+    nonce: number
+  }
 }
 
 // ==================== ID 生成策略 ====================
