@@ -1,16 +1,27 @@
 <!--
 用户管理表格组件
 
+使用 field/title columns API 配置方式
 包含数据表格和分页器
 支持：骨架屏加载、空状态、错误状态
 -->
 <template>
   <div class="user-table-container">
     <!-- 错误状态 -->
-    <div v-if="error" class="user-table__error">
-      <el-result icon="error" title="数据加载失败" :sub-title="error">
+    <div
+      v-if="error"
+      class="user-table__error"
+    >
+      <el-result
+        icon="error"
+        title="数据加载失败"
+        :sub-title="error"
+      >
         <template #extra>
-          <el-button type="primary" @click="$emit('retry')">
+          <el-button
+            type="primary"
+            @click="$emit('retry')"
+          >
             重新加载
           </el-button>
         </template>
@@ -18,122 +29,18 @@
     </div>
 
     <!-- 数据表格 -->
-    <el-table
+    <DataTable
       v-else
+      ref="tableRef"
       :data="data"
+      :columns="columns"
       :loading="loading"
-      stripe
       border
-      style="width: 100%"
-      v-bind="$attrs"
+      stripe
+      row-key="id"
       @selection-change="handleSelectionChange"
     >
-      <!-- 复选框列 -->
-      <el-table-column
-        type="selection"
-        width="55"
-        fixed="left"
-      />
-      <el-table-column
-        prop="username"
-        label="用户名"
-        width="150"
-        fixed="left"
-      />
-      <el-table-column
-        prop="email"
-        label="邮箱"
-        width="200"
-      />
-      <el-table-column
-        prop="full_name"
-        label="姓名"
-        width="150"
-      />
-      <el-table-column
-        prop="is_superuser"
-        label="超级用户"
-        width="100"
-        align="center"
-      >
-        <template #default="{ row }">
-          <el-tag :type="row.is_superuser ? 'danger' : 'info'">
-            {{ row.is_superuser ? '是' : '否' }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="is_multi_login"
-        label="多端登录"
-        width="100"
-        align="center"
-      >
-        <template #default="{ row }">
-          <el-tag :type="row.is_multi_login ? 'success' : 'info'">
-            {{ row.is_multi_login ? '是' : '否' }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="roles"
-        label="角色"
-        width="200"
-      >
-        <template #default="{ row }">
-          <el-tag
-            v-for="role in row.roles"
-            :key="role.id"
-            size="small"
-            style="margin-right: 4px"
-          >
-            {{ role.name }}
-          </el-tag>
-          <span
-            v-if="!row.roles || row.roles.length === 0"
-            class="text-muted"
-          >
-            -
-          </span>
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="updated_at"
-        label="更新时间"
-        width="180"
-      >
-        <template #default="{ row }">
-          {{ formatDateTime(row.updated_at) }}
-        </template>
-      </el-table-column>
-      <el-table-column
-        label="操作"
-        width="150"
-        align="center"
-        fixed="right"
-      >
-        <template #default="{ row }">
-          <el-button
-            v-if="canUpdate"
-            link
-            type="primary"
-            size="small"
-            @click="$emit('edit', row.id)"
-          >
-            编辑
-          </el-button>
-          <el-button
-            v-if="canDelete"
-            link
-            type="danger"
-            size="small"
-            @click="$emit('delete', row)"
-          >
-            删除
-          </el-button>
-        </template>
-      </el-table-column>
-
-      <!-- 空状态 -->
+      <!-- 空状态插槽 -->
       <template #empty>
         <el-empty
           description="暂无用户数据"
@@ -148,7 +55,7 @@
           </el-button>
         </el-empty>
       </template>
-    </el-table>
+    </DataTable>
 
     <!-- 分页器 -->
     <div class="user-table__pagination">
@@ -166,10 +73,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, h, ref } from 'vue'
+import { ElTag, ElButton } from 'element-plus'
+import { DataTable } from '@/components/ui/table'
+import type { DataTableInstance } from '@/components/ui/table'
+import { formatDateTime } from '@/components/ui/table/useTableColumns'
 import { usePermission } from '@/composables/usePermission'
 import { USER_PERMISSION } from '../constants'
-import type { User } from '@/api/modules/user'
+import type { User, Role } from '@/api/modules/user'
 
 // ==================== 权限控制 ====================
 
@@ -202,33 +113,195 @@ interface Emits {
   (e: 'sizeChange', size: number): void
   (e: 'retry'): void
   (e: 'create'): void
-  (e: 'selection-change', selected: User[]): void
+  (e: 'selection-change', selected: unknown[]): void
 }
 
 defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-// ==================== 工具函数 ====================
+// ==================== 表格列配置 ====================
 
 /**
- * 格式化日期时间
+ * 用户管理表格列配置
+ *
+ * 使用语义化的 field/title API
  */
-function formatDateTime(dateStr: string): string {
-  if (!dateStr) return '-'
-  return new Date(dateStr).toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
+const columns = computed(() => [
+  // 复选框列
+  {
+    type: 'selection' as const,
+    width: 55,
+    fixed: 'left' as const
+  },
+  // 用户名列
+  {
+    field: 'username',
+    title: '用户名',
+    width: 150,
+    fixed: 'left' as const
+  },
+  // 邮箱列
+  {
+    field: 'email',
+    title: '邮箱',
+    width: 200
+  },
+  // 姓名列
+  {
+    field: 'full_name',
+    title: '姓名',
+    width: 150
+  },
+  // 超级用户列（使用插槽渲染）
+  {
+    field: 'is_superuser',
+    title: '超级用户',
+    width: 100,
+    align: 'center' as const,
+    slots: {
+      default: ({ row }: { row: Record<string, unknown> }) =>
+        h(
+          ElTag,
+          {
+            type: (row as unknown as User).is_superuser ? 'danger' : 'info'
+          },
+          () => ((row as unknown as User).is_superuser ? '是' : '否')
+        )
+    }
+  },
+  // 多端登录列（使用插槽渲染）
+  {
+    field: 'is_multi_login',
+    title: '多端登录',
+    width: 100,
+    align: 'center' as const,
+    slots: {
+      default: ({ row }: { row: Record<string, unknown> }) =>
+        h(
+          ElTag,
+          {
+            type: (row as unknown as User).is_multi_login ? 'success' : 'info'
+          },
+          () => ((row as unknown as User).is_multi_login ? '是' : '否')
+        )
+    }
+  },
+  // 角色列（数组标签）
+  {
+    field: 'roles',
+    title: '角色',
+    width: 200,
+    slots: {
+      default: ({ row }: { row: Record<string, unknown> }) => {
+        const user = row as unknown as User
+        if (!user.roles || user.roles.length === 0) {
+          return h('span', { class: 'text-muted' }, '-')
+        }
+        return h(
+          'div',
+          { class: 'flex gap-1 flex-wrap' },
+          user.roles.map((role: Role) =>
+            h(
+              ElTag,
+              {
+                key: role.id,
+                size: 'small'
+              },
+              () => role.name
+            )
+          )
+        )
+      }
+    }
+  },
+  // 更新时间列（使用内置格式化器）
+  {
+    field: 'updated_at',
+    title: '更新时间',
+    width: 180,
+    formatter: formatDateTime
+  },
+  // 操作列
+  {
+    field: '__actions__',
+    title: '操作',
+    width: 150,
+    align: 'center' as const,
+    fixed: 'right' as const,
+    slots: {
+      default: ({ row }: { row: Record<string, unknown> }) => {
+        const user = row as unknown as User
+        const buttons = []
+
+        if (canUpdate.value) {
+          buttons.push(
+            h(
+              ElButton,
+              {
+                link: true,
+                type: 'primary',
+                size: 'small',
+                onClick: () => emit('edit' as const, user.id)
+              },
+              () => '编辑'
+            )
+          )
+        }
+
+        if (canDelete.value) {
+          buttons.push(
+            h(
+              ElButton,
+              {
+                link: true,
+                type: 'danger',
+                size: 'small',
+                onClick: () => emit('delete' as const, user)
+              },
+              () => '删除'
+            )
+          )
+        }
+
+        return h('div', { class: 'flex gap-2' }, buttons)
+      }
+    }
+  }
+])
+
+// ==================== 事件处理 ====================
 
 /**
  * 处理选择变化
  */
-function handleSelectionChange(selected: User[]) {
+function handleSelectionChange(selected: unknown[]) {
   emit('selection-change', selected)
+}
+
+// ==================== 表格引用 ====================
+
+const tableRef = ref<DataTableInstance | null>(null)
+
+/**
+ * 清除表格选中状态
+ */
+function clearSelection() {
+  tableRef.value?.clearSelection()
+}
+
+// ==================== 暴露方法 ====================
+
+defineExpose({
+  clearSelection
+})
+</script>
+
+<script lang="ts">
+/**
+ * UserTable 组件实例类型
+ */
+export interface UserTableInstance {
+  clearSelection: () => void
 }
 </script>
 
@@ -279,7 +352,10 @@ function handleSelectionChange(selected: User[]) {
 
 /* 表格体固定列 - 条纹行偶数行 */
 .el-table--striped .el-table__body-wrapper tr.el-table__row--striped td.el-table-fixed-column--left,
-.el-table--striped .el-table__body-wrapper tr.el-table__row--striped td.el-table-fixed-column--right {
+.el-table--striped
+  .el-table__body-wrapper
+  tr.el-table__row--striped
+  td.el-table-fixed-column--right {
   background-color: var(--el-fill-color-lighter) !important;
 }
 

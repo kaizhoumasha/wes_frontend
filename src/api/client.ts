@@ -18,6 +18,7 @@ import { classifyErrorByCode } from './utils/error-classifier'
 import { isSuccessCode, ClientErrorCode } from './constants/response-codes'
 import type { ApiResponse } from './types'
 import { handleAuthError } from './services/auth-error-handler'
+import { API_CACHE_DURATION } from '@/constants/cache'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -226,6 +227,10 @@ export const apiClient = createAlova({
   statesHook: VueHook,
   requestAdapter: adapterFetch(),
   timeout: 30000,
+  // 仅为 GET 请求启用默认缓存，其他请求保持无缓存。
+  cacheFor: {
+    GET: API_CACHE_DURATION.MEDIUM
+  },
 
   beforeRequest(method) {
     method.config.credentials = 'include'

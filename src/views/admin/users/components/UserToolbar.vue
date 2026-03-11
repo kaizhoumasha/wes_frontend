@@ -15,15 +15,24 @@
     <!-- 标题区 + 操作区 -->
     <div class="user-toolbar__left">
       <!-- 正常模式：显示标题 -->
-      <h2 v-if="selectedCount === 0" class="user-toolbar__title">
+      <h2
+        v-if="selectedCount === 0"
+        class="user-toolbar__title"
+      >
         <el-icon><User /></el-icon>
         <span>用户管理</span>
       </h2>
 
       <!-- 批量操作模式：显示选中状态 -->
-      <div v-else class="user-toolbar__selection">
+      <div
+        v-else
+        class="user-toolbar__selection"
+      >
         <span class="user-toolbar__selection-count">已选中 {{ selectedCount }} 项</span>
-        <el-button link @click="$emit('cancel-selection')">
+        <el-button
+          link
+          @click="$emit('cancel-selection')"
+        >
           取消选择
         </el-button>
       </div>
@@ -153,7 +162,7 @@ withDefaults(defineProps<Props>(), {
   loading: false,
   activeField: undefined,
   selectedCount: 0,
-  batchDeleteLoading: false,
+  batchDeleteLoading: false
 })
 
 const emit = defineEmits<Emits>()

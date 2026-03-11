@@ -32,6 +32,31 @@
       <!-- 主题切换 -->
       <ThemeToggle />
 
+      <!-- 时区设置对话框 -->
+      <el-dialog
+        v-model="timezoneDialogVisible"
+        title="时区设置"
+        width="600px"
+        :append-to-body="true"
+        :close-on-click-modal="false"
+        class="timezone-dialog"
+      >
+        <TimezoneSettings ref="timezoneSettingsRef" />
+
+        <template #footer>
+          <div class="timezone-dialog-footer">
+            <el-button @click="handleTimezoneCancel">取消</el-button>
+            <el-button
+              type="primary"
+              :disabled="!timezoneSettingsRef?.hasChanges"
+              @click="handleTimezoneConfirm"
+            >
+              确定
+            </el-button>
+          </div>
+        </template>
+      </el-dialog>
+
       <!-- 占位：全局搜索（后续实现） -->
       <div class="search-placeholder">
         <el-icon :size="18">
@@ -61,6 +86,17 @@
         </div>
         <template #dropdown>
           <el-dropdown-menu class="user-dropdown-menu">
+            <el-dropdown-item command="timezone">
+              <el-icon><Clock /></el-icon>
+              <span>时区设置</span>
+              <el-tag
+                v-if="currentTimezoneLabel"
+                size="small"
+                class="timezone-tag"
+              >
+                {{ currentTimezoneLabel }}
+              </el-tag>
+            </el-dropdown-item>
             <el-dropdown-item command="profile">
               <el-icon><User /></el-icon>
               <span>个人资料</span>
@@ -87,7 +123,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
@@ -97,21 +133,37 @@ import {
   User,
   ArrowDown,
   Monitor,
-  SwitchButton
+  SwitchButton,
+  Clock
 } from '@element-plus/icons-vue'
 import { useLayout } from '@/composables/useLayout'
 import { useMenu } from '@/composables/useMenu'
 import { logout } from '@/api/services/token-refresh'
 import { apiClient } from '@/api/client'
 import { usePermission } from '@/composables/usePermission'
+import { useTimezoneStore } from '@/stores/timezone'
 import type { MenuItem } from '@/types/menu'
 import ThemeToggle from './ThemeToggle.vue'
+import TimezoneSettings from './TimezoneSettings.vue'
 
 // ==================== 状态管理 ====================
 
 const { toggleSidebar, sidebarCollapsed } = useLayout()
 const { clearMenus } = useMenu()
 const { clearPermissions } = usePermission()
+const timezoneStore = useTimezoneStore()
+
+// ==================== 对话框状态 ====================
+
+/**
+ * 时区设置对话框可见性
+ */
+const timezoneDialogVisible = ref(false)
+
+/**
+ * TimezoneSettings 组件引用
+ */
+const timezoneSettingsRef = ref<InstanceType<typeof TimezoneSettings> | null>(null)
 
 // ==================== 路由 ====================
 
@@ -128,6 +180,25 @@ const username = computed(() => {
 /** 用户头像 */
 const userAvatar = computed(() => {
   return '' // TODO: 从用户状态获取
+})
+
+/**
+ * 当前时区标签（用于显示在用户菜单中）
+ */
+const currentTimezoneLabel = computed(() => {
+  if (timezoneStore.useBrowserTimezone) {
+    return '浏览器时区'
+  }
+  if (timezoneStore.userTimezone) {
+    // 简化显示：只显示城市名
+    const tz = timezoneStore.userTimezone
+    if (tz.includes('/')) {
+      const city = tz.split('/').pop()?.replace('_', ' ')
+      return city || tz
+    }
+    return tz
+  }
+  return null // 默认时区不显示标签
 })
 
 /** 当前路由的面包屑 */
@@ -151,6 +222,11 @@ const breadcrumb = computed(() => {
  */
 const handleUserMenuCommand = async (command: string) => {
   switch (command) {
+    case 'timezone':
+      // 打开时区设置对话框
+      timezoneDialogVisible.value = true
+      break
+
     case 'profile':
       ElMessage.info('个人资料功能开发中')
       break
@@ -164,6 +240,45 @@ const handleUserMenuCommand = async (command: string) => {
       await handleLogout()
       break
   }
+}
+
+/**
+ * 确认时区设置
+ */
+const handleTimezoneConfirm = () => {
+  if (!timezoneSettingsRef.value) return
+
+  // 应用时区设置（保存到 Store）
+  timezoneSettingsRef.value.applyTimezoneSettings()
+
+  // 关闭对话框
+  timezoneDialogVisible.value = false
+
+  // 显示成功提示
+  const timezoneLabel = timezoneSettingsRef.value.currentTimezoneLabel
+  ElMessage.success({
+    message: `时区已切换为 ${timezoneLabel}`,
+    duration: 2000
+  })
+}
+
+/**
+ * 取消时区设置
+ */
+const handleTimezoneCancel = () => {
+  if (!timezoneSettingsRef.value) return
+
+  // 重置编辑状态（放弃修改）
+  timezoneSettingsRef.value.resetTimezoneSettings()
+
+  // 关闭对话框
+  timezoneDialogVisible.value = false
+
+  // 提示用户已取消
+  ElMessage.info({
+    message: '已取消时区设置修改',
+    duration: 1500
+  })
 }
 
 /**
@@ -492,7 +607,7 @@ html:not(.dark) .user-dropdown-menu :deep(.el-dropdown-menu__item.is-divided) {
 
 .user-dropdown-menu {
   padding: 8px;
-  min-width: 160px;
+  min-width: 200px;
 }
 
 .user-dropdown-menu :deep(.el-dropdown-menu__item) {
@@ -503,6 +618,11 @@ html:not(.dark) .user-dropdown-menu :deep(.el-dropdown-menu__item.is-divided) {
   align-items: center;
   gap: 8px;
   transition: all 0.3s ease;
+  justify-content: flex-start;
+}
+
+.user-dropdown-menu :deep(.el-dropdown-menu__item > span) {
+  flex: 1;
 }
 
 .user-dropdown-menu :deep(.el-dropdown-menu__item.is-divided) {
@@ -512,6 +632,33 @@ html:not(.dark) .user-dropdown-menu :deep(.el-dropdown-menu__item.is-divided) {
 
 .user-dropdown-menu :deep(.el-dropdown-menu__item .el-icon) {
   color: inherit;
+  flex-shrink: 0;
+}
+
+/* 时区标签 */
+.timezone-tag {
+  margin-left: auto;
+  font-size: 11px;
+  height: 20px;
+  line-height: 20px;
+  padding: 0 8px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* 暗黑模式时区标签 */
+html.dark .timezone-tag {
+  background: rgb(0 243 255 / 15%);
+  border-color: rgb(0 243 255 / 30%);
+  color: rgb(0 243 255 / 90%);
+}
+
+/* 亮模式时区标签 */
+html:not(.dark) .timezone-tag {
+  background: #ecf5ff;
+  border-color: #409eff;
+  color: #409eff;
 }
 
 /* ==================== 响应式设计 ==================== */

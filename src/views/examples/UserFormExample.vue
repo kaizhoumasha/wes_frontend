@@ -4,6 +4,7 @@
   展示如何使用从后端 OpenAPI 自动生成的 Zod schemas 进行表单验证
 -->
 <script setup lang="ts">
+import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
 import { UserCreateSchema } from '@/types/zod-extensions'
 import { userApi, type CreateUserInput } from '@/api/modules/user'
@@ -11,7 +12,13 @@ import { ElMessage } from 'element-plus'
 
 // 使用泛型类型，让 vee-validate 自动推断类型
 const { handleSubmit, errors, defineField } = useForm<CreateUserInput>({
-  validationSchema: UserCreateSchema
+  validationSchema: toTypedSchema(UserCreateSchema),
+  initialValues: {
+    username: '',
+    email: '',
+    full_name: '',
+    password: ''
+  }
 })
 
 // 定义表单字段

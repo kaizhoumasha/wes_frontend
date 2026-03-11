@@ -44,6 +44,8 @@ export interface User {
   is_multi_login: boolean
   /** 用户角色列表 */
   roles: Role[]
+  /** 乐观锁版本号 */
+  version: number
   /** 创建时间 */
   created_at: string
   /** 更新时间 */
@@ -72,6 +74,8 @@ export interface UpdateUserInput {
   email?: string
   /** 全名（最大100字符） */
   full_name?: string
+  /** 乐观锁版本号（后端乐观锁必需） */
+  version: number
 }
 
 // ==================== API 实例 ====================
@@ -80,7 +84,7 @@ export interface UpdateUserInput {
  * 用户管理 API
  */
 export const userApi = createCrudApi<User, CreateUserInput, UpdateUserInput>({
-  prefix: getApiPath('/users'),
+  prefix: getApiPath('/users')
 })
 
 // ==================== 使用示例 ====================

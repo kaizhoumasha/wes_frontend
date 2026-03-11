@@ -7,7 +7,7 @@
  * ⚠️ 请勿手动编辑此文件
  * 如需自定义验证规则，请修改 src/types/zod-extensions.ts
  *
- * 生成时间: 2026-03-10T01:52:32.206Z
+ * 生成时间: 2026-03-11T08:52:37.500Z
  */
 
 import { z } from 'zod'
@@ -19,7 +19,7 @@ export const APIApplicationCreateSchema = z.object({
   /** 应用类型 */
   app_type: z.any().optional().default("ECS"),
   /** Description */
-  description: z.union([z.string(), z.null()]).optional(),
+  description: z.union([z.string().max(500), z.null()]).optional(),
   /** Ip Whitelist */
   ip_whitelist: z.union([z.array(z.any()), z.null()]).optional(),
   /** Rate Limit Per Minute */
@@ -33,21 +33,21 @@ export const APIApplicationCreateSchema = z.object({
 
 export const APIApplicationUpdateSchema = z.object({
   /** App Name */
-  app_name: z.union([z.string(), z.null()]).optional(),
+  app_name: z.union([z.string().max(100), z.null()]).optional(),
   /** 应用类型 */
   app_type: z.union([z.any(), z.null()]).optional(),
   /** Description */
-  description: z.union([z.string(), z.null()]).optional(),
+  description: z.union([z.string().max(500), z.null()]).optional(),
   /** Ip Whitelist */
   ip_whitelist: z.union([z.array(z.any()), z.null()]).optional(),
   /** Rate Limit Per Minute */
-  rate_limit_per_minute: z.union([z.number(), z.null()]).optional(),
+  rate_limit_per_minute: z.union([z.number().min(1).max(10000), z.null()]).optional(),
   /** Rate Limit Per Hour */
-  rate_limit_per_hour: z.union([z.number(), z.null()]).optional(),
+  rate_limit_per_hour: z.union([z.number().min(1).max(1000000), z.null()]).optional(),
   /** 有效期时长 */
   validity_period: z.union([z.any(), z.null()]).optional(),
   /** Version */
-  version: z.number().optional().default(0),
+  version: z.number(),
 })
 
 
@@ -88,8 +88,8 @@ export const ApiPermissionInfoSchema = z.object({
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const CommandCallbackResultSchema = z.object({
-  /** Command Id */
-  command_id: z.string(),
+  /** Command Code */
+  command_code: z.string(),
   /** Device Code */
   device_code: z.string(),
   /** 执行结果 */
@@ -154,7 +154,7 @@ export const DemoProductListUpdateSchema = z.object({
   /** Product Id */
   product_id: z.union([z.number(), z.null()]).optional(),
   /** Quantity */
-  quantity: z.union([z.number(), z.null()]).optional(),
+  quantity: z.union([z.number().min(0), z.null()]).optional(),
   /** Id */
   id: z.union([z.number(), z.null()]).optional(),
 })
@@ -170,13 +170,13 @@ export const DemoProductListUpdateSchema = z.object({
  */
 export const DemoProductUpdateSchema = z.object({
   /** Name */
-  name: z.union([z.string(), z.null()]).optional(),
+  name: z.union([z.string().max(100), z.null()]).optional(),
   /** Price */
-  price: z.union([z.number(), z.null()]).optional(),
+  price: z.union([z.number().min(0), z.null()]).optional(),
   /** Stock */
-  stock: z.union([z.number(), z.null()]).optional(),
+  stock: z.union([z.number().min(0), z.null()]).optional(),
   /** Version */
-  version: z.number().optional().default(0),
+  version: z.number(),
   /** Product Lists */
   product_lists: z.array(z.any()).optional(),
 })
@@ -198,19 +198,19 @@ export const DeviceCreateSchema = z.object({
   /** Work Line Id */
   work_line_id: z.union([z.number(), z.null()]).optional(),
   /** Description */
-  description: z.union([z.string(), z.null()]).optional(),
+  description: z.union([z.string().max(500), z.null()]).optional(),
   /** Is Active */
   is_active: z.boolean().optional().default(true),
   /** Sort Order */
   sort_order: z.number().optional().default(0),
   /** Host */
-  host: z.union([z.string(), z.null()]).optional(),
+  host: z.union([z.string().max(100), z.null()]).optional(),
   /** Port */
-  port: z.union([z.number(), z.null()]).optional(),
+  port: z.union([z.number().min(1).max(65535), z.null()]).optional(),
   /** Protocol */
   protocol: z.string().max(10).optional().default("HTTP"),
   /** Auth Token */
-  auth_token: z.union([z.string(), z.null()]).optional(),
+  auth_token: z.union([z.string().max(500), z.null()]).optional(),
   /** Timeout */
   timeout: z.number().min(1000).max(300000).optional().default(10000),
   /** Device Status */
@@ -218,9 +218,9 @@ export const DeviceCreateSchema = z.object({
   /** Current Command Id */
   current_command_id: z.union([z.number(), z.null()]).optional(),
   /** Last Heartbeat At */
-  last_heartbeat_at: z.union([z.string(), z.null()]).optional(),
+  last_heartbeat_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Error Code */
-  error_code: z.union([z.string(), z.null()]).optional(),
+  error_code: z.union([z.string().max(50), z.null()]).optional(),
   /** Supported Commands */
   supported_commands: z.array(z.any()),
   /** Max Concurrent Tasks */
@@ -238,43 +238,45 @@ export const DeviceCreateSchema = z.object({
  */
 export const DeviceUpdateSchema = z.object({
   /** Device Code */
-  device_code: z.union([z.string(), z.null()]).optional(),
+  device_code: z.union([z.string().min(1).max(50), z.null()]).optional(),
   /** Device Name */
-  device_name: z.union([z.string(), z.null()]).optional(),
+  device_name: z.union([z.string().min(1).max(100), z.null()]).optional(),
   /** Device Type */
-  device_type: z.union([z.string(), z.null()]).optional(),
+  device_type: z.union([z.string().max(50), z.null()]).optional(),
   /** Work Line Id */
   work_line_id: z.union([z.number(), z.null()]).optional(),
   /** Description */
-  description: z.union([z.string(), z.null()]).optional(),
+  description: z.union([z.string().max(500), z.null()]).optional(),
   /** Is Active */
   is_active: z.union([z.boolean(), z.null()]).optional(),
   /** Sort Order */
   sort_order: z.union([z.number(), z.null()]).optional(),
   /** Host */
-  host: z.union([z.string(), z.null()]).optional(),
+  host: z.union([z.string().max(100), z.null()]).optional(),
   /** Port */
-  port: z.union([z.number(), z.null()]).optional(),
+  port: z.union([z.number().min(1).max(65535), z.null()]).optional(),
   /** Protocol */
-  protocol: z.union([z.string(), z.null()]).optional(),
+  protocol: z.union([z.string().max(10), z.null()]).optional(),
   /** Auth Token */
-  auth_token: z.union([z.string(), z.null()]).optional(),
+  auth_token: z.union([z.string().max(500), z.null()]).optional(),
   /** Timeout */
-  timeout: z.union([z.number(), z.null()]).optional(),
+  timeout: z.union([z.number().min(1000).max(300000), z.null()]).optional(),
   /** Device Status */
-  device_status: z.union([z.string(), z.null()]).optional(),
+  device_status: z.union([z.string().max(20), z.null()]).optional(),
   /** Current Command Id */
   current_command_id: z.union([z.number(), z.null()]).optional(),
   /** Last Heartbeat At */
-  last_heartbeat_at: z.union([z.string(), z.null()]).optional(),
+  last_heartbeat_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Error Code */
-  error_code: z.union([z.string(), z.null()]).optional(),
+  error_code: z.union([z.string().max(50), z.null()]).optional(),
   /** Supported Commands */
   supported_commands: z.union([z.array(z.any()), z.null()]).optional(),
   /** Max Concurrent Tasks */
-  max_concurrent_tasks: z.union([z.number(), z.null()]).optional(),
+  max_concurrent_tasks: z.union([z.number().min(1).max(10), z.null()]).optional(),
   /** Idempotency Ttl */
-  idempotency_ttl: z.union([z.number(), z.null()]).optional(),
+  idempotency_ttl: z.union([z.number().min(60).max(86400), z.null()]).optional(),
+  /** Version */
+  version: z.number(),
 })
 
 
@@ -361,9 +363,9 @@ export const MenuCreateSchema = z.object({
   /** Path */
   path: z.string().max(200),
   /** Component */
-  component: z.union([z.string(), z.null()]).optional(),
+  component: z.union([z.string().max(200), z.null()]).optional(),
   /** Icon */
-  icon: z.union([z.string(), z.null()]).optional(),
+  icon: z.union([z.string().max(50), z.null()]).optional(),
   /** Is Hidden */
   is_hidden: z.boolean().optional().default(false),
 })
@@ -385,17 +387,19 @@ export const MenuUpdateSchema = z.object({
   /** Sort Order */
   sort_order: z.union([z.number(), z.null()]).optional(),
   /** Name */
-  name: z.union([z.string(), z.null()]).optional(),
+  name: z.union([z.string().max(50), z.null()]).optional(),
   /** Title */
-  title: z.union([z.string(), z.null()]).optional(),
+  title: z.union([z.string().max(50), z.null()]).optional(),
   /** Path */
-  path: z.union([z.string(), z.null()]).optional(),
+  path: z.union([z.string().max(200), z.null()]).optional(),
   /** Component */
-  component: z.union([z.string(), z.null()]).optional(),
+  component: z.union([z.string().max(200), z.null()]).optional(),
   /** Icon */
-  icon: z.union([z.string(), z.null()]).optional(),
+  icon: z.union([z.string().max(50), z.null()]).optional(),
   /** Is Hidden */
   is_hidden: z.union([z.boolean(), z.null()]).optional(),
+  /** Version */
+  version: z.number(),
 })
 
 
@@ -417,19 +421,19 @@ export const PermissionCreateSchema = z.object({
   /** Name */
   name: z.string().max(100),
   /** Description */
-  description: z.union([z.string(), z.null()]).optional(),
+  description: z.union([z.string().max(255), z.null()]).optional(),
   /** Type */
   type: z.string().max(20).optional().default("user_api"),
   /** Category */
-  category: z.union([z.string(), z.null()]).optional(),
+  category: z.union([z.string().max(50), z.null()]).optional(),
   /** Resource */
-  resource: z.union([z.string(), z.null()]).optional(),
+  resource: z.union([z.string().max(50), z.null()]).optional(),
   /** Action */
-  action: z.union([z.string(), z.null()]).optional(),
+  action: z.union([z.string().max(50), z.null()]).optional(),
   /** Method */
-  method: z.union([z.string(), z.null()]).optional(),
+  method: z.union([z.string().max(10), z.null()]).optional(),
   /** Path */
-  path: z.union([z.string(), z.null()]).optional(),
+  path: z.union([z.string().max(255), z.null()]).optional(),
 })
 
 
@@ -449,21 +453,23 @@ export const PermissionUpdateSchema = z.object({
   /** Sort Order */
   sort_order: z.union([z.number(), z.null()]).optional(),
   /** Name */
-  name: z.union([z.string(), z.null()]).optional(),
+  name: z.union([z.string().max(100), z.null()]).optional(),
   /** Description */
-  description: z.union([z.string(), z.null()]).optional(),
+  description: z.union([z.string().max(255), z.null()]).optional(),
   /** Type */
-  type: z.union([z.string(), z.null()]).optional(),
+  type: z.union([z.string().max(20), z.null()]).optional(),
   /** Category */
-  category: z.union([z.string(), z.null()]).optional(),
+  category: z.union([z.string().max(50), z.null()]).optional(),
   /** Resource */
-  resource: z.union([z.string(), z.null()]).optional(),
+  resource: z.union([z.string().max(50), z.null()]).optional(),
   /** Action */
-  action: z.union([z.string(), z.null()]).optional(),
+  action: z.union([z.string().max(50), z.null()]).optional(),
   /** Method */
-  method: z.union([z.string(), z.null()]).optional(),
+  method: z.union([z.string().max(10), z.null()]).optional(),
   /** Path */
-  path: z.union([z.string(), z.null()]).optional(),
+  path: z.union([z.string().max(255), z.null()]).optional(),
+  /** Version */
+  version: z.number(),
 })
 
 
@@ -512,7 +518,7 @@ export const RoleCreateSchema = z.object({
   /** Name */
   name: z.string().max(100),
   /** Description */
-  description: z.union([z.string(), z.null()]).optional(),
+  description: z.union([z.string().max(255), z.null()]).optional(),
 })
 
 
@@ -524,9 +530,11 @@ export const RoleCreateSchema = z.object({
  */
 export const RoleUpdateSchema = z.object({
   /** Name */
-  name: z.union([z.string(), z.null()]).optional(),
+  name: z.union([z.string().max(100), z.null()]).optional(),
   /** Description */
-  description: z.union([z.string(), z.null()]).optional(),
+  description: z.union([z.string().max(255), z.null()]).optional(),
+  /** Version */
+  version: z.number(),
 })
 
 
@@ -548,7 +556,7 @@ export const SessionInfoSchema = z.object({
   /** Device Info */
   device_info: z.union([z.record(z.any()), z.null()]).optional(),
   /** Last Active */
-  last_active: z.union([z.string(), z.null()]).optional(),
+  last_active: z.union([z.string().datetime(), z.null()]).optional(),
 })
 
 
@@ -605,9 +613,9 @@ export const UserCreateSchema = z.object({
   /** Username */
   username: z.string().min(3).max(50),
   /** Email */
-  email: z.string().max(100),
+  email: z.string().max(100).email(),
   /** Full Name */
-  full_name: z.union([z.string(), z.null()]).optional(),
+  full_name: z.union([z.string().max(100), z.null()]).optional(),
   /** Password */
   password: z.string().min(6).max(100),
 })
@@ -621,11 +629,13 @@ export const UserCreateSchema = z.object({
  */
 export const UserUpdateSchema = z.object({
   /** Username */
-  username: z.union([z.string(), z.null()]).optional(),
+  username: z.union([z.string().min(3).max(50), z.null()]).optional(),
   /** Email */
-  email: z.union([z.string(), z.null()]).optional(),
+  email: z.union([z.string().max(100).email(), z.null()]).optional(),
   /** Full Name */
-  full_name: z.union([z.string(), z.null()]).optional(),
+  full_name: z.union([z.string().max(100), z.null()]).optional(),
+  /** Version */
+  version: z.number(),
 })
 
 
@@ -657,9 +667,9 @@ export const WorkLineCreateSchema = z.object({
   /** Line Type */
   line_type: z.string().max(50),
   /** Zone Name */
-  zone_name: z.union([z.string(), z.null()]).optional(),
+  zone_name: z.union([z.string().max(100), z.null()]).optional(),
   /** Description */
-  description: z.union([z.string(), z.null()]).optional(),
+  description: z.union([z.string().max(500), z.null()]).optional(),
   /** Is Active */
   is_active: z.boolean().optional().default(true),
   /** Capacity */
@@ -677,19 +687,21 @@ export const WorkLineCreateSchema = z.object({
  */
 export const WorkLineUpdateSchema = z.object({
   /** Line Code */
-  line_code: z.union([z.string(), z.null()]).optional(),
+  line_code: z.union([z.string().min(1).max(50), z.null()]).optional(),
   /** Line Name */
-  line_name: z.union([z.string(), z.null()]).optional(),
+  line_name: z.union([z.string().min(1).max(100), z.null()]).optional(),
   /** Line Type */
-  line_type: z.union([z.string(), z.null()]).optional(),
+  line_type: z.union([z.string().max(50), z.null()]).optional(),
   /** Zone Name */
-  zone_name: z.union([z.string(), z.null()]).optional(),
+  zone_name: z.union([z.string().max(100), z.null()]).optional(),
   /** Description */
-  description: z.union([z.string(), z.null()]).optional(),
+  description: z.union([z.string().max(500), z.null()]).optional(),
   /** Is Active */
   is_active: z.union([z.boolean(), z.null()]).optional(),
   /** Capacity */
   capacity: z.union([z.number(), z.null()]).optional(),
   /** Sort Order */
   sort_order: z.union([z.number(), z.null()]).optional(),
+  /** Version */
+  version: z.number(),
 })

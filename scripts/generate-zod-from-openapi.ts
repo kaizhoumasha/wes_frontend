@@ -90,18 +90,6 @@ function writeSyncRecord(openApiData: Record<string, unknown>): void {
 // ==================== 工具函数 ====================
 
 /**
- * 将 OpenAPI 类型字符串转换为 Zod 类型字符串
- */
-function openapiTypeToZod(type: string | undefined): string {
-  if (!type) return 'z.any()'
-  if (type === 'null') return 'z.null()'
-  if (type === 'integer') return 'z.number()'
-  if (type === 'array') return 'z.array(z.any())'
-  if (type === 'object') return 'z.record(z.any())'
-  return `z.${type}()`
-}
-
-/**
  * 获取 OpenAPI schema
  */
 async function fetchOpenAPISchema(): Promise<{
@@ -135,90 +123,87 @@ function propertyToZod(
   prop: PropertySchema,
   isRequired: boolean
 ): string {
-  const zodCalls: string[] = []
-
-  // 处理 anyOf（可选类型）
-  if (prop.anyOf && prop.anyOf.length > 0) {
-    const types = prop.anyOf.map((t) => openapiTypeToZod(t.type)).join(', ')
-    zodCalls.push(`z.union([${types}])`)
-  } else {
-    // 枚举验证（优先处理）
-    if (prop.enum) {
-      const enumValues = prop.enum.map((v) =>
+  // 内部函数，用于从属性生成核心 Zod 链
+  const generateCoreZod = (p: PropertySchema): string[] => {
+    const calls: string[] = []
+    if (p.enum) {
+      const enumValues = p.enum.map((v) =>
         typeof v === 'string' ? JSON.stringify(v) : String(v)
       ).join(', ')
-      zodCalls.push(`z.enum([${enumValues}])`)
+      calls.push(`z.enum([${enumValues}])`)
     } else {
-      // 基础类型处理
-      switch (prop.type) {
+      switch (p.type) {
         case 'string':
-          zodCalls.push('z.string()')
-
-          // 字符串长度验证
-          if (prop.minLength !== undefined) {
-            zodCalls.push(`.min(${prop.minLength})`)
-          }
-          if (prop.maxLength !== undefined) {
-            zodCalls.push(`.max(${prop.maxLength})`)
-          }
-
-          // 正则验证
-          if (prop.pattern) {
-            zodCalls.push(`.regex(${JSON.stringify(prop.pattern)})`)
-          }
-
-          // 格式验证
-          if (prop.format === 'email') {
-            zodCalls.push('.email()')
-          } else if (prop.format === 'uri' || prop.format === 'url') {
-            zodCalls.push('.url()')
-          } else if (prop.format === 'date-time') {
-            zodCalls.push('.datetime()')
-          } else if (prop.format === 'date') {
-            zodCalls.push('.date()')
-          } else if (prop.format === 'time') {
-            zodCalls.push('.time()')
-          } else if (prop.format === 'uuid') {
-            zodCalls.push('.uuid()')
-          }
-
+          calls.push('z.string()')
+          if (p.minLength !== undefined) calls.push(`.min(${p.minLength})`)
+          if (p.maxLength !== undefined) calls.push(`.max(${p.maxLength})`)
+          if (p.pattern) calls.push(`.regex(${JSON.stringify(p.pattern)})`)
+          if (p.format === 'email') calls.push('.email()')
+          else if (p.format === 'uri' || p.format === 'url') calls.push('.url()')
+          else if (p.format === 'date-time') calls.push('.datetime()')
+          else if (p.format === 'date') calls.push('.date()')
+          else if (p.format === 'time') calls.push('.time()')
+          else if (p.format === 'uuid') calls.push('.uuid()')
           break
 
         case 'number':
         case 'integer':
-          zodCalls.push('z.number()')
-
-          // 数值范围验证
-          if (prop.minimum !== undefined) {
-            zodCalls.push(`.min(${prop.minimum})`)
-          }
-          if (prop.maximum !== undefined) {
-            zodCalls.push(`.max(${prop.maximum})`)
-          }
-
+          calls.push('z.number()')
+          if (p.minimum !== undefined) calls.push(`.min(${p.minimum})`)
+          if (p.maximum !== undefined) calls.push(`.max(${p.maximum})`)
           break
 
         case 'boolean':
-          zodCalls.push('z.boolean()')
+          calls.push('z.boolean()')
           break
 
         case 'array':
-          zodCalls.push('z.array(z.any())')
+          calls.push('z.array(z.any())')
           break
 
         case 'object':
-          zodCalls.push('z.record(z.any())')
+          calls.push('z.record(z.any())')
           break
 
         default:
-          zodCalls.push('z.any()')
+          calls.push('z.any()')
       }
     }
+    return calls
   }
+
+  let zodDef: string
+
+  // 检查是否为可空类型 (e.g., anyOf: [ { type: 'string', ... }, { type: 'null' } ])
+  const isNullable = prop.anyOf?.some((p) => p.type === 'null') ?? false
+  // 查找 non-null 的 schema 定义，同时考虑顶层 prop 的属性
+  const nonNullSchema = isNullable
+    ? { ...prop, ...prop.anyOf?.find((p) => p.type !== 'null') }
+    : null
+  if (nonNullSchema) {
+    delete nonNullSchema.anyOf
+  }
+
+
+  if (nonNullSchema) {
+    // 从 non-null 部分生成核心 Zod 链
+    const coreZod = generateCoreZod(nonNullSchema).join('')
+    // 包装成 union
+    zodDef = `z.union([${coreZod}, z.null()])`
+  } else if (prop.anyOf) {
+    // 处理其他非标准的 anyOf (如果存在)
+    const types = prop.anyOf.map((p) => generateCoreZod(p).join('')).join(', ')
+    zodDef = `z.union([${types}])`
+  } else {
+    // 标准的非 anyOf 属性
+    zodDef = generateCoreZod(prop).join('')
+  }
+
+  const finalZodCalls = [zodDef]
 
   // 可选处理
   if (!isRequired) {
-    zodCalls.push('.optional()')
+    finalZodCalls.push('.optional()')
   }
 
   // 默认值
@@ -226,10 +211,10 @@ function propertyToZod(
     const defaultValue = typeof prop.default === 'string'
       ? JSON.stringify(prop.default)
       : String(prop.default)
-    zodCalls.push(`.default(${defaultValue})`)
+    finalZodCalls.push(`.default(${defaultValue})`)
   }
 
-  return zodCalls.join('')
+  return finalZodCalls.join('')
 }
 
 /**

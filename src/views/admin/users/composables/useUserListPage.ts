@@ -8,6 +8,7 @@ import { ref, computed, onMounted } from 'vue'
 import { userApi, type CreateUserInput, type UpdateUserInput } from '@/api/modules/user'
 import { useCrudApi } from '@/composables/useCrudApi'
 import { useSmartSearch } from '@/composables/useSmartSearch'
+import { useLruCache } from '@/composables/useLruCache'
 import { usePermission } from '@/composables/usePermission'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { userSearchFields, userQuickPresets, userSearchFavorites } from '../search-config'
@@ -64,8 +65,11 @@ export function useUserListPage() {
     create,
     update,
     delete: deleteItem,
-    refresh,
-  } = useCrudApi(userApi, { limit: 20 })
+  } = useCrudApi(userApi, {
+    limit: 20,
+    autoRefresh: false,
+    optimisticUpdate: true  // ✅ 启用乐观更新（带错误回滚）
+  })
 
   // ==================== 搜索状态 ====================
 
@@ -84,6 +88,16 @@ export function useUserListPage() {
 
   const formDialogOpen = ref(false)
   const editingUserId = ref<number | null>(null)
+  // 对话框唯一 key（强制组件每次打开都重新创建）
+  const dialogKey = ref(0)
+
+  // 使用 LRU 缓存存储最近编辑的用户数据（后端返回的最新数据）
+  const { set: cacheUser, get: getCachedUser, remove: removeCachedUser } = useLruCache<number, User>({
+    maxSize: 50,
+    onEvict: (key) => {
+      console.debug(`[useUserListPage] LRU cache evicted user ${key}`)
+    }
+  })
 
   // 批量选择状态
   const selectedRows = ref<User[]>([])
@@ -120,6 +134,7 @@ export function useUserListPage() {
     }
     editingUserId.value = null
     formDialogOpen.value = true
+    dialogKey.value++ // 强制组件重新创建
   }
 
   /**
@@ -133,6 +148,7 @@ export function useUserListPage() {
     }
     editingUserId.value = userId
     formDialogOpen.value = true
+    dialogKey.value++ // 强制组件重新创建
   }
 
   /**
@@ -144,6 +160,13 @@ export function useUserListPage() {
   }
 
   /**
+   * 获取最近编辑的用户数据（用于缓存）
+   */
+  function getCachedUserData(userId: number): User | undefined {
+    return getCachedUser(userId)
+  }
+
+  /**
    * 创建用户
    *
    * @param formData 表单数据
@@ -152,6 +175,7 @@ export function useUserListPage() {
     const result = await create(formData)
     if (result) {
       closeFormDialog()
+      // 乐观更新已自动处理，无需额外刷新
     }
     return result
   }
@@ -165,7 +189,10 @@ export function useUserListPage() {
   async function handleEdit(userId: number, formData: UpdateUserInput) {
     const result = await update(userId, formData)
     if (result) {
+      // 将后端返回的最新数据存入缓存
+      cacheUser(userId, result)
       closeFormDialog()
+      // 乐观更新已自动处理，无需额外刷新
     }
     return result
   }
@@ -179,14 +206,20 @@ export function useUserListPage() {
     if (!permissions.hasPermission(USER_PERMISSION.delete)) {
       return false
     }
-    return await deleteItem(userId, false) // 软删除
+    const result = await deleteItem(userId, false) // 软删除
+    if (result) {
+      // 从缓存中移除已删除的用户
+      removeCachedUser(userId)
+      // 乐观更新已自动处理，无需额外刷新
+    }
+    return result
   }
 
   /**
-   * 刷新列表
+   * 刷新列表（保持当前搜索条件）
    */
   async function handleRefresh() {
-    await refresh()
+    await handleSearch(pagination.page)
   }
 
   /**
@@ -200,8 +233,8 @@ export function useUserListPage() {
   /**
    * 处理选择变化
    */
-  function handleSelectionChange(selected: User[]) {
-    selectedRows.value = selected
+  function handleSelectionChange(selected: unknown[]) {
+    selectedRows.value = selected as User[]
   }
 
   /**
@@ -237,12 +270,22 @@ export function useUserListPage() {
       batchDeleteLoading.value = true
       const ids = selectedRows.value.map(u => u.id)
 
-      // 并发删除所有选中的用户
-      await Promise.all(ids.map(id => deleteItem(id, false)))
+      // 并发删除所有选中的用户，并追踪成功/失败数量
+      const results = await Promise.allSettled(ids.map(id => deleteItem(id, false)))
 
-      ElMessage.success('批量删除成功')
+      const succeeded = results.filter(r => r.status === 'fulfilled').length
+      const failed = results.filter(r => r.status === 'rejected').length
+
+      if (failed === 0) {
+        ElMessage.success(`成功删除 ${succeeded} 个用户`)
+      } else if (succeeded === 0) {
+        ElMessage.error(`删除失败：${failed} 个用户`)
+      } else {
+        ElMessage.warning(`部分成功：已删除 ${succeeded} 个，失败 ${failed} 个`)
+      }
+
       selectedRows.value = []
-      await refresh()
+      // 乐观更新已自动处理，无需额外刷新
     } catch (error) {
       // 用户取消操作
       if (error !== 'cancel') {
@@ -274,6 +317,8 @@ export function useUserListPage() {
     // 页面状态
     formDialogOpen,
     editingUserId,
+    dialogKey,
+    getCachedUserData,
 
     // 批量选择状态
     selectedCount,

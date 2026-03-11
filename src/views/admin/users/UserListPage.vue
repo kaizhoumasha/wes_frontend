@@ -23,10 +23,15 @@
       @create="openCreateDialog"
       @refresh="handleRefresh"
       @batch-delete="handleBatchDelete"
-      @cancel-selection="handleCancelSelection"
+      @cancel-selection="handleCancelSelectionWithClear"
       @update:keyword="smartSearch.setKeyword"
       @remove-condition="smartSearch.removeCondition"
-      @clear="() => { smartSearch.clearKeyword(); smartSearch.clearConditions() }"
+      @clear="
+        () => {
+          smartSearch.clearKeyword()
+          smartSearch.clearConditions()
+        }
+      "
       @search="() => handleSearch(pagination.page)"
       @open-popover="smartSearch.openPopover"
       @close-popover="smartSearch.closePopover"
@@ -40,6 +45,7 @@
 
     <!-- 中：数据表格 + 分页 -->
     <UserTable
+      ref="tableRef"
       :data="data?.items ?? []"
       :loading="loading"
       :error="errorMessage"
@@ -55,8 +61,14 @@
 
     <!-- 创建/编辑弹窗 -->
     <UserFormDialog
-      v-model:open="formDialogOpen"
+      v-if="formDialogOpen"
+      :key="dialogKey"
+      :open="formDialogOpen"
       :user-id="editingUserId"
+      :cached-user-data="
+        editingUserId ? (getCachedUserData(editingUserId) ?? undefined) : undefined
+      "
+      @update:open="closeFormDialog"
       @submit="handleSubmit"
     />
 
@@ -73,9 +85,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useUserListPage } from './composables/useUserListPage'
 import type { CreateUserInput, UpdateUserInput } from '@/api/modules/user'
+import type { UserTableInstance } from './components/UserTable.vue'
 import UserToolbar from './components/UserToolbar.vue'
 import UserTable from './components/UserTable.vue'
 import UserFormDialog from './components/UserFormDialog.vue'
@@ -98,6 +111,8 @@ const {
   // 页面状态
   formDialogOpen,
   editingUserId,
+  dialogKey,
+  getCachedUserData,
 
   // 批量选择状态
   selectedCount,
@@ -112,9 +127,10 @@ const {
   handleActivateField,
   openCreateDialog,
   openEditDialog,
+  closeFormDialog,
   handleSelectionChange,
   handleCancelSelection,
-  handleBatchDelete,
+  handleBatchDelete
 } = useUserListPage()
 
 // ==================== 计算属性 ====================
@@ -124,6 +140,10 @@ const errorMessage = computed(() => {
   if (!error.value) return undefined
   return error.value instanceof Error ? error.value.message : String(error.value)
 })
+
+// ==================== 表格引用 ====================
+
+const tableRef = ref<UserTableInstance | null>(null)
 
 // ==================== 事件处理 ====================
 
@@ -160,6 +180,16 @@ async function handleSubmit(formData: CreateUserInput | UpdateUserInput) {
     // 创建模式：formData 已经是 CreateUserInput 类型
     await handleCreate(formData as CreateUserInput)
   }
+}
+
+/**
+ * 取消选择（覆盖 composable 中的实现以清空表格选中状态）
+ */
+async function handleCancelSelectionWithClear() {
+  // 先调用 composable 中的取消选择逻辑（清空 selectedRows）
+  await handleCancelSelection()
+  // 再清空表格的选中状态
+  tableRef.value?.clearSelection()
 }
 </script>
 
