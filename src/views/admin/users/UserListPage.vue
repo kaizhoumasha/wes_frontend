@@ -20,6 +20,8 @@
       :loading="loading"
       :selected-count="selectedCount"
       :batch-delete-loading="batchDeleteLoading"
+      :is-fullscreen="isFullscreen"
+      :density="density"
       @create="openCreateDialog"
       @refresh="handleRefresh"
       @batch-delete="handleBatchDelete"
@@ -41,6 +43,9 @@
       @keydown-prev="smartSearch.getNextActiveField('prev')"
       @activate-field="handleActivateField"
       @open-advanced-for-field="smartSearch.openAdvancedDialog"
+      @toggle-fullscreen="toggleFullscreen"
+      @change-density="handleDensityChange"
+      @open-column-config="handleOpenColumnConfig"
     />
 
     <!-- 中：数据表格 + 分页 -->
@@ -50,6 +55,7 @@
       :loading="loading"
       :error="errorMessage"
       :pagination="pagination"
+      :density="density"
       @edit="openEditDialog"
       @delete="handleDeleteUser"
       @retry="handleRefresh"
@@ -81,18 +87,25 @@
       :draft-seed="smartSearch.state.value.advancedDialogDraftSeed"
       @replace-conditions="smartSearch.replaceConditions"
     />
+
+    <!-- 列配置对话框 -->
+    <TableColumnConfigDialog v-model="columnConfigDialogOpen" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useUserListPage } from './composables/useUserListPage'
+import { useTableFullscreen } from '@/composables/useTableFullscreen'
+import { useTableDensity } from '@/composables/useTableDensity'
 import type { CreateUserInput, UpdateUserInput } from '@/api/modules/user'
 import type { UserTableInstance } from './components/UserTable.vue'
+import type { TableDensity } from '@/types/table'
 import UserToolbar from './components/UserToolbar.vue'
 import UserTable from './components/UserTable.vue'
 import UserFormDialog from './components/UserFormDialog.vue'
 import AdvancedSearchDialog from '@/components/search/AdvancedSearchDialog.vue'
+import TableColumnConfigDialog from './components/TableColumnConfigDialog.vue'
 import type { User } from '@/api/modules/user'
 import { userSearchFields, userQuickPresets, userSearchFavorites } from './search-config'
 
@@ -132,6 +145,17 @@ const {
   handleCancelSelection,
   handleBatchDelete
 } = useUserListPage()
+
+// ==================== 表格控制状态 ====================
+
+// 全屏状态
+const { isFullscreen, toggle: toggleFullscreen } = useTableFullscreen()
+
+// 密度状态
+const { density, setDensity } = useTableDensity()
+
+// 列配置对话框状态
+const columnConfigDialogOpen = ref(false)
 
 // ==================== 计算属性 ====================
 
@@ -191,13 +215,36 @@ async function handleCancelSelectionWithClear() {
   // 再清空表格的选中状态
   tableRef.value?.clearSelection()
 }
+
+/**
+ * 密度变化
+ */
+function handleDensityChange(newDensity: TableDensity) {
+  setDensity(newDensity)
+}
+
+/**
+ * 打开列配置对话框
+ */
+function handleOpenColumnConfig() {
+  columnConfigDialogOpen.value = true
+}
 </script>
 
 <style scoped>
 .user-list-page {
   display: flex;
   flex-direction: column;
-  height: 100%;
+
+  /* 使用布局变量计算高度：视口 - AppHeader - page-main 上下 padding */
+  height: calc(100vh - var(--layout-header-height) - var(--layout-page-padding) * 2);
   gap: 16px;
+}
+
+/* 小平板端（< 768px）：减小间距，适应小屏 */
+@media (width <= 767px) {
+  .user-list-page {
+    gap: 8px;
+  }
 }
 </style>

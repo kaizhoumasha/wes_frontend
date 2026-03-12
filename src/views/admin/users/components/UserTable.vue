@@ -29,33 +29,36 @@
     </div>
 
     <!-- 数据表格 -->
-    <DataTable
-      v-else
-      ref="tableRef"
-      :data="data"
-      :columns="columns"
-      :loading="loading"
-      border
-      stripe
-      row-key="id"
-      @selection-change="handleSelectionChange"
-    >
-      <!-- 空状态插槽 -->
-      <template #empty>
-        <el-empty
-          description="暂无用户数据"
-          :image-size="120"
-        >
-          <el-button
-            v-if="canUpdate"
-            type="primary"
-            @click="$emit('create')"
+    <div class="user-table__table-wrapper">
+      <DataTable
+        ref="tableRef"
+        :data="data"
+        :columns="columns"
+        :loading="loading"
+        :density="props.density"
+        height="100%"
+        border
+        stripe
+        row-key="id"
+        @selection-change="handleSelectionChange"
+      >
+        <!-- 空状态插槽 -->
+        <template #empty>
+          <el-empty
+            description="暂无用户数据"
+            :image-size="120"
           >
-            创建第一个用户
-          </el-button>
-        </el-empty>
-      </template>
-    </DataTable>
+            <el-button
+              v-if="canUpdate"
+              type="primary"
+              @click="$emit('create')"
+            >
+              创建第一个用户
+            </el-button>
+          </el-empty>
+        </template>
+      </DataTable>
+    </div>
 
     <!-- 分页器 -->
     <div class="user-table__pagination">
@@ -79,8 +82,41 @@ import { DataTable } from '@/components/ui/table'
 import type { DataTableInstance } from '@/components/ui/table'
 import { formatDateTime } from '@/components/ui/table/useTableColumns'
 import { usePermission } from '@/composables/usePermission'
+import { useResponsiveLayout } from '@/composables/useResponsiveLayout'
 import { USER_PERMISSION } from '../constants'
 import type { User, Role } from '@/api/modules/user'
+import type { TableDensity } from '@/types/table'
+import { useUserTableColumns } from '../composables/useUserTableColumns'
+import { TABLE_MIN_HEIGHT, PAGINATION_HEIGHT } from '@/constants/layout'
+
+// ==================== 响应式断点 ====================
+
+// 使用纯响应式检测（无需 UI 状态，更轻量）
+const { isMobile, isTablet } = useResponsiveLayout()
+
+/** 平板端（768-1279px）显示的列 key */
+const TABLET_COLUMNS = new Set(['username', 'email', 'full_name', 'roles', 'updated_at'])
+/** 移动端（<768px）显示的列 key */
+const MOBILE_COLUMNS = new Set(['username', 'email', 'roles'])
+
+// ==================== 工具函数 ====================
+
+/**
+ * 创建布尔值 Tag 渲染器（DRY: 消除 is_superuser 和 is_multi_login 的重复代码）
+ * @param field - User 对象的布尔字段名
+ * @param trueType - true 值对应的 Tag 类型
+ * @param falseType - false 值对应的 Tag 类型（默认 'info'）
+ */
+function createBooleanTagRenderer(
+  field: 'is_superuser' | 'is_multi_login',
+  trueType: 'danger' | 'success' | 'warning',
+  falseType: 'danger' | 'success' | 'warning' | 'info' = 'info'
+) {
+  return ({ row }: { row: Record<string, unknown> }) =>
+    h(ElTag, { type: (row as unknown as User)[field] ? trueType : falseType }, () =>
+      (row as unknown as User)[field] ? '是' : '否'
+    )
+}
 
 // ==================== 权限控制 ====================
 
@@ -104,6 +140,8 @@ interface Props {
   }
   /** 错误信息 */
   error?: string
+  /** 表格密度 */
+  density?: TableDensity
 }
 
 interface Emits {
@@ -116,78 +154,56 @@ interface Emits {
   (e: 'selection-change', selected: unknown[]): void
 }
 
-defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  error: undefined,
+  density: 'compact'
+})
 const emit = defineEmits<Emits>()
 
-// ==================== 表格列配置 ====================
+// ==================== 列配置 ====================
+
+const { columnConfig } = useUserTableColumns()
 
 /**
- * 用户管理表格列配置
- *
- * 使用语义化的 field/title API
+ * 可配置列的定义 map（key → 列配置对象）
+ * 固定列（selection、actions）不在此处，始终显示
  */
-const columns = computed(() => [
-  // 复选框列
-  {
-    type: 'selection' as const,
-    width: 55,
-    fixed: 'left' as const
-  },
-  // 用户名列
-  {
+const columnDefs = computed(() => ({
+  username: {
     field: 'username',
     title: '用户名',
     width: 150,
     fixed: 'left' as const
   },
-  // 邮箱列
-  {
+  email: {
     field: 'email',
     title: '邮箱',
     width: 200
   },
-  // 姓名列
-  {
+  full_name: {
     field: 'full_name',
     title: '姓名',
     width: 150
   },
-  // 超级用户列（使用插槽渲染）
-  {
+  is_superuser: {
     field: 'is_superuser',
     title: '超级用户',
     width: 100,
     align: 'center' as const,
     slots: {
-      default: ({ row }: { row: Record<string, unknown> }) =>
-        h(
-          ElTag,
-          {
-            type: (row as unknown as User).is_superuser ? 'danger' : 'info'
-          },
-          () => ((row as unknown as User).is_superuser ? '是' : '否')
-        )
+      default: createBooleanTagRenderer('is_superuser', 'danger')
     }
   },
-  // 多端登录列（使用插槽渲染）
-  {
+  is_multi_login: {
     field: 'is_multi_login',
     title: '多端登录',
     width: 100,
     align: 'center' as const,
     slots: {
-      default: ({ row }: { row: Record<string, unknown> }) =>
-        h(
-          ElTag,
-          {
-            type: (row as unknown as User).is_multi_login ? 'success' : 'info'
-          },
-          () => ((row as unknown as User).is_multi_login ? '是' : '否')
-        )
+      default: createBooleanTagRenderer('is_multi_login', 'success')
     }
   },
-  // 角色列（数组标签）
-  {
+  roles: {
     field: 'roles',
     title: '角色',
     width: 200,
@@ -200,29 +216,40 @@ const columns = computed(() => [
         return h(
           'div',
           { class: 'flex gap-1 flex-wrap' },
-          user.roles.map((role: Role) =>
-            h(
-              ElTag,
-              {
-                key: role.id,
-                size: 'small'
-              },
-              () => role.name
-            )
-          )
+          user.roles.map((role: Role) => h(ElTag, { key: role.id, size: 'small' }, () => role.name))
         )
       }
     }
   },
-  // 更新时间列（使用内置格式化器）
-  {
+  updated_at: {
     field: 'updated_at',
     title: '更新时间',
     width: 180,
     formatter: formatDateTime
-  },
-  // 操作列
-  {
+  }
+}))
+
+/**
+ * 动态列配置：根据 columnConfig + 响应式断点 过滤和排序
+ */
+const columns = computed(() => {
+  const defs = columnDefs.value
+
+  // 确定当前断点允许显示的列（null 表示无限制）
+  const allowedKeys: Set<string> | null = isMobile.value
+    ? MOBILE_COLUMNS
+    : isTablet.value
+      ? TABLET_COLUMNS
+      : null
+
+  // 按 columnConfig 顺序过滤：用户配置可见 + 当前断点允许
+  const configurableCols = columnConfig.value
+    .filter(c => c.visible && (!allowedKeys || allowedKeys.has(c.key)))
+    .map(c => defs[c.key as keyof typeof defs])
+    .filter(Boolean)
+
+  // 操作列（始终显示，固定右侧）
+  const actionsCol = {
     field: '__actions__',
     title: '操作',
     width: 150,
@@ -267,7 +294,13 @@ const columns = computed(() => [
       }
     }
   }
-])
+
+  return [
+    { type: 'selection' as const, width: 55, fixed: 'left' as const },
+    ...configurableCols,
+    actionsCol
+  ]
+})
 
 // ==================== 事件处理 ====================
 
@@ -310,11 +343,18 @@ export interface UserTableInstance {
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: v-bind('`${TABLE_MIN_HEIGHT}px`'); /* P0优化: 预留最小高度防止布局偏移 */
   overflow: hidden;
   background: var(--el-bg-color);
   border-radius: 8px;
   padding: 16px;
   border: 1px solid var(--el-border-color-lighter);
+}
+
+.user-table__table-wrapper {
+  flex: 1;
+  min-height: 0; /* 关键：允许 flex 子元素缩小 */
+  overflow: hidden;
 }
 
 .user-table__error {
@@ -328,7 +368,10 @@ export interface UserTableInstance {
 .user-table__pagination {
   display: flex;
   justify-content: flex-end;
-  margin-top: 16px;
+  align-items: center;
+  flex-shrink: 0; /* P0优化: 固定在底部，不参与 flex 压缩 */
+  height: v-bind('`${PAGINATION_HEIGHT}px`'); /* P0优化: 固定分页器高度防止布局偏移 */
+  padding-top: 16px;
 }
 
 .text-muted {
@@ -369,5 +412,15 @@ export interface UserTableInstance {
 .el-table__body-wrapper tr.current-row td.el-table-fixed-column--left,
 .el-table__body-wrapper tr.current-row td.el-table-fixed-column--right {
   background-color: var(--el-table-current-row-bg-color) !important;
+}
+
+/* 全屏模式：UserListPage 占满整个视口 */
+body.table-fullscreen .user-list-page {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  height: 100vh !important;
+  padding: 16px;
+  background: var(--el-bg-color-page);
 }
 </style>

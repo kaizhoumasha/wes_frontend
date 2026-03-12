@@ -351,8 +351,8 @@ html:not(.dark) .app-header {
   left: 64px;
 }
 
-/* 移动端 */
-@media (width < 1280px) {
+/* 移动端（< 768px）- 侧边栏抽屉模式 */
+@media (width < 768px) {
   .app-header {
     left: 0;
   }

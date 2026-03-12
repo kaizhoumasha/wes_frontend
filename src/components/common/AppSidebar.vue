@@ -58,13 +58,6 @@
         </div>
       </transition>
     </div>
-
-    <!-- 移动端遮罩层 -->
-    <div
-      v-if="isMobile && isMobileMenuOpen"
-      class="sidebar-overlay"
-      @click="closeMobileMenu"
-    />
   </aside>
 </template>
 
@@ -181,7 +174,7 @@ html:not(.dark) .app-sidebar {
   left: 0;
   height: 100vh;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 100;
+  z-index: 1000;
   display: flex;
   flex-direction: column;
 
@@ -235,7 +228,6 @@ html:not(.dark) .app-sidebar {
   width: 32px;
   height: 32px;
   flex-shrink: 0;
-  filter: drop-shadow(0 0 10px var(--logo-glow));
 }
 
 .logo-text {
@@ -373,25 +365,6 @@ html:not(.dark) .app-sidebar {
   font-size: 12px;
   font-family: 'Courier New', monospace;
   color: var(--footer-color);
-}
-
-/* ==================== 移动端遮罩层 ==================== */
-.sidebar-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgb(0 0 0 / 50%);
-  backdrop-filter: blur(4px);
-  z-index: 99;
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
 }
 
 /* ==================== 过渡动画 ==================== */

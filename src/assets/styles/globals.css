@@ -160,6 +160,18 @@
     --version-info-color: rgb(255 255 255 / 30%);
   }
 
+  /* ==================== 响应式断点变量 ==================== */
+  :root {
+    /* 设备断点（与项目响应式规范保持一致） */
+    --breakpoint-mobile: 768px; /* 移动端/小平板边界 */
+    --breakpoint-tablet: 1280px; /* 平板/桌面边界 */
+    --breakpoint-small: 480px; /* 小屏设备边界 */
+
+    /* 搜索框宽度范围 */
+    --search-min-width: 480px;
+    --search-max-width: 800px;
+  }
+
   /* 亮模式变量 */
   html:not(.dark) {
     /* 滚动条 */

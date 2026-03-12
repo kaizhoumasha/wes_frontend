@@ -187,6 +187,8 @@ export interface DataTableProps<T = unknown> {
   highlightCurrentRow?: boolean
   /** 内容溢出时是否省略 */
   showOverflowTooltip?: boolean
+  /** 表格密度（舒适/紧凑/迷你） */
+  density?: 'comfortable' | 'compact' | 'small'
   /** 树形表格配置 */
   treeProps?: TreePropsConfig
   /** 默认展开所有行（树形表格） */

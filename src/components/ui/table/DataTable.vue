@@ -5,124 +5,153 @@
 支持动态列配置、插槽渲染、格式化器、树形数据等功能
 -->
 <template>
-  <el-table
-    ref="tableRef"
-    :data="data"
-    :loading="loading"
-    :border="border"
-    :stripe="stripe"
-    :row-key="rowKey"
-    :height="height"
-    :max-height="maxHeight"
-    :highlight-current-row="highlightCurrentRow"
-    :tree-props="treeProps"
-    :default-expand-all="defaultExpandAll"
-    :default-expand-row-keys="defaultExpandRowKeys"
-    v-bind="$attrs"
-    @selection-change="handleSelectionChange"
-    @current-change="handleCurrentChange"
-    @cell-click="handleCellClick"
-    @row-click="handleRowClick"
-    @sort-change="handleSortChange"
-    @filter-change="handleFilterChange"
-  >
-    <!-- 动态渲染列 -->
-    <template
-      v-for="(column, index) in visibleColumns"
-      :key="getColumnKey(column, index)"
-    >
-      <!-- selection 类型列 -->
-      <el-table-column
-        v-if="column.type === 'selection'"
-        type="selection"
-        :width="column.width"
-        :fixed="column.fixed"
-      />
-
-      <!-- index 类型列 -->
-      <el-table-column
-        v-else-if="column.type === 'index'"
-        type="index"
-        :width="column.width || 60"
-        :fixed="column.fixed"
-        :label="column.title"
-      />
-
-      <!-- expand 类型列 -->
-      <el-table-column
-        v-else-if="column.type === 'expand'"
-        type="expand"
-        :width="column.width"
-        :fixed="column.fixed"
-        :label="column.title"
+  <div class="data-table-wrapper">
+    <!-- P0优化: 骨架屏淡出过渡 -->
+    <transition name="skeleton-fade">
+      <div
+        v-if="loading"
+        class="data-table__skeleton"
       >
-        <template
-          v-if="column.slots?.default"
-          #default="scope"
-        >
-          <component :is="column.slots.default(scope)" />
-        </template>
-      </el-table-column>
-
-      <!-- 普通数据列 -->
-      <el-table-column
-        v-else
-        :prop="column.prop || column.field"
-        :label="column.title"
-        :width="column.width"
-        :min-width="column.minWidth"
-        :align="column.align"
-        :fixed="column.fixed"
-        :sortable="column.sortable"
-        :filter-method="column.filterMethod"
-        :filters="column.filters"
-        :class-name="column.className"
-        :label-class-name="column.labelClassName"
-        :show-overflow-tooltip="showOverflowTooltip"
-      >
-        <!-- 表头插槽 -->
-        <template
-          v-if="column.slots?.header"
-          #header="scope"
-        >
-          <component :is="column.slots.header(scope)" />
-        </template>
-
-        <!-- 默认内容插槽 -->
-        <template #default="scope">
-          <!-- 优先使用 slots.default -->
-          <component
-            :is="column.slots.default(scope)"
-            v-if="column.slots?.default"
-          />
-          <!-- 其次使用 formatter -->
-          <span v-else-if="column.formatter">
-            {{ renderFormatterValue(scope.row, scope.column, scope.$index, column) }}
-          </span>
-          <!-- 默认显示字段值 -->
-          <span v-else>
-            {{ getFieldValue(scope.row, column.field ?? '') }}
-          </span>
-        </template>
-      </el-table-column>
-    </template>
-
-    <!-- 空状态插槽 -->
-    <template #empty>
-      <slot name="empty">
-        <el-empty
-          description="暂无数据"
-          :image-size="120"
+        <DataTableSkeleton
+          :columns="visibleColumns"
+          :density="density"
         />
-      </slot>
-    </template>
-  </el-table>
+      </div>
+    </transition>
+
+    <!-- P0优化: 表格淡入过渡 -->
+    <transition name="table-fade">
+      <!-- 数据表格 -->
+      <el-table
+        v-show="!loading"
+        ref="tableRef"
+        :data="data"
+        :border="border"
+        :stripe="stripe"
+        :row-key="rowKey"
+        :height="height"
+        :max-height="maxHeight"
+        :highlight-current-row="highlightCurrentRow"
+        :size="tableSize"
+        :tree-props="treeProps"
+        :default-expand-all="defaultExpandAll"
+        :default-expand-row-keys="defaultExpandRowKeys"
+        v-bind="$attrs"
+        :class="{ 'data-table--loading': loading }"
+        @selection-change="handleSelectionChange"
+        @current-change="handleCurrentChange"
+        @cell-click="handleCellClick"
+        @row-click="handleRowClick"
+        @sort-change="handleSortChange"
+        @filter-change="handleFilterChange"
+      >
+        <!-- 动态渲染列 -->
+        <template
+          v-for="(column, index) in visibleColumns"
+          :key="getColumnKey(column, index)"
+        >
+          <!-- selection 类型列 -->
+          <el-table-column
+            v-if="column.type === 'selection'"
+            type="selection"
+            :width="column.width"
+            :fixed="column.fixed"
+          />
+
+          <!-- index 类型列 -->
+          <el-table-column
+            v-else-if="column.type === 'index'"
+            type="index"
+            :width="column.width || 60"
+            :fixed="column.fixed"
+            :label="column.title"
+          />
+
+          <!-- expand 类型列 -->
+          <el-table-column
+            v-else-if="column.type === 'expand'"
+            type="expand"
+            :width="column.width"
+            :fixed="column.fixed"
+            :label="column.title"
+          >
+            <template
+              v-if="column.slots?.default"
+              #default="scope"
+            >
+              <component :is="column.slots.default(scope)" />
+            </template>
+          </el-table-column>
+
+          <!-- 普通数据列 -->
+          <el-table-column
+            v-else
+            :prop="column.prop || column.field"
+            :label="column.title"
+            :width="column.width"
+            :min-width="column.minWidth"
+            :align="column.align"
+            :fixed="column.fixed"
+            :sortable="column.sortable"
+            :filter-method="column.filterMethod"
+            :filters="column.filters"
+            :class-name="column.className"
+            :label-class-name="column.labelClassName"
+            :show-overflow-tooltip="showOverflowTooltip"
+          >
+            <!-- 表头插槽 -->
+            <template
+              v-if="column.slots?.header"
+              #header="scope"
+            >
+              <component :is="column.slots.header(scope)" />
+            </template>
+
+            <!-- 默认内容插槽 -->
+            <template #default="scope">
+              <!-- 优先使用 slots.default -->
+              <component
+                :is="column.slots.default(scope)"
+                v-if="column.slots?.default"
+              />
+              <!-- 其次使用 formatter -->
+              <span v-else-if="column.formatter">
+                {{ renderFormatterValue(scope.row, scope.column, scope.$index, column) }}
+              </span>
+              <!-- 默认显示字段值 -->
+              <span v-else>
+                {{ getFieldValue(scope.row, column.field ?? '') }}
+              </span>
+            </template>
+          </el-table-column>
+        </template>
+
+        <!-- 空状态插槽 -->
+        <template #empty>
+          <slot name="empty">
+            <el-empty
+              description="暂无数据"
+              :image-size="120"
+            />
+          </slot>
+        </template>
+      </el-table>
+    </transition>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { ElTable } from 'element-plus'
 import { getNestedValue } from '@/utils/object'
+import { DENSITY_CONFIG } from '@/types/table'
+import {
+  TABLE_COMPONENT_MIN_HEIGHT,
+  TABLE_BODY_MIN_HEIGHT,
+  TABLE_EMPTY_MIN_HEIGHT,
+  TRANSITION_DURATION
+} from '@/constants/layout'
+import DataTableSkeleton from './DataTableSkeleton.vue'
 import type {
   DataTableProps,
   DataTableEmits,
@@ -137,6 +166,16 @@ const props = withDefaults(defineProps<DataTableProps>(), {
   stripe: false,
   highlightCurrentRow: false,
   showOverflowTooltip: true
+})
+
+// ==================== Computed ====================
+
+/**
+ * 将表格密度转换为 Element Plus Table size
+ */
+const tableSize = computed(() => {
+  if (!props.density) return undefined
+  return DENSITY_CONFIG[props.density].size
 })
 
 // 使用 unknown 类型而非 any，保持类型安全
@@ -200,7 +239,7 @@ function getFieldValue(row: Record<string, unknown>, path: string): string {
 function renderFormatterValue(
   row: Record<string, unknown>,
   column: { property?: string },
-  $index: number,
+  _index: number,
   config: TableColumnConfig
 ): string {
   const fieldPath = config.field
@@ -237,13 +276,7 @@ function handleCurrentChange(currentRow: unknown, oldCurrentRow: unknown) {
 
 function handleCellClick(row: unknown, column: unknown, cell: HTMLTableCellElement, event: Event) {
   // 保持类型安全：将 unknown 断言为期望的类型结构
-  emit(
-    'cell-click',
-    row,
-    column as { property?: string },
-    cell,
-    event
-  )
+  emit('cell-click', row, column as { property?: string }, cell, event)
 }
 
 function handleRowClick(row: unknown, column: unknown, event: Event) {
@@ -275,3 +308,67 @@ export default {
   inheritAttrs: false
 }
 </script>
+
+<style scoped>
+.data-table-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.data-table__skeleton {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: var(--el-bg-color);
+}
+
+/* P0优化: 骨架屏淡出过渡 */
+.skeleton-fade-leave-active {
+  transition: opacity v-bind('`${TRANSITION_DURATION.skeletonFade}ms ease`');
+}
+
+.skeleton-fade-leave-to {
+  opacity: 0;
+}
+
+/* P0优化: 表格淡入过渡（延迟等待骨架屏消失） */
+.table-fade-enter-active {
+  transition: opacity
+    v-bind('`${TRANSITION_DURATION.tableFade}ms ease ${TRANSITION_DURATION.tableFadeDelay}ms`');
+}
+
+.table-fade-enter-from {
+  opacity: 0;
+}
+
+/* P0优化: 为表格添加最小高度防止内容加载时布局偏移 */
+:deep(.el-table) {
+  min-height: v-bind('`${TABLE_COMPONENT_MIN_HEIGHT}px`');
+}
+
+/* P0优化: 修复 el-table__body-wrapper 布局偏移 (CLS 主要贡献者) */
+:deep(.el-table__body-wrapper) {
+  min-height: v-bind('`${TABLE_BODY_MIN_HEIGHT}px`');
+  contain: layout style; /* 隔离内部布局变化，防止影响外部 */
+}
+
+/* P0优化: 修复空状态文本布局偏移 */
+:deep(.el-table__empty-block) {
+  min-height: v-bind('`${TABLE_EMPTY_MIN_HEIGHT}px`');
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:deep(.el-table__empty-text) {
+  min-width: 200px;
+  text-align: center;
+}
+
+/* P0优化: 加载状态时隐藏表格（使用 v-show 代替 v-if，保持组件挂载） */
+.data-table--loading {
+  opacity: 0;
+  pointer-events: none;
+}
+</style>

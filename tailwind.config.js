@@ -3,6 +3,16 @@ export default {
   content: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
   darkMode: 'class', // 启用基于 class 的暗黑模式
   theme: {
+    screens: {
+      // 响应式断点（与项目规范保持一致）
+      // 移动端: < 768px (默认，无需断点)
+      // 平板端: >= 768px
+      md: '768px',
+      // 桌面端: >= 1280px
+      xl: '1280px',
+      // 小屏: >= 480px
+      sm: '480px'
+    },
     extend: {
       colors: {
         // 科技蓝主色（与 Login.vue 保持一致）
