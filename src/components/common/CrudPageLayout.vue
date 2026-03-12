@@ -44,7 +44,11 @@ provideBreakpointContext()
 <template>
   <div class="crud-page-layout">
     <!-- 工具栏插槽 -->
-    <div v-if="$slots.toolbar" class="crud-page-layout__toolbar" :style="{ marginBottom: `${gap}px` }">
+    <div
+      v-if="$slots.toolbar"
+      class="crud-page-layout__toolbar"
+      :style="{ marginBottom: `${gap}px` }"
+    >
       <slot name="toolbar" />
     </div>
 
@@ -54,7 +58,10 @@ provideBreakpointContext()
     </div>
 
     <!-- 分页插槽（可选） -->
-    <div v-if="$slots.pagination" class="crud-page-layout__pagination">
+    <div
+      v-if="$slots.pagination"
+      class="crud-page-layout__pagination"
+    >
       <slot name="pagination" />
     </div>
   </div>

@@ -149,7 +149,6 @@ const emit = defineEmits<{
 /** 是否显示批量操作区 */
 const showBatchActions = computed(() => props.toolbarState.selectedCount > 0)
 
-
 /** 当前使用的操作按钮（有选中项时使用批量操作按钮） */
 const currentActions = computed(() => {
   if (showBatchActions.value) {
@@ -169,12 +168,9 @@ const currentActions = computed(() => {
   return props.actions || []
 })
 
-
 // ============================================================================
 // 事件处理
 // ============================================================================
-
-
 </script>
 
 <template>
@@ -188,7 +184,10 @@ const currentActions = computed(() => {
         :selected-count="toolbarState.selectedCount"
       >
         <!-- 标题配置（如果没有插槽） -->
-        <div v-if="title" class="crud-toolbar__title">
+        <div
+          v-if="title"
+          class="crud-toolbar__title"
+        >
           <component
             :is="title.icon"
             v-if="title.icon"
@@ -196,7 +195,10 @@ const currentActions = computed(() => {
           />
           <div class="crud-toolbar__title-text">
             <div class="crud-toolbar__title-main">{{ title.text }}</div>
-            <div v-if="title.subtitle" class="crud-toolbar__title-sub">
+            <div
+              v-if="title.subtitle"
+              class="crud-toolbar__title-sub"
+            >
               {{ title.subtitle }}
             </div>
           </div>
@@ -204,10 +206,11 @@ const currentActions = computed(() => {
       </slot>
 
       <!-- 批量操作区（有选中项时显示） -->
-      <div v-if="showBatchActions" class="crud-toolbar__batch-actions">
-        <span class="crud-toolbar__batch-count">
-          已选中 {{ toolbarState.selectedCount }} 项
-        </span>
+      <div
+        v-if="showBatchActions"
+        class="crud-toolbar__batch-actions"
+      >
+        <span class="crud-toolbar__batch-count">已选中 {{ toolbarState.selectedCount }} 项</span>
         <el-button
           type="default"
           size="small"
@@ -252,7 +255,7 @@ const currentActions = computed(() => {
           :quick-presets="quickPresets || []"
           :placeholder="searchPlaceholder"
           @update:keyword="smartSearch.setKeyword"
-          @remove-condition="(id) => smartSearch.removeCondition(id)"
+          @remove-condition="id => smartSearch.removeCondition(id)"
           @search="emit('search')"
           @clear="smartSearch.clearKeyword"
         />
@@ -262,7 +265,10 @@ const currentActions = computed(() => {
       <div class="crud-toolbar__controls">
         <slot name="controls">
           <!-- 刷新按钮 -->
-          <el-tooltip content="刷新" placement="top">
+          <el-tooltip
+            content="刷新"
+            placement="top"
+          >
             <el-button
               :icon="RefreshRight"
               :loading="toolbarState.loading"
@@ -284,25 +290,25 @@ const currentActions = computed(() => {
           </el-tooltip>
 
           <!-- 密度切换 -->
-          <el-dropdown @command="(density) => emit('change-density', density)">
-            <el-button :icon="Operation" circle />
+          <el-dropdown @command="density => emit('change-density', density)">
+            <el-button
+              :icon="Operation"
+              circle
+            />
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="compact">
-                  紧凑
-                </el-dropdown-item>
-                <el-dropdown-item command="comfortable">
-                  舒适
-                </el-dropdown-item>
-                <el-dropdown-item command="relaxed">
-                  宽松
-                </el-dropdown-item>
+                <el-dropdown-item command="compact">紧凑</el-dropdown-item>
+                <el-dropdown-item command="comfortable">舒适</el-dropdown-item>
+                <el-dropdown-item command="relaxed">宽松</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
 
           <!-- 列配置 -->
-          <el-tooltip content="列配置" placement="top">
+          <el-tooltip
+            content="列配置"
+            placement="top"
+          >
             <el-button
               :icon="Setting"
               circle

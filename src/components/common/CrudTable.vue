@@ -179,18 +179,30 @@ function handleCreate() {
     />
 
     <!-- 错误状态 -->
-    <div v-else-if="showError" class="crud-table__error">
+    <div
+      v-else-if="showError"
+      class="crud-table__error"
+    >
       <el-empty :description="errorText">
-        <el-button type="primary" @click="handleRetry">
+        <el-button
+          type="primary"
+          @click="handleRetry"
+        >
           重新加载
         </el-button>
       </el-empty>
     </div>
 
     <!-- 空状态 -->
-    <div v-else-if="showEmpty" class="crud-table__empty">
+    <div
+      v-else-if="showEmpty"
+      class="crud-table__empty"
+    >
       <el-empty :description="emptyText">
-        <el-button type="primary" @click="handleCreate">
+        <el-button
+          type="primary"
+          @click="handleCreate"
+        >
           {{ emptyActionText }}
         </el-button>
       </el-empty>
@@ -208,18 +220,30 @@ function handleCreate() {
       @selection-change="handleSelectionChange"
     >
       <!-- 错误状态插槽（可选） -->
-      <template v-if="$slots.error" #error>
-        <slot name="error" :error="error" />
+      <template
+        v-if="$slots.error"
+        #error
+      >
+        <slot
+          name="error"
+          :error="error"
+        />
       </template>
 
       <!-- 空状态插槽（可选） -->
-      <template v-if="$slots.empty" #empty>
+      <template
+        v-if="$slots.empty"
+        #empty
+      >
         <slot name="empty" />
       </template>
     </DataTable>
 
     <!-- 分页器 -->
-    <div v-if="!showEmpty && !showError && pagination.total > 0" class="crud-table__pagination">
+    <div
+      v-if="!showEmpty && !showError && pagination.total > 0"
+      class="crud-table__pagination"
+    >
       <el-pagination
         :current-page="pagination.page"
         :page-size="pagination.pageSize"

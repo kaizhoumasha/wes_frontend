@@ -1,4 +1,4 @@
-import { computed, type ComputedRef, type Ref, type Component } from 'vue'
+import { computed, type ComputedRef, type Component } from 'vue'
 import { usePermission } from './usePermission'
 
 /**
@@ -50,7 +50,7 @@ export interface ToolbarAction {
   /** 条件显示函数（可选，返回 false 则隐藏按钮） */
   showWhen?: () => boolean
   /** 是否加载中 */
-  loading?: Ref<boolean> | boolean
+  loading?: boolean
 }
 
 export interface UseToolbarActionsOptions {
