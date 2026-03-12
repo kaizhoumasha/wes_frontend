@@ -22,6 +22,7 @@
 
 import { apiClient } from '../client'
 import type { ApiResponse, PaginationData } from '../types'
+import { API_CACHE_DURATION, API_RELATION_DEPTH } from '@/constants/cache'
 
 // ==================== 类型定义 ====================
 
@@ -181,13 +182,42 @@ export class CrudApi<T, CreateInput = Partial<T>, UpdateInput = Partial<T>> {
   /**
    * 获取单个实体
    * @param id 实体ID
-   * @param maxDepth 关系加载深度（默认2）
+   * @param options 选项配置（向后兼容：支持数字作为 maxDepth）
+   * @param options.maxDepth 关系加载深度（默认2）
+   * @param options.cacheFor 缓存时间（毫秒），0=禁用缓存
    * @returns 实体数据
+   *
+   * @example
+   * // 向后兼容：直接传数字
+   * await userApi.getById(1, 3)
+   * // 新用法：传对象
+   * await userApi.getById(1, { maxDepth: 3, cacheFor: 60000 })
    */
-  async getById(id: number, maxDepth = 2): Promise<T> {
-    const response = await apiClient.Get<ApiResponse<T>>(`${this.config.prefix}/${id}`, {
-      max_depth: maxDepth
-    } as Record<string, unknown>)
+  async getById(
+    id: number,
+    options?: number | { maxDepth?: number; cacheFor?: number }
+  ): Promise<T> {
+    // 向后兼容：支持直接传数字作为 maxDepth
+    let maxDepth: number = API_RELATION_DEPTH.DEFAULT
+    let cacheFor: number = API_CACHE_DURATION.NONE
+
+    if (typeof options === 'number') {
+      // 旧用法：getById(id, maxDepth)
+      maxDepth = options
+    } else if (options && typeof options === 'object') {
+      // 新用法：getById(id, { maxDepth, cacheFor })
+      maxDepth = options.maxDepth ?? API_RELATION_DEPTH.DEFAULT
+      cacheFor = options.cacheFor ?? API_CACHE_DURATION.NONE
+    }
+
+    const response = await apiClient.Get<ApiResponse<T>>(
+      `${this.config.prefix}/${id}`,
+      {
+        params: { max_depth: maxDepth as number },
+        cacheFor
+      }
+    )
+
     return response as unknown as T
   }
 

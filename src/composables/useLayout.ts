@@ -37,17 +37,14 @@
  */
 
 import { ref, computed, watch } from 'vue'
-import { useBreakpoints, useStorage } from '@vueuse/core'
+import { useStorage } from '@vueuse/core'
 import { LAYOUT_CACHE } from '@/constants/cache'
-
-// ==================== 常量定义 ====================
-
-/** 响应式断点配置 */
-const BREAKPOINTS = {
-  mobile: 0,
-  tablet: 768,
-  desktop: 1280
-}
+import {
+  isMobile as _isMobile,
+  isTablet as _isTablet,
+  isDesktop as _isDesktop,
+  device as _device
+} from './useResponsiveLayout'
 
 // ==================== 全局状态 ====================
 
@@ -57,26 +54,19 @@ const sidebarCollapsed = useStorage(LAYOUT_CACHE.SIDEBAR_COLLAPSED_KEY, false)
 /** 移动端菜单打开状态 */
 const isMobileMenuOpen = ref(false)
 
-/** 响应式断点 */
-const breakpoints = useBreakpoints(BREAKPOINTS)
-
-// ==================== 计算属性 ====================
+// ==================== 计算属性（复用 useResponsiveLayout） ====================
 
 /** 是否为移动设备（< 768px） */
-export const isMobile = breakpoints.smaller('tablet')
+export const isMobile = _isMobile
 
 /** 是否为平板设备（768px - 1279px） */
-export const isTablet = breakpoints.between('tablet', 'desktop')
+export const isTablet = _isTablet
 
 /** 是否为桌面设备（≥ 1280px） */
-export const isDesktop = breakpoints.greaterOrEqual('desktop')
+export const isDesktop = _isDesktop
 
 /** 当前设备类型 */
-export const device = computed(() => {
-  if (isMobile.value) return 'mobile'
-  if (isTablet.value) return 'tablet'
-  return 'desktop'
-})
+export const device = _device
 
 /** 侧边栏宽度（根据折叠状态和设备类型） */
 export const sidebarWidth = computed(() => {
@@ -189,7 +179,7 @@ export function useLayout() {
   }
 }
 
-// ==================== 类型导出 ====================
+// ==================== 类型导出（复用 useResponsiveLayout） ====================
 
-/** 设备类型 */
-export type DeviceType = 'mobile' | 'tablet' | 'desktop'
+/** 设备类型（从 useResponsiveLayout 重新导出） */
+export type { DeviceType } from './useResponsiveLayout'

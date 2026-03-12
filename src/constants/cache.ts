@@ -10,6 +10,30 @@ export const CACHE_KEY_PREFIX = 'wes_'
 /** 默认缓存过期时间（5 分钟） */
 export const DEFAULT_CACHE_TTL = 5 * 60 * 1000
 
+/** API 缓存时长配置（毫秒） */
+export const API_CACHE_DURATION = {
+  /** 禁用缓存 */
+  NONE: 0,
+  /** 短期缓存（1分钟）- 适用于频繁变化的数据 */
+  SHORT: 60 * 1000,
+  /** 中期缓存（5分钟）- 适用于一般数据（默认） */
+  MEDIUM: DEFAULT_CACHE_TTL,
+  /** 长期缓存（15分钟）- 适用于很少变化的数据 */
+  LONG: 15 * 60 * 1000
+} as const
+
+/** API 关系加载深度配置 */
+export const API_RELATION_DEPTH = {
+  /** 不加载关联数据 */
+  NONE: 0,
+  /** 默认深度（2层）- 适用于大多数场景 */
+  DEFAULT: 2,
+  /** 深度加载（3层）- 适用于需要完整数据的场景 */
+  DEEP: 3,
+  /** 最大深度（5层）- 谨慎使用，可能导致性能问题 */
+  MAX: 5
+} as const
+
 /** 权限缓存相关 */
 export const PERMISSION_CACHE = {
   /** 权限数据键 */

@@ -37,6 +37,17 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/examples/UserFormExample.vue'),
         meta: { requiresAuth: false }
       },
+      // ==================== 管理模块 ====================
+      {
+        path: 'admin/users',
+        name: 'UserList',
+        component: () => import('@/views/admin/users/UserListPage.vue'),
+        meta: {
+          requiresAuth: true,
+          permission: 'admin:user:list',
+          title: '用户管理',
+        },
+      },
       // 开发模式专属路由：调试页面
       ...(import.meta.env.DEV ? [
         {

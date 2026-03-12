@@ -4,6 +4,62 @@
 
 vee-validate + Zod 类型兼容性问题，反复尝试多次才解决。
 
+## 用户管理模块表单验证修复 (2026-03-10)
+
+### 问题
+
+`UserFormDialog.vue` 使用 Element Plus 原生表单验证，不符合规范要求的 `vee-validate` + Zod schemas。
+
+### 解决方案
+
+使用 `computed` 动态切换 `validationSchema`：
+
+```typescript
+// 定义包含所有可能字段的表单值类型
+interface FormValues {
+  username: string
+  email: string
+  full_name?: string
+  password?: string
+}
+
+// 使用 computed 动态切换 schema
+const { handleSubmit, errors, defineField, resetForm } = useForm<FormValues>({
+  validationSchema: computed(() => (isEditMode.value ? UserUpdateSchema : UserCreateSchema)),
+  initialValues: {
+    username: '',
+    email: '',
+    full_name: '',
+    password: ''
+  }
+})
+
+// 提交时根据模式选择数据
+const onSubmit = handleSubmit(async values => {
+  if (isEditMode.value) {
+    const updateData: UpdateUserInput = {
+      email: values.email,
+      full_name: values.full_name
+    }
+    emit('submit', updateData)
+  } else {
+    const createData: CreateUserInput = {
+      username: values.username,
+      email: values.email,
+      full_name: values.full_name,
+      password: values.password!
+    }
+    emit('submit', createData)
+  }
+})
+```
+
+### 关键点
+
+1. **单一表单实例**：不要创建两个 `useForm` 实例，字段不兼容会报错
+2. **动态 schema**：使用 `computed` 根据 `isEditMode` 切换验证 schema
+3. **类型转换**：提交时根据模式手动构造正确的 API 类型
+
 ## 根本原因
 
 1. 没有第一时间查看类型定义文件（.d.ts）

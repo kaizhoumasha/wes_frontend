@@ -8,7 +8,7 @@ import type { ApiResponseError } from '@/api/client'
 import { ClientErrorCode } from '@/api/constants/response-codes'
 
 /** 认证错误码集合 */
-const AUTH_ERROR_CODES = new Set([
+const AUTH_ERROR_CODES: ReadonlySet<string> = new Set([
   ClientErrorCode.UNAUTHORIZED,
   ClientErrorCode.INVALID_CREDENTIALS,
   ClientErrorCode.INVALID_TOKEN,

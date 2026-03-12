@@ -196,6 +196,81 @@ api/
 └── callback/        # 回调管理 API
 ```
 
+### 5. 响应式布局架构
+
+#### 三层断点管理架构
+
+| 层级       | 文件                            | 用途                   | 断点定义                                           |
+| ---------- | ------------------------------- | ---------------------- | -------------------------------------------------- |
+| **常量层** | `src/constants/breakpoints.ts`  | TypeScript 常量定义    | `SMALL: 480`, `MOBILE: 768`, `DESKTOP: 1280`       |
+| **配置层** | `tailwind.config.js`            | Tailwind 工具类断点    | `'sm': '480px'`, `'md': '768px'`, `'xl': '1280px'` |
+| **样式层** | `src/assets/styles/globals.css` | CSS 变量（仅组件样式） | `--breakpoint-mobile`, `--breakpoint-tablet`       |
+
+**断点规范**:
+
+- **Mobile**: < 768px
+- **Tablet**: 768px - 1279px
+- **Desktop**: ≥ 1280px
+- **Small**: < 480px
+
+#### Composable 选择原则
+
+**使用 `useResponsiveLayout`** (纯检测层):
+
+- ✅ 只需要设备类型检测（`isMobile`, `isTablet`, `isDesktop`）
+- ✅ 需要断点匹配工具（`matchesBreakpoint`, `matchesRange`）
+- ✅ 不需要侧边栏/菜单等 UI 状态
+- 📍 使用场景：表格响应式列显示、条件渲染、工具函数
+
+**使用 `useLayout`** (状态管理层):
+
+- ✅ 需要控制侧边栏折叠状态（`sidebarCollapsed`）
+- ✅ 需要移动端菜单状态（`isMobileMenuOpen`）
+- ✅ 需要布局相关的计算属性（`sidebarWidth`, `contentMarginLeft`）
+- 📍 使用场景：布局组件、导航组件、需要控制 UI 状态的组件
+
+**架构原则**:
+
+```
+useLayout (UI 状态层)
+    ↓ 复用
+useResponsiveLayout (检测层)
+    ↓ 使用
+@vueuse/core (useBreakpoints, useWindowSize)
+    ↓ 依赖
+constants/breakpoints.ts (断点常量)
+```
+
+#### CSS 媒体查询限制
+
+⚠️ **重要**: @media 查询不支持 CSS 变量（CSS 规范限制）
+
+```css
+/* ❌ 错误：不工作 */
+@media (width >= var(--breakpoint-mobile)) {
+}
+
+/* ✅ 正确：使用固定值 */
+@media (width >= 768px) {
+}
+```
+
+**为什么**?
+
+- `@media` 是编译时特性（CSS 规范）
+- CSS 变量是运行时计算（CSS 自定义属性）
+- 变量值在浏览器运行时才确定，而媒体查询需要在样式表解析时匹配
+
+**解决方案**:
+
+- 在 `@media` 查询中使用固定值（参考 `constants/breakpoints.ts` 和 `tailwind.config.js`）
+- CSS 变量仅用于组件内样式（如 `min-width: var(--search-min-width)`）
+
+**维护规则**:
+
+- 修改断点值时，同步更新三个文件：`breakpoints.ts` → `tailwind.config.js` → `globals.css` 注释
+- 在 CSS 注释中引用断点来源：`/* 参考：src/constants/breakpoints.ts */`
+
 ---
 
 ## 代码规范

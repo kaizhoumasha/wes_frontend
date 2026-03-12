@@ -50,25 +50,52 @@ interface PropertySchema {
 const BACKEND_OPENAPI_URL = 'http://localhost:8001/api/openapi.json'
 const OUTPUT_DIR = join(__dirname, '../src/types/generated')
 const OUTPUT_FILE = join(OUTPUT_DIR, 'zod-schemas.ts')
+const SYNC_RECORD_FILE = join(__dirname, '../.contract-sync-record.json')
+
+// ==================== 同步记录 ====================
+
+/**
+ * 计算字符串的简单哈希值
+ */
+function simpleHash(str: string): string {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash // Convert to 32bit integer
+  }
+  return Math.abs(hash).toString(36)
+}
+
+/**
+ * 写入同步记录
+ */
+interface SyncRecord {
+  lastSyncTime: string
+  openApiHash: string
+  backendUrl: string
+}
+
+function writeSyncRecord(openApiData: Record<string, unknown>): void {
+  const schemas = JSON.stringify(openApiData.components?.schemas || {})
+  const record: SyncRecord = {
+    lastSyncTime: new Date().toISOString(),
+    openApiHash: simpleHash(schemas),
+    backendUrl: BACKEND_OPENAPI_URL,
+  }
+  writeFileSync(SYNC_RECORD_FILE, JSON.stringify(record, null, 2), 'utf-8')
+  console.log(`✅ 记录同步状态: ${SYNC_RECORD_FILE}`)
+}
 
 // ==================== 工具函数 ====================
 
 /**
- * 将 OpenAPI 类型字符串转换为 Zod 类型字符串
- */
-function openapiTypeToZod(type: string | undefined): string {
-  if (!type) return 'z.any()'
-  if (type === 'null') return 'z.null()'
-  if (type === 'integer') return 'z.number()'
-  if (type === 'array') return 'z.array(z.any())'
-  if (type === 'object') return 'z.record(z.any())'
-  return `z.${type}()`
-}
-
-/**
  * 获取 OpenAPI schema
  */
-async function fetchOpenAPISchema(): Promise<Record<string, OpenAPISchema>> {
+async function fetchOpenAPISchema(): Promise<{
+  schemas: Record<string, OpenAPISchema>
+  openApiData: Record<string, unknown>
+}> {
   console.log(`📡 从后端获取 OpenAPI schema: ${BACKEND_OPENAPI_URL}`)
 
   try {
@@ -77,11 +104,11 @@ async function fetchOpenAPISchema(): Promise<Record<string, OpenAPISchema>> {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
 
-    const openapi = await response.json()
-    const schemas = openapi.components?.schemas || {}
+    const openApiData = await response.json() as Record<string, unknown>
+    const schemas = (openApiData.components as { schemas?: Record<string, OpenAPISchema> })?.schemas || {}
 
     console.log(`✅ 成功获取 ${Object.keys(schemas).length} 个 schemas`)
-    return schemas
+    return { schemas, openApiData }
   } catch (error) {
     console.error('❌ 获取 OpenAPI schema 失败:', error)
     throw error
@@ -96,90 +123,87 @@ function propertyToZod(
   prop: PropertySchema,
   isRequired: boolean
 ): string {
-  const zodCalls: string[] = []
-
-  // 处理 anyOf（可选类型）
-  if (prop.anyOf && prop.anyOf.length > 0) {
-    const types = prop.anyOf.map((t) => openapiTypeToZod(t.type)).join(', ')
-    zodCalls.push(`z.union([${types}])`)
-  } else {
-    // 枚举验证（优先处理）
-    if (prop.enum) {
-      const enumValues = prop.enum.map((v) =>
+  // 内部函数，用于从属性生成核心 Zod 链
+  const generateCoreZod = (p: PropertySchema): string[] => {
+    const calls: string[] = []
+    if (p.enum) {
+      const enumValues = p.enum.map((v) =>
         typeof v === 'string' ? JSON.stringify(v) : String(v)
       ).join(', ')
-      zodCalls.push(`z.enum([${enumValues}])`)
+      calls.push(`z.enum([${enumValues}])`)
     } else {
-      // 基础类型处理
-      switch (prop.type) {
+      switch (p.type) {
         case 'string':
-          zodCalls.push('z.string()')
-
-          // 字符串长度验证
-          if (prop.minLength !== undefined) {
-            zodCalls.push(`.min(${prop.minLength})`)
-          }
-          if (prop.maxLength !== undefined) {
-            zodCalls.push(`.max(${prop.maxLength})`)
-          }
-
-          // 正则验证
-          if (prop.pattern) {
-            zodCalls.push(`.regex(${JSON.stringify(prop.pattern)})`)
-          }
-
-          // 格式验证
-          if (prop.format === 'email') {
-            zodCalls.push('.email()')
-          } else if (prop.format === 'uri' || prop.format === 'url') {
-            zodCalls.push('.url()')
-          } else if (prop.format === 'date-time') {
-            zodCalls.push('.datetime()')
-          } else if (prop.format === 'date') {
-            zodCalls.push('.date()')
-          } else if (prop.format === 'time') {
-            zodCalls.push('.time()')
-          } else if (prop.format === 'uuid') {
-            zodCalls.push('.uuid()')
-          }
-
+          calls.push('z.string()')
+          if (p.minLength !== undefined) calls.push(`.min(${p.minLength})`)
+          if (p.maxLength !== undefined) calls.push(`.max(${p.maxLength})`)
+          if (p.pattern) calls.push(`.regex(${JSON.stringify(p.pattern)})`)
+          if (p.format === 'email') calls.push('.email()')
+          else if (p.format === 'uri' || p.format === 'url') calls.push('.url()')
+          else if (p.format === 'date-time') calls.push('.datetime()')
+          else if (p.format === 'date') calls.push('.date()')
+          else if (p.format === 'time') calls.push('.time()')
+          else if (p.format === 'uuid') calls.push('.uuid()')
           break
 
         case 'number':
         case 'integer':
-          zodCalls.push('z.number()')
-
-          // 数值范围验证
-          if (prop.minimum !== undefined) {
-            zodCalls.push(`.min(${prop.minimum})`)
-          }
-          if (prop.maximum !== undefined) {
-            zodCalls.push(`.max(${prop.maximum})`)
-          }
-
+          calls.push('z.number()')
+          if (p.minimum !== undefined) calls.push(`.min(${p.minimum})`)
+          if (p.maximum !== undefined) calls.push(`.max(${p.maximum})`)
           break
 
         case 'boolean':
-          zodCalls.push('z.boolean()')
+          calls.push('z.boolean()')
           break
 
         case 'array':
-          zodCalls.push('z.array(z.any())')
+          calls.push('z.array(z.any())')
           break
 
         case 'object':
-          zodCalls.push('z.record(z.any())')
+          calls.push('z.record(z.any())')
           break
 
         default:
-          zodCalls.push('z.any()')
+          calls.push('z.any()')
       }
     }
+    return calls
   }
+
+  let zodDef: string
+
+  // 检查是否为可空类型 (e.g., anyOf: [ { type: 'string', ... }, { type: 'null' } ])
+  const isNullable = prop.anyOf?.some((p) => p.type === 'null') ?? false
+  // 查找 non-null 的 schema 定义，同时考虑顶层 prop 的属性
+  const nonNullSchema = isNullable
+    ? { ...prop, ...prop.anyOf?.find((p) => p.type !== 'null') }
+    : null
+  if (nonNullSchema) {
+    delete nonNullSchema.anyOf
+  }
+
+
+  if (nonNullSchema) {
+    // 从 non-null 部分生成核心 Zod 链
+    const coreZod = generateCoreZod(nonNullSchema).join('')
+    // 包装成 union
+    zodDef = `z.union([${coreZod}, z.null()])`
+  } else if (prop.anyOf) {
+    // 处理其他非标准的 anyOf (如果存在)
+    const types = prop.anyOf.map((p) => generateCoreZod(p).join('')).join(', ')
+    zodDef = `z.union([${types}])`
+  } else {
+    // 标准的非 anyOf 属性
+    zodDef = generateCoreZod(prop).join('')
+  }
+
+  const finalZodCalls = [zodDef]
 
   // 可选处理
   if (!isRequired) {
-    zodCalls.push('.optional()')
+    finalZodCalls.push('.optional()')
   }
 
   // 默认值
@@ -187,10 +211,10 @@ function propertyToZod(
     const defaultValue = typeof prop.default === 'string'
       ? JSON.stringify(prop.default)
       : String(prop.default)
-    zodCalls.push(`.default(${defaultValue})`)
+    finalZodCalls.push(`.default(${defaultValue})`)
   }
 
-  return zodCalls.join('')
+  return finalZodCalls.join('')
 }
 
 /**
@@ -335,7 +359,7 @@ async function main(): Promise<void> {
 
   try {
     // 1. 获取 OpenAPI schema
-    const schemas = await fetchOpenAPISchema()
+    const { schemas, openApiData } = await fetchOpenAPISchema()
 
     // 2. 生成 Zod schemas 文件
     console.log('\n📝 生成 Zod schemas...')
@@ -353,13 +377,18 @@ async function main(): Promise<void> {
     // 5. 生成扩展文件
     generateExtensionFile()
 
+    // 6. 写入同步记录
+    writeSyncRecord(openApiData)
+
     console.log('\n✨ 完成！')
     console.log('\n📖 使用方法:')
     console.log('  import { UserCreateSchema } from "@/types/zod-extensions"')
     console.log('  import { useForm } from "vee-validate"')
-    console.log('  const { handleSubmit } = useForm({')
-    console.log('    validationSchema: toTypedSchema(UserCreateSchema)')
+    console.log('  const { handleSubmit } = useForm<CreateUserInput>({')
+    console.log('    validationSchema: UserCreateSchema  // 直接传递，无需 toTypedSchema')
     console.log('  })')
+    console.log('\n📖 详细文档: docs/ZOD_VALIDATION.md')
+    console.log('📖 同步流程: docs/CONTRACT_SYNC_WORKFLOW.md')
 
   } catch (error) {
     console.error('\n❌ 生成失败:', error)

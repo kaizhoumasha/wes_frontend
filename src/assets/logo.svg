@@ -9,13 +9,6 @@
       <stop offset="0%" stop-color="#00f3ff" stop-opacity="0.3" />
       <stop offset="100%" stop-color="#00ff88" stop-opacity="0.1" />
     </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="2" result="coloredBlur" />
-      <feMerge>
-        <feMergeNode in="coloredBlur" />
-        <feMergeNode in="SourceGraphic" />
-      </feMerge>
-    </filter>
   </defs>
 
   <!-- 六边形边框 -->
@@ -24,7 +17,6 @@
     fill="url(#logoGradientDark)"
     stroke="url(#logoGradient)"
     stroke-width="2"
-    filter="url(#glow)"
   />
 
   <!-- 内部六边形 -->
@@ -40,16 +32,15 @@
   <path
     d="M60 80 L70 80 L80 105 L90 80 L100 80 L110 105 L120 80 L130 80 L115 120 L105 120 L100 95 L95 120 L85 120 Z"
     fill="url(#logoGradient)"
-    filter="url(#glow)"
   />
 
   <!-- 底部文字 -->
-  <text x="100" y="155" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="url(#logoGradient)" filter="url(#glow)">
+  <text x="100" y="155" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="url(#logoGradient)">
     P9 WES
   </text>
 
   <!-- 装饰点 -->
-  <circle cx="100" cy="55" r="3" fill="url(#logoGradient)" filter="url(#glow)" />
+  <circle cx="100" cy="55" r="3" fill="url(#logoGradient)" />
   <circle cx="55" cy="75" r="2" fill="url(#logoGradient)" opacity="0.7" />
   <circle cx="145" cy="75" r="2" fill="url(#logoGradient)" opacity="0.7" />
 </svg>

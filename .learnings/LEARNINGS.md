@@ -8,6 +8,182 @@ Corrections, insights, and knowledge gaps captured during development.
 
 ## Status Definitions
 
+---
+
+## [LRN-20260311-001] best_practice
+
+**Logged**: 2026-03-11T00:00:00+08:00
+**Priority**: high
+**Status**: resolved
+**Area**: frontend
+
+### Summary
+Vue Router 页面组件中 `height: 100%` 会因父链存在无高度组件而失效，应改用 `calc(100vh - ...)` 直接计算
+
+### Details
+**问题背景**：为 UserTable 实现"分页器固定底部、表格内部滚动"功能时，持续出现分页器被挤出可视口的问题。
+
+**根本原因**：Vue Router 渲染页面组件时，父链为：
+```
+DefaultLayout → RouterView → Anonymous Component (functional) → BaseTransition → UserListPage
+```
+`BaseTransition` 和 `Anonymous Component` 均无明确高度，导致 `UserListPage` 的 `height: 100%` 基于内容高度而非视口高度，flex 子元素无法正确分配空间。
+
+**错误尝试过程**：
+1. ❌ 用 JavaScript + ResizeObserver 动态计算高度 → 产生"向上收缩"动画，因初始值与实际值有差距
+2. ❌ 纯 CSS flex 方案（移除 height 属性）→ el-table 没有 height 时不启用内部滚动
+3. ❌ DataTable 直接设 `height="100%"` → 100% 包含了分页器空间，分页器被挤出
+4. ❌ 在 DefaultLayout 的 `.page-main` 上修复 → 问题在页面组件层，不在布局层
+5. ✅ 在 UserListPage 上用 `calc(100vh - var(--layout-header-height) - var(--layout-page-padding) * 2)` 直接计算
+
+**最终方案**：
+```css
+/* DefaultLayout.vue - 定义布局变量 */
+.default-layout {
+  --layout-header-height: 64px;
+  --layout-page-padding: 24px;
+}
+
+/* UserListPage.vue - 直接计算，绕过父链高度继承 */
+.user-list-page {
+  height: calc(100vh - var(--layout-header-height) - var(--layout-page-padding) * 2);
+}
+
+/* UserTable.vue - 包装器隔离 DataTable 和分页器 */
+.user-table__table-wrapper {
+  flex: 1;
+  min-height: 0; /* 关键：允许 flex 子元素缩小 */
+  overflow: hidden;
+}
+```
+
+### Suggested Action
+在本项目中，所有需要"占满剩余视口高度"的页面组件，都应使用 `calc(100vh - ...)` 而非 `height: 100%`。
+
+### Metadata
+- Source: user_feedback
+- Related Files: src/views/admin/users/UserListPage.vue, src/views/admin/users/components/UserTable.vue, src/layouts/DefaultLayout.vue
+- Tags: layout, height, flex, vue-router, el-table, pagination
+- Pattern-Key: harden.page-height-calculation
+- Recurrence-Count: 1
+- First-Seen: 2026-03-11
+
+---
+
+## [LRN-20260311-002] best_practice
+
+**Logged**: 2026-03-11T00:00:00+08:00
+**Priority**: high
+**Status**: resolved
+**Area**: frontend
+
+### Summary
+el-table 必须传入 `height` 属性才能启用内部滚动；纯 CSS flex 方案无法替代
+
+### Details
+Element Plus 的 `el-table` 组件只有在接收到 `height` 或 `max-height` prop 时，才会在 `.el-table__body-wrapper` 上设置 `overflow: auto`，启用内部滚动。
+
+如果不传 `height`，无论外层 CSS 如何设置，表格都会展开全部内容，不会出现滚动条。
+
+**正确做法**：
+```html
+<!-- 用包装器 div 承载 flex: 1，DataTable 内部用 height="100%" -->
+<div class="table-wrapper">  <!-- flex: 1; min-height: 0 -->
+  <DataTable height="100%" ... />
+</div>
+```
+
+**错误做法**：
+```html
+<!-- 不传 height，依赖 CSS 控制滚动 → 不生效 -->
+<DataTable ... />
+```
+
+### Suggested Action
+凡是需要表格内部滚动的场景，必须给 DataTable/el-table 传入 `height` 属性，推荐值为 `"100%"` 配合包装器使用。
+
+### Metadata
+- Source: user_feedback
+- Related Files: src/views/admin/users/components/UserTable.vue, src/components/ui/table/DataTable.vue
+- Tags: el-table, height, scroll, element-plus
+- Pattern-Key: harden.el-table-height
+- Recurrence-Count: 1
+- First-Seen: 2026-03-11
+- See Also: LRN-20260311-001
+
+---
+
+## [LRN-20260311-003] best_practice
+
+**Logged**: 2026-03-11T00:00:00+08:00
+**Priority**: medium
+**Status**: resolved
+**Area**: frontend
+
+### Summary
+Flex 布局中 `min-height: 0` 是允许子元素缩小的关键，缺少它会导致内容溢出
+
+### Details
+CSS Flex 布局中，flex 子元素的默认 `min-height` 是 `auto`（基于内容），这会阻止元素缩小到内容大小以下。
+
+当需要某个 flex 子元素"占据剩余空间但不超出父容器"时，必须显式设置 `min-height: 0`：
+
+```css
+.table-wrapper {
+  flex: 1;
+  min-height: 0; /* 没有这行，内容会溢出父容器 */
+  overflow: hidden;
+}
+```
+
+这是 flex 布局中最常见的"陷阱"之一，在嵌套 flex 容器中尤为重要。
+
+### Suggested Action
+凡是 flex 子元素需要"可缩小"的场景，都要检查是否需要 `min-height: 0`（垂直方向）或 `min-width: 0`（水平方向）。
+
+### Metadata
+- Source: conversation
+- Related Files: src/views/admin/users/components/UserTable.vue
+- Tags: flex, min-height, css, layout
+- Pattern-Key: harden.flex-min-height
+- Recurrence-Count: 1
+- First-Seen: 2026-03-11
+- See Also: LRN-20260311-001
+
+---
+
+## [LRN-20260311-004] knowledge_gap
+
+**Logged**: 2026-03-11T00:00:00+08:00
+**Priority**: medium
+**Status**: resolved
+**Area**: frontend
+
+### Summary
+参考外部库实现时，必须先分析项目结构差异，不能直接套用
+
+### Details
+在修复表格高度问题时，参考了 happy-table 项目的实现。happy-table 使用 CSS calc() 计算高度，但其组件结构与本项目不同：
+- happy-table：组件自包含，直接控制自身高度
+- 本项目：页面组件嵌套在 Vue Router + BaseTransition 中，高度继承链断裂
+
+直接套用 happy-table 的 CSS flex 方案（移除 height 属性）导致问题未解决，浪费了调试时间。
+
+**正确做法**：参考外部实现时，先用 Vue DevTools 分析组件树和高度继承链，再决定适配方案。
+
+### Suggested Action
+遇到布局问题时，优先用 Vue DevTools 查看组件树，确认父链中是否有无高度的中间组件（如 BaseTransition、functional component）。
+
+### Metadata
+- Source: user_feedback
+- Related Files: src/views/admin/users/UserListPage.vue
+- Tags: vue-devtools, layout, debugging, component-tree
+- Pattern-Key: insight.analyze-before-adapt
+- Recurrence-Count: 1
+- First-Seen: 2026-03-11
+- See Also: LRN-20260311-001
+
+---
 | Status              | Meaning                                                      |
 | ------------------- | ------------------------------------------------------------ |
 | `pending`           | Not yet addressed                                            |
@@ -955,3 +1131,136 @@ if (code === ClientErrorCode.TOKEN_EXPIRED) {
 - Tags: auth, token-refresh, error-handling
 
 ---
+
+---
+
+## [LRN-20260312-001] knowledge_gap
+
+**Logged**: 2026-03-12T15:30:00+08:00
+**Priority**: high
+**Status**: resolved
+**Area**: frontend
+
+### Summary
+CSS @media 查询不支持 CSS 变量（CSS 规范限制），必须使用固定值
+
+### Details
+**问题背景**：在提取响应式断点常量时，尝试将媒体查询中的硬编码断点值替换为 CSS 变量：
+
+```css
+/* ❌ 错误：媒体查询不支持 CSS 变量 */
+@media (width >= var(--breakpoint-mobile)) and (width < var(--breakpoint-tablet)) {
+  /* ... */
+}
+```
+
+**错误信息**：
+```
+Stylelint: Unexpected invalid media query "(width >= var(--breakpoint-mobile))"
+```
+
+**根本原因**：
+- `@media` 查询是**编译时**（parse-time）评估，CSS 解析器在加载样式表时就需要确定媒体查询
+- CSS 变量是**运行时**（runtime）计算，依赖 DOM 渲染和样式继承
+- 这是 CSS 规范的设计限制，非浏览器 bug
+
+**解决方案 - 三层断点管理架构**：
+
+1. **Tailwind 配置** (`tailwind.config.js`)
+   ```js
+   screens: {
+     sm: '480px',
+     md: '768px',
+     xl: '1280px'
+   }
+   ```
+   用于 Tailwind 类：`@media (min-width: md)`
+
+2. **TypeScript 常量** (`src/constants/breakpoints.ts`)
+   ```ts
+   export const BREAKPOINTS = {
+     SMALL: 480,
+     MOBILE: 768,
+     DESKTOP: 1280
+   } as const
+   
+   export function getDeviceType(width: number): DeviceType
+   export function isBreakpoint(width: number, breakpoint: Breakpoint): boolean
+   ```
+   用于 JS/TS 代码：`isBreakpoint(window.innerWidth, BREAKPOINTS.DESKTOP)`
+
+3. **CSS 变量** (`globals.css`)
+   ```css
+   :root {
+     --search-min-width: 480px;
+     --search-max-width: 1280px;
+   }
+   
+   /* ✅ 组件样式可以使用 CSS 变量 */
+   .search-box {
+     min-width: var(--search-min-width);
+     max-width: var(--search-max-width);
+   }
+   
+   /* ❌ 媒体查询必须使用固定值 */
+   @media (width >= 768px) and (width < 1280px) {
+     /* ... */
+   }
+   ```
+   用于组件样式：`min-width: var(--search-min-width)`
+
+4. **媒体查询** (`*.vue`)
+   ```css
+   /* 必须使用固定值，在注释中说明参考文件 */
+   /* 参考：src/constants/breakpoints.ts, tailwind.config.js */
+   @media (width >= 768px) and (width < 1280px) {
+     /* ... */
+   }
+   ```
+
+**关键原则**：
+| 使用场景 | 可以用 CSS 变量？ | 示例 |
+|---------|------------------|------|
+| **@media 查询** | ❌ 不可以 | `@media (width >= 768px)` |
+| **组件样式** | ✅ 可以 | `min-width: var(--search-min-width)` |
+| **属性值** | ✅ 可以 | `color: var(--text-color)` |
+| **calc()** | ✅ 可以 | `width: calc(100% - var(--spacing))` |
+
+**文档化依赖关系**：
+在媒体查询上方添加注释说明参考文件，确保三层数据保持同步：
+```css
+/* 注意：@media 查询不支持 CSS 变量，必须使用固定值 */
+/* 参考：src/constants/breakpoints.ts, tailwind.config.js */
+@media (width >= 768px) and (width < 1280px) {
+  /* ... */
+}
+```
+
+### Suggested Action
+已在项目中实施三层架构：
+- ✅ 创建 `src/constants/breakpoints.ts`
+- ✅ 更新 `tailwind.config.js` 添加断点配置
+- ✅ 更新 `src/assets/styles/globals.css` 添加 CSS 变量
+- ✅ 更新 Serena memory: `debugging-lessons-vue3-responsive-layout`
+
+后续改进：
+- [ ] 编写"响应式设计最佳实践"文档，包含此限制说明
+- [ ] 添加 ESLint 规则检测媒体查询中的魔法数字，强制添加注释说明
+
+### Metadata
+- Source: error | user_feedback
+- Related Files: 
+  - src/constants/breakpoints.ts
+  - tailwind.config.js
+  - src/assets/styles/globals.css
+  - src/views/admin/users/components/UserToolbar.vue
+- Tags: css, media-query, css-variables, responsive-design, breakpoint
+- Pattern-Key: css.media-query-no-variables
+- Recurrence-Count: 1
+- First-Seen: 2026-03-12
+- Last-Seen: 2026-03-12
+
+### Resolution
+- **Resolved**: 2026-03-12T15:30:00+08:00
+- **Notes**: 创建三层断点管理架构，在 Serena memory 中记录"问题 6: CSS 媒体查询不支持变量"，所有 lint 检查通过
+

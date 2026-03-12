@@ -6,6 +6,13 @@
     <!-- 侧边栏 -->
     <app-sidebar />
 
+    <!-- 移动端侧边栏遮罩层 -->
+    <div
+      v-if="isMobile && isMobileMenuOpen"
+      class="sidebar-overlay"
+      @click="closeMobileMenu"
+    />
+
     <!-- 主内容区 -->
     <div
       class="main-content"
@@ -42,7 +49,8 @@ import { useMenu } from '@/composables/useMenu'
 
 // ==================== 状态管理 ====================
 
-const { sidebarCollapsed, contentMarginLeft } = useLayout()
+const { sidebarCollapsed, contentMarginLeft, isMobile, isMobileMenuOpen, closeMobileMenu } =
+  useLayout()
 const { selectMenu, isMenuLoaded, loadMenus } = useMenu()
 
 // ==================== 路由 ====================
@@ -67,6 +75,9 @@ onMounted(() => {
 <style scoped>
 /* ==================== 基础布局 ==================== */
 .default-layout {
+  --layout-header-height: 64px;
+  --layout-page-padding: 24px;
+
   min-height: 100vh;
   overflow: hidden;
 }
@@ -92,9 +103,10 @@ html:not(.dark) .default-layout {
 /* ==================== 页面内容 ==================== */
 .page-main {
   flex: 1;
-  padding: 24px;
-  margin-top: 64px;
-  overflow: hidden auto;
+  padding: var(--layout-page-padding);
+  margin-top: var(--layout-header-height);
+  overflow: auto;
+  min-height: 0;
 }
 
 /* 自定义滚动条 */
@@ -129,6 +141,25 @@ html:not(.dark) .default-layout {
 .page-leave-to {
   opacity: 0;
   transform: translateY(-20px);
+}
+
+/* ==================== 移动端侧边栏遮罩层 ==================== */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 50%);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* ==================== 移动端适配 ==================== */

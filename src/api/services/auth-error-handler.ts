@@ -15,7 +15,7 @@ import type { Router } from 'vue-router'
 // ==================== 常量定义 ====================
 
 /** 需要登出的错误码 */
-const AUTH_ERROR_CODES = new Set([
+const AUTH_ERROR_CODES: ReadonlySet<string> = new Set([
   ClientErrorCode.UNAUTHORIZED,
   ClientErrorCode.INVALID_CREDENTIALS,
   ClientErrorCode.INVALID_TOKEN,

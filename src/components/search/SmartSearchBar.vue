@@ -83,6 +83,7 @@
       :keyword="keyword"
       :quick-presets="quickPresets"
       :favorites="favorites"
+      :container-width="searchBarWidth"
       @activate-field="handleActivateField"
       @apply-preset="handleApplyPreset"
       @apply-favorite="handleApplyFavorite"
@@ -147,8 +148,6 @@ interface Emits {
   (e: 'keydown-next'): void
   /** 键盘导航 - 上一个字段 */
   (e: 'keydown-prev'): void
-  /** 键盘确认 */
-  (e: 'keydown-enter'): void
   /** 触发搜索 */
   (e: 'search'): void
   /** 根据字段点击执行搜索或打开高级搜索 */
@@ -211,7 +210,7 @@ const popoverVisible = computed(() => props.popoverOpen === true)
 // 监听输入框的值变化，自动控制 popover 的打开/关闭
 watch(
   () => props.keyword,
-  (newKeyword) => {
+  newKeyword => {
     if (newKeyword.length > 0) {
       clearSelectedCondition()
     }
@@ -228,7 +227,7 @@ watch(
 
 watch(
   () => props.conditions,
-  (conditions) => {
+  conditions => {
     if (!conditions.some(condition => condition.id === selectedConditionId.value)) {
       clearSelectedCondition()
     }
@@ -239,7 +238,7 @@ watch(
 // 同步 expectedPopoverOpen 与实际的 popoverOpen 状态
 watch(
   () => props.popoverOpen,
-  (newValue) => {
+  newValue => {
     if (!manualToggle.value) {
       expectedPopoverOpen.value = newValue
     }
@@ -403,7 +402,8 @@ function handleKeyDown(event: KeyboardEvent) {
         break
       }
 
-      emit('keydown-enter')
+      // 没有高亮字段时，直接触发搜索
+      emit('search')
       break
     }
     case 'Escape':
@@ -448,6 +448,8 @@ function handleRemoveCondition(id: string) {
 function handleClear() {
   clearSelectedCondition()
   emit('clear')
+  // 清空条件后触发搜索（重置列表）
+  emit('search')
 }
 
 function handleOpenAdvanced() {
@@ -461,10 +463,12 @@ function handleActivateField(fieldKey: string) {
 
   if (keyword.value.trim()) {
     emit('activate-field', fieldKey)
-    return
+  } else {
+    emit('open-advanced-for-field', fieldKey)
   }
 
-  emit('open-advanced-for-field', fieldKey)
+  // 添加条件后触发搜索
+  emit('search')
 }
 
 function handleApplyPreset(presetId: string) {
@@ -482,10 +486,7 @@ function handleApplyFavorite(favoriteId: string) {
 function handlePopoverVisibleChange(visible: boolean) {
   // Popover 的打开只允许由业务事件显式控制（输入/按钮），
   // 避免内部 visible 回调把已关闭状态重新打开。
-  if (
-    !visible
-    && (isComposing.value || (isFocused.value && props.keyword.trim().length > 0))
-  ) {
+  if (!visible && (isComposing.value || (isFocused.value && props.keyword.trim().length > 0))) {
     return
   }
 
@@ -521,8 +522,11 @@ defineExpose({
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
+  /* 自适应内容宽度，而非占满容器 */
   width: 100%;
-  min-width: 0;
+  min-width: var(--smart-search-bar-min-width, 480px);
+  /* 默认最大宽度，可通过 CSS 变量 --smart-search-bar-max-width 覆盖 */
+  max-width: var(--smart-search-bar-max-width, 800px);
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color);
   border-radius: 4px;
@@ -593,6 +597,7 @@ defineExpose({
   // Element Plus 的 width 属性会自动设置宽度
   min-width: 300px !important;
   max-width: calc(100vw - 24px) !important;
+  overflow: hidden;
 
   // 确保背景色适配明暗模式
   background-color: var(--el-bg-color) !important;
@@ -604,14 +609,16 @@ defineExpose({
   // Popover 内容区域
   .el-popover__content {
     padding: 0 !important;
+    overflow: hidden;
+    border-radius: inherit;
   }
 
-  // 暗色模式增强
+  // 暗色模式阴影增强
   html.dark & {
     box-shadow: 0 4px 20px rgb(0 0 0 / 40%) !important;
   }
 
-  // 亮色模式增强
+  // 亮色模式阴影增强
   html:not(.dark) & {
     box-shadow: 0 4px 20px rgb(0 0 0 / 15%) !important;
   }
