@@ -189,6 +189,8 @@ export interface DataTableProps<T = unknown> {
   showOverflowTooltip?: boolean
   /** 表格密度（舒适/紧凑/迷你） */
   density?: 'comfortable' | 'compact' | 'small'
+  /** 是否显示选择列 */
+  showSelection?: boolean
   /** 树形表格配置 */
   treeProps?: TreePropsConfig
   /** 默认展开所有行（树形表格） */

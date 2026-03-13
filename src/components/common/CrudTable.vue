@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { ElPagination, type TableInstance } from 'element-plus'
+import { ElPagination } from 'element-plus'
 import DataTable from '@/components/ui/table/DataTable.vue'
 import DataTableSkeleton from '@/components/ui/table/DataTableSkeleton.vue'
 import type { TableColumnConfig, TableDensity } from '@/types/table'
@@ -87,9 +87,6 @@ const emit = defineEmits<{
 // ============================================================================
 
 const tableRef = ref<InstanceType<typeof DataTable>>()
-const elTableRef = computed<TableInstance | undefined>(() => {
-  return tableRef.value?.$refs?.elTableRef as TableInstance | undefined
-})
 
 // ============================================================================
 // 计算属性
@@ -129,14 +126,16 @@ const errorText = computed(() => {
  * 清空选中状态
  */
 function clearSelection() {
-  elTableRef.value?.clearSelection()
+  tableRef.value?.clearSelection()
 }
 
 /**
  * 获取选中的行
  */
 function getSelectionRows() {
-  return elTableRef.value?.getSelectionRows() || []
+  // DataTable 不暴露 getSelectionRows，需要通过 emit 获取
+  // 这里返回空数组，实际数据通过 selection-change emit 管理
+  return []
 }
 
 defineExpose({

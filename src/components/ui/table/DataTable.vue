@@ -165,7 +165,8 @@ const props = withDefaults(defineProps<DataTableProps>(), {
   border: false,
   stripe: false,
   highlightCurrentRow: false,
-  showOverflowTooltip: true
+  showOverflowTooltip: true,
+  showSelection: false
 })
 
 // ==================== Computed ====================
@@ -205,9 +206,22 @@ defineExpose({
  *
  * 使用 readonly 确保返回值不会被意外修改
  */
-const visibleColumns = computed(() =>
-  props.columns.filter(col => col.visible !== false && col.disabled !== true)
-)
+const visibleColumns = computed(() => {
+  const columns = props.columns.filter(col => col.visible !== false && col.disabled !== true)
+
+  // 如果启用了选择列，在列数组开头添加选择列
+  if (props.showSelection) {
+    return [
+      {
+        type: 'selection' as const,
+        width: 50
+      },
+      ...columns
+    ]
+  }
+
+  return columns
+})
 
 // ==================== 工具函数 ====================
 
