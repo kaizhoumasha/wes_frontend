@@ -70,7 +70,7 @@ export function provideBreakpointContext(): BreakpointContext {
   }
 
   const context: BreakpointContext = {
-    width: readonly(width),
+    width: width as Readonly<Ref<number>>,
     current,
     matches,
     matchesRange
@@ -115,11 +115,4 @@ export function useBreakpoint(): BreakpointContext {
   }
 
   return context
-}
-
-/**
- * 辅助函数：创建只读 ref
- */
-function readonly<T>(ref: Ref<T>): Readonly<Ref<T>> {
-  return readonly(ref) as Readonly<Ref<T>>
 }
