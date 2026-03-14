@@ -60,6 +60,11 @@ export type ColumnFormatter = (
   column: { property?: string; [key: string]: unknown }
 ) => string | number | VNode
 
+/**
+ * 表格排序顺序（Element Plus 标准值）
+ */
+export type TableSortOrder = 'ascending' | 'descending' | null
+
 // ==================== 列配置 ====================
 
 /**
@@ -84,6 +89,8 @@ export interface TableColumnConfig {
   align?: ColumnAlign
   /** 固定列 */
   fixed?: ColumnFixed | boolean
+  /** 该列对应的排序字段，默认回退到 field/prop */
+  sortKey?: string
 
   // ==================== 列类型 ====================
 
@@ -103,12 +110,10 @@ export interface TableColumnConfig {
 
   /** 是否可排序 */
   sortable?: boolean | 'custom'
-  /** 是否可筛选 */
-  filterable?: boolean
-  /** 筛选方法 */
-  filterMethod?: (value: unknown, row: Record<string, unknown>, column: { property?: string }) => boolean
-  /** 筛选多个选项 */
-  filters?: Array<{ text: string; value: string }>
+  /** 是否允许拖拽调整列宽 */
+  resizable?: boolean
+  /** 单列内容溢出时是否显示 tooltip，默认继承表格级配置 */
+  showOverflowTooltip?: boolean
 
   // ==================== 显示控制 ====================
 
@@ -116,6 +121,12 @@ export interface TableColumnConfig {
   visible?: boolean
   /** 是否禁用列 */
   disabled?: boolean
+  /** 是否出现在列配置系统中 */
+  configurable?: boolean
+  /** 是否允许在列配置系统中隐藏 */
+  hideable?: boolean
+  /** 是否锁定列顺序，禁止在列配置系统中拖动 */
+  reorderLocked?: boolean
 
   // ==================== Element Plus 原生属性扩展 ====================
 
@@ -197,6 +208,10 @@ export interface DataTableProps<T = unknown> {
   defaultExpandAll?: boolean
   /** 默认展开的行 key 数组（树形表格） */
   defaultExpandRowKeys?: Array<string | number>
+  /** 默认排序状态 */
+  defaultSort?: { field: string; order: Exclude<TableSortOrder, null> }
+  /** 是否启用列宽拖拽 */
+  columnResizable?: boolean
 }
 
 // ==================== 数据表格组件 Emits ====================
@@ -214,7 +229,25 @@ export interface DataTableEmits<T = unknown> {
   /** 行点击事件 */
   (e: 'row-click', row: T, column: { property?: string }, event: Event): void
   /** 排序变化事件 */
-  (e: 'sort-change', sort: { column: { property?: string }; field: string; order: string }): void
+  (e: 'sort-change', sort: {
+    column: { property?: string }
+    field: string
+    sortKey?: string
+    order: TableSortOrder
+  }): void
+  /** 列宽变化事件 */
+  (e: 'column-resize', resize: {
+    field: string
+    width: number
+    oldWidth: number
+    column: {
+      property?: string
+      label?: string
+      id?: string
+      resizable?: boolean
+    }
+    event: MouseEvent
+  }): void
   /** 过滤变化事件 */
   (e: 'filter-change', filters: unknown): void
 }

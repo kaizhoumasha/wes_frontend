@@ -36,11 +36,13 @@
         :columns="columns"
         :loading="loading"
         :density="props.density"
+        :column-resizable="true"
         height="100%"
         border
         stripe
         row-key="id"
         @selection-change="handleSelectionChange"
+        @column-resize="handleColumnResize"
       >
         <!-- 空状态插槽 -->
         <template #empty>
@@ -76,47 +78,27 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h, ref } from 'vue'
-import { ElTag, ElButton } from 'element-plus'
+import { computed, ref } from 'vue'
+import { ElButton } from 'element-plus'
 import { DataTable } from '@/components/ui/table'
 import type { DataTableInstance } from '@/components/ui/table'
-import { formatDateTime } from '@/components/ui/table/useTableColumns'
 import { usePermission } from '@/composables/usePermission'
 import { useResponsiveLayout } from '@/composables/useResponsiveLayout'
 import { USER_PERMISSION } from '../constants'
-import type { User, Role } from '@/api/modules/user'
+import type { User } from '@/api/modules/user'
 import type { TableDensity } from '@/types/table'
-import { useUserTableColumns } from '../composables/useUserTableColumns'
+import {
+  useUserTableColumns,
+  buildConfigurableUserTableColumns,
+  type ColumnBreakpoint
+} from '../composables/useUserTableColumns'
 import { TABLE_MIN_HEIGHT, PAGINATION_HEIGHT } from '@/constants/layout'
+import { buildUserActionsColumn } from '../tableColumns'
 
 // ==================== 响应式断点 ====================
 
 // 使用纯响应式检测（无需 UI 状态，更轻量）
 const { isMobile, isTablet } = useResponsiveLayout()
-
-/** 平板端（768-1279px）显示的列 key */
-const TABLET_COLUMNS = new Set(['username', 'email', 'full_name', 'roles', 'updated_at'])
-/** 移动端（<768px）显示的列 key */
-const MOBILE_COLUMNS = new Set(['username', 'email', 'roles'])
-
-// ==================== 工具函数 ====================
-
-/**
- * 创建布尔值 Tag 渲染器（DRY: 消除 is_superuser 和 is_multi_login 的重复代码）
- * @param field - User 对象的布尔字段名
- * @param trueType - true 值对应的 Tag 类型
- * @param falseType - false 值对应的 Tag 类型（默认 'info'）
- */
-function createBooleanTagRenderer(
-  field: 'is_superuser' | 'is_multi_login',
-  trueType: 'danger' | 'success' | 'warning',
-  falseType: 'danger' | 'success' | 'warning' | 'info' = 'info'
-) {
-  return ({ row }: { row: Record<string, unknown> }) =>
-    h(ElTag, { type: (row as unknown as User)[field] ? trueType : falseType }, () =>
-      (row as unknown as User)[field] ? '是' : '否'
-    )
-}
 
 // ==================== 权限控制 ====================
 
@@ -162,138 +144,27 @@ const emit = defineEmits<Emits>()
 
 // ==================== 列配置 ====================
 
-const { columnConfig } = useUserTableColumns()
-
-/**
- * 可配置列的定义 map（key → 列配置对象）
- * 固定列（selection、actions）不在此处，始终显示
- */
-const columnDefs = computed(() => ({
-  username: {
-    field: 'username',
-    title: '用户名',
-    width: 150,
-    fixed: 'left' as const
-  },
-  email: {
-    field: 'email',
-    title: '邮箱',
-    width: 200
-  },
-  full_name: {
-    field: 'full_name',
-    title: '姓名',
-    width: 150
-  },
-  is_superuser: {
-    field: 'is_superuser',
-    title: '超级用户',
-    width: 100,
-    align: 'center' as const,
-    slots: {
-      default: createBooleanTagRenderer('is_superuser', 'danger')
-    }
-  },
-  is_multi_login: {
-    field: 'is_multi_login',
-    title: '多端登录',
-    width: 100,
-    align: 'center' as const,
-    slots: {
-      default: createBooleanTagRenderer('is_multi_login', 'success')
-    }
-  },
-  roles: {
-    field: 'roles',
-    title: '角色',
-    width: 200,
-    slots: {
-      default: ({ row }: { row: Record<string, unknown> }) => {
-        const user = row as unknown as User
-        if (!user.roles || user.roles.length === 0) {
-          return h('span', { class: 'text-muted' }, '-')
-        }
-        return h(
-          'div',
-          { class: 'flex gap-1 flex-wrap' },
-          user.roles.map((role: Role) => h(ElTag, { key: role.id, size: 'small' }, () => role.name))
-        )
-      }
-    }
-  },
-  updated_at: {
-    field: 'updated_at',
-    title: '更新时间',
-    width: 180,
-    formatter: formatDateTime
-  }
-}))
+const { columnConfig, updateColumnWidth } = useUserTableColumns()
 
 /**
  * 动态列配置：根据 columnConfig + 响应式断点 过滤和排序
  */
 const columns = computed(() => {
-  const defs = columnDefs.value
-
-  // 确定当前断点允许显示的列（null 表示无限制）
-  const allowedKeys: Set<string> | null = isMobile.value
-    ? MOBILE_COLUMNS
+  const currentBreakpoint: ColumnBreakpoint = isMobile.value
+    ? 'mobile'
     : isTablet.value
-      ? TABLET_COLUMNS
-      : null
+      ? 'tablet'
+      : 'desktop'
 
-  // 按 columnConfig 顺序过滤：用户配置可见 + 当前断点允许
-  const configurableCols = columnConfig.value
-    .filter(c => c.visible && (!allowedKeys || allowedKeys.has(c.key)))
-    .map(c => defs[c.key as keyof typeof defs])
-    .filter(Boolean)
+  const configurableCols = buildConfigurableUserTableColumns(columnConfig.value, currentBreakpoint)
 
   // 操作列（始终显示，固定右侧）
-  const actionsCol = {
-    field: '__actions__',
-    title: '操作',
-    width: 150,
-    align: 'center' as const,
-    fixed: 'right' as const,
-    slots: {
-      default: ({ row }: { row: Record<string, unknown> }) => {
-        const user = row as unknown as User
-        const buttons = []
-
-        if (canUpdate.value) {
-          buttons.push(
-            h(
-              ElButton,
-              {
-                link: true,
-                type: 'primary',
-                size: 'small',
-                onClick: () => emit('edit' as const, user.id)
-              },
-              () => '编辑'
-            )
-          )
-        }
-
-        if (canDelete.value) {
-          buttons.push(
-            h(
-              ElButton,
-              {
-                link: true,
-                type: 'danger',
-                size: 'small',
-                onClick: () => emit('delete' as const, user)
-              },
-              () => '删除'
-            )
-          )
-        }
-
-        return h('div', { class: 'flex gap-2' }, buttons)
-      }
-    }
-  }
+  const actionsCol = buildUserActionsColumn({
+    canEdit: canUpdate.value,
+    canDelete: canDelete.value,
+    onEdit: user => emit('edit', user.id),
+    onDelete: user => emit('delete', user)
+  })
 
   return [
     { type: 'selection' as const, width: 55, fixed: 'left' as const },
@@ -309,6 +180,10 @@ const columns = computed(() => {
  */
 function handleSelectionChange(selected: unknown[]) {
   emit('selection-change', selected)
+}
+
+function handleColumnResize(resize: { field: string; width: number }) {
+  updateColumnWidth(resize.field, resize.width)
 }
 
 // ==================== 表格引用 ====================

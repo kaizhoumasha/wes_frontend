@@ -17,9 +17,13 @@
         :favorites="userSearchFavorites"
         :quick-presets="userQuickPresets"
         :toolbar-state="toolbarState"
-        :title="titleConfig"
-        :actions="filteredActions"
-        search-placeholder="搜索用户名、邮箱、姓名..."
+        :title="{
+          text: '用户管理',
+          subtitle: '管理系统用户',
+          icon: UserIcon,
+          showSelectedCount: true
+        }"
+        search-placeholder="搜索用户名、邮箱..."
         @refresh="state.search.handleRefresh"
         @batch-delete="handleBatchDelete"
         @cancel-selection="handleCancelSelectionWithClear"
@@ -27,8 +31,61 @@
         @toggle-fullscreen="toggleFullscreen"
         @change-density="setDensity"
         @open-column-config="openColumnConfig"
-        @create="state.dialogs.openCreate"
-      />
+      >
+        <template #title="{ selectedCount }">
+          <h2
+            v-if="selectedCount === 0"
+            class="user-toolbar-title"
+          >
+            <el-icon><UserIcon /></el-icon>
+            <span>用户管理</span>
+          </h2>
+
+          <div
+            v-else
+            class="user-toolbar-selection"
+          >
+            <span class="user-toolbar-selection__count">已选中 {{ selectedCount }} 项</span>
+            <el-button
+              link
+              @click="handleCancelSelectionWithClear"
+            >
+              取消选择
+            </el-button>
+          </div>
+        </template>
+
+        <template #actions="{ selectedCount }">
+          <el-tooltip
+            v-if="selectedCount === 0 && state.permissions.create.value"
+            content="创建新用户"
+            placement="bottom"
+          >
+            <el-button
+              type="primary"
+              @click="state.dialogs.openCreate"
+            >
+              <el-icon><Plus /></el-icon>
+              新增用户
+            </el-button>
+          </el-tooltip>
+
+          <el-tooltip
+            v-else-if="selectedCount > 0 && state.permissions.delete.value"
+            content="删除选中的用户"
+            placement="bottom"
+          >
+            <el-button
+              type="danger"
+              :loading="state.state.batchDeleteLoading.value"
+              @click="handleBatchDelete"
+            >
+              <el-icon><Delete /></el-icon>
+              批量删除
+            </el-button>
+          </el-tooltip>
+        </template>
+      </CrudToolbar>
     </template>
 
     <!-- 中：表格 -->
@@ -42,36 +99,18 @@
         :pagination="state.state.pagination"
         :density="toolbarState.density"
         :show-selection="true"
+        :default-sort="{ field: 'updated_at', order: 'descending' }"
+        :column-resizable="true"
         @selection-change="
           (selected: unknown[]) => state.selection.handleSelectionChange(selected as User[])
         "
         @page-change="handlePageChange"
         @size-change="handleSizeChange"
+        @sort-change="state.search.handleSortChange"
+        @column-resize="handleColumnResize"
         @retry="state.search.handleRefresh"
         @create="state.dialogs.openCreate"
-      >
-        <!-- 自定义操作列插槽 -->
-        <template #operations="{ row }">
-          <el-button
-            v-if="state.permissions.update.value"
-            type="primary"
-            size="small"
-            link
-            @click="state.dialogs.openEdit((row as User).id)"
-          >
-            编辑
-          </el-button>
-          <el-button
-            v-if="state.permissions.delete.value"
-            type="danger"
-            size="small"
-            link
-            @click="handleDelete((row as User).id)"
-          >
-            删除
-          </el-button>
-        </template>
-      </CrudTable>
+      />
     </template>
 
     <!-- 弹窗组 -->
@@ -106,24 +145,30 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, h, onMounted } from 'vue'
-import { ElTag, ElButton } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { computed, ref, onMounted } from 'vue'
+import { ElButton, ElMessage, ElMessageBox } from 'element-plus'
+import { Delete, Plus, User as UserIcon } from '@element-plus/icons-vue'
 import CrudPageLayout from '@/components/common/CrudPageLayout.vue'
 import CrudToolbar from '@/components/common/CrudToolbar.vue'
 import CrudTable from '@/components/common/CrudTable.vue'
 import { useCrudListPage } from '@/composables/useCrudListPage'
 import { useCrudToolbar } from '@/composables/useCrudToolbar'
-import { useToolbarActions } from '@/composables/useToolbarActions'
-import type { User, CreateUserInput, UpdateUserInput } from '@/api/modules/user'
+import { usePermission } from '@/composables/usePermission'
+import { useResponsiveLayout } from '@/composables/useResponsiveLayout'
+import type { User, CreateUserInput, ResetUserPasswordInput, UpdateUserInput } from '@/api/modules/user'
 import { userApi } from '@/api/modules/user'
 import { userSearchFields, userQuickPresets, userSearchFavorites } from './search-config'
 import { USER_PERMISSION } from './constants'
+import {
+  useUserTableColumns,
+  buildConfigurableUserTableColumns,
+  type ColumnBreakpoint
+} from './composables/useUserTableColumns'
 import UserFormDialog from './components/UserFormDialog.vue'
 import AdvancedSearchDialog from '@/components/search/AdvancedSearchDialog.vue'
 import TableColumnConfigDialog from './components/TableColumnConfigDialog.vue'
 import type { TableColumnConfig } from '@/types/table'
-import { formatDateTime } from '@/components/ui/table/useTableColumns'
+import { buildUserActionsColumn } from './tableColumns'
 
 // ==================== 核心逻辑引擎 ====================
 
@@ -134,28 +179,23 @@ const state = useCrudListPage<User, CreateUserInput, UpdateUserInput>({
   favorites: userSearchFavorites,
   permissions: USER_PERMISSION,
   pageSize: 20,
-  optimisticUpdate: true
+  optimisticUpdate: true,
+  defaultSort: [{ field: 'updated_at', order: 'desc' }]
 })
 
 // ==================== 工具栏状态管理 ====================
 
-const { isFullscreen, toggleFullscreen, density, setDensity, columnConfigDialogOpen } =
-  useCrudToolbar({
-    externalState: {
-      loading: state.state.loading,
-      selectedCount: state.state.selectedCount,
-      batchDeleteLoading: state.state.batchDeleteLoading
-    }
-  })
+const { toggleFullscreen, setDensity, columnConfigDialogOpen, toolbarState } = useCrudToolbar({
+  externalState: {
+    loading: state.state.loading,
+    selectedCount: state.state.selectedCount,
+    batchDeleteLoading: state.state.batchDeleteLoading
+  }
+})
 
-// 聚合工具栏状态（传给 CrudToolbar）
-const toolbarState = computed(() => ({
-  loading: state.state.loading.value,
-  selectedCount: state.state.selectedCount.value,
-  batchDeleteLoading: state.state.batchDeleteLoading.value,
-  isFullscreen: isFullscreen.value,
-  density: density.value
-}))
+const { hasPermission } = usePermission()
+const canResetPassword = computed(() => hasPermission(USER_PERMISSION.resetPassword))
+const resettingPasswordUserId = ref<number | null>(null)
 
 /**
  * 打开列配置对话框
@@ -164,140 +204,32 @@ function openColumnConfig() {
   columnConfigDialogOpen.value = true
 }
 
-// ==================== 操作按钮配置 ====================
-
-const { filteredActions } = useToolbarActions({
-  actions: [
-    {
-      key: 'create',
-      label: '新增用户',
-      icon: Plus,
-      type: 'primary',
-      handler: () => state.dialogs.openCreate(),
-      permission: USER_PERMISSION.create
-    }
-  ]
-})
-
-// 标题配置
-const titleConfig = computed(() => ({
-  text: '用户管理',
-  subtitle: `共 ${state.state.pagination.total} 个用户`,
-  showSelectedCount: true
-}))
-
 // ==================== 表格列定义 ====================
 
-/**
- * 创建布尔值 Tag 格式化器
- */
-function createBooleanTagFormatter(
-  field: 'is_superuser' | 'is_multi_login',
-  trueType: 'danger' | 'success' | 'warning',
-  falseType: 'danger' | 'success' | 'warning' | 'info' = 'info'
-) {
-  return (value: unknown) => {
-    return h(ElTag, { type: value ? trueType : falseType }, () => (value ? '是' : '否'))
-  }
-}
+const { isMobile, isTablet } = useResponsiveLayout()
+const { columnConfig, updateColumnWidth } = useUserTableColumns()
 
-/**
- * 角色格式化器
- */
-function formatRoles(value: unknown) {
-  const roles = (value as { name: string }[]) ?? []
-  if (roles.length === 0) {
-    return h(ElTag, { type: 'info' }, () => '无角色')
-  }
-  return h('span', { class: 'inline-flex gap-1' }, [
-    ...roles.map((role: { name: string }) =>
-      h(ElTag, { key: role.name, type: 'success', size: 'small' }, () => role.name)
-    )
-  ])
-}
+const tableColumns = computed<TableColumnConfig[]>(() => {
+  const currentBreakpoint: ColumnBreakpoint = isMobile.value
+    ? 'mobile'
+    : isTablet.value
+      ? 'tablet'
+      : 'desktop'
 
-/**
- * 表格列配置
- */
-const tableColumns: TableColumnConfig[] = [
-  {
-    field: 'username',
-    title: '用户名',
-    width: 120,
-    fixed: 'left'
-  },
-  {
-    field: 'email',
-    title: '邮箱',
-    minWidth: 180
-  },
-  {
-    field: 'full_name',
-    title: '姓名',
-    width: 120
-  },
-  {
-    field: 'roles',
-    title: '角色',
-    width: 150,
-    formatter: formatRoles
-  },
-  {
-    field: 'is_superuser',
-    title: '超级用户',
-    width: 100,
-    formatter: createBooleanTagFormatter('is_superuser', 'danger', 'info')
-  },
-  {
-    field: 'is_multi_login',
-    title: '多端登录',
-    width: 100,
-    formatter: createBooleanTagFormatter('is_multi_login', 'success', 'info')
-  },
-  {
-    field: 'updated_at',
-    title: '更新时间',
-    width: 160,
-    formatter: formatDateTime as () => string | number
-  },
-  {
-    field: 'operations',
-    title: '操作',
-    width: 150,
-    fixed: 'right',
-    slots: {
-      default: scope => {
-        const row = scope.row as unknown as User
-        return h('span', { class: 'inline-flex gap-2' }, [
-          state.permissions.update.value
-            ? h(
-                ElButton,
-                {
-                  type: 'primary',
-                  size: 'small',
-                  link: true,
-                  onClick: () => state.dialogs.openEdit(row.id)
-                },
-                () => '编辑'
-              )
-            : null,
-          state.permissions.delete.value
-            ? h(
-                ElButton,
-                {
-                  type: 'danger',
-                  size: 'small',
-                  link: true,
-                  onClick: () => handleDelete(row.id)
-                },
-                () => '删除'
-              )
-            : null
-        ])
-      }
-    }
-  }
-]
+  const configurableCols = buildConfigurableUserTableColumns(columnConfig.value, currentBreakpoint)
+
+  const actionsColumn: TableColumnConfig = buildUserActionsColumn({
+    canEdit: state.permissions.update.value,
+    canResetPassword: canResetPassword.value,
+    canDelete: state.permissions.delete.value,
+    onEdit: user => state.dialogs.openEdit(user.id),
+    onResetPassword: user => void handleResetPassword(user),
+    resetPasswordLoadingUserId: resettingPasswordUserId.value,
+    onDelete: user => void handleDelete(user.id)
+  })
+
+  return [...configurableCols, actionsColumn]
+})
 
 // ==================== 表格引用 ====================
 
@@ -309,7 +241,7 @@ const tableRef = ref<InstanceType<typeof CrudTable> | null>(null)
  * 搜索处理
  */
 function handleSearch() {
-  state.search.handleSearch(1)
+  state.search.handleSearch(state.state.pagination.page)
 }
 
 /**
@@ -328,11 +260,63 @@ function handleSizeChange() {
   console.warn('Dynamic pageSize change not yet implemented')
 }
 
+function handleColumnResize(resize: { field: string; width: number }) {
+  updateColumnWidth(resize.field, resize.width)
+}
+
 /**
  * 删除用户
  */
 async function handleDelete(userId: number) {
   await state.apiActions.handleDelete(userId)
+}
+
+/**
+ * 重置用户密码
+ */
+async function handleResetPassword(user: User) {
+  try {
+    const { value } = await ElMessageBox.prompt(
+      `请输入用户「${user.username}」的新密码`,
+      '重置密码',
+      {
+        confirmButtonText: '确认重置',
+        cancelButtonText: '取消',
+        inputType: 'password',
+        inputPlaceholder: '请输入 6-100 位新密码',
+        closeOnClickModal: false,
+        inputValidator: inputValue => {
+          if (!inputValue) {
+            return '请输入新密码'
+          }
+
+          if (inputValue.length < 6 || inputValue.length > 100) {
+            return '密码长度需为 6-100 位'
+          }
+
+          return true
+        }
+      }
+    )
+
+    const payload: ResetUserPasswordInput = {
+      new_password: value
+    }
+
+    resettingPasswordUserId.value = user.id
+
+    await userApi.resetPassword(user.id, payload)
+
+    ElMessage.success(`已重置用户「${user.username}」的密码`)
+  } catch (error) {
+    if (error === 'cancel' || error === 'close') {
+      return
+    }
+
+    throw error
+  } finally {
+    resettingPasswordUserId.value = null
+  }
 }
 
 /**
@@ -372,8 +356,24 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 布局高度计算 */
-:deep(.crud-page-layout) {
-  height: calc(100vh - var(--layout-header-height) - var(--layout-page-padding) * 2);
+.user-toolbar-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.user-toolbar-selection {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-toolbar-selection__count {
+  font-weight: 500;
+  color: var(--el-color-primary);
 }
 </style>

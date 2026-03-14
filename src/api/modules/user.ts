@@ -5,8 +5,8 @@
  * 对应后端: src/app/admin/v1/user.py
  */
 
-import { createCrudApi } from '../base/crud-api'
-import { getApiPath } from '../client'
+import { createCrudApi, type CrudApi } from '../base/crud-api'
+import { apiClient, getApiPath } from '../client'
 
 // ==================== 类型定义 ====================
 
@@ -78,14 +78,47 @@ export interface UpdateUserInput {
   version: number
 }
 
+/**
+ * 管理员重置密码输入
+ *
+ * 对应后端: ResetPasswordRequest
+ */
+export interface ResetUserPasswordInput {
+  /** 新密码（6-100 字符） */
+  new_password: string
+}
+
+export interface UserApi extends CrudApi<User, CreateUserInput, UpdateUserInput> {
+  resetPassword: (id: number, data: ResetUserPasswordInput) => Promise<User>
+}
+
 // ==================== API 实例 ====================
 
 /**
  * 用户管理 API
  */
-export const userApi = createCrudApi<User, CreateUserInput, UpdateUserInput>({
-  prefix: getApiPath('/users')
-})
+export const userApi: UserApi = Object.assign(
+  createCrudApi<User, CreateUserInput, UpdateUserInput>({
+    prefix: getApiPath('/users')
+  }),
+  {
+    /**
+     * 管理员重置用户密码
+     *
+     * 对应后端:
+     * PUT /users/{id}/reset-password
+     * 权限: admin:user:reset-password
+     */
+    async resetPassword(id: number, data: ResetUserPasswordInput): Promise<User> {
+      const response = await apiClient.Put<User>(
+        getApiPath(`/users/${id}/reset-password`),
+        data
+      )
+
+      return response
+    }
+  }
+)
 
 // ==================== 使用示例 ====================
 

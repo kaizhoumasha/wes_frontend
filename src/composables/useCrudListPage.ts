@@ -2,7 +2,8 @@ import { ref, computed, type Ref, type ComputedRef } from 'vue'
 import { useCrudApi } from './useCrudApi'
 import { useSmartSearch } from './useSmartSearch'
 import { usePermission } from './usePermission'
-import type { CrudApi, QueryOptions } from '@/api/base/crud-api'
+import type { CrudApi, QueryOptions, SortField } from '@/api/base/crud-api'
+import type { TableSortOrder } from '@/components/ui/table/table.types'
 import type { SearchFieldDef, QuickSearchPreset, SearchFavorite } from '@/types/search'
 
 /**
@@ -65,6 +66,12 @@ export interface UseCrudListPageOptions<T, C, U> {
 
   /** 是否启用乐观更新 */
   optimisticUpdate?: boolean
+
+  /** 是否启用自动刷新（与 optimisticUpdate 互斥） */
+  autoRefresh?: boolean
+
+  /** 默认排序 */
+  defaultSort?: SortField[]
 }
 
 export interface PaginationState {
@@ -84,6 +91,7 @@ export interface UseCrudListPageReturn<T, C, U> {
     selectedCount: Ref<number>
     hasSelection: Ref<boolean>
     batchDeleteLoading: Ref<boolean>
+    sortState: Ref<SortField[] | null>
     getCachedData: (id: number) => T | undefined
   }
 
@@ -92,6 +100,11 @@ export interface UseCrudListPageReturn<T, C, U> {
     instance: ReturnType<typeof useSmartSearch>
     handleSearch: (page?: number) => Promise<void>
     handleRefresh: () => Promise<void>
+    handleSortChange: (sort: {
+      field: string
+      sortKey?: string
+      order: TableSortOrder
+    }) => Promise<void>
   }
 
   // 弹窗相关
@@ -135,7 +148,17 @@ export function useCrudListPage<
   C = Partial<T>,
   U = Partial<T>
 >(options: UseCrudListPageOptions<T, C, U>): UseCrudListPageReturn<T, C, U> {
-  const { api, searchFields, quickPresets = [], favorites = [], permissions, pageSize = 20, optimisticUpdate = false } = options
+  const {
+    api,
+    searchFields,
+    quickPresets = [],
+    favorites = [],
+    permissions,
+    pageSize = 20,
+    optimisticUpdate = false,
+    autoRefresh: userAutoRefresh,
+    defaultSort = []
+  } = options
 
   // ==================== 权限 ====================
   const { hasPermission } = usePermission()
@@ -144,9 +167,15 @@ export function useCrudListPage<
   const deletePermission = computed(() => permissions?.delete ? hasPermission(permissions.delete) : true)
 
   // ==================== CRUD API ====================
+  // 乐观更新和自动刷新不能同时启用
+  // 如果用户启用了 optimisticUpdate，强制禁用 autoRefresh
+  // 如果用户未指定 autoRefresh，默认为 true（除非启用 optimisticUpdate）
+  const autoRefresh = optimisticUpdate ? false : (userAutoRefresh ?? true)
+
   const crudApi = useCrudApi<T, C, U>(api, {
     limit: pageSize,
-    optimisticUpdate
+    optimisticUpdate,
+    autoRefresh
   })
 
   // ==================== 智能搜索 ====================
@@ -163,6 +192,7 @@ export function useCrudListPage<
   // ==================== 批量选择状态 ====================
   const selectedItems = ref<T[]>([]) as Ref<T[]>
   const batchDeleteLoading = ref(false)
+  const sortState = ref<SortField[] | null>(defaultSort.length > 0 ? [...defaultSort] : null)
 
   // ==================== 弹窗状态 ====================
   const formOpen = ref(false)
@@ -193,16 +223,6 @@ export function useCrudListPage<
   /** 是否有选中项 */
   const hasSelection = computed(() => selectedItems.value.length > 0)
 
-  /** 分页状态（标准格式） */
-  const paginationState: PaginationState = computed(() => {
-    const { page, pageSize, total } = crudApi.pagination
-    return {
-      page,
-      pageSize,
-      total
-    }
-  }).value
-
   // ==================== 搜索操作 ====================
 
   /**
@@ -212,7 +232,8 @@ export function useCrudListPage<
     const filterGroup = searchInstance.compileToFilterGroup()
 
     const queryOptions: QueryOptions = {
-      filters: filterGroup
+      filters: filterGroup,
+      sort: sortState.value
     }
 
     if (page !== undefined) {
@@ -228,6 +249,26 @@ export function useCrudListPage<
    */
   async function handleRefresh(): Promise<void> {
     await handleSearch(crudApi.pagination.page)
+  }
+
+  async function handleSortChange(sort: {
+    field: string
+    sortKey?: string
+    order: TableSortOrder
+  }): Promise<void> {
+    if (!sort.order) {
+      sortState.value = defaultSort.length > 0 ? [...defaultSort] : null
+    } else {
+      const effectiveSortField = sort.sortKey || sort.field
+      sortState.value = [
+        {
+          field: effectiveSortField,
+          order: sort.order === 'descending' ? 'desc' : 'asc'
+        }
+      ]
+    }
+
+    await handleSearch(1)
   }
 
   // ==================== 批量选择操作 ====================
@@ -350,11 +391,12 @@ export function useCrudListPage<
       data: items,
       loading: crudApi.loading,
       error: crudApi.error,
-      pagination: paginationState,
+      pagination: crudApi.pagination,
       selectedItems,
       selectedCount,
       hasSelection,
       batchDeleteLoading,
+      sortState,
       getCachedData
     },
 
@@ -362,7 +404,8 @@ export function useCrudListPage<
     search: {
       instance: searchInstance,
       handleSearch,
-      handleRefresh
+      handleRefresh,
+      handleSortChange
     },
 
     // 弹窗相关

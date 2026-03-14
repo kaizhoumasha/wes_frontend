@@ -7,9 +7,9 @@
  * 多时区支持: 所有日期时间格式化器自动使用用户选择的时区
  */
 
-import { h } from 'vue'
+import { h, type Component } from 'vue'
 import type { TableColumnConfig, ColumnFormatter, ColumnSlotRender } from './table.types'
-import { ElTag, ElButton } from 'element-plus'
+import { ElTag, ElButton, ElPopconfirm } from 'element-plus'
 import { parseApiTime } from '@/utils/timezone'
 import { useTimezoneStore } from '@/stores/timezone'
 
@@ -115,30 +115,101 @@ export const formatArrayTags = (
 /**
  * 操作列格式化器
  */
+type ActionResolver<T> = T | ((row: Record<string, unknown>, index: number) => T)
+
+export interface ActionPopconfirm {
+  title: ActionResolver<string>
+  confirmButtonText?: string
+  cancelButtonText?: string
+  confirmButtonType?: 'primary' | 'success' | 'warning' | 'danger' | 'info'
+  width?: number
+}
+
 export interface ActionButton {
-  label: string
-  type?: 'primary' | 'success' | 'warning' | 'danger' | 'info'
-  icon?: string
-  show?: (row: Record<string, unknown>) => boolean
-  onClick: (row: Record<string, unknown>, index: number) => void
+  label: ActionResolver<string>
+  type?: ActionResolver<'primary' | 'success' | 'warning' | 'danger' | 'info'>
+  icon?: Component
+  link?: boolean
+  size?: 'small' | 'default' | 'large'
+  show?: ActionResolver<boolean>
+  disabled?: ActionResolver<boolean>
+  loading?: ActionResolver<boolean>
+  popconfirm?: ActionPopconfirm
+  onClick: (row: Record<string, unknown>, index: number) => void | Promise<void>
+}
+
+function resolveActionValue<T>(
+  value: ActionResolver<T> | undefined,
+  row: Record<string, unknown>,
+  index: number
+): T | undefined {
+  if (typeof value === 'function') {
+    return (value as (row: Record<string, unknown>, index: number) => T)(row, index)
+  }
+
+  return value
+}
+
+function resolveActionBoolean(
+  value: ActionResolver<boolean> | undefined,
+  row: Record<string, unknown>,
+  index: number,
+  fallback: boolean
+): boolean {
+  const resolvedValue = resolveActionValue(value, row, index)
+  return typeof resolvedValue === 'boolean' ? resolvedValue : fallback
 }
 
 export const formatActions = (buttons: ActionButton[]): ColumnSlotRender => {
   return ({ row, $index }) => {
-    return h('div', { class: 'flex gap-2' },
+    return h(
+      'div',
+      { class: 'flex gap-2' },
       buttons
-        .filter(btn => !btn.show || btn.show(row))
-        .map(btn =>
-          h(ElButton, {
-            key: btn.label,
-            link: true,
-            type: btn.type || 'primary',
-            size: 'small',
-            onClick: () => btn.onClick(row, $index),
-          }, {
-            default: () => btn.label
-          })
-        )
+        .filter(button => resolveActionBoolean(button.show, row, $index, true))
+        .map((button, buttonIndex) => {
+          const label = resolveActionValue(button.label, row, $index) ?? ''
+          const disabled = resolveActionBoolean(button.disabled, row, $index, false)
+          const loading = resolveActionBoolean(button.loading, row, $index, false)
+          const type = resolveActionValue(button.type, row, $index) ?? 'primary'
+
+          const buttonNode = h(
+            ElButton,
+            {
+              key: `${label}-${buttonIndex}`,
+              link: button.link ?? true,
+              type,
+              size: button.size ?? 'small',
+              icon: button.icon,
+              disabled,
+              loading,
+              onClick: button.popconfirm ? undefined : () => button.onClick(row, $index),
+            },
+            {
+              default: () => label
+            }
+          )
+
+          if (!button.popconfirm) {
+            return buttonNode
+          }
+
+          return h(
+            ElPopconfirm,
+            {
+              key: `confirm-${label}-${buttonIndex}`,
+              title: resolveActionValue(button.popconfirm.title, row, $index),
+              confirmButtonText: button.popconfirm.confirmButtonText,
+              cancelButtonText: button.popconfirm.cancelButtonText,
+              confirmButtonType: button.popconfirm.confirmButtonType,
+              width: button.popconfirm.width,
+              onConfirm: () => button.onClick(row, $index)
+            },
+            {
+              reference: () => buttonNode
+            }
+          )
+        })
     )
   }
 }

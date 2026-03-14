@@ -4,6 +4,7 @@ import { ElPagination } from 'element-plus'
 import DataTable from '@/components/ui/table/DataTable.vue'
 import DataTableSkeleton from '@/components/ui/table/DataTableSkeleton.vue'
 import type { TableColumnConfig, TableDensity } from '@/types/table'
+import type { TableSortOrder } from '@/components/ui/table/table.types'
 
 /**
  * CrudTable 组件
@@ -58,6 +59,10 @@ export interface CrudTableProps<T = unknown> {
   emptyText?: string
   /** 空状态操作文本 */
   emptyActionText?: string
+  /** 默认排序状态 */
+  defaultSort?: { field: string; order: Exclude<TableSortOrder, null> }
+  /** 是否启用列宽拖拽 */
+  columnResizable?: boolean
 }
 
 const props = withDefaults(defineProps<CrudTableProps>(), {
@@ -66,7 +71,9 @@ const props = withDefaults(defineProps<CrudTableProps>(), {
   density: 'comfortable',
   showSelection: false,
   emptyText: '暂无数据',
-  emptyActionText: '创建数据'
+  emptyActionText: '创建数据',
+  defaultSort: undefined,
+  columnResizable: false
 })
 
 const emit = defineEmits<{
@@ -80,6 +87,21 @@ const emit = defineEmits<{
   (e: 'retry'): void
   /** 创建事件（空状态） */
   (e: 'create'): void
+  /** 排序变化事件 */
+  (e: 'sort-change', sort: { field: string; sortKey?: string; order: TableSortOrder }): void
+  /** 列宽变化事件 */
+  (e: 'column-resize', resize: {
+    field: string
+    width: number
+    oldWidth: number
+    column: {
+      property?: string
+      label?: string
+      id?: string
+      resizable?: boolean
+    }
+    event: MouseEvent
+  }): void
 }>()
 
 // ============================================================================
@@ -166,6 +188,25 @@ function handleRetry() {
 function handleCreate() {
   emit('create')
 }
+
+function handleSortChange(sort: { field: string; sortKey?: string; order: TableSortOrder }) {
+  emit('sort-change', sort)
+}
+
+function handleColumnResize(resize: {
+  field: string
+  width: number
+  oldWidth: number
+  column: {
+    property?: string
+    label?: string
+    id?: string
+    resizable?: boolean
+  }
+  event: MouseEvent
+}) {
+  emit('column-resize', resize)
+}
 </script>
 
 <template>
@@ -208,35 +249,43 @@ function handleCreate() {
     </div>
 
     <!-- 数据表格 -->
-    <DataTable
+    <div
       v-else
-      ref="tableRef"
-      :data="data"
-      :columns="columns"
-      :density="density"
-      :show-selection="showSelection"
-      :height="'100%'"
-      @selection-change="handleSelectionChange"
+      class="crud-table__table-content"
     >
-      <!-- 错误状态插槽（可选） -->
-      <template
-        v-if="$slots.error"
-        #error
+      <DataTable
+        ref="tableRef"
+        :data="data"
+        :columns="columns"
+        :density="density"
+        :show-selection="showSelection"
+        :height="'100%'"
+        :default-sort="defaultSort"
+        :column-resizable="columnResizable"
+        @selection-change="handleSelectionChange"
+        @sort-change="handleSortChange"
+        @column-resize="handleColumnResize"
       >
-        <slot
-          name="error"
-          :error="error"
-        />
-      </template>
+        <!-- 错误状态插槽（可选） -->
+        <template
+          v-if="$slots.error"
+          #error
+        >
+          <slot
+            name="error"
+            :error="error"
+          />
+        </template>
 
-      <!-- 空状态插槽（可选） -->
-      <template
-        v-if="$slots.empty"
-        #empty
-      >
-        <slot name="empty" />
-      </template>
-    </DataTable>
+        <!-- 空状态插槽（可选） -->
+        <template
+          v-if="$slots.empty"
+          #empty
+        >
+          <slot name="empty" />
+        </template>
+      </DataTable>
+    </div>
 
     <!-- 分页器 -->
     <div
@@ -261,8 +310,16 @@ function handleCreate() {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: white;
+  min-height: 0;
+  background: var(--el-bg-color);
   border-radius: 4px;
+  border: 1px solid var(--el-border-color-lighter);
+}
+
+.crud-table__table-content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .crud-table__error,

@@ -1,9 +1,16 @@
 <script setup lang="ts">
 import { computed, type Component } from 'vue'
-import { RefreshRight, FullScreen, Close, Operation, Setting } from '@element-plus/icons-vue'
+import {
+  Refresh,
+  Delete,
+  FullScreen,
+  ScaleToOriginal,
+  Grid,
+  Setting
+} from '@element-plus/icons-vue'
 import SmartSearchBar from '@/components/search/SmartSearchBar.vue'
 import type { useSmartSearch } from '@/composables/useSmartSearch'
-import type { TableDensity } from '@/types/table'
+import { DENSITY_CONFIG, type TableDensity } from '@/types/table'
 import type { SearchFieldDef, SearchFavorite, QuickSearchPreset } from '@/types/search'
 
 /**
@@ -138,7 +145,7 @@ const emit = defineEmits<{
   (e: 'change-density', density: TableDensity): void
   /** 打开列配置事件 */
   (e: 'open-column-config'): void
-  /** 创建事件（来自 title 配置） */
+  /** 创建事件（向后兼容保留） */
   (e: 'create'): void
 }>()
 
@@ -147,90 +154,100 @@ const emit = defineEmits<{
 // ============================================================================
 
 /** 是否显示批量操作区 */
-const showBatchActions = computed(() => props.toolbarState.selectedCount > 0)
+const showBatchActions = computed(
+  () => (props.title?.showSelectedCount ?? false) && props.toolbarState.selectedCount > 0
+)
 
 /** 当前使用的操作按钮（有选中项时使用批量操作按钮） */
 const currentActions = computed(() => {
   if (showBatchActions.value) {
-    // 批量操作模式：只显示批量删除按钮
     return [
       {
         key: 'batch-delete',
         label: '批量删除',
-        icon: undefined, // TODO: 添加 Delete 图标
+        icon: Delete,
         type: 'danger' as const,
         handler: () => emit('batch-delete'),
         loading: props.toolbarState.batchDeleteLoading
       }
     ]
   }
-  // 正常模式：显示配置的按钮
+
   return props.actions || []
 })
 
 // ============================================================================
 // 事件处理
 // ============================================================================
+
+function handleClear() {
+  props.smartSearch.clearKeyword()
+  props.smartSearch.clearConditions()
+}
+
+function handleActivateField(fieldKey: string) {
+  props.smartSearch.buildConditionFromField(fieldKey)
+}
+
+function handleOpenAdvancedForField(fieldKey: string) {
+  props.smartSearch.openAdvancedDialog(fieldKey)
+}
 </script>
 
 <template>
   <div class="crud-toolbar">
-    <!-- 第一行：标题区 + 批量操作区 -->
-    <div class="crud-toolbar__row crud-toolbar__row--top">
-      <!-- 标题区插槽优先 -->
-      <slot
-        v-if="!showBatchActions"
-        name="title"
-        :selected-count="toolbarState.selectedCount"
-      >
-        <!-- 标题配置（如果没有插槽） -->
-        <div
-          v-if="title"
-          class="crud-toolbar__title"
+    <div class="crud-toolbar__left">
+      <div class="crud-toolbar__title-section">
+        <slot
+          name="title"
+          :selected-count="toolbarState.selectedCount"
+          :show-batch-actions="showBatchActions"
         >
-          <component
-            :is="title.icon"
-            v-if="title.icon"
-            class="crud-toolbar__title-icon"
-          />
-          <div class="crud-toolbar__title-text">
-            <div class="crud-toolbar__title-main">{{ title.text }}</div>
-            <div
-              v-if="title.subtitle"
-              class="crud-toolbar__title-sub"
+          <div
+            v-if="showBatchActions"
+            class="crud-toolbar__selection"
+          >
+            <span class="crud-toolbar__selection-count"
+              >已选中 {{ toolbarState.selectedCount }} 项</span
             >
-              {{ title.subtitle }}
+            <el-button
+              link
+              @click="emit('cancel-selection')"
+            >
+              取消选择
+            </el-button>
+          </div>
+
+          <div
+            v-else-if="title"
+            class="crud-toolbar__title"
+          >
+            <el-icon
+              v-if="title.icon"
+              class="crud-toolbar__title-icon"
+            >
+              <component :is="title.icon" />
+            </el-icon>
+            <div class="crud-toolbar__title-text">
+              <div class="crud-toolbar__title-main">{{ title.text }}</div>
+              <div
+                v-if="title.subtitle"
+                class="crud-toolbar__title-sub"
+              >
+                {{ title.subtitle }}
+              </div>
             </div>
           </div>
-        </div>
-      </slot>
-
-      <!-- 批量操作区（有选中项时显示） -->
-      <div
-        v-if="showBatchActions"
-        class="crud-toolbar__batch-actions"
-      >
-        <span class="crud-toolbar__batch-count">已选中 {{ toolbarState.selectedCount }} 项</span>
-        <el-button
-          type="default"
-          size="small"
-          @click="emit('cancel-selection')"
-        >
-          取消选择
-        </el-button>
+        </slot>
       </div>
-    </div>
 
-    <!-- 第二行：操作区 + 搜索区 + 控制区 -->
-    <div class="crud-toolbar__row crud-toolbar__row--middle">
-      <!-- 操作区 -->
-      <div class="crud-toolbar__actions">
+      <div class="crud-toolbar__actions-inline">
         <slot
           name="actions"
           :selected-count="toolbarState.selectedCount"
+          :show-batch-actions="showBatchActions"
         >
-          <!-- 操作按钮配置（如果没有插槽） -->
-          <template v-if="actions">
+          <template v-if="currentActions.length > 0">
             <el-button
               v-for="action in currentActions"
               :key="action.key"
@@ -244,74 +261,94 @@ const currentActions = computed(() => {
           </template>
         </slot>
       </div>
+    </div>
 
-      <!-- 搜索区 -->
-      <div class="crud-toolbar__search">
-        <SmartSearchBar
-          :conditions="smartSearch.conditions.value"
-          :keyword="smartSearch.state.value.keyword"
-          :fields="searchFields"
-          :favorites="favorites || []"
-          :quick-presets="quickPresets || []"
-          :placeholder="searchPlaceholder"
-          @update:keyword="smartSearch.setKeyword"
-          @remove-condition="id => smartSearch.removeCondition(id)"
-          @search="emit('search')"
-          @clear="smartSearch.clearKeyword"
-        />
-      </div>
+    <div class="crud-toolbar__search">
+      <SmartSearchBar
+        :conditions="smartSearch.conditions.value"
+        :keyword="smartSearch.state.value.keyword"
+        :active-field="smartSearch.state.value.activeField"
+        :fields="searchFields"
+        :favorites="favorites"
+        :quick-presets="quickPresets"
+        :loading="toolbarState.loading"
+        :popover-open="smartSearch.state.value.popoverOpen"
+        :placeholder="searchPlaceholder"
+        @update:keyword="smartSearch.setKeyword"
+        @remove-condition="smartSearch.removeCondition"
+        @clear="handleClear"
+        @search="emit('search')"
+        @open-popover="smartSearch.openPopover"
+        @close-popover="smartSearch.closePopover"
+        @toggle-popover="smartSearch.togglePopover"
+        @open-advanced="smartSearch.openAdvancedDialog"
+        @keydown-next="smartSearch.getNextActiveField('next')"
+        @keydown-prev="smartSearch.getNextActiveField('prev')"
+        @activate-field="handleActivateField"
+        @open-advanced-for-field="handleOpenAdvancedForField"
+      />
+    </div>
 
-      <!-- 控制区 -->
+    <div class="crud-toolbar__controls-wrapper">
       <div class="crud-toolbar__controls">
         <slot name="controls">
-          <!-- 刷新按钮 -->
           <el-tooltip
-            content="刷新"
-            placement="top"
+            content="刷新数据"
+            placement="bottom"
           >
             <el-button
-              :icon="RefreshRight"
+              size="small"
+              :icon="Refresh"
               :loading="toolbarState.loading"
-              circle
               @click="emit('refresh')"
             />
           </el-tooltip>
 
-          <!-- 全屏按钮 -->
           <el-tooltip
-            :content="toolbarState.isFullscreen ? '退出全屏' : '全屏'"
-            placement="top"
+            :content="toolbarState.isFullscreen ? '退出全屏' : '全屏显示'"
+            placement="bottom"
           >
             <el-button
-              :icon="toolbarState.isFullscreen ? Close : FullScreen"
-              circle
+              size="small"
+              :icon="toolbarState.isFullscreen ? ScaleToOriginal : FullScreen"
               @click="emit('toggle-fullscreen')"
             />
           </el-tooltip>
 
-          <!-- 密度切换 -->
-          <el-dropdown @command="density => emit('change-density', density)">
-            <el-button
-              :icon="Operation"
-              circle
-            />
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="compact">紧凑</el-dropdown-item>
-                <el-dropdown-item command="comfortable">舒适</el-dropdown-item>
-                <el-dropdown-item command="relaxed">宽松</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-
-          <!-- 列配置 -->
           <el-tooltip
-            content="列配置"
-            placement="top"
+            content="调整行高"
+            placement="bottom"
+          >
+            <el-dropdown
+              trigger="click"
+              @command="density => emit('change-density', density)"
+            >
+              <el-button
+                size="small"
+                :icon="Grid"
+              />
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item
+                    v-for="(config, key) in DENSITY_CONFIG"
+                    :key="key"
+                    :command="key"
+                    :class="{ 'is-active': toolbarState.density === key }"
+                  >
+                    {{ config.label }}
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </el-tooltip>
+
+          <el-tooltip
+            content="配置显示列"
+            placement="bottom"
           >
             <el-button
+              size="small"
               :icon="Setting"
-              circle
               @click="emit('open-column-config')"
             />
           </el-tooltip>
@@ -323,33 +360,36 @@ const currentActions = computed(() => {
 
 <style scoped>
 .crud-toolbar {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  padding: 16px;
+  background: var(--el-bg-color);
+  border-radius: 8px;
+  gap: 16px;
+  border: 1px solid var(--el-border-color-lighter);
 }
 
-.crud-toolbar__row {
+.crud-toolbar__left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
+  justify-self: start;
 }
 
-.crud-toolbar__row--top {
-  justify-content: space-between;
-}
-
-.crud-toolbar__row--middle {
-  justify-content: space-between;
+.crud-toolbar__title-section {
+  display: flex;
+  align-items: center;
 }
 
 .crud-toolbar__title {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .crud-toolbar__title-icon {
-  font-size: 24px;
+  font-size: 18px;
   color: var(--el-text-color-primary);
 }
 
@@ -370,78 +410,132 @@ const currentActions = computed(() => {
   color: var(--el-text-color-secondary);
 }
 
-.crud-toolbar__batch-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.crud-toolbar__batch-count {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--el-text-color-primary);
-}
-
-.crud-toolbar__actions {
+.crud-toolbar__actions-inline {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.crud-toolbar__selection {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.crud-toolbar__selection-count {
+  font-weight: 500;
+  color: var(--el-color-primary);
 }
 
 .crud-toolbar__search {
-  flex: 1;
-  min-width: 0;
+  width: 100%;
+  min-width: var(--search-min-width);
+  max-width: var(--search-max-width);
+  justify-self: center;
+  display: flex;
+  justify-content: center;
+}
+
+.crud-toolbar__search :deep(.smart-search-bar) {
+  width: 100%;
+}
+
+.crud-toolbar__controls-wrapper {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .crud-toolbar__controls {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
+  gap: 4px;
 }
 
-/* 响应式：平板（标题换行） */
-@media (width < 1280px) {
-  .crud-toolbar__row--top {
+.crud-toolbar__controls :deep(.el-dropdown) {
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+/* 覆盖 Element Plus 的 .el-button + .el-button { margin-left: 12px } 全局规则 */
+.crud-toolbar__controls :deep(.el-button + .el-button) {
+  margin-left: 0;
+}
+
+/* ==================== 响应式断点 ==================== */
+
+/* 注意：@media 查询不支持 CSS 变量，必须使用固定值 */
+
+/* 参考：src/constants/breakpoints.ts, tailwind.config.js */
+
+/* 平板端（768px - 1279px）：搜索框单独一行 */
+@media (width >= 768px) and (width < 1280px) {
+  .crud-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .crud-toolbar__search {
+    width: 100%;
+    max-width: 100%;
+    order: -1;
+    margin-bottom: 12px;
+  }
+
+  .crud-toolbar__left {
+    width: auto;
+  }
+
+  .crud-toolbar__controls-wrapper {
+    width: auto;
+    margin-left: auto;
+    justify-content: flex-end;
+  }
+}
+
+/* 移动端（< 768px）：搜索框、标题区、控制区各占一行 */
+@media (width <= 767px) {
+  .crud-toolbar {
+    padding: 12px;
+    display: flex;
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .crud-toolbar__row--middle {
-    flex-wrap: wrap;
+    gap: 12px;
   }
 
   .crud-toolbar__search {
-    order: 3;
-    min-width: 100%;
-    margin-top: 8px;
-  }
-}
-
-/* 响应式：移动端（搜索独立一行） */
-@media (width < 768px) {
-  .crud-toolbar {
-    gap: 8px;
+    width: 100%;
+    max-width: 100%;
+    order: -1;
   }
 
-  .crud-toolbar__row--middle {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .crud-toolbar__actions {
+  .crud-toolbar__left {
+    width: 100%;
+    align-items: center;
     justify-content: flex-start;
+    align-self: stretch;
+    order: 2;
   }
 
-  .crud-toolbar__search {
-    order: unset;
-    margin-top: 8px;
+  .crud-toolbar__title-section {
+    width: auto;
   }
 
-  .crud-toolbar__controls {
+  .crud-toolbar__actions-inline {
+    width: auto;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+  }
+
+  .crud-toolbar__controls-wrapper {
+    width: 100%;
+    display: flex;
     justify-content: flex-end;
-    margin-top: 8px;
+    align-self: stretch;
+    order: 3;
   }
 }
 </style>

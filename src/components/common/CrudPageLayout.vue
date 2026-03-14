@@ -14,6 +14,7 @@ import { provideBreakpointContext } from '@/composables/useBreakpointContext'
  * - 垂直弹性设计（表格区占据剩余空间）
  * - 响应式支持
  * - 提供断点上下文供子组件使用
+ * - 支持渲染弹窗等不参与布局的额外内容
  *
  * @example
  * ```vue
@@ -31,10 +32,13 @@ import { provideBreakpointContext } from '@/composables/useBreakpointContext'
 export interface CrudPageLayoutProps {
   /** 工具栏和表格之间的间距（px），默认 16 */
   gap?: number
+  /** 是否自动适配视口可用高度，默认 true */
+  fitViewport?: boolean
 }
 
-withDefaults(defineProps<CrudPageLayoutProps>(), {
-  gap: 16
+const props = withDefaults(defineProps<CrudPageLayoutProps>(), {
+  gap: 16,
+  fitViewport: true
 })
 
 // 提供断点上下文供子组件使用
@@ -42,7 +46,10 @@ provideBreakpointContext()
 </script>
 
 <template>
-  <div class="crud-page-layout">
+  <div
+    class="crud-page-layout"
+    :class="{ 'crud-page-layout--fit-viewport': props.fitViewport }"
+  >
     <!-- 工具栏插槽 -->
     <div
       v-if="$slots.toolbar"
@@ -64,6 +71,9 @@ provideBreakpointContext()
     >
       <slot name="pagination" />
     </div>
+
+    <!-- 额外内容插槽：对话框、抽屉等不参与布局的节点 -->
+    <slot />
   </div>
 </template>
 
@@ -72,8 +82,13 @@ provideBreakpointContext()
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
   padding: 16px;
   box-sizing: border-box;
+}
+
+.crud-page-layout--fit-viewport {
+  height: calc(100vh - var(--layout-header-height) - var(--layout-page-padding) * 2);
 }
 
 .crud-page-layout__toolbar {
@@ -99,10 +114,10 @@ provideBreakpointContext()
   }
 }
 
-/* 响应式：桌面端增加内边距 */
+/* 响应式：桌面端维持与页面主容器一致的内边距 */
 @media (width >= 1280px) {
   .crud-page-layout {
-    padding: 24px;
+    padding: 16px;
   }
 }
 </style>
