@@ -239,14 +239,7 @@ export interface DataTableEmits<T = unknown> {
   (e: 'column-resize', resize: {
     field: string
     width: number
-    oldWidth: number
-    column: {
-      property?: string
-      label?: string
-      id?: string
-      resizable?: boolean
-    }
-    event: MouseEvent
+    oldWidth?: number
   }): void
   /** 过滤变化事件 */
   (e: 'filter-change', filters: unknown): void

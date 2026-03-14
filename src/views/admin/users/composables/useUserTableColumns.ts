@@ -172,6 +172,11 @@ const USER_TABLE_COLUMN_DEFINITION_MAP = new Map(
 
 export const DEFAULT_COLUMN_CONFIG: ColumnConfig[] = USER_TABLE_COLUMN_DEFINITIONS.map(toColumnConfig)
 
+/**
+ * 预创建的默认列配置 Map，避免在 normalizeColumnConfig 中重复创建
+ */
+const DEFAULT_COLUMN_CONFIG_MAP = new Map(DEFAULT_COLUMN_CONFIG.map(column => [column.key, column]))
+
 function sortColumnsByFixedPosition(columns: ColumnConfig[]): ColumnConfig[] {
   const leftFixed = columns.filter(column => column.fixed === 'left')
   const middle = columns.filter(column => column.fixed === null || column.fixed === undefined)
@@ -208,7 +213,7 @@ export function buildConfigurableUserTableColumns(
 }
 
 function normalizeColumnConfig(config: LegacyColumnConfig[] | null | undefined): ColumnConfig[] {
-  const defaultsMap = new Map(DEFAULT_COLUMN_CONFIG.map(column => [column.key, column]))
+  const defaultsMap = DEFAULT_COLUMN_CONFIG_MAP
   const normalized: ColumnConfig[] = []
 
   for (const item of config ?? []) {

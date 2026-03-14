@@ -400,8 +400,7 @@ function handleHeaderDragEnd(
     label?: string
     id?: string
     resizable?: boolean
-  },
-  event: MouseEvent
+  }
 ) {
   const field = column.property
 
@@ -409,9 +408,7 @@ function handleHeaderDragEnd(
     return
   }
 
-  const matchedColumn = visibleColumns.value.find(
-    item => (item.prop || item.field) === field
-  )
+  const matchedColumn = visibleColumns.value.find(item => (item.prop || item.field) === field)
 
   if (!matchedColumn || matchedColumn.resizable === false) {
     return
@@ -420,9 +417,7 @@ function handleHeaderDragEnd(
   emit('column-resize', {
     field,
     width: newWidth,
-    oldWidth,
-    column,
-    event
+    oldWidth
   })
 }
 </script>

@@ -90,18 +90,14 @@ const emit = defineEmits<{
   /** 排序变化事件 */
   (e: 'sort-change', sort: { field: string; sortKey?: string; order: TableSortOrder }): void
   /** 列宽变化事件 */
-  (e: 'column-resize', resize: {
-    field: string
-    width: number
-    oldWidth: number
-    column: {
-      property?: string
-      label?: string
-      id?: string
-      resizable?: boolean
+  (
+    e: 'column-resize',
+    resize: {
+      field: string
+      width: number
+      oldWidth?: number
     }
-    event: MouseEvent
-  }): void
+  ): void
 }>()
 
 // ============================================================================
@@ -193,18 +189,7 @@ function handleSortChange(sort: { field: string; sortKey?: string; order: TableS
   emit('sort-change', sort)
 }
 
-function handleColumnResize(resize: {
-  field: string
-  width: number
-  oldWidth: number
-  column: {
-    property?: string
-    label?: string
-    id?: string
-    resizable?: boolean
-  }
-  event: MouseEvent
-}) {
+function handleColumnResize(resize: { field: string; width: number; oldWidth?: number }) {
   emit('column-resize', resize)
 }
 </script>
