@@ -7,7 +7,7 @@
  * ⚠️ 请勿手动编辑此文件
  * 如需自定义验证规则，请修改 src/types/zod-extensions.ts
  *
- * 生成时间: 2026-03-11T08:52:37.500Z
+ * 生成时间: 2026-03-14T03:51:21.335Z
  */
 
 import { z } from 'zod'
@@ -491,6 +491,18 @@ export const QueryOptionsSchema = z.object({
   max_depth: z.number().min(0).max(3).optional().default(1),
   /** Include Deleted */
   include_deleted: z.boolean().optional().default(false),
+})
+
+
+/**
+ * 管理员重置密码请求
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const ResetPasswordRequestSchema = z.object({
+  /** New Password */
+  new_password: z.string().min(6).max(100),
 })
 
 
