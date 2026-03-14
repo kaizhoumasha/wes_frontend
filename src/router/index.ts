@@ -48,17 +48,6 @@ const routes: RouteRecordRaw[] = [
           title: '用户管理',
         },
       },
-      // V2 重构版本（测试路由）
-      {
-        path: 'admin/users-v2',
-        name: 'UserListV2',
-        component: () => import('@/views/admin/users/UserListPageV2.vue'),
-        meta: {
-          requiresAuth: true,
-          permission: 'admin:user:list',
-          title: '用户管理 V2',
-        },
-      },
       // 开发模式专属路由：调试页面
       ...(import.meta.env.DEV ? [
         {
