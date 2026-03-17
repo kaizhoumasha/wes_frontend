@@ -110,7 +110,7 @@ export function useBreakpoint(): BreakpointContext {
     throw new Error(
       'Breakpoint context not found. ' +
       'Make sure to call provideBreakpointContext() in a parent component. ' +
-      'Typically this should be called in CrudPageLayout or the root layout component.'
+      'Typically this should be called in CrudPageContainer or the root layout component.'
     )
   }
 

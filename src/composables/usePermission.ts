@@ -10,21 +10,23 @@
  * ## 权限标识格式
  *
  * 后端权限标识格式：`{module}:{resource}:{action}`
- * - 示例: `admin:user:create`, `admin:role:update`, `device:device:read`
+ * - 推荐优先使用 `@/api/generated/permissions` 中自动生成的常量
  * - 超级用户拥有 `*` 权限（表示拥有所有权限）
  *
  * ## 使用示例
  *
  * ```ts
+ * import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
+ *
  * const { hasPermission, loadPermissions, clearPermissions } = usePermission()
  *
  * // 检查单个权限
- * if (hasPermission('admin:user:create')) {
+ * if (hasPermission(ADMIN_PERMISSIONS.user.create)) {
  *   // 显示创建用户按钮
  * }
  *
  * // 检查多个权限（任意一个）
- * if (hasAnyPermission(['admin:user:create', 'admin:user:update'])) {
+ * if (hasAnyPermission([ADMIN_PERMISSIONS.user.create, ADMIN_PERMISSIONS.user.update])) {
  *   // 显示用户管理操作
  * }
  *
@@ -72,14 +74,16 @@ const checkPermission = (permissionName: string): boolean => {
 /**
  * 检查是否拥有指定权限
  *
- * @param permissionName 权限标识（如 `admin:user:create`）
+ * @param permissionName 权限标识（建议使用 `@/api/generated/permissions` 常量）
  * @returns 是否拥有权限
  *
  * @example
  * ```ts
+ * import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
+ *
  * const { hasPermission } = usePermission()
  *
- * if (hasPermission('admin:user:create')) {
+ * if (hasPermission(ADMIN_PERMISSIONS.user.create)) {
  *   // 显示创建按钮
  * }
  * ```
@@ -97,9 +101,11 @@ export function usePermission() {
    *
    * @example
    * ```ts
+   * import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
+   *
    * const { hasAnyPermission } = usePermission()
    *
-   * if (hasAnyPermission(['admin:user:create', 'admin:user:update'])) {
+   * if (hasAnyPermission([ADMIN_PERMISSIONS.user.create, ADMIN_PERMISSIONS.user.update])) {
    *   // 显示用户管理操作
    * }
    * ```
@@ -116,9 +122,11 @@ export function usePermission() {
    *
    * @example
    * ```ts
+   * import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
+   *
    * const { hasAllPermissions } = usePermission()
    *
-   * if (hasAllPermissions(['admin:user:create', 'admin:user:delete'])) {
+   * if (hasAllPermissions([ADMIN_PERMISSIONS.user.create, ADMIN_PERMISSIONS.user.delete])) {
    *   // 显示完整用户管理操作
    * }
    * ```

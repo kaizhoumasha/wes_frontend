@@ -1,5 +1,6 @@
 # 契约同步验证（如果后端运行）
 pnpm contract:verify --silent || true
+pnpm permission:verify --silent
 
 # 运行 lint-staged
 npx lint-staged

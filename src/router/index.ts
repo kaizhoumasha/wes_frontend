@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { createPermissionGuard } from './guards/permission'
+import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
 import { setRouterInstance } from '@/api/services/auth-error-handler'
 
 const routes: RouteRecordRaw[] = [
@@ -44,7 +45,7 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/admin/users/UserListPage.vue'),
         meta: {
           requiresAuth: true,
-          permission: 'admin:user:list',
+          permission: ADMIN_PERMISSIONS.user.page,
           title: '用户管理',
         },
       },

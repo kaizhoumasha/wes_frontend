@@ -103,7 +103,7 @@
 | UM-010 | 创建页面目录 `src/views/admin/users/`  | UM-003                      | 模块目录      | ⏳   |
 | UM-011 | 创建 `components/UserToolbar.vue`      | UM-010                      | 搜索/操作栏   | ⏳   |
 | UM-012 | 创建 `components/UserTable.vue`        | UM-010                      | 用户表格      | ⏳   |
-| UM-013 | 创建 `components/UserFormDialog.vue`   | UM-010                      | 创建/编辑弹窗 | ⏳   |
+| UM-013 | 创建 `components/CrudFormDialog.vue`   | UM-010                      | 创建/编辑弹窗 | ⏳   |
 | UM-014 | 创建 `composables/useUserListPage.ts`  | UM-010                      | 页面编排逻辑  | ⏳   |
 | UM-015 | 创建 `composables/useUserForm.ts`      | UM-013                      | 表单逻辑      | ⏳   |
 | UM-016 | 在 `UserListPage.vue` 中完成各区域编排 | UM-011,UM-012,UM-013,UM-014 | 页面闭环框架  | ⏳   |

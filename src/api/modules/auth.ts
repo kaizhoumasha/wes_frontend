@@ -125,7 +125,7 @@ export interface RevokeSessionResponse {
 export interface ApiPermissionInfo {
   /** 权限 ID */
   id: number
-  /** 权限标识（如 admin:user:create） */
+  /** 权限标识（建议映射到 `@/api/generated/permissions` 中的常量） */
   name: string
   /** 权限描述 */
   description: string

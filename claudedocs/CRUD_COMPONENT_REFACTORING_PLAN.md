@@ -53,17 +53,11 @@
 
 ```
 src/views/admin/users/
-├── UserListPage.vue              # 页面编排层
-├── components/
-│   ├── UserToolbar.vue           # 工具栏（4段式布局）
-│   ├── UserTable.vue             # 表格+分页
-│   ├── UserFormDialog.vue        # 表单弹窗（业务特定）
-│   └── TableColumnConfigDialog.vue  # 列配置弹窗
-├── composables/
-│   ├── useUserListPage.ts        # 页面逻辑编排
-│   └── useUserTableColumns.ts    # 表格列定义（业务特定）
-├── search-config.ts              # 搜索配置（业务特定）
-└── constants.ts                  # 权限常量（业务特定）
+├── UserListPage.vue              # 页面入口
+└── config/
+    ├── pageConfig.ts            # 页面容器配置
+    ├── permissions.ts           # 权限常量
+    └── resourceSchema.ts        # 资源字段与列管理 schema
 ```
 
 ### 已有的通用能力
@@ -126,7 +120,7 @@ src/views/admin/users/
                           ↓ 使用
 ┌─────────────────────────────────────────────────────────┐
 │  通用组件层（Generic Component Layer）                    │
-│  - CrudPageLayout.vue                                    │
+│  - CrudPageContainer.vue                                    │
 │  - CrudToolbar.vue                                       │
 │  - CrudTable.vue                                         │
 └─────────────────────────────────────────────────────────┘
@@ -147,25 +141,25 @@ src/views/admin/users/
 
 ### 组件职责划分
 
-| 组件              | 职责             | 可定制性                                                  |
-| ----------------- | ---------------- | --------------------------------------------------------- |
-| `CrudPageLayout`  | 上-中-下布局容器 | 插槽：toolbar, table, pagination                          |
-| `CrudToolbar`     | 4段式工具栏      | 插槽：title, actions, controls; Props: `smartSearch` 对象 |
-| `CrudTable`       | 表格+分页集成    | Props：columns, data, pagination                          |
-| `useCrudListPage` | 逻辑编排         | 泛型：实体类型、API 接口                                  |
+| 组件                | 职责             | 可定制性                                                  |
+| ------------------- | ---------------- | --------------------------------------------------------- |
+| `CrudPageContainer` | 上-中-下布局容器 | 插槽：toolbar, table, pagination                          |
+| `CrudToolbar`       | 4段式工具栏      | 插槽：title, actions, controls; Props: `smartSearch` 对象 |
+| `CrudTable`         | 表格+分页集成    | Props：columns, data, pagination                          |
+| `useCrudListPage`   | 逻辑编排         | 泛型：实体类型、API 接口                                  |
 
 ---
 
 ## 组件 API 设计
 
-### 1. CrudPageLayout
+### 1. CrudPageContainer
 
 **职责**: 提供上-中-下三段式布局容器
 
 **Props**:
 
 ```typescript
-interface CrudPageLayoutProps {
+interface CrudPageContainerProps {
   /** 工具栏和表格之间的间距（px） */
   gap?: number
 }
@@ -187,14 +181,14 @@ interface CrudPageLayoutProps {
 **使用示例**:
 
 ```vue
-<CrudPageLayout>
+<CrudPageContainer>
   <template #toolbar>
     <CrudToolbar ... />
   </template>
   <template #table>
     <CrudTable ... />
   </template>
-</CrudPageLayout>
+</CrudPageContainer>
 ```
 
 ---
@@ -654,7 +648,7 @@ interface UseToolbarActionsReturn {
 ```typescript
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import { useToolbarActions } from '@/composables/useToolbarActions'
-import { USER_PERMISSION } from './constants'
+import { USER_PERMISSION } from './config/permissions'
 
 const createLoading = ref(false)
 
@@ -824,7 +818,7 @@ const { filteredActions } = useToolbarActions({
 
 **核心原则**:
 
-- **组件层次**: 面向使用者，暴露最小必要接口（`CrudPageLayout` → `CrudToolbar` → `CrudTable`）
+- **组件层次**: 面向使用者，暴露最小必要接口（`CrudPageContainer` → `CrudToolbar` → `CrudTable`）
 - **Composable 层次**: 面向逻辑复用，按职责拆分（`useCrudListPage`, `useCrudToolbar`, `useToolbarActions`）
 - **两者独立**: 组件可以内部使用多个 Composable，Composable 也可以被多个组件使用
 
@@ -918,7 +912,7 @@ useSmartSearch（搜索逻辑，外部传入）
 
 **任务**:
 
-1. ✅ 创建 `CrudPageLayout.vue`
+1. ✅ 创建 `CrudPageContainer.vue`
 2. ✅ 创建 `CrudToolbar.vue`
 3. ✅ 创建 `CrudTable.vue`
 4. ✅ 编写单元测试
@@ -1034,13 +1028,13 @@ useSmartSearch（搜索逻辑，外部传入）
 
 **重构步骤**：
 
-**1. 保持搜索配置不变 (`search-config.ts`)**
-**2. 保持权限常量不变 (`constants.ts`)**
+**1. 字段搜索定义收敛到 `config/resourceSchema.ts`**
+**2. 保持权限常量不变 (`config/permissions.ts`)**
 **3. 重构页面 (`UserListPage.vue`)**：
 
 ```vue
 <template>
-  <CrudPageLayout>
+  <CrudPageContainer>
     <template #toolbar>
       <CrudToolbar
         :smart-search="search.instance"
@@ -1076,10 +1070,10 @@ useSmartSearch（搜索逻辑，外部传入）
         @create="dialogs.openCreate"
       />
     </template>
-  </CrudPageLayout>
+  </CrudPageContainer>
 
   <!-- 以下弹窗保持不变 -->
-  <UserFormDialog
+  <CrudFormDialog
     v-if="dialogs.formOpen"
     :key="dialogs.key"
     :open="dialogs.formOpen"
@@ -1107,21 +1101,21 @@ import { User, Plus } from '@element-plus/icons-vue'
 import { useCrudListPage } from '@/composables/useCrudListPage'
 import { useCrudToolbar } from '@/composables/useCrudToolbar'
 import { useToolbarActions } from '@/composables/useToolbarActions'
-import { useUserTableColumns } from './composables/useUserTableColumns'
+import { useUserColumnManager } from './config/resourceSchema'
 import {
   userApi,
   type CreateUserInput,
   type UpdateUserInput,
   type User as UserType
 } from '@/api/modules/user'
-import { userSearchFields, userQuickPresets, userSearchFavorites } from './search-config'
-import { USER_PERMISSION } from './constants'
-import CrudPageLayout from '@/components/common/CrudPageLayout.vue'
+import { userSearchFields } from './config/resourceSchema'
+import { USER_PERMISSION } from './config/permissions'
+import CrudPageContainer from '@/components/common/CrudPageContainer.vue'
 import CrudToolbar from '@/components/common/CrudToolbar.vue'
 import CrudTable from '@/components/common/CrudTable.vue'
-import UserFormDialog from './components/UserFormDialog.vue'
+import CrudFormDialog from '@/components/common/CrudFormDialog.vue'
 import AdvancedSearchDialog from '@/components/search/AdvancedSearchDialog.vue'
-import TableColumnConfigDialog from './components/TableColumnConfigDialog.vue'
+import TableColumnConfigDialog from '@/components/common/TableColumnConfigDialog.vue'
 
 const crudTableRef = ref<InstanceType<typeof CrudTable> | null>(null)
 
@@ -1133,8 +1127,6 @@ const { state, search, dialogs, selection, apiActions, permissions } = useCrudLi
 >({
   api: userApi,
   searchFields: userSearchFields,
-  quickPresets: userQuickPresets,
-  favorites: userSearchFavorites,
   permissions: USER_PERMISSION,
   pageSize: 20,
   optimisticUpdate: true
@@ -1172,7 +1164,7 @@ const { filteredActions } = useToolbarActions({
 })
 
 // ==================== 表格列定义（业务特定）====================
-const { columns } = useUserTableColumns({
+const { columns } = useUserColumnManager({
   onEdit: dialogs.openEdit,
   onDelete: apiActions.handleDelete
 })
@@ -1237,7 +1229,7 @@ function handleCancelSelection() {
 // - roleApi → userApi
 // - ROLE_PERMISSION → USER_PERMISSION
 // - roleSearchFields → userSearchFields
-// - useRoleTableColumns → useUserTableColumns
+// - useRoleTableColumns → useUserColumnManager
 // - 操作按钮配置（角色管理额外有"权限配置"按钮）
 
 const { filteredActions } = useToolbarActions({

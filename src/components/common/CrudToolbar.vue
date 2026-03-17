@@ -1,15 +1,11 @@
 <script setup lang="ts">
-import { computed, type Component } from 'vue'
-import {
-  Refresh,
-  Delete,
-  FullScreen,
-  ScaleToOriginal,
-  Grid,
-  Setting
-} from '@element-plus/icons-vue'
+import { computed } from 'vue'
 import SmartSearchBar from '@/components/search/SmartSearchBar.vue'
+import AppIcon from '@/components/ui/AppIcon.vue'
+import AppButton from '@/components/ui/AppButton.vue'
+import AppIconButton from '@/components/ui/AppIconButton.vue'
 import type { useSmartSearch } from '@/composables/useSmartSearch'
+import { usePermission } from '@/composables/usePermission'
 import { DENSITY_CONFIG, type TableDensity } from '@/types/table'
 import type { SearchFieldDef, SearchFavorite, QuickSearchPreset } from '@/types/search'
 
@@ -34,8 +30,8 @@ export interface ToolbarTitleConfig {
   text: string
   /** 副标题（可选） */
   subtitle?: string
-  /** 图标组件（Element Plus 图标） */
-  icon?: Component
+  /** 图标名称（优先使用 AppIcon） */
+  icon?: string
   /** 是否在有选中项时显示选中数量和取消选中按钮 */
   showSelectedCount?: boolean
 }
@@ -45,8 +41,8 @@ export interface ToolbarAction {
   key: string
   /** 按钮文本 */
   label: string
-  /** 按钮图标（Element Plus 图标组件） */
-  icon?: Component
+  /** 按钮图标名称（优先使用 AppIcon） */
+  icon?: string
   /** 按钮类型 */
   type?: 'primary' | 'success' | 'warning' | 'danger' | 'info'
   /** 点击处理函数 */
@@ -57,6 +53,8 @@ export interface ToolbarAction {
   showWhen?: () => boolean
   /** 是否加载中 */
   loading?: boolean
+  /** 按钮提示文案 */
+  tooltip?: string
 }
 
 export interface CrudToolbarProps {
@@ -145,9 +143,9 @@ const emit = defineEmits<{
   (e: 'change-density', density: TableDensity): void
   /** 打开列配置事件 */
   (e: 'open-column-config'): void
-  /** 创建事件（向后兼容保留） */
-  (e: 'create'): void
 }>()
+
+const { hasPermission } = usePermission()
 
 // ============================================================================
 // 计算属性
@@ -158,22 +156,42 @@ const showBatchActions = computed(
   () => (props.title?.showSelectedCount ?? false) && props.toolbarState.selectedCount > 0
 )
 
-/** 当前使用的操作按钮（有选中项时使用批量操作按钮） */
+/** 过滤后的配置按钮 */
+const filteredActions = computed(() => {
+  return (props.actions ?? []).filter(action => {
+    if (action.permission && !hasPermission(action.permission)) {
+      return false
+    }
+
+    if (action.showWhen && !action.showWhen()) {
+      return false
+    }
+
+    return true
+  })
+})
+
+/** 当前使用的操作按钮 */
 const currentActions = computed(() => {
+  if (filteredActions.value.length > 0) {
+    return filteredActions.value
+  }
+
   if (showBatchActions.value) {
     return [
       {
         key: 'batch-delete',
         label: '批量删除',
-        icon: Delete,
+        icon: 'Delete',
         type: 'danger' as const,
         handler: () => emit('batch-delete'),
-        loading: props.toolbarState.batchDeleteLoading
+        loading: props.toolbarState.batchDeleteLoading,
+        tooltip: '删除选中的数据'
       }
     ]
   }
 
-  return props.actions || []
+  return []
 })
 
 // ============================================================================
@@ -207,9 +225,9 @@ function handleOpenAdvancedForField(fieldKey: string) {
             v-if="showBatchActions"
             class="crud-toolbar__selection"
           >
-            <span class="crud-toolbar__selection-count"
-              >已选中 {{ toolbarState.selectedCount }} 项</span
-            >
+            <span class="crud-toolbar__selection-count">
+              已选中 {{ toolbarState.selectedCount }} 项
+            </span>
             <el-button
               link
               @click="emit('cancel-selection')"
@@ -222,12 +240,12 @@ function handleOpenAdvancedForField(fieldKey: string) {
             v-else-if="title"
             class="crud-toolbar__title"
           >
-            <el-icon
+            <AppIcon
               v-if="title.icon"
+              :icon="title.icon"
+              :size="20"
               class="crud-toolbar__title-icon"
-            >
-              <component :is="title.icon" />
-            </el-icon>
+            />
             <div class="crud-toolbar__title-text">
               <div class="crud-toolbar__title-main">{{ title.text }}</div>
               <div
@@ -248,16 +266,35 @@ function handleOpenAdvancedForField(fieldKey: string) {
           :show-batch-actions="showBatchActions"
         >
           <template v-if="currentActions.length > 0">
-            <el-button
+            <template
               v-for="action in currentActions"
               :key="action.key"
-              :type="action.type || 'default'"
-              :icon="action.icon"
-              :loading="action.loading"
-              @click="action.handler()"
             >
-              {{ action.label }}
-            </el-button>
+              <el-tooltip
+                v-if="action.tooltip"
+                :content="action.tooltip"
+                placement="bottom"
+              >
+                <AppButton
+                  :type="action.type || 'default'"
+                  :loading="action.loading"
+                  :icon="action.icon"
+                  @click="action.handler()"
+                >
+                  {{ action.label }}
+                </AppButton>
+              </el-tooltip>
+
+              <AppButton
+                v-else
+                :type="action.type || 'default'"
+                :loading="action.loading"
+                :icon="action.icon"
+                @click="action.handler()"
+              >
+                {{ action.label }}
+              </AppButton>
+            </template>
           </template>
         </slot>
       </div>
@@ -292,66 +329,50 @@ function handleOpenAdvancedForField(fieldKey: string) {
     <div class="crud-toolbar__controls-wrapper">
       <div class="crud-toolbar__controls">
         <slot name="controls">
-          <el-tooltip
-            content="刷新数据"
-            placement="bottom"
-          >
-            <el-button
-              size="small"
-              :icon="Refresh"
-              :loading="toolbarState.loading"
-              @click="emit('refresh')"
-            />
-          </el-tooltip>
+          <AppIconButton
+            icon="Refresh"
+            size="small"
+            :loading="toolbarState.loading"
+            tooltip="刷新数据"
+            @click="emit('refresh')"
+          />
 
-          <el-tooltip
-            :content="toolbarState.isFullscreen ? '退出全屏' : '全屏显示'"
-            placement="bottom"
-          >
-            <el-button
-              size="small"
-              :icon="toolbarState.isFullscreen ? ScaleToOriginal : FullScreen"
-              @click="emit('toggle-fullscreen')"
-            />
-          </el-tooltip>
+          <AppIconButton
+            :icon="toolbarState.isFullscreen ? 'ScaleToOriginal' : 'FullScreen'"
+            size="small"
+            :tooltip="toolbarState.isFullscreen ? '退出全屏' : '全屏显示'"
+            @click="emit('toggle-fullscreen')"
+          />
 
-          <el-tooltip
-            content="调整行高"
-            placement="bottom"
+          <el-dropdown
+            trigger="click"
+            @command="density => emit('change-density', density)"
           >
-            <el-dropdown
-              trigger="click"
-              @command="density => emit('change-density', density)"
-            >
-              <el-button
-                size="small"
-                :icon="Grid"
-              />
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item
-                    v-for="(config, key) in DENSITY_CONFIG"
-                    :key="key"
-                    :command="key"
-                    :class="{ 'is-active': toolbarState.density === key }"
-                  >
-                    {{ config.label }}
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </el-tooltip>
-
-          <el-tooltip
-            content="配置显示列"
-            placement="bottom"
-          >
-            <el-button
+            <AppIconButton
+              icon="Grid"
               size="small"
-              :icon="Setting"
-              @click="emit('open-column-config')"
+              tooltip="调整行高"
             />
-          </el-tooltip>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item
+                  v-for="(config, key) in DENSITY_CONFIG"
+                  :key="key"
+                  :command="key"
+                  :class="{ 'is-active': toolbarState.density === key }"
+                >
+                  {{ config.label }}
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+
+          <AppIconButton
+            icon="Setting"
+            size="small"
+            tooltip="配置显示列"
+            @click="emit('open-column-config')"
+          />
         </slot>
       </div>
     </div>

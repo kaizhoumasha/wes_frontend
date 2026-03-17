@@ -57,8 +57,6 @@ export interface CrudTableProps<T = unknown> {
   showSelection?: boolean
   /** 空状态文本 */
   emptyText?: string
-  /** 空状态操作文本 */
-  emptyActionText?: string
   /** 默认排序状态 */
   defaultSort?: { field: string; order: Exclude<TableSortOrder, null> }
   /** 是否启用列宽拖拽 */
@@ -71,7 +69,6 @@ const props = withDefaults(defineProps<CrudTableProps>(), {
   density: 'comfortable',
   showSelection: false,
   emptyText: '暂无数据',
-  emptyActionText: '创建数据',
   defaultSort: undefined,
   columnResizable: false
 })
@@ -85,8 +82,6 @@ const emit = defineEmits<{
   (e: 'size-change', size: number): void
   /** 重试事件 */
   (e: 'retry'): void
-  /** 创建事件（空状态） */
-  (e: 'create'): void
   /** 排序变化事件 */
   (e: 'sort-change', sort: { field: string; sortKey?: string; order: TableSortOrder }): void
   /** 列宽变化事件 */
@@ -181,10 +176,6 @@ function handleRetry() {
   emit('retry')
 }
 
-function handleCreate() {
-  emit('create')
-}
-
 function handleSortChange(sort: { field: string; sortKey?: string; order: TableSortOrder }) {
   emit('sort-change', sort)
 }
@@ -223,14 +214,9 @@ function handleColumnResize(resize: { field: string; width: number; oldWidth?: n
       v-else-if="showEmpty"
       class="crud-table__empty"
     >
-      <el-empty :description="emptyText">
-        <el-button
-          type="primary"
-          @click="handleCreate"
-        >
-          {{ emptyActionText }}
-        </el-button>
-      </el-empty>
+      <slot name="empty">
+        <el-empty :description="emptyText" />
+      </slot>
     </div>
 
     <!-- 数据表格 -->
@@ -260,14 +246,6 @@ function handleColumnResize(resize: { field: string; width: number; oldWidth?: n
             name="error"
             :error="error"
           />
-        </template>
-
-        <!-- 空状态插槽（可选） -->
-        <template
-          v-if="$slots.empty"
-          #empty
-        >
-          <slot name="empty" />
         </template>
       </DataTable>
     </div>

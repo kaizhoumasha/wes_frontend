@@ -48,9 +48,7 @@ export const menuApi = {
    * ```
    */
   async getMenuTree(): Promise<MenuResponse> {
-    const response = await apiClient.Get<ApiResponse<MenuResponse>>(
-      getApiPath('/menus/my')
-    )
+    const response = await apiClient.Get<ApiResponse<MenuResponse>>(getApiPath('/menus/my_menu'))
     return response as unknown as MenuResponse
   }
 }

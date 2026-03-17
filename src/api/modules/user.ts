@@ -107,7 +107,7 @@ export const userApi: UserApi = Object.assign(
      *
      * 对应后端:
      * PUT /users/{id}/reset-password
-     * 权限: admin:user:reset-password
+     * 权限: `ADMIN_PERMISSIONS.user.resetPassword`
      */
     async resetPassword(id: number, data: ResetUserPasswordInput): Promise<User> {
       const response = await apiClient.Put<User>(

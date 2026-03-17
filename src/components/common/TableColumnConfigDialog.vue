@@ -1,11 +1,32 @@
 <!--
-  列配置对话框
+通用列配置对话框
 
-  功能：
-  - 拖拽调整列顺序（全局顺序）
-  - 配置各列在哪些设备端显示
-  - 恢复默认配置
-  - 持久化到 localStorage（通过 useUserTableColumns composable）
+功能：
+- 拖拽调整列顺序（全局顺序）
+- 配置各列在哪些设备端显示
+- 恢复默认配置
+- 持久化到 localStorage（通过 useTableColumns composable）
+
+使用示例：
+```vue
+<template>
+  <TableColumnConfigDialog
+    v-model="dialogOpen"
+    :column-config="columnConfig"
+    :default-columns="DEFAULT_COLUMNS"
+    @update:config="updateConfig"
+  />
+</template>
+
+<script setup>
+import { ref } from 'vue'
+import { useTableColumns } from '@/composables/useTableColumns'
+import TableColumnConfigDialog from '@/components/common/TableColumnConfigDialog.vue'
+
+const { columnConfig, updateConfig } = useTableColumns({ ... })
+const dialogOpen = ref(false)
+</script>
+```
 -->
 <template>
   <el-dialog
@@ -35,7 +56,9 @@
             'is-locked': col.reorderLocked,
             'is-dragging': dragIndex === index,
             'is-drop-before':
-              dragOverIndex === index && dragOverIndex !== dragIndex && dragOverPosition === 'before',
+              dragOverIndex === index &&
+              dragOverIndex !== dragIndex &&
+              dragOverPosition === 'before',
             'is-drop-after':
               dragOverIndex === index && dragOverIndex !== dragIndex && dragOverPosition === 'after'
           }"
@@ -104,30 +127,49 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { Rank } from '@element-plus/icons-vue'
-import {
-  useUserTableColumns,
-  DEFAULT_COLUMN_CONFIG,
-  type ColumnBreakpoint,
-  type ColumnConfig
-} from '../composables/useUserTableColumns'
+import type { ColumnConfig, ColumnBreakpoint } from '@/composables/useTableColumns'
 
-// ==================== 对话框状态 ====================
+// ============================================================================
+// Props & Emits
+// ============================================================================
+
+interface Props {
+  /** 当前列配置（来自 useTableColumns） */
+  columnConfig: ColumnConfig[]
+  /** 默认列配置（用于恢复默认） */
+  defaultColumns: ColumnConfig[]
+}
+
+const props = withDefaults(defineProps<Props>(), {})
+
+const emit = defineEmits<{
+  /** 更新配置事件 */
+  (e: 'update:config', config: ColumnConfig[]): void
+}>()
+
+// ============================================================================
+// 对话框状态
+// ============================================================================
 
 const visible = defineModel<boolean>({ default: false })
-
-const { columnConfig, updateConfig } = useUserTableColumns()
 
 // 本地副本，确认后才写入
 const localConfig = ref<ColumnConfig[]>([])
 
 // 打开对话框时同步最新配置
-watch(visible, value => {
-  if (value) {
-    localConfig.value = columnConfig.value.map(column => ({ ...column }))
-  }
-})
+watch(
+  visible,
+  value => {
+    if (value) {
+      localConfig.value = props.columnConfig.map(column => ({ ...column }))
+    }
+  },
+  { immediate: true }
+)
 
-// ==================== 拖拽排序 ====================
+// ============================================================================
+// 拖拽排序
+// ============================================================================
 
 const dragIndex = ref<number | null>(null)
 const dragOverIndex = ref<number | null>(null)
@@ -202,7 +244,9 @@ function handleDragEnd() {
   dragOverPosition.value = null
 }
 
-// ==================== 可见性矩阵 ====================
+// ============================================================================
+// 可见性矩阵
+// ============================================================================
 
 function isChecked(column: ColumnConfig, breakpoint: ColumnBreakpoint): boolean {
   switch (breakpoint) {
@@ -252,15 +296,17 @@ function handleVisibilityChange(
   column.visibleFrom = 'tablet'
 }
 
-// ==================== 操作 ====================
+// ============================================================================
+// 操作
+// ============================================================================
 
 function handleConfirm() {
-  updateConfig(localConfig.value)
+  emit('update:config', localConfig.value)
   visible.value = false
 }
 
 function handleReset() {
-  localConfig.value = DEFAULT_COLUMN_CONFIG.map(column => ({ ...column }))
+  localConfig.value = props.defaultColumns.map(column => ({ ...column }))
 }
 </script>
 

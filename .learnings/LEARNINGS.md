@@ -1264,3 +1264,151 @@ Stylelint: Unexpected invalid media query "(width >= var(--breakpoint-mobile))"
 - **Resolved**: 2026-03-12T15:30:00+08:00
 - **Notes**: 创建三层断点管理架构，在 Serena memory 中记录"问题 6: CSS 媒体查询不支持变量"，所有 lint 检查通过
 
+---
+
+## [LRN-20260316-001] best_practice
+
+**Logged**: 2026-03-16T09:30:00+08:00
+**Priority**: high
+**Status**: resolved
+**Area**: frontend
+
+### Summary
+通用 CRUD 组件重构模式：使用 CrudPageLayout + CrudToolbar + CrudTable 替代自定义页面组件
+
+### Details
+通过将用户管理页面从自定义组件迁移至通用 CRUD 组件：
+- 代码行数减少 51% (630 行 → 306 行)
+- 复用通用组件和 composable
+- 保留业务特定逻辑（列配置、操作列）
+
+**重构前架构**：
+```
+UserListPage.vue (~250 行)
+├── UserToolbar.vue (~80 行)     # 自定义工具栏
+├── UserTable.vue (~100 行)      # 自定义表格
+└── useUserListPage.ts (~200 行) # 自定义页面逻辑
+总计：~630 行
+```
+
+**重构后架构**：
+```
+UserListPage.vue (~306 行)
+├── CrudPageLayout (通用)
+├── CrudToolbar (通用)
+├── CrudTable (通用)
+├── useCrudListPage (通用)
+├── useCrudToolbar (通用)
+└── useUserTableColumns (保留，列配置)
+总计：~306 行 (净减少 324 行)
+```
+
+### 迁移步骤
+
+1. **创建 V2 版本并行测试**
+   - 复制原页面为 `UserListPageV2.vue`
+   - 添加测试路由 `/admin/users-v2`
+   - 在开发环境中并行测试
+
+2. **实现通用组件集成**
+   - 替换 `UserToolbar` → `CrudToolbar`
+   - 替换 `UserTable` → `CrudTable`
+   - 替换 `useUserListPage` → `useCrudListPage`
+   - 保留业务特定逻辑：
+     - `useUserTableColumns.ts` - 列配置 composable
+     - `tableColumns.ts` - 操作列定义
+
+3. **验证 V2 功能完整**
+   - 智能搜索功能
+   - 表格排序、分页
+   - 行选择、批量操作
+   - 列配置持久化
+   - 响应式断点显示
+
+4. **更新主路由指向 V2**
+   ```typescript
+   // src/router/index.ts
+   {
+     path: 'admin/users',
+     name: 'UserList',
+     component: () => import('@/views/admin/users/UserListPage.vue'),
+     meta: {
+       requiresAuth: true,
+       permission: 'admin:user:list',
+       title: '用户管理',
+     },
+   },
+   // 删除 /admin/users-v2 测试路由
+   ```
+
+5. **删除旧版文件和测试路由**
+   - `UserListPage.vue` (旧版)
+   - `UserToolbar.vue`
+   - `UserTable.vue`
+   - `useUserListPage.ts`
+
+6. **运行 lint 验证**
+   ```bash
+   pnpm lint  # TypeScript + ESLint + Prettier + Stylelint
+   ```
+
+### 关键保留逻辑
+
+**列配置 Composable** (`useUserTableColumns.ts`):
+```typescript
+// 响应式断点系统
+export type ColumnVisibleFrom = 'desktop' | 'tablet' | 'mobile'
+
+// 预创建 Map 避免重复创建 (效率优化)
+const DEFAULT_COLUMN_CONFIG_MAP = new Map(
+  DEFAULT_COLUMN_CONFIG.map(column => [column.key, column])
+)
+```
+
+**操作列构建器** (`tableColumns.ts`):
+```typescript
+export function buildUserActionsColumn(options: {
+  canEdit?: boolean
+  canResetPassword?: boolean
+  canDelete?: boolean
+  onEdit?: (user: User) => void
+  onResetPassword?: (user: User) => void
+  onDelete?: (user: User) => void
+}): TableColumnConfig {
+  // 构建操作按钮数组
+  return buildActionsColumn(buttons, { ... })
+}
+```
+
+### Suggested Action
+此重构模式可推广至其他 CRUD 页面：
+- 角色管理页
+- 权限管理页
+- 设备管理页
+- 作业线管理页
+
+每个页面的迁移成本约 2-4 小时，代码减少 40-60%。
+
+### Metadata
+- Source: conversation
+- Related Files:
+  - src/views/admin/users/UserListPage.vue
+  - src/components/common/CrudPageLayout.vue
+  - src/components/common/CrudToolbar.vue
+  - src/components/common/CrudTable.vue
+  - src/composables/useCrudListPage.ts
+  - src/views/admin/users/composables/useUserTableColumns.ts
+  - src/views/admin/users/tableColumns.ts
+- Tags: crud, refactoring, component-reuse, composable, vue3
+- Pattern-Key: refactor.crud_migration
+- Recurrence-Count: 1
+- First-Seen: 2026-03-16
+- Last-Seen: 2026-03-16
+
+### Resolution
+- **Resolved**: 2026-03-16T09:30:00+08:00
+- **Commit**: 540e0a8
+- **Notes**: 已完成迁移并提交，代码减少 1317 行，lint 检查全部通过
+
+---
+

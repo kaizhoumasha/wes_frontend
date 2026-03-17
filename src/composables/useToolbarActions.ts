@@ -1,4 +1,4 @@
-import { computed, type ComputedRef, type Component } from 'vue'
+import { computed, type ComputedRef } from 'vue'
 import { usePermission } from './usePermission'
 
 /**
@@ -8,9 +8,8 @@ import { usePermission } from './usePermission'
  *
  * @example
  * ```typescript
- * import { Plus } from '@element-plus/icons-vue'
  * import { useToolbarActions } from '@/composables/useToolbarActions'
- * import { USER_PERMISSION } from './constants'
+ * import { USER_PERMISSION } from './config/permissions'
  *
  * const createLoading = ref(false)
  *
@@ -19,7 +18,7 @@ import { usePermission } from './usePermission'
  *     {
  *       key: 'create',
  *       label: '新增用户',
- *       icon: Plus,
+ *       icon: 'Plus',
  *       type: 'primary',
  *       handler: openCreateDialog,
  *       permission: USER_PERMISSION.create,
@@ -39,8 +38,8 @@ export interface ToolbarAction {
   key: string
   /** 按钮文本 */
   label: string
-  /** 按钮图标（Element Plus 图标组件） */
-  icon?: Component
+  /** 按钮图标名称（优先使用 AppIcon） */
+  icon?: string
   /** 按钮类型 */
   type?: 'primary' | 'success' | 'warning' | 'danger' | 'info'
   /** 点击处理函数 */

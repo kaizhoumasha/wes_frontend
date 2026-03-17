@@ -6,11 +6,13 @@
  * ## 路由元信息配置
  *
  * ```ts
+ * import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
+ *
  * {
  *   path: '/admin/users',
  *   meta: {
  *     requiresAuth: true,
- *     permission: 'admin:user:list'  // 所需权限
+ *     permission: ADMIN_PERMISSIONS.user.page
  *   }
  * }
  * ```
@@ -123,11 +125,13 @@ export function createPermissionGuard(_router: Router) {
  * ## 路由元信息配置
  *
  * ```ts
+ * import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
+ *
  * {
  *   path: '/admin/users',
  *   meta: {
  *     requiresAuth: true,
- *     permissions: ['admin:user:list', 'admin:user:read']  // 所需权限（任意一个）
+ *     permissions: [ADMIN_PERMISSIONS.user.page, ADMIN_PERMISSIONS.user.detail]
  *   }
  * }
  * ```

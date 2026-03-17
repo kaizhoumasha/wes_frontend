@@ -587,3 +587,5 @@ cat node_modules/vee-validate/dist/*.d.ts | grep "function useForm"
 - 查看方式：Serena memory → debugging-lessons-typescript-framework-integration
 
 ---
+
+YOU MUST: 任何问题处理超过三次还没有成功，就要找其他方法解决，或直接退出！

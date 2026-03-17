@@ -62,5 +62,6 @@
     "vue": "html"
   },
   "vue.complete.casing.tags": "pascal",
-  "vue.complete.casing.props": "camel"
+  "vue.complete.casing.props": "camel",
+  "cSpell.words": ["hideable"]
 }
