@@ -141,6 +141,7 @@ import { useMenu } from '@/composables/useMenu'
 import { logout } from '@/api/services/token-refresh'
 import { apiClient } from '@/api/client'
 import { usePermission } from '@/composables/usePermission'
+import { useCurrentUser } from '@/composables/useCurrentUser'
 import { useTimezoneStore } from '@/stores/timezone'
 import type { MenuItem } from '@/types/menu'
 import ThemeToggle from './ThemeToggle.vue'
@@ -151,6 +152,7 @@ import TimezoneSettings from './TimezoneSettings.vue'
 const { toggleSidebar, sidebarCollapsed } = useLayout()
 const { clearMenus } = useMenu()
 const { clearPermissions } = usePermission()
+const { currentUser, clearCurrentUser } = useCurrentUser()
 const timezoneStore = useTimezoneStore()
 
 // ==================== 对话框状态 ====================
@@ -174,7 +176,7 @@ const route = useRoute()
 
 /** 当前用户名 */
 const username = computed(() => {
-  return 'Admin' // TODO: 从用户状态获取
+  return currentUser.value?.full_name?.trim() || '用户'
 })
 
 /** 用户头像 */
@@ -298,6 +300,7 @@ const handleLogout = async () => {
     // 清除权限和菜单
     clearPermissions()
     clearMenus()
+    clearCurrentUser()
 
     ElMessage.success('已退出登录')
 
