@@ -381,6 +381,7 @@ const props = withDefaults(defineProps<Props>(), {
   schema: undefined,
   updateSchema: undefined,
   title: undefined,
+  loadData: undefined,
   width: '600px',
   enableOptimisticLock: true,
   versionField: 'version',

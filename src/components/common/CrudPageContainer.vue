@@ -1,4 +1,8 @@
-<script setup lang="ts" generic="TItem extends CrudPageEntity, TCreate extends object, TUpdate extends object">
+<script
+  setup
+  lang="ts"
+  generic="TItem extends CrudPageEntity, TCreate extends object, TUpdate extends object"
+>
 import type { ComponentPublicInstance } from 'vue'
 import { computed } from 'vue'
 import CrudFormDialog from '@/components/common/CrudFormDialog.vue'

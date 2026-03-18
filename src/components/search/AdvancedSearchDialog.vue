@@ -207,7 +207,7 @@ const editingDraft = computed(() => {
 })
 
 function appendDraftForField(fieldKey: string) {
-  const field = props.fields.find((candidate) => candidate.key === fieldKey)
+  const field = props.fields.find(candidate => candidate.key === fieldKey)
   if (!field) {
     return
   }

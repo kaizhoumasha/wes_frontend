@@ -11,7 +11,10 @@
     class="search-popover-panel search-popover-panel--tabs"
     stretch
   >
-    <el-tab-pane label="字段" name="fields">
+    <el-tab-pane
+      label="字段"
+      name="fields"
+    >
       <SearchFieldPanel
         :fields="fields"
         :active-field="activeField"
@@ -19,13 +22,19 @@
         @activate-field="handleActivateField"
       />
     </el-tab-pane>
-    <el-tab-pane label="快捷" name="quick">
+    <el-tab-pane
+      label="快捷"
+      name="quick"
+    >
       <SearchQuickPanel
         :quick-presets="quickPresets"
         @apply-preset="handleApplyPreset"
       />
     </el-tab-pane>
-    <el-tab-pane label="收藏" name="favorite">
+    <el-tab-pane
+      label="收藏"
+      name="favorite"
+    >
       <FavoriteList
         :favorites="favorites"
         variant="panel"
@@ -36,7 +45,10 @@
   </el-tabs>
 
   <!-- 中屏（420-599px）：2列，右侧快速+收藏上下分区 -->
-  <div v-else-if="isMedium" class="search-popover-panel search-popover-panel--two-col">
+  <div
+    v-else-if="isMedium"
+    class="search-popover-panel search-popover-panel--two-col"
+  >
     <div class="panel-col panel-col--fields">
       <SearchFieldPanel
         :fields="fields"
@@ -45,7 +57,10 @@
         @activate-field="handleActivateField"
       />
     </div>
-    <el-divider direction="vertical" class="panel-vdivider" />
+    <el-divider
+      direction="vertical"
+      class="panel-vdivider"
+    />
     <div class="search-popover-panel__right panel-col panel-col--side">
       <SearchQuickPanel
         :quick-presets="quickPresets"
@@ -62,7 +77,10 @@
   </div>
 
   <!-- 宽屏（≥600px）：3列 -->
-  <div v-else class="search-popover-panel search-popover-panel--three-col">
+  <div
+    v-else
+    class="search-popover-panel search-popover-panel--three-col"
+  >
     <div class="panel-col panel-col--fields">
       <SearchFieldPanel
         :fields="fields"
@@ -71,14 +89,20 @@
         @activate-field="handleActivateField"
       />
     </div>
-    <el-divider direction="vertical" class="panel-vdivider" />
+    <el-divider
+      direction="vertical"
+      class="panel-vdivider"
+    />
     <div class="panel-col panel-col--side">
       <SearchQuickPanel
         :quick-presets="quickPresets"
         @apply-preset="handleApplyPreset"
       />
     </div>
-    <el-divider direction="vertical" class="panel-vdivider" />
+    <el-divider
+      direction="vertical"
+      class="panel-vdivider"
+    />
     <div class="panel-col panel-col--side">
       <FavoriteList
         :favorites="favorites"
@@ -130,7 +154,9 @@ const emit = defineEmits<Emits>()
 
 const activeTab = ref('fields')
 const isNarrow = computed(() => (props.containerWidth ?? 0) < 420)
-const isMedium = computed(() => (props.containerWidth ?? 0) >= 420 && (props.containerWidth ?? 0) < 600)
+const isMedium = computed(
+  () => (props.containerWidth ?? 0) >= 420 && (props.containerWidth ?? 0) < 600
+)
 
 // ==================== 事件处理 ====================
 

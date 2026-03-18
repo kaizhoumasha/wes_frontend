@@ -129,10 +129,7 @@ const hasChanges = computed(() => {
     return timezoneStore.userTimezone !== null || timezoneStore.useBrowserTimezone
   }
   if (editingTimezoneMode.value === 'custom') {
-    return (
-      timezoneStore.userTimezone !== editingTimezone.value ||
-      timezoneStore.useBrowserTimezone
-    )
+    return timezoneStore.userTimezone !== editingTimezone.value || timezoneStore.useBrowserTimezone
   }
   return false
 })
