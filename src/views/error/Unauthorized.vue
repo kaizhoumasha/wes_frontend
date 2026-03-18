@@ -1,26 +1,20 @@
 <template>
-  <div class="unauthorized-page">
-    <div class="container">
-      <!-- 403 图标 -->
-      <div class="icon-wrapper">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-        >
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-          <path d="M9 12l2 2 4-4" />
-        </svg>
-      </div>
+  <ErrorLayout>
+    <template #status>
+      <span data-text="403">403</span>
+    </template>
 
-      <!-- 锁定图标叠加 -->
-      <div class="lock-icon">
+    <template #icon>
+      <div class="icon-403">
+        <!-- 警示条纹背景 -->
+        <div class="hazard-stripes" />
+        <!-- 锁图标 -->
         <svg
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
           stroke-width="1.5"
+          class="lock-icon"
         >
           <rect
             x="3"
@@ -28,58 +22,95 @@
             width="18"
             height="11"
             rx="2"
-            ry="2"
           />
           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          <circle
+            cx="12"
+            cy="16"
+            r="1"
+            fill="currentColor"
+          />
         </svg>
+        <!-- 脉冲圈 -->
+        <div class="pulse-ring" />
+        <div class="pulse-ring delay-1" />
+        <div class="pulse-ring delay-2" />
       </div>
+    </template>
 
-      <!-- 标题 -->
-      <h1 class="title">403</h1>
-      <h2 class="subtitle">访问受限</h2>
+    <template #title>访问受限</template>
 
-      <!-- 说明信息 -->
-      <p class="description">您没有访问此页面的权限</p>
+    <template #description>
+      您没有访问此页面的权限。如需访问，请联系系统管理员申请相应权限。
+    </template>
 
-      <!-- 所需权限提示 -->
+    <template #info>
       <div
         v-if="requiredPermission"
         class="permission-info"
       >
-        <span class="label">所需权限：</span>
+        <div class="permission-header">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            class="key-icon"
+          >
+            <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+          </svg>
+          <span class="label">所需权限</span>
+        </div>
         <code class="permission-code">{{ requiredPermission }}</code>
       </div>
+    </template>
 
-      <!-- 操作按钮 -->
-      <div class="actions">
-        <button
-          class="btn-primary"
-          @click="goBack"
+    <template #actions>
+      <button
+        class="btn btn-primary"
+        @click="goBack"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
         >
-          返回上一页
-        </button>
-        <button
-          class="btn-secondary"
-          @click="goHome"
+          <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        返回上一页
+      </button>
+      <button
+        class="btn btn-secondary"
+        @click="goHome"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
         >
-          回到首页
-        </button>
-      </div>
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9,22 9,12 15,12 15,22" />
+        </svg>
+        回到首页
+      </button>
+    </template>
 
-      <!-- 联系管理员提示 -->
-      <p class="hint">如果您认为这是一个错误，请联系系统管理员</p>
-    </div>
-  </div>
+    <template #hint>
+      如果您认为这是一个错误，请联系系统管理员。
+    </template>
+  </ErrorLayout>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import ErrorLayout from './ErrorLayout.vue'
 
 const router = useRouter()
 const route = useRoute()
 
-// 从查询参数中获取重定向路径和所需权限
 const redirectPath = computed(() => route.query.redirect as string | undefined)
 const requiredPermission = computed(() => route.query.permission as string | undefined)
 
@@ -105,320 +136,264 @@ const goHome = () => {
 </script>
 
 <style scoped>
-.unauthorized-page {
-  min-height: 100vh;
+/* 图标容器 */
+.icon-403 {
+  position: relative;
+  width: 72px;
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family:
-    'SF Pro Display',
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
-  padding: 20px;
-  transition: background 0.3s ease;
 }
 
-html.dark .unauthorized-page {
-  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 55%, #0d1117 100%);
+/* 警示条纹背景 */
+.hazard-stripes {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: repeating-conic-gradient(
+    from 0deg,
+    transparent 0deg 30deg,
+    rgb(255 255 255 / 5%) 30deg 60deg
+  );
+  animation: stripesRotate 30s linear infinite;
 }
 
-html:not(.dark) .unauthorized-page {
-  background: linear-gradient(135deg, #f0f2f5 0%, #e4e8eb 100%);
+html.dark .hazard-stripes {
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgb(239 68 68 / 8%) 0deg 30deg,
+    transparent 30deg 60deg
+  );
 }
 
-.container {
-  text-align: center;
-  max-width: 480px;
-  width: 100%;
-  padding: 40px 32px;
-  border-radius: 20px;
-  backdrop-filter: blur(20px);
-  transition: all 0.3s ease;
+html:not(.dark) .hazard-stripes {
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgb(239 68 68 / 10%) 0deg 30deg,
+    rgb(255 255 255 / 50%) 30deg 60deg
+  );
 }
 
-html.dark .container {
-  background: rgb(13 17 23 / 80%);
-  border: 1px solid rgb(0 243 255 / 10%);
-  box-shadow:
-    0 20px 60px rgb(0 0 0 / 45%),
-    inset 0 1px 0 rgb(255 255 255 / 5%);
+@keyframes stripesRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-html:not(.dark) .container {
-  background: #f5f6f7;
-  border: 1px solid #e4e7ed;
-  box-shadow:
-    0 20px 60px rgb(0 0 0 / 10%),
-    inset 0 1px 0 rgb(255 255 255 / 100%);
-}
-
-/* 图标区域 */
-.icon-wrapper {
+/* 锁图标 */
+.lock-icon {
   position: relative;
-  width: 120px;
-  height: 120px;
-  margin: 0 auto 40px;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  animation: lockPulse 2s ease-in-out infinite;
 }
 
-.icon-wrapper svg {
-  width: 100%;
-  height: 100%;
-  animation: float 6s ease-in-out infinite;
+html.dark .lock-icon {
+  color: #f87171;
+  filter: drop-shadow(0 0 16px rgb(248 113 113 / 50%));
 }
 
-html.dark .icon-wrapper svg {
-  color: rgb(0 243 255 / 28%);
+html:not(.dark) .lock-icon {
+  color: #dc2626;
+  filter: drop-shadow(0 0 16px rgb(220 38 38 / 40%));
 }
 
-html:not(.dark) .icon-wrapper svg {
-  color: rgb(64 158 255 / 28%);
-}
-
-@keyframes float {
+@keyframes lockPulse {
   0%,
   100% {
-    transform: translateY(0);
+    transform: scale(1);
   }
   50% {
-    transform: translateY(-20px);
+    transform: scale(1.05);
   }
 }
 
-.lock-icon {
+/* 脉冲圈 */
+.pulse-ring {
   position: absolute;
-  bottom: -10px;
-  right: -10px;
-  width: 48px;
-  height: 48px;
-  background: #ef4444;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow:
-    0 4px 20px rgb(239 68 68 / 40%),
-    0 0 0 4px rgb(239 68 68 / 20%);
+  inset: -8px;
+  border-radius: 50%;
+  border: 2px solid;
+  animation: pulseExpand 2.5s ease-out infinite;
+  opacity: 0;
 }
 
-.lock-icon svg {
-  width: 28px;
-  height: 28px;
-  color: #fff;
-  animation: none;
+html.dark .pulse-ring {
+  border-color: #ef4444;
 }
 
-/* 标题 */
-.title {
-  font-size: 120px;
-  font-weight: 700;
-  margin: 0;
-  line-height: 1;
-  transition: color 0.3s ease;
+html:not(.dark) .pulse-ring {
+  border-color: #dc2626;
 }
 
-html.dark .title {
-  color: #fff;
-  text-shadow:
-    0 10px 30px rgb(0 0 0 / 30%),
-    0 0 0 10px rgb(255 255 255 / 10%);
+.pulse-ring.delay-1 {
+  animation-delay: 0.8s;
 }
 
-html:not(.dark) .title {
-  color: #303133;
-  text-shadow:
-    0 10px 30px rgb(0 0 0 / 10%),
-    0 0 0 10px rgb(255 255 255 / 50%);
+.pulse-ring.delay-2 {
+  animation-delay: 1.6s;
 }
 
-.subtitle {
-  font-size: 32px;
-  font-weight: 600;
-  margin: 0 0 24px;
-  transition: color 0.3s ease;
-}
-
-html.dark .subtitle {
-  color: #fff;
-}
-
-html:not(.dark) .subtitle {
-  color: #303133;
-}
-
-.description {
-  font-size: 18px;
-  margin: 0 0 32px;
-  transition: color 0.3s ease;
-}
-
-html.dark .description {
-  color: rgb(255 255 255 / 70%);
-}
-
-html:not(.dark) .description {
-  color: #606266;
+@keyframes pulseExpand {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
 }
 
 /* 权限信息 */
 .permission-info {
-  display: inline-flex;
+  border-radius: 8px;
+}
+
+.permission-header {
+  display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px 24px;
-  border-radius: 12px;
-  margin-bottom: 32px;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
-html.dark .permission-info {
-  background: rgb(0 0 0 / 20%);
-  border: 1px solid rgb(255 255 255 / 10%);
+.key-icon {
+  width: 16px;
+  height: 16px;
 }
 
-html:not(.dark) .permission-info {
-  background: #f5f7fa;
-  border: 1px solid #e4e7ed;
+html.dark .key-icon {
+  color: #f87171;
 }
 
-.permission-info .label {
-  font-size: 14px;
-  transition: color 0.3s ease;
+html:not(.dark) .key-icon {
+  color: #dc2626;
 }
 
-html.dark .permission-info .label {
-  color: rgb(255 255 255 / 70%);
+.label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-html:not(.dark) .permission-info .label {
-  color: #606266;
+html.dark .label {
+  color: rgb(230 237 243 / 40%);
+}
+
+html:not(.dark) .label {
+  color: #64748b;
 }
 
 .permission-code {
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-family: 'Courier New', monospace;
-  font-size: 13px;
-  transition: all 0.3s ease;
+  display: block;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-family: 'IBM Plex Mono', 'Fira Code', monospace;
+  font-size: 14px;
+  word-break: break-all;
 }
 
 html.dark .permission-code {
-  background: rgb(239 68 68 / 20%);
-  border: 1px solid rgb(239 68 68 / 30%);
+  background: rgb(239 68 68 / 12%);
+  border: 1px solid rgb(239 68 68 / 25%);
   color: #fca5a5;
 }
 
 html:not(.dark) .permission-code {
-  background: #fef0f0;
-  border: 1px solid #fbc4c4;
-  color: #d14141;
+  background: rgb(254 226 226 / 60%);
+  border: 1px solid rgb(252 165 165 / 50%);
+  color: #b91c1c;
 }
 
-/* 操作按钮 */
-.actions {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  margin-bottom: 24px;
-}
-
-.actions button {
-  padding: 14px 32px;
-  font-size: 16px;
+/* 按钮样式 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 14px;
   font-weight: 600;
-  border: 1px solid transparent;
-  border-radius: 8px;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
+}
+
+.btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.btn-primary {
+  border: none;
 }
 
 html.dark .btn-primary {
-  background: linear-gradient(135deg, #00f3ff 0%, #0f8 100%);
-  color: #0a0e27;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #fff;
+  box-shadow:
+    0 4px 20px rgb(239 68 68 / 30%),
+    inset 0 1px 0 rgb(255 255 255 / 15%);
 }
 
 html.dark .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgb(0 243 255 / 25%);
-}
-
-html.dark .btn-secondary {
-  background: rgb(255 255 255 / 6%);
-  color: rgb(255 255 255 / 90%);
-  border-color: rgb(255 255 255 / 20%);
-}
-
-html.dark .btn-secondary:hover {
-  background: rgb(255 255 255 / 12%);
-  border-color: rgb(0 243 255 / 30%);
-  color: #fff;
-  transform: translateY(-2px);
+  box-shadow:
+    0 8px 30px rgb(239 68 68 / 40%),
+    inset 0 1px 0 rgb(255 255 255 / 15%);
 }
 
 html:not(.dark) .btn-primary {
-  background: linear-gradient(135deg, #409eff 0%, #337ecc 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
   color: #fff;
+  box-shadow: 0 4px 20px rgb(220 38 38 / 25%);
 }
 
 html:not(.dark) .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgb(64 158 255 / 25%);
+  box-shadow: 0 8px 30px rgb(220 38 38 / 35%);
 }
 
-html:not(.dark) .btn-secondary {
-  background: #fff;
-  color: #606266;
-  border-color: #dcdfe6;
+.btn-secondary {
+  background: transparent;
 }
 
-html:not(.dark) .btn-secondary:hover {
-  background: #ecf5ff;
-  border-color: #409eff;
-  color: #409eff;
+html.dark .btn-secondary {
+  color: #e6edf3;
+  border: 1px solid rgb(255 255 255 / 15%);
+}
+
+html.dark .btn-secondary:hover {
+  background: rgb(255 255 255 / 5%);
+  border-color: rgb(239 68 68 / 30%);
   transform: translateY(-2px);
 }
 
-/* 提示信息 */
-.hint {
-  font-size: 14px;
-  margin: 0;
-  transition: color 0.3s ease;
+html:not(.dark) .btn-secondary {
+  color: #475569;
+  border: 1px solid #cbd5e1;
 }
 
-html.dark .hint {
-  color: rgb(255 255 255 / 50%);
-}
-
-html:not(.dark) .hint {
-  color: #909399;
+html:not(.dark) .btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #dc2626;
+  color: #dc2626;
+  transform: translateY(-2px);
 }
 
 /* 响应式 */
 @media (width <= 640px) {
-  .container {
-    padding: 32px 20px;
-  }
-
-  .title {
-    font-size: 80px;
-  }
-
-  .subtitle {
-    font-size: 24px;
-  }
-
-  .description {
-    font-size: 16px;
-  }
-
-  .actions {
-    flex-direction: column;
-  }
-
-  .actions button {
+  .btn {
     width: 100%;
+    justify-content: center;
+    padding: 12px 20px;
   }
 }
 </style>

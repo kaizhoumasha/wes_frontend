@@ -1,0 +1,365 @@
+<template>
+  <ErrorLayout>
+    <template #status>
+      <span data-text="404">404</span>
+    </template>
+
+    <template #icon>
+      <div class="icon-404">
+        <!-- 迷宫/网格图标 - 表示"迷失" -->
+        <svg
+          viewBox="0 0 80 80"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          class="maze-icon"
+        >
+          <!-- 外框 -->
+          <rect
+            x="8"
+            y="8"
+            width="64"
+            height="64"
+            rx="4"
+          />
+          <!-- 迷宫路径 -->
+          <path d="M8 28h20v-20" />
+          <path d="M28 28v24h24v-24" />
+          <path d="M52 8v20h20" />
+          <path d="M8 52h20v20" />
+          <path d="M52 52h20v20" />
+          <!-- 问号 -->
+          <circle
+            cx="40"
+            cy="40"
+            r="12"
+            stroke-dasharray="4 4"
+          />
+          <path
+            d="M40 44v2"
+            stroke-width="3"
+          />
+          <path d="M37 36c0-2 1-4 3-4s3 2 3 4" />
+        </svg>
+        <!-- 旋转指示器 -->
+        <div class="compass-ring" />
+      </div>
+    </template>
+
+    <template #title>页面不存在</template>
+
+    <template #description>
+      {{ description }}
+    </template>
+
+    <template #info>
+      <div
+        v-if="targetPath"
+        class="route-info"
+      >
+        <span class="label">// 目标路径</span>
+        <code class="path-code">{{ targetPath }}</code>
+      </div>
+    </template>
+
+    <template #actions>
+      <button
+        class="btn btn-primary"
+        @click="goBack"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        返回上一页
+      </button>
+      <button
+        class="btn btn-secondary"
+        @click="goDashboard"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <rect
+            x="3"
+            y="3"
+            width="7"
+            height="7"
+          />
+          <rect
+            x="14"
+            y="3"
+            width="7"
+            height="7"
+          />
+          <rect
+            x="3"
+            y="14"
+            width="7"
+            height="7"
+          />
+          <rect
+            x="14"
+            y="14"
+            width="7"
+            height="7"
+          />
+        </svg>
+        回到仪表盘
+      </button>
+    </template>
+
+    <template #hint>
+      <span v-if="fromMenu"> 若这是后端菜单配置的入口，请补充对应前端路由或修正菜单 path。 </span>
+      <span v-else> 当前访问的页面不存在，或对应前端路由尚未配置。 </span>
+    </template>
+  </ErrorLayout>
+</template>
+
+<script setup lang="ts">
+import { computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import ErrorLayout from './ErrorLayout.vue'
+
+const router = useRouter()
+const route = useRoute()
+
+const targetPath = computed(() => {
+  const path = route.query.path
+  return typeof path === 'string' && path.length > 0 ? path : route.fullPath
+})
+
+const menuTitle = computed(() => {
+  const title = route.query.title
+  return typeof title === 'string' && title.length > 0 ? title : undefined
+})
+
+const fromMenu = computed(() => route.query.source === 'menu')
+
+const description = computed(() => {
+  if (fromMenu.value) {
+    const menuLabel = menuTitle.value ? `"${menuTitle.value}"` : '该菜单'
+    return `菜单 ${menuLabel} 指向了一个尚未注册的前端路由。请检查路由配置。`
+  }
+  return '您访问的页面不存在，可能已被移除或地址输入错误。'
+})
+
+onMounted(() => {
+  console.warn('[404] 未找到匹配路由', {
+    currentPath: route.fullPath,
+    targetPath: targetPath.value,
+    source: route.query.source,
+    menuTitle: menuTitle.value
+  })
+})
+
+const goBack = () => {
+  if (window.history.length > 1) {
+    router.back()
+    return
+  }
+  router.push('/dashboard')
+}
+
+const goDashboard = () => {
+  router.push('/dashboard')
+}
+</script>
+
+<style scoped>
+/* 图标样式 */
+.icon-404 {
+  position: relative;
+  width: 72px;
+  height: 72px;
+}
+
+.maze-icon {
+  width: 100%;
+  height: 100%;
+  animation: iconFloat 4s ease-in-out infinite;
+}
+
+html.dark .maze-icon {
+  color: #00f3ff;
+  filter: drop-shadow(0 0 10px rgb(0 243 255 / 40%));
+}
+
+html:not(.dark) .maze-icon {
+  color: #1e40af;
+  filter: drop-shadow(0 0 10px rgb(30 64 175 / 30%));
+}
+
+@keyframes iconFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(3deg);
+  }
+}
+
+/* 指南针环 */
+.compass-ring {
+  position: absolute;
+  inset: -3px;
+  border: 2px dashed;
+  border-radius: 50%;
+  animation: compassSpin 20s linear infinite;
+}
+
+html.dark .compass-ring {
+  border-color: rgb(0 243 255 / 25%);
+}
+
+html:not(.dark) .compass-ring {
+  border-color: rgb(30 64 175 / 20%);
+}
+
+@keyframes compassSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 路由信息 */
+.route-info {
+  border-radius: 8px;
+}
+
+.label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+html.dark .label {
+  color: rgb(230 237 243 / 40%);
+}
+
+html:not(.dark) .label {
+  color: #64748b;
+}
+
+.path-code {
+  display: block;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-family: 'IBM Plex Mono', 'Fira Code', monospace;
+  font-size: 14px;
+  word-break: break-all;
+}
+
+html.dark .path-code {
+  background: rgb(0 0 0 / 40%);
+  color: #7cf7ff;
+  border: 1px solid rgb(0 243 255 / 15%);
+}
+
+html:not(.dark) .path-code {
+  background: #fff;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+}
+
+/* 按钮样式 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.btn-primary {
+  border: none;
+}
+
+html.dark .btn-primary {
+  background: linear-gradient(135deg, #00f3ff 0%, #00b4d8 100%);
+  color: #0d1117;
+  box-shadow:
+    0 4px 20px rgb(0 243 255 / 30%),
+    inset 0 1px 0 rgb(255 255 255 / 20%);
+}
+
+html.dark .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 30px rgb(0 243 255 / 40%),
+    inset 0 1px 0 rgb(255 255 255 / 20%);
+}
+
+html:not(.dark) .btn-primary {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: #fff;
+  box-shadow: 0 4px 20px rgb(30 64 175 / 25%);
+}
+
+html:not(.dark) .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgb(30 64 175 / 35%);
+}
+
+.btn-secondary {
+  background: transparent;
+}
+
+html.dark .btn-secondary {
+  color: #e6edf3;
+  border: 1px solid rgb(255 255 255 / 15%);
+}
+
+html.dark .btn-secondary:hover {
+  background: rgb(255 255 255 / 5%);
+  border-color: rgb(0 243 255 / 30%);
+  transform: translateY(-2px);
+}
+
+html:not(.dark) .btn-secondary {
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+html:not(.dark) .btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #1e40af;
+  color: #1e40af;
+  transform: translateY(-2px);
+}
+
+/* 响应式 */
+@media (width <= 640px) {
+  .btn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 20px;
+  }
+}
+</style>

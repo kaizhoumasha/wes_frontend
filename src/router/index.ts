@@ -33,6 +33,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: false }
       },
       {
+        path: '404',
+        name: 'NotFound',
+        component: () => import('@/views/error/NotFound.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
         path: 'examples/user-form',
         name: 'UserFormExample',
         component: () => import('@/views/examples/UserFormExample.vue'),
@@ -40,25 +46,58 @@ const routes: RouteRecordRaw[] = [
       },
       // ==================== 管理模块 ====================
       {
-        path: 'admin/users',
-        name: 'UserList',
-        component: () => import('@/views/admin/users/UserListPage.vue'),
+        path: 'admin',
+        name: 'AdminRoot',
         meta: {
           requiresAuth: true,
-          permission: ADMIN_PERMISSIONS.user.page,
-          title: '用户管理',
+          title: '系统管理',
+          menu: {
+            name: 'admin:system:menu',
+            icon: 'Setting',
+            sortOrder: 10
+          }
         },
+        children: [
+          {
+            path: 'admin/users',
+            name: 'UserList',
+            component: () => import('@/views/admin/users/UserListPage.vue'),
+            meta: {
+              requiresAuth: true,
+              title: '用户管理',
+              permission: ADMIN_PERMISSIONS.user.page,
+              menu: {
+                name: 'admin:user:menu',
+                parentName: 'admin:system:menu',
+                icon: 'User',
+                sortOrder: 99
+              }
+            }
+          }
+        ]
       },
       // 开发模式专属路由：调试页面
-      ...(import.meta.env.DEV ? [
-        {
-          path: 'debug/smart-search',
-          name: 'SmartSearchDebug',
-          component: () => import('@/views/debug/smart-search-debug.vue'),
-          meta: { requiresAuth: false, title: '智能搜索调试' }
-        }
-      ] : [])
+      ...(import.meta.env.DEV
+        ? [
+            {
+              path: 'debug/smart-search',
+              name: 'SmartSearchDebug',
+              component: () => import('@/views/debug/smart-search-debug.vue'),
+              meta: { requiresAuth: false, title: '智能搜索调试' }
+            }
+          ]
+        : [])
     ]
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFoundRedirect',
+    redirect: to => ({
+      path: '/404',
+      query: {
+        path: to.path
+      }
+    })
   }
 ]
 

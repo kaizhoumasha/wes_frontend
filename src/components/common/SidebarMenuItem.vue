@@ -104,6 +104,21 @@ const visibleChildren = computed(() => {
  * 处理菜单点击事件
  */
 const handleMenuClick = () => {
+  const resolvedRoute = router.resolve(props.menuItem.path)
+  const fallbackRoute = resolvedRoute.matched[resolvedRoute.matched.length - 1]
+
+  if (fallbackRoute?.name === 'NotFoundRedirect') {
+    router.push({
+      name: 'NotFound',
+      query: {
+        path: props.menuItem.path,
+        title: props.menuItem.title,
+        source: 'menu'
+      }
+    })
+    return
+  }
+
   router.push(props.menuItem.path)
 }
 </script>
