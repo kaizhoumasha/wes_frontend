@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **P9 WES (休斯顿智能仓储执行系统)** 是一个独立部署的仓储执行控制中台，前端基于 Vue 3 + TypeScript + Vite 构建，对接 FastAPI 后端。
 
 - **后端项目**: `../wes_backend`
-- **本地 API**: http://localhost:8001/api/v1
+- **本地 API**: http://localhost:8001
 - **API 文档**: http://localhost:8001/docs
 
 ---
@@ -50,6 +50,24 @@ pnpm lint:prettier
 
 # 仅 Stylelint
 pnpm lint:stylelint
+```
+
+### 契约与代码生成
+
+```bash
+# OpenAPI 类型生成
+pnpm type:generate
+
+# Zod Schema 生成
+pnpm zod:generate
+
+# 权限码生成 / 校验
+pnpm permission:generate
+pnpm permission:verify
+
+# 前后端契约校验 / 测试
+pnpm contract:verify
+pnpm contract:test
 ```
 
 ### Git Worktree 管理
@@ -114,29 +132,44 @@ pnpm lint:stylelint
 
 ---
 
-## 目录结构与职责
+## 目录结构与职责（以当前仓库为准）
 
 ```
 src/
-├── api/               # API 请求层（alova 实例 + 端点定义）
+├── api/               # API 请求层
+│   ├── base/          # CRUD/API 基类
+│   ├── modules/       # 业务 API 模块
+│   ├── services/      # token 刷新、SSE、认证错误处理
+│   ├── generated/     # 生成的权限码等产物
 │   └── client.ts      # alova 实例配置，包含请求/响应拦截器
 ├── assets/            # 静态资源（图片、样式）
 ├── components/        # 组件
 │   ├── common/        # 通用业务组件
+│   ├── search/        # Smart Search 组件
 │   └── ui/            # UI 基础组件（可复制 shadcn-vue 代码）
 ├── composables/       # 组合式函数（复用逻辑）
-│   └── useEnv.ts      # 环境变量访问（响应式）
+│   ├── useEnv.ts      # 环境变量访问（响应式）
+│   ├── useCrud*.ts    # CRUD 页面复用逻辑
+│   └── useResponsiveLayout.ts
 ├── config/            # 配置文件
-│   └── env.ts         # 环境变量单一数据源
+│   ├── env.ts         # 环境变量单一数据源
+│   └── api/           # API base url / version 统一配置
 ├── constants/         # 常量定义（枚举、配置）
 ├── layouts/           # 布局组件
-├── locales/           # 国际化
 ├── router/            # 路由配置
+│   ├── guards/        # 权限守卫
 │   └── index.ts       # 路由实例 + 认证守卫
 ├── stores/            # Pinia 状态管理
 ├── types/             # TypeScript 类型定义
 ├── utils/             # 工具函数
 └── views/             # 页面视图
+```
+
+补充目录：
+
+```
+docs/                  # 技术、CRUD、搜索、时区、契约同步文档
+scripts/               # 类型生成、权限同步、契约测试、worktree 脚本
 ```
 
 ---
@@ -184,17 +217,23 @@ const url = env.apiBaseUrl
 
 ### 4. API 模块组织
 
-按业务模块组织 API，每个模块一个文件：
+当前 API 分层以“基础能力 + 业务模块 + 生成产物”为主：
 
 ```
 api/
 ├── client.ts        # 统一的 alova 实例
-├── auth/            # 认证相关 API
-├── admin/           # 管理员模块 API
-├── workline/        # 作业线管理 API
-├── device/          # 设备管理 API
-└── callback/        # 回调管理 API
+├── base/            # CRUD/API 抽象
+├── modules/         # auth / user / menu / device 等业务模块
+├── services/        # token-refresh / auth-error-handler / sse-client
+├── generated/       # 生成的权限码等文件
+├── types/           # request / response / model 类型
+└── utils/           # 错误分类等辅助函数
 ```
+
+### 4.1 当前协作约定
+
+- `AGENTS.md` 为仓库协作指南，使用中文单文件维护。
+- `.serena/memories/` 中的共享记忆可保留入库；`project-init/`、`repo-docs/` 这类本地运行痕迹不提交。
 
 ### 5. 响应式布局架构
 

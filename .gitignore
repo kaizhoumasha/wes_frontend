@@ -18,3 +18,8 @@ dist-ssr/
 *.temp
 *.log
 .DS_Store
+
+# 本地 Agent 运行痕迹（项目共享记忆除外）
+.serena/memories/project-init/
+.serena/memories/repo-docs/
+.serena/memories/user-preferences/
