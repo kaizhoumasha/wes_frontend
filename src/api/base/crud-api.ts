@@ -20,52 +20,32 @@
  * - DELETE /{prefix}/bulk        - 批量删除
  */
 
+import { z } from 'zod'
 import { apiClient } from '../client'
 import type { ApiResponse, PaginationData } from '../types'
 import { API_CACHE_DURATION, API_RELATION_DEPTH } from '@/constants/cache'
+import {
+  BatchOperationResultSchema,
+  FilterConditionSchema,
+  FilterGroupSchema,
+  FilterOperatorSchema,
+  QueryOptionsSchema,
+  SortFieldSchema,
+} from '../../types/zod-extensions'
 
 // ==================== 类型定义 ====================
 
-export type FilterOperator =
-  | 'eq'
-  | 'ne'
-  | 'gt'
-  | 'ge'
-  | 'lt'
-  | 'le'
-  | 'in'
-  | 'nin'
-  | 'ilike'
-  | 'between'
-  | 'is_null'
-  | 'not_null'
+export type FilterOperator = z.infer<typeof FilterOperatorSchema>
 
-export interface FilterCondition {
-  field: string
-  op: FilterOperator
-  value?: unknown | null
-}
+export type FilterCondition = z.input<typeof FilterConditionSchema>
 
-export type FilterCouple = 'and' | 'or' | 'not'
+export type FilterCouple = NonNullable<z.input<typeof FilterGroupSchema>['couple']>
 
-export interface FilterGroup {
-  couple?: FilterCouple
-  conditions?: Array<FilterCondition | FilterGroup>
-}
+export type FilterGroup = z.input<typeof FilterGroupSchema>
 
-export interface SortField {
-  field: string
-  order?: 'asc' | 'desc'
-}
+export type SortField = z.input<typeof SortFieldSchema>
 
-export interface QueryOptions {
-  filters?: FilterGroup | null
-  sort?: SortField[] | null
-  offset?: number
-  limit?: number
-  max_depth?: number
-  include_deleted?: boolean
-}
+export type QueryOptions = z.input<typeof QueryOptionsSchema>
 
 function normalizeFilterGroup(filters: FilterGroup | null | undefined): FilterGroup | undefined {
   if (!filters) {
@@ -104,19 +84,7 @@ export function appendAndFilter(
   }
 }
 
-/**
- * 批量操作结果
- */
-export interface BatchOperationResult {
-  /** 成功数量 */
-  success: number
-  /** 失败数量 */
-  failed: number
-  /** 总数量 */
-  total: number
-  /** 详细错误信息 */
-  errors?: Array<{ id?: number; message: string }>
-}
+export type BatchOperationResult = z.infer<typeof BatchOperationResultSchema>
 
 /**
  * CRUD API 配置

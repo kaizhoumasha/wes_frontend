@@ -197,10 +197,11 @@ if (newDtoIssues.length > 0) {
 2. 更新前端类型定义：
 
    ```typescript
-   // src/api/types/models/auth.ts
-   export interface UserResponse {
-     username: string // 添加缺失字段
-   }
+   // scripts/generate-zod-from-openapi.ts
+   // 然后重新生成 src/types/generated/zod-schemas.ts
+   export const UserResponseSchema = z.object({
+     username: z.string() // 添加缺失字段
+   })
    ```
 
 3. 重新运行测试：

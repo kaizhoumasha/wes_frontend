@@ -6,7 +6,7 @@
  */
 
 import { apiClient, getApiPath } from '../client'
-import type { ApiResponse } from '../types'
+import type { ApiResponse } from '../types/response'
 import type { MenuTreeResponse } from '@/types/menu'
 
 // ==================== 类型定义 ====================

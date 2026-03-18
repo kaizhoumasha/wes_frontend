@@ -27,6 +27,7 @@ interface ContractIssue {
 
 const API_MODULES_DIR = join(__dirname, '../src/api/modules')
 const TYPES_DIR = join(__dirname, '../src/api/types')
+const GENERATED_TYPES_PATH = join(__dirname, '../src/types/generated/zod-schemas.ts')
 
 function extractExportedTypes(filePath: string): string[] {
   if (!existsSync(filePath)) {
@@ -122,27 +123,26 @@ function validateTypeExports(): FieldIssue[] {
 function checkUserContract(): FieldIssue[] {
   const issues: FieldIssue[] = []
 
-  const authTypesPath = join(TYPES_DIR, 'models/auth.ts')
-  if (!existsSync(authTypesPath)) {
+  if (!existsSync(GENERATED_TYPES_PATH)) {
     issues.push({
       field: 'UserResponse',
       type: 'missing',
       severity: 'error',
-      expected: 'src/api/types/models/auth.ts 应导出 UserResponse',
+      expected: 'src/types/generated/zod-schemas.ts 应生成 UserResponseSchema',
     })
     return issues
   }
 
-  const authTypesContent = readFileSync(authTypesPath, 'utf-8')
+  const generatedTypesContent = readFileSync(GENERATED_TYPES_PATH, 'utf-8')
   const requiredFields = ['id', 'username', 'is_multi_login', 'roles']
 
   for (const field of requiredFields) {
-    if (!authTypesContent.includes(field)) {
+    if (!generatedTypesContent.includes(field)) {
       issues.push({
         field,
         type: 'missing',
         severity: 'error',
-        expected: `UserResponse 应包含 ${field} 字段`,
+        expected: `UserResponseSchema 应包含 ${field} 字段`,
       })
     }
   }
@@ -153,27 +153,26 @@ function checkUserContract(): FieldIssue[] {
 function checkDeviceContract(): FieldIssue[] {
   const issues: FieldIssue[] = []
 
-  const deviceModulePath = join(API_MODULES_DIR, 'device.ts')
-  if (!existsSync(deviceModulePath)) {
+  if (!existsSync(GENERATED_TYPES_PATH)) {
     issues.push({
       field: 'Device',
       type: 'missing',
       severity: 'error',
-      expected: 'src/api/modules/device.ts 应定义 Device 类型',
+      expected: 'src/types/generated/zod-schemas.ts 应生成 DeviceResponseSchema',
     })
     return issues
   }
 
-  const deviceContent = readFileSync(deviceModulePath, 'utf-8')
+  const generatedTypesContent = readFileSync(GENERATED_TYPES_PATH, 'utf-8')
   const requiredFields = ['device_code', 'device_name', 'device_status', 'device_type', 'host', 'port']
 
   for (const field of requiredFields) {
-    if (!deviceContent.includes(field)) {
+    if (!generatedTypesContent.includes(field)) {
       issues.push({
         field,
         type: 'missing',
         severity: 'error',
-        expected: `Device 应包含 ${field} 字段`,
+        expected: `DeviceResponseSchema 应包含 ${field} 字段`,
       })
     }
   }
@@ -184,21 +183,20 @@ function checkDeviceContract(): FieldIssue[] {
 function checkAuthResponseContract(): FieldIssue[] {
   const issues: FieldIssue[] = []
 
-  const authTypesPath = join(TYPES_DIR, 'models/auth.ts')
-  if (!existsSync(authTypesPath)) {
+  if (!existsSync(GENERATED_TYPES_PATH)) {
     return issues
   }
 
-  const authTypesContent = readFileSync(authTypesPath, 'utf-8')
+  const generatedTypesContent = readFileSync(GENERATED_TYPES_PATH, 'utf-8')
   const oauthFields = ['expires_in', 'refresh_expires_in']
 
   for (const field of oauthFields) {
-    if (!authTypesContent.includes(field)) {
+    if (!generatedTypesContent.includes(field)) {
       issues.push({
         field: `LoginResponse.${field}`,
         type: 'missing',
         severity: 'error',
-        expected: `LoginResponse 应包含 OAuth 2.0 标准字段 ${field}`,
+        expected: `LoginResponseSchema 应包含 OAuth 2.0 标准字段 ${field}`,
       })
     }
   }
@@ -209,34 +207,33 @@ function checkAuthResponseContract(): FieldIssue[] {
 function checkSessionContract(): FieldIssue[] {
   const issues: FieldIssue[] = []
 
-  const authModulePath = join(API_MODULES_DIR, 'auth.ts')
-  if (!existsSync(authModulePath)) {
+  if (!existsSync(GENERATED_TYPES_PATH)) {
     issues.push({
       field: 'SessionInfo',
       type: 'missing',
       severity: 'error',
-      expected: 'src/api/modules/auth.ts 应定义 SessionInfo 类型',
+      expected: 'src/types/generated/zod-schemas.ts 应生成 SessionInfoSchema',
     })
     return issues
   }
 
-  const authModuleContent = readFileSync(authModulePath, 'utf-8')
+  const generatedTypesContent = readFileSync(GENERATED_TYPES_PATH, 'utf-8')
 
-  if (!authModuleContent.includes('last_active')) {
+  if (!generatedTypesContent.includes('last_active')) {
     issues.push({
       field: 'SessionInfo.last_active',
       type: 'missing',
       severity: 'error',
-      expected: 'SessionInfo 应包含 last_active 字段',
+      expected: 'SessionInfoSchema 应包含 last_active 字段',
     })
   }
 
-  if (authModuleContent.includes('last_active_at')) {
+  if (generatedTypesContent.includes('last_active_at')) {
     issues.push({
       field: 'SessionInfo.last_active_at',
       type: 'type_mismatch',
       severity: 'error',
-      expected: 'SessionInfo 不应使用 last_active_at，请统一为 last_active',
+      expected: 'SessionInfoSchema 不应使用 last_active_at，请统一为 last_active',
     })
   }
 

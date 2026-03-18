@@ -5,6 +5,9 @@
  * 对应后端: src/app/admin/v1/menu.py
  */
 
+import { z } from 'zod'
+import { MenuTreeResponseSchema } from './zod-extensions'
+
 // ==================== 菜单项类型 ====================
 
 /**
@@ -33,31 +36,7 @@ export interface MenuItem {
   children: MenuItem[]
 }
 
-/**
- * 菜单树响应（后端返回格式）
- *
- * 后端直接返回树形结构，前端无需手动构建
- */
-export interface MenuTreeResponse {
-  /** 菜单 ID */
-  id: number
-  /** 菜单标识 */
-  name: string
-  /** 显示标题 */
-  title: string
-  /** 路由路径 */
-  path: string
-  /** 组件路径 */
-  component?: string
-  /** 图标名称 */
-  icon?: string
-  /** 是否隐藏 */
-  is_hidden: boolean
-  /** 排序序号 */
-  sort_order?: number
-  /** 子菜单 */
-  children: MenuTreeResponse[]
-}
+export type MenuTreeResponse = z.infer<typeof MenuTreeResponseSchema>
 
 /**
  * 扁平化菜单项（用于面包屑导航）

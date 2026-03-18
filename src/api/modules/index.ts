@@ -28,9 +28,14 @@ export type {
   UpdateUserInput,
 } from './user'
 
-export { deviceApi, deviceApiExtended, DeviceQuery } from './device'
+export {
+  deviceApi,
+  deviceApiExtended,
+  DeviceQuery,
+} from './device'
 export type {
   Device,
+  DeviceProtocol,
   DeviceStatus,
   DeviceType,
   CreateDeviceInput,

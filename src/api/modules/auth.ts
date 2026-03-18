@@ -5,183 +5,51 @@
  * 对应后端: src/app/auth/v1/auth.py
  */
 
+import { z } from 'zod'
 import { apiClient, getApiPath } from '../client'
-import type { ApiResponse } from '../types'
-import type { MenuTreeResponse } from '@/types/menu'
+import type { ApiResponse } from '../types/response'
+import {
+  ActiveSessionsResponseSchema,
+  ApiPermissionInfoSchema,
+  AuthMyResponseSchema,
+  LoginRequestSchema,
+  LoginResponseSchema,
+  LogoutResponseSchema,
+  MenuTreeResponseSchema,
+  RefreshTokenResponseSchema,
+  RevokeSessionResponseSchema,
+  SessionInfoSchema,
+  UserPermissionsResponseSchema,
+  UserResponseSchema,
+} from '../../types/zod-extensions'
 
 // ==================== 类型定义 ====================
 
-/**
- * 登录请求
- */
-export interface LoginRequest {
-  /** 用户名（3-50字符） */
-  username: string
-  /** 密码（6-100字符） */
-  password: string
-}
+export type LoginRequest = z.input<typeof LoginRequestSchema>
 
-/**
- * Token 响应
- */
-export interface TokenResponse {
-  /** 访问令牌 */
-  access_token: string
-  /** 刷新令牌（存储在 HttpOnly Cookie 中，不在响应中返回） */
-  refresh_token?: string
-  /** 过期时间（秒） */
-  expires_in: number
-}
+export type LoginResponse = z.infer<typeof LoginResponseSchema>
 
-/**
- * 登录响应
- */
-export interface LoginResponse {
-  /** 访问令牌 */
-  access_token: string
-  /** 刷新令牌（HttpOnly Cookie，不在响应中） */
-  refresh_token?: string
-  /** 过期时间（秒） */
-  expires_in: number
-  /** 用户信息 */
-  user?: UserInfo
-}
+export type TokenResponse = Pick<RefreshTokenResponse, 'access_token' | 'refresh_token' | 'expires_in'>
 
-/**
- * 登出响应
- */
-export interface LogoutResponse {
-  /** 消息 */
-  message: string
-  /** 撤销的令牌数量 */
-  revoked_count: number
-}
+export type LogoutResponse = z.infer<typeof LogoutResponseSchema>
 
-/**
- * 刷新令牌响应
- */
-export interface RefreshTokenResponse {
-  /** 新的访问令牌 */
-  access_token: string
-  /** 新的刷新令牌 */
-  refresh_token: string
-  /** 过期时间（秒） */
-  expires_in: number
-}
+export type RefreshTokenResponse = z.infer<typeof RefreshTokenResponseSchema>
 
-/**
- * 会话信息
- */
-export interface SessionInfo {
-  /** 会话 UUID */
-  session_uuid: string
-  /** JWT ID */
-  jti: string
-  /** 创建时间 */
-  created_at: string
-  /** 最后活跃时间 */
-  last_active?: string
-  /** 设备信息 */
-  device_info?: {
-    /** 用户代理 */
-    user_agent?: string
-    /** IP 地址 */
-    ip_address?: string
-    /** 设备类型 */
-    device_type?: string
-  }
-}
+export type SessionInfo = z.infer<typeof SessionInfoSchema>
 
-/**
- * 活跃会话响应
- */
-export interface ActiveSessionsResponse {
-  /** 会话总数 */
-  total: number
-  /** 会话列表 */
-  sessions: SessionInfo[]
-}
+export type ActiveSessionsResponse = z.infer<typeof ActiveSessionsResponseSchema>
 
-/**
- * 撤销会话响应
- */
-export interface RevokeSessionResponse {
-  /** 消息 */
-  message: string
-  /** 会话 UUID */
-  session_uuid: string
-}
+export type RevokeSessionResponse = z.infer<typeof RevokeSessionResponseSchema>
 
-/**
- * API 权限信息
- *
- * 对应后端: src/app/auth/v1/auth.py (ApiPermissionInfo)
- *
- * ## 字段可空性说明
- *
- * - category, resource, action: 后端为 `str | None`，前端使用可选类型
- * - method, path: 后端为 `str | None`，前端使用可选类型
- */
-export interface ApiPermissionInfo {
-  /** 权限 ID */
-  id: number
-  /** 权限标识（建议映射到 `@/api/generated/permissions` 中的常量） */
-  name: string
-  /** 权限描述 */
-  description: string
-  /** 权限类型（user_api 或 app_api） */
-  type: string
-  /** 权限分类（后端为 str | None） */
-  category?: string | null
-  /** 资源（后端为 str | None） */
-  resource?: string | null
-  /** 操作（后端为 str | None） */
-  action?: string | null
-  /** HTTP 方法（后端为 str | None） */
-  method?: string | null
-  /** API 路径（后端为 str | None） */
-  path?: string | null
-}
+export type ApiPermissionInfo = z.infer<typeof ApiPermissionInfoSchema>
 
-/**
- * 用户权限响应
- */
-export interface UserPermissionsResponse {
-  /** 权限总数 */
-  total: number
-  /** 权限列表 */
-  permissions: ApiPermissionInfo[]
-}
+export type UserPermissionsResponse = z.infer<typeof UserPermissionsResponseSchema>
 
-/**
- * 当前登录用户初始化上下文
- */
-export interface AuthMyResponse {
-  /** 当前用户信息 */
-  user: UserInfo
-  /** 当前用户 API 权限列表 */
-  permissions: ApiPermissionInfo[]
-  /** 当前用户菜单树 */
-  menus: MenuTreeResponse[]
-}
+export type MenuTreeResponse = z.infer<typeof MenuTreeResponseSchema>
 
-/**
- * 用户信息
- */
-export interface UserInfo {
-  /** 用户 ID */
-  id: number
-  /** 用户名 */
-  username: string
-  /** 邮箱 */
-  email?: string
-  /** 姓名 */
-  full_name?: string
-  /** 是否为超级用户 */
-  is_superuser: boolean
-  /** 用户状态 */
-  status?: string
-}
+export type AuthMyResponse = z.infer<typeof AuthMyResponseSchema>
+
+export type UserInfo = z.infer<typeof UserResponseSchema>
 
 // ==================== API 函数 ====================
 
