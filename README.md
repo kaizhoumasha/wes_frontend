@@ -7,20 +7,20 @@
 ## 技术栈
 
 - **框架**: Vue 3.5+ (Composition API + `<script setup>`)
-- **语言**: TypeScript 5.8+
-- **构建工具**: Vite 8+ (Rolldown 引擎)
-- **状态管理**: Pinia 2.3+
-- **路由**: Vue Router 4.5+
-- **UI 组件**: Element Plus 2.9+、Tailwind CSS 4.x
-- **HTTP 客户端**: alova 3.2+
-- **包管理器**: pnpm 9+
+- **语言**: TypeScript 5.9+
+- **构建工具**: Vite 7.3+
+- **状态管理**: Pinia 3.0+
+- **路由**: Vue Router 5.0+
+- **UI 组件**: Element Plus 2.13+、Tailwind CSS 4.2+
+- **HTTP 客户端**: alova 3.5+
+- **包管理器**: pnpm 10+
 
 ## 快速开始
 
 ### 环境要求
 
-- Node.js 20.19+ / 22.12+ (推荐 22 LTS)
-- pnpm 9+
+- Node.js 22+ (推荐 22 LTS)
+- pnpm 10+
 
 ### 安装依赖
 
@@ -103,13 +103,13 @@ src/
 
 ## 开发命令
 
-| 命令 | 说明 |
-|------|------|
-| `pnpm dev` | 启动开发服务器 |
-| `pnpm build` | 构建生产版本 |
-| `pnpm preview` | 预览构建结果 |
-| `pnpm lint` | 代码检查 |
-| `pnpm type:check` | 类型检查 |
+| 命令              | 说明           |
+| ----------------- | -------------- |
+| `pnpm dev`        | 启动开发服务器 |
+| `pnpm build`      | 构建生产版本   |
+| `pnpm preview`    | 预览构建结果   |
+| `pnpm lint`       | 代码检查       |
+| `pnpm type:check` | 类型检查       |
 
 ## 后端 API
 

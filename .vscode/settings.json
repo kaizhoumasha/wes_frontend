@@ -1,50 +1,64 @@
 {
-  // 编辑器配置
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit",
-    "source.fixAll.stylelint": "explicit",
-    "source.fixAll.prettier": "always"
+    "source.fixAll.stylelint": "explicit"
   },
   "editor.rulers": [100],
+  "editor.suggest.snippetsPreventQuickSuggestions": false,
+
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
   "[vue]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true
   },
 
-  // 文件配置
   "files.eol": "\n",
   "files.insertFinalNewline": true,
   "files.trimTrailingWhitespace": true,
 
-  // TypeScript & Vue 配置
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.tsserver.maxTsServerMemory": 8192,
+  "typescript.preferences.includePackageJsonAutoImports": "auto",
+
   "volar.autoCompleteRefs": true,
   "volar.codeLens.pugTools": false,
+  "volar.completion.autoImportComponent": true,
 
-  // 样式配置
+  "vue.server.hybridMode": true,
+  "vue.inlayHints.inlineHandlerLeading": true,
+  "vue.inlayHints.missingProps": true,
+  "vue.complete.casing.tags": "pascal",
+  "vue.complete.casing.props": "camel",
+
   "css.validate": false,
   "less.validate": false,
   "scss.validate": false,
   "stylelint.validate": ["css", "less", "postcss", "scss", "vue"],
 
-  // Tailwind CSS 配置
   "tailwindCSS.experimental.classRegex": [["c\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]],
+  "tailwindCSS.suggestions": true,
   "files.associations": {
     "*.css": "tailwindcss"
   },
 
-  // Prettier 配置
   "prettier.requireConfig": true,
   "prettier.useEditorConfig": false,
+  "prettier.enable": true,
 
-  // ESLint 配置
   "eslint.enable": true,
   "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact", "vue"],
+  "eslint.workingDirectories": [{ "directory": ".", "changeProcessCWD": true }],
 
-  // 排除配置
   "search.exclude": {
     "**/node_modules": true,
     "**/dist": true,
@@ -56,12 +70,19 @@
     "**/.DS_Store": true,
     "**/node_modules": false
   },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/dist/**": true
+  },
 
-  // 其他配置
   "emmet.includeLanguages": {
     "vue": "html"
   },
-  "vue.complete.casing.tags": "pascal",
-  "vue.complete.casing.props": "camel",
-  "cSpell.words": ["hideable"]
+  "emmet.triggerExpansionOnTab": true,
+
+  "cSpell.words": ["hideable"],
+
+  "terminal.integrated.env.linux": {},
+  "terminal.integrated.env.osx": {},
+  "terminal.integrated.env.windows": {}
 }
