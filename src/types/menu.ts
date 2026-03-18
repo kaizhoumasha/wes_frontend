@@ -11,32 +11,18 @@ import { MenuTreeResponseSchema } from './zod-extensions'
 // ==================== 菜单项类型 ====================
 
 /**
- * 菜单项接口
+ * 菜单项类型（直接从后端 schema 推断）
  *
  * 表示一个菜单节点，可以是叶子节点或包含子菜单的父节点
  */
-export interface MenuItem {
-  /** 菜单 ID */
-  id: number
-  /** 菜单标识（如 system:users, device:monitor） */
-  name: string
-  /** 显示标题 */
-  title: string
-  /** 路由路径 */
-  path: string
-  /** 组件路径（可选，外部链接无需组件） */
-  component?: string
-  /** Element Plus 图标名称（可选） */
-  icon?: string
-  /** 是否隐藏（后端已根据权限过滤） */
-  is_hidden: boolean
-  /** 排序序号 */
-  sort_order?: number
-  /** 子菜单 */
+export type MenuTreeResponse = z.infer<typeof MenuTreeResponseSchema>
+
+/**
+ * 菜单项（前端使用，确保 children 是数组）
+ */
+export type MenuItem = Omit<MenuTreeResponse, 'children'> & {
   children: MenuItem[]
 }
-
-export type MenuTreeResponse = z.infer<typeof MenuTreeResponseSchema>
 
 /**
  * 扁平化菜单项（用于面包屑导航）
@@ -73,21 +59,17 @@ export interface ActiveMenuState {
 /**
  * 将后端菜单树转换为前端菜单项
  *
+ * 主要处理 children 可能 undefined 的情况，确保 children 始终是数组
+ *
  * @param response 后端菜单树响应
  * @returns 前端菜单项
  */
 export function toMenuItem(response: MenuTreeResponse): MenuItem {
-  const children = Array.isArray(response.children) ? response.children : []
+  const children = response.children ?? []
 
   return {
-    id: response.id,
-    name: response.name,
-    title: response.title,
-    path: response.path,
-    component: response.component,
-    icon: response.icon,
+    ...response,
     is_hidden: response.is_hidden ?? false,
-    sort_order: response.sort_order,
     children: children.map(toMenuItem)
   }
 }
