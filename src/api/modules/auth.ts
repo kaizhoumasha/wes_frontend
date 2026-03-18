@@ -8,6 +8,7 @@
 import { z } from 'zod'
 import { apiClient, getApiPath } from '../client'
 import type { ApiResponse } from '../types/response'
+import { API_CACHE_DURATION } from '@/constants/cache'
 import {
   ActiveSessionsResponseSchema,
   ApiPermissionInfoSchema,
@@ -150,7 +151,8 @@ export const authApi = {
    */
   async getActiveSessions(): Promise<ActiveSessionsResponse> {
     const response = await apiClient.Get<ApiResponse<ActiveSessionsResponse>>(
-      getApiPath('/auth/sessions')
+      getApiPath('/auth/sessions'),
+      { cacheFor: API_CACHE_DURATION.NONE }
     )
     return response as unknown as ActiveSessionsResponse
   },
@@ -177,7 +179,8 @@ export const authApi = {
    */
   async getPermissions(): Promise<UserPermissionsResponse> {
     const response = await apiClient.Get<ApiResponse<UserPermissionsResponse>>(
-      getApiPath('/auth/permissions')
+      getApiPath('/auth/permissions'),
+      { cacheFor: API_CACHE_DURATION.NONE }
     )
     return response as unknown as UserPermissionsResponse
   },
@@ -189,7 +192,8 @@ export const authApi = {
    */
   async getMy(): Promise<AuthMyResponse> {
     const response = await apiClient.Get<AuthMyResponse>(
-      getApiPath('/auth/my')
+      getApiPath('/auth/my'),
+      { cacheFor: API_CACHE_DURATION.NONE }
     )
     return response
   },

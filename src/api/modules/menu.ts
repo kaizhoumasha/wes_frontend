@@ -8,6 +8,7 @@
 import { apiClient, getApiPath } from '../client'
 import type { ApiResponse } from '../types/response'
 import type { MenuTreeResponse } from '@/types/menu'
+import { API_CACHE_DURATION } from '@/constants/cache'
 
 // ==================== 类型定义 ====================
 
@@ -48,7 +49,9 @@ export const menuApi = {
    * ```
    */
   async getMenuTree(): Promise<MenuResponse> {
-    const response = await apiClient.Get<ApiResponse<MenuResponse>>(getApiPath('/menus/my_menu'))
+    const response = await apiClient.Get<ApiResponse<MenuResponse>>(getApiPath('/menus/my_menu'), {
+      cacheFor: API_CACHE_DURATION.NONE
+    })
     return response as unknown as MenuResponse
   }
 }
