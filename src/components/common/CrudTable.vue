@@ -105,20 +105,16 @@ const tableRef = ref<InstanceType<typeof DataTable>>()
 // 计算属性
 // ============================================================================
 
+const hasData = computed(() => props.data.length > 0)
+
 /** 是否显示空状态 */
-const showEmpty = computed(() => {
-  return !props.loading && props.data.length === 0 && !props.error
-})
+const showEmpty = computed(() => !props.loading && !hasData.value && !props.error)
 
 /** 是否显示错误状态 */
-const showError = computed(() => {
-  return !props.loading && !!props.error
-})
+const showError = computed(() => !props.loading && !!props.error)
 
 /** 是否显示骨架屏 */
-const showSkeleton = computed(() => {
-  return props.loading && props.data.length === 0
-})
+const showSkeleton = computed(() => props.loading && !hasData.value)
 
 /** 错误文本 */
 const errorText = computed(() => {
@@ -131,6 +127,8 @@ const errorText = computed(() => {
   return '加载失败'
 })
 
+const showPagination = computed(() => !showEmpty.value && !showError.value && props.pagination.total > 0)
+
 // ============================================================================
 // 暴露的方法
 // ============================================================================
@@ -138,14 +136,14 @@ const errorText = computed(() => {
 /**
  * 清空选中状态
  */
-function clearSelection() {
+function clearSelection(): void {
   tableRef.value?.clearSelection()
 }
 
 /**
  * 获取选中的行
  */
-function getSelectionRows() {
+function getSelectionRows(): unknown[] {
   // DataTable 不暴露 getSelectionRows，需要通过 emit 获取
   // 这里返回空数组，实际数据通过 selection-change emit 管理
   return []
@@ -160,27 +158,31 @@ defineExpose({
 // 事件处理
 // ============================================================================
 
-function handleSelectionChange(selected: unknown[]) {
+function handleSelectionChange(selected: unknown[]): void {
   emit('selection-change', selected)
 }
 
-function handlePageChange(page: number) {
+function handlePageChange(page: number): void {
   emit('page-change', page)
 }
 
-function handleSizeChange(size: number) {
+function handleSizeChange(size: number): void {
   emit('size-change', size)
 }
 
-function handleRetry() {
+function handleRetry(): void {
   emit('retry')
 }
 
-function handleSortChange(sort: { field: string; sortKey?: string; order: TableSortOrder }) {
+function handleSortChange(sort: { field: string; sortKey?: string; order: TableSortOrder }): void {
   emit('sort-change', sort)
 }
 
-function handleColumnResize(resize: { field: string; width: number; oldWidth?: number }) {
+function handleColumnResize(resize: {
+  field: string
+  width: number
+  oldWidth?: number
+}): void {
   emit('column-resize', resize)
 }
 </script>
@@ -252,7 +254,7 @@ function handleColumnResize(resize: { field: string; width: number; oldWidth?: n
 
     <!-- 分页器 -->
     <div
-      v-if="!showEmpty && !showError && pagination.total > 0"
+      v-if="showPagination"
       class="crud-table__pagination"
     >
       <el-pagination

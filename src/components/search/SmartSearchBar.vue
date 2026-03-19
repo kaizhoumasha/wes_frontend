@@ -184,7 +184,7 @@ const keywordValue = computed({
   set: val => emit('update:keyword', val)
 })
 
-function syncPopoverWithKeyword(keyword: string) {
+function syncPopoverWithKeyword(keyword: string): void {
   // 如果用户手动切换过 popover，则不自动控制
   if (manualToggle.value) {
     return
@@ -250,7 +250,7 @@ watch(
 const hasConditions = computed(() => props.conditions.length > 0)
 const keyword = computed(() => props.keyword)
 
-function clearSelectedCondition() {
+function clearSelectedCondition(): void {
   selectedConditionId.value = undefined
 }
 
@@ -262,7 +262,7 @@ function getSelectedConditionIndex(): number {
   return props.conditions.findIndex(condition => condition.id === selectedConditionId.value)
 }
 
-function selectConditionAt(index: number) {
+function selectConditionAt(index: number): void {
   if (index < 0 || index >= props.conditions.length) {
     clearSelectedCondition()
     return
@@ -271,7 +271,7 @@ function selectConditionAt(index: number) {
   selectedConditionId.value = props.conditions[index].id
 }
 
-function selectLastCondition() {
+function selectLastCondition(): void {
   if (!hasConditions.value) {
     clearSelectedCondition()
     return
@@ -289,7 +289,7 @@ function isCaretAtStart(): boolean {
   return input.selectionStart === 0 && input.selectionEnd === 0
 }
 
-function removeSelectedCondition() {
+function removeSelectedCondition(): void {
   const currentIndex = getSelectedConditionIndex()
   if (currentIndex === -1) {
     clearSelectedCondition()
@@ -304,14 +304,29 @@ function removeSelectedCondition() {
   emit('remove-condition', currentCondition.id)
 }
 
+function resetPopoverAutoControl(): void {
+  manualToggle.value = false
+  expectedPopoverOpen.value = props.popoverOpen
+}
+
+function requestPopoverOpen(): void {
+  manualToggle.value = false
+  expectedPopoverOpen.value = true
+  emit('open-popover')
+}
+
+function emitSearch(): void {
+  emit('search')
+}
+
 // ==================== 事件处理 ====================
 
-function handleContainerClick() {
+function handleContainerClick(): void {
   clearSelectedCondition()
   inputRef.value?.focus()
 }
 
-function handleBlur() {
+function handleBlur(): void {
   // 延迟关闭，让点击事件先执行
   setTimeout(() => {
     isFocused.value = false
@@ -319,16 +334,13 @@ function handleBlur() {
   }, 100)
 }
 
-function handleFocus() {
+function handleFocus(): void {
   isFocused.value = true
   clearSelectedCondition()
-  // 聚焦时重置手动切换标志，允许自动控制
-  manualToggle.value = false
-  // 同步期望状态与实际状态
-  expectedPopoverOpen.value = props.popoverOpen
+  resetPopoverAutoControl()
 }
 
-function handleKeyDown(event: KeyboardEvent) {
+function handleKeyDown(event: KeyboardEvent): void {
   if (isComposing.value || event.isComposing) {
     return
   }
@@ -337,17 +349,13 @@ function handleKeyDown(event: KeyboardEvent) {
     case 'ArrowDown':
       clearSelectedCondition()
       event.preventDefault()
-      manualToggle.value = false
-      expectedPopoverOpen.value = true
-      emit('open-popover')
+      requestPopoverOpen()
       emit('keydown-next')
       break
     case 'ArrowUp':
       clearSelectedCondition()
       event.preventDefault()
-      manualToggle.value = false
-      expectedPopoverOpen.value = true
-      emit('open-popover')
+      requestPopoverOpen()
       emit('keydown-prev')
       break
     case 'ArrowLeft': {
@@ -403,7 +411,7 @@ function handleKeyDown(event: KeyboardEvent) {
       }
 
       // 没有高亮字段时，直接触发搜索
-      emit('search')
+      emitSearch()
       break
     }
     case 'Escape':
@@ -426,18 +434,18 @@ function handleKeyDown(event: KeyboardEvent) {
   }
 }
 
-function handleCompositionStart() {
+function handleCompositionStart(): void {
   isComposing.value = true
 }
 
-function handleCompositionEnd() {
+function handleCompositionEnd(): void {
   isComposing.value = false
   void nextTick(() => {
     syncPopoverWithKeyword(props.keyword)
   })
 }
 
-function handleRemoveCondition(id: string) {
+function handleRemoveCondition(id: string): void {
   if (selectedConditionId.value === id) {
     clearSelectedCondition()
   }
@@ -445,19 +453,18 @@ function handleRemoveCondition(id: string) {
   emit('remove-condition', id)
 }
 
-function handleClear() {
+function handleClear(): void {
   clearSelectedCondition()
   emit('clear')
-  // 清空条件后触发搜索（重置列表）
-  emit('search')
+  emitSearch()
 }
 
-function handleOpenAdvanced() {
+function handleOpenAdvanced(): void {
   clearSelectedCondition()
   emit('open-advanced')
 }
 
-function handleActivateField(fieldKey: string) {
+function handleActivateField(fieldKey: string): void {
   clearSelectedCondition()
   emit('select-field', fieldKey)
 
@@ -467,23 +474,20 @@ function handleActivateField(fieldKey: string) {
     emit('open-advanced-for-field', fieldKey)
   }
 
-  // 添加条件后触发搜索
-  emit('search')
+  emitSearch()
 }
 
-function handleApplyPreset(presetId: string) {
+function handleApplyPreset(presetId: string): void {
   emit('apply-preset', presetId)
-  // 应用预设后触发搜索
-  emit('search')
+  emitSearch()
 }
 
-function handleApplyFavorite(favoriteId: string) {
+function handleApplyFavorite(favoriteId: string): void {
   emit('apply-favorite', favoriteId)
-  // 应用收藏夹后触发搜索
-  emit('search')
+  emitSearch()
 }
 
-function handlePopoverVisibleChange(visible: boolean) {
+function handlePopoverVisibleChange(visible: boolean): void {
   // Popover 的打开只允许由业务事件显式控制（输入/按钮），
   // 避免内部 visible 回调把已关闭状态重新打开。
   if (!visible && (isComposing.value || (isFocused.value && props.keyword.trim().length > 0))) {
@@ -495,7 +499,7 @@ function handlePopoverVisibleChange(visible: boolean) {
   }
 }
 
-function handleTogglePopover() {
+function handleTogglePopover(): void {
   clearSelectedCondition()
   // 标记用户手动切换了 popover
   manualToggle.value = true
@@ -507,7 +511,7 @@ function handleTogglePopover() {
 /**
  * 聚焦输入框
  */
-function focus() {
+function focus(): void {
   inputRef.value?.focus()
 }
 

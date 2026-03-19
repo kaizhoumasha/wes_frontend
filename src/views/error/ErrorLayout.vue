@@ -15,8 +15,12 @@
     <!-- 主内容区 -->
     <div class="error-container">
       <!-- 状态码 -->
-      <div class="status-code">
-        <slot name="status" />
+      <div
+        class="status-code"
+        :data-text="statusCodeText"
+      >
+        <span v-if="statusCodeText">{{ statusCodeText }}</span>
+        <slot v-else name="status" />
       </div>
 
       <!-- 图标区域 -->
@@ -66,7 +70,21 @@
 </template>
 
 <script setup lang="ts">
-// 纯展示组件，无需逻辑
+import { computed } from 'vue'
+
+interface Props {
+  statusCode?: number | string
+}
+
+const props = defineProps<Props>()
+
+const statusCodeText = computed(() => {
+  if (props.statusCode === undefined || props.statusCode === null) {
+    return ''
+  }
+
+  return String(props.statusCode)
+})
 </script>
 
 <style scoped>
@@ -256,6 +274,10 @@ html:not(.dark) .error-container {
   line-height: 1;
   letter-spacing: -0.02em;
   animation: textGlitch 3s infinite;
+}
+
+.status-code > span {
+  position: relative;
 }
 
 html.dark .status-code {

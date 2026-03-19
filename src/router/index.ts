@@ -4,6 +4,17 @@ import { createPermissionGuard } from './guards/permission'
 import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
 import { setRouterInstance } from '@/api/services/auth-error-handler'
 
+const debugRoutes: RouteRecordRaw[] = import.meta.env.DEV
+  ? [
+      {
+        path: 'debug/smart-search',
+        name: 'SmartSearchDebug',
+        component: () => import('@/views/debug/smart-search-debug.vue'),
+        meta: { requiresAuth: false, title: '智能搜索调试' }
+      }
+    ]
+  : []
+
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
@@ -59,7 +70,7 @@ const routes: RouteRecordRaw[] = [
         },
         children: [
           {
-            path: 'admin/users',
+            path: 'users',
             name: 'UserList',
             component: () => import('@/views/admin/users/UserListPage.vue'),
             meta: {
@@ -77,16 +88,7 @@ const routes: RouteRecordRaw[] = [
         ]
       },
       // 开发模式专属路由：调试页面
-      ...(import.meta.env.DEV
-        ? [
-            {
-              path: 'debug/smart-search',
-              name: 'SmartSearchDebug',
-              component: () => import('@/views/debug/smart-search-debug.vue'),
-              meta: { requiresAuth: false, title: '智能搜索调试' }
-            }
-          ]
-        : [])
+      ...debugRoutes
     ]
   },
   {

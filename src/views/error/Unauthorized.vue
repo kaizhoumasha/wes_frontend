@@ -1,9 +1,5 @@
 <template>
-  <ErrorLayout>
-    <template #status>
-      <span data-text="403">403</span>
-    </template>
-
+  <ErrorLayout status-code="403">
     <template #icon>
       <div class="icon-403">
         <!-- 警示条纹背景 -->
@@ -111,8 +107,8 @@ import ErrorLayout from './ErrorLayout.vue'
 const router = useRouter()
 const route = useRoute()
 
-const redirectPath = computed(() => route.query.redirect as string | undefined)
-const requiredPermission = computed(() => route.query.permission as string | undefined)
+const redirectPath = computed(() => getSingleQueryValue(route.query.redirect))
+const requiredPermission = computed(() => getSingleQueryValue(route.query.permission))
 
 onMounted(() => {
   console.warn(`[403] 无权限访问`, {
@@ -122,16 +118,24 @@ onMounted(() => {
   })
 })
 
-const goBack = () => {
+function getSingleQueryValue(value: unknown): string | undefined {
+  return typeof value === 'string' && value.length > 0 ? value : undefined
+}
+
+function navigateHome(): void {
+  router.push('/')
+}
+
+function goBack(): void {
   if (window.history.length > 1) {
     router.back()
   } else {
-    router.push('/')
+    navigateHome()
   }
 }
 
-const goHome = () => {
-  router.push('/')
+function goHome(): void {
+  navigateHome()
 }
 </script>
 

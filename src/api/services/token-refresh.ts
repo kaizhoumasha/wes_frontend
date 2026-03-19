@@ -5,6 +5,7 @@
  */
 
 import { getApiPath } from '../client'
+import { clearPermissionState } from '@/composables/permission-state'
 import router from '@/router'
 
 // ==================== 常量定义 ====================
@@ -264,11 +265,8 @@ export async function logout(apiClient?: any): Promise<void> {
   }
 
   // 第二步：清除权限
-  // 注意：这里需要懒加载导入避免循环依赖
   try {
-    const { usePermission } = await import('@/composables/usePermission')
-    const { clearPermissions } = usePermission()
-    clearPermissions()
+    clearPermissionState()
   } catch {
     // 忽略清除权限错误
   }

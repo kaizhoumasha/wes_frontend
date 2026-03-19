@@ -158,20 +158,73 @@ export function useSmartSearch(options: UseSmartSearchOptions): UseSmartSearchRe
     return fields.find((f) => f.key === state.value.activeField)
   })
 
-  const compatibleFields: ComputedRef<SearchFieldDef[]> = computed(() => {
-    // 先按关键字类型过滤，再过滤掉不可搜索字段
-    return getCompatibleFields(state.value.keyword, fields).filter((f) => f.searchable !== false)
-  })
+  const compatibleFields: ComputedRef<SearchFieldDef[]> = computed(() =>
+    getSearchableCompatibleFields(state.value.keyword)
+  )
 
   // ==================== 辅助函数 ====================
 
   /**
    * 触发条件变化回调（用于自动搜索）
    */
-  function notifyConditionsChange() {
+  function notifyConditionsChange(): void {
     if (onConditionsChange) {
       onConditionsChange(conditions.value)
     }
+  }
+
+  function getSearchableCompatibleFields(keyword: string): SearchFieldDef[] {
+    return getCompatibleFields(keyword, fields).filter((field) => field.searchable !== false)
+  }
+
+  function createConditionFromDraft(
+    draft: SearchConditionDraft,
+    options?: {
+      id?: string
+      source?: SearchCondition['source']
+    }
+  ): SearchCondition {
+    return {
+      id: options?.id ?? generateConditionId(),
+      field: draft.field,
+      operator: draft.operator,
+      value: draft.value,
+      label: buildConditionLabel(draft, fields),
+      source: options?.source ?? draft.source ?? 'manual'
+    }
+  }
+
+  function findConditionIndex(id: string): number {
+    return state.value.conditions.findIndex((condition) => condition.id === id)
+  }
+
+  function appendConditions(
+    drafts: SearchConditionDraft[],
+    options?: {
+      source?: SearchCondition['source']
+      deduplicate?: boolean
+    }
+  ): number {
+    let addedCount = 0
+
+    for (const draft of drafts) {
+      if (!validateConditionDraft(draft, fields, { context: '[useSmartSearch]' })) {
+        continue
+      }
+
+      if (options?.deduplicate && hasDuplicateCondition(draft)) {
+        continue
+      }
+
+      state.value.conditions.push(
+        createConditionFromDraft(draft, {
+          source: options?.source
+        })
+      )
+      addedCount++
+    }
+
+    return addedCount
   }
 
   // ==================== Keyword 操作 ====================
@@ -185,9 +238,7 @@ export function useSmartSearch(options: UseSmartSearchOptions): UseSmartSearchRe
       return
     }
 
-    const nextCompatibleFields = getCompatibleFields(keyword, fields).filter(
-      (field) => field.searchable !== false
-    )
+    const nextCompatibleFields = getSearchableCompatibleFields(keyword)
 
     if (nextCompatibleFields.length === 0) {
       state.value.activeField = undefined
@@ -255,21 +306,12 @@ export function useSmartSearch(options: UseSmartSearchOptions): UseSmartSearchRe
       return
     }
 
-    const condition: SearchCondition = {
-      id: generateConditionId(),
-      field: draft.field,
-      operator: draft.operator,
-      value: draft.value,
-      label: buildConditionLabel(draft, fields),
-      source: draft.source || 'manual',
-    }
-
-    state.value.conditions.push(condition)
+    state.value.conditions.push(createConditionFromDraft(draft))
     notifyConditionsChange()
   }
 
   function removeCondition(id: string): void {
-    const index = state.value.conditions.findIndex((c) => c.id === id)
+    const index = findConditionIndex(id)
     if (index !== -1) {
       state.value.conditions.splice(index, 1)
       notifyConditionsChange()
@@ -277,7 +319,7 @@ export function useSmartSearch(options: UseSmartSearchOptions): UseSmartSearchRe
   }
 
   function replaceCondition(id: string, draft: SearchConditionDraft): void {
-    const index = state.value.conditions.findIndex((c) => c.id === id)
+    const index = findConditionIndex(id)
     if (index === -1) {
       console.warn(`[useSmartSearch] 条件不存在: ${id}`)
       return
@@ -288,28 +330,14 @@ export function useSmartSearch(options: UseSmartSearchOptions): UseSmartSearchRe
       return
     }
 
-    state.value.conditions[index] = {
-      id,
-      field: draft.field,
-      operator: draft.operator,
-      value: draft.value,
-      label: buildConditionLabel(draft, fields),
-      source: draft.source || 'manual',
-    }
+    state.value.conditions[index] = createConditionFromDraft(draft, { id })
     notifyConditionsChange()
   }
 
   function replaceConditions(drafts: SearchConditionDraft[]): void {
     const nextConditions: SearchCondition[] = drafts
       .filter((draft) => validateConditionDraft(draft, fields, { context: '[useSmartSearch]' }))
-      .map((draft) => ({
-        id: generateConditionId(),
-        field: draft.field,
-        operator: draft.operator,
-        value: draft.value,
-        label: buildConditionLabel(draft, fields),
-        source: draft.source || 'manual'
-      }))
+      .map((draft) => createConditionFromDraft(draft))
 
     state.value.conditions = nextConditions
     notifyConditionsChange()
@@ -369,31 +397,9 @@ export function useSmartSearch(options: UseSmartSearchOptions): UseSmartSearchRe
       return
     }
 
-    let addedCount = 0
-
-    // 批量添加条件（重新生成 ID），跳过已存在的
-    favorite.conditions.forEach((condition) => {
-      // 校验条件（复用 validateConditionDraft 确保预设条件合法）
-      if (!validateConditionDraft(condition, fields, { context: '[useSmartSearch]' })) {
-        return
-      }
-
-      // 去重：跳过已存在的条件
-      if (hasDuplicateCondition(condition)) {
-        return
-      }
-
-      const newCondition: SearchCondition = {
-        id: generateConditionId(),
-        field: condition.field,
-        operator: condition.operator,
-        value: condition.value,
-        label: buildConditionLabel(condition, fields),
-        source: 'favorite',
-      }
-
-      state.value.conditions.push(newCondition)
-      addedCount++
+    const addedCount = appendConditions(favorite.conditions, {
+      source: 'favorite',
+      deduplicate: true
     })
 
     // 批量添加完成后只触发一次回调
@@ -424,31 +430,9 @@ export function useSmartSearch(options: UseSmartSearchOptions): UseSmartSearchRe
     }
 
     const { deduplicate = false } = options || {}
-    let addedCount = 0
-
-    // 批量添加条件
-    preset.conditions.forEach((draft) => {
-      // 校验条件（复用 validateConditionDraft 确保预设条件合法）
-      if (!validateConditionDraft(draft, fields, { context: '[useSmartSearch]' })) {
-        return
-      }
-
-      // 去重检查（如果启用）
-      if (deduplicate && hasDuplicateCondition(draft)) {
-        return
-      }
-
-      const condition: SearchCondition = {
-        id: generateConditionId(),
-        field: draft.field,
-        operator: draft.operator,
-        value: draft.value,
-        label: buildConditionLabel(draft, fields),
-        source: 'quick',
-      }
-
-      state.value.conditions.push(condition)
-      addedCount++
+    const addedCount = appendConditions(preset.conditions, {
+      source: 'quick',
+      deduplicate
     })
 
     // 批量添加完成后只触发一次回调

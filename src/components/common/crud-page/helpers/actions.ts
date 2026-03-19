@@ -65,6 +65,32 @@ function createRowValueResolver<TItem extends CrudPageEntity, TValue>(
   }
 }
 
+function createSelectionCountPredicate(expectedCount: 'none' | 'some', state: CrudPageControllerStateLike) {
+  return function matchesSelectionCount(): boolean {
+    return expectedCount === 'none'
+      ? state.state.selectedCount.value === 0
+      : state.state.selectedCount.value > 0
+  }
+}
+
+function createPermissionVisibility(permission: { value: boolean }) {
+  return function isVisible(): boolean {
+    return permission.value
+  }
+}
+
+function createDeletePopconfirm<TItem extends CrudPageEntity>(): NonNullable<
+  CrudPageRowAction<TItem>['popconfirm']
+> {
+  return {
+    title: '确认删除这条记录吗？',
+    confirmButtonText: '确认删除',
+    cancelButtonText: '取消',
+    confirmButtonType: 'danger',
+    width: 240
+  }
+}
+
 export function buildCrudPermissionConfig(permissions?: CrudPagePermissionConfig): {
   create: string
   update: string
@@ -106,7 +132,7 @@ export function buildDefaultToolbarActions<
       type: 'primary',
       handler: state.dialogs.openCreate,
       permission: createPermission,
-      showWhen: () => state.state.selectedCount.value === 0,
+      showWhen: createSelectionCountPredicate('none', state),
       tooltip: createTooltip
     })
   }
@@ -119,7 +145,7 @@ export function buildDefaultToolbarActions<
       type: 'danger',
       handler: onBatchDelete,
       permission: batchDeletePermission,
-      showWhen: () => state.state.selectedCount.value > 0,
+      showWhen: createSelectionCountPredicate('some', state),
       loading: state.state.batchDeleteLoading.value,
       tooltip: batchDeleteTooltip
     })
@@ -149,7 +175,7 @@ export function buildDefaultRowActions<
       type: 'primary',
       tooltip: editTooltip,
       icon: features.edit.icon,
-      show: () => state.permissions.update.value,
+      show: createPermissionVisibility(state.permissions.update),
       onClick: row => state.dialogs.openEdit(row.id)
     })
   }
@@ -164,15 +190,9 @@ export function buildDefaultRowActions<
       tooltip: deleteTooltip,
       icon: deleteIcon,
       permission: deletePermission,
-      show: () => state.permissions.delete.value,
+      show: createPermissionVisibility(state.permissions.delete),
       onClick: onDelete,
-      popconfirm: {
-        title: '确认删除这条记录吗？',
-        confirmButtonText: '确认删除',
-        cancelButtonText: '取消',
-        confirmButtonType: 'danger',
-        width: 240
-      }
+      popconfirm: createDeletePopconfirm<TItem>()
     })
   }
 

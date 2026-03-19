@@ -202,187 +202,163 @@ const valuePlaceholder = computed(() => INPUT_PLACEHOLDERS[fieldDataType.value])
 
 // ==================== 事件处理 ====================
 
-function handleFieldChange(fieldKey: string) {
+function emitUpdatedCondition(patch: Partial<SearchCondition>): void {
+  emit('update', {
+    ...props.condition,
+    ...patch
+  })
+}
+
+function resolveFieldChangeValue(
+  newField: SearchFieldDef,
+  currentValue: SearchCondition['value']
+): unknown {
+  switch (newField.dataType) {
+    case 'boolean':
+      return true
+    case 'enum':
+      return newField.options?.[0]?.value
+    case 'number':
+      return typeof currentValue === 'number' ? currentValue : undefined
+    case 'text':
+    case 'date':
+      return typeof currentValue === 'string' ? currentValue : ''
+  }
+}
+
+function normalizeConditionValue(value: unknown): unknown {
+  switch (fieldDataType.value) {
+    case 'number':
+      if (typeof value === 'number') {
+        return value
+      }
+
+      if (typeof value === 'string') {
+        const numericValue = parseFloat(value)
+        return Number.isNaN(numericValue) ? undefined : numericValue
+      }
+
+      return undefined
+    case 'boolean':
+      return Boolean(value)
+    case 'text':
+    case 'date':
+      return String(value ?? '')
+    case 'enum':
+      return value
+  }
+}
+
+function extractChangedValue(value: unknown): unknown {
+  if (typeof value === 'object' && value !== null && 'cur' in value) {
+    return (value as { cur?: number }).cur
+  }
+
+  return value
+}
+
+function buildBetweenCondition(boundary: 'min' | 'max', changedValue: unknown): SearchCondition {
+  const currentValue = props.condition.value as unknown[] | undefined
+  const currentMin = currentValue?.[0]
+  const currentMax = currentValue?.[1]
+
+  if (boundary === 'min') {
+    let nextMax = currentMax
+
+    if (
+      nextMax === undefined ||
+      (typeof changedValue === 'number' &&
+        typeof nextMax === 'number' &&
+        nextMax <= changedValue)
+    ) {
+      if (typeof changedValue === 'number') {
+        nextMax = changedValue + 1
+      } else if (typeof changedValue === 'string') {
+        nextMax = undefined
+      } else {
+        nextMax = changedValue
+      }
+    }
+
+    return {
+      ...props.condition,
+      value: [changedValue, nextMax]
+    }
+  }
+
+  let nextMin = currentMin
+
+  if (
+    nextMin === undefined ||
+    (typeof nextMin === 'number' &&
+      typeof changedValue === 'number' &&
+      nextMin >= changedValue)
+  ) {
+    if (typeof changedValue === 'number') {
+      nextMin = changedValue - 1
+    } else if (typeof changedValue === 'string') {
+      nextMin = undefined
+    } else {
+      nextMin = changedValue
+    }
+  }
+
+  return {
+    ...props.condition,
+    value: [nextMin, changedValue]
+  }
+}
+
+function handleFieldChange(fieldKey: string): void {
   const newField = props.fields.find(f => f.key === fieldKey)
-  if (!newField) return
+  if (!newField) {
+    return
+  }
 
   const newDataType = newField.dataType
   const newOperators = getOperatorsForDataType(newDataType)
-  const currentValue = props.condition.value
 
   // 检查当前操作符是否对新类型有效
   const currentOperatorValid = newOperators.includes(props.condition.operator)
 
   // 获取新字段的默认操作符
   const defaultOperator = newField.defaultOperator || newOperators[0] || 'equals'
-
-  // 根据目标数据类型决定值的处理（彻底清理跨类型脏状态）
-  let newValue: unknown = undefined
-
-  switch (newDataType) {
-    case 'boolean':
-      // 布尔类型：总是重置为 true
-      newValue = true
-      break
-
-    case 'enum':
-      // 枚举类型：使用第一个选项
-      if (newField.options && newField.options.length > 0) {
-        newValue = newField.options[0].value
-      }
-      break
-
-    case 'number':
-      // 数值类型：仅当旧值是 number 时保留，否则清空
-      if (typeof currentValue === 'number') {
-        newValue = currentValue
-      }
-      // 否则 newValue 保持 undefined，会被后续逻辑处理为 undefined
-      break
-
-    case 'text':
-    case 'date':
-      // 文本/日期类型：仅当旧值是 string 时保留，否则清空为空字符串
-      if (typeof currentValue === 'string') {
-        newValue = currentValue
-      } else {
-        // 跨类型切换（如 boolean → text）：清空为空字符串
-        newValue = ''
-      }
-      break
-  }
-
-  const newCondition: SearchCondition = {
-    ...props.condition,
+  emitUpdatedCondition({
     field: fieldKey,
     operator: currentOperatorValid ? props.condition.operator : defaultOperator,
-    value: newValue
-  }
-
-  emit('update', newCondition)
+    value: resolveFieldChangeValue(newField, props.condition.value)
+  })
 }
 
-function handleOperatorChange(operator: SearchOperator) {
-  const newCondition: SearchCondition = {
-    ...props.condition,
+function handleOperatorChange(operator: SearchOperator): void {
+  emitUpdatedCondition({
     operator
-  }
-  emit('update', newCondition)
+  })
 }
 
-function handleValueChange(value: unknown) {
-  // 根据字段数据类型进行值归一化
-  let normalizedValue: unknown = value
-
-  switch (fieldDataType.value) {
-    case 'number':
-      // 数值类型：将字符串转换为数值
-      if (typeof value === 'string') {
-        const num = parseFloat(value)
-        normalizedValue = isNaN(num) ? undefined : num
-      } else if (typeof value === 'number') {
-        normalizedValue = value
-      } else {
-        normalizedValue = undefined
-      }
-      break
-
-    case 'boolean':
-      // 布尔类型：确保为布尔值
-      normalizedValue = Boolean(value)
-      break
-
-    case 'text':
-    case 'date':
-      // 文本/日期类型：转换为字符串
-      normalizedValue = String(value ?? '')
-      break
-
-    case 'enum':
-      // 枚举类型：保持原值（已在 el-select 中确保类型正确）
-      normalizedValue = value
-      break
-  }
-
-  const newCondition: SearchCondition = {
-    ...props.condition,
-    value: normalizedValue
-  }
-  emit('update', newCondition)
+function handleValueChange(value: unknown): void {
+  emitUpdatedCondition({
+    value: normalizeConditionValue(value)
+  })
 }
 
 /**
  * between 操作符 - 最小值变化处理
  * 支持 el-input-number 和 el-date-picker 两种组件
  */
-function handleBetweenMinChange(value: unknown) {
-  // el-input-number 的 change 事件：(cur: number | undefined, prev: number | undefined) => any
-  // 我们需要取第一个参数 cur 作为最小值
-  const minValue = typeof value === 'object' ? (value as { cur?: number })?.cur : value
-
-  const currentValue = props.condition.value as unknown[] | undefined
-  const currentMax = currentValue?.[1]
-
-  // 如果 max 不存在或小于等于 min，自动调整 max
-  let newMax = currentMax
-  if (
-    newMax === undefined ||
-    (typeof minValue === 'number' && typeof newMax === 'number' && newMax <= minValue)
-  ) {
-    // 对于数值类型，设置 max = min + 1（确保 min < max）
-    if (typeof minValue === 'number') {
-      newMax = minValue + 1
-    } else if (typeof minValue === 'string') {
-      // 日期类型：如果最小值大于等于最大值，清空最大值让用户重新选择
-      newMax = undefined
-    } else {
-      newMax = minValue
-    }
-  }
-
-  const newCondition: SearchCondition = {
-    ...props.condition,
-    value: [minValue, newMax]
-  }
-  emit('update', newCondition)
+function handleBetweenMinChange(value: unknown): void {
+  emit('update', buildBetweenCondition('min', extractChangedValue(value)))
 }
 
 /**
  * between 操作符 - 最大值变化处理
  * 支持 el-input-number 和 el-date-picker 两种组件
  */
-function handleBetweenMaxChange(value: unknown) {
-  // el-input-number 的 change 事件：(cur: number | undefined, prev: number | undefined) => any
-  const maxValue = typeof value === 'object' ? (value as { cur?: number })?.cur : value
-
-  const currentValue = props.condition.value as unknown[] | undefined
-  const currentMin = currentValue?.[0]
-
-  // 如果 min 不存在或大于等于 max，自动调整 min
-  let newMin = currentMin
-  if (
-    newMin === undefined ||
-    (typeof newMin === 'number' && typeof maxValue === 'number' && newMin >= maxValue)
-  ) {
-    // 对于数值类型，设置 min = max - 1（确保 min < max）
-    if (typeof maxValue === 'number') {
-      newMin = maxValue - 1
-    } else if (typeof maxValue === 'string') {
-      // 日期类型：如果最大值小于等于最小值，清空最小值让用户重新选择
-      newMin = undefined
-    } else {
-      newMin = maxValue
-    }
-  }
-
-  const newCondition: SearchCondition = {
-    ...props.condition,
-    value: [newMin, maxValue]
-  }
-  emit('update', newCondition)
+function handleBetweenMaxChange(value: unknown): void {
+  emit('update', buildBetweenCondition('max', extractChangedValue(value)))
 }
 
-function handleRemove() {
+function handleRemove(): void {
   emit('remove')
 }
 </script>

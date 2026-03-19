@@ -19,6 +19,10 @@ import type { FilterCondition, FilterGroup } from '@/api/base/crud-api'
 // 重新导出 generateConditionId，方便其他模块使用
 export { generateConditionId, resetConditionIdCounter } from '@/types/search'
 
+const NUMERIC_KEYWORD_PATTERN = /^-?\d+(\.\d+)?$/
+const DATE_KEYWORD_PATTERN = /^\d{4}-\d{2}-\d{2}/
+const BOOLEAN_KEYWORDS = new Set(['true', 'false', '是', '否', 'y', 'n', 'yes', 'no'])
+
 // ==================== 标签生成 ====================
 
 /**
@@ -373,18 +377,18 @@ export function parseKeywordKind(keyword: string): SearchDataType | 'empty' {
   }
 
   // 数值检查（优先于布尔值，避免 1/0 被误判为布尔）
-  if (/^-?\d+(\.\d+)?$/.test(keyword)) {
+  if (NUMERIC_KEYWORD_PATTERN.test(keyword)) {
     return 'number'
   }
 
   // 布尔值检查（排除纯数值，只匹配语义化的布尔值）
   const lowerKeyword = keyword.toLowerCase()
-  if (['true', 'false', '是', '否', 'y', 'n', 'yes', 'no'].includes(lowerKeyword)) {
+  if (BOOLEAN_KEYWORDS.has(lowerKeyword)) {
     return 'boolean'
   }
 
   // 日期检查 (ISO 格式)
-  if (/^\d{4}-\d{2}-\d{2}/.test(keyword)) {
+  if (DATE_KEYWORD_PATTERN.test(keyword)) {
     return 'date'
   }
 

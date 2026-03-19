@@ -75,7 +75,7 @@ const emit = defineEmits<Emits>()
 
 // ==================== 事件处理 ====================
 
-function handleApplyFavorite(favoriteId: string) {
+function handleApplyFavorite(favoriteId: string): void {
   emit('apply-favorite', favoriteId)
 }
 </script>

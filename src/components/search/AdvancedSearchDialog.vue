@@ -124,6 +124,8 @@ import { validateConditionDraft } from '@/types/search'
 import ConditionEditorRow from './ConditionEditorRow.vue'
 import FavoriteList from './FavoriteList.vue'
 
+type LocalDraft = SearchConditionDraft & { id: string; label?: string }
+
 // ==================== 类型定义 ====================
 
 interface Props {
@@ -162,7 +164,7 @@ const emit = defineEmits<Emits>()
  * 本地草稿条件列表（UI 草稿态，与全局状态隔离）
  * 草稿可以是不完整的（value = undefined），只在应用时才校验
  */
-const localDrafts = ref<(SearchConditionDraft & { id: string; label?: string })[]>([])
+const localDrafts = ref<LocalDraft[]>([])
 
 /**
  * 编辑中的草稿索引
@@ -175,13 +177,7 @@ watch(
   () => props.conditions,
   newConditions => {
     // 当全局条件变化时，同步到本地草稿（保持一致性）
-    localDrafts.value = newConditions.map(c => ({
-      id: c.id,
-      field: c.field,
-      operator: c.operator,
-      value: c.value,
-      label: c.label
-    }))
+    localDrafts.value = newConditions.map(createLocalDraft)
   },
   { immediate: true }
 )
@@ -212,13 +208,12 @@ function appendDraftForField(fieldKey: string) {
     return
   }
 
-  localDrafts.value.push({
+  localDrafts.value.push(createLocalDraft({
     id: generateConditionId(),
     field: field.key,
     operator: field.defaultOperator || 'equals',
-    value: undefined,
-    label: undefined
-  })
+    value: undefined
+  }))
   editingIndex.value = localDrafts.value.length - 1
 }
 
@@ -243,90 +238,108 @@ watch(
 
 // ==================== 事件处理 ====================
 
-function handleClose() {
-  emit('update:modelValue', false)
+function createLocalDraft(condition: SearchCondition | LocalDraft): LocalDraft {
+  return {
+    id: condition.id,
+    field: condition.field,
+    operator: condition.operator,
+    value: condition.value,
+    label: 'label' in condition ? condition.label : undefined
+  }
+}
+
+function buildDraftLabel(draft: SearchConditionDraft): string {
+  return buildConditionLabel(draft, props.fields)
+}
+
+function createFavoriteDraft(condition: SearchConditionDraft): LocalDraft {
+  return {
+    ...createLocalDraft({
+      id: generateConditionId(),
+      field: condition.field,
+      operator: condition.operator,
+      value: condition.value
+    }),
+    label: buildDraftLabel(condition)
+  }
+}
+
+function resetEditingState(): void {
   editingIndex.value = undefined
+}
+
+function handleClose(): void {
+  emit('update:modelValue', false)
+  resetEditingState()
   // 关闭时不清空本地草稿，允许用户重新打开继续编辑
 }
 
-function handleEditDraft(index: number) {
+function handleEditDraft(index: number): void {
   editingIndex.value = index
 }
 
-function handleAddDraft() {
+function handleAddDraft(): void {
   const defaultField = props.fields[0]
-  if (!defaultField) return
+  if (!defaultField) {
+    return
+  }
 
   appendDraftForField(defaultField.key)
 }
 
-function handleUpdateDraft(condition: SearchCondition) {
-  if (editingIndex.value === undefined) return
-
-  const draft: SearchConditionDraft & { id: string; label?: string } = {
-    id: condition.id,
-    field: condition.field,
-    operator: condition.operator,
-    value: condition.value
+function handleUpdateDraft(condition: SearchCondition): void {
+  if (editingIndex.value === undefined) {
+    return
   }
 
-  // 更新本地草稿
   localDrafts.value[editingIndex.value] = {
-    ...draft,
-    label: buildConditionLabel(draft, props.fields)
+    ...createLocalDraft(condition),
+    label: buildDraftLabel(condition)
   }
 }
 
-function handleRemoveDraft(id: string) {
+function handleRemoveDraft(id: string): void {
   const index = localDrafts.value.findIndex(d => d.id === id)
   if (index !== -1) {
     localDrafts.value.splice(index, 1)
     if (editingIndex.value === index) {
-      editingIndex.value = undefined
+      resetEditingState()
     }
   }
 }
 
-function handleRemoveEditingDraft() {
+function handleRemoveEditingDraft(): void {
   if (editingDraft.value) {
     handleRemoveDraft(editingDraft.value.id)
   }
 }
 
-function handleClearAll() {
+function handleClearAll(): void {
   localDrafts.value = []
-  editingIndex.value = undefined
+  resetEditingState()
 }
 
-function handleApplyFavorite(favoriteId: string) {
+function handleApplyFavorite(favoriteId: string): void {
   const favorite = props.favorites.find(f => f.id === favoriteId)
-  if (!favorite) return
+  if (!favorite) {
+    return
+  }
 
-  // 将收藏夹的条件添加到本地草稿
-  favorite.conditions.forEach(condition => {
-    const newDraft: SearchConditionDraft & { id: string; label?: string } = {
-      id: generateConditionId(),
-      field: condition.field,
-      operator: condition.operator,
-      value: condition.value,
-      label: buildConditionLabel(condition, props.fields)
-    }
-    localDrafts.value.push(newDraft)
-  })
+  localDrafts.value.push(...favorite.conditions.map(createFavoriteDraft))
 }
 
-function handleApply() {
+function handleApply(): void {
   // 只在点击"应用"时才提交有效条件到全局状态
-  const validDrafts = localDrafts.value.filter(draft => {
-    return validateConditionDraft(draft, props.fields, { context: '[AdvancedSearchDialog]' })
-  })
+  const validDrafts = localDrafts.value.filter(draft =>
+    validateConditionDraft(draft, props.fields, { context: '[AdvancedSearchDialog]' })
+  )
 
   emit(
     'replace-conditions',
-    validDrafts.map(d => ({
-      field: d.field,
-      operator: d.operator,
-      value: d.value
+    validDrafts.map(draft => ({
+      field: draft.field,
+      operator: draft.operator,
+      value: draft.value
     }))
   )
 

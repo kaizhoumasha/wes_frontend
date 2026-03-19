@@ -6,15 +6,83 @@ import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import { resolve } from 'path'
 
-export default defineConfig(({ mode }) => {
+function resolveElementPlusChunk(id: string): string {
+  if (id.includes('@element-plus/icons-vue')) {
+    return 'ui-icons'
+  }
+  return 'ui-vendor'
+}
+
+function resolveVendorChunk(id: string): string | undefined {
+  if (!id.includes('node_modules')) {
+    return undefined
+  }
+
+  if (id.includes('element-plus') || id.includes('@element-plus')) {
+    return resolveElementPlusChunk(id)
+  }
+
+  if (id.includes('/vue-router/')) {
+    return 'router-vendor'
+  }
+
+  if (id.includes('/pinia/')) {
+    return 'state-vendor'
+  }
+
+  if (id.includes('/vue-i18n/')) {
+    return 'i18n-vendor'
+  }
+
+  if (id.includes('/vee-validate/') || id.includes('/@vee-validate/') || id.includes('/zod/')) {
+    return 'form-vendor'
+  }
+
+  if (id.includes('/@vueuse/')) {
+    return 'vueuse-vendor'
+  }
+
+  if (id.includes('/alova/')) {
+    return 'api-vendor'
+  }
+
+  if (id.includes('/@iconify/')) {
+    return 'icon-vendor'
+  }
+
+  if (
+    id.includes('/lodash-es/') ||
+    id.includes('/date-fns/') ||
+    id.includes('/date-fns-tz/') ||
+    id.includes('/clsx/') ||
+    id.includes('/tailwind-merge/')
+  ) {
+    return 'utils-vendor'
+  }
+
+  if (
+    id.includes('/vue/') ||
+    id.includes('/@vue/') ||
+    id.includes('/vue-demi/') ||
+    id.includes('/@babel/parser/') ||
+    id.includes('/estree-walker/')
+  ) {
+    return 'vue-core'
+  }
+
+  return 'vendor'
+}
+
+export default defineConfig(({ mode, command }) => {
   // 加载环境变量
   const env = loadEnv(mode, process.cwd(), '')
   const apiBaseUrl = env.VITE_API_BASE_URL || 'http://192.168.30.139:8001/api/v1'
+  const enableVueDevTools = command === 'serve' && mode === 'development'
 
   return {
     plugins: [
       vue(),
-      mode === 'development' ? VueDevTools() : undefined,
+      enableVueDevTools ? VueDevTools() : undefined,
       AutoImport({
         imports: ['vue', 'vue-router', 'pinia'],
         dts: 'src/types/auto-imports.d.ts',
@@ -36,6 +104,7 @@ export default defineConfig(({ mode }) => {
       assetsInlineLimit: 4096,
       cssCodeSplit: true,
       sourcemap: false,
+      chunkSizeWarningLimit: 1000,
       // 使用 esbuild 压缩（Vite 内置，无需额外依赖）
       minify: 'esbuild',
 
@@ -43,23 +112,7 @@ export default defineConfig(({ mode }) => {
         output: {
           // 细粒度的代码分割 - 使用函数形式避免空 chunk
           manualChunks(id) {
-            // node_modules 包分割
-            if (id.includes('node_modules')) {
-              // Vue 核心
-              if (id.includes('vue') || id.includes('pinia') || id.includes('vue-router')) {
-                return 'vue-vendor'
-              }
-              // UI 框架
-              if (id.includes('element-plus')) {
-                return 'ui-vendor'
-              }
-              // 工具库
-              if (id.includes('lodash-es') || id.includes('date-fns') || id.includes('@vueuse')) {
-                return 'utils-vendor'
-              }
-              // 其他第三方
-              return 'vendor'
-            }
+            return resolveVendorChunk(id)
           },
           // 文件名模板，便于长期缓存
           chunkFileNames: 'js/[name]-[hash].js',

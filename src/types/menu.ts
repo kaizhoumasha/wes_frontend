@@ -146,27 +146,28 @@ export function getMenuBreadcrumb(
   menuTree: MenuItem[],
   path: string
 ): MenuItem[] {
-  const breadcrumb: MenuItem[] = []
+  return findMenuBreadcrumb(menuTree, path) ?? []
+}
 
-  function findPath(menus: MenuItem[], targetPath: string, currentPath: MenuItem[]): boolean {
-    for (const menu of menus) {
-      const newPath = [...currentPath, menu]
+function findMenuBreadcrumb(
+  menus: MenuItem[],
+  targetPath: string,
+  currentPath: MenuItem[] = []
+): MenuItem[] | undefined {
+  for (const menu of menus) {
+    const nextPath = [...currentPath, menu]
 
-      if (menu.path === targetPath) {
-        breadcrumb.push(...newPath)
-        return true
-      }
-
-      if (menu.children.length > 0) {
-        if (findPath(menu.children, targetPath, newPath)) {
-          return true
-        }
-      }
+    if (menu.path === targetPath) {
+      return nextPath
     }
 
-    return false
+    if (menu.children.length > 0) {
+      const childBreadcrumb = findMenuBreadcrumb(menu.children, targetPath, nextPath)
+      if (childBreadcrumb) {
+        return childBreadcrumb
+      }
+    }
   }
 
-  findPath(menuTree, path, [])
-  return breadcrumb
+  return undefined
 }

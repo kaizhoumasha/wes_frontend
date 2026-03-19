@@ -1,9 +1,5 @@
 <template>
-  <ErrorLayout>
-    <template #status>
-      <span data-text="404">404</span>
-    </template>
-
+  <ErrorLayout status-code="404">
     <template #icon>
       <div class="icon-404">
         <!-- 迷宫/网格图标 - 表示"迷失" -->
@@ -132,15 +128,8 @@ import ErrorLayout from './ErrorLayout.vue'
 const router = useRouter()
 const route = useRoute()
 
-const targetPath = computed(() => {
-  const path = route.query.path
-  return typeof path === 'string' && path.length > 0 ? path : route.fullPath
-})
-
-const menuTitle = computed(() => {
-  const title = route.query.title
-  return typeof title === 'string' && title.length > 0 ? title : undefined
-})
+const targetPath = computed(() => getSingleQueryValue(route.query.path) ?? route.fullPath)
+const menuTitle = computed(() => getSingleQueryValue(route.query.title))
 
 const fromMenu = computed(() => route.query.source === 'menu')
 
@@ -161,16 +150,24 @@ onMounted(() => {
   })
 })
 
-const goBack = () => {
+function getSingleQueryValue(value: unknown): string | undefined {
+  return typeof value === 'string' && value.length > 0 ? value : undefined
+}
+
+function navigateToDashboard(): void {
+  router.push('/dashboard')
+}
+
+function goBack(): void {
   if (window.history.length > 1) {
     router.back()
     return
   }
-  router.push('/dashboard')
+  navigateToDashboard()
 }
 
-const goDashboard = () => {
-  router.push('/dashboard')
+function goDashboard(): void {
+  navigateToDashboard()
 }
 </script>
 

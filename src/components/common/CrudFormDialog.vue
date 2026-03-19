@@ -438,6 +438,62 @@ function createEmptyFormValues(): FormValues {
   return values
 }
 
+function buildFormValuesFromData(data: Record<string, unknown>): FormValues {
+  const formValues = createEmptyFormValues()
+
+  props.fieldConfig.forEach(field => {
+    formValues[field.key] = data[field.key] ?? ''
+  })
+
+  if (props.enableOptimisticLock && props.versionField in data) {
+    formValues[props.versionField] = data[props.versionField]
+  }
+
+  return formValues
+}
+
+function resetDialogState(): void {
+  resetForm({
+    values: createEmptyFormValues()
+  })
+  originalData.value = null
+  conflictDialogVisible.value = false
+  pendingFormData.value = null
+}
+
+function collectChangedFields(values: FormValues): Record<string, unknown> {
+  const changedData: Record<string, unknown> = {}
+
+  props.fieldConfig.forEach(field => {
+    if (!isFieldVisibleInMode(field, 'edit')) {
+      return
+    }
+
+    const currentValue = values[field.key]
+    const originalValue = originalData.value?.[field.key]
+
+    if (currentValue !== originalValue) {
+      changedData[field.key] = currentValue
+    }
+  })
+
+  return changedData
+}
+
+function collectCreateFields(values: FormValues): Record<string, unknown> {
+  const createData: Record<string, unknown> = {}
+
+  props.fieldConfig.forEach(field => {
+    if (!isFieldVisibleInMode(field, 'create')) {
+      return
+    }
+
+    createData[field.key] = values[field.key]
+  })
+
+  return createData
+}
+
 // 动态 schema
 const formSchema = computed(() => {
   if (isEditMode.value && props.updateSchema) {
@@ -598,23 +654,16 @@ function handleVersionConflict(error: unknown) {
  * 刷新数据并继续编辑
  */
 async function handleConflictRefresh() {
-  if (!props.editId) return
+  if (!props.editId) {
+    return
+  }
 
   try {
     const latestData = await resolveEditData(props.editId, { useCache: false })
     const pendingData = pendingFormData.value
 
-    const refreshedValues: FormValues = createEmptyFormValues()
-    props.fieldConfig.forEach(field => {
-      refreshedValues[field.key] = latestData[field.key] ?? ''
-    })
-
-    if (props.enableOptimisticLock && props.versionField in latestData) {
-      refreshedValues[props.versionField] = latestData[props.versionField]
-    }
-
     resetForm({
-      values: refreshedValues
+      values: buildFormValuesFromData(latestData)
     })
 
     originalData.value = { ...latestData }
@@ -652,7 +701,7 @@ const onSubmit = handleSubmit(async values => {
   try {
     if (isEditMode.value) {
       // 编辑模式：只发送有变化的字段 + version
-      const updateData: Record<string, unknown> = {}
+      const updateData = collectChangedFields(values)
 
       // 添加版本号
       if (props.enableOptimisticLock) {
@@ -664,28 +713,10 @@ const onSubmit = handleSubmit(async values => {
         updateData[props.versionField] = versionValue
       }
 
-      // 对比字段变化
-      props.fieldConfig.forEach(field => {
-        if (!isFieldVisibleInMode(field, 'edit')) return
-
-        const currentValue = values[field.key]
-        const originalValue = originalData.value?.[field.key]
-
-        if (currentValue !== originalValue) {
-          updateData[field.key] = currentValue
-        }
-      })
-
       emit('submit', updateData)
     } else {
       // 创建模式：发送所有字段
-      const createData: Record<string, unknown> = {}
-      props.fieldConfig.forEach(field => {
-        if (!isFieldVisibleInMode(field, 'create')) return
-
-        createData[field.key] = values[field.key]
-      })
-      emit('submit', createData)
+      emit('submit', collectCreateFields(values))
     }
   } catch (error) {
     // 捕获版本冲突错误
@@ -698,7 +729,7 @@ const onSubmit = handleSubmit(async values => {
 /**
  * 包装提交处理，暴露给模板使用
  */
-function onSubmitClick() {
+function onSubmitClick(): void {
   onSubmit()
 }
 
@@ -726,13 +757,7 @@ watch(
   () => [props.open, props.editId] as const,
   async ([open, editId]) => {
     if (!open) {
-      // 弹窗关闭时重置表单
-      resetForm({
-        values: createEmptyFormValues()
-      })
-      originalData.value = null
-      conflictDialogVisible.value = false
-      pendingFormData.value = null
+      resetDialogState()
       return
     }
 
@@ -748,18 +773,8 @@ watch(
         return
       }
 
-      // 填充表单数据
-      const formInitValues: FormValues = createEmptyFormValues()
-      props.fieldConfig.forEach(field => {
-        formInitValues[field.key] = data[field.key] ?? ''
-      })
-
-      if (props.enableOptimisticLock && props.versionField in data) {
-        formInitValues[props.versionField] = data[props.versionField]
-      }
-
       resetForm({
-        values: formInitValues
+        values: buildFormValuesFromData(data)
       })
 
       // 保存原始数据

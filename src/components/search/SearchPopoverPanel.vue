@@ -153,23 +153,26 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const activeTab = ref('fields')
-const isNarrow = computed(() => (props.containerWidth ?? 0) < 420)
-const isMedium = computed(
-  () => (props.containerWidth ?? 0) >= 420 && (props.containerWidth ?? 0) < 600
-)
+const NARROW_WIDTH = 420
+const MEDIUM_WIDTH = 600
+const containerWidth = computed(() => props.containerWidth ?? 0)
+const isNarrow = computed(() => containerWidth.value < NARROW_WIDTH)
+const isMedium = computed(() => {
+  return containerWidth.value >= NARROW_WIDTH && containerWidth.value < MEDIUM_WIDTH
+})
 
 // ==================== 事件处理 ====================
 
-function handleActivateField(fieldKey: string) {
+function handleActivateField(fieldKey: string): void {
   emit('activate-field', fieldKey)
 }
 
-function handleApplyPreset(preset: QuickSearchPreset) {
+function handleApplyPreset(preset: QuickSearchPreset): void {
   // 一次性应用预设（提升事件语义）
   emit('apply-preset', preset.id)
 }
 
-function handleApplyFavorite(favoriteId: string) {
+function handleApplyFavorite(favoriteId: string): void {
   emit('apply-favorite', favoriteId)
 }
 </script>

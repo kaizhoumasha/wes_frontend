@@ -162,15 +162,28 @@ export function useCrudListPage<
 
   // ==================== 权限 ====================
   const { hasPermission } = usePermission()
-  const createPermission = computed(() => permissions?.create ? hasPermission(permissions.create) : true)
-  const updatePermission = computed(() => permissions?.update ? hasPermission(permissions.update) : true)
-  const deletePermission = computed(() => permissions?.delete ? hasPermission(permissions.delete) : true)
+
+  function createPermissionRef(permission?: string): ComputedRef<boolean> {
+    return computed(() => (permission ? hasPermission(permission) : true))
+  }
+
+  function resolveAutoRefreshSetting(autoRefresh?: boolean): boolean {
+    if (optimisticUpdate) {
+      return false
+    }
+
+    return autoRefresh ?? true
+  }
+
+  const createPermission = createPermissionRef(permissions?.create)
+  const updatePermission = createPermissionRef(permissions?.update)
+  const deletePermission = createPermissionRef(permissions?.delete)
 
   // ==================== CRUD API ====================
   // 乐观更新和自动刷新不能同时启用
   // 如果用户启用了 optimisticUpdate，强制禁用 autoRefresh
   // 如果用户未指定 autoRefresh，默认为 true（除非启用 optimisticUpdate）
-  const autoRefresh = optimisticUpdate ? false : (userAutoRefresh ?? true)
+  const autoRefresh = resolveAutoRefreshSetting(userAutoRefresh)
 
   const crudApi = useCrudApi<T, C, U>(api, {
     limit: pageSize,
@@ -223,16 +236,9 @@ export function useCrudListPage<
   /** 是否有选中项 */
   const hasSelection = computed(() => selectedItems.value.length > 0)
 
-  // ==================== 搜索操作 ====================
-
-  /**
-   * 执行搜索
-   */
-  async function handleSearch(page?: number): Promise<void> {
-    const filterGroup = searchInstance.compileToFilterGroup()
-
+  function buildQueryOptions(page?: number): QueryOptions {
     const queryOptions: QueryOptions = {
-      filters: filterGroup,
+      filters: searchInstance.compileToFilterGroup(),
       sort: sortState.value
     }
 
@@ -241,7 +247,33 @@ export function useCrudListPage<
       queryOptions.limit = crudApi.pagination.pageSize
     }
 
-    await crudApi.fetchList(queryOptions)
+    return queryOptions
+  }
+
+  function resolveSortFields(sort: {
+    field: string
+    sortKey?: string
+    order: TableSortOrder
+  }): SortField[] | null {
+    if (!sort.order) {
+      return defaultSort.length > 0 ? [...defaultSort] : null
+    }
+
+    return [
+      {
+        field: sort.sortKey || sort.field,
+        order: sort.order === 'descending' ? 'desc' : 'asc'
+      }
+    ]
+  }
+
+  // ==================== 搜索操作 ====================
+
+  /**
+   * 执行搜索
+   */
+  async function handleSearch(page?: number): Promise<void> {
+    await crudApi.fetchList(buildQueryOptions(page))
   }
 
   /**
@@ -256,17 +288,7 @@ export function useCrudListPage<
     sortKey?: string
     order: TableSortOrder
   }): Promise<void> {
-    if (!sort.order) {
-      sortState.value = defaultSort.length > 0 ? [...defaultSort] : null
-    } else {
-      const effectiveSortField = sort.sortKey || sort.field
-      sortState.value = [
-        {
-          field: effectiveSortField,
-          order: sort.order === 'descending' ? 'desc' : 'asc'
-        }
-      ]
-    }
+    sortState.value = resolveSortFields(sort)
 
     await handleSearch(1)
   }

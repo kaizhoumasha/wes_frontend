@@ -151,25 +151,37 @@ const { hasPermission } = usePermission()
 // 计算属性
 // ============================================================================
 
+function canShowAction(action: ToolbarAction): boolean {
+  if (action.permission && !hasPermission(action.permission)) {
+    return false
+  }
+
+  if (action.showWhen && !action.showWhen()) {
+    return false
+  }
+
+  return true
+}
+
+function createBatchDeleteAction(): ToolbarAction {
+  return {
+    key: 'batch-delete',
+    label: '批量删除',
+    icon: 'Delete',
+    type: 'danger',
+    handler: () => emit('batch-delete'),
+    loading: props.toolbarState.batchDeleteLoading,
+    tooltip: '删除选中的数据'
+  }
+}
+
 /** 是否显示批量操作区 */
 const showBatchActions = computed(
   () => (props.title?.showSelectedCount ?? false) && props.toolbarState.selectedCount > 0
 )
 
 /** 过滤后的配置按钮 */
-const filteredActions = computed(() => {
-  return (props.actions ?? []).filter(action => {
-    if (action.permission && !hasPermission(action.permission)) {
-      return false
-    }
-
-    if (action.showWhen && !action.showWhen()) {
-      return false
-    }
-
-    return true
-  })
-})
+const filteredActions = computed(() => (props.actions ?? []).filter(canShowAction))
 
 /** 当前使用的操作按钮 */
 const currentActions = computed(() => {
@@ -178,17 +190,7 @@ const currentActions = computed(() => {
   }
 
   if (showBatchActions.value) {
-    return [
-      {
-        key: 'batch-delete',
-        label: '批量删除',
-        icon: 'Delete',
-        type: 'danger' as const,
-        handler: () => emit('batch-delete'),
-        loading: props.toolbarState.batchDeleteLoading,
-        tooltip: '删除选中的数据'
-      }
-    ]
+    return [createBatchDeleteAction()]
   }
 
   return []
@@ -198,16 +200,16 @@ const currentActions = computed(() => {
 // 事件处理
 // ============================================================================
 
-function handleClear() {
+function handleClear(): void {
   props.smartSearch.clearKeyword()
   props.smartSearch.clearConditions()
 }
 
-function handleActivateField(fieldKey: string) {
+function handleActivateField(fieldKey: string): void {
   props.smartSearch.buildConditionFromField(fieldKey)
 }
 
-function handleOpenAdvancedForField(fieldKey: string) {
+function handleOpenAdvancedForField(fieldKey: string): void {
   props.smartSearch.openAdvancedDialog(fieldKey)
 }
 </script>

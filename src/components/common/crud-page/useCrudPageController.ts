@@ -45,6 +45,22 @@ function resolveTableDefaultSort(defaultSort: SortField[] | undefined): CrudTabl
   }
 }
 
+function resolveFormTitle<TItem extends CrudPageEntity, TCreate extends object, TUpdate extends object>(
+  config: CrudPageConfig<TItem, TCreate, TUpdate>,
+  features: ReturnType<typeof resolveCrudPageFeatures>,
+  editingId: number | null
+): string {
+  if (!config.form) {
+    return ''
+  }
+
+  if (editingId) {
+    return features.edit.dialogTitle ?? config.form.title?.edit ?? `编辑${config.resource.title.text}`
+  }
+
+  return features.create.dialogTitle ?? config.form.title?.create ?? `创建${config.resource.title.text}`
+}
+
 export function useCrudPageController<
   TItem extends CrudPageEntity,
   TCreate extends object,
@@ -124,58 +140,59 @@ export function useCrudPageController<
   })
 
   const formTitle = computed(() => {
-    if (!config.form) {
-      return ''
-    }
-
-    if (state.dialogs.editingId.value) {
-      return features.edit.dialogTitle ?? config.form.title?.edit ?? `编辑${config.resource.title.text}`
-    }
-
-    return features.create.dialogTitle ?? config.form.title?.create ?? `创建${config.resource.title.text}`
+    return resolveFormTitle(config, features, state.dialogs.editingId.value)
   })
 
-  function handleSearch() {
-    return state.search.handleSearch(state.state.pagination.page)
+  function clearTableSelection(): void {
+    tableRef.value?.clearSelection()
   }
 
-  function handlePageChange(page: number) {
-    return state.search.handleSearch(page)
-  }
-
-  function handleSizeChange() {
-    console.warn('Dynamic pageSize change not yet implemented')
-  }
-
-  function handleColumnResize(resize: { field: string; width: number }) {
-    columnsManager.updateColumnWidth(resize.field, resize.width)
-  }
-
-  async function handleDelete(row: TItem) {
-    await state.apiActions.handleDelete(row.id)
-  }
-
-  async function loadFormData(id: number | string): Promise<Record<string, unknown>> {
+  function resolveEntityId(id: number | string): number {
     const numericId = typeof id === 'number' ? id : Number(id)
 
     if (!Number.isFinite(numericId)) {
       throw new Error(`Invalid entity id: ${String(id)}`)
     }
 
+    return numericId
+  }
+
+  function handleSearch(): Promise<void> {
+    return state.search.handleSearch(state.state.pagination.page)
+  }
+
+  function handlePageChange(page: number): Promise<void> {
+    return state.search.handleSearch(page)
+  }
+
+  function handleSizeChange(): void {
+    console.warn('Dynamic pageSize change not yet implemented')
+  }
+
+  function handleColumnResize(resize: { field: string; width: number }): void {
+    columnsManager.updateColumnWidth(resize.field, resize.width)
+  }
+
+  async function handleDelete(row: TItem): Promise<void> {
+    await state.apiActions.handleDelete(row.id)
+  }
+
+  async function loadFormData(id: number | string): Promise<Record<string, unknown>> {
+    const numericId = resolveEntityId(id)
     return await config.resource.api.getById(numericId) as unknown as Record<string, unknown>
   }
 
-  async function handleBatchDelete() {
+  async function handleBatchDelete(): Promise<void> {
     await state.selection.handleBatchDelete()
-    tableRef.value?.clearSelection()
+    clearTableSelection()
   }
 
-  function handleCancelSelection() {
+  function handleCancelSelection(): void {
     state.selection.clearSelectionState()
-    tableRef.value?.clearSelection()
+    clearTableSelection()
   }
 
-  function handleSelectionChange(selected: unknown[]) {
+  function handleSelectionChange(selected: unknown[]): void {
     state.selection.handleSelectionChange(selected as TItem[])
   }
 
