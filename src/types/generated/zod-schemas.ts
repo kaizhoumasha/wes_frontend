@@ -7,7 +7,7 @@
  * ⚠️ 请勿手动编辑此文件
  * 如需自定义验证规则，请修改 src/types/zod-extensions.ts
  *
- * 生成时间: 2026-03-17T11:08:14.741Z
+ * 生成时间: 2026-03-19T06:49:42.614Z
  */
 
 import { z } from 'zod'
@@ -59,7 +59,7 @@ export const APIApplicationCreateSchema = z.object({
 
 export const APIApplicationResponseSchema = z.object({
   /** Version */
-  version: z.number(),
+  version: z.number().optional().default(0),
   /** Created At */
   created_at: z.string().datetime().optional(),
   /** Updated At */
@@ -472,7 +472,7 @@ export const DemoProductResponseSchema = z.object({
   /** Is Deleted */
   is_deleted: z.boolean().optional().default(false),
   /** Version */
-  version: z.number(),
+  version: z.number().optional().default(0),
   /** Created At */
   created_at: z.string().datetime().optional(),
   /** Updated At */
@@ -1615,6 +1615,34 @@ export const UserResponseSchema = z.object({
   updated_at: z.union([z.string().datetime(), z.null()]),
   /** Roles */
   roles: z.array(z.lazy(() => RoleResponseSchema)).optional(),
+})
+
+
+/**
+ * 用户响应 Schema 无关联关系 - 返回给客户端
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const UserSimpleResponseSchema = z.object({
+  /** Username */
+  username: z.string().min(3).max(50),
+  /** Email */
+  email: z.string().max(100).email(),
+  /** Full Name */
+  full_name: z.union([z.string().max(100), z.null()]).optional(),
+  /** Id */
+  id: z.number(),
+  /** Version */
+  version: z.number().optional().default(0),
+  /** Is Superuser */
+  is_superuser: z.boolean(),
+  /** Is Multi Login */
+  is_multi_login: z.boolean(),
+  /** Created At */
+  created_at: z.string().datetime(),
+  /** Updated At */
+  updated_at: z.union([z.string().datetime(), z.null()]),
 })
 
 
