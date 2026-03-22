@@ -1,444 +1,303 @@
-<!--
-高级搜索弹窗组件
-
-提供完整的条件编辑、收藏夹应用、批量清空等功能。
-维护本地草稿态，只在点击"应用"时才提交有效条件到全局状态。
--->
 <template>
-  <el-dialog
+  <StandardDialog
     :model-value="modelValue"
+    size="xl"
     title="高级搜索"
-    width="800px"
-    :close-on-click-modal="false"
-    @update:model-value="handleClose"
+    title-icon="info"
+    :show-footer="true"
+    :scrollable="true"
+    min-height="520px"
+    custom-class="advanced-search-dialog"
+    @update:model-value="value => emit('update:modelValue', value)"
   >
-    <div class="advanced-search-dialog">
-      <!-- 左侧：条件列表 -->
-      <div class="advanced-search-dialog__conditions">
-        <div class="advanced-search-dialog__conditions-header">
-          <h4>编辑条件 ({{ localDrafts.length }})</h4>
-          <el-button
-            v-if="localDrafts.length > 0"
-            type="danger"
-            text
-            size="small"
-            @click="handleClearAll"
-          >
-            清空全部
-          </el-button>
-        </div>
-
-        <el-scrollbar class="advanced-search-dialog__conditions-list">
-          <div
-            v-for="(draft, index) in localDrafts"
-            :key="draft.id"
-            class="advanced-search-dialog__condition-item"
-            :class="{ 'advanced-search-dialog__condition-item--active': editingIndex === index }"
-            @click="handleEditDraft(index)"
-          >
-            <el-tag>{{ draft.label || '未完成条件' }}</el-tag>
-            <el-button
-              type="danger"
-              text
-              size="small"
-              @click.stop="handleRemoveDraft(draft.id)"
-            >
-              <el-icon><Close /></el-icon>
-            </el-button>
-          </div>
-
-          <el-empty
-            v-if="localDrafts.length === 0"
-            description="暂无条件"
-            :image-size="60"
-          />
-        </el-scrollbar>
-
-        <el-button
-          class="advanced-search-dialog__add-btn"
-          @click="handleAddDraft"
-        >
-          <el-icon><Plus /></el-icon>
-          添加条件
-        </el-button>
-      </div>
-
-      <!-- 右侧：编辑区 -->
-      <div class="advanced-search-dialog__editor">
-        <!-- 条件编辑器 -->
+    <div class="advanced-search-dialog__layout">
+      <section class="advanced-search-dialog__hero">
+        <p class="advanced-search-dialog__description">
+          支持用 AND / OR / NOT 组合多层筛选条件，精确定位你需要的数据。
+        </p>
         <div
-          v-if="editingDraft"
-          class="advanced-search-dialog__condition-editor"
+          v-if="regularConditionsCount > 0"
+          class="advanced-search-dialog__context"
         >
-          <div class="advanced-search-dialog__editor-header">
-            <h4>编辑条件</h4>
-          </div>
-
-          <ConditionEditorRow
-            :condition="editingDraft"
-            :fields="fields"
-            @update="handleUpdateDraft"
-            @remove="handleRemoveEditingDraft"
-          />
+          <span class="advanced-search-dialog__context-title">
+            当前还有 {{ regularConditionsCount }} 个普通条件
+          </span>
+          <span class="advanced-search-dialog__context-text">
+            应用后会与这里的高级规则一起生效
+          </span>
         </div>
+      </section>
 
-        <!-- 收藏夹区 -->
-        <div class="advanced-search-dialog__favorites">
-          <FavoriteList
-            :favorites="favorites"
-            variant="dialog"
-            title="收藏夹"
-            @apply-favorite="handleApplyFavorite"
-          />
-        </div>
-      </div>
+      <section v-if="validationErrors.length > 0" class="advanced-search-dialog__errors">
+        <span class="advanced-search-dialog__errors-title">条件未完成，请先修正以下问题：</span>
+        <ul>
+          <li v-for="error in validationErrors" :key="error">{{ error }}</li>
+        </ul>
+      </section>
+
+      <FilterGroupBuilder
+        :group="draftGroup"
+        :fields="fields"
+        root
+        @clear-root="handleClearAll"
+        @update="handleGroupUpdate"
+      />
+      <FavoritesPanel
+        :favorites="favorites"
+        :collapsed="favoritesCollapsed"
+        @apply="handleApplyFavorite"
+        @toggle-collapse="favoritesCollapsed = !favoritesCollapsed"
+      />
+      <GroupSummaryBar
+        :summary="groupSummary"
+        :active="modelValue"
+        :reset-token="summaryResetToken"
+      />
     </div>
 
     <template #footer>
-      <span class="dialog-footer">
-        <el-button @click="handleClose">取消</el-button>
-        <el-button
-          type="primary"
-          @click="handleApply"
-        >
-          应用搜索
-        </el-button>
-      </span>
+      <div class="advanced-search-dialog__footer">
+        <div class="advanced-search-dialog__footer-left">
+          <el-button text @click="handleSaveFavorite">保存为收藏</el-button>
+        </div>
+        <div class="advanced-search-dialog__footer-actions">
+          <el-button @click="emit('update:modelValue', false)">取消</el-button>
+          <el-button type="primary" @click="handleApply">应用搜索</el-button>
+        </div>
+      </div>
     </template>
-  </el-dialog>
+  </StandardDialog>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-
-import { Close, Plus } from '@element-plus/icons-vue'
-
-import type {
-  SearchCondition,
-  SearchConditionDraft,
-  SearchFavorite,
-  SearchFieldDef
-} from '@/types/search'
-import { generateConditionId, buildConditionLabel } from '@/utils/search-compiler'
-import { validateConditionDraft } from '@/types/search'
-import ConditionEditorRow from './ConditionEditorRow.vue'
-import FavoriteList from './FavoriteList.vue'
-
-type LocalDraft = SearchConditionDraft & { id: string; label?: string }
-
-// ==================== 类型定义 ====================
+import { computed, ref, toRef, watch } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import type { FilterGroup } from '@/api/base/crud-api'
+import { StandardDialog } from '@/components/ui/StandardDialog'
+import type { SearchCondition, SearchFavorite, SearchFieldDef, UIFilterGroup } from '@/types/search'
+import {
+  getFavoriteFilterGroup,
+  hasMeaningfulUIFilterGroup,
+  stripUIFilterGroup,
+  summarizeUIFilterGroup,
+} from '@/utils/advanced-search'
+import FavoritesPanel from './advanced-search/FavoritesPanel.vue'
+import FilterGroupBuilder from './advanced-search/FilterGroupBuilder.vue'
+import GroupSummaryBar from './advanced-search/GroupSummaryBar.vue'
+import { useAdvancedSearchDraft } from './advanced-search/useAdvancedSearchDraft'
 
 interface Props {
-  /** 是否显示弹窗 */
   modelValue: boolean
-  /** 条件列表（全局状态） */
   conditions: SearchCondition[]
-  /** 字段列表 */
   fields: SearchFieldDef[]
-  /** 收藏夹列表 */
   favorites: SearchFavorite[]
-  /** 外部请求预填的字段种子 */
+  initialFilter?: FilterGroup
   draftSeed?: {
     fieldKey: string
     nonce: number
   }
 }
 
-interface Emits {
-  /** 更新显示状态 */
+const props = defineProps<Props>()
+
+const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
-  /** 批量替换有效条件 */
-  (e: 'replace-conditions', drafts: SearchConditionDraft[]): void
-  /** 应用搜索 */
+  (e: 'apply-filter-group', value: FilterGroup | undefined): void
+  (e: 'save-favorite', value: { name: string; filterGroup: FilterGroup }): void
   (e: 'apply'): void
+}>()
+
+const {
+  draftGroup,
+  favoritesCollapsed,
+  validationErrors,
+  clearDraftGroup,
+  replaceDraftGroup,
+  resetValidationErrors,
+  validateDraftGroup
+} = useAdvancedSearchDraft({
+  modelValue: toRef(props, 'modelValue'),
+  fields: toRef(props, 'fields'),
+  initialFilter: toRef(props, 'initialFilter'),
+  draftSeed: toRef(props, 'draftSeed')
+})
+const groupSummary = computed(() => summarizeUIFilterGroup(draftGroup.value, props.fields))
+const regularConditionsCount = computed(() => props.conditions.length)
+const summaryResetToken = ref(0)
+
+function resetSummaryBar(): void {
+  summaryResetToken.value += 1
 }
 
-// ==================== Props & Emits ====================
-
-const props = defineProps<Props>()
-const emit = defineEmits<Emits>()
-
-// ==================== 本地草稿态 ====================
-
-/**
- * 本地草稿条件列表（UI 草稿态，与全局状态隔离）
- * 草稿可以是不完整的（value = undefined），只在应用时才校验
- */
-const localDrafts = ref<LocalDraft[]>([])
-
-/**
- * 编辑中的草稿索引
- */
-const editingIndex = ref<number | undefined>(undefined)
-
-// ==================== 监听全局条件变化 ====================
-
-watch(
-  () => props.conditions,
-  newConditions => {
-    // 当全局条件变化时，同步到本地草稿（保持一致性）
-    localDrafts.value = newConditions.map(createLocalDraft)
-  },
-  { immediate: true }
-)
-
-// ==================== 计算属性 ====================
-
-/**
- * 当前正在编辑的草稿（转换为 SearchCondition 格式用于编辑器）
- */
-const editingDraft = computed(() => {
-  if (editingIndex.value === undefined) return undefined
-  const draft = localDrafts.value[editingIndex.value]
-  if (!draft) return undefined
-
-  // 转换为 SearchCondition 格式（编辑器需要）
-  return {
-    id: draft.id,
-    field: draft.field,
-    operator: draft.operator,
-    value: draft.value,
-    label: draft.label || '未完成条件'
+watch(() => props.modelValue, isOpen => {
+  if (isOpen) {
+    resetSummaryBar()
   }
 })
-
-function appendDraftForField(fieldKey: string) {
-  const field = props.fields.find(candidate => candidate.key === fieldKey)
-  if (!field) {
-    return
-  }
-
-  localDrafts.value.push(createLocalDraft({
-    id: generateConditionId(),
-    field: field.key,
-    operator: field.defaultOperator || 'equals',
-    value: undefined
-  }))
-  editingIndex.value = localDrafts.value.length - 1
+function handleGroupUpdate(value: UIFilterGroup) {
+  replaceDraftGroup(value)
 }
 
-watch(
-  () => [props.modelValue, props.draftSeed?.nonce, props.draftSeed?.fieldKey] as const,
-  (currentValue, previousValue = [false, undefined, undefined] as const) => {
-    const [isOpen, nonce, fieldKey] = currentValue
-    const [previousOpen, previousNonce] = previousValue
-
-    if (!isOpen || !fieldKey || nonce === undefined) {
-      return
-    }
-
-    if (previousOpen === isOpen && previousNonce === nonce) {
-      return
-    }
-
-    appendDraftForField(fieldKey)
-  },
-  { immediate: true }
-)
-
-// ==================== 事件处理 ====================
-
-function createLocalDraft(condition: SearchCondition | LocalDraft): LocalDraft {
-  return {
-    id: condition.id,
-    field: condition.field,
-    operator: condition.operator,
-    value: condition.value,
-    label: 'label' in condition ? condition.label : undefined
-  }
-}
-
-function buildDraftLabel(draft: SearchConditionDraft): string {
-  return buildConditionLabel(draft, props.fields)
-}
-
-function createFavoriteDraft(condition: SearchConditionDraft): LocalDraft {
-  return {
-    ...createLocalDraft({
-      id: generateConditionId(),
-      field: condition.field,
-      operator: condition.operator,
-      value: condition.value
-    }),
-    label: buildDraftLabel(condition)
-  }
-}
-
-function resetEditingState(): void {
-  editingIndex.value = undefined
-}
-
-function handleClose(): void {
-  emit('update:modelValue', false)
-  resetEditingState()
-  // 关闭时不清空本地草稿，允许用户重新打开继续编辑
-}
-
-function handleEditDraft(index: number): void {
-  editingIndex.value = index
-}
-
-function handleAddDraft(): void {
-  const defaultField = props.fields[0]
-  if (!defaultField) {
-    return
-  }
-
-  appendDraftForField(defaultField.key)
-}
-
-function handleUpdateDraft(condition: SearchCondition): void {
-  if (editingIndex.value === undefined) {
-    return
-  }
-
-  localDrafts.value[editingIndex.value] = {
-    ...createLocalDraft(condition),
-    label: buildDraftLabel(condition)
-  }
-}
-
-function handleRemoveDraft(id: string): void {
-  const index = localDrafts.value.findIndex(d => d.id === id)
-  if (index !== -1) {
-    localDrafts.value.splice(index, 1)
-    if (editingIndex.value === index) {
-      resetEditingState()
-    }
-  }
-}
-
-function handleRemoveEditingDraft(): void {
-  if (editingDraft.value) {
-    handleRemoveDraft(editingDraft.value.id)
-  }
-}
-
-function handleClearAll(): void {
-  localDrafts.value = []
-  resetEditingState()
-}
-
-function handleApplyFavorite(favoriteId: string): void {
-  const favorite = props.favorites.find(f => f.id === favoriteId)
+async function handleApplyFavorite(favoriteId: string) {
+  const favorite = props.favorites.find(item => item.id === favoriteId)
   if (!favorite) {
     return
   }
 
-  localDrafts.value.push(...favorite.conditions.map(createFavoriteDraft))
+  if (hasMeaningfulUIFilterGroup(draftGroup.value)) {
+    try {
+      await ElMessageBox.confirm(
+        '应用收藏会替换当前正在编辑的筛选条件，是否继续？',
+        '替换当前条件',
+        {
+          type: 'warning',
+          confirmButtonText: '替换',
+          cancelButtonText: '取消'
+        }
+      )
+    } catch {
+      return
+    }
+  }
+  replaceDraftGroup(getFavoriteFilterGroup(favorite, props.fields))
+  resetValidationErrors()
+  resetSummaryBar()
 }
 
-function handleApply(): void {
-  // 只在点击"应用"时才提交有效条件到全局状态
-  const validDrafts = localDrafts.value.filter(draft =>
-    validateConditionDraft(draft, props.fields, { context: '[AdvancedSearchDialog]' })
-  )
+function handleClearAll() {
+  clearDraftGroup()
+  resetSummaryBar()
+}
 
-  emit(
-    'replace-conditions',
-    validDrafts.map(draft => ({
-      field: draft.field,
-      operator: draft.operator,
-      value: draft.value
-    }))
-  )
+async function handleSaveFavorite() {
+  if (!hasMeaningfulUIFilterGroup(draftGroup.value)) {
+    ElMessage.warning('请先添加至少一个完整条件，再保存收藏。')
+    return
+  }
 
+  const errors = validateDraftGroup()
+  if (errors.length > 0) {
+    ElMessage.warning('请先补全当前过滤条件，再保存收藏。')
+    return
+  }
+  try {
+    const { value } = await ElMessageBox.prompt('为这组高级搜索起一个名称', '保存收藏', {
+      inputPlaceholder: '例如：待审且近 7 天创建',
+      confirmButtonText: '保存',
+      cancelButtonText: '取消'
+    })
+    emit('save-favorite', {
+      name: value,
+      filterGroup: stripUIFilterGroup(draftGroup.value)
+    })
+  } catch {
+    // 用户取消时不需要额外处理
+  }
+}
+
+function handleApply() {
+  const errors = validateDraftGroup()
+  if (errors.length > 0) {
+    ElMessage.warning('还有未完成的条件，请先修正。')
+    return
+  }
+  const filterGroup = stripUIFilterGroup(draftGroup.value)
+  emit('apply-filter-group', filterGroup.conditions?.length ? filterGroup : undefined)
   emit('apply')
-  handleClose()
+  emit('update:modelValue', false)
 }
 </script>
 
 <style scoped lang="scss">
-.advanced-search-dialog {
+.advanced-search-dialog__layout {
   display: flex;
-  gap: 16px;
-  height: 400px;
+  flex-direction: column;
+  gap: 18px;
+}
 
-  &__conditions {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    border-right: 1px solid var(--el-border-color-lighter);
-    padding-right: 16px;
-  }
+.advanced-search-dialog__hero {
+  padding: 8px 2px 0;
+}
 
-  &__conditions-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
+.advanced-search-dialog__description {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--el-text-color-secondary);
+}
 
-    h4 {
-      margin: 0;
-      font-size: 14px;
-      font-weight: 600;
-    }
-  }
+.advanced-search-dialog__context {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--el-color-primary-light-9) 72%, var(--el-bg-color));
+  border: 1px solid color-mix(in srgb, var(--el-color-primary) 18%, var(--el-border-color));
+  border-radius: 14px;
+}
 
-  &__conditions-list {
-    flex: 1;
-    padding: 8px 0;
-  }
+.advanced-search-dialog__context-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--el-color-primary-dark-2);
+}
 
-  &__condition-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px;
-    margin-bottom: 8px;
-    border: 1px solid var(--el-border-color-lighter);
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s;
+.advanced-search-dialog__context-text {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
 
-    &:hover {
-      border-color: var(--el-color-primary);
-    }
+.advanced-search-dialog__errors {
+  padding: 14px 16px;
+  color: var(--el-color-danger-dark-2);
+  background: color-mix(in srgb, var(--el-color-danger-light-9) 90%, transparent);
+  border: 1px solid color-mix(in srgb, var(--el-color-danger) 25%, var(--el-border-color));
+  border-radius: 18px;
 
-    &--active {
-      border-color: var(--el-color-primary);
-      background-color: var(--el-color-primary-light-9);
-    }
-  }
-
-  &__add-btn {
-    margin-top: 12px;
-    width: 100%;
-  }
-
-  &__editor {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  &__condition-editor {
-    padding: 16px;
-    border: 1px solid var(--el-border-color-lighter);
-    border-radius: 4px;
-    background-color: var(--el-fill-color-blank);
-  }
-
-  &__editor-header {
-    h4 {
-      margin: 0 0 12px 0;
-      font-size: 14px;
-      font-weight: 600;
-    }
-  }
-
-  &__favorites {
-    flex: 1;
-    border: 1px solid var(--el-border-color-lighter);
-    border-radius: 4px;
-    overflow: hidden;
+  ul {
+    margin: 8px 0 0;
+    padding-left: 20px;
   }
 }
 
-.dialog-footer {
+.advanced-search-dialog__errors-title {
+  font-weight: 700;
+}
+
+.advanced-search-dialog__footer {
   display: flex;
-  justify-content: flex-end;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.advanced-search-dialog__footer-left,
+.advanced-search-dialog__footer-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+:deep(.advanced-search-dialog .standard-dialog__body) {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--el-fill-color-lighter) 62%, transparent), transparent 180px),
+    var(--el-bg-color-page);
+}
+
+@media (max-width: 768px) {
+  .advanced-search-dialog__footer {
+    flex-direction: column;
+  }
+
+  .advanced-search-dialog__footer-actions,
+  .advanced-search-dialog__footer-left {
+    width: 100%;
+  }
+
+  .advanced-search-dialog__footer-actions {
+    justify-content: flex-end;
+  }
 }
 </style>

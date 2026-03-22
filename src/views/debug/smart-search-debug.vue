@@ -21,12 +21,16 @@
         :quick-presets="debugQuickPresets"
         :loading="loading"
         :popover-open="smartSearch.state.value.popoverOpen"
+        :advanced-active="smartSearch.advancedFilterGroup.value !== undefined"
+        :advanced-count="advancedFilterCount"
+        :advanced-summary="advancedFilterSummary"
         @update:keyword="smartSearch.setKeyword"
         @remove-condition="handleRemoveCondition"
         @open-popover="smartSearch.openPopover"
         @close-popover="smartSearch.closePopover"
         @open-advanced="smartSearch.openAdvancedDialog"
         @clear="handleClear"
+        @clear-advanced="smartSearch.clearAdvancedFilterGroup"
         @select-field="smartSearch.setActiveField"
         @toggle-popover="smartSearch.togglePopover"
         @apply-preset="handleApplyPreset"
@@ -190,8 +194,9 @@
       :conditions="smartSearch.conditions.value"
       :fields="debugFields"
       :favorites="debugFavorites"
+      :initial-filter="smartSearch.advancedFilterGroup.value"
       :draft-seed="advancedDialogDraftSeed"
-      @replace-conditions="handleReplaceConditions"
+      @apply-filter-group="handleApplyFilterGroup"
       @apply="handleApply"
     />
 
@@ -336,12 +341,13 @@ import { computed, ref } from 'vue'
 import { Document, Suitcase, User } from '@element-plus/icons-vue'
 
 import { useSmartSearch } from '@/composables/useSmartSearch'
+import type { FilterGroup } from '@/api/base/crud-api'
 import type {
-  SearchConditionDraft,
   SearchFieldDef,
   SearchFavorite,
   QuickSearchPreset
 } from '@/types/search'
+import { countFilterNodes, convertFilterGroupToUIFilterGroup, summarizeUIFilterGroup } from '@/utils/advanced-search'
 import SmartSearchBar from '@/components/search/SmartSearchBar.vue'
 import AdvancedSearchDialog from '@/components/search/AdvancedSearchDialog.vue'
 
@@ -495,9 +501,23 @@ let draftSeedNonce = 0
 
 // ==================== 计算属性 ====================
 
-const hasConditions = computed(() => smartSearch.conditions.value.length > 0)
+const hasConditions = computed(
+  () => smartSearch.conditions.value.length > 0 || smartSearch.advancedFilterGroup.value !== undefined
+)
 
 const filterGroup = computed(() => smartSearch.compileToFilterGroup())
+const advancedFilterSummary = computed(() => {
+  const group = smartSearch.advancedFilterGroup.value
+  if (!group) {
+    return ''
+  }
+
+  return summarizeUIFilterGroup(convertFilterGroupToUIFilterGroup(group), debugFields)
+})
+const advancedFilterCount = computed(() => {
+  const group = smartSearch.advancedFilterGroup.value
+  return group ? countFilterNodes(group) : 0
+})
 
 // ==================== 日志系统 ====================
 
@@ -529,9 +549,9 @@ function clearLogs() {
 
 // ==================== 事件处理 ====================
 
-function handleReplaceConditions(drafts: SearchConditionDraft[]) {
-  smartSearch.replaceConditions(drafts)
-  addLog('success', `应用高级搜索条件，共 ${drafts.length} 条`)
+function handleApplyFilterGroup(filterGroup: FilterGroup | undefined) {
+  smartSearch.setAdvancedFilterGroup(filterGroup)
+  addLog('success', `应用高级搜索条件，共 ${filterGroup?.conditions?.length ?? 0} 项`)
 }
 
 function handleApplyPreset(presetId: string) {
@@ -571,6 +591,7 @@ function handleRemoveCondition(id: string) {
 
 function handleClear() {
   smartSearch.clearConditions()
+  smartSearch.clearAdvancedFilterGroup()
   smartSearch.clearKeyword()
   addLog('warning', '清空所有条件和关键字')
 }

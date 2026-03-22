@@ -19,13 +19,14 @@ import type {
 } from '@/types/search'
 import {
   buildConditionLabel,
+  compileFilterGroup,
   compileConditions,
   getCompatibleFields,
   generateConditionId,
 } from '@/utils/search-compiler'
 import { parseKeywordValue } from '@/utils/search-value-parser'
 import { validateConditionDraft } from '@/types/search'
-import type { FilterGroup } from '@/api/base/crud-api'
+import { appendAndFilter, type FilterGroup } from '@/api/base/crud-api'
 
 // ==================== 类型定义 ====================
 
@@ -51,6 +52,8 @@ export interface UseSmartSearchReturn {
   state: Ref<SmartSearchState>
   /** 条件列表（计算属性） */
   conditions: ComputedRef<SearchCondition[]>
+  /** 高级过滤组（计算属性） */
+  advancedFilterGroup: ComputedRef<FilterGroup | undefined>
   /** 是否有条件（计算属性） */
   hasConditions: ComputedRef<boolean>
   /** 当前高亮字段（计算属性） */
@@ -79,6 +82,14 @@ export interface UseSmartSearchReturn {
   replaceCondition: (id: string, draft: SearchConditionDraft) => void
   /** 用新条件集整体替换现有条件 */
   replaceConditions: (drafts: SearchConditionDraft[]) => void
+  /** 设置收藏夹列表 */
+  setFavorites: (favorites: SearchFavorite[]) => void
+  /** 设置高级过滤组 */
+  setAdvancedFilterGroup: (group: FilterGroup | undefined) => void
+  /** 清空高级过滤组 */
+  clearAdvancedFilterGroup: () => void
+  /** 清空所有已应用筛选 */
+  clearAppliedFilters: () => void
   /** 清空所有条件 */
   clearConditions: () => void
 
@@ -141,6 +152,7 @@ export function useSmartSearch(options: UseSmartSearchOptions): UseSmartSearchRe
     keyword: '',
     activeField: undefined,
     conditions: [],
+    advancedFilterGroup: undefined,
     favorites: initialFavorites,
     popoverOpen: false,
     advancedDialogOpen: false,
@@ -151,7 +163,13 @@ export function useSmartSearch(options: UseSmartSearchOptions): UseSmartSearchRe
 
   const conditions: ComputedRef<SearchCondition[]> = computed(() => state.value.conditions)
 
-  const hasConditions: ComputedRef<boolean> = computed(() => state.value.conditions.length > 0)
+  const advancedFilterGroup: ComputedRef<FilterGroup | undefined> = computed(
+    () => state.value.advancedFilterGroup
+  )
+
+  const hasConditions: ComputedRef<boolean> = computed(
+    () => state.value.conditions.length > 0 || state.value.advancedFilterGroup !== undefined
+  )
 
   const activeField: ComputedRef<SearchFieldDef | undefined> = computed(() => {
     if (!state.value.activeField) return undefined
@@ -343,8 +361,36 @@ export function useSmartSearch(options: UseSmartSearchOptions): UseSmartSearchRe
     notifyConditionsChange()
   }
 
+  function setFavorites(favorites: SearchFavorite[]): void {
+    state.value.favorites = favorites
+  }
+
+  function setAdvancedFilterGroup(group: FilterGroup | undefined): void {
+    state.value.advancedFilterGroup = group
+    notifyConditionsChange()
+  }
+
+  function clearAdvancedFilterGroup(): void {
+    if (!state.value.advancedFilterGroup) {
+      return
+    }
+
+    state.value.advancedFilterGroup = undefined
+    notifyConditionsChange()
+  }
+
   function clearConditions(): void {
     state.value.conditions = []
+    notifyConditionsChange()
+  }
+
+  function clearAppliedFilters(): void {
+    if (state.value.conditions.length === 0 && !state.value.advancedFilterGroup) {
+      return
+    }
+
+    state.value.conditions = []
+    state.value.advancedFilterGroup = undefined
     notifyConditionsChange()
   }
 
@@ -388,7 +434,9 @@ export function useSmartSearch(options: UseSmartSearchOptions): UseSmartSearchRe
    * 应用收藏夹（带去重和校验）
    *
    * 去重策略：跳过已存在的条件（相同字段 + 相同操作符 + 相同值）
-   * 业务语义：收藏夹代表"状态组合"，重复应用不应产生重复谓词
+   * 业务语义：
+   * - 扁平收藏：追加普通条件并去重
+   * - 高级收藏：替换当前高级过滤组
    */
   function applyFavorite(favoriteId: string): void {
     const favorite = state.value.favorites.find((f) => f.id === favoriteId)
@@ -397,13 +445,23 @@ export function useSmartSearch(options: UseSmartSearchOptions): UseSmartSearchRe
       return
     }
 
+    let hasChanges = false
+
+    if (favorite.filterGroup) {
+      state.value.advancedFilterGroup = favorite.filterGroup
+      hasChanges = true
+    }
+
     const addedCount = appendConditions(favorite.conditions, {
       source: 'favorite',
       deduplicate: true
     })
 
-    // 批量添加完成后只触发一次回调
     if (addedCount > 0) {
+      hasChanges = true
+    }
+
+    if (hasChanges) {
       notifyConditionsChange()
     }
   }
@@ -489,7 +547,18 @@ export function useSmartSearch(options: UseSmartSearchOptions): UseSmartSearchRe
   // ==================== 编译 ====================
 
   function compileToFilterGroup(): FilterGroup | undefined {
-    return compileConditions(state.value.conditions, fields)
+    const compiledConditions = compileConditions(state.value.conditions, fields)
+    const compiledAdvancedFilters = compileFilterGroup(state.value.advancedFilterGroup, fields)
+
+    if (!compiledAdvancedFilters) {
+      return compiledConditions
+    }
+
+    if (!compiledConditions) {
+      return compiledAdvancedFilters
+    }
+
+    return appendAndFilter(compiledAdvancedFilters, compiledConditions)
   }
 
   // ==================== 返回 API ====================
@@ -497,6 +566,7 @@ export function useSmartSearch(options: UseSmartSearchOptions): UseSmartSearchRe
   return {
     state,
     conditions,
+    advancedFilterGroup,
     hasConditions,
     activeField,
     compatibleFields,
@@ -511,6 +581,10 @@ export function useSmartSearch(options: UseSmartSearchOptions): UseSmartSearchRe
     removeCondition,
     replaceCondition,
     replaceConditions,
+    setFavorites,
+    setAdvancedFilterGroup,
+    clearAdvancedFilterGroup,
+    clearAppliedFilters,
     clearConditions,
 
     applyFavorite,

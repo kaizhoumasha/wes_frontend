@@ -8,6 +8,8 @@ import type { useSmartSearch } from '@/composables/useSmartSearch'
 import { usePermission } from '@/composables/usePermission'
 import { DENSITY_CONFIG, type TableDensity } from '@/types/table'
 import type { SearchFieldDef, SearchFavorite, QuickSearchPreset } from '@/types/search'
+import { countFilterNodes, summarizeUIFilterGroup } from '@/utils/advanced-search'
+import { convertFilterGroupToUIFilterGroup } from '@/utils/advanced-search'
 
 /**
  * CrudToolbar 组件
@@ -196,13 +198,27 @@ const currentActions = computed(() => {
   return []
 })
 
+const advancedFilterSummary = computed(() => {
+  const group = props.smartSearch.advancedFilterGroup.value
+  if (!group) {
+    return ''
+  }
+
+  return summarizeUIFilterGroup(convertFilterGroupToUIFilterGroup(group), props.searchFields)
+})
+
+const advancedFilterCount = computed(() => {
+  const group = props.smartSearch.advancedFilterGroup.value
+  return group ? countFilterNodes(group) : 0
+})
+
 // ============================================================================
 // 事件处理
 // ============================================================================
 
 function handleClear(): void {
   props.smartSearch.clearKeyword()
-  props.smartSearch.clearConditions()
+  props.smartSearch.clearAppliedFilters()
 }
 
 function handleActivateField(fieldKey: string): void {
@@ -318,10 +334,14 @@ function handleOpenAdvanced(): void {
         :quick-presets="quickPresets"
         :loading="toolbarState.loading"
         :popover-open="smartSearch.state.value.popoverOpen"
+        :advanced-active="smartSearch.advancedFilterGroup.value !== undefined"
+        :advanced-count="advancedFilterCount"
+        :advanced-summary="advancedFilterSummary"
         :placeholder="searchPlaceholder"
         @update:keyword="smartSearch.setKeyword"
         @remove-condition="smartSearch.removeCondition"
         @clear="handleClear"
+        @clear-advanced="smartSearch.clearAdvancedFilterGroup"
         @search="emit('search')"
         @open-popover="smartSearch.openPopover"
         @close-popover="smartSearch.closePopover"
@@ -329,6 +349,8 @@ function handleOpenAdvanced(): void {
         @open-advanced="handleOpenAdvanced"
         @keydown-next="smartSearch.getNextActiveField('next')"
         @keydown-prev="smartSearch.getNextActiveField('prev')"
+        @apply-preset="smartSearch.applyQuickPreset"
+        @apply-favorite="smartSearch.applyFavorite"
         @activate-field="handleActivateField"
         @open-advanced-for-field="handleOpenAdvancedForField"
       />

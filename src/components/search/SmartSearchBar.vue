@@ -23,11 +23,50 @@
       >
         <!-- 条件标签区域 -->
         <div class="smart-search-bar__tags">
+          <el-tooltip
+            v-if="advancedActive"
+            placement="top"
+            :show-after="200"
+            :max-width="420"
+          >
+            <template #content>
+              <div class="smart-search-bar__advanced-tooltip">
+                <div class="smart-search-bar__advanced-tooltip-title">高级筛选摘要</div>
+                <div class="smart-search-bar__advanced-tooltip-text">
+                  {{ advancedSummary || '当前已启用高级筛选' }}
+                </div>
+                <div
+                  v-if="showsCombinedModeHint"
+                  class="smart-search-bar__advanced-tooltip-meta"
+                >
+                  另有 {{ conditions.length }} 个普通条件，会与高级筛选同时生效
+                </div>
+              </div>
+            </template>
+
+            <el-tag
+              closable
+              type="warning"
+              effect="light"
+              class="smart-search-bar__advanced-tag"
+              :class="{ 'smart-search-bar__advanced-tag--selected': selectedAdvancedTag }"
+              @click.stop="handleOpenAdvanced"
+              @close.stop="emit('clear-advanced')"
+            >
+              <span class="smart-search-bar__advanced-tag-label">
+                高级筛选
+                <span v-if="advancedCountLabel" class="smart-search-bar__advanced-tag-count">
+                  · {{ advancedCountLabel }}
+                </span>
+              </span>
+            </el-tag>
+          </el-tooltip>
+
           <SearchConditionTag
             v-for="condition in conditions"
             :key="condition.id"
             :condition="condition"
-            :selected="condition.id === selectedConditionId"
+            :selected="condition.id === selectedTokenId"
             @remove="handleRemoveCondition"
           />
         </div>
@@ -57,18 +96,42 @@
         </el-button>
 
         <!-- 清空按钮 -->
-        <el-button
-          v-if="hasConditions || keyword"
-          class="smart-search-bar__clear"
-          text
-          @click.stop="handleClear"
+        <el-tooltip
+          v-if="keyword"
+          content="清空输入内容"
+          placement="top"
         >
-          <el-icon><CircleClose /></el-icon>
-        </el-button>
+          <el-button
+            class="smart-search-bar__clear"
+            text
+            @click.stop="handleClearKeyword"
+          >
+            <el-icon><CircleClose /></el-icon>
+          </el-button>
+        </el-tooltip>
+
+        <el-popconfirm
+          v-else-if="hasConditions"
+          title="清空当前所有已应用的搜索条件？"
+          confirm-button-text="清空"
+          cancel-button-text="取消"
+          @confirm="handleClearAll"
+        >
+          <template #reference>
+            <el-button
+              class="smart-search-bar__reset"
+              text
+              @click.stop
+            >
+              重置
+            </el-button>
+          </template>
+        </el-popconfirm>
 
         <!-- 高级搜索按钮 -->
         <el-button
           class="smart-search-bar__advanced"
+          :class="{ 'smart-search-bar__advanced--active': advancedActive }"
           @click.stop="handleOpenAdvanced"
         >
           <el-icon><Setting /></el-icon>
@@ -123,6 +186,12 @@ interface Props {
   loading?: boolean
   /** Popover 是否打开（外部控制） */
   popoverOpen?: boolean
+  /** 是否启用了高级搜索规则 */
+  advancedActive?: boolean
+  /** 高级搜索条件数量 */
+  advancedCount?: number
+  /** 高级搜索摘要 */
+  advancedSummary?: string
 }
 
 interface Emits {
@@ -138,6 +207,8 @@ interface Emits {
   (e: 'open-advanced'): void
   /** 清空 */
   (e: 'clear'): void
+  /** 清空高级搜索 */
+  (e: 'clear-advanced'): void
   /** 选择字段 */
   (e: 'select-field', fieldKey: string): void
   /** 应用快速预设 */
@@ -164,18 +235,23 @@ const props = withDefaults(defineProps<Props>(), {
   placeholder: '搜索...',
   loading: false,
   activeField: undefined,
-  popoverOpen: false
+  popoverOpen: false,
+  advancedActive: false,
+  advancedCount: 0,
+  advancedSummary: ''
 })
 
 const emit = defineEmits<Emits>()
 
 // ==================== 状态 ====================
 
+const ADVANCED_TAG_TOKEN = '__advanced__'
+
 const inputRef = ref<HTMLInputElement>()
 const searchBarRef = ref<HTMLDivElement>()
 const isFocused = ref(false)
 const isComposing = ref(false)
-const selectedConditionId = ref<string>()
+const selectedTokenId = ref<string>()
 const manualToggle = ref(false) // 标记用户是否手动切换过 popover
 const expectedPopoverOpen = ref(false) // 跟踪 popover 的期望状态，避免重复触发
 const { width: searchBarWidth } = useElementSize(searchBarRef)
@@ -228,11 +304,24 @@ watch(
 watch(
   () => props.conditions,
   conditions => {
-    if (!conditions.some(condition => condition.id === selectedConditionId.value)) {
+    if (selectedTokenId.value === ADVANCED_TAG_TOKEN) {
+      return
+    }
+
+    if (!conditions.some(condition => condition.id === selectedTokenId.value)) {
       clearSelectedCondition()
     }
   },
   { deep: true }
+)
+
+watch(
+  () => props.advancedActive,
+  active => {
+    if (!active && selectedTokenId.value === ADVANCED_TAG_TOKEN) {
+      clearSelectedCondition()
+    }
+  },
 )
 
 // 同步 expectedPopoverOpen 与实际的 popoverOpen 状态
@@ -247,37 +336,51 @@ watch(
 
 // ==================== 计算属性 ====================
 
-const hasConditions = computed(() => props.conditions.length > 0)
+const hasConditions = computed(() => props.conditions.length > 0 || props.advancedActive)
 const keyword = computed(() => props.keyword)
+const advancedActive = computed(() => props.advancedActive)
+const showsCombinedModeHint = computed(() => props.advancedActive && props.conditions.length > 0)
+const advancedCountLabel = computed(() => {
+  if (!props.advancedCount || props.advancedCount <= 0) {
+    return ''
+  }
+
+  return `${props.advancedCount}项`
+})
+const selectionTokens = computed(() => [
+  ...(props.advancedActive ? [ADVANCED_TAG_TOKEN] : []),
+  ...props.conditions.map(condition => condition.id)
+])
+const selectedAdvancedTag = computed(() => selectedTokenId.value === ADVANCED_TAG_TOKEN)
 
 function clearSelectedCondition(): void {
-  selectedConditionId.value = undefined
+  selectedTokenId.value = undefined
 }
 
-function getSelectedConditionIndex(): number {
-  if (!selectedConditionId.value) {
+function getSelectedTokenIndex(): number {
+  if (!selectedTokenId.value) {
     return -1
   }
 
-  return props.conditions.findIndex(condition => condition.id === selectedConditionId.value)
+  return selectionTokens.value.findIndex(token => token === selectedTokenId.value)
 }
 
-function selectConditionAt(index: number): void {
-  if (index < 0 || index >= props.conditions.length) {
+function selectTokenAt(index: number): void {
+  if (index < 0 || index >= selectionTokens.value.length) {
     clearSelectedCondition()
     return
   }
 
-  selectedConditionId.value = props.conditions[index].id
+  selectedTokenId.value = selectionTokens.value[index]
 }
 
-function selectLastCondition(): void {
-  if (!hasConditions.value) {
+function selectLastToken(): void {
+  if (selectionTokens.value.length === 0) {
     clearSelectedCondition()
     return
   }
 
-  selectConditionAt(props.conditions.length - 1)
+  selectTokenAt(selectionTokens.value.length - 1)
 }
 
 function isCaretAtStart(): boolean {
@@ -289,19 +392,25 @@ function isCaretAtStart(): boolean {
   return input.selectionStart === 0 && input.selectionEnd === 0
 }
 
-function removeSelectedCondition(): void {
-  const currentIndex = getSelectedConditionIndex()
+function removeSelectedToken(): void {
+  const currentIndex = getSelectedTokenIndex()
   if (currentIndex === -1) {
     clearSelectedCondition()
     return
   }
 
-  const currentCondition = props.conditions[currentIndex]
-  const previousCondition = props.conditions[currentIndex - 1]
-  const nextCondition = props.conditions[currentIndex + 1]
+  const currentToken = selectionTokens.value[currentIndex]
+  const previousToken = selectionTokens.value[currentIndex - 1]
+  const nextToken = selectionTokens.value[currentIndex + 1]
 
-  selectedConditionId.value = previousCondition?.id || nextCondition?.id
-  emit('remove-condition', currentCondition.id)
+  selectedTokenId.value = previousToken || nextToken
+
+  if (currentToken === ADVANCED_TAG_TOKEN) {
+    emit('clear-advanced')
+    return
+  }
+
+  emit('remove-condition', currentToken)
 }
 
 function resetPopoverAutoControl(): void {
@@ -363,18 +472,18 @@ function handleKeyDown(event: KeyboardEvent): void {
         break
       }
 
-      const selectedIndex = getSelectedConditionIndex()
+      const selectedIndex = getSelectedTokenIndex()
       if (selectedIndex === -1 && !isCaretAtStart()) {
         break
       }
 
       event.preventDefault()
       if (selectedIndex === -1) {
-        selectLastCondition()
+        selectLastToken()
         break
       }
 
-      selectConditionAt(Math.max(0, selectedIndex - 1))
+      selectTokenAt(Math.max(0, selectedIndex - 1))
       break
     }
     case 'ArrowRight': {
@@ -382,22 +491,28 @@ function handleKeyDown(event: KeyboardEvent): void {
         break
       }
 
-      const selectedIndex = getSelectedConditionIndex()
+      const selectedIndex = getSelectedTokenIndex()
       if (selectedIndex === -1) {
         break
       }
 
       event.preventDefault()
-      if (selectedIndex >= props.conditions.length - 1) {
+      if (selectedIndex >= selectionTokens.value.length - 1) {
         clearSelectedCondition()
         break
       }
 
-      selectConditionAt(selectedIndex + 1)
+      selectTokenAt(selectedIndex + 1)
       break
     }
     case 'Enter': {
-      if (selectedConditionId.value) {
+      if (selectedTokenId.value === ADVANCED_TAG_TOKEN) {
+        event.preventDefault()
+        handleOpenAdvanced()
+        break
+      }
+
+      if (selectedTokenId.value) {
         event.preventDefault()
         break
       }
@@ -420,15 +535,15 @@ function handleKeyDown(event: KeyboardEvent): void {
       break
     case 'Delete':
     case 'Backspace':
-      if (selectedConditionId.value) {
+      if (selectedTokenId.value) {
         event.preventDefault()
-        removeSelectedCondition()
+        removeSelectedToken()
         break
       }
 
       if (!keyword.value && hasConditions.value) {
         event.preventDefault()
-        selectLastCondition()
+        selectLastToken()
       }
       break
   }
@@ -446,17 +561,22 @@ function handleCompositionEnd(): void {
 }
 
 function handleRemoveCondition(id: string): void {
-  if (selectedConditionId.value === id) {
+  if (selectedTokenId.value === id) {
     clearSelectedCondition()
   }
 
   emit('remove-condition', id)
 }
 
-function handleClear(): void {
+function handleClearKeyword(): void {
+  clearSelectedCondition()
+  emit('update:keyword', '')
+  emitSearch()
+}
+
+function handleClearAll(): void {
   clearSelectedCondition()
   emit('clear')
-  emitSearch()
 }
 
 function handleOpenAdvanced(): void {
@@ -473,18 +593,16 @@ function handleActivateField(fieldKey: string): void {
   } else {
     emit('open-advanced-for-field', fieldKey)
   }
-
-  emitSearch()
 }
 
 function handleApplyPreset(presetId: string): void {
   emit('apply-preset', presetId)
-  emitSearch()
+  emit('close-popover')
 }
 
 function handleApplyFavorite(favoriteId: string): void {
   emit('apply-favorite', favoriteId)
-  emitSearch()
+  emit('close-popover')
 }
 
 function handlePopoverVisibleChange(visible: boolean): void {
@@ -584,8 +702,82 @@ defineExpose({
     }
   }
 
+  &__reset {
+    padding: 0 4px;
+    color: var(--el-text-color-secondary);
+    font-size: 12px;
+
+    &:hover {
+      color: var(--el-color-danger);
+    }
+  }
+
   &__advanced {
     flex-shrink: 0;
+
+    &--active {
+      color: var(--el-color-warning-dark-2);
+      background: color-mix(in srgb, var(--el-color-warning-light-8) 72%, transparent);
+      border-color: color-mix(in srgb, var(--el-color-warning) 34%, var(--el-border-color));
+    }
+  }
+
+  &__advanced-tag {
+    flex-shrink: 0;
+    cursor: pointer;
+    border-color: color-mix(in srgb, var(--el-color-warning) 30%, var(--el-border-color));
+    transition:
+      border-color 0.18s ease,
+      background-color 0.18s ease,
+      box-shadow 0.18s ease;
+
+    &:hover {
+      background: color-mix(in srgb, var(--el-color-warning-light-8) 74%, transparent);
+      border-color: color-mix(in srgb, var(--el-color-warning) 45%, var(--el-border-color));
+      box-shadow: 0 1px 2px rgba(146, 64, 14, 0.08);
+    }
+
+    &--selected {
+      background: color-mix(in srgb, var(--el-color-warning-light-8) 82%, transparent);
+      border-color: color-mix(in srgb, var(--el-color-warning) 52%, var(--el-border-color));
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--el-color-warning) 18%, transparent);
+    }
+  }
+
+  &__advanced-tag-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 220px;
+  }
+
+  &__advanced-tag-count {
+    color: var(--el-text-color-secondary);
+    font-weight: 500;
+  }
+
+  &__advanced-tooltip {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-width: 360px;
+  }
+
+  &__advanced-tooltip-title {
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  &__advanced-tooltip-text {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--el-text-color-regular);
+  }
+
+  &__advanced-tooltip-meta {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--el-text-color-secondary);
   }
 
   @media (max-width: 768px) {

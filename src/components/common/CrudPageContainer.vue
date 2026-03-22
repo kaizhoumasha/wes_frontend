@@ -4,13 +4,16 @@
   generic="TItem extends CrudPageEntity, TCreate extends object, TUpdate extends object"
 >
 import type { ComponentPublicInstance } from 'vue'
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
+import type { FilterGroup } from '@/api/base/crud-api'
 import CrudFormDialog from '@/components/common/CrudFormDialog.vue'
 import CrudTable from '@/components/common/CrudTable.vue'
 import CrudToolbar from '@/components/common/CrudToolbar.vue'
 import TableColumnConfigDialog from '@/components/common/TableColumnConfigDialog.vue'
 import AdvancedSearchDialog from '@/components/search/AdvancedSearchDialog.vue'
 import AppIconButton from '@/components/ui/AppIconButton.vue'
+import { ElMessage } from 'element-plus'
+import { useSearchFavorites } from '@/composables/useSearchFavorites'
 import { DENSITY_CONFIG, type TableDensity } from '@/types/table'
 import { provideBreakpointContext } from '@/composables/useBreakpointContext'
 import { useCrudPageController } from '@/components/common/crud-page/useCrudPageController'
@@ -59,6 +62,15 @@ const cachedData = computed(() => {
 
   return pageState.getCachedData(editingId.value) as Record<string, unknown> | undefined
 })
+const { favorites: searchFavorites, saveFavorite } = useSearchFavorites({
+  resourceKey: pageConfig.resource.key,
+  initialFavorites: pageConfig.search.favorites ?? [],
+  fields: pageConfig.search.fields
+})
+
+watch(searchFavorites, favorites => {
+  search.instance.setFavorites(favorites)
+}, { immediate: true })
 
 function handleDensityChange(density: string | number | object) {
   controller.setDensity(density as TableDensity)
@@ -66,6 +78,32 @@ function handleDensityChange(density: string | number | object) {
 
 function setTableRef(instance: Element | ComponentPublicInstance | null) {
   tableRef.value = instance as InstanceType<typeof CrudTable> | null
+}
+
+function handleApplyAdvancedFilter(filterGroup: FilterGroup | undefined) {
+  search.instance.setAdvancedFilterGroup(filterGroup)
+}
+
+function handleSaveSearchFavorite(payload: { name: string; filterGroup: FilterGroup }) {
+  const result = saveFavorite(payload)
+  if (!result.ok && result.reason === 'empty-name') {
+    ElMessage.warning('收藏名称不能为空')
+    return
+  }
+
+  if (!result.ok && result.reason === 'duplicate') {
+    ElMessage.warning('已存在同名收藏，请更换名称')
+    return
+  }
+
+  if (!result.ok && result.reason === 'invalid-filter') {
+    ElMessage.warning('当前条件无效或为空，无法保存为收藏')
+    return
+  }
+
+  if (result.ok) {
+    ElMessage.success('已保存到收藏')
+  }
 }
 </script>
 
@@ -84,7 +122,7 @@ function setTableRef(instance: Element | ComponentPublicInstance | null) {
       <CrudToolbar
         :smart-search="search.instance"
         :search-fields="pageConfig.search.fields"
-        :favorites="pageConfig.search.favorites ?? []"
+        :favorites="searchFavorites"
         :quick-presets="pageConfig.search.quickPresets ?? []"
         :toolbar-state="toolbarState"
         :actions="toolbarActions"
@@ -193,9 +231,11 @@ function setTableRef(instance: Element | ComponentPublicInstance | null) {
       v-model="search.instance.state.value.advancedDialogOpen"
       :conditions="search.instance.conditions.value"
       :fields="pageConfig.search.fields"
-      :favorites="pageConfig.search.favorites ?? []"
+      :favorites="searchFavorites"
+      :initial-filter="search.instance.advancedFilterGroup.value"
       :draft-seed="search.instance.state.value.advancedDialogDraftSeed"
-      @replace-conditions="search.instance.replaceConditions"
+      @apply-filter-group="handleApplyAdvancedFilter"
+      @save-favorite="handleSaveSearchFavorite"
     />
 
     <TableColumnConfigDialog

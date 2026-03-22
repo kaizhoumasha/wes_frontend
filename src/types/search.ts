@@ -11,6 +11,8 @@
  * @module types/search
  */
 
+import type { FilterCondition, FilterCouple, FilterGroup } from '@/api/base/crud-api'
+
 // ==================== 操作符定义 ====================
 
 /**
@@ -290,8 +292,36 @@ export interface SearchFavorite {
   name: string
   /** 收藏的条件模板列表（运行时将生成 id 和 label） */
   conditions: SearchConditionDraft[]
+  /** 收藏的嵌套过滤组（高级搜索新版） */
+  filterGroup?: FilterGroup
   /** 收藏夹作用域（可选，用于区分不同页面） */
   scope?: string
+}
+
+// ==================== 高级过滤组定义 ====================
+
+/**
+ * 高级搜索使用的后端操作符
+ */
+export type AdvancedFilterOperator = NonNullable<FilterCondition['op']>
+
+/**
+ * 高级搜索条件（带前端 UI 标识）
+ */
+export interface UIFilterCondition {
+  id: string
+  field: string
+  op: AdvancedFilterOperator
+  value?: unknown
+}
+
+/**
+ * 高级搜索条件组（带前端 UI 标识）
+ */
+export interface UIFilterGroup {
+  id: string
+  couple: FilterCouple
+  conditions: Array<UIFilterCondition | UIFilterGroup>
 }
 
 // ==================== 快速搜索预设 ====================
@@ -352,6 +382,8 @@ export interface SmartSearchState {
   activeField?: string
   /** 已应用的条件列表 */
   conditions: SearchCondition[]
+  /** 已应用的高级过滤组 */
+  advancedFilterGroup?: FilterGroup
   /** 可用的收藏夹列表 */
   favorites: SearchFavorite[]
   /** Popover 是否打开 */
