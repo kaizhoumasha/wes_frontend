@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import tailwindcss from '@tailwindcss/vite'
 import VueDevTools from 'vite-plugin-vue-devtools'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
@@ -46,7 +47,7 @@ function resolveVendorChunk(id: string): string | undefined {
     return 'api-vendor'
   }
 
-  if (id.includes('/@iconify/')) {
+  if (id.includes('/@iconify/') || id.includes('/@iconify-json/')) {
     return 'icon-vendor'
   }
 
@@ -81,6 +82,7 @@ export default defineConfig(({ mode, command }) => {
 
   return {
     plugins: [
+      tailwindcss(),
       vue(),
       enableVueDevTools ? VueDevTools() : undefined,
       AutoImport({

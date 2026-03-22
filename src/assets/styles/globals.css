@@ -1,8 +1,7 @@
 /* 全局样式 */
-@import url('tailwindcss');
-
-/* ==================== CSS 分层优化 ==================== */
-@layer base, theme, components, utilities;
+@config '../../../tailwind.config.js';
+/* stylelint-disable-next-line import-notation, no-invalid-position-at-import-rule, at-rule-empty-line-before */
+@import 'tailwindcss';
 
 /* ==================== 基础层 ==================== */
 @layer base {
@@ -158,6 +157,10 @@
     /* Logo 和版本信息 */
     --logo-text-color: #fff;
     --version-info-color: rgb(255 255 255 / 30%);
+
+    /* StandardDialog 暗色模式 */
+    --dialog-shadow: 0 8px 32px rgb(0, 0, 0, 0.4);
+    --dialog-overlay-bg: rgb(0, 0, 0, 0.7);
   }
 
   /* ==================== 响应式断点变量 ==================== */
@@ -170,6 +173,24 @@
     /* 搜索框宽度范围 */
     --search-min-width: 480px;
     --search-max-width: 800px;
+
+    /* ==================== StandardDialog 组件变量 ==================== */
+
+    /* 尺寸（组件特有，无法复用 Element Plus 变量） */
+    --dialog-header-height: 56px;
+    --dialog-footer-height: 64px;
+    --dialog-close-size: 24px;
+    --dialog-footer-gap: 8px;
+    --dialog-footer-btn-min-width: 80px;
+
+    /* 内边距 */
+    --dialog-body-padding-sm: 16px;
+    --dialog-body-padding-md: 20px;
+    --dialog-body-padding-lg: 24px;
+
+    /* 阴影（dialog 特有，区别于 el-box-shadow） */
+    --dialog-shadow: 0 8px 32px rgb(0, 0, 0, 0.12);
+    --dialog-overlay-bg: rgb(0, 0, 0, 0.5);
   }
 
   /* 亮模式变量 */

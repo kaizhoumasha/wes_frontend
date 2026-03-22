@@ -65,11 +65,13 @@ async function handleSubmit(data) {
 ```
 -->
 <template>
-  <el-dialog
-    :model-value="open"
+  <StandardDialog
+    v-model="dialogVisible"
     :title="dialogTitle"
     :width="width"
-    @update:model-value="$emit('update:open', $event)"
+    :confirm-loading="submitting"
+    :confirm-text="isEditMode ? '保存' : '创建'"
+    @confirm="onSubmitClick"
   >
     <!-- 使用 v-if 确保只在弹窗打开时才渲染表单，避免动态 schema 切换时的验证错误 -->
     <el-form
@@ -282,25 +284,18 @@ async function handleSubmit(data) {
       </template>
     </el-form>
 
-    <template #footer>
-      <el-button @click="$emit('update:open', false)">取消</el-button>
-      <AppButton
-        type="primary"
-        :loading="submitting"
-        preserve-icon-space
-        @click="onSubmitClick"
-      >
-        {{ isEditMode ? '保存' : '创建' }}
-      </AppButton>
-    </template>
-  </el-dialog>
+  </StandardDialog>
 
   <!-- 乐观锁冲突恢复对话框 -->
-  <el-dialog
+  <StandardDialog
     v-model="conflictDialogVisible"
     title="数据已被修改"
+    title-icon="warning"
     width="450px"
-    :append-to-body="true"
+    cancel-text="关闭"
+    confirm-text="刷新并继续"
+    confirm-type="warning"
+    @confirm="handleConflictRefresh"
   >
     <el-alert
       type="warning"
@@ -319,17 +314,7 @@ async function handleSubmit(data) {
         </li>
       </ul>
     </el-alert>
-
-    <template #footer>
-      <el-button @click="conflictDialogVisible = false">关闭</el-button>
-      <el-button
-        type="primary"
-        @click="handleConflictRefresh"
-      >
-        刷新并继续
-      </el-button>
-    </template>
-  </el-dialog>
+  </StandardDialog>
 </template>
 
 <script setup lang="ts">
@@ -339,7 +324,7 @@ import { useForm } from 'vee-validate'
 import type { ZodSchema } from 'zod'
 import { ElMessage } from 'element-plus'
 import type { FormFieldConfig, FormMode } from '@/composables/useTableColumns'
-import AppButton from '@/components/ui/AppButton.vue'
+import { StandardDialog } from '@/components/ui/StandardDialog'
 
 // ============================================================================
 // 类型定义
@@ -400,6 +385,11 @@ const currentFormMode = computed<FormMode>(() => (isEditMode.value ? 'edit' : 'c
 const dialogTitle = computed(() => {
   if (props.title) return props.title
   return isEditMode.value ? '编辑' : '创建'
+})
+
+const dialogVisible = computed({
+  get: () => props.open,
+  set: value => emit('update:open', value)
 })
 
 /**

@@ -9,10 +9,7 @@
 -->
 <template>
   <div class="timezone-settings">
-    <el-form
-      label-width="120px"
-      class="timezone-form"
-    >
+    <el-form label-width="120px">
       <!-- 时区模式选择 -->
       <el-form-item label="时区模式">
         <el-radio-group
@@ -82,17 +79,6 @@
         </div>
       </el-form-item>
 
-      <!-- 提示信息 -->
-      <el-alert
-        type="warning"
-        :closable="false"
-        show-icon
-        class="timezone-hint"
-      >
-        <template #title>
-          <div>修改后需要点击"确定"按钮才能生效，点击"取消"将放弃修改</div>
-        </template>
-      </el-alert>
     </el-form>
   </div>
 </template>
@@ -337,37 +323,6 @@ export interface TimezoneSettingsInstance {
 </script>
 
 <style scoped>
-.timezone-settings {
-  padding: 16px;
-
-  /* 固定最大高度，避免弹窗闪动 */
-  max-height: 500px;
-  overflow-y: auto;
-}
-
-.timezone-form {
-  /* 确保表单内容不会因为动态变化导致布局跳动 */
-  min-height: 400px;
-}
-
-/* 自定义滚动条样式 */
-.timezone-settings::-webkit-scrollbar {
-  width: 6px;
-}
-
-.timezone-settings::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.timezone-settings::-webkit-scrollbar-thumb {
-  background: var(--el-border-color-darker);
-  border-radius: 3px;
-}
-
-.timezone-settings::-webkit-scrollbar-thumb:hover {
-  background: var(--el-border-color);
-}
-
 .timezone-preview {
   display: flex;
   flex-direction: column;
@@ -389,52 +344,4 @@ export interface TimezoneSettingsInstance {
   font-size: 13px;
 }
 
-.timezone-hint {
-  margin-top: 16px;
-}
-</style>
-
-<!-- 全局样式：修复 dialog 弹窗闪动问题 -->
-<style>
-/* 确保 dialog body 有固定高度，避免内容变化时闪动 */
-.timezone-dialog .el-dialog__body {
-  min-height: 450px;
-  max-height: 550px;
-  overflow-y: auto;
-}
-
-/* 自定义 dialog 滚动条 */
-.timezone-dialog .el-dialog__body::-webkit-scrollbar {
-  width: 6px;
-}
-
-.timezone-dialog .el-dialog__body::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.timezone-dialog .el-dialog__body::-webkit-scrollbar-thumb {
-  background: var(--el-border-color-darker);
-  border-radius: 3px;
-}
-
-.timezone-dialog .el-dialog__body::-webkit-scrollbar-thumb:hover {
-  background: var(--el-border-color);
-}
-
-/* Dialog Footer 按钮样式 */
-.timezone-dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
-
-/* 提示信息样式 */
-.timezone-hint {
-  margin-top: 16px;
-}
-
-.timezone-hint :deep(.el-alert__title) {
-  font-size: 13px;
-  line-height: 1.5;
-}
 </style>

@@ -29,11 +29,11 @@ const dialogOpen = ref(false)
 ```
 -->
 <template>
-  <el-dialog
+  <StandardDialog
     v-model="visible"
     title="配置显示列"
-    width="640px"
-    :close-on-click-modal="false"
+    size="md"
+    @confirm="handleConfirm"
   >
     <div class="column-config">
       <p class="column-config__hint">
@@ -102,32 +102,22 @@ const dialogOpen = ref(false)
       </div>
     </div>
 
-    <template #footer>
-      <div class="column-config__footer">
-        <el-button
-          text
-          @click="handleReset"
-        >
-          恢复默认
-        </el-button>
-        <div>
-          <el-button @click="visible = false">取消</el-button>
-          <el-button
-            type="primary"
-            @click="handleConfirm"
-          >
-            确定
-          </el-button>
-        </div>
-      </div>
+    <template #footer-left>
+      <el-button
+        text
+        @click="handleReset"
+      >
+        恢复默认
+      </el-button>
     </template>
-  </el-dialog>
+  </StandardDialog>
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { Rank } from '@element-plus/icons-vue'
 import type { ColumnConfig, ColumnBreakpoint } from '@/composables/useTableColumns'
+import { StandardDialog } from '@/components/ui/StandardDialog'
 
 // ============================================================================
 // Props & Emits
@@ -410,12 +400,6 @@ function handleReset() {
   color: var(--el-text-color-placeholder);
   cursor: grab;
   flex-shrink: 0;
-}
-
-.column-config__footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 @media (width <= 767px) {

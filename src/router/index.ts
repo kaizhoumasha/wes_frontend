@@ -11,6 +11,12 @@ const debugRoutes: RouteRecordRaw[] = import.meta.env.DEV
         name: 'SmartSearchDebug',
         component: () => import('@/views/debug/smart-search-debug.vue'),
         meta: { requiresAuth: false, title: '智能搜索调试' }
+      },
+      {
+        path: 'debug/standard-dialog',
+        name: 'StandardDialogDemo',
+        component: () => import('@/views/components/StandardDialogDemo.vue'),
+        meta: { requiresAuth: false, title: 'StandardDialog 组件演示' }
       }
     ]
   : []
@@ -64,7 +70,7 @@ const routes: RouteRecordRaw[] = [
           title: '系统管理',
           menu: {
             name: 'admin:system:menu',
-            icon: 'Setting',
+            icon: 'ep:setting',
             sortOrder: 10
           }
         },
@@ -80,7 +86,7 @@ const routes: RouteRecordRaw[] = [
               menu: {
                 name: 'admin:user:menu',
                 parentName: 'admin:system:menu',
-                icon: 'User',
+                icon: 'ep:user',
                 sortOrder: 99
               }
             }
