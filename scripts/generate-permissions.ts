@@ -12,16 +12,21 @@
 import {
   DEFAULT_BACKEND_ROOT,
   FRONTEND_ROOT,
+  PERMISSIONS_INDEX_FILE,
+  PERMISSIONS_OUTPUT_DIR,
   buildPermissionFileContent,
   buildPermissionsIndexContent,
   computePermissionsHash,
   groupPermissions,
-  resetPermissionsOutput,
+  listGeneratedPermissionFiles,
+  readPermissionSyncRecord,
+  removeStalePermissionFiles,
   scanBackendPermissions,
   writePermissionGroupFile,
   writePermissionSyncRecord,
   writePermissionsIndex
 } from './lib/permissions-codegen'
+import { resolve as resolvePath } from 'node:path'
 import { resolve } from 'node:path'
 
 interface CliOptions {
@@ -52,30 +57,50 @@ function parseArgs(argv: string[]): CliOptions {
 
 async function main(): Promise<void> {
   const options = parseArgs(process.argv.slice(2))
-  const generatedAt = new Date().toISOString()
 
   console.log('🚀 权限常量生成工具\n')
   console.log(`📦 后端目录: ${options.backendRoot}`)
 
   const permissions = scanBackendPermissions(options.backendRoot)
   console.log(`🔍 已扫描后端权限 ${permissions.length} 条`)
+  const permissionsHash = computePermissionsHash(permissions)
 
   const groups = groupPermissions(permissions)
   console.log(`🧩 已生成权限分组 ${groups.length} 组`)
 
-  resetPermissionsOutput()
+  const expectedGroupFiles = groups.map(group => resolvePath(PERMISSIONS_OUTPUT_DIR, group.relativeFilePath))
+  const expectedFiles = [...expectedGroupFiles, PERMISSIONS_INDEX_FILE].sort()
+  const currentFiles = listGeneratedPermissionFiles()
+  const hasFileSetChange =
+    currentFiles.length !== expectedFiles.length ||
+    currentFiles.some((filePath, index) => filePath !== expectedFiles[index])
 
+  const record = readPermissionSyncRecord()
+  const recordUnchanged =
+    record?.permissionsHash === permissionsHash &&
+    record.backendRoot === options.backendRoot &&
+    record.permissionCount === permissions.length
+
+  let hasContentChange = hasFileSetChange
   for (const group of groups) {
-    const content = buildPermissionFileContent(group, options.backendRoot, generatedAt)
-    writePermissionGroupFile(group, content)
+    const content = buildPermissionFileContent(group, options.backendRoot)
+    hasContentChange = writePermissionGroupFile(group, content) || hasContentChange
   }
 
-  const indexContent = buildPermissionsIndexContent(groups, options.backendRoot, generatedAt)
-  writePermissionsIndex(indexContent)
+  const indexContent = buildPermissionsIndexContent(groups, options.backendRoot)
+  hasContentChange = writePermissionsIndex(indexContent) || hasContentChange
+
+  const staleFiles = removeStalePermissionFiles(expectedFiles)
+  hasContentChange = staleFiles.length > 0 || hasContentChange
+
+  if (!hasContentChange && recordUnchanged) {
+    console.log('\n✅ 权限常量无变化，未更新生成文件')
+    return
+  }
 
   writePermissionSyncRecord({
-    lastSyncTime: generatedAt,
-    permissionsHash: computePermissionsHash(permissions),
+    lastSyncTime: new Date().toISOString(),
+    permissionsHash,
     backendRoot: options.backendRoot,
     permissionCount: permissions.length
   })

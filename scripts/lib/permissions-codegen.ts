@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, unlinkSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -253,8 +253,7 @@ function getActionComment(permission: PermissionRecord): string {
 
 export function buildPermissionFileContent(
   group: PermissionGroup,
-  backendRoot: string,
-  generatedAt: string
+  backendRoot: string
 ): string {
   const lines: string[] = [
     '/**',
@@ -262,7 +261,6 @@ export function buildPermissionFileContent(
     ' *',
     ' * ⚠️ 请勿手动编辑此文件',
     ' * 此文件由 scripts/generate-permissions.ts 自动生成',
-    ` * 生成时间: ${generatedAt}`,
     ' *',
     ` * 后端目录: ${backendRoot}`,
     ` * 权限分组: ${group.key}`,
@@ -296,14 +294,13 @@ export function buildPermissionFileContent(
   return lines.join('\n')
 }
 
-export function buildPermissionsIndexContent(groups: PermissionGroup[], backendRoot: string, generatedAt: string): string {
+export function buildPermissionsIndexContent(groups: PermissionGroup[], backendRoot: string): string {
   const lines: string[] = [
     '/**',
     ' * 自动生成的权限常量导出入口',
     ' *',
     ' * ⚠️ 请勿手动编辑此文件',
     ' * 此文件由 scripts/generate-permissions.ts 自动生成',
-    ` * 生成时间: ${generatedAt}`,
     ' *',
     ` * 后端目录: ${backendRoot}`,
     ' */',
@@ -364,18 +361,66 @@ export function resetPermissionsOutput(): void {
   ensureDir(PERMISSIONS_OUTPUT_DIR)
 }
 
+function walkFiles(dirPath: string): string[] {
+  if (!existsSync(dirPath)) {
+    return []
+  }
+
+  const entries = readdirSync(dirPath, { withFileTypes: true })
+  const files: string[] = []
+
+  for (const entry of entries) {
+    const fullPath = resolve(dirPath, entry.name)
+    if (entry.isDirectory()) {
+      files.push(...walkFiles(fullPath))
+      continue
+    }
+
+    if (entry.isFile()) {
+      files.push(fullPath)
+    }
+  }
+
+  return files.sort()
+}
+
+export function listGeneratedPermissionFiles(): string[] {
+  return walkFiles(PERMISSIONS_OUTPUT_DIR)
+}
+
+export function writeFileIfChanged(outputPath: string, content: string): boolean {
+  const previous = existsSync(outputPath) ? readFileSync(outputPath, 'utf-8') : null
+  if (previous === content) {
+    return false
+  }
+
+  ensureDir(dirname(outputPath))
+  writeFileSync(outputPath, content, 'utf-8')
+  return true
+}
+
 export function writePermissionGroupFile(
   group: PermissionGroup,
   content: string
-): void {
+): boolean {
   const outputPath = resolve(PERMISSIONS_OUTPUT_DIR, group.relativeFilePath)
-  ensureDir(dirname(outputPath))
-  writeFileSync(outputPath, content, 'utf-8')
+  return writeFileIfChanged(outputPath, content)
 }
 
-export function writePermissionsIndex(content: string): void {
+export function writePermissionsIndex(content: string): boolean {
   ensureDir(PERMISSIONS_OUTPUT_DIR)
-  writeFileSync(PERMISSIONS_INDEX_FILE, content, 'utf-8')
+  return writeFileIfChanged(PERMISSIONS_INDEX_FILE, content)
+}
+
+export function removeStalePermissionFiles(expectedFiles: string[]): string[] {
+  const expected = new Set(expectedFiles)
+  const staleFiles = listGeneratedPermissionFiles().filter(filePath => !expected.has(filePath))
+
+  for (const filePath of staleFiles) {
+    unlinkSync(filePath)
+  }
+
+  return staleFiles
 }
 
 export function simpleHash(str: string): string {
@@ -405,7 +450,7 @@ export function computePermissionsHash(permissions: PermissionRecord[]): string 
 }
 
 export function writePermissionSyncRecord(record: PermissionSyncRecord): void {
-  writeFileSync(PERMISSION_SYNC_RECORD_FILE, JSON.stringify(record, null, 2), 'utf-8')
+  writeFileIfChanged(PERMISSION_SYNC_RECORD_FILE, `${JSON.stringify(record, null, 2)}\n`)
 }
 
 export function readPermissionSyncRecord(): PermissionSyncRecord | null {

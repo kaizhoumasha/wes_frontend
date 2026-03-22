@@ -6,8 +6,6 @@
  *
  * ⚠️ 请勿手动编辑此文件
  * 如需自定义验证规则，请修改 src/types/zod-extensions.ts
- *
- * 生成时间: 2026-03-19T06:49:42.614Z
  */
 
 import { z } from 'zod'
@@ -239,7 +237,7 @@ export const AuthMyResponseSchema = z.object({
   /** Permissions */
   permissions: z.array(z.lazy(() => ApiPermissionInfoSchema)),
   /** Menus */
-  menus: z.array(z.lazy(() => MenuTreeResponseSchema)),
+  menus: z.array(z.lazy(() => MenuTreeResponseSimpleSchema)),
 })
 
 
@@ -1169,7 +1167,7 @@ export const MenuResponseSchema = z.object({
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
-export const MenuTreeResponseSchema = z.lazy((): z.ZodTypeAny => z.object({
+export const MenuTreeResponseSchema = z.object({
   /** Parent Id */
   parent_id: z.union([z.number(), z.null()]).optional(),
   /** Tree Path */
@@ -1192,8 +1190,48 @@ export const MenuTreeResponseSchema = z.lazy((): z.ZodTypeAny => z.object({
   is_hidden: z.boolean().optional().default(false),
   /** Id */
   id: z.number(),
+  /** Version */
+  version: z.number(),
+  /** Roles */
+  roles: z.array(z.lazy(() => RoleResponseSchema)).optional(),
   /** Children */
-  children: z.array(z.lazy(() => MenuTreeResponseSchema)).optional(),
+  children: z.array(z.lazy(() => MenuResponseSchema)).optional(),
+})
+
+
+/**
+ * 菜单树响应 Schema
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const MenuTreeResponseSimpleSchema = z.lazy((): z.ZodTypeAny => z.object({
+  /** Parent Id */
+  parent_id: z.union([z.number(), z.null()]).optional(),
+  /** Tree Path */
+  tree_path: z.string().optional().default("/"),
+  /** Level */
+  level: z.number().optional().default(1),
+  /** Sort Order */
+  sort_order: z.number().optional().default(0),
+  /** Name */
+  name: z.string().max(50),
+  /** Title */
+  title: z.string().max(50),
+  /** Path */
+  path: z.string().max(200),
+  /** Component */
+  component: z.union([z.string().max(200), z.null()]).optional(),
+  /** Icon */
+  icon: z.union([z.string().max(50), z.null()]).optional(),
+  /** Is Hidden */
+  is_hidden: z.boolean().optional().default(false),
+  /** Id */
+  id: z.number(),
+  /** Version */
+  version: z.number(),
+  /** Children */
+  children: z.array(z.lazy(() => MenuTreeResponseSimpleSchema)).optional(),
 }))
 
 
@@ -1310,6 +1348,50 @@ export const PermissionResponseSchema = z.object({
   /** Full Name */
   full_name: z.string(),
 })
+
+
+/**
+ * API 权限树形结构 Schema
+
+用于权限分组展示和管理（如按模块分组）
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const PermissionTreeSchema = z.lazy((): z.ZodTypeAny => z.object({
+  /** Parent Id */
+  parent_id: z.union([z.number(), z.null()]).optional(),
+  /** Tree Path */
+  tree_path: z.string().optional().default("/"),
+  /** Level */
+  level: z.number().optional().default(1),
+  /** Sort Order */
+  sort_order: z.number().optional().default(0),
+  /** Name */
+  name: z.string().max(100),
+  /** Description */
+  description: z.union([z.string().max(255), z.null()]).optional(),
+  /** Type */
+  type: z.string().max(20).optional().default("user_api"),
+  /** Category */
+  category: z.union([z.string().max(50), z.null()]).optional(),
+  /** Resource */
+  resource: z.union([z.string().max(50), z.null()]).optional(),
+  /** Action */
+  action: z.union([z.string().max(50), z.null()]).optional(),
+  /** Method */
+  method: z.union([z.string().max(10), z.null()]).optional(),
+  /** Path */
+  path: z.union([z.string().max(255), z.null()]).optional(),
+  /** Id */
+  id: z.number(),
+  /** Children */
+  children: z.array(z.lazy(() => PermissionTreeSchema)).optional(),
+  /** Is Leaf */
+  is_leaf: z.boolean(),
+  /** Has Children */
+  has_children: z.boolean(),
+}))
 
 
 /**

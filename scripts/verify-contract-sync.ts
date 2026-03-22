@@ -85,18 +85,6 @@ function readSyncRecord(): SyncRecord | null {
   }
 }
 
-/**
- * 从生成的文件中提取同步时间
- */
-function getGeneratedFileTimestamp(): string | null {
-  if (!existsSync(GENERATED_SCHEMA_FILE)) {
-    return null
-  }
-  const content = readFileSync(GENERATED_SCHEMA_FILE, 'utf-8')
-  const match = content.match(/生成时间: ([^\n]+)/)
-  return match ? match[1] : null
-}
-
 // ==================== 主函数 ====================
 
 async function main(): Promise<void> {
@@ -107,15 +95,10 @@ async function main(): Promise<void> {
   console.log('🔍 检查前后端契约同步状态...\n')
 
   // 1. 检查生成文件是否存在
-  const timestamp = getGeneratedFileTimestamp()
-  if (!timestamp) {
+  if (!existsSync(GENERATED_SCHEMA_FILE)) {
     console.log('⚠️  未找到生成的 Zod schemas 文件')
     console.log('   请先运行: pnpm zod:generate\n')
     process.exit(1) // 失败：需要生成
-  }
-
-  if (!silent) {
-    console.log(`📅 上次生成: ${timestamp}`)
   }
 
   // 2. 如果后端未运行且不强制要求，跳过检查
@@ -136,6 +119,10 @@ async function main(): Promise<void> {
     console.log('⚠️  未找到同步记录')
     console.log('   这是首次检查，请先运行: pnpm zod:generate\n')
     process.exit(1) // 失败：首次运行
+  }
+
+  if (!silent) {
+    console.log(`📅 上次生成: ${record.lastSyncTime}`)
   }
 
   // 4. 对比哈希值

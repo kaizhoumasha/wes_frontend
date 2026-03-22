@@ -95,7 +95,7 @@ export function flattenMenuTree(
       name: menu.name,
       title: menu.title,
       path: menu.path,
-      icon: menu.icon,
+      icon: menu.icon ?? undefined,
       parent_id: parentId,
       level
     })

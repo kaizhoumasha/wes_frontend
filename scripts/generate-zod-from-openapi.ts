@@ -11,7 +11,7 @@
  *   pnpm exec tsx scripts/generate-zod-from-openapi.ts
  */
 
-import { writeFileSync, mkdirSync, existsSync } from 'node:fs'
+import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -97,15 +97,40 @@ interface SyncRecord {
   backendUrl: string
 }
 
-function writeSyncRecord(openApiData: Record<string, unknown>): void {
+function readSyncRecord(): SyncRecord | null {
+  if (!existsSync(SYNC_RECORD_FILE)) {
+    return null
+  }
+
+  try {
+    return JSON.parse(readFileSync(SYNC_RECORD_FILE, 'utf-8')) as SyncRecord
+  } catch {
+    return null
+  }
+}
+
+function writeFileIfChanged(path: string, content: string): boolean {
+  const previous = existsSync(path) ? readFileSync(path, 'utf-8') : null
+  if (previous === content) {
+    return false
+  }
+
+  writeFileSync(path, content, 'utf-8')
+  return true
+}
+
+function writeSyncRecord(openApiData: Record<string, unknown>): boolean {
   const schemas = JSON.stringify(openApiData.components?.schemas || {})
   const record: SyncRecord = {
     lastSyncTime: new Date().toISOString(),
     openApiHash: simpleHash(schemas),
     backendUrl: BACKEND_OPENAPI_URL,
   }
-  writeFileSync(SYNC_RECORD_FILE, JSON.stringify(record, null, 2), 'utf-8')
-  console.log(`✅ 记录同步状态: ${SYNC_RECORD_FILE}`)
+  const changed = writeFileIfChanged(SYNC_RECORD_FILE, `${JSON.stringify(record, null, 2)}\n`)
+  if (changed) {
+    console.log(`✅ 记录同步状态: ${SYNC_RECORD_FILE}`)
+  }
+  return changed
 }
 
 // ==================== 工具函数 ====================
@@ -397,8 +422,6 @@ function generateZodSchemasFile(schemas: Record<string, OpenAPISchema>): string 
   lines.push(' *')
   lines.push(' * ⚠️ 请勿手动编辑此文件')
   lines.push(' * 如需自定义验证规则，请修改 src/types/zod-extensions.ts')
-  lines.push(' *')
-  lines.push(` * 生成时间: ${new Date().toISOString()}`)
   lines.push(' */')
   lines.push('')
   lines.push("import { z } from 'zod'")
@@ -422,11 +445,11 @@ function generateZodSchemasFile(schemas: Record<string, OpenAPISchema>): string 
 /**
  * 生成扩展文件（如果不存在）
  */
-function generateExtensionFile(): void {
+function generateExtensionFile(): boolean {
   const extensionPath = join(__dirname, '../src/types/zod-extensions.ts')
 
   if (existsSync(extensionPath)) {
-    return
+    return false
   }
 
   const content = `/**
@@ -459,6 +482,7 @@ export * from './generated/zod-schemas'
 
   writeFileSync(extensionPath, content, 'utf-8')
   console.log(`✅ 创建扩展文件: ${extensionPath}`)
+  return true
 }
 
 // ==================== 主函数 ====================
@@ -469,6 +493,7 @@ async function main(): Promise<void> {
   try {
     // 1. 获取 OpenAPI schema
     const { schemas, openApiData } = await fetchOpenAPISchema()
+    const schemasHash = simpleHash(JSON.stringify(openApiData.components?.schemas || {}))
 
     // 2. 生成 Zod schemas 文件
     console.log('\n📝 生成 Zod schemas...')
@@ -479,15 +504,28 @@ async function main(): Promise<void> {
       mkdirSync(OUTPUT_DIR, { recursive: true })
     }
 
-    // 4. 写入文件
-    writeFileSync(OUTPUT_FILE, content, 'utf-8')
-    console.log(`✅ 生成文件: ${OUTPUT_FILE}`)
+    const record = readSyncRecord()
+    const fileChanged = writeFileIfChanged(OUTPUT_FILE, content)
+    if (fileChanged) {
+      console.log(`✅ 生成文件: ${OUTPUT_FILE}`)
+    } else {
+      console.log(`✅ 生成文件无变化: ${OUTPUT_FILE}`)
+    }
 
     // 5. 生成扩展文件
-    generateExtensionFile()
+    const extensionChanged = generateExtensionFile()
 
     // 6. 写入同步记录
-    writeSyncRecord(openApiData)
+    const recordNeedsUpdate =
+      !record ||
+      record.openApiHash !== schemasHash ||
+      record.backendUrl !== BACKEND_OPENAPI_URL
+    const syncRecordChanged = recordNeedsUpdate ? writeSyncRecord(openApiData) : false
+
+    if (!fileChanged && !extensionChanged && !syncRecordChanged) {
+      console.log('\n✨ 无变化，未更新生成文件')
+      return
+    }
 
     console.log('\n✨ 完成！')
     console.log('\n📖 使用方法:')

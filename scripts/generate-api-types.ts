@@ -9,6 +9,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import openapiTS, { astToString } from 'openapi-typescript'
+import ts from 'typescript'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -45,6 +47,16 @@ function ensureDir(path: string): void {
   }
 }
 
+function writeFileIfChanged(path: string, content: string): boolean {
+  const previous = existsSync(path) ? readFileSync(path, 'utf-8') : null
+  if (previous === content) {
+    return false
+  }
+
+  writeFileSync(path, content, 'utf-8')
+  return true
+}
+
 /**
  * 从 URL 获取 OpenAPI 规范
  */
@@ -72,17 +84,19 @@ async function fetchOpenApiSpec(url: string): Promise<unknown> {
 /**
  * 生成类型定义文件
  */
-function generateTypesFile(spec: unknown, outputPath: string): void {
+async function generateTypesFile(spec: unknown, outputPath: string): Promise<boolean> {
   console.log(`🔧 正在生成类型定义文件...`)
 
-  // 使用 @hey-api/openapi-ts 生成类型
-  // 这是一个简化的实现，实际使用时需要配置 @hey-api/openapi-ts
+  const ast = await openapiTS(spec as Parameters<typeof openapiTS>[0], {
+    alphabetize: true
+  })
+
+  const generatedTypes = astToString(ast)
   const content = `/**
  * 自动生成的 OpenAPI 类型定义
  *
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
- * 生成时间: ${new Date().toISOString()}
  *
  * 后端 OpenAPI 端点: ${config.backendUrl}
  *
@@ -92,61 +106,17 @@ function generateTypesFile(spec: unknown, outputPath: string): void {
 /* eslint-disable */
 /* tslint:disable */
 
-// 此处为生成的类型定义占位符
-// 实际类型由 @hey-api/openapi-ts 生成
-
-export interface paths {
-  '/api/v1/auth/login': {
-    post: operations['auth_login']
-  }
-}
-
-export interface operations {}
-
-export interface components {
-  schemas: {
-    LoginResponse: {
-      access_token: string
-      refresh_token: string
-      expires_in: number
-      refresh_expires_in: number
-      session_uuid: string
-      user: components.schemas.UserResponse
-    }
-    UserResponse: {
-      id: number
-      username: string
-      is_multi_login: boolean
-      roles: components.schemas.Role[]
-    }
-    Role: {
-      id: number
-      name: string
-    }
-  }
-}
-
-export type external = {}
-
-export interface OpenAPIMetadata {
-  /** OpenAPI 版本 */
-  openapi: string
-  /** API 信息 */
-  info: {
-    title: string
-    version: string
-    description?: string
-  }
-  /** 服务器列表 */
-  servers: Array<{
-    url: string
-    description?: string
-  }>
-}
+${generatedTypes}
 `
 
-  writeFileSync(outputPath, content, 'utf-8')
-  console.log(`✅ 类型定义文件已生成: ${outputPath}`)
+  const changed = writeFileIfChanged(outputPath, content)
+  if (changed) {
+    console.log(`✅ 类型定义文件已更新: ${outputPath}`)
+  } else {
+    console.log(`✅ 类型定义无变化: ${outputPath}`)
+  }
+
+  return changed
 }
 
 /**
@@ -159,10 +129,24 @@ function validateTypes(outputPath: string): void {
     throw new Error(`类型文件不存在: ${outputPath}`)
   }
 
-  // 简单的语法检查
   const content = readFileSync(outputPath, 'utf-8')
-  if (content.includes('error') || content.includes('Error')) {
-    console.warn(`⚠️  生成的类型文件可能包含错误，请检查`)
+
+  const result = ts.transpileModule(content, {
+    compilerOptions: {
+      module: ts.ModuleKind.ESNext,
+      target: ts.ScriptTarget.ESNext
+    },
+    fileName: outputPath,
+    reportDiagnostics: true
+  })
+
+  if (result.diagnostics?.length) {
+    const message = ts.formatDiagnosticsWithColorAndContext(result.diagnostics, {
+      getCanonicalFileName: (fileName) => fileName,
+      getCurrentDirectory: () => process.cwd(),
+      getNewLine: () => '\n'
+    })
+    throw new Error(`生成的类型文件存在语法问题:\n${message}`)
   }
 
   console.log(`✅ 类型验证通过`)
@@ -182,12 +166,12 @@ async function main(): Promise<void> {
 
     // 生成类型文件
     const outputPath = join(config.outputDir, 'openapi-types.ts')
-    generateTypesFile(spec, outputPath)
+    const changed = await generateTypesFile(spec, outputPath)
 
     // 验证类型
     validateTypes(outputPath)
 
-    console.log('\n✅ 类型生成完成！')
+    console.log(changed ? '\n✅ 类型生成完成！' : '\n✅ 类型无变化，未更新生成文件')
     console.log(`📁 输出目录: ${config.outputDir}`)
     console.log('\n💡 提示: 运行 pnpm type:check 验证类型正确性')
   } catch (error) {

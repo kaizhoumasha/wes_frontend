@@ -3,7 +3,6 @@
  *
  * ⚠️ 请勿手动编辑此文件
  * 此文件由 scripts/generate-permissions.ts 自动生成
- * 生成时间: 2026-03-19T06:59:20.770Z
  *
  * 后端目录: /Users/kaizhou/SynologyDrive/works/wes_backend
  * 权限分组: user_api:admin:permission
