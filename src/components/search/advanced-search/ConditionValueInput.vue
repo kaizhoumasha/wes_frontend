@@ -1,5 +1,5 @@
 <template>
-  <div class="condition-value-input">
+  <div ref="rootRef" class="condition-value-input">
     <template v-if="!field">
       <div class="condition-value-input__placeholder">请先选择字段</div>
     </template>
@@ -133,7 +133,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 import type { AdvancedFilterOperator, SearchFieldDef } from '@/types/search'
 import { needsAdvancedValue } from '@/utils/advanced-search'
@@ -145,6 +145,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const rootRef = ref<HTMLDivElement | null>(null)
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: unknown): void
@@ -229,6 +230,23 @@ function handleMultipleChange(values: unknown[]) {
 
   emit('update:modelValue', values)
 }
+
+function focusPrimaryInput(): boolean {
+  const focusable = rootRef.value?.querySelector<HTMLElement>(
+    'input:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  )
+
+  if (!focusable) {
+    return false
+  }
+
+  focusable.focus()
+  return true
+}
+
+defineExpose({
+  focusPrimaryInput
+})
 </script>
 
 <style scoped lang="scss">

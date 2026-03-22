@@ -2,6 +2,7 @@
   <div class="filter-condition-row-wrap">
     <div class="filter-condition-row" :class="{ 'filter-condition-row--invalid': invalid }">
       <el-select
+        ref="fieldSelectRef"
         :model-value="condition.field"
         filterable
         placeholder="选择字段"
@@ -17,6 +18,7 @@
       </el-select>
 
       <el-select
+        ref="operatorSelectRef"
         :model-value="condition.op"
         placeholder="选择操作符"
         class="filter-condition-row__operator"
@@ -31,6 +33,7 @@
       </el-select>
 
       <ConditionValueInput
+        ref="valueInputRef"
         :model-value="condition.value"
         :operator="condition.op"
         :field="currentField"
@@ -62,6 +65,7 @@ import {
   getUIFilterConditionErrors,
   getAdvancedOperatorLabel,
   getAdvancedOperatorsForField,
+  needsAdvancedValue,
   resolveInitialValueForOperator
 } from '@/utils/advanced-search'
 import ConditionValueInput from './ConditionValueInput.vue'
@@ -72,6 +76,9 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const fieldSelectRef = ref<{ focus?: () => void } | null>(null)
+const operatorSelectRef = ref<{ focus?: () => void } | null>(null)
+const valueInputRef = ref<InstanceType<typeof ConditionValueInput> | null>(null)
 
 const emit = defineEmits<{
   (e: 'update', value: UIFilterCondition): void
@@ -87,6 +94,52 @@ const conditionErrors = computed(() => getUIFilterConditionErrors(props.conditio
 const dirty = ref(false)
 const invalid = computed(() => dirty.value && conditionErrors.value.length > 0)
 const invalidMessage = computed(() => (dirty.value ? conditionErrors.value[0] : undefined))
+
+function focusField(): boolean {
+  if (!fieldSelectRef.value?.focus) {
+    return false
+  }
+
+  fieldSelectRef.value.focus()
+  return true
+}
+
+function focusOperator(): boolean {
+  if (!operatorSelectRef.value?.focus) {
+    return false
+  }
+
+  operatorSelectRef.value.focus()
+  return true
+}
+
+function focusValue(): boolean {
+  return valueInputRef.value?.focusPrimaryInput?.() ?? false
+}
+
+function isIncomplete(): boolean {
+  return conditionErrors.value.length > 0
+}
+
+function focusPreferredInput(): boolean {
+  if (!props.condition.field || !currentField.value) {
+    return focusField()
+  }
+
+  if (!props.condition.op) {
+    return focusOperator() || focusField()
+  }
+
+  if (!needsAdvancedValue(props.condition.op)) {
+    return focusOperator() || focusField()
+  }
+
+  if (focusValue()) {
+    return true
+  }
+
+  return focusOperator() || focusField()
+}
 
 function handleFieldChange(fieldKey: string) {
   dirty.value = true
@@ -123,6 +176,11 @@ function handleValueChange(value: unknown) {
     value
   })
 }
+
+defineExpose({
+  focusPreferredInput,
+  isIncomplete
+})
 </script>
 
 <style scoped lang="scss">
@@ -147,6 +205,11 @@ function handleValueChange(value: unknown) {
     border-color 0.18s ease,
     transform 0.18s ease,
     box-shadow 0.18s ease;
+
+  &:focus-within {
+    border-color: color-mix(in srgb, var(--el-color-primary) 42%, var(--el-border-color));
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--el-color-primary) 14%, transparent);
+  }
 
   &:hover {
     border-color: color-mix(in srgb, var(--el-color-primary) 30%, var(--el-border-color));

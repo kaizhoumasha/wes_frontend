@@ -9,7 +9,7 @@
       </div>
 
       <div class="filter-group-builder__actions">
-        <el-button size="small" @click="handleAddCondition">+ 条件</el-button>
+        <el-button ref="addConditionButtonRef" size="small" @click="handleAddCondition">+ 条件</el-button>
         <el-button size="small" :disabled="disableAddGroup" @click="handleAddGroup">+ 组</el-button>
         <el-button
           v-if="root && group.conditions.length > 0"
@@ -54,6 +54,7 @@
       <template v-for="item in group.conditions" :key="item.id">
         <FilterConditionRow
           v-if="!isUIFilterGroup(item)"
+          :ref="instance => setConditionRowRef(item.id, instance)"
           :condition="item"
           :fields="fields"
           @update="value => updateItem(item.id, value)"
@@ -62,6 +63,7 @@
 
         <FilterGroupBuilder
           v-else
+          :ref="instance => setGroupBuilderRef(item.id, instance)"
           :group="item"
           :fields="fields"
           :depth="depth + 1"
@@ -77,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, type ComponentPublicInstance } from 'vue'
 
 import type { SearchFieldDef, UIFilterCondition, UIFilterGroup } from '@/types/search'
 import {
@@ -109,8 +111,48 @@ const emit = defineEmits<{
   (e: 'clear-root'): void
 }>()
 
+type FocusableConditionRowInstance = {
+  focusPreferredInput?: () => boolean
+  isIncomplete?: () => boolean
+}
+
+type FocusableGroupBuilderInstance = {
+  focusAddConditionButton?: () => boolean
+  focusFirstCondition?: (preferIncomplete?: boolean) => boolean
+  focusLastCondition?: () => boolean
+}
+
+const addConditionButtonRef = ref<{ focus?: () => void } | null>(null)
+const conditionRowRefs = ref(new Map<string, FocusableConditionRowInstance>())
+const groupBuilderRefs = ref(new Map<string, FocusableGroupBuilderInstance>())
 const disableAddGroup = computed(() => props.depth >= props.maxDepth - 1)
 const depthClass = computed(() => `filter-group-builder--depth-${Math.min(props.depth, 2)}`)
+
+function setConditionRowRef(
+  id: string,
+  instance: Element | ComponentPublicInstance | null
+): void {
+  const rowInstance = instance as FocusableConditionRowInstance | null
+  if (rowInstance) {
+    conditionRowRefs.value.set(id, rowInstance)
+    return
+  }
+
+  conditionRowRefs.value.delete(id)
+}
+
+function setGroupBuilderRef(
+  id: string,
+  instance: Element | ComponentPublicInstance | null
+): void {
+  const groupInstance = instance as FocusableGroupBuilderInstance | null
+  if (groupInstance) {
+    groupBuilderRefs.value.set(id, groupInstance)
+    return
+  }
+
+  groupBuilderRefs.value.delete(id)
+}
 
 function emitNextConditions(
   conditions: Array<UIFilterCondition | UIFilterGroup>,
@@ -159,6 +201,78 @@ function updateItem(itemId: string, value: UIFilterCondition | UIFilterGroup) {
 function removeItem(itemId: string) {
   emitNextConditions(props.group.conditions.filter(item => item.id !== itemId))
 }
+
+function focusAddConditionButton(): boolean {
+  if (!addConditionButtonRef.value?.focus) {
+    return false
+  }
+
+  addConditionButtonRef.value.focus()
+  return true
+}
+
+function focusFirstCondition(preferIncomplete = true): boolean {
+  if (preferIncomplete) {
+    for (const item of props.group.conditions) {
+      if (isUIFilterGroup(item)) {
+        const groupRef = groupBuilderRefs.value.get(item.id)
+        if (groupRef?.focusFirstCondition?.(true)) {
+          return true
+        }
+        continue
+      }
+
+      const rowRef = conditionRowRefs.value.get(item.id)
+      if (rowRef?.isIncomplete?.() && rowRef.focusPreferredInput?.()) {
+        return true
+      }
+    }
+  }
+
+  for (const item of props.group.conditions) {
+    if (isUIFilterGroup(item)) {
+      const groupRef = groupBuilderRefs.value.get(item.id)
+      if (groupRef?.focusFirstCondition?.(false)) {
+        return true
+      }
+      continue
+    }
+
+    const rowRef = conditionRowRefs.value.get(item.id)
+    if (rowRef?.focusPreferredInput?.()) {
+      return true
+    }
+  }
+
+  return false
+}
+
+function focusLastCondition(): boolean {
+  const reversedConditions = [...props.group.conditions].reverse()
+
+  for (const item of reversedConditions) {
+    if (isUIFilterGroup(item)) {
+      const groupRef = groupBuilderRefs.value.get(item.id)
+      if (groupRef?.focusLastCondition?.()) {
+        return true
+      }
+      continue
+    }
+
+    const rowRef = conditionRowRefs.value.get(item.id)
+    if (rowRef?.focusPreferredInput?.()) {
+      return true
+    }
+  }
+
+  return false
+}
+
+defineExpose({
+  focusAddConditionButton,
+  focusFirstCondition,
+  focusLastCondition
+})
 </script>
 
 <style scoped lang="scss">

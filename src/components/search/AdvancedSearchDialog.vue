@@ -1,5 +1,6 @@
 <template>
   <StandardDialog
+    ref="dialogRef"
     :model-value="modelValue"
     size="xl"
     title="高级搜索"
@@ -36,6 +37,7 @@
       </section>
 
       <FilterGroupBuilder
+        ref="groupBuilderRef"
         :group="draftGroup"
         :fields="fields"
         root
@@ -70,10 +72,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, toRef, watch } from 'vue'
+import { computed, nextTick, ref, toRef, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FilterGroup } from '@/api/base/crud-api'
-import { StandardDialog } from '@/components/ui/StandardDialog'
+import { StandardDialog, type StandardDialogExpose } from '@/components/ui/StandardDialog'
 import type { SearchCondition, SearchFavorite, SearchFieldDef, UIFilterGroup } from '@/types/search'
 import {
   getFavoriteFilterGroup,
@@ -99,6 +101,13 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const dialogRef = ref<StandardDialogExpose | null>(null)
+const groupBuilderRef = ref<{
+  focusAddConditionButton?: () => boolean
+  focusFirstCondition?: (preferIncomplete?: boolean) => boolean
+  focusLastCondition?: () => boolean
+} | null>(null)
+const returnFocusTarget = ref<HTMLElement | null>(null)
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
@@ -129,11 +138,78 @@ function resetSummaryBar(): void {
   summaryResetToken.value += 1
 }
 
-watch(() => props.modelValue, isOpen => {
+function captureReturnFocusTarget(): void {
+  if (typeof document === 'undefined') {
+    return
+  }
+
+  const activeElement = document.activeElement
+  returnFocusTarget.value = activeElement instanceof HTMLElement ? activeElement : null
+}
+
+function restoreReturnFocus(): void {
+  const target = returnFocusTarget.value
+  returnFocusTarget.value = null
+
+  if (!target || !target.isConnected) {
+    return
+  }
+
+  requestAnimationFrame(() => {
+    target.focus()
+  })
+}
+
+async function focusInitialTarget(): Promise<void> {
+  await nextTick()
+
+  requestAnimationFrame(() => {
+    const builder = groupBuilderRef.value
+    if (!builder) {
+      return
+    }
+
+    const openedFromField = props.draftSeed?.nonce !== undefined
+
+    if (openedFromField && builder.focusLastCondition?.()) {
+      return
+    }
+
+    if (draftGroup.value.conditions.length === 0) {
+      if (builder.focusAddConditionButton?.()) {
+        return
+      }
+    }
+
+    if (builder.focusFirstCondition?.(true)) {
+      return
+    }
+
+    if (builder.focusAddConditionButton?.()) {
+      return
+    }
+
+    const bodyElement = dialogRef.value?.getBodyElement()
+    const fallbackFocusable = bodyElement?.querySelector<HTMLElement>(
+      'input, textarea, select, button, [tabindex]:not([tabindex="-1"])'
+    )
+    fallbackFocusable?.focus()
+  })
+}
+
+watch(() => props.modelValue, (isOpen, wasOpen) => {
   if (isOpen) {
+    captureReturnFocusTarget()
     resetSummaryBar()
+    void focusInitialTarget()
+    return
+  }
+
+  if (wasOpen) {
+    restoreReturnFocus()
   }
 })
+
 function handleGroupUpdate(value: UIFilterGroup) {
   replaceDraftGroup(value)
 }
@@ -162,11 +238,17 @@ async function handleApplyFavorite(favoriteId: string) {
   replaceDraftGroup(getFavoriteFilterGroup(favorite, props.fields))
   resetValidationErrors()
   resetSummaryBar()
+  void nextTick(() => {
+    groupBuilderRef.value?.focusFirstCondition?.(false)
+  })
 }
 
 function handleClearAll() {
   clearDraftGroup()
   resetSummaryBar()
+  void nextTick(() => {
+    groupBuilderRef.value?.focusAddConditionButton?.()
+  })
 }
 
 async function handleSaveFavorite() {
