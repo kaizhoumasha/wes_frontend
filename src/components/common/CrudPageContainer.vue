@@ -72,7 +72,10 @@ function setTableRef(instance: Element | ComponentPublicInstance | null) {
 <template>
   <div
     class="crud-page-container"
-    :class="{ 'crud-page-container--fit-viewport': props.fitViewport }"
+    :class="{
+      'crud-page-container--fit-viewport': props.fitViewport,
+      'crud-page-container--fullscreen': toolbarState.isFullscreen
+    }"
   >
     <div
       class="crud-page-container__toolbar"
@@ -98,7 +101,7 @@ function setTableRef(instance: Element | ComponentPublicInstance | null) {
         <template #controls>
           <AppIconButton
             v-if="features.refresh"
-            icon="Refresh"
+            icon="ep:refresh"
             size="small"
             :loading="toolbarState.loading"
             tooltip="刷新数据"
@@ -107,7 +110,7 @@ function setTableRef(instance: Element | ComponentPublicInstance | null) {
 
           <AppIconButton
             v-if="features.fullscreen"
-            :icon="toolbarState.isFullscreen ? 'ScaleToOriginal' : 'FullScreen'"
+            :icon="toolbarState.isFullscreen ? 'ep:scale-to-original' : 'ep:full-screen'"
             size="small"
             :tooltip="toolbarState.isFullscreen ? '退出全屏' : '全屏显示'"
             @click="controller.toggleFullscreen"
@@ -119,7 +122,7 @@ function setTableRef(instance: Element | ComponentPublicInstance | null) {
             @command="handleDensityChange"
           >
             <AppIconButton
-              icon="Grid"
+              icon="ep:grid"
               size="small"
               tooltip="调整行高"
             />
@@ -139,7 +142,7 @@ function setTableRef(instance: Element | ComponentPublicInstance | null) {
 
           <AppIconButton
             v-if="features.columnConfig"
-            icon="Setting"
+            icon="ep:setting"
             size="small"
             tooltip="配置显示列"
             @click="controller.openColumnConfig"
@@ -217,6 +220,14 @@ function setTableRef(instance: Element | ComponentPublicInstance | null) {
 
 .crud-page-container--fit-viewport {
   height: calc(100vh - var(--layout-header-height) - var(--layout-page-padding) * 2);
+}
+
+.crud-page-container--fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  height: 100vh;
+  background: var(--el-bg-color-page);
 }
 
 .crud-page-container__toolbar {

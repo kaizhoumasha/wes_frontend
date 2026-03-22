@@ -38,7 +38,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   icon: null,
   loading: false,
-  loadingIcon: 'Loading',
+  loadingIcon: 'ep:loading',
   iconSize: 16,
   tooltip: undefined,
   tooltipPlacement: 'bottom',

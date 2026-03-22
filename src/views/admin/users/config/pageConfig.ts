@@ -13,7 +13,7 @@ const USER_PAGE_RESOURCE: UserPageConfig['resource'] = {
   title: {
     text: '用户管理',
     subtitle: '管理系统用户',
-    icon: 'User'
+    icon: 'ep:user'
   },
   api: userApi,
   permissions: ADMIN_PERMISSIONS.user,

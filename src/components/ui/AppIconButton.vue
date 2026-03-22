@@ -29,7 +29,7 @@ interface Props {
 
 withDefaults(defineProps<Props>(), {
   loading: false,
-  loadingIcon: 'Loading',
+  loadingIcon: 'ep:loading',
   tooltip: undefined,
   tooltipPlacement: 'bottom',
   iconSize: 16,

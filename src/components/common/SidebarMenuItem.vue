@@ -9,7 +9,7 @@
       <div class="menu-item-content">
         <AppIcon
           :icon="menuItem.icon"
-          :fallback="'Menu'"
+          fallback="ep:menu"
           class="menu-icon"
         />
         <span
@@ -46,7 +46,7 @@
     <div class="menu-item-content">
       <AppIcon
         :icon="menuItem.icon"
-        :fallback="'Document'"
+        fallback="ep:document"
         class="menu-icon"
       />
       <span

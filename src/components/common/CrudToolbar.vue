@@ -167,7 +167,7 @@ function createBatchDeleteAction(): ToolbarAction {
   return {
     key: 'batch-delete',
     label: '批量删除',
-    icon: 'Delete',
+    icon: 'ep:delete',
     type: 'danger',
     handler: () => emit('batch-delete'),
     loading: props.toolbarState.batchDeleteLoading,
@@ -210,7 +210,13 @@ function handleActivateField(fieldKey: string): void {
 }
 
 function handleOpenAdvancedForField(fieldKey: string): void {
+  props.smartSearch.closePopover()
   props.smartSearch.openAdvancedDialog(fieldKey)
+}
+
+function handleOpenAdvanced(): void {
+  props.smartSearch.closePopover()
+  props.smartSearch.openAdvancedDialog()
 }
 </script>
 
@@ -320,7 +326,7 @@ function handleOpenAdvancedForField(fieldKey: string): void {
         @open-popover="smartSearch.openPopover"
         @close-popover="smartSearch.closePopover"
         @toggle-popover="smartSearch.togglePopover"
-        @open-advanced="smartSearch.openAdvancedDialog"
+        @open-advanced="handleOpenAdvanced"
         @keydown-next="smartSearch.getNextActiveField('next')"
         @keydown-prev="smartSearch.getNextActiveField('prev')"
         @activate-field="handleActivateField"
@@ -332,7 +338,7 @@ function handleOpenAdvancedForField(fieldKey: string): void {
       <div class="crud-toolbar__controls">
         <slot name="controls">
           <AppIconButton
-            icon="Refresh"
+            icon="ep:refresh"
             size="small"
             :loading="toolbarState.loading"
             tooltip="刷新数据"
@@ -340,7 +346,7 @@ function handleOpenAdvancedForField(fieldKey: string): void {
           />
 
           <AppIconButton
-            :icon="toolbarState.isFullscreen ? 'ScaleToOriginal' : 'FullScreen'"
+            :icon="toolbarState.isFullscreen ? 'ep:scale-to-original' : 'ep:full-screen'"
             size="small"
             :tooltip="toolbarState.isFullscreen ? '退出全屏' : '全屏显示'"
             @click="emit('toggle-fullscreen')"
@@ -351,7 +357,7 @@ function handleOpenAdvancedForField(fieldKey: string): void {
             @command="density => emit('change-density', density)"
           >
             <AppIconButton
-              icon="Grid"
+              icon="ep:grid"
               size="small"
               tooltip="调整行高"
             />
@@ -370,7 +376,7 @@ function handleOpenAdvancedForField(fieldKey: string): void {
           </el-dropdown>
 
           <AppIconButton
-            icon="Setting"
+            icon="ep:setting"
             size="small"
             tooltip="配置显示列"
             @click="emit('open-column-config')"

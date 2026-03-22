@@ -18,7 +18,7 @@ import { usePermission } from './usePermission'
  *     {
  *       key: 'create',
  *       label: '新增用户',
- *       icon: 'Plus',
+ *       icon: 'ep:plus',
  *       type: 'primary',
  *       handler: openCreateDialog,
  *       permission: USER_PERMISSION.create,

@@ -116,11 +116,11 @@ export function buildDefaultToolbarActions<
   const actions = [...(config.extensions?.toolbarActions ?? [])]
   const createLabel = features.create.label ?? '新增'
   const createTooltip = features.create.tooltip ?? createLabel
-  const createIcon = features.create.icon ?? 'Plus'
+  const createIcon = features.create.icon ?? 'ep:plus'
   const createPermission = features.create.permission ?? config.resource.permissions?.create
   const batchDeleteLabel = features.batchDelete.label ?? '批量删除'
   const batchDeleteTooltip = features.batchDelete.tooltip ?? '删除选中的数据'
-  const batchDeleteIcon = features.batchDelete.icon ?? 'Delete'
+  const batchDeleteIcon = features.batchDelete.icon ?? 'ep:delete'
   const batchDeletePermission =
     features.batchDelete.permission ?? config.resource.permissions?.delete
 

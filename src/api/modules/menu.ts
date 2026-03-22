@@ -40,7 +40,7 @@ export const menuApi = {
    * //     name: 'system',
    * //     title: '系统管理',
    * //     path: '/system',
-   * //     icon: 'Setting',
+   * //     icon: 'ep:setting',
    * //     children: [
    * //       { id: 2, name: 'system:users', title: '用户管理', path: '/system/users', ... }
    * //     ]
