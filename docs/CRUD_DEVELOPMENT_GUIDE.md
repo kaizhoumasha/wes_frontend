@@ -74,7 +74,7 @@ export function useProductPageConfig() {
       title: {
         text: '商品管理',
         subtitle: '管理系统商品',
-        icon: 'Goods'
+        icon: 'ep:goods'
       },
       api: productApi,
       permissions: PRODUCT_PERMISSION,
