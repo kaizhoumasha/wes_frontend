@@ -16,7 +16,7 @@ export const API_CACHE_DURATION = {
   NONE: 0,
   /** 短期缓存（1分钟）- 适用于频繁变化的数据 */
   SHORT: 60 * 1000,
-  /** 中期缓存（5分钟）- 适用于一般数据（默认） */
+  /** 中期缓存（5分钟）- 适用于明确允许短暂过期的只读数据 */
   MEDIUM: DEFAULT_CACHE_TTL,
   /** 长期缓存（15分钟）- 适用于很少变化的数据 */
   LONG: 15 * 60 * 1000
@@ -158,4 +158,3 @@ export function restoreFromHMR<T, R = T>(
     return null
   }
 }
-

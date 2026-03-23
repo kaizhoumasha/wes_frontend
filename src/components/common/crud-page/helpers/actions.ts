@@ -3,6 +3,7 @@ import type {
   CrudPageConfig,
   CrudPageEntity,
   CrudPagePermissionConfig,
+  CrudPageViewMode,
   CrudPageRowAction,
   CrudPageRowActionValue,
   CrudPageToolbarAction,
@@ -11,8 +12,11 @@ import type {
 
 type CrudPageControllerStateLike = {
   state: {
+    viewMode: { value: CrudPageViewMode }
     selectedCount: { value: number }
     batchDeleteLoading: { value: boolean }
+    batchRestoreLoading: { value: boolean }
+    batchPermanentDeleteLoading: { value: boolean }
   }
   dialogs: {
     openCreate: () => void
@@ -21,6 +25,7 @@ type CrudPageControllerStateLike = {
   permissions: {
     update: { value: boolean }
     delete: { value: boolean }
+    restore: { value: boolean }
   }
 }
 
@@ -33,6 +38,8 @@ type ToolbarActionsOptions<
   features: ResolvedCrudPageFeatures
   state: CrudPageControllerStateLike
   onBatchDelete: () => void | Promise<void>
+  onBatchRestore: () => void | Promise<void>
+  onBatchPermanentDelete: () => void | Promise<void>
 }
 
 type RowActionsOptions<
@@ -44,6 +51,8 @@ type RowActionsOptions<
   features: ResolvedCrudPageFeatures
   state: CrudPageControllerStateLike
   onDelete: (row: TItem) => void | Promise<void>
+  onRestore: (row: TItem) => void | Promise<void>
+  onPermanentDelete: (row: TItem) => void | Promise<void>
 }
 
 function resolveRowActionValue<TItem extends CrudPageEntity, TValue>(
@@ -91,20 +100,24 @@ function createDeletePopconfirm<TItem extends CrudPageEntity>(): NonNullable<
   }
 }
 
-export function buildCrudPermissionConfig(permissions?: CrudPagePermissionConfig): {
-  create: string
-  update: string
-  delete: string
-} | undefined {
-  if (!permissions?.create || !permissions.update || !permissions.delete) {
+function createPermanentDeletePopconfirm<TItem extends CrudPageEntity>(): NonNullable<
+  CrudPageRowAction<TItem>['popconfirm']
+> {
+  return {
+    title: '确认彻底删除这条记录吗？此操作不可恢复。',
+    confirmButtonText: '确认彻底删除',
+    cancelButtonText: '取消',
+    confirmButtonType: 'danger',
+    width: 280
+  }
+}
+
+export function buildCrudPermissionConfig(permissions?: CrudPagePermissionConfig): CrudPagePermissionConfig | undefined {
+  if (!permissions) {
     return undefined
   }
 
-  return {
-    create: permissions.create,
-    update: permissions.update,
-    delete: permissions.delete
-  }
+  return { ...permissions }
 }
 
 export function buildDefaultToolbarActions<
@@ -112,8 +125,11 @@ export function buildDefaultToolbarActions<
   TCreate extends object,
   TUpdate extends object
 >(options: ToolbarActionsOptions<TItem, TCreate, TUpdate>): CrudPageToolbarAction[] {
-  const { config, features, state, onBatchDelete } = options
-  const actions = [...(config.extensions?.toolbarActions ?? [])]
+  const { config, features, state, onBatchDelete, onBatchRestore, onBatchPermanentDelete } = options
+  const actions =
+    state.state.viewMode.value === 'active'
+      ? [...(config.extensions?.toolbarActions ?? [])]
+      : []
   const createLabel = features.create.label ?? '新增'
   const createTooltip = features.create.tooltip ?? createLabel
   const createIcon = features.create.icon ?? 'ep:plus'
@@ -123,6 +139,49 @@ export function buildDefaultToolbarActions<
   const batchDeleteIcon = features.batchDelete.icon ?? 'ep:delete'
   const batchDeletePermission =
     features.batchDelete.permission ?? config.resource.permissions?.delete
+  const batchRestoreLabel = features.batchRestore.label ?? '批量恢复'
+  const batchRestoreTooltip = features.batchRestore.tooltip ?? '恢复选中的数据'
+  const batchRestoreIcon = features.batchRestore.icon ?? 'ep:refresh-left'
+  const batchRestorePermission =
+    features.batchRestore.permission ?? config.resource.permissions?.restore
+  const batchPermanentDeleteLabel = features.batchPermanentDelete.label ?? '批量彻底删除'
+  const batchPermanentDeleteTooltip =
+    features.batchPermanentDelete.tooltip ?? '彻底删除选中的数据'
+  const batchPermanentDeleteIcon = features.batchPermanentDelete.icon ?? 'ep:delete-filled'
+  const batchPermanentDeletePermission =
+    features.batchPermanentDelete.permission ?? config.resource.permissions?.delete
+
+  if (state.state.viewMode.value === 'trash') {
+    if (features.batchRestore.enabled) {
+      actions.push({
+        key: `${config.resource.key}-batch-restore`,
+        label: batchRestoreLabel,
+        icon: batchRestoreIcon,
+        type: 'success',
+        handler: onBatchRestore,
+        permission: batchRestorePermission,
+        showWhen: createSelectionCountPredicate('some', state),
+        loading: state.state.batchRestoreLoading.value,
+        tooltip: batchRestoreTooltip
+      })
+    }
+
+    if (features.batchPermanentDelete.enabled) {
+      actions.push({
+        key: `${config.resource.key}-batch-permanent-delete`,
+        label: batchPermanentDeleteLabel,
+        icon: batchPermanentDeleteIcon,
+        type: 'danger',
+        handler: onBatchPermanentDelete,
+        permission: batchPermanentDeletePermission,
+        showWhen: createSelectionCountPredicate('some', state),
+        loading: state.state.batchPermanentDeleteLoading.value,
+        tooltip: batchPermanentDeleteTooltip
+      })
+    }
+
+    return actions
+  }
 
   if (features.create.enabled && config.form) {
     actions.unshift({
@@ -159,7 +218,7 @@ export function buildDefaultRowActions<
   TCreate extends object,
   TUpdate extends object
 >(options: RowActionsOptions<TItem, TCreate, TUpdate>): CrudPageRowAction<TItem>[] {
-  const { config, features, state, onDelete } = options
+  const { config, features, state, onDelete, onRestore, onPermanentDelete } = options
   const actions: CrudPageRowAction<TItem>[] = []
   const editLabel = features.edit.label ?? '编辑'
   const editTooltip = features.edit.tooltip ?? editLabel
@@ -167,6 +226,46 @@ export function buildDefaultRowActions<
   const deleteTooltip = features.delete.tooltip ?? deleteLabel
   const deleteIcon = features.delete.icon
   const deletePermission = features.delete.permission ?? config.resource.permissions?.delete
+  const restoreLabel = features.restore.label ?? '恢复'
+  const restoreTooltip = features.restore.tooltip ?? restoreLabel
+  const restoreIcon = features.restore.icon ?? 'ep:refresh-left'
+  const restorePermission = features.restore.permission ?? config.resource.permissions?.restore
+  const permanentDeleteLabel = features.permanentDelete.label ?? '彻底删除'
+  const permanentDeleteTooltip = features.permanentDelete.tooltip ?? permanentDeleteLabel
+  const permanentDeleteIcon = features.permanentDelete.icon ?? 'ep:delete-filled'
+  const permanentDeletePermission =
+    features.permanentDelete.permission ?? config.resource.permissions?.delete
+
+  if (state.state.viewMode.value === 'trash') {
+    if (features.restore.enabled) {
+      actions.push({
+        key: `${config.resource.key}-restore`,
+        label: restoreLabel,
+        type: 'success',
+        tooltip: restoreTooltip,
+        icon: restoreIcon,
+        permission: restorePermission,
+        show: createPermissionVisibility(state.permissions.restore),
+        onClick: onRestore
+      })
+    }
+
+    if (features.permanentDelete.enabled) {
+      actions.push({
+        key: `${config.resource.key}-permanent-delete`,
+        label: permanentDeleteLabel,
+        type: 'danger',
+        tooltip: permanentDeleteTooltip,
+        icon: permanentDeleteIcon,
+        permission: permanentDeletePermission,
+        show: createPermissionVisibility(state.permissions.delete),
+        onClick: onPermanentDelete,
+        popconfirm: createPermanentDeletePopconfirm<TItem>()
+      })
+    }
+
+    return actions
+  }
 
   if (features.edit.enabled && config.form) {
     actions.push({

@@ -15,6 +15,11 @@ const USER_PAGE_RESOURCE: UserPageConfig['resource'] = {
     subtitle: '管理系统用户',
     icon: 'ep:user'
   },
+  trashTitle: {
+    text: '用户回收站',
+    subtitle: '查看并恢复已删除用户',
+    icon: 'ep:delete'
+  },
   api: userApi,
   permissions: ADMIN_PERMISSIONS.user,
   optimisticUpdate: true,
@@ -23,17 +28,33 @@ const USER_PAGE_RESOURCE: UserPageConfig['resource'] = {
 
 const USER_PAGE_TABLE: Partial<UserPageConfig['table']> = {
   actionsColumn: {
-    width: 220
+    width: 260
   }
 }
 
 const USER_PAGE_FEATURES: CrudPageFeatures = {
+  trash: {
+    enabled: true,
+    label: '回收站'
+  },
   create: {
     label: '新增用户',
     dialogTitle: '创建用户'
   },
   edit: {
     dialogTitle: '编辑用户'
+  },
+  restore: {
+    label: '恢复用户'
+  },
+  batchRestore: {
+    label: '批量恢复'
+  },
+  permanentDelete: {
+    label: '彻底删除'
+  },
+  batchPermanentDelete: {
+    label: '批量彻底删除'
   }
 }
 

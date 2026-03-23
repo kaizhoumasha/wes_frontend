@@ -1,12 +1,20 @@
-import { ref, computed, type Ref, type ComputedRef } from 'vue'
+import { computed, reactive, ref, shallowRef, type ComputedRef, type Ref, type ShallowRef } from 'vue'
 import { useCrudApi } from './useCrudApi'
 import { useSmartSearch } from './useSmartSearch'
 import { usePermission } from './usePermission'
-import type { CrudApi, QueryOptions, SortField } from '@/api/base/crud-api'
+import {
+  hasSoftDeleteCrudApi,
+  type CrudApi,
+  type PaginationData,
+  type QueryOptions,
+  type SortField,
+} from '@/api/base/crud-api'
+import type { CrudPageViewMode } from '@/components/common/crud-page/types'
 import type { TableSortOrder } from '@/components/ui/table/table.types'
 import type { SearchFieldDef, QuickSearchPreset, SearchFavorite } from '@/types/search'
 
 type CrudDeleteOptions<TApi extends CrudApi<unknown, unknown, unknown>> = Parameters<TApi['delete']>[1]
+type ReadonlyRef<T> = Readonly<Ref<T>>
 
 /**
  * useCrudListPage Composable
@@ -63,9 +71,11 @@ export interface UseCrudListPageOptions<
 
   /** 权限常量 */
   permissions?: {
-    create: string
-    update: string
-    delete: string
+    create?: string
+    update?: string
+    delete?: string
+    restore?: string
+    trash?: string
   }
 
   /** 初始分页大小 */
@@ -96,13 +106,18 @@ export interface UseCrudListPageReturn<
   // 核心状态
   state: {
     data: ComputedRef<T[]>
-    loading: Ref<boolean>
-    error: Ref<Error | null>
+    loading: ReadonlyRef<boolean>
+    error: ReadonlyRef<Error | null>
     pagination: PaginationState
+    viewMode: Ref<CrudPageViewMode>
+    isTrashMode: ComputedRef<boolean>
+    supportsTrash: ComputedRef<boolean>
     selectedItems: Ref<T[]>
-    selectedCount: Ref<number>
-    hasSelection: Ref<boolean>
+    selectedCount: ComputedRef<number>
+    hasSelection: ComputedRef<boolean>
     batchDeleteLoading: Ref<boolean>
+    batchRestoreLoading: Ref<boolean>
+    batchPermanentDeleteLoading: Ref<boolean>
     sortState: Ref<SortField[] | null>
     getCachedData: (id: number) => T | undefined
   }
@@ -134,6 +149,8 @@ export interface UseCrudListPageReturn<
     handleSelectionChange: (selected: T[]) => void
     clearSelectionState: () => void
     handleBatchDelete: () => Promise<void>
+    handleBatchRestore: () => Promise<void>
+    handleBatchPermanentDelete: () => Promise<void>
   }
 
   // API 操作
@@ -141,6 +158,8 @@ export interface UseCrudListPageReturn<
     handleCreate: (formData: C) => Promise<T | null>
     handleEdit: (id: number, formData: U) => Promise<T | null>
     handleDelete: (id: number, options?: TDeleteOptions) => Promise<boolean>
+    handleRestore: (id: number) => Promise<T | null>
+    handlePermanentDelete: (id: number) => Promise<boolean>
   }
 
   // 权限
@@ -148,6 +167,13 @@ export interface UseCrudListPageReturn<
     create: ComputedRef<boolean>
     update: ComputedRef<boolean>
     delete: ComputedRef<boolean>
+    restore: ComputedRef<boolean>
+    trash: ComputedRef<boolean>
+  }
+
+  // 视图切换
+  view: {
+    setViewMode: (mode: CrudPageViewMode) => void
   }
 }
 
@@ -193,6 +219,8 @@ export function useCrudListPage<
   const createPermission = createPermissionRef(permissions?.create)
   const updatePermission = createPermissionRef(permissions?.update)
   const deletePermission = createPermissionRef(permissions?.delete)
+  const restorePermission = createPermissionRef(permissions?.restore)
+  const trashPermission = createPermissionRef(permissions?.trash)
 
   // ==================== CRUD API ====================
   // 乐观更新和自动刷新不能同时启用
@@ -219,8 +247,24 @@ export function useCrudListPage<
 
   // ==================== 批量选择状态 ====================
   const selectedItems = ref<T[]>([]) as Ref<T[]>
+  const viewMode = ref<CrudPageViewMode>('active')
+  const trashData: ShallowRef<PaginationData<T> | null> = shallowRef(null)
+  const trashLoading = ref(false)
+  const trashError = ref<Error | null>(null)
   const batchDeleteLoading = ref(false)
+  const batchRestoreLoading = ref(false)
+  const batchPermanentDeleteLoading = ref(false)
   const sortState = ref<SortField[] | null>(defaultSort.length > 0 ? [...defaultSort] : null)
+  const currentPagination = reactive<PaginationState>({
+    page: 1,
+    pageSize,
+    total: 0
+  })
+  const trashPagination = reactive<PaginationState>({
+    page: 1,
+    pageSize,
+    total: 0
+  })
 
   // ==================== 弹窗状态 ====================
   const formOpen = ref(false)
@@ -236,14 +280,42 @@ export function useCrudListPage<
 
   /** 当前列表项 */
   const items = computed(() => {
+    if (viewMode.value === 'trash') {
+      return trashData.value?.items ?? []
+    }
+
     return crudApi.data.value?.items ?? []
   })
+
+  const supportsTrash = computed(() => hasSoftDeleteCrudApi(api))
+  const isTrashMode = computed(() => viewMode.value === 'trash')
+  const currentLoading = computed(() => (isTrashMode.value ? trashLoading.value : crudApi.loading.value))
+  const currentError = computed(() => (isTrashMode.value ? trashError.value : crudApi.error.value))
 
   /** 选中的数量 */
   const selectedCount = computed(() => selectedItems.value.length)
 
   /** 是否有选中项 */
   const hasSelection = computed(() => selectedItems.value.length > 0)
+
+  function syncPaginationState(target: PaginationState, source: PaginationData<T>): void {
+    target.page = source.page
+    target.pageSize = source.size
+    target.total = source.total
+  }
+
+  function syncCurrentPagination(): void {
+    if (isTrashMode.value) {
+      currentPagination.page = trashPagination.page
+      currentPagination.pageSize = trashPagination.pageSize
+      currentPagination.total = trashPagination.total
+      return
+    }
+
+    currentPagination.page = crudApi.pagination.page
+    currentPagination.pageSize = crudApi.pagination.pageSize
+    currentPagination.total = crudApi.pagination.total
+  }
 
   function buildQueryOptions(page?: number): QueryOptions {
     const queryOptions: QueryOptions = {
@@ -257,6 +329,15 @@ export function useCrudListPage<
     }
 
     return queryOptions
+  }
+
+  function buildTrashQuery(page?: number): { offset: number; limit: number } {
+    const resolvedPage = page ?? trashPagination.page
+
+    return {
+      offset: (resolvedPage - 1) * trashPagination.pageSize,
+      limit: trashPagination.pageSize
+    }
   }
 
   function resolveSortFields(sort: {
@@ -282,14 +363,38 @@ export function useCrudListPage<
    * 执行搜索
    */
   async function handleSearch(page?: number): Promise<void> {
+    if (isTrashMode.value) {
+      if (!hasSoftDeleteCrudApi(api)) {
+        return
+      }
+
+      trashLoading.value = true
+      trashError.value = null
+
+      try {
+        const result = await api.getTrash(buildTrashQuery(page))
+        trashData.value = result
+        syncPaginationState(trashPagination, result)
+        syncCurrentPagination()
+      } catch (error) {
+        trashError.value = error as Error
+        console.error('Failed to fetch trash list:', error)
+      } finally {
+        trashLoading.value = false
+      }
+
+      return
+    }
+
     await crudApi.fetchList(buildQueryOptions(page))
+    syncCurrentPagination()
   }
 
   /**
    * 刷新列表（保持当前页）
    */
   async function handleRefresh(): Promise<void> {
-    await handleSearch(crudApi.pagination.page)
+    await handleSearch(currentPagination.page)
   }
 
   async function handleSortChange(sort: {
@@ -297,6 +402,10 @@ export function useCrudListPage<
     sortKey?: string
     order: TableSortOrder
   }): Promise<void> {
+    if (isTrashMode.value) {
+      return
+    }
+
     sortState.value = resolveSortFields(sort)
 
     await handleSearch(1)
@@ -326,21 +435,51 @@ export function useCrudListPage<
       return
     }
 
+    // 只有 SoftDeleteCrudApi 才有 batchDelete 方法
+    if (!('batchDelete' in api) || typeof api.batchDelete !== 'function') {
+      return
+    }
+
     batchDeleteLoading.value = true
 
     try {
-      const results = await Promise.allSettled(
-        selectedItems.value.map((item: T) => api.delete(item.id))
-      )
-
-      const hasSuccessfulDeletion = results.some(result => result.status === 'fulfilled')
-
-      if (hasSuccessfulDeletion) {
-        clearSelectionState()
-        await handleRefresh()
-      }
+      await api.batchDelete(selectedItems.value.map((item: T) => item.id))
+      clearSelectionState()
+      await handleRefresh()
     } finally {
       batchDeleteLoading.value = false
+    }
+  }
+
+  async function handleBatchRestore(): Promise<void> {
+    if (selectedItems.value.length === 0 || !hasSoftDeleteCrudApi(api)) {
+      return
+    }
+
+    batchRestoreLoading.value = true
+
+    try {
+      await api.batchRestore(selectedItems.value.map(item => item.id))
+      clearSelectionState()
+      await handleRefresh()
+    } finally {
+      batchRestoreLoading.value = false
+    }
+  }
+
+  async function handleBatchPermanentDelete(): Promise<void> {
+    if (selectedItems.value.length === 0 || !hasSoftDeleteCrudApi(api)) {
+      return
+    }
+
+    batchPermanentDeleteLoading.value = true
+
+    try {
+      await api.batchPermanentDelete(selectedItems.value.map(item => item.id))
+      clearSelectionState()
+      await handleRefresh()
+    } finally {
+      batchPermanentDeleteLoading.value = false
     }
   }
 
@@ -381,6 +520,7 @@ export function useCrudListPage<
     const result = await crudApi.create(formData)
     if (result) {
       close()
+      syncCurrentPagination()
     }
     return result
   }
@@ -392,6 +532,7 @@ export function useCrudListPage<
     const result = await crudApi.update(id, formData)
     if (result) {
       close()
+      syncCurrentPagination()
     }
     return result
   }
@@ -400,7 +541,29 @@ export function useCrudListPage<
    * 处理删除
    */
   async function handleDelete(id: number, options?: CrudDeleteOptions<TApi>): Promise<boolean> {
-    return await crudApi.delete(id, options)
+    const result = await crudApi.delete(id, options)
+    syncCurrentPagination()
+    return result
+  }
+
+  async function handleRestore(id: number): Promise<T | null> {
+    if (!hasSoftDeleteCrudApi(api)) {
+      return null
+    }
+
+    const result = await api.restore(id)
+    await handleRefresh()
+    return result as T
+  }
+
+  async function handlePermanentDelete(id: number): Promise<boolean> {
+    if (!hasSoftDeleteCrudApi(api)) {
+      return false
+    }
+
+    await api.permanentDelete(id)
+    await handleRefresh()
+    return true
   }
 
   /**
@@ -410,19 +573,33 @@ export function useCrudListPage<
     return items.value.find((item: T) => item.id === id)
   }
 
+  function setViewMode(mode: CrudPageViewMode): void {
+    if (mode === 'trash' && !supportsTrash.value) {
+      return
+    }
+
+    viewMode.value = mode
+    syncCurrentPagination()
+  }
+
   // ==================== 返回分组结果 ====================
 
   return {
     // 核心状态
     state: {
       data: items,
-      loading: crudApi.loading,
-      error: crudApi.error,
-      pagination: crudApi.pagination,
+      loading: currentLoading,
+      error: currentError,
+      pagination: currentPagination,
+      viewMode,
+      isTrashMode,
+      supportsTrash,
       selectedItems,
       selectedCount,
       hasSelection,
       batchDeleteLoading,
+      batchRestoreLoading,
+      batchPermanentDeleteLoading,
       sortState,
       getCachedData
     },
@@ -449,21 +626,32 @@ export function useCrudListPage<
     selection: {
       handleSelectionChange,
       clearSelectionState,
-      handleBatchDelete
+      handleBatchDelete,
+      handleBatchRestore,
+      handleBatchPermanentDelete
     },
 
     // API 操作
     apiActions: {
       handleCreate,
       handleEdit,
-      handleDelete
+      handleDelete,
+      handleRestore,
+      handlePermanentDelete
     },
 
     // 权限
     permissions: {
       create: createPermission,
       update: updatePermission,
-      delete: deletePermission
+      delete: deletePermission,
+      restore: restorePermission,
+      trash: trashPermission
+    },
+
+    // 视图切换
+    view: {
+      setViewMode
     }
   }
 }

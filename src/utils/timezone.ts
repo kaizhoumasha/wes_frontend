@@ -61,7 +61,6 @@ export function parseApiTime(isoString: string): Date {
   if (!hasTimezone) {
     // 没有时区标识符，默认视为 UTC 时间
     normalizedString = normalizedString + 'Z'
-    console.debug(`[parseApiTime] 添加 UTC 标识符: ${isoString} → ${normalizedString}`)
   }
 
   const date = new Date(normalizedString)

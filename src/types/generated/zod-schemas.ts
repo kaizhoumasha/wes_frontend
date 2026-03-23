@@ -1693,8 +1693,16 @@ export const UserResponseSchema = z.object({
   is_multi_login: z.boolean(),
   /** Created At */
   created_at: z.string().datetime(),
+  /** Created By */
+  created_by: z.number(),
   /** Updated At */
-  updated_at: z.union([z.string().datetime(), z.null()]),
+  updated_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Updated By */
+  updated_by: z.union([z.number(), z.null()]).optional(),
+  /** Deleted By */
+  deleted_by: z.union([z.number(), z.null()]).optional(),
+  /** Deleted At */
+  deleted_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Roles */
   roles: z.array(z.lazy(() => RoleResponseSchema)).optional(),
 })
@@ -1723,8 +1731,16 @@ export const UserSimpleResponseSchema = z.object({
   is_multi_login: z.boolean(),
   /** Created At */
   created_at: z.string().datetime(),
+  /** Created By */
+  created_by: z.number(),
   /** Updated At */
-  updated_at: z.union([z.string().datetime(), z.null()]),
+  updated_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Updated By */
+  updated_by: z.union([z.number(), z.null()]).optional(),
+  /** Deleted By */
+  deleted_by: z.union([z.number(), z.null()]).optional(),
+  /** Deleted At */
+  deleted_at: z.union([z.string().datetime(), z.null()]).optional(),
 })
 
 

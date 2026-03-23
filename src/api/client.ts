@@ -226,9 +226,14 @@ export const apiClient = createAlova({
   statesHook: VueHook,
   requestAdapter: adapterFetch(),
   timeout: 30000,
-  // 仅为 GET 请求启用默认缓存，其他请求保持无缓存。
+  // 默认关闭 API 级缓存。
+  //
+  // 原因：
+  // - 后台管理场景下，大多数 GET 都是强一致数据（列表、详情、回收站）
+  // - 若按 HTTP 方法统一缓存，会把 `/trash`、`/{id}` 这类可变资源一并缓存
+  // - 缓存应该改为“显式接入”，只给真正可容忍过期的只读接口单独开启
   cacheFor: {
-    GET: API_CACHE_DURATION.MEDIUM
+    GET: API_CACHE_DURATION.NONE
   },
 
   beforeRequest(method) {

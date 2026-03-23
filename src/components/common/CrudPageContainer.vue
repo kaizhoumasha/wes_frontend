@@ -39,6 +39,9 @@ const {
   state: page,
   tableRef,
   title,
+  modeSwitcher,
+  showSearch,
+  emptyText,
   toolbarActions,
   toolbarState,
   tableColumns,
@@ -68,9 +71,13 @@ const { favorites: searchFavorites, saveFavorite } = useSearchFavorites({
   fields: pageConfig.search.fields
 })
 
-watch(searchFavorites, favorites => {
-  search.instance.setFavorites(favorites)
-}, { immediate: true })
+watch(
+  searchFavorites,
+  favorites => {
+    search.instance.setFavorites(favorites)
+  },
+  { immediate: true }
+)
 
 function handleDensityChange(density: string | number | object) {
   controller.setDensity(density as TableDensity)
@@ -127,7 +134,9 @@ function handleSaveSearchFavorite(payload: { name: string; filterGroup: FilterGr
         :toolbar-state="toolbarState"
         :actions="toolbarActions"
         :title="title"
+        :mode-switcher="modeSwitcher"
         :search-placeholder="pageConfig.search.placeholder ?? '搜索...'"
+        :show-search="showSearch"
         @refresh="search.handleRefresh"
         @batch-delete="controller.handleBatchDelete"
         @cancel-selection="controller.handleCancelSelection"
@@ -135,6 +144,7 @@ function handleSaveSearchFavorite(payload: { name: string; filterGroup: FilterGr
         @toggle-fullscreen="controller.toggleFullscreen"
         @change-density="controller.setDensity"
         @open-column-config="controller.openColumnConfig"
+        @change-mode="controller.handleViewModeChange"
       >
         <template #controls>
           <AppIconButton
@@ -199,7 +209,7 @@ function handleSaveSearchFavorite(payload: { name: string; filterGroup: FilterGr
         :pagination="pageState.pagination"
         :density="toolbarState.density"
         :show-selection="pageConfig.table.selectable ?? false"
-        :empty-text="pageConfig.table.emptyText ?? '暂无数据'"
+        :empty-text="emptyText"
         :default-sort="tableDefaultSort"
         :column-resizable="pageConfig.table.columnResizable ?? false"
         @selection-change="controller.handleSelectionChange"

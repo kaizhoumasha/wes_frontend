@@ -13,6 +13,8 @@ export interface CrudPageEntity {
   id: number
 }
 
+export type CrudPageViewMode = 'active' | 'trash'
+
 export interface CrudPageFeatures {
   refresh?: boolean
   density?: boolean
@@ -22,6 +24,11 @@ export interface CrudPageFeatures {
   edit?: CrudPageActionFeature
   delete?: CrudPageActionFeature
   batchDelete?: CrudPageActionFeature
+  trash?: CrudPageActionFeature
+  restore?: CrudPageActionFeature
+  batchRestore?: CrudPageActionFeature
+  permanentDelete?: CrudPageActionFeature
+  batchPermanentDelete?: CrudPageActionFeature
 }
 
 export interface CrudPageStandardActionConfig {
@@ -53,6 +60,11 @@ export interface ResolvedCrudPageFeatures {
   edit: ResolvedCrudPageStandardActionConfig
   delete: ResolvedCrudPageStandardActionConfig
   batchDelete: ResolvedCrudPageStandardActionConfig
+  trash: ResolvedCrudPageStandardActionConfig
+  restore: ResolvedCrudPageStandardActionConfig
+  batchRestore: ResolvedCrudPageStandardActionConfig
+  permanentDelete: ResolvedCrudPageStandardActionConfig
+  batchPermanentDelete: ResolvedCrudPageStandardActionConfig
 }
 
 export interface CrudPageTitleConfig {
@@ -65,6 +77,8 @@ export interface CrudPagePermissionConfig {
   create?: string
   update?: string
   delete?: string
+  restore?: string
+  trash?: string
 }
 
 export interface CrudPageColumnManager {
@@ -143,6 +157,7 @@ export interface CrudPageConfig<
   resource: {
     key: string
     title: CrudPageTitleConfig
+    trashTitle?: CrudPageTitleConfig
     api: CrudApi<TItem, TCreate, TUpdate>
     permissions?: CrudPagePermissionConfig
     pageSize?: number

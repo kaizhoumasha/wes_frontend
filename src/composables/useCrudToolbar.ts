@@ -37,9 +37,11 @@ export interface UseCrudToolbarOptions {
    * useCrudToolbar 不拥有这些状态，只是将它们聚合进 toolbarState.
    */
   externalState: {
-    loading: Ref<boolean>
-    selectedCount: Ref<number>
-    batchDeleteLoading: Ref<boolean>
+    loading: Readonly<Ref<boolean>>
+    selectedCount: Readonly<Ref<number>>
+    batchDeleteLoading: Readonly<Ref<boolean>>
+    batchRestoreLoading: Readonly<Ref<boolean>>
+    batchPermanentDeleteLoading: Readonly<Ref<boolean>>
   }
 }
 
@@ -65,6 +67,8 @@ export interface UseCrudToolbarReturn {
     loading: boolean
     selectedCount: number
     batchDeleteLoading: boolean
+    batchRestoreLoading: boolean
+    batchPermanentDeleteLoading: boolean
     isFullscreen: boolean
     density: TableDensity
   }>
@@ -107,6 +111,8 @@ export function useCrudToolbar(options: UseCrudToolbarOptions): UseCrudToolbarRe
     loading: externalState.loading.value,
     selectedCount: externalState.selectedCount.value,
     batchDeleteLoading: externalState.batchDeleteLoading.value,
+    batchRestoreLoading: externalState.batchRestoreLoading.value,
+    batchPermanentDeleteLoading: externalState.batchPermanentDeleteLoading.value,
     isFullscreen: isFullscreen.value,
     density: density.value
   }))

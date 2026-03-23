@@ -3,10 +3,10 @@
  */
 
 import {
-  createCrudResourceApi,
+  createSoftDeleteCrudApi,
   type CrudCreateInput,
   type CrudItem,
-  type CrudResourceCollectionPath,
+  type SoftDeleteCrudResourceCollectionPath,
   type CrudUpdateInput,
 } from '@/api/base/crud-api'
 import { contractClient } from '@/api/contract/client'
@@ -17,8 +17,9 @@ import type {
   ContractSchema,
 } from '@/api/contract/types'
 
-const USER_COLLECTION_PATH = '/api/v1/users' satisfies CrudResourceCollectionPath
+const USER_COLLECTION_PATH = '/api/v1/users' satisfies SoftDeleteCrudResourceCollectionPath
 const USER_RESET_PASSWORD_PATH = '/api/v1/users/{id}/reset-password' satisfies ContractPath
+const USER_BULK_DELETE_PATH = '/api/v1/users/bulk' satisfies ContractPath
 
 export type Role = ContractSchema<'RoleResponse'>
 
@@ -32,7 +33,16 @@ export type ResetUserPasswordInput = ContractRequestBody<typeof USER_RESET_PASSW
 
 type ResetPasswordResult = ContractResponseData<typeof USER_RESET_PASSWORD_PATH, 'put'>
 
-const baseUserApi = createCrudResourceApi(USER_COLLECTION_PATH)
+const baseUserApi = createSoftDeleteCrudApi({
+  collection: USER_COLLECTION_PATH,
+  item: `${USER_COLLECTION_PATH}/{id}` as const,
+  query: `${USER_COLLECTION_PATH}/query` as const,
+  restore: `${USER_COLLECTION_PATH}/{id}/restore` as const,
+  trash: `${USER_COLLECTION_PATH}/trash` as const,
+  trashRestore: `${USER_COLLECTION_PATH}/trash/restore` as const,
+  trashPermanentDelete: `${USER_COLLECTION_PATH}/trash/permanent` as const,
+  bulkDelete: USER_BULK_DELETE_PATH
+})
 
 export const userApi = {
   ...baseUserApi,

@@ -59,6 +59,13 @@ export interface ToolbarAction {
   tooltip?: string
 }
 
+export interface ToolbarModeOption {
+  key: string
+  label: string
+  icon?: string
+  permission?: string
+}
+
 export interface CrudToolbarProps {
   /**
    * useSmartSearch composable 的完整返回对象.
@@ -92,6 +99,10 @@ export interface CrudToolbarProps {
     selectedCount: number
     /** 批量删除是否加载中 */
     batchDeleteLoading: boolean
+    /** 批量恢复是否加载中 */
+    batchRestoreLoading: boolean
+    /** 批量永久删除是否加载中 */
+    batchPermanentDeleteLoading: boolean
     /** 是否全屏 */
     isFullscreen: boolean
     /** 当前密度 */
@@ -113,9 +124,22 @@ export interface CrudToolbarProps {
   actions?: ToolbarAction[]
 
   /**
+   * 列表模式切换配置
+   */
+  modeSwitcher?: {
+    value: string
+    options: ToolbarModeOption[]
+  }
+
+  /**
    * 搜索栏的占位文本
    */
   searchPlaceholder?: string
+
+  /**
+   * 是否显示搜索栏
+   */
+  showSearch?: boolean
 }
 
 // ============================================================================
@@ -127,7 +151,9 @@ const props = withDefaults(defineProps<CrudToolbarProps>(), {
   quickPresets: () => [],
   title: undefined,
   actions: undefined,
-  searchPlaceholder: '搜索...'
+  modeSwitcher: undefined,
+  searchPlaceholder: '搜索...',
+  showSearch: true
 })
 
 const emit = defineEmits<{
@@ -145,6 +171,8 @@ const emit = defineEmits<{
   (e: 'change-density', density: TableDensity): void
   /** 打开列配置事件 */
   (e: 'open-column-config'): void
+  /** 切换列表模式 */
+  (e: 'change-mode', mode: string): void
 }>()
 
 const { hasPermission } = usePermission()
@@ -159,6 +187,14 @@ function canShowAction(action: ToolbarAction): boolean {
   }
 
   if (action.showWhen && !action.showWhen()) {
+    return false
+  }
+
+  return true
+}
+
+function canShowMode(option: ToolbarModeOption): boolean {
+  if (option.permission && !hasPermission(option.permission)) {
     return false
   }
 
@@ -185,9 +221,20 @@ const showBatchActions = computed(
 /** 过滤后的配置按钮 */
 const filteredActions = computed(() => (props.actions ?? []).filter(canShowAction))
 
+/** 可见的模式切换项 */
+const visibleModeOptions = computed(() => (props.modeSwitcher?.options ?? []).filter(canShowMode))
+
+const currentModeOption = computed(() => {
+  const activeKey = props.modeSwitcher?.value
+
+  return (
+    visibleModeOptions.value.find(option => option.key === activeKey) ?? visibleModeOptions.value[0]
+  )
+})
+
 /** 当前使用的操作按钮 */
 const currentActions = computed(() => {
-  if (filteredActions.value.length > 0) {
+  if (filteredActions.value.length > 0 || props.actions) {
     return filteredActions.value
   }
 
@@ -237,7 +284,10 @@ function handleOpenAdvanced(): void {
 </script>
 
 <template>
-  <div class="crud-toolbar">
+  <div
+    class="crud-toolbar"
+    :class="{ 'crud-toolbar--without-search': !showSearch }"
+  >
     <div class="crud-toolbar__left">
       <div class="crud-toolbar__title-section">
         <slot
@@ -324,7 +374,10 @@ function handleOpenAdvanced(): void {
       </div>
     </div>
 
-    <div class="crud-toolbar__search">
+    <div
+      v-if="showSearch"
+      class="crud-toolbar__search"
+    >
       <SmartSearchBar
         :conditions="smartSearch.conditions.value"
         :keyword="smartSearch.state.value.keyword"
@@ -358,6 +411,46 @@ function handleOpenAdvanced(): void {
 
     <div class="crud-toolbar__controls-wrapper">
       <div class="crud-toolbar__controls">
+        <el-dropdown
+          v-if="visibleModeOptions.length > 1 && currentModeOption"
+          trigger="click"
+          placement="bottom-end"
+          @command="mode => emit('change-mode', String(mode))"
+        >
+          <AppIconButton
+            :icon="currentModeOption.icon ?? 'ep:switch-button'"
+            size="small"
+            :tooltip="`当前视图：${currentModeOption.label}`"
+          />
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item
+                v-for="option in visibleModeOptions"
+                :key="option.key"
+                :command="option.key"
+                :class="{ 'is-active': option.key === modeSwitcher?.value }"
+              >
+                <div class="crud-toolbar__dropdown-option">
+                  <div class="crud-toolbar__dropdown-option-main">
+                    <AppIcon
+                      v-if="option.icon"
+                      :icon="option.icon"
+                      :size="14"
+                    />
+                    <span>{{ option.label }}</span>
+                  </div>
+                  <AppIcon
+                    v-if="option.key === modeSwitcher?.value"
+                    icon="ep:check"
+                    :size="14"
+                    class="crud-toolbar__dropdown-option-check"
+                  />
+                </div>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+
         <slot name="controls">
           <AppIconButton
             icon="ep:refresh"
@@ -421,11 +514,16 @@ function handleOpenAdvanced(): void {
   border: 1px solid var(--el-border-color-lighter);
 }
 
+.crud-toolbar--without-search {
+  grid-template-columns: 1fr auto;
+}
+
 .crud-toolbar__left {
   display: flex;
   align-items: center;
   gap: 16px;
   justify-self: start;
+  flex-wrap: wrap;
 }
 
 .crud-toolbar__title-section {
@@ -510,6 +608,24 @@ function handleOpenAdvanced(): void {
   line-height: 1;
 }
 
+.crud-toolbar__dropdown-option {
+  min-width: 104px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.crud-toolbar__dropdown-option-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.crud-toolbar__dropdown-option-check {
+  color: var(--el-color-primary);
+}
+
 /* 覆盖 Element Plus 的 .el-button + .el-button { margin-left: 12px } 全局规则 */
 .crud-toolbar__controls :deep(.el-button + .el-button) {
   margin-left: 0;
@@ -578,7 +694,7 @@ function handleOpenAdvanced(): void {
   .crud-toolbar__actions-inline {
     width: auto;
     justify-content: flex-start;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
   }
 
   .crud-toolbar__controls-wrapper {

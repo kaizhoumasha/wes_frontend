@@ -10,6 +10,115 @@ Corrections, insights, and knowledge gaps captured during development.
 
 ---
 
+## [LRN-20260323-001] best_practice
+
+**Logged**: 2026-03-23T09:19:04Z
+**Priority**: high
+**Status**: pending
+**Area**: backend
+
+### Summary
+
+静态软删除路由必须先于动态 `/{id}` 路由注册，否则会出现契约正确但运行时误匹配的问题
+
+### Details
+
+本次用户管理回收站联调中，前端调用 `POST /api/v1/users/trash/restore` 持续返回 422。起初容易误判为批量恢复请求体格式错误，但后端返回的验证错误明确指向：
+
+- `field: "path -> id"`
+- `message: "Input should be a valid integer, unable to parse string as an integer"`
+
+这说明请求并没有落到 `/trash/restore`，而是被后端路由匹配成了 `/{id}/restore`，并把字符串 `"trash"` 当成了路径参数 `id`。进一步核对后端 `BaseAPI._register_soft_delete_routes` 发现，当前注册顺序是：
+
+1. `POST /{id}/restore`
+2. `GET /trash`
+3. `POST /trash/restore`
+4. `DELETE /trash/permanent`
+
+在 FastAPI/Starlette 下，这种“动态路径先于静态路径”注册会导致 `/trash/restore` 被 `/{id}/restore` 抢先匹配。结果是：
+
+- OpenAPI 契约仍然生成正确
+- 前端类型检查和契约测试仍然通过
+- 但运行时请求被错误路由吞掉
+
+这类问题说明：动态/静态路径冲突场景下，不能只依赖 OpenAPI 结果，必须核对真实路由定义和注册顺序。
+
+### Suggested Action
+
+将后端软删除路由约定补充为明确规则，并写入后端 BaseAPI 规范：
+
+1. 静态路径必须先于动态路径注册
+2. 对软删除资源，推荐顺序为：
+   - `/trash`
+   - `/trash/restore`
+   - `/trash/permanent`
+   - `/{id}/restore`
+3. 针对这类路由冲突，增加一条后端集成测试，覆盖 `/trash/restore` 不应被 `/{id}/restore` 匹配
+
+### Metadata
+
+- Source: conversation
+- Related Files:
+  - /Users/kaizhou/SynologyDrive/works/wes_backend/src/core/base_api.py
+  - src/api/base/crud-api.ts
+- Tags: backend, fastapi, routing, soft-delete, contract-runtime-gap
+
+---
+
+## [LRN-20260323-002] best_practice
+
+**Logged**: 2026-03-23T09:19:04Z
+**Priority**: high
+**Status**: pending
+**Area**: frontend
+
+### Summary
+
+后台管理系统中的 API 缓存应采用“显式开启”策略，不能按所有 GET 默认缓存
+
+### Details
+
+本次用户管理回收站接入后，`GET /api/v1/users/trash` 出现 `HitCache`，导致恢复或删除操作后列表不能实时刷新。根因不是回收站逻辑本身，而是全局请求客户端此前对所有 GET 默认启用了中等时长缓存。
+
+这类默认策略在后台管理场景下风险很高，因为大量 GET 接口实际上都是强一致数据：
+
+- 列表查询
+- 详情查询
+- 回收站查询
+- 权限相关实时状态
+
+如果统一按 HTTP 方法缓存，就会把本应实时刷新的资源一并缓存，问题表现往往是：
+
+- 操作成功但页面没变
+- 二次刷新才更新
+- 很难第一时间定位到是缓存命中
+
+本次最终改法是把 API 级缓存收回到：
+
+- 全局默认 `GET: cacheFor = 0`
+- 仅对“允许短暂过期的只读接口”在调用处显式传 `cacheFor`
+
+### Suggested Action
+
+将前端 API 缓存策略固化为项目约定：
+
+1. `apiClient` 默认关闭 GET 缓存
+2. 只有菜单、纯配置、静态字典等只读资源才允许显式缓存
+3. CRUD 列表、详情、回收站、权限接口默认禁止缓存
+4. 若启用缓存，调用处必须说明缓存目的和 TTL 选择理由
+
+### Metadata
+
+- Source: conversation
+- Related Files:
+  - src/api/client.ts
+  - src/constants/cache.ts
+  - src/api/modules/auth.ts
+  - src/api/modules/menu.ts
+- Tags: frontend, cache, alova, admin-panel, consistency
+
+---
+
 ## [LRN-20260311-001] best_practice
 
 **Logged**: 2026-03-11T00:00:00+08:00

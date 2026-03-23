@@ -27,6 +27,10 @@ export const ADMIN_USER_PERMISSION = {
   restore: 'admin:user:restore',
   /** 回收站权限 */
   trash: 'admin:user:trash',
+  /** 批量删除权限 */
+  bulkDelete: 'admin:user:bulk_delete',
+  /** 为用户分配角色 */
+  assignRoles: 'admin:user:assign-roles',
   /** 重置用户密码 */
   resetPassword: 'admin:user:reset-password',
 } as const

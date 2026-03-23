@@ -1611,6 +1611,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/users/{id}/assign-roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * [admin:user:assign-roles] 为用户分配角色
+         * @description 为用户分配角色
+         *
+         *     分配角色后：
+         *     - 用户的权限会立即更新
+         *     - 如果用户当前已登录，权限变更会在下次请求时生效
+         *
+         *     **权限要求**：`admin:user:assign-roles`
+         *
+         *     Args:
+         *         id: 用户 ID
+         *         data: 角色分配请求数据
+         *         db: 数据库会话
+         *         cache: 缓存服务
+         *
+         *     Returns:
+         *         更新后的用户信息（包含角色列表）
+         */
+        put: operations["assign_roles_api_v1_users__id__assign_roles_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/users/{id}/reset-password": {
         parameters: {
             query?: never;
@@ -1620,7 +1655,7 @@ export interface paths {
         };
         get?: never;
         /**
-         * 重置用户密码
+         * [admin:user:reset-password] 重置用户密码
          * @description 管理员重置用户密码
          *
          *     重置密码后，用户需要重新登录。
@@ -1665,6 +1700,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/users/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** [admin:user:bulk_delete] 批量删除User */
+        delete: operations["bulk_delete_api_v1_users_bulk_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/users/query": {
         parameters: {
             query?: never;
@@ -1690,7 +1742,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * 获取缓存统计
+         * [admin:user:stats] 获取缓存统计
          * @description 获取缓存统计信息
          *
          *     返回：
@@ -2174,6 +2226,17 @@ export interface components {
          * @enum {string}
          */
         AppType: "ECS" | "RCS" | "WMS" | "Third-Party";
+        /**
+         * AssignRolesRequest
+         * @description 为用户分配角色请求
+         */
+        AssignRolesRequest: {
+            /**
+             * Role Ids
+             * @description 角色 ID 列表
+             */
+            role_ids: number[];
+        };
         /**
          * AuditLogResponse
          * @description AuditLog 响应 Schema
@@ -5185,6 +5248,18 @@ export interface components {
             version: number;
         };
         /**
+         * RoleResponseSimple
+         * @description 角色响应 Schema（简化版，不含权限）
+         */
+        RoleResponseSimple: {
+            /** Description */
+            description?: string | null;
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+        };
+        /**
          * RoleUpdate
          * @description 角色更新 Schema
          */
@@ -5326,6 +5401,12 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Created By */
+            created_by: number;
+            /** Deleted At */
+            deleted_at?: string | null;
+            /** Deleted By */
+            deleted_by?: number | null;
             /**
              * Email
              * Format: email
@@ -5344,9 +5425,11 @@ export interface components {
             /** Is Superuser */
             is_superuser: boolean;
             /** Roles */
-            roles?: components["schemas"]["RoleResponse"][];
+            roles?: components["schemas"]["RoleResponseSimple"][];
             /** Updated At */
-            updated_at: string | null;
+            updated_at?: string | null;
+            /** Updated By */
+            updated_by?: number | null;
             /**
              * Username
              * @description 用户名
@@ -5368,6 +5451,12 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Created By */
+            created_by: number;
+            /** Deleted At */
+            deleted_at?: string | null;
+            /** Deleted By */
+            deleted_by?: number | null;
             /**
              * Email
              * Format: email
@@ -5386,7 +5475,9 @@ export interface components {
             /** Is Superuser */
             is_superuser: boolean;
             /** Updated At */
-            updated_at: string | null;
+            updated_at?: string | null;
+            /** Updated By */
+            updated_by?: number | null;
             /**
              * Username
              * @description 用户名
@@ -8668,6 +8759,41 @@ export interface operations {
             };
         };
     };
+    assign_roles_api_v1_users__id__assign_roles_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignRolesRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_UserResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     reset_password_api_v1_users__id__reset_password_put: {
         parameters: {
             query?: never;
@@ -8721,6 +8847,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_UserResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bulk_delete_api_v1_users_bulk_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": number[];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchOperationResponseModel"];
                 };
             };
             /** @description Validation Error */

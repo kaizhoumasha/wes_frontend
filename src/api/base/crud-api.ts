@@ -113,6 +113,53 @@ export interface CrudApi<
 }
 
 /**
+ * 支持软删除资源的统一扩展接口。
+ */
+export interface SoftDeleteCrudApi<
+  TItem,
+  TCreate,
+  TUpdate,
+  TDetailQuery = never,
+  TQuery = QueryOptions,
+  TCreateResult = TItem,
+  TUpdateResult = TItem,
+  TDeleteQuery = never,
+  TDeleteResult = unknown,
+  TTrashQuery = { offset?: number; limit?: number },
+  TRestoreResult = TItem,
+  TBatchRestoreResult = BatchOperationResult,
+  TBatchPermanentDeleteResult = BatchOperationResult,
+  TBatchDeleteResult = BatchOperationResult,
+> extends CrudApi<
+  TItem,
+  TCreate,
+  TUpdate,
+  TDetailQuery,
+  TQuery,
+  TCreateResult,
+  TUpdateResult,
+  TDeleteQuery,
+  TDeleteResult
+> {
+  getTrash(options?: TTrashQuery, config?: ContractRequestConfig): Promise<PaginationData<TItem>>
+  restore(id: number, config?: ContractRequestConfig): Promise<TRestoreResult>
+  permanentDelete(id: number, config?: ContractRequestConfig): Promise<TDeleteResult>
+  /** 批量删除，如后端有 /bulk 端点则使用，否则降级为逐个删除 */
+  batchDelete(ids: number[], config?: ContractRequestConfig): Promise<TBatchDeleteResult>
+  batchRestore(ids: number[], config?: ContractRequestConfig): Promise<TBatchRestoreResult>
+  batchPermanentDelete(
+    ids: number[],
+    config?: ContractRequestConfig
+  ): Promise<TBatchPermanentDeleteResult>
+}
+
+/**
+ * 由集合路径推导出的批量删除路径，例如 `/api/v1/users` -> `/api/v1/users/bulk`。
+ */
+export type CrudBulkDeletePath<TCollectionPath extends ContractPath> =
+  Extract<`${TCollectionPath}/bulk`, ContractPathWithMethod<'delete'>>
+
+/**
  * 由集合路径推导出的单项路径，例如 `/api/v1/users` -> `/api/v1/users/{id}`。
  */
 export type CrudItemPath<TCollectionPath extends ContractPath> =
@@ -141,6 +188,30 @@ export type CrudCreateInput<TCollectionPath extends ContractPath> =
  */
 export type CrudUpdateInput<TCollectionPath extends ContractPath> =
   ContractRequestBody<CrudItemPath<TCollectionPath>, 'put'>
+
+/**
+ * 由集合路径推导出的恢复路径，例如 `/api/v1/users` -> `/api/v1/users/{id}/restore`。
+ */
+export type CrudRestorePath<TCollectionPath extends ContractPath> =
+  Extract<`${CrudItemPath<TCollectionPath>}/restore`, ContractPath>
+
+/**
+ * 由集合路径推导出的回收站列表路径，例如 `/api/v1/users` -> `/api/v1/users/trash`。
+ */
+export type CrudTrashPath<TCollectionPath extends ContractPath> =
+  Extract<`${TCollectionPath}/trash`, ContractPath>
+
+/**
+ * 由集合路径推导出的批量恢复路径，例如 `/api/v1/users` -> `/api/v1/users/trash/restore`。
+ */
+export type CrudTrashRestorePath<TCollectionPath extends ContractPath> =
+  Extract<`${CrudTrashPath<TCollectionPath>}/restore`, ContractPath>
+
+/**
+ * 由集合路径推导出的批量永久删除路径，例如 `/api/v1/users` -> `/api/v1/users/trash/permanent`。
+ */
+export type CrudTrashPermanentDeletePath<TCollectionPath extends ContractPath> =
+  Extract<`${CrudTrashPath<TCollectionPath>}/permanent`, ContractPath>
 
 type CrudCompatibleItemPath = {
   [TPath in ContractPathWithMethod<'get'> & ContractPathWithMethod<'put'> & ContractPathWithMethod<'delete'>]:
@@ -177,6 +248,39 @@ export type CrudResourceCollectionPath = {
           : never
 }[ContractPathWithMethod<'post'>]
 
+type SoftDeleteManagedRestorePath<TCollectionPath extends CrudResourceCollectionPath> = Extract<
+  CrudRestorePath<TCollectionPath>,
+  ContractPathWithMethod<'post'>
+>
+
+type SoftDeleteManagedTrashPath<TCollectionPath extends CrudResourceCollectionPath> = Extract<
+  CrudTrashPath<TCollectionPath>,
+  ContractPathWithMethod<'get'>
+>
+
+type SoftDeleteManagedTrashRestorePath<TCollectionPath extends CrudResourceCollectionPath> = Extract<
+  CrudTrashRestorePath<TCollectionPath>,
+  ContractPathWithMethod<'post'>
+>
+
+type SoftDeleteManagedTrashPermanentDeletePath<TCollectionPath extends CrudResourceCollectionPath> = Extract<
+  CrudTrashPermanentDeletePath<TCollectionPath>,
+  ContractPathWithMethod<'delete'>
+>
+
+export type SoftDeleteCrudResourceCollectionPath = {
+  [TPath in CrudResourceCollectionPath]:
+    [SoftDeleteManagedRestorePath<TPath>] extends [never]
+      ? never
+      : [SoftDeleteManagedTrashPath<TPath>] extends [never]
+        ? never
+        : [SoftDeleteManagedTrashRestorePath<TPath>] extends [never]
+          ? never
+          : [SoftDeleteManagedTrashPermanentDeletePath<TPath>] extends [never]
+            ? never
+            : TPath
+}[CrudResourceCollectionPath]
+
 interface ContractCrudEndpoints<
   TCollectionPath extends ContractPathWithMethod<'post'>,
   TItemPath extends ContractPathWithMethod<'get'> & ContractPathWithMethod<'put'> & ContractPathWithMethod<'delete'>,
@@ -186,6 +290,52 @@ interface ContractCrudEndpoints<
   item: TItemPath
   query: TQueryPath
 }
+
+interface ContractSoftDeleteEndpoints<
+  TCollectionPath extends ContractPathWithMethod<'post'>,
+  TItemPath extends ContractPathWithMethod<'get'> & ContractPathWithMethod<'put'> & ContractPathWithMethod<'delete'>,
+  TQueryPath extends ContractPathWithMethod<'post'>,
+  TRestorePath extends ContractPathWithMethod<'post'>,
+  TTrashPath extends ContractPathWithMethod<'get'>,
+  TTrashRestorePath extends ContractPathWithMethod<'post'>,
+  TTrashPermanentDeletePath extends ContractPathWithMethod<'delete'>,
+  TBulkDeletePath extends ContractPathWithMethod<'delete'> = never,
+> extends ContractCrudEndpoints<TCollectionPath, TItemPath, TQueryPath> {
+  restore: TRestorePath
+  trash: TTrashPath
+  trashRestore: TTrashRestorePath
+  trashPermanentDelete: TTrashPermanentDeletePath
+  bulkDelete?: TBulkDeletePath
+}
+
+type CrudResourceApi<TCollectionPath extends CrudResourceCollectionPath> = CrudApi<
+  CrudItem<TCollectionPath>,
+  CrudCreateInput<TCollectionPath>,
+  CrudUpdateInput<TCollectionPath>,
+  ContractQueryParams<CrudManagedItemPath<TCollectionPath>, 'get'>,
+  ContractRequestBody<CrudManagedQueryPath<TCollectionPath>, 'post'>,
+  ContractResponseData<TCollectionPath, 'post'>,
+  ContractResponseData<CrudManagedItemPath<TCollectionPath>, 'put'>,
+  ContractQueryParams<CrudManagedItemPath<TCollectionPath>, 'delete'>,
+  ContractResponseData<CrudManagedItemPath<TCollectionPath>, 'delete'>
+>
+
+type SoftDeleteCrudResourceApi<TCollectionPath extends SoftDeleteCrudResourceCollectionPath> =
+  SoftDeleteCrudApi<
+    CrudItem<TCollectionPath>,
+    CrudCreateInput<TCollectionPath>,
+    CrudUpdateInput<TCollectionPath>,
+    ContractQueryParams<CrudManagedItemPath<TCollectionPath>, 'get'>,
+    ContractRequestBody<CrudManagedQueryPath<TCollectionPath>, 'post'>,
+    ContractResponseData<TCollectionPath, 'post'>,
+    ContractResponseData<CrudManagedItemPath<TCollectionPath>, 'put'>,
+    ContractQueryParams<CrudManagedItemPath<TCollectionPath>, 'delete'>,
+    ContractResponseData<CrudManagedItemPath<TCollectionPath>, 'delete'>,
+    ContractQueryParams<SoftDeleteManagedTrashPath<TCollectionPath>, 'get'>,
+    ContractResponseData<SoftDeleteManagedRestorePath<TCollectionPath>, 'post'>,
+    ContractResponseData<SoftDeleteManagedTrashRestorePath<TCollectionPath>, 'post'>,
+    ContractResponseData<SoftDeleteManagedTrashPermanentDeletePath<TCollectionPath>, 'delete'>
+  >
 
 function normalizeFilterGroup(filters: FilterGroup | null | undefined): FilterGroup | undefined {
   if (!filters) {
@@ -228,7 +378,7 @@ function normalizeQueryRequest<TQuery>(options: TQuery | undefined): TQuery | un
   } as TQuery
 }
 
-function createIdParams<TPath extends ContractPath, TMethod extends 'get' | 'put' | 'delete'>(
+function createIdParams<TPath extends ContractPath, TMethod extends 'get' | 'post' | 'put' | 'delete'>(
   id: number
 ): ContractPathParams<TPath, TMethod> {
   return { id } as unknown as ContractPathParams<TPath, TMethod>
@@ -244,6 +394,35 @@ function assertContractListResponse<TItem>(result: unknown): asserts result is C
   ) {
     throw new Error('Invalid CRUD query response shape')
   }
+}
+
+function normalizeBatchIds(ids: number[]): number[] {
+  return Array.from(
+    new Set(
+      ids
+        .map(id => Number(id))
+        .filter(id => Number.isInteger(id) && id > 0)
+    )
+  )
+}
+
+/**
+ * 运行时判断某个 API 是否具备软删除扩展能力。
+ */
+export function hasSoftDeleteCrudApi<
+  TItem,
+  TCreate,
+  TUpdate,
+>(
+  api: CrudApi<TItem, TCreate, TUpdate>
+): api is SoftDeleteCrudApi<TItem, TCreate, TUpdate> {
+  return (
+    'getTrash' in api &&
+    'restore' in api &&
+    'permanentDelete' in api &&
+    'batchRestore' in api &&
+    'batchPermanentDelete' in api
+  )
 }
 
 /**
@@ -355,6 +534,135 @@ export function createCrudApi<
 }
 
 /**
+ * 基于显式端点定义创建支持回收站能力的 CRUD API。
+ */
+export function createSoftDeleteCrudApi<
+  TCollectionPath extends ContractPathWithMethod<'post'>,
+  TItemPath extends ContractPathWithMethod<'get'> & ContractPathWithMethod<'put'> & ContractPathWithMethod<'delete'>,
+  TQueryPath extends ContractPathWithMethod<'post'>,
+  TRestorePath extends ContractPathWithMethod<'post'>,
+  TTrashPath extends ContractPathWithMethod<'get'>,
+  TTrashRestorePath extends ContractPathWithMethod<'post'>,
+  TTrashPermanentDeletePath extends ContractPathWithMethod<'delete'>,
+  TBulkDeletePath extends ContractPathWithMethod<'delete'> = never,
+>(
+  endpoints: ContractSoftDeleteEndpoints<
+    TCollectionPath,
+    TItemPath,
+    TQueryPath,
+    TRestorePath,
+    TTrashPath,
+    TTrashRestorePath,
+    TTrashPermanentDeletePath,
+    TBulkDeletePath
+  >
+): SoftDeleteCrudApi<
+  ContractResponseData<TItemPath, 'get'>,
+  ContractRequestBody<TCollectionPath, 'post'>,
+  ContractRequestBody<TItemPath, 'put'>,
+  ContractQueryParams<TItemPath, 'get'>,
+  ContractRequestBody<TQueryPath, 'post'>,
+  ContractResponseData<TCollectionPath, 'post'>,
+  ContractResponseData<TItemPath, 'put'>,
+  ContractQueryParams<TItemPath, 'delete'>,
+  ContractResponseData<TItemPath, 'delete'>,
+  ContractQueryParams<TTrashPath, 'get'>,
+  ContractResponseData<TRestorePath, 'post'>,
+  ContractResponseData<TTrashRestorePath, 'post'>,
+  ContractResponseData<TTrashPermanentDeletePath, 'delete'>
+> {
+  type Item = ContractResponseData<TItemPath, 'get'>
+  const baseApi = createCrudApi(endpoints)
+
+  return {
+    ...baseApi,
+
+    async getTrash(options, config) {
+      const response = await contractClient.get(endpoints.trash, {
+        query: options,
+        config
+      })
+      assertContractListResponse<Item>(response)
+
+      return toPaginationData(response)
+    },
+
+    async restore(id, config) {
+      return await contractClient.post(endpoints.restore, {
+        params: createIdParams<TRestorePath, 'post'>(id),
+        config
+      })
+    },
+
+    async permanentDelete(id, config) {
+      return await contractClient.delete(endpoints.item, {
+        params: createIdParams<TItemPath, 'delete'>(id),
+        query: { permanent: true } as ContractQueryParams<TItemPath, 'delete'>,
+        config
+      })
+    },
+
+    async batchRestore(ids, config) {
+      const normalizedIds = normalizeBatchIds(ids)
+
+      return await contractClient.post(endpoints.trashRestore, {
+        body: JSON.stringify(normalizedIds) as unknown as ContractRequestBody<TTrashRestorePath, 'post'>,
+        config: {
+          ...config,
+          headers: {
+            'Content-Type': 'application/json',
+            ...config?.headers
+          }
+        }
+      })
+    },
+
+    async batchPermanentDelete(ids, config) {
+      const normalizedIds = normalizeBatchIds(ids)
+
+      return await contractClient.delete(endpoints.trashPermanentDelete, {
+        body: JSON.stringify(normalizedIds) as unknown as ContractRequestBody<TTrashPermanentDeletePath, 'delete'>,
+        config: {
+          ...config,
+          headers: {
+            'Content-Type': 'application/json',
+            ...config?.headers
+          }
+        }
+      })
+    },
+
+    async batchDelete(ids, config): Promise<BatchOperationResult> {
+      const normalizedIds = normalizeBatchIds(ids)
+
+      // 如果没有 bulkDelete 端点，使用 baseApi.delete 逐个删除并聚合结果
+      if (!endpoints.bulkDelete) {
+        const results = await Promise.allSettled(
+          normalizedIds.map(id => baseApi.delete(id))
+        )
+        const success = results.filter(r => r.status === 'fulfilled').length
+        const failed = results.length - success
+        return { success, failed, total: normalizedIds.length }
+      }
+
+      const result = await contractClient.delete(endpoints.bulkDelete, {
+        body: JSON.stringify(normalizedIds) as unknown as ContractRequestBody<TBulkDeletePath, 'delete'>,
+        config: {
+          ...config,
+          headers: {
+            'Content-Type': 'application/json',
+            ...config?.headers
+          }
+        }
+      })
+
+      // 确保返回类型一致
+      return result as BatchOperationResult
+    }
+  }
+}
+
+/**
  * 基于资源集合路径创建标准 CRUD API。
  *
  * 约束：
@@ -367,7 +675,7 @@ export function createCrudApi<
  */
 export function createCrudResourceApi<TCollectionPath extends CrudResourceCollectionPath>(
   collection: TCollectionPath
-) {
+) : CrudResourceApi<TCollectionPath> {
   const item = `${collection}/{id}` as CrudManagedItemPath<TCollectionPath>
   const query = `${collection}/query` as CrudManagedQueryPath<TCollectionPath>
 
@@ -375,5 +683,36 @@ export function createCrudResourceApi<TCollectionPath extends CrudResourceCollec
     collection,
     item,
     query
+  })
+}
+
+/**
+ * 基于资源集合路径创建支持软删除的 CRUD API。
+ *
+ * 约束：
+ * - `collection` 必须同时具备 `/trash`、`/{id}/restore`、`/trash/restore`、
+ *   `/trash/permanent` 四类标准软删除端点
+ */
+export function createSoftDeleteCrudResourceApi<
+  TCollectionPath extends SoftDeleteCrudResourceCollectionPath
+>(
+  collection: TCollectionPath
+): SoftDeleteCrudResourceApi<TCollectionPath> {
+  const item = `${collection}/{id}` as CrudManagedItemPath<TCollectionPath>
+  const query = `${collection}/query` as CrudManagedQueryPath<TCollectionPath>
+  const restore = `${item}/restore` as SoftDeleteManagedRestorePath<TCollectionPath>
+  const trash = `${collection}/trash` as SoftDeleteManagedTrashPath<TCollectionPath>
+  const trashRestore = `${trash}/restore` as SoftDeleteManagedTrashRestorePath<TCollectionPath>
+  const trashPermanentDelete =
+    `${trash}/permanent` as SoftDeleteManagedTrashPermanentDeletePath<TCollectionPath>
+
+  return createSoftDeleteCrudApi({
+    collection,
+    item,
+    query,
+    restore,
+    trash,
+    trashRestore,
+    trashPermanentDelete
   })
 }
