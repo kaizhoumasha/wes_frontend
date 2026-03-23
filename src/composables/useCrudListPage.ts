@@ -6,6 +6,8 @@ import type { CrudApi, QueryOptions, SortField } from '@/api/base/crud-api'
 import type { TableSortOrder } from '@/components/ui/table/table.types'
 import type { SearchFieldDef, QuickSearchPreset, SearchFavorite } from '@/types/search'
 
+type CrudDeleteOptions<TApi extends CrudApi<unknown, unknown, unknown>> = Parameters<TApi['delete']>[1]
+
 /**
  * useCrudListPage Composable
  *
@@ -41,9 +43,14 @@ import type { SearchFieldDef, QuickSearchPreset, SearchFavorite } from '@/types/
 // 类型定义
 // ============================================================================
 
-export interface UseCrudListPageOptions<T, C, U> {
+export interface UseCrudListPageOptions<
+  T,
+  C,
+  U,
+  TApi extends CrudApi<T, C, U> = CrudApi<T, C, U>
+> {
   /** API 接口 */
-  api: CrudApi<T, C, U>
+  api: TApi
 
   /** 搜索字段定义 */
   searchFields: SearchFieldDef[]
@@ -80,10 +87,15 @@ export interface PaginationState {
   total: number
 }
 
-export interface UseCrudListPageReturn<T, C, U> {
+export interface UseCrudListPageReturn<
+  T,
+  C,
+  U,
+  TDeleteOptions = undefined
+> {
   // 核心状态
   state: {
-    data: Ref<T[] | null>
+    data: ComputedRef<T[]>
     loading: Ref<boolean>
     error: Ref<Error | null>
     pagination: PaginationState
@@ -128,7 +140,7 @@ export interface UseCrudListPageReturn<T, C, U> {
   apiActions: {
     handleCreate: (formData: C) => Promise<T | null>
     handleEdit: (id: number, formData: U) => Promise<T | null>
-    handleDelete: (id: number) => Promise<boolean>
+    handleDelete: (id: number, options?: TDeleteOptions) => Promise<boolean>
   }
 
   // 权限
@@ -146,8 +158,11 @@ export interface UseCrudListPageReturn<T, C, U> {
 export function useCrudListPage<
   T extends { id: number },
   C = Partial<T>,
-  U = Partial<T>
->(options: UseCrudListPageOptions<T, C, U>): UseCrudListPageReturn<T, C, U> {
+  U = Partial<T>,
+  TApi extends CrudApi<T, C, U> = CrudApi<T, C, U>
+>(
+  options: UseCrudListPageOptions<T, C, U, TApi>
+): UseCrudListPageReturn<T, C, U, CrudDeleteOptions<TApi>> {
   const {
     api,
     searchFields,
@@ -185,7 +200,7 @@ export function useCrudListPage<
   // 如果用户未指定 autoRefresh，默认为 true（除非启用 optimisticUpdate）
   const autoRefresh = resolveAutoRefreshSetting(userAutoRefresh)
 
-  const crudApi = useCrudApi<T, C, U>(api, {
+  const crudApi = useCrudApi<T, C, U, TApi>(api, {
     limit: pageSize,
     optimisticUpdate,
     autoRefresh
@@ -314,16 +329,16 @@ export function useCrudListPage<
     batchDeleteLoading.value = true
 
     try {
-      // 并发删除所有选中项
-      await Promise.all(
+      const results = await Promise.allSettled(
         selectedItems.value.map((item: T) => api.delete(item.id))
       )
 
-      // 清空选中状态
-      clearSelectionState()
+      const hasSuccessfulDeletion = results.some(result => result.status === 'fulfilled')
 
-      // 刷新列表
-      await handleRefresh()
+      if (hasSuccessfulDeletion) {
+        clearSelectionState()
+        await handleRefresh()
+      }
     } finally {
       batchDeleteLoading.value = false
     }
@@ -384,12 +399,8 @@ export function useCrudListPage<
   /**
    * 处理删除
    */
-  async function handleDelete(id: number): Promise<boolean> {
-    const success = await crudApi.delete(id)
-    if (success) {
-      await handleRefresh()
-    }
-    return success
+  async function handleDelete(id: number, options?: CrudDeleteOptions<TApi>): Promise<boolean> {
+    return await crudApi.delete(id, options)
   }
 
   /**
