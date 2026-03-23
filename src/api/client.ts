@@ -7,7 +7,6 @@ import { createAlova } from 'alova'
 import VueHook from 'alova/vue'
 import adapterFetch from 'alova/fetch'
 import { env } from '@/config/env'
-import { getApiPath } from '@/config/api'
 import {
   getAccessToken,
   setAccessToken,
@@ -16,7 +15,7 @@ import {
 import { show, initializeErrorNotification } from './services/error-notification'
 import { classifyErrorByCode } from './utils/error-classifier'
 import { isSuccessCode, ClientErrorCode } from './constants/response-codes'
-import type { ApiResponse } from './types'
+import type { ApiResponse } from './types/response'
 import { handleAuthError } from './services/auth-error-handler'
 import { API_CACHE_DURATION } from '@/constants/cache'
 
@@ -292,6 +291,3 @@ export const patch = <T = unknown>(url: string, data?: Record<string, unknown>) 
 export const del = <T = unknown>(url: string) => {
   return apiClient.Delete<T>(url)
 }
-
-export { getApiPath }
-export type * from './types'

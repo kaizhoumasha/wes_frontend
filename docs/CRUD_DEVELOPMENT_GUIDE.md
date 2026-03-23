@@ -545,7 +545,7 @@ const visible = defineModel<boolean>({ default: false })
 ### 1. 定义列配置 Composable
 
 ```typescript
-// src/views/admin/users/config/resourceSchema.ts
+// src/views/admin/users/config/fieldConfig.ts
 
 import {
   useTableColumns,
@@ -713,11 +713,11 @@ export function useUserColumnManager() {
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useCrudListPage } from '@/composables/useCrudListPage'
-import { useUserColumnManager, DEFAULT_COLUMN_CONFIG } from './config/resourceSchema'
+import { useUserColumnManager, DEFAULT_COLUMN_CONFIG } from './config/fieldConfig'
 import { useBreakpoint } from '@/composables/useBreakpoint'
 import { userApi, type User, type CreateUserInput, type UpdateUserInput } from '@/api/modules/user'
 import { USER_PERMISSION } from './config/permissions'
-import { userSearchFields } from './config/resourceSchema'
+import { userSearchFields } from './config/fieldConfig'
 import CrudFormDialog from '@/components/common/CrudFormDialog.vue'
 import TableColumnConfigDialog from '@/components/common/TableColumnConfigDialog.vue'
 
@@ -769,7 +769,7 @@ src/views/admin/users/
 ├── config/
 │   ├── pageConfig.ts            # 页面容器配置
 │   ├── permissions.ts           # 权限常量
-│   └── resourceSchema.ts        # 资源字段与列管理 schema
+│   └── fieldConfig.ts           # 字段、搜索、表单、列管理配置
 └── UserListPageV2.vue           # 主页面
 ```
 

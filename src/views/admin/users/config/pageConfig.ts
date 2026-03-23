@@ -3,8 +3,8 @@ import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
 import { userApi, type User } from '@/api/modules/user'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
-import { createUserRowActions } from './resourceActions'
-import { userResourceSchema } from './resourceSchema'
+import { createUserRowActions } from './actionConfig'
+import { userPageFieldConfig } from './fieldConfig'
 
 type UserPageConfig = CrudPageConfig<User, CreateUserInput, UpdateUserInput>
 
@@ -40,7 +40,7 @@ const USER_PAGE_FEATURES: CrudPageFeatures = {
 export function createUserPageConfig(): UserPageConfig {
   return createCrudPageConfigFromResource<User, CreateUserInput, UpdateUserInput>({
     resource: USER_PAGE_RESOURCE,
-    resourceSchema: userResourceSchema,
+    fieldConfig: userPageFieldConfig,
     table: USER_PAGE_TABLE,
     features: USER_PAGE_FEATURES,
     extensions: {

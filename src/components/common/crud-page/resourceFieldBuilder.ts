@@ -26,7 +26,7 @@ export interface ResourceFieldDefinition<TKey extends string = string> extends U
   key: TKey
 }
 
-export interface ResourceSchemaDefinition<
+export interface CrudFieldConfigDefinition<
   TField extends ResourceFieldDefinition = ResourceFieldDefinition,
   TCreate extends object = Record<string, unknown>,
   TUpdate extends object = Record<string, unknown>
@@ -227,7 +227,7 @@ export function defineResourceFields<
   )
 }
 
-export function defineCrudResourceSchema<
+export function defineCrudFieldConfig<
   TField extends ResourceFieldDefinition,
   TCreate extends object = Record<string, unknown>,
   TUpdate extends object = Record<string, unknown>
@@ -250,7 +250,7 @@ export function defineCrudResourceSchema<
     width?: string
     submit?: CrudPageFormConfig<TCreate, TUpdate>['submit']
   }
-}): ResourceSchemaDefinition<TField, TCreate, TUpdate> {
+}): CrudFieldConfigDefinition<TField, TCreate, TUpdate> {
   const defaultColumns = extractColumnConfigs(options.fields)
   const fieldConfig = extractFormFieldConfigs(options.fields)
   const searchFields = extractSearchFieldConfigs(options.fields)

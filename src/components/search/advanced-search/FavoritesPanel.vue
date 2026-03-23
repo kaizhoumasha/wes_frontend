@@ -1,17 +1,26 @@
 <template>
-  <section class="favorites-panel" :class="{ 'favorites-panel--collapsed': collapsed }">
+  <section
+    class="favorites-panel"
+    :class="{ 'favorites-panel--collapsed': collapsed }"
+  >
     <header class="favorites-panel__header">
       <div>
         <div class="favorites-panel__title">收藏夹</div>
         <div class="favorites-panel__subtitle">快速套用常用过滤模板</div>
       </div>
 
-      <el-button text @click="emit('toggle-collapse')">
+      <el-button
+        text
+        @click="emit('toggle-collapse')"
+      >
         {{ collapsed ? '展开' : '折叠' }}
       </el-button>
     </header>
 
-    <div v-if="!collapsed" class="favorites-panel__content">
+    <div
+      v-if="!collapsed"
+      class="favorites-panel__content"
+    >
       <el-empty
         v-if="favorites.length === 0"
         description="暂无收藏夹"
@@ -60,7 +69,11 @@ function countFavorite(favorite: SearchFavorite): number {
   gap: 12px;
   padding: 14px 16px;
   background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--el-color-warning-light-8) 60%, transparent), transparent 58%),
+    radial-gradient(
+      circle at top left,
+      color-mix(in srgb, var(--el-color-warning-light-8) 60%, transparent),
+      transparent 58%
+    ),
     color-mix(in srgb, var(--el-fill-color-light) 78%, transparent);
   border: 1px solid color-mix(in srgb, var(--el-color-warning) 18%, var(--el-border-color));
   border-radius: 18px;

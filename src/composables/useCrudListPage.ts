@@ -219,15 +219,9 @@ export function useCrudListPage<
 
   // ==================== 计算属性 ====================
 
-  /** 从 data 中提取 items（兼容 PaginatedResponse 和数组） */
+  /** 当前列表项 */
   const items = computed(() => {
-    if (!crudApi.data.value) return []
-    // 如果是 PaginatedResponse
-    if ('items' in crudApi.data.value) {
-      return (crudApi.data.value as { items: T[] }).items
-    }
-    // 如果是数组
-    return crudApi.data.value as T[]
+    return crudApi.data.value?.items ?? []
   })
 
   /** 选中的数量 */

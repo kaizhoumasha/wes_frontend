@@ -1,16 +1,37 @@
 <template>
-  <section class="filter-group-builder" :class="depthClass">
+  <section
+    class="filter-group-builder"
+    :class="depthClass"
+  >
     <header class="filter-group-builder__header">
       <div class="filter-group-builder__headline">
-        <CoupleSelector :model-value="group.couple" @update:model-value="handleCoupleChange" />
-        <span v-if="!root" class="filter-group-builder__meta">
+        <CoupleSelector
+          :model-value="group.couple"
+          @update:model-value="handleCoupleChange"
+        />
+        <span
+          v-if="!root"
+          class="filter-group-builder__meta"
+        >
           {{ group.conditions.length }} 项规则
         </span>
       </div>
 
       <div class="filter-group-builder__actions">
-        <el-button ref="addConditionButtonRef" size="small" @click="handleAddCondition">+ 条件</el-button>
-        <el-button size="small" :disabled="disableAddGroup" @click="handleAddGroup">+ 组</el-button>
+        <el-button
+          ref="addConditionButtonRef"
+          size="small"
+          @click="handleAddCondition"
+        >
+          + 条件
+        </el-button>
+        <el-button
+          size="small"
+          :disabled="disableAddGroup"
+          @click="handleAddGroup"
+        >
+          + 组
+        </el-button>
         <el-button
           v-if="root && group.conditions.length > 0"
           size="small"
@@ -19,8 +40,16 @@
         >
           清空全部
         </el-button>
-        <el-dropdown v-else trigger="click">
-          <el-button size="small" text>更多</el-button>
+        <el-dropdown
+          v-else
+          trigger="click"
+        >
+          <el-button
+            size="small"
+            text
+          >
+            更多
+          </el-button>
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item
@@ -41,17 +70,29 @@
       </div>
     </header>
 
-    <div v-if="disableAddGroup" class="filter-group-builder__depth-hint">
+    <div
+      v-if="disableAddGroup"
+      class="filter-group-builder__depth-hint"
+    >
       已达到最大嵌套深度（{{ maxDepth }} 层）
     </div>
 
-    <div v-if="group.conditions.length === 0" class="filter-group-builder__empty">
+    <div
+      v-if="group.conditions.length === 0"
+      class="filter-group-builder__empty"
+    >
       <p>暂无条件</p>
       <span>点击上方按钮添加条件或子组</span>
     </div>
 
-    <div v-else class="filter-group-builder__body">
-      <template v-for="item in group.conditions" :key="item.id">
+    <div
+      v-else
+      class="filter-group-builder__body"
+    >
+      <template
+        v-for="item in group.conditions"
+        :key="item.id"
+      >
         <FilterConditionRow
           v-if="!isUIFilterGroup(item)"
           :ref="instance => setConditionRowRef(item.id, instance)"
@@ -128,10 +169,7 @@ const groupBuilderRefs = ref(new Map<string, FocusableGroupBuilderInstance>())
 const disableAddGroup = computed(() => props.depth >= props.maxDepth - 1)
 const depthClass = computed(() => `filter-group-builder--depth-${Math.min(props.depth, 2)}`)
 
-function setConditionRowRef(
-  id: string,
-  instance: Element | ComponentPublicInstance | null
-): void {
+function setConditionRowRef(id: string, instance: Element | ComponentPublicInstance | null): void {
   const rowInstance = instance as FocusableConditionRowInstance | null
   if (rowInstance) {
     conditionRowRefs.value.set(id, rowInstance)
@@ -141,10 +179,7 @@ function setConditionRowRef(
   conditionRowRefs.value.delete(id)
 }
 
-function setGroupBuilderRef(
-  id: string,
-  instance: Element | ComponentPublicInstance | null
-): void {
+function setGroupBuilderRef(id: string, instance: Element | ComponentPublicInstance | null): void {
   const groupInstance = instance as FocusableGroupBuilderInstance | null
   if (groupInstance) {
     groupBuilderRefs.value.set(id, groupInstance)
@@ -285,7 +320,11 @@ defineExpose({
 
   &--depth-0 {
     background:
-      linear-gradient(180deg, color-mix(in srgb, var(--el-color-primary-light-9) 72%, transparent), transparent 42%),
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--el-color-primary-light-9) 72%, transparent),
+        transparent 42%
+      ),
       var(--el-bg-color);
     border: 1px solid color-mix(in srgb, var(--el-color-primary) 24%, var(--el-border-color));
     box-shadow: 0 18px 44px rgba(15, 23, 42, 0.06);

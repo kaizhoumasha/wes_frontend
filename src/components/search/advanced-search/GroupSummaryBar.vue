@@ -1,14 +1,20 @@
 <template>
   <section class="group-summary-bar">
     <span class="group-summary-bar__label">当前筛选</span>
-    <div ref="summaryContentRef" class="group-summary-bar__content">
+    <div
+      ref="summaryContentRef"
+      class="group-summary-bar__content"
+    >
       <p
         class="group-summary-bar__text"
         :class="{ 'group-summary-bar__text--expanded': summaryExpanded }"
       >
         {{ summary }}
       </p>
-      <p ref="summaryMeasureRef" class="group-summary-bar__measure">
+      <p
+        ref="summaryMeasureRef"
+        class="group-summary-bar__measure"
+      >
         {{ summary }}
       </p>
     </div>
@@ -72,23 +78,34 @@ function stopSummaryObserver(): void {
   summaryResizeObserver = null
 }
 
-watch(() => props.summary, () => {
-  void nextTick(() => measureSummaryOverflow())
-}, { immediate: true })
+watch(
+  () => props.summary,
+  () => {
+    void nextTick(() => measureSummaryOverflow())
+  },
+  { immediate: true }
+)
 
-watch(() => props.active, active => {
-  if (!active) {
-    return
+watch(
+  () => props.active,
+  active => {
+    if (!active) {
+      return
+    }
+
+    summaryExpanded.value = false
+    void nextTick(() => measureSummaryOverflow())
+  },
+  { immediate: true }
+)
+
+watch(
+  () => props.resetToken,
+  () => {
+    summaryExpanded.value = false
+    void nextTick(() => measureSummaryOverflow())
   }
-
-  summaryExpanded.value = false
-  void nextTick(() => measureSummaryOverflow())
-}, { immediate: true })
-
-watch(() => props.resetToken, () => {
-  summaryExpanded.value = false
-  void nextTick(() => measureSummaryOverflow())
-})
+)
 
 watch(summaryExpanded, expanded => {
   if (!expanded) {
@@ -121,7 +138,11 @@ onBeforeUnmount(() => {
   align-items: flex-start;
   padding: 10px 12px;
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--el-bg-color) 82%, transparent), var(--el-bg-color)),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--el-bg-color) 82%, transparent),
+      var(--el-bg-color)
+    ),
     var(--el-bg-color);
   border: 1px solid color-mix(in srgb, var(--el-color-primary) 16%, var(--el-border-color));
   border-radius: 16px;

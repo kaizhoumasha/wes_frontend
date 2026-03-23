@@ -10,7 +10,7 @@ import type {
   CrudPageToolbarAction
 } from './types'
 import type { CrudApi, SortField } from '@/api/base/crud-api'
-import type { ResourceFieldDefinition, ResourceSchemaDefinition } from './resourceFieldBuilder'
+import type { CrudFieldConfigDefinition, ResourceFieldDefinition } from './resourceFieldBuilder'
 
 interface CreateCrudPageConfigFromResourceOptions<
   TItem extends CrudPageEntity,
@@ -27,7 +27,7 @@ interface CreateCrudPageConfigFromResourceOptions<
     autoRefresh?: boolean
     defaultSort?: SortField[]
   }
-  resourceSchema: ResourceSchemaDefinition<ResourceFieldDefinition, TCreate, TUpdate>
+  fieldConfig: CrudFieldConfigDefinition<ResourceFieldDefinition, TCreate, TUpdate>
   table?: Omit<CrudPageConfig<TItem, TCreate, TUpdate>['table'], 'columns' | 'defaultSort'>
   form?: Partial<CrudPageFormConfig<TCreate, TUpdate>>
   features?: CrudPageFeatures
@@ -41,12 +41,12 @@ function resolveCrudPageForm<
   TCreate extends object,
   TUpdate extends object
 >(
-  resourceSchema: ResourceSchemaDefinition<ResourceFieldDefinition, TCreate, TUpdate>,
+  fieldConfig: CrudFieldConfigDefinition<ResourceFieldDefinition, TCreate, TUpdate>,
   form: Partial<CrudPageFormConfig<TCreate, TUpdate>> | undefined
 ): CrudPageFormConfig<TCreate, TUpdate> | undefined {
   if (form) {
     const mergedForm = {
-      ...resourceSchema.form,
+      ...fieldConfig.form,
       ...form
     }
 
@@ -60,13 +60,13 @@ function resolveCrudPageForm<
     }
   }
 
-  if (!resourceSchema.form.createSchema) {
+  if (!fieldConfig.form.createSchema) {
     return undefined
   }
 
   return {
-    ...resourceSchema.form,
-    createSchema: resourceSchema.form.createSchema
+    ...fieldConfig.form,
+    createSchema: fieldConfig.form.createSchema
   }
 }
 
@@ -77,18 +77,18 @@ export function createCrudPageConfigFromResource<
 >(
   options: CreateCrudPageConfigFromResourceOptions<TItem, TCreate, TUpdate>
 ): CrudPageConfig<TItem, TCreate, TUpdate> {
-  const { resource, resourceSchema, table, form, features, extensions } = options
-  const resolvedForm = resolveCrudPageForm<TCreate, TUpdate>(resourceSchema, form)
+  const { resource, fieldConfig, table, form, features, extensions } = options
+  const resolvedForm = resolveCrudPageForm<TCreate, TUpdate>(fieldConfig, form)
   const resolvedTable: CrudPageConfig<TItem, TCreate, TUpdate>['table'] = {
     selectable: true,
     columnResizable: true,
     ...table,
-    columns: resourceSchema.table
+    columns: fieldConfig.table
   }
 
   return defineCrudPageConfig<TItem, TCreate, TUpdate>({
     resource,
-    search: resourceSchema.search,
+    search: fieldConfig.search,
     table: resolvedTable,
     form: resolvedForm,
     features,

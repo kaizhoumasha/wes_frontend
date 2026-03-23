@@ -5,17 +5,18 @@
  * 对应后端: src/app/admin/v1/menu.py
  */
 
-import { z } from 'zod'
-import { MenuTreeResponseSchema } from './zod-extensions'
+import type { ArrayItem, ContractResponseData } from '@/api/contract/types'
+
+type MenuTreePath = '/api/v1/menus/my_menu'
 
 // ==================== 菜单项类型 ====================
 
 /**
- * 菜单项类型（直接从后端 schema 推断）
+ * 菜单项类型（直接从 OpenAPI 契约推断）
  *
  * 表示一个菜单节点，可以是叶子节点或包含子菜单的父节点
  */
-export type MenuTreeResponse = z.infer<typeof MenuTreeResponseSchema>
+export type MenuTreeResponse = ArrayItem<ContractResponseData<MenuTreePath, 'get'>>
 
 /**
  * 菜单项（前端使用，确保 children 是数组）

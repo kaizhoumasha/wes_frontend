@@ -1,6 +1,9 @@
 <template>
   <div class="filter-condition-row-wrap">
-    <div class="filter-condition-row" :class="{ 'filter-condition-row--invalid': invalid }">
+    <div
+      class="filter-condition-row"
+      :class="{ 'filter-condition-row--invalid': invalid }"
+    >
       <el-select
         ref="fieldSelectRef"
         :model-value="condition.field"
@@ -51,7 +54,10 @@
       </el-button>
     </div>
 
-    <p v-if="invalidMessage" class="filter-condition-row__error">
+    <p
+      v-if="invalidMessage"
+      class="filter-condition-row__error"
+    >
       {{ invalidMessage }}
     </p>
   </div>
@@ -197,7 +203,11 @@ defineExpose({
   align-items: start;
   padding: 14px;
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--el-fill-color-light) 72%, transparent), transparent),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--el-fill-color-light) 72%, transparent),
+      transparent
+    ),
     var(--el-bg-color);
   border: 1px solid color-mix(in srgb, var(--el-border-color) 82%, transparent);
   border-radius: 16px;

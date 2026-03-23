@@ -1,29 +1,21 @@
 /**
- * CRUD API 基础封装
+ * 合同驱动的 CRUD API 基础封装
  *
- * 基于后端 BaseAPI 架构，提供标准 CRUD 操作的泛型封装
- *
- * 后端标准端点：
- * - POST   /{prefix}           - 创建
- * - PUT    /{prefix}/{id}      - 更新
- * - DELETE /{prefix}/{id}      - 删除
- * - GET    /{prefix}/{id}      - 获取单个
- * - POST   /{prefix}/query     - 列表查询
- *
- * 软删除端点（如果模型支持）：
- * - POST   /{prefix}/{id}/restore        - 恢复
- * - GET    /{prefix}/trash               - 回收站
- * - POST   /{prefix}/trash/restore       - 批量恢复
- * - DELETE /{prefix}/trash/permanent     - 批量永久删除
- *
- * 批量操作：
- * - DELETE /{prefix}/bulk        - 批量删除
+ * 以生成的 OpenAPI 契约作为编译期单一来源，
+ * 对外只暴露页面层真正需要的 CRUD 能力。
  */
 
+import { contractClient } from '@/api/contract/client'
+import type {
+  ContractPath,
+  ContractPathWithMethod,
+  ContractPathParams,
+  ContractQueryParams,
+  ContractRequestBody,
+  ContractRequestConfig,
+  ContractResponseData,
+} from '@/api/contract/types'
 import { z } from 'zod'
-import { apiClient } from '../client'
-import type { ApiResponse, PaginationData } from '../types'
-import { API_CACHE_DURATION, API_RELATION_DEPTH } from '@/constants/cache'
 import {
   BatchOperationResultSchema,
   FilterConditionSchema,
@@ -31,21 +23,169 @@ import {
   FilterOperatorSchema,
   QueryOptionsSchema,
   SortFieldSchema,
-} from '../../types/zod-extensions'
+} from '@/types/zod-extensions'
 
-// ==================== 类型定义 ====================
-
+/**
+ * 单个筛选条件支持的操作符。
+ */
 export type FilterOperator = z.infer<typeof FilterOperatorSchema>
 
+/**
+ * 单个筛选条件的输入结构。
+ */
 export type FilterCondition = z.input<typeof FilterConditionSchema>
 
+/**
+ * 筛选组的连接方式。
+ */
 export type FilterCouple = NonNullable<z.input<typeof FilterGroupSchema>['couple']>
 
+/**
+ * 筛选组输入结构，可嵌套组合多个条件。
+ */
 export type FilterGroup = z.input<typeof FilterGroupSchema>
 
+/**
+ * 排序字段输入结构。
+ */
 export type SortField = z.input<typeof SortFieldSchema>
 
+/**
+ * 列表查询参数输入结构。
+ */
 export type QueryOptions = z.input<typeof QueryOptionsSchema>
+
+/**
+ * 批量操作结果类型。
+ */
+export type BatchOperationResult = z.infer<typeof BatchOperationResultSchema>
+
+/**
+ * 页面层统一使用的分页结构。
+ */
+export interface PaginationData<TItem> {
+  items: TItem[]
+  total: number
+  page: number
+  size: number
+  pages: number
+}
+
+interface ContractListResponse<TItem> {
+  items?: TItem[]
+  limit: number
+  offset: number
+  total: number
+}
+
+/**
+ * 通用 CRUD 接口抽象。
+ *
+ * 约束：
+ * - 单项详情走 `/{id}`
+ * - 列表查询走 `/query`
+ * - 创建走资源集合 `POST`
+ * - 更新走 `/{id}` 的 `PUT`
+ * - 删除走 `/{id}` 的 `DELETE`
+ */
+export interface CrudApi<
+  TItem,
+  TCreate,
+  TUpdate,
+  TDetailQuery = never,
+  TQuery = QueryOptions,
+  TCreateResult = TItem,
+  TUpdateResult = TItem,
+  TDeleteQuery = never,
+  TDeleteResult = unknown,
+> {
+  getById(id: number, options?: {
+    query?: TDetailQuery
+    config?: ContractRequestConfig
+  }): Promise<TItem>
+  query(options?: TQuery, config?: ContractRequestConfig): Promise<PaginationData<TItem>>
+  create(data: TCreate, config?: ContractRequestConfig): Promise<TCreateResult>
+  update(id: number, data: TUpdate, config?: ContractRequestConfig): Promise<TUpdateResult>
+  delete(id: number, options?: {
+    query?: TDeleteQuery
+    config?: ContractRequestConfig
+  }): Promise<TDeleteResult>
+}
+
+/**
+ * 由集合路径推导出的单项路径，例如 `/api/v1/users` -> `/api/v1/users/{id}`。
+ */
+export type CrudItemPath<TCollectionPath extends ContractPath> =
+  Extract<`${TCollectionPath}/{id}`, ContractPath>
+
+/**
+ * 由集合路径推导出的查询路径，例如 `/api/v1/users` -> `/api/v1/users/query`。
+ */
+export type CrudQueryPath<TCollectionPath extends ContractPath> =
+  Extract<`${TCollectionPath}/query`, ContractPath>
+
+/**
+ * 根据资源集合路径推导出的详情响应数据类型。
+ */
+export type CrudItem<TCollectionPath extends ContractPath> =
+  ContractResponseData<CrudItemPath<TCollectionPath>, 'get'>
+
+/**
+ * 根据资源集合路径推导出的创建入参类型。
+ */
+export type CrudCreateInput<TCollectionPath extends ContractPath> =
+  ContractRequestBody<TCollectionPath, 'post'>
+
+/**
+ * 根据资源集合路径推导出的更新入参类型。
+ */
+export type CrudUpdateInput<TCollectionPath extends ContractPath> =
+  ContractRequestBody<CrudItemPath<TCollectionPath>, 'put'>
+
+type CrudCompatibleItemPath = {
+  [TPath in ContractPathWithMethod<'get'> & ContractPathWithMethod<'put'> & ContractPathWithMethod<'delete'>]:
+    ContractResponseData<TPath, 'put'> extends ContractResponseData<TPath, 'get'>
+      ? TPath
+      : never
+}[ContractPathWithMethod<'get'> & ContractPathWithMethod<'put'> & ContractPathWithMethod<'delete'>]
+
+type CrudCompatibleQueryPath<TItemPath extends CrudCompatibleItemPath> = {
+  [TPath in ContractPathWithMethod<'post'>]:
+    ContractResponseData<TPath, 'post'> extends ContractListResponse<ContractResponseData<TItemPath, 'get'>>
+      ? TPath
+      : never
+}[ContractPathWithMethod<'post'>]
+
+type CrudManagedItemPath<TCollectionPath extends ContractPath> = Extract<
+  CrudItemPath<TCollectionPath>,
+  CrudCompatibleItemPath
+>
+
+type CrudManagedQueryPath<TCollectionPath extends ContractPath> = Extract<
+  CrudQueryPath<TCollectionPath>,
+  CrudCompatibleQueryPath<CrudManagedItemPath<TCollectionPath>>
+>
+
+export type CrudResourceCollectionPath = {
+  [TPath in ContractPathWithMethod<'post'>]:
+    [CrudManagedItemPath<TPath>] extends [never]
+      ? never
+      : [CrudManagedQueryPath<TPath>] extends [never]
+        ? never
+        : ContractResponseData<TPath, 'post'> extends CrudItem<TPath>
+          ? TPath
+          : never
+}[ContractPathWithMethod<'post'>]
+
+interface ContractCrudEndpoints<
+  TCollectionPath extends ContractPathWithMethod<'post'>,
+  TItemPath extends ContractPathWithMethod<'get'> & ContractPathWithMethod<'put'> & ContractPathWithMethod<'delete'>,
+  TQueryPath extends ContractPathWithMethod<'post'>,
+> {
+  collection: TCollectionPath
+  item: TItemPath
+  query: TQueryPath
+}
 
 function normalizeFilterGroup(filters: FilterGroup | null | undefined): FilterGroup | undefined {
   if (!filters) {
@@ -58,6 +198,61 @@ function normalizeFilterGroup(filters: FilterGroup | null | undefined): FilterGr
   }
 }
 
+function toPaginationData<TItem>(response: ContractListResponse<TItem>): PaginationData<TItem> {
+  const size = response.limit
+  const page = size > 0 ? Math.floor(response.offset / size) + 1 : 1
+
+  return {
+    items: response.items ?? [],
+    total: response.total,
+    page,
+    size,
+    pages: size > 0 ? Math.ceil(response.total / size) : 0
+  }
+}
+
+function normalizeQueryRequest<TQuery>(options: TQuery | undefined): TQuery | undefined {
+  if (
+    !options ||
+    typeof options !== 'object' ||
+    !('filters' in options)
+  ) {
+    return options
+  }
+
+  const queryOptions = options as TQuery & { filters?: FilterGroup | null }
+
+  return {
+    ...queryOptions,
+    filters: normalizeFilterGroup(queryOptions.filters)
+  } as TQuery
+}
+
+function createIdParams<TPath extends ContractPath, TMethod extends 'get' | 'put' | 'delete'>(
+  id: number
+): ContractPathParams<TPath, TMethod> {
+  return { id } as unknown as ContractPathParams<TPath, TMethod>
+}
+
+function assertContractListResponse<TItem>(result: unknown): asserts result is ContractListResponse<TItem> {
+  if (
+    typeof result !== 'object' ||
+    result === null ||
+    !('limit' in result) ||
+    !('offset' in result) ||
+    !('total' in result)
+  ) {
+    throw new Error('Invalid CRUD query response shape')
+  }
+}
+
+/**
+ * 在现有筛选条件末尾追加一个 `and` 条件。
+ *
+ * 用途：
+ * - 页面传入已有筛选树时，继续叠加业务限制
+ * - 保证最终结构始终是合法的筛选组
+ */
 export function appendAndFilter(
   baseFilters: FilterGroup | null | undefined,
   nextFilter: FilterCondition | FilterGroup
@@ -84,291 +279,101 @@ export function appendAndFilter(
   }
 }
 
-export type BatchOperationResult = z.infer<typeof BatchOperationResultSchema>
-
 /**
- * CRUD API 配置
+ * 基于显式端点定义创建 CRUD API。
+ *
+ * 适合：
+ * - 标准资源 CRUD
+ * - 需要明确声明 collection/item/query 路径的场景
+ * - 不希望依赖路径拼接约定的场景
  */
-export interface CrudApiConfig<T, CreateInput, UpdateInput> {
-  /** API 路径前缀 */
-  prefix: string
-  /** 创建输入类型（可选，如果不支持创建） */
-  createSchema?: new (data: unknown) => CreateInput
-  /** 更新输入类型（可选，如果不支持更新） */
-  updateSchema?: new (data: unknown) => UpdateInput
-  /** 响应数据类型 */
-  responseSchema?: new (data: unknown) => T
-}
+export function createCrudApi<
+  TCollectionPath extends ContractPathWithMethod<'post'>,
+  TItemPath extends ContractPathWithMethod<'get'> & ContractPathWithMethod<'put'> & ContractPathWithMethod<'delete'>,
+  TQueryPath extends ContractPathWithMethod<'post'>,
+>(
+  endpoints: ContractCrudEndpoints<TCollectionPath, TItemPath, TQueryPath>
+): CrudApi<
+  ContractResponseData<TItemPath, 'get'>,
+  ContractRequestBody<TCollectionPath, 'post'>,
+  ContractRequestBody<TItemPath, 'put'>,
+  ContractQueryParams<TItemPath, 'get'>,
+  ContractRequestBody<TQueryPath, 'post'>,
+  ContractResponseData<TCollectionPath, 'post'>,
+  ContractResponseData<TItemPath, 'put'>,
+  ContractQueryParams<TItemPath, 'delete'>,
+  ContractResponseData<TItemPath, 'delete'>
+> {
+  type Item = ContractResponseData<TItemPath, 'get'>
 
-// ==================== CRUD API 类 ====================
+  return {
+    async getById(id, options) {
+      return await contractClient.get(endpoints.item, {
+        params: createIdParams<TItemPath, 'get'>(id),
+        query: options?.query,
+        config: options?.config
+      })
+    },
 
-/**
- * CRUD API 基类
- *
- * @template T 实体类型
- * @template CreateInput 创建输入类型
- * @template UpdateInput 更新输入类型
- *
- * @example
- * ```ts
- * interface User {
- *   id: number
- *   name: string
- *   email: string
- * }
- *
- * interface CreateUserInput {
- *   name: string
- *   email: string
- *   password: string
- * }
- *
- * interface UpdateUserInput {
- *   name?: string
- *   email?: string
- * }
- *
- * const userApi = new CrudApi<User, CreateUserInput, UpdateUserInput>({
- *   prefix: '/api/v1/users',
- *   createSchema: CreateUserInput,
- *   updateSchema: UpdateUserInput,
- * })
- *
- * // 使用
- * const users = await userApi.query({ offset: 0, limit: 10 })
- * const user = await userApi.getById(1)
- * const newUser = await userApi.create({ name: 'John', email: 'john@example.com', password: '123456' })
- * await userApi.update(1, { name: 'Jane' })
- * await userApi.delete(1)
- * ```
- */
-export class CrudApi<T, CreateInput = Partial<T>, UpdateInput = Partial<T>> {
-  constructor(protected config: CrudApiConfig<T, CreateInput, UpdateInput>) {}
+    async query(options, config) {
+      const response = await contractClient.post(endpoints.query, {
+        body: normalizeQueryRequest(options),
+        config
+      })
+      assertContractListResponse<Item>(response)
 
-  // ==================== 标准 CRUD 操作 ====================
+      return toPaginationData(response)
+    },
 
-  /**
-   * 获取单个实体
-   * @param id 实体ID
-   * @param options 选项配置（向后兼容：支持数字作为 maxDepth）
-   * @param options.maxDepth 关系加载深度（默认2）
-   * @param options.cacheFor 缓存时间（毫秒），0=禁用缓存
-   * @returns 实体数据
-   *
-   * @example
-   * // 向后兼容：直接传数字
-   * await userApi.getById(1, 3)
-   * // 新用法：传对象
-   * await userApi.getById(1, { maxDepth: 3, cacheFor: 60000 })
-   */
-  async getById(
-    id: number,
-    options?: number | { maxDepth?: number; cacheFor?: number }
-  ): Promise<T> {
-    // 向后兼容：支持直接传数字作为 maxDepth
-    let maxDepth: number = API_RELATION_DEPTH.DEFAULT
-    let cacheFor: number = API_CACHE_DURATION.NONE
+    async create(data, config) {
+      const response = await contractClient.post(endpoints.collection, {
+        body: data,
+        config
+      })
 
-    if (typeof options === 'number') {
-      // 旧用法：getById(id, maxDepth)
-      maxDepth = options
-    } else if (options && typeof options === 'object') {
-      // 新用法：getById(id, { maxDepth, cacheFor })
-      maxDepth = options.maxDepth ?? API_RELATION_DEPTH.DEFAULT
-      cacheFor = options.cacheFor ?? API_CACHE_DURATION.NONE
+      return response
+    },
+
+    async update(id, data, config) {
+      const response = await contractClient.put(endpoints.item, {
+        params: createIdParams<TItemPath, 'put'>(id),
+        body: data,
+        config
+      })
+
+      return response
+    },
+
+    async delete(id, options) {
+      return await contractClient.delete(endpoints.item, {
+        params: createIdParams<TItemPath, 'delete'>(id),
+        query: options?.query,
+        config: options?.config
+      })
     }
-
-    const response = await apiClient.Get<ApiResponse<T>>(
-      `${this.config.prefix}/${id}`,
-      {
-        params: { max_depth: maxDepth as number },
-        cacheFor
-      }
-    )
-
-    return response as unknown as T
-  }
-
-  /**
-   * 查询实体列表
-   * @param options 查询选项
-   * @returns 分页数据
-   */
-  async query(options: QueryOptions = {}): Promise<PaginationData<T>> {
-    const {
-      limit = 10,
-      offset = 0,
-      filters,
-      sort,
-      max_depth = 1,
-      include_deleted = false
-    } = options
-    const currentPage = Math.floor(offset / limit) + 1
-    const normalizedFilters = normalizeFilterGroup(filters)
-
-    const response = await apiClient.Post<ApiResponse<PaginationData<T>>>(
-      `${this.config.prefix}/query`,
-      {
-        limit,
-        offset,
-        filters: normalizedFilters,
-        sort,
-        max_depth,
-        include_deleted
-      } as Record<string, unknown>
-    )
-
-    const data = response as unknown as PaginationData<T>
-    // 转换为标准分页格式
-    return {
-      items: data.items,
-      total: data.total,
-      page: currentPage,
-      size: limit,
-      pages: Math.ceil(data.total / limit)
-    }
-  }
-
-  /**
-   * 创建实体
-   * @param data 创建数据
-   * @returns 创建的实体
-   */
-  async create(data: CreateInput): Promise<T> {
-    const response = await apiClient.Post<ApiResponse<T>>(
-      this.config.prefix,
-      data as Record<string, unknown>
-    )
-    return response as unknown as T
-  }
-
-  /**
-   * 更新实体
-   * @param id 实体ID
-   * @param data 更新数据（仅包含需要更新的字段）
-   * @returns 更新后的实体
-   */
-  async update(id: number, data: UpdateInput): Promise<T> {
-    const response = await apiClient.Put<ApiResponse<T>>(
-      `${this.config.prefix}/${id}`,
-      data as Record<string, unknown>
-    )
-    return response as unknown as T
-  }
-
-  /**
-   * 删除实体
-   * @param id 实体ID
-   * @param permanent 是否永久删除（默认false，使用软删除）
-   * @returns 删除结果
-   */
-  async delete(id: number, permanent = false): Promise<{ message: string }> {
-    const response = await apiClient.Delete<ApiResponse<{ message: string }>>(
-      `${this.config.prefix}/${id}`,
-      { permanent } as Record<string, unknown>
-    )
-    return response as unknown as { message: string }
-  }
-
-  // ==================== 批量操作 ====================
-
-  /**
-   * 批量删除
-   * @param ids 实体ID列表
-   * @returns 批量操作结果
-   */
-  async bulkDelete(ids: number[]): Promise<BatchOperationResult> {
-    const response = await apiClient.Delete<ApiResponse<BatchOperationResult>>(
-      `${this.config.prefix}/bulk`,
-      ids
-    )
-    return response as unknown as BatchOperationResult
-  }
-
-  // ==================== 软删除操作（如果模型支持）====================
-
-  /**
-   * 恢复已删除的实体
-   * @param id 实体ID
-   * @returns 恢复后的实体
-   */
-  async restore(id: number): Promise<T> {
-    const response = await apiClient.Post<ApiResponse<T>>(`${this.config.prefix}/${id}/restore`, {})
-    return response as unknown as T
-  }
-
-  /**
-   * 获取回收站（已删除的实体）
-   * @param page 页码（默认1）
-   * @param pageSize 每页数量（默认10）
-   * @returns 分页数据
-   */
-  async getTrash(page = 1, pageSize = 10): Promise<PaginationData<T>> {
-    const response = await apiClient.Get<ApiResponse<PaginationData<T>>>(
-      `${this.config.prefix}/trash`,
-      {
-        offset: (page - 1) * pageSize,
-        limit: pageSize
-      } as Record<string, unknown>
-    )
-
-    const data = response as unknown as PaginationData<T>
-    return {
-      items: data.items,
-      total: data.total,
-      page,
-      size: pageSize,
-      pages: Math.ceil(data.total / pageSize)
-    }
-  }
-
-  /**
-   * 批量恢复
-   * @param ids 实体ID列表
-   * @returns 批量操作结果
-   */
-  async bulkRestore(ids: number[]): Promise<BatchOperationResult> {
-    const response = await apiClient.Post<ApiResponse<BatchOperationResult>>(
-      `${this.config.prefix}/trash/restore`,
-      ids
-    )
-    return response as unknown as BatchOperationResult
-  }
-
-  /**
-   * 批量永久删除
-   * @param ids 实体ID列表
-   * @returns 批量操作结果
-   */
-  async bulkPermanentDelete(ids: number[]): Promise<BatchOperationResult> {
-    const response = await apiClient.Delete<ApiResponse<BatchOperationResult>>(
-      `${this.config.prefix}/trash/permanent`,
-      ids
-    )
-    return response as unknown as BatchOperationResult
   }
 }
 
-// ==================== 工厂函数 ====================
-
 /**
- * 创建 CRUD API 实例的工厂函数
+ * 基于资源集合路径创建标准 CRUD API。
  *
- * @param config API 配置
- * @returns CRUD API 实例
+ * 约束：
+ * - `collection` 必须是真实存在于 OpenAPI 契约中的标准 CRUD 资源根路径
+ * - 其下必须同时存在 `/{id}` 与 `/query` 两类标准端点
  *
- * @example
- * ```ts
- * export const userApi = createCrudApi<User, CreateUserInput, UpdateUserInput>({
- *   prefix: '/api/v1/users',
- * })
- * ```
+ * 适合：
+ * - 后端遵循统一 BaseAPI/CRUD 约定的资源
+ * - 若资源不满足该约定，请直接使用 `createCrudApi`
  */
-export function createCrudApi<T, CreateInput = Partial<T>, UpdateInput = Partial<T>>(
-  config: CrudApiConfig<T, CreateInput, UpdateInput>
-): CrudApi<T, CreateInput, UpdateInput> {
-  return new CrudApi<T, CreateInput, UpdateInput>(config)
-}
+export function createCrudResourceApi<TCollectionPath extends CrudResourceCollectionPath>(
+  collection: TCollectionPath
+) {
+  const item = `${collection}/{id}` as CrudManagedItemPath<TCollectionPath>
+  const query = `${collection}/query` as CrudManagedQueryPath<TCollectionPath>
 
-// ==================== 导出类型 ====================
-export type * from '../types'
+  return createCrudApi({
+    collection,
+    item,
+    query
+  })
+}

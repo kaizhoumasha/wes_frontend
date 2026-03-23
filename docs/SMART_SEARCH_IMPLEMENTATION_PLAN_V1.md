@@ -609,16 +609,16 @@ function normalizeQuickPreset(
 
 ## 8.1 建议新增文件
 
-首版可先在用户管理模块内新增字段资源 schema：
+首版可先在用户管理模块内新增字段配置文件：
 
-- `src/views/admin/users/config/resourceSchema.ts`
+- `src/views/admin/users/config/fieldConfig.ts`
 
 用于承载：
 
 - `userSearchFields`
 - 页面表单/表格字段元数据
 
-### 为什么收敛到字段 schema
+### 为什么收敛到字段配置
 
 - 保持搜索/表单/表格字段配置单一来源
 - 避免同一字段在多处重复维护

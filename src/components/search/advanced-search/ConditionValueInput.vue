@@ -1,5 +1,8 @@
 <template>
-  <div ref="rootRef" class="condition-value-input">
+  <div
+    ref="rootRef"
+    class="condition-value-input"
+  >
     <template v-if="!field">
       <div class="condition-value-input__placeholder">请先选择字段</div>
     </template>
@@ -79,8 +82,14 @@
         class="condition-value-input__control"
         @update:model-value="value => emit('update:modelValue', value)"
       >
-        <el-option label="是" :value="true" />
-        <el-option label="否" :value="false" />
+        <el-option
+          label="是"
+          :value="true"
+        />
+        <el-option
+          label="否"
+          :value="false"
+        />
       </el-select>
     </template>
 

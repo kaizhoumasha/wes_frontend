@@ -1,11 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Token刷新服务
  * 处理401错误时的静默Token刷新和请求队列管理
  */
 
-import { getApiPath } from '../client'
 import { clearPermissionState } from '@/composables/permission-state'
+import type { RequestBody } from '@/api/types/request'
+import type {
+  ContractPath,
+  ContractRequestConfig,
+  ContractResponseData,
+} from '@/api/contract/types'
 import router from '@/router'
 
 // ==================== 常量定义 ====================
@@ -17,8 +21,11 @@ export const REFRESH_TOKEN_COOKIE = 'refresh_token' as const
 /** Token过期时间存储键 */
 export const TOKEN_EXPIRES_AT_KEY = 'token_expires_at' as const
 
+const AUTH_REFRESH_PATH = '/api/v1/auth/refresh' satisfies ContractPath
+const AUTH_LOGOUT_PATH = '/api/v1/auth/logout' satisfies ContractPath
+
 /** 刷新Token的API端点 */
-const REFRESH_ENDPOINT = getApiPath('/auth/refresh')
+type RefreshTokenResponse = ContractResponseData<typeof AUTH_REFRESH_PATH, 'post'>
 
 // ==================== 类型定义 ====================
 
@@ -27,9 +34,17 @@ const REFRESH_ENDPOINT = getApiPath('/auth/refresh')
  */
 interface QueuedRequest {
   /** 解析函数 */
-  resolve: (value: any) => void
+  resolve: () => void
   /** 拒绝函数 */
   reject: (error: unknown) => void
+}
+
+interface TokenRequestClient {
+  Post<TResponse = unknown>(
+    url: string,
+    data?: RequestBody,
+    config?: ContractRequestConfig
+  ): PromiseLike<TResponse>
 }
 
 // ==================== 状态管理 ====================
@@ -117,7 +132,7 @@ function processQueue(error?: unknown): void {
     if (error) {
       reject(error)
     } else {
-      resolve(undefined)
+      resolve()
     }
   })
   failedQueue = []
@@ -132,11 +147,11 @@ function processQueue(error?: unknown): void {
  * @throws 刷新失败时抛出错误
  */
  
-export async function refreshAccessToken(apiClient: any): Promise<string> {
+export async function refreshAccessToken(apiClient: TokenRequestClient): Promise<string> {
   // 防止并发刷新
   if (isRefreshing) {
     // 如果正在刷新，将请求加入队列等待
-    await new Promise<any>((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       failedQueue.push({ resolve, reject })
     })
     // 刷新完成后，返回新Token
@@ -152,31 +167,28 @@ export async function refreshAccessToken(apiClient: any): Promise<string> {
   try {
     // 调用刷新Token接口
     // 注意：Refresh Token存储在HttpOnly Cookie中，无需手动传递
-    const response = await apiClient.Post(REFRESH_ENDPOINT, {}, {
+    const response = await apiClient.Post(AUTH_REFRESH_PATH, {}, {
       meta: {
         isRefreshRequest: true
       }
-    })
+    }) as RefreshTokenResponse
 
-    // 解析响应（alova会自动提取data字段）
-    const data = response
-
-    if (!data || !data.access_token) {
+    if (!response?.access_token) {
       throw new Error('刷新Token响应格式错误')
     }
 
     // 更新Token
-    setAccessToken(data.access_token)
+    setAccessToken(response.access_token)
 
     // 更新Token过期时间
-    const expiresInSeconds = data.expires_in || 3600 // 默认1小时
+    const expiresInSeconds = response.expires_in || 3600 // 默认1小时
     const expiresAt = Date.now() + expiresInSeconds * 1000
     setTokenExpiresAt(expiresAt)
 
     // 处理队列中的请求（全部成功）
     processQueue()
 
-    return data.access_token
+    return response.access_token
   } catch (error) {
     // 刷新失败，清除Token并跳转登录
     clearTokens()
@@ -199,7 +211,7 @@ export async function refreshAccessToken(apiClient: any): Promise<string> {
  * @returns 是否刷新成功
  */
  
-export async function checkAndRefreshToken(apiClient: any): Promise<boolean> {
+export async function checkAndRefreshToken(apiClient: TokenRequestClient): Promise<boolean> {
   const token = getAccessToken()
 
   // 没有Token，不刷新
@@ -253,11 +265,11 @@ export async function redirectToLogin(redirectUrl?: string): Promise<void> {
  * @param apiClient Alova实例（可选）
  */
  
-export async function logout(apiClient?: any): Promise<void> {
+export async function logout(apiClient?: TokenRequestClient): Promise<void> {
   // 第一步：调用后端登出接口（此时还有 token，可以正常鉴权）
   if (apiClient) {
     try {
-      await apiClient.Post(getApiPath('/auth/logout'))
+      await apiClient.Post(AUTH_LOGOUT_PATH)
     } catch (error) {
       console.error('调用后端登出接口失败:', error)
       // 即使后端接口失败，也继续执行前端清理

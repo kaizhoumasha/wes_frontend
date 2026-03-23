@@ -102,7 +102,7 @@ export interface CrudApiActions<T, CreateInput, UpdateInput> {
   /** 更新 */
   update: (id: number, data: UpdateInput) => Promise<T | null>
   /** 删除 */
-  delete: (id: number, permanent?: boolean) => Promise<boolean>
+  delete: (id: number) => Promise<boolean>
   /** 刷新列表 */
   refresh: () => Promise<void>
   /** 重置状态 */
@@ -331,7 +331,7 @@ export function useCrudApi<
   /**
    * 删除
    */
-  async function deleteItem(id: number, permanent = false): Promise<boolean> {
+  async function deleteItem(id: number): Promise<boolean> {
     loading.value = true
     error.value = null
 
@@ -340,7 +340,7 @@ export function useCrudApi<
     const previousTotal = pagination.total
 
     try {
-      await api.delete(id, permanent)
+      await api.delete(id)
 
       // 乐观更新：从本地列表中移除
       if (optimisticUpdate && data.value) {

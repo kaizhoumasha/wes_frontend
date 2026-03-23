@@ -1,5 +1,5 @@
 /**
- * 用户列表资源 schema
+ * 用户列表字段配置
  *
  * 使用统一字段配置管理表格、表单与搜索，字段能力基线与后端契约对齐。
  */
@@ -8,7 +8,7 @@ import type { CreateUserInput, UpdateUserInput, User } from '@/api/modules/user'
 import { UserCreateSchema, UserUpdateSchema } from '@/types/zod-extensions'
 import {
   defineResourceFields,
-  defineCrudResourceSchema
+  defineCrudFieldConfig
 } from '@/components/common/crud-page/resourceFieldBuilder'
 import {
   createArrayTagFormatter,
@@ -29,7 +29,7 @@ const BOOLEAN_SEARCH_OPTIONS = [
  * - table / form / search 分别表达独立能力
  * - 省略项由 helper 自动补默认值
  */
-export const USER_FIELD_CONFIG = defineResourceFields<User, CreateUserInput, UpdateUserInput>([
+export const USER_FIELDS = defineResourceFields<User, CreateUserInput, UpdateUserInput>([
   {
     key: 'username',
     label: '用户名',
@@ -149,21 +149,27 @@ export const USER_FIELD_CONFIG = defineResourceFields<User, CreateUserInput, Upd
   }
 ])
 
-export const userResourceSchema = defineCrudResourceSchema<
-  (typeof USER_FIELD_CONFIG)[number],
+export const USER_TABLE_STORAGE_KEY = 'wes-user-table-columns'
+
+export const userSearchConfig = {
+  placeholder: '搜索用户名、邮箱...',
+  quickPresets: USER_SEARCH_QUICK_PRESETS,
+  favorites: USER_SEARCH_FAVORITES
+}
+
+export const userFormConfig = {
+  createSchema: UserCreateSchema,
+  updateSchema: UserUpdateSchema
+}
+
+export const userPageFieldConfig = defineCrudFieldConfig<
+  (typeof USER_FIELDS)[number],
   CreateUserInput,
   UpdateUserInput
 >({
-  fields: USER_FIELD_CONFIG,
-  storageKey: 'wes-user-table-columns',
+  fields: USER_FIELDS,
+  storageKey: USER_TABLE_STORAGE_KEY,
   reorderLockedKeys: ['username'],
-  search: {
-    placeholder: '搜索用户名、邮箱...',
-    quickPresets: USER_SEARCH_QUICK_PRESETS,
-    favorites: USER_SEARCH_FAVORITES
-  },
-  form: {
-    createSchema: UserCreateSchema,
-    updateSchema: UserUpdateSchema
-  }
+  search: userSearchConfig,
+  form: userFormConfig
 })
