@@ -1,4 +1,4 @@
-import type { Ref } from 'vue'
+import type { Ref, InjectionKey } from 'vue'
 import type { ZodType } from 'zod'
 import type { CrudApi, SortField } from '@/api/base/crud-api'
 import type {
@@ -101,6 +101,12 @@ export interface CrudPageRowAction<TItem extends CrudPageEntity> {
   link?: boolean
   size?: 'small' | 'default' | 'large'
   permission?: string
+  /**
+   * 操作优先级
+   * - 'primary': 主要操作，直接显示（默认）
+   * - 'secondary': 次要操作，收起到下拉菜单
+   */
+  priority?: 'primary' | 'secondary'
   show?: CrudPageRowActionValue<TItem, boolean>
   disabled?: CrudPageRowActionValue<TItem, boolean>
   loading?: CrudPageRowActionValue<TItem, boolean>
@@ -196,3 +202,9 @@ export interface CrudPageConfig<
     rowActions?: CrudPageRowAction<TItem>[]
   }
 }
+
+/**
+ * 用于在 CRUD 页面组件间共享刷新函数的 InjectionKey
+ * 子组件可通过 inject(CRUD_PAGE_REFRESH_KEY) 获取刷新列表的能力
+ */
+export const CRUD_PAGE_REFRESH_KEY: InjectionKey<() => Promise<void>> = Symbol('crud-page-refresh')

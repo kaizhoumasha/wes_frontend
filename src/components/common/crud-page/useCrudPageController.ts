@@ -1,4 +1,4 @@
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, provide, ref } from 'vue'
 import { ElMessageBox } from 'element-plus'
 import { buildActionsColumn } from '@/components/common/table/formatters'
 import type { ColumnBreakpoint } from '@/composables/useTableColumns'
@@ -12,7 +12,7 @@ import {
   toActionButtonConfig
 } from './helpers/actions'
 import { resolveCrudPageFeatures } from './helpers/features'
-import type { CrudPageConfig, CrudPageEntity, CrudPageViewMode } from './types'
+import { CRUD_PAGE_REFRESH_KEY, type CrudPageConfig, type CrudPageEntity, type CrudPageViewMode } from './types'
 import type { TableSortOrder } from '@/components/ui/table/table.types'
 import type { SortField } from '@/api/base/crud-api'
 
@@ -372,6 +372,9 @@ export function useCrudPageController<
   onMounted(() => {
     void state.search.handleSearch(1)
   })
+
+  // 提供刷新函数供子组件（如对话框）使用
+  provide(CRUD_PAGE_REFRESH_KEY, () => state.search.handleSearch(state.state.pagination.page))
 
   return {
     config,

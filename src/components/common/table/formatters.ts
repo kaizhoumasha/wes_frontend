@@ -52,7 +52,7 @@
  */
 
 import { h } from 'vue'
-import { ElTag, ElPopconfirm } from 'element-plus'
+import { ElTag, ElPopconfirm, ElDropdown, ElDropdownMenu, ElDropdownItem, ElMessageBox } from 'element-plus'
 import AppButton from '@/components/ui/AppButton.vue'
 import { parseApiTime } from '@/utils/timezone'
 import { useTimezoneStore } from '@/stores/timezone'
@@ -386,6 +386,12 @@ export interface ActionButtonConfig {
   link?: boolean
   /** 按钮尺寸 */
   size?: 'small' | 'default' | 'large'
+  /**
+   * 操作优先级
+   * - 'primary': 主要操作，直接显示（默认）
+   * - 'secondary': 次要操作，收起到下拉菜单
+   */
+  priority?: 'primary' | 'secondary'
   /** 显示条件 */
   show?: ActionValue<boolean>
   /** 禁用条件 */
@@ -411,6 +417,8 @@ export interface ActionsFormatterOptions {
   gap?: number
   /** 是否显示为块级 */
   block?: boolean
+  /** 主操作最大数量，超过后显示"更多"下拉 */
+  maxPrimaryActions?: number
 }
 
 /**
@@ -443,7 +451,106 @@ function resolveActionBoolean(
 }
 
 /**
- * 创建操作按钮组格式化器
+ * 渲染单个操作按钮
+ */
+function renderActionButton(
+  button: ActionButtonConfig,
+  row: Record<string, unknown>,
+  index: number,
+  options: { isDropdownItem?: boolean } = {}
+): ReturnType<typeof h> {
+  const label = resolveActionValue(button.label, row, index) ?? ''
+  const disabled = resolveActionBoolean(button.disabled, row, index, false)
+  const loading = resolveActionBoolean(button.loading, row, index, false)
+  const type = resolveActionValue(button.type, row, index) ?? 'primary'
+  const tooltip = resolveActionValue(button.tooltip, row, index)
+  const isLink = button.link ?? true
+  const { isDropdownItem = false } = options
+
+  // 下拉菜单项渲染
+  if (isDropdownItem) {
+    // 下拉菜单项需要确认时，使用 ElMessageBox.confirm
+    const handleClick = () => {
+      if (button.popconfirm) {
+        const confirmType = button.popconfirm.confirmButtonType ?? 'warning'
+        // 映射 type：danger -> error, primary -> warning
+        const messageType: '' | 'success' | 'warning' | 'info' | 'error' =
+          confirmType === 'danger' ? 'error' :
+          confirmType === 'primary' ? 'warning' :
+          confirmType === 'success' ? 'success' :
+          confirmType === 'info' ? 'info' :
+          'warning'
+
+        ElMessageBox.confirm(
+          resolveActionValue(button.popconfirm.title, row, index) ?? '确认执行此操作？',
+          '提示',
+          {
+            confirmButtonText: button.popconfirm.confirmButtonText ?? '确认',
+            cancelButtonText: button.popconfirm.cancelButtonText ?? '取消',
+            type: messageType,
+            closeOnClickModal: false
+          }
+        )
+          .then(() => {
+            button.onClick(row, index)
+          })
+          .catch(() => {
+            // 用户取消，不做任何处理
+          })
+      } else {
+        button.onClick(row, index)
+      }
+    }
+
+    return h(
+      ElDropdownItem,
+      {
+        disabled,
+        onClick: handleClick
+      },
+      { default: () => String(label) }
+    )
+  }
+
+  // 直接显示的按钮
+  const buttonNode = h(
+    AppButton,
+    {
+      type,
+      size: button.size ?? 'small',
+      icon: button.icon,
+      tooltip,
+      link: isLink,
+      disabled,
+      loading,
+      preserveIconSpace: true,
+      onClick: button.popconfirm ? undefined : () => button.onClick(row, index)
+    },
+    { default: () => String(label) }
+  )
+
+  if (!button.popconfirm) {
+    return buttonNode
+  }
+
+  return h(
+    ElPopconfirm,
+    {
+      title: resolveActionValue(button.popconfirm.title, row, index),
+      confirmButtonText: button.popconfirm.confirmButtonText,
+      cancelButtonText: button.popconfirm.cancelButtonText,
+      confirmButtonType: button.popconfirm.confirmButtonType,
+      width: button.popconfirm.width,
+      onConfirm: () => button.onClick(row, index)
+    },
+    {
+      reference: () => buttonNode
+    }
+  )
+}
+
+/**
+ * 创建操作按钮组格式化器（支持主次分离）
  *
  * @example
  * ```ts
@@ -451,11 +558,13 @@ function resolveActionBoolean(
  *   {
  *     label: '编辑',
  *     type: 'primary',
+ *     priority: 'primary',
  *     onClick: (row) => handleEdit(row)
  *   },
  *   {
  *     label: '删除',
  *     type: 'danger',
+ *     priority: 'secondary',
  *     popconfirm: { title: '确认删除？' },
  *     onClick: (row) => handleDelete(row)
  *   }
@@ -469,10 +578,12 @@ export function createActionsFormatter(
   const { hasPermission } = usePermission()
   const {
     gap = 8,
-    block = false
+    block = false,
+    maxPrimaryActions = 2
   } = options
 
   return ({ row, $index }) => {
+    // 过滤可见按钮
     const visibleButtons = buttons.filter(button =>
       (!button.permission || hasPermission(button.permission)) &&
       resolveActionBoolean(button.show, row, $index, true)
@@ -482,59 +593,83 @@ export function createActionsFormatter(
       return h('span', { class: 'text-muted' }, '-')
     }
 
-    const buttonNodes = visibleButtons.map((button, buttonIndex) => {
-      const label = resolveActionValue(button.label, row, $index) ?? ''
-      const disabled = resolveActionBoolean(button.disabled, row, $index, false)
-      const loading = resolveActionBoolean(button.loading, row, $index, false)
-      const type = resolveActionValue(button.type, row, $index) ?? 'primary'
-      const tooltip = resolveActionValue(button.tooltip, row, $index)
-      const isLink = button.link ?? true
+    // 按优先级分组
+    const primaryButtons = visibleButtons.filter(b => b.priority !== 'secondary')
+    const secondaryButtons = visibleButtons.filter(b => b.priority === 'secondary')
 
-      const buttonNode = h(
-        AppButton,
-        {
-          key: `${label}-${buttonIndex}`,
-          type,
-          size: button.size ?? 'small',
-          icon: button.icon,
-          tooltip,
-          link: isLink,
-          disabled,
-          loading,
-          preserveIconSpace: true,
-          onClick: button.popconfirm ? undefined : () => button.onClick(row, $index)
-        },
-        { default: () => String(label) }
+    // 决定显示策略
+    const needDropdown = visibleButtons.length > maxPrimaryActions + 1 ||
+      secondaryButtons.length > 0
+
+    // 情况1: 不需要下拉菜单，全部平铺
+    if (!needDropdown) {
+      const buttonNodes = visibleButtons.map(button =>
+        renderActionButton(button, row, $index)
       )
-
-      if (!button.popconfirm) {
-        return buttonNode
-      }
 
       return h(
-        ElPopconfirm,
+        'div',
         {
-          key: `confirm-${label}-${buttonIndex}`,
-          title: resolveActionValue(button.popconfirm.title, row, $index),
-          confirmButtonText: button.popconfirm.confirmButtonText,
-          cancelButtonText: button.popconfirm.cancelButtonText,
-          confirmButtonType: button.popconfirm.confirmButtonType,
-          width: button.popconfirm.width,
-          onConfirm: () => button.onClick(row, $index)
+          class: block ? 'flex flex-col gap-1' : 'flex gap-2',
+          style: !block ? { gap: `${gap}px` } : undefined
         },
-        {
-          reference: () => buttonNode
-        }
+        buttonNodes
       )
-    })
+    }
+
+    // 情况2: 需要主次分离
+    const displayPrimaryButtons = primaryButtons.slice(0, maxPrimaryActions)
+    const dropdownButtons = [
+      ...primaryButtons.slice(maxPrimaryActions),
+      ...secondaryButtons
+    ]
+
+    // 渲染主操作按钮
+    const primaryNodes = displayPrimaryButtons.map(button =>
+      renderActionButton(button, row, $index)
+    )
+
+    // 渲染"更多"下拉菜单
+    const dropdownNode = dropdownButtons.length > 0
+      ? h(
+          ElDropdown,
+          {
+            trigger: 'click',
+            placement: 'bottom-end'
+          },
+          {
+            default: () => h(
+              AppButton,
+              {
+                type: 'default',
+                size: 'small',
+                link: true,
+                tooltip: '更多操作'
+              },
+              { default: () => '更多' }
+            ),
+            dropdown: () => h(
+              ElDropdownMenu,
+              {},
+              {
+                default: () => dropdownButtons.map(button =>
+                  renderActionButton(button, row, $index, { isDropdownItem: true })
+                )
+              }
+            )
+          }
+        )
+      : null
+
+    const allNodes = [...primaryNodes, dropdownNode].filter(Boolean)
 
     return h(
       'div',
       {
-        class: block ? 'flex flex-col gap-1' : 'flex gap-2',
-        style: !block ? { gap: `${gap}px` } : undefined
+        class: 'flex items-center gap-2',
+        style: { gap: `${gap}px` }
       },
-      buttonNodes
+      allNodes
     )
   }
 }

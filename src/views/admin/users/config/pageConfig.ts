@@ -58,14 +58,17 @@ const USER_PAGE_FEATURES: CrudPageFeatures = {
   }
 }
 
-export function createUserPageConfig(): UserPageConfig {
+export function createUserPageConfig(
+  openAssignRolesDialog: (user: User) => void,
+  openResetPasswordDialog: (user: User) => void
+): UserPageConfig {
   return createCrudPageConfigFromResource<User, CreateUserInput, UpdateUserInput>({
     resource: USER_PAGE_RESOURCE,
     fieldConfig: userPageFieldConfig,
     table: USER_PAGE_TABLE,
     features: USER_PAGE_FEATURES,
     extensions: {
-      rowActions: createUserRowActions()
+      rowActions: createUserRowActions(openAssignRolesDialog, openResetPasswordDialog)
     },
   })
 }

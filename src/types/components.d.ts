@@ -86,4 +86,7 @@ declare module 'vue' {
     ThemeToggle: typeof import('./../components/common/ThemeToggle.vue')['default']
     TimezoneSettings: typeof import('./../components/common/TimezoneSettings.vue')['default']
   }
+  export interface GlobalDirectives {
+    vLoading: typeof import('element-plus/es')['ElLoadingDirective']
+  }
 }

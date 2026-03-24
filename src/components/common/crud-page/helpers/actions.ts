@@ -244,6 +244,7 @@ export function buildDefaultRowActions<
         type: 'success',
         tooltip: restoreTooltip,
         icon: restoreIcon,
+        priority: 'primary',
         permission: restorePermission,
         show: createPermissionVisibility(state.permissions.restore),
         onClick: onRestore
@@ -257,6 +258,7 @@ export function buildDefaultRowActions<
         type: 'danger',
         tooltip: permanentDeleteTooltip,
         icon: permanentDeleteIcon,
+        priority: 'secondary',
         permission: permanentDeletePermission,
         show: createPermissionVisibility(state.permissions.delete),
         onClick: onPermanentDelete,
@@ -274,6 +276,7 @@ export function buildDefaultRowActions<
       type: 'primary',
       tooltip: editTooltip,
       icon: features.edit.icon,
+      priority: 'primary',
       show: createPermissionVisibility(state.permissions.update),
       onClick: row => state.dialogs.openEdit(row.id)
     })
@@ -288,6 +291,7 @@ export function buildDefaultRowActions<
       type: 'danger',
       tooltip: deleteTooltip,
       icon: deleteIcon,
+      priority: 'secondary',
       permission: deletePermission,
       show: createPermissionVisibility(state.permissions.delete),
       onClick: onDelete,
@@ -308,6 +312,7 @@ export function toActionButtonConfig<TItem extends CrudPageEntity>(
     tooltip: createRowValueResolver(action.tooltip),
     link: action.link,
     size: action.size,
+    priority: action.priority,
     permission: action.permission,
     show: createRowValueResolver(action.show),
     disabled: createRowValueResolver(action.disabled),

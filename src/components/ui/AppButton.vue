@@ -25,6 +25,10 @@ interface Props {
   iconSize?: number | string
   tooltip?: string
   tooltipPlacement?: TooltipPlacement
+  /** tooltip 显示延迟（毫秒），防止快速划过时重影 */
+  tooltipShowAfter?: number
+  /** tooltip 隐藏延迟（毫秒） */
+  tooltipHideAfter?: number
   preserveIconSpace?: boolean
   type?: AppButtonType
   size?: AppButtonSize
@@ -42,6 +46,8 @@ const props = withDefaults(defineProps<Props>(), {
   iconSize: 16,
   tooltip: undefined,
   tooltipPlacement: 'bottom',
+  tooltipShowAfter: 200,
+  tooltipHideAfter: 100,
   preserveIconSpace: false,
   type: 'default',
   size: 'default',
@@ -89,6 +95,8 @@ const ariaLabel = computed(() => {
       :disabled="!tooltip"
       :content="tooltip"
       :placement="tooltipPlacement"
+      :show-after="tooltipShowAfter"
+      :hide-after="tooltipHideAfter"
     >
       <el-button
         v-bind="attrs"

@@ -255,6 +255,9 @@ function handleSaveSearchFavorite(payload: { name: string; filterGroup: FilterGr
       :default-columns="pageConfig.table.columns.defaultColumns"
       @update:config="columnsManager.updateConfig"
     />
+
+    <!-- 额外对话框插槽：用于放置自定义对话框，可访问 provide 的 refresh 函数 -->
+    <slot name="extra-dialogs" />
   </div>
 </template>
 

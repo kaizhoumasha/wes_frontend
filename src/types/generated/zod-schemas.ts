@@ -171,6 +171,18 @@ export const AppTypeSchema = z.enum(["ECS", "RCS", "WMS", "Third-Party"])
 
 
 /**
+ * 为用户分配角色请求
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const AssignRolesRequestSchema = z.object({
+  /** Role Ids */
+  role_ids: z.array(z.number()),
+})
+
+
+/**
  * AuditLog 响应 Schema
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -1556,6 +1568,22 @@ export const RoleResponseSchema = z.object({
 
 
 /**
+ * 角色响应 Schema（简化版，不含权限）
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const RoleResponseSimpleSchema = z.object({
+  /** Name */
+  name: z.string().max(100),
+  /** Description */
+  description: z.union([z.string().max(255), z.null()]).optional(),
+  /** Id */
+  id: z.number(),
+})
+
+
+/**
  * 角色更新 Schema
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -1704,7 +1732,7 @@ export const UserResponseSchema = z.object({
   /** Deleted At */
   deleted_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Roles */
-  roles: z.array(z.lazy(() => RoleResponseSchema)).optional(),
+  roles: z.array(z.lazy(() => RoleResponseSimpleSchema)).optional(),
 })
 
 
