@@ -1064,7 +1064,7 @@ export const LoginRequestSchema = z.object({
 /**
  * 登录响应 Schema
 
-包含访问令牌、刷新令牌和用户信息
+包含访问令牌、刷新令牌元数据和用户信息
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
@@ -1072,8 +1072,6 @@ export const LoginRequestSchema = z.object({
 export const LoginResponseSchema = z.object({
   /** Access Token */
   access_token: z.string(),
-  /** Refresh Token */
-  refresh_token: z.string(),
   /** Access Token Jti */
   access_token_jti: z.string(),
   /** Refresh Token Jti */
@@ -1466,7 +1464,7 @@ export const QueryOptionsSchema = z.object({
 /**
  * 刷新令牌响应 Schema
 
-包含新的访问令牌和刷新令牌
+包含新的访问令牌和刷新令牌元数据
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
@@ -1474,8 +1472,6 @@ export const QueryOptionsSchema = z.object({
 export const RefreshTokenResponseSchema = z.object({
   /** Access Token */
   access_token: z.string(),
-  /** Refresh Token */
-  refresh_token: z.string(),
   /** Access Token Jti */
   access_token_jti: z.string(),
   /** Refresh Token Jti */

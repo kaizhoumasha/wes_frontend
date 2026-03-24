@@ -348,7 +348,7 @@ export interface paths {
          * 用户登录
          * @description 用户登录
          *
-         *     返回访问令牌和刷新令牌。刷新令牌存储在 HttpOnly Cookie 中。
+         *     返回访问令牌和刷新令牌元数据。刷新令牌仅存储在 HttpOnly Cookie 中。
          *
          *     - **username**: 用户名（3-50字符）
          *     - **password**: 密码（6-100字符）
@@ -477,7 +477,7 @@ export interface paths {
          * 刷新访问令牌
          * @description 刷新访问令牌
          *
-         *     使用刷新令牌（从 Cookie 中获取）获取新的访问令牌和刷新令牌。
+         *     使用刷新令牌（从 Cookie 中获取）获取新的访问令牌和刷新令牌元数据。
          *     新的刷新令牌会自动更新到 HttpOnly Cookie 中。
          *
          *     **安全特性**：
@@ -3695,7 +3695,7 @@ export interface components {
          * LoginResponse
          * @description 登录响应 Schema
          *
-         *     包含访问令牌、刷新令牌和用户信息
+         *     包含访问令牌、刷新令牌元数据和用户信息
          */
         LoginResponse: {
             /**
@@ -3725,14 +3725,9 @@ export interface components {
              */
             readonly refresh_expires_in: number;
             /**
-             * Refresh Token
-             * @description 刷新令牌
-             */
-            refresh_token: string;
-            /**
              * Refresh Token Expire Time
              * Format: date-time
-             * @description 刷新令牌过期时间
+             * @description 刷新令牌过期时间（令牌仅存储于 HttpOnly Cookie）
              */
             refresh_token_expire_time: string;
             /**
@@ -4369,7 +4364,7 @@ export interface components {
          * RefreshTokenResponse
          * @description 刷新令牌响应 Schema
          *
-         *     包含新的访问令牌和刷新令牌
+         *     包含新的访问令牌和刷新令牌元数据
          */
         RefreshTokenResponse: {
             /**
@@ -4399,14 +4394,9 @@ export interface components {
              */
             readonly refresh_expires_in: number;
             /**
-             * Refresh Token
-             * @description 新的刷新令牌
-             */
-            refresh_token: string;
-            /**
              * Refresh Token Expire Time
              * Format: date-time
-             * @description 刷新令牌过期时间
+             * @description 刷新令牌过期时间（令牌仅存储于 HttpOnly Cookie）
              */
             refresh_token_expire_time: string;
             /**
