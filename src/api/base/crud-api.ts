@@ -397,13 +397,19 @@ function assertContractListResponse<TItem>(result: unknown): asserts result is C
 }
 
 function normalizeBatchIds(ids: number[]): number[] {
-  return Array.from(
+  const normalized = Array.from(
     new Set(
       ids
         .map(id => Number(id))
         .filter(id => Number.isInteger(id) && id > 0)
     )
   )
+
+  if (normalized.length === 0) {
+    console.warn('[normalizeBatchIds] 无有效 ID，操作将被跳过')
+  }
+
+  return normalized
 }
 
 /**

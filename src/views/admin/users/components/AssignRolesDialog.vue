@@ -229,6 +229,7 @@ watch(visible, async isOpen => {
     :confirm-loading="submitting"
     :confirm-disabled="loading"
     confirm-text="保存"
+    confirm-icon="lucide:save"
     @confirm="handleSubmit"
   >
     <div

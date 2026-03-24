@@ -296,6 +296,72 @@
   .version-info {
     color: var(--version-info-color) !important;
   }
+
+  /* ==================== 表格操作列样式 ==================== */
+
+  /* "更多"下拉触发器 */
+  .action-more-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 8px;
+    font-size: 13px;
+    color: var(--el-text-color-regular);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+  }
+
+  .action-more-trigger:hover {
+    color: var(--el-color-primary);
+    background: var(--el-fill-color-light);
+  }
+
+  .action-more-trigger__arrow {
+    font-size: 12px;
+    transition: transform 0.2s ease;
+  }
+
+  /* 下拉菜单展开时箭头旋转 */
+  .el-dropdown--active .action-more-trigger__arrow {
+    transform: rotate(180deg);
+  }
+
+  /* 操作下拉菜单样式 */
+  .action-dropdown-menu {
+    min-width: 140px;
+    padding: 4px 0;
+  }
+
+  /* 下拉菜单项样式 */
+  .action-dropdown-menu .el-dropdown-menu__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  /* 下拉菜单项图标 */
+  .action-dropdown-item__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    font-size: 14px;
+  }
+
+  /* 危险操作样式 */
+  .action-dropdown-item--danger {
+    color: var(--el-color-danger) !important;
+  }
+
+  .action-dropdown-item--danger:hover {
+    color: var(--el-color-danger) !important;
+    background: var(--el-color-danger-light-9) !important;
+  }
 }
 
 /* ==================== 动画降级 - 可访问性增强 ==================== */

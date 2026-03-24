@@ -22,6 +22,7 @@ export function createUserRowActions(
       key: 'assign-roles',
       label: '分配角色',
       type: 'primary',
+      icon: 'lucide:user-plus',
       priority: 'primary',
       disabled: () => !canAssignRoles.value,
       onClick: user => openAssignRolesDialog(user)
@@ -30,6 +31,7 @@ export function createUserRowActions(
       key: 'reset-password',
       label: '重置密码',
       type: 'warning',
+      icon: 'lucide:key-round',
       priority: 'secondary',
       disabled: () => !canResetPassword.value,
       onClick: user => openResetPasswordDialog(user)

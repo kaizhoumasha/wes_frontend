@@ -65,6 +65,9 @@ export interface StandardDialogProps {
   /** 确认按钮文本 */
   confirmText?: string
 
+  /** 确认按钮图标 */
+  confirmIcon?: string
+
   /** 取消按钮文本 */
   cancelText?: string
 

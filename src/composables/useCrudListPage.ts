@@ -1,4 +1,5 @@
 import { computed, reactive, ref, shallowRef, type ComputedRef, type Ref, type ShallowRef } from 'vue'
+import { ElMessage } from 'element-plus'
 import { useCrudApi } from './useCrudApi'
 import { useSmartSearch } from './useSmartSearch'
 import { usePermission } from './usePermission'
@@ -443,9 +444,16 @@ export function useCrudListPage<
     batchDeleteLoading.value = true
 
     try {
-      await api.batchDelete(selectedItems.value.map((item: T) => item.id))
+      const result = await api.batchDelete(selectedItems.value.map((item: T) => item.id))
       clearSelectionState()
       await handleRefresh()
+
+      // 显示操作结果反馈
+      if (result.failed > 0) {
+        ElMessage.warning(`成功删除 ${result.success} 个，失败 ${result.failed} 个`)
+      } else if (result.success > 0) {
+        ElMessage.success(`成功删除 ${result.success} 个`)
+      }
     } finally {
       batchDeleteLoading.value = false
     }

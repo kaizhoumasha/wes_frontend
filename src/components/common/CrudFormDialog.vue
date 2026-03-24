@@ -71,6 +71,7 @@ async function handleSubmit(data) {
     :width="width"
     :confirm-loading="submitting"
     :confirm-text="isEditMode ? '保存' : '创建'"
+    :confirm-icon="isEditMode ? 'lucide:save' : 'lucide:plus'"
     @confirm="onSubmitClick"
   >
     <!-- 使用 v-if 确保只在弹窗打开时才渲染表单，避免动态 schema 切换时的验证错误 -->

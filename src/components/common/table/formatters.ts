@@ -54,6 +54,7 @@
 import { h } from 'vue'
 import { ElTag, ElPopconfirm, ElDropdown, ElDropdownMenu, ElDropdownItem, ElMessageBox } from 'element-plus'
 import AppButton from '@/components/ui/AppButton.vue'
+import AppIcon from '@/components/ui/AppIcon.vue'
 import { parseApiTime } from '@/utils/timezone'
 import { useTimezoneStore } from '@/stores/timezone'
 import { usePermission } from '@/composables/usePermission'
@@ -464,7 +465,8 @@ function renderActionButton(
   const loading = resolveActionBoolean(button.loading, row, index, false)
   const type = resolveActionValue(button.type, row, index) ?? 'primary'
   const tooltip = resolveActionValue(button.tooltip, row, index)
-  const isLink = button.link ?? true
+  const isSecondary = button.priority === 'secondary'
+  const isLink = isSecondary // 次要操作使用 link 样式
   const { isDropdownItem = false } = options
 
   // 下拉菜单项渲染
@@ -502,17 +504,32 @@ function renderActionButton(
       }
     }
 
+    // 下拉菜单项：危险操作用红色文字
+    const itemClass = type === 'danger' ? 'action-dropdown-item--danger' : ''
+
     return h(
       ElDropdownItem,
       {
         disabled,
-        onClick: handleClick
+        onClick: handleClick,
+        class: itemClass
       },
-      { default: () => String(label) }
+      {
+        default: () => [
+          button.icon ? h(
+            'span',
+            { class: 'action-dropdown-item__icon' },
+            [h(AppIcon, { icon: button.icon, size: 14 })]
+          ) : null,
+          String(label)
+        ]
+      }
     )
   }
 
   // 直接显示的按钮
+  // 主要操作：填充按钮样式（link: false）
+  // 次要操作：文字按钮样式（link: true）
   const buttonNode = h(
     AppButton,
     {
@@ -630,6 +647,7 @@ export function createActionsFormatter(
     )
 
     // 渲染"更多"下拉菜单
+    // 使用 icon 按钮 + 下拉箭头
     const dropdownNode = dropdownButtons.length > 0
       ? h(
           ElDropdown,
@@ -639,18 +657,16 @@ export function createActionsFormatter(
           },
           {
             default: () => h(
-              AppButton,
-              {
-                type: 'default',
-                size: 'small',
-                link: true,
-                tooltip: '更多操作'
-              },
-              { default: () => '更多' }
+              'span',
+              { class: 'action-more-trigger' },
+              [
+                h('span', { class: 'action-more-trigger__text' }, '更多'),
+                h('i', { class: 'i-ep-arrow-down action-more-trigger__arrow' })
+              ]
             ),
             dropdown: () => h(
               ElDropdownMenu,
-              {},
+              { class: 'action-dropdown-menu' },
               {
                 default: () => dropdownButtons.map(button =>
                   renderActionButton(button, row, $index, { isDropdownItem: true })

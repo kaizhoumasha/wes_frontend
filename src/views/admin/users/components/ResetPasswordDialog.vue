@@ -14,6 +14,7 @@ import { userApi } from '@/api/modules/user'
 import type { ResetUserPasswordInput } from '@/api/modules/user'
 import StandardDialog from '@/components/ui/StandardDialog/StandardDialog.vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
+import { getSafeErrorMessage } from '@/utils/string'
 
 // ==================== Props & Emits ====================
 
@@ -80,12 +81,14 @@ function togglePasswordVisibility() {
   showPassword.value = !showPassword.value
 }
 
-/** 生成随机密码 */
+/** 生成随机密码 - 使用加密安全的随机数 */
 function generateRandomPassword() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%'
+  const array = new Uint32Array(12)
+  crypto.getRandomValues(array)
   let result = ''
   for (let i = 0; i < 12; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length))
+    result += chars.charAt(array[i] % chars.length)
   }
   password.value = result
   showPassword.value = true
@@ -118,8 +121,7 @@ async function handleSubmit() {
     visible.value = false
     emit('success')
   } catch (e: unknown) {
-    const errorMessage = e instanceof Error ? e.message : '未知错误'
-    ElMessage.error(`重置密码失败：${errorMessage}`)
+    ElMessage.error(`重置密码失败：${getSafeErrorMessage(e)}`)
   } finally {
     submitting.value = false
   }
@@ -143,6 +145,7 @@ watch(visible, isOpen => {
     :confirm-disabled="!canSubmit"
     confirm-text="确认重置"
     confirm-type="warning"
+    confirm-icon="lucide:key-round"
     @confirm="handleSubmit"
   >
     <div class="reset-password-dialog">

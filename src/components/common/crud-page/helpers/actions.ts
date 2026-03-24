@@ -222,17 +222,18 @@ export function buildDefaultRowActions<
   const actions: CrudPageRowAction<TItem>[] = []
   const editLabel = features.edit.label ?? '编辑'
   const editTooltip = features.edit.tooltip ?? editLabel
+  const editIcon = features.edit.icon ?? 'lucide:pen-line'
   const deleteLabel = features.delete.label ?? '删除'
   const deleteTooltip = features.delete.tooltip ?? deleteLabel
-  const deleteIcon = features.delete.icon
+  const deleteIcon = features.delete.icon ?? 'lucide:trash-2'
   const deletePermission = features.delete.permission ?? config.resource.permissions?.delete
   const restoreLabel = features.restore.label ?? '恢复'
   const restoreTooltip = features.restore.tooltip ?? restoreLabel
-  const restoreIcon = features.restore.icon ?? 'ep:refresh-left'
+  const restoreIcon = features.restore.icon ?? 'lucide:undo-2'
   const restorePermission = features.restore.permission ?? config.resource.permissions?.restore
   const permanentDeleteLabel = features.permanentDelete.label ?? '彻底删除'
   const permanentDeleteTooltip = features.permanentDelete.tooltip ?? permanentDeleteLabel
-  const permanentDeleteIcon = features.permanentDelete.icon ?? 'ep:delete-filled'
+  const permanentDeleteIcon = features.permanentDelete.icon ?? 'lucide:file-x'
   const permanentDeletePermission =
     features.permanentDelete.permission ?? config.resource.permissions?.delete
 
@@ -275,7 +276,7 @@ export function buildDefaultRowActions<
       label: editLabel,
       type: 'primary',
       tooltip: editTooltip,
-      icon: features.edit.icon,
+      icon: editIcon,
       priority: 'primary',
       show: createPermissionVisibility(state.permissions.update),
       onClick: row => state.dialogs.openEdit(row.id)

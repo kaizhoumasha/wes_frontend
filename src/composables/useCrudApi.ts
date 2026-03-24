@@ -168,15 +168,17 @@ export function useCrudApi<
 
   /**
    * 保存当前数据快照（用于回滚）
+   * 使用深拷贝确保回滚时数据一致性
    */
   function saveSnapshot(): PaginationData<T> | null {
     if (!data.value) return null
-    return {
-      items: [...data.value.items],
-      total: data.value.total,
-      page: data.value.page,
-      size: data.value.size,
-      pages: data.value.pages,
+    // 使用 structuredClone 进行深拷贝，确保 items 中的对象也被复制
+    // 如果环境不支持 structuredClone，回退到 JSON 序列化
+    try {
+      return structuredClone(data.value)
+    } catch {
+      // 对于不可克隆的对象（如包含函数），回退到 JSON 方式
+      return JSON.parse(JSON.stringify(data.value))
     }
   }
 

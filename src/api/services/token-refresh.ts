@@ -56,6 +56,14 @@ let failedQueue: QueuedRequest[] = []
 
 // ==================== Token存储操作 ====================
 
+// TODO: 安全增强 - Access Token 应迁移到 HttpOnly Cookie
+// 当前方案：Access Token 存储在 localStorage，存在 XSS 窃取风险
+// 改进方案：
+// 1. 后端将 Access Token 设置在 HttpOnly Cookie 中
+// 2. 前端通过 credentials: 'include' 自动携带
+// 3. 移除 localStorage 中的 token 存储
+// 相关文件：wes_backend/app/api/auth.py
+
 /**
  * 获取访问Token
  * @returns 访问Token或null

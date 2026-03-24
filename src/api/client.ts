@@ -47,30 +47,13 @@ export class ApiResponseError extends Error {
 }
 
 // ==================== Token刷新状态 ====================
+// 注意：Token 刷新状态统一由 token-refresh.ts 管理
+// client.ts 只负责调用 refreshAccessToken 并处理响应
 
-/** 是否正在刷新Token */
-let isRefreshing = false
-/** 等待中的请求队列 */
-let refreshQueue: Array<(token: string) => void> = []
 /** Token刷新重试次数（防止死循环） */
 let refreshRetryCount = 0
 /** 最大刷新重试次数 */
 const MAX_REFRESH_RETRY = 1
-
-function waitForRefresh(): Promise<string> {
-  return new Promise((resolve) => {
-    refreshQueue.push(resolve)
-  })
-}
-
-function processRefreshQueue(token: string): void {
-  refreshQueue.forEach((resolve) => resolve(token))
-  refreshQueue = []
-}
-
-function rejectRefreshQueue(): void {
-  refreshQueue = []
-}
 
 function resetRefreshRetryCount(): void {
   refreshRetryCount = 0
@@ -83,25 +66,16 @@ async function handle401Error(): Promise<string> {
     throw new Error('Token刷新失败：重试次数超限')
   }
 
-  // 如果正在刷新，等待刷新完成
-  if (isRefreshing) {
-    return waitForRefresh()
-  }
-
-  isRefreshing = true
   refreshRetryCount++
 
   try {
+    // refreshAccessToken 内部已实现并发队列管理
     const newToken = await refreshAccessToken(apiClient)
-    processRefreshQueue(newToken)
     // 刷新成功，重置计数器
     resetRefreshRetryCount()
     return newToken
   } catch {
-    rejectRefreshQueue()
     throw new Error('Token刷新失败')
-  } finally {
-    isRefreshing = false
   }
 }
 

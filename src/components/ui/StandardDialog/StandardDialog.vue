@@ -61,6 +61,8 @@ interface Props {
   showFooter?: boolean
   /** 确认按钮文本 */
   confirmText?: string
+  /** 确认按钮图标 */
+  confirmIcon?: string
   /** 取消按钮文本 */
   cancelText?: string
   /** 确认按钮类型 */
@@ -94,6 +96,7 @@ const props = withDefaults(defineProps<Props>(), {
   scrollable: true,
   showFooter: true,
   confirmText: '确定',
+  confirmIcon: undefined,
   cancelText: '取消',
   confirmType: 'primary',
   confirmLoading: false,
@@ -425,6 +428,7 @@ defineExpose<StandardDialogExpose>({
 
                   <AppButton
                     :type="confirmType"
+                    :icon="confirmIcon"
                     :loading="confirmLoading"
                     :disabled="confirmDisabled"
                     preserve-icon-space
