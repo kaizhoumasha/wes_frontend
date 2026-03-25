@@ -22,6 +22,9 @@ export function useDetailState<TItem extends CrudPageEntity>() {
   const loading = ref(false)
   const error = ref<Error | null>(null)
 
+  // Request cancellation token (increments on each new request)
+  let requestId = 0
+
   // Collapse state persistence (section key -> collapsed)
   const collapseStates = ref<Map<string, boolean>>(new Map())
 
@@ -33,22 +36,43 @@ export function useDetailState<TItem extends CrudPageEntity>() {
 
   /**
    * Open detail panel and fetch item by ID
+   * Includes request cancellation to handle rapid entity switching
    */
   async function openDetailById(
     id: number,
     fetcher: (id: number) => Promise<TItem>
   ): Promise<void> {
+    // Cancel any pending request by incrementing the request ID
+    const currentRequestId = ++requestId
+
     loading.value = true
     error.value = null
     open.value = true
 
     try {
-      item.value = await fetcher(id)
+      const result = await fetcher(id)
+
+      // Check if this request is still the current one
+      if (currentRequestId !== requestId) {
+        // Request was cancelled, discard result
+        return
+      }
+
+      item.value = result
     } catch (err) {
+      // Check if this request is still the current one
+      if (currentRequestId !== requestId) {
+        // Request was cancelled, discard error
+        return
+      }
+
       error.value = err instanceof Error ? err : new Error(String(err))
       item.value = null
     } finally {
-      loading.value = false
+      // Only update loading state if this is still the current request
+      if (currentRequestId === requestId) {
+        loading.value = false
+      }
     }
   }
 
@@ -62,6 +86,7 @@ export function useDetailState<TItem extends CrudPageEntity>() {
 
   /**
    * Refresh current item
+   * Includes request cancellation to handle rapid refresh calls
    */
   async function refreshDetail(
     fetcher: (id: number) => Promise<TItem>
@@ -70,15 +95,35 @@ export function useDetailState<TItem extends CrudPageEntity>() {
       return
     }
 
+    // Cancel any pending request by incrementing the request ID
+    const currentRequestId = ++requestId
+
     loading.value = true
     error.value = null
 
     try {
-      item.value = await fetcher(item.value.id)
+      const result = await fetcher(item.value.id)
+
+      // Check if this request is still the current one
+      if (currentRequestId !== requestId) {
+        // Request was cancelled, discard result
+        return
+      }
+
+      item.value = result
     } catch (err) {
+      // Check if this request is still the current one
+      if (currentRequestId !== requestId) {
+        // Request was cancelled, discard error
+        return
+      }
+
       error.value = err instanceof Error ? err : new Error(String(err))
     } finally {
-      loading.value = false
+      // Only update loading state if this is still the current request
+      if (currentRequestId === requestId) {
+        loading.value = false
+      }
     }
   }
 

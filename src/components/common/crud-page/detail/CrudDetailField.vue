@@ -10,6 +10,7 @@ import { ElTooltip } from 'element-plus'
 import type { VNode } from 'vue'
 import type { CrudPageEntity } from '../types'
 import type { CrudPageDetailField, FormatterFunction } from './types'
+import { getDetailFieldTruncationLimit, resolveDetailFieldLayout } from './detailFieldLayout'
 import {
   createBooleanTagFormatter,
   createDateFormatter,
@@ -21,6 +22,8 @@ interface Props {
   field: CrudPageDetailField<TItem>
   /** Entity data */
   item: TItem
+  /** Visual appearance */
+  appearance?: 'default' | 'meta'
   /** Empty value display */
   emptyText?: string
   /** Show dash for empty values */
@@ -28,6 +31,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  appearance: 'default',
   emptyText: '—',
   emptyDash: true
 })
@@ -41,6 +45,53 @@ const formatterColumn = {
 
 function getEmptyDisplayValue(): string {
   return props.emptyDash ? '—' : props.emptyText
+}
+
+/**
+ * Safe JSON stringify with depth and length limits
+ */
+function safeJsonStringify(value: unknown, maxDepth = 3, maxLength = 500): string {
+  function stringify(val: unknown, depth: number): string {
+    if (depth > maxDepth) {
+      return '[...]'
+    }
+
+    if (val === null) return 'null'
+    if (val === undefined) return 'undefined'
+    if (typeof val !== 'object') {
+      const str = String(val)
+      return str.length > maxLength ? str.slice(0, maxLength) + '...' : str
+    }
+
+    if (Array.isArray(val)) {
+      if (val.length === 0) return '[]'
+      if (val.length > 10) {
+        const items = val.slice(0, 10).map(item => stringify(item, depth + 1))
+        return `[${items.join(', ')}, ... (${val.length} items)]`
+      }
+      const items = val.map(item => stringify(item, depth + 1))
+      return `[${items.join(', ')}]`
+    }
+
+    const keys = Object.keys(val as Record<string, unknown>)
+    if (keys.length === 0) return '{}'
+    if (keys.length > 10) {
+      const entries = keys.slice(0, 10).map(key => {
+        const v = (val as Record<string, unknown>)[key]
+        return `${key}: ${stringify(v, depth + 1)}`
+      })
+      return `{${entries.join(', ')}, ... (${keys.length} keys)}`
+    }
+
+    const entries = keys.map(key => {
+      const v = (val as Record<string, unknown>)[key]
+      return `${key}: ${stringify(v, depth + 1)}`
+    })
+    return `{${entries.join(', ')}}`
+  }
+
+  const result = stringify(value, 0)
+  return result.length > maxLength ? result.slice(0, maxLength) + '...' : result
 }
 
 function normalizeFormatter(result: string | number | VNode): string | VNode {
@@ -124,7 +175,7 @@ function applyFormatter(value: unknown, formatter: FormatterFunction<TItem>): VN
       if (!value) {
         return getEmptyDisplayValue()
       }
-      return JSON.stringify(value, null, 2)
+      return safeJsonStringify(value)
     }
 
     return String(value ?? '')
@@ -134,8 +185,8 @@ function applyFormatter(value: unknown, formatter: FormatterFunction<TItem>): VN
   try {
     const result = formatter(value, props.item)
     return result
-  } catch (error) {
-    console.error(`Formatter error for field ${props.field.key}:`, error)
+  } catch {
+    // Formatter failed, return fallback display
     return String(value ?? '[格式化错误]')
   }
 }
@@ -161,7 +212,7 @@ const displayValue = computed(() => {
   }
 
   if (typeof v === 'object') {
-    return JSON.stringify(v)
+    return safeJsonStringify(v)
   }
 
   return String(v)
@@ -190,8 +241,12 @@ const label = computed(() => {
 /**
  * Layout class based on field layout config
  */
+const resolvedLayout = computed(() => {
+  return resolveDetailFieldLayout(props.field, rawValue.value)
+})
+
 const layoutClass = computed(() => {
-  switch (props.field.layout) {
+  switch (resolvedLayout.value) {
     case 'half':
       return 'detail-field--half'
     case 'full':
@@ -201,6 +256,10 @@ const layoutClass = computed(() => {
     default:
       return 'detail-field--auto'
   }
+})
+
+const appearanceClass = computed(() => {
+  return props.appearance === 'meta' ? 'detail-field--meta' : 'detail-field--default'
 })
 
 /**
@@ -222,7 +281,9 @@ const labelPositionClass = computed(() => {
  */
 const needsTruncation = computed(() => {
   const v = displayValue.value
-  if (typeof v === 'string' && v.length > 50) {
+  const truncationLimit = getDetailFieldTruncationLimit(resolvedLayout.value)
+
+  if (typeof v === 'string' && v.length > truncationLimit) {
     return true
   }
   return false
@@ -233,7 +294,7 @@ const needsTruncation = computed(() => {
   <div
     v-if="shouldShow"
     class="detail-field"
-    :class="[layoutClass, labelPositionClass]"
+    :class="[layoutClass, labelPositionClass, appearanceClass]"
   >
     <!-- Label -->
     <div class="detail-field__label">
@@ -271,25 +332,44 @@ const needsTruncation = computed(() => {
 </template>
 
 <style scoped>
+/* ============================================
+   Editorial Detail Field
+   使用项目 CSS 变量，保持主题一致性
+   ============================================ */
+
 .detail-field {
+  position: relative;
   display: flex;
   align-items: flex-start;
-  padding: 8px 12px;
-  transition: background-color 0.15s ease;
+  min-height: 44px;
+  padding: 12px 0;
+  background: transparent;
+  transition: background-color 0.2s ease;
 }
 
 .detail-field:hover {
-  background-color: var(--el-fill-color-light);
-  border-radius: 6px;
+  background: var(--el-fill-color-extra-light);
+}
+
+/* Meta 外观: 更轻量的元数据展示 */
+.detail-field--meta {
+  min-height: auto;
+  padding: 8px 0;
+  background: transparent;
+}
+
+.detail-field--meta:hover {
+  background: transparent;
 }
 
 /* Layout variants */
 .detail-field--auto {
-  flex: 1 1 100%;
+  flex: 1 1 calc(50% - 12px);
+  min-width: 200px;
 }
 
 .detail-field--half {
-  flex: 1 1 calc(50% - 8px);
+  flex: 1 1 calc(50% - 12px);
   min-width: 200px;
 }
 
@@ -298,8 +378,8 @@ const needsTruncation = computed(() => {
 }
 
 .detail-field--third {
-  flex: 1 1 calc(33.333% - 8px);
-  min-width: 150px;
+  flex: 1 1 calc(33.333% - 16px);
+  min-width: 160px;
 }
 
 /* Label position variants */
@@ -316,33 +396,53 @@ const needsTruncation = computed(() => {
 .detail-field--label-inline {
   flex-direction: row;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .detail-field--label-top .detail-field__label {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 /* Label styling */
 .detail-field__label {
   flex-shrink: 0;
-  min-width: 80px;
+  min-width: 88px;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
   font-size: 13px;
-  color: var(--el-text-color-regular);
+  line-height: 1.5;
+  color: var(--el-text-color-secondary);
   font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.detail-field--meta .detail-field__label {
+  min-width: 72px;
+  font-size: 12px;
 }
 
 /* Value styling */
 .detail-field__value {
   flex: 1;
-  font-size: 14px;
+  min-width: 0;
+  font-size: 15px;
+  line-height: 1.6;
   color: var(--el-text-color-primary);
+  font-weight: 600;
   overflow-wrap: anywhere;
+}
+
+.detail-field--meta .detail-field__value {
+  font-size: 13px;
+  color: var(--el-text-color-regular);
+  font-weight: 500;
 }
 
 .detail-field__empty {
   color: var(--el-text-color-placeholder);
+  font-weight: 400;
+  font-style: italic;
 }
 
 .detail-field__truncated {
@@ -351,25 +451,36 @@ const needsTruncation = computed(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  cursor: pointer;
+  cursor: help;
 }
 
-/* Mobile touch optimization */
+/* Mobile optimization */
 @media (width <= 767px) {
   .detail-field {
-    padding: 12px 16px;
     min-height: 44px;
+    padding: 12px 0;
+  }
+
+  .detail-field--meta {
+    min-height: auto;
+    padding: 8px 0;
   }
 
   .detail-field__label {
-    min-width: 70px;
+    min-width: 72px;
+    font-size: 13px;
   }
-}
 
-/* Dark mode */
-@media (prefers-color-scheme: dark) {
-  .detail-field:hover {
-    background-color: var(--el-fill-color-dark);
+  .detail-field__value {
+    font-size: 15px;
+  }
+
+  .detail-field--auto,
+  .detail-field--half,
+  .detail-field--third,
+  .detail-field--full {
+    flex-basis: 100%;
+    min-width: 100%;
   }
 }
 </style>

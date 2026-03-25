@@ -1,5 +1,6 @@
 <script setup lang="ts" generic="TItem extends CrudPageEntity">
 import { ElSkeleton, ElEmpty, ElButton, ElAlert } from 'element-plus'
+import { computed } from 'vue'
 import type { CrudPageEntity } from '../types'
 import type { CrudPageDetailSection } from './types'
 import CrudDetailSection from './CrudDetailSection.vue'
@@ -19,7 +20,19 @@ interface Props {
   onRefresh: () => void
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
+
+const emit = defineEmits<{
+  (e: 'close'): void
+}>()
+
+const primarySections = computed(() => {
+  return props.sections.filter(section => section.weight !== 'tertiary')
+})
+
+const tertiarySections = computed(() => {
+  return props.sections.filter(section => section.weight === 'tertiary')
+})
 </script>
 
 <template>
@@ -53,13 +66,27 @@ defineProps<Props>()
   </template>
 
   <template v-else-if="!item">
-    <ElEmpty description="暂无数据" />
+    <div class="detail-panel__empty">
+      <ElEmpty description="暂无数据">
+        <template #description>
+          <p class="detail-panel__empty-text">
+            未找到相关信息
+          </p>
+          <p class="detail-panel__empty-hint">
+            请尝试刷新或选择其他条目
+          </p>
+        </template>
+        <ElButton @click="emit('close')">
+          关闭面板
+        </ElButton>
+      </ElEmpty>
+    </div>
   </template>
 
   <template v-else>
     <div class="detail-panel__content">
       <CrudDetailSection
-        v-for="(section, index) in sections"
+        v-for="(section, index) in primarySections"
         :key="section.title ?? `section-${index}`"
         :section="section"
         :item="item"
@@ -67,6 +94,83 @@ defineProps<Props>()
         :empty-value="emptyValue"
         @toggle-collapse="onToggleCollapse(section)"
       />
+
+      <div
+        v-if="tertiarySections.length > 0"
+        class="detail-panel__footer-meta"
+      >
+        <CrudDetailSection
+          v-for="(section, index) in tertiarySections"
+          :key="section.title ?? `tertiary-section-${index}`"
+          :section="section"
+          :item="item"
+          :collapsed="isSectionCollapsed(section)"
+          :empty-value="emptyValue"
+          @toggle-collapse="onToggleCollapse(section)"
+        />
+      </div>
     </div>
   </template>
 </template>
+
+<style scoped>
+/* ============================================
+   Editorial Detail Body
+   使用项目 CSS 变量，保持主题一致性
+   ============================================ */
+
+.detail-panel__content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+}
+
+.detail-panel__footer-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+
+.detail-panel__loading,
+.detail-panel__error,
+.detail-panel__empty {
+  padding: 32px;
+}
+
+.detail-panel__empty-text {
+  margin: 0 0 4px;
+  font-size: 15px;
+  color: var(--el-text-color-secondary);
+}
+
+.detail-panel__empty-hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--el-text-color-placeholder);
+}
+
+:deep(.el-skeleton) {
+  --el-skeleton-color: var(--el-fill-color);
+  --el-skeleton-to-color: var(--el-fill-color-light);
+}
+
+:deep(.el-empty) {
+  padding: 48px 0;
+}
+
+@media (width <= 767px) {
+  .detail-panel__content {
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .detail-panel__footer-meta {
+    gap: 10px;
+    padding-top: 14px;
+  }
+}
+</style>

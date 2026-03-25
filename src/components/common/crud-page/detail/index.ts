@@ -20,6 +20,11 @@ export { useDetailState } from './composables/useDetailState'
 
 export { useDetailResponsive } from './composables/useDetailResponsive'
 export type { DetailResponsiveMode } from './composables/useDetailResponsive'
+export {
+  getDetailFieldTruncationLimit,
+  resolveDetailFieldLayout,
+  type DetailFieldResolvedLayout
+} from './detailFieldLayout'
 
 // Types
 export {

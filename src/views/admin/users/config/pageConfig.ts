@@ -70,7 +70,7 @@ const USER_PAGE_DETAIL: CrudPageDetailConfig<User> = {
       fields: [
         { key: 'username', layout: 'half' },
         { key: 'full_name', layout: 'half' },
-        { key: 'email', layout: 'auto' },
+        { key: 'email', layout: 'full' },
         { key: 'is_superuser', formatter: 'boolean', layout: 'half' },
         { key: 'is_multi_login', formatter: 'boolean', layout: 'half' }
       ]
@@ -88,8 +88,8 @@ const USER_PAGE_DETAIL: CrudPageDetailConfig<User> = {
       title: '审计信息',
       weight: 'tertiary',
       fields: [
-        { key: 'created_at', formatter: 'datetime', layout: 'half' },
-        { key: 'updated_at', formatter: 'datetime', layout: 'half' }
+        { key: 'created_at', formatter: 'datetime' },
+        { key: 'updated_at', formatter: 'datetime' }
       ]
     }
   ]

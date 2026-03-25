@@ -166,14 +166,19 @@ function isActionDisabled(action: CrudPageDetailAction<TItem>): boolean {
 </template>
 
 <style scoped>
+/* ============================================
+   Editorial Detail Actions
+   使用项目 CSS 变量，保持主题一致性
+   ============================================ */
+
 .detail-actions {
   position: sticky;
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 16px;
-  background: linear-gradient(to top, var(--el-bg-color) 80%, transparent);
+  padding: 16px 20px 20px;
   border-top: 1px solid var(--el-border-color-lighter);
+  background: var(--el-bg-color);
   z-index: 10;
 }
 
@@ -181,13 +186,38 @@ function isActionDisabled(action: CrudPageDetailAction<TItem>): boolean {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 10px;
+}
+
+.detail-actions__content :deep(.el-button) {
+  min-width: 88px;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.detail-actions__content :deep(.el-button:hover) {
+  transform: translateY(-1px);
+}
+
+.detail-actions__content :deep(.el-button:active) {
+  transform: translateY(0);
+}
+
+/* Primary button accent */
+.detail-actions__content :deep(.el-button--primary) {
+  box-shadow: 0 2px 8px rgb(var(--el-color-primary-rgb) / 30%);
+}
+
+/* Danger button styling */
+.detail-actions__content :deep(.el-button--danger) {
+  box-shadow: 0 2px 8px rgb(245 108 108 / 20%);
 }
 
 /* Mobile optimization */
 @media (width <= 767px) {
   .detail-actions {
-    padding: 12px 16px;
+    padding: 14px 16px 16px;
   }
 
   .detail-actions__content {
@@ -196,14 +226,12 @@ function isActionDisabled(action: CrudPageDetailAction<TItem>): boolean {
 
   .detail-actions__content :deep(.el-button) {
     flex: 1;
-    min-height: 44px;
+    min-height: 46px;
+    font-size: 15px;
   }
-}
 
-/* Dark mode */
-@media (prefers-color-scheme: dark) {
-  .detail-actions {
-    background: linear-gradient(to top, var(--el-bg-color) 80%, transparent);
+  .detail-actions__content :deep(.el-button:hover) {
+    transform: none;
   }
 }
 </style>

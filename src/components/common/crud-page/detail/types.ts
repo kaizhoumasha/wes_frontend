@@ -37,6 +37,8 @@ export interface CrudPageDetailConfig<TItem extends CrudPageEntity> {
   width?: number | string
   /** 标题：静态文本或动态函数 */
   title?: string | ((item: TItem) => string)
+  /** 实体类型标签（显示在 eyebrow 区域） */
+  entityTypeLabel?: string
   /** 分组配置 */
   sections?: CrudPageDetailSection<TItem>[]
   /** 底部操作按钮 */
