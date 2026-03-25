@@ -74,7 +74,10 @@ function createRowValueResolver<TItem extends CrudPageEntity, TValue>(
   }
 }
 
-function createSelectionCountPredicate(expectedCount: 'none' | 'some', state: CrudPageControllerStateLike) {
+function createSelectionCountPredicate(
+  expectedCount: 'none' | 'some',
+  state: CrudPageControllerStateLike
+) {
   return function matchesSelectionCount(): boolean {
     return expectedCount === 'none'
       ? state.state.selectedCount.value === 0
@@ -112,7 +115,9 @@ function createPermanentDeletePopconfirm<TItem extends CrudPageEntity>(): NonNul
   }
 }
 
-export function buildCrudPermissionConfig(permissions?: CrudPagePermissionConfig): CrudPagePermissionConfig | undefined {
+export function buildCrudPermissionConfig(
+  permissions?: CrudPagePermissionConfig
+): CrudPagePermissionConfig | undefined {
   if (!permissions) {
     return undefined
   }
@@ -127,9 +132,7 @@ export function buildDefaultToolbarActions<
 >(options: ToolbarActionsOptions<TItem, TCreate, TUpdate>): CrudPageToolbarAction[] {
   const { config, features, state, onBatchDelete, onBatchRestore, onBatchPermanentDelete } = options
   const actions =
-    state.state.viewMode.value === 'active'
-      ? [...(config.extensions?.toolbarActions ?? [])]
-      : []
+    state.state.viewMode.value === 'active' ? [...(config.extensions?.toolbarActions ?? [])] : []
   const createLabel = features.create.label ?? '新增'
   const createTooltip = features.create.tooltip ?? createLabel
   const createIcon = features.create.icon ?? 'ep:plus'
@@ -145,8 +148,7 @@ export function buildDefaultToolbarActions<
   const batchRestorePermission =
     features.batchRestore.permission ?? config.resource.permissions?.restore
   const batchPermanentDeleteLabel = features.batchPermanentDelete.label ?? '批量彻底删除'
-  const batchPermanentDeleteTooltip =
-    features.batchPermanentDelete.tooltip ?? '彻底删除选中的数据'
+  const batchPermanentDeleteTooltip = features.batchPermanentDelete.tooltip ?? '彻底删除选中的数据'
   const batchPermanentDeleteIcon = features.batchPermanentDelete.icon ?? 'ep:delete-filled'
   const batchPermanentDeletePermission =
     features.batchPermanentDelete.permission ?? config.resource.permissions?.delete

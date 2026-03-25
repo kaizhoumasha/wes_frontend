@@ -11,6 +11,7 @@ import CrudTable from '@/components/common/CrudTable.vue'
 import CrudToolbar from '@/components/common/CrudToolbar.vue'
 import TableColumnConfigDialog from '@/components/common/TableColumnConfigDialog.vue'
 import AdvancedSearchDialog from '@/components/search/AdvancedSearchDialog.vue'
+import CrudDetailPanel from '@/components/common/crud-page/detail/CrudDetailPanel.vue'
 import AppIconButton from '@/components/ui/AppIconButton.vue'
 import { ElMessage } from 'element-plus'
 import { useSearchFavorites } from '@/composables/useSearchFavorites'
@@ -30,6 +31,11 @@ const props = withDefaults(defineProps<CrudPageContainerProps>(), {
   fitViewport: true
 })
 
+// 声明已知插槽类型
+defineSlots<{
+  'extra-dialogs'?: (props: Record<string, never>) => unknown
+}>()
+
 provideBreakpointContext()
 
 const controller = useCrudPageController(props.config)
@@ -48,7 +54,8 @@ const {
   tableDefaultSort,
   columnConfigDialogOpen,
   columnsManager,
-  formTitle
+  formTitle,
+  detailState
 } = controller
 const { state: pageState, search, dialogs } = page
 const data = pageState.data
@@ -58,6 +65,9 @@ const columnConfig = columnsManager.columnConfig
 const dialogOpen = dialogs.formOpen
 const dialogKey = dialogs.key
 const editingId = dialogs.editingId
+const hasDetailConfig = computed(() => !!pageConfig.detail)
+const detailFetcher = pageConfig.resource.api.getById.bind(pageConfig.resource.api)
+
 const cachedData = computed(() => {
   if (!editingId.value) {
     return undefined
@@ -111,6 +121,14 @@ function handleSaveSearchFavorite(payload: { name: string; filterGroup: FilterGr
   if (result.ok) {
     ElMessage.success('已保存到收藏')
   }
+}
+
+function handleCloseDetailPanel(): void {
+  detailState.closeDetail()
+}
+
+async function handleRefreshDetailPanel(): Promise<void> {
+  await detailState.refreshDetail(detailFetcher)
 }
 </script>
 
@@ -254,6 +272,20 @@ function handleSaveSearchFavorite(payload: { name: string; filterGroup: FilterGr
       :column-config="columnConfig"
       :default-columns="pageConfig.table.columns.defaultColumns"
       @update:config="columnsManager.updateConfig"
+    />
+
+    <!-- 详情面板 -->
+    <CrudDetailPanel
+      v-if="hasDetailConfig"
+      :config="pageConfig.detail"
+      :fetcher="detailFetcher"
+      :open="detailState.open.value"
+      :item="detailState.item.value"
+      :loading="detailState.loading.value"
+      :error="detailState.error.value"
+      @update:open="detailState.open.value = $event"
+      @close="handleCloseDetailPanel"
+      @refresh="handleRefreshDetailPanel"
     />
 
     <!-- 额外对话框插槽：用于放置自定义对话框，可访问 provide 的 refresh 函数 -->

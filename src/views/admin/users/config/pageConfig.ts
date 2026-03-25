@@ -3,8 +3,9 @@ import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
 import { userApi, type User } from '@/api/modules/user'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
+import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
 import { createUserRowActions } from './actionConfig'
-import { userPageFieldConfig } from './fieldConfig'
+import { USER_FIELDS, userPageFieldConfig } from './fieldConfig'
 
 type UserPageConfig = CrudPageConfig<User, CreateUserInput, UpdateUserInput>
 
@@ -58,6 +59,61 @@ const USER_PAGE_FEATURES: CrudPageFeatures = {
   }
 }
 
+function getUserFieldLabel(key: string): string {
+  return USER_FIELDS.find(field => field.key === key)?.label ?? key
+}
+
+const USER_PAGE_DETAIL: CrudPageDetailConfig<User> = {
+  mode: 'drawer',
+  width: 680,
+  title: user => user.username,
+  sections: [
+    {
+      title: '基本信息',
+      weight: 'primary',
+      fields: [
+        { key: 'username', label: getUserFieldLabel('username'), layout: 'half' },
+        { key: 'email', label: getUserFieldLabel('email'), layout: 'half' },
+        { key: 'full_name', label: getUserFieldLabel('full_name'), layout: 'half' },
+        {
+          key: 'is_superuser',
+          label: getUserFieldLabel('is_superuser'),
+          formatter: 'boolean',
+          layout: 'half'
+        },
+        {
+          key: 'is_multi_login',
+          label: getUserFieldLabel('is_multi_login'),
+          formatter: 'boolean',
+          layout: 'half'
+        }
+      ]
+    },
+    {
+      title: '角色信息',
+      weight: 'secondary',
+      relation: {
+        type: 'tags',
+        data: user => user.roles ?? [],
+        emptyText: '无角色'
+      }
+    },
+    {
+      title: '审计信息',
+      weight: 'tertiary',
+      fields: [
+        { key: 'created_at', label: '创建时间', formatter: 'datetime', layout: 'half' },
+        {
+          key: 'updated_at',
+          label: getUserFieldLabel('updated_at'),
+          formatter: 'datetime',
+          layout: 'half'
+        }
+      ]
+    }
+  ]
+}
+
 export function createUserPageConfig(
   openAssignRolesDialog: (user: User) => void,
   openResetPasswordDialog: (user: User) => void
@@ -66,9 +122,10 @@ export function createUserPageConfig(
     resource: USER_PAGE_RESOURCE,
     fieldConfig: userPageFieldConfig,
     table: USER_PAGE_TABLE,
+    detail: USER_PAGE_DETAIL,
     features: USER_PAGE_FEATURES,
     extensions: {
       rowActions: createUserRowActions(openAssignRolesDialog, openResetPasswordDialog)
-    },
+    }
   })
 }

@@ -24,3 +24,4 @@ dist-ssr/
 .serena/memories/repo-docs/
 .serena/memories/user-preferences/
 .playwright-cli/
+.gstack/

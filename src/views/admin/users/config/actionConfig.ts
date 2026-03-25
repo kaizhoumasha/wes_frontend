@@ -23,7 +23,7 @@ export function createUserRowActions(
       label: '分配角色',
       type: 'primary',
       icon: 'lucide:user-plus',
-      priority: 'primary',
+      priority: 'secondary',
       disabled: () => !canAssignRoles.value,
       onClick: user => openAssignRolesDialog(user)
     },

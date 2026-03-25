@@ -9,6 +9,7 @@ import type {
   CrudPageTitleConfig,
   CrudPageToolbarAction
 } from './types'
+import type { CrudPageDetailConfig } from './detail/types'
 import type { CrudApi, SortField } from '@/api/base/crud-api'
 import type { CrudFieldConfigDefinition, ResourceFieldDefinition } from './resourceFieldBuilder'
 
@@ -30,6 +31,7 @@ interface CreateCrudPageConfigFromResourceOptions<
   fieldConfig: CrudFieldConfigDefinition<ResourceFieldDefinition, TCreate, TUpdate>
   table?: Omit<CrudPageConfig<TItem, TCreate, TUpdate>['table'], 'columns' | 'defaultSort'>
   form?: Partial<CrudPageFormConfig<TCreate, TUpdate>>
+  detail?: CrudPageDetailConfig<TItem>
   features?: CrudPageFeatures
   extensions?: {
     toolbarActions?: CrudPageToolbarAction[]
@@ -77,7 +79,7 @@ export function createCrudPageConfigFromResource<
 >(
   options: CreateCrudPageConfigFromResourceOptions<TItem, TCreate, TUpdate>
 ): CrudPageConfig<TItem, TCreate, TUpdate> {
-  const { resource, fieldConfig, table, form, features, extensions } = options
+  const { resource, fieldConfig, table, form, detail, features, extensions } = options
   const resolvedForm = resolveCrudPageForm<TCreate, TUpdate>(fieldConfig, form)
   const resolvedTable: CrudPageConfig<TItem, TCreate, TUpdate>['table'] = {
     selectable: true,
@@ -91,6 +93,7 @@ export function createCrudPageConfigFromResource<
     search: fieldConfig.search,
     table: resolvedTable,
     form: resolvedForm,
+    detail,
     features,
     extensions
   })

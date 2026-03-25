@@ -1,0 +1,209 @@
+<script setup lang="ts" generic="TItem extends CrudPageEntity">
+/**
+ * CRUD Detail Actions Bar
+ *
+ * Renders action buttons at the bottom of the detail panel.
+ * Supports popconfirm for destructive actions and loading states.
+ */
+import { computed, ref } from 'vue'
+import { ElButton, ElPopconfirm, ElMessage } from 'element-plus'
+import type { CrudPageEntity } from '../types'
+import type { CrudPageDetailAction } from './types'
+
+interface Props {
+  /** Action configurations */
+  actions: CrudPageDetailAction<TItem>[]
+  /** Entity data */
+  item: TItem
+}
+
+const props = defineProps<Props>()
+
+const emit = defineEmits<{
+  (e: 'action-complete', actionKey: string): void
+  (e: 'close'): void
+}>()
+
+const visibleActions = computed(() => {
+  return props.actions.filter(action => !action.showWhen || action.showWhen(props.item))
+})
+
+// ==================== Action Execution ====================
+
+const loadingStates = ref<Map<string, boolean>>(new Map())
+
+/**
+ * Check if action is loading
+ */
+function isLoading(actionKey: string): boolean {
+  return loadingStates.value.get(actionKey) ?? false
+}
+
+/**
+ * Execute an action
+ */
+async function executeAction(action: CrudPageDetailAction<TItem>): Promise<void> {
+  if (isLoading(action.key)) {
+    return
+  }
+
+  loadingStates.value.set(action.key, true)
+
+  try {
+    await action.onClick(props.item)
+
+    // Show success message
+    if (action.success?.message) {
+      ElMessage.success(action.success.message)
+    }
+
+    // Auto close panel
+    if (action.success?.autoClose) {
+      setTimeout(() => {
+        emit('close')
+      }, action.success.autoCloseDelay ?? 500)
+    }
+
+    emit('action-complete', action.key)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '操作失败'
+    ElMessage.error(message)
+  } finally {
+    loadingStates.value.set(action.key, false)
+  }
+}
+
+/**
+ * Handle button click (non-popconfirm actions)
+ */
+function handleActionClick(action: CrudPageDetailAction<TItem>): void {
+  if (action.popconfirm) {
+    // Popconfirm will handle the action
+    return
+  }
+  void executeAction(action)
+}
+
+/**
+ * Handle popconfirm confirm
+ */
+function handlePopconfirmConfirm(action: CrudPageDetailAction<TItem>): void {
+  void executeAction(action)
+}
+
+// ==================== Button Styling ====================
+
+/**
+ * Get button type for action
+ */
+function getButtonType(
+  action: CrudPageDetailAction<TItem>
+): 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'default' {
+  return action.type ?? 'default'
+}
+
+/**
+ * Check if action is disabled
+ */
+function isActionDisabled(action: CrudPageDetailAction<TItem>): boolean {
+  if (typeof action.disabled === 'function') {
+    return action.disabled(props.item)
+  }
+  return action.disabled ?? false
+}
+</script>
+
+<template>
+  <div
+    v-if="visibleActions.length > 0"
+    class="detail-actions"
+  >
+    <div class="detail-actions__content">
+      <!-- Actions -->
+      <template
+        v-for="action in visibleActions"
+        :key="action.key"
+      >
+        <!-- Action with Popconfirm -->
+        <ElPopconfirm
+          v-if="action.popconfirm"
+          :title="action.popconfirm.title"
+          :confirm-button-text="action.popconfirm.confirmButtonText ?? '确认'"
+          :cancel-button-text="action.popconfirm.cancelButtonText ?? '取消'"
+          :confirm-button-type="action.popconfirm.confirmButtonType ?? 'primary'"
+          :width="action.popconfirm.width ?? 260"
+          @confirm="handlePopconfirmConfirm(action)"
+        >
+          <template #reference>
+            <ElButton
+              :type="getButtonType(action)"
+              :loading="isLoading(action.key)"
+              :disabled="isActionDisabled(action)"
+              :icon="action.icon"
+            >
+              {{ action.label }}
+            </ElButton>
+          </template>
+        </ElPopconfirm>
+
+        <!-- Action without Popconfirm -->
+        <ElButton
+          v-else
+          :type="getButtonType(action)"
+          :loading="isLoading(action.key)"
+          :disabled="isActionDisabled(action)"
+          :icon="action.icon"
+          @click="handleActionClick(action)"
+        >
+          {{ action.label }}
+        </ElButton>
+      </template>
+
+      <!-- Close Button -->
+      <ElButton @click="emit('close')">关闭</ElButton>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.detail-actions {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  background: linear-gradient(to top, var(--el-bg-color) 80%, transparent);
+  border-top: 1px solid var(--el-border-color-lighter);
+  z-index: 10;
+}
+
+.detail-actions__content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Mobile optimization */
+@media (width <= 767px) {
+  .detail-actions {
+    padding: 12px 16px;
+  }
+
+  .detail-actions__content {
+    justify-content: stretch;
+  }
+
+  .detail-actions__content :deep(.el-button) {
+    flex: 1;
+    min-height: 44px;
+  }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .detail-actions {
+    background: linear-gradient(to top, var(--el-bg-color) 80%, transparent);
+  }
+}
+</style>

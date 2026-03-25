@@ -8,6 +8,7 @@ import type {
 } from '@/composables/useTableColumns'
 import type { TableColumnConfig } from '@/types/table'
 import type { SearchFavorite, SearchFieldDef, QuickSearchPreset } from '@/types/search'
+import type { CrudPageDetailConfig } from './detail/types'
 
 export interface CrudPageEntity {
   id: number
@@ -196,6 +197,8 @@ export interface CrudPageConfig<
     }
   }
   form?: CrudPageFormConfig<TCreate, TUpdate>
+  /** Detail panel configuration */
+  detail?: CrudPageDetailConfig<TItem>
   features?: CrudPageFeatures
   extensions?: {
     toolbarActions?: CrudPageToolbarAction[]

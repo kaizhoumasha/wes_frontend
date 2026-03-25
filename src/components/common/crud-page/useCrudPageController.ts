@@ -12,7 +12,14 @@ import {
   toActionButtonConfig
 } from './helpers/actions'
 import { resolveCrudPageFeatures } from './helpers/features'
-import { CRUD_PAGE_REFRESH_KEY, type CrudPageConfig, type CrudPageEntity, type CrudPageViewMode } from './types'
+import {
+  CRUD_PAGE_REFRESH_KEY,
+  type CrudPageConfig,
+  type CrudPageEntity,
+  type CrudPageRowAction,
+  type CrudPageViewMode
+} from './types'
+import { useDetailState } from './detail/composables/useDetailState'
 import type { TableSortOrder } from '@/components/ui/table/table.types'
 import type { SortField } from '@/api/base/crud-api'
 
@@ -122,6 +129,21 @@ function resolveFormTitle<TItem extends CrudPageEntity, TCreate extends object, 
   return features.create.dialogTitle ?? config.form.title?.create ?? `创建${config.resource.title.text}`
 }
 
+function createViewDetailRowAction<TItem extends CrudPageEntity>(
+  resourceKey: string,
+  onClick: (item: TItem) => void
+): CrudPageRowAction<TItem> {
+  return {
+    key: `${resourceKey}-view-detail`,
+    label: '',
+    type: 'primary',
+    tooltip: '查看详情',
+    icon: 'ep:view',
+    priority: 'primary',
+    onClick
+  }
+}
+
 export function useCrudPageController<
   TItem extends CrudPageEntity,
   TCreate extends object,
@@ -212,8 +234,18 @@ export function useCrudPageController<
     })
   )
 
-  const rowActions = computed(() =>
-    buildDefaultRowActions({
+  // ==================== Detail Panel Integration ====================
+  // Must be defined before rowActions to inject view-detail action
+
+  const detailState = useDetailState<TItem>()
+  const detailFetcher = config.resource.api.getById.bind(config.resource.api)
+
+  function handleViewDetail(item: TItem): void {
+    void detailState.openDetailById(item.id, detailFetcher)
+  }
+
+  const rowActions = computed(() => {
+    const defaultRowActions = buildDefaultRowActions({
       config,
       features,
       state,
@@ -221,7 +253,13 @@ export function useCrudPageController<
       onRestore: row => void handleRestore(row),
       onPermanentDelete: row => void handlePermanentDelete(row)
     })
-  )
+
+    if (state.state.viewMode.value !== 'active' || !config.detail) {
+      return defaultRowActions
+    }
+
+    return [createViewDetailRowAction(config.resource.key, handleViewDetail), ...defaultRowActions]
+  })
 
   const tableColumns = computed(() => {
     const baseColumns = columnsManager
@@ -404,6 +442,9 @@ export function useCrudPageController<
     handleViewModeChange,
     handleSubmit,
     formTitle,
-    loadFormData
+    loadFormData,
+
+    // Detail panel
+    detailState
   }
 }
