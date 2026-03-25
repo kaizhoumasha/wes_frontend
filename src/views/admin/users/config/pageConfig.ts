@@ -5,7 +5,7 @@ import { createCrudPageConfigFromResource } from '@/components/common/crud-page/
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
 import { createUserRowActions } from './actionConfig'
-import { USER_FIELDS, userPageFieldConfig } from './fieldConfig'
+import { userPageFieldConfig } from './fieldConfig'
 
 type UserPageConfig = CrudPageConfig<User, CreateUserInput, UpdateUserInput>
 
@@ -59,10 +59,6 @@ const USER_PAGE_FEATURES: CrudPageFeatures = {
   }
 }
 
-function getUserFieldLabel(key: string): string {
-  return USER_FIELDS.find(field => field.key === key)?.label ?? key
-}
-
 const USER_PAGE_DETAIL: CrudPageDetailConfig<User> = {
   mode: 'drawer',
   width: 680,
@@ -72,21 +68,11 @@ const USER_PAGE_DETAIL: CrudPageDetailConfig<User> = {
       title: '基本信息',
       weight: 'primary',
       fields: [
-        { key: 'username', label: getUserFieldLabel('username'), layout: 'half' },
-        { key: 'email', label: getUserFieldLabel('email'), layout: 'half' },
-        { key: 'full_name', label: getUserFieldLabel('full_name'), layout: 'half' },
-        {
-          key: 'is_superuser',
-          label: getUserFieldLabel('is_superuser'),
-          formatter: 'boolean',
-          layout: 'half'
-        },
-        {
-          key: 'is_multi_login',
-          label: getUserFieldLabel('is_multi_login'),
-          formatter: 'boolean',
-          layout: 'half'
-        }
+        { key: 'username', layout: 'half' },
+        { key: 'full_name', layout: 'half' },
+        { key: 'email', layout: 'auto' },
+        { key: 'is_superuser', formatter: 'boolean', layout: 'half' },
+        { key: 'is_multi_login', formatter: 'boolean', layout: 'half' }
       ]
     },
     {
@@ -102,13 +88,8 @@ const USER_PAGE_DETAIL: CrudPageDetailConfig<User> = {
       title: '审计信息',
       weight: 'tertiary',
       fields: [
-        { key: 'created_at', label: '创建时间', formatter: 'datetime', layout: 'half' },
-        {
-          key: 'updated_at',
-          label: getUserFieldLabel('updated_at'),
-          formatter: 'datetime',
-          layout: 'half'
-        }
+        { key: 'created_at', formatter: 'datetime', layout: 'half' },
+        { key: 'updated_at', formatter: 'datetime', layout: 'half' }
       ]
     }
   ]

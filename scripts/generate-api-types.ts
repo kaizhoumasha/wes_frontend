@@ -36,6 +36,67 @@ const config: Config = {
   overwrite: true
 }
 
+type OpenApiEnumValue = string | number | boolean | null
+
+interface OpenApiPropertySchema {
+  $ref?: string
+  type?: string
+  title?: string
+  description?: string
+  format?: string
+  default?: unknown
+  enum?: OpenApiEnumValue[]
+  minLength?: number
+  maxLength?: number
+  minimum?: number
+  maximum?: number
+  items?: OpenApiPropertySchema
+  properties?: Record<string, OpenApiPropertySchema>
+  required?: string[]
+  additionalProperties?: boolean | OpenApiPropertySchema
+  anyOf?: OpenApiPropertySchema[]
+  oneOf?: OpenApiPropertySchema[]
+  allOf?: OpenApiPropertySchema[]
+}
+
+interface OpenApiDocument {
+  components?: {
+    schemas?: Record<string, OpenApiPropertySchema>
+  }
+}
+
+interface GeneratedOpenApiArrayMetadata {
+  type?: string
+  format?: string
+  ref?: string
+  enum?: OpenApiEnumValue[]
+}
+
+interface GeneratedOpenApiFieldMetadata {
+  title?: string
+  description?: string
+  type?: string
+  format?: string
+  required: boolean
+  nullable: boolean
+  default?: unknown
+  enum?: OpenApiEnumValue[]
+  ref?: string
+  items?: GeneratedOpenApiArrayMetadata
+  minLength?: number
+  maxLength?: number
+  minimum?: number
+  maximum?: number
+}
+
+interface GeneratedOpenApiSchemaMetadata {
+  title?: string
+  description?: string
+  required: string[]
+  additionalProperties?: boolean
+  fields: Record<string, GeneratedOpenApiFieldMetadata>
+}
+
 // ==================== 工具函数 ====================
 
 /**
@@ -81,6 +142,122 @@ async function fetchOpenApiSpec(url: string): Promise<unknown> {
   return spec
 }
 
+function getSchemas(spec: unknown): Record<string, OpenApiPropertySchema> {
+  return (spec as OpenApiDocument).components?.schemas ?? {}
+}
+
+function getRefName(ref: string | undefined): string | undefined {
+  const prefix = '#/components/schemas/'
+  if (!ref?.startsWith(prefix)) {
+    return undefined
+  }
+
+  return ref.slice(prefix.length)
+}
+
+function isNullSchema(schema: OpenApiPropertySchema | undefined): boolean {
+  return schema?.type === 'null'
+}
+
+function unwrapNullableSchema(
+  schema: OpenApiPropertySchema
+): { schema: OpenApiPropertySchema; nullable: boolean } {
+  const variants = schema.anyOf ?? schema.oneOf
+  if (!variants?.length) {
+    return { schema, nullable: false }
+  }
+
+  const nonNullVariants = variants.filter(variant => !isNullSchema(variant))
+  const nullable = nonNullVariants.length !== variants.length
+
+  if (nonNullVariants.length !== 1) {
+    return { schema, nullable }
+  }
+
+  const [resolvedSchema] = nonNullVariants
+  return {
+    nullable,
+    schema: {
+      ...resolvedSchema,
+      title: schema.title ?? resolvedSchema.title,
+      description: schema.description ?? resolvedSchema.description,
+      default: schema.default ?? resolvedSchema.default
+    }
+  }
+}
+
+function buildArrayMetadata(items: OpenApiPropertySchema | undefined): GeneratedOpenApiArrayMetadata | undefined {
+  if (!items) {
+    return undefined
+  }
+
+  const { schema } = unwrapNullableSchema(items)
+  const ref = getRefName(schema.$ref)
+
+  return {
+    type: schema.type,
+    format: schema.format,
+    ref,
+    enum: schema.enum
+  }
+}
+
+function buildFieldMetadata(
+  fieldName: string,
+  schema: OpenApiPropertySchema,
+  requiredFields: Set<string>
+): GeneratedOpenApiFieldMetadata {
+  const { schema: resolvedSchema, nullable } = unwrapNullableSchema(schema)
+  const ref = getRefName(resolvedSchema.$ref)
+
+  return {
+    title: resolvedSchema.title,
+    description: resolvedSchema.description,
+    type: resolvedSchema.type,
+    format: resolvedSchema.format,
+    required: requiredFields.has(fieldName),
+    nullable,
+    default: resolvedSchema.default,
+    enum: resolvedSchema.enum,
+    ref,
+    items: buildArrayMetadata(resolvedSchema.items),
+    minLength: resolvedSchema.minLength,
+    maxLength: resolvedSchema.maxLength,
+    minimum: resolvedSchema.minimum,
+    maximum: resolvedSchema.maximum
+  }
+}
+
+function extractSchemaMetadata(spec: unknown): Record<string, GeneratedOpenApiSchemaMetadata> {
+  const schemas = getSchemas(spec)
+
+  return Object.fromEntries(
+    Object.entries(schemas)
+      .filter(([, schema]) => schema.type === 'object' || schema.properties)
+      .map(([schemaName, schema]) => {
+        const required = schema.required ?? []
+        const requiredFields = new Set(required)
+        const fields = Object.fromEntries(
+          Object.entries(schema.properties ?? {}).map(([fieldName, fieldSchema]) => [
+            fieldName,
+            buildFieldMetadata(fieldName, fieldSchema, requiredFields)
+          ])
+        )
+
+        return [schemaName, {
+          title: schema.title,
+          description: schema.description,
+          required,
+          additionalProperties:
+            typeof schema.additionalProperties === 'boolean'
+              ? schema.additionalProperties
+              : undefined,
+          fields
+        }]
+      })
+  )
+}
+
 /**
  * 生成类型定义文件
  */
@@ -103,7 +280,6 @@ async function generateTypesFile(spec: unknown, outputPath: string): Promise<boo
  * 更新类型: pnpm type:generate
  */
 
-/* eslint-disable */
 /* tslint:disable */
 
 ${generatedTypes}
@@ -119,11 +295,88 @@ ${generatedTypes}
   return changed
 }
 
+async function generateMetadataFile(spec: unknown, outputPath: string): Promise<boolean> {
+  console.log('🧭 正在生成 OpenAPI 字段元数据...')
+
+  const metadata = extractSchemaMetadata(spec)
+  const serializedMetadata = JSON.stringify(metadata, null, 2)
+  const content = `/**
+ * 自动生成的 OpenAPI 字段元数据
+ *
+ * ⚠️  请勿手动编辑此文件
+ * 此文件由 scripts/generate-api-types.ts 自动生成
+ *
+ * 后端 OpenAPI 端点: ${config.backendUrl}
+ *
+ * 更新类型: pnpm type:generate
+ */
+
+export type OpenApiEnumValue = string | number | boolean | null
+
+export interface OpenApiArrayMetadata {
+  type?: string
+  format?: string
+  ref?: string
+  enum?: OpenApiEnumValue[]
+}
+
+export interface OpenApiFieldMetadata {
+  title?: string
+  description?: string
+  type?: string
+  format?: string
+  required: boolean
+  nullable: boolean
+  default?: unknown
+  enum?: OpenApiEnumValue[]
+  ref?: string
+  items?: OpenApiArrayMetadata
+  minLength?: number
+  maxLength?: number
+  minimum?: number
+  maximum?: number
+}
+
+export interface OpenApiSchemaMetadata {
+  title?: string
+  description?: string
+  required: string[]
+  additionalProperties?: boolean
+  fields: Record<string, OpenApiFieldMetadata>
+}
+
+export const OPENAPI_SCHEMA_METADATA = ${serializedMetadata} as const satisfies Record<
+  string,
+  OpenApiSchemaMetadata
+>
+
+export function getOpenApiSchemaMetadata(schemaName: string): OpenApiSchemaMetadata | undefined {
+  return (OPENAPI_SCHEMA_METADATA as Record<string, OpenApiSchemaMetadata>)[schemaName]
+}
+
+export function getOpenApiFieldMetadata(
+  schemaName: string,
+  fieldName: string
+): OpenApiFieldMetadata | undefined {
+  return (OPENAPI_SCHEMA_METADATA as Record<string, OpenApiSchemaMetadata>)[schemaName]?.fields[fieldName]
+}
+`
+
+  const changed = writeFileIfChanged(outputPath, content)
+  if (changed) {
+    console.log(`✅ 字段元数据文件已更新: ${outputPath}`)
+  } else {
+    console.log(`✅ 字段元数据无变化: ${outputPath}`)
+  }
+
+  return changed
+}
+
 /**
  * 验证生成的类型
  */
-function validateTypes(outputPath: string): void {
-  console.log(`🔍 正在验证生成的类型...`)
+function validateGeneratedFile(outputPath: string): void {
+  console.log(`🔍 正在验证生成文件: ${outputPath}`)
 
   if (!existsSync(outputPath)) {
     throw new Error(`类型文件不存在: ${outputPath}`)
@@ -142,14 +395,14 @@ function validateTypes(outputPath: string): void {
 
   if (result.diagnostics?.length) {
     const message = ts.formatDiagnosticsWithColorAndContext(result.diagnostics, {
-      getCanonicalFileName: (fileName) => fileName,
+      getCanonicalFileName: fileName => fileName,
       getCurrentDirectory: () => process.cwd(),
       getNewLine: () => '\n'
     })
     throw new Error(`生成的类型文件存在语法问题:\n${message}`)
   }
 
-  console.log(`✅ 类型验证通过`)
+  console.log(`✅ 生成文件验证通过`)
 }
 
 // ==================== 主流程 ====================
@@ -166,11 +419,15 @@ async function main(): Promise<void> {
 
     // 生成类型文件
     const outputPath = join(config.outputDir, 'openapi-types.ts')
-    const changed = await generateTypesFile(spec, outputPath)
+    const metadataOutputPath = join(config.outputDir, 'openapi-metadata.ts')
+    const typeChanged = await generateTypesFile(spec, outputPath)
+    const metadataChanged = await generateMetadataFile(spec, metadataOutputPath)
 
-    // 验证类型
-    validateTypes(outputPath)
+    // 验证生成结果
+    validateGeneratedFile(outputPath)
+    validateGeneratedFile(metadataOutputPath)
 
+    const changed = typeChanged || metadataChanged
     console.log(changed ? '\n✅ 类型生成完成！' : '\n✅ 类型无变化，未更新生成文件')
     console.log(`📁 输出目录: ${config.outputDir}`)
     console.log('\n💡 提示: 运行 pnpm type:check 验证类型正确性')

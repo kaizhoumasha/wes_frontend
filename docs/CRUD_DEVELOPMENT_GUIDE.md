@@ -1,7 +1,7 @@
 # CRUD 开发指南
 
-**版本**: 1.0
-**最后更新**: 2026-03-14
+**版本**: 1.1
+**最后更新**: 2026-03-25
 **适用**: P9 WES 前端项目
 
 ---
@@ -46,6 +46,94 @@
 ---
 
 ## 快速开始
+
+### 推荐写法：先分清“后端事实”与“前端投影”
+
+标准 CRUD 资源推荐按下面三层思考：
+
+```text
+OpenAPI / 合同事实
+  └─ 字段名、类型、format、required、nullable、默认中文 label
+       ↓
+字段装配入口 defineCrudResourceFieldBundle()
+  └─ 把后端事实和页面差异合并成 USER_FIELDS / pageFieldConfig
+       ↓
+页面配置 createCrudPageConfigFromResource()
+  └─ 组装列表 / 表单 / 搜索 / 详情 / 动作
+```
+
+页面作者只需要记住：
+
+- `backend`：描述字段事实从哪里来
+- `fields`：只写前端 UI 差异，不重复写后端已经提供的事实
+
+#### 黄金路径示例
+
+```ts
+import { defineCrudResourceFieldBundle } from '@/components/common/crud-page/resourceFieldBuilder'
+
+const { fields: PRODUCT_FIELDS, fieldConfig: productPageFieldConfig } =
+  defineCrudResourceFieldBundle<Product, CreateProductInput, UpdateProductInput>({
+    backend: {
+      readSchema: 'ProductResponse',
+      createSchema: 'ProductCreate',
+      updateSchema: 'ProductUpdate',
+      labelOverrides: {
+        updated_at: '更新时间'
+      }
+    },
+    fields: [
+      {
+        key: 'name',
+        table: { visibleFrom: 'mobile', width: 180 },
+        form: { autocomplete: 'off' },
+        search: {}
+      },
+      {
+        key: 'updated_at',
+        table: { visibleFrom: 'tablet', sortable: true }
+      }
+    ],
+    storageKey: 'wes-product-table-columns',
+    reorderLockedKeys: ['name'],
+    search: {
+      placeholder: '搜索商品名称...'
+    },
+    form: {
+      createSchema: ProductCreateSchema,
+      updateSchema: ProductUpdateSchema
+    }
+  })
+```
+
+#### 哪些是自动补的
+
+如果 `backend` 提供了 OpenAPI schema，以下值默认不需要在 `fields` 里重复写：
+
+- `label`
+- `form.type`
+- `form.inputType`
+- `form.placeholder`
+- `search.dataType`
+- `search.defaultOperator`
+- `search.quickOps`
+- `search.placeholder`
+- `boolean` 搜索选项“是 / 否”
+- `date` / `date-time` 表格 formatter
+
+#### 哪些仍然应该手写
+
+这些属于前端 UI 投影，应该继续在 `fields` 里显式声明：
+
+- 列宽、固定列、显示断点、是否可排序
+- 布尔值 tag 风格、关系列表 slots、自定义 formatter
+- autocomplete、只读、create/edit 模式差异
+- 搜索 favorites / quick presets
+- 详情页 sections、动作区、页面 title
+
+#### 一条经验法则
+
+如果某个配置项删除后，页面仍然能从 OpenAPI 正确推断出来，就不要在页面里重复写。
 
 ### 最小化示例（配置驱动）
 

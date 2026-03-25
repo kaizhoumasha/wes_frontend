@@ -9,7 +9,6 @@
  * 更新类型: pnpm type:generate
  */
 
- 
 /* tslint:disable */
 
 export interface paths {

@@ -39,6 +39,28 @@ interface CreateCrudPageConfigFromResourceOptions<
   }
 }
 
+function resolveCrudPageDetail<TItem extends CrudPageEntity>(
+  detail: CrudPageDetailConfig<TItem> | undefined,
+  fields: readonly ResourceFieldDefinition[]
+): CrudPageDetailConfig<TItem> | undefined {
+  if (!detail?.sections?.length) {
+    return detail
+  }
+
+  const fieldLabelMap = new Map(fields.map(field => [field.key, field.label]))
+
+  return {
+    ...detail,
+    sections: detail.sections.map(section => ({
+      ...section,
+      fields: section.fields?.map(field => ({
+        ...field,
+        label: field.label ?? fieldLabelMap.get(field.key) ?? field.key
+      }))
+    }))
+  }
+}
+
 function resolveCrudPageForm<
   TCreate extends object,
   TUpdate extends object
@@ -81,6 +103,7 @@ export function createCrudPageConfigFromResource<
 ): CrudPageConfig<TItem, TCreate, TUpdate> {
   const { resource, fieldConfig, table, form, detail, features, extensions } = options
   const resolvedForm = resolveCrudPageForm<TCreate, TUpdate>(fieldConfig, form)
+  const resolvedDetail = resolveCrudPageDetail(detail, fieldConfig.fields)
   const resolvedTable: CrudPageConfig<TItem, TCreate, TUpdate>['table'] = {
     selectable: true,
     columnResizable: true,
@@ -93,7 +116,7 @@ export function createCrudPageConfigFromResource<
     search: fieldConfig.search,
     table: resolvedTable,
     form: resolvedForm,
-    detail,
+    detail: resolvedDetail,
     features,
     extensions
   })
