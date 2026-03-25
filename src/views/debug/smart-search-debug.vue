@@ -342,12 +342,12 @@ import { Document, Suitcase, User } from '@element-plus/icons-vue'
 
 import { useSmartSearch } from '@/composables/useSmartSearch'
 import type { FilterGroup } from '@/api/base/crud-api'
-import type {
-  SearchFieldDef,
-  SearchFavorite,
-  QuickSearchPreset
-} from '@/types/search'
-import { countFilterNodes, convertFilterGroupToUIFilterGroup, summarizeUIFilterGroup } from '@/utils/advanced-search'
+import type { SearchFieldDef, SearchFavorite, QuickSearchPreset } from '@/types/search'
+import {
+  countFilterNodes,
+  convertFilterGroupToUIFilterGroup,
+  summarizeUIFilterGroup
+} from '@/utils/advanced-search'
 import SmartSearchBar from '@/components/search/SmartSearchBar.vue'
 import AdvancedSearchDialog from '@/components/search/AdvancedSearchDialog.vue'
 
@@ -502,7 +502,8 @@ let draftSeedNonce = 0
 // ==================== 计算属性 ====================
 
 const hasConditions = computed(
-  () => smartSearch.conditions.value.length > 0 || smartSearch.advancedFilterGroup.value !== undefined
+  () =>
+    smartSearch.conditions.value.length > 0 || smartSearch.advancedFilterGroup.value !== undefined
 )
 
 const filterGroup = computed(() => smartSearch.compileToFilterGroup())

@@ -22,9 +22,7 @@ Popover 中栏：展示系统快捷预设，支持一键应用。
         <div class="search-quick-panel__item-content">
           <div class="search-quick-panel__item-top">
             <div class="search-quick-panel__item-label">{{ preset.label }}</div>
-            <span class="search-quick-panel__item-count">
-              {{ preset.conditions.length }} 条
-            </span>
+            <span class="search-quick-panel__item-count">{{ preset.conditions.length }} 条</span>
           </div>
           <div
             v-if="preset.description"

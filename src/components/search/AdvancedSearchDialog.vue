@@ -23,16 +23,22 @@
           <span class="advanced-search-dialog__context-title">
             当前还有 {{ regularConditionsCount }} 个普通条件
           </span>
-          <span class="advanced-search-dialog__context-text">
-            应用后会与这里的高级规则一起生效
-          </span>
+          <span class="advanced-search-dialog__context-text">应用后会与这里的高级规则一起生效</span>
         </div>
       </section>
 
-      <section v-if="validationErrors.length > 0" class="advanced-search-dialog__errors">
+      <section
+        v-if="validationErrors.length > 0"
+        class="advanced-search-dialog__errors"
+      >
         <span class="advanced-search-dialog__errors-title">条件未完成，请先修正以下问题：</span>
         <ul>
-          <li v-for="error in validationErrors" :key="error">{{ error }}</li>
+          <li
+            v-for="error in validationErrors"
+            :key="error"
+          >
+            {{ error }}
+          </li>
         </ul>
       </section>
 
@@ -60,11 +66,21 @@
     <template #footer>
       <div class="advanced-search-dialog__footer">
         <div class="advanced-search-dialog__footer-left">
-          <el-button text @click="handleSaveFavorite">保存为收藏</el-button>
+          <el-button
+            text
+            @click="handleSaveFavorite"
+          >
+            保存为收藏
+          </el-button>
         </div>
         <div class="advanced-search-dialog__footer-actions">
           <el-button @click="emit('update:modelValue', false)">取消</el-button>
-          <el-button type="primary" @click="handleApply">应用搜索</el-button>
+          <el-button
+            type="primary"
+            @click="handleApply"
+          >
+            应用搜索
+          </el-button>
         </div>
       </div>
     </template>
@@ -81,7 +97,7 @@ import {
   getFavoriteFilterGroup,
   hasMeaningfulUIFilterGroup,
   stripUIFilterGroup,
-  summarizeUIFilterGroup,
+  summarizeUIFilterGroup
 } from '@/utils/advanced-search'
 import FavoritesPanel from './advanced-search/FavoritesPanel.vue'
 import FilterGroupBuilder from './advanced-search/FilterGroupBuilder.vue'
@@ -197,18 +213,21 @@ async function focusInitialTarget(): Promise<void> {
   })
 }
 
-watch(() => props.modelValue, (isOpen, wasOpen) => {
-  if (isOpen) {
-    captureReturnFocusTarget()
-    resetSummaryBar()
-    void focusInitialTarget()
-    return
-  }
+watch(
+  () => props.modelValue,
+  (isOpen, wasOpen) => {
+    if (isOpen) {
+      captureReturnFocusTarget()
+      resetSummaryBar()
+      void focusInitialTarget()
+      return
+    }
 
-  if (wasOpen) {
-    restoreReturnFocus()
+    if (wasOpen) {
+      restoreReturnFocus()
+    }
   }
-})
+)
 
 function handleGroupUpdate(value: UIFilterGroup) {
   replaceDraftGroup(value)
@@ -364,7 +383,11 @@ function handleApply() {
 
 :deep(.advanced-search-dialog .standard-dialog__body) {
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--el-fill-color-lighter) 62%, transparent), transparent 180px),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--el-fill-color-lighter) 62%, transparent),
+      transparent 180px
+    ),
     var(--el-bg-color-page);
 }
 

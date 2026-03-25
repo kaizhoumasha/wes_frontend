@@ -20,7 +20,10 @@
         :data-text="statusCodeText"
       >
         <span v-if="statusCodeText">{{ statusCodeText }}</span>
-        <slot v-else name="status" />
+        <slot
+          v-else
+          name="status"
+        />
       </div>
 
       <!-- 图标区域 -->
@@ -127,7 +130,8 @@ html:not(.dark) .error-layout {
 .grid-lines {
   position: absolute;
   inset: 0;
-  background-image: repeating-linear-gradient(
+  background-image:
+    repeating-linear-gradient(
       0deg,
       transparent,
       transparent 60px,
@@ -145,7 +149,8 @@ html:not(.dark) .error-layout {
 }
 
 html:not(.dark) .grid-lines {
-  background-image: repeating-linear-gradient(
+  background-image:
+    repeating-linear-gradient(
       0deg,
       transparent,
       transparent 60px,

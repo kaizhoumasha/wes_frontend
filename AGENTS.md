@@ -30,6 +30,7 @@
 ## Commit 与 Pull Request 规范
 
 - 提交信息遵循 Conventional Commits，例如：`feat(users): ...`、`fix(table): ...`、`refactor(users): ...`、`chore(sync): ...`。
+- 提交信息说明默认使用中文；推荐保留 Conventional Commit 的 type/scope，冒号后的摘要与正文使用中文。
 - 每次 commit 聚焦单一主题，不混入无关改动；PR 需说明变更内容、影响范围、验证步骤，并为 UI 变更附截图。
 
 ## 配置与架构注意事项

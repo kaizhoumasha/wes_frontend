@@ -114,8 +114,8 @@
     </template>
 
     <template #hint>
-      <span v-if="fromMenu"> 若这是后端菜单配置的入口，请补充对应前端路由或修正菜单 path。 </span>
-      <span v-else> 当前访问的页面不存在，或对应前端路由尚未配置。 </span>
+      <span v-if="fromMenu">若这是后端菜单配置的入口，请补充对应前端路由或修正菜单 path。</span>
+      <span v-else>当前访问的页面不存在，或对应前端路由尚未配置。</span>
     </template>
   </ErrorLayout>
 </template>

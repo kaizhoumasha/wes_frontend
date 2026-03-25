@@ -127,7 +127,9 @@ const errorText = computed(() => {
   return '加载失败'
 })
 
-const showPagination = computed(() => !showEmpty.value && !showError.value && props.pagination.total > 0)
+const showPagination = computed(
+  () => !showEmpty.value && !showError.value && props.pagination.total > 0
+)
 
 // ============================================================================
 // 暴露的方法
@@ -178,11 +180,7 @@ function handleSortChange(sort: { field: string; sortKey?: string; order: TableS
   emit('sort-change', sort)
 }
 
-function handleColumnResize(resize: {
-  field: string
-  width: number
-  oldWidth?: number
-}): void {
+function handleColumnResize(resize: { field: string; width: number; oldWidth?: number }): void {
   emit('column-resize', resize)
 }
 </script>

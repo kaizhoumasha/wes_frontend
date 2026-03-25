@@ -55,7 +55,10 @@
             >
               <span class="smart-search-bar__advanced-tag-label">
                 高级筛选
-                <span v-if="advancedCountLabel" class="smart-search-bar__advanced-tag-count">
+                <span
+                  v-if="advancedCountLabel"
+                  class="smart-search-bar__advanced-tag-count"
+                >
                   · {{ advancedCountLabel }}
                 </span>
               </span>
@@ -321,7 +324,7 @@ watch(
     if (!active && selectedTokenId.value === ADVANCED_TAG_TOKEN) {
       clearSelectedCondition()
     }
-  },
+  }
 )
 
 // 同步 expectedPopoverOpen 与实际的 popoverOpen 状态

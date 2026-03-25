@@ -267,9 +267,7 @@ function buildBetweenCondition(boundary: 'min' | 'max', changedValue: unknown): 
 
     if (
       nextMax === undefined ||
-      (typeof changedValue === 'number' &&
-        typeof nextMax === 'number' &&
-        nextMax <= changedValue)
+      (typeof changedValue === 'number' && typeof nextMax === 'number' && nextMax <= changedValue)
     ) {
       if (typeof changedValue === 'number') {
         nextMax = changedValue + 1
@@ -290,9 +288,7 @@ function buildBetweenCondition(boundary: 'min' | 'max', changedValue: unknown): 
 
   if (
     nextMin === undefined ||
-    (typeof nextMin === 'number' &&
-      typeof changedValue === 'number' &&
-      nextMin >= changedValue)
+    (typeof nextMin === 'number' && typeof changedValue === 'number' && nextMin >= changedValue)
   ) {
     if (typeof changedValue === 'number') {
       nextMin = changedValue - 1

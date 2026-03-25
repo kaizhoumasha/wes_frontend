@@ -78,7 +78,6 @@
           </div>
         </div>
       </el-form-item>
-
     </el-form>
   </div>
 </template>
@@ -343,5 +342,4 @@ export interface TimezoneSettingsInstance {
   font-family: 'Courier New', monospace;
   font-size: 13px;
 }
-
 </style>
