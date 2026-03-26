@@ -1,141 +1,223 @@
 # CRUD 开发指南
 
-**版本**: 1.1
-**最后更新**: 2026-03-25
+**版本**: 1.3
+**最后更新**: 2026-03-26
 **适用**: P9 WES 前端项目
 
 ---
 
 ## 概述
 
-本指南介绍如何使用项目中的通用 CRUD 组件和 Composables 快速构建标准的增删改查功能模块。
+本指南介绍如何使用通用 CRUD 组件快速构建标准增删改查功能。
 
-### 架构分层
+### 核心概念
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      View Layer (页面层)                      │
-│  ┌─────────────┐  ┌──────────────┐  ┌─────────────────────┐ │
-│  │CrudPageContainer│  │CrudTable     │  │ CrudToolbar          │ │
-│  └─────────────┘  └──────────────┘  └─────────────────────┘ │
-│  ┌─────────────┐  ┌──────────────┐  ┌─────────────────────┐ │
-│  │CrudFormDialog│  │ColumnConfigDialog│  │ (业务特定组件)     │ │
-│  └─────────────┘  └──────────────┘  └─────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│                   Logic Layer (逻辑层)                       │
-│  ┌─────────────┐  ┌──────────────┐  ┌─────────────────────┐ │
-│  │useCrudListPage│ │useTableColumns│ │ useSmartSearch       │ │
-│  └─────────────┘  └──────────────┘  └─────────────────────┘ │
-│  ┌─────────────┐  ┌──────────────┐  ┌─────────────────────┐ │
-│  │useCrudApi   │  │usePermission │  │ (业务特定 Composables)│ │
-│  └─────────────┘  └──────────────┘  └─────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│                   Formatter Layer (格式化层)                  │
-│  ┌─────────────────────────────────────────────────────────┐│
-│  │ createBooleanTagFormatter  │ createDateTimeFormatter    ││
-│  │ createArrayTagFormatter    │ createStatusTagFormatter   ││
-│  │ createActionsFormatter     │ buildActionsColumn         ││
-│  └─────────────────────────────────────────────────────────┘│
-└─────────────────────────────────────────────────────────────┘
+OpenAPI 合同事实
+  └─ 字段名、类型、format、required
+       ↓
+defineCrudResourceFieldBundle()  ← 字段装配入口
+  └─ 合并后端事实和前端 UI 差异
+       ↓
+createCrudPageConfigFromResource()  ← 页面配置
+  └─ 组装列表 / 表单 / 搜索 / 详情
 ```
+
+**黄金法则**: `backend` 描述字段从哪里来，`fields` 只写前端 UI 差异。
 
 ---
 
-## 快速开始
+## 5 分钟快速开始
 
-### 推荐写法：先分清“后端事实”与“前端投影”
+### Step 0: 前置准备（后端契约同步）
 
-标准 CRUD 资源推荐按下面三层思考：
+**⚠️ 重要：开发新功能前，必须先从后端同步最新的 OpenAPI 契约！**
 
-```text
-OpenAPI / 合同事实
-  └─ 字段名、类型、format、required、nullable、默认中文 label
-       ↓
-字段装配入口 defineCrudResourceFieldBundle()
-  └─ 把后端事实和页面差异合并成 USER_FIELDS / pageFieldConfig
-       ↓
-页面配置 createCrudPageConfigFromResource()
-  └─ 组装列表 / 表单 / 搜索 / 详情 / 动作
+```bash
+# 1. 确保后端服务已启动
+# http://localhost:8001/api/openapi.json 应能访问
+
+# 2. 生成 TypeScript 类型（从 OpenAPI）
+pnpm type:generate
+
+# 3. 生成 Zod Schema（用于表单验证）
+pnpm zod:generate
+
+# 4. 生成权限常量
+pnpm permission:generate
 ```
 
-页面作者只需要记住：
+**坑点预警**：如果跳过后端同步，可能出现：
 
-- `backend`：描述字段事实从哪里来
-- `fields`：只写前端 UI 差异，不重复写后端已经提供的事实
+- 类型错误（`RoleResponse` 不存在）
+- 权限常量缺失（`ADMIN_PERMISSIONS.role` 未定义）
+- Zod Schema 未生成（`RoleCreateSchema` 未找到）
 
-#### 黄金路径示例
+**下一步：检查后端提供的 API 能力**
 
-```ts
+同步完成后，务必查看 `src/api/base/crud-api.ts` 确认后端提供了哪些端点：
+
+```typescript
+// 查看生成的 API 类型，确认支持的操作
+export interface SoftDeleteCrudApiEndpoints {
+  collection: string // 列表查询
+  item: string // 单条查询
+  create: string // 创建
+  update: string // 更新
+  delete: string // 删除
+  query: string // 高级查询
+  // 软删除特有
+  restore?: string // 恢复（软删除资源才有）
+  trash?: string // 回收站列表
+  trashRestore?: string // 批量恢复
+  trashPermanentDelete?: string // 批量彻底删除
+}
+```
+
+**常见遗漏的能力**：
+
+| 能力          | 检查方式                                   | 前端配置                                                        |
+| ------------- | ------------------------------------------ | --------------------------------------------------------------- |
+| 软删除/回收站 | 检查是否有 `trash`、`restore` 端点         | `createSoftDeleteCrudApi` + `features.trash: { enabled: true }` |
+| 批量操作      | 检查是否有 `bulkDelete`、`bulkUpdate` 端点 | 目前需手动实现                                                  |
+| 导出          | 检查是否有 `export` 端点                   | 需自定义按钮调用                                                |
+| 高级搜索      | 检查 `query` 端点参数                      | 使用智能搜索组件                                                |
+| **额外 API**  | 检查 `{id}/xxx` 子资源端点                 | 通过 `extensions` 添加自定义操作                                |
+
+**额外 API 能力示例**（用户管理）：
+
+```typescript
+// src/api/modules/user.ts
+const USER_RESET_PASSWORD_PATH = '/api/v1/users/{id}/reset-password'
+const USER_ASSIGN_ROLES_PATH = '/api/v1/users/{id}/assign-roles'
+
+export const userApi = {
+  ...baseUserApi, // 基础 CRUD
+
+  // 额外能力：重置密码
+  async resetPassword(id: number, data: ResetUserPasswordInput) {
+    return await contractClient.put(USER_RESET_PASSWORD_PATH, {
+      params: { id },
+      body: data
+    })
+  },
+
+  // 额外能力：分配角色
+  async assignRoles(id: number, roleIds: number[]) {
+    return await contractClient.put(USER_ASSIGN_ROLES_PATH, {
+      params: { id },
+      body: { role_ids: roleIds }
+    })
+  }
+}
+```
+
+然后在页面配置中通过 `extensions` 使用：
+
+```typescript
+// pageConfig.ts
+export function createUserPageConfig(
+  openAssignRolesDialog: (user: User) => void,
+  openResetPasswordDialog: (user: User) => void
+) {
+  return createCrudPageConfigFromResource({
+    resource: USER_PAGE_RESOURCE,
+    fieldConfig: userPageFieldConfig,
+    extensions: {
+      rowActions: createUserRowActions(openAssignRolesDialog, openResetPasswordDialog)
+    }
+  })
+}
+```
+
+**实际踩坑**：角色管理开发时差点遗漏了回收站功能，后来发现后端提供了完整的软删除端点（`trash`、`restore`、`permanent`），前端只需要启用 `features.trash` 即可。
+
+---
+
+### Step 1: 创建 API（2 分钟）
+
+```typescript
+// src/api/modules/product.ts
+import {
+  createSoftDeleteCrudApi,
+  type SoftDeleteCrudResourceCollectionPath
+} from '@/api/base/crud-api'
+
+const PRODUCT_PATH = '/api/v1/products' satisfies SoftDeleteCrudResourceCollectionPath
+
+export type Product = CrudItem<typeof PRODUCT_PATH>
+export type CreateProductInput = CrudCreateInput<typeof PRODUCT_PATH>
+export type UpdateProductInput = CrudUpdateInput<typeof PRODUCT_PATH>
+
+export const productApi = createSoftDeleteCrudApi({
+  collection: PRODUCT_PATH,
+  item: `${PRODUCT_PATH}/{id}` as const,
+  query: `${PRODUCT_PATH}/query` as const,
+  restore: `${PRODUCT_PATH}/{id}/restore` as const,
+  trash: `${PRODUCT_PATH}/trash` as const,
+  trashRestore: `${PRODUCT_PATH}/trash/restore` as const,
+  trashPermanentDelete: `${PRODUCT_PATH}/trash/permanent` as const
+})
+```
+
+### Step 2: 配置字段（2 分钟）
+
+```typescript
+// src/views/admin/products/config/fieldConfig.ts
 import { defineCrudResourceFieldBundle } from '@/components/common/crud-page/resourceFieldBuilder'
+import { ProductCreateSchema, ProductUpdateSchema } from '@/types/zod-extensions'
 
-const { fields: PRODUCT_FIELDS, fieldConfig: productPageFieldConfig } =
+export const { fields: PRODUCT_FIELDS, fieldConfig: productPageFieldConfig } =
   defineCrudResourceFieldBundle<Product, CreateProductInput, UpdateProductInput>({
     backend: {
       readSchema: 'ProductResponse',
       createSchema: 'ProductCreate',
       updateSchema: 'ProductUpdate',
-      labelOverrides: {
-        updated_at: '更新时间'
-      }
+      labelOverrides: { name: '商品名称' }
     },
     fields: [
       {
         key: 'name',
-        table: { visibleFrom: 'mobile', width: 180 },
-        form: { autocomplete: 'off' },
+        table: { fixed: 'left', width: 180 },
+        form: { required: true },
         search: {}
       },
       {
-        key: 'updated_at',
-        table: { visibleFrom: 'tablet', sortable: true }
+        key: 'price',
+        table: { sortable: true },
+        form: { type: 'number' }
       }
     ],
-    storageKey: 'wes-product-table-columns',
-    reorderLockedKeys: ['name'],
-    search: {
-      placeholder: '搜索商品名称...'
-    },
-    form: {
-      createSchema: ProductCreateSchema,
-      updateSchema: ProductUpdateSchema
-    }
+    storageKey: 'wes-product-table-columns'
   })
 ```
 
-#### 哪些是自动补的
+### Step 3: 创建页面配置（1 分钟）
 
-如果 `backend` 提供了 OpenAPI schema，以下值默认不需要在 `fields` 里重复写：
+```typescript
+// src/views/admin/products/config/pageConfig.ts
+import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
+import { productPageFieldConfig } from './fieldConfig'
+import { productApi } from '@/api/modules/product'
 
-- `label`
-- `form.type`
-- `form.inputType`
-- `form.placeholder`
-- `search.dataType`
-- `search.defaultOperator`
-- `search.quickOps`
-- `search.placeholder`
-- `boolean` 搜索选项“是 / 否”
-- `date` / `date-time` 表格 formatter
+export function createProductPageConfig() {
+  return createCrudPageConfigFromResource({
+    resource: {
+      key: 'products',
+      title: { text: '商品管理', icon: 'ep:goods' },
+      api: productApi,
+      permissions: ADMIN_PERMISSIONS.product
+    },
+    fieldConfig: productPageFieldConfig,
+    features: {
+      trash: { enabled: true },
+      create: { label: '新增商品' }
+    }
+  })
+}
+```
 
-#### 哪些仍然应该手写
-
-这些属于前端 UI 投影，应该继续在 `fields` 里显式声明：
-
-- 列宽、固定列、显示断点、是否可排序
-- 布尔值 tag 风格、关系列表 slots、自定义 formatter
-- autocomplete、只读、create/edit 模式差异
-- 搜索 favorites / quick presets
-- 详情页 sections、动作区、页面 title
-
-#### 一条经验法则
-
-如果某个配置项删除后，页面仍然能从 OpenAPI 正确推断出来，就不要在页面里重复写。
-
-### 最小化示例（配置驱动）
+### Step 4: 创建页面组件（30 秒）
 
 ```vue
 <!-- src/views/admin/products/ProductListPage.vue -->
@@ -145,965 +227,642 @@ const { fields: PRODUCT_FIELDS, fieldConfig: productPageFieldConfig } =
 
 <script setup lang="ts">
 import CrudPageContainer from '@/components/common/CrudPageContainer.vue'
-import { useProductPageConfig } from './useProductPageConfig'
+import { createProductPageConfig } from './config/pageConfig'
 
-const config = useProductPageConfig()
+const config = createProductPageConfig()
 </script>
 ```
 
-```ts
-// src/views/admin/products/useProductPageConfig.ts
-import { defineCrudPageConfig } from '@/components/common/crud-page/defineCrudPageConfig'
+### Step 5: 添加路由并同步菜单
 
-export function useProductPageConfig() {
-  return defineCrudPageConfig({
-    resource: {
-      key: 'products',
-      title: {
-        text: '商品管理',
-        subtitle: '管理系统商品',
-        icon: 'ep:goods'
-      },
-      api: productApi,
-      permissions: PRODUCT_PERMISSION,
-      pageSize: 20,
-      defaultSort: [{ field: 'updated_at', order: 'desc' }]
-    },
-    search: {
-      fields: productSearchFields,
-      quickPresets: productQuickPresets,
-      favorites: productSearchFavorites,
-      placeholder: '搜索商品名称、SKU...'
-    },
-    table: {
-      selectable: true,
-      columnResizable: true,
-      defaultSort: { field: 'updated_at', order: 'descending' },
-      columns: {
-        defaultColumns: DEFAULT_PRODUCT_COLUMNS,
-        createManager: useProductTableColumns
-      }
-    },
-    form: {
-      createSchema: ProductCreateSchema,
-      updateSchema: ProductUpdateSchema,
-      fieldConfig: PRODUCT_FORM_FIELDS
+```typescript
+// src/router/index.ts
+{
+  path: 'products',
+  name: 'ProductList',
+  component: () => import('@/views/admin/products/ProductListPage.vue'),
+  meta: {
+    title: '商品管理',
+    permission: ADMIN_PERMISSIONS.product.page,
+    menu: {
+      name: 'admin:product:menu',
+      parentName: 'admin:system:menu',
+      icon: 'ep:goods',
+      sortOrder: 1
     }
-  })
+  }
 }
 ```
 
-### 推荐分层
-
-- 页面组件：只保留 `CrudPageContainer` 与 `config` 接入
-- 页面配置：单独放在 `useXxxPageConfig.ts`
-- 资源列配置：单独放在 `useXxxTableColumns.ts`
-- 业务特例：通过 `extensions.toolbarActions` / `extensions.rowActions` 注入
+```bash
+# 同步菜单到数据库
+# ⚠️ Worktree 开发时必须指定路径！
+bash scripts/data/sync_menus.sh \
+  --frontend-path /Users/kaizhou/SynologyDrive/works/wes_frontend-worktrees/your_feature
+```
 
 ---
 
-## 核心组件详解
+## 标准开发流程（详细版）
 
-### 1. useCrudListPage - CRUD 逻辑引擎
+### Step 0: 前置准备（后端契约同步）
 
-**位置**: `src/composables/useCrudListPage.ts`
+**开发任何新功能之前，必须执行以下步骤同步后端契约：**
 
-**功能**: 整合 CRUD 操作、搜索、批量操作、权限控制的"无头"逻辑引擎。
+```bash
+# 1. 确保后端服务已启动
+# 访问 http://localhost:8001/docs 确认 OpenAPI 文档可用
 
-#### API
+# 2. 生成 TypeScript 类型
+pnpm type:generate
 
-```typescript
-interface UseCrudListPageOptions<T, C, U> {
-  api: CrudApi<T, C, U> // CRUD API 实例
-  searchFields: SearchFieldDef[] // 搜索字段定义
-  quickPresets?: QuickSearchPreset[] // 快速搜索预设
-  permissions?: {
-    // 权限常量
-    create: string
-    update: string
-    delete: string
-  }
-  pageSize?: number // 分页大小（默认 20）
-  optimisticUpdate?: boolean // 乐观更新（默认 false）
-  autoRefresh?: boolean // 自动刷新（默认 true，与 optimisticUpdate 互斥）
-  defaultSort?: SortField[] // 默认排序
-}
+# 3. 生成 Zod Schema（表单验证用）
+pnpm zod:generate
+
+# 4. 生成权限常量
+pnpm permission:generate
+
+# 5. 验证生成结果
+ls src/types/generated/      # 查看生成的类型
+ls src/types/zod-extensions.ts  # 查看 Zod schemas
+ls src/api/generated/permissions.ts  # 查看权限常量
 ```
 
-#### 返回值（按职责分组）
+**同步后必做：检查后端 API 能力**
+
+查看生成的类型或 OpenAPI 文档，确认后端提供了哪些端点：
 
 ```typescript
-const {
-  // 核心状态
-  state: {
-    data: Ref<T[] | null>           // 表格数据
-    loading: Ref<boolean>           // 加载状态
-    error: Ref<Error | null>        // 错误信息
-    pagination: PaginationState     // 分页状态
-    selectedItems: Ref<T[]>         // 选中项
-    selectedCount: Ref<number>      // 选中数量
-    hasSelection: Ref<boolean>      // 是否有选中项
-    batchDeleteLoading: Ref<boolean>// 批量删除加载状态
-    sortState: Ref<SortField[] | null> // 排序状态
-    getCachedData: (id: number) => T | undefined // 获取缓存数据
-  },
+// 标准 CRUD 端点
+createCrudApi({
+  collection: '/api/v1/products',
+  item: '/api/v1/products/{id}',
+  create: '/api/v1/products',
+  update: '/api/v1/products/{id}',
+  delete: '/api/v1/products/{id}',
+  query: '/api/v1/products/query'
+})
 
-  // 搜索相关
-  search: {
-    instance: ReturnType<typeof useSmartSearch> // 搜索实例
-    handleSearch: (page?: number) => Promise<void>
-    handleRefresh: () => Promise<void>
-    handleSortChange: (sort: {...}) => Promise<void>
-  },
-
-  // 弹窗相关
-  dialogs: {
-    formOpen: Ref<boolean>
-    editingId: Ref<number | null>
-    key: Ref<number>                // 用于强制刷新弹窗
-    openCreate: () => void
-    openEdit: (id: number) => void
-    close: () => void
-  },
-
-  // 批量选择相关
-  selection: {
-    handleSelectionChange: (selected: T[]) => void
-    clearSelectionState: () => void
-    handleBatchDelete: () => Promise<void>
-  },
-
-  // API 操作
-  apiActions: {
-    handleCreate: (formData: C) => Promise<T | null>
-    handleEdit: (id: number, formData: U) => Promise<T | null>
-    handleDelete: (id: number) => Promise<boolean>
-  },
-
-  // 权限
-  permissions: {
-    create: ComputedRef<boolean>
-    update: ComputedRef<boolean>
-    delete: ComputedRef<boolean>
-  }
-}
-```
-
-#### 使用示例
-
-```typescript
-const { state, search, dialogs, selection, apiActions, permissions } = useCrudListPage<
-  User,
-  CreateUserInput,
-  UpdateUserInput
->({
-  api: userApi,
-  searchFields: USER_SEARCH_FIELDS,
-  quickPresets: [
-    { label: '超级用户', filters: [{ field: 'is_superuser', operator: 'eq', value: true }] },
-    { label: '正常状态', filters: [{ field: 'is_active', operator: 'eq', value: true }] }
-  ],
-  permissions: USER_PERMISSION,
-  pageSize: 20,
-  optimisticUpdate: true, // 乐观更新，删除后不自动刷新
-  defaultSort: [{ field: 'created_at', order: 'desc' }]
+// 软删除端点（额外能力）
+createSoftDeleteCrudApi({
+  // ...标准端点
+  restore: '/api/v1/products/{id}/restore', // 单条恢复
+  trash: '/api/v1/products/trash', // 回收站列表
+  trashRestore: '/api/v1/products/trash/restore', // 批量恢复
+  trashPermanentDelete: '/api/v1/products/trash/permanent' // 批量彻底删除
 })
 ```
 
----
+**常见遗漏**：
 
-### 2. useTableColumns - 列配置管理
+- **软删除/回收站**：后端提供了 `trash`、`restore` 端点，但前端用了 `createCrudApi` 而不是 `createSoftDeleteCrudApi`
+- **批量操作**：后端提供了 `bulkDelete`，但前端未实现批量选择功能
+- **导出**：后端提供了 `export` 端点，但前端未添加导出按钮
+- **额外 API 能力**：后端提供了 `{id}/assign-roles`、`{id}/reset-password` 等子资源端点，但前端只实现了基础 CRUD
 
-**位置**: `src/composables/useTableColumns.ts`
-
-**功能**: 管理表格列的断点可见性、宽度、顺序、持久化。
-
-#### API
-
-```typescript
-interface UseTableColumnsOptions {
-  storageKey: string // localStorage 存储键
-  defaultColumns: ColumnConfig[] // 默认列配置
-  reorderLockedKeys?: string[] // 锁定顺序的列 key
-}
-
-interface ColumnConfig {
-  key: string // 列唯一标识
-  label: string // 列标签
-  visibleFrom: 'desktop' | 'tablet' | 'mobile' | null // 可见断点
-  width?: number // 列宽
-  fixed?: 'left' | 'right' | null // 固定位置
-  reorderLocked?: boolean // 锁定顺序
-  hideable?: boolean // 允许隐藏
-}
-```
-
-#### 返回值
+**额外 API 能力实现方式**：
 
 ```typescript
-const {
-  columnConfig, // Ref<ColumnConfig[]> - 当前列配置
-  visibleColumnKeys, // ComputedRef<string[]> - 可见列 key
-  updateConfig, // (config: ColumnConfig[]) => void - 更新配置
-  updateColumnWidth, // (key: string, width: number) => void - 更新列宽
-  resetConfig, // () => void - 恢复默认
-  isColumnVisibleAtBreakpoint // (key: string, breakpoint: ColumnBreakpoint) => boolean
-} = useTableColumns({
-  storageKey: 'wes-user-table-columns',
-  defaultColumns: DEFAULT_COLUMNS,
-  reorderLockedKeys: ['username'] // 用户名列表锁定顺序
-})
-```
-
-#### 断点可见性规则
-
-| 断点      | 可见条件                                 |
-| --------- | ---------------------------------------- |
-| `mobile`  | `visibleFrom === 'mobile'`               |
-| `tablet`  | `visibleFrom === 'tablet'` 或 `'mobile'` |
-| `desktop` | `visibleFrom !== null`                   |
-
-**继承规则**: 移动设备可见 → 平板可见 → PC 可见
-
----
-
-### 3. buildTableColumnsByBreakpoint - 列构建工具
-
-**位置**: `src/composables/useTableColumns.ts`
-
-**功能**: 根据断点和列配置构建实际的表格列定义。
-
-```typescript
-function buildTableColumnsByBreakpoint(
-  columnConfigs: ColumnConfig[],
-  breakpoint: ColumnBreakpoint,
-  columnMap: Map<string, TableColumnConfig>
-): TableColumnConfig[]
-```
-
-#### 使用示例
-
-```typescript
-import { computed } from 'vue'
-import { buildTableColumnsByBreakpoint } from '@/composables/useTableColumns'
-import {
-  createBooleanTagFormatter,
-  createDateTimeFormatter
-} from '@/components/common/table/formatters'
-
-// 定义列配置
-const USER_COLUMN_DEFINITIONS = [
-  {
-    key: 'username',
-    label: '用户名',
-    visibleFrom: 'mobile',
-    column: { width: 120, fixed: 'left' }
-  },
-  {
-    key: 'is_superuser',
-    label: '超级用户',
-    visibleFrom: 'desktop',
-    column: {
-      width: 100,
-      sortable: true,
-      formatter: createBooleanTagFormatter({ trueType: 'danger', falseType: 'info' })
-    }
-  },
-  {
-    key: 'updated_at',
-    label: '更新时间',
-    visibleFrom: 'tablet',
-    column: {
-      width: 160,
-      formatter: createDateTimeFormatter()
-    }
+// 1. API 层：扩展基础 CRUD
+export const userApi = {
+  ...baseUserApi,
+  async assignRoles(id: number, roleIds: number[]) {
+    return await contractClient.put(USER_ASSIGN_ROLES_PATH, {
+      params: { id },
+      body: { role_ids: roleIds }
+    })
   }
-]
+}
 
-// 构建 Map
-const COLUMN_MAP = new Map(
-  USER_COLUMN_DEFINITIONS.map(def => [
-    def.key,
+// 2. 创建自定义行操作
+export function createUserRowActions(
+  openAssignRolesDialog: (user: User) => void
+): CrudPageRowAction<User>[] {
+  return [
     {
-      field: def.key,
-      title: def.label,
-      ...def.column
-    } as TableColumnConfig
-  ])
-)
-
-// 在组件中使用
-const tableColumns = computed(() =>
-  buildTableColumnsByBreakpoint(columnConfig.value, currentBreakpoint.value, COLUMN_MAP)
-)
-```
-
----
-
-### 4. 通用格式化器工厂
-
-**位置**: `src/components/common/table/formatters.ts`
-
-提供常用的表格格式化器，支持配置化选项。
-
-#### createBooleanTagFormatter - 布尔值标签
-
-```typescript
-import { createBooleanTagFormatter } from '@/components/common/table/formatters'
-
-// 简单用法
-formatter: createBooleanTagFormatter()
-
-// 自定义配置
-formatter: createBooleanTagFormatter({
-  trueLabel: '是',
-  falseLabel: '否',
-  trueType: 'success',
-  falseType: 'info',
-  size: 'small'
-})
-```
-
-#### createDateTimeFormatter - 日期时间格式化
-
-```typescript
-import { createDateTimeFormatter, createDateFormatter } from '@/components/common/table/formatters'
-
-// 完整日期时间
-formatter: createDateTimeFormatter()
-
-// 自定义格式
-formatter: createDateTimeFormatter({ format: 'yyyy/MM/dd HH:mm' })
-
-// 相对时间
-formatter: createDateTimeFormatter({ relative: true }) // "3 小时前"
-
-// 仅日期
-formatter: createDateFormatter() // yyyy-MM-dd
-```
-
-#### createArrayTagFormatter - 数组标签（多对多关系）
-
-```typescript
-import { createArrayTagFormatter } from '@/components/common/table/formatters'
-
-// 简单用法
-slots: { default: createArrayTagFormatter({ labelField: 'name' }) }
-
-// 自定义配置
-slots: { default: createArrayTagFormatter({
-  labelField: 'name',
-  emptyLabel: '无角色',
-  size: 'small',
-  tagType: 'info',
-  maxVisible: 3 // 超过 3 个显示 "+N"
-})}
-```
-
-#### createStatusTagFormatter - 状态标签
-
-```typescript
-import { createStatusTagFormatter } from '@/components/common/table/formatters'
-
-// 简单映射
-formatter: createStatusTagFormatter({
-  active: '启用',
-  inactive: '禁用',
-  pending: '待审核'
-})
-
-// 详细配置（带颜色和圆点）
-formatter: createStatusTagFormatter({
-  active: { type: 'success', label: '启用', dot: true },
-  inactive: { type: 'info', label: '禁用' },
-  pending: { type: 'warning', label: '待审核' }
-})
-```
-
-#### buildActionsColumn - 操作列构建器
-
-```typescript
-import { buildActionsColumn, type ActionButtonConfig } from '@/components/common/table/formatters'
-
-const actionsColumn = buildActionsColumn(
-  [
-    {
-      label: '编辑',
+      key: 'assign-roles',
+      label: '分配角色',
       type: 'primary',
-      onClick: row => handleEdit(row)
-    },
-    {
-      label: '删除',
-      type: 'danger',
-      popconfirm: {
-        title: '确认删除？',
-        confirmButtonText: '确定',
-        cancelButtonText: '取消'
-      },
-      onClick: row => handleDelete(row)
+      icon: 'lucide:user-plus',
+      onClick: user => openAssignRolesDialog(user)
     }
-  ],
-  {
-    field: 'operations',
-    width: 200,
-    fixed: 'right',
-    reorderLocked: true,
-    hideable: false
-  }
-)
-```
-
----
-
-### 5. TableColumnConfigDialog - 列配置对话框
-
-**位置**: `src/components/common/TableColumnConfigDialog.vue`
-
-**功能**: 提供列配置 UI，支持拖拽排序、断点可见性设置。
-
-#### Props
-
-```typescript
-interface Props {
-  columnConfig: ColumnConfig[] // 当前列配置
-  defaultColumns: ColumnConfig[] // 默认列配置（用于恢复默认）
+  ]
 }
-```
 
-#### Emits
-
-```typescript
-interface Emits {
-  (e: 'update:config', config: ColumnConfig[]): void
-}
-```
-
-#### 使用示例
-
-```vue
-<template>
-  <TableColumnConfigDialog
-    v-model="dialogOpen"
-    :column-config="columnConfig"
-    :default-columns="DEFAULT_COLUMNS"
-    @update:config="updateConfig"
-  />
-</template>
-
-<script setup lang="ts">
-import TableColumnConfigDialog from '@/components/common/TableColumnConfigDialog.vue'
-import { useTableColumns, DEFAULT_COLUMNS } from '@/composables/useTableColumns'
-
-const { columnConfig, updateConfig } = useTableColumns({ ... })
-const dialogOpen = defineModel<boolean>('configDialogOpen', { default: false })
-</script>
-```
-
-#### 业务模块包装器（推荐）
-
-为每个业务模块创建专属包装器，固化配置：
-
-```vue
-<!-- src/views/admin/products/components/ProductColumnConfigDialog.vue -->
-<template>
-  <TableColumnConfigDialog
-    v-model="visible"
-    :column-config="columnConfig"
-    :default-columns="DEFAULT_PRODUCT_COLUMNS"
-    @update:config="updateConfig"
-  />
-</template>
-
-<script setup lang="ts">
-import TableColumnConfigDialog from '@/components/common/TableColumnConfigDialog.vue'
-import {
-  useProductTableColumns,
-  DEFAULT_PRODUCT_COLUMNS
-} from '../../composables/useProductTableColumns'
-
-const { columnConfig, updateConfig } = useProductTableColumns()
-const visible = defineModel<boolean>({ default: false })
-</script>
-```
-
----
-
-## 完整示例：用户管理页
-
-### 1. 定义列配置 Composable
-
-```typescript
-// src/views/admin/users/config/fieldConfig.ts
-
-import {
-  useTableColumns,
-  type ColumnConfig,
-  type ColumnBreakpoint
-} from '@/composables/useTableColumns'
-import {
-  createBooleanTagFormatter,
-  createDateTimeFormatter,
-  createArrayTagFormatter
-} from '@/components/common/table/formatters'
-
-// 列定义
-export const USER_TABLE_COLUMN_DEFINITIONS = [
-  {
-    key: 'username',
-    label: '用户名',
-    visibleFrom: 'mobile',
-    fixed: 'left',
-    reorderLocked: true,
-    hideable: false,
-    column: { width: 120 }
-  },
-  {
-    key: 'email',
-    label: '邮箱',
-    visibleFrom: 'mobile',
-    column: { minWidth: 180 }
-  },
-  {
-    key: 'is_superuser',
-    label: '超级用户',
-    visibleFrom: 'desktop',
-    column: {
-      width: 100,
-      sortable: true,
-      formatter: createBooleanTagFormatter({ trueType: 'danger', falseType: 'info' })
+// 3. 页面配置：通过 extensions 注入
+export function createUserPageConfig(openAssignRolesDialog: (user: User) => void) {
+  return createCrudPageConfigFromResource({
+    resource: USER_PAGE_RESOURCE,
+    fieldConfig: userPageFieldConfig,
+    extensions: {
+      rowActions: createUserRowActions(openAssignRolesDialog)
     }
-  },
-  {
-    key: 'roles',
-    label: '角色',
-    visibleFrom: 'mobile',
-    column: {
-      width: 150,
-      slots: {
-        default: createArrayTagFormatter({ labelField: 'name', emptyLabel: '无角色' })
-      }
-    }
-  },
-  {
-    key: 'updated_at',
-    label: '更新时间',
-    visibleFrom: 'tablet',
-    column: {
-      width: 160,
-      sortable: true,
-      formatter: createDateTimeFormatter()
-    }
-  }
-]
-
-// 转换为 ColumnConfig
-export const DEFAULT_COLUMN_CONFIG: ColumnConfig[] = USER_TABLE_COLUMN_DEFINITIONS.map(def => ({
-  key: def.key,
-  label: def.label,
-  visibleFrom: def.visibleFrom,
-  width: typeof def.column.width === 'number' ? def.column.width : undefined,
-  fixed: def.fixed ?? null,
-  reorderLocked: def.reorderLocked ?? false,
-  hideable: def.hideable ?? true
-}))
-
-// Composable 导出
-export function useUserColumnManager() {
-  const {
-    columnConfig,
-    visibleColumnKeys,
-    updateConfig,
-    updateColumnWidth,
-    resetConfig,
-    isColumnVisibleAtBreakpoint
-  } = useTableColumns({
-    storageKey: 'wes-user-table-columns',
-    defaultColumns: DEFAULT_COLUMN_CONFIG,
-    reorderLockedKeys: ['username']
   })
+}
+```
 
-  function buildTableColumns(breakpoint: ColumnBreakpoint) {
-    return buildTableColumnsByBreakpoint(
-      columnConfig.value,
-      breakpoint,
-      new Map(
-        USER_TABLE_COLUMN_DEFINITIONS.map(def => [
-          def.key,
-          {
-            field: def.key,
-            title: def.label,
-            ...def.column,
-            fixed: def.fixed ?? undefined,
-            configurable: true
-          } as TableColumnConfig
-        ])
-      )
-    )
-  }
+**为什么必须这样做？**
 
-  return {
-    columnConfig,
-    visibleColumnKeys,
-    updateConfig,
-    updateColumnWidth,
-    resetConfig,
-    isColumnVisibleAtBreakpoint,
-    buildTableColumns
+前端 CRUD 组件依赖后端 OpenAPI 契约生成的类型和 Schema。如果后端新增了 `Role` 资源但前端未同步：
+
+- `RoleResponse` 类型不存在 → TypeScript 报错
+- `RoleCreateSchema` 未生成 → 表单验证无法工作
+- `ADMIN_PERMISSIONS.role` 未定义 → 权限检查失效
+
+---
+
+### 完整目录结构
+
+```
+src/
+├── api/modules/{resource}.ts              # API 层
+├── views/admin/{resource}s/
+│   ├── config/
+│   │   ├── fieldConfig.ts                 # 字段配置
+│   │   └── pageConfig.ts                  # 页面配置
+│   └── {Resource}ListPage.vue             # 页面组件
+└── router/index.ts                        # 路由配置
+```
+
+### Step 1: API 层详解
+
+**关键点**：
+
+- 路径必须与后端 OpenAPI 契约完全一致
+- 使用 `createSoftDeleteCrudApi`（支持回收站）或 `createCrudApi`（标准）
+- 类型自动从路径推导
+
+**踩坑记录**：
+
+- ❌ 不要添加不存在的端点（如 `bulkDelete`），会导致 TypeScript 错误
+- ✅ 只配置后端实际提供的端点
+
+### Step 2: 字段配置详解
+
+**自动推断的字段**（无需重复声明）：
+
+- `label`（从 OpenAPI schema）
+- `form.type`（从 schema format）
+- `search.dataType`（从 schema type）
+- `boolean/date` 的 formatter
+
+**需要手动声明的**（前端 UI 投影）：
+
+- 列宽、固定列、排序
+- `visibleFrom` 响应式断点
+- `readonly`、`required` 覆盖
+- 搜索 favorites / quick presets
+
+### Step 3: 页面配置详解
+
+```typescript
+const ROLE_PAGE_RESOURCE = {
+  key: 'roles', // 资源标识，用于 localStorage
+  title: {
+    // 页面标题
+    text: '角色管理',
+    subtitle: '管理系统角色', // 可选
+    icon: 'ep:collection-tag' // 可选
+  },
+  trashTitle: {
+    /* 回收站标题 */
+  }, // 启用回收站时需要
+  api: roleApi,
+  permissions: ADMIN_PERMISSIONS.role,
+  optimisticUpdate: true, // 乐观更新
+  defaultSort: [{ field: 'updated_at', order: 'desc' }]
+}
+
+const ROLE_PAGE_FEATURES = {
+  trash: { enabled: true, label: '回收站' },
+  create: { label: '新增角色', dialogTitle: '创建角色' },
+  edit: { dialogTitle: '编辑角色' },
+  // 软删除特有
+  restore: { label: '恢复角色' },
+  batchRestore: { label: '批量恢复' },
+  permanentDelete: { label: '彻底删除' },
+  batchPermanentDelete: { label: '批量彻底删除' }
+}
+```
+
+### Step 4: 路由配置详解
+
+```typescript
+{
+  path: 'roles',
+  name: 'RoleList',
+  meta: {
+    requiresAuth: true,
+    title: '角色管理',                    // 页面标题
+    permission: ADMIN_PERMISSIONS.role.page,  // 页面访问权限
+    menu: {
+      name: 'admin:role:menu',           // 菜单唯一标识
+      parentName: 'admin:system:menu',   // 父菜单（子菜单必需）
+      icon: 'ep:collection-tag',         // 菜单图标
+      sortOrder: 98                      // 排序（越小越靠前）
+    }
   }
 }
 ```
 
-### 2. 构建页面组件
+### Step 5: 菜单同步详解
 
-```vue
-<!-- src/views/admin/users/UserListPageV2.vue -->
-<template>
-  <CrudPageContainer>
-    <!-- 工具栏 -->
-    <CrudToolbar
-      :search-config="{ fields: userSearchFields }"
-      :permission="permissions.create"
-      @search="search.handleSearch"
-      @refresh="search.handleRefresh"
-      @create="dialogs.openCreate"
-    />
+**Worktree 开发坑点** ⚠️：
 
-    <!-- 表格 -->
-    <CrudTable
-      :data="state.data"
-      :columns="tableColumns"
-      :loading="state.loading"
-      :row-key="row => row.id"
-      v-model:selection="state.selectedItems"
-      @selection-change="selection.handleSelectionChange"
-      @sort-change="search.handleSortChange"
-      @column-width-change="updateColumnWidth"
-    />
+```bash
+# ❌ 错误：默认读取主仓库，菜单不会同步到数据库
+bash ~/SynologyDrive/works/wes_backend/scripts/data/sync_menus.sh
 
-    <!-- 表单对话框 -->
-    <CrudFormDialog
-      v-model="dialogs.formOpen"
-      :editing-id="dialogs.editingId"
-      :key="dialogs.key"
-      @submit="handleFormSubmit"
-    />
+# ✅ 正确：指定 worktree 路径
+bash ~/SynologyDrive/works/wes_backend/scripts/data/sync_menus.sh \
+  --frontend-path /Users/kaizhou/SynologyDrive/works/wes_frontend-worktrees/role_manage
 
-    <!-- 列配置对话框 -->
-    <TableColumnConfigDialog
-      v-model="configDialogOpen"
-      :column-config="columnConfig"
-      :default-columns="DEFAULT_COLUMN_CONFIG"
-      @update:config="updateConfig"
-    />
-  </CrudPageContainer>
-</template>
+# 预览模式（不写入数据库，仅查看解析结果）
+bash scripts/data/sync_menus.sh \
+  --frontend-path /path/to/worktree \
+  --preview
+```
 
-<script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useCrudListPage } from '@/composables/useCrudListPage'
-import { useUserColumnManager, DEFAULT_COLUMN_CONFIG } from './config/fieldConfig'
-import { useBreakpoint } from '@/composables/useBreakpoint'
-import { userApi, type User, type CreateUserInput, type UpdateUserInput } from '@/api/modules/user'
-import { USER_PERMISSION } from './config/permissions'
-import { userSearchFields } from './config/fieldConfig'
-import CrudFormDialog from '@/components/common/CrudFormDialog.vue'
-import TableColumnConfigDialog from '@/components/common/TableColumnConfigDialog.vue'
+**为什么需要 `--frontend-path`**：
 
-// ==================== Composables ====================
+- `sync_menus.sh` 默认读取 `~/SynologyDrive/works/wes_frontend`
+- Worktree 开发时代码在 `wes_frontend-worktrees/{branch}`
+- 必须显式指定路径，否则读取的是主仓库的代码（可能不包含新菜单）
 
-const { state, search, dialogs, selection, apiActions, permissions } = useCrudListPage<
-  User,
-  CreateUserInput,
-  UpdateUserInput
->({
-  api: userApi,
-  searchFields: userSearchFields,
-  permissions: USER_PERMISSION,
-  pageSize: 20,
-  optimisticUpdate: true
+---
+
+## 常见坑点记录（基于实际开发）
+
+### 坑点 1: 忘记同步后端契约
+
+**现象**：
+
+- `RoleResponse` 类型不存在
+- `RoleCreateSchema` 找不到
+- `ADMIN_PERMISSIONS.role` 未定义
+
+**原因**：后端已新增 API，但前端未同步 OpenAPI 契约。
+
+**解决**：
+
+```bash
+# 开发新功能前必须执行
+pnpm type:generate    # 生成 TypeScript 类型
+pnpm zod:generate     # 生成 Zod Schema
+pnpm permission:generate  # 生成权限常量
+```
+
+**检查清单**：
+
+- [ ] 后端服务已启动（http://localhost:8001/docs 可访问）
+- [ ] 执行了 `pnpm type:generate`
+- [ ] 执行了 `pnpm zod:generate`
+- [ ] 执行了 `pnpm permission:generate`
+
+---
+
+### 坑点 2: 遗漏后端 API 能力
+
+**现象**：
+
+- 页面缺少回收站功能，但后端提供了软删除端点
+- 用户问"为什么不能批量删除"，但后端提供了 `bulkDelete` 端点
+- 需要导出功能时才发现后端有 `export` 端点未使用
+- **产品说"怎么没有分配角色按钮"，但后端有 `{id}/assign-roles` 端点**
+
+**原因**：只关注基础 CRUD，没检查后端提供的完整 API 能力。
+
+**解决**：
+
+同步契约后，立即检查后端提供的端点：
+
+```bash
+# 查看生成的 API 类型文件
+cat src/api/modules/role.ts
+# 或查看 OpenAPI 文档
+open http://localhost:8001/docs
+```
+
+**API 能力检查清单**：
+
+| 检查项            | 后端特征                           | 前端配置                            |
+| ----------------- | ---------------------------------- | ----------------------------------- |
+| 软删除            | 有 `trash`、`restore` 端点         | 使用 `createSoftDeleteCrudApi`      |
+| 回收站            | 有 `trashPermanentDelete` 端点     | `features.trash: { enabled: true }` |
+| 批量操作          | 有 `bulkDelete`、`bulkUpdate` 端点 | 需手动实现批量选择                  |
+| 导出              | 有 `export` 端点                   | 添加自定义导出按钮                  |
+| 高级查询          | `query` 端点支持复杂参数           | 使用智能搜索组件                    |
+| **额外 API 能力** | 有 `{id}/xxx` 子资源端点           | 通过 `extensions` 添加自定义操作    |
+
+**额外 API 能力实现**（以用户管理的"分配角色"为例）：
+
+```typescript
+// 1. API 层：扩展基础 CRUD
+export const userApi = {
+  ...baseUserApi,  // 基础 CRUD 能力
+
+  // 额外能力：分配角色
+  async assignRoles(id: number, roleIds: number[]) {
+    return await contractClient.put('/api/v1/users/{id}/assign-roles', {
+      params: { id },
+      body: { role_ids: roleIds }
+    })
+  }
+}
+
+// 2. 创建自定义行操作
+createUserRowActions(openAssignRolesDialog: (user: User) => void) {
+  return [
+    {
+      key: 'assign-roles',
+      label: '分配角色',
+      type: 'primary',
+      icon: 'lucide:user-plus',
+      onClick: user => openAssignRolesDialog(user)
+    }
+  ]
+}
+
+// 3. 页面配置：注入扩展
+export function createUserPageConfig(openAssignRolesDialog) {
+  return createCrudPageConfigFromResource({
+    resource: USER_PAGE_RESOURCE,
+    extensions: {
+      rowActions: createUserRowActions(openAssignRolesDialog)
+    }
+  })
+}
+```
+
+**实际案例**：
+
+1. **角色管理开发**：最初只用了 `createCrudApi`，后来发现后端支持软删除，改为 `createSoftDeleteCrudApi` 并启用 `features.trash`，回收站功能立即生效。
+
+2. **用户管理开发**：后端提供了 `assign-roles` 和 `reset-password` 端点，通过 `extensions.rowActions` 添加自定义行操作，实现完整的用户管理能力。
+
+---
+
+### 坑点 3: Worktree 开发时菜单同步失败
+
+**现象**：运行 `sync_menus.sh` 后数据库没有新菜单。
+
+**原因**：脚本默认读取主仓库路径，不是当前 worktree。
+
+**解决**：始终使用 `--frontend-path` 参数指定 worktree 路径。
+
+```bash
+# 通用模板
+bash scripts/data/sync_menus.sh \
+  --frontend-path "$(pwd)"
+```
+
+### 坑点 3: API 端点不存在导致类型错误
+
+**现象**：`role.ts` 中出现 `bulkDelete` 类型错误。
+
+**原因**：后端 OpenAPI 合同中没有该端点，不能随意添加。
+
+**解决**：只使用后端实际提供的端点。
+
+```typescript
+// ❌ 错误
+export const roleApi = createSoftDeleteCrudApi({
+  // ...
+  bulkDelete: `${ROLE_PATH}/bulk` as const // 不存在！
 })
 
-const { columnConfig, updateConfig, updateColumnWidth, buildTableColumns } = useUserColumnManager()
-const { breakpoint } = useBreakpoint()
+// ✅ 正确
+export const roleApi = createSoftDeleteCrudApi({
+  collection: ROLE_PATH,
+  item: `${ROLE_PATH}/{id}` as const
+  // ...只配置实际存在的端点
+})
+```
 
-// ==================== 计算属性 ====================
+### 坑点 3: 字段配置重复声明
 
-const tableColumns = computed(() => buildTableColumns(breakpoint.value))
+**现象**：字段配置冗长，大量重复。
 
-// ==================== 状态 ====================
+**原因**：没有利用 `backend` 自动推断。
 
-const configDialogOpen = ref(false)
+**解决**：`backend` 声明一次，只覆盖差异。
 
-// ==================== 表单提交 ====================
+```typescript
+// ❌ 错误：重复声明
+{
+  key: 'name',
+  label: '名称',           // 重复，backend 已提供
+  table: { label: '名称' }, // 重复
+  form: { label: '名称' }   // 重复
+}
 
-async function handleFormSubmit(values: CreateUserInput | UpdateUserInput) {
-  if (dialogs.editingId.value) {
-    await apiActions.handleEdit(dialogs.editingId.value, values as UpdateUserInput)
-  } else {
-    await apiActions.handleCreate(values as CreateUserInput)
+// ✅ 正确：只覆盖 UI 差异
+{
+  key: 'name',
+  table: { fixed: 'left', width: 150 },
+  form: { readonly: true }
+}
+```
+
+### 坑点 4: 表格列不显示
+
+**现象**：表格没有列。
+
+**原因**：忘记设置 `visibleFrom` 或 `storageKey` 冲突。
+
+**解决**：
+
+- 至少设置 `visibleFrom: 'mobile'`
+- 确保 `storageKey` 全局唯一
+
+```typescript
+{
+  key: 'name',
+  table: {
+    visibleFrom: 'mobile',  // ✅ 必须设置
+    width: 150
   }
 }
-</script>
 ```
+
+### 坑点 5: 权限常量引用错误
+
+**现象**：权限检查不生效。
+
+**原因**：使用了错误的权限路径。
+
+**解决**：使用生成的 `ADMIN_PERMISSIONS` 常量。
+
+```typescript
+// ❌ 错误
+permission: 'role:page'
+
+// ✅ 正确
+import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
+permission: ADMIN_PERMISSIONS.role.page
+```
+
+---
+
+## 故障排查速查
+
+| 问题                 | 排查                               | 解决                                                |
+| -------------------- | ---------------------------------- | --------------------------------------------------- |
+| 类型/Zod/权限找不到  | 是否同步了后端契约                 | 执行 `pnpm type:generate` 和 `pnpm zod:generate`    |
+| 缺少回收站/额外 API  | 检查后端 OpenAPI 端点              | 使用 `createSoftDeleteCrudApi` 或 `extensions` 扩展 |
+| 菜单同步后数据库没有 | 检查 `--frontend-path` 是否正确    | 使用绝对路径指定 worktree                           |
+| 表格列不显示         | 检查 `visibleFrom` 和 `storageKey` | 设置 `visibleFrom: 'mobile'`，确保 key 唯一         |
+| 表单字段类型错误     | 检查 OpenAPI schema 推断           | 在 `form` 中显式覆盖 `type`                         |
+| 权限检查不生效       | 检查权限常量引用                   | 使用 `ADMIN_PERMISSIONS.xxx`                        |
+| 列配置不持久化       | 检查 localStorage                  | 使用命名空间前缀如 `wes-xxx`                        |
+| 类型推断失败         | 检查泛型参数                       | 显式传递 `<Item, Create, Update>`                   |
 
 ---
 
 ## 最佳实践
 
-### 1. Composable 组织
+### 1. 字段配置优先级
 
-```
-src/views/admin/users/
-├── config/
-│   ├── pageConfig.ts            # 页面容器配置
-│   ├── permissions.ts           # 权限常量
-│   └── fieldConfig.ts           # 字段、搜索、表单、列管理配置
-└── UserListPageV2.vue           # 主页面
-```
+配置优先级（从高到低）：
 
-### 2. 类型安全
+1. `fields` 中的显式配置
+2. `backend.labelOverrides` 中的覆盖
+3. OpenAPI schema 默认值
 
-始终使用泛型参数，确保类型推断正确：
+### 2. Storage Key 命名
 
 ```typescript
-// ✅ 推荐
-const { apiActions } = useCrudListPage<User, CreateUserInput, UpdateUserInput>({ ... })
+// ✅ 使用项目前缀
+storageKey: 'wes-{resource}-table-columns'
 
-async function handleFormSubmit(values: CreateUserInput | UpdateUserInput) {
-  if (dialogs.editingId.value) {
-    await apiActions.handleEdit(dialogs.editingId.value, values as UpdateUserInput)
-  } else {
-    await apiActions.handleCreate(values as CreateUserInput)
-  }
-}
+// ❌ 避免通用名称
+storageKey: 'table-columns' // 可能冲突
 ```
 
-### 3. 列配置持久化
+### 3. 响应式列显示
 
 ```typescript
-// 使用有意义的 storageKey
-useTableColumns({
-  storageKey: 'wes-user-table-columns', // 格式：wes-{module}-table-columns
-  defaultColumns: DEFAULT_COLUMNS,
-  reorderLockedKeys: ['username']
-})
-```
-
-### 4. 格式化器复用
-
-```typescript
-// ✅ 推荐：使用通用格式化器工厂
-import { createBooleanTagFormatter, createDateTimeFormatter } from '@/components/common/table/formatters'
-
-column: {
-  formatter: createBooleanTagFormatter({ trueType: 'danger', falseType: 'info' })
-}
-
-// ❌ 避免：重复定义
-column: {
-  formatter: (value: unknown) => h(ElTag, { type: value ? 'success' : 'info' }, ...)
-}
-```
-
-### 5. 权限检查
-
-```typescript
-// 在模板中使用 computed 权限
-<CrudToolbar :permission="permissions.create" @create="dialogs.openCreate" />
-
-<!-- 操作按钮 -->
-<template #actions="{ row }">
-  <ElButton
-    v-if="permissions.update"
-    link
-    type="primary"
-    @click="dialogs.openEdit(row.id)"
-  >
-    编辑
-  </ElButton>
-</template>
-```
-
----
-
-## 迁移指南
-
-### 从旧代码迁移到新架构
-
-#### 步骤 1: 定义列配置
-
-将原有的列定义重构为使用通用格式化器：
-
-```typescript
-// 旧代码
-const columns = [
-  {
-    field: 'is_active',
-    title: '状态',
-    formatter: (value: unknown) => {
-      return h(
-        ElTag,
-        { type: value ? 'success' : 'info' },
-        { default: () => (value ? '启用' : '禁用') }
-      )
-    }
-  }
-]
-
-// 新代码
-import { createBooleanTagFormatter } from '@/components/common/table/formatters'
-
-const columnDefs = [
-  {
-    key: 'is_active',
-    label: '状态',
-    visibleFrom: 'mobile',
-    column: {
-      formatter: createBooleanTagFormatter({
-        trueLabel: '启用',
-        falseLabel: '禁用',
-        trueType: 'success'
-      })
-    }
-  }
-]
-```
-
-#### 步骤 2: 使用 useCrudListPage
-
-```typescript
-// 旧代码
-const data = ref([])
-const loading = ref(false)
-const pagination = ref({ page: 1, pageSize: 20, total: 0 })
-
-async function fetchData() {
-  loading.value = true
-  try {
-    const result = await api.list({ offset: ..., limit: ... })
-    data.value = result.items
-    pagination.value.total = result.total
-  } finally {
-    loading.value = false
-  }
-}
-
-// 新代码
-const { state, search, dialogs, apiActions } = useCrudListPage({
-  api: userApi,
-  searchFields: SEARCH_FIELDS,
-  pageSize: 20
-})
-```
-
-#### 步骤 3: 使用通用组件
-
-```vue
-<!-- 旧代码 -->
-<template>
-  <div class="user-list">
-    <div class="toolbar">...</div>
-    <el-table
-      :data="data"
-      v-loading="loading"
-    >
-      ...
-    </el-table>
-    <el-pagination
-      v-model:current-page="pagination.page"
-      ...
-    />
-    <user-form-dialog
-      v-model="dialogOpen"
-      ...
-    />
-  </div>
-</template>
-
-<!-- 新代码 -->
-<template>
-  <CrudPageContainer>
-    <CrudToolbar ... />
-    <CrudTable
-      :data="state.data"
-      :loading="state.loading"
-      ...
-    />
-    <CrudFormDialog
-      v-model="dialogs.formOpen"
-      ...
-    />
-  </CrudPageContainer>
-</template>
-```
-
----
-
-## 故障排查
-
-### 问题 1: 列配置不持久化
-
-**检查**:
-
-1. `storageKey` 是否唯一且有意义
-2. localStorage 是否被浏览器阻止
-3. 默认配置是否包含所有必需字段
-
-**解决**:
-
-```typescript
-useTableColumns({
-  storageKey: 'wes-user-table-columns', // ✅ 使用命名空间前缀
-  defaultColumns: DEFAULT_COLUMNS
-})
-```
-
-### 问题 2: 类型推断失败
-
-**检查**:
-
-1. 是否正确传递泛型参数
-2. API 类型是否与 Composable 匹配
-
-**解决**:
-
-```typescript
-// ✅ 明确泛型参数
-useCrudListPage<User, CreateUserInput, UpdateUserInput>({ ... })
-```
-
-### 问题 3: 格式化器不生效
-
-**检查**:
-
-1. 是否正确导入格式化器
-2. 列配置是否包含 `formatter` 或 `slots.default`
-
-**解决**:
-
-```typescript
-// 检查列定义
 {
-  key: 'is_active',
-  column: {
-    formatter: createBooleanTagFormatter() // ✅ 确保有 formatter
+  key: 'description',
+  table: {
+    visibleFrom: 'tablet',  // tablet 及以上显示
+    minWidth: 200
   }
 }
 ```
 
+### 4. 表单验证
+
+```typescript
+import { useForm } from 'vee-validate'
+import { ProductCreateSchema } from '@/types/zod-extensions'
+
+// ✅ 直接传递 Zod schema（v4.6+）
+const { handleSubmit } = useForm<CreateProductInput>({
+  validationSchema: ProductCreateSchema
+})
+
+// ❌ 不要包裹 toTypedSchema（v4.x 不需要）
+validationSchema: toTypedSchema(ProductCreateSchema)
+```
+
 ---
 
-## 相关文档
+## 详细参考
+
+### 响应式断点
+
+| 断点      | 宽度           | 用途 |
+| --------- | -------------- | ---- |
+| `mobile`  | < 768px        | 手机 |
+| `tablet`  | 768px - 1279px | 平板 |
+| `desktop` | ≥ 1280px       | 桌面 |
+
+### 字段配置完整类型
+
+```typescript
+interface CrudFieldConfig {
+  key: string
+  label?: string
+  table?: {
+    visibleFrom?: 'mobile' | 'tablet' | 'desktop'
+    fixed?: 'left' | 'right'
+    width?: number
+    minWidth?: number
+    sortable?: boolean
+    formatter?: (value: any, row: any) => VNode | string
+  }
+  form?: {
+    type?: 'input' | 'textarea' | 'number' | 'select' | 'date' | 'switch'
+    required?: boolean
+    readonly?: boolean
+    placeholder?: string
+  }
+  search?: {
+    dataType?: 'string' | 'number' | 'date' | 'boolean'
+    defaultOperator?: 'eq' | 'like' | 'gt' | 'lt'
+  }
+}
+```
+
+### 相关文档
 
 - [时区处理指南](./TIMEZONE_HANDLING.md)
 - [Zod 验证指南](./ZOD_VALIDATION.md)
 - [智能搜索组件架构](./SMART_SEARCH_COMPONENT_ARCHITECTURE.md)
-- [用户管理页任务文档](./TASKS_PHASE3_USER_MANAGEMENT.md)
+
+---
+
+## 自动化检查（Hooks）
+
+可以通过 Hooks 自动检查后端 API 能力，避免遗漏。
+
+### Claude Code Hook（推荐）
+
+项目已配置 `.claude/settings.json`，当对话中提到开发新功能时自动触发检查：
+
+```bash
+# 触发关键词示例
+"帮我开发一个商品管理页面"
+"create a new order api"
+"添加用户分配角色功能"
+```
+
+**Hook 会检查**：
+
+- 后端服务是否启动
+- API 契约是否需要同步
+- 是否遗漏软删除/额外 API 能力
+
+### Git Pre-commit Hook
+
+提交前自动检查 API 模块变更：
+
+```bash
+# 安装 hook（worktree 需指定主仓库路径）
+ln -s "$(pwd)/scripts/hooks/pre-commit-check-api" \
+  /Users/kaizhou/SynologyDrive/works/wes_frontend/.git/hooks/pre-commit
+
+# 手动运行检查
+bash scripts/hooks/pre-commit-check-api
+```
+
+**Hook 会阻止提交的情况**：
+
+- 后端 API 已变更但未同步契约
+- 检测到软删除端点但使用了 `createCrudApi`
+
+```bash
+# 绕过检查强制提交
+git commit --no-verify
+```
 
 ---
 
 ## 更新日志
 
-| 版本 | 日期       | 更新内容                                   |
-| ---- | ---------- | ------------------------------------------ |
-| 1.0  | 2026-03-14 | 初始版本，包含 CRUD 核心组件和格式化器工厂 |
+| 版本 | 日期       | 更新内容                                      |
+| ---- | ---------- | --------------------------------------------- |
+| 1.3  | 2026-03-26 | 精简结构，添加"5分钟快速开始"和"常见坑点"章节 |
+| 1.2  | 2026-03-26 | 新增标准开发流程章节                          |
+| 1.0  | 2026-03-14 | 初始版本                                      |
