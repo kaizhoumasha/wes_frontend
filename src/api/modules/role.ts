@@ -2,30 +2,28 @@
  * 角色管理 API
  */
 
-import type { ContractPath, ContractResponseData, ContractSchema } from '@/api/contract/types'
-import { contractClient } from '@/api/contract/client'
+import {
+  createSoftDeleteCrudApi,
+  type CrudCreateInput,
+  type CrudItem,
+  type SoftDeleteCrudResourceCollectionPath,
+  type CrudUpdateInput,
+} from '@/api/base/crud-api'
 
-const ROLES_QUERY_PATH = '/api/v1/roles/query' satisfies ContractPath
+const ROLE_COLLECTION_PATH = '/api/v1/roles' satisfies SoftDeleteCrudResourceCollectionPath
 
-export type Role = ContractSchema<'RoleResponse'>
-export type RoleSimple = ContractSchema<'RoleResponseSimple'>
+export type Role = CrudItem<typeof ROLE_COLLECTION_PATH>
 
-type RolesQueryResponse = ContractResponseData<typeof ROLES_QUERY_PATH, 'post'>
+export type CreateRoleInput = CrudCreateInput<typeof ROLE_COLLECTION_PATH>
 
-export const roleApi = {
-  /**
-   * 查询所有角色列表
-   * 用于用户分配角色时获取可选角色
-   */
-  async query(): Promise<Role[]> {
-    const response: RolesQueryResponse = await contractClient.post(ROLES_QUERY_PATH, {
-      body: {
-        include_deleted: false,
-        limit: 100, // 获取所有角色
-        max_depth: 1,
-        offset: 0
-      }
-    })
-    return response.items ?? []
-  }
-}
+export type UpdateRoleInput = CrudUpdateInput<typeof ROLE_COLLECTION_PATH>
+
+export const roleApi = createSoftDeleteCrudApi({
+  collection: ROLE_COLLECTION_PATH,
+  item: `${ROLE_COLLECTION_PATH}/{id}` as const,
+  query: `${ROLE_COLLECTION_PATH}/query` as const,
+  restore: `${ROLE_COLLECTION_PATH}/{id}/restore` as const,
+  trash: `${ROLE_COLLECTION_PATH}/trash` as const,
+  trashRestore: `${ROLE_COLLECTION_PATH}/trash/restore` as const,
+  trashPermanentDelete: `${ROLE_COLLECTION_PATH}/trash/permanent` as const
+})

@@ -69,16 +69,10 @@ const tertiarySections = computed(() => {
     <div class="detail-panel__empty">
       <ElEmpty description="暂无数据">
         <template #description>
-          <p class="detail-panel__empty-text">
-            未找到相关信息
-          </p>
-          <p class="detail-panel__empty-hint">
-            请尝试刷新或选择其他条目
-          </p>
+          <p class="detail-panel__empty-text">未找到相关信息</p>
+          <p class="detail-panel__empty-hint">请尝试刷新或选择其他条目</p>
         </template>
-        <ElButton @click="emit('close')">
-          关闭面板
-        </ElButton>
+        <ElButton @click="emit('close')">关闭面板</ElButton>
       </ElEmpty>
     </div>
   </template>
