@@ -238,11 +238,12 @@ pnpm add -D vitest @vue/test-utils happy-dom @vitest/coverage-v8
 
 ### E3: Hover 性能优化
 
-- [ ] **状态**: 待处理
+- [x] **状态**: ✅ 已完成
 - **问题**: 背景色变化触发重绘
-- **解决方案**: 当前可接受，后续可考虑 will-change
-- **预估工时**: -
-- **备注**: 非必要优化，性能影响可忽略
+- **解决方案**: 添加 `will-change: background-color` 提示浏览器优化合成层
+- **文件**: `CrudDetailField.vue`, `CrudDetailSection.vue`
+- **完成日期**: 2026-03-26
+- **备注**: CrudDetailActions 使用 transform 已是合成层操作，无需额外优化
 
 ---
 

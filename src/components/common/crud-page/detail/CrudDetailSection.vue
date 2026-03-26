@@ -403,6 +403,10 @@ function getTagDisplayText(tag: unknown): string {
 .detail-section__header--clickable {
   cursor: pointer;
   user-select: none;
+  transition: background-color 0.2s ease;
+
+  /* 性能优化: 预告浏览器背景色变化 */
+  will-change: background-color;
 }
 
 .detail-section__header--clickable:hover {

@@ -345,6 +345,9 @@ const needsTruncation = computed(() => {
   padding: 12px 0;
   background: transparent;
   transition: background-color 0.2s ease;
+
+  /* 性能优化: 预告浏览器背景色变化，创建合成层避免重绘 */
+  will-change: background-color;
 }
 
 .detail-field:hover {
@@ -356,6 +359,9 @@ const needsTruncation = computed(() => {
   min-height: auto;
   padding: 8px 0;
   background: transparent;
+
+  /* Meta 模式无 hover 效果，禁用 will-change 节省资源 */
+  will-change: auto;
 }
 
 .detail-field--meta:hover {
