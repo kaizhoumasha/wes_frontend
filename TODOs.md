@@ -86,24 +86,24 @@ pnpm add -D vitest @vue/test-utils happy-dom @vitest/coverage-v8
 | T-RESPONSIVE-1 | useDetailResponsive - 模式切换           | `tests/unit/composables/useDetailResponsive.test.ts`   | P0     | [x]  |
 | T-RESPONSIVE-2 | useDetailResponsive - 宽度计算           | `tests/unit/composables/useDetailResponsive.test.ts`   | P1     | [x]  |
 | T-RESPONSIVE-3 | useDetailResponsive - fullscreen 检测    | `tests/unit/composables/useDetailResponsive.test.ts`   | P1     | [x]  |
-| T-CTRL-1       | useCrudPageController - CRUD 操作        | `tests/unit/composables/useCrudPageController.test.ts` | P1     | [ ]  |
+| T-CTRL-1       | useCrudPageController - CRUD 操作        | `tests/unit/composables/useCrudPageController.test.ts` | P1     | [x]  |
 
 ### 阶段 3: 工具函数测试 (Day 3)
 
 | 任务ID      | 任务描述                        | 测试文件                                        | 优先级 | 状态 |
 | ----------- | ------------------------------- | ----------------------------------------------- | ------ | ---- |
-| T-LAYOUT-1  | detailFieldLayout - 布局解析    | `tests/unit/utils/detailFieldLayout.test.ts`    | P1     | [ ]  |
-| T-LAYOUT-2  | detailFieldLayout - 截断限制    | `tests/unit/utils/detailFieldLayout.test.ts`    | P1     | [ ]  |
+| T-LAYOUT-1  | detailFieldLayout - 布局解析    | `tests/unit/utils/detailFieldLayout.test.ts`    | P1     | [x]  |
+| T-LAYOUT-2  | detailFieldLayout - 截断限制    | `tests/unit/utils/detailFieldLayout.test.ts`    | P1     | [x]  |
 | T-BUILDER-1 | resourceFieldBuilder - 字段构建 | `tests/unit/utils/resourceFieldBuilder.test.ts` | P2     | [ ]  |
 
 ### 阶段 4: 组件集成测试 (Day 4-5)
 
 | 任务ID      | 任务描述                          | 测试文件                                                 | 优先级 | 状态 |
 | ----------- | --------------------------------- | -------------------------------------------------------- | ------ | ---- |
-| T-PANEL-1   | CrudDetailPanel - 打开/关闭       | `tests/integration/components/CrudDetailPanel.test.ts`   | P0     | [ ]  |
-| T-PANEL-2   | CrudDetailPanel - 受控/非受控模式 | `tests/integration/components/CrudDetailPanel.test.ts`   | P0     | [ ]  |
-| T-PANEL-3   | CrudDetailPanel - 键盘导航        | `tests/integration/components/CrudDetailPanel.test.ts`   | P1     | [ ]  |
-| T-PANEL-4   | CrudDetailPanel - ARIA 属性       | `tests/integration/components/CrudDetailPanel.test.ts`   | P1     | [ ]  |
+| T-PANEL-1   | CrudDetailPanel - 打开/关闭       | `tests/integration/components/CrudDetailPanel.test.ts`   | P0     | [x]  |
+| T-PANEL-2   | CrudDetailPanel - 受控/非受控模式 | `tests/integration/components/CrudDetailPanel.test.ts`   | P0     | [x]  |
+| T-PANEL-3   | CrudDetailPanel - 键盘导航        | `tests/integration/components/CrudDetailPanel.test.ts`   | P1     | [x]  |
+| T-PANEL-4   | CrudDetailPanel - ARIA 属性       | `tests/integration/components/CrudDetailPanel.test.ts`   | P1     | [x]  |
 | T-BODY-1    | CrudDetailBody - 加载/错误/空状态 | `tests/integration/components/CrudDetailBody.test.ts`    | P1     | [ ]  |
 | T-SECTION-1 | CrudDetailSection - 折叠展开      | `tests/integration/components/CrudDetailSection.test.ts` | P1     | [ ]  |
 | T-FIELD-1   | CrudDetailField - 格式化器        | `tests/integration/components/CrudDetailField.test.ts`   | P1     | [ ]  |
@@ -253,12 +253,13 @@ pnpm add -D vitest @vue/test-utils happy-dom @vitest/coverage-v8
 
 ### 测试覆盖进度
 
-| 模块                | 目标覆盖率 | 当前 | 状态            |
-| ------------------- | ---------- | ---- | --------------- |
-| useDetailState      | 90%+       | ~85% | ✅ 核心测试完成 |
-| useDetailResponsive | 85%+       | ~80% | ✅ 核心测试完成 |
-| detailFieldLayout   | 80%+       | 0%   | 待补充          |
-| CrudDetailPanel     | 75%+       | 0%   | 待补充          |
+| 模块                  | 目标覆盖率 | 当前 | 状态                |
+| --------------------- | ---------- | ---- | ------------------- |
+| useDetailState        | 90%+       | ~85% | ✅ 核心测试完成     |
+| useDetailResponsive   | 85%+       | ~80% | ✅ 核心测试完成     |
+| detailFieldLayout     | 80%+       | ~90% | ✅ 测试完成         |
+| useCrudPageController | 80%+       | ~75% | ✅ 辅助函数测试完成 |
+| CrudDetailPanel       | 75%+       | ~70% | ✅ 核心集成测试完成 |
 
 ---
 
