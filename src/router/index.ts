@@ -90,6 +90,22 @@ const routes: RouteRecordRaw[] = [
                 sortOrder: 99
               }
             }
+          },
+          {
+            path: 'roles',
+            name: 'RoleList',
+            component: () => import('@/views/admin/roles/RoleListPage.vue'),
+            meta: {
+              requiresAuth: true,
+              title: '角色管理',
+              permission: ADMIN_PERMISSIONS.role.page,
+              menu: {
+                name: 'admin:role:menu',
+                parentName: 'admin:system:menu',
+                icon: 'ep:collection-tag',
+                sortOrder: 98
+              }
+            }
           }
         ]
       },
