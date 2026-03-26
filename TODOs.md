@@ -16,16 +16,112 @@
 
 ### E4: 添加单元测试
 
-- [ ] **状态**: 待处理
+- [~] **状态**: 🔄 进行中 - 已建立测试任务队列
 - **问题**: 无测试覆盖
-- **解决方案**: 为 useDetailState、useDetailResponsive 添加单元测试
-- **文件**: `src/components/common/crud-page/detail/composables/__tests__/`
-- **预估工时**: 4h
-- **负责人**: 待分配
+- **解决方案**: 建立 Vitest 测试体系，测试文件统一放在 `tests/` 目录
+- **负责人**: 测试开发工程师
+- **预估工时**: 5 天
 - **验收标准**:
-  - [ ] useDetailState 测试覆盖 openDetail, openDetailById, refreshDetail, collapse states
-  - [ ] useDetailResponsive 测试覆盖 mode switching, width calculation, fullscreen detection
-  - [ ] 所有测试通过 `pnpm test`
+  - [ ] 测试基础设施搭建完成
+  - [ ] useDetailState 核心功能测试通过
+  - [ ] useDetailResponsive 核心功能测试通过
+  - [ ] 覆盖率达标
+
+---
+
+## 📋 测试任务队列 (E4 详细)
+
+> **负责人**: 测试开发工程师
+> **目标**: 建立 CRUD 组件测试体系，确保核心逻辑稳定
+
+### 目录结构
+
+```
+tests/
+├── setup.ts                    # 测试环境初始化
+├── utils/                      # 测试工具函数
+│   ├── mount.ts               # Vue 组件挂载工具
+│   └── mock.ts                # Mock 工具
+├── unit/                       # 单元测试
+│   ├── composables/
+│   │   ├── useDetailState.test.ts
+│   │   ├── useDetailResponsive.test.ts
+│   │   └── useCrudPageController.test.ts
+│   └── utils/
+│       ├── detailFieldLayout.test.ts
+│       └── resourceFieldBuilder.test.ts
+└── integration/                # 集成测试
+    └── components/
+        ├── CrudDetailPanel.test.ts
+        ├── CrudDetailBody.test.ts
+        ├── CrudDetailSection.test.ts
+        └── CrudDetailField.test.ts
+```
+
+### 阶段 1: 测试基础设施搭建 (Day 1)
+
+| 任务ID    | 任务描述           | 文件                   | 状态 |
+| --------- | ------------------ | ---------------------- | ---- |
+| T-SETUP-1 | 安装测试依赖       | `package.json`         | [x]  |
+| T-SETUP-2 | 创建 Vitest 配置   | `vitest.config.ts`     | [x]  |
+| T-SETUP-3 | 创建测试环境初始化 | `tests/setup.ts`       | [x]  |
+| T-SETUP-4 | 创建组件挂载工具   | `tests/utils/mount.ts` | [x]  |
+| T-SETUP-5 | 创建 Mock 工具     | `tests/utils/mock.ts`  | [x]  |
+| T-SETUP-6 | 添加测试脚本       | `package.json`         | [x]  |
+
+**依赖包**:
+
+```bash
+pnpm add -D vitest @vue/test-utils happy-dom @vitest/coverage-v8
+```
+
+### 阶段 2: Composables 单元测试 (Day 2-3)
+
+| 任务ID         | 任务描述                                 | 测试文件                                               | 优先级 | 状态 |
+| -------------- | ---------------------------------------- | ------------------------------------------------------ | ------ | ---- |
+| T-STATE-1      | useDetailState - openDetail/closeDetail  | `tests/unit/composables/useDetailState.test.ts`        | P0     | [x]  |
+| T-STATE-2      | useDetailState - openDetailById 请求取消 | `tests/unit/composables/useDetailState.test.ts`        | P0     | [x]  |
+| T-STATE-3      | useDetailState - refreshDetail           | `tests/unit/composables/useDetailState.test.ts`        | P0     | [x]  |
+| T-STATE-4      | useDetailState - collapse states         | `tests/unit/composables/useDetailState.test.ts`        | P1     | [x]  |
+| T-RESPONSIVE-1 | useDetailResponsive - 模式切换           | `tests/unit/composables/useDetailResponsive.test.ts`   | P0     | [x]  |
+| T-RESPONSIVE-2 | useDetailResponsive - 宽度计算           | `tests/unit/composables/useDetailResponsive.test.ts`   | P1     | [x]  |
+| T-RESPONSIVE-3 | useDetailResponsive - fullscreen 检测    | `tests/unit/composables/useDetailResponsive.test.ts`   | P1     | [x]  |
+| T-CTRL-1       | useCrudPageController - CRUD 操作        | `tests/unit/composables/useCrudPageController.test.ts` | P1     | [ ]  |
+
+### 阶段 3: 工具函数测试 (Day 3)
+
+| 任务ID      | 任务描述                        | 测试文件                                        | 优先级 | 状态 |
+| ----------- | ------------------------------- | ----------------------------------------------- | ------ | ---- |
+| T-LAYOUT-1  | detailFieldLayout - 布局解析    | `tests/unit/utils/detailFieldLayout.test.ts`    | P1     | [ ]  |
+| T-LAYOUT-2  | detailFieldLayout - 截断限制    | `tests/unit/utils/detailFieldLayout.test.ts`    | P1     | [ ]  |
+| T-BUILDER-1 | resourceFieldBuilder - 字段构建 | `tests/unit/utils/resourceFieldBuilder.test.ts` | P2     | [ ]  |
+
+### 阶段 4: 组件集成测试 (Day 4-5)
+
+| 任务ID      | 任务描述                          | 测试文件                                                 | 优先级 | 状态 |
+| ----------- | --------------------------------- | -------------------------------------------------------- | ------ | ---- |
+| T-PANEL-1   | CrudDetailPanel - 打开/关闭       | `tests/integration/components/CrudDetailPanel.test.ts`   | P0     | [ ]  |
+| T-PANEL-2   | CrudDetailPanel - 受控/非受控模式 | `tests/integration/components/CrudDetailPanel.test.ts`   | P0     | [ ]  |
+| T-PANEL-3   | CrudDetailPanel - 键盘导航        | `tests/integration/components/CrudDetailPanel.test.ts`   | P1     | [ ]  |
+| T-PANEL-4   | CrudDetailPanel - ARIA 属性       | `tests/integration/components/CrudDetailPanel.test.ts`   | P1     | [ ]  |
+| T-BODY-1    | CrudDetailBody - 加载/错误/空状态 | `tests/integration/components/CrudDetailBody.test.ts`    | P1     | [ ]  |
+| T-SECTION-1 | CrudDetailSection - 折叠展开      | `tests/integration/components/CrudDetailSection.test.ts` | P1     | [ ]  |
+| T-FIELD-1   | CrudDetailField - 格式化器        | `tests/integration/components/CrudDetailField.test.ts`   | P1     | [ ]  |
+
+### 测试覆盖目标
+
+| 模块                | 目标覆盖率 | 当前 |
+| ------------------- | ---------- | ---- |
+| useDetailState      | 90%+       | 0%   |
+| useDetailResponsive | 85%+       | 0%   |
+| detailFieldLayout   | 80%+       | 0%   |
+| CrudDetailPanel     | 75%+       | 0%   |
+
+### 验收标准
+
+- [ ] 所有测试通过 (`pnpm test`)
+- [ ] 覆盖率达标 (`pnpm test:coverage`)
+- [ ] CI 集成测试流程
 
 ### E1: 请求取消机制
 
