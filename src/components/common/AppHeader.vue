@@ -33,29 +33,32 @@
       <ThemeToggle />
 
       <!-- 时区设置对话框 -->
-      <el-dialog
+      <StandardDialog
         v-model="timezoneDialogVisible"
         title="时区设置"
-        width="600px"
-        :append-to-body="true"
-        :close-on-click-modal="false"
-        class="timezone-dialog"
+        size="md"
+        :confirm-disabled="!timezoneSettingsRef?.hasChanges"
+        :min-height="360"
+        @confirm="handleTimezoneConfirm"
+        @cancel="handleTimezoneDialogClosed"
+        @close="handleTimezoneDialogClosed"
       >
         <TimezoneSettings ref="timezoneSettingsRef" />
+      </StandardDialog>
 
-        <template #footer>
-          <div class="timezone-dialog-footer">
-            <el-button @click="handleTimezoneCancel">取消</el-button>
-            <el-button
-              type="primary"
-              :disabled="!timezoneSettingsRef?.hasChanges"
-              @click="handleTimezoneConfirm"
-            >
-              确定
-            </el-button>
-          </div>
-        </template>
-      </el-dialog>
+      <StandardDialog
+        v-model="logoutDialogVisible"
+        size="xs"
+        title="退出登录"
+        title-icon="warning"
+        confirm-text="退出登录"
+        confirm-type="danger"
+        :confirm-loading="logoutSubmitting"
+        @confirm="handleLogoutConfirm"
+      >
+        <p>确定要退出当前账号吗？</p>
+        <p class="logout-dialog__hint">退出后将返回登录页，当前会话状态会被清除。</p>
+      </StandardDialog>
 
       <!-- 占位：全局搜索（后续实现） -->
       <div class="search-placeholder">
@@ -125,7 +128,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import {
   Fold,
   Expand,
@@ -141,8 +144,10 @@ import { useMenu } from '@/composables/useMenu'
 import { logout } from '@/api/services/token-refresh'
 import { apiClient } from '@/api/client'
 import { usePermission } from '@/composables/usePermission'
+import { useCurrentUser } from '@/composables/useCurrentUser'
 import { useTimezoneStore } from '@/stores/timezone'
 import type { MenuItem } from '@/types/menu'
+import { StandardDialog } from '@/components/ui/StandardDialog'
 import ThemeToggle from './ThemeToggle.vue'
 import TimezoneSettings from './TimezoneSettings.vue'
 
@@ -151,6 +156,7 @@ import TimezoneSettings from './TimezoneSettings.vue'
 const { toggleSidebar, sidebarCollapsed } = useLayout()
 const { clearMenus } = useMenu()
 const { clearPermissions } = usePermission()
+const { currentUser, clearCurrentUser } = useCurrentUser()
 const timezoneStore = useTimezoneStore()
 
 // ==================== 对话框状态 ====================
@@ -159,6 +165,8 @@ const timezoneStore = useTimezoneStore()
  * 时区设置对话框可见性
  */
 const timezoneDialogVisible = ref(false)
+const logoutDialogVisible = ref(false)
+const logoutSubmitting = ref(false)
 
 /**
  * TimezoneSettings 组件引用
@@ -174,7 +182,7 @@ const route = useRoute()
 
 /** 当前用户名 */
 const username = computed(() => {
-  return 'Admin' // TODO: 从用户状态获取
+  return currentUser.value?.full_name?.trim() || '用户'
 })
 
 /** 用户头像 */
@@ -237,7 +245,7 @@ const handleUserMenuCommand = async (command: string) => {
       break
 
     case 'logout':
-      await handleLogout()
+      logoutDialogVisible.value = true
       break
   }
 }
@@ -265,52 +273,34 @@ const handleTimezoneConfirm = () => {
 /**
  * 取消时区设置
  */
-const handleTimezoneCancel = () => {
-  if (!timezoneSettingsRef.value) return
-
-  // 重置编辑状态（放弃修改）
-  timezoneSettingsRef.value.resetTimezoneSettings()
-
-  // 关闭对话框
-  timezoneDialogVisible.value = false
-
-  // 提示用户已取消
-  ElMessage.info({
-    message: '已取消时区设置修改',
-    duration: 1500
-  })
+function handleTimezoneDialogClosed() {
+  timezoneSettingsRef.value?.resetTimezoneSettings()
 }
 
 /**
  * 处理退出登录
  */
-const handleLogout = async () => {
+const handleLogoutConfirm = async () => {
+  logoutSubmitting.value = true
   try {
-    await ElMessageBox.confirm('确定要退出登录吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-
     // 调用后端登出接口
     await logout(apiClient)
 
     // 清除权限和菜单
     clearPermissions()
     clearMenus()
+    clearCurrentUser()
 
+    logoutDialogVisible.value = false
     ElMessage.success('已退出登录')
 
     // 跳转到登录页
-    router.push('/login')
+    await router.push('/login')
   } catch (error) {
-    // 用户取消操作
-    if (error === 'cancel') {
-      return
-    }
-
     console.error('登出失败:', error)
     ElMessage.error('登出失败，请稍后重试')
+  } finally {
+    logoutSubmitting.value = false
   }
 }
 </script>
@@ -495,6 +485,12 @@ html:not(.dark) .search-placeholder:hover {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
+}
+
+.logout-dialog__hint {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
 }
 
 /* 用户下拉菜单 */

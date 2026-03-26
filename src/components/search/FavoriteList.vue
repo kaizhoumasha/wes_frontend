@@ -23,7 +23,7 @@
           <el-icon class="favorite-list__item-icon"><Star /></el-icon>
           <div class="favorite-list__item-info">
             <div class="favorite-list__item-name">{{ favorite.name }}</div>
-            <div class="favorite-list__item-count">{{ favorite.conditions.length }} 个条件</div>
+            <div class="favorite-list__item-count">{{ getFavoriteCount(favorite) }} 个条件</div>
           </div>
         </div>
       </div>
@@ -41,6 +41,7 @@
 import { Star } from '@element-plus/icons-vue'
 
 import type { SearchFavorite } from '@/types/search'
+import { countSearchFavoriteRules } from '@/utils/advanced-search'
 
 // ==================== 类型定义 ====================
 
@@ -75,8 +76,12 @@ const emit = defineEmits<Emits>()
 
 // ==================== 事件处理 ====================
 
-function handleApplyFavorite(favoriteId: string) {
+function handleApplyFavorite(favoriteId: string): void {
   emit('apply-favorite', favoriteId)
+}
+
+function getFavoriteCount(favorite: SearchFavorite): number {
+  return countSearchFavoriteRules(favorite)
 }
 </script>
 

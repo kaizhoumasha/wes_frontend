@@ -6,7 +6,10 @@ Popover 中栏：展示系统快捷预设，支持一键应用。
 <template>
   <div class="search-quick-panel">
     <div class="search-quick-panel__header">
-      <h4>快速搜索</h4>
+      <div>
+        <h4>快速搜索</h4>
+        <p class="search-quick-panel__hint">点击后会直接追加条件并执行搜索</p>
+      </div>
     </div>
 
     <el-scrollbar class="search-quick-panel__list">
@@ -17,7 +20,10 @@ Popover 中栏：展示系统快捷预设，支持一键应用。
         @click="handleApplyPreset(preset)"
       >
         <div class="search-quick-panel__item-content">
-          <div class="search-quick-panel__item-label">{{ preset.label }}</div>
+          <div class="search-quick-panel__item-top">
+            <div class="search-quick-panel__item-label">{{ preset.label }}</div>
+            <span class="search-quick-panel__item-count">{{ preset.conditions.length }} 条</span>
+          </div>
           <div
             v-if="preset.description"
             class="search-quick-panel__item-desc"
@@ -81,6 +87,13 @@ function handleApplyPreset(preset: QuickSearchPreset) {
     }
   }
 
+  &__hint {
+    margin: 4px 0 0;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--el-text-color-secondary);
+  }
+
   &__list {
     flex: 1;
     padding: 8px;
@@ -106,10 +119,26 @@ function handleApplyPreset(preset: QuickSearchPreset) {
     gap: 4px;
   }
 
+  &__item-top {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
   &__item-label {
     font-size: 14px;
     font-weight: 500;
     color: var(--el-text-color-primary);
+  }
+
+  &__item-count {
+    flex-shrink: 0;
+    padding: 1px 8px;
+    font-size: 11px;
+    color: var(--el-text-color-secondary);
+    background: var(--el-fill-color-light);
+    border-radius: 999px;
   }
 
   &__item-desc {

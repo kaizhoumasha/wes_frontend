@@ -9,7 +9,7 @@
       <div class="menu-item-content">
         <AppIcon
           :icon="menuItem.icon"
-          :fallback="'Menu'"
+          fallback="ep:menu"
           class="menu-icon"
         />
         <span
@@ -46,7 +46,7 @@
     <div class="menu-item-content">
       <AppIcon
         :icon="menuItem.icon"
-        :fallback="'Document'"
+        fallback="ep:document"
         class="menu-icon"
       />
       <span
@@ -85,25 +85,38 @@ const props = withDefaults(defineProps<Props>(), {
 // ==================== 路由 ====================
 
 const router = useRouter()
+const MENU_NOT_FOUND_ROUTE_NAME = 'NotFoundRedirect'
+const MENU_NOT_FOUND_SOURCE = 'menu'
 
 // ==================== 计算属性 ====================
 
 /** 是否有可见的子菜单 */
-const hasChildren = computed(() => {
-  return visibleChildren.value.length > 0
-})
+const hasChildren = computed(() => visibleChildren.value.length > 0)
 
 /** 可见的子菜单（过滤掉隐藏的菜单） */
-const visibleChildren = computed(() => {
-  return props.menuItem.children.filter(child => !child.is_hidden)
-})
+const visibleChildren = computed(() => props.menuItem.children.filter(child => !child.is_hidden))
 
 // ==================== 方法 ====================
 
 /**
  * 处理菜单点击事件
  */
-const handleMenuClick = () => {
+function handleMenuClick(): void {
+  const resolvedRoute = router.resolve(props.menuItem.path)
+  const fallbackRoute = resolvedRoute.matched[resolvedRoute.matched.length - 1]
+
+  if (fallbackRoute?.name === MENU_NOT_FOUND_ROUTE_NAME) {
+    router.push({
+      name: 'NotFound',
+      query: {
+        path: props.menuItem.path,
+        title: props.menuItem.title,
+        source: MENU_NOT_FOUND_SOURCE
+      }
+    })
+    return
+  }
+
   router.push(props.menuItem.path)
 }
 </script>

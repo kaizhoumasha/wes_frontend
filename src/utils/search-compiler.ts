@@ -15,9 +15,17 @@ import type {
 } from '@/types/search'
 import { OPERATOR_BACKEND_MAP } from '@/types/search'
 import type { FilterCondition, FilterGroup } from '@/api/base/crud-api'
+import {
+  getAdvancedOperatorsForField,
+  needsAdvancedValue
+} from '@/utils/advanced-search'
 
 // 重新导出 generateConditionId，方便其他模块使用
 export { generateConditionId, resetConditionIdCounter } from '@/types/search'
+
+const NUMERIC_KEYWORD_PATTERN = /^-?\d+(\.\d+)?$/
+const DATE_KEYWORD_PATTERN = /^\d{4}-\d{2}-\d{2}/
+const BOOLEAN_KEYWORDS = new Set(['true', 'false', '是', '否', 'y', 'n', 'yes', 'no'])
 
 // ==================== 标签生成 ====================
 
@@ -348,6 +356,138 @@ export function compileConditions(
   }
 }
 
+function validateAdvancedCondition(
+  condition: FilterCondition,
+  fieldDef: SearchFieldDef
+): boolean {
+  if (fieldDef.searchable === false) {
+    console.warn(`[search-compiler] 字段不可搜索: ${condition.field}`)
+    return false
+  }
+
+  const availableOperators = getAdvancedOperatorsForField(fieldDef)
+  if (!availableOperators.includes(condition.op)) {
+    console.warn(
+      `[search-compiler] 操作符 ${condition.op} 不适用于字段 ${condition.field}（类型: ${fieldDef.dataType}）`
+    )
+    return false
+  }
+
+  if (!needsAdvancedValue(condition.op)) {
+    return true
+  }
+
+  if (condition.op === 'between') {
+    if (!Array.isArray(condition.value) || condition.value.length !== 2) {
+      console.warn(`[search-compiler] between 操作符值必须是 [min, max] 数组:`, condition)
+      return false
+    }
+
+    const [min, max] = condition.value
+    if (min === undefined || min === null || max === undefined || max === null) {
+      console.warn(`[search-compiler] between 操作符值不能包含 null/undefined:`, condition)
+      return false
+    }
+
+    if (min >= max) {
+      console.warn(`[search-compiler] between 操作符值必须满足 min < max: [${min}, ${max}]`, condition)
+      return false
+    }
+
+    return true
+  }
+
+  if (condition.op === 'in' || condition.op === 'nin') {
+    if (!Array.isArray(condition.value) || condition.value.length === 0) {
+      console.warn(`[search-compiler] ${condition.op} 操作符值必须是非空数组:`, condition)
+      return false
+    }
+    return true
+  }
+
+  if (condition.value === undefined || condition.value === null || condition.value === '') {
+    console.warn(`[search-compiler] ${condition.op} 操作符值不能为空:`, condition)
+    return false
+  }
+
+  if (fieldDef.dataType === 'enum' && fieldDef.options) {
+    const validValues = fieldDef.options.map(option => option.value)
+    const values = Array.isArray(condition.value) ? condition.value : [condition.value]
+
+    if (values.some(value => !validValues.includes(value))) {
+      console.warn(`[search-compiler] 枚举值不在有效选项中:`, condition)
+      return false
+    }
+  }
+
+  return true
+}
+
+function compileAdvancedCondition(
+  condition: FilterCondition,
+  fieldDefs: SearchFieldDef[]
+): FilterCondition | null {
+  const fieldDef = fieldDefs.find(field => field.key === condition.field)
+  if (!fieldDef) {
+    console.warn(`[search-compiler] 字段不存在: ${condition.field}`)
+    return null
+  }
+
+  if (!validateAdvancedCondition(condition, fieldDef)) {
+    return null
+  }
+
+  if (condition.op === 'ilike') {
+    const textValue = escapeLikePattern(String(condition.value ?? ''))
+    return {
+      ...condition,
+      value: `%${textValue}%`
+    }
+  }
+
+  if (condition.op === 'is_null' || condition.op === 'not_null') {
+    return {
+      ...condition,
+      value: undefined
+    }
+  }
+
+  return condition
+}
+
+export function compileFilterGroup(
+  filters: FilterGroup | undefined,
+  fieldDefs: SearchFieldDef[]
+): FilterGroup | undefined {
+  if (!filters) {
+    return undefined
+  }
+
+  const conditions = (filters.conditions ?? []) as Array<FilterCondition | FilterGroup>
+
+  const compiledConditions = conditions
+    .map((item: FilterCondition | FilterGroup) => {
+      if ('conditions' in item) {
+        return compileFilterGroup(item, fieldDefs)
+      }
+
+      return compileAdvancedCondition(item, fieldDefs)
+    })
+    .filter(
+      (item: FilterCondition | FilterGroup | null | undefined): item is FilterCondition | FilterGroup =>
+        item !== null && item !== undefined
+    )
+
+  if (compiledConditions.length === 0) {
+    return undefined
+  }
+
+  return {
+    couple: filters.couple ?? 'and',
+    conditions: compiledConditions
+  }
+}
+
 // ==================== 关键字解析 ====================
 
 /**
@@ -373,18 +513,18 @@ export function parseKeywordKind(keyword: string): SearchDataType | 'empty' {
   }
 
   // 数值检查（优先于布尔值，避免 1/0 被误判为布尔）
-  if (/^-?\d+(\.\d+)?$/.test(keyword)) {
+  if (NUMERIC_KEYWORD_PATTERN.test(keyword)) {
     return 'number'
   }
 
   // 布尔值检查（排除纯数值，只匹配语义化的布尔值）
   const lowerKeyword = keyword.toLowerCase()
-  if (['true', 'false', '是', '否', 'y', 'n', 'yes', 'no'].includes(lowerKeyword)) {
+  if (BOOLEAN_KEYWORDS.has(lowerKeyword)) {
     return 'boolean'
   }
 
   // 日期检查 (ISO 格式)
-  if (/^\d{4}-\d{2}-\d{2}/.test(keyword)) {
+  if (DATE_KEYWORD_PATTERN.test(keyword)) {
     return 'date'
   }
 

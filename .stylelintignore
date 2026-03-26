@@ -1,0 +1,19 @@
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+dist-ssr
+
+# Cache
+.cache
+
+# Generated files
+*.d.ts
+
+# Minified files
+*.min.css
+
+# Third-party styles
+**/vendor/**
+**/third-party/**

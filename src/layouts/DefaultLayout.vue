@@ -76,7 +76,7 @@ onMounted(() => {
 /* ==================== 基础布局 ==================== */
 .default-layout {
   --layout-header-height: 64px;
-  --layout-page-padding: 24px;
+  --layout-page-padding: 8px;
 
   min-height: 100vh;
   overflow: hidden;

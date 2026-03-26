@@ -1,328 +1,55 @@
 /**
  * 认证 API
  *
- * 处理用户登录、登出、Token 刷新等认证相关操作
- * 对应后端: src/app/auth/v1/auth.py
+ * 基于 OpenAPI 契约的认证模块。
  */
 
-import { apiClient, getApiPath } from '../client'
-import type { ApiResponse } from '../types'
-import type { MenuTreeResponse } from '@/types/menu'
+import { API_CACHE_DURATION } from '@/constants/cache'
+import { contractClient } from '@/api/contract/client'
+import type {
+  ArrayItem,
+  ContractPath,
+  ContractRequestBody,
+  ContractResponseData,
+  ContractSchema,
+} from '@/api/contract/types'
 
-// ==================== 类型定义 ====================
+const AUTH_LOGIN_PATH = '/api/v1/auth/login' satisfies ContractPath
+const AUTH_MY_PATH = '/api/v1/auth/my' satisfies ContractPath
+const AUTH_PERMISSIONS_PATH = '/api/v1/auth/permissions' satisfies ContractPath
 
-/**
- * 登录请求
- */
-export interface LoginRequest {
-  /** 用户名（3-50字符） */
-  username: string
-  /** 密码（6-100字符） */
-  password: string
-}
+type LoginEndpoint = typeof AUTH_LOGIN_PATH
+type MyEndpoint = typeof AUTH_MY_PATH
+type PermissionsEndpoint = typeof AUTH_PERMISSIONS_PATH
 
-/**
- * Token 响应
- */
-export interface TokenResponse {
-  /** 访问令牌 */
-  access_token: string
-  /** 刷新令牌（存储在 HttpOnly Cookie 中，不在响应中返回） */
-  refresh_token?: string
-  /** 过期时间（秒） */
-  expires_in: number
-}
+type LoginResponse = ContractResponseData<LoginEndpoint, 'post'>
+type AuthMyResponse = ContractResponseData<MyEndpoint, 'get'>
+type UserPermissionsResponse = ContractResponseData<PermissionsEndpoint, 'get'>
 
-/**
- * 登录响应
- */
-export interface LoginResponse {
-  /** 访问令牌 */
-  access_token: string
-  /** 刷新令牌（HttpOnly Cookie，不在响应中） */
-  refresh_token?: string
-  /** 过期时间（秒） */
-  expires_in: number
-  /** 用户信息 */
-  user?: UserInfo
-}
+export type LoginRequest = ContractRequestBody<LoginEndpoint, 'post'>
 
-/**
- * 登出响应
- */
-export interface LogoutResponse {
-  /** 消息 */
-  message: string
-  /** 撤销的令牌数量 */
-  revoked_count: number
-}
+export type ApiPermissionInfo = ContractSchema<'ApiPermissionInfo'>
 
-/**
- * 刷新令牌响应
- */
-export interface RefreshTokenResponse {
-  /** 新的访问令牌 */
-  access_token: string
-  /** 新的刷新令牌 */
-  refresh_token: string
-  /** 过期时间（秒） */
-  expires_in: number
-}
+export type UserInfo = ContractSchema<'UserResponse'>
 
-/**
- * 会话信息
- */
-export interface SessionInfo {
-  /** 会话 UUID */
-  session_uuid: string
-  /** JWT ID */
-  jti: string
-  /** 创建时间 */
-  created_at: string
-  /** 最后活跃时间 */
-  last_active?: string
-  /** 设备信息 */
-  device_info?: {
-    /** 用户代理 */
-    user_agent?: string
-    /** IP 地址 */
-    ip_address?: string
-    /** 设备类型 */
-    device_type?: string
-  }
-}
+export type MenuTreeResponse = ArrayItem<AuthMyResponse['menus']>
 
-/**
- * 活跃会话响应
- */
-export interface ActiveSessionsResponse {
-  /** 会话总数 */
-  total: number
-  /** 会话列表 */
-  sessions: SessionInfo[]
-}
-
-/**
- * 撤销会话响应
- */
-export interface RevokeSessionResponse {
-  /** 消息 */
-  message: string
-  /** 会话 UUID */
-  session_uuid: string
-}
-
-/**
- * API 权限信息
- *
- * 对应后端: src/app/auth/v1/auth.py (ApiPermissionInfo)
- *
- * ## 字段可空性说明
- *
- * - category, resource, action: 后端为 `str | None`，前端使用可选类型
- * - method, path: 后端为 `str | None`，前端使用可选类型
- */
-export interface ApiPermissionInfo {
-  /** 权限 ID */
-  id: number
-  /** 权限标识（如 admin:user:create） */
-  name: string
-  /** 权限描述 */
-  description: string
-  /** 权限类型（user_api 或 app_api） */
-  type: string
-  /** 权限分类（后端为 str | None） */
-  category?: string | null
-  /** 资源（后端为 str | None） */
-  resource?: string | null
-  /** 操作（后端为 str | None） */
-  action?: string | null
-  /** HTTP 方法（后端为 str | None） */
-  method?: string | null
-  /** API 路径（后端为 str | None） */
-  path?: string | null
-}
-
-/**
- * 用户权限响应
- */
-export interface UserPermissionsResponse {
-  /** 权限总数 */
-  total: number
-  /** 权限列表 */
-  permissions: ApiPermissionInfo[]
-}
-
-/**
- * 当前登录用户初始化上下文
- */
-export interface AuthMyResponse {
-  /** 当前用户信息 */
-  user: UserInfo
-  /** 当前用户 API 权限列表 */
-  permissions: ApiPermissionInfo[]
-  /** 当前用户菜单树 */
-  menus: MenuTreeResponse[]
-}
-
-/**
- * 用户信息
- */
-export interface UserInfo {
-  /** 用户 ID */
-  id: number
-  /** 用户名 */
-  username: string
-  /** 邮箱 */
-  email?: string
-  /** 姓名 */
-  full_name?: string
-  /** 是否为超级用户 */
-  is_superuser: boolean
-  /** 用户状态 */
-  status?: string
-}
-
-// ==================== API 函数 ====================
-
-/**
- * 认证 API
- */
 export const authApi = {
-  /**
-   * 用户登录
-   *
-   * @param credentials 登录凭据
-   * @returns 登录响应（包含访问令牌）
-   *
-   * @example
-   * ```ts
-   * const result = await authApi.login({
-   *   username: 'admin',
-   *   password: 'password123'
-   * })
-   * // result.access_token - 访问令牌（存储到 localStorage）
-   * // 刷新令牌自动存储到 HttpOnly Cookie
-   * ```
-   */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const response = await apiClient.Post<LoginResponse>(
-      getApiPath('/auth/login'),
-      credentials
-    )
-    return response
+    return await contractClient.post(AUTH_LOGIN_PATH, {
+      body: credentials
+    })
   },
 
-  /**
-   * 刷新访问令牌
-   *
-   * 使用 HttpOnly Cookie 中的刷新令牌获取新的访问令牌
-   * 新的刷新令牌会自动更新到 HttpOnly Cookie
-   *
-   * @returns 刷新令牌响应
-   */
-  async refreshToken(): Promise<RefreshTokenResponse> {
-    const response = await apiClient.Post<RefreshTokenResponse>(
-      getApiPath('/auth/refresh'),
-      {}
-    )
-    return response
-  },
-
-  /**
-   * ⚠️ 已废弃：请使用 src/api/services/token-refresh.ts 的 logout() 函数
-   *
-   * ❌ 不要直接调用此方法
-   * ✅ 正确做法：
-   *   ```ts
-   *   import { logout } from '@/api/services/token-refresh'
-   *   import { apiClient } from '@/api/client'
-   *   await logout(apiClient)
-   *   ```
-   *
-   * 原因：此方法只调用后端 API，不执行本地清理（权限/token）
-   *
-   * 正确的退出流程：
-   * 1. 调用后端 /auth/logout（携带 token 鉴权）
-   * 2. 清除权限（usePermission.clearPermissions()）
-   * 3. 清除本地 token（localStorage）
-   * 4. 跳转到登录页
-   *
-   * @deprecated 使用 logout(apiClient) 代替
-   * @returns 登出响应
-   */
-  async logout(): Promise<LogoutResponse> {
-    const response = await apiClient.Post<ApiResponse<LogoutResponse>>(
-      getApiPath('/auth/logout'),
-      {}
-    )
-    return response as unknown as LogoutResponse
-  },
-
-  /**
-   * ⚠️ 已废弃：logoutAll 同样需要完整的本地清理流程
-   *
-   * 请参考 logout() 方法的注释说明。
-   *
-   * @deprecated 使用完整退出流程代替
-   * @returns 登出响应
-   */
-  async logoutAll(): Promise<LogoutResponse> {
-    const response = await apiClient.Post<ApiResponse<LogoutResponse>>(
-      getApiPath('/auth/logout-all'),
-      {}
-    )
-    return response as unknown as LogoutResponse
-  },
-
-  /**
-   * 获取当前用户的所有活跃会话
-   *
-   * @returns 活跃会话列表
-   */
-  async getActiveSessions(): Promise<ActiveSessionsResponse> {
-    const response = await apiClient.Get<ApiResponse<ActiveSessionsResponse>>(
-      getApiPath('/auth/sessions')
-    )
-    return response as unknown as ActiveSessionsResponse
-  },
-
-  /**
-   * 撤销指定会话
-   *
-   * @param sessionUuid 会话 UUID
-   * @returns 撤销响应
-   */
-  async revokeSession(sessionUuid: string): Promise<RevokeSessionResponse> {
-    const response = await apiClient.Delete<ApiResponse<RevokeSessionResponse>>(
-      getApiPath(`/auth/sessions/${sessionUuid}`)
-    )
-    return response as unknown as RevokeSessionResponse
-  },
-
-  /**
-   * 获取当前用户的 API 权限列表
-   *
-   * 用于前端动态路由和权限控制
-   *
-   * @returns 用户权限列表
-   */
   async getPermissions(): Promise<UserPermissionsResponse> {
-    const response = await apiClient.Get<ApiResponse<UserPermissionsResponse>>(
-      getApiPath('/auth/permissions')
-    )
-    return response as unknown as UserPermissionsResponse
+    return await contractClient.get(AUTH_PERMISSIONS_PATH, {
+      config: { cacheFor: API_CACHE_DURATION.NONE }
+    })
   },
 
-  /**
-   * 获取当前用户初始化上下文（用户信息 + 权限 + 菜单）
-   *
-   * 用于登录后一次性加载前端所需核心数据，减少额外请求。
-   */
   async getMy(): Promise<AuthMyResponse> {
-    const response = await apiClient.Get<AuthMyResponse>(
-      getApiPath('/auth/my')
-    )
-    return response
-  },
+    return await contractClient.get(AUTH_MY_PATH, {
+      config: { cacheFor: API_CACHE_DURATION.NONE }
+    })
+  }
 }

@@ -11,7 +11,7 @@
  *   pnpm exec tsx scripts/generate-zod-from-openapi.ts
  */
 
-import { writeFileSync, mkdirSync, existsSync } from 'node:fs'
+import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -20,16 +20,10 @@ const __dirname = join(__filename, '..')
 
 // ==================== 类型定义 ====================
 
-interface OpenAPISchema {
-  type?: string
-  title?: string
-  description?: string
-  required?: string[]
-  properties?: Record<string, PropertySchema>
-  additionalProperties?: boolean
-}
+type EnumValue = string | number | boolean | null
 
-interface PropertySchema {
+interface OpenAPISchema {
+  $ref?: string
   type?: string
   title?: string
   description?: string
@@ -39,10 +33,37 @@ interface PropertySchema {
   maximum?: number
   pattern?: string
   format?: string
-  anyOf?: Array<{ type?: string }>
-  enum?: (string | number)[]
+  enum?: EnumValue[]
   default?: unknown
   items?: PropertySchema
+  required?: string[]
+  properties?: Record<string, PropertySchema>
+  additionalProperties?: boolean | PropertySchema
+  anyOf?: PropertySchema[]
+  oneOf?: PropertySchema[]
+  allOf?: PropertySchema[]
+}
+
+interface PropertySchema {
+  $ref?: string
+  type?: string
+  title?: string
+  description?: string
+  minLength?: number
+  maxLength?: number
+  minimum?: number
+  maximum?: number
+  pattern?: string
+  format?: string
+  anyOf?: PropertySchema[]
+  oneOf?: PropertySchema[]
+  allOf?: PropertySchema[]
+  enum?: EnumValue[]
+  default?: unknown
+  items?: PropertySchema
+  required?: string[]
+  properties?: Record<string, PropertySchema>
+  additionalProperties?: boolean | PropertySchema
 }
 
 // ==================== 配置 ====================
@@ -76,15 +97,40 @@ interface SyncRecord {
   backendUrl: string
 }
 
-function writeSyncRecord(openApiData: Record<string, unknown>): void {
+function readSyncRecord(): SyncRecord | null {
+  if (!existsSync(SYNC_RECORD_FILE)) {
+    return null
+  }
+
+  try {
+    return JSON.parse(readFileSync(SYNC_RECORD_FILE, 'utf-8')) as SyncRecord
+  } catch {
+    return null
+  }
+}
+
+function writeFileIfChanged(path: string, content: string): boolean {
+  const previous = existsSync(path) ? readFileSync(path, 'utf-8') : null
+  if (previous === content) {
+    return false
+  }
+
+  writeFileSync(path, content, 'utf-8')
+  return true
+}
+
+function writeSyncRecord(openApiData: Record<string, unknown>): boolean {
   const schemas = JSON.stringify(openApiData.components?.schemas || {})
   const record: SyncRecord = {
     lastSyncTime: new Date().toISOString(),
     openApiHash: simpleHash(schemas),
     backendUrl: BACKEND_OPENAPI_URL,
   }
-  writeFileSync(SYNC_RECORD_FILE, JSON.stringify(record, null, 2), 'utf-8')
-  console.log(`✅ 记录同步状态: ${SYNC_RECORD_FILE}`)
+  const changed = writeFileIfChanged(SYNC_RECORD_FILE, `${JSON.stringify(record, null, 2)}\n`)
+  if (changed) {
+    console.log(`✅ 记录同步状态: ${SYNC_RECORD_FILE}`)
+  }
+  return changed
 }
 
 // ==================== 工具函数 ====================
@@ -115,103 +161,190 @@ async function fetchOpenAPISchema(): Promise<{
   }
 }
 
+function formatLiteral(value: unknown): string {
+  if (typeof value === 'string') {
+    return JSON.stringify(value)
+  }
+
+  if (value === null) {
+    return 'null'
+  }
+
+  return String(value)
+}
+
+function getRefSchemaName(ref: string): string | null {
+  const prefix = '#/components/schemas/'
+  if (!ref.startsWith(prefix)) {
+    return null
+  }
+
+  return ref.slice(prefix.length)
+}
+
+function buildEnumZod(values: EnumValue[]): string {
+  const nonNullValues = values.filter((value): value is Exclude<EnumValue, null> => value !== null)
+
+  if (nonNullValues.length === 0) {
+    return 'z.null()'
+  }
+
+  const allStrings = nonNullValues.every((value) => typeof value === 'string')
+  const baseEnum = allStrings
+    ? `z.enum([${nonNullValues.map((value) => formatLiteral(value)).join(', ')}])`
+    : nonNullValues.length === 1
+      ? `z.literal(${formatLiteral(nonNullValues[0])})`
+      : `z.union([${nonNullValues.map((value) => `z.literal(${formatLiteral(value)})`).join(', ')}])`
+
+  return values.includes(null)
+    ? `z.union([${baseEnum}, z.null()])`
+    : baseEnum
+}
+
+function buildUnion(parts: string[]): string {
+  if (parts.length === 0) {
+    return 'z.any()'
+  }
+
+  if (parts.length === 1) {
+    return parts[0]
+  }
+
+  return `z.union([${parts.join(', ')}])`
+}
+
+function buildIntersection(parts: string[]): string {
+  if (parts.length === 0) {
+    return 'z.any()'
+  }
+
+  return parts.reduce((result, part, index) => (
+    index === 0 ? part : `z.intersection(${result}, ${part})`
+  ), '')
+}
+
+function buildObjectZod(
+  schema: OpenAPISchema,
+  schemas: Record<string, OpenAPISchema>
+): string {
+  const requiredFields = new Set(schema.required || [])
+  const properties = schema.properties || {}
+  const lines = Object.entries(properties).flatMap(([fieldName, prop]) => {
+    const fieldLines: string[] = []
+    const comment = prop.title || prop.description
+    if (comment) {
+      fieldLines.push(`  /** ${comment} */`)
+    }
+    fieldLines.push(`  ${fieldName}: ${propertyToZod(prop, requiredFields.has(fieldName), schemas)},`)
+    return fieldLines
+  })
+
+  if (lines.length === 0) {
+    return 'z.object({})'
+  }
+
+  return `z.object({\n${lines.join('\n')}\n})`
+}
+
+function wrapSelfReferentialSchema(schemaName: string, zodDef: string): string {
+  const selfReference = `z.lazy(() => ${schemaName}Schema)`
+  if (!zodDef.includes(selfReference)) {
+    return zodDef
+  }
+
+  return `z.lazy((): z.ZodTypeAny => ${zodDef})`
+}
+
+function schemaToZod(
+  schema: PropertySchema,
+  schemas: Record<string, OpenAPISchema>
+): string {
+  if (schema.$ref) {
+    const refSchemaName = getRefSchemaName(schema.$ref)
+    return refSchemaName ? `z.lazy(() => ${refSchemaName}Schema)` : 'z.any()'
+  }
+
+  if (schema.enum) {
+    return buildEnumZod(schema.enum)
+  }
+
+  if (schema.allOf?.length) {
+    return buildIntersection(schema.allOf.map((item) => schemaToZod(item, schemas)))
+  }
+
+  if (schema.anyOf?.length) {
+    return buildUnion(schema.anyOf.map((item) => schemaToZod(item, schemas)))
+  }
+
+  if (schema.oneOf?.length) {
+    return buildUnion(schema.oneOf.map((item) => schemaToZod(item, schemas)))
+  }
+
+  switch (schema.type) {
+    case 'string': {
+      const calls = ['z.string()']
+      if (schema.minLength !== undefined) calls.push(`.min(${schema.minLength})`)
+      if (schema.maxLength !== undefined) calls.push(`.max(${schema.maxLength})`)
+      if (schema.pattern) calls.push(`.regex(${JSON.stringify(schema.pattern)})`)
+      if (schema.format === 'email') calls.push('.email()')
+      else if (schema.format === 'uri' || schema.format === 'url') calls.push('.url()')
+      else if (schema.format === 'date-time') calls.push('.datetime()')
+      else if (schema.format === 'date') calls.push('.date()')
+      else if (schema.format === 'time') calls.push('.time()')
+      else if (schema.format === 'uuid') calls.push('.uuid()')
+      return calls.join('')
+    }
+
+    case 'number':
+    case 'integer': {
+      const calls = ['z.number()']
+      if (schema.minimum !== undefined) calls.push(`.min(${schema.minimum})`)
+      if (schema.maximum !== undefined) calls.push(`.max(${schema.maximum})`)
+      return calls.join('')
+    }
+
+    case 'boolean':
+      return 'z.boolean()'
+
+    case 'array':
+      return `z.array(${schema.items ? schemaToZod(schema.items, schemas) : 'z.any()'})`
+
+    case 'object':
+      if (schema.properties) {
+        return buildObjectZod(schema, schemas)
+      }
+      if (schema.additionalProperties && typeof schema.additionalProperties === 'object') {
+        return `z.record(${schemaToZod(schema.additionalProperties, schemas)})`
+      }
+      return 'z.record(z.any())'
+
+    case 'null':
+      return 'z.null()'
+
+    default:
+      if (schema.properties) {
+        return buildObjectZod(schema, schemas)
+      }
+      return 'z.any()'
+  }
+}
+
 /**
  * 将 OpenAPI 属性转换为 Zod 定义（兼容 zod v3）
  */
 function propertyToZod(
-  fieldName: string,
   prop: PropertySchema,
-  isRequired: boolean
+  isRequired: boolean,
+  schemas: Record<string, OpenAPISchema>
 ): string {
-  // 内部函数，用于从属性生成核心 Zod 链
-  const generateCoreZod = (p: PropertySchema): string[] => {
-    const calls: string[] = []
-    if (p.enum) {
-      const enumValues = p.enum.map((v) =>
-        typeof v === 'string' ? JSON.stringify(v) : String(v)
-      ).join(', ')
-      calls.push(`z.enum([${enumValues}])`)
-    } else {
-      switch (p.type) {
-        case 'string':
-          calls.push('z.string()')
-          if (p.minLength !== undefined) calls.push(`.min(${p.minLength})`)
-          if (p.maxLength !== undefined) calls.push(`.max(${p.maxLength})`)
-          if (p.pattern) calls.push(`.regex(${JSON.stringify(p.pattern)})`)
-          if (p.format === 'email') calls.push('.email()')
-          else if (p.format === 'uri' || p.format === 'url') calls.push('.url()')
-          else if (p.format === 'date-time') calls.push('.datetime()')
-          else if (p.format === 'date') calls.push('.date()')
-          else if (p.format === 'time') calls.push('.time()')
-          else if (p.format === 'uuid') calls.push('.uuid()')
-          break
+  const finalZodCalls = [schemaToZod(prop, schemas)]
 
-        case 'number':
-        case 'integer':
-          calls.push('z.number()')
-          if (p.minimum !== undefined) calls.push(`.min(${p.minimum})`)
-          if (p.maximum !== undefined) calls.push(`.max(${p.maximum})`)
-          break
-
-        case 'boolean':
-          calls.push('z.boolean()')
-          break
-
-        case 'array':
-          calls.push('z.array(z.any())')
-          break
-
-        case 'object':
-          calls.push('z.record(z.any())')
-          break
-
-        default:
-          calls.push('z.any()')
-      }
-    }
-    return calls
-  }
-
-  let zodDef: string
-
-  // 检查是否为可空类型 (e.g., anyOf: [ { type: 'string', ... }, { type: 'null' } ])
-  const isNullable = prop.anyOf?.some((p) => p.type === 'null') ?? false
-  // 查找 non-null 的 schema 定义，同时考虑顶层 prop 的属性
-  const nonNullSchema = isNullable
-    ? { ...prop, ...prop.anyOf?.find((p) => p.type !== 'null') }
-    : null
-  if (nonNullSchema) {
-    delete nonNullSchema.anyOf
-  }
-
-
-  if (nonNullSchema) {
-    // 从 non-null 部分生成核心 Zod 链
-    const coreZod = generateCoreZod(nonNullSchema).join('')
-    // 包装成 union
-    zodDef = `z.union([${coreZod}, z.null()])`
-  } else if (prop.anyOf) {
-    // 处理其他非标准的 anyOf (如果存在)
-    const types = prop.anyOf.map((p) => generateCoreZod(p).join('')).join(', ')
-    zodDef = `z.union([${types}])`
-  } else {
-    // 标准的非 anyOf 属性
-    zodDef = generateCoreZod(prop).join('')
-  }
-
-  const finalZodCalls = [zodDef]
-
-  // 可选处理
   if (!isRequired) {
     finalZodCalls.push('.optional()')
   }
 
-  // 默认值
   if (prop.default !== undefined) {
-    const defaultValue = typeof prop.default === 'string'
-      ? JSON.stringify(prop.default)
-      : String(prop.default)
-    finalZodCalls.push(`.default(${defaultValue})`)
+    finalZodCalls.push(`.default(${formatLiteral(prop.default)})`)
   }
 
   return finalZodCalls.join('')
@@ -222,22 +355,15 @@ function propertyToZod(
  */
 function generateZodSchema(
   schemaName: string,
-  schema: OpenAPISchema
+  schema: OpenAPISchema,
+  schemas: Record<string, OpenAPISchema>
 ): string | null {
-  // 跳过非请求 schema
+  // 跳过 OpenAPI 内部辅助 schema
   if (
-    schemaName.endsWith('Response') ||
     schemaName.startsWith('HTTPValidation') ||
     schemaName.startsWith('Body_') ||
     schemaName.startsWith('ResponseSchema')
   ) {
-    return null
-  }
-
-  const requiredFields = new Set(schema.required || [])
-  const properties = schema.properties || {}
-
-  if (Object.keys(properties).length === 0) {
     return null
   }
 
@@ -253,23 +379,31 @@ function generateZodSchema(
     lines.push(` */`)
   }
 
-  // 生成 schema
-  lines.push(`export const ${schemaName}Schema = z.object({`)
+  if (schema.properties && Object.keys(schema.properties).length > 0) {
+    const requiredFields = new Set(schema.required || [])
+    const objectLines: string[] = []
+    for (const [fieldName, prop] of Object.entries(schema.properties)) {
+      const zodDef = propertyToZod(prop, requiredFields.has(fieldName), schemas)
 
-  for (const [fieldName, prop] of Object.entries(properties)) {
-    const zodDef = propertyToZod(fieldName, prop, requiredFields.has(fieldName))
+      const comment = prop.title || prop.description
+      if (comment) {
+        objectLines.push(`  /** ${comment} */`)
+      }
 
-    // 添加字段注释
-    const comment = prop.title || prop.description
-    if (comment) {
-      lines.push(`  /** ${comment} */`)
+      objectLines.push(`  ${fieldName}: ${zodDef},`)
     }
 
-    lines.push(`  ${fieldName}: ${zodDef},`)
+    const objectSchema = `z.object({\n${objectLines.join('\n')}\n})`
+    lines.push(`export const ${schemaName}Schema = ${wrapSelfReferentialSchema(schemaName, objectSchema)}`)
+    return lines.join('\n')
   }
 
-  lines.push('})')
+  const zodDef = wrapSelfReferentialSchema(schemaName, schemaToZod(schema, schemas))
+  if (zodDef === 'z.any()') {
+    return null
+  }
 
+  lines.push(`export const ${schemaName}Schema = ${zodDef}`)
   return lines.join('\n')
 }
 
@@ -288,8 +422,6 @@ function generateZodSchemasFile(schemas: Record<string, OpenAPISchema>): string 
   lines.push(' *')
   lines.push(' * ⚠️ 请勿手动编辑此文件')
   lines.push(' * 如需自定义验证规则，请修改 src/types/zod-extensions.ts')
-  lines.push(' *')
-  lines.push(` * 生成时间: ${new Date().toISOString()}`)
   lines.push(' */')
   lines.push('')
   lines.push("import { z } from 'zod'")
@@ -299,7 +431,7 @@ function generateZodSchemasFile(schemas: Record<string, OpenAPISchema>): string 
   const schemaNames = Object.keys(schemas).sort()
 
   for (const schemaName of schemaNames) {
-    const schemaCode = generateZodSchema(schemaName, schemas[schemaName])
+    const schemaCode = generateZodSchema(schemaName, schemas[schemaName], schemas)
     if (schemaCode) {
       lines.push('')
       lines.push(schemaCode)
@@ -313,11 +445,11 @@ function generateZodSchemasFile(schemas: Record<string, OpenAPISchema>): string 
 /**
  * 生成扩展文件（如果不存在）
  */
-function generateExtensionFile(): void {
+function generateExtensionFile(): boolean {
   const extensionPath = join(__dirname, '../src/types/zod-extensions.ts')
 
   if (existsSync(extensionPath)) {
-    return
+    return false
   }
 
   const content = `/**
@@ -350,6 +482,7 @@ export * from './generated/zod-schemas'
 
   writeFileSync(extensionPath, content, 'utf-8')
   console.log(`✅ 创建扩展文件: ${extensionPath}`)
+  return true
 }
 
 // ==================== 主函数 ====================
@@ -360,6 +493,7 @@ async function main(): Promise<void> {
   try {
     // 1. 获取 OpenAPI schema
     const { schemas, openApiData } = await fetchOpenAPISchema()
+    const schemasHash = simpleHash(JSON.stringify(openApiData.components?.schemas || {}))
 
     // 2. 生成 Zod schemas 文件
     console.log('\n📝 生成 Zod schemas...')
@@ -370,15 +504,28 @@ async function main(): Promise<void> {
       mkdirSync(OUTPUT_DIR, { recursive: true })
     }
 
-    // 4. 写入文件
-    writeFileSync(OUTPUT_FILE, content, 'utf-8')
-    console.log(`✅ 生成文件: ${OUTPUT_FILE}`)
+    const record = readSyncRecord()
+    const fileChanged = writeFileIfChanged(OUTPUT_FILE, content)
+    if (fileChanged) {
+      console.log(`✅ 生成文件: ${OUTPUT_FILE}`)
+    } else {
+      console.log(`✅ 生成文件无变化: ${OUTPUT_FILE}`)
+    }
 
     // 5. 生成扩展文件
-    generateExtensionFile()
+    const extensionChanged = generateExtensionFile()
 
     // 6. 写入同步记录
-    writeSyncRecord(openApiData)
+    const recordNeedsUpdate =
+      !record ||
+      record.openApiHash !== schemasHash ||
+      record.backendUrl !== BACKEND_OPENAPI_URL
+    const syncRecordChanged = recordNeedsUpdate ? writeSyncRecord(openApiData) : false
+
+    if (!fileChanged && !extensionChanged && !syncRecordChanged) {
+      console.log('\n✨ 无变化，未更新生成文件')
+      return
+    }
 
     console.log('\n✨ 完成！')
     console.log('\n📖 使用方法:')

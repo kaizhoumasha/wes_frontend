@@ -46,16 +46,14 @@ export function parseKeywordValue(
 ): ParsedValue {
   const trimmed = keyword.trim()
 
-  if (dataType === 'boolean') {
-    return parseBooleanValue(trimmed)
+  switch (dataType) {
+    case 'boolean':
+      return parseBooleanValue(trimmed)
+    case 'number':
+      return parseNumberValue(trimmed)
+    default:
+      return { success: true, value: trimmed }
   }
-
-  if (dataType === 'number') {
-    return parseNumberValue(trimmed)
-  }
-
-  // text, date, enum 直接返回原始值
-  return { success: true, value: trimmed }
 }
 
 // ==================== 布尔值解析 ====================
@@ -84,6 +82,12 @@ const BOOLEAN_VALUE_MAP: Record<string, boolean> = {
   '0': false,
 }
 
+const NUMERIC_PATTERN = /^-?\d+(\.\d+)?$/
+
+function normalizeLookupValue(value: string): string {
+  return value.toLowerCase().trim()
+}
+
 /**
  * 解析布尔值
  *
@@ -99,10 +103,10 @@ const BOOLEAN_VALUE_MAP: Record<string, boolean> = {
  * ```
  */
 function parseBooleanValue(value: string): ParsedValue {
-  const lower = value.toLowerCase()
+  const normalizedValue = normalizeLookupValue(value)
 
-  if (lower in BOOLEAN_VALUE_MAP) {
-    return { success: true, value: BOOLEAN_VALUE_MAP[lower] }
+  if (normalizedValue in BOOLEAN_VALUE_MAP) {
+    return { success: true, value: BOOLEAN_VALUE_MAP[normalizedValue] }
   }
 
   return {
@@ -155,8 +159,7 @@ function parseNumberValue(value: string): ParsedValue {
  * ```
  */
 export function isBooleanString(value: string): boolean {
-  const lower = value.toLowerCase().trim()
-  return lower in BOOLEAN_VALUE_MAP
+  return normalizeLookupValue(value) in BOOLEAN_VALUE_MAP
 }
 
 /**
@@ -174,5 +177,5 @@ export function isBooleanString(value: string): boolean {
  */
 export function isNumericString(value: string): boolean {
   const trimmed = value.trim()
-  return /^-?\d+(\.\d+)?$/.test(trimmed) && !Number.isNaN(Number(trimmed))
+  return NUMERIC_PATTERN.test(trimmed) && !Number.isNaN(Number(trimmed))
 }

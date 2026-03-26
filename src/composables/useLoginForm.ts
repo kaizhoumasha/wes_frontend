@@ -12,11 +12,13 @@ import { ApiResponseError } from '@/api/client'
 import { setAccessToken, setTokenExpiresAt, clearTokens } from '@/api/services/token-refresh'
 import { usePermission } from '@/composables/usePermission'
 import { useMenu } from '@/composables/useMenu'
+import { useCurrentUser } from '@/composables/useCurrentUser'
 
 export function useLoginForm() {
   const router = useRouter()
   const { loadPermissions, hydratePermissions } = usePermission()
   const { loadMenus, hydrateMenus } = useMenu()
+  const { hydrateCurrentUser, clearCurrentUser } = useCurrentUser()
 
   // 表单引用
   const usernameInput = ref<HTMLInputElement>()
@@ -86,6 +88,8 @@ export function useLoginForm() {
     try {
       const myContext = await authApi.getMy()
 
+      hydrateCurrentUser(myContext.user)
+
       if (Array.isArray(myContext.permissions) && myContext.permissions.length > 0) {
         hydratePermissions(myContext.permissions)
       } else {
@@ -130,6 +134,8 @@ export function useLoginForm() {
         password: form.password
       })
 
+      hydrateCurrentUser(result.user)
+
       // 存储 Token
       setAccessToken(result.access_token)
       const expiresAt = Date.now() + result.expires_in * 1000
@@ -141,6 +147,7 @@ export function useLoginForm() {
       } catch (contextError) {
         console.error('加载用户上下文失败:', contextError)
         clearTokens()
+        clearCurrentUser()
         ElMessage.error('权限加载失败，请重试')
         throw contextError
       }

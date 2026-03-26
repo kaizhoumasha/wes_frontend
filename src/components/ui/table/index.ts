@@ -1,11 +1,10 @@
 /**
  * 表格组件导出
  *
- * 提供 DataTable 组件和相关的类型、工具函数
+ * 提供 DataTable 组件和相关类型
  */
 
 export { default as DataTable } from './DataTable.vue'
-export { useTableColumns } from './useTableColumns'
 export type {
   TableColumnConfig,
   TableConfig,
@@ -21,17 +20,3 @@ export type {
   ColumnFormatter,
   ColumnSlotRender,
 } from './table.types'
-export {
-  formatDateTime,
-  formatDate,
-  formatBoolean,
-  formatTag,
-  formatArrayTags,
-  formatActions,
-  createTextColumn,
-  createTagColumn,
-  createArrayTagsColumn,
-  createDateTimeColumn,
-  createActionsColumn,
-  type ActionButton,
-} from './useTableColumns'

@@ -10,6 +10,115 @@ Corrections, insights, and knowledge gaps captured during development.
 
 ---
 
+## [LRN-20260323-001] best_practice
+
+**Logged**: 2026-03-23T09:19:04Z
+**Priority**: high
+**Status**: pending
+**Area**: backend
+
+### Summary
+
+静态软删除路由必须先于动态 `/{id}` 路由注册，否则会出现契约正确但运行时误匹配的问题
+
+### Details
+
+本次用户管理回收站联调中，前端调用 `POST /api/v1/users/trash/restore` 持续返回 422。起初容易误判为批量恢复请求体格式错误，但后端返回的验证错误明确指向：
+
+- `field: "path -> id"`
+- `message: "Input should be a valid integer, unable to parse string as an integer"`
+
+这说明请求并没有落到 `/trash/restore`，而是被后端路由匹配成了 `/{id}/restore`，并把字符串 `"trash"` 当成了路径参数 `id`。进一步核对后端 `BaseAPI._register_soft_delete_routes` 发现，当前注册顺序是：
+
+1. `POST /{id}/restore`
+2. `GET /trash`
+3. `POST /trash/restore`
+4. `DELETE /trash/permanent`
+
+在 FastAPI/Starlette 下，这种“动态路径先于静态路径”注册会导致 `/trash/restore` 被 `/{id}/restore` 抢先匹配。结果是：
+
+- OpenAPI 契约仍然生成正确
+- 前端类型检查和契约测试仍然通过
+- 但运行时请求被错误路由吞掉
+
+这类问题说明：动态/静态路径冲突场景下，不能只依赖 OpenAPI 结果，必须核对真实路由定义和注册顺序。
+
+### Suggested Action
+
+将后端软删除路由约定补充为明确规则，并写入后端 BaseAPI 规范：
+
+1. 静态路径必须先于动态路径注册
+2. 对软删除资源，推荐顺序为：
+   - `/trash`
+   - `/trash/restore`
+   - `/trash/permanent`
+   - `/{id}/restore`
+3. 针对这类路由冲突，增加一条后端集成测试，覆盖 `/trash/restore` 不应被 `/{id}/restore` 匹配
+
+### Metadata
+
+- Source: conversation
+- Related Files:
+  - /Users/kaizhou/SynologyDrive/works/wes_backend/src/core/base_api.py
+  - src/api/base/crud-api.ts
+- Tags: backend, fastapi, routing, soft-delete, contract-runtime-gap
+
+---
+
+## [LRN-20260323-002] best_practice
+
+**Logged**: 2026-03-23T09:19:04Z
+**Priority**: high
+**Status**: pending
+**Area**: frontend
+
+### Summary
+
+后台管理系统中的 API 缓存应采用“显式开启”策略，不能按所有 GET 默认缓存
+
+### Details
+
+本次用户管理回收站接入后，`GET /api/v1/users/trash` 出现 `HitCache`，导致恢复或删除操作后列表不能实时刷新。根因不是回收站逻辑本身，而是全局请求客户端此前对所有 GET 默认启用了中等时长缓存。
+
+这类默认策略在后台管理场景下风险很高，因为大量 GET 接口实际上都是强一致数据：
+
+- 列表查询
+- 详情查询
+- 回收站查询
+- 权限相关实时状态
+
+如果统一按 HTTP 方法缓存，就会把本应实时刷新的资源一并缓存，问题表现往往是：
+
+- 操作成功但页面没变
+- 二次刷新才更新
+- 很难第一时间定位到是缓存命中
+
+本次最终改法是把 API 级缓存收回到：
+
+- 全局默认 `GET: cacheFor = 0`
+- 仅对“允许短暂过期的只读接口”在调用处显式传 `cacheFor`
+
+### Suggested Action
+
+将前端 API 缓存策略固化为项目约定：
+
+1. `apiClient` 默认关闭 GET 缓存
+2. 只有菜单、纯配置、静态字典等只读资源才允许显式缓存
+3. CRUD 列表、详情、回收站、权限接口默认禁止缓存
+4. 若启用缓存，调用处必须说明缓存目的和 TTL 选择理由
+
+### Metadata
+
+- Source: conversation
+- Related Files:
+  - src/api/client.ts
+  - src/constants/cache.ts
+  - src/api/modules/auth.ts
+  - src/api/modules/menu.ts
+- Tags: frontend, cache, alova, admin-panel, consistency
+
+---
+
 ## [LRN-20260311-001] best_practice
 
 **Logged**: 2026-03-11T00:00:00+08:00
@@ -18,18 +127,23 @@ Corrections, insights, and knowledge gaps captured during development.
 **Area**: frontend
 
 ### Summary
+
 Vue Router 页面组件中 `height: 100%` 会因父链存在无高度组件而失效，应改用 `calc(100vh - ...)` 直接计算
 
 ### Details
+
 **问题背景**：为 UserTable 实现"分页器固定底部、表格内部滚动"功能时，持续出现分页器被挤出可视口的问题。
 
 **根本原因**：Vue Router 渲染页面组件时，父链为：
+
 ```
 DefaultLayout → RouterView → Anonymous Component (functional) → BaseTransition → UserListPage
 ```
+
 `BaseTransition` 和 `Anonymous Component` 均无明确高度，导致 `UserListPage` 的 `height: 100%` 基于内容高度而非视口高度，flex 子元素无法正确分配空间。
 
 **错误尝试过程**：
+
 1. ❌ 用 JavaScript + ResizeObserver 动态计算高度 → 产生"向上收缩"动画，因初始值与实际值有差距
 2. ❌ 纯 CSS flex 方案（移除 height 属性）→ el-table 没有 height 时不启用内部滚动
 3. ❌ DataTable 直接设 `height="100%"` → 100% 包含了分页器空间，分页器被挤出
@@ -37,6 +151,7 @@ DefaultLayout → RouterView → Anonymous Component (functional) → BaseTransi
 5. ✅ 在 UserListPage 上用 `calc(100vh - var(--layout-header-height) - var(--layout-page-padding) * 2)` 直接计算
 
 **最终方案**：
+
 ```css
 /* DefaultLayout.vue - 定义布局变量 */
 .default-layout {
@@ -58,9 +173,11 @@ DefaultLayout → RouterView → Anonymous Component (functional) → BaseTransi
 ```
 
 ### Suggested Action
+
 在本项目中，所有需要"占满剩余视口高度"的页面组件，都应使用 `calc(100vh - ...)` 而非 `height: 100%`。
 
 ### Metadata
+
 - Source: user_feedback
 - Related Files: src/views/admin/users/UserListPage.vue, src/views/admin/users/components/UserTable.vue, src/layouts/DefaultLayout.vue
 - Tags: layout, height, flex, vue-router, el-table, pagination
@@ -78,31 +195,41 @@ DefaultLayout → RouterView → Anonymous Component (functional) → BaseTransi
 **Area**: frontend
 
 ### Summary
+
 el-table 必须传入 `height` 属性才能启用内部滚动；纯 CSS flex 方案无法替代
 
 ### Details
+
 Element Plus 的 `el-table` 组件只有在接收到 `height` 或 `max-height` prop 时，才会在 `.el-table__body-wrapper` 上设置 `overflow: auto`，启用内部滚动。
 
 如果不传 `height`，无论外层 CSS 如何设置，表格都会展开全部内容，不会出现滚动条。
 
 **正确做法**：
+
 ```html
 <!-- 用包装器 div 承载 flex: 1，DataTable 内部用 height="100%" -->
-<div class="table-wrapper">  <!-- flex: 1; min-height: 0 -->
-  <DataTable height="100%" ... />
+<div class="table-wrapper">
+  <!-- flex: 1; min-height: 0 -->
+  <DataTable
+    height="100%"
+    ...
+  />
 </div>
 ```
 
 **错误做法**：
+
 ```html
 <!-- 不传 height，依赖 CSS 控制滚动 → 不生效 -->
 <DataTable ... />
 ```
 
 ### Suggested Action
+
 凡是需要表格内部滚动的场景，必须给 DataTable/el-table 传入 `height` 属性，推荐值为 `"100%"` 配合包装器使用。
 
 ### Metadata
+
 - Source: user_feedback
 - Related Files: src/views/admin/users/components/UserTable.vue, src/components/ui/table/DataTable.vue
 - Tags: el-table, height, scroll, element-plus
@@ -121,9 +248,11 @@ Element Plus 的 `el-table` 组件只有在接收到 `height` 或 `max-height` p
 **Area**: frontend
 
 ### Summary
+
 Flex 布局中 `min-height: 0` 是允许子元素缩小的关键，缺少它会导致内容溢出
 
 ### Details
+
 CSS Flex 布局中，flex 子元素的默认 `min-height` 是 `auto`（基于内容），这会阻止元素缩小到内容大小以下。
 
 当需要某个 flex 子元素"占据剩余空间但不超出父容器"时，必须显式设置 `min-height: 0`：
@@ -139,9 +268,11 @@ CSS Flex 布局中，flex 子元素的默认 `min-height` 是 `auto`（基于内
 这是 flex 布局中最常见的"陷阱"之一，在嵌套 flex 容器中尤为重要。
 
 ### Suggested Action
+
 凡是 flex 子元素需要"可缩小"的场景，都要检查是否需要 `min-height: 0`（垂直方向）或 `min-width: 0`（水平方向）。
 
 ### Metadata
+
 - Source: conversation
 - Related Files: src/views/admin/users/components/UserTable.vue
 - Tags: flex, min-height, css, layout
@@ -160,10 +291,13 @@ CSS Flex 布局中，flex 子元素的默认 `min-height` 是 `auto`（基于内
 **Area**: frontend
 
 ### Summary
+
 参考外部库实现时，必须先分析项目结构差异，不能直接套用
 
 ### Details
+
 在修复表格高度问题时，参考了 happy-table 项目的实现。happy-table 使用 CSS calc() 计算高度，但其组件结构与本项目不同：
+
 - happy-table：组件自包含，直接控制自身高度
 - 本项目：页面组件嵌套在 Vue Router + BaseTransition 中，高度继承链断裂
 
@@ -172,9 +306,11 @@ CSS Flex 布局中，flex 子元素的默认 `min-height` 是 `auto`（基于内
 **正确做法**：参考外部实现时，先用 Vue DevTools 分析组件树和高度继承链，再决定适配方案。
 
 ### Suggested Action
+
 遇到布局问题时，优先用 Vue DevTools 查看组件树，确认父链中是否有无高度的中间组件（如 BaseTransition、functional component）。
 
 ### Metadata
+
 - Source: user_feedback
 - Related Files: src/views/admin/users/UserListPage.vue
 - Tags: vue-devtools, layout, debugging, component-tree
@@ -184,6 +320,7 @@ CSS Flex 布局中，flex 子元素的默认 `min-height` 是 `auto`（基于内
 - See Also: LRN-20260311-001
 
 ---
+
 | Status              | Meaning                                                      |
 | ------------------- | ------------------------------------------------------------ |
 | `pending`           | Not yet addressed                                            |
@@ -237,6 +374,117 @@ Git Worktree 工作流必须强制执行,禁止在 develop/main 分支直接开�
 1. 添加 pre-commit hook 检测当前分支,拒绝在 develop/main 分支提交
 2. 在 CI/CD 中添加分支保护规则
 3. 在 CLAUDE.md 中增加违规后果说明
+
+---
+
+## [LRN-20260322-001] best_practice
+
+**Logged**: 2026-03-22T20:05:00+08:00
+**Priority**: high
+**Status**: resolved
+**Area**: frontend
+
+### Summary
+
+普通搜索条件与高级搜索规则可以同时生效，但不应把普通条件带入高级搜索编辑区，只能以用户语言提示其并行生效关系
+
+### Details
+
+这次高级搜索重构中，用户明确指出一个关键 UX 问题：当页面里已经有普通搜索条件时，再打开高级搜索，不应该把这些普通条件自动带入高级搜索对话框，否则用户会误以为自己正在编辑同一套条件树，造成认知混乱。
+
+验证后确认更合理的交互分层是：
+
+- 普通条件继续显示在搜索栏标签区
+- 高级搜索对话框只编辑高级规则自身
+- 如果两者会并行生效，只在对话框顶部用用户语言提示，例如“当前还有 N 个普通条件，应用后会与这里的高级规则一起生效”
+- 不暴露 `FilterGroup`、编译结果、后端结构等实现概念
+
+这条规则适用于所有“快速搜索 + 高级筛选”组合场景，核心是避免把“运行时组合关系”误表现成“同一编辑对象”。
+
+### Suggested Action
+
+后续所有搜索类界面若同时支持普通条件与高级规则，应默认采用“分开展示、并行生效、用户语言提示”的模式，不要把普通条件并入高级搜索编辑区。
+
+### Metadata
+
+- Source: conversation
+- Related Files: src/components/search/AdvancedSearchDialog.vue, src/components/common/CrudToolbar.vue, src/composables/useSmartSearch.ts
+- Tags: search, advanced-search, ux, information-architecture, mental-model
+
+---
+
+## [LRN-20260322-002] best_practice
+
+**Logged**: 2026-03-22T20:05:00+08:00
+**Priority**: high
+**Status**: resolved
+**Area**: frontend
+
+### Summary
+
+高级搜索对话框的初始焦点必须按“打开来源 + 当前条件状态”定位，不能默认落到关闭按钮或 Footer
+
+### Details
+
+本次会话里对高级搜索做了一轮高标准 UX 评审，最终沉淀出一套可复用的焦点策略：
+
+- 从字段点击进入高级搜索时，首焦点落到刚创建那条条件的主编辑控件，通常是值输入区
+- 已有高级条件时，优先聚焦第一条未完成条件；如果都已完整，再聚焦第一条条件的主编辑控件
+- 空白状态打开时，聚焦 `+ 条件`
+- 清空全部后，焦点回到 `+ 条件`
+- 应用收藏替换条件后，焦点进入新的第一条条件
+- 关闭对话框后，焦点恢复到打开它的触发元素
+
+这套策略的价值不在于“某个页面刚好这么写”，而在于它符合弹窗编辑任务的主路径设计：用户打开对话框是为了继续编辑，不是为了先操作关闭、取消或底部按钮。
+
+### Suggested Action
+
+后续所有可编辑型对话框，尤其是筛选器、规则构建器、表单向导，都应优先定义“首焦点规则”和“关闭回焦规则”，并在组件层暴露可编程 focus 能力。
+
+### Metadata
+
+- Source: conversation
+- Related Files: src/components/search/AdvancedSearchDialog.vue, src/components/search/advanced-search/FilterGroupBuilder.vue, src/components/search/advanced-search/FilterConditionRow.vue, src/components/search/advanced-search/ConditionValueInput.vue
+- Tags: dialog, focus, accessibility, keyboard, advanced-search, ux
+
+---
+
+## [LRN-20260322-003] knowledge_gap
+
+**Logged**: 2026-03-22T20:05:00+08:00
+**Priority**: high
+**Status**: resolved
+**Area**: frontend
+
+### Summary
+
+本项目做前端 mock 或浏览器自动化走查时，API 成功响应码必须使用字符串成功码（如 `\"1000\"`），不能返回数字 `200`
+
+### Details
+
+在真实页面 `/admin/users` 的 Playwright 走查中，最初为了绕过登录与后端 CORS，采用浏览器侧 route mock 返回菜单和用户列表数据。第一次 mock 虽然结构上接近成功响应，但前端仍然报错：
+
+```text
+TypeError: code.startsWith is not a function
+```
+
+继续排查发现，本项目的响应码体系不是 HTTP 风格判断，而是字符串业务码，`isSuccessCode` 会直接对 `code` 执行 `startsWith('1')`。因此：
+
+- `code: 200` 会报错，因为是 number
+- `code: "200"` 也会被视为失败，因为不以 `1` 开头
+- 正确 mock 应为 `code: "1000"` 这类字符串成功码
+
+这是一条高复用的项目级 gotcha。以后做调试页、Playwright 走查、手写接口 mock 时，如果忘记这一点，会把“mock 格式错误”误判成“页面逻辑 bug”。
+
+### Suggested Action
+
+后续所有本地 mock、浏览器 route mock、调试页假数据都要统一使用项目响应包格式，并优先复用真实成功码 `\"1000\"`。
+
+### Metadata
+
+- Source: conversation
+- Related Files: src/api/constants/response-codes.ts, src/api/client.ts, src/api/base/crud-api.ts
+- Tags: mock, playwright, api, response-code, debugging, project-gotcha
 
 ### Metadata
 
@@ -1142,9 +1390,11 @@ if (code === ClientErrorCode.TOKEN_EXPIRED) {
 **Area**: frontend
 
 ### Summary
+
 CSS @media 查询不支持 CSS 变量（CSS 规范限制），必须使用固定值
 
 ### Details
+
 **问题背景**：在提取响应式断点常量时，尝试将媒体查询中的硬编码断点值替换为 CSS 变量：
 
 ```css
@@ -1155,11 +1405,13 @@ CSS @media 查询不支持 CSS 变量（CSS 规范限制），必须使用固定
 ```
 
 **错误信息**：
+
 ```
 Stylelint: Unexpected invalid media query "(width >= var(--breakpoint-mobile))"
 ```
 
 **根本原因**：
+
 - `@media` 查询是**编译时**（parse-time）评估，CSS 解析器在加载样式表时就需要确定媒体查询
 - CSS 变量是**运行时**（runtime）计算，依赖 DOM 渲染和样式继承
 - 这是 CSS 规范的设计限制，非浏览器 bug
@@ -1167,6 +1419,7 @@ Stylelint: Unexpected invalid media query "(width >= var(--breakpoint-mobile))"
 **解决方案 - 三层断点管理架构**：
 
 1. **Tailwind 配置** (`tailwind.config.js`)
+
    ```js
    screens: {
      sm: '480px',
@@ -1174,39 +1427,44 @@ Stylelint: Unexpected invalid media query "(width >= var(--breakpoint-mobile))"
      xl: '1280px'
    }
    ```
+
    用于 Tailwind 类：`@media (min-width: md)`
 
 2. **TypeScript 常量** (`src/constants/breakpoints.ts`)
+
    ```ts
    export const BREAKPOINTS = {
      SMALL: 480,
      MOBILE: 768,
      DESKTOP: 1280
    } as const
-   
+
    export function getDeviceType(width: number): DeviceType
    export function isBreakpoint(width: number, breakpoint: Breakpoint): boolean
    ```
+
    用于 JS/TS 代码：`isBreakpoint(window.innerWidth, BREAKPOINTS.DESKTOP)`
 
 3. **CSS 变量** (`globals.css`)
+
    ```css
    :root {
      --search-min-width: 480px;
      --search-max-width: 1280px;
    }
-   
+
    /* ✅ 组件样式可以使用 CSS 变量 */
    .search-box {
      min-width: var(--search-min-width);
      max-width: var(--search-max-width);
    }
-   
+
    /* ❌ 媒体查询必须使用固定值 */
    @media (width >= 768px) and (width < 1280px) {
      /* ... */
    }
    ```
+
    用于组件样式：`min-width: var(--search-min-width)`
 
 4. **媒体查询** (`*.vue`)
@@ -1228,6 +1486,7 @@ Stylelint: Unexpected invalid media query "(width >= var(--breakpoint-mobile))"
 
 **文档化依赖关系**：
 在媒体查询上方添加注释说明参考文件，确保三层数据保持同步：
+
 ```css
 /* 注意：@media 查询不支持 CSS 变量，必须使用固定值 */
 /* 参考：src/constants/breakpoints.ts, tailwind.config.js */
@@ -1237,19 +1496,23 @@ Stylelint: Unexpected invalid media query "(width >= var(--breakpoint-mobile))"
 ```
 
 ### Suggested Action
+
 已在项目中实施三层架构：
+
 - ✅ 创建 `src/constants/breakpoints.ts`
 - ✅ 更新 `tailwind.config.js` 添加断点配置
 - ✅ 更新 `src/assets/styles/globals.css` 添加 CSS 变量
 - ✅ 更新 Serena memory: `debugging-lessons-vue3-responsive-layout`
 
 后续改进：
+
 - [ ] 编写"响应式设计最佳实践"文档，包含此限制说明
 - [ ] 添加 ESLint 规则检测媒体查询中的魔法数字，强制添加注释说明
 
 ### Metadata
+
 - Source: error | user_feedback
-- Related Files: 
+- Related Files:
   - src/constants/breakpoints.ts
   - tailwind.config.js
   - src/assets/styles/globals.css
@@ -1261,6 +1524,164 @@ Stylelint: Unexpected invalid media query "(width >= var(--breakpoint-mobile))"
 - Last-Seen: 2026-03-12
 
 ### Resolution
+
 - **Resolved**: 2026-03-12T15:30:00+08:00
 - **Notes**: 创建三层断点管理架构，在 Serena memory 中记录"问题 6: CSS 媒体查询不支持变量"，所有 lint 检查通过
 
+---
+
+## [LRN-20260316-001] best_practice
+
+**Logged**: 2026-03-16T09:30:00+08:00
+**Priority**: high
+**Status**: resolved
+**Area**: frontend
+
+### Summary
+
+通用 CRUD 组件重构模式：使用 CrudPageLayout + CrudToolbar + CrudTable 替代自定义页面组件
+
+### Details
+
+通过将用户管理页面从自定义组件迁移至通用 CRUD 组件：
+
+- 代码行数减少 51% (630 行 → 306 行)
+- 复用通用组件和 composable
+- 保留业务特定逻辑（列配置、操作列）
+
+**重构前架构**：
+
+```
+UserListPage.vue (~250 行)
+├── UserToolbar.vue (~80 行)     # 自定义工具栏
+├── UserTable.vue (~100 行)      # 自定义表格
+└── useUserListPage.ts (~200 行) # 自定义页面逻辑
+总计：~630 行
+```
+
+**重构后架构**：
+
+```
+UserListPage.vue (~306 行)
+├── CrudPageLayout (通用)
+├── CrudToolbar (通用)
+├── CrudTable (通用)
+├── useCrudListPage (通用)
+├── useCrudToolbar (通用)
+└── useUserTableColumns (保留，列配置)
+总计：~306 行 (净减少 324 行)
+```
+
+### 迁移步骤
+
+1. **创建 V2 版本并行测试**
+   - 复制原页面为 `UserListPageV2.vue`
+   - 添加测试路由 `/admin/users-v2`
+   - 在开发环境中并行测试
+
+2. **实现通用组件集成**
+   - 替换 `UserToolbar` → `CrudToolbar`
+   - 替换 `UserTable` → `CrudTable`
+   - 替换 `useUserListPage` → `useCrudListPage`
+   - 保留业务特定逻辑：
+     - `useUserTableColumns.ts` - 列配置 composable
+     - `tableColumns.ts` - 操作列定义
+
+3. **验证 V2 功能完整**
+   - 智能搜索功能
+   - 表格排序、分页
+   - 行选择、批量操作
+   - 列配置持久化
+   - 响应式断点显示
+
+4. **更新主路由指向 V2**
+
+   ```typescript
+   // src/router/index.ts
+   {
+     path: 'admin/users',
+     name: 'UserList',
+     component: () => import('@/views/admin/users/UserListPage.vue'),
+     meta: {
+       requiresAuth: true,
+       permission: 'admin:user:list',
+       title: '用户管理',
+     },
+   },
+   // 删除 /admin/users-v2 测试路由
+   ```
+
+5. **删除旧版文件和测试路由**
+   - `UserListPage.vue` (旧版)
+   - `UserToolbar.vue`
+   - `UserTable.vue`
+   - `useUserListPage.ts`
+
+6. **运行 lint 验证**
+   ```bash
+   pnpm lint  # TypeScript + ESLint + Prettier + Stylelint
+   ```
+
+### 关键保留逻辑
+
+**列配置 Composable** (`useUserTableColumns.ts`):
+
+```typescript
+// 响应式断点系统
+export type ColumnVisibleFrom = 'desktop' | 'tablet' | 'mobile'
+
+// 预创建 Map 避免重复创建 (效率优化)
+const DEFAULT_COLUMN_CONFIG_MAP = new Map(DEFAULT_COLUMN_CONFIG.map(column => [column.key, column]))
+```
+
+**操作列构建器** (`tableColumns.ts`):
+
+```typescript
+export function buildUserActionsColumn(options: {
+  canEdit?: boolean
+  canResetPassword?: boolean
+  canDelete?: boolean
+  onEdit?: (user: User) => void
+  onResetPassword?: (user: User) => void
+  onDelete?: (user: User) => void
+}): TableColumnConfig {
+  // 构建操作按钮数组
+  return buildActionsColumn(buttons, { ... })
+}
+```
+
+### Suggested Action
+
+此重构模式可推广至其他 CRUD 页面：
+
+- 角色管理页
+- 权限管理页
+- 设备管理页
+- 作业线管理页
+
+每个页面的迁移成本约 2-4 小时，代码减少 40-60%。
+
+### Metadata
+
+- Source: conversation
+- Related Files:
+  - src/views/admin/users/UserListPage.vue
+  - src/components/common/CrudPageLayout.vue
+  - src/components/common/CrudToolbar.vue
+  - src/components/common/CrudTable.vue
+  - src/composables/useCrudListPage.ts
+  - src/views/admin/users/composables/useUserTableColumns.ts
+  - src/views/admin/users/tableColumns.ts
+- Tags: crud, refactoring, component-reuse, composable, vue3
+- Pattern-Key: refactor.crud_migration
+- Recurrence-Count: 1
+- First-Seen: 2026-03-16
+- Last-Seen: 2026-03-16
+
+### Resolution
+
+- **Resolved**: 2026-03-16T09:30:00+08:00
+- **Commit**: 540e0a8
+- **Notes**: 已完成迁移并提交，代码减少 1317 行，lint 检查全部通过
+
+---

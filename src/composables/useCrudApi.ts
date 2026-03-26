@@ -89,10 +89,17 @@ export interface CrudApiState<T> {
  */
 export type EntityWithId = { id: number | string }
 
+type CrudDeleteOptions<TApi extends CrudApi<unknown, unknown, unknown>> = Parameters<TApi['delete']>[1]
+
 /**
  * CRUD API 操作
  */
-export interface CrudApiActions<T, CreateInput, UpdateInput> {
+export interface CrudApiActions<
+  T,
+  CreateInput,
+  UpdateInput,
+  TDeleteOptions = undefined
+> {
   /** 查询列表 */
   fetchList: (options?: QueryOptions) => Promise<void>
   /** 获取单个 */
@@ -102,7 +109,7 @@ export interface CrudApiActions<T, CreateInput, UpdateInput> {
   /** 更新 */
   update: (id: number, data: UpdateInput) => Promise<T | null>
   /** 删除 */
-  delete: (id: number, permanent?: boolean) => Promise<boolean>
+  delete: (id: number, options?: TDeleteOptions) => Promise<boolean>
   /** 刷新列表 */
   refresh: () => Promise<void>
   /** 重置状态 */
@@ -125,11 +132,12 @@ export interface CrudApiActions<T, CreateInput, UpdateInput> {
 export function useCrudApi<
   T extends EntityWithId,
   CreateInput = Partial<T>,
-  UpdateInput = Partial<T>
+  UpdateInput = Partial<T>,
+  TApi extends CrudApi<T, CreateInput, UpdateInput> = CrudApi<T, CreateInput, UpdateInput>
 >(
-  api: CrudApi<T, CreateInput, UpdateInput>,
+  api: TApi,
   defaultOptions: QueryOptions & UseCrudApiOptions = {}
-): CrudApiState<T> & CrudApiActions<T, CreateInput, UpdateInput> {
+): CrudApiState<T> & CrudApiActions<T, CreateInput, UpdateInput, CrudDeleteOptions<TApi>> {
   // ==================== 配置 ====================
 
   const { autoRefresh = true, optimisticUpdate = false, ...queryDefaultOptions } = defaultOptions
@@ -160,15 +168,17 @@ export function useCrudApi<
 
   /**
    * 保存当前数据快照（用于回滚）
+   * 使用深拷贝确保回滚时数据一致性
    */
   function saveSnapshot(): PaginationData<T> | null {
     if (!data.value) return null
-    return {
-      items: [...data.value.items],
-      total: data.value.total,
-      page: data.value.page,
-      size: data.value.size,
-      pages: data.value.pages,
+    // 使用 structuredClone 进行深拷贝，确保 items 中的对象也被复制
+    // 如果环境不支持 structuredClone，回退到 JSON 序列化
+    try {
+      return structuredClone(data.value)
+    } catch {
+      // 对于不可克隆的对象（如包含函数），回退到 JSON 方式
+      return JSON.parse(JSON.stringify(data.value))
     }
   }
 
@@ -239,26 +249,11 @@ export function useCrudApi<
     loading.value = true
     error.value = null
 
-    // 乐观更新：保存快照
-    const snapshot = optimisticUpdate ? saveSnapshot() : null
-    const previousTotal = pagination.total
-
     try {
       const result = await api.create(createData)
 
-      // 乐观更新：直接添加到本地列表
-      if (optimisticUpdate && data.value) {
-        const newTotal = data.value.total + 1
-        // 创建新的数据对象引用以触发响应式更新
-        data.value = {
-          ...data.value,
-          items: [result, ...data.value.items],
-          total: newTotal
-        }
-        // 同步更新分页信息中的 total
-        pagination.total = newTotal
-      } else if (autoRefresh) {
-        // 传统方式：重新获取列表
+      // 创建后无法可靠推导新记录在当前分页与排序中的位置，因此统一回源刷新。
+      if (autoRefresh || optimisticUpdate) {
         await fetchList()
       }
 
@@ -266,13 +261,6 @@ export function useCrudApi<
     } catch (e) {
       error.value = e as Error
       console.error('Failed to create:', e)
-
-      // 乐观更新失败：回滚
-      if (optimisticUpdate && snapshot) {
-        rollbackToSnapshot(snapshot, previousTotal)
-        console.info('[useCrudApi] 乐观更新已回滚: create')
-      }
-
       return null
     } finally {
       loading.value = false
@@ -331,7 +319,7 @@ export function useCrudApi<
   /**
    * 删除
    */
-  async function deleteItem(id: number, permanent = false): Promise<boolean> {
+  async function deleteItem(id: number, options?: CrudDeleteOptions<TApi>): Promise<boolean> {
     loading.value = true
     error.value = null
 
@@ -340,7 +328,7 @@ export function useCrudApi<
     const previousTotal = pagination.total
 
     try {
-      await api.delete(id, permanent)
+      await api.delete(id, options)
 
       // 乐观更新：从本地列表中移除
       if (optimisticUpdate && data.value) {

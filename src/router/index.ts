@@ -1,7 +1,25 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { createPermissionGuard } from './guards/permission'
+import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
 import { setRouterInstance } from '@/api/services/auth-error-handler'
+
+const debugRoutes: RouteRecordRaw[] = import.meta.env.DEV
+  ? [
+      {
+        path: 'debug/smart-search',
+        name: 'SmartSearchDebug',
+        component: () => import('@/views/debug/smart-search-debug.vue'),
+        meta: { requiresAuth: false, title: '智能搜索调试' }
+      },
+      {
+        path: 'debug/standard-dialog',
+        name: 'StandardDialogDemo',
+        component: () => import('@/views/components/StandardDialogDemo.vue'),
+        meta: { requiresAuth: false, title: 'StandardDialog 组件演示' }
+      }
+    ]
+  : []
 
 const routes: RouteRecordRaw[] = [
   {
@@ -32,6 +50,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: false }
       },
       {
+        path: '404',
+        name: 'NotFound',
+        component: () => import('@/views/error/NotFound.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
         path: 'examples/user-form',
         name: 'UserFormExample',
         component: () => import('@/views/examples/UserFormExample.vue'),
@@ -39,25 +63,49 @@ const routes: RouteRecordRaw[] = [
       },
       // ==================== 管理模块 ====================
       {
-        path: 'admin/users',
-        name: 'UserList',
-        component: () => import('@/views/admin/users/UserListPage.vue'),
+        path: 'admin',
+        name: 'AdminRoot',
         meta: {
           requiresAuth: true,
-          permission: 'admin:user:list',
-          title: '用户管理',
+          title: '系统管理',
+          menu: {
+            name: 'admin:system:menu',
+            icon: 'ep:setting',
+            sortOrder: 10
+          }
         },
+        children: [
+          {
+            path: 'users',
+            name: 'UserList',
+            component: () => import('@/views/admin/users/UserListPage.vue'),
+            meta: {
+              requiresAuth: true,
+              title: '用户管理',
+              permission: ADMIN_PERMISSIONS.user.page,
+              menu: {
+                name: 'admin:user:menu',
+                parentName: 'admin:system:menu',
+                icon: 'ep:user',
+                sortOrder: 99
+              }
+            }
+          }
+        ]
       },
       // 开发模式专属路由：调试页面
-      ...(import.meta.env.DEV ? [
-        {
-          path: 'debug/smart-search',
-          name: 'SmartSearchDebug',
-          component: () => import('@/views/debug/smart-search-debug.vue'),
-          meta: { requiresAuth: false, title: '智能搜索调试' }
-        }
-      ] : [])
+      ...debugRoutes
     ]
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFoundRedirect',
+    redirect: to => ({
+      path: '/404',
+      query: {
+        path: to.path
+      }
+    })
   }
 ]
 

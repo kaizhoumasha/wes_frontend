@@ -19,14 +19,75 @@ interface FieldIssue {
   severity: 'error' | 'warning'
 }
 
-interface ContractIssue {
-  endpoint: string
-  method: string
-  issues: FieldIssue[]
+const API_MODULES_DIR = join(__dirname, '../src/api/modules')
+const OPENAPI_TYPES_PATH = join(__dirname, '../src/api/generated/openapi-types.ts')
+
+function readOpenApiTypes(): string | null {
+  if (!existsSync(OPENAPI_TYPES_PATH)) {
+    return null
+  }
+
+  return readFileSync(OPENAPI_TYPES_PATH, 'utf-8')
 }
 
-const API_MODULES_DIR = join(__dirname, '../src/api/modules')
-const TYPES_DIR = join(__dirname, '../src/api/types')
+function extractNamedBlock(content: string, blockName: string): string | null {
+  const marker = `${blockName}: {`
+  const start = content.indexOf(marker)
+
+  if (start === -1) {
+    return null
+  }
+
+  let braceDepth = 0
+  let blockStarted = false
+
+  for (let index = start; index < content.length; index++) {
+    const char = content[index]
+
+    if (char === '{') {
+      braceDepth += 1
+      blockStarted = true
+    } else if (char === '}') {
+      braceDepth -= 1
+
+      if (blockStarted && braceDepth === 0) {
+        return content.slice(start, index + 1)
+      }
+    }
+  }
+
+  return null
+}
+
+function requireSchemaBlock(
+  issues: FieldIssue[],
+  openApiTypesContent: string | null,
+  schemaName: string
+): string | null {
+  if (!openApiTypesContent) {
+    issues.push({
+      field: schemaName,
+      type: 'missing',
+      severity: 'error',
+      expected: `src/api/generated/openapi-types.ts 应生成 ${schemaName} schema`,
+    })
+    return null
+  }
+
+  const schemaBlock = extractNamedBlock(openApiTypesContent, schemaName)
+
+  if (!schemaBlock) {
+    issues.push({
+      field: schemaName,
+      type: 'missing',
+      severity: 'error',
+      expected: `OpenAPI components.schemas 中应包含 ${schemaName}`,
+    })
+    return null
+  }
+
+  return schemaBlock
+}
 
 function extractExportedTypes(filePath: string): string[] {
   if (!existsSync(filePath)) {
@@ -48,71 +109,30 @@ function extractExportedTypes(filePath: string): string[] {
 function validateTypeExports(): FieldIssue[] {
   const issues: FieldIssue[] = []
 
-  const typesIndexPath = join(TYPES_DIR, 'index.ts')
-  if (!existsSync(typesIndexPath)) {
-    return issues
-  }
+  const authModulePath = join(API_MODULES_DIR, 'auth.ts')
+  const userModulePath = join(API_MODULES_DIR, 'user.ts')
+  const authTypes = extractExportedTypes(authModulePath)
+  const userTypes = extractExportedTypes(userModulePath)
 
-  const typesIndexContent = readFileSync(typesIndexPath, 'utf-8')
-
-  // 检查 './models/auth' 的导出
-  const authModelsPath = join(TYPES_DIR, 'models/auth.ts')
-  const authTypes = extractExportedTypes(authModelsPath)
-
-  const authReExportRegex = /export\s+type\s*\{([^}]+)\}\s+from\s+['"]\.\/models\/auth['"]/
-  const authReExportMatch = typesIndexContent.match(authReExportRegex)
-  
-  if (authReExportMatch) {
-    const reExportedFromAuth = authReExportMatch[1]
-      .split(',')
-      .map(t => t.trim())
-      .filter(t => t && !t.startsWith('//'))
-
-    for (const exportedType of reExportedFromAuth) {
-      const cleanType = exportedType.split(' as ')[0].trim()
-      
-      if (!authTypes.includes(cleanType)) {
-        issues.push({
-          field: `models/auth.${cleanType}`,
-          type: 'export_error',
-          severity: 'error',
-          expected: `类型 ${cleanType} 在 models/auth.ts 中不存在或未导出`,
-        })
-      }
+  for (const exportedType of ['ApiPermissionInfo', 'UserInfo']) {
+    if (!authTypes.includes(exportedType)) {
+      issues.push({
+        field: `modules/auth.${exportedType}`,
+        type: 'export_error',
+        severity: 'error',
+        expected: `类型 ${exportedType} 在 modules/auth.ts 中不存在或未导出`,
+      })
     }
   }
 
-  // 检查 src/api/modules/index.ts 的导出
-  const modulesIndexPath = join(API_MODULES_DIR, 'index.ts')
-  if (!existsSync(modulesIndexPath)) {
-    return issues
-  }
-
-  const modulesIndexContent = readFileSync(modulesIndexPath, 'utf-8')
-
-  const userModulePath = join(API_MODULES_DIR, 'user.ts')
-  const userTypes = extractExportedTypes(userModulePath)
-
-  const userReExportRegex = /export\s+type\s*\{([^}]+)\}\s+from\s+['"]\.\/user['"]/
-  const userReExportMatch = modulesIndexContent.match(userReExportRegex)
-  
-  if (userReExportMatch) {
-    const reExportedFromUser = userReExportMatch[1]
-      .split(',')
-      .map(t => t.trim())
-      .filter(t => t && !t.startsWith('//'))
-
-    for (const exportedType of reExportedFromUser) {
-      const cleanType = exportedType.split(' as ')[0].trim()
-      
-      if (!userTypes.includes(cleanType)) {
-        issues.push({
-          field: `modules/user.${cleanType}`,
-          type: 'export_error',
-          severity: 'error',
-          expected: `类型 ${cleanType} 在 modules/user.ts 中不存在或未导出`,
-        })
-      }
+  for (const exportedType of ['User', 'CreateUserInput', 'UpdateUserInput']) {
+    if (!userTypes.includes(exportedType)) {
+      issues.push({
+        field: `modules/user.${exportedType}`,
+        type: 'export_error',
+        severity: 'error',
+        expected: `类型 ${exportedType} 在 modules/user.ts 中不存在或未导出`,
+      })
     }
   }
 
@@ -121,28 +141,21 @@ function validateTypeExports(): FieldIssue[] {
 
 function checkUserContract(): FieldIssue[] {
   const issues: FieldIssue[] = []
+  const schemaBlock = requireSchemaBlock(issues, readOpenApiTypes(), 'UserResponse')
 
-  const authTypesPath = join(TYPES_DIR, 'models/auth.ts')
-  if (!existsSync(authTypesPath)) {
-    issues.push({
-      field: 'UserResponse',
-      type: 'missing',
-      severity: 'error',
-      expected: 'src/api/types/models/auth.ts 应导出 UserResponse',
-    })
+  if (!schemaBlock) {
     return issues
   }
 
-  const authTypesContent = readFileSync(authTypesPath, 'utf-8')
   const requiredFields = ['id', 'username', 'is_multi_login', 'roles']
 
   for (const field of requiredFields) {
-    if (!authTypesContent.includes(field)) {
+    if (!schemaBlock.includes(field)) {
       issues.push({
         field,
         type: 'missing',
         severity: 'error',
-        expected: `UserResponse 应包含 ${field} 字段`,
+        expected: `OpenAPI UserResponse schema 应包含 ${field} 字段`,
       })
     }
   }
@@ -152,28 +165,21 @@ function checkUserContract(): FieldIssue[] {
 
 function checkDeviceContract(): FieldIssue[] {
   const issues: FieldIssue[] = []
+  const schemaBlock = requireSchemaBlock(issues, readOpenApiTypes(), 'DeviceResponse')
 
-  const deviceModulePath = join(API_MODULES_DIR, 'device.ts')
-  if (!existsSync(deviceModulePath)) {
-    issues.push({
-      field: 'Device',
-      type: 'missing',
-      severity: 'error',
-      expected: 'src/api/modules/device.ts 应定义 Device 类型',
-    })
+  if (!schemaBlock) {
     return issues
   }
 
-  const deviceContent = readFileSync(deviceModulePath, 'utf-8')
   const requiredFields = ['device_code', 'device_name', 'device_status', 'device_type', 'host', 'port']
 
   for (const field of requiredFields) {
-    if (!deviceContent.includes(field)) {
+    if (!schemaBlock.includes(field)) {
       issues.push({
         field,
         type: 'missing',
         severity: 'error',
-        expected: `Device 应包含 ${field} 字段`,
+        expected: `OpenAPI DeviceResponse schema 应包含 ${field} 字段`,
       })
     }
   }
@@ -183,22 +189,21 @@ function checkDeviceContract(): FieldIssue[] {
 
 function checkAuthResponseContract(): FieldIssue[] {
   const issues: FieldIssue[] = []
+  const schemaBlock = requireSchemaBlock(issues, readOpenApiTypes(), 'LoginResponse')
 
-  const authTypesPath = join(TYPES_DIR, 'models/auth.ts')
-  if (!existsSync(authTypesPath)) {
+  if (!schemaBlock) {
     return issues
   }
 
-  const authTypesContent = readFileSync(authTypesPath, 'utf-8')
   const oauthFields = ['expires_in', 'refresh_expires_in']
 
   for (const field of oauthFields) {
-    if (!authTypesContent.includes(field)) {
+    if (!schemaBlock.includes(field)) {
       issues.push({
         field: `LoginResponse.${field}`,
         type: 'missing',
         severity: 'error',
-        expected: `LoginResponse 应包含 OAuth 2.0 标准字段 ${field}`,
+        expected: `OpenAPI 登录响应契约应包含 OAuth 2.0 标准字段 ${field}`,
       })
     }
   }
@@ -208,35 +213,27 @@ function checkAuthResponseContract(): FieldIssue[] {
 
 function checkSessionContract(): FieldIssue[] {
   const issues: FieldIssue[] = []
+  const schemaBlock = requireSchemaBlock(issues, readOpenApiTypes(), 'SessionInfo')
 
-  const authModulePath = join(API_MODULES_DIR, 'auth.ts')
-  if (!existsSync(authModulePath)) {
-    issues.push({
-      field: 'SessionInfo',
-      type: 'missing',
-      severity: 'error',
-      expected: 'src/api/modules/auth.ts 应定义 SessionInfo 类型',
-    })
+  if (!schemaBlock) {
     return issues
   }
 
-  const authModuleContent = readFileSync(authModulePath, 'utf-8')
-
-  if (!authModuleContent.includes('last_active')) {
+  if (!schemaBlock.includes('last_active')) {
     issues.push({
       field: 'SessionInfo.last_active',
       type: 'missing',
       severity: 'error',
-      expected: 'SessionInfo 应包含 last_active 字段',
+      expected: 'OpenAPI SessionInfo schema 应包含 last_active 字段',
     })
   }
 
-  if (authModuleContent.includes('last_active_at')) {
+  if (schemaBlock.includes('last_active_at')) {
     issues.push({
       field: 'SessionInfo.last_active_at',
       type: 'type_mismatch',
       severity: 'error',
-      expected: 'SessionInfo 不应使用 last_active_at，请统一为 last_active',
+      expected: 'OpenAPI SessionInfo schema 不应使用 last_active_at，请统一为 last_active',
     })
   }
 

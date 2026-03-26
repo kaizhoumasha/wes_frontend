@@ -2,6 +2,9 @@
  * 表格相关类型定义
  */
 
+// 重新导出 table.types.ts 中的类型
+export type { TableColumnConfig } from '@/components/ui/table/table.types'
+
 /**
  * 表格密度类型
  *

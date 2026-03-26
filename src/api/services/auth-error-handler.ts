@@ -7,6 +7,7 @@
  * - 提供全局错误处理钩子
  */
 
+import { ElMessage } from 'element-plus'
 import { removeAccessToken } from '../services/token-refresh'
 import type { ApiResponseError } from '../client'
 import { ClientErrorCode } from '../constants/response-codes'
@@ -174,15 +175,11 @@ export async function handleAuthError(
 
   // 显示错误提示（可选）
   if (showMessage) {
-    // 这里可以使用 Element Plus 的 ElMessage
-    // 避免循环依赖，通过全局事件总线或直接调用
-    if (typeof window !== 'undefined' && 'ElMessage' in window) {
-      window.ElMessage.warning({
-        message: error.message || '登录已失效，请重新登录',
-        duration: 3000,
-        showClose: true
-      })
-    }
+    ElMessage.warning({
+      message: error.message || '登录已失效，请重新登录',
+      duration: 3000,
+      showClose: true
+    })
   }
 
   // 延迟重定向，确保状态清除完成
@@ -216,14 +213,3 @@ export default {
   redirectToLogin
 }
 
-// ==================== 全局类型扩展 ====================
-
-declare global {
-  interface Window {
-    ElMessage: {
-      warning: (options: { message: string; duration: number; showClose: boolean }) => void
-    }
-  }
-}
-
-export {}

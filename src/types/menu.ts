@@ -5,58 +5,24 @@
  * 对应后端: src/app/admin/v1/menu.py
  */
 
+import type { ArrayItem, ContractResponseData } from '@/api/contract/types'
+
+type MenuTreePath = '/api/v1/menus/my_menu'
+
 // ==================== 菜单项类型 ====================
 
 /**
- * 菜单项接口
+ * 菜单项类型（直接从 OpenAPI 契约推断）
  *
  * 表示一个菜单节点，可以是叶子节点或包含子菜单的父节点
  */
-export interface MenuItem {
-  /** 菜单 ID */
-  id: number
-  /** 菜单标识（如 system:users, device:monitor） */
-  name: string
-  /** 显示标题 */
-  title: string
-  /** 路由路径 */
-  path: string
-  /** 组件路径（可选，外部链接无需组件） */
-  component?: string
-  /** Element Plus 图标名称（可选） */
-  icon?: string
-  /** 是否隐藏（后端已根据权限过滤） */
-  is_hidden: boolean
-  /** 排序序号 */
-  sort_order?: number
-  /** 子菜单 */
-  children: MenuItem[]
-}
+export type MenuTreeResponse = ArrayItem<ContractResponseData<MenuTreePath, 'get'>>
 
 /**
- * 菜单树响应（后端返回格式）
- *
- * 后端直接返回树形结构，前端无需手动构建
+ * 菜单项（前端使用，确保 children 是数组）
  */
-export interface MenuTreeResponse {
-  /** 菜单 ID */
-  id: number
-  /** 菜单标识 */
-  name: string
-  /** 显示标题 */
-  title: string
-  /** 路由路径 */
-  path: string
-  /** 组件路径 */
-  component?: string
-  /** 图标名称 */
-  icon?: string
-  /** 是否隐藏 */
-  is_hidden: boolean
-  /** 排序序号 */
-  sort_order?: number
-  /** 子菜单 */
-  children: MenuTreeResponse[]
+export type MenuItem = Omit<MenuTreeResponse, 'children'> & {
+  children: MenuItem[]
 }
 
 /**
@@ -94,21 +60,17 @@ export interface ActiveMenuState {
 /**
  * 将后端菜单树转换为前端菜单项
  *
+ * 主要处理 children 可能 undefined 的情况，确保 children 始终是数组
+ *
  * @param response 后端菜单树响应
  * @returns 前端菜单项
  */
 export function toMenuItem(response: MenuTreeResponse): MenuItem {
-  const children = Array.isArray(response.children) ? response.children : []
+  const children = response.children ?? []
 
   return {
-    id: response.id,
-    name: response.name,
-    title: response.title,
-    path: response.path,
-    component: response.component,
-    icon: response.icon,
+    ...response,
     is_hidden: response.is_hidden ?? false,
-    sort_order: response.sort_order,
     children: children.map(toMenuItem)
   }
 }
@@ -134,7 +96,7 @@ export function flattenMenuTree(
       name: menu.name,
       title: menu.title,
       path: menu.path,
-      icon: menu.icon,
+      icon: menu.icon ?? undefined,
       parent_id: parentId,
       level
     })
@@ -185,27 +147,28 @@ export function getMenuBreadcrumb(
   menuTree: MenuItem[],
   path: string
 ): MenuItem[] {
-  const breadcrumb: MenuItem[] = []
+  return findMenuBreadcrumb(menuTree, path) ?? []
+}
 
-  function findPath(menus: MenuItem[], targetPath: string, currentPath: MenuItem[]): boolean {
-    for (const menu of menus) {
-      const newPath = [...currentPath, menu]
+function findMenuBreadcrumb(
+  menus: MenuItem[],
+  targetPath: string,
+  currentPath: MenuItem[] = []
+): MenuItem[] | undefined {
+  for (const menu of menus) {
+    const nextPath = [...currentPath, menu]
 
-      if (menu.path === targetPath) {
-        breadcrumb.push(...newPath)
-        return true
-      }
-
-      if (menu.children.length > 0) {
-        if (findPath(menu.children, targetPath, newPath)) {
-          return true
-        }
-      }
+    if (menu.path === targetPath) {
+      return nextPath
     }
 
-    return false
+    if (menu.children.length > 0) {
+      const childBreadcrumb = findMenuBreadcrumb(menu.children, targetPath, nextPath)
+      if (childBreadcrumb) {
+        return childBreadcrumb
+      }
+    }
   }
 
-  findPath(menuTree, path, [])
-  return breadcrumb
+  return undefined
 }

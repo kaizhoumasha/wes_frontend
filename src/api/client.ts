@@ -7,7 +7,6 @@ import { createAlova } from 'alova'
 import VueHook from 'alova/vue'
 import adapterFetch from 'alova/fetch'
 import { env } from '@/config/env'
-import { getApiPath } from '@/config/api'
 import {
   getAccessToken,
   setAccessToken,
@@ -16,7 +15,7 @@ import {
 import { show, initializeErrorNotification } from './services/error-notification'
 import { classifyErrorByCode } from './utils/error-classifier'
 import { isSuccessCode, ClientErrorCode } from './constants/response-codes'
-import type { ApiResponse } from './types'
+import type { ApiResponse } from './types/response'
 import { handleAuthError } from './services/auth-error-handler'
 import { API_CACHE_DURATION } from '@/constants/cache'
 
@@ -48,30 +47,13 @@ export class ApiResponseError extends Error {
 }
 
 // ==================== Token刷新状态 ====================
+// 注意：Token 刷新状态统一由 token-refresh.ts 管理
+// client.ts 只负责调用 refreshAccessToken 并处理响应
 
-/** 是否正在刷新Token */
-let isRefreshing = false
-/** 等待中的请求队列 */
-let refreshQueue: Array<(token: string) => void> = []
 /** Token刷新重试次数（防止死循环） */
 let refreshRetryCount = 0
 /** 最大刷新重试次数 */
 const MAX_REFRESH_RETRY = 1
-
-function waitForRefresh(): Promise<string> {
-  return new Promise((resolve) => {
-    refreshQueue.push(resolve)
-  })
-}
-
-function processRefreshQueue(token: string): void {
-  refreshQueue.forEach((resolve) => resolve(token))
-  refreshQueue = []
-}
-
-function rejectRefreshQueue(): void {
-  refreshQueue = []
-}
 
 function resetRefreshRetryCount(): void {
   refreshRetryCount = 0
@@ -84,25 +66,16 @@ async function handle401Error(): Promise<string> {
     throw new Error('Token刷新失败：重试次数超限')
   }
 
-  // 如果正在刷新，等待刷新完成
-  if (isRefreshing) {
-    return waitForRefresh()
-  }
-
-  isRefreshing = true
   refreshRetryCount++
 
   try {
+    // refreshAccessToken 内部已实现并发队列管理
     const newToken = await refreshAccessToken(apiClient)
-    processRefreshQueue(newToken)
     // 刷新成功，重置计数器
     resetRefreshRetryCount()
     return newToken
   } catch {
-    rejectRefreshQueue()
     throw new Error('Token刷新失败')
-  } finally {
-    isRefreshing = false
   }
 }
 
@@ -227,9 +200,14 @@ export const apiClient = createAlova({
   statesHook: VueHook,
   requestAdapter: adapterFetch(),
   timeout: 30000,
-  // 仅为 GET 请求启用默认缓存，其他请求保持无缓存。
+  // 默认关闭 API 级缓存。
+  //
+  // 原因：
+  // - 后台管理场景下，大多数 GET 都是强一致数据（列表、详情、回收站）
+  // - 若按 HTTP 方法统一缓存，会把 `/trash`、`/{id}` 这类可变资源一并缓存
+  // - 缓存应该改为“显式接入”，只给真正可容忍过期的只读接口单独开启
   cacheFor: {
-    GET: API_CACHE_DURATION.MEDIUM
+    GET: API_CACHE_DURATION.NONE
   },
 
   beforeRequest(method) {
@@ -292,6 +270,3 @@ export const patch = <T = unknown>(url: string, data?: Record<string, unknown>) 
 export const del = <T = unknown>(url: string) => {
   return apiClient.Delete<T>(url)
 }
-
-export { getApiPath }
-export type * from './types'

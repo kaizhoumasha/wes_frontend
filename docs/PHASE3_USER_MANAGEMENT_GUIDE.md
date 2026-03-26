@@ -248,7 +248,7 @@ src/
 │           ├── components/
 │           │   ├── UserTable.vue         # 表格区
 │           │   ├── UserToolbar.vue       # 搜索/操作区
-│           │   ├── UserFormDialog.vue    # 创建/编辑弹窗
+│           │   ├── CrudFormDialog.vue    # 通用创建/编辑弹窗
 │           │   └── UserDetailDrawer.vue  # 详情抽屉（如首轮实现）
 │           └── composables/
 │               ├── useUserListPage.ts    # 页面数据编排
@@ -544,7 +544,7 @@ P0 首轮建议列：
 
 交付物：
 
-- `UserFormDialog`
+- `CrudFormDialog`
 - 创建用户
 - 编辑用户
 - 表单校验

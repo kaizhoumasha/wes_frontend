@@ -10,21 +10,23 @@
  * ## 权限标识格式
  *
  * 后端权限标识格式：`{module}:{resource}:{action}`
- * - 示例: `admin:user:create`, `admin:role:update`, `device:device:read`
+ * - 推荐优先使用 `@/api/generated/permissions` 中自动生成的常量
  * - 超级用户拥有 `*` 权限（表示拥有所有权限）
  *
  * ## 使用示例
  *
  * ```ts
+ * import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
+ *
  * const { hasPermission, loadPermissions, clearPermissions } = usePermission()
  *
  * // 检查单个权限
- * if (hasPermission('admin:user:create')) {
+ * if (hasPermission(ADMIN_PERMISSIONS.user.create)) {
  *   // 显示创建用户按钮
  * }
  *
  * // 检查多个权限（任意一个）
- * if (hasAnyPermission(['admin:user:create', 'admin:user:update'])) {
+ * if (hasAnyPermission([ADMIN_PERMISSIONS.user.create, ADMIN_PERMISSIONS.user.update])) {
  *   // 显示用户管理操作
  * }
  *
@@ -33,60 +35,41 @@
  * ```
  */
 
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { authApi } from '@/api/modules/auth'
 import type { ApiPermissionInfo } from '@/api/modules/auth'
-import { PERMISSION_CACHE, getCachedData, setCachedData, clearCachedData } from '@/constants/cache'
-
-// ==================== 常量定义 ====================
-
-/** 超级用户权限标识 */
-const SUPERUSER_PERMISSION = '*'
-
-// ==================== 全局状态 ====================
-
-/** 用户权限列表（内存缓存） */
-const permissions = ref<ApiPermissionInfo[]>([])
-
-/** 权限标识集合（用于快速查找） */
-const permissionNames = ref<Set<string>>(new Set())
-
-/** 是否正在加载权限 */
-const isLoading = ref(false)
-
-/** 权限加载错误 */
-const loadError = ref<Error | null>(null)
-
-/** 是否为超级用户 */
-const isSuperuser = computed(() => permissionNames.value.has(SUPERUSER_PERMISSION))
-
-// ==================== 权限检查函数 ====================
-
-/**
- * 内部权限检查函数（统一超级用户判断逻辑）
- */
-const checkPermission = (permissionName: string): boolean => {
-  return isSuperuser.value || permissionNames.value.has(permissionName)
-}
+import {
+  checkPermissionState,
+  clearPermissionState,
+  getPermissionsFromCache,
+  isSuperuserState,
+  permissionLoadErrorState,
+  permissionLoadingState,
+  permissionsState,
+  setPermissionsState,
+  setPermissionsToCache
+} from './permission-state'
 
 /**
  * 检查是否拥有指定权限
  *
- * @param permissionName 权限标识（如 `admin:user:create`）
+ * @param permissionName 权限标识（建议使用 `@/api/generated/permissions` 常量）
  * @returns 是否拥有权限
  *
  * @example
  * ```ts
+ * import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
+ *
  * const { hasPermission } = usePermission()
  *
- * if (hasPermission('admin:user:create')) {
+ * if (hasPermission(ADMIN_PERMISSIONS.user.create)) {
  *   // 显示创建按钮
  * }
  * ```
  */
 export function usePermission() {
   const hasPermission = (permissionName: string): boolean => {
-    return checkPermission(permissionName)
+    return checkPermissionState(permissionName)
   }
 
   /**
@@ -97,15 +80,17 @@ export function usePermission() {
    *
    * @example
    * ```ts
+   * import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
+   *
    * const { hasAnyPermission } = usePermission()
    *
-   * if (hasAnyPermission(['admin:user:create', 'admin:user:update'])) {
+   * if (hasAnyPermission([ADMIN_PERMISSIONS.user.create, ADMIN_PERMISSIONS.user.update])) {
    *   // 显示用户管理操作
    * }
    * ```
    */
   const hasAnyPermission = (permissionNameList: string[]): boolean => {
-    return permissionNameList.some((name) => checkPermission(name))
+    return permissionNameList.some((name) => checkPermissionState(name))
   }
 
   /**
@@ -116,15 +101,17 @@ export function usePermission() {
    *
    * @example
    * ```ts
+   * import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
+   *
    * const { hasAllPermissions } = usePermission()
    *
-   * if (hasAllPermissions(['admin:user:create', 'admin:user:delete'])) {
+   * if (hasAllPermissions([ADMIN_PERMISSIONS.user.create, ADMIN_PERMISSIONS.user.delete])) {
    *   // 显示完整用户管理操作
    * }
    * ```
    */
   const hasAllPermissions = (permissionNameList: string[]): boolean => {
-    return permissionNameList.every((name) => checkPermission(name))
+    return permissionNameList.every((name) => checkPermissionState(name))
   }
 
   /**
@@ -164,7 +151,7 @@ export function usePermission() {
    * @returns 权限详情，不存在时返回 undefined
    */
   const getPermission = (permissionName: string): ApiPermissionInfo | undefined => {
-    return permissions.value.find((p) => p.name === permissionName)
+    return permissionsState.value.find((p) => p.name === permissionName)
   }
 
   // ==================== 权限管理函数 ====================
@@ -196,19 +183,19 @@ export function usePermission() {
       }
     }
 
-    isLoading.value = true
-    loadError.value = null
+    permissionLoadingState.value = true
+    permissionLoadErrorState.value = null
 
     try {
       const response = await authApi.getPermissions()
       setPermissionsState(response.permissions)
       setPermissionsToCache(response.permissions)
     } catch (error) {
-      loadError.value = error as Error
+      permissionLoadErrorState.value = error as Error
       // 抛出错误，让调用者能够捕获并处理
       throw error
     } finally {
-      isLoading.value = false
+      permissionLoadingState.value = false
     }
   }
 
@@ -220,7 +207,7 @@ export function usePermission() {
    */
   const hydratePermissions = (perms: ApiPermissionInfo[], persist = true): void => {
     setPermissionsState(perms)
-    loadError.value = null
+    permissionLoadErrorState.value = null
     if (persist) {
       setPermissionsToCache(perms)
     }
@@ -238,42 +225,17 @@ export function usePermission() {
    * ```
    */
   const clearPermissions = (): void => {
-    permissions.value = []
-    permissionNames.value = new Set()
-    loadError.value = null
-    clearCachedData(PERMISSION_CACHE.KEY, PERMISSION_CACHE.TIME_KEY)
-  }
-
-  // ==================== 辅助函数 ====================
-
-  /** 设置权限状态 */
-  const setPermissionsState = (perms: ApiPermissionInfo[]): void => {
-    permissions.value = perms
-    permissionNames.value = new Set(perms.map((p) => p.name))
-  }
-
-  /** 从缓存获取权限 */
-  const getPermissionsFromCache = (): ApiPermissionInfo[] | null => {
-    return getCachedData<ApiPermissionInfo[]>(
-      PERMISSION_CACHE.KEY,
-      PERMISSION_CACHE.TIME_KEY,
-      PERMISSION_CACHE.TTL
-    )
-  }
-
-  /** 将权限写入缓存 */
-  const setPermissionsToCache = (perms: ApiPermissionInfo[]): void => {
-    setCachedData(PERMISSION_CACHE.KEY, PERMISSION_CACHE.TIME_KEY, perms)
+    clearPermissionState()
   }
 
   // ==================== 导出 ====================
 
   return {
     // 状态
-    permissions: computed(() => permissions.value),
-    isSuperuser,
-    isLoading: computed(() => isLoading.value),
-    loadError: computed(() => loadError.value),
+    permissions: computed(() => permissionsState.value),
+    isSuperuser: isSuperuserState,
+    isLoading: computed(() => permissionLoadingState.value),
+    loadError: computed(() => permissionLoadErrorState.value),
 
     // 权限检查
     hasPermission,
