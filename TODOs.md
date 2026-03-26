@@ -260,6 +260,9 @@ pnpm add -D vitest @vue/test-utils happy-dom @vitest/coverage-v8
 | detailFieldLayout     | 80%+       | ~90% | ✅ 测试完成         |
 | useCrudPageController | 80%+       | ~75% | ✅ 辅助函数测试完成 |
 | CrudDetailPanel       | 75%+       | ~70% | ✅ 核心集成测试完成 |
+| CrudDetailBody        | 70%+       | 0%   | 待补充              |
+| CrudDetailSection     | 70%+       | 0%   | 待补充              |
+| CrudDetailField       | 70%+       | 0%   | 待补充              |
 
 ---
 
