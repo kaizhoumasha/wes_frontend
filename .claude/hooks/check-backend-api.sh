@@ -45,21 +45,24 @@ if ls src/api/modules/*.ts 1> /dev/null 2>&1; then
     for file in src/api/modules/*.ts; do
         filename=$(basename "$file" .ts)
 
+        # 单次读取文件内容，避免多次 I/O
+        file_content=$(cat "$file" 2>/dev/null)
+
         # 检查使用了哪种 API 创建方式
-        if grep -q "createSoftDeleteCrudApi" "$file"; then
+        if echo "$file_content" | grep -q "createSoftDeleteCrudApi"; then
             echo "  📦 $filename: 软删除 CRUD (包含回收站)"
 
             # 检查是否有额外 API 能力
-            if grep -q "async.*" "$file" | grep -v "createSoftDeleteCrudApi"; then
-                extra_apis=$(grep -E "^\s+async\s+\w+" "$file" | sed 's/.*async //' | sed 's/(.*//' | tr '\n' ', ' | sed 's/, $//')
+            extra_apis=$(echo "$file_content" | grep -E "^\s+async\s+\w+" | grep -v "createSoftDeleteCrudApi" | sed 's/.*async //; s/(.*//' | tr '\n' ', ' | sed 's/, $//')
+            if [ -n "$extra_apis" ]; then
                 echo "     └─ 额外能力: $extra_apis"
             fi
-        elif grep -q "createCrudApi" "$file"; then
+        elif echo "$file_content" | grep -q "createCrudApi"; then
             echo "  📦 $filename: 标准 CRUD"
 
             # 检查是否有额外 API 能力
-            if grep -E "^\s+async\s+\w+" "$file" > /dev/null 2>&1; then
-                extra_apis=$(grep -E "^\s+async\s+\w+" "$file" | sed 's/.*async //' | sed 's/(.*//' | tr '\n' ', ' | sed 's/, $//')
+            extra_apis=$(echo "$file_content" | grep -E "^\s+async\s+\w+" | sed 's/.*async //; s/(.*//' | tr '\n' ', ' | sed 's/, $//')
+            if [ -n "$extra_apis" ]; then
                 echo "     └─ 额外能力: $extra_apis"
             fi
         fi
@@ -73,20 +76,24 @@ if ls src/api/modules/*.ts 1> /dev/null 2>&1; then
     for file in src/api/modules/*.ts; do
         filename=$(basename "$file" .ts)
 
+        # 单次读取文件内容
+        file_content=$(cat "$file" 2>/dev/null)
+
         # 检查是否有批量删除端点但未实现
-        if grep -q "bulk" "$file" && ! grep -q "bulkDelete" "$file"; then
+        if echo "$file_content" | grep -q "bulk" && ! echo "$file_content" | grep -q "bulkDelete"; then
             echo "  ⚠️  $filename: 检测到 'bulk' 关键字，但未使用 bulkDelete"
         fi
 
         # 检查是否有软删除端点但用了标准 CRUD
-        if grep -q "trash\|restore" "$file" && grep -q "createCrudApi" "$file"; then
+        if echo "$file_content" | grep -q "trash\|restore" && echo "$file_content" | grep -q "createCrudApi"; then
             echo -e "  ${YELLOW}⚠️  $filename: 检测到软删除端点，但使用了 createCrudApi${NC}"
             echo "     建议改为 createSoftDeleteCrudApi 以启用回收站功能"
         fi
 
         # 检查是否有扩展但未使用
-        if grep -q "\.\.\.baseUserApi\|\.\.\.baseApi" "$file"; then
-            if ! grep -q "extensions" "src/views/admin/${filename}s/config/pageConfig.ts" 2>/dev/null; then
+        if echo "$file_content" | grep -q "\.\.\.baseUserApi\|\.\.\.baseApi"; then
+            config_file="src/views/admin/${filename}s/config/pageConfig.ts"
+            if [ -f "$config_file" ] && ! grep -q "extensions" "$config_file" 2>/dev/null; then
                 echo -e "  ${YELLOW}⚠️  $filename: API 有扩展能力，但页面配置未使用 extensions${NC}"
             fi
         fi

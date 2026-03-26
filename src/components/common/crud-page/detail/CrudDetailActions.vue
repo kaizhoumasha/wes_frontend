@@ -69,7 +69,7 @@ async function executeAction(action: CrudPageDetailAction<TItem>): Promise<void>
     const message = error instanceof Error ? error.message : '操作失败'
     ElMessage.error(message)
   } finally {
-    loadingStates.value.set(action.key, false)
+    loadingStates.value.delete(action.key)
   }
 }
 
