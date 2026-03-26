@@ -274,7 +274,12 @@ defineExpose({
       <div class="detail-panel__hero">
         <span class="detail-panel__eyebrow">{{ detailEyebrow }}</span>
         <div class="detail-panel__title-row">
-          <h2 :id="titleId" class="detail-panel__title">{{ title }}</h2>
+          <h2
+            :id="titleId"
+            class="detail-panel__title"
+          >
+            {{ title }}
+          </h2>
         </div>
       </div>
     </template>
@@ -322,7 +327,12 @@ defineExpose({
       <div class="detail-panel__hero detail-panel__hero--dialog">
         <span class="detail-panel__eyebrow">{{ detailEyebrow }}</span>
         <div class="detail-panel__title-row">
-          <h2 :id="titleId" class="detail-panel__title">{{ title }}</h2>
+          <h2
+            :id="titleId"
+            class="detail-panel__title"
+          >
+            {{ title }}
+          </h2>
         </div>
       </div>
     </template>
