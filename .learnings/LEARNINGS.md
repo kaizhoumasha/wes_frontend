@@ -1685,3 +1685,55 @@ export function buildUserActionsColumn(options: {
 - **Notes**: 已完成迁移并提交，代码减少 1317 行，lint 检查全部通过
 
 ---
+
+---
+
+## [LRN-20250326-001] knowledge_gap
+
+**Logged**: 2026-03-26T14:05:00+08:00
+**Priority**: medium
+**Status**: resolved
+**Area**: frontend
+
+### Summary
+
+使用 Git worktree 开发新功能时，运行菜单同步脚本未能同步新菜单，原因是脚本默认读取主仓库而非当前 worktree。
+
+### Details
+
+项目强制使用 Git worktree 开发模式（`feature/*` 分支在独立目录）。`sync_menus.sh` 脚本默认解析 `/Users/kaizhou/SynologyDrive/works/wes_frontend/src/router/index.ts`（主仓库 develop 分支），但开发中的代码在 worktree 目录（如 `wes_frontend-worktrees/role_manage`）。
+
+这导致：
+
+- 新添加的路由（如角色管理）在主仓库中不存在
+- 运行脚本后数据库中没有新菜单
+- 用户困惑为什么同步不成功
+
+### Suggested Action
+
+使用 `--frontend-path` 参数指定当前 worktree 路径：
+
+```bash
+# 预览模式
+bash scripts/data/sync_menus.sh --frontend-path /Users/kaizhou/SynologyDrive/works/wes_frontend-worktrees/role_manage --preview
+
+# 正式同步
+bash scripts/data/sync_menus.sh --frontend-path /Users/kaizhou/SynologyDrive/works/wes_frontend-worktrees/role_manage
+```
+
+或在合并到主仓库后再运行同步脚本。
+
+### Metadata
+
+- Source: error
+- Related Files:
+  - `wes_backend/scripts/data/sync_menus.sh`
+  - `wes_backend/scripts/data/sync_menus.py`
+  - `wes_backend/src/utils/frontend_menu_parser.py`
+- Tags: git-worktree, menu-sync, development-workflow
+
+### Resolution
+
+- **Resolved**: 2026-03-26T14:10:00+08:00
+- **Solution**: 使用 `--frontend-path` 参数指定 worktree 路径后成功同步
+- **Notes**: 这是 worktree 开发模式的固有问题，脚本设计时假设在 main worktree 中运行
