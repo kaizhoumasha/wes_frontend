@@ -116,7 +116,8 @@ async function loadRoles() {
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        allRoles.value = await roleApi.query()
+        const response = await roleApi.query({ limit: 100 })
+        allRoles.value = response.items
         return
       } catch (e) {
         lastError = e instanceof Error ? e : new Error(String(e))

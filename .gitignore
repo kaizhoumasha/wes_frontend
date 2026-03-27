@@ -25,3 +25,12 @@ dist-ssr/
 .serena/memories/user-preferences/
 .playwright-cli/
 .gstack/
+
+# Proactive Memory
+memory/*
+HEARTBEAT.md
+ONBOARDING.md
+SESSION-STATE.md
+SOUL.md
+TOOLS.md
+USER.md

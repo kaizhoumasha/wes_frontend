@@ -4,15 +4,16 @@
  * 提供登录表单的状态管理、验证和提交逻辑
  */
 
-import { reactive, ref } from 'vue'
+import { reactive, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
 import { authApi } from '@/api/modules/auth'
 import { ApiResponseError } from '@/api/client'
 import { setAccessToken, setTokenExpiresAt, clearTokens } from '@/api/services/token-refresh'
 import { usePermission } from '@/composables/usePermission'
 import { useMenu } from '@/composables/useMenu'
 import { useCurrentUser } from '@/composables/useCurrentUser'
+
+const REMEMBERED_USERNAME_KEY = 'wes_remembered_username'
 
 export function useLoginForm() {
   const router = useRouter()
@@ -24,13 +25,23 @@ export function useLoginForm() {
   const usernameInput = ref<HTMLInputElement>()
   const passwordInput = ref<HTMLInputElement>()
 
-  // 表单状态
+  // UI 状态
   const loading = ref(false)
+  const passwordVisible = ref(false)
+  const rememberMe = ref(false)
   const usernameFocused = ref(false)
   const passwordFocused = ref(false)
+  const usernameTouched = ref(false)
+  const passwordTouched = ref(false)
 
   // 表单数据
   const form = reactive({
+    username: '',
+    password: ''
+  })
+
+  // 错误信息
+  const errors = reactive({
     username: '',
     password: ''
   })
@@ -47,31 +58,125 @@ export function useLoginForm() {
     }
   }
 
+  // 计算属性：表单是否有效
+  const isFormValid = computed(() => {
+    return form.username.length >= rules.username.minLength.value &&
+           form.password.length >= rules.password.minLength.value
+  })
+
+  /**
+   * 验证用户名
+   * @returns 是否有效
+   */
+  const validateUsername = (): boolean => {
+    if (!form.username) {
+      errors.username = rules.username.required
+      return false
+    }
+    if (form.username.length < rules.username.minLength.value) {
+      errors.username = rules.username.minLength.message
+      return false
+    }
+    errors.username = ''
+    return true
+  }
+
+  /**
+   * 验证密码
+   * @returns 是否有效
+   */
+  const validatePassword = (): boolean => {
+    if (!form.password) {
+      errors.password = rules.password.required
+      return false
+    }
+    if (form.password.length < rules.password.minLength.value) {
+      errors.password = rules.password.minLength.message
+      return false
+    }
+    errors.password = ''
+    return true
+  }
+
+  /**
+   * 实时验证用户名（用于失去焦点时）
+   */
+  const validateUsernameOnBlur = (): void => {
+    usernameTouched.value = true
+    validateUsername()
+    usernameFocused.value = false
+  }
+
+  /**
+   * 实时验证密码（用于失去焦点时）
+   */
+  const validatePasswordOnBlur = (): void => {
+    passwordTouched.value = true
+    validatePassword()
+    passwordFocused.value = false
+  }
+
+  /**
+   * 清除错误（当用户输入时）
+   */
+  const clearUsernameError = (): void => {
+    errors.username = ''
+  }
+
+  const clearPasswordError = (): void => {
+    errors.password = ''
+  }
+
+  /**
+   * 切换密码可见性
+   */
+  const togglePasswordVisibility = (): void => {
+    passwordVisible.value = !passwordVisible.value
+    // 切换后重新聚焦密码框
+    setTimeout(() => {
+      passwordInput.value?.focus()
+    }, 0)
+  }
+
+  /**
+   * 加载记住的用户名
+   */
+  const loadRememberedUsername = (): void => {
+    const remembered = localStorage.getItem(REMEMBERED_USERNAME_KEY)
+    if (remembered) {
+      form.username = remembered
+      rememberMe.value = true
+    }
+  }
+
+  /**
+   * 保存/清除记住的用户名
+   */
+  const handleRememberMe = (): void => {
+    if (rememberMe.value && form.username) {
+      localStorage.setItem(REMEMBERED_USERNAME_KEY, form.username)
+    } else {
+      localStorage.removeItem(REMEMBERED_USERNAME_KEY)
+    }
+  }
+
   /**
    * 验证表单
    * @returns 验证是否通过
    */
   const validate = (): boolean => {
-    // 用户名验证
-    if (!form.username) {
-      ElMessage.warning(rules.username.required)
-      usernameInput.value?.focus()
-      return false
-    }
-    if (form.username.length < rules.username.minLength.value) {
-      ElMessage.warning(rules.username.minLength.message)
-      usernameInput.value?.focus()
-      return false
-    }
+    // 标记所有字段为已触碰
+    usernameTouched.value = true
+    passwordTouched.value = true
 
-    // 密码验证
-    if (!form.password) {
-      ElMessage.warning(rules.password.required)
-      passwordInput.value?.focus()
+    const isUsernameValid = validateUsername()
+    const isPasswordValid = validatePassword()
+
+    if (!isUsernameValid) {
+      usernameInput.value?.focus()
       return false
     }
-    if (form.password.length < rules.password.minLength.value) {
-      ElMessage.warning(rules.password.minLength.message)
+    if (!isPasswordValid) {
       passwordInput.value?.focus()
       return false
     }
@@ -141,6 +246,9 @@ export function useLoginForm() {
       const expiresAt = Date.now() + result.expires_in * 1000
       setTokenExpiresAt(expiresAt)
 
+      // 处理记住我
+      handleRememberMe()
+
       // 加载用户上下文
       try {
         await loadUserContext()
@@ -148,11 +256,9 @@ export function useLoginForm() {
         console.error('加载用户上下文失败:', contextError)
         clearTokens()
         clearCurrentUser()
-        ElMessage.error('权限加载失败，请重试')
+        errors.password = '权限加载失败，请重试'
         throw contextError
       }
-
-      ElMessage.success('登录成功')
 
       // 跳转到目标页面
       const redirect = sessionStorage.getItem('redirect_after_login')
@@ -168,17 +274,20 @@ export function useLoginForm() {
       console.error('登录失败:', error)
       // ApiResponseError 已由 API 客户端的错误通知系统处理
       if (!(error instanceof ApiResponseError)) {
-        ElMessage.error('登录失败，请稍后重试')
+        errors.password = '登录失败，请稍后重试'
+      } else {
+        // 设置错误信息用于显示
+        errors.password = '用户名或密码错误'
       }
       // 智能聚焦：根据表单状态决定聚焦位置
-      // 如果用户名为空 → 聚焦用户名框
-      // 如果密码为空或已有输入 → 聚焦密码框（更可能是密码错误）
       const shouldFocusPassword = form.username.length > 0
       setTimeout(() => {
         if (shouldFocusPassword) {
           passwordInput.value?.focus()
+          passwordTouched.value = true
         } else {
           usernameInput.value?.focus()
+          usernameTouched.value = true
         }
       }, 100)
     } finally {
@@ -201,32 +310,52 @@ export function useLoginForm() {
   const focusPasswordInput = (): void => {
     // 验证用户名
     if (!form.username) {
-      ElMessage.warning(rules.username.required)
+      errors.username = rules.username.required
       usernameInput.value?.focus()
       return
     }
     if (form.username.length < rules.username.minLength.value) {
-      ElMessage.warning(rules.username.minLength.message)
+      errors.username = rules.username.minLength.message
       usernameInput.value?.focus()
       return
     }
+    errors.username = ''
 
     // 验证通过，聚焦密码框
     passwordInput.value?.focus()
   }
 
+  /**
+   * 初始化 - 加载记住的用户名
+   */
+  const init = (): void => {
+    loadRememberedUsername()
+  }
+
   return {
     // 状态
     loading,
+    passwordVisible,
+    rememberMe,
     usernameFocused,
     passwordFocused,
+    usernameTouched,
+    passwordTouched,
     form,
+    errors,
     usernameInput,
     passwordInput,
+    isFormValid,
 
     // 方法
     handleLogin,
     focusUsernameInput,
-    focusPasswordInput
+    focusPasswordInput,
+    togglePasswordVisibility,
+    validateUsernameOnBlur,
+    validatePasswordOnBlur,
+    clearUsernameError,
+    clearPasswordError,
+    init
   }
 }

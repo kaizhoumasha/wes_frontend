@@ -73,7 +73,11 @@
             <!-- 用户名输入 -->
             <div
               class="form-group"
-              :class="{ focused: usernameFocused, filled: form.username }"
+              :class="{
+                focused: usernameFocused,
+                filled: form.username,
+                error: errors.username && usernameTouched
+              }"
             >
               <label for="username">用户名</label>
               <input
@@ -81,9 +85,14 @@
                 ref="usernameInput"
                 v-model="form.username"
                 type="text"
+                autocomplete="username"
+                aria-label="用户名"
+                :aria-invalid="!!errors.username"
+                :aria-describedby="errors.username ? 'username-error' : undefined"
                 @keyup.enter="focusPasswordInput"
                 @focus="usernameFocused = true"
-                @blur="usernameFocused = false"
+                @blur="validateUsernameOnBlur"
+                @input="clearUsernameError"
               />
               <div class="input-border" />
               <div class="input-icon">
@@ -101,57 +110,146 @@
                   />
                 </svg>
               </div>
+              <transition name="error-fade">
+                <div
+                  v-if="errors.username && usernameTouched"
+                  id="username-error"
+                  class="error-message"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  {{ errors.username }}
+                </div>
+              </transition>
             </div>
 
             <!-- 密码输入 -->
             <div
               class="form-group"
-              :class="{ focused: passwordFocused, filled: form.password }"
+              :class="{
+                focused: passwordFocused,
+                filled: form.password,
+                error: errors.password && passwordTouched
+              }"
             >
               <label for="password">密码</label>
               <input
                 id="password"
                 ref="passwordInput"
                 v-model="form.password"
-                type="password"
+                :type="passwordVisible ? 'text' : 'password'"
+                autocomplete="current-password"
+                aria-label="密码"
+                :aria-invalid="!!errors.password"
+                :aria-describedby="errors.password ? 'password-error' : undefined"
+                @keyup.enter="handleLogin"
                 @focus="passwordFocused = true"
-                @blur="passwordFocused = false"
+                @blur="validatePasswordOnBlur"
+                @input="clearPasswordError"
               />
               <div class="input-border" />
-              <div class="input-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
+              <div class="input-icons">
+                <button
+                  type="button"
+                  class="toggle-password-btn"
+                  :aria-label="passwordVisible ? '隐藏密码' : '显示密码'"
+                  @click="togglePasswordVisibility"
                 >
-                  <rect
-                    x="3"
-                    y="11"
-                    width="18"
-                    height="11"
-                    rx="2"
-                    ry="2"
-                  />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
+                  <!-- 睁眼图标 - 密码可见 -->
+                  <svg
+                    v-if="passwordVisible"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                  <!-- 闭眼图标 - 密码隐藏 -->
+                  <svg
+                    v-else
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                </button>
+                <div class="input-icon input-icon-lock">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <rect
+                      x="3"
+                      y="11"
+                      width="18"
+                      height="11"
+                      rx="2"
+                      ry="2"
+                    />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </div>
               </div>
+              <transition name="error-fade">
+                <div
+                  v-if="errors.password && passwordTouched"
+                  id="password-error"
+                  class="error-message"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  {{ errors.password }}
+                </div>
+              </transition>
+            </div>
+
+            <!-- 记住我 -->
+            <div class="remember-row">
+              <label class="remember-checkbox">
+                <input
+                  v-model="rememberMe"
+                  type="checkbox"
+                  aria-label="记住用户名"
+                >
+                <span class="checkmark">
+                  <svg v-if="rememberMe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </span>
+                <span class="remember-text">记住用户名</span>
+              </label>
             </div>
 
             <!-- 登录按钮 -->
             <button
               type="submit"
               class="login-button"
-              :disabled="loading"
+              :disabled="loading || !isFormValid"
+              :aria-busy="loading"
             >
               <span v-if="!loading">登录系统</span>
               <span
                 v-else
-                class="loading-text"
+                class="loading-spinner"
               >
-                <span class="loading-dot" />
-                <span class="loading-dot" />
-                <span class="loading-dot" />
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" stroke-opacity="0.25" />
+                  <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round" />
+                </svg>
+                登录中...
               </span>
               <div class="button-glow" />
             </button>
@@ -187,14 +285,26 @@ import { APP_VERSION } from '@/constants/app'
 
 const {
   loading,
+  passwordVisible,
+  rememberMe,
   usernameFocused,
   passwordFocused,
+  usernameTouched,
+  passwordTouched,
   form,
+  errors,
   usernameInput,
   passwordInput,
+  isFormValid,
   handleLogin,
   focusUsernameInput,
-  focusPasswordInput
+  focusPasswordInput,
+  togglePasswordVisibility,
+  validateUsernameOnBlur,
+  validatePasswordOnBlur,
+  clearUsernameError,
+  clearPasswordError,
+  init
 } = useLoginForm()
 
 // 网格点样式生成 - 创建 20x15 网格
@@ -223,6 +333,7 @@ const particleStyle = () => {
 }
 
 onMounted(() => {
+  init()
   focusUsernameInput()
 })
 </script>
@@ -255,12 +366,12 @@ onMounted(() => {
 
 /* 暗黑模式登录页背景 */
 html.dark .login-page {
-  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0d1117 100%);
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
 }
 
 /* 亮模式登录页背景 */
 html:not(.dark) .login-page {
-  background: linear-gradient(135deg, #f0f2f5 0%, #e4e8eb 100%);
+  background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
 }
 
 /* ==================== 网格背景 ==================== */
@@ -274,18 +385,18 @@ html:not(.dark) .login-page {
   transition: background-image 0.3s ease;
 }
 
-/* 暗黑模式网格 */
+/* 暗黑模式网格 - 工业琥珀色 */
 html.dark .grid-background {
   background-image:
-    linear-gradient(rgb(0 243 255 / 3%) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(0 243 255 / 3%) 1px, transparent 1px);
+    linear-gradient(rgb(245 158 11 /0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(245 158 11 /0.03) 1px, transparent 1px);
 }
 
 html.dark .grid-dot {
   background: radial-gradient(
     circle,
-    rgb(0 243 255 / 40%) 0%,
-    rgb(0 243 255 / 15%) 50%,
+    rgb(245 158 11 /0.4) 0%,
+    rgb(245 158 11 /0.15) 50%,
     transparent 70%
   );
 }
@@ -293,15 +404,15 @@ html.dark .grid-dot {
 /* 亮模式网格 */
 html:not(.dark) .grid-background {
   background-image:
-    linear-gradient(rgb(64 158 255 / 5%) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(64 158 255 / 5%) 1px, transparent 1px);
+    linear-gradient(rgb(245 158 11 /0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(245 158 11 /0.05) 1px, transparent 1px);
 }
 
 html:not(.dark) .grid-dot {
   background: radial-gradient(
     circle,
-    rgb(64 158 255 / 30%) 0%,
-    rgb(64 158 255 / 10%) 50%,
+    rgb(245 158 11 /0.3) 0%,
+    rgb(245 158 11 /0.1) 50%,
     transparent 70%
   );
 }
@@ -342,14 +453,14 @@ html:not(.dark) .grid-dot {
   transition: background 0.3s ease;
 }
 
-/* 暗黑模式粒子 */
+/* 暗黑模式粒子 - 工业琥珀色 */
 html.dark .particle {
-  background: linear-gradient(180deg, rgb(0 243 255 / 80%) 0%, rgb(0 243 255 / 0%) 100%);
+  background: linear-gradient(180deg, rgb(245 158 11 /0.8) 0%, rgb(245 158 11 /0) 100%);
 }
 
 /* 亮模式粒子 */
 html:not(.dark) .particle {
-  background: linear-gradient(180deg, rgb(64 158 255 / 60%) 0%, rgb(64 158 255 / 0%) 100%);
+  background: linear-gradient(180deg, rgb(245 158 11 /0.6) 0%, rgb(245 158 11 /0) 100%);
 }
 
 @keyframes float {
@@ -383,23 +494,23 @@ html:not(.dark) .particle {
   transition: all 0.3s ease;
 }
 
-/* 暗黑模式主容器 */
+/* 暗黑模式主容器 - 工业仓储风格 */
 html.dark .main-container {
-  background: rgb(13 17 23 / 80%);
-  border: 1px solid rgb(0 243 255 / 10%);
+  background: rgb(30, 41, 59, 0.8);
+  border: 1px solid rgb(245 158 11 /0.15);
   box-shadow:
-    0 0 80px rgb(0 243 255 / 10%),
-    0 20px 60px rgb(0 0 0 / 50%),
-    inset 0 1px 0 rgb(255 255 255 / 5%);
+    0 0 80px rgb(245 158 11 /0.1),
+    0 20px 60px rgb(0, 0, 0, 0.5),
+    inset 0 1px 0 rgb(255, 255, 255, 0.05);
 }
 
 /* 亮模式主容器 */
 html:not(.dark) .main-container {
-  background: #f5f6f7;
-  border: 1px solid #e4e7ed;
+  background: #FFF;
+  border: 1px solid #E2E8F0;
   box-shadow:
-    0 20px 60px rgb(0 0 0 / 10%),
-    inset 0 1px 0 rgb(255 255 255 / 100%);
+    0 20px 60px rgb(0, 0, 0, 0.1),
+    inset 0 1px 0 rgb(255, 255, 255, 1);
 }
 
 /* ==================== 品牌区 ==================== */
@@ -414,38 +525,38 @@ html:not(.dark) .main-container {
   transition: background 0.3s ease;
 }
 
-/* 暗黑模式品牌区 */
+/* 暗黑模式品牌区 - 工业琥珀色 */
 html.dark .brand-section {
   background:
-    linear-gradient(135deg, rgb(0 243 255 / 5%) 0%, transparent 50%),
+    linear-gradient(135deg, rgb(245 158 11 /0.05) 0%, transparent 50%),
     repeating-linear-gradient(
       90deg,
       transparent,
       transparent 2px,
-      rgb(0 243 255 / 2%) 2px,
-      rgb(0 243 255 / 2%) 4px
+      rgb(245 158 11 /0.02) 2px,
+      rgb(245 158 11 /0.02) 4px
     );
 }
 
 html.dark .brand-section::before {
-  background: radial-gradient(circle at 30% 50%, rgb(0 243 255 / 10%) 0%, transparent 50%);
+  background: radial-gradient(circle at 30% 50%, rgb(245 158 11 /0.1) 0%, transparent 50%);
 }
 
 /* 亮模式品牌区 */
 html:not(.dark) .brand-section {
   background:
-    linear-gradient(135deg, rgb(64 158 255 / 3%) 0%, transparent 50%),
+    linear-gradient(135deg, rgb(245 158 11 /0.03) 0%, transparent 50%),
     repeating-linear-gradient(
       90deg,
       transparent,
       transparent 2px,
-      rgb(64 158 255 / 1%) 2px,
-      rgb(64 158 255 / 1%) 4px
+      rgb(245 158 11 /0.01) 2px,
+      rgb(245 158 11 /0.01) 4px
     );
 }
 
 html:not(.dark) .brand-section::before {
-  background: radial-gradient(circle at 30% 50%, rgb(64 158 255 / 5%) 0%, transparent 50%);
+  background: radial-gradient(circle at 30% 50%, rgb(245 158 11 /0.05) 0%, transparent 50%);
 }
 
 .brand-section::before {
@@ -471,13 +582,13 @@ html:not(.dark) .brand-section::before {
   z-index: 1;
 }
 
-/* 品牌标题 */
+/* 品牌标题 - 工业琥珀渐变 */
 .brand-title {
   font-size: 64px;
   font-weight: 700;
   letter-spacing: -2px;
   margin: 0 0 16px;
-  background: linear-gradient(135deg, #00f3ff 0%, #0f8 100%);
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -512,7 +623,7 @@ html:not(.dark) .brand-subtitle {
   left: 0;
   right: 0;
   padding: 20px 60px;
-  border-top: 1px solid rgb(0 243 255 / 10%);
+  border-top: 1px solid rgb(245 158 11 /0.1);
 }
 
 html:not(.dark) .brand-footer {
@@ -528,12 +639,12 @@ html:not(.dark) .brand-footer {
 .data-bit {
   font-family: 'Courier New', monospace;
   font-size: 12px;
-  color: rgb(0 243 255 / 30%);
+  color: rgb(245 158 11 / 30%);
   animation: dataFlow 2s linear infinite;
 }
 
 html:not(.dark) .data-bit {
-  color: rgb(64 158 255 / 30%);
+  color: rgb(245 158 11 / 30%);
 }
 
 @keyframes dataFlow {
@@ -561,12 +672,12 @@ html:not(.dark) .data-bit {
 
 /* 暗黑模式表单区 */
 html.dark .form-section {
-  background: rgb(10 14 39 / 50%);
-  border-left: 1px solid rgb(0 243 255 / 10%);
+  background: rgb(15, 23, 42, 0.5);
+  border-left: 1px solid rgb(245 158 11 /0.1);
 }
 
 html.dark .form-section::before {
-  background: radial-gradient(circle, rgb(0 243 255 / 10%) 0%, transparent 70%);
+  background: radial-gradient(circle, rgb(245 158 11 /0.1) 0%, transparent 70%);
 }
 
 /* 亮模式表单区 */
@@ -576,7 +687,7 @@ html:not(.dark) .form-section {
 }
 
 html:not(.dark) .form-section::before {
-  background: radial-gradient(circle, rgb(64 158 255 / 5%) 0%, transparent 70%);
+  background: radial-gradient(circle, rgb(245 158 11 / 5%) 0%, transparent 70%);
 }
 
 .form-section::before {
@@ -663,7 +774,7 @@ html.dark .form-group label {
 
 html.dark .form-group.focused label,
 html.dark .form-group.filled label {
-  color: #00f3ff;
+  color: #F59E0B;
 }
 
 /* 亮模式标签 */
@@ -701,8 +812,8 @@ html.dark .form-group input {
 }
 
 html.dark .form-group input:focus {
-  background: rgb(0 243 255 / 3%);
-  border-color: rgb(0 243 255 / 30%);
+  background: rgb(245 158 11 /0.03);
+  border-color: rgb(245 158 11 /0.3);
 }
 
 /* 亮模式输入框 */
@@ -727,7 +838,7 @@ html:not(.dark) .form-group input:focus {
   left: 0;
   width: 0;
   height: 1px;
-  background: linear-gradient(90deg, #00f3ff 0%, #0f8 100%);
+  background: linear-gradient(90deg, #F59E0B 0%, #D97706 100%);
   transition: width 0.3s ease;
 }
 
@@ -747,11 +858,179 @@ html:not(.dark) .form-group input:focus {
 }
 
 .form-group.focused .input-icon {
-  color: #00f3ff;
-  filter: drop-shadow(0 0 8px rgb(0 243 255 / 50%));
+  color: #F59E0B;
+  filter: drop-shadow(0 0 8px rgb(245 158 11 / 0.5));
 }
 
-/* 登录按钮 */
+/* 输入图标容器 */
+.input-icons {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toggle-password-btn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: rgb(255 255 255 / 40%);
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.toggle-password-btn:hover {
+  color: #F59E0B;
+}
+
+html:not(.dark) .toggle-password-btn {
+  color: #909399;
+}
+
+html:not(.dark) .toggle-password-btn:hover {
+  color: #F59E0B;
+}
+
+.input-icon-lock {
+  position: static;
+  transform: none;
+}
+
+/* 错误状态 */
+.form-group.error input {
+  border-color: #DC2626 !important;
+}
+
+html.dark .form-group.error input:focus {
+  background: rgb(220 38 38 / 0.05);
+  border-color: #DC2626 !important;
+}
+
+html:not(.dark) .form-group.error input:focus {
+  border-color: #DC2626 !important;
+}
+
+.form-group.error label {
+  color: #DC2626 !important;
+}
+
+/* 错误消息 */
+.error-message {
+  position: absolute;
+  left: 0;
+  bottom: -24px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #DC2626;
+}
+
+.error-message svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* 错误消息动画 */
+.error-fade-enter-active,
+.error-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.error-fade-enter-from,
+.error-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+/* 记住我 */
+.remember-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: -8px;
+}
+
+.remember-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.remember-checkbox input {
+  display: none;
+}
+
+.checkmark {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 2px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.checkmark svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* 暗黑模式复选框 */
+html.dark .checkmark {
+  border-color: rgb(255 255 255 / 30%);
+  background: transparent;
+}
+
+html.dark .remember-checkbox:hover .checkmark {
+  border-color: rgb(245 158 11 / 0.5);
+}
+
+html.dark .remember-checkbox input:checked + .checkmark {
+  background: #F59E0B;
+  border-color: #F59E0B;
+  color: #0a0e27;
+}
+
+/* 亮模式复选框 */
+html:not(.dark) .checkmark {
+  border-color: #dcdfe6;
+  background: #fff;
+}
+
+html:not(.dark) .remember-checkbox:hover .checkmark {
+  border-color: #F59E0B;
+}
+
+html:not(.dark) .remember-checkbox input:checked + .checkmark {
+  background: #F59E0B;
+  border-color: #F59E0B;
+  color: #fff;
+}
+
+.remember-text {
+  font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+html.dark .remember-text {
+  color: rgb(255 255 255 / 60%);
+}
+
+html:not(.dark) .remember-text {
+  color: #606266;
+}
 .login-button {
   position: relative;
   width: 100%;
@@ -767,29 +1046,39 @@ html:not(.dark) .form-group input:focus {
   transition: all 0.3s ease;
 }
 
-/* 暗黑模式按钮 */
+/* 登录按钮 - 工业仓储风格 */
 html.dark .login-button {
-  background: linear-gradient(135deg, #00f3ff 0%, #0f8 100%);
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
 }
 
 html.dark .login-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 10px 40px rgb(0 243 255 / 30%);
+  box-shadow: 0 10px 40px rgb(245 158 11 /0.3);
 }
 
 /* 亮模式按钮 */
 html:not(.dark) .login-button {
-  background: linear-gradient(135deg, #409eff 0%, #337ecc 100%);
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
 }
 
 html:not(.dark) .login-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 10px 40px rgb(64 158 255 / 30%);
+  box-shadow: 0 10px 40px rgb(245 158 11 /0.3);
 }
 
 .login-button:disabled {
-  opacity: 0.7;
+  opacity: 0.6;
   cursor: not-allowed;
+  transform: none !important;
+}
+
+html.dark .login-button:disabled {
+  background: linear-gradient(135deg, #9CA3AF 0%, #6B7280 100%);
+}
+
+html:not(.dark) .login-button:disabled {
+  background: linear-gradient(135deg, #D1D5DB 0%, #9CA3AF 100%);
+  color: #6B7280;
 }
 
 .button-glow {
@@ -816,10 +1105,33 @@ html:not(.dark) .login-button:hover:not(:disabled) {
   gap: 8px;
 }
 
+/* 加载动画 */
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.loading-spinner svg {
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .loading-dot {
   width: 8px;
   height: 8px;
-  background: #0a0e27;
+  background: #0F172A;
   border-radius: 50%;
   animation: bounce 1.4s ease-in-out infinite;
 }
@@ -897,10 +1209,10 @@ html:not(.dark) .status-indicator {
 .status-dot {
   width: 8px;
   height: 8px;
-  background: #0f8;
+  background: #16A34A;
   border-radius: 50%;
   animation: statusPulse 2s ease-in-out infinite;
-  box-shadow: 0 0 10px rgb(0 255 136 / 50%);
+  box-shadow: 0 0 10px rgb(22 163 74 / 50%);
 }
 
 @keyframes statusPulse {
@@ -921,14 +1233,14 @@ html:not(.dark) .status-indicator {
   pointer-events: none;
 }
 
-/* 暗黑模式装饰线颜色 */
+/* 暗黑模式装饰线颜色 - 工业琥珀色 */
 html.dark .corner-decoration {
-  --corner-decoration-color: rgb(0 243 255 / 15%);
+  --corner-decoration-color: rgb(245 158 11 /0.15);
 }
 
 /* 亮模式装饰线颜色 */
 html:not(.dark) .corner-decoration {
-  --corner-decoration-color: rgb(64 158 255 / 15%);
+  --corner-decoration-color: rgb(245 158 11 /0.15);
 }
 
 .corner-decoration::before,

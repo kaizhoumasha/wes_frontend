@@ -51,7 +51,20 @@ export type FilterGroup = z.input<typeof FilterGroupSchema>
 export type SortField = z.input<typeof SortFieldSchema>
 
 /**
- * 列表查询参数输入结构。
+ * 列表查询参数输入结构（宽松版，所有字段可选）。
+ * 基础层会自动填充默认值。
+ */
+export type QueryOptionsInput = {
+  filters?: FilterGroup | null
+  sort?: SortField[] | null
+  offset?: number
+  limit?: number
+  max_depth?: number
+  include_deleted?: boolean
+}
+
+/**
+ * 列表查询参数完整结构（由 Zod Schema 推导）。
  */
 export type QueryOptions = z.input<typeof QueryOptionsSchema>
 
@@ -93,7 +106,7 @@ export interface CrudApi<
   TCreate,
   TUpdate,
   TDetailQuery = never,
-  TQuery = QueryOptions,
+  TQueryInput = QueryOptionsInput,
   TCreateResult = TItem,
   TUpdateResult = TItem,
   TDeleteQuery = never,
@@ -103,7 +116,7 @@ export interface CrudApi<
     query?: TDetailQuery
     config?: ContractRequestConfig
   }): Promise<TItem>
-  query(options?: TQuery, config?: ContractRequestConfig): Promise<PaginationData<TItem>>
+  query(options?: TQueryInput, config?: ContractRequestConfig): Promise<PaginationData<TItem>>
   create(data: TCreate, config?: ContractRequestConfig): Promise<TCreateResult>
   update(id: number, data: TUpdate, config?: ContractRequestConfig): Promise<TUpdateResult>
   delete(id: number, options?: {
@@ -120,7 +133,7 @@ export interface SoftDeleteCrudApi<
   TCreate,
   TUpdate,
   TDetailQuery = never,
-  TQuery = QueryOptions,
+  TQueryInput = QueryOptionsInput,
   TCreateResult = TItem,
   TUpdateResult = TItem,
   TDeleteQuery = never,
@@ -135,7 +148,7 @@ export interface SoftDeleteCrudApi<
   TCreate,
   TUpdate,
   TDetailQuery,
-  TQuery,
+  TQueryInput,
   TCreateResult,
   TUpdateResult,
   TDeleteQuery,
@@ -313,7 +326,7 @@ type CrudResourceApi<TCollectionPath extends CrudResourceCollectionPath> = CrudA
   CrudCreateInput<TCollectionPath>,
   CrudUpdateInput<TCollectionPath>,
   ContractQueryParams<CrudManagedItemPath<TCollectionPath>, 'get'>,
-  ContractRequestBody<CrudManagedQueryPath<TCollectionPath>, 'post'>,
+  QueryOptionsInput,
   ContractResponseData<TCollectionPath, 'post'>,
   ContractResponseData<CrudManagedItemPath<TCollectionPath>, 'put'>,
   ContractQueryParams<CrudManagedItemPath<TCollectionPath>, 'delete'>,
@@ -326,7 +339,7 @@ type SoftDeleteCrudResourceApi<TCollectionPath extends SoftDeleteCrudResourceCol
     CrudCreateInput<TCollectionPath>,
     CrudUpdateInput<TCollectionPath>,
     ContractQueryParams<CrudManagedItemPath<TCollectionPath>, 'get'>,
-    ContractRequestBody<CrudManagedQueryPath<TCollectionPath>, 'post'>,
+    QueryOptionsInput,
     ContractResponseData<TCollectionPath, 'post'>,
     ContractResponseData<CrudManagedItemPath<TCollectionPath>, 'put'>,
     ContractQueryParams<CrudManagedItemPath<TCollectionPath>, 'delete'>,
@@ -362,20 +375,44 @@ function toPaginationData<TItem>(response: ContractListResponse<TItem>): Paginat
 }
 
 function normalizeQueryRequest<TQuery>(options: TQuery | undefined): TQuery | undefined {
-  if (
-    !options ||
-    typeof options !== 'object' ||
-    !('filters' in options)
-  ) {
-    return options
+  // 基础默认值
+  const defaults = {
+    offset: 0,
+    limit: 10,
+    max_depth: 1,
+    include_deleted: false
   }
 
-  const queryOptions = options as TQuery & { filters?: FilterGroup | null }
+  if (!options || typeof options !== 'object') {
+    return { ...defaults } as TQuery
+  }
 
-  return {
-    ...queryOptions,
-    filters: normalizeFilterGroup(queryOptions.filters)
-  } as TQuery
+  const queryOptions = options as TQuery & {
+    filters?: FilterGroup | null
+    offset?: number
+    limit?: number
+    max_depth?: number
+    include_deleted?: boolean
+  }
+
+  // 合并默认值（只填充未提供的字段）
+  const withDefaults = {
+    offset: queryOptions.offset ?? defaults.offset,
+    limit: queryOptions.limit ?? defaults.limit,
+    max_depth: queryOptions.max_depth ?? defaults.max_depth,
+    include_deleted: queryOptions.include_deleted ?? defaults.include_deleted,
+    ...queryOptions
+  }
+
+  // 处理 filters
+  if ('filters' in queryOptions) {
+    return {
+      ...withDefaults,
+      filters: normalizeFilterGroup(queryOptions.filters)
+    } as TQuery
+  }
+
+  return withDefaults as TQuery
 }
 
 function createIdParams<TPath extends ContractPath, TMethod extends 'get' | 'post' | 'put' | 'delete'>(
@@ -483,7 +520,7 @@ export function createCrudApi<
   ContractRequestBody<TCollectionPath, 'post'>,
   ContractRequestBody<TItemPath, 'put'>,
   ContractQueryParams<TItemPath, 'get'>,
-  ContractRequestBody<TQueryPath, 'post'>,
+  QueryOptionsInput,
   ContractResponseData<TCollectionPath, 'post'>,
   ContractResponseData<TItemPath, 'put'>,
   ContractQueryParams<TItemPath, 'delete'>,
@@ -502,7 +539,7 @@ export function createCrudApi<
 
     async query(options, config) {
       const response = await contractClient.post(endpoints.query, {
-        body: normalizeQueryRequest(options),
+        body: normalizeQueryRequest(options) as ContractRequestBody<TQueryPath, 'post'>,
         config
       })
       assertContractListResponse<Item>(response)
@@ -567,7 +604,7 @@ export function createSoftDeleteCrudApi<
   ContractRequestBody<TCollectionPath, 'post'>,
   ContractRequestBody<TItemPath, 'put'>,
   ContractQueryParams<TItemPath, 'get'>,
-  ContractRequestBody<TQueryPath, 'post'>,
+  QueryOptionsInput,
   ContractResponseData<TCollectionPath, 'post'>,
   ContractResponseData<TItemPath, 'put'>,
   ContractQueryParams<TItemPath, 'delete'>,

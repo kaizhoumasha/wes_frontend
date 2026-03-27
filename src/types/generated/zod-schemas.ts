@@ -1824,6 +1824,10 @@ export const WorkLineCreateSchema = z.object({
   line_type: z.lazy(() => LineTypeSchema),
   /** Zone Name */
   zone_name: z.union([z.string().max(100), z.null()]).optional(),
+  /** Plugin Key */
+  plugin_key: z.union([z.string().max(100), z.null()]).optional(),
+  /** Config */
+  config: z.record(z.any()),
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
   /** Is Active */
@@ -1850,6 +1854,10 @@ export const WorkLineResponseSchema = z.object({
   line_type: z.lazy(() => LineTypeSchema),
   /** Zone Name */
   zone_name: z.union([z.string().max(100), z.null()]).optional(),
+  /** Plugin Key */
+  plugin_key: z.union([z.string().max(100), z.null()]).optional(),
+  /** Config */
+  config: z.record(z.any()).optional(),
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
   /** Is Active */
@@ -1880,6 +1888,10 @@ export const WorkLineUpdateSchema = z.object({
   line_type: z.union([z.lazy(() => LineTypeSchema), z.null()]).optional(),
   /** Zone Name */
   zone_name: z.union([z.string().max(100), z.null()]).optional(),
+  /** Plugin Key */
+  plugin_key: z.union([z.string().max(100), z.null()]).optional(),
+  /** Config */
+  config: z.union([z.record(z.any()), z.null()]).optional(),
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
   /** Is Active */

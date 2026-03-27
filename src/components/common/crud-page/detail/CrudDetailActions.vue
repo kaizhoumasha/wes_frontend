@@ -211,7 +211,7 @@ function isActionDisabled(action: CrudPageDetailAction<TItem>): boolean {
 
 /* Danger button styling */
 .detail-actions__content :deep(.el-button--danger) {
-  box-shadow: 0 2px 8px rgb(245 108 108 / 20%);
+  box-shadow: 0 2px 8px rgb(var(--el-color-danger-rgb) / 20%);
 }
 
 /* Mobile optimization */
