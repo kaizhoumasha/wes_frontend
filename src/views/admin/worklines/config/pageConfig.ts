@@ -1,0 +1,97 @@
+import type { CreateWorkLineInput, UpdateWorkLineInput, WorkLine } from '@/api/modules/workline'
+import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
+import { workLineApi } from '@/api/modules/workline'
+import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
+import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
+import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
+import { workLinePageFieldConfig } from './fieldConfig'
+
+type WorkLinePageConfig = CrudPageConfig<WorkLine, CreateWorkLineInput, UpdateWorkLineInput>
+
+const WORKLINE_PAGE_RESOURCE: WorkLinePageConfig['resource'] = {
+  key: 'worklines',
+  title: {
+    text: '作业线管理',
+    subtitle: '管理仓储作业线配置',
+    icon: 'ep:connection'
+  },
+  trashTitle: {
+    text: '作业线回收站',
+    subtitle: '查看并恢复已删除作业线',
+    icon: 'ep:delete'
+  },
+  api: workLineApi,
+  permissions: BIZ_PERMISSIONS.workline,
+  optimisticUpdate: true,
+  defaultSort: [{ field: 'sort_order', order: 'asc' }]
+}
+
+const WORKLINE_PAGE_TABLE: Partial<WorkLinePageConfig['table']> = {
+  actionsColumn: {
+    width: 200
+  }
+}
+
+const WORKLINE_PAGE_FEATURES: CrudPageFeatures = {
+  trash: {
+    enabled: true,
+    label: '回收站'
+  },
+  create: {
+    label: '新增作业线',
+    dialogTitle: '创建作业线'
+  },
+  edit: {
+    dialogTitle: '编辑作业线'
+  },
+  restore: {
+    label: '恢复作业线'
+  },
+  batchRestore: {
+    label: '批量恢复'
+  },
+  permanentDelete: {
+    label: '彻底删除'
+  },
+  batchPermanentDelete: {
+    label: '批量彻底删除'
+  }
+}
+
+const WORKLINE_PAGE_DETAIL: CrudPageDetailConfig<WorkLine> = {
+  mode: 'drawer',
+  width: 600,
+  title: workline => workline.line_name,
+  sections: [
+    {
+      title: '基本信息',
+      weight: 'primary',
+      fields: [
+        { key: 'line_code', layout: 'half' },
+        { key: 'line_name', layout: 'half' },
+        { key: 'line_type', layout: 'half' },
+        { key: 'zone_name', layout: 'half' },
+        { key: 'is_active', layout: 'half' },
+        { key: 'capacity', layout: 'half' },
+        { key: 'description', layout: 'full' }
+      ]
+    },
+    {
+      title: '扩展配置',
+      weight: 'secondary',
+      fields: [
+        { key: 'sort_order', layout: 'half' }
+      ]
+    }
+  ]
+}
+
+export function createWorkLinePageConfig(): WorkLinePageConfig {
+  return createCrudPageConfigFromResource<WorkLine, CreateWorkLineInput, UpdateWorkLineInput>({
+    resource: WORKLINE_PAGE_RESOURCE,
+    fieldConfig: workLinePageFieldConfig,
+    table: WORKLINE_PAGE_TABLE,
+    detail: WORKLINE_PAGE_DETAIL,
+    features: WORKLINE_PAGE_FEATURES
+  })
+}
