@@ -9,35 +9,20 @@ import {
   type SoftDeleteCrudResourceCollectionPath,
   type CrudUpdateInput,
 } from '@/api/base/crud-api'
-import { contractClient } from '@/api/contract/client'
-import type {
-  ContractPath,
-  ContractRequestBody,
-  ContractResponseData,
-  ContractSchema,
-} from '@/api/contract/types'
+import { userGeneratedApi } from '@/api/generated/api-clients'
+import type { components } from '@/api/generated/openapi-types'
+import type { ResetUserPasswordInput, AssignRolesRequest } from './types'
 
 const USER_COLLECTION_PATH = '/api/v1/users' satisfies SoftDeleteCrudResourceCollectionPath
-const USER_RESET_PASSWORD_PATH = '/api/v1/users/{id}/reset-password' satisfies ContractPath
-const USER_BULK_DELETE_PATH = '/api/v1/users/bulk' satisfies ContractPath
-const USER_ASSIGN_ROLES_PATH = '/api/v1/users/{id}/assign-roles' satisfies ContractPath
 
-export type Role = ContractSchema<'RoleResponse'>
-
+// 类型导出
+export type Role = components['schemas']['RoleResponse']
 export type User = CrudItem<typeof USER_COLLECTION_PATH>
-
 export type CreateUserInput = CrudCreateInput<typeof USER_COLLECTION_PATH>
-
 export type UpdateUserInput = CrudUpdateInput<typeof USER_COLLECTION_PATH>
+export type { ResetUserPasswordInput, AssignRolesRequest }
 
-export type ResetUserPasswordInput = ContractRequestBody<typeof USER_RESET_PASSWORD_PATH, 'put'>
-
-export type AssignRolesRequest = ContractRequestBody<typeof USER_ASSIGN_ROLES_PATH, 'put'>
-
-type ResetPasswordResult = ContractResponseData<typeof USER_RESET_PASSWORD_PATH, 'put'>
-
-type AssignRolesResult = ContractResponseData<typeof USER_ASSIGN_ROLES_PATH, 'put'>
-
+// 基础 CRUD API
 const baseUserApi = createSoftDeleteCrudApi({
   collection: USER_COLLECTION_PATH,
   item: `${USER_COLLECTION_PATH}/{id}` as const,
@@ -46,28 +31,33 @@ const baseUserApi = createSoftDeleteCrudApi({
   trash: `${USER_COLLECTION_PATH}/trash` as const,
   trashRestore: `${USER_COLLECTION_PATH}/trash/restore` as const,
   trashPermanentDelete: `${USER_COLLECTION_PATH}/trash/permanent` as const,
-  bulkDelete: USER_BULK_DELETE_PATH
+  bulkDelete: `${USER_COLLECTION_PATH}/bulk` as const
 })
 
+/**
+ * 用户管理 API
+ */
 export const userApi = {
   ...baseUserApi,
 
-  async resetPassword(id: number, data: ResetUserPasswordInput): Promise<ResetPasswordResult> {
-    return await contractClient.put(USER_RESET_PASSWORD_PATH, {
-      params: { id },
-      body: data
-    })
+  /**
+   * 重置用户密码
+   * @param id 用户ID
+   * @param data 重置密码请求
+   */
+  async resetPassword(id: number, data: ResetUserPasswordInput) {
+    return await userGeneratedApi.password({ id }, data)
   },
 
   /**
    * 为用户分配角色
-   * @param id 用户 ID
+   * @param id 用户ID
    * @param roleIds 角色ID列表
    */
-  async assignRoles(id: number, roleIds: number[]): Promise<AssignRolesResult> {
-    return await contractClient.put(USER_ASSIGN_ROLES_PATH, {
-      params: { id },
-      body: { role_ids: roleIds } as AssignRolesRequest
-    })
-  }
+  async assignRoles(id: number, roleIds: number[]) {
+    return await userGeneratedApi.roles({ id }, { role_ids: roleIds })
+  },
+
+  /** 获取用户缓存统计 */
+  getCacheStats: userGeneratedApi.cache
 }

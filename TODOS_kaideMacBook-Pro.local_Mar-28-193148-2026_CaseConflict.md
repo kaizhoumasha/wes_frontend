@@ -14,6 +14,25 @@
 
 ## 🔴 P0 - Critical (本周完成)
 
+### API-1: 精简 API 模块架构
+
+- [ ] **状态**: 待处理
+- **问题**: 评审发现当前架构过度设计，手动模块重复实现生成客户端已有功能
+- **决策**: 采用路径 A - 精简架构（Codex 推荐）
+- **来源**: /plan-eng-review (2026-03-28)
+- **关键发现**:
+  - `user.ts` 的 `resetPassword`/`assignRoles` = `userGeneratedApi.password`/`roles`
+  - 9 个纯生成模块可以删除，直接使用 `api-clients.ts`
+  - 生成器逻辑矛盾：写入 `CUSTOM METHODS` 后却用它作为跳过再生的依据
+- **验收标准**:
+  - [ ] 删除纯生成模块（auditLog, callback, demoProduct, device, event, performance, permission, role, workline）
+  - [ ] 重构保留模块为组合生成客户端（apiApplication, auth, menu, user）
+  - [ ] 更新文档示例使用生成客户端
+  - [ ] 修复生成器逻辑矛盾
+  - [ ] 所有调用点验证通过
+
+---
+
 ### E4: 添加单元测试
 
 - [x] **状态**: ✅ 已完成

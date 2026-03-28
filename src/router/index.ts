@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { createPermissionGuard } from './guards/permission'
 import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
+import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
+import { API_AUTH_PERMISSIONS } from '@/api/generated/permissions'
 import { setRouterInstance } from '@/api/services/auth-error-handler'
 
 const debugRoutes: RouteRecordRaw[] = import.meta.env.DEV
@@ -104,6 +106,102 @@ const routes: RouteRecordRaw[] = [
                 parentName: 'admin:system:menu',
                 icon: 'ep:collection-tag',
                 sortOrder: 98
+              }
+            }
+          },
+          {
+            path: 'menus',
+            name: 'MenuList',
+            component: () => import('@/views/admin/menus/MenuListPage.vue'),
+            meta: {
+              requiresAuth: true,
+              title: '菜单管理',
+              permission: ADMIN_PERMISSIONS.menu.page,
+              menu: {
+                name: 'admin:menu:menu',
+                parentName: 'admin:system:menu',
+                icon: 'ep:menu',
+                sortOrder: 97
+              }
+            }
+          }
+        ]
+      },
+      // ==================== 业务模块 ====================
+      {
+        path: 'biz',
+        name: 'BizRoot',
+        meta: {
+          requiresAuth: true,
+          title: '业务管理',
+          menu: {
+            name: 'biz:system:menu',
+            icon: 'ep:box',
+            sortOrder: 20
+          }
+        },
+        children: [
+          {
+            path: 'devices',
+            name: 'DeviceList',
+            component: () => import('@/views/admin/devices/DeviceListPage.vue'),
+            meta: {
+              requiresAuth: true,
+              title: '设备管理',
+              permission: BIZ_PERMISSIONS.device.page,
+              menu: {
+                name: 'biz:device:menu',
+                parentName: 'biz:system:menu',
+                icon: 'ep:cpu',
+                sortOrder: 1
+              }
+            }
+          },
+          {
+            path: 'worklines',
+            name: 'WorkLineList',
+            component: () => import('@/views/admin/worklines/WorkLineListPage.vue'),
+            meta: {
+              requiresAuth: true,
+              title: '作业线管理',
+              permission: BIZ_PERMISSIONS.workline.page,
+              menu: {
+                name: 'biz:workline:menu',
+                parentName: 'biz:system:menu',
+                icon: 'ep:connection',
+                sortOrder: 2
+              }
+            }
+          }
+        ]
+      },
+      // ==================== API 认证模块 ====================
+      {
+        path: 'api-auth',
+        name: 'ApiAuthRoot',
+        meta: {
+          requiresAuth: true,
+          title: 'API 认证',
+          menu: {
+            name: 'api-auth:system:menu',
+            icon: 'ep:key',
+            sortOrder: 30
+          }
+        },
+        children: [
+          {
+            path: 'applications',
+            name: 'APIApplicationList',
+            component: () => import('@/views/admin/api-applications/APIApplicationListPage.vue'),
+            meta: {
+              requiresAuth: true,
+              title: 'API 应用管理',
+              permission: API_AUTH_PERMISSIONS.apiapplication.page,
+              menu: {
+                name: 'api-auth:application:menu',
+                parentName: 'api-auth:system:menu',
+                icon: 'ep:lock',
+                sortOrder: 1
               }
             }
           }

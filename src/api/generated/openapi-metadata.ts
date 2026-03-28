@@ -5789,7 +5789,8 @@ export const OPENAPI_SCHEMA_METADATA = {
     "required": [
       "line_code",
       "line_name",
-      "line_type"
+      "line_type",
+      "config"
     ],
     "additionalProperties": false,
     "fields": {
@@ -5824,6 +5825,21 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": true,
         "maxLength": 100
+      },
+      "plugin_key": {
+        "title": "Plugin Key",
+        "description": "工作线执行插件标识",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 100
+      },
+      "config": {
+        "title": "Config",
+        "description": "工作线插件配置",
+        "type": "object",
+        "required": true,
+        "nullable": false
       },
       "description": {
         "title": "Description",
@@ -5900,6 +5916,21 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": true,
         "maxLength": 100
+      },
+      "plugin_key": {
+        "title": "Plugin Key",
+        "description": "工作线执行插件标识",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 100
+      },
+      "config": {
+        "title": "Config",
+        "description": "工作线插件配置",
+        "type": "object",
+        "required": false,
+        "nullable": false
       },
       "description": {
         "title": "Description",
@@ -5985,6 +6016,21 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": true,
         "maxLength": 100
+      },
+      "plugin_key": {
+        "title": "Plugin Key",
+        "description": "工作线执行插件标识",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 100
+      },
+      "config": {
+        "title": "Config",
+        "description": "工作线插件配置",
+        "type": "object",
+        "required": false,
+        "nullable": true
       },
       "description": {
         "title": "Description",

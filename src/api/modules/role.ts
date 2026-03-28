@@ -13,11 +13,12 @@ import {
 const ROLE_COLLECTION_PATH = '/api/v1/roles' satisfies SoftDeleteCrudResourceCollectionPath
 
 export type Role = CrudItem<typeof ROLE_COLLECTION_PATH>
-
 export type CreateRoleInput = CrudCreateInput<typeof ROLE_COLLECTION_PATH>
-
 export type UpdateRoleInput = CrudUpdateInput<typeof ROLE_COLLECTION_PATH>
 
+/**
+ * 角色管理 API
+ */
 export const roleApi = createSoftDeleteCrudApi({
   collection: ROLE_COLLECTION_PATH,
   item: `${ROLE_COLLECTION_PATH}/{id}` as const,
