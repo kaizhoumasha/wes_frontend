@@ -1737,3 +1737,172 @@ bash scripts/data/sync_menus.sh --frontend-path /Users/kaizhou/SynologyDrive/wor
 - **Resolved**: 2026-03-26T14:10:00+08:00
 - **Solution**: 使用 `--frontend-path` 参数指定 worktree 路径后成功同步
 - **Notes**: 这是 worktree 开发模式的固有问题，脚本设计时假设在 main worktree 中运行
+
+---
+
+## [LRN-20250328-001] backend-unstable-api-migration
+
+**Logged**: 2026-03-28T14:00:00Z
+**Priority**: high
+**Status**: resolved
+**Area**: frontend
+
+### Summary
+
+后端 API 不稳定时，完全迁移到 OpenAPI 生成客户端优于手动维护，因为契约变更会立即在编译期暴露而非运行时。
+
+### Details
+
+用户最初担心"后端还在开发阶段，API 并不是稳定的，会经常变"，犹豫是否迁移到生成客户端。
+
+经过架构审查，决定采用**完全迁移**方案（而非渐进式），原因：
+
+1. **路径漂移从隐式变显式**：手动维护时，后端变更导致前端路径漂移，问题在运行时暴露；生成客户端让契约不匹配立即表现为编译错误
+2. **迁移成本是一次性的**：完成迁移后，后端变更只需重新生成客户端，无需手动修改多处代码
+3. **契约驱动开发**：强制前后端保持契约同步，问题发现更早
+
+### Suggested Action
+
+对于类似"后端不稳定，是否使用生成代码"的决策场景，推荐完全迁移方案。
+
+### Metadata
+
+- Source: architecture_decision
+- Related Files: src/api/modules/\*.ts, scripts/generate-api-types.ts
+- Tags: openapi, contract-driven, api-client
+- **See Also**: LRN-20260323-001 (路由顺序问题)
+
+### Resolution
+
+- **Resolved**: 2026-03-28T14:30:00Z
+- **Commit/PR**: #13
+- **Notes**: 迁移后类型检查、测试、契约验证全部通过
+
+---
+
+## [LRN-20250328-002] readonly-resource-factory-limitation
+
+**Logged**: 2026-03-28T14:00:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: frontend
+
+### Summary
+
+只读资源（如 auditLog）无法使用 createCrudResourceApi/createSoftDeleteCrudApi，因为 TypeScript 类型约束要求必须存在 POST/PUT/DELETE 端点。
+
+### Details
+
+`CrudResourceCollectionPath` 类型约束要求资源必须同时满足：
+
+- POST /collection (创建)
+- GET /{id} (详情)
+- PUT /{id} (更新)
+- DELETE /{id} (删除)
+- POST /query (查询)
+
+auditLog 只有 GET /{id} 和 POST /query，因此被类型系统排除。
+
+解决方案：手动实现只读接口，或等待出现第 2-3 个类似需求时提取公共工厂函数。
+
+### Suggested Action
+
+- 当前：保持手动实现（遵循 YAGNI 原则）
+- 未来：当出现多个只读资源时，添加 createReadonlyResourceApi 工厂函数
+
+### Metadata
+
+- Source: debugging
+- Related Files: src/api/base/crud-api.ts, src/api/modules/auditLog.ts
+- Tags: typescript, crud, factory-pattern, readonly
+
+### Resolution
+
+- **Resolved**: 2026-03-28T14:30:00Z
+- **Notes**: auditLog.ts 手动实现 getById 和 query 方法，复用 PaginationData 类型
+
+---
+
+## [LRN-20250328-003] hybrid-api-architecture-pattern
+
+**Logged**: 2026-03-28T14:00:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: frontend
+
+### Summary
+
+项目采用三层混合架构处理不同 API 资源：生成客户端 + CRUD 工厂 + 手动实现。
+
+### Details
+
+| 资源类型      | 实现方式                  | 示例                         |
+| ------------- | ------------------------- | ---------------------------- |
+| 纯 CRUD       | `createSoftDeleteCrudApi` | workline, device, role       |
+| CRUD + 自定义 | 工厂 + 生成客户端别名     | user, menu, apiApplication   |
+| 只读资源      | 手动实现                  | auditLog                     |
+| 直接透传      | 导出生成客户端            | callback, event, performance |
+
+关键决策：自定义方法通过生成客户端别名实现，而非重新实现：
+
+```typescript
+export const userApi = {
+  ...baseUserApi,
+  resetPassword: userGeneratedApi.password // 别名
+}
+```
+
+### Suggested Action
+
+后续新增 API 模块时，按此分类选择实现方式。
+
+### Metadata
+
+- Source: best_practice
+- Related Files: src/api/modules/\*.ts
+- Tags: architecture, api-pattern, code-generation
+
+---
+
+## [LRN-20250328-004] pagination-data-import-dry
+
+**Logged**: 2026-03-28T14:00:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: frontend
+
+### Summary
+
+工程审查中发现 PaginationData 在 auditLog.ts 中重复定义，应从 crud-api.ts 导入。
+
+### Details
+
+原始代码：
+
+```typescript
+// auditLog.ts
+export interface PaginationData<TItem> { ... }  // ❌ 重复定义
+```
+
+修复后：
+
+```typescript
+import type { PaginationData } from '@/api/base/crud-api' // ✅ 复用
+```
+
+### Suggested Action
+
+审查时主动检查类型导出复用，避免重复定义。
+
+### Metadata
+
+- Source: code_review
+- Related Files: src/api/modules/auditLog.ts
+- Tags: dry, types, review
+
+### Resolution
+
+- **Resolved**: 2026-03-28T13:45:00Z
+- **Commit**: a11ea9a
+
+---
