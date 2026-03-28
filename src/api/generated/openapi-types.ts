@@ -668,7 +668,7 @@ export interface paths {
         put?: never;
         /**
          * 任务结果回传
-         * @description 设备完成指令后，调用此接口回传执行结果（白皮书 3.2.1）
+         * @description 设备完成指令后，调用此接口回传执行结果
          */
         post: operations["callback_result_api_v1_callback_result_post"];
         delete?: never;
@@ -5534,6 +5534,13 @@ export interface components {
              */
             capacity?: number | null;
             /**
+             * Config
+             * @description 工作线插件配置
+             */
+            config: {
+                [key: string]: unknown;
+            };
+            /**
              * Description
              * @description 作业线描述
              */
@@ -5557,6 +5564,11 @@ export interface components {
             /** @description 作业线类型 */
             line_type: components["schemas"]["LineType"];
             /**
+             * Plugin Key
+             * @description 工作线执行插件标识
+             */
+            plugin_key?: string | null;
+            /**
              * Sort Order
              * @description 排序顺序
              * @default 0
@@ -5578,6 +5590,13 @@ export interface components {
              * @description 产能（件/小时）
              */
             capacity?: number | null;
+            /**
+             * Config
+             * @description 工作线插件配置
+             */
+            config?: {
+                [key: string]: unknown;
+            };
             /**
              * Description
              * @description 作业线描述
@@ -5604,6 +5623,11 @@ export interface components {
             /** @description 作业线类型 */
             line_type: components["schemas"]["LineType"];
             /**
+             * Plugin Key
+             * @description 工作线执行插件标识
+             */
+            plugin_key?: string | null;
+            /**
              * Sort Order
              * @description 排序顺序
              * @default 0
@@ -5628,6 +5652,13 @@ export interface components {
              */
             capacity?: number | null;
             /**
+             * Config
+             * @description 工作线插件配置
+             */
+            config?: {
+                [key: string]: unknown;
+            } | null;
+            /**
              * Description
              * @description 作业线描述
              */
@@ -5649,6 +5680,11 @@ export interface components {
             line_name?: string | null;
             /** @description 作业线类型 */
             line_type?: components["schemas"]["LineType"] | null;
+            /**
+             * Plugin Key
+             * @description 工作线执行插件标识
+             */
+            plugin_key?: string | null;
             /**
              * Sort Order
              * @description 排序顺序

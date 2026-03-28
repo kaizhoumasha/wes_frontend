@@ -12,12 +12,14 @@ import {
 
 const WORKLINE_COLLECTION_PATH = '/api/v1/work_lines' satisfies SoftDeleteCrudResourceCollectionPath
 
+// 本地类型定义
 export type WorkLine = CrudItem<typeof WORKLINE_COLLECTION_PATH>
-
 export type CreateWorkLineInput = CrudCreateInput<typeof WORKLINE_COLLECTION_PATH>
-
 export type UpdateWorkLineInput = CrudUpdateInput<typeof WORKLINE_COLLECTION_PATH>
 
+/**
+ * 作业线管理 API
+ */
 export const workLineApi = createSoftDeleteCrudApi({
   collection: WORKLINE_COLLECTION_PATH,
   item: `${WORKLINE_COLLECTION_PATH}/{id}` as const,
