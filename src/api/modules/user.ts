@@ -1,28 +1,35 @@
 /**
- * 用户管理 API
+ * user 管理 API
+ *
+ * ⚠️  此文件由 scripts/generate-api-types.ts 自动生成
+ * 自动生成时间: 2026-03-30T06:42:06.046Z
+ *
+ * 如需添加自定义方法，请在以下占位符区域添加：
+ * // ==================== CUSTOM METHODS ====================
  */
 
 import {
   createSoftDeleteCrudApi,
+  type SoftDeleteCrudResourceCollectionPath,
   type CrudCreateInput,
   type CrudItem,
-  type SoftDeleteCrudResourceCollectionPath,
   type CrudUpdateInput,
 } from '@/api/base/crud-api'
 import { userGeneratedApi } from '@/api/generated/api-clients'
 import type { components } from '@/api/generated/openapi-types'
-import type { ResetUserPasswordInput, AssignRolesRequest } from './types'
-
-const USER_COLLECTION_PATH = '/api/v1/users' satisfies SoftDeleteCrudResourceCollectionPath
 
 // 类型导出
-export type Role = components['schemas']['RoleResponse']
-export type User = CrudItem<typeof USER_COLLECTION_PATH>
-export type CreateUserInput = CrudCreateInput<typeof USER_COLLECTION_PATH>
-export type UpdateUserInput = CrudUpdateInput<typeof USER_COLLECTION_PATH>
-export type { ResetUserPasswordInput, AssignRolesRequest }
+export type ResetUserPasswordInput = components['schemas']['ResetPasswordRequest']
 
-// 基础 CRUD API
+const USER_COLLECTION_PATH = '/api/v1/users' satisfies SoftDeleteCrudResourceCollectionPath
+const USER_BULK_DELETE_PATH = '/api/v1/users/bulk' as const
+
+export type User = CrudItem<typeof USER_COLLECTION_PATH>
+
+export type CreateUserInput = CrudCreateInput<typeof USER_COLLECTION_PATH>
+
+export type UpdateUserInput = CrudUpdateInput<typeof USER_COLLECTION_PATH>
+
 const baseUserApi = createSoftDeleteCrudApi({
   collection: USER_COLLECTION_PATH,
   item: `${USER_COLLECTION_PATH}/{id}` as const,
@@ -31,33 +38,22 @@ const baseUserApi = createSoftDeleteCrudApi({
   trash: `${USER_COLLECTION_PATH}/trash` as const,
   trashRestore: `${USER_COLLECTION_PATH}/trash/restore` as const,
   trashPermanentDelete: `${USER_COLLECTION_PATH}/trash/permanent` as const,
-  bulkDelete: `${USER_COLLECTION_PATH}/bulk` as const
+  bulkDelete: USER_BULK_DELETE_PATH,
 })
 
-/**
- * 用户管理 API
- */
 export const userApi = {
   ...baseUserApi,
+  statsCache: userGeneratedApi.statsCache,
+  resetPassword: userGeneratedApi.resetPassword,
+  assignRoles: userGeneratedApi.assignRoles,
 
-  /**
-   * 重置用户密码
-   * @param id 用户ID
-   * @param data 重置密码请求
-   */
-  async resetPassword(id: number, data: ResetUserPasswordInput) {
-    return await userGeneratedApi.password({ id }, data)
-  },
-
-  /**
-   * 为用户分配角色
-   * @param id 用户ID
-   * @param roleIds 角色ID列表
-   */
-  async assignRoles(id: number, roleIds: number[]) {
-    return await userGeneratedApi.roles({ id }, { role_ids: roleIds })
-  },
-
-  /** 获取用户缓存统计 */
-  getCacheStats: userGeneratedApi.cache
+  // ==================== CUSTOM METHODS ====================
+  // 在此区域添加自定义方法（仅追加，不覆盖）
+  // 可使用的导入项: ContractResponseData, contractClient
+  // ======================================================
 }
+
+// ==================== CUSTOM CONFIG START ====================
+// 在此区域添加自定义配置（如缓存策略、超时设置等）
+// ===========================================================
+// ==================== CUSTOM CONFIG END ====================

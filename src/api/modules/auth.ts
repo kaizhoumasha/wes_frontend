@@ -1,36 +1,30 @@
 /**
- * 认证 API
+ * auth 管理 API
+ *
+ * ⚠️  此文件由 scripts/generate-api-types.ts 自动生成
+ * 自动生成时间: 2026-03-30T06:42:06.044Z
+ *
+ * 如需添加自定义方法，请在以下占位符区域添加：
+ * // ==================== CUSTOM METHODS ====================
  */
 
-import { API_CACHE_DURATION } from '@/constants/cache'
-import { authGeneratedApi } from '@/api/generated/api-clients'
 import type { components } from '@/api/generated/openapi-types'
-import type { ArrayItem } from '@/api/contract/types'
 
 // 类型导出
-export type LoginRequest = components['schemas']['LoginRequest']
-export type UserInfo = components['schemas']['UserResponse']
+export type UserInfo = components['schemas']['UserSimpleResponse']
 export type ApiPermissionInfo = components['schemas']['ApiPermissionInfo']
-export type AuthMyResponse = Awaited<ReturnType<typeof authGeneratedApi.my>>
-export type MenuTreeResponse = ArrayItem<AuthMyResponse['menus']>
 
-/**
- * 认证 API
- *
- * 封装生成客户端，添加缓存控制
- */
-export const authApi = {
-  login: authGeneratedApi.login,
+import {
+} from '@/api/base/crud-api'
+import { authGeneratedApi } from '@/api/generated/api-clients'
 
-  async getMy() {
-    return await authGeneratedApi.my({
-      cacheFor: API_CACHE_DURATION.NONE
-    })
-  },
+export const authApi = authGeneratedApi
 
-  async getPermissions() {
-    return await authGeneratedApi.permissions({
-      cacheFor: API_CACHE_DURATION.NONE
-    })
-  }
-}
+// ==================== CUSTOM METHODS ====================
+// 在此区域添加自定义方法（仅追加，不覆盖）
+// ======================================================
+
+// ==================== CUSTOM CONFIG START ====================
+// 在此区域添加自定义配置（如缓存策略、超时设置等）
+// ===========================================================
+// ==================== CUSTOM CONFIG END ====================

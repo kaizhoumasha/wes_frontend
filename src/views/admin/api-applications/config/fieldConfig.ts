@@ -43,6 +43,9 @@ export const {
   fieldConfig: apiApplicationPageFieldConfig
 } = defineCrudResourceFieldBundle<APIApplication, CreateAPIApplicationInput, UpdateAPIApplicationInput>({
   backend: {
+    readSchema: 'APIApplicationResponse',
+    createSchema: 'APIApplicationCreate',
+    updateSchema: 'APIApplicationUpdate',
     labelOverrides: API_APPLICATION_FIELD_LABEL_OVERRIDES
   },
   fields: [
@@ -67,12 +70,9 @@ export const {
         width: 120
       },
       form: {
-        type: 'select',
         required: true
       },
-      search: {
-        dataType: 'enum'
-      }
+      search: {}
     },
     {
       key: 'validity_period',
@@ -81,7 +81,6 @@ export const {
         width: 120
       },
       form: {
-        type: 'select',
         required: true
       }
     },
@@ -111,7 +110,11 @@ export const {
         visibleFrom: 'desktop',
         width: 200
       },
-      form: {}
+      form: {
+        type: 'textarea',
+        placeholder: '每行一个 IP 地址，例如：\n192.168.1.1\n10.0.0.0/8',
+        rows: 4
+      }
     },
     {
       key: 'description',

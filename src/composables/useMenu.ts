@@ -135,7 +135,7 @@ export function useMenu() {
     loadError.value = null
 
     try {
-      const response = await menuApi.getMenuTree()
+      const response = await menuApi.tree()
       const menus = response.map(toMenuItem)
       setMenuState(menus)
       setMenuToCache(menus)

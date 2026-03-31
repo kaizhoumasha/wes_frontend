@@ -34,7 +34,8 @@ export type UpdatePermissionInput = components['schemas']['PermissionUpdate']
 export type AuditLog = components['schemas']['AuditLogResponse']
 
 // ========== Event ==========
-export type Event = components['schemas']['EventRequest']
+// 注意：EventRequest 类型在后端不存在，设为 unknown
+export type Event = unknown
 
 // ========== Performance ==========
 // 注意：PerformanceMetricResponse可能不存在，使用实际存在的类型

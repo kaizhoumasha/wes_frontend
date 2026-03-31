@@ -12,6 +12,9 @@ import { fileURLToPath } from 'node:url'
 import openapiTS, { astToString } from 'openapi-typescript'
 import ts from 'typescript'
 
+// 用于标记独立枚举 schema 的虚拟字段名
+const ENUM_MARKER = '__enum'
+
 // ==================== API 客户端生成 ====================
 
 /**
@@ -328,31 +331,57 @@ function buildFieldMetadata(
 function extractSchemaMetadata(spec: unknown): Record<string, GeneratedOpenApiSchemaMetadata> {
   const schemas = getSchemas(spec)
 
-  return Object.fromEntries(
-    Object.entries(schemas)
-      .filter(([, schema]) => schema.type === 'object' || schema.properties)
-      .map(([schemaName, schema]) => {
-        const required = schema.required ?? []
-        const requiredFields = new Set(required)
-        const fields = Object.fromEntries(
-          Object.entries(schema.properties ?? {}).map(([fieldName, fieldSchema]) => [
-            fieldName,
-            buildFieldMetadata(fieldName, fieldSchema, requiredFields)
-          ])
-        )
+  const result: Record<string, GeneratedOpenApiSchemaMetadata> = {}
 
-        return [schemaName, {
-          title: schema.title,
-          description: schema.description,
-          required,
-          additionalProperties:
-            typeof schema.additionalProperties === 'boolean'
-              ? schema.additionalProperties
-              : undefined,
-          fields
-        }]
-      })
-  )
+  for (const [schemaName, schema] of Object.entries(schemas)) {
+    // 处理对象类型的 schema（有 properties 的）
+    if (schema.type === 'object' || schema.properties) {
+      const required = schema.required ?? []
+      const requiredFields = new Set(required)
+      const fields = Object.fromEntries(
+        Object.entries(schema.properties ?? {}).map(([fieldName, fieldSchema]) => [
+          fieldName,
+          buildFieldMetadata(fieldName, fieldSchema, requiredFields)
+        ])
+      )
+
+      result[schemaName] = {
+        title: schema.title,
+        description: schema.description,
+        required,
+        additionalProperties:
+          typeof schema.additionalProperties === 'boolean'
+            ? schema.additionalProperties
+            : undefined,
+        fields
+      }
+      continue
+    }
+
+    // 处理独立的枚举 schema（如 AppType, ValidityPeriod）
+    if (schema.enum) {
+      result[schemaName] = {
+        title: schema.title,
+        description: schema.description,
+        required: [],
+        fields: {
+          // 用一个虚拟字段存储枚举值
+          [ENUM_MARKER]: {
+            title: schema.title,
+            description: schema.description,
+            type: 'string',
+            required: true,
+            nullable: false,
+            default: schema.default,
+            enum: schema.enum,
+            ref: undefined
+          }
+        }
+      }
+    }
+  }
+
+  return result
 }
 
 /**
@@ -516,9 +545,35 @@ function extractResourceName(path: string): string | null {
  * 将复数资源名转换为单数（简单规则）
  */
 function toSingular(name: string): string {
-  // 简单的复数转换规则
+  // 特殊的复数转换规则（不规则复数）
+  // key 可以是原始形式或 camelCase 形式
+  const irregularPlurals: Record<string, string> = {
+    // 原始形式（kebab-case）
+    'work-lines': 'workline',
+    'work_lines': 'workline',
+    'api-applications': 'apiApplication',
+    'api_applications': 'apiApplication',
+    // camelCase 形式
+    workLines: 'workline',
+    devices: 'device',
+    permissions: 'permission',
+    menus: 'menu',
+    users: 'user',
+    roles: 'role',
+    logs: 'log',
+    events: 'event',
+    products: 'product'
+  }
+
+  if (irregularPlurals[name]) {
+    return irregularPlurals[name]
+  }
+
+  // 规则复数转换
   if (name.endsWith('ies')) return name.slice(0, -3) + 'y'
   if (name.endsWith('es') && !name.endsWith('sses')) return name.slice(0, -2)
+  // 特殊处理：workLin → workLine（不是 workLin）
+  if (name.endsWith('lins')) return name.slice(0, -1)
   if (name.endsWith('s') && !name.endsWith('ss')) return name.slice(0, -1)
   return name
 }
@@ -546,41 +601,76 @@ function toCamelCase(str: string): string {
 }
 
 /**
- * 将路径转换为方法名，例如 /api/v1/menus/tree -> getTree
+ * 从 operationId 生成方法名
+ *
+ * 新格式示例：
+ * - auth_login_post → login
+ * - users_by_id_reset_password_put → resetPassword
+ * - auth_my_get → my
+ * - api_auth_applications_by_id_reset_secret_post → resetSecret
+ * - users_create → create
  */
 function generateMethodName(path: string, method: HttpMethod, operationId?: string): string {
   // 优先使用 operationId
   if (operationId) {
-    // 清理 operationId，例如 reset_password_api_v1_users__id__reset_password_put -> resetPassword
-    // 步骤 1: 移除 _post/get/put/patch/delete 后缀
+    // 步骤 1: 移除 _post/_get/_put/_patch/_delete 后缀
     const withoutMethod = operationId.replace(/_(get|post|put|patch|delete)$/i, '')
 
-    // 步骤 2: 找到最后一个 api_vX_ 之后的部分，提取动作名称
-    // 例如: reset_password_api_v1_users__id__reset_password -> reset_password
-    // 匹配最后一段（通常是动作描述）
-    const parts = withoutMethod.split('_')
+    // 步骤 2: 分割并清理
+    const parts = withoutMethod.split('_').filter(p => p)
 
-    // 找到 api_v 开头的位置，然后取其后两个部分（资源名之后的动作）
-    const apiIndex = parts.findIndex(p => p.startsWith('api') && p.match(/^v\d+$/))
-    if (apiIndex >= 0 && apiIndex + 2 < parts.length) {
-      // 跳过 api_v1, resource_name, 然后取剩下的动作部分
-      const actionParts = parts.slice(apiIndex + 2)
+    // 步骤 3: 移除常见的资源前缀
+    // 例如: auth, users, menus, roles, api_auth_applications 等
+    // 保留从第一个非资源名部分开始的内容
+    const resourcePrefixes = [
+      'auth', 'users', 'menus', 'roles',
+      'devices', 'worklines', 'auditlogs', 'events',
+      'apiAuth', 'apiAuthAccess', 'apiAuthApplications',
+      'demoProducts', 'callbackLogs', 'callbackEvents'
+    ]
 
-      // 过滤掉 id 和空字符串（路径参数）
-      const cleanedParts = actionParts.filter(p => p && p !== 'id')
+    let startIndex = 0
+    // 检测资源前缀并跳过
+    // 例如 ['users', 'by', 'id', 'reset', 'password'] 跳过 'users'
+    // 例如 ['api', 'auth', 'applications', ...] 跳过 'api', 'auth', 'applications'
+    for (let i = 0; i < parts.length - 1; i++) {
+      const part = parts[i].toLowerCase()
+      const nextPart = parts[i + 1]?.toLowerCase()
 
-      if (cleanedParts.length > 0) {
-        return toCamelCase(cleanedParts.join('_'))
+      // 跳过资源前缀
+      if (resourcePrefixes.includes(part)) {
+        startIndex = i + 1
+        continue
       }
+
+      // 跳过 "by id" 这样的路径参数
+      if ((part === 'by' && nextPart === 'id') || part === 'byid') {
+        startIndex = i + 2
+        continue
+      }
+
+      // 遇到第一个动作词（动词）时停止
+      const actionWords = ['create', 'update', 'delete', 'query', 'get', 'post', 'put', 'patch',
+        'login', 'logout', 'refresh', 'reset', 'assign', 'restore', 'revoke', 'trash',
+        'try', 'invoke', 'batch', 'stats', 'cache', 'sync', 'available', 'sessions', 'permissions']
+      if (actionWords.includes(part)) {
+        break
+      }
+    }
+
+    // 取剩余部分转为驼峰
+    const actionParts = parts.slice(startIndex).filter(p => p && p !== 'id')
+    if (actionParts.length > 0) {
+      return toCamelCase(actionParts.join('_'))
     }
 
     // 回退：返回最后一部分
     return toCamelCase(parts[parts.length - 1] || withoutMethod)
   }
 
-  // 从路径生成
-  const parts = path.split('/').filter(p => p && !p.startsWith('{'))
-  const lastPart = parts[parts.length - 1]
+  // 从路径生成（仅作为回退）
+  const pathParts = path.split('/').filter(p => p && !p.startsWith('{'))
+  const lastPart = pathParts[pathParts.length - 1]
 
   const methodPrefix: Record<HttpMethod, string> = {
     get: 'get',
@@ -1122,7 +1212,7 @@ function generateModuleCode(module: ModuleInfo): string {
 
     lines.push('')
     lines.push(`  // ==================== CUSTOM METHODS ====================`)
-    lines.push(`  // 在此区域添加自定义方法`)
+    lines.push(`  // 在此区域添加自定义方法（仅追加，不覆盖）`)
     lines.push(`  // 可使用的导入项: ContractResponseData, contractClient`)
     lines.push(`  // ======================================================`)
     lines.push('}')
@@ -1132,10 +1222,17 @@ function generateModuleCode(module: ModuleInfo): string {
       lines.push(`export const ${module.singularName}Api = ${module.singularName}GeneratedApi`)
       lines.push('')
       lines.push(`// ==================== CUSTOM METHODS ====================`)
-      lines.push(`// 在此区域添加自定义方法`)
+      lines.push(`// 在此区域添加自定义方法（仅追加，不覆盖）`)
       lines.push(`// ======================================================`)
     }
   }
+
+  // 添加手动配置区域（用于缓存等自定义配置）
+  lines.push('')
+  lines.push(`// ==================== CUSTOM CONFIG START ====================`)
+  lines.push(`// 在此区域添加自定义配置（如缓存策略、超时设置等）`)
+  lines.push(`// ===========================================================`)
+  lines.push(`// ==================== CUSTOM CONFIG END ====================`)
 
   lines.push('')
 
@@ -1183,21 +1280,37 @@ async function generateApiModules(spec: unknown, outputDir: string): Promise<boo
 
     const outputPath = join(outputDir, moduleFileName)
 
-    // 检查文件是否存在且包含手动代码，或者文件已存在（避免覆盖手动维护的文件）
-    const fileExists = existsSync(outputPath)
-    const hasManualCode = fileExists &&
-      readFileSync(outputPath, 'utf-8').includes('// ==================== CUSTOM METHODS ====================')
+    // 生成新内容
+    let content = generateModuleCode(module)
 
+    // 如果文件已存在，提取并保留手动配置区域
+    const fileExists = existsSync(outputPath)
     if (fileExists) {
-      if (hasManualCode) {
-        console.log(`  ℹ️  ${moduleFileName} 包含自定义代码，跳过生成`)
-      } else {
-        console.log(`  ℹ️  ${moduleFileName} 已存在，跳过生成（手动维护）`)
+      const existingContent = readFileSync(outputPath, 'utf-8')
+
+      // 检查是否已经有自动生成标记（防止重复添加）
+      const isAutoGenerated = existingContent.includes('此文件由 scripts/generate-api-types.ts 自动生成')
+
+      if (!isAutoGenerated) {
+        // 文件不是自动生成的，显示警告
+        console.log(`  ⚠️  ${moduleFileName} 不是自动生成格式，将转换为自动生成（请确认备份）`)
       }
-      continue
+
+      // 提取 CUSTOM CONFIG 区域的内容（仅当文件已经包含该区域时）
+      const customConfigMatch = existingContent.match(
+        /\/\/ =+ CUSTOM CONFIG START =+\n([\s\S]*?)\/\/ =+ CUSTOM CONFIG END =+/
+      )
+
+      if (customConfigMatch && customConfigMatch[1].trim()) {
+        const customConfig = customConfigMatch[1]
+        // 移除生成内容中的空 CUSTOM CONFIG 区域，替换为保留的内容
+        content = content.replace(
+          /\/\/ =+ CUSTOM CONFIG START =+\n\/\/ 在此区域添加自定义配置[\s\S]*?\/\/ =+ CUSTOM CONFIG END =+/,
+          `// ==================== CUSTOM CONFIG START ====================\n${customConfig}// ==================== CUSTOM CONFIG END ====================`
+        )
+      }
     }
 
-    const content = generateModuleCode(module)
     const changed = writeFileIfChanged(outputPath, content)
 
     if (changed) {

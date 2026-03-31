@@ -116,7 +116,7 @@ async function handleSubmit() {
       new_password: password.value
     }
 
-    await userApi.resetPassword(props.user.id, payload)
+    await userApi.resetPassword({ id: props.user.id }, payload)
     ElMessage.success(`已重置用户「${props.user.username}」的密码`)
     visible.value = false
     emit('success')

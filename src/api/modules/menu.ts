@@ -1,5 +1,11 @@
 /**
- * 菜单管理 API
+ * menu 管理 API
+ *
+ * ⚠️  此文件由 scripts/generate-api-types.ts 自动生成
+ * 自动生成时间: 2026-03-30T06:42:06.047Z
+ *
+ * 如需添加自定义方法，请在以下占位符区域添加：
+ * // ==================== CUSTOM METHODS ====================
  */
 
 import {
@@ -10,14 +16,13 @@ import {
   type CrudUpdateInput,
 } from '@/api/base/crud-api'
 import { menuGeneratedApi } from '@/api/generated/api-clients'
-import { contractClient } from '@/api/contract/client'
-import { API_CACHE_DURATION } from '@/constants/cache'
-import type { ContractResponseData } from '@/api/contract/types'
 
 const MENU_COLLECTION_PATH = '/api/v1/menus' satisfies SoftDeleteCrudResourceCollectionPath
 
 export type Menu = CrudItem<typeof MENU_COLLECTION_PATH>
+
 export type CreateMenuInput = CrudCreateInput<typeof MENU_COLLECTION_PATH>
+
 export type UpdateMenuInput = CrudUpdateInput<typeof MENU_COLLECTION_PATH>
 
 const baseMenuApi = createSoftDeleteCrudApi({
@@ -30,24 +35,21 @@ const baseMenuApi = createSoftDeleteCrudApi({
   trashPermanentDelete: `${MENU_COLLECTION_PATH}/trash/permanent` as const,
 })
 
-/**
- * 菜单管理 API
- */
 export const menuApi = {
   ...baseMenuApi,
-
-  // 生成客户端方法的友好别名
   tree: menuGeneratedApi.tree,
-  getSiblings: menuGeneratedApi.getSiblingsApiV1MenusSiblings_nodeId_,
-  getAncestors: menuGeneratedApi.getAncestorsApiV1MenusAncestors_nodeId_,
+  siblingsByNode: menuGeneratedApi.siblingsByNode,
+  ancestorsByNode: menuGeneratedApi.ancestorsByNode,
   move: menuGeneratedApi.move,
+  myMenu: menuGeneratedApi.myMenu,
 
-  /**
-   * 获取当前用户的菜单树（带缓存控制）
-   */
-  async getMenuTree(): Promise<ContractResponseData<'/api/v1/menus/my_menu', 'get'>> {
-    return await contractClient.get('/api/v1/menus/my_menu', {
-      config: { cacheFor: API_CACHE_DURATION.NONE }
-    })
-  }
+  // ==================== CUSTOM METHODS ====================
+  // 在此区域添加自定义方法（仅追加，不覆盖）
+  // 可使用的导入项: ContractResponseData, contractClient
+  // ======================================================
 }
+
+// ==================== CUSTOM CONFIG START ====================
+// 在此区域添加自定义配置（如缓存策略、超时设置等）
+// ===========================================================
+// ==================== CUSTOM CONFIG END ====================

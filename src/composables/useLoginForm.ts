@@ -60,8 +60,10 @@ export function useLoginForm() {
 
   // 计算属性：表单是否有效
   const isFormValid = computed(() => {
-    return form.username.length >= rules.username.minLength.value &&
-           form.password.length >= rules.password.minLength.value
+    return (
+      form.username.length >= rules.username.minLength.value &&
+      form.password.length >= rules.password.minLength.value
+    )
   })
 
   /**
@@ -191,7 +193,7 @@ export function useLoginForm() {
     // 优先使用聚合接口一次性加载用户上下文
     let initializedFromMy = false
     try {
-      const myContext = await authApi.getMy()
+      const myContext = await authApi.my()
 
       hydrateCurrentUser(myContext.user)
 

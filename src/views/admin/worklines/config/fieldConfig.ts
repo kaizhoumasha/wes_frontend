@@ -2,7 +2,7 @@
  * 作业线字段配置
  */
 
-import type { CreateWorkLineInput, UpdateWorkLineInput, WorkLine } from '@/api/modules/workline'
+import type { CreateWorklineInput, UpdateWorklineInput, Workline } from '@/api/modules/workline'
 import { WorkLineCreateSchema, WorkLineUpdateSchema } from '@/types/zod-extensions'
 import {
   defineCrudResourceFieldBundle
@@ -39,7 +39,7 @@ export const workLineFormConfig = {
 export const {
   fields: WORKLINE_FIELDS,
   fieldConfig: workLinePageFieldConfig
-} = defineCrudResourceFieldBundle<WorkLine, CreateWorkLineInput, UpdateWorkLineInput>({
+} = defineCrudResourceFieldBundle<Workline, CreateWorklineInput, UpdateWorklineInput>({
   backend: {
     readSchema: 'WorkLineResponse',
     createSchema: 'WorkLineCreate',

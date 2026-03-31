@@ -45,7 +45,13 @@ export const APIApplicationCreateSchema = z.object({
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
   /** Ip Whitelist */
-  ip_whitelist: z.union([z.array(z.string()), z.null()]).optional(),
+  ip_whitelist: z.union([z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())), z.null()]).optional(),
   /** Rate Limit Per Minute */
   rate_limit_per_minute: z.number().min(1).max(10000).optional().default(100),
   /** Rate Limit Per Hour */
@@ -81,7 +87,13 @@ export const APIApplicationResponseSchema = z.object({
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
   /** Ip Whitelist */
-  ip_whitelist: z.union([z.array(z.string()), z.null()]).optional(),
+  ip_whitelist: z.union([z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())), z.null()]).optional(),
   /** Rate Limit Per Minute */
   rate_limit_per_minute: z.number().min(1).max(10000).optional().default(100),
   /** Rate Limit Per Hour */
@@ -106,7 +118,13 @@ export const APIApplicationUpdateSchema = z.object({
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
   /** Ip Whitelist */
-  ip_whitelist: z.union([z.array(z.string()), z.null()]).optional(),
+  ip_whitelist: z.union([z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())), z.null()]).optional(),
   /** Rate Limit Per Minute */
   rate_limit_per_minute: z.union([z.number().min(1).max(10000), z.null()]).optional(),
   /** Rate Limit Per Hour */
@@ -363,37 +381,6 @@ export const CallbackLogResponseSchema = z.object({
 
 
 /**
- * 指令回调结果 Schema - 设备回调时使用
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const CommandCallbackResultSchema = z.object({
-  /** Command Code */
-  command_code: z.string(),
-  /** Device Code */
-  device_code: z.string(),
-  /** 执行结果 */
-  result: z.lazy(() => CommandResultSchema),
-  /** Finish Time */
-  finish_time: z.number(),
-  /** Data */
-  data: z.union([z.record(z.any()), z.null()]).optional(),
-  /** Error Detail */
-  error_detail: z.union([z.record(z.any()), z.null()]).optional(),
-})
-
-
-/**
- * 指令执行结果枚举
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const CommandResultSchema = z.enum(["SUCCESS", "FAILED"])
-
-
-/**
  * DemoProduct 创建模型
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -555,8 +542,20 @@ export const DeviceCreateSchema = z.object({
   upstream_device_id: z.union([z.number(), z.null()]).optional(),
   /** Vendor Type */
   vendor_type: z.union([z.string().max(50), z.null()]).optional(),
+  /** Plugin Key */
+  plugin_key: z.union([z.string().max(100), z.null()]).optional(),
+  /** Contract Profile */
+  contract_profile: z.union([z.string().max(100), z.null()]).optional(),
+  /** Contract Version */
+  contract_version: z.union([z.string().max(50), z.null()]).optional(),
   /** Capabilities */
-  capabilities: z.array(z.string()),
+  capabilities: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())),
   /** Host */
   host: z.union([z.string().max(100), z.null()]).optional(),
   /** Port */
@@ -576,7 +575,13 @@ export const DeviceCreateSchema = z.object({
   /** Error Code */
   error_code: z.union([z.string().max(50), z.null()]).optional(),
   /** Supported Commands */
-  supported_commands: z.array(z.string()),
+  supported_commands: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())),
   /** Max Concurrent Tasks */
   max_concurrent_tasks: z.number().min(1).max(10).optional().default(1),
   /** Idempotency Ttl */
@@ -622,8 +627,20 @@ export const DeviceResponseSchema = z.object({
   upstream_device_id: z.union([z.number(), z.null()]).optional(),
   /** Vendor Type */
   vendor_type: z.union([z.string().max(50), z.null()]).optional(),
+  /** Plugin Key */
+  plugin_key: z.union([z.string().max(100), z.null()]).optional(),
+  /** Contract Profile */
+  contract_profile: z.union([z.string().max(100), z.null()]).optional(),
+  /** Contract Version */
+  contract_version: z.union([z.string().max(50), z.null()]).optional(),
   /** Capabilities */
-  capabilities: z.array(z.string()).optional(),
+  capabilities: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())).optional(),
   /** Host */
   host: z.union([z.string().max(100), z.null()]).optional(),
   /** Port */
@@ -643,7 +660,13 @@ export const DeviceResponseSchema = z.object({
   /** Error Code */
   error_code: z.union([z.string().max(50), z.null()]).optional(),
   /** Supported Commands */
-  supported_commands: z.array(z.string()).optional(),
+  supported_commands: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())).optional(),
   /** Max Concurrent Tasks */
   max_concurrent_tasks: z.number().min(1).max(10).optional().default(1),
   /** Idempotency Ttl */
@@ -702,8 +725,20 @@ export const DeviceUpdateSchema = z.object({
   upstream_device_id: z.union([z.number(), z.null()]).optional(),
   /** Vendor Type */
   vendor_type: z.union([z.string().max(50), z.null()]).optional(),
+  /** Plugin Key */
+  plugin_key: z.union([z.string().max(100), z.null()]).optional(),
+  /** Contract Profile */
+  contract_profile: z.union([z.string().max(100), z.null()]).optional(),
+  /** Contract Version */
+  contract_version: z.union([z.string().max(50), z.null()]).optional(),
   /** Capabilities */
-  capabilities: z.union([z.array(z.string()), z.null()]).optional(),
+  capabilities: z.union([z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())), z.null()]).optional(),
   /** Host */
   host: z.union([z.string().max(100), z.null()]).optional(),
   /** Port */
@@ -723,7 +758,13 @@ export const DeviceUpdateSchema = z.object({
   /** Error Code */
   error_code: z.union([z.string().max(50), z.null()]).optional(),
   /** Supported Commands */
-  supported_commands: z.union([z.array(z.string()), z.null()]).optional(),
+  supported_commands: z.union([z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())), z.null()]).optional(),
   /** Max Concurrent Tasks */
   max_concurrent_tasks: z.union([z.number().min(1).max(10), z.null()]).optional(),
   /** Idempotency Ttl */
@@ -731,33 +772,6 @@ export const DeviceUpdateSchema = z.object({
   /** Version */
   version: z.number(),
 })
-
-
-/**
- * 事件上报请求 Schema - 设备回调时使用
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const EventRequestSchema = z.object({
-  /** Device Code */
-  device_code: z.string(),
-  /** 事件类型 */
-  event_type: z.lazy(() => EventTypeSchema),
-  /** Timestamp */
-  timestamp: z.union([z.number(), z.null()]).optional(),
-  /** Data */
-  data: z.union([z.record(z.any()), z.null()]).optional(),
-})
-
-
-/**
- * 事件类型枚举 (白皮书 3.2.2)
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const EventTypeSchema = z.enum(["ESTOP_PRESSED", "DEVICE_ONLINE", "DEVICE_OFFLINE", "DEVICE_ERROR", "MATERIAL_ARRIVED", "SCAN_COMPLETED", "PICK_COMPLETED", "PUT_COMPLETED", "PROCESS_COMPLETED"])
 
 
 /**
@@ -1643,7 +1657,13 @@ export const TryInvokeApplicationSchema = z.object({
   /** Command Description */
   command_description: z.string(),
   /** Command Parameters */
-  command_parameters: z.array(z.string()),
+  command_parameters: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())),
   /** Command Response */
   command_response: z.string(),
 })

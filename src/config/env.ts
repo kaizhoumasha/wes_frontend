@@ -5,12 +5,12 @@
 export const env = {
   /** API 基础 URL */
   get apiBaseUrl() {
-    return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001'
+    return import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8001'
   },
 
   /** SSE 实时事件流 URL */
   get sseUrl() {
-    return import.meta.env.VITE_SSE_URL || 'http://localhost:8001/api/v1/events/stream'
+    return import.meta.env.VITE_SSE_URL ?? 'http://localhost:8001/api/v1/events/stream'
   },
 
   /** 应用标题 */

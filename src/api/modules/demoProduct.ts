@@ -1,5 +1,5 @@
 /**
- * workline 管理 API
+ * demoProduct 管理 API
  *
  * ⚠️  此文件由 scripts/generate-api-types.ts 自动生成
  * 自动生成时间: 2026-03-30T06:42:06.048Z
@@ -16,26 +16,26 @@ import {
   type CrudUpdateInput,
 } from '@/api/base/crud-api'
 
-const WORKLINE_COLLECTION_PATH = '/api/v1/work_lines' satisfies SoftDeleteCrudResourceCollectionPath
+const DEMOPRODUCT_COLLECTION_PATH = '/api/v1/demo-products' satisfies SoftDeleteCrudResourceCollectionPath
 
-export type Workline = CrudItem<typeof WORKLINE_COLLECTION_PATH>
+export type DemoProduct = CrudItem<typeof DEMOPRODUCT_COLLECTION_PATH>
 
-export type CreateWorklineInput = CrudCreateInput<typeof WORKLINE_COLLECTION_PATH>
+export type CreateDemoProductInput = CrudCreateInput<typeof DEMOPRODUCT_COLLECTION_PATH>
 
-export type UpdateWorklineInput = CrudUpdateInput<typeof WORKLINE_COLLECTION_PATH>
+export type UpdateDemoProductInput = CrudUpdateInput<typeof DEMOPRODUCT_COLLECTION_PATH>
 
-const baseWorklineApi = createSoftDeleteCrudApi({
-  collection: WORKLINE_COLLECTION_PATH,
-  item: `${WORKLINE_COLLECTION_PATH}/{id}` as const,
-  query: `${WORKLINE_COLLECTION_PATH}/query` as const,
-  restore: `${WORKLINE_COLLECTION_PATH}/{id}/restore` as const,
-  trash: `${WORKLINE_COLLECTION_PATH}/trash` as const,
-  trashRestore: `${WORKLINE_COLLECTION_PATH}/trash/restore` as const,
-  trashPermanentDelete: `${WORKLINE_COLLECTION_PATH}/trash/permanent` as const,
+const baseDemoProductApi = createSoftDeleteCrudApi({
+  collection: DEMOPRODUCT_COLLECTION_PATH,
+  item: `${DEMOPRODUCT_COLLECTION_PATH}/{id}` as const,
+  query: `${DEMOPRODUCT_COLLECTION_PATH}/query` as const,
+  restore: `${DEMOPRODUCT_COLLECTION_PATH}/{id}/restore` as const,
+  trash: `${DEMOPRODUCT_COLLECTION_PATH}/trash` as const,
+  trashRestore: `${DEMOPRODUCT_COLLECTION_PATH}/trash/restore` as const,
+  trashPermanentDelete: `${DEMOPRODUCT_COLLECTION_PATH}/trash/permanent` as const,
 })
 
-export const worklineApi = {
-  ...baseWorklineApi,
+export const demoProductApi = {
+  ...baseDemoProductApi,
 
   // ==================== CUSTOM METHODS ====================
   // 在此区域添加自定义方法（仅追加，不覆盖）

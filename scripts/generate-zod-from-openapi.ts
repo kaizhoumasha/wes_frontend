@@ -306,8 +306,22 @@ function schemaToZod(
     case 'boolean':
       return 'z.boolean()'
 
-    case 'array':
-      return `z.array(${schema.items ? schemaToZod(schema.items, schemas) : 'z.any()'})`
+    case 'array': {
+      const itemType = schema.items ? schemaToZod(schema.items, schemas) : 'z.any()'
+      const arraySchema = `z.array(${itemType})`
+      // 只对字符串数组使用 preprocess，将换行符分隔的字符串输入转换为数组
+      // 例如：ip_whitelist 等需要用户输入多个 IP 地址的字段
+      if (schema.items?.type === 'string') {
+        return `z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, ${arraySchema})`
+      }
+      return arraySchema
+    }
 
     case 'object':
       if (schema.properties) {

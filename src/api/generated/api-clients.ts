@@ -88,7 +88,7 @@ export const authGeneratedApi = {
 - 返回撤销的令牌数量
    * @endpoint POST /api/v1/auth/logout-all
    */
-  async all(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/auth/logout-all', 'post'>> {
+  async logoutAll(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/auth/logout-all', 'post'>> {
     return await contractClient.post('/api/v1/auth/logout-all', { config })
   },
 
@@ -131,7 +131,7 @@ export const authGeneratedApi = {
 - 删除会话信息
    * @endpoint DELETE /api/v1/auth/sessions/{session_uuid}
    */
-  async revokeSessionApiV1AuthSessions_sessionUuid_(params: paths['/api/v1/auth/sessions/{session_uuid}']['delete']['parameters']['path'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/auth/sessions/{session_uuid}', 'delete'>> {
+  async sessionsBySessionUuid(params: paths['/api/v1/auth/sessions/{session_uuid}']['delete']['parameters']['path'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/auth/sessions/{session_uuid}', 'delete'>> {
     return await contractClient.delete('/api/v1/auth/sessions/{session_uuid}', { params, config })
   },
 
@@ -174,7 +174,7 @@ export const userGeneratedApi = {
 - cache_keys_count: 缓存键数量（如果 Redis 可用）
    * @endpoint GET /api/v1/users/stats/cache
    */
-  async cache(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/users/stats/cache', 'get'>> {
+  async statsCache(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/users/stats/cache', 'get'>> {
     return await contractClient.get('/api/v1/users/stats/cache', { config })
   },
 
@@ -200,7 +200,7 @@ Returns:
     更新后的用户信息
    * @endpoint PUT /api/v1/users/{id}/reset-password
    */
-  async password(params: paths['/api/v1/users/{id}/reset-password']['put']['parameters']['path'], body: paths['/api/v1/users/{id}/reset-password']['put']['requestBody']['content']['application/json'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/users/{id}/reset-password', 'put'>> {
+  async resetPassword(params: paths['/api/v1/users/{id}/reset-password']['put']['parameters']['path'], body: paths['/api/v1/users/{id}/reset-password']['put']['requestBody']['content']['application/json'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/users/{id}/reset-password', 'put'>> {
     return await contractClient.put('/api/v1/users/{id}/reset-password', { params, body, config })
   },
 
@@ -224,7 +224,7 @@ Returns:
     更新后的用户信息（包含角色列表）
    * @endpoint PUT /api/v1/users/{id}/assign-roles
    */
-  async roles(params: paths['/api/v1/users/{id}/assign-roles']['put']['parameters']['path'], body: paths['/api/v1/users/{id}/assign-roles']['put']['requestBody']['content']['application/json'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/users/{id}/assign-roles', 'put'>> {
+  async assignRoles(params: paths['/api/v1/users/{id}/assign-roles']['put']['parameters']['path'], body: paths['/api/v1/users/{id}/assign-roles']['put']['requestBody']['content']['application/json'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/users/{id}/assign-roles', 'put'>> {
     return await contractClient.put('/api/v1/users/{id}/assign-roles', { params, body, config })
   }
 }
@@ -253,7 +253,7 @@ export const permissionGeneratedApi = {
    * @description 获取同级节点
    * @endpoint GET /api/v1/permissions/siblings/{node_id}
    */
-  async getSiblingsApiV1PermissionsSiblings_nodeId_(params: paths['/api/v1/permissions/siblings/{node_id}']['get']['parameters']['path'], query?: paths['/api/v1/permissions/siblings/{node_id}']['get']['parameters']['query'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/permissions/siblings/{node_id}', 'get'>> {
+  async siblingsByNode(params: paths['/api/v1/permissions/siblings/{node_id}']['get']['parameters']['path'], query?: paths['/api/v1/permissions/siblings/{node_id}']['get']['parameters']['query'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/permissions/siblings/{node_id}', 'get'>> {
     return await contractClient.get('/api/v1/permissions/siblings/{node_id}', { params, query, config })
   },
 
@@ -262,7 +262,7 @@ export const permissionGeneratedApi = {
    * @description 获取祖先节点
    * @endpoint GET /api/v1/permissions/ancestors/{node_id}
    */
-  async getAncestorsApiV1PermissionsAncestors_nodeId_(params: paths['/api/v1/permissions/ancestors/{node_id}']['get']['parameters']['path'], query?: paths['/api/v1/permissions/ancestors/{node_id}']['get']['parameters']['query'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/permissions/ancestors/{node_id}', 'get'>> {
+  async ancestorsByNode(params: paths['/api/v1/permissions/ancestors/{node_id}']['get']['parameters']['path'], query?: paths['/api/v1/permissions/ancestors/{node_id}']['get']['parameters']['query'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/permissions/ancestors/{node_id}', 'get'>> {
     return await contractClient.get('/api/v1/permissions/ancestors/{node_id}', { params, query, config })
   },
 
@@ -300,7 +300,7 @@ export const menuGeneratedApi = {
    * @description 获取同级节点
    * @endpoint GET /api/v1/menus/siblings/{node_id}
    */
-  async getSiblingsApiV1MenusSiblings_nodeId_(params: paths['/api/v1/menus/siblings/{node_id}']['get']['parameters']['path'], query?: paths['/api/v1/menus/siblings/{node_id}']['get']['parameters']['query'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/menus/siblings/{node_id}', 'get'>> {
+  async siblingsByNode(params: paths['/api/v1/menus/siblings/{node_id}']['get']['parameters']['path'], query?: paths['/api/v1/menus/siblings/{node_id}']['get']['parameters']['query'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/menus/siblings/{node_id}', 'get'>> {
     return await contractClient.get('/api/v1/menus/siblings/{node_id}', { params, query, config })
   },
 
@@ -309,7 +309,7 @@ export const menuGeneratedApi = {
    * @description 获取祖先节点
    * @endpoint GET /api/v1/menus/ancestors/{node_id}
    */
-  async getAncestorsApiV1MenusAncestors_nodeId_(params: paths['/api/v1/menus/ancestors/{node_id}']['get']['parameters']['path'], query?: paths['/api/v1/menus/ancestors/{node_id}']['get']['parameters']['query'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/menus/ancestors/{node_id}', 'get'>> {
+  async ancestorsByNode(params: paths['/api/v1/menus/ancestors/{node_id}']['get']['parameters']['path'], query?: paths['/api/v1/menus/ancestors/{node_id}']['get']['parameters']['query'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/menus/ancestors/{node_id}', 'get'>> {
     return await contractClient.get('/api/v1/menus/ancestors/{node_id}', { params, query, config })
   },
 
@@ -327,7 +327,7 @@ export const menuGeneratedApi = {
    * @description 返回当前用户可访问的菜单树（基于角色权限过滤）
    * @endpoint GET /api/v1/menus/my_menu
    */
-  async menu(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/menus/my_menu', 'get'>> {
+  async myMenu(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/menus/my_menu', 'get'>> {
     return await contractClient.get('/api/v1/menus/my_menu', { config })
   }
 }
@@ -353,7 +353,7 @@ export const performanceGeneratedApi = {
 - cache: 缓存统计信息
    * @endpoint GET /api/v1/performance/metrics
    */
-  async metrics(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/performance/metrics', 'get'>> {
+  async performanceMetrics(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/performance/metrics', 'get'>> {
     return await contractClient.get('/api/v1/performance/metrics', { config })
   },
 
@@ -364,7 +364,7 @@ export const performanceGeneratedApi = {
 返回各组件的健康状态
    * @endpoint GET /api/v1/performance/health
    */
-  async health(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/performance/health', 'get'>> {
+  async performanceHealth(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/performance/health', 'get'>> {
     return await contractClient.get('/api/v1/performance/health', { config })
   },
 
@@ -375,7 +375,7 @@ export const performanceGeneratedApi = {
 清空所有缓存，准备开始新的性能测试
    * @endpoint POST /api/v1/performance/load-test/reset
    */
-  async reset(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/performance/load-test/reset', 'post'>> {
+  async performanceLoadTestReset(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/performance/load-test/reset', 'post'>> {
     return await contractClient.post('/api/v1/performance/load-test/reset', { config })
   },
 
@@ -386,7 +386,7 @@ export const performanceGeneratedApi = {
 用于性能测试时了解系统配置
    * @endpoint GET /api/v1/performance/config
    */
-  async config(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/performance/config', 'get'>> {
+  async performanceConfig(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/performance/config', 'get'>> {
     return await contractClient.get('/api/v1/performance/config', { config })
   }
 }
@@ -426,7 +426,7 @@ export const apiAuthGeneratedApi = {
    * @description 返回可供分配给 API 应用的权限列表。
    * @endpoint GET /api/v1/api-auth/applications/available-permissions
    */
-  async permissions(query?: paths['/api/v1/api-auth/applications/available-permissions']['get']['parameters']['query'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/applications/available-permissions', 'get'>> {
+  async applicationsAvailablePermissions(query?: paths['/api/v1/api-auth/applications/available-permissions']['get']['parameters']['query'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/applications/available-permissions', 'get'>> {
     return await contractClient.get('/api/v1/api-auth/applications/available-permissions', { query, config })
   },
 
@@ -463,7 +463,7 @@ Args:
     db: 数据库会话
    * @endpoint POST /api/v1/api-auth/applications/{id}/reset-validity
    */
-  async validity(params: paths['/api/v1/api-auth/applications/{id}/reset-validity']['post']['parameters']['path'], body: paths['/api/v1/api-auth/applications/{id}/reset-validity']['post']['requestBody']['content']['application/json'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/applications/{id}/reset-validity', 'post'>> {
+  async resetValidity(params: paths['/api/v1/api-auth/applications/{id}/reset-validity']['post']['parameters']['path'], body: paths['/api/v1/api-auth/applications/{id}/reset-validity']['post']['requestBody']['content']['application/json'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/applications/{id}/reset-validity', 'post'>> {
     return await contractClient.post('/api/v1/api-auth/applications/{id}/reset-validity', { params, body, config })
   },
 
@@ -474,7 +474,7 @@ Args:
 请求格式：{"data": {...}}
    * @endpoint POST /api/v1/api-auth/applications/try/invoke
    */
-  async invoke(body: paths['/api/v1/api-auth/applications/try/invoke']['post']['requestBody']['content']['application/json'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/applications/try/invoke', 'post'>> {
+  async applicationsTryInvoke(body: paths['/api/v1/api-auth/applications/try/invoke']['post']['requestBody']['content']['application/json'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/applications/try/invoke', 'post'>> {
     return await contractClient.post('/api/v1/api-auth/applications/try/invoke', { body, config })
   },
 
@@ -483,7 +483,7 @@ Args:
    * @description 为应用分配权限
    * @endpoint POST /api/v1/api-auth/applications/{id}/permissions
    */
-  async permissions2(params: paths['/api/v1/api-auth/applications/{id}/permissions']['post']['parameters']['path'], body: paths['/api/v1/api-auth/applications/{id}/permissions']['post']['requestBody']['content']['application/json'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/applications/{id}/permissions', 'post'>> {
+  async permissions(params: paths['/api/v1/api-auth/applications/{id}/permissions']['post']['parameters']['path'], body: paths['/api/v1/api-auth/applications/{id}/permissions']['post']['requestBody']['content']['application/json'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/applications/{id}/permissions', 'post'>> {
     return await contractClient.post('/api/v1/api-auth/applications/{id}/permissions', { params, body, config })
   },
 
@@ -494,7 +494,7 @@ Args:
 ⚠️ 注意: 旧密钥将立即失效，新密钥仅返回一次。
    * @endpoint POST /api/v1/api-auth/applications/{id}/reset-secret
    */
-  async secret(params: paths['/api/v1/api-auth/applications/{id}/reset-secret']['post']['parameters']['path'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/applications/{id}/reset-secret', 'post'>> {
+  async resetSecret(params: paths['/api/v1/api-auth/applications/{id}/reset-secret']['post']['parameters']['path'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/applications/{id}/reset-secret', 'post'>> {
     return await contractClient.post('/api/v1/api-auth/applications/{id}/reset-secret', { params, config })
   },
 
@@ -502,7 +502,7 @@ Args:
    * [api-auth:apiapplication:batch_restore] 批量恢复APIApplication
    * @endpoint POST /api/v1/api-auth/applications/trash/restore
    */
-  async restore(body: paths['/api/v1/api-auth/applications/trash/restore']['post']['requestBody']['content']['application/json'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/applications/trash/restore', 'post'>> {
+  async applicationsBatchRestore(body: paths['/api/v1/api-auth/applications/trash/restore']['post']['requestBody']['content']['application/json'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/applications/trash/restore', 'post'>> {
     return await contractClient.post('/api/v1/api-auth/applications/trash/restore', { body, config })
   },
 
@@ -510,7 +510,7 @@ Args:
    * [api-auth:apiapplication:batch_permanent_delete] 批量永久删除APIApplication
    * @endpoint DELETE /api/v1/api-auth/applications/trash/permanent
    */
-  async permanent(body: paths['/api/v1/api-auth/applications/trash/permanent']['delete']['requestBody']['content']['application/json'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/applications/trash/permanent', 'delete'>> {
+  async applicationsBatchPermanent(body: paths['/api/v1/api-auth/applications/trash/permanent']['delete']['requestBody']['content']['application/json'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/applications/trash/permanent', 'delete'>> {
     return await contractClient.delete('/api/v1/api-auth/applications/trash/permanent', { body, config })
   },
 
@@ -518,7 +518,7 @@ Args:
    * [api-auth:apiapplication:restore] 恢复APIApplication
    * @endpoint POST /api/v1/api-auth/applications/{id}/restore
    */
-  async restore2(params: paths['/api/v1/api-auth/applications/{id}/restore']['post']['parameters']['path'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/applications/{id}/restore', 'post'>> {
+  async applicationsRestore(params: paths['/api/v1/api-auth/applications/{id}/restore']['post']['parameters']['path'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/applications/{id}/restore', 'post'>> {
     return await contractClient.post('/api/v1/api-auth/applications/{id}/restore', { params, config })
   },
 
@@ -526,7 +526,7 @@ Args:
    * [api-auth:apiapplication:trash] 获取已删除APIApplication
    * @endpoint GET /api/v1/api-auth/applications/trash
    */
-  async trash(query?: paths['/api/v1/api-auth/applications/trash']['get']['parameters']['query'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/applications/trash', 'get'>> {
+  async applicationsTrash(query?: paths['/api/v1/api-auth/applications/trash']['get']['parameters']['query'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/applications/trash', 'get'>> {
     return await contractClient.get('/api/v1/api-auth/applications/trash', { query, config })
   },
 
@@ -534,7 +534,7 @@ Args:
    * [api-auth:apiapplication:get] 获取APIApplication
    * @endpoint GET /api/v1/api-auth/applications/{id}
    */
-  async getApiV1ApiAuthApplications_id_(params: paths['/api/v1/api-auth/applications/{id}']['get']['parameters']['path'], query?: paths['/api/v1/api-auth/applications/{id}']['get']['parameters']['query'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/applications/{id}', 'get'>> {
+  async applications2(params: paths['/api/v1/api-auth/applications/{id}']['get']['parameters']['path'], query?: paths['/api/v1/api-auth/applications/{id}']['get']['parameters']['query'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/applications/{id}', 'get'>> {
     return await contractClient.get('/api/v1/api-auth/applications/{id}', { params, query, config })
   },
 
@@ -542,7 +542,7 @@ Args:
    * [api-auth:apiapplication:update] 更新APIApplication
    * @endpoint PUT /api/v1/api-auth/applications/{id}
    */
-  async updateApiV1ApiAuthApplications_id_(params: paths['/api/v1/api-auth/applications/{id}']['put']['parameters']['path'], body: paths['/api/v1/api-auth/applications/{id}']['put']['requestBody']['content']['application/json'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/applications/{id}', 'put'>> {
+  async applicationsUpdate(params: paths['/api/v1/api-auth/applications/{id}']['put']['parameters']['path'], body: paths['/api/v1/api-auth/applications/{id}']['put']['requestBody']['content']['application/json'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/applications/{id}', 'put'>> {
     return await contractClient.put('/api/v1/api-auth/applications/{id}', { params, body, config })
   },
 
@@ -550,7 +550,7 @@ Args:
    * [api-auth:apiapplication:delete] 删除APIApplication
    * @endpoint DELETE /api/v1/api-auth/applications/{id}
    */
-  async deleteApiV1ApiAuthApplications_id_(params: paths['/api/v1/api-auth/applications/{id}']['delete']['parameters']['path'], query?: paths['/api/v1/api-auth/applications/{id}']['delete']['parameters']['query'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/applications/{id}', 'delete'>> {
+  async applications3(params: paths['/api/v1/api-auth/applications/{id}']['delete']['parameters']['path'], query?: paths['/api/v1/api-auth/applications/{id}']['delete']['parameters']['query'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/applications/{id}', 'delete'>> {
     return await contractClient.delete('/api/v1/api-auth/applications/{id}', { params, query, config })
   },
 
@@ -558,7 +558,7 @@ Args:
    * [api-auth:apiaccesslog:get] 获取APIAccessLog
    * @endpoint GET /api/v1/api-auth/access-log/{id}
    */
-  async getApiV1ApiAuthAccessLog_id_(params: paths['/api/v1/api-auth/access-log/{id}']['get']['parameters']['path'], query?: paths['/api/v1/api-auth/access-log/{id}']['get']['parameters']['query'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/access-log/{id}', 'get'>> {
+  async accessLog(params: paths['/api/v1/api-auth/access-log/{id}']['get']['parameters']['path'], query?: paths['/api/v1/api-auth/access-log/{id}']['get']['parameters']['query'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api-auth/access-log/{id}', 'get'>> {
     return await contractClient.get('/api/v1/api-auth/access-log/{id}', { params, query, config })
   }
 }
@@ -578,8 +578,8 @@ export const callbackGeneratedApi = {
    * @description 设备完成指令后，调用此接口回传执行结果
    * @endpoint POST /api/v1/callback/result
    */
-  async result(body: paths['/api/v1/callback/result']['post']['requestBody']['content']['application/json'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/callback/result', 'post'>> {
-    return await contractClient.post('/api/v1/callback/result', { body, config })
+  async callbackResult(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/callback/result', 'post'>> {
+    return await contractClient.post('/api/v1/callback/result', { config })
   },
 
   /**
@@ -587,8 +587,17 @@ export const callbackGeneratedApi = {
    * @description 设备发生状态变更或传感器触发业务信号时，调用此接口上报事件（白皮书 3.2.2）
    * @endpoint POST /api/v1/callback/event
    */
-  async event(body: paths['/api/v1/callback/event']['post']['requestBody']['content']['application/json'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/callback/event', 'post'>> {
-    return await contractClient.post('/api/v1/callback/event', { body, config })
+  async callbackEvent(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/callback/event', 'post'>> {
+    return await contractClient.post('/api/v1/callback/event', { config })
+  },
+
+  /**
+   * 外部系统回调
+   * @description 库位分配、AGV 等外部系统异步回调入口
+   * @endpoint POST /api/v1/callback/external
+   */
+  async callbackExternal(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/callback/external', 'post'>> {
+    return await contractClient.post('/api/v1/callback/external', { config })
   },
 
   /**
@@ -596,7 +605,7 @@ export const callbackGeneratedApi = {
    * @description 根据 request_id 查询单条回调日志记录
    * @endpoint GET /api/v1/callback/logs/request/{request_id}
    */
-  async getByRequestIdApiV1CallbackLogsRequest_requestId_(params: paths['/api/v1/callback/logs/request/{request_id}']['get']['parameters']['path'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/callback/logs/request/{request_id}', 'get'>> {
+  async callbackLogsRequestByRequest(params: paths['/api/v1/callback/logs/request/{request_id}']['get']['parameters']['path'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/callback/logs/request/{request_id}', 'get'>> {
     return await contractClient.get('/api/v1/callback/logs/request/{request_id}', { params, config })
   },
 
@@ -605,7 +614,7 @@ export const callbackGeneratedApi = {
    * @description 根据 correlation_id 查询所有相关的回调日志（用于串联整个流程）
    * @endpoint GET /api/v1/callback/logs/correlation/{correlation_id}
    */
-  async getByCorrelationIdApiV1CallbackLogsCorrelation_correlationId_(params: paths['/api/v1/callback/logs/correlation/{correlation_id}']['get']['parameters']['path'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/callback/logs/correlation/{correlation_id}', 'get'>> {
+  async callbackLogsCorrelationByCorrelation(params: paths['/api/v1/callback/logs/correlation/{correlation_id}']['get']['parameters']['path'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/callback/logs/correlation/{correlation_id}', 'get'>> {
     return await contractClient.get('/api/v1/callback/logs/correlation/{correlation_id}', { params, config })
   },
 
@@ -614,7 +623,7 @@ export const callbackGeneratedApi = {
    * @description 查询指定设备最近的回调记录
    * @endpoint GET /api/v1/callback/logs/device/{device_id}
    */
-  async getByDeviceIdApiV1CallbackLogsDevice_deviceId_(params: paths['/api/v1/callback/logs/device/{device_id}']['get']['parameters']['path'], query?: paths['/api/v1/callback/logs/device/{device_id}']['get']['parameters']['query'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/callback/logs/device/{device_id}', 'get'>> {
+  async callbackLogsDeviceByDevice(params: paths['/api/v1/callback/logs/device/{device_id}']['get']['parameters']['path'], query?: paths['/api/v1/callback/logs/device/{device_id}']['get']['parameters']['query'], config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/callback/logs/device/{device_id}', 'get'>> {
     return await contractClient.get('/api/v1/callback/logs/device/{device_id}', { params, query, config })
   }
 }

@@ -541,6 +541,41 @@ export const OPENAPI_SCHEMA_METADATA = {
       }
     }
   },
+  "AppStatus": {
+    "title": "AppStatus",
+    "required": [],
+    "fields": {
+      "__enum": {
+        "title": "AppStatus",
+        "type": "string",
+        "required": true,
+        "nullable": false,
+        "enum": [
+          "active",
+          "revoked",
+          "expired"
+        ]
+      }
+    }
+  },
+  "AppType": {
+    "title": "AppType",
+    "required": [],
+    "fields": {
+      "__enum": {
+        "title": "AppType",
+        "type": "string",
+        "required": true,
+        "nullable": false,
+        "enum": [
+          "ECS",
+          "RCS",
+          "WMS",
+          "Third-Party"
+        ]
+      }
+    }
+  },
   "AssignRolesRequest": {
     "title": "AssignRolesRequest",
     "description": "为用户分配角色请求",
@@ -839,8 +874,8 @@ export const OPENAPI_SCHEMA_METADATA = {
       }
     }
   },
-  "Body_assign_permissions_api_v1_api_auth_applications__id__permissions_post": {
-    "title": "Body_assign_permissions_api_v1_api_auth_applications__id__permissions_post",
+  "Body_api_auth_applications_by_id_permissions_post": {
+    "title": "Body_api_auth_applications_by_id_permissions_post",
     "required": [
       "permission_ids"
     ],
@@ -856,54 +891,8 @@ export const OPENAPI_SCHEMA_METADATA = {
       }
     }
   },
-  "Body_move_node_api_v1_menus_move_put": {
-    "title": "Body_move_node_api_v1_menus_move_put",
-    "required": [
-      "node_id",
-      "new_parent_id"
-    ],
-    "fields": {
-      "node_id": {
-        "title": "Node Id",
-        "description": "要移动的节点ID",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "new_parent_id": {
-        "title": "New Parent Id",
-        "description": "新的父节点ID",
-        "type": "integer",
-        "required": true,
-        "nullable": true
-      }
-    }
-  },
-  "Body_move_node_api_v1_permissions_move_put": {
-    "title": "Body_move_node_api_v1_permissions_move_put",
-    "required": [
-      "node_id",
-      "new_parent_id"
-    ],
-    "fields": {
-      "node_id": {
-        "title": "Node Id",
-        "description": "要移动的节点ID",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "new_parent_id": {
-        "title": "New Parent Id",
-        "description": "新的父节点ID",
-        "type": "integer",
-        "required": true,
-        "nullable": true
-      }
-    }
-  },
-  "Body_query_callback_logs_api_v1_callback_logs_query_post": {
-    "title": "Body_query_callback_logs_api_v1_callback_logs_query_post",
+  "Body_callback_logs_query_post": {
+    "title": "Body_callback_logs_query_post",
     "required": [],
     "fields": {
       "filters": {
@@ -919,6 +908,52 @@ export const OPENAPI_SCHEMA_METADATA = {
         "items": {
           "ref": "SortField"
         }
+      }
+    }
+  },
+  "Body_menus_move_put": {
+    "title": "Body_menus_move_put",
+    "required": [
+      "node_id",
+      "new_parent_id"
+    ],
+    "fields": {
+      "node_id": {
+        "title": "Node Id",
+        "description": "要移动的节点ID",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "new_parent_id": {
+        "title": "New Parent Id",
+        "description": "新的父节点ID",
+        "type": "integer",
+        "required": true,
+        "nullable": true
+      }
+    }
+  },
+  "Body_permissions_move_put": {
+    "title": "Body_permissions_move_put",
+    "required": [
+      "node_id",
+      "new_parent_id"
+    ],
+    "fields": {
+      "node_id": {
+        "title": "Node Id",
+        "description": "要移动的节点ID",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "new_parent_id": {
+        "title": "New Parent Id",
+        "description": "新的父节点ID",
+        "type": "integer",
+        "required": true,
+        "nullable": true
       }
     }
   },
@@ -1020,59 +1055,6 @@ export const OPENAPI_SCHEMA_METADATA = {
         "format": "date-time",
         "required": true,
         "nullable": false
-      }
-    }
-  },
-  "CommandCallbackResult": {
-    "title": "CommandCallbackResult",
-    "description": "指令回调结果 Schema - 设备回调时使用",
-    "required": [
-      "command_code",
-      "device_code",
-      "result",
-      "finish_time"
-    ],
-    "fields": {
-      "command_code": {
-        "title": "Command Code",
-        "description": "指令编码（必须与原指令一致）",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "device_code": {
-        "title": "Device Code",
-        "description": "设备编码（device_code，设备标识）",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "result": {
-        "description": "执行结果",
-        "required": true,
-        "nullable": false,
-        "ref": "CommandResult"
-      },
-      "finish_time": {
-        "title": "Finish Time",
-        "description": "完成时间（Unix 时间戳，毫秒）",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "data": {
-        "title": "Data",
-        "description": "业务回传数据",
-        "type": "object",
-        "required": false,
-        "nullable": true
-      },
-      "error_detail": {
-        "title": "Error Detail",
-        "description": "错误详情（result=FAILED 时必填）",
-        "type": "object",
-        "required": false,
-        "nullable": true
       }
     }
   },
@@ -1447,6 +1429,30 @@ export const OPENAPI_SCHEMA_METADATA = {
         "nullable": true,
         "maxLength": 50
       },
+      "plugin_key": {
+        "title": "Plugin Key",
+        "description": "设备绑定的工作线插件标识",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 100
+      },
+      "contract_profile": {
+        "title": "Contract Profile",
+        "description": "设备绑定的协议 profile",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 100
+      },
+      "contract_version": {
+        "title": "Contract Version",
+        "description": "设备绑定的协议版本",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 50
+      },
       "capabilities": {
         "title": "Capabilities",
         "description": "能力列表（业务能力，如 [SCAN, PICK, PUT]）",
@@ -1561,6 +1567,27 @@ export const OPENAPI_SCHEMA_METADATA = {
       }
     }
   },
+  "DeviceProtocol": {
+    "title": "DeviceProtocol",
+    "description": "设备通信协议枚举（白皮书 2.1 节）",
+    "required": [],
+    "fields": {
+      "__enum": {
+        "title": "DeviceProtocol",
+        "description": "设备通信协议枚举（白皮书 2.1 节）",
+        "type": "string",
+        "required": true,
+        "nullable": false,
+        "enum": [
+          "HTTP",
+          "HTTPS",
+          "TCP",
+          "MODBUS",
+          "MQTT"
+        ]
+      }
+    }
+  },
   "DeviceResponse": {
     "title": "DeviceResponse",
     "description": "设备响应 Schema - 返回给客户端",
@@ -1655,6 +1682,30 @@ export const OPENAPI_SCHEMA_METADATA = {
       "vendor_type": {
         "title": "Vendor Type",
         "description": "厂商类型（ECS, KEYENCE, FANUC...）",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 50
+      },
+      "plugin_key": {
+        "title": "Plugin Key",
+        "description": "设备绑定的工作线插件标识",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 100
+      },
+      "contract_profile": {
+        "title": "Contract Profile",
+        "description": "设备绑定的协议 profile",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 100
+      },
+      "contract_version": {
+        "title": "Contract Version",
+        "description": "设备绑定的协议版本",
         "type": "string",
         "required": false,
         "nullable": true,
@@ -1786,6 +1837,53 @@ export const OPENAPI_SCHEMA_METADATA = {
       }
     }
   },
+  "DeviceStatus": {
+    "title": "DeviceStatus",
+    "description": "设备状态枚举（白皮书 5.2 节）",
+    "required": [],
+    "fields": {
+      "__enum": {
+        "title": "DeviceStatus",
+        "description": "设备状态枚举（白皮书 5.2 节）",
+        "type": "string",
+        "required": true,
+        "nullable": false,
+        "enum": [
+          "IDLE",
+          "RUNNING",
+          "ERROR",
+          "OFFLINE"
+        ]
+      }
+    }
+  },
+  "DeviceType": {
+    "title": "DeviceType",
+    "description": "设备类型枚举 (SRS 3.3.0 节)",
+    "required": [],
+    "fields": {
+      "__enum": {
+        "title": "DeviceType",
+        "description": "设备类型枚举 (SRS 3.3.0 节)",
+        "type": "string",
+        "required": true,
+        "nullable": false,
+        "enum": [
+          "PDA",
+          "INDUSTRIAL_PC",
+          "PRINTER",
+          "COMPUTER",
+          "LCR_TESTER",
+          "ROBOTIC_ARM",
+          "VISION_CAMERA",
+          "CONVEYOR",
+          "LABELER",
+          "XRAY",
+          "SCANNER"
+        ]
+      }
+    }
+  },
   "DeviceUpdate": {
     "title": "DeviceUpdate",
     "description": "设备更新 Schema - 所有字段可选",
@@ -1873,6 +1971,30 @@ export const OPENAPI_SCHEMA_METADATA = {
       "vendor_type": {
         "title": "Vendor Type",
         "description": "厂商类型（ECS, KEYENCE, FANUC...）",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 50
+      },
+      "plugin_key": {
+        "title": "Plugin Key",
+        "description": "设备绑定的工作线插件标识",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 100
+      },
+      "contract_profile": {
+        "title": "Contract Profile",
+        "description": "设备绑定的协议 profile",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 100
+      },
+      "contract_version": {
+        "title": "Contract Version",
+        "description": "设备绑定的协议版本",
         "type": "string",
         "required": false,
         "nullable": true,
@@ -1994,43 +2116,6 @@ export const OPENAPI_SCHEMA_METADATA = {
       }
     }
   },
-  "EventRequest": {
-    "title": "EventRequest",
-    "description": "事件上报请求 Schema - 设备回调时使用",
-    "required": [
-      "device_code",
-      "event_type"
-    ],
-    "fields": {
-      "device_code": {
-        "title": "Device Code",
-        "description": "设备编码（device_code，设备标识）",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "event_type": {
-        "description": "事件类型",
-        "required": true,
-        "nullable": false,
-        "ref": "EventType"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "事件时间戳（Unix 时间戳，毫秒）。设备无时钟可不传，服务器将使用接收时间",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "data": {
-        "title": "Data",
-        "description": "事件负载数据",
-        "type": "object",
-        "required": false,
-        "nullable": true
-      }
-    }
-  },
   "FilterCondition": {
     "title": "FilterCondition",
     "description": "单个过滤条件",
@@ -2083,6 +2168,34 @@ export const OPENAPI_SCHEMA_METADATA = {
       }
     }
   },
+  "FilterOperator": {
+    "title": "FilterOperator",
+    "description": "过滤操作符",
+    "required": [],
+    "fields": {
+      "__enum": {
+        "title": "FilterOperator",
+        "description": "过滤操作符",
+        "type": "string",
+        "required": true,
+        "nullable": false,
+        "enum": [
+          "eq",
+          "ne",
+          "gt",
+          "ge",
+          "lt",
+          "le",
+          "in",
+          "nin",
+          "ilike",
+          "between",
+          "is_null",
+          "not_null"
+        ]
+      }
+    }
+  },
   "HTTPValidationError": {
     "title": "HTTPValidationError",
     "required": [],
@@ -2095,6 +2208,25 @@ export const OPENAPI_SCHEMA_METADATA = {
         "items": {
           "ref": "ValidationError"
         }
+      }
+    }
+  },
+  "LineType": {
+    "title": "LineType",
+    "description": "作业线类型枚举",
+    "required": [],
+    "fields": {
+      "__enum": {
+        "title": "LineType",
+        "description": "作业线类型枚举",
+        "type": "string",
+        "required": true,
+        "nullable": false,
+        "enum": [
+          "AUTO",
+          "MANUAL",
+          "HYBRID"
+        ]
       }
     }
   },
@@ -3519,6 +3651,24 @@ export const OPENAPI_SCHEMA_METADATA = {
         "type": "integer",
         "required": true,
         "nullable": false
+      }
+    }
+  },
+  "OperaStatus": {
+    "title": "OperaStatus",
+    "description": "操作日志状态",
+    "required": [],
+    "fields": {
+      "__enum": {
+        "title": "OperaStatus",
+        "description": "操作日志状态",
+        "type": "string",
+        "required": true,
+        "nullable": false,
+        "enum": [
+          "FAIL",
+          "SUCCESS"
+        ]
       }
     }
   },
@@ -5780,6 +5930,28 @@ export const OPENAPI_SCHEMA_METADATA = {
         "type": "object",
         "required": false,
         "nullable": false
+      }
+    }
+  },
+  "ValidityPeriod": {
+    "title": "ValidityPeriod",
+    "description": "有效期枚举",
+    "required": [],
+    "fields": {
+      "__enum": {
+        "title": "ValidityPeriod",
+        "description": "有效期枚举",
+        "type": "string",
+        "required": true,
+        "nullable": false,
+        "enum": [
+          "1d",
+          "1w",
+          "1m",
+          "6m",
+          "1y",
+          "never"
+        ]
       }
     }
   },

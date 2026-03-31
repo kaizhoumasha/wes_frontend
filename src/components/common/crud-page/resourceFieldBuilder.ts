@@ -5,6 +5,7 @@ import type {
 } from '@/components/common/crud-page/types'
 import {
   getOpenApiSchemaMetadata,
+  type OpenApiEnumValue,
   type OpenApiFieldMetadata,
   type OpenApiSchemaMetadata
 } from '@/api/generated/openapi-metadata'
@@ -27,6 +28,9 @@ import {
 import { getOperatorsForDataType, type SearchDataType, type SearchOperator } from '@/types/search'
 import type { SearchFavorite, QuickSearchPreset, SearchFieldDef } from '@/types/search'
 import type { TableColumnConfig } from '@/types/table'
+
+// 用于标记独立枚举 schema 的虚拟字段名（需与 generate-api-types.ts 保持一致）
+const ENUM_MARKER = '__enum'
 
 export interface ResourceFieldDefinition<TKey extends string = string> extends UnifiedFieldConfig {
   key: TKey
@@ -163,12 +167,43 @@ function inferSearchDataType(form?: UnifiedFormConfig): SearchDataType {
   return 'text'
 }
 
+/**
+ * 从 ref 字段获取枚举值
+ * 当字段引用另一个 schema（如 AppType）时，尝试获取该 schema 的枚举值
+ */
+function getEnumFromRef(metadata?: OpenApiFieldMetadata): OpenApiEnumValue[] | undefined {
+  if (!metadata?.ref) {
+    return undefined
+  }
+
+  const refSchema = getOpenApiSchemaMetadata(metadata.ref)
+  if (!refSchema) {
+    return undefined
+  }
+
+  // 检查 ref schema 中的虚拟枚举标记字段
+  const enumField = refSchema.fields[ENUM_MARKER]
+  if (enumField?.enum) {
+    return enumField.enum
+  }
+
+  // 兼容：如果 ref schema 直接有 enum 字段
+  const firstFieldWithEnum = Object.values(refSchema.fields).find(f => f.enum?.length)
+  return firstFieldWithEnum?.enum
+}
+
 function inferSearchDataTypeFromMetadata(metadata?: OpenApiFieldMetadata): SearchDataType {
   if (!metadata) {
     return 'text'
   }
 
+  // 先检查直接定义的枚举
   if (metadata.enum?.length) {
+    return 'enum'
+  }
+
+  // 检查 ref 引用的枚举
+  if (getEnumFromRef(metadata)?.length) {
     return 'enum'
   }
 
@@ -196,6 +231,11 @@ function inferFormConfigFromMetadata(
     return undefined
   }
 
+  // 获取枚举值（直接定义或通过 ref 引用）
+  const enumValues = metadata?.enum?.length
+    ? metadata.enum
+    : getEnumFromRef(metadata)
+
   if (!metadata) {
     const normalizedForm = normalizeFormConfig(form)
     if (!normalizedForm) {
@@ -206,7 +246,7 @@ function inferFormConfigFromMetadata(
   }
 
   const resolvedType = form.type
-    ?? (metadata.enum?.length
+    ?? (enumValues?.length
       ? 'select'
       : metadata.type === 'boolean'
         ? 'switch'
@@ -228,6 +268,17 @@ function inferFormConfigFromMetadata(
   })
   if (!normalizedForm) {
     return undefined
+  }
+
+  // 如果是 select 类型且有枚举值，自动生成 options
+  if (resolvedType === 'select' && enumValues?.length && !form.options) {
+    // 过滤 null 值，只保留有效的枚举值
+    const validEnumValues = enumValues.filter((v): v is Exclude<typeof v, null> => v !== null)
+    const options = validEnumValues.map(value => ({
+      label: String(value),
+      value
+    }))
+    return withDefaultFormPlaceholder({ ...normalizedForm, options }, label, resolvedType)
   }
 
   return withDefaultFormPlaceholder(normalizedForm, label, resolvedType)
@@ -348,6 +399,11 @@ function normalizeSearchConfig(
     return undefined
   }
 
+  // 获取枚举值（直接定义或通过 ref 引用）
+  const enumValues = metadata?.enum?.length
+    ? metadata.enum
+    : getEnumFromRef(metadata)
+
   const inferredDataType = form
     ? inferSearchDataType(form)
     : inferSearchDataTypeFromMetadata(metadata)
@@ -355,12 +411,20 @@ function normalizeSearchConfig(
   const quickOps = search.quickOps ?? getDefaultQuickSearchOperators(inferredDataType)
   const placeholder = search.placeholder ?? getDefaultSearchPlaceholder(inferredDataType, label)
 
+  // 为枚举类型自动生成 options
+  let searchOptions: SearchFieldDef['options']
+  if (inferredDataType === 'boolean') {
+    searchOptions = DEFAULT_BOOLEAN_SEARCH_OPTIONS
+  } else if (inferredDataType === 'enum' && enumValues?.length) {
+    searchOptions = enumValues.map(value => ({ label: String(value), value }))
+  }
+
   return {
     dataType: inferredDataType,
     searchable: true,
     defaultOperator,
     quickOps,
-    options: inferredDataType === 'boolean' ? DEFAULT_BOOLEAN_SEARCH_OPTIONS : undefined,
+    options: searchOptions,
     placeholder,
     ...search
   }

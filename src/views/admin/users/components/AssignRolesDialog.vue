@@ -176,7 +176,7 @@ async function handleSubmit() {
   submitting.value = true
 
   try {
-    await userApi.assignRoles(props.user.id, selectedRoleIds.value)
+    await userApi.assignRoles({ id: props.user.id }, { role_ids: selectedRoleIds.value })
     ElMessage.success(`已为用户「${props.user.username}」分配角色`)
     visible.value = false
     emit('success')

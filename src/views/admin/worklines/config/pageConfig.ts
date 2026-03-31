@@ -1,14 +1,14 @@
-import type { CreateWorkLineInput, UpdateWorkLineInput, WorkLine } from '@/api/modules/workline'
+import type { CreateWorklineInput, UpdateWorklineInput, Workline } from '@/api/modules/workline'
 import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
-import { workLineApi } from '@/api/modules/workline'
+import { worklineApi } from '@/api/modules/workline'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
 import { workLinePageFieldConfig } from './fieldConfig'
 
-type WorkLinePageConfig = CrudPageConfig<WorkLine, CreateWorkLineInput, UpdateWorkLineInput>
+type WorklinePageConfig = CrudPageConfig<Workline, CreateWorklineInput, UpdateWorklineInput>
 
-const WORKLINE_PAGE_RESOURCE: WorkLinePageConfig['resource'] = {
+const WORKLINE_PAGE_RESOURCE: WorklinePageConfig['resource'] = {
   key: 'worklines',
   title: {
     text: '作业线管理',
@@ -20,13 +20,13 @@ const WORKLINE_PAGE_RESOURCE: WorkLinePageConfig['resource'] = {
     subtitle: '查看并恢复已删除作业线',
     icon: 'ep:delete'
   },
-  api: workLineApi,
+  api: worklineApi,
   permissions: BIZ_PERMISSIONS.workline,
   optimisticUpdate: true,
   defaultSort: [{ field: 'sort_order', order: 'asc' }]
 }
 
-const WORKLINE_PAGE_TABLE: Partial<WorkLinePageConfig['table']> = {
+const WORKLINE_PAGE_TABLE: Partial<WorklinePageConfig['table']> = {
   actionsColumn: {
     width: 200
   }
@@ -58,7 +58,7 @@ const WORKLINE_PAGE_FEATURES: CrudPageFeatures = {
   }
 }
 
-const WORKLINE_PAGE_DETAIL: CrudPageDetailConfig<WorkLine> = {
+const WORKLINE_PAGE_DETAIL: CrudPageDetailConfig<Workline> = {
   mode: 'drawer',
   width: 600,
   title: workline => workline.line_name,
@@ -86,8 +86,8 @@ const WORKLINE_PAGE_DETAIL: CrudPageDetailConfig<WorkLine> = {
   ]
 }
 
-export function createWorkLinePageConfig(): WorkLinePageConfig {
-  return createCrudPageConfigFromResource<WorkLine, CreateWorkLineInput, UpdateWorkLineInput>({
+export function createWorkLinePageConfig(): WorklinePageConfig {
+  return createCrudPageConfigFromResource<Workline, CreateWorklineInput, UpdateWorklineInput>({
     resource: WORKLINE_PAGE_RESOURCE,
     fieldConfig: workLinePageFieldConfig,
     table: WORKLINE_PAGE_TABLE,

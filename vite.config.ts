@@ -77,7 +77,7 @@ function resolveVendorChunk(id: string): string | undefined {
 export default defineConfig(({ mode, command }) => {
   // 加载环境变量
   const env = loadEnv(mode, process.cwd(), '')
-  const apiBaseUrl = env.VITE_API_BASE_URL || 'http://192.168.30.139:8001/api/v1'
+  const apiProxyTarget = env.VITE_API_PROXY_TARGET ?? 'http://localhost:8001'
   const enableVueDevTools = command === 'serve' && mode === 'development'
 
   return {
@@ -157,13 +157,13 @@ export default defineConfig(({ mode, command }) => {
         ]
       },
       proxy: {
-        '/api': {
-          target: apiBaseUrl.replace('/api/v1', ''),
+        '^/api/': {
+          target: apiProxyTarget,
           changeOrigin: true,
-          rewrite: path => path.replace(/^\/api/, '/api/v1')
+          rewrite: path => path
         },
         '/ws': {
-          target: apiBaseUrl.replace('http://', 'ws://').replace('/api/v1', ''),
+          target: apiProxyTarget.replace('http://', 'ws://').replace('https://', 'wss://'),
           ws: true
         }
       }

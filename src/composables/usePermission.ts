@@ -90,7 +90,7 @@ export function usePermission() {
    * ```
    */
   const hasAnyPermission = (permissionNameList: string[]): boolean => {
-    return permissionNameList.some((name) => checkPermissionState(name))
+    return permissionNameList.some(name => checkPermissionState(name))
   }
 
   /**
@@ -111,7 +111,7 @@ export function usePermission() {
    * ```
    */
   const hasAllPermissions = (permissionNameList: string[]): boolean => {
-    return permissionNameList.every((name) => checkPermissionState(name))
+    return permissionNameList.every(name => checkPermissionState(name))
   }
 
   /**
@@ -151,7 +151,7 @@ export function usePermission() {
    * @returns 权限详情，不存在时返回 undefined
    */
   const getPermission = (permissionName: string): ApiPermissionInfo | undefined => {
-    return permissionsState.value.find((p) => p.name === permissionName)
+    return permissionsState.value.find(p => p.name === permissionName)
   }
 
   // ==================== 权限管理函数 ====================
@@ -187,7 +187,7 @@ export function usePermission() {
     permissionLoadErrorState.value = null
 
     try {
-      const response = await authApi.getPermissions()
+      const response = await authApi.permissions()
       setPermissionsState(response.permissions)
       setPermissionsToCache(response.permissions)
     } catch (error) {

@@ -20,7 +20,7 @@ export interface paths {
             cookie?: never;
         };
         /** [api-auth:apiaccesslog:get] 获取APIAccessLog */
-        get: operations["get_api_v1_api_auth_access_log__id__get"];
+        get: operations["api_auth_access_log_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -39,7 +39,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [api-auth:apiaccesslog:list] 获取APIAccessLog列表 */
-        post: operations["query_items_api_v1_api_auth_access_log_query_post"];
+        post: operations["api_auth_access_log_query"];
         delete?: never;
         options?: never;
         head?: never;
@@ -56,7 +56,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [api-auth:api_application:create] 创建 API 应用 */
-        post: operations["create_application_api_v1_api_auth_applications_post"];
+        post: operations["api_auth_applications_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -71,12 +71,12 @@ export interface paths {
             cookie?: never;
         };
         /** [api-auth:apiapplication:get] 获取APIApplication */
-        get: operations["get_api_v1_api_auth_applications__id__get"];
+        get: operations["api_auth_applications_get"];
         /** [api-auth:apiapplication:update] 更新APIApplication */
-        put: operations["update_api_v1_api_auth_applications__id__put"];
+        put: operations["api_auth_applications_update"];
         post?: never;
         /** [api-auth:apiapplication:delete] 删除APIApplication */
-        delete: operations["delete_api_v1_api_auth_applications__id__delete"];
+        delete: operations["api_auth_applications_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -95,7 +95,7 @@ export interface paths {
          * [api-auth:api_application:assign_permission] 分配权限
          * @description 为应用分配权限
          */
-        post: operations["assign_permissions_api_v1_api_auth_applications__id__permissions_post"];
+        post: operations["api_auth_applications_by_id_permissions_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -117,7 +117,7 @@ export interface paths {
          *
          *     ⚠️ 注意: 旧密钥将立即失效，新密钥仅返回一次。
          */
-        post: operations["reset_secret_api_v1_api_auth_applications__id__reset_secret_post"];
+        post: operations["api_auth_applications_by_id_reset_secret_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -149,7 +149,7 @@ export interface paths {
          *         data: 包含新的有效期时长和修改原因
          *         db: 数据库会话
          */
-        post: operations["reset_validity_period_api_v1_api_auth_applications__id__reset_validity_post"];
+        post: operations["api_auth_applications_by_id_reset_validity_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -166,7 +166,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [api-auth:apiapplication:restore] 恢复APIApplication */
-        post: operations["restore_api_v1_api_auth_applications__id__restore_post"];
+        post: operations["api_auth_applications_restore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -183,7 +183,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [api-auth:api_application:revoke] 撤销 API 应用 */
-        post: operations["revoke_application_api_v1_api_auth_applications__id__revoke_post"];
+        post: operations["api_auth_applications_by_id_revoke_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -201,7 +201,7 @@ export interface paths {
          * [api-auth:api_application:list_permissions] 获取系统支持的 API 权限列表
          * @description 返回可供分配给 API 应用的权限列表。
          */
-        get: operations["get_system_api_permissions_api_v1_api_auth_applications_available_permissions_get"];
+        get: operations["api_auth_applications_available_permissions_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -220,7 +220,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [api-auth:apiapplication:list] 获取APIApplication列表 */
-        post: operations["query_items_api_v1_api_auth_applications_query_post"];
+        post: operations["api_auth_applications_query"];
         delete?: never;
         options?: never;
         head?: never;
@@ -235,7 +235,7 @@ export interface paths {
             cookie?: never;
         };
         /** [api-auth:apiapplication:trash] 获取已删除APIApplication */
-        get: operations["get_deleted_api_v1_api_auth_applications_trash_get"];
+        get: operations["api_auth_applications_trash"];
         put?: never;
         post?: never;
         delete?: never;
@@ -255,7 +255,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** [api-auth:apiapplication:batch_permanent_delete] 批量永久删除APIApplication */
-        delete: operations["batch_permanent_delete_api_v1_api_auth_applications_trash_permanent_delete"];
+        delete: operations["api_auth_applications_batch_permanent_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -271,7 +271,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [api-auth:apiapplication:batch_restore] 批量恢复APIApplication */
-        post: operations["batch_restore_api_v1_api_auth_applications_trash_restore_post"];
+        post: operations["api_auth_applications_batch_restore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -293,7 +293,7 @@ export interface paths {
          *
          *     请求格式：{"data": {...}}
          */
-        post: operations["try_invoke_application_api_v1_api_auth_applications_try_invoke_post"];
+        post: operations["api_auth_applications_try_invoke_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -308,7 +308,7 @@ export interface paths {
             cookie?: never;
         };
         /** [sys:auditlog:get] 获取AuditLog */
-        get: operations["get_api_v1_audit_logs__id__get"];
+        get: operations["audit_logs_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -327,7 +327,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [sys:auditlog:list] 获取AuditLog列表 */
-        post: operations["query_items_api_v1_audit_logs_query_post"];
+        post: operations["audit_logs_query"];
         delete?: never;
         options?: never;
         head?: never;
@@ -358,7 +358,7 @@ export interface paths {
          *     - Refresh Token 存储在 HttpOnly Cookie 中
          *     - 支持 JTI（JWT ID）用于精确撤销
          */
-        post: operations["login_api_v1_auth_login_post"];
+        post: operations["auth_login_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -385,7 +385,7 @@ export interface paths {
          *     - 当 Access Token 不可用时，回退使用 Refresh Token Cookie 撤销当前会话
          *     - 始终删除 Refresh Token Cookie（幂等）
          */
-        post: operations["logout_api_v1_auth_logout_post"];
+        post: operations["auth_logout_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -416,7 +416,7 @@ export interface paths {
          *     - 删除所有会话信息
          *     - 返回撤销的令牌数量
          */
-        post: operations["logout_all_api_v1_auth_logout_all_post"];
+        post: operations["auth_logout_all_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -434,7 +434,7 @@ export interface paths {
          * 获取当前用户初始化上下文
          * @description 一次性返回用户信息、API 权限列表和菜单树，用于前端登录后初始化
          */
-        get: operations["get_my_context_api_v1_auth_my_get"];
+        get: operations["auth_my_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -454,7 +454,7 @@ export interface paths {
          * 获取当前用户的 API 权限列表
          * @description 获取当前用户有权限访问的内部管理 API（用于前端动态路由和权限控制）
          */
-        get: operations["get_user_permissions_api_v1_auth_permissions_get"];
+        get: operations["auth_permissions_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -485,7 +485,7 @@ export interface paths {
          *     - 生成新的 JTI（JWT ID）
          *     - 自动撤销旧令牌
          */
-        post: operations["refresh_token_api_v1_auth_refresh_post"];
+        post: operations["auth_refresh_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -515,7 +515,7 @@ export interface paths {
          *     - 安全审计
          *     - 检测异常登录
          */
-        get: operations["get_active_sessions_api_v1_auth_sessions_get"];
+        get: operations["auth_sessions_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -551,7 +551,7 @@ export interface paths {
          *     - 撤销关联的 Refresh Token
          *     - 删除会话信息
          */
-        delete: operations["revoke_session_api_v1_auth_sessions__session_uuid__delete"];
+        delete: operations["auth_sessions_by_session_uuid_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -570,7 +570,27 @@ export interface paths {
          * 设备事件上报
          * @description 设备发生状态变更或传感器触发业务信号时，调用此接口上报事件（白皮书 3.2.2）
          */
-        post: operations["callback_event_api_v1_callback_event_post"];
+        post: operations["callback_event_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/callback/external": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 外部系统回调
+         * @description 库位分配、AGV 等外部系统异步回调入口
+         */
+        post: operations["callback_external_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -588,7 +608,7 @@ export interface paths {
          * 根据关联 ID 查询回调日志
          * @description 根据 correlation_id 查询所有相关的回调日志（用于串联整个流程）
          */
-        get: operations["get_by_correlation_id_api_v1_callback_logs_correlation__correlation_id__get"];
+        get: operations["callback_logs_correlation_by_correlation_id_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -608,7 +628,7 @@ export interface paths {
          * 根据设备 ID 查询回调日志
          * @description 查询指定设备最近的回调记录
          */
-        get: operations["get_by_device_id_api_v1_callback_logs_device__device_id__get"];
+        get: operations["callback_logs_device_by_device_id_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -630,7 +650,7 @@ export interface paths {
          * 回调日志列表查询
          * @description 通用列表查询接口，支持分页、过滤和排序
          */
-        post: operations["query_callback_logs_api_v1_callback_logs_query_post"];
+        post: operations["callback_logs_query_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -648,7 +668,7 @@ export interface paths {
          * 根据请求 ID 查询回调日志
          * @description 根据 request_id 查询单条回调日志记录
          */
-        get: operations["get_by_request_id_api_v1_callback_logs_request__request_id__get"];
+        get: operations["callback_logs_request_by_request_id_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -670,7 +690,7 @@ export interface paths {
          * 任务结果回传
          * @description 设备完成指令后，调用此接口回传执行结果
          */
-        post: operations["callback_result_api_v1_callback_result_post"];
+        post: operations["callback_result_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -687,7 +707,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [demo:demoproduct:create] 创建DemoProduct */
-        post: operations["create_api_v1_demo_products_post"];
+        post: operations["demo_products_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -702,12 +722,12 @@ export interface paths {
             cookie?: never;
         };
         /** [demo:demoproduct:get] 获取DemoProduct */
-        get: operations["get_api_v1_demo_products__id__get"];
+        get: operations["demo_products_get"];
         /** [demo:demoproduct:update] 更新DemoProduct */
-        put: operations["update_api_v1_demo_products__id__put"];
+        put: operations["demo_products_update"];
         post?: never;
         /** [demo:demoproduct:delete] 删除DemoProduct */
-        delete: operations["delete_api_v1_demo_products__id__delete"];
+        delete: operations["demo_products_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -723,7 +743,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [demo:demoproduct:restore] 恢复DemoProduct */
-        post: operations["restore_api_v1_demo_products__id__restore_post"];
+        post: operations["demo_products_restore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -740,7 +760,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [demo:demoproduct:list] 获取DemoProduct列表 */
-        post: operations["query_items_api_v1_demo_products_query_post"];
+        post: operations["demo_products_query"];
         delete?: never;
         options?: never;
         head?: never;
@@ -755,7 +775,7 @@ export interface paths {
             cookie?: never;
         };
         /** [demo:demoproduct:trash] 获取已删除DemoProduct */
-        get: operations["get_deleted_api_v1_demo_products_trash_get"];
+        get: operations["demo_products_trash"];
         put?: never;
         post?: never;
         delete?: never;
@@ -775,7 +795,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** [demo:demoproduct:batch_permanent_delete] 批量永久删除DemoProduct */
-        delete: operations["batch_permanent_delete_api_v1_demo_products_trash_permanent_delete"];
+        delete: operations["demo_products_batch_permanent_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -791,7 +811,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [demo:demoproduct:batch_restore] 批量恢复DemoProduct */
-        post: operations["batch_restore_api_v1_demo_products_trash_restore_post"];
+        post: operations["demo_products_batch_restore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -808,7 +828,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [biz:device:create] 创建Device */
-        post: operations["create_api_v1_devices_post"];
+        post: operations["devices_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -823,12 +843,12 @@ export interface paths {
             cookie?: never;
         };
         /** [biz:device:get] 获取Device */
-        get: operations["get_api_v1_devices__id__get"];
+        get: operations["devices_get"];
         /** [biz:device:update] 更新Device */
-        put: operations["update_api_v1_devices__id__put"];
+        put: operations["devices_update"];
         post?: never;
         /** [biz:device:delete] 删除Device */
-        delete: operations["delete_api_v1_devices__id__delete"];
+        delete: operations["devices_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -844,7 +864,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [biz:device:restore] 恢复Device */
-        post: operations["restore_api_v1_devices__id__restore_post"];
+        post: operations["devices_restore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -861,7 +881,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [biz:device:list] 获取Device列表 */
-        post: operations["query_items_api_v1_devices_query_post"];
+        post: operations["devices_query"];
         delete?: never;
         options?: never;
         head?: never;
@@ -876,7 +896,7 @@ export interface paths {
             cookie?: never;
         };
         /** [biz:device:trash] 获取已删除Device */
-        get: operations["get_deleted_api_v1_devices_trash_get"];
+        get: operations["devices_trash"];
         put?: never;
         post?: never;
         delete?: never;
@@ -896,7 +916,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** [biz:device:batch_permanent_delete] 批量永久删除Device */
-        delete: operations["batch_permanent_delete_api_v1_devices_trash_permanent_delete"];
+        delete: operations["devices_batch_permanent_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -912,7 +932,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [biz:device:batch_restore] 批量恢复Device */
-        post: operations["batch_restore_api_v1_devices_trash_restore_post"];
+        post: operations["devices_batch_restore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -930,7 +950,7 @@ export interface paths {
          * SSE 实时事件流
          * @description 订阅 SSE 事件流，接收系统通知和业务状态更新
          */
-        get: operations["event_stream_api_v1_events_stream_get"];
+        get: operations["events_stream_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -949,7 +969,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [admin:menu:create] 创建Menu */
-        post: operations["create_api_v1_menus_post"];
+        post: operations["menus_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -964,12 +984,12 @@ export interface paths {
             cookie?: never;
         };
         /** [admin:menu:get] 获取Menu */
-        get: operations["get_api_v1_menus__id__get"];
+        get: operations["menus_get"];
         /** [admin:menu:update] 更新Menu */
-        put: operations["update_api_v1_menus__id__put"];
+        put: operations["menus_update"];
         post?: never;
         /** [admin:menu:delete] 删除Menu */
-        delete: operations["delete_api_v1_menus__id__delete"];
+        delete: operations["menus_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -985,7 +1005,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [admin:menu:restore] 恢复Menu */
-        post: operations["restore_api_v1_menus__id__restore_post"];
+        post: operations["menus_restore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1003,7 +1023,7 @@ export interface paths {
          * Get Ancestors
          * @description 获取祖先节点
          */
-        get: operations["get_ancestors_api_v1_menus_ancestors__node_id__get"];
+        get: operations["menus_ancestors_by_node_id_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1024,7 +1044,7 @@ export interface paths {
          * Move Node
          * @description 移动节点
          */
-        put: operations["move_node_api_v1_menus_move_put"];
+        put: operations["menus_move_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1043,7 +1063,7 @@ export interface paths {
          * 获取当前用户的菜单树
          * @description 返回当前用户可访问的菜单树（基于角色权限过滤）
          */
-        get: operations["get_my_menus_api_v1_menus_my_menu_get"];
+        get: operations["menus_my_menu_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1062,7 +1082,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [admin:menu:list] 获取Menu列表 */
-        post: operations["query_items_api_v1_menus_query_post"];
+        post: operations["menus_query"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1080,7 +1100,7 @@ export interface paths {
          * Get Siblings
          * @description 获取同级节点
          */
-        get: operations["get_siblings_api_v1_menus_siblings__node_id__get"];
+        get: operations["menus_siblings_by_node_id_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1097,7 +1117,7 @@ export interface paths {
             cookie?: never;
         };
         /** [admin:menu:trash] 获取已删除Menu */
-        get: operations["get_deleted_api_v1_menus_trash_get"];
+        get: operations["menus_trash"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1117,7 +1137,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** [admin:menu:batch_permanent_delete] 批量永久删除Menu */
-        delete: operations["batch_permanent_delete_api_v1_menus_trash_permanent_delete"];
+        delete: operations["menus_batch_permanent_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1133,7 +1153,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [admin:menu:batch_restore] 批量恢复Menu */
-        post: operations["batch_restore_api_v1_menus_trash_restore_post"];
+        post: operations["menus_batch_restore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1151,7 +1171,7 @@ export interface paths {
          * Get Tree
          * @description 获取树形结构
          */
-        get: operations["get_tree_api_v1_menus_tree_get"];
+        get: operations["menus_tree_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1173,7 +1193,7 @@ export interface paths {
          *
          *     用于性能测试时了解系统配置
          */
-        get: operations["get_performance_config_api_v1_performance_config_get"];
+        get: operations["performance_config_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1195,7 +1215,7 @@ export interface paths {
          *
          *     返回各组件的健康状态
          */
-        get: operations["health_check_api_v1_performance_health_get"];
+        get: operations["performance_health_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1219,7 +1239,7 @@ export interface paths {
          *
          *     清空所有缓存，准备开始新的性能测试
          */
-        post: operations["reset_load_test_data_api_v1_performance_load_test_reset_post"];
+        post: operations["performance_load_test_reset_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1243,7 +1263,7 @@ export interface paths {
          *     - redis: Redis 连接状态
          *     - cache: 缓存统计信息
          */
-        get: operations["get_performance_metrics_api_v1_performance_metrics_get"];
+        get: operations["performance_metrics_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1262,7 +1282,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [admin:permission:create] 创建Permission */
-        post: operations["create_api_v1_permissions_post"];
+        post: operations["permissions_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1277,12 +1297,12 @@ export interface paths {
             cookie?: never;
         };
         /** [admin:permission:get] 获取Permission */
-        get: operations["get_api_v1_permissions__id__get"];
+        get: operations["permissions_get"];
         /** [admin:permission:update] 更新Permission */
-        put: operations["update_api_v1_permissions__id__put"];
+        put: operations["permissions_update"];
         post?: never;
         /** [admin:permission:delete] 删除Permission */
-        delete: operations["delete_api_v1_permissions__id__delete"];
+        delete: operations["permissions_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1298,7 +1318,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [admin:permission:restore] 恢复Permission */
-        post: operations["restore_api_v1_permissions__id__restore_post"];
+        post: operations["permissions_restore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1316,7 +1336,7 @@ export interface paths {
          * Get Ancestors
          * @description 获取祖先节点
          */
-        get: operations["get_ancestors_api_v1_permissions_ancestors__node_id__get"];
+        get: operations["permissions_ancestors_by_node_id_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1337,7 +1357,7 @@ export interface paths {
          * Move Node
          * @description 移动节点
          */
-        put: operations["move_node_api_v1_permissions_move_put"];
+        put: operations["permissions_move_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1355,7 +1375,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [admin:permission:list] 获取Permission列表 */
-        post: operations["query_items_api_v1_permissions_query_post"];
+        post: operations["permissions_query"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1373,7 +1393,7 @@ export interface paths {
          * Get Siblings
          * @description 获取同级节点
          */
-        get: operations["get_siblings_api_v1_permissions_siblings__node_id__get"];
+        get: operations["permissions_siblings_by_node_id_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1390,7 +1410,7 @@ export interface paths {
             cookie?: never;
         };
         /** [admin:permission:trash] 获取已删除Permission */
-        get: operations["get_deleted_api_v1_permissions_trash_get"];
+        get: operations["permissions_trash"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1410,7 +1430,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** [admin:permission:batch_permanent_delete] 批量永久删除Permission */
-        delete: operations["batch_permanent_delete_api_v1_permissions_trash_permanent_delete"];
+        delete: operations["permissions_batch_permanent_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1426,7 +1446,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [admin:permission:batch_restore] 批量恢复Permission */
-        post: operations["batch_restore_api_v1_permissions_trash_restore_post"];
+        post: operations["permissions_batch_restore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1444,7 +1464,7 @@ export interface paths {
          * Get Tree
          * @description 获取树形结构
          */
-        get: operations["get_tree_api_v1_permissions_tree_get"];
+        get: operations["permissions_tree_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1463,7 +1483,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [admin:role:create] 创建Role */
-        post: operations["create_api_v1_roles_post"];
+        post: operations["roles_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1478,12 +1498,12 @@ export interface paths {
             cookie?: never;
         };
         /** [admin:role:get] 获取Role */
-        get: operations["get_api_v1_roles__id__get"];
+        get: operations["roles_get"];
         /** [admin:role:update] 更新Role */
-        put: operations["update_api_v1_roles__id__put"];
+        put: operations["roles_update"];
         post?: never;
         /** [admin:role:delete] 删除Role */
-        delete: operations["delete_api_v1_roles__id__delete"];
+        delete: operations["roles_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1499,7 +1519,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [admin:role:restore] 恢复Role */
-        post: operations["restore_api_v1_roles__id__restore_post"];
+        post: operations["roles_restore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1516,7 +1536,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [admin:role:list] 获取Role列表 */
-        post: operations["query_items_api_v1_roles_query_post"];
+        post: operations["roles_query"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1531,7 +1551,7 @@ export interface paths {
             cookie?: never;
         };
         /** [admin:role:trash] 获取已删除Role */
-        get: operations["get_deleted_api_v1_roles_trash_get"];
+        get: operations["roles_trash"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1551,7 +1571,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** [admin:role:batch_permanent_delete] 批量永久删除Role */
-        delete: operations["batch_permanent_delete_api_v1_roles_trash_permanent_delete"];
+        delete: operations["roles_batch_permanent_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1567,7 +1587,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [admin:role:batch_restore] 批量恢复Role */
-        post: operations["batch_restore_api_v1_roles_trash_restore_post"];
+        post: operations["roles_batch_restore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1584,7 +1604,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [admin:user:create] 创建User */
-        post: operations["create_api_v1_users_post"];
+        post: operations["users_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1599,12 +1619,12 @@ export interface paths {
             cookie?: never;
         };
         /** [admin:user:get] 获取User */
-        get: operations["get_api_v1_users__id__get"];
+        get: operations["users_get"];
         /** [admin:user:update] 更新User */
-        put: operations["update_api_v1_users__id__put"];
+        put: operations["users_update"];
         post?: never;
         /** [admin:user:delete] 删除User */
-        delete: operations["delete_api_v1_users__id__delete"];
+        delete: operations["users_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1637,7 +1657,7 @@ export interface paths {
          *     Returns:
          *         更新后的用户信息（包含角色列表）
          */
-        put: operations["assign_roles_api_v1_users__id__assign_roles_put"];
+        put: operations["users_by_id_assign_roles_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1674,7 +1694,7 @@ export interface paths {
          *     Returns:
          *         更新后的用户信息
          */
-        put: operations["reset_password_api_v1_users__id__reset_password_put"];
+        put: operations["users_by_id_reset_password_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1692,7 +1712,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [admin:user:restore] 恢复User */
-        post: operations["restore_api_v1_users__id__restore_post"];
+        post: operations["users_restore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1710,7 +1730,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** [admin:user:bulk_delete] 批量删除User */
-        delete: operations["bulk_delete_api_v1_users_bulk_delete"];
+        delete: operations["users_bulk_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1726,7 +1746,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [admin:user:list] 获取User列表 */
-        post: operations["query_items_api_v1_users_query_post"];
+        post: operations["users_query"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1749,7 +1769,7 @@ export interface paths {
          *     - cache_status: 缓存服务状态
          *     - cache_keys_count: 缓存键数量（如果 Redis 可用）
          */
-        get: operations["get_cache_stats_api_v1_users_stats_cache_get"];
+        get: operations["users_stats_cache_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1766,7 +1786,7 @@ export interface paths {
             cookie?: never;
         };
         /** [admin:user:trash] 获取已删除User */
-        get: operations["get_deleted_api_v1_users_trash_get"];
+        get: operations["users_trash"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1786,7 +1806,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** [admin:user:batch_permanent_delete] 批量永久删除User */
-        delete: operations["batch_permanent_delete_api_v1_users_trash_permanent_delete"];
+        delete: operations["users_batch_permanent_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1802,7 +1822,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [admin:user:batch_restore] 批量恢复User */
-        post: operations["batch_restore_api_v1_users_trash_restore_post"];
+        post: operations["users_batch_restore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1819,7 +1839,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [biz:workline:create] 创建WorkLine */
-        post: operations["create_api_v1_work_lines_post"];
+        post: operations["work_lines_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1834,12 +1854,12 @@ export interface paths {
             cookie?: never;
         };
         /** [biz:workline:get] 获取WorkLine */
-        get: operations["get_api_v1_work_lines__id__get"];
+        get: operations["work_lines_get"];
         /** [biz:workline:update] 更新WorkLine */
-        put: operations["update_api_v1_work_lines__id__put"];
+        put: operations["work_lines_update"];
         post?: never;
         /** [biz:workline:delete] 删除WorkLine */
-        delete: operations["delete_api_v1_work_lines__id__delete"];
+        delete: operations["work_lines_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1855,7 +1875,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [biz:workline:restore] 恢复WorkLine */
-        post: operations["restore_api_v1_work_lines__id__restore_post"];
+        post: operations["work_lines_restore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1872,7 +1892,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [biz:workline:list] 获取WorkLine列表 */
-        post: operations["query_items_api_v1_work_lines_query_post"];
+        post: operations["work_lines_query"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1887,7 +1907,7 @@ export interface paths {
             cookie?: never;
         };
         /** [biz:workline:trash] 获取已删除WorkLine */
-        get: operations["get_deleted_api_v1_work_lines_trash_get"];
+        get: operations["work_lines_trash"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1907,7 +1927,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** [biz:workline:batch_permanent_delete] 批量永久删除WorkLine */
-        delete: operations["batch_permanent_delete_api_v1_work_lines_trash_permanent_delete"];
+        delete: operations["work_lines_batch_permanent_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1923,7 +1943,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** [biz:workline:batch_restore] 批量恢复WorkLine */
-        post: operations["batch_restore_api_v1_work_lines_trash_restore_post"];
+        post: operations["work_lines_batch_restore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2414,42 +2434,42 @@ export interface components {
              */
             total: number;
         };
-        /** Body_assign_permissions_api_v1_api_auth_applications__id__permissions_post */
-        Body_assign_permissions_api_v1_api_auth_applications__id__permissions_post: {
+        /** Body_api_auth_applications_by_id_permissions_post */
+        Body_api_auth_applications_by_id_permissions_post: {
             /** Permission Ids */
             permission_ids: number[];
         };
-        /** Body_move_node_api_v1_menus_move_put */
-        Body_move_node_api_v1_menus_move_put: {
-            /**
-             * New Parent Id
-             * @description 新的父节点ID
-             */
-            new_parent_id: number | null;
-            /**
-             * Node Id
-             * @description 要移动的节点ID
-             */
-            node_id: number;
-        };
-        /** Body_move_node_api_v1_permissions_move_put */
-        Body_move_node_api_v1_permissions_move_put: {
-            /**
-             * New Parent Id
-             * @description 新的父节点ID
-             */
-            new_parent_id: number | null;
-            /**
-             * Node Id
-             * @description 要移动的节点ID
-             */
-            node_id: number;
-        };
-        /** Body_query_callback_logs_api_v1_callback_logs_query_post */
-        Body_query_callback_logs_api_v1_callback_logs_query_post: {
+        /** Body_callback_logs_query_post */
+        Body_callback_logs_query_post: {
             filters?: components["schemas"]["FilterGroup"] | null;
             /** Sort */
             sort?: components["schemas"]["SortField"][] | null;
+        };
+        /** Body_menus_move_put */
+        Body_menus_move_put: {
+            /**
+             * New Parent Id
+             * @description 新的父节点ID
+             */
+            new_parent_id: number | null;
+            /**
+             * Node Id
+             * @description 要移动的节点ID
+             */
+            node_id: number;
+        };
+        /** Body_permissions_move_put */
+        Body_permissions_move_put: {
+            /**
+             * New Parent Id
+             * @description 新的父节点ID
+             */
+            new_parent_id: number | null;
+            /**
+             * Node Id
+             * @description 要移动的节点ID
+             */
+            node_id: number;
         };
         /**
          * CallbackLogResponse
@@ -2491,49 +2511,6 @@ export interface components {
             /** User Agent */
             user_agent: string | null;
         };
-        /**
-         * CommandCallbackResult
-         * @description 指令回调结果 Schema - 设备回调时使用
-         */
-        CommandCallbackResult: {
-            /**
-             * Command Code
-             * @description 指令编码（必须与原指令一致）
-             */
-            command_code: string;
-            /**
-             * Data
-             * @description 业务回传数据
-             */
-            data?: {
-                [key: string]: unknown;
-            } | null;
-            /**
-             * Device Code
-             * @description 设备编码（device_code，设备标识）
-             */
-            device_code: string;
-            /**
-             * Error Detail
-             * @description 错误详情（result=FAILED 时必填）
-             */
-            error_detail?: {
-                [key: string]: unknown;
-            } | null;
-            /**
-             * Finish Time
-             * @description 完成时间（Unix 时间戳，毫秒）
-             */
-            finish_time: number;
-            /** @description 执行结果 */
-            result: components["schemas"]["CommandResult"];
-        };
-        /**
-         * CommandResult
-         * @description 指令执行结果枚举
-         * @enum {string}
-         */
-        CommandResult: "SUCCESS" | "FAILED";
         /**
          * DemoProductCreate
          * @description DemoProduct 创建模型
@@ -2671,6 +2648,16 @@ export interface components {
              */
             capabilities: string[];
             /**
+             * Contract Profile
+             * @description 设备绑定的协议 profile
+             */
+            contract_profile?: string | null;
+            /**
+             * Contract Version
+             * @description 设备绑定的协议版本
+             */
+            contract_version?: string | null;
+            /**
              * Current Command Id
              * @description 当前执行的指令 ID（关联 DeviceCommand.id）
              */
@@ -2735,6 +2722,11 @@ export interface components {
              * @default 1
              */
             max_concurrent_tasks: number;
+            /**
+             * Plugin Key
+             * @description 设备绑定的工作线插件标识
+             */
+            plugin_key?: string | null;
             /**
              * Port
              * @description 服务端口
@@ -2806,6 +2798,16 @@ export interface components {
              */
             capabilities?: string[];
             /**
+             * Contract Profile
+             * @description 设备绑定的协议 profile
+             */
+            contract_profile?: string | null;
+            /**
+             * Contract Version
+             * @description 设备绑定的协议版本
+             */
+            contract_version?: string | null;
+            /**
              * Current Command Id
              * @description 当前执行的指令 ID（关联 DeviceCommand.id）
              */
@@ -2872,6 +2874,11 @@ export interface components {
              * @default 1
              */
             max_concurrent_tasks: number;
+            /**
+             * Plugin Key
+             * @description 设备绑定的工作线插件标识
+             */
+            plugin_key?: string | null;
             /**
              * Port
              * @description 服务端口
@@ -2951,6 +2958,16 @@ export interface components {
              */
             capabilities?: string[] | null;
             /**
+             * Contract Profile
+             * @description 设备绑定的协议 profile
+             */
+            contract_profile?: string | null;
+            /**
+             * Contract Version
+             * @description 设备绑定的协议版本
+             */
+            contract_version?: string | null;
+            /**
              * Current Command Id
              * @description 当前执行的指令 ID（关联 DeviceCommand.id）
              */
@@ -3010,6 +3027,11 @@ export interface components {
              */
             max_concurrent_tasks?: number | null;
             /**
+             * Plugin Key
+             * @description 设备绑定的工作线插件标识
+             */
+            plugin_key?: string | null;
+            /**
              * Port
              * @description 服务端口
              */
@@ -3057,37 +3079,6 @@ export interface components {
              */
             work_line_id?: number | null;
         };
-        /**
-         * EventRequest
-         * @description 事件上报请求 Schema - 设备回调时使用
-         */
-        EventRequest: {
-            /**
-             * Data
-             * @description 事件负载数据
-             */
-            data?: {
-                [key: string]: unknown;
-            } | null;
-            /**
-             * Device Code
-             * @description 设备编码（device_code，设备标识）
-             */
-            device_code: string;
-            /** @description 事件类型 */
-            event_type: components["schemas"]["EventType"];
-            /**
-             * Timestamp
-             * @description 事件时间戳（Unix 时间戳，毫秒）。设备无时钟可不传，服务器将使用接收时间
-             */
-            timestamp?: number | null;
-        };
-        /**
-         * EventType
-         * @description 事件类型枚举 (白皮书 3.2.2)
-         * @enum {string}
-         */
-        EventType: "ESTOP_PRESSED" | "DEVICE_ONLINE" | "DEVICE_OFFLINE" | "DEVICE_ERROR" | "MATERIAL_ARRIVED" | "SCAN_COMPLETED" | "PICK_COMPLETED" | "PUT_COMPLETED" | "PROCESS_COMPLETED";
         /**
          * FilterCondition
          * @description 单个过滤条件
@@ -5710,7 +5701,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    get_api_v1_api_auth_access_log__id__get: {
+    api_auth_access_log_get: {
         parameters: {
             query?: {
                 /** @description 是否包含已删除记录（仅软删除模型生效） */
@@ -5746,7 +5737,7 @@ export interface operations {
             };
         };
     };
-    query_items_api_v1_api_auth_access_log_query_post: {
+    api_auth_access_log_query: {
         parameters: {
             query?: never;
             header?: never;
@@ -5779,7 +5770,7 @@ export interface operations {
             };
         };
     };
-    create_application_api_v1_api_auth_applications_post: {
+    api_auth_applications_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -5812,7 +5803,7 @@ export interface operations {
             };
         };
     };
-    get_api_v1_api_auth_applications__id__get: {
+    api_auth_applications_get: {
         parameters: {
             query?: {
                 /** @description 是否包含已删除记录（仅软删除模型生效） */
@@ -5848,7 +5839,7 @@ export interface operations {
             };
         };
     };
-    update_api_v1_api_auth_applications__id__put: {
+    api_auth_applications_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -5883,7 +5874,7 @@ export interface operations {
             };
         };
     };
-    delete_api_v1_api_auth_applications__id__delete: {
+    api_auth_applications_delete: {
         parameters: {
             query?: {
                 /** @description 是否永久删除 */
@@ -5917,7 +5908,7 @@ export interface operations {
             };
         };
     };
-    assign_permissions_api_v1_api_auth_applications__id__permissions_post: {
+    api_auth_applications_by_id_permissions_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -5928,7 +5919,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Body_assign_permissions_api_v1_api_auth_applications__id__permissions_post"];
+                "application/json": components["schemas"]["Body_api_auth_applications_by_id_permissions_post"];
             };
         };
         responses: {
@@ -5952,7 +5943,7 @@ export interface operations {
             };
         };
     };
-    reset_secret_api_v1_api_auth_applications__id__reset_secret_post: {
+    api_auth_applications_by_id_reset_secret_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -5983,7 +5974,7 @@ export interface operations {
             };
         };
     };
-    reset_validity_period_api_v1_api_auth_applications__id__reset_validity_post: {
+    api_auth_applications_by_id_reset_validity_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -6018,7 +6009,7 @@ export interface operations {
             };
         };
     };
-    restore_api_v1_api_auth_applications__id__restore_post: {
+    api_auth_applications_restore: {
         parameters: {
             query?: never;
             header?: never;
@@ -6049,7 +6040,7 @@ export interface operations {
             };
         };
     };
-    revoke_application_api_v1_api_auth_applications__id__revoke_post: {
+    api_auth_applications_by_id_revoke_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -6080,7 +6071,7 @@ export interface operations {
             };
         };
     };
-    get_system_api_permissions_api_v1_api_auth_applications_available_permissions_get: {
+    api_auth_applications_available_permissions_get: {
         parameters: {
             query?: {
                 /** @description 是否强制从代码重新扫描并同步到数据库 */
@@ -6112,7 +6103,7 @@ export interface operations {
             };
         };
     };
-    query_items_api_v1_api_auth_applications_query_post: {
+    api_auth_applications_query: {
         parameters: {
             query?: never;
             header?: never;
@@ -6145,7 +6136,7 @@ export interface operations {
             };
         };
     };
-    get_deleted_api_v1_api_auth_applications_trash_get: {
+    api_auth_applications_trash: {
         parameters: {
             query?: {
                 limit?: number;
@@ -6177,7 +6168,7 @@ export interface operations {
             };
         };
     };
-    batch_permanent_delete_api_v1_api_auth_applications_trash_permanent_delete: {
+    api_auth_applications_batch_permanent_delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -6210,7 +6201,7 @@ export interface operations {
             };
         };
     };
-    batch_restore_api_v1_api_auth_applications_trash_restore_post: {
+    api_auth_applications_batch_restore: {
         parameters: {
             query?: never;
             header?: never;
@@ -6243,7 +6234,7 @@ export interface operations {
             };
         };
     };
-    try_invoke_application_api_v1_api_auth_applications_try_invoke_post: {
+    api_auth_applications_try_invoke_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -6276,7 +6267,7 @@ export interface operations {
             };
         };
     };
-    get_api_v1_audit_logs__id__get: {
+    audit_logs_get: {
         parameters: {
             query?: {
                 /** @description 是否包含已删除记录（仅软删除模型生效） */
@@ -6312,7 +6303,7 @@ export interface operations {
             };
         };
     };
-    query_items_api_v1_audit_logs_query_post: {
+    audit_logs_query: {
         parameters: {
             query?: never;
             header?: never;
@@ -6345,7 +6336,7 @@ export interface operations {
             };
         };
     };
-    login_api_v1_auth_login_post: {
+    auth_login_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -6378,7 +6369,7 @@ export interface operations {
             };
         };
     };
-    logout_api_v1_auth_logout_post: {
+    auth_logout_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -6398,7 +6389,7 @@ export interface operations {
             };
         };
     };
-    logout_all_api_v1_auth_logout_all_post: {
+    auth_logout_all_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -6418,7 +6409,7 @@ export interface operations {
             };
         };
     };
-    get_my_context_api_v1_auth_my_get: {
+    auth_my_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -6438,7 +6429,7 @@ export interface operations {
             };
         };
     };
-    get_user_permissions_api_v1_auth_permissions_get: {
+    auth_permissions_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -6458,7 +6449,7 @@ export interface operations {
             };
         };
     };
-    refresh_token_api_v1_auth_refresh_post: {
+    auth_refresh_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -6478,7 +6469,7 @@ export interface operations {
             };
         };
     };
-    get_active_sessions_api_v1_auth_sessions_get: {
+    auth_sessions_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -6498,7 +6489,7 @@ export interface operations {
             };
         };
     };
-    revoke_session_api_v1_auth_sessions__session_uuid__delete: {
+    auth_sessions_by_session_uuid_delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -6529,18 +6520,14 @@ export interface operations {
             };
         };
     };
-    callback_event_api_v1_callback_event_post: {
+    callback_event_post: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EventRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -6551,18 +6538,29 @@ export interface operations {
                     "application/json": unknown;
                 };
             };
-            /** @description Validation Error */
-            422: {
+        };
+    };
+    callback_external_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
+                    "application/json": unknown;
                 };
             };
         };
     };
-    get_by_correlation_id_api_v1_callback_logs_correlation__correlation_id__get: {
+    callback_logs_correlation_by_correlation_id_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -6595,7 +6593,7 @@ export interface operations {
             };
         };
     };
-    get_by_device_id_api_v1_callback_logs_device__device_id__get: {
+    callback_logs_device_by_device_id_get: {
         parameters: {
             query?: {
                 limit?: number;
@@ -6630,7 +6628,7 @@ export interface operations {
             };
         };
     };
-    query_callback_logs_api_v1_callback_logs_query_post: {
+    callback_logs_query_post: {
         parameters: {
             query?: {
                 limit?: number;
@@ -6642,7 +6640,7 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["Body_query_callback_logs_api_v1_callback_logs_query_post"];
+                "application/json": components["schemas"]["Body_callback_logs_query_post"];
             };
         };
         responses: {
@@ -6668,7 +6666,7 @@ export interface operations {
             };
         };
     };
-    get_by_request_id_api_v1_callback_logs_request__request_id__get: {
+    callback_logs_request_by_request_id_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -6699,18 +6697,14 @@ export interface operations {
             };
         };
     };
-    callback_result_api_v1_callback_result_post: {
+    callback_result_post: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CommandCallbackResult"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -6721,18 +6715,9 @@ export interface operations {
                     "application/json": unknown;
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
         };
     };
-    create_api_v1_demo_products_post: {
+    demo_products_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -6765,7 +6750,7 @@ export interface operations {
             };
         };
     };
-    get_api_v1_demo_products__id__get: {
+    demo_products_get: {
         parameters: {
             query?: {
                 /** @description 是否包含已删除记录（仅软删除模型生效） */
@@ -6801,7 +6786,7 @@ export interface operations {
             };
         };
     };
-    update_api_v1_demo_products__id__put: {
+    demo_products_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -6836,7 +6821,7 @@ export interface operations {
             };
         };
     };
-    delete_api_v1_demo_products__id__delete: {
+    demo_products_delete: {
         parameters: {
             query?: {
                 /** @description 是否永久删除 */
@@ -6870,7 +6855,7 @@ export interface operations {
             };
         };
     };
-    restore_api_v1_demo_products__id__restore_post: {
+    demo_products_restore: {
         parameters: {
             query?: never;
             header?: never;
@@ -6901,7 +6886,7 @@ export interface operations {
             };
         };
     };
-    query_items_api_v1_demo_products_query_post: {
+    demo_products_query: {
         parameters: {
             query?: never;
             header?: never;
@@ -6934,7 +6919,7 @@ export interface operations {
             };
         };
     };
-    get_deleted_api_v1_demo_products_trash_get: {
+    demo_products_trash: {
         parameters: {
             query?: {
                 limit?: number;
@@ -6966,7 +6951,7 @@ export interface operations {
             };
         };
     };
-    batch_permanent_delete_api_v1_demo_products_trash_permanent_delete: {
+    demo_products_batch_permanent_delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -6999,7 +6984,7 @@ export interface operations {
             };
         };
     };
-    batch_restore_api_v1_demo_products_trash_restore_post: {
+    demo_products_batch_restore: {
         parameters: {
             query?: never;
             header?: never;
@@ -7032,7 +7017,7 @@ export interface operations {
             };
         };
     };
-    create_api_v1_devices_post: {
+    devices_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -7065,7 +7050,7 @@ export interface operations {
             };
         };
     };
-    get_api_v1_devices__id__get: {
+    devices_get: {
         parameters: {
             query?: {
                 /** @description 是否包含已删除记录（仅软删除模型生效） */
@@ -7101,7 +7086,7 @@ export interface operations {
             };
         };
     };
-    update_api_v1_devices__id__put: {
+    devices_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -7136,7 +7121,7 @@ export interface operations {
             };
         };
     };
-    delete_api_v1_devices__id__delete: {
+    devices_delete: {
         parameters: {
             query?: {
                 /** @description 是否永久删除 */
@@ -7170,7 +7155,7 @@ export interface operations {
             };
         };
     };
-    restore_api_v1_devices__id__restore_post: {
+    devices_restore: {
         parameters: {
             query?: never;
             header?: never;
@@ -7201,7 +7186,7 @@ export interface operations {
             };
         };
     };
-    query_items_api_v1_devices_query_post: {
+    devices_query: {
         parameters: {
             query?: never;
             header?: never;
@@ -7234,7 +7219,7 @@ export interface operations {
             };
         };
     };
-    get_deleted_api_v1_devices_trash_get: {
+    devices_trash: {
         parameters: {
             query?: {
                 limit?: number;
@@ -7266,7 +7251,7 @@ export interface operations {
             };
         };
     };
-    batch_permanent_delete_api_v1_devices_trash_permanent_delete: {
+    devices_batch_permanent_delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -7299,7 +7284,7 @@ export interface operations {
             };
         };
     };
-    batch_restore_api_v1_devices_trash_restore_post: {
+    devices_batch_restore: {
         parameters: {
             query?: never;
             header?: never;
@@ -7332,7 +7317,7 @@ export interface operations {
             };
         };
     };
-    event_stream_api_v1_events_stream_get: {
+    events_stream_get: {
         parameters: {
             query?: {
                 /** @description 访问令牌（EventSource 无法设置 Authorization 头时使用） */
@@ -7364,7 +7349,7 @@ export interface operations {
             };
         };
     };
-    create_api_v1_menus_post: {
+    menus_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -7397,7 +7382,7 @@ export interface operations {
             };
         };
     };
-    get_api_v1_menus__id__get: {
+    menus_get: {
         parameters: {
             query?: {
                 /** @description 是否包含已删除记录（仅软删除模型生效） */
@@ -7433,7 +7418,7 @@ export interface operations {
             };
         };
     };
-    update_api_v1_menus__id__put: {
+    menus_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -7468,7 +7453,7 @@ export interface operations {
             };
         };
     };
-    delete_api_v1_menus__id__delete: {
+    menus_delete: {
         parameters: {
             query?: {
                 /** @description 是否永久删除 */
@@ -7502,7 +7487,7 @@ export interface operations {
             };
         };
     };
-    restore_api_v1_menus__id__restore_post: {
+    menus_restore: {
         parameters: {
             query?: never;
             header?: never;
@@ -7533,7 +7518,7 @@ export interface operations {
             };
         };
     };
-    get_ancestors_api_v1_menus_ancestors__node_id__get: {
+    menus_ancestors_by_node_id_get: {
         parameters: {
             query?: {
                 /** @description 是否包含自身 */
@@ -7568,7 +7553,7 @@ export interface operations {
             };
         };
     };
-    move_node_api_v1_menus_move_put: {
+    menus_move_put: {
         parameters: {
             query?: never;
             header?: never;
@@ -7577,7 +7562,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Body_move_node_api_v1_menus_move_put"];
+                "application/json": components["schemas"]["Body_menus_move_put"];
             };
         };
         responses: {
@@ -7601,7 +7586,7 @@ export interface operations {
             };
         };
     };
-    get_my_menus_api_v1_menus_my_menu_get: {
+    menus_my_menu_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -7621,7 +7606,7 @@ export interface operations {
             };
         };
     };
-    query_items_api_v1_menus_query_post: {
+    menus_query: {
         parameters: {
             query?: never;
             header?: never;
@@ -7654,7 +7639,7 @@ export interface operations {
             };
         };
     };
-    get_siblings_api_v1_menus_siblings__node_id__get: {
+    menus_siblings_by_node_id_get: {
         parameters: {
             query?: {
                 /** @description 是否包含自身 */
@@ -7689,7 +7674,7 @@ export interface operations {
             };
         };
     };
-    get_deleted_api_v1_menus_trash_get: {
+    menus_trash: {
         parameters: {
             query?: {
                 limit?: number;
@@ -7721,7 +7706,7 @@ export interface operations {
             };
         };
     };
-    batch_permanent_delete_api_v1_menus_trash_permanent_delete: {
+    menus_batch_permanent_delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -7754,7 +7739,7 @@ export interface operations {
             };
         };
     };
-    batch_restore_api_v1_menus_trash_restore_post: {
+    menus_batch_restore: {
         parameters: {
             query?: never;
             header?: never;
@@ -7787,7 +7772,7 @@ export interface operations {
             };
         };
     };
-    get_tree_api_v1_menus_tree_get: {
+    menus_tree_get: {
         parameters: {
             query?: {
                 /** @description 最大深度,-1表示不限制 */
@@ -7821,7 +7806,7 @@ export interface operations {
             };
         };
     };
-    get_performance_config_api_v1_performance_config_get: {
+    performance_config_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -7843,7 +7828,7 @@ export interface operations {
             };
         };
     };
-    health_check_api_v1_performance_health_get: {
+    performance_health_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -7865,7 +7850,7 @@ export interface operations {
             };
         };
     };
-    reset_load_test_data_api_v1_performance_load_test_reset_post: {
+    performance_load_test_reset_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -7887,7 +7872,7 @@ export interface operations {
             };
         };
     };
-    get_performance_metrics_api_v1_performance_metrics_get: {
+    performance_metrics_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -7909,7 +7894,7 @@ export interface operations {
             };
         };
     };
-    create_api_v1_permissions_post: {
+    permissions_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -7942,7 +7927,7 @@ export interface operations {
             };
         };
     };
-    get_api_v1_permissions__id__get: {
+    permissions_get: {
         parameters: {
             query?: {
                 /** @description 是否包含已删除记录（仅软删除模型生效） */
@@ -7978,7 +7963,7 @@ export interface operations {
             };
         };
     };
-    update_api_v1_permissions__id__put: {
+    permissions_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -8013,7 +7998,7 @@ export interface operations {
             };
         };
     };
-    delete_api_v1_permissions__id__delete: {
+    permissions_delete: {
         parameters: {
             query?: {
                 /** @description 是否永久删除 */
@@ -8047,7 +8032,7 @@ export interface operations {
             };
         };
     };
-    restore_api_v1_permissions__id__restore_post: {
+    permissions_restore: {
         parameters: {
             query?: never;
             header?: never;
@@ -8078,7 +8063,7 @@ export interface operations {
             };
         };
     };
-    get_ancestors_api_v1_permissions_ancestors__node_id__get: {
+    permissions_ancestors_by_node_id_get: {
         parameters: {
             query?: {
                 /** @description 是否包含自身 */
@@ -8113,7 +8098,7 @@ export interface operations {
             };
         };
     };
-    move_node_api_v1_permissions_move_put: {
+    permissions_move_put: {
         parameters: {
             query?: never;
             header?: never;
@@ -8122,7 +8107,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Body_move_node_api_v1_permissions_move_put"];
+                "application/json": components["schemas"]["Body_permissions_move_put"];
             };
         };
         responses: {
@@ -8146,7 +8131,7 @@ export interface operations {
             };
         };
     };
-    query_items_api_v1_permissions_query_post: {
+    permissions_query: {
         parameters: {
             query?: never;
             header?: never;
@@ -8179,7 +8164,7 @@ export interface operations {
             };
         };
     };
-    get_siblings_api_v1_permissions_siblings__node_id__get: {
+    permissions_siblings_by_node_id_get: {
         parameters: {
             query?: {
                 /** @description 是否包含自身 */
@@ -8214,7 +8199,7 @@ export interface operations {
             };
         };
     };
-    get_deleted_api_v1_permissions_trash_get: {
+    permissions_trash: {
         parameters: {
             query?: {
                 limit?: number;
@@ -8246,7 +8231,7 @@ export interface operations {
             };
         };
     };
-    batch_permanent_delete_api_v1_permissions_trash_permanent_delete: {
+    permissions_batch_permanent_delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -8279,7 +8264,7 @@ export interface operations {
             };
         };
     };
-    batch_restore_api_v1_permissions_trash_restore_post: {
+    permissions_batch_restore: {
         parameters: {
             query?: never;
             header?: never;
@@ -8312,7 +8297,7 @@ export interface operations {
             };
         };
     };
-    get_tree_api_v1_permissions_tree_get: {
+    permissions_tree_get: {
         parameters: {
             query?: {
                 /** @description 最大深度,-1表示不限制 */
@@ -8346,7 +8331,7 @@ export interface operations {
             };
         };
     };
-    create_api_v1_roles_post: {
+    roles_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -8379,7 +8364,7 @@ export interface operations {
             };
         };
     };
-    get_api_v1_roles__id__get: {
+    roles_get: {
         parameters: {
             query?: {
                 /** @description 是否包含已删除记录（仅软删除模型生效） */
@@ -8415,7 +8400,7 @@ export interface operations {
             };
         };
     };
-    update_api_v1_roles__id__put: {
+    roles_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -8450,7 +8435,7 @@ export interface operations {
             };
         };
     };
-    delete_api_v1_roles__id__delete: {
+    roles_delete: {
         parameters: {
             query?: {
                 /** @description 是否永久删除 */
@@ -8484,7 +8469,7 @@ export interface operations {
             };
         };
     };
-    restore_api_v1_roles__id__restore_post: {
+    roles_restore: {
         parameters: {
             query?: never;
             header?: never;
@@ -8515,7 +8500,7 @@ export interface operations {
             };
         };
     };
-    query_items_api_v1_roles_query_post: {
+    roles_query: {
         parameters: {
             query?: never;
             header?: never;
@@ -8548,7 +8533,7 @@ export interface operations {
             };
         };
     };
-    get_deleted_api_v1_roles_trash_get: {
+    roles_trash: {
         parameters: {
             query?: {
                 limit?: number;
@@ -8580,7 +8565,7 @@ export interface operations {
             };
         };
     };
-    batch_permanent_delete_api_v1_roles_trash_permanent_delete: {
+    roles_batch_permanent_delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -8613,7 +8598,7 @@ export interface operations {
             };
         };
     };
-    batch_restore_api_v1_roles_trash_restore_post: {
+    roles_batch_restore: {
         parameters: {
             query?: never;
             header?: never;
@@ -8646,7 +8631,7 @@ export interface operations {
             };
         };
     };
-    create_api_v1_users_post: {
+    users_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -8679,7 +8664,7 @@ export interface operations {
             };
         };
     };
-    get_api_v1_users__id__get: {
+    users_get: {
         parameters: {
             query?: {
                 /** @description 是否包含已删除记录（仅软删除模型生效） */
@@ -8715,7 +8700,7 @@ export interface operations {
             };
         };
     };
-    update_api_v1_users__id__put: {
+    users_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -8750,7 +8735,7 @@ export interface operations {
             };
         };
     };
-    delete_api_v1_users__id__delete: {
+    users_delete: {
         parameters: {
             query?: {
                 /** @description 是否永久删除 */
@@ -8784,7 +8769,7 @@ export interface operations {
             };
         };
     };
-    assign_roles_api_v1_users__id__assign_roles_put: {
+    users_by_id_assign_roles_put: {
         parameters: {
             query?: never;
             header?: never;
@@ -8819,7 +8804,7 @@ export interface operations {
             };
         };
     };
-    reset_password_api_v1_users__id__reset_password_put: {
+    users_by_id_reset_password_put: {
         parameters: {
             query?: never;
             header?: never;
@@ -8854,7 +8839,7 @@ export interface operations {
             };
         };
     };
-    restore_api_v1_users__id__restore_post: {
+    users_restore: {
         parameters: {
             query?: never;
             header?: never;
@@ -8885,7 +8870,7 @@ export interface operations {
             };
         };
     };
-    bulk_delete_api_v1_users_bulk_delete: {
+    users_bulk_delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -8918,7 +8903,7 @@ export interface operations {
             };
         };
     };
-    query_items_api_v1_users_query_post: {
+    users_query: {
         parameters: {
             query?: never;
             header?: never;
@@ -8951,7 +8936,7 @@ export interface operations {
             };
         };
     };
-    get_cache_stats_api_v1_users_stats_cache_get: {
+    users_stats_cache_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -8973,7 +8958,7 @@ export interface operations {
             };
         };
     };
-    get_deleted_api_v1_users_trash_get: {
+    users_trash: {
         parameters: {
             query?: {
                 limit?: number;
@@ -9005,7 +8990,7 @@ export interface operations {
             };
         };
     };
-    batch_permanent_delete_api_v1_users_trash_permanent_delete: {
+    users_batch_permanent_delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -9038,7 +9023,7 @@ export interface operations {
             };
         };
     };
-    batch_restore_api_v1_users_trash_restore_post: {
+    users_batch_restore: {
         parameters: {
             query?: never;
             header?: never;
@@ -9071,7 +9056,7 @@ export interface operations {
             };
         };
     };
-    create_api_v1_work_lines_post: {
+    work_lines_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -9104,7 +9089,7 @@ export interface operations {
             };
         };
     };
-    get_api_v1_work_lines__id__get: {
+    work_lines_get: {
         parameters: {
             query?: {
                 /** @description 是否包含已删除记录（仅软删除模型生效） */
@@ -9140,7 +9125,7 @@ export interface operations {
             };
         };
     };
-    update_api_v1_work_lines__id__put: {
+    work_lines_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -9175,7 +9160,7 @@ export interface operations {
             };
         };
     };
-    delete_api_v1_work_lines__id__delete: {
+    work_lines_delete: {
         parameters: {
             query?: {
                 /** @description 是否永久删除 */
@@ -9209,7 +9194,7 @@ export interface operations {
             };
         };
     };
-    restore_api_v1_work_lines__id__restore_post: {
+    work_lines_restore: {
         parameters: {
             query?: never;
             header?: never;
@@ -9240,7 +9225,7 @@ export interface operations {
             };
         };
     };
-    query_items_api_v1_work_lines_query_post: {
+    work_lines_query: {
         parameters: {
             query?: never;
             header?: never;
@@ -9273,7 +9258,7 @@ export interface operations {
             };
         };
     };
-    get_deleted_api_v1_work_lines_trash_get: {
+    work_lines_trash: {
         parameters: {
             query?: {
                 limit?: number;
@@ -9305,7 +9290,7 @@ export interface operations {
             };
         };
     };
-    batch_permanent_delete_api_v1_work_lines_trash_permanent_delete: {
+    work_lines_batch_permanent_delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -9338,7 +9323,7 @@ export interface operations {
             };
         };
     };
-    batch_restore_api_v1_work_lines_trash_restore_post: {
+    work_lines_batch_restore: {
         parameters: {
             query?: never;
             header?: never;
