@@ -1,6 +1,10 @@
-import type { CreateWorklineInput, UpdateWorklineInput, Workline } from '@/api/modules/workline'
+import type {
+  CreateWorkLinesInput as CreateWorklineInput,
+  UpdateWorkLinesInput as UpdateWorklineInput,
+  WorkLinesItem as Workline
+} from '@/api/modules/workLines'
 import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
-import { worklineApi } from '@/api/modules/workline'
+import { workLinesApi as worklineApi } from '@/api/modules/workLines'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'

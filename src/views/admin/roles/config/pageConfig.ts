@@ -1,6 +1,10 @@
-import type { CreateRoleInput, UpdateRoleInput, Role } from '@/api/modules/role'
+import type {
+  CreateRolesInput as CreateRoleInput,
+  UpdateRolesInput as UpdateRoleInput,
+  RolesItem as Role
+} from '@/api/modules/roles'
 import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
-import { roleApi } from '@/api/modules/role'
+import { rolesApi as roleApi } from '@/api/modules/roles'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'

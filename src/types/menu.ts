@@ -7,7 +7,7 @@
 
 import type { ArrayItem, ContractResponseData } from '@/api/contract/types'
 
-type MenuTreePath = '/api/v1/menus/my_menu'
+type MenuTreePath = '/api/v1/admin/menus/my_menu'
 
 // ==================== 菜单项类型 ====================
 

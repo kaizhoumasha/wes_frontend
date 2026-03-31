@@ -1,6 +1,10 @@
-import type { APIApplication, CreateAPIApplicationInput, UpdateAPIApplicationInput } from '@/api/modules/apiApplication'
+import type {
+  ApplicationsItem as APIApplication,
+  CreateApplicationsInput as CreateAPIApplicationInput,
+  UpdateApplicationsInput as UpdateAPIApplicationInput
+} from '@/api/modules/applications'
 import { API_AUTH_PERMISSIONS } from '@/api/generated/permissions'
-import { apiApplicationApi } from '@/api/modules/apiApplication'
+import { applicationsApi as apiApplicationApi } from '@/api/modules/applications'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'

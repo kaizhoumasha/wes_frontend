@@ -19,7 +19,7 @@ import CrudPageContainer from '@/components/common/CrudPageContainer.vue'
 import AssignRolesDialog from './components/AssignRolesDialog.vue'
 import ResetPasswordDialog from './components/ResetPasswordDialog.vue'
 import { createUserPageConfig } from './config/pageConfig'
-import type { User } from '@/api/modules/user'
+import type { UsersItem as User } from '@/api/modules/users'
 
 // 分配角色对话框状态
 const assignRolesDialogVisible = ref(false)

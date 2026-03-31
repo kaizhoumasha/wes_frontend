@@ -571,7 +571,7 @@ Closes #123
 ```typescript
 import { useForm } from 'vee-validate'
 import { UserCreateSchema } from '@/types/zod-extensions'
-import { userApi, type CreateUserInput } from '@/api/modules/user'
+import { usersApi as userApi, type CreateUsersInput as CreateUserInput } from '@/api/modules/users'
 
 // 关键：使用泛型参数实现类型推断
 const { handleSubmit, errors, defineField } = useForm<CreateUserInput>({

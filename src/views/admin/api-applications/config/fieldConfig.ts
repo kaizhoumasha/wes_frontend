@@ -2,7 +2,11 @@
  * API 应用字段配置
  */
 
-import type { APIApplication, CreateAPIApplicationInput, UpdateAPIApplicationInput } from '@/api/modules/apiApplication'
+import type {
+  ApplicationsItem as APIApplication,
+  CreateApplicationsInput as CreateAPIApplicationInput,
+  UpdateApplicationsInput as UpdateAPIApplicationInput
+} from '@/api/modules/applications'
 import { APIApplicationCreateSchema, APIApplicationUpdateSchema } from '@/types/zod-extensions'
 import {
   defineCrudResourceFieldBundle

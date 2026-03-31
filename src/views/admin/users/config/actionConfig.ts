@@ -1,6 +1,6 @@
 import { computed } from 'vue'
 import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
-import type { User } from '@/api/modules/user'
+import type { UsersItem as User } from '@/api/modules/users'
 import type { CrudPageRowAction } from '@/components/common/crud-page/types'
 import { usePermission } from '@/composables/usePermission'
 

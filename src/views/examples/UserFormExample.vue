@@ -7,7 +7,7 @@
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
 import { UserCreateSchema } from '@/types/zod-extensions'
-import { userApi, type CreateUserInput } from '@/api/modules/user'
+import { usersApi as userApi, type CreateUsersInput as CreateUserInput } from '@/api/modules/users'
 import { ElMessage } from 'element-plus'
 
 // 使用泛型类型，让 vee-validate 自动推断类型

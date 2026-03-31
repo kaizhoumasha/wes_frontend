@@ -1134,6 +1134,8 @@ export const MenuCreateSchema = z.object({
   level: z.number().optional().default(1),
   /** Sort Order */
   sort_order: z.number().optional().default(0),
+  /** Has Children */
+  has_children: z.boolean().optional().default(false),
   /** Name */
   name: z.string().max(50),
   /** Title */
@@ -1164,6 +1166,8 @@ export const MenuResponseSchema = z.object({
   level: z.number().optional().default(1),
   /** Sort Order */
   sort_order: z.number().optional().default(0),
+  /** Has Children */
+  has_children: z.boolean().optional().default(false),
   /** Name */
   name: z.string().max(50),
   /** Title */
@@ -1200,6 +1204,8 @@ export const MenuTreeResponseSchema = z.object({
   level: z.number().optional().default(1),
   /** Sort Order */
   sort_order: z.number().optional().default(0),
+  /** Has Children */
+  has_children: z.boolean().optional().default(false),
   /** Name */
   name: z.string().max(50),
   /** Title */
@@ -1238,6 +1244,8 @@ export const MenuTreeResponseSimpleSchema = z.lazy((): z.ZodTypeAny => z.object(
   level: z.number().optional().default(1),
   /** Sort Order */
   sort_order: z.number().optional().default(0),
+  /** Has Children */
+  has_children: z.boolean().optional().default(false),
   /** Name */
   name: z.string().max(50),
   /** Title */
@@ -1274,6 +1282,8 @@ export const MenuUpdateSchema = z.object({
   level: z.union([z.number(), z.null()]).optional(),
   /** Sort Order */
   sort_order: z.union([z.number(), z.null()]).optional(),
+  /** Has Children */
+  has_children: z.union([z.boolean(), z.null()]).optional(),
   /** Name */
   name: z.union([z.string().max(50), z.null()]).optional(),
   /** Title */
@@ -1315,6 +1325,8 @@ export const PermissionCreateSchema = z.object({
   level: z.number().optional().default(1),
   /** Sort Order */
   sort_order: z.number().optional().default(0),
+  /** Has Children */
+  has_children: z.boolean().optional().default(false),
   /** Name */
   name: z.string().max(100),
   /** Description */
@@ -1349,6 +1361,8 @@ export const PermissionResponseSchema = z.object({
   level: z.number().optional().default(1),
   /** Sort Order */
   sort_order: z.number().optional().default(0),
+  /** Has Children */
+  has_children: z.boolean().optional().default(false),
   /** Name */
   name: z.string().max(100),
   /** Description */
@@ -1369,8 +1383,6 @@ export const PermissionResponseSchema = z.object({
   id: z.number(),
   /** Version */
   version: z.number(),
-  /** Full Name */
-  full_name: z.string(),
 })
 
 
@@ -1391,6 +1403,8 @@ export const PermissionTreeSchema = z.lazy((): z.ZodTypeAny => z.object({
   level: z.number().optional().default(1),
   /** Sort Order */
   sort_order: z.number().optional().default(0),
+  /** Has Children */
+  has_children: z.boolean().optional().default(false),
   /** Name */
   name: z.string().max(100),
   /** Description */
@@ -1411,10 +1425,6 @@ export const PermissionTreeSchema = z.lazy((): z.ZodTypeAny => z.object({
   id: z.number(),
   /** Children */
   children: z.array(z.lazy(() => PermissionTreeSchema)).optional(),
-  /** Is Leaf */
-  is_leaf: z.boolean(),
-  /** Has Children */
-  has_children: z.boolean(),
 }))
 
 
@@ -1433,6 +1443,8 @@ export const PermissionUpdateSchema = z.object({
   level: z.union([z.number(), z.null()]).optional(),
   /** Sort Order */
   sort_order: z.union([z.number(), z.null()]).optional(),
+  /** Has Children */
+  has_children: z.union([z.boolean(), z.null()]).optional(),
   /** Name */
   name: z.union([z.string().max(100), z.null()]).optional(),
   /** Description */

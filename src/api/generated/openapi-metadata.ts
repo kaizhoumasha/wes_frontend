@@ -874,6 +874,52 @@ export const OPENAPI_SCHEMA_METADATA = {
       }
     }
   },
+  "Body_admin_menus_move_put": {
+    "title": "Body_admin_menus_move_put",
+    "required": [
+      "node_id",
+      "new_parent_id"
+    ],
+    "fields": {
+      "node_id": {
+        "title": "Node Id",
+        "description": "要移动的节点ID",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "new_parent_id": {
+        "title": "New Parent Id",
+        "description": "新的父节点ID",
+        "type": "integer",
+        "required": true,
+        "nullable": true
+      }
+    }
+  },
+  "Body_admin_permissions_move_put": {
+    "title": "Body_admin_permissions_move_put",
+    "required": [
+      "node_id",
+      "new_parent_id"
+    ],
+    "fields": {
+      "node_id": {
+        "title": "Node Id",
+        "description": "要移动的节点ID",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "new_parent_id": {
+        "title": "New Parent Id",
+        "description": "新的父节点ID",
+        "type": "integer",
+        "required": true,
+        "nullable": true
+      }
+    }
+  },
   "Body_api_auth_applications_by_id_permissions_post": {
     "title": "Body_api_auth_applications_by_id_permissions_post",
     "required": [
@@ -908,52 +954,6 @@ export const OPENAPI_SCHEMA_METADATA = {
         "items": {
           "ref": "SortField"
         }
-      }
-    }
-  },
-  "Body_menus_move_put": {
-    "title": "Body_menus_move_put",
-    "required": [
-      "node_id",
-      "new_parent_id"
-    ],
-    "fields": {
-      "node_id": {
-        "title": "Node Id",
-        "description": "要移动的节点ID",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "new_parent_id": {
-        "title": "New Parent Id",
-        "description": "新的父节点ID",
-        "type": "integer",
-        "required": true,
-        "nullable": true
-      }
-    }
-  },
-  "Body_permissions_move_put": {
-    "title": "Body_permissions_move_put",
-    "required": [
-      "node_id",
-      "new_parent_id"
-    ],
-    "fields": {
-      "node_id": {
-        "title": "Node Id",
-        "description": "要移动的节点ID",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "new_parent_id": {
-        "title": "New Parent Id",
-        "description": "新的父节点ID",
-        "type": "integer",
-        "required": true,
-        "nullable": true
       }
     }
   },
@@ -3180,6 +3180,13 @@ export const OPENAPI_SCHEMA_METADATA = {
         "nullable": false,
         "default": 0
       },
+      "has_children": {
+        "title": "Has Children",
+        "type": "boolean",
+        "required": false,
+        "nullable": false,
+        "default": false
+      },
       "name": {
         "title": "Name",
         "description": "菜单标识，如 system:users",
@@ -3267,6 +3274,13 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": false,
         "default": 0
+      },
+      "has_children": {
+        "title": "Has Children",
+        "type": "boolean",
+        "required": false,
+        "nullable": false,
+        "default": false
       },
       "name": {
         "title": "Name",
@@ -3376,6 +3390,13 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": false,
         "default": 0
+      },
+      "has_children": {
+        "title": "Has Children",
+        "type": "boolean",
+        "required": false,
+        "nullable": false,
+        "default": false
       },
       "name": {
         "title": "Name",
@@ -3495,6 +3516,13 @@ export const OPENAPI_SCHEMA_METADATA = {
         "nullable": false,
         "default": 0
       },
+      "has_children": {
+        "title": "Has Children",
+        "type": "boolean",
+        "required": false,
+        "nullable": false,
+        "default": false
+      },
       "name": {
         "title": "Name",
         "description": "菜单标识，如 system:users",
@@ -3595,6 +3623,12 @@ export const OPENAPI_SCHEMA_METADATA = {
       "sort_order": {
         "title": "Sort Order",
         "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "has_children": {
+        "title": "Has Children",
+        "type": "boolean",
         "required": false,
         "nullable": true
       },
@@ -3707,6 +3741,13 @@ export const OPENAPI_SCHEMA_METADATA = {
         "nullable": false,
         "default": 0
       },
+      "has_children": {
+        "title": "Has Children",
+        "type": "boolean",
+        "required": false,
+        "nullable": false,
+        "default": false
+      },
       "name": {
         "title": "Name",
         "description": "权限标识，如 admin:role:create",
@@ -3780,8 +3821,7 @@ export const OPENAPI_SCHEMA_METADATA = {
     "required": [
       "name",
       "id",
-      "version",
-      "full_name"
+      "version"
     ],
     "fields": {
       "parent_id": {
@@ -3810,6 +3850,13 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": false,
         "default": 0
+      },
+      "has_children": {
+        "title": "Has Children",
+        "type": "boolean",
+        "required": false,
+        "nullable": false,
+        "default": false
       },
       "name": {
         "title": "Name",
@@ -3887,13 +3934,6 @@ export const OPENAPI_SCHEMA_METADATA = {
         "type": "integer",
         "required": true,
         "nullable": false
-      },
-      "full_name": {
-        "title": "Full Name",
-        "description": "生成完整的权限标识（包含类型前缀）",
-        "type": "string",
-        "required": true,
-        "nullable": false
       }
     }
   },
@@ -3902,9 +3942,7 @@ export const OPENAPI_SCHEMA_METADATA = {
     "description": "API 权限树形结构 Schema\n\n用于权限分组展示和管理（如按模块分组）",
     "required": [
       "name",
-      "id",
-      "is_leaf",
-      "has_children"
+      "id"
     ],
     "fields": {
       "parent_id": {
@@ -3933,6 +3971,13 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": false,
         "default": 0
+      },
+      "has_children": {
+        "title": "Has Children",
+        "type": "boolean",
+        "required": false,
+        "nullable": false,
+        "default": false
       },
       "name": {
         "title": "Name",
@@ -4014,20 +4059,6 @@ export const OPENAPI_SCHEMA_METADATA = {
         "items": {
           "ref": "PermissionTree"
         }
-      },
-      "is_leaf": {
-        "title": "Is Leaf",
-        "description": "是否为叶子节点（无子权限）",
-        "type": "boolean",
-        "required": true,
-        "nullable": false
-      },
-      "has_children": {
-        "title": "Has Children",
-        "description": "是否有子权限",
-        "type": "boolean",
-        "required": true,
-        "nullable": false
       }
     }
   },
@@ -4060,6 +4091,12 @@ export const OPENAPI_SCHEMA_METADATA = {
       "sort_order": {
         "title": "Sort Order",
         "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "has_children": {
+        "title": "Has Children",
+        "type": "boolean",
         "required": false,
         "nullable": true
       },

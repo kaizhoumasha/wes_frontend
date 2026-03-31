@@ -2,41 +2,52 @@
 /**
  * OpenAPI 类型生成脚本
  *
- * 从后端 OpenAPI 端点生成 TypeScript 类型定义和 API 客户端
- * 确保前后端类型一致，防止契约漂移
+ * 从后端 OpenAPI 端点生成 TypeScript 类型定义、字段元数据和按 model 分组的 API 模块。
+ * 生成策略完全基于路径事实，不再依赖 operationId 前缀猜测或单复数硬编码。
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  unlinkSync,
+  writeFileSync
+} from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import openapiTS, { astToString } from 'openapi-typescript'
 import ts from 'typescript'
 
-// 用于标记独立枚举 schema 的虚拟字段名
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
 const ENUM_MARKER = '__enum'
 
-// ==================== API 客户端生成 ====================
+export const AUTO_GENERATED_START =
+  '// ==================== AUTO GENERATED START ===================='
+export const AUTO_GENERATED_END = '// ==================== AUTO GENERATED END ===================='
+export const CUSTOM_METHODS_START =
+  '// ==================== CUSTOM METHODS START ===================='
+export const CUSTOM_METHODS_END = '// ==================== CUSTOM METHODS END ===================='
+export const CUSTOM_CONFIG_START =
+  '// ==================== CUSTOM CONFIG START ===================='
+export const CUSTOM_CONFIG_END = '// ==================== CUSTOM CONFIG END ===================='
 
-/**
- * OpenAPI Path Item 对象
- */
+export type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete'
+
 interface OpenApiPathItem {
   get?: OpenApiOperation
   post?: OpenApiOperation
   put?: OpenApiOperation
   patch?: OpenApiOperation
   delete?: OpenApiOperation
-  parameters?: unknown
 }
 
-/**
- * OpenAPI Operation 对象
- */
 interface OpenApiOperation {
   operationId?: string
   summary?: string
   description?: string
-  tags?: string[]
   parameters?: Array<{
     name: string
     in: 'path' | 'query' | 'header' | 'cookie'
@@ -50,92 +61,24 @@ interface OpenApiOperation {
       }
     }
   }
-  responses?: Record<string, {
-    description?: string
-    content?: {
-      'application/json'?: {
-        schema?: unknown
+  responses?: Record<
+    string,
+    {
+      description?: string
+      content?: {
+        'application/json'?: {
+          schema?: unknown
+        }
       }
     }
-  }>
+  >
 }
 
-/**
- * HTTP 方法集合
- */
-type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete'
-
-/**
- * 端点信息
- */
-interface EndpointInfo {
+export interface EndpointInfo {
   path: string
   method: HttpMethod
   operation: OpenApiOperation
 }
-
-/**
- * 资源分组
- */
-interface ResourceGroup {
-  resourceName: string
-  collectionPath: string
-  endpoints: EndpointInfo[]
-  extraEndpoints: EndpointInfo[]
-}
-
-/**
- * 生成的 API 客户端方法
- */
-interface GeneratedApiMethod {
-  name: string
-  path: string
-  method: HttpMethod
-  hasPathParams: boolean
-  hasQueryParams: boolean
-  hasBody: boolean
-  responseType: string
-  pathParamsType?: string
-  queryParamsType?: string
-  bodyType?: string
-  summary?: string
-  description?: string
-}
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-
-// ==================== 配置 ====================
-
-interface Config {
-  /** 后端 OpenAPI 端点 */
-  backendUrl: string
-  /** 输出目录 */
-  outputDir: string
-  /** 模块输出目录 */
-  modulesOutputDir: string
-  /** 是否覆盖已存在的类型 */
-  overwrite: boolean
-  /** 是否生成 API 客户端 */
-  generateApiClients: boolean
-  /** 是否生成 API 模块 */
-  generateApiModules: boolean
-}
-
-const config: Config = {
-  // 从环境变量读取，默认开发环境
-  backendUrl:
-    process.env.VITE_API_BASE_URL ||
-    process.env.BACKEND_URL ||
-    'http://localhost:8001/api/openapi.json',
-  outputDir: join(__dirname, '../src/api/generated'),
-  modulesOutputDir: join(__dirname, '../src/api/modules'),
-  overwrite: true,
-  generateApiClients: true,
-  generateApiModules: true
-}
-
-type OpenApiEnumValue = string | number | boolean | null
 
 interface OpenApiPropertySchema {
   $ref?: string
@@ -144,7 +87,7 @@ interface OpenApiPropertySchema {
   description?: string
   format?: string
   default?: unknown
-  enum?: OpenApiEnumValue[]
+  enum?: Array<string | number | boolean | null>
   minLength?: number
   maxLength?: number
   minimum?: number
@@ -155,7 +98,6 @@ interface OpenApiPropertySchema {
   additionalProperties?: boolean | OpenApiPropertySchema
   anyOf?: OpenApiPropertySchema[]
   oneOf?: OpenApiPropertySchema[]
-  allOf?: OpenApiPropertySchema[]
 }
 
 interface OpenApiDocument {
@@ -169,7 +111,7 @@ interface GeneratedOpenApiArrayMetadata {
   type?: string
   format?: string
   ref?: string
-  enum?: OpenApiEnumValue[]
+  enum?: Array<string | number | boolean | null>
 }
 
 interface GeneratedOpenApiFieldMetadata {
@@ -180,7 +122,7 @@ interface GeneratedOpenApiFieldMetadata {
   required: boolean
   nullable: boolean
   default?: unknown
-  enum?: OpenApiEnumValue[]
+  enum?: Array<string | number | boolean | null>
   ref?: string
   items?: GeneratedOpenApiArrayMetadata
   minLength?: number
@@ -197,11 +139,74 @@ interface GeneratedOpenApiSchemaMetadata {
   fields: Record<string, GeneratedOpenApiFieldMetadata>
 }
 
-// ==================== 工具函数 ====================
+interface Config {
+  backendUrl: string
+  outputDir: string
+  modulesOutputDir: string
+}
 
-/**
- * 确保目录存在
- */
+const config: Config = {
+  backendUrl:
+    process.env.VITE_API_BASE_URL ||
+    process.env.BACKEND_URL ||
+    'http://localhost:8001/api/openapi.json',
+  outputDir: join(__dirname, '../src/api/generated'),
+  modulesOutputDir: join(__dirname, '../src/api/modules')
+}
+
+export interface ModuleModelGroup {
+  key: string
+  version: string
+  module: string
+  model: string
+  collectionPath: string
+  endpoints: EndpointInfo[]
+}
+
+export interface CrudCapabilities {
+  kind: 'none' | 'standard' | 'soft-delete'
+  hasBulkDelete: boolean
+}
+
+export interface ModulePlan {
+  key: string
+  kind: 'resource' | 'module-actions'
+  fileBaseName: string
+  groups: ModuleModelGroup[]
+}
+
+interface ProvisionalModulePlan {
+  key: string
+  kind: ModulePlan['kind']
+  groups: ModuleModelGroup[]
+  preferredBaseName: string
+  fallbackBaseName: string
+}
+
+interface ExistingModuleSections {
+  auto: string
+  customMethods: string
+  customConfig: string
+}
+
+interface GeneratedMethodInfo {
+  name: string
+  path: string
+  method: HttpMethod
+  responseType: string
+  pathParamsType?: string
+  queryParamsType?: string
+  bodyType?: string
+  summary?: string
+  description?: string
+  typeAliasBase: string
+}
+
+const NO_CRUD_CAPABILITIES = {
+  kind: 'none',
+  hasBulkDelete: false
+} as const satisfies CrudCapabilities
+
 function ensureDir(path: string): void {
   if (!existsSync(path)) {
     mkdirSync(path, { recursive: true })
@@ -218,9 +223,15 @@ function writeFileIfChanged(path: string, content: string): boolean {
   return true
 }
 
-/**
- * 从 URL 获取 OpenAPI 规范
- */
+function deleteFileIfExists(path: string): boolean {
+  if (!existsSync(path)) {
+    return false
+  }
+
+  unlinkSync(path)
+  return true
+}
+
 async function fetchOpenApiSpec(url: string): Promise<unknown> {
   console.log(`📥 正在从后端获取 OpenAPI 规范: ${url}`)
 
@@ -228,8 +239,7 @@ async function fetchOpenApiSpec(url: string): Promise<unknown> {
     headers: {
       Accept: 'application/json'
     },
-    // 开发环境忽略证书错误
-    // @ts-expect-error - Node.js fetch options
+    // @ts-expect-error Node fetch extra option in local dev
     ignoreHTTPSErrors: true
   })
 
@@ -238,7 +248,7 @@ async function fetchOpenApiSpec(url: string): Promise<unknown> {
   }
 
   const spec = await response.json()
-  console.log(`✅ OpenAPI 规范获取成功`)
+  console.log('✅ OpenAPI 规范获取成功')
   return spec
 }
 
@@ -259,9 +269,10 @@ function isNullSchema(schema: OpenApiPropertySchema | undefined): boolean {
   return schema?.type === 'null'
 }
 
-function unwrapNullableSchema(
+function unwrapNullableSchema(schema: OpenApiPropertySchema): {
   schema: OpenApiPropertySchema
-): { schema: OpenApiPropertySchema; nullable: boolean } {
+  nullable: boolean
+} {
   const variants = schema.anyOf ?? schema.oneOf
   if (!variants?.length) {
     return { schema, nullable: false }
@@ -286,18 +297,18 @@ function unwrapNullableSchema(
   }
 }
 
-function buildArrayMetadata(items: OpenApiPropertySchema | undefined): GeneratedOpenApiArrayMetadata | undefined {
+function buildArrayMetadata(
+  items: OpenApiPropertySchema | undefined
+): GeneratedOpenApiArrayMetadata | undefined {
   if (!items) {
     return undefined
   }
 
   const { schema } = unwrapNullableSchema(items)
-  const ref = getRefName(schema.$ref)
-
   return {
     type: schema.type,
     format: schema.format,
-    ref,
+    ref: getRefName(schema.$ref),
     enum: schema.enum
   }
 }
@@ -308,7 +319,6 @@ function buildFieldMetadata(
   requiredFields: Set<string>
 ): GeneratedOpenApiFieldMetadata {
   const { schema: resolvedSchema, nullable } = unwrapNullableSchema(schema)
-  const ref = getRefName(resolvedSchema.$ref)
 
   return {
     title: resolvedSchema.title,
@@ -319,7 +329,7 @@ function buildFieldMetadata(
     nullable,
     default: resolvedSchema.default,
     enum: resolvedSchema.enum,
-    ref,
+    ref: getRefName(resolvedSchema.$ref),
     items: buildArrayMetadata(resolvedSchema.items),
     minLength: resolvedSchema.minLength,
     maxLength: resolvedSchema.maxLength,
@@ -330,11 +340,9 @@ function buildFieldMetadata(
 
 function extractSchemaMetadata(spec: unknown): Record<string, GeneratedOpenApiSchemaMetadata> {
   const schemas = getSchemas(spec)
-
   const result: Record<string, GeneratedOpenApiSchemaMetadata> = {}
 
   for (const [schemaName, schema] of Object.entries(schemas)) {
-    // 处理对象类型的 schema（有 properties 的）
     if (schema.type === 'object' || schema.properties) {
       const required = schema.required ?? []
       const requiredFields = new Set(required)
@@ -358,14 +366,12 @@ function extractSchemaMetadata(spec: unknown): Record<string, GeneratedOpenApiSc
       continue
     }
 
-    // 处理独立的枚举 schema（如 AppType, ValidityPeriod）
     if (schema.enum) {
       result[schemaName] = {
         title: schema.title,
         description: schema.description,
         required: [],
         fields: {
-          // 用一个虚拟字段存储枚举值
           [ENUM_MARKER]: {
             title: schema.title,
             description: schema.description,
@@ -373,8 +379,7 @@ function extractSchemaMetadata(spec: unknown): Record<string, GeneratedOpenApiSc
             required: true,
             nullable: false,
             default: schema.default,
-            enum: schema.enum,
-            ref: undefined
+            enum: schema.enum
           }
         }
       }
@@ -384,11 +389,8 @@ function extractSchemaMetadata(spec: unknown): Record<string, GeneratedOpenApiSc
   return result
 }
 
-/**
- * 生成类型定义文件
- */
 async function generateTypesFile(spec: unknown, outputPath: string): Promise<boolean> {
-  console.log(`🔧 正在生成类型定义文件...`)
+  console.log('🔧 正在生成类型定义文件...')
 
   const ast = await openapiTS(spec as Parameters<typeof openapiTS>[0], {
     alphabetize: true
@@ -412,12 +414,7 @@ ${generatedTypes}
 `
 
   const changed = writeFileIfChanged(outputPath, content)
-  if (changed) {
-    console.log(`✅ 类型定义文件已更新: ${outputPath}`)
-  } else {
-    console.log(`✅ 类型定义无变化: ${outputPath}`)
-  }
-
+  console.log(changed ? `✅ 类型定义文件已更新: ${outputPath}` : `✅ 类型定义无变化: ${outputPath}`)
   return changed
 }
 
@@ -425,7 +422,6 @@ async function generateMetadataFile(spec: unknown, outputPath: string): Promise<
   console.log('🧭 正在生成 OpenAPI 字段元数据...')
 
   const metadata = extractSchemaMetadata(spec)
-  const serializedMetadata = JSON.stringify(metadata, null, 2)
   const content = `/**
  * 自动生成的 OpenAPI 字段元数据
  *
@@ -471,7 +467,7 @@ export interface OpenApiSchemaMetadata {
   fields: Record<string, OpenApiFieldMetadata>
 }
 
-export const OPENAPI_SCHEMA_METADATA = ${serializedMetadata} as const satisfies Record<
+export const OPENAPI_SCHEMA_METADATA = ${JSON.stringify(metadata, null, 2)} as const satisfies Record<
   string,
   OpenApiSchemaMetadata
 >
@@ -489,28 +485,18 @@ export function getOpenApiFieldMetadata(
 `
 
   const changed = writeFileIfChanged(outputPath, content)
-  if (changed) {
-    console.log(`✅ 字段元数据文件已更新: ${outputPath}`)
-  } else {
-    console.log(`✅ 字段元数据无变化: ${outputPath}`)
-  }
-
+  console.log(
+    changed ? `✅ 字段元数据文件已更新: ${outputPath}` : `✅ 字段元数据无变化: ${outputPath}`
+  )
   return changed
 }
 
-/**
- * 验证生成的类型
- */
-function validateGeneratedFile(outputPath: string): void {
-  console.log(`🔍 正在验证生成文件: ${outputPath}`)
-
+export function validateGeneratedFile(outputPath: string): void {
   if (!existsSync(outputPath)) {
-    throw new Error(`类型文件不存在: ${outputPath}`)
+    throw new Error(`生成文件不存在: ${outputPath}`)
   }
 
-  const content = readFileSync(outputPath, 'utf-8')
-
-  const result = ts.transpileModule(content, {
+  const result = ts.transpileModule(readFileSync(outputPath, 'utf-8'), {
     compilerOptions: {
       module: ts.ModuleKind.ESNext,
       target: ts.ScriptTarget.ESNext
@@ -525,237 +511,24 @@ function validateGeneratedFile(outputPath: string): void {
       getCurrentDirectory: () => process.cwd(),
       getNewLine: () => '\n'
     })
-    throw new Error(`生成的类型文件存在语法问题:\n${message}`)
+    throw new Error(`生成文件存在语法问题:\n${message}`)
   }
-
-  console.log(`✅ 生成文件验证通过`)
 }
 
-// ==================== API 客户端生成 ====================
-
-/**
- * 提取资源名称（复数形式），例如 /api/v1/menus/tree -> menus
- */
-function extractResourceName(path: string): string | null {
-  const match = path.match(/^\/api\/v\d+\/([^/]+)(?:\/|$)/)
-  return match?.[1] ?? null
-}
-
-/**
- * 将复数资源名转换为单数（简单规则）
- */
-function toSingular(name: string): string {
-  // 特殊的复数转换规则（不规则复数）
-  // key 可以是原始形式或 camelCase 形式
-  const irregularPlurals: Record<string, string> = {
-    // 原始形式（kebab-case）
-    'work-lines': 'workline',
-    'work_lines': 'workline',
-    'api-applications': 'apiApplication',
-    'api_applications': 'apiApplication',
-    // camelCase 形式
-    workLines: 'workline',
-    devices: 'device',
-    permissions: 'permission',
-    menus: 'menu',
-    users: 'user',
-    roles: 'role',
-    logs: 'log',
-    events: 'event',
-    products: 'product'
-  }
-
-  if (irregularPlurals[name]) {
-    return irregularPlurals[name]
-  }
-
-  // 规则复数转换
-  if (name.endsWith('ies')) return name.slice(0, -3) + 'y'
-  if (name.endsWith('es') && !name.endsWith('sses')) return name.slice(0, -2)
-  // 特殊处理：workLin → workLine（不是 workLin）
-  if (name.endsWith('lins')) return name.slice(0, -1)
-  if (name.endsWith('s') && !name.endsWith('ss')) return name.slice(0, -1)
-  return name
-}
-
-/**
- * 将资源名转换为合法的 JavaScript 标识符
- * 例如 api-auth -> apiAuth
- */
-function toValidIdentifier(name: string): string {
-  // 移除或替换特殊字符，转换为 camelCase
-  return name
-    .split(/[-_]/)
-    .map((part, index) => {
-      if (index === 0) return part
-      return part.charAt(0).toUpperCase() + part.slice(1)
-    })
-    .join('')
-}
-
-/**
- * 将 kebab-case/snake_case 转换为 camelCase
- */
-function toCamelCase(str: string): string {
-  return str.replace(/[-_](.)/g, (_, char) => char.toUpperCase())
-}
-
-/**
- * 从 operationId 生成方法名
- *
- * 新格式示例：
- * - auth_login_post → login
- * - users_by_id_reset_password_put → resetPassword
- * - auth_my_get → my
- * - api_auth_applications_by_id_reset_secret_post → resetSecret
- * - users_create → create
- */
-function generateMethodName(path: string, method: HttpMethod, operationId?: string): string {
-  // 优先使用 operationId
-  if (operationId) {
-    // 步骤 1: 移除 _post/_get/_put/_patch/_delete 后缀
-    const withoutMethod = operationId.replace(/_(get|post|put|patch|delete)$/i, '')
-
-    // 步骤 2: 分割并清理
-    const parts = withoutMethod.split('_').filter(p => p)
-
-    // 步骤 3: 移除常见的资源前缀
-    // 例如: auth, users, menus, roles, api_auth_applications 等
-    // 保留从第一个非资源名部分开始的内容
-    const resourcePrefixes = [
-      'auth', 'users', 'menus', 'roles',
-      'devices', 'worklines', 'auditlogs', 'events',
-      'apiAuth', 'apiAuthAccess', 'apiAuthApplications',
-      'demoProducts', 'callbackLogs', 'callbackEvents'
-    ]
-
-    let startIndex = 0
-    // 检测资源前缀并跳过
-    // 例如 ['users', 'by', 'id', 'reset', 'password'] 跳过 'users'
-    // 例如 ['api', 'auth', 'applications', ...] 跳过 'api', 'auth', 'applications'
-    for (let i = 0; i < parts.length - 1; i++) {
-      const part = parts[i].toLowerCase()
-      const nextPart = parts[i + 1]?.toLowerCase()
-
-      // 跳过资源前缀
-      if (resourcePrefixes.includes(part)) {
-        startIndex = i + 1
-        continue
-      }
-
-      // 跳过 "by id" 这样的路径参数
-      if ((part === 'by' && nextPart === 'id') || part === 'byid') {
-        startIndex = i + 2
-        continue
-      }
-
-      // 遇到第一个动作词（动词）时停止
-      const actionWords = ['create', 'update', 'delete', 'query', 'get', 'post', 'put', 'patch',
-        'login', 'logout', 'refresh', 'reset', 'assign', 'restore', 'revoke', 'trash',
-        'try', 'invoke', 'batch', 'stats', 'cache', 'sync', 'available', 'sessions', 'permissions']
-      if (actionWords.includes(part)) {
-        break
-      }
-    }
-
-    // 取剩余部分转为驼峰
-    const actionParts = parts.slice(startIndex).filter(p => p && p !== 'id')
-    if (actionParts.length > 0) {
-      return toCamelCase(actionParts.join('_'))
-    }
-
-    // 回退：返回最后一部分
-    return toCamelCase(parts[parts.length - 1] || withoutMethod)
-  }
-
-  // 从路径生成（仅作为回退）
-  const pathParts = path.split('/').filter(p => p && !p.startsWith('{'))
-  const lastPart = pathParts[pathParts.length - 1]
-
-  const methodPrefix: Record<HttpMethod, string> = {
-    get: 'get',
-    post: 'create',
-    put: 'update',
-    patch: 'patch',
-    delete: 'delete'
-  }
-
-  const prefix = methodPrefix[method]
-  const suffix = lastPart ? toCamelCase(lastPart) : ''
-
-  return suffix ? `${prefix}${suffix[0].toUpperCase()}${suffix.slice(1)}` : prefix
-}
-
-/**
- * 确保方法名在同一资源组中唯一
- */
-function ensureUniqueMethodName(name: string, existingNames: Set<string>): string {
-  if (!existingNames.has(name)) {
-    return name
-  }
-
-  // 如果名字已存在，添加数字后缀
-  let counter = 2
-  let newName = `${name}${counter}`
-  while (existingNames.has(newName)) {
-    counter++
-    newName = `${name}${counter}`
-  }
-  return newName
-}
-
-/**
- * 检查路径是否是标准 CRUD 端点
- */
-function isStandardCrudEndpoint(path: string, method: HttpMethod, resourceName: string): boolean {
-  const basePath = `/api/v1/${resourceName}`
-
-  // 定义标准 CRUD 端点模式（支持参数匹配）
-  const patterns = [
-    { pattern: new RegExp(`^${escapeRegex(basePath)}$`), method: 'post' },           // 创建
-    { pattern: new RegExp(`^${escapeRegex(basePath)}/\\{[^}]+\\}$`), method: 'get' },  // 获取详情
-    { pattern: new RegExp(`^${escapeRegex(basePath)}/\\{[^}]+\\}$`), method: 'put' },  // 更新
-    { pattern: new RegExp(`^${escapeRegex(basePath)}/\\{[^}]+\\}$`), method: 'delete' }, // 删除
-    { pattern: new RegExp(`^${escapeRegex(basePath)}/query$`), method: 'post' }, // 查询列表
-    { pattern: new RegExp(`^.*\\/query$`), method: 'post' }, // 任何子资源的查询列表
-    { pattern: new RegExp(`^${escapeRegex(basePath)}/\\{[^}]+\\}/restore$`), method: 'post' }, // 恢复
-    { pattern: new RegExp(`^${escapeRegex(basePath)}/trash$`), method: 'get' }, // 回收站列表
-    { pattern: new RegExp(`^${escapeRegex(basePath)}/trash/restore$`), method: 'post' }, // 批量恢复
-    { pattern: new RegExp(`^${escapeRegex(basePath)}/trash/permanent$`), method: 'delete' }, // 批量永久删除
-    { pattern: new RegExp(`^${escapeRegex(basePath)}/bulk$`), method: 'delete' }, // 批量删除
-    { pattern: new RegExp(`^.*\\/bulk$`), method: 'delete' }, // 任何子资源的批量删除
-  ]
-
-  return patterns.some(p => p.pattern.test(path) && p.method === method)
-}
-
-/**
- * 转义正则特殊字符
- */
-function escapeRegex(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
-/**
- * 从 OpenAPI 规范中提取所有端点
- */
-function extractEndpoints(spec: unknown): EndpointInfo[] {
+export function extractEndpoints(spec: unknown): EndpointInfo[] {
   const paths = (spec as OpenApiDocument).paths ?? {}
+  const methods: HttpMethod[] = ['get', 'post', 'put', 'patch', 'delete']
   const endpoints: EndpointInfo[] = []
 
-  const methods: HttpMethod[] = ['get', 'post', 'put', 'patch', 'delete']
-
   for (const [path, pathItem] of Object.entries(paths)) {
-    if (!pathItem) continue
+    if (!pathItem) {
+      continue
+    }
 
     for (const method of methods) {
       const operation = pathItem[method]
       if (operation) {
-        endpoints.push({
-          path,
-          method,
-          operation
-        })
+        endpoints.push({ path, method, operation })
       }
     }
   }
@@ -763,621 +536,858 @@ function extractEndpoints(spec: unknown): EndpointInfo[] {
   return endpoints
 }
 
-/**
- * 按资源对端点进行分组
- */
-function groupEndpointsByResource(endpoints: EndpointInfo[]): ResourceGroup[] {
-  const groups = new Map<string, ResourceGroup>()
+function parseModuleModelFromPath(path: string): {
+  version: string
+  module: string
+  model: string
+  collectionPath: string
+} | null {
+  const match = path.match(/^\/api\/(v\d+)\/([^/]+)\/([^/]+)(?:\/.*)?$/)
+  if (!match) {
+    return null
+  }
+
+  const [, version, module, model] = match
+  return {
+    version,
+    module,
+    model,
+    collectionPath: `/api/${version}/${module}/${model}`
+  }
+}
+
+export function groupEndpointsByModuleModel(endpoints: EndpointInfo[]): ModuleModelGroup[] {
+  const groups = new Map<string, ModuleModelGroup>()
 
   for (const endpoint of endpoints) {
-    const resourceName = extractResourceName(endpoint.path)
-    if (!resourceName) continue
-
-    if (!groups.has(resourceName)) {
-      groups.set(resourceName, {
-        resourceName,
-        collectionPath: `/api/v1/${resourceName}`,
-        endpoints: [],
-        extraEndpoints: []
-      })
+    const parsed = parseModuleModelFromPath(endpoint.path)
+    if (!parsed) {
+      continue
     }
 
-    const group = groups.get(resourceName)!
-    group.endpoints.push(endpoint)
+    const key = `${parsed.module}:${parsed.model}`
+    const existing = groups.get(key)
+    if (existing) {
+      existing.endpoints.push(endpoint)
+      continue
+    }
 
-    // 判断是否为额外端点（非标准 CRUD）
-    if (!isStandardCrudEndpoint(endpoint.path, endpoint.method, resourceName)) {
-      group.extraEndpoints.push(endpoint)
+    groups.set(key, {
+      key,
+      version: parsed.version,
+      module: parsed.module,
+      model: parsed.model,
+      collectionPath: parsed.collectionPath,
+      endpoints: [endpoint]
+    })
+  }
+
+  return Array.from(groups.values()).sort((left, right) => left.key.localeCompare(right.key))
+}
+
+function getRelativePath(collectionPath: string, path: string): string | null {
+  if (path === collectionPath) {
+    return ''
+  }
+
+  const prefix = `${collectionPath}/`
+  if (!path.startsWith(prefix)) {
+    return null
+  }
+
+  return path.slice(prefix.length)
+}
+
+function isParameterSegment(segment: string): boolean {
+  return /^\{[^}]+\}$/.test(segment)
+}
+
+function isSingleParameterRelativePath(relativePath: string): boolean {
+  return !!relativePath && relativePath.split('/').length === 1 && isParameterSegment(relativePath)
+}
+
+function hasRelativeEndpoint(
+  collectionPath: string,
+  endpoints: EndpointInfo[],
+  relativePath: string,
+  method: HttpMethod
+): boolean {
+  return endpoints.some(
+    endpoint =>
+      getRelativePath(collectionPath, endpoint.path) === relativePath && endpoint.method === method
+  )
+}
+
+function hasParameterizedItemEndpoint(
+  collectionPath: string,
+  endpoints: EndpointInfo[],
+  method: HttpMethod
+): boolean {
+  return endpoints.some(endpoint => {
+    const relativePath = getRelativePath(collectionPath, endpoint.path)
+    return (
+      endpoint.method === method && !!relativePath && isSingleParameterRelativePath(relativePath)
+    )
+  })
+}
+
+export function classifyCrudCapabilities(
+  collectionPath: string,
+  endpoints: EndpointInfo[]
+): CrudCapabilities {
+  const hasStandardCrud =
+    hasRelativeEndpoint(collectionPath, endpoints, '', 'post') &&
+    hasParameterizedItemEndpoint(collectionPath, endpoints, 'get') &&
+    hasParameterizedItemEndpoint(collectionPath, endpoints, 'put') &&
+    hasParameterizedItemEndpoint(collectionPath, endpoints, 'delete') &&
+    hasRelativeEndpoint(collectionPath, endpoints, 'query', 'post')
+
+  if (!hasStandardCrud) {
+    return {
+      kind: 'none',
+      hasBulkDelete: false
     }
   }
 
-  return Array.from(groups.values())
+  const hasSoftDelete =
+    endpoints.some(endpoint => {
+      const relativePath = getRelativePath(collectionPath, endpoint.path)
+      if (!relativePath || endpoint.method !== 'post') {
+        return false
+      }
+
+      const parts = relativePath.split('/')
+      return parts.length === 2 && isParameterSegment(parts[0]) && parts[1] === 'restore'
+    }) &&
+    hasRelativeEndpoint(collectionPath, endpoints, 'trash', 'get') &&
+    hasRelativeEndpoint(collectionPath, endpoints, 'trash/restore', 'post') &&
+    hasRelativeEndpoint(collectionPath, endpoints, 'trash/permanent', 'delete')
+
+  return {
+    kind: hasSoftDelete ? 'soft-delete' : 'standard',
+    hasBulkDelete: hasRelativeEndpoint(collectionPath, endpoints, 'bulk', 'delete')
+  }
 }
 
-/**
- * 获取路径参数名称列表
- */
-function extractPathParams(path: string): string[] {
-  const matches = path.matchAll(/\{(\w+)\}/g)
-  return Array.from(matches).map(m => m[1])
+function isManagedCrudEndpoint(
+  relativePath: string,
+  method: HttpMethod,
+  capabilities: CrudCapabilities
+): boolean {
+  if (capabilities.kind === 'none') {
+    return false
+  }
+
+  if (relativePath === '' && method === 'post') {
+    return true
+  }
+
+  if (relativePath === 'query' && method === 'post') {
+    return true
+  }
+
+  if (relativePath === 'bulk' && method === 'delete') {
+    return true
+  }
+
+  if (isSingleParameterRelativePath(relativePath) && ['get', 'put', 'delete'].includes(method)) {
+    return true
+  }
+
+  if (capabilities.kind === 'soft-delete') {
+    const parts = relativePath.split('/')
+    if (
+      parts.length === 2 &&
+      isParameterSegment(parts[0]) &&
+      parts[1] === 'restore' &&
+      method === 'post'
+    ) {
+      return true
+    }
+
+    if (relativePath === 'trash' && method === 'get') {
+      return true
+    }
+
+    if (relativePath === 'trash/restore' && method === 'post') {
+      return true
+    }
+
+    if (relativePath === 'trash/permanent' && method === 'delete') {
+      return true
+    }
+  }
+
+  return false
 }
 
-/**
- * 生成单个 API 方法的代码
- */
-function generateApiMethodCode(method: GeneratedApiMethod): string {
+function tokenizeIdentifier(value: string): string[] {
+  const normalized = value.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+  const parts = normalized
+    .split(/[^a-zA-Z0-9]+/)
+    .filter(Boolean)
+    .map(part => part.replace(/[^a-zA-Z0-9]/g, '').toLowerCase())
+
+  if (parts.length === 0) {
+    return []
+  }
+
+  return parts
+}
+
+function toCamelCaseIdentifier(value: string): string {
+  const parts = tokenizeIdentifier(value)
+
+  if (parts.length === 0) {
+    return 'module'
+  }
+
+  return parts
+    .map((part, index) => {
+      const lowerPart = part.toLowerCase()
+      return index === 0 ? lowerPart : lowerPart.charAt(0).toUpperCase() + lowerPart.slice(1)
+    })
+    .join('')
+}
+
+function toPascalCaseIdentifier(value: string): string {
+  const parts = tokenizeIdentifier(value)
+
+  if (parts.length === 0) {
+    return 'Module'
+  }
+
+  return parts.map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('')
+}
+
+function toScreamingSnakeCase(value: string): string {
+  return value
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .replace(/[^a-zA-Z0-9]+/g, '_')
+    .toUpperCase()
+}
+
+function stripPathParam(segment: string): string {
+  return segment.replace(/^\{/, '').replace(/\}$/, '')
+}
+
+function methodPrefix(method: HttpMethod): string {
+  switch (method) {
+    case 'get':
+      return 'get'
+    case 'post':
+      return 'create'
+    case 'put':
+      return 'update'
+    case 'patch':
+      return 'patch'
+    case 'delete':
+      return 'delete'
+  }
+}
+
+export function buildMethodNameFromRelativePath(
+  relativePath: string,
+  method: HttpMethod,
+  fallbackName?: string
+): string {
+  const segments = relativePath.split('/').filter(Boolean)
+  const staticSegments = segments.filter(segment => !isParameterSegment(segment))
+
+  if (staticSegments.length > 0) {
+    return toCamelCaseIdentifier(staticSegments.join('-'))
+  }
+
+  const paramSegments = segments.filter(isParameterSegment).map(stripPathParam)
+
+  if (paramSegments.length > 0) {
+    return `${methodPrefix(method)}By${paramSegments.map(toPascalCaseIdentifier).join('And')}`
+  }
+
+  if (fallbackName) {
+    return toCamelCaseIdentifier(fallbackName)
+  }
+
+  return methodPrefix(method)
+}
+
+function ensureUniqueMethodName(
+  name: string,
+  method: HttpMethod,
+  existingNames: Set<string>
+): string {
+  if (!existingNames.has(name)) {
+    existingNames.add(name)
+    return name
+  }
+
+  const withMethodPrefix = `${methodPrefix(method)}${name.charAt(0).toUpperCase()}${name.slice(1)}`
+  if (!existingNames.has(withMethodPrefix)) {
+    existingNames.add(withMethodPrefix)
+    return withMethodPrefix
+  }
+
+  let index = 2
+  let candidate = `${withMethodPrefix}${index}`
+  while (existingNames.has(candidate)) {
+    index += 1
+    candidate = `${withMethodPrefix}${index}`
+  }
+
+  existingNames.add(candidate)
+  return candidate
+}
+
+export function buildModulePlans(groups: ModuleModelGroup[]): ModulePlan[] {
+  const pureActionGroupsByModule = new Map<string, ModuleModelGroup[]>()
+  const provisionalPlans: ProvisionalModulePlan[] = []
+
+  for (const group of groups) {
+    const capabilities = classifyCrudCapabilities(group.collectionPath, group.endpoints)
+    if (capabilities.kind === 'none') {
+      const existing = pureActionGroupsByModule.get(group.module) ?? []
+      existing.push(group)
+      pureActionGroupsByModule.set(group.module, existing)
+      continue
+    }
+
+    provisionalPlans.push({
+      key: group.key,
+      kind: 'resource',
+      groups: [group],
+      preferredBaseName: toCamelCaseIdentifier(group.model),
+      fallbackBaseName: toCamelCaseIdentifier(`${group.module}-${group.model}`)
+    })
+  }
+
+  for (const [moduleName, moduleGroups] of pureActionGroupsByModule.entries()) {
+    moduleGroups.sort((left, right) => left.collectionPath.localeCompare(right.collectionPath))
+    provisionalPlans.push({
+      key: `module:${moduleName}`,
+      kind: 'module-actions',
+      groups: moduleGroups,
+      preferredBaseName: toCamelCaseIdentifier(moduleName),
+      fallbackBaseName: toCamelCaseIdentifier(`${moduleName}-module`)
+    })
+  }
+
+  const counts = new Map<string, number>()
+  for (const plan of provisionalPlans) {
+    counts.set(plan.preferredBaseName, (counts.get(plan.preferredBaseName) ?? 0) + 1)
+  }
+
+  const finalizedPlans: ModulePlan[] = []
+  const usedNames = new Set<string>()
+
+  for (const plan of provisionalPlans.sort((left, right) => left.key.localeCompare(right.key))) {
+    const isPreferredNameDuplicated = (counts.get(plan.preferredBaseName) ?? 0) > 1
+    const initialBaseName = isPreferredNameDuplicated
+      ? plan.fallbackBaseName
+      : plan.preferredBaseName
+
+    let fileBaseName = initialBaseName
+    let index = 2
+    while (usedNames.has(fileBaseName)) {
+      fileBaseName = `${initialBaseName}${index}`
+      index += 1
+    }
+
+    usedNames.add(fileBaseName)
+    finalizedPlans.push({
+      key: plan.key,
+      kind: plan.kind,
+      fileBaseName,
+      groups: plan.groups
+    })
+  }
+
+  return finalizedPlans
+}
+
+function buildContractTypeRef(
+  kind: 'path' | 'query' | 'body' | 'response',
+  path: string,
+  method: HttpMethod
+): string {
+  switch (kind) {
+    case 'path':
+      return `ContractPathParams<'${path}', '${method}'>`
+    case 'query':
+      return `ContractQueryParams<'${path}', '${method}'>`
+    case 'body':
+      return `ContractRequestBody<'${path}', '${method}'>`
+    case 'response':
+      return `ContractResponseData<'${path}', '${method}'>`
+  }
+}
+
+function buildGeneratedMethodInfo(
+  group: ModuleModelGroup,
+  endpoint: EndpointInfo,
+  capabilities: CrudCapabilities,
+  existingNames: Set<string>
+): GeneratedMethodInfo {
+  const relativePath = getRelativePath(group.collectionPath, endpoint.path)
+  if (relativePath === null) {
+    throw new Error(`端点不属于资源集合: ${endpoint.path}`)
+  }
+
+  let baseName = buildMethodNameFromRelativePath(relativePath, endpoint.method)
+  if (capabilities.kind === 'none' && relativePath === '') {
+    baseName = toCamelCaseIdentifier(group.model)
+  }
+
+  const name = ensureUniqueMethodName(baseName, endpoint.method, existingNames)
+  const typeAliasBase = toPascalCaseIdentifier(name)
+
+  const queryParams = endpoint.operation.parameters?.some(parameter => parameter.in === 'query')
+  const pathParams = endpoint.operation.parameters?.some(parameter => parameter.in === 'path')
+  const hasBody = !!endpoint.operation.requestBody?.content?.['application/json']
+
+  return {
+    name,
+    path: endpoint.path,
+    method: endpoint.method,
+    responseType: buildContractTypeRef('response', endpoint.path, endpoint.method),
+    pathParamsType: pathParams
+      ? buildContractTypeRef('path', endpoint.path, endpoint.method)
+      : undefined,
+    queryParamsType: queryParams
+      ? buildContractTypeRef('query', endpoint.path, endpoint.method)
+      : undefined,
+    bodyType: hasBody ? buildContractTypeRef('body', endpoint.path, endpoint.method) : undefined,
+    summary: endpoint.operation.summary,
+    description: endpoint.operation.description,
+    typeAliasBase
+  }
+}
+
+function generateMethodTypeAliases(methodInfo: GeneratedMethodInfo): string[] {
+  const lines = [`export type ${methodInfo.typeAliasBase}Result = ${methodInfo.responseType}`]
+
+  if (methodInfo.pathParamsType) {
+    lines.push(`export type ${methodInfo.typeAliasBase}PathParams = ${methodInfo.pathParamsType}`)
+  }
+
+  if (methodInfo.queryParamsType) {
+    lines.push(`export type ${methodInfo.typeAliasBase}Query = ${methodInfo.queryParamsType}`)
+  }
+
+  if (methodInfo.bodyType) {
+    lines.push(`export type ${methodInfo.typeAliasBase}Input = ${methodInfo.bodyType}`)
+  }
+
+  return lines
+}
+
+function generateMethodCode(methodInfo: GeneratedMethodInfo): string {
   const lines: string[] = []
 
-  // 文档注释
-  if (method.summary || method.description) {
+  if (methodInfo.summary || methodInfo.description) {
     lines.push('  /**')
-    if (method.summary) {
-      lines.push(`   * ${method.summary}`)
+    if (methodInfo.summary) {
+      lines.push(`   * ${methodInfo.summary}`)
     }
-    if (method.description && method.description !== method.summary) {
-      lines.push(`   * @description ${method.description}`)
+    if (methodInfo.description && methodInfo.description !== methodInfo.summary) {
+      lines.push(`   * @description ${methodInfo.description}`)
     }
-    lines.push(`   * @endpoint ${method.method.toUpperCase()} ${method.path}`)
+    lines.push(`   * @endpoint ${methodInfo.method.toUpperCase()} ${methodInfo.path}`)
     lines.push('   */')
   }
 
-  // 方法签名
-  const params: string[] = []
+  const signatureParts: string[] = []
+  const requestOptions: string[] = []
 
-  // 路径参数
-  if (method.hasPathParams && method.pathParamsType) {
-    params.push(`params: ${method.pathParamsType}`)
+  if (methodInfo.pathParamsType) {
+    signatureParts.push(`params: ${methodInfo.pathParamsType}`)
+    requestOptions.push('params')
   }
 
-  // 请求体
-  if (method.hasBody && method.bodyType) {
-    params.push(`body: ${method.bodyType}`)
+  if (methodInfo.bodyType) {
+    signatureParts.push(`body: ${methodInfo.bodyType}`)
+    requestOptions.push('body')
   }
 
-  // Query 参数
-  if (method.hasQueryParams && method.queryParamsType) {
-    params.push(`query?: ${method.queryParamsType}`)
+  if (methodInfo.queryParamsType) {
+    signatureParts.push(`query?: ${methodInfo.queryParamsType}`)
+    requestOptions.push('query')
   }
 
-  // Config 参数（始终添加）
-  params.push('config?: ContractRequestConfig')
+  signatureParts.push('config?: ContractRequestConfig')
+  requestOptions.push('config')
 
-  // 生成方法体
-  const args: string[] = []
-
-  if (method.hasPathParams) {
-    args.push('params')
-  }
-
-  if (method.hasBody) {
-    args.push('body')
-  }
-
-  if (method.hasQueryParams) {
-    args.push('query')
-  }
-
-  const optionsArg = args.length > 0
-    ? `{ ${args.join(', ')}${args.length > 0 ? ', ' : ''}config }`
-    : '{ config }'
-
-  lines.push(`  async ${method.name}(${params.join(', ')}): Promise<${method.responseType}> {`)
-  lines.push(`    return await contractClient.${method.method}('${method.path}', ${optionsArg})`)
+  lines.push(
+    `  async ${methodInfo.name}(${signatureParts.join(', ')}): Promise<${methodInfo.responseType}> {`
+  )
+  lines.push(
+    `    return await contractClient.${methodInfo.method}('${methodInfo.path}', { ${requestOptions.join(', ')} })`
+  )
   lines.push('  }')
 
   return lines.join('\n')
 }
 
-/**
- * 从 operation 生成方法信息
- */
-function buildApiMethodInfo(
-  endpoint: EndpointInfo,
-  existingNames: Set<string> = new Set()
-): GeneratedApiMethod | null {
-  const { path, method, operation } = endpoint
-
-  // 跳过没有 operationId 或无法识别的端点
-  if (!operation.operationId) {
-    return null
+function getPlanCrudCapabilities(plan: ModulePlan): CrudCapabilities {
+  if (plan.kind !== 'resource') {
+    return NO_CRUD_CAPABILITIES
   }
 
-  const baseName = generateMethodName(path, method, operation.operationId)
-  const name = ensureUniqueMethodName(baseName, existingNames)
-  existingNames.add(name)
+  const primaryGroup = plan.groups[0]
+  return classifyCrudCapabilities(primaryGroup.collectionPath, primaryGroup.endpoints)
+}
 
-  const pathParams = extractPathParams(path)
-  const hasPathParams = pathParams.length > 0
+function getGeneratedEndpointsForGroup(
+  plan: ModulePlan,
+  group: ModuleModelGroup,
+  capabilities: CrudCapabilities
+): EndpointInfo[] {
+  if (plan.kind !== 'resource') {
+    return group.endpoints
+  }
 
-  // 构建类型引用（使用生成的 openapi-types 中的 paths）
-  const pathParamsType = hasPathParams
-    ? `paths['${path}']['${method}']['parameters']['path']`
-    : undefined
+  return group.endpoints.filter(endpoint => {
+    const relativePath = getRelativePath(group.collectionPath, endpoint.path)
+    return (
+      relativePath !== null && !isManagedCrudEndpoint(relativePath, endpoint.method, capabilities)
+    )
+  })
+}
 
-  const queryParams = operation.parameters?.filter(p => p.in === 'query')
-  const hasQueryParams = (queryParams?.length ?? 0) > 0
-  const queryParamsType = hasQueryParams
-    ? `paths['${path}']['${method}']['parameters']['query']`
-    : undefined
+function getCrudResourcePathType(capabilities: CrudCapabilities): string | null {
+  if (capabilities.kind === 'soft-delete') {
+    return 'SoftDeleteCrudResourceCollectionPath'
+  }
 
-  const hasBody = !!operation.requestBody?.content?.['application/json']
-  const bodyType = hasBody
-    ? `paths['${path}']['${method}']['requestBody']['content']['application/json']`
-    : undefined
+  if (capabilities.kind === 'standard') {
+    return 'CrudResourceCollectionPath'
+  }
 
-  // 使用 ContractResponseData 来解包响应
-  const responseType = `ContractResponseData<'${path}', '${method}'>`
+  return null
+}
+
+function generateModuleAutoSection(plan: ModulePlan): string {
+  const moduleBaseName = plan.fileBaseName
+  const pascalBaseName = toPascalCaseIdentifier(moduleBaseName)
+  const apiName = `${moduleBaseName}Api`
+  const existingNames = new Set<string>()
+  const primaryGroup = plan.groups[0]
+  const capabilities = getPlanCrudCapabilities(plan)
+  const collectionConst = `${toScreamingSnakeCase(moduleBaseName)}_COLLECTION_PATH`
+  const bulkConst = `${toScreamingSnakeCase(moduleBaseName)}_BULK_DELETE_PATH`
+  const generatedMethods = plan.groups.flatMap(group => {
+    const sourceEndpoints = getGeneratedEndpointsForGroup(plan, group, capabilities)
+    return sourceEndpoints.map(endpoint =>
+      buildGeneratedMethodInfo(group, endpoint, capabilities, existingNames)
+    )
+  })
+
+  const imports: string[] = [
+    `/* eslint-disable @typescript-eslint/no-unused-vars */`,
+    `/**`,
+    ` * 自动生成的 API 模块`,
+    ` *`,
+    ` * ⚠️  请勿手动编辑 AUTO GENERATED 区域`,
+    ` * 此文件由 scripts/generate-api-types.ts 自动生成`,
+    ` *`,
+    ` * 资源: ${plan.groups.map(group => group.collectionPath).join(', ')}`,
+    ` */`,
+    `import { contractClient } from '@/api/contract/client'`,
+    `import type {`,
+    `  ContractPathParams,`,
+    `  ContractQueryParams,`,
+    `  ContractRequestBody,`,
+    `  ContractRequestConfig,`,
+    `  ContractResponseData,`,
+    `} from '@/api/contract/types'`,
+    `import type { components, paths } from '@/api/generated/openapi-types'`
+  ]
+
+  if (capabilities.kind === 'soft-delete') {
+    imports.push(
+      `import {`,
+      `  type SoftDeleteCrudApi,`,
+      `  createSoftDeleteCrudApi,`,
+      `  type CrudCreateInput,`,
+      `  type CrudItem,`,
+      `  type CrudResourceCollectionPath,`,
+      `  type CrudUpdateInput,`,
+      `  type SoftDeleteCrudResourceCollectionPath,`,
+      `} from '@/api/base/crud-api'`
+    )
+  } else if (capabilities.kind === 'standard') {
+    imports.push(
+      `import {`,
+      `  type CrudApi,`,
+      `  createCrudApi,`,
+      `  type CrudCreateInput,`,
+      `  type CrudItem,`,
+      `  type CrudResourceCollectionPath,`,
+      `  type CrudUpdateInput,`,
+      `} from '@/api/base/crud-api'`
+    )
+  }
+
+  const lines = [...imports, '']
+  const resourcePathType = getCrudResourcePathType(capabilities)
+
+  if (plan.kind === 'resource') {
+    lines.push(`const ${collectionConst} = '${primaryGroup.collectionPath}' as const`)
+    if (capabilities.hasBulkDelete) {
+      lines.push(`const ${bulkConst} = '${primaryGroup.collectionPath}/bulk' as const`)
+    }
+    lines.push('')
+    lines.push(`type EnsureEntityId<TItem> = TItem extends { id?: infer TId }`)
+    lines.push(`  ? Omit<TItem, 'id'> & { id: Exclude<TId, null | undefined> }`)
+    lines.push(`  : TItem`)
+    lines.push('')
+    lines.push(
+      `export type ${pascalBaseName}Item = EnsureEntityId<CrudItem<typeof ${collectionConst}>>`
+    )
+    lines.push(
+      `export type Create${pascalBaseName}Input = CrudCreateInput<typeof ${collectionConst}>`
+    )
+    lines.push(
+      `export type Update${pascalBaseName}Input = CrudUpdateInput<typeof ${collectionConst}>`
+    )
+    lines.push('')
+  }
+
+  for (const methodInfo of generatedMethods) {
+    lines.push(...generateMethodTypeAliases(methodInfo))
+    lines.push('')
+  }
+
+  if (plan.kind === 'resource' && capabilities.kind === 'soft-delete') {
+    lines.push(`const base${pascalBaseName}Api = createSoftDeleteCrudApi({`)
+    lines.push(`  collection: ${collectionConst} as unknown as ${resourcePathType},`)
+    lines.push(`  item: \`\${${collectionConst}}/{id}\` as const,`)
+    lines.push(`  query: \`\${${collectionConst}}/query\` as const,`)
+    lines.push(`  restore: \`\${${collectionConst}}/{id}/restore\` as const,`)
+    lines.push(`  trash: \`\${${collectionConst}}/trash\` as const,`)
+    lines.push(`  trashRestore: \`\${${collectionConst}}/trash/restore\` as const,`)
+    lines.push(`  trashPermanentDelete: \`\${${collectionConst}}/trash/permanent\` as const,`)
+    if (capabilities.hasBulkDelete) {
+      lines.push(`  bulkDelete: ${bulkConst},`)
+    }
+    lines.push(
+      `}) as unknown as SoftDeleteCrudApi<${pascalBaseName}Item, Create${pascalBaseName}Input, Update${pascalBaseName}Input>`
+    )
+    lines.push('')
+  }
+
+  if (plan.kind === 'resource' && capabilities.kind === 'standard') {
+    lines.push(`const base${pascalBaseName}Api = createCrudApi({`)
+    lines.push(`  collection: ${collectionConst} as unknown as ${resourcePathType},`)
+    lines.push(`  item: \`\${${collectionConst}}/{id}\` as const,`)
+    lines.push(`  query: \`\${${collectionConst}}/query\` as const,`)
+    if (capabilities.hasBulkDelete) {
+      lines.push(`  bulkDelete: ${bulkConst},`)
+    }
+    lines.push(
+      `}) as unknown as CrudApi<${pascalBaseName}Item, Create${pascalBaseName}Input, Update${pascalBaseName}Input>`
+    )
+    lines.push('')
+  }
+
+  lines.push(`export const ${apiName} = {`)
+  if (plan.kind === 'resource' && capabilities.kind !== 'none') {
+    lines.push(`  ...base${pascalBaseName}Api,`)
+    if (generatedMethods.length > 0) {
+      lines.push('')
+    }
+  }
+  lines.push(generatedMethods.map(generateMethodCode).join(',\n\n'))
+  lines.push(`}`)
+
+  return lines
+    .filter((line, index, allLines) => !(line === '' && allLines[index - 1] === ''))
+    .join('\n')
+    .trim()
+}
+
+function buildModuleTemplate(autoContent: string, customMethods = '', customConfig = ''): string {
+  return [
+    AUTO_GENERATED_START,
+    autoContent.trim(),
+    AUTO_GENERATED_END,
+    '',
+    CUSTOM_METHODS_START,
+    customMethods.trim(),
+    CUSTOM_METHODS_END,
+    '',
+    CUSTOM_CONFIG_START,
+    customConfig.trim(),
+    CUSTOM_CONFIG_END,
+    ''
+  ].join('\n')
+}
+
+function parseModuleSections(content: string): ExistingModuleSections {
+  const normalized = content.replace(/\r\n/g, '\n')
+  const pattern = new RegExp(
+    `^${escapeForRegex(AUTO_GENERATED_START)}\\n([\\s\\S]*?)\\n${escapeForRegex(
+      AUTO_GENERATED_END
+    )}\\n\\n${escapeForRegex(CUSTOM_METHODS_START)}\\n([\\s\\S]*?)\\n${escapeForRegex(
+      CUSTOM_METHODS_END
+    )}\\n\\n${escapeForRegex(CUSTOM_CONFIG_START)}\\n([\\s\\S]*?)\\n${escapeForRegex(
+      CUSTOM_CONFIG_END
+    )}\\n?$`
+  )
+  const match = normalized.match(pattern)
+  if (!match) {
+    throw new Error('模块文件 marker 缺失、顺序错误，或存在未知顶层内容')
+  }
 
   return {
-    name,
-    path,
-    method,
-    hasPathParams,
-    hasQueryParams,
-    hasBody,
-    responseType,
-    pathParamsType,
-    queryParamsType,
-    bodyType,
-    summary: operation.summary,
-    description: operation.description
+    auto: match[1] ?? '',
+    customMethods: match[2] ?? '',
+    customConfig: match[3] ?? ''
   }
 }
 
-/**
- * 生成资源组的 API 客户端代码
- */
-function generateResourceClientCode(group: ResourceGroup): string | null {
-  if (group.extraEndpoints.length === 0) {
-    return null
-  }
-
-  const validResourceName = toValidIdentifier(group.resourceName)
-  const singularName = toSingular(validResourceName)
-  const clientName = `${singularName}GeneratedApi`
-
-  const methods: string[] = []
-  const existingNames = new Set<string>()
-
-  for (const endpoint of group.extraEndpoints) {
-    const methodInfo = buildApiMethodInfo(endpoint, existingNames)
-    if (methodInfo) {
-      methods.push(generateApiMethodCode(methodInfo))
-    }
-  }
-
-  if (methods.length === 0) {
-    return null
-  }
-
-  const lines: string[] = []
-  lines.push(`/**`)
-  lines.push(` * ${group.resourceName} 资源 - 自动生成的 API 客户端`)
-  lines.push(` * @base ${group.collectionPath}`)
-  lines.push(` */`)
-  lines.push(`export const ${clientName} = {`)
-  lines.push(methods.join(',\n\n'))
-  lines.push('}')
-  lines.push('')
-  lines.push(`/**`)
-  lines.push(` * ${group.resourceName} 资源 API 客户端类型`)
-  lines.push(` */`)
-  lines.push(`export type ${clientName[0].toUpperCase() + clientName.slice(1)}Type = typeof ${clientName}`)
-
-  return lines.join('\n')
+function escapeForRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-/**
- * 生成 API 客户端文件
- */
-async function generateApiClientsFile(spec: unknown, outputPath: string): Promise<boolean> {
-  console.log('🔧 正在生成 API 客户端...')
-
-  const endpoints = extractEndpoints(spec)
-  const groups = groupEndpointsByResource(endpoints)
-
-  // 只保留有额外端点的资源组
-  const groupsWithExtras = groups.filter(g => g.extraEndpoints.length > 0)
-
-  if (groupsWithExtras.length === 0) {
-    console.log('ℹ️ 未发现需要生成客户端的非标准端点')
-    return false
+export function mergeModuleWithCustomSections(
+  newTemplate: string,
+  existingContent?: string
+): string {
+  if (!existingContent) {
+    return newTemplate
   }
 
-  const clientCodes: string[] = []
-
-  for (const group of groupsWithExtras) {
-    const code = generateResourceClientCode(group)
-    if (code) {
-      clientCodes.push(code)
-    }
-  }
-
-  const content = `/**
- * 自动生成的 API 客户端
- *
- * ⚠️  请勿手动编辑此文件
- * 此文件由 scripts/generate-api-types.ts 自动生成
- *
- * 后端 OpenAPI 端点: ${config.backendUrl}
- *
- * 更新客户端: pnpm type:generate
- */
-
-import { contractClient } from '@/api/contract/client'
-import type { ContractRequestConfig, ContractResponseData } from '@/api/contract/types'
-import type { paths } from './openapi-types'
-
-${clientCodes.join('\n\n')}
-`
-
-  const changed = writeFileIfChanged(outputPath, content)
-  if (changed) {
-    console.log(`✅ API 客户端文件已更新: ${outputPath}`)
-  } else {
-    console.log(`✅ API 客户端文件无变化: ${outputPath}`)
-  }
-
-  return changed
+  const nextSections = parseModuleSections(newTemplate)
+  const currentSections = parseModuleSections(existingContent)
+  return buildModuleTemplate(
+    nextSections.auto,
+    currentSections.customMethods,
+    currentSections.customConfig
+  )
 }
 
-// ==================== API 模块生成 ====================
+function collectStaleGeneratedModules(outputDir: string, expectedFiles: Set<string>): string[] {
+  if (!existsSync(outputDir)) {
+    return []
+  }
 
-/**
- * CRUD 资源类型
- */
-type CrudType = 'soft-delete' | 'standard' | 'none'
-
-/**
- * 模块配置信息
- */
-interface ModuleInfo {
-  resourceName: string
-  collectionPath: string
-  crudType: CrudType
-  hasBulkDelete: boolean
-  extraMethods: string[]
-  singularName: string
-  pascalName: string
+  return readdirSync(outputDir)
+    .filter(fileName => fileName.endsWith('.ts') && !expectedFiles.has(fileName))
+    .filter(fileName => {
+      const content = readFileSync(join(outputDir, fileName), 'utf-8')
+      return (
+        content.includes(AUTO_GENERATED_START) &&
+        content.includes(CUSTOM_METHODS_START) &&
+        content.includes(CUSTOM_CONFIG_START)
+      )
+    })
+    .sort()
 }
 
-/**
- * 检测资源的 CRUD 类型
- */
-function detectCrudType(endpoints: EndpointInfo[], basePath: string): CrudType {
-  const hasPost = endpoints.some(e => e.path === basePath && e.method === 'post')
-  const hasGet = endpoints.some(e => {
-    const pattern = new RegExp(`^${escapeRegex(basePath)}/\\{[^}]+\\}$`)
-    return pattern.test(e.path) && e.method === 'get'
-  })
-  const hasPut = endpoints.some(e => {
-    const pattern = new RegExp(`^${escapeRegex(basePath)}/\\{[^}]+\\}$`)
-    return pattern.test(e.path) && e.method === 'put'
-  })
-  const hasDelete = endpoints.some(e => {
-    const pattern = new RegExp(`^${escapeRegex(basePath)}/\\{[^}]+\\}$`)
-    return pattern.test(e.path) && e.method === 'delete'
-  })
-  const hasQuery = endpoints.some(e => e.path === `${basePath}/query` && e.method === 'post')
+export function deleteStaleGeneratedModules(outputDir: string, expectedFiles: Set<string>): string[] {
+  const staleFiles = collectStaleGeneratedModules(outputDir, expectedFiles)
 
-  const hasStandardCrud = hasPost && hasGet && hasPut && hasDelete && hasQuery
-  if (!hasStandardCrud) return 'none'
-
-  // 检查是否支持软删除
-  const hasRestore = endpoints.some(e => {
-    const pattern = new RegExp(`^${escapeRegex(basePath)}/\\{[^}]+\\}/restore$`)
-    return pattern.test(e.path) && e.method === 'post'
-  })
-  const hasTrash = endpoints.some(e => e.path === `${basePath}/trash` && e.method === 'get')
-  const hasTrashRestore = endpoints.some(e => e.path === `${basePath}/trash/restore` && e.method === 'post')
-  const hasTrashPermanent = endpoints.some(e => e.path === `${basePath}/trash/permanent` && e.method === 'delete')
-
-  if (hasRestore && hasTrash && hasTrashRestore && hasTrashPermanent) {
-    return 'soft-delete'
+  for (const fileName of staleFiles) {
+    deleteFileIfExists(join(outputDir, fileName))
   }
 
-  return 'standard'
+  return staleFiles
 }
 
-/**
- * 检测是否有批量删除端点
- */
-function hasBulkDeleteEndpoint(endpoints: EndpointInfo[], basePath: string): boolean {
-  return endpoints.some(e => e.path === `${basePath}/bulk` && e.method === 'delete')
-}
-
-/**
- * 获取非标准端点的方法名列表
- */
-function getExtraMethodNames(endpoints: EndpointInfo[], resourceName: string): string[] {
-  const extraEndpoints = endpoints.filter(e => !isStandardCrudEndpoint(e.path, e.method, resourceName))
-  const existingNames = new Set<string>()
-  const names: string[] = []
-
-  for (const endpoint of extraEndpoints) {
-    if (endpoint.operation.operationId) {
-      const name = generateMethodName(endpoint.path, endpoint.method, endpoint.operation.operationId)
-      const uniqueName = ensureUniqueMethodName(name, existingNames)
-      existingNames.add(uniqueName)
-      names.push(uniqueName)
-    }
-  }
-
-  return names
-}
-
-/**
- * 将资源名转换为 PascalCase
- */
-function toPascalCase(name: string): string {
-  const camelCase = toValidIdentifier(name)
-  return camelCase.charAt(0).toUpperCase() + camelCase.slice(1)
-}
-
-/**
- * 生成 API 模块代码
- */
-function generateModuleCode(module: ModuleInfo): string {
-  const lines: string[] = []
-
-  // 文件头部注释
-  lines.push(`/**`)
-  lines.push(` * ${module.singularName} 管理 API`)
-  lines.push(` *`)
-  lines.push(` * ⚠️  此文件由 scripts/generate-api-types.ts 自动生成`)
-  lines.push(` * 自动生成时间: ${new Date().toISOString()}`)
-  lines.push(` *`)
-  lines.push(` * 如需添加自定义方法，请在以下占位符区域添加：`)
-  lines.push(` * // ==================== CUSTOM METHODS ====================`)
-  lines.push(` */`)
-  lines.push('')
-
-  // 导入
-  lines.push(`import {`)
-  if (module.crudType === 'soft-delete') {
-    lines.push(`  createSoftDeleteCrudApi,`)
-    lines.push(`  type SoftDeleteCrudResourceCollectionPath,`)
-  } else if (module.crudType === 'standard') {
-    lines.push(`  createCrudApi,`)
-    lines.push(`  type CrudResourceCollectionPath,`)
-  }
-  if (module.crudType !== 'none') {
-    lines.push(`  type CrudCreateInput,`)
-    lines.push(`  type CrudItem,`)
-    lines.push(`  type CrudUpdateInput,`)
-  }
-  lines.push(`} from '@/api/base/crud-api'`)
-
-  // 导入生成的 API 客户端（如果有额外方法）
-  if (module.extraMethods.length > 0) {
-    lines.push(`import { ${module.singularName}GeneratedApi } from '@/api/generated/api-clients'`)
-  }
-
-  lines.push('')
-
-  // 路径定义
-  if (module.crudType !== 'none') {
-    const pathConstType = module.crudType === 'soft-delete'
-      ? 'SoftDeleteCrudResourceCollectionPath'
-      : 'CrudResourceCollectionPath'
-    lines.push(`const ${module.pascalName.toUpperCase()}_COLLECTION_PATH = '${module.collectionPath}' satisfies ${pathConstType}`)
-
-    if (module.hasBulkDelete) {
-      lines.push(`const ${module.pascalName.toUpperCase()}_BULK_DELETE_PATH = '${module.collectionPath}/bulk' as const`)
-    }
-    lines.push('')
-  }
-
-  // 类型定义
-  if (module.crudType !== 'none') {
-    lines.push(`export type ${module.pascalName} = CrudItem<typeof ${module.pascalName.toUpperCase()}_COLLECTION_PATH>`)
-    lines.push('')
-    lines.push(`export type Create${module.pascalName}Input = CrudCreateInput<typeof ${module.pascalName.toUpperCase()}_COLLECTION_PATH>`)
-    lines.push('')
-    lines.push(`export type Update${module.pascalName}Input = CrudUpdateInput<typeof ${module.pascalName.toUpperCase()}_COLLECTION_PATH>`)
-    lines.push('')
-  }
-
-  // API 定义
-  if (module.crudType !== 'none') {
-    lines.push(`const base${module.pascalName}Api = ${module.crudType === 'soft-delete' ? 'createSoftDeleteCrudApi' : 'createCrudApi'}({`)
-    lines.push(`  collection: ${module.pascalName.toUpperCase()}_COLLECTION_PATH,`)
-    lines.push(`  item: \`\${${module.pascalName.toUpperCase()}_COLLECTION_PATH}/{id}\` as const,`)
-    lines.push(`  query: \`\${${module.pascalName.toUpperCase()}_COLLECTION_PATH}/query\` as const,`)
-
-    if (module.crudType === 'soft-delete') {
-      lines.push(`  restore: \`\${${module.pascalName.toUpperCase()}_COLLECTION_PATH}/{id}/restore\` as const,`)
-      lines.push(`  trash: \`\${${module.pascalName.toUpperCase()}_COLLECTION_PATH}/trash\` as const,`)
-      lines.push(`  trashRestore: \`\${${module.pascalName.toUpperCase()}_COLLECTION_PATH}/trash/restore\` as const,`)
-      lines.push(`  trashPermanentDelete: \`\${${module.pascalName.toUpperCase()}_COLLECTION_PATH}/trash/permanent\` as const,`)
-    }
-
-    if (module.hasBulkDelete) {
-      lines.push(`  bulkDelete: ${module.pascalName.toUpperCase()}_BULK_DELETE_PATH,`)
-    }
-
-    lines.push('})')
-    lines.push('')
-
-    // 组合 API 导出
-    lines.push(`export const ${module.singularName}Api = {`)
-    lines.push(`  ...base${module.pascalName}Api,`)
-
-    // 添加生成的额外方法
-    if (module.extraMethods.length > 0) {
-      for (const methodName of module.extraMethods) {
-        lines.push(`  ${methodName}: ${module.singularName}GeneratedApi.${methodName},`)
-      }
-    }
-
-    lines.push('')
-    lines.push(`  // ==================== CUSTOM METHODS ====================`)
-    lines.push(`  // 在此区域添加自定义方法（仅追加，不覆盖）`)
-    lines.push(`  // 可使用的导入项: ContractResponseData, contractClient`)
-    lines.push(`  // ======================================================`)
-    lines.push('}')
-  } else {
-    // 非 CRUD 资源，直接导出生成的客户端
-    if (module.extraMethods.length > 0) {
-      lines.push(`export const ${module.singularName}Api = ${module.singularName}GeneratedApi`)
-      lines.push('')
-      lines.push(`// ==================== CUSTOM METHODS ====================`)
-      lines.push(`// 在此区域添加自定义方法（仅追加，不覆盖）`)
-      lines.push(`// ======================================================`)
-    }
-  }
-
-  // 添加手动配置区域（用于缓存等自定义配置）
-  lines.push('')
-  lines.push(`// ==================== CUSTOM CONFIG START ====================`)
-  lines.push(`// 在此区域添加自定义配置（如缓存策略、超时设置等）`)
-  lines.push(`// ===========================================================`)
-  lines.push(`// ==================== CUSTOM CONFIG END ====================`)
-
-  lines.push('')
-
-  return lines.join('\n')
-}
-
-/**
- * 生成所有 API 模块
- */
-async function generateApiModules(spec: unknown, outputDir: string): Promise<boolean> {
+async function generateApiModules(
+  spec: unknown,
+  outputDir: string
+): Promise<{
+  changed: boolean
+  deletedFiles: string[]
+}> {
   console.log('🔧 正在生成 API 模块...')
 
-  const endpoints = extractEndpoints(spec)
-  const groups = groupEndpointsByResource(endpoints)
+  const plans = buildModulePlans(groupEndpointsByModuleModel(extractEndpoints(spec)))
+  const expectedFiles = new Set<string>()
+  let changed = false
 
-  let anyChanged = false
+  ensureDir(outputDir)
 
-  for (const group of groups) {
-    const validResourceName = toValidIdentifier(group.resourceName)
-    const singularName = toSingular(validResourceName)
-    const pascalName = toPascalCase(singularName)
-    const crudType = detectCrudType(group.endpoints, group.collectionPath)
-    const hasBulkDelete = hasBulkDeleteEndpoint(group.endpoints, group.collectionPath)
-    const extraMethods = getExtraMethodNames(group.endpoints, group.resourceName)
+  for (const plan of plans) {
+    const outputFileName = `${plan.fileBaseName}.ts`
+    const outputPath = join(outputDir, outputFileName)
+    expectedFiles.add(outputFileName)
 
-    const module: ModuleInfo = {
-      resourceName: group.resourceName,
-      collectionPath: group.collectionPath,
-      crudType,
-      hasBulkDelete,
-      extraMethods,
-      singularName,
-      pascalName
-    }
+    const nextTemplate = buildModuleTemplate(generateModuleAutoSection(plan))
+    const mergedTemplate = mergeModuleWithCustomSections(
+      nextTemplate,
+      existsSync(outputPath) ? readFileSync(outputPath, 'utf-8') : undefined
+    )
 
-    // 生成模块文件名（使用单数形式，与现有约定一致）
-    const moduleFileName = group.resourceName === 'users' ? 'user.ts' :
-                          group.resourceName === 'roles' ? 'role.ts' :
-                          group.resourceName === 'menus' ? 'menu.ts' :
-                          group.resourceName === 'work_lines' ? 'workline.ts' :
-                          group.resourceName === 'devices' ? 'device.ts' :
-                          group.resourceName === 'api-auth' ? 'apiAuth.ts' :
-                          singularName.endsWith('s') && !singularName.endsWith('ss') ? `${singularName.slice(0, -1)}.ts` :
-                          `${singularName}.ts`
+    const fileChanged = writeFileIfChanged(outputPath, mergedTemplate)
+    console.log(fileChanged ? `  ✅ 已更新: ${outputFileName}` : `  ✅ 无变化: ${outputFileName}`)
+    changed = changed || fileChanged
+  }
 
-    const outputPath = join(outputDir, moduleFileName)
+  const deletedFiles = deleteStaleGeneratedModules(outputDir, expectedFiles)
 
-    // 生成新内容
-    let content = generateModuleCode(module)
+  return {
+    changed: changed || deletedFiles.length > 0,
+    deletedFiles
+  }
+}
 
-    // 如果文件已存在，提取并保留手动配置区域
-    const fileExists = existsSync(outputPath)
-    if (fileExists) {
-      const existingContent = readFileSync(outputPath, 'utf-8')
+function isCliEntry(): boolean {
+  const executedFile = process.argv[1]
+  return !!executedFile && fileURLToPath(import.meta.url) === executedFile
+}
 
-      // 检查是否已经有自动生成标记（防止重复添加）
-      const isAutoGenerated = existingContent.includes('此文件由 scripts/generate-api-types.ts 自动生成')
+export async function main(): Promise<void> {
+  console.log('🚀 OpenAPI 类型生成工具\n')
 
-      if (!isAutoGenerated) {
-        // 文件不是自动生成的，显示警告
-        console.log(`  ⚠️  ${moduleFileName} 不是自动生成格式，将转换为自动生成（请确认备份）`)
-      }
+  ensureDir(config.outputDir)
+  ensureDir(config.modulesOutputDir)
 
-      // 提取 CUSTOM CONFIG 区域的内容（仅当文件已经包含该区域时）
-      const customConfigMatch = existingContent.match(
-        /\/\/ =+ CUSTOM CONFIG START =+\n([\s\S]*?)\/\/ =+ CUSTOM CONFIG END =+/
-      )
+  const spec = await fetchOpenApiSpec(config.backendUrl)
 
-      if (customConfigMatch && customConfigMatch[1].trim()) {
-        const customConfig = customConfigMatch[1]
-        // 移除生成内容中的空 CUSTOM CONFIG 区域，替换为保留的内容
-        content = content.replace(
-          /\/\/ =+ CUSTOM CONFIG START =+\n\/\/ 在此区域添加自定义配置[\s\S]*?\/\/ =+ CUSTOM CONFIG END =+/,
-          `// ==================== CUSTOM CONFIG START ====================\n${customConfig}// ==================== CUSTOM CONFIG END ====================`
-        )
-      }
-    }
+  const typesOutputPath = join(config.outputDir, 'openapi-types.ts')
+  const metadataOutputPath = join(config.outputDir, 'openapi-metadata.ts')
+  const apiClientsOutputPath = join(config.outputDir, 'api-clients.ts')
 
-    const changed = writeFileIfChanged(outputPath, content)
+  const typesChanged = await generateTypesFile(spec, typesOutputPath)
+  const metadataChanged = await generateMetadataFile(spec, metadataOutputPath)
+  const apiClientsDeleted = deleteFileIfExists(apiClientsOutputPath)
 
-    if (changed) {
-      console.log(`  ✅ 已更新: ${moduleFileName}`)
-      anyChanged = true
-    } else {
-      console.log(`  ✅ 无变化: ${moduleFileName}`)
+  validateGeneratedFile(typesOutputPath)
+  validateGeneratedFile(metadataOutputPath)
+
+  const modulesResult = await generateApiModules(spec, config.modulesOutputDir)
+
+  for (const fileName of readdirSync(config.modulesOutputDir).filter(file =>
+    file.endsWith('.ts')
+  )) {
+    validateGeneratedFile(join(config.modulesOutputDir, fileName))
+  }
+
+  const changed = typesChanged || metadataChanged || apiClientsDeleted || modulesResult.changed
+
+  console.log(changed ? '\n✅ 类型生成完成！' : '\n✅ 类型无变化，未更新生成文件')
+  console.log(`📁 生成目录: ${config.outputDir}`)
+  console.log(`📁 模块目录: ${config.modulesOutputDir}`)
+
+  if (apiClientsDeleted) {
+    console.log(`🧹 已移除旧聚合客户端: ${apiClientsOutputPath}`)
+  }
+
+  if (modulesResult.deletedFiles.length > 0) {
+    console.log('\n🧹 已移除以下过期的自动生成模块文件：')
+    for (const fileName of modulesResult.deletedFiles) {
+      console.log(`   - ${fileName}`)
     }
   }
 
-  return anyChanged
+  console.log('\n💡 提示: 运行 pnpm type:check 验证全量类型')
 }
 
-// ==================== 主流程 ====================
-
-async function main(): Promise<void> {
-  try {
-    console.log('🚀 OpenAPI 类型生成工具\n')
-
-    // 确保输出目录存在
-    ensureDir(config.outputDir)
-
-    // 获取 OpenAPI 规范
-    const spec = await fetchOpenApiSpec(config.backendUrl)
-
-    // 生成类型文件
-    const outputPath = join(config.outputDir, 'openapi-types.ts')
-    const metadataOutputPath = join(config.outputDir, 'openapi-metadata.ts')
-    const typeChanged = await generateTypesFile(spec, outputPath)
-    const metadataChanged = await generateMetadataFile(spec, metadataOutputPath)
-
-    // 验证生成结果
-    validateGeneratedFile(outputPath)
-    validateGeneratedFile(metadataOutputPath)
-
-    // 生成 API 客户端文件（如果启用）
-    let clientsChanged = false
-    if (config.generateApiClients) {
-      const clientsOutputPath = join(config.outputDir, 'api-clients.ts')
-      clientsChanged = await generateApiClientsFile(spec, clientsOutputPath)
-      if (existsSync(clientsOutputPath)) {
-        validateGeneratedFile(clientsOutputPath)
-      }
-    }
-
-    // 生成 API 模块（如果启用）
-    let modulesChanged = false
-    if (config.generateApiModules) {
-      ensureDir(config.modulesOutputDir)
-      modulesChanged = await generateApiModules(spec, config.modulesOutputDir)
-    }
-
-    const changed = typeChanged || metadataChanged || clientsChanged || modulesChanged
-    console.log(changed ? '\n✅ 类型生成完成！' : '\n✅ 类型无变化，未更新生成文件')
-    console.log(`📁 输出目录: ${config.outputDir}`)
-    if (config.generateApiClients) {
-      console.log('📦 API 客户端已生成')
-    }
-    if (config.generateApiModules) {
-      console.log('📦 API 模块已生成')
-    }
-    console.log('\n💡 提示: 运行 pnpm type:check 验证类型正确性')
-  } catch (error) {
+if (isCliEntry()) {
+  main().catch(error => {
     console.error('\n❌ 类型生成失败:', error)
     process.exit(1)
-  }
+  })
 }
-
-// 运行主流程
-main()

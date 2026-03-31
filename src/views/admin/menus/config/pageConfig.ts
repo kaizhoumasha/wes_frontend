@@ -1,6 +1,10 @@
-import type { CreateMenuInput, UpdateMenuInput, Menu } from '@/api/modules/menu'
+import type {
+  CreateMenusInput as CreateMenuInput,
+  UpdateMenusInput as UpdateMenuInput,
+  MenusItem as Menu
+} from '@/api/modules/menus'
 import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
-import { menuApi } from '@/api/modules/menu'
+import { menusApi as menuApi } from '@/api/modules/menus'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'

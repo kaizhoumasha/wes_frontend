@@ -4,7 +4,11 @@
  * 使用统一字段配置管理表格、表单与搜索，字段能力基线与后端契约对齐。
  */
 
-import type { CreateUserInput, UpdateUserInput, User } from '@/api/modules/user'
+import type {
+  CreateUsersInput as CreateUserInput,
+  UpdateUsersInput as UpdateUserInput,
+  UsersItem as User
+} from '@/api/modules/users'
 import { UserCreateSchema, UserUpdateSchema } from '@/types/zod-extensions'
 import {
   defineCrudResourceFieldBundle

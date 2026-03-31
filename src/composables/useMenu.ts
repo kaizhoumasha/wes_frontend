@@ -33,7 +33,7 @@
  */
 
 import { computed, ref } from 'vue'
-import { menuApi } from '@/api/modules/menu'
+import { menusApi as menuApi } from '@/api/modules/menus'
 import type { MenuItem, FlatMenuItem, MenuTreeResponse } from '@/types/menu'
 import { toMenuItem, flattenMenuTree, getMenuBreadcrumb as computeBreadcrumb } from '@/types/menu'
 import { MENU_CACHE, getCachedData, setCachedData, clearCachedData, restoreFromHMR } from '@/constants/cache'

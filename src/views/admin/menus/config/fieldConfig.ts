@@ -2,7 +2,11 @@
  * 菜单字段配置
  */
 
-import type { CreateMenuInput, UpdateMenuInput, Menu } from '@/api/modules/menu'
+import type {
+  CreateMenusInput as CreateMenuInput,
+  UpdateMenusInput as UpdateMenuInput,
+  MenusItem as Menu
+} from '@/api/modules/menus'
 import { MenuCreateSchema, MenuUpdateSchema } from '@/types/zod-extensions'
 import {
   defineCrudResourceFieldBundle

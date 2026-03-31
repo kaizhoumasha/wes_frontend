@@ -1,6 +1,10 @@
-import type { CreateDeviceInput, UpdateDeviceInput, Device } from '@/api/modules/device'
+import type {
+  CreateDevicesInput as CreateDeviceInput,
+  UpdateDevicesInput as UpdateDeviceInput,
+  DevicesItem as Device
+} from '@/api/modules/devices'
 import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
-import { deviceApi } from '@/api/modules/device'
+import { devicesApi as deviceApi } from '@/api/modules/devices'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'

@@ -2,7 +2,11 @@
  * 作业线字段配置
  */
 
-import type { CreateWorklineInput, UpdateWorklineInput, Workline } from '@/api/modules/workline'
+import type {
+  CreateWorkLinesInput as CreateWorklineInput,
+  UpdateWorkLinesInput as UpdateWorklineInput,
+  WorkLinesItem as Workline
+} from '@/api/modules/workLines'
 import { WorkLineCreateSchema, WorkLineUpdateSchema } from '@/types/zod-extensions'
 import {
   defineCrudResourceFieldBundle

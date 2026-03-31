@@ -10,7 +10,7 @@
  * @example
  * ```vue
  * <script setup lang="ts">
- * import { userApi } from '@/api/modules/user'
+ * import { usersApi as userApi } from '@/api/modules/users'
  * import { useCrudApi } from '@/composables/useCrudApi'
  *
  * const {

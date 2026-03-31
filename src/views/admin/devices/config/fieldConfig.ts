@@ -4,7 +4,11 @@
  * 使用统一字段配置管理表格、表单与搜索，字段能力基线与后端契约对齐。
  */
 
-import type { CreateDeviceInput, UpdateDeviceInput, Device } from '@/api/modules/device'
+import type {
+  CreateDevicesInput as CreateDeviceInput,
+  UpdateDevicesInput as UpdateDeviceInput,
+  DevicesItem as Device
+} from '@/api/modules/devices'
 import { DeviceCreateSchema, DeviceUpdateSchema } from '@/types/zod-extensions'
 import {
   defineCrudResourceFieldBundle

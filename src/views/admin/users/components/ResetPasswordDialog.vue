@@ -9,9 +9,8 @@
  */
 import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import type { User } from '@/api/modules/user'
-import { userApi } from '@/api/modules/user'
-import type { ResetUserPasswordInput } from '@/api/modules/user'
+import type { UsersItem as User, ResetPasswordInput as ResetUserPasswordInput } from '@/api/modules/users'
+import { usersApi as userApi } from '@/api/modules/users'
 import StandardDialog from '@/components/ui/StandardDialog/StandardDialog.vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
 import { getSafeErrorMessage } from '@/utils/string'

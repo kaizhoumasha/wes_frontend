@@ -1,6 +1,9 @@
-import type { CreateUserInput, UpdateUserInput } from '@/api/modules/user'
+import type {
+  CreateUsersInput as CreateUserInput,
+  UpdateUsersInput as UpdateUserInput
+} from '@/api/modules/users'
 import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
-import { userApi, type User } from '@/api/modules/user'
+import { usersApi as userApi, type UsersItem as User } from '@/api/modules/users'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
