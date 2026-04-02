@@ -2,10 +2,30 @@
  * 环境变量配置 - 单一数据源
  * 所有环境变量在此定义，供组件和非组件模块共同使用
  */
+const API_PREFIX = '/api/v1'
+
+function normalizeApiBaseUrl(value: string | undefined): string | undefined {
+  if (value === undefined || value === '') {
+    return value
+  }
+
+  const normalized = value.replace(/\/+$/, '')
+
+  if (normalized === API_PREFIX) {
+    return ''
+  }
+
+  if (normalized.endsWith(API_PREFIX)) {
+    return normalized.slice(0, -API_PREFIX.length)
+  }
+
+  return normalized
+}
+
 export const env = {
   /** API 基础 URL */
   get apiBaseUrl() {
-    return import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8001'
+    return normalizeApiBaseUrl(import.meta.env.VITE_API_BASE_URL) ?? 'http://localhost:8001'
   },
 
   /** SSE 实时事件流 URL */
