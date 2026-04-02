@@ -345,6 +345,18 @@ export const BatchOperationResultSchema = z.object({
 
 
 /**
+ * 批量排序请求
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const BatchSortRequestSchema = z.object({
+  /** Items */
+  items: z.array(z.lazy(() => SortItemSchema)),
+})
+
+
+/**
  * 回调日志响应 Schema
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -1654,6 +1666,22 @@ export const SortFieldSchema = z.object({
   field: z.string(),
   /** Order */
   order: z.enum(["asc", "desc"]).optional().default("desc"),
+})
+
+
+/**
+ * 批量排序项
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const SortItemSchema = z.object({
+  /** Id */
+  id: z.number(),
+  /** Parent Id */
+  parent_id: z.union([z.number(), z.null()]).optional(),
+  /** Sort Order */
+  sort_order: z.number().optional().default(0),
 })
 
 
