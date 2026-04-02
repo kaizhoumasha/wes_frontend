@@ -1,6 +1,6 @@
 # 多阶段构建 Dockerfile
 # Stage 1: 构建阶段
-FROM node:22-alpine AS builder
+FROM node:22-bookworm-slim AS builder
 
 WORKDIR /app
 
@@ -9,6 +9,12 @@ ARG VITE_API_BASE_URL=/api/v1
 ARG VITE_SSE_URL=/api/v1/events/stream
 ARG VITE_APP_TITLE="P9 WES"
 ARG VITE_APP_DEV=false
+
+# 避免 CI 中的无关交互式依赖下载拖慢构建
+ENV CI=true \
+    HUSKY=0 \
+    ELECTRON_SKIP_BINARY_DOWNLOAD=1 \
+    ELECTRON_SKIP_DOWNLOAD=1
 
 # 安装 pnpm
 RUN corepack enable && corepack prepare pnpm@10.10.0 --activate

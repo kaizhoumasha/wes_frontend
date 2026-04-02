@@ -1,0 +1,15 @@
+node_modules
+dist
+.git
+.github
+.husky
+.vscode
+.claude
+.serena
+docs
+claudedocs
+tests
+coverage
+*.log
+*.local
+.DS_Store

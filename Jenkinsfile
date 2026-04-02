@@ -10,7 +10,7 @@ pipeline {
 
     options {
         buildDiscarder(logRotator(numToKeepStr: '10'))
-        timeout(time: 45, unit: 'MINUTES')
+        timeout(time: 60, unit: 'MINUTES')
         skipDefaultCheckout(true)
         disableConcurrentBuilds()
         timestamps()
@@ -80,6 +80,8 @@ pipeline {
                     docker run --rm \
                         -e HUSKY=0 \
                         -e CI=true \
+                        -e ELECTRON_SKIP_BINARY_DOWNLOAD=1 \
+                        -e ELECTRON_SKIP_DOWNLOAD=1 \
                         -v "$WORKSPACE:/app" \
                         -w /app \
                         node:22-bookworm-slim \
@@ -99,6 +101,8 @@ pipeline {
                 sh '''
                     set -e
                     docker build \
+                        --provenance=false \
+                        --sbom=false \
                         --build-arg VITE_API_BASE_URL=/api/v1 \
                         --build-arg VITE_SSE_URL=/api/v1/events/stream \
                         --build-arg VITE_APP_DEV=false \
