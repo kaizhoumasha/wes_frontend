@@ -683,7 +683,7 @@ export function useCrudListPage<
     crudApi.loading.value = true
     try {
       await treeApi.batchSort({ items })
-      await fetchTree()
+      // 不在这里刷新树，让调用者决定是否刷新
       return true
     } catch {
       return false
@@ -705,7 +705,7 @@ export function useCrudListPage<
           await treeApi.move({ id: item.id, target_id: item.parent_id, position: 'inner' })
         }
       }
-      await fetchTree()
+      // 不在这里刷新树，让调用者决定是否刷新
       return true
     } catch {
       return false
