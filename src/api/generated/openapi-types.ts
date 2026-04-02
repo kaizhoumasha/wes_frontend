@@ -85,6 +85,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/menus/batch-sort": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Batch Sort
+         * @description 批量排序节点
+         *
+         *     适用于拖拽排序场景，一次请求更新多个节点的 parent_id 和 sort_order
+         */
+        put: operations["admin_menus_batch_sort_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/menus/children/{node_id}": {
         parameters: {
             query?: never;
@@ -242,7 +264,7 @@ export interface paths {
         };
         /**
          * Get Tree
-         * @description 获取树形结构
+         * @description 获取树形结构（默认懒加载模式）
          */
         get: operations["admin_menus_tree_get"];
         put?: never;
@@ -418,6 +440,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/permissions/batch-sort": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Batch Sort
+         * @description 批量排序节点
+         *
+         *     适用于拖拽排序场景，一次请求更新多个节点的 parent_id 和 sort_order
+         */
+        put: operations["admin_permissions_batch_sort_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/permissions/children/{node_id}": {
         parameters: {
             query?: never;
@@ -555,7 +599,7 @@ export interface paths {
         };
         /**
          * Get Tree
-         * @description 获取树形结构
+         * @description 获取树形结构（默认懒加载模式）
          */
         get: operations["admin_permissions_tree_get"];
         put?: never;
@@ -2473,6 +2517,17 @@ export interface components {
              * @default 0
              */
             total: number;
+        };
+        /**
+         * BatchSortRequest
+         * @description 批量排序请求
+         */
+        BatchSortRequest: {
+            /**
+             * Items
+             * @description 排序项列表
+             */
+            items: components["schemas"]["SortItem"][];
         };
         /** Body_admin_menus_move_put */
         Body_admin_menus_move_put: {
@@ -5373,6 +5428,28 @@ export interface components {
             order: "asc" | "desc";
         };
         /**
+         * SortItem
+         * @description 批量排序项
+         */
+        SortItem: {
+            /**
+             * Id
+             * @description 节点ID
+             */
+            id: number;
+            /**
+             * Parent Id
+             * @description 父节点ID
+             */
+            parent_id?: number | null;
+            /**
+             * Sort Order
+             * @description 排序值
+             * @default 0
+             */
+            sort_order: number;
+        };
+        /**
          * TryInvokeApplication
          * @description 测试 API 调用数据模型
          */
@@ -5969,6 +6046,39 @@ export interface operations {
             };
         };
     };
+    admin_menus_batch_sort_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BatchSortRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_NoneType_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     admin_menus_children_by_node_id_get: {
         parameters: {
             query?: never;
@@ -6223,10 +6333,12 @@ export interface operations {
     admin_menus_tree_get: {
         parameters: {
             query?: {
-                /** @description 最大深度,-1表示不限制 */
+                /** @description 关联数据加载深度 */
                 max_depth?: number;
                 /** @description 根节点ID */
                 root_id?: number | null;
+                /** @description 树深度：-1=完整树(节点少时用), 0=仅顶层(懒加载，节点多时用) */
+                tree_depth?: number;
             };
             header?: never;
             path?: never;
@@ -6546,6 +6658,39 @@ export interface operations {
             };
         };
     };
+    admin_permissions_batch_sort_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BatchSortRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_NoneType_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     admin_permissions_children_by_node_id_get: {
         parameters: {
             query?: never;
@@ -6780,10 +6925,12 @@ export interface operations {
     admin_permissions_tree_get: {
         parameters: {
             query?: {
-                /** @description 最大深度,-1表示不限制 */
+                /** @description 关联数据加载深度 */
                 max_depth?: number;
                 /** @description 根节点ID */
                 root_id?: number | null;
+                /** @description 树深度：-1=完整树(节点少时用), 0=仅顶层(懒加载，节点多时用) */
+                tree_depth?: number;
             };
             header?: never;
             path?: never;

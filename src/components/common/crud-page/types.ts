@@ -46,6 +46,8 @@ export interface CrudPageFeatures {
   batchRestore?: CrudPageActionFeature
   permanentDelete?: CrudPageActionFeature
   batchPermanentDelete?: CrudPageActionFeature
+  move?: CrudPageActionFeature
+  sort?: CrudPageActionFeature
 }
 
 export interface CrudPageStandardActionConfig {
@@ -82,6 +84,8 @@ export interface ResolvedCrudPageFeatures {
   batchRestore: ResolvedCrudPageStandardActionConfig
   permanentDelete: ResolvedCrudPageStandardActionConfig
   batchPermanentDelete: ResolvedCrudPageStandardActionConfig
+  move: ResolvedCrudPageStandardActionConfig
+  sort: ResolvedCrudPageStandardActionConfig
 }
 
 export interface CrudPageTitleConfig {

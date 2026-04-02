@@ -54,6 +54,9 @@ export type ChildrenPathParams = ContractPathParams<'/api/v1/admin/permissions/c
 export type MoveResult = ContractResponseData<'/api/v1/admin/permissions/move', 'put'>
 export type MoveInput = ContractRequestBody<'/api/v1/admin/permissions/move', 'put'>
 
+export type BatchSortResult = ContractResponseData<'/api/v1/admin/permissions/batch-sort', 'put'>
+export type BatchSortInput = ContractRequestBody<'/api/v1/admin/permissions/batch-sort', 'put'>
+
 const basePermissionsApi = createSoftDeleteCrudApi({
   collection: PERMISSIONS_COLLECTION_PATH as unknown as SoftDeleteCrudResourceCollectionPath,
   item: `${PERMISSIONS_COLLECTION_PATH}/{id}` as const,
@@ -69,7 +72,7 @@ export const permissionsApi = {
 
   /**
    * Get Tree
-   * @description 获取树形结构
+   * @description 获取树形结构（默认懒加载模式）
    * @endpoint GET /api/v1/admin/permissions/tree
    */
   async tree(query?: ContractQueryParams<'/api/v1/admin/permissions/tree', 'get'>, config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/admin/permissions/tree', 'get'>> {
@@ -110,6 +113,17 @@ export const permissionsApi = {
    */
   async move(body: ContractRequestBody<'/api/v1/admin/permissions/move', 'put'>, config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/admin/permissions/move', 'put'>> {
     return await contractClient.put('/api/v1/admin/permissions/move', { body, config })
+  },
+
+  /**
+   * Batch Sort
+   * @description 批量排序节点
+
+适用于拖拽排序场景，一次请求更新多个节点的 parent_id 和 sort_order
+   * @endpoint PUT /api/v1/admin/permissions/batch-sort
+   */
+  async batchSort(body: ContractRequestBody<'/api/v1/admin/permissions/batch-sort', 'put'>, config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/admin/permissions/batch-sort', 'put'>> {
+    return await contractClient.put('/api/v1/admin/permissions/batch-sort', { body, config })
   }
 }
 // ==================== AUTO GENERATED END ====================

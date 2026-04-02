@@ -67,6 +67,11 @@ const MENU_PAGE_FEATURES: CrudPageFeatures = {
   },
   batchPermanentDelete: {
     label: '批量彻底删除'
+  },
+  sort: {
+    enabled: true,
+    label: '排序',
+    icon: 'lucide:arrow-down-up'
   }
 }
 

@@ -54,6 +54,9 @@ export type ChildrenPathParams = ContractPathParams<'/api/v1/admin/menus/childre
 export type MoveResult = ContractResponseData<'/api/v1/admin/menus/move', 'put'>
 export type MoveInput = ContractRequestBody<'/api/v1/admin/menus/move', 'put'>
 
+export type BatchSortResult = ContractResponseData<'/api/v1/admin/menus/batch-sort', 'put'>
+export type BatchSortInput = ContractRequestBody<'/api/v1/admin/menus/batch-sort', 'put'>
+
 export type MyMenuResult = ContractResponseData<'/api/v1/admin/menus/my_menu', 'get'>
 
 const baseMenusApi = createSoftDeleteCrudApi({
@@ -71,7 +74,7 @@ export const menusApi = {
 
   /**
    * Get Tree
-   * @description 获取树形结构
+   * @description 获取树形结构（默认懒加载模式）
    * @endpoint GET /api/v1/admin/menus/tree
    */
   async tree(query?: ContractQueryParams<'/api/v1/admin/menus/tree', 'get'>, config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/admin/menus/tree', 'get'>> {
@@ -112,6 +115,17 @@ export const menusApi = {
    */
   async move(body: ContractRequestBody<'/api/v1/admin/menus/move', 'put'>, config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/admin/menus/move', 'put'>> {
     return await contractClient.put('/api/v1/admin/menus/move', { body, config })
+  },
+
+  /**
+   * Batch Sort
+   * @description 批量排序节点
+
+适用于拖拽排序场景，一次请求更新多个节点的 parent_id 和 sort_order
+   * @endpoint PUT /api/v1/admin/menus/batch-sort
+   */
+  async batchSort(body: ContractRequestBody<'/api/v1/admin/menus/batch-sort', 'put'>, config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/admin/menus/batch-sort', 'put'>> {
+    return await contractClient.put('/api/v1/admin/menus/batch-sort', { body, config })
   },
 
   /**

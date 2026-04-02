@@ -13,6 +13,8 @@ import TableColumnConfigDialog from '@/components/common/TableColumnConfigDialog
 import AdvancedSearchDialog from '@/components/search/AdvancedSearchDialog.vue'
 import CrudDetailPanel from '@/components/common/crud-page/detail/CrudDetailPanel.vue'
 import AppIconButton from '@/components/ui/AppIconButton.vue'
+import MoveDialog from '@/components/common/MoveDialog.vue'
+import SortDialog from '@/components/common/SortDialog.vue'
 import { ElMessage } from 'element-plus'
 import { useSearchFavorites } from '@/composables/useSearchFavorites'
 import { DENSITY_CONFIG, type TableDensity } from '@/types/table'
@@ -56,7 +58,13 @@ const {
   columnsManager,
   formTitle,
   detailState,
-  tree: treeState
+  tree: treeState,
+  moveDialog,
+  handleMoveConfirm,
+  handleMoveCancel,
+  sortDialog,
+  handleSortConfirm,
+  handleSortCancel
 } = controller
 
 const { state: pageState, search, dialogs } = page
@@ -301,6 +309,27 @@ async function handleRefreshDetailPanel(): Promise<void> {
       :draft-seed="search.instance.state.value.advancedDialogDraftSeed"
       @apply-filter-group="handleApplyAdvancedFilter"
       @save-favorite="handleSaveSearchFavorite"
+    />
+
+    <!-- 移动对话框 -->
+    <MoveDialog
+      v-if="features.move?.enabled"
+      v-model="moveDialog.open"
+      :moving-id="moveDialog.movingId"
+      :tree-data="treeState?.treeData?.value ?? []"
+      :loading="moveDialog.loading"
+      @confirm="handleMoveConfirm"
+      @cancel="handleMoveCancel"
+    />
+
+    <!-- 排序对话框 -->
+    <SortDialog
+      v-if="features.sort?.enabled"
+      v-model="sortDialog.open"
+      :tree-data="treeState?.treeData?.value ?? []"
+      :loading="sortDialog.loading"
+      @confirm="handleSortConfirm"
+      @cancel="handleSortCancel"
     />
 
     <TableColumnConfigDialog

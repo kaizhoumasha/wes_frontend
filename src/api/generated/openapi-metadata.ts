@@ -874,6 +874,25 @@ export const OPENAPI_SCHEMA_METADATA = {
       }
     }
   },
+  "BatchSortRequest": {
+    "title": "BatchSortRequest",
+    "description": "批量排序请求",
+    "required": [
+      "items"
+    ],
+    "fields": {
+      "items": {
+        "title": "Items",
+        "description": "排序项列表",
+        "type": "array",
+        "required": true,
+        "nullable": false,
+        "items": {
+          "ref": "SortItem"
+        }
+      }
+    }
+  },
   "Body_admin_menus_move_put": {
     "title": "Body_admin_menus_move_put",
     "required": [
@@ -5539,6 +5558,37 @@ export const OPENAPI_SCHEMA_METADATA = {
           "asc",
           "desc"
         ]
+      }
+    }
+  },
+  "SortItem": {
+    "title": "SortItem",
+    "description": "批量排序项",
+    "required": [
+      "id"
+    ],
+    "fields": {
+      "id": {
+        "title": "Id",
+        "description": "节点ID",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "parent_id": {
+        "title": "Parent Id",
+        "description": "父节点ID",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "sort_order": {
+        "title": "Sort Order",
+        "description": "排序值",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
       }
     }
   },

@@ -1,5 +1,5 @@
-import { computed, onMounted, provide, ref } from 'vue'
-import { ElMessageBox } from 'element-plus'
+import { computed, onMounted, provide, reactive, ref } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { buildActionsColumn } from '@/components/common/table/formatters'
 import type { ColumnBreakpoint } from '@/composables/useTableColumns'
 import { useCrudListPage } from '@/composables/useCrudListPage'
@@ -224,8 +224,8 @@ export function useCrudPageController<
       : config.table.emptyText ?? '暂无数据'
   )
 
-  const toolbarActions = computed(() =>
-    buildDefaultToolbarActions({
+  const toolbarActions = computed(() => {
+    const actions = buildDefaultToolbarActions({
       config,
       features,
       state,
@@ -233,7 +233,32 @@ export function useCrudPageController<
       onBatchRestore: () => void handleBatchRestore(),
       onBatchPermanentDelete: () => void handleBatchPermanentDelete()
     })
-  )
+
+    // 添加排序按钮（仅在树形模式下）
+    if (
+      features.sort.enabled &&
+      state.tree &&
+      state.tree.isTreeMode.value &&
+      typeof state.tree.fetchTree === 'function'
+    ) {
+      const sortLabel = features.sort.label ?? '排序'
+      const sortTooltip = features.sort.tooltip ?? '拖拽调整菜单顺序和层级'
+      const sortIcon = features.sort.icon ?? 'lucide:arrow-down-up'
+      const sortPermission = features.sort.permission ?? config.resource.permissions?.update
+
+      actions.push({
+        key: `${config.resource.key}-sort`,
+        label: sortLabel,
+        icon: sortIcon,
+        type: 'primary' as const,
+        handler: handleSort,
+        permission: sortPermission,
+        tooltip: sortTooltip
+      })
+    }
+
+    return actions
+  })
 
   // ==================== Detail Panel Integration ====================
   // Must be defined before rowActions to inject view-detail action
@@ -255,11 +280,37 @@ export function useCrudPageController<
       onPermanentDelete: row => void handlePermanentDelete(row)
     })
 
-    if (state.state.viewMode.value !== 'active' || !config.detail) {
-      return defaultRowActions
+    // 添加移动操作（仅在树形模式下可用）
+    const actions: CrudPageRowAction<TItem>[] = [...defaultRowActions]
+    if (
+      features.move.enabled &&
+      state.tree &&
+      state.tree.isTreeMode.value &&
+      typeof state.tree.move === 'function'
+    ) {
+      const moveLabel = features.move.label ?? '移动'
+      const moveTooltip = features.move.tooltip ?? moveLabel
+      const moveIcon = features.move.icon ?? 'lucide:arrow-up-down'
+      const movePermission = features.move.permission ?? config.resource.permissions?.update
+
+      actions.push({
+        key: `${config.resource.key}-move`,
+        label: moveLabel,
+        type: 'info',
+        tooltip: moveTooltip,
+        icon: moveIcon,
+        priority: 'secondary',
+        permission: movePermission,
+        show: () => true,
+        onClick: row => handleMove(row)
+      })
     }
 
-    return [createViewDetailRowAction(config.resource.key, handleViewDetail), ...defaultRowActions]
+    if (state.state.viewMode.value !== 'active' || !config.detail) {
+      return actions
+    }
+
+    return [createViewDetailRowAction(config.resource.key, handleViewDetail), ...actions]
   })
 
   const tableColumns = computed(() => {
@@ -323,6 +374,92 @@ export function useCrudPageController<
 
   async function handlePermanentDelete(row: TItem): Promise<void> {
     await state.apiActions.handlePermanentDelete(row.id)
+  }
+
+  /** 移动对话框状态 */
+  const moveDialog = reactive({
+    open: false,
+    movingId: null as number | null,
+    loading: false
+  })
+
+  function handleMove(row: TItem): void {
+    moveDialog.open = true
+    moveDialog.movingId = row.id
+  }
+
+  async function handleMoveConfirm(
+    targetId: number,
+    position: 'before' | 'after' | 'inner'
+  ): Promise<void> {
+    if (!moveDialog.movingId || !state.tree?.move) return
+
+    moveDialog.loading = true
+    try {
+      const success = await state.tree.move(moveDialog.movingId, targetId, position)
+      if (success) {
+        ElMessage.success('移动成功')
+        moveDialog.open = false
+        moveDialog.movingId = null
+      } else {
+        ElMessage.error('移动失败')
+      }
+    } catch {
+      ElMessage.error('移动失败')
+    } finally {
+      moveDialog.loading = false
+    }
+  }
+
+  function handleMoveCancel(): void {
+    moveDialog.open = false
+    moveDialog.movingId = null
+  }
+
+  /** 排序对话框状态 */
+  const sortDialog = reactive({
+    open: false,
+    loading: false
+  })
+
+  async function handleSort(): Promise<void> {
+    // 排序时加载完整树（forceFullTree=true），以便显示所有节点供拖拽排序
+    if (state.tree?.fetchTree) {
+      await (state.tree.fetchTree as (forceFullTree: boolean) => Promise<void>)(true)
+    }
+    sortDialog.open = true
+  }
+
+  async function handleSortConfirm(items: { id: number; parent_id: number | null; sort_order: number }[]): Promise<void> {
+    if (!state.tree?.batchSort || items.length === 0) {
+      sortDialog.open = false
+      // 恢复懒加载模式
+      ;(state.tree?.fetchTree as ((forceFullTree: boolean) => Promise<void>) | undefined)?.(false)
+      return
+    }
+
+    sortDialog.loading = true
+    try {
+      const success = await state.tree.batchSort(items)
+      if (success) {
+        ElMessage.success('排序已保存')
+        sortDialog.open = false
+        // 恢复懒加载模式
+        await (state.tree?.fetchTree as ((forceFullTree: boolean) => Promise<void>) | undefined)?.(false)
+      } else {
+        ElMessage.error('保存排序失败')
+      }
+    } catch {
+      ElMessage.error('保存排序失败')
+    } finally {
+      sortDialog.loading = false
+    }
+  }
+
+  function handleSortCancel(): void {
+    sortDialog.open = false
+    // 恢复懒加载模式
+    ;(state.tree?.fetchTree as ((forceFullTree: boolean) => Promise<void>) | undefined)?.(false)
   }
 
   async function loadFormData(id: number | string): Promise<Record<string, unknown>> {
@@ -449,6 +586,18 @@ export function useCrudPageController<
     formTitle,
     loadFormData,
     tree,
+
+    // 移动操作
+    moveDialog,
+    handleMove,
+    handleMoveConfirm,
+    handleMoveCancel,
+
+    // 排序操作
+    sortDialog,
+    handleSort,
+    handleSortConfirm,
+    handleSortCancel,
 
     // Detail panel
     detailState

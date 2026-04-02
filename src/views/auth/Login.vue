@@ -116,10 +116,29 @@
                   id="username-error"
                   class="error-message"
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="10"
+                    />
+                    <line
+                      x1="12"
+                      y1="8"
+                      x2="12"
+                      y2="12"
+                    />
+                    <line
+                      x1="12"
+                      y1="16"
+                      x2="12.01"
+                      y2="16"
+                    />
                   </svg>
                   {{ errors.username }}
                 </div>
@@ -167,7 +186,11 @@
                     stroke-width="1.5"
                   >
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                    <circle cx="12" cy="12" r="3" />
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="3"
+                    />
                   </svg>
                   <!-- 闭眼图标 - 密码隐藏 -->
                   <svg
@@ -177,8 +200,15 @@
                     stroke="currentColor"
                     stroke-width="1.5"
                   >
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                    <line x1="1" y1="1" x2="23" y2="23" />
+                    <path
+                      d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                    />
+                    <line
+                      x1="1"
+                      y1="1"
+                      x2="23"
+                      y2="23"
+                    />
                   </svg>
                 </button>
                 <div class="input-icon input-icon-lock">
@@ -206,10 +236,29 @@
                   id="password-error"
                   class="error-message"
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="10"
+                    />
+                    <line
+                      x1="12"
+                      y1="8"
+                      x2="12"
+                      y2="12"
+                    />
+                    <line
+                      x1="12"
+                      y1="16"
+                      x2="12.01"
+                      y2="16"
+                    />
                   </svg>
                   {{ errors.password }}
                 </div>
@@ -223,9 +272,15 @@
                   v-model="rememberMe"
                   type="checkbox"
                   aria-label="记住用户名"
-                >
+                />
                 <span class="checkmark">
-                  <svg v-if="rememberMe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  <svg
+                    v-if="rememberMe"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="3"
+                  >
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 </span>
@@ -245,9 +300,22 @@
                 v-else
                 class="loading-spinner"
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10" stroke-opacity="0.25" />
-                  <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round" />
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke-opacity="0.25"
+                  />
+                  <path
+                    d="M12 2a10 10 0 0 1 10 10"
+                    stroke-linecap="round"
+                  />
                 </svg>
                 登录中...
               </span>
@@ -366,12 +434,12 @@ onMounted(() => {
 
 /* 暗黑模式登录页背景 */
 html.dark .login-page {
-  background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
 }
 
 /* 亮模式登录页背景 */
 html:not(.dark) .login-page {
-  background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
 /* ==================== 网格背景 ==================== */
@@ -506,8 +574,8 @@ html.dark .main-container {
 
 /* 亮模式主容器 */
 html:not(.dark) .main-container {
-  background: #FFF;
-  border: 1px solid #E2E8F0;
+  background: #fff;
+  border: 1px solid #e2e8f0;
   box-shadow:
     0 20px 60px rgb(0, 0, 0, 0.1),
     inset 0 1px 0 rgb(255, 255, 255, 1);
@@ -588,7 +656,7 @@ html:not(.dark) .brand-section::before {
   font-weight: 700;
   letter-spacing: -2px;
   margin: 0 0 16px;
-  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -774,7 +842,7 @@ html.dark .form-group label {
 
 html.dark .form-group.focused label,
 html.dark .form-group.filled label {
-  color: #F59E0B;
+  color: #f59e0b;
 }
 
 /* 亮模式标签 */
@@ -838,7 +906,7 @@ html:not(.dark) .form-group input:focus {
   left: 0;
   width: 0;
   height: 1px;
-  background: linear-gradient(90deg, #F59E0B 0%, #D97706 100%);
+  background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
   transition: width 0.3s ease;
 }
 
@@ -858,7 +926,7 @@ html:not(.dark) .form-group input:focus {
 }
 
 .form-group.focused .input-icon {
-  color: #F59E0B;
+  color: #f59e0b;
   filter: drop-shadow(0 0 8px rgb(245 158 11 / 0.5));
 }
 
@@ -888,7 +956,7 @@ html:not(.dark) .form-group input:focus {
 }
 
 .toggle-password-btn:hover {
-  color: #F59E0B;
+  color: #f59e0b;
 }
 
 html:not(.dark) .toggle-password-btn {
@@ -896,7 +964,7 @@ html:not(.dark) .toggle-password-btn {
 }
 
 html:not(.dark) .toggle-password-btn:hover {
-  color: #F59E0B;
+  color: #f59e0b;
 }
 
 .input-icon-lock {
@@ -906,20 +974,20 @@ html:not(.dark) .toggle-password-btn:hover {
 
 /* 错误状态 */
 .form-group.error input {
-  border-color: #DC2626 !important;
+  border-color: #dc2626 !important;
 }
 
 html.dark .form-group.error input:focus {
   background: rgb(220 38 38 / 0.05);
-  border-color: #DC2626 !important;
+  border-color: #dc2626 !important;
 }
 
 html:not(.dark) .form-group.error input:focus {
-  border-color: #DC2626 !important;
+  border-color: #dc2626 !important;
 }
 
 .form-group.error label {
-  color: #DC2626 !important;
+  color: #dc2626 !important;
 }
 
 /* 错误消息 */
@@ -931,7 +999,7 @@ html:not(.dark) .form-group.error input:focus {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #DC2626;
+  color: #dc2626;
 }
 
 .error-message svg {
@@ -998,8 +1066,8 @@ html.dark .remember-checkbox:hover .checkmark {
 }
 
 html.dark .remember-checkbox input:checked + .checkmark {
-  background: #F59E0B;
-  border-color: #F59E0B;
+  background: #f59e0b;
+  border-color: #f59e0b;
   color: #0a0e27;
 }
 
@@ -1010,12 +1078,12 @@ html:not(.dark) .checkmark {
 }
 
 html:not(.dark) .remember-checkbox:hover .checkmark {
-  border-color: #F59E0B;
+  border-color: #f59e0b;
 }
 
 html:not(.dark) .remember-checkbox input:checked + .checkmark {
-  background: #F59E0B;
-  border-color: #F59E0B;
+  background: #f59e0b;
+  border-color: #f59e0b;
   color: #fff;
 }
 
@@ -1048,7 +1116,7 @@ html:not(.dark) .remember-text {
 
 /* 登录按钮 - 工业仓储风格 */
 html.dark .login-button {
-  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
 }
 
 html.dark .login-button:hover:not(:disabled) {
@@ -1058,7 +1126,7 @@ html.dark .login-button:hover:not(:disabled) {
 
 /* 亮模式按钮 */
 html:not(.dark) .login-button {
-  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
 }
 
 html:not(.dark) .login-button:hover:not(:disabled) {
@@ -1073,12 +1141,12 @@ html:not(.dark) .login-button:hover:not(:disabled) {
 }
 
 html.dark .login-button:disabled {
-  background: linear-gradient(135deg, #9CA3AF 0%, #6B7280 100%);
+  background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
 }
 
 html:not(.dark) .login-button:disabled {
-  background: linear-gradient(135deg, #D1D5DB 0%, #9CA3AF 100%);
-  color: #6B7280;
+  background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
+  color: #6b7280;
 }
 
 .button-glow {
@@ -1131,7 +1199,7 @@ html:not(.dark) .login-button:disabled {
 .loading-dot {
   width: 8px;
   height: 8px;
-  background: #0F172A;
+  background: #0f172a;
   border-radius: 50%;
   animation: bounce 1.4s ease-in-out infinite;
 }
@@ -1209,7 +1277,7 @@ html:not(.dark) .status-indicator {
 .status-dot {
   width: 8px;
   height: 8px;
-  background: #16A34A;
+  background: #16a34a;
   border-radius: 50%;
   animation: statusPulse 2s ease-in-out infinite;
   box-shadow: 0 0 10px rgb(22 163 74 / 50%);

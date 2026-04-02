@@ -35,11 +35,14 @@ export interface TreeNode {
  * 树形 API 接口（可选扩展）
  */
 export interface TreeApi<T extends TreeNode> {
-  tree: (query?: unknown) => Promise<T[]>
-  children: (params: { node_id: number }) => Promise<T[]>
+  /** 获取树结构，支持 tree_depth 参数控制加载深度 */
+  tree: (params?: { tree_depth?: number; root_id?: number } | undefined) => Promise<T[]>
+  /** 获取子节点，路径参数方式 */
+  children: (nodeId: number | { node_id: number }) => Promise<T[]>
   siblings?: (params: { node_id: number }, query?: unknown) => Promise<T[]>
   ancestors?: (params: { node_id: number }, query?: unknown) => Promise<T[]>
   move?: (body: unknown) => Promise<unknown>
+  batchSort?: (body: unknown) => Promise<unknown>
 }
 
 /**
@@ -245,6 +248,8 @@ export interface UseCrudListPageReturn<
     refreshTree: () => Promise<void>
     /** 移动节点 */
     move: (id: number, targetId: number, position: 'before' | 'after' | 'inner') => Promise<boolean>
+    /** 批量排序 */
+    batchSort: (items: { id: number; parent_id: number | null; sort_order: number }[]) => Promise<boolean>
     /** 展开节点 */
     expandNode: (id: number) => void
     /** 折叠节点 */
@@ -360,6 +365,7 @@ export function useCrudListPage<
     childrenKey: treeMode?.childrenKey ?? 'children',
     hasChildrenKey: treeMode?.hasChildrenKey ?? 'has_children',
     initialExpandLevel: treeMode?.initialExpandLevel ?? 1,
+    lazyLoad: treeMode?.lazyLoad ?? false
   }
 
   // ==================== 树形辅助函数 ====================
@@ -557,19 +563,23 @@ export function useCrudListPage<
 
   // ==================== 树形方法 ====================
 
-  async function fetchTree(): Promise<void> {
+  async function fetchTree(forceFullTree = false): Promise<void> {
     if (!treeApi || !treeApi.tree) return
 
     crudApi.loading.value = true
     crudApi.error.value = null
 
     try {
-      const result = await treeApi.tree()
+      // 懒加载模式：tree_depth=0 只加载顶层节点
+      // 非懒加载：tree_depth=-1 加载所有层级
+      // forceFullTree: 强制加载完整树（用于排序等场景）
+      const treeDepth = forceFullTree ? -1 : (treeConfig.lazyLoad ? 0 : -1)
+      const result = await treeApi.tree({ tree_depth: treeDepth })
       treeData.value = result
       flatData.value = flattenTree(result, treeConfig.childrenKey)
 
-      // 自动展开根节点
-      if (treeConfig.initialExpandLevel > 0) {
+      // 自动展开根节点（非懒加载模式）
+      if (!treeConfig.lazyLoad && treeConfig.initialExpandLevel > 0) {
         expandToLevel(result, treeConfig.initialExpandLevel)
       }
     } catch (error) {
@@ -599,7 +609,7 @@ export function useCrudListPage<
       return
     }
 
-    const nodeId = node.id
+    const nodeId = node.id as number
     const existingChildren = (node as Record<string, unknown>)[treeConfig.childrenKey] as T[] | undefined
     if (existingChildren?.length) {
       resolve(existingChildren)
@@ -651,6 +661,50 @@ export function useCrudListPage<
     crudApi.loading.value = true
     try {
       await treeApi.move({ id, target_id: targetId, position })
+      await fetchTree()
+      return true
+    } catch {
+      return false
+    } finally {
+      crudApi.loading.value = false
+    }
+  }
+
+  /**
+   * 批量排序
+   * @param items 排序项列表 { id, parent_id, sort_order }[]
+   */
+  async function batchSortNode(items: { id: number; parent_id: number | null; sort_order: number }[]): Promise<boolean> {
+    if (!treeApi?.batchSort) {
+      // fallback: 逐个调用 move
+      return batchSortNodeFallback(items)
+    }
+
+    crudApi.loading.value = true
+    try {
+      await treeApi.batchSort({ items })
+      await fetchTree()
+      return true
+    } catch {
+      return false
+    } finally {
+      crudApi.loading.value = false
+    }
+  }
+
+  /**
+   * 批量排序 fallback（逐个调用 move）
+   */
+  async function batchSortNodeFallback(items: { id: number; parent_id: number | null; sort_order: number }[]): Promise<boolean> {
+    if (!treeApi?.move) return false
+
+    crudApi.loading.value = true
+    try {
+      for (const item of items) {
+        if (item.parent_id !== null) {
+          await treeApi.move({ id: item.id, target_id: item.parent_id, position: 'inner' })
+        }
+      }
       await fetchTree()
       return true
     } catch {
@@ -980,6 +1034,7 @@ export function useCrudListPage<
         loadChildrenManual,
         refreshTree,
         move: moveNode,
+        batchSort: batchSortNode,
         expandNode,
         collapseNode,
         toggleExpand,

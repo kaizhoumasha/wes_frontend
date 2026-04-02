@@ -182,7 +182,7 @@ html:not(.dark) .welcome-card {
   font-size: 36px;
   font-weight: 700;
   margin: 0 0 8px;
-  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -300,7 +300,7 @@ html:not(.dark) .stat-card:hover {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent 0%, #F59E0B 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, #f59e0b 50%, transparent 100%);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -315,7 +315,7 @@ html:not(.dark) .stat-card:hover {
 
 /* 暗黑模式统计图标 */
 html.dark .stat-icon {
-  color: #F59E0B;
+  color: #f59e0b;
   background: rgb(245 158 11 / 8%);
   border: 1px solid rgb(245 158 11 / 20%);
 }
@@ -386,7 +386,7 @@ html:not(.dark) .stat-value {
 }
 
 .stat-indicator.up {
-  color: #16A34A;
+  color: #16a34a;
   background: rgb(22 163 74 / 10%);
 }
 
@@ -454,13 +454,13 @@ html:not(.dark) .card-title {
   border: 1px solid rgb(22 163 74 / 20%);
   border-radius: 6px;
   font-size: 13px;
-  color: #16A34A;
+  color: #16a34a;
 }
 
 .status-dot {
   width: 6px;
   height: 6px;
-  background: #16A34A;
+  background: #16a34a;
   border-radius: 50%;
   animation: statusPulse 2s ease-in-out infinite;
   box-shadow: 0 0 10px rgb(22 163 74 / 50%);
@@ -488,7 +488,7 @@ html.dark .card-content p {
 }
 
 html.dark .card-content strong {
-  color: #F59E0B;
+  color: #f59e0b;
 }
 
 /* 亮模式内容文字 */
