@@ -110,7 +110,7 @@ function validateTypeExports(): FieldIssue[] {
   const issues: FieldIssue[] = []
 
   const authModulePath = join(API_MODULES_DIR, 'auth.ts')
-  const userModulePath = join(API_MODULES_DIR, 'user.ts')
+  const userModulePath = join(API_MODULES_DIR, 'users.ts')
   const authTypes = extractExportedTypes(authModulePath)
   const userTypes = extractExportedTypes(userModulePath)
 
