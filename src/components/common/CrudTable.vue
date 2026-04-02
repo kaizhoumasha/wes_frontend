@@ -4,7 +4,7 @@ import { ElPagination } from 'element-plus'
 import DataTable from '@/components/ui/table/DataTable.vue'
 import DataTableSkeleton from '@/components/ui/table/DataTableSkeleton.vue'
 import type { TableColumnConfig, TableDensity } from '@/types/table'
-import type { TableSortOrder } from '@/components/ui/table/table.types'
+import type { TableSortOrder, TreePropsConfig } from '@/components/ui/table/table.types'
 
 /**
  * CrudTable 组件
@@ -61,6 +61,16 @@ export interface CrudTableProps<T = unknown> {
   defaultSort?: { field: string; order: Exclude<TableSortOrder, null> }
   /** 是否启用列宽拖拽 */
   columnResizable?: boolean
+  /** 树形表格配置 */
+  treeProps?: TreePropsConfig
+  /** 行唯一标识字段（树形模式必需） */
+  rowKey?: string
+  /** 是否懒加载（树形模式） */
+  lazy?: boolean
+  /** 加载子节点函数（树形模式懒加载时必需） */
+  load?: (row: T, treeNode: unknown, resolve: (data: T[]) => void) => void
+  /** 默认展开的行 keys */
+  defaultExpandRowKeys?: Array<string | number>
 }
 
 const props = withDefaults(defineProps<CrudTableProps>(), {
@@ -70,7 +80,12 @@ const props = withDefaults(defineProps<CrudTableProps>(), {
   showSelection: false,
   emptyText: '暂无数据',
   defaultSort: undefined,
-  columnResizable: false
+  columnResizable: false,
+  lazy: false,
+  defaultExpandRowKeys: () => [],
+  treeProps: undefined,
+  rowKey: undefined,
+  load: undefined
 })
 
 const emit = defineEmits<{
@@ -233,6 +248,11 @@ function handleColumnResize(resize: { field: string; width: number; oldWidth?: n
         :height="'100%'"
         :default-sort="defaultSort"
         :column-resizable="columnResizable"
+        :tree-props="treeProps"
+        :row-key="rowKey"
+        :lazy="lazy"
+        :load="load"
+        :default-expand-row-keys="defaultExpandRowKeys"
         @selection-change="handleSelectionChange"
         @sort-change="handleSortChange"
         @column-resize="handleColumnResize"

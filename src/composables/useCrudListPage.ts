@@ -17,6 +17,47 @@ import type { SearchFieldDef, QuickSearchPreset, SearchFavorite } from '@/types/
 type CrudDeleteOptions<TApi extends CrudApi<unknown, unknown, unknown>> = Parameters<TApi['delete']>[1]
 type ReadonlyRef<T> = Readonly<Ref<T>>
 
+// ==================== 树形类型定义 ====================
+
+/**
+ * 树节点基础接口
+ */
+export interface TreeNode {
+  id: number
+  parent_id?: number | null
+  children?: TreeNode[]
+  has_children?: boolean
+  is_leaf?: boolean
+  [key: string]: unknown
+}
+
+/**
+ * 树形 API 接口（可选扩展）
+ */
+export interface TreeApi<T extends TreeNode> {
+  tree: (query?: unknown) => Promise<T[]>
+  children: (params: { node_id: number }) => Promise<T[]>
+  siblings?: (params: { node_id: number }, query?: unknown) => Promise<T[]>
+  ancestors?: (params: { node_id: number }, query?: unknown) => Promise<T[]>
+  move?: (body: unknown) => Promise<unknown>
+}
+
+/**
+ * 树形配置选项
+ */
+export interface TreeModeOptions {
+  /** 是否启用树形模式 */
+  enabled?: boolean
+  /** 子节点字段名，默认 'children' */
+  childrenKey?: string
+  /** 是否有子节点字段名，默认 'has_children' */
+  hasChildrenKey?: string
+  /** 是否懒加载子节点 */
+  lazyLoad?: boolean
+  /** 初始展开层级 */
+  initialExpandLevel?: number
+}
+
 /**
  * useCrudListPage Composable
  *
@@ -90,6 +131,9 @@ export interface UseCrudListPageOptions<
 
   /** 默认排序 */
   defaultSort?: SortField[]
+
+  /** 树形模式配置（启用后 data 变为树形结构） */
+  treeMode?: TreeModeOptions
 }
 
 export interface PaginationState {
@@ -176,6 +220,46 @@ export interface UseCrudListPageReturn<
   view: {
     setViewMode: (mode: CrudPageViewMode) => void
   }
+
+  // 树形模式（treeMode 启用时可用）
+  tree?: {
+    /** 是否启用树形模式 */
+    isTreeMode: ComputedRef<boolean>
+    /** 是否处于搜索模式（使用 query 接口返回平铺数据） */
+    isSearchMode: Ref<boolean>
+    /** 树形数据 */
+    treeData: ShallowRef<T[]>
+    /** 扁平数据（用于搜索结果） */
+    flatData: ShallowRef<T[]>
+    /** 懒加载状态（按节点ID） */
+    loadingChildren: Ref<Record<number, boolean>>
+    /** 展开的节点 */
+    expandedKeys: Ref<Set<number>>
+    /** 加载完整树 */
+    fetchTree: () => Promise<void>
+    /** 懒加载子节点（供 el-tree 使用） */
+    loadChildren: (node: T, treeNode: unknown, resolve: (data: T[]) => void) => void
+    /** 手动加载子节点 */
+    loadChildrenManual: (parentId: number) => Promise<T[]>
+    /** 刷新树 */
+    refreshTree: () => Promise<void>
+    /** 移动节点 */
+    move: (id: number, targetId: number, position: 'before' | 'after' | 'inner') => Promise<boolean>
+    /** 展开节点 */
+    expandNode: (id: number) => void
+    /** 折叠节点 */
+    collapseNode: (id: number) => void
+    /** 切换展开状态 */
+    toggleExpand: (id: number) => void
+    /** 展开所有 */
+    expandAll: () => void
+    /** 折叠所有 */
+    collapseAll: () => void
+    /** 判断是否为叶子节点 */
+    isLeaf: (node: T) => boolean
+    /** 查找节点 */
+    findNode: (id: number) => T | undefined
+  }
 }
 
 // ============================================================================
@@ -199,8 +283,13 @@ export function useCrudListPage<
     pageSize = 20,
     optimisticUpdate = false,
     autoRefresh: userAutoRefresh,
-    defaultSort = []
+    defaultSort = [],
+    treeMode
   } = options
+
+  // ==================== 树形模式判断 ====================
+  const isTreeMode = computed(() => !!treeMode?.enabled)
+  const treeApi = isTreeMode.value ? (api as unknown as TreeApi<T>) : null
 
   // ==================== 权限 ====================
   const { hasPermission } = usePermission()
@@ -256,6 +345,60 @@ export function useCrudListPage<
   const batchRestoreLoading = ref(false)
   const batchPermanentDeleteLoading = ref(false)
   const sortState = ref<SortField[] | null>(defaultSort.length > 0 ? [...defaultSort] : null)
+
+  /** 树形模式下的搜索模式（使用 query 接口返回平铺数据） */
+  const isSearchMode = ref(false)
+
+  // ==================== 树形模式状态 ====================
+  const treeData = shallowRef<T[]>([]) as ShallowRef<T[]>
+  const flatData = shallowRef<T[]>([]) as ShallowRef<T[]>
+  const loadingChildren = ref<Record<number, boolean>>({})
+  const expandedKeys = ref(new Set<number>()) as Ref<Set<number>>
+
+  // 树形配置默认值
+  const treeConfig = {
+    childrenKey: treeMode?.childrenKey ?? 'children',
+    hasChildrenKey: treeMode?.hasChildrenKey ?? 'has_children',
+    initialExpandLevel: treeMode?.initialExpandLevel ?? 1,
+  }
+
+  // ==================== 树形辅助函数 ====================
+  function flattenTree(tree: T[], key: string, result: T[] = []): T[] {
+    for (const node of tree) {
+      result.push(node)
+      const children = (node as Record<string, unknown>)[key] as T[] | undefined
+      if (children && children.length > 0) {
+        flattenTree(children, key, result)
+      }
+    }
+    return result
+  }
+
+  function findNodeInTree(tree: T[], id: number, key: string): T | undefined {
+    for (const node of tree) {
+      if (node.id === id) return node
+      const children = (node as Record<string, unknown>)[key] as T[] | undefined
+      if (children?.length) {
+        const found = findNodeInTree(children, id, key)
+        if (found) return found
+      }
+    }
+    return undefined
+  }
+
+  function updateChildrenInTree(tree: T[], parentId: number, children: T[], key: string): void {
+    for (const node of tree) {
+      if (node.id === parentId) {
+        (node as Record<string, unknown>)[key] = children
+        return
+      }
+      const nodeChildren = (node as Record<string, unknown>)[key] as T[] | undefined
+      if (nodeChildren?.length) {
+        updateChildrenInTree(nodeChildren, parentId, children, key)
+      }
+    }
+  }
+
   const currentPagination = reactive<PaginationState>({
     page: 1,
     pageSize,
@@ -362,8 +505,29 @@ export function useCrudListPage<
 
   /**
    * 执行搜索
+   * 树形模式逻辑：
+   * - 有搜索条件：使用 query 接口（平铺列表）
+   * - 无搜索条件：使用 tree 接口（树形结构）
    */
   async function handleSearch(page?: number): Promise<void> {
+    // 树形模式
+    if (isTreeMode.value) {
+      const filters = searchInstance.compileToFilterGroup()
+      const hasFilters = !!(filters?.conditions && filters.conditions.length > 0)
+
+      if (hasFilters) {
+        // 有搜索条件：使用 query 接口（平铺模式）
+        isSearchMode.value = true
+        await crudApi.fetchList(buildQueryOptions(page))
+        syncCurrentPagination()
+      } else {
+        // 无搜索条件：使用 tree 接口（树形模式）
+        isSearchMode.value = false
+        await fetchTree()
+      }
+      return
+    }
+
     if (isTrashMode.value) {
       if (!hasSoftDeleteCrudApi(api)) {
         return
@@ -389,6 +553,146 @@ export function useCrudListPage<
 
     await crudApi.fetchList(buildQueryOptions(page))
     syncCurrentPagination()
+  }
+
+  // ==================== 树形方法 ====================
+
+  async function fetchTree(): Promise<void> {
+    if (!treeApi || !treeApi.tree) return
+
+    crudApi.loading.value = true
+    crudApi.error.value = null
+
+    try {
+      const result = await treeApi.tree()
+      treeData.value = result
+      flatData.value = flattenTree(result, treeConfig.childrenKey)
+
+      // 自动展开根节点
+      if (treeConfig.initialExpandLevel > 0) {
+        expandToLevel(result, treeConfig.initialExpandLevel)
+      }
+    } catch (error) {
+      crudApi.error.value = error as Error
+      console.error('Failed to fetch tree:', error)
+    } finally {
+      crudApi.loading.value = false
+    }
+  }
+
+  function expandToLevel(nodes: T[], level: number, currentLevel = 1): void {
+    if (currentLevel > level) return
+    for (const node of nodes) {
+      if (currentLevel < level) {
+        expandedKeys.value.add(node.id)
+      }
+      const children = (node as Record<string, unknown>)[treeConfig.childrenKey] as T[] | undefined
+      if (children?.length) {
+        expandToLevel(children, level, currentLevel + 1)
+      }
+    }
+  }
+
+  function loadChildren(node: T, _treeNode: unknown, resolve: (data: T[]) => void): void {
+    if (!treeApi?.children) {
+      resolve([])
+      return
+    }
+
+    const nodeId = node.id
+    const existingChildren = (node as Record<string, unknown>)[treeConfig.childrenKey] as T[] | undefined
+    if (existingChildren?.length) {
+      resolve(existingChildren)
+      return
+    }
+
+    loadingChildren.value[nodeId] = true
+
+    treeApi
+      .children({ node_id: nodeId })
+      .then((children) => {
+        updateChildrenInTree(treeData.value, nodeId, children, treeConfig.childrenKey)
+        flatData.value = flattenTree(treeData.value, treeConfig.childrenKey)
+        resolve(children)
+      })
+      .catch(() => resolve([]))
+      .finally(() => {
+        loadingChildren.value[nodeId] = false
+      })
+  }
+
+  async function loadChildrenManual(parentId: number): Promise<T[]> {
+    if (!treeApi?.children) return []
+
+    loadingChildren.value[parentId] = true
+    try {
+      const children = await treeApi.children({ node_id: parentId })
+      updateChildrenInTree(treeData.value, parentId, children, treeConfig.childrenKey)
+      flatData.value = flattenTree(treeData.value, treeConfig.childrenKey)
+      return children
+    } catch {
+      return []
+    } finally {
+      loadingChildren.value[parentId] = false
+    }
+  }
+
+  async function refreshTree(): Promise<void> {
+    await fetchTree()
+  }
+
+  async function moveNode(
+    id: number,
+    targetId: number,
+    position: 'before' | 'after' | 'inner'
+  ): Promise<boolean> {
+    if (!treeApi?.move) return false
+
+    crudApi.loading.value = true
+    try {
+      await treeApi.move({ id, target_id: targetId, position })
+      await fetchTree()
+      return true
+    } catch {
+      return false
+    } finally {
+      crudApi.loading.value = false
+    }
+  }
+
+  function expandNode(id: number): void {
+    expandedKeys.value.add(id)
+  }
+
+  function collapseNode(id: number): void {
+    expandedKeys.value.delete(id)
+  }
+
+  function toggleExpand(id: number): void {
+    if (expandedKeys.value.has(id)) {
+      expandedKeys.value.delete(id)
+    } else {
+      expandedKeys.value.add(id)
+    }
+  }
+
+  function expandAll(): void {
+    const allIds = flatData.value.map((node) => node.id)
+    expandedKeys.value = new Set(allIds)
+  }
+
+  function collapseAll(): void {
+    expandedKeys.value.clear()
+  }
+
+  function isLeaf(node: T): boolean {
+    return (node as Record<string, unknown>).is_leaf !== undefined
+      ? Boolean((node as Record<string, unknown>).is_leaf)
+      : !(node as Record<string, unknown>)[treeConfig.hasChildrenKey]
+  }
+
+  function findNode(id: number): T | undefined {
+    return findNodeInTree(treeData.value, id, treeConfig.childrenKey)
   }
 
   /**
@@ -660,6 +964,30 @@ export function useCrudListPage<
     // 视图切换
     view: {
       setViewMode
-    }
+    },
+
+    // 树形模式
+    ...(isTreeMode.value && {
+      tree: {
+        isTreeMode,
+        isSearchMode,
+        treeData,
+        flatData,
+        loadingChildren,
+        expandedKeys,
+        fetchTree,
+        loadChildren,
+        loadChildrenManual,
+        refreshTree,
+        move: moveNode,
+        expandNode,
+        collapseNode,
+        toggleExpand,
+        expandAll,
+        collapseAll,
+        isLeaf,
+        findNode,
+      }
+    })
   }
 }

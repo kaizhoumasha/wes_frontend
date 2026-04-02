@@ -7,7 +7,8 @@ import type {
   CrudPagePermissionConfig,
   CrudPageRowAction,
   CrudPageTitleConfig,
-  CrudPageToolbarAction
+  CrudPageToolbarAction,
+  TreeModeOptions
 } from './types'
 import type { CrudPageDetailConfig } from './detail/types'
 import type { CrudApi, SortField } from '@/api/base/crud-api'
@@ -27,6 +28,8 @@ interface CreateCrudPageConfigFromResourceOptions<
     optimisticUpdate?: boolean
     autoRefresh?: boolean
     defaultSort?: SortField[]
+    /** 树形模式配置 */
+    treeMode?: TreeModeOptions
   }
   fieldConfig: CrudFieldConfigDefinition<ResourceFieldDefinition, TCreate, TUpdate>
   table?: Omit<CrudPageConfig<TItem, TCreate, TUpdate>['table'], 'columns' | 'defaultSort'>

@@ -27,7 +27,15 @@ const MENU_PAGE_RESOURCE: MenuPageConfig['resource'] = {
   api: menuApi,
   permissions: ADMIN_PERMISSIONS.menu,
   optimisticUpdate: true,
-  defaultSort: [{ field: 'sort_order', order: 'asc' }]
+  defaultSort: [{ field: 'sort_order', order: 'asc' }],
+  // 启用树形模式
+  treeMode: {
+    enabled: true,
+    childrenKey: 'children',
+    hasChildrenKey: 'has_children',
+    lazyLoad: true,
+    initialExpandLevel: 1
+  }
 }
 
 const MENU_PAGE_TABLE: Partial<MenuPageConfig['table']> = {

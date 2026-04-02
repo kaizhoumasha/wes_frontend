@@ -16,6 +16,22 @@ export interface CrudPageEntity {
 
 export type CrudPageViewMode = 'active' | 'trash'
 
+/**
+ * 树形模式配置选项
+ */
+export interface TreeModeOptions {
+  /** 是否启用树形模式 */
+  enabled?: boolean
+  /** 子节点字段名，默认 'children' */
+  childrenKey?: string
+  /** 是否有子节点字段名，默认 'has_children' */
+  hasChildrenKey?: string
+  /** 是否懒加载子节点 */
+  lazyLoad?: boolean
+  /** 初始展开层级 */
+  initialExpandLevel?: number
+}
+
 export interface CrudPageFeatures {
   refresh?: boolean
   density?: boolean
@@ -171,6 +187,8 @@ export interface CrudPageConfig<
     optimisticUpdate?: boolean
     autoRefresh?: boolean
     defaultSort?: SortField[]
+    /** 树形模式配置 */
+    treeMode?: TreeModeOptions
   }
   search: {
     fields: SearchFieldDef[]

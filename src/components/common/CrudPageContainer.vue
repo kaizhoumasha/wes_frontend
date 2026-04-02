@@ -55,8 +55,10 @@ const {
   columnConfigDialogOpen,
   columnsManager,
   formTitle,
-  detailState
+  detailState,
+  tree: treeState
 } = controller
+
 const { state: pageState, search, dialogs } = page
 const data = pageState.data
 const loading = pageState.loading
@@ -67,6 +69,40 @@ const dialogKey = dialogs.key
 const editingId = dialogs.editingId
 const hasDetailConfig = computed(() => !!pageConfig.detail)
 const detailFetcher = pageConfig.resource.api.getById.bind(pageConfig.resource.api)
+
+// 树形模式配置（需要放在 tableData 之前）
+const isTreeMode = computed(() => !!pageConfig.resource.treeMode?.enabled)
+
+// 树形模式：表格数据源选择逻辑
+// - 有搜索条件（isSearchMode=true）：使用 query 接口的平铺数据（data）
+// - 无搜索条件：使用 tree 接口的树形数据（treeData）
+const tableData = computed(() => {
+  if (isTreeMode.value) {
+    // 搜索模式下使用 query 接口的平铺数据
+    if (treeState?.isSearchMode?.value) {
+      return data.value ?? []
+    }
+    // 树形模式使用 treeData
+    if (treeState?.treeData) {
+      return treeState.treeData.value ?? []
+    }
+  }
+  return data.value ?? []
+})
+const treeModeConfig = computed(() => {
+  if (!isTreeMode.value || !treeState) return undefined
+  const config = pageConfig.resource.treeMode!
+  return {
+    treeProps: {
+      children: config.childrenKey ?? 'children',
+      hasChildren: config.hasChildrenKey ?? 'has_children'
+    },
+    rowKey: 'id',
+    lazy: config.lazyLoad ?? true,
+    load: treeState.loadChildren,
+    defaultExpandRowKeys: Array.from(treeState.expandedKeys.value) as (string | number)[]
+  }
+})
 
 const cachedData = computed(() => {
   if (!editingId.value) {
@@ -220,7 +256,7 @@ async function handleRefreshDetailPanel(): Promise<void> {
     <div class="crud-page-container__table">
       <CrudTable
         :ref="setTableRef"
-        :data="data ?? []"
+        :data="tableData ?? []"
         :columns="tableColumns"
         :loading="loading"
         :error="error"
@@ -230,6 +266,7 @@ async function handleRefreshDetailPanel(): Promise<void> {
         :empty-text="emptyText"
         :default-sort="tableDefaultSort"
         :column-resizable="pageConfig.table.columnResizable ?? false"
+        v-bind="treeModeConfig"
         @selection-change="controller.handleSelectionChange"
         @page-change="controller.handlePageChange"
         @size-change="controller.handleSizeChange"
