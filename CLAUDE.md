@@ -415,9 +415,9 @@ export default function formatDate() {}
 
 ## Git 工作流规范
 
-### 🔴 CRITICAL: 强制使用 Git Worktree 开发模式
+### 🟢 混合开发模式：Git Workflow + Worktree
 
-**禁止在 `develop` 或 `main` 分支中直接开发代码**
+**原则：小功能用 Git Workflow（新建分支），大功能/多人协作用 Worktree**
 
 ### 分支管理策略
 
@@ -425,36 +425,84 @@ export default function formatDate() {}
 main (生产) ←─ develop (开发基准) ←─ feature/* (功能分支)
 ```
 
-| 分支        | 用途             | 是否可直接开发 | 部署目标         |
-| ----------- | ---------------- | -------------- | ---------------- |
-| `main`      | 生产版本         | ❌ 禁止        | 私有化部署       |
-| `develop`   | 开发基准（默认） | ❌ 禁止        | Cloudflare Pages |
-| `feature/*` | 功能开发         | ✅ 必须        | 无               |
-| `hotfix/*`  | 紧急修复         | ✅ 必须        | 无               |
+| 分支        | 用途             | 开发方式                                | 部署目标         |
+| ----------- | ---------------- | --------------------------------------- | ---------------- |
+| `main`      | 生产版本         | ❌ 禁止直接开发                         | 私有化部署       |
+| `develop`   | 开发基准（默认） | ❌ 禁止直接开发                         | Cloudflare Pages |
+| `feature/*` | 功能开发         | ⚠️ 小功能用 Workflow，大功能用 Worktree | 无               |
+| `hotfix/*`  | 紧急修复         | ⚠️ Workflow 或 Worktree                 | 无               |
 
-### Worktree 开发流程（强制）
+### 开发方式选择标准
+
+#### ✅ **使用 Git Workflow 开发**（满足以下所有条件）：
+
+- 单文件修改或少量文件改动（< 5 个文件）
+- 单人开发，无并行任务
+- 小功能、Bug 修复、文档更新
+- 预计开发时间 < 1 小时
+- 不需要并行开发其他功能
+
+#### ⚠️ **使用 Worktree 开发**（满足以下任一条件）：
+
+- 多文件/多模块改动（≥ 5 个文件）
+- 多人协作开发同一功能
+- 大功能开发（预计 > 1 小时）
+- 需要并行开发多个功能
+- 实验性功能（可能需要多次调整）
+- 破坏性改动（需要独立测试）
+
+### 开发流程
+
+#### 方式一：Git Workflow 开发（小功能）
 
 ```bash
-# ❌ 错误做法：直接在 develop 分支开发
+# ✅ 适用场景：小功能、Bug修复、文档更新
+
+# 1. 从 develop 创建功能分支
 git checkout develop
-# ... 编码 ...  # 禁止！
+git pull origin develop
+git checkout -b fix-login-validation
 
+# 2. 开发
+# ... 编码 ...
+pnpm lint  # 提交前检查
 
-# ✅ 正确做法：使用 worktree 开发
+# 3. 提交代码
+git add .
+git commit -m "fix: 修复登录表单验证错误"
+git push -u origin fix-login-validation
+
+# 4. 创建 PR 合并到 develop
+# 在 GitHub: fix-login-validation → develop
+
+# 5. 合并后删除功能分支
+git checkout develop
+git pull origin develop
+git branch -d fix-login-validation
+```
+
+#### 方式二：Worktree 开发（大功能/多人协作）
+
+```bash
+# ✅ 适用场景：大功能、多人协作、并行开发
+
 # 1. 创建功能分支 worktree
 ./scripts/git-worktree.sh add feature-auth
 
 # 2. 进入 worktree 开发
 cd ../wes_frontend-worktrees/feature-auth
 # ... 编码 ...
+pnpm lint
+
+# 3. 提交代码
 git add .
-git commit -m "feat(auth): 添加登录功能"
+git commit -m "feat(auth): 添加JWT token刷新机制"
 git push -u origin feature-auth
 
-# 3. 创建 PR 合并到 develop
+# 4. 创建 PR 合并到 develop
 # 在 GitHub: feature-auth → develop
 
-# 4. 合并后删除 worktree
+# 5. 合并后删除 worktree
 cd ../../wes_frontend
 ./scripts/git-worktree.sh remove feature-auth
 ```
@@ -467,27 +515,72 @@ cd ../../wes_frontend
 │   ├── .git/                        # Git 仓库
 │   ├── src/
 │   └── scripts/
-└── wes_frontend-worktrees/          # Worktree 基础目录
+└── wes_frontend-worktrees/          # Worktree 基础目录（大功能使用）
     ├── feature-auth/                # 功能分支 worktree
     ├── feature-inbound/             # 功能分支 worktree
     └── hotfix-device-status/        # 热修复分支 worktree
 ```
 
-### 为什么强制使用 Worktree？
+### 为什么使用混合模式？
 
-| 优势           | 说明                               |
-| -------------- | ---------------------------------- |
-| **并行开发**   | 同时在多个分支工作，无需频繁切换   |
-| **干净状态**   | 每个 worktree 独立，不影响其他分支 |
-| **快速切换**   | `cd` 到不同目录 = 切换分支         |
-| **防止误操作** | 避免在 develop/main 分支直接开发   |
-| **代码审查**   | 强制通过 PR 合并，确保代码质量     |
+| 优势         | 说明                                               |
+| ------------ | -------------------------------------------------- |
+| **标准流程** | 所有功能都通过分支开发，遵循 Git Workflow 最佳实践 |
+| **灵活性**   | 小功能快速创建分支，无需 worktree 开销             |
+| **并行开发** | 大功能使用 worktree，多分支并行无干扰              |
+| **代码隔离** | worktree 独立环境，适合长期开发的功能              |
+| **团队协作** | 多人开发强制使用 worktree，确保质量                |
+| **快速切换** | `cd` 到不同目录 = 切换分支（worktree 模式）        |
 
-### 违反规则的后果
+### 最佳实践建议
 
-- ❌ 在 develop/main 分支直接提交的代码将被拒绝合并
-- ❌ 未通过 PR 的代码合并将被要求回退
-- ❌ CI/CD 检查不通过的代码不允许合并
+**开发方式选择流程：**
+
+```
+开始开发
+    ↓
+评估改动范围
+    ↓
+┌─────────────┴─────────────┐
+│ 小功能（< 5 文件, < 1 小时）│ 大功能（≥ 5 文件, > 1 小时, 多人协作）
+│                           │
+│ Git Workflow              │ Worktree
+│ - 创建分支                 │ - 创建 worktree
+│ - 快速开发                 │ - 独立环境
+│ - 提交 PR                  │ - 并行开发
+│ - 合并删除                 │ - 提交 PR
+└───────────────────────────┴───────────────────────────
+```
+
+**避免的问题：**
+
+- ❌ 在 develop/main 分支直接开发（必须创建功能分支）
+- ❌ 多人同时在同一分支开发（应使用 worktree 分离）
+- ❌ 在 main 分支直接开发（破坏生产环境）
+- ❌ 提交未经 lint 检查的代码（CI/CD 会失败）
+
+### 代码合并规范
+
+**所有代码通过 PR 合并：**
+
+- ✅ feature 分支 → develop（必须 PR）
+- ✅ develop → main（必须 PR，生产部署）
+- ✅ hotfix 分支 → main 和 develop（必须 PR）
+
+**PR 审查要求：**
+
+- 至少 1 人审查通过（大功能建议 2 人）
+- CI/CD 检查全部通过
+- 无冲突，可自动合并
+
+### CI/CD 检查要求
+
+所有代码提交必须满足：
+
+- ✅ `pnpm lint` 检查通过（类型 + ESLint + Prettier + Stylelint）
+- ✅ `pnpm type:check` 类型检查通过
+- ✅ `pnpm contract:test` 契约测试通过（前后端类型一致）
+- ❌ 不通过的代码将被拒绝合并
 
 ---
 
