@@ -1906,3 +1906,150 @@ import type { PaginationData } from '@/api/base/crud-api' // ✅ 复用
 - **Commit**: a11ea9a
 
 ---
+
+## [LRN-20260403-001] correction
+
+**Logged**: 2026-04-03T10:30:00Z
+**Priority**: high
+**Status**: promoted
+**Area**: config
+
+### Summary
+
+Mixed development mode uses Git Workflow for small features, not direct development on develop branch
+
+### Details
+
+When asked to implement "mixed development mode" for Git workflow, I initially misunderstood it as allowing small features to be developed directly on the develop branch. The user corrected this understanding:
+
+**Incorrect interpretation**:
+
+- Small features: develop directly on `develop` branch
+- Large features: use Worktree
+
+**Correct interpretation**:
+
+- Small features: use Git Workflow (create feature branches from develop, then merge via PR)
+- Large features/multi-person collaboration: use Worktree
+
+This is a critical distinction because:
+
+1. All code changes must go through branches (no direct commits to develop)
+2. All merges must go through PR (code review requirement)
+3. Worktree is specifically for parallel development scenarios
+
+### Suggested Action
+
+None - correction was immediately applied to CLAUDE.md
+
+### Metadata
+
+- Source: user_feedback
+- Related Files: CLAUDE.md
+- Tags: git, workflow, branching-strategy
+
+### Resolution
+
+- **Resolved**: 2026-04-03T10:35:00Z
+- **Commit**: aa1c754
+- **Notes**: Updated CLAUDE.md with correct mixed development mode specification
+
+### Promoted
+
+- **Target**: CLAUDE.md - Git 工作流规范 section
+- **Key Points**:
+  - All development must use branches (no direct commits to develop/main)
+  - Small features use Git Workflow (create branch → develop → PR → merge)
+  - Large features use Worktree (parallel development, isolated environment)
+  - Decision criteria based on file count, development time, and collaboration needs
+
+---
+
+## [LRN-20260403-002] best_practice
+
+**Logged**: 2026-04-03T10:15:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: frontend
+
+### Summary
+
+Tree-based CRUD pages follow consistent architectural pattern across different resources
+
+### Details
+
+When implementing permission management TREE CRUD interface, successfully replicated the pattern from menu management:
+
+**Pattern Structure**:
+
+```
+src/views/admin/{resource}/
+├── {Resource}ListPage.vue         # Main page component
+└── config/
+    ├── fieldConfig.ts             # Field definitions, table columns, form config
+    └── pageConfig.ts              # Page configuration, features, API binding
+```
+
+**Key Configuration Elements**:
+
+1. **fieldConfig.ts**:
+   - `defineCrudResourceFieldBundle<DTO, CreateInput, UpdateInput>()`
+   - Table column visibility and layout
+   - Form field definitions with Zod schema integration
+   - Search configuration
+
+2. **pageConfig.ts**:
+   - Resource definition with tree mode enabled
+   - API module binding (using generated API)
+   - Feature flags (trash, create, edit, restore, sort)
+   - Detail panel configuration
+
+3. **Tree Mode Configuration**:
+
+```typescript
+treeMode: {
+  enabled: true,
+  childrenKey: 'children',
+  hasChildrenKey: 'has_children',
+  lazyLoad: true,           // Lazy loading for performance
+  initialExpandLevel: 1     // Initial expand depth
+}
+```
+
+**Benefits**:
+
+- Consistent code structure across tree-based resources
+- Reuses CrudPageContainer and existing CRUD infrastructure
+- Type-safe with generated API types
+- Minimal boilerplate (3 files total)
+
+**Applicable When**:
+
+- Resource has hierarchical/tree structure
+- Backend API provides tree endpoints (tree, children, move, batchSort)
+- Lazy loading needed for performance
+
+### Suggested Action
+
+Document this pattern in project documentation for future tree-based CRUD implementations
+
+### Metadata
+
+- Source: conversation
+- Related Files:
+  - src/views/admin/permissions/config/fieldConfig.ts
+  - src/views/admin/permissions/config/pageConfig.ts
+  - src/views/admin/menus/config/fieldConfig.ts
+  - src/views/admin/menus/config/pageConfig.ts
+- Tags: architecture, crud, tree-structure, pattern
+- See Also: project_crud-architecture.md (existing memory)
+
+### Resolution
+
+- **Resolved**: 2026-04-03T10:20:00Z
+- **Commit**: 4d0df7b
+- **Notes**: Successfully implemented permission management using the same pattern as menu management
+
+---
+
+---
