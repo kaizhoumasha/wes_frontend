@@ -85,7 +85,7 @@ export const {
       },
       form: {},
       search: {
-        dataType: 'string'
+        dataType: 'text'
       }
     },
     {
@@ -96,7 +96,7 @@ export const {
       },
       form: {},
       search: {
-        dataType: 'string'
+        dataType: 'text'
       }
     },
     {
@@ -107,7 +107,7 @@ export const {
       },
       form: {},
       search: {
-        dataType: 'string'
+        dataType: 'text'
       }
     },
     {
@@ -118,7 +118,7 @@ export const {
       },
       form: {},
       search: {
-        dataType: 'string'
+        dataType: 'text'
       }
     },
     {
