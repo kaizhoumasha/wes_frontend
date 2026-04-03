@@ -74,10 +74,15 @@ export function createPermissionGuard(_router: Router) {
     // 权限预加载：如果内存中没有权限数据，先从缓存或后端加载
     // 解决刷新页面时因内存为空被误判 403
     if (permissions.value.length === 0 && !isLoading.value) {
-      await withGuardErrorHandling(
+      const result = await withGuardErrorHandling(
         () => loadPermissions(),
         '权限守卫'
       )
+      // 如果权限加载失败（返回 undefined），放行导航
+      // 让后续的认证守卫或其他逻辑处理
+      if (result === undefined) {
+        return
+      }
     }
 
     // 检查是否需要权限验证
@@ -152,10 +157,14 @@ export function createPermissionsGuard(_router: Router) {
 
     // 权限预加载：如果内存中没有权限数据，先从缓存或后端加载
     if (permissions.value.length === 0 && !isLoading.value) {
-      await withGuardErrorHandling(
+      const result = await withGuardErrorHandling(
         () => loadPermissions(),
         '权限守卫'
       )
+      // 如果权限加载失败，放行导航
+      if (result === undefined) {
+        return
+      }
     }
 
     // 检查是否需要权限验证
@@ -230,10 +239,14 @@ export function createResourcePermissionGuard(_router: Router) {
 
     // 权限预加载：如果内存中没有权限数据，先从缓存或后端加载
     if (permissions.value.length === 0 && !isLoading.value) {
-      await withGuardErrorHandling(
+      const result = await withGuardErrorHandling(
         () => loadPermissions(),
         '权限守卫'
       )
+      // 如果权限加载失败，放行导航
+      if (result === undefined) {
+        return
+      }
     }
 
     // 检查是否需要权限验证
