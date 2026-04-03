@@ -124,6 +124,22 @@ const routes: RouteRecordRaw[] = [
                 sortOrder: 97
               }
             }
+          },
+          {
+            path: 'permissions',
+            name: 'PermissionList',
+            component: () => import('@/views/admin/permissions/PermissionListPage.vue'),
+            meta: {
+              requiresAuth: true,
+              title: '权限管理',
+              permission: ADMIN_PERMISSIONS.permission.page,
+              menu: {
+                name: 'admin:permission:menu',
+                parentName: 'admin:system:menu',
+                icon: 'ep:lock',
+                sortOrder: 96
+              }
+            }
           }
         ]
       },
