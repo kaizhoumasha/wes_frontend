@@ -2052,4 +2052,133 @@ Document this pattern in project documentation for future tree-based CRUD implem
 
 ---
 
+## [LRN-20260403-003] debugging
+
+**Logged**: 2026-04-03T11:00:00Z
+**Priority**: high
+**Status**: resolved
+**Area**: infra
+
+### Summary
+
+Docker 命名卷（named volume）挂载 node_modules 导致 ARM64 架构下 Rollup 原生模块缺失
+
+### Details
+
+**问题现象**：
+`wes_frontend_dev` 容器启动失败，报错：
+
+```
+Error: Cannot find module @rollup/rollup-linux-arm64-gnu
+```
+
+**根本原因**：
+
+1. **架构不匹配**：
+   - 宿主机：ARM64 (Apple Silicon)
+   - 容器镜像：`node:22-bookworm-slim` (ARM64)
+   - 命名卷内容：可能是其他架构的 node_modules
+
+2. **Docker Compose 配置问题**：
+
+   ```yaml
+   volumes:
+     - ${FRONTEND_ROOT:-../wes_frontend}:/app:rw
+     - frontend_node_modules:/app/node_modules # 命名卷覆盖挂载
+   ```
+
+   **命名卷特点**：
+   - 独立于宿主机目录
+   - 持久化存储，不受宿主机文件影响
+   - 如果卷已存在旧数据，不会自动更新
+
+3. **Rollup 原生依赖**：
+   - Rollup 使用可选依赖（optional dependencies）提供不同架构的原生模块
+   - ARM64 架构需要 `@rollup/rollup-linux-arm64-gnu`
+   - 命名卷中缺少该模块，导致运行时错误
+
+**诊断过程**：
+
+1. 查看容器日志：
+
+   ```bash
+   docker logs wes_frontend_dev --tail 100
+   ```
+
+2. 检查系统架构：
+
+   ```bash
+   uname -m  # 输出: arm64
+   docker inspect wes_frontend_dev | grep Image
+   ```
+
+3. 定位问题：
+   - 错误信息明确指出缺少 ARM64 模块
+   - 发现使用命名卷挂载 node_modules
+   - 推测卷内容与当前架构不匹配
+
+**解决方案**：
+
+删除命名卷并重建：
+
+```bash
+# 1. 停止容器并删除命名卷
+cd ../wes_backend
+docker compose -f docker-compose.yml -f docker-compose.frontend.yml --profile dev down -v
+
+# 2. 重新启动容器（自动创建新卷并安装依赖）
+docker compose -f docker-compose.yml -f docker-compose.frontend.yml --profile dev up -d frontend
+
+# 3. 验证容器状态
+docker ps | grep wes_frontend_dev
+docker logs wes_frontend_dev --tail 50
+```
+
+**验证结果**：
+
+- ✅ 依赖安装成功（包含 ARM64 模块）
+- ✅ Vite dev server 正常启动
+- ✅ 容器健康检查通过
+
+### Suggested Action
+
+**预防措施**：
+
+1. **架构变更时清理卷**：
+   - 更换宿主机架构（如 Intel → ARM）
+   - 更换基础镜像架构
+   - 删除旧的命名卷：`docker compose down -v`
+
+2. **开发环境最佳实践**：
+   - 使用 `--build` 重建镜像：`docker compose up --build`
+   - 使用 `-V` 清理卷：`docker compose down -V`
+   - 定期清理未使用的卷：`docker volume prune`
+
+3. **文档说明**：
+   - 在项目 README 中说明架构要求
+   - 提供清理命令：`make clean` 或 `pnpm docker:clean`
+
+**适用场景**：
+
+- Apple Silicon Mac 开发环境
+- 跨平台团队协作
+- CI/CD 环境切换
+- Node.js 原生依赖问题
+
+### Metadata
+
+- Source: debugging
+- Related Files:
+  - ../wes_backend/docker-compose.frontend.yml
+  - package.json (Rollup 依赖)
+- Tags: docker, arm64, architecture, node-modules, named-volume, rollup
+- See Also: Node.js optional dependencies, Docker named volumes
+
+### Resolution
+
+- **Resolved**: 2026-04-03T11:05:00Z
+- **Notes**: 删除命名卷并重新创建，安装正确的 ARM64 架构依赖
+
+---
+
 ---
