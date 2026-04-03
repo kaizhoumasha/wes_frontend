@@ -2181,4 +2181,148 @@ docker logs wes_frontend_dev --tail 50
 
 ---
 
+## [LRN-20260403-004] debugging
+
+**Logged**: 2026-04-03T11:50:00Z
+**Priority**: high
+**Status**: resolved
+**Area**: infra
+
+### Summary
+
+Docker 容器端口与宿主机服务冲突导致前端无法访问
+
+### Details
+
+**问题现象**：
+浏览器访问 `http://localhost:5173/` 返回 404，但 Docker 容器显示正常运行。
+
+**根本原因**：
+
+1. **端口冲突**：
+   - 宿主机上有多个 Vite 开发服务器运行在 5173 端口
+   - Docker 容器的端口映射被宿主机服务抢占
+   - 浏览器请求被宿主机服务处理，而非容器
+
+2. **进程冲突检测**：
+
+   ```bash
+   lsof -i :5173
+   # 输出显示多个进程：
+   # - PID 6480: worktree 中的 Vite
+   # - PID 12628: 主项目的 Vite
+   # - PID 65255: Docker 容器（被阻塞）
+   ```
+
+3. **Docker Compose 配置缺失**：
+   - `docker-compose.frontend.yml` 未暴露开发端口
+   - 开发环境只能通过 Nginx 反向代理访问
+   - 无法使用 Vite HMR 热模块替换
+
+**诊断过程**：
+
+1. 检查容器日志：
+
+   ```bash
+   docker logs wes_frontend_dev --tail 100
+   # Vite 显示正常启动
+   ```
+
+2. 测试端口连通性：
+
+   ```bash
+   curl -I http://localhost:5173/
+   # 返回 200 OK，但内容不对
+   ```
+
+3. 检查端口占用：
+
+   ```bash
+   lsof -i :5173
+   # 发现有宿主机进程占用
+   ```
+
+4. 查找冲突进程：
+   ```bash
+   ps aux | grep vite
+   # 找到多个 Vite 服务器
+   ```
+
+**解决方案**：
+
+1. **停止宿主机服务**：
+
+   ```bash
+   kill $(lsof -t -i:5173 | grep -v docker)
+   ```
+
+2. **添加端口映射**：
+
+   ```yaml
+   # docker-compose.frontend.yml
+   services:
+     frontend:
+       ports:
+         - '${FRONTEND_PORT:-5173}:5173'
+   ```
+
+3. **重启容器**：
+   ```bash
+   cd ../wes_backend
+   docker compose -f docker-compose.yml -f docker-compose.frontend.yml --profile dev up -d frontend
+   ```
+
+**验证结果**：
+
+- ✅ 端口冲突解决
+- ✅ 前端正常访问
+- ✅ HMR 功能正常
+
+### Suggested Action
+
+**预防措施**：
+
+1. **开发环境规范**：
+   - 使用 Docker 容器开发，不在宿主机运行开发服务器
+   - 启动命令：`cd ../wes_backend && docker compose --profile dev up -d`
+   - 停止所有宿主机服务：`pkill -f "vite|pnpm dev"`
+
+2. **端口冲突检测**：
+
+   ```bash
+   # 检查端口占用
+   lsof -i :5173
+
+   # 检查 Vite 进程
+   ps aux | grep vite
+   ```
+
+3. **Docker Compose 最佳实践**：
+   - 开发环境必须暴露开发端口
+   - 使用环境变量配置端口：`${FRONTEND_PORT:-5173}`
+   - 避免依赖 Nginx 反向代理（仅生产环境使用）
+
+**适用场景**：
+
+- Docker 开发环境配置
+- 端口冲突排查
+- 多环境开发（worktree + Docker）
+
+### Metadata
+
+- Source: debugging
+- Related Files:
+  - ../wes_backend/docker-compose.frontend.yml
+  - docker-compose.yml
+- Tags: docker, port-conflict, development-environment, vite, hmr
+- See Also: LRN-20260403-003 (Docker 命名卷问题)
+
+### Resolution
+
+- **Resolved**: 2026-04-03T11:55:00Z
+- **Commit**: wes_backend@1002114
+- **Notes**: 停止宿主机服务并添加端口映射配置
+
+---
+
 ---
