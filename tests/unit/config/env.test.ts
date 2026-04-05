@@ -12,6 +12,18 @@ describe('env', () => {
     expect(env.apiBaseUrl).toBe('')
   })
 
+  it('normalizes a versioned same-origin API base URL to avoid duplicating /api/v1', () => {
+    vi.stubEnv('VITE_API_BASE_URL', '/api/v1')
+
+    expect(env.apiBaseUrl).toBe('')
+  })
+
+  it('normalizes an absolute API base URL ending with /api/v1 to the host root', () => {
+    vi.stubEnv('VITE_API_BASE_URL', 'http://192.168.0.221:8080/api/v1')
+
+    expect(env.apiBaseUrl).toBe('http://192.168.0.221:8080')
+  })
+
   it('falls back to the default API base URL only when unset', () => {
     vi.stubEnv('VITE_API_BASE_URL', undefined)
 
