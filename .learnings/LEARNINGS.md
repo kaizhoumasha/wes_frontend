@@ -1737,6 +1737,7 @@ bash scripts/data/sync_menus.sh --frontend-path /Users/kaizhou/SynologyDrive/wor
 - **Resolved**: 2026-03-26T14:10:00+08:00
 - **Solution**: 使用 `--frontend-path` 参数指定 worktree 路径后成功同步
 - **Notes**: 这是 worktree 开发模式的固有问题，脚本设计时假设在 main worktree 中运行
+  <<<<<<< HEAD
 
 ---
 

@@ -4,11 +4,7 @@
  * 使用统一字段配置管理表格、表单与搜索，字段能力基线与后端契约对齐。
  */
 
-import type {
-  CreateRolesInput as CreateRoleInput,
-  UpdateRolesInput as UpdateRoleInput,
-  RolesItem as Role
-} from '@/api/modules/roles'
+import type { CreateRoleInput, UpdateRoleInput, Role } from '@/api/modules/role'
 import { RoleCreateSchema, RoleUpdateSchema } from '@/types/zod-extensions'
 import {
   defineCrudResourceFieldBundle
