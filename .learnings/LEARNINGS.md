@@ -2326,3 +2326,146 @@ Docker 容器端口与宿主机服务冲突导致前端无法访问
 ---
 
 ---
+
+## [LRN-20260403-005] workflow-violation
+
+**Logged**: 2026-04-03T12:00:00Z
+**Priority**: critical
+**Status**: promoted
+**Area**: workflow
+
+### Summary
+
+提交代码前必须验证修改生效，绝不能直接提交未验证的代码
+
+### Details
+
+**问题**：在修复权限守卫阻塞导航问题时，修改了 `src/router/guards/permission.ts` 后直接提交代码，但实际修复并未生效，前端仍然是白屏。
+
+**用户反馈**："所有的修改应该先验证才能上传到git，而不是直接上传"
+
+**错误行为**：
+
+- 修改代码后立即 `git add` + `git commit`
+- 未运行验证步骤（如启动开发服务器、访问页面确认）
+- 导致仓库中有"修复"提交，但实际问题未解决
+
+**正确流程**：
+
+1. 修改代码
+2. **验证修改生效**（启动服务、访问页面、检查日志）
+3. 确认修复有效后，再执行 git commit
+4. 如果验证失败，继续调试，不要提交无效修改
+
+### Suggested Action
+
+在 `CLAUDE.md` 或 `AGENTS.md` 中添加明确的验证流程要求：
+
+```markdown
+## 代码修改验证规则（强制）
+
+**任何代码提交前必须验证修改生效**
+
+### 验证步骤（按类型）
+
+- **前端修复**：启动 pnpm dev，访问相关页面，确认功能正常
+- **后端修复**：启动容器，调用 API，确认响应正确
+- **配置修改**：重启相关服务，确认配置生效
+- **类型修改**：运行 pnpm type:check，确认类型正确
+
+### 禁止行为
+
+❌ 修改后立即 git commit
+❌ 基于假设提交"修复"代码
+❌ 未验证就创建 PR
+
+### 建议工作流
+
+1. 修改代码 → 验证生效 → git commit → git push
+2. 验证失败 → 继续调试 → 验证成功 → 提交
+```
+
+### Metadata
+
+- Source: user_feedback
+- Related Files:
+  - src/router/guards/permission.ts
+  - CLAUDE.md
+- Tags: workflow, verification, git, quality-control, critical-rule
+- See Also: 无
+
+### Resolution
+
+- **Resolved**: 2026-04-03T12:15:00Z
+- **Promoted**: CLAUDE.md
+- **Notes**: 已将工作流验证规则推广到 CLAUDE.md "开发注意事项"部分，添加完整的验证流程表格和禁止行为列表
+
+---
+
+## [LRN-20260403-006] permission-guard-blocking
+
+**Logged**: 2026-04-03T12:00:00Z
+**Priority**: high
+**Status**: pending
+**Area**: frontend
+
+### Summary
+
+权限守卫错误处理返回 undefined 时必须显式放行导航，否则会阻塞路由跳转导致白屏
+
+### Details
+
+**问题现象**：
+
+- 前端开发服务器正常启动
+- 访问任何路由都显示白屏
+- Vue DevTools 中 routeView 无任何渲染
+- Vue Router 状态停留在上一个路由
+
+**根本原因**：
+权限守卫中调用 `withGuardErrorHandling` 加载权限数据时，如果加载失败（返回 undefined），守卫函数没有显式返回，导致 Vue Router 等待守卫完成，永远不执行导航。
+
+**错误代码**：
+
+```typescript
+// ❌ 错误：没有处理 undefined 返回值
+await withGuardErrorHandling(() => loadPermissions(), '权限守卫')
+// Vue Router 等待守卫完成，但函数没有返回，导航被阻塞
+```
+
+**正确代码**：
+
+```typescript
+// ✅ 正确：检查返回值，显式放行
+const result = await withGuardErrorHandling(() => loadPermissions(), '权限守卫')
+// 如果权限加载失败（返回 undefined），放行导航
+// 让后续的认证守卫或其他逻辑处理
+if (result === undefined) {
+  return // 显式返回，允许导航继续
+}
+```
+
+**技术原理**：
+
+- Vue Router beforeEach 守卫可以返回：`false`（阻止）、`RouteLocationRaw`（重定向）、`void/undefined`（放行）
+- 如果守卫函数不返回任何值（async 函数默认返回 Promise<void>），Router 会等待 Promise 完成
+- 但如果 Promise 内部没有显式 return，Router 无法判断导航意图，导致阻塞
+
+### Suggested Action
+
+1. 更新 `src/router/guards/permission.ts` 的注释文档，说明错误处理逻辑
+2. 在 `docs/` 中添加路由守卫调试指南，包含：
+   - 如何诊断白屏问题（检查 Vue Router 状态）
+   - 守卫函数返回值语义
+   - 错误处理的最佳实践
+
+### Metadata
+
+- Source: debugging
+- Related Files:
+  - src/router/guards/permission.ts
+  - src/utils/guard-error-handler.ts
+- Tags: vue-router, navigation-guard, blocking, white-screen, error-handling
+- See Also: 无
+
+---
