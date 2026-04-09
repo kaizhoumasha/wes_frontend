@@ -54,6 +54,27 @@ let isRefreshing = false
 /** 等待中的请求队列 */
 let failedQueue: QueuedRequest[] = []
 
+/** Token 刷新成功后的回调 */
+let onTokenRefreshedCallback: (() => Promise<void>) | null = null
+
+/**
+ * 注册 Token 刷新成功后的回调
+ * 用于刷新用户上下文（用户信息、权限、菜单）
+ *
+ * @param callback 回调函数
+ *
+ * @example
+ * ```ts
+ * // 在应用初始化时注册
+ * setOnTokenRefreshed(async () => {
+ *   await loadUserContext()
+ * })
+ * ```
+ */
+export function setOnTokenRefreshed(callback: () => Promise<void>): void {
+  onTokenRefreshedCallback = callback
+}
+
 // ==================== Token存储操作 ====================
 
 // TODO: 安全增强 - Access Token 应迁移到 HttpOnly Cookie
@@ -195,6 +216,16 @@ export async function refreshAccessToken(apiClient: TokenRequestClient): Promise
 
     // 处理队列中的请求（全部成功）
     processQueue()
+
+    // Token 刷新成功后，刷新用户上下文
+    if (onTokenRefreshedCallback) {
+      try {
+        await onTokenRefreshedCallback()
+      } catch (error) {
+        console.warn('[Token刷新] 刷新用户上下文失败:', error)
+        // 不阻塞，token 已刷新成功
+      }
+    }
 
     return response.access_token
   } catch (error) {

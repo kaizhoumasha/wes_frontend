@@ -108,20 +108,16 @@ export const {
       table: {
         visibleFrom: 'tablet',
         width: 80
-      },
-      form: {
-        type: 'number'
       }
+      // form: 隐藏，由后端根据 parent_id 自动计算
     },
     {
       key: 'sort_order',
       table: {
         visibleFrom: 'tablet',
         width: 90
-      },
-      form: {
-        type: 'number'
       }
+      // form: 隐藏，通过拖拽排序功能调整
     },
     {
       key: 'icon',
@@ -154,8 +150,8 @@ export const {
       table: {
         visibleFrom: 'desktop',
         width: 200
-      },
-      form: {}
+      }
+      // form: 隐藏，由后端自动生成
     }
   ],
   storageKey: MENU_TABLE_STORAGE_KEY,

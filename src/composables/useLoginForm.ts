@@ -8,7 +8,7 @@ import { reactive, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { authApi } from '@/api/modules/auth'
 import { ApiResponseError } from '@/api/client'
-import { setAccessToken, setTokenExpiresAt, clearTokens } from '@/api/services/token-refresh'
+import { getAccessToken, setAccessToken, setTokenExpiresAt, clearTokens } from '@/api/services/token-refresh'
 import { usePermission } from '@/composables/usePermission'
 import { useMenu } from '@/composables/useMenu'
 import { useCurrentUser } from '@/composables/useCurrentUser'
@@ -188,9 +188,17 @@ export function useLoginForm() {
 
   /**
    * 加载用户上下文（权限和菜单）
+   *
+   * 采用三层回退策略，最大限度保证登录后能进入系统：
+   * 1. /auth/my 聚合接口
+   * 2. /auth/permissions + /auth/menus 分步加载
+   * 3. 仅权限加载（菜单非关键）
    */
   const loadUserContext = async (): Promise<void> => {
-    // 优先使用聚合接口一次性加载用户上下文
+    // 保存当前 token，防止全局 handleAuthError 在 /auth/my 失败时清除 token
+    const savedToken = getAccessToken()
+
+    // 第一层：使用聚合接口一次性加载用户上下文
     let initializedFromMy = false
     try {
       const myContext = await authApi.my()
@@ -214,10 +222,26 @@ export function useLoginForm() {
       console.warn('加载 /auth/my 失败，回退到分步加载:', contextError)
     }
 
-    // 回退方案：分步加载权限和菜单
+    // 第二层：回退到分步加载
     if (!initializedFromMy) {
-      await loadPermissions(true)
-      await loadMenus(true)
+      // 全局 handleAuthError 可能已清除 token，恢复它以保证后续请求可用
+      if (savedToken && !getAccessToken()) {
+        setAccessToken(savedToken)
+      }
+
+      try {
+        await loadPermissions(true)
+      } catch (permError) {
+        console.error('分步加载权限失败:', permError)
+        throw permError
+      }
+
+      // 菜单加载失败不阻塞登录
+      try {
+        await loadMenus(true)
+      } catch (menuError) {
+        console.warn('菜单加载失败（非阻塞）:', menuError)
+      }
     }
   }
 
@@ -266,20 +290,28 @@ export function useLoginForm() {
       const redirect = sessionStorage.getItem('redirect_after_login')
       sessionStorage.removeItem('redirect_after_login')
 
-      // 等待路由跳转完成，如果被阻止则强制跳转
-      const navigationResult = await router.push(redirect || '/dashboard')
-      if (navigationResult) {
-        // 导航被阻止（可能被路由守卫），使用强制跳转
+      // 尝试路由导航，如果失败则强制硬跳转
+      try {
+        const navigationResult = await router.push(redirect || '/dashboard')
+        if (navigationResult) {
+          // 导航被阻止（可能被路由守卫），使用强制跳转
+          window.location.href = redirect || '/dashboard'
+        }
+      } catch (navError) {
+        // 路由导航异常（守卫错误等），强制硬跳转保证用户能进入系统
+        console.warn('路由导航失败，使用硬跳转:', navError)
         window.location.href = redirect || '/dashboard'
       }
     } catch (error) {
       console.error('登录失败:', error)
-      // ApiResponseError 已由 API 客户端的错误通知系统处理
-      if (!(error instanceof ApiResponseError)) {
-        errors.password = '登录失败，请稍后重试'
-      } else {
-        // 设置错误信息用于显示
-        errors.password = '用户名或密码错误'
+
+      // 保留更具体的错误消息（如 "权限加载失败，请重试"），避免被覆盖
+      if (!errors.password) {
+        if (!(error instanceof ApiResponseError)) {
+          errors.password = '登录失败，请稍后重试'
+        } else {
+          errors.password = '用户名或密码错误'
+        }
       }
       // 智能聚焦：根据表单状态决定聚焦位置
       const shouldFocusPassword = form.username.length > 0

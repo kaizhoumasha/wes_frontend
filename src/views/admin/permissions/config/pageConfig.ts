@@ -34,7 +34,8 @@ const PERMISSION_PAGE_RESOURCE: PermissionPageConfig['resource'] = {
     childrenKey: 'children',
     hasChildrenKey: 'has_children',
     lazyLoad: true,
-    initialExpandLevel: 1
+    initialExpandLevel: 1,
+    displayField: 'name'
   }
 }
 
@@ -72,6 +73,10 @@ const PERMISSION_PAGE_FEATURES: CrudPageFeatures = {
     enabled: true,
     label: '排序',
     icon: 'lucide:arrow-down-up'
+  },
+  createChild: {
+    enabled: true,
+    label: '添加下级'
   }
 }
 

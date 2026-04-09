@@ -1,12 +1,12 @@
-import type { CreateRoleInput, UpdateRoleInput, Role } from '@/api/modules/role'
+import type { CreateRolesInput, UpdateRolesInput, RolesItem } from '@/api/modules/roles'
 import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
-import { roleApi } from '@/api/modules/role'
+import { rolesApi } from '@/api/modules/roles'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
 import { rolePageFieldConfig } from './fieldConfig'
 
-type RolePageConfig = CrudPageConfig<Role, CreateRoleInput, UpdateRoleInput>
+type RolePageConfig = CrudPageConfig<RolesItem, CreateRolesInput, UpdateRolesInput>
 
 const ROLE_PAGE_RESOURCE: RolePageConfig['resource'] = {
   key: 'roles',
@@ -20,7 +20,7 @@ const ROLE_PAGE_RESOURCE: RolePageConfig['resource'] = {
     subtitle: '查看并恢复已删除角色',
     icon: 'ep:delete'
   },
-  api: roleApi,
+  api: rolesApi,
   permissions: ADMIN_PERMISSIONS.role,
   optimisticUpdate: true,
   defaultSort: [{ field: 'updated_at', order: 'desc' }]
@@ -58,7 +58,7 @@ const ROLE_PAGE_FEATURES: CrudPageFeatures = {
   }
 }
 
-const ROLE_PAGE_DETAIL: CrudPageDetailConfig<Role> = {
+const ROLE_PAGE_DETAIL: CrudPageDetailConfig<RolesItem> = {
   mode: 'drawer',
   width: 600,
   title: role => role.name,
@@ -75,7 +75,7 @@ const ROLE_PAGE_DETAIL: CrudPageDetailConfig<Role> = {
 }
 
 export function createRolePageConfig(): RolePageConfig {
-  return createCrudPageConfigFromResource<Role, CreateRoleInput, UpdateRoleInput>({
+  return createCrudPageConfigFromResource<RolesItem, CreateRolesInput, UpdateRolesInput>({
     resource: ROLE_PAGE_RESOURCE,
     fieldConfig: rolePageFieldConfig,
     table: ROLE_PAGE_TABLE,

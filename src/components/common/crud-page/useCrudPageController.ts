@@ -116,7 +116,8 @@ function createModeSwitcher<
 function resolveFormTitle<TItem extends CrudPageEntity, TCreate extends object, TUpdate extends object>(
   config: CrudPageConfig<TItem, TCreate, TUpdate>,
   features: ReturnType<typeof resolveCrudPageFeatures>,
-  editingId: number | null
+  editingId: number | null,
+  createChildInfo?: { parentName: string } | null
 ): string {
   if (!config.form) {
     return ''
@@ -124,6 +125,12 @@ function resolveFormTitle<TItem extends CrudPageEntity, TCreate extends object, 
 
   if (editingId) {
     return features.edit.dialogTitle ?? config.form.title?.edit ?? `编辑${config.resource.title.text}`
+  }
+
+  // 添加下级模式：显示 "在 'XXX' 下添加子菜单"
+  if (createChildInfo) {
+    const resourceText = config.resource.title.text
+    return `在 '${createChildInfo.parentName}' 下添加${resourceText}`
   }
 
   return features.create.dialogTitle ?? config.form.title?.create ?? `创建${config.resource.title.text}`
@@ -234,6 +241,23 @@ export function useCrudPageController<
       onBatchPermanentDelete: () => void handleBatchPermanentDelete()
     })
 
+    // 树形模式下：替换新增按钮的 handler，先加载完整树再打开对话框
+    if (
+      state.tree &&
+      state.tree.isTreeMode.value &&
+      typeof state.tree.fetchTree === 'function'
+    ) {
+      const createActionIndex = actions.findIndex(
+        action => action.key === `${config.resource.key}-create`
+      )
+      if (createActionIndex !== -1) {
+        actions[createActionIndex] = {
+          ...actions[createActionIndex],
+          handler: handleCreate
+        }
+      }
+    }
+
     // 添加排序按钮（仅在树形模式下）
     if (
       features.sort.enabled &&
@@ -259,6 +283,14 @@ export function useCrudPageController<
 
     return actions
   })
+
+  /** 树形模式下工具栏新增：先加载完整树再打开对话框 */
+  async function handleCreate(): Promise<void> {
+    if (state.tree?.fetchTree) {
+      await (state.tree.fetchTree as (forceFullTree: boolean) => Promise<void>)(true)
+    }
+    state.dialogs.openCreate()
+  }
 
   // ==================== Detail Panel Integration ====================
   // Must be defined before rowActions to inject view-detail action
@@ -306,6 +338,30 @@ export function useCrudPageController<
       })
     }
 
+    // 添加"添加下级"操作（仅在树形模式下可用）
+    if (
+      features.createChild.enabled &&
+      state.tree &&
+      state.tree.isTreeMode.value
+    ) {
+      const createChildLabel = features.createChild.label ?? '添加下级'
+      const createChildTooltip = features.createChild.tooltip ?? createChildLabel
+      const createChildIcon = features.createChild.icon ?? 'lucide:plus'
+      const createChildPermission = features.createChild.permission ?? config.resource.permissions?.create
+
+      actions.push({
+        key: `${config.resource.key}-create-child`,
+        label: createChildLabel,
+        type: 'primary',
+        tooltip: createChildTooltip,
+        icon: createChildIcon,
+        priority: 'secondary',
+        permission: createChildPermission,
+        show: () => true,
+        onClick: row => handleCreateChild(row)
+      })
+    }
+
     if (state.state.viewMode.value !== 'active' || !config.detail) {
       return actions
     }
@@ -331,7 +387,7 @@ export function useCrudPageController<
   })
 
   const formTitle = computed(() => {
-    return resolveFormTitle(config, features, state.dialogs.editingId.value)
+    return resolveFormTitle(config, features, state.dialogs.editingId.value, createChildInfo.value)
   })
 
   function clearTableSelection(): void {
@@ -383,9 +439,34 @@ export function useCrudPageController<
     loading: false
   })
 
+  /** 添加下级信息（用于对话框标题和只读显示） */
+  const createChildInfo = ref<{ parentId: number; parentName: string } | null>(null)
+
   function handleMove(row: TItem): void {
     moveDialog.open = true
     moveDialog.movingId = row.id
+  }
+
+  /** 添加下级行操作 */
+  function handleCreateChild(row: TItem): void {
+    if (!state.tree?.isTreeMode.value) return
+    const displayField = config.resource.treeMode?.displayField ?? 'name'
+    const parentName = String((row as Record<string, unknown>)[displayField] ?? row.id)
+    createChildInfo.value = { parentId: row.id, parentName }
+    state.dialogs.openCreate({ initialValues: { parent_id: row.id } })
+  }
+
+  /** 表单对话框关闭时清理状态 */
+  function handleFormDialogClose(open: boolean): void {
+    if (!open) {
+      // 清理添加下级相关状态
+      createChildInfo.value = null
+      // 恢复懒加载模式（树形模式下创建/添加下级时加载了完整树）
+      if (state.tree?.fetchTree) {
+        ;(state.tree.fetchTree as (forceFullTree: boolean) => Promise<void>)(false)
+      }
+    }
+    state.dialogs.close()
   }
 
   async function handleMoveConfirm(
@@ -556,6 +637,28 @@ export function useCrudPageController<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const tree = (state as any).tree
 
+  /** 只读显示字段映射（用于添加下级时只读显示 parent_id） */
+  const readonlyDisplayFields = computed(() => {
+    if (!createChildInfo.value) return undefined
+    return { parent_id: createChildInfo.value.parentName }
+  })
+
+  /** 树形选择器配置（用于工具栏新增时选择父级） */
+  const treeSelectConfig = computed(() => {
+    if (!tree?.isTreeMode?.value || !tree.treeData?.value) return undefined
+    const childrenKey = config.resource.treeMode?.childrenKey ?? 'children'
+    const displayField = config.resource.treeMode?.displayField ?? 'name'
+    return {
+      data: tree.treeData.value,
+      props: {
+        value: 'id',
+        label: displayField,
+        children: childrenKey
+      },
+      placeholder: '选择父级'
+    }
+  })
+
   return {
     config,
     features,
@@ -586,6 +689,10 @@ export function useCrudPageController<
     formTitle,
     loadFormData,
     tree,
+    createChildInfo,
+    readonlyDisplayFields,
+    treeSelectConfig,
+    handleFormDialogClose,
 
     // 移动操作
     moveDialog,

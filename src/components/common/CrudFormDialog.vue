@@ -202,7 +202,7 @@ async function handleSubmit(data) {
 
         <!-- 数字输入框 -->
         <el-form-item
-          v-else-if="field.type === 'number'"
+          v-else-if="field.type === 'number' && !isReadonlyField(field.key) && !isTreeSelectField(field.key)"
           :label="field.label"
           :required="field.required"
           :error="errors[field.key]"
@@ -215,6 +215,37 @@ async function handleSubmit(data) {
             :min="field.min"
             :max="field.max"
             :step="field.step || 1"
+            @update:model-value="(val: any) => getFieldHandler(field.key)?.(val)"
+          />
+        </el-form-item>
+
+        <!-- 只读显示字段（如添加下级时的 parent_id） -->
+        <el-form-item
+          v-else-if="isReadonlyField(field.key)"
+          :label="field.label"
+          :required="field.required"
+        >
+          <el-input
+            :model-value="props.readonlyDisplayFields![field.key]"
+            readonly
+          />
+        </el-form-item>
+
+        <!-- 树形选择器（如工具栏新增时的 parent_id） -->
+        <el-form-item
+          v-else-if="isTreeSelectField(field.key)"
+          :label="field.label"
+          :required="field.required"
+          :error="errors[field.key]"
+        >
+          <el-tree-select
+            :model-value="getFieldValue(field.key)"
+            :data="props.treeSelectConfig!.data as TreeNodeData[]"
+            :props="props.treeSelectConfig!.props"
+            :placeholder="props.treeSelectConfig!.placeholder || '请选择'"
+            check-strictly
+            :render-after-expand="false"
+            clearable
             @update:model-value="(val: any) => getFieldHandler(field.key)?.(val)"
           />
         </el-form-item>
@@ -323,6 +354,7 @@ import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
 import type { ZodSchema } from 'zod'
 import { ElMessage } from 'element-plus'
+import type { TreeNodeData } from 'element-plus/es/components/tree'
 import type { FormFieldConfig, FormMode } from '@/composables/useTableColumns'
 import { StandardDialog } from '@/components/ui/StandardDialog'
 
@@ -353,6 +385,20 @@ interface Props {
   enableOptimisticLock?: boolean
   /** 版本号字段名（默认 'version'） */
   versionField?: string
+  /** 创建模式初始值（如 parent_id） */
+  createInitialValues?: Record<string, unknown> | null
+  /** 只读显示字段映射：字段 key -> 显示文本（用于添加下级时只读显示 parent_id） */
+  readonlyDisplayFields?: Record<string, string>
+  /** 树形选择器配置（用于工具栏新增时选择父级） */
+  treeSelectConfig?: {
+    data: unknown[]
+    props: {
+      value: string
+      label: string
+      children: string
+    }
+    placeholder?: string
+  }
 }
 
 type FormSubmitData = Record<string, unknown>
@@ -370,7 +416,10 @@ const props = withDefaults(defineProps<Props>(), {
   width: '600px',
   enableOptimisticLock: true,
   versionField: 'version',
-  cachedData: null
+  cachedData: null,
+  createInitialValues: null,
+  readonlyDisplayFields: undefined,
+  treeSelectConfig: undefined
 })
 
 const emit = defineEmits<Emits>()
@@ -391,6 +440,20 @@ const dialogVisible = computed({
   get: () => props.open,
   set: value => emit('update:open', value)
 })
+
+/**
+ * 判断字段是否为只读显示字段
+ */
+function isReadonlyField(key: string): boolean {
+  return !!props.readonlyDisplayFields && key in props.readonlyDisplayFields
+}
+
+/**
+ * 判断字段是否应显示为树形选择器
+ */
+function isTreeSelectField(key: string): boolean {
+  return !!props.treeSelectConfig && key === 'parent_id'
+}
 
 /**
  * 获取可见的字段列表（根据编辑/创建模式过滤）
@@ -414,13 +477,17 @@ const visibleFields = computed(() =>
 type FormValues = Record<string, unknown>
 
 /**
- * 创建空表单值
+ * 创建空表单值，合并初始值（如 parent_id）
  */
 function createEmptyFormValues(): FormValues {
   const values: FormValues = {}
   props.fieldConfig.forEach(field => {
     values[field.key] = field.type === 'checkbox' ? [] : ''
   })
+  // 合并创建模式初始值
+  if (props.createInitialValues) {
+    Object.assign(values, props.createInitialValues)
+  }
   // 添加版本号字段
   if (props.enableOptimisticLock) {
     values[props.versionField] = undefined

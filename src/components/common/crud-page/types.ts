@@ -30,6 +30,8 @@ export interface TreeModeOptions {
   lazyLoad?: boolean
   /** 初始展开层级 */
   initialExpandLevel?: number
+  /** 显示字段名，用于"添加下级"时显示父级名称，如 'title', 'name' */
+  displayField?: string
 }
 
 export interface CrudPageFeatures {
@@ -48,6 +50,8 @@ export interface CrudPageFeatures {
   batchPermanentDelete?: CrudPageActionFeature
   move?: CrudPageActionFeature
   sort?: CrudPageActionFeature
+  /** 添加下级行操作（树形模式专用） */
+  createChild?: CrudPageActionFeature
 }
 
 export interface CrudPageStandardActionConfig {
@@ -86,6 +90,8 @@ export interface ResolvedCrudPageFeatures {
   batchPermanentDelete: ResolvedCrudPageStandardActionConfig
   move: ResolvedCrudPageStandardActionConfig
   sort: ResolvedCrudPageStandardActionConfig
+  /** 添加下级行操作（树形模式专用） */
+  createChild: ResolvedCrudPageStandardActionConfig
 }
 
 export interface CrudPageTitleConfig {
