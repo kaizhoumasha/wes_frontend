@@ -187,7 +187,8 @@ export interface UseCrudListPageReturn<
     formOpen: Ref<boolean>
     editingId: Ref<number | null>
     key: Ref<number>
-    openCreate: () => void
+    createInitialValues: Ref<Record<string, unknown> | null>
+    openCreate: (options?: { initialValues?: Record<string, unknown> }) => void
     openEdit: (id: number) => void
     close: () => void
   }
@@ -392,15 +393,17 @@ export function useCrudListPage<
     return undefined
   }
 
-  function updateChildrenInTree(tree: T[], parentId: number, children: T[], key: string): void {
+  function updateChildrenInTree(tree: T[], parentId: number, children: T[], key: string, hasChildrenKey: string): void {
     for (const node of tree) {
       if (node.id === parentId) {
         (node as Record<string, unknown>)[key] = children
+        // 同时更新 has_children 状态
+        ;(node as Record<string, unknown>)[hasChildrenKey] = children.length > 0
         return
       }
       const nodeChildren = (node as Record<string, unknown>)[key] as T[] | undefined
       if (nodeChildren?.length) {
-        updateChildrenInTree(nodeChildren, parentId, children, key)
+        updateChildrenInTree(nodeChildren, parentId, children, key, hasChildrenKey)
       }
     }
   }
@@ -420,6 +423,8 @@ export function useCrudListPage<
   const formOpen = ref(false)
   const editingId = ref<number | null>(null)
   const dialogKey = ref(0)
+  /** 创建模式初始值（如 parent_id） */
+  const createInitialValues = ref<Record<string, unknown> | null>(null)
 
   // 强制重新渲染弹窗
   function refreshDialog() {
@@ -621,7 +626,7 @@ export function useCrudListPage<
     treeApi
       .children({ node_id: nodeId })
       .then((children) => {
-        updateChildrenInTree(treeData.value, nodeId, children, treeConfig.childrenKey)
+        updateChildrenInTree(treeData.value, nodeId, children, treeConfig.childrenKey, treeConfig.hasChildrenKey)
         flatData.value = flattenTree(treeData.value, treeConfig.childrenKey)
         resolve(children)
       })
@@ -637,7 +642,7 @@ export function useCrudListPage<
     loadingChildren.value[parentId] = true
     try {
       const children = await treeApi.children({ node_id: parentId })
-      updateChildrenInTree(treeData.value, parentId, children, treeConfig.childrenKey)
+      updateChildrenInTree(treeData.value, parentId, children, treeConfig.childrenKey, treeConfig.hasChildrenKey)
       flatData.value = flattenTree(treeData.value, treeConfig.childrenKey)
       return children
     } catch {
@@ -853,9 +858,11 @@ export function useCrudListPage<
 
   /**
    * 打开创建弹窗
+   * @param options 可选的初始值，如 { initialValues: { parent_id: 123 } }
    */
-  function openCreate() {
+  function openCreate(options?: { initialValues?: Record<string, unknown> }) {
     editingId.value = null
+    createInitialValues.value = options?.initialValues ?? null
     formOpen.value = true
     refreshDialog()
   }
@@ -875,6 +882,7 @@ export function useCrudListPage<
   function close() {
     formOpen.value = false
     editingId.value = null
+    createInitialValues.value = null
   }
 
   // ==================== API 操作 ====================
@@ -887,6 +895,23 @@ export function useCrudListPage<
     if (result) {
       close()
       syncCurrentPagination()
+      // 树形模式下：如果创建了子节点，更新父节点状态并展开
+      const data = formData as Record<string, unknown>
+      if (treeApi && 'parent_id' in data && data.parent_id) {
+        const parentId = data.parent_id as number
+        // 展开父节点
+        expandedKeys.value.add(parentId)
+        // 懒加载模式：加载父节点的子节点（会同时更新 has_children 状态）
+        if (treeConfig.lazyLoad) {
+          await loadChildrenManual(parentId)
+        } else {
+          // 非懒加载模式：直接更新父节点的 has_children 状态
+          const parentNode = findNodeInTree(treeData.value, parentId, treeConfig.childrenKey)
+          if (parentNode) {
+            ;(parentNode as Record<string, unknown>)[treeConfig.hasChildrenKey] = true
+          }
+        }
+      }
     }
     return result
   }
@@ -983,6 +1008,7 @@ export function useCrudListPage<
       formOpen,
       editingId,
       key: dialogKey,
+      createInitialValues,
       openCreate,
       openEdit,
       close

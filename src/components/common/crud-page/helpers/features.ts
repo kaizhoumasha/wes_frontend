@@ -20,7 +20,8 @@ const DEFAULT_FEATURES: ResolvedCrudPageFeatures = {
   permanentDelete: { enabled: true },
   batchPermanentDelete: { enabled: true },
   move: { enabled: false },
-  sort: { enabled: false }
+  sort: { enabled: false },
+  createChild: { enabled: false }
 }
 
 function resolveActionFeature(
@@ -67,6 +68,7 @@ export function resolveCrudPageFeatures(features?: CrudPageFeatures): ResolvedCr
       DEFAULT_FEATURES.batchPermanentDelete
     ),
     move: resolveActionFeature(features?.move, DEFAULT_FEATURES.move),
-    sort: resolveActionFeature(features?.sort, DEFAULT_FEATURES.sort)
+    sort: resolveActionFeature(features?.sort, DEFAULT_FEATURES.sort),
+    createChild: resolveActionFeature(features?.createChild, DEFAULT_FEATURES.createChild)
   }
 }

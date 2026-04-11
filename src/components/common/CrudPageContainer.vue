@@ -64,7 +64,10 @@ const {
   handleMoveCancel,
   sortDialog,
   handleSortConfirm,
-  handleSortCancel
+  handleSortCancel,
+  readonlyDisplayFields,
+  treeSelectConfig,
+  handleFormDialogClose
 } = controller
 
 const { state: pageState, search, dialogs } = page
@@ -75,6 +78,7 @@ const columnConfig = columnsManager.columnConfig
 const dialogOpen = dialogs.formOpen
 const dialogKey = dialogs.key
 const editingId = dialogs.editingId
+const createInitialValues = dialogs.createInitialValues
 const hasDetailConfig = computed(() => !!pageConfig.detail)
 const detailFetcher = pageConfig.resource.api.getById.bind(pageConfig.resource.api)
 
@@ -296,7 +300,10 @@ async function handleRefreshDetailPanel(): Promise<void> {
       :field-config="pageConfig.form.fieldConfig"
       :title="formTitle"
       :width="pageConfig.form.width"
-      @update:open="dialogs.close"
+      :create-initial-values="createInitialValues"
+      :readonly-display-fields="readonlyDisplayFields"
+      :tree-select-config="treeSelectConfig"
+      @update:open="handleFormDialogClose"
       @submit="controller.handleSubmit"
     />
 

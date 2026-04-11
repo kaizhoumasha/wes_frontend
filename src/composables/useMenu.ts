@@ -135,7 +135,8 @@ export function useMenu() {
     loadError.value = null
 
     try {
-      const response = await menuApi.tree()
+      // 传递 tree_depth: -1 获取完整菜单树（包含所有子节点）
+      const response = await menuApi.tree({ tree_depth: -1 })
       const menus = response.map(toMenuItem)
       setMenuState(menus)
       setMenuToCache(menus)

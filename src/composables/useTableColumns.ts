@@ -56,6 +56,8 @@ export interface ColumnConfig {
   reorderLocked?: boolean
   /** 是否允许隐藏 */
   hideable?: boolean
+  /** 格式化函数 */
+  formatter?: ColumnFormatter
 }
 
 // ============================================================================
@@ -76,6 +78,7 @@ export type FormFieldType =
   | 'date'
   | 'datetime'
   | 'remote-select'
+  | 'icon'
 
 export type FormFieldOptionValue = string | number | boolean | Record<string, unknown>
 
@@ -126,6 +129,8 @@ export interface FormFieldConfig {
   loading?: boolean
   /** 字段显示模式，默认创建/编辑都显示 */
   modes?: FormMode[]
+  /** 默认值（用于新建表单初始值） */
+  defaultValue?: unknown
   /** 其他配置 */
   [key: string]: unknown
 }
@@ -492,7 +497,9 @@ export function buildTableColumnsByBreakpoint(
         fixed: column.fixed ?? def.fixed,
         configurable: def.configurable ?? true,
         hideable: column.hideable ?? def.hideable ?? true,
-        reorderLocked: column.reorderLocked ?? def.reorderLocked ?? false
+        reorderLocked: column.reorderLocked ?? def.reorderLocked ?? false,
+        // 优先使用 ColumnConfig 中定义的 formatter
+        formatter: column.formatter ?? def.formatter
       }
 
       return resolvedColumn
@@ -536,7 +543,8 @@ export function extractColumnConfig(unified: UnifiedFieldConfigWithTable): Colum
     width: unified.table.width,
     fixed: unified.table.fixed ?? null,
     reorderLocked: unified.table.reorderLocked ?? false,
-    hideable: unified.table.hideable ?? true
+    hideable: unified.table.hideable ?? true,
+    formatter: unified.table.formatter
   }
 }
 
@@ -570,9 +578,13 @@ export function extractSearchFieldConfig(unified: UnifiedFieldConfigWithSearch):
 
 /**
  * 从 UnifiedFieldConfig 数组批量提取 ColumnConfig
+ * 自动过滤 visibleFrom: null 的字段（完全隐藏，不显示在表格也不参与列配置）
  */
 export function extractColumnConfigs(unifiedConfigs: readonly UnifiedFieldConfig[]): ColumnConfig[] {
-  return unifiedConfigs.filter(hasTableConfig).map(extractColumnConfig)
+  return unifiedConfigs
+    .filter(hasTableConfig)
+    .filter(config => config.table.visibleFrom !== null) // 过滤完全隐藏的字段
+    .map(extractColumnConfig)
 }
 
 /**

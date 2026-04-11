@@ -5,6 +5,7 @@ import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
 import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
 import { API_AUTH_PERMISSIONS } from '@/api/generated/permissions'
 import { setRouterInstance } from '@/api/services/auth-error-handler'
+import { useCurrentUser } from '@/composables/useCurrentUser'
 
 const debugRoutes: RouteRecordRaw[] = import.meta.env.DEV
   ? [
@@ -250,7 +251,7 @@ setRouterInstance(router)
 // ==================== 路由守卫 ====================
 
 // 认证守卫
-router.beforeEach((to, from) => {
+router.beforeEach(async (to, from) => {
   const token = localStorage.getItem('access_token')
 
   // 如果没有 token 且路由需要认证，重定向到登录页
@@ -260,6 +261,23 @@ router.beforeEach((to, from) => {
       sessionStorage.setItem('redirect_after_login', to.fullPath)
     }
     return '/login'
+  }
+
+  // 如果已登录，恢复用户上下文（页面刷新后）
+  if (token) {
+    const { currentUser, hydrateCurrentUser } = useCurrentUser()
+
+    // 如果 sessionStorage 中没有用户信息，尝试从后端加载
+    if (!currentUser.value) {
+      try {
+        const { authApi } = await import('@/api/modules/auth')
+        const myContext = await authApi.my()
+        hydrateCurrentUser(myContext.user)
+      } catch (error) {
+        console.warn('[认证守卫] 加载用户信息失败:', error)
+        // 不阻塞导航，让权限守卫处理
+      }
+    }
   }
 
   // 如果已登录且在登录页，重定向到 dashboard
