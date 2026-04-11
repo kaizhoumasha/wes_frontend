@@ -9,6 +9,8 @@ import { createCrudPageConfigFromResource } from '@/components/common/crud-page/
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
 import { menuPageFieldConfig } from './fieldConfig'
+import { h } from 'vue'
+import AppIcon from '@/components/ui/AppIcon.vue'
 
 type MenuPageConfig = CrudPageConfig<Menu, CreateMenuInput, UpdateMenuInput>
 
@@ -92,25 +94,17 @@ const MENU_PAGE_DETAIL: CrudPageDetailConfig<Menu> = {
         { key: 'name', layout: 'half' },
         { key: 'title', layout: 'half' },
         { key: 'path', layout: 'full' },
-        { key: 'icon', layout: 'half' },
+        { key: 'icon', layout: 'half', formatter: (v) => v ? h(AppIcon, { icon: v as string, size: 18 }) : '' },
         { key: 'is_hidden', layout: 'half' }
-      ]
-    },
-    {
-      title: '层级结构',
-      weight: 'secondary',
-      fields: [
-        { key: 'parent_id', layout: 'full' },
-        { key: 'level', layout: 'half' },
-        { key: 'sort_order', layout: 'half' },
-        { key: 'tree_path', layout: 'full' }
       ]
     },
     {
       title: '组件配置',
       weight: 'secondary',
       fields: [
-        { key: 'component', layout: 'full' }
+        { key: 'component', layout: 'full' },
+        { key: 'icon', layout: 'half', formatter: (v) => v ? h(AppIcon, { icon: v as string, size: 18 }) : '' },
+        { key: 'is_hidden', layout: 'half' }
       ]
     }
   ]

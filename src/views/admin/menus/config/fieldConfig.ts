@@ -11,6 +11,8 @@ import { MenuCreateSchema, MenuUpdateSchema } from '@/types/zod-extensions'
 import {
   defineCrudResourceFieldBundle
 } from '@/components/common/crud-page/resourceFieldBuilder'
+import { h } from 'vue'
+import AppIcon from '@/components/ui/AppIcon.vue'
 
 const MENU_FIELD_LABEL_OVERRIDES = {
   name: '菜单标识',
@@ -93,20 +95,15 @@ export const {
     {
       key: 'parent_id',
       table: {
-        visibleFrom: 'tablet',
+        visibleFrom: null, // 完全隐藏（树形视图已展示层级关系）
         width: 120
       },
-      form: {
-        type: 'number'
-      },
-      search: {
-        dataType: 'number'
-      }
+      form: {} // 使用系统默认的树形选择器
     },
     {
       key: 'level',
       table: {
-        visibleFrom: 'tablet',
+        visibleFrom: null, // 完全隐藏（树形缩进已展示层级）
         width: 80
       }
       // form: 隐藏，由后端根据 parent_id 自动计算
@@ -114,7 +111,7 @@ export const {
     {
       key: 'sort_order',
       table: {
-        visibleFrom: 'tablet',
+        visibleFrom: null, // 完全隐藏（列表顺序已展示排序）
         width: 90
       }
       // form: 隐藏，通过拖拽排序功能调整
@@ -123,9 +120,15 @@ export const {
       key: 'icon',
       table: {
         visibleFrom: 'desktop',
-        width: 120
+        width: 120,
+        formatter: (value) => {
+          if (!value) return ''
+          return h(AppIcon, { icon: value as string, size: 18 })
+        }
       },
-      form: {}
+      form: {
+        type: 'icon'
+      }
     },
     {
       key: 'component',
@@ -148,7 +151,7 @@ export const {
     {
       key: 'tree_path',
       table: {
-        visibleFrom: 'desktop',
+        visibleFrom: null, // 完全隐藏（ID 路径对用户无意义）
         width: 200
       }
       // form: 隐藏，由后端自动生成

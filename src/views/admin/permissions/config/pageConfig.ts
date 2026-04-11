@@ -104,16 +104,6 @@ const PERMISSION_PAGE_DETAIL: CrudPageDetailConfig<Permission> = {
         { key: 'method', layout: 'half' },
         { key: 'path', layout: 'full' }
       ]
-    },
-    {
-      title: '层级结构',
-      weight: 'secondary',
-      fields: [
-        { key: 'parent_id', layout: 'half' },
-        { key: 'level', layout: 'half' },
-        { key: 'sort_order', layout: 'half' },
-        { key: 'tree_path', layout: 'half' }
-      ]
     }
   ]
 }

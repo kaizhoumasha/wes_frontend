@@ -79,6 +79,7 @@ declare module 'vue' {
     FilterConditionRow: typeof import('./../components/search/advanced-search/FilterConditionRow.vue')['default']
     FilterGroupBuilder: typeof import('./../components/search/advanced-search/FilterGroupBuilder.vue')['default']
     GroupSummaryBar: typeof import('./../components/search/advanced-search/GroupSummaryBar.vue')['default']
+    IconSelect: typeof import('./../components/ui/IconSelect.vue')['default']
     LoginLogo: typeof import('./../components/common/LoginLogo.vue')['default']
     MoveDialog: typeof import('./../components/common/MoveDialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

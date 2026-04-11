@@ -202,7 +202,9 @@ async function handleSubmit(data) {
 
         <!-- 数字输入框 -->
         <el-form-item
-          v-else-if="field.type === 'number' && !isReadonlyField(field.key) && !isTreeSelectField(field.key)"
+          v-else-if="
+            field.type === 'number' && !isReadonlyField(field.key) && !isTreeSelectField(field.key)
+          "
           :label="field.label"
           :required="field.required"
           :error="errors[field.key]"
@@ -313,6 +315,20 @@ async function handleSubmit(data) {
             />
           </el-select>
         </el-form-item>
+
+        <!-- 图标选择器 -->
+        <el-form-item
+          v-else-if="field.type === 'icon'"
+          :label="field.label"
+          :required="field.required"
+          :error="errors[field.key]"
+        >
+          <IconSelect
+            :model-value="getFieldValue(field.key)"
+            :placeholder="field.placeholder"
+            @update:model-value="(val: any) => getFieldHandler(field.key)?.(val)"
+          />
+        </el-form-item>
       </template>
     </el-form>
   </StandardDialog>
@@ -357,6 +373,7 @@ import { ElMessage } from 'element-plus'
 import type { TreeNodeData } from 'element-plus/es/components/tree'
 import type { FormFieldConfig, FormMode } from '@/composables/useTableColumns'
 import { StandardDialog } from '@/components/ui/StandardDialog'
+import IconSelect from '@/components/ui/IconSelect.vue'
 
 // ============================================================================
 // 类型定义
@@ -482,7 +499,23 @@ type FormValues = Record<string, unknown>
 function createEmptyFormValues(): FormValues {
   const values: FormValues = {}
   props.fieldConfig.forEach(field => {
-    values[field.key] = field.type === 'checkbox' ? [] : ''
+    // 树形选择器字段默认值为 null（表示顶级）
+    if (isTreeSelectField(field.key)) {
+      // 优先使用字段配置的 defaultValue
+      if ('defaultValue' in field && field.defaultValue !== undefined) {
+        values[field.key] = field.defaultValue
+      } else {
+        values[field.key] = null
+      }
+    }
+    // 优先使用字段配置的 defaultValue
+    else if ('defaultValue' in field && field.defaultValue !== undefined) {
+      values[field.key] = field.defaultValue
+    } else if (field.type === 'checkbox') {
+      values[field.key] = []
+    } else {
+      values[field.key] = ''
+    }
   })
   // 合并创建模式初始值
   if (props.createInitialValues) {
@@ -499,7 +532,13 @@ function buildFormValuesFromData(data: Record<string, unknown>): FormValues {
   const formValues = createEmptyFormValues()
 
   props.fieldConfig.forEach(field => {
-    formValues[field.key] = data[field.key] ?? ''
+    const value = data[field.key]
+    // 树形选择器字段：保持 null 值，不要转换为空字符串
+    if (isTreeSelectField(field.key)) {
+      formValues[field.key] = value ?? null
+    } else {
+      formValues[field.key] = value ?? ''
+    }
   })
 
   if (props.enableOptimisticLock && props.versionField in data) {
