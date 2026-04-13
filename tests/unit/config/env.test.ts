@@ -30,6 +30,12 @@ describe('env', () => {
     expect(env.apiBaseUrl).toBe('http://localhost:8001')
   })
 
+  it('falls back to the default app title only when unset', () => {
+    vi.stubEnv('VITE_APP_TITLE', undefined)
+
+    expect(env.appTitle).toBe('P9 MCS')
+  })
+
   it('preserves an empty SSE URL when explicitly provided', () => {
     vi.stubEnv('VITE_SSE_URL', '')
 

@@ -2,7 +2,7 @@
 
 **版本**: 1.3
 **最后更新**: 2026-03-26
-**适用**: P9 WES 前端项目
+**适用**: P9 MCS 前端项目
 
 ---
 
@@ -271,7 +271,7 @@ bash scripts/data/sync_menus.sh \
 
 ```bash
 # 1. 确保后端服务已启动
-# 访问 http://localhost:8001/docs 确认 OpenAPI 文档可用
+# 访问 http://localhost:8001/api/docs 确认 Swagger 文档可用
 
 # 2. 生成 TypeScript 类型
 pnpm type:generate
@@ -514,7 +514,7 @@ pnpm permission:generate  # 生成权限常量
 
 **检查清单**：
 
-- [ ] 后端服务已启动（http://localhost:8001/docs 可访问）
+- [ ] 后端服务已启动（http://localhost:8001/api/docs 可访问）
 - [ ] 执行了 `pnpm type:generate`
 - [ ] 执行了 `pnpm zod:generate`
 - [ ] 执行了 `pnpm permission:generate`
@@ -539,8 +539,8 @@ pnpm permission:generate  # 生成权限常量
 ```bash
 # 查看生成的 API 类型文件
 cat src/api/modules/role.ts
-# 或查看 OpenAPI 文档
-open http://localhost:8001/docs
+# 或查看 Swagger 文档
+open http://localhost:8001/api/docs
 ```
 
 **API 能力检查清单**：

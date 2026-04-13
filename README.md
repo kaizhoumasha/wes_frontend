@@ -1,6 +1,6 @@
-# P9 WES 前端项目
+# P9 MCS 前端项目
 
-> **项目名称**: P9 WES 前端项目 (休斯顿智能仓储执行系统前端)
+> **项目名称**: P9 MCS 前端项目 (休斯顿智能物料控制系统前端)
 > **仓库地址**: https://github.com/kaizhoumasha/wes_frontend
 > **后端项目**: https://github.com/kaizhoumasha/wes_backend
 
@@ -129,7 +129,8 @@ src/
 ## 后端 API
 
 - **本地开发**: http://localhost:8001
-- **API 文档**: http://localhost:8001/api/openapi.json
+- **Swagger 文档**: http://localhost:8001/api/docs
+- **OpenAPI 文档**: http://localhost:8001/api/openapi.json
 
 ## License
 

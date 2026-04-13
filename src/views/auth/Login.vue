@@ -35,9 +35,9 @@
 
           <h1 class="brand-title">
             <span class="title-highlight">P9</span>
-            WES
+            MCS
           </h1>
-          <p class="brand-subtitle">Houston Warehouse Execution System</p>
+          <p class="brand-subtitle">Houston Material Control System</p>
 
           <!-- 功能特性 -->
           <BrandFeatures />
@@ -63,7 +63,7 @@
         <div class="form-container">
           <div class="form-header">
             <h2>系统登录</h2>
-            <p>Warehouse Execution System</p>
+            <p>Material Control System</p>
           </div>
 
           <form

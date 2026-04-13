@@ -1174,7 +1174,7 @@ function filterGroupToLegacy(group: UIFilterGroup): SearchCondition[]
 - [StandardDialog 组件设计](./STANDARD_DIALOG_DESIGN.md) - 标准对话框组件
 - [Element Plus Select 组件文档](https://element-plus.org/zh-CN/component/select.html)
 - [FilterGroupSchema 定义](src/types/generated/zod-schemas.ts)
-- [后端 API 文档](http://localhost:8001/docs)
+- [后端 Swagger 文档](http://localhost:8001/api/docs)
 
 ---
 

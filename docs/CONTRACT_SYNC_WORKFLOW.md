@@ -37,7 +37,7 @@
 # 检查后端是否运行
 curl -s http://localhost:8001/api/openapi.json | jq '.info.title'
 
-# 应该返回：WES Backend API
+# 应该返回：P9 WES
 ```
 
 ### 2. 运行同步脚本

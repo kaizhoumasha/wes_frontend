@@ -9,7 +9,7 @@ import { vi } from 'vitest'
 /**
  * Create a mock fetcher function for detail panel tests
  */
-export function createMockFetcher<T>(data: T, delay = 0): (id: number) => Promise<T> {
+export function createMockFetcher<T>(data: T, delay = 0) {
   return vi.fn(async (id: number) => {
     if (delay > 0) {
       await new Promise(resolve => setTimeout(resolve, delay))

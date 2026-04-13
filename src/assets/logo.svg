@@ -28,15 +28,15 @@
     opacity="0.5"
   />
 
-  <!-- 顶部 W 图标 -->
+  <!-- 顶部 M 图标 -->
   <path
-    d="M60 80 L70 80 L80 105 L90 80 L100 80 L110 105 L120 80 L130 80 L115 120 L105 120 L100 95 L95 120 L85 120 Z"
+    d="M60 120 L60 80 L72 80 L86 102 L100 80 L114 102 L128 80 L140 80 L140 120 L128 120 L128 98 L116 120 L112 120 L100 98 L88 120 L84 120 L72 98 L72 120 Z"
     fill="url(#logoGradient)"
   />
 
   <!-- 底部文字 -->
   <text x="100" y="155" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="url(#logoGradient)">
-    P9 WES
+    P9 MCS
   </text>
 
   <!-- 装饰点 -->

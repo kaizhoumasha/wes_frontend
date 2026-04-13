@@ -65,9 +65,9 @@
 
     <!-- 底部品牌 -->
     <div class="brand-footer">
-      <span class="brand-text">WES</span>
+      <span class="brand-text">MCS</span>
       <span class="brand-divider">|</span>
-      <span class="brand-subtitle">Warehouse Execution System</span>
+      <span class="brand-subtitle">Material Control System</span>
     </div>
   </div>
 </template>

@@ -7,7 +7,7 @@ WORKDIR /app
 # 构建参数
 ARG VITE_API_BASE_URL=/api/v1
 ARG VITE_SSE_URL=/api/v1/events/stream
-ARG VITE_APP_TITLE="P9 WES"
+ARG VITE_APP_TITLE="P9 MCS"
 ARG VITE_APP_DEV=false
 
 # 避免 CI 中的无关交互式依赖下载拖慢构建

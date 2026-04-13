@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# WES Frontend 项目初始化脚本
+# MCS Frontend 项目初始化脚本
 # 用途：初始化前端项目，包括依赖安装、Git 配置、开发环境设置
 
 set -e  # 遇到错误立即退出
@@ -36,7 +36,7 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 cd "$PROJECT_ROOT"
 
 print_info "================================================"
-print_info "WES Frontend 项目初始化脚本"
+print_info "MCS Frontend 项目初始化脚本"
 print_info "项目目录: $PROJECT_ROOT"
 print_info "================================================"
 
@@ -131,7 +131,7 @@ print_info "创建环境变量文件..."
 if [ ! -f ".env.development" ]; then
     cat > .env.development << 'EOF'
 # 开发环境配置
-VITE_APP_TITLE=P9 WES (开发环境)
+VITE_APP_TITLE=P9 MCS (开发环境)
 VITE_API_BASE_URL=http://localhost:8001/api/v1
 VITE_WS_URL=ws://localhost:8001/api/v1/ws
 VITE_APP_MOCK=false
@@ -143,7 +143,7 @@ fi
 if [ ! -f ".env.production" ]; then
     cat > .env.production << 'EOF'
 # 生产环境配置
-VITE_APP_TITLE=P9 WES
+VITE_APP_TITLE=P9 MCS
 VITE_API_BASE_URL=https://api.wes.example.com/api/v1
 VITE_WS_URL=wss://api.wes.example.com/api/v1/ws
 VITE_APP_MOCK=false
@@ -326,9 +326,9 @@ print_info "创建 README.md..."
 
 if [ ! -f "README.md" ]; then
     cat > README.md << 'EOF'
-# WES Frontend
+# MCS Frontend
 
-> P9 智能仓储执行系统前端项目
+> P9 智能物料控制系统前端项目
 
 ## 技术栈
 
@@ -429,7 +429,7 @@ if [ ! -d "main" ]; then
     if [ -z "$(git branch --show-current)" ]; then
         git checkout -b main
         git add .
-        git commit -m "chore: initialize WES frontend project"
+        git commit -m "chore: initialize MCS frontend project"
         print_success "创建初始提交"
     fi
 

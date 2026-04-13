@@ -8,10 +8,10 @@
 export const APP_VERSION = '0.1.0'
 
 /** 应用名称 */
-export const APP_NAME = 'P9 WES'
+export const APP_NAME = 'P9 MCS'
 
 /** 应用全称 */
-export const APP_FULL_NAME = 'Houston Warehouse Execution System'
+export const APP_FULL_NAME = 'Houston Material Control System'
 
 /** 应用描述 */
-export const APP_DESCRIPTION = '休斯顿智能仓储执行系统'
+export const APP_DESCRIPTION = '休斯顿智能物料控制系统'

@@ -14,11 +14,13 @@ In QA mode, flag any code that doesn't match DESIGN.md.
 
 ## 项目概述
 
-**P9 WES (休斯顿智能仓储执行系统)** 是一个独立部署的仓储执行控制中台，前端基于 Vue 3 + TypeScript + Vite 构建，对接 FastAPI 后端。
+**P9 MCS (休斯顿智能物料控制系统)** 是一个独立部署的物料控制中台，前端基于 Vue 3 + TypeScript + Vite 构建，对接 FastAPI 后端。
 
+- **当前仓库定位**: 当前工程是前端仓库；涉及后端实现、接口逻辑或服务端代码时，应切换到独立后端仓库处理
 - **后端项目**: `../wes_backend`
 - **本地 API**: http://localhost:8001
-- **API 文档**: http://localhost:8001/docs
+- **Swagger 文档**: http://localhost:8001/api/docs
+- **OpenAPI 文档**: http://localhost:8001/api/openapi.json
 
 ---
 

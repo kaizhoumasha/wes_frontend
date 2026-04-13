@@ -35,7 +35,7 @@ export const env = {
 
   /** 应用标题 */
   get appTitle() {
-    return import.meta.env.VITE_APP_TITLE || 'P9 WES'
+    return import.meta.env.VITE_APP_TITLE || 'P9 MCS'
   },
 
   /** 是否启用 Mock 数据 */

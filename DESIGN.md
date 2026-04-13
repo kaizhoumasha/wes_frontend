@@ -1,8 +1,8 @@
-# Design System — P9 WES 工业仓储风格
+# Design System — P9 MCS 工业仓储风格
 
 ## Product Context
 
-- **What this is:** P9 WES (休斯顿智能仓储执行系统) 前端界面
+- **What this is:** P9 MCS (休斯顿智能物料控制系统) 前端界面
 - **Who it's for:** 仓储管理人员、物流运营团队、仓库作业人员
 - **Space/industry:** 智能仓储 / 物流执行 / 工业物联网 (IIoT)
 - **Project type:** 企业级后台管理系统 / 仓储操作仪表盘

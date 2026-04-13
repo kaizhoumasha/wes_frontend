@@ -10,42 +10,42 @@ import logoSvg from '@/assets/logo.svg'
           <div class="cube-face cube-face-front">
             <img
               :src="logoSvg"
-              alt="P9 WES"
+              alt="P9 MCS"
               class="cube-logo"
             />
           </div>
           <div class="cube-face cube-face-back">
             <img
               :src="logoSvg"
-              alt="P9 WES"
+              alt="P9 MCS"
               class="cube-logo"
             />
           </div>
           <div class="cube-face cube-face-right">
             <img
               :src="logoSvg"
-              alt="P9 WES"
+              alt="P9 MCS"
               class="cube-logo"
             />
           </div>
           <div class="cube-face cube-face-left">
             <img
               :src="logoSvg"
-              alt="P9 WES"
+              alt="P9 MCS"
               class="cube-logo"
             />
           </div>
           <div class="cube-face cube-face-top">
             <img
               :src="logoSvg"
-              alt="P9 WES"
+              alt="P9 MCS"
               class="cube-logo"
             />
           </div>
           <div class="cube-face cube-face-bottom">
             <img
               :src="logoSvg"
-              alt="P9 WES"
+              alt="P9 MCS"
               class="cube-logo"
             />
           </div>

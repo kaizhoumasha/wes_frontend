@@ -12,7 +12,7 @@
       <div class="logo-container">
         <img
           :src="logoSvg"
-          alt="P9 WES"
+          alt="P9 MCS"
           class="logo-image"
         />
         <transition name="logo-text">
@@ -21,7 +21,7 @@
             class="logo-text"
           >
             <span class="logo-highlight">P9</span>
-            WES
+            MCS
           </div>
         </transition>
       </div>

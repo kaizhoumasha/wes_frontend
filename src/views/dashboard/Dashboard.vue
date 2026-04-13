@@ -5,9 +5,9 @@
       <div class="welcome-content">
         <h1 class="welcome-title">
           <span class="title-highlight">欢迎使用</span>
-          P9 WES
+          P9 MCS
         </h1>
-        <p class="welcome-subtitle">休斯顿智能仓储执行系统</p>
+        <p class="welcome-subtitle">休斯顿智能物料控制系统</p>
       </div>
       <div class="welcome-decoration">
         <div class="decoration-line" />
