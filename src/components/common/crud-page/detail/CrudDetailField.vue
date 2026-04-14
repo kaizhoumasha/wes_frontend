@@ -297,7 +297,10 @@ const needsTruncation = computed(() => {
     :class="[layoutClass, labelPositionClass, appearanceClass]"
   >
     <!-- Label -->
-    <div class="detail-field__label">
+    <div
+      v-if="label !== ''"
+      class="detail-field__label"
+    >
       {{ label }}
     </div>
 

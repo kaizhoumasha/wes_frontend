@@ -1,9 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { createPermissionGuard } from './guards/permission'
-import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
-import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
-import { API_AUTH_PERMISSIONS } from '@/api/generated/permissions'
+import {
+  ADMIN_PERMISSIONS,
+  API_AUTH_PERMISSIONS,
+  BIZ_PERMISSIONS,
+  SYS_PERMISSIONS
+} from '@/api/generated/permissions'
 import { setRouterInstance } from '@/api/services/auth-error-handler'
 import { useCurrentUser } from '@/composables/useCurrentUser'
 
@@ -219,6 +222,54 @@ const routes: RouteRecordRaw[] = [
                 parentName: 'api-auth:system:menu',
                 icon: 'ep:lock',
                 sortOrder: 1
+              }
+            }
+          }
+        ]
+      },
+      // ==================== 日志中心 ====================
+      {
+        path: 'logs',
+        name: 'LogCenterRoot',
+        meta: {
+          requiresAuth: true,
+          title: '日志中心',
+          menu: {
+            name: 'logs:system:menu',
+            icon: 'ep:document',
+            sortOrder: 40
+          }
+        },
+        children: [
+          {
+            path: 'audit',
+            name: 'AuditLogList',
+            component: () => import('@/views/logs/audit/AuditLogListPage.vue'),
+            meta: {
+              requiresAuth: true,
+              title: '审计日志',
+              permission: SYS_PERMISSIONS.auditlog.page,
+              menu: {
+                name: 'logs:audit:menu',
+                parentName: 'logs:system:menu',
+                icon: 'ep:document-checked',
+                sortOrder: 1
+              }
+            }
+          },
+          {
+            path: 'api-access',
+            name: 'APIAccessLogList',
+            component: () => import('@/views/logs/api-access/APIAccessLogListPage.vue'),
+            meta: {
+              requiresAuth: true,
+              title: 'API 访问日志',
+              permission: API_AUTH_PERMISSIONS.apiaccesslog.page,
+              menu: {
+                name: 'logs:api-access:menu',
+                parentName: 'logs:system:menu',
+                icon: 'ep:histogram',
+                sortOrder: 2
               }
             }
           }

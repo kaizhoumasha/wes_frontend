@@ -175,6 +175,7 @@ export interface UseCrudListPageReturn<
     instance: ReturnType<typeof useSmartSearch>
     handleSearch: (page?: number) => Promise<void>
     handleRefresh: () => Promise<void>
+    handlePageSizeChange: (size: number) => Promise<void>
     handleSortChange: (sort: {
       field: string
       sortKey?: string
@@ -761,6 +762,27 @@ export function useCrudListPage<
     await handleSearch(currentPagination.page)
   }
 
+  async function handlePageSizeChange(size: number): Promise<void> {
+    if (!Number.isFinite(size) || size <= 0) {
+      return
+    }
+
+    const nextSize = Math.floor(size)
+
+    if (isTrashMode.value) {
+      trashPagination.pageSize = nextSize
+      trashPagination.page = 1
+      syncCurrentPagination()
+      await handleSearch(1)
+      return
+    }
+
+    crudApi.pagination.pageSize = nextSize
+    crudApi.pagination.page = 1
+    syncCurrentPagination()
+    await handleSearch(1)
+  }
+
   async function handleSortChange(sort: {
     field: string
     sortKey?: string
@@ -1000,6 +1022,7 @@ export function useCrudListPage<
       instance: searchInstance,
       handleSearch,
       handleRefresh,
+      handlePageSizeChange,
       handleSortChange
     },
 

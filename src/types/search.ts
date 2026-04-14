@@ -352,6 +352,8 @@ export interface QuickSearchPreset {
   description?: string
   /** 预设包含的条件列表（不含 id 和 label） */
   conditions: SearchConditionDraft[]
+  /** 运行时动态生成条件（用于相对时间等场景） */
+  resolveConditions?: (now?: Date) => SearchConditionDraft[]
 }
 
 // ==================== 搜索状态定义 ====================

@@ -2069,6 +2069,11 @@ export interface components {
              */
             app_name: string;
             /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
              * Error Message
              * @description 错误信息
              */
@@ -2345,12 +2350,22 @@ export interface components {
          * @description AuditLog 响应 Schema
          */
         AuditLogResponse: {
+            /**
+             * Action
+             * @description 审计动作
+             */
+            action?: string | null;
             /** Args */
             args?: {
                 [key: string]: unknown;
             } | null;
             /** Browser */
             browser?: string | null;
+            /**
+             * Change Summary
+             * @description 变更摘要
+             */
+            change_summary?: string | null;
             /** City */
             city?: string | null;
             /** Code */
@@ -2369,6 +2384,16 @@ export interface components {
             method: string;
             /** Msg */
             msg?: string | null;
+            /**
+             * Object Id
+             * @description 审计对象标识
+             */
+            object_id?: string | null;
+            /**
+             * Object Type
+             * @description 审计对象类型
+             */
+            object_type?: string | null;
             /**
              * Opera Time
              * Format: date-time
@@ -2738,21 +2763,6 @@ export interface components {
              */
             auth_token?: string | null;
             /**
-             * Capabilities
-             * @description 能力列表（业务能力，如 [SCAN, PICK, PUT]）
-             */
-            capabilities: string[];
-            /**
-             * Contract Profile
-             * @description 设备绑定的协议 profile
-             */
-            contract_profile?: string | null;
-            /**
-             * Contract Version
-             * @description 设备绑定的协议版本
-             */
-            contract_version?: string | null;
-            /**
              * Current Command Id
              * @description 当前执行的指令 ID（关联 DeviceCommand.id）
              */
@@ -2782,8 +2792,6 @@ export interface components {
              * @default IDLE
              */
             device_status: components["schemas"]["DeviceStatus"];
-            /** @description 设备类型 */
-            device_type: components["schemas"]["DeviceType"];
             /**
              * Error Code
              * @description 错误代码（status=ERROR 时）
@@ -2818,11 +2826,6 @@ export interface components {
              */
             max_concurrent_tasks: number;
             /**
-             * Plugin Key
-             * @description 设备绑定的工作线插件标识
-             */
-            plugin_key?: string | null;
-            /**
              * Port
              * @description 服务端口
              */
@@ -2844,11 +2847,6 @@ export interface components {
              * @default 0
              */
             sort_order: number;
-            /**
-             * Supported Commands
-             * @description 支持的指令类型（PICK/PUT/SCAN/ROTATE/PROCESS）
-             */
-            supported_commands: string[];
             /**
              * Timeout
              * @description 请求超时时间（毫秒，默认 10s）
@@ -2888,21 +2886,6 @@ export interface components {
              */
             auth_token?: string | null;
             /**
-             * Capabilities
-             * @description 能力列表（业务能力，如 [SCAN, PICK, PUT]）
-             */
-            capabilities?: string[];
-            /**
-             * Contract Profile
-             * @description 设备绑定的协议 profile
-             */
-            contract_profile?: string | null;
-            /**
-             * Contract Version
-             * @description 设备绑定的协议版本
-             */
-            contract_version?: string | null;
-            /**
              * Current Command Id
              * @description 当前执行的指令 ID（关联 DeviceCommand.id）
              */
@@ -2932,8 +2915,6 @@ export interface components {
              * @default IDLE
              */
             device_status: components["schemas"]["DeviceStatus"];
-            /** @description 设备类型 */
-            device_type: components["schemas"]["DeviceType"];
             /**
              * Error Code
              * @description 错误代码（status=ERROR 时）
@@ -2970,11 +2951,6 @@ export interface components {
              */
             max_concurrent_tasks: number;
             /**
-             * Plugin Key
-             * @description 设备绑定的工作线插件标识
-             */
-            plugin_key?: string | null;
-            /**
              * Port
              * @description 服务端口
              */
@@ -2996,11 +2972,6 @@ export interface components {
              * @default 0
              */
             sort_order: number;
-            /**
-             * Supported Commands
-             * @description 支持的指令类型（PICK/PUT/SCAN/ROTATE/PROCESS）
-             */
-            supported_commands?: string[];
             /**
              * Timeout
              * @description 请求超时时间（毫秒，默认 10s）
@@ -3032,12 +3003,6 @@ export interface components {
          */
         DeviceStatus: "IDLE" | "RUNNING" | "ERROR" | "OFFLINE";
         /**
-         * DeviceType
-         * @description 设备类型枚举 (SRS 3.3.0 节)
-         * @enum {string}
-         */
-        DeviceType: "PDA" | "INDUSTRIAL_PC" | "PRINTER" | "COMPUTER" | "LCR_TESTER" | "ROBOTIC_ARM" | "VISION_CAMERA" | "CONVEYOR" | "LABELER" | "XRAY" | "SCANNER";
-        /**
          * DeviceUpdate
          * @description 设备更新 Schema - 所有字段可选
          */
@@ -3047,21 +3012,6 @@ export interface components {
              * @description 认证 Token（Bearer Token）
              */
             auth_token?: string | null;
-            /**
-             * Capabilities
-             * @description 能力列表（业务能力，如 [SCAN, PICK, PUT]）
-             */
-            capabilities?: string[] | null;
-            /**
-             * Contract Profile
-             * @description 设备绑定的协议 profile
-             */
-            contract_profile?: string | null;
-            /**
-             * Contract Version
-             * @description 设备绑定的协议版本
-             */
-            contract_version?: string | null;
             /**
              * Current Command Id
              * @description 当前执行的指令 ID（关联 DeviceCommand.id）
@@ -3089,8 +3039,6 @@ export interface components {
             device_role?: string | null;
             /** @description 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE） */
             device_status?: components["schemas"]["DeviceStatus"] | null;
-            /** @description 设备类型 */
-            device_type?: components["schemas"]["DeviceType"] | null;
             /**
              * Error Code
              * @description 错误代码（status=ERROR 时）
@@ -3122,11 +3070,6 @@ export interface components {
              */
             max_concurrent_tasks?: number | null;
             /**
-             * Plugin Key
-             * @description 设备绑定的工作线插件标识
-             */
-            plugin_key?: string | null;
-            /**
              * Port
              * @description 服务端口
              */
@@ -3143,11 +3086,6 @@ export interface components {
              * @description 排序顺序
              */
             sort_order?: number | null;
-            /**
-             * Supported Commands
-             * @description 支持的指令类型（PICK/PUT/SCAN/ROTATE/PROCESS）
-             */
-            supported_commands?: string[] | null;
             /**
              * Timeout
              * @description 请求超时时间（毫秒，默认 10s）
@@ -5523,7 +5461,7 @@ export interface components {
              */
             created_at: string;
             /** Created By */
-            created_by: number;
+            created_by?: number | null;
             /** Deleted At */
             deleted_at?: string | null;
             /** Deleted By */
@@ -5573,7 +5511,7 @@ export interface components {
              */
             created_at: string;
             /** Created By */
-            created_by: number;
+            created_by?: number | null;
             /** Deleted At */
             deleted_at?: string | null;
             /** Deleted By */

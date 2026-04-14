@@ -17,7 +17,6 @@ import {
 const DEVICE_FIELD_LABEL_OVERRIDES = {
   device_code: '设备编码',
   device_name: '设备名称',
-  device_type: '设备类型',
   device_status: '设备状态',
   device_role: '设备角色',
   role_index: '角色序号',
@@ -30,7 +29,6 @@ const DEVICE_FIELD_LABEL_OVERRIDES = {
   protocol: '通信协议',
   timeout: '超时时间(ms)',
   auth_token: '认证Token',
-  capabilities: '能力列表',
   vendor_type: '厂商类型',
   max_concurrent_tasks: '最大并发任务',
   current_command_id: '当前指令',
@@ -98,20 +96,6 @@ export const {
         required: true
       },
       search: {}
-    },
-    {
-      key: 'device_type',
-      table: {
-        visibleFrom: 'mobile',
-        width: 100
-      },
-      form: {
-        required: true,
-        type: 'select'
-      },
-      search: {
-        dataType: 'enum'
-      }
     },
     {
       key: 'device_status',
@@ -205,14 +189,6 @@ export const {
       form: {
         type: 'textarea'
       }
-    },
-    {
-      key: 'capabilities',
-      table: {
-        visibleFrom: 'desktop',
-        width: 150
-      },
-      form: {}
     },
     {
       key: 'timeout',
