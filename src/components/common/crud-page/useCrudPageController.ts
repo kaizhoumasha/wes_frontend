@@ -13,13 +13,17 @@ import {
 } from './helpers/actions'
 import { resolveCrudPageFeatures } from './helpers/features'
 import {
+  CRUD_PAGE_SEARCH_ACTIONS_KEY,
   CRUD_PAGE_REFRESH_KEY,
   type CrudPageConfig,
   type CrudPageEntity,
   type CrudPageRowAction,
+  type CrudPageResolvedToolbarAction,
+  type CrudPageToolbarActionContext,
   type CrudPageViewMode
 } from './types'
 import { useDetailState } from './detail/composables/useDetailState'
+import { mergeQuickFilterConditions } from './searchContext'
 import type { TableSortOrder } from '@/components/ui/table/table.types'
 import type { SortField } from '@/api/base/crud-api'
 
@@ -223,6 +227,22 @@ export function useCrudPageController<
       : undefined
   )
 
+  const toolbarActionContext: CrudPageToolbarActionContext = {
+    applyQuickPreset: (presetId, options) => {
+      if (options?.replace) {
+        state.search.instance.clearKeyword()
+        state.search.instance.clearAppliedFilters()
+      }
+
+      state.search.instance.applyQuickPreset(presetId, { deduplicate: options?.deduplicate })
+    },
+    clearFilters: () => {
+      state.search.instance.clearKeyword()
+      state.search.instance.clearAppliedFilters()
+    },
+    refresh: state.search.handleRefresh
+  }
+
   const showSearch = computed(() => !state.state.isTrashMode.value)
 
   const emptyText = computed(() =>
@@ -231,7 +251,7 @@ export function useCrudPageController<
       : config.table.emptyText ?? '暂无数据'
   )
 
-  const toolbarActions = computed(() => {
+  const toolbarActions = computed<CrudPageResolvedToolbarAction[]>(() => {
     const actions = buildDefaultToolbarActions({
       config,
       features,
@@ -253,7 +273,7 @@ export function useCrudPageController<
       if (createActionIndex !== -1) {
         actions[createActionIndex] = {
           ...actions[createActionIndex],
-          handler: handleCreate
+          handler: () => handleCreate()
         }
       }
     }
@@ -275,13 +295,16 @@ export function useCrudPageController<
         label: sortLabel,
         icon: sortIcon,
         type: 'primary' as const,
-        handler: handleSort,
+        handler: () => handleSort(),
         permission: sortPermission,
         tooltip: sortTooltip
       })
     }
 
-    return actions
+    return actions.map(action => ({
+      ...action,
+      handler: () => action.handler(toolbarActionContext)
+    }))
   })
 
   /** 树形模式下工具栏新增：先加载完整树再打开对话框 */
@@ -412,8 +435,8 @@ export function useCrudPageController<
     return state.search.handleSearch(page)
   }
 
-  function handleSizeChange(): void {
-    console.warn('Dynamic pageSize change not yet implemented')
+  function handleSizeChange(size: number): Promise<void> {
+    return state.search.handlePageSizeChange(size)
   }
 
   function handleColumnResize(resize: { field: string; width: number }): void {
@@ -626,12 +649,26 @@ export function useCrudPageController<
     await state.apiActions.handleCreate(resolveSubmitPayload(formData, config.form.submit?.create))
   }
 
+  if (config.search.defaultFilterGroup) {
+    // 初始化默认筛选时跳过 notify，避免首屏重复请求。
+    state.search.instance.state.value.advancedFilterGroup = config.search.defaultFilterGroup
+  }
+
   onMounted(() => {
     void state.search.handleSearch(1)
   })
 
   // 提供刷新函数供子组件（如对话框）使用
   provide(CRUD_PAGE_REFRESH_KEY, () => state.search.handleSearch(state.state.pagination.page))
+  provide(CRUD_PAGE_SEARCH_ACTIONS_KEY, {
+    applyQuickFilter: draft => {
+      const nextConditions = mergeQuickFilterConditions(
+        state.search.instance.state.value.conditions,
+        draft
+      )
+      state.search.instance.replaceConditions(nextConditions)
+    }
+  })
 
   // 提取 tree 属性（当启用 treeMode 时存在）
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

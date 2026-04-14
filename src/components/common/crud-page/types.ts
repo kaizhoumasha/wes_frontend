@@ -1,13 +1,13 @@
 import type { Ref, InjectionKey } from 'vue'
 import type { ZodType } from 'zod'
-import type { CrudApi, SortField } from '@/api/base/crud-api'
+import type { CrudApi, FilterGroup, SortField } from '@/api/base/crud-api'
 import type {
   ColumnBreakpoint,
   ColumnConfig,
   FormFieldConfig
 } from '@/composables/useTableColumns'
 import type { TableColumnConfig } from '@/types/table'
-import type { SearchFavorite, SearchFieldDef, QuickSearchPreset } from '@/types/search'
+import type { SearchConditionDraft, SearchFavorite, SearchFieldDef, QuickSearchPreset } from '@/types/search'
 import type { CrudPageDetailConfig } from './detail/types'
 
 export interface CrudPageEntity {
@@ -152,11 +152,21 @@ export interface CrudPageToolbarAction {
   label: string
   icon?: string
   type?: 'primary' | 'success' | 'warning' | 'danger' | 'info'
-  handler: () => void | Promise<void>
+  handler: (context: CrudPageToolbarActionContext) => void | Promise<void>
   permission?: string
   showWhen?: () => boolean
   loading?: boolean
   tooltip?: string
+}
+
+export interface CrudPageResolvedToolbarAction extends Omit<CrudPageToolbarAction, 'handler'> {
+  handler: () => void | Promise<void>
+}
+
+export interface CrudPageToolbarActionContext {
+  applyQuickPreset: (presetId: string, options?: { replace?: boolean; deduplicate?: boolean }) => void
+  clearFilters: () => void
+  refresh: () => Promise<void>
 }
 
 export interface CrudPageFormSubmitConfig<
@@ -205,6 +215,7 @@ export interface CrudPageConfig<
     quickPresets?: QuickSearchPreset[]
     favorites?: SearchFavorite[]
     placeholder?: string
+    defaultFilterGroup?: FilterGroup
   }
   table: {
     selectable?: boolean
@@ -239,3 +250,11 @@ export interface CrudPageConfig<
  * 子组件可通过 inject(CRUD_PAGE_REFRESH_KEY) 获取刷新列表的能力
  */
 export const CRUD_PAGE_REFRESH_KEY: InjectionKey<() => Promise<void>> = Symbol('crud-page-refresh')
+
+export interface CrudPageSearchActions {
+  applyQuickFilter: (draft: SearchConditionDraft) => void
+}
+
+export const CRUD_PAGE_SEARCH_ACTIONS_KEY: InjectionKey<CrudPageSearchActions> = Symbol(
+  'crud-page-search-actions'
+)

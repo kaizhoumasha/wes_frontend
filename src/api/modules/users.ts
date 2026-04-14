@@ -38,11 +38,6 @@ export type UsersItem = EnsureEntityId<CrudItem<typeof USERS_COLLECTION_PATH>>
 export type CreateUsersInput = CrudCreateInput<typeof USERS_COLLECTION_PATH>
 export type UpdateUsersInput = CrudUpdateInput<typeof USERS_COLLECTION_PATH>
 
-// 兼容别名（契约测试期望的命名）
-export type User = UsersItem
-export type CreateUserInput = CreateUsersInput
-export type UpdateUserInput = UpdateUsersInput
-
 export type StatsCacheResult = ContractResponseData<'/api/v1/admin/users/stats/cache', 'get'>
 
 export type ResetPasswordResult = ContractResponseData<'/api/v1/admin/users/{id}/reset-password', 'put'>

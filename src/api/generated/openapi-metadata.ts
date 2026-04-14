@@ -55,7 +55,8 @@ export const OPENAPI_SCHEMA_METADATA = {
       "status_code",
       "response_time_ms",
       "ip_address",
-      "id"
+      "id",
+      "created_at"
     ],
     "fields": {
       "app_id": {
@@ -139,6 +140,13 @@ export const OPENAPI_SCHEMA_METADATA = {
       "id": {
         "title": "Id",
         "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "created_at": {
+        "title": "Created At",
+        "type": "string",
+        "format": "date-time",
         "required": true,
         "nullable": false
       }
@@ -726,6 +734,38 @@ export const OPENAPI_SCHEMA_METADATA = {
         "type": "string",
         "required": false,
         "nullable": true
+      },
+      "object_type": {
+        "title": "Object Type",
+        "description": "审计对象类型",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 100
+      },
+      "action": {
+        "title": "Action",
+        "description": "审计动作",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 50
+      },
+      "object_id": {
+        "title": "Object Id",
+        "description": "审计对象标识",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 64
+      },
+      "change_summary": {
+        "title": "Change Summary",
+        "description": "变更摘要",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 255
       },
       "cost_time": {
         "title": "Cost Time",
@@ -1354,10 +1394,7 @@ export const OPENAPI_SCHEMA_METADATA = {
     "required": [
       "device_code",
       "device_name",
-      "device_type",
-      "device_role",
-      "capabilities",
-      "supported_commands"
+      "device_role"
     ],
     "additionalProperties": false,
     "fields": {
@@ -1378,12 +1415,6 @@ export const OPENAPI_SCHEMA_METADATA = {
         "nullable": false,
         "minLength": 1,
         "maxLength": 100
-      },
-      "device_type": {
-        "description": "设备类型",
-        "required": true,
-        "nullable": false,
-        "ref": "DeviceType"
       },
       "work_line_id": {
         "title": "Work Line Id",
@@ -1447,40 +1478,6 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": true,
         "maxLength": 50
-      },
-      "plugin_key": {
-        "title": "Plugin Key",
-        "description": "设备绑定的工作线插件标识",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "contract_profile": {
-        "title": "Contract Profile",
-        "description": "设备绑定的协议 profile",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "contract_version": {
-        "title": "Contract Version",
-        "description": "设备绑定的协议版本",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "capabilities": {
-        "title": "Capabilities",
-        "description": "能力列表（业务能力，如 [SCAN, PICK, PUT]）",
-        "type": "array",
-        "required": true,
-        "nullable": false,
-        "items": {
-          "type": "string"
-        }
       },
       "host": {
         "title": "Host",
@@ -1553,16 +1550,6 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": true,
         "maxLength": 50
-      },
-      "supported_commands": {
-        "title": "Supported Commands",
-        "description": "支持的指令类型（PICK/PUT/SCAN/ROTATE/PROCESS）",
-        "type": "array",
-        "required": true,
-        "nullable": false,
-        "items": {
-          "type": "string"
-        }
       },
       "max_concurrent_tasks": {
         "title": "Max Concurrent Tasks",
@@ -1613,7 +1600,6 @@ export const OPENAPI_SCHEMA_METADATA = {
     "required": [
       "device_code",
       "device_name",
-      "device_type",
       "device_role",
       "id",
       "version"
@@ -1636,12 +1622,6 @@ export const OPENAPI_SCHEMA_METADATA = {
         "nullable": false,
         "minLength": 1,
         "maxLength": 100
-      },
-      "device_type": {
-        "description": "设备类型",
-        "required": true,
-        "nullable": false,
-        "ref": "DeviceType"
       },
       "work_line_id": {
         "title": "Work Line Id",
@@ -1705,40 +1685,6 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": true,
         "maxLength": 50
-      },
-      "plugin_key": {
-        "title": "Plugin Key",
-        "description": "设备绑定的工作线插件标识",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "contract_profile": {
-        "title": "Contract Profile",
-        "description": "设备绑定的协议 profile",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "contract_version": {
-        "title": "Contract Version",
-        "description": "设备绑定的协议版本",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "capabilities": {
-        "title": "Capabilities",
-        "description": "能力列表（业务能力，如 [SCAN, PICK, PUT]）",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "type": "string"
-        }
       },
       "host": {
         "title": "Host",
@@ -1811,16 +1757,6 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": true,
         "maxLength": 50
-      },
-      "supported_commands": {
-        "title": "Supported Commands",
-        "description": "支持的指令类型（PICK/PUT/SCAN/ROTATE/PROCESS）",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "type": "string"
-        }
       },
       "max_concurrent_tasks": {
         "title": "Max Concurrent Tasks",
@@ -1876,33 +1812,6 @@ export const OPENAPI_SCHEMA_METADATA = {
       }
     }
   },
-  "DeviceType": {
-    "title": "DeviceType",
-    "description": "设备类型枚举 (SRS 3.3.0 节)",
-    "required": [],
-    "fields": {
-      "__enum": {
-        "title": "DeviceType",
-        "description": "设备类型枚举 (SRS 3.3.0 节)",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "enum": [
-          "PDA",
-          "INDUSTRIAL_PC",
-          "PRINTER",
-          "COMPUTER",
-          "LCR_TESTER",
-          "ROBOTIC_ARM",
-          "VISION_CAMERA",
-          "CONVEYOR",
-          "LABELER",
-          "XRAY",
-          "SCANNER"
-        ]
-      }
-    }
-  },
   "DeviceUpdate": {
     "title": "DeviceUpdate",
     "description": "设备更新 Schema - 所有字段可选",
@@ -1928,12 +1837,6 @@ export const OPENAPI_SCHEMA_METADATA = {
         "nullable": true,
         "minLength": 1,
         "maxLength": 100
-      },
-      "device_type": {
-        "description": "设备类型",
-        "required": false,
-        "nullable": true,
-        "ref": "DeviceType"
       },
       "work_line_id": {
         "title": "Work Line Id",
@@ -1994,40 +1897,6 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": true,
         "maxLength": 50
-      },
-      "plugin_key": {
-        "title": "Plugin Key",
-        "description": "设备绑定的工作线插件标识",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "contract_profile": {
-        "title": "Contract Profile",
-        "description": "设备绑定的协议 profile",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "contract_version": {
-        "title": "Contract Version",
-        "description": "设备绑定的协议版本",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "capabilities": {
-        "title": "Capabilities",
-        "description": "能力列表（业务能力，如 [SCAN, PICK, PUT]）",
-        "type": "array",
-        "required": false,
-        "nullable": true,
-        "items": {
-          "type": "string"
-        }
       },
       "host": {
         "title": "Host",
@@ -2097,16 +1966,6 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": true,
         "maxLength": 50
-      },
-      "supported_commands": {
-        "title": "Supported Commands",
-        "description": "支持的指令类型（PICK/PUT/SCAN/ROTATE/PROCESS）",
-        "type": "array",
-        "required": false,
-        "nullable": true,
-        "items": {
-          "type": "string"
-        }
       },
       "max_concurrent_tasks": {
         "title": "Max Concurrent Tasks",
@@ -5727,8 +5586,7 @@ export const OPENAPI_SCHEMA_METADATA = {
       "id",
       "is_superuser",
       "is_multi_login",
-      "created_at",
-      "created_by"
+      "created_at"
     ],
     "fields": {
       "username": {
@@ -5792,8 +5650,8 @@ export const OPENAPI_SCHEMA_METADATA = {
       "created_by": {
         "title": "Created By",
         "type": "integer",
-        "required": true,
-        "nullable": false
+        "required": false,
+        "nullable": true
       },
       "updated_at": {
         "title": "Updated At",
@@ -5841,8 +5699,7 @@ export const OPENAPI_SCHEMA_METADATA = {
       "id",
       "is_superuser",
       "is_multi_login",
-      "created_at",
-      "created_by"
+      "created_at"
     ],
     "fields": {
       "username": {
@@ -5906,8 +5763,8 @@ export const OPENAPI_SCHEMA_METADATA = {
       "created_by": {
         "title": "Created By",
         "type": "integer",
-        "required": true,
-        "nullable": false
+        "required": false,
+        "nullable": true
       },
       "updated_at": {
         "title": "Updated At",

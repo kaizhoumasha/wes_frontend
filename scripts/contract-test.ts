@@ -125,13 +125,13 @@ function validateTypeExports(): FieldIssue[] {
     }
   }
 
-  for (const exportedType of ['User', 'CreateUserInput', 'UpdateUserInput']) {
+  for (const exportedType of ['UsersItem', 'CreateUsersInput', 'UpdateUsersInput']) {
     if (!userTypes.includes(exportedType)) {
       issues.push({
-        field: `modules/user.${exportedType}`,
+        field: `modules/users.${exportedType}`,
         type: 'export_error',
         severity: 'error',
-        expected: `类型 ${exportedType} 在 modules/user.ts 中不存在或未导出`,
+        expected: `类型 ${exportedType} 在 modules/users.ts 中不存在或未导出`,
       })
     }
   }
@@ -171,7 +171,7 @@ function checkDeviceContract(): FieldIssue[] {
     return issues
   }
 
-  const requiredFields = ['device_code', 'device_name', 'device_status', 'device_type', 'host', 'port']
+  const requiredFields = ['device_code', 'device_name', 'device_status', 'host', 'port']
 
   for (const field of requiredFields) {
     if (!schemaBlock.includes(field)) {

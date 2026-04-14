@@ -34,6 +34,8 @@ export const APIAccessLogResponseSchema = z.object({
   error_message: z.union([z.string().max(1000), z.null()]).optional(),
   /** Id */
   id: z.number(),
+  /** Created At */
+  created_at: z.string().datetime(),
 })
 
 
@@ -241,6 +243,14 @@ export const AuditLogResponseSchema = z.object({
   code: z.string().max(20),
   /** Msg */
   msg: z.union([z.string(), z.null()]).optional(),
+  /** Object Type */
+  object_type: z.union([z.string().max(100), z.null()]).optional(),
+  /** Action */
+  action: z.union([z.string().max(50), z.null()]).optional(),
+  /** Object Id */
+  object_id: z.union([z.string().max(64), z.null()]).optional(),
+  /** Change Summary */
+  change_summary: z.union([z.string().max(255), z.null()]).optional(),
   /** Cost Time */
   cost_time: z.number().min(0),
   /** Opera Time */
@@ -536,8 +546,6 @@ export const DeviceCreateSchema = z.object({
   device_code: z.string().min(1).max(50),
   /** Device Name */
   device_name: z.string().min(1).max(100),
-  /** 设备类型 */
-  device_type: z.lazy(() => DeviceTypeSchema),
   /** Work Line Id */
   work_line_id: z.union([z.number(), z.null()]).optional(),
   /** Description */
@@ -554,20 +562,6 @@ export const DeviceCreateSchema = z.object({
   upstream_device_id: z.union([z.number(), z.null()]).optional(),
   /** Vendor Type */
   vendor_type: z.union([z.string().max(50), z.null()]).optional(),
-  /** Plugin Key */
-  plugin_key: z.union([z.string().max(100), z.null()]).optional(),
-  /** Contract Profile */
-  contract_profile: z.union([z.string().max(100), z.null()]).optional(),
-  /** Contract Version */
-  contract_version: z.union([z.string().max(50), z.null()]).optional(),
-  /** Capabilities */
-  capabilities: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
-        return val
-      }, z.array(z.string())),
   /** Host */
   host: z.union([z.string().max(100), z.null()]).optional(),
   /** Port */
@@ -586,14 +580,6 @@ export const DeviceCreateSchema = z.object({
   last_heartbeat_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Error Code */
   error_code: z.union([z.string().max(50), z.null()]).optional(),
-  /** Supported Commands */
-  supported_commands: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
-        return val
-      }, z.array(z.string())),
   /** Max Concurrent Tasks */
   max_concurrent_tasks: z.number().min(1).max(10).optional().default(1),
   /** Idempotency Ttl */
@@ -621,8 +607,6 @@ export const DeviceResponseSchema = z.object({
   device_code: z.string().min(1).max(50),
   /** Device Name */
   device_name: z.string().min(1).max(100),
-  /** 设备类型 */
-  device_type: z.lazy(() => DeviceTypeSchema),
   /** Work Line Id */
   work_line_id: z.union([z.number(), z.null()]).optional(),
   /** Description */
@@ -639,20 +623,6 @@ export const DeviceResponseSchema = z.object({
   upstream_device_id: z.union([z.number(), z.null()]).optional(),
   /** Vendor Type */
   vendor_type: z.union([z.string().max(50), z.null()]).optional(),
-  /** Plugin Key */
-  plugin_key: z.union([z.string().max(100), z.null()]).optional(),
-  /** Contract Profile */
-  contract_profile: z.union([z.string().max(100), z.null()]).optional(),
-  /** Contract Version */
-  contract_version: z.union([z.string().max(50), z.null()]).optional(),
-  /** Capabilities */
-  capabilities: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
-        return val
-      }, z.array(z.string())).optional(),
   /** Host */
   host: z.union([z.string().max(100), z.null()]).optional(),
   /** Port */
@@ -671,14 +641,6 @@ export const DeviceResponseSchema = z.object({
   last_heartbeat_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Error Code */
   error_code: z.union([z.string().max(50), z.null()]).optional(),
-  /** Supported Commands */
-  supported_commands: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
-        return val
-      }, z.array(z.string())).optional(),
   /** Max Concurrent Tasks */
   max_concurrent_tasks: z.number().min(1).max(10).optional().default(1),
   /** Idempotency Ttl */
@@ -700,15 +662,6 @@ export const DeviceStatusSchema = z.enum(["IDLE", "RUNNING", "ERROR", "OFFLINE"]
 
 
 /**
- * 设备类型枚举 (SRS 3.3.0 节)
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const DeviceTypeSchema = z.enum(["PDA", "INDUSTRIAL_PC", "PRINTER", "COMPUTER", "LCR_TESTER", "ROBOTIC_ARM", "VISION_CAMERA", "CONVEYOR", "LABELER", "XRAY", "SCANNER"])
-
-
-/**
  * 设备更新 Schema - 所有字段可选
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -719,8 +672,6 @@ export const DeviceUpdateSchema = z.object({
   device_code: z.union([z.string().min(1).max(50), z.null()]).optional(),
   /** Device Name */
   device_name: z.union([z.string().min(1).max(100), z.null()]).optional(),
-  /** 设备类型 */
-  device_type: z.union([z.lazy(() => DeviceTypeSchema), z.null()]).optional(),
   /** Work Line Id */
   work_line_id: z.union([z.number(), z.null()]).optional(),
   /** Description */
@@ -737,20 +688,6 @@ export const DeviceUpdateSchema = z.object({
   upstream_device_id: z.union([z.number(), z.null()]).optional(),
   /** Vendor Type */
   vendor_type: z.union([z.string().max(50), z.null()]).optional(),
-  /** Plugin Key */
-  plugin_key: z.union([z.string().max(100), z.null()]).optional(),
-  /** Contract Profile */
-  contract_profile: z.union([z.string().max(100), z.null()]).optional(),
-  /** Contract Version */
-  contract_version: z.union([z.string().max(50), z.null()]).optional(),
-  /** Capabilities */
-  capabilities: z.union([z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
-        return val
-      }, z.array(z.string())), z.null()]).optional(),
   /** Host */
   host: z.union([z.string().max(100), z.null()]).optional(),
   /** Port */
@@ -769,14 +706,6 @@ export const DeviceUpdateSchema = z.object({
   last_heartbeat_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Error Code */
   error_code: z.union([z.string().max(50), z.null()]).optional(),
-  /** Supported Commands */
-  supported_commands: z.union([z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
-        return val
-      }, z.array(z.string())), z.null()]).optional(),
   /** Max Concurrent Tasks */
   max_concurrent_tasks: z.union([z.number().min(1).max(10), z.null()]).optional(),
   /** Idempotency Ttl */
@@ -1778,7 +1707,7 @@ export const UserResponseSchema = z.object({
   /** Created At */
   created_at: z.string().datetime(),
   /** Created By */
-  created_by: z.number(),
+  created_by: z.union([z.number(), z.null()]).optional(),
   /** Updated At */
   updated_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Updated By */
@@ -1816,7 +1745,7 @@ export const UserSimpleResponseSchema = z.object({
   /** Created At */
   created_at: z.string().datetime(),
   /** Created By */
-  created_by: z.number(),
+  created_by: z.union([z.number(), z.null()]).optional(),
   /** Updated At */
   updated_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Updated By */

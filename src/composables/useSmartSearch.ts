@@ -97,7 +97,7 @@ export interface UseSmartSearchReturn {
   /** 应用收藏夹 */
   applyFavorite: (favoriteId: string) => void
   /** 应用快速预设 */
-  applyQuickPreset: (presetId: string) => void
+  applyQuickPreset: (presetId: string, options?: { deduplicate?: boolean }) => void
   /** 根据当前高亮字段和关键字生成条件 */
   buildConditionFromActiveField: () => void
   /** 根据指定字段和当前关键字生成条件 */
@@ -488,7 +488,8 @@ export function useSmartSearch(options: UseSmartSearchOptions): UseSmartSearchRe
     }
 
     const { deduplicate = false } = options || {}
-    const addedCount = appendConditions(preset.conditions, {
+    const presetConditions = preset.resolveConditions?.() ?? preset.conditions
+    const addedCount = appendConditions(presetConditions, {
       source: 'quick',
       deduplicate
     })

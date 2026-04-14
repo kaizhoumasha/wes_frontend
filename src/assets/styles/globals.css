@@ -723,6 +723,185 @@
     color: var(--color-danger) !important;
     background: rgb(220, 38, 38, 0.1) !important;
   }
+
+  /* ========================================
+   * 变更对比表格（审计日志详情）
+   * ======================================== */
+  .changes-diff-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-top: 4px;
+
+    th,
+    td {
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--el-border-color-lighter);
+    }
+
+    th {
+      font-weight: 600;
+      color: var(--el-text-color-secondary);
+      background: var(--el-fill-color-light);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    tbody tr:hover {
+      background: var(--el-fill-color-extra-light);
+    }
+
+    .changes-diff__field {
+      font-family: var(--font-mono);
+      font-weight: 500;
+      color: var(--el-color-primary);
+      white-space: nowrap;
+    }
+
+    .changes-diff__old {
+      color: var(--el-text-color-secondary);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      background: var(--el-fill-color-lighter);
+      border-radius: var(--radius-sm);
+      padding: 4px 8px;
+    }
+
+    .changes-diff__arrow {
+      width: 32px;
+      text-align: center;
+      color: var(--el-color-primary);
+      font-weight: 600;
+    }
+
+    .changes-diff__new {
+      font-family: var(--font-mono);
+      font-weight: 500;
+      font-size: 13px;
+    }
+  }
+
+  /* ========================================
+   * 审计日志概览卡片
+   * ======================================== */
+  .audit-summary-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    padding: 4px 0;
+  }
+
+  .audit-summary-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .audit-summary-card__user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .audit-summary-card__avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--el-color-primary-light-5);
+    color: var(--el-color-primary);
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .audit-summary-card__username {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--el-text-color-primary);
+  }
+
+  .audit-summary-card__time {
+    font-size: 13px;
+    color: var(--el-text-color-secondary);
+    white-space: nowrap;
+  }
+
+  .audit-summary-card__body {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .audit-summary-card__status {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .audit-summary-card__status--success {
+    background: var(--el-color-success-light-9);
+    color: var(--el-color-success);
+  }
+
+  .audit-summary-card__status--danger {
+    background: var(--el-color-danger-light-9);
+    color: var(--el-color-danger);
+  }
+
+  .audit-summary-card__operation {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 15px;
+  }
+
+  .audit-summary-card__action {
+    font-weight: 600;
+    color: var(--el-color-primary);
+  }
+
+  .audit-summary-card__object-type {
+    color: var(--el-text-color-regular);
+  }
+
+  .audit-summary-card__object-id {
+    font-family: var(--font-mono);
+    color: var(--el-text-color-secondary);
+    background: var(--el-fill-color-light);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+  }
+
+  .audit-summary-card__meta {
+    display: flex;
+    gap: 24px;
+    font-size: 13px;
+    color: var(--el-text-color-secondary);
+    flex-wrap: wrap;
+  }
+
+  .audit-summary-card__meta > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .audit-summary-card__trace {
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
 }
 
 /* ==================== 工具类层 ==================== */
