@@ -6,19 +6,16 @@
 
 import { reactive, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { authApi } from '@/api/modules/auth'
+import { authApiMethods } from '@/api/modules/auth'
+import { bootstrapAuthContext } from '@/app/bootstrap-auth-context'
 import { ApiResponseError } from '@/api/client'
-import { getAccessToken, setAccessToken, setTokenExpiresAt, clearTokens } from '@/api/services/token-refresh'
-import { usePermission } from '@/composables/usePermission'
-import { useMenu } from '@/composables/useMenu'
+import { setAccessToken, setTokenExpiresAt, clearTokens } from '@/api/services/token-refresh'
 import { useCurrentUser } from '@/composables/useCurrentUser'
 
 const REMEMBERED_USERNAME_KEY = 'wes_remembered_username'
 
 export function useLoginForm() {
   const router = useRouter()
-  const { loadPermissions, hydratePermissions } = usePermission()
-  const { loadMenus, hydrateMenus } = useMenu()
   const { hydrateCurrentUser, clearCurrentUser } = useCurrentUser()
 
   // 表单引用
@@ -186,65 +183,6 @@ export function useLoginForm() {
     return true
   }
 
-  /**
-   * 加载用户上下文（权限和菜单）
-   *
-   * 采用三层回退策略，最大限度保证登录后能进入系统：
-   * 1. /auth/my 聚合接口
-   * 2. /auth/permissions + /auth/menus 分步加载
-   * 3. 仅权限加载（菜单非关键）
-   */
-  const loadUserContext = async (): Promise<void> => {
-    // 保存当前 token，防止全局 handleAuthError 在 /auth/my 失败时清除 token
-    const savedToken = getAccessToken()
-
-    // 第一层：使用聚合接口一次性加载用户上下文
-    let initializedFromMy = false
-    try {
-      const myContext = await authApi.my()
-
-      hydrateCurrentUser(myContext.user)
-
-      if (Array.isArray(myContext.permissions) && myContext.permissions.length > 0) {
-        hydratePermissions(myContext.permissions)
-      } else {
-        await loadPermissions(true)
-      }
-
-      if (Array.isArray(myContext.menus) && myContext.menus.length > 0) {
-        hydrateMenus(myContext.menus)
-      } else {
-        await loadMenus(true)
-      }
-
-      initializedFromMy = true
-    } catch (contextError) {
-      console.warn('加载 /auth/my 失败，回退到分步加载:', contextError)
-    }
-
-    // 第二层：回退到分步加载
-    if (!initializedFromMy) {
-      // 全局 handleAuthError 可能已清除 token，恢复它以保证后续请求可用
-      if (savedToken && !getAccessToken()) {
-        setAccessToken(savedToken)
-      }
-
-      try {
-        await loadPermissions(true)
-      } catch (permError) {
-        console.error('分步加载权限失败:', permError)
-        throw permError
-      }
-
-      // 菜单加载失败不阻塞登录
-      try {
-        await loadMenus(true)
-      } catch (menuError) {
-        console.warn('菜单加载失败（非阻塞）:', menuError)
-      }
-    }
-  }
-
   // 清除认证信息使用统一的 clearTokens()
 
   /**
@@ -260,10 +198,10 @@ export function useLoginForm() {
       loading.value = true
 
       // 登录请求
-      const result = await authApi.login({
+      const result = await authApiMethods.login({
         username: form.username,
         password: form.password
-      })
+      }).send()
 
       hydrateCurrentUser(result.user)
 
@@ -277,7 +215,11 @@ export function useLoginForm() {
 
       // 加载用户上下文
       try {
-        await loadUserContext()
+        await bootstrapAuthContext({
+          forceRefresh: true,
+          preserveAccessTokenOnFallback: true,
+          loadMenusNonBlocking: true
+        })
       } catch (contextError) {
         console.error('加载用户上下文失败:', contextError)
         clearTokens()

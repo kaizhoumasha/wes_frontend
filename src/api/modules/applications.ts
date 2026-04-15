@@ -8,7 +8,7 @@
  *
  * 资源: /api/v1/api_auth/applications
  */
-import { contractClient } from '@/api/contract/client'
+import { contractMethods } from '@/api/contract/client'
 import type {
   ContractPathParams,
   ContractQueryParams,
@@ -18,14 +18,14 @@ import type {
 } from '@/api/contract/types'
 import type { components, paths } from '@/api/generated/openapi-types'
 import {
-  type SoftDeleteCrudApi,
-  createSoftDeleteCrudApi,
+  type SoftDeleteCrudApiMethods,
+  createSoftDeleteCrudRequestAdapterMethods,
   type CrudCreateInput,
   type CrudItem,
   type CrudResourceCollectionPath,
   type CrudUpdateInput,
   type SoftDeleteCrudResourceCollectionPath,
-} from '@/api/base/crud-api'
+} from '@/api/base/crud-request-adapter'
 
 const APPLICATIONS_COLLECTION_PATH = '/api/v1/api_auth/applications' as const
 
@@ -57,7 +57,7 @@ export type PermissionsInput = ContractRequestBody<'/api/v1/api_auth/application
 export type ResetSecretResult = ContractResponseData<'/api/v1/api_auth/applications/{id}/reset-secret', 'post'>
 export type ResetSecretPathParams = ContractPathParams<'/api/v1/api_auth/applications/{id}/reset-secret', 'post'>
 
-const baseApplicationsApi = createSoftDeleteCrudApi({
+const baseApplicationsApiMethods = createSoftDeleteCrudRequestAdapterMethods({
   collection: APPLICATIONS_COLLECTION_PATH as unknown as SoftDeleteCrudResourceCollectionPath,
   item: `${APPLICATIONS_COLLECTION_PATH}/{id}` as const,
   query: `${APPLICATIONS_COLLECTION_PATH}/query` as const,
@@ -65,26 +65,28 @@ const baseApplicationsApi = createSoftDeleteCrudApi({
   trash: `${APPLICATIONS_COLLECTION_PATH}/trash` as const,
   trashRestore: `${APPLICATIONS_COLLECTION_PATH}/trash/restore` as const,
   trashPermanentDelete: `${APPLICATIONS_COLLECTION_PATH}/trash/permanent` as const,
-}) as unknown as SoftDeleteCrudApi<ApplicationsItem, CreateApplicationsInput, UpdateApplicationsInput>
+}) as unknown as SoftDeleteCrudApiMethods<ApplicationsItem, CreateApplicationsInput, UpdateApplicationsInput>
 
-export const applicationsApi = {
-  ...baseApplicationsApi,
+export const applicationsApiMethods = {
+  ...baseApplicationsApiMethods,
 
   /**
    * [api-auth:api_application:list_permissions] 获取系统支持的 API 权限列表
    * @description 返回可供分配给 API 应用的权限列表。
    * @endpoint GET /api/v1/api_auth/applications/available-permissions
+   * @returns alova method instance
    */
-  async availablePermissions(query?: ContractQueryParams<'/api/v1/api_auth/applications/available-permissions', 'get'>, config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api_auth/applications/available-permissions', 'get'>> {
-    return await contractClient.get('/api/v1/api_auth/applications/available-permissions', { query, config })
+  availablePermissions(query?: ContractQueryParams<'/api/v1/api_auth/applications/available-permissions', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/api_auth/applications/available-permissions', { query, config })
   },
 
   /**
    * [api-auth:api_application:revoke] 撤销 API 应用
    * @endpoint POST /api/v1/api_auth/applications/{id}/revoke
+   * @returns alova method instance
    */
-  async revoke(params: ContractPathParams<'/api/v1/api_auth/applications/{id}/revoke', 'post'>, config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api_auth/applications/{id}/revoke', 'post'>> {
-    return await contractClient.post('/api/v1/api_auth/applications/{id}/revoke', { params, config })
+  revoke(params: ContractPathParams<'/api/v1/api_auth/applications/{id}/revoke', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/api_auth/applications/{id}/revoke', { params, config })
   },
 
   /**
@@ -103,9 +105,10 @@ Args:
     data: 包含新的有效期时长和修改原因
     db: 数据库会话
    * @endpoint POST /api/v1/api_auth/applications/{id}/reset-validity
+   * @returns alova method instance
    */
-  async resetValidity(params: ContractPathParams<'/api/v1/api_auth/applications/{id}/reset-validity', 'post'>, body: ContractRequestBody<'/api/v1/api_auth/applications/{id}/reset-validity', 'post'>, config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api_auth/applications/{id}/reset-validity', 'post'>> {
-    return await contractClient.post('/api/v1/api_auth/applications/{id}/reset-validity', { params, body, config })
+  resetValidity(params: ContractPathParams<'/api/v1/api_auth/applications/{id}/reset-validity', 'post'>, body: ContractRequestBody<'/api/v1/api_auth/applications/{id}/reset-validity', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/api_auth/applications/{id}/reset-validity', { params, body, config })
   },
 
   /**
@@ -114,18 +117,20 @@ Args:
 
 请求格式：{"data": {...}}
    * @endpoint POST /api/v1/api_auth/applications/try/invoke
+   * @returns alova method instance
    */
-  async tryInvoke(body: ContractRequestBody<'/api/v1/api_auth/applications/try/invoke', 'post'>, config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api_auth/applications/try/invoke', 'post'>> {
-    return await contractClient.post('/api/v1/api_auth/applications/try/invoke', { body, config })
+  tryInvoke(body: ContractRequestBody<'/api/v1/api_auth/applications/try/invoke', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/api_auth/applications/try/invoke', { body, config })
   },
 
   /**
    * [api-auth:api_application:assign_permission] 分配权限
    * @description 为应用分配权限
    * @endpoint POST /api/v1/api_auth/applications/{id}/permissions
+   * @returns alova method instance
    */
-  async permissions(params: ContractPathParams<'/api/v1/api_auth/applications/{id}/permissions', 'post'>, body: ContractRequestBody<'/api/v1/api_auth/applications/{id}/permissions', 'post'>, config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api_auth/applications/{id}/permissions', 'post'>> {
-    return await contractClient.post('/api/v1/api_auth/applications/{id}/permissions', { params, body, config })
+  permissions(params: ContractPathParams<'/api/v1/api_auth/applications/{id}/permissions', 'post'>, body: ContractRequestBody<'/api/v1/api_auth/applications/{id}/permissions', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/api_auth/applications/{id}/permissions', { params, body, config })
   },
 
   /**
@@ -134,9 +139,10 @@ Args:
 
 ⚠️ 注意: 旧密钥将立即失效，新密钥仅返回一次。
    * @endpoint POST /api/v1/api_auth/applications/{id}/reset-secret
+   * @returns alova method instance
    */
-  async resetSecret(params: ContractPathParams<'/api/v1/api_auth/applications/{id}/reset-secret', 'post'>, config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api_auth/applications/{id}/reset-secret', 'post'>> {
-    return await contractClient.post('/api/v1/api_auth/applications/{id}/reset-secret', { params, config })
+  resetSecret(params: ContractPathParams<'/api/v1/api_auth/applications/{id}/reset-secret', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/api_auth/applications/{id}/reset-secret', { params, config })
   }
 }
 // ==================== AUTO GENERATED END ====================

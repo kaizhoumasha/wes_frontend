@@ -4,7 +4,7 @@ import type {
   WorkLinesItem as Workline
 } from '@/api/modules/workLines'
 import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
-import { workLinesApi as worklineApi } from '@/api/modules/workLines'
+import { workLinesApiMethods } from '@/api/modules/workLines'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
@@ -12,7 +12,7 @@ import { workLinePageFieldConfig } from './fieldConfig'
 
 type WorklinePageConfig = CrudPageConfig<Workline, CreateWorklineInput, UpdateWorklineInput>
 
-const WORKLINE_PAGE_RESOURCE: WorklinePageConfig['resource'] = {
+const WORKLINE_PAGE_RESOURCE = {
   key: 'worklines',
   title: {
     text: '作业线管理',
@@ -24,10 +24,10 @@ const WORKLINE_PAGE_RESOURCE: WorklinePageConfig['resource'] = {
     subtitle: '查看并恢复已删除作业线',
     icon: 'ep:delete'
   },
-  api: worklineApi,
+  methods: workLinesApiMethods,
   permissions: BIZ_PERMISSIONS.workline,
   optimisticUpdate: true,
-  defaultSort: [{ field: 'sort_order', order: 'asc' }]
+  defaultSort: [{ field: 'sort_order', order: 'asc' as const }]
 }
 
 const WORKLINE_PAGE_TABLE: Partial<WorklinePageConfig['table']> = {

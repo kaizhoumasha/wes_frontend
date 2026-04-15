@@ -1,6 +1,6 @@
 import type { Ref, InjectionKey } from 'vue'
 import type { ZodType } from 'zod'
-import type { CrudApi, FilterGroup, SortField } from '@/api/base/crud-api'
+import type { CrudRequestAdapter, FilterGroup, SortField } from '@/api/base/crud-request-adapter'
 import type {
   ColumnBreakpoint,
   ColumnConfig,
@@ -201,7 +201,7 @@ export interface CrudPageConfig<
     key: string
     title: CrudPageTitleConfig
     trashTitle?: CrudPageTitleConfig
-    api: CrudApi<TItem, TCreate, TUpdate>
+    requestAdapter: CrudRequestAdapter<TItem, TCreate, TUpdate>
     permissions?: CrudPagePermissionConfig
     pageSize?: number
     optimisticUpdate?: boolean

@@ -7,7 +7,7 @@
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
 import { UserCreateSchema } from '@/types/zod-extensions'
-import { usersApi as userApi, type CreateUsersInput as CreateUserInput } from '@/api/modules/users'
+import { usersApiMethods, type CreateUsersInput as CreateUserInput } from '@/api/modules/users'
 import { ElMessage } from 'element-plus'
 
 // 使用泛型类型，让 vee-validate 自动推断类型
@@ -31,7 +31,7 @@ const [password, passwordAttrs] = defineField('password')
 // values 类型自动推断为 CreateUserInput
 const onSubmit = handleSubmit(async values => {
   try {
-    await userApi.create(values)
+    await usersApiMethods.create(values).send()
     ElMessage.success('用户创建成功')
   } catch {
     ElMessage.error('用户创建失败')

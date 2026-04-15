@@ -8,7 +8,7 @@
  *
  * 资源: /api/v1/device/devices
  */
-import { contractClient } from '@/api/contract/client'
+import { contractMethods } from '@/api/contract/client'
 import type {
   ContractPathParams,
   ContractQueryParams,
@@ -18,14 +18,14 @@ import type {
 } from '@/api/contract/types'
 import type { components, paths } from '@/api/generated/openapi-types'
 import {
-  type SoftDeleteCrudApi,
-  createSoftDeleteCrudApi,
+  type SoftDeleteCrudApiMethods,
+  createSoftDeleteCrudRequestAdapterMethods,
   type CrudCreateInput,
   type CrudItem,
   type CrudResourceCollectionPath,
   type CrudUpdateInput,
   type SoftDeleteCrudResourceCollectionPath,
-} from '@/api/base/crud-api'
+} from '@/api/base/crud-request-adapter'
 
 const DEVICES_COLLECTION_PATH = '/api/v1/device/devices' as const
 
@@ -37,7 +37,7 @@ export type DevicesItem = EnsureEntityId<CrudItem<typeof DEVICES_COLLECTION_PATH
 export type CreateDevicesInput = CrudCreateInput<typeof DEVICES_COLLECTION_PATH>
 export type UpdateDevicesInput = CrudUpdateInput<typeof DEVICES_COLLECTION_PATH>
 
-const baseDevicesApi = createSoftDeleteCrudApi({
+const baseDevicesApiMethods = createSoftDeleteCrudRequestAdapterMethods({
   collection: DEVICES_COLLECTION_PATH as unknown as SoftDeleteCrudResourceCollectionPath,
   item: `${DEVICES_COLLECTION_PATH}/{id}` as const,
   query: `${DEVICES_COLLECTION_PATH}/query` as const,
@@ -45,11 +45,10 @@ const baseDevicesApi = createSoftDeleteCrudApi({
   trash: `${DEVICES_COLLECTION_PATH}/trash` as const,
   trashRestore: `${DEVICES_COLLECTION_PATH}/trash/restore` as const,
   trashPermanentDelete: `${DEVICES_COLLECTION_PATH}/trash/permanent` as const,
-}) as unknown as SoftDeleteCrudApi<DevicesItem, CreateDevicesInput, UpdateDevicesInput>
+}) as unknown as SoftDeleteCrudApiMethods<DevicesItem, CreateDevicesInput, UpdateDevicesInput>
 
-export const devicesApi = {
-  ...baseDevicesApi,
-
+export const devicesApiMethods = {
+  ...baseDevicesApiMethods,
 }
 // ==================== AUTO GENERATED END ====================
 

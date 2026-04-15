@@ -3,7 +3,7 @@ import type {
   UpdateUsersInput as UpdateUserInput
 } from '@/api/modules/users'
 import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
-import { usersApi as userApi, type UsersItem as User } from '@/api/modules/users'
+import { type UsersItem as User, usersApiMethods } from '@/api/modules/users'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
@@ -12,7 +12,7 @@ import { userPageFieldConfig } from './fieldConfig'
 
 type UserPageConfig = CrudPageConfig<User, CreateUserInput, UpdateUserInput>
 
-const USER_PAGE_RESOURCE: UserPageConfig['resource'] = {
+const USER_PAGE_RESOURCE = {
   key: 'users',
   title: {
     text: '用户管理',
@@ -24,10 +24,10 @@ const USER_PAGE_RESOURCE: UserPageConfig['resource'] = {
     subtitle: '查看并恢复已删除用户',
     icon: 'ep:delete'
   },
-  api: userApi,
+  methods: usersApiMethods,
   permissions: ADMIN_PERMISSIONS.user,
   optimisticUpdate: true,
-  defaultSort: [{ field: 'updated_at', order: 'desc' }]
+  defaultSort: [{ field: 'updated_at', order: 'desc' as const }]
 }
 
 const USER_PAGE_TABLE: Partial<UserPageConfig['table']> = {

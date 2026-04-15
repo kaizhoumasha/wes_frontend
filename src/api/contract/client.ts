@@ -1,58 +1,90 @@
 import { apiClient } from '@/api/client'
 import type {
   ContractPathWithMethod,
-  ContractPathParams,
-  ContractRequestConfig,
   ContractRequestOptions,
   ContractResponseData,
 } from './types'
-import type { RequestBody, RequestParams } from '@/api/types/request'
+import {
+  createContractMethodContext,
+  type ContractRequestMethod
+} from './helpers'
 
-/**
- * 当前契约客户端支持的 HTTP 方法。
- */
-type RequestMethod = 'get' | 'post' | 'put' | 'patch' | 'delete'
-
-/**
- * 将 OpenAPI 模板路径与 path params 合成为实际请求 URL。
- */
-function buildUrlWithPathParams<
-  TMethod extends RequestMethod,
+function dispatchContractMethod<
+  TMethod extends ContractRequestMethod,
   TPath extends ContractPathWithMethod<TMethod>,
 >(
   path: TPath,
-  pathParams?: ContractPathParams<TPath, TMethod>
-): string {
-  if (!pathParams) {
-    return path
+  method: TMethod,
+  options: ContractRequestOptions<TPath, TMethod> = {} as ContractRequestOptions<TPath, TMethod>
+) {
+  const { url, config, body } = createContractMethodContext(path, options)
+
+  switch (method) {
+    case 'get':
+      return apiClient.Get<ContractResponseData<TPath, TMethod>>(url, config)
+    case 'post':
+      return apiClient.Post<ContractResponseData<TPath, TMethod>>(url, body, config)
+    case 'put':
+      return apiClient.Put<ContractResponseData<TPath, TMethod>>(url, body, config)
+    case 'patch':
+      return apiClient.Patch<ContractResponseData<TPath, TMethod>>(url, body, config)
+    case 'delete':
+      return apiClient.Delete<ContractResponseData<TPath, TMethod>>(url, body, config)
+    default:
+      throw new Error(`Unsupported contract method: ${String(method)}`)
   }
-
-  return path.replace(/\{([^}]+)\}/g, (_, rawKey: string) => {
-    const key = rawKey as keyof typeof pathParams
-    const value = pathParams[key]
-
-    if (value === undefined || value === null) {
-      throw new Error(`Missing path parameter: ${String(key)}`)
-    }
-
-    return encodeURIComponent(String(value))
-  })
 }
 
-/**
- * 将契约层 query 参数合并到底层请求配置中。
- */
-function buildConfig<TQuery>(
-  query: TQuery | undefined,
-  config: ContractRequestConfig | undefined
-): ContractRequestConfig | undefined {
-  if (!query) {
-    return config
-  }
 
-  return {
-    ...config,
-    params: query as RequestParams
+export type ContractMethodInstance<
+  TMethod extends ContractRequestMethod,
+  TPath extends ContractPathWithMethod<TMethod>
+> = ReturnType<typeof dispatchContractMethod<TMethod, TPath>>
+
+/**
+ * 契约层 method 工厂。
+ *
+ * 对齐 alova 最佳实践：
+ * - 统一管理 method 创建逻辑
+ * - 为 cache / CSIL / 状态操作保留稳定 method 边界
+ * - 与现有 promise 风格 contractClient 并存，渐进演进
+ */
+export const contractMethods = {
+  request: dispatchContractMethod,
+
+  get<TPath extends ContractPathWithMethod<'get'>>(
+    path: TPath,
+    options?: ContractRequestOptions<TPath, 'get'>
+  ) {
+    return dispatchContractMethod(path, 'get', options)
+  },
+
+  post<TPath extends ContractPathWithMethod<'post'>>(
+    path: TPath,
+    options?: ContractRequestOptions<TPath, 'post'>
+  ) {
+    return dispatchContractMethod(path, 'post', options)
+  },
+
+  put<TPath extends ContractPathWithMethod<'put'>>(
+    path: TPath,
+    options?: ContractRequestOptions<TPath, 'put'>
+  ) {
+    return dispatchContractMethod(path, 'put', options)
+  },
+
+  patch<TPath extends ContractPathWithMethod<'patch'>>(
+    path: TPath,
+    options?: ContractRequestOptions<TPath, 'patch'>
+  ) {
+    return dispatchContractMethod(path, 'patch', options)
+  },
+
+  delete<TPath extends ContractPathWithMethod<'delete'>>(
+    path: TPath,
+    options?: ContractRequestOptions<TPath, 'delete'>
+  ) {
+    return dispatchContractMethod(path, 'delete', options)
   }
 }
 
@@ -64,33 +96,18 @@ function buildConfig<TQuery>(
  * - 展开路径参数
  * - 合并 query/config
  * - 调用底层 alova 客户端
+ *
+ * 保持现有 Promise 风格接口，兼容现有业务层调用。
  */
 async function sendRequest<
-  TMethod extends RequestMethod,
+  TMethod extends ContractRequestMethod,
   TPath extends ContractPathWithMethod<TMethod>,
 >(
   path: TPath,
   method: TMethod,
   options: ContractRequestOptions<TPath, TMethod> = {} as ContractRequestOptions<TPath, TMethod>
 ): Promise<ContractResponseData<TPath, TMethod>> {
-  const url = buildUrlWithPathParams(path, options.params as ContractPathParams<TPath, TMethod> | undefined)
-  const config = buildConfig(options.query, options.config)
-  const body = options.body as RequestBody | undefined
-
-  switch (method) {
-    case 'get':
-      return await apiClient.Get<ContractResponseData<TPath, TMethod>>(url, config)
-    case 'post':
-      return await apiClient.Post<ContractResponseData<TPath, TMethod>>(url, body, config)
-    case 'put':
-      return await apiClient.Put<ContractResponseData<TPath, TMethod>>(url, body, config)
-    case 'patch':
-      return await apiClient.Patch<ContractResponseData<TPath, TMethod>>(url, body, config)
-    case 'delete':
-      return await apiClient.Delete<ContractResponseData<TPath, TMethod>>(url, body, config)
-    default:
-      throw new Error(`Unsupported contract method: ${String(method)}`)
-  }
+  return await contractMethods.request(path, method, options)
 }
 
 /**

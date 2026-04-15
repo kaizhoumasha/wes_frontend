@@ -8,7 +8,7 @@
  *
  * 资源: /api/v1/admin/performance
  */
-import { contractClient } from '@/api/contract/client'
+import { contractMethods } from '@/api/contract/client'
 import type {
   ContractPathParams,
   ContractQueryParams,
@@ -26,7 +26,7 @@ export type LoadTestResetResult = ContractResponseData<'/api/v1/admin/performanc
 
 export type ConfigResult = ContractResponseData<'/api/v1/admin/performance/config', 'get'>
 
-export const adminApi = {
+export const adminApiMethods = {
   /**
    * 获取系统性能指标
    * @description 获取系统性能指标
@@ -37,9 +37,10 @@ export const adminApi = {
 - redis: Redis 连接状态
 - cache: 缓存统计信息
    * @endpoint GET /api/v1/admin/performance/metrics
+   * @returns alova method instance
    */
-  async metrics(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/admin/performance/metrics', 'get'>> {
-    return await contractClient.get('/api/v1/admin/performance/metrics', { config })
+  metrics(config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/admin/performance/metrics', { config })
   },
 
   /**
@@ -48,9 +49,10 @@ export const adminApi = {
 
 返回各组件的健康状态
    * @endpoint GET /api/v1/admin/performance/health
+   * @returns alova method instance
    */
-  async health(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/admin/performance/health', 'get'>> {
-    return await contractClient.get('/api/v1/admin/performance/health', { config })
+  health(config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/admin/performance/health', { config })
   },
 
   /**
@@ -59,9 +61,10 @@ export const adminApi = {
 
 清空所有缓存，准备开始新的性能测试
    * @endpoint POST /api/v1/admin/performance/load-test/reset
+   * @returns alova method instance
    */
-  async loadTestReset(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/admin/performance/load-test/reset', 'post'>> {
-    return await contractClient.post('/api/v1/admin/performance/load-test/reset', { config })
+  loadTestReset(config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/admin/performance/load-test/reset', { config })
   },
 
   /**
@@ -70,9 +73,10 @@ export const adminApi = {
 
 用于性能测试时了解系统配置
    * @endpoint GET /api/v1/admin/performance/config
+   * @returns alova method instance
    */
-  async config(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/admin/performance/config', 'get'>> {
-    return await contractClient.get('/api/v1/admin/performance/config', { config })
+  config(config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/admin/performance/config', { config })
   }
 }
 // ==================== AUTO GENERATED END ====================

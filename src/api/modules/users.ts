@@ -8,7 +8,7 @@
  *
  * 资源: /api/v1/admin/users
  */
-import { contractClient } from '@/api/contract/client'
+import { contractMethods } from '@/api/contract/client'
 import type {
   ContractPathParams,
   ContractQueryParams,
@@ -18,14 +18,14 @@ import type {
 } from '@/api/contract/types'
 import type { components, paths } from '@/api/generated/openapi-types'
 import {
-  type SoftDeleteCrudApi,
-  createSoftDeleteCrudApi,
+  type SoftDeleteCrudApiMethods,
+  createSoftDeleteCrudRequestAdapterMethods,
   type CrudCreateInput,
   type CrudItem,
   type CrudResourceCollectionPath,
   type CrudUpdateInput,
   type SoftDeleteCrudResourceCollectionPath,
-} from '@/api/base/crud-api'
+} from '@/api/base/crud-request-adapter'
 
 const USERS_COLLECTION_PATH = '/api/v1/admin/users' as const
 const USERS_BULK_DELETE_PATH = '/api/v1/admin/users/bulk' as const
@@ -48,7 +48,7 @@ export type AssignRolesResult = ContractResponseData<'/api/v1/admin/users/{id}/a
 export type AssignRolesPathParams = ContractPathParams<'/api/v1/admin/users/{id}/assign-roles', 'put'>
 export type AssignRolesInput = ContractRequestBody<'/api/v1/admin/users/{id}/assign-roles', 'put'>
 
-const baseUsersApi = createSoftDeleteCrudApi({
+const baseUsersApiMethods = createSoftDeleteCrudRequestAdapterMethods({
   collection: USERS_COLLECTION_PATH as unknown as SoftDeleteCrudResourceCollectionPath,
   item: `${USERS_COLLECTION_PATH}/{id}` as const,
   query: `${USERS_COLLECTION_PATH}/query` as const,
@@ -57,10 +57,10 @@ const baseUsersApi = createSoftDeleteCrudApi({
   trashRestore: `${USERS_COLLECTION_PATH}/trash/restore` as const,
   trashPermanentDelete: `${USERS_COLLECTION_PATH}/trash/permanent` as const,
   bulkDelete: USERS_BULK_DELETE_PATH,
-}) as unknown as SoftDeleteCrudApi<UsersItem, CreateUsersInput, UpdateUsersInput>
+}) as unknown as SoftDeleteCrudApiMethods<UsersItem, CreateUsersInput, UpdateUsersInput>
 
-export const usersApi = {
-  ...baseUsersApi,
+export const usersApiMethods = {
+  ...baseUsersApiMethods,
 
   /**
    * [admin:user:stats] 获取缓存统计
@@ -71,9 +71,10 @@ export const usersApi = {
 - cache_status: 缓存服务状态
 - cache_keys_count: 缓存键数量（如果 Redis 可用）
    * @endpoint GET /api/v1/admin/users/stats/cache
+   * @returns alova method instance
    */
-  async statsCache(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/admin/users/stats/cache', 'get'>> {
-    return await contractClient.get('/api/v1/admin/users/stats/cache', { config })
+  statsCache(config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/admin/users/stats/cache', { config })
   },
 
   /**
@@ -97,9 +98,10 @@ Args:
 Returns:
     更新后的用户信息
    * @endpoint PUT /api/v1/admin/users/{id}/reset-password
+   * @returns alova method instance
    */
-  async resetPassword(params: ContractPathParams<'/api/v1/admin/users/{id}/reset-password', 'put'>, body: ContractRequestBody<'/api/v1/admin/users/{id}/reset-password', 'put'>, config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/admin/users/{id}/reset-password', 'put'>> {
-    return await contractClient.put('/api/v1/admin/users/{id}/reset-password', { params, body, config })
+  resetPassword(params: ContractPathParams<'/api/v1/admin/users/{id}/reset-password', 'put'>, body: ContractRequestBody<'/api/v1/admin/users/{id}/reset-password', 'put'>, config?: ContractRequestConfig) {
+    return contractMethods.put('/api/v1/admin/users/{id}/reset-password', { params, body, config })
   },
 
   /**
@@ -121,9 +123,10 @@ Args:
 Returns:
     更新后的用户信息（包含角色列表）
    * @endpoint PUT /api/v1/admin/users/{id}/assign-roles
+   * @returns alova method instance
    */
-  async assignRoles(params: ContractPathParams<'/api/v1/admin/users/{id}/assign-roles', 'put'>, body: ContractRequestBody<'/api/v1/admin/users/{id}/assign-roles', 'put'>, config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/admin/users/{id}/assign-roles', 'put'>> {
-    return await contractClient.put('/api/v1/admin/users/{id}/assign-roles', { params, body, config })
+  assignRoles(params: ContractPathParams<'/api/v1/admin/users/{id}/assign-roles', 'put'>, body: ContractRequestBody<'/api/v1/admin/users/{id}/assign-roles', 'put'>, config?: ContractRequestConfig) {
+    return contractMethods.put('/api/v1/admin/users/{id}/assign-roles', { params, body, config })
   }
 }
 // ==================== AUTO GENERATED END ====================

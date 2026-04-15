@@ -8,7 +8,7 @@
  *
  * 资源: /api/v1/workline/work_lines
  */
-import { contractClient } from '@/api/contract/client'
+import { contractMethods } from '@/api/contract/client'
 import type {
   ContractPathParams,
   ContractQueryParams,
@@ -18,14 +18,14 @@ import type {
 } from '@/api/contract/types'
 import type { components, paths } from '@/api/generated/openapi-types'
 import {
-  type SoftDeleteCrudApi,
-  createSoftDeleteCrudApi,
+  type SoftDeleteCrudApiMethods,
+  createSoftDeleteCrudRequestAdapterMethods,
   type CrudCreateInput,
   type CrudItem,
   type CrudResourceCollectionPath,
   type CrudUpdateInput,
   type SoftDeleteCrudResourceCollectionPath,
-} from '@/api/base/crud-api'
+} from '@/api/base/crud-request-adapter'
 
 const WORK_LINES_COLLECTION_PATH = '/api/v1/workline/work_lines' as const
 
@@ -37,7 +37,7 @@ export type WorkLinesItem = EnsureEntityId<CrudItem<typeof WORK_LINES_COLLECTION
 export type CreateWorkLinesInput = CrudCreateInput<typeof WORK_LINES_COLLECTION_PATH>
 export type UpdateWorkLinesInput = CrudUpdateInput<typeof WORK_LINES_COLLECTION_PATH>
 
-const baseWorkLinesApi = createSoftDeleteCrudApi({
+const baseWorkLinesApiMethods = createSoftDeleteCrudRequestAdapterMethods({
   collection: WORK_LINES_COLLECTION_PATH as unknown as SoftDeleteCrudResourceCollectionPath,
   item: `${WORK_LINES_COLLECTION_PATH}/{id}` as const,
   query: `${WORK_LINES_COLLECTION_PATH}/query` as const,
@@ -45,11 +45,10 @@ const baseWorkLinesApi = createSoftDeleteCrudApi({
   trash: `${WORK_LINES_COLLECTION_PATH}/trash` as const,
   trashRestore: `${WORK_LINES_COLLECTION_PATH}/trash/restore` as const,
   trashPermanentDelete: `${WORK_LINES_COLLECTION_PATH}/trash/permanent` as const,
-}) as unknown as SoftDeleteCrudApi<WorkLinesItem, CreateWorkLinesInput, UpdateWorkLinesInput>
+}) as unknown as SoftDeleteCrudApiMethods<WorkLinesItem, CreateWorkLinesInput, UpdateWorkLinesInput>
 
-export const workLinesApi = {
-  ...baseWorkLinesApi,
-
+export const workLinesApiMethods = {
+  ...baseWorkLinesApiMethods,
 }
 // ==================== AUTO GENERATED END ====================
 

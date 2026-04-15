@@ -1,10 +1,5 @@
-import type {
-  GetByIdQuery as APIAccessLogDetailQuery,
-  QueryInput as APIAccessLogQueryInput
-} from '@/api/modules/apiAuth'
-import { apiAuthApi } from '@/api/modules/apiAuth'
+import { apiAuthApiMethods } from '@/api/modules/apiAuth'
 import { API_AUTH_PERMISSIONS } from '@/api/generated/permissions'
-import { createReadonlyCrudApi } from '@/api/base/createReadonlyCrudApi'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
@@ -24,27 +19,21 @@ type ReadonlyInput = Record<string, never>
 
 type APIAccessLogPageConfig = CrudPageConfig<APIAccessLog, ReadonlyInput, ReadonlyInput>
 
-const apiAccessLogApi = createReadonlyCrudApi<
-  APIAccessLog,
-  APIAccessLogDetailQuery,
-  APIAccessLogQueryInput
->(apiAuthApi)
-
-const API_ACCESS_LOG_PAGE_RESOURCE: APIAccessLogPageConfig['resource'] = {
+const API_ACCESS_LOG_PAGE_RESOURCE = {
   key: 'api-access-logs',
   title: {
     text: 'API 访问日志',
     subtitle: 'API 异常排查与性能分析',
     icon: 'ep:histogram'
   },
-  api: apiAccessLogApi,
+  methods: apiAuthApiMethods,
   permissions: {
     create: API_AUTH_PERMISSIONS.apiaccesslog.list,
     update: API_AUTH_PERMISSIONS.apiaccesslog.detail,
     delete: API_AUTH_PERMISSIONS.apiaccesslog.detail
   },
   pageSize: 20,
-  defaultSort: [{ field: 'created_at', order: 'desc' }]
+  defaultSort: [{ field: 'created_at', order: 'desc' as const }]
 }
 
 const API_ACCESS_LOG_PAGE_TABLE: Partial<APIAccessLogPageConfig['table']> = {

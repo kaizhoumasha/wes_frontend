@@ -12,7 +12,7 @@ import {
   setAccessToken,
   refreshAccessToken
 } from './services/token-refresh'
-import { show, initializeErrorNotification } from './services/error-notification'
+import { show } from './services/error-notification'
 import { classifyErrorByCode } from './utils/error-classifier'
 import { isSuccessCode, ClientErrorCode } from './constants/response-codes'
 import type { ApiResponse } from './types/response'
@@ -20,15 +20,6 @@ import { handleAuthError } from './services/auth-error-handler'
 import { API_CACHE_DURATION } from '@/constants/cache'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
-// ==================== 初始化错误通知服务 ====================
-
-initializeErrorNotification({
-  enableDialog: true,
-  enableNotification: true,
-  enableMessage: true,
-  enableLogging: true
-})
 
 // ==================== API响应错误 ====================
 
