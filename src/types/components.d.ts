@@ -27,6 +27,7 @@ declare module 'vue' {
     CrudDetailPanel: typeof import('./../components/common/crud-page/detail/CrudDetailPanel.vue')['default']
     CrudDetailSection: typeof import('./../components/common/crud-page/detail/CrudDetailSection.vue')['default']
     CrudFormDialog: typeof import('./../components/common/CrudFormDialog.vue')['default']
+    CrudFormFieldRenderer: typeof import('./../components/common/crud-form/CrudFormFieldRenderer.vue')['default']
     CrudPageContainer: typeof import('./../components/common/CrudPageContainer.vue')['default']
     CrudQuickFilterLink: typeof import('./../components/common/crud-page/CrudQuickFilterLink.vue')['default']
     CrudTable: typeof import('./../components/common/CrudTable.vue')['default']

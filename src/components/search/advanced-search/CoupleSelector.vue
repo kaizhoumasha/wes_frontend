@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import type { FilterCouple } from '@/api/base/crud-api'
+import type { FilterCouple } from '@/api/base/crud-request-adapter'
 
 interface Props {
   modelValue: FilterCouple

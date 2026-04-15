@@ -11,7 +11,7 @@
  * @module types/search
  */
 
-import type { FilterCondition, FilterCouple, FilterGroup } from '@/api/base/crud-api'
+import type { FilterCondition, FilterCouple, FilterGroup } from '@/api/base/crud-request-adapter'
 
 // ==================== 操作符定义 ====================
 

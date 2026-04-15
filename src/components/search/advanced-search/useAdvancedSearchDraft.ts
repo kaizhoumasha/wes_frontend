@@ -1,6 +1,6 @@
 import { ref, watch, type Ref } from 'vue'
 
-import type { FilterGroup } from '@/api/base/crud-api'
+import type { FilterGroup } from '@/api/base/crud-request-adapter'
 import type { SearchFieldDef, UIFilterGroup } from '@/types/search'
 import {
   createEmptyCondition,
