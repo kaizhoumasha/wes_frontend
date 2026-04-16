@@ -1,5 +1,18 @@
 # 通用 CRUD 组件重构设计计划
 
+> **⚠️ 历史文档说明（2026-04）**
+>
+> 本文档保留其原始设计/计划上下文，**不再作为当前实现基线**。
+> 当前代码已完成 methods-first / request-adapter 收口，以下旧术语如 `userApi`、`useCrudApi`、`src/api/base/crud-api.ts`、`xxxApi` 等，均可能与现状不一致。
+>
+> 请优先参考：
+>
+> - `docs/CRUD_DEVELOPMENT_GUIDE.md`
+> - `docs/CONTRACT_FRONTEND_DEVELOPMENT_MANUAL.md`
+> - `src/api/base/crud-request-adapter.ts`
+> - `src/composables/useCrudRequestAdapter.ts`
+> - `src/components/common/crud-page/createCrudPageConfigFromResource.ts`
+
 > **版本**: v1.4 (评审定稿)
 > **更新日期**: 2026-03-12
 

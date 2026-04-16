@@ -1,20 +1,24 @@
-import { computed, reactive, ref, shallowRef, type ComputedRef, type Ref, type ShallowRef } from 'vue'
-import { ElMessage } from 'element-plus'
-import { useCrudApi } from './useCrudApi'
+import { computed, reactive, ref, type ComputedRef, type Ref, type ShallowRef } from 'vue'
+import { useCrudRequestAdapter } from './useCrudRequestAdapter'
 import { useSmartSearch } from './useSmartSearch'
 import { usePermission } from './usePermission'
+import { useCrudDialogs } from './crud/useCrudDialogs'
+import { useCrudSelection } from './crud/useCrudSelection'
+import { useCrudSorting } from './crud/useCrudSorting'
+import { useCrudTrash } from './crud/useCrudTrash'
+import { useCrudTree, type CrudTreeApi } from './crud/useCrudTree'
+import { buildCrudQueryOptions, createCrudListSearchHandlers } from './crud/useCrudListSearch'
+import { useCrudListRequestActions } from './crud/useCrudListRequestActions'
 import {
-  hasSoftDeleteCrudApi,
-  type CrudApi,
-  type PaginationData,
+  type CrudRequestAdapter,
   type QueryOptions,
   type SortField,
-} from '@/api/base/crud-api'
+} from '@/api/base/crud-request-adapter'
 import type { CrudPageViewMode } from '@/components/common/crud-page/types'
 import type { TableSortOrder } from '@/components/ui/table/table.types'
 import type { SearchFieldDef, QuickSearchPreset, SearchFavorite } from '@/types/search'
 
-type CrudDeleteOptions<TApi extends CrudApi<unknown, unknown, unknown>> = Parameters<TApi['delete']>[1]
+type CrudDeleteOptions<TAdapter extends CrudRequestAdapter<unknown, unknown, unknown>> = Parameters<TAdapter['delete']>[1]
 type ReadonlyRef<T> = Readonly<Ref<T>>
 
 // ==================== 树形类型定义 ====================
@@ -29,20 +33,6 @@ export interface TreeNode {
   has_children?: boolean
   is_leaf?: boolean
   [key: string]: unknown
-}
-
-/**
- * 树形 API 接口（可选扩展）
- */
-export interface TreeApi<T extends TreeNode> {
-  /** 获取树结构，支持 tree_depth 参数控制加载深度 */
-  tree: (params?: { tree_depth?: number; root_id?: number } | undefined) => Promise<T[]>
-  /** 获取子节点，路径参数方式 */
-  children: (nodeId: number | { node_id: number }) => Promise<T[]>
-  siblings?: (params: { node_id: number }, query?: unknown) => Promise<T[]>
-  ancestors?: (params: { node_id: number }, query?: unknown) => Promise<T[]>
-  move?: (body: unknown) => Promise<unknown>
-  batchSort?: (body: unknown) => Promise<unknown>
 }
 
 /**
@@ -67,7 +57,7 @@ export interface TreeModeOptions {
  * 整合 CRUD 逻辑、搜索逻辑、批量操作逻辑，作为页面的核心"无头"逻辑引擎。
  *
  * 特性：
- * - 整合 CRUD API（创建、读取、更新、删除）
+ * - 整合 CRUD 请求适配器（创建、读取、更新、删除）
  * - 整合智能搜索（快速预设、高级搜索、收藏夹）
  * - 批量选择和批量操作
  * - 权限控制
@@ -81,7 +71,7 @@ export interface TreeModeOptions {
  *   CreateUserInput,
  *   UpdateUserInput
  * >({
- *   api: userApi,
+ *   adapter: userRequestAdapter,
  *   searchFields: userSearchFields,
  *   quickPresets: userQuickPresets,
  *   favorites: userSearchFavorites,
@@ -100,10 +90,10 @@ export interface UseCrudListPageOptions<
   T,
   C,
   U,
-  TApi extends CrudApi<T, C, U> = CrudApi<T, C, U>
+  TAdapter extends CrudRequestAdapter<T, C, U> = CrudRequestAdapter<T, C, U>
 > {
-  /** API 接口 */
-  api: TApi
+  /** CRUD 请求适配器 */
+  adapter: TAdapter
 
   /** 搜索字段定义 */
   searchFields: SearchFieldDef[]
@@ -277,12 +267,12 @@ export function useCrudListPage<
   T extends { id: number },
   C = Partial<T>,
   U = Partial<T>,
-  TApi extends CrudApi<T, C, U> = CrudApi<T, C, U>
+  TAdapter extends CrudRequestAdapter<T, C, U> = CrudRequestAdapter<T, C, U>
 >(
-  options: UseCrudListPageOptions<T, C, U, TApi>
-): UseCrudListPageReturn<T, C, U, CrudDeleteOptions<TApi>> {
+  options: UseCrudListPageOptions<T, C, U, TAdapter>
+): UseCrudListPageReturn<T, C, U, CrudDeleteOptions<TAdapter>> {
   const {
-    api,
+    adapter,
     searchFields,
     quickPresets = [],
     favorites = [],
@@ -296,7 +286,7 @@ export function useCrudListPage<
 
   // ==================== 树形模式判断 ====================
   const isTreeMode = computed(() => !!treeMode?.enabled)
-  const treeApi = isTreeMode.value ? (api as unknown as TreeApi<T>) : null
+  const treeAdapter = isTreeMode.value ? (adapter as unknown as CrudTreeApi<T>) : null
 
   // ==================== 权限 ====================
   const { hasPermission } = usePermission()
@@ -319,13 +309,13 @@ export function useCrudListPage<
   const restorePermission = createPermissionRef(permissions?.restore)
   const trashPermission = createPermissionRef(permissions?.trash)
 
-  // ==================== CRUD API ====================
+  // ==================== CRUD 请求适配器 ====================
   // 乐观更新和自动刷新不能同时启用
   // 如果用户启用了 optimisticUpdate，强制禁用 autoRefresh
   // 如果用户未指定 autoRefresh，默认为 true（除非启用 optimisticUpdate）
   const autoRefresh = resolveAutoRefreshSetting(userAutoRefresh)
 
-  const crudApi = useCrudApi<T, C, U, TApi>(api, {
+  const crudAdapterState = useCrudRequestAdapter<T, C, U, TAdapter>(adapter, {
     limit: pageSize,
     optimisticUpdate,
     autoRefresh
@@ -342,649 +332,107 @@ export function useCrudListPage<
     }
   })
 
-  // ==================== 批量选择状态 ====================
-  const selectedItems = ref<T[]>([]) as Ref<T[]>
+  // ==================== 页面状态 ====================
   const viewMode = ref<CrudPageViewMode>('active')
-  const trashData: ShallowRef<PaginationData<T> | null> = shallowRef(null)
-  const trashLoading = ref(false)
-  const trashError = ref<Error | null>(null)
-  const batchDeleteLoading = ref(false)
-  const batchRestoreLoading = ref(false)
-  const batchPermanentDeleteLoading = ref(false)
-  const sortState = ref<SortField[] | null>(defaultSort.length > 0 ? [...defaultSort] : null)
+  const dialogs = useCrudDialogs()
+  const sorting = useCrudSorting(defaultSort)
 
   /** 树形模式下的搜索模式（使用 query 接口返回平铺数据） */
   const isSearchMode = ref(false)
 
-  // ==================== 树形模式状态 ====================
-  const treeData = shallowRef<T[]>([]) as ShallowRef<T[]>
-  const flatData = shallowRef<T[]>([]) as ShallowRef<T[]>
-  const loadingChildren = ref<Record<number, boolean>>({})
-  const expandedKeys = ref(new Set<number>()) as Ref<Set<number>>
-
-  // 树形配置默认值
-  const treeConfig = {
-    childrenKey: treeMode?.childrenKey ?? 'children',
-    hasChildrenKey: treeMode?.hasChildrenKey ?? 'has_children',
-    initialExpandLevel: treeMode?.initialExpandLevel ?? 1,
-    lazyLoad: treeMode?.lazyLoad ?? false
-  }
-
-  // ==================== 树形辅助函数 ====================
-  function flattenTree(tree: T[], key: string, result: T[] = []): T[] {
-    for (const node of tree) {
-      result.push(node)
-      const children = (node as Record<string, unknown>)[key] as T[] | undefined
-      if (children && children.length > 0) {
-        flattenTree(children, key, result)
-      }
+  const trash = useCrudTrash<T, TAdapter>(adapter, viewMode, pageSize, {
+    onAfterMutation: async () => {
+      await handleRefresh()
     }
-    return result
-  }
+  })
 
-  function findNodeInTree(tree: T[], id: number, key: string): T | undefined {
-    for (const node of tree) {
-      if (node.id === id) return node
-      const children = (node as Record<string, unknown>)[key] as T[] | undefined
-      if (children?.length) {
-        const found = findNodeInTree(children, id, key)
-        if (found) return found
-      }
+  const selection = useCrudSelection<T, TAdapter>(adapter, {
+    onAfterBatchAction: async () => {
+      await handleRefresh()
     }
-    return undefined
-  }
+  })
 
-  function updateChildrenInTree(tree: T[], parentId: number, children: T[], key: string, hasChildrenKey: string): void {
-    for (const node of tree) {
-      if (node.id === parentId) {
-        (node as Record<string, unknown>)[key] = children
-        // 同时更新 has_children 状态
-        ;(node as Record<string, unknown>)[hasChildrenKey] = children.length > 0
-        return
-      }
-      const nodeChildren = (node as Record<string, unknown>)[key] as T[] | undefined
-      if (nodeChildren?.length) {
-        updateChildrenInTree(nodeChildren, parentId, children, key, hasChildrenKey)
-      }
+  const tree = useCrudTree<T>({
+    enabled: isTreeMode.value,
+    adapter: treeAdapter as CrudTreeApi<T> | null,
+    treeMode,
+    setLoading: loading => {
+      crudAdapterState.loading.value = loading
+    },
+    setError: error => {
+      crudAdapterState.error.value = error
     }
-  }
+  })
 
   const currentPagination = reactive<PaginationState>({
     page: 1,
     pageSize,
     total: 0
   })
-  const trashPagination = reactive<PaginationState>({
-    page: 1,
-    pageSize,
-    total: 0
-  })
-
-  // ==================== 弹窗状态 ====================
-  const formOpen = ref(false)
-  const editingId = ref<number | null>(null)
-  const dialogKey = ref(0)
-  /** 创建模式初始值（如 parent_id） */
-  const createInitialValues = ref<Record<string, unknown> | null>(null)
-
-  // 强制重新渲染弹窗
-  function refreshDialog() {
-    dialogKey.value++
-  }
 
   // ==================== 计算属性 ====================
 
   /** 当前列表项 */
-  const items = computed(() => {
+  const items = computed<T[]>(() => {
     if (viewMode.value === 'trash') {
-      return trashData.value?.items ?? []
+      return trash.trashData.value?.items ?? []
     }
 
-    return crudApi.data.value?.items ?? []
+    return crudAdapterState.data.value?.items ?? []
   })
 
-  const supportsTrash = computed(() => hasSoftDeleteCrudApi(api))
-  const isTrashMode = computed(() => viewMode.value === 'trash')
-  const currentLoading = computed(() => (isTrashMode.value ? trashLoading.value : crudApi.loading.value))
-  const currentError = computed(() => (isTrashMode.value ? trashError.value : crudApi.error.value))
+  const supportsTrash = trash.supportsTrash
+  const isTrashMode = trash.isTrashMode
+  const currentLoading = computed(() => (isTrashMode.value ? trash.trashLoading.value : crudAdapterState.loading.value))
+  const currentError = computed(() => (isTrashMode.value ? trash.trashError.value : crudAdapterState.error.value))
 
   /** 选中的数量 */
-  const selectedCount = computed(() => selectedItems.value.length)
+  const selectedCount = selection.selectedCount
 
   /** 是否有选中项 */
-  const hasSelection = computed(() => selectedItems.value.length > 0)
-
-  function syncPaginationState(target: PaginationState, source: PaginationData<T>): void {
-    target.page = source.page
-    target.pageSize = source.size
-    target.total = source.total
-  }
-
-  function syncCurrentPagination(): void {
-    if (isTrashMode.value) {
-      currentPagination.page = trashPagination.page
-      currentPagination.pageSize = trashPagination.pageSize
-      currentPagination.total = trashPagination.total
-      return
-    }
-
-    currentPagination.page = crudApi.pagination.page
-    currentPagination.pageSize = crudApi.pagination.pageSize
-    currentPagination.total = crudApi.pagination.total
-  }
-
-  function buildQueryOptions(page?: number): QueryOptions {
-    const queryOptions: QueryOptions = {
-      filters: searchInstance.compileToFilterGroup(),
-      sort: sortState.value
-    }
-
-    if (page !== undefined) {
-      queryOptions.offset = (page - 1) * crudApi.pagination.pageSize
-      queryOptions.limit = crudApi.pagination.pageSize
-    }
-
-    return queryOptions
-  }
-
-  function buildTrashQuery(page?: number): { offset: number; limit: number } {
-    const resolvedPage = page ?? trashPagination.page
-
-    return {
-      offset: (resolvedPage - 1) * trashPagination.pageSize,
-      limit: trashPagination.pageSize
-    }
-  }
-
-  function resolveSortFields(sort: {
-    field: string
-    sortKey?: string
-    order: TableSortOrder
-  }): SortField[] | null {
-    if (!sort.order) {
-      return defaultSort.length > 0 ? [...defaultSort] : null
-    }
-
-    return [
-      {
-        field: sort.sortKey || sort.field,
-        order: sort.order === 'descending' ? 'desc' : 'asc'
-      }
-    ]
-  }
-
-  // ==================== 搜索操作 ====================
-
-  /**
-   * 执行搜索
-   * 树形模式逻辑：
-   * - 有搜索条件：使用 query 接口（平铺列表）
-   * - 无搜索条件：使用 tree 接口（树形结构）
-   */
-  async function handleSearch(page?: number): Promise<void> {
-    // 树形模式
-    if (isTreeMode.value) {
-      const filters = searchInstance.compileToFilterGroup()
-      const hasFilters = !!(filters?.conditions && filters.conditions.length > 0)
-
-      if (hasFilters) {
-        // 有搜索条件：使用 query 接口（平铺模式）
-        isSearchMode.value = true
-        await crudApi.fetchList(buildQueryOptions(page))
-        syncCurrentPagination()
-      } else {
-        // 无搜索条件：使用 tree 接口（树形模式）
-        isSearchMode.value = false
-        await fetchTree()
-      }
-      return
-    }
-
-    if (isTrashMode.value) {
-      if (!hasSoftDeleteCrudApi(api)) {
-        return
-      }
-
-      trashLoading.value = true
-      trashError.value = null
-
-      try {
-        const result = await api.getTrash(buildTrashQuery(page))
-        trashData.value = result
-        syncPaginationState(trashPagination, result)
-        syncCurrentPagination()
-      } catch (error) {
-        trashError.value = error as Error
-        console.error('Failed to fetch trash list:', error)
-      } finally {
-        trashLoading.value = false
-      }
-
-      return
-    }
-
-    await crudApi.fetchList(buildQueryOptions(page))
-    syncCurrentPagination()
-  }
-
-  // ==================== 树形方法 ====================
-
-  async function fetchTree(forceFullTree = false): Promise<void> {
-    if (!treeApi || !treeApi.tree) return
-
-    crudApi.loading.value = true
-    crudApi.error.value = null
-
-    try {
-      // 懒加载模式：tree_depth=0 只加载顶层节点
-      // 非懒加载：tree_depth=-1 加载所有层级
-      // forceFullTree: 强制加载完整树（用于排序等场景）
-      const treeDepth = forceFullTree ? -1 : (treeConfig.lazyLoad ? 0 : -1)
-      const result = await treeApi.tree({ tree_depth: treeDepth })
-      treeData.value = result
-      flatData.value = flattenTree(result, treeConfig.childrenKey)
-
-      // 自动展开根节点（非懒加载模式）
-      if (!treeConfig.lazyLoad && treeConfig.initialExpandLevel > 0) {
-        expandToLevel(result, treeConfig.initialExpandLevel)
-      }
-    } catch (error) {
-      crudApi.error.value = error as Error
-      console.error('Failed to fetch tree:', error)
-    } finally {
-      crudApi.loading.value = false
-    }
-  }
-
-  function expandToLevel(nodes: T[], level: number, currentLevel = 1): void {
-    if (currentLevel > level) return
-    for (const node of nodes) {
-      if (currentLevel < level) {
-        expandedKeys.value.add(node.id)
-      }
-      const children = (node as Record<string, unknown>)[treeConfig.childrenKey] as T[] | undefined
-      if (children?.length) {
-        expandToLevel(children, level, currentLevel + 1)
-      }
-    }
-  }
-
-  function loadChildren(node: T, _treeNode: unknown, resolve: (data: T[]) => void): void {
-    if (!treeApi?.children) {
-      resolve([])
-      return
-    }
-
-    const nodeId = node.id as number
-    const existingChildren = (node as Record<string, unknown>)[treeConfig.childrenKey] as T[] | undefined
-    if (existingChildren?.length) {
-      resolve(existingChildren)
-      return
-    }
-
-    loadingChildren.value[nodeId] = true
-
-    treeApi
-      .children({ node_id: nodeId })
-      .then((children) => {
-        updateChildrenInTree(treeData.value, nodeId, children, treeConfig.childrenKey, treeConfig.hasChildrenKey)
-        flatData.value = flattenTree(treeData.value, treeConfig.childrenKey)
-        resolve(children)
-      })
-      .catch(() => resolve([]))
-      .finally(() => {
-        loadingChildren.value[nodeId] = false
-      })
-  }
-
-  async function loadChildrenManual(parentId: number): Promise<T[]> {
-    if (!treeApi?.children) return []
-
-    loadingChildren.value[parentId] = true
-    try {
-      const children = await treeApi.children({ node_id: parentId })
-      updateChildrenInTree(treeData.value, parentId, children, treeConfig.childrenKey, treeConfig.hasChildrenKey)
-      flatData.value = flattenTree(treeData.value, treeConfig.childrenKey)
-      return children
-    } catch {
-      return []
-    } finally {
-      loadingChildren.value[parentId] = false
-    }
-  }
-
-  async function refreshTree(): Promise<void> {
-    await fetchTree()
-  }
-
-  async function moveNode(
-    id: number,
-    targetId: number,
-    position: 'before' | 'after' | 'inner'
-  ): Promise<boolean> {
-    if (!treeApi?.move) return false
-
-    crudApi.loading.value = true
-    try {
-      await treeApi.move({ id, target_id: targetId, position })
-      await fetchTree()
-      return true
-    } catch {
-      return false
-    } finally {
-      crudApi.loading.value = false
-    }
-  }
-
-  /**
-   * 批量排序
-   * @param items 排序项列表 { id, parent_id, sort_order }[]
-   */
-  async function batchSortNode(items: { id: number; parent_id: number | null; sort_order: number }[]): Promise<boolean> {
-    if (!treeApi?.batchSort) {
-      // fallback: 逐个调用 move
-      return batchSortNodeFallback(items)
-    }
-
-    crudApi.loading.value = true
-    try {
-      await treeApi.batchSort({ items })
-      // 不在这里刷新树，让调用者决定是否刷新
-      return true
-    } catch {
-      return false
-    } finally {
-      crudApi.loading.value = false
-    }
-  }
-
-  /**
-   * 批量排序 fallback（逐个调用 move）
-   */
-  async function batchSortNodeFallback(items: { id: number; parent_id: number | null; sort_order: number }[]): Promise<boolean> {
-    if (!treeApi?.move) return false
-
-    crudApi.loading.value = true
-    try {
-      for (const item of items) {
-        if (item.parent_id !== null) {
-          await treeApi.move({ id: item.id, target_id: item.parent_id, position: 'inner' })
-        }
-      }
-      // 不在这里刷新树，让调用者决定是否刷新
-      return true
-    } catch {
-      return false
-    } finally {
-      crudApi.loading.value = false
-    }
-  }
-
-  function expandNode(id: number): void {
-    expandedKeys.value.add(id)
-  }
-
-  function collapseNode(id: number): void {
-    expandedKeys.value.delete(id)
-  }
-
-  function toggleExpand(id: number): void {
-    if (expandedKeys.value.has(id)) {
-      expandedKeys.value.delete(id)
-    } else {
-      expandedKeys.value.add(id)
-    }
-  }
-
-  function expandAll(): void {
-    const allIds = flatData.value.map((node) => node.id)
-    expandedKeys.value = new Set(allIds)
-  }
-
-  function collapseAll(): void {
-    expandedKeys.value.clear()
-  }
-
-  function isLeaf(node: T): boolean {
-    return (node as Record<string, unknown>).is_leaf !== undefined
-      ? Boolean((node as Record<string, unknown>).is_leaf)
-      : !(node as Record<string, unknown>)[treeConfig.hasChildrenKey]
-  }
-
-  function findNode(id: number): T | undefined {
-    return findNodeInTree(treeData.value, id, treeConfig.childrenKey)
-  }
-
-  /**
-   * 刷新列表（保持当前页）
-   */
-  async function handleRefresh(): Promise<void> {
-    await handleSearch(currentPagination.page)
-  }
-
-  async function handlePageSizeChange(size: number): Promise<void> {
-    if (!Number.isFinite(size) || size <= 0) {
-      return
-    }
-
-    const nextSize = Math.floor(size)
-
-    if (isTrashMode.value) {
-      trashPagination.pageSize = nextSize
-      trashPagination.page = 1
-      syncCurrentPagination()
-      await handleSearch(1)
-      return
-    }
-
-    crudApi.pagination.pageSize = nextSize
-    crudApi.pagination.page = 1
-    syncCurrentPagination()
-    await handleSearch(1)
-  }
-
-  async function handleSortChange(sort: {
-    field: string
-    sortKey?: string
-    order: TableSortOrder
-  }): Promise<void> {
-    if (isTrashMode.value) {
-      return
-    }
-
-    sortState.value = resolveSortFields(sort)
-
-    await handleSearch(1)
-  }
-
-  // ==================== 批量选择操作 ====================
-
-  /**
-   * 处理选择变化
-   */
-  function handleSelectionChange(selected: T[]) {
-    selectedItems.value = selected
-  }
-
-  /**
-   * 清空选中状态（纯状态清除，不操作视图）
-   */
-  function clearSelectionState() {
-    selectedItems.value = []
-  }
-
-  /**
-   * 批量删除
-   */
-  async function handleBatchDelete(): Promise<void> {
-    if (selectedItems.value.length === 0) {
-      return
-    }
-
-    // 只有 SoftDeleteCrudApi 才有 batchDelete 方法
-    if (!('batchDelete' in api) || typeof api.batchDelete !== 'function') {
-      return
-    }
-
-    batchDeleteLoading.value = true
-
-    try {
-      const result = await api.batchDelete(selectedItems.value.map((item: T) => item.id))
-      clearSelectionState()
-      await handleRefresh()
-
-      // 显示操作结果反馈
-      if (result.failed > 0) {
-        ElMessage.warning(`成功删除 ${result.success} 个，失败 ${result.failed} 个`)
-      } else if (result.success > 0) {
-        ElMessage.success(`成功删除 ${result.success} 个`)
-      }
-    } finally {
-      batchDeleteLoading.value = false
-    }
-  }
-
-  async function handleBatchRestore(): Promise<void> {
-    if (selectedItems.value.length === 0 || !hasSoftDeleteCrudApi(api)) {
-      return
-    }
-
-    batchRestoreLoading.value = true
-
-    try {
-      await api.batchRestore(selectedItems.value.map(item => item.id))
-      clearSelectionState()
-      await handleRefresh()
-    } finally {
-      batchRestoreLoading.value = false
-    }
-  }
-
-  async function handleBatchPermanentDelete(): Promise<void> {
-    if (selectedItems.value.length === 0 || !hasSoftDeleteCrudApi(api)) {
-      return
-    }
-
-    batchPermanentDeleteLoading.value = true
-
-    try {
-      await api.batchPermanentDelete(selectedItems.value.map(item => item.id))
-      clearSelectionState()
-      await handleRefresh()
-    } finally {
-      batchPermanentDeleteLoading.value = false
-    }
-  }
-
-  // ==================== 弹窗操作 ====================
-
-  /**
-   * 打开创建弹窗
-   * @param options 可选的初始值，如 { initialValues: { parent_id: 123 } }
-   */
-  function openCreate(options?: { initialValues?: Record<string, unknown> }) {
-    editingId.value = null
-    createInitialValues.value = options?.initialValues ?? null
-    formOpen.value = true
-    refreshDialog()
-  }
-
-  /**
-   * 打开编辑弹窗
-   */
-  function openEdit(id: number) {
-    editingId.value = id
-    formOpen.value = true
-    refreshDialog()
-  }
-
-  /**
-   * 关闭弹窗
-   */
-  function close() {
-    formOpen.value = false
-    editingId.value = null
-    createInitialValues.value = null
-  }
-
-  // ==================== API 操作 ====================
-
-  /**
-   * 处理创建
-   */
-  async function handleCreate(formData: C): Promise<T | null> {
-    const result = await crudApi.create(formData)
-    if (result) {
-      close()
-      syncCurrentPagination()
-      // 树形模式下：如果创建了子节点，更新父节点状态并展开
-      const data = formData as Record<string, unknown>
-      if (treeApi && 'parent_id' in data && data.parent_id) {
-        const parentId = data.parent_id as number
-        // 展开父节点
-        expandedKeys.value.add(parentId)
-        // 懒加载模式：加载父节点的子节点（会同时更新 has_children 状态）
-        if (treeConfig.lazyLoad) {
-          await loadChildrenManual(parentId)
-        } else {
-          // 非懒加载模式：直接更新父节点的 has_children 状态
-          const parentNode = findNodeInTree(treeData.value, parentId, treeConfig.childrenKey)
-          if (parentNode) {
-            ;(parentNode as Record<string, unknown>)[treeConfig.hasChildrenKey] = true
-          }
-        }
-      }
-    }
-    return result
-  }
-
-  /**
-   * 处理编辑
-   */
-  async function handleEdit(id: number, formData: U): Promise<T | null> {
-    const result = await crudApi.update(id, formData)
-    if (result) {
-      close()
-      syncCurrentPagination()
-    }
-    return result
-  }
-
-  /**
-   * 处理删除
-   */
-  async function handleDelete(id: number, options?: CrudDeleteOptions<TApi>): Promise<boolean> {
-    const result = await crudApi.delete(id, options)
-    syncCurrentPagination()
-    return result
-  }
-
-  async function handleRestore(id: number): Promise<T | null> {
-    if (!hasSoftDeleteCrudApi(api)) {
-      return null
-    }
-
-    const result = await api.restore(id)
-    await handleRefresh()
-    return result as T
-  }
-
-  async function handlePermanentDelete(id: number): Promise<boolean> {
-    if (!hasSoftDeleteCrudApi(api)) {
-      return false
-    }
-
-    await api.permanentDelete(id)
-    await handleRefresh()
-    return true
-  }
-
-  /**
-   * 获取缓存的数据（用于弹窗预填充）
-   */
-  function getCachedData(id: number): T | undefined {
-    return items.value.find((item: T) => item.id === id)
-  }
+  const hasSelection = selection.hasSelection
+
+  const buildQueryOptions = (page?: number): QueryOptions => buildCrudQueryOptions({
+    compileFilters: () => searchInstance.compileToFilterGroup(),
+    sortState: sorting.sortState,
+    page,
+    pageSize: crudAdapterState.pagination.pageSize
+  })
+
+  const searchHandlers = createCrudListSearchHandlers({
+    isTreeMode: isTreeMode.value,
+    isTrashMode: () => isTrashMode.value,
+    isSearchMode,
+    compileFilters: () => searchInstance.compileToFilterGroup(),
+    buildQueryOptions,
+    fetchTree: tree.fetchTree,
+    fetchTrash: trash.fetchTrash,
+    crud: {
+      fetchList: crudAdapterState.fetchList,
+      pagination: crudAdapterState.pagination
+    },
+    trash,
+    currentPagination,
+    sorting
+  })
+
+
+  const handleSearch = searchHandlers.handleSearch
+  const handleRefresh = searchHandlers.handleRefresh
+
+  const requestActions = useCrudListRequestActions<T, C, U, TAdapter>({
+    crudAdapter: {
+      create: crudAdapterState.create,
+      update: crudAdapterState.update,
+      delete: crudAdapterState.delete
+    },
+    dialogs,
+    treeAdapter,
+    tree,
+    items,
+    trash,
+    syncCurrentPagination: searchHandlers.syncCurrentPagination
+  })
 
   function setViewMode(mode: CrudPageViewMode): void {
     if (mode === 'trash' && !supportsTrash.value) {
@@ -992,7 +440,7 @@ export function useCrudListPage<
     }
 
     viewMode.value = mode
-    syncCurrentPagination()
+    searchHandlers.syncCurrentPagination()
   }
 
   // ==================== 返回分组结果 ====================
@@ -1007,52 +455,52 @@ export function useCrudListPage<
       viewMode,
       isTrashMode,
       supportsTrash,
-      selectedItems,
+      selectedItems: selection.selectedItems,
       selectedCount,
       hasSelection,
-      batchDeleteLoading,
-      batchRestoreLoading,
-      batchPermanentDeleteLoading,
-      sortState,
-      getCachedData
+      batchDeleteLoading: selection.batchDeleteLoading,
+      batchRestoreLoading: selection.batchRestoreLoading,
+      batchPermanentDeleteLoading: selection.batchPermanentDeleteLoading,
+      sortState: sorting.sortState,
+      getCachedData: requestActions.getCachedData
     },
 
     // 搜索相关
     search: {
       instance: searchInstance,
-      handleSearch,
-      handleRefresh,
-      handlePageSizeChange,
-      handleSortChange
+      handleSearch: searchHandlers.handleSearch,
+      handleRefresh: searchHandlers.handleRefresh,
+      handlePageSizeChange: searchHandlers.handlePageSizeChange,
+      handleSortChange: searchHandlers.handleSortChange
     },
 
     // 弹窗相关
     dialogs: {
-      formOpen,
-      editingId,
-      key: dialogKey,
-      createInitialValues,
-      openCreate,
-      openEdit,
-      close
+      formOpen: dialogs.formOpen,
+      editingId: dialogs.editingId,
+      key: dialogs.key,
+      createInitialValues: dialogs.createInitialValues,
+      openCreate: dialogs.openCreate,
+      openEdit: dialogs.openEdit,
+      close: dialogs.close
     },
 
     // 批量选择相关
     selection: {
-      handleSelectionChange,
-      clearSelectionState,
-      handleBatchDelete,
-      handleBatchRestore,
-      handleBatchPermanentDelete
+      handleSelectionChange: selection.handleSelectionChange,
+      clearSelectionState: selection.clearSelectionState,
+      handleBatchDelete: selection.handleBatchDelete,
+      handleBatchRestore: selection.handleBatchRestore,
+      handleBatchPermanentDelete: selection.handleBatchPermanentDelete
     },
 
     // API 操作
     apiActions: {
-      handleCreate,
-      handleEdit,
-      handleDelete,
-      handleRestore,
-      handlePermanentDelete
+      handleCreate: requestActions.handleCreate,
+      handleEdit: requestActions.handleEdit,
+      handleDelete: requestActions.handleDelete,
+      handleRestore: requestActions.handleRestore,
+      handlePermanentDelete: requestActions.handlePermanentDelete
     },
 
     // 权限
@@ -1074,23 +522,23 @@ export function useCrudListPage<
       tree: {
         isTreeMode,
         isSearchMode,
-        treeData,
-        flatData,
-        loadingChildren,
-        expandedKeys,
-        fetchTree,
-        loadChildren,
-        loadChildrenManual,
-        refreshTree,
-        move: moveNode,
-        batchSort: batchSortNode,
-        expandNode,
-        collapseNode,
-        toggleExpand,
-        expandAll,
-        collapseAll,
-        isLeaf,
-        findNode,
+        treeData: tree.treeData,
+        flatData: tree.flatData,
+        loadingChildren: tree.loadingChildren,
+        expandedKeys: tree.expandedKeys,
+        fetchTree: tree.fetchTree,
+        loadChildren: tree.loadChildren,
+        loadChildrenManual: tree.loadChildrenManual,
+        refreshTree: tree.refreshTree,
+        move: tree.move,
+        batchSort: tree.batchSort,
+        expandNode: tree.expandNode,
+        collapseNode: tree.collapseNode,
+        toggleExpand: tree.toggleExpand,
+        expandAll: tree.expandAll,
+        collapseAll: tree.collapseAll,
+        isLeaf: tree.isLeaf,
+        findNode: tree.findNode,
       }
     })
   }

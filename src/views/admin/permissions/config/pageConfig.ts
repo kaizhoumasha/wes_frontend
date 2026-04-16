@@ -4,7 +4,7 @@ import type {
   PermissionsItem as Permission
 } from '@/api/modules/permissions'
 import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
-import { permissionsApi } from '@/api/modules/permissions'
+import { permissionsApiMethods } from '@/api/modules/permissions'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
@@ -12,7 +12,7 @@ import { permissionPageFieldConfig } from './fieldConfig'
 
 type PermissionPageConfig = CrudPageConfig<Permission, CreatePermissionInput, UpdatePermissionInput>
 
-const PERMISSION_PAGE_RESOURCE: PermissionPageConfig['resource'] = {
+const PERMISSION_PAGE_RESOURCE = {
   key: 'permissions',
   title: {
     text: '权限管理',
@@ -24,10 +24,10 @@ const PERMISSION_PAGE_RESOURCE: PermissionPageConfig['resource'] = {
     subtitle: '查看并恢复已删除权限',
     icon: 'ep:delete'
   },
-  api: permissionsApi,
+  methods: permissionsApiMethods,
   permissions: ADMIN_PERMISSIONS.permission,
   optimisticUpdate: true,
-  defaultSort: [{ field: 'sort_order', order: 'asc' }],
+  defaultSort: [{ field: 'sort_order', order: 'asc' as const }],
   // 启用树形模式
   treeMode: {
     enabled: true,

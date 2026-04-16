@@ -1,6 +1,6 @@
 import { computed, ref, type ComputedRef } from 'vue'
 
-import type { FilterGroup } from '@/api/base/crud-api'
+import type { FilterGroup } from '@/api/base/crud-request-adapter'
 import type { SearchConditionDraft, SearchFavorite, SearchFieldDef } from '@/types/search'
 import { validateConditionDraft } from '@/types/search'
 import { countFilterNodes } from '@/utils/advanced-search'

@@ -90,7 +90,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, toRef, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import type { FilterGroup } from '@/api/base/crud-api'
+import type { FilterGroup } from '@/api/base/crud-request-adapter'
 import { StandardDialog, type StandardDialogExpose } from '@/components/ui/StandardDialog'
 import type { SearchCondition, SearchFavorite, SearchFieldDef, UIFilterGroup } from '@/types/search'
 import {

@@ -1,7 +1,7 @@
 # CRUD 开发指南
 
 **版本**: 1.3
-**最后更新**: 2026-03-26
+**最后更新**: 2026-04-16
 **适用**: P9 MCS 前端项目
 
 ---
@@ -24,6 +24,19 @@ createCrudPageConfigFromResource()  ← 页面配置
 ```
 
 **黄金法则**: `backend` 描述字段从哪里来，`fields` 只写前端 UI 差异。
+
+## 当前架构基线（2026-04 更新）
+
+> 本指南已按当前仓库实现同步。若你在其他历史设计/任务文档中看到 `userApi`、`useCrudApi`、`src/api/base/crud-api.ts` 等旧术语，请以本文件为准。
+
+当前项目的 CRUD / API 约定如下：
+
+- 生成模块对外统一导出 `xxxApiMethods`
+- 页面配置层统一声明 `resource.methods`，不再声明 `resource.api`
+- 页面框架内部会从 `methods` 派生 `requestAdapter`
+- 若业务代码需要直接发请求，优先使用 `xxxApiMethods(...).send()`
+- 通用基础层主入口为 `src/api/base/crud-request-adapter.ts`
+- 旧入口 `src/api/base/crud-api.ts`、`src/composables/useCrudApi.ts` 已删除
 
 ---
 
@@ -55,58 +68,72 @@ pnpm permission:generate
 
 **下一步：检查后端提供的 API 能力**
 
-同步完成后，务必查看 `src/api/base/crud-api.ts` 确认后端提供了哪些端点：
+同步完成后，务必查看生成模块与 `src/api/base/crud-request-adapter.ts`，确认后端提供了哪些标准能力与扩展 methods：
 
 ```typescript
 // 查看生成的 API 类型，确认支持的操作
-export interface SoftDeleteCrudApiEndpoints {
-  collection: string // 列表查询
-  item: string // 单条查询
-  create: string // 创建
-  update: string // 更新
-  delete: string // 删除
-  query: string // 高级查询
-  // 软删除特有
-  restore?: string // 恢复（软删除资源才有）
-  trash?: string // 回收站列表
-  trashRestore?: string // 批量恢复
-  trashPermanentDelete?: string // 批量彻底删除
+export interface SoftDeleteCrudApiMethods<TItem, TCreate, TUpdate> {
+  getById(
+    id: number,
+    options?: { query?: unknown; config?: ContractRequestConfig }
+  ): MethodLike<TItem>
+  query(options?: QueryOptionsInput, config?: ContractRequestConfig): MethodLike<unknown>
+  create(data: TCreate, config?: ContractRequestConfig): MethodLike<TItem>
+  update(id: number, data: TUpdate, config?: ContractRequestConfig): MethodLike<TItem>
+  delete(
+    id: number,
+    options?: { query?: unknown; config?: ContractRequestConfig }
+  ): MethodLike<unknown>
+  getTrash(options?: QueryOptionsInput, config?: ContractRequestConfig): MethodLike<unknown>
+  restore(id: number, config?: ContractRequestConfig): MethodLike<TItem>
+  batchDelete(
+    ids: number[],
+    config?: ContractRequestConfig
+  ): MethodLike<unknown> | Array<MethodLike<unknown>>
 }
 ```
 
 **常见遗漏的能力**：
 
-| 能力          | 检查方式                                   | 前端配置                                                        |
-| ------------- | ------------------------------------------ | --------------------------------------------------------------- |
-| 软删除/回收站 | 检查是否有 `trash`、`restore` 端点         | `createSoftDeleteCrudApi` + `features.trash: { enabled: true }` |
-| 批量操作      | 检查是否有 `bulkDelete`、`bulkUpdate` 端点 | 目前需手动实现                                                  |
-| 导出          | 检查是否有 `export` 端点                   | 需自定义按钮调用                                                |
-| 高级搜索      | 检查 `query` 端点参数                      | 使用智能搜索组件                                                |
-| **额外 API**  | 检查 `{id}/xxx` 子资源端点                 | 通过 `extensions` 添加自定义操作                                |
+| 能力          | 检查方式                                   | 前端配置                                                              |
+| ------------- | ------------------------------------------ | --------------------------------------------------------------------- |
+| 软删除/回收站 | 检查是否有 `trash`、`restore` 端点         | 生成 `SoftDeleteCrudApiMethods` + `features.trash: { enabled: true }` |
+| 批量操作      | 检查是否有 `bulkDelete`、`bulkUpdate` 端点 | 目前需手动实现                                                        |
+| 导出          | 检查是否有 `export` 端点                   | 需自定义按钮调用                                                      |
+| 高级搜索      | 检查 `query` 端点参数                      | 使用智能搜索组件                                                      |
+| **额外 API**  | 检查 `{id}/xxx` 子资源端点                 | 通过 `extensions` 添加自定义操作                                      |
 
 **额外 API 能力示例**（用户管理）：
 
 ```typescript
-// src/api/modules/user.ts
+// src/api/modules/users.ts
 const USER_RESET_PASSWORD_PATH = '/api/v1/users/{id}/reset-password'
 const USER_ASSIGN_ROLES_PATH = '/api/v1/users/{id}/assign-roles'
 
-export const userApi = {
-  ...baseUserApi, // 基础 CRUD
+export const usersApiMethods = {
+  ...baseUsersApiMethods, // 基础 CRUD methods
 
-  // 额外能力：重置密码
-  async resetPassword(id: number, data: ResetUserPasswordInput) {
-    return await contractClient.put(USER_RESET_PASSWORD_PATH, {
-      params: { id },
-      body: data
+  resetPassword(
+    params: { id: number },
+    data: ResetUserPasswordInput,
+    config?: ContractRequestConfig
+  ) {
+    return contractMethods.put(USER_RESET_PASSWORD_PATH, {
+      params,
+      body: data,
+      config
     })
   },
 
-  // 额外能力：分配角色
-  async assignRoles(id: number, roleIds: number[]) {
-    return await contractClient.put(USER_ASSIGN_ROLES_PATH, {
-      params: { id },
-      body: { role_ids: roleIds }
+  assignRoles(
+    params: { id: number },
+    data: { role_ids: number[] },
+    config?: ContractRequestConfig
+  ) {
+    return contractMethods.put(USER_ASSIGN_ROLES_PATH, {
+      params,
+      body: data,
+      config
     })
   }
 }
@@ -139,9 +166,9 @@ export function createUserPageConfig(
 ```typescript
 // src/api/modules/product.ts
 import {
-  createSoftDeleteCrudApi,
+  createSoftDeleteCrudRequestAdapterMethods,
   type SoftDeleteCrudResourceCollectionPath
-} from '@/api/base/crud-api'
+} from '@/api/base/crud-request-adapter'
 
 const PRODUCT_PATH = '/api/v1/products' satisfies SoftDeleteCrudResourceCollectionPath
 
@@ -149,7 +176,7 @@ export type Product = CrudItem<typeof PRODUCT_PATH>
 export type CreateProductInput = CrudCreateInput<typeof PRODUCT_PATH>
 export type UpdateProductInput = CrudUpdateInput<typeof PRODUCT_PATH>
 
-export const productApi = createSoftDeleteCrudApi({
+export const productApiMethods = createSoftDeleteCrudRequestAdapterMethods({
   collection: PRODUCT_PATH,
   item: `${PRODUCT_PATH}/{id}` as const,
   query: `${PRODUCT_PATH}/query` as const,
@@ -198,14 +225,14 @@ export const { fields: PRODUCT_FIELDS, fieldConfig: productPageFieldConfig } =
 // src/views/admin/products/config/pageConfig.ts
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import { productPageFieldConfig } from './fieldConfig'
-import { productApi } from '@/api/modules/product'
+import { productApiMethods } from '@/api/modules/product'
 
 export function createProductPageConfig() {
   return createCrudPageConfigFromResource({
     resource: {
       key: 'products',
       title: { text: '商品管理', icon: 'ep:goods' },
-      api: productApi,
+      methods: productApiMethods,
       permissions: ADMIN_PERMISSIONS.product
     },
     fieldConfig: productPageFieldConfig,
@@ -294,7 +321,7 @@ ls src/api/generated/permissions.ts  # 查看权限常量
 
 ```typescript
 // 标准 CRUD 端点
-createCrudApi({
+createCrudRequestAdapterMethods({
   collection: '/api/v1/products',
   item: '/api/v1/products/{id}',
   create: '/api/v1/products',
@@ -304,7 +331,7 @@ createCrudApi({
 })
 
 // 软删除端点（额外能力）
-createSoftDeleteCrudApi({
+createSoftDeleteCrudRequestAdapterMethods({
   // ...标准端点
   restore: '/api/v1/products/{id}/restore', // 单条恢复
   trash: '/api/v1/products/trash', // 回收站列表
@@ -315,7 +342,7 @@ createSoftDeleteCrudApi({
 
 **常见遗漏**：
 
-- **软删除/回收站**：后端提供了 `trash`、`restore` 端点，但前端用了 `createCrudApi` 而不是 `createSoftDeleteCrudApi`
+- **软删除/回收站**：后端提供了 `trash`、`restore` 端点，但前端用了 `createCrudRequestAdapterMethods` 而不是 `createSoftDeleteCrudRequestAdapterMethods`
 - **批量操作**：后端提供了 `bulkDelete`，但前端未实现批量选择功能
 - **导出**：后端提供了 `export` 端点，但前端未添加导出按钮
 - **额外 API 能力**：后端提供了 `{id}/assign-roles`、`{id}/reset-password` 等子资源端点，但前端只实现了基础 CRUD
@@ -323,13 +350,18 @@ createSoftDeleteCrudApi({
 **额外 API 能力实现方式**：
 
 ```typescript
-// 1. API 层：扩展基础 CRUD
-export const userApi = {
-  ...baseUserApi,
-  async assignRoles(id: number, roleIds: number[]) {
-    return await contractClient.put(USER_ASSIGN_ROLES_PATH, {
-      params: { id },
-      body: { role_ids: roleIds }
+// 1. API 层：扩展基础 CRUD methods
+export const usersApiMethods = {
+  ...baseUsersApiMethods,
+  assignRoles(
+    params: { id: number },
+    data: { role_ids: number[] },
+    config?: ContractRequestConfig
+  ) {
+    return contractMethods.put(USER_ASSIGN_ROLES_PATH, {
+      params,
+      body: data,
+      config
     })
   }
 }
@@ -389,7 +421,7 @@ src/
 **关键点**：
 
 - 路径必须与后端 OpenAPI 契约完全一致
-- 使用 `createSoftDeleteCrudApi`（支持回收站）或 `createCrudApi`（标准）
+- 使用 `createSoftDeleteCrudRequestAdapterMethods`（支持回收站）或 `createCrudRequestAdapterMethods`（标准）
 - 类型自动从路径推导
 
 **踩坑记录**：
@@ -427,7 +459,7 @@ const ROLE_PAGE_RESOURCE = {
   trashTitle: {
     /* 回收站标题 */
   }, // 启用回收站时需要
-  api: roleApi,
+  methods: roleApiMethods,
   permissions: ADMIN_PERMISSIONS.role,
   optimisticUpdate: true, // 乐观更新
   defaultSort: [{ field: 'updated_at', order: 'desc' }]
@@ -545,27 +577,28 @@ open http://localhost:8001/api/docs
 
 **API 能力检查清单**：
 
-| 检查项            | 后端特征                           | 前端配置                            |
-| ----------------- | ---------------------------------- | ----------------------------------- |
-| 软删除            | 有 `trash`、`restore` 端点         | 使用 `createSoftDeleteCrudApi`      |
-| 回收站            | 有 `trashPermanentDelete` 端点     | `features.trash: { enabled: true }` |
-| 批量操作          | 有 `bulkDelete`、`bulkUpdate` 端点 | 需手动实现批量选择                  |
-| 导出              | 有 `export` 端点                   | 添加自定义导出按钮                  |
-| 高级查询          | `query` 端点支持复杂参数           | 使用智能搜索组件                    |
-| **额外 API 能力** | 有 `{id}/xxx` 子资源端点           | 通过 `extensions` 添加自定义操作    |
+| 检查项            | 后端特征                           | 前端配置                                         |
+| ----------------- | ---------------------------------- | ------------------------------------------------ |
+| 软删除            | 有 `trash`、`restore` 端点         | 使用 `createSoftDeleteCrudRequestAdapterMethods` |
+| 回收站            | 有 `trashPermanentDelete` 端点     | `features.trash: { enabled: true }`              |
+| 批量操作          | 有 `bulkDelete`、`bulkUpdate` 端点 | 需手动实现批量选择                               |
+| 导出              | 有 `export` 端点                   | 添加自定义导出按钮                               |
+| 高级查询          | `query` 端点支持复杂参数           | 使用智能搜索组件                                 |
+| **额外 API 能力** | 有 `{id}/xxx` 子资源端点           | 通过 `extensions` 添加自定义操作                 |
 
 **额外 API 能力实现**（以用户管理的"分配角色"为例）：
 
 ```typescript
-// 1. API 层：扩展基础 CRUD
-export const userApi = {
-  ...baseUserApi,  // 基础 CRUD 能力
+// 1. API 层：扩展基础 CRUD methods
+export const usersApiMethods = {
+  ...baseUsersApiMethods, // 基础 CRUD methods
 
   // 额外能力：分配角色
-  async assignRoles(id: number, roleIds: number[]) {
-    return await contractClient.put('/api/v1/users/{id}/assign-roles', {
-      params: { id },
-      body: { role_ids: roleIds }
+  assignRoles(params: { id: number }, data: { role_ids: number[] }, config?: ContractRequestConfig) {
+    return contractMethods.put('/api/v1/users/{id}/assign-roles', {
+      params,
+      body: data,
+      config
     })
   }
 }
@@ -596,7 +629,7 @@ export function createUserPageConfig(openAssignRolesDialog) {
 
 **实际案例**：
 
-1. **角色管理开发**：最初只用了 `createCrudApi`，后来发现后端支持软删除，改为 `createSoftDeleteCrudApi` 并启用 `features.trash`，回收站功能立即生效。
+1. **角色管理开发**：最初只用了 `createCrudRequestAdapterMethods`，后来发现后端支持软删除，改为 `createSoftDeleteCrudRequestAdapterMethods` 并启用 `features.trash`，回收站功能立即生效。
 
 2. **用户管理开发**：后端提供了 `assign-roles` 和 `reset-password` 端点，通过 `extensions.rowActions` 添加自定义行操作，实现完整的用户管理能力。
 
@@ -626,13 +659,13 @@ bash scripts/data/sync_menus.sh \
 
 ```typescript
 // ❌ 错误
-export const roleApi = createSoftDeleteCrudApi({
+export const roleApi = createSoftDeleteCrudRequestAdapterMethods({
   // ...
   bulkDelete: `${ROLE_PATH}/bulk` as const // 不存在！
 })
 
 // ✅ 正确
-export const roleApi = createSoftDeleteCrudApi({
+export const roleApi = createSoftDeleteCrudRequestAdapterMethods({
   collection: ROLE_PATH,
   item: `${ROLE_PATH}/{id}` as const
   // ...只配置实际存在的端点
@@ -706,16 +739,16 @@ permission: ADMIN_PERMISSIONS.role.page
 
 ## 故障排查速查
 
-| 问题                 | 排查                               | 解决                                                |
-| -------------------- | ---------------------------------- | --------------------------------------------------- |
-| 类型/Zod/权限找不到  | 是否同步了后端契约                 | 执行 `pnpm type:generate` 和 `pnpm zod:generate`    |
-| 缺少回收站/额外 API  | 检查后端 OpenAPI 端点              | 使用 `createSoftDeleteCrudApi` 或 `extensions` 扩展 |
-| 菜单同步后数据库没有 | 检查 `--frontend-path` 是否正确    | 使用绝对路径指定 worktree                           |
-| 表格列不显示         | 检查 `visibleFrom` 和 `storageKey` | 设置 `visibleFrom: 'mobile'`，确保 key 唯一         |
-| 表单字段类型错误     | 检查 OpenAPI schema 推断           | 在 `form` 中显式覆盖 `type`                         |
-| 权限检查不生效       | 检查权限常量引用                   | 使用 `ADMIN_PERMISSIONS.xxx`                        |
-| 列配置不持久化       | 检查 localStorage                  | 使用命名空间前缀如 `wes-xxx`                        |
-| 类型推断失败         | 检查泛型参数                       | 显式传递 `<Item, Create, Update>`                   |
+| 问题                 | 排查                               | 解决                                                                  |
+| -------------------- | ---------------------------------- | --------------------------------------------------------------------- |
+| 类型/Zod/权限找不到  | 是否同步了后端契约                 | 执行 `pnpm type:generate` 和 `pnpm zod:generate`                      |
+| 缺少回收站/额外 API  | 检查后端 OpenAPI 端点              | 使用 `createSoftDeleteCrudRequestAdapterMethods` 或 `extensions` 扩展 |
+| 菜单同步后数据库没有 | 检查 `--frontend-path` 是否正确    | 使用绝对路径指定 worktree                                             |
+| 表格列不显示         | 检查 `visibleFrom` 和 `storageKey` | 设置 `visibleFrom: 'mobile'`，确保 key 唯一                           |
+| 表单字段类型错误     | 检查 OpenAPI schema 推断           | 在 `form` 中显式覆盖 `type`                                           |
+| 权限检查不生效       | 检查权限常量引用                   | 使用 `ADMIN_PERMISSIONS.xxx`                                          |
+| 列配置不持久化       | 检查 localStorage                  | 使用命名空间前缀如 `wes-xxx`                                          |
+| 类型推断失败         | 检查泛型参数                       | 显式传递 `<Item, Create, Update>`                                     |
 
 ---
 
@@ -850,7 +883,7 @@ bash scripts/hooks/pre-commit-check-api
 **Hook 会阻止提交的情况**：
 
 - 后端 API 已变更但未同步契约
-- 检测到软删除端点但使用了 `createCrudApi`
+- 检测到软删除端点但使用了 `createCrudRequestAdapterMethods`
 
 ```bash
 # 绕过检查强制提交

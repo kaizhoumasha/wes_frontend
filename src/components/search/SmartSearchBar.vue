@@ -158,7 +158,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useElementSize } from '@vueuse/core'
 
 import { ArrowDown, CircleClose, Setting } from '@element-plus/icons-vue'
@@ -167,72 +167,43 @@ import type { SearchCondition, SearchFavorite, SearchFieldDef } from '@/types/se
 import type { QuickSearchPreset } from '@/types/search'
 import SearchConditionTag from './SearchConditionTag.vue'
 import SearchPopoverPanel from './SearchPopoverPanel.vue'
-
-// ==================== 类型定义 ====================
+import { useSmartSearchPopoverControl } from './hooks/useSmartSearchPopoverControl'
+import { useSmartSearchTokenSelection } from './hooks/useSmartSearchTokenSelection'
+import { useSmartSearchInteractions } from './hooks/useSmartSearchInteractions'
 
 interface Props {
-  /** 搜索条件列表 */
   conditions: SearchCondition[]
-  /** 关键字 */
   keyword: string
-  /** 当前高亮字段 */
   activeField?: string
-  /** 可搜索字段列表 */
   fields: SearchFieldDef[]
-  /** 收藏夹列表 */
   favorites: SearchFavorite[]
-  /** 快速搜索预设 */
   quickPresets: QuickSearchPreset[]
-  /** 占位符 */
   placeholder?: string
-  /** 是否加载中 */
   loading?: boolean
-  /** Popover 是否打开（外部控制） */
   popoverOpen?: boolean
-  /** 是否启用了高级搜索规则 */
   advancedActive?: boolean
-  /** 高级搜索条件数量 */
   advancedCount?: number
-  /** 高级搜索摘要 */
   advancedSummary?: string
 }
 
 interface Emits {
-  /** 更新关键字 */
   (e: 'update:keyword', value: string): void
-  /** 删除条件 */
   (e: 'remove-condition', id: string): void
-  /** 打开 Popover */
   (e: 'open-popover'): void
-  /** 关闭 Popover */
   (e: 'close-popover'): void
-  /** 打开高级搜索 */
   (e: 'open-advanced'): void
-  /** 清空 */
   (e: 'clear'): void
-  /** 清空高级搜索 */
   (e: 'clear-advanced'): void
-  /** 选择字段 */
   (e: 'select-field', fieldKey: string): void
-  /** 应用快速预设 */
   (e: 'apply-preset', presetId: string): void
-  /** 应用收藏夹 */
   (e: 'apply-favorite', favoriteId: string): void
-  /** 键盘导航 - 下一个字段 */
   (e: 'keydown-next'): void
-  /** 键盘导航 - 上一个字段 */
   (e: 'keydown-prev'): void
-  /** 触发搜索 */
   (e: 'search'): void
-  /** 根据字段点击执行搜索或打开高级搜索 */
   (e: 'activate-field', fieldKey: string): void
-  /** 请求按字段打开高级搜索 */
   (e: 'open-advanced-for-field', fieldKey: string): void
-  /** 切换 Popover */
   (e: 'toggle-popover'): void
 }
-
-// ==================== Props & Emits ====================
 
 const props = withDefaults(defineProps<Props>(), {
   placeholder: '搜索...',
@@ -246,47 +217,94 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
-// ==================== 状态 ====================
-
-const ADVANCED_TAG_TOKEN = '__advanced__'
-
 const inputRef = ref<HTMLInputElement>()
 const searchBarRef = ref<HTMLDivElement>()
 const isFocused = ref(false)
 const isComposing = ref(false)
-const selectedTokenId = ref<string>()
-const manualToggle = ref(false) // 标记用户是否手动切换过 popover
-const expectedPopoverOpen = ref(false) // 跟踪 popover 的期望状态，避免重复触发
 const { width: searchBarWidth } = useElementSize(searchBarRef)
+
 const keywordValue = computed({
   get: () => props.keyword,
   set: val => emit('update:keyword', val)
 })
 
-function syncPopoverWithKeyword(keyword: string): void {
-  // 如果用户手动切换过 popover，则不自动控制
-  if (manualToggle.value) {
-    return
+const keyword = computed(() => props.keyword)
+const advancedActive = computed(() => props.advancedActive)
+const popoverOpen = computed(() => props.popoverOpen === true)
+const hasConditions = computed(() => props.conditions.length > 0 || props.advancedActive)
+const showsCombinedModeHint = computed(() => props.advancedActive && props.conditions.length > 0)
+const advancedCountLabel = computed(() => {
+  if (!props.advancedCount || props.advancedCount <= 0) {
+    return ''
   }
 
-  const shouldOpen = keyword.trim().length > 0
+  return `${props.advancedCount}项`
+})
 
-  // 只在期望状态与当前状态不同时才触发事件
-  if (shouldOpen !== expectedPopoverOpen.value) {
-    expectedPopoverOpen.value = shouldOpen
-    if (shouldOpen) {
-      emit('open-popover')
-    } else {
-      emit('close-popover')
-    }
-  }
-}
+const tokenSelection = useSmartSearchTokenSelection({
+  conditions: computed(() => props.conditions),
+  advancedActive: computed(() => props.advancedActive),
+  inputRef,
+  onRemoveCondition: id => emit('remove-condition', id),
+  onClearAdvanced: () => emit('clear-advanced')
+})
 
-// Popover 可见性：完全受控于 popoverOpen 状态
-// 移除空态限制，允许用户在无数据时也能查看字段、预设、收藏夹
-const popoverVisible = computed(() => props.popoverOpen === true)
+const {
+  selectedTokenId,
+  selectionTokens,
+  selectedAdvancedTag,
+  clearSelectedCondition,
+  getSelectedTokenIndex,
+  selectTokenAt,
+  selectLastToken,
+  isCaretAtStart,
+  removeSelectedToken
+} = tokenSelection
 
-// 监听输入框的值变化，自动控制 popover 的打开/关闭
+const popoverControl = useSmartSearchPopoverControl({
+  keyword,
+  popoverOpen,
+  isComposing,
+  isFocused,
+  onOpen: () => emit('open-popover'),
+  onClose: () => emit('close-popover')
+})
+
+const {
+  manualToggle,
+  popoverVisible,
+  syncPopoverWithKeyword,
+  resetPopoverAutoControl,
+  requestPopoverOpen,
+  handlePopoverVisibleChange
+} = popoverControl
+
+const { handleKeyDown, handleCompositionStart, handleCompositionEnd, handleActivateField } =
+  useSmartSearchInteractions({
+    keyword,
+    activeField: computed(() => props.activeField),
+    hasConditions,
+    isComposing,
+    selectionTokens,
+    selectedTokenId,
+    clearSelectedCondition,
+    getSelectedTokenIndex,
+    selectTokenAt,
+    selectLastToken,
+    isCaretAtStart,
+    removeSelectedToken,
+    requestPopoverOpen,
+    syncPopoverWithKeyword,
+    onKeydownNext: () => emit('keydown-next'),
+    onKeydownPrev: () => emit('keydown-prev'),
+    onSearch: () => emit('search'),
+    onClosePopover: () => emit('close-popover'),
+    onOpenAdvanced: () => handleOpenAdvanced(),
+    onSelectField: fieldKey => emit('select-field', fieldKey),
+    onActivateField: fieldKey => emit('activate-field', fieldKey),
+    onOpenAdvancedForField: fieldKey => emit('open-advanced-for-field', fieldKey)
+  })
+
 watch(
   () => props.keyword,
   newKeyword => {
@@ -294,8 +312,6 @@ watch(
       clearSelectedCondition()
     }
 
-    // 中文输入法合成期间会频繁触发 input / visible 回调，
-    // 这里延迟到 compositionend 后再统一同步，避免 popover 闪烁。
     if (isComposing.value) {
       return
     }
@@ -307,12 +323,15 @@ watch(
 watch(
   () => props.conditions,
   conditions => {
-    if (selectedTokenId.value === ADVANCED_TAG_TOKEN) {
+    if (selectedTokenId.value && !selectionTokens.value.includes(selectedTokenId.value)) {
+      clearSelectedCondition()
       return
     }
 
     if (!conditions.some(condition => condition.id === selectedTokenId.value)) {
-      clearSelectedCondition()
+      if (!props.advancedActive || selectedTokenId.value !== '__advanced__') {
+        clearSelectedCondition()
+      }
     }
   },
   { deep: true }
@@ -321,117 +340,11 @@ watch(
 watch(
   () => props.advancedActive,
   active => {
-    if (!active && selectedTokenId.value === ADVANCED_TAG_TOKEN) {
+    if (!active && selectedTokenId.value === '__advanced__') {
       clearSelectedCondition()
     }
   }
 )
-
-// 同步 expectedPopoverOpen 与实际的 popoverOpen 状态
-watch(
-  () => props.popoverOpen,
-  newValue => {
-    if (!manualToggle.value) {
-      expectedPopoverOpen.value = newValue
-    }
-  }
-)
-
-// ==================== 计算属性 ====================
-
-const hasConditions = computed(() => props.conditions.length > 0 || props.advancedActive)
-const keyword = computed(() => props.keyword)
-const advancedActive = computed(() => props.advancedActive)
-const showsCombinedModeHint = computed(() => props.advancedActive && props.conditions.length > 0)
-const advancedCountLabel = computed(() => {
-  if (!props.advancedCount || props.advancedCount <= 0) {
-    return ''
-  }
-
-  return `${props.advancedCount}项`
-})
-const selectionTokens = computed(() => [
-  ...(props.advancedActive ? [ADVANCED_TAG_TOKEN] : []),
-  ...props.conditions.map(condition => condition.id)
-])
-const selectedAdvancedTag = computed(() => selectedTokenId.value === ADVANCED_TAG_TOKEN)
-
-function clearSelectedCondition(): void {
-  selectedTokenId.value = undefined
-}
-
-function getSelectedTokenIndex(): number {
-  if (!selectedTokenId.value) {
-    return -1
-  }
-
-  return selectionTokens.value.findIndex(token => token === selectedTokenId.value)
-}
-
-function selectTokenAt(index: number): void {
-  if (index < 0 || index >= selectionTokens.value.length) {
-    clearSelectedCondition()
-    return
-  }
-
-  selectedTokenId.value = selectionTokens.value[index]
-}
-
-function selectLastToken(): void {
-  if (selectionTokens.value.length === 0) {
-    clearSelectedCondition()
-    return
-  }
-
-  selectTokenAt(selectionTokens.value.length - 1)
-}
-
-function isCaretAtStart(): boolean {
-  const input = inputRef.value
-  if (!input) {
-    return false
-  }
-
-  return input.selectionStart === 0 && input.selectionEnd === 0
-}
-
-function removeSelectedToken(): void {
-  const currentIndex = getSelectedTokenIndex()
-  if (currentIndex === -1) {
-    clearSelectedCondition()
-    return
-  }
-
-  const currentToken = selectionTokens.value[currentIndex]
-  const previousToken = selectionTokens.value[currentIndex - 1]
-  const nextToken = selectionTokens.value[currentIndex + 1]
-
-  selectedTokenId.value = previousToken || nextToken
-
-  if (currentToken === ADVANCED_TAG_TOKEN) {
-    emit('clear-advanced')
-    return
-  }
-
-  emit('remove-condition', currentToken)
-}
-
-function resetPopoverAutoControl(): void {
-  manualToggle.value = false
-  expectedPopoverOpen.value = props.popoverOpen
-}
-
-function requestPopoverOpen(): void {
-  manualToggle.value = false
-  expectedPopoverOpen.value = true
-  emit('open-popover')
-}
-
-function emitSearch(): void {
-  emit('search')
-}
-
-// ==================== 事件处理 ====================
 
 function handleContainerClick(): void {
   clearSelectedCondition()
@@ -439,7 +352,6 @@ function handleContainerClick(): void {
 }
 
 function handleBlur(): void {
-  // 延迟关闭，让点击事件先执行
   setTimeout(() => {
     isFocused.value = false
     clearSelectedCondition()
@@ -450,117 +362,6 @@ function handleFocus(): void {
   isFocused.value = true
   clearSelectedCondition()
   resetPopoverAutoControl()
-}
-
-function handleKeyDown(event: KeyboardEvent): void {
-  if (isComposing.value || event.isComposing) {
-    return
-  }
-
-  switch (event.key) {
-    case 'ArrowDown':
-      clearSelectedCondition()
-      event.preventDefault()
-      requestPopoverOpen()
-      emit('keydown-next')
-      break
-    case 'ArrowUp':
-      clearSelectedCondition()
-      event.preventDefault()
-      requestPopoverOpen()
-      emit('keydown-prev')
-      break
-    case 'ArrowLeft': {
-      if (keyword.value || !hasConditions.value) {
-        break
-      }
-
-      const selectedIndex = getSelectedTokenIndex()
-      if (selectedIndex === -1 && !isCaretAtStart()) {
-        break
-      }
-
-      event.preventDefault()
-      if (selectedIndex === -1) {
-        selectLastToken()
-        break
-      }
-
-      selectTokenAt(Math.max(0, selectedIndex - 1))
-      break
-    }
-    case 'ArrowRight': {
-      if (keyword.value || !hasConditions.value) {
-        break
-      }
-
-      const selectedIndex = getSelectedTokenIndex()
-      if (selectedIndex === -1) {
-        break
-      }
-
-      event.preventDefault()
-      if (selectedIndex >= selectionTokens.value.length - 1) {
-        clearSelectedCondition()
-        break
-      }
-
-      selectTokenAt(selectedIndex + 1)
-      break
-    }
-    case 'Enter': {
-      if (selectedTokenId.value === ADVANCED_TAG_TOKEN) {
-        event.preventDefault()
-        handleOpenAdvanced()
-        break
-      }
-
-      if (selectedTokenId.value) {
-        event.preventDefault()
-        break
-      }
-
-      event.preventDefault()
-      const activeFieldKey = props.activeField
-
-      if (activeFieldKey) {
-        handleActivateField(activeFieldKey)
-        break
-      }
-
-      // 没有高亮字段时，直接触发搜索
-      emitSearch()
-      break
-    }
-    case 'Escape':
-      clearSelectedCondition()
-      emit('close-popover')
-      break
-    case 'Delete':
-    case 'Backspace':
-      if (selectedTokenId.value) {
-        event.preventDefault()
-        removeSelectedToken()
-        break
-      }
-
-      if (!keyword.value && hasConditions.value) {
-        event.preventDefault()
-        selectLastToken()
-      }
-      break
-  }
-}
-
-function handleCompositionStart(): void {
-  isComposing.value = true
-}
-
-function handleCompositionEnd(): void {
-  isComposing.value = false
-  void nextTick(() => {
-    syncPopoverWithKeyword(props.keyword)
-  })
 }
 
 function handleRemoveCondition(id: string): void {
@@ -574,7 +375,7 @@ function handleRemoveCondition(id: string): void {
 function handleClearKeyword(): void {
   clearSelectedCondition()
   emit('update:keyword', '')
-  emitSearch()
+  emit('search')
 }
 
 function handleClearAll(): void {
@@ -587,17 +388,6 @@ function handleOpenAdvanced(): void {
   emit('open-advanced')
 }
 
-function handleActivateField(fieldKey: string): void {
-  clearSelectedCondition()
-  emit('select-field', fieldKey)
-
-  if (keyword.value.trim()) {
-    emit('activate-field', fieldKey)
-  } else {
-    emit('open-advanced-for-field', fieldKey)
-  }
-}
-
 function handleApplyPreset(presetId: string): void {
   emit('apply-preset', presetId)
   emit('close-popover')
@@ -608,30 +398,12 @@ function handleApplyFavorite(favoriteId: string): void {
   emit('close-popover')
 }
 
-function handlePopoverVisibleChange(visible: boolean): void {
-  // Popover 的打开只允许由业务事件显式控制（输入/按钮），
-  // 避免内部 visible 回调把已关闭状态重新打开。
-  if (!visible && (isComposing.value || (isFocused.value && props.keyword.trim().length > 0))) {
-    return
-  }
-
-  if (!visible) {
-    emit('close-popover')
-  }
-}
-
 function handleTogglePopover(): void {
   clearSelectedCondition()
-  // 标记用户手动切换了 popover
   manualToggle.value = true
   emit('toggle-popover')
 }
 
-// ==================== 暴露方法 ====================
-
-/**
- * 聚焦输入框
- */
 function focus(): void {
   inputRef.value?.focus()
 }

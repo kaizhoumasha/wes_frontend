@@ -1,5 +1,18 @@
 # 智能搜索能力设计文档 v1
 
+> **⚠️ 历史文档说明（2026-04）**
+>
+> 本文档保留其原始设计/计划上下文，**不再作为当前实现基线**。
+> 当前代码已完成 methods-first / request-adapter 收口，以下旧术语如 `userApi`、`useCrudApi`、`src/api/base/crud-api.ts`、`xxxApi` 等，均可能与现状不一致。
+>
+> 请优先参考：
+>
+> - `docs/CRUD_DEVELOPMENT_GUIDE.md`
+> - `docs/CONTRACT_FRONTEND_DEVELOPMENT_MANUAL.md`
+> - `src/api/base/crud-request-adapter.ts`
+> - `src/composables/useCrudRequestAdapter.ts`
+> - `src/components/common/crud-page/createCrudPageConfigFromResource.ts`
+
 > **项目**: P9 MCS 前端项目  
 > **能力主题**: 智能搜索（Smart Search）  
 > **文档版本**: v1.0  

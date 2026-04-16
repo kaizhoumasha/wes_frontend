@@ -34,3 +34,9 @@ SESSION-STATE.md
 SOUL.md
 TOOLS.md
 USER.md
+statuses/**
+config.json
+events.jsonl
+views.json
+.claude-plugin/plugin.json
+sessions/**

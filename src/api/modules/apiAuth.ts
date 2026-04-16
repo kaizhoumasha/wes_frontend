@@ -8,7 +8,7 @@
  *
  * 资源: /api/v1/api_auth/access-log
  */
-import { contractClient } from '@/api/contract/client'
+import { contractMethods } from '@/api/contract/client'
 import type {
   ContractPathParams,
   ContractQueryParams,
@@ -25,21 +25,23 @@ export type GetByIdQuery = ContractQueryParams<'/api/v1/api_auth/access-log/{id}
 export type QueryResult = ContractResponseData<'/api/v1/api_auth/access-log/query', 'post'>
 export type QueryInput = ContractRequestBody<'/api/v1/api_auth/access-log/query', 'post'>
 
-export const apiAuthApi = {
+export const apiAuthApiMethods = {
   /**
    * [api-auth:apiaccesslog:get] 获取APIAccessLog
    * @endpoint GET /api/v1/api_auth/access-log/{id}
+   * @returns alova method instance
    */
-  async getById(params: ContractPathParams<'/api/v1/api_auth/access-log/{id}', 'get'>, query?: ContractQueryParams<'/api/v1/api_auth/access-log/{id}', 'get'>, config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api_auth/access-log/{id}', 'get'>> {
-    return await contractClient.get('/api/v1/api_auth/access-log/{id}', { params, query, config })
+  getById(params: ContractPathParams<'/api/v1/api_auth/access-log/{id}', 'get'>, query?: ContractQueryParams<'/api/v1/api_auth/access-log/{id}', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/api_auth/access-log/{id}', { params, query, config })
   },
 
   /**
    * [api-auth:apiaccesslog:list] 获取APIAccessLog列表
    * @endpoint POST /api/v1/api_auth/access-log/query
+   * @returns alova method instance
    */
-  async query(body: ContractRequestBody<'/api/v1/api_auth/access-log/query', 'post'>, config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/api_auth/access-log/query', 'post'>> {
-    return await contractClient.post('/api/v1/api_auth/access-log/query', { body, config })
+  query(body: ContractRequestBody<'/api/v1/api_auth/access-log/query', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/api_auth/access-log/query', { body, config })
   }
 }
 // ==================== AUTO GENERATED END ====================

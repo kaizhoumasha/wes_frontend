@@ -4,7 +4,7 @@ import type {
   DevicesItem as Device
 } from '@/api/modules/devices'
 import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
-import { devicesApi as deviceApi } from '@/api/modules/devices'
+import { devicesApiMethods } from '@/api/modules/devices'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
@@ -12,7 +12,7 @@ import { devicePageFieldConfig } from './fieldConfig'
 
 type DevicePageConfig = CrudPageConfig<Device, CreateDeviceInput, UpdateDeviceInput>
 
-const DEVICE_PAGE_RESOURCE: DevicePageConfig['resource'] = {
+const DEVICE_PAGE_RESOURCE = {
   key: 'devices',
   title: {
     text: '设备管理',
@@ -24,10 +24,10 @@ const DEVICE_PAGE_RESOURCE: DevicePageConfig['resource'] = {
     subtitle: '查看并恢复已删除设备',
     icon: 'ep:delete'
   },
-  api: deviceApi,
+  methods: devicesApiMethods,
   permissions: BIZ_PERMISSIONS.device,
   optimisticUpdate: true,
-  defaultSort: [{ field: 'updated_at', order: 'desc' }]
+  defaultSort: [{ field: 'updated_at', order: 'desc' as const }]
 }
 
 const DEVICE_PAGE_TABLE: Partial<DevicePageConfig['table']> = {

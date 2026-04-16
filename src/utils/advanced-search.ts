@@ -1,4 +1,4 @@
-import type { FilterCondition, FilterCouple, FilterGroup } from '@/api/base/crud-api'
+import type { FilterCondition, FilterCouple, FilterGroup } from '@/api/base/crud-request-adapter'
 import type {
   AdvancedFilterOperator,
   SearchCondition,

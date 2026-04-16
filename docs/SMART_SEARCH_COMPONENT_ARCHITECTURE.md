@@ -8,6 +8,11 @@
 
 ---
 
+## 0. 当前架构说明（2026-04）
+
+> 本文档中的 Smart Search 设计已落地到 methods-first / request-adapter 架构。
+> 如果你在其他历史设计文档里看到 `useCrudApi`、`CrudApi.query()`、`src/api/base/crud-api.ts` 等旧术语，请以本文件和当前代码为准。
+
 ## 1. 文档目标
 
 本文档用于在《智能搜索能力设计文档 v1》的基础上，进一步明确：
@@ -31,7 +36,7 @@
 - Popover 三栏应该拆成几个组件？
 - 高级搜索弹窗怎么和主搜索框共享状态？
 - 条件 Tag 的显示与编辑如何解耦？
-- 页面应该拿到什么 API，才能接入 `useCrudApi`？
+- 页面应该拿到什么 `methods` / `requestAdapter`，才能接入通用 CRUD 页面框架？
 
 本文件就是为这些问题给出**可执行结构**。
 
@@ -40,8 +45,8 @@
 当前仓库应沿用以下底层能力：
 
 - 请求层：`src/api/client.ts`
-- CRUD 层：`src/api/base/crud-api.ts`
-- 列表状态层：`src/composables/useCrudApi.ts`
+- CRUD 基础层：`src/api/base/crud-request-adapter.ts`
+- 列表状态层：`src/composables/useCrudRequestAdapter.ts`
 - 通用请求态：`src/composables/useRequest.ts`
 - UI 组件层：Element Plus
 
@@ -84,7 +89,7 @@
 ### 3.2 必须坚持的边界
 
 - 条件编译逻辑不得写在 Vue 组件中。
-- 组件不得直接操作 `CrudApi.query()`。
+- 组件不得直接操作 `requestAdapter.query()` 或 methods 的发送逻辑。
 - 页面不得散写条件的增删改查逻辑。
 - 高级搜索弹窗与主搜索框必须共享同一套搜索状态。
 

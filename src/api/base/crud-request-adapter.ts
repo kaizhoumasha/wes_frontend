@@ -1,15 +1,13 @@
 /**
- * 合同驱动的 CRUD API 基础封装
+ * 合同驱动的 CRUD 请求适配器基础封装
  *
  * 以生成的 OpenAPI 契约作为编译期单一来源，
  * 对外只暴露页面层真正需要的 CRUD 能力。
  */
 
-import { contractClient } from '@/api/contract/client'
 import type {
   ContractPath,
   ContractPathWithMethod,
-  ContractPathParams,
   ContractQueryParams,
   ContractRequestBody,
   ContractRequestConfig,
@@ -24,6 +22,18 @@ import {
   QueryOptionsSchema,
   SortFieldSchema,
 } from '@/types/zod-extensions'
+import { contractClient, contractMethods } from '@/api/contract/client'
+import type { MethodLike } from '@/api/base/crud-request-adapter-method-helpers'
+import { createCrudResourceEndpoints, createSoftDeleteCrudResourceEndpoints } from '@/api/base/crud-request-adapter-resource-helpers'
+import {
+  assertContractListResponse,
+  createIdParams,
+  normalizeBatchIds,
+  normalizeFilterGroup,
+  normalizeQueryRequest,
+  toPaginationData,
+  withJsonContentType
+} from '@/api/base/crud-request-adapter-helpers'
 
 /**
  * 单个筛选条件支持的操作符。
@@ -101,7 +111,7 @@ interface ContractListResponse<TItem> {
  * - 更新走 `/{id}` 的 `PUT`
  * - 删除走 `/{id}` 的 `DELETE`
  */
-export interface CrudApi<
+export interface CrudRequestAdapter<
   TItem,
   TCreate,
   TUpdate,
@@ -125,10 +135,32 @@ export interface CrudApi<
   }): Promise<TDeleteResult>
 }
 
-/**
- * 支持软删除资源的统一扩展接口。
- */
-export interface SoftDeleteCrudApi<
+
+export interface CrudApiMethods<
+  TItem,
+  TCreate,
+  TUpdate,
+  TDetailQuery = never,
+  TQueryInput = QueryOptionsInput,
+  TCreateResult = TItem,
+  TUpdateResult = TItem,
+  TDeleteQuery = never,
+  TDeleteResult = unknown,
+> {
+  getById(id: number, options?: {
+    query?: TDetailQuery
+    config?: ContractRequestConfig
+  }): MethodLike<TItem>
+  query(options?: TQueryInput, config?: ContractRequestConfig): MethodLike<unknown>
+  create(data: TCreate, config?: ContractRequestConfig): MethodLike<TCreateResult>
+  update(id: number, data: TUpdate, config?: ContractRequestConfig): MethodLike<TUpdateResult>
+  delete(id: number, options?: {
+    query?: TDeleteQuery
+    config?: ContractRequestConfig
+  }): MethodLike<TDeleteResult>
+}
+
+export interface SoftDeleteCrudApiMethods<
   TItem,
   TCreate,
   TUpdate,
@@ -143,7 +175,44 @@ export interface SoftDeleteCrudApi<
   TBatchRestoreResult = BatchOperationResult,
   TBatchPermanentDeleteResult = BatchOperationResult,
   TBatchDeleteResult = BatchOperationResult,
-> extends CrudApi<
+> extends CrudApiMethods<
+  TItem,
+  TCreate,
+  TUpdate,
+  TDetailQuery,
+  TQueryInput,
+  TCreateResult,
+  TUpdateResult,
+  TDeleteQuery,
+  TDeleteResult
+> {
+  getTrash(options?: TTrashQuery, config?: ContractRequestConfig): MethodLike<unknown>
+  restore(id: number, config?: ContractRequestConfig): MethodLike<TRestoreResult>
+  permanentDelete(id: number, config?: ContractRequestConfig): MethodLike<TDeleteResult>
+  batchDelete(ids: number[], config?: ContractRequestConfig): MethodLike<TBatchDeleteResult> | MethodLike<unknown> | Array<MethodLike<TDeleteResult>>
+  batchRestore(ids: number[], config?: ContractRequestConfig): MethodLike<TBatchRestoreResult>
+  batchPermanentDelete(ids: number[], config?: ContractRequestConfig): MethodLike<TBatchPermanentDeleteResult>
+}
+
+/**
+ * 支持软删除资源的统一扩展接口。
+ */
+export interface SoftDeleteCrudRequestAdapter<
+  TItem,
+  TCreate,
+  TUpdate,
+  TDetailQuery = never,
+  TQueryInput = QueryOptionsInput,
+  TCreateResult = TItem,
+  TUpdateResult = TItem,
+  TDeleteQuery = never,
+  TDeleteResult = unknown,
+  TTrashQuery = { offset?: number; limit?: number },
+  TRestoreResult = TItem,
+  TBatchRestoreResult = BatchOperationResult,
+  TBatchPermanentDeleteResult = BatchOperationResult,
+  TBatchDeleteResult = BatchOperationResult,
+> extends CrudRequestAdapter<
   TItem,
   TCreate,
   TUpdate,
@@ -165,6 +234,7 @@ export interface SoftDeleteCrudApi<
     config?: ContractRequestConfig
   ): Promise<TBatchPermanentDeleteResult>
 }
+
 
 /**
  * 由集合路径推导出的批量删除路径，例如 `/api/v1/users` -> `/api/v1/users/bulk`。
@@ -321,7 +391,7 @@ interface ContractSoftDeleteEndpoints<
   bulkDelete?: TBulkDeletePath
 }
 
-type CrudResourceApi<TCollectionPath extends CrudResourceCollectionPath> = CrudApi<
+type CrudResourceRequestAdapter<TCollectionPath extends CrudResourceCollectionPath> = CrudRequestAdapter<
   CrudItem<TCollectionPath>,
   CrudCreateInput<TCollectionPath>,
   CrudUpdateInput<TCollectionPath>,
@@ -333,8 +403,8 @@ type CrudResourceApi<TCollectionPath extends CrudResourceCollectionPath> = CrudA
   ContractResponseData<CrudManagedItemPath<TCollectionPath>, 'delete'>
 >
 
-type SoftDeleteCrudResourceApi<TCollectionPath extends SoftDeleteCrudResourceCollectionPath> =
-  SoftDeleteCrudApi<
+type SoftDeleteCrudResourceRequestAdapter<TCollectionPath extends SoftDeleteCrudResourceCollectionPath> =
+  SoftDeleteCrudRequestAdapter<
     CrudItem<TCollectionPath>,
     CrudCreateInput<TCollectionPath>,
     CrudUpdateInput<TCollectionPath>,
@@ -350,121 +420,22 @@ type SoftDeleteCrudResourceApi<TCollectionPath extends SoftDeleteCrudResourceCol
     ContractResponseData<SoftDeleteManagedTrashPermanentDeletePath<TCollectionPath>, 'delete'>
   >
 
-function normalizeFilterGroup(filters: FilterGroup | null | undefined): FilterGroup | undefined {
-  if (!filters) {
-    return undefined
-  }
-
-  return {
-    couple: filters.couple ?? 'and',
-    conditions: filters.conditions ?? []
-  }
-}
-
-function toPaginationData<TItem>(response: ContractListResponse<TItem>): PaginationData<TItem> {
-  const size = response.limit
-  const page = size > 0 ? Math.floor(response.offset / size) + 1 : 1
-
-  return {
-    items: response.items ?? [],
-    total: response.total,
-    page,
-    size,
-    pages: size > 0 ? Math.ceil(response.total / size) : 0
-  }
-}
-
-function normalizeQueryRequest<TQuery>(options: TQuery | undefined): TQuery | undefined {
-  // 基础默认值
-  const defaults = {
-    offset: 0,
-    limit: 10,
-    max_depth: 1,
-    include_deleted: false
-  }
-
-  if (!options || typeof options !== 'object') {
-    return { ...defaults } as TQuery
-  }
-
-  const queryOptions = options as TQuery & {
-    filters?: FilterGroup | null
-    offset?: number
-    limit?: number
-    max_depth?: number
-    include_deleted?: boolean
-  }
-
-  // 合并默认值（只填充未提供的字段）
-  const withDefaults = {
-    offset: queryOptions.offset ?? defaults.offset,
-    limit: queryOptions.limit ?? defaults.limit,
-    max_depth: queryOptions.max_depth ?? defaults.max_depth,
-    include_deleted: queryOptions.include_deleted ?? defaults.include_deleted,
-    ...queryOptions
-  }
-
-  // 处理 filters
-  if ('filters' in queryOptions) {
-    return {
-      ...withDefaults,
-      filters: normalizeFilterGroup(queryOptions.filters)
-    } as TQuery
-  }
-
-  return withDefaults as TQuery
-}
-
-function createIdParams<TPath extends ContractPath, TMethod extends 'get' | 'post' | 'put' | 'delete'>(
-  id: number
-): ContractPathParams<TPath, TMethod> {
-  return { id } as unknown as ContractPathParams<TPath, TMethod>
-}
-
-function assertContractListResponse<TItem>(result: unknown): asserts result is ContractListResponse<TItem> {
-  if (
-    typeof result !== 'object' ||
-    result === null ||
-    !('limit' in result) ||
-    !('offset' in result) ||
-    !('total' in result)
-  ) {
-    throw new Error('Invalid CRUD query response shape')
-  }
-}
-
-function normalizeBatchIds(ids: number[]): number[] {
-  const normalized = Array.from(
-    new Set(
-      ids
-        .map(id => Number(id))
-        .filter(id => Number.isInteger(id) && id > 0)
-    )
-  )
-
-  if (normalized.length === 0) {
-    console.warn('[normalizeBatchIds] 无有效 ID，操作将被跳过')
-  }
-
-  return normalized
-}
-
 /**
  * 运行时判断某个 API 是否具备软删除扩展能力。
  */
-export function hasSoftDeleteCrudApi<
+export function hasSoftDeleteCrudRequestAdapter<
   TItem,
   TCreate,
   TUpdate,
 >(
-  api: CrudApi<TItem, TCreate, TUpdate>
-): api is SoftDeleteCrudApi<TItem, TCreate, TUpdate> {
+  adapter: CrudRequestAdapter<TItem, TCreate, TUpdate>
+): adapter is SoftDeleteCrudRequestAdapter<TItem, TCreate, TUpdate> {
   return (
-    'getTrash' in api &&
-    'restore' in api &&
-    'permanentDelete' in api &&
-    'batchRestore' in api &&
-    'batchPermanentDelete' in api
+    'getTrash' in adapter &&
+    'restore' in adapter &&
+    'permanentDelete' in adapter &&
+    'batchRestore' in adapter &&
+    'batchPermanentDelete' in adapter
   )
 }
 
@@ -502,20 +473,20 @@ export function appendAndFilter(
 }
 
 /**
- * 基于显式端点定义创建 CRUD API。
+ * 基于显式端点定义创建 CRUD 请求适配器。
  *
  * 适合：
  * - 标准资源 CRUD
  * - 需要明确声明 collection/item/query 路径的场景
  * - 不希望依赖路径拼接约定的场景
  */
-export function createCrudApi<
+export function createCrudRequestAdapter<
   TCollectionPath extends ContractPathWithMethod<'post'>,
   TItemPath extends ContractPathWithMethod<'get'> & ContractPathWithMethod<'put'> & ContractPathWithMethod<'delete'>,
   TQueryPath extends ContractPathWithMethod<'post'>,
 >(
   endpoints: ContractCrudEndpoints<TCollectionPath, TItemPath, TQueryPath>
-): CrudApi<
+): CrudRequestAdapter<
   ContractResponseData<TItemPath, 'get'>,
   ContractRequestBody<TCollectionPath, 'post'>,
   ContractRequestBody<TItemPath, 'put'>,
@@ -548,22 +519,18 @@ export function createCrudApi<
     },
 
     async create(data, config) {
-      const response = await contractClient.post(endpoints.collection, {
+      return await contractClient.post(endpoints.collection, {
         body: data,
         config
       })
-
-      return response
     },
 
     async update(id, data, config) {
-      const response = await contractClient.put(endpoints.item, {
+      return await contractClient.put(endpoints.item, {
         params: createIdParams<TItemPath, 'put'>(id),
         body: data,
         config
       })
-
-      return response
     },
 
     async delete(id, options) {
@@ -577,9 +544,9 @@ export function createCrudApi<
 }
 
 /**
- * 基于显式端点定义创建支持回收站能力的 CRUD API。
+ * 基于显式端点定义创建支持回收站能力的 CRUD 请求适配器。
  */
-export function createSoftDeleteCrudApi<
+export function createSoftDeleteCrudRequestAdapter<
   TCollectionPath extends ContractPathWithMethod<'post'>,
   TItemPath extends ContractPathWithMethod<'get'> & ContractPathWithMethod<'put'> & ContractPathWithMethod<'delete'>,
   TQueryPath extends ContractPathWithMethod<'post'>,
@@ -599,7 +566,7 @@ export function createSoftDeleteCrudApi<
     TTrashPermanentDeletePath,
     TBulkDeletePath
   >
-): SoftDeleteCrudApi<
+): SoftDeleteCrudRequestAdapter<
   ContractResponseData<TItemPath, 'get'>,
   ContractRequestBody<TCollectionPath, 'post'>,
   ContractRequestBody<TItemPath, 'put'>,
@@ -615,10 +582,10 @@ export function createSoftDeleteCrudApi<
   ContractResponseData<TTrashPermanentDeletePath, 'delete'>
 > {
   type Item = ContractResponseData<TItemPath, 'get'>
-  const baseApi = createCrudApi(endpoints)
+  const baseRequestAdapter = createCrudRequestAdapter(endpoints)
 
   return {
-    ...baseApi,
+    ...baseRequestAdapter,
 
     async getTrash(options, config) {
       const response = await contractClient.get(endpoints.trash, {
@@ -650,13 +617,7 @@ export function createSoftDeleteCrudApi<
 
       return await contractClient.post(endpoints.trashRestore, {
         body: JSON.stringify(normalizedIds) as unknown as ContractRequestBody<TTrashRestorePath, 'post'>,
-        config: {
-          ...config,
-          headers: {
-            'Content-Type': 'application/json',
-            ...config?.headers
-          }
-        }
+        config: withJsonContentType(config)
       })
     },
 
@@ -665,23 +626,16 @@ export function createSoftDeleteCrudApi<
 
       return await contractClient.delete(endpoints.trashPermanentDelete, {
         body: JSON.stringify(normalizedIds) as unknown as ContractRequestBody<TTrashPermanentDeletePath, 'delete'>,
-        config: {
-          ...config,
-          headers: {
-            'Content-Type': 'application/json',
-            ...config?.headers
-          }
-        }
+        config: withJsonContentType(config)
       })
     },
 
     async batchDelete(ids, config): Promise<BatchOperationResult> {
       const normalizedIds = normalizeBatchIds(ids)
 
-      // 如果没有 bulkDelete 端点，使用 baseApi.delete 逐个删除并聚合结果
       if (!endpoints.bulkDelete) {
         const results = await Promise.allSettled(
-          normalizedIds.map(id => baseApi.delete(id))
+          normalizedIds.map(id => baseRequestAdapter.delete(id))
         )
         const success = results.filter(r => r.status === 'fulfilled').length
         const failed = results.length - success
@@ -690,23 +644,172 @@ export function createSoftDeleteCrudApi<
 
       const result = await contractClient.delete(endpoints.bulkDelete, {
         body: JSON.stringify(normalizedIds) as unknown as ContractRequestBody<TBulkDeletePath, 'delete'>,
-        config: {
-          ...config,
-          headers: {
-            'Content-Type': 'application/json',
-            ...config?.headers
-          }
-        }
+        config: withJsonContentType(config)
       })
 
-      // 确保返回类型一致
       return result as BatchOperationResult
     }
   }
 }
 
+
+export {
+  createCrudRequestAdapterFromMethods,
+  createSoftDeleteCrudRequestAdapterFromMethods,
+} from '@/api/base/crud-request-adapter-method-bridges'
+
+export function createCrudRequestAdapterMethods<
+  TCollectionPath extends ContractPathWithMethod<'post'>,
+  TItemPath extends ContractPathWithMethod<'get'> & ContractPathWithMethod<'put'> & ContractPathWithMethod<'delete'>,
+  TQueryPath extends ContractPathWithMethod<'post'>,
+>(
+  endpoints: ContractCrudEndpoints<TCollectionPath, TItemPath, TQueryPath>
+): CrudApiMethods<
+  ContractResponseData<TItemPath, 'get'>,
+  ContractRequestBody<TCollectionPath, 'post'>,
+  ContractRequestBody<TItemPath, 'put'>,
+  ContractQueryParams<TItemPath, 'get'>,
+  QueryOptionsInput,
+  ContractResponseData<TCollectionPath, 'post'>,
+  ContractResponseData<TItemPath, 'put'>,
+  ContractQueryParams<TItemPath, 'delete'>,
+  ContractResponseData<TItemPath, 'delete'>
+> {
+  return {
+    getById(id, options) {
+      return contractMethods.get(endpoints.item, {
+        params: createIdParams<TItemPath, 'get'>(id),
+        query: options?.query,
+        config: options?.config
+      })
+    },
+
+    query(options, config) {
+      return contractMethods.post(endpoints.query, {
+        body: normalizeQueryRequest(options) as ContractRequestBody<TQueryPath, 'post'>,
+        config
+      })
+    },
+
+    create(data, config) {
+      return contractMethods.post(endpoints.collection, {
+        body: data,
+        config
+      })
+    },
+
+    update(id, data, config) {
+      return contractMethods.put(endpoints.item, {
+        params: createIdParams<TItemPath, 'put'>(id),
+        body: data,
+        config
+      })
+    },
+
+    delete(id, options) {
+      return contractMethods.delete(endpoints.item, {
+        params: createIdParams<TItemPath, 'delete'>(id),
+        query: options?.query,
+        config: options?.config
+      })
+    }
+  }
+}
+
+export function createSoftDeleteCrudRequestAdapterMethods<
+  TCollectionPath extends ContractPathWithMethod<'post'>,
+  TItemPath extends ContractPathWithMethod<'get'> & ContractPathWithMethod<'put'> & ContractPathWithMethod<'delete'>,
+  TQueryPath extends ContractPathWithMethod<'post'>,
+  TRestorePath extends ContractPathWithMethod<'post'>,
+  TTrashPath extends ContractPathWithMethod<'get'>,
+  TTrashRestorePath extends ContractPathWithMethod<'post'>,
+  TTrashPermanentDeletePath extends ContractPathWithMethod<'delete'>,
+  TBulkDeletePath extends ContractPathWithMethod<'delete'> = never,
+>(
+  endpoints: ContractSoftDeleteEndpoints<
+    TCollectionPath,
+    TItemPath,
+    TQueryPath,
+    TRestorePath,
+    TTrashPath,
+    TTrashRestorePath,
+    TTrashPermanentDeletePath,
+    TBulkDeletePath
+  >
+): SoftDeleteCrudApiMethods<
+  ContractResponseData<TItemPath, 'get'>,
+  ContractRequestBody<TCollectionPath, 'post'>,
+  ContractRequestBody<TItemPath, 'put'>,
+  ContractQueryParams<TItemPath, 'get'>,
+  QueryOptionsInput,
+  ContractResponseData<TCollectionPath, 'post'>,
+  ContractResponseData<TItemPath, 'put'>,
+  ContractQueryParams<TItemPath, 'delete'>,
+  ContractResponseData<TItemPath, 'delete'>,
+  ContractQueryParams<TTrashPath, 'get'>,
+  ContractResponseData<TRestorePath, 'post'>,
+  ContractResponseData<TTrashRestorePath, 'post'>,
+  ContractResponseData<TTrashPermanentDeletePath, 'delete'>
+> {
+  const baseRequestAdapterMethods = createCrudRequestAdapterMethods(endpoints)
+
+  return {
+    ...baseRequestAdapterMethods,
+
+    getTrash(options, config) {
+      return contractMethods.get(endpoints.trash, {
+        query: options,
+        config
+      })
+    },
+
+    restore(id, config) {
+      return contractMethods.post(endpoints.restore, {
+        params: createIdParams<TRestorePath, 'post'>(id),
+        config
+      })
+    },
+
+    permanentDelete(id, config) {
+      return contractMethods.delete(endpoints.item, {
+        params: createIdParams<TItemPath, 'delete'>(id),
+        query: { permanent: true } as ContractQueryParams<TItemPath, 'delete'>,
+        config
+      })
+    },
+
+    batchRestore(ids, config) {
+      const normalizedIds = normalizeBatchIds(ids)
+      return contractMethods.post(endpoints.trashRestore, {
+        body: JSON.stringify(normalizedIds) as unknown as ContractRequestBody<TTrashRestorePath, 'post'>,
+        config: withJsonContentType(config)
+      })
+    },
+
+    batchPermanentDelete(ids, config) {
+      const normalizedIds = normalizeBatchIds(ids)
+      return contractMethods.delete(endpoints.trashPermanentDelete, {
+        body: JSON.stringify(normalizedIds) as unknown as ContractRequestBody<TTrashPermanentDeletePath, 'delete'>,
+        config: withJsonContentType(config)
+      })
+    },
+
+    batchDelete(ids, config) {
+      const normalizedIds = normalizeBatchIds(ids)
+      if (!endpoints.bulkDelete) {
+        return normalizedIds.map(id => baseRequestAdapterMethods.delete(id)) as Array<MethodLike<ContractResponseData<TItemPath, 'delete'>>>
+      }
+
+      return contractMethods.delete(endpoints.bulkDelete, {
+        body: JSON.stringify(normalizedIds) as unknown as ContractRequestBody<TBulkDeletePath, 'delete'>,
+        config: withJsonContentType(config)
+      })
+    }
+  }
+}
+
 /**
- * 基于资源集合路径创建标准 CRUD API。
+ * 基于资源集合路径创建标准 CRUD 请求适配器。
  *
  * 约束：
  * - `collection` 必须是真实存在于 OpenAPI 契约中的标准 CRUD 资源根路径
@@ -714,48 +817,41 @@ export function createSoftDeleteCrudApi<
  *
  * 适合：
  * - 后端遵循统一 BaseAPI/CRUD 约定的资源
- * - 若资源不满足该约定，请直接使用 `createCrudApi`
+ * - 若资源不满足该约定，请直接使用 `createCrudRequestAdapter`
  */
-export function createCrudResourceApi<TCollectionPath extends CrudResourceCollectionPath>(
+export function createCrudResourceRequestAdapter<TCollectionPath extends CrudResourceCollectionPath>(
   collection: TCollectionPath
-) : CrudResourceApi<TCollectionPath> {
-  const item = `${collection}/{id}` as CrudManagedItemPath<TCollectionPath>
-  const query = `${collection}/query` as CrudManagedQueryPath<TCollectionPath>
+): CrudResourceRequestAdapter<TCollectionPath> {
+  const endpoints = createCrudResourceEndpoints(collection)
 
-  return createCrudApi({
-    collection,
-    item,
-    query
+  return createCrudRequestAdapter({
+    collection: endpoints.collection,
+    item: endpoints.item as CrudManagedItemPath<TCollectionPath>,
+    query: endpoints.query as CrudManagedQueryPath<TCollectionPath>
   })
 }
 
 /**
- * 基于资源集合路径创建支持软删除的 CRUD API。
+ * 基于资源集合路径创建支持软删除的 CRUD 请求适配器。
  *
  * 约束：
  * - `collection` 必须同时具备 `/trash`、`/{id}/restore`、`/trash/restore`、
  *   `/trash/permanent` 四类标准软删除端点
  */
-export function createSoftDeleteCrudResourceApi<
+export function createSoftDeleteCrudResourceRequestAdapter<
   TCollectionPath extends SoftDeleteCrudResourceCollectionPath
 >(
   collection: TCollectionPath
-): SoftDeleteCrudResourceApi<TCollectionPath> {
-  const item = `${collection}/{id}` as CrudManagedItemPath<TCollectionPath>
-  const query = `${collection}/query` as CrudManagedQueryPath<TCollectionPath>
-  const restore = `${item}/restore` as SoftDeleteManagedRestorePath<TCollectionPath>
-  const trash = `${collection}/trash` as SoftDeleteManagedTrashPath<TCollectionPath>
-  const trashRestore = `${trash}/restore` as SoftDeleteManagedTrashRestorePath<TCollectionPath>
-  const trashPermanentDelete =
-    `${trash}/permanent` as SoftDeleteManagedTrashPermanentDeletePath<TCollectionPath>
+): SoftDeleteCrudResourceRequestAdapter<TCollectionPath> {
+  const endpoints = createSoftDeleteCrudResourceEndpoints(collection)
 
-  return createSoftDeleteCrudApi({
-    collection,
-    item,
-    query,
-    restore,
-    trash,
-    trashRestore,
-    trashPermanentDelete
+  return createSoftDeleteCrudRequestAdapter({
+    collection: endpoints.collection,
+    item: endpoints.item as CrudManagedItemPath<TCollectionPath>,
+    query: endpoints.query as CrudManagedQueryPath<TCollectionPath>,
+    restore: endpoints.restore as SoftDeleteManagedRestorePath<TCollectionPath>,
+    trash: endpoints.trash as SoftDeleteManagedTrashPath<TCollectionPath>,
+    trashRestore: endpoints.trashRestore as SoftDeleteManagedTrashRestorePath<TCollectionPath>,
+    trashPermanentDelete: endpoints.trashPermanentDelete as SoftDeleteManagedTrashPermanentDeletePath<TCollectionPath>
   })
 }

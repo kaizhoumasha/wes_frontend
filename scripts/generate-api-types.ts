@@ -14,7 +14,7 @@ import {
   unlinkSync,
   writeFileSync
 } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { dirname, isAbsolute, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import openapiTS, { astToString } from 'openapi-typescript'
 import ts from 'typescript'
@@ -140,16 +140,33 @@ interface GeneratedOpenApiSchemaMetadata {
 }
 
 interface Config {
-  backendUrl: string
+  openApiSource: string
   outputDir: string
   modulesOutputDir: string
 }
 
+function resolveOpenApiSource(): string {
+  const explicitSource = process.env.OPENAPI_SPEC_PATH || process.env.OPENAPI_SPEC_URL
+  const baseOrSpecUrl = explicitSource || process.env.VITE_API_BASE_URL || process.env.BACKEND_URL
+
+  if (!baseOrSpecUrl) {
+    return 'http://localhost:8001/api/openapi.json'
+  }
+
+  if (/^https?:\/\//.test(baseOrSpecUrl)) {
+    if (/\/(openapi|swagger)\.(json|ya?ml)$/i.test(baseOrSpecUrl)) {
+      return baseOrSpecUrl
+    }
+
+    return `${baseOrSpecUrl.replace(/\/$/, '')}/api/openapi.json`
+  }
+
+  const filePath = isAbsolute(baseOrSpecUrl) ? baseOrSpecUrl : resolve(__dirname, '..', baseOrSpecUrl)
+  return filePath
+}
+
 const config: Config = {
-  backendUrl:
-    process.env.VITE_API_BASE_URL ||
-    process.env.BACKEND_URL ||
-    'http://localhost:8001/api/openapi.json',
+  openApiSource: resolveOpenApiSource(),
   outputDir: join(__dirname, '../src/api/generated'),
   modulesOutputDir: join(__dirname, '../src/api/modules')
 }
@@ -232,10 +249,23 @@ function deleteFileIfExists(path: string): boolean {
   return true
 }
 
-async function fetchOpenApiSpec(url: string): Promise<unknown> {
-  console.log(`📥 正在从后端获取 OpenAPI 规范: ${url}`)
+async function fetchOpenApiSpec(source: string): Promise<unknown> {
+  if (!/^https?:\/\//.test(source)) {
+    console.log(`📥 正在从本地读取 OpenAPI 规范: ${source}`)
 
-  const response = await fetch(url, {
+    if (!existsSync(source)) {
+      throw new Error(`本地 OpenAPI 规范文件不存在: ${source}`)
+    }
+
+    const raw = readFileSync(source, 'utf-8')
+    const spec = JSON.parse(raw)
+    console.log('✅ OpenAPI 规范读取成功')
+    return spec
+  }
+
+  console.log(`📥 正在从后端获取 OpenAPI 规范: ${source}`)
+
+  const response = await fetch(source, {
     headers: {
       Accept: 'application/json'
     },
@@ -980,7 +1010,7 @@ function generateMethodTypeAliases(methodInfo: GeneratedMethodInfo): string[] {
   return lines
 }
 
-function generateMethodCode(methodInfo: GeneratedMethodInfo): string {
+function generateMethodFactoryCode(methodInfo: GeneratedMethodInfo): string {
   const lines: string[] = []
 
   if (methodInfo.summary || methodInfo.description) {
@@ -992,6 +1022,7 @@ function generateMethodCode(methodInfo: GeneratedMethodInfo): string {
       lines.push(`   * @description ${methodInfo.description}`)
     }
     lines.push(`   * @endpoint ${methodInfo.method.toUpperCase()} ${methodInfo.path}`)
+    lines.push('   * @returns alova method instance')
     lines.push('   */')
   }
 
@@ -1016,11 +1047,9 @@ function generateMethodCode(methodInfo: GeneratedMethodInfo): string {
   signatureParts.push('config?: ContractRequestConfig')
   requestOptions.push('config')
 
+  lines.push(`  ${methodInfo.name}(${signatureParts.join(', ')}) {`)
   lines.push(
-    `  async ${methodInfo.name}(${signatureParts.join(', ')}): Promise<${methodInfo.responseType}> {`
-  )
-  lines.push(
-    `    return await contractClient.${methodInfo.method}('${methodInfo.path}', { ${requestOptions.join(', ')} })`
+    `    return contractMethods.${methodInfo.method}('${methodInfo.path}', { ${requestOptions.join(', ')} })`
   )
   lines.push('  }')
 
@@ -1091,7 +1120,7 @@ function generateModuleAutoSection(plan: ModulePlan): string {
     ` *`,
     ` * 资源: ${plan.groups.map(group => group.collectionPath).join(', ')}`,
     ` */`,
-    `import { contractClient } from '@/api/contract/client'`,
+    `import { contractMethods } from '@/api/contract/client'`,
     `import type {`,
     `  ContractPathParams,`,
     `  ContractQueryParams,`,
@@ -1105,25 +1134,25 @@ function generateModuleAutoSection(plan: ModulePlan): string {
   if (capabilities.kind === 'soft-delete') {
     imports.push(
       `import {`,
-      `  type SoftDeleteCrudApi,`,
-      `  createSoftDeleteCrudApi,`,
+      `  type SoftDeleteCrudApiMethods,`,
+      `  createSoftDeleteCrudRequestAdapterMethods,`,
       `  type CrudCreateInput,`,
       `  type CrudItem,`,
       `  type CrudResourceCollectionPath,`,
       `  type CrudUpdateInput,`,
       `  type SoftDeleteCrudResourceCollectionPath,`,
-      `} from '@/api/base/crud-api'`
+      `} from '@/api/base/crud-request-adapter'`
     )
   } else if (capabilities.kind === 'standard') {
     imports.push(
       `import {`,
-      `  type CrudApi,`,
-      `  createCrudApi,`,
+      `  type CrudApiMethods,`,
+      `  createCrudRequestAdapterMethods,`,
       `  type CrudCreateInput,`,
       `  type CrudItem,`,
       `  type CrudResourceCollectionPath,`,
       `  type CrudUpdateInput,`,
-      `} from '@/api/base/crud-api'`
+      `} from '@/api/base/crud-request-adapter'`
     )
   }
 
@@ -1158,7 +1187,7 @@ function generateModuleAutoSection(plan: ModulePlan): string {
   }
 
   if (plan.kind === 'resource' && capabilities.kind === 'soft-delete') {
-    lines.push(`const base${pascalBaseName}Api = createSoftDeleteCrudApi({`)
+    lines.push(`const base${pascalBaseName}ApiMethods = createSoftDeleteCrudRequestAdapterMethods({`)
     lines.push(`  collection: ${collectionConst} as unknown as ${resourcePathType},`)
     lines.push(`  item: \`\${${collectionConst}}/{id}\` as const,`)
     lines.push(`  query: \`\${${collectionConst}}/query\` as const,`)
@@ -1170,13 +1199,13 @@ function generateModuleAutoSection(plan: ModulePlan): string {
       lines.push(`  bulkDelete: ${bulkConst},`)
     }
     lines.push(
-      `}) as unknown as SoftDeleteCrudApi<${pascalBaseName}Item, Create${pascalBaseName}Input, Update${pascalBaseName}Input>`
+      `}) as unknown as SoftDeleteCrudApiMethods<${pascalBaseName}Item, Create${pascalBaseName}Input, Update${pascalBaseName}Input>`
     )
     lines.push('')
   }
 
   if (plan.kind === 'resource' && capabilities.kind === 'standard') {
-    lines.push(`const base${pascalBaseName}Api = createCrudApi({`)
+    lines.push(`const base${pascalBaseName}ApiMethods = createCrudRequestAdapterMethods({`)
     lines.push(`  collection: ${collectionConst} as unknown as ${resourcePathType},`)
     lines.push(`  item: \`\${${collectionConst}}/{id}\` as const,`)
     lines.push(`  query: \`\${${collectionConst}}/query\` as const,`)
@@ -1184,19 +1213,21 @@ function generateModuleAutoSection(plan: ModulePlan): string {
       lines.push(`  bulkDelete: ${bulkConst},`)
     }
     lines.push(
-      `}) as unknown as CrudApi<${pascalBaseName}Item, Create${pascalBaseName}Input, Update${pascalBaseName}Input>`
+      `}) as unknown as CrudApiMethods<${pascalBaseName}Item, Create${pascalBaseName}Input, Update${pascalBaseName}Input>`
     )
     lines.push('')
   }
 
-  lines.push(`export const ${apiName} = {`)
+  lines.push(`export const ${apiName}Methods = {`)
   if (plan.kind === 'resource' && capabilities.kind !== 'none') {
-    lines.push(`  ...base${pascalBaseName}Api,`)
+    lines.push(`  ...base${pascalBaseName}ApiMethods,`)
     if (generatedMethods.length > 0) {
       lines.push('')
     }
   }
-  lines.push(generatedMethods.map(generateMethodCode).join(',\n\n'))
+  if (generatedMethods.length > 0) {
+    lines.push(generatedMethods.map(generateMethodFactoryCode).join(',\n\n'))
+  }
   lines.push(`}`)
 
   return lines
@@ -1344,7 +1375,7 @@ export async function main(): Promise<void> {
   ensureDir(config.outputDir)
   ensureDir(config.modulesOutputDir)
 
-  const spec = await fetchOpenApiSpec(config.backendUrl)
+  const spec = await fetchOpenApiSpec(config.openApiSource)
 
   const typesOutputPath = join(config.outputDir, 'openapi-types.ts')
   const metadataOutputPath = join(config.outputDir, 'openapi-metadata.ts')

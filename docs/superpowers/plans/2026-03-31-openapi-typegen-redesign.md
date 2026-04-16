@@ -1,5 +1,18 @@
 # OpenAPI Typegen Redesign Implementation Plan
 
+> **⚠️ 历史文档说明（2026-04）**
+>
+> 本文档保留其原始设计/计划上下文，**不再作为当前实现基线**。
+> 当前代码已完成 methods-first / request-adapter 收口，以下旧术语如 `userApi`、`useCrudApi`、`src/api/base/crud-api.ts`、`xxxApi` 等，均可能与现状不一致。
+>
+> 请优先参考：
+>
+> - `docs/CRUD_DEVELOPMENT_GUIDE.md`
+> - `docs/CONTRACT_FRONTEND_DEVELOPMENT_MANUAL.md`
+> - `src/api/base/crud-request-adapter.ts`
+> - `src/composables/useCrudRequestAdapter.ts`
+> - `src/components/common/crud-page/createCrudPageConfigFromResource.ts`
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Rewrite `scripts/generate-api-types.ts` so it generates `openapi-types.ts`, `openapi-metadata.ts`, and model-driven `src/api/modules/*.ts` directly from `/api/v1/{module}/{model}` paths without naming hardcodes, while preserving manual extension blocks across regenerations.

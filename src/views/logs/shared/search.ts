@@ -1,4 +1,4 @@
-import type { FilterGroup } from '@/api/base/crud-api'
+import type { FilterGroup } from '@/api/base/crud-request-adapter'
 import type { QuickSearchPreset, SearchConditionDraft } from '@/types/search'
 
 function getRelativeTimePresetMeta(hours: number): {

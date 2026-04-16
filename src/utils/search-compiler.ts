@@ -14,7 +14,7 @@ import type {
   SearchFieldDef,
 } from '@/types/search'
 import { OPERATOR_BACKEND_MAP } from '@/types/search'
-import type { FilterCondition, FilterGroup } from '@/api/base/crud-api'
+import type { FilterCondition, FilterGroup } from '@/api/base/crud-request-adapter'
 import {
   getAdvancedOperatorsForField,
   needsAdvancedValue

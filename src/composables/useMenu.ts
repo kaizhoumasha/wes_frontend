@@ -33,7 +33,7 @@
  */
 
 import { computed, ref } from 'vue'
-import { menusApi as menuApi } from '@/api/modules/menus'
+import { menusApiMethods } from '@/api/modules/menus'
 import type { MenuItem, FlatMenuItem, MenuTreeResponse } from '@/types/menu'
 import { toMenuItem, flattenMenuTree, getMenuBreadcrumb as computeBreadcrumb } from '@/types/menu'
 import { MENU_CACHE, getCachedData, setCachedData, clearCachedData, restoreFromHMR } from '@/constants/cache'
@@ -136,7 +136,7 @@ export function useMenu() {
 
     try {
       // 传递 tree_depth: -1 获取完整菜单树（包含所有子节点）
-      const response = await menuApi.tree({ tree_depth: -1 })
+      const response = await menusApiMethods.tree({ tree_depth: -1 }).send()
       const menus = response.map(toMenuItem)
       setMenuState(menus)
       setMenuToCache(menus)

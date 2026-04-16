@@ -8,15 +8,13 @@ import router from './router'
 import App from './App.vue'
 import './assets/styles/globals.css'
 import { initDarkMode } from './composables/useDarkMode'
+import { bootstrapAuthContext } from './app/bootstrap-auth-context'
 
 // 初始化错误通知服务
 import { initializeErrorNotification } from './api/services/error-notification'
 
 // Token 刷新后刷新用户上下文
 import { setOnTokenRefreshed } from './api/services/token-refresh'
-import { useCurrentUser } from './composables/useCurrentUser'
-import { usePermission } from './composables/usePermission'
-import { useMenu } from './composables/useMenu'
 
 // 启动阶段初始化主题（确保所有路由页面都能正确应用主题）
 initDarkMode()
@@ -35,34 +33,11 @@ initializeErrorNotification({
 
 // 注册 Token 刷新成功后的回调
 setOnTokenRefreshed(async () => {
-  const { hydrateCurrentUser } = useCurrentUser()
-  const { hydratePermissions, loadPermissions } = usePermission()
-  const { hydrateMenus, loadMenus } = useMenu()
-
-  try {
-    // 重新加载用户上下文
-    const { authApi } = await import('./api/modules/auth')
-    const myContext = await authApi.my()
-
-    hydrateCurrentUser(myContext.user)
-    hydratePermissions(myContext.permissions)
-    hydrateMenus(myContext.menus)
-  } catch (error) {
-    console.warn('[Token刷新回调] 加载用户上下文失败，尝试分步加载:', error)
-
-    // 分步加载
-    try {
-      await loadPermissions(true)
-    } catch (e) {
-      console.warn('[Token刷新回调] 加载权限失败:', e)
-    }
-
-    try {
-      await loadMenus(true)
-    } catch (e) {
-      console.warn('[Token刷新回调] 加载菜单失败:', e)
-    }
-  }
+  await bootstrapAuthContext({
+    forceRefresh: true,
+    preserveAccessTokenOnFallback: true,
+    loadMenusNonBlocking: true
+  })
 })
 
 const app = createApp(App)

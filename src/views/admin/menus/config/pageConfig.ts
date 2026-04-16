@@ -4,7 +4,7 @@ import type {
   MenusItem as Menu
 } from '@/api/modules/menus'
 import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
-import { menusApi as menuApi } from '@/api/modules/menus'
+import { menusApiMethods } from '@/api/modules/menus'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
@@ -14,7 +14,7 @@ import AppIcon from '@/components/ui/AppIcon.vue'
 
 type MenuPageConfig = CrudPageConfig<Menu, CreateMenuInput, UpdateMenuInput>
 
-const MENU_PAGE_RESOURCE: MenuPageConfig['resource'] = {
+const MENU_PAGE_RESOURCE = {
   key: 'menus',
   title: {
     text: '菜单管理',
@@ -26,10 +26,10 @@ const MENU_PAGE_RESOURCE: MenuPageConfig['resource'] = {
     subtitle: '查看并恢复已删除菜单',
     icon: 'ep:delete'
   },
-  api: menuApi,
+  methods: menusApiMethods,
   permissions: ADMIN_PERMISSIONS.menu,
   optimisticUpdate: true,
-  defaultSort: [{ field: 'sort_order', order: 'asc' }],
+  defaultSort: [{ field: 'sort_order', order: 'asc' as const }],
   // 启用树形模式
   treeMode: {
     enabled: true,

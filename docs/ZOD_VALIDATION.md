@@ -51,7 +51,7 @@ pnpm exec tsx scripts/generate-zod-from-openapi.ts
 <script setup lang="ts">
 import { useForm } from 'vee-validate'
 import { UserCreateSchema } from '@/types/zod-extensions'
-import { userApi, type CreateUserInput } from '@/api/modules/user'
+import { usersApiMethods, type CreateUsersInput as CreateUserInput } from '@/api/modules/users'
 
 // 关键：使用泛型参数实现类型推断
 const { handleSubmit, errors, defineField } = useForm<CreateUserInput>({
@@ -65,7 +65,7 @@ const [password, passwordAttrs] = defineField('password')
 
 // 提交处理 - values 类型自动推断为 CreateUserInput
 const onSubmit = handleSubmit(async values => {
-  await userApi.create(values) // ✅ 无需类型断言
+  await usersApiMethods.create(values).send() // ✅ 无需类型断言
 })
 </script>
 
@@ -110,7 +110,7 @@ const onSubmit = handleSubmit(async values => {
 <script setup lang="ts">
 import { useForm } from 'vee-validate'
 import { UserCreateSchema } from '@/types/zod-extensions'
-import type { CreateUserInput } from '@/api/modules/user'
+import { usersApiMethods, type CreateUsersInput as CreateUserInput } from '@/api/modules/users'
 
 const { handleSubmit, errors, defineField } = useForm<CreateUserInput>({
   validationSchema: UserCreateSchema
@@ -121,7 +121,7 @@ const [email] = defineField('email')
 const [password] = defineField('password')
 
 const onSubmit = handleSubmit(async values => {
-  await createUser(values)
+  await usersApiMethods.create(values).send()
   ElMessage.success('创建成功')
 })
 </script>
@@ -183,7 +183,7 @@ const onSubmit = handleSubmit(async values => {
 validationSchema: toTypedSchema(UserCreateSchema)
 
 // ❌ 不要使用类型断言绕过类型检查
-await userApi.create(values as CreateUserInput)
+await usersApiMethods.create(values as CreateUserInput).send()
 ```
 
 ---
@@ -195,7 +195,10 @@ await userApi.create(values as CreateUserInput)
 import { computed } from 'vue'
 import { useForm } from 'vee-validate'
 import { UserCreateSchema, UserUpdateSchema } from '@/types/zod-extensions'
-import type { CreateUserInput, UpdateUserInput } from '@/api/modules/user'
+import type {
+  CreateUsersInput as CreateUserInput,
+  UpdateUsersInput as UpdateUserInput
+} from '@/api/modules/users'
 
 interface Props {
   userId: number | null // null = 创建模式

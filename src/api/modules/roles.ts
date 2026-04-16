@@ -8,7 +8,7 @@
  *
  * 资源: /api/v1/admin/roles
  */
-import { contractClient } from '@/api/contract/client'
+import { contractMethods } from '@/api/contract/client'
 import type {
   ContractPathParams,
   ContractQueryParams,
@@ -18,14 +18,14 @@ import type {
 } from '@/api/contract/types'
 import type { components, paths } from '@/api/generated/openapi-types'
 import {
-  type SoftDeleteCrudApi,
-  createSoftDeleteCrudApi,
+  type SoftDeleteCrudApiMethods,
+  createSoftDeleteCrudRequestAdapterMethods,
   type CrudCreateInput,
   type CrudItem,
   type CrudResourceCollectionPath,
   type CrudUpdateInput,
   type SoftDeleteCrudResourceCollectionPath,
-} from '@/api/base/crud-api'
+} from '@/api/base/crud-request-adapter'
 
 const ROLES_COLLECTION_PATH = '/api/v1/admin/roles' as const
 
@@ -37,7 +37,7 @@ export type RolesItem = EnsureEntityId<CrudItem<typeof ROLES_COLLECTION_PATH>>
 export type CreateRolesInput = CrudCreateInput<typeof ROLES_COLLECTION_PATH>
 export type UpdateRolesInput = CrudUpdateInput<typeof ROLES_COLLECTION_PATH>
 
-const baseRolesApi = createSoftDeleteCrudApi({
+const baseRolesApiMethods = createSoftDeleteCrudRequestAdapterMethods({
   collection: ROLES_COLLECTION_PATH as unknown as SoftDeleteCrudResourceCollectionPath,
   item: `${ROLES_COLLECTION_PATH}/{id}` as const,
   query: `${ROLES_COLLECTION_PATH}/query` as const,
@@ -45,11 +45,10 @@ const baseRolesApi = createSoftDeleteCrudApi({
   trash: `${ROLES_COLLECTION_PATH}/trash` as const,
   trashRestore: `${ROLES_COLLECTION_PATH}/trash/restore` as const,
   trashPermanentDelete: `${ROLES_COLLECTION_PATH}/trash/permanent` as const,
-}) as unknown as SoftDeleteCrudApi<RolesItem, CreateRolesInput, UpdateRolesInput>
+}) as unknown as SoftDeleteCrudApiMethods<RolesItem, CreateRolesInput, UpdateRolesInput>
 
-export const rolesApi = {
-  ...baseRolesApi,
-
+export const rolesApiMethods = {
+  ...baseRolesApiMethods,
 }
 // ==================== AUTO GENERATED END ====================
 

@@ -36,7 +36,7 @@
  */
 
 import { computed } from 'vue'
-import { authApi } from '@/api/modules/auth'
+import { authApiMethods } from '@/api/modules/auth'
 import type { ApiPermissionInfo } from '@/api/modules/auth'
 import {
   checkPermissionState,
@@ -187,7 +187,7 @@ export function usePermission() {
     permissionLoadErrorState.value = null
 
     try {
-      const response = await authApi.permissions()
+      const response = await authApiMethods.permissions().send()
       setPermissionsState(response.permissions)
       setPermissionsToCache(response.permissions)
     } catch (error) {

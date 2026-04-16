@@ -1,5 +1,4 @@
-import { computed, onMounted, provide, reactive, ref } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { computed, onMounted, provide, ref } from 'vue'
 import { buildActionsColumn } from '@/components/common/table/formatters'
 import type { ColumnBreakpoint } from '@/composables/useTableColumns'
 import { useCrudListPage } from '@/composables/useCrudListPage'
@@ -7,153 +6,29 @@ import { useCrudToolbar } from '@/composables/useCrudToolbar'
 import { useResponsiveLayout } from '@/composables/useResponsiveLayout'
 import {
   buildCrudPermissionConfig,
-  buildDefaultRowActions,
-  buildDefaultToolbarActions,
   toActionButtonConfig
 } from './helpers/actions'
 import { resolveCrudPageFeatures } from './helpers/features'
+import {
+  resolveModeSwitcher,
+  resolveBreakpoint,
+  resolveFormTitle,
+  resolveTableDefaultSort,
+  resolveTrashAwareColumn
+} from './controller/helpers/presentation'
 import {
   CRUD_PAGE_SEARCH_ACTIONS_KEY,
   CRUD_PAGE_REFRESH_KEY,
   type CrudPageConfig,
   type CrudPageEntity,
-  type CrudPageRowAction,
-  type CrudPageResolvedToolbarAction,
-  type CrudPageToolbarActionContext,
-  type CrudPageViewMode
+  type CrudPageToolbarActionContext
 } from './types'
 import { useDetailState } from './detail/composables/useDetailState'
 import { mergeQuickFilterConditions } from './searchContext'
-import type { TableSortOrder } from '@/components/ui/table/table.types'
-import type { SortField } from '@/api/base/crud-api'
-
-type CrudTableDefaultSort = {
-  field: string
-  order: Exclude<TableSortOrder, null>
-}
-
-function resolveTrashAwareColumn<
-  TColumn extends { field?: string; title?: string; sortable?: boolean | 'custom' }
->(
-  column: TColumn,
-  isTrashMode: boolean
-): TColumn {
-  if (!isTrashMode) {
-    return column
-  }
-
-  if (column.field !== 'updated_at') {
-    return {
-      ...column,
-      sortable: false
-    }
-  }
-
-  return {
-    ...column,
-    field: 'deleted_at',
-    title: '删除时间',
-    sortable: false
-  }
-}
-
-function resolveBreakpoint(isMobile: boolean, isTablet: boolean): ColumnBreakpoint {
-  if (isMobile) {
-    return 'mobile'
-  }
-
-  if (isTablet) {
-    return 'tablet'
-  }
-
-  return 'desktop'
-}
-
-function resolveTableDefaultSort(defaultSort: SortField[] | undefined): CrudTableDefaultSort | undefined {
-  const firstSort = defaultSort?.[0]
-
-  if (!firstSort) {
-    return undefined
-  }
-
-  return {
-    field: firstSort.field,
-    order: firstSort.order === 'desc' ? 'descending' : 'ascending'
-  }
-}
-
-function createModeSwitcher<
-  TItem extends CrudPageEntity,
-  TCreate extends object,
-  TUpdate extends object
->(
-  config: CrudPageConfig<TItem, TCreate, TUpdate>,
-  features: ReturnType<typeof resolveCrudPageFeatures>,
-  viewMode: CrudPageViewMode
-) {
-  if (!features.trash.enabled) {
-    return undefined
-  }
-
-  return {
-    value: viewMode,
-    options: [
-      {
-        key: 'active',
-        label: '列表',
-        icon: 'ep:list'
-      },
-      {
-        key: 'trash',
-        label: features.trash.label ?? '回收站',
-        icon: features.trash.icon ?? 'ep:delete'
-      }
-    ].map(option => ({
-      ...option,
-      permission: option.key === 'trash'
-        ? features.trash.permission ?? config.resource.permissions?.trash
-        : undefined
-    }))
-  }
-}
-
-function resolveFormTitle<TItem extends CrudPageEntity, TCreate extends object, TUpdate extends object>(
-  config: CrudPageConfig<TItem, TCreate, TUpdate>,
-  features: ReturnType<typeof resolveCrudPageFeatures>,
-  editingId: number | null,
-  createChildInfo?: { parentName: string } | null
-): string {
-  if (!config.form) {
-    return ''
-  }
-
-  if (editingId) {
-    return features.edit.dialogTitle ?? config.form.title?.edit ?? `编辑${config.resource.title.text}`
-  }
-
-  // 添加下级模式：显示 "在 'XXX' 下添加子菜单"
-  if (createChildInfo) {
-    const resourceText = config.resource.title.text
-    return `在 '${createChildInfo.parentName}' 下添加${resourceText}`
-  }
-
-  return features.create.dialogTitle ?? config.form.title?.create ?? `创建${config.resource.title.text}`
-}
-
-function createViewDetailRowAction<TItem extends CrudPageEntity>(
-  resourceKey: string,
-  onClick: (item: TItem) => void
-): CrudPageRowAction<TItem> {
-  return {
-    key: `${resourceKey}-view-detail`,
-    label: '',
-    type: 'primary',
-    tooltip: '查看详情',
-    icon: 'ep:view',
-    priority: 'primary',
-    onClick
-  }
-}
+import { useCrudPageToolbarActions } from './controller/useCrudPageToolbarActions'
+import { useCrudPageTreeActions } from './controller/useCrudPageTreeActions'
+import { useCrudPageRowActions } from './controller/useCrudPageRowActions'
+import { useCrudPageActions } from './controller/useCrudPageActions'
 
 export function useCrudPageController<
   TItem extends CrudPageEntity,
@@ -163,7 +38,7 @@ export function useCrudPageController<
   const features = resolveCrudPageFeatures(config.features)
 
   const state = useCrudListPage<TItem, TCreate, TUpdate>({
-    api: config.resource.api,
+    adapter: config.resource.requestAdapter,
     searchFields: config.search.fields,
     quickPresets: config.search.quickPresets ?? [],
     favorites: config.search.favorites ?? [],
@@ -213,7 +88,7 @@ export function useCrudPageController<
     }
   })
 
-  const tableDefaultSort = computed<CrudTableDefaultSort | undefined>(() => {
+  const tableDefaultSort = computed(() => {
     if (state.state.isTrashMode.value) {
       return undefined
     }
@@ -222,9 +97,7 @@ export function useCrudPageController<
   })
 
   const modeSwitcher = computed(() =>
-    state.state.supportsTrash.value
-      ? createModeSwitcher(config, features, state.state.viewMode.value)
-      : undefined
+    resolveModeSwitcher(state.state.supportsTrash.value, config, features, state.state.viewMode.value)
   )
 
   const toolbarActionContext: CrudPageToolbarActionContext = {
@@ -251,145 +124,36 @@ export function useCrudPageController<
       : config.table.emptyText ?? '暂无数据'
   )
 
-  const toolbarActions = computed<CrudPageResolvedToolbarAction[]>(() => {
-    const actions = buildDefaultToolbarActions({
-      config,
-      features,
-      state,
-      onBatchDelete: () => void handleBatchDelete(),
-      onBatchRestore: () => void handleBatchRestore(),
-      onBatchPermanentDelete: () => void handleBatchPermanentDelete()
-    })
-
-    // 树形模式下：替换新增按钮的 handler，先加载完整树再打开对话框
-    if (
-      state.tree &&
-      state.tree.isTreeMode.value &&
-      typeof state.tree.fetchTree === 'function'
-    ) {
-      const createActionIndex = actions.findIndex(
-        action => action.key === `${config.resource.key}-create`
-      )
-      if (createActionIndex !== -1) {
-        actions[createActionIndex] = {
-          ...actions[createActionIndex],
-          handler: () => handleCreate()
-        }
-      }
+  const treeActionState = useCrudPageTreeActions({
+    config,
+    state: {
+      tree: state.tree,
+      dialogs: state.dialogs
     }
-
-    // 添加排序按钮（仅在树形模式下）
-    if (
-      features.sort.enabled &&
-      state.tree &&
-      state.tree.isTreeMode.value &&
-      typeof state.tree.fetchTree === 'function'
-    ) {
-      const sortLabel = features.sort.label ?? '排序'
-      const sortTooltip = features.sort.tooltip ?? '拖拽调整菜单顺序和层级'
-      const sortIcon = features.sort.icon ?? 'lucide:arrow-down-up'
-      const sortPermission = features.sort.permission ?? config.resource.permissions?.update
-
-      actions.push({
-        key: `${config.resource.key}-sort`,
-        label: sortLabel,
-        icon: sortIcon,
-        type: 'primary' as const,
-        handler: () => handleSort(),
-        permission: sortPermission,
-        tooltip: sortTooltip
-      })
-    }
-
-    return actions.map(action => ({
-      ...action,
-      handler: () => action.handler(toolbarActionContext)
-    }))
   })
-
-  /** 树形模式下工具栏新增：先加载完整树再打开对话框 */
-  async function handleCreate(): Promise<void> {
-    if (state.tree?.fetchTree) {
-      await (state.tree.fetchTree as (forceFullTree: boolean) => Promise<void>)(true)
-    }
-    state.dialogs.openCreate()
-  }
 
   // ==================== Detail Panel Integration ====================
   // Must be defined before rowActions to inject view-detail action
 
   const detailState = useDetailState<TItem>()
-  const detailFetcher = config.resource.api.getById.bind(config.resource.api)
+  const detailFetcher = config.resource.requestAdapter.getById.bind(config.resource.requestAdapter)
 
   function handleViewDetail(item: TItem): void {
     void detailState.openDetailById(item.id, detailFetcher)
   }
 
-  const rowActions = computed(() => {
-    const defaultRowActions = buildDefaultRowActions({
-      config,
-      features,
-      state,
-      onDelete: row => void handleDelete(row),
-      onRestore: row => void handleRestore(row),
-      onPermanentDelete: row => void handlePermanentDelete(row)
-    })
-
-    // 添加移动操作（仅在树形模式下可用）
-    const actions: CrudPageRowAction<TItem>[] = [...defaultRowActions]
-    if (
-      features.move.enabled &&
-      state.tree &&
-      state.tree.isTreeMode.value &&
-      typeof state.tree.move === 'function'
-    ) {
-      const moveLabel = features.move.label ?? '移动'
-      const moveTooltip = features.move.tooltip ?? moveLabel
-      const moveIcon = features.move.icon ?? 'lucide:arrow-up-down'
-      const movePermission = features.move.permission ?? config.resource.permissions?.update
-
-      actions.push({
-        key: `${config.resource.key}-move`,
-        label: moveLabel,
-        type: 'info',
-        tooltip: moveTooltip,
-        icon: moveIcon,
-        priority: 'secondary',
-        permission: movePermission,
-        show: () => true,
-        onClick: row => handleMove(row)
-      })
+  const rowActions = useCrudPageRowActions({
+    config,
+    features,
+    state,
+    handlers: {
+      onDelete: handleDelete,
+      onRestore: handleRestore,
+      onPermanentDelete: handlePermanentDelete,
+      onMove: treeActionState.handleMove,
+      onCreateChild: treeActionState.handleCreateChild,
+      onViewDetail: handleViewDetail
     }
-
-    // 添加"添加下级"操作（仅在树形模式下可用）
-    if (
-      features.createChild.enabled &&
-      state.tree &&
-      state.tree.isTreeMode.value
-    ) {
-      const createChildLabel = features.createChild.label ?? '添加下级'
-      const createChildTooltip = features.createChild.tooltip ?? createChildLabel
-      const createChildIcon = features.createChild.icon ?? 'lucide:plus'
-      const createChildPermission = features.createChild.permission ?? config.resource.permissions?.create
-
-      actions.push({
-        key: `${config.resource.key}-create-child`,
-        label: createChildLabel,
-        type: 'primary',
-        tooltip: createChildTooltip,
-        icon: createChildIcon,
-        priority: 'secondary',
-        permission: createChildPermission,
-        show: () => true,
-        onClick: row => handleCreateChild(row)
-      })
-    }
-
-    if (state.state.viewMode.value !== 'active' || !config.detail) {
-      return actions
-    }
-
-    return [createViewDetailRowAction(config.resource.key, handleViewDetail), ...actions]
   })
 
   const tableColumns = computed(() => {
@@ -410,24 +174,14 @@ export function useCrudPageController<
   })
 
   const formTitle = computed(() => {
-    return resolveFormTitle(config, features, state.dialogs.editingId.value, createChildInfo.value)
+    return resolveFormTitle(config, features, state.dialogs.editingId.value, treeActionState.createChildInfo.value)
   })
 
   function clearTableSelection(): void {
     tableRef.value?.clearSelection()
   }
 
-  function resolveEntityId(id: number | string): number {
-    const numericId = typeof id === 'number' ? id : Number(id)
-
-    if (!Number.isFinite(numericId)) {
-      throw new Error(`Invalid entity id: ${String(id)}`)
-    }
-
-    return numericId
-  }
-
-  function handleSearch(): Promise<void> {
+  async function handleSearch(): Promise<void> {
     return state.search.handleSearch(state.state.pagination.page)
   }
 
@@ -455,199 +209,25 @@ export function useCrudPageController<
     await state.apiActions.handlePermanentDelete(row.id)
   }
 
-  /** 移动对话框状态 */
-  const moveDialog = reactive({
-    open: false,
-    movingId: null as number | null,
-    loading: false
+  const pageActions = useCrudPageActions({
+    config,
+    state,
+    clearTableSelection
   })
 
-  /** 添加下级信息（用于对话框标题和只读显示） */
-  const createChildInfo = ref<{ parentId: number; parentName: string } | null>(null)
-
-  function handleMove(row: TItem): void {
-    moveDialog.open = true
-    moveDialog.movingId = row.id
-  }
-
-  /** 添加下级行操作 */
-  function handleCreateChild(row: TItem): void {
-    if (!state.tree?.isTreeMode.value) return
-    const displayField = config.resource.treeMode?.displayField ?? 'name'
-    const parentName = String((row as Record<string, unknown>)[displayField] ?? row.id)
-    createChildInfo.value = { parentId: row.id, parentName }
-    state.dialogs.openCreate({ initialValues: { parent_id: row.id } })
-  }
-
-  /** 表单对话框关闭时清理状态 */
-  function handleFormDialogClose(open: boolean): void {
-    if (!open) {
-      // 清理添加下级相关状态
-      createChildInfo.value = null
-      // 恢复懒加载模式（树形模式下创建/添加下级时加载了完整树）
-      if (state.tree?.fetchTree) {
-        ;(state.tree.fetchTree as (forceFullTree: boolean) => Promise<void>)(false)
-      }
+  const toolbarActions = useCrudPageToolbarActions({
+    config,
+    features,
+    state,
+    toolbarActionContext,
+    handlers: {
+      handleBatchDelete: pageActions.handleBatchDelete,
+      handleBatchRestore: pageActions.handleBatchRestore,
+      handleBatchPermanentDelete: pageActions.handleBatchPermanentDelete,
+      handleCreate: treeActionState.handleCreate,
+      handleSort: treeActionState.handleSort
     }
-    state.dialogs.close()
-  }
-
-  async function handleMoveConfirm(
-    targetId: number,
-    position: 'before' | 'after' | 'inner'
-  ): Promise<void> {
-    if (!moveDialog.movingId || !state.tree?.move) return
-
-    moveDialog.loading = true
-    try {
-      const success = await state.tree.move(moveDialog.movingId, targetId, position)
-      if (success) {
-        ElMessage.success('移动成功')
-        moveDialog.open = false
-        moveDialog.movingId = null
-      } else {
-        ElMessage.error('移动失败')
-      }
-    } catch {
-      ElMessage.error('移动失败')
-    } finally {
-      moveDialog.loading = false
-    }
-  }
-
-  function handleMoveCancel(): void {
-    moveDialog.open = false
-    moveDialog.movingId = null
-  }
-
-  /** 排序对话框状态 */
-  const sortDialog = reactive({
-    open: false,
-    loading: false
   })
-
-  async function handleSort(): Promise<void> {
-    // 排序时加载完整树（forceFullTree=true），以便显示所有节点供拖拽排序
-    if (state.tree?.fetchTree) {
-      await (state.tree.fetchTree as (forceFullTree: boolean) => Promise<void>)(true)
-    }
-    sortDialog.open = true
-  }
-
-  async function handleSortConfirm(items: { id: number; parent_id: number | null; sort_order: number }[]): Promise<void> {
-    if (!state.tree?.batchSort || items.length === 0) {
-      sortDialog.open = false
-      // 恢复懒加载模式
-      ;(state.tree?.fetchTree as ((forceFullTree: boolean) => Promise<void>) | undefined)?.(false)
-      return
-    }
-
-    sortDialog.loading = true
-    try {
-      const success = await state.tree.batchSort(items)
-      if (success) {
-        ElMessage.success('排序已保存')
-        sortDialog.open = false
-        // 恢复懒加载模式
-        await (state.tree?.fetchTree as ((forceFullTree: boolean) => Promise<void>) | undefined)?.(false)
-      } else {
-        ElMessage.error('保存排序失败')
-      }
-    } catch {
-      ElMessage.error('保存排序失败')
-    } finally {
-      sortDialog.loading = false
-    }
-  }
-
-  function handleSortCancel(): void {
-    sortDialog.open = false
-    // 恢复懒加载模式
-    ;(state.tree?.fetchTree as ((forceFullTree: boolean) => Promise<void>) | undefined)?.(false)
-  }
-
-  async function loadFormData(id: number | string): Promise<Record<string, unknown>> {
-    const numericId = resolveEntityId(id)
-    return await config.resource.api.getById(numericId) as unknown as Record<string, unknown>
-  }
-
-  async function handleBatchDelete(): Promise<void> {
-    await state.selection.handleBatchDelete()
-    clearTableSelection()
-  }
-
-  async function handleBatchRestore(): Promise<void> {
-    await state.selection.handleBatchRestore()
-    clearTableSelection()
-  }
-
-  async function handleBatchPermanentDelete(): Promise<void> {
-    try {
-      await ElMessageBox.confirm(
-        '确认彻底删除选中的记录吗？此操作不可恢复。',
-        '批量彻底删除',
-        {
-          confirmButtonText: '确认彻底删除',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      )
-
-      await state.selection.handleBatchPermanentDelete()
-      clearTableSelection()
-    } catch (error) {
-      if (error === 'cancel' || error === 'close') {
-        return
-      }
-
-      throw error
-    }
-  }
-
-  function handleCancelSelection(): void {
-    state.selection.clearSelectionState()
-    clearTableSelection()
-  }
-
-  function handleSelectionChange(selected: unknown[]): void {
-    state.selection.handleSelectionChange(selected as TItem[])
-  }
-
-  function resolveSubmitPayload<TPayload extends object>(
-    formData: Record<string, unknown>,
-    transform?: (formData: Record<string, unknown>) => TPayload
-  ): TPayload {
-    return transform ? transform(formData) : (formData as unknown as TPayload)
-  }
-
-  async function handleViewModeChange(mode: string): Promise<void> {
-    const nextMode = mode as CrudPageViewMode
-
-    if (state.state.viewMode.value === nextMode) {
-      return
-    }
-
-    state.dialogs.close()
-    handleCancelSelection()
-    state.view.setViewMode(nextMode)
-    await state.search.handleSearch(1)
-  }
-
-  async function handleSubmit(formData: Record<string, unknown>) {
-    if (!config.form) {
-      return
-    }
-
-    if (state.dialogs.editingId.value) {
-      await state.apiActions.handleEdit(
-        state.dialogs.editingId.value,
-        resolveSubmitPayload(formData, config.form.submit?.update)
-      )
-      return
-    }
-
-    await state.apiActions.handleCreate(resolveSubmitPayload(formData, config.form.submit?.create))
-  }
 
   if (config.search.defaultFilterGroup) {
     // 初始化默认筛选时跳过 notify，避免首屏重复请求。
@@ -674,27 +254,9 @@ export function useCrudPageController<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const tree = (state as any).tree
 
-  /** 只读显示字段映射（用于添加下级时只读显示 parent_id） */
-  const readonlyDisplayFields = computed(() => {
-    if (!createChildInfo.value) return undefined
-    return { parent_id: createChildInfo.value.parentName }
-  })
+  const readonlyDisplayFields = treeActionState.readonlyDisplayFields
 
-  /** 树形选择器配置（用于工具栏新增时选择父级） */
-  const treeSelectConfig = computed(() => {
-    if (!tree?.isTreeMode?.value || !tree.treeData?.value) return undefined
-    const childrenKey = config.resource.treeMode?.childrenKey ?? 'children'
-    const displayField = config.resource.treeMode?.displayField ?? 'name'
-    return {
-      data: tree.treeData.value,
-      props: {
-        value: 'id',
-        label: displayField,
-        children: childrenKey
-      },
-      placeholder: '选择父级'
-    }
-  })
+  const treeSelectConfig = treeActionState.treeSelectConfig
 
   return {
     config,
@@ -718,30 +280,30 @@ export function useCrudPageController<
     handlePageChange,
     handleSizeChange,
     handleColumnResize,
-    handleBatchDelete,
-    handleCancelSelection,
-    handleSelectionChange,
-    handleViewModeChange,
-    handleSubmit,
+    handleBatchDelete: pageActions.handleBatchDelete,
+    handleCancelSelection: pageActions.handleCancelSelection,
+    handleSelectionChange: pageActions.handleSelectionChange,
+    handleViewModeChange: pageActions.handleViewModeChange,
+    handleSubmit: pageActions.handleSubmit,
     formTitle,
-    loadFormData,
+    loadFormData: pageActions.loadFormData,
     tree,
-    createChildInfo,
+    createChildInfo: treeActionState.createChildInfo,
     readonlyDisplayFields,
     treeSelectConfig,
-    handleFormDialogClose,
+    handleFormDialogClose: treeActionState.handleFormDialogClose,
 
     // 移动操作
-    moveDialog,
-    handleMove,
-    handleMoveConfirm,
-    handleMoveCancel,
+    moveDialog: treeActionState.moveDialog,
+    handleMove: treeActionState.handleMove,
+    handleMoveConfirm: treeActionState.handleMoveConfirm,
+    handleMoveCancel: treeActionState.handleMoveCancel,
 
     // 排序操作
-    sortDialog,
-    handleSort,
-    handleSortConfirm,
-    handleSortCancel,
+    sortDialog: treeActionState.sortDialog,
+    handleSort: treeActionState.handleSort,
+    handleSortConfirm: treeActionState.handleSortConfirm,
+    handleSortCancel: treeActionState.handleSortCancel,
 
     // Detail panel
     detailState

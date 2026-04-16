@@ -337,3 +337,137 @@ describe('resolveFormTitle', () => {
     expect(resolveFormTitle(config, mockFeatures, 1)).toBe('编辑订单')
   })
 })
+
+// ==================== mode switcher visibility ====================
+
+type MockResolvedFeatures = {
+  trash: {
+    enabled: boolean
+    label?: string
+    icon?: string
+    permission?: string
+  }
+}
+
+type MockCrudConfig = {
+  resource: {
+    permissions?: {
+      trash?: string
+    }
+  }
+}
+
+function createModeSwitcherForTest(
+  config: MockCrudConfig,
+  features: MockResolvedFeatures,
+  viewMode: 'active' | 'trash'
+) {
+  if (!features.trash.enabled) {
+    return undefined
+  }
+
+  return {
+    value: viewMode,
+    options: [
+      {
+        key: 'active',
+        label: '列表',
+        icon: 'ep:list'
+      },
+      {
+        key: 'trash',
+        label: features.trash.label ?? '回收站',
+        icon: features.trash.icon ?? 'ep:delete'
+      }
+    ].map(option => ({
+      ...option,
+      permission: option.key === 'trash'
+        ? features.trash.permission ?? config.resource.permissions?.trash
+        : undefined
+    }))
+  }
+}
+
+function resolveModeSwitcherForTest(
+  supportsTrash: boolean,
+  config: MockCrudConfig,
+  features: MockResolvedFeatures,
+  viewMode: 'active' | 'trash'
+) {
+  if (!supportsTrash) {
+    return undefined
+  }
+
+  return createModeSwitcherForTest(config, features, viewMode)
+}
+
+describe('resolveModeSwitcher', () => {
+  it('returns undefined when resource does not support trash even if trash feature is enabled', () => {
+    const config: MockCrudConfig = {
+      resource: {
+        permissions: {
+          trash: 'admin:trash'
+        }
+      }
+    }
+    const features: MockResolvedFeatures = {
+      trash: {
+        enabled: true,
+        label: '回收站'
+      }
+    }
+
+    expect(resolveModeSwitcherForTest(false, config, features, 'active')).toBeUndefined()
+  })
+
+  it('returns undefined when trash feature is disabled even if resource supports trash', () => {
+    const config: MockCrudConfig = {
+      resource: {
+        permissions: {
+          trash: 'admin:trash'
+        }
+      }
+    }
+    const features: MockResolvedFeatures = {
+      trash: {
+        enabled: false
+      }
+    }
+
+    expect(resolveModeSwitcherForTest(true, config, features, 'active')).toBeUndefined()
+  })
+
+  it('returns trash mode switcher only when resource supports trash and feature is enabled', () => {
+    const config: MockCrudConfig = {
+      resource: {
+        permissions: {
+          trash: 'admin:trash'
+        }
+      }
+    }
+    const features: MockResolvedFeatures = {
+      trash: {
+        enabled: true,
+        label: '回收站'
+      }
+    }
+
+    expect(resolveModeSwitcherForTest(true, config, features, 'trash')).toEqual({
+      value: 'trash',
+      options: [
+        {
+          key: 'active',
+          label: '列表',
+          icon: 'ep:list',
+          permission: undefined
+        },
+        {
+          key: 'trash',
+          label: '回收站',
+          icon: 'ep:delete',
+          permission: 'admin:trash'
+        }
+      ]
+    })
+  })
+})

@@ -13,7 +13,7 @@ import type {
   UsersItem as User,
   ResetPasswordInput as ResetUserPasswordInput
 } from '@/api/modules/users'
-import { usersApi as userApi } from '@/api/modules/users'
+import { usersApiMethods } from '@/api/modules/users'
 import StandardDialog from '@/components/ui/StandardDialog/StandardDialog.vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
 import { getSafeErrorMessage } from '@/utils/string'
@@ -118,7 +118,7 @@ async function handleSubmit() {
       new_password: password.value
     }
 
-    await userApi.resetPassword({ id: props.user.id }, payload)
+    await usersApiMethods.resetPassword({ id: props.user.id }, payload).send()
     ElMessage.success(`已重置用户「${props.user.username}」的密码`)
     visible.value = false
     emit('success')

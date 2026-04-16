@@ -8,7 +8,7 @@
  *
  * 资源: /api/v1/sys/audit-logs, /api/v1/sys/events
  */
-import { contractClient } from '@/api/contract/client'
+import { contractMethods } from '@/api/contract/client'
 import type {
   ContractPathParams,
   ContractQueryParams,
@@ -28,30 +28,33 @@ export type QueryInput = ContractRequestBody<'/api/v1/sys/audit-logs/query', 'po
 export type StreamResult = ContractResponseData<'/api/v1/sys/events/stream', 'get'>
 export type StreamQuery = ContractQueryParams<'/api/v1/sys/events/stream', 'get'>
 
-export const sysApi = {
+export const sysApiMethods = {
   /**
    * [sys:auditlog:get] 获取AuditLog
    * @endpoint GET /api/v1/sys/audit-logs/{id}
+   * @returns alova method instance
    */
-  async getById(params: ContractPathParams<'/api/v1/sys/audit-logs/{id}', 'get'>, query?: ContractQueryParams<'/api/v1/sys/audit-logs/{id}', 'get'>, config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/sys/audit-logs/{id}', 'get'>> {
-    return await contractClient.get('/api/v1/sys/audit-logs/{id}', { params, query, config })
+  getById(params: ContractPathParams<'/api/v1/sys/audit-logs/{id}', 'get'>, query?: ContractQueryParams<'/api/v1/sys/audit-logs/{id}', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/sys/audit-logs/{id}', { params, query, config })
   },
 
   /**
    * [sys:auditlog:list] 获取AuditLog列表
    * @endpoint POST /api/v1/sys/audit-logs/query
+   * @returns alova method instance
    */
-  async query(body: ContractRequestBody<'/api/v1/sys/audit-logs/query', 'post'>, config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/sys/audit-logs/query', 'post'>> {
-    return await contractClient.post('/api/v1/sys/audit-logs/query', { body, config })
+  query(body: ContractRequestBody<'/api/v1/sys/audit-logs/query', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/sys/audit-logs/query', { body, config })
   },
 
   /**
    * SSE 实时事件流
    * @description 订阅 SSE 事件流，接收系统通知和业务状态更新
    * @endpoint GET /api/v1/sys/events/stream
+   * @returns alova method instance
    */
-  async stream(query?: ContractQueryParams<'/api/v1/sys/events/stream', 'get'>, config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/sys/events/stream', 'get'>> {
-    return await contractClient.get('/api/v1/sys/events/stream', { query, config })
+  stream(query?: ContractQueryParams<'/api/v1/sys/events/stream', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/sys/events/stream', { query, config })
   }
 }
 // ==================== AUTO GENERATED END ====================

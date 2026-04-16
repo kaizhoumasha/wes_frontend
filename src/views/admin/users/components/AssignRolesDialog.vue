@@ -12,8 +12,8 @@ import { inject, ref, watch, computed, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { UsersItem as User } from '@/api/modules/users'
 import type { RolesItem as Role } from '@/api/modules/roles'
-import { rolesApi as roleApi } from '@/api/modules/roles'
-import { usersApi as userApi } from '@/api/modules/users'
+import { rolesApiMethods } from '@/api/modules/roles'
+import { usersApiMethods } from '@/api/modules/users'
 import StandardDialog from '@/components/ui/StandardDialog/StandardDialog.vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
 import { CRUD_PAGE_REFRESH_KEY } from '@/components/common/crud-page/types'
@@ -116,8 +116,8 @@ async function loadRoles() {
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        const response = await roleApi.query({ limit: 100 })
-        allRoles.value = response.items
+        const response = await rolesApiMethods.query({ limit: 100 }).send() as { items?: Role[] }
+        allRoles.value = response.items ?? []
         return
       } catch (e) {
         lastError = e instanceof Error ? e : new Error(String(e))
@@ -176,7 +176,7 @@ async function handleSubmit() {
   submitting.value = true
 
   try {
-    await userApi.assignRoles({ id: props.user.id }, { role_ids: selectedRoleIds.value })
+    await usersApiMethods.assignRoles({ id: props.user.id }, { role_ids: selectedRoleIds.value }).send()
     ElMessage.success(`已为用户「${props.user.username}」分配角色`)
     visible.value = false
     emit('success')

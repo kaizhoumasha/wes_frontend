@@ -8,7 +8,7 @@
  *
  * 资源: /api/v1/demo/demo-products
  */
-import { contractClient } from '@/api/contract/client'
+import { contractMethods } from '@/api/contract/client'
 import type {
   ContractPathParams,
   ContractQueryParams,
@@ -18,14 +18,14 @@ import type {
 } from '@/api/contract/types'
 import type { components, paths } from '@/api/generated/openapi-types'
 import {
-  type SoftDeleteCrudApi,
-  createSoftDeleteCrudApi,
+  type SoftDeleteCrudApiMethods,
+  createSoftDeleteCrudRequestAdapterMethods,
   type CrudCreateInput,
   type CrudItem,
   type CrudResourceCollectionPath,
   type CrudUpdateInput,
   type SoftDeleteCrudResourceCollectionPath,
-} from '@/api/base/crud-api'
+} from '@/api/base/crud-request-adapter'
 
 const DEMO_PRODUCTS_COLLECTION_PATH = '/api/v1/demo/demo-products' as const
 
@@ -37,7 +37,7 @@ export type DemoProductsItem = EnsureEntityId<CrudItem<typeof DEMO_PRODUCTS_COLL
 export type CreateDemoProductsInput = CrudCreateInput<typeof DEMO_PRODUCTS_COLLECTION_PATH>
 export type UpdateDemoProductsInput = CrudUpdateInput<typeof DEMO_PRODUCTS_COLLECTION_PATH>
 
-const baseDemoProductsApi = createSoftDeleteCrudApi({
+const baseDemoProductsApiMethods = createSoftDeleteCrudRequestAdapterMethods({
   collection: DEMO_PRODUCTS_COLLECTION_PATH as unknown as SoftDeleteCrudResourceCollectionPath,
   item: `${DEMO_PRODUCTS_COLLECTION_PATH}/{id}` as const,
   query: `${DEMO_PRODUCTS_COLLECTION_PATH}/query` as const,
@@ -45,11 +45,10 @@ const baseDemoProductsApi = createSoftDeleteCrudApi({
   trash: `${DEMO_PRODUCTS_COLLECTION_PATH}/trash` as const,
   trashRestore: `${DEMO_PRODUCTS_COLLECTION_PATH}/trash/restore` as const,
   trashPermanentDelete: `${DEMO_PRODUCTS_COLLECTION_PATH}/trash/permanent` as const,
-}) as unknown as SoftDeleteCrudApi<DemoProductsItem, CreateDemoProductsInput, UpdateDemoProductsInput>
+}) as unknown as SoftDeleteCrudApiMethods<DemoProductsItem, CreateDemoProductsInput, UpdateDemoProductsInput>
 
-export const demoProductsApi = {
-  ...baseDemoProductsApi,
-
+export const demoProductsApiMethods = {
+  ...baseDemoProductsApiMethods,
 }
 // ==================== AUTO GENERATED END ====================
 

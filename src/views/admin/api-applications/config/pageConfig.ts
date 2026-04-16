@@ -4,7 +4,7 @@ import type {
   UpdateApplicationsInput as UpdateAPIApplicationInput
 } from '@/api/modules/applications'
 import { API_AUTH_PERMISSIONS } from '@/api/generated/permissions'
-import { applicationsApi as apiApplicationApi } from '@/api/modules/applications'
+import { applicationsApiMethods } from '@/api/modules/applications'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
@@ -12,7 +12,7 @@ import { apiApplicationPageFieldConfig } from './fieldConfig'
 
 type APIApplicationPageConfig = CrudPageConfig<APIApplication, CreateAPIApplicationInput, UpdateAPIApplicationInput>
 
-const API_APPLICATION_PAGE_RESOURCE: APIApplicationPageConfig['resource'] = {
+const API_APPLICATION_PAGE_RESOURCE = {
   key: 'api-applications',
   title: {
     text: 'API 应用管理',
@@ -24,10 +24,10 @@ const API_APPLICATION_PAGE_RESOURCE: APIApplicationPageConfig['resource'] = {
     subtitle: '查看并恢复已删除的 API 应用',
     icon: 'ep:delete'
   },
-  api: apiApplicationApi as unknown as APIApplicationPageConfig['resource']['api'],
+  methods: applicationsApiMethods,
   permissions: API_AUTH_PERMISSIONS.apiapplication,
   optimisticUpdate: true,
-  defaultSort: [{ field: 'created_at', order: 'desc' }]
+  defaultSort: [{ field: 'created_at', order: 'desc' as const }]
 }
 
 const API_APPLICATION_PAGE_TABLE: Partial<APIApplicationPageConfig['table']> = {

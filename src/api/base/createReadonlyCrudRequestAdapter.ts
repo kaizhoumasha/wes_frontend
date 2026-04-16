@@ -1,5 +1,5 @@
 import type { ContractRequestConfig } from '@/api/contract/types'
-import type { CrudApi, FilterGroup, PaginationData, QueryOptionsInput } from './crud-api'
+import type { CrudRequestAdapter, FilterGroup, PaginationData, QueryOptionsInput } from './crud-request-adapter'
 
 interface ReadonlyListResponse<TItem> {
   items?: TItem[]
@@ -8,7 +8,7 @@ interface ReadonlyListResponse<TItem> {
   offset: number
 }
 
-export interface ReadonlyCrudApiSource<
+export interface ReadonlyCrudRequestAdapterSource<
   TItem,
   TDetailQuery = never,
   TQueryInput extends QueryOptionsInput = QueryOptionsInput
@@ -19,6 +19,19 @@ export interface ReadonlyCrudApiSource<
     config?: ContractRequestConfig
   ) => Promise<TItem>
   query: (body: TQueryInput, config?: ContractRequestConfig) => Promise<ReadonlyListResponse<TItem>>
+}
+
+export interface ReadonlyCrudRequestAdapterMethodsSource<
+  TItem,
+  TDetailQuery = never,
+  TQueryInput extends QueryOptionsInput = QueryOptionsInput
+> {
+  getById: (
+    params: { id: number },
+    query?: TDetailQuery,
+    config?: ContractRequestConfig
+  ) => { send: () => Promise<TItem> }
+  query: (body: TQueryInput, config?: ContractRequestConfig) => { send: () => Promise<ReadonlyListResponse<TItem>> }
 }
 
 function normalizeFilterGroup(filters: FilterGroup | null | undefined): FilterGroup | undefined {
@@ -80,16 +93,16 @@ function assertListResponse<TItem>(response: unknown): asserts response is Reado
 }
 
 function unsupported(action: 'create' | 'update' | 'delete'): never {
-  throw new Error(`Readonly CRUD API does not support ${action}`)
+  throw new Error(`Readonly CRUD request adapter does not support ${action}`)
 }
 
-export function createReadonlyCrudApi<
+export function createReadonlyCrudRequestAdapter<
   TItem,
   TDetailQuery = never,
   TQueryInput extends QueryOptionsInput = QueryOptionsInput
 >(
-  source: ReadonlyCrudApiSource<TItem, TDetailQuery, TQueryInput>
-): CrudApi<TItem, Record<string, never>, Record<string, never>, TDetailQuery, TQueryInput> {
+  source: ReadonlyCrudRequestAdapterSource<TItem, TDetailQuery, TQueryInput>
+): CrudRequestAdapter<TItem, Record<string, never>, Record<string, never>, TDetailQuery, TQueryInput> {
   return {
     async getById(id, options) {
       return await source.getById({ id }, options?.query, options?.config)
@@ -97,6 +110,38 @@ export function createReadonlyCrudApi<
 
     async query(options, config) {
       const response = await source.query(normalizeQueryInput(options), config)
+      assertListResponse<TItem>(response)
+      return toPaginationData(response)
+    },
+
+    async create() {
+      unsupported('create')
+    },
+
+    async update() {
+      unsupported('update')
+    },
+
+    async delete() {
+      unsupported('delete')
+    }
+  }
+}
+
+export function createReadonlyCrudRequestAdapterFromMethods<
+  TItem,
+  TDetailQuery = never,
+  TQueryInput extends QueryOptionsInput = QueryOptionsInput
+>(
+  source: ReadonlyCrudRequestAdapterMethodsSource<TItem, TDetailQuery, TQueryInput>
+): CrudRequestAdapter<TItem, Record<string, never>, Record<string, never>, TDetailQuery, TQueryInput> {
+  return {
+    async getById(id, options) {
+      return await source.getById({ id }, options?.query, options?.config).send()
+    },
+
+    async query(options, config) {
+      const response = await source.query(normalizeQueryInput(options), config).send()
       assertListResponse<TItem>(response)
       return toPaginationData(response)
     },

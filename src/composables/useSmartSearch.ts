@@ -15,18 +15,11 @@ import type {
   SearchFavorite,
   SearchFieldDef,
   SmartSearchState,
-  QuickSearchPreset,
+  QuickSearchPreset
 } from '@/types/search'
-import {
-  buildConditionLabel,
-  compileFilterGroup,
-  compileConditions,
-  getCompatibleFields,
-  generateConditionId,
-} from '@/utils/search-compiler'
-import { parseKeywordValue } from '@/utils/search-value-parser'
-import { validateConditionDraft } from '@/types/search'
-import { appendAndFilter, type FilterGroup } from '@/api/base/crud-api'
+import type { FilterGroup } from '@/api/base/crud-request-adapter'
+import { useSmartSearchConditions } from '@/composables/search/useSmartSearchConditions'
+import { useSmartSearchUi } from '@/composables/search/useSmartSearchUi'
 
 // ==================== 类型定义 ====================
 
@@ -171,396 +164,54 @@ export function useSmartSearch(options: UseSmartSearchOptions): UseSmartSearchRe
     () => state.value.conditions.length > 0 || state.value.advancedFilterGroup !== undefined
   )
 
-  const activeField: ComputedRef<SearchFieldDef | undefined> = computed(() => {
-    if (!state.value.activeField) return undefined
-    return fields.find((f) => f.key === state.value.activeField)
-  })
-
-  const compatibleFields: ComputedRef<SearchFieldDef[]> = computed(() =>
-    getSearchableCompatibleFields(state.value.keyword)
-  )
-
-  // ==================== 辅助函数 ====================
-
-  /**
-   * 触发条件变化回调（用于自动搜索）
-   */
   function notifyConditionsChange(): void {
     if (onConditionsChange) {
       onConditionsChange(conditions.value)
     }
   }
 
-  function getSearchableCompatibleFields(keyword: string): SearchFieldDef[] {
-    return getCompatibleFields(keyword, fields).filter((field) => field.searchable !== false)
-  }
-
-  function createConditionFromDraft(
-    draft: SearchConditionDraft,
-    options?: {
-      id?: string
-      source?: SearchCondition['source']
-    }
-  ): SearchCondition {
-    return {
-      id: options?.id ?? generateConditionId(),
-      field: draft.field,
-      operator: draft.operator,
-      value: draft.value,
-      label: buildConditionLabel(draft, fields),
-      source: options?.source ?? draft.source ?? 'manual'
-    }
-  }
-
-  function findConditionIndex(id: string): number {
-    return state.value.conditions.findIndex((condition) => condition.id === id)
-  }
-
-  function appendConditions(
-    drafts: SearchConditionDraft[],
-    options?: {
-      source?: SearchCondition['source']
-      deduplicate?: boolean
-    }
-  ): number {
-    let addedCount = 0
-
-    for (const draft of drafts) {
-      if (!validateConditionDraft(draft, fields, { context: '[useSmartSearch]' })) {
-        continue
-      }
-
-      if (options?.deduplicate && hasDuplicateCondition(draft)) {
-        continue
-      }
-
-      state.value.conditions.push(
-        createConditionFromDraft(draft, {
-          source: options?.source
-        })
-      )
-      addedCount++
-    }
-
-    return addedCount
-  }
-
-  // ==================== Keyword 操作 ====================
-
-  function setKeyword(keyword: string): void {
-    state.value.keyword = keyword
-
-    // 如果关键字为空，清除当前高亮字段
-    if (!keyword) {
-      state.value.activeField = undefined
-      return
-    }
-
-    const nextCompatibleFields = getSearchableCompatibleFields(keyword)
-
-    if (nextCompatibleFields.length === 0) {
-      state.value.activeField = undefined
-      return
-    }
-
-    const activeFieldStillCompatible = nextCompatibleFields.some(
-      (field) => field.key === state.value.activeField
-    )
-
-    if (!activeFieldStillCompatible) {
-      state.value.activeField = nextCompatibleFields[0].key
-    }
-  }
-
-  function clearKeyword(): void {
-    setKeyword('')
-  }
-
-  // ==================== 字段操作 ====================
-
-  function setActiveField(fieldKey?: string): void {
-    state.value.activeField = fieldKey
-  }
-
-  function getNextActiveField(direction: 'next' | 'prev'): SearchFieldDef | undefined {
-    const compatible = compatibleFields.value
-    if (compatible.length === 0) return undefined
-
-    const currentKey = state.value.activeField
-    const currentIndex = compatible.findIndex((f) => f.key === currentKey)
-
-    if (direction === 'next') {
-      const nextIndex = (currentIndex + 1) % compatible.length
-      const nextField = compatible[nextIndex]
-      setActiveField(nextField.key)
-      return nextField
-    } else {
-      const prevIndex = currentIndex <= 0 ? compatible.length - 1 : currentIndex - 1
-      const prevField = compatible[prevIndex]
-      setActiveField(prevField.key)
-      return prevField
-    }
-  }
-
-  // ==================== 条件操作 ====================
-
-  /**
-   * 检查条件是否已存在（用于去重）
-   *
-   * 去重策略：相同字段 + 相同操作符 + 相同值 = 重复条件
-   */
-  function hasDuplicateCondition(draft: SearchConditionDraft): boolean {
-    return state.value.conditions.some(
-      (c) =>
-        c.field === draft.field &&
-        c.operator === draft.operator &&
-        JSON.stringify(c.value) === JSON.stringify(draft.value)
-    )
-  }
-
-  function addCondition(draft: SearchConditionDraft): void {
-    // 校验逻辑（只接受有效条件）
-    if (!validateConditionDraft(draft, fields, { context: '[useSmartSearch]' })) {
-      return
-    }
-
-    state.value.conditions.push(createConditionFromDraft(draft))
-    notifyConditionsChange()
-  }
-
-  function removeCondition(id: string): void {
-    const index = findConditionIndex(id)
-    if (index !== -1) {
-      state.value.conditions.splice(index, 1)
-      notifyConditionsChange()
-    }
-  }
-
-  function replaceCondition(id: string, draft: SearchConditionDraft): void {
-    const index = findConditionIndex(id)
-    if (index === -1) {
-      console.warn(`[useSmartSearch] 条件不存在: ${id}`)
-      return
-    }
-
-    // 校验逻辑（只接受有效条件）
-    if (!validateConditionDraft(draft, fields, { context: '[useSmartSearch]' })) {
-      return
-    }
-
-    state.value.conditions[index] = createConditionFromDraft(draft, { id })
-    notifyConditionsChange()
-  }
-
-  function replaceConditions(drafts: SearchConditionDraft[]): void {
-    const nextConditions: SearchCondition[] = drafts
-      .filter((draft) => validateConditionDraft(draft, fields, { context: '[useSmartSearch]' }))
-      .map((draft) => createConditionFromDraft(draft))
-
-    state.value.conditions = nextConditions
-    notifyConditionsChange()
-  }
-
-  function setFavorites(favorites: SearchFavorite[]): void {
-    state.value.favorites = favorites
-  }
-
-  function setAdvancedFilterGroup(group: FilterGroup | undefined): void {
-    state.value.advancedFilterGroup = group
-    notifyConditionsChange()
-  }
-
-  function clearAdvancedFilterGroup(): void {
-    if (!state.value.advancedFilterGroup) {
-      return
-    }
-
-    state.value.advancedFilterGroup = undefined
-    notifyConditionsChange()
-  }
-
-  function clearConditions(): void {
-    state.value.conditions = []
-    notifyConditionsChange()
-  }
-
-  function clearAppliedFilters(): void {
-    if (state.value.conditions.length === 0 && !state.value.advancedFilterGroup) {
-      return
-    }
-
-    state.value.conditions = []
-    state.value.advancedFilterGroup = undefined
-    notifyConditionsChange()
-  }
-
-  function buildConditionFromField(fieldKey: string): boolean {
-    const field = fields.find((candidate) => candidate.key === fieldKey)
-    if (!field) {
-      console.warn(`[useSmartSearch] 字段不存在: ${fieldKey}`)
-      return false
-    }
-
-    const keyword = state.value.keyword.trim()
-    if (!keyword) {
-      console.warn('[useSmartSearch] 关键字为空')
-      return false
-    }
-
-    // 使用值解析器
-    const parsed = parseKeywordValue(keyword, field.dataType)
-    if (!parsed.success) {
-      console.warn(`[useSmartSearch] ${parsed.error}`)
-      return false
-    }
-
-    addCondition({
-      field: field.key,
-      operator: field.defaultOperator || 'equals',
-      value: parsed.value,
-      source: 'manual'
-    })
-
-    setKeyword('')
-    setActiveField(undefined)
-    closePopover()
-
-    return true
-  }
-
-  // ==================== 收藏夹与预设 ====================
-
-  /**
-   * 应用收藏夹（带去重和校验）
-   *
-   * 去重策略：跳过已存在的条件（相同字段 + 相同操作符 + 相同值）
-   * 业务语义：
-   * - 扁平收藏：追加普通条件并去重
-   * - 高级收藏：替换当前高级过滤组
-   */
-  function applyFavorite(favoriteId: string): void {
-    const favorite = state.value.favorites.find((f) => f.id === favoriteId)
-    if (!favorite) {
-      console.warn(`[useSmartSearch] 收藏夹不存在: ${favoriteId}`)
-      return
-    }
-
-    let hasChanges = false
-
-    if (favorite.filterGroup) {
-      state.value.advancedFilterGroup = favorite.filterGroup
-      hasChanges = true
-    }
-
-    const addedCount = appendConditions(favorite.conditions, {
-      source: 'favorite',
-      deduplicate: true
-    })
-
-    if (addedCount > 0) {
-      hasChanges = true
-    }
-
-    if (hasChanges) {
-      notifyConditionsChange()
-    }
-  }
-
-  /**
-   * 应用快速预设（带校验）
-   *
-   * @param presetId - 预设 ID
-   * @param options - 选项
-   * @param options.deduplicate - 是否去重（默认 false，允许重复追加）
-   *
-   * 业务语义：
-   * - deduplicate=false（默认）：快捷操作允许多次应用，适合"追加式"构建查询
-   * - deduplicate=true：跳过已存在的条件，类似收藏夹行为
-   */
-  function applyQuickPreset(
-    presetId: string,
-    options?: { deduplicate?: boolean }
-  ): void {
-    const preset = quickPresets.find((p) => p.id === presetId)
-    if (!preset) {
-      console.warn(`[useSmartSearch] 预设不存在: ${presetId}`)
-      return
-    }
-
-    const { deduplicate = false } = options || {}
-    const presetConditions = preset.resolveConditions?.() ?? preset.conditions
-    const addedCount = appendConditions(presetConditions, {
-      source: 'quick',
-      deduplicate
-    })
-
-    // 批量添加完成后只触发一次回调
-    if (addedCount > 0) {
-      notifyConditionsChange()
-    }
-  }
-
-  function buildConditionFromActiveField(): void {
-    const field = activeField.value
-    if (!field) {
-      console.warn('[useSmartSearch] 没有高亮字段')
-      return
-    }
-
-    buildConditionFromField(field.key)
-  }
-
-  // ==================== UI 状态 ====================
-
-  function openPopover(): void {
-    state.value.popoverOpen = true
-  }
-
-  function closePopover(): void {
-    state.value.popoverOpen = false
-  }
-
-  function togglePopover(): void {
-    state.value.popoverOpen = !state.value.popoverOpen
-  }
-
-  /**
-   * 打开高级搜索弹窗
-   * @param fieldKey - 可选，指定要打开的字段 key，用于预填条件
-   */
-  function openAdvancedDialog(fieldKey?: string): void {
-    state.value.advancedDialogOpen = true
-    // 如果传入了 fieldKey，设置 draftSeed 触发预填
-    if (fieldKey) {
-      state.value.advancedDialogDraftSeed = {
-        fieldKey,
-        nonce: Date.now(), // 使用时间戳作为 nonce 触发 watch
-      }
-    } else {
-      state.value.advancedDialogDraftSeed = undefined
-    }
-  }
-
-  function closeAdvancedDialog(): void {
-    state.value.advancedDialogOpen = false
-  }
-
-  // ==================== 编译 ====================
-
-  function compileToFilterGroup(): FilterGroup | undefined {
-    const compiledConditions = compileConditions(state.value.conditions, fields)
-    const compiledAdvancedFilters = compileFilterGroup(state.value.advancedFilterGroup, fields)
-
-    if (!compiledAdvancedFilters) {
-      return compiledConditions
-    }
-
-    if (!compiledConditions) {
-      return compiledAdvancedFilters
-    }
-
-    return appendAndFilter(compiledAdvancedFilters, compiledConditions)
-  }
+  const {
+    activeField,
+    compatibleFields,
+    setKeyword,
+    clearKeyword,
+    setActiveField,
+    getNextActiveField,
+    openPopover,
+    closePopover,
+    togglePopover,
+    openAdvancedDialog,
+    closeAdvancedDialog
+  } = useSmartSearchUi({
+    state,
+    fields
+  })
+
+  const {
+    addCondition,
+    removeCondition,
+    replaceCondition,
+    replaceConditions,
+    setFavorites,
+    setAdvancedFilterGroup,
+    clearAdvancedFilterGroup,
+    clearAppliedFilters,
+    clearConditions,
+    applyFavorite,
+    applyQuickPreset,
+    buildConditionFromActiveField,
+    buildConditionFromField,
+    compileToFilterGroup
+  } = useSmartSearchConditions({
+    state,
+    fields,
+    quickPresets,
+    activeField,
+    notifyConditionsChange,
+    setKeyword,
+    setActiveField,
+    closePopover
+  })
 
   // ==================== 返回 API ====================
 

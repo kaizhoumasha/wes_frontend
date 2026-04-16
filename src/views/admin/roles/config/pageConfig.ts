@@ -1,6 +1,6 @@
 import type { CreateRolesInput, UpdateRolesInput, RolesItem } from '@/api/modules/roles'
 import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
-import { rolesApi } from '@/api/modules/roles'
+import { rolesApiMethods } from '@/api/modules/roles'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
@@ -8,7 +8,7 @@ import { rolePageFieldConfig } from './fieldConfig'
 
 type RolePageConfig = CrudPageConfig<RolesItem, CreateRolesInput, UpdateRolesInput>
 
-const ROLE_PAGE_RESOURCE: RolePageConfig['resource'] = {
+const ROLE_PAGE_RESOURCE = {
   key: 'roles',
   title: {
     text: '角色管理',
@@ -20,10 +20,10 @@ const ROLE_PAGE_RESOURCE: RolePageConfig['resource'] = {
     subtitle: '查看并恢复已删除角色',
     icon: 'ep:delete'
   },
-  api: rolesApi,
+  methods: rolesApiMethods,
   permissions: ADMIN_PERMISSIONS.role,
   optimisticUpdate: true,
-  defaultSort: [{ field: 'updated_at', order: 'desc' }]
+  defaultSort: [{ field: 'updated_at', order: 'desc' as const }]
 }
 
 const ROLE_PAGE_TABLE: Partial<RolePageConfig['table']> = {

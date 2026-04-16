@@ -8,7 +8,7 @@
  *
  * 资源: /api/v1/auth/login, /api/v1/auth/logout, /api/v1/auth/logout-all, /api/v1/auth/my, /api/v1/auth/permissions, /api/v1/auth/refresh, /api/v1/auth/sessions
  */
-import { contractClient } from '@/api/contract/client'
+import { contractMethods } from '@/api/contract/client'
 import type {
   ContractPathParams,
   ContractQueryParams,
@@ -36,7 +36,7 @@ export type SessionsResult = ContractResponseData<'/api/v1/auth/sessions', 'get'
 export type DeleteBySessionUuidResult = ContractResponseData<'/api/v1/auth/sessions/{session_uuid}', 'delete'>
 export type DeleteBySessionUuidPathParams = ContractPathParams<'/api/v1/auth/sessions/{session_uuid}', 'delete'>
 
-export const authApi = {
+export const authApiMethods = {
   /**
    * 用户登录
    * @description 用户登录
@@ -52,9 +52,10 @@ export const authApi = {
 - Refresh Token 存储在 HttpOnly Cookie 中
 - 支持 JTI（JWT ID）用于精确撤销
    * @endpoint POST /api/v1/auth/login
+   * @returns alova method instance
    */
-  async login(body: ContractRequestBody<'/api/v1/auth/login', 'post'>, config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/auth/login', 'post'>> {
-    return await contractClient.post('/api/v1/auth/login', { body, config })
+  login(body: ContractRequestBody<'/api/v1/auth/login', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/auth/login', { body, config })
   },
 
   /**
@@ -68,9 +69,10 @@ export const authApi = {
 - 当 Access Token 不可用时，回退使用 Refresh Token Cookie 撤销当前会话
 - 始终删除 Refresh Token Cookie（幂等）
    * @endpoint POST /api/v1/auth/logout
+   * @returns alova method instance
    */
-  async logout(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/auth/logout', 'post'>> {
-    return await contractClient.post('/api/v1/auth/logout', { config })
+  logout(config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/auth/logout', { config })
   },
 
   /**
@@ -88,27 +90,30 @@ export const authApi = {
 - 删除所有会话信息
 - 返回撤销的令牌数量
    * @endpoint POST /api/v1/auth/logout-all
+   * @returns alova method instance
    */
-  async logoutAll(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/auth/logout-all', 'post'>> {
-    return await contractClient.post('/api/v1/auth/logout-all', { config })
+  logoutAll(config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/auth/logout-all', { config })
   },
 
   /**
    * 获取当前用户初始化上下文
    * @description 一次性返回用户信息、API 权限列表和菜单树，用于前端登录后初始化
    * @endpoint GET /api/v1/auth/my
+   * @returns alova method instance
    */
-  async my(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/auth/my', 'get'>> {
-    return await contractClient.get('/api/v1/auth/my', { config })
+  my(config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/auth/my', { config })
   },
 
   /**
    * 获取当前用户的 API 权限列表
    * @description 获取当前用户有权限访问的内部管理 API（用于前端动态路由和权限控制）
    * @endpoint GET /api/v1/auth/permissions
+   * @returns alova method instance
    */
-  async permissions(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/auth/permissions', 'get'>> {
-    return await contractClient.get('/api/v1/auth/permissions', { config })
+  permissions(config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/auth/permissions', { config })
   },
 
   /**
@@ -124,9 +129,10 @@ export const authApi = {
 - 生成新的 JTI（JWT ID）
 - 自动撤销旧令牌
    * @endpoint POST /api/v1/auth/refresh
+   * @returns alova method instance
    */
-  async refresh(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/auth/refresh', 'post'>> {
-    return await contractClient.post('/api/v1/auth/refresh', { config })
+  refresh(config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/auth/refresh', { config })
   },
 
   /**
@@ -145,9 +151,10 @@ export const authApi = {
 - 安全审计
 - 检测异常登录
    * @endpoint GET /api/v1/auth/sessions
+   * @returns alova method instance
    */
-  async sessions(config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/auth/sessions', 'get'>> {
-    return await contractClient.get('/api/v1/auth/sessions', { config })
+  sessions(config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/auth/sessions', { config })
   },
 
   /**
@@ -167,9 +174,10 @@ export const authApi = {
 - 撤销关联的 Refresh Token
 - 删除会话信息
    * @endpoint DELETE /api/v1/auth/sessions/{session_uuid}
+   * @returns alova method instance
    */
-  async deleteBySessionUuid(params: ContractPathParams<'/api/v1/auth/sessions/{session_uuid}', 'delete'>, config?: ContractRequestConfig): Promise<ContractResponseData<'/api/v1/auth/sessions/{session_uuid}', 'delete'>> {
-    return await contractClient.delete('/api/v1/auth/sessions/{session_uuid}', { params, config })
+  deleteBySessionUuid(params: ContractPathParams<'/api/v1/auth/sessions/{session_uuid}', 'delete'>, config?: ContractRequestConfig) {
+    return contractMethods.delete('/api/v1/auth/sessions/{session_uuid}', { params, config })
   }
 }
 // ==================== AUTO GENERATED END ====================

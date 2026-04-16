@@ -341,7 +341,7 @@ import { computed, ref } from 'vue'
 import { Document, Suitcase, User } from '@element-plus/icons-vue'
 
 import { useSmartSearch } from '@/composables/useSmartSearch'
-import type { FilterGroup } from '@/api/base/crud-api'
+import type { FilterGroup } from '@/api/base/crud-request-adapter'
 import type { SearchFieldDef, SearchFavorite, QuickSearchPreset } from '@/types/search'
 import {
   countFilterNodes,

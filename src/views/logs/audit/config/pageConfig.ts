@@ -1,10 +1,5 @@
-import type {
-  GetByIdQuery as AuditLogDetailQuery,
-  QueryInput as AuditLogQueryInput
-} from '@/api/modules/sys'
-import { sysApi } from '@/api/modules/sys'
+import { sysApiMethods } from '@/api/modules/sys'
 import { SYS_PERMISSIONS } from '@/api/generated/permissions'
-import { createReadonlyCrudApi } from '@/api/base/createReadonlyCrudApi'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
@@ -26,23 +21,21 @@ const AUDIT_STATUS_LABEL_MAP: Record<string, string> = {
   FAIL: '失败'
 }
 
-const auditLogApi = createReadonlyCrudApi<AuditLog, AuditLogDetailQuery, AuditLogQueryInput>(sysApi)
-
-const AUDIT_LOG_PAGE_RESOURCE: AuditLogPageConfig['resource'] = {
+const AUDIT_LOG_PAGE_RESOURCE = {
   key: 'audit-logs',
   title: {
     text: '审计日志',
     subtitle: '操作审计与合规追溯',
     icon: 'ep:document'
   },
-  api: auditLogApi,
+  methods: sysApiMethods,
   permissions: {
     create: SYS_PERMISSIONS.auditlog.list,
     update: SYS_PERMISSIONS.auditlog.detail,
     delete: SYS_PERMISSIONS.auditlog.detail
   },
   pageSize: 20,
-  defaultSort: [{ field: 'opera_time', order: 'desc' }]
+  defaultSort: [{ field: 'opera_time', order: 'desc' as const }]
 }
 
 const AUDIT_LOG_PAGE_TABLE: Partial<AuditLogPageConfig['table']> = {
