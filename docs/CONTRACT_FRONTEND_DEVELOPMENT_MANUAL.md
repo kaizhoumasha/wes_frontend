@@ -4,6 +4,16 @@
 
 目标是让开发成员拿到一套新契约后，可以直接判断接入类型、落模块、落页面、联调验证，并完成交付。
 
+## 0. 当前实现基线（2026-04）
+
+> 本手册已按当前仓库实现同步。当前前端接入契约的统一约定如下：
+>
+> - 生成模块对外导出 `xxxApiMethods`
+> - 标准资源页面在 `createCrudPageConfigFromResource()` 中声明 `resource.methods`
+> - 页面框架内部从 `methods` 自动桥接出 `requestAdapter`
+> - 业务代码直接请求时优先使用 `xxxApiMethods(...).send()`
+> - 基础能力入口为 `src/api/base/crud-request-adapter.ts` 与 `src/composables/useCrudRequestAdapter.ts`
+
 ## 1. 适用范围
 
 本文档适用于以下场景：
@@ -17,7 +27,7 @@
 前端接入契约时，统一达成以下目标：
 
 - 统一使用生成契约作为类型来源
-- 统一使用资源模块作为页面 API 入口
+- 统一使用资源模块的 `xxxApiMethods` 作为页面入口
 - 统一使用通用 CRUD 能力承接标准资源
 - 统一将资源附加动作挂在同一资源模块中
 - 统一将权限、页面配置、表单 schema、搜索 schema 围绕资源模块组织
@@ -54,7 +64,7 @@
 - 一个资源对应一个资源模块
 - 在模块中组装标准 CRUD 主干
 - 在模块中追加资源附加业务动作
-- 向页面层导出稳定的 API 和类型
+- 向页面层导出稳定的 methods 和类型
 
 团队成员操作方式：
 
@@ -109,7 +119,7 @@
 
 #### 3.2.2 通用 CRUD 基类
 
-- `src/api/base/crud-api.ts`
+- `src/api/base/crud-request-adapter.ts`
 
 用途：
 
@@ -124,7 +134,7 @@
 #### 3.2.3 通用 CRUD 页面框架
 
 - `src/components/common/crud-page/**`
-- `src/composables/useCrudApi.ts`
+- `src/composables/useCrudRequestAdapter.ts`
 - `src/composables/useCrudListPage.ts`
 
 用途：
@@ -151,7 +161,7 @@
 这类资源统一接入方式：
 
 - 在 `src/api/modules/xxx.ts` 中建立资源模块
-- 使用 `createCrudResourceApi` 组装标准 CRUD 能力
+- 使用生成的 `baseXxxApiMethods` / `xxxApiMethods` 组装标准 CRUD 能力
 - 在页面配置中直接接入该资源模块
 
 ### 4.2 标准 CRUD 资源 + 附加业务动作
@@ -166,7 +176,7 @@
 
 - 先建立标准 CRUD 主干
 - 再将附加业务动作挂到同一个资源模块对象上
-- 页面继续统一消费该资源模块
+- 页面继续统一消费该资源模块的 `methods`
 
 ### 4.3 纯业务动作接口
 
@@ -276,15 +286,15 @@
 
 文件位置：
 
-- `src/api/modules/user.ts`
+- `src/api/modules/users.ts`
 
 组织方式：
 
 1. 定义资源集合路径
-2. 使用 `createCrudResourceApi` 创建标准 CRUD 主干
-3. 导出 `User`、`CreateUserInput`、`UpdateUserInput`
+2. 使用生成器产生的 `baseUsersApiMethods` 作为标准 CRUD 主干
+3. 导出 `UsersItem`、`CreateUsersInput`、`UpdateUsersInput`
 4. 为 `resetPassword` 定义输入输出类型
-5. 将 `resetPassword` 追加到 `userApi`
+5. 将 `resetPassword` 追加到 `usersApiMethods`
 
 模块结构示意：
 
@@ -292,15 +302,28 @@
 const USER_COLLECTION_PATH = '/api/v1/users'
 const USER_RESET_PASSWORD_PATH = '/api/v1/users/{id}/reset-password'
 
-const baseUserApi = createCrudResourceApi(USER_COLLECTION_PATH)
+const baseUsersApiMethods = createSoftDeleteCrudRequestAdapterMethods({
+  collection: USER_COLLECTION_PATH,
+  item: `${USER_COLLECTION_PATH}/{id}` as const,
+  query: `${USER_COLLECTION_PATH}/query` as const,
+  restore: `${USER_COLLECTION_PATH}/{id}/restore` as const,
+  trash: `${USER_COLLECTION_PATH}/trash` as const,
+  trashRestore: `${USER_COLLECTION_PATH}/trash/restore` as const,
+  trashPermanentDelete: `${USER_COLLECTION_PATH}/trash/permanent` as const
+})
 
-export const userApi = {
-  ...baseUserApi,
+export const usersApiMethods = {
+  ...baseUsersApiMethods,
 
-  async resetPassword(id: number, data: ResetUserPasswordInput) {
-    return await contractClient.put(USER_RESET_PASSWORD_PATH, {
-      params: { id },
-      body: data
+  resetPassword(
+    params: { id: number },
+    data: ResetUserPasswordInput,
+    config?: ContractRequestConfig
+  ) {
+    return contractMethods.put(USER_RESET_PASSWORD_PATH, {
+      params,
+      body: data,
+      config
     })
   }
 }
@@ -316,7 +339,7 @@ export const userApi = {
 
 页面层接入方式：
 
-- `pageConfig.ts` 中统一使用 `userApi`
+- `pageConfig.ts` 中统一使用 `methods: usersApiMethods`
 - `fieldConfig.ts` 中定义列表字段、搜索字段、表单字段
 - `actionConfig.ts` 中追加“重置密码”业务动作
 
@@ -344,7 +367,7 @@ export const userApi = {
 模板步骤：
 
 - [ ] 定义资源集合路径
-- [ ] 使用 `createCrudResourceApi`
+- [ ] 使用生成器导出的 `xxxApiMethods` 或 `createCrudRequestAdapterMethods`
 - [ ] 导出资源实体类型
 - [ ] 导出创建类型
 - [ ] 导出更新类型
