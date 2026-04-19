@@ -27,4 +27,6 @@ export const DEMO_DEMOPRODUCT_PERMISSION = {
   restore: 'demo:demoproduct:restore',
   /** 回收站权限 */
   trash: 'demo:demoproduct:trash',
+  /** 批量永久删除DemoProduct */
+  permanentDelete: 'demo:demoproduct:permanent_delete',
 } as const

@@ -15,8 +15,6 @@ export const ADMIN_PERMISSION = {
   page: 'admin:permission:list',
   /** 列表查询权限 */
   list: 'admin:permission:list',
-  /** 视图访问权限 */
-  view: 'admin:permission:view',
   /** 详情查看权限 */
   detail: 'admin:permission:detail',
   /** 创建权限 */
@@ -29,4 +27,8 @@ export const ADMIN_PERMISSION = {
   restore: 'admin:permission:restore',
   /** 回收站权限 */
   trash: 'admin:permission:trash',
+  /** 批量永久删除Permission */
+  permanentDelete: 'admin:permission:permanent_delete',
+  /** get_tree */
+  tree: 'admin:permission:tree',
 } as const

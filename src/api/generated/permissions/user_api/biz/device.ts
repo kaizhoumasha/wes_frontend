@@ -27,4 +27,6 @@ export const BIZ_DEVICE_PERMISSION = {
   restore: 'biz:device:restore',
   /** 回收站权限 */
   trash: 'biz:device:trash',
+  /** 批量永久删除Device */
+  permanentDelete: 'biz:device:permanent_delete',
 } as const

@@ -27,4 +27,6 @@ export const BIZ_WORKLINE_PERMISSION = {
   restore: 'biz:workline:restore',
   /** 回收站权限 */
   trash: 'biz:workline:trash',
+  /** 批量永久删除WorkLine */
+  permanentDelete: 'biz:workline:permanent_delete',
 } as const

@@ -1884,7 +1884,7 @@ export const TraceCallbackLogItemSchema = z.object({
   /** Created At */
   created_at: z.string().datetime(),
   /** Updated At */
-  updated_at: z.string().datetime(),
+  updated_at: z.union([z.string().datetime(), z.null()]).optional(),
 })
 
 

@@ -31,6 +31,10 @@ export const ADMIN_USER_PERMISSION = {
   bulkDelete: 'admin:user:bulk_delete',
   /** 为用户分配角色 */
   assignRoles: 'admin:user:assign-roles',
+  /** 批量永久删除User */
+  permanentDelete: 'admin:user:permanent_delete',
   /** 重置用户密码 */
   resetPassword: 'admin:user:reset-password',
+  /** 获取缓存统计 */
+  stats: 'admin:user:stats',
 } as const

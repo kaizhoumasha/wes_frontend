@@ -15,9 +15,9 @@ import { ADMIN_ROLE_PERMISSION } from './user_api/admin/role'
 import { ADMIN_USER_PERMISSION } from './user_api/admin/user'
 import { API_AUTH_API_APPLICATION_PERMISSION } from './user_api/api-auth/api_application'
 import { API_AUTH_APIACCESSLOG_PERMISSION } from './user_api/api-auth/apiaccesslog'
-import { API_AUTH_APIAPPLICATION_PERMISSION } from './user_api/api-auth/apiapplication'
 import { BIZ_DEVICE_PERMISSION } from './user_api/biz/device'
 import { BIZ_WORKLINE_PERMISSION } from './user_api/biz/workline'
+import { CALLBACK_CALLBACK_LOG_PERMISSION } from './user_api/callback/callback_log'
 import { DEMO_DEMOPRODUCT_PERMISSION } from './user_api/demo/demoproduct'
 import { SYS_AUDITLOG_PERMISSION } from './user_api/sys/auditlog'
 
@@ -30,9 +30,9 @@ export { ADMIN_ROLE_PERMISSION }
 export { ADMIN_USER_PERMISSION }
 export { API_AUTH_API_APPLICATION_PERMISSION }
 export { API_AUTH_APIACCESSLOG_PERMISSION }
-export { API_AUTH_APIAPPLICATION_PERMISSION }
 export { BIZ_DEVICE_PERMISSION }
 export { BIZ_WORKLINE_PERMISSION }
+export { CALLBACK_CALLBACK_LOG_PERMISSION }
 export { DEMO_DEMOPRODUCT_PERMISSION }
 export { SYS_AUDITLOG_PERMISSION }
 
@@ -60,7 +60,6 @@ export const API_PERMISSIONS = {
 export const API_AUTH_PERMISSIONS = {
   apiApplication: API_AUTH_API_APPLICATION_PERMISSION,
   apiaccesslog: API_AUTH_APIACCESSLOG_PERMISSION,
-  apiapplication: API_AUTH_APIAPPLICATION_PERMISSION,
 } as const
 
 /**
@@ -69,6 +68,13 @@ export const API_AUTH_PERMISSIONS = {
 export const BIZ_PERMISSIONS = {
   device: BIZ_DEVICE_PERMISSION,
   workline: BIZ_WORKLINE_PERMISSION,
+} as const
+
+/**
+ * callback 分类权限快捷导出
+ */
+export const CALLBACK_PERMISSIONS = {
+  callbackLog: CALLBACK_CALLBACK_LOG_PERMISSION,
 } as const
 
 /**
@@ -93,6 +99,7 @@ export const PERMISSIONS = {
   api: API_PERMISSIONS,
   apiAuth: API_AUTH_PERMISSIONS,
   biz: BIZ_PERMISSIONS,
+  callback: CALLBACK_PERMISSIONS,
   demo: DEMO_PERMISSIONS,
   sys: SYS_PERMISSIONS,
 } as const

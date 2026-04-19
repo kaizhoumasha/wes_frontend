@@ -99,8 +99,10 @@ export function scanBackendPermissions(backendRoot: string): PermissionRecord[] 
   const pythonCode = `
 import json
 
-from src.register import app
+from src.register import create_app
 from src.utils.permission_scanner import scan_routes_for_permissions
+
+app = create_app()
 
 print("${JSON_START_MARKER}")
 print(json.dumps(scan_routes_for_permissions(app), ensure_ascii=False))
