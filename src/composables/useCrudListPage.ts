@@ -12,13 +12,15 @@ import { useCrudListRequestActions } from './crud/useCrudListRequestActions'
 import {
   type CrudRequestAdapter,
   type QueryOptions,
-  type SortField,
+  type SortField
 } from '@/api/base/crud-request-adapter'
 import type { CrudPageViewMode } from '@/components/common/crud-page/types'
 import type { TableSortOrder } from '@/components/ui/table/table.types'
 import type { SearchFieldDef, QuickSearchPreset, SearchFavorite } from '@/types/search'
 
-type CrudDeleteOptions<TAdapter extends CrudRequestAdapter<unknown, unknown, unknown>> = Parameters<TAdapter['delete']>[1]
+type CrudDeleteOptions<TAdapter extends CrudRequestAdapter<unknown, unknown, unknown>> = Parameters<
+  TAdapter['delete']
+>[1]
 type ReadonlyRef<T> = Readonly<Ref<T>>
 
 // ==================== 树形类型定义 ====================
@@ -135,12 +137,7 @@ export interface PaginationState {
   total: number
 }
 
-export interface UseCrudListPageReturn<
-  T,
-  C,
-  U,
-  TDeleteOptions = undefined
-> {
+export interface UseCrudListPageReturn<T, C, U, TDeleteOptions = undefined> {
   // 核心状态
   state: {
     data: ComputedRef<T[]>
@@ -241,7 +238,9 @@ export interface UseCrudListPageReturn<
     /** 移动节点 */
     move: (id: number, targetId: number, position: 'before' | 'after' | 'inner') => Promise<boolean>
     /** 批量排序 */
-    batchSort: (items: { id: number; parent_id: number | null; sort_order: number }[]) => Promise<boolean>
+    batchSort: (
+      items: { id: number; parent_id: number | null; sort_order: number }[]
+    ) => Promise<boolean>
     /** 展开节点 */
     expandNode: (id: number) => void
     /** 折叠节点 */
@@ -383,8 +382,12 @@ export function useCrudListPage<
 
   const supportsTrash = trash.supportsTrash
   const isTrashMode = trash.isTrashMode
-  const currentLoading = computed(() => (isTrashMode.value ? trash.trashLoading.value : crudAdapterState.loading.value))
-  const currentError = computed(() => (isTrashMode.value ? trash.trashError.value : crudAdapterState.error.value))
+  const currentLoading = computed(() =>
+    isTrashMode.value ? trash.trashLoading.value : crudAdapterState.loading.value
+  )
+  const currentError = computed(() =>
+    isTrashMode.value ? trash.trashError.value : crudAdapterState.error.value
+  )
 
   /** 选中的数量 */
   const selectedCount = selection.selectedCount
@@ -392,12 +395,13 @@ export function useCrudListPage<
   /** 是否有选中项 */
   const hasSelection = selection.hasSelection
 
-  const buildQueryOptions = (page?: number): QueryOptions => buildCrudQueryOptions({
-    compileFilters: () => searchInstance.compileToFilterGroup(),
-    sortState: sorting.sortState,
-    page,
-    pageSize: crudAdapterState.pagination.pageSize
-  })
+  const buildQueryOptions = (page?: number): QueryOptions =>
+    buildCrudQueryOptions({
+      compileFilters: () => searchInstance.compileToFilterGroup(),
+      sortState: sorting.sortState,
+      page,
+      pageSize: crudAdapterState.pagination.pageSize
+    })
 
   const searchHandlers = createCrudListSearchHandlers({
     isTreeMode: isTreeMode.value,
@@ -416,9 +420,46 @@ export function useCrudListPage<
     sorting
   })
 
-
   const handleSearch = searchHandlers.handleSearch
   const handleRefresh = searchHandlers.handleRefresh
+
+  async function runDirectMutation<TResult>(
+    operation: 'create' | 'update' | 'delete',
+    action: () => Promise<TResult>,
+    fallback: TResult
+  ): Promise<TResult> {
+    crudAdapterState.loading.value = true
+    crudAdapterState.error.value = null
+
+    try {
+      return await action()
+    } catch (error) {
+      crudAdapterState.error.value = error as Error
+      console.error(`Failed to ${operation}:`, error)
+      return fallback
+    } finally {
+      crudAdapterState.loading.value = false
+    }
+  }
+
+  const directMutationAdapter = {
+    async create(formData: C): Promise<T | null> {
+      return runDirectMutation('create', () => adapter.create(formData), null)
+    },
+    async update(id: number, formData: U): Promise<T | null> {
+      return runDirectMutation('update', () => adapter.update(id, formData), null)
+    },
+    async delete(id: number, options?: CrudDeleteOptions<TAdapter>): Promise<boolean> {
+      return runDirectMutation(
+        'delete',
+        async () => {
+          await adapter.delete(id, options)
+          return true
+        },
+        false
+      )
+    }
+  }
 
   const requestActions = useCrudListRequestActions<T, C, U, TAdapter>({
     crudAdapter: {
@@ -426,12 +467,15 @@ export function useCrudListPage<
       update: crudAdapterState.update,
       delete: crudAdapterState.delete
     },
+    directAdapter: directMutationAdapter,
     dialogs,
     treeAdapter,
     tree,
     items,
     trash,
-    syncCurrentPagination: searchHandlers.syncCurrentPagination
+    isSearchMode,
+    syncCurrentPagination: searchHandlers.syncCurrentPagination,
+    refreshCurrentView: handleRefresh
   })
 
   function setViewMode(mode: CrudPageViewMode): void {
@@ -439,8 +483,14 @@ export function useCrudListPage<
       return
     }
 
+    const prevMode = viewMode.value
     viewMode.value = mode
     searchHandlers.syncCurrentPagination()
+
+    // 从回收站切回正常视图时，刷新树形数据以反映恢复/永久删除的变更
+    if (prevMode === 'trash' && mode === 'active' && isTreeMode.value) {
+      tree.fetchTree()
+    }
   }
 
   // ==================== 返回分组结果 ====================
@@ -538,7 +588,7 @@ export function useCrudListPage<
         expandAll: tree.expandAll,
         collapseAll: tree.collapseAll,
         isLeaf: tree.isLeaf,
-        findNode: tree.findNode,
+        findNode: tree.findNode
       }
     })
   }

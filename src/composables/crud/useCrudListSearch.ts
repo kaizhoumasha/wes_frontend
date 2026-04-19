@@ -72,6 +72,11 @@ export function createCrudListSearchHandlers(options: {
     })
   }
 
+  const resetTreePagination = () => {
+    options.currentPagination.page = 1
+    options.currentPagination.total = 0
+  }
+
   async function handleSearch(page?: number): Promise<void> {
     if (options.isTrashMode()) {
       options.isSearchMode.value = false
@@ -91,6 +96,7 @@ export function createCrudListSearchHandlers(options: {
       } else {
         options.isSearchMode.value = false
         await options.fetchTree()
+        resetTreePagination()
       }
       return
     }

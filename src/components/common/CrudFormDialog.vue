@@ -210,7 +210,7 @@ watch(
         :is-edit-mode="isEditMode"
         :readonly-display-fields="readonlyDisplayFields"
         :tree-select-config="treeSelectConfig"
-        @update:model-value="(val) => getFieldHandler(field.key)?.(val)"
+        @update:model-value="val => getFieldHandler(field.key)?.(val)"
       />
     </el-form>
   </StandardDialog>

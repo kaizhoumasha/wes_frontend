@@ -14,6 +14,10 @@ interface Props {
   loading?: boolean
   /** 唯一标识字段 */
   rowKey?: string
+  /** 节点展示字段 */
+  labelField?: string
+  /** 对话框标题 */
+  dialogTitle?: string
 }
 
 interface SortItem {
@@ -34,7 +38,9 @@ const props = withDefaults(defineProps<Props>(), {
   modelValue: false,
   open: false,
   loading: false,
-  rowKey: 'id'
+  rowKey: 'id',
+  labelField: 'title',
+  dialogTitle: '菜单排序'
 })
 
 const emit = defineEmits<Emits>()
@@ -60,7 +66,7 @@ function handleUpdateModelValue(val: boolean) {
 
 const treeProps = {
   children: 'children',
-  label: 'title'
+  label: props.labelField
 }
 
 /**
@@ -98,7 +104,7 @@ function handleCancel() {
 }
 
 const dialogProps = computed(() => ({
-  title: '菜单排序',
+  title: props.dialogTitle,
   size: 'lg' as const,
   confirmLoading: props.loading,
   confirmText: '保存排序',

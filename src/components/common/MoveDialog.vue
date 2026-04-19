@@ -13,6 +13,8 @@ interface Props {
   treeData: TreeNode[]
   loading?: boolean
   rowKey?: string
+  labelField?: string
+  dialogTitle?: string
 }
 
 interface Emits {
@@ -26,7 +28,9 @@ const props = withDefaults(defineProps<Props>(), {
   modelValue: false,
   open: false,
   loading: false,
-  rowKey: 'id'
+  rowKey: 'id',
+  labelField: 'title',
+  dialogTitle: '移动菜单'
 })
 
 const emit = defineEmits<Emits>()
@@ -44,7 +48,7 @@ const selectedTargetId = ref<number | null>(null)
 
 const treeProps = {
   children: 'children',
-  label: 'title'
+  label: props.labelField
 }
 
 function handleNodeClick(data: TreeNode) {
@@ -68,7 +72,7 @@ function handleCancel() {
 }
 
 const dialogProps = computed(() => ({
-  title: '移动菜单',
+  title: props.dialogTitle,
   size: 'md' as const,
   confirmLoading: props.loading,
   confirmDisabled: !selectedTargetId.value || props.loading

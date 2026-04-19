@@ -30,12 +30,12 @@ const MENU_PAGE_RESOURCE = {
   permissions: ADMIN_PERMISSIONS.menu,
   optimisticUpdate: true,
   defaultSort: [{ field: 'sort_order', order: 'asc' as const }],
-  // 启用树形模式
+  // 启用树形模式（非懒加载，后端一次返回完整树）
   treeMode: {
     enabled: true,
     childrenKey: 'children',
     hasChildrenKey: 'has_children',
-    lazyLoad: true,
+    lazyLoad: false,
     initialExpandLevel: 1,
     displayField: 'title'
   }

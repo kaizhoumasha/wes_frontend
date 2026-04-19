@@ -37,7 +37,11 @@ interface RowActionStateLike {
   }
   tree?: {
     isTreeMode: { value: boolean }
-    move?: (id: number, targetId: number, position: 'before' | 'after' | 'inner') => Promise<boolean>
+    move?: (
+      id: number,
+      targetId: number,
+      position: 'before' | 'after' | 'inner'
+    ) => Promise<boolean>
   }
 }
 
@@ -53,6 +57,52 @@ export function useCrudPageRowActions<
 }): ComputedRef<CrudPageRowAction<TItem>[]> {
   const { config, features, state, handlers } = options
 
+  function hasChildNodes(row: TItem): boolean {
+    return Boolean((row as Record<string, unknown>).has_children)
+  }
+
+  function resolveActionTooltip(action: CrudPageRowAction<TItem>, row: TItem): string {
+    if (hasChildNodes(row)) {
+      return '请先删除或移动下级节点'
+    }
+
+    if (typeof action.tooltip === 'function') {
+      return action.tooltip(row) ?? '删除'
+    }
+
+    return action.tooltip ?? '删除'
+  }
+
+  function resolvePopconfirmTitle(action: CrudPageRowAction<TItem>, row: TItem): string {
+    if (hasChildNodes(row)) {
+      return '当前节点存在下级节点，请先删除或移动下级节点后再删除。'
+    }
+
+    if (typeof action.popconfirm?.title === 'function') {
+      return action.popconfirm.title(row)
+    }
+
+    return action.popconfirm?.title ?? '确认删除这条记录吗？'
+  }
+
+  function enhanceDeleteActionForTree(action: CrudPageRowAction<TItem>): CrudPageRowAction<TItem> {
+    if (action.key !== `${config.resource.key}-delete` || !state.tree?.isTreeMode.value) {
+      return action
+    }
+
+    return {
+      ...action,
+      disabled: row => hasChildNodes(row),
+      tooltip: row => resolveActionTooltip(action, row),
+      popconfirm: action.popconfirm
+        ? {
+            ...action.popconfirm,
+            title: row => resolvePopconfirmTitle(action, row)
+          }
+        : action.popconfirm
+    }
+  }
+
   return computed(() => {
     const defaultRowActions = buildDefaultRowActions({
       config,
@@ -63,7 +113,7 @@ export function useCrudPageRowActions<
       onPermanentDelete: row => void handlers.onPermanentDelete(row)
     })
 
-    const actions: CrudPageRowAction<TItem>[] = [...defaultRowActions]
+    const actions: CrudPageRowAction<TItem>[] = defaultRowActions.map(enhanceDeleteActionForTree)
 
     if (
       features.move.enabled &&
@@ -89,15 +139,12 @@ export function useCrudPageRowActions<
       })
     }
 
-    if (
-      features.createChild.enabled &&
-      state.tree &&
-      state.tree.isTreeMode.value
-    ) {
+    if (features.createChild.enabled && state.tree && state.tree.isTreeMode.value) {
       const createChildLabel = features.createChild.label ?? '添加下级'
       const createChildTooltip = features.createChild.tooltip ?? createChildLabel
       const createChildIcon = features.createChild.icon ?? 'lucide:plus'
-      const createChildPermission = features.createChild.permission ?? config.resource.permissions?.create
+      const createChildPermission =
+        features.createChild.permission ?? config.resource.permissions?.create
 
       actions.push({
         key: `${config.resource.key}-create-child`,

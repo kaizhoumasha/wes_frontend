@@ -5,7 +5,10 @@
 >
 import type { ComponentPublicInstance } from 'vue'
 import { computed, watch } from 'vue'
-import { resolveCrudTableData, resolveCrudTreeModeConfig } from '@/components/common/crud-page/container/render-helpers'
+import {
+  resolveCrudTableData,
+  resolveCrudTreeModeConfig
+} from '@/components/common/crud-page/container/render-helpers'
 import type { FilterGroup } from '@/api/base/crud-request-adapter'
 import CrudFormDialog from '@/components/common/CrudFormDialog.vue'
 import CrudTable from '@/components/common/CrudTable.vue'
@@ -81,7 +84,13 @@ const dialogKey = dialogs.key
 const editingId = dialogs.editingId
 const createInitialValues = dialogs.createInitialValues
 const hasDetailConfig = computed(() => !!pageConfig.detail)
-const detailFetcher = pageConfig.resource.requestAdapter.getById.bind(pageConfig.resource.requestAdapter)
+const detailFetcher = pageConfig.resource.requestAdapter.getById.bind(
+  pageConfig.resource.requestAdapter
+)
+const resourceDisplayName = computed(() => pageConfig.resource.title.text.replace(/管理$/, ''))
+const treeNodeLabelField = computed(() => pageConfig.resource.treeMode?.displayField ?? 'name')
+const moveDialogTitle = computed(() => `移动${resourceDisplayName.value}`)
+const sortDialogTitle = computed(() => `${resourceDisplayName.value}排序`)
 
 // 树形模式配置（需要放在 tableData 之前）
 const isTreeMode = computed(() => !!pageConfig.resource.treeMode?.enabled)
@@ -89,24 +98,28 @@ const isTreeMode = computed(() => !!pageConfig.resource.treeMode?.enabled)
 // 树形模式：表格数据源选择逻辑
 // - 有搜索条件（isSearchMode=true）：使用 query 接口的平铺数据（data）
 // - 无搜索条件：使用 tree 接口的树形数据（treeData）
-const tableData = computed(() => resolveCrudTableData({
-  isTreeMode: isTreeMode.value,
-  isTrashMode: pageState.isTrashMode.value,
-  isSearchMode: !!treeState?.isSearchMode?.value,
-  data: data.value,
-  treeData: treeState?.treeData?.value,
-}))
-const treeModeConfig = computed(() => resolveCrudTreeModeConfig({
-  isTreeMode: isTreeMode.value,
-  isTrashMode: pageState.isTrashMode.value,
-  treeState: treeState
-    ? {
-        loadChildren: treeState.loadChildren,
-        expandedKeys: treeState.expandedKeys.value,
-      }
-    : undefined,
-  config: pageConfig.resource.treeMode,
-}))
+const tableData = computed(() =>
+  resolveCrudTableData({
+    isTreeMode: isTreeMode.value,
+    isTrashMode: pageState.isTrashMode.value,
+    isSearchMode: !!treeState?.isSearchMode?.value,
+    data: data.value,
+    treeData: treeState?.treeData?.value
+  })
+)
+const treeModeConfig = computed(() =>
+  resolveCrudTreeModeConfig({
+    isTreeMode: isTreeMode.value,
+    isTrashMode: pageState.isTrashMode.value,
+    treeState: treeState
+      ? {
+          loadChildren: treeState.loadChildren,
+          expandedKeys: treeState.expandedKeys.value
+        }
+      : undefined,
+    config: pageConfig.resource.treeMode
+  })
+)
 
 const cachedData = computed(() => {
   if (!editingId.value) {
@@ -317,6 +330,8 @@ async function handleRefreshDetailPanel(): Promise<void> {
       :moving-id="moveDialog.movingId"
       :tree-data="treeState?.treeData?.value ?? []"
       :loading="moveDialog.loading"
+      :label-field="treeNodeLabelField"
+      :dialog-title="moveDialogTitle"
       @confirm="handleMoveConfirm"
       @cancel="handleMoveCancel"
     />
@@ -327,6 +342,8 @@ async function handleRefreshDetailPanel(): Promise<void> {
       v-model="sortDialog.open"
       :tree-data="treeState?.treeData?.value ?? []"
       :loading="sortDialog.loading"
+      :label-field="treeNodeLabelField"
+      :dialog-title="sortDialogTitle"
       @confirm="handleSortConfirm"
       @cancel="handleSortCancel"
     />

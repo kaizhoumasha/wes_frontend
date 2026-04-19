@@ -7,8 +7,14 @@ interface TreeControllerState<TItem extends CrudPageEntity> {
     isTreeMode: { value: boolean }
     treeData?: { value: TItem[] }
     fetchTree?: ((forceFullTree: boolean) => Promise<void>) | (() => Promise<void>)
-    move?: (id: number, targetId: number, position: 'before' | 'after' | 'inner') => Promise<boolean>
-    batchSort?: (items: { id: number; parent_id: number | null; sort_order: number }[]) => Promise<boolean>
+    move?: (
+      id: number,
+      targetId: number,
+      position: 'before' | 'after' | 'inner'
+    ) => Promise<boolean>
+    batchSort?: (
+      items: { id: number; parent_id: number | null; sort_order: number }[]
+    ) => Promise<boolean>
   }
   dialogs: {
     openCreate: (options?: { initialValues?: Record<string, unknown> }) => void
@@ -20,10 +26,7 @@ export function useCrudPageTreeActions<
   TItem extends CrudPageEntity,
   TCreate extends object,
   TUpdate extends object
->(options: {
-  config: CrudPageConfig<TItem, TCreate, TUpdate>
-  state: TreeControllerState<TItem>
-}) {
+>(options: { config: CrudPageConfig<TItem, TCreate, TUpdate>; state: TreeControllerState<TItem> }) {
   const { config, state } = options
 
   const moveDialog = reactive({
@@ -39,10 +42,18 @@ export function useCrudPageTreeActions<
 
   const createChildInfo = ref<{ parentId: number; parentName: string } | null>(null)
 
-  async function handleCreate(): Promise<void> {
-    if (state.tree?.fetchTree) {
-      await (state.tree.fetchTree as (forceFullTree: boolean) => Promise<void>)(true)
+  async function refreshTree(forceFullTree = false): Promise<void> {
+    const fetchTree = state.tree?.fetchTree as
+      | ((forceFullTree?: boolean) => Promise<void>)
+      | undefined
+    if (!fetchTree) {
+      return
     }
+
+    await fetchTree(forceFullTree)
+  }
+
+  async function handleCreate(): Promise<void> {
     state.dialogs.openCreate()
   }
 
@@ -62,9 +73,6 @@ export function useCrudPageTreeActions<
   function handleFormDialogClose(open: boolean): void {
     if (!open) {
       createChildInfo.value = null
-      if (state.tree?.fetchTree) {
-        ;(state.tree.fetchTree as (forceFullTree: boolean) => Promise<void>)(false)
-      }
     }
     state.dialogs.close()
   }
@@ -98,16 +106,16 @@ export function useCrudPageTreeActions<
   }
 
   async function handleSort(): Promise<void> {
-    if (state.tree?.fetchTree) {
-      await (state.tree.fetchTree as (forceFullTree: boolean) => Promise<void>)(true)
-    }
+    await refreshTree(true)
     sortDialog.open = true
   }
 
-  async function handleSortConfirm(items: { id: number; parent_id: number | null; sort_order: number }[]): Promise<void> {
+  async function handleSortConfirm(
+    items: { id: number; parent_id: number | null; sort_order: number }[]
+  ): Promise<void> {
     if (!state.tree?.batchSort || items.length === 0) {
       sortDialog.open = false
-      ;(state.tree?.fetchTree as ((forceFullTree: boolean) => Promise<void>) | undefined)?.(false)
+      await refreshTree()
       return
     }
 
@@ -117,7 +125,7 @@ export function useCrudPageTreeActions<
       if (success) {
         ElMessage.success('排序已保存')
         sortDialog.open = false
-        await (state.tree?.fetchTree as ((forceFullTree: boolean) => Promise<void>) | undefined)?.(false)
+        await refreshTree()
       } else {
         ElMessage.error('保存排序失败')
       }
@@ -130,7 +138,7 @@ export function useCrudPageTreeActions<
 
   function handleSortCancel(): void {
     sortDialog.open = false
-    ;(state.tree?.fetchTree as ((forceFullTree: boolean) => Promise<void>) | undefined)?.(false)
+    void refreshTree()
   }
 
   const readonlyDisplayFields: ComputedRef<Record<string, string> | undefined> = computed(() => {

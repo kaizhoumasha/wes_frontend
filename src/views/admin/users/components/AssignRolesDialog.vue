@@ -116,7 +116,7 @@ async function loadRoles() {
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        const response = await rolesApiMethods.query({ limit: 100 }).send() as { items?: Role[] }
+        const response = (await rolesApiMethods.query({ limit: 100 }).send()) as { items?: Role[] }
         allRoles.value = response.items ?? []
         return
       } catch (e) {
@@ -176,7 +176,9 @@ async function handleSubmit() {
   submitting.value = true
 
   try {
-    await usersApiMethods.assignRoles({ id: props.user.id }, { role_ids: selectedRoleIds.value }).send()
+    await usersApiMethods
+      .assignRoles({ id: props.user.id }, { role_ids: selectedRoleIds.value })
+      .send()
     ElMessage.success(`已为用户「${props.user.username}」分配角色`)
     visible.value = false
     emit('success')

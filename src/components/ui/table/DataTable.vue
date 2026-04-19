@@ -24,6 +24,7 @@
       <!-- 数据表格 -->
       <el-table
         v-show="!loading"
+        :key="tableKey"
         ref="tableRef"
         :data="data"
         :border="resolvedBorder"
@@ -152,7 +153,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, isVNode, ref } from 'vue'
+import { computed, isVNode, nextTick, ref, watch } from 'vue'
 import { ElTable } from 'element-plus'
 import { getNestedValue } from '@/utils/object'
 import { DENSITY_CONFIG } from '@/types/table'
@@ -169,6 +170,25 @@ import type {
   TableColumnConfig,
   ColumnFormatter
 } from './table.types'
+
+type TreeRowRecord = Record<string, unknown>
+type TreeRowMap = Map<string | number, TreeRowRecord>
+
+interface InternalTreeNodeState extends Record<string, unknown> {
+  expanded?: boolean
+  loading?: boolean
+  loaded?: boolean
+  lazy?: boolean
+  hasChildren?: boolean
+}
+
+interface InternalTableStore {
+  states?: {
+    treeData?: {
+      value?: Record<string, InternalTreeNodeState>
+    }
+  }
+}
 
 // ==================== Props & Emits ====================
 
@@ -211,6 +231,8 @@ const emit = defineEmits<DataTableEmits<unknown>>()
 // ==================== 表格引用 ====================
 
 const tableRef = ref<InstanceType<typeof ElTable> | null>(null)
+const syncedExpandedKeys = ref(new Set<string | number>())
+const tableKey = ref(0)
 
 /**
  * 清除选中状态
@@ -219,10 +241,15 @@ function clearSelection() {
   tableRef.value?.clearSelection()
 }
 
+function toggleRowExpansion(row: unknown, expanded?: boolean): void {
+  tableRef.value?.toggleRowExpansion(row, expanded)
+}
+
 // ==================== 暴露方法 ====================
 
 defineExpose({
-  clearSelection
+  clearSelection,
+  toggleRowExpansion
 })
 
 // ==================== 计算属性 ====================
@@ -248,6 +275,187 @@ const visibleColumns = computed(() => {
 
   return columns
 })
+
+function getTreeChildren(row: TreeRowRecord): TreeRowRecord[] {
+  const childrenKey = props.treeProps?.children
+  if (!childrenKey) {
+    return []
+  }
+
+  const children = row[childrenKey]
+  return Array.isArray(children) ? (children as TreeRowRecord[]) : []
+}
+
+function getRowIdentity(row: TreeRowRecord): string | number | undefined {
+  if (!props.rowKey) {
+    return undefined
+  }
+
+  const value = row[props.rowKey]
+  return typeof value === 'string' || typeof value === 'number' ? value : undefined
+}
+
+function collectTreeRows(rows: unknown[], rowMap: TreeRowMap = new Map()): TreeRowMap {
+  for (const row of rows) {
+    if (!row || typeof row !== 'object') {
+      continue
+    }
+
+    const record = row as TreeRowRecord
+    const identity = getRowIdentity(record)
+    if (identity !== undefined) {
+      rowMap.set(identity, record)
+    }
+
+    const children = getTreeChildren(record)
+    if (children.length > 0) {
+      collectTreeRows(children, rowMap)
+    }
+  }
+
+  return rowMap
+}
+
+function getInternalTableStore(): InternalTableStore | undefined {
+  return (tableRef.value as (InstanceType<typeof ElTable> & { store?: InternalTableStore }) | null)
+    ?.store
+}
+
+function getInternalTreeData(): Record<string, InternalTreeNodeState> | undefined {
+  return getInternalTableStore()?.states?.treeData?.value
+}
+
+function clearInternalTreeData(): void {
+  const store = getInternalTableStore()
+  if (store?.states?.treeData?.value) {
+    store.states.treeData.value = {}
+  }
+}
+
+function createLazyTreeNodeState(): InternalTreeNodeState {
+  return {
+    expanded: false,
+    loading: false,
+    loaded: false,
+    lazy: true,
+    hasChildren: true
+  }
+}
+
+function markNodeAsReloadable(node: InternalTreeNodeState): InternalTreeNodeState {
+  return {
+    ...node,
+    hasChildren: true,
+    lazy: true,
+    loaded: false
+  }
+}
+
+function syncHasChildrenFromData(rowMap: TreeRowMap, expandedKeys: Set<string | number>): boolean {
+  if (!tableRef.value || !props.rowKey || !props.treeProps?.hasChildren) {
+    return false
+  }
+
+  const internalTreeData = getInternalTreeData()
+  if (!internalTreeData) {
+    return false
+  }
+
+  const hasChildrenKey = props.treeProps.hasChildren
+  let needsRecreation = false
+
+  rowMap.forEach((row, id) => {
+    const currentHasChildren = Boolean(row[hasChildrenKey])
+    const key = String(id)
+    const existingNode = internalTreeData[key]
+
+    if (currentHasChildren && existingNode && !existingNode.hasChildren) {
+      internalTreeData[key] = markNodeAsReloadable(existingNode)
+    } else if (!currentHasChildren && existingNode?.hasChildren) {
+      needsRecreation = true
+    } else if (currentHasChildren && !existingNode) {
+      internalTreeData[key] = createLazyTreeNodeState()
+    } else if (currentHasChildren && existingNode?.loaded && expandedKeys.has(id)) {
+      internalTreeData[key] = {
+        ...existingNode,
+        loaded: false
+      }
+    }
+  })
+
+  return needsRecreation
+}
+
+function needsExpansionReset(rowMap: TreeRowMap, hasChildrenKey: string): boolean {
+  for (const key of syncedExpandedKeys.value) {
+    const row = rowMap.get(key)
+    if (row && !row[hasChildrenKey]) {
+      return true
+    }
+  }
+
+  return false
+}
+
+async function recreateTable(): Promise<void> {
+  syncedExpandedKeys.value = new Set<string | number>()
+  clearInternalTreeData()
+  tableKey.value += 1
+
+  await nextTick()
+  tableRef.value?.doLayout()
+}
+
+async function syncTreeExpansion(): Promise<void> {
+  if (!tableRef.value || !props.rowKey || !props.treeProps) {
+    return
+  }
+
+  const rowMap = collectTreeRows(props.data)
+  const desiredExpandedKeys = new Set(props.defaultExpandRowKeys ?? [])
+  const hasChildrenKey = props.treeProps?.hasChildren
+
+  let needsRecreation = false
+
+  if (hasChildrenKey) {
+    needsRecreation = needsExpansionReset(rowMap, hasChildrenKey)
+  }
+
+  if (!needsRecreation) {
+    needsRecreation = syncHasChildrenFromData(rowMap, desiredExpandedKeys)
+  }
+
+  if (needsRecreation) {
+    await recreateTable()
+    return
+  }
+
+  await nextTick()
+
+  const keysToSync = new Set<string | number>([...syncedExpandedKeys.value, ...desiredExpandedKeys])
+
+  keysToSync.forEach(key => {
+    const row = rowMap.get(key)
+    if (!row) {
+      return
+    }
+
+    toggleRowExpansion(row, desiredExpandedKeys.has(key))
+  })
+
+  syncedExpandedKeys.value = desiredExpandedKeys
+}
+
+watch(
+  () => [props.data, props.defaultExpandRowKeys, props.rowKey, props.treeProps?.children] as const,
+  () => {
+    void syncTreeExpansion()
+  },
+  {
+    deep: true,
+    flush: 'post'
+  }
+)
 
 // ==================== 工具函数 ====================
 

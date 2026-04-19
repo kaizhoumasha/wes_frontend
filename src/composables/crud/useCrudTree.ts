@@ -1,4 +1,12 @@
-import { computed, ref, shallowRef, type ComputedRef, type Ref, type ShallowRef } from 'vue'
+import {
+  computed,
+  ref,
+  shallowRef,
+  triggerRef,
+  type ComputedRef,
+  type Ref,
+  type ShallowRef
+} from 'vue'
 
 export interface CrudTreeNode {
   id: number
@@ -43,7 +51,9 @@ export interface CrudTreeState<T> {
   loadChildrenManual: (parentId: number) => Promise<T[]>
   refreshTree: () => Promise<void>
   move: (id: number, targetId: number, position: 'before' | 'after' | 'inner') => Promise<boolean>
-  batchSort: (items: { id: number; parent_id: number | null; sort_order: number }[]) => Promise<boolean>
+  batchSort: (
+    items: { id: number; parent_id: number | null; sort_order: number }[]
+  ) => Promise<boolean>
   expandNode: (id: number) => void
   collapseNode: (id: number) => void
   toggleExpand: (id: number) => void
@@ -76,10 +86,49 @@ export function useCrudTree<T extends { id: number }>(options: {
     lazyLoad: treeMode?.lazyLoad ?? false
   }
 
+  function notifyTreeDataChanged(): void {
+    triggerRef(treeData)
+  }
+
+  function notifyExpandedKeysChanged(): void {
+    triggerRef(expandedKeys)
+  }
+
+  function notifyLoadingChildrenChanged(): void {
+    triggerRef(loadingChildren)
+  }
+
+  function setTreeData(nextTree: T[]): void {
+    treeData.value = nextTree
+    notifyTreeDataChanged()
+  }
+
+  function mutateTreeData(mutator: (tree: T[]) => T[]): void {
+    setTreeData(mutator(treeData.value))
+  }
+
+  function mutateExpandedKeys(mutator: (keys: Set<number>) => void): void {
+    mutator(expandedKeys.value)
+    notifyExpandedKeysChanged()
+  }
+
+  function setLoadingChildrenState(nodeId: number, loading: boolean): void {
+    loadingChildren.value[nodeId] = loading
+    notifyLoadingChildrenChanged()
+  }
+
+  function getNodeChildren(node: T, key: string): T[] | undefined {
+    return (node as Record<string, unknown>)[key] as T[] | undefined
+  }
+
+  function syncFlatData(): void {
+    flatData.value = flattenTree(treeData.value, treeConfig.childrenKey)
+  }
+
   function flattenTree(tree: T[], key: string, result: T[] = []): T[] {
     for (const node of tree) {
       result.push(node)
-      const children = (node as Record<string, unknown>)[key] as T[] | undefined
+      const children = getNodeChildren(node, key)
       if (children && children.length > 0) {
         flattenTree(children, key, result)
       }
@@ -90,7 +139,7 @@ export function useCrudTree<T extends { id: number }>(options: {
   function findNodeInTree(tree: T[], id: number, key: string): T | undefined {
     for (const node of tree) {
       if (node.id === id) return node
-      const children = (node as Record<string, unknown>)[key] as T[] | undefined
+      const children = getNodeChildren(node, key)
       if (children?.length) {
         const found = findNodeInTree(children, id, key)
         if (found) return found
@@ -99,29 +148,92 @@ export function useCrudTree<T extends { id: number }>(options: {
     return undefined
   }
 
-  function updateChildrenInTree(tree: T[], parentId: number, children: T[], key: string, hasChildrenKey: string): void {
-    for (const node of tree) {
+  function updateChildrenInTree(
+    tree: T[],
+    parentId: number,
+    children: T[],
+    key: string,
+    hasChildrenKey: string
+  ): T[] {
+    let changed = false
+
+    const nextTree = tree.map(node => {
       if (node.id === parentId) {
-        (node as Record<string, unknown>)[key] = children
-        ;(node as Record<string, unknown>)[hasChildrenKey] = children.length > 0
-        return
+        changed = true
+        return {
+          ...node,
+          [key]: children,
+          [hasChildrenKey]: children.length > 0
+        } as T
       }
-      const nodeChildren = (node as Record<string, unknown>)[key] as T[] | undefined
-      if (nodeChildren?.length) {
-        updateChildrenInTree(nodeChildren, parentId, children, key, hasChildrenKey)
+
+      const nodeChildren = getNodeChildren(node, key)
+      if (!nodeChildren?.length) {
+        return node
       }
-    }
+
+      const nextChildren = updateChildrenInTree(
+        nodeChildren,
+        parentId,
+        children,
+        key,
+        hasChildrenKey
+      )
+      if (nextChildren === nodeChildren) {
+        return node
+      }
+
+      changed = true
+      return {
+        ...node,
+        [key]: nextChildren
+      } as T
+    })
+
+    return changed ? nextTree : tree
   }
 
-  function expandToLevel(nodes: T[], level: number, currentLevel = 1): void {
+  function markNodeHasChildren(tree: T[], parentId: number): T[] {
+    let changed = false
+
+    const nextTree = tree.map(node => {
+      if (node.id === parentId) {
+        changed = true
+        return {
+          ...node,
+          [treeConfig.hasChildrenKey]: true
+        } as T
+      }
+
+      const nodeChildren = getNodeChildren(node, treeConfig.childrenKey)
+      if (!nodeChildren?.length) {
+        return node
+      }
+
+      const nextChildren = markNodeHasChildren(nodeChildren, parentId)
+      if (nextChildren === nodeChildren) {
+        return node
+      }
+
+      changed = true
+      return {
+        ...node,
+        [treeConfig.childrenKey]: nextChildren
+      } as T
+    })
+
+    return changed ? nextTree : tree
+  }
+
+  function expandToLevel(nodes: T[], keys: Set<number>, level: number, currentLevel = 1): void {
     if (currentLevel > level) return
     for (const node of nodes) {
       if (currentLevel < level) {
-        expandedKeys.value.add(node.id)
+        keys.add(node.id)
       }
-      const children = (node as Record<string, unknown>)[treeConfig.childrenKey] as T[] | undefined
+      const children = getNodeChildren(node, treeConfig.childrenKey)
       if (children?.length) {
-        expandToLevel(children, level, currentLevel + 1)
+        expandToLevel(children, keys, level, currentLevel + 1)
       }
     }
   }
@@ -133,13 +245,16 @@ export function useCrudTree<T extends { id: number }>(options: {
     setError(null)
 
     try {
-      const treeDepth = forceFullTree ? -1 : (treeConfig.lazyLoad ? 0 : -1)
+      const treeDepth = forceFullTree ? -1 : treeConfig.lazyLoad ? 0 : -1
       const result = await adapter.tree({ tree_depth: treeDepth })
-      treeData.value = result
-      flatData.value = flattenTree(result, treeConfig.childrenKey)
+      setTreeData(result)
+      syncFlatData()
 
       if (!treeConfig.lazyLoad && treeConfig.initialExpandLevel > 0) {
-        expandToLevel(result, treeConfig.initialExpandLevel)
+        mutateExpandedKeys(keys => {
+          keys.clear()
+          expandToLevel(result, keys, treeConfig.initialExpandLevel)
+        })
       }
     } catch (error) {
       setError(error as Error)
@@ -156,40 +271,53 @@ export function useCrudTree<T extends { id: number }>(options: {
     }
 
     const nodeId = node.id as number
-    const existingChildren = (node as Record<string, unknown>)[treeConfig.childrenKey] as T[] | undefined
-    if (existingChildren?.length) {
-      resolve(existingChildren)
-      return
-    }
 
-    loadingChildren.value[nodeId] = true
+    // Always force reload from API to ensure we get fresh data
+    // This prevents stale cache issues after delete/create operations
+    setLoadingChildrenState(nodeId, true)
 
     adapter
       .children({ node_id: nodeId })
-      .then((children) => {
-        updateChildrenInTree(treeData.value, nodeId, children, treeConfig.childrenKey, treeConfig.hasChildrenKey)
-        flatData.value = flattenTree(treeData.value, treeConfig.childrenKey)
+      .then(children => {
+        mutateTreeData(tree =>
+          updateChildrenInTree(
+            tree,
+            nodeId,
+            children,
+            treeConfig.childrenKey,
+            treeConfig.hasChildrenKey
+          )
+        )
+        syncFlatData()
         resolve(children)
       })
       .catch(() => resolve([]))
       .finally(() => {
-        loadingChildren.value[nodeId] = false
+        setLoadingChildrenState(nodeId, false)
       })
   }
 
   async function loadChildrenManual(parentId: number): Promise<T[]> {
     if (!adapter?.children) return []
 
-    loadingChildren.value[parentId] = true
+    setLoadingChildrenState(parentId, true)
     try {
       const children = await adapter.children({ node_id: parentId })
-      updateChildrenInTree(treeData.value, parentId, children, treeConfig.childrenKey, treeConfig.hasChildrenKey)
-      flatData.value = flattenTree(treeData.value, treeConfig.childrenKey)
+      mutateTreeData(tree =>
+        updateChildrenInTree(
+          tree,
+          parentId,
+          children,
+          treeConfig.childrenKey,
+          treeConfig.hasChildrenKey
+        )
+      )
+      syncFlatData()
       return children
     } catch {
       return []
     } finally {
-      loadingChildren.value[parentId] = false
+      setLoadingChildrenState(parentId, false)
     }
   }
 
@@ -197,7 +325,11 @@ export function useCrudTree<T extends { id: number }>(options: {
     await fetchTree()
   }
 
-  async function move(id: number, targetId: number, position: 'before' | 'after' | 'inner'): Promise<boolean> {
+  async function move(
+    id: number,
+    targetId: number,
+    position: 'before' | 'after' | 'inner'
+  ): Promise<boolean> {
     if (!adapter?.move) return false
 
     setLoading(true)
@@ -212,7 +344,9 @@ export function useCrudTree<T extends { id: number }>(options: {
     }
   }
 
-  async function batchSort(items: { id: number; parent_id: number | null; sort_order: number }[]): Promise<boolean> {
+  async function batchSort(
+    items: { id: number; parent_id: number | null; sort_order: number }[]
+  ): Promise<boolean> {
     if (!adapter?.batchSort) {
       return await batchSortFallback(items)
     }
@@ -228,7 +362,9 @@ export function useCrudTree<T extends { id: number }>(options: {
     }
   }
 
-  async function batchSortFallback(items: { id: number; parent_id: number | null; sort_order: number }[]): Promise<boolean> {
+  async function batchSortFallback(
+    items: { id: number; parent_id: number | null; sort_order: number }[]
+  ): Promise<boolean> {
     if (!adapter?.move) return false
 
     setLoading(true)
@@ -247,28 +383,36 @@ export function useCrudTree<T extends { id: number }>(options: {
   }
 
   function expandNode(id: number): void {
-    expandedKeys.value.add(id)
+    mutateExpandedKeys(keys => {
+      keys.add(id)
+    })
   }
 
   function collapseNode(id: number): void {
-    expandedKeys.value.delete(id)
+    mutateExpandedKeys(keys => {
+      keys.delete(id)
+    })
   }
 
   function toggleExpand(id: number): void {
-    if (expandedKeys.value.has(id)) {
-      expandedKeys.value.delete(id)
-    } else {
-      expandedKeys.value.add(id)
-    }
+    mutateExpandedKeys(keys => {
+      if (keys.has(id)) {
+        keys.delete(id)
+      } else {
+        keys.add(id)
+      }
+    })
   }
 
   function expandAll(): void {
-    const allIds = flatData.value.map((node) => node.id)
+    const allIds = flatData.value.map(node => node.id)
     expandedKeys.value = new Set(allIds)
   }
 
   function collapseAll(): void {
-    expandedKeys.value.clear()
+    mutateExpandedKeys(keys => {
+      keys.clear()
+    })
   }
 
   function isLeaf(node: T): boolean {
@@ -282,9 +426,8 @@ export function useCrudTree<T extends { id: number }>(options: {
   }
 
   function markParentHasChildren(parentId: number): void {
-    const parentNode = findNodeInTree(treeData.value, parentId, treeConfig.childrenKey)
-    if (parentNode) {
-      ;(parentNode as Record<string, unknown>)[treeConfig.hasChildrenKey] = true
+    if (findNodeInTree(treeData.value, parentId, treeConfig.childrenKey)) {
+      mutateTreeData(tree => markNodeHasChildren(tree, parentId))
     }
   }
 
