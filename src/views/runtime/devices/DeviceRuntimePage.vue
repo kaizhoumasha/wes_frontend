@@ -21,12 +21,16 @@
           <div class="runtime-panel__header">
             <div>
               <div class="runtime-panel__title">设备目录</div>
-              <div class="runtime-panel__subtitle">按风险与负载排序，快速找到当前瓶颈设备</div>
+              <div class="runtime-panel__subtitle">{{ directorySubtitle }}</div>
+            </div>
+            <div v-if="activeWorklineId" class="runtime-panel__actions">
+              <span class="runtime-scope-chip">当前范围：{{ activeWorklineName }}</span>
+              <el-button text @click="clearWorklineFilter">查看全局设备</el-button>
             </div>
           </div>
         </template>
 
-        <div v-if="devices.length" class="runtime-directory-list">
+        <div v-if="orderedDevices.length" class="runtime-directory-list">
           <button
             v-for="item in orderedDevices"
             :key="item.id"
@@ -44,6 +48,12 @@
             <div class="runtime-directory-card__hint">未结命令 {{ item.pending_command_count }} · 维护 {{ item.maintenance_mode ? 'ON' : 'OFF' }} · 错误码 {{ item.error_code || '—' }}</div>
           </button>
         </div>
+        <RuntimeEmptyState
+          v-else-if="activeWorklineId"
+          title="当前工作线下暂无设备"
+          :description="`${activeWorklineName} 当前没有可展示的设备运行样本。`"
+          hint="可清除工作线范围，回到全局设备目录继续排查。"
+        />
         <RuntimeEmptyState
           v-else
           title="暂无设备数据"
@@ -148,7 +158,7 @@
           <RuntimeEmptyState
             title="还没有选中设备"
             description="请从左侧设备目录选择一台设备，查看它的健康状态、最近行为和关联 Trace。"
-            hint="目录按风险和负载排序；当前选中的设备也会固定置顶。"
+            hint="目录会保持稳定排序；若携带工作线上下文，将只显示该工作线的设备。"
           />
         </el-card>
       </div>
@@ -168,7 +178,7 @@ import { runtimeApiMethods } from '@/api/modules/runtime'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
 import type { RuntimeDeviceDetailResponse, RuntimeDeviceSummary, TraceCallbackLogItem, TraceCommandItem } from '@/types/runtime'
 import type { RuntimeTone } from '@/utils/runtime-display'
-import { compactEnumLabel, formatRuntimeDateTime, formatRuntimeDurationMs, formatRuntimeElapsed, getDeviceRiskScore, pickDominantValue, sortByRiskWithSelection } from '@/utils/runtime-display'
+import { compactEnumLabel, formatRuntimeDateTime, formatRuntimeDurationMs, formatRuntimeElapsed, getDeviceRiskScore, pickDominantValue } from '@/utils/runtime-display'
 
 const route = useRoute()
 const router = useRouter()
@@ -178,10 +188,46 @@ const loading = ref(false)
 const devices = ref<RuntimeDeviceSummary[]>([])
 const detail = ref<RuntimeDeviceDetailResponse | null>(null)
 
-const selectedDeviceId = computed(() => detail.value?.summary.id ?? (Number(route.query.deviceId || 0) || null))
+const requestedDeviceId = computed(() => readPositiveIntQuery(route.query.deviceId))
+const activeWorklineId = computed(() => readPositiveIntQuery(route.query.worklineId))
+const selectedDeviceId = computed(() => detail.value?.summary.id ?? requestedDeviceId.value)
+
+const scopedDevices = computed(() => {
+  if (!activeWorklineId.value) {
+    return devices.value
+  }
+
+  return devices.value.filter(item => item.workline_id === activeWorklineId.value)
+})
+
+const activeWorklineName = computed(() => {
+  if (!activeWorklineId.value) {
+    return null
+  }
+
+  return (
+    scopedDevices.value[0]?.workline_name ||
+    (detail.value?.summary.workline_id === activeWorklineId.value ? detail.value.summary.workline_name : null) ||
+    `工作线 #${activeWorklineId.value}`
+  )
+})
+
+const directorySubtitle = computed(() => {
+  if (!activeWorklineId.value) {
+    return '按风险与负载排序，快速找到当前瓶颈设备'
+  }
+
+  return `当前限定为 ${activeWorklineName.value}，按风险与负载排序定位线内异常设备`
+})
 
 const orderedDevices = computed(() => {
-  return sortByRiskWithSelection(devices.value, selectedDeviceId.value, getDeviceRiskScore)
+  return [...scopedDevices.value].sort((left, right) => {
+    const riskDelta = getDeviceRiskScore(right) - getDeviceRiskScore(left)
+    if (riskDelta !== 0) {
+      return riskDelta
+    }
+    return left.id - right.id
+  })
 })
 
 const activityFeed = computed(() => {
@@ -215,6 +261,37 @@ const failurePatterns = computed(() => {
 
 function deviceActivityLabel(item: RuntimeDeviceSummary) {
   return item.recent_callback_at || item.last_heartbeat_at ? formatRuntimeDateTime(item.recent_callback_at || item.last_heartbeat_at) : '暂无活动'
+}
+
+function readPositiveIntQuery(value: unknown): number | null {
+  const rawValue = Array.isArray(value) ? value[0] : value
+  const numericValue = Number(rawValue || 0)
+  return Number.isFinite(numericValue) && numericValue > 0 ? numericValue : null
+}
+
+function resolveSelectableDeviceId(preferredDeviceId: number | null): number | null {
+  if (preferredDeviceId && orderedDevices.value.some(item => item.id === preferredDeviceId)) {
+    return preferredDeviceId
+  }
+
+  return orderedDevices.value[0]?.id ?? null
+}
+
+function buildDeviceQuery(deviceId: number | null) {
+  return {
+    ...route.query,
+    worklineId: activeWorklineId.value ? String(activeWorklineId.value) : undefined,
+    deviceId: deviceId ? String(deviceId) : undefined
+  }
+}
+
+function buildTraceContextQuery(extraQuery: Record<string, string | undefined>) {
+  const currentWorklineId = detail.value?.summary.workline_id ?? activeWorklineId.value
+  return {
+    ...extraQuery,
+    deviceId: detail.value?.summary.id ? String(detail.value.summary.id) : undefined,
+    worklineId: currentWorklineId ? String(currentWorklineId) : undefined
+  }
 }
 
 function toneFromHttpStatus(code: number): RuntimeTone {
@@ -266,14 +343,31 @@ async function loadDetail(deviceId: number) {
   markRefreshedAt()
 }
 
+async function syncDeviceSelection(preferredDeviceId: number | null, syncRoute = false) {
+  const resolvedDeviceId = resolveSelectableDeviceId(preferredDeviceId)
+
+  if (!resolvedDeviceId) {
+    detail.value = null
+    if (syncRoute && requestedDeviceId.value) {
+      await router.replace({ query: buildDeviceQuery(null) })
+    }
+    return
+  }
+
+  if (detail.value?.summary.id !== resolvedDeviceId) {
+    await loadDetail(resolvedDeviceId)
+  }
+
+  if (syncRoute && requestedDeviceId.value !== resolvedDeviceId) {
+    await router.replace({ query: buildDeviceQuery(resolvedDeviceId) })
+  }
+}
+
 async function loadDevices() {
   loading.value = true
   try {
     devices.value = await runtimeApiMethods.devices().send()
-    const deviceId = Number(route.query.deviceId || devices.value[0]?.id || 0)
-    if (deviceId) {
-      await selectDevice({ id: deviceId } as RuntimeDeviceSummary)
-    }
+    await syncDeviceSelection(requestedDeviceId.value, true)
     markRefreshedAt()
   } finally {
     loading.value = false
@@ -281,23 +375,52 @@ async function loadDevices() {
 }
 
 async function selectDevice(row: { id: number }) {
-  await loadDetail(row.id)
-  router.replace({ query: { ...route.query, deviceId: String(row.id) } })
+  if (detail.value?.summary.id !== row.id) {
+    await loadDetail(row.id)
+  }
+
+  if (requestedDeviceId.value !== row.id) {
+    await router.replace({ query: buildDeviceQuery(row.id) })
+  }
+}
+
+async function clearWorklineFilter() {
+  await router.replace({
+    query: {
+      ...route.query,
+      worklineId: undefined
+    }
+  })
 }
 
 function openSessionTrace(sessionId: number) {
-  router.push({ name: 'RuntimeTraceExplorer', query: { sessionId: String(sessionId), deviceId: String(detail.value?.summary.id || '') } })
+  router.push({ name: 'RuntimeTraceExplorer', query: buildTraceContextQuery({ sessionId: String(sessionId) }) })
 }
 
 function openCommandTrace(commandCode: string) {
-  router.push({ name: 'RuntimeTraceExplorer', query: { commandCode, deviceId: String(detail.value?.summary.id || '') } })
+  router.push({ name: 'RuntimeTraceExplorer', query: buildTraceContextQuery({ commandCode }) })
 }
 
 function openRequestTrace(requestId: string) {
-  router.push({ name: 'RuntimeTraceExplorer', query: { requestId, deviceId: String(detail.value?.summary.id || '') } })
+  router.push({ name: 'RuntimeTraceExplorer', query: buildTraceContextQuery({ requestId }) })
 }
 
 onMounted(loadDevices)
+
+watch(
+  () => [requestedDeviceId.value, activeWorklineId.value] as const,
+  async ([nextDeviceId, nextWorklineId], [previousDeviceId, previousWorklineId]) => {
+    if (!devices.value.length && !nextWorklineId) {
+      return
+    }
+
+    if (nextDeviceId === previousDeviceId && nextWorklineId === previousWorklineId) {
+      return
+    }
+
+    await syncDeviceSelection(nextDeviceId, true)
+  }
+)
 
 watch(
   () => lastEvent.value,
@@ -307,6 +430,7 @@ watch(
       await loadDetail(detail.value.summary.id)
     }
     devices.value = await runtimeApiMethods.devices().send()
+    await syncDeviceSelection(requestedDeviceId.value, true)
     markRefreshedAt()
   }
 )
@@ -381,6 +505,26 @@ watch(
   margin-top: 4px;
   color: #94a3b8;
   font-size: 12px;
+}
+
+.runtime-panel__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.runtime-scope-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border: 1px solid rgb(245, 158, 11, 0.2);
+  border-radius: 999px;
+  background: rgb(245, 158, 11, 0.08);
+  color: #fbbf24;
+  font-size: 12px;
+  line-height: 1;
 }
 
 .runtime-directory-list,
@@ -521,6 +665,10 @@ watch(
   }
 
   .runtime-page__status-bar {
+    justify-content: flex-start;
+  }
+
+  .runtime-panel__actions {
     justify-content: flex-start;
   }
 }

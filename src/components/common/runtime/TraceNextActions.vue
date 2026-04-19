@@ -36,7 +36,13 @@ function openWorkline() {
 
 function openDevice() {
   if (!props.detail.trace.device_id) return
-  router.push({ name: 'RuntimeDevices', query: { deviceId: String(props.detail.trace.device_id) } })
+  router.push({
+    name: 'RuntimeDevices',
+    query: {
+      deviceId: String(props.detail.trace.device_id),
+      worklineId: props.detail.trace.workline_id ? String(props.detail.trace.workline_id) : undefined
+    }
+  })
 }
 
 function openCorrelation() {
