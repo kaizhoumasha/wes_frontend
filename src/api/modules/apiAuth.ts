@@ -27,7 +27,7 @@ export type QueryInput = ContractRequestBody<'/api/v1/api_auth/access-log/query'
 
 export const apiAuthApiMethods = {
   /**
-   * [api-auth:apiaccesslog:get] 获取APIAccessLog
+   * [api-auth:apiaccesslog:detail] 获取APIAccessLog
    * @endpoint GET /api/v1/api_auth/access-log/{id}
    * @returns alova method instance
    */

@@ -36,13 +36,30 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** [admin:menu:get] 获取Menu */
+        /** [admin:menu:detail] 获取Menu */
         get: operations["menus_get"];
         /** [admin:menu:update] 更新Menu */
         put: operations["menus_update"];
         post?: never;
         /** [admin:menu:delete] 删除Menu */
         delete: operations["menus_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/menus/{id}/permanent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** [admin:menu:permanent_delete] 永久删除Menu */
+        delete: operations["menus_permanent_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -231,7 +248,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** [admin:menu:batch_permanent_delete] 批量永久删除Menu */
+        /** [admin:menu:permanent_delete] 批量永久删除Menu */
         delete: operations["menus_batch_permanent_delete"];
         options?: never;
         head?: never;
@@ -247,7 +264,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [admin:menu:batch_restore] 批量恢复Menu */
+        /** [admin:menu:restore] 批量恢复Menu */
         post: operations["menus_batch_restore"];
         delete?: never;
         options?: never;
@@ -391,13 +408,30 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** [admin:permission:get] 获取Permission */
+        /** [admin:permission:detail] 获取Permission */
         get: operations["permissions_get"];
         /** [admin:permission:update] 更新Permission */
         put: operations["permissions_update"];
         post?: never;
         /** [admin:permission:delete] 删除Permission */
         delete: operations["permissions_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/permissions/{id}/permanent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** [admin:permission:permanent_delete] 永久删除Permission */
+        delete: operations["permissions_permanent_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -566,7 +600,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** [admin:permission:batch_permanent_delete] 批量永久删除Permission */
+        /** [admin:permission:permanent_delete] 批量永久删除Permission */
         delete: operations["permissions_batch_permanent_delete"];
         options?: never;
         head?: never;
@@ -582,7 +616,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [admin:permission:batch_restore] 批量恢复Permission */
+        /** [admin:permission:restore] 批量恢复Permission */
         post: operations["permissions_batch_restore"];
         delete?: never;
         options?: never;
@@ -634,13 +668,30 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** [admin:role:get] 获取Role */
+        /** [admin:role:detail] 获取Role */
         get: operations["roles_get"];
         /** [admin:role:update] 更新Role */
         put: operations["roles_update"];
         post?: never;
         /** [admin:role:delete] 删除Role */
         delete: operations["roles_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/roles/{id}/permanent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** [admin:role:permanent_delete] 永久删除Role */
+        delete: operations["roles_permanent_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -707,7 +758,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** [admin:role:batch_permanent_delete] 批量永久删除Role */
+        /** [admin:role:permanent_delete] 批量永久删除Role */
         delete: operations["roles_batch_permanent_delete"];
         options?: never;
         head?: never;
@@ -723,7 +774,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [admin:role:batch_restore] 批量恢复Role */
+        /** [admin:role:restore] 批量恢复Role */
         post: operations["roles_batch_restore"];
         delete?: never;
         options?: never;
@@ -755,7 +806,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** [admin:user:get] 获取User */
+        /** [admin:user:detail] 获取User */
         get: operations["users_get"];
         /** [admin:user:update] 更新User */
         put: operations["users_update"];
@@ -797,6 +848,23 @@ export interface paths {
         put: operations["admin_users_by_id_assign_roles_put"];
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{id}/permanent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** [admin:user:permanent_delete] 永久删除User */
+        delete: operations["users_permanent_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -942,7 +1010,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** [admin:user:batch_permanent_delete] 批量永久删除User */
+        /** [admin:user:permanent_delete] 批量永久删除User */
         delete: operations["users_batch_permanent_delete"];
         options?: never;
         head?: never;
@@ -958,7 +1026,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [admin:user:batch_restore] 批量恢复User */
+        /** [admin:user:restore] 批量恢复User */
         post: operations["users_batch_restore"];
         delete?: never;
         options?: never;
@@ -973,7 +1041,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** [api-auth:apiaccesslog:get] 获取APIAccessLog */
+        /** [api-auth:apiaccesslog:detail] 获取APIAccessLog */
         get: operations["access_log_get"];
         put?: never;
         post?: never;
@@ -1024,13 +1092,30 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** [api-auth:apiapplication:get] 获取APIApplication */
+        /** [api-auth:api_application:detail] 获取APIApplication */
         get: operations["applications_get"];
-        /** [api-auth:apiapplication:update] 更新APIApplication */
+        /** [api-auth:api_application:update] 更新APIApplication */
         put: operations["applications_update"];
         post?: never;
-        /** [api-auth:apiapplication:delete] 删除APIApplication */
+        /** [api-auth:api_application:delete] 删除APIApplication */
         delete: operations["applications_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/api_auth/applications/{id}/permanent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** [api-auth:api_application:permanent_delete] 永久删除APIApplication */
+        delete: operations["applications_permanent_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1119,7 +1204,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [api-auth:apiapplication:restore] 恢复APIApplication */
+        /** [api-auth:api_application:restore] 恢复APIApplication */
         post: operations["applications_restore"];
         delete?: never;
         options?: never;
@@ -1164,6 +1249,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/api_auth/applications/available-permissions/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * [api-auth:api_application:sync_permissions] 重新扫描并同步 API 权限
+         * @description 重新扫描代码中的权限并同步到数据库。
+         */
+        post: operations["api_auth_applications_available_permissions_sync_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/api_auth/applications/query": {
         parameters: {
             query?: never;
@@ -1173,7 +1278,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [api-auth:apiapplication:list] 获取APIApplication列表 */
+        /** [api-auth:api_application:list] 获取APIApplication列表 */
         post: operations["applications_query"];
         delete?: never;
         options?: never;
@@ -1188,7 +1293,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** [api-auth:apiapplication:trash] 获取已删除APIApplication */
+        /** [api-auth:api_application:trash] 获取已删除APIApplication */
         get: operations["applications_trash"];
         put?: never;
         post?: never;
@@ -1208,7 +1313,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** [api-auth:apiapplication:batch_permanent_delete] 批量永久删除APIApplication */
+        /** [api-auth:api_application:permanent_delete] 批量永久删除APIApplication */
         delete: operations["applications_batch_permanent_delete"];
         options?: never;
         head?: never;
@@ -1224,7 +1329,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [api-auth:apiapplication:batch_restore] 批量恢复APIApplication */
+        /** [api-auth:api_application:restore] 批量恢复APIApplication */
         post: operations["applications_batch_restore"];
         delete?: never;
         options?: never;
@@ -1641,13 +1746,30 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** [demo:demoproduct:get] 获取DemoProduct */
+        /** [demo:demoproduct:detail] 获取DemoProduct */
         get: operations["demo_products_get"];
         /** [demo:demoproduct:update] 更新DemoProduct */
         put: operations["demo_products_update"];
         post?: never;
         /** [demo:demoproduct:delete] 删除DemoProduct */
         delete: operations["demo_products_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/demo/demo-products/{id}/permanent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** [demo:demoproduct:permanent_delete] 永久删除DemoProduct */
+        delete: operations["demo_products_permanent_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1714,7 +1836,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** [demo:demoproduct:batch_permanent_delete] 批量永久删除DemoProduct */
+        /** [demo:demoproduct:permanent_delete] 批量永久删除DemoProduct */
         delete: operations["demo_products_batch_permanent_delete"];
         options?: never;
         head?: never;
@@ -1730,7 +1852,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [demo:demoproduct:batch_restore] 批量恢复DemoProduct */
+        /** [demo:demoproduct:restore] 批量恢复DemoProduct */
         post: operations["demo_products_batch_restore"];
         delete?: never;
         options?: never;
@@ -1762,13 +1884,30 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** [biz:device:get] 获取Device */
+        /** [biz:device:detail] 获取Device */
         get: operations["devices_get"];
         /** [biz:device:update] 更新Device */
         put: operations["devices_update"];
         post?: never;
         /** [biz:device:delete] 删除Device */
         delete: operations["devices_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/device/devices/{id}/permanent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** [biz:device:permanent_delete] 永久删除Device */
+        delete: operations["devices_permanent_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1835,7 +1974,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** [biz:device:batch_permanent_delete] 批量永久删除Device */
+        /** [biz:device:permanent_delete] 批量永久删除Device */
         delete: operations["devices_batch_permanent_delete"];
         options?: never;
         head?: never;
@@ -1851,7 +1990,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [biz:device:batch_restore] 批量恢复Device */
+        /** [biz:device:restore] 批量恢复Device */
         post: operations["devices_batch_restore"];
         delete?: never;
         options?: never;
@@ -1866,7 +2005,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** [sys:auditlog:get] 获取AuditLog */
+        /** [sys:auditlog:detail] 获取AuditLog */
         get: operations["audit_logs_get"];
         put?: never;
         post?: never;
@@ -1913,6 +2052,193 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workline/runtime/devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:device:list] 设备运行态列表 */
+        get: operations["workline_runtime_devices_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/runtime/devices/{device_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:device:list] 设备运行态详情 */
+        get: operations["workline_runtime_devices_by_device_id_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/runtime/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list] 运行监控总览 */
+        get: operations["workline_runtime_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/runtime/worklines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list] 工作线运行态列表 */
+        get: operations["workline_runtime_worklines_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/runtime/worklines/{workline_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list] 工作线运行态详情 */
+        get: operations["workline_runtime_worklines_by_workline_id_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/trace/command/{command_code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list] 根据 command_code 查询 Trace */
+        get: operations["workline_trace_command_by_command_code_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/trace/correlation/{correlation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list] 根据 correlation_id 查询 Trace */
+        get: operations["workline_trace_correlation_by_correlation_id_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/trace/dispatch/{dispatch_key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list] 根据 dispatch_key 查询 Trace */
+        get: operations["workline_trace_dispatch_by_dispatch_key_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/trace/query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [biz:workline:list] Trace 列表查询 */
+        post: operations["workline_trace_query_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/trace/request/{request_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list] 根据 request_id 查询 Trace */
+        get: operations["workline_trace_request_by_request_id_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/trace/session/{session_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list] 根据 session_id 查询 Trace */
+        get: operations["workline_trace_session_by_session_id_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workline/work_lines": {
         parameters: {
             query?: never;
@@ -1937,13 +2263,30 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** [biz:workline:get] 获取WorkLine */
+        /** [biz:workline:detail] 获取WorkLine */
         get: operations["work_lines_get"];
         /** [biz:workline:update] 更新WorkLine */
         put: operations["work_lines_update"];
         post?: never;
         /** [biz:workline:delete] 删除WorkLine */
         delete: operations["work_lines_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/work_lines/{id}/permanent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** [biz:workline:permanent_delete] 永久删除WorkLine */
+        delete: operations["work_lines_permanent_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2010,7 +2353,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** [biz:workline:batch_permanent_delete] 批量永久删除WorkLine */
+        /** [biz:workline:permanent_delete] 批量永久删除WorkLine */
         delete: operations["work_lines_batch_permanent_delete"];
         options?: never;
         head?: never;
@@ -2026,7 +2369,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [biz:workline:batch_restore] 批量恢复WorkLine */
+        /** [biz:workline:restore] 批量恢复WorkLine */
         post: operations["work_lines_batch_restore"];
         delete?: never;
         options?: never;
@@ -2611,8 +2954,12 @@ export interface components {
             device_id: string;
             /** Error Message */
             error_message: string | null;
+            /** Failure Stage */
+            failure_stage: string | null;
             /** Id */
             id: number;
+            /** Ingress Outcome */
+            ingress_outcome: string | null;
             /** Request Body */
             request_body: {
                 [key: string]: unknown;
@@ -2763,6 +3110,18 @@ export interface components {
              */
             auth_token?: string | null;
             /**
+             * Callback Path
+             * @description 设备侧回调/命令接收路径覆盖
+             */
+            callback_path?: string | null;
+            /**
+             * Capabilities Json
+             * @description 设备能力声明（支持事件、命令、回调等）
+             */
+            capabilities_json?: {
+                [key: string]: unknown;
+            };
+            /**
              * Current Command Id
              * @description 当前执行的指令 ID（关联 DeviceCommand.id）
              */
@@ -2793,6 +3152,13 @@ export interface components {
              */
             device_status: components["schemas"]["DeviceStatus"];
             /**
+             * Diagnostic Profile
+             * @description 设备诊断配置（责任角色、显示偏好、扩展属性）
+             */
+            diagnostic_profile?: {
+                [key: string]: unknown;
+            };
+            /**
              * Error Code
              * @description 错误代码（status=ERROR 时）
              */
@@ -2819,6 +3185,12 @@ export interface components {
              * @description 最后心跳时间
              */
             last_heartbeat_at?: string | null;
+            /**
+             * Maintenance Mode
+             * @description 是否处于维护模式（维护中不参与正常编排）
+             * @default false
+             */
+            maintenance_mode: boolean;
             /**
              * Max Concurrent Tasks
              * @description 最大并发任务数
@@ -2886,6 +3258,18 @@ export interface components {
              */
             auth_token?: string | null;
             /**
+             * Callback Path
+             * @description 设备侧回调/命令接收路径覆盖
+             */
+            callback_path?: string | null;
+            /**
+             * Capabilities Json
+             * @description 设备能力声明（支持事件、命令、回调等）
+             */
+            capabilities_json?: {
+                [key: string]: unknown;
+            };
+            /**
              * Current Command Id
              * @description 当前执行的指令 ID（关联 DeviceCommand.id）
              */
@@ -2916,6 +3300,13 @@ export interface components {
              */
             device_status: components["schemas"]["DeviceStatus"];
             /**
+             * Diagnostic Profile
+             * @description 设备诊断配置（责任角色、显示偏好、扩展属性）
+             */
+            diagnostic_profile?: {
+                [key: string]: unknown;
+            };
+            /**
              * Error Code
              * @description 错误代码（status=ERROR 时）
              */
@@ -2944,6 +3335,12 @@ export interface components {
              * @description 最后心跳时间
              */
             last_heartbeat_at?: string | null;
+            /**
+             * Maintenance Mode
+             * @description 是否处于维护模式（维护中不参与正常编排）
+             * @default false
+             */
+            maintenance_mode: boolean;
             /**
              * Max Concurrent Tasks
              * @description 最大并发任务数
@@ -3013,6 +3410,18 @@ export interface components {
              */
             auth_token?: string | null;
             /**
+             * Callback Path
+             * @description 设备侧回调/命令接收路径覆盖
+             */
+            callback_path?: string | null;
+            /**
+             * Capabilities Json
+             * @description 设备能力声明（支持事件、命令、回调等）
+             */
+            capabilities_json?: {
+                [key: string]: unknown;
+            } | null;
+            /**
              * Current Command Id
              * @description 当前执行的指令 ID（关联 DeviceCommand.id）
              */
@@ -3040,6 +3449,13 @@ export interface components {
             /** @description 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE） */
             device_status?: components["schemas"]["DeviceStatus"] | null;
             /**
+             * Diagnostic Profile
+             * @description 设备诊断配置（责任角色、显示偏好、扩展属性）
+             */
+            diagnostic_profile?: {
+                [key: string]: unknown;
+            } | null;
+            /**
              * Error Code
              * @description 错误代码（status=ERROR 时）
              */
@@ -3064,6 +3480,11 @@ export interface components {
              * @description 最后心跳时间
              */
             last_heartbeat_at?: string | null;
+            /**
+             * Maintenance Mode
+             * @description 是否处于维护模式（维护中不参与正常编排）
+             */
+            maintenance_mode?: boolean | null;
             /**
              * Max Concurrent Tasks
              * @description 最大并发任务数
@@ -3913,7 +4334,7 @@ export interface components {
          */
         MenuTreeResponse: {
             /** Children */
-            children?: components["schemas"]["MenuResponse"][];
+            children?: components["schemas"]["MenuTreeResponse"][];
             /**
              * Component
              * @description 组件路径，如 views/system/users.vue
@@ -4915,6 +5336,66 @@ export interface components {
              */
             timestamp?: string;
         };
+        /** ResponseSchemaModel[list[RuntimeDeviceSummary]] */
+        ResponseSchemaModel_list_RuntimeDeviceSummary__: {
+            /**
+             * Code
+             * @description 响应码
+             * @default 1000
+             * @example 1000
+             * @example 2000
+             */
+            code: string;
+            /**
+             * Data
+             * @description 响应数据
+             */
+            data?: components["schemas"]["RuntimeDeviceSummary"][] | null;
+            /**
+             * Message
+             * @description 响应消息
+             * @default 操作成功
+             * @example 操作成功
+             * @example 参数错误
+             */
+            message: string;
+            /**
+             * Timestamp
+             * @description 响应时间戳(ISO 8601格式)
+             * @example 2024-01-01T00:00:00Z
+             */
+            timestamp?: string;
+        };
+        /** ResponseSchemaModel[list[RuntimeWorklineSummary]] */
+        ResponseSchemaModel_list_RuntimeWorklineSummary__: {
+            /**
+             * Code
+             * @description 响应码
+             * @default 1000
+             * @example 1000
+             * @example 2000
+             */
+            code: string;
+            /**
+             * Data
+             * @description 响应数据
+             */
+            data?: components["schemas"]["RuntimeWorklineSummary"][] | null;
+            /**
+             * Message
+             * @description 响应消息
+             * @default 操作成功
+             * @example 操作成功
+             * @example 参数错误
+             */
+            message: string;
+            /**
+             * Timestamp
+             * @description 响应时间戳(ISO 8601格式)
+             * @example 2024-01-01T00:00:00Z
+             */
+            timestamp?: string;
+        };
         /** ResponseSchemaModel[LoginResponse] */
         ResponseSchemaModel_LoginResponse_: {
             /**
@@ -5134,6 +5615,141 @@ export interface components {
              */
             timestamp?: string;
         };
+        /** ResponseSchemaModel[RuntimeDeviceDetailResponse] */
+        ResponseSchemaModel_RuntimeDeviceDetailResponse_: {
+            /**
+             * Code
+             * @description 响应码
+             * @default 1000
+             * @example 1000
+             * @example 2000
+             */
+            code: string;
+            /** @description 响应数据 */
+            data?: components["schemas"]["RuntimeDeviceDetailResponse"] | null;
+            /**
+             * Message
+             * @description 响应消息
+             * @default 操作成功
+             * @example 操作成功
+             * @example 参数错误
+             */
+            message: string;
+            /**
+             * Timestamp
+             * @description 响应时间戳(ISO 8601格式)
+             * @example 2024-01-01T00:00:00Z
+             */
+            timestamp?: string;
+        };
+        /** ResponseSchemaModel[RuntimeOverviewResponse] */
+        ResponseSchemaModel_RuntimeOverviewResponse_: {
+            /**
+             * Code
+             * @description 响应码
+             * @default 1000
+             * @example 1000
+             * @example 2000
+             */
+            code: string;
+            /** @description 响应数据 */
+            data?: components["schemas"]["RuntimeOverviewResponse"] | null;
+            /**
+             * Message
+             * @description 响应消息
+             * @default 操作成功
+             * @example 操作成功
+             * @example 参数错误
+             */
+            message: string;
+            /**
+             * Timestamp
+             * @description 响应时间戳(ISO 8601格式)
+             * @example 2024-01-01T00:00:00Z
+             */
+            timestamp?: string;
+        };
+        /** ResponseSchemaModel[RuntimeTraceListResponse] */
+        ResponseSchemaModel_RuntimeTraceListResponse_: {
+            /**
+             * Code
+             * @description 响应码
+             * @default 1000
+             * @example 1000
+             * @example 2000
+             */
+            code: string;
+            /** @description 响应数据 */
+            data?: components["schemas"]["RuntimeTraceListResponse"] | null;
+            /**
+             * Message
+             * @description 响应消息
+             * @default 操作成功
+             * @example 操作成功
+             * @example 参数错误
+             */
+            message: string;
+            /**
+             * Timestamp
+             * @description 响应时间戳(ISO 8601格式)
+             * @example 2024-01-01T00:00:00Z
+             */
+            timestamp?: string;
+        };
+        /** ResponseSchemaModel[RuntimeWorklineDetailResponse] */
+        ResponseSchemaModel_RuntimeWorklineDetailResponse_: {
+            /**
+             * Code
+             * @description 响应码
+             * @default 1000
+             * @example 1000
+             * @example 2000
+             */
+            code: string;
+            /** @description 响应数据 */
+            data?: components["schemas"]["RuntimeWorklineDetailResponse"] | null;
+            /**
+             * Message
+             * @description 响应消息
+             * @default 操作成功
+             * @example 操作成功
+             * @example 参数错误
+             */
+            message: string;
+            /**
+             * Timestamp
+             * @description 响应时间戳(ISO 8601格式)
+             * @example 2024-01-01T00:00:00Z
+             */
+            timestamp?: string;
+        };
+        /** ResponseSchemaModel[TraceDetailResponse] */
+        ResponseSchemaModel_TraceDetailResponse_: {
+            /**
+             * Code
+             * @description 响应码
+             * @default 1000
+             * @example 1000
+             * @example 2000
+             */
+            code: string;
+            /** @description 响应数据 */
+            data?: components["schemas"]["TraceDetailResponse"] | null;
+            /**
+             * Message
+             * @description 响应消息
+             * @default 操作成功
+             * @example 操作成功
+             * @example 参数错误
+             */
+            message: string;
+            /**
+             * Timestamp
+             * @description 响应时间戳(ISO 8601格式)
+             * @example 2024-01-01T00:00:00Z
+             */
+            timestamp?: string;
+        };
         /** ResponseSchemaModel[UserPermissionsResponse] */
         ResponseSchemaModel_UserPermissionsResponse_: {
             /**
@@ -5311,6 +5927,243 @@ export interface components {
              */
             version: number;
         };
+        /** RuntimeDeviceDetailResponse */
+        RuntimeDeviceDetailResponse: {
+            /** Active Sessions */
+            active_sessions?: components["schemas"]["RuntimeTraceListItem"][];
+            /** Recent Callbacks */
+            recent_callbacks?: components["schemas"]["TraceCallbackLogItem"][];
+            /** Recent Commands */
+            recent_commands?: components["schemas"]["TraceCommandItem"][];
+            summary: components["schemas"]["RuntimeDeviceSummary"];
+        };
+        /** RuntimeDeviceSummary */
+        RuntimeDeviceSummary: {
+            /** Current Command Id */
+            current_command_id?: number | null;
+            /** Device Code */
+            device_code: string;
+            /** Device Name */
+            device_name: string;
+            /** Device Role */
+            device_role: string;
+            /** Device Status */
+            device_status: string;
+            /** Error Code */
+            error_code?: string | null;
+            /** Id */
+            id: number;
+            /** Last Heartbeat At */
+            last_heartbeat_at?: string | null;
+            /**
+             * Maintenance Mode
+             * @default false
+             */
+            maintenance_mode: boolean;
+            /**
+             * Pending Command Count
+             * @default 0
+             */
+            pending_command_count: number;
+            /** Recent Callback At */
+            recent_callback_at?: string | null;
+            /** Role Index */
+            role_index: number;
+            /** Workline Code */
+            workline_code?: string | null;
+            /** Workline Id */
+            workline_id?: number | null;
+            /** Workline Name */
+            workline_name?: string | null;
+        };
+        /** RuntimeOverviewResponse */
+        RuntimeOverviewResponse: {
+            /** Abnormal Devices */
+            abnormal_devices?: components["schemas"]["RuntimeDeviceSummary"][];
+            /** Hot Worklines */
+            hot_worklines?: components["schemas"]["RuntimeWorklineSummary"][];
+            /** Recent Failed Traces */
+            recent_failed_traces?: components["schemas"]["RuntimeTraceListItem"][];
+            /** Stats */
+            stats: components["schemas"]["RuntimeStatCard"][];
+        };
+        /** RuntimeStatCard */
+        RuntimeStatCard: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /**
+             * Status
+             * @default info
+             */
+            status: string;
+            /** Value */
+            value: number;
+        };
+        /**
+         * RuntimeTraceListItem
+         * @description Trace 列表项。
+         */
+        RuntimeTraceListItem: {
+            /** Command Code */
+            command_code?: string | null;
+            /** Correlation Id */
+            correlation_id?: string | null;
+            /** Current Wait Type */
+            current_wait_type?: string | null;
+            /** Deadline At */
+            deadline_at?: string | null;
+            /** Device Code */
+            device_code?: string | null;
+            /** Device Id */
+            device_id?: number | null;
+            /** Device Name */
+            device_name?: string | null;
+            /** Failure Code */
+            failure_code?: string | null;
+            /** Failure Domain */
+            failure_domain?: string | null;
+            /**
+             * Is Timed Out
+             * @default false
+             */
+            is_timed_out: boolean;
+            /** Last Ingress At */
+            last_ingress_at?: string | null;
+            /** Latest Timeline Action */
+            latest_timeline_action?: string | null;
+            /** Latest Timeline Message */
+            latest_timeline_message?: string | null;
+            /** Latest Timeline Status */
+            latest_timeline_status?: string | null;
+            /** Request Id */
+            request_id?: string | null;
+            /** Session Code */
+            session_code: string;
+            /** Session Id */
+            session_id: number;
+            /** Started At */
+            started_at?: string | null;
+            /** Status */
+            status: string;
+            /** Step Code */
+            step_code?: string | null;
+            /** Workline Code */
+            workline_code?: string | null;
+            /** Workline Id */
+            workline_id: number;
+            /** Workline Name */
+            workline_name?: string | null;
+        };
+        /**
+         * RuntimeTraceListResponse
+         * @description Trace 列表响应。
+         */
+        RuntimeTraceListResponse: {
+            /** Items */
+            items: components["schemas"]["RuntimeTraceListItem"][];
+            /** Total */
+            total: number;
+        };
+        /** RuntimeWorklineDetailResponse */
+        RuntimeWorklineDetailResponse: {
+            /** Active Sessions */
+            active_sessions?: components["schemas"]["RuntimeTraceListItem"][];
+            /** Devices */
+            devices?: components["schemas"]["RuntimeWorklineDeviceItem"][];
+            /** Recent Failed Traces */
+            recent_failed_traces?: components["schemas"]["RuntimeTraceListItem"][];
+            summary: components["schemas"]["RuntimeWorklineSummary"];
+        };
+        /** RuntimeWorklineDeviceItem */
+        RuntimeWorklineDeviceItem: {
+            /** Current Command Id */
+            current_command_id?: number | null;
+            /** Device Code */
+            device_code: string;
+            /** Device Name */
+            device_name: string;
+            /** Device Role */
+            device_role: string;
+            /** Device Status */
+            device_status: string;
+            /** Error Code */
+            error_code?: string | null;
+            /** Id */
+            id: number;
+            /** Last Heartbeat At */
+            last_heartbeat_at?: string | null;
+            /**
+             * Maintenance Mode
+             * @default false
+             */
+            maintenance_mode: boolean;
+            /** Role Index */
+            role_index: number;
+            /** Upstream Device Id */
+            upstream_device_id?: number | null;
+        };
+        /** RuntimeWorklineSummary */
+        RuntimeWorklineSummary: {
+            /**
+             * Active Session Count
+             * @default 0
+             */
+            active_session_count: number;
+            /** Contract Version */
+            contract_version?: string | null;
+            /**
+             * Device Count
+             * @default 0
+             */
+            device_count: number;
+            /**
+             * Error Device Count
+             * @default 0
+             */
+            error_device_count: number;
+            /**
+             * Failed Session Count
+             * @default 0
+             */
+            failed_session_count: number;
+            /** Id */
+            id: number;
+            /** Is Active */
+            is_active: boolean;
+            /** Last Activity At */
+            last_activity_at?: string | null;
+            /** Line Code */
+            line_code: string;
+            /** Line Name */
+            line_name: string;
+            /** Line Type */
+            line_type: string;
+            /**
+             * Maintenance Device Count
+             * @default 0
+             */
+            maintenance_device_count: number;
+            /**
+             * Offline Device Count
+             * @default 0
+             */
+            offline_device_count: number;
+            /** Owner Team */
+            owner_team?: string | null;
+            /** Plugin Key */
+            plugin_key?: string | null;
+            /** Support Contact */
+            support_contact?: string | null;
+            /**
+             * Waiting Session Count
+             * @default 0
+             */
+            waiting_session_count: number;
+            /** Zone Name */
+            zone_name?: string | null;
+        };
         /**
          * SessionInfo
          * @description 会话信息 Schema
@@ -5386,6 +6239,454 @@ export interface components {
              * @default 0
              */
             sort_order: number;
+        };
+        /** TraceCallbackLogItem */
+        TraceCallbackLogItem: {
+            /** Callback Type */
+            callback_type: string;
+            /** Correlation Id */
+            correlation_id?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Device Id */
+            device_id: string;
+            /** Error Message */
+            error_message?: string | null;
+            /** Failure Stage */
+            failure_stage?: string | null;
+            /** Id */
+            id: number;
+            /** Ingress Outcome */
+            ingress_outcome?: string | null;
+            /** Request Body */
+            request_body: {
+                [key: string]: unknown;
+            };
+            /** Request Id */
+            request_id?: string | null;
+            /** Response Status */
+            response_status: number;
+            /** Response Time Ms */
+            response_time_ms: number;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** TraceCommandItem */
+        TraceCommandItem: {
+            /** Ack Code */
+            ack_code?: number | null;
+            /** Ack Message */
+            ack_message?: string | null;
+            /** Ack Received At */
+            ack_received_at?: string | null;
+            /** Ack Trace Id */
+            ack_trace_id?: string | null;
+            /** Command Code */
+            command_code: string;
+            /** Completed At */
+            completed_at?: string | null;
+            /** Correlation Id */
+            correlation_id?: string | null;
+            /** Device Id */
+            device_id: number;
+            /** Duration Ms */
+            duration_ms?: number | null;
+            /** Error Detail */
+            error_detail?: {
+                [key: string]: unknown;
+            } | null;
+            /** Id */
+            id: number;
+            /** Params */
+            params: {
+                [key: string]: unknown;
+            };
+            /** Result */
+            result?: string | null;
+            /** Result Data */
+            result_data?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Retry Count
+             * @default 0
+             */
+            retry_count: number;
+            /** Sent At */
+            sent_at?: string | null;
+            /** Session Id */
+            session_id?: string | null;
+            /** Status */
+            status: string;
+            /** Step Code */
+            step_code?: string | null;
+            /** Task Type */
+            task_type: string;
+            /** Workline Id */
+            workline_id?: number | null;
+        };
+        /** TraceContextResponse */
+        TraceContextResponse: {
+            /** Canonical Event Type */
+            canonical_event_type?: string | null;
+            /** Command Code */
+            command_code?: string | null;
+            /** Command Id */
+            command_id?: number | null;
+            /** Contract Version */
+            contract_version?: string | null;
+            /** Correlation Id */
+            correlation_id?: string | null;
+            /** Device Code */
+            device_code?: string | null;
+            /** Device Id */
+            device_id?: number | null;
+            /** Dispatch Key */
+            dispatch_key?: string | null;
+            /** Inbox Id */
+            inbox_id?: number | null;
+            /** Outbox Id */
+            outbox_id?: number | null;
+            /** Plugin Key */
+            plugin_key?: string | null;
+            /** Request Id */
+            request_id?: string | null;
+            /** Session Id */
+            session_id?: number | null;
+            /** Transition */
+            transition?: string | null;
+            /** Workline Id */
+            workline_id?: number | null;
+        };
+        /** TraceDetailResponse */
+        TraceDetailResponse: {
+            /** Callback Logs */
+            callback_logs?: components["schemas"]["TraceCallbackLogItem"][];
+            /** Commands */
+            commands?: components["schemas"]["TraceCommandItem"][];
+            /** Diagnostics */
+            diagnostics?: components["schemas"]["TraceDiagnosticItem"][];
+            /** Inboxes */
+            inboxes?: components["schemas"]["TraceInboxItem"][];
+            /** Outboxes */
+            outboxes?: components["schemas"]["TraceOutboxItem"][];
+            session?: components["schemas"]["TraceSessionItem"] | null;
+            summary: components["schemas"]["TraceOverviewSummary"];
+            /** Timelines */
+            timelines?: components["schemas"]["TraceTimelineItem"][];
+            trace: components["schemas"]["TraceContextResponse"];
+        };
+        /** TraceDiagnosticItem */
+        TraceDiagnosticItem: {
+            /** Canonical Event Type */
+            canonical_event_type?: string | null;
+            /** Command Code */
+            command_code?: string | null;
+            /** Correlation Id */
+            correlation_id?: string | null;
+            /** Device Code */
+            device_code?: string | null;
+            /** Extra */
+            extra?: {
+                [key: string]: unknown;
+            };
+            /** Inbox Id */
+            inbox_id?: number | null;
+            /** Outbox Id */
+            outbox_id?: number | null;
+            /** Plugin Key */
+            plugin_key?: string | null;
+            /** Request Id */
+            request_id?: string | null;
+            /** Session Id */
+            session_id?: number | null;
+            /** Transition */
+            transition?: string | null;
+            /** Workline Code */
+            workline_code?: string | null;
+            /** Workline Id */
+            workline_id?: number | null;
+        };
+        /** TraceInboxItem */
+        TraceInboxItem: {
+            /**
+             * Attempt Count
+             * @default 0
+             */
+            attempt_count: number;
+            /** Command Id */
+            command_id?: number | null;
+            /** Correlation Id */
+            correlation_id?: string | null;
+            /** Device Id */
+            device_id?: number | null;
+            /** Error Message */
+            error_message?: string | null;
+            /** Id */
+            id: number;
+            /** Kind */
+            kind: string;
+            /**
+             * Max Attempts
+             * @default 0
+             */
+            max_attempts: number;
+            /** Next Retry At */
+            next_retry_at?: string | null;
+            /** Payload Json */
+            payload_json: {
+                [key: string]: unknown;
+            };
+            /** Processed At */
+            processed_at?: string | null;
+            /**
+             * Received At
+             * Format: date-time
+             */
+            received_at: string;
+            /** Session Id */
+            session_id?: number | null;
+            /** Source Message Id */
+            source_message_id?: string | null;
+            /** Source System */
+            source_system: string;
+            /** Status */
+            status: string;
+            /** Workline Id */
+            workline_id?: number | null;
+        };
+        /** TraceOutboxItem */
+        TraceOutboxItem: {
+            /**
+             * Attempt Count
+             * @default 0
+             */
+            attempt_count: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Dispatch Key */
+            dispatch_key: string;
+            /** Dispatch Type */
+            dispatch_type: string;
+            /** Finished At */
+            finished_at?: string | null;
+            /** Id */
+            id: number;
+            /** Last Error */
+            last_error?: string | null;
+            /** Next Retry At */
+            next_retry_at?: string | null;
+            /** Payload Json */
+            payload_json: {
+                [key: string]: unknown;
+            };
+            /** Sent At */
+            sent_at?: string | null;
+            /** Session Id */
+            session_id?: number | null;
+            /** Status */
+            status: string;
+            /** Target Code */
+            target_code: string;
+            /** Target Type */
+            target_type: string;
+            /** Workline Id */
+            workline_id: number;
+        };
+        /**
+         * TraceOverviewSummary
+         * @description Trace 详情页顶部摘要。
+         */
+        TraceOverviewSummary: {
+            /**
+             * Callback Logs
+             * @default 0
+             */
+            callback_logs: number;
+            /**
+             * Commands
+             * @default 0
+             */
+            commands: number;
+            /** Current Wait Type */
+            current_wait_type?: string | null;
+            /**
+             * Diagnostics
+             * @default 0
+             */
+            diagnostics: number;
+            /**
+             * Inboxes
+             * @default 0
+             */
+            inboxes: number;
+            /** Latest Timeline Action */
+            latest_timeline_action?: string | null;
+            /** Latest Timeline Message */
+            latest_timeline_message?: string | null;
+            /** Latest Timeline Status */
+            latest_timeline_status?: string | null;
+            /**
+             * Outboxes
+             * @default 0
+             */
+            outboxes: number;
+            /** Session Status */
+            session_status?: string | null;
+            /** Step Code */
+            step_code?: string | null;
+            /**
+             * Timelines
+             * @default 0
+             */
+            timelines: number;
+        };
+        /**
+         * TraceQueryRequest
+         * @description Trace 列表查询请求。
+         */
+        TraceQueryRequest: {
+            /** Device Id */
+            device_id?: number | null;
+            /** Keyword */
+            keyword?: string | null;
+            /**
+             * Limit
+             * @default 20
+             */
+            limit: number;
+            /**
+             * Offset
+             * @default 0
+             */
+            offset: number;
+            /**
+             * Only Active
+             * @default false
+             */
+            only_active: boolean;
+            /**
+             * Only Failed
+             * @default false
+             */
+            only_failed: boolean;
+            /** Status */
+            status?: string | null;
+            /** Step Code */
+            step_code?: string | null;
+            /** Workline Id */
+            workline_id?: number | null;
+        };
+        /** TraceSessionItem */
+        TraceSessionItem: {
+            /** Awaiting Command Id */
+            awaiting_command_id?: number | null;
+            /** Barcode */
+            barcode?: string | null;
+            /** Business Key */
+            business_key?: string | null;
+            /** Context Json */
+            context_json: {
+                [key: string]: unknown;
+            };
+            /** Correlation Id */
+            correlation_id?: string | null;
+            /** Current Wait Token */
+            current_wait_token?: string | null;
+            /** Current Wait Type */
+            current_wait_type?: string | null;
+            /** Deadline At */
+            deadline_at?: string | null;
+            /** Ended At */
+            ended_at?: string | null;
+            /** Failure Code */
+            failure_code?: string | null;
+            /** Failure Domain */
+            failure_domain?: string | null;
+            /** Failure Message */
+            failure_message?: string | null;
+            /** Id */
+            id: number;
+            /**
+             * Ingress Count
+             * @default 0
+             */
+            ingress_count: number;
+            /** Last Inbox Id */
+            last_inbox_id?: number | null;
+            /** Last Ingress At */
+            last_ingress_at?: string | null;
+            /** Last Request Id */
+            last_request_id?: string | null;
+            /** Plugin Key */
+            plugin_key: string;
+            /** Run Mode */
+            run_mode: string;
+            /** Session Code */
+            session_code: string;
+            /** Started At */
+            started_at?: string | null;
+            /** Status */
+            status: string;
+            /** Step Code */
+            step_code?: string | null;
+            /** Waiting Since */
+            waiting_since?: string | null;
+            /** Workline Id */
+            workline_id: number;
+        };
+        /** TraceTimelineItem */
+        TraceTimelineItem: {
+            /** Action Type */
+            action_type: string;
+            /** Actor Code */
+            actor_code?: string | null;
+            /** Actor Type */
+            actor_type: string;
+            /** Correlation Id */
+            correlation_id?: string | null;
+            /** Failure Domain */
+            failure_domain?: string | null;
+            /** From Status */
+            from_status?: string | null;
+            /** Id */
+            id: number;
+            /** Message */
+            message?: string | null;
+            /**
+             * Occurred At
+             * Format: date-time
+             */
+            occurred_at: string;
+            /** Payload Json */
+            payload_json?: {
+                [key: string]: unknown;
+            } | null;
+            /** Related Command Id */
+            related_command_id?: number | null;
+            /** Related Inbox Id */
+            related_inbox_id?: number | null;
+            /** Seq No */
+            seq_no: number;
+            /** Session Id */
+            session_id: number;
+            /** Stage */
+            stage: string;
+            /** Status */
+            status: string;
+            /** To Status */
+            to_status?: string | null;
+            /** Workline Id */
+            workline_id: number;
         };
         /**
          * TryInvokeApplication
@@ -5607,14 +6908,26 @@ export interface components {
              * Config
              * @description 工作线插件配置
              */
-            config: {
+            config?: {
                 [key: string]: unknown;
             };
+            /**
+             * Contract Version
+             * @description 工作线默认插件契约版本
+             */
+            contract_version?: string | null;
             /**
              * Description
              * @description 作业线描述
              */
             description?: string | null;
+            /**
+             * Diagnostic Profile
+             * @description 工作线诊断配置（软件/硬件分类偏好、展示策略等）
+             */
+            diagnostic_profile?: {
+                [key: string]: unknown;
+            };
             /**
              * Is Active
              * @description 是否启用
@@ -5634,16 +6947,33 @@ export interface components {
             /** @description 作业线类型 */
             line_type: components["schemas"]["LineType"];
             /**
+             * Owner Team
+             * @description 工作线主责团队
+             */
+            owner_team?: string | null;
+            /**
              * Plugin Key
              * @description 工作线执行插件标识
              */
             plugin_key?: string | null;
+            /**
+             * Runtime Config Json
+             * @description 工作线运行时配置（重试、超时、会话归属等）
+             */
+            runtime_config_json?: {
+                [key: string]: unknown;
+            };
             /**
              * Sort Order
              * @description 排序顺序
              * @default 0
              */
             sort_order: number;
+            /**
+             * Support Contact
+             * @description 工作线支持联系人
+             */
+            support_contact?: string | null;
             /**
              * Zone Name
              * @description 区域名称
@@ -5668,10 +6998,22 @@ export interface components {
                 [key: string]: unknown;
             };
             /**
+             * Contract Version
+             * @description 工作线默认插件契约版本
+             */
+            contract_version?: string | null;
+            /**
              * Description
              * @description 作业线描述
              */
             description?: string | null;
+            /**
+             * Diagnostic Profile
+             * @description 工作线诊断配置（软件/硬件分类偏好、展示策略等）
+             */
+            diagnostic_profile?: {
+                [key: string]: unknown;
+            };
             /** Id */
             id: number;
             /**
@@ -5693,16 +7035,33 @@ export interface components {
             /** @description 作业线类型 */
             line_type: components["schemas"]["LineType"];
             /**
+             * Owner Team
+             * @description 工作线主责团队
+             */
+            owner_team?: string | null;
+            /**
              * Plugin Key
              * @description 工作线执行插件标识
              */
             plugin_key?: string | null;
+            /**
+             * Runtime Config Json
+             * @description 工作线运行时配置（重试、超时、会话归属等）
+             */
+            runtime_config_json?: {
+                [key: string]: unknown;
+            };
             /**
              * Sort Order
              * @description 排序顺序
              * @default 0
              */
             sort_order: number;
+            /**
+             * Support Contact
+             * @description 工作线支持联系人
+             */
+            support_contact?: string | null;
             /** Version */
             version: number;
             /**
@@ -5729,10 +7088,22 @@ export interface components {
                 [key: string]: unknown;
             } | null;
             /**
+             * Contract Version
+             * @description 工作线默认插件契约版本
+             */
+            contract_version?: string | null;
+            /**
              * Description
              * @description 作业线描述
              */
             description?: string | null;
+            /**
+             * Diagnostic Profile
+             * @description 工作线诊断配置（软件/硬件分类偏好、展示策略等）
+             */
+            diagnostic_profile?: {
+                [key: string]: unknown;
+            } | null;
             /**
              * Is Active
              * @description 是否启用
@@ -5751,15 +7122,32 @@ export interface components {
             /** @description 作业线类型 */
             line_type?: components["schemas"]["LineType"] | null;
             /**
+             * Owner Team
+             * @description 工作线主责团队
+             */
+            owner_team?: string | null;
+            /**
              * Plugin Key
              * @description 工作线执行插件标识
              */
             plugin_key?: string | null;
             /**
+             * Runtime Config Json
+             * @description 工作线运行时配置（重试、超时、会话归属等）
+             */
+            runtime_config_json?: {
+                [key: string]: unknown;
+            } | null;
+            /**
              * Sort Order
              * @description 排序顺序
              */
             sort_order?: number | null;
+            /**
+             * Support Contact
+             * @description 工作线支持联系人
+             */
+            support_contact?: string | null;
             /**
              * Version
              * @description 乐观锁版本号，更新时必传
@@ -5886,10 +7274,38 @@ export interface operations {
     };
     menus_delete: {
         parameters: {
-            query?: {
-                /** @description 是否永久删除 */
-                permanent?: boolean;
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
             };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__str__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    menus_permanent_delete: {
+        parameters: {
+            query?: never;
             header?: never;
             path: {
                 id: number;
@@ -6498,10 +7914,38 @@ export interface operations {
     };
     permissions_delete: {
         parameters: {
-            query?: {
-                /** @description 是否永久删除 */
-                permanent?: boolean;
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
             };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__str__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    permissions_permanent_delete: {
+        parameters: {
+            query?: never;
             header?: never;
             path: {
                 id: number;
@@ -7002,10 +8446,38 @@ export interface operations {
     };
     roles_delete: {
         parameters: {
-            query?: {
-                /** @description 是否永久删除 */
-                permanent?: boolean;
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
             };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__str__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    roles_permanent_delete: {
+        parameters: {
+            query?: never;
             header?: never;
             path: {
                 id: number;
@@ -7302,10 +8774,7 @@ export interface operations {
     };
     users_delete: {
         parameters: {
-            query?: {
-                /** @description 是否永久删除 */
-                permanent?: boolean;
-            };
+            query?: never;
             header?: never;
             path: {
                 id: number;
@@ -7356,6 +8825,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_UserResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    users_permanent_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__str__"];
                 };
             };
             /** @description Validation Error */
@@ -7516,9 +9016,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
                 };
             };
         };
@@ -7796,10 +9294,38 @@ export interface operations {
     };
     applications_delete: {
         parameters: {
-            query?: {
-                /** @description 是否永久删除 */
-                permanent?: boolean;
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
             };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__str__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    applications_permanent_delete: {
+        parameters: {
+            query?: never;
             header?: never;
             path: {
                 id: number;
@@ -7993,10 +9519,7 @@ export interface operations {
     };
     api_auth_applications_available_permissions_get: {
         parameters: {
-            query?: {
-                /** @description 是否强制从代码重新扫描并同步到数据库 */
-                sync?: boolean;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
@@ -8012,13 +9535,24 @@ export interface operations {
                     "application/json": components["schemas"]["ResponseSchemaModel_list_Any__"];
                 };
             };
-            /** @description Validation Error */
-            422: {
+        };
+    };
+    api_auth_applications_available_permissions_sync_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
+                    "application/json": components["schemas"]["ResponseSchemaModel_list_Any__"];
                 };
             };
         };
@@ -8674,10 +10208,38 @@ export interface operations {
     };
     demo_products_delete: {
         parameters: {
-            query?: {
-                /** @description 是否永久删除 */
-                permanent?: boolean;
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
             };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__str__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    demo_products_permanent_delete: {
+        parameters: {
+            query?: never;
             header?: never;
             path: {
                 id: number;
@@ -8974,10 +10536,38 @@ export interface operations {
     };
     devices_delete: {
         parameters: {
-            query?: {
-                /** @description 是否永久删除 */
-                permanent?: boolean;
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
             };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__str__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    devices_permanent_delete: {
+        parameters: {
+            query?: never;
             header?: never;
             path: {
                 id: number;
@@ -9269,6 +10859,316 @@ export interface operations {
             };
         };
     };
+    workline_runtime_devices_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_list_RuntimeDeviceSummary__"];
+                };
+            };
+        };
+    };
+    workline_runtime_devices_by_device_id_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                device_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_RuntimeDeviceDetailResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_runtime_overview_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_RuntimeOverviewResponse_"];
+                };
+            };
+        };
+    };
+    workline_runtime_worklines_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_list_RuntimeWorklineSummary__"];
+                };
+            };
+        };
+    };
+    workline_runtime_worklines_by_workline_id_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workline_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_RuntimeWorklineDetailResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_trace_command_by_command_code_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                command_code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_TraceDetailResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_trace_correlation_by_correlation_id_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                correlation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_TraceDetailResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_trace_dispatch_by_dispatch_key_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dispatch_key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_TraceDetailResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_trace_query_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TraceQueryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_RuntimeTraceListResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_trace_request_by_request_id_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_TraceDetailResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_trace_session_by_session_id_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_TraceDetailResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     work_lines_create: {
         parameters: {
             query?: never;
@@ -9375,10 +11275,38 @@ export interface operations {
     };
     work_lines_delete: {
         parameters: {
-            query?: {
-                /** @description 是否永久删除 */
-                permanent?: boolean;
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
             };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__str__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    work_lines_permanent_delete: {
+        parameters: {
+            query?: never;
             header?: never;
             path: {
                 id: number;

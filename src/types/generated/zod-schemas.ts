@@ -395,6 +395,10 @@ export const CallbackLogResponseSchema = z.object({
   response_time_ms: z.number(),
   /** Error Message */
   error_message: z.union([z.string(), z.null()]),
+  /** Ingress Outcome */
+  ingress_outcome: z.union([z.string(), z.null()]),
+  /** Failure Stage */
+  failure_stage: z.union([z.string(), z.null()]),
   /** Created At */
   created_at: z.string().datetime(),
   /** Updated At */
@@ -562,6 +566,8 @@ export const DeviceCreateSchema = z.object({
   upstream_device_id: z.union([z.number(), z.null()]).optional(),
   /** Vendor Type */
   vendor_type: z.union([z.string().max(50), z.null()]).optional(),
+  /** Capabilities Json */
+  capabilities_json: z.record(z.any()).optional(),
   /** Host */
   host: z.union([z.string().max(100), z.null()]).optional(),
   /** Port */
@@ -572,6 +578,8 @@ export const DeviceCreateSchema = z.object({
   auth_token: z.union([z.string().max(500), z.null()]).optional(),
   /** Timeout */
   timeout: z.number().min(1000).max(300000).optional().default(10000),
+  /** Callback Path */
+  callback_path: z.union([z.string().max(255), z.null()]).optional(),
   /** 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE） */
   device_status: z.lazy(() => DeviceStatusSchema).optional().default("IDLE"),
   /** Current Command Id */
@@ -580,10 +588,14 @@ export const DeviceCreateSchema = z.object({
   last_heartbeat_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Error Code */
   error_code: z.union([z.string().max(50), z.null()]).optional(),
+  /** Maintenance Mode */
+  maintenance_mode: z.boolean().optional().default(false),
   /** Max Concurrent Tasks */
   max_concurrent_tasks: z.number().min(1).max(10).optional().default(1),
   /** Idempotency Ttl */
   idempotency_ttl: z.number().min(60).max(86400).optional().default(3600),
+  /** Diagnostic Profile */
+  diagnostic_profile: z.record(z.any()).optional(),
 })
 
 
@@ -623,6 +635,8 @@ export const DeviceResponseSchema = z.object({
   upstream_device_id: z.union([z.number(), z.null()]).optional(),
   /** Vendor Type */
   vendor_type: z.union([z.string().max(50), z.null()]).optional(),
+  /** Capabilities Json */
+  capabilities_json: z.record(z.any()).optional(),
   /** Host */
   host: z.union([z.string().max(100), z.null()]).optional(),
   /** Port */
@@ -633,6 +647,8 @@ export const DeviceResponseSchema = z.object({
   auth_token: z.union([z.string().max(500), z.null()]).optional(),
   /** Timeout */
   timeout: z.number().min(1000).max(300000).optional().default(10000),
+  /** Callback Path */
+  callback_path: z.union([z.string().max(255), z.null()]).optional(),
   /** 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE） */
   device_status: z.lazy(() => DeviceStatusSchema).optional().default("IDLE"),
   /** Current Command Id */
@@ -641,10 +657,14 @@ export const DeviceResponseSchema = z.object({
   last_heartbeat_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Error Code */
   error_code: z.union([z.string().max(50), z.null()]).optional(),
+  /** Maintenance Mode */
+  maintenance_mode: z.boolean().optional().default(false),
   /** Max Concurrent Tasks */
   max_concurrent_tasks: z.number().min(1).max(10).optional().default(1),
   /** Idempotency Ttl */
   idempotency_ttl: z.number().min(60).max(86400).optional().default(3600),
+  /** Diagnostic Profile */
+  diagnostic_profile: z.record(z.any()).optional(),
   /** Id */
   id: z.number(),
   /** Version */
@@ -688,6 +708,8 @@ export const DeviceUpdateSchema = z.object({
   upstream_device_id: z.union([z.number(), z.null()]).optional(),
   /** Vendor Type */
   vendor_type: z.union([z.string().max(50), z.null()]).optional(),
+  /** Capabilities Json */
+  capabilities_json: z.union([z.record(z.any()), z.null()]).optional(),
   /** Host */
   host: z.union([z.string().max(100), z.null()]).optional(),
   /** Port */
@@ -698,6 +720,8 @@ export const DeviceUpdateSchema = z.object({
   auth_token: z.union([z.string().max(500), z.null()]).optional(),
   /** Timeout */
   timeout: z.union([z.number().min(1000).max(300000), z.null()]).optional(),
+  /** Callback Path */
+  callback_path: z.union([z.string().max(255), z.null()]).optional(),
   /** 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE） */
   device_status: z.union([z.lazy(() => DeviceStatusSchema), z.null()]).optional(),
   /** Current Command Id */
@@ -706,10 +730,14 @@ export const DeviceUpdateSchema = z.object({
   last_heartbeat_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Error Code */
   error_code: z.union([z.string().max(50), z.null()]).optional(),
+  /** Maintenance Mode */
+  maintenance_mode: z.union([z.boolean(), z.null()]).optional(),
   /** Max Concurrent Tasks */
   max_concurrent_tasks: z.union([z.number().min(1).max(10), z.null()]).optional(),
   /** Idempotency Ttl */
   idempotency_ttl: z.union([z.number().min(60).max(86400), z.null()]).optional(),
+  /** Diagnostic Profile */
+  diagnostic_profile: z.union([z.record(z.any()), z.null()]).optional(),
   /** Version */
   version: z.number(),
 })
@@ -1136,7 +1164,7 @@ export const MenuResponseSchema = z.object({
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
-export const MenuTreeResponseSchema = z.object({
+export const MenuTreeResponseSchema = z.lazy((): z.ZodTypeAny => z.object({
   /** Parent Id */
   parent_id: z.union([z.number(), z.null()]).optional(),
   /** Tree Path */
@@ -1166,8 +1194,8 @@ export const MenuTreeResponseSchema = z.object({
   /** Roles */
   roles: z.array(z.lazy(() => RoleResponseSchema)).optional(),
   /** Children */
-  children: z.array(z.lazy(() => MenuResponseSchema)).optional(),
-})
+  children: z.array(z.lazy(() => MenuTreeResponseSchema)).optional(),
+}))
 
 
 /**
@@ -1562,6 +1590,222 @@ export const RoleUpdateSchema = z.object({
 })
 
 
+export const RuntimeDeviceDetailResponseSchema = z.object({
+  summary: z.lazy(() => RuntimeDeviceSummarySchema),
+  /** Recent Commands */
+  recent_commands: z.array(z.lazy(() => TraceCommandItemSchema)).optional(),
+  /** Recent Callbacks */
+  recent_callbacks: z.array(z.lazy(() => TraceCallbackLogItemSchema)).optional(),
+  /** Active Sessions */
+  active_sessions: z.array(z.lazy(() => RuntimeTraceListItemSchema)).optional(),
+})
+
+
+export const RuntimeDeviceSummarySchema = z.object({
+  /** Id */
+  id: z.number(),
+  /** Device Code */
+  device_code: z.string(),
+  /** Device Name */
+  device_name: z.string(),
+  /** Device Role */
+  device_role: z.string(),
+  /** Role Index */
+  role_index: z.number(),
+  /** Workline Id */
+  workline_id: z.union([z.number(), z.null()]).optional(),
+  /** Workline Name */
+  workline_name: z.union([z.string(), z.null()]).optional(),
+  /** Workline Code */
+  workline_code: z.union([z.string(), z.null()]).optional(),
+  /** Device Status */
+  device_status: z.string(),
+  /** Maintenance Mode */
+  maintenance_mode: z.boolean().optional().default(false),
+  /** Current Command Id */
+  current_command_id: z.union([z.number(), z.null()]).optional(),
+  /** Pending Command Count */
+  pending_command_count: z.number().optional().default(0),
+  /** Last Heartbeat At */
+  last_heartbeat_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Recent Callback At */
+  recent_callback_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Error Code */
+  error_code: z.union([z.string(), z.null()]).optional(),
+})
+
+
+export const RuntimeOverviewResponseSchema = z.object({
+  /** Stats */
+  stats: z.array(z.lazy(() => RuntimeStatCardSchema)),
+  /** Recent Failed Traces */
+  recent_failed_traces: z.array(z.lazy(() => RuntimeTraceListItemSchema)).optional(),
+  /** Hot Worklines */
+  hot_worklines: z.array(z.lazy(() => RuntimeWorklineSummarySchema)).optional(),
+  /** Abnormal Devices */
+  abnormal_devices: z.array(z.lazy(() => RuntimeDeviceSummarySchema)).optional(),
+})
+
+
+export const RuntimeStatCardSchema = z.object({
+  /** Key */
+  key: z.string(),
+  /** Label */
+  label: z.string(),
+  /** Value */
+  value: z.number(),
+  /** Status */
+  status: z.string().optional().default("info"),
+})
+
+
+/**
+ * Trace 列表项。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const RuntimeTraceListItemSchema = z.object({
+  /** Session Id */
+  session_id: z.number(),
+  /** Session Code */
+  session_code: z.string(),
+  /** Correlation Id */
+  correlation_id: z.union([z.string(), z.null()]).optional(),
+  /** Request Id */
+  request_id: z.union([z.string(), z.null()]).optional(),
+  /** Workline Id */
+  workline_id: z.number(),
+  /** Workline Name */
+  workline_name: z.union([z.string(), z.null()]).optional(),
+  /** Workline Code */
+  workline_code: z.union([z.string(), z.null()]).optional(),
+  /** Device Id */
+  device_id: z.union([z.number(), z.null()]).optional(),
+  /** Device Name */
+  device_name: z.union([z.string(), z.null()]).optional(),
+  /** Device Code */
+  device_code: z.union([z.string(), z.null()]).optional(),
+  /** Command Code */
+  command_code: z.union([z.string(), z.null()]).optional(),
+  /** Status */
+  status: z.string(),
+  /** Step Code */
+  step_code: z.union([z.string(), z.null()]).optional(),
+  /** Current Wait Type */
+  current_wait_type: z.union([z.string(), z.null()]).optional(),
+  /** Failure Domain */
+  failure_domain: z.union([z.string(), z.null()]).optional(),
+  /** Failure Code */
+  failure_code: z.union([z.string(), z.null()]).optional(),
+  /** Latest Timeline Action */
+  latest_timeline_action: z.union([z.string(), z.null()]).optional(),
+  /** Latest Timeline Status */
+  latest_timeline_status: z.union([z.string(), z.null()]).optional(),
+  /** Latest Timeline Message */
+  latest_timeline_message: z.union([z.string(), z.null()]).optional(),
+  /** Started At */
+  started_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Last Ingress At */
+  last_ingress_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Deadline At */
+  deadline_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Is Timed Out */
+  is_timed_out: z.boolean().optional().default(false),
+})
+
+
+/**
+ * Trace 列表响应。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const RuntimeTraceListResponseSchema = z.object({
+  /** Total */
+  total: z.number(),
+  /** Items */
+  items: z.array(z.lazy(() => RuntimeTraceListItemSchema)),
+})
+
+
+export const RuntimeWorklineDetailResponseSchema = z.object({
+  summary: z.lazy(() => RuntimeWorklineSummarySchema),
+  /** Devices */
+  devices: z.array(z.lazy(() => RuntimeWorklineDeviceItemSchema)).optional(),
+  /** Active Sessions */
+  active_sessions: z.array(z.lazy(() => RuntimeTraceListItemSchema)).optional(),
+  /** Recent Failed Traces */
+  recent_failed_traces: z.array(z.lazy(() => RuntimeTraceListItemSchema)).optional(),
+})
+
+
+export const RuntimeWorklineDeviceItemSchema = z.object({
+  /** Id */
+  id: z.number(),
+  /** Device Code */
+  device_code: z.string(),
+  /** Device Name */
+  device_name: z.string(),
+  /** Device Role */
+  device_role: z.string(),
+  /** Role Index */
+  role_index: z.number(),
+  /** Upstream Device Id */
+  upstream_device_id: z.union([z.number(), z.null()]).optional(),
+  /** Device Status */
+  device_status: z.string(),
+  /** Maintenance Mode */
+  maintenance_mode: z.boolean().optional().default(false),
+  /** Current Command Id */
+  current_command_id: z.union([z.number(), z.null()]).optional(),
+  /** Last Heartbeat At */
+  last_heartbeat_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Error Code */
+  error_code: z.union([z.string(), z.null()]).optional(),
+})
+
+
+export const RuntimeWorklineSummarySchema = z.object({
+  /** Id */
+  id: z.number(),
+  /** Line Code */
+  line_code: z.string(),
+  /** Line Name */
+  line_name: z.string(),
+  /** Line Type */
+  line_type: z.string(),
+  /** Zone Name */
+  zone_name: z.union([z.string(), z.null()]).optional(),
+  /** Plugin Key */
+  plugin_key: z.union([z.string(), z.null()]).optional(),
+  /** Contract Version */
+  contract_version: z.union([z.string(), z.null()]).optional(),
+  /** Owner Team */
+  owner_team: z.union([z.string(), z.null()]).optional(),
+  /** Support Contact */
+  support_contact: z.union([z.string(), z.null()]).optional(),
+  /** Is Active */
+  is_active: z.boolean(),
+  /** Device Count */
+  device_count: z.number().optional().default(0),
+  /** Active Session Count */
+  active_session_count: z.number().optional().default(0),
+  /** Waiting Session Count */
+  waiting_session_count: z.number().optional().default(0),
+  /** Failed Session Count */
+  failed_session_count: z.number().optional().default(0),
+  /** Error Device Count */
+  error_device_count: z.number().optional().default(0),
+  /** Offline Device Count */
+  offline_device_count: z.number().optional().default(0),
+  /** Maintenance Device Count */
+  maintenance_device_count: z.number().optional().default(0),
+  /** Last Activity At */
+  last_activity_at: z.union([z.string().datetime(), z.null()]).optional(),
+})
+
+
 /**
  * 会话信息 Schema
 
@@ -1611,6 +1855,393 @@ export const SortItemSchema = z.object({
   parent_id: z.union([z.number(), z.null()]).optional(),
   /** Sort Order */
   sort_order: z.number().optional().default(0),
+})
+
+
+export const TraceCallbackLogItemSchema = z.object({
+  /** Id */
+  id: z.number(),
+  /** Callback Type */
+  callback_type: z.string(),
+  /** Device Id */
+  device_id: z.string(),
+  /** Request Id */
+  request_id: z.union([z.string(), z.null()]).optional(),
+  /** Correlation Id */
+  correlation_id: z.union([z.string(), z.null()]).optional(),
+  /** Response Status */
+  response_status: z.number(),
+  /** Response Time Ms */
+  response_time_ms: z.number(),
+  /** Error Message */
+  error_message: z.union([z.string(), z.null()]).optional(),
+  /** Ingress Outcome */
+  ingress_outcome: z.union([z.string(), z.null()]).optional(),
+  /** Failure Stage */
+  failure_stage: z.union([z.string(), z.null()]).optional(),
+  /** Request Body */
+  request_body: z.record(z.any()),
+  /** Created At */
+  created_at: z.string().datetime(),
+  /** Updated At */
+  updated_at: z.string().datetime(),
+})
+
+
+export const TraceCommandItemSchema = z.object({
+  /** Id */
+  id: z.number(),
+  /** Device Id */
+  device_id: z.number(),
+  /** Command Code */
+  command_code: z.string(),
+  /** Correlation Id */
+  correlation_id: z.union([z.string(), z.null()]).optional(),
+  /** Workline Id */
+  workline_id: z.union([z.number(), z.null()]).optional(),
+  /** Session Id */
+  session_id: z.union([z.string(), z.null()]).optional(),
+  /** Task Type */
+  task_type: z.string(),
+  /** Status */
+  status: z.string(),
+  /** Result */
+  result: z.union([z.string(), z.null()]).optional(),
+  /** Retry Count */
+  retry_count: z.number().optional().default(0),
+  /** Sent At */
+  sent_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Ack Received At */
+  ack_received_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Completed At */
+  completed_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Ack Code */
+  ack_code: z.union([z.number(), z.null()]).optional(),
+  /** Ack Message */
+  ack_message: z.union([z.string(), z.null()]).optional(),
+  /** Ack Trace Id */
+  ack_trace_id: z.union([z.string(), z.null()]).optional(),
+  /** Step Code */
+  step_code: z.union([z.string(), z.null()]).optional(),
+  /** Params */
+  params: z.record(z.any()),
+  /** Result Data */
+  result_data: z.union([z.record(z.any()), z.null()]).optional(),
+  /** Error Detail */
+  error_detail: z.union([z.record(z.any()), z.null()]).optional(),
+  /** Duration Ms */
+  duration_ms: z.union([z.number(), z.null()]).optional(),
+})
+
+
+export const TraceContextResponseSchema = z.object({
+  /** Request Id */
+  request_id: z.union([z.string(), z.null()]).optional(),
+  /** Correlation Id */
+  correlation_id: z.union([z.string(), z.null()]).optional(),
+  /** Workline Id */
+  workline_id: z.union([z.number(), z.null()]).optional(),
+  /** Session Id */
+  session_id: z.union([z.number(), z.null()]).optional(),
+  /** Inbox Id */
+  inbox_id: z.union([z.number(), z.null()]).optional(),
+  /** Device Id */
+  device_id: z.union([z.number(), z.null()]).optional(),
+  /** Device Code */
+  device_code: z.union([z.string(), z.null()]).optional(),
+  /** Command Id */
+  command_id: z.union([z.number(), z.null()]).optional(),
+  /** Command Code */
+  command_code: z.union([z.string(), z.null()]).optional(),
+  /** Outbox Id */
+  outbox_id: z.union([z.number(), z.null()]).optional(),
+  /** Dispatch Key */
+  dispatch_key: z.union([z.string(), z.null()]).optional(),
+  /** Canonical Event Type */
+  canonical_event_type: z.union([z.string(), z.null()]).optional(),
+  /** Transition */
+  transition: z.union([z.string(), z.null()]).optional(),
+  /** Plugin Key */
+  plugin_key: z.union([z.string(), z.null()]).optional(),
+  /** Contract Version */
+  contract_version: z.union([z.string(), z.null()]).optional(),
+})
+
+
+export const TraceDetailResponseSchema = z.object({
+  trace: z.lazy(() => TraceContextResponseSchema),
+  summary: z.lazy(() => TraceOverviewSummarySchema),
+  session: z.union([z.lazy(() => TraceSessionItemSchema), z.null()]).optional(),
+  /** Callback Logs */
+  callback_logs: z.array(z.lazy(() => TraceCallbackLogItemSchema)).optional(),
+  /** Inboxes */
+  inboxes: z.array(z.lazy(() => TraceInboxItemSchema)).optional(),
+  /** Commands */
+  commands: z.array(z.lazy(() => TraceCommandItemSchema)).optional(),
+  /** Outboxes */
+  outboxes: z.array(z.lazy(() => TraceOutboxItemSchema)).optional(),
+  /** Timelines */
+  timelines: z.array(z.lazy(() => TraceTimelineItemSchema)).optional(),
+  /** Diagnostics */
+  diagnostics: z.array(z.lazy(() => TraceDiagnosticItemSchema)).optional(),
+})
+
+
+export const TraceDiagnosticItemSchema = z.object({
+  /** Request Id */
+  request_id: z.union([z.string(), z.null()]).optional(),
+  /** Correlation Id */
+  correlation_id: z.union([z.string(), z.null()]).optional(),
+  /** Session Id */
+  session_id: z.union([z.number(), z.null()]).optional(),
+  /** Inbox Id */
+  inbox_id: z.union([z.number(), z.null()]).optional(),
+  /** Outbox Id */
+  outbox_id: z.union([z.number(), z.null()]).optional(),
+  /** Command Code */
+  command_code: z.union([z.string(), z.null()]).optional(),
+  /** Device Code */
+  device_code: z.union([z.string(), z.null()]).optional(),
+  /** Workline Id */
+  workline_id: z.union([z.number(), z.null()]).optional(),
+  /** Workline Code */
+  workline_code: z.union([z.string(), z.null()]).optional(),
+  /** Plugin Key */
+  plugin_key: z.union([z.string(), z.null()]).optional(),
+  /** Canonical Event Type */
+  canonical_event_type: z.union([z.string(), z.null()]).optional(),
+  /** Transition */
+  transition: z.union([z.string(), z.null()]).optional(),
+  /** Extra */
+  extra: z.record(z.any()).optional(),
+})
+
+
+export const TraceInboxItemSchema = z.object({
+  /** Id */
+  id: z.number(),
+  /** Kind */
+  kind: z.string(),
+  /** Source System */
+  source_system: z.string(),
+  /** Source Message Id */
+  source_message_id: z.union([z.string(), z.null()]).optional(),
+  /** Workline Id */
+  workline_id: z.union([z.number(), z.null()]).optional(),
+  /** Device Id */
+  device_id: z.union([z.number(), z.null()]).optional(),
+  /** Command Id */
+  command_id: z.union([z.number(), z.null()]).optional(),
+  /** Session Id */
+  session_id: z.union([z.number(), z.null()]).optional(),
+  /** Correlation Id */
+  correlation_id: z.union([z.string(), z.null()]).optional(),
+  /** Status */
+  status: z.string(),
+  /** Received At */
+  received_at: z.string().datetime(),
+  /** Processed At */
+  processed_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Attempt Count */
+  attempt_count: z.number().optional().default(0),
+  /** Max Attempts */
+  max_attempts: z.number().optional().default(0),
+  /** Next Retry At */
+  next_retry_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Error Message */
+  error_message: z.union([z.string(), z.null()]).optional(),
+  /** Payload Json */
+  payload_json: z.record(z.any()),
+})
+
+
+export const TraceOutboxItemSchema = z.object({
+  /** Id */
+  id: z.number(),
+  /** Session Id */
+  session_id: z.union([z.number(), z.null()]).optional(),
+  /** Workline Id */
+  workline_id: z.number(),
+  /** Dispatch Type */
+  dispatch_type: z.string(),
+  /** Dispatch Key */
+  dispatch_key: z.string(),
+  /** Target Type */
+  target_type: z.string(),
+  /** Target Code */
+  target_code: z.string(),
+  /** Status */
+  status: z.string(),
+  /** Attempt Count */
+  attempt_count: z.number().optional().default(0),
+  /** Next Retry At */
+  next_retry_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Last Error */
+  last_error: z.union([z.string(), z.null()]).optional(),
+  /** Created At */
+  created_at: z.string().datetime(),
+  /** Sent At */
+  sent_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Finished At */
+  finished_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Payload Json */
+  payload_json: z.record(z.any()),
+})
+
+
+/**
+ * Trace 详情页顶部摘要。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const TraceOverviewSummarySchema = z.object({
+  /** Callback Logs */
+  callback_logs: z.number().optional().default(0),
+  /** Inboxes */
+  inboxes: z.number().optional().default(0),
+  /** Commands */
+  commands: z.number().optional().default(0),
+  /** Outboxes */
+  outboxes: z.number().optional().default(0),
+  /** Timelines */
+  timelines: z.number().optional().default(0),
+  /** Diagnostics */
+  diagnostics: z.number().optional().default(0),
+  /** Session Status */
+  session_status: z.union([z.string(), z.null()]).optional(),
+  /** Step Code */
+  step_code: z.union([z.string(), z.null()]).optional(),
+  /** Current Wait Type */
+  current_wait_type: z.union([z.string(), z.null()]).optional(),
+  /** Latest Timeline Action */
+  latest_timeline_action: z.union([z.string(), z.null()]).optional(),
+  /** Latest Timeline Status */
+  latest_timeline_status: z.union([z.string(), z.null()]).optional(),
+  /** Latest Timeline Message */
+  latest_timeline_message: z.union([z.string(), z.null()]).optional(),
+})
+
+
+/**
+ * Trace 列表查询请求。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const TraceQueryRequestSchema = z.object({
+  /** Workline Id */
+  workline_id: z.union([z.number(), z.null()]).optional(),
+  /** Device Id */
+  device_id: z.union([z.number(), z.null()]).optional(),
+  /** Status */
+  status: z.union([z.string(), z.null()]).optional(),
+  /** Step Code */
+  step_code: z.union([z.string(), z.null()]).optional(),
+  /** Keyword */
+  keyword: z.union([z.string(), z.null()]).optional(),
+  /** Only Active */
+  only_active: z.boolean().optional().default(false),
+  /** Only Failed */
+  only_failed: z.boolean().optional().default(false),
+  /** Limit */
+  limit: z.number().min(1).max(100).optional().default(20),
+  /** Offset */
+  offset: z.number().min(0).optional().default(0),
+})
+
+
+export const TraceSessionItemSchema = z.object({
+  /** Id */
+  id: z.number(),
+  /** Session Code */
+  session_code: z.string(),
+  /** Workline Id */
+  workline_id: z.number(),
+  /** Plugin Key */
+  plugin_key: z.string(),
+  /** Run Mode */
+  run_mode: z.string(),
+  /** Business Key */
+  business_key: z.union([z.string(), z.null()]).optional(),
+  /** Barcode */
+  barcode: z.union([z.string(), z.null()]).optional(),
+  /** Status */
+  status: z.string(),
+  /** Step Code */
+  step_code: z.union([z.string(), z.null()]).optional(),
+  /** Correlation Id */
+  correlation_id: z.union([z.string(), z.null()]).optional(),
+  /** Started At */
+  started_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Ended At */
+  ended_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Current Wait Type */
+  current_wait_type: z.union([z.string(), z.null()]).optional(),
+  /** Current Wait Token */
+  current_wait_token: z.union([z.string(), z.null()]).optional(),
+  /** Waiting Since */
+  waiting_since: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Deadline At */
+  deadline_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Awaiting Command Id */
+  awaiting_command_id: z.union([z.number(), z.null()]).optional(),
+  /** Failure Domain */
+  failure_domain: z.union([z.string(), z.null()]).optional(),
+  /** Failure Code */
+  failure_code: z.union([z.string(), z.null()]).optional(),
+  /** Failure Message */
+  failure_message: z.union([z.string(), z.null()]).optional(),
+  /** Ingress Count */
+  ingress_count: z.number().optional().default(0),
+  /** Last Request Id */
+  last_request_id: z.union([z.string(), z.null()]).optional(),
+  /** Last Ingress At */
+  last_ingress_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Last Inbox Id */
+  last_inbox_id: z.union([z.number(), z.null()]).optional(),
+  /** Context Json */
+  context_json: z.record(z.any()),
+})
+
+
+export const TraceTimelineItemSchema = z.object({
+  /** Id */
+  id: z.number(),
+  /** Session Id */
+  session_id: z.number(),
+  /** Workline Id */
+  workline_id: z.number(),
+  /** Correlation Id */
+  correlation_id: z.union([z.string(), z.null()]).optional(),
+  /** Seq No */
+  seq_no: z.number(),
+  /** Occurred At */
+  occurred_at: z.string().datetime(),
+  /** Stage */
+  stage: z.string(),
+  /** Action Type */
+  action_type: z.string(),
+  /** Actor Type */
+  actor_type: z.string(),
+  /** Actor Code */
+  actor_code: z.union([z.string(), z.null()]).optional(),
+  /** From Status */
+  from_status: z.union([z.string(), z.null()]).optional(),
+  /** To Status */
+  to_status: z.union([z.string(), z.null()]).optional(),
+  /** Status */
+  status: z.string(),
+  /** Failure Domain */
+  failure_domain: z.union([z.string(), z.null()]).optional(),
+  /** Message */
+  message: z.union([z.string(), z.null()]).optional(),
+  /** Payload Json */
+  payload_json: z.union([z.record(z.any()), z.null()]).optional(),
+  /** Related Inbox Id */
+  related_inbox_id: z.union([z.number(), z.null()]).optional(),
+  /** Related Command Id */
+  related_command_id: z.union([z.number(), z.null()]).optional(),
 })
 
 
@@ -1815,8 +2446,18 @@ export const WorkLineCreateSchema = z.object({
   zone_name: z.union([z.string().max(100), z.null()]).optional(),
   /** Plugin Key */
   plugin_key: z.union([z.string().max(100), z.null()]).optional(),
+  /** Contract Version */
+  contract_version: z.union([z.string().max(50), z.null()]).optional(),
   /** Config */
-  config: z.record(z.any()),
+  config: z.record(z.any()).optional(),
+  /** Runtime Config Json */
+  runtime_config_json: z.record(z.any()).optional(),
+  /** Owner Team */
+  owner_team: z.union([z.string().max(100), z.null()]).optional(),
+  /** Support Contact */
+  support_contact: z.union([z.string().max(100), z.null()]).optional(),
+  /** Diagnostic Profile */
+  diagnostic_profile: z.record(z.any()).optional(),
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
   /** Is Active */
@@ -1845,8 +2486,18 @@ export const WorkLineResponseSchema = z.object({
   zone_name: z.union([z.string().max(100), z.null()]).optional(),
   /** Plugin Key */
   plugin_key: z.union([z.string().max(100), z.null()]).optional(),
+  /** Contract Version */
+  contract_version: z.union([z.string().max(50), z.null()]).optional(),
   /** Config */
   config: z.record(z.any()).optional(),
+  /** Runtime Config Json */
+  runtime_config_json: z.record(z.any()).optional(),
+  /** Owner Team */
+  owner_team: z.union([z.string().max(100), z.null()]).optional(),
+  /** Support Contact */
+  support_contact: z.union([z.string().max(100), z.null()]).optional(),
+  /** Diagnostic Profile */
+  diagnostic_profile: z.record(z.any()).optional(),
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
   /** Is Active */
@@ -1879,8 +2530,18 @@ export const WorkLineUpdateSchema = z.object({
   zone_name: z.union([z.string().max(100), z.null()]).optional(),
   /** Plugin Key */
   plugin_key: z.union([z.string().max(100), z.null()]).optional(),
+  /** Contract Version */
+  contract_version: z.union([z.string().max(50), z.null()]).optional(),
   /** Config */
   config: z.union([z.record(z.any()), z.null()]).optional(),
+  /** Runtime Config Json */
+  runtime_config_json: z.union([z.record(z.any()), z.null()]).optional(),
+  /** Owner Team */
+  owner_team: z.union([z.string().max(100), z.null()]).optional(),
+  /** Support Contact */
+  support_contact: z.union([z.string().max(100), z.null()]).optional(),
+  /** Diagnostic Profile */
+  diagnostic_profile: z.union([z.record(z.any()), z.null()]).optional(),
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
   /** Is Active */

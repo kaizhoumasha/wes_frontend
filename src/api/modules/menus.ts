@@ -59,6 +59,9 @@ export type BatchSortInput = ContractRequestBody<'/api/v1/admin/menus/batch-sort
 
 export type MyMenuResult = ContractResponseData<'/api/v1/admin/menus/my_menu', 'get'>
 
+export type PermanentResult = ContractResponseData<'/api/v1/admin/menus/{id}/permanent', 'delete'>
+export type PermanentPathParams = ContractPathParams<'/api/v1/admin/menus/{id}/permanent', 'delete'>
+
 const baseMenusApiMethods = createSoftDeleteCrudRequestAdapterMethods({
   collection: MENUS_COLLECTION_PATH as unknown as SoftDeleteCrudResourceCollectionPath,
   item: `${MENUS_COLLECTION_PATH}/{id}` as const,
@@ -142,6 +145,15 @@ export const menusApiMethods = {
    */
   myMenu(config?: ContractRequestConfig) {
     return contractMethods.get('/api/v1/admin/menus/my_menu', { config })
+  },
+
+  /**
+   * [admin:menu:permanent_delete] 永久删除Menu
+   * @endpoint DELETE /api/v1/admin/menus/{id}/permanent
+   * @returns alova method instance
+   */
+  permanent(params: ContractPathParams<'/api/v1/admin/menus/{id}/permanent', 'delete'>, config?: ContractRequestConfig) {
+    return contractMethods.delete('/api/v1/admin/menus/{id}/permanent', { params, config })
   }
 }
 // ==================== AUTO GENERATED END ====================

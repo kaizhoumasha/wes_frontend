@@ -37,6 +37,9 @@ export type DemoProductsItem = EnsureEntityId<CrudItem<typeof DEMO_PRODUCTS_COLL
 export type CreateDemoProductsInput = CrudCreateInput<typeof DEMO_PRODUCTS_COLLECTION_PATH>
 export type UpdateDemoProductsInput = CrudUpdateInput<typeof DEMO_PRODUCTS_COLLECTION_PATH>
 
+export type PermanentResult = ContractResponseData<'/api/v1/demo/demo-products/{id}/permanent', 'delete'>
+export type PermanentPathParams = ContractPathParams<'/api/v1/demo/demo-products/{id}/permanent', 'delete'>
+
 const baseDemoProductsApiMethods = createSoftDeleteCrudRequestAdapterMethods({
   collection: DEMO_PRODUCTS_COLLECTION_PATH as unknown as SoftDeleteCrudResourceCollectionPath,
   item: `${DEMO_PRODUCTS_COLLECTION_PATH}/{id}` as const,
@@ -49,6 +52,15 @@ const baseDemoProductsApiMethods = createSoftDeleteCrudRequestAdapterMethods({
 
 export const demoProductsApiMethods = {
   ...baseDemoProductsApiMethods,
+
+  /**
+   * [demo:demoproduct:permanent_delete] 永久删除DemoProduct
+   * @endpoint DELETE /api/v1/demo/demo-products/{id}/permanent
+   * @returns alova method instance
+   */
+  permanent(params: ContractPathParams<'/api/v1/demo/demo-products/{id}/permanent', 'delete'>, config?: ContractRequestConfig) {
+    return contractMethods.delete('/api/v1/demo/demo-products/{id}/permanent', { params, config })
+  }
 }
 // ==================== AUTO GENERATED END ====================
 

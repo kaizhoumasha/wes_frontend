@@ -57,6 +57,9 @@ export type MoveInput = ContractRequestBody<'/api/v1/admin/permissions/move', 'p
 export type BatchSortResult = ContractResponseData<'/api/v1/admin/permissions/batch-sort', 'put'>
 export type BatchSortInput = ContractRequestBody<'/api/v1/admin/permissions/batch-sort', 'put'>
 
+export type PermanentResult = ContractResponseData<'/api/v1/admin/permissions/{id}/permanent', 'delete'>
+export type PermanentPathParams = ContractPathParams<'/api/v1/admin/permissions/{id}/permanent', 'delete'>
+
 const basePermissionsApiMethods = createSoftDeleteCrudRequestAdapterMethods({
   collection: PERMISSIONS_COLLECTION_PATH as unknown as SoftDeleteCrudResourceCollectionPath,
   item: `${PERMISSIONS_COLLECTION_PATH}/{id}` as const,
@@ -130,6 +133,15 @@ export const permissionsApiMethods = {
    */
   batchSort(body: ContractRequestBody<'/api/v1/admin/permissions/batch-sort', 'put'>, config?: ContractRequestConfig) {
     return contractMethods.put('/api/v1/admin/permissions/batch-sort', { body, config })
+  },
+
+  /**
+   * [admin:permission:permanent_delete] 永久删除Permission
+   * @endpoint DELETE /api/v1/admin/permissions/{id}/permanent
+   * @returns alova method instance
+   */
+  permanent(params: ContractPathParams<'/api/v1/admin/permissions/{id}/permanent', 'delete'>, config?: ContractRequestConfig) {
+    return contractMethods.delete('/api/v1/admin/permissions/{id}/permanent', { params, config })
   }
 }
 // ==================== AUTO GENERATED END ====================
