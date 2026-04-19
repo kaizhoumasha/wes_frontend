@@ -45,6 +45,6 @@ describe('env', () => {
   it('falls back to the default SSE URL only when unset', () => {
     vi.stubEnv('VITE_SSE_URL', undefined)
 
-    expect(env.sseUrl).toBe('http://localhost:8001/api/v1/events/stream')
+    expect(env.sseUrl).toBe('http://localhost:8001/api/v1/sys/events/stream')
   })
 })

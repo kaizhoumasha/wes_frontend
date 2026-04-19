@@ -30,7 +30,7 @@ export const env = {
 
   /** SSE 实时事件流 URL */
   get sseUrl() {
-    return import.meta.env.VITE_SSE_URL ?? 'http://localhost:8001/api/v1/events/stream'
+    return import.meta.env.VITE_SSE_URL ?? 'http://localhost:8001/api/v1/sys/events/stream'
   },
 
   /** 应用标题 */

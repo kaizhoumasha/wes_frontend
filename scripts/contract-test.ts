@@ -277,20 +277,20 @@ function checkSSEContract(): FieldIssue[] {
   }
 
   const envContent = readFileSync(envPath, 'utf-8')
-  if (!envContent.includes('/api/v1/events/stream')) {
+  if (!envContent.includes('/api/v1/sys/events/stream')) {
     issues.push({
       field: 'env.sseUrl',
       type: 'missing',
       severity: 'error',
-      expected: 'SSE URL 必须指向 /api/v1/events/stream',
+      expected: 'SSE URL 必须指向 /api/v1/sys/events/stream',
     })
   }
-  if (envContent.includes('/sys/events/stream') || envContent.includes('/api/v1/sys/events/stream')) {
+  if (envContent.includes('/api/v1/events/stream')) {
     issues.push({
       field: 'env.sseUrl',
       type: 'type_mismatch',
       severity: 'error',
-      expected: 'SSE URL 不应使用 /sys/events/stream 或 /api/v1/sys/events/stream',
+      expected: 'SSE URL 不应继续使用旧路径 /api/v1/events/stream',
     })
   }
 
@@ -328,14 +328,13 @@ function checkSSEContract(): FieldIssue[] {
   }
 
   if (
-    sseClientContent.includes('/sys/events/stream') ||
-    sseClientContent.includes('/api/v1/sys/events/stream')
+    sseClientContent.includes('/api/v1/events/stream')
   ) {
     issues.push({
       field: 'sse-client endpoint',
       type: 'type_mismatch',
       severity: 'error',
-      expected: 'SSE 客户端不应包含旧路径 /sys/events/stream 或 /api/v1/sys/events/stream',
+      expected: 'SSE 客户端不应包含旧路径 /api/v1/events/stream',
     })
   }
 
@@ -397,7 +396,7 @@ async function main(): Promise<void> {
   console.log('📋 检查 SSE 契约...')
   const sseIssues = checkSSEContract()
   if (sseIssues.length > 0) {
-    allIssues.push({ endpoint: '/api/v1/events/stream', method: 'GET', issues: sseIssues })
+    allIssues.push({ endpoint: '/api/v1/sys/events/stream', method: 'GET', issues: sseIssues })
   }
 
   console.log('\n' + '='.repeat(60))

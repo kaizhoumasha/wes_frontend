@@ -1,7 +1,7 @@
 /**
  * SSE (Server-Sent Events) 客户端服务
  *
- * 连接后端 SSE 端点 /api/v1/events/stream
+ * 连接后端 SSE 端点 /api/v1/sys/events/stream
  * 处理实时事件推送，包括系统通知和业务状态更新
  */
 
@@ -76,6 +76,40 @@ const MAX_RECONNECT_ATTEMPTS = 10
 /** 重连延迟（毫秒） */
 const RECONNECT_DELAY = 3000
 const CUSTOM_EVENTS: SSEEventType[] = ['system_notification', 'business_status']
+const SSE_API_PREFIX = '/api/v1'
+const DEFAULT_SSE_PATH = `${SSE_API_PREFIX}/sys/events/stream`
+const DEFAULT_SSE_URL = `http://localhost:8001${DEFAULT_SSE_PATH}`
+const LEGACY_SSE_PATH = `${SSE_API_PREFIX}/events/stream`
+
+function normalizeSSEUrl(url: string): string {
+  if (!url) {
+    return DEFAULT_SSE_PATH
+  }
+
+  if (url === LEGACY_SSE_PATH) {
+    return DEFAULT_SSE_PATH
+  }
+
+  if (url.endsWith(LEGACY_SSE_PATH)) {
+    return `${url.slice(0, -LEGACY_SSE_PATH.length)}${DEFAULT_SSE_PATH}`
+  }
+
+  return url
+}
+
+function resolveSSEUrl(): string {
+  const raw = normalizeSSEUrl(env.sseUrl || DEFAULT_SSE_URL)
+
+  if (/^https?:\/\//.test(raw)) {
+    return raw
+  }
+
+  const base = typeof window !== 'undefined' && window.location?.origin
+    ? window.location.origin
+    : 'http://localhost:8001'
+
+  return new URL(raw || DEFAULT_SSE_PATH, base).toString()
+}
 
 // ==================== 内部方法 ====================
 
@@ -192,7 +226,7 @@ export function connect(): void {
   setConnectionState('connecting')
 
   // 构建 SSE URL
-  const url = new URL(env.sseUrl)
+  const url = new URL(resolveSSEUrl())
 
   // 如果有 Token，添加为查询参数（因为 EventSource 不支持自定义请求头）
   const token = getAccessToken()
@@ -332,7 +366,7 @@ export function isConnected(): boolean {
  * @returns SSE URL
  */
 export function getSSEUrl(): string {
-  return env.sseUrl
+  return resolveSSEUrl()
 }
 
 // ==================== 导出工具函数 ====================
