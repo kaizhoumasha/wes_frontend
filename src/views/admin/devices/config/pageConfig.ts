@@ -12,6 +12,11 @@ import { devicePageFieldConfig } from './fieldConfig'
 
 type DevicePageConfig = CrudPageConfig<Device, CreateDeviceInput, UpdateDeviceInput>
 
+interface DevicePageActions {
+  openRuntime: (device: Device) => void
+  openTrace: (device: Device) => void
+}
+
 const DEVICE_PAGE_RESOURCE = {
   key: 'devices',
   title: {
@@ -32,7 +37,7 @@ const DEVICE_PAGE_RESOURCE = {
 
 const DEVICE_PAGE_TABLE: Partial<DevicePageConfig['table']> = {
   actionsColumn: {
-    width: 200
+    width: 280
   }
 }
 
@@ -62,74 +67,111 @@ const DEVICE_PAGE_FEATURES: CrudPageFeatures = {
   }
 }
 
-const DEVICE_PAGE_DETAIL: CrudPageDetailConfig<Device> = {
-  mode: 'drawer',
-  width: 700,
-  title: device => device.device_name,
-  sections: [
-    {
-      title: '基本信息',
-      weight: 'primary',
-      fields: [
-        { key: 'device_code', layout: 'half' },
-        { key: 'device_name', layout: 'half' },
-        { key: 'device_type', layout: 'half' },
-        { key: 'device_role', layout: 'half' },
-        { key: 'role_index', layout: 'half' },
-        { key: 'is_active', layout: 'half' },
-        { key: 'description', layout: 'full' }
-      ]
-    },
-    {
-      title: '连接配置',
-      weight: 'secondary',
-      fields: [
-        { key: 'host', layout: 'half' },
-        { key: 'port', layout: 'half' },
-        { key: 'protocol', layout: 'half' },
-        { key: 'timeout', layout: 'half' },
-        { key: 'auth_token', layout: 'full' }
-      ]
-    },
-    {
-      title: '能力配置',
-      weight: 'secondary',
-      fields: [
-        { key: 'capabilities', layout: 'full' },
-        { key: 'supported_commands', layout: 'full' },
-        { key: 'max_concurrent_tasks', layout: 'half' },
-        { key: 'vendor_type', layout: 'half' }
-      ]
-    },
-    {
-      title: '状态信息',
-      weight: 'tertiary',
-      fields: [
-        { key: 'device_status', layout: 'half' },
-        { key: 'current_command_id', layout: 'half' },
-        { key: 'error_code', layout: 'half' },
-        { key: 'last_heartbeat_at', layout: 'half' }
-      ]
-    },
-    {
-      title: '元数据',
-      weight: 'tertiary',
-      fields: [
-        { key: 'work_line_id', layout: 'half' },
-        { key: 'upstream_device_id', layout: 'half' },
-        { key: 'created_at', layout: 'half' },
-        { key: 'updated_at', layout: 'half' }
-      ]
-    }
-  ]
+function createDeviceDetailConfig(actions: DevicePageActions): CrudPageDetailConfig<Device> {
+  return {
+    mode: 'drawer',
+    width: 700,
+    title: device => device.device_name,
+    showActions: true,
+    actions: [
+      {
+        key: 'open-runtime',
+        label: '设备运行态',
+        type: 'primary',
+        icon: 'ep:monitor',
+        onClick: device => actions.openRuntime(device),
+      },
+      {
+        key: 'open-trace',
+        label: '最近 TRACE',
+        type: 'warning',
+        icon: 'ep:connection',
+        onClick: device => actions.openTrace(device),
+      },
+    ],
+    sections: [
+      {
+        title: '基本信息',
+        weight: 'primary',
+        fields: [
+          { key: 'device_code', layout: 'half' },
+          { key: 'device_name', layout: 'half' },
+          { key: 'device_type', layout: 'half' },
+          { key: 'device_role', layout: 'half' },
+          { key: 'role_index', layout: 'half' },
+          { key: 'is_active', layout: 'half' },
+          { key: 'description', layout: 'full' }
+        ]
+      },
+      {
+        title: '连接配置',
+        weight: 'secondary',
+        fields: [
+          { key: 'host', layout: 'half' },
+          { key: 'port', layout: 'half' },
+          { key: 'protocol', layout: 'half' },
+          { key: 'timeout', layout: 'half' },
+          { key: 'auth_token', layout: 'full' }
+        ]
+      },
+      {
+        title: '能力配置',
+        weight: 'secondary',
+        fields: [
+          { key: 'capabilities', layout: 'full' },
+          { key: 'supported_commands', layout: 'full' },
+          { key: 'max_concurrent_tasks', layout: 'half' },
+          { key: 'vendor_type', layout: 'half' }
+        ]
+      },
+      {
+        title: '状态信息',
+        weight: 'tertiary',
+        fields: [
+          { key: 'device_status', layout: 'half' },
+          { key: 'current_command_id', layout: 'half' },
+          { key: 'error_code', layout: 'half' },
+          { key: 'last_heartbeat_at', layout: 'half' }
+        ]
+      },
+      {
+        title: '元数据',
+        weight: 'tertiary',
+        fields: [
+          { key: 'work_line_id', layout: 'half' },
+          { key: 'upstream_device_id', layout: 'half' },
+          { key: 'created_at', layout: 'half' },
+          { key: 'updated_at', layout: 'half' }
+        ]
+      }
+    ]
+  }
 }
 
-export function createDevicePageConfig(): DevicePageConfig {
+export function createDevicePageConfig(actions: DevicePageActions): DevicePageConfig {
   return createCrudPageConfigFromResource<Device, CreateDeviceInput, UpdateDeviceInput>({
     resource: DEVICE_PAGE_RESOURCE,
     fieldConfig: devicePageFieldConfig,
     table: DEVICE_PAGE_TABLE,
-    detail: DEVICE_PAGE_DETAIL,
-    features: DEVICE_PAGE_FEATURES
+    detail: createDeviceDetailConfig(actions),
+    features: DEVICE_PAGE_FEATURES,
+    extensions: {
+      rowActions: [
+        {
+          key: 'open-runtime',
+          label: '设备运行态',
+          type: 'primary',
+          permission: BIZ_PERMISSIONS.device.page,
+          onClick: row => actions.openRuntime(row),
+        },
+        {
+          key: 'open-trace',
+          label: '最近 TRACE',
+          type: 'warning',
+          permission: BIZ_PERMISSIONS.device.page,
+          onClick: row => actions.openTrace(row),
+        },
+      ]
+    }
   })
 }

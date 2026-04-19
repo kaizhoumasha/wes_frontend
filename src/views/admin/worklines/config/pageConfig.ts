@@ -12,6 +12,11 @@ import { workLinePageFieldConfig } from './fieldConfig'
 
 type WorklinePageConfig = CrudPageConfig<Workline, CreateWorklineInput, UpdateWorklineInput>
 
+interface WorklinePageActions {
+  openRuntime: (workline: Workline) => void
+  openTrace: (workline: Workline) => void
+}
+
 const WORKLINE_PAGE_RESOURCE = {
   key: 'worklines',
   title: {
@@ -32,7 +37,7 @@ const WORKLINE_PAGE_RESOURCE = {
 
 const WORKLINE_PAGE_TABLE: Partial<WorklinePageConfig['table']> = {
   actionsColumn: {
-    width: 200
+    width: 260
   }
 }
 
@@ -62,40 +67,77 @@ const WORKLINE_PAGE_FEATURES: CrudPageFeatures = {
   }
 }
 
-const WORKLINE_PAGE_DETAIL: CrudPageDetailConfig<Workline> = {
-  mode: 'drawer',
-  width: 600,
-  title: workline => workline.line_name,
-  sections: [
-    {
-      title: '基本信息',
-      weight: 'primary',
-      fields: [
-        { key: 'line_code', layout: 'half' },
-        { key: 'line_name', layout: 'half' },
-        { key: 'line_type', layout: 'half' },
-        { key: 'zone_name', layout: 'half' },
-        { key: 'is_active', layout: 'half' },
-        { key: 'capacity', layout: 'half' },
-        { key: 'description', layout: 'full' }
-      ]
-    },
-    {
-      title: '扩展配置',
-      weight: 'secondary',
-      fields: [
-        { key: 'sort_order', layout: 'half' }
-      ]
-    }
-  ]
+function createWorklineDetailConfig(actions: WorklinePageActions): CrudPageDetailConfig<Workline> {
+  return {
+    mode: 'drawer',
+    width: 600,
+    title: workline => workline.line_name,
+    showActions: true,
+    actions: [
+      {
+        key: 'open-runtime',
+        label: '运行看板',
+        type: 'primary',
+        icon: 'ep:monitor',
+        onClick: workline => actions.openRuntime(workline),
+      },
+      {
+        key: 'open-trace',
+        label: '查看 TRACE',
+        type: 'warning',
+        icon: 'ep:connection',
+        onClick: workline => actions.openTrace(workline),
+      },
+    ],
+    sections: [
+      {
+        title: '基本信息',
+        weight: 'primary',
+        fields: [
+          { key: 'line_code', layout: 'half' },
+          { key: 'line_name', layout: 'half' },
+          { key: 'line_type', layout: 'half' },
+          { key: 'zone_name', layout: 'half' },
+          { key: 'is_active', layout: 'half' },
+          { key: 'capacity', layout: 'half' },
+          { key: 'description', layout: 'full' }
+        ]
+      },
+      {
+        title: '扩展配置',
+        weight: 'secondary',
+        fields: [
+          { key: 'sort_order', layout: 'half' }
+        ]
+      }
+    ]
+  }
 }
 
-export function createWorkLinePageConfig(): WorklinePageConfig {
+export function createWorkLinePageConfig(actions: WorklinePageActions): WorklinePageConfig {
   return createCrudPageConfigFromResource<Workline, CreateWorklineInput, UpdateWorklineInput>({
     resource: WORKLINE_PAGE_RESOURCE,
     fieldConfig: workLinePageFieldConfig,
     table: WORKLINE_PAGE_TABLE,
-    detail: WORKLINE_PAGE_DETAIL,
-    features: WORKLINE_PAGE_FEATURES
+    detail: createWorklineDetailConfig(actions),
+    features: WORKLINE_PAGE_FEATURES,
+    extensions: {
+      rowActions: [
+        {
+          key: 'open-runtime',
+          label: '运行看板',
+          type: 'primary',
+          permission: BIZ_PERMISSIONS.workline.page,
+          onClick: row => actions.openRuntime(row),
+        },
+        {
+          key: 'open-trace',
+          label: '查看 TRACE',
+          type: 'warning',
+          permission: BIZ_PERMISSIONS.workline.page,
+          onClick: row => actions.openTrace(row),
+        },
+      ]
+    }
   })
 }
