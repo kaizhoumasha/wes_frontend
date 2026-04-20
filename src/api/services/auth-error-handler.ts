@@ -8,7 +8,7 @@
  */
 
 import { ElMessage } from 'element-plus'
-import { removeAccessToken } from '../services/token-refresh'
+import { clearTokens } from '../services/token-refresh'
 import type { ApiResponseError } from '../client'
 import { ClientErrorCode } from '../constants/response-codes'
 import type { Router } from 'vue-router'
@@ -79,7 +79,7 @@ export function shouldLogout(code: string): boolean {
  */
 function clearAuthState(): void {
   // 清除 Token
-  removeAccessToken()
+  clearTokens()
 
   // 清除 sessionStorage 中的认证相关数据
   const keysToRemove: string[] = []
@@ -212,4 +212,3 @@ export default {
   clearAuthState,
   redirectToLogin
 }
-

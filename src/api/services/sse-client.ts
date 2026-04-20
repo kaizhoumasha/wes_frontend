@@ -6,6 +6,7 @@
  */
 
 import { env } from '@/config/env'
+import { getLastSSEEventId, resetSSESessionState, setLastSSEEventId } from './sse-session'
 import { getAccessToken } from './token-refresh'
 
 // ==================== 类型定义 ====================
@@ -57,9 +58,6 @@ let manualDisconnect = false
 
 /** 当前连接状态 */
 let connectionState: SSEConnectionState = 'disconnected'
-
-/** 最近一次接收到的事件 ID，用于断线续传 */
-let lastEventId: string | null = null
 
 const CUSTOM_EVENTS: SSEEventType[] = ['system_notification', 'business_status']
 
@@ -136,6 +134,7 @@ function sanitizeSSELogUrl(url: string): string {
 }
 
 function createSSEHeaders(token: string): HeadersInit {
+  const lastEventId = getLastSSEEventId()
   return {
     Accept: 'text/event-stream',
     Authorization: `Bearer ${token}`,
@@ -396,7 +395,7 @@ function handleOpen(): void {
 function handleMessage(messageEvent: MessageEvent): void {
   const event = parseEventData(messageEvent)
   if (event.id) {
-    lastEventId = event.id
+    setLastSSEEventId(event.id)
   }
   emitEvent(event)
 }
@@ -462,6 +461,16 @@ export function disconnect(): void {
   reconnectAttempts = 0
   setConnectionState('disconnected')
   console.log('[SSE] 连接已断开')
+}
+
+/**
+ * 重置 SSE 会话状态
+ * 仅在登出、身份切换等认证边界调用，避免 Last-Event-ID 跨会话泄漏
+ */
+export function resetSSESession(): void {
+  disconnect()
+  resetSSESessionState()
+  console.log('[SSE] 会话状态已重置')
 }
 
 /**

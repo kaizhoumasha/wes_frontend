@@ -27,7 +27,7 @@ describe('sse-client', () => {
 
   afterEach(async () => {
     const sse = await import('@/api/services/sse-client')
-    sse.disconnect()
+    sse.resetSSESession()
     vi.restoreAllMocks()
     vi.unstubAllGlobals()
   })
@@ -74,6 +74,51 @@ describe('sse-client', () => {
           Accept: 'text/event-stream',
           Authorization: 'Bearer token-123',
           'Cache-Control': 'no-cache',
+          'Last-Event-ID': '41'
+        })
+      })
+    )
+  })
+
+  it('clears the replay cursor when resetting the SSE session', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(createSSEStreamResponse(['id: 41\nevent: business_status\ndata: {"ok":true}\n\n']))
+      .mockResolvedValueOnce(createSSEStreamResponse(['event: business_status\ndata: {"ok":true}\n\n']))
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    vi.doMock('@/config/env', () => ({
+      env: {
+        sseUrl: 'http://example.com/api/v1/sys/events/stream'
+      }
+    }))
+
+    vi.doMock('@/api/services/token-refresh', () => ({
+      getAccessToken: () => 'token-123'
+    }))
+
+    const sse = await import('@/api/services/sse-client')
+
+    sse.connect()
+
+    await vi.waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+      expect(sse.getConnectionState()).toBe('error')
+    })
+
+    sse.resetSSESession()
+    sse.connect()
+
+    await vi.waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(2)
+    })
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      'http://example.com/api/v1/sys/events/stream',
+      expect.objectContaining({
+        headers: expect.not.objectContaining({
           'Last-Event-ID': '41'
         })
       })
