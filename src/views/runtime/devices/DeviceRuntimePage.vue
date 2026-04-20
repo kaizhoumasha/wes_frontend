@@ -24,13 +24,18 @@
               <div class="runtime-panel__subtitle">{{ directorySubtitle }}</div>
             </div>
             <div class="runtime-panel__actions">
-              <span v-if="activeWorklineId" class="runtime-scope-chip">当前工作线：{{ activeWorklineName }}</span>
-              <el-button text @click="openWorklineSwitcher">{{ activeWorklineId ? '切换工作线' : '选择工作线' }}</el-button>
+              <div v-if="activeWorklineId" class="runtime-workline-context">
+                <span class="runtime-workline-context__label">当前工作线</span>
+                <strong class="runtime-workline-context__name" :title="activeWorklineName || undefined">{{ activeWorklineName }}</strong>
+                <span class="runtime-workline-context__meta">{{ activeWorklineContextMeta }}</span>
+              </div>
+              <el-button text class="runtime-panel__switch-action" @click="openWorklineSwitcher">{{ activeWorklineId ? '切换工作线' : '选择工作线' }}</el-button>
             </div>
           </div>
         </template>
 
-        <div v-if="activeWorklineId && orderedDevices.length" class="runtime-directory-list">
+        <div class="runtime-layout__list-scroll">
+          <div v-if="activeWorklineId && orderedDevices.length" class="runtime-directory-list">
           <button
             v-for="item in orderedDevices"
             :key="item.id"
@@ -48,24 +53,26 @@
             <div class="runtime-directory-card__hint">未结命令 {{ item.pending_command_count }} · 维护 {{ item.maintenance_mode ? 'ON' : 'OFF' }} · 错误码 {{ item.error_code || '—' }}</div>
           </button>
         </div>
-        <RuntimeEmptyState
-          v-else-if="activeWorklineId"
-          title="当前工作线下暂无设备"
-          :description="`${activeWorklineName} 当前没有可展示的线内设备运行样本。`"
-          hint="请先确认这条工作线的设备编排、plugin 绑定与 runtime 数据是否正常。"
-        />
-        <div v-else class="runtime-context-empty">
           <RuntimeEmptyState
-            title="请先选择工作线"
-            description="设备运行态只在工作线上下文里成立，必须先进入一条工作线再看线内设备。"
-            hint="设备能力、plugin 语义和 Trace 归因都依赖当前工作线。"
+            v-else-if="activeWorklineId"
+            title="当前工作线下暂无设备"
+            :description="`${activeWorklineName} 当前没有可展示的线内设备运行样本。`"
+            hint="请先确认这条工作线的设备编排、plugin 绑定与 runtime 数据是否正常。"
           />
-          <el-button type="primary" plain @click="openWorklineSwitcher">选择工作线</el-button>
+          <div v-else class="runtime-context-empty">
+            <RuntimeEmptyState
+              title="请先选择工作线"
+              description="设备运行态只在工作线上下文里成立，必须先进入一条工作线再看线内设备。"
+              hint="设备能力、plugin 语义和 Trace 归因都依赖当前工作线。"
+            />
+            <el-button type="primary" plain @click="openWorklineSwitcher">选择工作线</el-button>
+          </div>
         </div>
       </el-card>
 
       <div class="runtime-layout__detail">
-        <template v-if="detail">
+        <div class="runtime-layout__detail-scroll">
+          <template v-if="detail">
           <DeviceHealthHero :summary="detail.summary" />
 
           <el-card shadow="never" class="runtime-panel">
@@ -156,22 +163,23 @@
           </div>
         </template>
 
-        <el-card v-else shadow="never" class="runtime-panel runtime-layout__empty-state">
-          <div v-if="!activeWorklineId" class="runtime-context-empty runtime-context-empty--centered">
+          <el-card v-else shadow="never" class="runtime-panel runtime-layout__empty-state">
+            <div v-if="!activeWorklineId" class="runtime-context-empty runtime-context-empty--centered">
+              <RuntimeEmptyState
+                title="设备运行态必须在工作线上下文里查看"
+                description="请先进入某条工作线，再查看该线内设备节点的健康状态、最近行为和关联 Trace。"
+                hint="设备没有脱离工作线的全局运行语义。"
+              />
+              <el-button type="primary" plain @click="openWorklineSwitcher">选择工作线</el-button>
+            </div>
             <RuntimeEmptyState
-              title="设备运行态必须在工作线上下文里查看"
-              description="请先进入某条工作线，再查看该线内设备节点的健康状态、最近行为和关联 Trace。"
-              hint="设备没有脱离工作线的全局运行语义。"
+              v-else
+              title="还没有选中设备"
+              description="请从左侧线内设备目录选择一台设备，查看它的健康状态、最近行为和关联 Trace。"
+              hint="目录会保持稳定排序；设备能力和 plugin 语义都基于当前工作线。"
             />
-            <el-button type="primary" plain @click="openWorklineSwitcher">选择工作线</el-button>
-          </div>
-          <RuntimeEmptyState
-            v-else
-            title="还没有选中设备"
-            description="请从左侧线内设备目录选择一台设备，查看它的健康状态、最近行为和关联 Trace。"
-            hint="目录会保持稳定排序；设备能力和 plugin 语义都基于当前工作线。"
-          />
-        </el-card>
+          </el-card>
+        </div>
       </div>
     </div>
 
@@ -245,24 +253,45 @@ const requestedDeviceId = computed(() => readPositiveIntQuery(route.query.device
 const activeWorklineId = computed(() => readPositiveIntQuery(route.query.worklineId))
 const selectedDeviceId = computed(() => detail.value?.summary.id ?? requestedDeviceId.value)
 
+const activeWorklineSummary = computed(() => {
+  if (!activeWorklineId.value) {
+    return null
+  }
+
+  return worklines.value.find(item => item.id === activeWorklineId.value) ?? null
+})
+
 const activeWorklineName = computed(() => {
   if (!activeWorklineId.value) {
     return null
   }
 
   return (
+    activeWorklineSummary.value?.line_name ||
     devices.value[0]?.workline_name ||
     (detail.value?.summary.workline_id === activeWorklineId.value ? detail.value.summary.workline_name : null) ||
     `工作线 #${activeWorklineId.value}`
   )
 })
 
-const directorySubtitle = computed(() => {
+const activeWorklineContextMeta = computed(() => {
   if (!activeWorklineId.value) {
-    return '先选择工作线，再看该线内设备节点与 plugin 责任边界'
+    return ''
   }
 
-  return `${activeWorklineName.value} · 按风险与负载排序定位线内异常设备`
+  const summary = activeWorklineSummary.value
+  const code = summary?.line_code || devices.value[0]?.workline_code || `工作线 #${activeWorklineId.value}`
+  const zone = summary?.zone_name || '未配置区域'
+  const deviceCount = devices.value.length || summary?.device_count || 0
+  return `${code} · ${zone} · 设备 ${deviceCount}`
+})
+
+const directorySubtitle = computed(() => {
+  if (!activeWorklineId.value) {
+    return '先选择工作线，再查看对应 plugin 责任边界与线内设备状态'
+  }
+
+  return '按设备风险、未结命令与最近异常信号定位当前线内瓶颈'
 })
 
 const orderedDevices = computed(() => {
@@ -604,9 +633,14 @@ watch(
   display: grid;
   gap: 16px;
   grid-template-columns: 340px minmax(0, 1fr);
+  align-items: stretch;
 }
 
 .runtime-layout__detail {
+  min-height: 0;
+}
+
+.runtime-layout__detail-scroll {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -644,16 +678,47 @@ watch(
   flex-wrap: wrap;
 }
 
-.runtime-scope-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 10px;
-  border: 1px solid rgb(245, 158, 11, 0.2);
-  border-radius: 999px;
-  background: rgb(245, 158, 11, 0.08);
-  color: #fbbf24;
+.runtime-panel__switch-action {
+  white-space: nowrap;
+}
+
+.runtime-workline-context {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 220px;
+  max-width: 320px;
+  padding: 10px 14px;
+  border: 1px solid var(--runtime-border-accent, rgb(245 158 11 / 0.2));
+  border-radius: 18px;
+  background: linear-gradient(180deg, var(--runtime-surface-strong, rgb(255 255 255 / 0.06)), var(--runtime-surface-accent, rgb(245 158 11 / 0.08)));
+}
+
+.runtime-workline-context__label {
+  color: var(--runtime-text-secondary, #94a3b8);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.runtime-workline-context__name {
+  color: var(--runtime-text-primary, #f8fafc);
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.runtime-workline-context__meta {
+  color: var(--runtime-text-secondary, #94a3b8);
   font-size: 12px;
-  line-height: 1;
+  line-height: 1.5;
+}
+
+.runtime-layout__list-scroll {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  flex-direction: column;
 }
 
 .runtime-directory-list,
@@ -858,6 +923,49 @@ watch(
   min-height: 540px;
 }
 
+@media (width >= 1280px) {
+  .runtime-layout {
+    height: calc(100vh - 210px);
+    min-height: 620px;
+    overflow: hidden;
+  }
+
+  .runtime-layout__list,
+  .runtime-layout__detail {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .runtime-layout__list {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .runtime-layout__list :deep(.el-card__header) {
+    flex: 0 0 auto;
+  }
+
+  .runtime-layout__list :deep(.el-card__body) {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .runtime-layout__list-scroll,
+  .runtime-layout__detail-scroll {
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 6px;
+    scrollbar-gutter: stable;
+  }
+
+  .runtime-layout__detail-scroll {
+    height: 100%;
+  }
+}
+
 @media (width <= 1279px) {
   .runtime-page__header,
   .runtime-layout,
@@ -872,6 +980,17 @@ watch(
 
   .runtime-panel__actions {
     justify-content: flex-start;
+  }
+
+  .runtime-layout__detail-scroll,
+  .runtime-layout__list-scroll {
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  .runtime-workline-context {
+    min-width: unset;
+    max-width: 100%;
   }
 }
 </style>
