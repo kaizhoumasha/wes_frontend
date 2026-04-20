@@ -129,7 +129,7 @@ import { runtimeApiMethods } from '@/api/modules/runtime'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
 import type { RuntimeOverviewResponse, RuntimeWorklineSummary } from '@/types/runtime'
 import type { RuntimeTone } from '@/utils/runtime-display'
-import { formatRuntimeDateTime, formatRuntimeElapsed, getDeviceRiskScore, getTraceRiskScore, getWorklineRiskLabel as worklineRiskLabel, getWorklineRiskScore, getWorklineRiskTone as worklineRiskTone } from '@/utils/runtime-display'
+import { formatRuntimeDateTime, formatRuntimeElapsed, getDeviceRiskScore, getTraceRiskScore, getWorklineRiskLabel as worklineRiskLabel, getWorklineRiskScore, getWorklineRiskTone as worklineRiskTone, takeTopByScoreDesc } from '@/utils/runtime-display'
 
 const router = useRouter()
 const { connectionLabel, connectionTone, lastEvent, lastRefreshedAt, live, markRefreshedAt, state, toggleLive } = useRuntimePageChrome()
@@ -170,23 +170,11 @@ const signalCards = computed(() => {
   }))
 })
 
-const topTraces = computed(() => {
-  return [...overview.value.recent_failed_traces]
-    .sort((left, right) => getTraceRiskScore(right) - getTraceRiskScore(left))
-    .slice(0, 5)
-})
+const topTraces = computed(() => takeTopByScoreDesc(overview.value.recent_failed_traces, getTraceRiskScore, 5))
 
-const topWorklines = computed(() => {
-  return [...worklines.value]
-    .sort((left, right) => getWorklineRiskScore(right) - getWorklineRiskScore(left))
-    .slice(0, 5)
-})
+const topWorklines = computed(() => takeTopByScoreDesc(worklines.value, getWorklineRiskScore, 5, item => item.id))
 
-const topDevices = computed(() => {
-  return [...overview.value.abnormal_devices]
-    .sort((left, right) => getDeviceRiskScore(right) - getDeviceRiskScore(left))
-    .slice(0, 5)
-})
+const topDevices = computed(() => takeTopByScoreDesc(overview.value.abnormal_devices, getDeviceRiskScore, 5, item => item.id))
 
 const worklineHealthItems = computed(() => {
   const total = worklines.value.length || 1

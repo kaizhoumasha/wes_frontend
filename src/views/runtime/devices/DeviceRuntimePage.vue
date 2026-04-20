@@ -230,7 +230,7 @@ import { runtimeApiMethods } from '@/api/modules/runtime'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
 import type { RuntimeDeviceDetailResponse, RuntimeDeviceSummary, RuntimeWorklineSummary, TraceCallbackLogItem, TraceCommandItem } from '@/types/runtime'
 import type { RuntimeTone } from '@/utils/runtime-display'
-import { compactEnumLabel, formatRuntimeDateTime, formatRuntimeDurationMs, formatRuntimeElapsed, getDeviceRiskScore, getWorklineRiskLabel as worklineRiskLabel, getWorklineRiskScore, getWorklineRiskTone as worklineRiskTone, pickDominantValue } from '@/utils/runtime-display'
+import { compactEnumLabel, formatRuntimeDateTime, formatRuntimeDurationMs, formatRuntimeElapsed, getDeviceRiskScore, getWorklineRiskLabel as worklineRiskLabel, getWorklineRiskScore, getWorklineRiskTone as worklineRiskTone, pickDominantValue, readPositiveInt, sortByScoreDesc } from '@/utils/runtime-display'
 
 const route = useRoute()
 const router = useRouter()
@@ -243,8 +243,8 @@ const detail = ref<RuntimeDeviceDetailResponse | null>(null)
 const worklineSwitcherVisible = ref(false)
 const worklineKeyword = ref('')
 
-const requestedDeviceId = computed(() => readPositiveIntQuery(route.query.deviceId))
-const activeWorklineId = computed(() => readPositiveIntQuery(route.query.worklineId))
+const requestedDeviceId = computed(() => readPositiveInt(route.query.deviceId))
+const activeWorklineId = computed(() => readPositiveInt(route.query.worklineId))
 const selectedDeviceId = computed(() => detail.value?.summary.id ?? requestedDeviceId.value)
 
 const activeWorklineSummary = computed(() => {
@@ -280,25 +280,9 @@ const activeWorklineContextMeta = computed(() => {
   return `${code} · ${zone} · 设备 ${deviceCount}`
 })
 
-const orderedDevices = computed(() => {
-  return [...devices.value].sort((left, right) => {
-    const riskDelta = getDeviceRiskScore(right) - getDeviceRiskScore(left)
-    if (riskDelta !== 0) {
-      return riskDelta
-    }
-    return left.id - right.id
-  })
-})
+const orderedDevices = computed(() => sortByScoreDesc(devices.value, getDeviceRiskScore, item => item.id))
 
-const orderedWorklines = computed(() => {
-  return [...worklines.value].sort((left, right) => {
-    const riskDelta = getWorklineRiskScore(right) - getWorklineRiskScore(left)
-    if (riskDelta !== 0) {
-      return riskDelta
-    }
-    return left.id - right.id
-  })
-})
+const orderedWorklines = computed(() => sortByScoreDesc(worklines.value, getWorklineRiskScore, item => item.id))
 
 const filteredWorklines = computed(() => {
   const keyword = worklineKeyword.value.trim().toLowerCase()
@@ -346,12 +330,6 @@ function deviceActivityLabel(item: RuntimeDeviceSummary) {
   return item.recent_callback_at || item.last_heartbeat_at ? formatRuntimeDateTime(item.recent_callback_at || item.last_heartbeat_at) : '暂无活动'
 }
 
-function readPositiveIntQuery(value: unknown): number | null {
-  const rawValue = Array.isArray(value) ? value[0] : value
-  const numericValue = Number(rawValue || 0)
-  return Number.isFinite(numericValue) && numericValue > 0 ? numericValue : null
-}
-
 function resolveSelectableDeviceId(preferredDeviceId: number | null): number | null {
   if (preferredDeviceId && orderedDevices.value.some(item => item.id === preferredDeviceId)) {
     return preferredDeviceId
@@ -383,6 +361,18 @@ function toneFromHttpStatus(code: number): RuntimeTone {
   return 'success'
 }
 
+function resolveCommandActivityTone(status: string): RuntimeTone {
+  if (status === 'FAILED' || status === 'CANCELLED') {
+    return 'danger'
+  }
+
+  if (status === 'PENDING') {
+    return 'warning'
+  }
+
+  return 'primary'
+}
+
 function buildCommandActivity(command: TraceCommandItem) {
   const time = command.completed_at || command.ack_received_at || command.sent_at
   return {
@@ -391,7 +381,7 @@ function buildCommandActivity(command: TraceCommandItem) {
     timeLabel: formatRuntimeDateTime(time),
     title: compactEnumLabel(command.task_type),
     statusLabel: compactEnumLabel(command.status),
-    tone: command.status === 'FAILED' || command.status === 'CANCELLED' ? 'danger' as RuntimeTone : command.status === 'PENDING' ? 'warning' as RuntimeTone : 'primary' as RuntimeTone,
+    tone: resolveCommandActivityTone(command.status),
     meta: `${command.command_code} · ${command.step_code || '未绑定 Step'}`,
     summary: `耗时 ${formatRuntimeDurationMs(command.duration_ms)} · Retry ${command.retry_count} · Result ${command.result || '—'}`,
     traceAction: command.command_code ? () => openCommandTrace(command.command_code) : null

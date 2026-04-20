@@ -235,7 +235,7 @@ import TraceTimeline from '@/components/common/runtime/TraceTimeline.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
 import type { RuntimeTraceListItem, RuntimeTraceListResponse, TraceDetailResponse, TraceQueryPayload } from '@/types/runtime'
-import { compactEnumLabel, formatRuntimeDateTime, formatRuntimeDurationMs } from '@/utils/runtime-display'
+import { compactEnumLabel, formatRuntimeDateTime, formatRuntimeDurationMs, readPositiveInt } from '@/utils/runtime-display'
 
 const route = useRoute()
 const router = useRouter()
@@ -369,8 +369,8 @@ function buildScopedListPayload(base: TraceQueryPayload = {}): TraceQueryPayload
     ...base,
     limit: base.limit ?? 20,
     offset: base.offset ?? 0,
-    workline_id: Number(route.query.worklineId || 0) || undefined,
-    device_id: Number(route.query.deviceId || 0) || undefined,
+    workline_id: readPositiveInt(route.query.worklineId) ?? undefined,
+    device_id: readPositiveInt(route.query.deviceId) ?? undefined,
   }
 }
 

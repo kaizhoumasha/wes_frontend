@@ -212,6 +212,47 @@ export function formatRuntimeCount(value?: number | null): string {
   return new Intl.NumberFormat('en-US').format(numericValue)
 }
 
+export function readPositiveInt(value: unknown): number | null {
+  const rawValue = Array.isArray(value) ? value[0] : value
+  const numericValue = Number(rawValue || 0)
+  return Number.isFinite(numericValue) && numericValue > 0 ? numericValue : null
+}
+
+function compareByScoreDesc<T>(
+  left: T,
+  right: T,
+  getScore: (item: T) => number,
+  getTieBreaker?: (item: T) => number
+): number {
+  const scoreDelta = getScore(right) - getScore(left)
+  if (scoreDelta !== 0) {
+    return scoreDelta
+  }
+
+  if (!getTieBreaker) {
+    return 0
+  }
+
+  return getTieBreaker(left) - getTieBreaker(right)
+}
+
+export function sortByScoreDesc<T>(
+  items: T[],
+  getScore: (item: T) => number,
+  getTieBreaker?: (item: T) => number
+): T[] {
+  return [...items].sort((left, right) => compareByScoreDesc(left, right, getScore, getTieBreaker))
+}
+
+export function takeTopByScoreDesc<T>(
+  items: T[],
+  getScore: (item: T) => number,
+  limit: number,
+  getTieBreaker?: (item: T) => number
+): T[] {
+  return sortByScoreDesc(items, getScore, getTieBreaker).slice(0, limit)
+}
+
 export function getTraceRiskScore(item: RuntimeTraceListItem): number {
   let score = 0
   if (isFailureStatus(item.status)) score += 80

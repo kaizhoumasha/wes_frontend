@@ -192,7 +192,7 @@ import WorklineTopologyStrip from '@/components/common/runtime/WorklineTopologyS
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
 import type { RuntimeWorklineDetailResponse, RuntimeWorklineDeviceItem, RuntimeWorklineSummary } from '@/types/runtime'
-import { formatRuntimeDateTime, formatRuntimeElapsed, getWorklineRiskLabel as worklineRiskLabel, getWorklineRiskScore, getWorklineRiskTone as worklineRiskTone, pickDominantValue } from '@/utils/runtime-display'
+import { formatRuntimeDateTime, formatRuntimeElapsed, getWorklineRiskLabel as worklineRiskLabel, getWorklineRiskScore, getWorklineRiskTone as worklineRiskTone, pickDominantValue, readPositiveInt, sortByScoreDesc } from '@/utils/runtime-display'
 
 const route = useRoute()
 const router = useRouter()
@@ -202,7 +202,7 @@ const loading = ref(false)
 const worklines = ref<RuntimeWorklineSummary[]>([])
 const detail = ref<RuntimeWorklineDetailResponse | null>(null)
 
-const selectedWorklineId = computed(() => detail.value?.summary.id ?? (Number(route.query.worklineId || 0) || null))
+const selectedWorklineId = computed(() => detail.value?.summary.id ?? readPositiveInt(route.query.worklineId))
 
 const selectedWorklineSummary = computed(() => {
   const selectedId = selectedWorklineId.value
@@ -224,15 +224,7 @@ const selectedWorklineContextMeta = computed(() => {
   return `${summary.line_code} · ${summary.zone_name || '未配置区域'} · 活跃 ${summary.active_session_count} · 失败 ${summary.failed_session_count}`
 })
 
-const orderedWorklines = computed(() => {
-  return [...worklines.value].sort((left, right) => {
-    const riskDelta = getWorklineRiskScore(right) - getWorklineRiskScore(left)
-    if (riskDelta !== 0) {
-      return riskDelta
-    }
-    return left.id - right.id
-  })
-})
+const orderedWorklines = computed(() => sortByScoreDesc(worklines.value, getWorklineRiskScore, item => item.id))
 
 const hotspotDevice = computed<RuntimeWorklineDeviceItem | null>(() => {
   const devices = detail.value?.devices ?? []
@@ -258,7 +250,7 @@ async function loadWorklines() {
   loading.value = true
   try {
     worklines.value = await runtimeApiMethods.worklines().send()
-    const worklineId = Number(route.query.worklineId || worklines.value[0]?.id || 0)
+    const worklineId = readPositiveInt(route.query.worklineId) ?? worklines.value[0]?.id ?? null
     if (worklineId) {
       await selectWorkline({ id: worklineId } as RuntimeWorklineSummary)
     }
