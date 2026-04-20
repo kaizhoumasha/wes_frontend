@@ -1,51 +1,43 @@
 <template>
   <el-card shadow="never" class="workline-health-hero">
-    <div class="workline-health-hero__top">
-      <div>
-        <div class="workline-health-hero__eyebrow">线体摘要</div>
+    <div class="workline-health-hero__header">
+      <div class="workline-health-hero__identity">
+        <div class="workline-health-hero__eyebrow-row">
+          <div class="workline-health-hero__eyebrow">线体摘要</div>
+          <span class="workline-health-hero__code">{{ summary.line_code }}</span>
+        </div>
         <div class="workline-health-hero__title-row">
           <h2 class="workline-health-hero__title">{{ summary.line_name }}</h2>
           <RuntimeStatusBadge :label="heroStatusLabel" :tone="heroTone" pulse />
         </div>
-        <p class="workline-health-hero__meta">{{ summary.line_code }} · {{ summary.zone_name || '未配置区域' }} · {{ summary.line_type }}</p>
-      </div>
-
-      <div class="workline-health-hero__support">
-        <div class="workline-health-hero__support-item">
-          <span>插件 / 契约</span>
-          <strong>{{ summary.plugin_key || '—' }} / {{ summary.contract_version || '—' }}</strong>
-        </div>
-        <div class="workline-health-hero__support-item">
-          <span>Owner / Support</span>
-          <strong>{{ summary.owner_team || '—' }} / {{ summary.support_contact || '—' }}</strong>
-        </div>
+        <p class="workline-health-hero__meta">{{ summary.zone_name || '未配置区域' }} · {{ summary.line_type || '未配置线型' }}</p>
       </div>
     </div>
 
-    <div class="workline-health-hero__stats">
-      <div class="workline-health-hero__stat">
-        <span>设备数</span>
-        <strong>{{ summary.device_count }}</strong>
+    <div class="workline-health-hero__facts">
+      <div class="workline-health-hero__fact">
+        <span>插件 / 契约</span>
+        <strong>{{ summary.plugin_key || '—' }} / {{ summary.contract_version || '—' }}</strong>
       </div>
-      <div class="workline-health-hero__stat">
-        <span>活跃 Session</span>
-        <strong>{{ summary.active_session_count }}</strong>
+      <div class="workline-health-hero__fact">
+        <span>Owner / Support</span>
+        <strong>{{ summary.owner_team || '—' }} / {{ summary.support_contact || '—' }}</strong>
       </div>
-      <div class="workline-health-hero__stat">
-        <span>等待 Session</span>
-        <strong>{{ summary.waiting_session_count }}</strong>
+      <div class="workline-health-hero__fact workline-health-hero__fact--signal">
+        <span>设备态势</span>
+        <strong>总 {{ summary.device_count }} · 异常 {{ summary.error_device_count }} · 维护 {{ summary.maintenance_device_count }}</strong>
       </div>
-      <div class="workline-health-hero__stat">
-        <span>失败链路</span>
-        <strong>{{ summary.failed_session_count }}</strong>
+      <div class="workline-health-hero__fact">
+        <span>会话态势</span>
+        <strong>活跃 {{ summary.active_session_count }} · 等待 {{ summary.waiting_session_count }}</strong>
       </div>
-      <div class="workline-health-hero__stat">
-        <span>离线设备</span>
-        <strong>{{ summary.offline_device_count }}</strong>
+      <div class="workline-health-hero__fact">
+        <span>阻塞指标</span>
+        <strong>失败 {{ summary.failed_session_count }} · 离线 {{ summary.offline_device_count }}</strong>
       </div>
-      <div class="workline-health-hero__stat">
-        <span>异常设备</span>
-        <strong>{{ summary.error_device_count }}</strong>
+      <div class="workline-health-hero__fact">
+        <span>运行结论</span>
+        <strong>{{ heroStatusLabel }}</strong>
       </div>
     </div>
   </el-card>
@@ -94,16 +86,33 @@ const heroStatusLabel = computed(() => {
     linear-gradient(180deg, rgb(30, 41, 59, 0.96), rgb(15, 23, 42, 0.94));
 }
 
-.workline-health-hero__top {
+.workline-health-hero :deep(.el-card__body) {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+}
+
+.workline-health-hero__header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 24px;
+  gap: 18px;
+}
+
+.workline-health-hero__identity {
+  min-width: 0;
+}
+
+.workline-health-hero__eyebrow-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .workline-health-hero__eyebrow,
-.workline-health-hero__support-item span,
-.workline-health-hero__stat span {
+.workline-health-hero__fact span {
   color: #94a3b8;
   font-size: 11px;
   font-weight: 700;
@@ -111,66 +120,87 @@ const heroStatusLabel = computed(() => {
   text-transform: uppercase;
 }
 
+.workline-health-hero__code {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border: 1px solid rgb(245, 158, 11, 0.16);
+  border-radius: 999px;
+  background: rgb(15, 23, 42, 0.45);
+  color: #cbd5e1;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1;
+}
+
 .workline-health-hero__title-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 10px;
+  margin-top: 8px;
   flex-wrap: wrap;
 }
 
 .workline-health-hero__title {
   margin: 0;
   color: #f8fafc;
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
+  line-height: 1.2;
 }
 
 .workline-health-hero__meta {
-  margin-top: 10px;
+  margin: 8px 0 0;
   color: #cbd5e1;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
-.workline-health-hero__support {
+.workline-health-hero__facts {
   display: grid;
-  gap: 12px;
-  min-width: 320px;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.workline-health-hero__support-item,
-.workline-health-hero__stat {
-  padding: 14px;
+.workline-health-hero__fact {
+  min-width: 0;
+  padding: 12px 14px;
   border: 1px solid rgb(245, 158, 11, 0.12);
   border-radius: 12px;
-  background: rgb(15, 23, 42, 0.5);
+  background: rgb(15, 23, 42, 0.46);
 }
 
-.workline-health-hero__support-item strong,
-.workline-health-hero__stat strong {
+.workline-health-hero__fact strong {
   display: block;
-  margin-top: 8px;
+  margin-top: 6px;
   color: #f8fafc;
   font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.workline-health-hero__fact--signal strong {
   font-size: 14px;
 }
 
-.workline-health-hero__stats {
-  display: grid;
-  gap: 12px;
-  margin-top: 18px;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-}
-
 @media (width <= 1279px) {
-  .workline-health-hero__top {
-    flex-direction: column;
+  .workline-health-hero__title {
+    font-size: 22px;
   }
 
-  .workline-health-hero__support,
-  .workline-health-hero__stats {
-    width: 100%;
-    min-width: 0;
+  .workline-health-hero__facts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (width <= 767px) {
+  .workline-health-hero :deep(.el-card__body) {
+    padding: 16px;
+  }
+
+  .workline-health-hero__facts {
+    grid-template-columns: 1fr;
   }
 }
 </style>

@@ -18,15 +18,17 @@
     <div class="runtime-layout">
       <el-card shadow="never" class="runtime-panel runtime-layout__list">
         <template #header>
-          <div class="runtime-panel__header">
-            <div>
-              <div class="runtime-panel__title">线体目录</div>
-              <div class="runtime-panel__subtitle">按风险优先，而不是按名称顺序浏览</div>
+          <div class="runtime-panel__header runtime-panel__header--compact">
+            <div v-if="selectedWorklineContextName" class="runtime-workline-context runtime-workline-context--compact">
+              <strong class="runtime-workline-context__name" :title="selectedWorklineContextName">{{ selectedWorklineContextName }}</strong>
+              <span class="runtime-workline-context__meta">{{ selectedWorklineContextMeta }}</span>
             </div>
+            <div v-else class="runtime-workline-placeholder">选择工作线后查看线体运行态</div>
           </div>
         </template>
 
-        <div v-if="worklines.length" class="runtime-directory-list">
+        <div class="runtime-layout__list-scroll">
+          <div v-if="worklines.length" class="runtime-directory-list">
           <button
             v-for="item in orderedWorklines"
             :key="item.id"
@@ -44,19 +46,21 @@
             <div class="runtime-directory-card__hint">活跃 {{ item.active_session_count }} · 等待 {{ item.waiting_session_count }} · 失败 {{ item.failed_session_count }} · 离线 {{ item.offline_device_count }}</div>
           </button>
         </div>
-        <RuntimeEmptyState
-          v-else
-          title="暂无工作线数据"
-          description="当前还没有可用于运行监控的工作线样本。"
-          hint="请确认后端工作线主数据、权限与 API 返回是否正常。"
-        />
+          <RuntimeEmptyState
+            v-else
+            title="暂无工作线数据"
+            description="当前还没有可用于运行监控的工作线样本。"
+            hint="请确认后端工作线主数据、权限与 API 返回是否正常。"
+          />
+        </div>
       </el-card>
 
       <div class="runtime-layout__detail">
         <template v-if="detail">
-          <WorklineHealthHero :summary="detail.summary" />
+          <WorklineHealthHero :summary="detail.summary" class="runtime-layout__hero" />
 
-          <el-card shadow="never" class="runtime-panel">
+          <div class="runtime-layout__detail-scroll">
+            <el-card shadow="never" class="runtime-panel">
             <template #header>
               <div class="runtime-panel__header">
                 <div>
@@ -128,39 +132,40 @@
             </el-card>
           </div>
 
-          <el-card shadow="never" class="runtime-panel">
-            <template #header>
-              <div class="runtime-panel__header">
-                <div>
-                  <div class="runtime-panel__title">异常热点</div>
-                  <div class="runtime-panel__subtitle">帮助判断这是局部节点问题，还是线体级模式性异常</div>
+            <el-card shadow="never" class="runtime-panel">
+              <template #header>
+                <div class="runtime-panel__header">
+                  <div>
+                    <div class="runtime-panel__title">异常热点</div>
+                    <div class="runtime-panel__subtitle">帮助判断这是局部节点问题，还是线体级模式性异常</div>
+                  </div>
+                </div>
+              </template>
+
+              <div class="hotspot-grid">
+                <div class="hotspot-card">
+                  <span>焦点设备</span>
+                  <strong>{{ hotspotDevice?.device_name || '—' }}</strong>
+                  <p>{{ hotspotDevice ? `${hotspotDevice.device_code} · ${hotspotDevice.error_code || hotspotDevice.device_status}` : '当前未识别到明显异常节点' }}</p>
+                </div>
+                <div class="hotspot-card">
+                  <span>高频失败 Step</span>
+                  <strong>{{ mostFailedStep || '—' }}</strong>
+                  <p>基于最近失败 Trace 的 step 分布</p>
+                </div>
+                <div class="hotspot-card">
+                  <span>主要等待 Step</span>
+                  <strong>{{ dominantActiveStep || '—' }}</strong>
+                  <p>基于当前活跃 Session 的 step 聚合</p>
+                </div>
+                <div class="hotspot-card">
+                  <span>最近活动</span>
+                  <strong>{{ worklineLastActivityLabel(detail.summary) }}</strong>
+                  <p>{{ detail.summary.owner_team || '未配置 owner' }} / {{ detail.summary.support_contact || '未配置 support' }}</p>
                 </div>
               </div>
-            </template>
-
-            <div class="hotspot-grid">
-              <div class="hotspot-card">
-                <span>焦点设备</span>
-                <strong>{{ hotspotDevice?.device_name || '—' }}</strong>
-                <p>{{ hotspotDevice ? `${hotspotDevice.device_code} · ${hotspotDevice.error_code || hotspotDevice.device_status}` : '当前未识别到明显异常节点' }}</p>
-              </div>
-              <div class="hotspot-card">
-                <span>高频失败 Step</span>
-                <strong>{{ mostFailedStep || '—' }}</strong>
-                <p>基于最近失败 Trace 的 step 分布</p>
-              </div>
-              <div class="hotspot-card">
-                <span>主要等待 Step</span>
-                <strong>{{ dominantActiveStep || '—' }}</strong>
-                <p>基于当前活跃 Session 的 step 聚合</p>
-              </div>
-              <div class="hotspot-card">
-                <span>最近活动</span>
-                <strong>{{ worklineLastActivityLabel(detail.summary) }}</strong>
-                <p>{{ detail.summary.owner_team || '未配置 owner' }} / {{ detail.summary.support_contact || '未配置 support' }}</p>
-              </div>
-            </div>
-          </el-card>
+            </el-card>
+          </div>
         </template>
 
         <el-card v-else shadow="never" class="runtime-panel runtime-layout__empty-state">
@@ -198,6 +203,26 @@ const worklines = ref<RuntimeWorklineSummary[]>([])
 const detail = ref<RuntimeWorklineDetailResponse | null>(null)
 
 const selectedWorklineId = computed(() => detail.value?.summary.id ?? (Number(route.query.worklineId || 0) || null))
+
+const selectedWorklineSummary = computed(() => {
+  const selectedId = selectedWorklineId.value
+  if (!selectedId) {
+    return detail.value?.summary ?? null
+  }
+
+  return worklines.value.find(item => item.id === selectedId) ?? detail.value?.summary ?? null
+})
+
+const selectedWorklineContextName = computed(() => selectedWorklineSummary.value?.line_name ?? null)
+
+const selectedWorklineContextMeta = computed(() => {
+  const summary = selectedWorklineSummary.value
+  if (!summary) {
+    return ''
+  }
+
+  return `${summary.line_code} · ${summary.zone_name || '未配置区域'} · 活跃 ${summary.active_session_count} · 失败 ${summary.failed_session_count}`
+})
 
 const orderedWorklines = computed(() => {
   return [...worklines.value].sort((left, right) => {
@@ -310,12 +335,30 @@ watch(
   display: grid;
   gap: 16px;
   grid-template-columns: 340px minmax(0, 1fr);
+  align-items: stretch;
 }
 
 .runtime-layout__detail {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-height: 0;
+}
+
+.runtime-layout__hero {
+  flex: 0 0 auto;
+}
+
+.runtime-layout__detail-scroll {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+}
+
+.runtime-layout__detail-scroll > * {
+  flex: 0 0 auto;
 }
 
 .runtime-panel {
@@ -330,6 +373,17 @@ watch(
   gap: 16px;
 }
 
+.runtime-panel__header--compact {
+  align-items: center;
+  gap: 12px;
+}
+
+.runtime-workline-placeholder {
+  color: var(--runtime-text-secondary, #94a3b8);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .runtime-panel__title {
   color: #f8fafc;
   font-size: 16px;
@@ -340,6 +394,41 @@ watch(
   margin-top: 4px;
   color: #94a3b8;
   font-size: 12px;
+}
+
+.runtime-workline-context {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--runtime-border-accent, rgb(245 158 11 / 0.16));
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--runtime-surface-strong, rgb(255 255 255 / 0.04)), var(--runtime-surface-accent, rgb(245 158 11 / 0.06)));
+}
+
+.runtime-workline-context--compact {
+  flex: 1 1 auto;
+}
+
+.runtime-workline-context__name {
+  color: var(--runtime-text-primary, #f8fafc);
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.runtime-workline-context__meta {
+  color: var(--runtime-text-secondary, #94a3b8);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.runtime-layout__list-scroll {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  flex-direction: column;
 }
 
 .runtime-directory-list,
@@ -457,6 +546,45 @@ watch(
   min-height: 540px;
 }
 
+@media (width >= 1280px) {
+  .runtime-layout {
+    height: calc(100vh - 210px);
+    min-height: 620px;
+    overflow: hidden;
+  }
+
+  .runtime-layout__list,
+  .runtime-layout__detail {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .runtime-layout__list {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .runtime-layout__list :deep(.el-card__header) {
+    flex: 0 0 auto;
+  }
+
+  .runtime-layout__list :deep(.el-card__body) {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .runtime-layout__list-scroll,
+  .runtime-layout__detail-scroll {
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 6px;
+    scrollbar-gutter: stable;
+  }
+}
+
 @media (width <= 1279px) {
   .runtime-page__header,
   .runtime-layout,
@@ -468,6 +596,12 @@ watch(
 
   .runtime-page__status-bar {
     justify-content: flex-start;
+  }
+
+  .runtime-layout__detail-scroll,
+  .runtime-layout__list-scroll {
+    overflow: visible;
+    padding-right: 0;
   }
 }
 </style>
