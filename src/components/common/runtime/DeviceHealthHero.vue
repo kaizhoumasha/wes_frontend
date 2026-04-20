@@ -1,45 +1,41 @@
 <template>
   <el-card shadow="never" class="device-health-hero">
-    <div class="device-health-hero__top">
-      <div>
-        <div class="device-health-hero__eyebrow">设备健康</div>
+    <div class="device-health-hero__header">
+      <div class="device-health-hero__identity">
+        <div class="device-health-hero__eyebrow-row">
+          <div class="device-health-hero__eyebrow">设备健康</div>
+          <span class="device-health-hero__code">{{ summary.device_code }}</span>
+        </div>
         <div class="device-health-hero__title-row">
           <h2 class="device-health-hero__title">{{ summary.device_name }}</h2>
           <RuntimeStatusBadge :status="summary.device_status" pulse />
         </div>
-        <p class="device-health-hero__meta">{{ summary.device_code }} · {{ summary.device_role }} · #{{ summary.role_index }}</p>
-      </div>
-
-      <div class="device-health-hero__support">
-        <div class="device-health-hero__support-item">
-          <span>所属工作线</span>
-          <strong>{{ summary.workline_name || '—' }}</strong>
-        </div>
-        <div class="device-health-hero__support-item">
-          <span>最近心跳</span>
-          <strong>{{ formatRuntimeDateTime(summary.last_heartbeat_at) }}</strong>
-        </div>
+        <p class="device-health-hero__meta">{{ summary.device_role }} · 角色序号 #{{ summary.role_index }}</p>
       </div>
     </div>
 
-    <div class="device-health-hero__stats">
-      <div class="device-health-hero__stat">
-        <span>未结命令</span>
-        <strong>{{ summary.pending_command_count }}</strong>
+    <div class="device-health-hero__facts">
+      <div class="device-health-hero__fact">
+        <span>所属工作线</span>
+        <strong>{{ summary.workline_name || '—' }}</strong>
       </div>
-      <div class="device-health-hero__stat">
+      <div class="device-health-hero__fact">
+        <span>最近心跳</span>
+        <strong>{{ formatRuntimeDateTime(summary.last_heartbeat_at) }}</strong>
+      </div>
+      <div class="device-health-hero__fact device-health-hero__fact--signal">
+        <span>命令态势</span>
+        <strong>当前 {{ summary.current_command_id || '—' }} · 未结 {{ summary.pending_command_count }}</strong>
+      </div>
+      <div class="device-health-hero__fact">
         <span>最近回调</span>
         <strong>{{ formatRuntimeDateTime(summary.recent_callback_at) }}</strong>
       </div>
-      <div class="device-health-hero__stat">
+      <div class="device-health-hero__fact">
         <span>维护模式</span>
         <strong>{{ summary.maintenance_mode ? 'ON' : 'OFF' }}</strong>
       </div>
-      <div class="device-health-hero__stat">
-        <span>当前命令</span>
-        <strong>{{ summary.current_command_id || '—' }}</strong>
-      </div>
-      <div class="device-health-hero__stat">
+      <div class="device-health-hero__fact">
         <span>错误码</span>
         <strong>{{ summary.error_code || '—' }}</strong>
       </div>
@@ -66,16 +62,33 @@ defineProps<{
     linear-gradient(180deg, rgb(30, 41, 59, 0.96), rgb(15, 23, 42, 0.94));
 }
 
-.device-health-hero__top {
+.device-health-hero :deep(.el-card__body) {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+}
+
+.device-health-hero__header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 24px;
+  gap: 18px;
+}
+
+.device-health-hero__identity {
+  min-width: 0;
+}
+
+.device-health-hero__eyebrow-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .device-health-hero__eyebrow,
-.device-health-hero__support-item span,
-.device-health-hero__stat span {
+.device-health-hero__fact span {
   color: #94a3b8;
   font-size: 11px;
   font-weight: 700;
@@ -83,67 +96,87 @@ defineProps<{
   text-transform: uppercase;
 }
 
+.device-health-hero__code {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border: 1px solid rgb(245, 158, 11, 0.16);
+  border-radius: 999px;
+  background: rgb(15, 23, 42, 0.45);
+  color: #cbd5e1;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1;
+}
+
 .device-health-hero__title-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 10px;
+  margin-top: 8px;
   flex-wrap: wrap;
 }
 
 .device-health-hero__title {
   margin: 0;
   color: #f8fafc;
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
+  line-height: 1.2;
 }
 
 .device-health-hero__meta {
-  margin-top: 10px;
+  margin: 8px 0 0;
   color: #cbd5e1;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
-.device-health-hero__support {
+.device-health-hero__facts {
   display: grid;
-  gap: 12px;
-  min-width: 320px;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.device-health-hero__support-item,
-.device-health-hero__stat {
-  padding: 14px;
+.device-health-hero__fact {
+  min-width: 0;
+  padding: 12px 14px;
   border: 1px solid rgb(245, 158, 11, 0.12);
   border-radius: 12px;
-  background: rgb(15, 23, 42, 0.5);
+  background: rgb(15, 23, 42, 0.46);
 }
 
-.device-health-hero__support-item strong,
-.device-health-hero__stat strong {
+.device-health-hero__fact strong {
   display: block;
-  margin-top: 8px;
+  margin-top: 6px;
   color: #f8fafc;
   font-family: var(--font-mono);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 13px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
-.device-health-hero__stats {
-  display: grid;
-  gap: 12px;
-  margin-top: 18px;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+.device-health-hero__fact--signal strong {
+  font-size: 14px;
 }
 
 @media (width <= 1279px) {
-  .device-health-hero__top {
-    flex-direction: column;
+  .device-health-hero__title {
+    font-size: 22px;
   }
 
-  .device-health-hero__support,
-  .device-health-hero__stats {
-    width: 100%;
-    min-width: 0;
+  .device-health-hero__facts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (width <= 767px) {
+  .device-health-hero :deep(.el-card__body) {
+    padding: 16px;
+  }
+
+  .device-health-hero__facts {
+    grid-template-columns: 1fr;
   }
 }
 </style>
