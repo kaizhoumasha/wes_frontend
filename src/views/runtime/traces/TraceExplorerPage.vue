@@ -38,9 +38,9 @@
       <el-card shadow="never" class="runtime-panel trace-layout__context">
         <template #header>
           <div class="runtime-panel__header runtime-panel__header--compact">
-            <div v-if="selectedTraceContextName" class="trace-context-summary trace-context-summary--compact">
-              <strong class="trace-context-summary__name" :title="selectedTraceContextName">{{ selectedTraceContextName }}</strong>
-              <span class="trace-context-summary__meta">{{ selectedTraceContextMeta }}</span>
+            <div v-if="selectedTraceContextName" class="trace-context-summary trace-context-summary--compact runtime-compact-context">
+              <strong class="trace-context-summary__name runtime-compact-context__name" :title="selectedTraceContextName">{{ selectedTraceContextName }}</strong>
+              <span class="trace-context-summary__meta runtime-compact-context__meta">{{ selectedTraceContextMeta }}</span>
             </div>
             <div v-else class="trace-context-placeholder">选择案件后查看上下文 Trace</div>
           </div>
@@ -706,32 +706,8 @@ watch(
   flex: 0 0 auto;
 }
 
-.trace-context-summary {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  max-width: 100%;
-  padding: 8px 12px;
-  border: 1px solid var(--runtime-border-accent, rgb(245 158 11 / 0.16));
-  border-radius: 14px;
-  background: linear-gradient(180deg, var(--runtime-surface-strong, rgb(255 255 255 / 0.04)), var(--runtime-surface-accent, rgb(245 158 11 / 0.06)));
-}
-
 .trace-context-summary--compact {
   flex: 1 1 auto;
-}
-
-.trace-context-summary__name {
-  color: var(--runtime-text-primary, #f8fafc);
-  font-size: 14px;
-  line-height: 1.3;
-}
-
-.trace-context-summary__meta {
-  color: var(--runtime-text-secondary, #94a3b8);
-  font-size: 12px;
-  line-height: 1.45;
 }
 
 .trace-layout__context-scroll {

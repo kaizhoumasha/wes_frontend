@@ -4,7 +4,7 @@
       <div class="device-health-hero__identity">
         <div class="device-health-hero__eyebrow-row">
           <div class="device-health-hero__eyebrow">设备健康</div>
-          <span class="device-health-hero__code">{{ summary.device_code }}</span>
+          <span class="device-health-hero__code runtime-hero__code">{{ summary.device_code }}</span>
         </div>
         <div class="device-health-hero__title-row">
           <h2 class="device-health-hero__title">{{ summary.device_name }}</h2>
@@ -14,28 +14,28 @@
       </div>
     </div>
 
-    <div class="device-health-hero__facts">
-      <div class="device-health-hero__fact">
+    <div class="device-health-hero__facts runtime-hero__facts">
+      <div class="device-health-hero__fact runtime-hero__fact">
         <span>所属工作线</span>
         <strong>{{ summary.workline_name || '—' }}</strong>
       </div>
-      <div class="device-health-hero__fact">
+      <div class="device-health-hero__fact runtime-hero__fact">
         <span>最近心跳</span>
         <strong>{{ formatRuntimeDateTime(summary.last_heartbeat_at) }}</strong>
       </div>
-      <div class="device-health-hero__fact device-health-hero__fact--signal">
+      <div class="device-health-hero__fact device-health-hero__fact--signal runtime-hero__fact">
         <span>命令态势</span>
         <strong>当前 {{ summary.current_command_id || '—' }} · 未结 {{ summary.pending_command_count }}</strong>
       </div>
-      <div class="device-health-hero__fact">
+      <div class="device-health-hero__fact runtime-hero__fact">
         <span>最近回调</span>
         <strong>{{ formatRuntimeDateTime(summary.recent_callback_at) }}</strong>
       </div>
-      <div class="device-health-hero__fact">
+      <div class="device-health-hero__fact runtime-hero__fact">
         <span>维护模式</span>
         <strong>{{ summary.maintenance_mode ? 'ON' : 'OFF' }}</strong>
       </div>
-      <div class="device-health-hero__fact">
+      <div class="device-health-hero__fact runtime-hero__fact">
         <span>错误码</span>
         <strong>{{ summary.error_code || '—' }}</strong>
       </div>
@@ -96,19 +96,6 @@ defineProps<{
   text-transform: uppercase;
 }
 
-.device-health-hero__code {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 8px;
-  border: 1px solid rgb(245, 158, 11, 0.16);
-  border-radius: 999px;
-  background: rgb(15, 23, 42, 0.45);
-  color: #cbd5e1;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 1;
-}
-
 .device-health-hero__title-row {
   display: flex;
   align-items: center;
@@ -133,17 +120,7 @@ defineProps<{
 }
 
 .device-health-hero__facts {
-  display: grid;
-  gap: 10px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.device-health-hero__fact {
-  min-width: 0;
-  padding: 12px 14px;
-  border: 1px solid rgb(245, 158, 11, 0.12);
-  border-radius: 12px;
-  background: rgb(15, 23, 42, 0.46);
 }
 
 .device-health-hero__fact strong {

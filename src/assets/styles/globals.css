@@ -921,6 +921,65 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* Runtime 监控统一节奏 */
+  .runtime-compact-context {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    max-width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--runtime-border-accent, rgb(245 158 11 / 0.16));
+    border-radius: 14px;
+    background: linear-gradient(
+      180deg,
+      var(--runtime-surface-strong, rgb(255 255 255 / 0.04)),
+      var(--runtime-surface-accent, rgb(245 158 11 / 0.06))
+    );
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.03);
+  }
+
+  .runtime-compact-context__name {
+    color: var(--runtime-text-primary, #f8fafc);
+    font-size: 14px;
+    line-height: 1.35;
+  }
+
+  .runtime-compact-context__meta {
+    color: var(--runtime-text-secondary, #94a3b8);
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .runtime-hero__code {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border: 1px solid rgb(245 158 11 / 0.16);
+    border-radius: 999px;
+    background: rgb(15 23 42 / 0.45);
+    color: #cbd5e1;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  .runtime-hero__facts,
+  .runtime-hero__counts {
+    display: grid;
+    gap: 12px;
+  }
+
+  .runtime-hero__fact,
+  .runtime-hero__count-card {
+    min-width: 0;
+    padding: 12px 14px;
+    border: 1px solid rgb(245 158 11 / 0.12);
+    border-radius: 12px;
+    background: rgb(15 23 42 / 0.48);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.02);
+  }
+
   /* 边框工具类 */
   .border-industrial {
     border: 1px solid var(--border-color);

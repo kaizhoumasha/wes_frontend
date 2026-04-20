@@ -4,7 +4,7 @@
       <div class="workline-health-hero__identity">
         <div class="workline-health-hero__eyebrow-row">
           <div class="workline-health-hero__eyebrow">线体摘要</div>
-          <span class="workline-health-hero__code">{{ summary.line_code }}</span>
+          <span class="workline-health-hero__code runtime-hero__code">{{ summary.line_code }}</span>
         </div>
         <div class="workline-health-hero__title-row">
           <h2 class="workline-health-hero__title">{{ summary.line_name }}</h2>
@@ -14,28 +14,28 @@
       </div>
     </div>
 
-    <div class="workline-health-hero__facts">
-      <div class="workline-health-hero__fact">
+    <div class="workline-health-hero__facts runtime-hero__facts">
+      <div class="workline-health-hero__fact runtime-hero__fact">
         <span>插件 / 契约</span>
         <strong>{{ summary.plugin_key || '—' }} / {{ summary.contract_version || '—' }}</strong>
       </div>
-      <div class="workline-health-hero__fact">
+      <div class="workline-health-hero__fact runtime-hero__fact">
         <span>Owner / Support</span>
         <strong>{{ summary.owner_team || '—' }} / {{ summary.support_contact || '—' }}</strong>
       </div>
-      <div class="workline-health-hero__fact workline-health-hero__fact--signal">
+      <div class="workline-health-hero__fact workline-health-hero__fact--signal runtime-hero__fact">
         <span>设备态势</span>
         <strong>总 {{ summary.device_count }} · 异常 {{ summary.error_device_count }} · 维护 {{ summary.maintenance_device_count }}</strong>
       </div>
-      <div class="workline-health-hero__fact">
+      <div class="workline-health-hero__fact runtime-hero__fact">
         <span>会话态势</span>
         <strong>活跃 {{ summary.active_session_count }} · 等待 {{ summary.waiting_session_count }}</strong>
       </div>
-      <div class="workline-health-hero__fact">
+      <div class="workline-health-hero__fact runtime-hero__fact">
         <span>阻塞指标</span>
         <strong>失败 {{ summary.failed_session_count }} · 离线 {{ summary.offline_device_count }}</strong>
       </div>
-      <div class="workline-health-hero__fact">
+      <div class="workline-health-hero__fact runtime-hero__fact">
         <span>运行结论</span>
         <strong>{{ heroStatusLabel }}</strong>
       </div>
@@ -120,19 +120,6 @@ const heroStatusLabel = computed(() => {
   text-transform: uppercase;
 }
 
-.workline-health-hero__code {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 8px;
-  border: 1px solid rgb(245, 158, 11, 0.16);
-  border-radius: 999px;
-  background: rgb(15, 23, 42, 0.45);
-  color: #cbd5e1;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 1;
-}
-
 .workline-health-hero__title-row {
   display: flex;
   align-items: center;
@@ -157,17 +144,7 @@ const heroStatusLabel = computed(() => {
 }
 
 .workline-health-hero__facts {
-  display: grid;
-  gap: 10px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.workline-health-hero__fact {
-  min-width: 0;
-  padding: 12px 14px;
-  border: 1px solid rgb(245, 158, 11, 0.12);
-  border-radius: 12px;
-  background: rgb(15, 23, 42, 0.46);
 }
 
 .workline-health-hero__fact strong {

@@ -4,7 +4,7 @@
       <div class="trace-case-hero__identity">
         <div class="trace-case-hero__eyebrow-row">
           <div class="trace-case-hero__eyebrow">案件摘要</div>
-          <span class="trace-case-hero__code">Session #{{ detail.trace.session_id ?? '—' }}</span>
+          <span class="trace-case-hero__code runtime-hero__code">Session #{{ detail.trace.session_id ?? '—' }}</span>
         </div>
         <div class="trace-case-hero__title-row">
           <h2 class="trace-case-hero__title">{{ sessionCode }}</h2>
@@ -14,39 +14,39 @@
       </div>
     </div>
 
-    <div class="trace-case-hero__facts">
-      <div class="trace-case-hero__fact">
+    <div class="trace-case-hero__facts runtime-hero__facts">
+      <div class="trace-case-hero__fact runtime-hero__fact">
         <span>链路历时</span>
         <strong>{{ lifecycleDuration }}</strong>
       </div>
-      <div class="trace-case-hero__fact">
+      <div class="trace-case-hero__fact runtime-hero__fact">
         <span>等待类型</span>
         <strong>{{ detail.summary.current_wait_type || detail.session?.current_wait_type || '—' }}</strong>
       </div>
-      <div class="trace-case-hero__fact">
+      <div class="trace-case-hero__fact runtime-hero__fact">
         <span>最后动作</span>
         <strong>{{ compactEnumLabel(detail.summary.latest_timeline_action) }}</strong>
       </div>
-      <div class="trace-case-hero__fact">
+      <div class="trace-case-hero__fact runtime-hero__fact">
         <span>当前 Step</span>
         <strong>{{ detail.summary.step_code || detail.session?.step_code || '—' }}</strong>
       </div>
-      <div class="trace-case-hero__fact">
+      <div class="trace-case-hero__fact runtime-hero__fact">
         <span>失败域 / 失败码</span>
         <strong>{{ failureText }}</strong>
       </div>
-      <div class="trace-case-hero__fact">
+      <div class="trace-case-hero__fact runtime-hero__fact">
         <span>工作线 / 设备</span>
         <strong>{{ worklineDeviceText }}</strong>
       </div>
-      <div class="trace-case-hero__fact trace-case-hero__fact--wide">
+      <div class="trace-case-hero__fact trace-case-hero__fact--wide runtime-hero__fact">
         <span>Request / Correlation</span>
         <strong>{{ anchorText }}</strong>
       </div>
     </div>
 
-    <div class="trace-case-hero__counts">
-      <div v-for="item in counts" :key="item.label" class="trace-case-hero__count-card">
+    <div class="trace-case-hero__counts runtime-hero__counts">
+      <div v-for="item in counts" :key="item.label" class="trace-case-hero__count-card runtime-hero__count-card">
         <span>{{ item.label }}</span>
         <strong>{{ item.value }}</strong>
       </div>
@@ -147,19 +147,6 @@ const counts = computed(() => [
   text-transform: uppercase;
 }
 
-.trace-case-hero__code {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 8px;
-  border: 1px solid rgb(245, 158, 11, 0.16);
-  border-radius: 999px;
-  background: rgb(15, 23, 42, 0.45);
-  color: #cbd5e1;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 1;
-}
-
 .trace-case-hero__title-row {
   display: flex;
   align-items: center;
@@ -184,15 +171,6 @@ const counts = computed(() => [
   line-height: 1.6;
 }
 
-.trace-case-hero__fact,
-.trace-case-hero__count-card {
-  min-width: 0;
-  padding: 12px 14px;
-  border: 1px solid rgb(245, 158, 11, 0.12);
-  border-radius: 12px;
-  background: rgb(15, 23, 42, 0.5);
-}
-
 .trace-case-hero__fact strong,
 .trace-case-hero__count-card strong {
   display: block;
@@ -202,12 +180,6 @@ const counts = computed(() => [
   font-size: 13px;
   line-height: 1.45;
   overflow-wrap: anywhere;
-}
-
-.trace-case-hero__facts,
-.trace-case-hero__counts {
-  display: grid;
-  gap: 10px;
 }
 
 .trace-case-hero__facts {

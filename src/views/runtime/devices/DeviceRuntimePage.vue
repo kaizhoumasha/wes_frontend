@@ -19,9 +19,9 @@
       <el-card shadow="never" class="runtime-panel runtime-layout__list">
         <template #header>
           <div class="runtime-panel__header runtime-panel__header--compact">
-            <div v-if="activeWorklineId" class="runtime-workline-context runtime-workline-context--compact">
-              <strong class="runtime-workline-context__name" :title="activeWorklineName || undefined">{{ activeWorklineName }}</strong>
-              <span class="runtime-workline-context__meta">{{ activeWorklineContextMeta }}</span>
+            <div v-if="activeWorklineId" class="runtime-workline-context runtime-workline-context--compact runtime-compact-context">
+              <strong class="runtime-workline-context__name runtime-compact-context__name" :title="activeWorklineName || undefined">{{ activeWorklineName }}</strong>
+              <span class="runtime-workline-context__meta runtime-compact-context__meta">{{ activeWorklineContextMeta }}</span>
             </div>
             <div v-else class="runtime-workline-placeholder">请选择工作线后查看线内设备</div>
             <el-button text class="runtime-panel__switch-action" @click="openWorklineSwitcher">{{ activeWorklineId ? '切换工作线' : '选择工作线' }}</el-button>
@@ -697,32 +697,8 @@ watch(
   white-space: nowrap;
 }
 
-.runtime-workline-context {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  max-width: 100%;
-  padding: 8px 12px;
-  border: 1px solid var(--runtime-border-accent, rgb(245 158 11 / 0.16));
-  border-radius: 14px;
-  background: linear-gradient(180deg, var(--runtime-surface-strong, rgb(255 255 255 / 0.04)), var(--runtime-surface-accent, rgb(245 158 11 / 0.06)));
-}
-
 .runtime-workline-context--compact {
   flex: 1 1 auto;
-}
-
-.runtime-workline-context__name {
-  color: var(--runtime-text-primary, #f8fafc);
-  font-size: 14px;
-  line-height: 1.3;
-}
-
-.runtime-workline-context__meta {
-  color: var(--runtime-text-secondary, #94a3b8);
-  font-size: 12px;
-  line-height: 1.45;
 }
 
 .runtime-layout__list-scroll {
