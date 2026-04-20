@@ -18,19 +18,13 @@
     <div class="runtime-layout">
       <el-card shadow="never" class="runtime-panel runtime-layout__list">
         <template #header>
-          <div class="runtime-panel__header">
-            <div>
-              <div class="runtime-panel__title">线内设备目录</div>
-              <div class="runtime-panel__subtitle">{{ directorySubtitle }}</div>
+          <div class="runtime-panel__header runtime-panel__header--compact">
+            <div v-if="activeWorklineId" class="runtime-workline-context runtime-workline-context--compact">
+              <strong class="runtime-workline-context__name" :title="activeWorklineName || undefined">{{ activeWorklineName }}</strong>
+              <span class="runtime-workline-context__meta">{{ activeWorklineContextMeta }}</span>
             </div>
-            <div class="runtime-panel__actions">
-              <div v-if="activeWorklineId" class="runtime-workline-context">
-                <span class="runtime-workline-context__label">当前工作线</span>
-                <strong class="runtime-workline-context__name" :title="activeWorklineName || undefined">{{ activeWorklineName }}</strong>
-                <span class="runtime-workline-context__meta">{{ activeWorklineContextMeta }}</span>
-              </div>
-              <el-button text class="runtime-panel__switch-action" @click="openWorklineSwitcher">{{ activeWorklineId ? '切换工作线' : '选择工作线' }}</el-button>
-            </div>
+            <div v-else class="runtime-workline-placeholder">请选择工作线后查看线内设备</div>
+            <el-button text class="runtime-panel__switch-action" @click="openWorklineSwitcher">{{ activeWorklineId ? '切换工作线' : '选择工作线' }}</el-button>
           </div>
         </template>
 
@@ -284,14 +278,6 @@ const activeWorklineContextMeta = computed(() => {
   const zone = summary?.zone_name || '未配置区域'
   const deviceCount = devices.value.length || summary?.device_count || 0
   return `${code} · ${zone} · 设备 ${deviceCount}`
-})
-
-const directorySubtitle = computed(() => {
-  if (!activeWorklineId.value) {
-    return '先选择工作线，再查看对应 plugin 责任边界与线内设备状态'
-  }
-
-  return '按设备风险、未结命令与最近异常信号定位当前线内瓶颈'
 })
 
 const orderedDevices = computed(() => {
@@ -658,6 +644,17 @@ watch(
   gap: 16px;
 }
 
+.runtime-panel__header--compact {
+  align-items: center;
+  gap: 12px;
+}
+
+.runtime-workline-placeholder {
+  color: var(--runtime-text-secondary, #94a3b8);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .runtime-panel__title {
   color: #f8fafc;
   font-size: 16px;
@@ -685,33 +682,29 @@ watch(
 .runtime-workline-context {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  min-width: 220px;
-  max-width: 320px;
-  padding: 10px 14px;
-  border: 1px solid var(--runtime-border-accent, rgb(245 158 11 / 0.2));
-  border-radius: 18px;
-  background: linear-gradient(180deg, var(--runtime-surface-strong, rgb(255 255 255 / 0.06)), var(--runtime-surface-accent, rgb(245 158 11 / 0.08)));
+  gap: 2px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--runtime-border-accent, rgb(245 158 11 / 0.16));
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--runtime-surface-strong, rgb(255 255 255 / 0.04)), var(--runtime-surface-accent, rgb(245 158 11 / 0.06)));
 }
 
-.runtime-workline-context__label {
-  color: var(--runtime-text-secondary, #94a3b8);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.runtime-workline-context--compact {
+  flex: 1 1 auto;
 }
 
 .runtime-workline-context__name {
   color: var(--runtime-text-primary, #f8fafc);
-  font-size: 15px;
-  line-height: 1.35;
+  font-size: 14px;
+  line-height: 1.3;
 }
 
 .runtime-workline-context__meta {
   color: var(--runtime-text-secondary, #94a3b8);
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 1.45;
 }
 
 .runtime-layout__list-scroll {
