@@ -5742,6 +5742,47 @@ export const OPENAPI_SCHEMA_METADATA = {
       }
     }
   },
+  "RuntimeDeviceHealthSummary": {
+    "title": "RuntimeDeviceHealthSummary",
+    "required": [],
+    "fields": {
+      "total": {
+        "title": "Total",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "abnormal": {
+        "title": "Abnormal",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "maintenance": {
+        "title": "Maintenance",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "loaded": {
+        "title": "Loaded",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "healthy": {
+        "title": "Healthy",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      }
+    }
+  },
   "RuntimeDeviceSummary": {
     "title": "RuntimeDeviceSummary",
     "required": [
@@ -5890,6 +5931,11 @@ export const OPENAPI_SCHEMA_METADATA = {
         "items": {
           "ref": "RuntimeDeviceSummary"
         }
+      },
+      "device_health": {
+        "required": false,
+        "nullable": false,
+        "ref": "RuntimeDeviceHealthSummary"
       }
     }
   },

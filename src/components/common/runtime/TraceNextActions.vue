@@ -11,7 +11,7 @@
 
     <div class="trace-next-actions__grid">
       <el-button v-if="detail.trace.workline_id" type="primary" @click="openWorkline">查看所属工作线</el-button>
-      <el-button v-if="detail.trace.device_id" plain @click="openDevice">查看所属设备</el-button>
+      <el-button v-if="detail.trace.device_id && detail.trace.workline_id" plain @click="openDevice">查看线内设备</el-button>
       <el-button v-if="detail.trace.correlation_id" plain @click="openCorrelation">查询同 Correlation</el-button>
       <el-button v-if="detail.trace.command_code" plain @click="openCommand">查询同 Command</el-button>
       <el-button v-if="detail.trace.request_id" plain @click="openRequest">打开当前 Request</el-button>

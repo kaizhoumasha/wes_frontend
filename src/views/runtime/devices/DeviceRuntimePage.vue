@@ -3,7 +3,7 @@
     <div class="runtime-page__header">
       <div>
         <h1 class="runtime-page__title">设备监控</h1>
-        <p class="runtime-page__subtitle">先判断单机健康，再看最近命令、回调和关联 Trace，确认它是不是当前系统瓶颈。</p>
+        <p class="runtime-page__subtitle">先切到具体工作线，再判断线内哪台设备正在成为瓶颈，并回看命令、回调与关联 Trace。</p>
       </div>
       <div class="runtime-page__status-bar">
         <RuntimeStatusBadge :label="connectionLabel" :tone="connectionTone" :pulse="live && state === 'connected'" />
@@ -20,17 +20,17 @@
         <template #header>
           <div class="runtime-panel__header">
             <div>
-              <div class="runtime-panel__title">设备目录</div>
+              <div class="runtime-panel__title">线内设备目录</div>
               <div class="runtime-panel__subtitle">{{ directorySubtitle }}</div>
             </div>
             <div v-if="activeWorklineId" class="runtime-panel__actions">
-              <span class="runtime-scope-chip">当前范围：{{ activeWorklineName }}</span>
-              <el-button text @click="clearWorklineFilter">查看全局设备</el-button>
+              <span class="runtime-scope-chip">当前工作线：{{ activeWorklineName }}</span>
+              <el-button text @click="openWorklinePicker">切换工作线</el-button>
             </div>
           </div>
         </template>
 
-        <div v-if="orderedDevices.length" class="runtime-directory-list">
+        <div v-if="activeWorklineId && orderedDevices.length" class="runtime-directory-list">
           <button
             v-for="item in orderedDevices"
             :key="item.id"
@@ -51,15 +51,17 @@
         <RuntimeEmptyState
           v-else-if="activeWorklineId"
           title="当前工作线下暂无设备"
-          :description="`${activeWorklineName} 当前没有可展示的设备运行样本。`"
-          hint="可清除工作线范围，回到全局设备目录继续排查。"
+          :description="`${activeWorklineName} 当前没有可展示的线内设备运行样本。`"
+          hint="请先确认这条工作线的设备编排、plugin 绑定与 runtime 数据是否正常。"
         />
-        <RuntimeEmptyState
-          v-else
-          title="暂无设备数据"
-          description="当前还没有可用于设备监控的运行样本。"
-          hint="请确认设备主数据、权限与 runtime API 返回是否正常。"
-        />
+        <div v-else class="runtime-context-empty">
+          <RuntimeEmptyState
+            title="请先选择工作线"
+            description="设备运行态只在工作线上下文里成立，必须先进入一条工作线再看线内设备。"
+            hint="设备能力、plugin 语义和 Trace 归因都依赖当前工作线。"
+          />
+          <el-button type="primary" plain @click="openWorklinePicker">前往工作线监控</el-button>
+        </div>
       </el-card>
 
       <div class="runtime-layout__detail">
@@ -155,10 +157,19 @@
         </template>
 
         <el-card v-else shadow="never" class="runtime-panel runtime-layout__empty-state">
+          <div v-if="!activeWorklineId" class="runtime-context-empty runtime-context-empty--centered">
+            <RuntimeEmptyState
+              title="设备运行态必须在工作线上下文里查看"
+              description="请先进入某条工作线，再查看该线内设备节点的健康状态、最近行为和关联 Trace。"
+              hint="设备没有脱离工作线的全局运行语义。"
+            />
+            <el-button type="primary" plain @click="openWorklinePicker">前往工作线监控</el-button>
+          </div>
           <RuntimeEmptyState
+            v-else
             title="还没有选中设备"
-            description="请从左侧设备目录选择一台设备，查看它的健康状态、最近行为和关联 Trace。"
-            hint="目录会保持稳定排序；若携带工作线上下文，将只显示该工作线的设备。"
+            description="请从左侧线内设备目录选择一台设备，查看它的健康状态、最近行为和关联 Trace。"
+            hint="目录会保持稳定排序；设备能力和 plugin 语义都基于当前工作线。"
           />
         </el-card>
       </div>
@@ -192,21 +203,13 @@ const requestedDeviceId = computed(() => readPositiveIntQuery(route.query.device
 const activeWorklineId = computed(() => readPositiveIntQuery(route.query.worklineId))
 const selectedDeviceId = computed(() => detail.value?.summary.id ?? requestedDeviceId.value)
 
-const scopedDevices = computed(() => {
-  if (!activeWorklineId.value) {
-    return devices.value
-  }
-
-  return devices.value.filter(item => item.workline_id === activeWorklineId.value)
-})
-
 const activeWorklineName = computed(() => {
   if (!activeWorklineId.value) {
     return null
   }
 
   return (
-    scopedDevices.value[0]?.workline_name ||
+    devices.value[0]?.workline_name ||
     (detail.value?.summary.workline_id === activeWorklineId.value ? detail.value.summary.workline_name : null) ||
     `工作线 #${activeWorklineId.value}`
   )
@@ -214,14 +217,14 @@ const activeWorklineName = computed(() => {
 
 const directorySubtitle = computed(() => {
   if (!activeWorklineId.value) {
-    return '按风险与负载排序，快速找到当前瓶颈设备'
+    return '先选择工作线，再看该线内设备节点与 plugin 责任边界'
   }
 
-  return `当前限定为 ${activeWorklineName.value}，按风险与负载排序定位线内异常设备`
+  return `${activeWorklineName.value} · 按风险与负载排序定位线内异常设备`
 })
 
 const orderedDevices = computed(() => {
-  return [...scopedDevices.value].sort((left, right) => {
+  return [...devices.value].sort((left, right) => {
     const riskDelta = getDeviceRiskScore(right) - getDeviceRiskScore(left)
     if (riskDelta !== 0) {
       return riskDelta
@@ -277,11 +280,11 @@ function resolveSelectableDeviceId(preferredDeviceId: number | null): number | n
   return orderedDevices.value[0]?.id ?? null
 }
 
-function buildDeviceQuery(deviceId: number | null) {
+function buildDeviceQuery(deviceId: number | null, worklineId: number | null = activeWorklineId.value) {
   return {
     ...route.query,
-    worklineId: activeWorklineId.value ? String(activeWorklineId.value) : undefined,
-    deviceId: deviceId ? String(deviceId) : undefined
+    worklineId: worklineId ? String(worklineId) : undefined,
+    deviceId: worklineId && deviceId ? String(deviceId) : undefined
   }
 }
 
@@ -339,15 +342,29 @@ function toEpoch(value?: string | null) {
 }
 
 async function loadDetail(deviceId: number) {
-  detail.value = await runtimeApiMethods.deviceDetail(deviceId).send()
+  if (!activeWorklineId.value) {
+    detail.value = null
+    return
+  }
+
+  detail.value = await runtimeApiMethods.deviceDetail(deviceId, activeWorklineId.value).send()
   markRefreshedAt()
 }
 
 async function fetchDevices(worklineId: number | null) {
+  if (!worklineId) {
+    return []
+  }
+
   return await runtimeApiMethods.devices(worklineId).send()
 }
 
 async function syncDeviceSelection(preferredDeviceId: number | null, syncRoute = false) {
+  if (!activeWorklineId.value) {
+    detail.value = null
+    return
+  }
+
   const resolvedDeviceId = resolveSelectableDeviceId(preferredDeviceId)
 
   if (!resolvedDeviceId) {
@@ -370,6 +387,16 @@ async function syncDeviceSelection(preferredDeviceId: number | null, syncRoute =
 async function loadDevices() {
   loading.value = true
   try {
+    if (!activeWorklineId.value) {
+      devices.value = []
+      detail.value = null
+      if (requestedDeviceId.value) {
+        await router.replace({ query: buildDeviceQuery(null, null) })
+      }
+      markRefreshedAt()
+      return
+    }
+
     devices.value = await fetchDevices(activeWorklineId.value)
     await syncDeviceSelection(requestedDeviceId.value, true)
     markRefreshedAt()
@@ -388,12 +415,10 @@ async function selectDevice(row: { id: number }) {
   }
 }
 
-async function clearWorklineFilter() {
-  await router.replace({
-    query: {
-      ...route.query,
-      worklineId: undefined
-    }
+function openWorklinePicker() {
+  router.push({
+    name: 'RuntimeWorklines',
+    query: activeWorklineId.value ? { worklineId: String(activeWorklineId.value) } : undefined
   })
 }
 
@@ -419,7 +444,8 @@ watch(
       return
     }
 
-    if (!devices.value.length) {
+    if (!nextWorklineId || !devices.value.length) {
+      detail.value = null
       return
     }
 
@@ -434,7 +460,7 @@ watch(
 watch(
   () => lastEvent.value,
   async event => {
-    if (!live.value || !event) return
+    if (!live.value || !event || !activeWorklineId.value) return
     if (detail.value?.summary.id) {
       await loadDetail(detail.value.summary.id)
     }
@@ -656,6 +682,17 @@ watch(
   color: #f8fafc;
   font-family: var(--font-mono);
   font-size: 16px;
+}
+
+.runtime-context-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.runtime-context-empty--centered {
+  justify-content: center;
 }
 
 .runtime-layout__empty-state {

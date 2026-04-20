@@ -1601,6 +1601,20 @@ export const RuntimeDeviceDetailResponseSchema = z.object({
 })
 
 
+export const RuntimeDeviceHealthSummarySchema = z.object({
+  /** Total */
+  total: z.number().optional().default(0),
+  /** Abnormal */
+  abnormal: z.number().optional().default(0),
+  /** Maintenance */
+  maintenance: z.number().optional().default(0),
+  /** Loaded */
+  loaded: z.number().optional().default(0),
+  /** Healthy */
+  healthy: z.number().optional().default(0),
+})
+
+
 export const RuntimeDeviceSummarySchema = z.object({
   /** Id */
   id: z.number(),
@@ -1644,6 +1658,7 @@ export const RuntimeOverviewResponseSchema = z.object({
   hot_worklines: z.array(z.lazy(() => RuntimeWorklineSummarySchema)).optional(),
   /** Abnormal Devices */
   abnormal_devices: z.array(z.lazy(() => RuntimeDeviceSummarySchema)).optional(),
+  device_health: z.lazy(() => RuntimeDeviceHealthSummarySchema).optional(),
 })
 
 

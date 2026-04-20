@@ -23,14 +23,16 @@ export const runtimeApiMethods = {
     return apiClient.Get<RuntimeWorklineDetailResponse>(`/api/v1/workline/runtime/worklines/${worklineId}`)
   },
 
-  devices(worklineId?: number | null) {
-    return apiClient.Get<RuntimeDeviceSummary[]>('/api/v1/workline/runtime/devices', worklineId ? {
+  devices(worklineId: number) {
+    return apiClient.Get<RuntimeDeviceSummary[]>('/api/v1/workline/runtime/devices', {
       params: { worklineId }
-    } : undefined)
+    })
   },
 
-  deviceDetail(deviceId: number) {
-    return apiClient.Get<RuntimeDeviceDetailResponse>(`/api/v1/workline/runtime/devices/${deviceId}`)
+  deviceDetail(deviceId: number, worklineId: number) {
+    return apiClient.Get<RuntimeDeviceDetailResponse>(`/api/v1/workline/runtime/devices/${deviceId}`, {
+      params: { worklineId }
+    })
   },
 
   queryTraces(payload: TraceQueryPayload) {

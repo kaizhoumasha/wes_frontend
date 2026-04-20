@@ -89,7 +89,7 @@
         </template>
 
         <div v-if="topDevices.length" class="runtime-risk-list runtime-risk-list--compact">
-          <button v-for="item in topDevices" :key="item.id" type="button" class="runtime-risk-item" @click="openDevice(item.id)">
+          <button v-for="item in topDevices" :key="item.id" type="button" class="runtime-risk-item" @click="openDevice(item.id, item.workline_id)">
             <div class="runtime-risk-item__top">
               <RuntimeStatusBadge :status="item.device_status" size="small" />
               <span class="runtime-risk-item__time">{{ formatRuntimeDateTime(item.recent_callback_at || item.last_heartbeat_at) }}</span>
@@ -109,13 +109,14 @@
 
     <div class="runtime-overview__health-grid">
       <RuntimeHealthBreakdown title="工作线结构健康" subtitle="判断故障是否集中在某几条线体" :total="worklines.length" :items="worklineHealthItems" />
-      <RuntimeHealthBreakdown title="设备健康分布" subtitle="识别异常、维护与高负载设备占比" :total="devices.length" :items="deviceHealthItems" />
+      <RuntimeHealthBreakdown title="设备健康分布" subtitle="识别异常、维护与高负载设备占比" :total="overview.device_health.total" :items="deviceHealthItems" />
       <RuntimeHealthBreakdown title="Session 结构信号" subtitle="把运行 / 等待 / 失败 / 积压放在同一视图里" :total="sessionStructureTotal" :items="sessionStructureItems" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ElMessage } from 'element-plus'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import RuntimeEmptyState from '@/components/common/runtime/RuntimeEmptyState.vue'
@@ -126,7 +127,7 @@ import RuntimeSignalStrip from '@/components/common/runtime/RuntimeSignalStrip.v
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
-import type { RuntimeDeviceSummary, RuntimeOverviewResponse, RuntimeWorklineSummary } from '@/types/runtime'
+import type { RuntimeOverviewResponse, RuntimeWorklineSummary } from '@/types/runtime'
 import type { RuntimeTone } from '@/utils/runtime-display'
 import { formatRuntimeDateTime, formatRuntimeElapsed, getDeviceRiskScore, getTraceRiskScore, getWorklineRiskLabel as worklineRiskLabel, getWorklineRiskScore, getWorklineRiskTone as worklineRiskTone } from '@/utils/runtime-display'
 
@@ -138,10 +139,16 @@ const overview = ref<RuntimeOverviewResponse>({
   stats: [],
   recent_failed_traces: [],
   hot_worklines: [],
-  abnormal_devices: []
+  abnormal_devices: [],
+  device_health: {
+    total: 0,
+    abnormal: 0,
+    maintenance: 0,
+    loaded: 0,
+    healthy: 0
+  }
 })
 const worklines = ref<RuntimeWorklineSummary[]>([])
-const devices = ref<RuntimeDeviceSummary[]>([])
 
 const statMeta: Record<string, { icon: string; hint: string; status?: RuntimeTone }> = {
   running_sessions: { icon: 'ep:refresh-right', hint: '当前仍在运行的作业链路', status: 'primary' },
@@ -176,7 +183,7 @@ const topWorklines = computed(() => {
 })
 
 const topDevices = computed(() => {
-  return [...devices.value]
+  return [...overview.value.abnormal_devices]
     .sort((left, right) => getDeviceRiskScore(right) - getDeviceRiskScore(left))
     .slice(0, 5)
 })
@@ -197,11 +204,11 @@ const worklineHealthItems = computed(() => {
 })
 
 const deviceHealthItems = computed(() => {
-  const total = devices.value.length || 1
-  const abnormal = devices.value.filter(item => ['ERROR', 'OFFLINE'].includes(item.device_status)).length
-  const maintenance = devices.value.filter(item => item.maintenance_mode).length
-  const loaded = devices.value.filter(item => item.pending_command_count > 0 && !['ERROR', 'OFFLINE'].includes(item.device_status)).length
-  const healthy = devices.value.filter(item => !['ERROR', 'OFFLINE'].includes(item.device_status) && !item.maintenance_mode).length
+  const total = overview.value.device_health.total || 1
+  const abnormal = overview.value.device_health.abnormal
+  const maintenance = overview.value.device_health.maintenance
+  const loaded = overview.value.device_health.loaded
+  const healthy = overview.value.device_health.healthy
 
   return [
     { label: '异常设备', value: abnormal, ratio: ratio(abnormal, total), tone: 'danger' as RuntimeTone, hint: '状态为 ERROR / OFFLINE' },
@@ -241,15 +248,13 @@ function ratio(value: number, total: number) {
 async function refresh() {
   loading.value = true
   try {
-    const [overviewData, worklineData, deviceData] = await Promise.all([
+    const [overviewData, worklineData] = await Promise.all([
       runtimeApiMethods.overview().send(),
-      runtimeApiMethods.worklines().send(),
-      runtimeApiMethods.devices().send()
+      runtimeApiMethods.worklines().send()
     ])
 
     overview.value = overviewData
     worklines.value = worklineData
-    devices.value = deviceData
     markRefreshedAt()
   } finally {
     loading.value = false
@@ -264,8 +269,13 @@ function openWorkline(worklineId: number) {
   router.push({ name: 'RuntimeWorklines', query: { worklineId: String(worklineId) } })
 }
 
-function openDevice(deviceId: number) {
-  router.push({ name: 'RuntimeDevices', query: { deviceId: String(deviceId) } })
+function openDevice(deviceId: number, worklineId?: number | null) {
+  if (!worklineId) {
+    ElMessage.warning('该设备尚未绑定工作线，暂时无法进入线内设备监控')
+    return
+  }
+
+  router.push({ name: 'RuntimeDevices', query: { deviceId: String(deviceId), worklineId: String(worklineId) } })
 }
 
 onMounted(refresh)

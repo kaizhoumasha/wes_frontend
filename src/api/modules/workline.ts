@@ -30,6 +30,7 @@ export type DevicesQuery = ContractQueryParams<'/api/v1/workline/runtime/devices
 
 export type GetDevicesResult = ContractResponseData<'/api/v1/workline/runtime/devices/{device_id}', 'get'>
 export type GetDevicesPathParams = ContractPathParams<'/api/v1/workline/runtime/devices/{device_id}', 'get'>
+export type GetDevicesQuery = ContractQueryParams<'/api/v1/workline/runtime/devices/{device_id}', 'get'>
 
 export type RequestResult = ContractResponseData<'/api/v1/workline/trace/request/{request_id}', 'get'>
 export type RequestPathParams = ContractPathParams<'/api/v1/workline/trace/request/{request_id}', 'get'>
@@ -91,8 +92,8 @@ export const worklineApiMethods = {
    * @endpoint GET /api/v1/workline/runtime/devices/{device_id}
    * @returns alova method instance
    */
-  getDevices(params: ContractPathParams<'/api/v1/workline/runtime/devices/{device_id}', 'get'>, config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/workline/runtime/devices/{device_id}', { params, config })
+  getDevices(params: ContractPathParams<'/api/v1/workline/runtime/devices/{device_id}', 'get'>, query?: ContractQueryParams<'/api/v1/workline/runtime/devices/{device_id}', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/runtime/devices/{device_id}', { params, query, config })
   },
 
   /**

@@ -303,9 +303,18 @@ export interface RuntimeDeviceDetailResponse {
   active_sessions: RuntimeTraceListItem[]
 }
 
+export interface RuntimeDeviceHealthSummary {
+  total: number
+  abnormal: number
+  maintenance: number
+  loaded: number
+  healthy: number
+}
+
 export interface RuntimeOverviewResponse {
   stats: RuntimeStatCard[]
   recent_failed_traces: RuntimeTraceListItem[]
   hot_worklines: RuntimeWorklineSummary[]
   abnormal_devices: RuntimeDeviceSummary[]
+  device_health: RuntimeDeviceHealthSummary
 }

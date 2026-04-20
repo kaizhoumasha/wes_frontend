@@ -5937,6 +5937,34 @@ export interface components {
             recent_commands?: components["schemas"]["TraceCommandItem"][];
             summary: components["schemas"]["RuntimeDeviceSummary"];
         };
+        /** RuntimeDeviceHealthSummary */
+        RuntimeDeviceHealthSummary: {
+            /**
+             * Abnormal
+             * @default 0
+             */
+            abnormal: number;
+            /**
+             * Healthy
+             * @default 0
+             */
+            healthy: number;
+            /**
+             * Loaded
+             * @default 0
+             */
+            loaded: number;
+            /**
+             * Maintenance
+             * @default 0
+             */
+            maintenance: number;
+            /**
+             * Total
+             * @default 0
+             */
+            total: number;
+        };
         /** RuntimeDeviceSummary */
         RuntimeDeviceSummary: {
             /** Current Command Id */
@@ -5980,6 +6008,7 @@ export interface components {
         RuntimeOverviewResponse: {
             /** Abnormal Devices */
             abnormal_devices?: components["schemas"]["RuntimeDeviceSummary"][];
+            device_health?: components["schemas"]["RuntimeDeviceHealthSummary"];
             /** Hot Worklines */
             hot_worklines?: components["schemas"]["RuntimeWorklineSummary"][];
             /** Recent Failed Traces */
@@ -10858,8 +10887,8 @@ export interface operations {
     };
     workline_runtime_devices_get: {
         parameters: {
-            query?: {
-                worklineId?: number | null;
+            query: {
+                worklineId: number;
             };
             header?: never;
             path?: never;
@@ -10889,7 +10918,9 @@ export interface operations {
     };
     workline_runtime_devices_by_device_id_get: {
         parameters: {
-            query?: never;
+            query: {
+                worklineId: number;
+            };
             header?: never;
             path: {
                 device_id: number;
