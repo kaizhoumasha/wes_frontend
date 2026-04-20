@@ -235,6 +235,8 @@ import TraceTimeline from '@/components/common/runtime/TraceTimeline.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
 import type { RuntimeTraceListItem, RuntimeTraceListResponse, TraceDetailResponse, TraceQueryPayload } from '@/types/runtime'
+import { createCoalescedAsyncTask } from '@/utils/createCoalescedAsyncTask'
+import { isRelevantRuntimeEvent } from '@/utils/runtime-event'
 import { buildRuntimeTraceQuery, type RuntimeTraceQueryInput } from '@/utils/runtime-route'
 import { compactEnumLabel, formatRuntimeDateTime, formatRuntimeDurationMs, readPositiveInt } from '@/utils/runtime-display'
 
@@ -593,6 +595,8 @@ async function refreshCurrent() {
   }
 }
 
+const refreshCurrentCoalesced = createCoalescedAsyncTask(refreshCurrent)
+
 onMounted(async () => {
   loading.value = true
   try {
@@ -612,12 +616,16 @@ watch(
   () => lastEvent.value,
   async event => {
     if (!live.value || !event) return
-    await loadTraceList(currentListPayload.value)
-    const activeSessionId = traceDetail.value?.trace.session_id
-    const eventSessionId = Number(event.keys?.session_id || 0)
-    if (activeSessionId && eventSessionId === activeSessionId) {
-      await loadTraceBySession(activeSessionId)
+
+    if (!isRelevantRuntimeEvent(event, {
+      sessionId: traceDetail.value?.trace.session_id ?? null,
+      worklineId: readPositiveInt(route.query.worklineId),
+      deviceId: readPositiveInt(route.query.deviceId)
+    })) {
+      return
     }
+
+    await refreshCurrentCoalesced()
   }
 )
 </script>

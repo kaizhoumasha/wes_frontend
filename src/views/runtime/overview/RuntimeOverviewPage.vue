@@ -129,6 +129,7 @@ import { runtimeApiMethods } from '@/api/modules/runtime'
 import { buildRuntimeDeviceQuery, buildRuntimeTraceQuery, buildRuntimeWorklineQuery } from '@/utils/runtime-route'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
 import type { RuntimeOverviewResponse, RuntimeWorklineSummary } from '@/types/runtime'
+import { createCoalescedAsyncTask } from '@/utils/createCoalescedAsyncTask'
 import type { RuntimeTone } from '@/utils/runtime-display'
 import { formatRuntimeDateTime, formatRuntimeElapsed, getDeviceRiskScore, getTraceRiskScore, getWorklineRiskLabel as worklineRiskLabel, getWorklineRiskScore, getWorklineRiskTone as worklineRiskTone, takeTopByScoreDesc } from '@/utils/runtime-display'
 
@@ -234,21 +235,25 @@ function ratio(value: number, total: number) {
   return total <= 0 ? 0 : Math.min(100, Math.round((value / total) * 100))
 }
 
-async function refresh() {
+async function loadOverviewData(): Promise<void> {
+  const [overviewData, worklineData] = await Promise.all([
+    runtimeApiMethods.overview().send(),
+    runtimeApiMethods.worklines().send()
+  ])
+
+  overview.value = overviewData
+  worklines.value = worklineData
+  markRefreshedAt()
+}
+
+const refresh = createCoalescedAsyncTask(async () => {
   loading.value = true
   try {
-    const [overviewData, worklineData] = await Promise.all([
-      runtimeApiMethods.overview().send(),
-      runtimeApiMethods.worklines().send()
-    ])
-
-    overview.value = overviewData
-    worklines.value = worklineData
-    markRefreshedAt()
+    await loadOverviewData()
   } finally {
     loading.value = false
   }
-}
+})
 
 function openTrace(sessionId: number) {
   router.push({ name: 'RuntimeTraceExplorer', query: buildRuntimeTraceQuery({ sessionId }) })
@@ -267,13 +272,15 @@ function openDevice(deviceId: number, worklineId?: number | null) {
   router.push({ name: 'RuntimeDevices', query: buildRuntimeDeviceQuery(deviceId, worklineId) })
 }
 
-onMounted(refresh)
+onMounted(() => {
+  void refresh()
+})
 
 watch(
   () => lastEvent.value,
   event => {
     if (!live.value || !event) return
-    refresh()
+    void refresh()
   }
 )
 </script>

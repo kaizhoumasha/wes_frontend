@@ -9,7 +9,7 @@
         <RuntimeStatusBadge :label="connectionLabel" :tone="connectionTone" :pulse="live && state === 'connected'" />
         <el-switch :model-value="live" inline-prompt active-text="Live" inactive-text="Frozen" @change="value => toggleLive(Boolean(value))" />
         <RuntimeLastUpdated :value="lastRefreshedAt" :frozen="!live" />
-        <el-button plain class="runtime-page__refresh-action" @click="loadDevices">刷新当前视图</el-button>
+        <el-button plain class="runtime-page__refresh-action" @click="refreshDevices">刷新当前视图</el-button>
       </div>
     </div>
 
@@ -230,8 +230,10 @@ import { runtimeApiMethods } from '@/api/modules/runtime'
 import { buildRuntimeDeviceQuery, buildRuntimeTraceQuery } from '@/utils/runtime-route'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
 import type { RuntimeDeviceDetailResponse, RuntimeDeviceSummary, RuntimeWorklineSummary, TraceCallbackLogItem, TraceCommandItem } from '@/types/runtime'
+import { createCoalescedAsyncTask } from '@/utils/createCoalescedAsyncTask'
+import { isRelevantRuntimeEvent } from '@/utils/runtime-event'
 import type { RuntimeTone } from '@/utils/runtime-display'
-import { compactEnumLabel, formatRuntimeDateTime, formatRuntimeDurationMs, formatRuntimeElapsed, getDeviceRiskScore, getWorklineRiskLabel as worklineRiskLabel, getWorklineRiskScore, getWorklineRiskTone as worklineRiskTone, pickDominantValue, readPositiveInt, sortByScoreDesc } from '@/utils/runtime-display'
+import { compactEnumLabel, formatRuntimeDateTime, formatRuntimeDurationMs, formatRuntimeElapsed, getDeviceRiskScore, getWorklineRiskLabel as worklineRiskLabel, getWorklineRiskScore, getWorklineRiskTone as worklineRiskTone, pickDominantValue, readPositiveInt, resolveRuntimeTone, sortByScoreDesc } from '@/utils/runtime-display'
 
 const route = useRoute()
 const router = useRouter()
@@ -362,15 +364,8 @@ function toneFromHttpStatus(code: number): RuntimeTone {
 }
 
 function resolveCommandActivityTone(status: string): RuntimeTone {
-  if (status === 'FAILED' || status === 'CANCELLED') {
-    return 'danger'
-  }
-
-  if (status === 'PENDING') {
-    return 'warning'
-  }
-
-  return 'primary'
+  const tone = resolveRuntimeTone(status)
+  return tone === 'info' ? 'primary' : tone
 }
 
 function buildCommandActivity(command: TraceCommandItem) {
@@ -459,27 +454,31 @@ async function syncDeviceSelection(preferredDeviceId: number | null, syncRoute =
 }
 
 async function loadDevices() {
+  await loadWorklines()
+
+  if (!activeWorklineId.value) {
+    devices.value = []
+    detail.value = null
+    if (requestedDeviceId.value) {
+      await router.replace({ query: buildDeviceQuery(null, null) })
+    }
+    markRefreshedAt()
+    return
+  }
+
+  devices.value = await fetchDevices(activeWorklineId.value)
+  await syncDeviceSelection(requestedDeviceId.value, true)
+  markRefreshedAt()
+}
+
+const refreshDevices = createCoalescedAsyncTask(async () => {
   loading.value = true
   try {
-    await loadWorklines()
-
-    if (!activeWorklineId.value) {
-      devices.value = []
-      detail.value = null
-      if (requestedDeviceId.value) {
-        await router.replace({ query: buildDeviceQuery(null, null) })
-      }
-      markRefreshedAt()
-      return
-    }
-
-    devices.value = await fetchDevices(activeWorklineId.value)
-    await syncDeviceSelection(requestedDeviceId.value, true)
-    markRefreshedAt()
+    await loadDevices()
   } finally {
     loading.value = false
   }
-}
+})
 
 async function selectDevice(row: { id: number }) {
   if (detail.value?.summary.id !== row.id) {
@@ -525,13 +524,15 @@ function openRequestTrace(requestId: string) {
   router.push({ name: 'RuntimeTraceExplorer', query: buildTraceContextQuery({ requestId }) })
 }
 
-onMounted(loadDevices)
+onMounted(() => {
+  void refreshDevices()
+})
 
 watch(
   () => [requestedDeviceId.value, activeWorklineId.value] as const,
   async ([nextDeviceId, nextWorklineId], [previousDeviceId, previousWorklineId]) => {
     if (nextWorklineId !== previousWorklineId) {
-      await loadDevices()
+      await refreshDevices()
       return
     }
 
@@ -552,20 +553,14 @@ watch(
   () => lastEvent.value,
   async event => {
     if (!live.value || !event) return
-
-    await loadWorklines()
-
-    if (!activeWorklineId.value) {
-      markRefreshedAt()
+    if (!isRelevantRuntimeEvent(event, {
+      worklineId: activeWorklineId.value,
+      deviceId: detail.value?.summary.id ?? requestedDeviceId.value
+    })) {
       return
     }
 
-    if (detail.value?.summary.id) {
-      await loadDetail(detail.value.summary.id)
-    }
-    devices.value = await fetchDevices(activeWorklineId.value)
-    await syncDeviceSelection(requestedDeviceId.value, true)
-    markRefreshedAt()
+    await refreshDevices()
   }
 )
 </script>

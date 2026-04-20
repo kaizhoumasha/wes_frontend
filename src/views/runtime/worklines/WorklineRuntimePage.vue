@@ -9,7 +9,7 @@
         <RuntimeStatusBadge :label="connectionLabel" :tone="connectionTone" :pulse="live && state === 'connected'" />
         <el-switch :model-value="live" inline-prompt active-text="Live" inactive-text="Frozen" @change="value => toggleLive(Boolean(value))" />
         <RuntimeLastUpdated :value="lastRefreshedAt" :frozen="!live" />
-        <el-button plain class="runtime-page__refresh-action" @click="loadWorklines">刷新当前视图</el-button>
+        <el-button plain class="runtime-page__refresh-action" @click="refreshWorklines">刷新当前视图</el-button>
       </div>
     </div>
 
@@ -193,6 +193,8 @@ import { runtimeApiMethods } from '@/api/modules/runtime'
 import { buildRuntimeDeviceQuery, buildRuntimeTraceQuery, buildRuntimeWorklineQuery } from '@/utils/runtime-route'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
 import type { RuntimeWorklineDetailResponse, RuntimeWorklineDeviceItem, RuntimeWorklineSummary } from '@/types/runtime'
+import { createCoalescedAsyncTask } from '@/utils/createCoalescedAsyncTask'
+import { isRelevantRuntimeEvent } from '@/utils/runtime-event'
 import { formatRuntimeDateTime, formatRuntimeElapsed, getWorklineRiskLabel as worklineRiskLabel, getWorklineRiskScore, getWorklineRiskTone as worklineRiskTone, pickDominantValue, readPositiveInt, sortByScoreDesc } from '@/utils/runtime-display'
 
 const route = useRoute()
@@ -248,18 +250,22 @@ async function loadDetail(worklineId: number) {
 }
 
 async function loadWorklines() {
+  worklines.value = await runtimeApiMethods.worklines().send()
+  const worklineId = readPositiveInt(route.query.worklineId) ?? worklines.value[0]?.id ?? null
+  if (worklineId) {
+    await selectWorkline({ id: worklineId } as RuntimeWorklineSummary)
+  }
+  markRefreshedAt()
+}
+
+const refreshWorklines = createCoalescedAsyncTask(async () => {
   loading.value = true
   try {
-    worklines.value = await runtimeApiMethods.worklines().send()
-    const worklineId = readPositiveInt(route.query.worklineId) ?? worklines.value[0]?.id ?? null
-    if (worklineId) {
-      await selectWorkline({ id: worklineId } as RuntimeWorklineSummary)
-    }
-    markRefreshedAt()
+    await loadWorklines()
   } finally {
     loading.value = false
   }
-}
+})
 
 async function selectWorkline(row: { id: number }) {
   await loadDetail(row.id)
@@ -274,17 +280,21 @@ function openDevice(deviceId: number) {
   router.push({ name: 'RuntimeDevices', query: buildRuntimeDeviceQuery(deviceId, detail.value?.summary.id) })
 }
 
-onMounted(loadWorklines)
+onMounted(() => {
+  void refreshWorklines()
+})
 
 watch(
   () => lastEvent.value,
   async event => {
     if (!live.value || !event) return
-    if (detail.value?.summary.id) {
-      await loadDetail(detail.value.summary.id)
+    if (!isRelevantRuntimeEvent(event, {
+      worklineId: detail.value?.summary.id ?? selectedWorklineId.value
+    })) {
+      return
     }
-    worklines.value = await runtimeApiMethods.worklines().send()
-    markRefreshedAt()
+
+    await refreshWorklines()
   }
 )
 </script>
