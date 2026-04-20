@@ -37,16 +37,17 @@
     <div class="trace-layout">
       <el-card shadow="never" class="runtime-panel trace-layout__context">
         <template #header>
-          <div class="runtime-panel__header">
-            <div>
-              <div class="runtime-panel__title">案件上下文</div>
-              <div class="runtime-panel__subtitle">当前 Trace 永远固定可见，筛选只影响周边上下文。</div>
+          <div class="runtime-panel__header runtime-panel__header--compact">
+            <div v-if="selectedTraceContextName" class="trace-context-summary trace-context-summary--compact">
+              <strong class="trace-context-summary__name" :title="selectedTraceContextName">{{ selectedTraceContextName }}</strong>
+              <span class="trace-context-summary__meta">{{ selectedTraceContextMeta }}</span>
             </div>
-            <el-tag v-if="selectedTracePinned" size="small" type="warning" effect="dark">已固定当前 Trace</el-tag>
+            <div v-else class="trace-context-placeholder">选择案件后查看上下文 Trace</div>
           </div>
         </template>
 
-        <div v-if="traceListItems.length" class="trace-context-list">
+        <div class="trace-layout__context-scroll">
+          <div v-if="traceListItems.length" class="trace-context-list">
           <button
             v-for="item in traceListItems"
             :key="item.session_id"
@@ -64,19 +65,21 @@
             <div class="trace-context-card__hint">{{ item.step_code || '—' }} · {{ item.latest_timeline_message || item.failure_domain || item.current_wait_type || '等待更多证据' }}</div>
           </button>
         </div>
-        <RuntimeEmptyState
-          v-else
-          title="当前筛选下没有上下文 Trace"
-          description="你仍可使用上方锚点搜索直接进入案件；当前筛选只影响周边上下文，不影响已打开案件。"
-          hint="尝试切换到‘全部’或‘仅失败/超时’，查看更多相邻链路。"
-        />
+          <RuntimeEmptyState
+            v-else
+            title="当前筛选下没有上下文 Trace"
+            description="你仍可使用上方锚点搜索直接进入案件；当前筛选只影响周边上下文，不影响已打开案件。"
+            hint="尝试切换到‘全部’或‘仅失败/超时’，查看更多相邻链路。"
+          />
+        </div>
       </el-card>
 
       <div class="trace-layout__detail">
         <template v-if="traceDetail">
-          <TraceCaseHero :detail="traceDetail" :workline-name="selectedWorklineName" :device-name="selectedDeviceName" />
+          <TraceCaseHero :detail="traceDetail" :workline-name="selectedWorklineName" :device-name="selectedDeviceName" class="trace-layout__hero" />
 
-          <el-card shadow="never" class="runtime-panel">
+          <div class="trace-layout__detail-scroll">
+            <el-card shadow="never" class="runtime-panel">
             <template #header>
               <div class="runtime-panel__header">
                 <div>
@@ -203,7 +206,8 @@
             </el-tabs>
           </el-card>
 
-          <TraceNextActions :detail="traceDetail" />
+            <TraceNextActions :detail="traceDetail" />
+          </div>
         </template>
 
         <el-card v-else shadow="never" class="runtime-panel trace-layout__empty-state">
@@ -339,6 +343,25 @@ const selectedWorklineName = computed(() => {
 const selectedDeviceName = computed(() => {
   const item = selectedTraceContext.value
   return item?.device_name || item?.device_code || (item?.device_id ? `设备 #${item.device_id}` : null)
+})
+
+const selectedTraceContextName = computed(() => {
+  const item = selectedTraceContext.value
+  return item?.session_code || (selectedSessionId.value ? `SES-${selectedSessionId.value}` : null)
+})
+
+const selectedTraceContextMeta = computed(() => {
+  const item = selectedTraceContext.value
+  if (!item) {
+    return ''
+  }
+
+  const parts = [item.status || traceDetail.value?.summary.session_status || null, selectedWorklineName.value, selectedDeviceName.value]
+  if (selectedTracePinned.value) {
+    parts.push('已固定当前案件')
+  }
+
+  return parts.filter(Boolean).join(' · ')
 })
 
 function buildScopedListPayload(base: TraceQueryPayload = {}): TraceQueryPayload {
@@ -596,6 +619,17 @@ watch(
   gap: 16px;
 }
 
+.runtime-panel__header--compact {
+  align-items: center;
+  gap: 12px;
+}
+
+.trace-context-placeholder {
+  color: var(--runtime-text-secondary, #94a3b8);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .runtime-panel__title {
   color: #f8fafc;
   font-size: 16px;
@@ -636,17 +670,70 @@ watch(
   display: grid;
   gap: 16px;
   grid-template-columns: 360px minmax(0, 1fr);
+  align-items: stretch;
 }
 
 .trace-layout__context,
 .trace-layout__detail {
-  min-height: 720px;
+  min-height: 0;
 }
 
 .trace-layout__detail {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-height: 0;
+}
+
+.trace-layout__hero {
+  flex: 0 0 auto;
+}
+
+.trace-layout__detail-scroll {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+}
+
+.trace-layout__detail-scroll > * {
+  flex: 0 0 auto;
+}
+
+.trace-context-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--runtime-border-accent, rgb(245 158 11 / 0.16));
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--runtime-surface-strong, rgb(255 255 255 / 0.04)), var(--runtime-surface-accent, rgb(245 158 11 / 0.06)));
+}
+
+.trace-context-summary--compact {
+  flex: 1 1 auto;
+}
+
+.trace-context-summary__name {
+  color: var(--runtime-text-primary, #f8fafc);
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.trace-context-summary__meta {
+  color: var(--runtime-text-secondary, #94a3b8);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.trace-layout__context-scroll {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  flex-direction: column;
 }
 
 .trace-context-list {
@@ -775,23 +862,65 @@ watch(
   min-height: 520px;
 }
 
+@media (width >= 1280px) {
+  .trace-layout {
+    height: calc(100vh - 285px);
+    min-height: 620px;
+    overflow: hidden;
+  }
+
+  .trace-layout__context,
+  .trace-layout__detail {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .trace-layout__context {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .trace-layout__context :deep(.el-card__header) {
+    flex: 0 0 auto;
+  }
+
+  .trace-layout__context :deep(.el-card__body) {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .trace-layout__context-scroll,
+  .trace-layout__detail-scroll {
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 6px;
+    scrollbar-gutter: stable;
+  }
+}
+
 @media (width <= 1279px) {
   .runtime-page__header,
   .trace-layout {
-    grid-template-columns: 1fr;
+    display: flex;
     flex-direction: column;
   }
 
   .runtime-page__status-bar,
-  .trace-query-bar__presets,
-  .trace-session-grid {
-    grid-template-columns: 1fr;
+  .trace-query-bar__presets {
     justify-content: flex-start;
   }
 
-  .trace-layout {
-    display: flex;
-    flex-direction: column;
+  .trace-layout__context-scroll,
+  .trace-layout__detail-scroll {
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  .trace-session-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 </style>

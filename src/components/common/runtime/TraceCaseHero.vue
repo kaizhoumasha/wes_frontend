@@ -1,32 +1,32 @@
 <template>
   <el-card shadow="never" class="trace-case-hero">
     <div class="trace-case-hero__top">
-      <div>
-        <div class="trace-case-hero__eyebrow">案件摘要</div>
+      <div class="trace-case-hero__identity">
+        <div class="trace-case-hero__eyebrow-row">
+          <div class="trace-case-hero__eyebrow">案件摘要</div>
+          <span class="trace-case-hero__code">Session #{{ detail.trace.session_id ?? '—' }}</span>
+        </div>
         <div class="trace-case-hero__title-row">
           <h2 class="trace-case-hero__title">{{ sessionCode }}</h2>
           <RuntimeStatusBadge :status="detail.summary.session_status || detail.session?.status" pulse />
         </div>
         <p class="trace-case-hero__headline">{{ headline }}</p>
       </div>
-
-      <div class="trace-case-hero__metrics">
-        <div class="trace-case-hero__metric">
-          <span class="trace-case-hero__metric-label">链路历时</span>
-          <strong>{{ lifecycleDuration }}</strong>
-        </div>
-        <div class="trace-case-hero__metric">
-          <span class="trace-case-hero__metric-label">等待类型</span>
-          <strong>{{ detail.summary.current_wait_type || detail.session?.current_wait_type || '—' }}</strong>
-        </div>
-        <div class="trace-case-hero__metric">
-          <span class="trace-case-hero__metric-label">最后动作</span>
-          <strong>{{ compactEnumLabel(detail.summary.latest_timeline_action) }}</strong>
-        </div>
-      </div>
     </div>
 
     <div class="trace-case-hero__facts">
+      <div class="trace-case-hero__fact">
+        <span>链路历时</span>
+        <strong>{{ lifecycleDuration }}</strong>
+      </div>
+      <div class="trace-case-hero__fact">
+        <span>等待类型</span>
+        <strong>{{ detail.summary.current_wait_type || detail.session?.current_wait_type || '—' }}</strong>
+      </div>
+      <div class="trace-case-hero__fact">
+        <span>最后动作</span>
+        <strong>{{ compactEnumLabel(detail.summary.latest_timeline_action) }}</strong>
+      </div>
       <div class="trace-case-hero__fact">
         <span>当前 Step</span>
         <strong>{{ detail.summary.step_code || detail.session?.step_code || '—' }}</strong>
@@ -39,7 +39,7 @@
         <span>工作线 / 设备</span>
         <strong>{{ worklineDeviceText }}</strong>
       </div>
-      <div class="trace-case-hero__fact">
+      <div class="trace-case-hero__fact trace-case-hero__fact--wide">
         <span>Request / Correlation</span>
         <strong>{{ anchorText }}</strong>
       </div>
@@ -111,11 +111,29 @@ const counts = computed(() => [
     linear-gradient(180deg, rgb(30, 41, 59, 0.96), rgb(15, 23, 42, 0.94));
 }
 
+.trace-case-hero :deep(.el-card__body) {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+}
+
 .trace-case-hero__top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 24px;
+  gap: 18px;
+}
+
+.trace-case-hero__identity {
+  min-width: 0;
+}
+
+.trace-case-hero__eyebrow-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .trace-case-hero__eyebrow,
@@ -129,11 +147,24 @@ const counts = computed(() => [
   text-transform: uppercase;
 }
 
+.trace-case-hero__code {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border: 1px solid rgb(245, 158, 11, 0.16);
+  border-radius: 999px;
+  background: rgb(15, 23, 42, 0.45);
+  color: #cbd5e1;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1;
+}
+
 .trace-case-hero__title-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 10px;
+  margin-top: 8px;
   flex-wrap: wrap;
 }
 
@@ -141,49 +172,50 @@ const counts = computed(() => [
   margin: 0;
   color: #f8fafc;
   font-family: var(--font-mono);
-  font-size: 28px;
+  font-size: 24px;
+  line-height: 1.2;
 }
 
 .trace-case-hero__headline {
-  max-width: 720px;
-  margin-top: 12px;
+  max-width: 880px;
+  margin: 8px 0 0;
   color: #e2e8f0;
+  font-size: 13px;
   line-height: 1.6;
 }
 
-.trace-case-hero__metrics {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(3, minmax(120px, 1fr));
-  min-width: 360px;
-}
-
-.trace-case-hero__metric,
 .trace-case-hero__fact,
 .trace-case-hero__count-card {
-  padding: 14px;
+  min-width: 0;
+  padding: 12px 14px;
   border: 1px solid rgb(245, 158, 11, 0.12);
   border-radius: 12px;
   background: rgb(15, 23, 42, 0.5);
 }
 
-.trace-case-hero__metric strong,
 .trace-case-hero__fact strong,
 .trace-case-hero__count-card strong {
   display: block;
-  margin-top: 8px;
+  margin-top: 6px;
   color: #f8fafc;
   font-family: var(--font-mono);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 13px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .trace-case-hero__facts,
 .trace-case-hero__counts {
   display: grid;
-  gap: 12px;
-  margin-top: 18px;
+  gap: 10px;
+}
+
+.trace-case-hero__facts {
   grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.trace-case-hero__fact--wide {
+  grid-column: span 2;
 }
 
 .trace-case-hero__counts {
@@ -191,16 +223,28 @@ const counts = computed(() => [
 }
 
 @media (width <= 1279px) {
-  .trace-case-hero__top {
-    flex-direction: column;
+  .trace-case-hero__title {
+    font-size: 22px;
   }
 
-  .trace-case-hero__metrics,
   .trace-case-hero__facts,
   .trace-case-hero__counts {
-    width: 100%;
-    min-width: 0;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .trace-case-hero__fact--wide {
+    grid-column: auto;
+  }
+}
+
+@media (width <= 767px) {
+  .trace-case-hero :deep(.el-card__body) {
+    padding: 16px;
+  }
+
+  .trace-case-hero__facts,
+  .trace-case-hero__counts {
+    grid-template-columns: 1fr;
   }
 }
 </style>
