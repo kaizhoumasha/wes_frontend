@@ -23,8 +23,10 @@ export const runtimeApiMethods = {
     return apiClient.Get<RuntimeWorklineDetailResponse>(`/api/v1/workline/runtime/worklines/${worklineId}`)
   },
 
-  devices() {
-    return apiClient.Get<RuntimeDeviceSummary[]>('/api/v1/workline/runtime/devices')
+  devices(worklineId?: number | null) {
+    return apiClient.Get<RuntimeDeviceSummary[]>('/api/v1/workline/runtime/devices', worklineId ? {
+      params: { worklineId }
+    } : undefined)
   },
 
   deviceDetail(deviceId: number) {

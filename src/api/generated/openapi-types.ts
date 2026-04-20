@@ -6271,11 +6271,8 @@ export interface components {
             response_status: number;
             /** Response Time Ms */
             response_time_ms: number;
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at: string;
+            /** Updated At */
+            updated_at?: string | null;
         };
         /** TraceCommandItem */
         TraceCommandItem: {
@@ -10861,7 +10858,9 @@ export interface operations {
     };
     workline_runtime_devices_get: {
         parameters: {
-            query?: never;
+            query?: {
+                worklineId?: number | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -10875,6 +10874,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_list_RuntimeDeviceSummary__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

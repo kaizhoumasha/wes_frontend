@@ -343,6 +343,10 @@ async function loadDetail(deviceId: number) {
   markRefreshedAt()
 }
 
+async function fetchDevices(worklineId: number | null) {
+  return await runtimeApiMethods.devices(worklineId).send()
+}
+
 async function syncDeviceSelection(preferredDeviceId: number | null, syncRoute = false) {
   const resolvedDeviceId = resolveSelectableDeviceId(preferredDeviceId)
 
@@ -366,7 +370,7 @@ async function syncDeviceSelection(preferredDeviceId: number | null, syncRoute =
 async function loadDevices() {
   loading.value = true
   try {
-    devices.value = await runtimeApiMethods.devices().send()
+    devices.value = await fetchDevices(activeWorklineId.value)
     await syncDeviceSelection(requestedDeviceId.value, true)
     markRefreshedAt()
   } finally {
@@ -410,11 +414,16 @@ onMounted(loadDevices)
 watch(
   () => [requestedDeviceId.value, activeWorklineId.value] as const,
   async ([nextDeviceId, nextWorklineId], [previousDeviceId, previousWorklineId]) => {
-    if (!devices.value.length && !nextWorklineId) {
+    if (nextWorklineId !== previousWorklineId) {
+      await loadDevices()
       return
     }
 
-    if (nextDeviceId === previousDeviceId && nextWorklineId === previousWorklineId) {
+    if (!devices.value.length) {
+      return
+    }
+
+    if (nextDeviceId === previousDeviceId) {
       return
     }
 
@@ -429,7 +438,7 @@ watch(
     if (detail.value?.summary.id) {
       await loadDetail(detail.value.summary.id)
     }
-    devices.value = await runtimeApiMethods.devices().send()
+    devices.value = await fetchDevices(activeWorklineId.value)
     await syncDeviceSelection(requestedDeviceId.value, true)
     markRefreshedAt()
   }

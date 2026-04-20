@@ -6470,8 +6470,7 @@ export const OPENAPI_SCHEMA_METADATA = {
       "response_status",
       "response_time_ms",
       "request_body",
-      "created_at",
-      "updated_at"
+      "created_at"
     ],
     "fields": {
       "id": {
@@ -6551,8 +6550,8 @@ export const OPENAPI_SCHEMA_METADATA = {
         "title": "Updated At",
         "type": "string",
         "format": "date-time",
-        "required": true,
-        "nullable": false
+        "required": false,
+        "nullable": true
       }
     }
   },
