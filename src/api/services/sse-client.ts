@@ -116,7 +116,7 @@ function normalizeSSEUrl(url: string): string {
 }
 
 function resolveSSEUrl(): string {
-  const raw = normalizeSSEUrl(env.sseUrl || DEFAULT_SSE_URL)
+  const raw = normalizeSSEUrl(env.sseUrl ?? DEFAULT_SSE_URL)
 
   if (/^https?:\/\//.test(raw)) {
     return raw
@@ -148,6 +148,10 @@ function createSSEErrorEvent(): Event {
   return new Event('error')
 }
 
+function isCustomSSEEventType(value: string): value is Exclude<SSEEventType, 'message'> {
+  return CUSTOM_EVENTS.includes(value as Exclude<SSEEventType, 'message'>)
+}
+
 function parseSSEBlock(block: string): { type: SSEEventType; data: string; id?: string } | null {
   if (!block) {
     return null
@@ -167,7 +171,7 @@ function parseSSEBlock(block: string): { type: SSEEventType; data: string; id?: 
     const rawValue = separatorIndex === -1 ? '' : line.slice(separatorIndex + 1).trimStart()
 
     if (field === 'event') {
-      eventType = rawValue as SSEEventType
+      eventType = isCustomSSEEventType(rawValue) ? rawValue : 'message'
       continue
     }
 
@@ -456,7 +460,6 @@ export function disconnect(): void {
 
   clearReconnectTimer()
   reconnectAttempts = 0
-  lastEventId = null
   setConnectionState('disconnected')
   console.log('[SSE] 连接已断开')
 }

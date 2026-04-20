@@ -205,7 +205,7 @@ const loading = ref(false)
 const worklines = ref<RuntimeWorklineSummary[]>([])
 const detail = ref<RuntimeWorklineDetailResponse | null>(null)
 
-const selectedWorklineId = computed(() => detail.value?.summary.id ?? readPositiveInt(route.query.worklineId))
+const selectedWorklineId = computed(() => readPositiveInt(route.query.worklineId))
 
 const selectedWorklineSummary = computed(() => {
   const selectedId = selectedWorklineId.value
@@ -249,11 +249,33 @@ async function loadDetail(worklineId: number) {
   markRefreshedAt()
 }
 
+async function ensureWorklineRouteSelection(): Promise<boolean> {
+  if (selectedWorklineId.value || !worklines.value[0]?.id) {
+    return false
+  }
+
+  await router.replace({ query: { ...route.query, ...buildRuntimeWorklineQuery(worklines.value[0].id) } })
+  return true
+}
+
+async function syncWorklineDetailFromRoute(): Promise<void> {
+  if (!selectedWorklineId.value) {
+    detail.value = null
+    return
+  }
+
+  if (detail.value?.summary.id === selectedWorklineId.value) {
+    return
+  }
+
+  await loadDetail(selectedWorklineId.value)
+}
+
 async function loadWorklines() {
   worklines.value = await runtimeApiMethods.worklines().send()
-  const worklineId = readPositiveInt(route.query.worklineId) ?? worklines.value[0]?.id ?? null
-  if (worklineId) {
-    await selectWorkline({ id: worklineId } as RuntimeWorklineSummary)
+  const routeChanged = await ensureWorklineRouteSelection()
+  if (!routeChanged) {
+    await syncWorklineDetailFromRoute()
   }
   markRefreshedAt()
 }
@@ -267,9 +289,21 @@ const refreshWorklines = createCoalescedAsyncTask(async () => {
   }
 })
 
+const syncWorklineDetailFromRouteCoalesced = createCoalescedAsyncTask(async () => {
+  loading.value = true
+  try {
+    await syncWorklineDetailFromRoute()
+  } finally {
+    loading.value = false
+  }
+})
+
 async function selectWorkline(row: { id: number }) {
-  await loadDetail(row.id)
-  router.replace({ query: { ...route.query, ...buildRuntimeWorklineQuery(row.id) } })
+  if (selectedWorklineId.value === row.id) {
+    return
+  }
+
+  await router.replace({ query: { ...route.query, ...buildRuntimeWorklineQuery(row.id) } })
 }
 
 function openTrace(sessionId: number) {
@@ -283,6 +317,17 @@ function openDevice(deviceId: number) {
 onMounted(() => {
   void refreshWorklines()
 })
+
+watch(
+  () => selectedWorklineId.value,
+  (nextWorklineId, previousWorklineId) => {
+    if (!nextWorklineId || nextWorklineId === previousWorklineId) {
+      return
+    }
+
+    void syncWorklineDetailFromRouteCoalesced()
+  }
+)
 
 watch(
   () => lastEvent.value,

@@ -32,7 +32,7 @@ describe('sse-client', () => {
     vi.unstubAllGlobals()
   })
 
-  it('reuses the last SSE event id on the next connection attempt', async () => {
+  it('reuses the last SSE event id after reconnecting from a manual disconnect', async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(createSSEStreamResponse(['id: 41\nevent: business_status\ndata: {"ok":true}\n\n']))
@@ -59,6 +59,7 @@ describe('sse-client', () => {
       expect(sse.getConnectionState()).toBe('error')
     })
 
+    sse.disconnect()
     sse.connect()
 
     await vi.waitFor(() => {
@@ -77,5 +78,21 @@ describe('sse-client', () => {
         })
       })
     )
+  })
+
+  it('treats an empty sseUrl as a same-origin path instead of localhost fallback', async () => {
+    vi.doMock('@/config/env', () => ({
+      env: {
+        sseUrl: ''
+      }
+    }))
+
+    vi.doMock('@/api/services/token-refresh', () => ({
+      getAccessToken: () => null
+    }))
+
+    const sse = await import('@/api/services/sse-client')
+
+    expect(sse.getSSEUrl()).toBe(new URL('/api/v1/sys/events/stream', window.location.origin).toString())
   })
 })

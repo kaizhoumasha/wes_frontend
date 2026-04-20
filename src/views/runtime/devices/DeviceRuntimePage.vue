@@ -89,7 +89,7 @@
                       <RuntimeStatusBadge :label="item.statusLabel" :tone="item.tone" size="small" />
                     </div>
                   </div>
-                  <el-button v-if="item.traceAction" plain size="small" @click="item.traceAction">查看 Trace</el-button>
+                  <el-button v-if="item.traceAction && canOpenTraceWorkspace" plain size="small" @click="item.traceAction">查看 Trace</el-button>
                 </div>
                 <div class="device-activity-item__meta">{{ item.meta }}</div>
                 <p class="device-activity-item__summary">{{ item.summary }}</p>
@@ -114,7 +114,15 @@
               </template>
 
               <div v-if="detail.active_sessions.length" class="trace-list">
-                <button v-for="item in detail.active_sessions" :key="item.session_id" type="button" class="trace-list__item" @click="openSessionTrace(item.session_id)">
+                <component
+                  :is="canOpenTraceWorkspace ? 'button' : 'div'"
+                  v-for="item in detail.active_sessions"
+                  :key="item.session_id"
+                  v-bind="canOpenTraceWorkspace ? { type: 'button' } : {}"
+                  class="trace-list__item"
+                  :class="{ 'trace-list__item--static': !canOpenTraceWorkspace }"
+                  @click="canOpenTraceWorkspace ? openSessionTrace(item.session_id) : undefined"
+                >
                   <div class="trace-list__head">
                     <RuntimeStatusBadge :status="item.status" size="small" />
                     <span>{{ formatRuntimeElapsed(item.started_at) }}</span>
@@ -122,7 +130,7 @@
                   <div class="trace-list__title">{{ item.session_code }}</div>
                   <div class="trace-list__meta">{{ item.step_code || '—' }} · {{ item.workline_name || '未关联工作线' }}</div>
                   <div class="trace-list__hint">{{ item.latest_timeline_message || item.current_wait_type || '进入 Trace 查看更多证据' }}</div>
-                </button>
+                </component>
               </div>
               <RuntimeEmptyState
                 v-else
@@ -221,6 +229,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
 import DeviceHealthHero from '@/components/common/runtime/DeviceHealthHero.vue'
 import RuntimeEmptyState from '@/components/common/runtime/RuntimeEmptyState.vue'
 import RuntimeFrozenNotice from '@/components/common/runtime/RuntimeFrozenNotice.vue'
@@ -229,6 +238,7 @@ import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.v
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import { buildRuntimeDeviceQuery, buildRuntimeTraceQuery } from '@/utils/runtime-route'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
+import { usePermission } from '@/composables/usePermission'
 import type { RuntimeDeviceDetailResponse, RuntimeDeviceSummary, RuntimeWorklineSummary, TraceCallbackLogItem, TraceCommandItem } from '@/types/runtime'
 import { createCoalescedAsyncTask } from '@/utils/createCoalescedAsyncTask'
 import { isRelevantRuntimeEvent } from '@/utils/runtime-event'
@@ -237,6 +247,7 @@ import { compactEnumLabel, formatRuntimeDateTime, formatRuntimeDurationMs, forma
 
 const route = useRoute()
 const router = useRouter()
+const { hasPermission } = usePermission()
 const { connectionLabel, connectionTone, lastEvent, lastRefreshedAt, live, markRefreshedAt, state, toggleLive } = useRuntimePageChrome()
 
 const loading = ref(false)
@@ -248,7 +259,8 @@ const worklineKeyword = ref('')
 
 const requestedDeviceId = computed(() => readPositiveInt(route.query.deviceId))
 const activeWorklineId = computed(() => readPositiveInt(route.query.worklineId))
-const selectedDeviceId = computed(() => detail.value?.summary.id ?? requestedDeviceId.value)
+const selectedDeviceId = computed(() => requestedDeviceId.value ?? detail.value?.summary.id ?? null)
+const canOpenTraceWorkspace = computed(() => hasPermission(BIZ_PERMISSIONS.workline.page))
 
 const activeWorklineSummary = computed(() => {
   if (!activeWorklineId.value) {
@@ -481,13 +493,11 @@ const refreshDevices = createCoalescedAsyncTask(async () => {
 })
 
 async function selectDevice(row: { id: number }) {
-  if (detail.value?.summary.id !== row.id) {
-    await loadDetail(row.id)
+  if (requestedDeviceId.value === row.id) {
+    return
   }
 
-  if (requestedDeviceId.value !== row.id) {
-    await router.replace({ query: buildDeviceQuery(row.id) })
-  }
+  await router.replace({ query: buildDeviceQuery(row.id) })
 }
 
 async function openWorklineSwitcher() {
@@ -513,14 +523,17 @@ async function switchWorkline(worklineId: number) {
 }
 
 function openSessionTrace(sessionId: number) {
+  if (!canOpenTraceWorkspace.value) return
   router.push({ name: 'RuntimeTraceExplorer', query: buildTraceContextQuery({ sessionId }) })
 }
 
 function openCommandTrace(commandCode: string) {
+  if (!canOpenTraceWorkspace.value) return
   router.push({ name: 'RuntimeTraceExplorer', query: buildTraceContextQuery({ commandCode }) })
 }
 
 function openRequestTrace(requestId: string) {
+  if (!canOpenTraceWorkspace.value) return
   router.push({ name: 'RuntimeTraceExplorer', query: buildTraceContextQuery({ requestId }) })
 }
 

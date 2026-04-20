@@ -28,10 +28,7 @@
             name="page"
             mode="out-in"
           >
-            <component
-              :is="Component"
-              :key="route.fullPath"
-            />
+            <component :is="Component" />
           </transition>
         </router-view>
       </main>

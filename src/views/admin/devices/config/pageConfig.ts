@@ -15,6 +15,7 @@ type DevicePageConfig = CrudPageConfig<Device, CreateDeviceInput, UpdateDeviceIn
 interface DevicePageActions {
   openRuntime: (device: Device) => void
   openTrace: (device: Device) => void
+  canOpenTrace: () => boolean
 }
 
 const DEVICE_PAGE_RESOURCE = {
@@ -86,6 +87,7 @@ function createDeviceDetailConfig(actions: DevicePageActions): CrudPageDetailCon
         label: '最近 TRACE',
         type: 'warning',
         icon: 'ep:connection',
+        showWhen: () => actions.canOpenTrace(),
         onClick: device => actions.openTrace(device),
       },
     ],
@@ -168,7 +170,7 @@ export function createDevicePageConfig(actions: DevicePageActions): DevicePageCo
           key: 'open-trace',
           label: '最近 TRACE',
           type: 'warning',
-          permission: BIZ_PERMISSIONS.device.page,
+          permission: BIZ_PERMISSIONS.workline.page,
           onClick: row => actions.openTrace(row),
         },
       ]

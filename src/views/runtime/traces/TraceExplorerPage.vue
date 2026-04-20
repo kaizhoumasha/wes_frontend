@@ -524,39 +524,21 @@ async function runTraceLookup() {
   const anchor = getLookupAnchor()
   if (!anchor) return
 
-  loading.value = true
-  try {
-    await loadTraceDetail(anchor)
-    await syncRouteQuery(anchor.type, anchor.value)
-    await applyListPreset(resolvePresetForDetail(traceDetail.value))
-  } finally {
-    loading.value = false
-  }
+  applyAnchorToInputs(anchor)
+  await syncRouteQuery(anchor.type, anchor.value)
 }
 
 async function openTraceFromAction(query: RuntimeTraceQueryInput) {
   const anchor = resolveTraceAnchorFromQuery(query)
   if (!anchor) return
 
-  loading.value = true
-  try {
-    applyAnchorToInputs(anchor)
-    await loadTraceDetail(anchor)
-    await syncRouteQuery(anchor.type, anchor.value, query)
-    await applyListPreset(resolvePresetForDetail(traceDetail.value))
-  } finally {
-    loading.value = false
-  }
+  applyAnchorToInputs(anchor)
+  await syncRouteQuery(anchor.type, anchor.value, query)
 }
 
 async function selectTraceRow(row: { session_id: number }) {
-  loading.value = true
-  try {
-    await loadTraceBySession(row.session_id)
-    await syncRouteQuery('session', String(row.session_id))
-  } finally {
-    loading.value = false
-  }
+  applyAnchorToInputs({ type: 'session', value: String(row.session_id) })
+  await syncRouteQuery('session', String(row.session_id))
 }
 
 async function applyListPreset(preset: 'active' | 'failed' | 'all') {
@@ -597,20 +579,44 @@ async function refreshCurrent() {
 
 const refreshCurrentCoalesced = createCoalescedAsyncTask(refreshCurrent)
 
-onMounted(async () => {
+async function syncTraceRouteState() {
   loading.value = true
   try {
     const routeAnchor = readRouteAnchor()
     if (routeAnchor) {
       applyAnchorToInputs(routeAnchor)
       await loadTraceDetail(routeAnchor)
+    } else {
+      queryValue.value = ''
+      traceDetail.value = null
     }
 
     await applyListPreset(resolvePresetForDetail(traceDetail.value))
   } finally {
     loading.value = false
   }
+}
+
+const syncTraceRouteStateCoalesced = createCoalescedAsyncTask(syncTraceRouteState)
+
+onMounted(() => {
+  void syncTraceRouteStateCoalesced()
 })
+
+watch(
+  () => [
+    route.query.sessionId,
+    route.query.requestId,
+    route.query.correlationId,
+    route.query.commandCode,
+    route.query.dispatchKey,
+    route.query.worklineId,
+    route.query.deviceId
+  ],
+  () => {
+    void syncTraceRouteStateCoalesced()
+  }
+)
 
 watch(
   () => lastEvent.value,
