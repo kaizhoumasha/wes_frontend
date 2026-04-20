@@ -23,9 +23,9 @@
               <div class="runtime-panel__title">线内设备目录</div>
               <div class="runtime-panel__subtitle">{{ directorySubtitle }}</div>
             </div>
-            <div v-if="activeWorklineId" class="runtime-panel__actions">
-              <span class="runtime-scope-chip">当前工作线：{{ activeWorklineName }}</span>
-              <el-button text @click="openWorklinePicker">切换工作线</el-button>
+            <div class="runtime-panel__actions">
+              <span v-if="activeWorklineId" class="runtime-scope-chip">当前工作线：{{ activeWorklineName }}</span>
+              <el-button text @click="openWorklineSwitcher">{{ activeWorklineId ? '切换工作线' : '选择工作线' }}</el-button>
             </div>
           </div>
         </template>
@@ -60,7 +60,7 @@
             description="设备运行态只在工作线上下文里成立，必须先进入一条工作线再看线内设备。"
             hint="设备能力、plugin 语义和 Trace 归因都依赖当前工作线。"
           />
-          <el-button type="primary" plain @click="openWorklinePicker">前往工作线监控</el-button>
+          <el-button type="primary" plain @click="openWorklineSwitcher">选择工作线</el-button>
         </div>
       </el-card>
 
@@ -163,7 +163,7 @@
               description="请先进入某条工作线，再查看该线内设备节点的健康状态、最近行为和关联 Trace。"
               hint="设备没有脱离工作线的全局运行语义。"
             />
-            <el-button type="primary" plain @click="openWorklinePicker">前往工作线监控</el-button>
+            <el-button type="primary" plain @click="openWorklineSwitcher">选择工作线</el-button>
           </div>
           <RuntimeEmptyState
             v-else
@@ -174,6 +174,45 @@
         </el-card>
       </div>
     </div>
+
+    <el-dialog
+      v-model="worklineSwitcherVisible"
+      title="快速切换工作线"
+      width="560px"
+      append-to-body
+    >
+      <div class="runtime-workline-switcher">
+        <el-input
+          v-model="worklineKeyword"
+          clearable
+          placeholder="搜索工作线名称 / 编码 / 区域"
+        />
+
+        <div v-if="filteredWorklines.length" class="runtime-workline-switcher__list">
+          <button
+            v-for="item in filteredWorklines"
+            :key="item.id"
+            type="button"
+            class="runtime-workline-switcher__item"
+            :class="{ 'is-active': item.id === activeWorklineId }"
+            @click="switchWorkline(item.id)"
+          >
+            <div class="runtime-workline-switcher__top">
+              <RuntimeStatusBadge :label="worklineRiskLabel(item)" :tone="worklineRiskTone(item)" size="small" />
+              <span class="runtime-workline-switcher__code">{{ item.line_code }}</span>
+            </div>
+            <div class="runtime-workline-switcher__title">{{ item.line_name }}</div>
+            <div class="runtime-workline-switcher__meta">{{ item.zone_name || '未配置区域' }} · 活跃 {{ item.active_session_count }} · 等待 {{ item.waiting_session_count }} · 失败 {{ item.failed_session_count }}</div>
+          </button>
+        </div>
+        <RuntimeEmptyState
+          v-else
+          title="没有匹配的工作线"
+          description="请尝试其它名称、编码或区域关键字。"
+          hint="切换工作线后，设备目录会自动切到该线内上下文。"
+        />
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -187,9 +226,9 @@ import RuntimeLastUpdated from '@/components/common/runtime/RuntimeLastUpdated.v
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
-import type { RuntimeDeviceDetailResponse, RuntimeDeviceSummary, TraceCallbackLogItem, TraceCommandItem } from '@/types/runtime'
+import type { RuntimeDeviceDetailResponse, RuntimeDeviceSummary, RuntimeWorklineSummary, TraceCallbackLogItem, TraceCommandItem } from '@/types/runtime'
 import type { RuntimeTone } from '@/utils/runtime-display'
-import { compactEnumLabel, formatRuntimeDateTime, formatRuntimeDurationMs, formatRuntimeElapsed, getDeviceRiskScore, pickDominantValue } from '@/utils/runtime-display'
+import { compactEnumLabel, formatRuntimeDateTime, formatRuntimeDurationMs, formatRuntimeElapsed, getDeviceRiskScore, getWorklineRiskLabel as worklineRiskLabel, getWorklineRiskScore, getWorklineRiskTone as worklineRiskTone, pickDominantValue } from '@/utils/runtime-display'
 
 const route = useRoute()
 const router = useRouter()
@@ -197,7 +236,10 @@ const { connectionLabel, connectionTone, lastEvent, lastRefreshedAt, live, markR
 
 const loading = ref(false)
 const devices = ref<RuntimeDeviceSummary[]>([])
+const worklines = ref<RuntimeWorklineSummary[]>([])
 const detail = ref<RuntimeDeviceDetailResponse | null>(null)
+const worklineSwitcherVisible = ref(false)
+const worklineKeyword = ref('')
 
 const requestedDeviceId = computed(() => readPositiveIntQuery(route.query.deviceId))
 const activeWorklineId = computed(() => readPositiveIntQuery(route.query.worklineId))
@@ -230,6 +272,29 @@ const orderedDevices = computed(() => {
       return riskDelta
     }
     return left.id - right.id
+  })
+})
+
+const orderedWorklines = computed(() => {
+  return [...worklines.value].sort((left, right) => {
+    const riskDelta = getWorklineRiskScore(right) - getWorklineRiskScore(left)
+    if (riskDelta !== 0) {
+      return riskDelta
+    }
+    return left.id - right.id
+  })
+})
+
+const filteredWorklines = computed(() => {
+  const keyword = worklineKeyword.value.trim().toLowerCase()
+  if (!keyword) {
+    return orderedWorklines.value
+  }
+
+  return orderedWorklines.value.filter(item => {
+    return [item.line_name, item.line_code, item.zone_name]
+      .filter(Boolean)
+      .some(value => String(value).toLowerCase().includes(keyword))
   })
 })
 
@@ -341,6 +406,10 @@ function toEpoch(value?: string | null) {
   }
 }
 
+async function loadWorklines() {
+  worklines.value = await runtimeApiMethods.worklines().send()
+}
+
 async function loadDetail(deviceId: number) {
   if (!activeWorklineId.value) {
     detail.value = null
@@ -387,6 +456,8 @@ async function syncDeviceSelection(preferredDeviceId: number | null, syncRoute =
 async function loadDevices() {
   loading.value = true
   try {
+    await loadWorklines()
+
     if (!activeWorklineId.value) {
       devices.value = []
       detail.value = null
@@ -415,11 +486,26 @@ async function selectDevice(row: { id: number }) {
   }
 }
 
-function openWorklinePicker() {
-  router.push({
-    name: 'RuntimeWorklines',
-    query: activeWorklineId.value ? { worklineId: String(activeWorklineId.value) } : undefined
-  })
+async function openWorklineSwitcher() {
+  if (!worklines.value.length) {
+    await loadWorklines()
+  }
+
+  worklineKeyword.value = ''
+  worklineSwitcherVisible.value = true
+}
+
+async function switchWorkline(worklineId: number) {
+  worklineSwitcherVisible.value = false
+  worklineKeyword.value = ''
+
+  if (worklineId === activeWorklineId.value) {
+    return
+  }
+
+  detail.value = null
+  devices.value = []
+  await router.replace({ query: buildDeviceQuery(null, worklineId) })
 }
 
 function openSessionTrace(sessionId: number) {
@@ -460,7 +546,15 @@ watch(
 watch(
   () => lastEvent.value,
   async event => {
-    if (!live.value || !event || !activeWorklineId.value) return
+    if (!live.value || !event) return
+
+    await loadWorklines()
+
+    if (!activeWorklineId.value) {
+      markRefreshedAt()
+      return
+    }
+
     if (detail.value?.summary.id) {
       await loadDetail(detail.value.summary.id)
     }
@@ -693,6 +787,68 @@ watch(
 
 .runtime-context-empty--centered {
   justify-content: center;
+}
+
+.runtime-workline-switcher {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.runtime-workline-switcher__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 360px;
+  overflow: auto;
+}
+
+.runtime-workline-switcher__item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--runtime-border-subtle, rgb(245 158 11 / 0.12));
+  border-radius: 14px;
+  background: var(--runtime-surface, rgb(30 41 59 / 0.78));
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out);
+}
+
+.runtime-workline-switcher__item:hover {
+  transform: translateY(-1px);
+  border-color: var(--runtime-border-accent, rgb(245 158 11 / 0.28));
+}
+
+.runtime-workline-switcher__item.is-active {
+  border-color: var(--runtime-border-strong, rgb(245 158 11 / 0.38));
+  background: var(--runtime-surface-accent, rgb(245 158 11 / 0.08));
+}
+
+.runtime-workline-switcher__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.runtime-workline-switcher__title {
+  color: var(--runtime-text-primary, #f8fafc);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.runtime-workline-switcher__meta,
+.runtime-workline-switcher__code {
+  color: var(--runtime-text-secondary, #94a3b8);
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 .runtime-layout__empty-state {
