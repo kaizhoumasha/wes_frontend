@@ -632,6 +632,10 @@ watch(
   gap: 16px;
 }
 
+.runtime-layout__detail-scroll > * {
+  flex: 0 0 auto;
+}
+
 .runtime-panel {
   background: rgb(15, 23, 42, 0.72);
   border: 1px solid rgb(245, 158, 11, 0.12);
