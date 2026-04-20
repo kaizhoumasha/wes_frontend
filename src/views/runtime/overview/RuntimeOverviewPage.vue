@@ -126,6 +126,7 @@ import RuntimeLastUpdated from '@/components/common/runtime/RuntimeLastUpdated.v
 import RuntimeSignalStrip from '@/components/common/runtime/RuntimeSignalStrip.vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
+import { buildRuntimeDeviceQuery, buildRuntimeTraceQuery, buildRuntimeWorklineQuery } from '@/utils/runtime-route'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
 import type { RuntimeOverviewResponse, RuntimeWorklineSummary } from '@/types/runtime'
 import type { RuntimeTone } from '@/utils/runtime-display'
@@ -250,11 +251,11 @@ async function refresh() {
 }
 
 function openTrace(sessionId: number) {
-  router.push({ name: 'RuntimeTraceExplorer', query: { sessionId: String(sessionId) } })
+  router.push({ name: 'RuntimeTraceExplorer', query: buildRuntimeTraceQuery({ sessionId }) })
 }
 
 function openWorkline(worklineId: number) {
-  router.push({ name: 'RuntimeWorklines', query: { worklineId: String(worklineId) } })
+  router.push({ name: 'RuntimeWorklines', query: buildRuntimeWorklineQuery(worklineId) })
 }
 
 function openDevice(deviceId: number, worklineId?: number | null) {
@@ -263,7 +264,7 @@ function openDevice(deviceId: number, worklineId?: number | null) {
     return
   }
 
-  router.push({ name: 'RuntimeDevices', query: { deviceId: String(deviceId), worklineId: String(worklineId) } })
+  router.push({ name: 'RuntimeDevices', query: buildRuntimeDeviceQuery(deviceId, worklineId) })
 }
 
 onMounted(refresh)

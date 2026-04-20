@@ -227,6 +227,7 @@ import RuntimeFrozenNotice from '@/components/common/runtime/RuntimeFrozenNotice
 import RuntimeLastUpdated from '@/components/common/runtime/RuntimeLastUpdated.vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
+import { buildRuntimeDeviceQuery, buildRuntimeTraceQuery } from '@/utils/runtime-route'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
 import type { RuntimeDeviceDetailResponse, RuntimeDeviceSummary, RuntimeWorklineSummary, TraceCallbackLogItem, TraceCommandItem } from '@/types/runtime'
 import type { RuntimeTone } from '@/utils/runtime-display'
@@ -341,18 +342,17 @@ function resolveSelectableDeviceId(preferredDeviceId: number | null): number | n
 function buildDeviceQuery(deviceId: number | null, worklineId: number | null = activeWorklineId.value) {
   return {
     ...route.query,
-    worklineId: worklineId ? String(worklineId) : undefined,
-    deviceId: worklineId && deviceId ? String(deviceId) : undefined
+    ...buildRuntimeDeviceQuery(worklineId ? deviceId : null, worklineId)
   }
 }
 
-function buildTraceContextQuery(extraQuery: Record<string, string | undefined>) {
+function buildTraceContextQuery(extraQuery: { sessionId?: number | string | null; requestId?: string | null; commandCode?: string | null }) {
   const currentWorklineId = detail.value?.summary.workline_id ?? activeWorklineId.value
-  return {
+  return buildRuntimeTraceQuery({
     ...extraQuery,
-    deviceId: detail.value?.summary.id ? String(detail.value.summary.id) : undefined,
-    worklineId: currentWorklineId ? String(currentWorklineId) : undefined
-  }
+    deviceId: detail.value?.summary.id,
+    worklineId: currentWorklineId
+  })
 }
 
 function toneFromHttpStatus(code: number): RuntimeTone {
@@ -514,7 +514,7 @@ async function switchWorkline(worklineId: number) {
 }
 
 function openSessionTrace(sessionId: number) {
-  router.push({ name: 'RuntimeTraceExplorer', query: buildTraceContextQuery({ sessionId: String(sessionId) }) })
+  router.push({ name: 'RuntimeTraceExplorer', query: buildTraceContextQuery({ sessionId }) })
 }
 
 function openCommandTrace(commandCode: string) {

@@ -6,16 +6,17 @@
 import { useRouter } from 'vue-router'
 import CrudPageContainer from '@/components/common/CrudPageContainer.vue'
 import type { WorkLinesItem as Workline } from '@/api/modules/workLines'
+import { buildRuntimeTraceQuery, buildRuntimeWorklineQuery } from '@/utils/runtime-route'
 import { createWorkLinePageConfig } from './config/pageConfig'
 
 const router = useRouter()
 
 function openRuntime(workline: Workline) {
-  router.push({ name: 'RuntimeWorklines', query: { worklineId: String(workline.id) } })
+  router.push({ name: 'RuntimeWorklines', query: buildRuntimeWorklineQuery(workline.id) })
 }
 
 function openTrace(workline: Workline) {
-  router.push({ name: 'RuntimeTraceExplorer', query: { worklineId: String(workline.id) } })
+  router.push({ name: 'RuntimeTraceExplorer', query: buildRuntimeTraceQuery({ worklineId: workline.id }) })
 }
 
 const config = createWorkLinePageConfig({

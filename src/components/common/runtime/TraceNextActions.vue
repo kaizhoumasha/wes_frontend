@@ -22,6 +22,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import type { TraceDetailResponse } from '@/types/runtime'
+import { buildRuntimeDeviceQuery, buildRuntimeTraceQuery, buildRuntimeWorklineQuery } from '@/utils/runtime-route'
 
 const props = defineProps<{
   detail: TraceDetailResponse
@@ -31,33 +32,30 @@ const router = useRouter()
 
 function openWorkline() {
   if (!props.detail.trace.workline_id) return
-  router.push({ name: 'RuntimeWorklines', query: { worklineId: String(props.detail.trace.workline_id) } })
+  router.push({ name: 'RuntimeWorklines', query: buildRuntimeWorklineQuery(props.detail.trace.workline_id) })
 }
 
 function openDevice() {
   if (!props.detail.trace.device_id) return
   router.push({
     name: 'RuntimeDevices',
-    query: {
-      deviceId: String(props.detail.trace.device_id),
-      worklineId: props.detail.trace.workline_id ? String(props.detail.trace.workline_id) : undefined
-    }
+    query: buildRuntimeDeviceQuery(props.detail.trace.device_id, props.detail.trace.workline_id)
   })
 }
 
 function openCorrelation() {
   if (!props.detail.trace.correlation_id) return
-  router.push({ name: 'RuntimeTraceExplorer', query: { correlationId: props.detail.trace.correlation_id, worklineId: props.detail.trace.workline_id ? String(props.detail.trace.workline_id) : undefined, deviceId: props.detail.trace.device_id ? String(props.detail.trace.device_id) : undefined } })
+  router.push({ name: 'RuntimeTraceExplorer', query: buildRuntimeTraceQuery({ correlationId: props.detail.trace.correlation_id, worklineId: props.detail.trace.workline_id, deviceId: props.detail.trace.device_id }) })
 }
 
 function openCommand() {
   if (!props.detail.trace.command_code) return
-  router.push({ name: 'RuntimeTraceExplorer', query: { commandCode: props.detail.trace.command_code } })
+  router.push({ name: 'RuntimeTraceExplorer', query: buildRuntimeTraceQuery({ commandCode: props.detail.trace.command_code }) })
 }
 
 function openRequest() {
   if (!props.detail.trace.request_id) return
-  router.push({ name: 'RuntimeTraceExplorer', query: { requestId: props.detail.trace.request_id, worklineId: props.detail.trace.workline_id ? String(props.detail.trace.workline_id) : undefined, deviceId: props.detail.trace.device_id ? String(props.detail.trace.device_id) : undefined } })
+  router.push({ name: 'RuntimeTraceExplorer', query: buildRuntimeTraceQuery({ requestId: props.detail.trace.request_id, worklineId: props.detail.trace.workline_id, deviceId: props.detail.trace.device_id }) })
 }
 </script>
 

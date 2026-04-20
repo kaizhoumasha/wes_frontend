@@ -190,6 +190,7 @@ import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.v
 import WorklineHealthHero from '@/components/common/runtime/WorklineHealthHero.vue'
 import WorklineTopologyStrip from '@/components/common/runtime/WorklineTopologyStrip.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
+import { buildRuntimeDeviceQuery, buildRuntimeTraceQuery, buildRuntimeWorklineQuery } from '@/utils/runtime-route'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
 import type { RuntimeWorklineDetailResponse, RuntimeWorklineDeviceItem, RuntimeWorklineSummary } from '@/types/runtime'
 import { formatRuntimeDateTime, formatRuntimeElapsed, getWorklineRiskLabel as worklineRiskLabel, getWorklineRiskScore, getWorklineRiskTone as worklineRiskTone, pickDominantValue, readPositiveInt, sortByScoreDesc } from '@/utils/runtime-display'
@@ -262,15 +263,15 @@ async function loadWorklines() {
 
 async function selectWorkline(row: { id: number }) {
   await loadDetail(row.id)
-  router.replace({ query: { ...route.query, worklineId: String(row.id) } })
+  router.replace({ query: { ...route.query, ...buildRuntimeWorklineQuery(row.id) } })
 }
 
 function openTrace(sessionId: number) {
-  router.push({ name: 'RuntimeTraceExplorer', query: { sessionId: String(sessionId), worklineId: String(detail.value?.summary.id || '') } })
+  router.push({ name: 'RuntimeTraceExplorer', query: buildRuntimeTraceQuery({ sessionId, worklineId: detail.value?.summary.id }) })
 }
 
 function openDevice(deviceId: number) {
-  router.push({ name: 'RuntimeDevices', query: { deviceId: String(deviceId), worklineId: String(detail.value?.summary.id || '') } })
+  router.push({ name: 'RuntimeDevices', query: buildRuntimeDeviceQuery(deviceId, detail.value?.summary.id) })
 }
 
 onMounted(loadWorklines)
