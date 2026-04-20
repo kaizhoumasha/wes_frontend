@@ -980,6 +980,47 @@
     box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.02);
   }
 
+  .runtime-control-cluster {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 6px;
+    border: 1px solid rgb(245 158 11 / 0.1);
+    border-radius: 16px;
+    background: rgb(15 23 42 / 0.36);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.03);
+  }
+
+  .runtime-control-cluster > * {
+    flex: 0 0 auto;
+  }
+
+  .runtime-control-cluster--soft {
+    padding: 4px;
+    border-radius: 14px;
+    background: rgb(15 23 42 / 0.28);
+  }
+
+  .runtime-hero__eyebrow-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .runtime-hero__title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+
+  .runtime-hero__title-row > .runtime-status-badge {
+    flex: 0 0 auto;
+  }
+
   /* 边框工具类 */
   .border-industrial {
     border: 1px solid var(--border-color);
@@ -1306,6 +1347,15 @@
   html:not(.dark) .device-health-hero__code {
     background: var(--runtime-surface-subtle);
     border-color: var(--runtime-border-subtle);
+  }
+
+  html:not(.dark) .runtime-control-cluster {
+    background: rgb(255 255 255 / 0.78);
+    border-color: var(--runtime-border-subtle);
+  }
+
+  html:not(.dark) .runtime-control-cluster--soft {
+    background: var(--runtime-surface);
   }
 
   html:not(.dark) .runtime-risk-item:hover,

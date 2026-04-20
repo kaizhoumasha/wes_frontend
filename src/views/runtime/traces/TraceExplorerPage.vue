@@ -5,7 +5,7 @@
         <h1 class="runtime-page__title">Trace 案件工作台</h1>
         <p class="runtime-page__subtitle">先看案件摘要，再沿 Timeline 与证据分组还原故障链路，并回到工作线 / 设备上下文继续处置。</p>
       </div>
-      <div class="runtime-page__status-bar">
+      <div class="runtime-page__status-bar runtime-control-cluster">
         <RuntimeStatusBadge :label="connectionLabel" :tone="connectionTone" :pulse="live && state === 'connected'" />
         <el-switch :model-value="live" inline-prompt active-text="Live" inactive-text="Frozen" @change="value => toggleLive(Boolean(value))" />
         <RuntimeLastUpdated :value="lastRefreshedAt" :frozen="!live" />
@@ -23,8 +23,8 @@
           <el-option label="Dispatch Key" value="dispatch" />
         </el-select>
         <el-input v-model="queryValue" class="trace-query-bar__input" placeholder="输入 trace 锚点" @keyup.enter="runTraceLookup" />
-        <el-button type="primary" @click="runTraceLookup">查询案件</el-button>
-        <div class="trace-query-bar__presets">
+        <el-button type="primary" class="trace-query-bar__submit" @click="runTraceLookup">查询案件</el-button>
+        <div class="trace-query-bar__presets runtime-control-cluster runtime-control-cluster--soft">
           <el-button :type="currentPreset === 'active' ? 'primary' : 'default'" plain @click="applyListPreset('active')">仅活跃</el-button>
           <el-button :type="currentPreset === 'failed' ? 'danger' : 'default'" plain @click="applyListPreset('failed')">仅失败/超时</el-button>
           <el-button :type="currentPreset === 'all' ? 'success' : 'default'" plain @click="applyListPreset('all')">全部</el-button>
@@ -600,11 +600,7 @@ watch(
 }
 
 .runtime-page__status-bar {
-  display: flex;
-  align-items: center;
   justify-content: flex-end;
-  gap: 12px;
-  flex-wrap: wrap;
 }
 
 .runtime-page__refresh-action {
@@ -649,8 +645,8 @@ watch(
 
 .trace-query-bar {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  align-items: flex-end;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
@@ -669,6 +665,11 @@ watch(
   gap: 10px;
   margin-left: auto;
   flex-wrap: wrap;
+}
+
+.trace-query-bar__submit {
+  min-width: 112px;
+  white-space: nowrap;
 }
 
 .trace-layout {

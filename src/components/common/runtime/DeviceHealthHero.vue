@@ -2,11 +2,11 @@
   <el-card shadow="never" class="device-health-hero">
     <div class="device-health-hero__header">
       <div class="device-health-hero__identity">
-        <div class="device-health-hero__eyebrow-row">
+        <div class="device-health-hero__eyebrow-row runtime-hero__eyebrow-row">
           <div class="device-health-hero__eyebrow">设备健康</div>
           <span class="device-health-hero__code runtime-hero__code">{{ summary.device_code }}</span>
         </div>
-        <div class="device-health-hero__title-row">
+        <div class="device-health-hero__title-row runtime-hero__title-row">
           <h2 class="device-health-hero__title">{{ summary.device_name }}</h2>
           <RuntimeStatusBadge :status="summary.device_status" pulse />
         </div>
@@ -80,13 +80,6 @@ defineProps<{
   min-width: 0;
 }
 
-.device-health-hero__eyebrow-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
 .device-health-hero__eyebrow,
 .device-health-hero__fact span {
   color: #94a3b8;
@@ -94,14 +87,6 @@ defineProps<{
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-}
-
-.device-health-hero__title-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 8px;
-  flex-wrap: wrap;
 }
 
 .device-health-hero__title {

@@ -5,7 +5,7 @@
         <h1 class="runtime-page__title">线内设备监控</h1>
         <p class="runtime-page__subtitle">先锁定工作线，再看设备摘要、最近行为与关联 Trace，快速确认哪台设备正在成为当前瓶颈。</p>
       </div>
-      <div class="runtime-page__status-bar">
+      <div class="runtime-page__status-bar runtime-control-cluster">
         <RuntimeStatusBadge :label="connectionLabel" :tone="connectionTone" :pulse="live && state === 'connected'" />
         <el-switch :model-value="live" inline-prompt active-text="Live" inactive-text="Frozen" @change="value => toggleLive(Boolean(value))" />
         <RuntimeLastUpdated :value="lastRefreshedAt" :frozen="!live" />
@@ -608,11 +608,7 @@ watch(
 }
 
 .runtime-page__status-bar {
-  display: flex;
-  align-items: center;
   justify-content: flex-end;
-  gap: 12px;
-  flex-wrap: wrap;
 }
 
 .runtime-page__refresh-action {

@@ -2,11 +2,11 @@
   <el-card shadow="never" class="workline-health-hero">
     <div class="workline-health-hero__header">
       <div class="workline-health-hero__identity">
-        <div class="workline-health-hero__eyebrow-row">
+        <div class="workline-health-hero__eyebrow-row runtime-hero__eyebrow-row">
           <div class="workline-health-hero__eyebrow">线体摘要</div>
           <span class="workline-health-hero__code runtime-hero__code">{{ summary.line_code }}</span>
         </div>
-        <div class="workline-health-hero__title-row">
+        <div class="workline-health-hero__title-row runtime-hero__title-row">
           <h2 class="workline-health-hero__title">{{ summary.line_name }}</h2>
           <RuntimeStatusBadge :label="heroStatusLabel" :tone="heroTone" pulse />
         </div>
@@ -104,13 +104,6 @@ const heroStatusLabel = computed(() => {
   min-width: 0;
 }
 
-.workline-health-hero__eyebrow-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
 .workline-health-hero__eyebrow,
 .workline-health-hero__fact span {
   color: #94a3b8;
@@ -118,14 +111,6 @@ const heroStatusLabel = computed(() => {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-}
-
-.workline-health-hero__title-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 8px;
-  flex-wrap: wrap;
 }
 
 .workline-health-hero__title {

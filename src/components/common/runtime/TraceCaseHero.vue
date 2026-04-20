@@ -2,11 +2,11 @@
   <el-card shadow="never" class="trace-case-hero">
     <div class="trace-case-hero__top">
       <div class="trace-case-hero__identity">
-        <div class="trace-case-hero__eyebrow-row">
+        <div class="trace-case-hero__eyebrow-row runtime-hero__eyebrow-row">
           <div class="trace-case-hero__eyebrow">案件摘要</div>
           <span class="trace-case-hero__code runtime-hero__code">Session #{{ detail.trace.session_id ?? '—' }}</span>
         </div>
-        <div class="trace-case-hero__title-row">
+        <div class="trace-case-hero__title-row runtime-hero__title-row">
           <h2 class="trace-case-hero__title">{{ sessionCode }}</h2>
           <RuntimeStatusBadge :status="detail.summary.session_status || detail.session?.status" pulse />
         </div>
@@ -129,13 +129,6 @@ const counts = computed(() => [
   min-width: 0;
 }
 
-.trace-case-hero__eyebrow-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
 .trace-case-hero__eyebrow,
 .trace-case-hero__metric-label,
 .trace-case-hero__fact span,
@@ -145,14 +138,6 @@ const counts = computed(() => [
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-}
-
-.trace-case-hero__title-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 8px;
-  flex-wrap: wrap;
 }
 
 .trace-case-hero__title {

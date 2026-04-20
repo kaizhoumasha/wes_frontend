@@ -5,7 +5,7 @@
         <h1 class="runtime-page__title">工作线运行监控</h1>
         <p class="runtime-page__subtitle">先看线体摘要，再下钻拓扑、运行队列与失败链路，确认阻塞是局部节点问题还是线体级异常。</p>
       </div>
-      <div class="runtime-page__status-bar">
+      <div class="runtime-page__status-bar runtime-control-cluster">
         <RuntimeStatusBadge :label="connectionLabel" :tone="connectionTone" :pulse="live && state === 'connected'" />
         <el-switch :model-value="live" inline-prompt active-text="Live" inactive-text="Frozen" @change="value => toggleLive(Boolean(value))" />
         <RuntimeLastUpdated :value="lastRefreshedAt" :frozen="!live" />
@@ -324,11 +324,7 @@ watch(
 }
 
 .runtime-page__status-bar {
-  display: flex;
-  align-items: center;
   justify-content: flex-end;
-  gap: 12px;
-  flex-wrap: wrap;
 }
 
 .runtime-page__refresh-action {
