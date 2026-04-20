@@ -9,7 +9,7 @@
         <RuntimeStatusBadge :label="connectionLabel" :tone="connectionTone" :pulse="live && state === 'connected'" />
         <el-switch :model-value="live" inline-prompt active-text="Live" inactive-text="Frozen" @change="value => toggleLive(Boolean(value))" />
         <RuntimeLastUpdated :value="lastRefreshedAt" :frozen="!live" />
-        <el-button type="primary" @click="loadWorklines">刷新当前视图</el-button>
+        <el-button plain class="runtime-page__refresh-action" @click="loadWorklines">刷新当前视图</el-button>
       </div>
     </div>
 
@@ -329,6 +329,11 @@ watch(
   justify-content: flex-end;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.runtime-page__refresh-action {
+  min-width: 112px;
+  white-space: nowrap;
 }
 
 .runtime-layout {
