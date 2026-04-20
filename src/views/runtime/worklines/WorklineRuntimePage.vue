@@ -2,14 +2,14 @@
   <div v-loading="loading" class="runtime-page">
     <div class="runtime-page__header">
       <div>
-        <h1 class="runtime-page__title">工作线监控</h1>
-        <p class="runtime-page__subtitle">先判断这条线是否整体通畅，再看阻塞是否集中在某个设备段或某个 Step。</p>
+        <h1 class="runtime-page__title">工作线运行监控</h1>
+        <p class="runtime-page__subtitle">先看线体摘要，再下钻拓扑、运行队列与失败链路，确认阻塞是局部节点问题还是线体级异常。</p>
       </div>
       <div class="runtime-page__status-bar">
         <RuntimeStatusBadge :label="connectionLabel" :tone="connectionTone" :pulse="live && state === 'connected'" />
         <el-switch :model-value="live" inline-prompt active-text="Live" inactive-text="Frozen" @change="value => toggleLive(Boolean(value))" />
         <RuntimeLastUpdated :value="lastRefreshedAt" :frozen="!live" />
-        <el-button type="primary" @click="loadWorklines">刷新</el-button>
+        <el-button type="primary" @click="loadWorklines">刷新当前视图</el-button>
       </div>
     </div>
 

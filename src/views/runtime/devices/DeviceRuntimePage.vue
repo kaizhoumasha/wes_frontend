@@ -2,14 +2,14 @@
   <div v-loading="loading" class="runtime-page">
     <div class="runtime-page__header">
       <div>
-        <h1 class="runtime-page__title">设备监控</h1>
-        <p class="runtime-page__subtitle">先切到具体工作线，再判断线内哪台设备正在成为瓶颈，并回看命令、回调与关联 Trace。</p>
+        <h1 class="runtime-page__title">线内设备监控</h1>
+        <p class="runtime-page__subtitle">先锁定工作线，再看设备摘要、最近行为与关联 Trace，快速确认哪台设备正在成为当前瓶颈。</p>
       </div>
       <div class="runtime-page__status-bar">
         <RuntimeStatusBadge :label="connectionLabel" :tone="connectionTone" :pulse="live && state === 'connected'" />
         <el-switch :model-value="live" inline-prompt active-text="Live" inactive-text="Frozen" @change="value => toggleLive(Boolean(value))" />
         <RuntimeLastUpdated :value="lastRefreshedAt" :frozen="!live" />
-        <el-button type="primary" @click="loadDevices">刷新</el-button>
+        <el-button type="primary" @click="loadDevices">刷新当前视图</el-button>
       </div>
     </div>
 

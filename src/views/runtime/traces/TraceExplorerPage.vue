@@ -2,8 +2,8 @@
   <div v-loading="loading" class="runtime-page">
     <div class="runtime-page__header">
       <div>
-        <h1 class="runtime-page__title">Trace Explorer</h1>
-        <p class="runtime-page__subtitle">按 session / request / correlation / command / dispatch 锚点排障，把案件摘要、主时间轴和证据链放在同一工作台里。</p>
+        <h1 class="runtime-page__title">Trace 案件工作台</h1>
+        <p class="runtime-page__subtitle">先看案件摘要，再沿 Timeline 与证据分组还原故障链路，并回到工作线 / 设备上下文继续处置。</p>
       </div>
       <div class="runtime-page__status-bar">
         <RuntimeStatusBadge :label="connectionLabel" :tone="connectionTone" :pulse="live && state === 'connected'" />
