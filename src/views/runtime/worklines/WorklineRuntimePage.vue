@@ -167,7 +167,7 @@
           <RuntimeEmptyState
             title="还没有选中工作线"
             description="请从左侧线体目录选择一条工作线，进入拓扑与运行队列视图。"
-            hint="目录会按风险优先排序；当前选中的工作线也会固定置顶。"
+            hint="目录会保持稳定排序；当前选中的工作线只高亮，不再置顶。"
           />
         </el-card>
       </div>
@@ -187,7 +187,7 @@ import WorklineTopologyStrip from '@/components/common/runtime/WorklineTopologyS
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
 import type { RuntimeWorklineDetailResponse, RuntimeWorklineDeviceItem, RuntimeWorklineSummary } from '@/types/runtime'
-import { formatRuntimeDateTime, formatRuntimeElapsed, getWorklineRiskLabel as worklineRiskLabel, getWorklineRiskScore, getWorklineRiskTone as worklineRiskTone, pickDominantValue, sortByRiskWithSelection } from '@/utils/runtime-display'
+import { formatRuntimeDateTime, formatRuntimeElapsed, getWorklineRiskLabel as worklineRiskLabel, getWorklineRiskScore, getWorklineRiskTone as worklineRiskTone, pickDominantValue } from '@/utils/runtime-display'
 
 const route = useRoute()
 const router = useRouter()
@@ -200,7 +200,13 @@ const detail = ref<RuntimeWorklineDetailResponse | null>(null)
 const selectedWorklineId = computed(() => detail.value?.summary.id ?? (Number(route.query.worklineId || 0) || null))
 
 const orderedWorklines = computed(() => {
-  return sortByRiskWithSelection(worklines.value, selectedWorklineId.value, getWorklineRiskScore)
+  return [...worklines.value].sort((left, right) => {
+    const riskDelta = getWorklineRiskScore(right) - getWorklineRiskScore(left)
+    if (riskDelta !== 0) {
+      return riskDelta
+    }
+    return left.id - right.id
+  })
 })
 
 const hotspotDevice = computed<RuntimeWorklineDeviceItem | null>(() => {
