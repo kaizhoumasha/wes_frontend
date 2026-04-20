@@ -290,38 +290,8 @@ watch(
 </script>
 
 <style scoped>
-.runtime-page {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.runtime-page__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.runtime-page__title {
-  margin: 0;
-  color: #f8fafc;
-  font-size: 32px;
-}
-
 .runtime-page__subtitle {
   max-width: 840px;
-  margin: 8px 0 0;
-  color: #94a3b8;
-  line-height: 1.7;
-}
-
-.runtime-page__status-bar {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  flex-wrap: wrap;
 }
 
 .runtime-overview__priority-grid,
@@ -331,29 +301,6 @@ watch(
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.runtime-panel {
-  background: rgb(15, 23, 42, 0.72);
-  border: 1px solid rgb(245, 158, 11, 0.12);
-}
-
-.runtime-panel__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.runtime-panel__title {
-  color: #f8fafc;
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.runtime-panel__subtitle {
-  margin-top: 4px;
-  color: #94a3b8;
-  font-size: 12px;
-}
 
 .runtime-risk-list {
   display: flex;

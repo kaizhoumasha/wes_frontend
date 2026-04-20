@@ -10,6 +10,10 @@ import type {
   TraceQueryPayload,
 } from '@/types/runtime'
 
+function getTraceDetail(path: string, value: number | string) {
+  return apiClient.Get<TraceDetailResponse>(`/api/v1/workline/trace/${path}/${encodeURIComponent(String(value))}`)
+}
+
 export const runtimeApiMethods = {
   overview() {
     return apiClient.Get<RuntimeOverviewResponse>('/api/v1/workline/runtime/overview')
@@ -40,22 +44,22 @@ export const runtimeApiMethods = {
   },
 
   traceByRequestId(requestId: string) {
-    return apiClient.Get<TraceDetailResponse>(`/api/v1/workline/trace/request/${encodeURIComponent(requestId)}`)
+    return getTraceDetail('request', requestId)
   },
 
   traceByCorrelationId(correlationId: string) {
-    return apiClient.Get<TraceDetailResponse>(`/api/v1/workline/trace/correlation/${encodeURIComponent(correlationId)}`)
+    return getTraceDetail('correlation', correlationId)
   },
 
   traceBySessionId(sessionId: number) {
-    return apiClient.Get<TraceDetailResponse>(`/api/v1/workline/trace/session/${sessionId}`)
+    return getTraceDetail('session', sessionId)
   },
 
   traceByCommandCode(commandCode: string) {
-    return apiClient.Get<TraceDetailResponse>(`/api/v1/workline/trace/command/${encodeURIComponent(commandCode)}`)
+    return getTraceDetail('command', commandCode)
   },
 
   traceByDispatchKey(dispatchKey: string) {
-    return apiClient.Get<TraceDetailResponse>(`/api/v1/workline/trace/dispatch/${encodeURIComponent(dispatchKey)}`)
+    return getTraceDetail('dispatch', dispatchKey)
   },
 }

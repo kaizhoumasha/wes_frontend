@@ -573,74 +573,14 @@ watch(
 </script>
 
 <style scoped>
-.runtime-page {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.runtime-page__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.runtime-page__title {
-  margin: 0;
-  color: #f8fafc;
-  font-size: 32px;
-}
-
 .runtime-page__subtitle {
   max-width: 900px;
-  margin: 8px 0 0;
-  color: #94a3b8;
-  line-height: 1.7;
-}
-
-.runtime-page__status-bar {
-  justify-content: flex-end;
-}
-
-.runtime-page__refresh-action {
-  min-width: 112px;
-  white-space: nowrap;
-}
-
-.runtime-panel {
-  background: rgb(15, 23, 42, 0.72);
-  border: 1px solid rgb(245, 158, 11, 0.12);
-}
-
-.runtime-panel__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.runtime-panel__header--compact {
-  align-items: center;
-  gap: 12px;
 }
 
 .trace-context-placeholder {
   color: var(--runtime-text-secondary, #94a3b8);
   font-size: 12px;
   line-height: 1.5;
-}
-
-.runtime-panel__title {
-  color: #f8fafc;
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.runtime-panel__subtitle {
-  margin-top: 4px;
-  color: #94a3b8;
-  font-size: 12px;
 }
 
 .trace-query-bar {
