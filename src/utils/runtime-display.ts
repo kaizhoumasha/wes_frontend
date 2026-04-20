@@ -273,14 +273,3 @@ export function pickDominantValue(values: string[]): string {
   return winner
 }
 
-export function sortByRiskWithSelection<T extends { id: number }>(
-  items: T[],
-  selectedId: number | null | undefined,
-  getScore: (item: T) => number
-): T[] {
-  return [...items].sort((left, right) => {
-    if (selectedId && left.id === selectedId) return -1
-    if (selectedId && right.id === selectedId) return 1
-    return getScore(right) - getScore(left)
-  })
-}
