@@ -206,7 +206,7 @@
             </el-tabs>
           </el-card>
 
-            <TraceNextActions :detail="traceDetail" />
+            <TraceNextActions :detail="traceDetail" @open-trace="openTraceFromAction" />
           </div>
         </template>
 
@@ -235,6 +235,7 @@ import TraceTimeline from '@/components/common/runtime/TraceTimeline.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
 import type { RuntimeTraceListItem, RuntimeTraceListResponse, TraceDetailResponse, TraceQueryPayload } from '@/types/runtime'
+import { buildRuntimeTraceQuery, type RuntimeTraceQueryInput } from '@/utils/runtime-route'
 import { compactEnumLabel, formatRuntimeDateTime, formatRuntimeDurationMs, readPositiveInt } from '@/utils/runtime-display'
 
 const route = useRoute()
@@ -440,15 +441,49 @@ function getLookupAnchor(): TraceAnchor | null {
   }
 }
 
-function syncRouteQuery(type: TraceAnchorType, value: string) {
+function resolveTraceAnchorFromQuery(query: RuntimeTraceQueryInput): TraceAnchor | null {
+  if (query.sessionId !== null && query.sessionId !== undefined && query.sessionId !== '') {
+    const value = String(query.sessionId)
+    if (Number.isFinite(Number(value))) {
+      return { type: 'session', value }
+    }
+  }
+
+  if (query.requestId) {
+    return { type: 'request', value: String(query.requestId) }
+  }
+
+  if (query.correlationId) {
+    return { type: 'correlation', value: String(query.correlationId) }
+  }
+
+  if (query.commandCode) {
+    return { type: 'command', value: String(query.commandCode) }
+  }
+
+  if (query.dispatchKey) {
+    return { type: 'dispatch', value: String(query.dispatchKey) }
+  }
+
+  return null
+}
+
+async function syncRouteQuery(type: TraceAnchorType, value: string, query: RuntimeTraceQueryInput = {}) {
   const nextQuery = { ...route.query }
 
   for (const queryKey of Object.values(TRACE_QUERY_KEYS)) {
     delete nextQuery[queryKey]
   }
 
-  nextQuery[TRACE_QUERY_KEYS[type]] = value
-  router.replace({ query: nextQuery })
+  await router.replace({
+    query: {
+      ...nextQuery,
+      ...buildRuntimeTraceQuery({
+        ...query,
+        [TRACE_QUERY_KEYS[type]]: value
+      } as RuntimeTraceQueryInput)
+    }
+  })
 }
 
 async function loadTraceList(payload: TraceQueryPayload = currentListPayload.value) {
@@ -490,7 +525,22 @@ async function runTraceLookup() {
   loading.value = true
   try {
     await loadTraceDetail(anchor)
-    syncRouteQuery(anchor.type, anchor.value)
+    await syncRouteQuery(anchor.type, anchor.value)
+    await applyListPreset(resolvePresetForDetail(traceDetail.value))
+  } finally {
+    loading.value = false
+  }
+}
+
+async function openTraceFromAction(query: RuntimeTraceQueryInput) {
+  const anchor = resolveTraceAnchorFromQuery(query)
+  if (!anchor) return
+
+  loading.value = true
+  try {
+    applyAnchorToInputs(anchor)
+    await loadTraceDetail(anchor)
+    await syncRouteQuery(anchor.type, anchor.value, query)
     await applyListPreset(resolvePresetForDetail(traceDetail.value))
   } finally {
     loading.value = false
@@ -501,7 +551,7 @@ async function selectTraceRow(row: { session_id: number }) {
   loading.value = true
   try {
     await loadTraceBySession(row.session_id)
-    syncRouteQuery('session', String(row.session_id))
+    await syncRouteQuery('session', String(row.session_id))
   } finally {
     loading.value = false
   }

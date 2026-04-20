@@ -22,10 +22,14 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import type { TraceDetailResponse } from '@/types/runtime'
-import { buildRuntimeDeviceQuery, buildRuntimeTraceQuery, buildRuntimeWorklineQuery } from '@/utils/runtime-route'
+import { buildRuntimeDeviceQuery, buildRuntimeWorklineQuery, type RuntimeTraceQueryInput } from '@/utils/runtime-route'
 
 const props = defineProps<{
   detail: TraceDetailResponse
+}>()
+
+const emit = defineEmits<{
+  'open-trace': [query: RuntimeTraceQueryInput]
 }>()
 
 const router = useRouter()
@@ -45,17 +49,25 @@ function openDevice() {
 
 function openCorrelation() {
   if (!props.detail.trace.correlation_id) return
-  router.push({ name: 'RuntimeTraceExplorer', query: buildRuntimeTraceQuery({ correlationId: props.detail.trace.correlation_id, worklineId: props.detail.trace.workline_id, deviceId: props.detail.trace.device_id }) })
+  emit('open-trace', {
+    correlationId: props.detail.trace.correlation_id,
+    worklineId: props.detail.trace.workline_id,
+    deviceId: props.detail.trace.device_id
+  })
 }
 
 function openCommand() {
   if (!props.detail.trace.command_code) return
-  router.push({ name: 'RuntimeTraceExplorer', query: buildRuntimeTraceQuery({ commandCode: props.detail.trace.command_code }) })
+  emit('open-trace', { commandCode: props.detail.trace.command_code })
 }
 
 function openRequest() {
   if (!props.detail.trace.request_id) return
-  router.push({ name: 'RuntimeTraceExplorer', query: buildRuntimeTraceQuery({ requestId: props.detail.trace.request_id, worklineId: props.detail.trace.workline_id, deviceId: props.detail.trace.device_id }) })
+  emit('open-trace', {
+    requestId: props.detail.trace.request_id,
+    worklineId: props.detail.trace.workline_id,
+    deviceId: props.detail.trace.device_id
+  })
 }
 </script>
 
