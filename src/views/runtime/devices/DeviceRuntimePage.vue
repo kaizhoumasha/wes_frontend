@@ -65,11 +65,11 @@
       </el-card>
 
       <div class="runtime-layout__detail">
-        <div class="runtime-layout__detail-scroll">
-          <template v-if="detail">
-          <DeviceHealthHero :summary="detail.summary" />
+        <template v-if="detail">
+          <DeviceHealthHero :summary="detail.summary" class="runtime-layout__hero" />
 
-          <el-card shadow="never" class="runtime-panel">
+          <div class="runtime-layout__detail-scroll">
+            <el-card shadow="never" class="runtime-panel">
             <template #header>
               <div class="runtime-panel__header">
                 <div>
@@ -102,8 +102,8 @@
             />
           </el-card>
 
-          <div class="device-grid device-grid--two">
-            <el-card shadow="never" class="runtime-panel">
+            <div class="device-grid device-grid--two">
+              <el-card shadow="never" class="runtime-panel">
               <template #header>
                 <div class="runtime-panel__header">
                   <div>
@@ -154,10 +154,11 @@
                 description="最近命令与回调样本较平稳，没有形成可重复的异常模式。"
               />
             </el-card>
+            </div>
           </div>
         </template>
 
-          <el-card v-else shadow="never" class="runtime-panel runtime-layout__empty-state">
+        <el-card v-else shadow="never" class="runtime-panel runtime-layout__empty-state">
             <div v-if="!activeWorklineId" class="runtime-context-empty runtime-context-empty--centered">
               <RuntimeEmptyState
                 title="设备运行态必须在工作线上下文里查看"
@@ -172,8 +173,7 @@
               description="请从左侧线内设备目录选择一台设备，查看它的健康状态、最近行为和关联 Trace。"
               hint="目录会保持稳定排序；设备能力和 plugin 语义都基于当前工作线。"
             />
-          </el-card>
-        </div>
+        </el-card>
       </div>
     </div>
 
@@ -623,13 +623,22 @@ watch(
 }
 
 .runtime-layout__detail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   min-height: 0;
+}
+
+.runtime-layout__hero {
+  flex: 0 0 auto;
 }
 
 .runtime-layout__detail-scroll {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: 16px;
+  min-height: 0;
 }
 
 .runtime-layout__detail-scroll > * {
@@ -958,9 +967,6 @@ watch(
     scrollbar-gutter: stable;
   }
 
-  .runtime-layout__detail-scroll {
-    height: 100%;
-  }
 }
 
 @media (width <= 1279px) {
