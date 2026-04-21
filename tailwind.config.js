@@ -235,6 +235,8 @@ export default {
   plugins: [
     // 添加工业风格实用类
     function ({ addComponents, addUtilities, theme }) {
+      const monoFontStack = theme('fontFamily.mono').join(', ')
+
       // 工业卡片组件
       addComponents({
         '.industrial-card': {
@@ -268,7 +270,7 @@ export default {
           border: '1px solid rgba(245, 158, 11, 0.2)',
           borderRadius: '8px',
           color: '#F8FAFC',
-          fontFamily: theme('fontFamily.mono'),
+          fontFamily: monoFontStack,
           transition: 'all 0.2s ease',
           '&:focus': {
             outline: 'none',
@@ -328,7 +330,7 @@ export default {
           color: '#94A3B8'
         },
         '.font-data': {
-          fontFamily: theme('fontFamily.mono'),
+          fontFamily: monoFontStack,
           fontVariantNumeric: 'tabular-nums'
         },
         '.border-industrial': {
