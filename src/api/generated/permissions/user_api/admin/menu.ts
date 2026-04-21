@@ -15,8 +15,6 @@ export const ADMIN_MENU_PERMISSION = {
   page: 'admin:menu:list',
   /** 列表查询权限 */
   list: 'admin:menu:list',
-  /** 视图访问权限 */
-  view: 'admin:menu:view',
   /** 详情查看权限 */
   detail: 'admin:menu:detail',
   /** 创建权限 */
@@ -29,4 +27,8 @@ export const ADMIN_MENU_PERMISSION = {
   restore: 'admin:menu:restore',
   /** 回收站权限 */
   trash: 'admin:menu:trash',
+  /** 批量永久删除Menu */
+  permanentDelete: 'admin:menu:permanent_delete',
+  /** get_tree */
+  tree: 'admin:menu:tree',
 } as const

@@ -104,7 +104,7 @@ pipeline {
                         --provenance=false \
                         --sbom=false \
                         --build-arg VITE_API_BASE_URL=/api/v1 \
-                        --build-arg VITE_SSE_URL=/api/v1/events/stream \
+                        --build-arg VITE_SSE_URL=/api/v1/sys/events/stream \
                         --build-arg VITE_APP_DEV=false \
                         --build-arg VITE_APP_TITLE="P9 MCS" \
                         -t "${CI_DOCKER_IMAGE_LOCAL}" \

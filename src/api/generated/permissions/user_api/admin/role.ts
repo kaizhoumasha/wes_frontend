@@ -27,4 +27,6 @@ export const ADMIN_ROLE_PERMISSION = {
   restore: 'admin:role:restore',
   /** 回收站权限 */
   trash: 'admin:role:trash',
+  /** 批量永久删除Role */
+  permanentDelete: 'admin:role:permanent_delete',
 } as const

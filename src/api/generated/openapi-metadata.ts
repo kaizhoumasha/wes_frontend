@@ -1031,6 +1031,8 @@ export const OPENAPI_SCHEMA_METADATA = {
       "response_status",
       "response_time_ms",
       "error_message",
+      "ingress_outcome",
+      "failure_stage",
       "created_at",
       "updated_at"
     ],
@@ -1097,6 +1099,18 @@ export const OPENAPI_SCHEMA_METADATA = {
       },
       "error_message": {
         "title": "Error Message",
+        "type": "string",
+        "required": true,
+        "nullable": true
+      },
+      "ingress_outcome": {
+        "title": "Ingress Outcome",
+        "type": "string",
+        "required": true,
+        "nullable": true
+      },
+      "failure_stage": {
+        "title": "Failure Stage",
         "type": "string",
         "required": true,
         "nullable": true
@@ -1479,6 +1493,13 @@ export const OPENAPI_SCHEMA_METADATA = {
         "nullable": true,
         "maxLength": 50
       },
+      "capabilities_json": {
+        "title": "Capabilities Json",
+        "description": "设备能力声明（支持事件、命令、回调等）",
+        "type": "object",
+        "required": false,
+        "nullable": false
+      },
       "host": {
         "title": "Host",
         "description": "设备 IP 地址",
@@ -1521,6 +1542,14 @@ export const OPENAPI_SCHEMA_METADATA = {
         "minimum": 1000,
         "maximum": 300000
       },
+      "callback_path": {
+        "title": "Callback Path",
+        "description": "设备侧回调/命令接收路径覆盖",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 255
+      },
       "device_status": {
         "description": "设备实时状态（IDLE/RUNNING/ERROR/OFFLINE）",
         "required": false,
@@ -1551,6 +1580,14 @@ export const OPENAPI_SCHEMA_METADATA = {
         "nullable": true,
         "maxLength": 50
       },
+      "maintenance_mode": {
+        "title": "Maintenance Mode",
+        "description": "是否处于维护模式（维护中不参与正常编排）",
+        "type": "boolean",
+        "required": false,
+        "nullable": false,
+        "default": false
+      },
       "max_concurrent_tasks": {
         "title": "Max Concurrent Tasks",
         "description": "最大并发任务数",
@@ -1570,6 +1607,13 @@ export const OPENAPI_SCHEMA_METADATA = {
         "default": 3600,
         "minimum": 60,
         "maximum": 86400
+      },
+      "diagnostic_profile": {
+        "title": "Diagnostic Profile",
+        "description": "设备诊断配置（责任角色、显示偏好、扩展属性）",
+        "type": "object",
+        "required": false,
+        "nullable": false
       }
     }
   },
@@ -1686,6 +1730,13 @@ export const OPENAPI_SCHEMA_METADATA = {
         "nullable": true,
         "maxLength": 50
       },
+      "capabilities_json": {
+        "title": "Capabilities Json",
+        "description": "设备能力声明（支持事件、命令、回调等）",
+        "type": "object",
+        "required": false,
+        "nullable": false
+      },
       "host": {
         "title": "Host",
         "description": "设备 IP 地址",
@@ -1728,6 +1779,14 @@ export const OPENAPI_SCHEMA_METADATA = {
         "minimum": 1000,
         "maximum": 300000
       },
+      "callback_path": {
+        "title": "Callback Path",
+        "description": "设备侧回调/命令接收路径覆盖",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 255
+      },
       "device_status": {
         "description": "设备实时状态（IDLE/RUNNING/ERROR/OFFLINE）",
         "required": false,
@@ -1758,6 +1817,14 @@ export const OPENAPI_SCHEMA_METADATA = {
         "nullable": true,
         "maxLength": 50
       },
+      "maintenance_mode": {
+        "title": "Maintenance Mode",
+        "description": "是否处于维护模式（维护中不参与正常编排）",
+        "type": "boolean",
+        "required": false,
+        "nullable": false,
+        "default": false
+      },
       "max_concurrent_tasks": {
         "title": "Max Concurrent Tasks",
         "description": "最大并发任务数",
@@ -1777,6 +1844,13 @@ export const OPENAPI_SCHEMA_METADATA = {
         "default": 3600,
         "minimum": 60,
         "maximum": 86400
+      },
+      "diagnostic_profile": {
+        "title": "Diagnostic Profile",
+        "description": "设备诊断配置（责任角色、显示偏好、扩展属性）",
+        "type": "object",
+        "required": false,
+        "nullable": false
       },
       "id": {
         "title": "Id",
@@ -1898,6 +1972,13 @@ export const OPENAPI_SCHEMA_METADATA = {
         "nullable": true,
         "maxLength": 50
       },
+      "capabilities_json": {
+        "title": "Capabilities Json",
+        "description": "设备能力声明（支持事件、命令、回调等）",
+        "type": "object",
+        "required": false,
+        "nullable": true
+      },
       "host": {
         "title": "Host",
         "description": "设备 IP 地址",
@@ -1938,6 +2019,14 @@ export const OPENAPI_SCHEMA_METADATA = {
         "minimum": 1000,
         "maximum": 300000
       },
+      "callback_path": {
+        "title": "Callback Path",
+        "description": "设备侧回调/命令接收路径覆盖",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 255
+      },
       "device_status": {
         "description": "设备实时状态（IDLE/RUNNING/ERROR/OFFLINE）",
         "required": false,
@@ -1967,6 +2056,13 @@ export const OPENAPI_SCHEMA_METADATA = {
         "nullable": true,
         "maxLength": 50
       },
+      "maintenance_mode": {
+        "title": "Maintenance Mode",
+        "description": "是否处于维护模式（维护中不参与正常编排）",
+        "type": "boolean",
+        "required": false,
+        "nullable": true
+      },
       "max_concurrent_tasks": {
         "title": "Max Concurrent Tasks",
         "description": "最大并发任务数",
@@ -1984,6 +2080,13 @@ export const OPENAPI_SCHEMA_METADATA = {
         "nullable": true,
         "minimum": 60,
         "maximum": 86400
+      },
+      "diagnostic_profile": {
+        "title": "Diagnostic Profile",
+        "description": "设备诊断配置（责任角色、显示偏好、扩展属性）",
+        "type": "object",
+        "required": false,
+        "nullable": true
       },
       "version": {
         "title": "Version",
@@ -3351,7 +3454,7 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": false,
         "items": {
-          "ref": "MenuResponse"
+          "ref": "MenuTreeResponse"
         }
       }
     }
@@ -4747,6 +4850,181 @@ export const OPENAPI_SCHEMA_METADATA = {
       }
     }
   },
+  "ResponseSchemaModel_RuntimeDeviceDetailResponse_": {
+    "title": "ResponseSchemaModel[RuntimeDeviceDetailResponse]",
+    "required": [],
+    "fields": {
+      "code": {
+        "title": "Code",
+        "description": "响应码",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "1000"
+      },
+      "message": {
+        "title": "Message",
+        "description": "响应消息",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "操作成功"
+      },
+      "data": {
+        "description": "响应数据",
+        "required": false,
+        "nullable": true,
+        "ref": "RuntimeDeviceDetailResponse"
+      },
+      "timestamp": {
+        "title": "Timestamp",
+        "description": "响应时间戳(ISO 8601格式)",
+        "type": "string",
+        "required": false,
+        "nullable": false
+      }
+    }
+  },
+  "ResponseSchemaModel_RuntimeOverviewResponse_": {
+    "title": "ResponseSchemaModel[RuntimeOverviewResponse]",
+    "required": [],
+    "fields": {
+      "code": {
+        "title": "Code",
+        "description": "响应码",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "1000"
+      },
+      "message": {
+        "title": "Message",
+        "description": "响应消息",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "操作成功"
+      },
+      "data": {
+        "description": "响应数据",
+        "required": false,
+        "nullable": true,
+        "ref": "RuntimeOverviewResponse"
+      },
+      "timestamp": {
+        "title": "Timestamp",
+        "description": "响应时间戳(ISO 8601格式)",
+        "type": "string",
+        "required": false,
+        "nullable": false
+      }
+    }
+  },
+  "ResponseSchemaModel_RuntimeTraceListResponse_": {
+    "title": "ResponseSchemaModel[RuntimeTraceListResponse]",
+    "required": [],
+    "fields": {
+      "code": {
+        "title": "Code",
+        "description": "响应码",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "1000"
+      },
+      "message": {
+        "title": "Message",
+        "description": "响应消息",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "操作成功"
+      },
+      "data": {
+        "description": "响应数据",
+        "required": false,
+        "nullable": true,
+        "ref": "RuntimeTraceListResponse"
+      },
+      "timestamp": {
+        "title": "Timestamp",
+        "description": "响应时间戳(ISO 8601格式)",
+        "type": "string",
+        "required": false,
+        "nullable": false
+      }
+    }
+  },
+  "ResponseSchemaModel_RuntimeWorklineDetailResponse_": {
+    "title": "ResponseSchemaModel[RuntimeWorklineDetailResponse]",
+    "required": [],
+    "fields": {
+      "code": {
+        "title": "Code",
+        "description": "响应码",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "1000"
+      },
+      "message": {
+        "title": "Message",
+        "description": "响应消息",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "操作成功"
+      },
+      "data": {
+        "description": "响应数据",
+        "required": false,
+        "nullable": true,
+        "ref": "RuntimeWorklineDetailResponse"
+      },
+      "timestamp": {
+        "title": "Timestamp",
+        "description": "响应时间戳(ISO 8601格式)",
+        "type": "string",
+        "required": false,
+        "nullable": false
+      }
+    }
+  },
+  "ResponseSchemaModel_TraceDetailResponse_": {
+    "title": "ResponseSchemaModel[TraceDetailResponse]",
+    "required": [],
+    "fields": {
+      "code": {
+        "title": "Code",
+        "description": "响应码",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "1000"
+      },
+      "message": {
+        "title": "Message",
+        "description": "响应消息",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "操作成功"
+      },
+      "data": {
+        "description": "响应数据",
+        "required": false,
+        "nullable": true,
+        "ref": "TraceDetailResponse"
+      },
+      "timestamp": {
+        "title": "Timestamp",
+        "description": "响应时间戳(ISO 8601格式)",
+        "type": "string",
+        "required": false,
+        "nullable": false
+      }
+    }
+  },
   "ResponseSchemaModel_UserPermissionsResponse_": {
     "title": "ResponseSchemaModel[UserPermissionsResponse]",
     "required": [],
@@ -5191,6 +5469,84 @@ export const OPENAPI_SCHEMA_METADATA = {
       }
     }
   },
+  "ResponseSchemaModel_list_RuntimeDeviceSummary__": {
+    "title": "ResponseSchemaModel[list[RuntimeDeviceSummary]]",
+    "required": [],
+    "fields": {
+      "code": {
+        "title": "Code",
+        "description": "响应码",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "1000"
+      },
+      "message": {
+        "title": "Message",
+        "description": "响应消息",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "操作成功"
+      },
+      "data": {
+        "title": "Data",
+        "description": "响应数据",
+        "type": "array",
+        "required": false,
+        "nullable": true,
+        "items": {
+          "ref": "RuntimeDeviceSummary"
+        }
+      },
+      "timestamp": {
+        "title": "Timestamp",
+        "description": "响应时间戳(ISO 8601格式)",
+        "type": "string",
+        "required": false,
+        "nullable": false
+      }
+    }
+  },
+  "ResponseSchemaModel_list_RuntimeWorklineSummary__": {
+    "title": "ResponseSchemaModel[list[RuntimeWorklineSummary]]",
+    "required": [],
+    "fields": {
+      "code": {
+        "title": "Code",
+        "description": "响应码",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "1000"
+      },
+      "message": {
+        "title": "Message",
+        "description": "响应消息",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "操作成功"
+      },
+      "data": {
+        "title": "Data",
+        "description": "响应数据",
+        "type": "array",
+        "required": false,
+        "nullable": true,
+        "items": {
+          "ref": "RuntimeWorklineSummary"
+        }
+      },
+      "timestamp": {
+        "title": "Timestamp",
+        "description": "响应时间戳(ISO 8601格式)",
+        "type": "string",
+        "required": false,
+        "nullable": false
+      }
+    }
+  },
   "RevokeSessionResponse": {
     "title": "RevokeSessionResponse",
     "description": "撤销会话响应 Schema",
@@ -5346,6 +5702,706 @@ export const OPENAPI_SCHEMA_METADATA = {
       }
     }
   },
+  "RuntimeDeviceDetailResponse": {
+    "title": "RuntimeDeviceDetailResponse",
+    "required": [
+      "summary"
+    ],
+    "fields": {
+      "summary": {
+        "required": true,
+        "nullable": false,
+        "ref": "RuntimeDeviceSummary"
+      },
+      "recent_commands": {
+        "title": "Recent Commands",
+        "type": "array",
+        "required": false,
+        "nullable": false,
+        "items": {
+          "ref": "TraceCommandItem"
+        }
+      },
+      "recent_callbacks": {
+        "title": "Recent Callbacks",
+        "type": "array",
+        "required": false,
+        "nullable": false,
+        "items": {
+          "ref": "TraceCallbackLogItem"
+        }
+      },
+      "active_sessions": {
+        "title": "Active Sessions",
+        "type": "array",
+        "required": false,
+        "nullable": false,
+        "items": {
+          "ref": "RuntimeTraceListItem"
+        }
+      }
+    }
+  },
+  "RuntimeDeviceHealthSummary": {
+    "title": "RuntimeDeviceHealthSummary",
+    "required": [],
+    "fields": {
+      "total": {
+        "title": "Total",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "abnormal": {
+        "title": "Abnormal",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "maintenance": {
+        "title": "Maintenance",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "loaded": {
+        "title": "Loaded",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "healthy": {
+        "title": "Healthy",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      }
+    }
+  },
+  "RuntimeDeviceSummary": {
+    "title": "RuntimeDeviceSummary",
+    "required": [
+      "id",
+      "device_code",
+      "device_name",
+      "device_role",
+      "role_index",
+      "device_status"
+    ],
+    "fields": {
+      "id": {
+        "title": "Id",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "device_code": {
+        "title": "Device Code",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "device_name": {
+        "title": "Device Name",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "device_role": {
+        "title": "Device Role",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "role_index": {
+        "title": "Role Index",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "workline_id": {
+        "title": "Workline Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "workline_name": {
+        "title": "Workline Name",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "workline_code": {
+        "title": "Workline Code",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "device_status": {
+        "title": "Device Status",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "maintenance_mode": {
+        "title": "Maintenance Mode",
+        "type": "boolean",
+        "required": false,
+        "nullable": false,
+        "default": false
+      },
+      "current_command_id": {
+        "title": "Current Command Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "pending_command_count": {
+        "title": "Pending Command Count",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "last_heartbeat_at": {
+        "title": "Last Heartbeat At",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      },
+      "recent_callback_at": {
+        "title": "Recent Callback At",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      },
+      "error_code": {
+        "title": "Error Code",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      }
+    }
+  },
+  "RuntimeOverviewResponse": {
+    "title": "RuntimeOverviewResponse",
+    "required": [
+      "stats"
+    ],
+    "fields": {
+      "stats": {
+        "title": "Stats",
+        "type": "array",
+        "required": true,
+        "nullable": false,
+        "items": {
+          "ref": "RuntimeStatCard"
+        }
+      },
+      "recent_failed_traces": {
+        "title": "Recent Failed Traces",
+        "type": "array",
+        "required": false,
+        "nullable": false,
+        "items": {
+          "ref": "RuntimeTraceListItem"
+        }
+      },
+      "hot_worklines": {
+        "title": "Hot Worklines",
+        "type": "array",
+        "required": false,
+        "nullable": false,
+        "items": {
+          "ref": "RuntimeWorklineSummary"
+        }
+      },
+      "abnormal_devices": {
+        "title": "Abnormal Devices",
+        "type": "array",
+        "required": false,
+        "nullable": false,
+        "items": {
+          "ref": "RuntimeDeviceSummary"
+        }
+      },
+      "device_health": {
+        "required": false,
+        "nullable": false,
+        "ref": "RuntimeDeviceHealthSummary"
+      }
+    }
+  },
+  "RuntimeStatCard": {
+    "title": "RuntimeStatCard",
+    "required": [
+      "key",
+      "label",
+      "value"
+    ],
+    "fields": {
+      "key": {
+        "title": "Key",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "label": {
+        "title": "Label",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "value": {
+        "title": "Value",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "status": {
+        "title": "Status",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "info"
+      }
+    }
+  },
+  "RuntimeTraceListItem": {
+    "title": "RuntimeTraceListItem",
+    "description": "Trace 列表项。",
+    "required": [
+      "session_id",
+      "session_code",
+      "workline_id",
+      "status"
+    ],
+    "fields": {
+      "session_id": {
+        "title": "Session Id",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "session_code": {
+        "title": "Session Code",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "correlation_id": {
+        "title": "Correlation Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "workline_id": {
+        "title": "Workline Id",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "workline_name": {
+        "title": "Workline Name",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "workline_code": {
+        "title": "Workline Code",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "device_id": {
+        "title": "Device Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "device_name": {
+        "title": "Device Name",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "device_code": {
+        "title": "Device Code",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "command_code": {
+        "title": "Command Code",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "status": {
+        "title": "Status",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "step_code": {
+        "title": "Step Code",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "current_wait_type": {
+        "title": "Current Wait Type",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "failure_domain": {
+        "title": "Failure Domain",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "failure_code": {
+        "title": "Failure Code",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "latest_timeline_action": {
+        "title": "Latest Timeline Action",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "latest_timeline_status": {
+        "title": "Latest Timeline Status",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "latest_timeline_message": {
+        "title": "Latest Timeline Message",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "started_at": {
+        "title": "Started At",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      },
+      "last_ingress_at": {
+        "title": "Last Ingress At",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      },
+      "deadline_at": {
+        "title": "Deadline At",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      },
+      "is_timed_out": {
+        "title": "Is Timed Out",
+        "type": "boolean",
+        "required": false,
+        "nullable": false,
+        "default": false
+      }
+    }
+  },
+  "RuntimeTraceListResponse": {
+    "title": "RuntimeTraceListResponse",
+    "description": "Trace 列表响应。",
+    "required": [
+      "total",
+      "items"
+    ],
+    "fields": {
+      "total": {
+        "title": "Total",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "items": {
+        "title": "Items",
+        "type": "array",
+        "required": true,
+        "nullable": false,
+        "items": {
+          "ref": "RuntimeTraceListItem"
+        }
+      }
+    }
+  },
+  "RuntimeWorklineDetailResponse": {
+    "title": "RuntimeWorklineDetailResponse",
+    "required": [
+      "summary"
+    ],
+    "fields": {
+      "summary": {
+        "required": true,
+        "nullable": false,
+        "ref": "RuntimeWorklineSummary"
+      },
+      "devices": {
+        "title": "Devices",
+        "type": "array",
+        "required": false,
+        "nullable": false,
+        "items": {
+          "ref": "RuntimeWorklineDeviceItem"
+        }
+      },
+      "active_sessions": {
+        "title": "Active Sessions",
+        "type": "array",
+        "required": false,
+        "nullable": false,
+        "items": {
+          "ref": "RuntimeTraceListItem"
+        }
+      },
+      "recent_failed_traces": {
+        "title": "Recent Failed Traces",
+        "type": "array",
+        "required": false,
+        "nullable": false,
+        "items": {
+          "ref": "RuntimeTraceListItem"
+        }
+      }
+    }
+  },
+  "RuntimeWorklineDeviceItem": {
+    "title": "RuntimeWorklineDeviceItem",
+    "required": [
+      "id",
+      "device_code",
+      "device_name",
+      "device_role",
+      "role_index",
+      "device_status"
+    ],
+    "fields": {
+      "id": {
+        "title": "Id",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "device_code": {
+        "title": "Device Code",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "device_name": {
+        "title": "Device Name",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "device_role": {
+        "title": "Device Role",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "role_index": {
+        "title": "Role Index",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "upstream_device_id": {
+        "title": "Upstream Device Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "device_status": {
+        "title": "Device Status",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "maintenance_mode": {
+        "title": "Maintenance Mode",
+        "type": "boolean",
+        "required": false,
+        "nullable": false,
+        "default": false
+      },
+      "current_command_id": {
+        "title": "Current Command Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "last_heartbeat_at": {
+        "title": "Last Heartbeat At",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      },
+      "error_code": {
+        "title": "Error Code",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      }
+    }
+  },
+  "RuntimeWorklineSummary": {
+    "title": "RuntimeWorklineSummary",
+    "required": [
+      "id",
+      "line_code",
+      "line_name",
+      "line_type",
+      "is_active"
+    ],
+    "fields": {
+      "id": {
+        "title": "Id",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "line_code": {
+        "title": "Line Code",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "line_name": {
+        "title": "Line Name",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "line_type": {
+        "title": "Line Type",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "zone_name": {
+        "title": "Zone Name",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "plugin_key": {
+        "title": "Plugin Key",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "contract_version": {
+        "title": "Contract Version",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "owner_team": {
+        "title": "Owner Team",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "support_contact": {
+        "title": "Support Contact",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "is_active": {
+        "title": "Is Active",
+        "type": "boolean",
+        "required": true,
+        "nullable": false
+      },
+      "device_count": {
+        "title": "Device Count",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "active_session_count": {
+        "title": "Active Session Count",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "waiting_session_count": {
+        "title": "Waiting Session Count",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "failed_session_count": {
+        "title": "Failed Session Count",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "error_device_count": {
+        "title": "Error Device Count",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "offline_device_count": {
+        "title": "Offline Device Count",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "maintenance_device_count": {
+        "title": "Maintenance Device Count",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "last_activity_at": {
+        "title": "Last Activity At",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      }
+    }
+  },
   "SessionInfo": {
     "title": "SessionInfo",
     "description": "会话信息 Schema\n\n描述一个活跃的用户会话",
@@ -5448,6 +6504,1180 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": false,
         "default": 0
+      }
+    }
+  },
+  "TraceCallbackLogItem": {
+    "title": "TraceCallbackLogItem",
+    "required": [
+      "id",
+      "callback_type",
+      "device_id",
+      "response_status",
+      "response_time_ms",
+      "request_body",
+      "created_at"
+    ],
+    "fields": {
+      "id": {
+        "title": "Id",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "callback_type": {
+        "title": "Callback Type",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "device_id": {
+        "title": "Device Id",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "correlation_id": {
+        "title": "Correlation Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "response_status": {
+        "title": "Response Status",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "response_time_ms": {
+        "title": "Response Time Ms",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "error_message": {
+        "title": "Error Message",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "ingress_outcome": {
+        "title": "Ingress Outcome",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "failure_stage": {
+        "title": "Failure Stage",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "request_body": {
+        "title": "Request Body",
+        "type": "object",
+        "required": true,
+        "nullable": false
+      },
+      "created_at": {
+        "title": "Created At",
+        "type": "string",
+        "format": "date-time",
+        "required": true,
+        "nullable": false
+      },
+      "updated_at": {
+        "title": "Updated At",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      }
+    }
+  },
+  "TraceCommandItem": {
+    "title": "TraceCommandItem",
+    "required": [
+      "id",
+      "device_id",
+      "command_code",
+      "task_type",
+      "status",
+      "params"
+    ],
+    "fields": {
+      "id": {
+        "title": "Id",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "device_id": {
+        "title": "Device Id",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "command_code": {
+        "title": "Command Code",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "correlation_id": {
+        "title": "Correlation Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "workline_id": {
+        "title": "Workline Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "task_type": {
+        "title": "Task Type",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "status": {
+        "title": "Status",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "result": {
+        "title": "Result",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "retry_count": {
+        "title": "Retry Count",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "sent_at": {
+        "title": "Sent At",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      },
+      "ack_received_at": {
+        "title": "Ack Received At",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      },
+      "completed_at": {
+        "title": "Completed At",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      },
+      "ack_code": {
+        "title": "Ack Code",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "ack_message": {
+        "title": "Ack Message",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "ack_trace_id": {
+        "title": "Ack Trace Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "step_code": {
+        "title": "Step Code",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "params": {
+        "title": "Params",
+        "type": "object",
+        "required": true,
+        "nullable": false
+      },
+      "result_data": {
+        "title": "Result Data",
+        "type": "object",
+        "required": false,
+        "nullable": true
+      },
+      "error_detail": {
+        "title": "Error Detail",
+        "type": "object",
+        "required": false,
+        "nullable": true
+      },
+      "duration_ms": {
+        "title": "Duration Ms",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      }
+    }
+  },
+  "TraceContextResponse": {
+    "title": "TraceContextResponse",
+    "required": [],
+    "fields": {
+      "request_id": {
+        "title": "Request Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "correlation_id": {
+        "title": "Correlation Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "workline_id": {
+        "title": "Workline Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "inbox_id": {
+        "title": "Inbox Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "device_id": {
+        "title": "Device Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "device_code": {
+        "title": "Device Code",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "command_id": {
+        "title": "Command Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "command_code": {
+        "title": "Command Code",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "outbox_id": {
+        "title": "Outbox Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "dispatch_key": {
+        "title": "Dispatch Key",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "canonical_event_type": {
+        "title": "Canonical Event Type",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "transition": {
+        "title": "Transition",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "plugin_key": {
+        "title": "Plugin Key",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "contract_version": {
+        "title": "Contract Version",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      }
+    }
+  },
+  "TraceDetailResponse": {
+    "title": "TraceDetailResponse",
+    "required": [
+      "trace",
+      "summary"
+    ],
+    "fields": {
+      "trace": {
+        "required": true,
+        "nullable": false,
+        "ref": "TraceContextResponse"
+      },
+      "summary": {
+        "required": true,
+        "nullable": false,
+        "ref": "TraceOverviewSummary"
+      },
+      "session": {
+        "required": false,
+        "nullable": true,
+        "ref": "TraceSessionItem"
+      },
+      "callback_logs": {
+        "title": "Callback Logs",
+        "type": "array",
+        "required": false,
+        "nullable": false,
+        "items": {
+          "ref": "TraceCallbackLogItem"
+        }
+      },
+      "inboxes": {
+        "title": "Inboxes",
+        "type": "array",
+        "required": false,
+        "nullable": false,
+        "items": {
+          "ref": "TraceInboxItem"
+        }
+      },
+      "commands": {
+        "title": "Commands",
+        "type": "array",
+        "required": false,
+        "nullable": false,
+        "items": {
+          "ref": "TraceCommandItem"
+        }
+      },
+      "outboxes": {
+        "title": "Outboxes",
+        "type": "array",
+        "required": false,
+        "nullable": false,
+        "items": {
+          "ref": "TraceOutboxItem"
+        }
+      },
+      "timelines": {
+        "title": "Timelines",
+        "type": "array",
+        "required": false,
+        "nullable": false,
+        "items": {
+          "ref": "TraceTimelineItem"
+        }
+      },
+      "diagnostics": {
+        "title": "Diagnostics",
+        "type": "array",
+        "required": false,
+        "nullable": false,
+        "items": {
+          "ref": "TraceDiagnosticItem"
+        }
+      }
+    }
+  },
+  "TraceDiagnosticItem": {
+    "title": "TraceDiagnosticItem",
+    "required": [],
+    "fields": {
+      "request_id": {
+        "title": "Request Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "correlation_id": {
+        "title": "Correlation Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "inbox_id": {
+        "title": "Inbox Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "outbox_id": {
+        "title": "Outbox Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "command_code": {
+        "title": "Command Code",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "device_code": {
+        "title": "Device Code",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "workline_id": {
+        "title": "Workline Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "workline_code": {
+        "title": "Workline Code",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "plugin_key": {
+        "title": "Plugin Key",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "canonical_event_type": {
+        "title": "Canonical Event Type",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "transition": {
+        "title": "Transition",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "extra": {
+        "title": "Extra",
+        "type": "object",
+        "required": false,
+        "nullable": false
+      }
+    }
+  },
+  "TraceInboxItem": {
+    "title": "TraceInboxItem",
+    "required": [
+      "id",
+      "kind",
+      "source_system",
+      "status",
+      "received_at",
+      "payload_json"
+    ],
+    "fields": {
+      "id": {
+        "title": "Id",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "kind": {
+        "title": "Kind",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "source_system": {
+        "title": "Source System",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "source_message_id": {
+        "title": "Source Message Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "workline_id": {
+        "title": "Workline Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "device_id": {
+        "title": "Device Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "command_id": {
+        "title": "Command Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "correlation_id": {
+        "title": "Correlation Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "status": {
+        "title": "Status",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "received_at": {
+        "title": "Received At",
+        "type": "string",
+        "format": "date-time",
+        "required": true,
+        "nullable": false
+      },
+      "processed_at": {
+        "title": "Processed At",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      },
+      "attempt_count": {
+        "title": "Attempt Count",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "max_attempts": {
+        "title": "Max Attempts",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "next_retry_at": {
+        "title": "Next Retry At",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      },
+      "error_message": {
+        "title": "Error Message",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "payload_json": {
+        "title": "Payload Json",
+        "type": "object",
+        "required": true,
+        "nullable": false
+      }
+    }
+  },
+  "TraceOutboxItem": {
+    "title": "TraceOutboxItem",
+    "required": [
+      "id",
+      "workline_id",
+      "dispatch_type",
+      "dispatch_key",
+      "target_type",
+      "target_code",
+      "status",
+      "created_at",
+      "payload_json"
+    ],
+    "fields": {
+      "id": {
+        "title": "Id",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "workline_id": {
+        "title": "Workline Id",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "dispatch_type": {
+        "title": "Dispatch Type",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "dispatch_key": {
+        "title": "Dispatch Key",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "target_type": {
+        "title": "Target Type",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "target_code": {
+        "title": "Target Code",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "status": {
+        "title": "Status",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "attempt_count": {
+        "title": "Attempt Count",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "next_retry_at": {
+        "title": "Next Retry At",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      },
+      "last_error": {
+        "title": "Last Error",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "created_at": {
+        "title": "Created At",
+        "type": "string",
+        "format": "date-time",
+        "required": true,
+        "nullable": false
+      },
+      "sent_at": {
+        "title": "Sent At",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      },
+      "finished_at": {
+        "title": "Finished At",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      },
+      "payload_json": {
+        "title": "Payload Json",
+        "type": "object",
+        "required": true,
+        "nullable": false
+      }
+    }
+  },
+  "TraceOverviewSummary": {
+    "title": "TraceOverviewSummary",
+    "description": "Trace 详情页顶部摘要。",
+    "required": [],
+    "fields": {
+      "callback_logs": {
+        "title": "Callback Logs",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "inboxes": {
+        "title": "Inboxes",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "commands": {
+        "title": "Commands",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "outboxes": {
+        "title": "Outboxes",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "timelines": {
+        "title": "Timelines",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "diagnostics": {
+        "title": "Diagnostics",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "session_status": {
+        "title": "Session Status",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "step_code": {
+        "title": "Step Code",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "current_wait_type": {
+        "title": "Current Wait Type",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "latest_timeline_action": {
+        "title": "Latest Timeline Action",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "latest_timeline_status": {
+        "title": "Latest Timeline Status",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "latest_timeline_message": {
+        "title": "Latest Timeline Message",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      }
+    }
+  },
+  "TraceQueryRequest": {
+    "title": "TraceQueryRequest",
+    "description": "Trace 列表查询请求。",
+    "required": [],
+    "fields": {
+      "workline_id": {
+        "title": "Workline Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "device_id": {
+        "title": "Device Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "status": {
+        "title": "Status",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "step_code": {
+        "title": "Step Code",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "keyword": {
+        "title": "Keyword",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "only_active": {
+        "title": "Only Active",
+        "type": "boolean",
+        "required": false,
+        "nullable": false,
+        "default": false
+      },
+      "only_failed": {
+        "title": "Only Failed",
+        "type": "boolean",
+        "required": false,
+        "nullable": false,
+        "default": false
+      },
+      "limit": {
+        "title": "Limit",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 20,
+        "minimum": 1,
+        "maximum": 100
+      },
+      "offset": {
+        "title": "Offset",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0,
+        "minimum": 0
+      }
+    }
+  },
+  "TraceSessionItem": {
+    "title": "TraceSessionItem",
+    "required": [
+      "id",
+      "session_code",
+      "workline_id",
+      "plugin_key",
+      "run_mode",
+      "status",
+      "context_json"
+    ],
+    "fields": {
+      "id": {
+        "title": "Id",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "session_code": {
+        "title": "Session Code",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "workline_id": {
+        "title": "Workline Id",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "plugin_key": {
+        "title": "Plugin Key",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "run_mode": {
+        "title": "Run Mode",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "business_key": {
+        "title": "Business Key",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "barcode": {
+        "title": "Barcode",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "status": {
+        "title": "Status",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "step_code": {
+        "title": "Step Code",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "correlation_id": {
+        "title": "Correlation Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "started_at": {
+        "title": "Started At",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      },
+      "ended_at": {
+        "title": "Ended At",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      },
+      "current_wait_type": {
+        "title": "Current Wait Type",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "current_wait_token": {
+        "title": "Current Wait Token",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "waiting_since": {
+        "title": "Waiting Since",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      },
+      "deadline_at": {
+        "title": "Deadline At",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      },
+      "awaiting_command_id": {
+        "title": "Awaiting Command Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "failure_domain": {
+        "title": "Failure Domain",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "failure_code": {
+        "title": "Failure Code",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "failure_message": {
+        "title": "Failure Message",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "ingress_count": {
+        "title": "Ingress Count",
+        "type": "integer",
+        "required": false,
+        "nullable": false,
+        "default": 0
+      },
+      "last_request_id": {
+        "title": "Last Request Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "last_ingress_at": {
+        "title": "Last Ingress At",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      },
+      "last_inbox_id": {
+        "title": "Last Inbox Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "context_json": {
+        "title": "Context Json",
+        "type": "object",
+        "required": true,
+        "nullable": false
+      }
+    }
+  },
+  "TraceTimelineItem": {
+    "title": "TraceTimelineItem",
+    "required": [
+      "id",
+      "session_id",
+      "workline_id",
+      "seq_no",
+      "occurred_at",
+      "stage",
+      "action_type",
+      "actor_type",
+      "status"
+    ],
+    "fields": {
+      "id": {
+        "title": "Id",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "workline_id": {
+        "title": "Workline Id",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "correlation_id": {
+        "title": "Correlation Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "seq_no": {
+        "title": "Seq No",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "occurred_at": {
+        "title": "Occurred At",
+        "type": "string",
+        "format": "date-time",
+        "required": true,
+        "nullable": false
+      },
+      "stage": {
+        "title": "Stage",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "action_type": {
+        "title": "Action Type",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "actor_type": {
+        "title": "Actor Type",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "actor_code": {
+        "title": "Actor Code",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "from_status": {
+        "title": "From Status",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "to_status": {
+        "title": "To Status",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "status": {
+        "title": "Status",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "failure_domain": {
+        "title": "Failure Domain",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "message": {
+        "title": "Message",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "payload_json": {
+        "title": "Payload Json",
+        "type": "object",
+        "required": false,
+        "nullable": true
+      },
+      "related_inbox_id": {
+        "title": "Related Inbox Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "related_command_id": {
+        "title": "Related Command Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
       }
     }
   },
@@ -5905,8 +8135,7 @@ export const OPENAPI_SCHEMA_METADATA = {
     "required": [
       "line_code",
       "line_name",
-      "line_type",
-      "config"
+      "line_type"
     ],
     "additionalProperties": false,
     "fields": {
@@ -5950,11 +8179,49 @@ export const OPENAPI_SCHEMA_METADATA = {
         "nullable": true,
         "maxLength": 100
       },
+      "contract_version": {
+        "title": "Contract Version",
+        "description": "工作线默认插件契约版本",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 50
+      },
       "config": {
         "title": "Config",
         "description": "工作线插件配置",
         "type": "object",
-        "required": true,
+        "required": false,
+        "nullable": false
+      },
+      "runtime_config_json": {
+        "title": "Runtime Config Json",
+        "description": "工作线运行时配置（重试、超时、会话归属等）",
+        "type": "object",
+        "required": false,
+        "nullable": false
+      },
+      "owner_team": {
+        "title": "Owner Team",
+        "description": "工作线主责团队",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 100
+      },
+      "support_contact": {
+        "title": "Support Contact",
+        "description": "工作线支持联系人",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 100
+      },
+      "diagnostic_profile": {
+        "title": "Diagnostic Profile",
+        "description": "工作线诊断配置（软件/硬件分类偏好、展示策略等）",
+        "type": "object",
+        "required": false,
         "nullable": false
       },
       "description": {
@@ -6041,9 +8308,47 @@ export const OPENAPI_SCHEMA_METADATA = {
         "nullable": true,
         "maxLength": 100
       },
+      "contract_version": {
+        "title": "Contract Version",
+        "description": "工作线默认插件契约版本",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 50
+      },
       "config": {
         "title": "Config",
         "description": "工作线插件配置",
+        "type": "object",
+        "required": false,
+        "nullable": false
+      },
+      "runtime_config_json": {
+        "title": "Runtime Config Json",
+        "description": "工作线运行时配置（重试、超时、会话归属等）",
+        "type": "object",
+        "required": false,
+        "nullable": false
+      },
+      "owner_team": {
+        "title": "Owner Team",
+        "description": "工作线主责团队",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 100
+      },
+      "support_contact": {
+        "title": "Support Contact",
+        "description": "工作线支持联系人",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 100
+      },
+      "diagnostic_profile": {
+        "title": "Diagnostic Profile",
+        "description": "工作线诊断配置（软件/硬件分类偏好、展示策略等）",
         "type": "object",
         "required": false,
         "nullable": false
@@ -6141,9 +8446,47 @@ export const OPENAPI_SCHEMA_METADATA = {
         "nullable": true,
         "maxLength": 100
       },
+      "contract_version": {
+        "title": "Contract Version",
+        "description": "工作线默认插件契约版本",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 50
+      },
       "config": {
         "title": "Config",
         "description": "工作线插件配置",
+        "type": "object",
+        "required": false,
+        "nullable": true
+      },
+      "runtime_config_json": {
+        "title": "Runtime Config Json",
+        "description": "工作线运行时配置（重试、超时、会话归属等）",
+        "type": "object",
+        "required": false,
+        "nullable": true
+      },
+      "owner_team": {
+        "title": "Owner Team",
+        "description": "工作线主责团队",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 100
+      },
+      "support_contact": {
+        "title": "Support Contact",
+        "description": "工作线支持联系人",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 100
+      },
+      "diagnostic_profile": {
+        "title": "Diagnostic Profile",
+        "description": "工作线诊断配置（软件/硬件分类偏好、展示策略等）",
         "type": "object",
         "required": false,
         "nullable": true

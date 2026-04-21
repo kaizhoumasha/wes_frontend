@@ -38,7 +38,8 @@ export type CreateApplicationsInput = CrudCreateInput<typeof APPLICATIONS_COLLEC
 export type UpdateApplicationsInput = CrudUpdateInput<typeof APPLICATIONS_COLLECTION_PATH>
 
 export type AvailablePermissionsResult = ContractResponseData<'/api/v1/api_auth/applications/available-permissions', 'get'>
-export type AvailablePermissionsQuery = ContractQueryParams<'/api/v1/api_auth/applications/available-permissions', 'get'>
+
+export type AvailablePermissionsSyncResult = ContractResponseData<'/api/v1/api_auth/applications/available-permissions/sync', 'post'>
 
 export type RevokeResult = ContractResponseData<'/api/v1/api_auth/applications/{id}/revoke', 'post'>
 export type RevokePathParams = ContractPathParams<'/api/v1/api_auth/applications/{id}/revoke', 'post'>
@@ -56,6 +57,9 @@ export type PermissionsInput = ContractRequestBody<'/api/v1/api_auth/application
 
 export type ResetSecretResult = ContractResponseData<'/api/v1/api_auth/applications/{id}/reset-secret', 'post'>
 export type ResetSecretPathParams = ContractPathParams<'/api/v1/api_auth/applications/{id}/reset-secret', 'post'>
+
+export type PermanentResult = ContractResponseData<'/api/v1/api_auth/applications/{id}/permanent', 'delete'>
+export type PermanentPathParams = ContractPathParams<'/api/v1/api_auth/applications/{id}/permanent', 'delete'>
 
 const baseApplicationsApiMethods = createSoftDeleteCrudRequestAdapterMethods({
   collection: APPLICATIONS_COLLECTION_PATH as unknown as SoftDeleteCrudResourceCollectionPath,
@@ -76,8 +80,18 @@ export const applicationsApiMethods = {
    * @endpoint GET /api/v1/api_auth/applications/available-permissions
    * @returns alova method instance
    */
-  availablePermissions(query?: ContractQueryParams<'/api/v1/api_auth/applications/available-permissions', 'get'>, config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/api_auth/applications/available-permissions', { query, config })
+  availablePermissions(config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/api_auth/applications/available-permissions', { config })
+  },
+
+  /**
+   * [api-auth:api_application:sync_permissions] 重新扫描并同步 API 权限
+   * @description 重新扫描代码中的权限并同步到数据库。
+   * @endpoint POST /api/v1/api_auth/applications/available-permissions/sync
+   * @returns alova method instance
+   */
+  availablePermissionsSync(config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/api_auth/applications/available-permissions/sync', { config })
   },
 
   /**
@@ -143,6 +157,15 @@ Args:
    */
   resetSecret(params: ContractPathParams<'/api/v1/api_auth/applications/{id}/reset-secret', 'post'>, config?: ContractRequestConfig) {
     return contractMethods.post('/api/v1/api_auth/applications/{id}/reset-secret', { params, config })
+  },
+
+  /**
+   * [api-auth:api_application:permanent_delete] 永久删除APIApplication
+   * @endpoint DELETE /api/v1/api_auth/applications/{id}/permanent
+   * @returns alova method instance
+   */
+  permanent(params: ContractPathParams<'/api/v1/api_auth/applications/{id}/permanent', 'delete'>, config?: ContractRequestConfig) {
+    return contractMethods.delete('/api/v1/api_auth/applications/{id}/permanent', { params, config })
   }
 }
 // ==================== AUTO GENERATED END ====================

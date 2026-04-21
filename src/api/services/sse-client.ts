@@ -1,11 +1,12 @@
 /**
  * SSE (Server-Sent Events) 客户端服务
  *
- * 连接后端 SSE 端点 /api/v1/events/stream
+ * 连接后端 SSE 端点 /api/v1/sys/events/stream
  * 处理实时事件推送，包括系统通知和业务状态更新
  */
 
 import { env } from '@/config/env'
+import { getLastSSEEventId, resetSSESessionState, setLastSSEEventId } from './sse-session'
 import { getAccessToken } from './token-refresh'
 
 // ==================== 类型定义 ====================
@@ -49,14 +50,23 @@ export type SSEConnectionState =
 
 // ==================== 状态管理 ====================
 
-/** EventSource 实例 */
-let eventSource: EventSource | null = null
+/** fetch 流连接控制器 */
+let abortController: AbortController | null = null
+
+/** 是否为手动断开 */
+let manualDisconnect = false
 
 /** 当前连接状态 */
 let connectionState: SSEConnectionState = 'disconnected'
 
+const CUSTOM_EVENTS: SSEEventType[] = ['system_notification', 'business_status']
+
+const LISTENER_EVENT_TYPES: SSEEventType[] = [...CUSTOM_EVENTS, 'message']
+
 /** 事件监听器映射 */
-const listeners: Map<SSEEventType, Set<SSEEventListener>> = new Map()
+const listeners: Map<SSEEventType, Set<SSEEventListener>> = new Map(
+  LISTENER_EVENT_TYPES.map(eventType => [eventType, new Set<SSEEventListener>()] as const)
+)
 
 /** 错误监听器 */
 const errorListeners: Set<(error: Event) => void> = new Set()
@@ -75,7 +85,236 @@ const MAX_RECONNECT_ATTEMPTS = 10
 
 /** 重连延迟（毫秒） */
 const RECONNECT_DELAY = 3000
-const CUSTOM_EVENTS: SSEEventType[] = ['system_notification', 'business_status']
+const SSE_API_PREFIX = '/api/v1'
+const DEFAULT_SSE_PATH = `${SSE_API_PREFIX}/sys/events/stream`
+const DEFAULT_SSE_URL = `http://localhost:8001${DEFAULT_SSE_PATH}`
+const LEGACY_SSE_PATH = `${SSE_API_PREFIX}/events/stream`
+
+function clearReconnectTimer(): void {
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer)
+    reconnectTimer = null
+  }
+}
+
+function normalizeSSEUrl(url: string): string {
+  if (!url) {
+    return DEFAULT_SSE_PATH
+  }
+
+  if (url === LEGACY_SSE_PATH) {
+    return DEFAULT_SSE_PATH
+  }
+
+  if (url.endsWith(LEGACY_SSE_PATH)) {
+    return `${url.slice(0, -LEGACY_SSE_PATH.length)}${DEFAULT_SSE_PATH}`
+  }
+
+  return url
+}
+
+function resolveSSEUrl(): string {
+  const raw = normalizeSSEUrl(env.sseUrl ?? DEFAULT_SSE_URL)
+
+  if (/^https?:\/\//.test(raw)) {
+    return raw
+  }
+
+  const base = typeof window !== 'undefined' && window.location?.origin
+    ? window.location.origin
+    : 'http://localhost:8001'
+
+  return new URL(raw || DEFAULT_SSE_PATH, base).toString()
+}
+
+function sanitizeSSELogUrl(url: string): string {
+  const parsedUrl = new URL(url)
+  parsedUrl.search = ''
+  return parsedUrl.toString()
+}
+
+function createSSEHeaders(token: string): HeadersInit {
+  const lastEventId = getLastSSEEventId()
+  return {
+    Accept: 'text/event-stream',
+    Authorization: `Bearer ${token}`,
+    'Cache-Control': 'no-cache',
+    ...(lastEventId ? { 'Last-Event-ID': lastEventId } : {})
+  }
+}
+
+function createSSEErrorEvent(): Event {
+  return new Event('error')
+}
+
+function isCustomSSEEventType(value: string): value is Exclude<SSEEventType, 'message'> {
+  return CUSTOM_EVENTS.includes(value as Exclude<SSEEventType, 'message'>)
+}
+
+function parseSSEBlock(block: string): { type: SSEEventType; data: string; id?: string } | null {
+  if (!block) {
+    return null
+  }
+
+  let eventType: SSEEventType = 'message'
+  const dataLines: string[] = []
+  let eventId: string | undefined
+
+  for (const line of block.split('\n')) {
+    if (!line || line.startsWith(':')) {
+      continue
+    }
+
+    const separatorIndex = line.indexOf(':')
+    const field = separatorIndex === -1 ? line : line.slice(0, separatorIndex)
+    const rawValue = separatorIndex === -1 ? '' : line.slice(separatorIndex + 1).trimStart()
+
+    if (field === 'event') {
+      eventType = isCustomSSEEventType(rawValue) ? rawValue : 'message'
+      continue
+    }
+
+    if (field === 'data') {
+      dataLines.push(rawValue)
+      continue
+    }
+
+    if (field === 'id' && rawValue) {
+      eventId = rawValue
+    }
+  }
+
+  if (!dataLines.length) {
+    return null
+  }
+
+  return {
+    type: eventType,
+    data: dataLines.join('\n'),
+    id: eventId
+  }
+}
+
+function emitParsedSSEBlock(block: string): void {
+  const parsedEvent = parseSSEBlock(block)
+  if (!parsedEvent) {
+    return
+  }
+
+  const messageEvent = new MessageEvent(parsedEvent.type, {
+    data: parsedEvent.data,
+    lastEventId: parsedEvent.id ?? ''
+  })
+
+  handleMessage(messageEvent)
+}
+
+async function consumeSSEStream(signal: AbortSignal): Promise<void> {
+  const token = getAccessToken()
+  if (!token) {
+    throw new Error('SSE 连接失败：缺少访问令牌')
+  }
+
+  const url = resolveSSEUrl()
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: createSSEHeaders(token),
+    credentials: 'include',
+    cache: 'no-cache',
+    signal
+  })
+
+  if (response.status === 401 || response.status === 403) {
+    throw new Error(`SSE 连接失败：认证被拒绝 (${response.status})`)
+  }
+
+  if (!response.ok) {
+    throw new Error(`SSE 连接失败：HTTP ${response.status}`)
+  }
+
+  if (!response.body) {
+    throw new Error('SSE 连接失败：响应体不可用')
+  }
+
+  handleOpen()
+
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) {
+        break
+      }
+
+      buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, '\n')
+
+      let separatorIndex = buffer.indexOf('\n\n')
+      while (separatorIndex !== -1) {
+        const block = buffer.slice(0, separatorIndex).trim()
+        buffer = buffer.slice(separatorIndex + 2)
+        emitParsedSSEBlock(block)
+        separatorIndex = buffer.indexOf('\n\n')
+      }
+    }
+
+    const tail = decoder.decode()
+    if (tail) {
+      buffer += tail.replace(/\r\n/g, '\n')
+    }
+
+    emitParsedSSEBlock(buffer.trim())
+  } finally {
+    reader.releaseLock()
+  }
+}
+
+function shouldReconnectAfterError(error: unknown): boolean {
+  if (manualDisconnect) {
+    return false
+  }
+
+  if (error instanceof DOMException && error.name === 'AbortError') {
+    return false
+  }
+
+  if (!(error instanceof Error)) {
+    return true
+  }
+
+  return !error.message.includes('认证被拒绝') && !error.message.includes('缺少访问令牌')
+}
+
+function notifyConnectionError(error: unknown): void {
+  console.error('[SSE] 连接错误:', error)
+  setConnectionState('error')
+
+  const errorEvent = createSSEErrorEvent()
+  errorListeners.forEach(listener => {
+    try {
+      listener(errorEvent)
+    } catch (err) {
+      console.error('[SSE] 错误监听器异常:', err)
+    }
+  })
+}
+
+function scheduleReconnect(): void {
+  clearReconnectTimer()
+
+  if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+    console.error('[SSE] 达到最大重连次数，停止重连')
+    return
+  }
+
+  reconnectTimer = setTimeout(() => {
+    reconnectAttempts++
+    console.log(`[SSE] 尝试重连 (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`)
+    connect()
+  }, RECONNECT_DELAY)
+}
 
 // ==================== 内部方法 ====================
 
@@ -155,83 +394,83 @@ function handleOpen(): void {
  */
 function handleMessage(messageEvent: MessageEvent): void {
   const event = parseEventData(messageEvent)
+  if (event.id) {
+    setLastSSEEventId(event.id)
+  }
   emitEvent(event)
 }
 
 /**
  * 处理连接错误
  */
-function handleError(errorEvent: Event): void {
-  console.error('[SSE] 连接错误:', errorEvent)
-  setConnectionState('error')
-
-  // 通知所有错误监听器
-  errorListeners.forEach(listener => {
-    try {
-      listener(errorEvent)
-    } catch (err) {
-      console.error('[SSE] 错误监听器异常:', err)
-    }
-  })
-
-  // EventSource 会在错误后自动尝试重连（浏览器原生行为）
-  // 我们只需要在达到最大重连次数后停止
-}
-
-// ==================== 公共 API ====================
-
-/**
- * 连接 SSE 端点
- */
 export function connect(): void {
-  // 如果已连接，先断开
-  if (eventSource) {
-    disconnect()
+  manualDisconnect = false
+  clearReconnectTimer()
+
+  if (abortController) {
+    abortController.abort()
   }
 
   setConnectionState('connecting')
 
-  // 构建 SSE URL
-  const url = new URL(env.sseUrl)
+  const controller = new AbortController()
+  abortController = controller
 
-  // 如果有 Token，添加为查询参数（因为 EventSource 不支持自定义请求头）
-  const token = getAccessToken()
-  if (token) {
-    url.searchParams.set('token', token)
-  }
+  void consumeSSEStream(controller.signal)
+    .then(() => {
+      if (abortController === controller) {
+        abortController = null
+      }
 
-  // 创建 EventSource 实例
-  eventSource = new EventSource(url.toString())
+      if (!manualDisconnect) {
+        notifyConnectionError(new Error('SSE 连接已关闭'))
+        scheduleReconnect()
+      }
+    })
+    .catch(error => {
+      if (abortController === controller) {
+        abortController = null
+      }
 
-  // 注册事件处理
-  eventSource.onopen = handleOpen
-  eventSource.onmessage = handleMessage
-  eventSource.onerror = handleError
-  CUSTOM_EVENTS.forEach(eventType => {
-    eventSource?.addEventListener(eventType, (event) => handleMessage(event as MessageEvent))
-  })
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return
+      }
 
-  console.log('[SSE] 正在连接...', url.toString())
+      notifyConnectionError(error)
+
+      if (shouldReconnectAfterError(error)) {
+        scheduleReconnect()
+      }
+    })
+
+  console.log('[SSE] 正在连接...', sanitizeSSELogUrl(resolveSSEUrl()))
 }
 
 /**
  * 断开 SSE 连接
  */
 export function disconnect(): void {
-  if (eventSource) {
-    eventSource.close()
-    eventSource = null
+  manualDisconnect = true
+
+  if (abortController) {
+    abortController.abort()
+    abortController = null
   }
 
-  // 清除重连定时器
-  if (reconnectTimer) {
-    clearTimeout(reconnectTimer)
-    reconnectTimer = null
-  }
-
+  clearReconnectTimer()
   reconnectAttempts = 0
   setConnectionState('disconnected')
   console.log('[SSE] 连接已断开')
+}
+
+/**
+ * 重置 SSE 会话状态
+ * 仅在登出、身份切换等认证边界调用，避免 Last-Event-ID 跨会话泄漏
+ */
+export function resetSSESession(): void {
+  disconnect()
+  resetSSESessionState()
+  console.log('[SSE] 会话状态已重置')
 }
 
 /**
@@ -332,7 +571,7 @@ export function isConnected(): boolean {
  * @returns SSE URL
  */
 export function getSSEUrl(): string {
-  return env.sseUrl
+  return resolveSSEUrl()
 }
 
 // ==================== 导出工具函数 ====================
@@ -349,21 +588,9 @@ export function createAutoReconnectingSSE(autoReconnect = true): () => void {
     return disconnect
   }
 
-  // 监听连接状态，在断开时重连
   const cleanupStateListener = addStateListener(state => {
-    if (state === 'disconnected' || state === 'error') {
-      // 如果达到最大重连次数，不再重连
-      if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-        console.error('[SSE] 达到最大重连次数，停止重连')
-        return
-      }
-
-      // 延迟重连
-      reconnectTimer = setTimeout(() => {
-        reconnectAttempts++
-        console.log(`[SSE] 尝试重连 (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`)
-        connect()
-      }, RECONNECT_DELAY)
+    if (state === 'disconnected' && autoReconnect && !manualDisconnect) {
+      scheduleReconnect()
     }
   })
 

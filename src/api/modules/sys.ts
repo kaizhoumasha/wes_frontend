@@ -30,7 +30,7 @@ export type StreamQuery = ContractQueryParams<'/api/v1/sys/events/stream', 'get'
 
 export const sysApiMethods = {
   /**
-   * [sys:auditlog:get] 获取AuditLog
+   * [sys:auditlog:detail] 获取AuditLog
    * @endpoint GET /api/v1/sys/audit-logs/{id}
    * @returns alova method instance
    */

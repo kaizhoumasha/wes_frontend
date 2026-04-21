@@ -21,6 +21,20 @@ import { API_CACHE_DURATION } from '@/constants/cache'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+const DEFAULT_API_BASE_URL = 'http://localhost:8001'
+
+function resolveApiBaseUrl(): string {
+  if (env.apiBaseUrl) {
+    return env.apiBaseUrl
+  }
+
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin
+  }
+
+  return DEFAULT_API_BASE_URL
+}
+
 // ==================== API响应错误 ====================
 
 export class ApiResponseError extends Error {
@@ -187,7 +201,7 @@ async function handleError(error: unknown): Promise<void> {
 // ==================== 创建Alova实例 ====================
 
 export const apiClient = createAlova({
-  baseURL: env.apiBaseUrl,
+  baseURL: resolveApiBaseUrl(),
   statesHook: VueHook,
   requestAdapter: adapterFetch(),
   timeout: 30000,

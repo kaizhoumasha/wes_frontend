@@ -25,7 +25,7 @@ const API_APPLICATION_PAGE_RESOURCE = {
     icon: 'ep:delete'
   },
   methods: applicationsApiMethods,
-  permissions: API_AUTH_PERMISSIONS.apiapplication,
+  permissions: API_AUTH_PERMISSIONS.apiApplication,
   optimisticUpdate: true,
   defaultSort: [{ field: 'created_at', order: 'desc' as const }]
 }

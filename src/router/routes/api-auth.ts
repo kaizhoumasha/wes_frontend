@@ -21,7 +21,7 @@ export const apiAuthRoutes: RouteRecordRaw = {
       meta: {
         requiresAuth: true,
         title: 'API 应用管理',
-        permission: API_AUTH_PERMISSIONS.apiapplication.page,
+        permission: API_AUTH_PERMISSIONS.apiApplication.page,
         menu: {
           name: 'api-auth:application:menu',
           parentName: 'api-auth:system:menu',

@@ -79,8 +79,13 @@ export default defineConfig(({ mode, command }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const apiProxyTarget = env.VITE_API_PROXY_TARGET ?? 'http://localhost:8001'
   const enableVueDevTools = command === 'serve' && mode === 'development'
+  const isDockerDev = process.env.FRONTEND_APP_DIR === '/app'
 
   return {
+    // Docker 开发环境与宿主机本地开发会共享同一份源码目录。
+    // 将容器内的 Vite 预构建缓存切到独立目录，避免复用宿主机生成的绝对路径缓存。
+    cacheDir: isDockerDev ? '/tmp/wes-frontend-vite-cache' : 'node_modules/.vite',
+
     plugins: [
       tailwindcss(),
       vue(),

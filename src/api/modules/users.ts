@@ -48,6 +48,9 @@ export type AssignRolesResult = ContractResponseData<'/api/v1/admin/users/{id}/a
 export type AssignRolesPathParams = ContractPathParams<'/api/v1/admin/users/{id}/assign-roles', 'put'>
 export type AssignRolesInput = ContractRequestBody<'/api/v1/admin/users/{id}/assign-roles', 'put'>
 
+export type PermanentResult = ContractResponseData<'/api/v1/admin/users/{id}/permanent', 'delete'>
+export type PermanentPathParams = ContractPathParams<'/api/v1/admin/users/{id}/permanent', 'delete'>
+
 const baseUsersApiMethods = createSoftDeleteCrudRequestAdapterMethods({
   collection: USERS_COLLECTION_PATH as unknown as SoftDeleteCrudResourceCollectionPath,
   item: `${USERS_COLLECTION_PATH}/{id}` as const,
@@ -127,6 +130,15 @@ Returns:
    */
   assignRoles(params: ContractPathParams<'/api/v1/admin/users/{id}/assign-roles', 'put'>, body: ContractRequestBody<'/api/v1/admin/users/{id}/assign-roles', 'put'>, config?: ContractRequestConfig) {
     return contractMethods.put('/api/v1/admin/users/{id}/assign-roles', { params, body, config })
+  },
+
+  /**
+   * [admin:user:permanent_delete] 永久删除User
+   * @endpoint DELETE /api/v1/admin/users/{id}/permanent
+   * @returns alova method instance
+   */
+  permanent(params: ContractPathParams<'/api/v1/admin/users/{id}/permanent', 'delete'>, config?: ContractRequestConfig) {
+    return contractMethods.delete('/api/v1/admin/users/{id}/permanent', { params, config })
   }
 }
 // ==================== AUTO GENERATED END ====================

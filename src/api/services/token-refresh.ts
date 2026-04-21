@@ -5,6 +5,7 @@
 
 import { clearPermissionState } from '@/composables/permission-state'
 import type { RequestBody } from '@/api/types/request'
+import { resetSSESessionState } from './sse-session'
 import type {
   ContractPath,
   ContractRequestConfig,
@@ -148,6 +149,7 @@ export function isTokenExpiringSoon(): boolean {
 export function clearTokens(): void {
   removeAccessToken()
   removeTokenExpiresAt()
+  resetSSESessionState()
 }
 
 // ==================== 请求队列管理 ====================

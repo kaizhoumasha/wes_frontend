@@ -37,6 +37,9 @@ export type DevicesItem = EnsureEntityId<CrudItem<typeof DEVICES_COLLECTION_PATH
 export type CreateDevicesInput = CrudCreateInput<typeof DEVICES_COLLECTION_PATH>
 export type UpdateDevicesInput = CrudUpdateInput<typeof DEVICES_COLLECTION_PATH>
 
+export type PermanentResult = ContractResponseData<'/api/v1/device/devices/{id}/permanent', 'delete'>
+export type PermanentPathParams = ContractPathParams<'/api/v1/device/devices/{id}/permanent', 'delete'>
+
 const baseDevicesApiMethods = createSoftDeleteCrudRequestAdapterMethods({
   collection: DEVICES_COLLECTION_PATH as unknown as SoftDeleteCrudResourceCollectionPath,
   item: `${DEVICES_COLLECTION_PATH}/{id}` as const,
@@ -49,6 +52,15 @@ const baseDevicesApiMethods = createSoftDeleteCrudRequestAdapterMethods({
 
 export const devicesApiMethods = {
   ...baseDevicesApiMethods,
+
+  /**
+   * [biz:device:permanent_delete] 永久删除Device
+   * @endpoint DELETE /api/v1/device/devices/{id}/permanent
+   * @returns alova method instance
+   */
+  permanent(params: ContractPathParams<'/api/v1/device/devices/{id}/permanent', 'delete'>, config?: ContractRequestConfig) {
+    return contractMethods.delete('/api/v1/device/devices/{id}/permanent', { params, config })
+  }
 }
 // ==================== AUTO GENERATED END ====================
 

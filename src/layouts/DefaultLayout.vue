@@ -23,15 +23,12 @@
 
       <!-- 页面内容 -->
       <main class="page-main">
-        <router-view v-slot="{ Component, route: currentRoute }">
+        <router-view v-slot="{ Component }">
           <transition
             name="page"
             mode="out-in"
           >
-            <component
-              :is="Component"
-              :key="currentRoute.path"
-            />
+            <component :is="Component" />
           </transition>
         </router-view>
       </main>
