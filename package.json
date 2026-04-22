@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "vite build --mode production",
     "build:dev": "vite build --mode development",
+    "menu:generate": "tsx scripts/generate-menu-manifest.ts",
     "smoke:runtime:agent-browser": "bash scripts/runtime-agent-browser-smoke.sh",
     "preview": "vite preview",
     "bootstrap": "pnpm install",

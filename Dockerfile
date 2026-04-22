@@ -34,14 +34,15 @@ ENV VITE_API_BASE_URL=${VITE_API_BASE_URL} \
     VITE_APP_TITLE=${VITE_APP_TITLE} \
     VITE_APP_DEV=${VITE_APP_DEV}
 
-# 构建生产版本
-RUN pnpm run build
+# 先生成菜单清单，再构建生产版本
+RUN pnpm run menu:generate && pnpm run build
 
 # Stage 2: 生产阶段
 FROM nginx:alpine AS production
 
 # 从构建阶段复制构建产物
 COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/artifacts/menu-manifest.json /opt/wes/menu-manifest.json
 
 # 复制 nginx 配置
 COPY nginx.conf /etc/nginx/nginx.conf
