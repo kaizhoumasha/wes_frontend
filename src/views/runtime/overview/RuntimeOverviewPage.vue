@@ -23,367 +23,119 @@
           inactive-text="Frozen"
           @change="value => toggleLive(Boolean(value))"
         />
-        <RuntimeLastUpdated
-          :value="lastRefreshedAt"
-          :frozen="!live"
-        />
-        <el-button
-          type="primary"
-          @click="refresh"
-        >
-          刷新
-        </el-button>
+        <RuntimeLastUpdated :value="lastRefreshedAt" :frozen="!live" />
+        <el-button type="primary" @click="refresh">刷新</el-button>
       </div>
     </div>
 
-    <RuntimeSignalStrip :cards="overview.stats" />
-
     <RuntimeFrozenNotice v-if="!live" />
 
-    <div class="runtime-overview__priority-grid">
-      <el-card
-        shadow="never"
-        class="runtime-panel"
-      >
-        <template #header>
-          <div class="runtime-panel__header">
-            <div>
-              <div class="runtime-panel__title">最危险 Trace</div>
-              <div class="runtime-panel__subtitle">优先处理失败、超时、长时间卡住的链路</div>
-            </div>
-          </div>
-        </template>
-
-        <div
-          v-if="topTraces.length"
-          class="runtime-risk-list"
-        >
-          <button
-            v-for="item in topTraces"
-            :key="item.session_id"
-            type="button"
-            class="runtime-risk-item"
-            @click="openTrace(item.session_id)"
-          >
-            <div class="runtime-risk-item__top">
-              <RuntimeStatusBadge
-                :status="item.status"
-                size="small"
-              />
-              <span class="runtime-risk-item__time">
-                {{ formatRuntimeDateTime(item.last_ingress_at || item.started_at) }}
-              </span>
-            </div>
-            <div class="runtime-risk-item__title">{{ item.session_code }}</div>
-            <div class="runtime-risk-item__meta">
-              {{ item.workline_name || '未关联工作线' }} · {{ item.device_name || '未关联设备' }}
-            </div>
-            <div class="runtime-risk-item__hint">
-              卡点 {{ item.step_code || '—' }} ·
-              {{
-                item.latest_timeline_message ||
-                item.failure_domain ||
-                item.current_wait_type ||
-                '等待进一步证据'
-              }}
-            </div>
-            <div class="runtime-risk-item__footer">
-              <span>滞留 {{ formatRuntimeElapsed(item.last_ingress_at || item.started_at) }}</span>
-              <span>进入 Trace →</span>
-            </div>
-          </button>
+    <div class="runtime-overview__dashboard">
+      <div class="runtime-overview__column runtime-overview__column--action">
+        <RuntimeSystemVerdict :summary="verdictSummary" :loading="loading" />
+        <div class="runtime-overview__queue-wrapper">
+          <RuntimePriorityQueue :items="priorityItems" :loading="loading" @navigate="handleNavigate" />
+          <div v-if="isStale" class="runtime-overview__stale-hint">数据可能已过期 (SSE &gt; 15s)</div>
         </div>
-        <RuntimeEmptyState
-          v-else
-          title="近 24 小时暂无高风险 Trace"
-          description="当前没有失败、超时或明显长时间卡住的链路需要优先处理。"
-        />
-      </el-card>
+      </div>
 
-      <el-card
-        shadow="never"
-        class="runtime-panel"
-      >
-        <template #header>
-          <div class="runtime-panel__header">
-            <div>
-              <div class="runtime-panel__title">最危险工作线</div>
-              <div class="runtime-panel__subtitle">判断是局部故障，还是线体级阻塞</div>
+      <div class="runtime-overview__column runtime-overview__column--signal">
+        <RuntimeSignalStrip :cards="overview.stats" />
+        <el-collapse class="runtime-overview__health-collapse">
+          <el-collapse-item name="health">
+            <template #title>
+              <span class="runtime-overview__health-title">结构健康</span>
+            </template>
+            <div class="runtime-overview__health-grid">
+              <RuntimeHealthBreakdown title="工作线结构健康" subtitle="判断故障是否集中在某几条线体" :total="worklines.length" :items="worklineHealthItems" />
+              <RuntimeHealthBreakdown title="设备健康分布" subtitle="识别异常、维护与高负载设备占比" :total="overview.device_health.total" :items="deviceHealthItems" />
+              <RuntimeHealthBreakdown title="Session 结构信号" subtitle="把运行 / 等待 / 失败 / 积压放在同一视图里" :total="sessionStructureTotal" :items="sessionStructureItems" />
             </div>
-          </div>
-        </template>
-
-        <div
-          v-if="topWorklines.length"
-          class="runtime-risk-list runtime-risk-list--compact"
-        >
-          <button
-            v-for="item in topWorklines"
-            :key="item.id"
-            type="button"
-            class="runtime-risk-item"
-            @click="openWorkline(item.id)"
-          >
-            <div class="runtime-risk-item__top">
-              <RuntimeStatusBadge
-                :label="worklineRiskLabel(item)"
-                :tone="worklineRiskTone(item)"
-                size="small"
-              />
-              <span class="runtime-risk-item__time">
-                {{ formatRuntimeDateTime(item.last_activity_at) }}
-              </span>
-            </div>
-            <div class="runtime-risk-item__title">{{ item.line_name }}</div>
-            <div class="runtime-risk-item__meta">
-              {{ item.line_code }} · {{ item.zone_name || '未配置区域' }}
-            </div>
-            <div class="runtime-risk-item__hint">
-              失败 {{ item.failed_session_count }} · 等待 {{ item.waiting_session_count }} · 离线
-              {{ item.offline_device_count }}
-            </div>
-          </button>
-        </div>
-        <RuntimeEmptyState
-          v-else
-          title="暂无风险工作线"
-          description="当前没有出现等待堆积、失败链路或异常设备集中的工作线。"
-        />
-      </el-card>
-
-      <el-card
-        shadow="never"
-        class="runtime-panel"
-      >
-        <template #header>
-          <div class="runtime-panel__header">
-            <div>
-              <div class="runtime-panel__title">最危险设备</div>
-              <div class="runtime-panel__subtitle">判断当前瓶颈是否收敛到单台设备</div>
-            </div>
-          </div>
-        </template>
-
-        <div
-          v-if="topDevices.length"
-          class="runtime-risk-list runtime-risk-list--compact"
-        >
-          <button
-            v-for="item in topDevices"
-            :key="item.id"
-            type="button"
-            class="runtime-risk-item"
-            @click="openDevice(item.id, item.workline_id)"
-          >
-            <div class="runtime-risk-item__top">
-              <RuntimeStatusBadge
-                :status="item.device_status"
-                size="small"
-              />
-              <span class="runtime-risk-item__time">
-                {{ formatRuntimeDateTime(item.recent_callback_at || item.last_heartbeat_at) }}
-              </span>
-            </div>
-            <div class="runtime-risk-item__title">{{ item.device_name }}</div>
-            <div class="runtime-risk-item__meta">
-              {{ item.device_code }} · {{ item.workline_name || '未关联工作线' }}
-            </div>
-            <div class="runtime-risk-item__hint">
-              未结命令 {{ item.pending_command_count }} · 维护
-              {{ item.maintenance_mode ? 'ON' : 'OFF' }} · 错误码 {{ item.error_code || '—' }}
-            </div>
-          </button>
-        </div>
-        <RuntimeEmptyState
-          v-else
-          title="暂无风险设备"
-          description="当前没有明显的异常设备或高负载瓶颈设备。"
-        />
-      </el-card>
-    </div>
-
-    <div class="runtime-overview__health-grid">
-      <RuntimeHealthBreakdown
-        title="工作线结构健康"
-        subtitle="判断故障是否集中在某几条线体"
-        :total="worklines.length"
-        :items="worklineHealthItems"
-      />
-      <RuntimeHealthBreakdown
-        title="设备健康分布"
-        subtitle="识别异常、维护与高负载设备占比"
-        :total="overview.device_health.total"
-        :items="deviceHealthItems"
-      />
-      <RuntimeHealthBreakdown
-        title="Session 结构信号"
-        subtitle="把运行 / 等待 / 失败 / 积压放在同一视图里"
-        :total="sessionStructureTotal"
-        :items="sessionStructureItems"
-      />
+          </el-collapse-item>
+        </el-collapse>
+        <RuntimeTraceList :traces="overview.recent_failed_traces" :loading="loading" @select="openTrace" @show-more="goTraceExplorer" />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ElMessage } from 'element-plus'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import RuntimeEmptyState from '@/components/common/runtime/RuntimeEmptyState.vue'
-import RuntimeFrozenNotice from '@/components/common/runtime/RuntimeFrozenNotice.vue'
 import RuntimeHealthBreakdown from '@/components/common/runtime/RuntimeHealthBreakdown.vue'
+import RuntimeFrozenNotice from '@/components/common/runtime/RuntimeFrozenNotice.vue'
 import RuntimeLastUpdated from '@/components/common/runtime/RuntimeLastUpdated.vue'
+import RuntimePriorityQueue from '@/components/common/runtime/RuntimePriorityQueue.vue'
 import RuntimeSignalStrip from '@/components/common/runtime/RuntimeSignalStrip.vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
+import RuntimeSystemVerdict from '@/components/common/runtime/RuntimeSystemVerdict.vue'
+import RuntimeTraceList from '@/components/common/runtime/RuntimeTraceList.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
-import {
-  buildRuntimeDeviceQuery,
-  buildRuntimeTraceQuery,
-  buildRuntimeWorklineQuery
-} from '@/utils/runtime-route'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
 import type { RuntimeOverviewResponse, RuntimeWorklineSummary } from '@/types/runtime'
 import { createCoalescedAsyncTask } from '@/utils/createCoalescedAsyncTask'
 import type { RuntimeTone } from '@/utils/runtime-display'
-import {
-  formatRuntimeDateTime,
-  formatRuntimeElapsed,
-  getDeviceRiskScore,
-  getTraceRiskScore,
-  getWorklineRiskLabel as worklineRiskLabel,
-  getWorklineRiskScore,
-  getWorklineRiskTone as worklineRiskTone,
-  takeTopByScoreDesc
-} from '@/utils/runtime-display'
+import { classifyToTiers, computeVerdictSummary, type PriorityItem } from '@/utils/runtime-priority'
 
 const router = useRouter()
 const {
-  connectionLabel,
-  connectionTone,
-  lastEvent,
-  lastRefreshedAt,
-  live,
-  markRefreshedAt,
-  state,
-  toggleLive
+  connectionLabel, connectionTone, lastEvent, lastRawEvent,
+  lastRefreshedAt, live, markRefreshedAt, state, toggleLive
 } = useRuntimePageChrome()
 
 const loading = ref(false)
 const overview = ref<RuntimeOverviewResponse>({
-  stats: [],
-  recent_failed_traces: [],
-  hot_worklines: [],
-  abnormal_devices: [],
-  device_health: {
-    total: 0,
-    abnormal: 0,
-    maintenance: 0,
-    loaded: 0,
-    healthy: 0
-  }
+  stats: [], recent_failed_traces: [], hot_worklines: [], abnormal_devices: [],
+  device_health: { total: 0, abnormal: 0, maintenance: 0, loaded: 0, healthy: 0 }
 })
 const worklines = ref<RuntimeWorklineSummary[]>([])
 
-const topTraces = computed(() =>
-  takeTopByScoreDesc(overview.value.recent_failed_traces, getTraceRiskScore, 5)
-)
+const priorityItems = computed(() => classifyToTiers(overview.value))
+const verdictSummary = computed(() => computeVerdictSummary(overview.value, worklines.value))
 
-const topWorklines = computed(() =>
-  takeTopByScoreDesc(worklines.value, getWorklineRiskScore, 5, item => item.id)
-)
+const isStale = computed(() => {
+  if (!live.value || !lastRawEvent.value) return false
+  const ts = (lastRawEvent.value.original as MessageEvent | undefined)?.timeStamp
+  if (!ts) return false
+  return Date.now() - ts > 15_000
+})
 
-const topDevices = computed(() =>
-  takeTopByScoreDesc(overview.value.abnormal_devices, getDeviceRiskScore, 5, item => item.id)
-)
+function statValue(key: string): number {
+  return overview.value.stats.find(s => s.key === key)?.value ?? 0
+}
+
+function ratio(value: number, total: number): number {
+  return total <= 0 ? 0 : Math.min(100, Math.round((value / total) * 100))
+}
 
 const worklineHealthItems = computed(() => {
   const total = worklines.value.length || 1
-  const blocked = worklines.value.filter(
-    item =>
-      item.failed_session_count > 0 || item.offline_device_count > 0 || item.error_device_count > 0
-  ).length
-  const waiting = worklines.value.filter(
-    item => item.waiting_session_count > 0 && item.failed_session_count === 0
-  ).length
-  const stable = worklines.value.filter(
-    item =>
-      item.failed_session_count === 0 &&
-      item.offline_device_count === 0 &&
-      item.error_device_count === 0 &&
-      item.waiting_session_count === 0
-  ).length
-  const active = worklines.value.filter(item => item.active_session_count > 0).length
-
+  const blocked = worklines.value.filter(i => i.failed_session_count > 0 || i.offline_device_count > 0 || i.error_device_count > 0).length
+  const waiting = worklines.value.filter(i => i.waiting_session_count > 0 && i.failed_session_count === 0).length
+  const stable = worklines.value.filter(i => i.failed_session_count === 0 && i.offline_device_count === 0 && i.error_device_count === 0 && i.waiting_session_count === 0).length
+  const active = worklines.value.filter(i => i.active_session_count > 0).length
   return [
-    {
-      label: '阻塞 / 告警',
-      value: blocked,
-      ratio: ratio(blocked, total),
-      tone: 'danger' as RuntimeTone,
-      hint: '存在失败 Session 或异常设备'
-    },
-    {
-      label: '等待堆积',
-      value: waiting,
-      ratio: ratio(waiting, total),
-      tone: 'warning' as RuntimeTone,
-      hint: '等待态 Session 已开始堆积'
-    },
-    {
-      label: '稳定运行',
-      value: stable,
-      ratio: ratio(stable, total),
-      tone: 'success' as RuntimeTone,
-      hint: '无失败 / 离线 / 等待堆积'
-    },
-    {
-      label: '有作业活动',
-      value: active,
-      ratio: ratio(active, total),
-      tone: 'primary' as RuntimeTone,
-      hint: '当前仍在承载运行链路'
-    }
+    { label: '阻塞 / 告警', value: blocked, ratio: ratio(blocked, total), tone: 'danger' as RuntimeTone, hint: '存在失败 Session 或异常设备' },
+    { label: '等待堆积', value: waiting, ratio: ratio(waiting, total), tone: 'warning' as RuntimeTone, hint: '等待态 Session 已开始堆积' },
+    { label: '稳定运行', value: stable, ratio: ratio(stable, total), tone: 'success' as RuntimeTone, hint: '无失败 / 离线 / 等待堆积' },
+    { label: '有作业活动', value: active, ratio: ratio(active, total), tone: 'primary' as RuntimeTone, hint: '当前仍在承载运行链路' }
   ]
 })
 
 const deviceHealthItems = computed(() => {
   const total = overview.value.device_health.total || 1
-  const abnormal = overview.value.device_health.abnormal
-  const maintenance = overview.value.device_health.maintenance
-  const loaded = overview.value.device_health.loaded
-  const healthy = overview.value.device_health.healthy
-
+  const { abnormal, maintenance, loaded, healthy } = overview.value.device_health
   return [
-    {
-      label: '异常设备',
-      value: abnormal,
-      ratio: ratio(abnormal, total),
-      tone: 'danger' as RuntimeTone,
-      hint: '状态为 ERROR / OFFLINE'
-    },
-    {
-      label: '维护模式',
-      value: maintenance,
-      ratio: ratio(maintenance, total),
-      tone: 'warning' as RuntimeTone,
-      hint: '人工维护中的设备'
-    },
-    {
-      label: '高负载设备',
-      value: loaded,
-      ratio: ratio(loaded, total),
-      tone: 'primary' as RuntimeTone,
-      hint: '存在未结命令'
-    },
-    {
-      label: '健康可用',
-      value: healthy,
-      ratio: ratio(healthy, total),
-      tone: 'success' as RuntimeTone,
-      hint: '适合继续承担链路执行'
-    }
+    { label: '异常设备', value: abnormal, ratio: ratio(abnormal, total), tone: 'danger' as RuntimeTone, hint: '状态为 ERROR / OFFLINE' },
+    { label: '维护模式', value: maintenance, ratio: ratio(maintenance, total), tone: 'warning' as RuntimeTone, hint: '人工维护中的设备' },
+    { label: '高负载设备', value: loaded, ratio: ratio(loaded, total), tone: 'primary' as RuntimeTone, hint: '存在未结命令' },
+    { label: '健康可用', value: healthy, ratio: ratio(healthy, total), tone: 'success' as RuntimeTone, hint: '适合继续承担链路执行' }
   ]
 })
+
+const sessionStructureTotal = computed(() =>
+  statValue('running_sessions') + statValue('waiting_sessions') + statValue('failed_sessions') + statValue('inbox_backlog') + statValue('outbox_backlog')
+)
 
 const sessionStructureItems = computed(() => {
   const running = statValue('running_sessions')
@@ -391,63 +143,19 @@ const sessionStructureItems = computed(() => {
   const failed = statValue('failed_sessions')
   const backlog = statValue('inbox_backlog') + statValue('outbox_backlog')
   const total = running + waiting + failed + backlog || 1
-
   return [
-    {
-      label: '运行中',
-      value: running,
-      ratio: ratio(running, total),
-      tone: 'primary' as RuntimeTone,
-      hint: '链路仍在向前推进'
-    },
-    {
-      label: '等待中',
-      value: waiting,
-      ratio: ratio(waiting, total),
-      tone: 'warning' as RuntimeTone,
-      hint: '等待设备/外部结果'
-    },
-    {
-      label: '失败/超时',
-      value: failed,
-      ratio: ratio(failed, total),
-      tone: 'danger' as RuntimeTone,
-      hint: '需要优先排障的链路'
-    },
-    {
-      label: '入口/派发积压',
-      value: backlog,
-      ratio: ratio(backlog, total),
-      tone: 'info' as RuntimeTone,
-      hint: '系统吞吐可能开始堆积'
-    }
+    { label: '运行中', value: running, ratio: ratio(running, total), tone: 'primary' as RuntimeTone, hint: '链路仍在向前推进' },
+    { label: '等待中', value: waiting, ratio: ratio(waiting, total), tone: 'warning' as RuntimeTone, hint: '等待设备/外部结果' },
+    { label: '失败/超时', value: failed, ratio: ratio(failed, total), tone: 'danger' as RuntimeTone, hint: '需要优先排障的链路' },
+    { label: '入口/派发积压', value: backlog, ratio: ratio(backlog, total), tone: 'info' as RuntimeTone, hint: '系统吞吐可能开始堆积' }
   ]
 })
-
-const sessionStructureTotal = computed(() => {
-  return (
-    statValue('running_sessions') +
-    statValue('waiting_sessions') +
-    statValue('failed_sessions') +
-    statValue('inbox_backlog') +
-    statValue('outbox_backlog')
-  )
-})
-
-function statValue(key: string) {
-  return overview.value.stats.find(item => item.key === key)?.value ?? 0
-}
-
-function ratio(value: number, total: number) {
-  return total <= 0 ? 0 : Math.min(100, Math.round((value / total) * 100))
-}
 
 async function loadOverviewData(): Promise<void> {
   const [overviewData, worklineData] = await Promise.all([
     runtimeApiMethods.overview().send(),
     runtimeApiMethods.worklines().send()
   ])
-
   overview.value = overviewData
   worklines.value = worklineData
   markRefreshedAt()
@@ -455,126 +163,73 @@ async function loadOverviewData(): Promise<void> {
 
 const refresh = createCoalescedAsyncTask(async () => {
   loading.value = true
-  try {
-    await loadOverviewData()
-  } finally {
-    loading.value = false
-  }
+  try { await loadOverviewData() } finally { loading.value = false }
 })
 
 function openTrace(sessionId: number) {
-  router.push({ name: 'RuntimeTraceExplorer', query: buildRuntimeTraceQuery({ sessionId }) })
+  router.push({ name: 'RuntimeTraceExplorer', query: { sessionId: String(sessionId) } })
 }
 
-function openWorkline(worklineId: number) {
-  router.push({ name: 'RuntimeWorklines', query: buildRuntimeWorklineQuery(worklineId) })
+function goTraceExplorer() {
+  router.push({ name: 'RuntimeTraceExplorer' })
 }
 
-function openDevice(deviceId: number, worklineId?: number | null) {
-  if (!worklineId) {
-    ElMessage.warning('该设备尚未绑定工作线，暂时无法进入线内设备监控')
-    return
-  }
-
-  router.push({ name: 'RuntimeDevices', query: buildRuntimeDeviceQuery(deviceId, worklineId) })
+function handleNavigate(item: PriorityItem) {
+  router.push(item.navigateTo)
 }
 
-onMounted(() => {
+onMounted(() => { void refresh() })
+
+watch(() => lastEvent.value, event => {
+  if (!live.value || !event) return
   void refresh()
 })
-
-watch(
-  () => lastEvent.value,
-  event => {
-    if (!live.value || !event) return
-    void refresh()
-  }
-)
 </script>
 
 <style scoped>
-.runtime-page__subtitle {
-  max-width: 840px;
+.runtime-page__subtitle { max-width: 840px; }
+
+.runtime-overview__dashboard { display: grid; gap: 16px; grid-template-columns: 1.2fr 1fr; }
+.runtime-overview__column { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.runtime-overview__column--signal { min-width: 380px; }
+.runtime-overview__queue-wrapper { position: relative; }
+
+.runtime-overview__stale-hint {
+  margin-top: 6px; padding: 6px 12px; border-radius: 6px;
+  background: rgba(234, 179, 8, 0.08); color: #facc15;
+  font-size: 11px; font-weight: 600;
 }
 
-.runtime-overview__priority-grid,
-.runtime-overview__health-grid {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+.runtime-overview__health-collapse {
+  border: 1px solid var(--runtime-border, rgba(245, 158, 11, 0.12));
+  border-radius: 14px; background: var(--runtime-surface, rgba(30, 41, 59, 0.8));
+}
+.runtime-overview__health-collapse :deep(.el-collapse-item__header) {
+  padding: 0 16px; border-bottom: none; background: transparent;
+  color: var(--runtime-text-primary, #f8fafc); font-size: 14px;
+  font-weight: 700; height: 44px; line-height: 44px;
+}
+.runtime-overview__health-collapse :deep(.el-collapse-item__wrap) { border-bottom: none; background: transparent; }
+.runtime-overview__health-collapse :deep(.el-collapse-item__content) { padding: 0 16px 16px; }
+
+.runtime-overview__health-title {
+  color: var(--runtime-text-secondary, #94a3b8);
+  font-size: 13px; font-weight: 700; letter-spacing: 0.04em;
 }
 
-.runtime-risk-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
+.runtime-overview__health-grid { display: grid; gap: 16px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
-.runtime-risk-item {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 100%;
-  padding: 16px;
-  border: 1px solid rgb(245, 158, 11, 0.12);
-  border-radius: 14px;
-  background: rgb(30, 41, 59, 0.78);
-  text-align: left;
-  cursor: pointer;
-  transition:
-    transform var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out),
-    background var(--duration-fast) var(--ease-out);
-}
-
-.runtime-risk-item:hover {
-  transform: translateY(-2px);
-  border-color: rgb(245, 158, 11, 0.28);
-  background: rgb(30, 41, 59, 0.92);
-}
-
-.runtime-risk-item__top,
-.runtime-risk-item__footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.runtime-risk-item__time,
-.runtime-risk-item__meta,
-.runtime-risk-item__hint,
-.runtime-risk-item__footer {
-  color: #94a3b8;
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-.runtime-risk-item__title {
-  color: #f8fafc;
-  font-family: var(--font-mono);
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.runtime-risk-item__meta {
-  color: #cbd5e1;
-}
-
-.runtime-risk-item__footer {
-  font-family: var(--font-mono);
+@media (width <= 1439px) and (width >= 1280px) {
+  .runtime-overview__dashboard { grid-template-columns: 1fr; }
+  .runtime-overview__column--signal { min-width: 0; }
+  .runtime-overview__health-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (width <= 1279px) {
-  .runtime-page__header {
-    flex-direction: column;
-  }
-
-  .runtime-page__status-bar,
-  .runtime-overview__priority-grid,
-  .runtime-overview__health-grid {
-    grid-template-columns: 1fr;
-    justify-content: flex-start;
-  }
+  .runtime-page__header { flex-direction: column; }
+  .runtime-page__status-bar { justify-content: flex-start; }
+  .runtime-overview__dashboard { grid-template-columns: 1fr; }
+  .runtime-overview__column--signal { min-width: 0; }
+  .runtime-overview__health-grid { grid-template-columns: 1fr; }
 }
 </style>
