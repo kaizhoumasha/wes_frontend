@@ -15,6 +15,22 @@ export const runtimeRoutes: RouteRecordRaw = {
   },
   children: [
     {
+      path: 'dashboard',
+      name: 'RuntimeDashboard',
+      component: () => import('@/views/runtime/overview/RuntimeOverviewPage.vue'),
+      meta: {
+        requiresAuth: true,
+        title: '运行监控 Dashboard',
+        permission: BIZ_PERMISSIONS.workline.page,
+        menu: {
+          name: 'runtime:dashboard:menu',
+          parentName: 'runtime:system:menu',
+          icon: 'ep:data-board',
+          sortOrder: 1,
+        },
+      },
+    },
+    {
       path: 'overview',
       name: 'RuntimeOverview',
       component: () => import('@/views/runtime/overview/RuntimeOverviewPage.vue'),

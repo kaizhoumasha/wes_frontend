@@ -8,9 +8,10 @@ function toRuntimeRouteQueryValue(value: RuntimeRouteQueryValue): string | undef
   return String(value)
 }
 
-export function buildRuntimeWorklineQuery(worklineId: RuntimeRouteQueryValue) {
+export function buildRuntimeWorklineQuery(worklineId: RuntimeRouteQueryValue, deviceId?: RuntimeRouteQueryValue) {
   return {
-    worklineId: toRuntimeRouteQueryValue(worklineId)
+    worklineId: toRuntimeRouteQueryValue(worklineId),
+    deviceId: toRuntimeRouteQueryValue(deviceId)
   }
 }
 
@@ -27,6 +28,7 @@ export interface RuntimeTraceQueryInput {
   correlationId?: RuntimeRouteQueryValue
   commandCode?: RuntimeRouteQueryValue
   dispatchKey?: RuntimeRouteQueryValue
+  barcode?: RuntimeRouteQueryValue
   deviceId?: RuntimeRouteQueryValue
   worklineId?: RuntimeRouteQueryValue
 }
@@ -38,6 +40,7 @@ export function buildRuntimeTraceQuery(query: RuntimeTraceQueryInput) {
     correlationId: toRuntimeRouteQueryValue(query.correlationId),
     commandCode: toRuntimeRouteQueryValue(query.commandCode),
     dispatchKey: toRuntimeRouteQueryValue(query.dispatchKey),
+    barcode: toRuntimeRouteQueryValue(query.barcode),
     deviceId: toRuntimeRouteQueryValue(query.deviceId),
     worklineId: toRuntimeRouteQueryValue(query.worklineId)
   }
