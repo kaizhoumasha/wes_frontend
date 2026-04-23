@@ -147,6 +147,18 @@
               />
             </el-card>
 
+            <div
+              v-if="selectedDeviceId && isDevicePanelOpen"
+              ref="devicePanelRef"
+            >
+              <DeviceDetailPanel
+                :device-id="selectedDeviceId"
+                :workline-id="detail!.summary.id"
+                @close="closeDevicePanel"
+                @open-trace="openTrace"
+              />
+            </div>
+
             <div class="workline-grid workline-grid--two">
               <el-card
                 shadow="never"
@@ -323,8 +335,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import DeviceDetailPanel from '@/components/common/runtime/DeviceDetailPanel.vue'
 import RuntimeEmptyState from '@/components/common/runtime/RuntimeEmptyState.vue'
 import RuntimeFrozenNotice from '@/components/common/runtime/RuntimeFrozenNotice.vue'
 import RuntimeLastUpdated from '@/components/common/runtime/RuntimeLastUpdated.vue'
@@ -333,7 +346,6 @@ import WorklineHealthHero from '@/components/common/runtime/WorklineHealthHero.v
 import WorklineTopologyStrip from '@/components/common/runtime/WorklineTopologyStrip.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import {
-  buildRuntimeDeviceQuery,
   buildRuntimeTraceQuery,
   buildRuntimeWorklineQuery
 } from '@/utils/runtime-route'
@@ -373,6 +385,10 @@ const {
 const loading = ref(false)
 const worklines = ref<RuntimeWorklineSummary[]>([])
 const detail = ref<RuntimeWorklineDetailResponse | null>(null)
+const devicePanelRef = ref<HTMLElement | null>(null)
+
+const selectedDeviceId = computed(() => readPositiveInt(route.query.deviceId))
+const isDevicePanelOpen = ref(false)
 
 const selectedWorklineId = computed(() => readPositiveInt(route.query.worklineId))
 
@@ -496,10 +512,23 @@ function openTrace(sessionId: number) {
 }
 
 function openDevice(deviceId: number) {
-  router.push({
-    name: 'RuntimeDevices',
-    query: buildRuntimeDeviceQuery(deviceId, detail.value?.summary.id)
+  isDevicePanelOpen.value = true
+  router.replace({
+    query: {
+      ...route.query,
+      ...buildRuntimeWorklineQuery(detail.value?.summary.id, deviceId)
+    }
   })
+  nextTick(() => {
+    devicePanelRef.value?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  })
+}
+
+function closeDevicePanel() {
+  isDevicePanelOpen.value = false
+  const query = { ...route.query }
+  delete query.deviceId
+  router.replace({ query })
 }
 
 onMounted(() => {
@@ -514,6 +543,20 @@ watch(
     }
 
     void syncWorklineDetailFromRouteCoalesced()
+  }
+)
+
+watch(
+  () => selectedDeviceId.value,
+  (nextDeviceId) => {
+    if (nextDeviceId && detail.value) {
+      isDevicePanelOpen.value = true
+      nextTick(() => {
+        devicePanelRef.value?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      })
+    } else if (!nextDeviceId) {
+      isDevicePanelOpen.value = false
+    }
   }
 )
 
