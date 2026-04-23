@@ -24,56 +24,12 @@
         </el-select>
         <el-input v-model="queryValue" class="trace-query-bar__input" placeholder="输入 trace 锚点" @keyup.enter="runTraceLookup" />
         <el-button type="primary" class="trace-query-bar__submit" @click="runTraceLookup">查询案件</el-button>
-        <div class="trace-query-bar__presets runtime-control-cluster runtime-control-cluster--soft">
-          <el-button :type="currentPreset === 'active' ? 'primary' : 'default'" plain @click="applyListPreset('active')">仅活跃</el-button>
-          <el-button :type="currentPreset === 'failed' ? 'danger' : 'default'" plain @click="applyListPreset('failed')">仅失败/超时</el-button>
-          <el-button :type="currentPreset === 'all' ? 'success' : 'default'" plain @click="applyListPreset('all')">全部</el-button>
-        </div>
       </div>
     </el-card>
 
     <RuntimeFrozenNotice v-if="!live" />
 
     <div class="trace-layout">
-      <el-card shadow="never" class="runtime-panel trace-layout__context">
-        <template #header>
-          <div class="runtime-panel__header runtime-panel__header--compact">
-            <div v-if="selectedTraceContextName" class="trace-context-summary trace-context-summary--compact runtime-compact-context">
-              <strong class="trace-context-summary__name runtime-compact-context__name" :title="selectedTraceContextName">{{ selectedTraceContextName }}</strong>
-              <span class="trace-context-summary__meta runtime-compact-context__meta">{{ selectedTraceContextMeta }}</span>
-            </div>
-            <div v-else class="trace-context-placeholder">选择案件后查看上下文 Trace</div>
-          </div>
-        </template>
-
-        <div class="trace-layout__context-scroll">
-          <div v-if="traceListItems.length" class="trace-context-list">
-          <button
-            v-for="item in traceListItems"
-            :key="item.session_id"
-            type="button"
-            class="trace-context-card"
-            :class="{ 'is-active': item.session_id === selectedSessionId }"
-            @click="selectTraceRow(item)"
-          >
-            <div class="trace-context-card__top">
-              <RuntimeStatusBadge :status="item.status" size="small" />
-              <span class="trace-context-card__time">{{ formatRuntimeDateTime(item.last_ingress_at || item.started_at) }}</span>
-            </div>
-            <div class="trace-context-card__title">{{ item.session_code }}</div>
-            <div class="trace-context-card__meta">{{ traceWorklineText(item) }} · {{ traceDeviceText(item) }}</div>
-            <div class="trace-context-card__hint">{{ item.step_code || '—' }} · {{ item.latest_timeline_message || item.failure_domain || item.current_wait_type || '等待更多证据' }}</div>
-          </button>
-        </div>
-          <RuntimeEmptyState
-            v-else
-            title="当前筛选下没有上下文 Trace"
-            description="你仍可使用上方锚点搜索直接进入案件；当前筛选只影响周边上下文，不影响已打开案件。"
-            hint="尝试切换到‘全部’或‘仅失败/超时’，查看更多相邻链路。"
-          />
-        </div>
-      </el-card>
-
       <div class="trace-layout__detail">
         <template v-if="traceDetail">
           <div ref="detailScrollRef" class="trace-layout__detail-scroll">
@@ -161,19 +117,19 @@
                 <div class="trace-session-grid">
                   <div class="trace-session-card">
                     <span>Session Code</span>
-                    <strong>{{ traceDetail.session?.session_code || '—' }}</strong>
+                    <strong>{{ traceDetail.session?.session_code || '--' }}</strong>
                   </div>
                   <div class="trace-session-card">
                     <span>Run Mode</span>
-                    <strong>{{ traceDetail.session?.run_mode || '—' }}</strong>
+                    <strong>{{ traceDetail.session?.run_mode || '--' }}</strong>
                   </div>
                   <div class="trace-session-card">
                     <span>Started / Ended</span>
-                    <strong>{{ formatRuntimeDateTime(traceDetail.session?.started_at) }} → {{ formatRuntimeDateTime(traceDetail.session?.ended_at) }}</strong>
+                    <strong>{{ formatRuntimeDateTime(traceDetail.session?.started_at) }} -> {{ formatRuntimeDateTime(traceDetail.session?.ended_at) }}</strong>
                   </div>
                   <div class="trace-session-card">
                     <span>Failure Message</span>
-                    <strong>{{ traceDetail.session?.failure_message || '—' }}</strong>
+                    <strong>{{ traceDetail.session?.failure_message || '--' }}</strong>
                   </div>
                 </div>
                 <pre class="trace-detail__json">{{ sessionJson }}</pre>
@@ -224,11 +180,21 @@
         <el-card v-else shadow="never" class="runtime-panel trace-layout__empty-state">
           <RuntimeEmptyState
             title="还没有打开任何案件"
-            description="请从左侧上下文列表选择一个 Trace，或使用 session / request / correlation 等锚点直接进入案件工作台。"
-            hint="深链链接会自动恢复案件上下文；如果没有命中，可先切换筛选范围。"
+            description="使用上方锚点搜索直接进入案件。"
+            hint="支持 Session ID、Request ID、Correlation ID、Command Code、Dispatch Key 等锚点直接跳转。"
           />
         </el-card>
       </div>
+
+      <el-card v-if="traceDetail" shadow="never" class="runtime-panel trace-layout__sidebar">
+        <TraceRelatedSidebar
+          :current-trace-id="selectedSessionId"
+          :workline-id="relatedWorklineId"
+          :device-id="relatedDeviceId"
+          :failure-domain="relatedFailureDomain"
+          @select="handleRelatedSelect"
+        />
+      </el-card>
     </div>
   </div>
 </template>
@@ -243,11 +209,12 @@ import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.v
 import RuntimeStickyContextBar from '@/components/common/runtime/RuntimeStickyContextBar.vue'
 import TraceCaseHero from '@/components/common/runtime/TraceCaseHero.vue'
 import TraceNextActions from '@/components/common/runtime/TraceNextActions.vue'
+import TraceRelatedSidebar from '@/components/common/runtime/TraceRelatedSidebar.vue'
 import TraceTimeline from '@/components/common/runtime/TraceTimeline.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
 import { useRuntimeStickyContextVisibility } from '@/composables/useRuntimeStickyContextVisibility'
-import type { RuntimeTraceListItem, RuntimeTraceListResponse, TraceDetailResponse, TraceQueryPayload } from '@/types/runtime'
+import type { TraceDetailResponse } from '@/types/runtime'
 import { createCoalescedAsyncTask } from '@/utils/createCoalescedAsyncTask'
 import { isRelevantRuntimeEvent } from '@/utils/runtime-event'
 import { buildRuntimeTraceQuery, type RuntimeTraceQueryInput } from '@/utils/runtime-route'
@@ -262,9 +229,6 @@ const queryType = ref<'session' | 'request' | 'correlation' | 'command' | 'dispa
 const queryValue = ref('')
 const activeTab = ref('diagnostics')
 const traceDetail = ref<TraceDetailResponse | null>(null)
-const traceList = ref<RuntimeTraceListResponse>({ total: 0, items: [] })
-const currentPreset = ref<'active' | 'failed' | 'all'>('active')
-const currentListPayload = ref<TraceQueryPayload>({ only_active: true, limit: 20, offset: 0 })
 const detailScrollRef = ref<HTMLElement | null>(null)
 const detailHeroRef = ref<HTMLElement | null>(null)
 const showStickyContext = useRuntimeStickyContextVisibility({
@@ -292,103 +256,37 @@ const sessionJson = computed(() => JSON.stringify(traceDetail.value?.session ?? 
 const rawJson = computed(() => JSON.stringify(traceDetail.value ?? {}, null, 2))
 const selectedSessionId = computed(() => traceDetail.value?.trace.session_id ?? null)
 
-const pinnedTraceItem = computed<RuntimeTraceListItem | null>(() => {
+const relatedWorklineId = computed(() => {
   const detail = traceDetail.value
-  const sessionId = detail?.trace.session_id
-  if (!detail || !sessionId) {
-    return null
-  }
-
-  const existing = traceList.value.items.find(item => item.session_id === sessionId)
-  return {
-    session_id: sessionId,
-    session_code: detail.session?.session_code ?? existing?.session_code ?? `SES-${sessionId}`,
-    correlation_id: detail.trace.correlation_id ?? existing?.correlation_id ?? null,
-    request_id: detail.trace.request_id ?? existing?.request_id ?? null,
-    workline_id: detail.session?.workline_id ?? detail.trace.workline_id ?? existing?.workline_id ?? -1,
-    workline_name: existing?.workline_name ?? null,
-    workline_code: existing?.workline_code ?? null,
-    device_id: detail.trace.device_id ?? existing?.device_id ?? detail.commands[0]?.device_id ?? null,
-    device_name: existing?.device_name ?? null,
-    device_code: detail.trace.device_code ?? existing?.device_code ?? null,
-    command_code: detail.trace.command_code ?? detail.commands[0]?.command_code ?? existing?.command_code ?? null,
-    status: detail.summary.session_status ?? detail.session?.status ?? existing?.status ?? 'UNKNOWN',
-    step_code: detail.summary.step_code ?? detail.session?.step_code ?? existing?.step_code ?? null,
-    current_wait_type: detail.summary.current_wait_type ?? detail.session?.current_wait_type ?? existing?.current_wait_type ?? null,
-    failure_domain: detail.session?.failure_domain ?? existing?.failure_domain ?? null,
-    failure_code: detail.session?.failure_code ?? existing?.failure_code ?? null,
-    latest_timeline_action: detail.summary.latest_timeline_action ?? existing?.latest_timeline_action ?? null,
-    latest_timeline_status: detail.summary.latest_timeline_status ?? existing?.latest_timeline_status ?? null,
-    latest_timeline_message: detail.summary.latest_timeline_message ?? existing?.latest_timeline_message ?? null,
-    started_at: detail.session?.started_at ?? existing?.started_at ?? null,
-    last_ingress_at: detail.session?.last_ingress_at ?? existing?.last_ingress_at ?? null,
-    deadline_at: detail.session?.deadline_at ?? existing?.deadline_at ?? null,
-    is_timed_out: existing?.is_timed_out ?? false,
-  }
+  if (!detail) return null
+  return detail.session?.workline_id ?? detail.trace.workline_id ?? null
 })
 
-const traceListItems = computed<RuntimeTraceListItem[]>(() => {
-  const items = [...traceList.value.items]
-  const pinned = pinnedTraceItem.value
-
-  if (!pinned) {
-    return items
-  }
-
-  const index = items.findIndex(item => item.session_id === pinned.session_id)
-  if (index === -1) {
-    return [pinned, ...items]
-  }
-
-  items[index] = { ...items[index], ...pinned }
-  return items
+const relatedDeviceId = computed(() => {
+  const detail = traceDetail.value
+  if (!detail) return null
+  return detail.trace.device_id ?? detail.commands[0]?.device_id ?? null
 })
 
-const selectedTracePinned = computed(() => {
-  const pinned = pinnedTraceItem.value
-  return Boolean(pinned && !traceList.value.items.some(item => item.session_id === pinned.session_id))
-})
-
-const selectedTraceContext = computed(() => {
-  const sessionId = selectedSessionId.value
-  if (!sessionId) {
-    return pinnedTraceItem.value
-  }
-
-  return traceListItems.value.find(item => item.session_id === sessionId) ?? pinnedTraceItem.value
+const relatedFailureDomain = computed(() => {
+  return traceDetail.value?.session?.failure_domain ?? null
 })
 
 const selectedWorklineName = computed(() => {
-  const item = selectedTraceContext.value
-  return item?.workline_name || (item?.workline_id ? `工作线 #${item.workline_id}` : null)
+  const detail = traceDetail.value
+  if (!detail) return null
+  const worklineId = detail.session?.workline_id ?? detail.trace.workline_id
+  return worklineId ? `工作线 #${worklineId}` : null
 })
 
 const selectedDeviceName = computed(() => {
-  const item = selectedTraceContext.value
-  return item?.device_name || item?.device_code || (item?.device_id ? `设备 #${item.device_id}` : null)
-})
-
-const selectedTraceContextName = computed(() => {
-  const item = selectedTraceContext.value
-  return item?.session_code || (selectedSessionId.value ? `SES-${selectedSessionId.value}` : null)
-})
-
-const selectedTraceContextMeta = computed(() => {
-  const item = selectedTraceContext.value
-  if (!item) {
-    return ''
-  }
-
-  const parts = [item.status || traceDetail.value?.summary.session_status || null, selectedWorklineName.value, selectedDeviceName.value]
-  if (selectedTracePinned.value) {
-    parts.push('已固定当前案件')
-  }
-
-  return parts.filter(Boolean).join(' · ')
+  const detail = traceDetail.value
+  if (!detail) return null
+  return detail.trace.device_code || (detail.trace.device_id ? `设备 #${detail.trace.device_id}` : null)
 })
 
 const traceStickyTitle = computed(() => {
-  return traceDetail.value?.session?.session_code || (selectedSessionId.value ? `SES-${selectedSessionId.value}` : '—')
+  return traceDetail.value?.session?.session_code || (selectedSessionId.value ? `SES-${selectedSessionId.value}` : '--')
 })
 
 const traceStickyCode = computed(() => {
@@ -405,48 +303,13 @@ const traceStickyFacts = computed(() => {
     return []
   }
 
-  const failureText = [detail.session?.failure_domain, detail.session?.failure_code].filter(Boolean).join(' / ') || '—'
+  const failureText = [detail.session?.failure_domain, detail.session?.failure_code].filter(Boolean).join(' / ') || '--'
 
   return [
-    { label: '当前 Step', value: detail.summary.step_code || detail.session?.step_code || '—' },
+    { label: '当前 Step', value: detail.summary.step_code || detail.session?.step_code || '--' },
     { label: '失败域 / 码', value: failureText }
   ]
 })
-
-function buildScopedListPayload(base: TraceQueryPayload = {}): TraceQueryPayload {
-  return {
-    ...base,
-    limit: base.limit ?? 20,
-    offset: base.offset ?? 0,
-    workline_id: readPositiveInt(route.query.worklineId) ?? undefined,
-    device_id: readPositiveInt(route.query.deviceId) ?? undefined,
-  }
-}
-
-function resolvePresetForDetail(detail: TraceDetailResponse | null): 'active' | 'failed' | 'all' {
-  const status = detail?.summary.session_status?.toUpperCase() ?? detail?.session?.status?.toUpperCase()
-  if (!status) {
-    return 'active'
-  }
-
-  if (detail?.session?.failure_domain || detail?.session?.failure_code || ['FAILED', 'TIMEOUT', 'CANCELLED', 'ABORTED'].includes(status)) {
-    return 'failed'
-  }
-
-  if (['RUNNING', 'WAITING', 'PENDING', 'PROCESSING', 'IN_PROGRESS', 'WAITING_DEVICE_RESULT', 'WAITING_EXTERNAL'].includes(status)) {
-    return 'active'
-  }
-
-  return 'all'
-}
-
-function traceWorklineText(item: RuntimeTraceListItem) {
-  return item.workline_name || (item.workline_id ? `工作线 #${item.workline_id}` : '未关联工作线')
-}
-
-function traceDeviceText(item: RuntimeTraceListItem) {
-  return item.device_name || item.device_code || (item.device_id ? `设备 #${item.device_id}` : '未关联设备')
-}
 
 function readRouteAnchor(): TraceAnchor | null {
   const anchorTypes: TraceAnchorType[] = ['session', 'request', 'correlation', 'command', 'dispatch']
@@ -534,12 +397,6 @@ async function syncRouteQuery(type: TraceAnchorType, value: string, query: Runti
   })
 }
 
-async function loadTraceList(payload: TraceQueryPayload = currentListPayload.value) {
-  currentListPayload.value = payload
-  traceList.value = await runtimeApiMethods.queryTraces(payload).send()
-  markRefreshedAt()
-}
-
 async function loadTraceBySession(sessionId: number) {
   traceDetail.value = await runtimeApiMethods.traceBySessionId(sessionId).send()
   markRefreshedAt()
@@ -582,32 +439,13 @@ async function openTraceFromAction(query: RuntimeTraceQueryInput) {
   await syncRouteQuery(anchor.type, anchor.value, query)
 }
 
-async function selectTraceRow(row: { session_id: number }) {
-  applyAnchorToInputs({ type: 'session', value: String(row.session_id) })
-  await syncRouteQuery('session', String(row.session_id))
-}
-
-async function applyListPreset(preset: 'active' | 'failed' | 'all') {
-  currentPreset.value = preset
-
-  if (preset === 'active') {
-    await loadTraceList(buildScopedListPayload({ only_active: true }))
-    return
-  }
-
-  if (preset === 'failed') {
-    await loadTraceList(buildScopedListPayload({ only_failed: true }))
-    return
-  }
-
-  await loadTraceList(buildScopedListPayload())
+async function handleRelatedSelect(sessionId: number) {
+  await openTraceFromAction({ sessionId: String(sessionId) })
 }
 
 async function refreshCurrent() {
   loading.value = true
   try {
-    await loadTraceList(currentListPayload.value)
-
     const activeSessionId = traceDetail.value?.trace.session_id
     if (activeSessionId) {
       await loadTraceBySession(activeSessionId)
@@ -636,8 +474,6 @@ async function syncTraceRouteState() {
       queryValue.value = ''
       traceDetail.value = null
     }
-
-    await applyListPreset(resolvePresetForDetail(traceDetail.value))
   } finally {
     loading.value = false
   }
@@ -687,12 +523,6 @@ watch(
   max-width: 900px;
 }
 
-.trace-context-placeholder {
-  color: var(--runtime-text-secondary, #94a3b8);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
 .trace-query-bar {
   display: flex;
   align-items: flex-end;
@@ -709,14 +539,6 @@ watch(
   min-width: 280px;
 }
 
-.trace-query-bar__presets {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-left: auto;
-  flex-wrap: wrap;
-}
-
 .trace-query-bar__submit {
   min-width: 112px;
   white-space: nowrap;
@@ -725,12 +547,12 @@ watch(
 .trace-layout {
   display: grid;
   gap: 16px;
-  grid-template-columns: 360px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 320px;
   align-items: stretch;
 }
 
-.trace-layout__context,
-.trace-layout__detail {
+.trace-layout__detail,
+.trace-layout__sidebar {
   min-height: 0;
 }
 
@@ -755,77 +577,6 @@ watch(
 
 .trace-layout__detail-scroll > * {
   flex: 0 0 auto;
-}
-
-.trace-context-summary--compact {
-  flex: 1 1 auto;
-}
-
-.trace-layout__context-scroll {
-  display: flex;
-  flex: 1 1 auto;
-  min-height: 0;
-  flex-direction: column;
-}
-
-.trace-context-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.trace-context-card {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 100%;
-  padding: 16px;
-  border: 1px solid rgb(245, 158, 11, 0.12);
-  border-radius: 14px;
-  background: rgb(30, 41, 59, 0.78);
-  text-align: left;
-  cursor: pointer;
-  transition:
-    transform var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out),
-    background var(--duration-fast) var(--ease-out);
-}
-
-.trace-context-card:hover {
-  transform: translateY(-1px);
-  border-color: rgb(245, 158, 11, 0.28);
-}
-
-.trace-context-card.is-active {
-  border-color: rgb(245, 158, 11, 0.38);
-  background: rgb(245, 158, 11, 0.08);
-  box-shadow: inset 0 0 0 1px rgb(245, 158, 11, 0.18);
-}
-
-.trace-context-card__top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.trace-context-card__time,
-.trace-context-card__meta,
-.trace-context-card__hint {
-  color: #94a3b8;
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-.trace-context-card__title {
-  color: #f8fafc;
-  font-family: var(--font-mono);
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.trace-context-card__meta {
-  color: #cbd5e1;
 }
 
 .trace-evidence-tabs :deep(.el-tabs__content) {
@@ -901,30 +652,26 @@ watch(
     overflow: hidden;
   }
 
-  .trace-layout__context,
-  .trace-layout__detail {
+  .trace-layout__detail,
+  .trace-layout__sidebar {
     height: 100%;
     min-height: 0;
   }
 
-  .trace-layout__context {
+  .trace-layout__sidebar {
     display: flex;
     flex-direction: column;
     overflow: hidden;
   }
 
-  .trace-layout__context :deep(.el-card__header) {
-    flex: 0 0 auto;
-  }
-
-  .trace-layout__context :deep(.el-card__body) {
+  .trace-layout__sidebar :deep(.el-card__body) {
     display: flex;
     flex: 1 1 auto;
     min-height: 0;
-    overflow: hidden;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
   }
 
-  .trace-layout__context-scroll,
   .trace-layout__detail-scroll {
     min-height: 0;
     overflow-y: auto;
@@ -938,7 +685,6 @@ watch(
     align-items: start;
   }
 
-  .trace-layout__context-scroll,
   .trace-layout__detail-scroll {
     overflow: visible;
     padding-right: 0;
@@ -946,18 +692,16 @@ watch(
 }
 
 @media (width <= 1279px) {
-  .runtime-page__header,
+  .runtime-page__header {
+    display: flex;
+    flex-direction: column;
+  }
+
   .trace-layout {
     display: flex;
     flex-direction: column;
   }
 
-  .runtime-page__status-bar,
-  .trace-query-bar__presets {
-    justify-content: flex-start;
-  }
-
-  .trace-layout__context-scroll,
   .trace-layout__detail-scroll {
     overflow: visible;
     padding-right: 0;
