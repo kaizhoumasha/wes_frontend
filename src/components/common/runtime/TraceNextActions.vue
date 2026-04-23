@@ -25,7 +25,7 @@ import { useRouter } from 'vue-router'
 import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
 import { usePermission } from '@/composables/usePermission'
 import type { TraceDetailResponse } from '@/types/runtime'
-import { buildRuntimeDeviceQuery, buildRuntimeWorklineQuery, type RuntimeTraceQueryInput } from '@/utils/runtime-route'
+import { buildRuntimeWorklineQuery, type RuntimeTraceQueryInput } from '@/utils/runtime-route'
 
 const props = defineProps<{
   detail: TraceDetailResponse
@@ -45,10 +45,10 @@ function openWorkline() {
 }
 
 function openDevice() {
-  if (!props.detail.trace.device_id) return
+  if (!props.detail.trace.device_id || !props.detail.trace.workline_id) return
   router.push({
-    name: 'RuntimeDevices',
-    query: buildRuntimeDeviceQuery(props.detail.trace.device_id, props.detail.trace.workline_id)
+    name: 'RuntimeWorklines',
+    query: buildRuntimeWorklineQuery(props.detail.trace.workline_id, props.detail.trace.device_id)
   })
 }
 

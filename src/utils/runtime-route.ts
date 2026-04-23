@@ -15,13 +15,6 @@ export function buildRuntimeWorklineQuery(worklineId: RuntimeRouteQueryValue, de
   }
 }
 
-export function buildRuntimeDeviceQuery(deviceId: RuntimeRouteQueryValue, worklineId: RuntimeRouteQueryValue) {
-  return {
-    deviceId: toRuntimeRouteQueryValue(deviceId),
-    worklineId: toRuntimeRouteQueryValue(worklineId)
-  }
-}
-
 export interface RuntimeTraceQueryInput {
   sessionId?: RuntimeRouteQueryValue
   requestId?: RuntimeRouteQueryValue

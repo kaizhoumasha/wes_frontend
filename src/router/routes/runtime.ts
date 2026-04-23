@@ -31,22 +31,6 @@ export const runtimeRoutes: RouteRecordRaw = {
       },
     },
     {
-      path: 'overview',
-      name: 'RuntimeOverview',
-      component: () => import('@/views/runtime/overview/RuntimeOverviewPage.vue'),
-      meta: {
-        requiresAuth: true,
-        title: '总览 Dashboard',
-        permission: BIZ_PERMISSIONS.workline.page,
-        menu: {
-          name: 'runtime:overview:menu',
-          parentName: 'runtime:system:menu',
-          icon: 'ep:data-board',
-          sortOrder: 1,
-        },
-      },
-    },
-    {
       path: 'traces',
       name: 'RuntimeTraceExplorer',
       component: () => import('@/views/runtime/traces/TraceExplorerPage.vue'),
@@ -75,22 +59,6 @@ export const runtimeRoutes: RouteRecordRaw = {
           parentName: 'runtime:system:menu',
           icon: 'ep:share',
           sortOrder: 3,
-        },
-      },
-    },
-    {
-      path: 'devices',
-      name: 'RuntimeDevices',
-      component: () => import('@/views/runtime/devices/DeviceRuntimePage.vue'),
-      meta: {
-        requiresAuth: true,
-        title: '设备监控',
-        permission: BIZ_PERMISSIONS.device.page,
-        menu: {
-          name: 'runtime:devices:menu',
-          parentName: 'runtime:system:menu',
-          icon: 'ep:cpu',
-          sortOrder: 4,
         },
       },
     },

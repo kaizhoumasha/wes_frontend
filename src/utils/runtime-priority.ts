@@ -4,7 +4,6 @@ import type {
   RuntimeWorklineSummary
 } from '@/types/runtime'
 import {
-  buildRuntimeDeviceQuery,
   buildRuntimeTraceQuery,
   buildRuntimeWorklineQuery
 } from '@/utils/runtime-route'
@@ -77,8 +76,8 @@ function classifyDevices(
         summary: `${dev.device_name} — ${dev.device_status}`,
         context: `${dev.device_code} · ${dev.workline_name || '未关联工作线'}`,
         navigateTo: {
-          name: 'RuntimeDevices',
-          query: buildRuntimeDeviceQuery(dev.id, dev.workline_id)
+          name: 'RuntimeWorklines',
+          query: buildRuntimeWorklineQuery(dev.workline_id, dev.id)
         },
         score: dev.device_status === 'OFFLINE' ? 90 : 80
       })
@@ -90,8 +89,8 @@ function classifyDevices(
         summary: `${dev.device_name} — 维护中`,
         context: `${dev.device_code}`,
         navigateTo: {
-          name: 'RuntimeDevices',
-          query: buildRuntimeDeviceQuery(dev.id, dev.workline_id)
+          name: 'RuntimeWorklines',
+          query: buildRuntimeWorklineQuery(dev.workline_id, dev.id)
         },
         score: 10
       })
@@ -164,7 +163,7 @@ function classifyBacklog(
       id: 'system-backlog',
       summary: `系统积压 ${backlog} — 超过阈值`,
       context: `inbox ${statValue(stats, 'inbox_backlog')} / outbox ${statValue(stats, 'outbox_backlog')}`,
-      navigateTo: { name: 'RuntimeOverview', query: {} },
+      navigateTo: { name: 'RuntimeDashboard', query: {} },
       score: backlog * 0.5
     })
   }
