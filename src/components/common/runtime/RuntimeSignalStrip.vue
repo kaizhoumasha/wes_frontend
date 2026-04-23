@@ -1,58 +1,96 @@
 <template>
   <div class="runtime-signal-strip">
     <article
-      v-for="card in cards"
+      v-for="card in coreKpis"
       :key="card.key"
       class="runtime-signal-card"
-      :class="`runtime-signal-card--${card.status}`"
+      :class="`runtime-signal-card--${card.tone}`"
     >
-      <div class="runtime-signal-card__header">
-        <div class="runtime-signal-card__icon">
-          <AppIcon :icon="card.icon" size="18" />
-        </div>
-        <span class="runtime-signal-card__label">{{ card.label }}</span>
+      <span class="runtime-signal-card__label">{{ card.label }}</span>
+      <div class="runtime-signal-card__row">
+        <span class="runtime-signal-card__value">{{ card.value }}</span>
+        <span
+          v-if="card.trend != null"
+          class="runtime-signal-card__trend"
+          :class="`runtime-signal-card__trend--${card.trendDirection}`"
+        >
+          {{ card.trend > 0 ? '↑' : '↓' }}
+        </span>
       </div>
-      <div class="runtime-signal-card__value">{{ card.value }}</div>
-      <div v-if="card.hint" class="runtime-signal-card__hint">{{ card.hint }}</div>
     </article>
   </div>
 </template>
 
 <script setup lang="ts">
-import AppIcon from '@/components/ui/AppIcon.vue'
-import type { RuntimeTone } from '@/utils/runtime-display'
+import { computed } from 'vue'
+import type { RuntimeStatCard } from '@/types/runtime'
 
-interface RuntimeSignalCard {
+interface CoreKpi {
   key: string
   label: string
-  value: string | number
-  status: RuntimeTone
-  icon?: string
-  hint?: string
+  value: number
+  tone: 'danger' | 'warning'
+  trend?: number
+  trendDirection: 'up' | 'down'
 }
 
-defineProps<{
-  cards: RuntimeSignalCard[]
+const props = defineProps<{
+  cards: RuntimeStatCard[]
 }>()
+
+function statValue(key: string): number {
+  return props.cards.find(c => c.key === key)?.value ?? 0
+}
+
+const coreKpis = computed<CoreKpi[]>(() => {
+  const failed = statValue('failed_sessions')
+  const abnormal = statValue('abnormal_devices')
+  const backlog = statValue('inbox_backlog') + statValue('outbox_backlog')
+
+  return [
+    {
+      key: 'failed_sessions',
+      label: '失败链路',
+      value: failed,
+      tone: 'danger',
+      trend: failed > 0 ? failed : undefined,
+      trendDirection: failed > 0 ? 'up' : 'down'
+    },
+    {
+      key: 'abnormal_devices',
+      label: '异常设备',
+      value: abnormal,
+      tone: 'danger',
+      trend: abnormal > 0 ? abnormal : undefined,
+      trendDirection: abnormal > 0 ? 'up' : 'down'
+    },
+    {
+      key: 'system_backlog',
+      label: '系统积压',
+      value: backlog,
+      tone: 'warning',
+      trend: backlog > 0 ? backlog : undefined,
+      trendDirection: backlog > 0 ? 'up' : 'down'
+    }
+  ]
+})
 </script>
 
 <style scoped>
 .runtime-signal-strip {
   display: grid;
   gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .runtime-signal-card {
   position: relative;
   overflow: hidden;
-  min-height: 144px;
   padding: 20px;
   border: 1px solid rgb(245, 158, 11, 0.16);
   border-radius: 16px;
   background:
-    linear-gradient(180deg, rgb(30, 41, 59, 0.96), rgb(15, 23, 42, 0.94)),
-    rgb(30, 41, 59, 0.92);
+    linear-gradient(180deg, rgb(30, 41, 59, 0.96), rgb(15, 23, 42, 0.94)), rgb(30, 41, 59, 0.92);
   box-shadow: inset 0 1px 0 rgb(255, 255, 255, 0.03);
 }
 
@@ -62,66 +100,57 @@ defineProps<{
   inset: 0 auto auto 0;
   width: 100%;
   height: 3px;
-  background: rgb(148, 163, 184, 0.7);
 }
 
-.runtime-signal-card__header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.runtime-signal-card--danger::before {
+  background: rgb(220, 38, 38, 0.85);
 }
 
-.runtime-signal-card__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: rgb(255, 255, 255, 0.04);
+.runtime-signal-card--warning::before {
+  background: rgb(245, 158, 11, 0.85);
 }
 
 .runtime-signal-card__label {
-  color: #cbd5e1;
+  display: block;
+  color: #94a3b8;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
+.runtime-signal-card__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 14px;
+}
+
 .runtime-signal-card__value {
-  margin-top: 18px;
   color: #f8fafc;
   font-family: var(--font-mono);
-  font-size: 36px;
+  font-size: 24px;
   font-weight: 700;
   line-height: 1;
 }
 
-.runtime-signal-card__hint {
-  margin-top: 12px;
-  color: #94a3b8;
-  font-size: 12px;
-  line-height: 1.5;
+.runtime-signal-card__trend {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
 }
 
-.runtime-signal-card--primary::before {
-  background: #3b82f6;
+.runtime-signal-card__trend--up {
+  color: rgb(220, 38, 38);
 }
 
-.runtime-signal-card--success::before {
-  background: #16a34a;
+.runtime-signal-card__trend--down {
+  color: #16a34a;
 }
 
-.runtime-signal-card--warning::before {
-  background: #eab308;
-}
-
-.runtime-signal-card--danger::before {
-  background: #dc2626;
-}
-
-.runtime-signal-card--info::before {
-  background: #94a3b8;
+@media (width <= 1279px) {
+  .runtime-signal-strip {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

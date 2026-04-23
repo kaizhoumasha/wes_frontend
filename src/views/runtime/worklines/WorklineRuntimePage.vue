@@ -1,51 +1,107 @@
 <template>
-  <div v-loading="loading" class="runtime-page">
+  <div
+    v-loading="loading"
+    class="runtime-page"
+  >
     <div class="runtime-page__header">
       <div>
         <h1 class="runtime-page__title">工作线运行监控</h1>
-        <p class="runtime-page__subtitle">先看线体摘要，再下钻拓扑、运行队列与失败链路，确认阻塞是局部节点问题还是线体级异常。</p>
+        <p class="runtime-page__subtitle">
+          先看线体摘要，再下钻拓扑、运行队列与失败链路，确认阻塞是局部节点问题还是线体级异常。
+        </p>
       </div>
       <div class="runtime-page__status-bar runtime-control-cluster">
-        <RuntimeStatusBadge :label="connectionLabel" :tone="connectionTone" :pulse="live && state === 'connected'" />
-        <el-switch :model-value="live" inline-prompt active-text="Live" inactive-text="Frozen" @change="value => toggleLive(Boolean(value))" />
-        <RuntimeLastUpdated :value="lastRefreshedAt" :frozen="!live" />
-        <el-button plain class="runtime-page__refresh-action" @click="refreshWorklines">刷新当前视图</el-button>
+        <RuntimeStatusBadge
+          :label="connectionLabel"
+          :tone="connectionTone"
+          :pulse="live && state === 'connected'"
+        />
+        <el-switch
+          :model-value="live"
+          inline-prompt
+          active-text="Live"
+          inactive-text="Frozen"
+          @change="value => toggleLive(Boolean(value))"
+        />
+        <RuntimeLastUpdated
+          :value="lastRefreshedAt"
+          :frozen="!live"
+        />
+        <el-button
+          plain
+          class="runtime-page__refresh-action"
+          @click="refreshWorklines"
+        >
+          刷新当前视图
+        </el-button>
       </div>
     </div>
 
     <RuntimeFrozenNotice v-if="!live" />
 
     <div class="runtime-layout">
-      <el-card shadow="never" class="runtime-panel runtime-layout__list">
+      <el-card
+        shadow="never"
+        class="runtime-panel runtime-layout__list"
+      >
         <template #header>
           <div class="runtime-panel__header runtime-panel__header--compact">
-            <div v-if="selectedWorklineContextName" class="runtime-workline-context runtime-workline-context--compact runtime-compact-context">
-              <strong class="runtime-workline-context__name runtime-compact-context__name" :title="selectedWorklineContextName">{{ selectedWorklineContextName }}</strong>
-              <span class="runtime-workline-context__meta runtime-compact-context__meta">{{ selectedWorklineContextMeta }}</span>
+            <div
+              v-if="selectedWorklineContextName"
+              class="runtime-workline-context runtime-workline-context--compact runtime-compact-context"
+            >
+              <strong
+                class="runtime-workline-context__name runtime-compact-context__name"
+                :title="selectedWorklineContextName"
+              >
+                {{ selectedWorklineContextName }}
+              </strong>
+              <span class="runtime-workline-context__meta runtime-compact-context__meta">
+                {{ selectedWorklineContextMeta }}
+              </span>
             </div>
-            <div v-else class="runtime-workline-placeholder">选择工作线后查看线体运行态</div>
+            <div
+              v-else
+              class="runtime-workline-placeholder"
+            >
+              选择工作线后查看线体运行态
+            </div>
           </div>
         </template>
 
         <div class="runtime-layout__list-scroll">
-          <div v-if="worklines.length" class="runtime-directory-list">
-          <button
-            v-for="item in orderedWorklines"
-            :key="item.id"
-            type="button"
-            class="runtime-directory-card"
-            :class="{ 'is-active': item.id === selectedWorklineId }"
-            @click="selectWorkline(item)"
+          <div
+            v-if="worklines.length"
+            class="runtime-directory-list"
           >
-            <div class="runtime-directory-card__top">
-              <RuntimeStatusBadge :label="worklineRiskLabel(item)" :tone="worklineRiskTone(item)" size="small" />
-              <span class="runtime-directory-card__time">{{ worklineLastActivityLabel(item) }}</span>
-            </div>
-            <div class="runtime-directory-card__title">{{ item.line_name }}</div>
-            <div class="runtime-directory-card__meta">{{ item.line_code }} · {{ item.zone_name || '未配置区域' }}</div>
-            <div class="runtime-directory-card__hint">活跃 {{ item.active_session_count }} · 等待 {{ item.waiting_session_count }} · 失败 {{ item.failed_session_count }} · 离线 {{ item.offline_device_count }}</div>
-          </button>
-        </div>
+            <button
+              v-for="item in orderedWorklines"
+              :key="item.id"
+              type="button"
+              class="runtime-directory-card"
+              :class="{ 'is-active': item.id === selectedWorklineId }"
+              @click="selectWorkline(item)"
+            >
+              <div class="runtime-directory-card__top">
+                <RuntimeStatusBadge
+                  :label="worklineRiskLabel(item)"
+                  :tone="worklineRiskTone(item)"
+                  size="small"
+                />
+                <span class="runtime-directory-card__time">
+                  {{ worklineLastActivityLabel(item) }}
+                </span>
+              </div>
+              <div class="runtime-directory-card__title">{{ item.line_name }}</div>
+              <div class="runtime-directory-card__meta">
+                {{ item.line_code }} · {{ item.zone_name || '未配置区域' }}
+              </div>
+              <div class="runtime-directory-card__hint">
+                活跃 {{ item.active_session_count }} · 等待 {{ item.waiting_session_count }} · 失败
+                {{ item.failed_session_count }} · 离线 {{ item.offline_device_count }}
+              </div>
+            </button>
+          </div>
           <RuntimeEmptyState
             v-else
             title="暂无工作线数据"
@@ -58,86 +114,159 @@
       <div class="runtime-layout__detail">
         <template v-if="detail">
           <div class="runtime-layout__detail-scroll">
-            <WorklineHealthHero :summary="detail.summary" class="runtime-layout__hero" />
+            <WorklineHealthHero
+              :summary="detail.summary"
+              class="runtime-layout__hero"
+            />
 
-            <el-card shadow="never" class="runtime-panel">
-            <template #header>
-              <div class="runtime-panel__header">
-                <div>
-                  <div class="runtime-panel__title">拓扑主视图</div>
-                  <div class="runtime-panel__subtitle">用线体设备拓扑确认阻塞发生在哪个节点，再直接进入设备页。</div>
-                </div>
-                <RuntimeStatusBadge :label="hotspotDevice ? `焦点设备 ${hotspotDevice.device_code}` : '无明显热点'" :tone="hotspotDevice ? 'danger' : 'success'" size="small" />
-              </div>
-            </template>
-
-            <WorklineTopologyStrip :devices="detail.devices" :selected-device-id="hotspotDevice?.id ?? null" @select="openDevice" />
-          </el-card>
-
-          <div class="workline-grid workline-grid--two">
-            <el-card shadow="never" class="runtime-panel">
+            <el-card
+              shadow="never"
+              class="runtime-panel"
+            >
               <template #header>
                 <div class="runtime-panel__header">
                   <div>
-                    <div class="runtime-panel__title">运行队列</div>
-                    <div class="runtime-panel__subtitle">当前仍在这条线体上推进的 Session</div>
+                    <div class="runtime-panel__title">拓扑主视图</div>
+                    <div class="runtime-panel__subtitle">
+                      用线体设备拓扑确认阻塞发生在哪个节点，再直接进入设备页。
+                    </div>
                   </div>
+                  <RuntimeStatusBadge
+                    :label="hotspotDevice ? `焦点设备 ${hotspotDevice.device_code}` : '无明显热点'"
+                    :tone="hotspotDevice ? 'danger' : 'success'"
+                    size="small"
+                  />
                 </div>
               </template>
 
-              <div v-if="detail.active_sessions.length" class="trace-list">
-                <button v-for="item in detail.active_sessions" :key="item.session_id" type="button" class="trace-list__item" @click="openTrace(item.session_id)">
-                  <div class="trace-list__head">
-                    <RuntimeStatusBadge :status="item.status" size="small" />
-                    <span>{{ formatRuntimeElapsed(item.started_at) }}</span>
-                  </div>
-                  <div class="trace-list__title">{{ item.session_code }}</div>
-                  <div class="trace-list__meta">{{ item.step_code || '—' }} · {{ item.device_name || '等待设备绑定' }}</div>
-                  <div class="trace-list__hint">{{ item.latest_timeline_message || item.current_wait_type || '查看时间轴获取更多信息' }}</div>
-                </button>
-              </div>
-              <RuntimeEmptyState
-                v-else
-                title="当前没有活跃 Session"
-                description="这条线当前没有正在推进中的链路，可能处于空闲期或暂未接收到新任务。"
+              <WorklineTopologyStrip
+                :devices="detail.devices"
+                :selected-device-id="hotspotDevice?.id ?? null"
+                :session-counts-by-device="sessionCountsByDevice"
+                @select="openDevice"
               />
             </el-card>
 
-            <el-card shadow="never" class="runtime-panel">
-              <template #header>
-                <div class="runtime-panel__header">
-                  <div>
-                    <div class="runtime-panel__title">最近失败链路</div>
-                    <div class="runtime-panel__subtitle">优先判断是否为同一设备 / 同一步骤重复失败</div>
+            <div class="workline-grid workline-grid--two">
+              <el-card
+                shadow="never"
+                class="runtime-panel"
+              >
+                <template #header>
+                  <div class="runtime-panel__header">
+                    <div>
+                      <div class="runtime-panel__title">运行队列</div>
+                      <div class="runtime-panel__subtitle">当前仍在这条线体上推进的 Session</div>
+                    </div>
                   </div>
+                </template>
+
+                <div
+                  v-if="detail.active_sessions.length"
+                  class="trace-list"
+                >
+                  <button
+                    v-for="item in detail.active_sessions"
+                    :key="item.session_id"
+                    type="button"
+                    class="trace-list__item"
+                    @click="openTrace(item.session_id)"
+                  >
+                    <div class="trace-list__head">
+                      <RuntimeStatusBadge
+                        :status="item.status"
+                        size="small"
+                      />
+                      <span>{{ formatRuntimeElapsed(item.started_at) }}</span>
+                    </div>
+                    <div class="trace-list__title">{{ item.session_code }}</div>
+                    <div class="trace-list__meta">
+                      {{ item.step_code || '—' }} · {{ item.device_name || '等待设备绑定' }}
+                    </div>
+                    <div class="trace-list__hint">
+                      {{
+                        item.latest_timeline_message ||
+                        item.current_wait_type ||
+                        '查看时间轴获取更多信息'
+                      }}
+                    </div>
+                  </button>
                 </div>
-              </template>
+                <RuntimeEmptyState
+                  v-else
+                  title="当前没有活跃 Session"
+                  description="这条线当前没有正在推进中的链路，可能处于空闲期或暂未接收到新任务。"
+                />
+              </el-card>
 
-              <div v-if="detail.recent_failed_traces.length" class="trace-list">
-                <button v-for="item in detail.recent_failed_traces" :key="item.session_id" type="button" class="trace-list__item trace-list__item--danger" @click="openTrace(item.session_id)">
-                  <div class="trace-list__head">
-                    <RuntimeStatusBadge :status="item.status" size="small" />
-                    <span>{{ formatRuntimeDateTime(item.last_ingress_at || item.started_at) }}</span>
+              <el-card
+                shadow="never"
+                class="runtime-panel"
+              >
+                <template #header>
+                  <div class="runtime-panel__header">
+                    <div>
+                      <div class="runtime-panel__title">最近失败链路</div>
+                      <div class="runtime-panel__subtitle">
+                        优先判断是否为同一设备 / 同一步骤重复失败
+                      </div>
+                    </div>
                   </div>
-                  <div class="trace-list__title">{{ item.session_code }}</div>
-                  <div class="trace-list__meta">{{ item.step_code || '—' }} · {{ item.device_name || '未关联设备' }}</div>
-                  <div class="trace-list__hint">{{ item.failure_domain || item.failure_code || item.latest_timeline_message || '查看 Trace 获得故障原因' }}</div>
-                </button>
-              </div>
-              <RuntimeEmptyState
-                v-else
-                title="近 24 小时暂无失败链路"
-                description="当前未发现需要优先排障的线体级失败样本。"
-              />
-            </el-card>
-          </div>
+                </template>
 
-            <el-card shadow="never" class="runtime-panel">
+                <div
+                  v-if="detail.recent_failed_traces.length"
+                  class="trace-list"
+                >
+                  <button
+                    v-for="item in detail.recent_failed_traces"
+                    :key="item.session_id"
+                    type="button"
+                    class="trace-list__item trace-list__item--danger"
+                    @click="openTrace(item.session_id)"
+                  >
+                    <div class="trace-list__head">
+                      <RuntimeStatusBadge
+                        :status="item.status"
+                        size="small"
+                      />
+                      <span>
+                        {{ formatRuntimeDateTime(item.last_ingress_at || item.started_at) }}
+                      </span>
+                    </div>
+                    <div class="trace-list__title">{{ item.session_code }}</div>
+                    <div class="trace-list__meta">
+                      {{ item.step_code || '—' }} · {{ item.device_name || '未关联设备' }}
+                    </div>
+                    <div class="trace-list__hint">
+                      {{
+                        item.failure_domain ||
+                        item.failure_code ||
+                        item.latest_timeline_message ||
+                        '查看 Trace 获得故障原因'
+                      }}
+                    </div>
+                  </button>
+                </div>
+                <RuntimeEmptyState
+                  v-else
+                  title="近 24 小时暂无失败链路"
+                  description="当前未发现需要优先排障的线体级失败样本。"
+                />
+              </el-card>
+            </div>
+
+            <el-card
+              shadow="never"
+              class="runtime-panel"
+            >
               <template #header>
                 <div class="runtime-panel__header">
                   <div>
                     <div class="runtime-panel__title">异常热点</div>
-                    <div class="runtime-panel__subtitle">帮助判断这是局部节点问题，还是线体级模式性异常</div>
+                    <div class="runtime-panel__subtitle">
+                      帮助判断这是局部节点问题，还是线体级模式性异常
+                    </div>
                   </div>
                 </div>
               </template>
@@ -146,7 +275,13 @@
                 <div class="hotspot-card">
                   <span>焦点设备</span>
                   <strong>{{ hotspotDevice?.device_name || '—' }}</strong>
-                  <p>{{ hotspotDevice ? `${hotspotDevice.device_code} · ${hotspotDevice.error_code || hotspotDevice.device_status}` : '当前未识别到明显异常节点' }}</p>
+                  <p>
+                    {{
+                      hotspotDevice
+                        ? `${hotspotDevice.device_code} · ${hotspotDevice.error_code || hotspotDevice.device_status}`
+                        : '当前未识别到明显异常节点'
+                    }}
+                  </p>
                 </div>
                 <div class="hotspot-card">
                   <span>高频失败 Step</span>
@@ -161,14 +296,21 @@
                 <div class="hotspot-card">
                   <span>最近活动</span>
                   <strong>{{ worklineLastActivityLabel(detail.summary) }}</strong>
-                  <p>{{ detail.summary.owner_team || '未配置 owner' }} / {{ detail.summary.support_contact || '未配置 support' }}</p>
+                  <p>
+                    {{ detail.summary.owner_team || '未配置 owner' }} /
+                    {{ detail.summary.support_contact || '未配置 support' }}
+                  </p>
                 </div>
               </div>
             </el-card>
           </div>
         </template>
 
-        <el-card v-else shadow="never" class="runtime-panel runtime-layout__empty-state">
+        <el-card
+          v-else
+          shadow="never"
+          class="runtime-panel runtime-layout__empty-state"
+        >
           <RuntimeEmptyState
             title="还没有选中工作线"
             description="请从左侧线体目录选择一条工作线，进入拓扑与运行队列视图。"
@@ -190,16 +332,43 @@ import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.v
 import WorklineHealthHero from '@/components/common/runtime/WorklineHealthHero.vue'
 import WorklineTopologyStrip from '@/components/common/runtime/WorklineTopologyStrip.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
-import { buildRuntimeDeviceQuery, buildRuntimeTraceQuery, buildRuntimeWorklineQuery } from '@/utils/runtime-route'
+import {
+  buildRuntimeDeviceQuery,
+  buildRuntimeTraceQuery,
+  buildRuntimeWorklineQuery
+} from '@/utils/runtime-route'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
-import type { RuntimeWorklineDetailResponse, RuntimeWorklineDeviceItem, RuntimeWorklineSummary } from '@/types/runtime'
+import type {
+  RuntimeWorklineDetailResponse,
+  RuntimeWorklineDeviceItem,
+  RuntimeWorklineSummary
+} from '@/types/runtime'
 import { createCoalescedAsyncTask } from '@/utils/createCoalescedAsyncTask'
 import { isRelevantRuntimeEvent } from '@/utils/runtime-event'
-import { formatRuntimeDateTime, formatRuntimeElapsed, getWorklineRiskLabel as worklineRiskLabel, getWorklineRiskScore, getWorklineRiskTone as worklineRiskTone, pickDominantValue, readPositiveInt, sortByScoreDesc } from '@/utils/runtime-display'
+import {
+  aggregateSessionsByDevice,
+  formatRuntimeDateTime,
+  formatRuntimeElapsed,
+  getWorklineRiskLabel as worklineRiskLabel,
+  getWorklineRiskScore,
+  getWorklineRiskTone as worklineRiskTone,
+  pickDominantValue,
+  readPositiveInt,
+  sortByScoreDesc
+} from '@/utils/runtime-display'
 
 const route = useRoute()
 const router = useRouter()
-const { connectionLabel, connectionTone, lastEvent, lastRefreshedAt, live, markRefreshedAt, state, toggleLive } = useRuntimePageChrome()
+const {
+  connectionLabel,
+  connectionTone,
+  lastEvent,
+  lastRefreshedAt,
+  live,
+  markRefreshedAt,
+  state,
+  toggleLive
+} = useRuntimePageChrome()
 
 const loading = ref(false)
 const worklines = ref<RuntimeWorklineSummary[]>([])
@@ -227,18 +396,29 @@ const selectedWorklineContextMeta = computed(() => {
   return `${summary.line_code} · ${summary.zone_name || '未配置区域'} · 活跃 ${summary.active_session_count} · 失败 ${summary.failed_session_count}`
 })
 
-const orderedWorklines = computed(() => sortByScoreDesc(worklines.value, getWorklineRiskScore, item => item.id))
+const orderedWorklines = computed(() =>
+  sortByScoreDesc(worklines.value, getWorklineRiskScore, item => item.id)
+)
 
 const hotspotDevice = computed<RuntimeWorklineDeviceItem | null>(() => {
   const devices = detail.value?.devices ?? []
-  return devices.find(item => ['ERROR', 'OFFLINE'].includes(item.device_status))
-    ?? devices.find(item => Boolean(item.error_code))
-    ?? devices.find(item => Boolean(item.current_command_id))
-    ?? null
+  return (
+    devices.find(item => ['ERROR', 'OFFLINE'].includes(item.device_status)) ??
+    devices.find(item => Boolean(item.error_code)) ??
+    devices.find(item => Boolean(item.current_command_id)) ??
+    null
+  )
 })
 
-const mostFailedStep = computed(() => pickDominantValue(detail.value?.recent_failed_traces.map(item => item.step_code || '—') ?? []))
-const dominantActiveStep = computed(() => pickDominantValue(detail.value?.active_sessions.map(item => item.step_code || '—') ?? []))
+const mostFailedStep = computed(() =>
+  pickDominantValue(detail.value?.recent_failed_traces.map(item => item.step_code || '—') ?? [])
+)
+const dominantActiveStep = computed(() =>
+  pickDominantValue(detail.value?.active_sessions.map(item => item.step_code || '—') ?? [])
+)
+const sessionCountsByDevice = computed(() =>
+  aggregateSessionsByDevice(detail.value?.active_sessions ?? [])
+)
 
 function worklineLastActivityLabel(item: RuntimeWorklineSummary) {
   return item.last_activity_at ? formatRuntimeDateTime(item.last_activity_at) : '暂无活动'
@@ -254,7 +434,9 @@ async function ensureWorklineRouteSelection(): Promise<boolean> {
     return false
   }
 
-  await router.replace({ query: { ...route.query, ...buildRuntimeWorklineQuery(worklines.value[0].id) } })
+  await router.replace({
+    query: { ...route.query, ...buildRuntimeWorklineQuery(worklines.value[0].id) }
+  })
   return true
 }
 
@@ -307,11 +489,17 @@ async function selectWorkline(row: { id: number }) {
 }
 
 function openTrace(sessionId: number) {
-  router.push({ name: 'RuntimeTraceExplorer', query: buildRuntimeTraceQuery({ sessionId, worklineId: detail.value?.summary.id }) })
+  router.push({
+    name: 'RuntimeTraceExplorer',
+    query: buildRuntimeTraceQuery({ sessionId, worklineId: detail.value?.summary.id })
+  })
 }
 
 function openDevice(deviceId: number) {
-  router.push({ name: 'RuntimeDevices', query: buildRuntimeDeviceQuery(deviceId, detail.value?.summary.id) })
+  router.push({
+    name: 'RuntimeDevices',
+    query: buildRuntimeDeviceQuery(deviceId, detail.value?.summary.id)
+  })
 }
 
 onMounted(() => {
@@ -333,9 +521,11 @@ watch(
   () => lastEvent.value,
   async event => {
     if (!live.value || !event) return
-    if (!isRelevantRuntimeEvent(event, {
-      worklineId: detail.value?.summary.id ?? selectedWorklineId.value
-    })) {
+    if (
+      !isRelevantRuntimeEvent(event, {
+        worklineId: detail.value?.summary.id ?? selectedWorklineId.value
+      })
+    ) {
       return
     }
 
