@@ -66,9 +66,9 @@
 
       <div class="runtime-layout__detail">
         <template v-if="detail">
-          <DeviceHealthHero :summary="detail.summary" class="runtime-layout__hero" />
-
           <div class="runtime-layout__detail-scroll">
+            <DeviceHealthHero :summary="detail.summary" class="runtime-layout__hero" />
+
             <el-card shadow="never" class="runtime-panel">
             <template #header>
               <div class="runtime-panel__header">
@@ -844,7 +844,7 @@ watch(
   min-height: 540px;
 }
 
-@media (width >= 1280px) {
+@media (width >= 1280px) and (height >= 900px) {
   .runtime-layout {
     height: calc(100vh - 210px);
     min-height: 620px;
@@ -882,6 +882,18 @@ watch(
     scrollbar-gutter: stable;
   }
 
+}
+
+@media (width >= 1280px) and (height <= 899px) {
+  .runtime-layout {
+    align-items: start;
+  }
+
+  .runtime-layout__list-scroll,
+  .runtime-layout__detail-scroll {
+    overflow: visible;
+    padding-right: 0;
+  }
 }
 
 @media (width <= 1279px) {

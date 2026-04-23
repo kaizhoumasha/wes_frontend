@@ -76,9 +76,20 @@
 
       <div class="trace-layout__detail">
         <template v-if="traceDetail">
-          <TraceCaseHero :detail="traceDetail" :workline-name="selectedWorklineName" :device-name="selectedDeviceName" class="trace-layout__hero" />
+          <div ref="detailScrollRef" class="trace-layout__detail-scroll">
+            <div ref="detailHeroRef" class="trace-layout__hero">
+              <TraceCaseHero :detail="traceDetail" :workline-name="selectedWorklineName" :device-name="selectedDeviceName" />
+            </div>
 
-          <div class="trace-layout__detail-scroll">
+            <RuntimeStickyContextBar
+              v-show="showStickyContext"
+              eyebrow="案件上下文"
+              :title="traceStickyTitle"
+              :code="traceStickyCode"
+              :status="traceStickyStatus"
+              :facts="traceStickyFacts"
+            />
+
             <el-card shadow="never" class="runtime-panel">
             <template #header>
               <div class="runtime-panel__header">
@@ -229,11 +240,13 @@ import RuntimeEmptyState from '@/components/common/runtime/RuntimeEmptyState.vue
 import RuntimeFrozenNotice from '@/components/common/runtime/RuntimeFrozenNotice.vue'
 import RuntimeLastUpdated from '@/components/common/runtime/RuntimeLastUpdated.vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
+import RuntimeStickyContextBar from '@/components/common/runtime/RuntimeStickyContextBar.vue'
 import TraceCaseHero from '@/components/common/runtime/TraceCaseHero.vue'
 import TraceNextActions from '@/components/common/runtime/TraceNextActions.vue'
 import TraceTimeline from '@/components/common/runtime/TraceTimeline.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
+import { useRuntimeStickyContextVisibility } from '@/composables/useRuntimeStickyContextVisibility'
 import type { RuntimeTraceListItem, RuntimeTraceListResponse, TraceDetailResponse, TraceQueryPayload } from '@/types/runtime'
 import { createCoalescedAsyncTask } from '@/utils/createCoalescedAsyncTask'
 import { isRelevantRuntimeEvent } from '@/utils/runtime-event'
@@ -252,6 +265,13 @@ const traceDetail = ref<TraceDetailResponse | null>(null)
 const traceList = ref<RuntimeTraceListResponse>({ total: 0, items: [] })
 const currentPreset = ref<'active' | 'failed' | 'all'>('active')
 const currentListPayload = ref<TraceQueryPayload>({ only_active: true, limit: 20, offset: 0 })
+const detailScrollRef = ref<HTMLElement | null>(null)
+const detailHeroRef = ref<HTMLElement | null>(null)
+const showStickyContext = useRuntimeStickyContextVisibility({
+  heroRef: detailHeroRef,
+  scrollRootRef: detailScrollRef,
+  enabled: computed(() => Boolean(traceDetail.value))
+})
 
 type TraceAnchorType = 'session' | 'request' | 'correlation' | 'command' | 'dispatch'
 
@@ -365,6 +385,32 @@ const selectedTraceContextMeta = computed(() => {
   }
 
   return parts.filter(Boolean).join(' · ')
+})
+
+const traceStickyTitle = computed(() => {
+  return traceDetail.value?.session?.session_code || (selectedSessionId.value ? `SES-${selectedSessionId.value}` : '—')
+})
+
+const traceStickyCode = computed(() => {
+  return traceDetail.value?.trace.session_id ? `Session #${traceDetail.value.trace.session_id}` : null
+})
+
+const traceStickyStatus = computed(() => {
+  return traceDetail.value?.summary.session_status || traceDetail.value?.session?.status || null
+})
+
+const traceStickyFacts = computed(() => {
+  const detail = traceDetail.value
+  if (!detail) {
+    return []
+  }
+
+  const failureText = [detail.session?.failure_domain, detail.session?.failure_code].filter(Boolean).join(' / ') || '—'
+
+  return [
+    { label: '当前 Step', value: detail.summary.step_code || detail.session?.step_code || '—' },
+    { label: '失败域 / 码', value: failureText }
+  ]
 })
 
 function buildScopedListPayload(base: TraceQueryPayload = {}): TraceQueryPayload {
@@ -848,7 +894,7 @@ watch(
   min-height: 520px;
 }
 
-@media (width >= 1280px) {
+@media (width >= 1280px) and (height >= 900px) {
   .trace-layout {
     height: calc(100vh - 285px);
     min-height: 620px;
@@ -884,6 +930,18 @@ watch(
     overflow-y: auto;
     padding-right: 6px;
     scrollbar-gutter: stable;
+  }
+}
+
+@media (width >= 1280px) and (height <= 899px) {
+  .trace-layout {
+    align-items: start;
+  }
+
+  .trace-layout__context-scroll,
+  .trace-layout__detail-scroll {
+    overflow: visible;
+    padding-right: 0;
   }
 }
 
