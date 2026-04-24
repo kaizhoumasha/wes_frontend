@@ -25,6 +25,7 @@
             :key="item.id"
             type="button"
             class="runtime-priority-queue__card"
+            :data-item-id="item.id"
             :tabindex="focusedId === item.id ? 0 : -1"
             @click="emit('navigate', item)"
             @keydown="onKeyDown($event, item)"
@@ -53,6 +54,7 @@
             :key="item.id"
             type="button"
             class="runtime-priority-queue__card"
+            :data-item-id="item.id"
             :tabindex="focusedId === item.id ? 0 : -1"
             @click="emit('navigate', item)"
             @keydown="onKeyDown($event, item)"
@@ -91,6 +93,7 @@
             :key="item.id"
             type="button"
             class="runtime-priority-queue__card"
+            :data-item-id="item.id"
             :tabindex="focusedId === item.id ? 0 : -1"
             @click="emit('navigate', item)"
             @keydown="onKeyDown($event, item)"
@@ -155,10 +158,10 @@ function onKeyDown(event: KeyboardEvent, item: PriorityItem) {
 
   if (nextIndex >= 0 && nextIndex !== index) {
     event.preventDefault()
-    focusedId.value = list[nextIndex].id
-    const el = (event.target as HTMLElement)
-      ?.closest('.runtime-priority-queue__tier')
-      ?.querySelectorAll('.runtime-priority-queue__card')[nextIndex] as HTMLElement | undefined
+    const nextItem = list[nextIndex]
+    focusedId.value = nextItem.id
+    const root = (event.target as HTMLElement).closest('.runtime-priority-queue')
+    const el = root?.querySelector(`[data-item-id="${nextItem.id}"]`) as HTMLElement | undefined
     el?.focus()
   }
 }

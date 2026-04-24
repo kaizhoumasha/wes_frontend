@@ -195,10 +195,10 @@ export interface VerdictSummary {
 }
 
 export function computeVerdictSummary(
+  items: PriorityItem[],
   overview: RuntimeOverviewResponse,
   worklines: RuntimeWorklineSummary[]
 ): VerdictSummary {
-  const items = classifyToTiers(overview)
   return {
     critical: items.filter(i => i.tier === 'critical').length,
     watch: items.filter(i => i.tier === 'watch').length,

@@ -62,6 +62,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useNow } from '@vueuse/core'
 import RuntimeHealthBreakdown from '@/components/common/runtime/RuntimeHealthBreakdown.vue'
 import RuntimeFrozenNotice from '@/components/common/runtime/RuntimeFrozenNotice.vue'
 import RuntimeLastUpdated from '@/components/common/runtime/RuntimeLastUpdated.vue'
@@ -91,13 +92,14 @@ const overview = ref<RuntimeOverviewResponse>({
 const worklines = ref<RuntimeWorklineSummary[]>([])
 
 const priorityItems = computed(() => classifyToTiers(overview.value))
-const verdictSummary = computed(() => computeVerdictSummary(overview.value, worklines.value))
+const verdictSummary = computed(() => computeVerdictSummary(priorityItems.value, overview.value, worklines.value))
 
+const now = useNow()
 const isStale = computed(() => {
   if (!live.value || !lastRawEvent.value) return false
   const ts = (lastRawEvent.value.original as MessageEvent | undefined)?.timeStamp
   if (!ts) return false
-  return Date.now() - ts > 15_000
+  return now.value.getTime() - ts > 15_000
 })
 
 function statValue(key: string): number {
@@ -189,27 +191,39 @@ watch(() => lastEvent.value, event => {
 <style scoped>
 .runtime-page__subtitle { max-width: 840px; }
 
-.runtime-overview__dashboard { display: grid; gap: 16px; grid-template-columns: 1.2fr 1fr; }
-.runtime-overview__column { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.runtime-overview__dashboard {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1.2fr 1fr;
+}
+.runtime-overview__column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
 .runtime-overview__column--signal { min-width: 380px; }
 .runtime-overview__queue-wrapper { position: relative; }
 
 .runtime-overview__stale-hint {
   margin-top: 6px; padding: 6px 12px; border-radius: 6px;
-  background: rgba(234, 179, 8, 0.08); color: #facc15;
+  background: rgb(234, 179, 8, 0.08); color: #facc15;
   font-size: 11px; font-weight: 600;
 }
 
 .runtime-overview__health-collapse {
-  border: 1px solid var(--runtime-border, rgba(245, 158, 11, 0.12));
-  border-radius: 14px; background: var(--runtime-surface, rgba(30, 41, 59, 0.8));
+  border: 1px solid var(--runtime-border, rgb(245, 158, 11, 0.12));
+  border-radius: 14px; background: var(--runtime-surface, rgb(30, 41, 59, 0.8));
 }
 .runtime-overview__health-collapse :deep(.el-collapse-item__header) {
   padding: 0 16px; border-bottom: none; background: transparent;
   color: var(--runtime-text-primary, #f8fafc); font-size: 14px;
   font-weight: 700; height: 44px; line-height: 44px;
 }
-.runtime-overview__health-collapse :deep(.el-collapse-item__wrap) { border-bottom: none; background: transparent; }
+.runtime-overview__health-collapse :deep(.el-collapse-item__wrap) {
+  border-bottom: none;
+  background: transparent;
+}
 .runtime-overview__health-collapse :deep(.el-collapse-item__content) { padding: 0 16px 16px; }
 
 .runtime-overview__health-title {
@@ -217,7 +231,11 @@ watch(() => lastEvent.value, event => {
   font-size: 13px; font-weight: 700; letter-spacing: 0.04em;
 }
 
-.runtime-overview__health-grid { display: grid; gap: 16px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.runtime-overview__health-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
 
 @media (width <= 1439px) and (width >= 1280px) {
   .runtime-overview__dashboard { grid-template-columns: 1fr; }
