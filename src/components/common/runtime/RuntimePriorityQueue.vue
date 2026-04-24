@@ -290,12 +290,12 @@ function onKeyDown(event: KeyboardEvent, item: PriorityItem) {
 .runtime-priority-queue__card:hover,
 .runtime-priority-queue__card:focus-visible {
   transform: translateY(-1px);
-  border-color: rgb(245, 158, 11, 0.28);
-  background: rgb(30, 41, 59, 0.88);
+  border-color: var(--runtime-border-strong, rgb(245, 158, 11, 0.28));
+  background: var(--runtime-surface-strong, rgb(30, 41, 59, 0.88));
 }
 
 .runtime-priority-queue__card:focus-visible {
-  outline: 2px solid rgb(245, 158, 11, 0.5);
+  outline: 2px solid var(--runtime-border-accent, rgb(245, 158, 11, 0.5));
   outline-offset: 2px;
 }
 

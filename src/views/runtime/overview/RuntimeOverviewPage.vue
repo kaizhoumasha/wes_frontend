@@ -207,7 +207,8 @@ watch(() => lastEvent.value, event => {
 
 .runtime-overview__stale-hint {
   margin-top: 6px; padding: 6px 12px; border-radius: 6px;
-  background: rgb(234, 179, 8, 0.08); color: #facc15;
+  background: var(--runtime-surface-accent, rgb(234, 179, 8, 0.08));
+  color: var(--runtime-tier-watch, #eab308);
   font-size: 11px; font-weight: 600;
 }
 
