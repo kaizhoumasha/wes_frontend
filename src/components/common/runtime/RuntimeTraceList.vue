@@ -11,57 +11,55 @@
       />
     </div>
     <template v-else>
+      <div class="runtime-trace-list__tabs">
+        <button
+          v-for="tab in tabs"
+          :key="tab.key"
+          type="button"
+          class="runtime-trace-list__tab"
+          :class="{ 'is-active': activeTab === tab.key }"
+          @click="activeTab = tab.key"
+        >
+          {{ tab.label }}
+        </button>
+      </div>
+
       <div
         v-if="displayTraces.length"
-        class="runtime-trace-list__content"
+        class="runtime-trace-list__rows"
       >
-        <div class="runtime-trace-list__tabs">
-          <button
-            v-for="tab in tabs"
-            :key="tab.key"
-            type="button"
-            class="runtime-trace-list__tab"
-            :class="{ 'is-active': activeTab === tab.key }"
-            @click="activeTab = tab.key"
-          >
-            {{ tab.label }}
-          </button>
-        </div>
-
-        <div class="runtime-trace-list__rows">
-          <button
-            v-for="trace in displayTraces"
-            :key="trace.session_id"
-            type="button"
-            class="runtime-trace-list__row"
-            @click="emit('select', trace.session_id)"
-          >
-            <span class="runtime-trace-list__time">
-              {{ formatRuntimeRelative(trace.last_ingress_at || trace.started_at) }}
-            </span>
-            <span class="runtime-trace-list__workline">{{ trace.workline_name || '—' }}</span>
-            <span class="runtime-trace-list__barcode">{{ trace.session_code }}</span>
-            <span class="runtime-trace-list__domain">
-              {{ translateFailureDomain(trace.failure_domain) || '&mdash;' }}
-            </span>
-          </button>
-        </div>
-
         <button
-          v-if="hasMore"
+          v-for="trace in displayTraces"
+          :key="trace.session_id"
           type="button"
-          class="runtime-trace-list__more"
-          @click="emit('showMore')"
+          class="runtime-trace-list__row"
+          @click="emit('select', trace.session_id)"
         >
-          查看更多
+          <span class="runtime-trace-list__time">
+            {{ formatRuntimeRelative(trace.last_ingress_at || trace.started_at) }}
+          </span>
+          <span class="runtime-trace-list__workline">{{ trace.workline_name || '—' }}</span>
+          <span class="runtime-trace-list__barcode">{{ trace.session_code }}</span>
+          <span class="runtime-trace-list__domain">
+            {{ translateFailureDomain(trace.failure_domain) || '&mdash;' }}
+          </span>
         </button>
       </div>
       <div
         v-else
         class="runtime-trace-list__empty"
       >
-        暂无 Trace 记录
+        暂无匹配的 Trace 记录
       </div>
+
+      <button
+        v-if="hasMore && displayTraces.length"
+        type="button"
+        class="runtime-trace-list__more"
+        @click="emit('showMore')"
+      >
+        查看更多
+      </button>
     </template>
   </div>
 </template>
@@ -137,9 +135,9 @@ const hasMore = computed(() => filteredTraces.value.length > props.maxDisplay)
   border-radius: 6px;
   background: linear-gradient(
     90deg,
-    rgb(148, 163, 184, 0.08),
-    rgb(148, 163, 184, 0.16),
-    rgb(148, 163, 184, 0.08)
+    rgb(148, 163, 184, 0.06),
+    rgb(148, 163, 184, 0.14),
+    rgb(148, 163, 184, 0.06)
   );
   background-size: 200% 100%;
   animation: tl-shimmer 1.6s ease-in-out infinite;
@@ -170,14 +168,14 @@ const hasMore = computed(() => filteredTraces.value.length > props.maxDisplay)
 }
 
 .runtime-trace-list__tab:hover {
-  background: rgb(148, 163, 184, 0.1);
+  background: rgb(148, 163, 184, 0.08);
   color: var(--runtime-text-primary, #f8fafc);
 }
 
 .runtime-trace-list__tab.is-active {
-  border-color: rgb(245, 158, 11, 0.24);
-  background: rgb(245, 158, 11, 0.1);
-  color: #f8fafc;
+  border-color: var(--runtime-border-accent, rgb(245, 158, 11, 0.24));
+  background: var(--runtime-surface-accent, rgb(245, 158, 11, 0.1));
+  color: var(--runtime-text-primary, #f8fafc);
 }
 
 .runtime-trace-list__rows {
@@ -204,12 +202,12 @@ const hasMore = computed(() => filteredTraces.value.length > props.maxDisplay)
 }
 
 .runtime-trace-list__row:hover {
-  background: rgb(30, 41, 59, 0.6);
-  border-color: rgb(245, 158, 11, 0.16);
+  background: var(--runtime-surface-subtle, rgb(30, 41, 59, 0.6));
+  border-color: var(--runtime-border, rgb(245, 158, 11, 0.16));
 }
 
 .runtime-trace-list__row:focus-visible {
-  outline: 2px solid rgb(245, 158, 11, 0.5);
+  outline: 2px solid var(--runtime-border-accent, rgb(245, 158, 11, 0.5));
   outline-offset: 1px;
 }
 
@@ -236,12 +234,12 @@ const hasMore = computed(() => filteredTraces.value.length > props.maxDisplay)
 }
 
 .runtime-trace-list__barcode {
-  color: #cbd5e1;
+  color: var(--runtime-text-secondary, #cbd5e1);
   font-family: var(--font-mono);
 }
 
 .runtime-trace-list__domain {
-  color: #f87171;
+  color: var(--runtime-tier-critical, #f87171);
   font-size: 11px;
   text-align: right;
 }
@@ -250,7 +248,7 @@ const hasMore = computed(() => filteredTraces.value.length > props.maxDisplay)
   padding: 6px 0;
   border: none;
   background: transparent;
-  color: rgb(245, 158, 11, 0.8);
+  color: var(--runtime-tier-watch, rgb(245, 158, 11, 0.8));
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -258,14 +256,14 @@ const hasMore = computed(() => filteredTraces.value.length > props.maxDisplay)
 }
 
 .runtime-trace-list__more:hover {
-  color: #f59e0b;
+  color: var(--runtime-tier-watch, #f59e0b);
 }
 
 .runtime-trace-list__empty {
   padding: 24px;
-  border: 1px dashed rgb(148, 163, 184, 0.28);
+  border: 1px dashed var(--runtime-border, rgb(148, 163, 184, 0.28));
   border-radius: 14px;
-  background: rgb(15, 23, 42, 0.42);
+  background: var(--runtime-surface-muted, rgb(15, 23, 42, 0.42));
   color: var(--runtime-text-secondary, #94a3b8);
   font-size: 14px;
   font-weight: 600;

@@ -30,18 +30,18 @@
 
     <RuntimeFrozenNotice v-if="!live" />
 
+    <div class="runtime-overview__top">
+      <RuntimeSystemVerdict :summary="verdictSummary" :loading="loading" />
+      <RuntimeSignalStrip :cards="overview.stats" />
+    </div>
+
     <div class="runtime-overview__dashboard">
-      <div class="runtime-overview__column runtime-overview__column--action">
-        <RuntimeSystemVerdict :summary="verdictSummary" :loading="loading" />
+      <div class="runtime-overview__column">
         <div class="runtime-overview__queue-wrapper">
           <RuntimePriorityQueue :items="priorityItems" :loading="loading" @navigate="handleNavigate" />
           <div v-if="isStale" class="runtime-overview__stale-hint">数据可能已过期 (SSE &gt; 15s)</div>
         </div>
-      </div>
-
-      <div class="runtime-overview__column runtime-overview__column--signal">
-        <RuntimeSignalStrip :cards="overview.stats" />
-        <el-collapse class="runtime-overview__health-collapse">
+        <el-collapse v-model="healthExpanded" class="runtime-overview__health-collapse">
           <el-collapse-item name="health">
             <template #title>
               <span class="runtime-overview__health-title">结构健康</span>
@@ -53,7 +53,17 @@
             </div>
           </el-collapse-item>
         </el-collapse>
-        <RuntimeTraceList :traces="overview.recent_failed_traces" :loading="loading" @select="openTrace" @show-more="goTraceExplorer" />
+      </div>
+
+      <div class="runtime-overview__column">
+        <div class="runtime-overview__trace-panel">
+          <div class="runtime-overview__trace-panel-header">
+            <span class="runtime-overview__trace-panel-title">最近 Trace</span>
+          </div>
+          <div class="runtime-overview__trace-panel-body">
+            <RuntimeTraceList :traces="overview.recent_failed_traces" :loading="loading" @select="openTrace" @show-more="goTraceExplorer" />
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -85,6 +95,7 @@ const {
 } = useRuntimePageChrome()
 
 const loading = ref(false)
+const healthExpanded = ref(['health'])
 const overview = ref<RuntimeOverviewResponse>({
   stats: [], recent_failed_traces: [], hot_worklines: [], abnormal_devices: [],
   device_health: { total: 0, abnormal: 0, maintenance: 0, loaded: 0, healthy: 0 }
@@ -191,10 +202,17 @@ watch(() => lastEvent.value, event => {
 <style scoped>
 .runtime-page__subtitle { max-width: 840px; }
 
+.runtime-overview__top {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
 .runtime-overview__dashboard {
   display: grid;
   gap: 16px;
-  grid-template-columns: 1.2fr 1fr;
+  grid-template-columns: 3fr 2fr;
 }
 .runtime-overview__column {
   display: flex;
@@ -202,8 +220,29 @@ watch(() => lastEvent.value, event => {
   gap: 16px;
   min-width: 0;
 }
-.runtime-overview__column--signal { min-width: 380px; }
 .runtime-overview__queue-wrapper { position: relative; }
+
+.runtime-overview__trace-panel {
+  border: 1px solid var(--runtime-border, rgb(245, 158, 11, 0.12));
+  border-radius: 14px;
+  background: var(--runtime-surface, rgb(30, 41, 59, 0.8));
+  overflow: hidden;
+}
+.runtime-overview__trace-panel-header {
+  padding: 0 16px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+}
+.runtime-overview__trace-panel-title {
+  color: var(--runtime-text-secondary, #94a3b8);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.runtime-overview__trace-panel-body {
+  padding: 0 16px 16px;
+}
 
 .runtime-overview__stale-hint {
   margin-top: 6px; padding: 6px 12px; border-radius: 6px;
@@ -240,7 +279,6 @@ watch(() => lastEvent.value, event => {
 
 @media (width <= 1439px) and (width >= 1280px) {
   .runtime-overview__dashboard { grid-template-columns: 1fr; }
-  .runtime-overview__column--signal { min-width: 0; }
   .runtime-overview__health-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
@@ -248,7 +286,6 @@ watch(() => lastEvent.value, event => {
   .runtime-page__header { flex-direction: column; }
   .runtime-page__status-bar { justify-content: flex-start; }
   .runtime-overview__dashboard { grid-template-columns: 1fr; }
-  .runtime-overview__column--signal { min-width: 0; }
   .runtime-overview__health-grid { grid-template-columns: 1fr; }
 }
 </style>
