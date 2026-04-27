@@ -418,19 +418,24 @@ export function connect(): void {
 
   void consumeSSEStream(controller.signal)
     .then(() => {
-      if (abortController === controller) {
-        abortController = null
+      if (controller.signal.aborted || abortController !== controller) {
+        return
       }
 
+      abortController = null
+
       if (!manualDisconnect) {
-        notifyConnectionError(new Error('SSE 连接已关闭'))
+        setConnectionState('connecting')
+        console.log('[SSE] 连接已关闭，准备重连')
         scheduleReconnect()
       }
     })
     .catch(error => {
-      if (abortController === controller) {
-        abortController = null
+      if (controller.signal.aborted || abortController !== controller) {
+        return
       }
+
+      abortController = null
 
       if (error instanceof DOMException && error.name === 'AbortError') {
         return
