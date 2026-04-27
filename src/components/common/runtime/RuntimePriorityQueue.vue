@@ -15,7 +15,9 @@
         v-if="criticalItems.length"
         class="runtime-priority-queue__tier"
       >
-        <div class="runtime-priority-queue__tier-header runtime-priority-queue__tier-header--critical">
+        <div
+          class="runtime-priority-queue__tier-header runtime-priority-queue__tier-header--critical"
+        >
           <span class="runtime-priority-queue__tier-label">立即处理</span>
           <span class="runtime-priority-queue__tier-count">{{ criticalItems.length }}</span>
         </div>
@@ -30,7 +32,9 @@
             @click="emit('navigate', item)"
             @keydown="onKeyDown($event, item)"
           >
-            <div class="runtime-priority-queue__card-strip runtime-priority-queue__card-strip--critical" />
+            <div
+              class="runtime-priority-queue__card-strip runtime-priority-queue__card-strip--critical"
+            />
             <div class="runtime-priority-queue__card-body">
               <div class="runtime-priority-queue__card-summary">{{ item.summary }}</div>
               <div class="runtime-priority-queue__card-context">{{ item.context }}</div>
@@ -59,7 +63,9 @@
             @click="emit('navigate', item)"
             @keydown="onKeyDown($event, item)"
           >
-            <div class="runtime-priority-queue__card-strip runtime-priority-queue__card-strip--watch" />
+            <div
+              class="runtime-priority-queue__card-strip runtime-priority-queue__card-strip--watch"
+            />
             <div class="runtime-priority-queue__card-body">
               <div class="runtime-priority-queue__card-summary">{{ item.summary }}</div>
               <div class="runtime-priority-queue__card-context">{{ item.context }}</div>
@@ -78,11 +84,15 @@
           class="runtime-priority-queue__tier-toggle"
           @click="knownExpanded = !knownExpanded"
         >
-          <div class="runtime-priority-queue__tier-header runtime-priority-queue__tier-header--known">
+          <div
+            class="runtime-priority-queue__tier-header runtime-priority-queue__tier-header--known"
+          >
             <span class="runtime-priority-queue__tier-label">已知</span>
             <span class="runtime-priority-queue__tier-count">{{ knownItems.length }}</span>
           </div>
-          <span class="runtime-priority-queue__expand-icon">{{ knownExpanded ? '&#9660;' : '&#9654;' }}</span>
+          <span class="runtime-priority-queue__expand-icon">
+            {{ knownExpanded ? '&#9660;' : '&#9654;' }}
+          </span>
         </button>
         <div
           v-if="knownExpanded"
@@ -98,7 +108,9 @@
             @click="emit('navigate', item)"
             @keydown="onKeyDown($event, item)"
           >
-            <div class="runtime-priority-queue__card-strip runtime-priority-queue__card-strip--known" />
+            <div
+              class="runtime-priority-queue__card-strip runtime-priority-queue__card-strip--known"
+            />
             <div class="runtime-priority-queue__card-body">
               <div class="runtime-priority-queue__card-summary">{{ item.summary }}</div>
               <div class="runtime-priority-queue__card-context">{{ item.context }}</div>
@@ -194,8 +206,12 @@ function onKeyDown(event: KeyboardEvent, item: PriorityItem) {
 }
 
 @keyframes pq-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .runtime-priority-queue__tier-header {

@@ -33,13 +33,15 @@
           :key="trace.session_id"
           type="button"
           class="runtime-trace-list__row"
-          @click="emit('select', trace.session_id)"
+          @click="emit('select', trace)"
         >
           <span class="runtime-trace-list__time">
             {{ formatRuntimeRelative(trace.last_ingress_at || trace.started_at) }}
           </span>
           <span class="runtime-trace-list__workline">{{ trace.workline_name || '—' }}</span>
-          <span class="runtime-trace-list__barcode">{{ trace.session_code }}</span>
+          <span class="runtime-trace-list__barcode">
+            {{ trace.trace_id || trace.session_code }}
+          </span>
           <span class="runtime-trace-list__domain">
             {{ translateFailureDomain(trace.failure_domain) || '&mdash;' }}
           </span>
@@ -75,16 +77,20 @@ type TraceTab = 'all' | 'failed' | 'active'
 const props = withDefaults(
   defineProps<{
     traces: RuntimeTraceListItem[]
+    activeTraces?: RuntimeTraceListItem[]
+    failedTraces?: RuntimeTraceListItem[]
     loading: boolean
     maxDisplay?: number
   }>(),
   {
+    activeTraces: () => [],
+    failedTraces: () => [],
     maxDisplay: 10
   }
 )
 
 const emit = defineEmits<{
-  (e: 'select', sessionId: number): void
+  (e: 'select', trace: RuntimeTraceListItem): void
   (e: 'showMore'): void
 }>()
 
@@ -103,12 +109,18 @@ function isFailed(trace: RuntimeTraceListItem): boolean {
 
 function isActive(trace: RuntimeTraceListItem): boolean {
   const status = (trace.status || '').toUpperCase()
-  return ['RUNNING', 'WAITING', 'WAITING_DEVICE_RESULT', 'WAITING_EXTERNAL', 'PROCESSING'].includes(status)
+  return ['RUNNING', 'WAITING', 'WAITING_DEVICE_RESULT', 'WAITING_EXTERNAL', 'PROCESSING'].includes(
+    status
+  )
 }
 
 const filteredTraces = computed(() => {
-  if (activeTab.value === 'failed') return props.traces.filter(isFailed)
-  if (activeTab.value === 'active') return props.traces.filter(isActive)
+  if (activeTab.value === 'failed') {
+    return props.failedTraces.length ? props.failedTraces : props.traces.filter(isFailed)
+  }
+  if (activeTab.value === 'active') {
+    return props.activeTraces.length ? props.activeTraces : props.traces.filter(isActive)
+  }
   return props.traces
 })
 
@@ -144,8 +156,12 @@ const hasMore = computed(() => filteredTraces.value.length > props.maxDisplay)
 }
 
 @keyframes tl-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .runtime-trace-list__tabs {

@@ -1,17 +1,32 @@
 <template>
-  <el-card shadow="never" class="runtime-health-breakdown">
+  <el-card
+    shadow="never"
+    class="runtime-health-breakdown"
+  >
     <template #header>
       <div class="runtime-health-breakdown__header">
         <div>
           <div class="runtime-health-breakdown__title">{{ title }}</div>
-          <div v-if="subtitle" class="runtime-health-breakdown__subtitle">{{ subtitle }}</div>
+          <div
+            v-if="subtitle"
+            class="runtime-health-breakdown__subtitle"
+          >
+            {{ subtitle }}
+          </div>
         </div>
         <span class="runtime-health-breakdown__total">{{ totalLabel }}</span>
       </div>
     </template>
 
-    <div v-if="items.length" class="runtime-health-breakdown__list">
-      <div v-for="item in items" :key="item.label" class="runtime-health-breakdown__item">
+    <div
+      v-if="items.length"
+      class="runtime-health-breakdown__list"
+    >
+      <div
+        v-for="item in items"
+        :key="item.label"
+        class="runtime-health-breakdown__item"
+      >
         <div class="runtime-health-breakdown__item-head">
           <span class="runtime-health-breakdown__item-label">{{ item.label }}</span>
           <span class="runtime-health-breakdown__item-value">{{ item.value }}</span>
@@ -23,10 +38,19 @@
             :style="{ width: `${item.ratio}%` }"
           />
         </div>
-        <div v-if="item.hint" class="runtime-health-breakdown__item-hint">{{ item.hint }}</div>
+        <div
+          v-if="item.hint"
+          class="runtime-health-breakdown__item-hint"
+        >
+          {{ item.hint }}
+        </div>
       </div>
     </div>
-    <el-empty v-else description="暂无结构样本" :image-size="80" />
+    <el-empty
+      v-else
+      description="暂无结构样本"
+      :image-size="80"
+    />
   </el-card>
 </template>
 

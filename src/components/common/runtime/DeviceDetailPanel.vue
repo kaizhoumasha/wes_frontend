@@ -1,19 +1,38 @@
 <template>
   <div class="device-detail-panel">
-    <button type="button" class="device-detail-panel__close" @click="emit('close')">
+    <button
+      type="button"
+      class="device-detail-panel__close"
+      @click="emit('close')"
+    >
       <el-icon :size="14"><Close /></el-icon>
       <span>收起设备详情</span>
     </button>
 
-    <div v-if="loading" class="device-detail-panel__skeleton" />
+    <div
+      v-if="loading"
+      class="device-detail-panel__skeleton"
+    />
 
-    <div v-else-if="error" class="device-detail-panel__error">
+    <div
+      v-else-if="error"
+      class="device-detail-panel__error"
+    >
       <span class="device-detail-panel__error-text">{{ error }}</span>
-      <el-button plain size="small" @click="loadDetail">重试</el-button>
+      <el-button
+        plain
+        size="small"
+        @click="loadDetail"
+      >
+        重试
+      </el-button>
     </div>
 
     <template v-else-if="detail">
-      <DeviceHealthHero :summary="detail.summary" class="device-detail-panel__hero" />
+      <DeviceHealthHero
+        :summary="detail.summary"
+        class="device-detail-panel__hero"
+      />
 
       <section class="device-detail-panel__section">
         <button
@@ -22,18 +41,36 @@
           @click="activityExpanded = !activityExpanded"
         >
           <h3 class="device-detail-panel__section-title">最近行为</h3>
-          <el-icon :size="12"><ArrowUp v-if="activityExpanded" /><ArrowDown v-else /></el-icon>
+          <el-icon :size="12">
+            <ArrowUp v-if="activityExpanded" />
+            <ArrowDown v-else />
+          </el-icon>
         </button>
 
-        <div v-if="activityExpanded" class="device-detail-panel__section-body">
-          <div v-if="activityFeed.length" class="device-detail-panel__activity-list">
-            <div v-for="item in activityFeed" :key="item.key" class="device-detail-panel__activity-item">
+        <div
+          v-if="activityExpanded"
+          class="device-detail-panel__section-body"
+        >
+          <div
+            v-if="activityFeed.length"
+            class="device-detail-panel__activity-list"
+          >
+            <div
+              v-for="item in activityFeed"
+              :key="item.key"
+              class="device-detail-panel__activity-item"
+            >
               <span class="device-detail-panel__activity-time">{{ item.timeLabel }}</span>
               <span class="device-detail-panel__activity-action">{{ item.title }}</span>
               <span class="device-detail-panel__activity-msg">{{ item.message }}</span>
             </div>
           </div>
-          <span v-else class="device-detail-panel__empty-hint">暂无行为记录</span>
+          <span
+            v-else
+            class="device-detail-panel__empty-hint"
+          >
+            暂无行为记录
+          </span>
         </div>
       </section>
 
@@ -44,39 +81,74 @@
           @click="failureExpanded = !failureExpanded"
         >
           <h3 class="device-detail-panel__section-title">异常模式</h3>
-          <el-icon :size="12"><ArrowUp v-if="failureExpanded" /><ArrowDown v-else /></el-icon>
+          <el-icon :size="12">
+            <ArrowUp v-if="failureExpanded" />
+            <ArrowDown v-else />
+          </el-icon>
         </button>
 
-        <div v-if="failureExpanded" class="device-detail-panel__section-body">
-          <div v-if="failurePatterns.length" class="device-detail-panel__pattern-list">
-            <div v-for="pattern in failurePatterns" :key="pattern.title" class="device-detail-panel__pattern-item">
+        <div
+          v-if="failureExpanded"
+          class="device-detail-panel__section-body"
+        >
+          <div
+            v-if="failurePatterns.length"
+            class="device-detail-panel__pattern-list"
+          >
+            <div
+              v-for="pattern in failurePatterns"
+              :key="pattern.title"
+              class="device-detail-panel__pattern-item"
+            >
               <span class="device-detail-panel__pattern-label">{{ pattern.title }}</span>
               <strong class="device-detail-panel__pattern-value">{{ pattern.value }}</strong>
               <span class="device-detail-panel__pattern-hint">{{ pattern.hint }}</span>
             </div>
           </div>
-          <span v-else class="device-detail-panel__empty-hint">暂无明显异常模式</span>
+          <span
+            v-else
+            class="device-detail-panel__empty-hint"
+          >
+            暂无明显异常模式
+          </span>
         </div>
       </section>
 
       <section class="device-detail-panel__section">
         <h3 class="device-detail-panel__section-title">关联 Trace</h3>
 
-        <div v-if="relatedTraces.length" class="device-detail-panel__trace-list">
+        <div
+          v-if="relatedTraces.length"
+          class="device-detail-panel__trace-list"
+        >
           <button
             v-for="item in relatedTraces"
             :key="item.session_id"
             type="button"
             class="device-detail-panel__trace-item"
-            @click="emit('openTrace', item.session_id)"
+            @click="emit('openTrace', item)"
           >
-            <RuntimeStatusBadge :status="item.status" size="small" />
-            <span class="device-detail-panel__trace-code">{{ item.session_code }}</span>
-            <span class="device-detail-panel__trace-time">{{ formatRuntimeElapsed(item.started_at) }}</span>
-            <span class="device-detail-panel__trace-domain">{{ translateFailureDomain(item.failure_domain) }}</span>
+            <RuntimeStatusBadge
+              :status="item.status"
+              size="small"
+            />
+            <span class="device-detail-panel__trace-code">
+              {{ item.trace_id || item.session_code }}
+            </span>
+            <span class="device-detail-panel__trace-time">
+              {{ formatRuntimeElapsed(item.started_at) }}
+            </span>
+            <span class="device-detail-panel__trace-domain">
+              {{ translateFailureDomain(item.failure_domain) }}
+            </span>
           </button>
         </div>
-        <span v-else class="device-detail-panel__empty-hint">无关联 Trace</span>
+        <span
+          v-else
+          class="device-detail-panel__empty-hint"
+        >
+          无关联 Trace
+        </span>
       </section>
     </template>
   </div>
@@ -88,7 +160,12 @@ import { ArrowDown, ArrowUp, Close } from '@element-plus/icons-vue'
 import DeviceHealthHero from '@/components/common/runtime/DeviceHealthHero.vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
-import type { RuntimeDeviceDetailResponse, TraceCallbackLogItem, TraceCommandItem } from '@/types/runtime'
+import type {
+  RuntimeDeviceDetailResponse,
+  RuntimeTraceListItem,
+  TraceCallbackLogItem,
+  TraceCommandItem
+} from '@/types/runtime'
 import {
   compactEnumLabel,
   formatRuntimeDateTime,
@@ -106,7 +183,7 @@ const props = defineProps<Props>()
 
 const emit = defineEmits<{
   (e: 'close'): void
-  (e: 'openTrace', sessionId: number): void
+  (e: 'openTrace', trace: RuntimeTraceListItem): void
 }>()
 
 const loading = ref(false)
@@ -133,7 +210,9 @@ const activityFeed = computed(() => {
   if (!detail.value) return []
 
   const commandItems = detail.value.recent_commands.map(command => buildCommandActivity(command))
-  const callbackItems = detail.value.recent_callbacks.map(callback => buildCallbackActivity(callback))
+  const callbackItems = detail.value.recent_callbacks.map(callback =>
+    buildCallbackActivity(callback)
+  )
 
   return [...commandItems, ...callbackItems]
     .sort((left, right) => right.sortTime - left.sortTime)
@@ -146,15 +225,19 @@ const failurePatterns = computed(() => {
   const callbackFailures = detail.value.recent_callbacks.filter(
     item => item.failure_stage || item.response_status >= 400
   )
-  const failedCommands = detail.value.recent_commands.filter(
-    item => ['FAILED', 'CANCELLED', 'TIMEOUT'].includes(item.status)
+  const failedCommands = detail.value.recent_commands.filter(item =>
+    ['FAILED', 'CANCELLED', 'TIMEOUT'].includes(item.status)
   )
 
   const frequentFailureStage = pickDominantValue(
-    callbackFailures.map(item => item.failure_stage || item.ingress_outcome || `HTTP ${item.response_status}`)
+    callbackFailures.map(
+      item => item.failure_stage || item.ingress_outcome || `HTTP ${item.response_status}`
+    )
   )
   const frequentCommandStatus = pickDominantValue(failedCommands.map(item => item.status))
-  const frequentTaskType = pickDominantValue(detail.value.recent_commands.map(item => item.task_type))
+  const frequentTaskType = pickDominantValue(
+    detail.value.recent_commands.map(item => item.task_type)
+  )
 
   const patterns: { title: string; value: string; hint: string }[] = []
 
@@ -301,8 +384,12 @@ function formatRuntimeElapsed(start?: string | null): string {
 }
 
 @keyframes device-panel-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .device-detail-panel__error {

@@ -155,7 +155,11 @@ const verdictDetail = computed(() => {
 }
 
 @keyframes verdict-skeleton-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 </style>

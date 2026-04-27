@@ -49,6 +49,6 @@ function openTrace(device: Device) {
 const config = createDevicePageConfig({
   openRuntime,
   openTrace,
-  canOpenTrace,
+  canOpenTrace
 })
 </script>

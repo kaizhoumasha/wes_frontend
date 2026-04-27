@@ -6,8 +6,13 @@ import type {
   RuntimeTraceListResponse,
   RuntimeWorklineDetailResponse,
   RuntimeWorklineSummary,
+  ManualSessionOperationPayload,
+  ReplayInboxPayload,
+  SandboxPendingOutbox,
+  TraceBlockingPointResponse,
   TraceDetailResponse,
   TraceQueryPayload,
+  WorklineOperationRecord,
 } from '@/types/runtime'
 
 interface RuntimeApiMethod<T> {
@@ -65,9 +70,13 @@ export const runtimeApiMethods = {
     return adaptRuntimeMethod<TraceDetailResponse>(worklineApiMethods.request({ request_id: requestId }))
   },
 
-  traceByCorrelationId(correlationId: string) {
-    return adaptRuntimeMethod<TraceDetailResponse>(
-      worklineApiMethods.correlation({ correlation_id: correlationId })
+  traceByTraceId(traceId: string) {
+    return adaptRuntimeMethod<TraceDetailResponse>(worklineApiMethods.trace({ trace_id: traceId }))
+  },
+
+  traceBlockingPoint(traceId: string) {
+    return adaptRuntimeMethod<TraceBlockingPointResponse>(
+      worklineApiMethods.blockingPoint({ trace_id: traceId })
     )
   },
 
@@ -81,5 +90,21 @@ export const runtimeApiMethods = {
 
   traceByDispatchKey(dispatchKey: string) {
     return adaptRuntimeMethod<TraceDetailResponse>(worklineApiMethods.dispatch({ dispatch_key: dispatchKey }))
+  },
+
+  sandboxPending(limit = 50) {
+    return adaptRuntimeMethod<SandboxPendingOutbox[]>(worklineApiMethods.sandboxPending({ limit }))
+  },
+
+  replayInbox(inboxId: number, payload: ReplayInboxPayload) {
+    return adaptRuntimeMethod<WorklineOperationRecord>(
+      worklineApiMethods.replayInboxes({ inbox_id: inboxId }, payload)
+    )
+  },
+
+  manualSessionOperation(sessionId: number, payload: ManualSessionOperationPayload) {
+    return adaptRuntimeMethod<WorklineOperationRecord>(
+      worklineApiMethods.manualSessions({ session_id: sessionId }, payload)
+    )
   },
 }

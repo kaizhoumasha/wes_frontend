@@ -1,5 +1,8 @@
 <template>
-  <el-card shadow="never" class="workline-health-hero">
+  <el-card
+    shadow="never"
+    class="workline-health-hero"
+  >
     <div class="workline-health-hero__header">
       <div class="workline-health-hero__identity">
         <div class="workline-health-hero__eyebrow-row runtime-hero__eyebrow-row">
@@ -8,9 +11,15 @@
         </div>
         <div class="workline-health-hero__title-row runtime-hero__title-row">
           <h2 class="workline-health-hero__title">{{ summary.line_name }}</h2>
-          <RuntimeStatusBadge :label="heroStatusLabel" :tone="heroTone" pulse />
+          <RuntimeStatusBadge
+            :label="heroStatusLabel"
+            :tone="heroTone"
+            pulse
+          />
         </div>
-        <p class="workline-health-hero__meta">{{ summary.zone_name || '未配置区域' }} · {{ summary.line_type || '未配置线型' }}</p>
+        <p class="workline-health-hero__meta">
+          {{ summary.zone_name || '未配置区域' }} · {{ summary.line_type || '未配置线型' }}
+        </p>
       </div>
     </div>
 
@@ -25,15 +34,22 @@
       </div>
       <div class="workline-health-hero__fact workline-health-hero__fact--signal runtime-hero__fact">
         <span>设备态势</span>
-        <strong>总 {{ summary.device_count }} · 异常 {{ summary.error_device_count }} · 维护 {{ summary.maintenance_device_count }}</strong>
+        <strong>
+          总 {{ summary.device_count }} · 异常 {{ summary.error_device_count }} · 维护
+          {{ summary.maintenance_device_count }}
+        </strong>
       </div>
       <div class="workline-health-hero__fact runtime-hero__fact">
         <span>会话态势</span>
-        <strong>活跃 {{ summary.active_session_count }} · 等待 {{ summary.waiting_session_count }}</strong>
+        <strong>
+          活跃 {{ summary.active_session_count }} · 等待 {{ summary.waiting_session_count }}
+        </strong>
       </div>
       <div class="workline-health-hero__fact runtime-hero__fact">
         <span>阻塞指标</span>
-        <strong>失败 {{ summary.failed_session_count }} · 离线 {{ summary.offline_device_count }}</strong>
+        <strong>
+          失败 {{ summary.failed_session_count }} · 离线 {{ summary.offline_device_count }}
+        </strong>
       </div>
       <div class="workline-health-hero__fact runtime-hero__fact">
         <span>运行结论</span>
@@ -54,7 +70,11 @@ const props = defineProps<{
 }>()
 
 const heroTone = computed<RuntimeTone>(() => {
-  if (props.summary.failed_session_count > 0 || props.summary.offline_device_count > 0 || props.summary.error_device_count > 0) {
+  if (
+    props.summary.failed_session_count > 0 ||
+    props.summary.offline_device_count > 0 ||
+    props.summary.error_device_count > 0
+  ) {
     return 'danger'
   }
 

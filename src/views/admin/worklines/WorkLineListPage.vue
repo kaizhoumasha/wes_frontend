@@ -16,11 +16,14 @@ function openRuntime(workline: Workline) {
 }
 
 function openTrace(workline: Workline) {
-  router.push({ name: 'RuntimeTraceExplorer', query: buildRuntimeTraceQuery({ worklineId: workline.id }) })
+  router.push({
+    name: 'RuntimeTraceExplorer',
+    query: buildRuntimeTraceQuery({ worklineId: workline.id })
+  })
 }
 
 const config = createWorkLinePageConfig({
   openRuntime,
-  openTrace,
+  openTrace
 })
 </script>

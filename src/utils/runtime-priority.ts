@@ -127,7 +127,8 @@ function classifyTraces(
           navigateTo: {
             name: 'RuntimeTraceExplorer',
             query: buildRuntimeTraceQuery({
-              sessionId: trace.session_id,
+              traceId: trace.trace_id,
+              sessionId: trace.trace_id ? undefined : trace.session_id,
               worklineId: trace.workline_id
             })
           },
@@ -143,7 +144,10 @@ function classifyTraces(
         context: `${trace.workline_name || ''} · ${trace.device_name || ''}`,
         navigateTo: {
           name: 'RuntimeTraceExplorer',
-          query: buildRuntimeTraceQuery({ sessionId: trace.session_id })
+          query: buildRuntimeTraceQuery({
+            traceId: trace.trace_id,
+            sessionId: trace.trace_id ? undefined : trace.session_id
+          })
         },
         score: 5
       })

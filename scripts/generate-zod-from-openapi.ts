@@ -285,7 +285,7 @@ function schemaToZod(
       const calls = ['z.string()']
       if (schema.minLength !== undefined) calls.push(`.min(${schema.minLength})`)
       if (schema.maxLength !== undefined) calls.push(`.max(${schema.maxLength})`)
-      if (schema.pattern) calls.push(`.regex(${JSON.stringify(schema.pattern)})`)
+      if (schema.pattern) calls.push(`.regex(new RegExp(${JSON.stringify(schema.pattern)}))`)
       if (schema.format === 'email') calls.push('.email()')
       else if (schema.format === 'uri' || schema.format === 'url') calls.push('.url()')
       else if (schema.format === 'date-time') calls.push('.datetime()')

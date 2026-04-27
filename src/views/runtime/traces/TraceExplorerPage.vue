@@ -1,29 +1,85 @@
 <template>
-  <div v-loading="loading" class="runtime-page">
+  <div
+    v-loading="loading"
+    class="runtime-page"
+  >
     <div class="runtime-page__header">
       <div>
-        <h1 class="runtime-page__title">Trace 案件工作台</h1>
-        <p class="runtime-page__subtitle">先看案件摘要，再沿 Timeline 与证据分组还原故障链路，并回到工作线 / 设备上下文继续处置。</p>
+        <h1 class="runtime-page__title">Trace 处置台</h1>
+        <p class="runtime-page__subtitle">
+          先看阻塞点和建议动作，再沿 Timeline 与证据分组还原链路。
+        </p>
       </div>
       <div class="runtime-page__status-bar runtime-control-cluster">
-        <RuntimeStatusBadge :label="connectionLabel" :tone="connectionTone" :pulse="live && state === 'connected'" />
-        <el-switch :model-value="live" inline-prompt active-text="Live" inactive-text="Frozen" @change="value => toggleLive(Boolean(value))" />
-        <RuntimeLastUpdated :value="lastRefreshedAt" :frozen="!live" />
-        <el-button plain class="runtime-page__refresh-action" @click="refreshCurrent">刷新当前视图</el-button>
+        <RuntimeStatusBadge
+          :label="connectionLabel"
+          :tone="connectionTone"
+          :pulse="live && state === 'connected'"
+        />
+        <el-switch
+          :model-value="live"
+          inline-prompt
+          active-text="Live"
+          inactive-text="Frozen"
+          @change="value => toggleLive(Boolean(value))"
+        />
+        <RuntimeLastUpdated
+          :value="lastRefreshedAt"
+          :frozen="!live"
+        />
+        <el-button
+          plain
+          class="runtime-page__refresh-action"
+          @click="refreshCurrent"
+        >
+          刷新当前视图
+        </el-button>
       </div>
     </div>
 
-    <el-card shadow="never" class="runtime-panel">
+    <el-card
+      shadow="never"
+      class="runtime-panel"
+    >
       <div class="trace-query-bar">
-        <el-select v-model="queryType" class="trace-query-bar__type">
-          <el-option label="Session ID" value="session" />
-          <el-option label="Request ID" value="request" />
-          <el-option label="Correlation ID" value="correlation" />
-          <el-option label="Command Code" value="command" />
-          <el-option label="Dispatch Key" value="dispatch" />
+        <el-select
+          v-model="queryType"
+          class="trace-query-bar__type"
+        >
+          <el-option
+            label="Trace ID"
+            value="trace"
+          />
+          <el-option
+            label="Request ID"
+            value="request"
+          />
+          <el-option
+            label="Session ID"
+            value="session"
+          />
+          <el-option
+            label="Command Code"
+            value="command"
+          />
+          <el-option
+            label="Dispatch Key"
+            value="dispatch"
+          />
         </el-select>
-        <el-input v-model="queryValue" class="trace-query-bar__input" placeholder="输入 trace 锚点" @keyup.enter="runTraceLookup" />
-        <el-button type="primary" class="trace-query-bar__submit" @click="runTraceLookup">查询案件</el-button>
+        <el-input
+          v-model="queryValue"
+          class="trace-query-bar__input"
+          placeholder="输入 trace 锚点"
+          @keyup.enter="runTraceLookup"
+        />
+        <el-button
+          type="primary"
+          class="trace-query-bar__submit"
+          @click="runTraceLookup"
+        >
+          查询案件
+        </el-button>
       </div>
     </el-card>
 
@@ -32,10 +88,25 @@
     <div class="trace-layout">
       <div class="trace-layout__detail">
         <template v-if="traceDetail">
-          <div ref="detailScrollRef" class="trace-layout__detail-scroll">
-            <div ref="detailHeroRef" class="trace-layout__hero">
-              <TraceCaseHero :detail="traceDetail" :workline-name="selectedWorklineName" :device-name="selectedDeviceName" />
+          <div
+            ref="detailScrollRef"
+            class="trace-layout__detail-scroll"
+          >
+            <div
+              ref="detailHeroRef"
+              class="trace-layout__hero"
+            >
+              <TraceCaseHero
+                :detail="traceDetail"
+                :workline-name="selectedWorklineName"
+                :device-name="selectedDeviceName"
+              />
             </div>
+
+            <TraceBlockingPointCard
+              :blocking-point="blockingPoint"
+              :loading="blockingPointLoading"
+            />
 
             <RuntimeStickyContextBar
               v-show="showStickyContext"
@@ -46,147 +117,396 @@
               :facts="traceStickyFacts"
             />
 
-            <el-card shadow="never" class="runtime-panel">
-            <template #header>
-              <div class="runtime-panel__header">
-                <div>
-                  <div class="runtime-panel__title">Timeline 主叙事</div>
-                  <div class="runtime-panel__subtitle">先看最后成功节点、首次失败节点和当前终态，再展开证据。</div>
+            <el-card
+              shadow="never"
+              class="runtime-panel"
+            >
+              <template #header>
+                <div class="runtime-panel__header">
+                  <div>
+                    <div class="runtime-panel__title">Timeline 主叙事</div>
+                    <div class="runtime-panel__subtitle">
+                      先看最后成功节点、首次失败节点和当前终态，再展开证据。
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </template>
-            <TraceTimeline :items="traceDetail.timelines" />
-          </el-card>
+              </template>
+              <TraceTimeline :items="traceDetail.timelines" />
+            </el-card>
 
-          <el-card shadow="never" class="runtime-panel">
-            <template #header>
-              <div class="runtime-panel__header">
-                <div>
-                  <div class="runtime-panel__title">证据分组</div>
-                  <div class="runtime-panel__subtitle">先看能帮助判断的结构化证据，Raw JSON 放在最后兜底。</div>
+            <el-card
+              shadow="never"
+              class="runtime-panel"
+            >
+              <template #header>
+                <div class="runtime-panel__header">
+                  <div>
+                    <div class="runtime-panel__title">证据分组</div>
+                    <div class="runtime-panel__subtitle">
+                      先看能帮助判断的结构化证据，Raw JSON 放在最后兜底。
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </template>
+              </template>
 
-            <el-tabs v-model="activeTab" class="trace-evidence-tabs">
-              <el-tab-pane label="诊断" name="diagnostics">
-                <el-table :data="traceDetail.diagnostics" size="small">
-                  <el-table-column prop="device_code" label="设备" min-width="120" />
-                  <el-table-column prop="plugin_key" label="插件" min-width="120" />
-                  <el-table-column prop="canonical_event_type" label="事件" min-width="150">
-                    <template #default="scope">{{ compactEnumLabel(scope.row.canonical_event_type) }}</template>
-                  </el-table-column>
-                  <el-table-column prop="transition" label="转移" min-width="140">
-                    <template #default="scope">{{ compactEnumLabel(scope.row.transition) }}</template>
-                  </el-table-column>
-                </el-table>
-              </el-tab-pane>
-
-              <el-tab-pane :label="`入口证据 (${traceDetail.callback_logs.length + traceDetail.inboxes.length})`" name="ingress">
-                <div class="trace-evidence__section">
-                  <div class="trace-evidence__section-title">Callback</div>
-                  <el-table :data="traceDetail.callback_logs" size="small">
-                    <el-table-column prop="callback_type" label="类型" width="120" />
-                    <el-table-column prop="ingress_outcome" label="入口结果" width="120" />
-                    <el-table-column prop="failure_stage" label="失败阶段" min-width="160" />
-                    <el-table-column prop="response_status" label="响应" width="100" />
-                    <el-table-column label="时间" min-width="180">
-                      <template #default="scope">{{ formatRuntimeDateTime(scope.row.created_at) }}</template>
-                    </el-table-column>
-                  </el-table>
-                </div>
-
-                <div class="trace-evidence__section">
-                  <div class="trace-evidence__section-title">Inbox</div>
-                  <el-table :data="traceDetail.inboxes" size="small">
-                    <el-table-column prop="kind" label="Kind" width="140" />
-                    <el-table-column label="状态" width="120">
+              <el-tabs
+                v-model="activeTab"
+                class="trace-evidence-tabs"
+              >
+                <el-tab-pane
+                  label="诊断"
+                  name="diagnostics"
+                >
+                  <el-table
+                    :data="traceDetail.diagnostics"
+                    size="small"
+                  >
+                    <el-table-column
+                      prop="trace_id"
+                      label="Trace"
+                      min-width="180"
+                    />
+                    <el-table-column
+                      prop="device_code"
+                      label="设备"
+                      min-width="120"
+                    />
+                    <el-table-column
+                      prop="plugin_key"
+                      label="插件"
+                      min-width="120"
+                    />
+                    <el-table-column
+                      prop="canonical_event_type"
+                      label="事件"
+                      min-width="150"
+                    >
                       <template #default="scope">
-                        <RuntimeStatusBadge :status="scope.row.status" size="small" />
+                        {{ compactEnumLabel(scope.row.canonical_event_type) }}
                       </template>
                     </el-table-column>
-                    <el-table-column prop="attempt_count" label="重试" width="80" />
-                    <el-table-column label="接收时间" min-width="180">
-                      <template #default="scope">{{ formatRuntimeDateTime(scope.row.received_at) }}</template>
-                    </el-table-column>
-                  </el-table>
-                </div>
-              </el-tab-pane>
-
-              <el-tab-pane label="会话证据" name="session">
-                <div class="trace-session-grid">
-                  <div class="trace-session-card">
-                    <span>Session Code</span>
-                    <strong>{{ traceDetail.session?.session_code || '--' }}</strong>
-                  </div>
-                  <div class="trace-session-card">
-                    <span>Run Mode</span>
-                    <strong>{{ traceDetail.session?.run_mode || '--' }}</strong>
-                  </div>
-                  <div class="trace-session-card">
-                    <span>Started / Ended</span>
-                    <strong>{{ formatRuntimeDateTime(traceDetail.session?.started_at) }} -> {{ formatRuntimeDateTime(traceDetail.session?.ended_at) }}</strong>
-                  </div>
-                  <div class="trace-session-card">
-                    <span>Failure Message</span>
-                    <strong>{{ traceDetail.session?.failure_message || '--' }}</strong>
-                  </div>
-                </div>
-                <pre class="trace-detail__json">{{ sessionJson }}</pre>
-              </el-tab-pane>
-
-              <el-tab-pane :label="`执行证据 (${traceDetail.commands.length + traceDetail.outboxes.length})`" name="execution">
-                <div class="trace-evidence__section">
-                  <div class="trace-evidence__section-title">Command</div>
-                  <el-table :data="traceDetail.commands" size="small">
-                    <el-table-column prop="command_code" label="指令" min-width="180" />
-                    <el-table-column prop="task_type" label="任务" width="140" />
-                    <el-table-column label="状态" width="120">
+                    <el-table-column
+                      prop="transition"
+                      label="转移"
+                      min-width="140"
+                    >
                       <template #default="scope">
-                        <RuntimeStatusBadge :status="scope.row.status" size="small" />
+                        {{ compactEnumLabel(scope.row.transition) }}
                       </template>
                     </el-table-column>
-                    <el-table-column label="耗时" width="120">
-                      <template #default="scope">{{ formatRuntimeDurationMs(scope.row.duration_ms) }}</template>
-                    </el-table-column>
                   </el-table>
-                </div>
+                </el-tab-pane>
 
-                <div class="trace-evidence__section">
-                  <div class="trace-evidence__section-title">Outbox</div>
-                  <el-table :data="traceDetail.outboxes" size="small">
-                    <el-table-column prop="dispatch_type" label="派发类型" width="140" />
-                    <el-table-column prop="target_code" label="目标" min-width="160" />
-                    <el-table-column label="状态" width="120">
+                <el-tab-pane
+                  :label="`入口证据 (${traceDetail.callback_logs.length + traceDetail.inboxes.length})`"
+                  name="ingress"
+                >
+                  <div class="trace-evidence__section">
+                    <div class="trace-evidence__section-title">Callback</div>
+                    <el-table
+                      :data="traceDetail.callback_logs"
+                      size="small"
+                    >
+                      <el-table-column
+                        prop="callback_type"
+                        label="类型"
+                        width="120"
+                      />
+                      <el-table-column
+                        prop="trace_id"
+                        label="Trace"
+                        min-width="180"
+                      />
+                      <el-table-column
+                        prop="ingress_outcome"
+                        label="入口结果"
+                        width="120"
+                      />
+                      <el-table-column
+                        prop="failure_stage"
+                        label="失败阶段"
+                        min-width="160"
+                      />
+                      <el-table-column
+                        prop="response_status"
+                        label="响应"
+                        width="100"
+                      />
+                      <el-table-column
+                        label="时间"
+                        min-width="180"
+                      >
+                        <template #default="scope">
+                          {{ formatRuntimeDateTime(scope.row.created_at) }}
+                        </template>
+                      </el-table-column>
+                    </el-table>
+                  </div>
+
+                  <div class="trace-evidence__section">
+                    <div class="trace-evidence__section-title">Inbox</div>
+                    <el-table
+                      :data="traceDetail.inboxes"
+                      size="small"
+                    >
+                      <el-table-column
+                        prop="kind"
+                        label="Kind"
+                        width="140"
+                      />
+                      <el-table-column
+                        prop="trace_id"
+                        label="Trace"
+                        min-width="180"
+                      />
+                      <el-table-column
+                        label="状态"
+                        width="120"
+                      >
+                        <template #default="scope">
+                          <RuntimeStatusBadge
+                            :status="scope.row.status"
+                            size="small"
+                          />
+                        </template>
+                      </el-table-column>
+                      <el-table-column
+                        prop="attempt_count"
+                        label="重试"
+                        width="80"
+                      />
+                      <el-table-column
+                        label="接收时间"
+                        min-width="180"
+                      >
+                        <template #default="scope">
+                          {{ formatRuntimeDateTime(scope.row.received_at) }}
+                        </template>
+                      </el-table-column>
+                    </el-table>
+                  </div>
+                </el-tab-pane>
+
+                <el-tab-pane
+                  label="会话证据"
+                  name="session"
+                >
+                  <div class="trace-session-grid">
+                    <div class="trace-session-card">
+                      <span>Trace ID</span>
+                      <strong>
+                        {{ traceDetail.trace.trace_id || traceDetail.session?.trace_id || '--' }}
+                      </strong>
+                    </div>
+                    <div class="trace-session-card">
+                      <span>Session Code</span>
+                      <strong>{{ traceDetail.session?.session_code || '--' }}</strong>
+                    </div>
+                    <div class="trace-session-card">
+                      <span>Run Mode</span>
+                      <strong>{{ traceDetail.session?.run_mode || '--' }}</strong>
+                    </div>
+                    <div class="trace-session-card">
+                      <span>Started / Ended</span>
+                      <strong>
+                        {{ formatRuntimeDateTime(traceDetail.session?.started_at) }} ->
+                        {{ formatRuntimeDateTime(traceDetail.session?.ended_at) }}
+                      </strong>
+                    </div>
+                    <div class="trace-session-card">
+                      <span>Failure Message</span>
+                      <strong>{{ traceDetail.session?.failure_message || '--' }}</strong>
+                    </div>
+                  </div>
+                  <el-table
+                    v-if="traceDetail.sessions.length > 1"
+                    :data="traceDetail.sessions"
+                    size="small"
+                    class="trace-evidence__section"
+                  >
+                    <el-table-column
+                      prop="session_code"
+                      label="Session"
+                      min-width="180"
+                    />
+                    <el-table-column
+                      prop="run_mode"
+                      label="Run Mode"
+                      width="120"
+                    />
+                    <el-table-column
+                      prop="status"
+                      label="状态"
+                      width="120"
+                    >
                       <template #default="scope">
-                        <RuntimeStatusBadge :status="scope.row.status" size="small" />
+                        <RuntimeStatusBadge
+                          :status="scope.row.status"
+                          size="small"
+                        />
                       </template>
                     </el-table-column>
-                    <el-table-column prop="attempt_count" label="重试" width="80" />
+                    <el-table-column
+                      prop="step_code"
+                      label="Step"
+                      min-width="140"
+                    />
                   </el-table>
-                </div>
-              </el-tab-pane>
+                  <pre class="trace-detail__json">{{ sessionJson }}</pre>
+                </el-tab-pane>
 
-              <el-tab-pane label="Raw JSON" name="raw">
-                <pre class="trace-detail__json">{{ rawJson }}</pre>
-              </el-tab-pane>
-            </el-tabs>
-          </el-card>
+                <el-tab-pane
+                  :label="`执行证据 (${traceDetail.commands.length + traceDetail.outboxes.length})`"
+                  name="execution"
+                >
+                  <div class="trace-evidence__section">
+                    <div class="trace-evidence__section-title">Command</div>
+                    <el-table
+                      :data="traceDetail.commands"
+                      size="small"
+                    >
+                      <el-table-column
+                        prop="command_code"
+                        label="指令"
+                        min-width="180"
+                      />
+                      <el-table-column
+                        prop="task_type"
+                        label="任务"
+                        width="140"
+                      />
+                      <el-table-column
+                        label="状态"
+                        width="120"
+                      >
+                        <template #default="scope">
+                          <RuntimeStatusBadge
+                            :status="scope.row.status"
+                            size="small"
+                          />
+                        </template>
+                      </el-table-column>
+                      <el-table-column
+                        label="耗时"
+                        width="120"
+                      >
+                        <template #default="scope">
+                          {{ formatRuntimeDurationMs(scope.row.duration_ms) }}
+                        </template>
+                      </el-table-column>
+                    </el-table>
+                  </div>
 
-            <TraceNextActions :detail="traceDetail" @open-trace="openTraceFromAction" />
+                  <div class="trace-evidence__section">
+                    <div class="trace-evidence__section-title">Outbox</div>
+                    <el-table
+                      :data="traceDetail.outboxes"
+                      size="small"
+                    >
+                      <el-table-column
+                        prop="dispatch_type"
+                        label="派发类型"
+                        width="140"
+                      />
+                      <el-table-column
+                        prop="target_code"
+                        label="目标"
+                        min-width="160"
+                      />
+                      <el-table-column
+                        label="状态"
+                        width="120"
+                      >
+                        <template #default="scope">
+                          <RuntimeStatusBadge
+                            :status="scope.row.status"
+                            size="small"
+                          />
+                        </template>
+                      </el-table-column>
+                      <el-table-column
+                        prop="attempt_count"
+                        label="重试"
+                        width="80"
+                      />
+                    </el-table>
+                  </div>
+
+                  <div class="trace-evidence__section">
+                    <div class="trace-evidence__section-title">Dispatch Attempts</div>
+                    <el-table
+                      :data="traceDetail.dispatch_attempts"
+                      size="small"
+                    >
+                      <el-table-column
+                        prop="attempt_no"
+                        label="#"
+                        width="80"
+                      />
+                      <el-table-column
+                        prop="dispatch_key"
+                        label="Dispatch Key"
+                        min-width="200"
+                      />
+                      <el-table-column
+                        prop="target_code"
+                        label="目标"
+                        min-width="140"
+                      />
+                      <el-table-column
+                        label="状态"
+                        width="120"
+                      >
+                        <template #default="scope">
+                          <RuntimeStatusBadge
+                            :status="scope.row.status"
+                            size="small"
+                          />
+                        </template>
+                      </el-table-column>
+                      <el-table-column
+                        prop="error_message"
+                        label="错误"
+                        min-width="220"
+                      />
+                    </el-table>
+                  </div>
+                </el-tab-pane>
+
+                <el-tab-pane
+                  label="Raw JSON"
+                  name="raw"
+                >
+                  <pre class="trace-detail__json">{{ rawJson }}</pre>
+                </el-tab-pane>
+              </el-tabs>
+            </el-card>
+
+            <TraceNextActions
+              :detail="traceDetail"
+              @open-trace="openTraceFromAction"
+            />
           </div>
         </template>
 
-        <el-card v-else shadow="never" class="runtime-panel trace-layout__empty-state">
+        <el-card
+          v-else
+          shadow="never"
+          class="runtime-panel trace-layout__empty-state"
+        >
           <RuntimeEmptyState
             title="还没有打开任何案件"
             description="使用上方锚点搜索直接进入案件。"
-            hint="支持 Session ID、Request ID、Correlation ID、Command Code、Dispatch Key 等锚点直接跳转。"
+            hint="支持 Trace ID、Request ID、Session ID、Command Code、Dispatch Key 等锚点直接跳转。"
           />
         </el-card>
       </div>
 
-      <el-card v-if="traceDetail" shadow="never" class="runtime-panel trace-layout__sidebar">
+      <el-card
+        v-if="traceDetail"
+        shadow="never"
+        class="runtime-panel trace-layout__sidebar"
+      >
         <TraceRelatedSidebar
           :current-trace-id="selectedSessionId"
           :workline-id="relatedWorklineId"
@@ -207,6 +527,7 @@ import RuntimeFrozenNotice from '@/components/common/runtime/RuntimeFrozenNotice
 import RuntimeLastUpdated from '@/components/common/runtime/RuntimeLastUpdated.vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import RuntimeStickyContextBar from '@/components/common/runtime/RuntimeStickyContextBar.vue'
+import TraceBlockingPointCard from '@/components/common/runtime/TraceBlockingPointCard.vue'
 import TraceCaseHero from '@/components/common/runtime/TraceCaseHero.vue'
 import TraceNextActions from '@/components/common/runtime/TraceNextActions.vue'
 import TraceRelatedSidebar from '@/components/common/runtime/TraceRelatedSidebar.vue'
@@ -214,21 +535,41 @@ import TraceTimeline from '@/components/common/runtime/TraceTimeline.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
 import { useRuntimeStickyContextVisibility } from '@/composables/useRuntimeStickyContextVisibility'
-import type { TraceDetailResponse } from '@/types/runtime'
+import type {
+  RuntimeTraceListItem,
+  TraceBlockingPointResponse,
+  TraceDetailResponse
+} from '@/types/runtime'
 import { createCoalescedAsyncTask } from '@/utils/createCoalescedAsyncTask'
 import { isRelevantRuntimeEvent } from '@/utils/runtime-event'
 import { buildRuntimeTraceQuery, type RuntimeTraceQueryInput } from '@/utils/runtime-route'
-import { compactEnumLabel, formatRuntimeDateTime, formatRuntimeDurationMs, readPositiveInt } from '@/utils/runtime-display'
+import {
+  compactEnumLabel,
+  formatRuntimeDateTime,
+  formatRuntimeDurationMs,
+  readPositiveInt
+} from '@/utils/runtime-display'
 
 const route = useRoute()
 const router = useRouter()
-const { connectionLabel, connectionTone, lastEvent, lastRefreshedAt, live, markRefreshedAt, state, toggleLive } = useRuntimePageChrome()
+const {
+  connectionLabel,
+  connectionTone,
+  lastEvent,
+  lastRefreshedAt,
+  live,
+  markRefreshedAt,
+  state,
+  toggleLive
+} = useRuntimePageChrome()
 
 const loading = ref(false)
-const queryType = ref<'session' | 'request' | 'correlation' | 'command' | 'dispatch'>('session')
+const blockingPointLoading = ref(false)
+const queryType = ref<TraceAnchorType>('trace')
 const queryValue = ref('')
 const activeTab = ref('diagnostics')
 const traceDetail = ref<TraceDetailResponse | null>(null)
+const blockingPoint = ref<TraceBlockingPointResponse | null>(null)
 const detailScrollRef = ref<HTMLElement | null>(null)
 const detailHeroRef = ref<HTMLElement | null>(null)
 const showStickyContext = useRuntimeStickyContextVisibility({
@@ -237,7 +578,7 @@ const showStickyContext = useRuntimeStickyContextVisibility({
   enabled: computed(() => Boolean(traceDetail.value))
 })
 
-type TraceAnchorType = 'session' | 'request' | 'correlation' | 'command' | 'dispatch'
+type TraceAnchorType = 'trace' | 'request' | 'session' | 'command' | 'dispatch'
 
 interface TraceAnchor {
   type: TraceAnchorType
@@ -245,16 +586,19 @@ interface TraceAnchor {
 }
 
 const TRACE_QUERY_KEYS: Record<TraceAnchorType, string> = {
+  trace: 'traceId',
   session: 'sessionId',
   request: 'requestId',
-  correlation: 'correlationId',
   command: 'commandCode',
-  dispatch: 'dispatchKey',
+  dispatch: 'dispatchKey'
 }
 
 const sessionJson = computed(() => JSON.stringify(traceDetail.value?.session ?? {}, null, 2))
 const rawJson = computed(() => JSON.stringify(traceDetail.value ?? {}, null, 2))
 const selectedSessionId = computed(() => traceDetail.value?.trace.session_id ?? null)
+const selectedTraceId = computed(
+  () => traceDetail.value?.trace.trace_id ?? traceDetail.value?.session?.trace_id ?? null
+)
 
 const relatedWorklineId = computed(() => {
   const detail = traceDetail.value
@@ -282,15 +626,23 @@ const selectedWorklineName = computed(() => {
 const selectedDeviceName = computed(() => {
   const detail = traceDetail.value
   if (!detail) return null
-  return detail.trace.device_code || (detail.trace.device_id ? `设备 #${detail.trace.device_id}` : null)
+  return (
+    detail.trace.device_code || (detail.trace.device_id ? `设备 #${detail.trace.device_id}` : null)
+  )
 })
 
 const traceStickyTitle = computed(() => {
-  return traceDetail.value?.session?.session_code || (selectedSessionId.value ? `SES-${selectedSessionId.value}` : '--')
+  return (
+    traceDetail.value?.session?.session_code ||
+    (selectedSessionId.value ? `SES-${selectedSessionId.value}` : '--')
+  )
 })
 
 const traceStickyCode = computed(() => {
-  return traceDetail.value?.trace.session_id ? `Session #${traceDetail.value.trace.session_id}` : null
+  return (
+    selectedTraceId.value ||
+    (traceDetail.value?.trace.session_id ? `Session #${traceDetail.value.trace.session_id}` : null)
+  )
 })
 
 const traceStickyStatus = computed(() => {
@@ -303,7 +655,9 @@ const traceStickyFacts = computed(() => {
     return []
   }
 
-  const failureText = [detail.session?.failure_domain, detail.session?.failure_code].filter(Boolean).join(' / ') || '--'
+  const failureText =
+    [detail.session?.failure_domain, detail.session?.failure_code].filter(Boolean).join(' / ') ||
+    '--'
 
   return [
     { label: '当前 Step', value: detail.summary.step_code || detail.session?.step_code || '--' },
@@ -312,7 +666,7 @@ const traceStickyFacts = computed(() => {
 })
 
 function readRouteAnchor(): TraceAnchor | null {
-  const anchorTypes: TraceAnchorType[] = ['session', 'request', 'correlation', 'command', 'dispatch']
+  const anchorTypes: TraceAnchorType[] = ['trace', 'request', 'session', 'command', 'dispatch']
 
   for (const type of anchorTypes) {
     const queryKey = TRACE_QUERY_KEYS[type]
@@ -348,11 +702,15 @@ function getLookupAnchor(): TraceAnchor | null {
 
   return {
     type: queryType.value,
-    value,
+    value
   }
 }
 
 function resolveTraceAnchorFromQuery(query: RuntimeTraceQueryInput): TraceAnchor | null {
+  if (query.traceId) {
+    return { type: 'trace', value: String(query.traceId) }
+  }
+
   if (query.sessionId !== null && query.sessionId !== undefined && query.sessionId !== '') {
     const value = String(query.sessionId)
     if (Number.isFinite(Number(value))) {
@@ -362,10 +720,6 @@ function resolveTraceAnchorFromQuery(query: RuntimeTraceQueryInput): TraceAnchor
 
   if (query.requestId) {
     return { type: 'request', value: String(query.requestId) }
-  }
-
-  if (query.correlationId) {
-    return { type: 'correlation', value: String(query.correlationId) }
   }
 
   if (query.commandCode) {
@@ -379,7 +733,11 @@ function resolveTraceAnchorFromQuery(query: RuntimeTraceQueryInput): TraceAnchor
   return null
 }
 
-async function syncRouteQuery(type: TraceAnchorType, value: string, query: RuntimeTraceQueryInput = {}) {
+async function syncRouteQuery(
+  type: TraceAnchorType,
+  value: string,
+  query: RuntimeTraceQueryInput = {}
+) {
   const nextQuery = { ...route.query }
 
   for (const queryKey of Object.values(TRACE_QUERY_KEYS)) {
@@ -398,29 +756,77 @@ async function syncRouteQuery(type: TraceAnchorType, value: string, query: Runti
 }
 
 async function loadTraceBySession(sessionId: number) {
-  traceDetail.value = await runtimeApiMethods.traceBySessionId(sessionId).send()
+  await setTraceDetail(await runtimeApiMethods.traceBySessionId(sessionId).send())
   markRefreshedAt()
 }
 
-async function loadTraceByAnchor(type: Exclude<TraceAnchorType, 'session'>, value: string) {
+async function loadTraceByTraceId(traceId: string) {
+  await setTraceDetail(await runtimeApiMethods.traceByTraceId(traceId).send())
+  markRefreshedAt()
+}
+
+async function loadTraceByAnchor(
+  type: Exclude<TraceAnchorType, 'session' | 'trace'>,
+  value: string
+) {
   const requestMap = {
     request: runtimeApiMethods.traceByRequestId,
-    correlation: runtimeApiMethods.traceByCorrelationId,
     command: runtimeApiMethods.traceByCommandCode,
-    dispatch: runtimeApiMethods.traceByDispatchKey,
+    dispatch: runtimeApiMethods.traceByDispatchKey
   }
 
-  traceDetail.value = await requestMap[type](value).send()
+  await setTraceDetail(await requestMap[type](value).send())
   markRefreshedAt()
 }
 
 async function loadTraceDetail(anchor: TraceAnchor): Promise<void> {
+  if (anchor.type === 'trace') {
+    await loadTraceByTraceId(anchor.value)
+    return
+  }
+
   if (anchor.type === 'session') {
     await loadTraceBySession(Number(anchor.value))
     return
   }
 
   await loadTraceByAnchor(anchor.type, anchor.value)
+}
+
+function normalizeTraceDetail(detail: TraceDetailResponse): TraceDetailResponse {
+  return {
+    ...detail,
+    sessions: detail.sessions ?? (detail.session ? [detail.session] : []),
+    callback_logs: detail.callback_logs ?? [],
+    inboxes: detail.inboxes ?? [],
+    commands: detail.commands ?? [],
+    outboxes: detail.outboxes ?? [],
+    dispatch_attempts: detail.dispatch_attempts ?? [],
+    timelines: detail.timelines ?? [],
+    diagnostics: detail.diagnostics ?? []
+  }
+}
+
+async function setTraceDetail(detail: TraceDetailResponse): Promise<void> {
+  const nextDetail = normalizeTraceDetail(detail)
+  traceDetail.value = nextDetail
+  await loadBlockingPoint(nextDetail.trace.trace_id ?? nextDetail.session?.trace_id ?? null)
+}
+
+async function loadBlockingPoint(traceId: string | null): Promise<void> {
+  blockingPoint.value = null
+  if (!traceId) {
+    return
+  }
+
+  blockingPointLoading.value = true
+  try {
+    blockingPoint.value = await runtimeApiMethods.traceBlockingPoint(traceId).send()
+  } catch {
+    blockingPoint.value = null
+  } finally {
+    blockingPointLoading.value = false
+  }
 }
 
 async function runTraceLookup() {
@@ -439,14 +845,25 @@ async function openTraceFromAction(query: RuntimeTraceQueryInput) {
   await syncRouteQuery(anchor.type, anchor.value, query)
 }
 
-async function handleRelatedSelect(sessionId: number) {
-  await openTraceFromAction({ sessionId: String(sessionId) })
+async function handleRelatedSelect(trace: RuntimeTraceListItem) {
+  await openTraceFromAction({
+    traceId: trace.trace_id,
+    sessionId: trace.trace_id ? undefined : String(trace.session_id),
+    worklineId: trace.workline_id,
+    deviceId: trace.device_id
+  })
 }
 
 async function refreshCurrent() {
   loading.value = true
   try {
     const activeSessionId = traceDetail.value?.trace.session_id
+    const activeTraceId = selectedTraceId.value
+    if (activeTraceId) {
+      await loadTraceByTraceId(activeTraceId)
+      return
+    }
+
     if (activeSessionId) {
       await loadTraceBySession(activeSessionId)
       return
@@ -473,6 +890,7 @@ async function syncTraceRouteState() {
     } else {
       queryValue.value = ''
       traceDetail.value = null
+      blockingPoint.value = null
     }
   } finally {
     loading.value = false
@@ -488,8 +906,8 @@ onMounted(() => {
 watch(
   () => [
     route.query.sessionId,
+    route.query.traceId,
     route.query.requestId,
-    route.query.correlationId,
     route.query.commandCode,
     route.query.dispatchKey,
     route.query.worklineId,
@@ -505,11 +923,14 @@ watch(
   async event => {
     if (!live.value || !event) return
 
-    if (!isRelevantRuntimeEvent(event, {
-      sessionId: traceDetail.value?.trace.session_id ?? null,
-      worklineId: readPositiveInt(route.query.worklineId),
-      deviceId: readPositiveInt(route.query.deviceId)
-    })) {
+    if (
+      !isRelevantRuntimeEvent(event, {
+        sessionId: traceDetail.value?.trace.session_id ?? null,
+        traceId: selectedTraceId.value,
+        worklineId: readPositiveInt(route.query.worklineId),
+        deviceId: readPositiveInt(route.query.deviceId)
+      })
+    ) {
       return
     }
 

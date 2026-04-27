@@ -182,7 +182,7 @@
                     :key="item.session_id"
                     type="button"
                     class="trace-list__item"
-                    @click="openTrace(item.session_id)"
+                    @click="openTrace(item)"
                   >
                     <div class="trace-list__head">
                       <RuntimeStatusBadge
@@ -235,7 +235,7 @@
                     :key="item.session_id"
                     type="button"
                     class="trace-list__item trace-list__item--danger"
-                    @click="openTrace(item.session_id)"
+                    @click="openTrace(item)"
                   >
                     <div class="trace-list__head">
                       <RuntimeStatusBadge
@@ -345,12 +345,10 @@ import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.v
 import WorklineHealthHero from '@/components/common/runtime/WorklineHealthHero.vue'
 import WorklineTopologyStrip from '@/components/common/runtime/WorklineTopologyStrip.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
-import {
-  buildRuntimeTraceQuery,
-  buildRuntimeWorklineQuery
-} from '@/utils/runtime-route'
+import { buildRuntimeTraceQuery, buildRuntimeWorklineQuery } from '@/utils/runtime-route'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
 import type {
+  RuntimeTraceListItem,
   RuntimeWorklineDetailResponse,
   RuntimeWorklineDeviceItem,
   RuntimeWorklineSummary
@@ -504,10 +502,15 @@ async function selectWorkline(row: { id: number }) {
   await router.replace({ query: { ...route.query, ...buildRuntimeWorklineQuery(row.id) } })
 }
 
-function openTrace(sessionId: number) {
+function openTrace(trace: RuntimeTraceListItem) {
   router.push({
     name: 'RuntimeTraceExplorer',
-    query: buildRuntimeTraceQuery({ sessionId, worklineId: detail.value?.summary.id })
+    query: buildRuntimeTraceQuery({
+      traceId: trace.trace_id,
+      sessionId: trace.trace_id ? undefined : trace.session_id,
+      worklineId: detail.value?.summary.id ?? trace.workline_id,
+      deviceId: trace.device_id
+    })
   })
 }
 
@@ -548,7 +551,7 @@ watch(
 
 watch(
   () => selectedDeviceId.value,
-  (nextDeviceId) => {
+  nextDeviceId => {
     if (nextDeviceId && detail.value) {
       isDevicePanelOpen.value = true
       nextTick(() => {

@@ -1,6 +1,11 @@
 <template>
   <div class="trace-timeline">
-    <div v-for="item in sortedItems" :key="item.id" class="trace-timeline__item" :class="itemClasses(item)">
+    <div
+      v-for="item in sortedItems"
+      :key="item.id"
+      class="trace-timeline__item"
+      :class="itemClasses(item)"
+    >
       <div class="trace-timeline__rail">
         <span class="trace-timeline__dot" />
         <span class="trace-timeline__line" />
@@ -12,14 +17,32 @@
             <div class="trace-timeline__time">{{ formatRuntimeDateTime(item.occurred_at) }}</div>
             <div class="trace-timeline__title-row">
               <h4 class="trace-timeline__title">{{ compactEnumLabel(item.stage) }}</h4>
-              <RuntimeStatusBadge :status="item.status" size="small" />
+              <RuntimeStatusBadge
+                :status="item.status"
+                size="small"
+              />
             </div>
           </div>
 
           <div class="trace-timeline__labels">
-            <span v-if="lastSuccessId === item.id" class="trace-timeline__marker trace-timeline__marker--success">最后成功</span>
-            <span v-if="firstFailureId === item.id" class="trace-timeline__marker trace-timeline__marker--danger">首次失败</span>
-            <span v-if="terminalId === item.id" class="trace-timeline__marker trace-timeline__marker--primary">当前终态</span>
+            <span
+              v-if="lastSuccessId === item.id"
+              class="trace-timeline__marker trace-timeline__marker--success"
+            >
+              最后成功
+            </span>
+            <span
+              v-if="firstFailureId === item.id"
+              class="trace-timeline__marker trace-timeline__marker--danger"
+            >
+              首次失败
+            </span>
+            <span
+              v-if="terminalId === item.id"
+              class="trace-timeline__marker trace-timeline__marker--primary"
+            >
+              当前终态
+            </span>
           </div>
         </div>
 
@@ -30,7 +53,12 @@
           </div>
           <div class="trace-timeline__summary-item">
             <span>Actor</span>
-            <strong>{{ [compactEnumLabel(item.actor_type), item.actor_code].filter(Boolean).join(' · ') || '—' }}</strong>
+            <strong>
+              {{
+                [compactEnumLabel(item.actor_type), item.actor_code].filter(Boolean).join(' · ') ||
+                '—'
+              }}
+            </strong>
           </div>
           <div class="trace-timeline__summary-item">
             <span>状态转移</span>
@@ -38,8 +66,18 @@
           </div>
         </div>
 
-        <p v-if="item.message" class="trace-timeline__message">{{ item.message }}</p>
-        <p v-else class="trace-timeline__message trace-timeline__message--muted">暂无额外消息，继续查看证据面板。</p>
+        <p
+          v-if="item.message"
+          class="trace-timeline__message"
+        >
+          {{ item.message }}
+        </p>
+        <p
+          v-else
+          class="trace-timeline__message trace-timeline__message--muted"
+        >
+          暂无额外消息，继续查看证据面板。
+        </p>
       </article>
     </div>
   </div>
@@ -49,7 +87,12 @@
 import { computed } from 'vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import type { TraceTimelineItem } from '@/types/runtime'
-import { compactEnumLabel, isFailureStatus, resolveRuntimeTone, formatRuntimeDateTime } from '@/utils/runtime-display'
+import {
+  compactEnumLabel,
+  isFailureStatus,
+  resolveRuntimeTone,
+  formatRuntimeDateTime
+} from '@/utils/runtime-display'
 
 const props = withDefaults(
   defineProps<{
@@ -60,7 +103,9 @@ const props = withDefaults(
   }
 )
 
-const sortedItems = computed(() => [...props.items].sort((left, right) => left.seq_no - right.seq_no || left.id - right.id))
+const sortedItems = computed(() =>
+  [...props.items].sort((left, right) => left.seq_no - right.seq_no || left.id - right.id)
+)
 
 const terminalId = computed(() => {
   const lastItem = sortedItems.value[sortedItems.value.length - 1]
@@ -68,7 +113,10 @@ const terminalId = computed(() => {
 })
 
 const firstFailureId = computed(() => {
-  return sortedItems.value.find(item => isFailureStatus(item.status) || Boolean(item.failure_domain))?.id ?? null
+  return (
+    sortedItems.value.find(item => isFailureStatus(item.status) || Boolean(item.failure_domain))
+      ?.id ?? null
+  )
 })
 
 const lastSuccessId = computed(() => {
@@ -77,7 +125,10 @@ const lastSuccessId = computed(() => {
     : sortedItems.value
 
   const reversed = [...targetItems].reverse()
-  return reversed.find(item => ['success', 'primary'].includes(resolveRuntimeTone(item.status)))?.id ?? null
+  return (
+    reversed.find(item => ['success', 'primary'].includes(resolveRuntimeTone(item.status)))?.id ??
+    null
+  )
 })
 
 function itemClasses(item: TraceTimelineItem) {

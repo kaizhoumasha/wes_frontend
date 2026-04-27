@@ -387,8 +387,12 @@ export const CallbackLogResponseSchema = z.object({
   user_agent: z.union([z.string(), z.null()]),
   /** Request Id */
   request_id: z.union([z.string(), z.null()]),
-  /** Correlation Id */
-  correlation_id: z.union([z.string(), z.null()]),
+  /** Trace Id */
+  trace_id: z.union([z.string(), z.null()]),
+  /** Event Id */
+  event_id: z.union([z.string(), z.null()]),
+  /** Causation Id */
+  causation_id: z.union([z.string(), z.null()]),
   /** Response Status */
   response_status: z.number(),
   /** Response Time Ms */
@@ -580,7 +584,7 @@ export const DeviceCreateSchema = z.object({
   timeout: z.number().min(1000).max(300000).optional().default(10000),
   /** Callback Path */
   callback_path: z.union([z.string().max(255), z.null()]).optional(),
-  /** 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE） */
+  /** 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE/MAINTENANCE） */
   device_status: z.lazy(() => DeviceStatusSchema).optional().default("IDLE"),
   /** Current Command Id */
   current_command_id: z.union([z.number(), z.null()]).optional(),
@@ -649,7 +653,7 @@ export const DeviceResponseSchema = z.object({
   timeout: z.number().min(1000).max(300000).optional().default(10000),
   /** Callback Path */
   callback_path: z.union([z.string().max(255), z.null()]).optional(),
-  /** 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE） */
+  /** 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE/MAINTENANCE） */
   device_status: z.lazy(() => DeviceStatusSchema).optional().default("IDLE"),
   /** Current Command Id */
   current_command_id: z.union([z.number(), z.null()]).optional(),
@@ -678,7 +682,7 @@ export const DeviceResponseSchema = z.object({
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
-export const DeviceStatusSchema = z.enum(["IDLE", "RUNNING", "ERROR", "OFFLINE"])
+export const DeviceStatusSchema = z.enum(["IDLE", "RUNNING", "ERROR", "OFFLINE", "MAINTENANCE"])
 
 
 /**
@@ -722,7 +726,7 @@ export const DeviceUpdateSchema = z.object({
   timeout: z.union([z.number().min(1000).max(300000), z.null()]).optional(),
   /** Callback Path */
   callback_path: z.union([z.string().max(255), z.null()]).optional(),
-  /** 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE） */
+  /** 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE/MAINTENANCE） */
   device_status: z.union([z.lazy(() => DeviceStatusSchema), z.null()]).optional(),
   /** Current Command Id */
   current_command_id: z.union([z.number(), z.null()]).optional(),
@@ -740,6 +744,39 @@ export const DeviceUpdateSchema = z.object({
   diagnostic_profile: z.union([z.record(z.any()), z.null()]).optional(),
   /** Version */
   version: z.number(),
+})
+
+
+export const DiagnosticCardResponseSchema = z.object({
+  /** Title */
+  title: z.string(),
+  /** Summary */
+  summary: z.string(),
+  /** Error Code */
+  error_code: z.string(),
+  /** Error Domain */
+  error_domain: z.string(),
+  /** Severity */
+  severity: z.string(),
+  /** Recoverability */
+  recoverability: z.string(),
+  /** Problem Class */
+  problem_class: z.string(),
+  /** User Message */
+  user_message: z.string(),
+  /** Operator Action */
+  operator_action: z.union([z.string(), z.null()]).optional(),
+  /** Technical Summary */
+  technical_summary: z.union([z.string(), z.null()]).optional(),
+  /** Next Steps */
+  next_steps: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())).optional(),
+  context: z.lazy(() => TraceDiagnosticContextItemSchema),
 })
 
 
@@ -1085,6 +1122,22 @@ export const LogoutResponseSchema = z.object({
   message: z.string(),
   /** Revoked Count */
   revoked_count: z.number().optional().default(0),
+})
+
+
+/**
+ * 人工操作请求。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const ManualOperationRequestSchema = z.object({
+  /** Operation */
+  operation: z.string().regex(new RegExp("^(HOLD|RESUME|CANCEL)$")),
+  /** Operator Id */
+  operator_id: z.string().min(1).max(100),
+  /** Reason */
+  reason: z.string().min(1).max(500),
 })
 
 
@@ -1485,6 +1538,20 @@ export const RefreshTokenResponseSchema = z.object({
 
 
 /**
+ * Replay 请求。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const ReplayInboxRequestSchema = z.object({
+  /** Reason */
+  reason: z.string().min(1).max(500),
+  /** Operator Id */
+  operator_id: z.union([z.string().max(100), z.null()]).optional(),
+})
+
+
+/**
  * 管理员重置密码请求
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -1685,8 +1752,8 @@ export const RuntimeTraceListItemSchema = z.object({
   session_id: z.number(),
   /** Session Code */
   session_code: z.string(),
-  /** Correlation Id */
-  correlation_id: z.union([z.string(), z.null()]).optional(),
+  /** Trace Id */
+  trace_id: z.union([z.string(), z.null()]).optional(),
   /** Request Id */
   request_id: z.union([z.string(), z.null()]).optional(),
   /** Workline Id */
@@ -1873,6 +1940,33 @@ export const SortItemSchema = z.object({
 })
 
 
+export const TraceBlockingPointResponseSchema = z.object({
+  /** Trace Id */
+  trace_id: z.string(),
+  /** Request Id */
+  request_id: z.union([z.string(), z.null()]).optional(),
+  /** Blocking Point */
+  blocking_point: z.string(),
+  /** Owner */
+  owner: z.string(),
+  /** Recoverability */
+  recoverability: z.string(),
+  /** Operator Action */
+  operator_action: z.string(),
+  diagnostic_card: z.lazy(() => DiagnosticCardResponseSchema),
+  /** Evidence */
+  evidence: z.record(z.any()).optional(),
+  /** Next Steps */
+  next_steps: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())).optional(),
+})
+
+
 export const TraceCallbackLogItemSchema = z.object({
   /** Id */
   id: z.number(),
@@ -1882,8 +1976,12 @@ export const TraceCallbackLogItemSchema = z.object({
   device_id: z.string(),
   /** Request Id */
   request_id: z.union([z.string(), z.null()]).optional(),
-  /** Correlation Id */
-  correlation_id: z.union([z.string(), z.null()]).optional(),
+  /** Trace Id */
+  trace_id: z.union([z.string(), z.null()]).optional(),
+  /** Event Id */
+  event_id: z.union([z.string(), z.null()]).optional(),
+  /** Causation Id */
+  causation_id: z.union([z.string(), z.null()]).optional(),
   /** Response Status */
   response_status: z.number(),
   /** Response Time Ms */
@@ -1910,8 +2008,8 @@ export const TraceCommandItemSchema = z.object({
   device_id: z.number(),
   /** Command Code */
   command_code: z.string(),
-  /** Correlation Id */
-  correlation_id: z.union([z.string(), z.null()]).optional(),
+  /** Trace Id */
+  trace_id: z.union([z.string(), z.null()]).optional(),
   /** Workline Id */
   workline_id: z.union([z.number(), z.null()]).optional(),
   /** Session Id */
@@ -1952,8 +2050,12 @@ export const TraceCommandItemSchema = z.object({
 export const TraceContextResponseSchema = z.object({
   /** Request Id */
   request_id: z.union([z.string(), z.null()]).optional(),
-  /** Correlation Id */
-  correlation_id: z.union([z.string(), z.null()]).optional(),
+  /** Trace Id */
+  trace_id: z.union([z.string(), z.null()]).optional(),
+  /** Event Id */
+  event_id: z.union([z.string(), z.null()]).optional(),
+  /** Causation Id */
+  causation_id: z.union([z.string(), z.null()]).optional(),
   /** Workline Id */
   workline_id: z.union([z.number(), z.null()]).optional(),
   /** Session Id */
@@ -1987,6 +2089,8 @@ export const TraceDetailResponseSchema = z.object({
   trace: z.lazy(() => TraceContextResponseSchema),
   summary: z.lazy(() => TraceOverviewSummarySchema),
   session: z.union([z.lazy(() => TraceSessionItemSchema), z.null()]).optional(),
+  /** Sessions */
+  sessions: z.array(z.lazy(() => TraceSessionItemSchema)).optional(),
   /** Callback Logs */
   callback_logs: z.array(z.lazy(() => TraceCallbackLogItemSchema)).optional(),
   /** Inboxes */
@@ -1995,6 +2099,8 @@ export const TraceDetailResponseSchema = z.object({
   commands: z.array(z.lazy(() => TraceCommandItemSchema)).optional(),
   /** Outboxes */
   outboxes: z.array(z.lazy(() => TraceOutboxItemSchema)).optional(),
+  /** Dispatch Attempts */
+  dispatch_attempts: z.array(z.lazy(() => TraceDispatchAttemptItemSchema)).optional(),
   /** Timelines */
   timelines: z.array(z.lazy(() => TraceTimelineItemSchema)).optional(),
   /** Diagnostics */
@@ -2002,11 +2108,11 @@ export const TraceDetailResponseSchema = z.object({
 })
 
 
-export const TraceDiagnosticItemSchema = z.object({
+export const TraceDiagnosticContextItemSchema = z.object({
   /** Request Id */
   request_id: z.union([z.string(), z.null()]).optional(),
-  /** Correlation Id */
-  correlation_id: z.union([z.string(), z.null()]).optional(),
+  /** Trace Id */
+  trace_id: z.union([z.string(), z.null()]).optional(),
   /** Session Id */
   session_id: z.union([z.number(), z.null()]).optional(),
   /** Inbox Id */
@@ -2032,6 +2138,66 @@ export const TraceDiagnosticItemSchema = z.object({
 })
 
 
+export const TraceDiagnosticItemSchema = z.object({
+  /** Request Id */
+  request_id: z.union([z.string(), z.null()]).optional(),
+  /** Trace Id */
+  trace_id: z.union([z.string(), z.null()]).optional(),
+  /** Session Id */
+  session_id: z.union([z.number(), z.null()]).optional(),
+  /** Inbox Id */
+  inbox_id: z.union([z.number(), z.null()]).optional(),
+  /** Outbox Id */
+  outbox_id: z.union([z.number(), z.null()]).optional(),
+  /** Command Code */
+  command_code: z.union([z.string(), z.null()]).optional(),
+  /** Device Code */
+  device_code: z.union([z.string(), z.null()]).optional(),
+  /** Workline Id */
+  workline_id: z.union([z.number(), z.null()]).optional(),
+  /** Workline Code */
+  workline_code: z.union([z.string(), z.null()]).optional(),
+  /** Plugin Key */
+  plugin_key: z.union([z.string(), z.null()]).optional(),
+  /** Canonical Event Type */
+  canonical_event_type: z.union([z.string(), z.null()]).optional(),
+  /** Transition */
+  transition: z.union([z.string(), z.null()]).optional(),
+  /** Extra */
+  extra: z.record(z.any()).optional(),
+})
+
+
+export const TraceDispatchAttemptItemSchema = z.object({
+  /** Id */
+  id: z.number(),
+  /** Outbox Id */
+  outbox_id: z.number(),
+  /** Dispatch Key */
+  dispatch_key: z.string(),
+  /** Attempt No */
+  attempt_no: z.number(),
+  /** Lease Token */
+  lease_token: z.string(),
+  /** Status */
+  status: z.string(),
+  /** Target Type */
+  target_type: z.union([z.string(), z.null()]).optional(),
+  /** Target Code */
+  target_code: z.union([z.string(), z.null()]).optional(),
+  /** Started At */
+  started_at: z.string().datetime(),
+  /** Finalized At */
+  finalized_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Error Message */
+  error_message: z.union([z.string(), z.null()]).optional(),
+  /** Response Json */
+  response_json: z.record(z.any()).optional(),
+  /** Trace Json */
+  trace_json: z.record(z.any()).optional(),
+})
+
+
 export const TraceInboxItemSchema = z.object({
   /** Id */
   id: z.number(),
@@ -2041,6 +2207,12 @@ export const TraceInboxItemSchema = z.object({
   source_system: z.string(),
   /** Source Message Id */
   source_message_id: z.union([z.string(), z.null()]).optional(),
+  /** Trace Id */
+  trace_id: z.union([z.string(), z.null()]).optional(),
+  /** Event Id */
+  event_id: z.union([z.string(), z.null()]).optional(),
+  /** Causation Id */
+  causation_id: z.union([z.string(), z.null()]).optional(),
   /** Workline Id */
   workline_id: z.union([z.number(), z.null()]).optional(),
   /** Device Id */
@@ -2049,8 +2221,6 @@ export const TraceInboxItemSchema = z.object({
   command_id: z.union([z.number(), z.null()]).optional(),
   /** Session Id */
   session_id: z.union([z.number(), z.null()]).optional(),
-  /** Correlation Id */
-  correlation_id: z.union([z.string(), z.null()]).optional(),
   /** Status */
   status: z.string(),
   /** Received At */
@@ -2185,8 +2355,8 @@ export const TraceSessionItemSchema = z.object({
   status: z.string(),
   /** Step Code */
   step_code: z.union([z.string(), z.null()]).optional(),
-  /** Correlation Id */
-  correlation_id: z.union([z.string(), z.null()]).optional(),
+  /** Trace Id */
+  trace_id: z.union([z.string(), z.null()]).optional(),
   /** Started At */
   started_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Ended At */
@@ -2227,8 +2397,8 @@ export const TraceTimelineItemSchema = z.object({
   session_id: z.number(),
   /** Workline Id */
   workline_id: z.number(),
-  /** Correlation Id */
-  correlation_id: z.union([z.string(), z.null()]).optional(),
+  /** Trace Id */
+  trace_id: z.union([z.string(), z.null()]).optional(),
   /** Seq No */
   seq_no: z.number(),
   /** Occurred At */
@@ -2467,6 +2637,8 @@ export const WorkLineCreateSchema = z.object({
   config: z.record(z.any()).optional(),
   /** Runtime Config Json */
   runtime_config_json: z.record(z.any()).optional(),
+  /** 工作线运行模式 */
+  run_mode: z.lazy(() => WorkLineRunModeSchema).optional().default("AUTO"),
   /** Owner Team */
   owner_team: z.union([z.string().max(100), z.null()]).optional(),
   /** Support Contact */
@@ -2507,6 +2679,8 @@ export const WorkLineResponseSchema = z.object({
   config: z.record(z.any()).optional(),
   /** Runtime Config Json */
   runtime_config_json: z.record(z.any()).optional(),
+  /** 工作线运行模式 */
+  run_mode: z.lazy(() => WorkLineRunModeSchema).optional().default("AUTO"),
   /** Owner Team */
   owner_team: z.union([z.string().max(100), z.null()]).optional(),
   /** Support Contact */
@@ -2526,6 +2700,15 @@ export const WorkLineResponseSchema = z.object({
   /** Version */
   version: z.number(),
 })
+
+
+/**
+ * 作业线运行模式枚举。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const WorkLineRunModeSchema = z.enum(["AUTO", "MANUAL", "SIMULATION"])
 
 
 /**
@@ -2551,6 +2734,8 @@ export const WorkLineUpdateSchema = z.object({
   config: z.union([z.record(z.any()), z.null()]).optional(),
   /** Runtime Config Json */
   runtime_config_json: z.union([z.record(z.any()), z.null()]).optional(),
+  /** 工作线运行模式 */
+  run_mode: z.union([z.lazy(() => WorkLineRunModeSchema), z.null()]).optional(),
   /** Owner Team */
   owner_team: z.union([z.string().max(100), z.null()]).optional(),
   /** Support Contact */

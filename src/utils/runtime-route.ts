@@ -16,9 +16,9 @@ export function buildRuntimeWorklineQuery(worklineId: RuntimeRouteQueryValue, de
 }
 
 export interface RuntimeTraceQueryInput {
+  traceId?: RuntimeRouteQueryValue
   sessionId?: RuntimeRouteQueryValue
   requestId?: RuntimeRouteQueryValue
-  correlationId?: RuntimeRouteQueryValue
   commandCode?: RuntimeRouteQueryValue
   dispatchKey?: RuntimeRouteQueryValue
   barcode?: RuntimeRouteQueryValue
@@ -28,9 +28,9 @@ export interface RuntimeTraceQueryInput {
 
 export function buildRuntimeTraceQuery(query: RuntimeTraceQueryInput) {
   return {
+    traceId: toRuntimeRouteQueryValue(query.traceId),
     sessionId: toRuntimeRouteQueryValue(query.sessionId),
     requestId: toRuntimeRouteQueryValue(query.requestId),
-    correlationId: toRuntimeRouteQueryValue(query.correlationId),
     commandCode: toRuntimeRouteQueryValue(query.commandCode),
     dispatchKey: toRuntimeRouteQueryValue(query.dispatchKey),
     barcode: toRuntimeRouteQueryValue(query.barcode),

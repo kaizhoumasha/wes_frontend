@@ -5,39 +5,62 @@
       <div class="trace-related-sidebar__subtitle">同工作线 / 设备的相邻 Trace</div>
     </div>
 
-    <div v-if="loading" class="trace-related-sidebar__skeleton">
-      <div v-for="i in 3" :key="i" class="trace-related-sidebar__skeleton-row" />
+    <div
+      v-if="loading"
+      class="trace-related-sidebar__skeleton"
+    >
+      <div
+        v-for="i in 3"
+        :key="i"
+        class="trace-related-sidebar__skeleton-row"
+      />
     </div>
 
     <template v-else>
-      <div v-if="traces.length" class="trace-related-sidebar__list">
+      <div
+        v-if="traces.length"
+        class="trace-related-sidebar__list"
+      >
         <button
           v-for="item in traces"
           :key="item.session_id"
           type="button"
           class="trace-related-sidebar__item"
           :class="{ 'is-current': item.session_id === currentTraceId }"
-          @click="emit('select', item.session_id)"
+          @click="emit('select', item)"
         >
           <div class="trace-related-sidebar__item-top">
-            <RuntimeStatusBadge :status="item.status" size="small" />
+            <RuntimeStatusBadge
+              :status="item.status"
+              size="small"
+            />
             <span class="trace-related-sidebar__item-time">
               {{ formatRuntimeRelative(item.last_ingress_at || item.started_at) }}
             </span>
           </div>
-          <div class="trace-related-sidebar__item-code">{{ item.session_code }}</div>
+          <div class="trace-related-sidebar__item-code">
+            {{ item.trace_id || item.session_code }}
+          </div>
           <div class="trace-related-sidebar__item-meta">
             {{ item.workline_name || (item.workline_id ? `工作线 #${item.workline_id}` : '--') }}
             &middot;
-            {{ item.device_name || item.device_code || (item.device_id ? `设备 #${item.device_id}` : '--') }}
+            {{
+              item.device_name ||
+              item.device_code ||
+              (item.device_id ? `设备 #${item.device_id}` : '--')
+            }}
           </div>
           <div class="trace-related-sidebar__item-hint">
-            {{ item.step_code || '--' }} &middot; {{ item.failure_domain || item.latest_timeline_message || '等待更多证据' }}
+            {{ item.step_code || '--' }} &middot;
+            {{ item.failure_domain || item.latest_timeline_message || '等待更多证据' }}
           </div>
         </button>
       </div>
 
-      <div v-else class="trace-related-sidebar__empty">
+      <div
+        v-else
+        class="trace-related-sidebar__empty"
+      >
         <span>没有找到关联案件</span>
       </div>
     </template>
@@ -59,7 +82,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'select', sessionId: number): void
+  (e: 'select', trace: RuntimeTraceListItem): void
 }>()
 
 const loading = ref(false)
@@ -81,7 +104,7 @@ watch(
     try {
       const payload: { workline_id?: number; device_id?: number; limit: number; offset: number } = {
         limit: 10,
-        offset: 0,
+        offset: 0
       }
       if (worklineId) {
         payload.workline_id = worklineId
@@ -98,7 +121,7 @@ watch(
       loading.value = false
     }
   },
-  { immediate: true },
+  { immediate: true }
 )
 </script>
 
@@ -146,8 +169,12 @@ watch(
 }
 
 @keyframes trs-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .trace-related-sidebar__list {

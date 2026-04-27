@@ -1622,26 +1622,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/callback/logs/correlation/{correlation_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 根据关联 ID 查询回调日志
-         * @description 根据 correlation_id 查询所有相关的回调日志（用于串联整个流程）
-         */
-        get: operations["callback_logs_correlation_by_correlation_id_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/callback/logs/device/{device_id}": {
         parameters: {
             query?: never;
@@ -1694,6 +1674,26 @@ export interface paths {
          * @description 根据 request_id 查询单条回调日志记录
          */
         get: operations["callback_logs_request_by_request_id_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/callback/logs/trace/{trace_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 根据 Trace ID 查询回调日志
+         * @description 根据 trace_id 查询所有相关的回调日志（用于串联整个流程）
+         */
+        get: operations["callback_logs_trace_by_trace_id_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2052,6 +2052,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workline/operations/manual/sessions/{session_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [biz:workline:update] 创建人工操作 */
+        post: operations["workline_operations_manual_sessions_by_session_id_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/operations/replay/inboxes/{inbox_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [biz:workline:update] Replay 历史 Inbox */
+        post: operations["workline_operations_replay_inboxes_by_inbox_id_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/operations/sandbox/pending": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list] 查询沙箱待处理 Outbox */
+        get: operations["workline_operations_sandbox_pending_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workline/runtime/devices": {
         parameters: {
             query?: never;
@@ -2137,6 +2188,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workline/trace/{trace_id}/blocking-point": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list] 查询 Trace 阻塞点诊断卡 */
+        get: operations["workline_trace_by_trace_id_blocking_point_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workline/trace/command/{command_code}": {
         parameters: {
             query?: never;
@@ -2146,23 +2214,6 @@ export interface paths {
         };
         /** [biz:workline:list] 根据 command_code 查询 Trace */
         get: operations["workline_trace_command_by_command_code_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/trace/correlation/{correlation_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:workline:list] 根据 correlation_id 查询 Trace */
-        get: operations["workline_trace_correlation_by_correlation_id_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2231,6 +2282,23 @@ export interface paths {
         };
         /** [biz:workline:list] 根据 session_id 查询 Trace */
         get: operations["workline_trace_session_by_session_id_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/trace/trace/{trace_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list] 根据 trace_id 查询 Trace */
+        get: operations["workline_trace_trace_by_trace_id_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2941,10 +3009,10 @@ export interface components {
         CallbackLogResponse: {
             /** Callback Type */
             callback_type: string;
+            /** Causation Id */
+            causation_id: string | null;
             /** Client Ip */
             client_ip: string | null;
-            /** Correlation Id */
-            correlation_id: string | null;
             /**
              * Created At
              * Format: date-time
@@ -2954,6 +3022,8 @@ export interface components {
             device_id: string;
             /** Error Message */
             error_message: string | null;
+            /** Event Id */
+            event_id: string | null;
             /** Failure Stage */
             failure_stage: string | null;
             /** Id */
@@ -2970,6 +3040,8 @@ export interface components {
             response_status: number;
             /** Response Time Ms */
             response_time_ms: number;
+            /** Trace Id */
+            trace_id: string | null;
             /**
              * Updated At
              * Format: date-time
@@ -3147,7 +3219,7 @@ export interface components {
              */
             device_role: string;
             /**
-             * @description 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE）
+             * @description 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE/MAINTENANCE）
              * @default IDLE
              */
             device_status: components["schemas"]["DeviceStatus"];
@@ -3295,7 +3367,7 @@ export interface components {
              */
             device_role: string;
             /**
-             * @description 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE）
+             * @description 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE/MAINTENANCE）
              * @default IDLE
              */
             device_status: components["schemas"]["DeviceStatus"];
@@ -3398,7 +3470,7 @@ export interface components {
          * @description 设备状态枚举（白皮书 5.2 节）
          * @enum {string}
          */
-        DeviceStatus: "IDLE" | "RUNNING" | "ERROR" | "OFFLINE";
+        DeviceStatus: "IDLE" | "RUNNING" | "ERROR" | "OFFLINE" | "MAINTENANCE";
         /**
          * DeviceUpdate
          * @description 设备更新 Schema - 所有字段可选
@@ -3446,7 +3518,7 @@ export interface components {
              * @description 设备业务角色（SCANNER, ROBOT_ARM, XRAY, CONVEYOR）
              */
             device_role?: string | null;
-            /** @description 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE） */
+            /** @description 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE/MAINTENANCE） */
             device_status?: components["schemas"]["DeviceStatus"] | null;
             /**
              * Diagnostic Profile
@@ -3532,6 +3604,32 @@ export interface components {
              * @description 所属作业线 ID
              */
             work_line_id?: number | null;
+        };
+        /** DiagnosticCardResponse */
+        DiagnosticCardResponse: {
+            context: components["schemas"]["TraceDiagnosticContextItem"];
+            /** Error Code */
+            error_code: string;
+            /** Error Domain */
+            error_domain: string;
+            /** Next Steps */
+            next_steps?: string[];
+            /** Operator Action */
+            operator_action?: string | null;
+            /** Problem Class */
+            problem_class: string;
+            /** Recoverability */
+            recoverability: string;
+            /** Severity */
+            severity: string;
+            /** Summary */
+            summary: string;
+            /** Technical Summary */
+            technical_summary?: string | null;
+            /** Title */
+            title: string;
+            /** User Message */
+            user_message: string;
         };
         /**
          * FilterCondition
@@ -4203,6 +4301,18 @@ export interface components {
              * @default 0
              */
             revoked_count: number;
+        };
+        /**
+         * ManualOperationRequest
+         * @description 人工操作请求。
+         */
+        ManualOperationRequest: {
+            /** Operation */
+            operation: string;
+            /** Operator Id */
+            operator_id: string;
+            /** Reason */
+            reason: string;
         };
         /**
          * MenuCreate
@@ -4879,6 +4989,16 @@ export interface components {
             session_uuid: string;
         };
         /**
+         * ReplayInboxRequest
+         * @description Replay 请求。
+         */
+        ReplayInboxRequest: {
+            /** Operator Id */
+            operator_id?: string | null;
+            /** Reason */
+            reason: string;
+        };
+        /**
          * ResetPasswordRequest
          * @description 管理员重置密码请求
          */
@@ -5171,6 +5291,38 @@ export interface components {
              * @description 响应数据
              */
             data?: unknown[] | null;
+            /**
+             * Message
+             * @description 响应消息
+             * @default 操作成功
+             * @example 操作成功
+             * @example 参数错误
+             */
+            message: string;
+            /**
+             * Timestamp
+             * @description 响应时间戳(ISO 8601格式)
+             * @example 2024-01-01T00:00:00Z
+             */
+            timestamp?: string;
+        };
+        /** ResponseSchemaModel[list[dict[str, Any]]] */
+        ResponseSchemaModel_list_dict_str__Any___: {
+            /**
+             * Code
+             * @description 响应码
+             * @default 1000
+             * @example 1000
+             * @example 2000
+             */
+            code: string;
+            /**
+             * Data
+             * @description 响应数据
+             */
+            data?: {
+                [key: string]: unknown;
+            }[] | null;
             /**
              * Message
              * @description 响应消息
@@ -5723,6 +5875,33 @@ export interface components {
              */
             timestamp?: string;
         };
+        /** ResponseSchemaModel[TraceBlockingPointResponse] */
+        ResponseSchemaModel_TraceBlockingPointResponse_: {
+            /**
+             * Code
+             * @description 响应码
+             * @default 1000
+             * @example 1000
+             * @example 2000
+             */
+            code: string;
+            /** @description 响应数据 */
+            data?: components["schemas"]["TraceBlockingPointResponse"] | null;
+            /**
+             * Message
+             * @description 响应消息
+             * @default 操作成功
+             * @example 操作成功
+             * @example 参数错误
+             */
+            message: string;
+            /**
+             * Timestamp
+             * @description 响应时间戳(ISO 8601格式)
+             * @example 2024-01-01T00:00:00Z
+             */
+            timestamp?: string;
+        };
         /** ResponseSchemaModel[TraceDetailResponse] */
         ResponseSchemaModel_TraceDetailResponse_: {
             /**
@@ -6037,8 +6216,6 @@ export interface components {
         RuntimeTraceListItem: {
             /** Command Code */
             command_code?: string | null;
-            /** Correlation Id */
-            correlation_id?: string | null;
             /** Current Wait Type */
             current_wait_type?: string | null;
             /** Deadline At */
@@ -6078,6 +6255,8 @@ export interface components {
             status: string;
             /** Step Code */
             step_code?: string | null;
+            /** Trace Id */
+            trace_id?: string | null;
             /** Workline Code */
             workline_code?: string | null;
             /** Workline Id */
@@ -6269,12 +6448,34 @@ export interface components {
              */
             sort_order: number;
         };
+        /** TraceBlockingPointResponse */
+        TraceBlockingPointResponse: {
+            /** Blocking Point */
+            blocking_point: string;
+            diagnostic_card: components["schemas"]["DiagnosticCardResponse"];
+            /** Evidence */
+            evidence?: {
+                [key: string]: unknown;
+            };
+            /** Next Steps */
+            next_steps?: string[];
+            /** Operator Action */
+            operator_action: string;
+            /** Owner */
+            owner: string;
+            /** Recoverability */
+            recoverability: string;
+            /** Request Id */
+            request_id?: string | null;
+            /** Trace Id */
+            trace_id: string;
+        };
         /** TraceCallbackLogItem */
         TraceCallbackLogItem: {
             /** Callback Type */
             callback_type: string;
-            /** Correlation Id */
-            correlation_id?: string | null;
+            /** Causation Id */
+            causation_id?: string | null;
             /**
              * Created At
              * Format: date-time
@@ -6284,6 +6485,8 @@ export interface components {
             device_id: string;
             /** Error Message */
             error_message?: string | null;
+            /** Event Id */
+            event_id?: string | null;
             /** Failure Stage */
             failure_stage?: string | null;
             /** Id */
@@ -6300,6 +6503,8 @@ export interface components {
             response_status: number;
             /** Response Time Ms */
             response_time_ms: number;
+            /** Trace Id */
+            trace_id?: string | null;
             /** Updated At */
             updated_at?: string | null;
         };
@@ -6317,8 +6522,6 @@ export interface components {
             command_code: string;
             /** Completed At */
             completed_at?: string | null;
-            /** Correlation Id */
-            correlation_id?: string | null;
             /** Device Id */
             device_id: number;
             /** Duration Ms */
@@ -6354,6 +6557,8 @@ export interface components {
             step_code?: string | null;
             /** Task Type */
             task_type: string;
+            /** Trace Id */
+            trace_id?: string | null;
             /** Workline Id */
             workline_id?: number | null;
         };
@@ -6361,20 +6566,22 @@ export interface components {
         TraceContextResponse: {
             /** Canonical Event Type */
             canonical_event_type?: string | null;
+            /** Causation Id */
+            causation_id?: string | null;
             /** Command Code */
             command_code?: string | null;
             /** Command Id */
             command_id?: number | null;
             /** Contract Version */
             contract_version?: string | null;
-            /** Correlation Id */
-            correlation_id?: string | null;
             /** Device Code */
             device_code?: string | null;
             /** Device Id */
             device_id?: number | null;
             /** Dispatch Key */
             dispatch_key?: string | null;
+            /** Event Id */
+            event_id?: string | null;
             /** Inbox Id */
             inbox_id?: number | null;
             /** Outbox Id */
@@ -6385,6 +6592,8 @@ export interface components {
             request_id?: string | null;
             /** Session Id */
             session_id?: number | null;
+            /** Trace Id */
+            trace_id?: string | null;
             /** Transition */
             transition?: string | null;
             /** Workline Id */
@@ -6398,24 +6607,26 @@ export interface components {
             commands?: components["schemas"]["TraceCommandItem"][];
             /** Diagnostics */
             diagnostics?: components["schemas"]["TraceDiagnosticItem"][];
+            /** Dispatch Attempts */
+            dispatch_attempts?: components["schemas"]["TraceDispatchAttemptItem"][];
             /** Inboxes */
             inboxes?: components["schemas"]["TraceInboxItem"][];
             /** Outboxes */
             outboxes?: components["schemas"]["TraceOutboxItem"][];
             session?: components["schemas"]["TraceSessionItem"] | null;
+            /** Sessions */
+            sessions?: components["schemas"]["TraceSessionItem"][];
             summary: components["schemas"]["TraceOverviewSummary"];
             /** Timelines */
             timelines?: components["schemas"]["TraceTimelineItem"][];
             trace: components["schemas"]["TraceContextResponse"];
         };
-        /** TraceDiagnosticItem */
-        TraceDiagnosticItem: {
+        /** TraceDiagnosticContextItem */
+        TraceDiagnosticContextItem: {
             /** Canonical Event Type */
             canonical_event_type?: string | null;
             /** Command Code */
             command_code?: string | null;
-            /** Correlation Id */
-            correlation_id?: string | null;
             /** Device Code */
             device_code?: string | null;
             /** Extra */
@@ -6432,12 +6643,81 @@ export interface components {
             request_id?: string | null;
             /** Session Id */
             session_id?: number | null;
+            /** Trace Id */
+            trace_id?: string | null;
             /** Transition */
             transition?: string | null;
             /** Workline Code */
             workline_code?: string | null;
             /** Workline Id */
             workline_id?: number | null;
+        };
+        /** TraceDiagnosticItem */
+        TraceDiagnosticItem: {
+            /** Canonical Event Type */
+            canonical_event_type?: string | null;
+            /** Command Code */
+            command_code?: string | null;
+            /** Device Code */
+            device_code?: string | null;
+            /** Extra */
+            extra?: {
+                [key: string]: unknown;
+            };
+            /** Inbox Id */
+            inbox_id?: number | null;
+            /** Outbox Id */
+            outbox_id?: number | null;
+            /** Plugin Key */
+            plugin_key?: string | null;
+            /** Request Id */
+            request_id?: string | null;
+            /** Session Id */
+            session_id?: number | null;
+            /** Trace Id */
+            trace_id?: string | null;
+            /** Transition */
+            transition?: string | null;
+            /** Workline Code */
+            workline_code?: string | null;
+            /** Workline Id */
+            workline_id?: number | null;
+        };
+        /** TraceDispatchAttemptItem */
+        TraceDispatchAttemptItem: {
+            /** Attempt No */
+            attempt_no: number;
+            /** Dispatch Key */
+            dispatch_key: string;
+            /** Error Message */
+            error_message?: string | null;
+            /** Finalized At */
+            finalized_at?: string | null;
+            /** Id */
+            id: number;
+            /** Lease Token */
+            lease_token: string;
+            /** Outbox Id */
+            outbox_id: number;
+            /** Response Json */
+            response_json?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Status */
+            status: string;
+            /** Target Code */
+            target_code?: string | null;
+            /** Target Type */
+            target_type?: string | null;
+            /** Trace Json */
+            trace_json?: {
+                [key: string]: unknown;
+            };
         };
         /** TraceInboxItem */
         TraceInboxItem: {
@@ -6446,14 +6726,16 @@ export interface components {
              * @default 0
              */
             attempt_count: number;
+            /** Causation Id */
+            causation_id?: string | null;
             /** Command Id */
             command_id?: number | null;
-            /** Correlation Id */
-            correlation_id?: string | null;
             /** Device Id */
             device_id?: number | null;
             /** Error Message */
             error_message?: string | null;
+            /** Event Id */
+            event_id?: string | null;
             /** Id */
             id: number;
             /** Kind */
@@ -6484,6 +6766,8 @@ export interface components {
             source_system: string;
             /** Status */
             status: string;
+            /** Trace Id */
+            trace_id?: string | null;
             /** Workline Id */
             workline_id?: number | null;
         };
@@ -6624,8 +6908,6 @@ export interface components {
             context_json: {
                 [key: string]: unknown;
             };
-            /** Correlation Id */
-            correlation_id?: string | null;
             /** Current Wait Token */
             current_wait_token?: string | null;
             /** Current Wait Type */
@@ -6665,6 +6947,8 @@ export interface components {
             status: string;
             /** Step Code */
             step_code?: string | null;
+            /** Trace Id */
+            trace_id?: string | null;
             /** Waiting Since */
             waiting_since?: string | null;
             /** Workline Id */
@@ -6678,8 +6962,6 @@ export interface components {
             actor_code?: string | null;
             /** Actor Type */
             actor_type: string;
-            /** Correlation Id */
-            correlation_id?: string | null;
             /** Failure Domain */
             failure_domain?: string | null;
             /** From Status */
@@ -6711,6 +6993,8 @@ export interface components {
             status: string;
             /** To Status */
             to_status?: string | null;
+            /** Trace Id */
+            trace_id?: string | null;
             /** Workline Id */
             workline_id: number;
         };
@@ -6983,6 +7267,11 @@ export interface components {
              */
             plugin_key?: string | null;
             /**
+             * @description 工作线运行模式
+             * @default AUTO
+             */
+            run_mode: components["schemas"]["WorkLineRunMode"];
+            /**
              * Runtime Config Json
              * @description 工作线运行时配置（重试、超时、会话归属等）
              */
@@ -7071,6 +7360,11 @@ export interface components {
              */
             plugin_key?: string | null;
             /**
+             * @description 工作线运行模式
+             * @default AUTO
+             */
+            run_mode: components["schemas"]["WorkLineRunMode"];
+            /**
              * Runtime Config Json
              * @description 工作线运行时配置（重试、超时、会话归属等）
              */
@@ -7096,6 +7390,12 @@ export interface components {
              */
             zone_name?: string | null;
         };
+        /**
+         * WorkLineRunMode
+         * @description 作业线运行模式枚举。
+         * @enum {string}
+         */
+        WorkLineRunMode: "AUTO" | "MANUAL" | "SIMULATION";
         /**
          * WorkLineUpdate
          * @description 作业线更新 Schema - 所有字段可选
@@ -7157,6 +7457,8 @@ export interface components {
              * @description 工作线执行插件标识
              */
             plugin_key?: string | null;
+            /** @description 工作线运行模式 */
+            run_mode?: components["schemas"]["WorkLineRunMode"] | null;
             /**
              * Runtime Config Json
              * @description 工作线运行时配置（重试、超时、会话归属等）
@@ -9971,39 +10273,6 @@ export interface operations {
             };
         };
     };
-    callback_logs_correlation_by_correlation_id_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                correlation_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     callback_logs_device_by_device_id_get: {
         parameters: {
             query?: {
@@ -10095,6 +10364,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CallbackLogResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    callback_logs_trace_by_trace_id_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */
@@ -10885,6 +11187,107 @@ export interface operations {
             };
         };
     };
+    workline_operations_manual_sessions_by_session_id_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManualOperationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_operations_replay_inboxes_by_inbox_id_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                inbox_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplayInboxRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_operations_sandbox_pending_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_list_dict_str__Any___"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     workline_runtime_devices_get: {
         parameters: {
             query: {
@@ -11020,12 +11423,12 @@ export interface operations {
             };
         };
     };
-    workline_trace_command_by_command_code_get: {
+    workline_trace_by_trace_id_blocking_point_get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                command_code: string;
+                trace_id: string;
             };
             cookie?: never;
         };
@@ -11037,7 +11440,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_TraceDetailResponse_"];
+                    "application/json": components["schemas"]["ResponseSchemaModel_TraceBlockingPointResponse_"];
                 };
             };
             /** @description Validation Error */
@@ -11051,12 +11454,12 @@ export interface operations {
             };
         };
     };
-    workline_trace_correlation_by_correlation_id_get: {
+    workline_trace_command_by_command_code_get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                correlation_id: string;
+                command_code: string;
             };
             cookie?: never;
         };
@@ -11183,6 +11586,37 @@ export interface operations {
             header?: never;
             path: {
                 session_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_TraceDetailResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_trace_trace_by_trace_id_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trace_id: string;
             };
             cookie?: never;
         };

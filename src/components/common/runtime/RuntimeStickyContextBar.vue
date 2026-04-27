@@ -4,23 +4,39 @@
       <div class="runtime-sticky-context__identity">
         <div class="runtime-sticky-context__eyebrow-row">
           <span class="runtime-sticky-context__eyebrow">{{ eyebrow }}</span>
-          <span v-if="code" class="runtime-sticky-context__code runtime-hero__code">{{ code }}</span>
+          <span
+            v-if="code"
+            class="runtime-sticky-context__code runtime-hero__code"
+          >
+            {{ code }}
+          </span>
         </div>
 
         <div class="runtime-sticky-context__title-row">
-          <strong class="runtime-sticky-context__title" :title="title">{{ title }}</strong>
+          <strong
+            class="runtime-sticky-context__title"
+            :title="title"
+          >
+            {{ title }}
+          </strong>
           <RuntimeStatusBadge
             v-if="status"
             :status="status"
             size="small"
           />
         </div>
-
       </div>
     </div>
 
-    <div v-if="facts.length" class="runtime-sticky-context__facts">
-      <div v-for="item in facts" :key="item.label" class="runtime-sticky-context__fact">
+    <div
+      v-if="facts.length"
+      class="runtime-sticky-context__facts"
+    >
+      <div
+        v-for="item in facts"
+        :key="item.label"
+        class="runtime-sticky-context__fact"
+      >
         <span>{{ item.label }}</span>
         <strong>{{ item.value }}</strong>
       </div>
@@ -36,17 +52,20 @@ interface RuntimeStickyContextFact {
   value: string
 }
 
-withDefaults(defineProps<{
-  eyebrow: string
-  title: string
-  code?: string | null
-  status?: string | null
-  facts?: RuntimeStickyContextFact[]
-}>(), {
-  code: null,
-  status: null,
-  facts: () => []
-})
+withDefaults(
+  defineProps<{
+    eyebrow: string
+    title: string
+    code?: string | null
+    status?: string | null
+    facts?: RuntimeStickyContextFact[]
+  }>(),
+  {
+    code: null,
+    status: null,
+    facts: () => []
+  }
+)
 </script>
 
 <style scoped>
