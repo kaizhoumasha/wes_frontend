@@ -440,6 +440,9 @@ function worklineLastActivityLabel(item: RuntimeWorklineSummary) {
 
 async function loadDetail(worklineId: number) {
   detail.value = await runtimeApiMethods.worklineDetail(worklineId).send()
+  if (selectedDeviceId.value) {
+    isDevicePanelOpen.value = true
+  }
   markRefreshedAt()
 }
 

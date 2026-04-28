@@ -226,13 +226,21 @@ describe('runtime route sync', () => {
 
     const component = await import('@/views/runtime/worklines/WorklineRuntimePage.vue')
 
-    shallowMount(component.default, createMountOptions())
+    const wrapper = shallowMount(component.default, createMountOptions())
 
     await flushViewUpdates()
     await flushViewUpdates()
 
-    // Device panel should be loaded via workline detail devices list
     expect(worklineDetailSend).toHaveBeenCalledTimes(1)
     expect(worklineDetailSend).toHaveBeenLastCalledWith(101)
+    const devicePanel = wrapper.findComponent({ name: 'DeviceDetailPanel' })
+    expect(devicePanel.exists()).toBe(true)
+    expect(devicePanel.props()).toMatchObject({
+      deviceId: 201,
+      worklineId: 101
+    })
+
+    await devicePanel.vm.$emit('close')
+    expect(routerMock.replace).toHaveBeenLastCalledWith({ query: { worklineId: '101' } })
   })
 })

@@ -40,7 +40,7 @@
           </span>
           <span class="runtime-trace-list__workline">{{ trace.workline_name || '—' }}</span>
           <span class="runtime-trace-list__barcode">
-            {{ trace.trace_id || trace.session_code }}
+            {{ trace.barcode || trace.business_key || trace.trace_id || trace.session_code }}
           </span>
           <span class="runtime-trace-list__domain">
             {{ translateFailureDomain(trace.failure_domain) || '&mdash;' }}

@@ -10,6 +10,8 @@ export interface RuntimeTraceListItem {
   session_code: string
   trace_id?: string | null
   request_id?: string | null
+  business_key?: string | null
+  barcode?: string | null
   workline_id: number
   workline_name?: string | null
   workline_code?: string | null
