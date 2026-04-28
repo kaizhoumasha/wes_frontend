@@ -43,7 +43,7 @@
             {{ trace.barcode || trace.business_key || trace.trace_id || trace.session_code }}
           </span>
           <span class="runtime-trace-list__domain">
-            {{ translateFailureDomain(trace.failure_domain) || '&mdash;' }}
+            {{ translateFailureDomain(trace.failure_domain) || '—' }}
           </span>
         </button>
       </div>
