@@ -325,10 +325,10 @@ const handleLogoutConfirm = async () => {
   transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 暗黑模式头部 */
+/* 暗黑模式头部 - 工业琥珀风格 */
 html.dark .app-header {
-  background: rgb(13 17 23 / 80%);
-  border-bottom: 1px solid rgb(0 243 255 / 10%);
+  background: rgb(15 23 42 / 80%);
+  border-bottom: 1px solid rgb(148 163 184 / 12%);
   backdrop-filter: blur(20px);
   box-shadow: 0 2px 20px rgb(0 0 0 / 30%);
 }
@@ -367,9 +367,9 @@ html.dark .collapse-button {
 }
 
 html.dark .collapse-button:hover {
-  color: #00f3ff;
-  background: rgb(0 243 255 / 8%);
-  border-color: rgb(0 243 255 / 30%);
+  color: #f59e0b;
+  background: rgb(245 158 11 / 8%);
+  border-color: rgb(245 158 11 / 30%);
 }
 
 /* 亮模式折叠按钮 */
@@ -380,9 +380,9 @@ html:not(.dark) .collapse-button {
 }
 
 html:not(.dark) .collapse-button:hover {
-  color: #409eff;
-  background: #ecf5ff;
-  border-color: #409eff;
+  color: #f59e0b;
+  background: rgb(245 158 11 / 8%);
+  border-color: rgb(245 158 11 / 30%);
 }
 
 .collapse-button {
@@ -415,7 +415,7 @@ html.dark .breadcrumb :deep(.el-breadcrumb__inner) {
 }
 
 html.dark .breadcrumb :deep(.el-breadcrumb__inner:hover) {
-  color: #00f3ff;
+  color: #f59e0b;
 }
 
 html.dark .breadcrumb :deep(.el-breadcrumb__item:last-child .el-breadcrumb__inner) {
@@ -435,7 +435,7 @@ html:not(.dark) .breadcrumb :deep(.el-breadcrumb__inner) {
 }
 
 html:not(.dark) .breadcrumb :deep(.el-breadcrumb__inner:hover) {
-  color: #409eff;
+  color: #f59e0b;
 }
 
 html:not(.dark) .breadcrumb :deep(.el-breadcrumb__item:last-child .el-breadcrumb__inner) {
@@ -475,9 +475,9 @@ html:not(.dark) .search-placeholder {
 }
 
 html:not(.dark) .search-placeholder:hover {
-  color: #409eff;
-  background: #ecf5ff;
-  border-color: #409eff;
+  color: #f59e0b;
+  background: rgb(245 158 11 / 8%);
+  border-color: rgb(245 158 11 / 30%);
 }
 
 .search-placeholder {
@@ -539,13 +539,13 @@ html:not(.dark) .dropdown-arrow {
 }
 
 html:not(.dark) .user-dropdown:hover .dropdown-arrow {
-  color: #409eff;
+  color: #f59e0b;
 }
 
 .user-avatar {
-  color: #00f3ff;
-  background: rgb(0 243 255 / 10%);
-  border: 1px solid rgb(0 243 255 / 30%);
+  color: #f59e0b;
+  background: rgb(245 158 11 / 10%);
+  border: 1px solid rgb(245 158 11 / 30%);
 }
 
 .user-name {
@@ -566,9 +566,9 @@ html:not(.dark) .user-dropdown:hover .dropdown-arrow {
 
 /* 暗黑模式下拉菜单 */
 html.dark .user-dropdown-menu {
-  background: rgb(10 14 39 / 98%);
-  border: 1px solid rgb(0 243 255 / 10%);
-  box-shadow: 0 0 40px rgb(0 243 255 / 10%);
+  background: rgb(15 23 42 / 98%);
+  border: 1px solid rgb(148 163 184 / 12%);
+  box-shadow: 0 4px 20px rgb(0 0 0 / 30%);
   backdrop-filter: blur(20px);
 }
 
@@ -577,12 +577,12 @@ html.dark .user-dropdown-menu :deep(.el-dropdown-menu__item) {
 }
 
 html.dark .user-dropdown-menu :deep(.el-dropdown-menu__item:hover) {
-  background: rgb(0 243 255 / 8%);
+  background: rgb(245 158 11 / 8%);
   color: rgb(255 255 255 / 100%);
 }
 
 html.dark .user-dropdown-menu :deep(.el-dropdown-menu__item.is-divided) {
-  border-top: 1px solid rgb(0 243 255 / 10%);
+  border-top: 1px solid rgb(148 163 184 / 12%);
 }
 
 /* 亮模式下拉菜单 */
@@ -597,8 +597,8 @@ html:not(.dark) .user-dropdown-menu :deep(.el-dropdown-menu__item) {
 }
 
 html:not(.dark) .user-dropdown-menu :deep(.el-dropdown-menu__item:hover) {
-  background: #ecf5ff;
-  color: #409eff;
+  background: rgb(245 158 11 / 8%);
+  color: #f59e0b;
 }
 
 html:not(.dark) .user-dropdown-menu :deep(.el-dropdown-menu__item.is-divided) {
@@ -649,16 +649,16 @@ html:not(.dark) .user-dropdown-menu :deep(.el-dropdown-menu__item.is-divided) {
 
 /* 暗黑模式时区标签 */
 html.dark .timezone-tag {
-  background: rgb(0 243 255 / 15%);
-  border-color: rgb(0 243 255 / 30%);
-  color: rgb(0 243 255 / 90%);
+  background: rgb(245 158 11 / 15%);
+  border-color: rgb(245 158 11 / 30%);
+  color: rgb(245 158 11 / 90%);
 }
 
 /* 亮模式时区标签 */
 html:not(.dark) .timezone-tag {
-  background: #ecf5ff;
-  border-color: #409eff;
-  color: #409eff;
+  background: rgb(245 158 11 / 8%);
+  border-color: rgb(245 158 11 / 30%);
+  color: #f59e0b;
 }
 
 /* ==================== 响应式设计 ==================== */

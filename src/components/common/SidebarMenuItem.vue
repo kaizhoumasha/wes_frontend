@@ -196,9 +196,9 @@ function handleMenuClick(): void {
 
 /* 暗黑模式子菜单弹出层 */
 html.dark .sidebar-submenu-popup {
-  background: rgb(10 14 39 / 98%) !important;
-  border: 1px solid rgb(0 243 255 / 10%) !important;
-  box-shadow: 0 0 40px rgb(0 243 255 / 10%) !important;
+  background: rgb(15 23 42 / 98%) !important;
+  border: 1px solid rgb(148 163 184 / 12%) !important;
+  box-shadow: 0 4px 20px rgb(0 0 0 / 30%) !important;
   backdrop-filter: blur(20px) !important;
 }
 
@@ -208,12 +208,12 @@ html.dark .sidebar-submenu-popup .el-menu-item {
 }
 
 html.dark .sidebar-submenu-popup .el-menu-item:hover {
-  background: rgb(0 243 255 / 8%) !important;
+  background: rgb(245 158 11 / 8%) !important;
 }
 
 html.dark .sidebar-submenu-popup .el-menu-item.is-active {
-  background: rgb(0 243 255 / 12%) !important;
-  color: #00f3ff !important;
+  background: rgb(245 158 11 / 12%) !important;
+  color: #f59e0b !important;
 }
 
 /* 亮模式子菜单弹出层 */
@@ -233,7 +233,7 @@ html:not(.dark) .sidebar-submenu-popup .el-menu-item:hover {
 }
 
 html:not(.dark) .sidebar-submenu-popup .el-menu-item.is-active {
-  background: #409eff !important;
+  background: #f59e0b !important;
   color: #fff !important;
 }
 

@@ -116,12 +116,12 @@ html:not(.dark) .default-layout {
 }
 
 .page-main::-webkit-scrollbar-thumb {
-  background: rgb(0 243 255 / 10%);
+  background: rgb(148 163 184 / 15%);
   border-radius: 4px;
 }
 
 .page-main::-webkit-scrollbar-thumb:hover {
-  background: rgb(0 243 255 / 20%);
+  background: rgb(148 163 184 / 25%);
 }
 
 /* ==================== 页面切换动画 ==================== */

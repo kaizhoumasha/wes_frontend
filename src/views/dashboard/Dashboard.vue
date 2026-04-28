@@ -289,8 +289,8 @@ html:not(.dark) .stat-card {
 }
 
 html:not(.dark) .stat-card:hover {
-  border-color: #409eff;
-  box-shadow: 0 4px 16px rgb(64 158 255 / 15%);
+  border-color: #f59e0b;
+  box-shadow: 0 4px 16px rgb(245 158 11 / 15%);
 }
 
 .stat-card::before {
@@ -322,9 +322,9 @@ html.dark .stat-icon {
 
 /* 亮模式统计图标 */
 html:not(.dark) .stat-icon {
-  color: #409eff;
+  color: #f59e0b;
   background: #ecf5ff;
-  border: 1px solid #409eff;
+  border: 1px solid #f59e0b;
 }
 
 .stat-icon {
@@ -359,6 +359,7 @@ html:not(.dark) .stat-label {
 }
 
 .stat-value {
+  font-family: 'JetBrains Mono', monospace;
   font-size: 32px;
   font-weight: 700;
   margin: 0;
@@ -497,7 +498,7 @@ html:not(.dark) .card-content p {
 }
 
 html:not(.dark) .card-content strong {
-  color: #409eff;
+  color: #f59e0b;
 }
 
 /* ==================== 响应式设计 ==================== */

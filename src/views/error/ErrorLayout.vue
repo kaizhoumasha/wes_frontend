@@ -135,15 +135,15 @@ html:not(.dark) .error-layout {
       0deg,
       transparent,
       transparent 60px,
-      rgb(0 243 255 / 6%) 60px,
-      rgb(0 243 255 / 6%) 61px
+      rgb(245 158 11 / 6%) 60px,
+      rgb(245 158 11 / 6%) 61px
     ),
     repeating-linear-gradient(
       90deg,
       transparent,
       transparent 60px,
-      rgb(0 243 255 / 6%) 60px,
-      rgb(0 243 255 / 6%) 61px
+      rgb(245 158 11 / 6%) 60px,
+      rgb(245 158 11 / 6%) 61px
     );
   animation: gridPulse 8s ease-in-out infinite;
 }
@@ -182,7 +182,7 @@ html:not(.dark) .grid-lines {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent 0%, #00f3ff 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, #f59e0b 50%, transparent 100%);
   animation: scanMove 4s linear infinite;
   opacity: 0.3;
 }
@@ -205,7 +205,7 @@ html:not(.dark) .scan-line {
   position: absolute;
   width: 60px;
   height: 60px;
-  border: 2px solid rgb(0 243 255 / 20%);
+  border: 2px solid rgb(245 158 11 / 20%);
 }
 
 html:not(.dark) .corner-decoration {
@@ -252,9 +252,9 @@ html:not(.dark) .corner-decoration {
 
 html.dark .error-container {
   background: rgb(22 27 34 / 85%);
-  border: 1px solid rgb(0 243 255 / 15%);
+  border: 1px solid rgb(245 158 11 / 15%);
   box-shadow:
-    0 0 0 1px rgb(0 243 255 / 5%),
+    0 0 0 1px rgb(245 158 11 / 5%),
     0 20px 40px -12px rgb(0 0 0 / 60%),
     inset 0 1px 0 rgb(255 255 255 / 3%);
   backdrop-filter: blur(16px);
@@ -286,10 +286,10 @@ html:not(.dark) .error-container {
 }
 
 html.dark .status-code {
-  color: #00f3ff;
+  color: #f59e0b;
   text-shadow:
-    0 0 10px rgb(0 243 255 / 50%),
-    0 0 40px rgb(0 243 255 / 20%);
+    0 0 10px rgb(245 158 11 / 50%),
+    0 0 40px rgb(245 158 11 / 20%);
 }
 
 html:not(.dark) .status-code {
@@ -501,7 +501,7 @@ html:not(.dark) .brand-footer {
 }
 
 html.dark .brand-text {
-  color: #00f3ff;
+  color: #f59e0b;
 }
 
 html:not(.dark) .brand-text {

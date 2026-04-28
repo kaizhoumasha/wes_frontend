@@ -61,13 +61,13 @@ const features: FeatureItem[] = [
 
 /* 暗黑模式特性项 */
 html.dark .feature-item {
-  background: rgb(0 243 255 / 3%);
-  border: 1px solid rgb(0 243 255 / 10%);
+  background: rgb(245 158 11 / 5%);
+  border: 1px solid rgb(148 163 184 / 12%);
 }
 
 html.dark .feature-item:hover {
-  background: rgb(0 243 255 / 8%);
-  border-color: rgb(0 243 255 / 30%);
+  background: rgb(245 158 11 / 10%);
+  border-color: rgb(245 158 11 / 30%);
 }
 
 html.dark .feature-item span {
@@ -82,7 +82,7 @@ html:not(.dark) .feature-item {
 
 html:not(.dark) .feature-item:hover {
   background: #ecf5ff;
-  border-color: #409eff;
+  border-color: #f59e0b;
 }
 
 html:not(.dark) .feature-item span {
@@ -108,11 +108,11 @@ html:not(.dark) .feature-item span {
 
 /* 暗黑模式图标颜色 */
 html.dark .feature-icon {
-  color: #00f3ff;
+  color: #f59e0b;
 }
 
 /* 亮模式图标颜色 */
 html:not(.dark) .feature-icon {
-  color: #409eff;
+  color: #f59e0b;
 }
 </style>
