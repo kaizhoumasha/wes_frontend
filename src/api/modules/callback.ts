@@ -25,8 +25,8 @@ export type ExternalResult = ContractResponseData<'/api/v1/callback/external', '
 export type RequestResult = ContractResponseData<'/api/v1/callback/logs/request/{request_id}', 'get'>
 export type RequestPathParams = ContractPathParams<'/api/v1/callback/logs/request/{request_id}', 'get'>
 
-export type CorrelationResult = ContractResponseData<'/api/v1/callback/logs/correlation/{correlation_id}', 'get'>
-export type CorrelationPathParams = ContractPathParams<'/api/v1/callback/logs/correlation/{correlation_id}', 'get'>
+export type TraceResult = ContractResponseData<'/api/v1/callback/logs/trace/{trace_id}', 'get'>
+export type TracePathParams = ContractPathParams<'/api/v1/callback/logs/trace/{trace_id}', 'get'>
 
 export type DeviceResult = ContractResponseData<'/api/v1/callback/logs/device/{device_id}', 'get'>
 export type DevicePathParams = ContractPathParams<'/api/v1/callback/logs/device/{device_id}', 'get'>
@@ -70,13 +70,13 @@ export const callbackApiMethods = {
   },
 
   /**
-   * 根据关联 ID 查询回调日志
-   * @description 根据 correlation_id 查询所有相关的回调日志（用于串联整个流程）
-   * @endpoint GET /api/v1/callback/logs/correlation/{correlation_id}
+   * 根据 Trace ID 查询回调日志
+   * @description 根据 trace_id 查询所有相关的回调日志（用于串联整个流程）
+   * @endpoint GET /api/v1/callback/logs/trace/{trace_id}
    * @returns alova method instance
    */
-  correlation(params: ContractPathParams<'/api/v1/callback/logs/correlation/{correlation_id}', 'get'>, config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/callback/logs/correlation/{correlation_id}', { params, config })
+  trace(params: ContractPathParams<'/api/v1/callback/logs/trace/{trace_id}', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/callback/logs/trace/{trace_id}', { params, config })
   },
 
   /**

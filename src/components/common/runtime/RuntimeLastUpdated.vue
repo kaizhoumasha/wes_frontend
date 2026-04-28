@@ -1,5 +1,8 @@
 <template>
-  <div class="runtime-last-updated" :class="{ 'is-frozen': frozen }">
+  <div
+    class="runtime-last-updated"
+    :class="{ 'is-frozen': frozen }"
+  >
     <span class="runtime-last-updated__label">{{ frozen ? '数据已冻结' : '最后刷新' }}</span>
     <span class="runtime-last-updated__value">{{ formattedValue }}</span>
   </div>

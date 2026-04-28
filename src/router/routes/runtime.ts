@@ -15,15 +15,15 @@ export const runtimeRoutes: RouteRecordRaw = {
   },
   children: [
     {
-      path: 'overview',
-      name: 'RuntimeOverview',
+      path: 'dashboard',
+      name: 'RuntimeDashboard',
       component: () => import('@/views/runtime/overview/RuntimeOverviewPage.vue'),
       meta: {
         requiresAuth: true,
-        title: '总览 Dashboard',
+        title: '运行中控台',
         permission: BIZ_PERMISSIONS.workline.page,
         menu: {
-          name: 'runtime:overview:menu',
+          name: 'runtime:dashboard:menu',
           parentName: 'runtime:system:menu',
           icon: 'ep:data-board',
           sortOrder: 1,
@@ -36,7 +36,7 @@ export const runtimeRoutes: RouteRecordRaw = {
       component: () => import('@/views/runtime/traces/TraceExplorerPage.vue'),
       meta: {
         requiresAuth: true,
-        title: 'Trace Explorer',
+        title: 'Trace 处置台',
         permission: BIZ_PERMISSIONS.workline.page,
         menu: {
           name: 'runtime:traces:menu',
@@ -52,7 +52,7 @@ export const runtimeRoutes: RouteRecordRaw = {
       component: () => import('@/views/runtime/worklines/WorklineRuntimePage.vue'),
       meta: {
         requiresAuth: true,
-        title: '工作线监控',
+        title: '工作线运行态',
         permission: BIZ_PERMISSIONS.workline.page,
         menu: {
           name: 'runtime:worklines:menu',
@@ -63,17 +63,17 @@ export const runtimeRoutes: RouteRecordRaw = {
       },
     },
     {
-      path: 'devices',
-      name: 'RuntimeDevices',
-      component: () => import('@/views/runtime/devices/DeviceRuntimePage.vue'),
+      path: 'sandbox',
+      name: 'RuntimeSandbox',
+      component: () => import('@/views/runtime/sandbox/RuntimeSandboxPage.vue'),
       meta: {
         requiresAuth: true,
-        title: '设备监控',
-        permission: BIZ_PERMISSIONS.device.page,
+        title: 'Sandbox 调试台',
+        permission: BIZ_PERMISSIONS.workline.update,
         menu: {
-          name: 'runtime:devices:menu',
+          name: 'runtime:sandbox:menu',
           parentName: 'runtime:system:menu',
-          icon: 'ep:cpu',
+          icon: 'ep:tools',
           sortOrder: 4,
         },
       },

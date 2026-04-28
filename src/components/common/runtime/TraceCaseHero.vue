@@ -1,14 +1,20 @@
 <template>
-  <el-card shadow="never" class="trace-case-hero">
+  <el-card
+    shadow="never"
+    class="trace-case-hero"
+  >
     <div class="trace-case-hero__top">
       <div class="trace-case-hero__identity">
         <div class="trace-case-hero__eyebrow-row runtime-hero__eyebrow-row">
-          <div class="trace-case-hero__eyebrow">案件摘要</div>
-          <span class="trace-case-hero__code runtime-hero__code">Session #{{ detail.trace.session_id ?? '—' }}</span>
+          <div class="trace-case-hero__eyebrow">Trace 摘要</div>
+          <span class="trace-case-hero__code runtime-hero__code">{{ traceCode }}</span>
         </div>
         <div class="trace-case-hero__title-row runtime-hero__title-row">
           <h2 class="trace-case-hero__title">{{ sessionCode }}</h2>
-          <RuntimeStatusBadge :status="detail.summary.session_status || detail.session?.status" pulse />
+          <RuntimeStatusBadge
+            :status="detail.summary.session_status || detail.session?.status"
+            pulse
+          />
         </div>
         <p class="trace-case-hero__headline">{{ headline }}</p>
       </div>
@@ -21,7 +27,9 @@
       </div>
       <div class="trace-case-hero__fact runtime-hero__fact">
         <span>等待类型</span>
-        <strong>{{ detail.summary.current_wait_type || detail.session?.current_wait_type || '—' }}</strong>
+        <strong>
+          {{ detail.summary.current_wait_type || detail.session?.current_wait_type || '—' }}
+        </strong>
       </div>
       <div class="trace-case-hero__fact runtime-hero__fact">
         <span>最后动作</span>
@@ -40,13 +48,17 @@
         <strong>{{ worklineDeviceText }}</strong>
       </div>
       <div class="trace-case-hero__fact trace-case-hero__fact--wide runtime-hero__fact">
-        <span>Request / Correlation</span>
+        <span>Trace / Request</span>
         <strong>{{ anchorText }}</strong>
       </div>
     </div>
 
     <div class="trace-case-hero__counts runtime-hero__counts">
-      <div v-for="item in counts" :key="item.label" class="trace-case-hero__count-card runtime-hero__count-card">
+      <div
+        v-for="item in counts"
+        :key="item.label"
+        class="trace-case-hero__count-card runtime-hero__count-card"
+      >
         <span>{{ item.label }}</span>
         <strong>{{ item.value }}</strong>
       </div>
@@ -66,10 +78,19 @@ const props = defineProps<{
   deviceName?: string | null
 }>()
 
-const sessionCode = computed(() => props.detail.session?.session_code || `SES-${props.detail.trace.session_id ?? '—'}`)
+const sessionCode = computed(
+  () => props.detail.session?.session_code || `SES-${props.detail.trace.session_id ?? '—'}`
+)
+const traceCode = computed(
+  () => props.detail.trace.trace_id || `Session #${props.detail.trace.session_id ?? '—'}`
+)
 
 const headline = computed(() => {
-  return props.detail.summary.latest_timeline_message || props.detail.session?.failure_message || '沿时间轴查看最后成功节点与第一处异常证据。'
+  return (
+    props.detail.summary.latest_timeline_message ||
+    props.detail.session?.failure_message ||
+    '沿时间轴查看最后成功节点与第一处异常证据。'
+  )
 })
 
 const lifecycleDuration = computed(() => {
@@ -77,18 +98,27 @@ const lifecycleDuration = computed(() => {
 })
 
 const failureText = computed(() => {
-  const parts = [props.detail.session?.failure_domain, props.detail.session?.failure_code].filter(Boolean)
+  const parts = [props.detail.session?.failure_domain, props.detail.session?.failure_code].filter(
+    Boolean
+  )
   return parts.length ? parts.join(' / ') : '—'
 })
 
 const worklineDeviceText = computed(() => {
-  const line = props.worklineName || (props.detail.trace.workline_id ? `工作线 #${props.detail.trace.workline_id}` : null)
-  const device = props.deviceName || props.detail.trace.device_code || (props.detail.trace.device_id ? `设备 #${props.detail.trace.device_id}` : null)
+  const line =
+    props.worklineName ||
+    (props.detail.trace.workline_id ? `工作线 #${props.detail.trace.workline_id}` : null)
+  const device =
+    props.deviceName ||
+    props.detail.trace.device_code ||
+    (props.detail.trace.device_id ? `设备 #${props.detail.trace.device_id}` : null)
   return [line, device].filter(Boolean).join(' · ') || '—'
 })
 
 const anchorText = computed(() => {
-  return [props.detail.trace.request_id, props.detail.trace.correlation_id].filter(Boolean).join(' · ') || '—'
+  return (
+    [props.detail.trace.trace_id, props.detail.trace.request_id].filter(Boolean).join(' · ') || '—'
+  )
 })
 
 const counts = computed(() => [
@@ -97,6 +127,7 @@ const counts = computed(() => [
   { label: 'Inbox', value: formatRuntimeCount(props.detail.summary.inboxes) },
   { label: 'Command', value: formatRuntimeCount(props.detail.summary.commands) },
   { label: 'Outbox', value: formatRuntimeCount(props.detail.summary.outboxes) },
+  { label: 'Attempt', value: formatRuntimeCount(props.detail.dispatch_attempts?.length ?? 0) },
   { label: 'Diagnostics', value: formatRuntimeCount(props.detail.summary.diagnostics) }
 ])
 </script>
@@ -176,7 +207,7 @@ const counts = computed(() => [
 }
 
 .trace-case-hero__counts {
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 
 @media (width <= 1279px) {

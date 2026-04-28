@@ -1,5 +1,8 @@
 <template>
-  <el-card shadow="never" class="device-health-hero">
+  <el-card
+    shadow="never"
+    class="device-health-hero"
+  >
     <div class="device-health-hero__header">
       <div class="device-health-hero__identity">
         <div class="device-health-hero__eyebrow-row runtime-hero__eyebrow-row">
@@ -8,9 +11,14 @@
         </div>
         <div class="device-health-hero__title-row runtime-hero__title-row">
           <h2 class="device-health-hero__title">{{ summary.device_name }}</h2>
-          <RuntimeStatusBadge :status="summary.device_status" pulse />
+          <RuntimeStatusBadge
+            :status="summary.device_status"
+            pulse
+          />
         </div>
-        <p class="device-health-hero__meta">{{ summary.device_role }} · 角色序号 #{{ summary.role_index }}</p>
+        <p class="device-health-hero__meta">
+          {{ summary.device_role }} · 角色序号 #{{ summary.role_index }}
+        </p>
       </div>
     </div>
 
@@ -25,7 +33,9 @@
       </div>
       <div class="device-health-hero__fact device-health-hero__fact--signal runtime-hero__fact">
         <span>命令态势</span>
-        <strong>当前 {{ summary.current_command_id || '—' }} · 未结 {{ summary.pending_command_count }}</strong>
+        <strong>
+          当前 {{ summary.current_command_id || '—' }} · 未结 {{ summary.pending_command_count }}
+        </strong>
       </div>
       <div class="device-health-hero__fact runtime-hero__fact">
         <span>最近回调</span>

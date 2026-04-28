@@ -304,6 +304,34 @@
     /* Dialog */
     --dialog-shadow: 0 8px 32px rgb(0, 0, 0, 0.4);
     --dialog-overlay-bg: rgb(0, 0, 0, 0.7);
+
+    /* ==================== Runtime Dark Theme Variables ==================== */
+    --runtime-surface: rgb(30 41 59 / 0.8);
+    --runtime-surface-strong: rgb(30 41 59 / 0.96);
+    --runtime-surface-muted: rgb(30 41 59 / 0.5);
+    --runtime-surface-subtle: rgb(30 41 59 / 0.6);
+    --runtime-surface-accent: rgb(245 158 11 / 0.08);
+    --runtime-surface-accent-strong: rgb(245 158 11 / 0.12);
+    --runtime-border: rgb(245 158 11 / 0.12);
+    --runtime-border-subtle: rgb(245 158 11 / 0.08);
+    --runtime-border-accent: rgb(245 158 11 / 0.18);
+    --runtime-border-strong: rgb(245 158 11 / 0.28);
+    --runtime-text-primary: #f8fafc;
+    --runtime-text-secondary: #94a3b8;
+    --runtime-text-muted: #64748b;
+    --runtime-text-emphasis: #f8fafc;
+    --runtime-tier-critical: #dc2626;
+    --runtime-tier-watch: #eab308;
+    --runtime-tier-known: #64748b;
+    --runtime-code-bg: rgb(15 23 42 / 0.8);
+    --runtime-shadow: 0 16px 40px rgb(0 0 0 / 0.3);
+    --runtime-hero-bg:
+      radial-gradient(circle at top right, rgb(245 158 11 / 0.12), transparent 32%),
+      linear-gradient(180deg, rgb(30 41 59 / 0.98), rgb(15 23 42 / 0.98));
+    --runtime-frozen-bg:
+      linear-gradient(90deg, rgb(234 179 8 / 0.08), rgb(30 41 59 / 0.96));
+    --runtime-rail: rgb(148 163 184 / 0.18);
+    --runtime-dot-ring: rgb(15 23 42 / 0.98);
   }
 
   /* ========================================
@@ -1280,6 +1308,10 @@
       linear-gradient(90deg, rgb(var(--color-warning-rgb), 0.14), rgb(255 255 255 / 0.96));
     --runtime-rail: rgb(148 163 184 / 0.22);
     --runtime-dot-ring: rgb(248 250 252 / 0.98);
+    --runtime-border: rgb(var(--color-primary-rgb) / 0.18);
+    --runtime-tier-critical: #dc2626;
+    --runtime-tier-watch: #eab308;
+    --runtime-tier-known: #64748b;
   }
 
   html:not(.dark) .runtime-page__title,

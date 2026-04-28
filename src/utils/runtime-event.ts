@@ -1,8 +1,9 @@
 import type { RuntimeSSEPayload } from '@/composables/useRuntimeSSE'
 
-type RuntimeEventScopeKey = 'session_id' | 'workline_id' | 'device_id'
+type RuntimeEventNumberScopeKey = 'session_id' | 'workline_id' | 'device_id'
 
 export interface RuntimeEventScope {
+  traceId?: string | null
   sessionId?: number | null
   worklineId?: number | null
   deviceId?: number | null
@@ -17,7 +18,10 @@ function normalizeRuntimeEventValue(value: unknown): string | null {
   return String(rawValue)
 }
 
-export function readRuntimeEventNumber(event: RuntimeSSEPayload | null | undefined, key: RuntimeEventScopeKey): number | null {
+export function readRuntimeEventNumber(
+  event: RuntimeSSEPayload | null | undefined,
+  key: RuntimeEventNumberScopeKey
+): number | null {
   const normalizedValue = normalizeRuntimeEventValue(event?.keys?.[key])
   if (!normalizedValue) {
     return null
@@ -27,12 +31,21 @@ export function readRuntimeEventNumber(event: RuntimeSSEPayload | null | undefin
   return Number.isFinite(numericValue) && numericValue > 0 ? numericValue : null
 }
 
+export function readRuntimeEventText(event: RuntimeSSEPayload | null | undefined, key: string): string | null {
+  return normalizeRuntimeEventValue(event?.keys?.[key])
+}
+
 export function isRelevantRuntimeEvent(
   event: RuntimeSSEPayload | null | undefined,
   scope: RuntimeEventScope
 ): boolean {
   if (!event?.keys) {
     return true
+  }
+
+  const eventTraceId = readRuntimeEventText(event, 'trace_id')
+  if (scope.traceId && eventTraceId) {
+    return scope.traceId === eventTraceId
   }
 
   const comparisons = [

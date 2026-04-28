@@ -24,7 +24,6 @@ const routerMock = {
 
 const worklinesSend = vi.fn()
 const worklineDetailSend = vi.fn()
-const devicesSend = vi.fn()
 const deviceDetailSend = vi.fn()
 
 vi.mock('vue-router', () => ({
@@ -37,6 +36,7 @@ vi.mock('@/composables/useRuntimePageChrome', () => ({
     connectionLabel: ref('SSE Connected'),
     connectionTone: ref('success'),
     lastEvent: ref(null),
+    lastRawEvent: ref(null),
     lastRefreshedAt: ref(null),
     live: ref(true),
     markRefreshedAt: vi.fn(),
@@ -75,9 +75,6 @@ vi.mock('@/api/modules/runtime', () => ({
     worklines: () => ({ send: worklinesSend }),
     worklineDetail: (worklineId: number) => ({
       send: () => worklineDetailSend(worklineId)
-    }),
-    devices: (worklineId: number) => ({
-      send: () => devicesSend(worklineId)
     }),
     deviceDetail: (deviceId: number, worklineId: number) => ({
       send: () => deviceDetailSend(deviceId, worklineId)
@@ -146,7 +143,7 @@ const deviceRows = [
 function createWorklineDetail(id: number) {
   return {
     summary: { ...worklineSummary, id, line_code: `WL-${id}`, line_name: `Workline ${id}` },
-    devices: [],
+    devices: deviceRows.filter(d => d.workline_id === id),
     active_sessions: [],
     recent_failed_traces: []
   }
@@ -198,12 +195,10 @@ describe('runtime route sync', () => {
 
     worklinesSend.mockReset()
     worklineDetailSend.mockReset()
-    devicesSend.mockReset()
     deviceDetailSend.mockReset()
 
     worklinesSend.mockResolvedValue([worklineSummary])
     worklineDetailSend.mockImplementation(async (worklineId: number) => createWorklineDetail(worklineId))
-    devicesSend.mockImplementation(async () => deviceRows)
     deviceDetailSend.mockImplementation(async (deviceId: number, worklineId: number) => createDeviceDetail(deviceId, worklineId))
   })
 
@@ -221,30 +216,31 @@ describe('runtime route sync', () => {
     expect(worklineDetailSend).toHaveBeenLastCalledWith(101)
   })
 
-  it('loads device detail once per route device change instead of preloading before sync', async () => {
-    routeState.path = '/runtime/devices'
-    routeState.fullPath = '/runtime/devices?worklineId=101&deviceId=201'
+  it('loads device detail panel when deviceId query param is present', async () => {
+    routeState.path = '/runtime/worklines'
+    routeState.fullPath = '/runtime/worklines?worklineId=101&deviceId=201'
     routeState.query = {
       worklineId: '101',
       deviceId: '201'
     }
 
-    const component = await import('@/views/runtime/devices/DeviceRuntimePage.vue')
+    const component = await import('@/views/runtime/worklines/WorklineRuntimePage.vue')
 
-    shallowMount(component.default, createMountOptions())
-
-    await flushViewUpdates()
-    await flushViewUpdates()
-    expect(deviceDetailSend).toHaveBeenCalledTimes(1)
-    expect(deviceDetailSend).toHaveBeenLastCalledWith(201, 101)
-
-    routeState.query = {
-      ...routeState.query,
-      deviceId: '202'
-    }
+    const wrapper = shallowMount(component.default, createMountOptions())
 
     await flushViewUpdates()
-    expect(deviceDetailSend).toHaveBeenCalledTimes(2)
-    expect(deviceDetailSend).toHaveBeenLastCalledWith(202, 101)
+    await flushViewUpdates()
+
+    expect(worklineDetailSend).toHaveBeenCalledTimes(1)
+    expect(worklineDetailSend).toHaveBeenLastCalledWith(101)
+    const devicePanel = wrapper.findComponent({ name: 'DeviceDetailPanel' })
+    expect(devicePanel.exists()).toBe(true)
+    expect(devicePanel.props()).toMatchObject({
+      deviceId: 201,
+      worklineId: 101
+    })
+
+    await devicePanel.vm.$emit('close')
+    expect(routerMock.replace).toHaveBeenLastCalledWith({ query: { worklineId: '101' } })
   })
 })

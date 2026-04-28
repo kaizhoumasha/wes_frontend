@@ -1027,7 +1027,9 @@ export const OPENAPI_SCHEMA_METADATA = {
       "client_ip",
       "user_agent",
       "request_id",
-      "correlation_id",
+      "trace_id",
+      "event_id",
+      "causation_id",
       "response_status",
       "response_time_ms",
       "error_message",
@@ -1079,8 +1081,20 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": true,
         "nullable": true
       },
-      "correlation_id": {
-        "title": "Correlation Id",
+      "trace_id": {
+        "title": "Trace Id",
+        "type": "string",
+        "required": true,
+        "nullable": true
+      },
+      "event_id": {
+        "title": "Event Id",
+        "type": "string",
+        "required": true,
+        "nullable": true
+      },
+      "causation_id": {
+        "title": "Causation Id",
         "type": "string",
         "required": true,
         "nullable": true
@@ -1551,7 +1565,7 @@ export const OPENAPI_SCHEMA_METADATA = {
         "maxLength": 255
       },
       "device_status": {
-        "description": "设备实时状态（IDLE/RUNNING/ERROR/OFFLINE）",
+        "description": "设备实时状态（IDLE/RUNNING/ERROR/OFFLINE/MAINTENANCE）",
         "required": false,
         "nullable": false,
         "default": "IDLE",
@@ -1788,7 +1802,7 @@ export const OPENAPI_SCHEMA_METADATA = {
         "maxLength": 255
       },
       "device_status": {
-        "description": "设备实时状态（IDLE/RUNNING/ERROR/OFFLINE）",
+        "description": "设备实时状态（IDLE/RUNNING/ERROR/OFFLINE/MAINTENANCE）",
         "required": false,
         "nullable": false,
         "default": "IDLE",
@@ -1881,7 +1895,8 @@ export const OPENAPI_SCHEMA_METADATA = {
           "IDLE",
           "RUNNING",
           "ERROR",
-          "OFFLINE"
+          "OFFLINE",
+          "MAINTENANCE"
         ]
       }
     }
@@ -2028,7 +2043,7 @@ export const OPENAPI_SCHEMA_METADATA = {
         "maxLength": 255
       },
       "device_status": {
-        "description": "设备实时状态（IDLE/RUNNING/ERROR/OFFLINE）",
+        "description": "设备实时状态（IDLE/RUNNING/ERROR/OFFLINE/MAINTENANCE）",
         "required": false,
         "nullable": true,
         "ref": "DeviceStatus"
@@ -2094,6 +2109,96 @@ export const OPENAPI_SCHEMA_METADATA = {
         "type": "integer",
         "required": true,
         "nullable": false
+      }
+    }
+  },
+  "DiagnosticCardResponse": {
+    "title": "DiagnosticCardResponse",
+    "required": [
+      "title",
+      "summary",
+      "error_code",
+      "error_domain",
+      "severity",
+      "recoverability",
+      "problem_class",
+      "user_message",
+      "context"
+    ],
+    "fields": {
+      "title": {
+        "title": "Title",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "summary": {
+        "title": "Summary",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "error_code": {
+        "title": "Error Code",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "error_domain": {
+        "title": "Error Domain",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "severity": {
+        "title": "Severity",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "recoverability": {
+        "title": "Recoverability",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "problem_class": {
+        "title": "Problem Class",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "user_message": {
+        "title": "User Message",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "operator_action": {
+        "title": "Operator Action",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "technical_summary": {
+        "title": "Technical Summary",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "next_steps": {
+        "title": "Next Steps",
+        "type": "array",
+        "required": false,
+        "nullable": false,
+        "items": {
+          "type": "string"
+        }
+      },
+      "context": {
+        "required": true,
+        "nullable": false,
+        "ref": "TraceDiagnosticContextItem"
       }
     }
   },
@@ -3121,6 +3226,39 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": false,
         "default": 0
+      }
+    }
+  },
+  "ManualOperationRequest": {
+    "title": "ManualOperationRequest",
+    "description": "人工操作请求。",
+    "required": [
+      "operation",
+      "operator_id",
+      "reason"
+    ],
+    "fields": {
+      "operation": {
+        "title": "Operation",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "operator_id": {
+        "title": "Operator Id",
+        "type": "string",
+        "required": true,
+        "nullable": false,
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "reason": {
+        "title": "Reason",
+        "type": "string",
+        "required": true,
+        "nullable": false,
+        "minLength": 1,
+        "maxLength": 500
       }
     }
   },
@@ -4283,6 +4421,30 @@ export const OPENAPI_SCHEMA_METADATA = {
       }
     }
   },
+  "ReplayInboxRequest": {
+    "title": "ReplayInboxRequest",
+    "description": "Replay 请求。",
+    "required": [
+      "reason"
+    ],
+    "fields": {
+      "reason": {
+        "title": "Reason",
+        "type": "string",
+        "required": true,
+        "nullable": false,
+        "minLength": 1,
+        "maxLength": 500
+      },
+      "operator_id": {
+        "title": "Operator Id",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 100
+      }
+    }
+  },
   "ResetPasswordRequest": {
     "title": "ResetPasswordRequest",
     "description": "管理员重置密码请求",
@@ -4990,6 +5152,41 @@ export const OPENAPI_SCHEMA_METADATA = {
       }
     }
   },
+  "ResponseSchemaModel_TraceBlockingPointResponse_": {
+    "title": "ResponseSchemaModel[TraceBlockingPointResponse]",
+    "required": [],
+    "fields": {
+      "code": {
+        "title": "Code",
+        "description": "响应码",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "1000"
+      },
+      "message": {
+        "title": "Message",
+        "description": "响应消息",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "操作成功"
+      },
+      "data": {
+        "description": "响应数据",
+        "required": false,
+        "nullable": true,
+        "ref": "TraceBlockingPointResponse"
+      },
+      "timestamp": {
+        "title": "Timestamp",
+        "description": "响应时间戳(ISO 8601格式)",
+        "type": "string",
+        "required": false,
+        "nullable": false
+      }
+    }
+  },
   "ResponseSchemaModel_TraceDetailResponse_": {
     "title": "ResponseSchemaModel[TraceDetailResponse]",
     "required": [],
@@ -5547,6 +5744,45 @@ export const OPENAPI_SCHEMA_METADATA = {
       }
     }
   },
+  "ResponseSchemaModel_list_dict_str__Any___": {
+    "title": "ResponseSchemaModel[list[dict[str, Any]]]",
+    "required": [],
+    "fields": {
+      "code": {
+        "title": "Code",
+        "description": "响应码",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "1000"
+      },
+      "message": {
+        "title": "Message",
+        "description": "响应消息",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "操作成功"
+      },
+      "data": {
+        "title": "Data",
+        "description": "响应数据",
+        "type": "array",
+        "required": false,
+        "nullable": true,
+        "items": {
+          "type": "object"
+        }
+      },
+      "timestamp": {
+        "title": "Timestamp",
+        "description": "响应时间戳(ISO 8601格式)",
+        "type": "string",
+        "required": false,
+        "nullable": false
+      }
+    }
+  },
   "RevokeSessionResponse": {
     "title": "RevokeSessionResponse",
     "description": "撤销会话响应 Schema",
@@ -5996,8 +6232,8 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": true,
         "nullable": false
       },
-      "correlation_id": {
-        "title": "Correlation Id",
+      "trace_id": {
+        "title": "Trace Id",
         "type": "string",
         "required": false,
         "nullable": true
@@ -6507,6 +6743,75 @@ export const OPENAPI_SCHEMA_METADATA = {
       }
     }
   },
+  "TraceBlockingPointResponse": {
+    "title": "TraceBlockingPointResponse",
+    "required": [
+      "trace_id",
+      "blocking_point",
+      "owner",
+      "recoverability",
+      "operator_action",
+      "diagnostic_card"
+    ],
+    "fields": {
+      "trace_id": {
+        "title": "Trace Id",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "request_id": {
+        "title": "Request Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "blocking_point": {
+        "title": "Blocking Point",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "owner": {
+        "title": "Owner",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "recoverability": {
+        "title": "Recoverability",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "operator_action": {
+        "title": "Operator Action",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "diagnostic_card": {
+        "required": true,
+        "nullable": false,
+        "ref": "DiagnosticCardResponse"
+      },
+      "evidence": {
+        "title": "Evidence",
+        "type": "object",
+        "required": false,
+        "nullable": false
+      },
+      "next_steps": {
+        "title": "Next Steps",
+        "type": "array",
+        "required": false,
+        "nullable": false,
+        "items": {
+          "type": "string"
+        }
+      }
+    }
+  },
   "TraceCallbackLogItem": {
     "title": "TraceCallbackLogItem",
     "required": [
@@ -6543,8 +6848,20 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": true
       },
-      "correlation_id": {
-        "title": "Correlation Id",
+      "trace_id": {
+        "title": "Trace Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "event_id": {
+        "title": "Event Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "causation_id": {
+        "title": "Causation Id",
         "type": "string",
         "required": false,
         "nullable": true
@@ -6630,8 +6947,8 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": true,
         "nullable": false
       },
-      "correlation_id": {
-        "title": "Correlation Id",
+      "trace_id": {
+        "title": "Trace Id",
         "type": "string",
         "required": false,
         "nullable": true
@@ -6754,8 +7071,20 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": true
       },
-      "correlation_id": {
-        "title": "Correlation Id",
+      "trace_id": {
+        "title": "Trace Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "event_id": {
+        "title": "Event Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "causation_id": {
+        "title": "Causation Id",
         "type": "string",
         "required": false,
         "nullable": true
@@ -6862,6 +7191,15 @@ export const OPENAPI_SCHEMA_METADATA = {
         "nullable": true,
         "ref": "TraceSessionItem"
       },
+      "sessions": {
+        "title": "Sessions",
+        "type": "array",
+        "required": false,
+        "nullable": false,
+        "items": {
+          "ref": "TraceSessionItem"
+        }
+      },
       "callback_logs": {
         "title": "Callback Logs",
         "type": "array",
@@ -6898,6 +7236,15 @@ export const OPENAPI_SCHEMA_METADATA = {
           "ref": "TraceOutboxItem"
         }
       },
+      "dispatch_attempts": {
+        "title": "Dispatch Attempts",
+        "type": "array",
+        "required": false,
+        "nullable": false,
+        "items": {
+          "ref": "TraceDispatchAttemptItem"
+        }
+      },
       "timelines": {
         "title": "Timelines",
         "type": "array",
@@ -6918,8 +7265,8 @@ export const OPENAPI_SCHEMA_METADATA = {
       }
     }
   },
-  "TraceDiagnosticItem": {
-    "title": "TraceDiagnosticItem",
+  "TraceDiagnosticContextItem": {
+    "title": "TraceDiagnosticContextItem",
     "required": [],
     "fields": {
       "request_id": {
@@ -6928,8 +7275,8 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": true
       },
-      "correlation_id": {
-        "title": "Correlation Id",
+      "trace_id": {
+        "title": "Trace Id",
         "type": "string",
         "required": false,
         "nullable": true
@@ -7002,6 +7349,184 @@ export const OPENAPI_SCHEMA_METADATA = {
       }
     }
   },
+  "TraceDiagnosticItem": {
+    "title": "TraceDiagnosticItem",
+    "required": [],
+    "fields": {
+      "request_id": {
+        "title": "Request Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "trace_id": {
+        "title": "Trace Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "inbox_id": {
+        "title": "Inbox Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "outbox_id": {
+        "title": "Outbox Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "command_code": {
+        "title": "Command Code",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "device_code": {
+        "title": "Device Code",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "workline_id": {
+        "title": "Workline Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "workline_code": {
+        "title": "Workline Code",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "plugin_key": {
+        "title": "Plugin Key",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "canonical_event_type": {
+        "title": "Canonical Event Type",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "transition": {
+        "title": "Transition",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "extra": {
+        "title": "Extra",
+        "type": "object",
+        "required": false,
+        "nullable": false
+      }
+    }
+  },
+  "TraceDispatchAttemptItem": {
+    "title": "TraceDispatchAttemptItem",
+    "required": [
+      "id",
+      "outbox_id",
+      "dispatch_key",
+      "attempt_no",
+      "lease_token",
+      "status",
+      "started_at"
+    ],
+    "fields": {
+      "id": {
+        "title": "Id",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "outbox_id": {
+        "title": "Outbox Id",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "dispatch_key": {
+        "title": "Dispatch Key",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "attempt_no": {
+        "title": "Attempt No",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "lease_token": {
+        "title": "Lease Token",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "status": {
+        "title": "Status",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "target_type": {
+        "title": "Target Type",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "target_code": {
+        "title": "Target Code",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "started_at": {
+        "title": "Started At",
+        "type": "string",
+        "format": "date-time",
+        "required": true,
+        "nullable": false
+      },
+      "finalized_at": {
+        "title": "Finalized At",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      },
+      "error_message": {
+        "title": "Error Message",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "response_json": {
+        "title": "Response Json",
+        "type": "object",
+        "required": false,
+        "nullable": false
+      },
+      "trace_json": {
+        "title": "Trace Json",
+        "type": "object",
+        "required": false,
+        "nullable": false
+      }
+    }
+  },
   "TraceInboxItem": {
     "title": "TraceInboxItem",
     "required": [
@@ -7037,6 +7562,24 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": true
       },
+      "trace_id": {
+        "title": "Trace Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "event_id": {
+        "title": "Event Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "causation_id": {
+        "title": "Causation Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
       "workline_id": {
         "title": "Workline Id",
         "type": "integer",
@@ -7058,12 +7601,6 @@ export const OPENAPI_SCHEMA_METADATA = {
       "session_id": {
         "title": "Session Id",
         "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "correlation_id": {
-        "title": "Correlation Id",
-        "type": "string",
         "required": false,
         "nullable": true
       },
@@ -7452,8 +7989,8 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": true
       },
-      "correlation_id": {
-        "title": "Correlation Id",
+      "trace_id": {
+        "title": "Trace Id",
         "type": "string",
         "required": false,
         "nullable": true
@@ -7588,8 +8125,8 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": true,
         "nullable": false
       },
-      "correlation_id": {
-        "title": "Correlation Id",
+      "trace_id": {
+        "title": "Trace Id",
         "type": "string",
         "required": false,
         "nullable": true
@@ -8201,6 +8738,13 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": false
       },
+      "run_mode": {
+        "description": "工作线运行模式",
+        "required": false,
+        "nullable": false,
+        "default": "AUTO",
+        "ref": "WorkLineRunMode"
+      },
       "owner_team": {
         "title": "Owner Team",
         "description": "工作线主责团队",
@@ -8330,6 +8874,13 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": false
       },
+      "run_mode": {
+        "description": "工作线运行模式",
+        "required": false,
+        "nullable": false,
+        "default": "AUTO",
+        "ref": "WorkLineRunMode"
+      },
       "owner_team": {
         "title": "Owner Team",
         "description": "工作线主责团队",
@@ -8395,6 +8946,25 @@ export const OPENAPI_SCHEMA_METADATA = {
         "type": "integer",
         "required": true,
         "nullable": false
+      }
+    }
+  },
+  "WorkLineRunMode": {
+    "title": "WorkLineRunMode",
+    "description": "作业线运行模式枚举。",
+    "required": [],
+    "fields": {
+      "__enum": {
+        "title": "WorkLineRunMode",
+        "description": "作业线运行模式枚举。",
+        "type": "string",
+        "required": true,
+        "nullable": false,
+        "enum": [
+          "AUTO",
+          "MANUAL",
+          "SIMULATION"
+        ]
       }
     }
   },
@@ -8467,6 +9037,12 @@ export const OPENAPI_SCHEMA_METADATA = {
         "type": "object",
         "required": false,
         "nullable": true
+      },
+      "run_mode": {
+        "description": "工作线运行模式",
+        "required": false,
+        "nullable": true,
+        "ref": "WorkLineRunMode"
       },
       "owner_team": {
         "title": "Owner Team",

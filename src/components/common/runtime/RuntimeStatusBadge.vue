@@ -1,6 +1,12 @@
 <template>
-  <span class="runtime-status-badge" :class="[`runtime-status-badge--${resolvedTone}`, `runtime-status-badge--${size}`]">
-    <span class="runtime-status-badge__dot" :class="{ 'is-pulse': pulse }" />
+  <span
+    class="runtime-status-badge"
+    :class="[`runtime-status-badge--${resolvedTone}`, `runtime-status-badge--${size}`]"
+  >
+    <span
+      class="runtime-status-badge__dot"
+      :class="{ 'is-pulse': pulse }"
+    />
     <span class="runtime-status-badge__label">{{ resolvedLabel }}</span>
   </span>
 </template>

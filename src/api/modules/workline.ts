@@ -6,7 +6,7 @@
  * ⚠️  请勿手动编辑 AUTO GENERATED 区域
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 资源: /api/v1/workline/runtime, /api/v1/workline/trace
+ * 资源: /api/v1/workline/operations, /api/v1/workline/runtime, /api/v1/workline/trace
  */
 import { contractMethods } from '@/api/contract/client'
 import type {
@@ -17,6 +17,17 @@ import type {
   ContractResponseData,
 } from '@/api/contract/types'
 import type { components, paths } from '@/api/generated/openapi-types'
+
+export type SandboxPendingResult = ContractResponseData<'/api/v1/workline/operations/sandbox/pending', 'get'>
+export type SandboxPendingQuery = ContractQueryParams<'/api/v1/workline/operations/sandbox/pending', 'get'>
+
+export type ReplayInboxesResult = ContractResponseData<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>
+export type ReplayInboxesPathParams = ContractPathParams<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>
+export type ReplayInboxesInput = ContractRequestBody<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>
+
+export type ManualSessionsResult = ContractResponseData<'/api/v1/workline/operations/manual/sessions/{session_id}', 'post'>
+export type ManualSessionsPathParams = ContractPathParams<'/api/v1/workline/operations/manual/sessions/{session_id}', 'post'>
+export type ManualSessionsInput = ContractRequestBody<'/api/v1/workline/operations/manual/sessions/{session_id}', 'post'>
 
 export type OverviewResult = ContractResponseData<'/api/v1/workline/runtime/overview', 'get'>
 
@@ -35,8 +46,11 @@ export type GetDevicesQuery = ContractQueryParams<'/api/v1/workline/runtime/devi
 export type RequestResult = ContractResponseData<'/api/v1/workline/trace/request/{request_id}', 'get'>
 export type RequestPathParams = ContractPathParams<'/api/v1/workline/trace/request/{request_id}', 'get'>
 
-export type CorrelationResult = ContractResponseData<'/api/v1/workline/trace/correlation/{correlation_id}', 'get'>
-export type CorrelationPathParams = ContractPathParams<'/api/v1/workline/trace/correlation/{correlation_id}', 'get'>
+export type TraceResult = ContractResponseData<'/api/v1/workline/trace/trace/{trace_id}', 'get'>
+export type TracePathParams = ContractPathParams<'/api/v1/workline/trace/trace/{trace_id}', 'get'>
+
+export type BlockingPointResult = ContractResponseData<'/api/v1/workline/trace/{trace_id}/blocking-point', 'get'>
+export type BlockingPointPathParams = ContractPathParams<'/api/v1/workline/trace/{trace_id}/blocking-point', 'get'>
 
 export type SessionResult = ContractResponseData<'/api/v1/workline/trace/session/{session_id}', 'get'>
 export type SessionPathParams = ContractPathParams<'/api/v1/workline/trace/session/{session_id}', 'get'>
@@ -51,6 +65,33 @@ export type QueryResult = ContractResponseData<'/api/v1/workline/trace/query', '
 export type QueryInput = ContractRequestBody<'/api/v1/workline/trace/query', 'post'>
 
 export const worklineApiMethods = {
+  /**
+   * [biz:workline:list] 查询沙箱待处理 Outbox
+   * @endpoint GET /api/v1/workline/operations/sandbox/pending
+   * @returns alova method instance
+   */
+  sandboxPending(query?: ContractQueryParams<'/api/v1/workline/operations/sandbox/pending', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/operations/sandbox/pending', { query, config })
+  },
+
+  /**
+   * [biz:workline:update] Replay 历史 Inbox
+   * @endpoint POST /api/v1/workline/operations/replay/inboxes/{inbox_id}
+   * @returns alova method instance
+   */
+  replayInboxes(params: ContractPathParams<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>, body: ContractRequestBody<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/workline/operations/replay/inboxes/{inbox_id}', { params, body, config })
+  },
+
+  /**
+   * [biz:workline:update] 创建人工操作
+   * @endpoint POST /api/v1/workline/operations/manual/sessions/{session_id}
+   * @returns alova method instance
+   */
+  manualSessions(params: ContractPathParams<'/api/v1/workline/operations/manual/sessions/{session_id}', 'post'>, body: ContractRequestBody<'/api/v1/workline/operations/manual/sessions/{session_id}', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/workline/operations/manual/sessions/{session_id}', { params, body, config })
+  },
+
   /**
    * [biz:workline:list] 运行监控总览
    * @endpoint GET /api/v1/workline/runtime/overview
@@ -106,12 +147,21 @@ export const worklineApiMethods = {
   },
 
   /**
-   * [biz:workline:list] 根据 correlation_id 查询 Trace
-   * @endpoint GET /api/v1/workline/trace/correlation/{correlation_id}
+   * [biz:workline:list] 根据 trace_id 查询 Trace
+   * @endpoint GET /api/v1/workline/trace/trace/{trace_id}
    * @returns alova method instance
    */
-  correlation(params: ContractPathParams<'/api/v1/workline/trace/correlation/{correlation_id}', 'get'>, config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/workline/trace/correlation/{correlation_id}', { params, config })
+  trace(params: ContractPathParams<'/api/v1/workline/trace/trace/{trace_id}', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/trace/trace/{trace_id}', { params, config })
+  },
+
+  /**
+   * [biz:workline:list] 查询 Trace 阻塞点诊断卡
+   * @endpoint GET /api/v1/workline/trace/{trace_id}/blocking-point
+   * @returns alova method instance
+   */
+  blockingPoint(params: ContractPathParams<'/api/v1/workline/trace/{trace_id}/blocking-point', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/trace/{trace_id}/blocking-point', { params, config })
   },
 
   /**

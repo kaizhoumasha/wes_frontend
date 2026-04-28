@@ -8,8 +8,10 @@ export interface RuntimeStatCard {
 export interface RuntimeTraceListItem {
   session_id: number
   session_code: string
-  correlation_id?: string | null
+  trace_id?: string | null
   request_id?: string | null
+  business_key?: string | null
+  barcode?: string | null
   workline_id: number
   workline_name?: string | null
   workline_code?: string | null
@@ -65,7 +67,9 @@ export interface TraceOverviewSummary {
 
 export interface TraceContextResponse {
   request_id?: string | null
-  correlation_id?: string | null
+  trace_id?: string | null
+  event_id?: string | null
+  causation_id?: string | null
   workline_id?: number | null
   session_id?: number | null
   inbox_id?: number | null
@@ -86,7 +90,9 @@ export interface TraceCallbackLogItem {
   callback_type: string
   device_id: string
   request_id?: string | null
-  correlation_id?: string | null
+  trace_id?: string | null
+  event_id?: string | null
+  causation_id?: string | null
   response_status: number
   response_time_ms: number
   error_message?: string | null
@@ -102,11 +108,13 @@ export interface TraceInboxItem {
   kind: string
   source_system: string
   source_message_id?: string | null
+  trace_id?: string | null
+  event_id?: string | null
+  causation_id?: string | null
   workline_id?: number | null
   device_id?: number | null
   command_id?: number | null
   session_id?: number | null
-  correlation_id?: string | null
   status: string
   received_at: string
   processed_at?: string | null
@@ -127,7 +135,7 @@ export interface TraceSessionItem {
   barcode?: string | null
   status: string
   step_code?: string | null
-  correlation_id?: string | null
+  trace_id?: string | null
   started_at?: string | null
   ended_at?: string | null
   current_wait_type?: string | null
@@ -149,9 +157,9 @@ export interface TraceCommandItem {
   id: number
   device_id: number
   command_code: string
-  correlation_id?: string | null
+  trace_id?: string | null
   workline_id?: number | null
-  session_id?: string | null
+  session_id?: string | number | null
   task_type: string
   status: string
   result?: string | null
@@ -191,7 +199,7 @@ export interface TraceTimelineItem {
   id: number
   session_id: number
   workline_id: number
-  correlation_id?: string | null
+  trace_id?: string | null
   seq_no: number
   occurred_at: string
   stage: string
@@ -210,7 +218,7 @@ export interface TraceTimelineItem {
 
 export interface TraceDiagnosticItem {
   request_id?: string | null
-  correlation_id?: string | null
+  trace_id?: string | null
   session_id?: number | null
   inbox_id?: number | null
   outbox_id?: number | null
@@ -224,14 +232,59 @@ export interface TraceDiagnosticItem {
   extra: Record<string, unknown>
 }
 
+export interface TraceDispatchAttemptItem {
+  id: number
+  outbox_id: number
+  dispatch_key: string
+  attempt_no: number
+  lease_token: string
+  status: string
+  target_type?: string | null
+  target_code?: string | null
+  started_at: string
+  finalized_at?: string | null
+  error_message?: string | null
+  response_json?: Record<string, unknown>
+  trace_json?: Record<string, unknown>
+}
+
+export interface DiagnosticCardResponse {
+  title: string
+  summary: string
+  error_code: string
+  error_domain: string
+  severity: string
+  recoverability: string
+  problem_class: string
+  user_message: string
+  operator_action?: string | null
+  technical_summary?: string | null
+  next_steps: string[]
+  context: TraceDiagnosticItem
+}
+
+export interface TraceBlockingPointResponse {
+  trace_id: string
+  request_id?: string | null
+  blocking_point: string
+  owner: string
+  recoverability: string
+  operator_action: string
+  diagnostic_card: DiagnosticCardResponse
+  evidence: Record<string, unknown>
+  next_steps: string[]
+}
+
 export interface TraceDetailResponse {
   trace: TraceContextResponse
   summary: TraceOverviewSummary
   session?: TraceSessionItem | null
+  sessions: TraceSessionItem[]
   callback_logs: TraceCallbackLogItem[]
   inboxes: TraceInboxItem[]
   commands: TraceCommandItem[]
   outboxes: TraceOutboxItem[]
+  dispatch_attempts: TraceDispatchAttemptItem[]
   timelines: TraceTimelineItem[]
   diagnostics: TraceDiagnosticItem[]
 }
@@ -313,8 +366,44 @@ export interface RuntimeDeviceHealthSummary {
 
 export interface RuntimeOverviewResponse {
   stats: RuntimeStatCard[]
+  recent_active_traces: RuntimeTraceListItem[]
   recent_failed_traces: RuntimeTraceListItem[]
   hot_worklines: RuntimeWorklineSummary[]
   abnormal_devices: RuntimeDeviceSummary[]
   device_health: RuntimeDeviceHealthSummary
+}
+
+export interface SandboxPendingOutbox {
+  id: number
+  session_id?: number | null
+  workline_id?: number | null
+  dispatch_key?: string | null
+  dispatch_type?: string | null
+  target_type?: string | null
+  target_code?: string | null
+  status?: string | null
+  payload_json?: Record<string, unknown> | null
+}
+
+export interface WorklineOperationRecord {
+  id: number
+  kind?: string | null
+  source_message_id?: string | null
+  trace_id?: string | null
+  session_id?: number | null
+  workline_id?: number | null
+  status?: string | null
+}
+
+export interface ReplayInboxPayload {
+  reason: string
+  operator_id?: string | null
+}
+
+export type ManualOperationType = 'HOLD' | 'RESUME' | 'CANCEL'
+
+export interface ManualSessionOperationPayload {
+  operation: ManualOperationType
+  operator_id: string
+  reason: string
 }

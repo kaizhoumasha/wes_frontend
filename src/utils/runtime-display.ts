@@ -291,6 +291,17 @@ export function getDeviceRiskScore(item: RuntimeDeviceSummary): number {
   return score
 }
 
+export function aggregateSessionsByDevice(sessions: RuntimeTraceListItem[]): Map<number, number> {
+  const counts = new Map<number, number>()
+
+  for (const session of sessions) {
+    if (session.device_id == null) continue
+    counts.set(session.device_id, (counts.get(session.device_id) ?? 0) + 1)
+  }
+
+  return counts
+}
+
 export function pickDominantValue(values: string[]): string {
   const counts = new Map<string, number>()
 

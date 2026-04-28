@@ -17,6 +17,11 @@ function createSSEStreamResponse(chunks: string[]) {
   }
 }
 
+async function flushPromises() {
+  await Promise.resolve()
+  await Promise.resolve()
+}
+
 describe('sse-client', () => {
   beforeEach(() => {
     vi.resetModules()
@@ -56,8 +61,9 @@ describe('sse-client', () => {
 
     await vi.waitFor(() => {
       expect(fetchMock).toHaveBeenCalledTimes(1)
-      expect(sse.getConnectionState()).toBe('error')
     })
+    await flushPromises()
+    expect(sse.getConnectionState()).toBe('connecting')
 
     sse.disconnect()
     sse.connect()
@@ -104,8 +110,9 @@ describe('sse-client', () => {
 
     await vi.waitFor(() => {
       expect(fetchMock).toHaveBeenCalledTimes(1)
-      expect(sse.getConnectionState()).toBe('error')
     })
+    await flushPromises()
+    expect(sse.getConnectionState()).toBe('connecting')
 
     sse.resetSSESession()
     sse.connect()
@@ -139,5 +146,67 @@ describe('sse-client', () => {
     const sse = await import('@/api/services/sse-client')
 
     expect(sse.getSSEUrl()).toBe(new URL('/api/v1/sys/events/stream', window.location.origin).toString())
+  })
+
+  it('ignores stale network errors after a connection is replaced', async () => {
+    const staleAbortError = new TypeError('network error')
+    const fetchMock = vi.fn((_url: string, init?: RequestInit) => {
+      return new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener('abort', () => reject(staleAbortError), { once: true })
+      })
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    vi.doMock('@/config/env', () => ({
+      env: {
+        sseUrl: 'http://example.com/api/v1/sys/events/stream'
+      }
+    }))
+
+    vi.doMock('@/api/services/token-refresh', () => ({
+      getAccessToken: () => 'token-123'
+    }))
+
+    const sse = await import('@/api/services/sse-client')
+
+    sse.connect()
+    sse.connect()
+
+    await vi.waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(2)
+    })
+    await flushPromises()
+
+    expect(console.error).not.toHaveBeenCalledWith('[SSE] 连接错误:', staleAbortError)
+    expect(sse.getConnectionState()).toBe('connecting')
+  })
+
+  it('keeps recoverable stream closure out of the error console', async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(createSSEStreamResponse([]))
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    vi.doMock('@/config/env', () => ({
+      env: {
+        sseUrl: 'http://example.com/api/v1/sys/events/stream'
+      }
+    }))
+
+    vi.doMock('@/api/services/token-refresh', () => ({
+      getAccessToken: () => 'token-123'
+    }))
+
+    const sse = await import('@/api/services/sse-client')
+
+    sse.connect()
+
+    await vi.waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+    })
+    await flushPromises()
+    expect(sse.getConnectionState()).toBe('connecting')
+
+    expect(console.error).not.toHaveBeenCalledWith('[SSE] 连接错误:', expect.any(Error))
   })
 })

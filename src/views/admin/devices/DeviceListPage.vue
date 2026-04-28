@@ -9,7 +9,7 @@ import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
 import { usePermission } from '@/composables/usePermission'
 import CrudPageContainer from '@/components/common/CrudPageContainer.vue'
 import type { DevicesItem as Device } from '@/api/modules/devices'
-import { buildRuntimeDeviceQuery, buildRuntimeTraceQuery } from '@/utils/runtime-route'
+import { buildRuntimeWorklineQuery, buildRuntimeTraceQuery } from '@/utils/runtime-route'
 import { createDevicePageConfig } from './config/pageConfig'
 
 const router = useRouter()
@@ -26,8 +26,8 @@ function openRuntime(device: Device) {
   }
 
   router.push({
-    name: 'RuntimeDevices',
-    query: buildRuntimeDeviceQuery(device.id, device.work_line_id)
+    name: 'RuntimeWorklines',
+    query: buildRuntimeWorklineQuery(device.work_line_id, device.id)
   })
 }
 
@@ -49,6 +49,6 @@ function openTrace(device: Device) {
 const config = createDevicePageConfig({
   openRuntime,
   openTrace,
-  canOpenTrace,
+  canOpenTrace
 })
 </script>

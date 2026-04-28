@@ -1,38 +1,46 @@
 <template>
   <div class="workline-topology-strip">
-    <template v-for="(device, index) in devices" :key="device.id">
+    <template
+      v-for="(device, index) in devices"
+      :key="device.id"
+    >
       <button
         type="button"
         class="workline-topology-strip__node"
-        :class="[statusClass(device.device_status), { 'is-selected': selectedDeviceId === device.id, 'is-interactive': interactive }]"
+        :class="[
+          statusClass(device.device_status),
+          { 'is-selected': selectedDeviceId === device.id, 'is-interactive': interactive }
+        ]"
         @click="emitSelect(device.id)"
       >
         <div class="workline-topology-strip__node-top">
-          <RuntimeStatusBadge :status="device.device_status" size="small" />
-          <span class="workline-topology-strip__role">{{ device.device_role }} · #{{ device.role_index }}</span>
+          <RuntimeStatusBadge
+            :status="device.device_status"
+            size="small"
+          />
+          <span class="workline-topology-strip__role">
+            {{ device.device_role }} · #{{ device.role_index }}
+          </span>
+          <span
+            v-if="device.maintenance_mode"
+            class="workline-topology-strip__maintenance"
+          >
+            维护
+          </span>
         </div>
         <div class="workline-topology-strip__name">{{ device.device_name }}</div>
         <div class="workline-topology-strip__code">{{ device.device_code }}</div>
-        <div class="workline-topology-strip__meta-grid">
-          <div>
-            <span>心跳</span>
-            <strong>{{ formatRuntimeDateTime(device.last_heartbeat_at) }}</strong>
-          </div>
-          <div>
-            <span>维护</span>
-            <strong>{{ device.maintenance_mode ? 'ON' : 'OFF' }}</strong>
-          </div>
-          <div>
-            <span>当前命令</span>
-            <strong>{{ device.current_command_id || '—' }}</strong>
-          </div>
-          <div>
-            <span>错误码</span>
-            <strong>{{ device.error_code || '—' }}</strong>
-          </div>
+        <div
+          class="workline-topology-strip__signal"
+          :class="signalClass(device)"
+        >
+          {{ signalText(device) }}
         </div>
       </button>
-      <div v-if="index < devices.length - 1" class="workline-topology-strip__edge">
+      <div
+        v-if="index < devices.length - 1"
+        class="workline-topology-strip__edge"
+      >
         <span class="workline-topology-strip__edge-line" />
         <span class="workline-topology-strip__edge-arrow">→</span>
       </div>
@@ -43,18 +51,20 @@
 <script setup lang="ts">
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import type { RuntimeWorklineDeviceItem } from '@/types/runtime'
-import { formatRuntimeDateTime, resolveRuntimeTone } from '@/utils/runtime-display'
+import { resolveRuntimeTone } from '@/utils/runtime-display'
 
 const props = withDefaults(
   defineProps<{
     devices?: RuntimeWorklineDeviceItem[]
     selectedDeviceId?: number | null
     interactive?: boolean
+    sessionCountsByDevice?: Map<number, number> | Record<number, number>
   }>(),
   {
     devices: () => [],
     selectedDeviceId: null,
-    interactive: true
+    interactive: true,
+    sessionCountsByDevice: undefined
   }
 )
 
@@ -70,6 +80,26 @@ function emitSelect(deviceId: number) {
   if (!props.interactive) return
   emit('select', deviceId)
 }
+
+function getSessionCount(deviceId: number): number {
+  const map = props.sessionCountsByDevice
+  if (!map) return 0
+  if (map instanceof Map) return map.get(deviceId) ?? 0
+  return map[deviceId] ?? 0
+}
+
+function signalText(device: RuntimeWorklineDeviceItem): string {
+  if (device.error_code) return `ERROR: ${device.error_code}`
+  const waiting = getSessionCount(device.id)
+  if (waiting > 0) return `${waiting}条等待`
+  return '空闲'
+}
+
+function signalClass(device: RuntimeWorklineDeviceItem): string {
+  if (device.error_code) return 'is-danger'
+  if (getSessionCount(device.id) > 0) return 'is-warning'
+  return 'is-idle'
+}
 </script>
 
 <style scoped>
@@ -82,20 +112,20 @@ function emitSelect(deviceId: number) {
 }
 
 .workline-topology-strip__node {
-  min-width: 280px;
+  min-width: 240px;
   padding: 18px;
   border: 1px solid rgb(245, 158, 11, 0.16);
   border-radius: 16px;
-  background: rgb(30, 41, 59, 0.94);
+  background: rgb(30, 41, 59, 0.78);
   text-align: left;
 }
 
 .workline-topology-strip__node.is-interactive {
   cursor: pointer;
   transition:
-    transform var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out),
-    background var(--duration-fast) var(--ease-out);
+    transform 150ms ease-out,
+    border-color 150ms ease-out,
+    background 150ms ease-out;
 }
 
 .workline-topology-strip__node.is-interactive:hover {
@@ -126,15 +156,24 @@ function emitSelect(deviceId: number) {
 .workline-topology-strip__node-top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
 }
 
-.workline-topology-strip__role,
-.workline-topology-strip__meta-grid span,
-.workline-topology-strip__code {
+.workline-topology-strip__role {
   color: #94a3b8;
   font-size: 12px;
+}
+
+.workline-topology-strip__maintenance {
+  margin-left: auto;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgb(234, 179, 8, 0.12);
+  color: #eab308;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .workline-topology-strip__name {
@@ -145,24 +184,29 @@ function emitSelect(deviceId: number) {
 }
 
 .workline-topology-strip__code {
-  margin-top: 6px;
+  margin-top: 4px;
+  color: #94a3b8;
+  font-size: 12px;
   font-family: var(--font-mono);
 }
 
-.workline-topology-strip__meta-grid {
-  display: grid;
-  gap: 12px;
-  margin-top: 16px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.workline-topology-strip__meta-grid strong {
-  display: block;
-  margin-top: 6px;
-  color: #e2e8f0;
-  font-family: var(--font-mono);
+.workline-topology-strip__signal {
+  margin-top: 12px;
   font-size: 13px;
-  line-height: 1.5;
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+
+.workline-topology-strip__signal.is-danger {
+  color: #dc2626;
+}
+
+.workline-topology-strip__signal.is-warning {
+  color: #d97706;
+}
+
+.workline-topology-strip__signal.is-idle {
+  color: #64748b;
 }
 
 .workline-topology-strip__edge {

@@ -2,7 +2,12 @@
   <div class="runtime-empty-state">
     <div class="runtime-empty-state__title">{{ title }}</div>
     <div class="runtime-empty-state__description">{{ description }}</div>
-    <div v-if="hint" class="runtime-empty-state__hint">{{ hint }}</div>
+    <div
+      v-if="hint"
+      class="runtime-empty-state__hint"
+    >
+      {{ hint }}
+    </div>
   </div>
 </template>
 
