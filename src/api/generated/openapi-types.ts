@@ -6,7 +6,7 @@
  *
  * 后端 OpenAPI 端点: undefined
  *
- * 更新类型: pnpm type:generate
+ * 更新类型: pnpm generate:types
  */
 
 /* tslint:disable */

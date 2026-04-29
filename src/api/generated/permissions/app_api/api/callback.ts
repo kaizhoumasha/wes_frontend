@@ -7,7 +7,7 @@
  * 后端目录: /Users/kaizhou/SynologyDrive/works/wes_backend
  * 权限分组: app_api:api:callback
  *
- * 更新权限: pnpm permission:generate
+ * 更新权限: pnpm generate:permissions
  */
 
 export const API_CALLBACK_PERMISSION = {

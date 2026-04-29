@@ -51,13 +51,13 @@ createCrudPageConfigFromResource()  ← 页面配置
 # http://localhost:8001/api/openapi.json 应能访问
 
 # 2. 生成 TypeScript 类型（从 OpenAPI）
-pnpm type:generate
+pnpm generate:types
 
 # 3. 生成 Zod Schema（用于表单验证）
-pnpm zod:generate
+pnpm generate:zod
 
 # 4. 生成权限常量
-pnpm permission:generate
+pnpm generate:permissions
 ```
 
 **坑点预警**：如果跳过后端同步，可能出现：
@@ -301,13 +301,13 @@ bash scripts/data/sync_menus.sh \
 # 访问 http://localhost:8001/api/docs 确认 Swagger 文档可用
 
 # 2. 生成 TypeScript 类型
-pnpm type:generate
+pnpm generate:types
 
 # 3. 生成 Zod Schema（表单验证用）
-pnpm zod:generate
+pnpm generate:zod
 
 # 4. 生成权限常量
-pnpm permission:generate
+pnpm generate:permissions
 
 # 5. 验证生成结果
 ls src/types/generated/      # 查看生成的类型
@@ -539,17 +539,17 @@ bash scripts/data/sync_menus.sh \
 
 ```bash
 # 开发新功能前必须执行
-pnpm type:generate    # 生成 TypeScript 类型
-pnpm zod:generate     # 生成 Zod Schema
-pnpm permission:generate  # 生成权限常量
+pnpm generate:types    # 生成 TypeScript 类型
+pnpm generate:zod     # 生成 Zod Schema
+pnpm generate:permissions  # 生成权限常量
 ```
 
 **检查清单**：
 
 - [ ] 后端服务已启动（http://localhost:8001/api/docs 可访问）
-- [ ] 执行了 `pnpm type:generate`
-- [ ] 执行了 `pnpm zod:generate`
-- [ ] 执行了 `pnpm permission:generate`
+- [ ] 执行了 `pnpm generate:types`
+- [ ] 执行了 `pnpm generate:zod`
+- [ ] 执行了 `pnpm generate:permissions`
 
 ---
 
@@ -741,7 +741,7 @@ permission: ADMIN_PERMISSIONS.role.page
 
 | 问题                 | 排查                               | 解决                                                                  |
 | -------------------- | ---------------------------------- | --------------------------------------------------------------------- |
-| 类型/Zod/权限找不到  | 是否同步了后端契约                 | 执行 `pnpm type:generate` 和 `pnpm zod:generate`                      |
+| 类型/Zod/权限找不到  | 是否同步了后端契约                 | 执行 `pnpm generate:types` 和 `pnpm generate:zod`                     |
 | 缺少回收站/额外 API  | 检查后端 OpenAPI 端点              | 使用 `createSoftDeleteCrudRequestAdapterMethods` 或 `extensions` 扩展 |
 | 菜单同步后数据库没有 | 检查 `--frontend-path` 是否正确    | 使用绝对路径指定 worktree                                             |
 | 表格列不显示         | 检查 `visibleFrom` 和 `storageKey` | 设置 `visibleFrom: 'mobile'`，确保 key 唯一                           |

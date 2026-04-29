@@ -89,7 +89,7 @@ pipeline {
                             corepack enable &&
                             corepack prepare pnpm@10.10.0 --activate &&
                             pnpm install --frozen-lockfile &&
-                            pnpm run menu:generate &&
+                            pnpm run generate:menu &&
                             pnpm run type:check &&
                             pnpm run build:dev
                         '

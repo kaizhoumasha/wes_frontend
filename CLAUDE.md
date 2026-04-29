@@ -68,13 +68,13 @@ pnpm lint:stylelint
 
 ```bash
 # OpenAPI 类型生成
-pnpm type:generate
+pnpm generate:types
 
 # Zod Schema 生成
-pnpm zod:generate
+pnpm generate:zod
 
 # 权限码生成 / 校验
-pnpm permission:generate
+pnpm generate:permissions
 pnpm permission:verify
 
 # 前后端契约校验 / 测试
@@ -734,7 +734,7 @@ const onSubmit = handleSubmit(async (values: FormValues) => {
 
 ```bash
 # 1. 从后端 OpenAPI 生成 Zod schemas
-pnpm run zod:generate
+pnpm run generate:zod
 
 # 2. 在组件中使用
 import { UserCreateSchema } from '@/types/zod-extensions'

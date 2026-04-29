@@ -8,7 +8,7 @@
  * 1. 检查后端是否运行（可选，通过 --require-backend 参数控制）
  * 2. 获取当前 OpenAPI schema 的哈希值
  * 3. 与上次同步记录的哈希值对比
- * 4. 如果不一致，提示运行 pnpm zod:generate
+ * 4. 如果不一致，提示运行 pnpm generate:zod
  */
 
 import { readFileSync, existsSync } from 'node:fs'
@@ -97,7 +97,7 @@ async function main(): Promise<void> {
   // 1. 检查生成文件是否存在
   if (!existsSync(GENERATED_SCHEMA_FILE)) {
     console.log('⚠️  未找到生成的 Zod schemas 文件')
-    console.log('   请先运行: pnpm zod:generate\n')
+    console.log('   请先运行: pnpm generate:zod\n')
     process.exit(1) // 失败：需要生成
   }
 
@@ -117,7 +117,7 @@ async function main(): Promise<void> {
   const record = readSyncRecord()
   if (!record) {
     console.log('⚠️  未找到同步记录')
-    console.log('   这是首次检查，请先运行: pnpm zod:generate\n')
+    console.log('   这是首次检查，请先运行: pnpm generate:zod\n')
     process.exit(1) // 失败：首次运行
   }
 
@@ -130,7 +130,7 @@ async function main(): Promise<void> {
     console.log('❌ 契约已漂移！后端 OpenAPI 与前端 Zod schemas 不同步')
     console.log('')
     console.log('   请运行以下命令同步:')
-    console.log('   pnpm zod:generate')
+    console.log('   pnpm generate:zod')
     console.log('')
     console.log('   详细文档: docs/CONTRACT_SYNC_WORKFLOW.md\n')
     process.exit(1) // 失败：需要同步

@@ -435,7 +435,7 @@ async function generateTypesFile(spec: unknown, outputPath: string): Promise<boo
  *
  * 后端 OpenAPI 端点: ${config.backendUrl}
  *
- * 更新类型: pnpm type:generate
+ * 更新类型: pnpm generate:types
  */
 
 /* tslint:disable */
@@ -460,7 +460,7 @@ async function generateMetadataFile(spec: unknown, outputPath: string): Promise<
  *
  * 后端 OpenAPI 端点: ${config.backendUrl}
  *
- * 更新类型: pnpm type:generate
+ * 更新类型: pnpm generate:types
  */
 
 export type OpenApiEnumValue = string | number | boolean | null

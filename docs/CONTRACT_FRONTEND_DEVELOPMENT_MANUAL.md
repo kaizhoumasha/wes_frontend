@@ -52,7 +52,7 @@
 
 团队成员操作方式：
 
-- 通过 `pnpm type:generate` 更新
+- 通过 `pnpm generate:types` 更新
 - 接入前先查看目标路径和目标 schema
 
 #### 3.1.2 业务 API 模块
@@ -97,7 +97,7 @@
 
 团队成员操作方式：
 
-- 通过 `pnpm permission:generate` 更新
+- 通过 `pnpm generate:permissions` 更新
 - 在页面配置和动作配置中接入对应权限
 
 ### 3.2 架构层公共支撑文件
@@ -199,9 +199,9 @@
 ### 步骤 1：同步契约生成物
 
 - [ ] 拉取后端最新契约
-- [ ] 执行 `pnpm type:generate`
-- [ ] 按需执行 `pnpm zod:generate`
-- [ ] 按需执行 `pnpm permission:generate`
+- [ ] 执行 `pnpm generate:types`
+- [ ] 按需执行 `pnpm generate:zod`
+- [ ] 按需执行 `pnpm generate:permissions`
 - [ ] 检查新增路径、schema、operation 是否进入生成文件
 
 ### 步骤 2：识别资源结构
@@ -425,9 +425,9 @@ export const usersApiMethods = {
 ### 9.1 契约同步
 
 ```bash
-pnpm type:generate
-pnpm zod:generate
-pnpm permission:generate
+pnpm generate:types
+pnpm generate:zod
+pnpm generate:permissions
 ```
 
 ### 9.2 质量检查

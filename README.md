@@ -52,9 +52,9 @@ pnpm type:check
 ### 契约与代码生成
 
 ```bash
-pnpm type:generate
-pnpm zod:generate
-pnpm permission:generate
+pnpm generate:types
+pnpm generate:zod
+pnpm generate:permissions
 pnpm permission:verify
 pnpm contract:verify
 pnpm contract:test

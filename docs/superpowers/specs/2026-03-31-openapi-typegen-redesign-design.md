@@ -61,7 +61,7 @@
 
 ## 最终产物结构
 
-重写后，`pnpm type:generate` 的输出职责收敛为三类：
+重写后，`pnpm generate:types` 的输出职责收敛为三类：
 
 ### 1. 契约类型
 
@@ -372,7 +372,7 @@
 
 脚本重写完成后，最低验证集为：
 
-1. `pnpm type:generate`
+1. `pnpm generate:types`
 2. `pnpm type:check`
 3. 抽查至少三个 model：
    - 一个标准 CRUD 资源

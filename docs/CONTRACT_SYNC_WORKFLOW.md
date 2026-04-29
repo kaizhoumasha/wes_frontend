@@ -44,7 +44,7 @@ curl -s http://localhost:8001/api/openapi.json | jq '.info.title'
 
 ```bash
 # 在前端项目根目录执行
-pnpm zod:generate
+pnpm generate:zod
 ```
 
 ### 3. 验证生成结果
@@ -228,7 +228,7 @@ jobs:
         run: |
           cd wes_frontend
           pnpm install
-          pnpm zod:generate
+          pnpm generate:zod
       - name: Check for Changes
         run: |
           git diff --exit-code src/types/generated/
@@ -250,7 +250,7 @@ jobs:
 
 - [ ] 后端服务正在运行
 - [ ] 后端模型修改已提交
-- [ ] 运行 `pnpm zod:generate` 成功
+- [ ] 运行 `pnpm generate:zod` 成功
 - [ ] 生成时间戳已更新
 - [ ] 类型检查通过 `pnpm type:check`
 - [ ] 受影响的表单已测试

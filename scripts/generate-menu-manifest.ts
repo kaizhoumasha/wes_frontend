@@ -5,7 +5,7 @@
  * 基于前端路由定义生成后端菜单同步所需的 manifest JSON。
  *
  * 使用方式：
- *   pnpm menu:generate
+ *   pnpm generate:menu
  *   pnpm exec tsx scripts/generate-menu-manifest.ts --out artifacts/menu-manifest.json
  */
 
