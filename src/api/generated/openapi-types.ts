@@ -2086,6 +2086,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workline/operations/results": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [biz:workline:update] 沙箱模拟 Command Result */
+        post: operations["workline_operations_results_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/operations/sandbox/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [biz:workline:update] 沙箱发送 Event */
+        post: operations["workline_operations_sandbox_events_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workline/operations/sandbox/pending": {
         parameters: {
             query?: never;
@@ -2095,6 +2129,23 @@ export interface paths {
         };
         /** [biz:workline:list] 查询沙箱待处理 Outbox */
         get: operations["workline_operations_sandbox_pending_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/operations/sandbox/templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list] 获取沙箱模板 */
+        get: operations["workline_operations_sandbox_templates_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2146,6 +2197,40 @@ export interface paths {
         };
         /** [biz:workline:list] 运行监控总览 */
         get: operations["workline_runtime_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/runtime/sessions/{session_id}/path": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list] Session 设备路径视图 */
+        get: operations["workline_runtime_sessions_by_session_id_path_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/runtime/traces/{trace_id}/path": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list] Trace 设备路径视图 */
+        get: operations["workline_runtime_traces_by_trace_id_path_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5848,6 +5933,33 @@ export interface components {
              */
             timestamp?: string;
         };
+        /** ResponseSchemaModel[RuntimeTracePathResponse] */
+        ResponseSchemaModel_RuntimeTracePathResponse_: {
+            /**
+             * Code
+             * @description 响应码
+             * @default 1000
+             * @example 1000
+             * @example 2000
+             */
+            code: string;
+            /** @description 响应数据 */
+            data?: components["schemas"]["RuntimeTracePathResponse"] | null;
+            /**
+             * Message
+             * @description 响应消息
+             * @default 操作成功
+             * @example 操作成功
+             * @example 参数错误
+             */
+            message: string;
+            /**
+             * Timestamp
+             * @description 响应时间戳(ISO 8601格式)
+             * @example 2024-01-01T00:00:00Z
+             */
+            timestamp?: string;
+        };
         /** ResponseSchemaModel[RuntimeWorklineDetailResponse] */
         ResponseSchemaModel_RuntimeWorklineDetailResponse_: {
             /**
@@ -5860,6 +5972,33 @@ export interface components {
             code: string;
             /** @description 响应数据 */
             data?: components["schemas"]["RuntimeWorklineDetailResponse"] | null;
+            /**
+             * Message
+             * @description 响应消息
+             * @default 操作成功
+             * @example 操作成功
+             * @example 参数错误
+             */
+            message: string;
+            /**
+             * Timestamp
+             * @description 响应时间戳(ISO 8601格式)
+             * @example 2024-01-01T00:00:00Z
+             */
+            timestamp?: string;
+        };
+        /** ResponseSchemaModel[SandboxTemplatesResponse] */
+        ResponseSchemaModel_SandboxTemplatesResponse_: {
+            /**
+             * Code
+             * @description 响应码
+             * @default 1000
+             * @example 1000
+             * @example 2000
+             */
+            code: string;
+            /** @description 响应数据 */
+            data?: components["schemas"]["SandboxTemplatesResponse"] | null;
             /**
              * Message
              * @description 响应消息
@@ -6106,6 +6245,15 @@ export interface components {
              */
             version: number;
         };
+        /** RuntimeBlockingReason */
+        RuntimeBlockingReason: {
+            /** Detail */
+            detail?: string | null;
+            /** Device Id */
+            device_id?: number | null;
+            /** Reason */
+            reason: string;
+        };
         /** RuntimeDeviceDetailResponse */
         RuntimeDeviceDetailResponse: {
             /** Active Sessions */
@@ -6209,6 +6357,37 @@ export interface components {
             /** Value */
             value: number;
         };
+        /** RuntimeTraceDeviceAction */
+        RuntimeTraceDeviceAction: {
+            /** Kind */
+            kind: string;
+            /** Label */
+            label: string;
+            /** Message */
+            message?: string | null;
+            /** Status */
+            status?: string | null;
+            /** Timestamp */
+            timestamp?: string | null;
+        };
+        /** RuntimeTraceDevicePathNode */
+        RuntimeTraceDevicePathNode: {
+            /** Actions */
+            actions?: components["schemas"]["RuntimeTraceDeviceAction"][];
+            /** Device Code */
+            device_code?: string | null;
+            /** Device Id */
+            device_id: number;
+            /** Device Name */
+            device_name?: string | null;
+            /** Device Role */
+            device_role?: string | null;
+            /**
+             * Is Current
+             * @default false
+             */
+            is_current: boolean;
+        };
         /**
          * RuntimeTraceListItem
          * @description Trace 列表项。
@@ -6273,6 +6452,21 @@ export interface components {
             items: components["schemas"]["RuntimeTraceListItem"][];
             /** Total */
             total: number;
+        };
+        /** RuntimeTracePathResponse */
+        RuntimeTracePathResponse: {
+            blocking_reason?: components["schemas"]["RuntimeBlockingReason"] | null;
+            /** Current Blocking Device Id */
+            current_blocking_device_id?: number | null;
+            /** Devices */
+            devices?: components["schemas"]["RuntimeTraceDevicePathNode"][];
+            evidence?: components["schemas"]["TraceDetailResponse"] | null;
+            /** Session Id */
+            session_id?: number | null;
+            /** Trace Id */
+            trace_id?: string | null;
+            /** Workline Id */
+            workline_id?: number | null;
         };
         /** RuntimeWorklineDetailResponse */
         RuntimeWorklineDetailResponse: {
@@ -6362,6 +6556,11 @@ export interface components {
             owner_team?: string | null;
             /** Plugin Key */
             plugin_key?: string | null;
+            /**
+             * Run Mode
+             * @default AUTO
+             */
+            run_mode: string;
             /** Support Contact */
             support_contact?: string | null;
             /**
@@ -6371,6 +6570,161 @@ export interface components {
             waiting_session_count: number;
             /** Zone Name */
             zone_name?: string | null;
+        };
+        /**
+         * SandboxEventRequest
+         * @description 沙箱 Event 发送请求。
+         */
+        SandboxEventRequest: {
+            /**
+             * Device Id
+             * @description 目标设备 ID
+             */
+            device_id: number;
+            /**
+             * Event Type
+             * @description 事件类型
+             */
+            event_type: string;
+            /**
+             * Payload
+             * @description 事件 Payload
+             */
+            payload?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Session Id
+             * @description Session ID（可选）
+             */
+            session_id?: number | null;
+            /**
+             * Timestamp
+             * @description 事件时间戳（默认当前时间）
+             */
+            timestamp?: string | null;
+            /**
+             * Trace Id
+             * @description Trace ID（可选，自动生成）
+             */
+            trace_id?: string | null;
+            /**
+             * Workline Id
+             * @description 工作线 ID
+             */
+            workline_id: number;
+        };
+        /**
+         * SandboxEventTemplate
+         * @description 沙箱 Event 模板。
+         */
+        SandboxEventTemplate: {
+            /**
+             * Event Type
+             * @description 事件类型标识
+             */
+            event_type: string;
+            /**
+             * Label
+             * @description 事件类型显示名称
+             */
+            label: string;
+            /**
+             * Payload Template
+             * @description Payload 模板
+             */
+            payload_template?: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * SandboxResultRequest
+         * @description 沙箱 Command Result 模拟请求。
+         */
+        SandboxResultRequest: {
+            /**
+             * Command Code
+             * @description Command Code
+             */
+            command_code: string;
+            /**
+             * Device Code
+             * @description 设备 Code
+             */
+            device_code: string;
+            /**
+             * Error Detail
+             * @description 错误详情（FAILED 时）
+             */
+            error_detail?: string | null;
+            /**
+             * Payload
+             * @description Result Payload
+             */
+            payload?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Result
+             * @description 结果状态
+             */
+            result: string;
+            /**
+             * Timestamp
+             * @description 结果时间戳（默认当前时间）
+             */
+            timestamp?: string | null;
+        };
+        /**
+         * SandboxResultTemplate
+         * @description 沙箱 Result 模板。
+         */
+        SandboxResultTemplate: {
+            /**
+             * Command Type
+             * @description Command 类型标识
+             */
+            command_type: string;
+            /**
+             * Error Template
+             * @description 错误信息模板
+             */
+            error_template?: string | null;
+            /**
+             * Failed Payload Template
+             * @description 失败 Payload 模板
+             */
+            failed_payload_template?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Label
+             * @description Command 类型显示名称
+             */
+            label: string;
+            /**
+             * Success Payload Template
+             * @description 成功 Payload 模板
+             */
+            success_payload_template?: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * SandboxTemplatesResponse
+         * @description 沙箱模板响应。
+         */
+        SandboxTemplatesResponse: {
+            /**
+             * Event Templates
+             * @description Event 模板列表
+             */
+            event_templates?: components["schemas"]["SandboxEventTemplate"][];
+            /**
+             * Result Templates
+             * @description Result 模板列表
+             */
+            result_templates?: components["schemas"]["SandboxResultTemplate"][];
         };
         /**
          * SessionInfo
@@ -11257,10 +11611,78 @@ export interface operations {
             };
         };
     };
+    workline_operations_results_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SandboxResultRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_operations_sandbox_events_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SandboxEventRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     workline_operations_sandbox_pending_get: {
         parameters: {
             query?: {
+                device_id?: number | null;
                 limit?: number;
+                workline_id?: number | null;
             };
             header?: never;
             path?: never;
@@ -11275,6 +11697,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_list_dict_str__Any___"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_operations_sandbox_templates_get: {
+        parameters: {
+            query: {
+                device_id?: number | null;
+                workline_id: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_SandboxTemplatesResponse_"];
                 };
             };
             /** @description Validation Error */
@@ -11368,6 +11822,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_RuntimeOverviewResponse_"];
+                };
+            };
+        };
+    };
+    workline_runtime_sessions_by_session_id_path_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_RuntimeTracePathResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_runtime_traces_by_trace_id_path_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_RuntimeTracePathResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

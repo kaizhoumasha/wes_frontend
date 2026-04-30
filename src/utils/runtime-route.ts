@@ -8,10 +8,19 @@ function toRuntimeRouteQueryValue(value: RuntimeRouteQueryValue): string | undef
   return String(value)
 }
 
-export function buildRuntimeWorklineQuery(worklineId: RuntimeRouteQueryValue, deviceId?: RuntimeRouteQueryValue) {
+export function buildRuntimeWorklineQuery(
+  worklineId: RuntimeRouteQueryValue,
+  deviceId?: RuntimeRouteQueryValue,
+  mode?: RuntimeRouteQueryValue,
+  sessionId?: RuntimeRouteQueryValue,
+  traceId?: RuntimeRouteQueryValue,
+) {
   return {
     worklineId: toRuntimeRouteQueryValue(worklineId),
-    deviceId: toRuntimeRouteQueryValue(deviceId)
+    deviceId: toRuntimeRouteQueryValue(deviceId),
+    mode: toRuntimeRouteQueryValue(mode),
+    sessionId: toRuntimeRouteQueryValue(sessionId),
+    traceId: toRuntimeRouteQueryValue(traceId),
   }
 }
 

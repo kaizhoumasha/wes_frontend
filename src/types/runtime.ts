@@ -307,6 +307,7 @@ export interface RuntimeWorklineSummary {
   error_device_count: number
   offline_device_count: number
   maintenance_device_count: number
+  run_mode: string
   last_activity_at?: string | null
 }
 
@@ -383,6 +384,7 @@ export interface SandboxPendingOutbox {
   target_code?: string | null
   status?: string | null
   payload_json?: Record<string, unknown> | null
+  source_device?: string | null
 }
 
 export interface WorklineOperationRecord {
@@ -406,4 +408,79 @@ export interface ManualSessionOperationPayload {
   operation: ManualOperationType
   operator_id: string
   reason: string
+}
+
+export interface RuntimeTraceDeviceAction {
+  kind: string
+  label: string
+  status?: string | null
+  timestamp?: string | null
+  message?: string | null
+}
+
+export interface RuntimeTraceDevicePathNode {
+  device_id: number
+  device_code?: string | null
+  device_name?: string | null
+  device_role?: string | null
+  is_current: boolean
+  actions: RuntimeTraceDeviceAction[]
+}
+
+export interface RuntimeBlockingReason {
+  device_id?: number | null
+  reason: string
+  detail?: string | null
+}
+
+export interface RuntimeTracePathResponse {
+  workline_id?: number | null
+  session_id?: number | null
+  trace_id?: string | null
+  devices: RuntimeTraceDevicePathNode[]
+  current_blocking_device_id?: number | null
+  blocking_reason?: RuntimeBlockingReason | null
+  evidence?: TraceDetailResponse | null
+}
+
+export interface SandboxEventRequest {
+  workline_id: number
+  device_id: number
+  event_type: string
+  trace_id?: string | null
+  session_id?: number | null
+  payload?: Record<string, unknown>
+  timestamp?: string | null
+}
+
+export interface SandboxResultRequest {
+  command_code: string
+  device_code: string
+  result: 'SUCCESS' | 'FAILED'
+  payload?: Record<string, unknown>
+  error_detail?: string | null
+  timestamp?: string | null
+}
+
+export interface SandboxAckRequest {
+  dispatch_key: string
+}
+
+export interface SandboxEventTemplate {
+  event_type: string
+  label: string
+  payload_template: Record<string, unknown>
+}
+
+export interface SandboxResultTemplate {
+  command_type: string
+  label: string
+  success_payload_template: Record<string, unknown>
+  failed_payload_template: Record<string, unknown>
+  error_template?: string | null
+}
+
+export interface SandboxTemplatesResponse {
+  event_templates: SandboxEventTemplate[]
+  result_templates: SandboxResultTemplate[]
 }

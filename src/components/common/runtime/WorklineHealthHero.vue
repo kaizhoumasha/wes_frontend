@@ -7,6 +7,7 @@
       <div class="workline-health-hero__identity">
         <div class="workline-health-hero__eyebrow-row runtime-hero__eyebrow-row">
           <div class="workline-health-hero__eyebrow">线体摘要</div>
+          <span class="workline-health-hero__run-mode-badge">{{ summary.run_mode }}</span>
           <span class="workline-health-hero__code runtime-hero__code">{{ summary.line_code }}</span>
         </div>
         <div class="workline-health-hero__title-row runtime-hero__title-row">
@@ -131,6 +132,19 @@ const heroStatusLabel = computed(() => {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.workline-health-hero__run-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgb(245, 158, 11, 0.15);
+  color: rgb(245, 158, 11);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
 }
 
 .workline-health-hero__title {

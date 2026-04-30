@@ -5117,6 +5117,41 @@ export const OPENAPI_SCHEMA_METADATA = {
       }
     }
   },
+  "ResponseSchemaModel_RuntimeTracePathResponse_": {
+    "title": "ResponseSchemaModel[RuntimeTracePathResponse]",
+    "required": [],
+    "fields": {
+      "code": {
+        "title": "Code",
+        "description": "响应码",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "1000"
+      },
+      "message": {
+        "title": "Message",
+        "description": "响应消息",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "操作成功"
+      },
+      "data": {
+        "description": "响应数据",
+        "required": false,
+        "nullable": true,
+        "ref": "RuntimeTracePathResponse"
+      },
+      "timestamp": {
+        "title": "Timestamp",
+        "description": "响应时间戳(ISO 8601格式)",
+        "type": "string",
+        "required": false,
+        "nullable": false
+      }
+    }
+  },
   "ResponseSchemaModel_RuntimeWorklineDetailResponse_": {
     "title": "ResponseSchemaModel[RuntimeWorklineDetailResponse]",
     "required": [],
@@ -5142,6 +5177,41 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": true,
         "ref": "RuntimeWorklineDetailResponse"
+      },
+      "timestamp": {
+        "title": "Timestamp",
+        "description": "响应时间戳(ISO 8601格式)",
+        "type": "string",
+        "required": false,
+        "nullable": false
+      }
+    }
+  },
+  "ResponseSchemaModel_SandboxTemplatesResponse_": {
+    "title": "ResponseSchemaModel[SandboxTemplatesResponse]",
+    "required": [],
+    "fields": {
+      "code": {
+        "title": "Code",
+        "description": "响应码",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "1000"
+      },
+      "message": {
+        "title": "Message",
+        "description": "响应消息",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "操作成功"
+      },
+      "data": {
+        "description": "响应数据",
+        "required": false,
+        "nullable": true,
+        "ref": "SandboxTemplatesResponse"
       },
       "timestamp": {
         "title": "Timestamp",
@@ -5938,6 +6008,32 @@ export const OPENAPI_SCHEMA_METADATA = {
       }
     }
   },
+  "RuntimeBlockingReason": {
+    "title": "RuntimeBlockingReason",
+    "required": [
+      "reason"
+    ],
+    "fields": {
+      "device_id": {
+        "title": "Device Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "reason": {
+        "title": "Reason",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "detail": {
+        "title": "Detail",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      }
+    }
+  },
   "RuntimeDeviceDetailResponse": {
     "title": "RuntimeDeviceDetailResponse",
     "required": [
@@ -6210,6 +6306,94 @@ export const OPENAPI_SCHEMA_METADATA = {
       }
     }
   },
+  "RuntimeTraceDeviceAction": {
+    "title": "RuntimeTraceDeviceAction",
+    "required": [
+      "kind",
+      "label"
+    ],
+    "fields": {
+      "kind": {
+        "title": "Kind",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "label": {
+        "title": "Label",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "status": {
+        "title": "Status",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "timestamp": {
+        "title": "Timestamp",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      },
+      "message": {
+        "title": "Message",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      }
+    }
+  },
+  "RuntimeTraceDevicePathNode": {
+    "title": "RuntimeTraceDevicePathNode",
+    "required": [
+      "device_id"
+    ],
+    "fields": {
+      "device_id": {
+        "title": "Device Id",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "device_code": {
+        "title": "Device Code",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "device_name": {
+        "title": "Device Name",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "device_role": {
+        "title": "Device Role",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "is_current": {
+        "title": "Is Current",
+        "type": "boolean",
+        "required": false,
+        "nullable": false,
+        "default": false
+      },
+      "actions": {
+        "title": "Actions",
+        "type": "array",
+        "required": false,
+        "nullable": false,
+        "items": {
+          "ref": "RuntimeTraceDeviceAction"
+        }
+      }
+    }
+  },
   "RuntimeTraceListItem": {
     "title": "RuntimeTraceListItem",
     "description": "Trace 列表项。",
@@ -6386,6 +6570,55 @@ export const OPENAPI_SCHEMA_METADATA = {
         "items": {
           "ref": "RuntimeTraceListItem"
         }
+      }
+    }
+  },
+  "RuntimeTracePathResponse": {
+    "title": "RuntimeTracePathResponse",
+    "required": [],
+    "fields": {
+      "workline_id": {
+        "title": "Workline Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "trace_id": {
+        "title": "Trace Id",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      },
+      "devices": {
+        "title": "Devices",
+        "type": "array",
+        "required": false,
+        "nullable": false,
+        "items": {
+          "ref": "RuntimeTraceDevicePathNode"
+        }
+      },
+      "current_blocking_device_id": {
+        "title": "Current Blocking Device Id",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "blocking_reason": {
+        "required": false,
+        "nullable": true,
+        "ref": "RuntimeBlockingReason"
+      },
+      "evidence": {
+        "required": false,
+        "nullable": true,
+        "ref": "TraceDetailResponse"
       }
     }
   },
@@ -6629,12 +6862,245 @@ export const OPENAPI_SCHEMA_METADATA = {
         "nullable": false,
         "default": 0
       },
+      "run_mode": {
+        "title": "Run Mode",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "AUTO"
+      },
       "last_activity_at": {
         "title": "Last Activity At",
         "type": "string",
         "format": "date-time",
         "required": false,
         "nullable": true
+      }
+    }
+  },
+  "SandboxEventRequest": {
+    "title": "SandboxEventRequest",
+    "description": "沙箱 Event 发送请求。",
+    "required": [
+      "workline_id",
+      "device_id",
+      "event_type"
+    ],
+    "fields": {
+      "workline_id": {
+        "title": "Workline Id",
+        "description": "工作线 ID",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "device_id": {
+        "title": "Device Id",
+        "description": "目标设备 ID",
+        "type": "integer",
+        "required": true,
+        "nullable": false
+      },
+      "event_type": {
+        "title": "Event Type",
+        "description": "事件类型",
+        "type": "string",
+        "required": true,
+        "nullable": false,
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "trace_id": {
+        "title": "Trace Id",
+        "description": "Trace ID（可选，自动生成）",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 200
+      },
+      "session_id": {
+        "title": "Session Id",
+        "description": "Session ID（可选）",
+        "type": "integer",
+        "required": false,
+        "nullable": true
+      },
+      "payload": {
+        "title": "Payload",
+        "description": "事件 Payload",
+        "type": "object",
+        "required": false,
+        "nullable": false
+      },
+      "timestamp": {
+        "title": "Timestamp",
+        "description": "事件时间戳（默认当前时间）",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      }
+    }
+  },
+  "SandboxEventTemplate": {
+    "title": "SandboxEventTemplate",
+    "description": "沙箱 Event 模板。",
+    "required": [
+      "event_type",
+      "label"
+    ],
+    "fields": {
+      "event_type": {
+        "title": "Event Type",
+        "description": "事件类型标识",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "label": {
+        "title": "Label",
+        "description": "事件类型显示名称",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "payload_template": {
+        "title": "Payload Template",
+        "description": "Payload 模板",
+        "type": "object",
+        "required": false,
+        "nullable": false
+      }
+    }
+  },
+  "SandboxResultRequest": {
+    "title": "SandboxResultRequest",
+    "description": "沙箱 Command Result 模拟请求。",
+    "required": [
+      "command_code",
+      "device_code",
+      "result"
+    ],
+    "fields": {
+      "command_code": {
+        "title": "Command Code",
+        "description": "Command Code",
+        "type": "string",
+        "required": true,
+        "nullable": false,
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "device_code": {
+        "title": "Device Code",
+        "description": "设备 Code",
+        "type": "string",
+        "required": true,
+        "nullable": false,
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "result": {
+        "title": "Result",
+        "description": "结果状态",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "payload": {
+        "title": "Payload",
+        "description": "Result Payload",
+        "type": "object",
+        "required": false,
+        "nullable": false
+      },
+      "error_detail": {
+        "title": "Error Detail",
+        "description": "错误详情（FAILED 时）",
+        "type": "string",
+        "required": false,
+        "nullable": true,
+        "maxLength": 500
+      },
+      "timestamp": {
+        "title": "Timestamp",
+        "description": "结果时间戳（默认当前时间）",
+        "type": "string",
+        "format": "date-time",
+        "required": false,
+        "nullable": true
+      }
+    }
+  },
+  "SandboxResultTemplate": {
+    "title": "SandboxResultTemplate",
+    "description": "沙箱 Result 模板。",
+    "required": [
+      "command_type",
+      "label"
+    ],
+    "fields": {
+      "command_type": {
+        "title": "Command Type",
+        "description": "Command 类型标识",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "label": {
+        "title": "Label",
+        "description": "Command 类型显示名称",
+        "type": "string",
+        "required": true,
+        "nullable": false
+      },
+      "success_payload_template": {
+        "title": "Success Payload Template",
+        "description": "成功 Payload 模板",
+        "type": "object",
+        "required": false,
+        "nullable": false
+      },
+      "failed_payload_template": {
+        "title": "Failed Payload Template",
+        "description": "失败 Payload 模板",
+        "type": "object",
+        "required": false,
+        "nullable": false
+      },
+      "error_template": {
+        "title": "Error Template",
+        "description": "错误信息模板",
+        "type": "string",
+        "required": false,
+        "nullable": true
+      }
+    }
+  },
+  "SandboxTemplatesResponse": {
+    "title": "SandboxTemplatesResponse",
+    "description": "沙箱模板响应。",
+    "required": [],
+    "fields": {
+      "event_templates": {
+        "title": "Event Templates",
+        "description": "Event 模板列表",
+        "type": "array",
+        "required": false,
+        "nullable": false,
+        "items": {
+          "ref": "SandboxEventTemplate"
+        }
+      },
+      "result_templates": {
+        "title": "Result Templates",
+        "description": "Result 模板列表",
+        "type": "array",
+        "required": false,
+        "nullable": false,
+        "items": {
+          "ref": "SandboxResultTemplate"
+        }
       }
     }
   },

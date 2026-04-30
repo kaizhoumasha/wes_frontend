@@ -4,7 +4,6 @@ import type {
   RuntimeWorklineSummary
 } from '@/types/runtime'
 import {
-  buildRuntimeTraceQuery,
   buildRuntimeWorklineQuery
 } from '@/utils/runtime-route'
 
@@ -125,12 +124,14 @@ function classifyTraces(
           summary: `重复失败 (${repeatCount} 次) — ${trace.step_code || '未知步骤'}`,
           context: `${trace.device_name || '未关联设备'} · ${trace.workline_name || ''}`,
           navigateTo: {
-            name: 'RuntimeTraceExplorer',
-            query: buildRuntimeTraceQuery({
-              traceId: trace.trace_id,
-              sessionId: trace.trace_id ? undefined : trace.session_id,
-              worklineId: trace.workline_id
-            })
+            name: 'RuntimeWorklines',
+            query: buildRuntimeWorklineQuery(
+              trace.workline_id,
+              undefined,
+              'trace',
+              trace.trace_id ? undefined : trace.session_id,
+              trace.trace_id,
+            )
           },
           score: repeatCount * 5
         })
@@ -143,11 +144,14 @@ function classifyTraces(
         summary: `${trace.session_code} — 已结束`,
         context: `${trace.workline_name || ''} · ${trace.device_name || ''}`,
         navigateTo: {
-          name: 'RuntimeTraceExplorer',
-          query: buildRuntimeTraceQuery({
-            traceId: trace.trace_id,
-            sessionId: trace.trace_id ? undefined : trace.session_id
-          })
+          name: 'RuntimeWorklines',
+          query: buildRuntimeWorklineQuery(
+            trace.workline_id,
+            undefined,
+            'trace',
+            trace.trace_id ? undefined : trace.session_id,
+            trace.trace_id,
+          )
         },
         score: 5
       })
@@ -167,7 +171,7 @@ function classifyBacklog(
       id: 'system-backlog',
       summary: `系统积压 ${backlog} — 超过阈值`,
       context: `inbox ${statValue(stats, 'inbox_backlog')} / outbox ${statValue(stats, 'outbox_backlog')}`,
-      navigateTo: { name: 'RuntimeDashboard', query: {} },
+      navigateTo: { name: 'RuntimeWorklines', query: {} },
       score: backlog * 0.5
     })
   }

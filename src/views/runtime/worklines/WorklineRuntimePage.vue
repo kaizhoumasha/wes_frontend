@@ -4,7 +4,31 @@
     class="runtime-page"
   >
     <div class="runtime-page__header">
-      <div>
+      <!-- 面包屑导航（选中设备时显示） -->
+      <div
+        v-if="selectedDeviceId && selectedDeviceDetail"
+        class="runtime-context-nav"
+      >
+        <button
+          type="button"
+          class="runtime-context-nav__back"
+          @click="closeDevicePanel"
+        >
+          ← 返回工作线
+        </button>
+        <span class="runtime-context-nav__workline">
+          {{ currentWorklineSummary?.line_name || '工作线' }}
+        </span>
+        <span class="runtime-context-nav__sep">›</span>
+        <span class="runtime-context-nav__device">
+          {{ selectedDeviceDetail.device_name }}
+        </span>
+        <span class="runtime-context-nav__meta">
+          {{ selectedDeviceDetail.device_code }} · {{ selectedDeviceDetail.device_role }}
+        </span>
+      </div>
+      <!-- 默认标题（未选中设备时显示） -->
+      <div v-else>
         <h1 class="runtime-page__title">工作线运行监控</h1>
         <p class="runtime-page__subtitle">
           先看线体摘要，再下钻拓扑、运行队列与失败链路，确认阻塞是局部节点问题还是线体级异常。
@@ -94,6 +118,7 @@
               </div>
               <div class="runtime-directory-card__title">{{ item.line_name }}</div>
               <div class="runtime-directory-card__meta">
+                <span class="runtime-directory-card__run-mode">{{ item.run_mode }}</span>
                 {{ item.line_code }} · {{ item.zone_name || '未配置区域' }}
               </div>
               <div class="runtime-directory-card__hint">
@@ -113,160 +138,57 @@
 
       <div class="runtime-layout__detail">
         <template v-if="detail">
-          <div class="runtime-layout__detail-scroll">
-            <WorklineHealthHero
-              :summary="detail.summary"
-              class="runtime-layout__hero"
+          <!-- Mode Switcher (SIMULATION worklines only) -->
+          <div
+            v-if="sandboxAllowed === 'allowed'"
+            class="runtime-mode-switcher"
+          >
+            <button
+              type="button"
+              class="runtime-mode-tab"
+              :class="{ 'is-active': effectiveMode === 'live' }"
+              @click="switchToLive()"
+            >
+              实时态势
+            </button>
+            <button
+              type="button"
+              class="runtime-mode-tab"
+              :class="{ 'is-active': effectiveMode === 'sandbox' }"
+              @click="switchToSandbox()"
+            >
+              Sandbox
+            </button>
+          </div>
+
+          <template v-if="effectiveMode === 'trace' && (modeSessionId || modeTraceId)">
+            <TraceFocusPanel
+              :workline-id="detail.summary.id"
+              :session-id="modeSessionId ? Number(modeSessionId) : null"
+              :trace-id="modeTraceId"
+              @back-to-live="switchToLive()"
             />
-
-            <el-card
-              shadow="never"
-              class="runtime-panel"
-            >
-              <template #header>
-                <div class="runtime-panel__header">
-                  <div>
-                    <div class="runtime-panel__title">拓扑主视图</div>
-                    <div class="runtime-panel__subtitle">
-                      用线体设备拓扑确认阻塞发生在哪个节点，再直接进入设备页。
-                    </div>
-                  </div>
-                  <RuntimeStatusBadge
-                    :label="hotspotDevice ? `焦点设备 ${hotspotDevice.device_code}` : '无明显热点'"
-                    :tone="hotspotDevice ? 'danger' : 'success'"
-                    size="small"
-                  />
-                </div>
-              </template>
-
-              <WorklineTopologyStrip
-                :devices="detail.devices"
-                :selected-device-id="hotspotDevice?.id ?? null"
-                :session-counts-by-device="sessionCountsByDevice"
-                @select="openDevice"
-              />
-            </el-card>
-
-            <div
-              v-if="selectedDeviceId && isDevicePanelOpen"
-              ref="devicePanelRef"
-            >
-              <DeviceDetailPanel
-                :device-id="selectedDeviceId"
-                :workline-id="detail!.summary.id"
-                @close="closeDevicePanel"
-                @open-trace="openTrace"
-              />
-            </div>
-
-            <div class="workline-grid workline-grid--two">
-              <el-card
-                shadow="never"
-                class="runtime-panel"
-              >
-                <template #header>
-                  <div class="runtime-panel__header">
-                    <div>
-                      <div class="runtime-panel__title">运行队列</div>
-                      <div class="runtime-panel__subtitle">当前仍在这条线体上推进的 Session</div>
-                    </div>
-                  </div>
-                </template>
-
-                <div
-                  v-if="detail.active_sessions.length"
-                  class="trace-list"
-                >
-                  <button
-                    v-for="item in detail.active_sessions"
-                    :key="item.session_id"
-                    type="button"
-                    class="trace-list__item"
-                    @click="openTrace(item)"
-                  >
-                    <div class="trace-list__head">
-                      <RuntimeStatusBadge
-                        :status="item.status"
-                        size="small"
-                      />
-                      <span>{{ formatRuntimeElapsed(item.started_at) }}</span>
-                    </div>
-                    <div class="trace-list__title">{{ item.session_code }}</div>
-                    <div class="trace-list__meta">
-                      {{ item.step_code || '—' }} · {{ item.device_name || '等待设备绑定' }}
-                    </div>
-                    <div class="trace-list__hint">
-                      {{
-                        item.latest_timeline_message ||
-                        item.current_wait_type ||
-                        '查看时间轴获取更多信息'
-                      }}
-                    </div>
-                  </button>
-                </div>
-                <RuntimeEmptyState
-                  v-else
-                  title="当前没有活跃 Session"
-                  description="这条线当前没有正在推进中的链路，可能处于空闲期或暂未接收到新任务。"
-                />
-              </el-card>
-
-              <el-card
-                shadow="never"
-                class="runtime-panel"
-              >
-                <template #header>
-                  <div class="runtime-panel__header">
-                    <div>
-                      <div class="runtime-panel__title">最近失败链路</div>
-                      <div class="runtime-panel__subtitle">
-                        优先判断是否为同一设备 / 同一步骤重复失败
-                      </div>
-                    </div>
-                  </div>
-                </template>
-
-                <div
-                  v-if="detail.recent_failed_traces.length"
-                  class="trace-list"
-                >
-                  <button
-                    v-for="item in detail.recent_failed_traces"
-                    :key="item.session_id"
-                    type="button"
-                    class="trace-list__item trace-list__item--danger"
-                    @click="openTrace(item)"
-                  >
-                    <div class="trace-list__head">
-                      <RuntimeStatusBadge
-                        :status="item.status"
-                        size="small"
-                      />
-                      <span>
-                        {{ formatRuntimeDateTime(item.last_ingress_at || item.started_at) }}
-                      </span>
-                    </div>
-                    <div class="trace-list__title">{{ item.session_code }}</div>
-                    <div class="trace-list__meta">
-                      {{ item.step_code || '—' }} · {{ item.device_name || '未关联设备' }}
-                    </div>
-                    <div class="trace-list__hint">
-                      {{
-                        item.failure_domain ||
-                        item.failure_code ||
-                        item.latest_timeline_message ||
-                        '查看 Trace 获得故障原因'
-                      }}
-                    </div>
-                  </button>
-                </div>
-                <RuntimeEmptyState
-                  v-else
-                  title="近 24 小时暂无失败链路"
-                  description="当前未发现需要优先排障的线体级失败样本。"
-                />
-              </el-card>
-            </div>
+          </template>
+          <template v-else-if="effectiveMode === 'sandbox'">
+            <SandboxWorkbench
+              :workline-id="detail.summary.id"
+              :devices="detail.devices"
+              :device-id="selectedDeviceId"
+              :run-mode="detail.summary.run_mode"
+              @refresh="refreshWorklines"
+            />
+          </template>
+          <template v-else>
+            <WorklineLiveOverview
+              :workline-summary="detail.summary"
+              :devices="detail.devices"
+              :active-sessions="detail.active_sessions"
+              :recent-failed-traces="detail.recent_failed_traces"
+              :selected-device-id="selectedDeviceId"
+              :session-counts-by-device="sessionCountsByDevice"
+              @select-device="openDevice"
+              @select-session="handleSelectSession"
+            />
 
             <el-card
               shadow="never"
@@ -315,7 +237,42 @@
                 </div>
               </div>
             </el-card>
-          </div>
+
+            <!-- 设备详情抽屉 -->
+            <el-drawer
+              v-model="isDevicePanelOpen"
+              direction="rtl"
+              size="600px"
+              :close-on-click-modal="true"
+              :close-on-press-escape="true"
+              class="runtime-device-drawer"
+              @close="closeDevicePanel"
+            >
+              <template #header>
+                <div
+                  v-if="selectedDeviceDetail"
+                  class="runtime-device-drawer__header"
+                >
+                  <strong class="runtime-device-drawer__title">
+                    {{ selectedDeviceDetail.device_name }}
+                  </strong>
+                  <span class="runtime-device-drawer__meta">
+                    {{ selectedDeviceDetail.device_code }} · {{ selectedDeviceDetail.device_role }}
+                  </span>
+                </div>
+              </template>
+
+              <RuntimeDeviceInspector
+                v-if="selectedDeviceId"
+                :device-id="selectedDeviceId"
+                :workline-id="detail.summary.id"
+                :mode="effectiveMode"
+                :show-header="false"
+                @close="closeDevicePanel"
+                @select-session="handleSelectSession"
+              />
+            </el-drawer>
+          </template>
         </template>
 
         <el-card
@@ -335,17 +292,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import DeviceDetailPanel from '@/components/common/runtime/DeviceDetailPanel.vue'
+import RuntimeDeviceInspector from '@/components/common/runtime/RuntimeDeviceInspector.vue'
+import SandboxWorkbench from '@/components/common/runtime/SandboxWorkbench.vue'
+import TraceFocusPanel from '@/components/common/runtime/TraceFocusPanel.vue'
 import RuntimeEmptyState from '@/components/common/runtime/RuntimeEmptyState.vue'
 import RuntimeFrozenNotice from '@/components/common/runtime/RuntimeFrozenNotice.vue'
 import RuntimeLastUpdated from '@/components/common/runtime/RuntimeLastUpdated.vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
-import WorklineHealthHero from '@/components/common/runtime/WorklineHealthHero.vue'
-import WorklineTopologyStrip from '@/components/common/runtime/WorklineTopologyStrip.vue'
+import WorklineLiveOverview from '@/components/common/runtime/WorklineLiveOverview.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
-import { buildRuntimeTraceQuery, buildRuntimeWorklineQuery } from '@/utils/runtime-route'
+import { buildRuntimeWorklineQuery } from '@/utils/runtime-route'
+import { useWorklineMode } from '@/composables/useWorklineMode'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
 import type {
   RuntimeTraceListItem,
@@ -358,7 +317,6 @@ import { isRelevantRuntimeEvent } from '@/utils/runtime-event'
 import {
   aggregateSessionsByDevice,
   formatRuntimeDateTime,
-  formatRuntimeElapsed,
   getWorklineRiskLabel as worklineRiskLabel,
   getWorklineRiskScore,
   getWorklineRiskTone as worklineRiskTone,
@@ -383,30 +341,34 @@ const {
 const loading = ref(false)
 const worklines = ref<RuntimeWorklineSummary[]>([])
 const detail = ref<RuntimeWorklineDetailResponse | null>(null)
-const devicePanelRef = ref<HTMLElement | null>(null)
 
 const selectedDeviceId = computed(() => readPositiveInt(route.query.deviceId))
 const isDevicePanelOpen = ref(false)
 
 const selectedWorklineId = computed(() => readPositiveInt(route.query.worklineId))
 
-const selectedWorklineSummary = computed(() => {
+const currentWorklineSummary = computed(() => {
   const selectedId = selectedWorklineId.value
-  if (!selectedId) {
-    return detail.value?.summary ?? null
-  }
-
+  if (!selectedId) return detail.value?.summary ?? null
   return worklines.value.find(item => item.id === selectedId) ?? detail.value?.summary ?? null
 })
 
-const selectedWorklineContextName = computed(() => selectedWorklineSummary.value?.line_name ?? null)
+const {
+  effectiveMode,
+  sessionId: modeSessionId,
+  traceId: modeTraceId,
+  sandboxAllowed,
+  switchToLive,
+  switchToTrace,
+  switchToSandbox,
+  selectWorkline: selectWorklineRoute
+} = useWorklineMode(route, router, currentWorklineSummary)
+
+const selectedWorklineContextName = computed(() => currentWorklineSummary.value?.line_name ?? null)
 
 const selectedWorklineContextMeta = computed(() => {
-  const summary = selectedWorklineSummary.value
-  if (!summary) {
-    return ''
-  }
-
+  const summary = currentWorklineSummary.value
+  if (!summary) return ''
   return `${summary.line_code} · ${summary.zone_name || '未配置区域'} · 活跃 ${summary.active_session_count} · 失败 ${summary.failed_session_count}`
 })
 
@@ -422,6 +384,12 @@ const hotspotDevice = computed<RuntimeWorklineDeviceItem | null>(() => {
     devices.find(item => Boolean(item.current_command_id)) ??
     null
   )
+})
+
+const selectedDeviceDetail = computed<RuntimeWorklineDeviceItem | null>(() => {
+  const deviceId = selectedDeviceId.value
+  if (!deviceId || !detail.value) return null
+  return detail.value.devices.find(item => item.id === deviceId) ?? null
 })
 
 const mostFailedStep = computed(() =>
@@ -447,10 +415,7 @@ async function loadDetail(worklineId: number) {
 }
 
 async function ensureWorklineRouteSelection(): Promise<boolean> {
-  if (selectedWorklineId.value || !worklines.value[0]?.id) {
-    return false
-  }
-
+  if (selectedWorklineId.value || !worklines.value[0]?.id) return false
   await router.replace({
     query: { ...route.query, ...buildRuntimeWorklineQuery(worklines.value[0].id) }
   })
@@ -462,11 +427,7 @@ async function syncWorklineDetailFromRoute(): Promise<void> {
     detail.value = null
     return
   }
-
-  if (detail.value?.summary.id === selectedWorklineId.value) {
-    return
-  }
-
+  if (detail.value?.summary.id === selectedWorklineId.value) return
   await loadDetail(selectedWorklineId.value)
 }
 
@@ -498,23 +459,12 @@ const syncWorklineDetailFromRouteCoalesced = createCoalescedAsyncTask(async () =
 })
 
 async function selectWorkline(row: { id: number }) {
-  if (selectedWorklineId.value === row.id) {
-    return
-  }
-
-  await router.replace({ query: { ...route.query, ...buildRuntimeWorklineQuery(row.id) } })
+  if (selectedWorklineId.value === row.id) return
+  selectWorklineRoute(row.id)
 }
 
-function openTrace(trace: RuntimeTraceListItem) {
-  router.push({
-    name: 'RuntimeTraceExplorer',
-    query: buildRuntimeTraceQuery({
-      traceId: trace.trace_id,
-      sessionId: trace.trace_id ? undefined : trace.session_id,
-      worklineId: detail.value?.summary.id ?? trace.workline_id,
-      deviceId: trace.device_id
-    })
-  })
+function handleSelectSession(session: RuntimeTraceListItem) {
+  switchToTrace(String(session.session_id), session.trace_id ?? undefined)
 }
 
 function openDevice(deviceId: number) {
@@ -524,9 +474,6 @@ function openDevice(deviceId: number) {
       ...route.query,
       ...buildRuntimeWorklineQuery(detail.value?.summary.id, deviceId)
     }
-  })
-  nextTick(() => {
-    devicePanelRef.value?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   })
 }
 
@@ -544,10 +491,7 @@ onMounted(() => {
 watch(
   () => selectedWorklineId.value,
   (nextWorklineId, previousWorklineId) => {
-    if (!nextWorklineId || nextWorklineId === previousWorklineId) {
-      return
-    }
-
+    if (!nextWorklineId || nextWorklineId === previousWorklineId) return
     void syncWorklineDetailFromRouteCoalesced()
   }
 )
@@ -557,9 +501,6 @@ watch(
   nextDeviceId => {
     if (nextDeviceId && detail.value) {
       isDevicePanelOpen.value = true
-      nextTick(() => {
-        devicePanelRef.value?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-      })
     } else if (!nextDeviceId) {
       isDevicePanelOpen.value = false
     }
@@ -574,10 +515,8 @@ watch(
       !isRelevantRuntimeEvent(event, {
         worklineId: detail.value?.summary.id ?? selectedWorklineId.value
       })
-    ) {
+    )
       return
-    }
-
     await refreshWorklines()
   }
 )
@@ -586,6 +525,82 @@ watch(
 <style scoped>
 .runtime-page__subtitle {
   max-width: 860px;
+}
+
+.runtime-context-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.runtime-context-nav__back {
+  padding: 6px 12px;
+  border: 1px solid rgb(245, 158, 11, 0.2);
+  border-radius: 6px;
+  background: transparent;
+  color: rgb(245, 158, 11);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease-out;
+}
+
+.runtime-context-nav__back:hover {
+  background: rgb(245, 158, 11, 0.1);
+  border-color: rgb(245, 158, 11, 0.3);
+}
+
+.runtime-context-nav__workline {
+  color: #cbd5e1;
+  font-size: 14px;
+}
+
+.runtime-context-nav__sep {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.runtime-context-nav__device {
+  color: #f8fafc;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.runtime-context-nav__meta {
+  margin-left: 8px;
+  color: #94a3b8;
+  font-size: 12px;
+  font-family: var(--font-mono);
+}
+
+.runtime-mode-switcher {
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid rgb(245, 158, 11, 0.12);
+  border-radius: 10px;
+  background: rgb(30, 41, 59, 0.78);
+}
+
+.runtime-mode-tab {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease-out;
+}
+
+.runtime-mode-tab:hover {
+  color: #f8fafc;
+}
+
+.runtime-mode-tab.is-active {
+  background: rgb(245, 158, 11, 0.18);
+  color: rgb(245, 158, 11);
 }
 
 .runtime-layout {
@@ -606,16 +621,39 @@ watch(
   flex: 0 0 auto;
 }
 
-.runtime-layout__detail-scroll {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  gap: 16px;
-  min-height: 0;
+/* Device Drawer Styles */
+.runtime-device-drawer :deep(.el-drawer__header) {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgb(245, 158, 11, 0.12);
+  margin-bottom: 0;
 }
 
-.runtime-layout__detail-scroll > * {
-  flex: 0 0 auto;
+.runtime-device-drawer :deep(.el-drawer__body) {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 20px;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.runtime-device-drawer__header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.runtime-device-drawer__title {
+  color: #f8fafc;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.runtime-device-drawer__meta {
+  color: #94a3b8;
+  font-size: 12px;
+  font-family: var(--font-mono);
 }
 
 .runtime-workline-placeholder {
@@ -635,15 +673,13 @@ watch(
   flex-direction: column;
 }
 
-.runtime-directory-list,
-.trace-list {
+.runtime-directory-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.runtime-directory-card,
-.trace-list__item {
+.runtime-directory-card {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -660,8 +696,7 @@ watch(
     background var(--duration-fast) var(--ease-out);
 }
 
-.runtime-directory-card:hover,
-.trace-list__item:hover {
+.runtime-directory-card:hover {
   transform: translateY(-1px);
   border-color: rgb(245, 158, 11, 0.28);
 }
@@ -671,12 +706,7 @@ watch(
   background: rgb(245, 158, 11, 0.08);
 }
 
-.trace-list__item--danger {
-  border-color: rgb(220, 38, 38, 0.18);
-}
-
-.runtime-directory-card__top,
-.trace-list__head {
+.runtime-directory-card__top {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -685,29 +715,37 @@ watch(
 
 .runtime-directory-card__time,
 .runtime-directory-card__meta,
-.runtime-directory-card__hint,
-.trace-list__head span,
-.trace-list__meta,
-.trace-list__hint {
+.runtime-directory-card__hint {
   color: #94a3b8;
   font-size: 12px;
   line-height: 1.6;
 }
 
-.runtime-directory-card__title,
-.trace-list__title {
+.runtime-directory-card__title {
   color: #f8fafc;
   font-family: var(--font-mono);
   font-size: 16px;
   font-weight: 700;
 }
 
-.runtime-directory-card__meta,
-.trace-list__meta {
+.runtime-directory-card__meta {
   color: #cbd5e1;
 }
 
-.workline-grid--two,
+.runtime-directory-card__run-mode {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgb(245, 158, 11, 0.12);
+  color: rgb(245, 158, 11);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-right: 4px;
+}
+
 .hotspot-grid {
   display: grid;
   gap: 16px;
@@ -763,6 +801,11 @@ watch(
     min-height: 0;
   }
 
+  .runtime-layout__detail {
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
+
   .runtime-layout__list {
     display: flex;
     flex-direction: column;
@@ -780,8 +823,7 @@ watch(
     overflow: hidden;
   }
 
-  .runtime-layout__list-scroll,
-  .runtime-layout__detail-scroll {
+  .runtime-layout__list-scroll {
     min-height: 0;
     overflow-y: auto;
     padding-right: 6px;
@@ -794,7 +836,6 @@ watch(
     align-items: start;
   }
 
-  .runtime-layout__detail-scroll,
   .runtime-layout__list-scroll {
     overflow: visible;
     padding-right: 0;
@@ -804,7 +845,6 @@ watch(
 @media (width <= 1279px) {
   .runtime-page__header,
   .runtime-layout,
-  .workline-grid--two,
   .hotspot-grid {
     display: flex;
     flex-direction: column;
@@ -814,7 +854,6 @@ watch(
     justify-content: flex-start;
   }
 
-  .runtime-layout__detail-scroll,
   .runtime-layout__list-scroll {
     overflow: visible;
     padding-right: 0;

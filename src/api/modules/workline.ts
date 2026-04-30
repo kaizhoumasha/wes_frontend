@@ -1,5 +1,5 @@
 // ==================== AUTO GENERATED START ====================
-/* eslint-disable @typescript-eslint/no-unused-vars */
+ 
 /**
  * 自动生成的 API 模块
  *
@@ -9,6 +9,7 @@
  * 资源: /api/v1/workline/operations, /api/v1/workline/runtime, /api/v1/workline/trace
  */
 import { contractMethods } from '@/api/contract/client'
+import { post } from '@/api/client'
 import type {
   ContractPathParams,
   ContractQueryParams,
@@ -16,7 +17,6 @@ import type {
   ContractRequestConfig,
   ContractResponseData,
 } from '@/api/contract/types'
-import type { components, paths } from '@/api/generated/openapi-types'
 
 export type SandboxPendingResult = ContractResponseData<'/api/v1/workline/operations/sandbox/pending', 'get'>
 export type SandboxPendingQuery = ContractQueryParams<'/api/v1/workline/operations/sandbox/pending', 'get'>
@@ -28,6 +28,15 @@ export type ReplayInboxesInput = ContractRequestBody<'/api/v1/workline/operation
 export type ManualSessionsResult = ContractResponseData<'/api/v1/workline/operations/manual/sessions/{session_id}', 'post'>
 export type ManualSessionsPathParams = ContractPathParams<'/api/v1/workline/operations/manual/sessions/{session_id}', 'post'>
 export type ManualSessionsInput = ContractRequestBody<'/api/v1/workline/operations/manual/sessions/{session_id}', 'post'>
+
+export type SandboxEventsResult = ContractResponseData<'/api/v1/workline/operations/sandbox/events', 'post'>
+export type SandboxEventsInput = ContractRequestBody<'/api/v1/workline/operations/sandbox/events', 'post'>
+
+export type ResultsResult = ContractResponseData<'/api/v1/workline/operations/results', 'post'>
+export type ResultsInput = ContractRequestBody<'/api/v1/workline/operations/results', 'post'>
+
+export type SandboxTemplatesResult = ContractResponseData<'/api/v1/workline/operations/sandbox/templates', 'get'>
+export type SandboxTemplatesQuery = ContractQueryParams<'/api/v1/workline/operations/sandbox/templates', 'get'>
 
 export type OverviewResult = ContractResponseData<'/api/v1/workline/runtime/overview', 'get'>
 
@@ -42,6 +51,12 @@ export type DevicesQuery = ContractQueryParams<'/api/v1/workline/runtime/devices
 export type GetDevicesResult = ContractResponseData<'/api/v1/workline/runtime/devices/{device_id}', 'get'>
 export type GetDevicesPathParams = ContractPathParams<'/api/v1/workline/runtime/devices/{device_id}', 'get'>
 export type GetDevicesQuery = ContractQueryParams<'/api/v1/workline/runtime/devices/{device_id}', 'get'>
+
+export type SessionsPathResult = ContractResponseData<'/api/v1/workline/runtime/sessions/{session_id}/path', 'get'>
+export type SessionsPathPathParams = ContractPathParams<'/api/v1/workline/runtime/sessions/{session_id}/path', 'get'>
+
+export type TracesPathResult = ContractResponseData<'/api/v1/workline/runtime/traces/{trace_id}/path', 'get'>
+export type TracesPathPathParams = ContractPathParams<'/api/v1/workline/runtime/traces/{trace_id}/path', 'get'>
 
 export type RequestResult = ContractResponseData<'/api/v1/workline/trace/request/{request_id}', 'get'>
 export type RequestPathParams = ContractPathParams<'/api/v1/workline/trace/request/{request_id}', 'get'>
@@ -93,6 +108,33 @@ export const worklineApiMethods = {
   },
 
   /**
+   * [biz:workline:update] 沙箱发送 Event
+   * @endpoint POST /api/v1/workline/operations/sandbox/events
+   * @returns alova method instance
+   */
+  sandboxEvents(body: ContractRequestBody<'/api/v1/workline/operations/sandbox/events', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/workline/operations/sandbox/events', { body, config })
+  },
+
+  /**
+   * [biz:workline:update] 沙箱模拟 Command Result
+   * @endpoint POST /api/v1/workline/operations/results
+   * @returns alova method instance
+   */
+  results(body: ContractRequestBody<'/api/v1/workline/operations/results', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/workline/operations/results', { body, config })
+  },
+
+  /**
+   * [biz:workline:list] 获取沙箱模板
+   * @endpoint GET /api/v1/workline/operations/sandbox/templates
+   * @returns alova method instance
+   */
+  sandboxTemplates(query?: ContractQueryParams<'/api/v1/workline/operations/sandbox/templates', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/operations/sandbox/templates', { query, config })
+  },
+
+  /**
    * [biz:workline:list] 运行监控总览
    * @endpoint GET /api/v1/workline/runtime/overview
    * @returns alova method instance
@@ -135,6 +177,24 @@ export const worklineApiMethods = {
    */
   getDevices(params: ContractPathParams<'/api/v1/workline/runtime/devices/{device_id}', 'get'>, query?: ContractQueryParams<'/api/v1/workline/runtime/devices/{device_id}', 'get'>, config?: ContractRequestConfig) {
     return contractMethods.get('/api/v1/workline/runtime/devices/{device_id}', { params, query, config })
+  },
+
+  /**
+   * [biz:workline:list] Session 设备路径视图
+   * @endpoint GET /api/v1/workline/runtime/sessions/{session_id}/path
+   * @returns alova method instance
+   */
+  sessionsPath(params: ContractPathParams<'/api/v1/workline/runtime/sessions/{session_id}/path', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/runtime/sessions/{session_id}/path', { params, config })
+  },
+
+  /**
+   * [biz:workline:list] Trace 设备路径视图
+   * @endpoint GET /api/v1/workline/runtime/traces/{trace_id}/path
+   * @returns alova method instance
+   */
+  tracesPath(params: ContractPathParams<'/api/v1/workline/runtime/traces/{trace_id}/path', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/runtime/traces/{trace_id}/path', { params, config })
   },
 
   /**
@@ -203,6 +263,18 @@ export const worklineApiMethods = {
 // ==================== AUTO GENERATED END ====================
 
 // ==================== CUSTOM METHODS START ====================
+
+type SandboxAckRequest = {
+  dispatch_key: string
+}
+
+export const sandboxAck = (body: SandboxAckRequest) => {
+  return post('/api/v1/workline/operations/sandbox/ack', body)
+}
+
+export const sandboxProcess = () => {
+  return post('/api/v1/workline/operations/sandbox/process')
+}
 
 // ==================== CUSTOM METHODS END ====================
 

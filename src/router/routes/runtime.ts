@@ -15,38 +15,6 @@ export const runtimeRoutes: RouteRecordRaw = {
   },
   children: [
     {
-      path: 'dashboard',
-      name: 'RuntimeDashboard',
-      component: () => import('@/views/runtime/overview/RuntimeOverviewPage.vue'),
-      meta: {
-        requiresAuth: true,
-        title: '运行中控台',
-        permission: BIZ_PERMISSIONS.workline.page,
-        menu: {
-          name: 'runtime:dashboard:menu',
-          parentName: 'runtime:system:menu',
-          icon: 'ep:data-board',
-          sortOrder: 1,
-        },
-      },
-    },
-    {
-      path: 'traces',
-      name: 'RuntimeTraceExplorer',
-      component: () => import('@/views/runtime/traces/TraceExplorerPage.vue'),
-      meta: {
-        requiresAuth: true,
-        title: 'Trace 处置台',
-        permission: BIZ_PERMISSIONS.workline.page,
-        menu: {
-          name: 'runtime:traces:menu',
-          parentName: 'runtime:system:menu',
-          icon: 'ep:connection',
-          sortOrder: 2,
-        },
-      },
-    },
-    {
       path: 'worklines',
       name: 'RuntimeWorklines',
       component: () => import('@/views/runtime/worklines/WorklineRuntimePage.vue'),
@@ -58,7 +26,41 @@ export const runtimeRoutes: RouteRecordRaw = {
           name: 'runtime:worklines:menu',
           parentName: 'runtime:system:menu',
           icon: 'ep:share',
-          sortOrder: 3,
+          sortOrder: 1,
+        },
+      },
+    },
+    {
+      path: 'dashboard',
+      name: 'RuntimeDashboard',
+      component: () => import('@/views/runtime/overview/RuntimeOverviewPage.vue'),
+      meta: {
+        requiresAuth: true,
+        title: '运行中控台（旧）',
+        permission: BIZ_PERMISSIONS.workline.page,
+        menu: {
+          name: 'runtime:dashboard:menu',
+          parentName: 'runtime:system:menu',
+          icon: 'ep:data-board',
+          sortOrder: 10,
+          hidden: true, // 弱化：隐藏菜单，保留路由供深链跳转
+        },
+      },
+    },
+    {
+      path: 'traces',
+      name: 'RuntimeTraceExplorer',
+      component: () => import('@/views/runtime/traces/TraceExplorerPage.vue'),
+      meta: {
+        requiresAuth: true,
+        title: 'Trace 深链',
+        permission: BIZ_PERMISSIONS.workline.page,
+        menu: {
+          name: 'runtime:traces:menu',
+          parentName: 'runtime:system:menu',
+          icon: 'ep:connection',
+          sortOrder: 20,
+          hidden: true, // 弱化：隐藏菜单，保留路由供深链跳转
         },
       },
     },
@@ -68,13 +70,14 @@ export const runtimeRoutes: RouteRecordRaw = {
       component: () => import('@/views/runtime/sandbox/RuntimeSandboxPage.vue'),
       meta: {
         requiresAuth: true,
-        title: 'Sandbox 调试台',
+        title: 'Sandbox 深链',
         permission: BIZ_PERMISSIONS.workline.update,
         menu: {
           name: 'runtime:sandbox:menu',
           parentName: 'runtime:system:menu',
           icon: 'ep:tools',
-          sortOrder: 4,
+          sortOrder: 30,
+          hidden: true, // 弱化：隐藏菜单，保留路由供深链跳转
         },
       },
     },

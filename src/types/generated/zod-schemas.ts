@@ -1657,6 +1657,16 @@ export const RoleUpdateSchema = z.object({
 })
 
 
+export const RuntimeBlockingReasonSchema = z.object({
+  /** Device Id */
+  device_id: z.union([z.number(), z.null()]).optional(),
+  /** Reason */
+  reason: z.string(),
+  /** Detail */
+  detail: z.union([z.string(), z.null()]).optional(),
+})
+
+
 export const RuntimeDeviceDetailResponseSchema = z.object({
   summary: z.lazy(() => RuntimeDeviceSummarySchema),
   /** Recent Commands */
@@ -1741,6 +1751,36 @@ export const RuntimeStatCardSchema = z.object({
 })
 
 
+export const RuntimeTraceDeviceActionSchema = z.object({
+  /** Kind */
+  kind: z.string(),
+  /** Label */
+  label: z.string(),
+  /** Status */
+  status: z.union([z.string(), z.null()]).optional(),
+  /** Timestamp */
+  timestamp: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Message */
+  message: z.union([z.string(), z.null()]).optional(),
+})
+
+
+export const RuntimeTraceDevicePathNodeSchema = z.object({
+  /** Device Id */
+  device_id: z.number(),
+  /** Device Code */
+  device_code: z.union([z.string(), z.null()]).optional(),
+  /** Device Name */
+  device_name: z.union([z.string(), z.null()]).optional(),
+  /** Device Role */
+  device_role: z.union([z.string(), z.null()]).optional(),
+  /** Is Current */
+  is_current: z.boolean().optional().default(false),
+  /** Actions */
+  actions: z.array(z.lazy(() => RuntimeTraceDeviceActionSchema)).optional(),
+})
+
+
 /**
  * Trace 列表项。
  *
@@ -1808,6 +1848,22 @@ export const RuntimeTraceListResponseSchema = z.object({
   total: z.number(),
   /** Items */
   items: z.array(z.lazy(() => RuntimeTraceListItemSchema)),
+})
+
+
+export const RuntimeTracePathResponseSchema = z.object({
+  /** Workline Id */
+  workline_id: z.union([z.number(), z.null()]).optional(),
+  /** Session Id */
+  session_id: z.union([z.number(), z.null()]).optional(),
+  /** Trace Id */
+  trace_id: z.union([z.string(), z.null()]).optional(),
+  /** Devices */
+  devices: z.array(z.lazy(() => RuntimeTraceDevicePathNodeSchema)).optional(),
+  /** Current Blocking Device Id */
+  current_blocking_device_id: z.union([z.number(), z.null()]).optional(),
+  blocking_reason: z.union([z.lazy(() => RuntimeBlockingReasonSchema), z.null()]).optional(),
+  evidence: z.union([z.lazy(() => TraceDetailResponseSchema), z.null()]).optional(),
 })
 
 
@@ -1883,8 +1939,118 @@ export const RuntimeWorklineSummarySchema = z.object({
   offline_device_count: z.number().optional().default(0),
   /** Maintenance Device Count */
   maintenance_device_count: z.number().optional().default(0),
+  /** Run Mode */
+  run_mode: z.string().optional().default("AUTO"),
   /** Last Activity At */
   last_activity_at: z.union([z.string().datetime(), z.null()]).optional(),
+})
+
+
+/**
+ * 沙箱 Command ACK 模拟请求。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const SandboxAckRequestSchema = z.object({
+  /** Dispatch Key */
+  dispatch_key: z.string().min(1).max(200),
+})
+
+
+/**
+ * 沙箱 Event 发送请求。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const SandboxEventRequestSchema = z.object({
+  /** Workline Id */
+  workline_id: z.number(),
+  /** Device Id */
+  device_id: z.number(),
+  /** Event Type */
+  event_type: z.string().min(1).max(100),
+  /** Trace Id */
+  trace_id: z.union([z.string().max(200), z.null()]).optional(),
+  /** Session Id */
+  session_id: z.union([z.number(), z.null()]).optional(),
+  /** Payload */
+  payload: z.record(z.any()).optional(),
+  /** Timestamp */
+  timestamp: z.union([z.string().datetime(), z.null()]).optional(),
+})
+
+
+/**
+ * 沙箱 Event 模板。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const SandboxEventTemplateSchema = z.object({
+  /** Event Type */
+  event_type: z.string(),
+  /** Label */
+  label: z.string(),
+  /** Payload Template */
+  payload_template: z.record(z.any()).optional(),
+})
+
+
+/**
+ * 沙箱 Command Result 模拟请求。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const SandboxResultRequestSchema = z.object({
+  /** Command Code */
+  command_code: z.string().min(1).max(100),
+  /** Device Code */
+  device_code: z.string().min(1).max(100),
+  /** Result */
+  result: z.string().regex(new RegExp("^(SUCCESS|FAILED)$")),
+  /** Payload */
+  payload: z.record(z.any()).optional(),
+  /** Error Detail */
+  error_detail: z.union([z.string().max(500), z.null()]).optional(),
+  /** Timestamp */
+  timestamp: z.union([z.string().datetime(), z.null()]).optional(),
+})
+
+
+/**
+ * 沙箱 Result 模板。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const SandboxResultTemplateSchema = z.object({
+  /** Command Type */
+  command_type: z.string(),
+  /** Label */
+  label: z.string(),
+  /** Success Payload Template */
+  success_payload_template: z.record(z.any()).optional(),
+  /** Failed Payload Template */
+  failed_payload_template: z.record(z.any()).optional(),
+  /** Error Template */
+  error_template: z.union([z.string(), z.null()]).optional(),
+})
+
+
+/**
+ * 沙箱模板响应。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const SandboxTemplatesResponseSchema = z.object({
+  /** Event Templates */
+  event_templates: z.array(z.lazy(() => SandboxEventTemplateSchema)).optional(),
+  /** Result Templates */
+  result_templates: z.array(z.lazy(() => SandboxResultTemplateSchema)).optional(),
 })
 
 

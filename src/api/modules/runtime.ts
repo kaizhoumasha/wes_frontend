@@ -1,14 +1,19 @@
-import { worklineApiMethods } from '@/api/modules/workline'
+import { sandboxAck, worklineApiMethods } from '@/api/modules/workline'
 import type {
   RuntimeDeviceDetailResponse,
   RuntimeDeviceSummary,
   RuntimeOverviewResponse,
   RuntimeTraceListResponse,
+  RuntimeTracePathResponse,
   RuntimeWorklineDetailResponse,
   RuntimeWorklineSummary,
   ManualSessionOperationPayload,
   ReplayInboxPayload,
+  SandboxAckRequest,
+  SandboxEventRequest,
   SandboxPendingOutbox,
+  SandboxResultRequest,
+  SandboxTemplatesResponse,
   TraceBlockingPointResponse,
   TraceDetailResponse,
   TraceQueryPayload,
@@ -92,8 +97,51 @@ export const runtimeApiMethods = {
     return adaptRuntimeMethod<TraceDetailResponse>(worklineApiMethods.dispatch({ dispatch_key: dispatchKey }))
   },
 
-  sandboxPending(limit = 50) {
-    return adaptRuntimeMethod<SandboxPendingOutbox[]>(worklineApiMethods.sandboxPending({ limit }))
+  sandboxPending(limit = 50, worklineId?: number, deviceId?: number) {
+    return adaptRuntimeMethod<SandboxPendingOutbox[]>(
+      worklineApiMethods.sandboxPending({ limit, workline_id: worklineId, device_id: deviceId })
+    )
+  },
+
+  sandboxEvent(payload: SandboxEventRequest) {
+    return adaptRuntimeMethod<WorklineOperationRecord>(
+      worklineApiMethods.sandboxEvents({
+        workline_id: payload.workline_id,
+        device_id: payload.device_id,
+        event_type: payload.event_type,
+        trace_id: payload.trace_id,
+        session_id: payload.session_id,
+        payload: payload.payload,
+        timestamp: payload.timestamp,
+      })
+    )
+  },
+
+  sandboxResult(payload: SandboxResultRequest) {
+    return adaptRuntimeMethod<WorklineOperationRecord>(
+      worklineApiMethods.results({
+        command_code: payload.command_code,
+        device_code: payload.device_code,
+        result: payload.result,
+        payload: payload.payload,
+        error_detail: payload.error_detail,
+        timestamp: payload.timestamp,
+      })
+    )
+  },
+
+  sandboxAck(payload: SandboxAckRequest) {
+    return adaptRuntimeMethod<SandboxPendingOutbox>(
+      sandboxAck({
+        dispatch_key: payload.dispatch_key,
+      })
+    )
+  },
+
+  sandboxTemplates(worklineId: number, deviceId?: number) {
+    return adaptRuntimeMethod<SandboxTemplatesResponse>(
+      worklineApiMethods.sandboxTemplates({ workline_id: worklineId, device_id: deviceId })
+    )
   },
 
   replayInbox(inboxId: number, payload: ReplayInboxPayload) {
@@ -105,6 +153,18 @@ export const runtimeApiMethods = {
   manualSessionOperation(sessionId: number, payload: ManualSessionOperationPayload) {
     return adaptRuntimeMethod<WorklineOperationRecord>(
       worklineApiMethods.manualSessions({ session_id: sessionId }, payload)
+    )
+  },
+
+  sessionPath(sessionId: number) {
+    return adaptRuntimeMethod<RuntimeTracePathResponse>(
+      worklineApiMethods.sessionsPath({ session_id: sessionId })
+    )
+  },
+
+  tracePath(traceId: string) {
+    return adaptRuntimeMethod<RuntimeTracePathResponse>(
+      worklineApiMethods.tracesPath({ trace_id: traceId })
     )
   },
 }

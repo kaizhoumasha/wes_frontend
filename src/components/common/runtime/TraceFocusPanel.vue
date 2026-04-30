@@ -1,0 +1,1522 @@
+<template>
+  <div class="trace-focus-panel">
+    <!-- Header -->
+    <div class="trace-focus-panel__header">
+      <button
+        type="button"
+        class="trace-focus-panel__back"
+        @click="emit('backToLive')"
+      >
+        <svg
+          class="trace-focus-panel__back-icon"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        <span>返回实时态势</span>
+      </button>
+      <span
+        v-if="pathData"
+        class="trace-focus-panel__trace-id"
+      >
+        {{ pathData.trace_id || `Session #${pathData.session_id}` }}
+      </span>
+    </div>
+
+    <!-- Loading State -->
+    <div
+      v-if="loading"
+      class="trace-focus-panel__skeleton"
+    />
+
+    <!-- Error State -->
+    <div
+      v-else-if="error"
+      class="trace-focus-panel__error"
+    >
+      <svg
+        class="trace-focus-panel__error-icon"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z"
+          clip-rule="evenodd"
+        />
+      </svg>
+      <span>{{ error }}</span>
+      <el-button
+        plain
+        size="small"
+        @click="loadPathData"
+      >
+        重试
+      </el-button>
+    </div>
+
+    <template v-else-if="pathData">
+      <!-- Priority 1: Problem Summary Card (NEW) -->
+      <div
+        v-if="pathData.blocking_reason"
+        class="trace-focus-panel__summary"
+        :class="summaryClass"
+      >
+        <div class="trace-focus-panel__summary-icon">
+          <svg
+            v-if="isBlockingTimeout"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+            />
+          </svg>
+          <svg
+            v-else
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
+            />
+          </svg>
+        </div>
+        <div class="trace-focus-panel__summary-content">
+          <div class="trace-focus-panel__summary-title">
+            {{ blockingDeviceName }}
+          </div>
+          <div class="trace-focus-panel__summary-reason">
+            {{ pathData.blocking_reason.reason }}
+          </div>
+          <div
+            v-if="pathData.blocking_reason.detail"
+            class="trace-focus-panel__summary-detail"
+          >
+            {{ pathData.blocking_reason.detail }}
+          </div>
+        </div>
+        <div class="trace-focus-panel__summary-meta">
+          <div
+            class="trace-focus-panel__summary-status"
+            :class="statusBadgeClass"
+          >
+            {{ statusBadgeText }}
+          </div>
+          <div
+            v-if="blockingDuration"
+            class="trace-focus-panel__summary-duration"
+          >
+            {{ blockingDuration }}
+          </div>
+        </div>
+        <!-- Quick Actions -->
+        <div class="trace-focus-panel__summary-actions">
+          <el-button
+            type="primary"
+            size="small"
+            @click="handleQuickAction('retry')"
+          >
+            <svg
+              class="trace-focus-panel__btn-icon"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            重试
+          </el-button>
+          <el-button
+            size="small"
+            @click="handleQuickAction('skip')"
+          >
+            <svg
+              class="trace-focus-panel__btn-icon"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            跳过
+          </el-button>
+        </div>
+      </div>
+
+      <!-- Priority 2: Trace Topology (集成 WorklineRouteMap) -->
+      <el-card
+        v-if="pathData.devices.length"
+        shadow="never"
+        class="trace-focus-panel__topology"
+      >
+        <template #header>
+          <div class="trace-focus-panel__topology-header">
+            <div>
+              <div class="trace-focus-panel__topology-title">
+                <svg
+                  class="trace-focus-panel__topology-icon"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M4.25 2A2.25 2.25 0 002 4.25v11.5A2.25 2.25 0 004.25 18h11.5A2.25 2.25 0 0018 15.5V4.25A2.25 2.25 0 0015.75 2H4.25zm4.03 6.28a.75.75 0 00-1.06-1.06L4.97 9.47a.75.75 0 000 1.06l2.25 2.25a.75.75 0 001.06-.06l.56-.56a.75.75 0 10-1.06-1.06l-.56.56-1.97 1.97a.75.75 0 001.06 1.06l1.97-1.97 1.97-1.97a.75.75 0 00-1.06-1.06l-.56.56-.56.56z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                执行路径
+              </div>
+              <div class="trace-focus-panel__topology-subtitle">
+                {{ pathData.devices.length }} 台设备 · 点击查看动作详情
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <div class="trace-focus-panel__device-list">
+          <div
+            v-for="(node, idx) in pathData.devices"
+            :key="node.device_id"
+            class="trace-focus-panel__device-card"
+            :class="{
+              'is-blocked': node.device_id === pathData.current_blocking_device_id,
+              'is-current': node.is_current,
+              'is-completed': idx < currentDeviceIndex
+            }"
+            @click="toggleDevice(node.device_id)"
+          >
+            <!-- Device Header -->
+            <div class="trace-focus-panel__device-header">
+              <div class="trace-focus-panel__device-index">
+                <svg
+                  v-if="idx < currentDeviceIndex"
+                  class="trace-focus-panel__device-check"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <svg
+                  v-else-if="node.device_id === pathData.current_blocking_device_id"
+                  class="trace-focus-panel__device-block-icon"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span v-else>{{ idx + 1 }}</span>
+              </div>
+              <div class="trace-focus-panel__device-info">
+                <span class="trace-focus-panel__device-name">
+                  {{ node.device_name || `设备 #${node.device_id}` }}
+                </span>
+                <span
+                  v-if="node.is_current"
+                  class="trace-focus-panel__device-badge"
+                >
+                  执行中
+                </span>
+                <span
+                  v-if="node.device_id === pathData.current_blocking_device_id"
+                  class="trace-focus-panel__device-badge trace-focus-panel__device-badge--blocked"
+                >
+                  阻塞
+                </span>
+              </div>
+            </div>
+
+            <!-- Device Actions (Expandable) -->
+            <div
+              v-if="expandedDeviceId === node.device_id && node.actions.length"
+              class="trace-focus-panel__device-actions"
+            >
+              <div
+                v-for="(action, aIdx) in node.actions"
+                :key="aIdx"
+                class="trace-focus-panel__action-item"
+              >
+                <span
+                  class="trace-focus-panel__action-icon"
+                  :class="actionStatusClass(action.status)"
+                >
+                  {{ actionKindIcon(action.kind) }}
+                </span>
+                <span class="trace-focus-panel__action-kind">
+                  {{ actionKindLabel(action.kind) }}
+                </span>
+                <span class="trace-focus-panel__action-label">
+                  {{ action.label }}
+                </span>
+                <span
+                  v-if="action.status"
+                  class="trace-focus-panel__action-status"
+                  :class="actionStatusClass(action.status)"
+                >
+                  {{ actionStatusLabel(action.status) }}
+                </span>
+                <span
+                  v-if="action.timestamp"
+                  class="trace-focus-panel__action-time"
+                >
+                  {{ formatRelativeTime(action.timestamp) }}
+                </span>
+              </div>
+            </div>
+            <div
+              v-else-if="!node.actions.length"
+              class="trace-focus-panel__device-empty"
+            >
+              未参与执行
+            </div>
+            <div
+              v-else
+              class="trace-focus-panel__device-hint"
+            >
+              <svg
+                class="trace-focus-panel__device-hint-icon"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              {{ node.actions.length }} 个动作
+            </div>
+          </div>
+        </div>
+      </el-card>
+
+      <!-- Priority 3: Execution Timeline (Collapsible) -->
+      <el-card
+        v-if="pathData.evidence?.timelines?.length"
+        shadow="never"
+        class="trace-focus-panel__timeline-card"
+      >
+        <template #header>
+          <div class="trace-focus-panel__timeline-header">
+            <div class="trace-focus-panel__timeline-title-row">
+              <svg
+                class="trace-focus-panel__timeline-icon"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <span class="trace-focus-panel__timeline-title">执行时间轴</span>
+              <span class="trace-focus-panel__timeline-count">
+                {{ pathData.evidence.timelines.length }} 条
+              </span>
+            </div>
+            <div class="trace-focus-panel__timeline-filters">
+              <el-checkbox
+                v-model="showOnlyFailures"
+                size="small"
+              >
+                只看失败
+              </el-checkbox>
+              <el-checkbox
+                v-model="showOnlyCurrent"
+                size="small"
+              >
+                只看当前
+              </el-checkbox>
+            </div>
+          </div>
+        </template>
+
+        <div
+          v-if="filteredTimelines.length"
+          class="trace-focus-panel__timeline-list"
+        >
+          <div
+            v-for="(item, idx) in filteredTimelines"
+            :key="idx"
+            class="trace-focus-panel__timeline-event"
+            :class="{
+              'is-failure': item.status === 'FAILED',
+              'is-success': item.status === 'SUCCESS',
+              'is-expanded': expandedTimelineId === item.id
+            }"
+            @click="toggleTimelineDetail(item.id)"
+          >
+            <div class="trace-focus-panel__timeline-dot" />
+            <div class="trace-focus-panel__timeline-content">
+              <!-- Main Info -->
+              <div class="trace-focus-panel__timeline-main">
+                <span
+                  class="trace-focus-panel__timeline-action"
+                  :class="actionStatusClass(item.status)"
+                >
+                  {{ actionKindIcon(item.action_type) }}
+                </span>
+                <span class="trace-focus-panel__timeline-type">
+                  {{ timelineActionLabel(item.action_type) }}
+                </span>
+                <span
+                  v-if="item.actor_code"
+                  class="trace-focus-panel__timeline-actor"
+                >
+                  {{ item.actor_code }}
+                </span>
+                <span
+                  class="trace-focus-panel__timeline-status"
+                  :class="actionStatusClass(item.status)"
+                >
+                  {{ actionStatusLabel(item.status) }}
+                </span>
+              </div>
+
+              <!-- Status Change -->
+              <div
+                v-if="item.from_status || item.to_status"
+                class="trace-focus-panel__timeline-status-change"
+              >
+                <span
+                  v-if="item.from_status"
+                  class="trace-focus-panel__timeline-status-from"
+                >
+                  {{ item.from_status }}
+                </span>
+                <span class="trace-focus-panel__timeline-status-arrow">→</span>
+                <span
+                  v-if="item.to_status"
+                  class="trace-focus-panel__timeline-status-to"
+                  :class="{ 'is-failed': item.status === 'FAILED' }"
+                >
+                  {{ item.to_status }}
+                </span>
+              </div>
+
+              <!-- Message / Error -->
+              <div
+                v-if="item.message"
+                class="trace-focus-panel__timeline-msg"
+                :class="{ 'is-error': item.status === 'FAILED' }"
+              >
+                <svg
+                  v-if="item.status === 'FAILED'"
+                  class="trace-focus-panel__timeline-msg-icon"
+                  viewBox="0 0 16 16"
+                  fill="currentColor"
+                >
+                  <path
+                    d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8z"
+                  />
+                  <path
+                    d="M8 4a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 018 4zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                  />
+                </svg>
+                {{ item.message }}
+                <span
+                  v-if="item.failure_domain"
+                  class="trace-focus-panel__timeline-failure-domain"
+                >
+                  [{{ item.failure_domain }}]
+                </span>
+              </div>
+
+              <!-- Expandable Detail -->
+              <div
+                v-if="expandedTimelineId === item.id"
+                class="trace-focus-panel__timeline-detail"
+              >
+                <div
+                  v-if="item.related_command_id || item.related_inbox_id"
+                  class="trace-focus-panel__timeline-ref"
+                >
+                  <div
+                    v-if="item.related_command_id"
+                    class="trace-focus-panel__timeline-ref-item"
+                  >
+                    <span class="trace-focus-panel__timeline-ref-label">命令ID</span>
+                    <span class="trace-focus-panel__timeline-ref-value">
+                      #{{ item.related_command_id }}
+                    </span>
+                  </div>
+                  <div
+                    v-if="item.related_inbox_id"
+                    class="trace-focus-panel__timeline-ref-item"
+                  >
+                    <span class="trace-focus-panel__timeline-ref-label">事件ID</span>
+                    <span class="trace-focus-panel__timeline-ref-value">
+                      #{{ item.related_inbox_id }}
+                    </span>
+                  </div>
+                </div>
+                <div
+                  v-if="item.payload_json"
+                  class="trace-focus-panel__timeline-payload"
+                >
+                  <span class="trace-focus-panel__timeline-ref-label">负载</span>
+                  <pre class="trace-focus-panel__timeline-payload-content">{{
+                    formatPayload(item.payload_json)
+                  }}</pre>
+                </div>
+              </div>
+            </div>
+
+            <div class="trace-focus-panel__timeline-right">
+              <div class="trace-focus-panel__timeline-time">
+                {{ formatTime(item.occurred_at) }}
+              </div>
+              <svg
+                v-if="item.related_command_id || item.related_inbox_id || item.payload_json"
+                class="trace-focus-panel__timeline-expand-icon"
+                :class="{ 'is-expanded': expandedTimelineId === item.id }"
+                viewBox="0 0 16 16"
+                fill="currentColor"
+              >
+                <path
+                  d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div
+          v-else
+          class="trace-focus-panel__timeline-empty"
+        >
+          <svg
+            class="trace-focus-panel__timeline-empty-icon"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span>筛选后无结果</span>
+        </div>
+      </el-card>
+    </template>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { ElMessage } from 'element-plus'
+import { runtimeApiMethods } from '@/api/modules/runtime'
+import type { RuntimeTracePathResponse } from '@/types/runtime'
+
+const props = defineProps<{
+  worklineId: number
+  sessionId?: number | null
+  traceId?: string | null
+}>()
+
+const emit = defineEmits<{
+  backToLive: []
+}>()
+
+// State
+const loading = ref(false)
+const error = ref<string | null>(null)
+const pathData = ref<RuntimeTracePathResponse | null>(null)
+const expandedDeviceId = ref<number | null>(null)
+const expandedTimelineId = ref<number | null>(null)
+const showOnlyFailures = ref(false)
+const showOnlyCurrent = ref(false)
+
+let abortController: AbortController | null = null
+
+// Timer for blocking duration
+let durationTimer: ReturnType<typeof setInterval> | null = null
+const currentDuration = ref(0)
+
+// Cleanup
+onBeforeUnmount(() => {
+  abortController?.abort()
+  if (durationTimer) {
+    clearInterval(durationTimer)
+  }
+})
+
+// Watch for changes
+watch(
+  () => [props.sessionId, props.traceId],
+  () => {
+    loadPathData()
+  },
+  { immediate: true }
+)
+
+// Computed properties
+const currentDeviceIndex = computed(() => {
+  if (!pathData.value) return -1
+  return pathData.value.devices.findIndex(d => d.is_current)
+})
+
+const blockingDeviceName = computed(() => {
+  if (!pathData.value?.blocking_reason?.device_id) return '未知设备'
+  const device = pathData.value.devices.find(
+    d => d.device_id === pathData.value?.blocking_reason?.device_id
+  )
+  return device?.device_name || `设备 #${pathData.value.blocking_reason.device_id}`
+})
+
+const isBlockingTimeout = computed(() => {
+  const reason = pathData.value?.blocking_reason?.reason || ''
+  return reason.includes('超时') || reason.includes('timeout')
+})
+
+const blockingDuration = computed(() => {
+  if (!pathData.value?.blocking_reason?.detail) return ''
+  // Extract duration from detail or use timer
+  const detail = pathData.value.blocking_reason.detail
+  if (detail.includes('等待')) {
+    const match = detail.match(/(\d+)\s*(分钟|秒|min|sec)/i)
+    if (match) {
+      return `已等待 ${match[1]}${match[2]}`
+    }
+  }
+  return ''
+})
+
+const summaryClass = computed(() => {
+  if (isBlockingTimeout.value) return 'trace-focus-panel__summary--critical'
+  return 'trace-focus-panel__summary--warning'
+})
+
+const statusBadgeClass = computed(() => {
+  if (isBlockingTimeout.value) return 'trace-focus-panel__summary-status--critical'
+  return 'trace-focus-panel__summary-status--warning'
+})
+
+const statusBadgeText = computed(() => {
+  if (isBlockingTimeout.value) return '需立即处理'
+  return '等待中'
+})
+
+const filteredTimelines = computed(() => {
+  if (!pathData.value?.evidence?.timelines) return []
+  let timelines = pathData.value.evidence.timelines
+
+  if (showOnlyFailures.value) {
+    timelines = timelines.filter(t => t.status === 'FAILED')
+  }
+
+  // Simple filter - in real implementation would match device_id
+  return timelines.slice(0, 20)
+})
+
+// Methods
+async function loadPathData() {
+  abortController?.abort()
+  const controller = new AbortController()
+  abortController = controller
+
+  loading.value = true
+  error.value = null
+  pathData.value = null
+
+  try {
+    if (props.sessionId) {
+      pathData.value = await runtimeApiMethods.sessionPath(props.sessionId).send()
+    } else if (props.traceId) {
+      pathData.value = await runtimeApiMethods.tracePath(props.traceId).send()
+    }
+
+    // Start duration timer if blocked
+    if (pathData.value?.current_blocking_device_id) {
+      startDurationTimer()
+    }
+  } catch (err: unknown) {
+    if (controller.signal.aborted) return
+    error.value = err instanceof Error ? err.message : '加载 Trace 路径失败'
+  } finally {
+    if (!controller.signal.aborted) loading.value = false
+  }
+}
+
+function startDurationTimer() {
+  if (durationTimer) clearInterval(durationTimer)
+  currentDuration.value = 0
+  durationTimer = setInterval(() => {
+    currentDuration.value++
+  }, 1000)
+}
+
+function toggleDevice(deviceId: number) {
+  expandedDeviceId.value = expandedDeviceId.value === deviceId ? null : deviceId
+}
+
+function toggleTimelineDetail(timelineId: number) {
+  expandedTimelineId.value = expandedTimelineId.value === timelineId ? null : timelineId
+}
+
+function handleQuickAction(action: 'retry' | 'skip') {
+  ElMessage.info(`执行操作: ${action === 'retry' ? '重试' : '跳过'}`)
+  // TODO: Implement actual quick action API
+}
+
+// Action kind helpers - Business semantics
+function actionKindIcon(kind: string): string {
+  const iconMap: Record<string, string> = {
+    command: '📡',
+    inbox: '📥',
+    outbox: '📤',
+    event: '📋',
+    result: '✅',
+    ack: '📲'
+  }
+  return iconMap[kind?.toLowerCase()] || '📋'
+}
+
+function actionKindLabel(kind: string): string {
+  const labelMap: Record<string, string> = {
+    command: '设备命令',
+    inbox: '接收事件',
+    outbox: '下发指令',
+    event: '系统事件',
+    result: '返回结果',
+    ack: '确认回执'
+  }
+  return labelMap[kind?.toLowerCase()] || kind
+}
+
+function actionStatusClass(status: string | null | undefined): string {
+  if (!status) return ''
+  const statusMap: Record<string, string> = {
+    success: 'is-success',
+    failed: 'is-failed',
+    pending: 'is-pending',
+    running: 'is-running',
+    timeout: 'is-timeout'
+  }
+  return statusMap[status?.toLowerCase()] || ''
+}
+
+function actionStatusLabel(status: string | null | undefined): string {
+  if (!status) return ''
+  const labelMap: Record<string, string> = {
+    SUCCESS: '成功',
+    FAILED: '失败',
+    PENDING: '等待中',
+    RUNNING: '执行中',
+    TIMEOUT: '超时',
+    COMPLETED: '已完成'
+  }
+  return labelMap[status?.toUpperCase()] || status
+}
+
+function timelineActionLabel(actionType: string | null): string {
+  if (!actionType) return '未知动作'
+  return actionType
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+}
+
+function formatTime(timestamp: string | null): string {
+  if (!timestamp) return ''
+  try {
+    const date = new Date(timestamp)
+    return date.toLocaleTimeString('zh-CN', { hour12: false })
+  } catch {
+    return ''
+  }
+}
+
+function formatRelativeTime(timestamp: string | null): string {
+  if (!timestamp) return ''
+  try {
+    const date = new Date(timestamp)
+    const now = new Date()
+    const diff = Math.floor((now.getTime() - date.getTime()) / 1000)
+
+    if (diff < 60) return `${diff}秒前`
+    if (diff < 3600) return `${Math.floor(diff / 60)}分钟前`
+    if (diff < 86400) return `${Math.floor(diff / 3600)}小时前`
+    return `${Math.floor(diff / 86400)}天前`
+  } catch {
+    return ''
+  }
+}
+
+function formatPayload(payload: Record<string, unknown> | null): string {
+  if (!payload) return ''
+  // 截断显示，最多 2000 字符
+  const str = JSON.stringify(payload, null, 2)
+  return str.length > 2000 ? str.slice(0, 2000) + '\n\n... [内容已截断]' : str
+}
+</script>
+
+<style scoped>
+/* Design System Tokens */
+:root {
+  --trace-bg-primary: #0f172a;
+  --trace-bg-secondary: #1e293b;
+  --trace-bg-elevated: #334155;
+  --trace-border: #334155;
+  --trace-text-primary: #f1f5f9;
+  --trace-text-secondary: #94a3b8;
+  --trace-text-muted: #64748b;
+  --trace-accent-primary: #06b6d4;
+  --trace-accent-secondary: #0891b2;
+  --trace-success: #22c55e;
+  --trace-warning: #f59e0b;
+  --trace-danger: #ef4444;
+  --trace-danger-bg: rgb(239, 68, 68, 0.1);
+  --trace-warning-bg: rgb(245, 158, 11, 0.1);
+  --trace-success-bg: rgb(34, 197, 94, 0.1);
+}
+
+/* Header */
+.trace-focus-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.trace-focus-panel__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.trace-focus-panel__back {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid rgb(6, 182, 212, 0.2);
+  border-radius: 8px;
+  background: transparent;
+  color: rgb(6, 182, 212);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.trace-focus-panel__back:hover {
+  background: rgb(6, 182, 212, 0.1);
+  border-color: rgb(6, 182, 212, 0.4);
+}
+
+.trace-focus-panel__back-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.trace-focus-panel__trace-id {
+  color: #f1f5f9;
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Skeleton Loading */
+.trace-focus-panel__skeleton {
+  height: 200px;
+  border-radius: 12px;
+  background: linear-gradient(
+    90deg,
+    rgb(30, 41, 59, 0.5) 25%,
+    rgb(30, 41, 59, 0.8) 50%,
+    rgb(30, 41, 59, 0.5) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Error State */
+.trace-focus-panel__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px 0;
+  color: #ef4444;
+  font-size: 13px;
+}
+
+.trace-focus-panel__error-icon {
+  width: 32px;
+  height: 32px;
+}
+
+/* ===== PRIORITY 1: Problem Summary Card ===== */
+.trace-focus-panel__summary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid;
+}
+
+.trace-focus-panel__summary--critical {
+  background: linear-gradient(135deg, rgb(127, 29, 29, 0.2), rgb(185, 28, 28, 0.15));
+  border-color: rgb(239, 68, 68, 0.4);
+}
+
+.trace-focus-panel__summary--warning {
+  background: linear-gradient(135deg, rgb(146, 64, 14, 0.2), rgb(180, 83, 9, 0.15));
+  border-color: rgb(245, 158, 11, 0.4);
+}
+
+.trace-focus-panel__summary-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+}
+
+.trace-focus-panel__summary--critical .trace-focus-panel__summary-icon {
+  background: rgb(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+
+.trace-focus-panel__summary--warning .trace-focus-panel__summary-icon {
+  background: rgb(245, 158, 11, 0.2);
+  color: #fcd34d;
+}
+
+.trace-focus-panel__summary-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.trace-focus-panel__summary-content {
+  flex: 1;
+}
+
+.trace-focus-panel__summary-title {
+  color: #f1f5f9;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.trace-focus-panel__summary-reason {
+  color: #e2e8f0;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.trace-focus-panel__summary-detail {
+  margin-top: 6px;
+  color: #94a3b8;
+  font-size: 13px;
+  font-family: var(--font-mono, monospace);
+}
+
+.trace-focus-panel__summary-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.trace-focus-panel__summary-status {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.trace-focus-panel__summary-status--critical {
+  background: rgb(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+
+.trace-focus-panel__summary-status--warning {
+  background: rgb(245, 158, 11, 0.2);
+  color: #fcd34d;
+}
+
+.trace-focus-panel__summary-duration {
+  color: #94a3b8;
+  font-size: 13px;
+  font-family: var(--font-mono, monospace);
+}
+
+.trace-focus-panel__summary-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.trace-focus-panel__btn-icon {
+  width: 14px;
+  height: 14px;
+  margin-right: 4px;
+}
+
+/* ===== PRIORITY 2: Topology ===== */
+.trace-focus-panel__topology {
+  background: rgb(15, 23, 42, 0.6);
+  border: 1px solid rgb(51, 65, 85, 0.5);
+}
+
+.trace-focus-panel__topology-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.trace-focus-panel__topology-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #f1f5f9;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.trace-focus-panel__topology-icon {
+  width: 18px;
+  height: 18px;
+  color: #06b6d4;
+}
+
+.trace-focus-panel__topology-subtitle {
+  color: #64748b;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+/* Device Cards */
+.trace-focus-panel__device-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trace-focus-panel__device-card {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgb(30, 41, 59, 0.5);
+  border: 1px solid rgb(51, 65, 85, 0.4);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.trace-focus-panel__device-card:hover {
+  background: rgb(30, 41, 59, 0.7);
+  border-color: rgb(6, 182, 212, 0.3);
+}
+
+.trace-focus-panel__device-card.is-blocked {
+  border-color: rgb(239, 68, 68, 0.5);
+  background: rgb(127, 29, 29, 0.15);
+}
+
+.trace-focus-panel__device-card.is-current {
+  border-color: rgb(6, 182, 212, 0.4);
+}
+
+.trace-focus-panel__device-card.is-completed {
+  opacity: 0.7;
+}
+
+.trace-focus-panel__device-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.trace-focus-panel__device-index {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgb(51, 65, 85, 0.5);
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.trace-focus-panel__device-card.is-completed .trace-focus-panel__device-index {
+  background: rgb(34, 197, 94, 0.2);
+  color: #4ade80;
+}
+
+.trace-focus-panel__device-card.is-blocked .trace-focus-panel__device-index {
+  background: rgb(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+
+.trace-focus-panel__device-check {
+  width: 16px;
+  height: 16px;
+}
+
+.trace-focus-panel__device-block-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.trace-focus-panel__device-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trace-focus-panel__device-name {
+  color: #f1f5f9;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.trace-focus-panel__device-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgb(6, 182, 212, 0.2);
+  color: #22d3ee;
+}
+
+.trace-focus-panel__device-badge--blocked {
+  background: rgb(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+
+.trace-focus-panel__device-actions {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgb(51, 65, 85, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.trace-focus-panel__action-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgb(15, 23, 42, 0.3);
+}
+
+.trace-focus-panel__action-icon {
+  font-size: 14px;
+  width: 20px;
+  text-align: center;
+}
+
+.trace-focus-panel__action-kind {
+  color: #64748b;
+  font-size: 10px;
+  text-transform: uppercase;
+  font-weight: 600;
+  background: rgb(51, 65, 85, 0.4);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.trace-focus-panel__action-label {
+  color: #cbd5e1;
+  font-family: var(--font-mono, monospace);
+}
+
+.trace-focus-panel__action-status {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.trace-focus-panel__action-status.is-success {
+  background: rgb(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+
+.trace-focus-panel__action-status.is-failed {
+  background: rgb(239, 68, 68, 0.15);
+  color: #fca5a5;
+}
+
+.trace-focus-panel__action-status.is-running {
+  background: rgb(6, 182, 212, 0.15);
+  color: #22d3ee;
+}
+
+.trace-focus-panel__action-time {
+  margin-left: auto;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.trace-focus-panel__device-empty {
+  margin-top: 8px;
+  color: #475569;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.trace-focus-panel__device-hint {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.trace-focus-panel__device-hint-icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* ===== PRIORITY 3: Timeline ===== */
+.trace-focus-panel__timeline-card {
+  background: rgb(15, 23, 42, 0.6);
+  border: 1px solid rgb(51, 65, 85, 0.5);
+}
+
+.trace-focus-panel__timeline-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trace-focus-panel__timeline-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trace-focus-panel__timeline-icon {
+  width: 18px;
+  height: 18px;
+  color: #06b6d4;
+}
+
+.trace-focus-panel__timeline-title {
+  color: #f1f5f9;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.trace-focus-panel__timeline-count {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.trace-focus-panel__timeline-filters {
+  display: flex;
+  gap: 16px;
+}
+
+.trace-focus-panel__timeline-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.trace-focus-panel__timeline-event {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgb(51, 65, 85, 0.2);
+}
+
+.trace-focus-panel__timeline-event:last-child {
+  border-bottom: none;
+}
+
+.trace-focus-panel__timeline-dot {
+  width: 10px;
+  height: 10px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: #64748b;
+  flex-shrink: 0;
+}
+
+.trace-focus-panel__timeline-event.is-failure .trace-focus-panel__timeline-dot {
+  background: #ef4444;
+  box-shadow: 0 0 8px rgb(239, 68, 68, 0.5);
+}
+
+.trace-focus-panel__timeline-event.is-success .trace-focus-panel__timeline-dot {
+  background: #22c55e;
+}
+
+.trace-focus-panel__timeline-content {
+  flex: 1;
+}
+
+.trace-focus-panel__timeline-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trace-focus-panel__timeline-action {
+  font-size: 14px;
+}
+
+.trace-focus-panel__timeline-type {
+  color: #e2e8f0;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.trace-focus-panel__timeline-status {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.trace-focus-panel__timeline-status.is-success {
+  background: rgb(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+
+.trace-focus-panel__timeline-status.is-failed {
+  background: rgb(239, 68, 68, 0.15);
+  color: #fca5a5;
+}
+
+.trace-focus-panel__timeline-msg {
+  margin-top: 4px;
+  color: #94a3b8;
+  font-size: 12px;
+  font-family: var(--font-mono, monospace);
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.trace-focus-panel__timeline-msg.is-error {
+  color: #fca5a5;
+}
+
+.trace-focus-panel__timeline-msg-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.trace-focus-panel__timeline-failure-domain {
+  color: #fca5a5;
+  font-size: 10px;
+  background: rgb(239, 68, 68, 0.15);
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-left: 4px;
+}
+
+.trace-focus-panel__timeline-time {
+  color: #64748b;
+  font-size: 11px;
+  font-family: var(--font-mono, monospace);
+  white-space: nowrap;
+}
+
+/* Actor (设备) */
+.trace-focus-panel__timeline-actor {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgb(6, 182, 212, 0.15);
+  color: #22d3ee;
+  font-size: 11px;
+  font-family: var(--font-mono, monospace);
+}
+
+/* Status Change */
+.trace-focus-panel__timeline-status-change {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 11px;
+  font-family: var(--font-mono, monospace);
+}
+
+.trace-focus-panel__timeline-status-from {
+  color: #64748b;
+}
+
+.trace-focus-panel__timeline-status-arrow {
+  color: #475569;
+}
+
+.trace-focus-panel__timeline-status-to {
+  color: #22c55e;
+}
+
+.trace-focus-panel__timeline-status-to.is-failed {
+  color: #ef4444;
+}
+
+/* Expandable Detail */
+.trace-focus-panel__timeline-detail {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgb(15, 23, 42, 0.5);
+  border: 1px solid rgb(51, 65, 85, 0.4);
+}
+
+.trace-focus-panel__timeline-ref {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.trace-focus-panel__timeline-ref-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.trace-focus-panel__timeline-ref-label {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.trace-focus-panel__timeline-ref-value {
+  color: #22d3ee;
+  font-size: 12px;
+  font-family: var(--font-mono, monospace);
+  background: rgb(6, 182, 212, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.trace-focus-panel__timeline-payload {
+  margin-top: 12px;
+}
+
+.trace-focus-panel__timeline-payload-content {
+  margin: 8px 0 0;
+  padding: 8px;
+  border-radius: 6px;
+  background: rgb(0, 0, 0, 0.3);
+  color: #cbd5e1;
+  font-size: 11px;
+  font-family: var(--font-mono, monospace);
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* Expand Icon */
+.trace-focus-panel__timeline-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.trace-focus-panel__timeline-expand-icon {
+  width: 16px;
+  height: 16px;
+  color: #475569;
+  transition: transform 0.2s ease;
+}
+
+.trace-focus-panel__timeline-expand-icon.is-expanded {
+  transform: rotate(180deg);
+}
+
+/* Event expanded state */
+.trace-focus-panel__timeline-event.is-expanded {
+  background: rgb(15, 23, 42, 0.3);
+  margin: 0 -12px;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.trace-focus-panel__timeline-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.trace-focus-panel__timeline-empty-icon {
+  width: 24px;
+  height: 24px;
+}
+
+/* Responsive */
+@media (width >= 768px) {
+  .trace-focus-panel__summary {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .trace-focus-panel__summary-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .trace-focus-panel__device-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (width >= 1024px) {
+  .trace-focus-panel__device-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+</style>
