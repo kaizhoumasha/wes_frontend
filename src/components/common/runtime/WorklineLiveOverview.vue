@@ -1,8 +1,8 @@
 <template>
   <div class="workline-live-overview">
-    <WorklineHealthHero
+    <DecisionStrip
       :summary="worklineSummary"
-      class="workline-live-overview__hero"
+      :detail="worklineDetail"
     />
 
     <el-card
@@ -27,7 +27,7 @@
       />
     </el-card>
 
-    <WorklineTaskQueue
+    <SessionBoard
       :active-sessions="activeSessions"
       :recent-failed-traces="recentFailedTraces"
       @select-session="emit('selectSession', $event)"
@@ -36,18 +36,20 @@
 </template>
 
 <script setup lang="ts">
-import WorklineHealthHero from '@/components/common/runtime/WorklineHealthHero.vue'
+import DecisionStrip from '@/components/common/runtime/DecisionStrip.vue'
 import WorklineRouteMap from '@/components/common/runtime/WorklineRouteMap.vue'
-import WorklineTaskQueue from '@/components/common/runtime/WorklineTaskQueue.vue'
+import SessionBoard from '@/components/common/runtime/SessionBoard.vue'
 import type {
   RuntimeTraceDevicePathNode,
   RuntimeTraceListItem,
+  RuntimeWorklineDetailResponse,
   RuntimeWorklineDeviceItem,
   RuntimeWorklineSummary
 } from '@/types/runtime'
 
 defineProps<{
   worklineSummary: RuntimeWorklineSummary
+  worklineDetail?: RuntimeWorklineDetailResponse | null
   devices: RuntimeWorklineDeviceItem[]
   activeSessions: RuntimeTraceListItem[]
   recentFailedTraces: RuntimeTraceListItem[]
@@ -68,9 +70,5 @@ const emit = defineEmits<{
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-.workline-live-overview__hero {
-  flex-shrink: 0;
 }
 </style>

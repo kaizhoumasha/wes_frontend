@@ -38,7 +38,7 @@ function openTrace(device: Device) {
   }
 
   router.push({
-    name: 'RuntimeTraceExplorer',
+    name: 'RuntimeWorklines',
     query: buildRuntimeTraceQuery({
       deviceId: device.id,
       worklineId: device.work_line_id

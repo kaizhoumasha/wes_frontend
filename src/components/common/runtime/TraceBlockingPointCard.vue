@@ -121,7 +121,7 @@ const nextSteps = computed(() => {
 .trace-blocking-card {
   border: 1px solid rgb(245, 158, 11, 0.18);
   border-radius: 16px;
-  background: rgb(30, 41, 59, 0.86);
+  background: var(--runtime-surface);
 }
 
 .trace-blocking-card__header {
@@ -178,9 +178,9 @@ const nextSteps = computed(() => {
 
 .trace-blocking-card__fact {
   padding: 12px;
-  border: 1px solid rgb(148, 163, 184, 0.12);
+  border: 1px solid var(--runtime-border-neutral);
   border-radius: 10px;
-  background: rgb(15, 23, 42, 0.45);
+  background: var(--runtime-surface-subtle);
 }
 
 .trace-blocking-card__fact strong {
@@ -195,7 +195,7 @@ const nextSteps = computed(() => {
 
 .trace-blocking-card__message p {
   margin: 6px 0 0;
-  color: #cbd5e1;
+  color: var(--runtime-text-emphasis);
   font-size: 13px;
   line-height: 1.7;
 }
@@ -206,7 +206,7 @@ const nextSteps = computed(() => {
   gap: 8px;
   margin: 0;
   padding-left: 20px;
-  color: #e2e8f0;
+  color: var(--runtime-text-emphasis);
   font-size: 13px;
   line-height: 1.7;
 }

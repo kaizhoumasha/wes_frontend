@@ -1,6 +1,6 @@
 <template>
   <div
-    v-loading="loading"
+    v-loading="store.loading"
     class="runtime-page"
   >
     <div class="runtime-page__header">
@@ -62,6 +62,12 @@
     </div>
 
     <RuntimeFrozenNotice v-if="!live" />
+    <div
+      v-if="isStale"
+      class="runtime-workline__stale-hint"
+    >
+      数据可能已过期 (SSE &gt; 15s)
+    </div>
 
     <div class="runtime-layout">
       <el-card
@@ -95,11 +101,11 @@
 
         <div class="runtime-layout__list-scroll">
           <div
-            v-if="worklines.length"
+            v-if="store.worklines.length"
             class="runtime-directory-list"
           >
             <button
-              v-for="item in orderedWorklines"
+              v-for="item in store.orderedWorklines"
               :key="item.id"
               type="button"
               class="runtime-directory-card"
@@ -137,7 +143,7 @@
       </el-card>
 
       <div class="runtime-layout__detail">
-        <template v-if="detail">
+        <template v-if="store.detail">
           <!-- Mode Switcher (SIMULATION worklines only) -->
           <div
             v-if="sandboxAllowed === 'allowed'"
@@ -161,118 +167,82 @@
             </button>
           </div>
 
-          <template v-if="effectiveMode === 'trace' && (modeSessionId || modeTraceId)">
-            <TraceFocusPanel
-              :workline-id="detail.summary.id"
-              :session-id="modeSessionId ? Number(modeSessionId) : null"
-              :trace-id="modeTraceId"
-              @back-to-live="switchToLive()"
-            />
-          </template>
-          <template v-else-if="effectiveMode === 'sandbox'">
+          <template v-if="effectiveMode === 'sandbox'">
             <SandboxWorkbench
-              :workline-id="detail.summary.id"
-              :devices="detail.devices"
+              :workline-id="store.detail.summary.id"
+              :devices="store.detail.devices"
               :device-id="selectedDeviceId"
-              :run-mode="detail.summary.run_mode"
+              :run-mode="store.detail.summary.run_mode"
               @refresh="refreshWorklines"
             />
           </template>
           <template v-else>
             <WorklineLiveOverview
-              :workline-summary="detail.summary"
-              :devices="detail.devices"
-              :active-sessions="detail.active_sessions"
-              :recent-failed-traces="detail.recent_failed_traces"
+              :workline-summary="store.detail.summary"
+              :workline-detail="store.detail"
+              :devices="store.detail.devices"
+              :active-sessions="store.detail.active_sessions"
+              :recent-failed-traces="store.detail.recent_failed_traces"
               :selected-device-id="selectedDeviceId"
-              :session-counts-by-device="sessionCountsByDevice"
+              :session-counts-by-device="store.sessionCountsByDevice"
               @select-device="openDevice"
               @select-session="handleSelectSession"
             />
-
-            <el-card
-              shadow="never"
-              class="runtime-panel"
-            >
-              <template #header>
-                <div class="runtime-panel__header">
-                  <div>
-                    <div class="runtime-panel__title">异常热点</div>
-                    <div class="runtime-panel__subtitle">
-                      帮助判断这是局部节点问题，还是线体级模式性异常
-                    </div>
-                  </div>
-                </div>
-              </template>
-
-              <div class="hotspot-grid">
-                <div class="hotspot-card">
-                  <span>焦点设备</span>
-                  <strong>{{ hotspotDevice?.device_name || '—' }}</strong>
-                  <p>
-                    {{
-                      hotspotDevice
-                        ? `${hotspotDevice.device_code} · ${hotspotDevice.error_code || hotspotDevice.device_status}`
-                        : '当前未识别到明显异常节点'
-                    }}
-                  </p>
-                </div>
-                <div class="hotspot-card">
-                  <span>高频失败 Step</span>
-                  <strong>{{ mostFailedStep || '—' }}</strong>
-                  <p>基于最近失败 Trace 的 step 分布</p>
-                </div>
-                <div class="hotspot-card">
-                  <span>主要等待 Step</span>
-                  <strong>{{ dominantActiveStep || '—' }}</strong>
-                  <p>基于当前活跃 Session 的 step 聚合</p>
-                </div>
-                <div class="hotspot-card">
-                  <span>最近活动</span>
-                  <strong>{{ worklineLastActivityLabel(detail.summary) }}</strong>
-                  <p>
-                    {{ detail.summary.owner_team || '未配置 owner' }} /
-                    {{ detail.summary.support_contact || '未配置 support' }}
-                  </p>
-                </div>
-              </div>
-            </el-card>
-
-            <!-- 设备详情抽屉 -->
-            <el-drawer
-              v-model="isDevicePanelOpen"
-              direction="rtl"
-              size="600px"
-              :close-on-click-modal="true"
-              :close-on-press-escape="true"
-              class="runtime-device-drawer"
-              @close="closeDevicePanel"
-            >
-              <template #header>
-                <div
-                  v-if="selectedDeviceDetail"
-                  class="runtime-device-drawer__header"
-                >
-                  <strong class="runtime-device-drawer__title">
-                    {{ selectedDeviceDetail.device_name }}
-                  </strong>
-                  <span class="runtime-device-drawer__meta">
-                    {{ selectedDeviceDetail.device_code }} · {{ selectedDeviceDetail.device_role }}
-                  </span>
-                </div>
-              </template>
-
-              <RuntimeDeviceInspector
-                v-if="selectedDeviceId"
-                :device-id="selectedDeviceId"
-                :workline-id="detail.summary.id"
-                :mode="effectiveMode"
-                :show-header="false"
-                @close="closeDevicePanel"
-                @select-session="handleSelectSession"
-              />
-            </el-drawer>
           </template>
+
+          <!-- 设备详情抽屉 -->
+          <el-drawer
+            v-model="isDevicePanelOpen"
+            direction="rtl"
+            size="600px"
+            :close-on-click-modal="true"
+            :close-on-press-escape="true"
+            class="runtime-device-drawer"
+            @close="closeDevicePanel"
+          >
+            <template #header>
+              <div
+                v-if="selectedDeviceDetail"
+                class="runtime-device-drawer__header"
+              >
+                <strong class="runtime-device-drawer__title">
+                  {{ selectedDeviceDetail.device_name }}
+                </strong>
+                <span class="runtime-device-drawer__meta">
+                  {{ selectedDeviceDetail.device_code }} · {{ selectedDeviceDetail.device_role }}
+                </span>
+              </div>
+            </template>
+
+            <RuntimeDeviceInspector
+              v-if="selectedDeviceId"
+              :device-id="selectedDeviceId"
+              :workline-id="store.detail.summary.id"
+              :mode="effectiveMode"
+              :show-header="false"
+              @close="closeDevicePanel"
+              @select-session="handleSelectSession"
+            />
+          </el-drawer>
+
+          <!-- Trace 侧滑面板 -->
+          <el-drawer
+            v-model="isTraceDrawerOpen"
+            direction="rtl"
+            size="520px"
+            :close-on-click-modal="true"
+            :close-on-press-escape="true"
+            class="runtime-trace-drawer"
+            @close="switchToLive()"
+          >
+            <TraceFocusPanel
+              v-if="isTraceDrawerOpen && store.detail"
+              :workline-id="store.detail.summary.id"
+              :session-id="modeSessionId ? Number(modeSessionId) : null"
+              :trace-id="modeTraceId"
+              @back-to-live="switchToLive()"
+            />
+          </el-drawer>
         </template>
 
         <el-card
@@ -294,6 +264,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useNow } from '@vueuse/core'
 import RuntimeDeviceInspector from '@/components/common/runtime/RuntimeDeviceInspector.vue'
 import SandboxWorkbench from '@/components/common/runtime/SandboxWorkbench.vue'
 import TraceFocusPanel from '@/components/common/runtime/TraceFocusPanel.vue'
@@ -302,35 +273,29 @@ import RuntimeFrozenNotice from '@/components/common/runtime/RuntimeFrozenNotice
 import RuntimeLastUpdated from '@/components/common/runtime/RuntimeLastUpdated.vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import WorklineLiveOverview from '@/components/common/runtime/WorklineLiveOverview.vue'
-import { runtimeApiMethods } from '@/api/modules/runtime'
 import { buildRuntimeWorklineQuery } from '@/utils/runtime-route'
 import { useWorklineMode } from '@/composables/useWorklineMode'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
-import type {
-  RuntimeTraceListItem,
-  RuntimeWorklineDetailResponse,
-  RuntimeWorklineDeviceItem,
-  RuntimeWorklineSummary
-} from '@/types/runtime'
+import { useWorklineRuntimeStore } from '@/stores/workline-runtime'
+import type { RuntimeTraceListItem, RuntimeWorklineSummary } from '@/types/runtime'
 import { createCoalescedAsyncTask } from '@/utils/createCoalescedAsyncTask'
 import { isRelevantRuntimeEvent } from '@/utils/runtime-event'
 import {
-  aggregateSessionsByDevice,
   formatRuntimeDateTime,
   getWorklineRiskLabel as worklineRiskLabel,
-  getWorklineRiskScore,
   getWorklineRiskTone as worklineRiskTone,
-  pickDominantValue,
-  readPositiveInt,
-  sortByScoreDesc
+  readPositiveInt
 } from '@/utils/runtime-display'
 
 const route = useRoute()
 const router = useRouter()
+const store = useWorklineRuntimeStore()
+
 const {
   connectionLabel,
   connectionTone,
   lastEvent,
+  lastRawEvent,
   lastRefreshedAt,
   live,
   markRefreshedAt,
@@ -338,19 +303,24 @@ const {
   toggleLive
 } = useRuntimePageChrome()
 
-const loading = ref(false)
-const worklines = ref<RuntimeWorklineSummary[]>([])
-const detail = ref<RuntimeWorklineDetailResponse | null>(null)
+const now = useNow()
+const isStale = computed(() => {
+  if (!live.value || !lastRawEvent.value) return false
+  const ts = (lastRawEvent.value.original as MessageEvent | undefined)?.timeStamp
+  if (!ts) return false
+  return now.value.getTime() - ts > 15_000
+})
 
 const selectedDeviceId = computed(() => readPositiveInt(route.query.deviceId))
 const isDevicePanelOpen = ref(false)
+const isTraceDrawerOpen = ref(false)
 
 const selectedWorklineId = computed(() => readPositiveInt(route.query.worklineId))
 
 const currentWorklineSummary = computed(() => {
   const selectedId = selectedWorklineId.value
-  if (!selectedId) return detail.value?.summary ?? null
-  return worklines.value.find(item => item.id === selectedId) ?? detail.value?.summary ?? null
+  if (!selectedId) return store.detail?.summary ?? null
+  return store.findSummary(selectedId) ?? store.detail?.summary ?? null
 })
 
 const {
@@ -372,42 +342,18 @@ const selectedWorklineContextMeta = computed(() => {
   return `${summary.line_code} · ${summary.zone_name || '未配置区域'} · 活跃 ${summary.active_session_count} · 失败 ${summary.failed_session_count}`
 })
 
-const orderedWorklines = computed(() =>
-  sortByScoreDesc(worklines.value, getWorklineRiskScore, item => item.id)
-)
-
-const hotspotDevice = computed<RuntimeWorklineDeviceItem | null>(() => {
-  const devices = detail.value?.devices ?? []
-  return (
-    devices.find(item => ['ERROR', 'OFFLINE'].includes(item.device_status)) ??
-    devices.find(item => Boolean(item.error_code)) ??
-    devices.find(item => Boolean(item.current_command_id)) ??
-    null
-  )
-})
-
-const selectedDeviceDetail = computed<RuntimeWorklineDeviceItem | null>(() => {
+const selectedDeviceDetail = computed(() => {
   const deviceId = selectedDeviceId.value
-  if (!deviceId || !detail.value) return null
-  return detail.value.devices.find(item => item.id === deviceId) ?? null
+  if (!deviceId || !store.detail) return null
+  return store.detail.devices.find(item => item.id === deviceId) ?? null
 })
-
-const mostFailedStep = computed(() =>
-  pickDominantValue(detail.value?.recent_failed_traces.map(item => item.step_code || '—') ?? [])
-)
-const dominantActiveStep = computed(() =>
-  pickDominantValue(detail.value?.active_sessions.map(item => item.step_code || '—') ?? [])
-)
-const sessionCountsByDevice = computed(() =>
-  aggregateSessionsByDevice(detail.value?.active_sessions ?? [])
-)
 
 function worklineLastActivityLabel(item: RuntimeWorklineSummary) {
   return item.last_activity_at ? formatRuntimeDateTime(item.last_activity_at) : '暂无活动'
 }
 
-async function loadDetail(worklineId: number) {
-  detail.value = await runtimeApiMethods.worklineDetail(worklineId).send()
+async function loadDetailAndSync(worklineId: number) {
+  await store.loadDetail(worklineId)
   if (selectedDeviceId.value) {
     isDevicePanelOpen.value = true
   }
@@ -415,24 +361,24 @@ async function loadDetail(worklineId: number) {
 }
 
 async function ensureWorklineRouteSelection(): Promise<boolean> {
-  if (selectedWorklineId.value || !worklines.value[0]?.id) return false
+  if (selectedWorklineId.value || !store.worklines[0]?.id) return false
   await router.replace({
-    query: { ...route.query, ...buildRuntimeWorklineQuery(worklines.value[0].id) }
+    query: { ...route.query, ...buildRuntimeWorklineQuery(store.worklines[0].id) }
   })
   return true
 }
 
 async function syncWorklineDetailFromRoute(): Promise<void> {
   if (!selectedWorklineId.value) {
-    detail.value = null
+    store.clearDetail()
     return
   }
-  if (detail.value?.summary.id === selectedWorklineId.value) return
-  await loadDetail(selectedWorklineId.value)
+  if (store.detail?.summary.id === selectedWorklineId.value) return
+  await loadDetailAndSync(selectedWorklineId.value)
 }
 
-async function loadWorklines() {
-  worklines.value = await runtimeApiMethods.worklines().send()
+async function loadWorklinesWithRoute() {
+  await store.loadWorklines()
   const routeChanged = await ensureWorklineRouteSelection()
   if (!routeChanged) {
     await syncWorklineDetailFromRoute()
@@ -441,20 +387,30 @@ async function loadWorklines() {
 }
 
 const refreshWorklines = createCoalescedAsyncTask(async () => {
-  loading.value = true
+  store.loading = true
   try {
-    await loadWorklines()
+    await loadWorklinesWithRoute()
   } finally {
-    loading.value = false
+    store.loading = false
   }
 })
 
 const syncWorklineDetailFromRouteCoalesced = createCoalescedAsyncTask(async () => {
-  loading.value = true
+  store.loading = true
   try {
     await syncWorklineDetailFromRoute()
   } finally {
-    loading.value = false
+    store.loading = false
+  }
+})
+
+const refreshDetail = createCoalescedAsyncTask(async () => {
+  if (!selectedWorklineId.value) return
+  store.loading = true
+  try {
+    await loadDetailAndSync(selectedWorklineId.value)
+  } finally {
+    store.loading = false
   }
 })
 
@@ -472,7 +428,7 @@ function openDevice(deviceId: number) {
   router.replace({
     query: {
       ...route.query,
-      ...buildRuntimeWorklineQuery(detail.value?.summary.id, deviceId)
+      ...buildRuntimeWorklineQuery(store.detail?.summary.id, deviceId)
     }
   })
 }
@@ -499,7 +455,7 @@ watch(
 watch(
   () => selectedDeviceId.value,
   nextDeviceId => {
-    if (nextDeviceId && detail.value) {
+    if (nextDeviceId && store.detail) {
       isDevicePanelOpen.value = true
     } else if (!nextDeviceId) {
       isDevicePanelOpen.value = false
@@ -508,15 +464,28 @@ watch(
 )
 
 watch(
+  () => effectiveMode.value,
+  mode => {
+    isTraceDrawerOpen.value = mode === 'trace'
+  },
+  { immediate: true }
+)
+
+watch(
   () => lastEvent.value,
   async event => {
     if (!live.value || !event) return
     if (
       !isRelevantRuntimeEvent(event, {
-        worklineId: detail.value?.summary.id ?? selectedWorklineId.value
+        worklineId: store.detail?.summary.id ?? selectedWorklineId.value
       })
     )
       return
+    // device 事件只需刷新当前工作线详情，不必重载整个工作线列表
+    if (event.entity === 'device' && selectedWorklineId.value) {
+      await refreshDetail()
+      return
+    }
     await refreshWorklines()
   }
 )
@@ -527,6 +496,16 @@ watch(
   max-width: 860px;
 }
 
+.runtime-workline__stale-hint {
+  margin-bottom: 8px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: var(--runtime-surface-accent);
+  color: var(--runtime-tier-watch);
+  font-size: 11px;
+  font-weight: 600;
+}
+
 .runtime-context-nav {
   display: flex;
   align-items: center;
@@ -535,10 +514,10 @@ watch(
 
 .runtime-context-nav__back {
   padding: 6px 12px;
-  border: 1px solid rgb(245, 158, 11, 0.2);
+  border: 1px solid var(--runtime-border-accent);
   border-radius: 6px;
   background: transparent;
-  color: rgb(245, 158, 11);
+  color: var(--color-primary);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -546,29 +525,29 @@ watch(
 }
 
 .runtime-context-nav__back:hover {
-  background: rgb(245, 158, 11, 0.1);
-  border-color: rgb(245, 158, 11, 0.3);
+  background: var(--runtime-surface-accent);
+  border-color: var(--runtime-border-accent);
 }
 
 .runtime-context-nav__workline {
-  color: #cbd5e1;
+  color: var(--runtime-text-emphasis);
   font-size: 14px;
 }
 
 .runtime-context-nav__sep {
-  color: #64748b;
+  color: var(--runtime-text-muted);
   font-size: 14px;
 }
 
 .runtime-context-nav__device {
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   font-size: 16px;
   font-weight: 600;
 }
 
 .runtime-context-nav__meta {
   margin-left: 8px;
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 12px;
   font-family: var(--font-mono);
 }
@@ -577,9 +556,9 @@ watch(
   display: flex;
   gap: 8px;
   padding: 8px 12px;
-  border: 1px solid rgb(245, 158, 11, 0.12);
+  border: 1px solid var(--runtime-border);
   border-radius: 10px;
-  background: rgb(30, 41, 59, 0.78);
+  background: var(--runtime-surface);
 }
 
 .runtime-mode-tab {
@@ -587,7 +566,7 @@ watch(
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -595,12 +574,12 @@ watch(
 }
 
 .runtime-mode-tab:hover {
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
 }
 
 .runtime-mode-tab.is-active {
-  background: rgb(245, 158, 11, 0.18);
-  color: rgb(245, 158, 11);
+  background: var(--runtime-surface-accent-strong);
+  color: var(--color-primary);
 }
 
 .runtime-layout {
@@ -624,7 +603,7 @@ watch(
 /* Device Drawer Styles */
 .runtime-device-drawer :deep(.el-drawer__header) {
   padding: 16px 20px;
-  border-bottom: 1px solid rgb(245, 158, 11, 0.12);
+  border-bottom: 1px solid var(--runtime-border);
   margin-bottom: 0;
 }
 
@@ -644,20 +623,20 @@ watch(
 }
 
 .runtime-device-drawer__title {
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   font-size: 18px;
   font-weight: 700;
   font-family: var(--font-mono);
 }
 
 .runtime-device-drawer__meta {
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 12px;
   font-family: var(--font-mono);
 }
 
 .runtime-workline-placeholder {
-  color: var(--runtime-text-secondary, #94a3b8);
+  color: var(--runtime-text-secondary);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -685,9 +664,9 @@ watch(
   gap: 10px;
   width: 100%;
   padding: 16px;
-  border: 1px solid rgb(245, 158, 11, 0.12);
+  border: 1px solid var(--runtime-border);
   border-radius: 14px;
-  background: rgb(30, 41, 59, 0.78);
+  background: var(--runtime-surface);
   text-align: left;
   cursor: pointer;
   transition:
@@ -698,12 +677,12 @@ watch(
 
 .runtime-directory-card:hover {
   transform: translateY(-1px);
-  border-color: rgb(245, 158, 11, 0.28);
+  border-color: var(--runtime-border-accent);
 }
 
 .runtime-directory-card.is-active {
-  border-color: rgb(245, 158, 11, 0.38);
-  background: rgb(245, 158, 11, 0.08);
+  border-color: var(--runtime-border-strong);
+  background: var(--runtime-surface-accent);
 }
 
 .runtime-directory-card__top {
@@ -716,20 +695,20 @@ watch(
 .runtime-directory-card__time,
 .runtime-directory-card__meta,
 .runtime-directory-card__hint {
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 12px;
   line-height: 1.6;
 }
 
 .runtime-directory-card__title {
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   font-family: var(--font-mono);
   font-size: 16px;
   font-weight: 700;
 }
 
 .runtime-directory-card__meta {
-  color: #cbd5e1;
+  color: var(--runtime-text-emphasis);
 }
 
 .runtime-directory-card__run-mode {
@@ -737,48 +716,13 @@ watch(
   align-items: center;
   padding: 1px 6px;
   border-radius: 4px;
-  background: rgb(245, 158, 11, 0.12);
-  color: rgb(245, 158, 11);
+  background: var(--runtime-surface-accent-strong);
+  color: var(--color-primary);
   font-family: var(--font-mono);
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.05em;
   margin-right: 4px;
-}
-
-.hotspot-grid {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.hotspot-card {
-  padding: 18px;
-  border: 1px solid rgb(245, 158, 11, 0.12);
-  border-radius: 14px;
-  background: rgb(30, 41, 59, 0.78);
-}
-
-.hotspot-card span {
-  color: #94a3b8;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.hotspot-card strong {
-  display: block;
-  margin-top: 8px;
-  color: #f8fafc;
-  font-family: var(--font-mono);
-  font-size: 16px;
-}
-
-.hotspot-card p {
-  margin-top: 10px;
-  color: #94a3b8;
-  line-height: 1.6;
 }
 
 .runtime-layout__empty-state {
@@ -844,8 +788,7 @@ watch(
 
 @media (width <= 1279px) {
   .runtime-page__header,
-  .runtime-layout,
-  .hotspot-grid {
+  .runtime-layout {
     display: flex;
     flex-direction: column;
   }

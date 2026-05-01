@@ -81,7 +81,7 @@ withDefaults(
   border: 1px solid rgb(245, 158, 11, 0.16);
   border-radius: 16px;
   background:
-    linear-gradient(180deg, rgb(15, 23, 42, 0.94), rgb(15, 23, 42, 0.9)),
+    linear-gradient(180deg, var(--runtime-hero-bg), var(--runtime-hero-bg)),
     linear-gradient(135deg, rgb(245, 158, 11, 0.1), transparent 42%);
   box-shadow:
     0 10px 24px rgb(15, 23, 42, 0.16),
@@ -112,7 +112,7 @@ withDefaults(
 
 .runtime-sticky-context__eyebrow,
 .runtime-sticky-context__fact span {
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -121,7 +121,7 @@ withDefaults(
 
 .runtime-sticky-context__title {
   min-width: 0;
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   font-family: var(--font-mono);
   font-size: 14px;
   line-height: 1.3;
@@ -142,13 +142,13 @@ withDefaults(
   padding: 8px 10px;
   border: 1px solid rgb(245, 158, 11, 0.12);
   border-radius: 999px;
-  background: rgb(15, 23, 42, 0.44);
+  background: var(--runtime-surface-subtle);
 }
 
 .runtime-sticky-context__fact strong {
   display: inline;
   margin-left: 6px;
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   font-family: var(--font-mono);
   font-size: 12px;
   line-height: 1.5;

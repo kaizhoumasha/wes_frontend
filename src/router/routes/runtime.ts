@@ -50,18 +50,14 @@ export const runtimeRoutes: RouteRecordRaw = {
     {
       path: 'traces',
       name: 'RuntimeTraceExplorer',
-      component: () => import('@/views/runtime/traces/TraceExplorerPage.vue'),
+      redirect: (to) => ({
+        name: 'RuntimeWorklines',
+        query: to.query,
+      }),
       meta: {
         requiresAuth: true,
-        title: 'Trace 深链',
+        title: 'Trace 深链（已合并至工作线运行态）',
         permission: BIZ_PERMISSIONS.workline.page,
-        menu: {
-          name: 'runtime:traces:menu',
-          parentName: 'runtime:system:menu',
-          icon: 'ep:connection',
-          sortOrder: 20,
-          hidden: true, // 弱化：隐藏菜单，保留路由供深链跳转
-        },
       },
     },
     {

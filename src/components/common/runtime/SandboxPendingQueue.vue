@@ -118,7 +118,7 @@ async function handleAck(item: SandboxPendingOutbox) {
   align-items: center;
   justify-content: center;
   padding: 32px;
-  color: #64748b;
+  color: var(--runtime-text-muted);
   font-size: 13px;
 }
 
@@ -136,7 +136,7 @@ async function handleAck(item: SandboxPendingOutbox) {
   padding: 12px;
   border: 1px solid rgb(245, 158, 11, 0.12);
   border-radius: 10px;
-  background: rgb(30, 41, 59, 0.5);
+  background: var(--runtime-surface-subtle);
   text-align: left;
   cursor: pointer;
   transition: border-color 0.15s ease-out;
@@ -159,7 +159,7 @@ async function handleAck(item: SandboxPendingOutbox) {
 }
 
 .sandbox-pending-queue__dispatch-type {
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 11px;
   font-family: var(--font-mono);
 }
@@ -177,16 +177,16 @@ async function handleAck(item: SandboxPendingOutbox) {
 }
 
 .sandbox-pending-queue__arrow {
-  color: #64748b;
+  color: var(--runtime-text-muted);
 }
 
 .sandbox-pending-queue__target {
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   font-weight: 600;
 }
 
 .sandbox-pending-queue__item-code {
-  color: #64748b;
+  color: var(--runtime-text-muted);
   font-size: 11px;
   font-family: var(--font-mono);
 }

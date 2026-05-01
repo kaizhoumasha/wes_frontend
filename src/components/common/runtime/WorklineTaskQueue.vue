@@ -115,20 +115,9 @@ const emit = defineEmits<{
   selectSession: [session: RuntimeTraceListItem]
 }>()
 
-const _RUNNING_STATUSES = new Set([
-  'RUNNING',
-  'DISPATCHING',
-  'EXECUTING',
-  'COMMAND_SENT',
-  'CALLBACK_RECEIVED'
-])
-const _WAITING_STATUSES = new Set([
-  'WAITING_DISPATCH',
-  'WAITING_CALLBACK',
-  'WAITING_RESOURCE',
-  'PENDING'
-])
-const _FAILED_STATUSES = new Set(['FAILED', 'MANUAL_HOLD', 'TIMEOUT', 'CANCELLED'])
+const _RUNNING_STATUSES = new Set(['NEW', 'RUNNING'])
+const _WAITING_STATUSES = new Set(['WAITING_DEVICE_RESULT', 'WAITING_EXTERNAL'])
+const _FAILED_STATUSES = new Set(['FAILED', 'MANUAL_HOLD', 'CANCELLED'])
 
 const running = computed(() => props.activeSessions.filter(s => _RUNNING_STATUSES.has(s.status)))
 const waiting = computed(() => props.activeSessions.filter(s => _WAITING_STATUSES.has(s.status)))

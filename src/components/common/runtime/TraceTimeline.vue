@@ -181,7 +181,7 @@ function transitionText(item: TraceTimelineItem) {
   margin-top: 22px;
   border-radius: 999px;
   background: #64748b;
-  box-shadow: 0 0 0 4px rgb(15, 23, 42, 0.96);
+  box-shadow: 0 0 0 4px var(--runtime-dot-ring);
 }
 
 .trace-timeline__line {
@@ -191,7 +191,7 @@ function transitionText(item: TraceTimelineItem) {
   left: 50%;
   width: 2px;
   transform: translateX(-50%);
-  background: rgb(148, 163, 184, 0.16);
+  background: var(--runtime-rail);
 }
 
 .trace-timeline__item:last-child .trace-timeline__line {
@@ -202,7 +202,7 @@ function transitionText(item: TraceTimelineItem) {
   padding: 18px;
   border: 1px solid rgb(245, 158, 11, 0.12);
   border-radius: 16px;
-  background: rgb(30, 41, 59, 0.92);
+  background: var(--runtime-surface-strong);
 }
 
 .trace-timeline__card-top {
@@ -214,7 +214,7 @@ function transitionText(item: TraceTimelineItem) {
 
 .trace-timeline__time,
 .trace-timeline__summary-item span {
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 12px;
 }
 
@@ -228,7 +228,7 @@ function transitionText(item: TraceTimelineItem) {
 
 .trace-timeline__title {
   margin: 0;
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   font-size: 18px;
 }
 
@@ -251,18 +251,18 @@ function transitionText(item: TraceTimelineItem) {
 }
 
 .trace-timeline__marker--success {
-  background: rgb(22, 163, 74, 0.14);
-  color: #4ade80;
+  background: var(--runtime-badge-success-bg);
+  color: var(--runtime-badge-success-text);
 }
 
 .trace-timeline__marker--danger {
-  background: rgb(220, 38, 38, 0.14);
-  color: #f87171;
+  background: var(--runtime-badge-danger-bg);
+  color: var(--runtime-badge-danger-text);
 }
 
 .trace-timeline__marker--primary {
-  background: rgb(59, 130, 246, 0.14);
-  color: #60a5fa;
+  background: var(--runtime-badge-info-bg);
+  color: var(--runtime-badge-info-text);
 }
 
 .trace-timeline__summary {
@@ -275,7 +275,7 @@ function transitionText(item: TraceTimelineItem) {
 .trace-timeline__summary-item strong {
   display: block;
   margin-top: 6px;
-  color: #e2e8f0;
+  color: var(--runtime-text-emphasis);
   font-family: var(--font-mono);
   font-size: 13px;
   line-height: 1.5;
@@ -283,12 +283,12 @@ function transitionText(item: TraceTimelineItem) {
 
 .trace-timeline__message {
   margin-top: 14px;
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   line-height: 1.7;
 }
 
 .trace-timeline__message--muted {
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
 }
 
 .trace-timeline__item.is-primary .trace-timeline__dot {
@@ -312,8 +312,8 @@ function transitionText(item: TraceTimelineItem) {
 }
 
 .trace-timeline__item.is-first-failure .trace-timeline__card {
-  border-color: rgb(220, 38, 38, 0.28);
-  background: rgb(127, 29, 29, 0.14);
+  border-color: var(--runtime-border-danger);
+  background: var(--runtime-surface-danger);
 }
 
 .trace-timeline__item.is-last-success .trace-timeline__card {

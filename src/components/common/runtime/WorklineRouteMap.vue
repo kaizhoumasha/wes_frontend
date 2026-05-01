@@ -207,7 +207,7 @@ function signalClass(device: RuntimeWorklineDeviceItem): string {
   padding: 18px;
   border: 1px solid rgb(245, 158, 11, 0.16);
   border-radius: 16px;
-  background: rgb(30, 41, 59, 0.78);
+  background: var(--runtime-surface);
   text-align: left;
   cursor: pointer;
   transition:
@@ -262,7 +262,7 @@ function signalClass(device: RuntimeWorklineDeviceItem): string {
 }
 
 .workline-route-map__role {
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 12px;
 }
 
@@ -280,14 +280,14 @@ function signalClass(device: RuntimeWorklineDeviceItem): string {
 
 .workline-route-map__name {
   margin-top: 14px;
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   font-size: 18px;
   font-weight: 700;
 }
 
 .workline-route-map__code {
   margin-top: 4px;
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 12px;
   font-family: var(--font-mono);
 }
@@ -308,7 +308,7 @@ function signalClass(device: RuntimeWorklineDeviceItem): string {
 }
 
 .workline-route-map__signal.is-idle {
-  color: #64748b;
+  color: var(--runtime-text-muted);
 }
 
 .workline-route-map__edge {
@@ -342,8 +342,8 @@ function signalClass(device: RuntimeWorklineDeviceItem): string {
 .workline-route-map__trace-action {
   padding: 1px 5px;
   border-radius: 3px;
-  background: rgb(59, 130, 246, 0.12);
-  color: rgb(147, 197, 253);
+  background: var(--runtime-badge-info-bg);
+  color: var(--runtime-badge-info-text);
   font-size: 9px;
   font-family: var(--font-mono);
   font-weight: 600;
@@ -351,7 +351,7 @@ function signalClass(device: RuntimeWorklineDeviceItem): string {
 }
 
 .workline-route-map__trace-more {
-  color: #64748b;
+  color: var(--runtime-text-muted);
   font-size: 9px;
   font-family: var(--font-mono);
 }
@@ -360,8 +360,8 @@ function signalClass(device: RuntimeWorklineDeviceItem): string {
   margin-top: 8px;
   padding: 2px 8px;
   border-radius: 4px;
-  background: rgb(220, 38, 38, 0.2);
-  color: #fca5a5;
+  background: var(--runtime-badge-danger-bg);
+  color: var(--runtime-badge-danger-text);
   font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.1em;
@@ -374,7 +374,7 @@ function signalClass(device: RuntimeWorklineDeviceItem): string {
   justify-content: center;
   width: 100%;
   padding: 32px;
-  color: #64748b;
+  color: var(--runtime-text-muted);
   font-size: 13px;
 }
 
@@ -445,16 +445,16 @@ function signalClass(device: RuntimeWorklineDeviceItem): string {
   gap: 6px;
   margin-top: 10px;
   padding-top: 10px;
-  border-top: 1px solid rgb(245, 158, 11, 0.15);
+  border-top: 1px solid var(--runtime-badge-info-border);
 }
 
 .workline-route-map__quick-action {
   flex: 1;
   padding: 6px 8px;
-  border: 1px solid rgb(6, 182, 212, 0.3);
+  border: 1px solid var(--runtime-badge-info-border);
   border-radius: 6px;
-  background: rgb(6, 182, 212, 0.1);
-  color: #22d3ee;
+  background: var(--runtime-badge-info-bg);
+  color: var(--runtime-badge-info-text);
   font-size: 11px;
   font-weight: 500;
   cursor: pointer;

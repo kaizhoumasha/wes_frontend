@@ -35,23 +35,23 @@ withDefaults(
   padding: 18px;
   border: 1px dashed rgb(148, 163, 184, 0.28);
   border-radius: 14px;
-  background: rgb(15, 23, 42, 0.42);
+  background: var(--runtime-surface-subtle);
 }
 
 .runtime-empty-state__title {
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   font-size: 16px;
   font-weight: 700;
 }
 
 .runtime-empty-state__description {
-  color: #cbd5e1;
+  color: var(--runtime-text-emphasis);
   font-size: 13px;
   line-height: 1.7;
 }
 
 .runtime-empty-state__hint {
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 12px;
   line-height: 1.6;
 }

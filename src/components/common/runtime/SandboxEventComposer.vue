@@ -354,13 +354,13 @@ watch(
 }
 
 .sandbox-event-composer__device-name {
-  color: #f1f5f9;
+  color: var(--runtime-text-primary);
   font-size: 16px;
   font-weight: 600;
 }
 
 .sandbox-event-composer__device-meta {
-  color: #64748b;
+  color: var(--runtime-text-muted);
   font-size: 12px;
   font-family: var(--font-mono);
 }
@@ -375,7 +375,7 @@ watch(
 }
 
 .sandbox-event-composer__section-label {
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 12px;
   font-weight: 500;
   text-transform: uppercase;

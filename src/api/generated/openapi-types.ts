@@ -2190,7 +2190,10 @@ export interface paths {
     };
     "/api/v1/workline/runtime/overview": {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description 是否包含 SIMULATION 工作线数据 */
+                includeSim?: boolean;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -2241,7 +2244,10 @@ export interface paths {
     };
     "/api/v1/workline/runtime/worklines": {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description 是否排除 SIMULATION 工作线 */
+                excludeSimulation?: boolean;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -11808,7 +11814,10 @@ export interface operations {
     };
     workline_runtime_overview_get: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description 是否包含 SIMULATION 工作线数据 */
+                includeSim?: boolean;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -11890,7 +11899,10 @@ export interface operations {
     };
     workline_runtime_worklines_get: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description 是否排除 SIMULATION 工作线 */
+                excludeSimulation?: boolean;
+            };
             header?: never;
             path?: never;
             cookie?: never;

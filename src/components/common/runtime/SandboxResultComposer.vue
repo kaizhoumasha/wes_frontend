@@ -146,7 +146,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  submitted: []
+  submitted: [outbox: { dispatch_key?: string | null }]
 }>()
 
 const formRef = ref<FormInstance>()
@@ -276,7 +276,7 @@ async function handleSubmit() {
       })
       .send()
     ElMessage.success('Result 已发送，正在等待编排处理...')
-    emit('submitted')
+    emit('submitted', props.outbox)
   } catch (e: unknown) {
     console.error('发送 Result 失败:', e)
     ElMessage.error(errorMessage(e, '发送失败'))
@@ -314,7 +314,7 @@ watch(
 }
 
 .sandbox-result-composer__detail {
-  background: rgb(30, 41, 59, 0.6);
+  background: var(--runtime-surface-subtle);
 }
 
 .sandbox-result-composer__detail-header {
@@ -324,7 +324,7 @@ watch(
 }
 
 .sandbox-result-composer__detail-title {
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   font-size: 14px;
   font-weight: 600;
 }
@@ -342,13 +342,13 @@ watch(
 }
 
 .sandbox-result-composer__detail-label {
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 12px;
   min-width: 80px;
 }
 
 .sandbox-result-composer__detail-value {
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   font-size: 13px;
 }
 
@@ -361,8 +361,8 @@ watch(
   margin: 0;
   padding: 8px;
   border-radius: 6px;
-  background: rgb(15, 23, 42, 0.8);
-  color: #e2e8f0;
+  background: var(--runtime-code-bg);
+  color: var(--runtime-text-emphasis);
   font-size: 11px;
   font-family: var(--font-mono);
   overflow-x: auto;

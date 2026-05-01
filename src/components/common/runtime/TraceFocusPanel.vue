@@ -61,6 +61,12 @@
     </div>
 
     <template v-else-if="pathData">
+      <!-- Health Pipeline -->
+      <TraceHealthPipeline
+        v-if="pathData.evidence"
+        :detail="pathData.evidence"
+      />
+
       <!-- Priority 1: Problem Summary Card (NEW) -->
       <div
         v-if="pathData.blocking_reason"
@@ -236,7 +242,13 @@
               </div>
               <div class="trace-focus-panel__device-info">
                 <span class="trace-focus-panel__device-name">
-                  {{ node.device_name || `设备 #${node.device_id}` }}
+                  {{
+                    displayDevice({
+                      device_name: node.device_name,
+                      device_code: null,
+                      device_id: node.device_id
+                    })
+                  }}
                 </span>
                 <span
                   v-if="node.is_current"
@@ -534,6 +546,9 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { runtimeApiMethods } from '@/api/modules/runtime'
+import TraceHealthPipeline from '@/components/common/runtime/TraceHealthPipeline.vue'
+import { displayDevice } from '@/utils/runtime-display-identity'
+import { formatRelativeTime } from '@/utils/timezone'
 import type { RuntimeTracePathResponse } from '@/types/runtime'
 
 const props = defineProps<{
@@ -589,7 +604,11 @@ const blockingDeviceName = computed(() => {
   const device = pathData.value.devices.find(
     d => d.device_id === pathData.value?.blocking_reason?.device_id
   )
-  return device?.device_name || `设备 #${pathData.value.blocking_reason.device_id}`
+  return displayDevice({
+    device_name: device?.device_name,
+    device_code: null,
+    device_id: pathData.value.blocking_reason.device_id
+  })
 })
 
 const isBlockingTimeout = computed(() => {
@@ -755,22 +774,6 @@ function formatTime(timestamp: string | null): string {
   }
 }
 
-function formatRelativeTime(timestamp: string | null): string {
-  if (!timestamp) return ''
-  try {
-    const date = new Date(timestamp)
-    const now = new Date()
-    const diff = Math.floor((now.getTime() - date.getTime()) / 1000)
-
-    if (diff < 60) return `${diff}秒前`
-    if (diff < 3600) return `${Math.floor(diff / 60)}分钟前`
-    if (diff < 86400) return `${Math.floor(diff / 3600)}小时前`
-    return `${Math.floor(diff / 86400)}天前`
-  } catch {
-    return ''
-  }
-}
-
 function formatPayload(payload: Record<string, unknown> | null): string {
   if (!payload) return ''
   // 截断显示，最多 2000 字符
@@ -780,24 +783,6 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 </script>
 
 <style scoped>
-/* Design System Tokens */
-:root {
-  --trace-bg-primary: #0f172a;
-  --trace-bg-secondary: #1e293b;
-  --trace-bg-elevated: #334155;
-  --trace-border: #334155;
-  --trace-text-primary: #f1f5f9;
-  --trace-text-secondary: #94a3b8;
-  --trace-text-muted: #64748b;
-  --trace-accent-primary: #06b6d4;
-  --trace-accent-secondary: #0891b2;
-  --trace-success: #22c55e;
-  --trace-warning: #f59e0b;
-  --trace-danger: #ef4444;
-  --trace-danger-bg: rgb(239, 68, 68, 0.1);
-  --trace-warning-bg: rgb(245, 158, 11, 0.1);
-  --trace-success-bg: rgb(34, 197, 94, 0.1);
-}
 
 /* Header */
 .trace-focus-panel {
@@ -837,7 +822,7 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 }
 
 .trace-focus-panel__trace-id {
-  color: #f1f5f9;
+  color: var(--runtime-text-primary);
   font-family: var(--font-mono, monospace);
   font-size: 13px;
   font-weight: 600;
@@ -849,9 +834,9 @@ function formatPayload(payload: Record<string, unknown> | null): string {
   border-radius: 12px;
   background: linear-gradient(
     90deg,
-    rgb(30, 41, 59, 0.5) 25%,
-    rgb(30, 41, 59, 0.8) 50%,
-    rgb(30, 41, 59, 0.5) 75%
+    var(--runtime-surface-subtle) 25%,
+    var(--runtime-surface) 50%,
+    var(--runtime-surface-subtle) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
@@ -893,13 +878,13 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 }
 
 .trace-focus-panel__summary--critical {
-  background: linear-gradient(135deg, rgb(127, 29, 29, 0.2), rgb(185, 28, 28, 0.15));
-  border-color: rgb(239, 68, 68, 0.4);
+  background: var(--runtime-surface-danger);
+  border-color: var(--runtime-border-danger);
 }
 
 .trace-focus-panel__summary--warning {
-  background: linear-gradient(135deg, rgb(146, 64, 14, 0.2), rgb(180, 83, 9, 0.15));
-  border-color: rgb(245, 158, 11, 0.4);
+  background: var(--runtime-surface-warning);
+  border-color: var(--runtime-border-warning);
 }
 
 .trace-focus-panel__summary-icon {
@@ -912,13 +897,13 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 }
 
 .trace-focus-panel__summary--critical .trace-focus-panel__summary-icon {
-  background: rgb(239, 68, 68, 0.2);
-  color: #fca5a5;
+  background: var(--runtime-badge-danger-bg);
+  color: var(--runtime-badge-danger-text);
 }
 
 .trace-focus-panel__summary--warning .trace-focus-panel__summary-icon {
-  background: rgb(245, 158, 11, 0.2);
-  color: #fcd34d;
+  background: var(--runtime-badge-warning-bg);
+  color: var(--runtime-badge-warning-text);
 }
 
 .trace-focus-panel__summary-icon svg {
@@ -931,21 +916,21 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 }
 
 .trace-focus-panel__summary-title {
-  color: #f1f5f9;
+  color: var(--runtime-text-primary);
   font-size: 18px;
   font-weight: 700;
   margin-bottom: 4px;
 }
 
 .trace-focus-panel__summary-reason {
-  color: #e2e8f0;
+  color: var(--runtime-text-emphasis);
   font-size: 15px;
   font-weight: 500;
 }
 
 .trace-focus-panel__summary-detail {
   margin-top: 6px;
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 13px;
   font-family: var(--font-mono, monospace);
 }
@@ -967,17 +952,17 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 }
 
 .trace-focus-panel__summary-status--critical {
-  background: rgb(239, 68, 68, 0.2);
-  color: #fca5a5;
+  background: var(--runtime-badge-danger-bg);
+  color: var(--runtime-badge-danger-text);
 }
 
 .trace-focus-panel__summary-status--warning {
-  background: rgb(245, 158, 11, 0.2);
-  color: #fcd34d;
+  background: var(--runtime-badge-warning-bg);
+  color: var(--runtime-badge-warning-text);
 }
 
 .trace-focus-panel__summary-duration {
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 13px;
   font-family: var(--font-mono, monospace);
 }
@@ -996,8 +981,8 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 
 /* ===== PRIORITY 2: Topology ===== */
 .trace-focus-panel__topology {
-  background: rgb(15, 23, 42, 0.6);
-  border: 1px solid rgb(51, 65, 85, 0.5);
+  background: var(--runtime-surface-muted);
+  border: 1px solid var(--runtime-border-neutral);
 }
 
 .trace-focus-panel__topology-header {
@@ -1010,7 +995,7 @@ function formatPayload(payload: Record<string, unknown> | null): string {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #f1f5f9;
+  color: var(--runtime-text-primary);
   font-size: 15px;
   font-weight: 600;
 }
@@ -1022,7 +1007,7 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 }
 
 .trace-focus-panel__topology-subtitle {
-  color: #64748b;
+  color: var(--runtime-text-muted);
   font-size: 12px;
   margin-top: 2px;
 }
@@ -1037,24 +1022,24 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 .trace-focus-panel__device-card {
   padding: 14px 16px;
   border-radius: 12px;
-  background: rgb(30, 41, 59, 0.5);
-  border: 1px solid rgb(51, 65, 85, 0.4);
+  background: var(--runtime-surface-subtle);
+  border: 1px solid var(--runtime-border-neutral);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .trace-focus-panel__device-card:hover {
-  background: rgb(30, 41, 59, 0.7);
-  border-color: rgb(6, 182, 212, 0.3);
+  background: var(--runtime-surface);
+  border-color: var(--runtime-badge-info-bg);
 }
 
 .trace-focus-panel__device-card.is-blocked {
-  border-color: rgb(239, 68, 68, 0.5);
-  background: rgb(127, 29, 29, 0.15);
+  border-color: var(--runtime-border-danger);
+  background: var(--runtime-surface-danger);
 }
 
 .trace-focus-panel__device-card.is-current {
-  border-color: rgb(6, 182, 212, 0.4);
+  border-color: var(--runtime-badge-info-bg);
 }
 
 .trace-focus-panel__device-card.is-completed {
@@ -1074,20 +1059,20 @@ function formatPayload(payload: Record<string, unknown> | null): string {
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  background: rgb(51, 65, 85, 0.5);
-  color: #94a3b8;
+  background: var(--runtime-border-neutral);
+  color: var(--runtime-text-secondary);
   font-size: 12px;
   font-weight: 600;
 }
 
 .trace-focus-panel__device-card.is-completed .trace-focus-panel__device-index {
-  background: rgb(34, 197, 94, 0.2);
-  color: #4ade80;
+  background: var(--runtime-badge-success-bg);
+  color: var(--runtime-badge-success-text);
 }
 
 .trace-focus-panel__device-card.is-blocked .trace-focus-panel__device-index {
-  background: rgb(239, 68, 68, 0.2);
-  color: #fca5a5;
+  background: var(--runtime-badge-danger-bg);
+  color: var(--runtime-badge-danger-text);
 }
 
 .trace-focus-panel__device-check {
@@ -1108,7 +1093,7 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 }
 
 .trace-focus-panel__device-name {
-  color: #f1f5f9;
+  color: var(--runtime-text-primary);
   font-size: 14px;
   font-weight: 600;
 }
@@ -1120,19 +1105,19 @@ function formatPayload(payload: Record<string, unknown> | null): string {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: rgb(6, 182, 212, 0.2);
-  color: #22d3ee;
+  background: var(--runtime-badge-info-bg);
+  color: var(--runtime-badge-info-text);
 }
 
 .trace-focus-panel__device-badge--blocked {
-  background: rgb(239, 68, 68, 0.2);
-  color: #fca5a5;
+  background: var(--runtime-badge-danger-bg);
+  color: var(--runtime-badge-danger-text);
 }
 
 .trace-focus-panel__device-actions {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid rgb(51, 65, 85, 0.3);
+  border-top: 1px solid var(--runtime-border-neutral);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -1145,7 +1130,7 @@ function formatPayload(payload: Record<string, unknown> | null): string {
   font-size: 12px;
   padding: 6px 8px;
   border-radius: 6px;
-  background: rgb(15, 23, 42, 0.3);
+  background: var(--runtime-surface-subtle);
 }
 
 .trace-focus-panel__action-icon {
@@ -1155,17 +1140,17 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 }
 
 .trace-focus-panel__action-kind {
-  color: #64748b;
+  color: var(--runtime-text-muted);
   font-size: 10px;
   text-transform: uppercase;
   font-weight: 600;
-  background: rgb(51, 65, 85, 0.4);
+  background: var(--runtime-border-neutral);
   padding: 2px 6px;
   border-radius: 3px;
 }
 
 .trace-focus-panel__action-label {
-  color: #cbd5e1;
+  color: var(--runtime-text-emphasis);
   font-family: var(--font-mono, monospace);
 }
 
@@ -1176,29 +1161,29 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 }
 
 .trace-focus-panel__action-status.is-success {
-  background: rgb(34, 197, 94, 0.15);
-  color: #4ade80;
+  background: var(--runtime-badge-success-bg);
+  color: var(--runtime-badge-success-text);
 }
 
 .trace-focus-panel__action-status.is-failed {
-  background: rgb(239, 68, 68, 0.15);
-  color: #fca5a5;
+  background: var(--runtime-badge-danger-bg);
+  color: var(--runtime-badge-danger-text);
 }
 
 .trace-focus-panel__action-status.is-running {
-  background: rgb(6, 182, 212, 0.15);
-  color: #22d3ee;
+  background: var(--runtime-badge-info-bg);
+  color: var(--runtime-badge-info-text);
 }
 
 .trace-focus-panel__action-time {
   margin-left: auto;
-  color: #64748b;
+  color: var(--runtime-text-muted);
   font-size: 11px;
 }
 
 .trace-focus-panel__device-empty {
   margin-top: 8px;
-  color: #475569;
+  color: var(--runtime-text-muted);
   font-size: 12px;
   font-style: italic;
 }
@@ -1208,7 +1193,7 @@ function formatPayload(payload: Record<string, unknown> | null): string {
   display: flex;
   align-items: center;
   gap: 4px;
-  color: #64748b;
+  color: var(--runtime-text-muted);
   font-size: 12px;
 }
 
@@ -1219,8 +1204,8 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 
 /* ===== PRIORITY 3: Timeline ===== */
 .trace-focus-panel__timeline-card {
-  background: rgb(15, 23, 42, 0.6);
-  border: 1px solid rgb(51, 65, 85, 0.5);
+  background: var(--runtime-surface-muted);
+  border: 1px solid var(--runtime-border-neutral);
 }
 
 .trace-focus-panel__timeline-header {
@@ -1242,13 +1227,13 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 }
 
 .trace-focus-panel__timeline-title {
-  color: #f1f5f9;
+  color: var(--runtime-text-primary);
   font-size: 15px;
   font-weight: 600;
 }
 
 .trace-focus-panel__timeline-count {
-  color: #64748b;
+  color: var(--runtime-text-muted);
   font-size: 12px;
 }
 
@@ -1267,7 +1252,7 @@ function formatPayload(payload: Record<string, unknown> | null): string {
   align-items: flex-start;
   gap: 12px;
   padding: 12px 0;
-  border-bottom: 1px solid rgb(51, 65, 85, 0.2);
+  border-bottom: 1px solid var(--runtime-border-neutral);
 }
 
 .trace-focus-panel__timeline-event:last-child {
@@ -1307,7 +1292,7 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 }
 
 .trace-focus-panel__timeline-type {
-  color: #e2e8f0;
+  color: var(--runtime-text-emphasis);
   font-size: 13px;
   font-weight: 500;
 }
@@ -1319,18 +1304,18 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 }
 
 .trace-focus-panel__timeline-status.is-success {
-  background: rgb(34, 197, 94, 0.15);
-  color: #4ade80;
+  background: var(--runtime-badge-success-bg);
+  color: var(--runtime-badge-success-text);
 }
 
 .trace-focus-panel__timeline-status.is-failed {
-  background: rgb(239, 68, 68, 0.15);
-  color: #fca5a5;
+  background: var(--runtime-badge-danger-bg);
+  color: var(--runtime-badge-danger-text);
 }
 
 .trace-focus-panel__timeline-msg {
   margin-top: 4px;
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 12px;
   font-family: var(--font-mono, monospace);
   display: flex;
@@ -1350,16 +1335,16 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 }
 
 .trace-focus-panel__timeline-failure-domain {
-  color: #fca5a5;
+  color: var(--runtime-badge-danger-text);
   font-size: 10px;
-  background: rgb(239, 68, 68, 0.15);
+  background: var(--runtime-badge-danger-bg);
   padding: 1px 4px;
   border-radius: 3px;
   margin-left: 4px;
 }
 
 .trace-focus-panel__timeline-time {
-  color: #64748b;
+  color: var(--runtime-text-muted);
   font-size: 11px;
   font-family: var(--font-mono, monospace);
   white-space: nowrap;
@@ -1369,8 +1354,8 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 .trace-focus-panel__timeline-actor {
   padding: 2px 6px;
   border-radius: 4px;
-  background: rgb(6, 182, 212, 0.15);
-  color: #22d3ee;
+  background: var(--runtime-badge-info-bg);
+  color: var(--runtime-badge-info-text);
   font-size: 11px;
   font-family: var(--font-mono, monospace);
 }
@@ -1386,11 +1371,11 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 }
 
 .trace-focus-panel__timeline-status-from {
-  color: #64748b;
+  color: var(--runtime-text-muted);
 }
 
 .trace-focus-panel__timeline-status-arrow {
-  color: #475569;
+  color: var(--runtime-text-muted);
 }
 
 .trace-focus-panel__timeline-status-to {
@@ -1406,8 +1391,8 @@ function formatPayload(payload: Record<string, unknown> | null): string {
   margin-top: 12px;
   padding: 12px;
   border-radius: 8px;
-  background: rgb(15, 23, 42, 0.5);
-  border: 1px solid rgb(51, 65, 85, 0.4);
+  background: var(--runtime-surface-subtle);
+  border: 1px solid var(--runtime-border-neutral);
 }
 
 .trace-focus-panel__timeline-ref {
@@ -1423,15 +1408,15 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 }
 
 .trace-focus-panel__timeline-ref-label {
-  color: #64748b;
+  color: var(--runtime-text-muted);
   font-size: 11px;
 }
 
 .trace-focus-panel__timeline-ref-value {
-  color: #22d3ee;
+  color: var(--runtime-badge-info-text);
   font-size: 12px;
   font-family: var(--font-mono, monospace);
-  background: rgb(6, 182, 212, 0.1);
+  background: var(--runtime-badge-info-bg);
   padding: 2px 6px;
   border-radius: 4px;
 }
@@ -1444,8 +1429,8 @@ function formatPayload(payload: Record<string, unknown> | null): string {
   margin: 8px 0 0;
   padding: 8px;
   border-radius: 6px;
-  background: rgb(0, 0, 0, 0.3);
-  color: #cbd5e1;
+  background: var(--runtime-code-bg);
+  color: var(--runtime-text-emphasis);
   font-size: 11px;
   font-family: var(--font-mono, monospace);
   white-space: pre-wrap;
@@ -1465,7 +1450,7 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 .trace-focus-panel__timeline-expand-icon {
   width: 16px;
   height: 16px;
-  color: #475569;
+  color: var(--runtime-text-muted);
   transition: transform 0.2s ease;
 }
 
@@ -1475,7 +1460,7 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 
 /* Event expanded state */
 .trace-focus-panel__timeline-event.is-expanded {
-  background: rgb(15, 23, 42, 0.3);
+  background: var(--runtime-surface-subtle);
   margin: 0 -12px;
   padding: 12px;
   border-radius: 8px;
@@ -1487,7 +1472,7 @@ function formatPayload(payload: Record<string, unknown> | null): string {
   align-items: center;
   gap: 8px;
   padding: 24px;
-  color: #64748b;
+  color: var(--runtime-text-muted);
   font-size: 13px;
 }
 

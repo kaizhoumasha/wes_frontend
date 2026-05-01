@@ -129,18 +129,18 @@ function openRequest() {
 <style scoped>
 .trace-next-actions {
   border: 1px solid rgb(245, 158, 11, 0.12);
-  background: rgb(15, 23, 42, 0.72);
+  background: var(--runtime-surface);
 }
 
 .trace-next-actions__title {
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   font-size: 16px;
   font-weight: 700;
 }
 
 .trace-next-actions__subtitle {
   margin-top: 4px;
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 12px;
 }
 

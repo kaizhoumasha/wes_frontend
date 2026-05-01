@@ -10,6 +10,7 @@ import type {
   ManualSessionOperationPayload,
   ReplayInboxPayload,
   SandboxAckRequest,
+  SandboxCompletedSession,
   SandboxEventRequest,
   SandboxPendingOutbox,
   SandboxResultRequest,
@@ -31,12 +32,12 @@ function adaptRuntimeMethod<T>(method: { send: () => Promise<unknown> }): Runtim
 }
 
 export const runtimeApiMethods = {
-  overview() {
-    return adaptRuntimeMethod<RuntimeOverviewResponse>(worklineApiMethods.overview())
+  overview(query?: { includeSim?: boolean }) {
+    return adaptRuntimeMethod<RuntimeOverviewResponse>(worklineApiMethods.overview(query))
   },
 
-  worklines() {
-    return adaptRuntimeMethod<RuntimeWorklineSummary[]>(worklineApiMethods.worklines())
+  worklines(query?: { excludeSimulation?: boolean }) {
+    return adaptRuntimeMethod<RuntimeWorklineSummary[]>(worklineApiMethods.worklines(query))
   },
 
   worklineDetail(worklineId: number) {
@@ -100,6 +101,12 @@ export const runtimeApiMethods = {
   sandboxPending(limit = 50, worklineId?: number, deviceId?: number) {
     return adaptRuntimeMethod<SandboxPendingOutbox[]>(
       worklineApiMethods.sandboxPending({ limit, workline_id: worklineId, device_id: deviceId })
+    )
+  },
+
+  sandboxCompleted(limit = 50, worklineId?: number, deviceId?: number) {
+    return adaptRuntimeMethod<SandboxCompletedSession[]>(
+      worklineApiMethods.sandboxCompleted({ limit, workline_id: worklineId, device_id: deviceId })
     )
   },
 

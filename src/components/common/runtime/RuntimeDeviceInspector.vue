@@ -153,7 +153,7 @@
               </span>
             </div>
             <span class="runtime-device-inspector__session-time">
-              {{ formatElapsed(item.started_at) }}
+              {{ formatRuntimeElapsed(item.started_at) }}
             </span>
           </button>
         </div>
@@ -348,19 +348,7 @@ async function loadDetail() {
   }
 }
 
-function formatElapsed(start?: string | null): string {
-  if (!start) return '--'
-  const startDate = new Date(start)
-  if (Number.isNaN(startDate.getTime())) return '--'
-  const diff = Date.now() - startDate.getTime()
-  if (diff < 0) return '--'
-  const seconds = Math.floor(diff / 1000)
-  if (seconds < 60) return `${seconds}s`
-  const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m ${seconds % 60}s`
-  const hours = Math.floor(minutes / 60)
-  return `${hours}h ${minutes % 60}m`
-}
+import { formatRuntimeElapsed } from '@/utils/runtime-display'
 </script>
 
 <style scoped>
@@ -383,14 +371,14 @@ function formatElapsed(start?: string | null): string {
   padding: 0;
   border: none;
   background: transparent;
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 12px;
   cursor: pointer;
   transition: color 0.15s ease-out;
 }
 
 .runtime-device-inspector__close:hover {
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
 }
 
 /* 加载骨架 */
@@ -399,9 +387,9 @@ function formatElapsed(start?: string | null): string {
   border-radius: 10px;
   background: linear-gradient(
     90deg,
-    rgb(30, 41, 59, 0.5) 25%,
-    rgb(30, 41, 59, 0.7) 50%,
-    rgb(30, 41, 59, 0.5) 75%
+    var(--runtime-surface-subtle) 25%,
+    var(--runtime-surface) 50%,
+    var(--runtime-surface-subtle) 75%
   );
   background-size: 200% 100%;
   animation: inspector-shimmer 1.5s ease-in-out infinite;
@@ -438,9 +426,7 @@ function formatElapsed(start?: string | null): string {
   padding: 16px;
   border: 1px solid rgb(245, 158, 11, 0.16);
   border-radius: 12px;
-  background:
-    radial-gradient(circle at top right, rgb(245, 158, 11, 0.08), transparent 40%),
-    linear-gradient(180deg, rgb(30, 41, 59, 0.96), rgb(15, 23, 42, 0.94));
+  background: var(--runtime-hero-bg);
 }
 
 .runtime-device-inspector__identity-header {
@@ -451,7 +437,7 @@ function formatElapsed(start?: string | null): string {
 
 .runtime-device-inspector__device-name {
   margin: 0;
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   font-size: 20px;
   font-weight: 700;
   line-height: 1.3;
@@ -462,26 +448,26 @@ function formatElapsed(start?: string | null): string {
   align-items: center;
   flex-wrap: wrap;
   gap: 4px 8px;
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 12px;
 }
 
 .runtime-device-inspector__device-code {
-  color: #cbd5e1;
+  color: var(--runtime-text-emphasis);
   font-family: var(--font-mono);
   font-weight: 600;
 }
 
 .runtime-device-inspector__meta-sep {
-  color: #64748b;
+  color: var(--runtime-text-muted);
 }
 
 .runtime-device-inspector__device-role {
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
 }
 
 .runtime-device-inspector__workline-name {
-  color: #64748b;
+  color: var(--runtime-text-muted);
 }
 
 /* 异常警报区 */
@@ -491,18 +477,18 @@ function formatElapsed(start?: string | null): string {
   gap: 10px;
   padding: 12px 14px;
   border-radius: 10px;
-  background: rgb(30, 41, 59, 0.8);
+  background: var(--runtime-surface);
   border: 1px solid;
 }
 
 .runtime-device-inspector__alert.is-error {
-  border-color: rgb(239, 68, 68, 0.4);
-  background: rgb(127, 29, 29, 0.3);
+  border-color: var(--runtime-border-danger);
+  background: var(--runtime-surface-danger);
 }
 
 .runtime-device-inspector__alert.is-maintenance {
-  border-color: rgb(245, 158, 11, 0.4);
-  background: rgb(120, 53, 15, 0.3);
+  border-color: var(--runtime-border-warning);
+  background: var(--runtime-surface-warning);
 }
 
 .runtime-device-inspector__alert-icon {
@@ -518,7 +504,7 @@ function formatElapsed(start?: string | null): string {
 }
 
 .runtime-device-inspector__alert-content strong {
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   font-size: 13px;
   font-weight: 600;
 }
@@ -537,11 +523,11 @@ function formatElapsed(start?: string | null): string {
   padding: 14px;
   border: 1px solid rgb(245, 158, 11, 0.1);
   border-radius: 10px;
-  background: rgb(30, 41, 59, 0.5);
+  background: var(--runtime-surface-subtle);
 }
 
 .runtime-device-inspector__metric-label {
-  color: #64748b;
+  color: var(--runtime-text-muted);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.05em;
@@ -549,7 +535,7 @@ function formatElapsed(start?: string | null): string {
 }
 
 .runtime-device-inspector__metric-value {
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   font-family: var(--font-mono);
   font-size: 14px;
   font-weight: 600;
@@ -557,7 +543,7 @@ function formatElapsed(start?: string | null): string {
 }
 
 .runtime-device-inspector__metric-value.is-empty {
-  color: #64748b;
+  color: var(--runtime-text-muted);
 }
 
 /* 分区通用样式 */
@@ -586,7 +572,7 @@ function formatElapsed(start?: string | null): string {
 
 .runtime-device-inspector__section-title {
   margin: 0;
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -632,7 +618,7 @@ function formatElapsed(start?: string | null): string {
   padding: 12px 14px;
   border: 1px solid rgb(245, 158, 11, 0.1);
   border-radius: 10px;
-  background: rgb(30, 41, 59, 0.5);
+  background: var(--runtime-surface-subtle);
   cursor: pointer;
   text-align: left;
   transition: all 0.15s ease-out;
@@ -640,7 +626,7 @@ function formatElapsed(start?: string | null): string {
 
 .runtime-device-inspector__session-card:hover {
   border-color: rgb(245, 158, 11, 0.25);
-  background: rgb(30, 41, 59, 0.7);
+  background: var(--runtime-surface);
   transform: translateX(2px);
 }
 
@@ -652,7 +638,7 @@ function formatElapsed(start?: string | null): string {
 }
 
 .runtime-device-inspector__session-code {
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 600;
@@ -663,7 +649,7 @@ function formatElapsed(start?: string | null): string {
 
 .runtime-device-inspector__session-time {
   flex-shrink: 0;
-  color: #64748b;
+  color: var(--runtime-text-muted);
   font-size: 12px;
   font-family: var(--font-mono);
 }
@@ -729,27 +715,27 @@ function formatElapsed(start?: string | null): string {
 }
 
 .runtime-device-inspector__timeline-time {
-  color: #64748b;
+  color: var(--runtime-text-muted);
   font-size: 11px;
   font-family: var(--font-mono);
   flex-shrink: 0;
 }
 
 .runtime-device-inspector__timeline-action {
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   font-size: 13px;
   font-weight: 600;
 }
 
 .runtime-device-inspector__timeline-msg {
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 12px;
   line-height: 1.5;
 }
 
 /* 空状态 */
 .runtime-device-inspector__empty-hint {
-  color: #64748b;
+  color: var(--runtime-text-muted);
   font-size: 12px;
   padding: 8px 0;
 }

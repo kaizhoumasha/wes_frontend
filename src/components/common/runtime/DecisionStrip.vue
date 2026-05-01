@@ -1,0 +1,228 @@
+<template>
+  <div
+    class="decision-strip"
+    :class="[`decision-strip--${tone}`]"
+  >
+    <div class="decision-strip__indicator" />
+
+    <div class="decision-strip__body">
+      <div class="decision-strip__row">
+        <span class="decision-strip__label">{{ label }}</span>
+        <span class="decision-strip__counts">
+          <span class="decision-strip__count decision-strip__count--danger">
+            失败 {{ summary.failed_session_count }}
+          </span>
+          <span class="decision-strip__count decision-strip__count--danger">
+            离线 {{ summary.offline_device_count }}
+          </span>
+          <span class="decision-strip__count decision-strip__count--warning">
+            等待 {{ summary.waiting_session_count }}
+          </span>
+          <span class="decision-strip__count decision-strip__count--primary">
+            活跃 {{ summary.active_session_count }}
+          </span>
+        </span>
+      </div>
+      <div class="decision-strip__suggestion">{{ suggestion }}</div>
+    </div>
+
+    <el-tooltip
+      placement="bottom-end"
+      :show-after="300"
+    >
+      <template #content>
+        <div class="decision-strip__tooltip">
+          <div v-if="hotspotDevice">
+            焦点设备: {{ hotspotDevice.device_name }} ({{
+              hotspotDevice.error_code || hotspotDevice.device_status
+            }})
+          </div>
+          <div v-if="mostFailedStep">高频失败 Step: {{ mostFailedStep }}</div>
+          <div v-if="dominantActiveStep">主要等待 Step: {{ dominantActiveStep }}</div>
+          <div>插件: {{ summary.plugin_key || '—' }}</div>
+          <div>Owner: {{ summary.owner_team || '—' }}</div>
+          <div>Support: {{ summary.support_contact || '—' }}</div>
+        </div>
+      </template>
+      <span class="decision-strip__more">...</span>
+    </el-tooltip>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+import type { RuntimeWorklineDetailResponse, RuntimeWorklineSummary } from '@/types/runtime'
+import { pickDominantValue } from '@/utils/runtime-display'
+import type { RuntimeTone } from '@/utils/runtime-display'
+
+const props = defineProps<{
+  summary: RuntimeWorklineSummary
+  detail?: RuntimeWorklineDetailResponse | null
+}>()
+
+const tone = computed<RuntimeTone>(() => {
+  if (
+    props.summary.failed_session_count > 0 ||
+    props.summary.offline_device_count > 0 ||
+    props.summary.error_device_count > 0
+  ) {
+    return 'danger'
+  }
+  if (props.summary.waiting_session_count > 0 || props.summary.maintenance_device_count > 0) {
+    return 'warning'
+  }
+  if (props.summary.active_session_count > 0) {
+    return 'primary'
+  }
+  return 'success'
+})
+
+const label = computed(() => {
+  if (tone.value === 'danger') return '存在阻塞'
+  if (tone.value === 'warning') return '有等待风险'
+  if (tone.value === 'primary') return '运行中'
+  return '稳定'
+})
+
+const suggestion = computed(() => {
+  if (props.summary.failed_session_count > 0) {
+    return `${props.summary.failed_session_count} 条失败链路需要优先排障`
+  }
+  if (props.summary.offline_device_count > 0) {
+    return `${props.summary.offline_device_count} 台设备离线，检查网络或维护状态`
+  }
+  if (props.summary.waiting_session_count > 0) {
+    return `${props.summary.waiting_session_count} 条链路等待中，确认设备响应`
+  }
+  if (props.summary.active_session_count > 0) {
+    return '链路正常推进中'
+  }
+  return '当前无作业活动'
+})
+
+const hotspotDevice = computed(() => {
+  const devices = props.detail?.devices ?? []
+  return (
+    devices.find(item => ['ERROR', 'OFFLINE'].includes(item.device_status)) ??
+    devices.find(item => Boolean(item.error_code)) ??
+    null
+  )
+})
+
+const mostFailedStep = computed(() =>
+  pickDominantValue(props.detail?.recent_failed_traces.map(item => item.step_code || '—') ?? [])
+)
+
+const dominantActiveStep = computed(() =>
+  pickDominantValue(props.detail?.active_sessions.map(item => item.step_code || '—') ?? [])
+)
+</script>
+
+<style scoped>
+.decision-strip {
+  display: flex;
+  align-items: stretch;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--runtime-border, rgb(245, 158, 11, 0.12));
+  background: var(--runtime-surface, rgb(30, 41, 59, 0.8));
+}
+
+.decision-strip__indicator {
+  width: 4px;
+  flex-shrink: 0;
+}
+.decision-strip--danger .decision-strip__indicator {
+  background: #ef4444;
+}
+.decision-strip--warning .decision-strip__indicator {
+  background: #eab308;
+}
+.decision-strip--primary .decision-strip__indicator {
+  background: #3b82f6;
+}
+.decision-strip--success .decision-strip__indicator {
+  background: #22c55e;
+}
+
+.decision-strip__body {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 14px;
+}
+
+.decision-strip__row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.decision-strip__label {
+  color: #f8fafc;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.decision-strip--danger .decision-strip__label {
+  color: #fca5a5;
+}
+.decision-strip--warning .decision-strip__label {
+  color: #fde047;
+}
+
+.decision-strip__counts {
+  display: flex;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.decision-strip__count {
+  white-space: nowrap;
+}
+.decision-strip__count--danger {
+  color: #fca5a5;
+}
+.decision-strip__count--warning {
+  color: #fde047;
+}
+.decision-strip__count--primary {
+  color: #93c5fd;
+}
+
+.decision-strip__suggestion {
+  margin-top: 4px;
+  color: var(--runtime-text-secondary, #94a3b8);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.decision-strip__more {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  color: var(--runtime-text-secondary, #94a3b8);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: help;
+  user-select: none;
+}
+
+.decision-strip__tooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (width <= 1279px) {
+  .decision-strip__counts {
+    gap: 8px;
+    font-size: 11px;
+  }
+}
+</style>

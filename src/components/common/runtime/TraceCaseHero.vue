@@ -72,17 +72,31 @@ import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.v
 import type { TraceDetailResponse } from '@/types/runtime'
 import { compactEnumLabel, formatRuntimeCount, formatRuntimeElapsed } from '@/utils/runtime-display'
 
+import {
+  displaySession,
+  displayTrace,
+  displayWorkline,
+  displayDevice
+} from '@/utils/runtime-display-identity'
+
 const props = defineProps<{
   detail: TraceDetailResponse
   worklineName?: string | null
   deviceName?: string | null
 }>()
 
-const sessionCode = computed(
-  () => props.detail.session?.session_code || `SES-${props.detail.trace.session_id ?? '—'}`
+const sessionCode = computed(() =>
+  displaySession({
+    session_code: props.detail.session?.session_code,
+    session_id: props.detail.trace.session_id
+  })
 )
-const traceCode = computed(
-  () => props.detail.trace.trace_id || `Session #${props.detail.trace.session_id ?? '—'}`
+const traceCode = computed(() =>
+  displayTrace({
+    trace_id: props.detail.trace.trace_id,
+    session_code: props.detail.session?.session_code,
+    session_id: props.detail.trace.session_id
+  })
 )
 
 const headline = computed(() => {
@@ -105,14 +119,21 @@ const failureText = computed(() => {
 })
 
 const worklineDeviceText = computed(() => {
-  const line =
-    props.worklineName ||
-    (props.detail.trace.workline_id ? `工作线 #${props.detail.trace.workline_id}` : null)
-  const device =
-    props.deviceName ||
-    props.detail.trace.device_code ||
-    (props.detail.trace.device_id ? `设备 #${props.detail.trace.device_id}` : null)
-  return [line, device].filter(Boolean).join(' · ') || '—'
+  const line = displayWorkline({
+    line_name: props.worklineName,
+    line_code: null,
+    workline_id: props.detail.trace.workline_id
+  })
+  const device = displayDevice({
+    device_name: props.deviceName,
+    device_code: props.detail.trace.device_code,
+    device_id: props.detail.trace.device_id
+  })
+  return (
+    [line !== '未知工作线' ? line : null, device !== '未知设备' ? device : null]
+      .filter(Boolean)
+      .join(' · ') || '—'
+  )
 })
 
 const anchorText = computed(() => {

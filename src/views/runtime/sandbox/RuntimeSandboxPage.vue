@@ -96,14 +96,14 @@ onMounted(() => {
 }
 
 .sandbox-redirect-page__title {
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   font-size: 24px;
   font-weight: 700;
   margin-bottom: 8px;
 }
 
 .sandbox-redirect-page__subtitle {
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 14px;
   line-height: 1.6;
   margin-bottom: 24px;
@@ -123,7 +123,7 @@ onMounted(() => {
   padding: 16px;
   border: 1px solid rgb(245, 158, 11, 0.16);
   border-radius: 14px;
-  background: rgb(30, 41, 59, 0.78);
+  background: var(--runtime-surface);
   text-align: left;
   cursor: pointer;
   transition: border-color 0.15s ease-out;
@@ -134,13 +134,13 @@ onMounted(() => {
 }
 
 .sandbox-redirect-page__item-name {
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   font-size: 16px;
   font-weight: 700;
 }
 
 .sandbox-redirect-page__item-code {
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 12px;
   font-family: var(--font-mono);
 }

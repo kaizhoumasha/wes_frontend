@@ -39,15 +39,29 @@
             </span>
           </div>
           <div class="trace-related-sidebar__item-code">
-            {{ item.trace_id || item.session_code }}
+            {{
+              displayTrace({
+                trace_id: item.trace_id,
+                session_code: item.session_code,
+                session_id: item.session_id
+              })
+            }}
           </div>
           <div class="trace-related-sidebar__item-meta">
-            {{ item.workline_name || (item.workline_id ? `工作线 #${item.workline_id}` : '--') }}
+            {{
+              displayWorkline({
+                line_name: item.workline_name,
+                line_code: null,
+                workline_id: item.workline_id
+              })
+            }}
             &middot;
             {{
-              item.device_name ||
-              item.device_code ||
-              (item.device_id ? `设备 #${item.device_id}` : '--')
+              displayDevice({
+                device_name: item.device_name,
+                device_code: item.device_code,
+                device_id: item.device_id
+              })
             }}
           </div>
           <div class="trace-related-sidebar__item-hint">
@@ -71,6 +85,7 @@
 import { computed, ref, watch } from 'vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
+import { displayDevice, displayTrace, displayWorkline } from '@/utils/runtime-display-identity'
 import type { RuntimeTraceListItem } from '@/types/runtime'
 import { formatRuntimeRelative } from '@/utils/runtime-display'
 
@@ -189,9 +204,9 @@ watch(
   gap: 6px;
   width: 100%;
   padding: 12px;
-  border: 1px solid rgb(148, 163, 184, 0.1);
+  border: 1px solid var(--runtime-border-neutral);
   border-radius: 10px;
-  background: rgb(30, 41, 59, 0.5);
+  background: var(--runtime-surface-subtle);
   text-align: left;
   cursor: pointer;
   transition:
@@ -201,7 +216,7 @@ watch(
 
 .trace-related-sidebar__item:hover {
   border-color: rgb(245, 158, 11, 0.24);
-  background: rgb(30, 41, 59, 0.72);
+  background: var(--runtime-surface);
 }
 
 .trace-related-sidebar__item:focus-visible {
@@ -235,7 +250,7 @@ watch(
 }
 
 .trace-related-sidebar__item-meta {
-  color: #cbd5e1;
+  color: var(--runtime-text-emphasis);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -248,9 +263,9 @@ watch(
 
 .trace-related-sidebar__empty {
   padding: 24px 12px;
-  border: 1px dashed rgb(148, 163, 184, 0.2);
+  border: 1px dashed var(--runtime-border-neutral);
   border-radius: 12px;
-  background: rgb(15, 23, 42, 0.3);
+  background: var(--runtime-surface-subtle);
   color: var(--runtime-text-secondary, #94a3b8);
   font-size: 13px;
   text-align: center;

@@ -543,6 +543,7 @@ import type {
 import { createCoalescedAsyncTask } from '@/utils/createCoalescedAsyncTask'
 import { isRelevantRuntimeEvent } from '@/utils/runtime-event'
 import { buildRuntimeTraceQuery, type RuntimeTraceQueryInput } from '@/utils/runtime-route'
+import { displayDevice, displaySession, displayWorkline } from '@/utils/runtime-display-identity'
 import {
   compactEnumLabel,
   formatRuntimeDateTime,
@@ -619,25 +620,30 @@ const relatedFailureDomain = computed(() => {
 const selectedWorklineName = computed(() => {
   const detail = traceDetail.value
   if (!detail) return null
-  const worklineId = detail.session?.workline_id ?? detail.trace.workline_id
-  return worklineId ? `工作线 #${worklineId}` : null
+  return displayWorkline({
+    line_name: null,
+    line_code: null,
+    workline_id: detail.session?.workline_id ?? detail.trace.workline_id
+  })
 })
 
 const selectedDeviceName = computed(() => {
   const detail = traceDetail.value
   if (!detail) return null
-  return (
-    detail.trace.device_code || (detail.trace.device_id ? `设备 #${detail.trace.device_id}` : null)
-  )
+  return displayDevice({
+    device_name: null,
+    device_code: detail.trace.device_code,
+    device_id: detail.trace.device_id
+  })
 })
 
 const traceStickyTitle = computed(() => {
-  return (
-    traceDetail.value?.session?.session_code ||
-    (selectedSessionId.value ? `SES-${selectedSessionId.value}` : '--')
-  )
+  const detail = traceDetail.value
+  return displaySession({
+    session_code: detail?.session?.session_code,
+    session_id: selectedSessionId.value
+  })
 })
-
 const traceStickyCode = computed(() => {
   return (
     selectedTraceId.value ||
@@ -1010,7 +1016,7 @@ watch(
 
 .trace-evidence__section-title {
   margin-bottom: 10px;
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -1028,11 +1034,11 @@ watch(
   padding: 14px;
   border: 1px solid rgb(245, 158, 11, 0.12);
   border-radius: 12px;
-  background: rgb(30, 41, 59, 0.72);
+  background: var(--runtime-surface);
 }
 
 .trace-session-card span {
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -1042,7 +1048,7 @@ watch(
 .trace-session-card strong {
   display: block;
   margin-top: 8px;
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   font-family: var(--font-mono);
   font-size: 13px;
   line-height: 1.6;
@@ -1052,8 +1058,8 @@ watch(
   margin: 0;
   padding: 16px;
   border-radius: 12px;
-  background: rgb(15, 23, 42, 0.95);
-  color: #cbd5e1;
+  background: var(--runtime-hero-bg);
+  color: var(--runtime-text-emphasis);
   font-size: 12px;
   line-height: 1.6;
   overflow: auto;

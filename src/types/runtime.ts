@@ -387,6 +387,22 @@ export interface SandboxPendingOutbox {
   source_device?: string | null
 }
 
+export interface SandboxCompletedSession {
+  session: {
+    id: number
+    session_code: string
+    status: string
+    step_code: string | null
+    barcode: string | null
+    created_at: string | null
+    started_at: string | null
+    ended_at: string | null
+    event_type?: string | null
+    event_payload?: Record<string, unknown> | null
+  }
+  outbox_items: SandboxPendingOutbox[]
+}
+
 export interface WorklineOperationRecord {
   id: number
   kind?: string | null

@@ -90,6 +90,16 @@ export const worklineApiMethods = {
   },
 
   /**
+   * [biz:workline:list] 查询沙箱已完成 Outbox
+   * @endpoint GET /api/v1/workline/operations/sandbox/completed
+   * @returns alova method instance
+   */
+  sandboxCompleted(query?: { limit?: number; workline_id?: number; device_id?: number }, config?: ContractRequestConfig) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (contractMethods as any).get('/api/v1/workline/operations/sandbox/completed', { query, config })
+  },
+
+  /**
    * [biz:workline:update] Replay 历史 Inbox
    * @endpoint POST /api/v1/workline/operations/replay/inboxes/{inbox_id}
    * @returns alova method instance
@@ -139,8 +149,8 @@ export const worklineApiMethods = {
    * @endpoint GET /api/v1/workline/runtime/overview
    * @returns alova method instance
    */
-  overview(config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/workline/runtime/overview', { config })
+  overview(query?: ContractQueryParams<'/api/v1/workline/runtime/overview', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/runtime/overview', { query, config })
   },
 
   /**
@@ -148,8 +158,8 @@ export const worklineApiMethods = {
    * @endpoint GET /api/v1/workline/runtime/worklines
    * @returns alova method instance
    */
-  worklines(config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/workline/runtime/worklines', { config })
+  worklines(query?: ContractQueryParams<'/api/v1/workline/runtime/worklines', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/runtime/worklines', { query, config })
   },
 
   /**

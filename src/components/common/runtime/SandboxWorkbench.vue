@@ -68,7 +68,13 @@
       </div>
     </div>
 
-    : Stacked Layout -->
+    <!-- Cycle Status Bar -->
+    <SandboxCycleStatus
+      :active-sessions="activeSessions"
+      :pending-outboxes="pendingItems"
+    />
+
+    <!-- Stacked Layout -->
     <div class="sandbox-workbench__main">
       <!-- Top: Device Topology (Compact Horizontal) -->
       <el-card
@@ -156,160 +162,16 @@
         @click="handleClickOutside"
       />
 
-      <!-- Bottom: Pending Outbox (Full Width) -->
-      <el-card
-        shadow="never"
-        class="sandbox-workbench__card sandbox-workbench__card--fill"
-      >
-        <template #header>
-          <div class="sandbox-workbench__card-header">
-            <svg
-              class="sandbox-workbench__card-icon"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
-              <path
-                d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z"
-              />
-            </svg>
-            <span>Pending Outbox</span>
-            <span class="sandbox-workbench__card-badge">
-              {{ pendingItems.length }}
-            </span>
-          </div>
-        </template>
-
-        <!-- Filter Tags -->
-        <div class="sandbox-workbench__outbox-filters">
-          <button
-            type="button"
-            class="sandbox-workbench__filter-tag"
-            :class="{ 'is-active': filterStatus === null }"
-            @click="filterStatus = null"
-          >
-            全部 {{ filterCounts.all }}
-          </button>
-          <button
-            type="button"
-            class="sandbox-workbench__filter-tag"
-            :class="{ 'is-active': filterStatus === 'NEW' }"
-            @click="filterStatus = 'NEW'"
-          >
-            待发送 {{ filterCounts.new }}
-          </button>
-          <button
-            type="button"
-            class="sandbox-workbench__filter-tag"
-            :class="{ 'is-active': filterStatus === 'SENT' }"
-            @click="filterStatus = 'SENT'"
-          >
-            已发送 {{ filterCounts.sent }}
-          </button>
-          <button
-            type="button"
-            class="sandbox-workbench__filter-tag"
-            :class="{ 'is-active': filterStatus === 'ACKED' }"
-            @click="filterStatus = 'ACKED'"
-          >
-            已确认 {{ filterCounts.acked }}
-          </button>
-          <button
-            type="button"
-            class="sandbox-workbench__filter-tag is-danger"
-            :class="{ 'is-active': filterStatus === 'FAILED' }"
-            @click="filterStatus = 'FAILED'"
-          >
-            失败 {{ filterCounts.failed }}
-          </button>
-        </div>
-
-        <!-- Loading -->
-        <div
-          v-if="pendingLoading"
-          class="sandbox-workbench__loading"
-        >
-          <div class="sandbox-workbench__loading-spinner" />
-          <span>加载中...</span>
-        </div>
-
-        <!-- Empty -->
-        <div
-          v-else-if="!filteredItems.length"
-          class="sandbox-workbench__empty"
-        >
-          <svg
-            class="sandbox-workbench__empty-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <span>暂无待处理命令</span>
-        </div>
-
-        <!-- Outbox Timeline -->
-        <div
-          v-else
-          class="sandbox-workbench__timeline"
-        >
-          <div
-            v-for="item in filteredItems"
-            :key="item.id"
-            class="sandbox-workbench__tl-item"
-            :class="`is-${item.status?.toLowerCase()}`"
-            @click="handleSelectOutbox(item)"
-          >
-            <div class="sandbox-workbench__tl-rail">
-              <span class="sandbox-workbench__tl-dot" />
-            </div>
-            <div class="sandbox-workbench__tl-content">
-              <div class="sandbox-workbench__tl-flow">
-                <span class="sandbox-workbench__tl-source">
-                  {{ item.source_device || '系统' }}
-                </span>
-                <svg
-                  class="sandbox-workbench__tl-arrow"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M3 10a1 1 0 011-1h9.586l-3.293-3.293a1 1 0 111.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414-1.414L13.586 11H4a1 1 0 01-1-1z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-                <span class="sandbox-workbench__tl-target">
-                  {{ item.target_code || '未知设备' }}
-                </span>
-              </div>
-              <div class="sandbox-workbench__tl-meta">
-                <span class="sandbox-workbench__tl-command">
-                  {{ getCommandLabel(item.dispatch_key) }}
-                </span>
-                <span class="sandbox-workbench__tl-type">
-                  {{ item.dispatch_type || '' }}
-                </span>
-              </div>
-              <div class="sandbox-workbench__tl-footer">
-                <span
-                  class="sandbox-workbench__tl-status"
-                  :class="`is-${item.status?.toLowerCase()}`"
-                >
-                  {{ statusLabel(item.status) }}
-                </span>
-                <span class="sandbox-workbench__tl-id">#{{ item.id }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </el-card>
+      <!-- Bottom: Action List -->
+      <SandboxActionList
+        :items="pendingItems"
+        :completed-items="completedItems"
+        :loading="actionLoadingForItem"
+        @trigger="handleActionTrigger"
+        @ack="handleActionAck"
+        @result="handleActionResult"
+        @retry="handleActionRetry"
+      />
     </div>
 
     <!-- Event Drawer -->
@@ -349,7 +211,9 @@
           <div class="sandbox-workbench__drawer-row">
             <span class="sandbox-workbench__drawer-label">命令</span>
             <span class="sandbox-workbench__drawer-value mono">
-              {{ getCommandLabel(selectedOutbox.dispatch_key) }}
+              {{
+                displayCommand({ command_code: null, dispatch_key: selectedOutbox.dispatch_key })
+              }}
             </span>
           </div>
           <div class="sandbox-workbench__drawer-row">
@@ -446,11 +310,20 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import SandboxEventComposer from '@/components/common/runtime/SandboxEventComposer.vue'
 import SandboxResultComposer from '@/components/common/runtime/SandboxResultComposer.vue'
+import SandboxCycleStatus from '@/components/common/runtime/SandboxCycleStatus.vue'
+import SandboxActionList from '@/components/common/runtime/SandboxActionList.vue'
 import WorklineRouteMap from '@/components/common/runtime/WorklineRouteMap.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import { sandboxProcess } from '@/api/modules/workline'
 import { useRuntimeSSE } from '@/composables/useRuntimeSSE'
-import type { RuntimeWorklineDeviceItem, SandboxPendingOutbox } from '@/types/runtime'
+import { useWorklineRuntimeStore } from '@/stores/workline-runtime'
+import { displayCommand, displayDevice } from '@/utils/runtime-display-identity'
+import type {
+  RuntimeTraceListItem,
+  RuntimeWorklineDeviceItem,
+  SandboxCompletedSession,
+  SandboxPendingOutbox
+} from '@/types/runtime'
 
 const props = defineProps<{
   worklineId: number
@@ -458,6 +331,13 @@ const props = defineProps<{
   deviceId?: number | null
   runMode?: string | null
 }>()
+
+const store = useWorklineRuntimeStore()
+
+// 活跃会话：来自 store 的 detail
+const activeSessions = computed<RuntimeTraceListItem[]>(
+  () => (store.detail?.active_sessions as RuntimeTraceListItem[] | undefined) ?? []
+)
 
 const deviceList = computed(() => props.devices ?? [])
 const selectedDeviceId = ref<number | null>(props.deviceId ?? null)
@@ -474,7 +354,11 @@ const selectedDeviceInfo = computed(() => {
   const device = deviceList.value.find(d => d.id === selectedDeviceId.value)
   if (!device) return null
   return {
-    name: device.device_name || device.device_code || `设备 #${device.id}`,
+    name: displayDevice({
+      device_name: device.device_name,
+      device_code: device.device_code,
+      device_id: device.id
+    }),
     code: device.device_code || '-',
     role: device.device_role || '-',
     status: device.device_status || ''
@@ -555,12 +439,13 @@ watch(lastEvent, event => {
     event.entity === 'command'
   ) {
     void loadPending()
+    void loadCompleted()
   }
 })
 
 // State
 const pendingItems = ref<SandboxPendingOutbox[]>([])
-const pendingLoading = ref(false)
+const completedItems = ref<SandboxCompletedSession[]>([])
 const processing = ref(false)
 const actionLoading = ref(false)
 const selectedOutbox = ref<SandboxPendingOutbox | null>(null)
@@ -570,27 +455,17 @@ const showResultComposer = ref(false)
 
 let pollTimer: ReturnType<typeof setInterval> | null = null
 
-// Filter
-const filterStatus = ref<string | null>(null)
-
-// Pending counts for filter tags
-const filterCounts = computed(() => ({
-  all: pendingItems.value.length,
-  new: pendingItems.value.filter(i => i.status === 'NEW').length,
-  sent: pendingItems.value.filter(i => i.status === 'SENT').length,
-  acked: pendingItems.value.filter(i => i.status === 'ACKED').length,
-  failed: pendingItems.value.filter(i => i.status === 'FAILED').length
-}))
-
-// Filtered items
-const filteredItems = computed(() => {
-  if (!filterStatus.value) return pendingItems.value
-  return pendingItems.value.filter(i => i.status === filterStatus.value)
-})
-
 // Pending counts by device
 const pendingCountsByDevice = computed(() => {
-  return {} as Record<number, number>
+  const counts: Record<number, number> = {}
+  for (const item of pendingItems.value) {
+    if (item.status === 'FAILED' || item.status === 'CANCELLED') continue
+    const device = deviceList.value.find(d => d.device_code === item.target_code)
+    if (device) {
+      counts[device.id] = (counts[device.id] || 0) + 1
+    }
+  }
+  return counts
 })
 
 function errorMessage(error: unknown, fallback: string) {
@@ -599,14 +474,20 @@ function errorMessage(error: unknown, fallback: string) {
 
 // Methods
 async function loadPending() {
-  pendingLoading.value = true
   try {
-    // 按 workline 获取所有 outbox，不按 device 过滤
     const items = await runtimeApiMethods.sandboxPending(50, props.worklineId).send()
-    // 最新的排在最前面（id 越大越新）
     pendingItems.value = (items || []).sort((a, b) => b.id - a.id)
-  } finally {
-    pendingLoading.value = false
+  } catch {
+    // silent — SSE will trigger retry
+  }
+}
+
+async function loadCompleted() {
+  try {
+    const items = await runtimeApiMethods.sandboxCompleted(50, props.worklineId).send()
+    completedItems.value = items || []
+  } catch {
+    // silent
   }
 }
 
@@ -649,6 +530,7 @@ async function handleResultSubmitted() {
   resultDrawerVisible.value = false
   selectedOutbox.value = null
   void loadPending()
+  void loadCompleted()
 }
 
 async function handleAck() {
@@ -702,25 +584,73 @@ async function handleRetry() {
   }
 }
 
+// SandboxActionList handlers
+const actionLoadingForItem = ref<number | null>(null)
+
+async function handleActionTrigger(item: SandboxPendingOutbox) {
+  actionLoadingForItem.value = item.id
+  try {
+    await sandboxProcess().send()
+    ElMessage.success('已触发编排')
+    setTimeout(() => void loadPending(), 500)
+  } catch (e: unknown) {
+    ElMessage.error(errorMessage(e, '触发失败'))
+  } finally {
+    actionLoadingForItem.value = null
+  }
+}
+
+async function handleActionAck(item: SandboxPendingOutbox) {
+  if (!item.dispatch_key) {
+    ElMessage.error('缺少 dispatch_key')
+    return
+  }
+  actionLoadingForItem.value = item.id
+  try {
+    await runtimeApiMethods.sandboxAck({ dispatch_key: item.dispatch_key }).send()
+    ElMessage.success('ACK 成功')
+    void loadPending()
+  } catch (e: unknown) {
+    ElMessage.error(errorMessage(e, 'ACK 失败'))
+  } finally {
+    actionLoadingForItem.value = null
+  }
+}
+
+function handleActionResult(item: SandboxPendingOutbox) {
+  selectedOutbox.value = item
+  showResultComposer.value = true
+  resultDrawerVisible.value = true
+}
+
+async function handleActionRetry(item: SandboxPendingOutbox) {
+  actionLoadingForItem.value = item.id
+  try {
+    await sandboxProcess().send()
+    ElMessage.success('已重试')
+    setTimeout(() => void loadPending(), 500)
+  } catch (e: unknown) {
+    ElMessage.error(errorMessage(e, '重试失败'))
+  } finally {
+    actionLoadingForItem.value = null
+  }
+}
+
 function statusLabel(status: string | null | undefined): string {
   const map: Record<string, string> = {
     NEW: '待发送',
     DISPATCHING: '派发中',
     SENT: '已发送',
     ACKED: '已确认',
-    FAILED: '失败'
+    FAILED: '失败',
+    CANCELLED: '已取消'
   }
   return map[status || ''] || status || ''
 }
 
-function getCommandLabel(dispatchKey: string | null | undefined): string {
-  if (!dispatchKey) return '未知命令'
-  const parts = dispatchKey.split(':')
-  return parts[parts.length - 1] || dispatchKey
-}
-
 onMounted(() => {
   void loadPending()
+  void loadCompleted()
   // 移除频繁轮询，改用 SSE 监听 + 手动刷新
   // pollTimer = setInterval(() => {
   //   void loadPending()
@@ -738,6 +668,7 @@ watch(
   () => [props.worklineId, selectedDeviceId.value],
   () => {
     void loadPending()
+    void loadCompleted()
     resultDrawerVisible.value = false
     selectedOutbox.value = null
   }
@@ -804,13 +735,13 @@ watch(
 }
 
 .sandbox-workbench__title {
-  color: #f1f5f9;
+  color: var(--runtime-text-primary);
   font-size: 18px;
   font-weight: 700;
 }
 
 .sandbox-workbench__hint {
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 12px;
 }
 
@@ -836,21 +767,15 @@ watch(
 
 /* ===== Cards ===== */
 .sandbox-workbench__card {
-  background: rgb(15, 23, 42, 0.6);
-  border: 1px solid rgb(51, 65, 85, 0.4);
-}
-
-.sandbox-workbench__card--fill {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  background: var(--runtime-surface-muted);
+  border: 1px solid var(--runtime-border-neutral);
 }
 
 .sandbox-workbench__card-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #f1f5f9;
+  color: var(--runtime-text-primary);
   font-size: 14px;
   font-weight: 600;
 }
@@ -865,246 +790,10 @@ watch(
   margin-left: auto;
   padding: 2px 8px;
   border-radius: 10px;
-  background: rgb(6, 182, 212, 0.2);
-  color: #22d3ee;
+  background: var(--runtime-badge-info-bg);
+  color: var(--runtime-badge-info-text);
   font-size: 11px;
   font-weight: 600;
-}
-
-/* ===== Loading & Empty ===== */
-.sandbox-workbench__loading,
-.sandbox-workbench__empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 48px 0;
-  color: #94a3b8;
-  font-size: 13px;
-}
-
-.sandbox-workbench__loading-spinner {
-  width: 24px;
-  height: 24px;
-  border: 2px solid rgb(6, 182, 212, 0.2);
-  border-top-color: #06b6d4;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.sandbox-workbench__empty-icon {
-  width: 48px;
-  height: 48px;
-  color: #22c55e;
-}
-
-/* ===== Timeline ===== */
-.sandbox-workbench__timeline {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-}
-
-.sandbox-workbench__tl-item {
-  display: flex;
-  gap: 14px;
-  cursor: pointer;
-  padding: 4px 0;
-}
-
-.sandbox-workbench__tl-item:hover .sandbox-workbench__tl-content {
-  background: rgb(30, 41, 59, 0.6);
-  border-color: rgb(6, 182, 212, 0.3);
-}
-
-.sandbox-workbench__tl-rail {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 20px;
-  flex-shrink: 0;
-  position: relative;
-}
-
-.sandbox-workbench__tl-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #64748b;
-  border: 2px solid #334155;
-  margin-top: 8px;
-  flex-shrink: 0;
-}
-
-/* Timeline connector line */
-.sandbox-workbench__tl-item:not(:last-child) .sandbox-workbench__tl-rail::after {
-  content: '';
-  width: 2px;
-  flex: 1;
-  background: rgb(51, 65, 85, 0.5);
-  margin-top: 4px;
-}
-
-/* Status-colored dots */
-.sandbox-workbench__tl-item.is-new .sandbox-workbench__tl-dot {
-  background: #64748b;
-  border-color: #475569;
-}
-
-.sandbox-workbench__tl-item.is-sent .sandbox-workbench__tl-dot {
-  background: #f59e0b;
-  border-color: rgb(245, 158, 11, 0.4);
-}
-
-.sandbox-workbench__tl-item.is-acked .sandbox-workbench__tl-dot {
-  background: #06b6d4;
-  border-color: rgb(6, 182, 212, 0.4);
-}
-
-.sandbox-workbench__tl-item.is-failed .sandbox-workbench__tl-dot {
-  background: #ef4444;
-  border-color: rgb(239, 68, 68, 0.4);
-}
-
-.sandbox-workbench__tl-content {
-  flex: 1;
-  padding: 10px 14px;
-  border-radius: 8px;
-  background: rgb(30, 41, 59, 0.4);
-  border: 1px solid rgb(51, 65, 85, 0.3);
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease;
-}
-
-.sandbox-workbench__tl-flow {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 4px;
-}
-
-.sandbox-workbench__tl-source {
-  color: #fbbf24;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.sandbox-workbench__tl-arrow {
-  width: 14px;
-  height: 14px;
-  color: #64748b;
-  flex-shrink: 0;
-}
-
-.sandbox-workbench__tl-target {
-  color: #f1f5f9;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.sandbox-workbench__tl-meta {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 6px;
-}
-
-.sandbox-workbench__tl-command {
-  color: #94a3b8;
-  font-size: 11px;
-  font-family: var(--font-mono, monospace);
-}
-
-.sandbox-workbench__tl-type {
-  color: #475569;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.sandbox-workbench__tl-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.sandbox-workbench__tl-status {
-  padding: 1px 6px;
-  border-radius: 3px;
-  font-size: 10px;
-  font-weight: 600;
-}
-
-.sandbox-workbench__tl-status.is-new {
-  background: rgb(100, 116, 139, 0.2);
-  color: #94a3b8;
-}
-
-.sandbox-workbench__tl-status.is-sent {
-  background: rgb(245, 158, 11, 0.2);
-  color: #fbbf24;
-}
-
-.sandbox-workbench__tl-status.is-acked {
-  background: rgb(6, 182, 212, 0.2);
-  color: #22d3ee;
-}
-
-.sandbox-workbench__tl-status.is-failed {
-  background: rgb(239, 68, 68, 0.2);
-  color: #fca5a5;
-}
-
-.sandbox-workbench__tl-id {
-  color: #475569;
-  font-size: 10px;
-  font-family: var(--font-mono, monospace);
-}
-
-/* ===== Filter Tags ===== */
-.sandbox-workbench__outbox-filters {
-  display: flex;
-  gap: 8px;
-  padding: 12px 0;
-  border-bottom: 1px solid rgb(51, 65, 85, 0.3);
-  margin-bottom: 12px;
-}
-
-.sandbox-workbench__filter-tag {
-  padding: 4px 12px;
-  border-radius: 6px;
-  background: rgb(51, 65, 85, 0.3);
-  border: 1px solid transparent;
-  color: #94a3b8;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.sandbox-workbench__filter-tag:hover {
-  background: rgb(51, 65, 85, 0.5);
-  color: #f1f5f9;
-}
-
-.sandbox-workbench__filter-tag.is-active {
-  background: rgb(6, 182, 212, 0.2);
-  border-color: rgb(6, 182, 212, 0.4);
-  color: #22d3ee;
-}
-
-.sandbox-workbench__filter-tag.is-danger.is-active {
-  background: rgb(239, 68, 68, 0.2);
-  border-color: rgb(239, 68, 68, 0.4);
-  color: #fca5a5;
 }
 
 /* ===== Drawer Detail ===== */
@@ -1114,7 +803,7 @@ watch(
   gap: 12px;
   padding: 16px;
   border-radius: 10px;
-  background: rgb(15, 23, 42, 0.5);
+  background: var(--runtime-surface-subtle);
   margin-bottom: 20px;
 }
 
@@ -1125,12 +814,12 @@ watch(
 }
 
 .sandbox-workbench__drawer-label {
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 13px;
 }
 
 .sandbox-workbench__drawer-value {
-  color: #f1f5f9;
+  color: var(--runtime-text-primary);
   font-size: 13px;
   font-weight: 500;
 }
@@ -1155,23 +844,6 @@ watch(
   gap: 8px;
 }
 
-/* ===== FAB ===== */
-.sandbox-workbench__fab {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgb(6, 182, 212, 0.4);
-  z-index: 100;
-}
-
-.sandbox-workbench__fab svg {
-  width: 24px;
-  height: 24px;
-}
-
 /* ===== Context Menu ===== */
 .sandbox-workbench__context-menu-overlay {
   position: fixed;
@@ -1185,8 +857,8 @@ watch(
   min-width: 160px;
   padding: 6px;
   border-radius: 10px;
-  background: rgb(30, 41, 59, 0.95);
-  border: 1px solid rgb(51, 65, 85, 0.6);
+  background: var(--runtime-surface-strong);
+  border: 1px solid var(--runtime-border-neutral);
   box-shadow: 0 8px 32px rgb(0, 0, 0, 0.4);
   backdrop-filter: blur(8px);
 }
@@ -1200,7 +872,7 @@ watch(
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: #f1f5f9;
+  color: var(--runtime-text-primary);
   font-size: 13px;
   font-weight: 500;
   text-align: left;
@@ -1215,41 +887,13 @@ watch(
 .sandbox-workbench__context-menu-icon {
   width: 16px;
   height: 16px;
-  color: #22d3ee;
+  color: var(--runtime-badge-info-text);
 }
 
-/* ===== Responsive ===== */
-@media (width <= 1023px) {
-  .sandbox-workbench__fab {
-    right: 16px;
-    bottom: 16px;
-  }
-}
-
-/* ===== Accessibility ===== */
-.sandbox-workbench__tl-item:focus-visible {
-  outline: 2px solid #06b6d4;
-  outline-offset: 2px;
-}
-
-.sandbox-workbench__filter-tag:focus-visible {
-  outline: 2px solid #06b6d4;
-  outline-offset: 2px;
-}
-
-/* Reduced motion */
+/* ===== Reduced motion ===== */
 @media (prefers-reduced-motion: reduce) {
   .sandbox-workbench__badge-dot {
     animation: none;
-  }
-  .sandbox-workbench__loading-spinner {
-    animation: none;
-  }
-  .sandbox-workbench__tl-item .sandbox-workbench__tl-content {
-    transition: none;
-  }
-  .sandbox-workbench__filter-tag {
-    transition: none;
   }
 }
 </style>

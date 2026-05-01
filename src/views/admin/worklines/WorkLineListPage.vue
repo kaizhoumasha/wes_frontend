@@ -17,7 +17,7 @@ function openRuntime(workline: Workline) {
 
 function openTrace(workline: Workline) {
   router.push({
-    name: 'RuntimeTraceExplorer',
+    name: 'RuntimeWorklines',
     query: buildRuntimeTraceQuery({ worklineId: workline.id })
   })
 }
