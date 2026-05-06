@@ -90,8 +90,6 @@ const worklineSummary = {
   zone_name: 'A',
   plugin_key: 'plugin-a',
   contract_version: 'v1',
-  owner_team: 'runtime',
-  support_contact: 'ops',
   is_active: true,
   device_count: 2,
   active_session_count: 1,

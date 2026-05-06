@@ -29,10 +29,6 @@
         <span>插件 / 契约</span>
         <strong>{{ summary.plugin_key || '—' }} / {{ summary.contract_version || '—' }}</strong>
       </div>
-      <div class="workline-health-hero__fact runtime-hero__fact">
-        <span>Owner / Support</span>
-        <strong>{{ summary.owner_team || '—' }} / {{ summary.support_contact || '—' }}</strong>
-      </div>
       <div class="workline-health-hero__fact workline-health-hero__fact--signal runtime-hero__fact">
         <span>设备态势</span>
         <strong>

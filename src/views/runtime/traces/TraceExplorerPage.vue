@@ -66,11 +66,17 @@
             label="Dispatch Key"
             value="dispatch"
           />
+          <el-option
+            label="条码"
+            value="barcode"
+          />
         </el-select>
         <el-input
           v-model="queryValue"
           class="trace-query-bar__input"
-          placeholder="输入 trace 锚点"
+          :placeholder="
+            queryType === 'barcode' ? '输入物料条码（6 合 1 码或其他码）' : '输入 trace 锚点'
+          "
           @keyup.enter="runTraceLookup"
         />
         <el-button
@@ -103,11 +109,6 @@
               />
             </div>
 
-            <TraceBlockingPointCard
-              :blocking-point="blockingPoint"
-              :loading="blockingPointLoading"
-            />
-
             <RuntimeStickyContextBar
               v-show="showStickyContext"
               eyebrow="案件上下文"
@@ -117,265 +118,241 @@
               :facts="traceStickyFacts"
             />
 
-            <el-card
-              shadow="never"
-              class="runtime-panel"
-            >
-              <template #header>
-                <div class="runtime-panel__header">
-                  <div>
-                    <div class="runtime-panel__title">Timeline 主叙事</div>
-                    <div class="runtime-panel__subtitle">
-                      先看最后成功节点、首次失败节点和当前终态，再展开证据。
-                    </div>
+            <section class="trace-section">
+              <div class="trace-section__step">
+                <span class="trace-section__num">01</span>
+                <div>
+                  <div class="trace-section__title">处置焦点</div>
+                  <div class="trace-section__desc">先确认阻塞点，再决定下一步行动</div>
+                </div>
+              </div>
+              <TraceBlockingPointCard
+                :blocking-point="blockingPoint"
+                :loading="blockingPointLoading"
+              />
+              <TraceNextActions
+                :detail="traceDetail"
+                @open-trace="openTraceFromAction"
+              />
+            </section>
+
+            <section class="trace-section">
+              <div class="trace-section__step">
+                <span class="trace-section__num">02</span>
+                <div>
+                  <div class="trace-section__title">Timeline 主叙事</div>
+                  <div class="trace-section__desc">
+                    先看首次失败节点和最后成功节点，再沿时间线还原
                   </div>
                 </div>
-              </template>
-              <TraceTimeline :items="traceDetail.timelines" />
-            </el-card>
-
-            <el-card
-              shadow="never"
-              class="runtime-panel"
-            >
-              <template #header>
-                <div class="runtime-panel__header">
-                  <div>
-                    <div class="runtime-panel__title">证据分组</div>
-                    <div class="runtime-panel__subtitle">
-                      先看能帮助判断的结构化证据，Raw JSON 放在最后兜底。
-                    </div>
-                  </div>
-                </div>
-              </template>
-
-              <el-tabs
-                v-model="activeTab"
-                class="trace-evidence-tabs"
+              </div>
+              <el-card
+                shadow="never"
+                class="runtime-panel"
               >
-                <el-tab-pane
-                  label="诊断"
-                  name="diagnostics"
-                >
-                  <el-table
-                    :data="traceDetail.diagnostics"
-                    size="small"
-                  >
-                    <el-table-column
-                      prop="trace_id"
-                      label="Trace"
-                      min-width="180"
-                    />
-                    <el-table-column
-                      prop="device_code"
-                      label="设备"
-                      min-width="120"
-                    />
-                    <el-table-column
-                      prop="plugin_key"
-                      label="插件"
-                      min-width="120"
-                    />
-                    <el-table-column
-                      prop="canonical_event_type"
-                      label="事件"
-                      min-width="150"
-                    >
-                      <template #default="scope">
-                        {{ compactEnumLabel(scope.row.canonical_event_type) }}
-                      </template>
-                    </el-table-column>
-                    <el-table-column
-                      prop="transition"
-                      label="转移"
-                      min-width="140"
-                    >
-                      <template #default="scope">
-                        {{ compactEnumLabel(scope.row.transition) }}
-                      </template>
-                    </el-table-column>
-                  </el-table>
-                </el-tab-pane>
+                <TraceTimeline :items="traceDetail.timelines" />
+              </el-card>
+            </section>
 
-                <el-tab-pane
-                  :label="`入口证据 (${traceDetail.callback_logs.length + traceDetail.inboxes.length})`"
-                  name="ingress"
+            <section class="trace-section trace-section--evidence">
+              <div class="trace-section__step">
+                <span class="trace-section__num trace-section__num--dim">03</span>
+                <div>
+                  <div class="trace-section__title trace-section__title--dim">证据分组</div>
+                  <div class="trace-section__desc">按需查看，优先读诊断，Raw JSON 仅作兜底</div>
+                </div>
+              </div>
+              <el-card
+                shadow="never"
+                class="runtime-panel"
+              >
+                <el-tabs
+                  v-model="activeTab"
+                  class="trace-evidence-tabs"
                 >
-                  <div class="trace-evidence__section">
-                    <div class="trace-evidence__section-title">Callback</div>
+                  <el-tab-pane
+                    label="诊断"
+                    name="diagnostics"
+                  >
                     <el-table
-                      :data="traceDetail.callback_logs"
+                      :data="traceDetail.diagnostics"
                       size="small"
                     >
-                      <el-table-column
-                        prop="callback_type"
-                        label="类型"
-                        width="120"
-                      />
                       <el-table-column
                         prop="trace_id"
                         label="Trace"
                         min-width="180"
                       />
                       <el-table-column
-                        prop="ingress_outcome"
-                        label="入口结果"
-                        width="120"
+                        prop="device_code"
+                        label="设备"
+                        min-width="120"
                       />
                       <el-table-column
-                        prop="failure_stage"
-                        label="失败阶段"
-                        min-width="160"
+                        prop="plugin_key"
+                        label="插件"
+                        min-width="120"
                       />
                       <el-table-column
-                        prop="response_status"
-                        label="响应"
-                        width="100"
-                      />
-                      <el-table-column
-                        label="时间"
-                        min-width="180"
+                        prop="canonical_event_type"
+                        label="事件"
+                        min-width="150"
                       >
                         <template #default="scope">
-                          {{ formatRuntimeDateTime(scope.row.created_at) }}
+                          {{ compactEnumLabel(scope.row.canonical_event_type) }}
+                        </template>
+                      </el-table-column>
+                      <el-table-column
+                        prop="transition"
+                        label="转移"
+                        min-width="140"
+                      >
+                        <template #default="scope">
+                          {{ compactEnumLabel(scope.row.transition) }}
                         </template>
                       </el-table-column>
                     </el-table>
-                  </div>
+                  </el-tab-pane>
 
-                  <div class="trace-evidence__section">
-                    <div class="trace-evidence__section-title">Inbox</div>
-                    <el-table
-                      :data="traceDetail.inboxes"
-                      size="small"
-                    >
-                      <el-table-column
-                        prop="kind"
-                        label="Kind"
-                        width="140"
-                      />
-                      <el-table-column
-                        prop="trace_id"
-                        label="Trace"
-                        min-width="180"
-                      />
-                      <el-table-column
-                        label="状态"
-                        width="120"
-                      >
-                        <template #default="scope">
-                          <RuntimeStatusBadge
-                            :status="scope.row.status"
-                            size="small"
-                          />
-                        </template>
-                      </el-table-column>
-                      <el-table-column
-                        prop="attempt_count"
-                        label="重试"
-                        width="80"
-                      />
-                      <el-table-column
-                        label="接收时间"
-                        min-width="180"
-                      >
-                        <template #default="scope">
-                          {{ formatRuntimeDateTime(scope.row.received_at) }}
-                        </template>
-                      </el-table-column>
-                    </el-table>
-                  </div>
-                </el-tab-pane>
-
-                <el-tab-pane
-                  label="会话证据"
-                  name="session"
-                >
-                  <div class="trace-session-grid">
-                    <div class="trace-session-card">
-                      <span>Trace ID</span>
-                      <strong>
-                        {{ traceDetail.trace.trace_id || traceDetail.session?.trace_id || '--' }}
-                      </strong>
-                    </div>
-                    <div class="trace-session-card">
-                      <span>Session Code</span>
-                      <strong>{{ traceDetail.session?.session_code || '--' }}</strong>
-                    </div>
-                    <div class="trace-session-card">
-                      <span>Run Mode</span>
-                      <strong>{{ traceDetail.session?.run_mode || '--' }}</strong>
-                    </div>
-                    <div class="trace-session-card">
-                      <span>Started / Ended</span>
-                      <strong>
-                        {{ formatRuntimeDateTime(traceDetail.session?.started_at) }} ->
-                        {{ formatRuntimeDateTime(traceDetail.session?.ended_at) }}
-                      </strong>
-                    </div>
-                    <div class="trace-session-card">
-                      <span>Failure Message</span>
-                      <strong>{{ traceDetail.session?.failure_message || '--' }}</strong>
-                    </div>
-                  </div>
-                  <el-table
-                    v-if="traceDetail.sessions.length > 1"
-                    :data="traceDetail.sessions"
-                    size="small"
-                    class="trace-evidence__section"
+                  <el-tab-pane
+                    :label="`入口证据 (${traceDetail.callback_logs.length + traceDetail.inboxes.length})`"
+                    name="ingress"
                   >
-                    <el-table-column
-                      prop="session_code"
-                      label="Session"
-                      min-width="180"
-                    />
-                    <el-table-column
-                      prop="run_mode"
-                      label="Run Mode"
-                      width="120"
-                    />
-                    <el-table-column
-                      prop="status"
-                      label="状态"
-                      width="120"
-                    >
-                      <template #default="scope">
-                        <RuntimeStatusBadge
-                          :status="scope.row.status"
-                          size="small"
+                    <div class="trace-evidence__section">
+                      <div class="trace-evidence__section-title">Callback</div>
+                      <el-table
+                        :data="traceDetail.callback_logs"
+                        size="small"
+                      >
+                        <el-table-column
+                          prop="callback_type"
+                          label="类型"
+                          width="120"
                         />
-                      </template>
-                    </el-table-column>
-                    <el-table-column
-                      prop="step_code"
-                      label="Step"
-                      min-width="140"
-                    />
-                  </el-table>
-                  <pre class="trace-detail__json">{{ sessionJson }}</pre>
-                </el-tab-pane>
+                        <el-table-column
+                          prop="trace_id"
+                          label="Trace"
+                          min-width="180"
+                        />
+                        <el-table-column
+                          prop="ingress_outcome"
+                          label="入口结果"
+                          width="120"
+                        />
+                        <el-table-column
+                          prop="failure_stage"
+                          label="失败阶段"
+                          min-width="160"
+                        />
+                        <el-table-column
+                          prop="response_status"
+                          label="响应"
+                          width="100"
+                        />
+                        <el-table-column
+                          label="时间"
+                          min-width="180"
+                        >
+                          <template #default="scope">
+                            {{ formatRuntimeDateTime(scope.row.created_at) }}
+                          </template>
+                        </el-table-column>
+                      </el-table>
+                    </div>
 
-                <el-tab-pane
-                  :label="`执行证据 (${traceDetail.commands.length + traceDetail.outboxes.length})`"
-                  name="execution"
-                >
-                  <div class="trace-evidence__section">
-                    <div class="trace-evidence__section-title">Command</div>
+                    <div class="trace-evidence__section">
+                      <div class="trace-evidence__section-title">Inbox</div>
+                      <el-table
+                        :data="traceDetail.inboxes"
+                        size="small"
+                      >
+                        <el-table-column
+                          prop="kind"
+                          label="Kind"
+                          width="140"
+                        />
+                        <el-table-column
+                          prop="trace_id"
+                          label="Trace"
+                          min-width="180"
+                        />
+                        <el-table-column
+                          label="状态"
+                          width="120"
+                        >
+                          <template #default="scope">
+                            <RuntimeStatusBadge
+                              :status="scope.row.status"
+                              size="small"
+                            />
+                          </template>
+                        </el-table-column>
+                        <el-table-column
+                          prop="attempt_count"
+                          label="重试"
+                          width="80"
+                        />
+                        <el-table-column
+                          label="接收时间"
+                          min-width="180"
+                        >
+                          <template #default="scope">
+                            {{ formatRuntimeDateTime(scope.row.received_at) }}
+                          </template>
+                        </el-table-column>
+                      </el-table>
+                    </div>
+                  </el-tab-pane>
+
+                  <el-tab-pane
+                    label="会话证据"
+                    name="session"
+                  >
+                    <div class="trace-session-grid">
+                      <div class="trace-session-card">
+                        <span>Trace ID</span>
+                        <strong>
+                          {{ traceDetail.trace.trace_id || traceDetail.session?.trace_id || '--' }}
+                        </strong>
+                      </div>
+                      <div class="trace-session-card">
+                        <span>Session Code</span>
+                        <strong>{{ traceDetail.session?.session_code || '--' }}</strong>
+                      </div>
+                      <div class="trace-session-card">
+                        <span>Run Mode</span>
+                        <strong>{{ traceDetail.session?.run_mode || '--' }}</strong>
+                      </div>
+                      <div class="trace-session-card">
+                        <span>Started / Ended</span>
+                        <strong>
+                          {{ formatRuntimeDateTime(traceDetail.session?.started_at) }} ->
+                          {{ formatRuntimeDateTime(traceDetail.session?.ended_at) }}
+                        </strong>
+                      </div>
+                      <div class="trace-session-card">
+                        <span>Failure Message</span>
+                        <strong>{{ traceDetail.session?.failure_message || '--' }}</strong>
+                      </div>
+                    </div>
                     <el-table
-                      :data="traceDetail.commands"
+                      v-if="traceDetail.sessions.length > 1"
+                      :data="traceDetail.sessions"
                       size="small"
+                      class="trace-evidence__section"
                     >
                       <el-table-column
-                        prop="command_code"
-                        label="指令"
+                        prop="session_code"
+                        label="Session"
                         min-width="180"
                       />
                       <el-table-column
-                        prop="task_type"
-                        label="任务"
-                        width="140"
+                        prop="run_mode"
+                        label="Run Mode"
+                        width="120"
                       />
                       <el-table-column
+                        prop="status"
                         label="状态"
                         width="120"
                       >
@@ -387,105 +364,141 @@
                         </template>
                       </el-table-column>
                       <el-table-column
-                        label="耗时"
-                        width="120"
-                      >
-                        <template #default="scope">
-                          {{ formatRuntimeDurationMs(scope.row.duration_ms) }}
-                        </template>
-                      </el-table-column>
-                    </el-table>
-                  </div>
-
-                  <div class="trace-evidence__section">
-                    <div class="trace-evidence__section-title">Outbox</div>
-                    <el-table
-                      :data="traceDetail.outboxes"
-                      size="small"
-                    >
-                      <el-table-column
-                        prop="dispatch_type"
-                        label="派发类型"
-                        width="140"
-                      />
-                      <el-table-column
-                        prop="target_code"
-                        label="目标"
-                        min-width="160"
-                      />
-                      <el-table-column
-                        label="状态"
-                        width="120"
-                      >
-                        <template #default="scope">
-                          <RuntimeStatusBadge
-                            :status="scope.row.status"
-                            size="small"
-                          />
-                        </template>
-                      </el-table-column>
-                      <el-table-column
-                        prop="attempt_count"
-                        label="重试"
-                        width="80"
-                      />
-                    </el-table>
-                  </div>
-
-                  <div class="trace-evidence__section">
-                    <div class="trace-evidence__section-title">Dispatch Attempts</div>
-                    <el-table
-                      :data="traceDetail.dispatch_attempts"
-                      size="small"
-                    >
-                      <el-table-column
-                        prop="attempt_no"
-                        label="#"
-                        width="80"
-                      />
-                      <el-table-column
-                        prop="dispatch_key"
-                        label="Dispatch Key"
-                        min-width="200"
-                      />
-                      <el-table-column
-                        prop="target_code"
-                        label="目标"
+                        prop="step_code"
+                        label="Step"
                         min-width="140"
                       />
-                      <el-table-column
-                        label="状态"
-                        width="120"
-                      >
-                        <template #default="scope">
-                          <RuntimeStatusBadge
-                            :status="scope.row.status"
-                            size="small"
-                          />
-                        </template>
-                      </el-table-column>
-                      <el-table-column
-                        prop="error_message"
-                        label="错误"
-                        min-width="220"
-                      />
                     </el-table>
-                  </div>
-                </el-tab-pane>
+                    <pre class="trace-detail__json">{{ sessionJson }}</pre>
+                  </el-tab-pane>
 
-                <el-tab-pane
-                  label="Raw JSON"
-                  name="raw"
-                >
-                  <pre class="trace-detail__json">{{ rawJson }}</pre>
-                </el-tab-pane>
-              </el-tabs>
-            </el-card>
+                  <el-tab-pane
+                    :label="`执行证据 (${traceDetail.commands.length + traceDetail.outboxes.length})`"
+                    name="execution"
+                  >
+                    <div class="trace-evidence__section">
+                      <div class="trace-evidence__section-title">Command</div>
+                      <el-table
+                        :data="traceDetail.commands"
+                        size="small"
+                      >
+                        <el-table-column
+                          prop="command_code"
+                          label="指令"
+                          min-width="180"
+                        />
+                        <el-table-column
+                          prop="task_type"
+                          label="任务"
+                          width="140"
+                        />
+                        <el-table-column
+                          label="状态"
+                          width="120"
+                        >
+                          <template #default="scope">
+                            <RuntimeStatusBadge
+                              :status="scope.row.status"
+                              size="small"
+                            />
+                          </template>
+                        </el-table-column>
+                        <el-table-column
+                          label="耗时"
+                          width="120"
+                        >
+                          <template #default="scope">
+                            {{ formatRuntimeDurationMs(scope.row.duration_ms) }}
+                          </template>
+                        </el-table-column>
+                      </el-table>
+                    </div>
 
-            <TraceNextActions
-              :detail="traceDetail"
-              @open-trace="openTraceFromAction"
-            />
+                    <div class="trace-evidence__section">
+                      <div class="trace-evidence__section-title">Outbox</div>
+                      <el-table
+                        :data="traceDetail.outboxes"
+                        size="small"
+                      >
+                        <el-table-column
+                          prop="dispatch_type"
+                          label="派发类型"
+                          width="140"
+                        />
+                        <el-table-column
+                          prop="target_code"
+                          label="目标"
+                          min-width="160"
+                        />
+                        <el-table-column
+                          label="状态"
+                          width="120"
+                        >
+                          <template #default="scope">
+                            <RuntimeStatusBadge
+                              :status="scope.row.status"
+                              size="small"
+                            />
+                          </template>
+                        </el-table-column>
+                        <el-table-column
+                          prop="attempt_count"
+                          label="重试"
+                          width="80"
+                        />
+                      </el-table>
+                    </div>
+
+                    <div class="trace-evidence__section">
+                      <div class="trace-evidence__section-title">Dispatch Attempts</div>
+                      <el-table
+                        :data="traceDetail.dispatch_attempts"
+                        size="small"
+                      >
+                        <el-table-column
+                          prop="attempt_no"
+                          label="#"
+                          width="80"
+                        />
+                        <el-table-column
+                          prop="dispatch_key"
+                          label="Dispatch Key"
+                          min-width="200"
+                        />
+                        <el-table-column
+                          prop="target_code"
+                          label="目标"
+                          min-width="140"
+                        />
+                        <el-table-column
+                          label="状态"
+                          width="120"
+                        >
+                          <template #default="scope">
+                            <RuntimeStatusBadge
+                              :status="scope.row.status"
+                              size="small"
+                            />
+                          </template>
+                        </el-table-column>
+                        <el-table-column
+                          prop="error_message"
+                          label="错误"
+                          min-width="220"
+                        />
+                      </el-table>
+                    </div>
+                  </el-tab-pane>
+
+                  <el-tab-pane
+                    label="Raw JSON"
+                    name="raw"
+                  >
+                    <pre class="trace-detail__json">{{ rawJson }}</pre>
+                  </el-tab-pane>
+                </el-tabs>
+              </el-card>
+            </section>
           </div>
         </template>
 
@@ -579,7 +592,7 @@ const showStickyContext = useRuntimeStickyContextVisibility({
   enabled: computed(() => Boolean(traceDetail.value))
 })
 
-type TraceAnchorType = 'trace' | 'request' | 'session' | 'command' | 'dispatch'
+type TraceAnchorType = 'trace' | 'request' | 'session' | 'command' | 'dispatch' | 'barcode'
 
 interface TraceAnchor {
   type: TraceAnchorType
@@ -591,7 +604,8 @@ const TRACE_QUERY_KEYS: Record<TraceAnchorType, string> = {
   session: 'sessionId',
   request: 'requestId',
   command: 'commandCode',
-  dispatch: 'dispatchKey'
+  dispatch: 'dispatchKey',
+  barcode: 'barcode'
 }
 
 const sessionJson = computed(() => JSON.stringify(traceDetail.value?.session ?? {}, null, 2))
@@ -672,7 +686,14 @@ const traceStickyFacts = computed(() => {
 })
 
 function readRouteAnchor(): TraceAnchor | null {
-  const anchorTypes: TraceAnchorType[] = ['trace', 'request', 'session', 'command', 'dispatch']
+  const anchorTypes: TraceAnchorType[] = [
+    'trace',
+    'request',
+    'session',
+    'command',
+    'dispatch',
+    'barcode'
+  ]
 
   for (const type of anchorTypes) {
     const queryKey = TRACE_QUERY_KEYS[type]
@@ -736,6 +757,10 @@ function resolveTraceAnchorFromQuery(query: RuntimeTraceQueryInput): TraceAnchor
     return { type: 'dispatch', value: String(query.dispatchKey) }
   }
 
+  if (query.barcode) {
+    return { type: 'barcode', value: String(query.barcode) }
+  }
+
   return null
 }
 
@@ -772,7 +797,7 @@ async function loadTraceByTraceId(traceId: string) {
 }
 
 async function loadTraceByAnchor(
-  type: Exclude<TraceAnchorType, 'session' | 'trace'>,
+  type: Exclude<TraceAnchorType, 'session' | 'trace' | 'barcode'>,
   value: string
 ) {
   const requestMap = {
@@ -785,6 +810,26 @@ async function loadTraceByAnchor(
   markRefreshedAt()
 }
 
+async function loadTraceByBarcode(barcode: string) {
+  let result = await runtimeApiMethods
+    .queryTraces({ keyword: barcode, only_active: true, limit: 5 })
+    .send()
+  if (result.items.length === 0) {
+    result = await runtimeApiMethods.queryTraces({ keyword: barcode, limit: 5 }).send()
+  }
+  if (result.items.length === 0) {
+    traceDetail.value = null
+    blockingPoint.value = null
+    return
+  }
+  const item = result.items[0]
+  if (item.trace_id) {
+    await loadTraceByTraceId(item.trace_id)
+  } else {
+    await loadTraceBySession(item.session_id)
+  }
+}
+
 async function loadTraceDetail(anchor: TraceAnchor): Promise<void> {
   if (anchor.type === 'trace') {
     await loadTraceByTraceId(anchor.value)
@@ -793,6 +838,11 @@ async function loadTraceDetail(anchor: TraceAnchor): Promise<void> {
 
   if (anchor.type === 'session') {
     await loadTraceBySession(Number(anchor.value))
+    return
+  }
+
+  if (anchor.type === 'barcode') {
+    await loadTraceByBarcode(anchor.value)
     return
   }
 
@@ -1070,6 +1120,60 @@ watch(
   align-items: center;
   justify-content: center;
   min-height: 520px;
+}
+
+.trace-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.trace-section__step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgb(148, 163, 184, 0.1);
+}
+
+.trace-section__num {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid rgb(59, 130, 246, 0.3);
+  border-radius: 999px;
+  background: rgb(59, 130, 246, 0.12);
+  color: #60a5fa;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.trace-section__num--dim {
+  border-color: rgb(148, 163, 184, 0.18);
+  background: rgb(148, 163, 184, 0.06);
+  color: #475569;
+}
+
+.trace-section__title {
+  color: #f1f5f9;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.trace-section__title--dim {
+  color: #475569;
+}
+
+.trace-section__desc {
+  margin-top: 2px;
+  color: #475569;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 @media (width >= 1280px) and (height >= 900px) {

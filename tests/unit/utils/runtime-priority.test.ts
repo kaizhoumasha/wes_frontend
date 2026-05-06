@@ -20,8 +20,6 @@ function createWorkline(overrides: Partial<RuntimeWorklineSummary> = {}): Runtim
     zone_name: 'Zone A',
     plugin_key: 'plugin-a',
     contract_version: 'v1',
-    owner_team: 'ops',
-    support_contact: 'ops@example.com',
     is_active: true,
     device_count: 4,
     active_session_count: 2,

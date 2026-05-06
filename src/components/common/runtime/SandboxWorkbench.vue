@@ -314,7 +314,6 @@ import SandboxCycleStatus from '@/components/common/runtime/SandboxCycleStatus.v
 import SandboxActionList from '@/components/common/runtime/SandboxActionList.vue'
 import WorklineRouteMap from '@/components/common/runtime/WorklineRouteMap.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
-import { sandboxProcess } from '@/api/modules/workline'
 import { useRuntimeSSE } from '@/composables/useRuntimeSSE'
 import { useWorklineRuntimeStore } from '@/stores/workline-runtime'
 import { displayCommand, displayDevice } from '@/utils/runtime-display-identity'
@@ -499,7 +498,7 @@ function refresh() {
 async function triggerProcess() {
   processing.value = true
   try {
-    await sandboxProcess().send()
+    await runtimeApiMethods.sandboxProcess().send()
     setTimeout(() => {
       void loadPending()
     }, 1000)
@@ -559,7 +558,7 @@ async function handleResend() {
   actionLoading.value = true
   try {
     // Trigger process to resend
-    await sandboxProcess().send()
+    await runtimeApiMethods.sandboxProcess().send()
     ElMessage.success('已重新发送')
     resultDrawerVisible.value = false
     setTimeout(() => void loadPending(), 500)
@@ -573,7 +572,7 @@ async function handleResend() {
 async function handleRetry() {
   actionLoading.value = true
   try {
-    await sandboxProcess().send()
+    await runtimeApiMethods.sandboxProcess().send()
     ElMessage.success('已重试')
     resultDrawerVisible.value = false
     setTimeout(() => void loadPending(), 500)
@@ -590,7 +589,7 @@ const actionLoadingForItem = ref<number | null>(null)
 async function handleActionTrigger(item: SandboxPendingOutbox) {
   actionLoadingForItem.value = item.id
   try {
-    await sandboxProcess().send()
+    await runtimeApiMethods.sandboxProcess().send()
     ElMessage.success('已触发编排')
     setTimeout(() => void loadPending(), 500)
   } catch (e: unknown) {
@@ -626,7 +625,7 @@ function handleActionResult(item: SandboxPendingOutbox) {
 async function handleActionRetry(item: SandboxPendingOutbox) {
   actionLoadingForItem.value = item.id
   try {
-    await sandboxProcess().send()
+    await runtimeApiMethods.sandboxProcess().send()
     ElMessage.success('已重试')
     setTimeout(() => void loadPending(), 500)
   } catch (e: unknown) {

@@ -40,8 +40,6 @@
           <div v-if="mostFailedStep">高频失败 Step: {{ mostFailedStep }}</div>
           <div v-if="dominantActiveStep">主要等待 Step: {{ dominantActiveStep }}</div>
           <div>插件: {{ summary.plugin_key || '—' }}</div>
-          <div>Owner: {{ summary.owner_team || '—' }}</div>
-          <div>Support: {{ summary.support_contact || '—' }}</div>
         </div>
       </template>
       <span class="decision-strip__more">...</span>
