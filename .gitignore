@@ -41,3 +41,4 @@ events.jsonl
 views.json
 .claude-plugin/plugin.json
 sessions/**
+.pnpm-store/**
