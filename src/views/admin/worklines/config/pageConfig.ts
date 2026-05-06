@@ -1,20 +1,45 @@
+import type { VNode } from 'vue'
 import type {
   CreateWorkLinesInput as CreateWorklineInput,
   UpdateWorkLinesInput as UpdateWorklineInput,
   WorkLinesItem as Workline
 } from '@/api/modules/workLines'
+import type { OptionsResult as WorklinePluginOptionsResult } from '@/api/modules/workline'
 import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
 import { workLinesApiMethods } from '@/api/modules/workLines'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
-import { workLinePageFieldConfig } from './fieldConfig'
+import {
+  createBooleanTagFormatter,
+  createStatusTagFormatter
+} from '@/components/common/table/formatters'
+import { createWorkLineFormFieldConfig, workLinePageFieldConfig } from './fieldConfig'
+
+const lineTypeFormatter = createStatusTagFormatter({
+  AUTO: { label: '自动线', type: 'primary' },
+  MANUAL: { label: '人工线', type: 'warning' },
+  HYBRID: { label: '混合线', type: 'success' }
+})
+
+const runModeFormatter = createStatusTagFormatter({
+  AUTO: { label: '自动运行', type: 'primary' },
+  MANUAL: { label: '人工确认', type: 'warning' },
+  SIMULATION: { label: '沙箱模拟', type: 'info' }
+})
+
+const isActiveFormatter = createBooleanTagFormatter({
+  trueLabel: '激活',
+  falseLabel: '停用',
+  trueType: 'success',
+  falseType: 'info'
+})
 
 type WorklinePageConfig = CrudPageConfig<Workline, CreateWorklineInput, UpdateWorklineInput>
+type WorklinePluginOptions = WorklinePluginOptionsResult
 
 interface WorklinePageActions {
   openRuntime: (workline: Workline) => void
-  openTrace: (workline: Workline) => void
 }
 
 const WORKLINE_PAGE_RESOURCE = {
@@ -32,7 +57,7 @@ const WORKLINE_PAGE_RESOURCE = {
   methods: workLinesApiMethods,
   permissions: BIZ_PERMISSIONS.workline,
   optimisticUpdate: true,
-  defaultSort: [{ field: 'sort_order', order: 'asc' as const }]
+  defaultSort: [{ field: 'id', order: 'asc' as const }]
 }
 
 const WORKLINE_PAGE_TABLE: Partial<WorklinePageConfig['table']> = {
@@ -80,14 +105,7 @@ function createWorklineDetailConfig(actions: WorklinePageActions): CrudPageDetai
         type: 'primary',
         icon: 'ep:monitor',
         onClick: workline => actions.openRuntime(workline),
-      },
-      {
-        key: 'open-trace',
-        label: '查看 TRACE',
-        type: 'warning',
-        icon: 'ep:connection',
-        onClick: workline => actions.openTrace(workline),
-      },
+      }
     ],
     sections: [
       {
@@ -96,29 +114,36 @@ function createWorklineDetailConfig(actions: WorklinePageActions): CrudPageDetai
         fields: [
           { key: 'line_code', layout: 'half' },
           { key: 'line_name', layout: 'half' },
-          { key: 'line_type', layout: 'half' },
+          { key: 'line_type', layout: 'half', formatter: v => lineTypeFormatter(v, {}, {}) as VNode },
           { key: 'zone_name', layout: 'half' },
-          { key: 'is_active', layout: 'half' },
-          { key: 'capacity', layout: 'half' },
+          { key: 'is_active', layout: 'half', formatter: v => isActiveFormatter(v, {}, {}) as VNode },
           { key: 'description', layout: 'full' }
         ]
       },
       {
-        title: '扩展配置',
+        title: '运行配置',
         weight: 'secondary',
         fields: [
-          { key: 'sort_order', layout: 'half' }
+          { key: 'run_mode', layout: 'half', formatter: v => runModeFormatter(v, {}, {}) as VNode },
+          { key: 'plugin_key', layout: 'half' },
+          { key: 'contract_version', layout: 'half' }
         ]
       }
     ]
   }
 }
 
-export function createWorkLinePageConfig(actions: WorklinePageActions): WorklinePageConfig {
+export function createWorkLinePageConfig(
+  actions: WorklinePageActions,
+  pluginOptions: WorklinePluginOptions = []
+): WorklinePageConfig {
   return createCrudPageConfigFromResource<Workline, CreateWorklineInput, UpdateWorklineInput>({
     resource: WORKLINE_PAGE_RESOURCE,
     fieldConfig: workLinePageFieldConfig,
     table: WORKLINE_PAGE_TABLE,
+    form: {
+      fieldConfig: createWorkLineFormFieldConfig(pluginOptions)
+    },
     detail: createWorklineDetailConfig(actions),
     features: WORKLINE_PAGE_FEATURES,
     extensions: {
@@ -129,14 +154,7 @@ export function createWorkLinePageConfig(actions: WorklinePageActions): Workline
           type: 'primary',
           permission: BIZ_PERMISSIONS.workline.page,
           onClick: row => actions.openRuntime(row),
-        },
-        {
-          key: 'open-trace',
-          label: '查看 TRACE',
-          type: 'warning',
-          permission: BIZ_PERMISSIONS.workline.page,
-          onClick: row => actions.openTrace(row),
-        },
+        }
       ]
     }
   })

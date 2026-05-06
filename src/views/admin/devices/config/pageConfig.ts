@@ -98,7 +98,6 @@ function createDeviceDetailConfig(actions: DevicePageActions): CrudPageDetailCon
         fields: [
           { key: 'device_code', layout: 'half' },
           { key: 'device_name', layout: 'half' },
-          { key: 'device_type', layout: 'half' },
           { key: 'device_role', layout: 'half' },
           { key: 'role_index', layout: 'half' },
           { key: 'is_active', layout: 'half' },
@@ -120,8 +119,7 @@ function createDeviceDetailConfig(actions: DevicePageActions): CrudPageDetailCon
         title: '能力配置',
         weight: 'secondary',
         fields: [
-          { key: 'capabilities', layout: 'full' },
-          { key: 'supported_commands', layout: 'full' },
+          { key: 'capabilities_json', layout: 'full' },
           { key: 'max_concurrent_tasks', layout: 'half' },
           { key: 'vendor_type', layout: 'half' }
         ]
@@ -141,9 +139,7 @@ function createDeviceDetailConfig(actions: DevicePageActions): CrudPageDetailCon
         weight: 'tertiary',
         fields: [
           { key: 'work_line_id', layout: 'half' },
-          { key: 'upstream_device_id', layout: 'half' },
-          { key: 'created_at', layout: 'half' },
-          { key: 'updated_at', layout: 'half' }
+          { key: 'upstream_device_id', layout: 'half' }
         ]
       }
     ]

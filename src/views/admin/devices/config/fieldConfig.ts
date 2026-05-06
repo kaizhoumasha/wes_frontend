@@ -34,10 +34,9 @@ const DEVICE_FIELD_LABEL_OVERRIDES = {
   current_command_id: '当前指令',
   last_heartbeat_at: '最后心跳时间',
   error_code: '错误码',
-  supported_commands: '支持指令',
+  capabilities_json: '设备能力',
   sort_order: '排序号',
-  created_at: '创建时间',
-  updated_at: '更新时间'
+  version: '版本'
 } as const
 
 export const DEVICE_TABLE_STORAGE_KEY = 'wes-device-table-columns'
@@ -216,6 +215,24 @@ export const {
         visibleFrom: 'desktop',
         width: 180
       }
+    },
+    {
+      key: 'auth_token'
+    },
+    {
+      key: 'capabilities_json'
+    },
+    {
+      key: 'current_command_id'
+    },
+    {
+      key: 'error_code'
+    },
+    {
+      key: 'work_line_id'
+    },
+    {
+      key: 'upstream_device_id'
     }
   ],
   storageKey: DEVICE_TABLE_STORAGE_KEY,
