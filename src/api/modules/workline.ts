@@ -1,15 +1,14 @@
 // ==================== AUTO GENERATED START ====================
- 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * 自动生成的 API 模块
  *
  * ⚠️  请勿手动编辑 AUTO GENERATED 区域
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 资源: /api/v1/workline/operations, /api/v1/workline/runtime, /api/v1/workline/trace
+ * 资源: /api/v1/workline/operations, /api/v1/workline/plugins, /api/v1/workline/runtime, /api/v1/workline/trace
  */
 import { contractMethods } from '@/api/contract/client'
-import { post } from '@/api/client'
 import type {
   ContractPathParams,
   ContractQueryParams,
@@ -17,9 +16,15 @@ import type {
   ContractRequestConfig,
   ContractResponseData,
 } from '@/api/contract/types'
+import type { components, paths } from '@/api/generated/openapi-types'
+
+export type SandboxProcessResult = ContractResponseData<'/api/v1/workline/operations/sandbox/process', 'post'>
 
 export type SandboxPendingResult = ContractResponseData<'/api/v1/workline/operations/sandbox/pending', 'get'>
 export type SandboxPendingQuery = ContractQueryParams<'/api/v1/workline/operations/sandbox/pending', 'get'>
+
+export type SandboxCompletedResult = ContractResponseData<'/api/v1/workline/operations/sandbox/completed', 'get'>
+export type SandboxCompletedQuery = ContractQueryParams<'/api/v1/workline/operations/sandbox/completed', 'get'>
 
 export type ReplayInboxesResult = ContractResponseData<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>
 export type ReplayInboxesPathParams = ContractPathParams<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>
@@ -32,15 +37,22 @@ export type ManualSessionsInput = ContractRequestBody<'/api/v1/workline/operatio
 export type SandboxEventsResult = ContractResponseData<'/api/v1/workline/operations/sandbox/events', 'post'>
 export type SandboxEventsInput = ContractRequestBody<'/api/v1/workline/operations/sandbox/events', 'post'>
 
+export type SandboxAckResult = ContractResponseData<'/api/v1/workline/operations/sandbox/ack', 'post'>
+export type SandboxAckInput = ContractRequestBody<'/api/v1/workline/operations/sandbox/ack', 'post'>
+
 export type ResultsResult = ContractResponseData<'/api/v1/workline/operations/results', 'post'>
 export type ResultsInput = ContractRequestBody<'/api/v1/workline/operations/results', 'post'>
 
 export type SandboxTemplatesResult = ContractResponseData<'/api/v1/workline/operations/sandbox/templates', 'get'>
 export type SandboxTemplatesQuery = ContractQueryParams<'/api/v1/workline/operations/sandbox/templates', 'get'>
 
+export type OptionsResult = ContractResponseData<'/api/v1/workline/plugins/options', 'get'>
+
 export type OverviewResult = ContractResponseData<'/api/v1/workline/runtime/overview', 'get'>
+export type OverviewQuery = ContractQueryParams<'/api/v1/workline/runtime/overview', 'get'>
 
 export type WorklinesResult = ContractResponseData<'/api/v1/workline/runtime/worklines', 'get'>
+export type WorklinesQuery = ContractQueryParams<'/api/v1/workline/runtime/worklines', 'get'>
 
 export type GetWorklinesResult = ContractResponseData<'/api/v1/workline/runtime/worklines/{workline_id}', 'get'>
 export type GetWorklinesPathParams = ContractPathParams<'/api/v1/workline/runtime/worklines/{workline_id}', 'get'>
@@ -81,6 +93,16 @@ export type QueryInput = ContractRequestBody<'/api/v1/workline/trace/query', 'po
 
 export const worklineApiMethods = {
   /**
+   * [biz:workline:update] 手动触发编排处理
+   * @description 手动触发工作线编排处理（用于沙箱调试，Celery worker 未启动时）
+   * @endpoint POST /api/v1/workline/operations/sandbox/process
+   * @returns alova method instance
+   */
+  sandboxProcess(config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/workline/operations/sandbox/process', { config })
+  },
+
+  /**
    * [biz:workline:list] 查询沙箱待处理 Outbox
    * @endpoint GET /api/v1/workline/operations/sandbox/pending
    * @returns alova method instance
@@ -94,9 +116,8 @@ export const worklineApiMethods = {
    * @endpoint GET /api/v1/workline/operations/sandbox/completed
    * @returns alova method instance
    */
-  sandboxCompleted(query?: { limit?: number; workline_id?: number; device_id?: number }, config?: ContractRequestConfig) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (contractMethods as any).get('/api/v1/workline/operations/sandbox/completed', { query, config })
+  sandboxCompleted(query?: ContractQueryParams<'/api/v1/workline/operations/sandbox/completed', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/operations/sandbox/completed', { query, config })
   },
 
   /**
@@ -127,6 +148,15 @@ export const worklineApiMethods = {
   },
 
   /**
+   * [biz:workline:update] 沙箱模拟 Command ACK
+   * @endpoint POST /api/v1/workline/operations/sandbox/ack
+   * @returns alova method instance
+   */
+  sandboxAck(body: ContractRequestBody<'/api/v1/workline/operations/sandbox/ack', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/workline/operations/sandbox/ack', { body, config })
+  },
+
+  /**
    * [biz:workline:update] 沙箱模拟 Command Result
    * @endpoint POST /api/v1/workline/operations/results
    * @returns alova method instance
@@ -142,6 +172,16 @@ export const worklineApiMethods = {
    */
   sandboxTemplates(query?: ContractQueryParams<'/api/v1/workline/operations/sandbox/templates', 'get'>, config?: ContractRequestConfig) {
     return contractMethods.get('/api/v1/workline/operations/sandbox/templates', { query, config })
+  },
+
+  /**
+   * [biz:workline:list] 获取作业线插件选项
+   * @description 从插件注册表导出作业线插件与契约版本下拉选项。
+   * @endpoint GET /api/v1/workline/plugins/options
+   * @returns alova method instance
+   */
+  options(config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/plugins/options', { config })
   },
 
   /**
@@ -273,18 +313,6 @@ export const worklineApiMethods = {
 // ==================== AUTO GENERATED END ====================
 
 // ==================== CUSTOM METHODS START ====================
-
-type SandboxAckRequest = {
-  dispatch_key: string
-}
-
-export const sandboxAck = (body: SandboxAckRequest) => {
-  return post('/api/v1/workline/operations/sandbox/ack', body)
-}
-
-export const sandboxProcess = () => {
-  return post('/api/v1/workline/operations/sandbox/process')
-}
 
 // ==================== CUSTOM METHODS END ====================
 

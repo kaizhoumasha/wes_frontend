@@ -5814,6 +5814,45 @@ export const OPENAPI_SCHEMA_METADATA = {
       }
     }
   },
+  "ResponseSchemaModel_list_WorkLinePluginOption__": {
+    "title": "ResponseSchemaModel[list[WorkLinePluginOption]]",
+    "required": [],
+    "fields": {
+      "code": {
+        "title": "Code",
+        "description": "响应码",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "1000"
+      },
+      "message": {
+        "title": "Message",
+        "description": "响应消息",
+        "type": "string",
+        "required": false,
+        "nullable": false,
+        "default": "操作成功"
+      },
+      "data": {
+        "title": "Data",
+        "description": "响应数据",
+        "type": "array",
+        "required": false,
+        "nullable": true,
+        "items": {
+          "ref": "WorkLinePluginOption"
+        }
+      },
+      "timestamp": {
+        "title": "Timestamp",
+        "description": "响应时间戳(ISO 8601格式)",
+        "type": "string",
+        "required": false,
+        "nullable": false
+      }
+    }
+  },
   "ResponseSchemaModel_list_dict_str__Any___": {
     "title": "ResponseSchemaModel[list[dict[str, Any]]]",
     "required": [],
@@ -6795,18 +6834,6 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": true
       },
-      "owner_team": {
-        "title": "Owner Team",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "support_contact": {
-        "title": "Support Contact",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
       "is_active": {
         "title": "Is Active",
         "type": "boolean",
@@ -6875,6 +6902,24 @@ export const OPENAPI_SCHEMA_METADATA = {
         "format": "date-time",
         "required": false,
         "nullable": true
+      }
+    }
+  },
+  "SandboxAckRequest": {
+    "title": "SandboxAckRequest",
+    "description": "沙箱 Command ACK 模拟请求。",
+    "required": [
+      "dispatch_key"
+    ],
+    "fields": {
+      "dispatch_key": {
+        "title": "Dispatch Key",
+        "description": "Dispatch Key",
+        "type": "string",
+        "required": true,
+        "nullable": false,
+        "minLength": 1,
+        "maxLength": 200
       }
     }
   },
@@ -9211,22 +9256,6 @@ export const OPENAPI_SCHEMA_METADATA = {
         "default": "AUTO",
         "ref": "WorkLineRunMode"
       },
-      "owner_team": {
-        "title": "Owner Team",
-        "description": "工作线主责团队",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "support_contact": {
-        "title": "Support Contact",
-        "description": "工作线支持联系人",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
       "diagnostic_profile": {
         "title": "Diagnostic Profile",
         "description": "工作线诊断配置（软件/硬件分类偏好、展示策略等）",
@@ -9249,21 +9278,48 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": false,
         "default": true
+      }
+    }
+  },
+  "WorkLinePluginOption": {
+    "title": "WorkLinePluginOption",
+    "description": "作业线插件下拉选项。",
+    "required": [
+      "plugin_key",
+      "label",
+      "default_contract_version"
+    ],
+    "fields": {
+      "plugin_key": {
+        "title": "Plugin Key",
+        "description": "工作线执行插件标识",
+        "type": "string",
+        "required": true,
+        "nullable": false
       },
-      "capacity": {
-        "title": "Capacity",
-        "description": "产能（件/小时）",
-        "type": "integer",
-        "required": false,
-        "nullable": true
+      "label": {
+        "title": "Label",
+        "description": "插件显示文本",
+        "type": "string",
+        "required": true,
+        "nullable": false
       },
-      "sort_order": {
-        "title": "Sort Order",
-        "description": "排序顺序",
-        "type": "integer",
+      "contract_versions": {
+        "title": "Contract Versions",
+        "description": "可选契约版本",
+        "type": "array",
         "required": false,
         "nullable": false,
-        "default": 0
+        "items": {
+          "type": "string"
+        }
+      },
+      "default_contract_version": {
+        "title": "Default Contract Version",
+        "description": "默认契约版本",
+        "type": "string",
+        "required": true,
+        "nullable": false
       }
     }
   },
@@ -9347,22 +9403,6 @@ export const OPENAPI_SCHEMA_METADATA = {
         "default": "AUTO",
         "ref": "WorkLineRunMode"
       },
-      "owner_team": {
-        "title": "Owner Team",
-        "description": "工作线主责团队",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "support_contact": {
-        "title": "Support Contact",
-        "description": "工作线支持联系人",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
       "diagnostic_profile": {
         "title": "Diagnostic Profile",
         "description": "工作线诊断配置（软件/硬件分类偏好、展示策略等）",
@@ -9385,21 +9425,6 @@ export const OPENAPI_SCHEMA_METADATA = {
         "required": false,
         "nullable": false,
         "default": true
-      },
-      "capacity": {
-        "title": "Capacity",
-        "description": "产能（件/小时）",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "sort_order": {
-        "title": "Sort Order",
-        "description": "排序顺序",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
       },
       "id": {
         "title": "Id",
@@ -9510,22 +9535,6 @@ export const OPENAPI_SCHEMA_METADATA = {
         "nullable": true,
         "ref": "WorkLineRunMode"
       },
-      "owner_team": {
-        "title": "Owner Team",
-        "description": "工作线主责团队",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "support_contact": {
-        "title": "Support Contact",
-        "description": "工作线支持联系人",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
       "diagnostic_profile": {
         "title": "Diagnostic Profile",
         "description": "工作线诊断配置（软件/硬件分类偏好、展示策略等）",
@@ -9545,20 +9554,6 @@ export const OPENAPI_SCHEMA_METADATA = {
         "title": "Is Active",
         "description": "是否启用",
         "type": "boolean",
-        "required": false,
-        "nullable": true
-      },
-      "capacity": {
-        "title": "Capacity",
-        "description": "产能（件/小时）",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "sort_order": {
-        "title": "Sort Order",
-        "description": "排序顺序",
-        "type": "integer",
         "required": false,
         "nullable": true
       },

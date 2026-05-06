@@ -2103,6 +2103,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workline/operations/sandbox/ack": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [biz:workline:update] 沙箱模拟 Command ACK */
+        post: operations["workline_operations_sandbox_ack_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/operations/sandbox/completed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list] 查询沙箱已完成 Outbox */
+        get: operations["workline_operations_sandbox_completed_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workline/operations/sandbox/events": {
         parameters: {
             query?: never;
@@ -2137,6 +2171,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workline/operations/sandbox/process": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * [biz:workline:update] 手动触发编排处理
+         * @description 手动触发工作线编排处理（用于沙箱调试，Celery worker 未启动时）
+         */
+        post: operations["workline_operations_sandbox_process_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workline/operations/sandbox/templates": {
         parameters: {
             query?: never;
@@ -2146,6 +2200,26 @@ export interface paths {
         };
         /** [biz:workline:list] 获取沙箱模板 */
         get: operations["workline_operations_sandbox_templates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/plugins/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * [biz:workline:list] 获取作业线插件选项
+         * @description 从插件注册表导出作业线插件与契约版本下拉选项。
+         */
+        get: operations["workline_plugins_options_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2190,10 +2264,7 @@ export interface paths {
     };
     "/api/v1/workline/runtime/overview": {
         parameters: {
-            query?: {
-                /** @description 是否包含 SIMULATION 工作线数据 */
-                includeSim?: boolean;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
@@ -2244,10 +2315,7 @@ export interface paths {
     };
     "/api/v1/workline/runtime/worklines": {
         parameters: {
-            query?: {
-                /** @description 是否排除 SIMULATION 工作线 */
-                excludeSimulation?: boolean;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
@@ -5639,6 +5707,36 @@ export interface components {
              */
             timestamp?: string;
         };
+        /** ResponseSchemaModel[list[WorkLinePluginOption]] */
+        ResponseSchemaModel_list_WorkLinePluginOption__: {
+            /**
+             * Code
+             * @description 响应码
+             * @default 1000
+             * @example 1000
+             * @example 2000
+             */
+            code: string;
+            /**
+             * Data
+             * @description 响应数据
+             */
+            data?: components["schemas"]["WorkLinePluginOption"][] | null;
+            /**
+             * Message
+             * @description 响应消息
+             * @default 操作成功
+             * @example 操作成功
+             * @example 参数错误
+             */
+            message: string;
+            /**
+             * Timestamp
+             * @description 响应时间戳(ISO 8601格式)
+             * @example 2024-01-01T00:00:00Z
+             */
+            timestamp?: string;
+        };
         /** ResponseSchemaModel[LoginResponse] */
         ResponseSchemaModel_LoginResponse_: {
             /**
@@ -6558,8 +6656,6 @@ export interface components {
              * @default 0
              */
             offline_device_count: number;
-            /** Owner Team */
-            owner_team?: string | null;
             /** Plugin Key */
             plugin_key?: string | null;
             /**
@@ -6567,8 +6663,6 @@ export interface components {
              * @default AUTO
              */
             run_mode: string;
-            /** Support Contact */
-            support_contact?: string | null;
             /**
              * Waiting Session Count
              * @default 0
@@ -6576,6 +6670,17 @@ export interface components {
             waiting_session_count: number;
             /** Zone Name */
             zone_name?: string | null;
+        };
+        /**
+         * SandboxAckRequest
+         * @description 沙箱 Command ACK 模拟请求。
+         */
+        SandboxAckRequest: {
+            /**
+             * Dispatch Key
+             * @description Dispatch Key
+             */
+            dispatch_key: string;
         };
         /**
          * SandboxEventRequest
@@ -7570,11 +7675,6 @@ export interface components {
          */
         WorkLineCreate: {
             /**
-             * Capacity
-             * @description 产能（件/小时）
-             */
-            capacity?: number | null;
-            /**
              * Config
              * @description 工作线插件配置
              */
@@ -7617,11 +7717,6 @@ export interface components {
             /** @description 作业线类型 */
             line_type: components["schemas"]["LineType"];
             /**
-             * Owner Team
-             * @description 工作线主责团队
-             */
-            owner_team?: string | null;
-            /**
              * Plugin Key
              * @description 工作线执行插件标识
              */
@@ -7639,32 +7734,42 @@ export interface components {
                 [key: string]: unknown;
             };
             /**
-             * Sort Order
-             * @description 排序顺序
-             * @default 0
-             */
-            sort_order: number;
-            /**
-             * Support Contact
-             * @description 工作线支持联系人
-             */
-            support_contact?: string | null;
-            /**
              * Zone Name
              * @description 区域名称
              */
             zone_name?: string | null;
         };
         /**
+         * WorkLinePluginOption
+         * @description 作业线插件下拉选项。
+         */
+        WorkLinePluginOption: {
+            /**
+             * Contract Versions
+             * @description 可选契约版本
+             */
+            contract_versions?: string[];
+            /**
+             * Default Contract Version
+             * @description 默认契约版本
+             */
+            default_contract_version: string;
+            /**
+             * Label
+             * @description 插件显示文本
+             */
+            label: string;
+            /**
+             * Plugin Key
+             * @description 工作线执行插件标识
+             */
+            plugin_key: string;
+        };
+        /**
          * WorkLineResponse
          * @description 作业线响应 Schema - 返回给客户端
          */
         WorkLineResponse: {
-            /**
-             * Capacity
-             * @description 产能（件/小时）
-             */
-            capacity?: number | null;
             /**
              * Config
              * @description 工作线插件配置
@@ -7710,11 +7815,6 @@ export interface components {
             /** @description 作业线类型 */
             line_type: components["schemas"]["LineType"];
             /**
-             * Owner Team
-             * @description 工作线主责团队
-             */
-            owner_team?: string | null;
-            /**
              * Plugin Key
              * @description 工作线执行插件标识
              */
@@ -7731,17 +7831,6 @@ export interface components {
             runtime_config_json?: {
                 [key: string]: unknown;
             };
-            /**
-             * Sort Order
-             * @description 排序顺序
-             * @default 0
-             */
-            sort_order: number;
-            /**
-             * Support Contact
-             * @description 工作线支持联系人
-             */
-            support_contact?: string | null;
             /** Version */
             version: number;
             /**
@@ -7761,11 +7850,6 @@ export interface components {
          * @description 作业线更新 Schema - 所有字段可选
          */
         WorkLineUpdate: {
-            /**
-             * Capacity
-             * @description 产能（件/小时）
-             */
-            capacity?: number | null;
             /**
              * Config
              * @description 工作线插件配置
@@ -7808,11 +7892,6 @@ export interface components {
             /** @description 作业线类型 */
             line_type?: components["schemas"]["LineType"] | null;
             /**
-             * Owner Team
-             * @description 工作线主责团队
-             */
-            owner_team?: string | null;
-            /**
              * Plugin Key
              * @description 工作线执行插件标识
              */
@@ -7826,16 +7905,6 @@ export interface components {
             runtime_config_json?: {
                 [key: string]: unknown;
             } | null;
-            /**
-             * Sort Order
-             * @description 排序顺序
-             */
-            sort_order?: number | null;
-            /**
-             * Support Contact
-             * @description 工作线支持联系人
-             */
-            support_contact?: string | null;
             /**
              * Version
              * @description 乐观锁版本号，更新时必传
@@ -11650,6 +11719,72 @@ export interface operations {
             };
         };
     };
+    workline_operations_sandbox_ack_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SandboxAckRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_operations_sandbox_completed_get: {
+        parameters: {
+            query?: {
+                device_id?: number | null;
+                limit?: number;
+                workline_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_list_dict_str__Any___"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     workline_operations_sandbox_events_post: {
         parameters: {
             query?: never;
@@ -11716,6 +11851,26 @@ export interface operations {
             };
         };
     };
+    workline_operations_sandbox_process_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+        };
+    };
     workline_operations_sandbox_templates_get: {
         parameters: {
             query: {
@@ -11744,6 +11899,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_plugins_options_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_list_WorkLinePluginOption__"];
                 };
             };
         };
@@ -11815,7 +11990,6 @@ export interface operations {
     workline_runtime_overview_get: {
         parameters: {
             query?: {
-                /** @description 是否包含 SIMULATION 工作线数据 */
                 includeSim?: boolean;
             };
             header?: never;
@@ -11831,6 +12005,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_RuntimeOverviewResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -11900,7 +12083,6 @@ export interface operations {
     workline_runtime_worklines_get: {
         parameters: {
             query?: {
-                /** @description 是否排除 SIMULATION 工作线 */
                 excludeSimulation?: boolean;
             };
             header?: never;
@@ -11916,6 +12098,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_list_RuntimeWorklineSummary__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

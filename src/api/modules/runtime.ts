@@ -1,4 +1,4 @@
-import { sandboxAck, worklineApiMethods } from '@/api/modules/workline'
+import { worklineApiMethods } from '@/api/modules/workline'
 import type {
   RuntimeDeviceDetailResponse,
   RuntimeDeviceSummary,
@@ -139,10 +139,14 @@ export const runtimeApiMethods = {
 
   sandboxAck(payload: SandboxAckRequest) {
     return adaptRuntimeMethod<SandboxPendingOutbox>(
-      sandboxAck({
+      worklineApiMethods.sandboxAck({
         dispatch_key: payload.dispatch_key,
       })
     )
+  },
+
+  sandboxProcess() {
+    return adaptRuntimeMethod<unknown>(worklineApiMethods.sandboxProcess())
   },
 
   sandboxTemplates(worklineId: number, deviceId?: number) {

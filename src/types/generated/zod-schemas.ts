@@ -1919,10 +1919,6 @@ export const RuntimeWorklineSummarySchema = z.object({
   plugin_key: z.union([z.string(), z.null()]).optional(),
   /** Contract Version */
   contract_version: z.union([z.string(), z.null()]).optional(),
-  /** Owner Team */
-  owner_team: z.union([z.string(), z.null()]).optional(),
-  /** Support Contact */
-  support_contact: z.union([z.string(), z.null()]).optional(),
   /** Is Active */
   is_active: z.boolean(),
   /** Device Count */
@@ -2805,20 +2801,36 @@ export const WorkLineCreateSchema = z.object({
   runtime_config_json: z.record(z.any()).optional(),
   /** 工作线运行模式 */
   run_mode: z.lazy(() => WorkLineRunModeSchema).optional().default("AUTO"),
-  /** Owner Team */
-  owner_team: z.union([z.string().max(100), z.null()]).optional(),
-  /** Support Contact */
-  support_contact: z.union([z.string().max(100), z.null()]).optional(),
   /** Diagnostic Profile */
   diagnostic_profile: z.record(z.any()).optional(),
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
   /** Is Active */
   is_active: z.boolean().optional().default(true),
-  /** Capacity */
-  capacity: z.union([z.number(), z.null()]).optional(),
-  /** Sort Order */
-  sort_order: z.number().optional().default(0),
+})
+
+
+/**
+ * 作业线插件下拉选项。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const WorkLinePluginOptionSchema = z.object({
+  /** Plugin Key */
+  plugin_key: z.string(),
+  /** Label */
+  label: z.string(),
+  /** Contract Versions */
+  contract_versions: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())).optional(),
+  /** Default Contract Version */
+  default_contract_version: z.string(),
 })
 
 
@@ -2847,20 +2859,12 @@ export const WorkLineResponseSchema = z.object({
   runtime_config_json: z.record(z.any()).optional(),
   /** 工作线运行模式 */
   run_mode: z.lazy(() => WorkLineRunModeSchema).optional().default("AUTO"),
-  /** Owner Team */
-  owner_team: z.union([z.string().max(100), z.null()]).optional(),
-  /** Support Contact */
-  support_contact: z.union([z.string().max(100), z.null()]).optional(),
   /** Diagnostic Profile */
   diagnostic_profile: z.record(z.any()).optional(),
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
   /** Is Active */
   is_active: z.boolean().optional().default(true),
-  /** Capacity */
-  capacity: z.union([z.number(), z.null()]).optional(),
-  /** Sort Order */
-  sort_order: z.number().optional().default(0),
   /** Id */
   id: z.number(),
   /** Version */
@@ -2902,20 +2906,12 @@ export const WorkLineUpdateSchema = z.object({
   runtime_config_json: z.union([z.record(z.any()), z.null()]).optional(),
   /** 工作线运行模式 */
   run_mode: z.union([z.lazy(() => WorkLineRunModeSchema), z.null()]).optional(),
-  /** Owner Team */
-  owner_team: z.union([z.string().max(100), z.null()]).optional(),
-  /** Support Contact */
-  support_contact: z.union([z.string().max(100), z.null()]).optional(),
   /** Diagnostic Profile */
   diagnostic_profile: z.union([z.record(z.any()), z.null()]).optional(),
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
   /** Is Active */
   is_active: z.union([z.boolean(), z.null()]).optional(),
-  /** Capacity */
-  capacity: z.union([z.number(), z.null()]).optional(),
-  /** Sort Order */
-  sort_order: z.union([z.number(), z.null()]).optional(),
   /** Version */
   version: z.number(),
 })

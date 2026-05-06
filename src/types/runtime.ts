@@ -297,8 +297,6 @@ export interface RuntimeWorklineSummary {
   zone_name?: string | null
   plugin_key?: string | null
   contract_version?: string | null
-  owner_team?: string | null
-  support_contact?: string | null
   is_active: boolean
   device_count: number
   active_session_count: number
