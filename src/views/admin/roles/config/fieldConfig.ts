@@ -5,6 +5,11 @@
  */
 
 import type { CreateRolesInput, UpdateRolesInput, RolesItem } from '@/api/modules/roles'
+import {
+  RoleCreateMetadata,
+  RoleResponseMetadata,
+  RoleUpdateMetadata
+} from '@/api/generated/openapi-metadata'
 import { RoleCreateSchema, RoleUpdateSchema } from '@/types/zod-extensions'
 import {
   defineCrudResourceFieldBundle
@@ -40,9 +45,9 @@ export const {
   fieldConfig: rolePageFieldConfig
 } = defineCrudResourceFieldBundle<RolesItem, CreateRolesInput, UpdateRolesInput>({
   backend: {
-    readSchema: 'RoleResponse',
-    createSchema: 'RoleCreate',
-    updateSchema: 'RoleUpdate',
+    readSchema: RoleResponseMetadata,
+    createSchema: RoleCreateMetadata,
+    updateSchema: RoleUpdateMetadata,
     labelOverrides: ROLE_FIELD_LABEL_OVERRIDES
   },
   fields: [

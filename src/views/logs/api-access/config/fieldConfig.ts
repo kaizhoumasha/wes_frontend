@@ -1,5 +1,6 @@
 import type { SearchFieldDef } from '@/types/search'
 import { defineCrudResourceFieldBundle } from '@/components/common/crud-page/resourceFieldBuilder'
+import { APIAccessLogResponseMetadata } from '@/api/generated/openapi-metadata'
 import {
   createQuickFilterFormatter,
   formatDurationFromMilliseconds,
@@ -38,7 +39,7 @@ export const {
   fieldConfig: apiAccessLogPageFieldConfig
 } = defineCrudResourceFieldBundle<APIAccessLog, ReadonlyInput, ReadonlyInput>({
   backend: {
-    readSchema: 'APIAccessLogResponse',
+    readSchema: APIAccessLogResponseMetadata,
     labelOverrides: API_ACCESS_LOG_LABEL_OVERRIDES
   },
   fields: [

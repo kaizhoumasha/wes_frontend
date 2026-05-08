@@ -7,6 +7,11 @@ import type {
   UpdateWorkLinesInput as UpdateWorklineInput,
   WorkLinesItem as Workline
 } from '@/api/modules/workLines'
+import {
+  WorkLineCreateMetadata,
+  WorkLineResponseMetadata,
+  WorkLineUpdateMetadata
+} from '@/api/generated/openapi-metadata'
 import type { OptionsResult as WorklinePluginOptionsResult } from '@/api/modules/workline'
 import type { FormFieldConfig } from '@/composables/useTableColumns'
 import { WorkLineCreateSchema, WorkLineUpdateSchema } from '@/types/zod-extensions'
@@ -65,9 +70,9 @@ export const {
   fieldConfig: workLinePageFieldConfig
 } = defineCrudResourceFieldBundle<Workline, CreateWorklineInput, UpdateWorklineInput>({
   backend: {
-    readSchema: 'WorkLineResponse',
-    createSchema: 'WorkLineCreate',
-    updateSchema: 'WorkLineUpdate',
+    readSchema: WorkLineResponseMetadata,
+    createSchema: WorkLineCreateMetadata,
+    updateSchema: WorkLineUpdateMetadata,
     labelOverrides: WORKLINE_FIELD_LABEL_OVERRIDES
   },
   fields: [

@@ -9,6 +9,11 @@ import type {
   UpdateDevicesInput as UpdateDeviceInput,
   DevicesItem as Device
 } from '@/api/modules/devices'
+import {
+  DeviceCreateMetadata,
+  DeviceResponseMetadata,
+  DeviceUpdateMetadata
+} from '@/api/generated/openapi-metadata'
 import { DeviceCreateSchema, DeviceUpdateSchema } from '@/types/zod-extensions'
 import {
   defineCrudResourceFieldBundle
@@ -62,9 +67,9 @@ export const {
   fieldConfig: devicePageFieldConfig
 } = defineCrudResourceFieldBundle<Device, CreateDeviceInput, UpdateDeviceInput>({
   backend: {
-    readSchema: 'DeviceResponse',
-    createSchema: 'DeviceCreate',
-    updateSchema: 'DeviceUpdate',
+    readSchema: DeviceResponseMetadata,
+    createSchema: DeviceCreateMetadata,
+    updateSchema: DeviceUpdateMetadata,
     labelOverrides: DEVICE_FIELD_LABEL_OVERRIDES
   },
   fields: [

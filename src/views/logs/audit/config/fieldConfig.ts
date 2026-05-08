@@ -1,4 +1,5 @@
 import { defineCrudResourceFieldBundle } from '@/components/common/crud-page/resourceFieldBuilder'
+import { AuditLogResponseMetadata } from '@/api/generated/openapi-metadata'
 import {
   createQuickFilterFormatter,
   formatDurationFromSeconds
@@ -44,7 +45,7 @@ export const {
   fieldConfig: auditLogPageFieldConfig
 } = defineCrudResourceFieldBundle<AuditLog, ReadonlyInput, ReadonlyInput>({
   backend: {
-    readSchema: 'AuditLogResponse',
+    readSchema: AuditLogResponseMetadata,
     labelOverrides: AUDIT_LOG_LABEL_OVERRIDES
   },
   fields: [
