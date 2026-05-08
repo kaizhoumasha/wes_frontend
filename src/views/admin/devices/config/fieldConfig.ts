@@ -30,10 +30,10 @@ const DEVICE_FIELD_LABEL_OVERRIDES = {
   timeout: '超时时间(ms)',
   auth_token: '认证Token',
   vendor_type: '厂商类型',
-  max_concurrent_tasks: '最大并发任务',
   current_command_id: '当前指令',
   last_heartbeat_at: '最后心跳时间',
   error_code: '错误码',
+  maintenance_mode: '维护模式',
   capabilities_json: '设备能力',
   sort_order: '排序号',
   version: '版本'
@@ -101,9 +101,6 @@ export const {
       table: {
         visibleFrom: 'mobile',
         width: 100
-      },
-      form: {
-        type: 'select'
       },
       search: {
         dataType: 'enum'
@@ -200,20 +197,20 @@ export const {
       }
     },
     {
-      key: 'max_concurrent_tasks',
-      table: {
-        visibleFrom: 'desktop',
-        width: 130
-      },
-      form: {
-        type: 'number'
-      }
-    },
-    {
       key: 'last_heartbeat_at',
       table: {
         visibleFrom: 'desktop',
         width: 180
+      }
+    },
+    {
+      key: 'maintenance_mode',
+      table: {
+        visibleFrom: 'tablet',
+        width: 100
+      },
+      search: {
+        dataType: 'boolean'
       }
     },
     {
@@ -223,10 +220,18 @@ export const {
       key: 'capabilities_json'
     },
     {
-      key: 'current_command_id'
+      key: 'current_command_id',
+      table: {
+        visibleFrom: 'desktop',
+        width: 110
+      }
     },
     {
-      key: 'error_code'
+      key: 'error_code',
+      table: {
+        visibleFrom: 'desktop',
+        width: 150
+      }
     },
     {
       key: 'work_line_id'
