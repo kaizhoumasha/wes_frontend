@@ -21,6 +21,7 @@ export function createUserRowActions(
     {
       key: 'assign-roles',
       label: '分配角色',
+      tooltip: '分配角色',
       type: 'primary',
       icon: 'lucide:user-plus',
       priority: 'secondary',
@@ -30,6 +31,7 @@ export function createUserRowActions(
     {
       key: 'reset-password',
       label: '重置密码',
+      tooltip: '重置密码',
       type: 'warning',
       icon: 'lucide:key-round',
       priority: 'secondary',

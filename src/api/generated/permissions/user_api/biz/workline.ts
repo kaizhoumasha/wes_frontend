@@ -30,5 +30,7 @@ export const BIZ_WORKLINE_PERMISSION = {
   /** 人工确认 checklist 后清除工作线急停 */
   clearEstop: 'biz:workline:clear-estop',
   /** 批量永久删除WorkLine */
-  permanentDelete: 'biz:workline:permanent_delete'
+  permanentDelete: 'biz:workline:permanent_delete',
+  /** 解除 runtime reconciliation 隔离，不重发设备命令、不调用 timeout 插件处理、释放安全停靠队列 */
+  resolveReconciliation: 'biz:workline:resolve-reconciliation',
 } as const

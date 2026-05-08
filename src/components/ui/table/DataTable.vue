@@ -77,6 +77,7 @@
             v-else-if="column.type === 'expand'"
             type="expand"
             :width="column.width"
+            :min-width="column.minWidth"
             :fixed="column.fixed"
             :label="column.title"
             :resizable="resolveColumnResizable(column)"
@@ -182,11 +183,44 @@ interface InternalTreeNodeState extends Record<string, unknown> {
   hasChildren?: boolean
 }
 
+interface InternalTableColumn {
+  property?: string
+  id?: string
+  width?: number
+  realWidth?: number
+  minWidth?: number
+}
+
 interface InternalTableStore {
   states?: {
     treeData?: {
       value?: Record<string, InternalTreeNodeState>
     }
+    columns?: {
+      value?: InternalTableColumn[]
+    }
+  }
+}
+
+/**
+ * 拖拽后强制回弹低于 minWidth 的列宽
+ * 通过 Element Plus 内部 store 更新触发重新渲染
+ */
+function enforceMinWidthAfterDrag(
+  store: InternalTableStore | undefined,
+  column: { property?: string; id?: string },
+  minWidth: number
+): void {
+  if (!store?.states?.columns?.value) return
+
+  const storeColumn = store.states.columns.value.find(
+    (c: InternalTableColumn) => c.property === column.property || c.id === column.id
+  )
+
+  if (storeColumn) {
+    storeColumn.width = minWidth
+    storeColumn.realWidth = minWidth
+    storeColumn.minWidth = minWidth
   }
 }
 
@@ -622,11 +656,21 @@ function handleHeaderDragEnd(
     return
   }
 
+  const minWidth = matchedColumn.minWidth
+  const clampedWidth = minWidth ? Math.max(newWidth, minWidth) : newWidth
+
   emit('column-resize', {
     field,
-    width: newWidth,
+    width: clampedWidth,
     oldWidth
   })
+
+  // 拖拽宽度低于 minWidth 时，通过 Element Plus 内部 store 强制回弹
+  if (clampedWidth !== newWidth && minWidth) {
+    requestAnimationFrame(() => {
+      enforceMinWidthAfterDrag(getInternalTableStore(), column, minWidth)
+    })
+  }
 }
 </script>
 
@@ -703,5 +747,10 @@ export default {
 .data-table--loading {
   opacity: 0;
   pointer-events: none;
+}
+
+/* 操作列最小宽度兜底 */
+:deep(.actions-column) {
+  min-width: 88px;
 }
 </style>

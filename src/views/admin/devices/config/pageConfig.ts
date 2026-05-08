@@ -161,20 +161,25 @@ export function createDevicePageConfig(actions: DevicePageActions): DevicePageCo
         {
           key: 'open-runtime',
           label: '设备运行态',
+          tooltip: '设备运行态',
           type: 'primary',
+          icon: 'lucide:layout-dashboard',
           permission: BIZ_PERMISSIONS.device.page,
           onClick: row => actions.openRuntime(row),
         },
         {
           key: 'open-trace',
           label: '最近 TRACE',
+          tooltip: '最近 TRACE',
           type: 'warning',
+          icon: 'lucide:search',
           permission: BIZ_PERMISSIONS.workline.page,
           onClick: row => actions.openTrace(row),
         },
         {
           key: 'enter-maintenance',
           label: '进入维护',
+          tooltip: '进入维护',
           type: 'warning',
           icon: 'ep:tools',
           permission: BIZ_PERMISSIONS.device.update,
@@ -189,6 +194,7 @@ export function createDevicePageConfig(actions: DevicePageActions): DevicePageCo
         {
           key: 'exit-maintenance',
           label: '退出维护',
+          tooltip: '退出维护',
           type: 'success',
           icon: 'ep:circle-check',
           permission: BIZ_PERMISSIONS.device.update,
@@ -203,6 +209,7 @@ export function createDevicePageConfig(actions: DevicePageActions): DevicePageCo
         {
           key: 'clear-fault',
           label: '清除故障',
+          tooltip: '清除故障',
           type: 'danger',
           icon: 'ep:warning',
           permission: BIZ_PERMISSIONS.device.update,

@@ -42,7 +42,6 @@ const AUDIT_LOG_PAGE_TABLE: Partial<AuditLogPageConfig['table']> = {
   selectable: false,
   actionsColumn: {
     width: 88,
-    minWidth: 88,
     fixed: 'right',
     reorderLocked: true,
     hideable: false

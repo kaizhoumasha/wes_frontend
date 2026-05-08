@@ -150,7 +150,9 @@ export function createWorkLinePageConfig(
         {
           key: 'open-runtime',
           label: '运行看板',
+          tooltip: '运行看板',
           type: 'primary',
+          icon: 'lucide:layout-dashboard',
           permission: BIZ_PERMISSIONS.workline.page,
           onClick: row => actions.openRuntime(row),
         }

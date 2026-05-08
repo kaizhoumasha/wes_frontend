@@ -491,9 +491,15 @@ export function buildTableColumnsByBreakpoint(
         return null
       }
 
+      let resolvedWidth = typeof column.width === 'number' ? column.width : def.width
+
+      if (def.minWidth && typeof resolvedWidth === 'number') {
+        resolvedWidth = Math.max(resolvedWidth, def.minWidth)
+      }
+
       const resolvedColumn: TableColumnConfig = {
         ...def,
-        width: typeof column.width === 'number' ? column.width : def.width,
+        width: resolvedWidth,
         fixed: column.fixed ?? def.fixed,
         configurable: def.configurable ?? true,
         hideable: column.hideable ?? def.hideable ?? true,

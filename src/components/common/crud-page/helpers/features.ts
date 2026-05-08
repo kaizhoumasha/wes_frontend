@@ -10,18 +10,18 @@ const DEFAULT_FEATURES: ResolvedCrudPageFeatures = {
   density: true,
   fullscreen: true,
   columnConfig: true,
-  create: { enabled: true },
-  edit: { enabled: true },
-  delete: { enabled: true },
-  batchDelete: { enabled: true },
+  create: { enabled: true, label: '新增', tooltip: '新增', icon: 'ep:plus' },
+  edit: { enabled: true, label: '编辑', tooltip: '编辑', icon: 'lucide:pen-line' },
+  delete: { enabled: true, label: '删除', tooltip: '删除', icon: 'lucide:trash-2' },
+  batchDelete: { enabled: true, label: '批量删除', tooltip: '批量删除', icon: 'ep:delete' },
   trash: { enabled: false },
-  restore: { enabled: true },
-  batchRestore: { enabled: true },
-  permanentDelete: { enabled: true },
-  batchPermanentDelete: { enabled: true },
-  move: { enabled: false },
-  sort: { enabled: false },
-  createChild: { enabled: false }
+  restore: { enabled: true, label: '恢复', tooltip: '恢复', icon: 'lucide:undo-2' },
+  batchRestore: { enabled: true, label: '批量恢复', tooltip: '批量恢复', icon: 'ep:refresh-left' },
+  permanentDelete: { enabled: true, label: '彻底删除', tooltip: '彻底删除', icon: 'lucide:file-x' },
+  batchPermanentDelete: { enabled: true, label: '批量彻底删除', tooltip: '批量彻底删除', icon: 'ep:delete-filled' },
+  move: { enabled: false, label: '移动', tooltip: '移动', icon: 'lucide:arrow-up-down' },
+  sort: { enabled: false, label: '排序', tooltip: '排序', icon: 'lucide:sort-asc' },
+  createChild: { enabled: false, label: '添加下级', tooltip: '添加下级', icon: 'lucide:plus' }
 }
 
 function resolveActionFeature(

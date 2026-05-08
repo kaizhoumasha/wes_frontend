@@ -40,7 +40,6 @@ const API_ACCESS_LOG_PAGE_TABLE: Partial<APIAccessLogPageConfig['table']> = {
   selectable: false,
   actionsColumn: {
     width: 88,
-    minWidth: 88,
     fixed: 'right',
     reorderLocked: true,
     hideable: false
