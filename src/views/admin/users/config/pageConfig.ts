@@ -64,7 +64,6 @@ const USER_PAGE_FEATURES: CrudPageFeatures = {
 
 const USER_PAGE_DETAIL: CrudPageDetailConfig<User> = {
   mode: 'drawer',
-  width: 680,
   title: user => user.username,
   sections: [
     {

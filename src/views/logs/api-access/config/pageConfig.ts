@@ -103,7 +103,7 @@ const API_ACCESS_LOG_TOOLBAR_ACTIONS: NonNullable<APIAccessLogPageConfig['extens
 
 const API_ACCESS_LOG_PAGE_DETAIL: CrudPageDetailConfig<APIAccessLog> = {
   mode: 'drawer',
-  width: 720,
+  size: 'lg',
   title: item => item.request_id || `访问日志 #${item.id}`,
   entityTypeLabel: 'API 访问日志',
   sections: [

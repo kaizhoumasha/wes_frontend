@@ -682,7 +682,7 @@ export function createActionsFormatter(
     return h(
       'div',
       {
-        class: 'flex items-center gap-2',
+        class: 'flex items-center justify-center gap-2',
         style: { gap: `${gap}px` }
       },
       allNodes

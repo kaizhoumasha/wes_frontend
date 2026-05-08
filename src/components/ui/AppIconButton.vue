@@ -55,5 +55,7 @@ withDefaults(defineProps<Props>(), {
     :native-type="nativeType"
     :plain="plain"
     preserve-icon-space
-  />
+  >
+    <slot />
+  </AppButton>
 </template>

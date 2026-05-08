@@ -95,7 +95,6 @@ const WORKLINE_PAGE_FEATURES: CrudPageFeatures = {
 function createWorklineDetailConfig(actions: WorklinePageActions): CrudPageDetailConfig<Workline> {
   return {
     mode: 'drawer',
-    width: 600,
     title: workline => workline.line_name,
     showActions: true,
     actions: [

@@ -100,7 +100,7 @@ const AUDIT_LOG_TOOLBAR_ACTIONS: NonNullable<AuditLogPageConfig['extensions']>['
 
 const AUDIT_LOG_PAGE_DETAIL: CrudPageDetailConfig<AuditLog> = {
   mode: 'drawer',
-  width: 720,
+  size: 'lg',
   title: auditLog => auditLog.title || '审计日志详情',
   entityTypeLabel: '审计日志',
   sections: [
