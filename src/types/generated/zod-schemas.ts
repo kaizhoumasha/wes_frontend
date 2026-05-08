@@ -10,7 +10,6 @@
 
 import { z } from 'zod'
 
-
 export const APIAccessLogResponseSchema = z.object({
   /** App Id */
   app_id: z.string().max(50),
@@ -35,33 +34,45 @@ export const APIAccessLogResponseSchema = z.object({
   /** Id */
   id: z.number(),
   /** Created At */
-  created_at: z.string().datetime(),
+  created_at: z.string().datetime()
 })
-
 
 export const APIApplicationCreateSchema = z.object({
   /** App Name */
   app_name: z.string().max(100),
   /** 应用类型 */
-  app_type: z.lazy(() => AppTypeSchema).optional().default("ECS"),
+  app_type: z
+    .lazy(() => AppTypeSchema)
+    .optional()
+    .default('ECS'),
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
   /** Ip Whitelist */
-  ip_whitelist: z.union([z.preprocess((val) => {
+  ip_whitelist: z
+    .union([
+      z.preprocess(val => {
         // 如果输入是字符串（换行符分隔），转换为数组
         if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
+          return val
+            .split('\n')
+            .map(s => s.trim())
+            .filter(s => s)
         }
         return val
-      }, z.array(z.string())), z.null()]).optional(),
+      }, z.array(z.string())),
+      z.null()
+    ])
+    .optional(),
   /** Rate Limit Per Minute */
   rate_limit_per_minute: z.number().min(1).max(10000).optional().default(100),
   /** Rate Limit Per Hour */
   rate_limit_per_hour: z.number().min(1).max(1000000).optional().default(5000),
   /** 有效期时长 */
-  validity_period: z.lazy(() => ValidityPeriodSchema).optional().default("1y"),
+  validity_period: z
+    .lazy(() => ValidityPeriodSchema)
+    .optional()
+    .default('1y')
 })
-
 
 export const APIApplicationResponseSchema = z.object({
   /** Version */
@@ -85,32 +96,48 @@ export const APIApplicationResponseSchema = z.object({
   /** App Name */
   app_name: z.string().max(100),
   /** 应用类型 */
-  app_type: z.lazy(() => AppTypeSchema).optional().default("ECS"),
+  app_type: z
+    .lazy(() => AppTypeSchema)
+    .optional()
+    .default('ECS'),
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
   /** Ip Whitelist */
-  ip_whitelist: z.union([z.preprocess((val) => {
+  ip_whitelist: z
+    .union([
+      z.preprocess(val => {
         // 如果输入是字符串（换行符分隔），转换为数组
         if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
+          return val
+            .split('\n')
+            .map(s => s.trim())
+            .filter(s => s)
         }
         return val
-      }, z.array(z.string())), z.null()]).optional(),
+      }, z.array(z.string())),
+      z.null()
+    ])
+    .optional(),
   /** Rate Limit Per Minute */
   rate_limit_per_minute: z.number().min(1).max(10000).optional().default(100),
   /** Rate Limit Per Hour */
   rate_limit_per_hour: z.number().min(1).max(1000000).optional().default(5000),
   /** 有效期时长 */
-  validity_period: z.lazy(() => ValidityPeriodSchema).optional().default("1y"),
+  validity_period: z
+    .lazy(() => ValidityPeriodSchema)
+    .optional()
+    .default('1y'),
   /** App Id */
   app_id: z.string(),
-  status: z.lazy(() => AppStatusSchema).optional().default("active"),
+  status: z
+    .lazy(() => AppStatusSchema)
+    .optional()
+    .default('active'),
   /** Expires At */
   expires_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Remaining Days */
-  remaining_days: z.union([z.number(), z.null()]),
+  remaining_days: z.union([z.number(), z.null()])
 })
-
 
 export const APIApplicationUpdateSchema = z.object({
   /** App Name */
@@ -120,13 +147,21 @@ export const APIApplicationUpdateSchema = z.object({
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
   /** Ip Whitelist */
-  ip_whitelist: z.union([z.preprocess((val) => {
+  ip_whitelist: z
+    .union([
+      z.preprocess(val => {
         // 如果输入是字符串（换行符分隔），转换为数组
         if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
+          return val
+            .split('\n')
+            .map(s => s.trim())
+            .filter(s => s)
         }
         return val
-      }, z.array(z.string())), z.null()]).optional(),
+      }, z.array(z.string())),
+      z.null()
+    ])
+    .optional(),
   /** Rate Limit Per Minute */
   rate_limit_per_minute: z.union([z.number().min(1).max(10000), z.null()]).optional(),
   /** Rate Limit Per Hour */
@@ -134,9 +169,8 @@ export const APIApplicationUpdateSchema = z.object({
   /** 有效期时长 */
   validity_period: z.union([z.lazy(() => ValidityPeriodSchema), z.null()]).optional(),
   /** Version */
-  version: z.number(),
+  version: z.number()
 })
-
 
 /**
  * 活跃会话列表响应 Schema
@@ -150,9 +184,8 @@ export const ActiveSessionsResponseSchema = z.object({
   /** Total */
   total: z.number(),
   /** Sessions */
-  sessions: z.array(z.lazy(() => SessionInfoSchema)),
+  sessions: z.array(z.lazy(() => SessionInfoSchema))
 })
-
 
 /**
  * API 权限信息 Schema
@@ -180,15 +213,12 @@ export const ApiPermissionInfoSchema = z.object({
   /** Method */
   method: z.union([z.string(), z.null()]).optional(),
   /** Path */
-  path: z.union([z.string(), z.null()]).optional(),
+  path: z.union([z.string(), z.null()]).optional()
 })
 
+export const AppStatusSchema = z.enum(['active', 'revoked', 'expired'])
 
-export const AppStatusSchema = z.enum(["active", "revoked", "expired"])
-
-
-export const AppTypeSchema = z.enum(["ECS", "RCS", "WMS", "Third-Party"])
-
+export const AppTypeSchema = z.enum(['ECS', 'RCS', 'WMS', 'Third-Party'])
 
 /**
  * 为用户分配角色请求
@@ -198,9 +228,8 @@ export const AppTypeSchema = z.enum(["ECS", "RCS", "WMS", "Third-Party"])
  */
 export const AssignRolesRequestSchema = z.object({
   /** Role Ids */
-  role_ids: z.array(z.number()),
+  role_ids: z.array(z.number())
 })
-
 
 /**
  * AuditLog 响应 Schema
@@ -238,7 +267,10 @@ export const AuditLogResponseSchema = z.object({
   /** Args */
   args: z.union([z.record(z.any()), z.null()]).optional(),
   /** 操作状态 */
-  status: z.lazy(() => OperaStatusSchema).optional().default("SUCCESS"),
+  status: z
+    .lazy(() => OperaStatusSchema)
+    .optional()
+    .default('SUCCESS'),
   /** Code */
   code: z.string().max(20),
   /** Msg */
@@ -256,9 +288,8 @@ export const AuditLogResponseSchema = z.object({
   /** Opera Time */
   opera_time: z.string().datetime().optional(),
   /** Id */
-  id: z.number(),
+  id: z.number()
 })
-
 
 /**
  * 当前登录用户上下文响应 Schema
@@ -277,9 +308,8 @@ export const AuthMyResponseSchema = z.object({
   /** Permissions */
   permissions: z.array(z.lazy(() => ApiPermissionInfoSchema)),
   /** Menus */
-  menus: z.array(z.lazy(() => MenuTreeResponseSimpleSchema)),
+  menus: z.array(z.lazy(() => MenuTreeResponseSimpleSchema))
 })
-
 
 /**
  * 批量操作响应模型
@@ -302,15 +332,14 @@ Example:
  */
 export const BatchOperationResponseModelSchema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** 响应数据 */
   data: z.union([z.lazy(() => BatchOperationResultSchema), z.null()]).optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
-
 
 /**
  * 批量操作结果模型
@@ -350,9 +379,8 @@ export const BatchOperationResultSchema = z.object({
   /** Results */
   results: z.union([z.array(z.any()), z.null()]).optional(),
   /** Errors */
-  errors: z.union([z.array(z.record(z.any())), z.null()]).optional(),
+  errors: z.union([z.array(z.record(z.any())), z.null()]).optional()
 })
-
 
 /**
  * 批量排序请求
@@ -362,9 +390,8 @@ export const BatchOperationResultSchema = z.object({
  */
 export const BatchSortRequestSchema = z.object({
   /** Items */
-  items: z.array(z.lazy(() => SortItemSchema)),
+  items: z.array(z.lazy(() => SortItemSchema))
 })
-
 
 /**
  * 回调日志响应 Schema
@@ -406,9 +433,21 @@ export const CallbackLogResponseSchema = z.object({
   /** Created At */
   created_at: z.string().datetime(),
   /** Updated At */
-  updated_at: z.string().datetime(),
+  updated_at: z.string().datetime()
 })
 
+/**
+ * 人工清除 WorkLine 急停请求。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const ClearWorkLineEstopRequestSchema = z.object({
+  /** Checks */
+  checks: z.record(z.boolean()).optional(),
+  /** Reason */
+  reason: z.union([z.string().max(500), z.null()]).optional()
+})
 
 /**
  * DemoProduct 创建模型
@@ -424,9 +463,8 @@ export const DemoProductCreateSchema = z.object({
   /** Stock */
   stock: z.number().min(0),
   /** Product Lists */
-  product_lists: z.array(z.lazy(() => DemoProductListCreateSchema)).optional(),
+  product_lists: z.array(z.lazy(() => DemoProductListCreateSchema)).optional()
 })
-
 
 /**
  * DemoProductList 创建模型
@@ -440,9 +478,8 @@ export const DemoProductListCreateSchema = z.object({
   /** Product Id */
   product_id: z.union([z.number(), z.null()]).optional(),
   /** Quantity */
-  quantity: z.number().min(0),
+  quantity: z.number().min(0)
 })
-
 
 /**
  * DemoProductList 响应模型
@@ -456,9 +493,8 @@ export const DemoProductListResponseSchema = z.object({
   /** Quantity */
   quantity: z.number().min(0),
   /** Id */
-  id: z.number(),
+  id: z.number()
 })
-
 
 /**
  * DemoProductList 更新模型
@@ -479,9 +515,8 @@ export const DemoProductListUpdateSchema = z.object({
   /** Quantity */
   quantity: z.union([z.number().min(0), z.null()]).optional(),
   /** Id */
-  id: z.union([z.number(), z.null()]).optional(),
+  id: z.union([z.number(), z.null()]).optional()
 })
-
 
 /**
  * DemoProduct 响应模型
@@ -517,9 +552,8 @@ export const DemoProductResponseSchema = z.object({
   /** Id */
   id: z.number(),
   /** Product Lists */
-  product_lists: z.array(z.lazy(() => DemoProductListResponseSchema)),
+  product_lists: z.array(z.lazy(() => DemoProductListResponseSchema))
 })
-
 
 /**
  * DemoProduct 更新模型
@@ -539,9 +573,8 @@ export const DemoProductUpdateSchema = z.object({
   /** Version */
   version: z.number(),
   /** Product Lists */
-  product_lists: z.array(z.lazy(() => DemoProductListUpdateSchema)).optional(),
+  product_lists: z.array(z.lazy(() => DemoProductListUpdateSchema)).optional()
 })
-
 
 /**
  * 设备创建 Schema - 接收客户端输入
@@ -577,7 +610,10 @@ export const DeviceCreateSchema = z.object({
   /** Port */
   port: z.union([z.number().min(1).max(65535), z.null()]).optional(),
   /** 通信协议 */
-  protocol: z.lazy(() => DeviceProtocolSchema).optional().default("HTTP"),
+  protocol: z
+    .lazy(() => DeviceProtocolSchema)
+    .optional()
+    .default('HTTP'),
   /** Auth Token */
   auth_token: z.union([z.string().max(500), z.null()]).optional(),
   /** Timeout */
@@ -585,7 +621,10 @@ export const DeviceCreateSchema = z.object({
   /** Callback Path */
   callback_path: z.union([z.string().max(255), z.null()]).optional(),
   /** 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE/MAINTENANCE） */
-  device_status: z.lazy(() => DeviceStatusSchema).optional().default("IDLE"),
+  device_status: z
+    .lazy(() => DeviceStatusSchema)
+    .optional()
+    .default('IDLE'),
   /** Current Command Id */
   current_command_id: z.union([z.number(), z.null()]).optional(),
   /** Last Heartbeat At */
@@ -595,13 +634,23 @@ export const DeviceCreateSchema = z.object({
   /** Maintenance Mode */
   maintenance_mode: z.boolean().optional().default(false),
   /** Max Concurrent Tasks */
-  max_concurrent_tasks: z.number().min(1).max(10).optional().default(1),
+  max_concurrent_tasks: z.number().min(1).max(1).optional().default(1),
   /** Idempotency Ttl */
   idempotency_ttl: z.number().min(60).max(86400).optional().default(3600),
   /** Diagnostic Profile */
-  diagnostic_profile: z.record(z.any()).optional(),
+  diagnostic_profile: z.record(z.any()).optional()
 })
 
+/**
+ * 设备维护操作请求。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const DeviceMaintenanceRequestSchema = z.object({
+  /** Reason */
+  reason: z.union([z.string().max(50), z.null()]).optional()
+})
 
 /**
  * 设备通信协议枚举（白皮书 2.1 节）
@@ -609,8 +658,7 @@ export const DeviceCreateSchema = z.object({
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
-export const DeviceProtocolSchema = z.enum(["HTTP", "HTTPS", "TCP", "MODBUS", "MQTT"])
-
+export const DeviceProtocolSchema = z.enum(['HTTP', 'HTTPS', 'TCP', 'MODBUS', 'MQTT'])
 
 /**
  * 设备响应 Schema - 返回给客户端
@@ -646,7 +694,10 @@ export const DeviceResponseSchema = z.object({
   /** Port */
   port: z.union([z.number().min(1).max(65535), z.null()]).optional(),
   /** 通信协议 */
-  protocol: z.lazy(() => DeviceProtocolSchema).optional().default("HTTP"),
+  protocol: z
+    .lazy(() => DeviceProtocolSchema)
+    .optional()
+    .default('HTTP'),
   /** Auth Token */
   auth_token: z.union([z.string().max(500), z.null()]).optional(),
   /** Timeout */
@@ -654,7 +705,10 @@ export const DeviceResponseSchema = z.object({
   /** Callback Path */
   callback_path: z.union([z.string().max(255), z.null()]).optional(),
   /** 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE/MAINTENANCE） */
-  device_status: z.lazy(() => DeviceStatusSchema).optional().default("IDLE"),
+  device_status: z
+    .lazy(() => DeviceStatusSchema)
+    .optional()
+    .default('IDLE'),
   /** Current Command Id */
   current_command_id: z.union([z.number(), z.null()]).optional(),
   /** Last Heartbeat At */
@@ -664,7 +718,7 @@ export const DeviceResponseSchema = z.object({
   /** Maintenance Mode */
   maintenance_mode: z.boolean().optional().default(false),
   /** Max Concurrent Tasks */
-  max_concurrent_tasks: z.number().min(1).max(10).optional().default(1),
+  max_concurrent_tasks: z.number().min(1).max(1).optional().default(1),
   /** Idempotency Ttl */
   idempotency_ttl: z.number().min(60).max(86400).optional().default(3600),
   /** Diagnostic Profile */
@@ -672,9 +726,19 @@ export const DeviceResponseSchema = z.object({
   /** Id */
   id: z.number(),
   /** Version */
-  version: z.number(),
+  version: z.number()
 })
 
+/**
+ * 设备运行态空操作请求，保留扩展位。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const DeviceRuntimeActionRequestSchema = z.object({
+  /** Reason */
+  reason: z.union([z.string().max(200), z.null()]).optional()
+})
 
 /**
  * 设备状态枚举（白皮书 5.2 节）
@@ -682,11 +746,10 @@ export const DeviceResponseSchema = z.object({
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
-export const DeviceStatusSchema = z.enum(["IDLE", "RUNNING", "ERROR", "OFFLINE", "MAINTENANCE"])
-
+export const DeviceStatusSchema = z.enum(['IDLE', 'RUNNING', 'ERROR', 'OFFLINE', 'MAINTENANCE'])
 
 /**
- * 设备更新 Schema - 所有字段可选
+ * 设备更新 Schema - 只允许主数据与通信配置，运行态走专用操作
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
@@ -726,26 +789,13 @@ export const DeviceUpdateSchema = z.object({
   timeout: z.union([z.number().min(1000).max(300000), z.null()]).optional(),
   /** Callback Path */
   callback_path: z.union([z.string().max(255), z.null()]).optional(),
-  /** 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE/MAINTENANCE） */
-  device_status: z.union([z.lazy(() => DeviceStatusSchema), z.null()]).optional(),
-  /** Current Command Id */
-  current_command_id: z.union([z.number(), z.null()]).optional(),
-  /** Last Heartbeat At */
-  last_heartbeat_at: z.union([z.string().datetime(), z.null()]).optional(),
-  /** Error Code */
-  error_code: z.union([z.string().max(50), z.null()]).optional(),
-  /** Maintenance Mode */
-  maintenance_mode: z.union([z.boolean(), z.null()]).optional(),
-  /** Max Concurrent Tasks */
-  max_concurrent_tasks: z.union([z.number().min(1).max(10), z.null()]).optional(),
   /** Idempotency Ttl */
   idempotency_ttl: z.union([z.number().min(60).max(86400), z.null()]).optional(),
   /** Diagnostic Profile */
   diagnostic_profile: z.union([z.record(z.any()), z.null()]).optional(),
   /** Version */
-  version: z.number(),
+  version: z.number()
 })
-
 
 export const DiagnosticCardResponseSchema = z.object({
   /** Title */
@@ -769,16 +819,20 @@ export const DiagnosticCardResponseSchema = z.object({
   /** Technical Summary */
   technical_summary: z.union([z.string(), z.null()]).optional(),
   /** Next Steps */
-  next_steps: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
+  next_steps: z
+    .preprocess(val => {
+      // 如果输入是字符串（换行符分隔），转换为数组
+      if (typeof val === 'string') {
         return val
-      }, z.array(z.string())).optional(),
-  context: z.lazy(() => TraceDiagnosticContextItemSchema),
+          .split('\n')
+          .map(s => s.trim())
+          .filter(s => s)
+      }
+      return val
+    }, z.array(z.string()))
+    .optional(),
+  context: z.lazy(() => TraceDiagnosticContextItemSchema)
 })
-
 
 /**
  * 单个过滤条件
@@ -791,9 +845,8 @@ export const FilterConditionSchema = z.object({
   field: z.string(),
   op: z.lazy(() => FilterOperatorSchema),
   /** Value */
-  value: z.union([z.any(), z.null()]).optional(),
+  value: z.union([z.any(), z.null()]).optional()
 })
-
 
 /**
  * 过滤条件组
@@ -801,13 +854,17 @@ export const FilterConditionSchema = z.object({
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
-export const FilterGroupSchema = z.lazy((): z.ZodTypeAny => z.object({
-  /** Couple */
-  couple: z.enum(["and", "or", "not"]).optional().default("and"),
-  /** Conditions */
-  conditions: z.array(z.union([z.lazy(() => FilterConditionSchema), z.lazy(() => FilterGroupSchema)])).optional(),
-}))
-
+export const FilterGroupSchema = z.lazy(
+  (): z.ZodTypeAny =>
+    z.object({
+      /** Couple */
+      couple: z.enum(['and', 'or', 'not']).optional().default('and'),
+      /** Conditions */
+      conditions: z
+        .array(z.union([z.lazy(() => FilterConditionSchema), z.lazy(() => FilterGroupSchema)]))
+        .optional()
+    })
+)
 
 /**
  * 过滤操作符
@@ -815,8 +872,20 @@ export const FilterGroupSchema = z.lazy((): z.ZodTypeAny => z.object({
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
-export const FilterOperatorSchema = z.enum(["eq", "ne", "gt", "ge", "lt", "le", "in", "nin", "ilike", "between", "is_null", "not_null"])
-
+export const FilterOperatorSchema = z.enum([
+  'eq',
+  'ne',
+  'gt',
+  'ge',
+  'lt',
+  'le',
+  'in',
+  'nin',
+  'ilike',
+  'between',
+  'is_null',
+  'not_null'
+])
 
 /**
  * 作业线类型枚举
@@ -824,8 +893,7 @@ export const FilterOperatorSchema = z.enum(["eq", "ne", "gt", "ge", "lt", "le", 
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
-export const LineTypeSchema = z.enum(["AUTO", "MANUAL", "HYBRID"])
-
+export const LineTypeSchema = z.enum(['AUTO', 'MANUAL', 'HYBRID'])
 
 export const ListResponseData_APIAccessLogResponse_Schema = z.object({
   /** Total */
@@ -835,9 +903,8 @@ export const ListResponseData_APIAccessLogResponse_Schema = z.object({
   /** Limit */
   limit: z.number().min(0).optional().default(0),
   /** Offset */
-  offset: z.number().min(0).optional().default(0),
+  offset: z.number().min(0).optional().default(0)
 })
-
 
 export const ListResponseData_APIApplicationResponse_Schema = z.object({
   /** Total */
@@ -847,9 +914,8 @@ export const ListResponseData_APIApplicationResponse_Schema = z.object({
   /** Limit */
   limit: z.number().min(0).optional().default(0),
   /** Offset */
-  offset: z.number().min(0).optional().default(0),
+  offset: z.number().min(0).optional().default(0)
 })
-
 
 export const ListResponseData_AuditLogResponse_Schema = z.object({
   /** Total */
@@ -859,9 +925,8 @@ export const ListResponseData_AuditLogResponse_Schema = z.object({
   /** Limit */
   limit: z.number().min(0).optional().default(0),
   /** Offset */
-  offset: z.number().min(0).optional().default(0),
+  offset: z.number().min(0).optional().default(0)
 })
-
 
 export const ListResponseData_DemoProductResponse_Schema = z.object({
   /** Total */
@@ -871,9 +936,8 @@ export const ListResponseData_DemoProductResponse_Schema = z.object({
   /** Limit */
   limit: z.number().min(0).optional().default(0),
   /** Offset */
-  offset: z.number().min(0).optional().default(0),
+  offset: z.number().min(0).optional().default(0)
 })
-
 
 export const ListResponseData_DeviceResponse_Schema = z.object({
   /** Total */
@@ -883,9 +947,8 @@ export const ListResponseData_DeviceResponse_Schema = z.object({
   /** Limit */
   limit: z.number().min(0).optional().default(0),
   /** Offset */
-  offset: z.number().min(0).optional().default(0),
+  offset: z.number().min(0).optional().default(0)
 })
-
 
 export const ListResponseData_MenuResponse_Schema = z.object({
   /** Total */
@@ -895,9 +958,8 @@ export const ListResponseData_MenuResponse_Schema = z.object({
   /** Limit */
   limit: z.number().min(0).optional().default(0),
   /** Offset */
-  offset: z.number().min(0).optional().default(0),
+  offset: z.number().min(0).optional().default(0)
 })
-
 
 export const ListResponseData_PermissionResponse_Schema = z.object({
   /** Total */
@@ -907,9 +969,8 @@ export const ListResponseData_PermissionResponse_Schema = z.object({
   /** Limit */
   limit: z.number().min(0).optional().default(0),
   /** Offset */
-  offset: z.number().min(0).optional().default(0),
+  offset: z.number().min(0).optional().default(0)
 })
-
 
 export const ListResponseData_RoleResponse_Schema = z.object({
   /** Total */
@@ -919,9 +980,8 @@ export const ListResponseData_RoleResponse_Schema = z.object({
   /** Limit */
   limit: z.number().min(0).optional().default(0),
   /** Offset */
-  offset: z.number().min(0).optional().default(0),
+  offset: z.number().min(0).optional().default(0)
 })
-
 
 export const ListResponseData_UserResponse_Schema = z.object({
   /** Total */
@@ -931,9 +991,8 @@ export const ListResponseData_UserResponse_Schema = z.object({
   /** Limit */
   limit: z.number().min(0).optional().default(0),
   /** Offset */
-  offset: z.number().min(0).optional().default(0),
+  offset: z.number().min(0).optional().default(0)
 })
-
 
 export const ListResponseData_WorkLineResponse_Schema = z.object({
   /** Total */
@@ -943,129 +1002,120 @@ export const ListResponseData_WorkLineResponse_Schema = z.object({
   /** Limit */
   limit: z.number().min(0).optional().default(0),
   /** Offset */
-  offset: z.number().min(0).optional().default(0),
+  offset: z.number().min(0).optional().default(0)
 })
-
 
 export const ListResponseSchemaModel_APIAccessLogResponse_Schema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** 响应数据 */
   data: z.union([z.lazy(() => ListResponseData_APIAccessLogResponse_Schema), z.null()]).optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
-
 
 export const ListResponseSchemaModel_APIApplicationResponse_Schema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** 响应数据 */
-  data: z.union([z.lazy(() => ListResponseData_APIApplicationResponse_Schema), z.null()]).optional(),
+  data: z
+    .union([z.lazy(() => ListResponseData_APIApplicationResponse_Schema), z.null()])
+    .optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
-
 
 export const ListResponseSchemaModel_AuditLogResponse_Schema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** 响应数据 */
   data: z.union([z.lazy(() => ListResponseData_AuditLogResponse_Schema), z.null()]).optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
-
 
 export const ListResponseSchemaModel_DemoProductResponse_Schema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** 响应数据 */
   data: z.union([z.lazy(() => ListResponseData_DemoProductResponse_Schema), z.null()]).optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
-
 
 export const ListResponseSchemaModel_DeviceResponse_Schema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** 响应数据 */
   data: z.union([z.lazy(() => ListResponseData_DeviceResponse_Schema), z.null()]).optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
-
 
 export const ListResponseSchemaModel_MenuResponse_Schema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** 响应数据 */
   data: z.union([z.lazy(() => ListResponseData_MenuResponse_Schema), z.null()]).optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
-
 
 export const ListResponseSchemaModel_PermissionResponse_Schema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** 响应数据 */
   data: z.union([z.lazy(() => ListResponseData_PermissionResponse_Schema), z.null()]).optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
-
 
 export const ListResponseSchemaModel_RoleResponse_Schema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** 响应数据 */
   data: z.union([z.lazy(() => ListResponseData_RoleResponse_Schema), z.null()]).optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
-
 
 export const ListResponseSchemaModel_UserResponse_Schema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** 响应数据 */
   data: z.union([z.lazy(() => ListResponseData_UserResponse_Schema), z.null()]).optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
-
 
 export const ListResponseSchemaModel_WorkLineResponse_Schema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** 响应数据 */
   data: z.union([z.lazy(() => ListResponseData_WorkLineResponse_Schema), z.null()]).optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
-
 
 /**
  * 登录请求 Schema
@@ -1077,9 +1127,8 @@ export const LoginRequestSchema = z.object({
   /** Username */
   username: z.string().min(3).max(50),
   /** Password */
-  password: z.string().min(6).max(100),
+  password: z.string().min(6).max(100)
 })
-
 
 /**
  * 登录响应 Schema
@@ -1107,9 +1156,8 @@ export const LoginResponseSchema = z.object({
   /** Expires In */
   expires_in: z.number(),
   /** Refresh Expires In */
-  refresh_expires_in: z.number(),
+  refresh_expires_in: z.number()
 })
-
 
 /**
  * 登出响应 Schema
@@ -1121,9 +1169,8 @@ export const LogoutResponseSchema = z.object({
   /** Message */
   message: z.string(),
   /** Revoked Count */
-  revoked_count: z.number().optional().default(0),
+  revoked_count: z.number().optional().default(0)
 })
-
 
 /**
  * 人工操作请求。
@@ -1133,13 +1180,12 @@ export const LogoutResponseSchema = z.object({
  */
 export const ManualOperationRequestSchema = z.object({
   /** Operation */
-  operation: z.string().regex(new RegExp("^(HOLD|RESUME|CANCEL)$")),
+  operation: z.string().regex(new RegExp('^(HOLD|RESUME|CANCEL)$')),
   /** Operator Id */
   operator_id: z.string().min(1).max(100),
   /** Reason */
-  reason: z.string().min(1).max(500),
+  reason: z.string().min(1).max(500)
 })
-
 
 /**
  * 菜单创建 Schema
@@ -1151,7 +1197,7 @@ export const MenuCreateSchema = z.object({
   /** Parent Id */
   parent_id: z.union([z.number(), z.null()]).optional(),
   /** Tree Path */
-  tree_path: z.string().optional().default("/"),
+  tree_path: z.string().optional().default('/'),
   /** Level */
   level: z.number().optional().default(1),
   /** Sort Order */
@@ -1169,9 +1215,8 @@ export const MenuCreateSchema = z.object({
   /** Icon */
   icon: z.union([z.string().max(50), z.null()]).optional(),
   /** Is Hidden */
-  is_hidden: z.boolean().optional().default(false),
+  is_hidden: z.boolean().optional().default(false)
 })
-
 
 /**
  * 菜单响应 Schema
@@ -1183,7 +1228,7 @@ export const MenuResponseSchema = z.object({
   /** Parent Id */
   parent_id: z.union([z.number(), z.null()]).optional(),
   /** Tree Path */
-  tree_path: z.string().optional().default("/"),
+  tree_path: z.string().optional().default('/'),
   /** Level */
   level: z.number().optional().default(1),
   /** Sort Order */
@@ -1207,9 +1252,50 @@ export const MenuResponseSchema = z.object({
   /** Version */
   version: z.number(),
   /** Roles */
-  roles: z.array(z.lazy(() => RoleResponseSchema)).optional(),
+  roles: z.array(z.lazy(() => RoleResponseSchema)).optional()
 })
 
+/**
+ * 菜单树响应 Schema
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const MenuTreeResponseSchema = z.lazy(
+  (): z.ZodTypeAny =>
+    z.object({
+      /** Parent Id */
+      parent_id: z.union([z.number(), z.null()]).optional(),
+      /** Tree Path */
+      tree_path: z.string().optional().default('/'),
+      /** Level */
+      level: z.number().optional().default(1),
+      /** Sort Order */
+      sort_order: z.number().optional().default(0),
+      /** Has Children */
+      has_children: z.boolean().optional().default(false),
+      /** Name */
+      name: z.string().max(50),
+      /** Title */
+      title: z.string().max(50),
+      /** Path */
+      path: z.string().max(200),
+      /** Component */
+      component: z.union([z.string().max(200), z.null()]).optional(),
+      /** Icon */
+      icon: z.union([z.string().max(50), z.null()]).optional(),
+      /** Is Hidden */
+      is_hidden: z.boolean().optional().default(false),
+      /** Id */
+      id: z.number(),
+      /** Version */
+      version: z.number(),
+      /** Roles */
+      roles: z.array(z.lazy(() => RoleResponseSchema)).optional(),
+      /** Children */
+      children: z.array(z.lazy(() => MenuTreeResponseSchema)).optional()
+    })
+)
 
 /**
  * 菜单树响应 Schema
@@ -1217,77 +1303,39 @@ export const MenuResponseSchema = z.object({
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
-export const MenuTreeResponseSchema = z.lazy((): z.ZodTypeAny => z.object({
-  /** Parent Id */
-  parent_id: z.union([z.number(), z.null()]).optional(),
-  /** Tree Path */
-  tree_path: z.string().optional().default("/"),
-  /** Level */
-  level: z.number().optional().default(1),
-  /** Sort Order */
-  sort_order: z.number().optional().default(0),
-  /** Has Children */
-  has_children: z.boolean().optional().default(false),
-  /** Name */
-  name: z.string().max(50),
-  /** Title */
-  title: z.string().max(50),
-  /** Path */
-  path: z.string().max(200),
-  /** Component */
-  component: z.union([z.string().max(200), z.null()]).optional(),
-  /** Icon */
-  icon: z.union([z.string().max(50), z.null()]).optional(),
-  /** Is Hidden */
-  is_hidden: z.boolean().optional().default(false),
-  /** Id */
-  id: z.number(),
-  /** Version */
-  version: z.number(),
-  /** Roles */
-  roles: z.array(z.lazy(() => RoleResponseSchema)).optional(),
-  /** Children */
-  children: z.array(z.lazy(() => MenuTreeResponseSchema)).optional(),
-}))
-
-
-/**
- * 菜单树响应 Schema
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const MenuTreeResponseSimpleSchema = z.lazy((): z.ZodTypeAny => z.object({
-  /** Parent Id */
-  parent_id: z.union([z.number(), z.null()]).optional(),
-  /** Tree Path */
-  tree_path: z.string().optional().default("/"),
-  /** Level */
-  level: z.number().optional().default(1),
-  /** Sort Order */
-  sort_order: z.number().optional().default(0),
-  /** Has Children */
-  has_children: z.boolean().optional().default(false),
-  /** Name */
-  name: z.string().max(50),
-  /** Title */
-  title: z.string().max(50),
-  /** Path */
-  path: z.string().max(200),
-  /** Component */
-  component: z.union([z.string().max(200), z.null()]).optional(),
-  /** Icon */
-  icon: z.union([z.string().max(50), z.null()]).optional(),
-  /** Is Hidden */
-  is_hidden: z.boolean().optional().default(false),
-  /** Id */
-  id: z.number(),
-  /** Version */
-  version: z.number(),
-  /** Children */
-  children: z.array(z.lazy(() => MenuTreeResponseSimpleSchema)).optional(),
-}))
-
+export const MenuTreeResponseSimpleSchema = z.lazy(
+  (): z.ZodTypeAny =>
+    z.object({
+      /** Parent Id */
+      parent_id: z.union([z.number(), z.null()]).optional(),
+      /** Tree Path */
+      tree_path: z.string().optional().default('/'),
+      /** Level */
+      level: z.number().optional().default(1),
+      /** Sort Order */
+      sort_order: z.number().optional().default(0),
+      /** Has Children */
+      has_children: z.boolean().optional().default(false),
+      /** Name */
+      name: z.string().max(50),
+      /** Title */
+      title: z.string().max(50),
+      /** Path */
+      path: z.string().max(200),
+      /** Component */
+      component: z.union([z.string().max(200), z.null()]).optional(),
+      /** Icon */
+      icon: z.union([z.string().max(50), z.null()]).optional(),
+      /** Is Hidden */
+      is_hidden: z.boolean().optional().default(false),
+      /** Id */
+      id: z.number(),
+      /** Version */
+      version: z.number(),
+      /** Children */
+      children: z.array(z.lazy(() => MenuTreeResponseSimpleSchema)).optional()
+    })
+)
 
 /**
  * 菜单更新 Schema
@@ -1319,9 +1367,8 @@ export const MenuUpdateSchema = z.object({
   /** Is Hidden */
   is_hidden: z.union([z.boolean(), z.null()]).optional(),
   /** Version */
-  version: z.number(),
+  version: z.number()
 })
-
 
 /**
  * 操作日志状态
@@ -1329,8 +1376,7 @@ export const MenuUpdateSchema = z.object({
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
-export const OperaStatusSchema = z.enum(["FAIL", "SUCCESS"])
-
+export const OperaStatusSchema = z.enum(['FAIL', 'SUCCESS'])
 
 /**
  * API 权限创建 Schema
@@ -1342,7 +1388,7 @@ export const PermissionCreateSchema = z.object({
   /** Parent Id */
   parent_id: z.union([z.number(), z.null()]).optional(),
   /** Tree Path */
-  tree_path: z.string().optional().default("/"),
+  tree_path: z.string().optional().default('/'),
   /** Level */
   level: z.number().optional().default(1),
   /** Sort Order */
@@ -1354,7 +1400,7 @@ export const PermissionCreateSchema = z.object({
   /** Description */
   description: z.union([z.string().max(255), z.null()]).optional(),
   /** Type */
-  type: z.string().max(20).optional().default("user_api"),
+  type: z.string().max(20).optional().default('user_api'),
   /** Category */
   category: z.union([z.string().max(50), z.null()]).optional(),
   /** Resource */
@@ -1364,9 +1410,8 @@ export const PermissionCreateSchema = z.object({
   /** Method */
   method: z.union([z.string().max(10), z.null()]).optional(),
   /** Path */
-  path: z.union([z.string().max(255), z.null()]).optional(),
+  path: z.union([z.string().max(255), z.null()]).optional()
 })
-
 
 /**
  * API 权限响应 Schema（完整版）
@@ -1378,7 +1423,7 @@ export const PermissionResponseSchema = z.object({
   /** Parent Id */
   parent_id: z.union([z.number(), z.null()]).optional(),
   /** Tree Path */
-  tree_path: z.string().optional().default("/"),
+  tree_path: z.string().optional().default('/'),
   /** Level */
   level: z.number().optional().default(1),
   /** Sort Order */
@@ -1390,7 +1435,7 @@ export const PermissionResponseSchema = z.object({
   /** Description */
   description: z.union([z.string().max(255), z.null()]).optional(),
   /** Type */
-  type: z.string().max(20).optional().default("user_api"),
+  type: z.string().max(20).optional().default('user_api'),
   /** Category */
   category: z.union([z.string().max(50), z.null()]).optional(),
   /** Resource */
@@ -1404,9 +1449,8 @@ export const PermissionResponseSchema = z.object({
   /** Id */
   id: z.number(),
   /** Version */
-  version: z.number(),
+  version: z.number()
 })
-
 
 /**
  * API 权限树形结构 Schema
@@ -1416,39 +1460,41 @@ export const PermissionResponseSchema = z.object({
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
-export const PermissionTreeSchema = z.lazy((): z.ZodTypeAny => z.object({
-  /** Parent Id */
-  parent_id: z.union([z.number(), z.null()]).optional(),
-  /** Tree Path */
-  tree_path: z.string().optional().default("/"),
-  /** Level */
-  level: z.number().optional().default(1),
-  /** Sort Order */
-  sort_order: z.number().optional().default(0),
-  /** Has Children */
-  has_children: z.boolean().optional().default(false),
-  /** Name */
-  name: z.string().max(100),
-  /** Description */
-  description: z.union([z.string().max(255), z.null()]).optional(),
-  /** Type */
-  type: z.string().max(20).optional().default("user_api"),
-  /** Category */
-  category: z.union([z.string().max(50), z.null()]).optional(),
-  /** Resource */
-  resource: z.union([z.string().max(50), z.null()]).optional(),
-  /** Action */
-  action: z.union([z.string().max(50), z.null()]).optional(),
-  /** Method */
-  method: z.union([z.string().max(10), z.null()]).optional(),
-  /** Path */
-  path: z.union([z.string().max(255), z.null()]).optional(),
-  /** Id */
-  id: z.number(),
-  /** Children */
-  children: z.array(z.lazy(() => PermissionTreeSchema)).optional(),
-}))
-
+export const PermissionTreeSchema = z.lazy(
+  (): z.ZodTypeAny =>
+    z.object({
+      /** Parent Id */
+      parent_id: z.union([z.number(), z.null()]).optional(),
+      /** Tree Path */
+      tree_path: z.string().optional().default('/'),
+      /** Level */
+      level: z.number().optional().default(1),
+      /** Sort Order */
+      sort_order: z.number().optional().default(0),
+      /** Has Children */
+      has_children: z.boolean().optional().default(false),
+      /** Name */
+      name: z.string().max(100),
+      /** Description */
+      description: z.union([z.string().max(255), z.null()]).optional(),
+      /** Type */
+      type: z.string().max(20).optional().default('user_api'),
+      /** Category */
+      category: z.union([z.string().max(50), z.null()]).optional(),
+      /** Resource */
+      resource: z.union([z.string().max(50), z.null()]).optional(),
+      /** Action */
+      action: z.union([z.string().max(50), z.null()]).optional(),
+      /** Method */
+      method: z.union([z.string().max(10), z.null()]).optional(),
+      /** Path */
+      path: z.union([z.string().max(255), z.null()]).optional(),
+      /** Id */
+      id: z.number(),
+      /** Children */
+      children: z.array(z.lazy(() => PermissionTreeSchema)).optional()
+    })
+)
 
 /**
  * API 权限更新 Schema
@@ -1484,9 +1530,8 @@ export const PermissionUpdateSchema = z.object({
   /** Path */
   path: z.union([z.string().max(255), z.null()]).optional(),
   /** Version */
-  version: z.number(),
+  version: z.number()
 })
-
 
 /**
  * 查询选项
@@ -1505,9 +1550,8 @@ export const QueryOptionsSchema = z.object({
   /** Max Depth */
   max_depth: z.number().min(0).max(3).optional().default(1),
   /** Include Deleted */
-  include_deleted: z.boolean().optional().default(false),
+  include_deleted: z.boolean().optional().default(false)
 })
-
 
 /**
  * 刷新令牌响应 Schema
@@ -1533,9 +1577,8 @@ export const RefreshTokenResponseSchema = z.object({
   /** Expires In */
   expires_in: z.number(),
   /** Refresh Expires In */
-  refresh_expires_in: z.number(),
+  refresh_expires_in: z.number()
 })
-
 
 /**
  * Replay 请求。
@@ -1547,9 +1590,8 @@ export const ReplayInboxRequestSchema = z.object({
   /** Reason */
   reason: z.string().min(1).max(500),
   /** Operator Id */
-  operator_id: z.union([z.string().max(100), z.null()]).optional(),
+  operator_id: z.union([z.string().max(100), z.null()]).optional()
 })
-
 
 /**
  * 管理员重置密码请求
@@ -1559,9 +1601,8 @@ export const ReplayInboxRequestSchema = z.object({
  */
 export const ResetPasswordRequestSchema = z.object({
   /** New Password */
-  new_password: z.string().min(6).max(100),
+  new_password: z.string().min(6).max(100)
 })
-
 
 /**
  * 重置有效期 Schema
@@ -1573,9 +1614,8 @@ export const ResetValidityPeriodSchemaSchema = z.object({
   /** Version */
   version: z.number().optional().default(0),
   /** 新的有效期时长 */
-  validity_period: z.lazy(() => ValidityPeriodSchema),
+  validity_period: z.lazy(() => ValidityPeriodSchema)
 })
-
 
 /**
  * 撤销会话响应 Schema
@@ -1587,9 +1627,8 @@ export const RevokeSessionResponseSchema = z.object({
   /** Message */
   message: z.string(),
   /** Session Uuid */
-  session_uuid: z.string(),
+  session_uuid: z.string()
 })
-
 
 /**
  * 角色创建 Schema
@@ -1601,9 +1640,8 @@ export const RoleCreateSchema = z.object({
   /** Name */
   name: z.string().max(100),
   /** Description */
-  description: z.union([z.string().max(255), z.null()]).optional(),
+  description: z.union([z.string().max(255), z.null()]).optional()
 })
-
 
 /**
  * 角色响应 Schema
@@ -1621,9 +1659,8 @@ export const RoleResponseSchema = z.object({
   /** Version */
   version: z.number(),
   /** Permissions */
-  permissions: z.array(z.lazy(() => PermissionResponseSchema)).optional(),
+  permissions: z.array(z.lazy(() => PermissionResponseSchema)).optional()
 })
-
 
 /**
  * 角色响应 Schema（简化版，不含权限）
@@ -1637,9 +1674,8 @@ export const RoleResponseSimpleSchema = z.object({
   /** Description */
   description: z.union([z.string().max(255), z.null()]).optional(),
   /** Id */
-  id: z.number(),
+  id: z.number()
 })
-
 
 /**
  * 角色更新 Schema
@@ -1653,9 +1689,8 @@ export const RoleUpdateSchema = z.object({
   /** Description */
   description: z.union([z.string().max(255), z.null()]).optional(),
   /** Version */
-  version: z.number(),
+  version: z.number()
 })
-
 
 export const RuntimeBlockingReasonSchema = z.object({
   /** Device Id */
@@ -1663,9 +1698,8 @@ export const RuntimeBlockingReasonSchema = z.object({
   /** Reason */
   reason: z.string(),
   /** Detail */
-  detail: z.union([z.string(), z.null()]).optional(),
+  detail: z.union([z.string(), z.null()]).optional()
 })
-
 
 export const RuntimeDeviceDetailResponseSchema = z.object({
   summary: z.lazy(() => RuntimeDeviceSummarySchema),
@@ -1674,9 +1708,8 @@ export const RuntimeDeviceDetailResponseSchema = z.object({
   /** Recent Callbacks */
   recent_callbacks: z.array(z.lazy(() => TraceCallbackLogItemSchema)).optional(),
   /** Active Sessions */
-  active_sessions: z.array(z.lazy(() => RuntimeTraceListItemSchema)).optional(),
+  active_sessions: z.array(z.lazy(() => RuntimeTraceListItemSchema)).optional()
 })
-
 
 export const RuntimeDeviceHealthSummarySchema = z.object({
   /** Total */
@@ -1688,9 +1721,8 @@ export const RuntimeDeviceHealthSummarySchema = z.object({
   /** Loaded */
   loaded: z.number().optional().default(0),
   /** Healthy */
-  healthy: z.number().optional().default(0),
+  healthy: z.number().optional().default(0)
 })
-
 
 export const RuntimeDeviceSummarySchema = z.object({
   /** Id */
@@ -1722,9 +1754,8 @@ export const RuntimeDeviceSummarySchema = z.object({
   /** Recent Callback At */
   recent_callback_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Error Code */
-  error_code: z.union([z.string(), z.null()]).optional(),
+  error_code: z.union([z.string(), z.null()]).optional()
 })
-
 
 export const RuntimeOverviewResponseSchema = z.object({
   /** Stats */
@@ -1735,9 +1766,8 @@ export const RuntimeOverviewResponseSchema = z.object({
   hot_worklines: z.array(z.lazy(() => RuntimeWorklineSummarySchema)).optional(),
   /** Abnormal Devices */
   abnormal_devices: z.array(z.lazy(() => RuntimeDeviceSummarySchema)).optional(),
-  device_health: z.lazy(() => RuntimeDeviceHealthSummarySchema).optional(),
+  device_health: z.lazy(() => RuntimeDeviceHealthSummarySchema).optional()
 })
-
 
 export const RuntimeStatCardSchema = z.object({
   /** Key */
@@ -1747,9 +1777,8 @@ export const RuntimeStatCardSchema = z.object({
   /** Value */
   value: z.number(),
   /** Status */
-  status: z.string().optional().default("info"),
+  status: z.string().optional().default('info')
 })
-
 
 export const RuntimeTraceDeviceActionSchema = z.object({
   /** Kind */
@@ -1761,9 +1790,8 @@ export const RuntimeTraceDeviceActionSchema = z.object({
   /** Timestamp */
   timestamp: z.union([z.string().datetime(), z.null()]).optional(),
   /** Message */
-  message: z.union([z.string(), z.null()]).optional(),
+  message: z.union([z.string(), z.null()]).optional()
 })
-
 
 export const RuntimeTraceDevicePathNodeSchema = z.object({
   /** Device Id */
@@ -1777,9 +1805,8 @@ export const RuntimeTraceDevicePathNodeSchema = z.object({
   /** Is Current */
   is_current: z.boolean().optional().default(false),
   /** Actions */
-  actions: z.array(z.lazy(() => RuntimeTraceDeviceActionSchema)).optional(),
+  actions: z.array(z.lazy(() => RuntimeTraceDeviceActionSchema)).optional()
 })
-
 
 /**
  * Trace 列表项。
@@ -1796,6 +1823,10 @@ export const RuntimeTraceListItemSchema = z.object({
   trace_id: z.union([z.string(), z.null()]).optional(),
   /** Request Id */
   request_id: z.union([z.string(), z.null()]).optional(),
+  /** Business Key */
+  business_key: z.union([z.string(), z.null()]).optional(),
+  /** Barcode */
+  barcode: z.union([z.string(), z.null()]).optional(),
   /** Workline Id */
   workline_id: z.number(),
   /** Workline Name */
@@ -1833,9 +1864,8 @@ export const RuntimeTraceListItemSchema = z.object({
   /** Deadline At */
   deadline_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Is Timed Out */
-  is_timed_out: z.boolean().optional().default(false),
+  is_timed_out: z.boolean().optional().default(false)
 })
-
 
 /**
  * Trace 列表响应。
@@ -1847,9 +1877,8 @@ export const RuntimeTraceListResponseSchema = z.object({
   /** Total */
   total: z.number(),
   /** Items */
-  items: z.array(z.lazy(() => RuntimeTraceListItemSchema)),
+  items: z.array(z.lazy(() => RuntimeTraceListItemSchema))
 })
-
 
 export const RuntimeTracePathResponseSchema = z.object({
   /** Workline Id */
@@ -1860,12 +1889,32 @@ export const RuntimeTracePathResponseSchema = z.object({
   trace_id: z.union([z.string(), z.null()]).optional(),
   /** Devices */
   devices: z.array(z.lazy(() => RuntimeTraceDevicePathNodeSchema)).optional(),
+  /** Timeline Groups */
+  timeline_groups: z.array(z.lazy(() => RuntimeTraceTimelineGroupSchema)).optional(),
   /** Current Blocking Device Id */
   current_blocking_device_id: z.union([z.number(), z.null()]).optional(),
   blocking_reason: z.union([z.lazy(() => RuntimeBlockingReasonSchema), z.null()]).optional(),
-  evidence: z.union([z.lazy(() => TraceDetailResponseSchema), z.null()]).optional(),
+  evidence: z.union([z.lazy(() => TraceDetailResponseSchema), z.null()]).optional()
 })
 
+export const RuntimeTraceTimelineGroupSchema = z.object({
+  /** Group Key */
+  group_key: z.string(),
+  /** Group Type */
+  group_type: z.string(),
+  /** Display Name */
+  display_name: z.string(),
+  /** Device Id */
+  device_id: z.union([z.number(), z.null()]).optional(),
+  /** Device Code */
+  device_code: z.union([z.string(), z.null()]).optional(),
+  /** Is Current */
+  is_current: z.boolean().optional().default(false),
+  /** Is Blocked */
+  is_blocked: z.boolean().optional().default(false),
+  /** Events */
+  events: z.array(z.lazy(() => TraceTimelineItemSchema)).optional()
+})
 
 export const RuntimeWorklineDetailResponseSchema = z.object({
   summary: z.lazy(() => RuntimeWorklineSummarySchema),
@@ -1875,8 +1924,9 @@ export const RuntimeWorklineDetailResponseSchema = z.object({
   active_sessions: z.array(z.lazy(() => RuntimeTraceListItemSchema)).optional(),
   /** Recent Failed Traces */
   recent_failed_traces: z.array(z.lazy(() => RuntimeTraceListItemSchema)).optional(),
+  /** Recent Completed Traces */
+  recent_completed_traces: z.array(z.lazy(() => RuntimeTraceListItemSchema)).optional()
 })
-
 
 export const RuntimeWorklineDeviceItemSchema = z.object({
   /** Id */
@@ -1900,9 +1950,8 @@ export const RuntimeWorklineDeviceItemSchema = z.object({
   /** Last Heartbeat At */
   last_heartbeat_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Error Code */
-  error_code: z.union([z.string(), z.null()]).optional(),
+  error_code: z.union([z.string(), z.null()]).optional()
 })
-
 
 export const RuntimeWorklineSummarySchema = z.object({
   /** Id */
@@ -1936,11 +1985,20 @@ export const RuntimeWorklineSummarySchema = z.object({
   /** Maintenance Device Count */
   maintenance_device_count: z.number().optional().default(0),
   /** Run Mode */
-  run_mode: z.string().optional().default("AUTO"),
+  run_mode: z.string().optional().default('AUTO'),
+  /** Runtime Status */
+  runtime_status: z.string().optional().default('READY'),
+  /** Active Safety Incident Id */
+  active_safety_incident_id: z.union([z.number(), z.null()]).optional(),
+  /** Stopped At */
+  stopped_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Stopped Reason */
+  stopped_reason: z.union([z.string(), z.null()]).optional(),
+  /** Resumed At */
+  resumed_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Last Activity At */
-  last_activity_at: z.union([z.string().datetime(), z.null()]).optional(),
+  last_activity_at: z.union([z.string().datetime(), z.null()]).optional()
 })
-
 
 /**
  * 沙箱 Command ACK 模拟请求。
@@ -1950,9 +2008,8 @@ export const RuntimeWorklineSummarySchema = z.object({
  */
 export const SandboxAckRequestSchema = z.object({
   /** Dispatch Key */
-  dispatch_key: z.string().min(1).max(200),
+  dispatch_key: z.string().min(1).max(200)
 })
-
 
 /**
  * 沙箱 Event 发送请求。
@@ -1974,9 +2031,8 @@ export const SandboxEventRequestSchema = z.object({
   /** Payload */
   payload: z.record(z.any()).optional(),
   /** Timestamp */
-  timestamp: z.union([z.string().datetime(), z.null()]).optional(),
+  timestamp: z.union([z.string().datetime(), z.null()]).optional()
 })
-
 
 /**
  * 沙箱 Event 模板。
@@ -1990,9 +2046,8 @@ export const SandboxEventTemplateSchema = z.object({
   /** Label */
   label: z.string(),
   /** Payload Template */
-  payload_template: z.record(z.any()).optional(),
+  payload_template: z.record(z.any()).optional()
 })
-
 
 /**
  * 沙箱 Command Result 模拟请求。
@@ -2006,15 +2061,14 @@ export const SandboxResultRequestSchema = z.object({
   /** Device Code */
   device_code: z.string().min(1).max(100),
   /** Result */
-  result: z.string().regex(new RegExp("^(SUCCESS|FAILED)$")),
+  result: z.string().regex(new RegExp('^(SUCCESS|FAILED)$')),
   /** Payload */
   payload: z.record(z.any()).optional(),
   /** Error Detail */
   error_detail: z.union([z.string().max(500), z.null()]).optional(),
   /** Timestamp */
-  timestamp: z.union([z.string().datetime(), z.null()]).optional(),
+  timestamp: z.union([z.string().datetime(), z.null()]).optional()
 })
-
 
 /**
  * 沙箱 Result 模板。
@@ -2032,9 +2086,8 @@ export const SandboxResultTemplateSchema = z.object({
   /** Failed Payload Template */
   failed_payload_template: z.record(z.any()).optional(),
   /** Error Template */
-  error_template: z.union([z.string(), z.null()]).optional(),
+  error_template: z.union([z.string(), z.null()]).optional()
 })
-
 
 /**
  * 沙箱模板响应。
@@ -2046,9 +2099,8 @@ export const SandboxTemplatesResponseSchema = z.object({
   /** Event Templates */
   event_templates: z.array(z.lazy(() => SandboxEventTemplateSchema)).optional(),
   /** Result Templates */
-  result_templates: z.array(z.lazy(() => SandboxResultTemplateSchema)).optional(),
+  result_templates: z.array(z.lazy(() => SandboxResultTemplateSchema)).optional()
 })
-
 
 /**
  * 会话信息 Schema
@@ -2068,9 +2120,23 @@ export const SessionInfoSchema = z.object({
   /** Device Info */
   device_info: z.union([z.record(z.any()), z.null()]).optional(),
   /** Last Active */
-  last_active: z.union([z.string().datetime(), z.null()]).optional(),
+  last_active: z.union([z.string().datetime(), z.null()]).optional()
 })
 
+/**
+ * 沙箱模拟 WorkLine 软件急停请求。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const SimulateWorkLineEstopRequestSchema = z.object({
+  /** Reason */
+  reason: z.union([z.string().max(500), z.null()]).optional(),
+  /** Source Device Id */
+  source_device_id: z.union([z.number(), z.null()]).optional(),
+  /** Payload */
+  payload: z.record(z.any()).optional()
+})
 
 /**
  * 排序字段
@@ -2082,9 +2148,8 @@ export const SortFieldSchema = z.object({
   /** Field */
   field: z.string(),
   /** Order */
-  order: z.enum(["asc", "desc"]).optional().default("desc"),
+  order: z.enum(['asc', 'desc']).optional().default('desc')
 })
-
 
 /**
  * 批量排序项
@@ -2098,9 +2163,8 @@ export const SortItemSchema = z.object({
   /** Parent Id */
   parent_id: z.union([z.number(), z.null()]).optional(),
   /** Sort Order */
-  sort_order: z.number().optional().default(0),
+  sort_order: z.number().optional().default(0)
 })
-
 
 export const TraceBlockingPointResponseSchema = z.object({
   /** Trace Id */
@@ -2119,15 +2183,19 @@ export const TraceBlockingPointResponseSchema = z.object({
   /** Evidence */
   evidence: z.record(z.any()).optional(),
   /** Next Steps */
-  next_steps: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
+  next_steps: z
+    .preprocess(val => {
+      // 如果输入是字符串（换行符分隔），转换为数组
+      if (typeof val === 'string') {
         return val
-      }, z.array(z.string())).optional(),
+          .split('\n')
+          .map(s => s.trim())
+          .filter(s => s)
+      }
+      return val
+    }, z.array(z.string()))
+    .optional()
 })
-
 
 export const TraceCallbackLogItemSchema = z.object({
   /** Id */
@@ -2159,9 +2227,8 @@ export const TraceCallbackLogItemSchema = z.object({
   /** Created At */
   created_at: z.string().datetime(),
   /** Updated At */
-  updated_at: z.union([z.string().datetime(), z.null()]).optional(),
+  updated_at: z.union([z.string().datetime(), z.null()]).optional()
 })
-
 
 export const TraceCommandItemSchema = z.object({
   /** Id */
@@ -2205,9 +2272,8 @@ export const TraceCommandItemSchema = z.object({
   /** Error Detail */
   error_detail: z.union([z.record(z.any()), z.null()]).optional(),
   /** Duration Ms */
-  duration_ms: z.union([z.number(), z.null()]).optional(),
+  duration_ms: z.union([z.number(), z.null()]).optional()
 })
-
 
 export const TraceContextResponseSchema = z.object({
   /** Request Id */
@@ -2243,9 +2309,8 @@ export const TraceContextResponseSchema = z.object({
   /** Plugin Key */
   plugin_key: z.union([z.string(), z.null()]).optional(),
   /** Contract Version */
-  contract_version: z.union([z.string(), z.null()]).optional(),
+  contract_version: z.union([z.string(), z.null()]).optional()
 })
-
 
 export const TraceDetailResponseSchema = z.object({
   trace: z.lazy(() => TraceContextResponseSchema),
@@ -2266,9 +2331,8 @@ export const TraceDetailResponseSchema = z.object({
   /** Timelines */
   timelines: z.array(z.lazy(() => TraceTimelineItemSchema)).optional(),
   /** Diagnostics */
-  diagnostics: z.array(z.lazy(() => TraceDiagnosticItemSchema)).optional(),
+  diagnostics: z.array(z.lazy(() => TraceDiagnosticItemSchema)).optional()
 })
-
 
 export const TraceDiagnosticContextItemSchema = z.object({
   /** Request Id */
@@ -2296,9 +2360,8 @@ export const TraceDiagnosticContextItemSchema = z.object({
   /** Transition */
   transition: z.union([z.string(), z.null()]).optional(),
   /** Extra */
-  extra: z.record(z.any()).optional(),
+  extra: z.record(z.any()).optional()
 })
-
 
 export const TraceDiagnosticItemSchema = z.object({
   /** Request Id */
@@ -2326,9 +2389,8 @@ export const TraceDiagnosticItemSchema = z.object({
   /** Transition */
   transition: z.union([z.string(), z.null()]).optional(),
   /** Extra */
-  extra: z.record(z.any()).optional(),
+  extra: z.record(z.any()).optional()
 })
-
 
 export const TraceDispatchAttemptItemSchema = z.object({
   /** Id */
@@ -2356,9 +2418,8 @@ export const TraceDispatchAttemptItemSchema = z.object({
   /** Response Json */
   response_json: z.record(z.any()).optional(),
   /** Trace Json */
-  trace_json: z.record(z.any()).optional(),
+  trace_json: z.record(z.any()).optional()
 })
-
 
 export const TraceInboxItemSchema = z.object({
   /** Id */
@@ -2398,9 +2459,8 @@ export const TraceInboxItemSchema = z.object({
   /** Error Message */
   error_message: z.union([z.string(), z.null()]).optional(),
   /** Payload Json */
-  payload_json: z.record(z.any()),
+  payload_json: z.record(z.any())
 })
-
 
 export const TraceOutboxItemSchema = z.object({
   /** Id */
@@ -2432,9 +2492,8 @@ export const TraceOutboxItemSchema = z.object({
   /** Finished At */
   finished_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Payload Json */
-  payload_json: z.record(z.any()),
+  payload_json: z.record(z.any())
 })
-
 
 /**
  * Trace 详情页顶部摘要。
@@ -2466,9 +2525,8 @@ export const TraceOverviewSummarySchema = z.object({
   /** Latest Timeline Status */
   latest_timeline_status: z.union([z.string(), z.null()]).optional(),
   /** Latest Timeline Message */
-  latest_timeline_message: z.union([z.string(), z.null()]).optional(),
+  latest_timeline_message: z.union([z.string(), z.null()]).optional()
 })
-
 
 /**
  * Trace 列表查询请求。
@@ -2494,9 +2552,8 @@ export const TraceQueryRequestSchema = z.object({
   /** Limit */
   limit: z.number().min(1).max(100).optional().default(20),
   /** Offset */
-  offset: z.number().min(0).optional().default(0),
+  offset: z.number().min(0).optional().default(0)
 })
-
 
 export const TraceSessionItemSchema = z.object({
   /** Id */
@@ -2548,9 +2605,8 @@ export const TraceSessionItemSchema = z.object({
   /** Last Inbox Id */
   last_inbox_id: z.union([z.number(), z.null()]).optional(),
   /** Context Json */
-  context_json: z.record(z.any()),
+  context_json: z.record(z.any())
 })
-
 
 export const TraceTimelineItemSchema = z.object({
   /** Id */
@@ -2588,9 +2644,8 @@ export const TraceTimelineItemSchema = z.object({
   /** Related Inbox Id */
   related_inbox_id: z.union([z.number(), z.null()]).optional(),
   /** Related Command Id */
-  related_command_id: z.union([z.number(), z.null()]).optional(),
+  related_command_id: z.union([z.number(), z.null()]).optional()
 })
-
 
 /**
  * 测试 API 调用数据模型
@@ -2604,17 +2659,19 @@ export const TryInvokeApplicationSchema = z.object({
   /** Command Description */
   command_description: z.string(),
   /** Command Parameters */
-  command_parameters: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
-        return val
-      }, z.array(z.string())),
+  command_parameters: z.preprocess(val => {
+    // 如果输入是字符串（换行符分隔），转换为数组
+    if (typeof val === 'string') {
+      return val
+        .split('\n')
+        .map(s => s.trim())
+        .filter(s => s)
+    }
+    return val
+  }, z.array(z.string())),
   /** Command Response */
-  command_response: z.string(),
+  command_response: z.string()
 })
-
 
 /**
  * 测试 API 调用请求模型（包裹格式）
@@ -2623,9 +2680,8 @@ export const TryInvokeApplicationSchema = z.object({
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const TryInvokeApplicationRequestSchema = z.object({
-  data: z.lazy(() => TryInvokeApplicationSchema),
+  data: z.lazy(() => TryInvokeApplicationSchema)
 })
-
 
 /**
  * 用户创建 Schema - 接收客户端输入
@@ -2641,9 +2697,8 @@ export const UserCreateSchema = z.object({
   /** Full Name */
   full_name: z.union([z.string().max(100), z.null()]).optional(),
   /** Password */
-  password: z.string().min(6).max(100),
+  password: z.string().min(6).max(100)
 })
-
 
 /**
  * 用户权限列表响应 Schema
@@ -2657,9 +2712,8 @@ export const UserPermissionsResponseSchema = z.object({
   /** Total */
   total: z.number(),
   /** Permissions */
-  permissions: z.array(z.lazy(() => ApiPermissionInfoSchema)),
+  permissions: z.array(z.lazy(() => ApiPermissionInfoSchema))
 })
-
 
 /**
  * 用户响应 Schema - 返回给客户端
@@ -2695,9 +2749,8 @@ export const UserResponseSchema = z.object({
   /** Deleted At */
   deleted_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Roles */
-  roles: z.array(z.lazy(() => RoleResponseSimpleSchema)).optional(),
+  roles: z.array(z.lazy(() => RoleResponseSimpleSchema)).optional()
 })
-
 
 /**
  * 用户响应 Schema 无关联关系 - 返回给客户端
@@ -2731,9 +2784,8 @@ export const UserSimpleResponseSchema = z.object({
   /** Deleted By */
   deleted_by: z.union([z.number(), z.null()]).optional(),
   /** Deleted At */
-  deleted_at: z.union([z.string().datetime(), z.null()]).optional(),
+  deleted_at: z.union([z.string().datetime(), z.null()]).optional()
 })
-
 
 /**
  * 用户更新 Schema - 所有字段可选
@@ -2749,9 +2801,8 @@ export const UserUpdateSchema = z.object({
   /** Full Name */
   full_name: z.union([z.string().max(100), z.null()]).optional(),
   /** Version */
-  version: z.number(),
+  version: z.number()
 })
-
 
 export const ValidationErrorSchema = z.object({
   /** Location */
@@ -2763,9 +2814,8 @@ export const ValidationErrorSchema = z.object({
   /** Input */
   input: z.any().optional(),
   /** Context */
-  ctx: z.record(z.any()).optional(),
+  ctx: z.record(z.any()).optional()
 })
-
 
 /**
  * 有效期枚举
@@ -2773,8 +2823,7 @@ export const ValidationErrorSchema = z.object({
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
-export const ValidityPeriodSchema = z.enum(["1d", "1w", "1m", "6m", "1y", "never"])
-
+export const ValidityPeriodSchema = z.enum(['1d', '1w', '1m', '6m', '1y', 'never'])
 
 /**
  * 作业线创建 Schema - 接收客户端输入
@@ -2800,15 +2849,17 @@ export const WorkLineCreateSchema = z.object({
   /** Runtime Config Json */
   runtime_config_json: z.record(z.any()).optional(),
   /** 工作线运行模式 */
-  run_mode: z.lazy(() => WorkLineRunModeSchema).optional().default("AUTO"),
+  run_mode: z
+    .lazy(() => WorkLineRunModeSchema)
+    .optional()
+    .default('AUTO'),
   /** Diagnostic Profile */
   diagnostic_profile: z.record(z.any()).optional(),
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
   /** Is Active */
-  is_active: z.boolean().optional().default(true),
+  is_active: z.boolean().optional().default(true)
 })
-
 
 /**
  * 作业线插件下拉选项。
@@ -2822,17 +2873,21 @@ export const WorkLinePluginOptionSchema = z.object({
   /** Label */
   label: z.string(),
   /** Contract Versions */
-  contract_versions: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
+  contract_versions: z
+    .preprocess(val => {
+      // 如果输入是字符串（换行符分隔），转换为数组
+      if (typeof val === 'string') {
         return val
-      }, z.array(z.string())).optional(),
+          .split('\n')
+          .map(s => s.trim())
+          .filter(s => s)
+      }
+      return val
+    }, z.array(z.string()))
+    .optional(),
   /** Default Contract Version */
-  default_contract_version: z.string(),
+  default_contract_version: z.string()
 })
-
 
 /**
  * 作业线响应 Schema - 返回给客户端
@@ -2858,7 +2913,10 @@ export const WorkLineResponseSchema = z.object({
   /** Runtime Config Json */
   runtime_config_json: z.record(z.any()).optional(),
   /** 工作线运行模式 */
-  run_mode: z.lazy(() => WorkLineRunModeSchema).optional().default("AUTO"),
+  run_mode: z
+    .lazy(() => WorkLineRunModeSchema)
+    .optional()
+    .default('AUTO'),
   /** Diagnostic Profile */
   diagnostic_profile: z.record(z.any()).optional(),
   /** Description */
@@ -2868,9 +2926,8 @@ export const WorkLineResponseSchema = z.object({
   /** Id */
   id: z.number(),
   /** Version */
-  version: z.number(),
+  version: z.number()
 })
-
 
 /**
  * 作业线运行模式枚举。
@@ -2878,8 +2935,7 @@ export const WorkLineResponseSchema = z.object({
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
-export const WorkLineRunModeSchema = z.enum(["AUTO", "MANUAL", "SIMULATION"])
-
+export const WorkLineRunModeSchema = z.enum(['AUTO', 'MANUAL', 'SIMULATION'])
 
 /**
  * 作业线更新 Schema - 所有字段可选
@@ -2913,5 +2969,5 @@ export const WorkLineUpdateSchema = z.object({
   /** Is Active */
   is_active: z.union([z.boolean(), z.null()]).optional(),
   /** Version */
-  version: z.number(),
+  version: z.number()
 })

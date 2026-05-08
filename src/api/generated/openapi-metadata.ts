@@ -44,9532 +44,9382 @@ export interface OpenApiSchemaMetadata {
 }
 
 export const OPENAPI_SCHEMA_METADATA = {
-  "APIAccessLogResponse": {
-    "title": "APIAccessLogResponse",
-    "required": [
-      "app_id",
-      "app_name",
-      "request_id",
-      "method",
-      "path",
-      "status_code",
-      "response_time_ms",
-      "ip_address",
-      "id",
-      "created_at"
+  APIAccessLogResponse: {
+    title: 'APIAccessLogResponse',
+    required: [
+      'app_id',
+      'app_name',
+      'request_id',
+      'method',
+      'path',
+      'status_code',
+      'response_time_ms',
+      'ip_address',
+      'id',
+      'created_at'
     ],
-    "fields": {
-      "app_id": {
-        "title": "App Id",
-        "description": "应用ID",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 50
+    fields: {
+      app_id: {
+        title: 'App Id',
+        description: '应用ID',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 50
       },
-      "app_name": {
-        "title": "App Name",
-        "description": "应用名称",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 100
+      app_name: {
+        title: 'App Name',
+        description: '应用名称',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 100
       },
-      "request_id": {
-        "title": "Request Id",
-        "description": "请求ID",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 50
+      request_id: {
+        title: 'Request Id',
+        description: '请求ID',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 50
       },
-      "method": {
-        "title": "Method",
-        "description": "HTTP方法",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 10
+      method: {
+        title: 'Method',
+        description: 'HTTP方法',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 10
       },
-      "path": {
-        "title": "Path",
-        "description": "请求路径",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 500
+      path: {
+        title: 'Path',
+        description: '请求路径',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 500
       },
-      "status_code": {
-        "title": "Status Code",
-        "description": "响应状态码",
-        "type": "integer",
-        "required": true,
-        "nullable": false
+      status_code: {
+        title: 'Status Code',
+        description: '响应状态码',
+        type: 'integer',
+        required: true,
+        nullable: false
       },
-      "response_time_ms": {
-        "title": "Response Time Ms",
-        "description": "响应时间(毫秒)",
-        "type": "integer",
-        "required": true,
-        "nullable": false
+      response_time_ms: {
+        title: 'Response Time Ms',
+        description: '响应时间(毫秒)',
+        type: 'integer',
+        required: true,
+        nullable: false
       },
-      "ip_address": {
-        "title": "Ip Address",
-        "description": "客户端IP",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 50
+      ip_address: {
+        title: 'Ip Address',
+        description: '客户端IP',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 50
       },
-      "user_agent": {
-        "title": "User Agent",
-        "description": "User-Agent",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 500
+      user_agent: {
+        title: 'User Agent',
+        description: 'User-Agent',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 500
       },
-      "error_message": {
-        "title": "Error Message",
-        "description": "错误信息",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 1000
+      error_message: {
+        title: 'Error Message',
+        description: '错误信息',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 1000
       },
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
       },
-      "created_at": {
-        "title": "Created At",
-        "type": "string",
-        "format": "date-time",
-        "required": true,
-        "nullable": false
+      created_at: {
+        title: 'Created At',
+        type: 'string',
+        format: 'date-time',
+        required: true,
+        nullable: false
       }
     }
   },
-  "APIApplicationCreate": {
-    "title": "APIApplicationCreate",
-    "required": [
-      "app_name"
-    ],
-    "additionalProperties": false,
-    "fields": {
-      "app_name": {
-        "title": "App Name",
-        "description": "应用名称",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 100
+  APIApplicationCreate: {
+    title: 'APIApplicationCreate',
+    required: ['app_name'],
+    additionalProperties: false,
+    fields: {
+      app_name: {
+        title: 'App Name',
+        description: '应用名称',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 100
       },
-      "app_type": {
-        "description": "应用类型",
-        "required": false,
-        "nullable": false,
-        "default": "ECS",
-        "ref": "AppType"
+      app_type: {
+        description: '应用类型',
+        required: false,
+        nullable: false,
+        default: 'ECS',
+        ref: 'AppType'
       },
-      "description": {
-        "title": "Description",
-        "description": "应用描述",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 500
+      description: {
+        title: 'Description',
+        description: '应用描述',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 500
       },
-      "ip_whitelist": {
-        "title": "Ip Whitelist",
-        "description": "IP白名单",
-        "type": "array",
-        "required": false,
-        "nullable": true,
-        "items": {
-          "type": "string"
+      ip_whitelist: {
+        title: 'Ip Whitelist',
+        description: 'IP白名单',
+        type: 'array',
+        required: false,
+        nullable: true,
+        items: {
+          type: 'string'
         }
       },
-      "rate_limit_per_minute": {
-        "title": "Rate Limit Per Minute",
-        "description": "每分钟请求限制",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 100,
-        "minimum": 1,
-        "maximum": 10000
+      rate_limit_per_minute: {
+        title: 'Rate Limit Per Minute',
+        description: '每分钟请求限制',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 100,
+        minimum: 1,
+        maximum: 10000
       },
-      "rate_limit_per_hour": {
-        "title": "Rate Limit Per Hour",
-        "description": "每小时请求限制",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 5000,
-        "minimum": 1,
-        "maximum": 1000000
+      rate_limit_per_hour: {
+        title: 'Rate Limit Per Hour',
+        description: '每小时请求限制',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 5000,
+        minimum: 1,
+        maximum: 1000000
       },
-      "validity_period": {
-        "description": "有效期时长",
-        "required": false,
-        "nullable": false,
-        "default": "1y",
-        "ref": "ValidityPeriod"
+      validity_period: {
+        description: '有效期时长',
+        required: false,
+        nullable: false,
+        default: '1y',
+        ref: 'ValidityPeriod'
       }
     }
   },
-  "APIApplicationResponse": {
-    "title": "APIApplicationResponse",
-    "required": [
-      "app_name",
-      "app_id",
-      "remaining_days"
-    ],
-    "fields": {
-      "version": {
-        "title": "Version",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
+  APIApplicationResponse: {
+    title: 'APIApplicationResponse',
+    required: ['app_name', 'app_id', 'remaining_days'],
+    fields: {
+      version: {
+        title: 'Version',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
       },
-      "created_at": {
-        "title": "Created At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": false
+      created_at: {
+        title: 'Created At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: false
       },
-      "updated_at": {
-        "title": "Updated At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
+      updated_at: {
+        title: 'Updated At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
       },
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: false,
+        nullable: true
       },
-      "deleted_by": {
-        "title": "Deleted By",
-        "type": "integer",
-        "required": false,
-        "nullable": true
+      deleted_by: {
+        title: 'Deleted By',
+        type: 'integer',
+        required: false,
+        nullable: true
       },
-      "deleted_at": {
-        "title": "Deleted At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
+      deleted_at: {
+        title: 'Deleted At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
       },
-      "is_deleted": {
-        "title": "Is Deleted",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": false
+      is_deleted: {
+        title: 'Is Deleted',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: false
       },
-      "created_by": {
-        "title": "Created By",
-        "type": "integer",
-        "required": false,
-        "nullable": true
+      created_by: {
+        title: 'Created By',
+        type: 'integer',
+        required: false,
+        nullable: true
       },
-      "updated_by": {
-        "title": "Updated By",
-        "type": "integer",
-        "required": false,
-        "nullable": true
+      updated_by: {
+        title: 'Updated By',
+        type: 'integer',
+        required: false,
+        nullable: true
       },
-      "app_name": {
-        "title": "App Name",
-        "description": "应用名称",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 100
+      app_name: {
+        title: 'App Name',
+        description: '应用名称',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 100
       },
-      "app_type": {
-        "description": "应用类型",
-        "required": false,
-        "nullable": false,
-        "default": "ECS",
-        "ref": "AppType"
+      app_type: {
+        description: '应用类型',
+        required: false,
+        nullable: false,
+        default: 'ECS',
+        ref: 'AppType'
       },
-      "description": {
-        "title": "Description",
-        "description": "应用描述",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 500
+      description: {
+        title: 'Description',
+        description: '应用描述',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 500
       },
-      "ip_whitelist": {
-        "title": "Ip Whitelist",
-        "description": "IP白名单",
-        "type": "array",
-        "required": false,
-        "nullable": true,
-        "items": {
-          "type": "string"
+      ip_whitelist: {
+        title: 'Ip Whitelist',
+        description: 'IP白名单',
+        type: 'array',
+        required: false,
+        nullable: true,
+        items: {
+          type: 'string'
         }
       },
-      "rate_limit_per_minute": {
-        "title": "Rate Limit Per Minute",
-        "description": "每分钟请求限制",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 100,
-        "minimum": 1,
-        "maximum": 10000
+      rate_limit_per_minute: {
+        title: 'Rate Limit Per Minute',
+        description: '每分钟请求限制',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 100,
+        minimum: 1,
+        maximum: 10000
       },
-      "rate_limit_per_hour": {
-        "title": "Rate Limit Per Hour",
-        "description": "每小时请求限制",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 5000,
-        "minimum": 1,
-        "maximum": 1000000
+      rate_limit_per_hour: {
+        title: 'Rate Limit Per Hour',
+        description: '每小时请求限制',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 5000,
+        minimum: 1,
+        maximum: 1000000
       },
-      "validity_period": {
-        "description": "有效期时长",
-        "required": false,
-        "nullable": false,
-        "default": "1y",
-        "ref": "ValidityPeriod"
+      validity_period: {
+        description: '有效期时长',
+        required: false,
+        nullable: false,
+        default: '1y',
+        ref: 'ValidityPeriod'
       },
-      "app_id": {
-        "title": "App Id",
-        "type": "string",
-        "required": true,
-        "nullable": false
+      app_id: {
+        title: 'App Id',
+        type: 'string',
+        required: true,
+        nullable: false
       },
-      "status": {
-        "required": false,
-        "nullable": false,
-        "default": "active",
-        "ref": "AppStatus"
+      status: {
+        required: false,
+        nullable: false,
+        default: 'active',
+        ref: 'AppStatus'
       },
-      "expires_at": {
-        "title": "Expires At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
+      expires_at: {
+        title: 'Expires At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
       },
-      "remaining_days": {
-        "title": "Remaining Days",
-        "description": "剩余天数",
-        "type": "integer",
-        "required": true,
-        "nullable": true
+      remaining_days: {
+        title: 'Remaining Days',
+        description: '剩余天数',
+        type: 'integer',
+        required: true,
+        nullable: true
       }
     }
   },
-  "APIApplicationUpdate": {
-    "title": "APIApplicationUpdate",
-    "required": [
-      "version"
-    ],
-    "additionalProperties": false,
-    "fields": {
-      "app_name": {
-        "title": "App Name",
-        "description": "应用名称",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
+  APIApplicationUpdate: {
+    title: 'APIApplicationUpdate',
+    required: ['version'],
+    additionalProperties: false,
+    fields: {
+      app_name: {
+        title: 'App Name',
+        description: '应用名称',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 100
       },
-      "app_type": {
-        "description": "应用类型",
-        "required": false,
-        "nullable": true,
-        "ref": "AppType"
+      app_type: {
+        description: '应用类型',
+        required: false,
+        nullable: true,
+        ref: 'AppType'
       },
-      "description": {
-        "title": "Description",
-        "description": "应用描述",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 500
+      description: {
+        title: 'Description',
+        description: '应用描述',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 500
       },
-      "ip_whitelist": {
-        "title": "Ip Whitelist",
-        "description": "IP白名单",
-        "type": "array",
-        "required": false,
-        "nullable": true,
-        "items": {
-          "type": "string"
+      ip_whitelist: {
+        title: 'Ip Whitelist',
+        description: 'IP白名单',
+        type: 'array',
+        required: false,
+        nullable: true,
+        items: {
+          type: 'string'
         }
       },
-      "rate_limit_per_minute": {
-        "title": "Rate Limit Per Minute",
-        "description": "每分钟请求限制",
-        "type": "integer",
-        "required": false,
-        "nullable": true,
-        "minimum": 1,
-        "maximum": 10000
+      rate_limit_per_minute: {
+        title: 'Rate Limit Per Minute',
+        description: '每分钟请求限制',
+        type: 'integer',
+        required: false,
+        nullable: true,
+        minimum: 1,
+        maximum: 10000
       },
-      "rate_limit_per_hour": {
-        "title": "Rate Limit Per Hour",
-        "description": "每小时请求限制",
-        "type": "integer",
-        "required": false,
-        "nullable": true,
-        "minimum": 1,
-        "maximum": 1000000
+      rate_limit_per_hour: {
+        title: 'Rate Limit Per Hour',
+        description: '每小时请求限制',
+        type: 'integer',
+        required: false,
+        nullable: true,
+        minimum: 1,
+        maximum: 1000000
       },
-      "validity_period": {
-        "description": "有效期时长",
-        "required": false,
-        "nullable": true,
-        "ref": "ValidityPeriod"
+      validity_period: {
+        description: '有效期时长',
+        required: false,
+        nullable: true,
+        ref: 'ValidityPeriod'
       },
-      "version": {
-        "title": "Version",
-        "description": "乐观锁版本号，更新时必传",
-        "type": "integer",
-        "required": true,
-        "nullable": false
+      version: {
+        title: 'Version',
+        description: '乐观锁版本号，更新时必传',
+        type: 'integer',
+        required: true,
+        nullable: false
       }
     }
   },
-  "ActiveSessionsResponse": {
-    "title": "ActiveSessionsResponse",
-    "description": "活跃会话列表响应 Schema\n\n包含用户所有活跃会话",
-    "required": [
-      "total",
-      "sessions"
-    ],
-    "fields": {
-      "total": {
-        "title": "Total",
-        "description": "活跃会话总数",
-        "type": "integer",
-        "required": true,
-        "nullable": false
+  ActiveSessionsResponse: {
+    title: 'ActiveSessionsResponse',
+    description: '活跃会话列表响应 Schema\n\n包含用户所有活跃会话',
+    required: ['total', 'sessions'],
+    fields: {
+      total: {
+        title: 'Total',
+        description: '活跃会话总数',
+        type: 'integer',
+        required: true,
+        nullable: false
       },
-      "sessions": {
-        "title": "Sessions",
-        "description": "会话列表",
-        "type": "array",
-        "required": true,
-        "nullable": false,
-        "items": {
-          "ref": "SessionInfo"
+      sessions: {
+        title: 'Sessions',
+        description: '会话列表',
+        type: 'array',
+        required: true,
+        nullable: false,
+        items: {
+          ref: 'SessionInfo'
         }
       }
     }
   },
-  "ApiPermissionInfo": {
-    "title": "ApiPermissionInfo",
-    "description": "API 权限信息 Schema\n\n描述单个 API 权限的详细信息",
-    "required": [
-      "id",
-      "name",
-      "type"
-    ],
-    "fields": {
-      "id": {
-        "title": "Id",
-        "description": "权限 ID",
-        "type": "integer",
-        "required": true,
-        "nullable": false
+  ApiPermissionInfo: {
+    title: 'ApiPermissionInfo',
+    description: 'API 权限信息 Schema\n\n描述单个 API 权限的详细信息',
+    required: ['id', 'name', 'type'],
+    fields: {
+      id: {
+        title: 'Id',
+        description: '权限 ID',
+        type: 'integer',
+        required: true,
+        nullable: false
       },
-      "name": {
-        "title": "Name",
-        "description": "权限标识，如 admin:user:create",
-        "type": "string",
-        "required": true,
-        "nullable": false
+      name: {
+        title: 'Name',
+        description: '权限标识，如 admin:user:create',
+        type: 'string',
+        required: true,
+        nullable: false
       },
-      "description": {
-        "title": "Description",
-        "description": "权限描述",
-        "type": "string",
-        "required": false,
-        "nullable": true
+      description: {
+        title: 'Description',
+        description: '权限描述',
+        type: 'string',
+        required: false,
+        nullable: true
       },
-      "type": {
-        "title": "Type",
-        "description": "权限类型：user_api（内部管理API）、app_api（外部应用API）",
-        "type": "string",
-        "required": true,
-        "nullable": false
+      type: {
+        title: 'Type',
+        description: '权限类型：user_api（内部管理API）、app_api（外部应用API）',
+        type: 'string',
+        required: true,
+        nullable: false
       },
-      "category": {
-        "title": "Category",
-        "description": "权限分类：admin、system、business 等",
-        "type": "string",
-        "required": false,
-        "nullable": true
+      category: {
+        title: 'Category',
+        description: '权限分类：admin、system、business 等',
+        type: 'string',
+        required: false,
+        nullable: true
       },
-      "resource": {
-        "title": "Resource",
-        "description": "资源类型：user、role、permission、warehouse 等",
-        "type": "string",
-        "required": false,
-        "nullable": true
+      resource: {
+        title: 'Resource',
+        description: '资源类型：user、role、permission、warehouse 等',
+        type: 'string',
+        required: false,
+        nullable: true
       },
-      "action": {
-        "title": "Action",
-        "description": "操作：create、read、update、delete、list 等",
-        "type": "string",
-        "required": false,
-        "nullable": true
+      action: {
+        title: 'Action',
+        description: '操作：create、read、update、delete、list 等',
+        type: 'string',
+        required: false,
+        nullable: true
       },
-      "method": {
-        "title": "Method",
-        "description": "HTTP 方法：GET、POST、PUT、DELETE、PATCH 等",
-        "type": "string",
-        "required": false,
-        "nullable": true
+      method: {
+        title: 'Method',
+        description: 'HTTP 方法：GET、POST、PUT、DELETE、PATCH 等',
+        type: 'string',
+        required: false,
+        nullable: true
       },
-      "path": {
-        "title": "Path",
-        "description": "API 路径：/admin/users/{id}、/api/v1/warehouses 等",
-        "type": "string",
-        "required": false,
-        "nullable": true
+      path: {
+        title: 'Path',
+        description: 'API 路径：/admin/users/{id}、/api/v1/warehouses 等',
+        type: 'string',
+        required: false,
+        nullable: true
       }
     }
   },
-  "AppStatus": {
-    "title": "AppStatus",
-    "required": [],
-    "fields": {
-      "__enum": {
-        "title": "AppStatus",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "enum": [
-          "active",
-          "revoked",
-          "expired"
+  AppStatus: {
+    title: 'AppStatus',
+    required: [],
+    fields: {
+      __enum: {
+        title: 'AppStatus',
+        type: 'string',
+        required: true,
+        nullable: false,
+        enum: ['active', 'revoked', 'expired']
+      }
+    }
+  },
+  AppType: {
+    title: 'AppType',
+    required: [],
+    fields: {
+      __enum: {
+        title: 'AppType',
+        type: 'string',
+        required: true,
+        nullable: false,
+        enum: ['ECS', 'RCS', 'WMS', 'Third-Party']
+      }
+    }
+  },
+  AssignRolesRequest: {
+    title: 'AssignRolesRequest',
+    description: '为用户分配角色请求',
+    required: ['role_ids'],
+    fields: {
+      role_ids: {
+        title: 'Role Ids',
+        description: '角色 ID 列表',
+        type: 'array',
+        required: true,
+        nullable: false,
+        items: {
+          type: 'integer'
+        }
+      }
+    }
+  },
+  AuditLogResponse: {
+    title: 'AuditLogResponse',
+    description: 'AuditLog 响应 Schema',
+    required: [
+      'trace_id',
+      'method',
+      'title',
+      'path',
+      'ip',
+      'user_agent',
+      'code',
+      'cost_time',
+      'id'
+    ],
+    fields: {
+      trace_id: {
+        title: 'Trace Id',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 64
+      },
+      username: {
+        title: 'Username',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 32
+      },
+      method: {
+        title: 'Method',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 10
+      },
+      title: {
+        title: 'Title',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 100
+      },
+      path: {
+        title: 'Path',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 200
+      },
+      ip: {
+        title: 'Ip',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 64
+      },
+      country: {
+        title: 'Country',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 64
+      },
+      region: {
+        title: 'Region',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 64
+      },
+      city: {
+        title: 'City',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 64
+      },
+      user_agent: {
+        title: 'User Agent',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 500
+      },
+      os: {
+        title: 'Os',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 64
+      },
+      browser: {
+        title: 'Browser',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 64
+      },
+      device: {
+        title: 'Device',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 64
+      },
+      args: {
+        title: 'Args',
+        type: 'object',
+        required: false,
+        nullable: true
+      },
+      status: {
+        description: '操作状态',
+        required: false,
+        nullable: false,
+        default: 'SUCCESS',
+        ref: 'OperaStatus'
+      },
+      code: {
+        title: 'Code',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 20
+      },
+      msg: {
+        title: 'Msg',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      object_type: {
+        title: 'Object Type',
+        description: '审计对象类型',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 100
+      },
+      action: {
+        title: 'Action',
+        description: '审计动作',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      object_id: {
+        title: 'Object Id',
+        description: '审计对象标识',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 64
+      },
+      change_summary: {
+        title: 'Change Summary',
+        description: '变更摘要',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 255
+      },
+      cost_time: {
+        title: 'Cost Time',
+        type: 'number',
+        required: true,
+        nullable: false,
+        minimum: 0
+      },
+      opera_time: {
+        title: 'Opera Time',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: false
+      },
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      }
+    }
+  },
+  AuthMyResponse: {
+    title: 'AuthMyResponse',
+    description:
+      '当前登录用户上下文响应 Schema\n\n一次性返回前端初始化所需核心数据：\n- 当前用户信息\n- API 权限列表\n- 菜单树',
+    required: ['user', 'permissions', 'menus'],
+    fields: {
+      user: {
+        description: '当前用户信息',
+        required: true,
+        nullable: false,
+        ref: 'UserResponse'
+      },
+      permissions: {
+        title: 'Permissions',
+        description: '当前用户 API 权限列表',
+        type: 'array',
+        required: true,
+        nullable: false,
+        items: {
+          ref: 'ApiPermissionInfo'
+        }
+      },
+      menus: {
+        title: 'Menus',
+        description: '当前用户可访问菜单树',
+        type: 'array',
+        required: true,
+        nullable: false,
+        items: {
+          ref: 'MenuTreeResponseSimple'
+        }
+      }
+    }
+  },
+  BatchOperationResponseModel: {
+    title: 'BatchOperationResponseModel',
+    description:
+      "批量操作响应模型\n\n专门用于批量操作的响应模型。\n\nExample:\n    ```python\n    @router.post('/users/batch', response_model=BatchOperationResponseModel)\n    def batch_create_users(users: List[UserCreate]) -> BatchOperationResponseModel:\n        result = process_batch_create(users)\n        return BatchOperationResponseModel(\n            code=SuccessCode.CREATED,\n            data=result\n        )\n    ```",
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'BatchOperationResult'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  BatchOperationResult: {
+    title: 'BatchOperationResult',
+    description:
+      '批量操作结果模型\n\n用于批量操作（如批量创建、批量更新、批量删除）的响应数据。\n\nAttributes:\n    success: 成功数量\n    failed: 失败数量\n    total: 总数量\n    results: 详细结果列表（可选）\n    errors: 错误信息列表（可选）\n\nExample:\n    ```python\n    result = BatchOperationResult(\n        success=8,\n        failed=2,\n        total=10,\n        errors=[\n            {"index": 3, "message": "参数错误"},\n            {"index": 7, "message": "权限不足"}\n        ]\n    )\n    ```',
+    required: [],
+    fields: {
+      success: {
+        title: 'Success',
+        description: '成功数量',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      },
+      failed: {
+        title: 'Failed',
+        description: '失败数量',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      },
+      total: {
+        title: 'Total',
+        description: '总数量',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      },
+      results: {
+        title: 'Results',
+        description: '详细结果列表',
+        type: 'array',
+        required: false,
+        nullable: true,
+        items: {}
+      },
+      errors: {
+        title: 'Errors',
+        description: '错误信息列表',
+        type: 'array',
+        required: false,
+        nullable: true,
+        items: {
+          type: 'object'
+        }
+      }
+    }
+  },
+  BatchSortRequest: {
+    title: 'BatchSortRequest',
+    description: '批量排序请求',
+    required: ['items'],
+    fields: {
+      items: {
+        title: 'Items',
+        description: '排序项列表',
+        type: 'array',
+        required: true,
+        nullable: false,
+        items: {
+          ref: 'SortItem'
+        }
+      }
+    }
+  },
+  Body_admin_menus_move_put: {
+    title: 'Body_admin_menus_move_put',
+    required: ['node_id', 'new_parent_id'],
+    fields: {
+      node_id: {
+        title: 'Node Id',
+        description: '要移动的节点ID',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      new_parent_id: {
+        title: 'New Parent Id',
+        description: '新的父节点ID',
+        type: 'integer',
+        required: true,
+        nullable: true
+      }
+    }
+  },
+  Body_admin_permissions_move_put: {
+    title: 'Body_admin_permissions_move_put',
+    required: ['node_id', 'new_parent_id'],
+    fields: {
+      node_id: {
+        title: 'Node Id',
+        description: '要移动的节点ID',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      new_parent_id: {
+        title: 'New Parent Id',
+        description: '新的父节点ID',
+        type: 'integer',
+        required: true,
+        nullable: true
+      }
+    }
+  },
+  Body_api_auth_applications_by_id_permissions_post: {
+    title: 'Body_api_auth_applications_by_id_permissions_post',
+    required: ['permission_ids'],
+    fields: {
+      permission_ids: {
+        title: 'Permission Ids',
+        type: 'array',
+        required: true,
+        nullable: false,
+        items: {
+          type: 'integer'
+        }
+      }
+    }
+  },
+  Body_callback_logs_query_post: {
+    title: 'Body_callback_logs_query_post',
+    required: [],
+    fields: {
+      filters: {
+        required: false,
+        nullable: true,
+        ref: 'FilterGroup'
+      },
+      sort: {
+        title: 'Sort',
+        type: 'array',
+        required: false,
+        nullable: true,
+        items: {
+          ref: 'SortField'
+        }
+      }
+    }
+  },
+  CallbackLogResponse: {
+    title: 'CallbackLogResponse',
+    description: '回调日志响应 Schema',
+    required: [
+      'id',
+      'callback_type',
+      'device_id',
+      'request_body',
+      'client_ip',
+      'user_agent',
+      'request_id',
+      'trace_id',
+      'event_id',
+      'causation_id',
+      'response_status',
+      'response_time_ms',
+      'error_message',
+      'ingress_outcome',
+      'failure_stage',
+      'created_at',
+      'updated_at'
+    ],
+    fields: {
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      callback_type: {
+        title: 'Callback Type',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      device_id: {
+        title: 'Device Id',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      request_body: {
+        title: 'Request Body',
+        type: 'object',
+        required: true,
+        nullable: false
+      },
+      client_ip: {
+        title: 'Client Ip',
+        type: 'string',
+        required: true,
+        nullable: true
+      },
+      user_agent: {
+        title: 'User Agent',
+        type: 'string',
+        required: true,
+        nullable: true
+      },
+      request_id: {
+        title: 'Request Id',
+        type: 'string',
+        required: true,
+        nullable: true
+      },
+      trace_id: {
+        title: 'Trace Id',
+        type: 'string',
+        required: true,
+        nullable: true
+      },
+      event_id: {
+        title: 'Event Id',
+        type: 'string',
+        required: true,
+        nullable: true
+      },
+      causation_id: {
+        title: 'Causation Id',
+        type: 'string',
+        required: true,
+        nullable: true
+      },
+      response_status: {
+        title: 'Response Status',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      response_time_ms: {
+        title: 'Response Time Ms',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      error_message: {
+        title: 'Error Message',
+        type: 'string',
+        required: true,
+        nullable: true
+      },
+      ingress_outcome: {
+        title: 'Ingress Outcome',
+        type: 'string',
+        required: true,
+        nullable: true
+      },
+      failure_stage: {
+        title: 'Failure Stage',
+        type: 'string',
+        required: true,
+        nullable: true
+      },
+      created_at: {
+        title: 'Created At',
+        type: 'string',
+        format: 'date-time',
+        required: true,
+        nullable: false
+      },
+      updated_at: {
+        title: 'Updated At',
+        type: 'string',
+        format: 'date-time',
+        required: true,
+        nullable: false
+      }
+    }
+  },
+  ClearWorkLineEstopRequest: {
+    title: 'ClearWorkLineEstopRequest',
+    description: '人工清除 WorkLine 急停请求。',
+    required: [],
+    fields: {
+      checks: {
+        title: 'Checks',
+        description: '恢复 checklist；所有项必须为 true',
+        type: 'object',
+        required: false,
+        nullable: false
+      },
+      reason: {
+        title: 'Reason',
+        description: '恢复说明',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 500
+      }
+    }
+  },
+  DemoProductCreate: {
+    title: 'DemoProductCreate',
+    description: 'DemoProduct 创建模型',
+    required: ['name', 'price', 'stock'],
+    additionalProperties: false,
+    fields: {
+      name: {
+        title: 'Name',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 100
+      },
+      price: {
+        title: 'Price',
+        type: 'number',
+        required: true,
+        nullable: false,
+        minimum: 0
+      },
+      stock: {
+        title: 'Stock',
+        type: 'integer',
+        required: true,
+        nullable: false,
+        minimum: 0
+      },
+      product_lists: {
+        title: 'Product Lists',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'DemoProductListCreate'
+        }
+      }
+    }
+  },
+  DemoProductListCreate: {
+    title: 'DemoProductListCreate',
+    description:
+      'DemoProductList 创建模型\n\n注意：product_id 在创建时是可选的，因为会自动从主表 ID 设置',
+    required: ['quantity'],
+    additionalProperties: false,
+    fields: {
+      product_id: {
+        title: 'Product Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      quantity: {
+        title: 'Quantity',
+        type: 'integer',
+        required: true,
+        nullable: false,
+        minimum: 0
+      }
+    }
+  },
+  DemoProductListResponse: {
+    title: 'DemoProductListResponse',
+    description: 'DemoProductList 响应模型',
+    required: ['product_id', 'quantity', 'id'],
+    fields: {
+      product_id: {
+        title: 'Product Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      quantity: {
+        title: 'Quantity',
+        type: 'integer',
+        required: true,
+        nullable: false,
+        minimum: 0
+      },
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      }
+    }
+  },
+  DemoProductListUpdate: {
+    title: 'DemoProductListUpdate',
+    description:
+      'DemoProductList 更新模型\n\n注意：在更新主表时，使用 Diff 算法处理从表：\n- 有 id：更新现有记录\n- 无 id：创建新记录\n- 缺失：删除记录\n\n因此 id 和 product_id 都是可选的',
+    required: [],
+    additionalProperties: false,
+    fields: {
+      product_id: {
+        title: 'Product Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      quantity: {
+        title: 'Quantity',
+        type: 'integer',
+        required: false,
+        nullable: true,
+        minimum: 0
+      },
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      }
+    }
+  },
+  DemoProductResponse: {
+    title: 'DemoProductResponse',
+    description: 'DemoProduct 响应模型\n\n包含 version 字段，前端在更新时必须传回该字段',
+    required: ['name', 'price', 'stock', 'id', 'product_lists'],
+    fields: {
+      deleted_by: {
+        title: 'Deleted By',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      deleted_at: {
+        title: 'Deleted At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      is_deleted: {
+        title: 'Is Deleted',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: false
+      },
+      version: {
+        title: 'Version',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      created_at: {
+        title: 'Created At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: false
+      },
+      updated_at: {
+        title: 'Updated At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      created_by: {
+        title: 'Created By',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      updated_by: {
+        title: 'Updated By',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      name: {
+        title: 'Name',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 100
+      },
+      price: {
+        title: 'Price',
+        type: 'number',
+        required: true,
+        nullable: false,
+        minimum: 0
+      },
+      stock: {
+        title: 'Stock',
+        type: 'integer',
+        required: true,
+        nullable: false,
+        minimum: 0
+      },
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      product_lists: {
+        title: 'Product Lists',
+        type: 'array',
+        required: true,
+        nullable: false,
+        items: {
+          ref: 'DemoProductListResponse'
+        }
+      }
+    }
+  },
+  DemoProductUpdate: {
+    title: 'DemoProductUpdate',
+    description: 'DemoProduct 更新模型\n\n注意：更新时必须包含 version 字段（乐观锁）',
+    required: ['version'],
+    additionalProperties: false,
+    fields: {
+      name: {
+        title: 'Name',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 100
+      },
+      price: {
+        title: 'Price',
+        type: 'number',
+        required: false,
+        nullable: true,
+        minimum: 0
+      },
+      stock: {
+        title: 'Stock',
+        type: 'integer',
+        required: false,
+        nullable: true,
+        minimum: 0
+      },
+      version: {
+        title: 'Version',
+        description: '乐观锁版本号，更新时必传',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      product_lists: {
+        title: 'Product Lists',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'DemoProductListUpdate'
+        }
+      }
+    }
+  },
+  DeviceCreate: {
+    title: 'DeviceCreate',
+    description: '设备创建 Schema - 接收客户端输入',
+    required: ['device_code', 'device_name', 'device_role'],
+    additionalProperties: false,
+    fields: {
+      device_code: {
+        title: 'Device Code',
+        description: '设备编码（业务主键）',
+        type: 'string',
+        required: true,
+        nullable: false,
+        minLength: 1,
+        maxLength: 50
+      },
+      device_name: {
+        title: 'Device Name',
+        description: '设备名称',
+        type: 'string',
+        required: true,
+        nullable: false,
+        minLength: 1,
+        maxLength: 100
+      },
+      work_line_id: {
+        title: 'Work Line Id',
+        description: '所属作业线 ID',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      description: {
+        title: 'Description',
+        description: '设备用途说明',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 500
+      },
+      is_active: {
+        title: 'Is Active',
+        description: '是否启用',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: true
+      },
+      sort_order: {
+        title: 'Sort Order',
+        description: '排序顺序',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      device_role: {
+        title: 'Device Role',
+        description: '设备业务角色（SCANNER, ROBOT_ARM, XRAY, CONVEYOR）',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 50
+      },
+      role_index: {
+        title: 'Role Index',
+        description: '同角色序号（1, 2, 3...）',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 1,
+        minimum: 1
+      },
+      upstream_device_id: {
+        title: 'Upstream Device Id',
+        description: '上游设备ID（线性拓扑）',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      vendor_type: {
+        title: 'Vendor Type',
+        description: '厂商类型（ECS, KEYENCE, FANUC...）',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      capabilities_json: {
+        title: 'Capabilities Json',
+        description: '设备能力声明（支持事件、命令、回调等）',
+        type: 'object',
+        required: false,
+        nullable: false
+      },
+      host: {
+        title: 'Host',
+        description: '设备 IP 地址',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 100
+      },
+      port: {
+        title: 'Port',
+        description: '服务端口',
+        type: 'integer',
+        required: false,
+        nullable: true,
+        minimum: 1,
+        maximum: 65535
+      },
+      protocol: {
+        description: '通信协议',
+        required: false,
+        nullable: false,
+        default: 'HTTP',
+        ref: 'DeviceProtocol'
+      },
+      auth_token: {
+        title: 'Auth Token',
+        description: '认证 Token（Bearer Token）',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 500
+      },
+      timeout: {
+        title: 'Timeout',
+        description: '请求超时时间（毫秒，默认 10s）',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 10000,
+        minimum: 1000,
+        maximum: 300000
+      },
+      callback_path: {
+        title: 'Callback Path',
+        description: '设备侧回调/命令接收路径覆盖',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 255
+      },
+      device_status: {
+        description: '设备实时状态（IDLE/RUNNING/ERROR/OFFLINE/MAINTENANCE）',
+        required: false,
+        nullable: false,
+        default: 'IDLE',
+        ref: 'DeviceStatus'
+      },
+      current_command_id: {
+        title: 'Current Command Id',
+        description: '当前执行的指令 ID（关联 DeviceCommand.id）',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      last_heartbeat_at: {
+        title: 'Last Heartbeat At',
+        description: '最后心跳时间',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      error_code: {
+        title: 'Error Code',
+        description: '错误代码（status=ERROR 时）',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      maintenance_mode: {
+        title: 'Maintenance Mode',
+        description: '是否处于维护模式（维护中不参与正常编排）',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: false
+      },
+      max_concurrent_tasks: {
+        title: 'Max Concurrent Tasks',
+        description: '固定为 1：单设备同一时间只允许一个硬件任务',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 1,
+        minimum: 1,
+        maximum: 1
+      },
+      idempotency_ttl: {
+        title: 'Idempotency Ttl',
+        description: '指令去重缓存时间（秒，默认 1 小时）',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 3600,
+        minimum: 60,
+        maximum: 86400
+      },
+      diagnostic_profile: {
+        title: 'Diagnostic Profile',
+        description: '设备诊断配置（责任角色、显示偏好、扩展属性）',
+        type: 'object',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  DeviceMaintenanceRequest: {
+    title: 'DeviceMaintenanceRequest',
+    description: '设备维护操作请求。',
+    required: [],
+    fields: {
+      reason: {
+        title: 'Reason',
+        description: '维护原因码',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      }
+    }
+  },
+  DeviceProtocol: {
+    title: 'DeviceProtocol',
+    description: '设备通信协议枚举（白皮书 2.1 节）',
+    required: [],
+    fields: {
+      __enum: {
+        title: 'DeviceProtocol',
+        description: '设备通信协议枚举（白皮书 2.1 节）',
+        type: 'string',
+        required: true,
+        nullable: false,
+        enum: ['HTTP', 'HTTPS', 'TCP', 'MODBUS', 'MQTT']
+      }
+    }
+  },
+  DeviceResponse: {
+    title: 'DeviceResponse',
+    description: '设备响应 Schema - 返回给客户端',
+    required: ['device_code', 'device_name', 'device_role', 'id', 'version'],
+    fields: {
+      device_code: {
+        title: 'Device Code',
+        description: '设备编码（业务主键）',
+        type: 'string',
+        required: true,
+        nullable: false,
+        minLength: 1,
+        maxLength: 50
+      },
+      device_name: {
+        title: 'Device Name',
+        description: '设备名称',
+        type: 'string',
+        required: true,
+        nullable: false,
+        minLength: 1,
+        maxLength: 100
+      },
+      work_line_id: {
+        title: 'Work Line Id',
+        description: '所属作业线 ID',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      description: {
+        title: 'Description',
+        description: '设备用途说明',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 500
+      },
+      is_active: {
+        title: 'Is Active',
+        description: '是否启用',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: true
+      },
+      sort_order: {
+        title: 'Sort Order',
+        description: '排序顺序',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      device_role: {
+        title: 'Device Role',
+        description: '设备业务角色（SCANNER, ROBOT_ARM, XRAY, CONVEYOR）',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 50
+      },
+      role_index: {
+        title: 'Role Index',
+        description: '同角色序号（1, 2, 3...）',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 1,
+        minimum: 1
+      },
+      upstream_device_id: {
+        title: 'Upstream Device Id',
+        description: '上游设备ID（线性拓扑）',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      vendor_type: {
+        title: 'Vendor Type',
+        description: '厂商类型（ECS, KEYENCE, FANUC...）',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      capabilities_json: {
+        title: 'Capabilities Json',
+        description: '设备能力声明（支持事件、命令、回调等）',
+        type: 'object',
+        required: false,
+        nullable: false
+      },
+      host: {
+        title: 'Host',
+        description: '设备 IP 地址',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 100
+      },
+      port: {
+        title: 'Port',
+        description: '服务端口',
+        type: 'integer',
+        required: false,
+        nullable: true,
+        minimum: 1,
+        maximum: 65535
+      },
+      protocol: {
+        description: '通信协议',
+        required: false,
+        nullable: false,
+        default: 'HTTP',
+        ref: 'DeviceProtocol'
+      },
+      auth_token: {
+        title: 'Auth Token',
+        description: '认证 Token（Bearer Token）',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 500
+      },
+      timeout: {
+        title: 'Timeout',
+        description: '请求超时时间（毫秒，默认 10s）',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 10000,
+        minimum: 1000,
+        maximum: 300000
+      },
+      callback_path: {
+        title: 'Callback Path',
+        description: '设备侧回调/命令接收路径覆盖',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 255
+      },
+      device_status: {
+        description: '设备实时状态（IDLE/RUNNING/ERROR/OFFLINE/MAINTENANCE）',
+        required: false,
+        nullable: false,
+        default: 'IDLE',
+        ref: 'DeviceStatus'
+      },
+      current_command_id: {
+        title: 'Current Command Id',
+        description: '当前执行的指令 ID（关联 DeviceCommand.id）',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      last_heartbeat_at: {
+        title: 'Last Heartbeat At',
+        description: '最后心跳时间',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      error_code: {
+        title: 'Error Code',
+        description: '错误代码（status=ERROR 时）',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      maintenance_mode: {
+        title: 'Maintenance Mode',
+        description: '是否处于维护模式（维护中不参与正常编排）',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: false
+      },
+      max_concurrent_tasks: {
+        title: 'Max Concurrent Tasks',
+        description: '固定为 1：单设备同一时间只允许一个硬件任务',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 1,
+        minimum: 1,
+        maximum: 1
+      },
+      idempotency_ttl: {
+        title: 'Idempotency Ttl',
+        description: '指令去重缓存时间（秒，默认 1 小时）',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 3600,
+        minimum: 60,
+        maximum: 86400
+      },
+      diagnostic_profile: {
+        title: 'Diagnostic Profile',
+        description: '设备诊断配置（责任角色、显示偏好、扩展属性）',
+        type: 'object',
+        required: false,
+        nullable: false
+      },
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      version: {
+        title: 'Version',
+        type: 'integer',
+        required: true,
+        nullable: false
+      }
+    }
+  },
+  DeviceRuntimeActionRequest: {
+    title: 'DeviceRuntimeActionRequest',
+    description: '设备运行态空操作请求，保留扩展位。',
+    required: [],
+    fields: {
+      reason: {
+        title: 'Reason',
+        description: '操作原因',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 200
+      }
+    }
+  },
+  DeviceStatus: {
+    title: 'DeviceStatus',
+    description: '设备状态枚举（白皮书 5.2 节）',
+    required: [],
+    fields: {
+      __enum: {
+        title: 'DeviceStatus',
+        description: '设备状态枚举（白皮书 5.2 节）',
+        type: 'string',
+        required: true,
+        nullable: false,
+        enum: ['IDLE', 'RUNNING', 'ERROR', 'OFFLINE', 'MAINTENANCE']
+      }
+    }
+  },
+  DeviceUpdate: {
+    title: 'DeviceUpdate',
+    description: '设备更新 Schema - 只允许主数据与通信配置，运行态走专用操作',
+    required: ['version'],
+    additionalProperties: false,
+    fields: {
+      device_code: {
+        title: 'Device Code',
+        description: '设备编码（业务主键）',
+        type: 'string',
+        required: false,
+        nullable: true,
+        minLength: 1,
+        maxLength: 50
+      },
+      device_name: {
+        title: 'Device Name',
+        description: '设备名称',
+        type: 'string',
+        required: false,
+        nullable: true,
+        minLength: 1,
+        maxLength: 100
+      },
+      work_line_id: {
+        title: 'Work Line Id',
+        description: '所属作业线 ID',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      description: {
+        title: 'Description',
+        description: '设备用途说明',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 500
+      },
+      is_active: {
+        title: 'Is Active',
+        description: '是否启用',
+        type: 'boolean',
+        required: false,
+        nullable: true
+      },
+      sort_order: {
+        title: 'Sort Order',
+        description: '排序顺序',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      device_role: {
+        title: 'Device Role',
+        description: '设备业务角色（SCANNER, ROBOT_ARM, XRAY, CONVEYOR）',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      role_index: {
+        title: 'Role Index',
+        description: '同角色序号（1, 2, 3...）',
+        type: 'integer',
+        required: false,
+        nullable: true,
+        minimum: 1
+      },
+      upstream_device_id: {
+        title: 'Upstream Device Id',
+        description: '上游设备ID（线性拓扑）',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      vendor_type: {
+        title: 'Vendor Type',
+        description: '厂商类型（ECS, KEYENCE, FANUC...）',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      capabilities_json: {
+        title: 'Capabilities Json',
+        description: '设备能力声明（支持事件、命令、回调等）',
+        type: 'object',
+        required: false,
+        nullable: true
+      },
+      host: {
+        title: 'Host',
+        description: '设备 IP 地址',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 100
+      },
+      port: {
+        title: 'Port',
+        description: '服务端口',
+        type: 'integer',
+        required: false,
+        nullable: true,
+        minimum: 1,
+        maximum: 65535
+      },
+      protocol: {
+        description: '通信协议',
+        required: false,
+        nullable: true,
+        ref: 'DeviceProtocol'
+      },
+      auth_token: {
+        title: 'Auth Token',
+        description: '认证 Token（Bearer Token）',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 500
+      },
+      timeout: {
+        title: 'Timeout',
+        description: '请求超时时间（毫秒，默认 10s）',
+        type: 'integer',
+        required: false,
+        nullable: true,
+        minimum: 1000,
+        maximum: 300000
+      },
+      callback_path: {
+        title: 'Callback Path',
+        description: '设备侧回调/命令接收路径覆盖',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 255
+      },
+      idempotency_ttl: {
+        title: 'Idempotency Ttl',
+        description: '指令去重缓存时间（秒，默认 1 小时）',
+        type: 'integer',
+        required: false,
+        nullable: true,
+        minimum: 60,
+        maximum: 86400
+      },
+      diagnostic_profile: {
+        title: 'Diagnostic Profile',
+        description: '设备诊断配置（责任角色、显示偏好、扩展属性）',
+        type: 'object',
+        required: false,
+        nullable: true
+      },
+      version: {
+        title: 'Version',
+        description: '乐观锁版本号，更新时必传',
+        type: 'integer',
+        required: true,
+        nullable: false
+      }
+    }
+  },
+  DiagnosticCardResponse: {
+    title: 'DiagnosticCardResponse',
+    required: [
+      'title',
+      'summary',
+      'error_code',
+      'error_domain',
+      'severity',
+      'recoverability',
+      'problem_class',
+      'user_message',
+      'context'
+    ],
+    fields: {
+      title: {
+        title: 'Title',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      summary: {
+        title: 'Summary',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      error_code: {
+        title: 'Error Code',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      error_domain: {
+        title: 'Error Domain',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      severity: {
+        title: 'Severity',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      recoverability: {
+        title: 'Recoverability',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      problem_class: {
+        title: 'Problem Class',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      user_message: {
+        title: 'User Message',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      operator_action: {
+        title: 'Operator Action',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      technical_summary: {
+        title: 'Technical Summary',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      next_steps: {
+        title: 'Next Steps',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          type: 'string'
+        }
+      },
+      context: {
+        required: true,
+        nullable: false,
+        ref: 'TraceDiagnosticContextItem'
+      }
+    }
+  },
+  FilterCondition: {
+    title: 'FilterCondition',
+    description: '单个过滤条件',
+    required: ['field', 'op'],
+    fields: {
+      field: {
+        title: 'Field',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      op: {
+        required: true,
+        nullable: false,
+        ref: 'FilterOperator'
+      },
+      value: {
+        title: 'Value',
+        required: false,
+        nullable: true
+      }
+    }
+  },
+  FilterGroup: {
+    title: 'FilterGroup',
+    description: '过滤条件组',
+    required: [],
+    fields: {
+      couple: {
+        title: 'Couple',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: 'and',
+        enum: ['and', 'or', 'not']
+      },
+      conditions: {
+        title: 'Conditions',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {}
+      }
+    }
+  },
+  FilterOperator: {
+    title: 'FilterOperator',
+    description: '过滤操作符',
+    required: [],
+    fields: {
+      __enum: {
+        title: 'FilterOperator',
+        description: '过滤操作符',
+        type: 'string',
+        required: true,
+        nullable: false,
+        enum: [
+          'eq',
+          'ne',
+          'gt',
+          'ge',
+          'lt',
+          'le',
+          'in',
+          'nin',
+          'ilike',
+          'between',
+          'is_null',
+          'not_null'
         ]
       }
     }
   },
-  "AppType": {
-    "title": "AppType",
-    "required": [],
-    "fields": {
-      "__enum": {
-        "title": "AppType",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "enum": [
-          "ECS",
-          "RCS",
-          "WMS",
-          "Third-Party"
-        ]
-      }
-    }
-  },
-  "AssignRolesRequest": {
-    "title": "AssignRolesRequest",
-    "description": "为用户分配角色请求",
-    "required": [
-      "role_ids"
-    ],
-    "fields": {
-      "role_ids": {
-        "title": "Role Ids",
-        "description": "角色 ID 列表",
-        "type": "array",
-        "required": true,
-        "nullable": false,
-        "items": {
-          "type": "integer"
-        }
-      }
-    }
-  },
-  "AuditLogResponse": {
-    "title": "AuditLogResponse",
-    "description": "AuditLog 响应 Schema",
-    "required": [
-      "trace_id",
-      "method",
-      "title",
-      "path",
-      "ip",
-      "user_agent",
-      "code",
-      "cost_time",
-      "id"
-    ],
-    "fields": {
-      "trace_id": {
-        "title": "Trace Id",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 64
-      },
-      "username": {
-        "title": "Username",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 32
-      },
-      "method": {
-        "title": "Method",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 10
-      },
-      "title": {
-        "title": "Title",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 100
-      },
-      "path": {
-        "title": "Path",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 200
-      },
-      "ip": {
-        "title": "Ip",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 64
-      },
-      "country": {
-        "title": "Country",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 64
-      },
-      "region": {
-        "title": "Region",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 64
-      },
-      "city": {
-        "title": "City",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 64
-      },
-      "user_agent": {
-        "title": "User Agent",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 500
-      },
-      "os": {
-        "title": "Os",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 64
-      },
-      "browser": {
-        "title": "Browser",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 64
-      },
-      "device": {
-        "title": "Device",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 64
-      },
-      "args": {
-        "title": "Args",
-        "type": "object",
-        "required": false,
-        "nullable": true
-      },
-      "status": {
-        "description": "操作状态",
-        "required": false,
-        "nullable": false,
-        "default": "SUCCESS",
-        "ref": "OperaStatus"
-      },
-      "code": {
-        "title": "Code",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 20
-      },
-      "msg": {
-        "title": "Msg",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "object_type": {
-        "title": "Object Type",
-        "description": "审计对象类型",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "action": {
-        "title": "Action",
-        "description": "审计动作",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "object_id": {
-        "title": "Object Id",
-        "description": "审计对象标识",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 64
-      },
-      "change_summary": {
-        "title": "Change Summary",
-        "description": "变更摘要",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 255
-      },
-      "cost_time": {
-        "title": "Cost Time",
-        "type": "number",
-        "required": true,
-        "nullable": false,
-        "minimum": 0
-      },
-      "opera_time": {
-        "title": "Opera Time",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": false
-      },
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      }
-    }
-  },
-  "AuthMyResponse": {
-    "title": "AuthMyResponse",
-    "description": "当前登录用户上下文响应 Schema\n\n一次性返回前端初始化所需核心数据：\n- 当前用户信息\n- API 权限列表\n- 菜单树",
-    "required": [
-      "user",
-      "permissions",
-      "menus"
-    ],
-    "fields": {
-      "user": {
-        "description": "当前用户信息",
-        "required": true,
-        "nullable": false,
-        "ref": "UserResponse"
-      },
-      "permissions": {
-        "title": "Permissions",
-        "description": "当前用户 API 权限列表",
-        "type": "array",
-        "required": true,
-        "nullable": false,
-        "items": {
-          "ref": "ApiPermissionInfo"
-        }
-      },
-      "menus": {
-        "title": "Menus",
-        "description": "当前用户可访问菜单树",
-        "type": "array",
-        "required": true,
-        "nullable": false,
-        "items": {
-          "ref": "MenuTreeResponseSimple"
-        }
-      }
-    }
-  },
-  "BatchOperationResponseModel": {
-    "title": "BatchOperationResponseModel",
-    "description": "批量操作响应模型\n\n专门用于批量操作的响应模型。\n\nExample:\n    ```python\n    @router.post('/users/batch', response_model=BatchOperationResponseModel)\n    def batch_create_users(users: List[UserCreate]) -> BatchOperationResponseModel:\n        result = process_batch_create(users)\n        return BatchOperationResponseModel(\n            code=SuccessCode.CREATED,\n            data=result\n        )\n    ```",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "BatchOperationResult"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "BatchOperationResult": {
-    "title": "BatchOperationResult",
-    "description": "批量操作结果模型\n\n用于批量操作（如批量创建、批量更新、批量删除）的响应数据。\n\nAttributes:\n    success: 成功数量\n    failed: 失败数量\n    total: 总数量\n    results: 详细结果列表（可选）\n    errors: 错误信息列表（可选）\n\nExample:\n    ```python\n    result = BatchOperationResult(\n        success=8,\n        failed=2,\n        total=10,\n        errors=[\n            {\"index\": 3, \"message\": \"参数错误\"},\n            {\"index\": 7, \"message\": \"权限不足\"}\n        ]\n    )\n    ```",
-    "required": [],
-    "fields": {
-      "success": {
-        "title": "Success",
-        "description": "成功数量",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      },
-      "failed": {
-        "title": "Failed",
-        "description": "失败数量",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      },
-      "total": {
-        "title": "Total",
-        "description": "总数量",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      },
-      "results": {
-        "title": "Results",
-        "description": "详细结果列表",
-        "type": "array",
-        "required": false,
-        "nullable": true,
-        "items": {}
-      },
-      "errors": {
-        "title": "Errors",
-        "description": "错误信息列表",
-        "type": "array",
-        "required": false,
-        "nullable": true,
-        "items": {
-          "type": "object"
-        }
-      }
-    }
-  },
-  "BatchSortRequest": {
-    "title": "BatchSortRequest",
-    "description": "批量排序请求",
-    "required": [
-      "items"
-    ],
-    "fields": {
-      "items": {
-        "title": "Items",
-        "description": "排序项列表",
-        "type": "array",
-        "required": true,
-        "nullable": false,
-        "items": {
-          "ref": "SortItem"
-        }
-      }
-    }
-  },
-  "Body_admin_menus_move_put": {
-    "title": "Body_admin_menus_move_put",
-    "required": [
-      "node_id",
-      "new_parent_id"
-    ],
-    "fields": {
-      "node_id": {
-        "title": "Node Id",
-        "description": "要移动的节点ID",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "new_parent_id": {
-        "title": "New Parent Id",
-        "description": "新的父节点ID",
-        "type": "integer",
-        "required": true,
-        "nullable": true
-      }
-    }
-  },
-  "Body_admin_permissions_move_put": {
-    "title": "Body_admin_permissions_move_put",
-    "required": [
-      "node_id",
-      "new_parent_id"
-    ],
-    "fields": {
-      "node_id": {
-        "title": "Node Id",
-        "description": "要移动的节点ID",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "new_parent_id": {
-        "title": "New Parent Id",
-        "description": "新的父节点ID",
-        "type": "integer",
-        "required": true,
-        "nullable": true
-      }
-    }
-  },
-  "Body_api_auth_applications_by_id_permissions_post": {
-    "title": "Body_api_auth_applications_by_id_permissions_post",
-    "required": [
-      "permission_ids"
-    ],
-    "fields": {
-      "permission_ids": {
-        "title": "Permission Ids",
-        "type": "array",
-        "required": true,
-        "nullable": false,
-        "items": {
-          "type": "integer"
-        }
-      }
-    }
-  },
-  "Body_callback_logs_query_post": {
-    "title": "Body_callback_logs_query_post",
-    "required": [],
-    "fields": {
-      "filters": {
-        "required": false,
-        "nullable": true,
-        "ref": "FilterGroup"
-      },
-      "sort": {
-        "title": "Sort",
-        "type": "array",
-        "required": false,
-        "nullable": true,
-        "items": {
-          "ref": "SortField"
-        }
-      }
-    }
-  },
-  "CallbackLogResponse": {
-    "title": "CallbackLogResponse",
-    "description": "回调日志响应 Schema",
-    "required": [
-      "id",
-      "callback_type",
-      "device_id",
-      "request_body",
-      "client_ip",
-      "user_agent",
-      "request_id",
-      "trace_id",
-      "event_id",
-      "causation_id",
-      "response_status",
-      "response_time_ms",
-      "error_message",
-      "ingress_outcome",
-      "failure_stage",
-      "created_at",
-      "updated_at"
-    ],
-    "fields": {
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "callback_type": {
-        "title": "Callback Type",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "device_id": {
-        "title": "Device Id",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "request_body": {
-        "title": "Request Body",
-        "type": "object",
-        "required": true,
-        "nullable": false
-      },
-      "client_ip": {
-        "title": "Client Ip",
-        "type": "string",
-        "required": true,
-        "nullable": true
-      },
-      "user_agent": {
-        "title": "User Agent",
-        "type": "string",
-        "required": true,
-        "nullable": true
-      },
-      "request_id": {
-        "title": "Request Id",
-        "type": "string",
-        "required": true,
-        "nullable": true
-      },
-      "trace_id": {
-        "title": "Trace Id",
-        "type": "string",
-        "required": true,
-        "nullable": true
-      },
-      "event_id": {
-        "title": "Event Id",
-        "type": "string",
-        "required": true,
-        "nullable": true
-      },
-      "causation_id": {
-        "title": "Causation Id",
-        "type": "string",
-        "required": true,
-        "nullable": true
-      },
-      "response_status": {
-        "title": "Response Status",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "response_time_ms": {
-        "title": "Response Time Ms",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "error_message": {
-        "title": "Error Message",
-        "type": "string",
-        "required": true,
-        "nullable": true
-      },
-      "ingress_outcome": {
-        "title": "Ingress Outcome",
-        "type": "string",
-        "required": true,
-        "nullable": true
-      },
-      "failure_stage": {
-        "title": "Failure Stage",
-        "type": "string",
-        "required": true,
-        "nullable": true
-      },
-      "created_at": {
-        "title": "Created At",
-        "type": "string",
-        "format": "date-time",
-        "required": true,
-        "nullable": false
-      },
-      "updated_at": {
-        "title": "Updated At",
-        "type": "string",
-        "format": "date-time",
-        "required": true,
-        "nullable": false
-      }
-    }
-  },
-  "DemoProductCreate": {
-    "title": "DemoProductCreate",
-    "description": "DemoProduct 创建模型",
-    "required": [
-      "name",
-      "price",
-      "stock"
-    ],
-    "additionalProperties": false,
-    "fields": {
-      "name": {
-        "title": "Name",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 100
-      },
-      "price": {
-        "title": "Price",
-        "type": "number",
-        "required": true,
-        "nullable": false,
-        "minimum": 0
-      },
-      "stock": {
-        "title": "Stock",
-        "type": "integer",
-        "required": true,
-        "nullable": false,
-        "minimum": 0
-      },
-      "product_lists": {
-        "title": "Product Lists",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "DemoProductListCreate"
-        }
-      }
-    }
-  },
-  "DemoProductListCreate": {
-    "title": "DemoProductListCreate",
-    "description": "DemoProductList 创建模型\n\n注意：product_id 在创建时是可选的，因为会自动从主表 ID 设置",
-    "required": [
-      "quantity"
-    ],
-    "additionalProperties": false,
-    "fields": {
-      "product_id": {
-        "title": "Product Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "quantity": {
-        "title": "Quantity",
-        "type": "integer",
-        "required": true,
-        "nullable": false,
-        "minimum": 0
-      }
-    }
-  },
-  "DemoProductListResponse": {
-    "title": "DemoProductListResponse",
-    "description": "DemoProductList 响应模型",
-    "required": [
-      "product_id",
-      "quantity",
-      "id"
-    ],
-    "fields": {
-      "product_id": {
-        "title": "Product Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "quantity": {
-        "title": "Quantity",
-        "type": "integer",
-        "required": true,
-        "nullable": false,
-        "minimum": 0
-      },
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      }
-    }
-  },
-  "DemoProductListUpdate": {
-    "title": "DemoProductListUpdate",
-    "description": "DemoProductList 更新模型\n\n注意：在更新主表时，使用 Diff 算法处理从表：\n- 有 id：更新现有记录\n- 无 id：创建新记录\n- 缺失：删除记录\n\n因此 id 和 product_id 都是可选的",
-    "required": [],
-    "additionalProperties": false,
-    "fields": {
-      "product_id": {
-        "title": "Product Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "quantity": {
-        "title": "Quantity",
-        "type": "integer",
-        "required": false,
-        "nullable": true,
-        "minimum": 0
-      },
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      }
-    }
-  },
-  "DemoProductResponse": {
-    "title": "DemoProductResponse",
-    "description": "DemoProduct 响应模型\n\n包含 version 字段，前端在更新时必须传回该字段",
-    "required": [
-      "name",
-      "price",
-      "stock",
-      "id",
-      "product_lists"
-    ],
-    "fields": {
-      "deleted_by": {
-        "title": "Deleted By",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "deleted_at": {
-        "title": "Deleted At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "is_deleted": {
-        "title": "Is Deleted",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": false
-      },
-      "version": {
-        "title": "Version",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "created_at": {
-        "title": "Created At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": false
-      },
-      "updated_at": {
-        "title": "Updated At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "created_by": {
-        "title": "Created By",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "updated_by": {
-        "title": "Updated By",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "name": {
-        "title": "Name",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 100
-      },
-      "price": {
-        "title": "Price",
-        "type": "number",
-        "required": true,
-        "nullable": false,
-        "minimum": 0
-      },
-      "stock": {
-        "title": "Stock",
-        "type": "integer",
-        "required": true,
-        "nullable": false,
-        "minimum": 0
-      },
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "product_lists": {
-        "title": "Product Lists",
-        "type": "array",
-        "required": true,
-        "nullable": false,
-        "items": {
-          "ref": "DemoProductListResponse"
-        }
-      }
-    }
-  },
-  "DemoProductUpdate": {
-    "title": "DemoProductUpdate",
-    "description": "DemoProduct 更新模型\n\n注意：更新时必须包含 version 字段（乐观锁）",
-    "required": [
-      "version"
-    ],
-    "additionalProperties": false,
-    "fields": {
-      "name": {
-        "title": "Name",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "price": {
-        "title": "Price",
-        "type": "number",
-        "required": false,
-        "nullable": true,
-        "minimum": 0
-      },
-      "stock": {
-        "title": "Stock",
-        "type": "integer",
-        "required": false,
-        "nullable": true,
-        "minimum": 0
-      },
-      "version": {
-        "title": "Version",
-        "description": "乐观锁版本号，更新时必传",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "product_lists": {
-        "title": "Product Lists",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "DemoProductListUpdate"
-        }
-      }
-    }
-  },
-  "DeviceCreate": {
-    "title": "DeviceCreate",
-    "description": "设备创建 Schema - 接收客户端输入",
-    "required": [
-      "device_code",
-      "device_name",
-      "device_role"
-    ],
-    "additionalProperties": false,
-    "fields": {
-      "device_code": {
-        "title": "Device Code",
-        "description": "设备编码（业务主键）",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "minLength": 1,
-        "maxLength": 50
-      },
-      "device_name": {
-        "title": "Device Name",
-        "description": "设备名称",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "minLength": 1,
-        "maxLength": 100
-      },
-      "work_line_id": {
-        "title": "Work Line Id",
-        "description": "所属作业线 ID",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "description": {
-        "title": "Description",
-        "description": "设备用途说明",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 500
-      },
-      "is_active": {
-        "title": "Is Active",
-        "description": "是否启用",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": true
-      },
-      "sort_order": {
-        "title": "Sort Order",
-        "description": "排序顺序",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "device_role": {
-        "title": "Device Role",
-        "description": "设备业务角色（SCANNER, ROBOT_ARM, XRAY, CONVEYOR）",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 50
-      },
-      "role_index": {
-        "title": "Role Index",
-        "description": "同角色序号（1, 2, 3...）",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 1,
-        "minimum": 1
-      },
-      "upstream_device_id": {
-        "title": "Upstream Device Id",
-        "description": "上游设备ID（线性拓扑）",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "vendor_type": {
-        "title": "Vendor Type",
-        "description": "厂商类型（ECS, KEYENCE, FANUC...）",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "capabilities_json": {
-        "title": "Capabilities Json",
-        "description": "设备能力声明（支持事件、命令、回调等）",
-        "type": "object",
-        "required": false,
-        "nullable": false
-      },
-      "host": {
-        "title": "Host",
-        "description": "设备 IP 地址",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "port": {
-        "title": "Port",
-        "description": "服务端口",
-        "type": "integer",
-        "required": false,
-        "nullable": true,
-        "minimum": 1,
-        "maximum": 65535
-      },
-      "protocol": {
-        "description": "通信协议",
-        "required": false,
-        "nullable": false,
-        "default": "HTTP",
-        "ref": "DeviceProtocol"
-      },
-      "auth_token": {
-        "title": "Auth Token",
-        "description": "认证 Token（Bearer Token）",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 500
-      },
-      "timeout": {
-        "title": "Timeout",
-        "description": "请求超时时间（毫秒，默认 10s）",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 10000,
-        "minimum": 1000,
-        "maximum": 300000
-      },
-      "callback_path": {
-        "title": "Callback Path",
-        "description": "设备侧回调/命令接收路径覆盖",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 255
-      },
-      "device_status": {
-        "description": "设备实时状态（IDLE/RUNNING/ERROR/OFFLINE/MAINTENANCE）",
-        "required": false,
-        "nullable": false,
-        "default": "IDLE",
-        "ref": "DeviceStatus"
-      },
-      "current_command_id": {
-        "title": "Current Command Id",
-        "description": "当前执行的指令 ID（关联 DeviceCommand.id）",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "last_heartbeat_at": {
-        "title": "Last Heartbeat At",
-        "description": "最后心跳时间",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "error_code": {
-        "title": "Error Code",
-        "description": "错误代码（status=ERROR 时）",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "maintenance_mode": {
-        "title": "Maintenance Mode",
-        "description": "是否处于维护模式（维护中不参与正常编排）",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": false
-      },
-      "max_concurrent_tasks": {
-        "title": "Max Concurrent Tasks",
-        "description": "最大并发任务数",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 1,
-        "minimum": 1,
-        "maximum": 10
-      },
-      "idempotency_ttl": {
-        "title": "Idempotency Ttl",
-        "description": "指令去重缓存时间（秒，默认 1 小时）",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 3600,
-        "minimum": 60,
-        "maximum": 86400
-      },
-      "diagnostic_profile": {
-        "title": "Diagnostic Profile",
-        "description": "设备诊断配置（责任角色、显示偏好、扩展属性）",
-        "type": "object",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "DeviceProtocol": {
-    "title": "DeviceProtocol",
-    "description": "设备通信协议枚举（白皮书 2.1 节）",
-    "required": [],
-    "fields": {
-      "__enum": {
-        "title": "DeviceProtocol",
-        "description": "设备通信协议枚举（白皮书 2.1 节）",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "enum": [
-          "HTTP",
-          "HTTPS",
-          "TCP",
-          "MODBUS",
-          "MQTT"
-        ]
-      }
-    }
-  },
-  "DeviceResponse": {
-    "title": "DeviceResponse",
-    "description": "设备响应 Schema - 返回给客户端",
-    "required": [
-      "device_code",
-      "device_name",
-      "device_role",
-      "id",
-      "version"
-    ],
-    "fields": {
-      "device_code": {
-        "title": "Device Code",
-        "description": "设备编码（业务主键）",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "minLength": 1,
-        "maxLength": 50
-      },
-      "device_name": {
-        "title": "Device Name",
-        "description": "设备名称",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "minLength": 1,
-        "maxLength": 100
-      },
-      "work_line_id": {
-        "title": "Work Line Id",
-        "description": "所属作业线 ID",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "description": {
-        "title": "Description",
-        "description": "设备用途说明",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 500
-      },
-      "is_active": {
-        "title": "Is Active",
-        "description": "是否启用",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": true
-      },
-      "sort_order": {
-        "title": "Sort Order",
-        "description": "排序顺序",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "device_role": {
-        "title": "Device Role",
-        "description": "设备业务角色（SCANNER, ROBOT_ARM, XRAY, CONVEYOR）",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 50
-      },
-      "role_index": {
-        "title": "Role Index",
-        "description": "同角色序号（1, 2, 3...）",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 1,
-        "minimum": 1
-      },
-      "upstream_device_id": {
-        "title": "Upstream Device Id",
-        "description": "上游设备ID（线性拓扑）",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "vendor_type": {
-        "title": "Vendor Type",
-        "description": "厂商类型（ECS, KEYENCE, FANUC...）",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "capabilities_json": {
-        "title": "Capabilities Json",
-        "description": "设备能力声明（支持事件、命令、回调等）",
-        "type": "object",
-        "required": false,
-        "nullable": false
-      },
-      "host": {
-        "title": "Host",
-        "description": "设备 IP 地址",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "port": {
-        "title": "Port",
-        "description": "服务端口",
-        "type": "integer",
-        "required": false,
-        "nullable": true,
-        "minimum": 1,
-        "maximum": 65535
-      },
-      "protocol": {
-        "description": "通信协议",
-        "required": false,
-        "nullable": false,
-        "default": "HTTP",
-        "ref": "DeviceProtocol"
-      },
-      "auth_token": {
-        "title": "Auth Token",
-        "description": "认证 Token（Bearer Token）",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 500
-      },
-      "timeout": {
-        "title": "Timeout",
-        "description": "请求超时时间（毫秒，默认 10s）",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 10000,
-        "minimum": 1000,
-        "maximum": 300000
-      },
-      "callback_path": {
-        "title": "Callback Path",
-        "description": "设备侧回调/命令接收路径覆盖",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 255
-      },
-      "device_status": {
-        "description": "设备实时状态（IDLE/RUNNING/ERROR/OFFLINE/MAINTENANCE）",
-        "required": false,
-        "nullable": false,
-        "default": "IDLE",
-        "ref": "DeviceStatus"
-      },
-      "current_command_id": {
-        "title": "Current Command Id",
-        "description": "当前执行的指令 ID（关联 DeviceCommand.id）",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "last_heartbeat_at": {
-        "title": "Last Heartbeat At",
-        "description": "最后心跳时间",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "error_code": {
-        "title": "Error Code",
-        "description": "错误代码（status=ERROR 时）",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "maintenance_mode": {
-        "title": "Maintenance Mode",
-        "description": "是否处于维护模式（维护中不参与正常编排）",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": false
-      },
-      "max_concurrent_tasks": {
-        "title": "Max Concurrent Tasks",
-        "description": "最大并发任务数",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 1,
-        "minimum": 1,
-        "maximum": 10
-      },
-      "idempotency_ttl": {
-        "title": "Idempotency Ttl",
-        "description": "指令去重缓存时间（秒，默认 1 小时）",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 3600,
-        "minimum": 60,
-        "maximum": 86400
-      },
-      "diagnostic_profile": {
-        "title": "Diagnostic Profile",
-        "description": "设备诊断配置（责任角色、显示偏好、扩展属性）",
-        "type": "object",
-        "required": false,
-        "nullable": false
-      },
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "version": {
-        "title": "Version",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      }
-    }
-  },
-  "DeviceStatus": {
-    "title": "DeviceStatus",
-    "description": "设备状态枚举（白皮书 5.2 节）",
-    "required": [],
-    "fields": {
-      "__enum": {
-        "title": "DeviceStatus",
-        "description": "设备状态枚举（白皮书 5.2 节）",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "enum": [
-          "IDLE",
-          "RUNNING",
-          "ERROR",
-          "OFFLINE",
-          "MAINTENANCE"
-        ]
-      }
-    }
-  },
-  "DeviceUpdate": {
-    "title": "DeviceUpdate",
-    "description": "设备更新 Schema - 所有字段可选",
-    "required": [
-      "version"
-    ],
-    "additionalProperties": false,
-    "fields": {
-      "device_code": {
-        "title": "Device Code",
-        "description": "设备编码（业务主键）",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "minLength": 1,
-        "maxLength": 50
-      },
-      "device_name": {
-        "title": "Device Name",
-        "description": "设备名称",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "minLength": 1,
-        "maxLength": 100
-      },
-      "work_line_id": {
-        "title": "Work Line Id",
-        "description": "所属作业线 ID",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "description": {
-        "title": "Description",
-        "description": "设备用途说明",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 500
-      },
-      "is_active": {
-        "title": "Is Active",
-        "description": "是否启用",
-        "type": "boolean",
-        "required": false,
-        "nullable": true
-      },
-      "sort_order": {
-        "title": "Sort Order",
-        "description": "排序顺序",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "device_role": {
-        "title": "Device Role",
-        "description": "设备业务角色（SCANNER, ROBOT_ARM, XRAY, CONVEYOR）",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "role_index": {
-        "title": "Role Index",
-        "description": "同角色序号（1, 2, 3...）",
-        "type": "integer",
-        "required": false,
-        "nullable": true,
-        "minimum": 1
-      },
-      "upstream_device_id": {
-        "title": "Upstream Device Id",
-        "description": "上游设备ID（线性拓扑）",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "vendor_type": {
-        "title": "Vendor Type",
-        "description": "厂商类型（ECS, KEYENCE, FANUC...）",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "capabilities_json": {
-        "title": "Capabilities Json",
-        "description": "设备能力声明（支持事件、命令、回调等）",
-        "type": "object",
-        "required": false,
-        "nullable": true
-      },
-      "host": {
-        "title": "Host",
-        "description": "设备 IP 地址",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "port": {
-        "title": "Port",
-        "description": "服务端口",
-        "type": "integer",
-        "required": false,
-        "nullable": true,
-        "minimum": 1,
-        "maximum": 65535
-      },
-      "protocol": {
-        "description": "通信协议",
-        "required": false,
-        "nullable": true,
-        "ref": "DeviceProtocol"
-      },
-      "auth_token": {
-        "title": "Auth Token",
-        "description": "认证 Token（Bearer Token）",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 500
-      },
-      "timeout": {
-        "title": "Timeout",
-        "description": "请求超时时间（毫秒，默认 10s）",
-        "type": "integer",
-        "required": false,
-        "nullable": true,
-        "minimum": 1000,
-        "maximum": 300000
-      },
-      "callback_path": {
-        "title": "Callback Path",
-        "description": "设备侧回调/命令接收路径覆盖",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 255
-      },
-      "device_status": {
-        "description": "设备实时状态（IDLE/RUNNING/ERROR/OFFLINE/MAINTENANCE）",
-        "required": false,
-        "nullable": true,
-        "ref": "DeviceStatus"
-      },
-      "current_command_id": {
-        "title": "Current Command Id",
-        "description": "当前执行的指令 ID（关联 DeviceCommand.id）",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "last_heartbeat_at": {
-        "title": "Last Heartbeat At",
-        "description": "最后心跳时间",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "error_code": {
-        "title": "Error Code",
-        "description": "错误代码（status=ERROR 时）",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "maintenance_mode": {
-        "title": "Maintenance Mode",
-        "description": "是否处于维护模式（维护中不参与正常编排）",
-        "type": "boolean",
-        "required": false,
-        "nullable": true
-      },
-      "max_concurrent_tasks": {
-        "title": "Max Concurrent Tasks",
-        "description": "最大并发任务数",
-        "type": "integer",
-        "required": false,
-        "nullable": true,
-        "minimum": 1,
-        "maximum": 10
-      },
-      "idempotency_ttl": {
-        "title": "Idempotency Ttl",
-        "description": "指令去重缓存时间（秒，默认 1 小时）",
-        "type": "integer",
-        "required": false,
-        "nullable": true,
-        "minimum": 60,
-        "maximum": 86400
-      },
-      "diagnostic_profile": {
-        "title": "Diagnostic Profile",
-        "description": "设备诊断配置（责任角色、显示偏好、扩展属性）",
-        "type": "object",
-        "required": false,
-        "nullable": true
-      },
-      "version": {
-        "title": "Version",
-        "description": "乐观锁版本号，更新时必传",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      }
-    }
-  },
-  "DiagnosticCardResponse": {
-    "title": "DiagnosticCardResponse",
-    "required": [
-      "title",
-      "summary",
-      "error_code",
-      "error_domain",
-      "severity",
-      "recoverability",
-      "problem_class",
-      "user_message",
-      "context"
-    ],
-    "fields": {
-      "title": {
-        "title": "Title",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "summary": {
-        "title": "Summary",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "error_code": {
-        "title": "Error Code",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "error_domain": {
-        "title": "Error Domain",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "severity": {
-        "title": "Severity",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "recoverability": {
-        "title": "Recoverability",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "problem_class": {
-        "title": "Problem Class",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "user_message": {
-        "title": "User Message",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "operator_action": {
-        "title": "Operator Action",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "technical_summary": {
-        "title": "Technical Summary",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "next_steps": {
-        "title": "Next Steps",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "type": "string"
-        }
-      },
-      "context": {
-        "required": true,
-        "nullable": false,
-        "ref": "TraceDiagnosticContextItem"
-      }
-    }
-  },
-  "FilterCondition": {
-    "title": "FilterCondition",
-    "description": "单个过滤条件",
-    "required": [
-      "field",
-      "op"
-    ],
-    "fields": {
-      "field": {
-        "title": "Field",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "op": {
-        "required": true,
-        "nullable": false,
-        "ref": "FilterOperator"
-      },
-      "value": {
-        "title": "Value",
-        "required": false,
-        "nullable": true
-      }
-    }
-  },
-  "FilterGroup": {
-    "title": "FilterGroup",
-    "description": "过滤条件组",
-    "required": [],
-    "fields": {
-      "couple": {
-        "title": "Couple",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "and",
-        "enum": [
-          "and",
-          "or",
-          "not"
-        ]
-      },
-      "conditions": {
-        "title": "Conditions",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {}
-      }
-    }
-  },
-  "FilterOperator": {
-    "title": "FilterOperator",
-    "description": "过滤操作符",
-    "required": [],
-    "fields": {
-      "__enum": {
-        "title": "FilterOperator",
-        "description": "过滤操作符",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "enum": [
-          "eq",
-          "ne",
-          "gt",
-          "ge",
-          "lt",
-          "le",
-          "in",
-          "nin",
-          "ilike",
-          "between",
-          "is_null",
-          "not_null"
-        ]
-      }
-    }
-  },
-  "HTTPValidationError": {
-    "title": "HTTPValidationError",
-    "required": [],
-    "fields": {
-      "detail": {
-        "title": "Detail",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "ValidationError"
-        }
-      }
-    }
-  },
-  "LineType": {
-    "title": "LineType",
-    "description": "作业线类型枚举",
-    "required": [],
-    "fields": {
-      "__enum": {
-        "title": "LineType",
-        "description": "作业线类型枚举",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "enum": [
-          "AUTO",
-          "MANUAL",
-          "HYBRID"
-        ]
-      }
-    }
-  },
-  "ListResponseData_APIAccessLogResponse_": {
-    "title": "ListResponseData[APIAccessLogResponse]",
-    "required": [],
-    "fields": {
-      "total": {
-        "title": "Total",
-        "description": "总数量",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      },
-      "items": {
-        "title": "Items",
-        "description": "列表数据",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "APIAccessLogResponse"
-        }
-      },
-      "limit": {
-        "title": "Limit",
-        "description": "分页大小",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      },
-      "offset": {
-        "title": "Offset",
-        "description": "偏移量",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      }
-    }
-  },
-  "ListResponseData_APIApplicationResponse_": {
-    "title": "ListResponseData[APIApplicationResponse]",
-    "required": [],
-    "fields": {
-      "total": {
-        "title": "Total",
-        "description": "总数量",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      },
-      "items": {
-        "title": "Items",
-        "description": "列表数据",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "APIApplicationResponse"
-        }
-      },
-      "limit": {
-        "title": "Limit",
-        "description": "分页大小",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      },
-      "offset": {
-        "title": "Offset",
-        "description": "偏移量",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      }
-    }
-  },
-  "ListResponseData_AuditLogResponse_": {
-    "title": "ListResponseData[AuditLogResponse]",
-    "required": [],
-    "fields": {
-      "total": {
-        "title": "Total",
-        "description": "总数量",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      },
-      "items": {
-        "title": "Items",
-        "description": "列表数据",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "AuditLogResponse"
-        }
-      },
-      "limit": {
-        "title": "Limit",
-        "description": "分页大小",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      },
-      "offset": {
-        "title": "Offset",
-        "description": "偏移量",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      }
-    }
-  },
-  "ListResponseData_DemoProductResponse_": {
-    "title": "ListResponseData[DemoProductResponse]",
-    "required": [],
-    "fields": {
-      "total": {
-        "title": "Total",
-        "description": "总数量",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      },
-      "items": {
-        "title": "Items",
-        "description": "列表数据",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "DemoProductResponse"
-        }
-      },
-      "limit": {
-        "title": "Limit",
-        "description": "分页大小",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      },
-      "offset": {
-        "title": "Offset",
-        "description": "偏移量",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      }
-    }
-  },
-  "ListResponseData_DeviceResponse_": {
-    "title": "ListResponseData[DeviceResponse]",
-    "required": [],
-    "fields": {
-      "total": {
-        "title": "Total",
-        "description": "总数量",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      },
-      "items": {
-        "title": "Items",
-        "description": "列表数据",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "DeviceResponse"
-        }
-      },
-      "limit": {
-        "title": "Limit",
-        "description": "分页大小",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      },
-      "offset": {
-        "title": "Offset",
-        "description": "偏移量",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      }
-    }
-  },
-  "ListResponseData_MenuResponse_": {
-    "title": "ListResponseData[MenuResponse]",
-    "required": [],
-    "fields": {
-      "total": {
-        "title": "Total",
-        "description": "总数量",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      },
-      "items": {
-        "title": "Items",
-        "description": "列表数据",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "MenuResponse"
-        }
-      },
-      "limit": {
-        "title": "Limit",
-        "description": "分页大小",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      },
-      "offset": {
-        "title": "Offset",
-        "description": "偏移量",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      }
-    }
-  },
-  "ListResponseData_PermissionResponse_": {
-    "title": "ListResponseData[PermissionResponse]",
-    "required": [],
-    "fields": {
-      "total": {
-        "title": "Total",
-        "description": "总数量",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      },
-      "items": {
-        "title": "Items",
-        "description": "列表数据",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "PermissionResponse"
-        }
-      },
-      "limit": {
-        "title": "Limit",
-        "description": "分页大小",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      },
-      "offset": {
-        "title": "Offset",
-        "description": "偏移量",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      }
-    }
-  },
-  "ListResponseData_RoleResponse_": {
-    "title": "ListResponseData[RoleResponse]",
-    "required": [],
-    "fields": {
-      "total": {
-        "title": "Total",
-        "description": "总数量",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      },
-      "items": {
-        "title": "Items",
-        "description": "列表数据",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "RoleResponse"
-        }
-      },
-      "limit": {
-        "title": "Limit",
-        "description": "分页大小",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      },
-      "offset": {
-        "title": "Offset",
-        "description": "偏移量",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      }
-    }
-  },
-  "ListResponseData_UserResponse_": {
-    "title": "ListResponseData[UserResponse]",
-    "required": [],
-    "fields": {
-      "total": {
-        "title": "Total",
-        "description": "总数量",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      },
-      "items": {
-        "title": "Items",
-        "description": "列表数据",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "UserResponse"
-        }
-      },
-      "limit": {
-        "title": "Limit",
-        "description": "分页大小",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      },
-      "offset": {
-        "title": "Offset",
-        "description": "偏移量",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      }
-    }
-  },
-  "ListResponseData_WorkLineResponse_": {
-    "title": "ListResponseData[WorkLineResponse]",
-    "required": [],
-    "fields": {
-      "total": {
-        "title": "Total",
-        "description": "总数量",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      },
-      "items": {
-        "title": "Items",
-        "description": "列表数据",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "WorkLineResponse"
-        }
-      },
-      "limit": {
-        "title": "Limit",
-        "description": "分页大小",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      },
-      "offset": {
-        "title": "Offset",
-        "description": "偏移量",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      }
-    }
-  },
-  "ListResponseSchemaModel_APIAccessLogResponse_": {
-    "title": "ListResponseSchemaModel[APIAccessLogResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "ListResponseData_APIAccessLogResponse_"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ListResponseSchemaModel_APIApplicationResponse_": {
-    "title": "ListResponseSchemaModel[APIApplicationResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "ListResponseData_APIApplicationResponse_"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ListResponseSchemaModel_AuditLogResponse_": {
-    "title": "ListResponseSchemaModel[AuditLogResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "ListResponseData_AuditLogResponse_"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ListResponseSchemaModel_DemoProductResponse_": {
-    "title": "ListResponseSchemaModel[DemoProductResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "ListResponseData_DemoProductResponse_"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ListResponseSchemaModel_DeviceResponse_": {
-    "title": "ListResponseSchemaModel[DeviceResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "ListResponseData_DeviceResponse_"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ListResponseSchemaModel_MenuResponse_": {
-    "title": "ListResponseSchemaModel[MenuResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "ListResponseData_MenuResponse_"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ListResponseSchemaModel_PermissionResponse_": {
-    "title": "ListResponseSchemaModel[PermissionResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "ListResponseData_PermissionResponse_"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ListResponseSchemaModel_RoleResponse_": {
-    "title": "ListResponseSchemaModel[RoleResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "ListResponseData_RoleResponse_"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ListResponseSchemaModel_UserResponse_": {
-    "title": "ListResponseSchemaModel[UserResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "ListResponseData_UserResponse_"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ListResponseSchemaModel_WorkLineResponse_": {
-    "title": "ListResponseSchemaModel[WorkLineResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "ListResponseData_WorkLineResponse_"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "LoginRequest": {
-    "title": "LoginRequest",
-    "description": "登录请求 Schema",
-    "required": [
-      "username",
-      "password"
-    ],
-    "fields": {
-      "username": {
-        "title": "Username",
-        "description": "用户名",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "minLength": 3,
-        "maxLength": 50
-      },
-      "password": {
-        "title": "Password",
-        "description": "密码",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "minLength": 6,
-        "maxLength": 100
-      }
-    }
-  },
-  "LoginResponse": {
-    "title": "LoginResponse",
-    "description": "登录响应 Schema\n\n包含访问令牌、刷新令牌元数据和用户信息",
-    "required": [
-      "access_token",
-      "access_token_jti",
-      "refresh_token_jti",
-      "access_token_expire_time",
-      "refresh_token_expire_time",
-      "session_uuid",
-      "user",
-      "expires_in",
-      "refresh_expires_in"
-    ],
-    "fields": {
-      "access_token": {
-        "title": "Access Token",
-        "description": "访问令牌",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "access_token_jti": {
-        "title": "Access Token Jti",
-        "description": "访问令牌唯一标识符（用于撤销）",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "refresh_token_jti": {
-        "title": "Refresh Token Jti",
-        "description": "刷新令牌唯一标识符（用于撤销）",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "access_token_expire_time": {
-        "title": "Access Token Expire Time",
-        "description": "访问令牌过期时间",
-        "type": "string",
-        "format": "date-time",
-        "required": true,
-        "nullable": false
-      },
-      "refresh_token_expire_time": {
-        "title": "Refresh Token Expire Time",
-        "description": "刷新令牌过期时间（令牌仅存储于 HttpOnly Cookie）",
-        "type": "string",
-        "format": "date-time",
-        "required": true,
-        "nullable": false
-      },
-      "session_uuid": {
-        "title": "Session Uuid",
-        "description": "会话 UUID",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "user": {
-        "description": "用户信息",
-        "required": true,
-        "nullable": false,
-        "ref": "UserResponse"
-      },
-      "expires_in": {
-        "title": "Expires In",
-        "description": "访问令牌过期时间（秒）- OAuth 2.0 标准字段",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "refresh_expires_in": {
-        "title": "Refresh Expires In",
-        "description": "刷新令牌过期时间（秒）",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      }
-    }
-  },
-  "LogoutResponse": {
-    "title": "LogoutResponse",
-    "description": "登出响应 Schema",
-    "required": [
-      "message"
-    ],
-    "fields": {
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "revoked_count": {
-        "title": "Revoked Count",
-        "description": "撤销的令牌数量",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      }
-    }
-  },
-  "ManualOperationRequest": {
-    "title": "ManualOperationRequest",
-    "description": "人工操作请求。",
-    "required": [
-      "operation",
-      "operator_id",
-      "reason"
-    ],
-    "fields": {
-      "operation": {
-        "title": "Operation",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "operator_id": {
-        "title": "Operator Id",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "minLength": 1,
-        "maxLength": 100
-      },
-      "reason": {
-        "title": "Reason",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "minLength": 1,
-        "maxLength": 500
-      }
-    }
-  },
-  "MenuCreate": {
-    "title": "MenuCreate",
-    "description": "菜单创建 Schema",
-    "required": [
-      "name",
-      "title",
-      "path"
-    ],
-    "additionalProperties": false,
-    "fields": {
-      "parent_id": {
-        "title": "Parent Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "tree_path": {
-        "title": "Tree Path",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "/"
-      },
-      "level": {
-        "title": "Level",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 1
-      },
-      "sort_order": {
-        "title": "Sort Order",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "has_children": {
-        "title": "Has Children",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": false
-      },
-      "name": {
-        "title": "Name",
-        "description": "菜单标识，如 system:users",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 50
-      },
-      "title": {
-        "title": "Title",
-        "description": "显示标题",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 50
-      },
-      "path": {
-        "title": "Path",
-        "description": "路由路径，如 /system/users",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 200
-      },
-      "component": {
-        "title": "Component",
-        "description": "组件路径，如 views/system/users.vue",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 200
-      },
-      "icon": {
-        "title": "Icon",
-        "description": "图标",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "is_hidden": {
-        "title": "Is Hidden",
-        "description": "是否隐藏",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": false
-      }
-    }
-  },
-  "MenuResponse": {
-    "title": "MenuResponse",
-    "description": "菜单响应 Schema",
-    "required": [
-      "name",
-      "title",
-      "path",
-      "id",
-      "version"
-    ],
-    "fields": {
-      "parent_id": {
-        "title": "Parent Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "tree_path": {
-        "title": "Tree Path",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "/"
-      },
-      "level": {
-        "title": "Level",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 1
-      },
-      "sort_order": {
-        "title": "Sort Order",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "has_children": {
-        "title": "Has Children",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": false
-      },
-      "name": {
-        "title": "Name",
-        "description": "菜单标识，如 system:users",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 50
-      },
-      "title": {
-        "title": "Title",
-        "description": "显示标题",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 50
-      },
-      "path": {
-        "title": "Path",
-        "description": "路由路径，如 /system/users",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 200
-      },
-      "component": {
-        "title": "Component",
-        "description": "组件路径，如 views/system/users.vue",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 200
-      },
-      "icon": {
-        "title": "Icon",
-        "description": "图标",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "is_hidden": {
-        "title": "Is Hidden",
-        "description": "是否隐藏",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": false
-      },
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "version": {
-        "title": "Version",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "roles": {
-        "title": "Roles",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "RoleResponse"
-        }
-      }
-    }
-  },
-  "MenuTreeResponse": {
-    "title": "MenuTreeResponse",
-    "description": "菜单树响应 Schema",
-    "required": [
-      "name",
-      "title",
-      "path",
-      "id",
-      "version"
-    ],
-    "fields": {
-      "parent_id": {
-        "title": "Parent Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "tree_path": {
-        "title": "Tree Path",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "/"
-      },
-      "level": {
-        "title": "Level",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 1
-      },
-      "sort_order": {
-        "title": "Sort Order",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "has_children": {
-        "title": "Has Children",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": false
-      },
-      "name": {
-        "title": "Name",
-        "description": "菜单标识，如 system:users",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 50
-      },
-      "title": {
-        "title": "Title",
-        "description": "显示标题",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 50
-      },
-      "path": {
-        "title": "Path",
-        "description": "路由路径，如 /system/users",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 200
-      },
-      "component": {
-        "title": "Component",
-        "description": "组件路径，如 views/system/users.vue",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 200
-      },
-      "icon": {
-        "title": "Icon",
-        "description": "图标",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "is_hidden": {
-        "title": "Is Hidden",
-        "description": "是否隐藏",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": false
-      },
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "version": {
-        "title": "Version",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "roles": {
-        "title": "Roles",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "RoleResponse"
-        }
-      },
-      "children": {
-        "title": "Children",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "MenuTreeResponse"
-        }
-      }
-    }
-  },
-  "MenuTreeResponseSimple": {
-    "title": "MenuTreeResponseSimple",
-    "description": "菜单树响应 Schema",
-    "required": [
-      "name",
-      "title",
-      "path",
-      "id",
-      "version"
-    ],
-    "fields": {
-      "parent_id": {
-        "title": "Parent Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "tree_path": {
-        "title": "Tree Path",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "/"
-      },
-      "level": {
-        "title": "Level",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 1
-      },
-      "sort_order": {
-        "title": "Sort Order",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "has_children": {
-        "title": "Has Children",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": false
-      },
-      "name": {
-        "title": "Name",
-        "description": "菜单标识，如 system:users",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 50
-      },
-      "title": {
-        "title": "Title",
-        "description": "显示标题",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 50
-      },
-      "path": {
-        "title": "Path",
-        "description": "路由路径，如 /system/users",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 200
-      },
-      "component": {
-        "title": "Component",
-        "description": "组件路径，如 views/system/users.vue",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 200
-      },
-      "icon": {
-        "title": "Icon",
-        "description": "图标",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "is_hidden": {
-        "title": "Is Hidden",
-        "description": "是否隐藏",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": false
-      },
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "version": {
-        "title": "Version",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "children": {
-        "title": "Children",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "MenuTreeResponseSimple"
-        }
-      }
-    }
-  },
-  "MenuUpdate": {
-    "title": "MenuUpdate",
-    "description": "菜单更新 Schema",
-    "required": [
-      "version"
-    ],
-    "additionalProperties": false,
-    "fields": {
-      "parent_id": {
-        "title": "Parent Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "tree_path": {
-        "title": "Tree Path",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "level": {
-        "title": "Level",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "sort_order": {
-        "title": "Sort Order",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "has_children": {
-        "title": "Has Children",
-        "type": "boolean",
-        "required": false,
-        "nullable": true
-      },
-      "name": {
-        "title": "Name",
-        "description": "菜单标识，如 system:users",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "title": {
-        "title": "Title",
-        "description": "显示标题",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "path": {
-        "title": "Path",
-        "description": "路由路径，如 /system/users",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 200
-      },
-      "component": {
-        "title": "Component",
-        "description": "组件路径，如 views/system/users.vue",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 200
-      },
-      "icon": {
-        "title": "Icon",
-        "description": "图标",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "is_hidden": {
-        "title": "Is Hidden",
-        "description": "是否隐藏",
-        "type": "boolean",
-        "required": false,
-        "nullable": true
-      },
-      "version": {
-        "title": "Version",
-        "description": "乐观锁版本号，更新时必传",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      }
-    }
-  },
-  "OperaStatus": {
-    "title": "OperaStatus",
-    "description": "操作日志状态",
-    "required": [],
-    "fields": {
-      "__enum": {
-        "title": "OperaStatus",
-        "description": "操作日志状态",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "enum": [
-          "FAIL",
-          "SUCCESS"
-        ]
-      }
-    }
-  },
-  "PermissionCreate": {
-    "title": "PermissionCreate",
-    "description": "API 权限创建 Schema",
-    "required": [
-      "name"
-    ],
-    "additionalProperties": false,
-    "fields": {
-      "parent_id": {
-        "title": "Parent Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "tree_path": {
-        "title": "Tree Path",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "/"
-      },
-      "level": {
-        "title": "Level",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 1
-      },
-      "sort_order": {
-        "title": "Sort Order",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "has_children": {
-        "title": "Has Children",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": false
-      },
-      "name": {
-        "title": "Name",
-        "description": "权限标识，如 admin:role:create",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 100
-      },
-      "description": {
-        "title": "Description",
-        "description": "权限描述",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 255
-      },
-      "type": {
-        "title": "Type",
-        "description": "权限类型：user_api（内部管理API）、app_api（外部应用API）",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "user_api",
-        "maxLength": 20
-      },
-      "category": {
-        "title": "Category",
-        "description": "权限分类：admin、system、business 等",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "resource": {
-        "title": "Resource",
-        "description": "资源类型：user、role、permission、warehouse 等",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "action": {
-        "title": "Action",
-        "description": "操作：create、read、update、delete、list 等",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "method": {
-        "title": "Method",
-        "description": "HTTP 方法：GET、POST、PUT、DELETE、PATCH 等",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 10
-      },
-      "path": {
-        "title": "Path",
-        "description": "API 路径：/admin/users/{id}、/api/v1/warehouses 等",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 255
-      }
-    }
-  },
-  "PermissionResponse": {
-    "title": "PermissionResponse",
-    "description": "API 权限响应 Schema（完整版）",
-    "required": [
-      "name",
-      "id",
-      "version"
-    ],
-    "fields": {
-      "parent_id": {
-        "title": "Parent Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "tree_path": {
-        "title": "Tree Path",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "/"
-      },
-      "level": {
-        "title": "Level",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 1
-      },
-      "sort_order": {
-        "title": "Sort Order",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "has_children": {
-        "title": "Has Children",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": false
-      },
-      "name": {
-        "title": "Name",
-        "description": "权限标识，如 admin:role:create",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 100
-      },
-      "description": {
-        "title": "Description",
-        "description": "权限描述",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 255
-      },
-      "type": {
-        "title": "Type",
-        "description": "权限类型：user_api（内部管理API）、app_api（外部应用API）",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "user_api",
-        "maxLength": 20
-      },
-      "category": {
-        "title": "Category",
-        "description": "权限分类：admin、system、business 等",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "resource": {
-        "title": "Resource",
-        "description": "资源类型：user、role、permission、warehouse 等",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "action": {
-        "title": "Action",
-        "description": "操作：create、read、update、delete、list 等",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "method": {
-        "title": "Method",
-        "description": "HTTP 方法：GET、POST、PUT、DELETE、PATCH 等",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 10
-      },
-      "path": {
-        "title": "Path",
-        "description": "API 路径：/admin/users/{id}、/api/v1/warehouses 等",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 255
-      },
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "version": {
-        "title": "Version",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      }
-    }
-  },
-  "PermissionTree": {
-    "title": "PermissionTree",
-    "description": "API 权限树形结构 Schema\n\n用于权限分组展示和管理（如按模块分组）",
-    "required": [
-      "name",
-      "id"
-    ],
-    "fields": {
-      "parent_id": {
-        "title": "Parent Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "tree_path": {
-        "title": "Tree Path",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "/"
-      },
-      "level": {
-        "title": "Level",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 1
-      },
-      "sort_order": {
-        "title": "Sort Order",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "has_children": {
-        "title": "Has Children",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": false
-      },
-      "name": {
-        "title": "Name",
-        "description": "权限标识，如 admin:role:create",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 100
-      },
-      "description": {
-        "title": "Description",
-        "description": "权限描述",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 255
-      },
-      "type": {
-        "title": "Type",
-        "description": "权限类型：user_api（内部管理API）、app_api（外部应用API）",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "user_api",
-        "maxLength": 20
-      },
-      "category": {
-        "title": "Category",
-        "description": "权限分类：admin、system、business 等",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "resource": {
-        "title": "Resource",
-        "description": "资源类型：user、role、permission、warehouse 等",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "action": {
-        "title": "Action",
-        "description": "操作：create、read、update、delete、list 等",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "method": {
-        "title": "Method",
-        "description": "HTTP 方法：GET、POST、PUT、DELETE、PATCH 等",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 10
-      },
-      "path": {
-        "title": "Path",
-        "description": "API 路径：/admin/users/{id}、/api/v1/warehouses 等",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 255
-      },
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "children": {
-        "title": "Children",
-        "description": "子权限列表",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "PermissionTree"
-        }
-      }
-    }
-  },
-  "PermissionUpdate": {
-    "title": "PermissionUpdate",
-    "description": "API 权限更新 Schema",
-    "required": [
-      "version"
-    ],
-    "additionalProperties": false,
-    "fields": {
-      "parent_id": {
-        "title": "Parent Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "tree_path": {
-        "title": "Tree Path",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "level": {
-        "title": "Level",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "sort_order": {
-        "title": "Sort Order",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "has_children": {
-        "title": "Has Children",
-        "type": "boolean",
-        "required": false,
-        "nullable": true
-      },
-      "name": {
-        "title": "Name",
-        "description": "权限标识，如 admin:role:create",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "description": {
-        "title": "Description",
-        "description": "权限描述",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 255
-      },
-      "type": {
-        "title": "Type",
-        "description": "权限类型：user_api（内部管理API）、app_api（外部应用API）",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 20
-      },
-      "category": {
-        "title": "Category",
-        "description": "权限分类：admin、system、business 等",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "resource": {
-        "title": "Resource",
-        "description": "资源类型：user、role、permission、warehouse 等",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "action": {
-        "title": "Action",
-        "description": "操作：create、read、update、delete、list 等",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "method": {
-        "title": "Method",
-        "description": "HTTP 方法：GET、POST、PUT、DELETE、PATCH 等",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 10
-      },
-      "path": {
-        "title": "Path",
-        "description": "API 路径：/admin/users/{id}、/api/v1/warehouses 等",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 255
-      },
-      "version": {
-        "title": "Version",
-        "description": "乐观锁版本号，更新时必传",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      }
-    }
-  },
-  "QueryOptions": {
-    "title": "QueryOptions",
-    "description": "查询选项",
-    "required": [],
-    "fields": {
-      "filters": {
-        "required": false,
-        "nullable": true,
-        "ref": "FilterGroup"
-      },
-      "sort": {
-        "title": "Sort",
-        "type": "array",
-        "required": false,
-        "nullable": true,
-        "items": {
-          "ref": "SortField"
-        }
-      },
-      "offset": {
-        "title": "Offset",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      },
-      "limit": {
-        "title": "Limit",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 10,
-        "minimum": 1,
-        "maximum": 100
-      },
-      "max_depth": {
-        "title": "Max Depth",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 1,
-        "minimum": 0,
-        "maximum": 3
-      },
-      "include_deleted": {
-        "title": "Include Deleted",
-        "description": "是否包含已删除记录",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": false
-      }
-    }
-  },
-  "RefreshTokenResponse": {
-    "title": "RefreshTokenResponse",
-    "description": "刷新令牌响应 Schema\n\n包含新的访问令牌和刷新令牌元数据",
-    "required": [
-      "access_token",
-      "access_token_jti",
-      "refresh_token_jti",
-      "access_token_expire_time",
-      "refresh_token_expire_time",
-      "session_uuid",
-      "expires_in",
-      "refresh_expires_in"
-    ],
-    "fields": {
-      "access_token": {
-        "title": "Access Token",
-        "description": "新的访问令牌",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "access_token_jti": {
-        "title": "Access Token Jti",
-        "description": "访问令牌唯一标识符",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "refresh_token_jti": {
-        "title": "Refresh Token Jti",
-        "description": "刷新令牌唯一标识符",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "access_token_expire_time": {
-        "title": "Access Token Expire Time",
-        "description": "访问令牌过期时间",
-        "type": "string",
-        "format": "date-time",
-        "required": true,
-        "nullable": false
-      },
-      "refresh_token_expire_time": {
-        "title": "Refresh Token Expire Time",
-        "description": "刷新令牌过期时间（令牌仅存储于 HttpOnly Cookie）",
-        "type": "string",
-        "format": "date-time",
-        "required": true,
-        "nullable": false
-      },
-      "session_uuid": {
-        "title": "Session Uuid",
-        "description": "会话 UUID",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "expires_in": {
-        "title": "Expires In",
-        "description": "访问令牌过期时间（秒）- OAuth 2.0 标准字段",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "refresh_expires_in": {
-        "title": "Refresh Expires In",
-        "description": "刷新令牌过期时间（秒）",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      }
-    }
-  },
-  "ReplayInboxRequest": {
-    "title": "ReplayInboxRequest",
-    "description": "Replay 请求。",
-    "required": [
-      "reason"
-    ],
-    "fields": {
-      "reason": {
-        "title": "Reason",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "minLength": 1,
-        "maxLength": 500
-      },
-      "operator_id": {
-        "title": "Operator Id",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      }
-    }
-  },
-  "ResetPasswordRequest": {
-    "title": "ResetPasswordRequest",
-    "description": "管理员重置密码请求",
-    "required": [
-      "new_password"
-    ],
-    "fields": {
-      "new_password": {
-        "title": "New Password",
-        "description": "新密码",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "minLength": 6,
-        "maxLength": 100
-      }
-    }
-  },
-  "ResetValidityPeriodSchema": {
-    "title": "ResetValidityPeriodSchema",
-    "description": "重置有效期 Schema",
-    "required": [
-      "validity_period"
-    ],
-    "fields": {
-      "version": {
-        "title": "Version",
-        "description": "数据版本",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "validity_period": {
-        "description": "新的有效期时长",
-        "required": true,
-        "nullable": false,
-        "ref": "ValidityPeriod"
-      }
-    }
-  },
-  "ResponseSchemaModel_APIAccessLogResponse_": {
-    "title": "ResponseSchemaModel[APIAccessLogResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "APIAccessLogResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_APIApplicationResponse_": {
-    "title": "ResponseSchemaModel[APIApplicationResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "APIApplicationResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_ActiveSessionsResponse_": {
-    "title": "ResponseSchemaModel[ActiveSessionsResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "ActiveSessionsResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_AuditLogResponse_": {
-    "title": "ResponseSchemaModel[AuditLogResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "AuditLogResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_AuthMyResponse_": {
-    "title": "ResponseSchemaModel[AuthMyResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "AuthMyResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_DemoProductResponse_": {
-    "title": "ResponseSchemaModel[DemoProductResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "DemoProductResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_DeviceResponse_": {
-    "title": "ResponseSchemaModel[DeviceResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "DeviceResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_LoginResponse_": {
-    "title": "ResponseSchemaModel[LoginResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "LoginResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_LogoutResponse_": {
-    "title": "ResponseSchemaModel[LogoutResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "LogoutResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_MenuResponse_": {
-    "title": "ResponseSchemaModel[MenuResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "MenuResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_NoneType_": {
-    "title": "ResponseSchemaModel[NoneType]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "title": "Data",
-        "description": "响应数据",
-        "type": "null",
-        "required": false,
-        "nullable": false
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_PermissionResponse_": {
-    "title": "ResponseSchemaModel[PermissionResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "PermissionResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_RefreshTokenResponse_": {
-    "title": "ResponseSchemaModel[RefreshTokenResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "RefreshTokenResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_RevokeSessionResponse_": {
-    "title": "ResponseSchemaModel[RevokeSessionResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "RevokeSessionResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_RoleResponse_": {
-    "title": "ResponseSchemaModel[RoleResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "RoleResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_RuntimeDeviceDetailResponse_": {
-    "title": "ResponseSchemaModel[RuntimeDeviceDetailResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "RuntimeDeviceDetailResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_RuntimeOverviewResponse_": {
-    "title": "ResponseSchemaModel[RuntimeOverviewResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "RuntimeOverviewResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_RuntimeTraceListResponse_": {
-    "title": "ResponseSchemaModel[RuntimeTraceListResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "RuntimeTraceListResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_RuntimeTracePathResponse_": {
-    "title": "ResponseSchemaModel[RuntimeTracePathResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "RuntimeTracePathResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_RuntimeWorklineDetailResponse_": {
-    "title": "ResponseSchemaModel[RuntimeWorklineDetailResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "RuntimeWorklineDetailResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_SandboxTemplatesResponse_": {
-    "title": "ResponseSchemaModel[SandboxTemplatesResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "SandboxTemplatesResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_TraceBlockingPointResponse_": {
-    "title": "ResponseSchemaModel[TraceBlockingPointResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "TraceBlockingPointResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_TraceDetailResponse_": {
-    "title": "ResponseSchemaModel[TraceDetailResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "TraceDetailResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_UserPermissionsResponse_": {
-    "title": "ResponseSchemaModel[UserPermissionsResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "UserPermissionsResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_UserResponse_": {
-    "title": "ResponseSchemaModel[UserResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "UserResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_UserSimpleResponse_": {
-    "title": "ResponseSchemaModel[UserSimpleResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "UserSimpleResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_WorkLineResponse_": {
-    "title": "ResponseSchemaModel[WorkLineResponse]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "description": "响应数据",
-        "required": false,
-        "nullable": true,
-        "ref": "WorkLineResponse"
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_dict_str__Any__": {
-    "title": "ResponseSchemaModel[dict[str, Any]]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "title": "Data",
-        "description": "响应数据",
-        "type": "object",
-        "required": false,
-        "nullable": true
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_dict_str__str__": {
-    "title": "ResponseSchemaModel[dict[str, str]]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "title": "Data",
-        "description": "响应数据",
-        "type": "object",
-        "required": false,
-        "nullable": true
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_list_Any__": {
-    "title": "ResponseSchemaModel[list[Any]]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "title": "Data",
-        "description": "响应数据",
-        "type": "array",
-        "required": false,
-        "nullable": true,
-        "items": {}
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_list_MenuResponse__": {
-    "title": "ResponseSchemaModel[list[MenuResponse]]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "title": "Data",
-        "description": "响应数据",
-        "type": "array",
-        "required": false,
-        "nullable": true,
-        "items": {
-          "ref": "MenuResponse"
-        }
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_list_MenuTreeResponseSimple__": {
-    "title": "ResponseSchemaModel[list[MenuTreeResponseSimple]]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "title": "Data",
-        "description": "响应数据",
-        "type": "array",
-        "required": false,
-        "nullable": true,
-        "items": {
-          "ref": "MenuTreeResponseSimple"
-        }
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_list_MenuTreeResponse__": {
-    "title": "ResponseSchemaModel[list[MenuTreeResponse]]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "title": "Data",
-        "description": "响应数据",
-        "type": "array",
-        "required": false,
-        "nullable": true,
-        "items": {
-          "ref": "MenuTreeResponse"
-        }
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_list_PermissionResponse__": {
-    "title": "ResponseSchemaModel[list[PermissionResponse]]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "title": "Data",
-        "description": "响应数据",
-        "type": "array",
-        "required": false,
-        "nullable": true,
-        "items": {
-          "ref": "PermissionResponse"
-        }
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_list_PermissionTree__": {
-    "title": "ResponseSchemaModel[list[PermissionTree]]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "title": "Data",
-        "description": "响应数据",
-        "type": "array",
-        "required": false,
-        "nullable": true,
-        "items": {
-          "ref": "PermissionTree"
-        }
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_list_RuntimeDeviceSummary__": {
-    "title": "ResponseSchemaModel[list[RuntimeDeviceSummary]]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "title": "Data",
-        "description": "响应数据",
-        "type": "array",
-        "required": false,
-        "nullable": true,
-        "items": {
-          "ref": "RuntimeDeviceSummary"
-        }
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_list_RuntimeWorklineSummary__": {
-    "title": "ResponseSchemaModel[list[RuntimeWorklineSummary]]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "title": "Data",
-        "description": "响应数据",
-        "type": "array",
-        "required": false,
-        "nullable": true,
-        "items": {
-          "ref": "RuntimeWorklineSummary"
-        }
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_list_WorkLinePluginOption__": {
-    "title": "ResponseSchemaModel[list[WorkLinePluginOption]]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "title": "Data",
-        "description": "响应数据",
-        "type": "array",
-        "required": false,
-        "nullable": true,
-        "items": {
-          "ref": "WorkLinePluginOption"
-        }
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ResponseSchemaModel_list_dict_str__Any___": {
-    "title": "ResponseSchemaModel[list[dict[str, Any]]]",
-    "required": [],
-    "fields": {
-      "code": {
-        "title": "Code",
-        "description": "响应码",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "1000"
-      },
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "操作成功"
-      },
-      "data": {
-        "title": "Data",
-        "description": "响应数据",
-        "type": "array",
-        "required": false,
-        "nullable": true,
-        "items": {
-          "type": "object"
-        }
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "响应时间戳(ISO 8601格式)",
-        "type": "string",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "RevokeSessionResponse": {
-    "title": "RevokeSessionResponse",
-    "description": "撤销会话响应 Schema",
-    "required": [
-      "message",
-      "session_uuid"
-    ],
-    "fields": {
-      "message": {
-        "title": "Message",
-        "description": "响应消息",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "session_uuid": {
-        "title": "Session Uuid",
-        "description": "被撤销的会话 UUID",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      }
-    }
-  },
-  "RoleCreate": {
-    "title": "RoleCreate",
-    "description": "角色创建 Schema",
-    "required": [
-      "name"
-    ],
-    "additionalProperties": false,
-    "fields": {
-      "name": {
-        "title": "Name",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 100
-      },
-      "description": {
-        "title": "Description",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 255
-      }
-    }
-  },
-  "RoleResponse": {
-    "title": "RoleResponse",
-    "description": "角色响应 Schema",
-    "required": [
-      "name",
-      "id",
-      "version"
-    ],
-    "fields": {
-      "name": {
-        "title": "Name",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 100
-      },
-      "description": {
-        "title": "Description",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 255
-      },
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "version": {
-        "title": "Version",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "permissions": {
-        "title": "Permissions",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "PermissionResponse"
-        }
-      }
-    }
-  },
-  "RoleResponseSimple": {
-    "title": "RoleResponseSimple",
-    "description": "角色响应 Schema（简化版，不含权限）",
-    "required": [
-      "name",
-      "id"
-    ],
-    "fields": {
-      "name": {
-        "title": "Name",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "maxLength": 100
-      },
-      "description": {
-        "title": "Description",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 255
-      },
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      }
-    }
-  },
-  "RoleUpdate": {
-    "title": "RoleUpdate",
-    "description": "角色更新 Schema",
-    "required": [
-      "version"
-    ],
-    "additionalProperties": false,
-    "fields": {
-      "name": {
-        "title": "Name",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "description": {
-        "title": "Description",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 255
-      },
-      "version": {
-        "title": "Version",
-        "description": "乐观锁版本号，更新时必传",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      }
-    }
-  },
-  "RuntimeBlockingReason": {
-    "title": "RuntimeBlockingReason",
-    "required": [
-      "reason"
-    ],
-    "fields": {
-      "device_id": {
-        "title": "Device Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "reason": {
-        "title": "Reason",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "detail": {
-        "title": "Detail",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      }
-    }
-  },
-  "RuntimeDeviceDetailResponse": {
-    "title": "RuntimeDeviceDetailResponse",
-    "required": [
-      "summary"
-    ],
-    "fields": {
-      "summary": {
-        "required": true,
-        "nullable": false,
-        "ref": "RuntimeDeviceSummary"
-      },
-      "recent_commands": {
-        "title": "Recent Commands",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "TraceCommandItem"
-        }
-      },
-      "recent_callbacks": {
-        "title": "Recent Callbacks",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "TraceCallbackLogItem"
-        }
-      },
-      "active_sessions": {
-        "title": "Active Sessions",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "RuntimeTraceListItem"
-        }
-      }
-    }
-  },
-  "RuntimeDeviceHealthSummary": {
-    "title": "RuntimeDeviceHealthSummary",
-    "required": [],
-    "fields": {
-      "total": {
-        "title": "Total",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "abnormal": {
-        "title": "Abnormal",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "maintenance": {
-        "title": "Maintenance",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "loaded": {
-        "title": "Loaded",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "healthy": {
-        "title": "Healthy",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      }
-    }
-  },
-  "RuntimeDeviceSummary": {
-    "title": "RuntimeDeviceSummary",
-    "required": [
-      "id",
-      "device_code",
-      "device_name",
-      "device_role",
-      "role_index",
-      "device_status"
-    ],
-    "fields": {
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "device_code": {
-        "title": "Device Code",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "device_name": {
-        "title": "Device Name",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "device_role": {
-        "title": "Device Role",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "role_index": {
-        "title": "Role Index",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "workline_id": {
-        "title": "Workline Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "workline_name": {
-        "title": "Workline Name",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "workline_code": {
-        "title": "Workline Code",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "device_status": {
-        "title": "Device Status",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "maintenance_mode": {
-        "title": "Maintenance Mode",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": false
-      },
-      "current_command_id": {
-        "title": "Current Command Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "pending_command_count": {
-        "title": "Pending Command Count",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "last_heartbeat_at": {
-        "title": "Last Heartbeat At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "recent_callback_at": {
-        "title": "Recent Callback At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "error_code": {
-        "title": "Error Code",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      }
-    }
-  },
-  "RuntimeOverviewResponse": {
-    "title": "RuntimeOverviewResponse",
-    "required": [
-      "stats"
-    ],
-    "fields": {
-      "stats": {
-        "title": "Stats",
-        "type": "array",
-        "required": true,
-        "nullable": false,
-        "items": {
-          "ref": "RuntimeStatCard"
-        }
-      },
-      "recent_failed_traces": {
-        "title": "Recent Failed Traces",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "RuntimeTraceListItem"
-        }
-      },
-      "hot_worklines": {
-        "title": "Hot Worklines",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "RuntimeWorklineSummary"
-        }
-      },
-      "abnormal_devices": {
-        "title": "Abnormal Devices",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "RuntimeDeviceSummary"
-        }
-      },
-      "device_health": {
-        "required": false,
-        "nullable": false,
-        "ref": "RuntimeDeviceHealthSummary"
-      }
-    }
-  },
-  "RuntimeStatCard": {
-    "title": "RuntimeStatCard",
-    "required": [
-      "key",
-      "label",
-      "value"
-    ],
-    "fields": {
-      "key": {
-        "title": "Key",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "label": {
-        "title": "Label",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "value": {
-        "title": "Value",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "status": {
-        "title": "Status",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "info"
-      }
-    }
-  },
-  "RuntimeTraceDeviceAction": {
-    "title": "RuntimeTraceDeviceAction",
-    "required": [
-      "kind",
-      "label"
-    ],
-    "fields": {
-      "kind": {
-        "title": "Kind",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "label": {
-        "title": "Label",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "status": {
-        "title": "Status",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "message": {
-        "title": "Message",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      }
-    }
-  },
-  "RuntimeTraceDevicePathNode": {
-    "title": "RuntimeTraceDevicePathNode",
-    "required": [
-      "device_id"
-    ],
-    "fields": {
-      "device_id": {
-        "title": "Device Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "device_code": {
-        "title": "Device Code",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "device_name": {
-        "title": "Device Name",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "device_role": {
-        "title": "Device Role",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "is_current": {
-        "title": "Is Current",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": false
-      },
-      "actions": {
-        "title": "Actions",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "RuntimeTraceDeviceAction"
-        }
-      }
-    }
-  },
-  "RuntimeTraceListItem": {
-    "title": "RuntimeTraceListItem",
-    "description": "Trace 列表项。",
-    "required": [
-      "session_id",
-      "session_code",
-      "workline_id",
-      "status"
-    ],
-    "fields": {
-      "session_id": {
-        "title": "Session Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "session_code": {
-        "title": "Session Code",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "trace_id": {
-        "title": "Trace Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "request_id": {
-        "title": "Request Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "workline_id": {
-        "title": "Workline Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "workline_name": {
-        "title": "Workline Name",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "workline_code": {
-        "title": "Workline Code",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "device_id": {
-        "title": "Device Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "device_name": {
-        "title": "Device Name",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "device_code": {
-        "title": "Device Code",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "command_code": {
-        "title": "Command Code",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "status": {
-        "title": "Status",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "step_code": {
-        "title": "Step Code",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "current_wait_type": {
-        "title": "Current Wait Type",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "failure_domain": {
-        "title": "Failure Domain",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "failure_code": {
-        "title": "Failure Code",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "latest_timeline_action": {
-        "title": "Latest Timeline Action",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "latest_timeline_status": {
-        "title": "Latest Timeline Status",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "latest_timeline_message": {
-        "title": "Latest Timeline Message",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "started_at": {
-        "title": "Started At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "last_ingress_at": {
-        "title": "Last Ingress At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "deadline_at": {
-        "title": "Deadline At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "is_timed_out": {
-        "title": "Is Timed Out",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": false
-      }
-    }
-  },
-  "RuntimeTraceListResponse": {
-    "title": "RuntimeTraceListResponse",
-    "description": "Trace 列表响应。",
-    "required": [
-      "total",
-      "items"
-    ],
-    "fields": {
-      "total": {
-        "title": "Total",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "items": {
-        "title": "Items",
-        "type": "array",
-        "required": true,
-        "nullable": false,
-        "items": {
-          "ref": "RuntimeTraceListItem"
-        }
-      }
-    }
-  },
-  "RuntimeTracePathResponse": {
-    "title": "RuntimeTracePathResponse",
-    "required": [],
-    "fields": {
-      "workline_id": {
-        "title": "Workline Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "session_id": {
-        "title": "Session Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "trace_id": {
-        "title": "Trace Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "devices": {
-        "title": "Devices",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "RuntimeTraceDevicePathNode"
-        }
-      },
-      "current_blocking_device_id": {
-        "title": "Current Blocking Device Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "blocking_reason": {
-        "required": false,
-        "nullable": true,
-        "ref": "RuntimeBlockingReason"
-      },
-      "evidence": {
-        "required": false,
-        "nullable": true,
-        "ref": "TraceDetailResponse"
-      }
-    }
-  },
-  "RuntimeWorklineDetailResponse": {
-    "title": "RuntimeWorklineDetailResponse",
-    "required": [
-      "summary"
-    ],
-    "fields": {
-      "summary": {
-        "required": true,
-        "nullable": false,
-        "ref": "RuntimeWorklineSummary"
-      },
-      "devices": {
-        "title": "Devices",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "RuntimeWorklineDeviceItem"
-        }
-      },
-      "active_sessions": {
-        "title": "Active Sessions",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "RuntimeTraceListItem"
-        }
-      },
-      "recent_failed_traces": {
-        "title": "Recent Failed Traces",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "RuntimeTraceListItem"
-        }
-      }
-    }
-  },
-  "RuntimeWorklineDeviceItem": {
-    "title": "RuntimeWorklineDeviceItem",
-    "required": [
-      "id",
-      "device_code",
-      "device_name",
-      "device_role",
-      "role_index",
-      "device_status"
-    ],
-    "fields": {
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "device_code": {
-        "title": "Device Code",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "device_name": {
-        "title": "Device Name",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "device_role": {
-        "title": "Device Role",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "role_index": {
-        "title": "Role Index",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "upstream_device_id": {
-        "title": "Upstream Device Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "device_status": {
-        "title": "Device Status",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "maintenance_mode": {
-        "title": "Maintenance Mode",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": false
-      },
-      "current_command_id": {
-        "title": "Current Command Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "last_heartbeat_at": {
-        "title": "Last Heartbeat At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "error_code": {
-        "title": "Error Code",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      }
-    }
-  },
-  "RuntimeWorklineSummary": {
-    "title": "RuntimeWorklineSummary",
-    "required": [
-      "id",
-      "line_code",
-      "line_name",
-      "line_type",
-      "is_active"
-    ],
-    "fields": {
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "line_code": {
-        "title": "Line Code",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "line_name": {
-        "title": "Line Name",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "line_type": {
-        "title": "Line Type",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "zone_name": {
-        "title": "Zone Name",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "plugin_key": {
-        "title": "Plugin Key",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "contract_version": {
-        "title": "Contract Version",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "is_active": {
-        "title": "Is Active",
-        "type": "boolean",
-        "required": true,
-        "nullable": false
-      },
-      "device_count": {
-        "title": "Device Count",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "active_session_count": {
-        "title": "Active Session Count",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "waiting_session_count": {
-        "title": "Waiting Session Count",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "failed_session_count": {
-        "title": "Failed Session Count",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "error_device_count": {
-        "title": "Error Device Count",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "offline_device_count": {
-        "title": "Offline Device Count",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "maintenance_device_count": {
-        "title": "Maintenance Device Count",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "run_mode": {
-        "title": "Run Mode",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "AUTO"
-      },
-      "last_activity_at": {
-        "title": "Last Activity At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      }
-    }
-  },
-  "SandboxAckRequest": {
-    "title": "SandboxAckRequest",
-    "description": "沙箱 Command ACK 模拟请求。",
-    "required": [
-      "dispatch_key"
-    ],
-    "fields": {
-      "dispatch_key": {
-        "title": "Dispatch Key",
-        "description": "Dispatch Key",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "minLength": 1,
-        "maxLength": 200
-      }
-    }
-  },
-  "SandboxEventRequest": {
-    "title": "SandboxEventRequest",
-    "description": "沙箱 Event 发送请求。",
-    "required": [
-      "workline_id",
-      "device_id",
-      "event_type"
-    ],
-    "fields": {
-      "workline_id": {
-        "title": "Workline Id",
-        "description": "工作线 ID",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "device_id": {
-        "title": "Device Id",
-        "description": "目标设备 ID",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "event_type": {
-        "title": "Event Type",
-        "description": "事件类型",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "minLength": 1,
-        "maxLength": 100
-      },
-      "trace_id": {
-        "title": "Trace Id",
-        "description": "Trace ID（可选，自动生成）",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 200
-      },
-      "session_id": {
-        "title": "Session Id",
-        "description": "Session ID（可选）",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "payload": {
-        "title": "Payload",
-        "description": "事件 Payload",
-        "type": "object",
-        "required": false,
-        "nullable": false
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "事件时间戳（默认当前时间）",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      }
-    }
-  },
-  "SandboxEventTemplate": {
-    "title": "SandboxEventTemplate",
-    "description": "沙箱 Event 模板。",
-    "required": [
-      "event_type",
-      "label"
-    ],
-    "fields": {
-      "event_type": {
-        "title": "Event Type",
-        "description": "事件类型标识",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "label": {
-        "title": "Label",
-        "description": "事件类型显示名称",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "payload_template": {
-        "title": "Payload Template",
-        "description": "Payload 模板",
-        "type": "object",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "SandboxResultRequest": {
-    "title": "SandboxResultRequest",
-    "description": "沙箱 Command Result 模拟请求。",
-    "required": [
-      "command_code",
-      "device_code",
-      "result"
-    ],
-    "fields": {
-      "command_code": {
-        "title": "Command Code",
-        "description": "Command Code",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "minLength": 1,
-        "maxLength": 100
-      },
-      "device_code": {
-        "title": "Device Code",
-        "description": "设备 Code",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "minLength": 1,
-        "maxLength": 100
-      },
-      "result": {
-        "title": "Result",
-        "description": "结果状态",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "payload": {
-        "title": "Payload",
-        "description": "Result Payload",
-        "type": "object",
-        "required": false,
-        "nullable": false
-      },
-      "error_detail": {
-        "title": "Error Detail",
-        "description": "错误详情（FAILED 时）",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 500
-      },
-      "timestamp": {
-        "title": "Timestamp",
-        "description": "结果时间戳（默认当前时间）",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      }
-    }
-  },
-  "SandboxResultTemplate": {
-    "title": "SandboxResultTemplate",
-    "description": "沙箱 Result 模板。",
-    "required": [
-      "command_type",
-      "label"
-    ],
-    "fields": {
-      "command_type": {
-        "title": "Command Type",
-        "description": "Command 类型标识",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "label": {
-        "title": "Label",
-        "description": "Command 类型显示名称",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "success_payload_template": {
-        "title": "Success Payload Template",
-        "description": "成功 Payload 模板",
-        "type": "object",
-        "required": false,
-        "nullable": false
-      },
-      "failed_payload_template": {
-        "title": "Failed Payload Template",
-        "description": "失败 Payload 模板",
-        "type": "object",
-        "required": false,
-        "nullable": false
-      },
-      "error_template": {
-        "title": "Error Template",
-        "description": "错误信息模板",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      }
-    }
-  },
-  "SandboxTemplatesResponse": {
-    "title": "SandboxTemplatesResponse",
-    "description": "沙箱模板响应。",
-    "required": [],
-    "fields": {
-      "event_templates": {
-        "title": "Event Templates",
-        "description": "Event 模板列表",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "SandboxEventTemplate"
-        }
-      },
-      "result_templates": {
-        "title": "Result Templates",
-        "description": "Result 模板列表",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "SandboxResultTemplate"
-        }
-      }
-    }
-  },
-  "SessionInfo": {
-    "title": "SessionInfo",
-    "description": "会话信息 Schema\n\n描述一个活跃的用户会话",
-    "required": [
-      "session_uuid",
-      "jti",
-      "created_at"
-    ],
-    "fields": {
-      "session_uuid": {
-        "title": "Session Uuid",
-        "description": "会话 UUID",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "jti": {
-        "title": "Jti",
-        "description": "JWT ID",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "created_at": {
-        "title": "Created At",
-        "description": "会话创建时间",
-        "type": "string",
-        "format": "date-time",
-        "required": true,
-        "nullable": false
-      },
-      "device_info": {
-        "title": "Device Info",
-        "description": "设备信息（可选）",
-        "type": "object",
-        "required": false,
-        "nullable": true
-      },
-      "last_active": {
-        "title": "Last Active",
-        "description": "最后活跃时间",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      }
-    }
-  },
-  "SortField": {
-    "title": "SortField",
-    "description": "排序字段",
-    "required": [
-      "field"
-    ],
-    "fields": {
-      "field": {
-        "title": "Field",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "order": {
-        "title": "Order",
-        "type": "string",
-        "required": false,
-        "nullable": false,
-        "default": "desc",
-        "enum": [
-          "asc",
-          "desc"
-        ]
-      }
-    }
-  },
-  "SortItem": {
-    "title": "SortItem",
-    "description": "批量排序项",
-    "required": [
-      "id"
-    ],
-    "fields": {
-      "id": {
-        "title": "Id",
-        "description": "节点ID",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "parent_id": {
-        "title": "Parent Id",
-        "description": "父节点ID",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "sort_order": {
-        "title": "Sort Order",
-        "description": "排序值",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      }
-    }
-  },
-  "TraceBlockingPointResponse": {
-    "title": "TraceBlockingPointResponse",
-    "required": [
-      "trace_id",
-      "blocking_point",
-      "owner",
-      "recoverability",
-      "operator_action",
-      "diagnostic_card"
-    ],
-    "fields": {
-      "trace_id": {
-        "title": "Trace Id",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "request_id": {
-        "title": "Request Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "blocking_point": {
-        "title": "Blocking Point",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "owner": {
-        "title": "Owner",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "recoverability": {
-        "title": "Recoverability",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "operator_action": {
-        "title": "Operator Action",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "diagnostic_card": {
-        "required": true,
-        "nullable": false,
-        "ref": "DiagnosticCardResponse"
-      },
-      "evidence": {
-        "title": "Evidence",
-        "type": "object",
-        "required": false,
-        "nullable": false
-      },
-      "next_steps": {
-        "title": "Next Steps",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "type": "string"
-        }
-      }
-    }
-  },
-  "TraceCallbackLogItem": {
-    "title": "TraceCallbackLogItem",
-    "required": [
-      "id",
-      "callback_type",
-      "device_id",
-      "response_status",
-      "response_time_ms",
-      "request_body",
-      "created_at"
-    ],
-    "fields": {
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "callback_type": {
-        "title": "Callback Type",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "device_id": {
-        "title": "Device Id",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "request_id": {
-        "title": "Request Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "trace_id": {
-        "title": "Trace Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "event_id": {
-        "title": "Event Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "causation_id": {
-        "title": "Causation Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "response_status": {
-        "title": "Response Status",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "response_time_ms": {
-        "title": "Response Time Ms",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "error_message": {
-        "title": "Error Message",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "ingress_outcome": {
-        "title": "Ingress Outcome",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "failure_stage": {
-        "title": "Failure Stage",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "request_body": {
-        "title": "Request Body",
-        "type": "object",
-        "required": true,
-        "nullable": false
-      },
-      "created_at": {
-        "title": "Created At",
-        "type": "string",
-        "format": "date-time",
-        "required": true,
-        "nullable": false
-      },
-      "updated_at": {
-        "title": "Updated At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      }
-    }
-  },
-  "TraceCommandItem": {
-    "title": "TraceCommandItem",
-    "required": [
-      "id",
-      "device_id",
-      "command_code",
-      "task_type",
-      "status",
-      "params"
-    ],
-    "fields": {
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "device_id": {
-        "title": "Device Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "command_code": {
-        "title": "Command Code",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "trace_id": {
-        "title": "Trace Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "workline_id": {
-        "title": "Workline Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "session_id": {
-        "title": "Session Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "task_type": {
-        "title": "Task Type",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "status": {
-        "title": "Status",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "result": {
-        "title": "Result",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "retry_count": {
-        "title": "Retry Count",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "sent_at": {
-        "title": "Sent At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "ack_received_at": {
-        "title": "Ack Received At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "completed_at": {
-        "title": "Completed At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "ack_code": {
-        "title": "Ack Code",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "ack_message": {
-        "title": "Ack Message",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "ack_trace_id": {
-        "title": "Ack Trace Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "step_code": {
-        "title": "Step Code",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "params": {
-        "title": "Params",
-        "type": "object",
-        "required": true,
-        "nullable": false
-      },
-      "result_data": {
-        "title": "Result Data",
-        "type": "object",
-        "required": false,
-        "nullable": true
-      },
-      "error_detail": {
-        "title": "Error Detail",
-        "type": "object",
-        "required": false,
-        "nullable": true
-      },
-      "duration_ms": {
-        "title": "Duration Ms",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      }
-    }
-  },
-  "TraceContextResponse": {
-    "title": "TraceContextResponse",
-    "required": [],
-    "fields": {
-      "request_id": {
-        "title": "Request Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "trace_id": {
-        "title": "Trace Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "event_id": {
-        "title": "Event Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "causation_id": {
-        "title": "Causation Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "workline_id": {
-        "title": "Workline Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "session_id": {
-        "title": "Session Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "inbox_id": {
-        "title": "Inbox Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "device_id": {
-        "title": "Device Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "device_code": {
-        "title": "Device Code",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "command_id": {
-        "title": "Command Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "command_code": {
-        "title": "Command Code",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "outbox_id": {
-        "title": "Outbox Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "dispatch_key": {
-        "title": "Dispatch Key",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "canonical_event_type": {
-        "title": "Canonical Event Type",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "transition": {
-        "title": "Transition",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "plugin_key": {
-        "title": "Plugin Key",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "contract_version": {
-        "title": "Contract Version",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      }
-    }
-  },
-  "TraceDetailResponse": {
-    "title": "TraceDetailResponse",
-    "required": [
-      "trace",
-      "summary"
-    ],
-    "fields": {
-      "trace": {
-        "required": true,
-        "nullable": false,
-        "ref": "TraceContextResponse"
-      },
-      "summary": {
-        "required": true,
-        "nullable": false,
-        "ref": "TraceOverviewSummary"
-      },
-      "session": {
-        "required": false,
-        "nullable": true,
-        "ref": "TraceSessionItem"
-      },
-      "sessions": {
-        "title": "Sessions",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "TraceSessionItem"
-        }
-      },
-      "callback_logs": {
-        "title": "Callback Logs",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "TraceCallbackLogItem"
-        }
-      },
-      "inboxes": {
-        "title": "Inboxes",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "TraceInboxItem"
-        }
-      },
-      "commands": {
-        "title": "Commands",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "TraceCommandItem"
-        }
-      },
-      "outboxes": {
-        "title": "Outboxes",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "TraceOutboxItem"
-        }
-      },
-      "dispatch_attempts": {
-        "title": "Dispatch Attempts",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "TraceDispatchAttemptItem"
-        }
-      },
-      "timelines": {
-        "title": "Timelines",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "TraceTimelineItem"
-        }
-      },
-      "diagnostics": {
-        "title": "Diagnostics",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "TraceDiagnosticItem"
-        }
-      }
-    }
-  },
-  "TraceDiagnosticContextItem": {
-    "title": "TraceDiagnosticContextItem",
-    "required": [],
-    "fields": {
-      "request_id": {
-        "title": "Request Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "trace_id": {
-        "title": "Trace Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "session_id": {
-        "title": "Session Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "inbox_id": {
-        "title": "Inbox Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "outbox_id": {
-        "title": "Outbox Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "command_code": {
-        "title": "Command Code",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "device_code": {
-        "title": "Device Code",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "workline_id": {
-        "title": "Workline Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "workline_code": {
-        "title": "Workline Code",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "plugin_key": {
-        "title": "Plugin Key",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "canonical_event_type": {
-        "title": "Canonical Event Type",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "transition": {
-        "title": "Transition",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "extra": {
-        "title": "Extra",
-        "type": "object",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "TraceDiagnosticItem": {
-    "title": "TraceDiagnosticItem",
-    "required": [],
-    "fields": {
-      "request_id": {
-        "title": "Request Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "trace_id": {
-        "title": "Trace Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "session_id": {
-        "title": "Session Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "inbox_id": {
-        "title": "Inbox Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "outbox_id": {
-        "title": "Outbox Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "command_code": {
-        "title": "Command Code",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "device_code": {
-        "title": "Device Code",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "workline_id": {
-        "title": "Workline Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "workline_code": {
-        "title": "Workline Code",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "plugin_key": {
-        "title": "Plugin Key",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "canonical_event_type": {
-        "title": "Canonical Event Type",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "transition": {
-        "title": "Transition",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "extra": {
-        "title": "Extra",
-        "type": "object",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "TraceDispatchAttemptItem": {
-    "title": "TraceDispatchAttemptItem",
-    "required": [
-      "id",
-      "outbox_id",
-      "dispatch_key",
-      "attempt_no",
-      "lease_token",
-      "status",
-      "started_at"
-    ],
-    "fields": {
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "outbox_id": {
-        "title": "Outbox Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "dispatch_key": {
-        "title": "Dispatch Key",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "attempt_no": {
-        "title": "Attempt No",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "lease_token": {
-        "title": "Lease Token",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "status": {
-        "title": "Status",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "target_type": {
-        "title": "Target Type",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "target_code": {
-        "title": "Target Code",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "started_at": {
-        "title": "Started At",
-        "type": "string",
-        "format": "date-time",
-        "required": true,
-        "nullable": false
-      },
-      "finalized_at": {
-        "title": "Finalized At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "error_message": {
-        "title": "Error Message",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "response_json": {
-        "title": "Response Json",
-        "type": "object",
-        "required": false,
-        "nullable": false
-      },
-      "trace_json": {
-        "title": "Trace Json",
-        "type": "object",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "TraceInboxItem": {
-    "title": "TraceInboxItem",
-    "required": [
-      "id",
-      "kind",
-      "source_system",
-      "status",
-      "received_at",
-      "payload_json"
-    ],
-    "fields": {
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "kind": {
-        "title": "Kind",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "source_system": {
-        "title": "Source System",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "source_message_id": {
-        "title": "Source Message Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "trace_id": {
-        "title": "Trace Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "event_id": {
-        "title": "Event Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "causation_id": {
-        "title": "Causation Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "workline_id": {
-        "title": "Workline Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "device_id": {
-        "title": "Device Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "command_id": {
-        "title": "Command Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "session_id": {
-        "title": "Session Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "status": {
-        "title": "Status",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "received_at": {
-        "title": "Received At",
-        "type": "string",
-        "format": "date-time",
-        "required": true,
-        "nullable": false
-      },
-      "processed_at": {
-        "title": "Processed At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "attempt_count": {
-        "title": "Attempt Count",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "max_attempts": {
-        "title": "Max Attempts",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "next_retry_at": {
-        "title": "Next Retry At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "error_message": {
-        "title": "Error Message",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "payload_json": {
-        "title": "Payload Json",
-        "type": "object",
-        "required": true,
-        "nullable": false
-      }
-    }
-  },
-  "TraceOutboxItem": {
-    "title": "TraceOutboxItem",
-    "required": [
-      "id",
-      "workline_id",
-      "dispatch_type",
-      "dispatch_key",
-      "target_type",
-      "target_code",
-      "status",
-      "created_at",
-      "payload_json"
-    ],
-    "fields": {
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "session_id": {
-        "title": "Session Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "workline_id": {
-        "title": "Workline Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "dispatch_type": {
-        "title": "Dispatch Type",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "dispatch_key": {
-        "title": "Dispatch Key",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "target_type": {
-        "title": "Target Type",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "target_code": {
-        "title": "Target Code",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "status": {
-        "title": "Status",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "attempt_count": {
-        "title": "Attempt Count",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "next_retry_at": {
-        "title": "Next Retry At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "last_error": {
-        "title": "Last Error",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "created_at": {
-        "title": "Created At",
-        "type": "string",
-        "format": "date-time",
-        "required": true,
-        "nullable": false
-      },
-      "sent_at": {
-        "title": "Sent At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "finished_at": {
-        "title": "Finished At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "payload_json": {
-        "title": "Payload Json",
-        "type": "object",
-        "required": true,
-        "nullable": false
-      }
-    }
-  },
-  "TraceOverviewSummary": {
-    "title": "TraceOverviewSummary",
-    "description": "Trace 详情页顶部摘要。",
-    "required": [],
-    "fields": {
-      "callback_logs": {
-        "title": "Callback Logs",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "inboxes": {
-        "title": "Inboxes",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "commands": {
-        "title": "Commands",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "outboxes": {
-        "title": "Outboxes",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "timelines": {
-        "title": "Timelines",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "diagnostics": {
-        "title": "Diagnostics",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "session_status": {
-        "title": "Session Status",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "step_code": {
-        "title": "Step Code",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "current_wait_type": {
-        "title": "Current Wait Type",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "latest_timeline_action": {
-        "title": "Latest Timeline Action",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "latest_timeline_status": {
-        "title": "Latest Timeline Status",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "latest_timeline_message": {
-        "title": "Latest Timeline Message",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      }
-    }
-  },
-  "TraceQueryRequest": {
-    "title": "TraceQueryRequest",
-    "description": "Trace 列表查询请求。",
-    "required": [],
-    "fields": {
-      "workline_id": {
-        "title": "Workline Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "device_id": {
-        "title": "Device Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "status": {
-        "title": "Status",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "step_code": {
-        "title": "Step Code",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "keyword": {
-        "title": "Keyword",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "only_active": {
-        "title": "Only Active",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": false
-      },
-      "only_failed": {
-        "title": "Only Failed",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": false
-      },
-      "limit": {
-        "title": "Limit",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 20,
-        "minimum": 1,
-        "maximum": 100
-      },
-      "offset": {
-        "title": "Offset",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0,
-        "minimum": 0
-      }
-    }
-  },
-  "TraceSessionItem": {
-    "title": "TraceSessionItem",
-    "required": [
-      "id",
-      "session_code",
-      "workline_id",
-      "plugin_key",
-      "run_mode",
-      "status",
-      "context_json"
-    ],
-    "fields": {
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "session_code": {
-        "title": "Session Code",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "workline_id": {
-        "title": "Workline Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "plugin_key": {
-        "title": "Plugin Key",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "run_mode": {
-        "title": "Run Mode",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "business_key": {
-        "title": "Business Key",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "barcode": {
-        "title": "Barcode",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "status": {
-        "title": "Status",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "step_code": {
-        "title": "Step Code",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "trace_id": {
-        "title": "Trace Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "started_at": {
-        "title": "Started At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "ended_at": {
-        "title": "Ended At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "current_wait_type": {
-        "title": "Current Wait Type",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "current_wait_token": {
-        "title": "Current Wait Token",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "waiting_since": {
-        "title": "Waiting Since",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "deadline_at": {
-        "title": "Deadline At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "awaiting_command_id": {
-        "title": "Awaiting Command Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "failure_domain": {
-        "title": "Failure Domain",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "failure_code": {
-        "title": "Failure Code",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "failure_message": {
-        "title": "Failure Message",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "ingress_count": {
-        "title": "Ingress Count",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "last_request_id": {
-        "title": "Last Request Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "last_ingress_at": {
-        "title": "Last Ingress At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "last_inbox_id": {
-        "title": "Last Inbox Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "context_json": {
-        "title": "Context Json",
-        "type": "object",
-        "required": true,
-        "nullable": false
-      }
-    }
-  },
-  "TraceTimelineItem": {
-    "title": "TraceTimelineItem",
-    "required": [
-      "id",
-      "session_id",
-      "workline_id",
-      "seq_no",
-      "occurred_at",
-      "stage",
-      "action_type",
-      "actor_type",
-      "status"
-    ],
-    "fields": {
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "session_id": {
-        "title": "Session Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "workline_id": {
-        "title": "Workline Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "trace_id": {
-        "title": "Trace Id",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "seq_no": {
-        "title": "Seq No",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "occurred_at": {
-        "title": "Occurred At",
-        "type": "string",
-        "format": "date-time",
-        "required": true,
-        "nullable": false
-      },
-      "stage": {
-        "title": "Stage",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "action_type": {
-        "title": "Action Type",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "actor_type": {
-        "title": "Actor Type",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "actor_code": {
-        "title": "Actor Code",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "from_status": {
-        "title": "From Status",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "to_status": {
-        "title": "To Status",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "status": {
-        "title": "Status",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "failure_domain": {
-        "title": "Failure Domain",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "message": {
-        "title": "Message",
-        "type": "string",
-        "required": false,
-        "nullable": true
-      },
-      "payload_json": {
-        "title": "Payload Json",
-        "type": "object",
-        "required": false,
-        "nullable": true
-      },
-      "related_inbox_id": {
-        "title": "Related Inbox Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "related_command_id": {
-        "title": "Related Command Id",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      }
-    }
-  },
-  "TryInvokeApplication": {
-    "title": "TryInvokeApplication",
-    "description": "测试 API 调用数据模型",
-    "required": [
-      "command_name",
-      "command_description",
-      "command_parameters",
-      "command_response"
-    ],
-    "fields": {
-      "command_name": {
-        "title": "Command Name",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "command_description": {
-        "title": "Command Description",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "command_parameters": {
-        "title": "Command Parameters",
-        "type": "array",
-        "required": true,
-        "nullable": false,
-        "items": {
-          "type": "string"
-        }
-      },
-      "command_response": {
-        "title": "Command Response",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      }
-    }
-  },
-  "TryInvokeApplicationRequest": {
-    "title": "TryInvokeApplicationRequest",
-    "description": "测试 API 调用请求模型（包裹格式）",
-    "required": [
-      "data"
-    ],
-    "fields": {
-      "data": {
-        "required": true,
-        "nullable": false,
-        "ref": "TryInvokeApplication"
-      }
-    }
-  },
-  "UserCreate": {
-    "title": "UserCreate",
-    "description": "用户创建 Schema - 接收客户端输入",
-    "required": [
-      "username",
-      "email",
-      "password"
-    ],
-    "additionalProperties": false,
-    "fields": {
-      "username": {
-        "title": "Username",
-        "description": "用户名",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "minLength": 3,
-        "maxLength": 50
-      },
-      "email": {
-        "title": "Email",
-        "description": "邮箱",
-        "type": "string",
-        "format": "email",
-        "required": true,
-        "nullable": false,
-        "maxLength": 100
-      },
-      "full_name": {
-        "title": "Full Name",
-        "description": "姓名",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "password": {
-        "title": "Password",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "minLength": 6,
-        "maxLength": 100
-      }
-    }
-  },
-  "UserPermissionsResponse": {
-    "title": "UserPermissionsResponse",
-    "description": "用户权限列表响应 Schema\n\n包含用户有权限访问的所有 API 权限",
-    "required": [
-      "total",
-      "permissions"
-    ],
-    "fields": {
-      "total": {
-        "title": "Total",
-        "description": "权限总数",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "permissions": {
-        "title": "Permissions",
-        "description": "用户有权限访问的 API 列表",
-        "type": "array",
-        "required": true,
-        "nullable": false,
-        "items": {
-          "ref": "ApiPermissionInfo"
-        }
-      }
-    }
-  },
-  "UserResponse": {
-    "title": "UserResponse",
-    "description": "用户响应 Schema - 返回给客户端",
-    "required": [
-      "username",
-      "email",
-      "id",
-      "is_superuser",
-      "is_multi_login",
-      "created_at"
-    ],
-    "fields": {
-      "username": {
-        "title": "Username",
-        "description": "用户名",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "minLength": 3,
-        "maxLength": 50
-      },
-      "email": {
-        "title": "Email",
-        "description": "邮箱",
-        "type": "string",
-        "format": "email",
-        "required": true,
-        "nullable": false,
-        "maxLength": 100
-      },
-      "full_name": {
-        "title": "Full Name",
-        "description": "姓名",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "version": {
-        "title": "Version",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "is_superuser": {
-        "title": "Is Superuser",
-        "type": "boolean",
-        "required": true,
-        "nullable": false
-      },
-      "is_multi_login": {
-        "title": "Is Multi Login",
-        "type": "boolean",
-        "required": true,
-        "nullable": false
-      },
-      "created_at": {
-        "title": "Created At",
-        "type": "string",
-        "format": "date-time",
-        "required": true,
-        "nullable": false
-      },
-      "created_by": {
-        "title": "Created By",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "updated_at": {
-        "title": "Updated At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "updated_by": {
-        "title": "Updated By",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "deleted_by": {
-        "title": "Deleted By",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "deleted_at": {
-        "title": "Deleted At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "roles": {
-        "title": "Roles",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "ref": "RoleResponseSimple"
-        }
-      }
-    }
-  },
-  "UserSimpleResponse": {
-    "title": "UserSimpleResponse",
-    "description": "用户响应 Schema 无关联关系 - 返回给客户端",
-    "required": [
-      "username",
-      "email",
-      "id",
-      "is_superuser",
-      "is_multi_login",
-      "created_at"
-    ],
-    "fields": {
-      "username": {
-        "title": "Username",
-        "description": "用户名",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "minLength": 3,
-        "maxLength": 50
-      },
-      "email": {
-        "title": "Email",
-        "description": "邮箱",
-        "type": "string",
-        "format": "email",
-        "required": true,
-        "nullable": false,
-        "maxLength": 100
-      },
-      "full_name": {
-        "title": "Full Name",
-        "description": "姓名",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "version": {
-        "title": "Version",
-        "type": "integer",
-        "required": false,
-        "nullable": false,
-        "default": 0
-      },
-      "is_superuser": {
-        "title": "Is Superuser",
-        "type": "boolean",
-        "required": true,
-        "nullable": false
-      },
-      "is_multi_login": {
-        "title": "Is Multi Login",
-        "type": "boolean",
-        "required": true,
-        "nullable": false
-      },
-      "created_at": {
-        "title": "Created At",
-        "type": "string",
-        "format": "date-time",
-        "required": true,
-        "nullable": false
-      },
-      "created_by": {
-        "title": "Created By",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "updated_at": {
-        "title": "Updated At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      },
-      "updated_by": {
-        "title": "Updated By",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "deleted_by": {
-        "title": "Deleted By",
-        "type": "integer",
-        "required": false,
-        "nullable": true
-      },
-      "deleted_at": {
-        "title": "Deleted At",
-        "type": "string",
-        "format": "date-time",
-        "required": false,
-        "nullable": true
-      }
-    }
-  },
-  "UserUpdate": {
-    "title": "UserUpdate",
-    "description": "用户更新 Schema - 所有字段可选",
-    "required": [
-      "version"
-    ],
-    "additionalProperties": false,
-    "fields": {
-      "username": {
-        "title": "Username",
-        "description": "用户名",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "minLength": 3,
-        "maxLength": 50
-      },
-      "email": {
-        "title": "Email",
-        "description": "邮箱",
-        "type": "string",
-        "format": "email",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "full_name": {
-        "title": "Full Name",
-        "description": "姓名",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "version": {
-        "title": "Version",
-        "description": "乐观锁版本号，更新时必传",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      }
-    }
-  },
-  "ValidationError": {
-    "title": "ValidationError",
-    "required": [
-      "loc",
-      "msg",
-      "type"
-    ],
-    "fields": {
-      "loc": {
-        "title": "Location",
-        "type": "array",
-        "required": true,
-        "nullable": false,
-        "items": {}
-      },
-      "msg": {
-        "title": "Message",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "type": {
-        "title": "Error Type",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "input": {
-        "title": "Input",
-        "required": false,
-        "nullable": false
-      },
-      "ctx": {
-        "title": "Context",
-        "type": "object",
-        "required": false,
-        "nullable": false
-      }
-    }
-  },
-  "ValidityPeriod": {
-    "title": "ValidityPeriod",
-    "description": "有效期枚举",
-    "required": [],
-    "fields": {
-      "__enum": {
-        "title": "ValidityPeriod",
-        "description": "有效期枚举",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "enum": [
-          "1d",
-          "1w",
-          "1m",
-          "6m",
-          "1y",
-          "never"
-        ]
-      }
-    }
-  },
-  "WorkLineCreate": {
-    "title": "WorkLineCreate",
-    "description": "作业线创建 Schema - 接收客户端输入",
-    "required": [
-      "line_code",
-      "line_name",
-      "line_type"
-    ],
-    "additionalProperties": false,
-    "fields": {
-      "line_code": {
-        "title": "Line Code",
-        "description": "作业线编码（业务主键）",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "minLength": 1,
-        "maxLength": 50
-      },
-      "line_name": {
-        "title": "Line Name",
-        "description": "作业线名称",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "minLength": 1,
-        "maxLength": 100
-      },
-      "line_type": {
-        "description": "作业线类型",
-        "required": true,
-        "nullable": false,
-        "ref": "LineType"
-      },
-      "zone_name": {
-        "title": "Zone Name",
-        "description": "区域名称",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "plugin_key": {
-        "title": "Plugin Key",
-        "description": "工作线执行插件标识",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "contract_version": {
-        "title": "Contract Version",
-        "description": "工作线默认插件契约版本",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "config": {
-        "title": "Config",
-        "description": "工作线插件配置",
-        "type": "object",
-        "required": false,
-        "nullable": false
-      },
-      "runtime_config_json": {
-        "title": "Runtime Config Json",
-        "description": "工作线运行时配置（重试、超时、会话归属等）",
-        "type": "object",
-        "required": false,
-        "nullable": false
-      },
-      "run_mode": {
-        "description": "工作线运行模式",
-        "required": false,
-        "nullable": false,
-        "default": "AUTO",
-        "ref": "WorkLineRunMode"
-      },
-      "diagnostic_profile": {
-        "title": "Diagnostic Profile",
-        "description": "工作线诊断配置（软件/硬件分类偏好、展示策略等）",
-        "type": "object",
-        "required": false,
-        "nullable": false
-      },
-      "description": {
-        "title": "Description",
-        "description": "作业线描述",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 500
-      },
-      "is_active": {
-        "title": "Is Active",
-        "description": "是否启用",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": true
-      }
-    }
-  },
-  "WorkLinePluginOption": {
-    "title": "WorkLinePluginOption",
-    "description": "作业线插件下拉选项。",
-    "required": [
-      "plugin_key",
-      "label",
-      "default_contract_version"
-    ],
-    "fields": {
-      "plugin_key": {
-        "title": "Plugin Key",
-        "description": "工作线执行插件标识",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "label": {
-        "title": "Label",
-        "description": "插件显示文本",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      },
-      "contract_versions": {
-        "title": "Contract Versions",
-        "description": "可选契约版本",
-        "type": "array",
-        "required": false,
-        "nullable": false,
-        "items": {
-          "type": "string"
-        }
-      },
-      "default_contract_version": {
-        "title": "Default Contract Version",
-        "description": "默认契约版本",
-        "type": "string",
-        "required": true,
-        "nullable": false
-      }
-    }
-  },
-  "WorkLineResponse": {
-    "title": "WorkLineResponse",
-    "description": "作业线响应 Schema - 返回给客户端",
-    "required": [
-      "line_code",
-      "line_name",
-      "line_type",
-      "id",
-      "version"
-    ],
-    "fields": {
-      "line_code": {
-        "title": "Line Code",
-        "description": "作业线编码（业务主键）",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "minLength": 1,
-        "maxLength": 50
-      },
-      "line_name": {
-        "title": "Line Name",
-        "description": "作业线名称",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "minLength": 1,
-        "maxLength": 100
-      },
-      "line_type": {
-        "description": "作业线类型",
-        "required": true,
-        "nullable": false,
-        "ref": "LineType"
-      },
-      "zone_name": {
-        "title": "Zone Name",
-        "description": "区域名称",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "plugin_key": {
-        "title": "Plugin Key",
-        "description": "工作线执行插件标识",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "contract_version": {
-        "title": "Contract Version",
-        "description": "工作线默认插件契约版本",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "config": {
-        "title": "Config",
-        "description": "工作线插件配置",
-        "type": "object",
-        "required": false,
-        "nullable": false
-      },
-      "runtime_config_json": {
-        "title": "Runtime Config Json",
-        "description": "工作线运行时配置（重试、超时、会话归属等）",
-        "type": "object",
-        "required": false,
-        "nullable": false
-      },
-      "run_mode": {
-        "description": "工作线运行模式",
-        "required": false,
-        "nullable": false,
-        "default": "AUTO",
-        "ref": "WorkLineRunMode"
-      },
-      "diagnostic_profile": {
-        "title": "Diagnostic Profile",
-        "description": "工作线诊断配置（软件/硬件分类偏好、展示策略等）",
-        "type": "object",
-        "required": false,
-        "nullable": false
-      },
-      "description": {
-        "title": "Description",
-        "description": "作业线描述",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 500
-      },
-      "is_active": {
-        "title": "Is Active",
-        "description": "是否启用",
-        "type": "boolean",
-        "required": false,
-        "nullable": false,
-        "default": true
-      },
-      "id": {
-        "title": "Id",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      },
-      "version": {
-        "title": "Version",
-        "type": "integer",
-        "required": true,
-        "nullable": false
-      }
-    }
-  },
-  "WorkLineRunMode": {
-    "title": "WorkLineRunMode",
-    "description": "作业线运行模式枚举。",
-    "required": [],
-    "fields": {
-      "__enum": {
-        "title": "WorkLineRunMode",
-        "description": "作业线运行模式枚举。",
-        "type": "string",
-        "required": true,
-        "nullable": false,
-        "enum": [
-          "AUTO",
-          "MANUAL",
-          "SIMULATION"
-        ]
-      }
-    }
-  },
-  "WorkLineUpdate": {
-    "title": "WorkLineUpdate",
-    "description": "作业线更新 Schema - 所有字段可选",
-    "required": [
-      "version"
-    ],
-    "additionalProperties": false,
-    "fields": {
-      "line_code": {
-        "title": "Line Code",
-        "description": "作业线编码（业务主键）",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "minLength": 1,
-        "maxLength": 50
-      },
-      "line_name": {
-        "title": "Line Name",
-        "description": "作业线名称",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "minLength": 1,
-        "maxLength": 100
-      },
-      "line_type": {
-        "description": "作业线类型",
-        "required": false,
-        "nullable": true,
-        "ref": "LineType"
-      },
-      "zone_name": {
-        "title": "Zone Name",
-        "description": "区域名称",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "plugin_key": {
-        "title": "Plugin Key",
-        "description": "工作线执行插件标识",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 100
-      },
-      "contract_version": {
-        "title": "Contract Version",
-        "description": "工作线默认插件契约版本",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 50
-      },
-      "config": {
-        "title": "Config",
-        "description": "工作线插件配置",
-        "type": "object",
-        "required": false,
-        "nullable": true
-      },
-      "runtime_config_json": {
-        "title": "Runtime Config Json",
-        "description": "工作线运行时配置（重试、超时、会话归属等）",
-        "type": "object",
-        "required": false,
-        "nullable": true
-      },
-      "run_mode": {
-        "description": "工作线运行模式",
-        "required": false,
-        "nullable": true,
-        "ref": "WorkLineRunMode"
-      },
-      "diagnostic_profile": {
-        "title": "Diagnostic Profile",
-        "description": "工作线诊断配置（软件/硬件分类偏好、展示策略等）",
-        "type": "object",
-        "required": false,
-        "nullable": true
-      },
-      "description": {
-        "title": "Description",
-        "description": "作业线描述",
-        "type": "string",
-        "required": false,
-        "nullable": true,
-        "maxLength": 500
-      },
-      "is_active": {
-        "title": "Is Active",
-        "description": "是否启用",
-        "type": "boolean",
-        "required": false,
-        "nullable": true
-      },
-      "version": {
-        "title": "Version",
-        "description": "乐观锁版本号，更新时必传",
-        "type": "integer",
-        "required": true,
-        "nullable": false
+  HTTPValidationError: {
+    title: 'HTTPValidationError',
+    required: [],
+    fields: {
+      detail: {
+        title: 'Detail',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'ValidationError'
+        }
+      }
+    }
+  },
+  LineType: {
+    title: 'LineType',
+    description: '作业线类型枚举',
+    required: [],
+    fields: {
+      __enum: {
+        title: 'LineType',
+        description: '作业线类型枚举',
+        type: 'string',
+        required: true,
+        nullable: false,
+        enum: ['AUTO', 'MANUAL', 'HYBRID']
+      }
+    }
+  },
+  ListResponseData_APIAccessLogResponse_: {
+    title: 'ListResponseData[APIAccessLogResponse]',
+    required: [],
+    fields: {
+      total: {
+        title: 'Total',
+        description: '总数量',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      },
+      items: {
+        title: 'Items',
+        description: '列表数据',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'APIAccessLogResponse'
+        }
+      },
+      limit: {
+        title: 'Limit',
+        description: '分页大小',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      },
+      offset: {
+        title: 'Offset',
+        description: '偏移量',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      }
+    }
+  },
+  ListResponseData_APIApplicationResponse_: {
+    title: 'ListResponseData[APIApplicationResponse]',
+    required: [],
+    fields: {
+      total: {
+        title: 'Total',
+        description: '总数量',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      },
+      items: {
+        title: 'Items',
+        description: '列表数据',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'APIApplicationResponse'
+        }
+      },
+      limit: {
+        title: 'Limit',
+        description: '分页大小',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      },
+      offset: {
+        title: 'Offset',
+        description: '偏移量',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      }
+    }
+  },
+  ListResponseData_AuditLogResponse_: {
+    title: 'ListResponseData[AuditLogResponse]',
+    required: [],
+    fields: {
+      total: {
+        title: 'Total',
+        description: '总数量',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      },
+      items: {
+        title: 'Items',
+        description: '列表数据',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'AuditLogResponse'
+        }
+      },
+      limit: {
+        title: 'Limit',
+        description: '分页大小',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      },
+      offset: {
+        title: 'Offset',
+        description: '偏移量',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      }
+    }
+  },
+  ListResponseData_DemoProductResponse_: {
+    title: 'ListResponseData[DemoProductResponse]',
+    required: [],
+    fields: {
+      total: {
+        title: 'Total',
+        description: '总数量',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      },
+      items: {
+        title: 'Items',
+        description: '列表数据',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'DemoProductResponse'
+        }
+      },
+      limit: {
+        title: 'Limit',
+        description: '分页大小',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      },
+      offset: {
+        title: 'Offset',
+        description: '偏移量',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      }
+    }
+  },
+  ListResponseData_DeviceResponse_: {
+    title: 'ListResponseData[DeviceResponse]',
+    required: [],
+    fields: {
+      total: {
+        title: 'Total',
+        description: '总数量',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      },
+      items: {
+        title: 'Items',
+        description: '列表数据',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'DeviceResponse'
+        }
+      },
+      limit: {
+        title: 'Limit',
+        description: '分页大小',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      },
+      offset: {
+        title: 'Offset',
+        description: '偏移量',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      }
+    }
+  },
+  ListResponseData_MenuResponse_: {
+    title: 'ListResponseData[MenuResponse]',
+    required: [],
+    fields: {
+      total: {
+        title: 'Total',
+        description: '总数量',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      },
+      items: {
+        title: 'Items',
+        description: '列表数据',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'MenuResponse'
+        }
+      },
+      limit: {
+        title: 'Limit',
+        description: '分页大小',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      },
+      offset: {
+        title: 'Offset',
+        description: '偏移量',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      }
+    }
+  },
+  ListResponseData_PermissionResponse_: {
+    title: 'ListResponseData[PermissionResponse]',
+    required: [],
+    fields: {
+      total: {
+        title: 'Total',
+        description: '总数量',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      },
+      items: {
+        title: 'Items',
+        description: '列表数据',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'PermissionResponse'
+        }
+      },
+      limit: {
+        title: 'Limit',
+        description: '分页大小',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      },
+      offset: {
+        title: 'Offset',
+        description: '偏移量',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      }
+    }
+  },
+  ListResponseData_RoleResponse_: {
+    title: 'ListResponseData[RoleResponse]',
+    required: [],
+    fields: {
+      total: {
+        title: 'Total',
+        description: '总数量',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      },
+      items: {
+        title: 'Items',
+        description: '列表数据',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'RoleResponse'
+        }
+      },
+      limit: {
+        title: 'Limit',
+        description: '分页大小',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      },
+      offset: {
+        title: 'Offset',
+        description: '偏移量',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      }
+    }
+  },
+  ListResponseData_UserResponse_: {
+    title: 'ListResponseData[UserResponse]',
+    required: [],
+    fields: {
+      total: {
+        title: 'Total',
+        description: '总数量',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      },
+      items: {
+        title: 'Items',
+        description: '列表数据',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'UserResponse'
+        }
+      },
+      limit: {
+        title: 'Limit',
+        description: '分页大小',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      },
+      offset: {
+        title: 'Offset',
+        description: '偏移量',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      }
+    }
+  },
+  ListResponseData_WorkLineResponse_: {
+    title: 'ListResponseData[WorkLineResponse]',
+    required: [],
+    fields: {
+      total: {
+        title: 'Total',
+        description: '总数量',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      },
+      items: {
+        title: 'Items',
+        description: '列表数据',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'WorkLineResponse'
+        }
+      },
+      limit: {
+        title: 'Limit',
+        description: '分页大小',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      },
+      offset: {
+        title: 'Offset',
+        description: '偏移量',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      }
+    }
+  },
+  ListResponseSchemaModel_APIAccessLogResponse_: {
+    title: 'ListResponseSchemaModel[APIAccessLogResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'ListResponseData_APIAccessLogResponse_'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ListResponseSchemaModel_APIApplicationResponse_: {
+    title: 'ListResponseSchemaModel[APIApplicationResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'ListResponseData_APIApplicationResponse_'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ListResponseSchemaModel_AuditLogResponse_: {
+    title: 'ListResponseSchemaModel[AuditLogResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'ListResponseData_AuditLogResponse_'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ListResponseSchemaModel_DemoProductResponse_: {
+    title: 'ListResponseSchemaModel[DemoProductResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'ListResponseData_DemoProductResponse_'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ListResponseSchemaModel_DeviceResponse_: {
+    title: 'ListResponseSchemaModel[DeviceResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'ListResponseData_DeviceResponse_'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ListResponseSchemaModel_MenuResponse_: {
+    title: 'ListResponseSchemaModel[MenuResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'ListResponseData_MenuResponse_'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ListResponseSchemaModel_PermissionResponse_: {
+    title: 'ListResponseSchemaModel[PermissionResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'ListResponseData_PermissionResponse_'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ListResponseSchemaModel_RoleResponse_: {
+    title: 'ListResponseSchemaModel[RoleResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'ListResponseData_RoleResponse_'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ListResponseSchemaModel_UserResponse_: {
+    title: 'ListResponseSchemaModel[UserResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'ListResponseData_UserResponse_'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ListResponseSchemaModel_WorkLineResponse_: {
+    title: 'ListResponseSchemaModel[WorkLineResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'ListResponseData_WorkLineResponse_'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  LoginRequest: {
+    title: 'LoginRequest',
+    description: '登录请求 Schema',
+    required: ['username', 'password'],
+    fields: {
+      username: {
+        title: 'Username',
+        description: '用户名',
+        type: 'string',
+        required: true,
+        nullable: false,
+        minLength: 3,
+        maxLength: 50
+      },
+      password: {
+        title: 'Password',
+        description: '密码',
+        type: 'string',
+        required: true,
+        nullable: false,
+        minLength: 6,
+        maxLength: 100
+      }
+    }
+  },
+  LoginResponse: {
+    title: 'LoginResponse',
+    description: '登录响应 Schema\n\n包含访问令牌、刷新令牌元数据和用户信息',
+    required: [
+      'access_token',
+      'access_token_jti',
+      'refresh_token_jti',
+      'access_token_expire_time',
+      'refresh_token_expire_time',
+      'session_uuid',
+      'user',
+      'expires_in',
+      'refresh_expires_in'
+    ],
+    fields: {
+      access_token: {
+        title: 'Access Token',
+        description: '访问令牌',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      access_token_jti: {
+        title: 'Access Token Jti',
+        description: '访问令牌唯一标识符（用于撤销）',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      refresh_token_jti: {
+        title: 'Refresh Token Jti',
+        description: '刷新令牌唯一标识符（用于撤销）',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      access_token_expire_time: {
+        title: 'Access Token Expire Time',
+        description: '访问令牌过期时间',
+        type: 'string',
+        format: 'date-time',
+        required: true,
+        nullable: false
+      },
+      refresh_token_expire_time: {
+        title: 'Refresh Token Expire Time',
+        description: '刷新令牌过期时间（令牌仅存储于 HttpOnly Cookie）',
+        type: 'string',
+        format: 'date-time',
+        required: true,
+        nullable: false
+      },
+      session_uuid: {
+        title: 'Session Uuid',
+        description: '会话 UUID',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      user: {
+        description: '用户信息',
+        required: true,
+        nullable: false,
+        ref: 'UserResponse'
+      },
+      expires_in: {
+        title: 'Expires In',
+        description: '访问令牌过期时间（秒）- OAuth 2.0 标准字段',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      refresh_expires_in: {
+        title: 'Refresh Expires In',
+        description: '刷新令牌过期时间（秒）',
+        type: 'integer',
+        required: true,
+        nullable: false
+      }
+    }
+  },
+  LogoutResponse: {
+    title: 'LogoutResponse',
+    description: '登出响应 Schema',
+    required: ['message'],
+    fields: {
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      revoked_count: {
+        title: 'Revoked Count',
+        description: '撤销的令牌数量',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      }
+    }
+  },
+  ManualOperationRequest: {
+    title: 'ManualOperationRequest',
+    description: '人工操作请求。',
+    required: ['operation', 'operator_id', 'reason'],
+    fields: {
+      operation: {
+        title: 'Operation',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      operator_id: {
+        title: 'Operator Id',
+        type: 'string',
+        required: true,
+        nullable: false,
+        minLength: 1,
+        maxLength: 100
+      },
+      reason: {
+        title: 'Reason',
+        type: 'string',
+        required: true,
+        nullable: false,
+        minLength: 1,
+        maxLength: 500
+      }
+    }
+  },
+  MenuCreate: {
+    title: 'MenuCreate',
+    description: '菜单创建 Schema',
+    required: ['name', 'title', 'path'],
+    additionalProperties: false,
+    fields: {
+      parent_id: {
+        title: 'Parent Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      tree_path: {
+        title: 'Tree Path',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '/'
+      },
+      level: {
+        title: 'Level',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 1
+      },
+      sort_order: {
+        title: 'Sort Order',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      has_children: {
+        title: 'Has Children',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: false
+      },
+      name: {
+        title: 'Name',
+        description: '菜单标识，如 system:users',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 50
+      },
+      title: {
+        title: 'Title',
+        description: '显示标题',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 50
+      },
+      path: {
+        title: 'Path',
+        description: '路由路径，如 /system/users',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 200
+      },
+      component: {
+        title: 'Component',
+        description: '组件路径，如 views/system/users.vue',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 200
+      },
+      icon: {
+        title: 'Icon',
+        description: '图标',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      is_hidden: {
+        title: 'Is Hidden',
+        description: '是否隐藏',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: false
+      }
+    }
+  },
+  MenuResponse: {
+    title: 'MenuResponse',
+    description: '菜单响应 Schema',
+    required: ['name', 'title', 'path', 'id', 'version'],
+    fields: {
+      parent_id: {
+        title: 'Parent Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      tree_path: {
+        title: 'Tree Path',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '/'
+      },
+      level: {
+        title: 'Level',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 1
+      },
+      sort_order: {
+        title: 'Sort Order',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      has_children: {
+        title: 'Has Children',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: false
+      },
+      name: {
+        title: 'Name',
+        description: '菜单标识，如 system:users',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 50
+      },
+      title: {
+        title: 'Title',
+        description: '显示标题',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 50
+      },
+      path: {
+        title: 'Path',
+        description: '路由路径，如 /system/users',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 200
+      },
+      component: {
+        title: 'Component',
+        description: '组件路径，如 views/system/users.vue',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 200
+      },
+      icon: {
+        title: 'Icon',
+        description: '图标',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      is_hidden: {
+        title: 'Is Hidden',
+        description: '是否隐藏',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: false
+      },
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      version: {
+        title: 'Version',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      roles: {
+        title: 'Roles',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'RoleResponse'
+        }
+      }
+    }
+  },
+  MenuTreeResponse: {
+    title: 'MenuTreeResponse',
+    description: '菜单树响应 Schema',
+    required: ['name', 'title', 'path', 'id', 'version'],
+    fields: {
+      parent_id: {
+        title: 'Parent Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      tree_path: {
+        title: 'Tree Path',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '/'
+      },
+      level: {
+        title: 'Level',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 1
+      },
+      sort_order: {
+        title: 'Sort Order',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      has_children: {
+        title: 'Has Children',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: false
+      },
+      name: {
+        title: 'Name',
+        description: '菜单标识，如 system:users',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 50
+      },
+      title: {
+        title: 'Title',
+        description: '显示标题',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 50
+      },
+      path: {
+        title: 'Path',
+        description: '路由路径，如 /system/users',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 200
+      },
+      component: {
+        title: 'Component',
+        description: '组件路径，如 views/system/users.vue',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 200
+      },
+      icon: {
+        title: 'Icon',
+        description: '图标',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      is_hidden: {
+        title: 'Is Hidden',
+        description: '是否隐藏',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: false
+      },
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      version: {
+        title: 'Version',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      roles: {
+        title: 'Roles',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'RoleResponse'
+        }
+      },
+      children: {
+        title: 'Children',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'MenuTreeResponse'
+        }
+      }
+    }
+  },
+  MenuTreeResponseSimple: {
+    title: 'MenuTreeResponseSimple',
+    description: '菜单树响应 Schema',
+    required: ['name', 'title', 'path', 'id', 'version'],
+    fields: {
+      parent_id: {
+        title: 'Parent Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      tree_path: {
+        title: 'Tree Path',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '/'
+      },
+      level: {
+        title: 'Level',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 1
+      },
+      sort_order: {
+        title: 'Sort Order',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      has_children: {
+        title: 'Has Children',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: false
+      },
+      name: {
+        title: 'Name',
+        description: '菜单标识，如 system:users',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 50
+      },
+      title: {
+        title: 'Title',
+        description: '显示标题',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 50
+      },
+      path: {
+        title: 'Path',
+        description: '路由路径，如 /system/users',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 200
+      },
+      component: {
+        title: 'Component',
+        description: '组件路径，如 views/system/users.vue',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 200
+      },
+      icon: {
+        title: 'Icon',
+        description: '图标',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      is_hidden: {
+        title: 'Is Hidden',
+        description: '是否隐藏',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: false
+      },
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      version: {
+        title: 'Version',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      children: {
+        title: 'Children',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'MenuTreeResponseSimple'
+        }
+      }
+    }
+  },
+  MenuUpdate: {
+    title: 'MenuUpdate',
+    description: '菜单更新 Schema',
+    required: ['version'],
+    additionalProperties: false,
+    fields: {
+      parent_id: {
+        title: 'Parent Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      tree_path: {
+        title: 'Tree Path',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      level: {
+        title: 'Level',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      sort_order: {
+        title: 'Sort Order',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      has_children: {
+        title: 'Has Children',
+        type: 'boolean',
+        required: false,
+        nullable: true
+      },
+      name: {
+        title: 'Name',
+        description: '菜单标识，如 system:users',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      title: {
+        title: 'Title',
+        description: '显示标题',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      path: {
+        title: 'Path',
+        description: '路由路径，如 /system/users',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 200
+      },
+      component: {
+        title: 'Component',
+        description: '组件路径，如 views/system/users.vue',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 200
+      },
+      icon: {
+        title: 'Icon',
+        description: '图标',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      is_hidden: {
+        title: 'Is Hidden',
+        description: '是否隐藏',
+        type: 'boolean',
+        required: false,
+        nullable: true
+      },
+      version: {
+        title: 'Version',
+        description: '乐观锁版本号，更新时必传',
+        type: 'integer',
+        required: true,
+        nullable: false
+      }
+    }
+  },
+  OperaStatus: {
+    title: 'OperaStatus',
+    description: '操作日志状态',
+    required: [],
+    fields: {
+      __enum: {
+        title: 'OperaStatus',
+        description: '操作日志状态',
+        type: 'string',
+        required: true,
+        nullable: false,
+        enum: ['FAIL', 'SUCCESS']
+      }
+    }
+  },
+  PermissionCreate: {
+    title: 'PermissionCreate',
+    description: 'API 权限创建 Schema',
+    required: ['name'],
+    additionalProperties: false,
+    fields: {
+      parent_id: {
+        title: 'Parent Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      tree_path: {
+        title: 'Tree Path',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '/'
+      },
+      level: {
+        title: 'Level',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 1
+      },
+      sort_order: {
+        title: 'Sort Order',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      has_children: {
+        title: 'Has Children',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: false
+      },
+      name: {
+        title: 'Name',
+        description: '权限标识，如 admin:role:create',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 100
+      },
+      description: {
+        title: 'Description',
+        description: '权限描述',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 255
+      },
+      type: {
+        title: 'Type',
+        description: '权限类型：user_api（内部管理API）、app_api（外部应用API）',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: 'user_api',
+        maxLength: 20
+      },
+      category: {
+        title: 'Category',
+        description: '权限分类：admin、system、business 等',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      resource: {
+        title: 'Resource',
+        description: '资源类型：user、role、permission、warehouse 等',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      action: {
+        title: 'Action',
+        description: '操作：create、read、update、delete、list 等',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      method: {
+        title: 'Method',
+        description: 'HTTP 方法：GET、POST、PUT、DELETE、PATCH 等',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 10
+      },
+      path: {
+        title: 'Path',
+        description: 'API 路径：/admin/users/{id}、/api/v1/warehouses 等',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 255
+      }
+    }
+  },
+  PermissionResponse: {
+    title: 'PermissionResponse',
+    description: 'API 权限响应 Schema（完整版）',
+    required: ['name', 'id', 'version'],
+    fields: {
+      parent_id: {
+        title: 'Parent Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      tree_path: {
+        title: 'Tree Path',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '/'
+      },
+      level: {
+        title: 'Level',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 1
+      },
+      sort_order: {
+        title: 'Sort Order',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      has_children: {
+        title: 'Has Children',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: false
+      },
+      name: {
+        title: 'Name',
+        description: '权限标识，如 admin:role:create',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 100
+      },
+      description: {
+        title: 'Description',
+        description: '权限描述',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 255
+      },
+      type: {
+        title: 'Type',
+        description: '权限类型：user_api（内部管理API）、app_api（外部应用API）',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: 'user_api',
+        maxLength: 20
+      },
+      category: {
+        title: 'Category',
+        description: '权限分类：admin、system、business 等',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      resource: {
+        title: 'Resource',
+        description: '资源类型：user、role、permission、warehouse 等',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      action: {
+        title: 'Action',
+        description: '操作：create、read、update、delete、list 等',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      method: {
+        title: 'Method',
+        description: 'HTTP 方法：GET、POST、PUT、DELETE、PATCH 等',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 10
+      },
+      path: {
+        title: 'Path',
+        description: 'API 路径：/admin/users/{id}、/api/v1/warehouses 等',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 255
+      },
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      version: {
+        title: 'Version',
+        type: 'integer',
+        required: true,
+        nullable: false
+      }
+    }
+  },
+  PermissionTree: {
+    title: 'PermissionTree',
+    description: 'API 权限树形结构 Schema\n\n用于权限分组展示和管理（如按模块分组）',
+    required: ['name', 'id'],
+    fields: {
+      parent_id: {
+        title: 'Parent Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      tree_path: {
+        title: 'Tree Path',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '/'
+      },
+      level: {
+        title: 'Level',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 1
+      },
+      sort_order: {
+        title: 'Sort Order',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      has_children: {
+        title: 'Has Children',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: false
+      },
+      name: {
+        title: 'Name',
+        description: '权限标识，如 admin:role:create',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 100
+      },
+      description: {
+        title: 'Description',
+        description: '权限描述',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 255
+      },
+      type: {
+        title: 'Type',
+        description: '权限类型：user_api（内部管理API）、app_api（外部应用API）',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: 'user_api',
+        maxLength: 20
+      },
+      category: {
+        title: 'Category',
+        description: '权限分类：admin、system、business 等',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      resource: {
+        title: 'Resource',
+        description: '资源类型：user、role、permission、warehouse 等',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      action: {
+        title: 'Action',
+        description: '操作：create、read、update、delete、list 等',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      method: {
+        title: 'Method',
+        description: 'HTTP 方法：GET、POST、PUT、DELETE、PATCH 等',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 10
+      },
+      path: {
+        title: 'Path',
+        description: 'API 路径：/admin/users/{id}、/api/v1/warehouses 等',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 255
+      },
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      children: {
+        title: 'Children',
+        description: '子权限列表',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'PermissionTree'
+        }
+      }
+    }
+  },
+  PermissionUpdate: {
+    title: 'PermissionUpdate',
+    description: 'API 权限更新 Schema',
+    required: ['version'],
+    additionalProperties: false,
+    fields: {
+      parent_id: {
+        title: 'Parent Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      tree_path: {
+        title: 'Tree Path',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      level: {
+        title: 'Level',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      sort_order: {
+        title: 'Sort Order',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      has_children: {
+        title: 'Has Children',
+        type: 'boolean',
+        required: false,
+        nullable: true
+      },
+      name: {
+        title: 'Name',
+        description: '权限标识，如 admin:role:create',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 100
+      },
+      description: {
+        title: 'Description',
+        description: '权限描述',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 255
+      },
+      type: {
+        title: 'Type',
+        description: '权限类型：user_api（内部管理API）、app_api（外部应用API）',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 20
+      },
+      category: {
+        title: 'Category',
+        description: '权限分类：admin、system、business 等',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      resource: {
+        title: 'Resource',
+        description: '资源类型：user、role、permission、warehouse 等',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      action: {
+        title: 'Action',
+        description: '操作：create、read、update、delete、list 等',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      method: {
+        title: 'Method',
+        description: 'HTTP 方法：GET、POST、PUT、DELETE、PATCH 等',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 10
+      },
+      path: {
+        title: 'Path',
+        description: 'API 路径：/admin/users/{id}、/api/v1/warehouses 等',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 255
+      },
+      version: {
+        title: 'Version',
+        description: '乐观锁版本号，更新时必传',
+        type: 'integer',
+        required: true,
+        nullable: false
+      }
+    }
+  },
+  QueryOptions: {
+    title: 'QueryOptions',
+    description: '查询选项',
+    required: [],
+    fields: {
+      filters: {
+        required: false,
+        nullable: true,
+        ref: 'FilterGroup'
+      },
+      sort: {
+        title: 'Sort',
+        type: 'array',
+        required: false,
+        nullable: true,
+        items: {
+          ref: 'SortField'
+        }
+      },
+      offset: {
+        title: 'Offset',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      },
+      limit: {
+        title: 'Limit',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 10,
+        minimum: 1,
+        maximum: 100
+      },
+      max_depth: {
+        title: 'Max Depth',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 1,
+        minimum: 0,
+        maximum: 3
+      },
+      include_deleted: {
+        title: 'Include Deleted',
+        description: '是否包含已删除记录',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: false
+      }
+    }
+  },
+  RefreshTokenResponse: {
+    title: 'RefreshTokenResponse',
+    description: '刷新令牌响应 Schema\n\n包含新的访问令牌和刷新令牌元数据',
+    required: [
+      'access_token',
+      'access_token_jti',
+      'refresh_token_jti',
+      'access_token_expire_time',
+      'refresh_token_expire_time',
+      'session_uuid',
+      'expires_in',
+      'refresh_expires_in'
+    ],
+    fields: {
+      access_token: {
+        title: 'Access Token',
+        description: '新的访问令牌',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      access_token_jti: {
+        title: 'Access Token Jti',
+        description: '访问令牌唯一标识符',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      refresh_token_jti: {
+        title: 'Refresh Token Jti',
+        description: '刷新令牌唯一标识符',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      access_token_expire_time: {
+        title: 'Access Token Expire Time',
+        description: '访问令牌过期时间',
+        type: 'string',
+        format: 'date-time',
+        required: true,
+        nullable: false
+      },
+      refresh_token_expire_time: {
+        title: 'Refresh Token Expire Time',
+        description: '刷新令牌过期时间（令牌仅存储于 HttpOnly Cookie）',
+        type: 'string',
+        format: 'date-time',
+        required: true,
+        nullable: false
+      },
+      session_uuid: {
+        title: 'Session Uuid',
+        description: '会话 UUID',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      expires_in: {
+        title: 'Expires In',
+        description: '访问令牌过期时间（秒）- OAuth 2.0 标准字段',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      refresh_expires_in: {
+        title: 'Refresh Expires In',
+        description: '刷新令牌过期时间（秒）',
+        type: 'integer',
+        required: true,
+        nullable: false
+      }
+    }
+  },
+  ReplayInboxRequest: {
+    title: 'ReplayInboxRequest',
+    description: 'Replay 请求。',
+    required: ['reason'],
+    fields: {
+      reason: {
+        title: 'Reason',
+        type: 'string',
+        required: true,
+        nullable: false,
+        minLength: 1,
+        maxLength: 500
+      },
+      operator_id: {
+        title: 'Operator Id',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 100
+      }
+    }
+  },
+  ResetPasswordRequest: {
+    title: 'ResetPasswordRequest',
+    description: '管理员重置密码请求',
+    required: ['new_password'],
+    fields: {
+      new_password: {
+        title: 'New Password',
+        description: '新密码',
+        type: 'string',
+        required: true,
+        nullable: false,
+        minLength: 6,
+        maxLength: 100
+      }
+    }
+  },
+  ResetValidityPeriodSchema: {
+    title: 'ResetValidityPeriodSchema',
+    description: '重置有效期 Schema',
+    required: ['validity_period'],
+    fields: {
+      version: {
+        title: 'Version',
+        description: '数据版本',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      validity_period: {
+        description: '新的有效期时长',
+        required: true,
+        nullable: false,
+        ref: 'ValidityPeriod'
+      }
+    }
+  },
+  ResponseSchemaModel_APIAccessLogResponse_: {
+    title: 'ResponseSchemaModel[APIAccessLogResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'APIAccessLogResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_APIApplicationResponse_: {
+    title: 'ResponseSchemaModel[APIApplicationResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'APIApplicationResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_ActiveSessionsResponse_: {
+    title: 'ResponseSchemaModel[ActiveSessionsResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'ActiveSessionsResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_AuditLogResponse_: {
+    title: 'ResponseSchemaModel[AuditLogResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'AuditLogResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_AuthMyResponse_: {
+    title: 'ResponseSchemaModel[AuthMyResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'AuthMyResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_DemoProductResponse_: {
+    title: 'ResponseSchemaModel[DemoProductResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'DemoProductResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_DeviceResponse_: {
+    title: 'ResponseSchemaModel[DeviceResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'DeviceResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_LoginResponse_: {
+    title: 'ResponseSchemaModel[LoginResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'LoginResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_LogoutResponse_: {
+    title: 'ResponseSchemaModel[LogoutResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'LogoutResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_MenuResponse_: {
+    title: 'ResponseSchemaModel[MenuResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'MenuResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_NoneType_: {
+    title: 'ResponseSchemaModel[NoneType]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        title: 'Data',
+        description: '响应数据',
+        type: 'null',
+        required: false,
+        nullable: false
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_PermissionResponse_: {
+    title: 'ResponseSchemaModel[PermissionResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'PermissionResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_RefreshTokenResponse_: {
+    title: 'ResponseSchemaModel[RefreshTokenResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'RefreshTokenResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_RevokeSessionResponse_: {
+    title: 'ResponseSchemaModel[RevokeSessionResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'RevokeSessionResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_RoleResponse_: {
+    title: 'ResponseSchemaModel[RoleResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'RoleResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_RuntimeDeviceDetailResponse_: {
+    title: 'ResponseSchemaModel[RuntimeDeviceDetailResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'RuntimeDeviceDetailResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_RuntimeOverviewResponse_: {
+    title: 'ResponseSchemaModel[RuntimeOverviewResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'RuntimeOverviewResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_RuntimeTraceListResponse_: {
+    title: 'ResponseSchemaModel[RuntimeTraceListResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'RuntimeTraceListResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_RuntimeTracePathResponse_: {
+    title: 'ResponseSchemaModel[RuntimeTracePathResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'RuntimeTracePathResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_RuntimeWorklineDetailResponse_: {
+    title: 'ResponseSchemaModel[RuntimeWorklineDetailResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'RuntimeWorklineDetailResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_SandboxTemplatesResponse_: {
+    title: 'ResponseSchemaModel[SandboxTemplatesResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'SandboxTemplatesResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_TraceBlockingPointResponse_: {
+    title: 'ResponseSchemaModel[TraceBlockingPointResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'TraceBlockingPointResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_TraceDetailResponse_: {
+    title: 'ResponseSchemaModel[TraceDetailResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'TraceDetailResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_UserPermissionsResponse_: {
+    title: 'ResponseSchemaModel[UserPermissionsResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'UserPermissionsResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_UserResponse_: {
+    title: 'ResponseSchemaModel[UserResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'UserResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_UserSimpleResponse_: {
+    title: 'ResponseSchemaModel[UserSimpleResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'UserSimpleResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_WorkLineResponse_: {
+    title: 'ResponseSchemaModel[WorkLineResponse]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        description: '响应数据',
+        required: false,
+        nullable: true,
+        ref: 'WorkLineResponse'
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_dict_str__Any__: {
+    title: 'ResponseSchemaModel[dict[str, Any]]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        title: 'Data',
+        description: '响应数据',
+        type: 'object',
+        required: false,
+        nullable: true
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_dict_str__str__: {
+    title: 'ResponseSchemaModel[dict[str, str]]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        title: 'Data',
+        description: '响应数据',
+        type: 'object',
+        required: false,
+        nullable: true
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_list_Any__: {
+    title: 'ResponseSchemaModel[list[Any]]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        title: 'Data',
+        description: '响应数据',
+        type: 'array',
+        required: false,
+        nullable: true,
+        items: {}
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_list_MenuResponse__: {
+    title: 'ResponseSchemaModel[list[MenuResponse]]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        title: 'Data',
+        description: '响应数据',
+        type: 'array',
+        required: false,
+        nullable: true,
+        items: {
+          ref: 'MenuResponse'
+        }
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_list_MenuTreeResponseSimple__: {
+    title: 'ResponseSchemaModel[list[MenuTreeResponseSimple]]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        title: 'Data',
+        description: '响应数据',
+        type: 'array',
+        required: false,
+        nullable: true,
+        items: {
+          ref: 'MenuTreeResponseSimple'
+        }
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_list_MenuTreeResponse__: {
+    title: 'ResponseSchemaModel[list[MenuTreeResponse]]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        title: 'Data',
+        description: '响应数据',
+        type: 'array',
+        required: false,
+        nullable: true,
+        items: {
+          ref: 'MenuTreeResponse'
+        }
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_list_PermissionResponse__: {
+    title: 'ResponseSchemaModel[list[PermissionResponse]]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        title: 'Data',
+        description: '响应数据',
+        type: 'array',
+        required: false,
+        nullable: true,
+        items: {
+          ref: 'PermissionResponse'
+        }
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_list_PermissionTree__: {
+    title: 'ResponseSchemaModel[list[PermissionTree]]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        title: 'Data',
+        description: '响应数据',
+        type: 'array',
+        required: false,
+        nullable: true,
+        items: {
+          ref: 'PermissionTree'
+        }
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_list_RuntimeDeviceSummary__: {
+    title: 'ResponseSchemaModel[list[RuntimeDeviceSummary]]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        title: 'Data',
+        description: '响应数据',
+        type: 'array',
+        required: false,
+        nullable: true,
+        items: {
+          ref: 'RuntimeDeviceSummary'
+        }
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_list_RuntimeWorklineSummary__: {
+    title: 'ResponseSchemaModel[list[RuntimeWorklineSummary]]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        title: 'Data',
+        description: '响应数据',
+        type: 'array',
+        required: false,
+        nullable: true,
+        items: {
+          ref: 'RuntimeWorklineSummary'
+        }
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_list_WorkLinePluginOption__: {
+    title: 'ResponseSchemaModel[list[WorkLinePluginOption]]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        title: 'Data',
+        description: '响应数据',
+        type: 'array',
+        required: false,
+        nullable: true,
+        items: {
+          ref: 'WorkLinePluginOption'
+        }
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ResponseSchemaModel_list_dict_str__Any___: {
+    title: 'ResponseSchemaModel[list[dict[str, Any]]]',
+    required: [],
+    fields: {
+      code: {
+        title: 'Code',
+        description: '响应码',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '1000'
+      },
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: '操作成功'
+      },
+      data: {
+        title: 'Data',
+        description: '响应数据',
+        type: 'array',
+        required: false,
+        nullable: true,
+        items: {
+          type: 'object'
+        }
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '响应时间戳(ISO 8601格式)',
+        type: 'string',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  RevokeSessionResponse: {
+    title: 'RevokeSessionResponse',
+    description: '撤销会话响应 Schema',
+    required: ['message', 'session_uuid'],
+    fields: {
+      message: {
+        title: 'Message',
+        description: '响应消息',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      session_uuid: {
+        title: 'Session Uuid',
+        description: '被撤销的会话 UUID',
+        type: 'string',
+        required: true,
+        nullable: false
+      }
+    }
+  },
+  RoleCreate: {
+    title: 'RoleCreate',
+    description: '角色创建 Schema',
+    required: ['name'],
+    additionalProperties: false,
+    fields: {
+      name: {
+        title: 'Name',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 100
+      },
+      description: {
+        title: 'Description',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 255
+      }
+    }
+  },
+  RoleResponse: {
+    title: 'RoleResponse',
+    description: '角色响应 Schema',
+    required: ['name', 'id', 'version'],
+    fields: {
+      name: {
+        title: 'Name',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 100
+      },
+      description: {
+        title: 'Description',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 255
+      },
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      version: {
+        title: 'Version',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      permissions: {
+        title: 'Permissions',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'PermissionResponse'
+        }
+      }
+    }
+  },
+  RoleResponseSimple: {
+    title: 'RoleResponseSimple',
+    description: '角色响应 Schema（简化版，不含权限）',
+    required: ['name', 'id'],
+    fields: {
+      name: {
+        title: 'Name',
+        type: 'string',
+        required: true,
+        nullable: false,
+        maxLength: 100
+      },
+      description: {
+        title: 'Description',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 255
+      },
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      }
+    }
+  },
+  RoleUpdate: {
+    title: 'RoleUpdate',
+    description: '角色更新 Schema',
+    required: ['version'],
+    additionalProperties: false,
+    fields: {
+      name: {
+        title: 'Name',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 100
+      },
+      description: {
+        title: 'Description',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 255
+      },
+      version: {
+        title: 'Version',
+        description: '乐观锁版本号，更新时必传',
+        type: 'integer',
+        required: true,
+        nullable: false
+      }
+    }
+  },
+  RuntimeBlockingReason: {
+    title: 'RuntimeBlockingReason',
+    required: ['reason'],
+    fields: {
+      device_id: {
+        title: 'Device Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      reason: {
+        title: 'Reason',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      detail: {
+        title: 'Detail',
+        type: 'string',
+        required: false,
+        nullable: true
+      }
+    }
+  },
+  RuntimeDeviceDetailResponse: {
+    title: 'RuntimeDeviceDetailResponse',
+    required: ['summary'],
+    fields: {
+      summary: {
+        required: true,
+        nullable: false,
+        ref: 'RuntimeDeviceSummary'
+      },
+      recent_commands: {
+        title: 'Recent Commands',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'TraceCommandItem'
+        }
+      },
+      recent_callbacks: {
+        title: 'Recent Callbacks',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'TraceCallbackLogItem'
+        }
+      },
+      active_sessions: {
+        title: 'Active Sessions',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'RuntimeTraceListItem'
+        }
+      }
+    }
+  },
+  RuntimeDeviceHealthSummary: {
+    title: 'RuntimeDeviceHealthSummary',
+    required: [],
+    fields: {
+      total: {
+        title: 'Total',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      abnormal: {
+        title: 'Abnormal',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      maintenance: {
+        title: 'Maintenance',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      loaded: {
+        title: 'Loaded',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      healthy: {
+        title: 'Healthy',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      }
+    }
+  },
+  RuntimeDeviceSummary: {
+    title: 'RuntimeDeviceSummary',
+    required: ['id', 'device_code', 'device_name', 'device_role', 'role_index', 'device_status'],
+    fields: {
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      device_code: {
+        title: 'Device Code',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      device_name: {
+        title: 'Device Name',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      device_role: {
+        title: 'Device Role',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      role_index: {
+        title: 'Role Index',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      workline_id: {
+        title: 'Workline Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      workline_name: {
+        title: 'Workline Name',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      workline_code: {
+        title: 'Workline Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      device_status: {
+        title: 'Device Status',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      maintenance_mode: {
+        title: 'Maintenance Mode',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: false
+      },
+      current_command_id: {
+        title: 'Current Command Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      pending_command_count: {
+        title: 'Pending Command Count',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      last_heartbeat_at: {
+        title: 'Last Heartbeat At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      recent_callback_at: {
+        title: 'Recent Callback At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      error_code: {
+        title: 'Error Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      }
+    }
+  },
+  RuntimeOverviewResponse: {
+    title: 'RuntimeOverviewResponse',
+    required: ['stats'],
+    fields: {
+      stats: {
+        title: 'Stats',
+        type: 'array',
+        required: true,
+        nullable: false,
+        items: {
+          ref: 'RuntimeStatCard'
+        }
+      },
+      recent_failed_traces: {
+        title: 'Recent Failed Traces',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'RuntimeTraceListItem'
+        }
+      },
+      hot_worklines: {
+        title: 'Hot Worklines',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'RuntimeWorklineSummary'
+        }
+      },
+      abnormal_devices: {
+        title: 'Abnormal Devices',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'RuntimeDeviceSummary'
+        }
+      },
+      device_health: {
+        required: false,
+        nullable: false,
+        ref: 'RuntimeDeviceHealthSummary'
+      }
+    }
+  },
+  RuntimeStatCard: {
+    title: 'RuntimeStatCard',
+    required: ['key', 'label', 'value'],
+    fields: {
+      key: {
+        title: 'Key',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      label: {
+        title: 'Label',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      value: {
+        title: 'Value',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      status: {
+        title: 'Status',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: 'info'
+      }
+    }
+  },
+  RuntimeTraceDeviceAction: {
+    title: 'RuntimeTraceDeviceAction',
+    required: ['kind', 'label'],
+    fields: {
+      kind: {
+        title: 'Kind',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      label: {
+        title: 'Label',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      status: {
+        title: 'Status',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      timestamp: {
+        title: 'Timestamp',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      message: {
+        title: 'Message',
+        type: 'string',
+        required: false,
+        nullable: true
+      }
+    }
+  },
+  RuntimeTraceDevicePathNode: {
+    title: 'RuntimeTraceDevicePathNode',
+    required: ['device_id'],
+    fields: {
+      device_id: {
+        title: 'Device Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      device_code: {
+        title: 'Device Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      device_name: {
+        title: 'Device Name',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      device_role: {
+        title: 'Device Role',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      is_current: {
+        title: 'Is Current',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: false
+      },
+      actions: {
+        title: 'Actions',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'RuntimeTraceDeviceAction'
+        }
+      }
+    }
+  },
+  RuntimeTraceListItem: {
+    title: 'RuntimeTraceListItem',
+    description: 'Trace 列表项。',
+    required: ['session_id', 'session_code', 'workline_id', 'status'],
+    fields: {
+      session_id: {
+        title: 'Session Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      session_code: {
+        title: 'Session Code',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      trace_id: {
+        title: 'Trace Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      request_id: {
+        title: 'Request Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      business_key: {
+        title: 'Business Key',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      barcode: {
+        title: 'Barcode',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      workline_id: {
+        title: 'Workline Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      workline_name: {
+        title: 'Workline Name',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      workline_code: {
+        title: 'Workline Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      device_id: {
+        title: 'Device Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      device_name: {
+        title: 'Device Name',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      device_code: {
+        title: 'Device Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      command_code: {
+        title: 'Command Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      status: {
+        title: 'Status',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      step_code: {
+        title: 'Step Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      current_wait_type: {
+        title: 'Current Wait Type',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      failure_domain: {
+        title: 'Failure Domain',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      failure_code: {
+        title: 'Failure Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      latest_timeline_action: {
+        title: 'Latest Timeline Action',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      latest_timeline_status: {
+        title: 'Latest Timeline Status',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      latest_timeline_message: {
+        title: 'Latest Timeline Message',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      started_at: {
+        title: 'Started At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      last_ingress_at: {
+        title: 'Last Ingress At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      deadline_at: {
+        title: 'Deadline At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      is_timed_out: {
+        title: 'Is Timed Out',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: false
+      }
+    }
+  },
+  RuntimeTraceListResponse: {
+    title: 'RuntimeTraceListResponse',
+    description: 'Trace 列表响应。',
+    required: ['total', 'items'],
+    fields: {
+      total: {
+        title: 'Total',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      items: {
+        title: 'Items',
+        type: 'array',
+        required: true,
+        nullable: false,
+        items: {
+          ref: 'RuntimeTraceListItem'
+        }
+      }
+    }
+  },
+  RuntimeTracePathResponse: {
+    title: 'RuntimeTracePathResponse',
+    required: [],
+    fields: {
+      workline_id: {
+        title: 'Workline Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      session_id: {
+        title: 'Session Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      trace_id: {
+        title: 'Trace Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      devices: {
+        title: 'Devices',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'RuntimeTraceDevicePathNode'
+        }
+      },
+      timeline_groups: {
+        title: 'Timeline Groups',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'RuntimeTraceTimelineGroup'
+        }
+      },
+      current_blocking_device_id: {
+        title: 'Current Blocking Device Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      blocking_reason: {
+        required: false,
+        nullable: true,
+        ref: 'RuntimeBlockingReason'
+      },
+      evidence: {
+        required: false,
+        nullable: true,
+        ref: 'TraceDetailResponse'
+      }
+    }
+  },
+  RuntimeTraceTimelineGroup: {
+    title: 'RuntimeTraceTimelineGroup',
+    required: ['group_key', 'group_type', 'display_name'],
+    fields: {
+      group_key: {
+        title: 'Group Key',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      group_type: {
+        title: 'Group Type',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      display_name: {
+        title: 'Display Name',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      device_id: {
+        title: 'Device Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      device_code: {
+        title: 'Device Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      is_current: {
+        title: 'Is Current',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: false
+      },
+      is_blocked: {
+        title: 'Is Blocked',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: false
+      },
+      events: {
+        title: 'Events',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'TraceTimelineItem'
+        }
+      }
+    }
+  },
+  RuntimeWorklineDetailResponse: {
+    title: 'RuntimeWorklineDetailResponse',
+    required: ['summary'],
+    fields: {
+      summary: {
+        required: true,
+        nullable: false,
+        ref: 'RuntimeWorklineSummary'
+      },
+      devices: {
+        title: 'Devices',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'RuntimeWorklineDeviceItem'
+        }
+      },
+      active_sessions: {
+        title: 'Active Sessions',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'RuntimeTraceListItem'
+        }
+      },
+      recent_failed_traces: {
+        title: 'Recent Failed Traces',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'RuntimeTraceListItem'
+        }
+      },
+      recent_completed_traces: {
+        title: 'Recent Completed Traces',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'RuntimeTraceListItem'
+        }
+      }
+    }
+  },
+  RuntimeWorklineDeviceItem: {
+    title: 'RuntimeWorklineDeviceItem',
+    required: ['id', 'device_code', 'device_name', 'device_role', 'role_index', 'device_status'],
+    fields: {
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      device_code: {
+        title: 'Device Code',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      device_name: {
+        title: 'Device Name',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      device_role: {
+        title: 'Device Role',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      role_index: {
+        title: 'Role Index',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      upstream_device_id: {
+        title: 'Upstream Device Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      device_status: {
+        title: 'Device Status',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      maintenance_mode: {
+        title: 'Maintenance Mode',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: false
+      },
+      current_command_id: {
+        title: 'Current Command Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      last_heartbeat_at: {
+        title: 'Last Heartbeat At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      error_code: {
+        title: 'Error Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      }
+    }
+  },
+  RuntimeWorklineSummary: {
+    title: 'RuntimeWorklineSummary',
+    required: ['id', 'line_code', 'line_name', 'line_type', 'is_active'],
+    fields: {
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      line_code: {
+        title: 'Line Code',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      line_name: {
+        title: 'Line Name',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      line_type: {
+        title: 'Line Type',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      zone_name: {
+        title: 'Zone Name',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      plugin_key: {
+        title: 'Plugin Key',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      contract_version: {
+        title: 'Contract Version',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      is_active: {
+        title: 'Is Active',
+        type: 'boolean',
+        required: true,
+        nullable: false
+      },
+      device_count: {
+        title: 'Device Count',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      active_session_count: {
+        title: 'Active Session Count',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      waiting_session_count: {
+        title: 'Waiting Session Count',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      failed_session_count: {
+        title: 'Failed Session Count',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      error_device_count: {
+        title: 'Error Device Count',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      offline_device_count: {
+        title: 'Offline Device Count',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      maintenance_device_count: {
+        title: 'Maintenance Device Count',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      run_mode: {
+        title: 'Run Mode',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: 'AUTO'
+      },
+      runtime_status: {
+        title: 'Runtime Status',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: 'READY'
+      },
+      active_safety_incident_id: {
+        title: 'Active Safety Incident Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      stopped_at: {
+        title: 'Stopped At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      stopped_reason: {
+        title: 'Stopped Reason',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      resumed_at: {
+        title: 'Resumed At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      last_activity_at: {
+        title: 'Last Activity At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      }
+    }
+  },
+  SandboxAckRequest: {
+    title: 'SandboxAckRequest',
+    description: '沙箱 Command ACK 模拟请求。',
+    required: ['dispatch_key'],
+    fields: {
+      dispatch_key: {
+        title: 'Dispatch Key',
+        description: 'Dispatch Key',
+        type: 'string',
+        required: true,
+        nullable: false,
+        minLength: 1,
+        maxLength: 200
+      }
+    }
+  },
+  SandboxEventRequest: {
+    title: 'SandboxEventRequest',
+    description: '沙箱 Event 发送请求。',
+    required: ['workline_id', 'device_id', 'event_type'],
+    fields: {
+      workline_id: {
+        title: 'Workline Id',
+        description: '工作线 ID',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      device_id: {
+        title: 'Device Id',
+        description: '目标设备 ID',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      event_type: {
+        title: 'Event Type',
+        description: '事件类型',
+        type: 'string',
+        required: true,
+        nullable: false,
+        minLength: 1,
+        maxLength: 100
+      },
+      trace_id: {
+        title: 'Trace Id',
+        description: 'Trace ID（可选，自动生成）',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 200
+      },
+      session_id: {
+        title: 'Session Id',
+        description: 'Session ID（可选）',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      payload: {
+        title: 'Payload',
+        description: '事件 Payload',
+        type: 'object',
+        required: false,
+        nullable: false
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '事件时间戳（默认当前时间）',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      }
+    }
+  },
+  SandboxEventTemplate: {
+    title: 'SandboxEventTemplate',
+    description: '沙箱 Event 模板。',
+    required: ['event_type', 'label'],
+    fields: {
+      event_type: {
+        title: 'Event Type',
+        description: '事件类型标识',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      label: {
+        title: 'Label',
+        description: '事件类型显示名称',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      payload_template: {
+        title: 'Payload Template',
+        description: 'Payload 模板',
+        type: 'object',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  SandboxResultRequest: {
+    title: 'SandboxResultRequest',
+    description: '沙箱 Command Result 模拟请求。',
+    required: ['command_code', 'device_code', 'result'],
+    fields: {
+      command_code: {
+        title: 'Command Code',
+        description: 'Command Code',
+        type: 'string',
+        required: true,
+        nullable: false,
+        minLength: 1,
+        maxLength: 100
+      },
+      device_code: {
+        title: 'Device Code',
+        description: '设备 Code',
+        type: 'string',
+        required: true,
+        nullable: false,
+        minLength: 1,
+        maxLength: 100
+      },
+      result: {
+        title: 'Result',
+        description: '结果状态',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      payload: {
+        title: 'Payload',
+        description: 'Result Payload',
+        type: 'object',
+        required: false,
+        nullable: false
+      },
+      error_detail: {
+        title: 'Error Detail',
+        description: '错误详情（FAILED 时）',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 500
+      },
+      timestamp: {
+        title: 'Timestamp',
+        description: '结果时间戳（默认当前时间）',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      }
+    }
+  },
+  SandboxResultTemplate: {
+    title: 'SandboxResultTemplate',
+    description: '沙箱 Result 模板。',
+    required: ['command_type', 'label'],
+    fields: {
+      command_type: {
+        title: 'Command Type',
+        description: 'Command 类型标识',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      label: {
+        title: 'Label',
+        description: 'Command 类型显示名称',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      success_payload_template: {
+        title: 'Success Payload Template',
+        description: '成功 Payload 模板',
+        type: 'object',
+        required: false,
+        nullable: false
+      },
+      failed_payload_template: {
+        title: 'Failed Payload Template',
+        description: '失败 Payload 模板',
+        type: 'object',
+        required: false,
+        nullable: false
+      },
+      error_template: {
+        title: 'Error Template',
+        description: '错误信息模板',
+        type: 'string',
+        required: false,
+        nullable: true
+      }
+    }
+  },
+  SandboxTemplatesResponse: {
+    title: 'SandboxTemplatesResponse',
+    description: '沙箱模板响应。',
+    required: [],
+    fields: {
+      event_templates: {
+        title: 'Event Templates',
+        description: 'Event 模板列表',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'SandboxEventTemplate'
+        }
+      },
+      result_templates: {
+        title: 'Result Templates',
+        description: 'Result 模板列表',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'SandboxResultTemplate'
+        }
+      }
+    }
+  },
+  SessionInfo: {
+    title: 'SessionInfo',
+    description: '会话信息 Schema\n\n描述一个活跃的用户会话',
+    required: ['session_uuid', 'jti', 'created_at'],
+    fields: {
+      session_uuid: {
+        title: 'Session Uuid',
+        description: '会话 UUID',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      jti: {
+        title: 'Jti',
+        description: 'JWT ID',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      created_at: {
+        title: 'Created At',
+        description: '会话创建时间',
+        type: 'string',
+        format: 'date-time',
+        required: true,
+        nullable: false
+      },
+      device_info: {
+        title: 'Device Info',
+        description: '设备信息（可选）',
+        type: 'object',
+        required: false,
+        nullable: true
+      },
+      last_active: {
+        title: 'Last Active',
+        description: '最后活跃时间',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      }
+    }
+  },
+  SimulateWorkLineEstopRequest: {
+    title: 'SimulateWorkLineEstopRequest',
+    description: '沙箱模拟 WorkLine 软件急停请求。',
+    required: [],
+    fields: {
+      reason: {
+        title: 'Reason',
+        description: '模拟急停说明',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 500
+      },
+      source_device_id: {
+        title: 'Source Device Id',
+        description: '模拟来源设备 ID',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      payload: {
+        title: 'Payload',
+        description: '模拟触发 payload',
+        type: 'object',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  SortField: {
+    title: 'SortField',
+    description: '排序字段',
+    required: ['field'],
+    fields: {
+      field: {
+        title: 'Field',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      order: {
+        title: 'Order',
+        type: 'string',
+        required: false,
+        nullable: false,
+        default: 'desc',
+        enum: ['asc', 'desc']
+      }
+    }
+  },
+  SortItem: {
+    title: 'SortItem',
+    description: '批量排序项',
+    required: ['id'],
+    fields: {
+      id: {
+        title: 'Id',
+        description: '节点ID',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      parent_id: {
+        title: 'Parent Id',
+        description: '父节点ID',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      sort_order: {
+        title: 'Sort Order',
+        description: '排序值',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      }
+    }
+  },
+  TraceBlockingPointResponse: {
+    title: 'TraceBlockingPointResponse',
+    required: [
+      'trace_id',
+      'blocking_point',
+      'owner',
+      'recoverability',
+      'operator_action',
+      'diagnostic_card'
+    ],
+    fields: {
+      trace_id: {
+        title: 'Trace Id',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      request_id: {
+        title: 'Request Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      blocking_point: {
+        title: 'Blocking Point',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      owner: {
+        title: 'Owner',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      recoverability: {
+        title: 'Recoverability',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      operator_action: {
+        title: 'Operator Action',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      diagnostic_card: {
+        required: true,
+        nullable: false,
+        ref: 'DiagnosticCardResponse'
+      },
+      evidence: {
+        title: 'Evidence',
+        type: 'object',
+        required: false,
+        nullable: false
+      },
+      next_steps: {
+        title: 'Next Steps',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          type: 'string'
+        }
+      }
+    }
+  },
+  TraceCallbackLogItem: {
+    title: 'TraceCallbackLogItem',
+    required: [
+      'id',
+      'callback_type',
+      'device_id',
+      'response_status',
+      'response_time_ms',
+      'request_body',
+      'created_at'
+    ],
+    fields: {
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      callback_type: {
+        title: 'Callback Type',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      device_id: {
+        title: 'Device Id',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      request_id: {
+        title: 'Request Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      trace_id: {
+        title: 'Trace Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      event_id: {
+        title: 'Event Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      causation_id: {
+        title: 'Causation Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      response_status: {
+        title: 'Response Status',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      response_time_ms: {
+        title: 'Response Time Ms',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      error_message: {
+        title: 'Error Message',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      ingress_outcome: {
+        title: 'Ingress Outcome',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      failure_stage: {
+        title: 'Failure Stage',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      request_body: {
+        title: 'Request Body',
+        type: 'object',
+        required: true,
+        nullable: false
+      },
+      created_at: {
+        title: 'Created At',
+        type: 'string',
+        format: 'date-time',
+        required: true,
+        nullable: false
+      },
+      updated_at: {
+        title: 'Updated At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      }
+    }
+  },
+  TraceCommandItem: {
+    title: 'TraceCommandItem',
+    required: ['id', 'device_id', 'command_code', 'task_type', 'status', 'params'],
+    fields: {
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      device_id: {
+        title: 'Device Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      command_code: {
+        title: 'Command Code',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      trace_id: {
+        title: 'Trace Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      workline_id: {
+        title: 'Workline Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      session_id: {
+        title: 'Session Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      task_type: {
+        title: 'Task Type',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      status: {
+        title: 'Status',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      result: {
+        title: 'Result',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      retry_count: {
+        title: 'Retry Count',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      sent_at: {
+        title: 'Sent At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      ack_received_at: {
+        title: 'Ack Received At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      completed_at: {
+        title: 'Completed At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      ack_code: {
+        title: 'Ack Code',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      ack_message: {
+        title: 'Ack Message',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      ack_trace_id: {
+        title: 'Ack Trace Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      step_code: {
+        title: 'Step Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      params: {
+        title: 'Params',
+        type: 'object',
+        required: true,
+        nullable: false
+      },
+      result_data: {
+        title: 'Result Data',
+        type: 'object',
+        required: false,
+        nullable: true
+      },
+      error_detail: {
+        title: 'Error Detail',
+        type: 'object',
+        required: false,
+        nullable: true
+      },
+      duration_ms: {
+        title: 'Duration Ms',
+        type: 'integer',
+        required: false,
+        nullable: true
+      }
+    }
+  },
+  TraceContextResponse: {
+    title: 'TraceContextResponse',
+    required: [],
+    fields: {
+      request_id: {
+        title: 'Request Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      trace_id: {
+        title: 'Trace Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      event_id: {
+        title: 'Event Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      causation_id: {
+        title: 'Causation Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      workline_id: {
+        title: 'Workline Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      session_id: {
+        title: 'Session Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      inbox_id: {
+        title: 'Inbox Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      device_id: {
+        title: 'Device Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      device_code: {
+        title: 'Device Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      command_id: {
+        title: 'Command Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      command_code: {
+        title: 'Command Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      outbox_id: {
+        title: 'Outbox Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      dispatch_key: {
+        title: 'Dispatch Key',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      canonical_event_type: {
+        title: 'Canonical Event Type',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      transition: {
+        title: 'Transition',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      plugin_key: {
+        title: 'Plugin Key',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      contract_version: {
+        title: 'Contract Version',
+        type: 'string',
+        required: false,
+        nullable: true
+      }
+    }
+  },
+  TraceDetailResponse: {
+    title: 'TraceDetailResponse',
+    required: ['trace', 'summary'],
+    fields: {
+      trace: {
+        required: true,
+        nullable: false,
+        ref: 'TraceContextResponse'
+      },
+      summary: {
+        required: true,
+        nullable: false,
+        ref: 'TraceOverviewSummary'
+      },
+      session: {
+        required: false,
+        nullable: true,
+        ref: 'TraceSessionItem'
+      },
+      sessions: {
+        title: 'Sessions',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'TraceSessionItem'
+        }
+      },
+      callback_logs: {
+        title: 'Callback Logs',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'TraceCallbackLogItem'
+        }
+      },
+      inboxes: {
+        title: 'Inboxes',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'TraceInboxItem'
+        }
+      },
+      commands: {
+        title: 'Commands',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'TraceCommandItem'
+        }
+      },
+      outboxes: {
+        title: 'Outboxes',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'TraceOutboxItem'
+        }
+      },
+      dispatch_attempts: {
+        title: 'Dispatch Attempts',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'TraceDispatchAttemptItem'
+        }
+      },
+      timelines: {
+        title: 'Timelines',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'TraceTimelineItem'
+        }
+      },
+      diagnostics: {
+        title: 'Diagnostics',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'TraceDiagnosticItem'
+        }
+      }
+    }
+  },
+  TraceDiagnosticContextItem: {
+    title: 'TraceDiagnosticContextItem',
+    required: [],
+    fields: {
+      request_id: {
+        title: 'Request Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      trace_id: {
+        title: 'Trace Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      session_id: {
+        title: 'Session Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      inbox_id: {
+        title: 'Inbox Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      outbox_id: {
+        title: 'Outbox Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      command_code: {
+        title: 'Command Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      device_code: {
+        title: 'Device Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      workline_id: {
+        title: 'Workline Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      workline_code: {
+        title: 'Workline Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      plugin_key: {
+        title: 'Plugin Key',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      canonical_event_type: {
+        title: 'Canonical Event Type',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      transition: {
+        title: 'Transition',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      extra: {
+        title: 'Extra',
+        type: 'object',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  TraceDiagnosticItem: {
+    title: 'TraceDiagnosticItem',
+    required: [],
+    fields: {
+      request_id: {
+        title: 'Request Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      trace_id: {
+        title: 'Trace Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      session_id: {
+        title: 'Session Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      inbox_id: {
+        title: 'Inbox Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      outbox_id: {
+        title: 'Outbox Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      command_code: {
+        title: 'Command Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      device_code: {
+        title: 'Device Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      workline_id: {
+        title: 'Workline Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      workline_code: {
+        title: 'Workline Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      plugin_key: {
+        title: 'Plugin Key',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      canonical_event_type: {
+        title: 'Canonical Event Type',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      transition: {
+        title: 'Transition',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      extra: {
+        title: 'Extra',
+        type: 'object',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  TraceDispatchAttemptItem: {
+    title: 'TraceDispatchAttemptItem',
+    required: [
+      'id',
+      'outbox_id',
+      'dispatch_key',
+      'attempt_no',
+      'lease_token',
+      'status',
+      'started_at'
+    ],
+    fields: {
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      outbox_id: {
+        title: 'Outbox Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      dispatch_key: {
+        title: 'Dispatch Key',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      attempt_no: {
+        title: 'Attempt No',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      lease_token: {
+        title: 'Lease Token',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      status: {
+        title: 'Status',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      target_type: {
+        title: 'Target Type',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      target_code: {
+        title: 'Target Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      started_at: {
+        title: 'Started At',
+        type: 'string',
+        format: 'date-time',
+        required: true,
+        nullable: false
+      },
+      finalized_at: {
+        title: 'Finalized At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      error_message: {
+        title: 'Error Message',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      response_json: {
+        title: 'Response Json',
+        type: 'object',
+        required: false,
+        nullable: false
+      },
+      trace_json: {
+        title: 'Trace Json',
+        type: 'object',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  TraceInboxItem: {
+    title: 'TraceInboxItem',
+    required: ['id', 'kind', 'source_system', 'status', 'received_at', 'payload_json'],
+    fields: {
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      kind: {
+        title: 'Kind',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      source_system: {
+        title: 'Source System',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      source_message_id: {
+        title: 'Source Message Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      trace_id: {
+        title: 'Trace Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      event_id: {
+        title: 'Event Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      causation_id: {
+        title: 'Causation Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      workline_id: {
+        title: 'Workline Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      device_id: {
+        title: 'Device Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      command_id: {
+        title: 'Command Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      session_id: {
+        title: 'Session Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      status: {
+        title: 'Status',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      received_at: {
+        title: 'Received At',
+        type: 'string',
+        format: 'date-time',
+        required: true,
+        nullable: false
+      },
+      processed_at: {
+        title: 'Processed At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      attempt_count: {
+        title: 'Attempt Count',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      max_attempts: {
+        title: 'Max Attempts',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      next_retry_at: {
+        title: 'Next Retry At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      error_message: {
+        title: 'Error Message',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      payload_json: {
+        title: 'Payload Json',
+        type: 'object',
+        required: true,
+        nullable: false
+      }
+    }
+  },
+  TraceOutboxItem: {
+    title: 'TraceOutboxItem',
+    required: [
+      'id',
+      'workline_id',
+      'dispatch_type',
+      'dispatch_key',
+      'target_type',
+      'target_code',
+      'status',
+      'created_at',
+      'payload_json'
+    ],
+    fields: {
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      session_id: {
+        title: 'Session Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      workline_id: {
+        title: 'Workline Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      dispatch_type: {
+        title: 'Dispatch Type',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      dispatch_key: {
+        title: 'Dispatch Key',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      target_type: {
+        title: 'Target Type',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      target_code: {
+        title: 'Target Code',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      status: {
+        title: 'Status',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      attempt_count: {
+        title: 'Attempt Count',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      next_retry_at: {
+        title: 'Next Retry At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      last_error: {
+        title: 'Last Error',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      created_at: {
+        title: 'Created At',
+        type: 'string',
+        format: 'date-time',
+        required: true,
+        nullable: false
+      },
+      sent_at: {
+        title: 'Sent At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      finished_at: {
+        title: 'Finished At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      payload_json: {
+        title: 'Payload Json',
+        type: 'object',
+        required: true,
+        nullable: false
+      }
+    }
+  },
+  TraceOverviewSummary: {
+    title: 'TraceOverviewSummary',
+    description: 'Trace 详情页顶部摘要。',
+    required: [],
+    fields: {
+      callback_logs: {
+        title: 'Callback Logs',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      inboxes: {
+        title: 'Inboxes',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      commands: {
+        title: 'Commands',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      outboxes: {
+        title: 'Outboxes',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      timelines: {
+        title: 'Timelines',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      diagnostics: {
+        title: 'Diagnostics',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      session_status: {
+        title: 'Session Status',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      step_code: {
+        title: 'Step Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      current_wait_type: {
+        title: 'Current Wait Type',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      latest_timeline_action: {
+        title: 'Latest Timeline Action',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      latest_timeline_status: {
+        title: 'Latest Timeline Status',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      latest_timeline_message: {
+        title: 'Latest Timeline Message',
+        type: 'string',
+        required: false,
+        nullable: true
+      }
+    }
+  },
+  TraceQueryRequest: {
+    title: 'TraceQueryRequest',
+    description: 'Trace 列表查询请求。',
+    required: [],
+    fields: {
+      workline_id: {
+        title: 'Workline Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      device_id: {
+        title: 'Device Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      status: {
+        title: 'Status',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      step_code: {
+        title: 'Step Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      keyword: {
+        title: 'Keyword',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      only_active: {
+        title: 'Only Active',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: false
+      },
+      only_failed: {
+        title: 'Only Failed',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: false
+      },
+      limit: {
+        title: 'Limit',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 20,
+        minimum: 1,
+        maximum: 100
+      },
+      offset: {
+        title: 'Offset',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0,
+        minimum: 0
+      }
+    }
+  },
+  TraceSessionItem: {
+    title: 'TraceSessionItem',
+    required: [
+      'id',
+      'session_code',
+      'workline_id',
+      'plugin_key',
+      'run_mode',
+      'status',
+      'context_json'
+    ],
+    fields: {
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      session_code: {
+        title: 'Session Code',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      workline_id: {
+        title: 'Workline Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      plugin_key: {
+        title: 'Plugin Key',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      run_mode: {
+        title: 'Run Mode',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      business_key: {
+        title: 'Business Key',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      barcode: {
+        title: 'Barcode',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      status: {
+        title: 'Status',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      step_code: {
+        title: 'Step Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      trace_id: {
+        title: 'Trace Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      started_at: {
+        title: 'Started At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      ended_at: {
+        title: 'Ended At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      current_wait_type: {
+        title: 'Current Wait Type',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      current_wait_token: {
+        title: 'Current Wait Token',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      waiting_since: {
+        title: 'Waiting Since',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      deadline_at: {
+        title: 'Deadline At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      awaiting_command_id: {
+        title: 'Awaiting Command Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      failure_domain: {
+        title: 'Failure Domain',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      failure_code: {
+        title: 'Failure Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      failure_message: {
+        title: 'Failure Message',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      ingress_count: {
+        title: 'Ingress Count',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      last_request_id: {
+        title: 'Last Request Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      last_ingress_at: {
+        title: 'Last Ingress At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      last_inbox_id: {
+        title: 'Last Inbox Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      context_json: {
+        title: 'Context Json',
+        type: 'object',
+        required: true,
+        nullable: false
+      }
+    }
+  },
+  TraceTimelineItem: {
+    title: 'TraceTimelineItem',
+    required: [
+      'id',
+      'session_id',
+      'workline_id',
+      'seq_no',
+      'occurred_at',
+      'stage',
+      'action_type',
+      'actor_type',
+      'status'
+    ],
+    fields: {
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      session_id: {
+        title: 'Session Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      workline_id: {
+        title: 'Workline Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      trace_id: {
+        title: 'Trace Id',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      seq_no: {
+        title: 'Seq No',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      occurred_at: {
+        title: 'Occurred At',
+        type: 'string',
+        format: 'date-time',
+        required: true,
+        nullable: false
+      },
+      stage: {
+        title: 'Stage',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      action_type: {
+        title: 'Action Type',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      actor_type: {
+        title: 'Actor Type',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      actor_code: {
+        title: 'Actor Code',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      from_status: {
+        title: 'From Status',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      to_status: {
+        title: 'To Status',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      status: {
+        title: 'Status',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      failure_domain: {
+        title: 'Failure Domain',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      message: {
+        title: 'Message',
+        type: 'string',
+        required: false,
+        nullable: true
+      },
+      payload_json: {
+        title: 'Payload Json',
+        type: 'object',
+        required: false,
+        nullable: true
+      },
+      related_inbox_id: {
+        title: 'Related Inbox Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      related_command_id: {
+        title: 'Related Command Id',
+        type: 'integer',
+        required: false,
+        nullable: true
+      }
+    }
+  },
+  TryInvokeApplication: {
+    title: 'TryInvokeApplication',
+    description: '测试 API 调用数据模型',
+    required: ['command_name', 'command_description', 'command_parameters', 'command_response'],
+    fields: {
+      command_name: {
+        title: 'Command Name',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      command_description: {
+        title: 'Command Description',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      command_parameters: {
+        title: 'Command Parameters',
+        type: 'array',
+        required: true,
+        nullable: false,
+        items: {
+          type: 'string'
+        }
+      },
+      command_response: {
+        title: 'Command Response',
+        type: 'string',
+        required: true,
+        nullable: false
+      }
+    }
+  },
+  TryInvokeApplicationRequest: {
+    title: 'TryInvokeApplicationRequest',
+    description: '测试 API 调用请求模型（包裹格式）',
+    required: ['data'],
+    fields: {
+      data: {
+        required: true,
+        nullable: false,
+        ref: 'TryInvokeApplication'
+      }
+    }
+  },
+  UserCreate: {
+    title: 'UserCreate',
+    description: '用户创建 Schema - 接收客户端输入',
+    required: ['username', 'email', 'password'],
+    additionalProperties: false,
+    fields: {
+      username: {
+        title: 'Username',
+        description: '用户名',
+        type: 'string',
+        required: true,
+        nullable: false,
+        minLength: 3,
+        maxLength: 50
+      },
+      email: {
+        title: 'Email',
+        description: '邮箱',
+        type: 'string',
+        format: 'email',
+        required: true,
+        nullable: false,
+        maxLength: 100
+      },
+      full_name: {
+        title: 'Full Name',
+        description: '姓名',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 100
+      },
+      password: {
+        title: 'Password',
+        type: 'string',
+        required: true,
+        nullable: false,
+        minLength: 6,
+        maxLength: 100
+      }
+    }
+  },
+  UserPermissionsResponse: {
+    title: 'UserPermissionsResponse',
+    description: '用户权限列表响应 Schema\n\n包含用户有权限访问的所有 API 权限',
+    required: ['total', 'permissions'],
+    fields: {
+      total: {
+        title: 'Total',
+        description: '权限总数',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      permissions: {
+        title: 'Permissions',
+        description: '用户有权限访问的 API 列表',
+        type: 'array',
+        required: true,
+        nullable: false,
+        items: {
+          ref: 'ApiPermissionInfo'
+        }
+      }
+    }
+  },
+  UserResponse: {
+    title: 'UserResponse',
+    description: '用户响应 Schema - 返回给客户端',
+    required: ['username', 'email', 'id', 'is_superuser', 'is_multi_login', 'created_at'],
+    fields: {
+      username: {
+        title: 'Username',
+        description: '用户名',
+        type: 'string',
+        required: true,
+        nullable: false,
+        minLength: 3,
+        maxLength: 50
+      },
+      email: {
+        title: 'Email',
+        description: '邮箱',
+        type: 'string',
+        format: 'email',
+        required: true,
+        nullable: false,
+        maxLength: 100
+      },
+      full_name: {
+        title: 'Full Name',
+        description: '姓名',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 100
+      },
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      version: {
+        title: 'Version',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      is_superuser: {
+        title: 'Is Superuser',
+        type: 'boolean',
+        required: true,
+        nullable: false
+      },
+      is_multi_login: {
+        title: 'Is Multi Login',
+        type: 'boolean',
+        required: true,
+        nullable: false
+      },
+      created_at: {
+        title: 'Created At',
+        type: 'string',
+        format: 'date-time',
+        required: true,
+        nullable: false
+      },
+      created_by: {
+        title: 'Created By',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      updated_at: {
+        title: 'Updated At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      updated_by: {
+        title: 'Updated By',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      deleted_by: {
+        title: 'Deleted By',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      deleted_at: {
+        title: 'Deleted At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      roles: {
+        title: 'Roles',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          ref: 'RoleResponseSimple'
+        }
+      }
+    }
+  },
+  UserSimpleResponse: {
+    title: 'UserSimpleResponse',
+    description: '用户响应 Schema 无关联关系 - 返回给客户端',
+    required: ['username', 'email', 'id', 'is_superuser', 'is_multi_login', 'created_at'],
+    fields: {
+      username: {
+        title: 'Username',
+        description: '用户名',
+        type: 'string',
+        required: true,
+        nullable: false,
+        minLength: 3,
+        maxLength: 50
+      },
+      email: {
+        title: 'Email',
+        description: '邮箱',
+        type: 'string',
+        format: 'email',
+        required: true,
+        nullable: false,
+        maxLength: 100
+      },
+      full_name: {
+        title: 'Full Name',
+        description: '姓名',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 100
+      },
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      version: {
+        title: 'Version',
+        type: 'integer',
+        required: false,
+        nullable: false,
+        default: 0
+      },
+      is_superuser: {
+        title: 'Is Superuser',
+        type: 'boolean',
+        required: true,
+        nullable: false
+      },
+      is_multi_login: {
+        title: 'Is Multi Login',
+        type: 'boolean',
+        required: true,
+        nullable: false
+      },
+      created_at: {
+        title: 'Created At',
+        type: 'string',
+        format: 'date-time',
+        required: true,
+        nullable: false
+      },
+      created_by: {
+        title: 'Created By',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      updated_at: {
+        title: 'Updated At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      },
+      updated_by: {
+        title: 'Updated By',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      deleted_by: {
+        title: 'Deleted By',
+        type: 'integer',
+        required: false,
+        nullable: true
+      },
+      deleted_at: {
+        title: 'Deleted At',
+        type: 'string',
+        format: 'date-time',
+        required: false,
+        nullable: true
+      }
+    }
+  },
+  UserUpdate: {
+    title: 'UserUpdate',
+    description: '用户更新 Schema - 所有字段可选',
+    required: ['version'],
+    additionalProperties: false,
+    fields: {
+      username: {
+        title: 'Username',
+        description: '用户名',
+        type: 'string',
+        required: false,
+        nullable: true,
+        minLength: 3,
+        maxLength: 50
+      },
+      email: {
+        title: 'Email',
+        description: '邮箱',
+        type: 'string',
+        format: 'email',
+        required: false,
+        nullable: true,
+        maxLength: 100
+      },
+      full_name: {
+        title: 'Full Name',
+        description: '姓名',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 100
+      },
+      version: {
+        title: 'Version',
+        description: '乐观锁版本号，更新时必传',
+        type: 'integer',
+        required: true,
+        nullable: false
+      }
+    }
+  },
+  ValidationError: {
+    title: 'ValidationError',
+    required: ['loc', 'msg', 'type'],
+    fields: {
+      loc: {
+        title: 'Location',
+        type: 'array',
+        required: true,
+        nullable: false,
+        items: {}
+      },
+      msg: {
+        title: 'Message',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      type: {
+        title: 'Error Type',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      input: {
+        title: 'Input',
+        required: false,
+        nullable: false
+      },
+      ctx: {
+        title: 'Context',
+        type: 'object',
+        required: false,
+        nullable: false
+      }
+    }
+  },
+  ValidityPeriod: {
+    title: 'ValidityPeriod',
+    description: '有效期枚举',
+    required: [],
+    fields: {
+      __enum: {
+        title: 'ValidityPeriod',
+        description: '有效期枚举',
+        type: 'string',
+        required: true,
+        nullable: false,
+        enum: ['1d', '1w', '1m', '6m', '1y', 'never']
+      }
+    }
+  },
+  WorkLineCreate: {
+    title: 'WorkLineCreate',
+    description: '作业线创建 Schema - 接收客户端输入',
+    required: ['line_code', 'line_name', 'line_type'],
+    additionalProperties: false,
+    fields: {
+      line_code: {
+        title: 'Line Code',
+        description: '作业线编码（业务主键）',
+        type: 'string',
+        required: true,
+        nullable: false,
+        minLength: 1,
+        maxLength: 50
+      },
+      line_name: {
+        title: 'Line Name',
+        description: '作业线名称',
+        type: 'string',
+        required: true,
+        nullable: false,
+        minLength: 1,
+        maxLength: 100
+      },
+      line_type: {
+        description: '作业线类型',
+        required: true,
+        nullable: false,
+        ref: 'LineType'
+      },
+      zone_name: {
+        title: 'Zone Name',
+        description: '区域名称',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 100
+      },
+      plugin_key: {
+        title: 'Plugin Key',
+        description: '工作线执行插件标识',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 100
+      },
+      contract_version: {
+        title: 'Contract Version',
+        description: '工作线默认插件契约版本',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      config: {
+        title: 'Config',
+        description: '工作线插件配置',
+        type: 'object',
+        required: false,
+        nullable: false
+      },
+      runtime_config_json: {
+        title: 'Runtime Config Json',
+        description: '工作线运行时配置（重试、超时、会话归属等）',
+        type: 'object',
+        required: false,
+        nullable: false
+      },
+      run_mode: {
+        description: '工作线运行模式',
+        required: false,
+        nullable: false,
+        default: 'AUTO',
+        ref: 'WorkLineRunMode'
+      },
+      diagnostic_profile: {
+        title: 'Diagnostic Profile',
+        description: '工作线诊断配置（软件/硬件分类偏好、展示策略等）',
+        type: 'object',
+        required: false,
+        nullable: false
+      },
+      description: {
+        title: 'Description',
+        description: '作业线描述',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 500
+      },
+      is_active: {
+        title: 'Is Active',
+        description: '是否启用',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: true
+      }
+    }
+  },
+  WorkLinePluginOption: {
+    title: 'WorkLinePluginOption',
+    description: '作业线插件下拉选项。',
+    required: ['plugin_key', 'label', 'default_contract_version'],
+    fields: {
+      plugin_key: {
+        title: 'Plugin Key',
+        description: '工作线执行插件标识',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      label: {
+        title: 'Label',
+        description: '插件显示文本',
+        type: 'string',
+        required: true,
+        nullable: false
+      },
+      contract_versions: {
+        title: 'Contract Versions',
+        description: '可选契约版本',
+        type: 'array',
+        required: false,
+        nullable: false,
+        items: {
+          type: 'string'
+        }
+      },
+      default_contract_version: {
+        title: 'Default Contract Version',
+        description: '默认契约版本',
+        type: 'string',
+        required: true,
+        nullable: false
+      }
+    }
+  },
+  WorkLineResponse: {
+    title: 'WorkLineResponse',
+    description: '作业线响应 Schema - 返回给客户端',
+    required: ['line_code', 'line_name', 'line_type', 'id', 'version'],
+    fields: {
+      line_code: {
+        title: 'Line Code',
+        description: '作业线编码（业务主键）',
+        type: 'string',
+        required: true,
+        nullable: false,
+        minLength: 1,
+        maxLength: 50
+      },
+      line_name: {
+        title: 'Line Name',
+        description: '作业线名称',
+        type: 'string',
+        required: true,
+        nullable: false,
+        minLength: 1,
+        maxLength: 100
+      },
+      line_type: {
+        description: '作业线类型',
+        required: true,
+        nullable: false,
+        ref: 'LineType'
+      },
+      zone_name: {
+        title: 'Zone Name',
+        description: '区域名称',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 100
+      },
+      plugin_key: {
+        title: 'Plugin Key',
+        description: '工作线执行插件标识',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 100
+      },
+      contract_version: {
+        title: 'Contract Version',
+        description: '工作线默认插件契约版本',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      config: {
+        title: 'Config',
+        description: '工作线插件配置',
+        type: 'object',
+        required: false,
+        nullable: false
+      },
+      runtime_config_json: {
+        title: 'Runtime Config Json',
+        description: '工作线运行时配置（重试、超时、会话归属等）',
+        type: 'object',
+        required: false,
+        nullable: false
+      },
+      run_mode: {
+        description: '工作线运行模式',
+        required: false,
+        nullable: false,
+        default: 'AUTO',
+        ref: 'WorkLineRunMode'
+      },
+      diagnostic_profile: {
+        title: 'Diagnostic Profile',
+        description: '工作线诊断配置（软件/硬件分类偏好、展示策略等）',
+        type: 'object',
+        required: false,
+        nullable: false
+      },
+      description: {
+        title: 'Description',
+        description: '作业线描述',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 500
+      },
+      is_active: {
+        title: 'Is Active',
+        description: '是否启用',
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        default: true
+      },
+      id: {
+        title: 'Id',
+        type: 'integer',
+        required: true,
+        nullable: false
+      },
+      version: {
+        title: 'Version',
+        type: 'integer',
+        required: true,
+        nullable: false
+      }
+    }
+  },
+  WorkLineRunMode: {
+    title: 'WorkLineRunMode',
+    description: '作业线运行模式枚举。',
+    required: [],
+    fields: {
+      __enum: {
+        title: 'WorkLineRunMode',
+        description: '作业线运行模式枚举。',
+        type: 'string',
+        required: true,
+        nullable: false,
+        enum: ['AUTO', 'MANUAL', 'SIMULATION']
+      }
+    }
+  },
+  WorkLineUpdate: {
+    title: 'WorkLineUpdate',
+    description: '作业线更新 Schema - 所有字段可选',
+    required: ['version'],
+    additionalProperties: false,
+    fields: {
+      line_code: {
+        title: 'Line Code',
+        description: '作业线编码（业务主键）',
+        type: 'string',
+        required: false,
+        nullable: true,
+        minLength: 1,
+        maxLength: 50
+      },
+      line_name: {
+        title: 'Line Name',
+        description: '作业线名称',
+        type: 'string',
+        required: false,
+        nullable: true,
+        minLength: 1,
+        maxLength: 100
+      },
+      line_type: {
+        description: '作业线类型',
+        required: false,
+        nullable: true,
+        ref: 'LineType'
+      },
+      zone_name: {
+        title: 'Zone Name',
+        description: '区域名称',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 100
+      },
+      plugin_key: {
+        title: 'Plugin Key',
+        description: '工作线执行插件标识',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 100
+      },
+      contract_version: {
+        title: 'Contract Version',
+        description: '工作线默认插件契约版本',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 50
+      },
+      config: {
+        title: 'Config',
+        description: '工作线插件配置',
+        type: 'object',
+        required: false,
+        nullable: true
+      },
+      runtime_config_json: {
+        title: 'Runtime Config Json',
+        description: '工作线运行时配置（重试、超时、会话归属等）',
+        type: 'object',
+        required: false,
+        nullable: true
+      },
+      run_mode: {
+        description: '工作线运行模式',
+        required: false,
+        nullable: true,
+        ref: 'WorkLineRunMode'
+      },
+      diagnostic_profile: {
+        title: 'Diagnostic Profile',
+        description: '工作线诊断配置（软件/硬件分类偏好、展示策略等）',
+        type: 'object',
+        required: false,
+        nullable: true
+      },
+      description: {
+        title: 'Description',
+        description: '作业线描述',
+        type: 'string',
+        required: false,
+        nullable: true,
+        maxLength: 500
+      },
+      is_active: {
+        title: 'Is Active',
+        description: '是否启用',
+        type: 'boolean',
+        required: false,
+        nullable: true
+      },
+      version: {
+        title: 'Version',
+        description: '乐观锁版本号，更新时必传',
+        type: 'integer',
+        required: true,
+        nullable: false
       }
     }
   }
-} as const satisfies Record<
-  string,
-  OpenApiSchemaMetadata
->
+} as const satisfies Record<string, OpenApiSchemaMetadata>
 
 export function getOpenApiSchemaMetadata(schemaName: string): OpenApiSchemaMetadata | undefined {
   return (OPENAPI_SCHEMA_METADATA as Record<string, OpenApiSchemaMetadata>)[schemaName]
@@ -9579,5 +9429,7 @@ export function getOpenApiFieldMetadata(
   schemaName: string,
   fieldName: string
 ): OpenApiFieldMetadata | undefined {
-  return (OPENAPI_SCHEMA_METADATA as Record<string, OpenApiSchemaMetadata>)[schemaName]?.fields[fieldName]
+  return (OPENAPI_SCHEMA_METADATA as Record<string, OpenApiSchemaMetadata>)[schemaName]?.fields[
+    fieldName
+  ]
 }

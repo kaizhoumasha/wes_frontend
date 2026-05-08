@@ -68,7 +68,8 @@ interface PropertySchema {
 
 // ==================== 配置 ====================
 
-const BACKEND_OPENAPI_URL = 'http://localhost:8001/api/openapi.json'
+const BACKEND_OPENAPI_URL =
+  process.env.BACKEND_OPENAPI_URL || 'http://localhost:8001/api/openapi.json'
 const OUTPUT_DIR = join(__dirname, '../src/types/generated')
 const OUTPUT_FILE = join(OUTPUT_DIR, 'zod-schemas.ts')
 const SYNC_RECORD_FILE = join(__dirname, '../.contract-sync-record.json')

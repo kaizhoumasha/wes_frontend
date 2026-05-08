@@ -14,37 +14,106 @@ import type {
   ContractQueryParams,
   ContractRequestBody,
   ContractRequestConfig,
-  ContractResponseData,
+  ContractResponseData
 } from '@/api/contract/types'
 import type { components, paths } from '@/api/generated/openapi-types'
 
-export type SandboxProcessResult = ContractResponseData<'/api/v1/workline/operations/sandbox/process', 'post'>
+export type SandboxPendingResult = ContractResponseData<
+  '/api/v1/workline/operations/sandbox/pending',
+  'get'
+>
+export type SandboxPendingQuery = ContractQueryParams<
+  '/api/v1/workline/operations/sandbox/pending',
+  'get'
+>
 
-export type SandboxPendingResult = ContractResponseData<'/api/v1/workline/operations/sandbox/pending', 'get'>
-export type SandboxPendingQuery = ContractQueryParams<'/api/v1/workline/operations/sandbox/pending', 'get'>
+export type SandboxCompletedResult = ContractResponseData<
+  '/api/v1/workline/operations/sandbox/completed',
+  'get'
+>
+export type SandboxCompletedQuery = ContractQueryParams<
+  '/api/v1/workline/operations/sandbox/completed',
+  'get'
+>
 
-export type SandboxCompletedResult = ContractResponseData<'/api/v1/workline/operations/sandbox/completed', 'get'>
-export type SandboxCompletedQuery = ContractQueryParams<'/api/v1/workline/operations/sandbox/completed', 'get'>
+export type ReplayInboxesResult = ContractResponseData<
+  '/api/v1/workline/operations/replay/inboxes/{inbox_id}',
+  'post'
+>
+export type ReplayInboxesPathParams = ContractPathParams<
+  '/api/v1/workline/operations/replay/inboxes/{inbox_id}',
+  'post'
+>
+export type ReplayInboxesInput = ContractRequestBody<
+  '/api/v1/workline/operations/replay/inboxes/{inbox_id}',
+  'post'
+>
 
-export type ReplayInboxesResult = ContractResponseData<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>
-export type ReplayInboxesPathParams = ContractPathParams<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>
-export type ReplayInboxesInput = ContractRequestBody<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>
+export type ManualSessionsResult = ContractResponseData<
+  '/api/v1/workline/operations/manual/sessions/{session_id}',
+  'post'
+>
+export type ManualSessionsPathParams = ContractPathParams<
+  '/api/v1/workline/operations/manual/sessions/{session_id}',
+  'post'
+>
+export type ManualSessionsInput = ContractRequestBody<
+  '/api/v1/workline/operations/manual/sessions/{session_id}',
+  'post'
+>
 
-export type ManualSessionsResult = ContractResponseData<'/api/v1/workline/operations/manual/sessions/{session_id}', 'post'>
-export type ManualSessionsPathParams = ContractPathParams<'/api/v1/workline/operations/manual/sessions/{session_id}', 'post'>
-export type ManualSessionsInput = ContractRequestBody<'/api/v1/workline/operations/manual/sessions/{session_id}', 'post'>
+export type SandboxWorklinesSimulateEstopResult = ContractResponseData<
+  '/api/v1/workline/operations/sandbox/worklines/{workline_id}/simulate-estop',
+  'post'
+>
+export type SandboxWorklinesSimulateEstopPathParams = ContractPathParams<
+  '/api/v1/workline/operations/sandbox/worklines/{workline_id}/simulate-estop',
+  'post'
+>
+export type SandboxWorklinesSimulateEstopInput = ContractRequestBody<
+  '/api/v1/workline/operations/sandbox/worklines/{workline_id}/simulate-estop',
+  'post'
+>
 
-export type SandboxEventsResult = ContractResponseData<'/api/v1/workline/operations/sandbox/events', 'post'>
-export type SandboxEventsInput = ContractRequestBody<'/api/v1/workline/operations/sandbox/events', 'post'>
+export type SafetyWorklinesClearEstopResult = ContractResponseData<
+  '/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop',
+  'post'
+>
+export type SafetyWorklinesClearEstopPathParams = ContractPathParams<
+  '/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop',
+  'post'
+>
+export type SafetyWorklinesClearEstopInput = ContractRequestBody<
+  '/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop',
+  'post'
+>
 
-export type SandboxAckResult = ContractResponseData<'/api/v1/workline/operations/sandbox/ack', 'post'>
+export type SandboxEventsResult = ContractResponseData<
+  '/api/v1/workline/operations/sandbox/events',
+  'post'
+>
+export type SandboxEventsInput = ContractRequestBody<
+  '/api/v1/workline/operations/sandbox/events',
+  'post'
+>
+
+export type SandboxAckResult = ContractResponseData<
+  '/api/v1/workline/operations/sandbox/ack',
+  'post'
+>
 export type SandboxAckInput = ContractRequestBody<'/api/v1/workline/operations/sandbox/ack', 'post'>
 
 export type ResultsResult = ContractResponseData<'/api/v1/workline/operations/results', 'post'>
 export type ResultsInput = ContractRequestBody<'/api/v1/workline/operations/results', 'post'>
 
-export type SandboxTemplatesResult = ContractResponseData<'/api/v1/workline/operations/sandbox/templates', 'get'>
-export type SandboxTemplatesQuery = ContractQueryParams<'/api/v1/workline/operations/sandbox/templates', 'get'>
+export type SandboxTemplatesResult = ContractResponseData<
+  '/api/v1/workline/operations/sandbox/templates',
+  'get'
+>
+export type SandboxTemplatesQuery = ContractQueryParams<
+  '/api/v1/workline/operations/sandbox/templates',
+  'get'
+>
 
 export type OptionsResult = ContractResponseData<'/api/v1/workline/plugins/options', 'get'>
 
@@ -54,60 +123,110 @@ export type OverviewQuery = ContractQueryParams<'/api/v1/workline/runtime/overvi
 export type WorklinesResult = ContractResponseData<'/api/v1/workline/runtime/worklines', 'get'>
 export type WorklinesQuery = ContractQueryParams<'/api/v1/workline/runtime/worklines', 'get'>
 
-export type GetWorklinesResult = ContractResponseData<'/api/v1/workline/runtime/worklines/{workline_id}', 'get'>
-export type GetWorklinesPathParams = ContractPathParams<'/api/v1/workline/runtime/worklines/{workline_id}', 'get'>
+export type GetWorklinesResult = ContractResponseData<
+  '/api/v1/workline/runtime/worklines/{workline_id}',
+  'get'
+>
+export type GetWorklinesPathParams = ContractPathParams<
+  '/api/v1/workline/runtime/worklines/{workline_id}',
+  'get'
+>
 
 export type DevicesResult = ContractResponseData<'/api/v1/workline/runtime/devices', 'get'>
 export type DevicesQuery = ContractQueryParams<'/api/v1/workline/runtime/devices', 'get'>
 
-export type GetDevicesResult = ContractResponseData<'/api/v1/workline/runtime/devices/{device_id}', 'get'>
-export type GetDevicesPathParams = ContractPathParams<'/api/v1/workline/runtime/devices/{device_id}', 'get'>
-export type GetDevicesQuery = ContractQueryParams<'/api/v1/workline/runtime/devices/{device_id}', 'get'>
+export type GetDevicesResult = ContractResponseData<
+  '/api/v1/workline/runtime/devices/{device_id}',
+  'get'
+>
+export type GetDevicesPathParams = ContractPathParams<
+  '/api/v1/workline/runtime/devices/{device_id}',
+  'get'
+>
+export type GetDevicesQuery = ContractQueryParams<
+  '/api/v1/workline/runtime/devices/{device_id}',
+  'get'
+>
 
-export type SessionsPathResult = ContractResponseData<'/api/v1/workline/runtime/sessions/{session_id}/path', 'get'>
-export type SessionsPathPathParams = ContractPathParams<'/api/v1/workline/runtime/sessions/{session_id}/path', 'get'>
+export type SessionsPathResult = ContractResponseData<
+  '/api/v1/workline/runtime/sessions/{session_id}/path',
+  'get'
+>
+export type SessionsPathPathParams = ContractPathParams<
+  '/api/v1/workline/runtime/sessions/{session_id}/path',
+  'get'
+>
 
-export type TracesPathResult = ContractResponseData<'/api/v1/workline/runtime/traces/{trace_id}/path', 'get'>
-export type TracesPathPathParams = ContractPathParams<'/api/v1/workline/runtime/traces/{trace_id}/path', 'get'>
+export type TracesPathResult = ContractResponseData<
+  '/api/v1/workline/runtime/traces/{trace_id}/path',
+  'get'
+>
+export type TracesPathPathParams = ContractPathParams<
+  '/api/v1/workline/runtime/traces/{trace_id}/path',
+  'get'
+>
 
-export type RequestResult = ContractResponseData<'/api/v1/workline/trace/request/{request_id}', 'get'>
-export type RequestPathParams = ContractPathParams<'/api/v1/workline/trace/request/{request_id}', 'get'>
+export type RequestResult = ContractResponseData<
+  '/api/v1/workline/trace/request/{request_id}',
+  'get'
+>
+export type RequestPathParams = ContractPathParams<
+  '/api/v1/workline/trace/request/{request_id}',
+  'get'
+>
 
 export type TraceResult = ContractResponseData<'/api/v1/workline/trace/trace/{trace_id}', 'get'>
 export type TracePathParams = ContractPathParams<'/api/v1/workline/trace/trace/{trace_id}', 'get'>
 
-export type BlockingPointResult = ContractResponseData<'/api/v1/workline/trace/{trace_id}/blocking-point', 'get'>
-export type BlockingPointPathParams = ContractPathParams<'/api/v1/workline/trace/{trace_id}/blocking-point', 'get'>
+export type BlockingPointResult = ContractResponseData<
+  '/api/v1/workline/trace/{trace_id}/blocking-point',
+  'get'
+>
+export type BlockingPointPathParams = ContractPathParams<
+  '/api/v1/workline/trace/{trace_id}/blocking-point',
+  'get'
+>
 
-export type SessionResult = ContractResponseData<'/api/v1/workline/trace/session/{session_id}', 'get'>
-export type SessionPathParams = ContractPathParams<'/api/v1/workline/trace/session/{session_id}', 'get'>
+export type SessionResult = ContractResponseData<
+  '/api/v1/workline/trace/session/{session_id}',
+  'get'
+>
+export type SessionPathParams = ContractPathParams<
+  '/api/v1/workline/trace/session/{session_id}',
+  'get'
+>
 
-export type CommandResult = ContractResponseData<'/api/v1/workline/trace/command/{command_code}', 'get'>
-export type CommandPathParams = ContractPathParams<'/api/v1/workline/trace/command/{command_code}', 'get'>
+export type CommandResult = ContractResponseData<
+  '/api/v1/workline/trace/command/{command_code}',
+  'get'
+>
+export type CommandPathParams = ContractPathParams<
+  '/api/v1/workline/trace/command/{command_code}',
+  'get'
+>
 
-export type DispatchResult = ContractResponseData<'/api/v1/workline/trace/dispatch/{dispatch_key}', 'get'>
-export type DispatchPathParams = ContractPathParams<'/api/v1/workline/trace/dispatch/{dispatch_key}', 'get'>
+export type DispatchResult = ContractResponseData<
+  '/api/v1/workline/trace/dispatch/{dispatch_key}',
+  'get'
+>
+export type DispatchPathParams = ContractPathParams<
+  '/api/v1/workline/trace/dispatch/{dispatch_key}',
+  'get'
+>
 
 export type QueryResult = ContractResponseData<'/api/v1/workline/trace/query', 'post'>
 export type QueryInput = ContractRequestBody<'/api/v1/workline/trace/query', 'post'>
 
 export const worklineApiMethods = {
   /**
-   * [biz:workline:update] 手动触发编排处理
-   * @description 手动触发工作线编排处理（用于沙箱调试，Celery worker 未启动时）
-   * @endpoint POST /api/v1/workline/operations/sandbox/process
-   * @returns alova method instance
-   */
-  sandboxProcess(config?: ContractRequestConfig) {
-    return contractMethods.post('/api/v1/workline/operations/sandbox/process', { config })
-  },
-
-  /**
    * [biz:workline:list] 查询沙箱待处理 Outbox
    * @endpoint GET /api/v1/workline/operations/sandbox/pending
    * @returns alova method instance
    */
-  sandboxPending(query?: ContractQueryParams<'/api/v1/workline/operations/sandbox/pending', 'get'>, config?: ContractRequestConfig) {
+  sandboxPending(
+    query?: ContractQueryParams<'/api/v1/workline/operations/sandbox/pending', 'get'>,
+    config?: ContractRequestConfig
+  ) {
     return contractMethods.get('/api/v1/workline/operations/sandbox/pending', { query, config })
   },
 
@@ -116,7 +235,10 @@ export const worklineApiMethods = {
    * @endpoint GET /api/v1/workline/operations/sandbox/completed
    * @returns alova method instance
    */
-  sandboxCompleted(query?: ContractQueryParams<'/api/v1/workline/operations/sandbox/completed', 'get'>, config?: ContractRequestConfig) {
+  sandboxCompleted(
+    query?: ContractQueryParams<'/api/v1/workline/operations/sandbox/completed', 'get'>,
+    config?: ContractRequestConfig
+  ) {
     return contractMethods.get('/api/v1/workline/operations/sandbox/completed', { query, config })
   },
 
@@ -125,8 +247,16 @@ export const worklineApiMethods = {
    * @endpoint POST /api/v1/workline/operations/replay/inboxes/{inbox_id}
    * @returns alova method instance
    */
-  replayInboxes(params: ContractPathParams<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>, body: ContractRequestBody<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>, config?: ContractRequestConfig) {
-    return contractMethods.post('/api/v1/workline/operations/replay/inboxes/{inbox_id}', { params, body, config })
+  replayInboxes(
+    params: ContractPathParams<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>,
+    body: ContractRequestBody<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>,
+    config?: ContractRequestConfig
+  ) {
+    return contractMethods.post('/api/v1/workline/operations/replay/inboxes/{inbox_id}', {
+      params,
+      body,
+      config
+    })
   },
 
   /**
@@ -134,8 +264,61 @@ export const worklineApiMethods = {
    * @endpoint POST /api/v1/workline/operations/manual/sessions/{session_id}
    * @returns alova method instance
    */
-  manualSessions(params: ContractPathParams<'/api/v1/workline/operations/manual/sessions/{session_id}', 'post'>, body: ContractRequestBody<'/api/v1/workline/operations/manual/sessions/{session_id}', 'post'>, config?: ContractRequestConfig) {
-    return contractMethods.post('/api/v1/workline/operations/manual/sessions/{session_id}', { params, body, config })
+  manualSessions(
+    params: ContractPathParams<'/api/v1/workline/operations/manual/sessions/{session_id}', 'post'>,
+    body: ContractRequestBody<'/api/v1/workline/operations/manual/sessions/{session_id}', 'post'>,
+    config?: ContractRequestConfig
+  ) {
+    return contractMethods.post('/api/v1/workline/operations/manual/sessions/{session_id}', {
+      params,
+      body,
+      config
+    })
+  },
+
+  /**
+   * [biz:workline:update] 沙箱模拟 WorkLine 软件急停冻结
+   * @description 沙箱专用安全模拟入口；不通过普通 sandbox event 流。
+   * @endpoint POST /api/v1/workline/operations/sandbox/worklines/{workline_id}/simulate-estop
+   * @returns alova method instance
+   */
+  sandboxWorklinesSimulateEstop(
+    params: ContractPathParams<
+      '/api/v1/workline/operations/sandbox/worklines/{workline_id}/simulate-estop',
+      'post'
+    >,
+    body: ContractRequestBody<
+      '/api/v1/workline/operations/sandbox/worklines/{workline_id}/simulate-estop',
+      'post'
+    >,
+    config?: ContractRequestConfig
+  ) {
+    return contractMethods.post(
+      '/api/v1/workline/operations/sandbox/worklines/{workline_id}/simulate-estop',
+      { params, body, config }
+    )
+  },
+
+  /**
+   * [biz:workline:clear-estop] 人工确认 checklist 后清除工作线急停
+   * @endpoint POST /api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop
+   * @returns alova method instance
+   */
+  safetyWorklinesClearEstop(
+    params: ContractPathParams<
+      '/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop',
+      'post'
+    >,
+    body: ContractRequestBody<
+      '/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop',
+      'post'
+    >,
+    config?: ContractRequestConfig
+  ) {
+    return contractMethods.post(
+      '/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop',
+      { params, body, config }
+    )
   },
 
   /**
@@ -143,7 +326,10 @@ export const worklineApiMethods = {
    * @endpoint POST /api/v1/workline/operations/sandbox/events
    * @returns alova method instance
    */
-  sandboxEvents(body: ContractRequestBody<'/api/v1/workline/operations/sandbox/events', 'post'>, config?: ContractRequestConfig) {
+  sandboxEvents(
+    body: ContractRequestBody<'/api/v1/workline/operations/sandbox/events', 'post'>,
+    config?: ContractRequestConfig
+  ) {
     return contractMethods.post('/api/v1/workline/operations/sandbox/events', { body, config })
   },
 
@@ -152,7 +338,10 @@ export const worklineApiMethods = {
    * @endpoint POST /api/v1/workline/operations/sandbox/ack
    * @returns alova method instance
    */
-  sandboxAck(body: ContractRequestBody<'/api/v1/workline/operations/sandbox/ack', 'post'>, config?: ContractRequestConfig) {
+  sandboxAck(
+    body: ContractRequestBody<'/api/v1/workline/operations/sandbox/ack', 'post'>,
+    config?: ContractRequestConfig
+  ) {
     return contractMethods.post('/api/v1/workline/operations/sandbox/ack', { body, config })
   },
 
@@ -161,7 +350,10 @@ export const worklineApiMethods = {
    * @endpoint POST /api/v1/workline/operations/results
    * @returns alova method instance
    */
-  results(body: ContractRequestBody<'/api/v1/workline/operations/results', 'post'>, config?: ContractRequestConfig) {
+  results(
+    body: ContractRequestBody<'/api/v1/workline/operations/results', 'post'>,
+    config?: ContractRequestConfig
+  ) {
     return contractMethods.post('/api/v1/workline/operations/results', { body, config })
   },
 
@@ -170,7 +362,10 @@ export const worklineApiMethods = {
    * @endpoint GET /api/v1/workline/operations/sandbox/templates
    * @returns alova method instance
    */
-  sandboxTemplates(query?: ContractQueryParams<'/api/v1/workline/operations/sandbox/templates', 'get'>, config?: ContractRequestConfig) {
+  sandboxTemplates(
+    query?: ContractQueryParams<'/api/v1/workline/operations/sandbox/templates', 'get'>,
+    config?: ContractRequestConfig
+  ) {
     return contractMethods.get('/api/v1/workline/operations/sandbox/templates', { query, config })
   },
 
@@ -189,7 +384,10 @@ export const worklineApiMethods = {
    * @endpoint GET /api/v1/workline/runtime/overview
    * @returns alova method instance
    */
-  overview(query?: ContractQueryParams<'/api/v1/workline/runtime/overview', 'get'>, config?: ContractRequestConfig) {
+  overview(
+    query?: ContractQueryParams<'/api/v1/workline/runtime/overview', 'get'>,
+    config?: ContractRequestConfig
+  ) {
     return contractMethods.get('/api/v1/workline/runtime/overview', { query, config })
   },
 
@@ -198,7 +396,10 @@ export const worklineApiMethods = {
    * @endpoint GET /api/v1/workline/runtime/worklines
    * @returns alova method instance
    */
-  worklines(query?: ContractQueryParams<'/api/v1/workline/runtime/worklines', 'get'>, config?: ContractRequestConfig) {
+  worklines(
+    query?: ContractQueryParams<'/api/v1/workline/runtime/worklines', 'get'>,
+    config?: ContractRequestConfig
+  ) {
     return contractMethods.get('/api/v1/workline/runtime/worklines', { query, config })
   },
 
@@ -207,8 +408,14 @@ export const worklineApiMethods = {
    * @endpoint GET /api/v1/workline/runtime/worklines/{workline_id}
    * @returns alova method instance
    */
-  getWorklines(params: ContractPathParams<'/api/v1/workline/runtime/worklines/{workline_id}', 'get'>, config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/workline/runtime/worklines/{workline_id}', { params, config })
+  getWorklines(
+    params: ContractPathParams<'/api/v1/workline/runtime/worklines/{workline_id}', 'get'>,
+    config?: ContractRequestConfig
+  ) {
+    return contractMethods.get('/api/v1/workline/runtime/worklines/{workline_id}', {
+      params,
+      config
+    })
   },
 
   /**
@@ -216,7 +423,10 @@ export const worklineApiMethods = {
    * @endpoint GET /api/v1/workline/runtime/devices
    * @returns alova method instance
    */
-  devices(query?: ContractQueryParams<'/api/v1/workline/runtime/devices', 'get'>, config?: ContractRequestConfig) {
+  devices(
+    query?: ContractQueryParams<'/api/v1/workline/runtime/devices', 'get'>,
+    config?: ContractRequestConfig
+  ) {
     return contractMethods.get('/api/v1/workline/runtime/devices', { query, config })
   },
 
@@ -225,8 +435,16 @@ export const worklineApiMethods = {
    * @endpoint GET /api/v1/workline/runtime/devices/{device_id}
    * @returns alova method instance
    */
-  getDevices(params: ContractPathParams<'/api/v1/workline/runtime/devices/{device_id}', 'get'>, query?: ContractQueryParams<'/api/v1/workline/runtime/devices/{device_id}', 'get'>, config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/workline/runtime/devices/{device_id}', { params, query, config })
+  getDevices(
+    params: ContractPathParams<'/api/v1/workline/runtime/devices/{device_id}', 'get'>,
+    query?: ContractQueryParams<'/api/v1/workline/runtime/devices/{device_id}', 'get'>,
+    config?: ContractRequestConfig
+  ) {
+    return contractMethods.get('/api/v1/workline/runtime/devices/{device_id}', {
+      params,
+      query,
+      config
+    })
   },
 
   /**
@@ -234,8 +452,14 @@ export const worklineApiMethods = {
    * @endpoint GET /api/v1/workline/runtime/sessions/{session_id}/path
    * @returns alova method instance
    */
-  sessionsPath(params: ContractPathParams<'/api/v1/workline/runtime/sessions/{session_id}/path', 'get'>, config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/workline/runtime/sessions/{session_id}/path', { params, config })
+  sessionsPath(
+    params: ContractPathParams<'/api/v1/workline/runtime/sessions/{session_id}/path', 'get'>,
+    config?: ContractRequestConfig
+  ) {
+    return contractMethods.get('/api/v1/workline/runtime/sessions/{session_id}/path', {
+      params,
+      config
+    })
   },
 
   /**
@@ -243,8 +467,14 @@ export const worklineApiMethods = {
    * @endpoint GET /api/v1/workline/runtime/traces/{trace_id}/path
    * @returns alova method instance
    */
-  tracesPath(params: ContractPathParams<'/api/v1/workline/runtime/traces/{trace_id}/path', 'get'>, config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/workline/runtime/traces/{trace_id}/path', { params, config })
+  tracesPath(
+    params: ContractPathParams<'/api/v1/workline/runtime/traces/{trace_id}/path', 'get'>,
+    config?: ContractRequestConfig
+  ) {
+    return contractMethods.get('/api/v1/workline/runtime/traces/{trace_id}/path', {
+      params,
+      config
+    })
   },
 
   /**
@@ -252,7 +482,10 @@ export const worklineApiMethods = {
    * @endpoint GET /api/v1/workline/trace/request/{request_id}
    * @returns alova method instance
    */
-  request(params: ContractPathParams<'/api/v1/workline/trace/request/{request_id}', 'get'>, config?: ContractRequestConfig) {
+  request(
+    params: ContractPathParams<'/api/v1/workline/trace/request/{request_id}', 'get'>,
+    config?: ContractRequestConfig
+  ) {
     return contractMethods.get('/api/v1/workline/trace/request/{request_id}', { params, config })
   },
 
@@ -261,7 +494,10 @@ export const worklineApiMethods = {
    * @endpoint GET /api/v1/workline/trace/trace/{trace_id}
    * @returns alova method instance
    */
-  trace(params: ContractPathParams<'/api/v1/workline/trace/trace/{trace_id}', 'get'>, config?: ContractRequestConfig) {
+  trace(
+    params: ContractPathParams<'/api/v1/workline/trace/trace/{trace_id}', 'get'>,
+    config?: ContractRequestConfig
+  ) {
     return contractMethods.get('/api/v1/workline/trace/trace/{trace_id}', { params, config })
   },
 
@@ -270,8 +506,14 @@ export const worklineApiMethods = {
    * @endpoint GET /api/v1/workline/trace/{trace_id}/blocking-point
    * @returns alova method instance
    */
-  blockingPoint(params: ContractPathParams<'/api/v1/workline/trace/{trace_id}/blocking-point', 'get'>, config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/workline/trace/{trace_id}/blocking-point', { params, config })
+  blockingPoint(
+    params: ContractPathParams<'/api/v1/workline/trace/{trace_id}/blocking-point', 'get'>,
+    config?: ContractRequestConfig
+  ) {
+    return contractMethods.get('/api/v1/workline/trace/{trace_id}/blocking-point', {
+      params,
+      config
+    })
   },
 
   /**
@@ -279,7 +521,10 @@ export const worklineApiMethods = {
    * @endpoint GET /api/v1/workline/trace/session/{session_id}
    * @returns alova method instance
    */
-  session(params: ContractPathParams<'/api/v1/workline/trace/session/{session_id}', 'get'>, config?: ContractRequestConfig) {
+  session(
+    params: ContractPathParams<'/api/v1/workline/trace/session/{session_id}', 'get'>,
+    config?: ContractRequestConfig
+  ) {
     return contractMethods.get('/api/v1/workline/trace/session/{session_id}', { params, config })
   },
 
@@ -288,7 +533,10 @@ export const worklineApiMethods = {
    * @endpoint GET /api/v1/workline/trace/command/{command_code}
    * @returns alova method instance
    */
-  command(params: ContractPathParams<'/api/v1/workline/trace/command/{command_code}', 'get'>, config?: ContractRequestConfig) {
+  command(
+    params: ContractPathParams<'/api/v1/workline/trace/command/{command_code}', 'get'>,
+    config?: ContractRequestConfig
+  ) {
     return contractMethods.get('/api/v1/workline/trace/command/{command_code}', { params, config })
   },
 
@@ -297,7 +545,10 @@ export const worklineApiMethods = {
    * @endpoint GET /api/v1/workline/trace/dispatch/{dispatch_key}
    * @returns alova method instance
    */
-  dispatch(params: ContractPathParams<'/api/v1/workline/trace/dispatch/{dispatch_key}', 'get'>, config?: ContractRequestConfig) {
+  dispatch(
+    params: ContractPathParams<'/api/v1/workline/trace/dispatch/{dispatch_key}', 'get'>,
+    config?: ContractRequestConfig
+  ) {
     return contractMethods.get('/api/v1/workline/trace/dispatch/{dispatch_key}', { params, config })
   },
 
@@ -306,7 +557,10 @@ export const worklineApiMethods = {
    * @endpoint POST /api/v1/workline/trace/query
    * @returns alova method instance
    */
-  query(body: ContractRequestBody<'/api/v1/workline/trace/query', 'post'>, config?: ContractRequestConfig) {
+  query(
+    body: ContractRequestBody<'/api/v1/workline/trace/query', 'post'>,
+    config?: ContractRequestConfig
+  ) {
     return contractMethods.post('/api/v1/workline/trace/query', { body, config })
   }
 }

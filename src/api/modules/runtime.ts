@@ -1,10 +1,14 @@
 import { worklineApiMethods } from '@/api/modules/workline'
+import { apiClient } from '@/api/client'
 import type {
+  RuntimeClearEstopRequest,
   RuntimeDeviceDetailResponse,
   RuntimeDeviceSummary,
   RuntimeOverviewResponse,
   RuntimeTraceListResponse,
   RuntimeTracePathResponse,
+  RuntimeSafetyIncidentSummary,
+  RuntimeSimulateEstopRequest,
   RuntimeWorklineDetailResponse,
   RuntimeWorklineSummary,
   ManualSessionOperationPayload,
@@ -18,7 +22,7 @@ import type {
   TraceBlockingPointResponse,
   TraceDetailResponse,
   TraceQueryPayload,
-  WorklineOperationRecord,
+  WorklineOperationRecord
 } from '@/types/runtime'
 
 interface RuntimeApiMethod<T> {
@@ -73,7 +77,9 @@ export const runtimeApiMethods = {
   },
 
   traceByRequestId(requestId: string) {
-    return adaptRuntimeMethod<TraceDetailResponse>(worklineApiMethods.request({ request_id: requestId }))
+    return adaptRuntimeMethod<TraceDetailResponse>(
+      worklineApiMethods.request({ request_id: requestId })
+    )
   },
 
   traceByTraceId(traceId: string) {
@@ -87,15 +93,21 @@ export const runtimeApiMethods = {
   },
 
   traceBySessionId(sessionId: number) {
-    return adaptRuntimeMethod<TraceDetailResponse>(worklineApiMethods.session({ session_id: sessionId }))
+    return adaptRuntimeMethod<TraceDetailResponse>(
+      worklineApiMethods.session({ session_id: sessionId })
+    )
   },
 
   traceByCommandCode(commandCode: string) {
-    return adaptRuntimeMethod<TraceDetailResponse>(worklineApiMethods.command({ command_code: commandCode }))
+    return adaptRuntimeMethod<TraceDetailResponse>(
+      worklineApiMethods.command({ command_code: commandCode })
+    )
   },
 
   traceByDispatchKey(dispatchKey: string) {
-    return adaptRuntimeMethod<TraceDetailResponse>(worklineApiMethods.dispatch({ dispatch_key: dispatchKey }))
+    return adaptRuntimeMethod<TraceDetailResponse>(
+      worklineApiMethods.dispatch({ dispatch_key: dispatchKey })
+    )
   },
 
   sandboxPending(limit = 50, worklineId?: number, deviceId?: number) {
@@ -119,7 +131,7 @@ export const runtimeApiMethods = {
         trace_id: payload.trace_id,
         session_id: payload.session_id,
         payload: payload.payload,
-        timestamp: payload.timestamp,
+        timestamp: payload.timestamp
       })
     )
   },
@@ -132,7 +144,7 @@ export const runtimeApiMethods = {
         result: payload.result,
         payload: payload.payload,
         error_detail: payload.error_detail,
-        timestamp: payload.timestamp,
+        timestamp: payload.timestamp
       })
     )
   },
@@ -140,13 +152,27 @@ export const runtimeApiMethods = {
   sandboxAck(payload: SandboxAckRequest) {
     return adaptRuntimeMethod<SandboxPendingOutbox>(
       worklineApiMethods.sandboxAck({
-        dispatch_key: payload.dispatch_key,
+        dispatch_key: payload.dispatch_key
       })
     )
   },
 
-  sandboxProcess() {
-    return adaptRuntimeMethod<unknown>(worklineApiMethods.sandboxProcess())
+  sandboxSimulateEstop(worklineId: number, payload: RuntimeSimulateEstopRequest) {
+    return adaptRuntimeMethod<RuntimeSafetyIncidentSummary>(
+      apiClient.Post(
+        `/api/v1/workline/operations/sandbox/worklines/${worklineId}/simulate-estop`,
+        payload
+      )
+    )
+  },
+
+  clearEstop(worklineId: number, payload: RuntimeClearEstopRequest) {
+    return adaptRuntimeMethod<RuntimeSafetyIncidentSummary>(
+      apiClient.Post(
+        `/api/v1/workline/operations/safety/worklines/${worklineId}/clear-estop`,
+        payload
+      )
+    )
   },
 
   sandboxTemplates(worklineId: number, deviceId?: number) {
@@ -177,5 +203,5 @@ export const runtimeApiMethods = {
     return adaptRuntimeMethod<RuntimeTracePathResponse>(
       worklineApiMethods.tracesPath({ trace_id: traceId })
     )
-  },
+  }
 }
