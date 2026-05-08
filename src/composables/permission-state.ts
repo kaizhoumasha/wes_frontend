@@ -2,7 +2,7 @@ import { computed, ref } from 'vue'
 import type { ApiPermissionInfo } from '@/api/modules/auth'
 import { PERMISSION_CACHE, getCachedData, setCachedData, clearCachedData } from '@/constants/cache'
 
-const SUPERUSER_PERMISSION = '*'
+export const SUPERUSER_PERMISSION = '*'
 
 export const permissionsState = ref<ApiPermissionInfo[]>([])
 export const permissionNamesState = ref<Set<string>>(new Set())
