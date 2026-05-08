@@ -1,6 +1,17 @@
 <template>
   <div class="sandbox-event-composer">
     <!-- Device Info Card -->
+    <el-alert
+      v-if="disabled"
+      type="error"
+      :closable="false"
+      show-icon
+      class="sandbox-event-composer__safety-lock"
+    >
+      <template #title>软件急停冻结</template>
+      <template #default>{{ disabledReasonResolved }}</template>
+    </el-alert>
+
     <div class="sandbox-event-composer__device-card">
       <div class="sandbox-event-composer__device-icon">
         <svg
@@ -34,6 +45,8 @@
           :key="tpl.event_type"
           size="small"
           plain
+          :disabled="disabled"
+          :title="disabled ? disabledReasonResolved : undefined"
           @click="handleQuickEvent(tpl.event_type)"
         >
           {{ tpl.label }}
@@ -58,6 +71,7 @@
         <el-select
           v-model="form.event_type"
           placeholder="选择事件类型"
+          :disabled="disabled"
           style="width: 100%"
           @change="handleEventTypeChange"
         >
@@ -117,6 +131,7 @@
         <el-button
           type="primary"
           :loading="submitting"
+          :disabled="disabled"
           class="sandbox-event-composer__submit-btn"
           @click="handleSubmit"
         >
@@ -145,6 +160,7 @@ import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import type { SandboxEventTemplate } from '@/types/runtime'
+import { RESERVED_SAFETY_EVENT_TYPES, SAFETY_LOCKED_REASON } from '@/constants/runtime-safety'
 
 const props = defineProps<{
   worklineId: number
@@ -153,7 +169,12 @@ const props = defineProps<{
   deviceCode?: string
   deviceRole?: string
   deviceStatus?: string
+  disabled?: boolean
+  disabledReason?: string
 }>()
+
+const disabled = computed(() => props.disabled ?? false)
+const disabledReasonResolved = computed(() => props.disabledReason || SAFETY_LOCKED_REASON)
 
 // 设备信息
 const deviceDisplay = computed(() => ({
@@ -177,6 +198,10 @@ const deviceStatusType = computed(() => {
 const quickEvents = computed(() => eventTemplates.value.slice(0, 4))
 
 function handleQuickEvent(eventType: string) {
+  if (disabled.value) {
+    ElMessage.warning(disabledReasonResolved.value)
+    return
+  }
   form.value.event_type = eventType
   handleEventTypeChange(eventType)
 }
@@ -230,7 +255,9 @@ async function loadTemplates() {
     const templates = await runtimeApiMethods
       .sandboxTemplates(props.worklineId, props.deviceId ?? undefined)
       .send()
-    eventTemplates.value = templates.event_templates ?? []
+    eventTemplates.value = (templates.event_templates ?? []).filter(
+      tpl => !RESERVED_SAFETY_EVENT_TYPES.has(tpl.event_type)
+    )
   } catch {
     eventTemplates.value = []
   }
@@ -251,6 +278,10 @@ function handleEventTypeChange(eventType: string) {
 }
 
 async function handleSubmit() {
+  if (disabled.value) {
+    ElMessage.warning(disabledReasonResolved.value)
+    return
+  }
   // 先检查设备是否已选择
   if (form.value.device_id === null) {
     ElMessage.warning('请先从上方拓扑选择设备')
@@ -259,6 +290,11 @@ async function handleSubmit() {
 
   const valid = await formRef.value?.validate().catch(() => false)
   if (!valid) return
+
+  if (RESERVED_SAFETY_EVENT_TYPES.has(form.value.event_type)) {
+    ElMessage.warning('ESTOP_PRESSED 是平台保留安全事件，不能通过普通 sandbox 发送。')
+    return
+  }
 
   submitting.value = true
   try {
@@ -316,6 +352,10 @@ watch(
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+
+.sandbox-event-composer__safety-lock {
+  margin-bottom: 12px;
 }
 
 /* Device Card */

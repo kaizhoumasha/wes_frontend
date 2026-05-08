@@ -1,30 +1,25 @@
 <template>
   <div class="trace-focus-panel">
     <!-- Header -->
-    <div class="trace-focus-panel__header">
-      <button
-        type="button"
+    <div
+      v-if="showHeader"
+      class="trace-focus-panel__header"
+    >
+      <AppIconButton
+        icon="lucide:arrow-left"
+        :icon-size="16"
+        size="small"
+        plain
         class="trace-focus-panel__back"
         @click="emit('backToLive')"
       >
-        <svg
-          class="trace-focus-panel__back-icon"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z"
-            clip-rule="evenodd"
-          />
-        </svg>
         <span>返回实时态势</span>
-      </button>
+      </AppIconButton>
       <span
         v-if="pathData"
         class="trace-focus-panel__trace-id"
       >
-        {{ pathData.trace_id || `Session #${pathData.session_id}` }}
+        {{ tracePanelTitle }}
       </span>
     </div>
 
@@ -329,9 +324,274 @@
         </div>
       </el-card>
 
-      <!-- Priority 3: Execution Timeline (Collapsible) -->
+      <!-- Priority 3: Grouped Execution Timeline -->
       <el-card
-        v-if="pathData.evidence?.timelines?.length"
+        v-if="timelineGroups.length"
+        shadow="never"
+        class="trace-focus-panel__timeline-card"
+      >
+        <template #header>
+          <div class="trace-focus-panel__timeline-header">
+            <div class="trace-focus-panel__timeline-title-row">
+              <svg
+                class="trace-focus-panel__timeline-icon"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <span class="trace-focus-panel__timeline-title">执行时间轴</span>
+              <span class="trace-focus-panel__timeline-count">
+                {{ timelineGroupEventCount }} 条
+              </span>
+            </div>
+            <div class="trace-focus-panel__timeline-filters">
+              <el-checkbox
+                v-model="showOnlyFailures"
+                size="small"
+              >
+                只看失败
+              </el-checkbox>
+              <el-checkbox
+                v-model="showOnlyCurrent"
+                size="small"
+              >
+                只看当前
+              </el-checkbox>
+            </div>
+          </div>
+        </template>
+
+        <div
+          v-if="filteredTimelineGroups.length"
+          class="trace-focus-panel__timeline-groups"
+        >
+          <section
+            v-for="group in filteredTimelineGroups"
+            :key="group.group_key"
+            class="trace-focus-panel__timeline-group"
+            :class="{
+              'is-current': group.is_current,
+              'is-blocked': group.is_blocked
+            }"
+          >
+            <div class="trace-focus-panel__timeline-group-header">
+              <div>
+                <div class="trace-focus-panel__timeline-group-title">
+                  {{ group.display_name }}
+                </div>
+                <div class="trace-focus-panel__timeline-group-meta">
+                  {{ groupTypeLabel(group.group_type) }} · {{ group.events.length }} 条事件
+                </div>
+              </div>
+              <div class="trace-focus-panel__timeline-group-badges">
+                <span
+                  v-if="group.is_blocked"
+                  class="trace-focus-panel__timeline-group-badge is-blocked"
+                >
+                  阻塞
+                </span>
+                <span
+                  v-else-if="group.is_current"
+                  class="trace-focus-panel__timeline-group-badge is-current"
+                >
+                  当前
+                </span>
+              </div>
+            </div>
+
+            <div class="trace-focus-panel__timeline-list">
+              <div
+                v-for="item in group.events"
+                :key="item.id"
+                class="trace-focus-panel__timeline-event"
+                :class="{
+                  'is-failure': item.status === 'FAILED',
+                  'is-success': item.status === 'SUCCESS',
+                  'is-expanded': expandedTimelineId === item.id
+                }"
+                @click="toggleTimelineDetail(item.id)"
+              >
+                <div class="trace-focus-panel__timeline-dot" />
+                <div class="trace-focus-panel__timeline-content">
+                  <div class="trace-focus-panel__timeline-main">
+                    <span
+                      class="trace-focus-panel__timeline-action"
+                      :class="item.display_status_class"
+                    >
+                      {{ actionKindIcon(item.action_type) }}
+                    </span>
+                    <span class="trace-focus-panel__timeline-type">
+                      {{ item.business_title }}
+                    </span>
+                    <span
+                      class="trace-focus-panel__timeline-status"
+                      :class="item.display_status_class"
+                    >
+                      {{ item.display_status_label }}
+                    </span>
+                    <span
+                      v-if="item.duration_label"
+                      class="trace-focus-panel__timeline-duration"
+                    >
+                      {{ item.duration_label }}
+                    </span>
+                  </div>
+
+                  <div
+                    v-if="item.business_detail"
+                    class="trace-focus-panel__timeline-business-detail"
+                  >
+                    {{ item.business_detail }}
+                  </div>
+
+                  <div
+                    v-if="item.event_payload_fields.length"
+                    class="trace-focus-panel__timeline-event-data"
+                  >
+                    <span class="trace-focus-panel__timeline-event-data-label">扫码数据</span>
+                    <span
+                      v-for="field in item.event_payload_fields"
+                      :key="`${field.label}-${field.value}`"
+                      class="trace-focus-panel__timeline-event-data-chip"
+                    >
+                      <span class="trace-focus-panel__timeline-event-data-key">
+                        {{ field.label }}
+                      </span>
+                      {{ field.value }}
+                    </span>
+                  </div>
+
+                  <div
+                    v-if="timelineHasStatusChange(item)"
+                    class="trace-focus-panel__timeline-status-change"
+                  >
+                    <span
+                      v-if="item.from_status"
+                      class="trace-focus-panel__timeline-status-from"
+                    >
+                      {{ timelineStatusLabel(item.from_status) }}
+                    </span>
+                    <span class="trace-focus-panel__timeline-status-arrow">→</span>
+                    <span
+                      v-if="item.to_status"
+                      class="trace-focus-panel__timeline-status-to"
+                      :class="{ 'is-failed': item.status === 'FAILED' }"
+                    >
+                      {{ timelineStatusLabel(item.to_status) }}
+                    </span>
+                  </div>
+
+                  <div
+                    v-if="item.message"
+                    class="trace-focus-panel__timeline-msg"
+                    :class="{ 'is-error': item.status === 'FAILED' }"
+                  >
+                    {{ item.message }}
+                    <span
+                      v-if="item.failure_domain"
+                      class="trace-focus-panel__timeline-failure-domain"
+                    >
+                      [{{ item.failure_domain }}]
+                    </span>
+                  </div>
+
+                  <div
+                    v-if="expandedTimelineId === item.id"
+                    class="trace-focus-panel__timeline-detail"
+                  >
+                    <div class="trace-focus-panel__timeline-ref">
+                      <div class="trace-focus-panel__timeline-ref-item">
+                        <span class="trace-focus-panel__timeline-ref-label">技术事件</span>
+                        <span class="trace-focus-panel__timeline-ref-value">
+                          {{ item.technical_label }}
+                        </span>
+                      </div>
+                      <div
+                        v-if="item.actor_code"
+                        class="trace-focus-panel__timeline-ref-item"
+                      >
+                        <span class="trace-focus-panel__timeline-ref-label">来源</span>
+                        <span class="trace-focus-panel__timeline-ref-value">
+                          {{ item.actor_code }}
+                        </span>
+                      </div>
+                    </div>
+                    <div
+                      v-if="item.related_command_id || item.related_inbox_id"
+                      class="trace-focus-panel__timeline-ref"
+                    >
+                      <div
+                        v-if="item.related_command_id"
+                        class="trace-focus-panel__timeline-ref-item"
+                      >
+                        <span class="trace-focus-panel__timeline-ref-label">命令ID</span>
+                        <span class="trace-focus-panel__timeline-ref-value">
+                          #{{ item.related_command_id }}
+                        </span>
+                      </div>
+                      <div
+                        v-if="item.related_inbox_id"
+                        class="trace-focus-panel__timeline-ref-item"
+                      >
+                        <span class="trace-focus-panel__timeline-ref-label">事件ID</span>
+                        <span class="trace-focus-panel__timeline-ref-value">
+                          #{{ item.related_inbox_id }}
+                        </span>
+                      </div>
+                    </div>
+                    <div
+                      v-if="item.payload_json"
+                      class="trace-focus-panel__timeline-payload"
+                    >
+                      <span class="trace-focus-panel__timeline-ref-label">负载</span>
+                      <pre class="trace-focus-panel__timeline-payload-content">{{
+                        formatPayload(item.payload_json)
+                      }}</pre>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="trace-focus-panel__timeline-right">
+                  <div class="trace-focus-panel__timeline-time">
+                    {{ formatTime(item.occurred_at) }}
+                  </div>
+                  <svg
+                    v-if="
+                      item.related_command_id ||
+                      item.related_inbox_id ||
+                      item.payload_json ||
+                      item.actor_code
+                    "
+                    class="trace-focus-panel__timeline-expand-icon"
+                    :class="{ 'is-expanded': expandedTimelineId === item.id }"
+                    viewBox="0 0 16 16"
+                    fill="currentColor"
+                  >
+                    <path
+                      d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+        <div
+          v-else
+          class="trace-focus-panel__timeline-empty"
+        >
+          <span>筛选后无结果</span>
+        </div>
+      </el-card>
+
+      <!-- Fallback: Global Execution Timeline -->
+      <el-card
+        v-if="!timelineGroups.length && pathData.evidence?.timelines?.length"
         shadow="never"
         class="trace-focus-panel__timeline-card"
       >
@@ -415,7 +675,7 @@
 
               <!-- Status Change -->
               <div
-                v-if="item.from_status || item.to_status"
+                v-if="timelineHasStatusChange(item)"
                 class="trace-focus-panel__timeline-status-change"
               >
                 <span
@@ -547,18 +807,51 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import TraceHealthPipeline from '@/components/common/runtime/TraceHealthPipeline.vue'
+import AppIconButton from '@/components/ui/AppIconButton.vue'
 import { displayDevice } from '@/utils/runtime-display-identity'
 import { formatRelativeTime } from '@/utils/timezone'
-import type { RuntimeTracePathResponse } from '@/types/runtime'
+import type {
+  RuntimeTracePathResponse,
+  RuntimeTraceTimelineGroup,
+  TraceTimelineItem
+} from '@/types/runtime'
 
-const props = defineProps<{
-  worklineId: number
-  sessionId?: number | null
-  traceId?: string | null
-}>()
+type RuntimeTraceTimelineViewEvent = TraceTimelineItem & {
+  business_title: string
+  business_detail: string | null
+  event_payload_fields: TimelinePayloadField[]
+  display_status_class: string
+  display_status_label: string
+  duration_label: string | null
+  technical_label: string
+}
+
+interface TimelinePayloadField {
+  label: string
+  value: string
+}
+
+type RuntimeTraceTimelineViewGroup = Omit<RuntimeTraceTimelineGroup, 'events'> & {
+  events: RuntimeTraceTimelineViewEvent[]
+}
+
+const props = withDefaults(
+  defineProps<{
+    worklineId: number
+    sessionId?: number | null
+    traceId?: string | null
+    showHeader?: boolean
+  }>(),
+  {
+    sessionId: null,
+    traceId: null,
+    showHeader: true
+  }
+)
 
 const emit = defineEmits<{
   backToLive: []
+  headerChange: [title: string | null]
 }>()
 
 // State
@@ -594,6 +887,19 @@ watch(
 )
 
 // Computed properties
+const tracePanelTitle = computed(() => {
+  if (!pathData.value) return null
+  return pathData.value.trace_id || `会话 #${pathData.value.session_id}`
+})
+
+watch(
+  tracePanelTitle,
+  title => {
+    emit('headerChange', title)
+  },
+  { immediate: true }
+)
+
 const currentDeviceIndex = computed(() => {
   if (!pathData.value) return -1
   return pathData.value.devices.findIndex(d => d.is_current)
@@ -654,6 +960,44 @@ const filteredTimelines = computed(() => {
 
   // Simple filter - in real implementation would match device_id
   return timelines.slice(0, 20)
+})
+
+const timelineGroups = computed(() => pathData.value?.timeline_groups ?? [])
+
+const timelineGroupEventCount = computed(() =>
+  timelineGroups.value.reduce((total, group) => total + group.events.length, 0)
+)
+
+const timelineViewGroups = computed<RuntimeTraceTimelineViewGroup[]>(() =>
+  timelineGroups.value.map(group => buildTimelineViewGroup(group)).sort(compareTimelineGroupDesc)
+)
+
+const filteredTimelineGroups = computed<RuntimeTraceTimelineViewGroup[]>(() => {
+  let groups = timelineViewGroups.value
+
+  if (showOnlyCurrent.value) {
+    groups = groups
+      .map(group => {
+        if (group.is_current || group.is_blocked) return group
+        if (group.group_type !== 'orchestrator') return { ...group, events: [] }
+        return {
+          ...group,
+          events: group.events.filter(item => isSessionBoundaryAction(item.action_type))
+        }
+      })
+      .filter(group => group.is_current || group.is_blocked || group.events.length > 0)
+  }
+
+  if (showOnlyFailures.value) {
+    groups = groups
+      .map(group => ({
+        ...group,
+        events: group.events.filter(item => item.status === 'FAILED')
+      }))
+      .filter(group => group.events.length > 0)
+  }
+
+  return groups
 })
 
 // Methods
@@ -756,6 +1100,297 @@ function actionStatusLabel(status: string | null | undefined): string {
   return labelMap[status?.toUpperCase()] || status
 }
 
+function buildTimelineViewGroup(group: RuntimeTraceTimelineGroup): RuntimeTraceTimelineViewGroup {
+  const chronologicalEvents = [...group.events].sort(compareTimelineEventAsc)
+  const durationByEventId = new Map<number, string>()
+  chronologicalEvents.forEach((item, index) => {
+    const nextItem = chronologicalEvents[index + 1]
+    const durationLabel = timelineDurationLabel(item, nextItem)
+    if (durationLabel) {
+      durationByEventId.set(item.id, durationLabel)
+    }
+  })
+
+  return {
+    ...group,
+    events: [...chronologicalEvents].reverse().map(item => ({
+      ...item,
+      business_title: timelineBusinessTitle(item),
+      business_detail: timelineBusinessDetail(item),
+      event_payload_fields: timelineEventPayloadFields(item),
+      display_status_class: timelineEventStatusClass(item),
+      display_status_label: timelineEventStatusLabel(item),
+      duration_label: durationByEventId.get(item.id) ?? null,
+      technical_label: timelineActionLabel(item.action_type)
+    }))
+  }
+}
+
+function timelineEventStatusClass(item: TraceTimelineItem): string {
+  const actionType = item.action_type || ''
+  if (actionType === 'WAIT_STARTED') return ''
+  if (actionType === 'COMMAND_SENT') return 'is-success'
+  if (actionType === 'WAIT_RESUMED') return 'is-success'
+  return actionStatusClass(item.status)
+}
+
+function timelineEventStatusLabel(item: TraceTimelineItem): string {
+  const actionType = item.action_type || ''
+  if (actionType === 'WAIT_STARTED') return '开始等待'
+  if (actionType === 'COMMAND_SENT') return '已下发'
+  if (actionType === 'WAIT_RESUMED') return '已回传'
+  return actionStatusLabel(item.status)
+}
+
+function groupTypeLabel(groupType: string): string {
+  const labelMap: Record<string, string> = {
+    operator: '操作来源',
+    orchestrator: '编排',
+    device: '设备',
+    external: '外部系统',
+    unknown: '未归属'
+  }
+  return labelMap[groupType] || groupType
+}
+
+function isSessionBoundaryAction(actionType: string | null): boolean {
+  return [
+    'SESSION_CREATED',
+    'SESSION_STARTED',
+    'SESSION_RESUMED',
+    'SESSION_COMPLETED',
+    'SESSION_FAILED',
+    'SESSION_CANCELLED',
+    'STATUS_CHANGED'
+  ].includes(actionType || '')
+}
+
+function compareTimelineEventDesc(left: TraceTimelineItem, right: TraceTimelineItem): number {
+  return compareTimelineEventAsc(right, left)
+}
+
+function compareTimelineEventAsc(left: TraceTimelineItem, right: TraceTimelineItem): number {
+  const seqDelta = left.seq_no - right.seq_no
+  if (seqDelta !== 0) return seqDelta
+  return timestampMs(left.occurred_at) - timestampMs(right.occurred_at)
+}
+
+function timelineDurationLabel(
+  item: TraceTimelineItem,
+  nextItem: TraceTimelineItem | undefined
+): string | null {
+  const durationMs = nextItem
+    ? timestampMs(nextItem.occurred_at) - timestampMs(item.occurred_at)
+    : null
+  if (durationMs === null || durationMs < 0) return null
+  const prefix = item.action_type === 'WAIT_STARTED' ? '等待' : '耗时'
+  return `${prefix} ${formatTimelineDuration(durationMs)}`
+}
+
+function formatTimelineDuration(durationMs: number): string {
+  if (durationMs < 1000) return '<1s'
+  const totalSeconds = Math.floor(durationMs / 1000)
+  if (totalSeconds < 60) return `${totalSeconds}s`
+  const totalMinutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  if (totalMinutes < 60) return seconds > 0 ? `${totalMinutes}m ${seconds}s` : `${totalMinutes}m`
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+  return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`
+}
+
+function compareTimelineGroupDesc(
+  left: RuntimeTraceTimelineViewGroup,
+  right: RuntimeTraceTimelineViewGroup
+): number {
+  const leftLatest = left.events[0]
+  const rightLatest = right.events[0]
+  if (!leftLatest && !rightLatest) return 0
+  if (!leftLatest) return 1
+  if (!rightLatest) return -1
+  return compareTimelineEventDesc(leftLatest, rightLatest)
+}
+
+function timestampMs(value: string | null): number {
+  if (!value) return 0
+  const time = new Date(value).getTime()
+  return Number.isNaN(time) ? 0 : time
+}
+
+function timelineBusinessTitle(item: TraceTimelineItem): string {
+  const actionType = item.action_type || ''
+  const explicitTitle = explicitPayloadText(item, [
+    'business_title',
+    'action_label',
+    'display_label'
+  ])
+  if (explicitTitle) return explicitTitle
+  if (actionType === 'DECISION_MADE') return '编排判定下一步'
+  if (actionType === 'COMMAND_SENT') return '下发设备指令'
+  if (actionType === 'WAIT_STARTED') return waitStartedTitle(item)
+  if (actionType === 'WAIT_RESUMED') return '收到回传，继续编排'
+  if (actionType === 'WAIT_TIMEOUT') return '等待超时'
+  if (actionType === 'SESSION_CREATED') return '会话创建'
+  if (actionType === 'SESSION_STARTED') return '会话开始'
+  if (actionType === 'SESSION_COMPLETED') return '会话完成'
+  if (actionType === 'SESSION_FAILED') return '会话失败'
+  if (actionType === 'SESSION_CANCELLED') return '会话取消'
+  if (actionType === 'STATUS_CHANGED') return '状态更新'
+  if (actionType === 'EVENT_RECEIVED') return '收到设备事件'
+  if (actionType === 'EVENT_PROCESSED') return '事件处理完成'
+  if (actionType === 'COMMAND_COMPLETED') return '设备指令完成'
+  if (actionType === 'EXTERNAL_CALL_COMPLETED') return '外部调用完成'
+  if (actionType === 'EXTERNAL_CALL_FAILED') return '外部调用失败'
+  return '记录运行事件'
+}
+
+function timelineBusinessDetail(item: TraceTimelineItem): string | null {
+  const actionType = item.action_type || ''
+  const explicitDetail = explicitPayloadText(item, ['business_detail', 'detail', 'description'])
+  if (explicitDetail) return explicitDetail
+  if (actionType === 'DECISION_MADE') {
+    return item.message || null
+  }
+  if (actionType === 'COMMAND_SENT') {
+    return item.message || '设备开始执行，系统等待回传结果'
+  }
+  if (actionType === 'WAIT_STARTED') {
+    return '当前步骤暂停在设备响应之前'
+  }
+  if (actionType === 'WAIT_RESUMED') {
+    return '设备结果已返回，编排继续推进'
+  }
+  if (actionType === 'SESSION_COMPLETED') {
+    return '本次会话已经走完全部设备步骤'
+  }
+  if (actionType === 'SESSION_FAILED') {
+    return item.message || '本次会话已失败，需要排障'
+  }
+  return null
+}
+
+function waitStartedTitle(item: TraceTimelineItem): string {
+  const payload = payloadDict(item.payload_json)
+  const waitType = readPayloadString(payload, 'wait_type')
+  if (waitType === 'EXTERNAL') return '等待外部系统回传'
+  return '等待设备回传'
+}
+
+function timelineStatusLabel(status: string | null): string {
+  if (!status) return ''
+  const labelMap: Record<string, string> = {
+    NEW: '新建',
+    RUNNING: '执行中',
+    WAITING_DEVICE_RESULT: '等待设备回传',
+    WAITING_EXTERNAL: '等待外部系统',
+    MANUAL_HOLD: '人工暂停',
+    COMPLETED: '已完成',
+    FAILED: '失败',
+    CANCELLED: '已取消'
+  }
+  return labelMap[status.toUpperCase()] || status
+}
+
+function timelineHasStatusChange(item: TraceTimelineItem): boolean {
+  if (!item.from_status && !item.to_status) return false
+  return item.from_status !== item.to_status
+}
+
+function payloadDict(payload: Record<string, unknown> | null | undefined): Record<string, unknown> {
+  return payload && typeof payload === 'object' ? payload : {}
+}
+
+function recordValue(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {}
+}
+
+function timelineEventPayloadFields(item: TraceTimelineItem): TimelinePayloadField[] {
+  const candidatePayloads = [relatedInboxPayload(item.related_inbox_id), item.payload_json].filter(
+    (payload): payload is Record<string, unknown> => Boolean(payload)
+  )
+
+  for (const payload of candidatePayloads) {
+    const fields = scanPayloadFields(payload)
+    if (fields.length) return fields
+  }
+  return []
+}
+
+function relatedInboxPayload(inboxId: number | null | undefined): Record<string, unknown> | null {
+  if (!inboxId) return null
+  const inbox = pathData.value?.evidence?.inboxes.find(item => item.id === inboxId)
+  return inbox?.payload_json ?? null
+}
+
+function scanPayloadFields(payload: Record<string, unknown>): TimelinePayloadField[] {
+  const data = recordValue(payload.data)
+  if (!Object.keys(data).length) return []
+  return uniqueTimelinePayloadFields([
+    firstPayloadField(data, 'PkgID', ['PkgID', 'pkg_id', 'package_id']),
+    firstPayloadField(data, 'HHPN', ['HHPN', 'hhpn', 'material_code']),
+    firstPayloadField(data, 'MfrPN', ['MfrPN', 'mfrpn', 'manufacturer_part_number']),
+    firstPayloadField(data, 'Qty', ['Qty', 'qty', 'quantity']),
+    firstPayloadField(data, 'Lot', ['LotCode', 'lot_code', 'lot']),
+    firstPayloadField(data, 'Date', ['DateCode', 'date_code']),
+    firstPayloadField(data, '位置', ['location', 'Location']),
+    firstPayloadField(data, '扫码', ['barcode', 'bar_code', 'scan_code'])
+  ]).slice(0, 6)
+}
+
+function firstPayloadField(
+  payload: Record<string, unknown>,
+  label: string,
+  keys: string[]
+): TimelinePayloadField | null {
+  for (const key of keys) {
+    const value = scalarPayloadValue(payload[key])
+    if (value) return { label, value }
+  }
+  return null
+}
+
+function scalarPayloadValue(value: unknown): string | null {
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    return trimmed || null
+  }
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value)
+  }
+  return null
+}
+
+function uniqueTimelinePayloadFields(
+  fields: Array<TimelinePayloadField | null>
+): TimelinePayloadField[] {
+  const seen = new Set<string>()
+  const result: TimelinePayloadField[] = []
+  for (const field of fields) {
+    if (!field) continue
+    const key = `${field.label}:${field.value}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    result.push(field)
+  }
+  return result
+}
+
+function readPayloadString(payload: Record<string, unknown>, key: string): string | null {
+  const value = payload[key]
+  return typeof value === 'string' && value ? value : null
+}
+
+function explicitPayloadText(item: TraceTimelineItem, keys: readonly string[]): string | null {
+  const payload = payloadDict(item.payload_json)
+  for (const key of keys) {
+    const value = readPayloadString(payload, key)
+    if (value) return value
+  }
+  return null
+}
+
 function timelineActionLabel(actionType: string | null): string {
   if (!actionType) return '未知动作'
   return actionType
@@ -783,7 +1418,6 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 </script>
 
 <style scoped>
-
 /* Header */
 .trace-focus-panel {
   display: flex;
@@ -797,7 +1431,7 @@ function formatPayload(payload: Record<string, unknown> | null): string {
   gap: 12px;
 }
 
-.trace-focus-panel__back {
+:deep(.trace-focus-panel__back) {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -811,14 +1445,9 @@ function formatPayload(payload: Record<string, unknown> | null): string {
   transition: all 0.2s ease;
 }
 
-.trace-focus-panel__back:hover {
+:deep(.trace-focus-panel__back:hover) {
   background: rgb(6, 182, 212, 0.1);
   border-color: rgb(6, 182, 212, 0.4);
-}
-
-.trace-focus-panel__back-icon {
-  width: 16px;
-  height: 16px;
 }
 
 .trace-focus-panel__trace-id {
@@ -1242,6 +1871,72 @@ function formatPayload(payload: Record<string, unknown> | null): string {
   gap: 16px;
 }
 
+.trace-focus-panel__timeline-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.trace-focus-panel__timeline-group {
+  padding: 12px;
+  border: 1px solid var(--runtime-border-neutral);
+  border-radius: 10px;
+  background: var(--runtime-surface-subtle);
+}
+
+.trace-focus-panel__timeline-group.is-current {
+  border-color: var(--runtime-badge-info-bg);
+}
+
+.trace-focus-panel__timeline-group.is-blocked {
+  border-color: var(--runtime-border-danger);
+  background: var(--runtime-surface-danger);
+}
+
+.trace-focus-panel__timeline-group-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.trace-focus-panel__timeline-group-title {
+  color: var(--runtime-text-primary);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.trace-focus-panel__timeline-group-meta {
+  margin-top: 2px;
+  color: var(--runtime-text-muted);
+  font-size: 12px;
+}
+
+.trace-focus-panel__timeline-group-badges {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+}
+
+.trace-focus-panel__timeline-group-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.trace-focus-panel__timeline-group-badge.is-current {
+  background: var(--runtime-badge-info-bg);
+  color: var(--runtime-badge-info-text);
+}
+
+.trace-focus-panel__timeline-group-badge.is-blocked {
+  background: var(--runtime-badge-danger-bg);
+  color: var(--runtime-badge-danger-text);
+}
+
 .trace-focus-panel__timeline-list {
   display: flex;
   flex-direction: column;
@@ -1297,6 +1992,45 @@ function formatPayload(payload: Record<string, unknown> | null): string {
   font-weight: 500;
 }
 
+.trace-focus-panel__timeline-business-detail {
+  margin-top: 4px;
+  color: var(--runtime-text-secondary);
+  font-size: 12px;
+}
+
+.trace-focus-panel__timeline-event-data {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.trace-focus-panel__timeline-event-data-label {
+  color: var(--runtime-text-muted);
+  font-size: 11px;
+}
+
+.trace-focus-panel__timeline-event-data-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 2px 6px;
+  border: 1px solid var(--runtime-border-neutral);
+  border-radius: 4px;
+  background: var(--runtime-surface-muted);
+  color: var(--runtime-text-secondary);
+  font-size: 11px;
+  font-family: var(--font-mono, monospace);
+  line-height: 1.5;
+}
+
+.trace-focus-panel__timeline-event-data-key {
+  color: var(--runtime-text-muted);
+  font-family: inherit;
+}
+
 .trace-focus-panel__timeline-status {
   font-size: 11px;
   padding: 2px 6px;
@@ -1311,6 +2045,17 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 .trace-focus-panel__timeline-status.is-failed {
   background: var(--runtime-badge-danger-bg);
   color: var(--runtime-badge-danger-text);
+}
+
+.trace-focus-panel__timeline-duration {
+  padding: 2px 6px;
+  border: 1px solid var(--runtime-border-neutral);
+  border-radius: 4px;
+  background: var(--runtime-surface-muted);
+  color: var(--runtime-text-muted);
+  font-size: 11px;
+  font-family: var(--font-mono, monospace);
+  white-space: nowrap;
 }
 
 .trace-focus-panel__timeline-msg {

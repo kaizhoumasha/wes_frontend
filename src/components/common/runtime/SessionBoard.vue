@@ -31,6 +31,7 @@
             :key="item.session_id"
             type="button"
             class="session-board__item"
+            :title="item.session_code"
             @click="emit('selectSession', item)"
           >
             <div class="session-board__item-top">
@@ -42,7 +43,7 @@
                 {{ formatRuntimeElapsed(item.started_at) }}
               </span>
             </div>
-            <div class="session-board__item-code">{{ item.session_code }}</div>
+            <div class="session-board__item-code">{{ sessionIdentity(item) }}</div>
             <div class="session-board__item-meta">
               {{ item.device_name || '—' }}
               <span v-if="item.step_code">· {{ item.step_code }}</span>
@@ -64,10 +65,12 @@
 import { computed } from 'vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import type { RuntimeTraceListItem } from '@/types/runtime'
+import { displayTrace } from '@/utils/runtime-display-identity'
 
 const props = defineProps<{
   activeSessions: RuntimeTraceListItem[]
   recentFailedTraces: RuntimeTraceListItem[]
+  recentCompletedTraces?: RuntimeTraceListItem[]
 }>()
 
 const emit = defineEmits<{
@@ -101,10 +104,24 @@ const columns = computed(() => [
     label: '失败',
     items: [...groupedSessions.value.failed, ...props.recentFailedTraces].slice(0, 10)
   },
-  { key: 'done', label: '已完成', items: groupedSessions.value.done }
+  {
+    key: 'done',
+    label: '已完成',
+    items: [...groupedSessions.value.done, ...(props.recentCompletedTraces ?? [])].slice(0, 10)
+  }
 ])
 
 import { formatRuntimeElapsed } from '@/utils/runtime-display'
+
+function sessionIdentity(item: RuntimeTraceListItem): string {
+  return displayTrace({
+    barcode: item.barcode,
+    business_key: item.business_key,
+    trace_id: item.trace_id,
+    session_code: item.session_code,
+    session_id: item.session_id
+  })
+}
 </script>
 
 <style scoped>

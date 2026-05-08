@@ -1,5 +1,15 @@
 <template>
   <div class="sandbox-result-composer">
+    <el-alert
+      v-if="disabled"
+      type="error"
+      :closable="false"
+      show-icon
+    >
+      <template #title>软件急停冻结</template>
+      <template #default>{{ disabledReasonResolved }}</template>
+    </el-alert>
+
     <!-- 状态提示 -->
     <div
       v-if="outbox?.status === 'SENT'"
@@ -66,6 +76,7 @@
         <el-select
           v-model="form.result"
           placeholder="选择结果状态"
+          :disabled="disabled"
           style="width: 100%"
           @change="handleResultChange"
         >
@@ -88,6 +99,7 @@
         <el-input
           v-model="form.error_code"
           placeholder="如: DEVICE_FAULT, PICK_FAILED"
+          :disabled="disabled"
         />
       </el-form-item>
 
@@ -99,6 +111,7 @@
         <el-input
           v-model="form.error_detail"
           placeholder="错误描述"
+          :disabled="disabled"
         />
       </el-form-item>
 
@@ -112,6 +125,7 @@
           :rows="6"
           placeholder="JSON 格式的返回数据"
           :class="{ 'is-error': payloadError }"
+          :disabled="disabled"
         />
         <div
           v-if="payloadError"
@@ -125,6 +139,7 @@
         <el-button
           type="primary"
           :loading="submitting"
+          :disabled="disabled || submitting"
           @click="handleSubmit"
         >
           模拟设备返回 Result
@@ -140,13 +155,19 @@ import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import type { SandboxPendingOutbox } from '@/types/runtime'
+import { SAFETY_LOCKED_REASON } from '@/constants/runtime-safety'
 
 const props = defineProps<{
   outbox: SandboxPendingOutbox | null
+  disabled?: boolean
+  disabledReason?: string
 }>()
 
+const disabled = computed(() => props.disabled ?? false)
+const disabledReasonResolved = computed(() => props.disabledReason || SAFETY_LOCKED_REASON)
+
 const emit = defineEmits<{
-  submitted: [outbox: { dispatch_key?: string | null }]
+  submitted: [outbox: SandboxPendingOutbox]
 }>()
 
 const formRef = ref<FormInstance>()
@@ -261,6 +282,11 @@ function generateSuccessPayload(cmdType: string): Record<string, unknown> {
 }
 
 async function handleSubmit() {
+  if (submitting.value) return
+  if (disabled.value) {
+    ElMessage.warning(disabledReasonResolved.value)
+    return
+  }
   const valid = await formRef.value?.validate().catch(() => false)
   if (!valid || !props.outbox || !form.value.result) return
 

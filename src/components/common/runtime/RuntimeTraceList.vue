@@ -42,6 +42,8 @@
           <span class="runtime-trace-list__barcode">
             {{
               displayTrace({
+                barcode: trace.barcode,
+                business_key: trace.business_key,
                 trace_id: trace.trace_id,
                 session_code: trace.session_code,
                 session_id: trace.session_id

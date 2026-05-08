@@ -144,6 +144,16 @@
 
       <div class="runtime-layout__detail">
         <template v-if="store.detail">
+          <WorklineSafetyIncidentPanel
+            v-if="currentWorklineSafetyVerdict.safetyLocked"
+            :summary="store.detail.summary"
+            :verdict="currentWorklineSafetyVerdict"
+            :can-clear-estop="canClearWorklineEstop"
+            :clear-estop-loading="clearingWorklineEstop"
+            @refresh="refreshDetail"
+            @clear-estop="clearWorklineEstop"
+          />
+
           <!-- Mode Switcher (SIMULATION worklines only) -->
           <div
             v-if="sandboxAllowed === 'allowed'"
@@ -173,7 +183,13 @@
               :devices="store.detail.devices"
               :device-id="selectedDeviceId"
               :run-mode="store.detail.summary.run_mode"
-              @refresh="refreshWorklines"
+              :safety-locked="currentWorklineSafetyVerdict.safetyLocked"
+              :safety-lock-reason="currentWorklineSafetyVerdict.blockedReason"
+              :can-clear-estop="canClearWorklineEstop"
+              :clear-estop-loading="clearingWorklineEstop"
+              @refresh="refreshAfterSandboxAction"
+              @safety-simulated="refreshAfterSafetySimulation"
+              @clear-estop="clearWorklineEstop"
             />
           </template>
           <template v-else>
@@ -183,6 +199,7 @@
               :devices="store.detail.devices"
               :active-sessions="store.detail.active_sessions"
               :recent-failed-traces="store.detail.recent_failed_traces"
+              :recent-completed-traces="store.detail.recent_completed_traces"
               :selected-device-id="selectedDeviceId"
               :session-counts-by-device="store.sessionCountsByDevice"
               @select-device="openDevice"
@@ -191,13 +208,13 @@
           </template>
 
           <!-- 设备详情抽屉 -->
-          <el-drawer
+          <StandardDrawer
             v-model="isDevicePanelOpen"
             direction="rtl"
-            size="600px"
+            size="lg"
             :close-on-click-modal="true"
             :close-on-press-escape="true"
-            class="runtime-device-drawer"
+            custom-class="runtime-device-drawer"
             @close="closeDevicePanel"
           >
             <template #header>
@@ -223,26 +240,46 @@
               @close="closeDevicePanel"
               @select-session="handleSelectSession"
             />
-          </el-drawer>
+          </StandardDrawer>
 
           <!-- Trace 侧滑面板 -->
-          <el-drawer
+          <StandardDrawer
             v-model="isTraceDrawerOpen"
             direction="rtl"
-            size="520px"
+            size="xl"
             :close-on-click-modal="true"
             :close-on-press-escape="true"
-            class="runtime-trace-drawer"
-            @close="switchToLive()"
+            custom-class="runtime-trace-drawer"
+            @close="closeTraceDrawer"
           >
+            <template #header>
+              <div class="runtime-trace-drawer__header">
+                <AppIconButton
+                  icon="lucide:arrow-left"
+                  :icon-size="16"
+                  size="small"
+                  plain
+                  class="runtime-trace-drawer__back"
+                  @click="closeTraceDrawer"
+                >
+                  <span>返回实时态势</span>
+                </AppIconButton>
+                <strong class="runtime-trace-drawer__title">
+                  {{ traceDrawerHeaderTitle }}
+                </strong>
+              </div>
+            </template>
+
             <TraceFocusPanel
               v-if="isTraceDrawerOpen && store.detail"
               :workline-id="store.detail.summary.id"
               :session-id="modeSessionId ? Number(modeSessionId) : null"
               :trace-id="modeTraceId"
-              @back-to-live="switchToLive()"
+              :show-header="false"
+              @back-to-live="closeTraceDrawer"
+              @header-change="handleTraceHeaderChange"
             />
-          </el-drawer>
+          </StandardDrawer>
         </template>
 
         <el-card
@@ -265,6 +302,8 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useNow } from '@vueuse/core'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { runtimeApiMethods } from '@/api/modules/runtime'
 import RuntimeDeviceInspector from '@/components/common/runtime/RuntimeDeviceInspector.vue'
 import SandboxWorkbench from '@/components/common/runtime/SandboxWorkbench.vue'
 import TraceFocusPanel from '@/components/common/runtime/TraceFocusPanel.vue'
@@ -272,14 +311,20 @@ import RuntimeEmptyState from '@/components/common/runtime/RuntimeEmptyState.vue
 import RuntimeFrozenNotice from '@/components/common/runtime/RuntimeFrozenNotice.vue'
 import RuntimeLastUpdated from '@/components/common/runtime/RuntimeLastUpdated.vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
+import AppIconButton from '@/components/ui/AppIconButton.vue'
+import { StandardDrawer } from '@/components/ui/StandardDrawer'
+import WorklineSafetyIncidentPanel from '@/components/common/runtime/WorklineSafetyIncidentPanel.vue'
 import WorklineLiveOverview from '@/components/common/runtime/WorklineLiveOverview.vue'
 import { buildRuntimeWorklineQuery } from '@/utils/runtime-route'
 import { useWorklineMode } from '@/composables/useWorklineMode'
+import { usePermission } from '@/composables/usePermission'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
 import { useWorklineRuntimeStore } from '@/stores/workline-runtime'
+import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
 import type { RuntimeTraceListItem, RuntimeWorklineSummary } from '@/types/runtime'
 import { createCoalescedAsyncTask } from '@/utils/createCoalescedAsyncTask'
-import { isRelevantRuntimeEvent } from '@/utils/runtime-event'
+import { classifyRuntimeRefresh, isRelevantRuntimeEvent } from '@/utils/runtime-event'
+import { getWorklineDeviceSafetyEvidence, getWorklineRuntimeVerdict } from '@/utils/runtime-safety'
 import {
   formatRuntimeDateTime,
   getWorklineRiskLabel as worklineRiskLabel,
@@ -290,6 +335,8 @@ import {
 const route = useRoute()
 const router = useRouter()
 const store = useWorklineRuntimeStore()
+const { hasPermission } = usePermission()
+const canClearWorklineEstop = computed(() => hasPermission(BIZ_PERMISSIONS.workline.clearEstop))
 
 const {
   connectionLabel,
@@ -314,14 +361,42 @@ const isStale = computed(() => {
 const selectedDeviceId = computed(() => readPositiveInt(route.query.deviceId))
 const isDevicePanelOpen = ref(false)
 const isTraceDrawerOpen = ref(false)
+const clearingWorklineEstop = ref(false)
+const traceDrawerTitle = ref<string | null>(null)
 
 const selectedWorklineId = computed(() => readPositiveInt(route.query.worklineId))
 
 const currentWorklineSummary = computed(() => {
   const selectedId = selectedWorklineId.value
   if (!selectedId) return store.detail?.summary ?? null
-  return store.findSummary(selectedId) ?? store.detail?.summary ?? null
+  if (store.detail?.summary.id === selectedId) return store.detail.summary
+  return store.findSummary(selectedId) ?? null
 })
+
+const currentWorklineSafetyEvidence = computed(() => {
+  const summary = currentWorklineSummary.value
+  if (!summary || store.detail?.summary.id !== summary.id) return undefined
+  return getWorklineDeviceSafetyEvidence(store.detail.devices)
+})
+
+const currentWorklineSafetyVerdict = computed(() =>
+  currentWorklineSummary.value
+    ? getWorklineRuntimeVerdict(
+        currentWorklineSummary.value,
+        null,
+        currentWorklineSafetyEvidence.value
+      )
+    : {
+        tone: 'success' as const,
+        label: '稳定',
+        priority: 0,
+        safetyLocked: false,
+        canAttemptClear: false,
+        blockedReason: null,
+        evidenceFreshness: 'not_required' as const,
+        state: 'UNLOCKED' as const
+      }
+)
 
 const {
   effectiveMode,
@@ -341,6 +416,10 @@ const selectedWorklineContextMeta = computed(() => {
   if (!summary) return ''
   return `${summary.line_code} · ${summary.zone_name || '未配置区域'} · 活跃 ${summary.active_session_count} · 失败 ${summary.failed_session_count}`
 })
+
+const traceDrawerHeaderTitle = computed(
+  () => traceDrawerTitle.value || modeTraceId.value || 'Trace 详情'
+)
 
 const selectedDeviceDetail = computed(() => {
   const deviceId = selectedDeviceId.value
@@ -414,13 +493,88 @@ const refreshDetail = createCoalescedAsyncTask(async () => {
   }
 })
 
+async function refreshAfterSafetySimulation() {
+  await refreshAfterSandboxAction()
+}
+
+async function refreshAfterSandboxAction() {
+  await refreshDetail()
+  await refreshWorklines()
+}
+
+function resolveSelectedWorklineId(): number | null {
+  return store.detail?.summary.id ?? selectedWorklineId.value ?? null
+}
+
+function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback
+}
+
+async function clearWorklineEstop() {
+  if (clearingWorklineEstop.value) return
+  if (!canClearWorklineEstop.value) {
+    ElMessage.error('需要 biz:workline:clear-estop 权限')
+    return
+  }
+  const worklineId = resolveSelectedWorklineId()
+  if (!worklineId) {
+    ElMessage.error('缺少 WorkLine')
+    return
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      '确认现场/沙箱设备已复位、安全区域已清空，并允许 WES 恢复接收新流程？',
+      '恢复 WorkLine 接收',
+      {
+        confirmButtonText: '恢复接收',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+  } catch {
+    return
+  }
+
+  clearingWorklineEstop.value = true
+  try {
+    await runtimeApiMethods
+      .clearEstop(worklineId, {
+        reason: '人工确认 WorkLine 软件急停解除',
+        checks: {
+          estop_button_reset: true,
+          area_safe: true,
+          devices_reset: true,
+          operator_confirmed: true
+        }
+      })
+      .send()
+    ElMessage.success('已恢复接收新流程')
+    await refreshAfterSafetySimulation()
+  } catch (error: unknown) {
+    ElMessage.error(errorMessage(error, '恢复接收失败'))
+  } finally {
+    clearingWorklineEstop.value = false
+  }
+}
+
 async function selectWorkline(row: { id: number }) {
   if (selectedWorklineId.value === row.id) return
   selectWorklineRoute(row.id)
 }
 
 function handleSelectSession(session: RuntimeTraceListItem) {
+  traceDrawerTitle.value = session.trace_id ?? null
   switchToTrace(String(session.session_id), session.trace_id ?? undefined)
+}
+
+function handleTraceHeaderChange(title: string | null) {
+  traceDrawerTitle.value = title
+}
+
+function closeTraceDrawer() {
+  traceDrawerTitle.value = null
+  switchToLive()
 }
 
 function openDevice(deviceId: number) {
@@ -481,12 +635,13 @@ watch(
       })
     )
       return
-    // device 事件只需刷新当前工作线详情，不必重载整个工作线列表
-    if (event.entity === 'device' && selectedWorklineId.value) {
+    const refreshTargets = classifyRuntimeRefresh(event)
+    if (refreshTargets.detail && selectedWorklineId.value) {
       await refreshDetail()
-      return
     }
-    await refreshWorklines()
+    if (refreshTargets.worklines) {
+      await refreshWorklines()
+    }
   }
 )
 </script>
@@ -600,22 +755,6 @@ watch(
   flex: 0 0 auto;
 }
 
-/* Device Drawer Styles */
-.runtime-device-drawer :deep(.el-drawer__header) {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--runtime-border);
-  margin-bottom: 0;
-}
-
-.runtime-device-drawer :deep(.el-drawer__body) {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  padding: 20px;
-  overflow-y: auto;
-  scrollbar-gutter: stable;
-}
-
 .runtime-device-drawer__header {
   display: flex;
   flex-direction: column;
@@ -633,6 +772,44 @@ watch(
   color: var(--runtime-text-secondary);
   font-size: 12px;
   font-family: var(--font-mono);
+}
+
+.runtime-trace-drawer__header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+}
+
+:deep(.runtime-trace-drawer__back) {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid rgb(6, 182, 212, 0.2);
+  border-radius: 8px;
+  background: transparent;
+  color: rgb(6, 182, 212);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+:deep(.runtime-trace-drawer__back:hover) {
+  border-color: rgb(6, 182, 212, 0.4);
+  background: rgb(6, 182, 212, 0.1);
+}
+
+.runtime-trace-drawer__title {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--runtime-text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .runtime-workline-placeholder {

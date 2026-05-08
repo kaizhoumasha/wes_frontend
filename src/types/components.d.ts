@@ -51,6 +51,7 @@ declare module 'vue' {
     ElDatePicker: typeof import('element-plus/es')['ElDatePicker']
     ElDescriptions: typeof import('element-plus/es')['ElDescriptions']
     ElDescriptionsItem: typeof import('element-plus/es')['ElDescriptionsItem']
+    ElDialog: typeof import('element-plus/es')['ElDialog']
     ElDivider: typeof import('element-plus/es')['ElDivider']
     ElDrawer: typeof import('element-plus/es')['ElDrawer']
     ElDropdown: typeof import('element-plus/es')['ElDropdown']
@@ -125,6 +126,7 @@ declare module 'vue' {
     SmartSearchBar: typeof import('./../components/search/SmartSearchBar.vue')['default']
     SortDialog: typeof import('./../components/common/SortDialog.vue')['default']
     StandardDialog: typeof import('./../components/ui/StandardDialog/StandardDialog.vue')['default']
+    StandardDrawer: typeof import('./../components/ui/StandardDrawer/StandardDrawer.vue')['default']
     TableColumnConfigDialog: typeof import('./../components/common/TableColumnConfigDialog.vue')['default']
     ThemeToggle: typeof import('./../components/common/ThemeToggle.vue')['default']
     TimezoneSettings: typeof import('./../components/common/TimezoneSettings.vue')['default']
@@ -138,6 +140,7 @@ declare module 'vue' {
     WorklineHealthHero: typeof import('./../components/common/runtime/WorklineHealthHero.vue')['default']
     WorklineLiveOverview: typeof import('./../components/common/runtime/WorklineLiveOverview.vue')['default']
     WorklineRouteMap: typeof import('./../components/common/runtime/WorklineRouteMap.vue')['default']
+    WorklineSafetyIncidentPanel: typeof import('./../components/common/runtime/WorklineSafetyIncidentPanel.vue')['default']
     WorklineTaskQueue: typeof import('./../components/common/runtime/WorklineTaskQueue.vue')['default']
     WorklineTopologyStrip: typeof import('./../components/common/runtime/WorklineTopologyStrip.vue')['default']
   }

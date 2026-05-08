@@ -306,7 +306,44 @@ export interface RuntimeWorklineSummary {
   offline_device_count: number
   maintenance_device_count: number
   run_mode: string
+  runtime_status?: string | null
+  active_safety_incident_id?: number | null
+  stopped_at?: string | null
+  stopped_reason?: string | null
+  resumed_at?: string | null
   last_activity_at?: string | null
+}
+
+export interface RuntimeSafetyIncidentSummary {
+  id: number
+  workline_id: number
+  incident_code?: string | null
+  status: string
+  severity?: string | null
+  stopped_at?: string | null
+  stopped_reason?: string | null
+  drain_status?: string | null
+  remote_unknown_command_count?: number | null
+  created_at?: string | null
+  updated_at?: string | null
+}
+
+export interface RuntimeSafetyIncidentDetail extends RuntimeSafetyIncidentSummary {
+  summary_counts?: Record<string, number>
+  failed_checks?: string[]
+  required_actions?: string[]
+  timeline?: Array<Record<string, unknown>>
+}
+
+export interface RuntimeSimulateEstopRequest {
+  reason?: string | null
+  source_device_id?: number | null
+  payload?: Record<string, unknown>
+}
+
+export interface RuntimeClearEstopRequest {
+  checks: Record<string, boolean>
+  reason?: string | null
 }
 
 export interface RuntimeWorklineDeviceItem {
@@ -328,6 +365,7 @@ export interface RuntimeWorklineDetailResponse {
   devices: RuntimeWorklineDeviceItem[]
   active_sessions: RuntimeTraceListItem[]
   recent_failed_traces: RuntimeTraceListItem[]
+  recent_completed_traces: RuntimeTraceListItem[]
 }
 
 export interface RuntimeDeviceSummary {
@@ -441,6 +479,17 @@ export interface RuntimeTraceDevicePathNode {
   actions: RuntimeTraceDeviceAction[]
 }
 
+export interface RuntimeTraceTimelineGroup {
+  group_key: string
+  group_type: string
+  display_name: string
+  device_id?: number | null
+  device_code?: string | null
+  is_current: boolean
+  is_blocked: boolean
+  events: TraceTimelineItem[]
+}
+
 export interface RuntimeBlockingReason {
   device_id?: number | null
   reason: string
@@ -452,6 +501,7 @@ export interface RuntimeTracePathResponse {
   session_id?: number | null
   trace_id?: string | null
   devices: RuntimeTraceDevicePathNode[]
+  timeline_groups: RuntimeTraceTimelineGroup[]
   current_blocking_device_id?: number | null
   blocking_reason?: RuntimeBlockingReason | null
   evidence?: TraceDetailResponse | null

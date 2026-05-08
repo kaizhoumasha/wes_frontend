@@ -30,6 +30,7 @@
     <SessionBoard
       :active-sessions="activeSessions"
       :recent-failed-traces="recentFailedTraces"
+      :recent-completed-traces="recentCompletedTraces"
       @select-session="emit('selectSession', $event)"
     />
   </div>
@@ -53,6 +54,7 @@ defineProps<{
   devices: RuntimeWorklineDeviceItem[]
   activeSessions: RuntimeTraceListItem[]
   recentFailedTraces: RuntimeTraceListItem[]
+  recentCompletedTraces?: RuntimeTraceListItem[]
   selectedDeviceId?: number | null
   sessionCountsByDevice?: Map<number, number> | Record<number, number>
   tracePathNodes?: RuntimeTraceDevicePathNode[]

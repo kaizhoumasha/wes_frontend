@@ -49,10 +49,14 @@ export function displayCommand(input: {
 }
 
 export function displayTrace(input: {
+  barcode?: string | null
+  business_key?: string | null
   trace_id?: string | null
   session_code?: string | null
   session_id?: number | null
 }): string {
+  if (input.barcode) return input.barcode
+  if (input.business_key) return input.business_key
   if (input.trace_id) return input.trace_id
   if (input.session_code) return input.session_code
   if (input.session_id != null) return `Session #${input.session_id}`

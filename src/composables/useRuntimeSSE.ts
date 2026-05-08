@@ -1,9 +1,6 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-import {
-  useSSE,
-  type SSEConnectionState,
-  type SSEEvent,
-} from '@/api/services/sse-client'
+import { useSSE, type SSEConnectionState, type SSEEvent } from '@/api/services/sse-client'
+import { isRuntimeDomainAllowed } from '@/utils/runtime-event'
 
 export interface RuntimeSSEPayload {
   domain?: string
@@ -26,7 +23,7 @@ export function useRuntimeSSE(autoConnect = true) {
 
   const cleanupMessage = sse.on('business_status', event => {
     const payload = (event.data ?? {}) as RuntimeSSEPayload
-    if (payload.domain && payload.domain !== 'workline_trace') {
+    if (!isRuntimeDomainAllowed(payload.domain)) {
       return
     }
     lastEvent.value = payload
@@ -75,6 +72,6 @@ export function useRuntimeSSE(autoConnect = true) {
     lastRawEvent,
     connect,
     disconnect,
-    toggleLive,
+    toggleLive
   }
 }
