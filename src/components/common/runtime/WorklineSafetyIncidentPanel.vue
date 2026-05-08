@@ -65,6 +65,7 @@ import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.v
 import type { RuntimeWorklineSummary } from '@/types/runtime'
 import type { WorklineRuntimeVerdict } from '@/utils/runtime-safety'
 import { formatRuntimeDateTime } from '@/utils/runtime-display'
+import { ESTOPPED_RUNTIME_STATUS } from '@/constants/runtime-safety'
 
 const props = defineProps<{
   summary: RuntimeWorklineSummary
@@ -94,7 +95,7 @@ const sourceLabel = computed(() => {
   if (props.summary.active_safety_incident_id) {
     return `Incident #${props.summary.active_safety_incident_id}`
   }
-  if (props.summary.runtime_status === 'ESTOPPED') {
+  if (props.summary.runtime_status === ESTOPPED_RUNTIME_STATUS) {
     return '运行态 summary'
   }
   if (props.verdict.blockedReason?.includes('WORKLINE_ESTOPPED')) {

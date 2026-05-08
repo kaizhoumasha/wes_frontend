@@ -321,7 +321,7 @@ import { usePermission } from '@/composables/usePermission'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
 import { useWorklineRuntimeStore } from '@/stores/workline-runtime'
 import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
-import type { RuntimeTraceListItem, RuntimeWorklineSummary } from '@/types/runtime'
+import type { RuntimeTraceListItem, RuntimeWorklineSummary, RuntimeSafetyIncidentSummary } from '@/types/runtime'
 import { createCoalescedAsyncTask } from '@/utils/createCoalescedAsyncTask'
 import { classifyRuntimeRefresh, isRelevantRuntimeEvent } from '@/utils/runtime-event'
 import { getWorklineDeviceSafetyEvidence, getWorklineRuntimeVerdict } from '@/utils/runtime-safety'
@@ -379,24 +379,33 @@ const currentWorklineSafetyEvidence = computed(() => {
   return getWorklineDeviceSafetyEvidence(store.detail.devices)
 })
 
-const currentWorklineSafetyVerdict = computed(() =>
-  currentWorklineSummary.value
-    ? getWorklineRuntimeVerdict(
-        currentWorklineSummary.value,
-        null,
-        currentWorklineSafetyEvidence.value
-      )
-    : {
-        tone: 'success' as const,
-        label: '稳定',
-        priority: 0,
-        safetyLocked: false,
-        canAttemptClear: false,
-        blockedReason: null,
-        evidenceFreshness: 'not_required' as const,
-        state: 'UNLOCKED' as const
-      }
-)
+const currentWorklineSafetyVerdict = computed(() => {
+  const summary = currentWorklineSummary.value
+  if (!summary) {
+    return {
+      tone: 'success' as const,
+      label: '稳定',
+      priority: 0,
+      safetyLocked: false,
+      canAttemptClear: false,
+      blockedReason: null,
+      evidenceFreshness: 'not_required' as const,
+      state: 'UNLOCKED' as const
+    }
+  }
+
+  // 基于 summary.active_safety_incident_id 构造 stub incident，
+  // 使 isActiveIncident() 能够被正确评估（该函数仅读取 status 字段）。
+  const stubIncident = summary.active_safety_incident_id
+    ? { status: 'OPEN' } as unknown as RuntimeSafetyIncidentSummary
+    : null
+
+  return getWorklineRuntimeVerdict(
+    summary,
+    stubIncident,
+    currentWorklineSafetyEvidence.value
+  )
+})
 
 const {
   effectiveMode,
@@ -541,6 +550,7 @@ async function clearWorklineEstop() {
     await runtimeApiMethods
       .clearEstop(worklineId, {
         reason: '人工确认 WorkLine 软件急停解除',
+        // checks 是操作员的确认声明，后端须独立验证，不能信任前端传入值。
         checks: {
           estop_button_reset: true,
           area_safe: true,
