@@ -329,9 +329,10 @@ const safetyLocked = computed(() => props.safetyLocked ?? false)
 const canClearEstop = computed(() => props.canClearEstop ?? false)
 const clearEstopLoading = computed(() => props.clearEstopLoading ?? false)
 const safetyBlockedReason = computed(() => props.safetyLockReason || SAFETY_LOCKED_REASON)
-const clearEstopDisabledReason = computed(() =>
-  canClearEstop.value ? undefined : '需要 biz:workline:clear-estop 权限'
-)
+const clearEstopDisabledReason = computed(() => {
+  if (canClearEstop.value) return undefined
+  return props.safetyLockReason || '当前状态不能通过急停恢复入口处理'
+})
 
 // 活跃会话：来自 store 的 detail
 const activeSessions = computed<RuntimeTraceListItem[]>(
@@ -621,7 +622,7 @@ async function simulateEstop() {
 function requestClearEstop() {
   if (clearEstopLoading.value) return
   if (!canClearEstop.value) {
-    ElMessage.error('需要 biz:workline:clear-estop 权限')
+    ElMessage.error(clearEstopDisabledReason.value ?? '当前状态不能通过急停恢复入口处理')
     return
   }
   emit('clearEstop')

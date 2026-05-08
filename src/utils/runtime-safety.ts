@@ -3,7 +3,11 @@ import type {
   RuntimeWorklineDeviceItem,
   RuntimeWorklineSummary
 } from '@/types/runtime'
-import { ESTOPPED_RUNTIME_STATUS, SAFETY_EVIDENCE_STALE_MS } from '@/constants/runtime-safety'
+import {
+  ESTOPPED_RUNTIME_STATUS,
+  RECONCILING_RUNTIME_STATUS,
+  SAFETY_EVIDENCE_STALE_MS
+} from '@/constants/runtime-safety'
 
 type WorklineRuntimeTone = 'primary' | 'success' | 'warning' | 'danger' | 'info'
 
@@ -67,6 +71,10 @@ function isRuntimeStatusEstopped(summary: RuntimeWorklineSummary | null | undefi
   return summary?.runtime_status === ESTOPPED_RUNTIME_STATUS
 }
 
+function isRuntimeStatusReconciling(summary: RuntimeWorklineSummary | null | undefined): boolean {
+  return summary?.runtime_status === RECONCILING_RUNTIME_STATUS
+}
+
 function isActiveIncident(incident: RuntimeSafetyIncidentSummary | null | undefined): boolean {
   if (!incident) return false
   return !['CLEARED', 'RESOLVED', 'CLOSED'].includes(incident.status)
@@ -110,7 +118,12 @@ export function isWorklineSafetyLocked(
   incident?: RuntimeSafetyIncidentSummary | null,
   evidence?: WorklineSafetyEvidenceInput
 ): boolean {
-  if (isRuntimeStatusEstopped(summary) || isActiveIncident(incident) || evidence?.locked)
+  if (
+    isRuntimeStatusEstopped(summary) ||
+    isRuntimeStatusReconciling(summary) ||
+    isActiveIncident(incident) ||
+    evidence?.locked
+  )
     return true
   const evidenceState = resolveEvidenceState(evidence)
   return evidenceState === 'error' || evidenceState === 'stale'
@@ -124,6 +137,7 @@ export function getWorklineRuntimeVerdict(
   const evidenceFreshness = resolveEvidenceState(evidence)
   const lockedByContract = isRuntimeStatusEstopped(summary) || isActiveIncident(incident)
   const lockedBySafety = lockedByContract || evidence?.locked === true
+  const lockedByReconciliation = isRuntimeStatusReconciling(summary)
 
   if (evidence?.clearing) {
     return safetyVerdict('danger', '解除软件冻结中', {
@@ -149,6 +163,16 @@ export function getWorklineRuntimeVerdict(
       blockedReason: '恢复请求结果未确认，请刷新工作线和事故状态。',
       evidenceFreshness,
       state: 'CLEAR_UNKNOWN'
+    })
+  }
+
+  if (lockedByReconciliation) {
+    return safetyVerdict('warning', '运行时对账中', {
+      safetyLocked: true,
+      canAttemptClear: false,
+      blockedReason: '工作线正在 runtime reconciliation 对账，需人工确认后解除隔离。',
+      evidenceFreshness,
+      state: 'LOCKED_READY'
     })
   }
 

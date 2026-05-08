@@ -1,4 +1,8 @@
-import { worklineApiMethods } from '@/api/modules/workline'
+import {
+  worklineApiMethods,
+  type ReconciliationsSessionsResolveInput,
+  type ReconciliationsSessionsResolveResult
+} from '@/api/modules/workline'
 import { apiClient } from '@/api/client'
 import type {
   RuntimeClearEstopRequest,
@@ -184,6 +188,12 @@ export const runtimeApiMethods = {
   replayInbox(inboxId: number, payload: ReplayInboxPayload) {
     return adaptRuntimeMethod<WorklineOperationRecord>(
       worklineApiMethods.replayInboxes({ inbox_id: inboxId }, payload)
+    )
+  },
+
+  resolveRuntimeReconciliation(sessionId: number, payload: ReconciliationsSessionsResolveInput) {
+    return adaptRuntimeMethod<ReconciliationsSessionsResolveResult>(
+      worklineApiMethods.reconciliationsSessionsResolve({ session_id: sessionId }, payload)
     )
   },
 

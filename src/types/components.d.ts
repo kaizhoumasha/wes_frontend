@@ -139,6 +139,7 @@ declare module 'vue' {
     TraceTimeline: typeof import('./../components/common/runtime/TraceTimeline.vue')['default']
     WorklineHealthHero: typeof import('./../components/common/runtime/WorklineHealthHero.vue')['default']
     WorklineLiveOverview: typeof import('./../components/common/runtime/WorklineLiveOverview.vue')['default']
+    WorklineReconciliationPanel: typeof import('./../components/common/runtime/WorklineReconciliationPanel.vue')['default']
     WorklineRouteMap: typeof import('./../components/common/runtime/WorklineRouteMap.vue')['default']
     WorklineSafetyIncidentPanel: typeof import('./../components/common/runtime/WorklineSafetyIncidentPanel.vue')['default']
     WorklineTaskQueue: typeof import('./../components/common/runtime/WorklineTaskQueue.vue')['default']

@@ -58,6 +58,15 @@ describe('workline safety display', () => {
     expect(verdict.canAttemptClear).toBe(true)
   })
 
+  it('locks the workline when runtime status is RECONCILING without a safety incident', () => {
+    const verdict = getWorklineRuntimeVerdict(createSummary({ runtime_status: 'RECONCILING' }), null)
+
+    expect(verdict.safetyLocked).toBe(true)
+    expect(verdict.label).toBe('运行时对账中')
+    expect(verdict.canAttemptClear).toBe(false)
+    expect(verdict.blockedReason).toContain('runtime reconciliation')
+  })
+
   it('keeps safety locked when evidence is stale or failed to load', () => {
     const staleVerdict = getWorklineRuntimeVerdict(createSummary(), null, { state: 'stale' })
     const errorVerdict = getWorklineRuntimeVerdict(createSummary(), null, { state: 'error' })

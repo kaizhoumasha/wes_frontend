@@ -47,7 +47,7 @@
         <el-button
           type="primary"
           :loading="clearEstopLoading"
-          :disabled="!canClearEstop || clearEstopLoading"
+          :disabled="!canSubmitClearEstop || clearEstopLoading"
           :title="clearEstopDisabledReason"
           @click="requestClearEstop"
         >
@@ -81,9 +81,13 @@ const emit = defineEmits<{
 
 const canClearEstop = computed(() => props.canClearEstop ?? false)
 const clearEstopLoading = computed(() => props.clearEstopLoading ?? false)
-const clearEstopDisabledReason = computed(() =>
-  canClearEstop.value ? undefined : '需要 biz:workline:clear-estop 权限'
-)
+const canSubmitClearEstop = computed(() => canClearEstop.value && props.verdict.canAttemptClear)
+const clearEstopDisabledReason = computed(() => {
+  if (!props.verdict.canAttemptClear) {
+    return props.verdict.blockedReason ?? '当前状态不能通过急停恢复入口处理'
+  }
+  return canClearEstop.value ? undefined : '需要 biz:workline:clear-estop 权限'
+})
 
 const stoppedAtLabel = computed(() =>
   props.summary.stopped_at
@@ -106,6 +110,10 @@ const sourceLabel = computed(() => {
 
 function requestClearEstop() {
   if (clearEstopLoading.value) return
+  if (!props.verdict.canAttemptClear) {
+    ElMessage.error(props.verdict.blockedReason ?? '当前状态不能通过急停恢复入口处理')
+    return
+  }
   if (!canClearEstop.value) {
     ElMessage.error('需要 biz:workline:clear-estop 权限')
     return

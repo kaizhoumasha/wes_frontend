@@ -52,6 +52,15 @@
           :frozen="!live"
         />
         <el-button
+          v-if="currentWorklineSafetyVerdict.safetyLocked"
+          plain
+          type="warning"
+          class="runtime-page__recovery-action"
+          @click="focusRecoveryPanel"
+        >
+          {{ selectedRecoveryActionLabel }}
+        </el-button>
+        <el-button
           plain
           class="runtime-page__refresh-action"
           @click="refreshWorklines"
@@ -118,6 +127,13 @@
                   :tone="worklineRiskTone(item)"
                   size="small"
                 />
+                <span
+                  v-if="worklineRecoveryLabel(item)"
+                  class="runtime-directory-card__recovery-pill"
+                  :class="`is-${worklineRecoveryTone(item)}`"
+                >
+                  {{ worklineRecoveryLabel(item) }}
+                </span>
                 <span class="runtime-directory-card__time">
                   {{ worklineLastActivityLabel(item) }}
                 </span>
@@ -130,6 +146,13 @@
               <div class="runtime-directory-card__hint">
                 活跃 {{ item.active_session_count }} · 等待 {{ item.waiting_session_count }} · 失败
                 {{ item.failed_session_count }} · 离线 {{ item.offline_device_count }}
+              </div>
+              <div
+                v-if="worklineRecoveryHint(item)"
+                class="runtime-directory-card__recovery-row"
+              >
+                <span>恢复入口</span>
+                <strong>{{ worklineRecoveryHint(item) }}</strong>
               </div>
             </button>
           </div>
@@ -144,15 +167,32 @@
 
       <div class="runtime-layout__detail">
         <template v-if="store.detail">
-          <WorklineSafetyIncidentPanel
+          <div
             v-if="currentWorklineSafetyVerdict.safetyLocked"
-            :summary="store.detail.summary"
-            :verdict="currentWorklineSafetyVerdict"
-            :can-clear-estop="canClearWorklineEstop"
-            :clear-estop-loading="clearingWorklineEstop"
-            @refresh="refreshDetail"
-            @clear-estop="clearWorklineEstop"
-          />
+            ref="recoveryPanelRef"
+            class="runtime-recovery-anchor"
+          >
+            <WorklineReconciliationPanel
+              v-if="isCurrentWorklineReconciling"
+              :summary="store.detail.summary"
+              :session="reconciliationSession"
+              :loading="loadingReconciliationEvidence"
+              :resolving="resolvingRuntimeReconciliation"
+              :can-resolve="canResolveWorklineReconciliation"
+              @refresh="refreshReconciliationEvidence"
+              @resolve="resolveRuntimeReconciliation"
+            />
+
+            <WorklineSafetyIncidentPanel
+              v-else
+              :summary="store.detail.summary"
+              :verdict="currentWorklineSafetyVerdict"
+              :can-clear-estop="canClearWorklineEstop"
+              :clear-estop-loading="clearingWorklineEstop"
+              @refresh="refreshDetail"
+              @clear-estop="clearWorklineEstop"
+            />
+          </div>
 
           <!-- Mode Switcher (SIMULATION worklines only) -->
           <div
@@ -185,7 +225,9 @@
               :run-mode="store.detail.summary.run_mode"
               :safety-locked="currentWorklineSafetyVerdict.safetyLocked"
               :safety-lock-reason="currentWorklineSafetyVerdict.blockedReason"
-              :can-clear-estop="canClearWorklineEstop"
+              :can-clear-estop="
+                canClearWorklineEstop && currentWorklineSafetyVerdict.canAttemptClear
+              "
               :clear-estop-loading="clearingWorklineEstop"
               @refresh="refreshAfterSandboxAction"
               @safety-simulated="refreshAfterSafetySimulation"
@@ -314,6 +356,7 @@ import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.v
 import AppIconButton from '@/components/ui/AppIconButton.vue'
 import { StandardDrawer } from '@/components/ui/StandardDrawer'
 import WorklineSafetyIncidentPanel from '@/components/common/runtime/WorklineSafetyIncidentPanel.vue'
+import WorklineReconciliationPanel from '@/components/common/runtime/WorklineReconciliationPanel.vue'
 import WorklineLiveOverview from '@/components/common/runtime/WorklineLiveOverview.vue'
 import { buildRuntimeWorklineQuery } from '@/utils/runtime-route'
 import { useWorklineMode } from '@/composables/useWorklineMode'
@@ -321,10 +364,18 @@ import { usePermission } from '@/composables/usePermission'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
 import { useWorklineRuntimeStore } from '@/stores/workline-runtime'
 import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
-import type { RuntimeTraceListItem, RuntimeWorklineSummary, RuntimeSafetyIncidentSummary } from '@/types/runtime'
+import type { components } from '@/api/generated/openapi-types'
+import { ResolveRuntimeReconciliationRequestSchema } from '@/types/generated/zod-schemas'
+import type {
+  TraceDetailResponse,
+  RuntimeTraceListItem,
+  RuntimeWorklineSummary,
+  RuntimeSafetyIncidentSummary
+} from '@/types/runtime'
 import { createCoalescedAsyncTask } from '@/utils/createCoalescedAsyncTask'
 import { classifyRuntimeRefresh, isRelevantRuntimeEvent } from '@/utils/runtime-event'
 import { getWorklineDeviceSafetyEvidence, getWorklineRuntimeVerdict } from '@/utils/runtime-safety'
+import { ESTOPPED_RUNTIME_STATUS, RECONCILING_RUNTIME_STATUS } from '@/constants/runtime-safety'
 import {
   formatRuntimeDateTime,
   getWorklineRiskLabel as worklineRiskLabel,
@@ -337,6 +388,20 @@ const router = useRouter()
 const store = useWorklineRuntimeStore()
 const { hasPermission } = usePermission()
 const canClearWorklineEstop = computed(() => hasPermission(BIZ_PERMISSIONS.workline.clearEstop))
+const canResolveWorklineReconciliation = computed(() =>
+  hasPermission(BIZ_PERMISSIONS.workline.resolveReconciliation)
+)
+
+type TraceSessionContract = components['schemas']['TraceSessionItem']
+type ReconciliationResolution = 'COMPLETED' | 'FAILED' | 'CANCELLED'
+
+interface ResolveRuntimeReconciliationPayload {
+  sessionId: number
+  resolution: ReconciliationResolution
+  checks: Record<string, boolean>
+  operatorNote: string
+  resultPayload: Record<string, unknown> | null
+}
 
 const {
   connectionLabel,
@@ -362,6 +427,10 @@ const selectedDeviceId = computed(() => readPositiveInt(route.query.deviceId))
 const isDevicePanelOpen = ref(false)
 const isTraceDrawerOpen = ref(false)
 const clearingWorklineEstop = ref(false)
+const loadingReconciliationEvidence = ref(false)
+const resolvingRuntimeReconciliation = ref(false)
+const reconciliationEvidence = ref<TraceDetailResponse | null>(null)
+const recoveryPanelRef = ref<HTMLElement | null>(null)
 const traceDrawerTitle = ref<string | null>(null)
 
 const selectedWorklineId = computed(() => readPositiveInt(route.query.worklineId))
@@ -372,6 +441,14 @@ const currentWorklineSummary = computed(() => {
   if (store.detail?.summary.id === selectedId) return store.detail.summary
   return store.findSummary(selectedId) ?? null
 })
+
+const isCurrentWorklineReconciling = computed(
+  () => currentWorklineSummary.value?.runtime_status === RECONCILING_RUNTIME_STATUS
+)
+
+const selectedRecoveryActionLabel = computed(() =>
+  isCurrentWorklineReconciling.value ? '打开运行时对账恢复' : '打开急停恢复'
+)
 
 const currentWorklineSafetyEvidence = computed(() => {
   const summary = currentWorklineSummary.value
@@ -397,14 +474,10 @@ const currentWorklineSafetyVerdict = computed(() => {
   // 基于 summary.active_safety_incident_id 构造 stub incident，
   // 使 isActiveIncident() 能够被正确评估（该函数仅读取 status 字段）。
   const stubIncident = summary.active_safety_incident_id
-    ? { status: 'OPEN' } as unknown as RuntimeSafetyIncidentSummary
+    ? ({ status: 'OPEN' } as unknown as RuntimeSafetyIncidentSummary)
     : null
 
-  return getWorklineRuntimeVerdict(
-    summary,
-    stubIncident,
-    currentWorklineSafetyEvidence.value
-  )
+  return getWorklineRuntimeVerdict(summary, stubIncident, currentWorklineSafetyEvidence.value)
 })
 
 const {
@@ -436,8 +509,46 @@ const selectedDeviceDetail = computed(() => {
   return store.detail.devices.find(item => item.id === deviceId) ?? null
 })
 
+const reconciliationOwnerSessionSummary = computed(() => {
+  if (!isCurrentWorklineReconciling.value || !store.detail) return null
+  return store.detail.active_sessions.find(item => item.status === 'MANUAL_HOLD') ?? null
+})
+
+const reconciliationSession = computed<TraceSessionContract | null>(() => {
+  const session = reconciliationEvidence.value?.session
+  return session ? (session as TraceSessionContract) : null
+})
+
 function worklineLastActivityLabel(item: RuntimeWorklineSummary) {
   return item.last_activity_at ? formatRuntimeDateTime(item.last_activity_at) : '暂无活动'
+}
+
+function isWorklineReconciling(item: RuntimeWorklineSummary): boolean {
+  return item.runtime_status === RECONCILING_RUNTIME_STATUS
+}
+
+function isWorklineEstopped(item: RuntimeWorklineSummary): boolean {
+  return item.runtime_status === ESTOPPED_RUNTIME_STATUS || Boolean(item.active_safety_incident_id)
+}
+
+function worklineRecoveryLabel(item: RuntimeWorklineSummary): string | null {
+  if (isWorklineReconciling(item)) return '对账恢复'
+  if (isWorklineEstopped(item)) return '急停恢复'
+  return null
+}
+
+function worklineRecoveryTone(item: RuntimeWorklineSummary): 'warning' | 'danger' {
+  return isWorklineReconciling(item) ? 'warning' : 'danger'
+}
+
+function worklineRecoveryHint(item: RuntimeWorklineSummary): string | null {
+  if (isWorklineReconciling(item)) return '解除隔离'
+  if (isWorklineEstopped(item)) return '恢复接收'
+  return null
+}
+
+function focusRecoveryPanel() {
+  recoveryPanelRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 async function loadDetailAndSync(worklineId: number) {
@@ -511,6 +622,24 @@ async function refreshAfterSandboxAction() {
   await refreshWorklines()
 }
 
+async function refreshReconciliationEvidence() {
+  const owner = reconciliationOwnerSessionSummary.value
+  if (!isCurrentWorklineReconciling.value || !owner?.session_id) {
+    reconciliationEvidence.value = null
+    return
+  }
+
+  loadingReconciliationEvidence.value = true
+  try {
+    reconciliationEvidence.value = await runtimeApiMethods.traceBySessionId(owner.session_id).send()
+  } catch (error: unknown) {
+    reconciliationEvidence.value = null
+    ElMessage.error(errorMessage(error, '加载运行时对账证据失败'))
+  } finally {
+    loadingReconciliationEvidence.value = false
+  }
+}
+
 function resolveSelectedWorklineId(): number | null {
   return store.detail?.summary.id ?? selectedWorklineId.value ?? null
 }
@@ -523,6 +652,10 @@ async function clearWorklineEstop() {
   if (clearingWorklineEstop.value) return
   if (!canClearWorklineEstop.value) {
     ElMessage.error('需要 biz:workline:clear-estop 权限')
+    return
+  }
+  if (!currentWorklineSafetyVerdict.value.canAttemptClear) {
+    ElMessage.error('当前状态不能通过急停恢复入口处理')
     return
   }
   const worklineId = resolveSelectedWorklineId()
@@ -565,6 +698,53 @@ async function clearWorklineEstop() {
     ElMessage.error(errorMessage(error, '恢复接收失败'))
   } finally {
     clearingWorklineEstop.value = false
+  }
+}
+
+async function resolveRuntimeReconciliation(payload: ResolveRuntimeReconciliationPayload) {
+  if (resolvingRuntimeReconciliation.value) return
+  if (!canResolveWorklineReconciliation.value) {
+    ElMessage.error('需要 biz:workline:resolve-reconciliation 权限')
+    return
+  }
+
+  const request = {
+    resolution: payload.resolution,
+    checks: payload.checks,
+    operator_note: payload.operatorNote,
+    result_payload: payload.resultPayload,
+    confirmed_at: new Date().toISOString()
+  }
+  const parsed = ResolveRuntimeReconciliationRequestSchema.safeParse(request)
+  if (!parsed.success) {
+    ElMessage.error('运行时对账恢复请求不符合后端契约')
+    return
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      '确认现场状态已完成对账，并解除 WorkLine 运行时隔离？',
+      '解除运行时对账',
+      {
+        confirmButtonText: '解除隔离',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+  } catch {
+    return
+  }
+
+  resolvingRuntimeReconciliation.value = true
+  try {
+    await runtimeApiMethods.resolveRuntimeReconciliation(payload.sessionId, parsed.data).send()
+    ElMessage.success('已解除运行时对账隔离')
+    reconciliationEvidence.value = null
+    await refreshAfterSandboxAction()
+  } catch (error: unknown) {
+    ElMessage.error(errorMessage(error, '解除运行时对账失败'))
+  } finally {
+    resolvingRuntimeReconciliation.value = false
   }
 }
 
@@ -636,6 +816,22 @@ watch(
 )
 
 watch(
+  () =>
+    [
+      isCurrentWorklineReconciling.value,
+      reconciliationOwnerSessionSummary.value?.session_id
+    ] as const,
+  ([isReconciling, sessionId]) => {
+    if (!isReconciling || !sessionId) {
+      reconciliationEvidence.value = null
+      return
+    }
+    void refreshReconciliationEvidence()
+  },
+  { immediate: true }
+)
+
+watch(
   () => lastEvent.value,
   async event => {
     if (!live.value || !event) return
@@ -669,6 +865,19 @@ watch(
   color: var(--runtime-tier-watch);
   font-size: 11px;
   font-weight: 600;
+}
+
+.runtime-page__recovery-action {
+  border-color: rgb(245, 158, 11, 0.48);
+  background: rgb(245, 158, 11, 0.1);
+  color: #f59e0b;
+  font-weight: 700;
+}
+
+.runtime-page__recovery-action:hover {
+  border-color: rgb(245, 158, 11, 0.72);
+  background: rgb(245, 158, 11, 0.16);
+  color: #fbbf24;
 }
 
 .runtime-context-nav {
@@ -759,6 +968,10 @@ watch(
   flex-direction: column;
   gap: 16px;
   min-height: 0;
+}
+
+.runtime-recovery-anchor {
+  scroll-margin-top: 18px;
 }
 
 .runtime-layout__hero {
@@ -875,8 +1088,11 @@ watch(
 .runtime-directory-card__top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
+}
+
+.runtime-directory-card__time {
+  margin-left: auto;
 }
 
 .runtime-directory-card__time,
@@ -910,6 +1126,48 @@ watch(
   font-weight: 700;
   letter-spacing: 0.05em;
   margin-right: 4px;
+}
+
+.runtime-directory-card__recovery-pill {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.runtime-directory-card__recovery-pill.is-warning {
+  border: 1px solid rgb(245, 158, 11, 0.42);
+  background: rgb(245, 158, 11, 0.12);
+  color: #f59e0b;
+}
+
+.runtime-directory-card__recovery-pill.is-danger {
+  border: 1px solid rgb(239, 68, 68, 0.42);
+  background: rgb(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+.runtime-directory-card__recovery-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgb(245, 158, 11, 0.28);
+  border-radius: 8px;
+  background: rgb(245, 158, 11, 0.08);
+  color: var(--runtime-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.runtime-directory-card__recovery-row strong {
+  color: #f59e0b;
+  font-size: 12px;
 }
 
 .runtime-layout__empty-state {
