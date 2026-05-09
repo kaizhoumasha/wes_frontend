@@ -187,7 +187,6 @@ async function load(): Promise<void> {
   loadError.value = null
   try {
     const loaded = await store.loadHold(holdId.value)
-    store.detail = loaded
     syncFormState()
     await store
       .loadNgReasons(loaded.summary.plugin_key, loaded.summary.contract_version)
