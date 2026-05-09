@@ -199,6 +199,13 @@ export const {
     },
     // Detail-only fields (hidden in table, used in detail drawer)
     {
+      key: 'id',
+      table: {
+        visibleFrom: null,
+        width: 100
+      }
+    },
+    {
       key: 'msg',
       table: {
         visibleFrom: null,
