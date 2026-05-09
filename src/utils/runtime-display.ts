@@ -31,6 +31,7 @@ const WARNING_STATUSES = new Set([
   'MANUAL_HOLD',
   'DEGRADED',
   'BUSY',
+  'BLOCKED_RESOURCE',
   'RETRY',
   'DISPATCHING'
 ])

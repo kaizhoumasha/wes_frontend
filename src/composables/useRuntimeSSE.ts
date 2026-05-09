@@ -10,6 +10,12 @@ export interface RuntimeSSEPayload {
   payload?: Record<string, unknown>
 }
 
+function isRuntimeSSEPayload(value: unknown): value is RuntimeSSEPayload {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const payload = value as RuntimeSSEPayload
+  return Boolean(payload.domain || payload.entity || payload.action || payload.keys)
+}
+
 export function useRuntimeSSE(autoConnect = true) {
   const sse = useSSE()
   const live = ref(true)
@@ -21,8 +27,9 @@ export function useRuntimeSSE(autoConnect = true) {
     state.value = nextState
   })
 
-  const cleanupMessage = sse.on('business_status', event => {
-    const payload = (event.data ?? {}) as RuntimeSSEPayload
+  const cleanupMessage = sse.on('message', event => {
+    if (!isRuntimeSSEPayload(event.data)) return
+    const payload = event.data
     if (!isRuntimeDomainAllowed(payload.domain)) {
       return
     }

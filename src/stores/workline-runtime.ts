@@ -32,12 +32,12 @@ export const useWorklineRuntimeStore = defineStore('workline-runtime', () => {
     )
   })
 
-  const mostFailedStep = computed(() =>
-    pickDominantValue(detail.value?.recent_failed_traces.map(item => item.step_code || '—') ?? [])
+  const mostFailedBusinessStage = computed(() =>
+    pickDominantValue(detail.value?.recent_failed_traces.map(item => item.plugin_state || '—') ?? [])
   )
 
-  const dominantActiveStep = computed(() =>
-    pickDominantValue(detail.value?.active_sessions.map(item => item.step_code || '—') ?? [])
+  const dominantActiveBusinessStage = computed(() =>
+    pickDominantValue(detail.value?.active_sessions.map(item => item.plugin_state || '—') ?? [])
   )
 
   const sessionCountsByDevice = computed(() =>
@@ -90,8 +90,8 @@ export const useWorklineRuntimeStore = defineStore('workline-runtime', () => {
     loading,
     orderedWorklines,
     hotspotDevice,
-    mostFailedStep,
-    dominantActiveStep,
+    mostFailedBusinessStage,
+    dominantActiveBusinessStage,
     sessionCountsByDevice,
     findSummary,
     findDevice,

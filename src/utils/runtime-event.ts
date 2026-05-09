@@ -75,12 +75,21 @@ export function classifyRuntimeRefresh(
     }
   }
 
+  if (entity === 'session') {
+    return {
+      worklines: true,
+      detail: true,
+      activeIncident: false,
+      sandbox: true
+    }
+  }
+
   if (['device', 'outbox', 'command'].includes(entity)) {
     return {
       worklines: false,
       detail: true,
       activeIncident: false,
-      sandbox: entity === 'outbox' || entity === 'command'
+      sandbox: true
     }
   }
 

@@ -106,12 +106,12 @@ function classifyTraces(
   const failureCounts = new Map<string, number>()
 
   for (const trace of traces) {
-    const dedupeKey = `${trace.device_id ?? 'none'}-${trace.step_code ?? 'none'}`
+    const dedupeKey = `${trace.device_id ?? 'none'}-${trace.plugin_state ?? 'none'}`
     failureCounts.set(dedupeKey, (failureCounts.get(dedupeKey) ?? 0) + 1)
   }
 
   for (const trace of traces) {
-    const dedupeKey = `${trace.device_id ?? 'none'}-${trace.step_code ?? 'none'}`
+    const dedupeKey = `${trace.device_id ?? 'none'}-${trace.plugin_state ?? 'none'}`
     const repeatCount = failureCounts.get(dedupeKey) ?? 1
 
     if (repeatCount >= THRESHOLDS.REPEAT_FAILURE_MIN) {
@@ -123,7 +123,7 @@ function classifyTraces(
           tier: 'watch',
           entity: 'trace',
           id: `repeat-${dedupeKey}`,
-          summary: `重复失败 (${repeatCount} 次) — ${trace.step_code || '未知步骤'}`,
+          summary: `重复失败 (${repeatCount} 次) — ${trace.plugin_state || '未知业务阶段'}`,
           context: `${trace.device_name || '未关联设备'} · ${trace.workline_name || ''}`,
           navigateTo: {
             name: RUNTIME_ROUTE_NAME,
