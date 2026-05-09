@@ -65,7 +65,7 @@
             }}
           </div>
           <div class="trace-related-sidebar__item-hint">
-            {{ item.step_code || '--' }} &middot;
+            {{ item.plugin_state || '--' }} &middot;
             {{ item.failure_domain || item.latest_timeline_message || '等待更多证据' }}
           </div>
         </button>

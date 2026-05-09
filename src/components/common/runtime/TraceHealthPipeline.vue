@@ -117,7 +117,7 @@ const stages = computed<PipelineStage[]>(() => {
       key: 'session',
       label: '会话',
       count: d.sessions.length,
-      hint: session?.step_code || '',
+      hint: session?.plugin_state || '',
       state: sessionStatus
     },
     {

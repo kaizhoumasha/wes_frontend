@@ -83,9 +83,15 @@
       <!-- 关键指标卡片 -->
       <div class="runtime-device-inspector__metrics">
         <div class="runtime-device-inspector__metric">
-          <span class="runtime-device-inspector__metric-label">待处理命令</span>
+          <span class="runtime-device-inspector__metric-label">未完成命令</span>
           <strong class="runtime-device-inspector__metric-value">
-            {{ detail.summary.pending_command_count }}
+            {{ openCommandCount }}
+          </strong>
+        </div>
+        <div class="runtime-device-inspector__metric">
+          <span class="runtime-device-inspector__metric-label">异常 Hold</span>
+          <strong class="runtime-device-inspector__metric-value">
+            {{ activeRuntimeHoldIds.length }}
           </strong>
         </div>
         <div class="runtime-device-inspector__metric">
@@ -117,6 +123,94 @@
           </strong>
         </div>
       </div>
+
+      <section class="runtime-device-inspector__section">
+        <div class="runtime-device-inspector__section-header">
+          <h3 class="runtime-device-inspector__section-title">未完成命令</h3>
+        </div>
+        <div
+          v-if="openCommandCount > 0 || detail.summary.current_command_id"
+          class="runtime-device-inspector__command-card"
+        >
+          <span>当前命令</span>
+          <strong>{{ detail.summary.current_command_id || '等待 ACK / RESULT' }}</strong>
+        </div>
+        <span
+          v-else
+          class="runtime-device-inspector__empty-hint"
+        >
+          无未完成命令
+        </span>
+      </section>
+
+      <section class="runtime-device-inspector__section">
+        <div class="runtime-device-inspector__section-header">
+          <h3 class="runtime-device-inspector__section-title">
+            异常 Runtime Hold
+            <span
+              v-if="activeRuntimeHoldIds.length"
+              class="runtime-device-inspector__section-count"
+            >
+              {{ activeRuntimeHoldIds.length }}
+            </span>
+          </h3>
+        </div>
+        <div
+          v-if="activeRuntimeHoldIds.length"
+          class="runtime-device-inspector__hold-list"
+        >
+          <RouterLink
+            v-for="holdId in activeRuntimeHoldIds"
+            :key="holdId"
+            class="runtime-device-inspector__hold-card"
+            :to="{ name: 'RuntimeHoldDetail', params: { holdId } }"
+          >
+            Runtime Hold #{{ holdId }}
+          </RouterLink>
+        </div>
+        <span
+          v-else
+          class="runtime-device-inspector__empty-hint"
+        >
+          无异常 Hold
+        </span>
+      </section>
+
+      <section class="runtime-device-inspector__section">
+        <div class="runtime-device-inspector__section-header">
+          <h3 class="runtime-device-inspector__section-title">
+            历史命令
+            <span
+              v-if="detail.recent_commands.length"
+              class="runtime-device-inspector__section-count"
+            >
+              {{ detail.recent_commands.length }}
+            </span>
+          </h3>
+        </div>
+        <div
+          v-if="detail.recent_commands.length"
+          class="runtime-device-inspector__history-command-list"
+        >
+          <div
+            v-for="command in detail.recent_commands.slice(0, 5)"
+            :key="command.id"
+            class="runtime-device-inspector__history-command"
+          >
+            <RuntimeStatusBadge
+              :status="command.status"
+              size="small"
+            />
+            <span>{{ command.command_code }}</span>
+          </div>
+        </div>
+        <span
+          v-else
+          class="runtime-device-inspector__empty-hint"
+        >
+          无历史命令
+        </span>
+      </section>
 
       <!-- 关联会话 -->
       <section class="runtime-device-inspector__section">
@@ -233,6 +327,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { RouterLink } from 'vue-router'
 import { ArrowDown, ArrowUp, Close, Tools, WarningFilled } from '@element-plus/icons-vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
@@ -290,6 +385,12 @@ const showAlert = computed(() => {
   if (!detail.value) return false
   return Boolean(detail.value.summary.error_code) || detail.value.summary.maintenance_mode
 })
+
+const openCommandCount = computed(
+  () => detail.value?.summary.open_command_count ?? detail.value?.summary.pending_command_count ?? 0
+)
+
+const activeRuntimeHoldIds = computed(() => detail.value?.summary.active_runtime_hold_ids ?? [])
 
 const activityFeed = computed(() => {
   if (!detail.value) return []
@@ -607,6 +708,64 @@ import { formatRuntimeElapsed } from '@/utils/runtime-display'
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.runtime-device-inspector__command-card,
+.runtime-device-inspector__hold-card,
+.runtime-device-inspector__history-command {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid rgb(245, 158, 11, 0.1);
+  border-radius: 8px;
+  background: var(--runtime-surface-subtle);
+}
+
+.runtime-device-inspector__command-card {
+  justify-content: space-between;
+}
+
+.runtime-device-inspector__command-card span {
+  color: var(--runtime-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.runtime-device-inspector__command-card strong {
+  color: var(--runtime-text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.runtime-device-inspector__hold-list,
+.runtime-device-inspector__history-command-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.runtime-device-inspector__hold-card {
+  border-color: rgb(239, 68, 68, 0.28);
+  background: rgb(239, 68, 68, 0.1);
+  color: #fecaca;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.runtime-device-inspector__hold-card:hover {
+  background: rgb(239, 68, 68, 0.16);
+}
+
+.runtime-device-inspector__history-command {
+  color: var(--runtime-text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .runtime-device-inspector__session-card {

@@ -17,11 +17,11 @@
           />
         </div>
         <div
-          v-if="stepCode"
+          v-if="pluginState"
           class="trace-case-hero__step-progress"
         >
-          <span class="trace-case-hero__step-label">当前工序</span>
-          <span class="trace-case-hero__step-value">{{ compactEnumLabel(stepCode) }}</span>
+          <span class="trace-case-hero__step-label">业务阶段</span>
+          <span class="trace-case-hero__step-value">{{ compactEnumLabel(pluginState) }}</span>
         </div>
         <p class="trace-case-hero__headline">{{ headline }}</p>
       </div>
@@ -105,8 +105,8 @@ const barcode = computed(() => props.detail.session?.barcode ?? null)
 const heroEyebrow = computed(() => (barcode.value ? '物料条码' : 'Trace 摘要'))
 const heroTitle = computed(() => barcode.value || sessionCode.value)
 const heroSubCode = computed(() => (barcode.value ? sessionCode.value : traceCode.value))
-const stepCode = computed(
-  () => props.detail.summary.step_code || props.detail.session?.step_code || null
+const pluginState = computed(
+  () => props.detail.summary.plugin_state || props.detail.session?.plugin_state || null
 )
 
 const headline = computed(() => {

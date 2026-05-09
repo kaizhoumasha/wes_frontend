@@ -46,7 +46,7 @@
             <div class="session-board__item-code">{{ sessionIdentity(item) }}</div>
             <div class="session-board__item-meta">
               {{ item.device_name || '—' }}
-              <span v-if="item.step_code">· {{ item.step_code }}</span>
+              <span v-if="item.plugin_state">· {{ item.plugin_state }}</span>
             </div>
           </button>
           <div

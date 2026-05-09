@@ -14,7 +14,7 @@
       v-else-if="!items.length"
       class="sandbox-pending-queue__empty"
     >
-      暂无待处理 Outbox
+      暂无未完成命令
     </div>
 
     <div
@@ -45,7 +45,7 @@
         <div class="sandbox-pending-queue__item-footer">
           <span class="sandbox-pending-queue__item-code">{{ item.dispatch_key }}</span>
           <el-button
-            v-if="item.status === 'SENT'"
+            v-if="canAckSandboxOutbox(item)"
             type="success"
             size="small"
             plain
@@ -54,6 +54,16 @@
           >
             ACK
           </el-button>
+        </div>
+        <div
+          v-if="item.is_current_action === false || item.status === 'BLOCKED_RESOURCE'"
+          class="sandbox-pending-queue__item-note"
+        >
+          {{
+            item.is_current_action === false || item.is_actionable === false
+              ? '历史步骤，当前不可操作'
+              : item.last_error || '等待设备空闲后自动补发'
+          }}
         </div>
       </button>
     </div>
@@ -66,6 +76,7 @@ import { ElMessage } from 'element-plus'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import type { SandboxPendingOutbox } from '@/types/runtime'
+import { canAckSandboxOutbox } from '@/utils/sandbox-outbox'
 
 defineProps<{
   worklineId: number
@@ -196,5 +207,12 @@ async function handleAck(item: SandboxPendingOutbox) {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+
+.sandbox-pending-queue__item-note {
+  color: var(--runtime-text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: left;
 }
 </style>

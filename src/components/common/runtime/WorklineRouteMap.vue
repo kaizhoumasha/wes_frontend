@@ -16,6 +16,8 @@
             'is-selected': selectedDeviceId === device.id,
             'is-traced': tracePathNodes.length > 0 && isTraced(device.id),
             'is-blocking': isBlocking(device.id),
+            'has-runtime-hold': hasRuntimeHold(device),
+            'has-parked-outbox': getBlockedOutboxCount(device) > 0,
             'is-dimmed': tracePathNodes.length > 0 && !isTraced(device.id)
           }
         ]"
@@ -46,12 +48,23 @@
         >
           {{ signalText(device) }}
         </div>
-        <!-- Pending count badge -->
         <div
-          v-if="getDevicePendingCount(device.id) > 0"
-          class="workline-route-map__pending-badge"
+          v-if="getDeviceOpenCommandCount(device) > 0"
+          class="workline-route-map__open-command-badge"
         >
-          {{ getDevicePendingCount(device.id) }} 待处理
+          {{ getDeviceOpenCommandCount(device) }} 未完成命令
+        </div>
+        <div
+          v-if="hasRuntimeHold(device)"
+          class="workline-route-map__hold-badge"
+        >
+          Runtime Hold {{ getRuntimeHoldCount(device) }}
+        </div>
+        <div
+          v-if="getBlockedOutboxCount(device) > 0"
+          class="workline-route-map__parked-badge"
+        >
+          {{ getBlockedOutboxCount(device) }} 已停靠
         </div>
         <div
           v-if="isTraced(device.id) && traceNodeFor(device.id)?.actions.length"
@@ -110,7 +123,7 @@ const props = withDefaults(
     tracePathNodes?: RuntimeTraceDevicePathNode[]
     blockingDeviceId?: number | null
     compact?: boolean
-    pendingCountsByDevice?: Map<number, number> | Record<number, number>
+    openCommandCountsByDevice?: Map<number, number> | Record<number, number>
     showQuickActions?: boolean
   }>(),
   {
@@ -120,7 +133,7 @@ const props = withDefaults(
     tracePathNodes: () => [],
     blockingDeviceId: null,
     compact: false,
-    pendingCountsByDevice: undefined,
+    openCommandCountsByDevice: undefined,
     showQuickActions: false
   }
 )
@@ -138,11 +151,23 @@ function isTraced(deviceId: number) {
   return tracedDeviceIds.value.has(deviceId)
 }
 
-function getDevicePendingCount(deviceId: number): number {
-  const map = props.pendingCountsByDevice
-  if (!map) return 0
-  if (map instanceof Map) return map.get(deviceId) ?? 0
-  return map[deviceId] ?? 0
+function getDeviceOpenCommandCount(device: RuntimeWorklineDeviceItem): number {
+  const map = props.openCommandCountsByDevice
+  if (map instanceof Map) return map.get(device.id) ?? 0
+  if (map) return map[device.id] ?? 0
+  return device.open_command_count ?? device.pending_command_count ?? 0
+}
+
+function getBlockedOutboxCount(device: RuntimeWorklineDeviceItem): number {
+  return device.blocked_outbox_count ?? 0
+}
+
+function getRuntimeHoldCount(device: RuntimeWorklineDeviceItem): number {
+  return device.active_runtime_hold_ids?.length || device.open_issue_count || 0
+}
+
+function hasRuntimeHold(device: RuntimeWorklineDeviceItem): boolean {
+  return getRuntimeHoldCount(device) > 0
 }
 
 function handleClick(deviceId: number) {
@@ -176,7 +201,8 @@ function getSessionCount(deviceId: number): number {
 
 function signalText(device: RuntimeWorklineDeviceItem): string {
   if (device.error_code) return `ERROR: ${device.error_code}`
-  // 优先使用 sessionCountsByDevice，否则检查 current_command_id
+  if (hasRuntimeHold(device)) return '异常待处置'
+  if (getBlockedOutboxCount(device) > 0) return '等待设备空闲'
   const sessionCount = getSessionCount(device.id)
   if (sessionCount > 0) return `${sessionCount}条等待`
   if (device.current_command_id) return '执行中'
@@ -185,6 +211,8 @@ function signalText(device: RuntimeWorklineDeviceItem): string {
 
 function signalClass(device: RuntimeWorklineDeviceItem): string {
   if (device.error_code) return 'is-danger'
+  if (hasRuntimeHold(device)) return 'is-danger'
+  if (getBlockedOutboxCount(device) > 0) return 'is-warning'
   const sessionCount = getSessionCount(device.id)
   if (sessionCount > 0) return 'is-warning'
   if (device.current_command_id) return 'is-primary'
@@ -237,6 +265,14 @@ function signalClass(device: RuntimeWorklineDeviceItem): string {
 .workline-route-map__node.is-blocking {
   border-color: rgb(220, 38, 38, 0.6);
   box-shadow: 0 0 12px rgb(220, 38, 38, 0.2);
+}
+
+.workline-route-map__node.has-runtime-hold {
+  border-color: rgb(239, 68, 68, 0.52);
+}
+
+.workline-route-map__node.has-parked-outbox {
+  box-shadow: inset 0 0 0 1px rgb(245, 158, 11, 0.18);
 }
 
 .workline-route-map__node.is-danger {
@@ -427,16 +463,32 @@ function signalClass(device: RuntimeWorklineDeviceItem): string {
   width: 20px;
 }
 
-/* Pending Badge */
-.workline-route-map__pending-badge {
+.workline-route-map__open-command-badge,
+.workline-route-map__hold-badge,
+.workline-route-map__parked-badge {
   margin-top: 8px;
   padding: 3px 8px;
   border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.workline-route-map__open-command-badge {
   background: rgb(245, 158, 11, 0.15);
   color: #fbbf24;
-  font-size: 11px;
-  font-weight: 600;
-  text-align: center;
+}
+
+.workline-route-map__hold-badge {
+  border: 1px solid rgb(239, 68, 68, 0.3);
+  background: rgb(239, 68, 68, 0.14);
+  color: #fca5a5;
+}
+
+.workline-route-map__parked-badge {
+  border: 1px solid rgb(245, 158, 11, 0.28);
+  background: rgb(245, 158, 11, 0.1);
+  color: #fde68a;
 }
 
 /* Quick Actions */

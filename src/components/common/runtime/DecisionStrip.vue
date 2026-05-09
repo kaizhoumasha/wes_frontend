@@ -9,6 +9,24 @@
       <div class="decision-strip__row">
         <span class="decision-strip__label">{{ label }}</span>
         <span class="decision-strip__counts">
+          <span
+            v-if="activeHoldCount > 0"
+            class="decision-strip__count decision-strip__count--danger"
+          >
+            Hold {{ activeHoldCount }}
+          </span>
+          <span
+            v-if="blockedOutboxCount > 0"
+            class="decision-strip__count decision-strip__count--warning"
+          >
+            停靠 {{ blockedOutboxCount }}
+          </span>
+          <span
+            v-if="openCommandCount > 0"
+            class="decision-strip__count decision-strip__count--primary"
+          >
+            未完成 {{ openCommandCount }}
+          </span>
           <span class="decision-strip__count decision-strip__count--danger">
             失败 {{ summary.failed_session_count }}
           </span>
@@ -26,6 +44,14 @@
       <div class="decision-strip__suggestion">{{ suggestion }}</div>
     </div>
 
+    <RouterLink
+      v-if="firstRuntimeHoldId"
+      class="decision-strip__hold-entry"
+      :to="{ name: 'RuntimeHoldDetail', params: { holdId: firstRuntimeHoldId } }"
+    >
+      进入 Hold
+    </RouterLink>
+
     <el-tooltip
       placement="bottom-end"
       :show-after="300"
@@ -37,8 +63,10 @@
               hotspotDevice.error_code || hotspotDevice.device_status
             }})
           </div>
-          <div v-if="mostFailedStep">高频失败 Step: {{ mostFailedStep }}</div>
-          <div v-if="dominantActiveStep">主要等待 Step: {{ dominantActiveStep }}</div>
+          <div v-if="mostFailedBusinessStage">高频失败业务阶段: {{ mostFailedBusinessStage }}</div>
+          <div v-if="dominantActiveBusinessStage">
+            主要等待业务阶段: {{ dominantActiveBusinessStage }}
+          </div>
           <div>插件: {{ summary.plugin_key || '—' }}</div>
         </div>
       </template>
@@ -49,6 +77,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { RouterLink } from 'vue-router'
 import type { RuntimeWorklineDetailResponse, RuntimeWorklineSummary } from '@/types/runtime'
 import { pickDominantValue } from '@/utils/runtime-display'
 import type { RuntimeTone } from '@/utils/runtime-display'
@@ -59,6 +88,9 @@ const props = defineProps<{
 }>()
 
 const tone = computed<RuntimeTone>(() => {
+  if (activeHoldCount.value > 0 || openIssueCount.value > 0) {
+    return 'danger'
+  }
   if (
     props.summary.failed_session_count > 0 ||
     props.summary.offline_device_count > 0 ||
@@ -83,6 +115,15 @@ const label = computed(() => {
 })
 
 const suggestion = computed(() => {
+  if (activeHoldCount.value > 0) {
+    return `${activeHoldCount.value} 个 Runtime Hold 待处置，先确认线体能否继续，再决定继续或退回 NG`
+  }
+  if (blockedOutboxCount.value > 0) {
+    return `${blockedOutboxCount.value} 条出站命令已停靠，等待下游设备空闲后补发`
+  }
+  if (openCommandCount.value > 0) {
+    return `${openCommandCount.value} 条设备命令未完成，按节点检查 ACK/RESULT`
+  }
   if (props.summary.failed_session_count > 0) {
     return `${props.summary.failed_session_count} 条失败链路需要优先排障`
   }
@@ -107,12 +148,40 @@ const hotspotDevice = computed(() => {
   )
 })
 
-const mostFailedStep = computed(() =>
-  pickDominantValue(props.detail?.recent_failed_traces.map(item => item.step_code || '—') ?? [])
+const mostFailedBusinessStage = computed(() =>
+  pickDominantValue(props.detail?.recent_failed_traces.map(item => item.plugin_state || '—') ?? [])
 )
 
-const dominantActiveStep = computed(() =>
-  pickDominantValue(props.detail?.active_sessions.map(item => item.step_code || '—') ?? [])
+const dominantActiveBusinessStage = computed(() =>
+  pickDominantValue(props.detail?.active_sessions.map(item => item.plugin_state || '—') ?? [])
+)
+
+const activeRuntimeHoldIds = computed(() => {
+  const ids = new Set<number>()
+  for (const device of props.detail?.devices ?? []) {
+    for (const holdId of device.active_runtime_hold_ids ?? []) {
+      ids.add(holdId)
+    }
+  }
+  return Array.from(ids)
+})
+
+const firstRuntimeHoldId = computed(() => activeRuntimeHoldIds.value[0] ?? null)
+const activeHoldCount = computed(() => activeRuntimeHoldIds.value.length)
+const openIssueCount = computed(() =>
+  (props.detail?.devices ?? []).reduce((total, device) => total + (device.open_issue_count ?? 0), 0)
+)
+const blockedOutboxCount = computed(() =>
+  (props.detail?.devices ?? []).reduce(
+    (total, device) => total + (device.blocked_outbox_count ?? 0),
+    0
+  )
+)
+const openCommandCount = computed(() =>
+  (props.detail?.devices ?? []).reduce(
+    (total, device) => total + (device.open_command_count ?? device.pending_command_count ?? 0),
+    0
+  )
 )
 </script>
 
@@ -207,6 +276,23 @@ const dominantActiveStep = computed(() =>
   letter-spacing: 2px;
   cursor: help;
   user-select: none;
+}
+
+.decision-strip__hold-entry {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px;
+  border-left: 1px solid rgb(239, 68, 68, 0.22);
+  color: #fca5a5;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.decision-strip__hold-entry:hover {
+  background: rgb(239, 68, 68, 0.1);
 }
 
 .decision-strip__tooltip {

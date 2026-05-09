@@ -25,10 +25,10 @@
         }}
       </span>
       <span
-        v-if="activeSession.step_code"
+        v-if="activeSession.plugin_state"
         class="sandbox-cycle-status__step"
       >
-        {{ activeSession.step_code }}
+        {{ activeSession.plugin_state }}
       </span>
       <span
         v-if="activeSession.current_wait_type"
@@ -56,6 +56,11 @@
 import { computed } from 'vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import { displaySession } from '@/utils/runtime-display-identity'
+import {
+  canAckSandboxOutbox,
+  canSubmitSandboxResult,
+  isCurrentSandboxAction
+} from '@/utils/sandbox-outbox'
 import type { RuntimeTraceListItem, SandboxPendingOutbox } from '@/types/runtime'
 
 const props = defineProps<{
@@ -71,17 +76,28 @@ const activeSession = computed(() => {
 })
 
 const newCount = computed(
-  () => props.pendingOutboxes.filter(o => o.status === 'NEW' || o.status === 'DISPATCHING').length
+  () =>
+    props.pendingOutboxes.filter(
+      o =>
+        isCurrentSandboxAction(o) &&
+        !canAckSandboxOutbox(o) &&
+        (o.status === 'NEW' || o.status === 'DISPATCHING')
+    ).length
 )
-const sentCount = computed(() => props.pendingOutboxes.filter(o => o.status === 'SENT').length)
-const ackedCount = computed(() => props.pendingOutboxes.filter(o => o.status === 'ACKED').length)
+const sentCount = computed(() => props.pendingOutboxes.filter(canAckSandboxOutbox).length)
+const ackedCount = computed(() => props.pendingOutboxes.filter(canSubmitSandboxResult).length)
+const blockedCount = computed(
+  () =>
+    props.pendingOutboxes.filter(o => isCurrentSandboxAction(o) && o.status === 'BLOCKED_RESOURCE')
+      .length
+)
 
 const phase = computed<'idle' | 'action' | 'done'>(() => {
   const hasTerminal = props.activeSessions.some(s =>
     ['COMPLETED', 'FAILED', 'CANCELLED'].includes(s.status)
   )
   if (hasTerminal) return 'done'
-  if (newCount.value + sentCount.value + ackedCount.value > 0) return 'action'
+  if (newCount.value + sentCount.value + ackedCount.value + blockedCount.value > 0) return 'action'
   if (props.activeSessions.length > 0) return 'idle'
   return 'idle'
 })

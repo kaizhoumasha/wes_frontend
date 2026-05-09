@@ -2,52 +2,126 @@
   <div class="sandbox-action-list">
     <!-- Pending section -->
     <div class="sandbox-action-list__header">
-      <span class="sandbox-action-list__title">待操作命令</span>
-      <span class="sandbox-action-list__count">{{ actionableItems.length }}</span>
+      <span class="sandbox-action-list__title">需人工推进命令</span>
+      <span class="sandbox-action-list__count">{{ pendingSessionViews.length }}</span>
+      <span
+        v-if="actionableCommandCount"
+        class="sandbox-action-list__meta"
+      >
+        {{ actionableCommandCount }} 条可操作
+      </span>
     </div>
 
     <div
-      v-if="actionableItems.length"
-      class="sandbox-action-list__items"
+      v-if="pendingSessionViews.length"
+      class="sandbox-action-list__pending"
     >
       <div
-        v-for="item in actionableItems"
-        :key="item.id"
-        class="sandbox-action-list__item"
+        v-for="sessionView in pendingSessionViews"
+        :key="sessionView.key"
+        class="sandbox-action-list__pending-session"
       >
-        <div class="sandbox-action-list__item-info">
+        <div class="sandbox-action-list__pending-session-header">
           <RuntimeStatusBadge
-            :status="item.status ?? 'NEW'"
+            v-if="sessionView.status"
+            :status="sessionView.status"
             size="small"
           />
-          <span class="sandbox-action-list__item-key">{{ commandLabel(item) }}</span>
-          <span class="sandbox-action-list__item-target">→ {{ item.target_code || '—' }}</span>
+          <div class="sandbox-action-list__pending-session-main">
+            <div class="sandbox-action-list__completed-entity">
+              <span class="sandbox-action-list__completed-entity-label">
+                {{ sessionView.identity.primary.label }}
+              </span>
+              <span
+                class="sandbox-action-list__completed-entity-value"
+                :title="sessionView.identity.primary.value"
+              >
+                {{ sessionView.identity.primary.value }}
+              </span>
+            </div>
+            <div
+              v-if="sessionView.identity.summaryFields.length"
+              class="sandbox-action-list__completed-summary"
+            >
+              <span
+                v-for="field in sessionView.identity.summaryFields"
+                :key="`${sessionView.key}-${field.label}-${field.value}`"
+                class="sandbox-action-list__completed-chip"
+              >
+                <span class="sandbox-action-list__completed-chip-label">{{ field.label }}</span>
+                {{ field.value }}
+              </span>
+            </div>
+          </div>
+          <span class="sandbox-action-list__pending-session-state">
+            {{ sessionView.actionSummary }}
+          </span>
         </div>
-        <div class="sandbox-action-list__item-action">
-          <el-button
-            v-if="item.status === 'SENT'"
-            size="small"
-            type="warning"
-            plain
-            :loading="loading === item.id"
-            :disabled="disabled"
-            :title="disabled ? disabledReason : undefined"
-            @click="emit('ack', item)"
+
+        <div
+          v-if="sessionView.items.length"
+          class="sandbox-action-list__items sandbox-action-list__items--nested"
+        >
+          <div
+            v-for="item in sessionView.items"
+            :key="item.id"
+            class="sandbox-action-list__item"
+            :class="{ 'is-history': item.is_current_action === false }"
           >
-            模拟 ACK
-          </el-button>
-          <el-button
-            v-else-if="item.status === 'ACKED'"
-            size="small"
-            type="success"
-            plain
-            :loading="loading === item.id"
-            :disabled="disabled || isResultSubmitted(item)"
-            :title="buttonDisabledReason(item)"
-            @click="emit('result', item)"
-          >
-            模拟 Result
-          </el-button>
+            <div class="sandbox-action-list__item-info">
+              <RuntimeStatusBadge
+                :status="item.status ?? 'NEW'"
+                size="small"
+              />
+              <span class="sandbox-action-list__item-key">{{ commandLabel(item) }}</span>
+              <span class="sandbox-action-list__item-target">→ {{ item.target_code || '—' }}</span>
+            </div>
+            <div
+              v-if="itemNote(item)"
+              class="sandbox-action-list__item-note"
+            >
+              {{ itemNote(item) }}
+              <RouterLink
+                v-if="runtimeHoldId(item)"
+                class="sandbox-action-list__hold-link"
+                :to="{ name: 'RuntimeHoldDetail', params: { holdId: runtimeHoldId(item) } }"
+              >
+                Runtime Hold #{{ runtimeHoldId(item) }}
+              </RouterLink>
+            </div>
+            <div class="sandbox-action-list__item-action">
+              <el-button
+                v-if="canAckSandboxOutbox(item)"
+                size="small"
+                type="warning"
+                plain
+                :loading="loading === item.id"
+                :disabled="disabled"
+                :title="disabled ? disabledReason : undefined"
+                @click="emit('ack', item)"
+              >
+                模拟 ACK
+              </el-button>
+              <el-button
+                v-else-if="canSubmitSandboxResult(item)"
+                size="small"
+                type="success"
+                plain
+                :loading="loading === item.id"
+                :disabled="disabled || isResultSubmitted(item)"
+                :title="buttonDisabledReason(item)"
+                @click="emit('result', item)"
+              >
+                模拟 Result
+              </el-button>
+            </div>
+          </div>
+        </div>
+        <div
+          v-else
+          class="sandbox-action-list__pending-waiting"
+        >
+          事件已接收，等待运行时产生下一步命令。
         </div>
       </div>
     </div>
@@ -56,14 +130,14 @@
       v-else
       class="sandbox-action-list__empty"
     >
-      无待操作命令
+      暂无需人工推进命令
     </div>
 
     <!-- Completed section -->
     <template v-if="completedItemsResolved.length">
       <div class="sandbox-action-list__divider" />
       <div class="sandbox-action-list__header">
-        <span class="sandbox-action-list__title">已完成</span>
+        <span class="sandbox-action-list__title">历史命令</span>
         <span class="sandbox-action-list__count">{{ completedItemsResolved.length }}</span>
       </div>
       <div class="sandbox-action-list__completed">
@@ -177,6 +251,19 @@
                   :status="item.status ?? 'ACKED'"
                   size="small"
                 />
+                <span
+                  v-if="itemNote(item)"
+                  class="sandbox-action-list__completed-item-error"
+                >
+                  {{ itemNote(item) }}
+                  <RouterLink
+                    v-if="runtimeHoldId(item)"
+                    class="sandbox-action-list__hold-link"
+                    :to="{ name: 'RuntimeHoldDetail', params: { holdId: runtimeHoldId(item) } }"
+                  >
+                    Runtime Hold #{{ runtimeHoldId(item) }}
+                  </RouterLink>
+                </span>
               </div>
             </div>
           </div>
@@ -188,13 +275,23 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { SandboxCompletedSession, SandboxPendingOutbox } from '@/types/runtime'
+import { RouterLink } from 'vue-router'
+import type {
+  RuntimeTraceListItem,
+  SandboxCompletedSession,
+  SandboxPendingOutbox
+} from '@/types/runtime'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
-import { displayCommand } from '@/utils/runtime-display-identity'
+import { displayCommand, displaySession } from '@/utils/runtime-display-identity'
+import {
+  canAckSandboxOutbox,
+  canSubmitSandboxResult,
+  isCurrentSandboxAction
+} from '@/utils/sandbox-outbox'
 
-type CompletedIdentityCandidateGroup = [string, ...string[]]
+type SessionIdentityCandidateGroup = [string, ...string[]]
 
-const PRIMARY_IDENTITY_CANDIDATES: CompletedIdentityCandidateGroup[] = [
+const PRIMARY_IDENTITY_CANDIDATES: SessionIdentityCandidateGroup[] = [
   ['PkgID', 'PkgID', 'pkg_id', 'package_id'],
   ['料箱', 'container_code', 'container_id', 'box_code', 'bin_code'],
   ['货架', 'rack_code', 'rack_id', 'shelf_code', 'shelf_id'],
@@ -203,7 +300,7 @@ const PRIMARY_IDENTITY_CANDIDATES: CompletedIdentityCandidateGroup[] = [
   ['厂商料号', 'MfrPN', 'mfrpn', 'manufacturer_part_number']
 ]
 
-const SUMMARY_IDENTITY_CANDIDATES: CompletedIdentityCandidateGroup[] = [
+const SUMMARY_IDENTITY_CANDIDATES: SessionIdentityCandidateGroup[] = [
   ['HHPN', 'HHPN', 'hhpn', 'material_code', 'materialCode'],
   ['MfrPN', 'MfrPN', 'mfrpn', 'manufacturer_part_number'],
   ['Qty', 'Qty', 'qty', 'quantity'],
@@ -212,7 +309,7 @@ const SUMMARY_IDENTITY_CANDIDATES: CompletedIdentityCandidateGroup[] = [
   ['位置', 'Location', 'location']
 ]
 
-const DETAIL_IDENTITY_CANDIDATES: CompletedIdentityCandidateGroup[] = [
+const DETAIL_IDENTITY_CANDIDATES: SessionIdentityCandidateGroup[] = [
   ['扫码', 'barcode', 'bar_code', 'scan_code'],
   ['料箱', 'container_code', 'container_id', 'box_code', 'bin_code'],
   ['货架', 'rack_code', 'rack_id', 'shelf_code', 'shelf_id']
@@ -220,6 +317,7 @@ const DETAIL_IDENTITY_CANDIDATES: CompletedIdentityCandidateGroup[] = [
 
 const props = defineProps<{
   items: SandboxPendingOutbox[]
+  activeSessions?: RuntimeTraceListItem[]
   completedItems?: SandboxCompletedSession[]
   loading?: number | null
   disabled?: boolean
@@ -249,24 +347,42 @@ function toggleSession(sessionId: number): void {
 
 const completedItemsResolved = computed(() => props.completedItems ?? [])
 
-interface CompletedIdentityField {
+interface SessionIdentityField {
   label: string
   value: string
 }
 
-interface CompletedSessionIdentity {
-  primary: CompletedIdentityField
-  summaryFields: CompletedIdentityField[]
-  detailFields: CompletedIdentityField[]
-  traceFields: CompletedIdentityField[]
+interface SessionIdentity {
+  primary: SessionIdentityField
+  summaryFields: SessionIdentityField[]
+  detailFields: SessionIdentityField[]
+  traceFields: SessionIdentityField[]
+}
+
+interface PendingSessionView {
+  key: string
+  sessionId: number | null
+  status: string | null
+  session: RuntimeTraceListItem | null
+  items: SandboxPendingOutbox[]
+  identity: SessionIdentity
+  actionSummary: string
 }
 
 const completedSessionViews = computed(() =>
   completedItemsResolved.value.map(sessionGroup => ({
     sessionGroup,
-    identity: buildCompletedSessionIdentity(sessionGroup)
+    identity: buildSessionIdentity(sessionGroup)
   }))
 )
+
+const activeSessionById = computed(() => {
+  const index = new Map<number, RuntimeTraceListItem>()
+  for (const session of props.activeSessions ?? []) {
+    index.set(session.session_id, session)
+  }
+  return index
+})
 
 const completedItemIndex = computed(() => {
   const outboxIds = new Set<number>()
@@ -294,6 +410,62 @@ const actionableItems = computed(() => {
   })
 })
 
+const actionableCommandCount = computed(
+  () =>
+    actionableItems.value.filter(
+      item => isCurrentSandboxAction(item) && item.status !== 'BLOCKED_RESOURCE'
+    ).length
+)
+
+const pendingSessionViews = computed<PendingSessionView[]>(() => {
+  const groups = new Map<
+    string,
+    {
+      key: string
+      sessionId: number | null
+      session: RuntimeTraceListItem | null
+      items: SandboxPendingOutbox[]
+    }
+  >()
+
+  for (const session of props.activeSessions ?? []) {
+    if (isTerminalSession(session.status)) continue
+    if (completedItemIndex.value.sessionIds.has(session.session_id)) continue
+    groups.set(`session-${session.session_id}`, {
+      key: `session-${session.session_id}`,
+      sessionId: session.session_id,
+      session,
+      items: []
+    })
+  }
+
+  for (const item of actionableItems.value) {
+    const sessionId = item.session_id ?? null
+    const key =
+      item.history_group_key ?? (sessionId === null ? `outbox-${item.id}` : `session-${sessionId}`)
+    const existing = groups.get(key)
+    if (existing) {
+      existing.items.push(item)
+      continue
+    }
+    groups.set(key, {
+      key,
+      sessionId,
+      session: sessionId === null ? null : (activeSessionById.value.get(sessionId) ?? null),
+      items: [item]
+    })
+  }
+
+  return Array.from(groups.values())
+    .map(group => ({
+      ...group,
+      status: group.session?.status ?? null,
+      identity: buildPendingSessionIdentity(group),
+      actionSummary: pendingActionSummary(group)
+    }))
+    .sort((a, b) => pendingSortValue(b) - pendingSortValue(a))
+})
+
 const emit = defineEmits<{
   ack: [item: SandboxPendingOutbox]
   result: [item: SandboxPendingOutbox]
@@ -317,9 +489,95 @@ function commandLabel(item: SandboxPendingOutbox): string {
   })
 }
 
-function buildCompletedSessionIdentity(
-  sessionGroup: SandboxCompletedSession
-): CompletedSessionIdentity {
+function itemNote(item: SandboxPendingOutbox): string | null {
+  const failure = item.failure_summary
+  const failureMessage = [failure?.code, failure?.message].filter(Boolean).join(': ')
+  if (failureMessage) return failureMessage
+  if (item.last_error) return item.last_error
+  if (item.status === 'BLOCKED_RESOURCE') return '已停靠，等待设备空闲后自动补发'
+  if (!isCurrentSandboxAction(item)) return '历史命令，当前不可操作'
+  return null
+}
+
+function runtimeHoldId(item: SandboxPendingOutbox): number | null {
+  return item.runtime_hold_id ?? item.failure_summary?.runtime_hold_id ?? null
+}
+
+function buildPendingSessionIdentity(group: {
+  sessionId: number | null
+  session: RuntimeTraceListItem | null
+}): SessionIdentity {
+  const session = group.session
+  const sessionLabel = displaySession({
+    session_code: session?.session_code,
+    session_id: group.sessionId
+  })
+  const primary = scalarField('业务', session?.business_key) ??
+    scalarField('扫码', session?.barcode) ?? { label: '会话', value: sessionLabel }
+
+  const summaryFields = uniqueFields(
+    [
+      scalarField('会话', sessionLabel),
+      scalarField('阶段', session?.plugin_state),
+      scalarField('等待', waitTypeLabel(session?.current_wait_type)),
+      scalarField('当前命令', session?.command_code),
+      scalarField('Trace', session?.trace_id)
+    ],
+    primary
+  ).slice(0, 5)
+
+  return {
+    primary,
+    summaryFields,
+    detailFields: [],
+    traceFields: []
+  }
+}
+
+function waitTypeLabel(waitType: string | null | undefined): string | null {
+  if (!waitType) return null
+  const typeMap: Record<string, string> = {
+    DEVICE_CALLBACK: '设备回调',
+    EXTERNAL_API: '外部 API',
+    TIMER: '定时器',
+    MANUAL: '人工操作'
+  }
+  return typeMap[waitType] ?? waitType
+}
+
+function pendingActionSummary(group: {
+  session: RuntimeTraceListItem | null
+  items: SandboxPendingOutbox[]
+}): string {
+  const blockedCount = group.items.filter(item => item.status === 'BLOCKED_RESOURCE').length
+  const currentCount = group.items.filter(
+    item => isCurrentSandboxAction(item) && item.status !== 'BLOCKED_RESOURCE'
+  ).length
+  const historyCount = group.items.length - currentCount - blockedCount
+  if (blockedCount > 0 && currentCount > 0) return `${currentCount} 可操作 · ${blockedCount} 已停靠`
+  if (blockedCount > 0) return `${blockedCount} 已停靠`
+  if (currentCount > 0 && historyCount > 0) return `${currentCount} 当前 · ${historyCount} 历史`
+  if (currentCount > 0) return `${currentCount} 条命令`
+  if (historyCount > 0) return `${historyCount} 条历史`
+  const waitLabel = waitTypeLabel(group.session?.current_wait_type)
+  if (waitLabel) return `等待${waitLabel}`
+  if (group.session?.status === 'NEW' || group.session?.status === 'RUNNING') return '编排中'
+  return '暂无命令'
+}
+
+function pendingSortValue(sessionView: {
+  sessionId: number | null
+  items: SandboxPendingOutbox[]
+}): number {
+  if (sessionView.items.length) return Math.max(...sessionView.items.map(item => item.id))
+  return sessionView.sessionId ?? 0
+}
+
+function isTerminalSession(status: string | null | undefined): boolean {
+  return status === 'COMPLETED' || status === 'FAILED' || status === 'CANCELLED'
+}
+
+function buildSessionIdentity(sessionGroup: SandboxCompletedSession): SessionIdentity {
   const session = sessionGroup.session
   const eventData = extractEventData(session.event_payload)
   const primary = firstField(eventData, PRIMARY_IDENTITY_CANDIDATES) ??
@@ -327,7 +585,10 @@ function buildCompletedSessionIdentity(
     scalarField('事件', session.event_type) ?? { label: '记录', value: '—' }
 
   const summaryFields = uniqueFields(
-    SUMMARY_IDENTITY_CANDIDATES.map(candidate => firstField(eventData, [candidate])),
+    [
+      scalarField('失败', session.failure_code),
+      ...SUMMARY_IDENTITY_CANDIDATES.map(candidate => firstField(eventData, [candidate]))
+    ],
     primary
   ).slice(0, 5)
 
@@ -342,9 +603,11 @@ function buildCompletedSessionIdentity(
 
   const traceFields = [
     scalarField('事件', session.event_type),
-    scalarField('步骤', session.step_code),
+    scalarField('业务阶段', session.plugin_state),
+    scalarField('失败域', session.failure_domain),
+    scalarField('失败原因', session.failure_message),
     scalarField('会话', session.session_code)
-  ].filter((field): field is CompletedIdentityField => field !== null)
+  ].filter((field): field is SessionIdentityField => field !== null)
 
   return {
     primary,
@@ -364,8 +627,8 @@ function extractEventData(
 
 function firstField(
   source: Record<string, unknown>,
-  candidates: CompletedIdentityCandidateGroup[]
-): CompletedIdentityField | null {
+  candidates: SessionIdentityCandidateGroup[]
+): SessionIdentityField | null {
   for (const [label, ...keys] of candidates) {
     for (const key of keys) {
       const value = scalarValue(source[key])
@@ -375,7 +638,7 @@ function firstField(
   return null
 }
 
-function scalarField(label: string, value: unknown): CompletedIdentityField | null {
+function scalarField(label: string, value: unknown): SessionIdentityField | null {
   const scalar = scalarValue(value)
   return scalar ? { label, value: scalar } : null
 }
@@ -396,11 +659,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function uniqueFields(
-  fields: Array<CompletedIdentityField | null>,
-  excluded: CompletedIdentityField | null
-): CompletedIdentityField[] {
+  fields: Array<SessionIdentityField | null>,
+  excluded: SessionIdentityField | null
+): SessionIdentityField[] {
   const seen = new Set<string>()
-  const result: CompletedIdentityField[] = []
+  const result: SessionIdentityField[] = []
   for (const field of fields) {
     if (!field) continue
     if (excluded && field.label === excluded.label && field.value === excluded.value) continue
@@ -440,21 +703,79 @@ function formatPayload(payload: Record<string, unknown>): string {
   font-weight: 600;
 }
 
+.sandbox-action-list__meta {
+  color: var(--runtime-text-muted);
+  font-size: 11px;
+}
+
 .sandbox-action-list__items {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
+.sandbox-action-list__pending {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sandbox-action-list__pending-session {
+  padding: 10px;
+  border: 1px solid rgb(245, 158, 11, 0.1);
+  border-radius: 8px;
+  background: var(--runtime-surface-subtle);
+}
+
+.sandbox-action-list__pending-session-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.sandbox-action-list__pending-session-main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sandbox-action-list__pending-session-state {
+  color: var(--runtime-text-muted);
+  font-size: 11px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.sandbox-action-list__pending-waiting {
+  padding: 8px 10px;
+  border: 1px dashed var(--runtime-border-neutral);
+  border-radius: 6px;
+  color: var(--runtime-text-muted);
+  font-size: 12px;
+}
+
+.sandbox-action-list__items--nested {
+  gap: 5px;
+}
+
 .sandbox-action-list__item {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
   padding: 8px 10px;
   border: 1px solid rgb(245, 158, 11, 0.08);
   border-radius: 8px;
   background: var(--runtime-surface-subtle);
+}
+
+.sandbox-action-list__item.is-history {
+  border-color: var(--runtime-border-neutral);
+  background: var(--runtime-surface);
 }
 
 .sandbox-action-list__item-info {
@@ -478,6 +799,13 @@ function formatPayload(payload: Record<string, unknown>): string {
   color: var(--runtime-text-secondary);
   font-size: 12px;
   flex-shrink: 0;
+}
+
+.sandbox-action-list__item-note {
+  flex-basis: 100%;
+  color: var(--runtime-text-muted);
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .sandbox-action-list__item-action {
@@ -706,5 +1034,16 @@ function formatPayload(payload: Record<string, unknown>): string {
   color: var(--runtime-text-muted);
   font-size: 12px;
   flex-shrink: 0;
+}
+
+.sandbox-action-list__completed-item-error {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--runtime-danger, #ef4444);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

@@ -107,9 +107,9 @@
           </span>
         </div>
         <WorklineRouteMap
-          :devices="deviceList"
+          :devices="deviceListWithSandboxCounters"
           :selected-device-id="selectedDeviceId"
-          :pending-counts-by-device="pendingCountsByDevice"
+          :open-command-counts-by-device="openCommandCountsByDevice"
           @select="handleSelectDevice"
           @send-event="handleSendEventFromTopology"
           @view-outbox="handleViewOutboxFromTopology"
@@ -171,6 +171,7 @@
       <!-- Bottom: Action List -->
       <SandboxActionList
         :items="actionablePendingItems"
+        :active-sessions="activeSessions"
         :completed-items="completedItems"
         :loading="actionLoadingForItem"
         :disabled="safetyLocked"
@@ -242,9 +243,8 @@
 
         <!-- Actions based on status -->
         <div class="sandbox-workbench__drawer-actions">
-          <!-- SENT: ACK -->
           <el-button
-            v-if="selectedOutbox.status === 'SENT'"
+            v-if="canAckSandboxOutbox(selectedOutbox)"
             type="success"
             :loading="actionLoading"
             :disabled="safetyLocked || selectedOutboxCompleted || selectedOutboxResultSubmitted"
@@ -266,7 +266,7 @@
 
           <!-- ACKED: Result -->
           <el-button
-            v-if="selectedOutbox.status === 'ACKED'"
+            v-if="canSubmitSandboxResult(selectedOutbox)"
             type="primary"
             :loading="actionLoading"
             :disabled="safetyLocked || selectedOutboxCompleted || selectedOutboxResultSubmitted"
@@ -303,7 +303,13 @@ import { StandardDrawer } from '@/components/ui/StandardDrawer'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import { useRuntimeSSE } from '@/composables/useRuntimeSSE'
 import { useWorklineRuntimeStore } from '@/stores/workline-runtime'
+import { classifyRuntimeRefresh, isRelevantRuntimeEvent } from '@/utils/runtime-event'
 import { displayCommand, displayDevice } from '@/utils/runtime-display-identity'
+import {
+  canAckSandboxOutbox,
+  canSubmitSandboxResult,
+  isCurrentSandboxAction
+} from '@/utils/sandbox-outbox'
 import { SAFETY_LOCKED_REASON } from '@/constants/runtime-safety'
 import type {
   RuntimeTraceListItem,
@@ -320,6 +326,7 @@ const props = defineProps<{
   safetyLocked?: boolean
   safetyLockReason?: string | null
   canClearEstop?: boolean
+  clearEstopDisabledReason?: string | null
   clearEstopLoading?: boolean
 }>()
 
@@ -331,7 +338,7 @@ const clearEstopLoading = computed(() => props.clearEstopLoading ?? false)
 const safetyBlockedReason = computed(() => props.safetyLockReason || SAFETY_LOCKED_REASON)
 const clearEstopDisabledReason = computed(() => {
   if (canClearEstop.value) return undefined
-  return props.safetyLockReason || '当前状态不能通过急停恢复入口处理'
+  return props.clearEstopDisabledReason || '需要 biz:workline:clear-estop 权限'
 })
 
 // 活跃会话：来自 store 的 detail
@@ -341,6 +348,13 @@ const activeSessions = computed<RuntimeTraceListItem[]>(
 
 const deviceList = computed(() =>
   props.devices?.length ? props.devices : (store.detail?.devices ?? [])
+)
+const deviceListWithSandboxCounters = computed(() =>
+  deviceList.value.map(device => ({
+    ...device,
+    open_command_count: openCommandCountsByDevice.value[device.id] ?? 0,
+    blocked_outbox_count: blockedOutboxCountsByDevice.value[device.id] ?? 0
+  }))
 )
 const selectedDeviceId = ref<number | null>(props.deviceId ?? null)
 
@@ -434,17 +448,10 @@ const { lastEvent } = useRuntimeSSE(true)
 
 watch(lastEvent, event => {
   if (!event) return
-  // 后端目前只推送 device.status.changed，设备状态变化时刷新 outbox
-  if (
-    event.action === 'status.changed' ||
-    event.action === 'device.status.changed' ||
-    event.entity === 'device' ||
-    event.entity === 'outbox' ||
-    event.entity === 'command'
-  ) {
-    void loadPending()
-    void loadCompleted()
-  }
+  if (!isRelevantRuntimeEvent(event, { worklineId: props.worklineId })) return
+  if (!classifyRuntimeRefresh(event).sandbox) return
+  void loadPending()
+  void loadCompleted()
 })
 
 // State
@@ -461,15 +468,26 @@ const showResultComposer = ref(false)
 
 let sandboxRefreshTimers: ReturnType<typeof setTimeout>[] = []
 
-// Pending counts by device
-const pendingCountsByDevice = computed(() => {
+const openCommandCountsByDevice = computed(() => {
   const counts: Record<number, number> = {}
   for (const item of actionablePendingItems.value) {
     if (item.status === 'FAILED' || item.status === 'CANCELLED') continue
+    if (item.status === 'BLOCKED_RESOURCE') continue
+    if (!isCurrentSandboxAction(item)) continue
     const device = deviceList.value.find(d => d.device_code === item.target_code)
     if (device) {
       counts[device.id] = (counts[device.id] || 0) + 1
     }
+  }
+  return counts
+})
+
+const blockedOutboxCountsByDevice = computed(() => {
+  const counts: Record<number, number> = {}
+  for (const item of actionablePendingItems.value) {
+    if (item.status !== 'BLOCKED_RESOURCE') continue
+    const device = deviceList.value.find(d => d.device_code === item.target_code)
+    if (device) counts[device.id] = (counts[device.id] || 0) + 1
   }
   return counts
 })
@@ -530,6 +548,10 @@ function isOutboxCompleted(outbox: SandboxPendingOutbox | null | undefined): boo
 
 function ensureOutboxActionable(outbox: SandboxPendingOutbox | null | undefined): boolean {
   if (!outbox) return false
+  if (!isCurrentSandboxAction(outbox)) {
+    ElMessage.warning('这是历史步骤，当前不可操作。')
+    return false
+  }
   if (!isOutboxCompleted(outbox)) return true
   ElMessage.warning('该 Result 已完成，不能重复操作。')
   if (selectedOutbox.value?.id === outbox.id) {
@@ -585,7 +607,7 @@ function refreshSandboxState() {
 function queueSandboxRefresh() {
   clearSandboxRefreshTimers()
   refreshSandboxState()
-  for (const delay of [800, 2000, 4000]) {
+  for (const delay of [800, 2000, 5000, 10000, 15000]) {
     sandboxRefreshTimers.push(setTimeout(refreshSandboxState, delay))
   }
 }
@@ -727,6 +749,7 @@ function statusLabel(status: string | null | undefined): string {
     DISPATCHING: '派发中',
     SENT: '已发送',
     ACKED: '已确认',
+    BLOCKED_RESOURCE: '等待设备空闲',
     FAILED: '失败',
     CANCELLED: '已取消'
   }

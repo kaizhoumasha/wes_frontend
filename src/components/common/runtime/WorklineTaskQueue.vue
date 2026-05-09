@@ -86,7 +86,7 @@
             />
             <span class="workline-task-queue__item-code">{{ item.session_code }}</span>
             <span class="workline-task-queue__item-device">{{ item.device_name || '—' }}</span>
-            <span class="workline-task-queue__item-step">{{ item.step_code || '—' }}</span>
+            <span class="workline-task-queue__item-step">{{ item.plugin_state || '—' }}</span>
           </button>
         </div>
       </section>
