@@ -57,7 +57,12 @@ export const runtimeRoutes: RouteRecordRaw = {
       meta: {
         requiresAuth: true,
         title: 'Trace 深链（已合并至工作线运行态）',
-        permission: BIZ_PERMISSIONS.workline.page
+        permission: BIZ_PERMISSIONS.workline.page,
+        menu: {
+          name: 'runtime:traces:menu',
+          parentName: 'runtime:system:menu',
+          hidden: true // 已废弃 redirect 路由，仅保留路由用于兼容旧链接
+        }
       }
     },
     {
@@ -84,7 +89,11 @@ export const runtimeRoutes: RouteRecordRaw = {
       meta: {
         requiresAuth: true,
         title: 'Runtime Hold',
-        permission: BIZ_PERMISSIONS.workline.viewRuntimeHold
+        permission: BIZ_PERMISSIONS.workline.viewRuntimeHold,
+        menu: {
+          name: 'runtime:hold:detail',
+          hidden: true // 深链详情页，不显示在菜单中
+        }
       }
     }
   ]
