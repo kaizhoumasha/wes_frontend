@@ -34,8 +34,8 @@ export const TraceQueryRequestMetadata = {
       "required": false,
       "nullable": true
     },
-    "step_code": {
-      "title": "Step Code",
+    "plugin_state": {
+      "title": "Plugin State",
       "type": "string",
       "required": false,
       "nullable": true

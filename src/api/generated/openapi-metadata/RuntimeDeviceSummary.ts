@@ -89,12 +89,42 @@ export const RuntimeDeviceSummaryMetadata = {
       "required": false,
       "nullable": true
     },
+    "open_command_count": {
+      "title": "Open Command Count",
+      "type": "integer",
+      "required": false,
+      "nullable": false,
+      "default": 0
+    },
     "pending_command_count": {
       "title": "Pending Command Count",
       "type": "integer",
       "required": false,
       "nullable": false,
       "default": 0
+    },
+    "blocked_outbox_count": {
+      "title": "Blocked Outbox Count",
+      "type": "integer",
+      "required": false,
+      "nullable": false,
+      "default": 0
+    },
+    "open_issue_count": {
+      "title": "Open Issue Count",
+      "type": "integer",
+      "required": false,
+      "nullable": false,
+      "default": 0
+    },
+    "active_runtime_hold_ids": {
+      "title": "Active Runtime Hold Ids",
+      "type": "array",
+      "required": false,
+      "nullable": false,
+      "items": {
+        "type": "integer"
+      }
     },
     "last_heartbeat_at": {
       "title": "Last Heartbeat At",

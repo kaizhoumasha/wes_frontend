@@ -93,6 +93,12 @@ export const TraceOutboxItemMetadata = {
       "required": false,
       "nullable": true
     },
+    "blocked_by_runtime_hold_id": {
+      "title": "Blocked By Runtime Hold Id",
+      "type": "integer",
+      "required": false,
+      "nullable": true
+    },
     "blocked_by_reconciliation_session_id": {
       "title": "Blocked By Reconciliation Session Id",
       "type": "integer",

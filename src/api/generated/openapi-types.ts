@@ -2116,6 +2116,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workline/ng-return-items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list-ng-return-item] 查询 NG Return Items */
+        get: operations["workline_ng_return_items_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workline/operations/manual/sessions/{session_id}": {
         parameters: {
             query?: never;
@@ -2318,6 +2335,57 @@ export interface paths {
          * @description 从插件注册表导出作业线插件与契约版本下拉选项。
          */
         get: operations["workline_plugins_options_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/runtime-holds/{hold_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:view-runtime-hold] 查看 Runtime Hold 明细 */
+        get: operations["workline_runtime_holds_by_hold_id_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/runtime-holds/{hold_id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [biz:workline:resolve-runtime-hold] 解除 Runtime Hold */
+        post: operations["workline_runtime_holds_by_hold_id_resolve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/runtime-holds/ng-reasons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:view-runtime-hold] 查询 Runtime Hold NG 原因选项 */
+        get: operations["workline_runtime_holds_ng_reasons_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3902,6 +3970,28 @@ export interface components {
             user_message: string;
         };
         /**
+         * FailedCommandEvidence
+         * @description Failed command evidence for operator review.
+         */
+        FailedCommandEvidence: {
+            /** Command Code */
+            command_code?: string | null;
+            /** Command Id */
+            command_id?: number | null;
+            /** Error Detail */
+            error_detail?: {
+                [key: string]: unknown;
+            } | null;
+            /** Result */
+            result?: string | null;
+            /** Result Data */
+            result_data?: {
+                [key: string]: unknown;
+            } | null;
+            /** Status */
+            status?: string | null;
+        };
+        /**
          * FilterCondition
          * @description 单个过滤条件
          */
@@ -4402,6 +4492,91 @@ export interface components {
             version: number;
         };
         /**
+         * NgReasonInput
+         * @description Operator-selected NG reason.
+         */
+        NgReasonInput: {
+            /**
+             * Code
+             * @description Canonical NG reason code
+             */
+            code: string;
+            /**
+             * Label
+             * @description Human-readable NG reason label
+             */
+            label: string;
+            /**
+             * Source
+             * @description NG reason source
+             */
+            source: string;
+        };
+        /**
+         * NgReasonOption
+         * @description NG reason option.
+         */
+        NgReasonOption: {
+            /** Code */
+            code: string;
+            /** Contract Version */
+            contract_version?: string | null;
+            /** Label */
+            label: string;
+            /** Maps From */
+            maps_from?: string[];
+            /** Plugin Key */
+            plugin_key?: string | null;
+            /** Source */
+            source: string;
+        };
+        /**
+         * NgReturnItemResponse
+         * @description NG return item response.
+         */
+        NgReturnItemResponse: {
+            /** Confirmed At */
+            confirmed_at?: string | null;
+            /** Confirmed By */
+            confirmed_by?: number | null;
+            /** Created At */
+            created_at?: string | null;
+            /** Created From Runtime Hold Id */
+            created_from_runtime_hold_id: number;
+            /** Disposition */
+            disposition: string;
+            /** Id */
+            id: number;
+            /** Material Identity Json */
+            material_identity_json: {
+                [key: string]: unknown;
+            };
+            /** Material Identity Key */
+            material_identity_key: string;
+            /** Ng Reason Code */
+            ng_reason_code: string;
+            /** Ng Reason Label */
+            ng_reason_label: string;
+            /** Ng Reason Source */
+            ng_reason_source: string;
+            /** Operator Note */
+            operator_note?: string | null;
+            /** Physical Handoff Evidence Json */
+            physical_handoff_evidence_json: {
+                [key: string]: unknown;
+            };
+            /** Source Command Id */
+            source_command_id?: number | null;
+            /** Source Event Id */
+            source_event_id?: string | null;
+            /** Source Session Id */
+            source_session_id: number;
+            /** Source Workline Id */
+            source_workline_id: number;
+            /** Status */
+            status: string;
+        };
+        /**
          * OperaStatus
          * @description 操作日志状态
          * @enum {string}
@@ -4689,6 +4864,47 @@ export interface components {
             version: number;
         };
         /**
+         * PhysicalHandoffEvidenceInput
+         * @description Client-submitted physical handoff evidence.
+         *
+         *     Server-owned facts such as confirmed_by, confirmed_at and material_identity
+         *     are intentionally not part of this schema.
+         */
+        PhysicalHandoffEvidenceInput: {
+            /**
+             * Handoff Witness Id
+             * @description 可选见证人
+             */
+            handoff_witness_id?: string | null;
+            /**
+             * Late Callback Reviewed
+             * @description 已复核迟到 callback evidence
+             */
+            late_callback_reviewed: boolean;
+            /**
+             * Line Clear Checked
+             * @description 已确认工位/设备无残留同一物料
+             */
+            line_clear_checked: boolean;
+            /**
+             * Material Scan Payload
+             * @description 现场重新扫描到的物料原文
+             */
+            material_scan_payload: {
+                [key: string]: unknown;
+            } | string;
+            /**
+             * Ng Location Code
+             * @description NG 暂存位置编码
+             */
+            ng_location_code: string;
+            /**
+             * Ng Location Scan
+             * @description NG 位置扫码原文
+             */
+            ng_location_scan: string;
+        };
+        /**
          * QueryOptions
          * @description 查询选项
          */
@@ -4804,6 +5020,77 @@ export interface components {
             version: number;
         };
         /**
+         * ResolveRuntimeHoldRequest
+         * @description Resolve Runtime Hold request.
+         */
+        ResolveRuntimeHoldRequest: {
+            /**
+             * Checks
+             * @description 服务端要求的 release checklist
+             */
+            checks: {
+                [key: string]: boolean;
+            };
+            /**
+             * Hold Version
+             * @description RuntimeHold 乐观锁版本
+             */
+            hold_version: number;
+            /**
+             * Latest Evidence Hash
+             * @description 页面看到的最新证据 hash
+             */
+            latest_evidence_hash: string;
+            /**
+             * Material Disposition
+             * @description 物料处置
+             * @enum {string}
+             */
+            material_disposition: "CONTINUE" | "RETURN_TO_NG";
+            /** @description RETURN_TO_NG 时必填 */
+            ng_reason?: components["schemas"]["NgReasonInput"] | null;
+            /**
+             * Operator Note
+             * @description 现场确认说明
+             */
+            operator_note: string;
+            /** @description RETURN_TO_NG 时必填；只包含客户端可提交证据 */
+            physical_handoff_evidence?: components["schemas"]["PhysicalHandoffEvidenceInput"] | null;
+            /**
+             * Resolution
+             * @description Session 结论
+             * @enum {string}
+             */
+            resolution: "COMPLETED" | "FAILED" | "CANCELLED";
+            /**
+             * Result Payload
+             * @description CONTINUE/COMPLETED 可补充业务结果
+             */
+            result_payload?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * ResolveRuntimeHoldResponse
+         * @description Resolve Runtime Hold response.
+         */
+        ResolveRuntimeHoldResponse: {
+            /** Hold Id */
+            hold_id: number;
+            /** Ng Return Item Id */
+            ng_return_item_id?: number | null;
+            /** Released Outbox Count */
+            released_outbox_count: number;
+            /** Remaining Active Blocking Holds */
+            remaining_active_blocking_holds: number;
+            /** Status */
+            status: string;
+            /** Workline Id */
+            workline_id: number;
+            /** Workline Runtime Status */
+            workline_runtime_status: string;
+        };
+        /**
          * ResolveRuntimeReconciliationRequest
          * @description 人工运行时对账解除请求。
          */
@@ -4867,6 +5154,10 @@ export interface components {
         ResponseSchemaModel_list_MenuTreeResponse__: ApiResponse<components["schemas"]["MenuTreeResponse"][]>;
         /** ResponseSchemaModel[list[MenuTreeResponseSimple]] */
         ResponseSchemaModel_list_MenuTreeResponseSimple__: ApiResponse<components["schemas"]["MenuTreeResponseSimple"][]>;
+        /** ResponseSchemaModel[list[NgReasonOption]] */
+        ResponseSchemaModel_list_NgReasonOption__: ApiResponse<components["schemas"]["NgReasonOption"][]>;
+        /** ResponseSchemaModel[list[NgReturnItemResponse]] */
+        ResponseSchemaModel_list_NgReturnItemResponse__: ApiResponse<components["schemas"]["NgReturnItemResponse"][]>;
         /** ResponseSchemaModel[list[PermissionResponse]] */
         ResponseSchemaModel_list_PermissionResponse__: ApiResponse<components["schemas"]["PermissionResponse"][]>;
         /** ResponseSchemaModel[list[PermissionTree]] */
@@ -4889,12 +5180,16 @@ export interface components {
         ResponseSchemaModel_PermissionResponse_: ApiResponse<components["schemas"]["PermissionResponse"]>;
         /** ResponseSchemaModel[RefreshTokenResponse] */
         ResponseSchemaModel_RefreshTokenResponse_: ApiResponse<components["schemas"]["RefreshTokenResponse"]>;
+        /** ResponseSchemaModel[ResolveRuntimeHoldResponse] */
+        ResponseSchemaModel_ResolveRuntimeHoldResponse_: ApiResponse<components["schemas"]["ResolveRuntimeHoldResponse"]>;
         /** ResponseSchemaModel[RevokeSessionResponse] */
         ResponseSchemaModel_RevokeSessionResponse_: ApiResponse<components["schemas"]["RevokeSessionResponse"]>;
         /** ResponseSchemaModel[RoleResponse] */
         ResponseSchemaModel_RoleResponse_: ApiResponse<components["schemas"]["RoleResponse"]>;
         /** ResponseSchemaModel[RuntimeDeviceDetailResponse] */
         ResponseSchemaModel_RuntimeDeviceDetailResponse_: ApiResponse<components["schemas"]["RuntimeDeviceDetailResponse"]>;
+        /** ResponseSchemaModel[RuntimeHoldDetailResponse] */
+        ResponseSchemaModel_RuntimeHoldDetailResponse_: ApiResponse<components["schemas"]["RuntimeHoldDetailResponse"]>;
         /** ResponseSchemaModel[RuntimeOverviewResponse] */
         ResponseSchemaModel_RuntimeOverviewResponse_: ApiResponse<components["schemas"]["RuntimeOverviewResponse"]>;
         /** ResponseSchemaModel[RuntimeTraceListResponse] */
@@ -5035,6 +5330,13 @@ export interface components {
         };
         /** RuntimeDeviceSummary */
         RuntimeDeviceSummary: {
+            /** Active Runtime Hold Ids */
+            active_runtime_hold_ids?: number[];
+            /**
+             * Blocked Outbox Count
+             * @default 0
+             */
+            blocked_outbox_count: number;
             /** Current Command Id */
             current_command_id?: number | null;
             /** Device Code */
@@ -5057,6 +5359,16 @@ export interface components {
              */
             maintenance_mode: boolean;
             /**
+             * Open Command Count
+             * @default 0
+             */
+            open_command_count: number;
+            /**
+             * Open Issue Count
+             * @default 0
+             */
+            open_issue_count: number;
+            /**
              * Pending Command Count
              * @default 0
              */
@@ -5071,6 +5383,122 @@ export interface components {
             workline_id?: number | null;
             /** Workline Name */
             workline_name?: string | null;
+        };
+        /**
+         * RuntimeHoldBlocker
+         * @description Another active hold blocking the same WorkLine.
+         */
+        RuntimeHoldBlocker: {
+            /** Hold Type */
+            hold_type: string;
+            /** Id */
+            id: number;
+            /** Session Id */
+            session_id?: number | null;
+            /** Source Device Id */
+            source_device_id?: number | null;
+            /** Source Reason */
+            source_reason: string;
+            /** Status */
+            status: string;
+        };
+        /**
+         * RuntimeHoldDetailResponse
+         * @description Runtime Hold detail response.
+         */
+        RuntimeHoldDetailResponse: {
+            /** Blockers */
+            blockers?: components["schemas"]["RuntimeHoldBlocker"][];
+            /** Evidence Snapshot Json */
+            evidence_snapshot_json: {
+                [key: string]: unknown;
+            };
+            failed_command_evidence?: components["schemas"]["FailedCommandEvidence"] | null;
+            release_eligibility: components["schemas"]["RuntimeHoldReleaseEligibility"];
+            /** Release Evidence Json */
+            release_evidence_json: {
+                [key: string]: unknown;
+            };
+            source: components["schemas"]["RuntimeHoldSource"];
+            summary: components["schemas"]["RuntimeHoldSummary"];
+        };
+        /**
+         * RuntimeHoldReleaseEligibility
+         * @description Current release decision model.
+         */
+        RuntimeHoldReleaseEligibility: {
+            /** Allowed Material Dispositions */
+            allowed_material_dispositions?: string[];
+            /** Allowed Resolutions */
+            allowed_resolutions?: string[];
+            /** Can Resolve */
+            can_resolve: boolean;
+            /** Latest Evidence Hash */
+            latest_evidence_hash: string;
+            /** Reason */
+            reason?: string | null;
+            /** Required Checks */
+            required_checks?: string[];
+        };
+        /**
+         * RuntimeHoldSource
+         * @description Runtime Hold source refs.
+         */
+        RuntimeHoldSource: {
+            /** Source Command Id */
+            source_command_id?: number | null;
+            /** Source Device Id */
+            source_device_id?: number | null;
+            /** Source Idempotency Key */
+            source_idempotency_key: string;
+            /** Source Inbox Id */
+            source_inbox_id?: number | null;
+            /** Source Kind */
+            source_kind: string;
+            /** Source Outbox Id */
+            source_outbox_id?: number | null;
+            /** Source Reason */
+            source_reason: string;
+        };
+        /**
+         * RuntimeHoldSummary
+         * @description Runtime Hold summary.
+         */
+        RuntimeHoldSummary: {
+            /** Blocking */
+            blocking: boolean;
+            /** Contract Version */
+            contract_version?: string | null;
+            /** Created At */
+            created_at?: string | null;
+            /** Hold Type */
+            hold_type: string;
+            /** Id */
+            id: number;
+            /** Material Disposition */
+            material_disposition?: string | null;
+            /** Ng Reason Code */
+            ng_reason_code?: string | null;
+            /** Ng Reason Label */
+            ng_reason_label?: string | null;
+            /** Plugin Key */
+            plugin_key?: string | null;
+            /** Resolved At */
+            resolved_at?: string | null;
+            /** Resolved By */
+            resolved_by?: number | null;
+            /** Session Id */
+            session_id?: number | null;
+            /** Source Reason */
+            source_reason: string;
+            /** Status */
+            status: string;
+            /** Trace Id */
+            trace_id?: string | null;
+            /** Version */
+            version: number;
+            /** Workline Id */
+            workline_id: number;
         };
         /** RuntimeOverviewResponse */
         RuntimeOverviewResponse: {
@@ -5140,6 +5568,16 @@ export interface components {
             business_key?: string | null;
             /** Command Code */
             command_code?: string | null;
+            /** Current Action */
+            current_action?: string | null;
+            /** Current Action Source */
+            current_action_source?: string | null;
+            /** Current Device Code */
+            current_device_code?: string | null;
+            /** Current Device Id */
+            current_device_id?: number | null;
+            /** Current Device Name */
+            current_device_name?: string | null;
             /** Current Wait Type */
             current_wait_type?: string | null;
             /** Deadline At */
@@ -5159,6 +5597,12 @@ export interface components {
              * @default false
              */
             is_timed_out: boolean;
+            /** Last Device Code */
+            last_device_code?: string | null;
+            /** Last Device Id */
+            last_device_id?: number | null;
+            /** Last Device Name */
+            last_device_name?: string | null;
             /** Last Ingress At */
             last_ingress_at?: string | null;
             /** Latest Timeline Action */
@@ -5167,6 +5611,8 @@ export interface components {
             latest_timeline_message?: string | null;
             /** Latest Timeline Status */
             latest_timeline_status?: string | null;
+            /** Plugin State */
+            plugin_state?: string | null;
             /** Request Id */
             request_id?: string | null;
             /** Session Code */
@@ -5177,8 +5623,6 @@ export interface components {
             started_at?: string | null;
             /** Status */
             status: string;
-            /** Step Code */
-            step_code?: string | null;
             /** Trace Id */
             trace_id?: string | null;
             /** Workline Code */
@@ -5254,6 +5698,13 @@ export interface components {
         };
         /** RuntimeWorklineDeviceItem */
         RuntimeWorklineDeviceItem: {
+            /** Active Runtime Hold Ids */
+            active_runtime_hold_ids?: number[];
+            /**
+             * Blocked Outbox Count
+             * @default 0
+             */
+            blocked_outbox_count: number;
             /** Current Command Id */
             current_command_id?: number | null;
             /** Device Code */
@@ -5275,6 +5726,21 @@ export interface components {
              * @default false
              */
             maintenance_mode: boolean;
+            /**
+             * Open Command Count
+             * @default 0
+             */
+            open_command_count: number;
+            /**
+             * Open Issue Count
+             * @default 0
+             */
+            open_issue_count: number;
+            /**
+             * Pending Command Count
+             * @default 0
+             */
+            pending_command_count: number;
             /** Role Index */
             role_index: number;
             /** Upstream Device Id */
@@ -5703,6 +6169,8 @@ export interface components {
             } | null;
             /** Id */
             id: number;
+            /** Issued Plugin State */
+            issued_plugin_state?: string | null;
             /** Params */
             params: {
                 [key: string]: unknown;
@@ -5724,8 +6192,6 @@ export interface components {
             session_id?: string | null;
             /** Status */
             status: string;
-            /** Step Code */
-            step_code?: string | null;
             /** Task Type */
             task_type: string;
             /** Trace Id */
@@ -5951,6 +6417,8 @@ export interface components {
             attempt_count: number;
             /** Blocked By Reconciliation Session Id */
             blocked_by_reconciliation_session_id?: number | null;
+            /** Blocked By Runtime Hold Id */
+            blocked_by_runtime_hold_id?: number | null;
             /** Blocked Device Id */
             blocked_device_id?: number | null;
             /** Blocked Reason */
@@ -6029,10 +6497,10 @@ export interface components {
              * @default 0
              */
             outboxes: number;
+            /** Plugin State */
+            plugin_state?: string | null;
             /** Session Status */
             session_status?: string | null;
-            /** Step Code */
-            step_code?: string | null;
             /**
              * Timelines
              * @default 0
@@ -6068,10 +6536,10 @@ export interface components {
              * @default false
              */
             only_failed: boolean;
+            /** Plugin State */
+            plugin_state?: string | null;
             /** Status */
             status?: string | null;
-            /** Step Code */
-            step_code?: string | null;
             /** Workline Id */
             workline_id?: number | null;
         };
@@ -6118,6 +6586,8 @@ export interface components {
             last_request_id?: string | null;
             /** Plugin Key */
             plugin_key: string;
+            /** Plugin State */
+            plugin_state?: string | null;
             /** Reconciliation Ack Received At */
             reconciliation_ack_received_at?: string | null;
             /** Reconciliation Command Id */
@@ -6159,8 +6629,6 @@ export interface components {
             started_at?: string | null;
             /** Status */
             status: string;
-            /** Step Code */
-            step_code?: string | null;
             /** Trace Id */
             trace_id?: string | null;
             /** Waiting Since */
@@ -10470,6 +10938,40 @@ export interface operations {
             };
         };
     };
+    workline_ng_return_items_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                material_identity_key?: string | null;
+                runtime_hold_id?: number | null;
+                status?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_list_NgReturnItemResponse__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     workline_operations_manual_sessions_by_session_id_post: {
         parameters: {
             query?: never;
@@ -10858,6 +11360,103 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_list_WorkLinePluginOption__"];
+                };
+            };
+        };
+    };
+    workline_runtime_holds_by_hold_id_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                hold_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_RuntimeHoldDetailResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_runtime_holds_by_hold_id_resolve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                hold_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResolveRuntimeHoldRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_ResolveRuntimeHoldResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_runtime_holds_ng_reasons_get: {
+        parameters: {
+            query?: {
+                plugin_key?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_list_NgReasonOption__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

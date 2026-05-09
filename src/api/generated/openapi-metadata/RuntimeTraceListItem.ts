@@ -99,14 +99,62 @@ export const RuntimeTraceListItemMetadata = {
       "required": false,
       "nullable": true
     },
+    "current_device_id": {
+      "title": "Current Device Id",
+      "type": "integer",
+      "required": false,
+      "nullable": true
+    },
+    "current_device_name": {
+      "title": "Current Device Name",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "current_device_code": {
+      "title": "Current Device Code",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "current_action": {
+      "title": "Current Action",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "current_action_source": {
+      "title": "Current Action Source",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "last_device_id": {
+      "title": "Last Device Id",
+      "type": "integer",
+      "required": false,
+      "nullable": true
+    },
+    "last_device_name": {
+      "title": "Last Device Name",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "last_device_code": {
+      "title": "Last Device Code",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
     "status": {
       "title": "Status",
       "type": "string",
       "required": true,
       "nullable": false
     },
-    "step_code": {
-      "title": "Step Code",
+    "plugin_state": {
+      "title": "Plugin State",
       "type": "string",
       "required": false,
       "nullable": true

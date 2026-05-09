@@ -122,8 +122,8 @@ export const TraceCommandItemMetadata = {
       "required": false,
       "nullable": true
     },
-    "step_code": {
-      "title": "Step Code",
+    "issued_plugin_state": {
+      "title": "Issued Plugin State",
       "type": "string",
       "required": false,
       "nullable": true

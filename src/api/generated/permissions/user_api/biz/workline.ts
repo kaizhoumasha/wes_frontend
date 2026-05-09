@@ -29,8 +29,14 @@ export const BIZ_WORKLINE_PERMISSION = {
   trash: 'biz:workline:trash',
   /** 人工确认 checklist 后清除工作线急停 */
   clearEstop: 'biz:workline:clear-estop',
+  /** 查询 NG Return Items */
+  listNgReturnItem: 'biz:workline:list-ng-return-item',
   /** 批量永久删除WorkLine */
   permanentDelete: 'biz:workline:permanent_delete',
   /** 解除 runtime reconciliation 隔离，不重发设备命令、不调用 timeout 插件处理、释放安全停靠队列 */
   resolveReconciliation: 'biz:workline:resolve-reconciliation',
+  /** 解除 Runtime Hold */
+  resolveRuntimeHold: 'biz:workline:resolve-runtime-hold',
+  /** 查询 Runtime Hold NG 原因选项 */
+  viewRuntimeHold: 'biz:workline:view-runtime-hold',
 } as const

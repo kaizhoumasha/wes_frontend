@@ -71,8 +71,8 @@ export const TraceSessionItemMetadata = {
       "required": true,
       "nullable": false
     },
-    "step_code": {
-      "title": "Step Code",
+    "plugin_state": {
+      "title": "Plugin State",
       "type": "string",
       "required": false,
       "nullable": true
