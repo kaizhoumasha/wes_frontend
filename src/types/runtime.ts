@@ -1,3 +1,29 @@
+import type { components } from '@/api/generated/openapi-types'
+
+export type RuntimeHoldSummary = components['schemas']['RuntimeHoldSummary']
+export type RuntimeHoldSource = components['schemas']['RuntimeHoldSource']
+export type FailedCommandEvidence = components['schemas']['FailedCommandEvidence']
+export type RuntimeHoldReleaseEligibility = components['schemas']['RuntimeHoldReleaseEligibility']
+export type RuntimeHoldBlocker = components['schemas']['RuntimeHoldBlocker']
+export type RuntimeHoldDetailResponse = components['schemas']['RuntimeHoldDetailResponse']
+export type ResolveRuntimeHoldRequest = components['schemas']['ResolveRuntimeHoldRequest']
+export type ResolveRuntimeHoldResponse = components['schemas']['ResolveRuntimeHoldResponse']
+export type NgReasonOption = components['schemas']['NgReasonOption']
+export type NgReturnItemResponse = components['schemas']['NgReturnItemResponse']
+
+export interface RuntimeHoldConflictModel {
+  code?: string
+  message: string
+  current_hold_version?: number
+  current_status?: string
+  release_eligibility?: RuntimeHoldReleaseEligibility
+  refresh_url?: string
+  material_identity_key?: string
+  existing_ng_return_item_id?: number
+  existing_runtime_hold_id?: number
+  existing_status?: string
+}
+
 export interface RuntimeStatCard {
   key: string
   label: string
@@ -19,8 +45,16 @@ export interface RuntimeTraceListItem {
   device_name?: string | null
   device_code?: string | null
   command_code?: string | null
+  current_device_id?: number | null
+  current_device_name?: string | null
+  current_device_code?: string | null
+  current_action?: string | null
+  current_action_source?: string | null
+  last_device_id?: number | null
+  last_device_name?: string | null
+  last_device_code?: string | null
   status: string
-  step_code?: string | null
+  plugin_state?: string | null
   current_wait_type?: string | null
   failure_domain?: string | null
   failure_code?: string | null
@@ -42,7 +76,7 @@ export interface TraceQueryPayload {
   workline_id?: number
   device_id?: number
   status?: string
-  step_code?: string
+  plugin_state?: string
   keyword?: string
   only_active?: boolean
   only_failed?: boolean
@@ -58,7 +92,7 @@ export interface TraceOverviewSummary {
   timelines: number
   diagnostics: number
   session_status?: string | null
-  step_code?: string | null
+  plugin_state?: string | null
   current_wait_type?: string | null
   latest_timeline_action?: string | null
   latest_timeline_status?: string | null
@@ -134,7 +168,7 @@ export interface TraceSessionItem {
   business_key?: string | null
   barcode?: string | null
   status: string
-  step_code?: string | null
+  plugin_state?: string | null
   trace_id?: string | null
   started_at?: string | null
   ended_at?: string | null
@@ -170,7 +204,7 @@ export interface TraceCommandItem {
   ack_code?: number | null
   ack_message?: string | null
   ack_trace_id?: string | null
-  step_code?: string | null
+  issued_plugin_state?: string | null
   params: Record<string, unknown>
   result_data?: Record<string, unknown> | null
   error_detail?: Record<string, unknown> | null
@@ -189,6 +223,11 @@ export interface TraceOutboxItem {
   attempt_count: number
   next_retry_at?: string | null
   last_error?: string | null
+  blocked_by_runtime_hold_id?: number | null
+  blocked_by_reconciliation_session_id?: number | null
+  blocked_device_id?: number | null
+  blocked_workline_id?: number | null
+  blocked_reason?: string | null
   created_at: string
   sent_at?: string | null
   finished_at?: string | null
@@ -356,6 +395,11 @@ export interface RuntimeWorklineDeviceItem {
   device_status: string
   maintenance_mode: boolean
   current_command_id?: number | null
+  open_command_count?: number
+  pending_command_count: number
+  blocked_outbox_count?: number
+  open_issue_count?: number
+  active_runtime_hold_ids?: number[]
   last_heartbeat_at?: string | null
   error_code?: string | null
 }
@@ -380,7 +424,11 @@ export interface RuntimeDeviceSummary {
   device_status: string
   maintenance_mode: boolean
   current_command_id?: number | null
+  open_command_count?: number
   pending_command_count: number
+  blocked_outbox_count?: number
+  open_issue_count?: number
+  active_runtime_hold_ids?: number[]
   last_heartbeat_at?: string | null
   recent_callback_at?: string | null
   error_code?: string | null
@@ -421,20 +469,35 @@ export interface SandboxPendingOutbox {
   status?: string | null
   payload_json?: Record<string, unknown> | null
   source_device?: string | null
+  last_error?: string | null
+  command_status?: string | null
+  is_current_action?: boolean | null
+  is_actionable?: boolean | null
+  runtime_hold_id?: number | null
+  failure_summary?: {
+    code?: string | null
+    message?: string | null
+    runtime_hold_id?: number | null
+  } | null
+  history_group_key?: string | null
 }
 
 export interface SandboxCompletedSession {
+  history_group_key?: string | null
   session: {
     id: number
     session_code: string
     status: string
-    step_code: string | null
+    plugin_state: string | null
     barcode: string | null
     created_at: string | null
     started_at: string | null
     ended_at: string | null
     event_type?: string | null
     event_payload?: Record<string, unknown> | null
+    failure_domain?: string | null
+    failure_code?: string | null
+    failure_message?: string | null
   }
   outbox_items: SandboxPendingOutbox[]
 }

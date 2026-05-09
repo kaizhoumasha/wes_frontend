@@ -6,7 +6,7 @@
  * ⚠️  请勿手动编辑 AUTO GENERATED 区域
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 资源: /api/v1/workline/operations, /api/v1/workline/plugins, /api/v1/workline/runtime, /api/v1/workline/trace
+ * 资源: /api/v1/workline/ng-return-items, /api/v1/workline/operations, /api/v1/workline/plugins, /api/v1/workline/runtime, /api/v1/workline/runtime-holds, /api/v1/workline/trace
  */
 import { contractMethods } from '@/api/contract/client'
 import type {
@@ -17,6 +17,9 @@ import type {
   ContractResponseData,
 } from '@/api/contract/types'
 import type { components, paths } from '@/api/generated/openapi-types'
+
+export type NgReturnItemsResult = ContractResponseData<'/api/v1/workline/ng-return-items', 'get'>
+export type NgReturnItemsQuery = ContractQueryParams<'/api/v1/workline/ng-return-items', 'get'>
 
 export type SandboxPendingResult = ContractResponseData<'/api/v1/workline/operations/sandbox/pending', 'get'>
 export type SandboxPendingQuery = ContractQueryParams<'/api/v1/workline/operations/sandbox/pending', 'get'>
@@ -80,6 +83,16 @@ export type SessionsPathPathParams = ContractPathParams<'/api/v1/workline/runtim
 export type TracesPathResult = ContractResponseData<'/api/v1/workline/runtime/traces/{trace_id}/path', 'get'>
 export type TracesPathPathParams = ContractPathParams<'/api/v1/workline/runtime/traces/{trace_id}/path', 'get'>
 
+export type NgReasonsResult = ContractResponseData<'/api/v1/workline/runtime-holds/ng-reasons', 'get'>
+export type NgReasonsQuery = ContractQueryParams<'/api/v1/workline/runtime-holds/ng-reasons', 'get'>
+
+export type GetByHoldIdResult = ContractResponseData<'/api/v1/workline/runtime-holds/{hold_id}', 'get'>
+export type GetByHoldIdPathParams = ContractPathParams<'/api/v1/workline/runtime-holds/{hold_id}', 'get'>
+
+export type ResolveResult = ContractResponseData<'/api/v1/workline/runtime-holds/{hold_id}/resolve', 'post'>
+export type ResolvePathParams = ContractPathParams<'/api/v1/workline/runtime-holds/{hold_id}/resolve', 'post'>
+export type ResolveInput = ContractRequestBody<'/api/v1/workline/runtime-holds/{hold_id}/resolve', 'post'>
+
 export type RequestResult = ContractResponseData<'/api/v1/workline/trace/request/{request_id}', 'get'>
 export type RequestPathParams = ContractPathParams<'/api/v1/workline/trace/request/{request_id}', 'get'>
 
@@ -102,6 +115,15 @@ export type QueryResult = ContractResponseData<'/api/v1/workline/trace/query', '
 export type QueryInput = ContractRequestBody<'/api/v1/workline/trace/query', 'post'>
 
 export const worklineApiMethods = {
+  /**
+   * [biz:workline:list-ng-return-item] 查询 NG Return Items
+   * @endpoint GET /api/v1/workline/ng-return-items
+   * @returns alova method instance
+   */
+  ngReturnItems(query?: ContractQueryParams<'/api/v1/workline/ng-return-items', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/ng-return-items', { query, config })
+  },
+
   /**
    * [biz:workline:list] 查询沙箱待处理 Outbox
    * @endpoint GET /api/v1/workline/operations/sandbox/pending
@@ -276,6 +298,33 @@ export const worklineApiMethods = {
   },
 
   /**
+   * [biz:workline:view-runtime-hold] 查询 Runtime Hold NG 原因选项
+   * @endpoint GET /api/v1/workline/runtime-holds/ng-reasons
+   * @returns alova method instance
+   */
+  ngReasons(query?: ContractQueryParams<'/api/v1/workline/runtime-holds/ng-reasons', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/runtime-holds/ng-reasons', { query, config })
+  },
+
+  /**
+   * [biz:workline:view-runtime-hold] 查看 Runtime Hold 明细
+   * @endpoint GET /api/v1/workline/runtime-holds/{hold_id}
+   * @returns alova method instance
+   */
+  getByHoldId(params: ContractPathParams<'/api/v1/workline/runtime-holds/{hold_id}', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/runtime-holds/{hold_id}', { params, config })
+  },
+
+  /**
+   * [biz:workline:resolve-runtime-hold] 解除 Runtime Hold
+   * @endpoint POST /api/v1/workline/runtime-holds/{hold_id}/resolve
+   * @returns alova method instance
+   */
+  resolve(params: ContractPathParams<'/api/v1/workline/runtime-holds/{hold_id}/resolve', 'post'>, body: ContractRequestBody<'/api/v1/workline/runtime-holds/{hold_id}/resolve', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/workline/runtime-holds/{hold_id}/resolve', { params, body, config })
+  },
+
+  /**
    * [biz:workline:list] 根据 request_id 查询 Trace
    * @endpoint GET /api/v1/workline/trace/request/{request_id}
    * @returns alova method instance
@@ -341,7 +390,31 @@ export const worklineApiMethods = {
 // ==================== AUTO GENERATED END ====================
 
 // ==================== CUSTOM METHODS START ====================
+export interface RuntimeHoldNgReasonsQuery {
+  plugin_key?: string | null
+  contract_version?: string | null
+}
 
+export const runtimeHoldApiMethods = {
+  runtimeHoldDetail(holdId: number, config?: ContractRequestConfig) {
+    return worklineApiMethods.getByHoldId({ hold_id: holdId }, config)
+  },
+
+  resolveRuntimeHold(holdId: number, body: ResolveInput, config?: ContractRequestConfig) {
+    return worklineApiMethods.resolve({ hold_id: holdId }, body, config)
+  },
+
+  runtimeHoldNgReasons(query?: RuntimeHoldNgReasonsQuery, config?: ContractRequestConfig) {
+    return worklineApiMethods.ngReasons(
+      query ? { plugin_key: query.plugin_key } : undefined,
+      config
+    )
+  },
+
+  ngReturnItems(query?: NgReturnItemsQuery, config?: ContractRequestConfig) {
+    return worklineApiMethods.ngReturnItems(query, config)
+  }
+}
 // ==================== CUSTOM METHODS END ====================
 
 // ==================== CUSTOM CONFIG START ====================

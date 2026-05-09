@@ -1,7 +1,11 @@
 import {
   worklineApiMethods,
+  runtimeHoldApiMethods,
   type ReconciliationsSessionsResolveInput,
-  type ReconciliationsSessionsResolveResult
+  type ReconciliationsSessionsResolveResult,
+  type RuntimeHoldNgReasonsQuery,
+  type NgReturnItemsQuery,
+  type ResolveInput
 } from '@/api/modules/workline'
 import { apiClient } from '@/api/client'
 import type {
@@ -13,6 +17,10 @@ import type {
   RuntimeTracePathResponse,
   RuntimeSafetyIncidentSummary,
   RuntimeSimulateEstopRequest,
+  RuntimeHoldDetailResponse,
+  ResolveRuntimeHoldResponse,
+  NgReasonOption,
+  NgReturnItemResponse,
   RuntimeWorklineDetailResponse,
   RuntimeWorklineSummary,
   ManualSessionOperationPayload,
@@ -74,7 +82,7 @@ export const runtimeApiMethods = {
         device_id: payload.device_id,
         keyword: payload.keyword,
         status: payload.status,
-        step_code: payload.step_code,
+        plugin_state: payload.plugin_state,
         workline_id: payload.workline_id
       })
     )
@@ -213,5 +221,25 @@ export const runtimeApiMethods = {
     return adaptRuntimeMethod<RuntimeTracePathResponse>(
       worklineApiMethods.tracesPath({ trace_id: traceId })
     )
+  },
+
+  runtimeHoldDetail(holdId: number) {
+    return adaptRuntimeMethod<RuntimeHoldDetailResponse>(
+      runtimeHoldApiMethods.runtimeHoldDetail(holdId)
+    )
+  },
+
+  resolveRuntimeHold(holdId: number, payload: ResolveInput) {
+    return adaptRuntimeMethod<ResolveRuntimeHoldResponse>(
+      runtimeHoldApiMethods.resolveRuntimeHold(holdId, payload)
+    )
+  },
+
+  runtimeHoldNgReasons(query?: RuntimeHoldNgReasonsQuery) {
+    return adaptRuntimeMethod<NgReasonOption[]>(runtimeHoldApiMethods.runtimeHoldNgReasons(query))
+  },
+
+  ngReturnItems(query?: NgReturnItemsQuery) {
+    return adaptRuntimeMethod<NgReturnItemResponse[]>(runtimeHoldApiMethods.ngReturnItems(query))
   }
 }
