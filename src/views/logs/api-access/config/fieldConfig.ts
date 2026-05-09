@@ -145,6 +145,21 @@ export const {
         width: 100,
         sortable: true
       }
+    },
+    // Detail-only fields (hidden in table, used in detail drawer)
+    {
+      key: 'app_id',
+      table: {
+        visibleFrom: null,
+        width: 100
+      }
+    },
+    {
+      key: 'user_agent',
+      table: {
+        visibleFrom: null,
+        width: 200
+      }
     }
   ],
   storageKey: API_ACCESS_LOG_TABLE_STORAGE_KEY,
