@@ -364,8 +364,8 @@
                         </template>
                       </el-table-column>
                       <el-table-column
-                        prop="step_code"
-                        label="Step"
+                        prop="plugin_state"
+                        label="业务阶段"
                         min-width="140"
                       />
                     </el-table>
@@ -680,7 +680,10 @@ const traceStickyFacts = computed(() => {
     '--'
 
   return [
-    { label: '当前 Step', value: detail.summary.step_code || detail.session?.step_code || '--' },
+    {
+      label: '业务阶段',
+      value: detail.summary.plugin_state || detail.session?.plugin_state || '--'
+    },
     { label: '失败域 / 码', value: failureText }
   ]
 })

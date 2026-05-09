@@ -172,15 +172,11 @@
             ref="recoveryPanelRef"
             class="runtime-recovery-anchor"
           >
-            <WorklineReconciliationPanel
-              v-if="isCurrentWorklineReconciling"
+            <WorklineRuntimeHoldSummaryPanel
+              v-if="hasRuntimeHoldProjection"
               :summary="store.detail.summary"
-              :session="reconciliationSession"
-              :loading="loadingReconciliationEvidence"
-              :resolving="resolvingRuntimeReconciliation"
-              :can-resolve="canResolveWorklineReconciliation"
-              @refresh="refreshReconciliationEvidence"
-              @resolve="resolveRuntimeReconciliation"
+              :detail="store.detail"
+              :can-view-hold="canViewRuntimeHold"
             />
 
             <WorklineSafetyIncidentPanel
@@ -228,6 +224,7 @@
               :can-clear-estop="
                 canClearWorklineEstop && currentWorklineSafetyVerdict.canAttemptClear
               "
+              :clear-estop-disabled-reason="clearWorklineEstopDisabledReason"
               :clear-estop-loading="clearingWorklineEstop"
               @refresh="refreshAfterSandboxAction"
               @safety-simulated="refreshAfterSafetySimulation"
@@ -356,7 +353,7 @@ import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.v
 import AppIconButton from '@/components/ui/AppIconButton.vue'
 import { StandardDrawer } from '@/components/ui/StandardDrawer'
 import WorklineSafetyIncidentPanel from '@/components/common/runtime/WorklineSafetyIncidentPanel.vue'
-import WorklineReconciliationPanel from '@/components/common/runtime/WorklineReconciliationPanel.vue'
+import WorklineRuntimeHoldSummaryPanel from '@/components/common/runtime/WorklineRuntimeHoldSummaryPanel.vue'
 import WorklineLiveOverview from '@/components/common/runtime/WorklineLiveOverview.vue'
 import { buildRuntimeWorklineQuery } from '@/utils/runtime-route'
 import { useWorklineMode } from '@/composables/useWorklineMode'
@@ -364,10 +361,7 @@ import { usePermission } from '@/composables/usePermission'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
 import { useWorklineRuntimeStore } from '@/stores/workline-runtime'
 import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
-import type { components } from '@/api/generated/openapi-types'
-import { ResolveRuntimeReconciliationRequestSchema } from '@/types/generated/zod-schemas'
 import type {
-  TraceDetailResponse,
   RuntimeTraceListItem,
   RuntimeWorklineSummary,
   RuntimeSafetyIncidentSummary
@@ -388,20 +382,7 @@ const router = useRouter()
 const store = useWorklineRuntimeStore()
 const { hasPermission } = usePermission()
 const canClearWorklineEstop = computed(() => hasPermission(BIZ_PERMISSIONS.workline.clearEstop))
-const canResolveWorklineReconciliation = computed(() =>
-  hasPermission(BIZ_PERMISSIONS.workline.resolveReconciliation)
-)
-
-type TraceSessionContract = components['schemas']['TraceSessionItem']
-type ReconciliationResolution = 'COMPLETED' | 'FAILED' | 'CANCELLED'
-
-interface ResolveRuntimeReconciliationPayload {
-  sessionId: number
-  resolution: ReconciliationResolution
-  checks: Record<string, boolean>
-  operatorNote: string
-  resultPayload: Record<string, unknown> | null
-}
+const canViewRuntimeHold = computed(() => hasPermission(BIZ_PERMISSIONS.workline.viewRuntimeHold))
 
 const {
   connectionLabel,
@@ -427,9 +408,6 @@ const selectedDeviceId = computed(() => readPositiveInt(route.query.deviceId))
 const isDevicePanelOpen = ref(false)
 const isTraceDrawerOpen = ref(false)
 const clearingWorklineEstop = ref(false)
-const loadingReconciliationEvidence = ref(false)
-const resolvingRuntimeReconciliation = ref(false)
-const reconciliationEvidence = ref<TraceDetailResponse | null>(null)
 const recoveryPanelRef = ref<HTMLElement | null>(null)
 const traceDrawerTitle = ref<string | null>(null)
 
@@ -447,7 +425,7 @@ const isCurrentWorklineReconciling = computed(
 )
 
 const selectedRecoveryActionLabel = computed(() =>
-  isCurrentWorklineReconciling.value ? '打开运行时对账恢复' : '打开急停恢复'
+  hasRuntimeHoldProjection.value ? '打开 Runtime Hold 处置' : '打开急停恢复'
 )
 
 const currentWorklineSafetyEvidence = computed(() => {
@@ -480,6 +458,14 @@ const currentWorklineSafetyVerdict = computed(() => {
   return getWorklineRuntimeVerdict(summary, stubIncident, currentWorklineSafetyEvidence.value)
 })
 
+const clearWorklineEstopDisabledReason = computed(() => {
+  if (!canClearWorklineEstop.value) return '需要 biz:workline:clear-estop 权限'
+  if (!currentWorklineSafetyVerdict.value.canAttemptClear) {
+    return currentWorklineSafetyVerdict.value.blockedReason || '当前状态不能通过急停恢复入口处理'
+  }
+  return undefined
+})
+
 const {
   effectiveMode,
   sessionId: modeSessionId,
@@ -509,15 +495,32 @@ const selectedDeviceDetail = computed(() => {
   return store.detail.devices.find(item => item.id === deviceId) ?? null
 })
 
-const reconciliationOwnerSessionSummary = computed(() => {
-  if (!isCurrentWorklineReconciling.value || !store.detail) return null
-  return store.detail.active_sessions.find(item => item.status === 'MANUAL_HOLD') ?? null
+const currentRuntimeHoldIds = computed(() => {
+  const ids = new Set<number>()
+  for (const device of store.detail?.devices ?? []) {
+    for (const holdId of device.active_runtime_hold_ids ?? []) ids.add(holdId)
+  }
+  return Array.from(ids)
 })
 
-const reconciliationSession = computed<TraceSessionContract | null>(() => {
-  const session = reconciliationEvidence.value?.session
-  return session ? (session as TraceSessionContract) : null
-})
+const currentRuntimeOpenIssueCount = computed(() =>
+  (store.detail?.devices ?? []).reduce((total, device) => total + (device.open_issue_count ?? 0), 0)
+)
+
+const currentRuntimeBlockedOutboxCount = computed(() =>
+  (store.detail?.devices ?? []).reduce(
+    (total, device) => total + (device.blocked_outbox_count ?? 0),
+    0
+  )
+)
+
+const hasRuntimeHoldProjection = computed(
+  () =>
+    currentRuntimeHoldIds.value.length > 0 ||
+    currentRuntimeOpenIssueCount.value > 0 ||
+    currentRuntimeBlockedOutboxCount.value > 0 ||
+    isCurrentWorklineReconciling.value
+)
 
 function worklineLastActivityLabel(item: RuntimeWorklineSummary) {
   return item.last_activity_at ? formatRuntimeDateTime(item.last_activity_at) : '暂无活动'
@@ -622,24 +625,6 @@ async function refreshAfterSandboxAction() {
   await refreshWorklines()
 }
 
-async function refreshReconciliationEvidence() {
-  const owner = reconciliationOwnerSessionSummary.value
-  if (!isCurrentWorklineReconciling.value || !owner?.session_id) {
-    reconciliationEvidence.value = null
-    return
-  }
-
-  loadingReconciliationEvidence.value = true
-  try {
-    reconciliationEvidence.value = await runtimeApiMethods.traceBySessionId(owner.session_id).send()
-  } catch (error: unknown) {
-    reconciliationEvidence.value = null
-    ElMessage.error(errorMessage(error, '加载运行时对账证据失败'))
-  } finally {
-    loadingReconciliationEvidence.value = false
-  }
-}
-
 function resolveSelectedWorklineId(): number | null {
   return store.detail?.summary.id ?? selectedWorklineId.value ?? null
 }
@@ -698,53 +683,6 @@ async function clearWorklineEstop() {
     ElMessage.error(errorMessage(error, '恢复接收失败'))
   } finally {
     clearingWorklineEstop.value = false
-  }
-}
-
-async function resolveRuntimeReconciliation(payload: ResolveRuntimeReconciliationPayload) {
-  if (resolvingRuntimeReconciliation.value) return
-  if (!canResolveWorklineReconciliation.value) {
-    ElMessage.error('需要 biz:workline:resolve-reconciliation 权限')
-    return
-  }
-
-  const request = {
-    resolution: payload.resolution,
-    checks: payload.checks,
-    operator_note: payload.operatorNote,
-    result_payload: payload.resultPayload,
-    confirmed_at: new Date().toISOString()
-  }
-  const parsed = ResolveRuntimeReconciliationRequestSchema.safeParse(request)
-  if (!parsed.success) {
-    ElMessage.error('运行时对账恢复请求不符合后端契约')
-    return
-  }
-
-  try {
-    await ElMessageBox.confirm(
-      '确认现场状态已完成对账，并解除 WorkLine 运行时隔离？',
-      '解除运行时对账',
-      {
-        confirmButtonText: '解除隔离',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-  } catch {
-    return
-  }
-
-  resolvingRuntimeReconciliation.value = true
-  try {
-    await runtimeApiMethods.resolveRuntimeReconciliation(payload.sessionId, parsed.data).send()
-    ElMessage.success('已解除运行时对账隔离')
-    reconciliationEvidence.value = null
-    await refreshAfterSandboxAction()
-  } catch (error: unknown) {
-    ElMessage.error(errorMessage(error, '解除运行时对账失败'))
-  } finally {
-    resolvingRuntimeReconciliation.value = false
   }
 }
 
@@ -811,22 +749,6 @@ watch(
   () => effectiveMode.value,
   mode => {
     isTraceDrawerOpen.value = mode === 'trace'
-  },
-  { immediate: true }
-)
-
-watch(
-  () =>
-    [
-      isCurrentWorklineReconciling.value,
-      reconciliationOwnerSessionSummary.value?.session_id
-    ] as const,
-  ([isReconciling, sessionId]) => {
-    if (!isReconciling || !sessionId) {
-      reconciliationEvidence.value = null
-      return
-    }
-    void refreshReconciliationEvidence()
   },
   { immediate: true }
 )

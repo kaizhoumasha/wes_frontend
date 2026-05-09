@@ -26,9 +26,9 @@ export const runtimeRoutes: RouteRecordRaw = {
           name: 'runtime:worklines:menu',
           parentName: 'runtime:system:menu',
           icon: 'ep:share',
-          sortOrder: 1,
-        },
-      },
+          sortOrder: 1
+        }
+      }
     },
     {
       path: 'dashboard',
@@ -43,22 +43,22 @@ export const runtimeRoutes: RouteRecordRaw = {
           parentName: 'runtime:system:menu',
           icon: 'ep:data-board',
           sortOrder: 10,
-          hidden: true, // 弱化：隐藏菜单，保留路由供深链跳转
-        },
-      },
+          hidden: true // 弱化：隐藏菜单，保留路由供深链跳转
+        }
+      }
     },
     {
       path: 'traces',
       name: 'RuntimeTraceExplorer',
-      redirect: (to) => ({
+      redirect: to => ({
         name: 'RuntimeWorklines',
-        query: to.query,
+        query: to.query
       }),
       meta: {
         requiresAuth: true,
         title: 'Trace 深链（已合并至工作线运行态）',
-        permission: BIZ_PERMISSIONS.workline.page,
-      },
+        permission: BIZ_PERMISSIONS.workline.page
+      }
     },
     {
       path: 'sandbox',
@@ -73,9 +73,19 @@ export const runtimeRoutes: RouteRecordRaw = {
           parentName: 'runtime:system:menu',
           icon: 'ep:tools',
           sortOrder: 30,
-          hidden: true, // 弱化：隐藏菜单，保留路由供深链跳转
-        },
-      },
+          hidden: true // 弱化：隐藏菜单，保留路由供深链跳转
+        }
+      }
     },
-  ],
+    {
+      path: 'holds/:holdId',
+      name: 'RuntimeHoldDetail',
+      component: () => import('@/views/runtime/holds/RuntimeHoldPage.vue'),
+      meta: {
+        requiresAuth: true,
+        title: 'Runtime Hold',
+        permission: BIZ_PERMISSIONS.workline.viewRuntimeHold
+      }
+    }
+  ]
 }
