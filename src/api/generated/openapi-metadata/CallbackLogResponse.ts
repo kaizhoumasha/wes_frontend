@@ -17,7 +17,7 @@ export const CallbackLogResponseMetadata = {
   "required": [
     "id",
     "callback_type",
-    "device_id",
+    "subject_code",
     "request_body",
     "client_ip",
     "user_agent",
@@ -46,8 +46,8 @@ export const CallbackLogResponseMetadata = {
       "required": true,
       "nullable": false
     },
-    "device_id": {
-      "title": "Device Id",
+    "subject_code": {
+      "title": "Subject Code",
       "type": "string",
       "required": true,
       "nullable": false

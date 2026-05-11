@@ -367,6 +367,74 @@ export const BatchSortRequestSchema = z.object({
 
 
 /**
+ * 设备事件回调接收响应数据。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const CallbackEventAcceptedResponseSchema = z.object({
+  /** Status */
+  status: z.enum(["submitted", "duplicate"]),
+  /** Device Code */
+  device_code: z.string(),
+  /** Request Id */
+  request_id: z.union([z.string(), z.null()]).optional(),
+  /** Trace Id */
+  trace_id: z.union([z.string(), z.null()]).optional(),
+  /** Event Id */
+  event_id: z.union([z.string(), z.null()]).optional(),
+  /** Causation Id */
+  causation_id: z.union([z.string(), z.null()]).optional(),
+})
+
+
+export const CallbackEventIngressResponseSchema = z.object({
+  /** Code */
+  code: z.string().optional().default("1000"),
+  /** Message */
+  message: z.string().optional().default("操作成功"),
+  /** Data */
+  data: z.union([z.lazy(() => CallbackEventAcceptedResponseSchema), z.lazy(() => CallbackRejectedResponseSchema), z.null()]).optional(),
+  /** Timestamp */
+  timestamp: z.string().optional(),
+})
+
+
+/**
+ * 外部系统回调接收响应数据。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const CallbackExternalAcceptedResponseSchema = z.object({
+  /** Status */
+  status: z.enum(["submitted", "duplicate"]),
+  /** Callback Type */
+  callback_type: z.string(),
+  /** Request Id */
+  request_id: z.union([z.string(), z.null()]).optional(),
+  /** Trace Id */
+  trace_id: z.union([z.string(), z.null()]).optional(),
+  /** Event Id */
+  event_id: z.union([z.string(), z.null()]).optional(),
+  /** Causation Id */
+  causation_id: z.union([z.string(), z.null()]).optional(),
+})
+
+
+export const CallbackExternalIngressResponseSchema = z.object({
+  /** Code */
+  code: z.string().optional().default("1000"),
+  /** Message */
+  message: z.string().optional().default("操作成功"),
+  /** Data */
+  data: z.union([z.lazy(() => CallbackExternalAcceptedResponseSchema), z.lazy(() => CallbackRejectedResponseSchema), z.null()]).optional(),
+  /** Timestamp */
+  timestamp: z.string().optional(),
+})
+
+
+/**
  * 回调日志响应 Schema
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -377,8 +445,8 @@ export const CallbackLogResponseSchema = z.object({
   id: z.number(),
   /** Callback Type */
   callback_type: z.string(),
-  /** Device Id */
-  device_id: z.string(),
+  /** Subject Code */
+  subject_code: z.string(),
   /** Request Body */
   request_body: z.record(z.any()),
   /** Client Ip */
@@ -407,6 +475,82 @@ export const CallbackLogResponseSchema = z.object({
   created_at: z.string().datetime(),
   /** Updated At */
   updated_at: z.string().datetime(),
+})
+
+
+/**
+ * 回调主体维度回调日志列表响应。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const CallbackLogSubjectResponseSchema = z.object({
+  /** Subject Code */
+  subject_code: z.string(),
+  /** Count */
+  count: z.number().min(0),
+  /** Items */
+  items: z.array(z.lazy(() => CallbackLogResponseSchema)),
+})
+
+
+/**
+ * Trace 维度回调日志列表响应。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const CallbackLogTraceResponseSchema = z.object({
+  /** Trace Id */
+  trace_id: z.string(),
+  /** Count */
+  count: z.number().min(0),
+  /** Items */
+  items: z.array(z.lazy(() => CallbackLogResponseSchema)),
+})
+
+
+/**
+ * Callback 入口拒收响应数据。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const CallbackRejectedResponseSchema = z.object({
+  /** Ack */
+  ack: z.boolean().optional().default(false),
+})
+
+
+/**
+ * 设备结果回调接收响应数据。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const CallbackResultAcceptedResponseSchema = z.object({
+  /** Ack */
+  ack: z.boolean().optional().default(true),
+  /** Request Id */
+  request_id: z.union([z.string(), z.null()]).optional(),
+  /** Trace Id */
+  trace_id: z.union([z.string(), z.null()]).optional(),
+  /** Event Id */
+  event_id: z.union([z.string(), z.null()]).optional(),
+  /** Causation Id */
+  causation_id: z.union([z.string(), z.null()]).optional(),
+})
+
+
+export const CallbackResultIngressResponseSchema = z.object({
+  /** Code */
+  code: z.string().optional().default("1000"),
+  /** Message */
+  message: z.string().optional().default("操作成功"),
+  /** Data */
+  data: z.union([z.lazy(() => CallbackResultAcceptedResponseSchema), z.lazy(() => CallbackRejectedResponseSchema), z.null()]).optional(),
+  /** Timestamp */
+  timestamp: z.string().optional(),
 })
 
 
@@ -911,6 +1055,18 @@ export const ListResponseData_AuditLogResponse_Schema = z.object({
 })
 
 
+export const ListResponseData_CallbackLogResponse_Schema = z.object({
+  /** Total */
+  total: z.number().min(0).optional().default(0),
+  /** Items */
+  items: z.array(z.lazy(() => CallbackLogResponseSchema)).optional(),
+  /** Limit */
+  limit: z.number().min(0).optional().default(0),
+  /** Offset */
+  offset: z.number().min(0).optional().default(0),
+})
+
+
 export const ListResponseData_DemoProductResponse_Schema = z.object({
   /** Total */
   total: z.number().min(0).optional().default(0),
@@ -1026,6 +1182,18 @@ export const ListResponseSchemaModel_AuditLogResponse_Schema = z.object({
   message: z.string().optional().default("操作成功"),
   /** 响应数据 */
   data: z.union([z.lazy(() => ListResponseData_AuditLogResponse_Schema), z.null()]).optional(),
+  /** Timestamp */
+  timestamp: z.string().optional(),
+})
+
+
+export const ListResponseSchemaModel_CallbackLogResponse_Schema = z.object({
+  /** Code */
+  code: z.string().optional().default("1000"),
+  /** Message */
+  message: z.string().optional().default("操作成功"),
+  /** 响应数据 */
+  data: z.union([z.lazy(() => ListResponseData_CallbackLogResponse_Schema), z.null()]).optional(),
   /** Timestamp */
   timestamp: z.string().optional(),
 })
@@ -1449,7 +1617,7 @@ export const NgReturnItemResponseSchema = z.object({
   /** Operator Note */
   operator_note: z.union([z.string(), z.null()]).optional(),
   /** Created From Runtime Hold Id */
-  created_from_runtime_hold_id: z.number(),
+  created_from_runtime_hold_id: z.union([z.number(), z.null()]).optional(),
   /** Status */
   status: z.string(),
   /** Confirmed By */
@@ -1789,6 +1957,8 @@ export const ResolveRuntimeHoldResponseSchema = z.object({
   released_outbox_count: z.number(),
   /** Ng Return Item Id */
   ng_return_item_id: z.union([z.number(), z.null()]).optional(),
+  /** Created Inbox Id */
+  created_inbox_id: z.union([z.number(), z.null()]).optional(),
 })
 
 
@@ -2607,8 +2777,8 @@ export const TraceCallbackLogItemSchema = z.object({
   id: z.number(),
   /** Callback Type */
   callback_type: z.string(),
-  /** Device Id */
-  device_id: z.string(),
+  /** Subject Code */
+  subject_code: z.string(),
   /** Request Id */
   request_id: z.union([z.string(), z.null()]).optional(),
   /** Trace Id */

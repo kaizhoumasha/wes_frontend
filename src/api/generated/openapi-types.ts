@@ -1635,18 +1635,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/callback/logs/device/{device_id}": {
+    "/api/v1/callback/logs/{id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /**
-         * 根据设备 ID 查询回调日志
-         * @description 查询指定设备最近的回调记录
-         */
-        get: operations["callback_logs_device_by_device_id_get"];
+        /** [callback:callback_log:detail] 获取CallbackLog */
+        get: operations["logs_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1664,11 +1661,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * 回调日志列表查询
-         * @description 通用列表查询接口，支持分页、过滤和排序
-         */
-        post: operations["callback_logs_query_post"];
+        /** [callback:callback_log:list] 获取CallbackLog列表 */
+        post: operations["logs_query"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1683,10 +1677,30 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * 根据请求 ID 查询回调日志
+         * [callback:callback_log:detail] 根据请求 ID 查询回调日志
          * @description 根据 request_id 查询单条回调日志记录
          */
         get: operations["callback_logs_request_by_request_id_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/callback/logs/subject/{subject_code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * [callback:callback_log:list] 根据回调主体编码查询回调日志
+         * @description 查询指定回调主体最近的回调记录。设备回调主体通常是 device_code。
+         */
+        get: operations["callback_logs_subject_by_subject_code_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1703,7 +1717,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * 根据 Trace ID 查询回调日志
+         * [callback:callback_log:list] 根据 Trace ID 查询回调日志
          * @description 根据 trace_id 查询所有相关的回调日志（用于串联整个流程）
          */
         get: operations["callback_logs_trace_by_trace_id_get"];
@@ -3321,12 +3335,84 @@ export interface components {
             /** Permission Ids */
             permission_ids: number[];
         };
-        /** Body_callback_logs_query_post */
-        Body_callback_logs_query_post: {
-            filters?: components["schemas"]["FilterGroup"] | null;
-            /** Sort */
-            sort?: components["schemas"]["SortField"][] | null;
+        /**
+         * CallbackEventAcceptedResponse
+         * @description 设备事件回调接收响应数据。
+         */
+        CallbackEventAcceptedResponse: {
+            /**
+             * Causation Id
+             * @description 因果事件 ID
+             */
+            causation_id?: string | null;
+            /**
+             * Device Code
+             * @description 设备编码
+             */
+            device_code: string;
+            /**
+             * Event Id
+             * @description 供应商事件 ID
+             */
+            event_id?: string | null;
+            /**
+             * Request Id
+             * @description 入口请求 ID
+             */
+            request_id?: string | null;
+            /**
+             * Status
+             * @description 入口处理状态
+             * @enum {string}
+             */
+            status: "submitted" | "duplicate";
+            /**
+             * Trace Id
+             * @description Trace ID
+             */
+            trace_id?: string | null;
         };
+        /** ResponseSchemaModel[Union[CallbackEventAcceptedResponse, CallbackRejectedResponse]] */
+        CallbackEventIngressResponse: ApiResponse<unknown>;
+        /**
+         * CallbackExternalAcceptedResponse
+         * @description 外部系统回调接收响应数据。
+         */
+        CallbackExternalAcceptedResponse: {
+            /**
+             * Callback Type
+             * @description 外部回调类型
+             */
+            callback_type: string;
+            /**
+             * Causation Id
+             * @description 因果事件 ID
+             */
+            causation_id?: string | null;
+            /**
+             * Event Id
+             * @description 供应商事件 ID
+             */
+            event_id?: string | null;
+            /**
+             * Request Id
+             * @description 入口请求 ID
+             */
+            request_id?: string | null;
+            /**
+             * Status
+             * @description 入口处理状态
+             * @enum {string}
+             */
+            status: "submitted" | "duplicate";
+            /**
+             * Trace Id
+             * @description Trace ID
+             */
+            trace_id?: string | null;
+        };
+        /** ResponseSchemaModel[Union[CallbackExternalAcceptedResponse, CallbackRejectedResponse]] */
+        CallbackExternalIngressResponse: ApiResponse<unknown>;
         /**
          * CallbackLogResponse
          * @description 回调日志响应 Schema
@@ -3343,8 +3429,6 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
-            /** Device Id */
-            device_id: string;
             /** Error Message */
             error_message: string | null;
             /** Event Id */
@@ -3365,6 +3449,8 @@ export interface components {
             response_status: number;
             /** Response Time Ms */
             response_time_ms: number;
+            /** Subject Code */
+            subject_code: string;
             /** Trace Id */
             trace_id: string | null;
             /**
@@ -3375,6 +3461,96 @@ export interface components {
             /** User Agent */
             user_agent: string | null;
         };
+        /**
+         * CallbackLogSubjectResponse
+         * @description 回调主体维度回调日志列表响应。
+         */
+        CallbackLogSubjectResponse: {
+            /**
+             * Count
+             * @description 回调日志数量
+             */
+            count: number;
+            /**
+             * Items
+             * @description 回调日志列表
+             */
+            items: components["schemas"]["CallbackLogResponse"][];
+            /**
+             * Subject Code
+             * @description 回调主体编码
+             */
+            subject_code: string;
+        };
+        /**
+         * CallbackLogTraceResponse
+         * @description Trace 维度回调日志列表响应。
+         */
+        CallbackLogTraceResponse: {
+            /**
+             * Count
+             * @description 回调日志数量
+             */
+            count: number;
+            /**
+             * Items
+             * @description 回调日志列表
+             */
+            items: components["schemas"]["CallbackLogResponse"][];
+            /**
+             * Trace Id
+             * @description Trace ID
+             */
+            trace_id: string;
+        };
+        /**
+         * CallbackRejectedResponse
+         * @description Callback 入口拒收响应数据。
+         */
+        CallbackRejectedResponse: {
+            /**
+             * Ack
+             * @description 入口是否接收
+             * @default false
+             * @constant
+             */
+            ack: false;
+        };
+        /**
+         * CallbackResultAcceptedResponse
+         * @description 设备结果回调接收响应数据。
+         */
+        CallbackResultAcceptedResponse: {
+            /**
+             * Ack
+             * @description 入口是否接收
+             * @default true
+             * @constant
+             */
+            ack: true;
+            /**
+             * Causation Id
+             * @description 因果事件 ID
+             */
+            causation_id?: string | null;
+            /**
+             * Event Id
+             * @description 供应商事件 ID
+             */
+            event_id?: string | null;
+            /**
+             * Request Id
+             * @description 入口请求 ID
+             */
+            request_id?: string | null;
+            /**
+             * Trace Id
+             * @description Trace ID
+             */
+            trace_id?: string | null;
+        };
+        /** ResponseSchemaModel[Union[CallbackResultAcceptedResponse, CallbackRejectedResponse]] */
+        CallbackResultIngressResponse: ApiResponse<unknown>;
         /**
          * ClearWorkLineEstopRequest
          * @description 人工清除 WorkLine 急停请求。
@@ -4049,6 +4225,8 @@ export interface components {
         ListResponseData_APIApplicationResponse_: ApiListData<components["schemas"]["APIApplicationResponse"]>;
         /** ListResponseData[AuditLogResponse] */
         ListResponseData_AuditLogResponse_: ApiListData<components["schemas"]["AuditLogResponse"]>;
+        /** ListResponseData[CallbackLogResponse] */
+        ListResponseData_CallbackLogResponse_: ApiListData<components["schemas"]["CallbackLogResponse"]>;
         /** ListResponseData[DemoProductResponse] */
         ListResponseData_DemoProductResponse_: ApiListData<components["schemas"]["DemoProductResponse"]>;
         /** ListResponseData[DeviceResponse] */
@@ -4069,6 +4247,8 @@ export interface components {
         ListResponseSchemaModel_APIApplicationResponse_: ApiListResponse<components["schemas"]["APIApplicationResponse"]>;
         /** ListResponseSchemaModel[AuditLogResponse] */
         ListResponseSchemaModel_AuditLogResponse_: ApiListResponse<components["schemas"]["AuditLogResponse"]>;
+        /** ListResponseSchemaModel[CallbackLogResponse] */
+        ListResponseSchemaModel_CallbackLogResponse_: ApiListResponse<components["schemas"]["CallbackLogResponse"]>;
         /** ListResponseSchemaModel[DemoProductResponse] */
         ListResponseSchemaModel_DemoProductResponse_: ApiListResponse<components["schemas"]["DemoProductResponse"]>;
         /** ListResponseSchemaModel[DeviceResponse] */
@@ -4542,7 +4722,7 @@ export interface components {
             /** Created At */
             created_at?: string | null;
             /** Created From Runtime Hold Id */
-            created_from_runtime_hold_id: number;
+            created_from_runtime_hold_id?: number | null;
             /** Disposition */
             disposition: string;
             /** Id */
@@ -5075,6 +5255,8 @@ export interface components {
          * @description Resolve Runtime Hold response.
          */
         ResolveRuntimeHoldResponse: {
+            /** Created Inbox Id */
+            created_inbox_id?: number | null;
             /** Hold Id */
             hold_id: number;
             /** Ng Return Item Id */
@@ -5136,6 +5318,12 @@ export interface components {
         ResponseSchemaModel_AuditLogResponse_: ApiResponse<components["schemas"]["AuditLogResponse"]>;
         /** ResponseSchemaModel[AuthMyResponse] */
         ResponseSchemaModel_AuthMyResponse_: ApiResponse<components["schemas"]["AuthMyResponse"]>;
+        /** ResponseSchemaModel[CallbackLogResponse] */
+        ResponseSchemaModel_CallbackLogResponse_: ApiResponse<components["schemas"]["CallbackLogResponse"]>;
+        /** ResponseSchemaModel[CallbackLogSubjectResponse] */
+        ResponseSchemaModel_CallbackLogSubjectResponse_: ApiResponse<components["schemas"]["CallbackLogSubjectResponse"]>;
+        /** ResponseSchemaModel[CallbackLogTraceResponse] */
+        ResponseSchemaModel_CallbackLogTraceResponse_: ApiResponse<components["schemas"]["CallbackLogTraceResponse"]>;
         /** ResponseSchemaModel[DemoProductResponse] */
         ResponseSchemaModel_DemoProductResponse_: ApiResponse<components["schemas"]["DemoProductResponse"]>;
         /** ResponseSchemaModel[DeviceResponse] */
@@ -6118,8 +6306,6 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
-            /** Device Id */
-            device_id: string;
             /** Error Message */
             error_message?: string | null;
             /** Event Id */
@@ -6140,6 +6326,8 @@ export interface components {
             response_status: number;
             /** Response Time Ms */
             response_time_ms: number;
+            /** Subject Code */
+            subject_code: string;
             /** Trace Id */
             trace_id?: string | null;
             /** Updated At */
@@ -9894,7 +10082,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["CallbackEventIngressResponse"];
                 };
             };
         };
@@ -9914,19 +10102,22 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["CallbackExternalIngressResponse"];
                 };
             };
         };
     };
-    callback_logs_device_by_device_id_get: {
+    logs_get: {
         parameters: {
             query?: {
-                limit?: number;
+                /** @description 是否包含已删除记录（仅软删除模型生效） */
+                include_deleted?: boolean;
+                /** @description 关系加载深度 */
+                max_depth?: number;
             };
             header?: never;
             path: {
-                device_id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -9938,9 +10129,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["ResponseSchemaModel_CallbackLogResponse_"];
                 };
             };
             /** @description Validation Error */
@@ -9954,19 +10143,16 @@ export interface operations {
             };
         };
     };
-    callback_logs_query_post: {
+    logs_query: {
         parameters: {
-            query?: {
-                limit?: number;
-                offset?: number;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["Body_callback_logs_query_post"];
+                "application/json": components["schemas"]["QueryOptions"];
             };
         };
         responses: {
@@ -9976,9 +10162,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["ListResponseSchemaModel_CallbackLogResponse_"];
                 };
             };
             /** @description Validation Error */
@@ -10009,7 +10193,40 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CallbackLogResponse"];
+                    "application/json": components["schemas"]["ResponseSchemaModel_CallbackLogResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    callback_logs_subject_by_subject_code_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                subject_code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_CallbackLogSubjectResponse_"];
                 };
             };
             /** @description Validation Error */
@@ -10040,9 +10257,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["ResponseSchemaModel_CallbackLogTraceResponse_"];
                 };
             };
             /** @description Validation Error */
@@ -10071,7 +10286,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["CallbackResultIngressResponse"];
                 };
             };
         };

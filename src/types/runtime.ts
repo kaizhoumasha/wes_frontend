@@ -122,7 +122,7 @@ export interface TraceContextResponse {
 export interface TraceCallbackLogItem {
   id: number
   callback_type: string
-  device_id: string
+  subject_code: string
   request_id?: string | null
   trace_id?: string | null
   event_id?: string | null

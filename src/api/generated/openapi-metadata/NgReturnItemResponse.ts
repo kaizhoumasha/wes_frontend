@@ -25,7 +25,6 @@ export const NgReturnItemResponseMetadata = {
     "ng_reason_source",
     "ng_reason_code",
     "ng_reason_label",
-    "created_from_runtime_hold_id",
     "status"
   ],
   "fields": {
@@ -110,8 +109,8 @@ export const NgReturnItemResponseMetadata = {
     "created_from_runtime_hold_id": {
       "title": "Created From Runtime Hold Id",
       "type": "integer",
-      "required": true,
-      "nullable": false
+      "required": false,
+      "nullable": true
     },
     "status": {
       "title": "Status",

@@ -64,6 +64,12 @@ export const ResolveRuntimeHoldResponseMetadata = {
       "type": "integer",
       "required": false,
       "nullable": true
+    },
+    "created_inbox_id": {
+      "title": "Created Inbox Id",
+      "type": "integer",
+      "required": false,
+      "nullable": true
     }
   }
 } satisfies OpenApiSchemaMetadata
