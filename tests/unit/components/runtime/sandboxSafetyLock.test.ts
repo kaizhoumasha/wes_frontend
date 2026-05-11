@@ -127,6 +127,47 @@ describe('sandbox safety lock', () => {
     expect(wrapper.text()).toContain('1 条命令')
   })
 
+  it('merges active session rows with backend sandbox history group keys', () => {
+    const outbox = createOutbox({
+      id: 2,
+      session_id: 10,
+      dispatch_key: 'device-command:CMD-2',
+      history_group_key: 'session:10'
+    })
+    const activeSessions = [
+      {
+        session_id: 10,
+        session_code: 'SES-10',
+        status: 'WAITING_DEVICE_RESULT',
+        plugin_state: 'WAITING_MEASUREMENT',
+        barcode: 'PKG-10',
+        current_wait_type: 'DEVICE_CALLBACK'
+      }
+    ] as RuntimeTraceListItem[]
+
+    const wrapper = mount(SandboxActionList, {
+      props: {
+        items: [outbox],
+        activeSessions
+      },
+      global: {
+        stubs: {
+          RouterLink: routerLinkStub,
+          RuntimeStatusBadge: true,
+          ElButton: {
+            props: ['disabled', 'title'],
+            template: '<button :disabled="disabled" :title="title"><slot /></button>'
+          }
+        }
+      }
+    })
+
+    expect(wrapper.findAll('.sandbox-action-list__pending-session')).toHaveLength(1)
+    expect(wrapper.text()).toContain('1 条可操作')
+    expect(wrapper.text()).toContain('1 条命令')
+    expect(wrapper.text()).not.toContain('事件已接收，等待运行时产生下一步命令。')
+  })
+
   it('shows ACK action for undispatched sandbox device commands', async () => {
     const outbox = createOutbox({ status: 'NEW' })
     const wrapper = mount(SandboxActionList, {

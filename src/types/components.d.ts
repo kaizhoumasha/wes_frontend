@@ -35,6 +35,7 @@ declare module 'vue' {
     DataTable: typeof import('./../components/ui/table/DataTable.vue')['default']
     DataTableSkeleton: typeof import('./../components/ui/table/DataTableSkeleton.vue')['default']
     DecisionStrip: typeof import('./../components/common/runtime/DecisionStrip.vue')['default']
+    DeviceDetailPanel: typeof import('./../components/common/runtime/DeviceDetailPanel.vue')['default']
     DeviceHealthHero: typeof import('./../components/common/runtime/DeviceHealthHero.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']
@@ -146,6 +147,7 @@ declare module 'vue' {
     WorklineRuntimeHoldSummaryPanel: typeof import('./../components/common/runtime/WorklineRuntimeHoldSummaryPanel.vue')['default']
     WorklineSafetyIncidentPanel: typeof import('./../components/common/runtime/WorklineSafetyIncidentPanel.vue')['default']
     WorklineTaskQueue: typeof import('./../components/common/runtime/WorklineTaskQueue.vue')['default']
+    WorklineTopologyStrip: typeof import('./../components/common/runtime/WorklineTopologyStrip.vue')['default']
   }
   export interface GlobalDirectives {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

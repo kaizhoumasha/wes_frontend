@@ -431,8 +431,9 @@ const pendingSessionViews = computed<PendingSessionView[]>(() => {
   for (const session of props.activeSessions ?? []) {
     if (isTerminalSession(session.status)) continue
     if (completedItemIndex.value.sessionIds.has(session.session_id)) continue
-    groups.set(`session-${session.session_id}`, {
-      key: `session-${session.session_id}`,
+    const key = pendingSessionKey(session.session_id)
+    groups.set(key, {
+      key,
       sessionId: session.session_id,
       session,
       items: []
@@ -442,7 +443,8 @@ const pendingSessionViews = computed<PendingSessionView[]>(() => {
   for (const item of actionableItems.value) {
     const sessionId = item.session_id ?? null
     const key =
-      item.history_group_key ?? (sessionId === null ? `outbox-${item.id}` : `session-${sessionId}`)
+      item.history_group_key ??
+      (sessionId === null ? pendingOutboxKey(item.id) : pendingSessionKey(sessionId))
     const existing = groups.get(key)
     if (existing) {
       existing.items.push(item)
@@ -465,6 +467,14 @@ const pendingSessionViews = computed<PendingSessionView[]>(() => {
     }))
     .sort((a, b) => pendingSortValue(b) - pendingSortValue(a))
 })
+
+function pendingSessionKey(sessionId: number): string {
+  return `session:${sessionId}`
+}
+
+function pendingOutboxKey(outboxId: number): string {
+  return `outbox:${outboxId}`
+}
 
 const emit = defineEmits<{
   ack: [item: SandboxPendingOutbox]
