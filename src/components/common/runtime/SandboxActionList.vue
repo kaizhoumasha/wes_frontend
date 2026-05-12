@@ -84,7 +84,7 @@
               <RouterLink
                 v-if="runtimeHoldId(item)"
                 class="sandbox-action-list__hold-link"
-                :to="{ name: 'RuntimeHoldDetail', params: { holdId: runtimeHoldId(item) } }"
+                :to="{ name: 'RuntimeExceptionDetail', params: { holdId: runtimeHoldId(item) } }"
               >
                 Runtime Hold #{{ runtimeHoldId(item) }}
               </RouterLink>
@@ -259,7 +259,10 @@
                   <RouterLink
                     v-if="runtimeHoldId(item)"
                     class="sandbox-action-list__hold-link"
-                    :to="{ name: 'RuntimeHoldDetail', params: { holdId: runtimeHoldId(item) } }"
+                    :to="{
+                      name: 'RuntimeExceptionDetail',
+                      params: { holdId: runtimeHoldId(item) }
+                    }"
                   >
                     Runtime Hold #{{ runtimeHoldId(item) }}
                   </RouterLink>

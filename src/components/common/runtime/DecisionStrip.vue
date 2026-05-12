@@ -47,7 +47,7 @@
     <RouterLink
       v-if="firstRuntimeHoldId"
       class="decision-strip__hold-entry"
-      :to="{ name: 'RuntimeHoldDetail', params: { holdId: firstRuntimeHoldId } }"
+      :to="{ name: 'RuntimeExceptionDetail', params: { holdId: firstRuntimeHoldId } }"
     >
       进入 Hold
     </RouterLink>

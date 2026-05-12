@@ -31,9 +31,29 @@ export const runtimeRoutes: RouteRecordRaw = {
       }
     },
     {
+      path: 'status',
+      name: 'RuntimeStatus',
+      component: () => import('@/views/runtime/overview/RuntimeOverviewPage.vue'),
+      meta: {
+        requiresAuth: true,
+        title: '运行状态',
+        permission: BIZ_PERMISSIONS.workline.page,
+        menu: {
+          name: 'runtime:status:menu',
+          parentName: 'runtime:system:menu',
+          icon: 'ep:data-board',
+          sortOrder: 10
+        }
+      }
+    },
+    {
       path: 'dashboard',
       name: 'RuntimeDashboard',
-      component: () => import('@/views/runtime/overview/RuntimeOverviewPage.vue'),
+      redirect: to => ({
+        name: 'RuntimeStatus',
+        query: to.query,
+        hash: to.hash
+      }),
       meta: {
         requiresAuth: true,
         title: '运行中控台（旧）',
@@ -42,8 +62,8 @@ export const runtimeRoutes: RouteRecordRaw = {
           name: 'runtime:dashboard:menu',
           parentName: 'runtime:system:menu',
           icon: 'ep:data-board',
-          sortOrder: 10,
-          hidden: true // 弱化：隐藏菜单，保留路由供深链跳转
+          sortOrder: 11,
+          hidden: true // 已迁移至 /runtime/status，保留旧深链跳转
         }
       }
     },
@@ -83,8 +103,8 @@ export const runtimeRoutes: RouteRecordRaw = {
       }
     },
     {
-      path: 'holds/:holdId',
-      name: 'RuntimeHoldDetail',
+      path: 'exceptions/:holdId',
+      name: 'RuntimeExceptionDetail',
       component: () => import('@/views/runtime/holds/RuntimeHoldPage.vue'),
       meta: {
         requiresAuth: true,
@@ -93,6 +113,25 @@ export const runtimeRoutes: RouteRecordRaw = {
         menu: {
           name: 'runtime:hold:detail',
           hidden: true // 深链详情页，不显示在菜单中
+        }
+      }
+    },
+    {
+      path: 'holds/:holdId',
+      name: 'RuntimeHoldDetail',
+      redirect: to => ({
+        name: 'RuntimeExceptionDetail',
+        params: to.params,
+        query: to.query,
+        hash: to.hash
+      }),
+      meta: {
+        requiresAuth: true,
+        title: 'Runtime Hold（旧）',
+        permission: BIZ_PERMISSIONS.workline.viewRuntimeHold,
+        menu: {
+          name: 'runtime:hold:legacy',
+          hidden: true // 已迁移至 /runtime/exceptions/:holdId，保留旧深链跳转
         }
       }
     }
