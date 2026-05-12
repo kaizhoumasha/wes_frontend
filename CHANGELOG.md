@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0.0] - 2026-05-12
+
+### Added
+
+- 新增工作线运行态控制台，现场可在同一页面查看设备拓扑、Session、任务队列、健康状态和安全事件。
+- 新增 Runtime Hold 页面与释放处置组件，支持查看阻断原因、证据、冲突、检查清单和处置表单。
+- 新增沙盒工作台，支持组合设备事件、提交结果、查看待处理队列和验证安全锁状态。
+- 新增 Trace 调查视图、执行路径、时间线分组、阻断点和后续动作面板，便于从失败链路直接定位原因。
+- 新增 StandardDrawer、运行态 store、Runtime SSE、运行态显示/优先级/安全工具函数及对应单元测试。
+
+### Changed
+
+- 运行态、设备、工作线、回调日志、审计日志和管理页配置同步到最新后端 OpenAPI 契约。
+- OpenAPI 类型生成改为分文件输出并泛型化响应类型，减少单文件元数据体积。
+- 全局视觉系统、布局、标准对话框、详情面板和表格操作列对齐当前运行态控制台体验。
+- 登录与鉴权启动流程补齐超级管理员通配权限，前端路由新增 Runtime Hold 与 Trace 重定向入口。
+
+### Fixed
+
+- 修复运行态兼容路由、分支测试、急停清除权限、审计/API 访问日志详情字段和菜单路由同步问题。
+- 修复 Vitest 在当前 Node 环境下没有可用 `localStorage`/`sessionStorage` 导致认证相关测试失败的问题。
+- 修复沙盒结果流、安全锁、Trace 时间线、Runtime Hold 页面和运行态路由同步的回归测试覆盖。
+
+### Removed
+
+- 移除旧插件状态字段消费和 StandardDialog 旧常量依赖，收敛到当前运行态与抽屉交互模型。
+
 ## [0.2.0.0] - 2026-04-28
 
 ### Added
