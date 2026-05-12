@@ -89,6 +89,33 @@ export function compactEnumLabel(value?: string | null): string {
   return segments[segments.length - 1] || value
 }
 
+export interface RuntimeProgressSource {
+  current_action?: string | null
+  current_wait_type?: string | null
+  status?: string | null
+  session_status?: string | null
+  latest_timeline_action?: string | null
+}
+
+export function resolveRuntimeProgressLabel(source?: RuntimeProgressSource | null): string {
+  if (!source) {
+    return '—'
+  }
+
+  return compactEnumLabel(
+    source.current_action ??
+      source.current_wait_type ??
+      source.latest_timeline_action ??
+      source.status ??
+      source.session_status
+  )
+}
+
+export function resolveRuntimeProgressKey(source?: RuntimeProgressSource | null): string {
+  const label = resolveRuntimeProgressLabel(source)
+  return label === '—' ? 'unknown' : label
+}
+
 export function normalizeRuntimeStatus(status?: string | null): string {
   return compactEnumLabel(status).toUpperCase()
 }

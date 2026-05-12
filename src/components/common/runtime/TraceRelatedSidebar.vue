@@ -65,7 +65,7 @@
             }}
           </div>
           <div class="trace-related-sidebar__item-hint">
-            {{ item.plugin_state || '--' }} &middot;
+            {{ resolveRuntimeProgressLabel(item) }} &middot;
             {{ item.failure_domain || item.latest_timeline_message || '等待更多证据' }}
           </div>
         </button>
@@ -87,7 +87,7 @@ import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.v
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import { displayDevice, displayTrace, displayWorkline } from '@/utils/runtime-display-identity'
 import type { RuntimeTraceListItem } from '@/types/runtime'
-import { formatRuntimeRelative } from '@/utils/runtime-display'
+import { formatRuntimeRelative, resolveRuntimeProgressLabel } from '@/utils/runtime-display'
 
 const props = defineProps<{
   currentTraceId: number | null

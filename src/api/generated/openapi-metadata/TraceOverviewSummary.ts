@@ -64,12 +64,6 @@ export const TraceOverviewSummaryMetadata = {
       "required": false,
       "nullable": true
     },
-    "plugin_state": {
-      "title": "Plugin State",
-      "type": "string",
-      "required": false,
-      "nullable": true
-    },
     "current_wait_type": {
       "title": "Current Wait Type",
       "type": "string",

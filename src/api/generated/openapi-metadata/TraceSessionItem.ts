@@ -71,12 +71,6 @@ export const TraceSessionItemMetadata = {
       "required": true,
       "nullable": false
     },
-    "plugin_state": {
-      "title": "Plugin State",
-      "type": "string",
-      "required": false,
-      "nullable": true
-    },
     "trace_id": {
       "title": "Trace Id",
       "type": "string",
@@ -99,12 +93,6 @@ export const TraceSessionItemMetadata = {
     },
     "current_wait_type": {
       "title": "Current Wait Type",
-      "type": "string",
-      "required": false,
-      "nullable": true
-    },
-    "current_wait_token": {
-      "title": "Current Wait Token",
       "type": "string",
       "required": false,
       "nullable": true

@@ -2395,8 +2395,6 @@ export const RuntimeTraceListItemSchema = z.object({
   last_device_code: z.union([z.string(), z.null()]).optional(),
   /** Status */
   status: z.string(),
-  /** Plugin State */
-  plugin_state: z.union([z.string(), z.null()]).optional(),
   /** Current Wait Type */
   current_wait_type: z.union([z.string(), z.null()]).optional(),
   /** Failure Domain */
@@ -2839,8 +2837,6 @@ export const TraceCommandItemSchema = z.object({
   ack_message: z.union([z.string(), z.null()]).optional(),
   /** Ack Trace Id */
   ack_trace_id: z.union([z.string(), z.null()]).optional(),
-  /** Issued Plugin State */
-  issued_plugin_state: z.union([z.string(), z.null()]).optional(),
   /** Params */
   params: z.record(z.any()),
   /** Result Data */
@@ -3110,8 +3106,6 @@ export const TraceOverviewSummarySchema = z.object({
   diagnostics: z.number().optional().default(0),
   /** Session Status */
   session_status: z.union([z.string(), z.null()]).optional(),
-  /** Plugin State */
-  plugin_state: z.union([z.string(), z.null()]).optional(),
   /** Current Wait Type */
   current_wait_type: z.union([z.string(), z.null()]).optional(),
   /** Latest Timeline Action */
@@ -3136,8 +3130,6 @@ export const TraceQueryRequestSchema = z.object({
   device_id: z.union([z.number(), z.null()]).optional(),
   /** Status */
   status: z.union([z.string(), z.null()]).optional(),
-  /** Plugin State */
-  plugin_state: z.union([z.string(), z.null()]).optional(),
   /** Keyword */
   keyword: z.union([z.string(), z.null()]).optional(),
   /** Only Active */
@@ -3168,8 +3160,6 @@ export const TraceSessionItemSchema = z.object({
   barcode: z.union([z.string(), z.null()]).optional(),
   /** Status */
   status: z.string(),
-  /** Plugin State */
-  plugin_state: z.union([z.string(), z.null()]).optional(),
   /** Trace Id */
   trace_id: z.union([z.string(), z.null()]).optional(),
   /** Started At */
@@ -3178,8 +3168,6 @@ export const TraceSessionItemSchema = z.object({
   ended_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Current Wait Type */
   current_wait_type: z.union([z.string(), z.null()]).optional(),
-  /** Current Wait Token */
-  current_wait_token: z.union([z.string(), z.null()]).optional(),
   /** Current Wait Timeout Seconds */
   current_wait_timeout_seconds: z.union([z.number(), z.null()]).optional(),
   /** Waiting Since */

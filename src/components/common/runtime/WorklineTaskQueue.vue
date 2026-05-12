@@ -86,7 +86,7 @@
             />
             <span class="workline-task-queue__item-code">{{ item.session_code }}</span>
             <span class="workline-task-queue__item-device">{{ item.device_name || '—' }}</span>
-            <span class="workline-task-queue__item-step">{{ item.plugin_state || '—' }}</span>
+            <span class="workline-task-queue__item-step">{{ runtimeProgress(item) }}</span>
           </button>
         </div>
       </section>
@@ -105,6 +105,7 @@
 import { computed } from 'vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import type { RuntimeTraceListItem } from '@/types/runtime'
+import { resolveRuntimeProgressLabel } from '@/utils/runtime-display'
 
 const props = defineProps<{
   activeSessions: RuntimeTraceListItem[]
@@ -127,6 +128,10 @@ const failed = computed(() =>
     ...props.recentFailedTraces
   ].slice(0, 10)
 )
+
+function runtimeProgress(item: RuntimeTraceListItem): string {
+  return resolveRuntimeProgressLabel(item)
+}
 
 function formatElapsed(start?: string | null): string {
   if (!start) return '--'

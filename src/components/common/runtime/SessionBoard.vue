@@ -46,7 +46,7 @@
             <div class="session-board__item-code">{{ sessionIdentity(item) }}</div>
             <div class="session-board__item-meta">
               {{ item.device_name || '—' }}
-              <span v-if="item.plugin_state">· {{ item.plugin_state }}</span>
+              <span v-if="sessionProgress(item) !== '—'">· {{ sessionProgress(item) }}</span>
             </div>
           </button>
           <div
@@ -111,7 +111,7 @@ const columns = computed(() => [
   }
 ])
 
-import { formatRuntimeElapsed } from '@/utils/runtime-display'
+import { formatRuntimeElapsed, resolveRuntimeProgressLabel } from '@/utils/runtime-display'
 
 function sessionIdentity(item: RuntimeTraceListItem): string {
   return displayTrace({
@@ -121,6 +121,10 @@ function sessionIdentity(item: RuntimeTraceListItem): string {
     session_code: item.session_code,
     session_id: item.session_id
   })
+}
+
+function sessionProgress(item: RuntimeTraceListItem): string {
+  return resolveRuntimeProgressLabel(item)
 }
 </script>
 

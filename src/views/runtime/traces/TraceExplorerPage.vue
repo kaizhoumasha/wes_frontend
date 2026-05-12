@@ -364,10 +364,13 @@
                         </template>
                       </el-table-column>
                       <el-table-column
-                        prop="plugin_state"
-                        label="业务阶段"
+                        label="运行进度"
                         min-width="140"
-                      />
+                      >
+                        <template #default="scope">
+                          {{ resolveRuntimeProgressLabel(scope.row) }}
+                        </template>
+                      </el-table-column>
                     </el-table>
                     <pre class="trace-detail__json">{{ sessionJson }}</pre>
                   </el-tab-pane>
@@ -561,7 +564,8 @@ import {
   compactEnumLabel,
   formatRuntimeDateTime,
   formatRuntimeDurationMs,
-  readPositiveInt
+  readPositiveInt,
+  resolveRuntimeProgressLabel
 } from '@/utils/runtime-display'
 
 const route = useRoute()
@@ -681,8 +685,11 @@ const traceStickyFacts = computed(() => {
 
   return [
     {
-      label: '业务阶段',
-      value: detail.summary.plugin_state || detail.session?.plugin_state || '--'
+      label: '运行进度',
+      value: resolveRuntimeProgressLabel({
+        ...detail.summary,
+        status: detail.session?.status
+      })
     },
     { label: '失败域 / 码', value: failureText }
   ]

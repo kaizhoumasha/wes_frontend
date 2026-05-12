@@ -54,7 +54,6 @@ export interface RuntimeTraceListItem {
   last_device_name?: string | null
   last_device_code?: string | null
   status: string
-  plugin_state?: string | null
   current_wait_type?: string | null
   failure_domain?: string | null
   failure_code?: string | null
@@ -76,7 +75,6 @@ export interface TraceQueryPayload {
   workline_id?: number
   device_id?: number
   status?: string
-  plugin_state?: string
   keyword?: string
   only_active?: boolean
   only_failed?: boolean
@@ -92,7 +90,6 @@ export interface TraceOverviewSummary {
   timelines: number
   diagnostics: number
   session_status?: string | null
-  plugin_state?: string | null
   current_wait_type?: string | null
   latest_timeline_action?: string | null
   latest_timeline_status?: string | null
@@ -168,12 +165,10 @@ export interface TraceSessionItem {
   business_key?: string | null
   barcode?: string | null
   status: string
-  plugin_state?: string | null
   trace_id?: string | null
   started_at?: string | null
   ended_at?: string | null
   current_wait_type?: string | null
-  current_wait_token?: string | null
   waiting_since?: string | null
   deadline_at?: string | null
   awaiting_command_id?: number | null
@@ -204,7 +199,6 @@ export interface TraceCommandItem {
   ack_code?: number | null
   ack_message?: string | null
   ack_trace_id?: string | null
-  issued_plugin_state?: string | null
   params: Record<string, unknown>
   result_data?: Record<string, unknown> | null
   error_detail?: Record<string, unknown> | null
@@ -488,7 +482,6 @@ export interface SandboxCompletedSession {
     id: number
     session_code: string
     status: string
-    plugin_state: string | null
     barcode: string | null
     created_at: string | null
     started_at: string | null

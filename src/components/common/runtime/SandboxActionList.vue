@@ -282,6 +282,7 @@ import type {
   SandboxPendingOutbox
 } from '@/types/runtime'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
+import { resolveRuntimeProgressLabel } from '@/utils/runtime-display'
 import { displayCommand, displaySession } from '@/utils/runtime-display-identity'
 import {
   canAckSandboxOutbox,
@@ -528,7 +529,7 @@ function buildPendingSessionIdentity(group: {
   const summaryFields = uniqueFields(
     [
       scalarField('会话', sessionLabel),
-      scalarField('阶段', session?.plugin_state),
+      scalarField('进度', session ? resolveRuntimeProgressLabel(session) : null),
       scalarField('等待', waitTypeLabel(session?.current_wait_type)),
       scalarField('当前命令', session?.command_code),
       scalarField('Trace', session?.trace_id)
@@ -613,7 +614,7 @@ function buildSessionIdentity(sessionGroup: SandboxCompletedSession): SessionIde
 
   const traceFields = [
     scalarField('事件', session.event_type),
-    scalarField('业务阶段', session.plugin_state),
+    scalarField('进度', completedSessionProgress(session)),
     scalarField('失败域', session.failure_domain),
     scalarField('失败原因', session.failure_message),
     scalarField('会话', session.session_code)
@@ -625,6 +626,10 @@ function buildSessionIdentity(sessionGroup: SandboxCompletedSession): SessionIde
     detailFields,
     traceFields
   }
+}
+
+function completedSessionProgress(session: SandboxCompletedSession['session']): string | null {
+  return session.event_type || session.status || null
 }
 
 function extractEventData(

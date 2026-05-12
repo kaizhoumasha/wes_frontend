@@ -79,7 +79,7 @@
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import type { RuntimeWorklineDetailResponse, RuntimeWorklineSummary } from '@/types/runtime'
-import { pickDominantValue } from '@/utils/runtime-display'
+import { pickDominantValue, resolveRuntimeProgressLabel } from '@/utils/runtime-display'
 import type { RuntimeTone } from '@/utils/runtime-display'
 
 const props = defineProps<{
@@ -149,11 +149,11 @@ const hotspotDevice = computed(() => {
 })
 
 const mostFailedBusinessStage = computed(() =>
-  pickDominantValue(props.detail?.recent_failed_traces.map(item => item.plugin_state || '—') ?? [])
+  pickDominantValue(props.detail?.recent_failed_traces.map(resolveRuntimeProgressLabel) ?? [])
 )
 
 const dominantActiveBusinessStage = computed(() =>
-  pickDominantValue(props.detail?.active_sessions.map(item => item.plugin_state || '—') ?? [])
+  pickDominantValue(props.detail?.active_sessions.map(resolveRuntimeProgressLabel) ?? [])
 )
 
 const activeRuntimeHoldIds = computed(() => {

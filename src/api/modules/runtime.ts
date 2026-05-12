@@ -82,7 +82,6 @@ export const runtimeApiMethods = {
         device_id: payload.device_id,
         keyword: payload.keyword,
         status: payload.status,
-        plugin_state: payload.plugin_state,
         workline_id: payload.workline_id
       })
     )

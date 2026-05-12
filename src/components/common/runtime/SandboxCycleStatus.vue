@@ -25,10 +25,10 @@
         }}
       </span>
       <span
-        v-if="activeSession.plugin_state"
+        v-if="activeProgress !== '—'"
         class="sandbox-cycle-status__step"
       >
-        {{ activeSession.plugin_state }}
+        {{ activeProgress }}
       </span>
       <span
         v-if="activeSession.current_wait_type"
@@ -56,6 +56,7 @@
 import { computed } from 'vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import { displaySession } from '@/utils/runtime-display-identity'
+import { resolveRuntimeProgressLabel } from '@/utils/runtime-display'
 import {
   canAckSandboxOutbox,
   canSubmitSandboxResult,
@@ -74,6 +75,8 @@ const activeSession = computed(() => {
   )
   return nonTerminal ?? props.activeSessions[0] ?? null
 })
+
+const activeProgress = computed(() => resolveRuntimeProgressLabel(activeSession.value))
 
 const newCount = computed(
   () =>

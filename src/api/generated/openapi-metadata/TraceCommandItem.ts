@@ -122,12 +122,6 @@ export const TraceCommandItemMetadata = {
       "required": false,
       "nullable": true
     },
-    "issued_plugin_state": {
-      "title": "Issued Plugin State",
-      "type": "string",
-      "required": false,
-      "nullable": true
-    },
     "params": {
       "title": "Params",
       "type": "object",

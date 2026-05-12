@@ -17,11 +17,11 @@
           />
         </div>
         <div
-          v-if="pluginState"
+          v-if="runtimeProgress !== '—'"
           class="trace-case-hero__step-progress"
         >
-          <span class="trace-case-hero__step-label">业务阶段</span>
-          <span class="trace-case-hero__step-value">{{ compactEnumLabel(pluginState) }}</span>
+          <span class="trace-case-hero__step-label">运行进度</span>
+          <span class="trace-case-hero__step-value">{{ runtimeProgress }}</span>
         </div>
         <p class="trace-case-hero__headline">{{ headline }}</p>
       </div>
@@ -73,7 +73,12 @@
 import { computed } from 'vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import type { TraceDetailResponse } from '@/types/runtime'
-import { compactEnumLabel, formatRuntimeCount, formatRuntimeElapsed } from '@/utils/runtime-display'
+import {
+  compactEnumLabel,
+  formatRuntimeCount,
+  formatRuntimeElapsed,
+  resolveRuntimeProgressLabel
+} from '@/utils/runtime-display'
 
 import {
   displaySession,
@@ -105,8 +110,11 @@ const barcode = computed(() => props.detail.session?.barcode ?? null)
 const heroEyebrow = computed(() => (barcode.value ? '物料条码' : 'Trace 摘要'))
 const heroTitle = computed(() => barcode.value || sessionCode.value)
 const heroSubCode = computed(() => (barcode.value ? sessionCode.value : traceCode.value))
-const pluginState = computed(
-  () => props.detail.summary.plugin_state || props.detail.session?.plugin_state || null
+const runtimeProgress = computed(() =>
+  resolveRuntimeProgressLabel({
+    ...props.detail.summary,
+    status: props.detail.session?.status
+  })
 )
 
 const headline = computed(() => {

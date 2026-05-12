@@ -9,6 +9,7 @@ import {
   aggregateSessionsByDevice,
   getWorklineRiskScore,
   pickDominantValue,
+  resolveRuntimeProgressLabel,
   sortByScoreDesc,
 } from '@/utils/runtime-display'
 import { createCoalescedAsyncTask } from '@/utils/createCoalescedAsyncTask'
@@ -33,11 +34,11 @@ export const useWorklineRuntimeStore = defineStore('workline-runtime', () => {
   })
 
   const mostFailedBusinessStage = computed(() =>
-    pickDominantValue(detail.value?.recent_failed_traces.map(item => item.plugin_state || '—') ?? [])
+    pickDominantValue(detail.value?.recent_failed_traces.map(resolveRuntimeProgressLabel) ?? [])
   )
 
   const dominantActiveBusinessStage = computed(() =>
-    pickDominantValue(detail.value?.active_sessions.map(item => item.plugin_state || '—') ?? [])
+    pickDominantValue(detail.value?.active_sessions.map(resolveRuntimeProgressLabel) ?? [])
   )
 
   const sessionCountsByDevice = computed(() =>

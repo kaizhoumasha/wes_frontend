@@ -37,6 +37,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { TraceDetailResponse } from '@/types/runtime'
+import { resolveRuntimeProgressLabel } from '@/utils/runtime-display'
 
 const props = defineProps<{
   detail: TraceDetailResponse
@@ -117,7 +118,7 @@ const stages = computed<PipelineStage[]>(() => {
       key: 'session',
       label: '会话',
       count: d.sessions.length,
-      hint: session?.plugin_state || '',
+      hint: session ? resolveRuntimeProgressLabel(session) : '',
       state: sessionStatus
     },
     {

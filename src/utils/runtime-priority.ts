@@ -6,6 +6,7 @@ import type {
 import {
   buildRuntimeWorklineQuery
 } from '@/utils/runtime-route'
+import { resolveRuntimeProgressKey, resolveRuntimeProgressLabel } from '@/utils/runtime-display'
 
 export type ActionTier = 'critical' | 'watch' | 'known'
 
@@ -106,12 +107,13 @@ function classifyTraces(
   const failureCounts = new Map<string, number>()
 
   for (const trace of traces) {
-    const dedupeKey = `${trace.device_id ?? 'none'}-${trace.plugin_state ?? 'none'}`
+    const dedupeKey = `${trace.device_id ?? 'none'}-${resolveRuntimeProgressKey(trace)}`
     failureCounts.set(dedupeKey, (failureCounts.get(dedupeKey) ?? 0) + 1)
   }
 
   for (const trace of traces) {
-    const dedupeKey = `${trace.device_id ?? 'none'}-${trace.plugin_state ?? 'none'}`
+    const progressLabel = resolveRuntimeProgressLabel(trace)
+    const dedupeKey = `${trace.device_id ?? 'none'}-${resolveRuntimeProgressKey(trace)}`
     const repeatCount = failureCounts.get(dedupeKey) ?? 1
 
     if (repeatCount >= THRESHOLDS.REPEAT_FAILURE_MIN) {
@@ -123,7 +125,7 @@ function classifyTraces(
           tier: 'watch',
           entity: 'trace',
           id: `repeat-${dedupeKey}`,
-          summary: `重复失败 (${repeatCount} 次) — ${trace.plugin_state || '未知业务阶段'}`,
+          summary: `重复失败 (${repeatCount} 次) — ${progressLabel}`,
           context: `${trace.device_name || '未关联设备'} · ${trace.workline_name || ''}`,
           navigateTo: {
             name: RUNTIME_ROUTE_NAME,

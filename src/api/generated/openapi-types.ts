@@ -5799,8 +5799,6 @@ export interface components {
             latest_timeline_message?: string | null;
             /** Latest Timeline Status */
             latest_timeline_status?: string | null;
-            /** Plugin State */
-            plugin_state?: string | null;
             /** Request Id */
             request_id?: string | null;
             /** Session Code */
@@ -6357,8 +6355,6 @@ export interface components {
             } | null;
             /** Id */
             id: number;
-            /** Issued Plugin State */
-            issued_plugin_state?: string | null;
             /** Params */
             params: {
                 [key: string]: unknown;
@@ -6685,8 +6681,6 @@ export interface components {
              * @default 0
              */
             outboxes: number;
-            /** Plugin State */
-            plugin_state?: string | null;
             /** Session Status */
             session_status?: string | null;
             /**
@@ -6724,8 +6718,6 @@ export interface components {
              * @default false
              */
             only_failed: boolean;
-            /** Plugin State */
-            plugin_state?: string | null;
             /** Status */
             status?: string | null;
             /** Workline Id */
@@ -6745,8 +6737,6 @@ export interface components {
             };
             /** Current Wait Timeout Seconds */
             current_wait_timeout_seconds?: number | null;
-            /** Current Wait Token */
-            current_wait_token?: string | null;
             /** Current Wait Type */
             current_wait_type?: string | null;
             /** Deadline At */
@@ -6774,8 +6764,6 @@ export interface components {
             last_request_id?: string | null;
             /** Plugin Key */
             plugin_key: string;
-            /** Plugin State */
-            plugin_state?: string | null;
             /** Reconciliation Ack Received At */
             reconciliation_ack_received_at?: string | null;
             /** Reconciliation Command Id */
