@@ -95,6 +95,7 @@ export interface RuntimeProgressSource {
   status?: string | null
   session_status?: string | null
   latest_timeline_action?: string | null
+  plugin_state?: string | null
 }
 
 export function resolveRuntimeProgressLabel(source?: RuntimeProgressSource | null): string {
@@ -104,6 +105,7 @@ export function resolveRuntimeProgressLabel(source?: RuntimeProgressSource | nul
 
   return compactEnumLabel(
     source.current_action ??
+      source.plugin_state ??
       source.current_wait_type ??
       source.latest_timeline_action ??
       source.status ??
