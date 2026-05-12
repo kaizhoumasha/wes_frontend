@@ -21,12 +21,19 @@ const mocks = vi.hoisted(() => {
       sandboxPending: method,
       replayInboxes: method,
       manualSessions: method
+    },
+    runtimeHoldMethods: {
+      runtimeHoldDetail: method,
+      resolveRuntimeHold: method,
+      runtimeHoldNgReasons: method,
+      ngReturnItems: method
     }
   }
 })
 
 vi.mock('@/api/modules/workline', () => ({
-  worklineApiMethods: mocks.methods
+  worklineApiMethods: mocks.methods,
+  runtimeHoldApiMethods: mocks.runtimeHoldMethods
 }))
 
 describe('runtimeApiMethods', () => {
@@ -54,7 +61,7 @@ describe('runtimeApiMethods', () => {
       device_id: 201,
       keyword: 'PKG-001',
       status: undefined,
-      step_code: undefined,
+      plugin_state: undefined,
       workline_id: 101
     })
     expect(result).toEqual({ ok: true })

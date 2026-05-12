@@ -12,6 +12,7 @@
  */
 
 import type { VNode } from 'vue'
+import type { DrawerSize } from '@/components/ui/StandardDrawer'
 import type { CrudPageEntity } from '../types'
 
 /**
@@ -35,6 +36,8 @@ export interface CrudPageDetailConfig<TItem extends CrudPageEntity> {
   mode?: 'drawer' | 'dialog'
   /** 宽度 (Drawer/Dialog) */
   width?: number | string
+  /** Drawer 尺寸预设 */
+  size?: DrawerSize
   /** 标题：静态文本或动态函数 */
   title?: string | ((item: TItem) => string)
   /** 实体类型标签（显示在 eyebrow 区域） */

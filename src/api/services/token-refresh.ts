@@ -11,7 +11,7 @@ import type {
   ContractRequestConfig,
   ContractResponseData,
 } from '@/api/contract/types'
-import router from '@/router'
+import type { Router } from 'vue-router'
 
 // ==================== 常量定义 ====================
 
@@ -57,6 +57,11 @@ let failedQueue: QueuedRequest[] = []
 
 /** Token 刷新成功后的回调 */
 let onTokenRefreshedCallback: (() => Promise<void>) | null = null
+let routerInstance: Router | null = null
+
+export function setTokenRefreshRouter(router: Router): void {
+  routerInstance = router
+}
 
 /**
  * 注册 Token 刷新成功后的回调
@@ -297,8 +302,12 @@ export async function redirectToLogin(redirectUrl?: string): Promise<void> {
     sessionStorage.setItem('redirect_after_login', redirectUrl)
   }
 
-  // 跳转到登录页
-  await router.push('/login')
+  if (routerInstance) {
+    await routerInstance.push('/login')
+    return
+  }
+
+  window.location.href = '/login'
 }
 
 /**
@@ -331,7 +340,11 @@ export async function logout(apiClient?: TokenRequestClient): Promise<void> {
   sessionStorage.clear()
 
   // 第五步：跳转到登录页
-  await router.push('/login')
+  if (routerInstance) {
+    await routerInstance.push('/login')
+  } else {
+    window.location.href = '/login'
+  }
 }
 
 // ==================== 导出状态（用于测试） ====================

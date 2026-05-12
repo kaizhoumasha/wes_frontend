@@ -1,4 +1,5 @@
 import { defineCrudResourceFieldBundle } from '@/components/common/crud-page/resourceFieldBuilder'
+import { AuditLogResponseMetadata } from '@/api/generated/openapi-metadata'
 import {
   createQuickFilterFormatter,
   formatDurationFromSeconds
@@ -44,7 +45,7 @@ export const {
   fieldConfig: auditLogPageFieldConfig
 } = defineCrudResourceFieldBundle<AuditLog, ReadonlyInput, ReadonlyInput>({
   backend: {
-    readSchema: 'AuditLogResponse',
+    readSchema: AuditLogResponseMetadata,
     labelOverrides: AUDIT_LOG_LABEL_OVERRIDES
   },
   fields: [
@@ -195,6 +196,77 @@ export const {
         formatter: createQuickFilterFormatter({ field: 'trace_id' })
       },
       search: {}
+    },
+    // Detail-only fields (hidden in table, used in detail drawer)
+    {
+      key: 'id',
+      table: {
+        visibleFrom: null,
+        width: 100
+      }
+    },
+    {
+      key: 'msg',
+      table: {
+        visibleFrom: null,
+        width: 200
+      }
+    },
+    {
+      key: 'args',
+      table: {
+        visibleFrom: null,
+        width: 200
+      }
+    },
+    {
+      key: 'country',
+      table: {
+        visibleFrom: null,
+        width: 100
+      }
+    },
+    {
+      key: 'region',
+      table: {
+        visibleFrom: null,
+        width: 100
+      }
+    },
+    {
+      key: 'city',
+      table: {
+        visibleFrom: null,
+        width: 100
+      }
+    },
+    {
+      key: 'os',
+      table: {
+        visibleFrom: null,
+        width: 100
+      }
+    },
+    {
+      key: 'browser',
+      table: {
+        visibleFrom: null,
+        width: 100
+      }
+    },
+    {
+      key: 'device',
+      table: {
+        visibleFrom: null,
+        width: 100
+      }
+    },
+    {
+      key: 'user_agent',
+      table: {
+        visibleFrom: null,
+        width: 200
+      }
     }
   ],
   storageKey: AUDIT_LOG_TABLE_STORAGE_KEY,

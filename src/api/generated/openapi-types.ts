@@ -4,13 +4,26 @@
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 后端 OpenAPI 端点: undefined
+ * 后端 OpenAPI 端点: http://localhost:8001/api/openapi.json
  *
- * 更新类型: pnpm type:generate
+ * 更新类型: pnpm generate:types
  */
 
 /* tslint:disable */
 
+export type ApiResponse<TData> = {
+    code: string;
+    message: string;
+    data?: TData | null;
+    timestamp?: string;
+};
+export type ApiListData<TItem> = {
+    total: number;
+    items?: TItem[];
+    limit: number;
+    offset: number;
+};
+export type ApiListResponse<TItem> = ApiResponse<ApiListData<TItem>>;
 export interface paths {
     "/api/v1/admin/menus": {
         parameters: {
@@ -1622,18 +1635,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/callback/logs/device/{device_id}": {
+    "/api/v1/callback/logs/{id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /**
-         * 根据设备 ID 查询回调日志
-         * @description 查询指定设备最近的回调记录
-         */
-        get: operations["callback_logs_device_by_device_id_get"];
+        /** [callback:callback_log:detail] 获取CallbackLog */
+        get: operations["logs_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1651,11 +1661,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * 回调日志列表查询
-         * @description 通用列表查询接口，支持分页、过滤和排序
-         */
-        post: operations["callback_logs_query_post"];
+        /** [callback:callback_log:list] 获取CallbackLog列表 */
+        post: operations["logs_query"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1670,10 +1677,30 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * 根据请求 ID 查询回调日志
+         * [callback:callback_log:detail] 根据请求 ID 查询回调日志
          * @description 根据 request_id 查询单条回调日志记录
          */
         get: operations["callback_logs_request_by_request_id_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/callback/logs/subject/{subject_code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * [callback:callback_log:list] 根据回调主体编码查询回调日志
+         * @description 查询指定回调主体最近的回调记录。设备回调主体通常是 device_code。
+         */
+        get: operations["callback_logs_subject_by_subject_code_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1690,7 +1717,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * 根据 Trace ID 查询回调日志
+         * [callback:callback_log:list] 根据 Trace ID 查询回调日志
          * @description 根据 trace_id 查询所有相关的回调日志（用于串联整个流程）
          */
         get: operations["callback_logs_trace_by_trace_id_get"];
@@ -1930,6 +1957,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/device/devices/{id}/runtime/clear-fault": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [biz:device:update] 清除设备故障 */
+        post: operations["device_devices_by_id_runtime_clear_fault_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/device/devices/{id}/runtime/enter-maintenance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [biz:device:update] 设备进入维护 */
+        post: operations["device_devices_by_id_runtime_enter_maintenance_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/device/devices/{id}/runtime/exit-maintenance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [biz:device:update] 设备退出维护 */
+        post: operations["device_devices_by_id_runtime_exit_maintenance_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/device/devices/query": {
         parameters: {
             query?: never;
@@ -2052,6 +2130,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workline/ng-return-items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list-ng-return-item] 查询 NG Return Items */
+        get: operations["workline_ng_return_items_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workline/operations/manual/sessions/{session_id}": {
         parameters: {
             query?: never;
@@ -2063,6 +2158,23 @@ export interface paths {
         put?: never;
         /** [biz:workline:update] 创建人工操作 */
         post: operations["workline_operations_manual_sessions_by_session_id_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/operations/reconciliations/sessions/{session_id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [biz:workline:resolve-reconciliation] 解除 runtime reconciliation 隔离，不重发设备命令、不调用 timeout 插件处理、释放安全停靠队列 */
+        post: operations["workline_operations_reconciliations_sessions_by_session_id_resolve_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2086,6 +2198,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workline/operations/results": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [biz:workline:update] 沙箱模拟 Command Result */
+        post: operations["workline_operations_results_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [biz:workline:clear-estop] 人工确认 checklist 后清除工作线急停 */
+        post: operations["workline_operations_safety_worklines_by_workline_id_clear_estop_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/operations/sandbox/ack": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [biz:workline:update] 沙箱模拟 Command ACK */
+        post: operations["workline_operations_sandbox_ack_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/operations/sandbox/completed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list] 查询沙箱已完成 Outbox */
+        get: operations["workline_operations_sandbox_completed_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/operations/sandbox/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [biz:workline:update] 沙箱发送 Event */
+        post: operations["workline_operations_sandbox_events_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workline/operations/sandbox/pending": {
         parameters: {
             query?: never;
@@ -2095,6 +2292,114 @@ export interface paths {
         };
         /** [biz:workline:list] 查询沙箱待处理 Outbox */
         get: operations["workline_operations_sandbox_pending_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/operations/sandbox/templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list] 获取沙箱模板 */
+        get: operations["workline_operations_sandbox_templates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/operations/sandbox/worklines/{workline_id}/simulate-estop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * [biz:workline:update] 沙箱模拟 WorkLine 软件急停冻结
+         * @description 沙箱专用安全模拟入口；不通过普通 sandbox event 流。
+         */
+        post: operations["workline_operations_sandbox_worklines_by_workline_id_simulate_estop_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/plugins/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * [biz:workline:list] 获取作业线插件选项
+         * @description 从插件注册表导出作业线插件与契约版本下拉选项。
+         */
+        get: operations["workline_plugins_options_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/runtime-holds/{hold_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:view-runtime-hold] 查看 Runtime Hold 明细 */
+        get: operations["workline_runtime_holds_by_hold_id_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/runtime-holds/{hold_id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [biz:workline:resolve-runtime-hold] 解除 Runtime Hold */
+        post: operations["workline_runtime_holds_by_hold_id_resolve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/runtime-holds/ng-reasons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:view-runtime-hold] 查询 Runtime Hold NG 原因选项 */
+        get: operations["workline_runtime_holds_ng_reasons_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2146,6 +2451,40 @@ export interface paths {
         };
         /** [biz:workline:list] 运行监控总览 */
         get: operations["workline_runtime_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/runtime/sessions/{session_id}/path": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list] Session 设备路径视图 */
+        get: operations["workline_runtime_sessions_by_session_id_path_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/runtime/traces/{trace_id}/path": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list] Trace 设备路径视图 */
+        get: operations["workline_runtime_traces_by_trace_id_path_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2996,12 +3335,84 @@ export interface components {
             /** Permission Ids */
             permission_ids: number[];
         };
-        /** Body_callback_logs_query_post */
-        Body_callback_logs_query_post: {
-            filters?: components["schemas"]["FilterGroup"] | null;
-            /** Sort */
-            sort?: components["schemas"]["SortField"][] | null;
+        /**
+         * CallbackEventAcceptedResponse
+         * @description 设备事件回调接收响应数据。
+         */
+        CallbackEventAcceptedResponse: {
+            /**
+             * Causation Id
+             * @description 因果事件 ID
+             */
+            causation_id?: string | null;
+            /**
+             * Device Code
+             * @description 设备编码
+             */
+            device_code: string;
+            /**
+             * Event Id
+             * @description 供应商事件 ID
+             */
+            event_id?: string | null;
+            /**
+             * Request Id
+             * @description 入口请求 ID
+             */
+            request_id?: string | null;
+            /**
+             * Status
+             * @description 入口处理状态
+             * @enum {string}
+             */
+            status: "submitted" | "duplicate";
+            /**
+             * Trace Id
+             * @description Trace ID
+             */
+            trace_id?: string | null;
         };
+        /** ResponseSchemaModel[Union[CallbackEventAcceptedResponse, CallbackRejectedResponse]] */
+        CallbackEventIngressResponse: ApiResponse<unknown>;
+        /**
+         * CallbackExternalAcceptedResponse
+         * @description 外部系统回调接收响应数据。
+         */
+        CallbackExternalAcceptedResponse: {
+            /**
+             * Callback Type
+             * @description 外部回调类型
+             */
+            callback_type: string;
+            /**
+             * Causation Id
+             * @description 因果事件 ID
+             */
+            causation_id?: string | null;
+            /**
+             * Event Id
+             * @description 供应商事件 ID
+             */
+            event_id?: string | null;
+            /**
+             * Request Id
+             * @description 入口请求 ID
+             */
+            request_id?: string | null;
+            /**
+             * Status
+             * @description 入口处理状态
+             * @enum {string}
+             */
+            status: "submitted" | "duplicate";
+            /**
+             * Trace Id
+             * @description Trace ID
+             */
+            trace_id?: string | null;
+        };
+        /** ResponseSchemaModel[Union[CallbackExternalAcceptedResponse, CallbackRejectedResponse]] */
+        CallbackExternalIngressResponse: ApiResponse<unknown>;
         /**
          * CallbackLogResponse
          * @description 回调日志响应 Schema
@@ -3018,8 +3429,6 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
-            /** Device Id */
-            device_id: string;
             /** Error Message */
             error_message: string | null;
             /** Event Id */
@@ -3040,6 +3449,8 @@ export interface components {
             response_status: number;
             /** Response Time Ms */
             response_time_ms: number;
+            /** Subject Code */
+            subject_code: string;
             /** Trace Id */
             trace_id: string | null;
             /**
@@ -3049,6 +3460,114 @@ export interface components {
             updated_at: string;
             /** User Agent */
             user_agent: string | null;
+        };
+        /**
+         * CallbackLogSubjectResponse
+         * @description 回调主体维度回调日志列表响应。
+         */
+        CallbackLogSubjectResponse: {
+            /**
+             * Count
+             * @description 回调日志数量
+             */
+            count: number;
+            /**
+             * Items
+             * @description 回调日志列表
+             */
+            items: components["schemas"]["CallbackLogResponse"][];
+            /**
+             * Subject Code
+             * @description 回调主体编码
+             */
+            subject_code: string;
+        };
+        /**
+         * CallbackLogTraceResponse
+         * @description Trace 维度回调日志列表响应。
+         */
+        CallbackLogTraceResponse: {
+            /**
+             * Count
+             * @description 回调日志数量
+             */
+            count: number;
+            /**
+             * Items
+             * @description 回调日志列表
+             */
+            items: components["schemas"]["CallbackLogResponse"][];
+            /**
+             * Trace Id
+             * @description Trace ID
+             */
+            trace_id: string;
+        };
+        /**
+         * CallbackRejectedResponse
+         * @description Callback 入口拒收响应数据。
+         */
+        CallbackRejectedResponse: {
+            /**
+             * Ack
+             * @description 入口是否接收
+             * @default false
+             * @constant
+             */
+            ack: false;
+        };
+        /**
+         * CallbackResultAcceptedResponse
+         * @description 设备结果回调接收响应数据。
+         */
+        CallbackResultAcceptedResponse: {
+            /**
+             * Ack
+             * @description 入口是否接收
+             * @default true
+             * @constant
+             */
+            ack: true;
+            /**
+             * Causation Id
+             * @description 因果事件 ID
+             */
+            causation_id?: string | null;
+            /**
+             * Event Id
+             * @description 供应商事件 ID
+             */
+            event_id?: string | null;
+            /**
+             * Request Id
+             * @description 入口请求 ID
+             */
+            request_id?: string | null;
+            /**
+             * Trace Id
+             * @description Trace ID
+             */
+            trace_id?: string | null;
+        };
+        /** ResponseSchemaModel[Union[CallbackResultAcceptedResponse, CallbackRejectedResponse]] */
+        CallbackResultIngressResponse: ApiResponse<unknown>;
+        /**
+         * ClearWorkLineEstopRequest
+         * @description 人工清除 WorkLine 急停请求。
+         */
+        ClearWorkLineEstopRequest: {
+            /**
+             * Checks
+             * @description 恢复 checklist；所有项必须为 true
+             */
+            checks?: {
+                [key: string]: boolean;
+            };
+            /**
+             * Reason
+             * @description 恢复说明
+             */
+            reason?: string | null;
         };
         /**
          * DemoProductCreate
@@ -3265,7 +3784,7 @@ export interface components {
             maintenance_mode: boolean;
             /**
              * Max Concurrent Tasks
-             * @description 最大并发任务数
+             * @description 固定为 1：单设备同一时间只允许一个硬件任务
              * @default 1
              */
             max_concurrent_tasks: number;
@@ -3312,6 +3831,17 @@ export interface components {
              * @description 所属作业线 ID
              */
             work_line_id?: number | null;
+        };
+        /**
+         * DeviceMaintenanceRequest
+         * @description 设备维护操作请求。
+         */
+        DeviceMaintenanceRequest: {
+            /**
+             * Reason
+             * @description 维护原因码
+             */
+            reason?: string | null;
         };
         /**
          * DeviceProtocol
@@ -3415,7 +3945,7 @@ export interface components {
             maintenance_mode: boolean;
             /**
              * Max Concurrent Tasks
-             * @description 最大并发任务数
+             * @description 固定为 1：单设备同一时间只允许一个硬件任务
              * @default 1
              */
             max_concurrent_tasks: number;
@@ -3466,6 +3996,17 @@ export interface components {
             work_line_id?: number | null;
         };
         /**
+         * DeviceRuntimeActionRequest
+         * @description 设备运行态空操作请求，保留扩展位。
+         */
+        DeviceRuntimeActionRequest: {
+            /**
+             * Reason
+             * @description 操作原因
+             */
+            reason?: string | null;
+        };
+        /**
          * DeviceStatus
          * @description 设备状态枚举（白皮书 5.2 节）
          * @enum {string}
@@ -3473,7 +4014,7 @@ export interface components {
         DeviceStatus: "IDLE" | "RUNNING" | "ERROR" | "OFFLINE" | "MAINTENANCE";
         /**
          * DeviceUpdate
-         * @description 设备更新 Schema - 所有字段可选
+         * @description 设备更新 Schema - 只允许主数据与通信配置，运行态走专用操作
          */
         DeviceUpdate: {
             /**
@@ -3494,11 +4035,6 @@ export interface components {
                 [key: string]: unknown;
             } | null;
             /**
-             * Current Command Id
-             * @description 当前执行的指令 ID（关联 DeviceCommand.id）
-             */
-            current_command_id?: number | null;
-            /**
              * Description
              * @description 设备用途说明
              */
@@ -3518,8 +4054,6 @@ export interface components {
              * @description 设备业务角色（SCANNER, ROBOT_ARM, XRAY, CONVEYOR）
              */
             device_role?: string | null;
-            /** @description 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE/MAINTENANCE） */
-            device_status?: components["schemas"]["DeviceStatus"] | null;
             /**
              * Diagnostic Profile
              * @description 设备诊断配置（责任角色、显示偏好、扩展属性）
@@ -3527,11 +4061,6 @@ export interface components {
             diagnostic_profile?: {
                 [key: string]: unknown;
             } | null;
-            /**
-             * Error Code
-             * @description 错误代码（status=ERROR 时）
-             */
-            error_code?: string | null;
             /**
              * Host
              * @description 设备 IP 地址
@@ -3547,21 +4076,6 @@ export interface components {
              * @description 是否启用
              */
             is_active?: boolean | null;
-            /**
-             * Last Heartbeat At
-             * @description 最后心跳时间
-             */
-            last_heartbeat_at?: string | null;
-            /**
-             * Maintenance Mode
-             * @description 是否处于维护模式（维护中不参与正常编排）
-             */
-            maintenance_mode?: boolean | null;
-            /**
-             * Max Concurrent Tasks
-             * @description 最大并发任务数
-             */
-            max_concurrent_tasks?: number | null;
             /**
              * Port
              * @description 服务端口
@@ -3632,6 +4146,28 @@ export interface components {
             user_message: string;
         };
         /**
+         * FailedCommandEvidence
+         * @description Failed command evidence for operator review.
+         */
+        FailedCommandEvidence: {
+            /** Command Code */
+            command_code?: string | null;
+            /** Command Id */
+            command_id?: number | null;
+            /** Error Detail */
+            error_detail?: {
+                [key: string]: unknown;
+            } | null;
+            /** Result */
+            result?: string | null;
+            /** Result Data */
+            result_data?: {
+                [key: string]: unknown;
+            } | null;
+            /** Status */
+            status?: string | null;
+        };
+        /**
          * FilterCondition
          * @description 单个过滤条件
          */
@@ -3684,535 +4220,49 @@ export interface components {
          */
         LineType: "AUTO" | "MANUAL" | "HYBRID";
         /** ListResponseData[APIAccessLogResponse] */
-        ListResponseData_APIAccessLogResponse_: {
-            /**
-             * Items
-             * @description 列表数据
-             */
-            items?: components["schemas"]["APIAccessLogResponse"][];
-            /**
-             * Limit
-             * @description 分页大小
-             * @default 0
-             */
-            limit: number;
-            /**
-             * Offset
-             * @description 偏移量
-             * @default 0
-             */
-            offset: number;
-            /**
-             * Total
-             * @description 总数量
-             * @default 0
-             */
-            total: number;
-        };
+        ListResponseData_APIAccessLogResponse_: ApiListData<components["schemas"]["APIAccessLogResponse"]>;
         /** ListResponseData[APIApplicationResponse] */
-        ListResponseData_APIApplicationResponse_: {
-            /**
-             * Items
-             * @description 列表数据
-             */
-            items?: components["schemas"]["APIApplicationResponse"][];
-            /**
-             * Limit
-             * @description 分页大小
-             * @default 0
-             */
-            limit: number;
-            /**
-             * Offset
-             * @description 偏移量
-             * @default 0
-             */
-            offset: number;
-            /**
-             * Total
-             * @description 总数量
-             * @default 0
-             */
-            total: number;
-        };
+        ListResponseData_APIApplicationResponse_: ApiListData<components["schemas"]["APIApplicationResponse"]>;
         /** ListResponseData[AuditLogResponse] */
-        ListResponseData_AuditLogResponse_: {
-            /**
-             * Items
-             * @description 列表数据
-             */
-            items?: components["schemas"]["AuditLogResponse"][];
-            /**
-             * Limit
-             * @description 分页大小
-             * @default 0
-             */
-            limit: number;
-            /**
-             * Offset
-             * @description 偏移量
-             * @default 0
-             */
-            offset: number;
-            /**
-             * Total
-             * @description 总数量
-             * @default 0
-             */
-            total: number;
-        };
+        ListResponseData_AuditLogResponse_: ApiListData<components["schemas"]["AuditLogResponse"]>;
+        /** ListResponseData[CallbackLogResponse] */
+        ListResponseData_CallbackLogResponse_: ApiListData<components["schemas"]["CallbackLogResponse"]>;
         /** ListResponseData[DemoProductResponse] */
-        ListResponseData_DemoProductResponse_: {
-            /**
-             * Items
-             * @description 列表数据
-             */
-            items?: components["schemas"]["DemoProductResponse"][];
-            /**
-             * Limit
-             * @description 分页大小
-             * @default 0
-             */
-            limit: number;
-            /**
-             * Offset
-             * @description 偏移量
-             * @default 0
-             */
-            offset: number;
-            /**
-             * Total
-             * @description 总数量
-             * @default 0
-             */
-            total: number;
-        };
+        ListResponseData_DemoProductResponse_: ApiListData<components["schemas"]["DemoProductResponse"]>;
         /** ListResponseData[DeviceResponse] */
-        ListResponseData_DeviceResponse_: {
-            /**
-             * Items
-             * @description 列表数据
-             */
-            items?: components["schemas"]["DeviceResponse"][];
-            /**
-             * Limit
-             * @description 分页大小
-             * @default 0
-             */
-            limit: number;
-            /**
-             * Offset
-             * @description 偏移量
-             * @default 0
-             */
-            offset: number;
-            /**
-             * Total
-             * @description 总数量
-             * @default 0
-             */
-            total: number;
-        };
+        ListResponseData_DeviceResponse_: ApiListData<components["schemas"]["DeviceResponse"]>;
         /** ListResponseData[MenuResponse] */
-        ListResponseData_MenuResponse_: {
-            /**
-             * Items
-             * @description 列表数据
-             */
-            items?: components["schemas"]["MenuResponse"][];
-            /**
-             * Limit
-             * @description 分页大小
-             * @default 0
-             */
-            limit: number;
-            /**
-             * Offset
-             * @description 偏移量
-             * @default 0
-             */
-            offset: number;
-            /**
-             * Total
-             * @description 总数量
-             * @default 0
-             */
-            total: number;
-        };
+        ListResponseData_MenuResponse_: ApiListData<components["schemas"]["MenuResponse"]>;
         /** ListResponseData[PermissionResponse] */
-        ListResponseData_PermissionResponse_: {
-            /**
-             * Items
-             * @description 列表数据
-             */
-            items?: components["schemas"]["PermissionResponse"][];
-            /**
-             * Limit
-             * @description 分页大小
-             * @default 0
-             */
-            limit: number;
-            /**
-             * Offset
-             * @description 偏移量
-             * @default 0
-             */
-            offset: number;
-            /**
-             * Total
-             * @description 总数量
-             * @default 0
-             */
-            total: number;
-        };
+        ListResponseData_PermissionResponse_: ApiListData<components["schemas"]["PermissionResponse"]>;
         /** ListResponseData[RoleResponse] */
-        ListResponseData_RoleResponse_: {
-            /**
-             * Items
-             * @description 列表数据
-             */
-            items?: components["schemas"]["RoleResponse"][];
-            /**
-             * Limit
-             * @description 分页大小
-             * @default 0
-             */
-            limit: number;
-            /**
-             * Offset
-             * @description 偏移量
-             * @default 0
-             */
-            offset: number;
-            /**
-             * Total
-             * @description 总数量
-             * @default 0
-             */
-            total: number;
-        };
+        ListResponseData_RoleResponse_: ApiListData<components["schemas"]["RoleResponse"]>;
         /** ListResponseData[UserResponse] */
-        ListResponseData_UserResponse_: {
-            /**
-             * Items
-             * @description 列表数据
-             */
-            items?: components["schemas"]["UserResponse"][];
-            /**
-             * Limit
-             * @description 分页大小
-             * @default 0
-             */
-            limit: number;
-            /**
-             * Offset
-             * @description 偏移量
-             * @default 0
-             */
-            offset: number;
-            /**
-             * Total
-             * @description 总数量
-             * @default 0
-             */
-            total: number;
-        };
+        ListResponseData_UserResponse_: ApiListData<components["schemas"]["UserResponse"]>;
         /** ListResponseData[WorkLineResponse] */
-        ListResponseData_WorkLineResponse_: {
-            /**
-             * Items
-             * @description 列表数据
-             */
-            items?: components["schemas"]["WorkLineResponse"][];
-            /**
-             * Limit
-             * @description 分页大小
-             * @default 0
-             */
-            limit: number;
-            /**
-             * Offset
-             * @description 偏移量
-             * @default 0
-             */
-            offset: number;
-            /**
-             * Total
-             * @description 总数量
-             * @default 0
-             */
-            total: number;
-        };
+        ListResponseData_WorkLineResponse_: ApiListData<components["schemas"]["WorkLineResponse"]>;
         /** ListResponseSchemaModel[APIAccessLogResponse] */
-        ListResponseSchemaModel_APIAccessLogResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["ListResponseData_APIAccessLogResponse_"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ListResponseSchemaModel_APIAccessLogResponse_: ApiListResponse<components["schemas"]["APIAccessLogResponse"]>;
         /** ListResponseSchemaModel[APIApplicationResponse] */
-        ListResponseSchemaModel_APIApplicationResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["ListResponseData_APIApplicationResponse_"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ListResponseSchemaModel_APIApplicationResponse_: ApiListResponse<components["schemas"]["APIApplicationResponse"]>;
         /** ListResponseSchemaModel[AuditLogResponse] */
-        ListResponseSchemaModel_AuditLogResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["ListResponseData_AuditLogResponse_"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ListResponseSchemaModel_AuditLogResponse_: ApiListResponse<components["schemas"]["AuditLogResponse"]>;
+        /** ListResponseSchemaModel[CallbackLogResponse] */
+        ListResponseSchemaModel_CallbackLogResponse_: ApiListResponse<components["schemas"]["CallbackLogResponse"]>;
         /** ListResponseSchemaModel[DemoProductResponse] */
-        ListResponseSchemaModel_DemoProductResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["ListResponseData_DemoProductResponse_"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ListResponseSchemaModel_DemoProductResponse_: ApiListResponse<components["schemas"]["DemoProductResponse"]>;
         /** ListResponseSchemaModel[DeviceResponse] */
-        ListResponseSchemaModel_DeviceResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["ListResponseData_DeviceResponse_"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ListResponseSchemaModel_DeviceResponse_: ApiListResponse<components["schemas"]["DeviceResponse"]>;
         /** ListResponseSchemaModel[MenuResponse] */
-        ListResponseSchemaModel_MenuResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["ListResponseData_MenuResponse_"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ListResponseSchemaModel_MenuResponse_: ApiListResponse<components["schemas"]["MenuResponse"]>;
         /** ListResponseSchemaModel[PermissionResponse] */
-        ListResponseSchemaModel_PermissionResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["ListResponseData_PermissionResponse_"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ListResponseSchemaModel_PermissionResponse_: ApiListResponse<components["schemas"]["PermissionResponse"]>;
         /** ListResponseSchemaModel[RoleResponse] */
-        ListResponseSchemaModel_RoleResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["ListResponseData_RoleResponse_"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ListResponseSchemaModel_RoleResponse_: ApiListResponse<components["schemas"]["RoleResponse"]>;
         /** ListResponseSchemaModel[UserResponse] */
-        ListResponseSchemaModel_UserResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["ListResponseData_UserResponse_"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ListResponseSchemaModel_UserResponse_: ApiListResponse<components["schemas"]["UserResponse"]>;
         /** ListResponseSchemaModel[WorkLineResponse] */
-        ListResponseSchemaModel_WorkLineResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["ListResponseData_WorkLineResponse_"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ListResponseSchemaModel_WorkLineResponse_: ApiListResponse<components["schemas"]["WorkLineResponse"]>;
         /**
          * LoginRequest
          * @description 登录请求 Schema
@@ -4622,6 +4672,91 @@ export interface components {
             version: number;
         };
         /**
+         * NgReasonInput
+         * @description Operator-selected NG reason.
+         */
+        NgReasonInput: {
+            /**
+             * Code
+             * @description Canonical NG reason code
+             */
+            code: string;
+            /**
+             * Label
+             * @description Human-readable NG reason label
+             */
+            label: string;
+            /**
+             * Source
+             * @description NG reason source
+             */
+            source: string;
+        };
+        /**
+         * NgReasonOption
+         * @description NG reason option.
+         */
+        NgReasonOption: {
+            /** Code */
+            code: string;
+            /** Contract Version */
+            contract_version?: string | null;
+            /** Label */
+            label: string;
+            /** Maps From */
+            maps_from?: string[];
+            /** Plugin Key */
+            plugin_key?: string | null;
+            /** Source */
+            source: string;
+        };
+        /**
+         * NgReturnItemResponse
+         * @description NG return item response.
+         */
+        NgReturnItemResponse: {
+            /** Confirmed At */
+            confirmed_at?: string | null;
+            /** Confirmed By */
+            confirmed_by?: number | null;
+            /** Created At */
+            created_at?: string | null;
+            /** Created From Runtime Hold Id */
+            created_from_runtime_hold_id?: number | null;
+            /** Disposition */
+            disposition: string;
+            /** Id */
+            id: number;
+            /** Material Identity Json */
+            material_identity_json: {
+                [key: string]: unknown;
+            };
+            /** Material Identity Key */
+            material_identity_key: string;
+            /** Ng Reason Code */
+            ng_reason_code: string;
+            /** Ng Reason Label */
+            ng_reason_label: string;
+            /** Ng Reason Source */
+            ng_reason_source: string;
+            /** Operator Note */
+            operator_note?: string | null;
+            /** Physical Handoff Evidence Json */
+            physical_handoff_evidence_json: {
+                [key: string]: unknown;
+            };
+            /** Source Command Id */
+            source_command_id?: number | null;
+            /** Source Event Id */
+            source_event_id?: string | null;
+            /** Source Session Id */
+            source_session_id: number;
+            /** Source Workline Id */
+            source_workline_id: number;
+            /** Status */
+            status: string;
+        };
+        /**
          * OperaStatus
          * @description 操作日志状态
          * @enum {string}
@@ -4909,6 +5044,47 @@ export interface components {
             version: number;
         };
         /**
+         * PhysicalHandoffEvidenceInput
+         * @description Client-submitted physical handoff evidence.
+         *
+         *     Server-owned facts such as confirmed_by, confirmed_at and material_identity
+         *     are intentionally not part of this schema.
+         */
+        PhysicalHandoffEvidenceInput: {
+            /**
+             * Handoff Witness Id
+             * @description 可选见证人
+             */
+            handoff_witness_id?: string | null;
+            /**
+             * Late Callback Reviewed
+             * @description 已复核迟到 callback evidence
+             */
+            late_callback_reviewed: boolean;
+            /**
+             * Line Clear Checked
+             * @description 已确认工位/设备无残留同一物料
+             */
+            line_clear_checked: boolean;
+            /**
+             * Material Scan Payload
+             * @description 现场重新扫描到的物料原文
+             */
+            material_scan_payload: {
+                [key: string]: unknown;
+            } | string;
+            /**
+             * Ng Location Code
+             * @description NG 暂存位置编码
+             */
+            ng_location_code: string;
+            /**
+             * Ng Location Scan
+             * @description NG 位置扫码原文
+             */
+            ng_location_scan: string;
+        };
+        /**
          * QueryOptions
          * @description 查询选项
          */
@@ -5023,1020 +5199,207 @@ export interface components {
              */
             version: number;
         };
+        /**
+         * ResolveRuntimeHoldRequest
+         * @description Resolve Runtime Hold request.
+         */
+        ResolveRuntimeHoldRequest: {
+            /**
+             * Checks
+             * @description 服务端要求的 release checklist
+             */
+            checks: {
+                [key: string]: boolean;
+            };
+            /**
+             * Hold Version
+             * @description RuntimeHold 乐观锁版本
+             */
+            hold_version: number;
+            /**
+             * Latest Evidence Hash
+             * @description 页面看到的最新证据 hash
+             */
+            latest_evidence_hash: string;
+            /**
+             * Material Disposition
+             * @description 物料处置
+             * @enum {string}
+             */
+            material_disposition: "CONTINUE" | "RETURN_TO_NG";
+            /** @description RETURN_TO_NG 时必填 */
+            ng_reason?: components["schemas"]["NgReasonInput"] | null;
+            /**
+             * Operator Note
+             * @description 现场确认说明
+             */
+            operator_note: string;
+            /** @description RETURN_TO_NG 时必填；只包含客户端可提交证据 */
+            physical_handoff_evidence?: components["schemas"]["PhysicalHandoffEvidenceInput"] | null;
+            /**
+             * Resolution
+             * @description Session 结论
+             * @enum {string}
+             */
+            resolution: "COMPLETED" | "FAILED" | "CANCELLED";
+            /**
+             * Result Payload
+             * @description CONTINUE/COMPLETED 可补充业务结果
+             */
+            result_payload?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * ResolveRuntimeHoldResponse
+         * @description Resolve Runtime Hold response.
+         */
+        ResolveRuntimeHoldResponse: {
+            /** Created Inbox Id */
+            created_inbox_id?: number | null;
+            /** Hold Id */
+            hold_id: number;
+            /** Ng Return Item Id */
+            ng_return_item_id?: number | null;
+            /** Released Outbox Count */
+            released_outbox_count: number;
+            /** Remaining Active Blocking Holds */
+            remaining_active_blocking_holds: number;
+            /** Status */
+            status: string;
+            /** Workline Id */
+            workline_id: number;
+            /** Workline Runtime Status */
+            workline_runtime_status: string;
+        };
+        /**
+         * ResolveRuntimeReconciliationRequest
+         * @description 人工运行时对账解除请求。
+         */
+        ResolveRuntimeReconciliationRequest: {
+            /**
+             * Checks
+             * @description 按 reconciliation_reason 要求确认的 checklist
+             */
+            checks: {
+                [key: string]: boolean;
+            };
+            /**
+             * Confirmed At
+             * Format: date-time
+             * @description 现场确认时间
+             */
+            confirmed_at: string;
+            /**
+             * Operator Note
+             * @description 现场确认说明
+             */
+            operator_note: string;
+            /**
+             * Resolution
+             * @description 人工对账决议
+             */
+            resolution: string;
+            /**
+             * Result Payload
+             * @description COMPLETED 时可补录业务结果摘要
+             */
+            result_payload?: {
+                [key: string]: unknown;
+            } | null;
+        };
         /** ResponseSchemaModel[ActiveSessionsResponse] */
-        ResponseSchemaModel_ActiveSessionsResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["ActiveSessionsResponse"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_ActiveSessionsResponse_: ApiResponse<components["schemas"]["ActiveSessionsResponse"]>;
         /** ResponseSchemaModel[APIAccessLogResponse] */
-        ResponseSchemaModel_APIAccessLogResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["APIAccessLogResponse"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_APIAccessLogResponse_: ApiResponse<components["schemas"]["APIAccessLogResponse"]>;
         /** ResponseSchemaModel[APIApplicationResponse] */
-        ResponseSchemaModel_APIApplicationResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["APIApplicationResponse"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_APIApplicationResponse_: ApiResponse<components["schemas"]["APIApplicationResponse"]>;
         /** ResponseSchemaModel[AuditLogResponse] */
-        ResponseSchemaModel_AuditLogResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["AuditLogResponse"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_AuditLogResponse_: ApiResponse<components["schemas"]["AuditLogResponse"]>;
         /** ResponseSchemaModel[AuthMyResponse] */
-        ResponseSchemaModel_AuthMyResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["AuthMyResponse"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_AuthMyResponse_: ApiResponse<components["schemas"]["AuthMyResponse"]>;
+        /** ResponseSchemaModel[CallbackLogResponse] */
+        ResponseSchemaModel_CallbackLogResponse_: ApiResponse<components["schemas"]["CallbackLogResponse"]>;
+        /** ResponseSchemaModel[CallbackLogSubjectResponse] */
+        ResponseSchemaModel_CallbackLogSubjectResponse_: ApiResponse<components["schemas"]["CallbackLogSubjectResponse"]>;
+        /** ResponseSchemaModel[CallbackLogTraceResponse] */
+        ResponseSchemaModel_CallbackLogTraceResponse_: ApiResponse<components["schemas"]["CallbackLogTraceResponse"]>;
         /** ResponseSchemaModel[DemoProductResponse] */
-        ResponseSchemaModel_DemoProductResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["DemoProductResponse"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_DemoProductResponse_: ApiResponse<components["schemas"]["DemoProductResponse"]>;
         /** ResponseSchemaModel[DeviceResponse] */
-        ResponseSchemaModel_DeviceResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["DeviceResponse"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_DeviceResponse_: ApiResponse<components["schemas"]["DeviceResponse"]>;
         /** ResponseSchemaModel[dict[str, Any]] */
-        ResponseSchemaModel_dict_str__Any__: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /**
-             * Data
-             * @description 响应数据
-             */
-            data?: {
-                [key: string]: unknown;
-            } | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_dict_str__Any__: ApiResponse<Record<string, unknown>>;
         /** ResponseSchemaModel[dict[str, str]] */
-        ResponseSchemaModel_dict_str__str__: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /**
-             * Data
-             * @description 响应数据
-             */
-            data?: {
-                [key: string]: string;
-            } | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_dict_str__str__: ApiResponse<Record<string, string>>;
         /** ResponseSchemaModel[list[Any]] */
-        ResponseSchemaModel_list_Any__: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /**
-             * Data
-             * @description 响应数据
-             */
-            data?: unknown[] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_list_Any__: ApiResponse<unknown[]>;
         /** ResponseSchemaModel[list[dict[str, Any]]] */
-        ResponseSchemaModel_list_dict_str__Any___: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /**
-             * Data
-             * @description 响应数据
-             */
-            data?: {
-                [key: string]: unknown;
-            }[] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_list_dict_str__Any___: ApiResponse<Record<string, unknown>[]>;
         /** ResponseSchemaModel[list[MenuResponse]] */
-        ResponseSchemaModel_list_MenuResponse__: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /**
-             * Data
-             * @description 响应数据
-             */
-            data?: components["schemas"]["MenuResponse"][] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_list_MenuResponse__: ApiResponse<components["schemas"]["MenuResponse"][]>;
         /** ResponseSchemaModel[list[MenuTreeResponse]] */
-        ResponseSchemaModel_list_MenuTreeResponse__: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /**
-             * Data
-             * @description 响应数据
-             */
-            data?: components["schemas"]["MenuTreeResponse"][] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_list_MenuTreeResponse__: ApiResponse<components["schemas"]["MenuTreeResponse"][]>;
         /** ResponseSchemaModel[list[MenuTreeResponseSimple]] */
-        ResponseSchemaModel_list_MenuTreeResponseSimple__: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /**
-             * Data
-             * @description 响应数据
-             */
-            data?: components["schemas"]["MenuTreeResponseSimple"][] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_list_MenuTreeResponseSimple__: ApiResponse<components["schemas"]["MenuTreeResponseSimple"][]>;
+        /** ResponseSchemaModel[list[NgReasonOption]] */
+        ResponseSchemaModel_list_NgReasonOption__: ApiResponse<components["schemas"]["NgReasonOption"][]>;
+        /** ResponseSchemaModel[list[NgReturnItemResponse]] */
+        ResponseSchemaModel_list_NgReturnItemResponse__: ApiResponse<components["schemas"]["NgReturnItemResponse"][]>;
         /** ResponseSchemaModel[list[PermissionResponse]] */
-        ResponseSchemaModel_list_PermissionResponse__: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /**
-             * Data
-             * @description 响应数据
-             */
-            data?: components["schemas"]["PermissionResponse"][] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_list_PermissionResponse__: ApiResponse<components["schemas"]["PermissionResponse"][]>;
         /** ResponseSchemaModel[list[PermissionTree]] */
-        ResponseSchemaModel_list_PermissionTree__: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /**
-             * Data
-             * @description 响应数据
-             */
-            data?: components["schemas"]["PermissionTree"][] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_list_PermissionTree__: ApiResponse<components["schemas"]["PermissionTree"][]>;
         /** ResponseSchemaModel[list[RuntimeDeviceSummary]] */
-        ResponseSchemaModel_list_RuntimeDeviceSummary__: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /**
-             * Data
-             * @description 响应数据
-             */
-            data?: components["schemas"]["RuntimeDeviceSummary"][] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_list_RuntimeDeviceSummary__: ApiResponse<components["schemas"]["RuntimeDeviceSummary"][]>;
         /** ResponseSchemaModel[list[RuntimeWorklineSummary]] */
-        ResponseSchemaModel_list_RuntimeWorklineSummary__: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /**
-             * Data
-             * @description 响应数据
-             */
-            data?: components["schemas"]["RuntimeWorklineSummary"][] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_list_RuntimeWorklineSummary__: ApiResponse<components["schemas"]["RuntimeWorklineSummary"][]>;
+        /** ResponseSchemaModel[list[WorkLinePluginOption]] */
+        ResponseSchemaModel_list_WorkLinePluginOption__: ApiResponse<components["schemas"]["WorkLinePluginOption"][]>;
         /** ResponseSchemaModel[LoginResponse] */
-        ResponseSchemaModel_LoginResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["LoginResponse"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_LoginResponse_: ApiResponse<components["schemas"]["LoginResponse"]>;
         /** ResponseSchemaModel[LogoutResponse] */
-        ResponseSchemaModel_LogoutResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["LogoutResponse"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_LogoutResponse_: ApiResponse<components["schemas"]["LogoutResponse"]>;
         /** ResponseSchemaModel[MenuResponse] */
-        ResponseSchemaModel_MenuResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["MenuResponse"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_MenuResponse_: ApiResponse<components["schemas"]["MenuResponse"]>;
         /** ResponseSchemaModel[NoneType] */
-        ResponseSchemaModel_NoneType_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /**
-             * Data
-             * @description 响应数据
-             */
-            data?: null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_NoneType_: ApiResponse<null>;
         /** ResponseSchemaModel[PermissionResponse] */
-        ResponseSchemaModel_PermissionResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["PermissionResponse"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_PermissionResponse_: ApiResponse<components["schemas"]["PermissionResponse"]>;
         /** ResponseSchemaModel[RefreshTokenResponse] */
-        ResponseSchemaModel_RefreshTokenResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["RefreshTokenResponse"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_RefreshTokenResponse_: ApiResponse<components["schemas"]["RefreshTokenResponse"]>;
+        /** ResponseSchemaModel[ResolveRuntimeHoldResponse] */
+        ResponseSchemaModel_ResolveRuntimeHoldResponse_: ApiResponse<components["schemas"]["ResolveRuntimeHoldResponse"]>;
         /** ResponseSchemaModel[RevokeSessionResponse] */
-        ResponseSchemaModel_RevokeSessionResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["RevokeSessionResponse"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_RevokeSessionResponse_: ApiResponse<components["schemas"]["RevokeSessionResponse"]>;
         /** ResponseSchemaModel[RoleResponse] */
-        ResponseSchemaModel_RoleResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["RoleResponse"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_RoleResponse_: ApiResponse<components["schemas"]["RoleResponse"]>;
         /** ResponseSchemaModel[RuntimeDeviceDetailResponse] */
-        ResponseSchemaModel_RuntimeDeviceDetailResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["RuntimeDeviceDetailResponse"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_RuntimeDeviceDetailResponse_: ApiResponse<components["schemas"]["RuntimeDeviceDetailResponse"]>;
+        /** ResponseSchemaModel[RuntimeHoldDetailResponse] */
+        ResponseSchemaModel_RuntimeHoldDetailResponse_: ApiResponse<components["schemas"]["RuntimeHoldDetailResponse"]>;
         /** ResponseSchemaModel[RuntimeOverviewResponse] */
-        ResponseSchemaModel_RuntimeOverviewResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["RuntimeOverviewResponse"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_RuntimeOverviewResponse_: ApiResponse<components["schemas"]["RuntimeOverviewResponse"]>;
         /** ResponseSchemaModel[RuntimeTraceListResponse] */
-        ResponseSchemaModel_RuntimeTraceListResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["RuntimeTraceListResponse"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_RuntimeTraceListResponse_: ApiResponse<components["schemas"]["RuntimeTraceListResponse"]>;
+        /** ResponseSchemaModel[RuntimeTracePathResponse] */
+        ResponseSchemaModel_RuntimeTracePathResponse_: ApiResponse<components["schemas"]["RuntimeTracePathResponse"]>;
         /** ResponseSchemaModel[RuntimeWorklineDetailResponse] */
-        ResponseSchemaModel_RuntimeWorklineDetailResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["RuntimeWorklineDetailResponse"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_RuntimeWorklineDetailResponse_: ApiResponse<components["schemas"]["RuntimeWorklineDetailResponse"]>;
+        /** ResponseSchemaModel[SandboxTemplatesResponse] */
+        ResponseSchemaModel_SandboxTemplatesResponse_: ApiResponse<components["schemas"]["SandboxTemplatesResponse"]>;
         /** ResponseSchemaModel[TraceBlockingPointResponse] */
-        ResponseSchemaModel_TraceBlockingPointResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["TraceBlockingPointResponse"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_TraceBlockingPointResponse_: ApiResponse<components["schemas"]["TraceBlockingPointResponse"]>;
         /** ResponseSchemaModel[TraceDetailResponse] */
-        ResponseSchemaModel_TraceDetailResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["TraceDetailResponse"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_TraceDetailResponse_: ApiResponse<components["schemas"]["TraceDetailResponse"]>;
         /** ResponseSchemaModel[UserPermissionsResponse] */
-        ResponseSchemaModel_UserPermissionsResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["UserPermissionsResponse"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_UserPermissionsResponse_: ApiResponse<components["schemas"]["UserPermissionsResponse"]>;
         /** ResponseSchemaModel[UserResponse] */
-        ResponseSchemaModel_UserResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["UserResponse"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_UserResponse_: ApiResponse<components["schemas"]["UserResponse"]>;
         /** ResponseSchemaModel[UserSimpleResponse] */
-        ResponseSchemaModel_UserSimpleResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["UserSimpleResponse"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_UserSimpleResponse_: ApiResponse<components["schemas"]["UserSimpleResponse"]>;
         /** ResponseSchemaModel[WorkLineResponse] */
-        ResponseSchemaModel_WorkLineResponse_: {
-            /**
-             * Code
-             * @description 响应码
-             * @default 1000
-             * @example 1000
-             * @example 2000
-             */
-            code: string;
-            /** @description 响应数据 */
-            data?: components["schemas"]["WorkLineResponse"] | null;
-            /**
-             * Message
-             * @description 响应消息
-             * @default 操作成功
-             * @example 操作成功
-             * @example 参数错误
-             */
-            message: string;
-            /**
-             * Timestamp
-             * @description 响应时间戳(ISO 8601格式)
-             * @example 2024-01-01T00:00:00Z
-             */
-            timestamp?: string;
-        };
+        ResponseSchemaModel_WorkLineResponse_: ApiResponse<components["schemas"]["WorkLineResponse"]>;
         /**
          * RevokeSessionResponse
          * @description 撤销会话响应 Schema
@@ -6106,6 +5469,15 @@ export interface components {
              */
             version: number;
         };
+        /** RuntimeBlockingReason */
+        RuntimeBlockingReason: {
+            /** Detail */
+            detail?: string | null;
+            /** Device Id */
+            device_id?: number | null;
+            /** Reason */
+            reason: string;
+        };
         /** RuntimeDeviceDetailResponse */
         RuntimeDeviceDetailResponse: {
             /** Active Sessions */
@@ -6146,6 +5518,13 @@ export interface components {
         };
         /** RuntimeDeviceSummary */
         RuntimeDeviceSummary: {
+            /** Active Runtime Hold Ids */
+            active_runtime_hold_ids?: number[];
+            /**
+             * Blocked Outbox Count
+             * @default 0
+             */
+            blocked_outbox_count: number;
             /** Current Command Id */
             current_command_id?: number | null;
             /** Device Code */
@@ -6168,6 +5547,16 @@ export interface components {
              */
             maintenance_mode: boolean;
             /**
+             * Open Command Count
+             * @default 0
+             */
+            open_command_count: number;
+            /**
+             * Open Issue Count
+             * @default 0
+             */
+            open_issue_count: number;
+            /**
              * Pending Command Count
              * @default 0
              */
@@ -6182,6 +5571,122 @@ export interface components {
             workline_id?: number | null;
             /** Workline Name */
             workline_name?: string | null;
+        };
+        /**
+         * RuntimeHoldBlocker
+         * @description Another active hold blocking the same WorkLine.
+         */
+        RuntimeHoldBlocker: {
+            /** Hold Type */
+            hold_type: string;
+            /** Id */
+            id: number;
+            /** Session Id */
+            session_id?: number | null;
+            /** Source Device Id */
+            source_device_id?: number | null;
+            /** Source Reason */
+            source_reason: string;
+            /** Status */
+            status: string;
+        };
+        /**
+         * RuntimeHoldDetailResponse
+         * @description Runtime Hold detail response.
+         */
+        RuntimeHoldDetailResponse: {
+            /** Blockers */
+            blockers?: components["schemas"]["RuntimeHoldBlocker"][];
+            /** Evidence Snapshot Json */
+            evidence_snapshot_json: {
+                [key: string]: unknown;
+            };
+            failed_command_evidence?: components["schemas"]["FailedCommandEvidence"] | null;
+            release_eligibility: components["schemas"]["RuntimeHoldReleaseEligibility"];
+            /** Release Evidence Json */
+            release_evidence_json: {
+                [key: string]: unknown;
+            };
+            source: components["schemas"]["RuntimeHoldSource"];
+            summary: components["schemas"]["RuntimeHoldSummary"];
+        };
+        /**
+         * RuntimeHoldReleaseEligibility
+         * @description Current release decision model.
+         */
+        RuntimeHoldReleaseEligibility: {
+            /** Allowed Material Dispositions */
+            allowed_material_dispositions?: string[];
+            /** Allowed Resolutions */
+            allowed_resolutions?: string[];
+            /** Can Resolve */
+            can_resolve: boolean;
+            /** Latest Evidence Hash */
+            latest_evidence_hash: string;
+            /** Reason */
+            reason?: string | null;
+            /** Required Checks */
+            required_checks?: string[];
+        };
+        /**
+         * RuntimeHoldSource
+         * @description Runtime Hold source refs.
+         */
+        RuntimeHoldSource: {
+            /** Source Command Id */
+            source_command_id?: number | null;
+            /** Source Device Id */
+            source_device_id?: number | null;
+            /** Source Idempotency Key */
+            source_idempotency_key: string;
+            /** Source Inbox Id */
+            source_inbox_id?: number | null;
+            /** Source Kind */
+            source_kind: string;
+            /** Source Outbox Id */
+            source_outbox_id?: number | null;
+            /** Source Reason */
+            source_reason: string;
+        };
+        /**
+         * RuntimeHoldSummary
+         * @description Runtime Hold summary.
+         */
+        RuntimeHoldSummary: {
+            /** Blocking */
+            blocking: boolean;
+            /** Contract Version */
+            contract_version?: string | null;
+            /** Created At */
+            created_at?: string | null;
+            /** Hold Type */
+            hold_type: string;
+            /** Id */
+            id: number;
+            /** Material Disposition */
+            material_disposition?: string | null;
+            /** Ng Reason Code */
+            ng_reason_code?: string | null;
+            /** Ng Reason Label */
+            ng_reason_label?: string | null;
+            /** Plugin Key */
+            plugin_key?: string | null;
+            /** Resolved At */
+            resolved_at?: string | null;
+            /** Resolved By */
+            resolved_by?: number | null;
+            /** Session Id */
+            session_id?: number | null;
+            /** Source Reason */
+            source_reason: string;
+            /** Status */
+            status: string;
+            /** Trace Id */
+            trace_id?: string | null;
+            /** Version */
+            version: number;
+            /** Workline Id */
+            workline_id: number;
         };
         /** RuntimeOverviewResponse */
         RuntimeOverviewResponse: {
@@ -6209,13 +5714,58 @@ export interface components {
             /** Value */
             value: number;
         };
+        /** RuntimeTraceDeviceAction */
+        RuntimeTraceDeviceAction: {
+            /** Kind */
+            kind: string;
+            /** Label */
+            label: string;
+            /** Message */
+            message?: string | null;
+            /** Status */
+            status?: string | null;
+            /** Timestamp */
+            timestamp?: string | null;
+        };
+        /** RuntimeTraceDevicePathNode */
+        RuntimeTraceDevicePathNode: {
+            /** Actions */
+            actions?: components["schemas"]["RuntimeTraceDeviceAction"][];
+            /** Device Code */
+            device_code?: string | null;
+            /** Device Id */
+            device_id: number;
+            /** Device Name */
+            device_name?: string | null;
+            /** Device Role */
+            device_role?: string | null;
+            /**
+             * Is Current
+             * @default false
+             */
+            is_current: boolean;
+        };
         /**
          * RuntimeTraceListItem
          * @description Trace 列表项。
          */
         RuntimeTraceListItem: {
+            /** Barcode */
+            barcode?: string | null;
+            /** Business Key */
+            business_key?: string | null;
             /** Command Code */
             command_code?: string | null;
+            /** Current Action */
+            current_action?: string | null;
+            /** Current Action Source */
+            current_action_source?: string | null;
+            /** Current Device Code */
+            current_device_code?: string | null;
+            /** Current Device Id */
+            current_device_id?: number | null;
+            /** Current Device Name */
+            current_device_name?: string | null;
             /** Current Wait Type */
             current_wait_type?: string | null;
             /** Deadline At */
@@ -6235,6 +5785,12 @@ export interface components {
              * @default false
              */
             is_timed_out: boolean;
+            /** Last Device Code */
+            last_device_code?: string | null;
+            /** Last Device Id */
+            last_device_id?: number | null;
+            /** Last Device Name */
+            last_device_name?: string | null;
             /** Last Ingress At */
             last_ingress_at?: string | null;
             /** Latest Timeline Action */
@@ -6253,8 +5809,6 @@ export interface components {
             started_at?: string | null;
             /** Status */
             status: string;
-            /** Step Code */
-            step_code?: string | null;
             /** Trace Id */
             trace_id?: string | null;
             /** Workline Code */
@@ -6274,18 +5828,69 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** RuntimeTracePathResponse */
+        RuntimeTracePathResponse: {
+            blocking_reason?: components["schemas"]["RuntimeBlockingReason"] | null;
+            /** Current Blocking Device Id */
+            current_blocking_device_id?: number | null;
+            /** Devices */
+            devices?: components["schemas"]["RuntimeTraceDevicePathNode"][];
+            evidence?: components["schemas"]["TraceDetailResponse"] | null;
+            /** Session Id */
+            session_id?: number | null;
+            /** Timeline Groups */
+            timeline_groups?: components["schemas"]["RuntimeTraceTimelineGroup"][];
+            /** Trace Id */
+            trace_id?: string | null;
+            /** Workline Id */
+            workline_id?: number | null;
+        };
+        /** RuntimeTraceTimelineGroup */
+        RuntimeTraceTimelineGroup: {
+            /** Device Code */
+            device_code?: string | null;
+            /** Device Id */
+            device_id?: number | null;
+            /** Display Name */
+            display_name: string;
+            /** Events */
+            events?: components["schemas"]["TraceTimelineItem"][];
+            /** Group Key */
+            group_key: string;
+            /** Group Type */
+            group_type: string;
+            /**
+             * Is Blocked
+             * @default false
+             */
+            is_blocked: boolean;
+            /**
+             * Is Current
+             * @default false
+             */
+            is_current: boolean;
+        };
         /** RuntimeWorklineDetailResponse */
         RuntimeWorklineDetailResponse: {
             /** Active Sessions */
             active_sessions?: components["schemas"]["RuntimeTraceListItem"][];
             /** Devices */
             devices?: components["schemas"]["RuntimeWorklineDeviceItem"][];
+            /** Recent Completed Traces */
+            recent_completed_traces?: components["schemas"]["RuntimeTraceListItem"][];
             /** Recent Failed Traces */
             recent_failed_traces?: components["schemas"]["RuntimeTraceListItem"][];
             summary: components["schemas"]["RuntimeWorklineSummary"];
         };
         /** RuntimeWorklineDeviceItem */
         RuntimeWorklineDeviceItem: {
+            /** Active Runtime Hold Ids */
+            active_runtime_hold_ids?: number[];
+            /**
+             * Blocked Outbox Count
+             * @default 0
+             */
+            blocked_outbox_count: number;
             /** Current Command Id */
             current_command_id?: number | null;
             /** Device Code */
@@ -6307,6 +5912,21 @@ export interface components {
              * @default false
              */
             maintenance_mode: boolean;
+            /**
+             * Open Command Count
+             * @default 0
+             */
+            open_command_count: number;
+            /**
+             * Open Issue Count
+             * @default 0
+             */
+            open_issue_count: number;
+            /**
+             * Pending Command Count
+             * @default 0
+             */
+            pending_command_count: number;
             /** Role Index */
             role_index: number;
             /** Upstream Device Id */
@@ -6314,6 +5934,8 @@ export interface components {
         };
         /** RuntimeWorklineSummary */
         RuntimeWorklineSummary: {
+            /** Active Safety Incident Id */
+            active_safety_incident_id?: number | null;
             /**
              * Active Session Count
              * @default 0
@@ -6358,12 +5980,24 @@ export interface components {
              * @default 0
              */
             offline_device_count: number;
-            /** Owner Team */
-            owner_team?: string | null;
             /** Plugin Key */
             plugin_key?: string | null;
-            /** Support Contact */
-            support_contact?: string | null;
+            /** Resumed At */
+            resumed_at?: string | null;
+            /**
+             * Run Mode
+             * @default AUTO
+             */
+            run_mode: string;
+            /**
+             * Runtime Status
+             * @default READY
+             */
+            runtime_status: string;
+            /** Stopped At */
+            stopped_at?: string | null;
+            /** Stopped Reason */
+            stopped_reason?: string | null;
             /**
              * Waiting Session Count
              * @default 0
@@ -6371,6 +6005,172 @@ export interface components {
             waiting_session_count: number;
             /** Zone Name */
             zone_name?: string | null;
+        };
+        /**
+         * SandboxAckRequest
+         * @description 沙箱 Command ACK 模拟请求。
+         */
+        SandboxAckRequest: {
+            /**
+             * Dispatch Key
+             * @description Dispatch Key
+             */
+            dispatch_key: string;
+        };
+        /**
+         * SandboxEventRequest
+         * @description 沙箱 Event 发送请求。
+         */
+        SandboxEventRequest: {
+            /**
+             * Device Id
+             * @description 目标设备 ID
+             */
+            device_id: number;
+            /**
+             * Event Type
+             * @description 事件类型
+             */
+            event_type: string;
+            /**
+             * Payload
+             * @description 事件 Payload
+             */
+            payload?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Session Id
+             * @description Session ID（可选）
+             */
+            session_id?: number | null;
+            /**
+             * Timestamp
+             * @description 事件时间戳（默认当前时间）
+             */
+            timestamp?: string | null;
+            /**
+             * Trace Id
+             * @description Trace ID（可选，自动生成）
+             */
+            trace_id?: string | null;
+            /**
+             * Workline Id
+             * @description 工作线 ID
+             */
+            workline_id: number;
+        };
+        /**
+         * SandboxEventTemplate
+         * @description 沙箱 Event 模板。
+         */
+        SandboxEventTemplate: {
+            /**
+             * Event Type
+             * @description 事件类型标识
+             */
+            event_type: string;
+            /**
+             * Label
+             * @description 事件类型显示名称
+             */
+            label: string;
+            /**
+             * Payload Template
+             * @description Payload 模板
+             */
+            payload_template?: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * SandboxResultRequest
+         * @description 沙箱 Command Result 模拟请求。
+         */
+        SandboxResultRequest: {
+            /**
+             * Command Code
+             * @description Command Code
+             */
+            command_code: string;
+            /**
+             * Device Code
+             * @description 设备 Code
+             */
+            device_code: string;
+            /**
+             * Error Detail
+             * @description 错误详情（FAILED 时）
+             */
+            error_detail?: string | null;
+            /**
+             * Payload
+             * @description Result Payload
+             */
+            payload?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Result
+             * @description 结果状态
+             */
+            result: string;
+            /**
+             * Timestamp
+             * @description 结果时间戳（默认当前时间）
+             */
+            timestamp?: string | null;
+        };
+        /**
+         * SandboxResultTemplate
+         * @description 沙箱 Result 模板。
+         */
+        SandboxResultTemplate: {
+            /**
+             * Command Type
+             * @description Command 类型标识
+             */
+            command_type: string;
+            /**
+             * Error Template
+             * @description 错误信息模板
+             */
+            error_template?: string | null;
+            /**
+             * Failed Payload Template
+             * @description 失败 Payload 模板
+             */
+            failed_payload_template?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Label
+             * @description Command 类型显示名称
+             */
+            label: string;
+            /**
+             * Success Payload Template
+             * @description 成功 Payload 模板
+             */
+            success_payload_template?: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * SandboxTemplatesResponse
+         * @description 沙箱模板响应。
+         */
+        SandboxTemplatesResponse: {
+            /**
+             * Event Templates
+             * @description Event 模板列表
+             */
+            event_templates?: components["schemas"]["SandboxEventTemplate"][];
+            /**
+             * Result Templates
+             * @description Result 模板列表
+             */
+            result_templates?: components["schemas"]["SandboxResultTemplate"][];
         };
         /**
          * SessionInfo
@@ -6407,6 +6207,29 @@ export interface components {
              * @description 会话 UUID
              */
             session_uuid: string;
+        };
+        /**
+         * SimulateWorkLineEstopRequest
+         * @description 沙箱模拟 WorkLine 软件急停请求。
+         */
+        SimulateWorkLineEstopRequest: {
+            /**
+             * Payload
+             * @description 模拟触发 payload
+             */
+            payload?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Reason
+             * @description 模拟急停说明
+             */
+            reason?: string | null;
+            /**
+             * Source Device Id
+             * @description 模拟来源设备 ID
+             */
+            source_device_id?: number | null;
         };
         /**
          * SortField
@@ -6481,8 +6304,6 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
-            /** Device Id */
-            device_id: string;
             /** Error Message */
             error_message?: string | null;
             /** Event Id */
@@ -6503,6 +6324,8 @@ export interface components {
             response_status: number;
             /** Response Time Ms */
             response_time_ms: number;
+            /** Subject Code */
+            subject_code: string;
             /** Trace Id */
             trace_id?: string | null;
             /** Updated At */
@@ -6553,8 +6376,6 @@ export interface components {
             session_id?: string | null;
             /** Status */
             status: string;
-            /** Step Code */
-            step_code?: string | null;
             /** Task Type */
             task_type: string;
             /** Trace Id */
@@ -6778,6 +6599,16 @@ export interface components {
              * @default 0
              */
             attempt_count: number;
+            /** Blocked By Reconciliation Session Id */
+            blocked_by_reconciliation_session_id?: number | null;
+            /** Blocked By Runtime Hold Id */
+            blocked_by_runtime_hold_id?: number | null;
+            /** Blocked Device Id */
+            blocked_device_id?: number | null;
+            /** Blocked Reason */
+            blocked_reason?: string | null;
+            /** Blocked Workline Id */
+            blocked_workline_id?: number | null;
             /**
              * Created At
              * Format: date-time
@@ -6852,8 +6683,6 @@ export interface components {
             outboxes: number;
             /** Session Status */
             session_status?: string | null;
-            /** Step Code */
-            step_code?: string | null;
             /**
              * Timelines
              * @default 0
@@ -6891,8 +6720,6 @@ export interface components {
             only_failed: boolean;
             /** Status */
             status?: string | null;
-            /** Step Code */
-            step_code?: string | null;
             /** Workline Id */
             workline_id?: number | null;
         };
@@ -6908,8 +6735,8 @@ export interface components {
             context_json: {
                 [key: string]: unknown;
             };
-            /** Current Wait Token */
-            current_wait_token?: string | null;
+            /** Current Wait Timeout Seconds */
+            current_wait_timeout_seconds?: number | null;
             /** Current Wait Type */
             current_wait_type?: string | null;
             /** Deadline At */
@@ -6937,6 +6764,39 @@ export interface components {
             last_request_id?: string | null;
             /** Plugin Key */
             plugin_key: string;
+            /** Reconciliation Ack Received At */
+            reconciliation_ack_received_at?: string | null;
+            /** Reconciliation Command Id */
+            reconciliation_command_id?: number | null;
+            /** Reconciliation Deadline At */
+            reconciliation_deadline_at?: string | null;
+            /** Reconciliation Device Id */
+            reconciliation_device_id?: number | null;
+            /**
+             * Reconciliation Late Evidence Received
+             * @default false
+             */
+            reconciliation_late_evidence_received: boolean;
+            /** Reconciliation Occurred At */
+            reconciliation_occurred_at?: string | null;
+            /** Reconciliation Reason */
+            reconciliation_reason?: string | null;
+            /** Reconciliation Resolution */
+            reconciliation_resolution?: string | null;
+            /** Reconciliation Resolved At */
+            reconciliation_resolved_at?: string | null;
+            /** Reconciliation Source Inbox Id */
+            reconciliation_source_inbox_id?: number | null;
+            /** Reconciliation Source Kind */
+            reconciliation_source_kind?: string | null;
+            /** Reconciliation Source Outbox Id */
+            reconciliation_source_outbox_id?: number | null;
+            /** Reconciliation State */
+            reconciliation_state?: string | null;
+            /** Reconciliation Wait Token */
+            reconciliation_wait_token?: string | null;
+            /** Required Operator Action */
+            required_operator_action?: string | null;
             /** Run Mode */
             run_mode: string;
             /** Session Code */
@@ -6945,8 +6805,6 @@ export interface components {
             started_at?: string | null;
             /** Status */
             status: string;
-            /** Step Code */
-            step_code?: string | null;
             /** Trace Id */
             trace_id?: string | null;
             /** Waiting Since */
@@ -7210,11 +7068,6 @@ export interface components {
          */
         WorkLineCreate: {
             /**
-             * Capacity
-             * @description 产能（件/小时）
-             */
-            capacity?: number | null;
-            /**
              * Config
              * @description 工作线插件配置
              */
@@ -7257,11 +7110,6 @@ export interface components {
             /** @description 作业线类型 */
             line_type: components["schemas"]["LineType"];
             /**
-             * Owner Team
-             * @description 工作线主责团队
-             */
-            owner_team?: string | null;
-            /**
              * Plugin Key
              * @description 工作线执行插件标识
              */
@@ -7279,32 +7127,42 @@ export interface components {
                 [key: string]: unknown;
             };
             /**
-             * Sort Order
-             * @description 排序顺序
-             * @default 0
-             */
-            sort_order: number;
-            /**
-             * Support Contact
-             * @description 工作线支持联系人
-             */
-            support_contact?: string | null;
-            /**
              * Zone Name
              * @description 区域名称
              */
             zone_name?: string | null;
         };
         /**
+         * WorkLinePluginOption
+         * @description 作业线插件下拉选项。
+         */
+        WorkLinePluginOption: {
+            /**
+             * Contract Versions
+             * @description 可选契约版本
+             */
+            contract_versions?: string[];
+            /**
+             * Default Contract Version
+             * @description 默认契约版本
+             */
+            default_contract_version: string;
+            /**
+             * Label
+             * @description 插件显示文本
+             */
+            label: string;
+            /**
+             * Plugin Key
+             * @description 工作线执行插件标识
+             */
+            plugin_key: string;
+        };
+        /**
          * WorkLineResponse
          * @description 作业线响应 Schema - 返回给客户端
          */
         WorkLineResponse: {
-            /**
-             * Capacity
-             * @description 产能（件/小时）
-             */
-            capacity?: number | null;
             /**
              * Config
              * @description 工作线插件配置
@@ -7350,11 +7208,6 @@ export interface components {
             /** @description 作业线类型 */
             line_type: components["schemas"]["LineType"];
             /**
-             * Owner Team
-             * @description 工作线主责团队
-             */
-            owner_team?: string | null;
-            /**
              * Plugin Key
              * @description 工作线执行插件标识
              */
@@ -7371,17 +7224,6 @@ export interface components {
             runtime_config_json?: {
                 [key: string]: unknown;
             };
-            /**
-             * Sort Order
-             * @description 排序顺序
-             * @default 0
-             */
-            sort_order: number;
-            /**
-             * Support Contact
-             * @description 工作线支持联系人
-             */
-            support_contact?: string | null;
             /** Version */
             version: number;
             /**
@@ -7401,11 +7243,6 @@ export interface components {
          * @description 作业线更新 Schema - 所有字段可选
          */
         WorkLineUpdate: {
-            /**
-             * Capacity
-             * @description 产能（件/小时）
-             */
-            capacity?: number | null;
             /**
              * Config
              * @description 工作线插件配置
@@ -7448,11 +7285,6 @@ export interface components {
             /** @description 作业线类型 */
             line_type?: components["schemas"]["LineType"] | null;
             /**
-             * Owner Team
-             * @description 工作线主责团队
-             */
-            owner_team?: string | null;
-            /**
              * Plugin Key
              * @description 工作线执行插件标识
              */
@@ -7466,16 +7298,6 @@ export interface components {
             runtime_config_json?: {
                 [key: string]: unknown;
             } | null;
-            /**
-             * Sort Order
-             * @description 排序顺序
-             */
-            sort_order?: number | null;
-            /**
-             * Support Contact
-             * @description 工作线支持联系人
-             */
-            support_contact?: string | null;
             /**
              * Version
              * @description 乐观锁版本号，更新时必传
@@ -10248,7 +10070,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["CallbackEventIngressResponse"];
                 };
             };
         };
@@ -10268,19 +10090,22 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["CallbackExternalIngressResponse"];
                 };
             };
         };
     };
-    callback_logs_device_by_device_id_get: {
+    logs_get: {
         parameters: {
             query?: {
-                limit?: number;
+                /** @description 是否包含已删除记录（仅软删除模型生效） */
+                include_deleted?: boolean;
+                /** @description 关系加载深度 */
+                max_depth?: number;
             };
             header?: never;
             path: {
-                device_id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -10292,9 +10117,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["ResponseSchemaModel_CallbackLogResponse_"];
                 };
             };
             /** @description Validation Error */
@@ -10308,19 +10131,16 @@ export interface operations {
             };
         };
     };
-    callback_logs_query_post: {
+    logs_query: {
         parameters: {
-            query?: {
-                limit?: number;
-                offset?: number;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["Body_callback_logs_query_post"];
+                "application/json": components["schemas"]["QueryOptions"];
             };
         };
         responses: {
@@ -10330,9 +10150,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["ListResponseSchemaModel_CallbackLogResponse_"];
                 };
             };
             /** @description Validation Error */
@@ -10363,7 +10181,40 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CallbackLogResponse"];
+                    "application/json": components["schemas"]["ResponseSchemaModel_CallbackLogResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    callback_logs_subject_by_subject_code_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                subject_code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_CallbackLogSubjectResponse_"];
                 };
             };
             /** @description Validation Error */
@@ -10394,9 +10245,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["ResponseSchemaModel_CallbackLogTraceResponse_"];
                 };
             };
             /** @description Validation Error */
@@ -10425,7 +10274,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["CallbackResultIngressResponse"];
                 };
             };
         };
@@ -10955,6 +10804,111 @@ export interface operations {
             };
         };
     };
+    device_devices_by_id_runtime_clear_fault_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeviceRuntimeActionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_DeviceResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    device_devices_by_id_runtime_enter_maintenance_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeviceMaintenanceRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_DeviceResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    device_devices_by_id_runtime_exit_maintenance_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeviceRuntimeActionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_DeviceResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     devices_query: {
         parameters: {
             query?: never;
@@ -11187,6 +11141,40 @@ export interface operations {
             };
         };
     };
+    workline_ng_return_items_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                material_identity_key?: string | null;
+                runtime_hold_id?: number | null;
+                status?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_list_NgReturnItemResponse__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     workline_operations_manual_sessions_by_session_id_post: {
         parameters: {
             query?: never;
@@ -11199,6 +11187,41 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ManualOperationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_operations_reconciliations_sessions_by_session_id_resolve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResolveRuntimeReconciliationRequest"];
             };
         };
         responses: {
@@ -11257,10 +11280,113 @@ export interface operations {
             };
         };
     };
-    workline_operations_sandbox_pending_get: {
+    workline_operations_results_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SandboxResultRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_operations_safety_worklines_by_workline_id_clear_estop_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workline_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClearWorkLineEstopRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_operations_sandbox_ack_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SandboxAckRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_operations_sandbox_completed_get: {
         parameters: {
             query?: {
+                device_id?: number | null;
                 limit?: number;
+                workline_id?: number | null;
             };
             header?: never;
             path?: never;
@@ -11275,6 +11401,256 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_list_dict_str__Any___"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_operations_sandbox_events_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SandboxEventRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_operations_sandbox_pending_get: {
+        parameters: {
+            query?: {
+                device_id?: number | null;
+                limit?: number;
+                workline_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_list_dict_str__Any___"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_operations_sandbox_templates_get: {
+        parameters: {
+            query: {
+                device_id?: number | null;
+                workline_id: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_SandboxTemplatesResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_operations_sandbox_worklines_by_workline_id_simulate_estop_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workline_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SimulateWorkLineEstopRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_plugins_options_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_list_WorkLinePluginOption__"];
+                };
+            };
+        };
+    };
+    workline_runtime_holds_by_hold_id_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                hold_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_RuntimeHoldDetailResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_runtime_holds_by_hold_id_resolve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                hold_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResolveRuntimeHoldRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_ResolveRuntimeHoldResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_runtime_holds_ng_reasons_get: {
+        parameters: {
+            query?: {
+                plugin_key?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_list_NgReasonOption__"];
                 };
             };
             /** @description Validation Error */
@@ -11354,7 +11730,9 @@ export interface operations {
     };
     workline_runtime_overview_get: {
         parameters: {
-            query?: never;
+            query?: {
+                includeSim?: boolean;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -11370,11 +11748,84 @@ export interface operations {
                     "application/json": components["schemas"]["ResponseSchemaModel_RuntimeOverviewResponse_"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_runtime_sessions_by_session_id_path_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_RuntimeTracePathResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_runtime_traces_by_trace_id_path_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_RuntimeTracePathResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     workline_runtime_worklines_get: {
         parameters: {
-            query?: never;
+            query?: {
+                excludeSimulation?: boolean;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -11388,6 +11839,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_list_RuntimeWorklineSummary__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

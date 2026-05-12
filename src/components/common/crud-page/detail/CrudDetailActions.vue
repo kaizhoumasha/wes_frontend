@@ -214,6 +214,16 @@ function isActionDisabled(action: CrudPageDetailAction<TItem>): boolean {
   box-shadow: 0 2px 8px rgb(var(--el-color-danger-rgb) / 20%);
 }
 
+:global(.standard-drawer__footer .detail-actions) {
+  position: static;
+  inset: auto;
+  width: 100%;
+  padding: 0;
+  border-top: 0;
+  background: transparent;
+  z-index: auto;
+}
+
 /* Mobile optimization */
 @media (width <= 767px) {
   .detail-actions {

@@ -3,11 +3,10 @@ import type {
   CrudPageFormConfig,
   CrudPageFormSubmitConfig
 } from '@/components/common/crud-page/types'
-import {
-  getOpenApiSchemaMetadata,
-  type OpenApiEnumValue,
-  type OpenApiFieldMetadata,
-  type OpenApiSchemaMetadata
+import type {
+  OpenApiEnumValue,
+  OpenApiFieldMetadata,
+  OpenApiSchemaMetadata
 } from '@/api/generated/openapi-metadata'
 import { createDateFormatter, createDateTimeFormatter } from '@/components/common/table/formatters'
 import type { ZodType } from 'zod'
@@ -29,24 +28,15 @@ import { getOperatorsForDataType, type SearchDataType, type SearchOperator } fro
 import type { SearchFavorite, QuickSearchPreset, SearchFieldDef } from '@/types/search'
 import type { TableColumnConfig } from '@/types/table'
 
-// 用于标记独立枚举 schema 的虚拟字段名（需与 generate-api-types.ts 保持一致）
-const ENUM_MARKER = '__enum'
-
 export interface ResourceFieldDefinition<TKey extends string = string> extends UnifiedFieldConfig {
   key: TKey
 }
 
 export interface ResourceFieldFactsSource {
-  readSchema?: string
-  createSchema?: string
-  updateSchema?: string
-  labelOverrides?: Partial<Record<string, string>>
-}
-
-interface ResolvedResourceFieldMetadata {
   readSchema?: OpenApiSchemaMetadata
   createSchema?: OpenApiSchemaMetadata
   updateSchema?: OpenApiSchemaMetadata
+  labelOverrides?: Partial<Record<string, string>>
 }
 
 const DEFAULT_BOOLEAN_SEARCH_OPTIONS = [
@@ -167,29 +157,18 @@ function inferSearchDataType(form?: UnifiedFormConfig): SearchDataType {
   return 'text'
 }
 
-/**
- * 从 ref 字段获取枚举值
- * 当字段引用另一个 schema（如 AppType）时，尝试获取该 schema 的枚举值
- */
-function getEnumFromRef(metadata?: OpenApiFieldMetadata): OpenApiEnumValue[] | undefined {
-  if (!metadata?.ref) {
-    return undefined
+function getEnumValuesFromMetadata(
+  metadata?: OpenApiFieldMetadata
+): OpenApiEnumValue[] | undefined {
+  if (metadata?.enum?.length) {
+    return metadata.enum
   }
 
-  const refSchema = getOpenApiSchemaMetadata(metadata.ref)
-  if (!refSchema) {
-    return undefined
+  if (metadata?.items?.enum?.length) {
+    return metadata.items.enum
   }
 
-  // 检查 ref schema 中的虚拟枚举标记字段
-  const enumField = refSchema.fields[ENUM_MARKER]
-  if (enumField?.enum) {
-    return enumField.enum
-  }
-
-  // 兼容：如果 ref schema 直接有 enum 字段
-  const firstFieldWithEnum = Object.values(refSchema.fields).find(f => f.enum?.length)
-  return firstFieldWithEnum?.enum
+  return undefined
 }
 
 function inferSearchDataTypeFromMetadata(metadata?: OpenApiFieldMetadata): SearchDataType {
@@ -197,13 +176,7 @@ function inferSearchDataTypeFromMetadata(metadata?: OpenApiFieldMetadata): Searc
     return 'text'
   }
 
-  // 先检查直接定义的枚举
-  if (metadata.enum?.length) {
-    return 'enum'
-  }
-
-  // 检查 ref 引用的枚举
-  if (getEnumFromRef(metadata)?.length) {
+  if (getEnumValuesFromMetadata(metadata)?.length) {
     return 'enum'
   }
 
@@ -231,10 +204,7 @@ function inferFormConfigFromMetadata(
     return undefined
   }
 
-  // 获取枚举值（直接定义或通过 ref 引用）
-  const enumValues = metadata?.enum?.length
-    ? metadata.enum
-    : getEnumFromRef(metadata)
+  const enumValues = getEnumValuesFromMetadata(metadata)
 
   if (!metadata) {
     const normalizedForm = normalizeFormConfig(form)
@@ -399,10 +369,7 @@ function normalizeSearchConfig(
     return undefined
   }
 
-  // 获取枚举值（直接定义或通过 ref 引用）
-  const enumValues = metadata?.enum?.length
-    ? metadata.enum
-    : getEnumFromRef(metadata)
+  const enumValues = getEnumValuesFromMetadata(metadata)
 
   const inferredDataType = form
     ? inferSearchDataType(form)
@@ -493,7 +460,7 @@ function createResourceFieldDefinition<
   TKey extends ResourceFieldKey<TRead, TCreate, TUpdate>
 >(
   field: ResourceFieldConfigForKey<TRead, TCreate, TUpdate, TKey>,
-  metadata: ResolvedResourceFieldMetadata | undefined,
+  metadata: ResourceFieldFactsSource | undefined,
   labelOverrides: Partial<Record<string, string>> | undefined
 ): ResourceFieldDefinition<TKey> {
   const readMetadata = getFieldMetadata(metadata?.readSchema, field.key)
@@ -532,19 +499,6 @@ export function defineResourceFields<
   >[],
   metadataOptions?: ResourceFieldFactsSource
 ): readonly ResourceFieldDefinition<ResourceFieldKey<TRead, TCreate, TUpdate>>[] {
-  const resolvedMetadata: ResolvedResourceFieldMetadata | undefined = metadataOptions
-    ? {
-      readSchema: metadataOptions.readSchema
-        ? getOpenApiSchemaMetadata(metadataOptions.readSchema)
-        : undefined,
-      createSchema: metadataOptions.createSchema
-        ? getOpenApiSchemaMetadata(metadataOptions.createSchema)
-        : undefined,
-      updateSchema: metadataOptions.updateSchema
-        ? getOpenApiSchemaMetadata(metadataOptions.updateSchema)
-        : undefined
-    }
-    : undefined
   const labelOverrides = metadataOptions?.labelOverrides
 
   return fields.map(field =>
@@ -553,7 +507,7 @@ export function defineResourceFields<
       TCreate,
       TUpdate,
       ResourceFieldKey<TRead, TCreate, TUpdate>
-    >(field, resolvedMetadata, labelOverrides)
+    >(field, metadataOptions, labelOverrides)
   )
 }
 

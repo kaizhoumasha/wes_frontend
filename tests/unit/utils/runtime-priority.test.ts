@@ -20,8 +20,6 @@ function createWorkline(overrides: Partial<RuntimeWorklineSummary> = {}): Runtim
     zone_name: 'Zone A',
     plugin_key: 'plugin-a',
     contract_version: 'v1',
-    owner_team: 'ops',
-    support_contact: 'ops@example.com',
     is_active: true,
     device_count: 4,
     active_session_count: 2,
@@ -70,7 +68,7 @@ function createTrace(overrides: Partial<RuntimeTraceListItem> = {}): RuntimeTrac
     device_code: 'DV-201',
     command_code: 'SCAN',
     status: 'FAILED',
-    step_code: 'SCAN',
+    plugin_state: 'SCAN',
     current_wait_type: null,
     failure_domain: 'DEVICE',
     failure_code: 'DEVICE_TIMEOUT',
@@ -150,7 +148,7 @@ describe('runtime-priority', () => {
           id: 201,
           navigateTo: {
             name: 'RuntimeWorklines',
-            query: { worklineId: '101', deviceId: '201' }
+            query: expect.objectContaining({ worklineId: '101', deviceId: '201' })
           }
         }),
         expect.objectContaining({
@@ -158,8 +156,8 @@ describe('runtime-priority', () => {
           entity: 'trace',
           id: 'repeat-201-SCAN',
           navigateTo: {
-            name: 'RuntimeTraceExplorer',
-            query: { traceId: 'trace-a', worklineId: '101' }
+            name: 'RuntimeWorklines',
+            query: expect.objectContaining({ traceId: 'trace-a', worklineId: '101', mode: 'trace' })
           }
         }),
         expect.objectContaining({

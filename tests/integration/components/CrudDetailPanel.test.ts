@@ -20,6 +20,8 @@ vi.mock('@/components/common/crud-page/detail/composables/useDetailResponsive', 
   useDetailResponsive: () => ({
     resolvedMode: { value: 'drawer' },
     resolvedWidth: { value: '50%' },
+    resolvedDrawerSize: { value: 'md' },
+    resolvedDrawerWidth: { value: undefined },
     isFullscreen: { value: false },
     isMobile: { value: false },
     isTablet: { value: false }
@@ -153,7 +155,49 @@ describe('CrudDetailPanel', () => {
       await nextTick()
 
       // Should render drawer on desktop
-      expect(wrapper.find('.mock-drawer').exists()).toBe(true)
+    expect(wrapper.find('.mock-drawer').exists()).toBe(true)
+  })
+
+    it('should use StandardDrawer preset size by default instead of custom width', async () => {
+      const wrapper = createWrapper()
+      const vm = wrapper.vm as unknown as {
+        openWithItem: (item: TestEntity) => void
+      }
+
+      vm.openWithItem(mockEntity)
+      await nextTick()
+
+      const drawer = wrapper.find('.mock-drawer')
+      expect(drawer.attributes('data-size')).toBe('min(640px, 92vw)')
+    })
+
+    it('should render drawer actions in the StandardDrawer footer', async () => {
+      const wrapper = createWrapper({
+        props: {
+          config: {
+            title: '测试详情',
+            entityTypeLabel: '用户',
+            showActions: true,
+            actions: [
+              {
+                key: 'inspect',
+                label: '检查',
+                onClick: vi.fn()
+              }
+            ],
+            sections: []
+          }
+        }
+      })
+      const vm = wrapper.vm as unknown as {
+        openWithItem: (item: TestEntity) => void
+      }
+
+      vm.openWithItem(mockEntity)
+      await nextTick()
+
+      expect(wrapper.find('.mock-drawer__footer .mock-detail-actions').exists()).toBe(true)
+      expect(wrapper.find('.mock-drawer__body .mock-detail-actions').exists()).toBe(false)
     })
 
     it('should close panel via close method', async () => {

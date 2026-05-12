@@ -12,7 +12,7 @@
 - `pnpm build`：生成生产构建；`pnpm build:dev`：按开发模式构建。
 - `pnpm type:check`：执行 `vue-tsc --noEmit`。
 - `pnpm lint`：依次运行类型检查、ESLint、Prettier、Stylelint，是提交前的基础质量门禁。
-- `pnpm contract:test`、`pnpm contract:verify`、`pnpm type:generate`：用于接口契约校验与类型生成。
+- `pnpm contract:test`、`pnpm contract:verify`、`pnpm generate:types`：用于接口契约校验与类型生成。
 - `./scripts/git-worktree.sh add feature-name`：创建并行开发 worktree。
 
 ## 代码风格与命名约定

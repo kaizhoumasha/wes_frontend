@@ -142,6 +142,7 @@ interface GeneratedOpenApiSchemaMetadata {
 interface Config {
   openApiSource: string
   outputDir: string
+  metadataOutputDir: string
   modulesOutputDir: string
 }
 
@@ -168,6 +169,7 @@ function resolveOpenApiSource(): string {
 const config: Config = {
   openApiSource: resolveOpenApiSource(),
   outputDir: join(__dirname, '../src/api/generated'),
+  metadataOutputDir: join(__dirname, '../src/api/generated/openapi-metadata'),
   modulesOutputDir: join(__dirname, '../src/api/modules')
 }
 
@@ -327,28 +329,52 @@ function unwrapNullableSchema(schema: OpenApiPropertySchema): {
   }
 }
 
+function getEnumFromSchemaRef(
+  schemas: Record<string, OpenApiPropertySchema>,
+  ref: string | undefined
+): Array<string | number | boolean | null> | undefined {
+  const refName = getRefName(ref)
+
+  if (!refName) {
+    return undefined
+  }
+
+  const refSchema = schemas[refName]
+
+  if (!refSchema) {
+    return undefined
+  }
+
+  const { schema } = unwrapNullableSchema(refSchema)
+  return schema.enum
+}
+
 function buildArrayMetadata(
-  items: OpenApiPropertySchema | undefined
+  items: OpenApiPropertySchema | undefined,
+  schemas: Record<string, OpenApiPropertySchema>
 ): GeneratedOpenApiArrayMetadata | undefined {
   if (!items) {
     return undefined
   }
 
   const { schema } = unwrapNullableSchema(items)
+  const ref = getRefName(schema.$ref)
   return {
     type: schema.type,
     format: schema.format,
-    ref: getRefName(schema.$ref),
-    enum: schema.enum
+    ref,
+    enum: schema.enum ?? getEnumFromSchemaRef(schemas, schema.$ref)
   }
 }
 
 function buildFieldMetadata(
   fieldName: string,
   schema: OpenApiPropertySchema,
-  requiredFields: Set<string>
+  requiredFields: Set<string>,
+  schemas: Record<string, OpenApiPropertySchema>
 ): GeneratedOpenApiFieldMetadata {
   const { schema: resolvedSchema, nullable } = unwrapNullableSchema(schema)
+  const ref = getRefName(resolvedSchema.$ref)
 
   return {
     title: resolvedSchema.title,
@@ -358,9 +384,9 @@ function buildFieldMetadata(
     required: requiredFields.has(fieldName),
     nullable,
     default: resolvedSchema.default,
-    enum: resolvedSchema.enum,
-    ref: getRefName(resolvedSchema.$ref),
-    items: buildArrayMetadata(resolvedSchema.items),
+    enum: resolvedSchema.enum ?? getEnumFromSchemaRef(schemas, resolvedSchema.$ref),
+    ref,
+    items: buildArrayMetadata(resolvedSchema.items, schemas),
     minLength: resolvedSchema.minLength,
     maxLength: resolvedSchema.maxLength,
     minimum: resolvedSchema.minimum,
@@ -373,13 +399,17 @@ function extractSchemaMetadata(spec: unknown): Record<string, GeneratedOpenApiSc
   const result: Record<string, GeneratedOpenApiSchemaMetadata> = {}
 
   for (const [schemaName, schema] of Object.entries(schemas)) {
+    if (isGenericResponseWrapperSchema(schema)) {
+      continue
+    }
+
     if (schema.type === 'object' || schema.properties) {
       const required = schema.required ?? []
       const requiredFields = new Set(required)
       const fields = Object.fromEntries(
         Object.entries(schema.properties ?? {}).map(([fieldName, fieldSchema]) => [
           fieldName,
-          buildFieldMetadata(fieldName, fieldSchema, requiredFields)
+          buildFieldMetadata(fieldName, fieldSchema, requiredFields, schemas)
         ])
       )
 
@@ -419,11 +449,197 @@ function extractSchemaMetadata(spec: unknown): Record<string, GeneratedOpenApiSc
   return result
 }
 
+const GENERATED_RESPONSE_TYPE_HELPERS = `export type ApiResponse<TData> = {
+  code: string
+  message: string
+  data?: TData | null
+  timestamp?: string
+}
+
+export type ApiListData<TItem> = {
+  total: number
+  items?: TItem[]
+  limit: number
+  offset: number
+}
+
+export type ApiListResponse<TItem> = ApiResponse<ApiListData<TItem>>
+`
+
+type GenericResponseWrapperKind = 'response' | 'list-data' | 'list-response'
+
+interface GenericResponseWrapperSchema {
+  kind: GenericResponseWrapperKind
+  typeArgument: string
+}
+
+function parseGenericResponseWrapperTitle(
+  title: string | undefined
+): GenericResponseWrapperSchema | undefined {
+  const match = title?.match(/^(ResponseSchemaModel|ListResponseData|ListResponseSchemaModel)\[(.+)]$/)
+
+  if (!match) {
+    return undefined
+  }
+
+  const [, rawKind, typeArgument] = match
+
+  if (rawKind === 'ResponseSchemaModel') {
+    return { kind: 'response', typeArgument }
+  }
+
+  if (rawKind === 'ListResponseData') {
+    return { kind: 'list-data', typeArgument }
+  }
+
+  return { kind: 'list-response', typeArgument }
+}
+
+function isGenericResponseWrapperSchema(schema: OpenApiPropertySchema): boolean {
+  return parseGenericResponseWrapperTitle(schema.title) !== undefined
+}
+
+function getComponentSchemaName(path: string | undefined): string | undefined {
+  const prefix = '#/components/schemas/'
+
+  if (!path?.startsWith(prefix)) {
+    return undefined
+  }
+
+  return path.slice(prefix.length)
+}
+
+function splitTopLevelTypeArguments(value: string): string[] {
+  const result: string[] = []
+  let depth = 0
+  let startIndex = 0
+
+  for (let index = 0; index < value.length; index += 1) {
+    const char = value[index]
+
+    if (char === '[') {
+      depth += 1
+      continue
+    }
+
+    if (char === ']') {
+      depth -= 1
+      continue
+    }
+
+    if (char === ',' && depth === 0) {
+      result.push(value.slice(startIndex, index).trim())
+      startIndex = index + 1
+    }
+  }
+
+  result.push(value.slice(startIndex).trim())
+  return result
+}
+
+function createComponentsSchemaTypeNode(schemaName: string): ts.TypeNode {
+  return ts.factory.createIndexedAccessTypeNode(
+    ts.factory.createIndexedAccessTypeNode(
+      ts.factory.createTypeReferenceNode('components'),
+      ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral('schemas'))
+    ),
+    ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral(schemaName))
+  )
+}
+
+function createRecordTypeNode(valueType: ts.TypeNode): ts.TypeNode {
+  return ts.factory.createTypeReferenceNode('Record', [
+    ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+    valueType
+  ])
+}
+
+function createTypeNodeForPythonType(
+  typeExpression: string,
+  schemaNames: ReadonlySet<string>
+): ts.TypeNode {
+  const trimmed = typeExpression.trim()
+
+  if (trimmed === 'Any') {
+    return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword)
+  }
+
+  if (trimmed === 'None' || trimmed === 'NoneType') {
+    return ts.factory.createLiteralTypeNode(ts.factory.createNull())
+  }
+
+  if (trimmed === 'str') {
+    return ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)
+  }
+
+  if (trimmed === 'int' || trimmed === 'float') {
+    return ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)
+  }
+
+  if (trimmed === 'bool') {
+    return ts.factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword)
+  }
+
+  const listMatch = trimmed.match(/^list\[(.+)]$/)
+  if (listMatch) {
+    return ts.factory.createArrayTypeNode(createTypeNodeForPythonType(listMatch[1], schemaNames))
+  }
+
+  const dictMatch = trimmed.match(/^dict\[(.+)]$/)
+  if (dictMatch) {
+    const [keyType, valueType] = splitTopLevelTypeArguments(dictMatch[1])
+
+    if (keyType !== 'str') {
+      return createRecordTypeNode(ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword))
+    }
+
+    return createRecordTypeNode(createTypeNodeForPythonType(valueType, schemaNames))
+  }
+
+  if (schemaNames.has(trimmed)) {
+    return createComponentsSchemaTypeNode(trimmed)
+  }
+
+  return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword)
+}
+
+function createGenericResponseWrapperTypeNode(
+  wrapper: GenericResponseWrapperSchema,
+  schemaNames: ReadonlySet<string>
+): ts.TypeNode {
+  const typeArgument = createTypeNodeForPythonType(wrapper.typeArgument, schemaNames)
+
+  if (wrapper.kind === 'response') {
+    return ts.factory.createTypeReferenceNode('ApiResponse', [typeArgument])
+  }
+
+  if (wrapper.kind === 'list-data') {
+    return ts.factory.createTypeReferenceNode('ApiListData', [typeArgument])
+  }
+
+  return ts.factory.createTypeReferenceNode('ApiListResponse', [typeArgument])
+}
+
 async function generateTypesFile(spec: unknown, outputPath: string): Promise<boolean> {
   console.log('🔧 正在生成类型定义文件...')
 
+  const schemaNames = new Set(Object.keys(getSchemas(spec)))
   const ast = await openapiTS(spec as Parameters<typeof openapiTS>[0], {
-    alphabetize: true
+    alphabetize: true,
+    inject: GENERATED_RESPONSE_TYPE_HELPERS,
+    transform(schemaObject, options) {
+      const schemaName = getComponentSchemaName(options.path)
+      if (!schemaName) {
+        return undefined
+      }
+
+      const wrapper = parseGenericResponseWrapperTitle(schemaObject.title)
+      if (!wrapper) {
+        return undefined
+      }
+
+      return createGenericResponseWrapperTypeNode(wrapper, schemaNames)
+    }
   })
 
   const generatedTypes = astToString(ast)
@@ -433,9 +649,9 @@ async function generateTypesFile(spec: unknown, outputPath: string): Promise<boo
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 后端 OpenAPI 端点: ${config.backendUrl}
+ * 后端 OpenAPI 端点: ${config.openApiSource}
  *
- * 更新类型: pnpm type:generate
+ * 更新类型: pnpm generate:types
  */
 
 /* tslint:disable */
@@ -448,19 +664,158 @@ ${generatedTypes}
   return changed
 }
 
-async function generateMetadataFile(spec: unknown, outputPath: string): Promise<boolean> {
-  console.log('🧭 正在生成 OpenAPI 字段元数据...')
+interface MetadataModulePlan {
+  schemaName: string
+  exportName: string
+  fileName: string
+  metadata: GeneratedOpenApiSchemaMetadata
+}
 
-  const metadata = extractSchemaMetadata(spec)
-  const content = `/**
- * 自动生成的 OpenAPI 字段元数据
+interface MetadataGenerationResult {
+  changed: boolean
+  deletedFiles: string[]
+  generatedFileNames: string[]
+}
+
+const TYPESCRIPT_RESERVED_WORDS = new Set([
+  'abstract',
+  'any',
+  'as',
+  'asserts',
+  'async',
+  'await',
+  'bigint',
+  'boolean',
+  'break',
+  'case',
+  'catch',
+  'class',
+  'const',
+  'constructor',
+  'continue',
+  'debugger',
+  'declare',
+  'default',
+  'delete',
+  'do',
+  'else',
+  'enum',
+  'export',
+  'extends',
+  'false',
+  'finally',
+  'for',
+  'from',
+  'function',
+  'get',
+  'if',
+  'implements',
+  'import',
+  'in',
+  'infer',
+  'instanceof',
+  'interface',
+  'is',
+  'keyof',
+  'let',
+  'module',
+  'namespace',
+  'never',
+  'new',
+  'null',
+  'number',
+  'object',
+  'of',
+  'package',
+  'private',
+  'protected',
+  'public',
+  'readonly',
+  'require',
+  'return',
+  'set',
+  'static',
+  'string',
+  'super',
+  'switch',
+  'symbol',
+  'this',
+  'throw',
+  'true',
+  'try',
+  'type',
+  'typeof',
+  'undefined',
+  'unique',
+  'unknown',
+  'var',
+  'void',
+  'while',
+  'with',
+  'yield'
+])
+
+function toTypeScriptIdentifier(value: string, fallback: string): string {
+  const sanitized = value.replace(/[^a-zA-Z0-9_$]+/g, '_')
+  const base = sanitized || fallback
+  const identifier = /^[a-zA-Z_$]/.test(base) ? base : `${fallback}${base}`
+
+  if (TYPESCRIPT_RESERVED_WORDS.has(identifier)) {
+    return `${identifier}Schema`
+  }
+
+  return identifier
+}
+
+function createMetadataModulePlans(
+  metadata: Record<string, GeneratedOpenApiSchemaMetadata>
+): MetadataModulePlan[] {
+  const usedExports = new Map<string, string>()
+  const usedFiles = new Map<string, string>()
+
+  return Object.entries(metadata)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([schemaName, schemaMetadata]) => {
+      const identifier = toTypeScriptIdentifier(schemaName, 'Schema')
+      const exportName = `${identifier}Metadata`
+      const fileName = `${identifier}.ts`
+      const previousExport = usedExports.get(exportName)
+      const previousFile = usedFiles.get(fileName)
+
+      if (previousExport) {
+        throw new Error(
+          `OpenAPI schema 元数据导出名冲突: ${previousExport} 与 ${schemaName} 都映射到 ${exportName}`
+        )
+      }
+
+      if (previousFile) {
+        throw new Error(
+          `OpenAPI schema 元数据文件名冲突: ${previousFile} 与 ${schemaName} 都映射到 ${fileName}`
+        )
+      }
+
+      usedExports.set(exportName, schemaName)
+      usedFiles.set(fileName, schemaName)
+
+      return {
+        schemaName,
+        exportName,
+        fileName,
+        metadata: schemaMetadata
+      }
+    })
+}
+
+function buildMetadataTypesTemplate(): string {
+  return `/**
+ * 自动生成的 OpenAPI 字段元数据类型
  *
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 后端 OpenAPI 端点: ${config.backendUrl}
+ * 后端 OpenAPI 端点: ${config.openApiSource}
  *
- * 更新类型: pnpm type:generate
+ * 更新类型: pnpm generate:types
  */
 
 export type OpenApiEnumValue = string | number | boolean | null
@@ -496,29 +851,147 @@ export interface OpenApiSchemaMetadata {
   additionalProperties?: boolean
   fields: Record<string, OpenApiFieldMetadata>
 }
-
-export const OPENAPI_SCHEMA_METADATA = ${JSON.stringify(metadata, null, 2)} as const satisfies Record<
-  string,
-  OpenApiSchemaMetadata
->
-
-export function getOpenApiSchemaMetadata(schemaName: string): OpenApiSchemaMetadata | undefined {
-  return (OPENAPI_SCHEMA_METADATA as Record<string, OpenApiSchemaMetadata>)[schemaName]
-}
-
-export function getOpenApiFieldMetadata(
-  schemaName: string,
-  fieldName: string
-): OpenApiFieldMetadata | undefined {
-  return (OPENAPI_SCHEMA_METADATA as Record<string, OpenApiSchemaMetadata>)[schemaName]?.fields[fieldName]
-}
 `
+}
 
-  const changed = writeFileIfChanged(outputPath, content)
+function buildMetadataModuleTemplate(plan: MetadataModulePlan): string {
+  return `/**
+ * 自动生成的 OpenAPI schema 字段元数据: ${plan.schemaName}
+ *
+ * ⚠️  请勿手动编辑此文件
+ * 此文件由 scripts/generate-api-types.ts 自动生成
+ *
+ * 后端 OpenAPI 端点: ${config.openApiSource}
+ *
+ * 更新类型: pnpm generate:types
+ */
+
+import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
+
+export const ${plan.exportName} = ${JSON.stringify(plan.metadata, null, 2)} satisfies OpenApiSchemaMetadata
+`
+}
+
+function buildMetadataIndexTemplate(plans: MetadataModulePlan[]): string {
+  const exports = plans
+    .map(plan => `export { ${plan.exportName} } from './${plan.fileName.replace(/\.ts$/, '')}'`)
+    .join('\n')
+
+  return `/**
+ * 自动生成的 OpenAPI schema 字段元数据索引
+ *
+ * ⚠️  请勿手动编辑此文件
+ * 此文件由 scripts/generate-api-types.ts 自动生成
+ *
+ * 后端 OpenAPI 端点: ${config.openApiSource}
+ *
+ * 更新类型: pnpm generate:types
+ */
+
+export type {
+  OpenApiArrayMetadata,
+  OpenApiEnumValue,
+  OpenApiFieldMetadata,
+  OpenApiSchemaMetadata
+} from '../openapi-metadata-types'
+
+${exports}
+`
+}
+
+function buildMetadataEntryTemplate(): string {
+  return `/**
+ * 自动生成的 OpenAPI schema 字段元数据入口
+ *
+ * ⚠️  请勿手动编辑此文件
+ * 此文件由 scripts/generate-api-types.ts 自动生成
+ *
+ * 后端 OpenAPI 端点: ${config.openApiSource}
+ *
+ * 更新类型: pnpm generate:types
+ */
+
+export * from './openapi-metadata/index'
+`
+}
+
+function collectStaleGeneratedMetadataModules(
+  outputDir: string,
+  expectedFiles: Set<string>
+): string[] {
+  if (!existsSync(outputDir)) {
+    return []
+  }
+
+  return readdirSync(outputDir)
+    .filter(fileName => fileName.endsWith('.ts') && !expectedFiles.has(fileName))
+    .filter(fileName => {
+      const content = readFileSync(join(outputDir, fileName), 'utf-8')
+      return (
+        content.includes('自动生成的 OpenAPI schema 字段元数据') &&
+        content.includes('此文件由 scripts/generate-api-types.ts 自动生成')
+      )
+    })
+    .sort()
+}
+
+function deleteStaleGeneratedMetadataModules(
+  outputDir: string,
+  expectedFiles: Set<string>
+): string[] {
+  const staleFiles = collectStaleGeneratedMetadataModules(outputDir, expectedFiles)
+
+  for (const fileName of staleFiles) {
+    deleteFileIfExists(join(outputDir, fileName))
+  }
+
+  return staleFiles
+}
+
+async function generateMetadataFiles(
+  spec: unknown,
+  typesOutputPath: string,
+  entryOutputPath: string,
+  indexOutputPath: string,
+  modulesOutputDir: string
+): Promise<MetadataGenerationResult> {
+  console.log('🧭 正在生成 OpenAPI 字段元数据...')
+
+  const metadata = extractSchemaMetadata(spec)
+  const plans = createMetadataModulePlans(metadata)
+  const expectedFiles = new Set<string>(['index.ts'])
+  let changed = writeFileIfChanged(typesOutputPath, buildMetadataTypesTemplate())
+  changed = writeFileIfChanged(entryOutputPath, buildMetadataEntryTemplate()) || changed
+
+  ensureDir(modulesOutputDir)
+
+  const indexChanged = writeFileIfChanged(indexOutputPath, buildMetadataIndexTemplate(plans))
+  changed = changed || indexChanged
+
+  for (const plan of plans) {
+    expectedFiles.add(plan.fileName)
+
+    const outputPath = join(modulesOutputDir, plan.fileName)
+    const fileChanged = writeFileIfChanged(outputPath, buildMetadataModuleTemplate(plan))
+    console.log(
+      fileChanged ? `  ✅ 已更新: ${plan.fileName}` : `  ✅ 无变化: ${plan.fileName}`
+    )
+    changed = changed || fileChanged
+  }
+
+  const deletedFiles = deleteStaleGeneratedMetadataModules(modulesOutputDir, expectedFiles)
+
   console.log(
-    changed ? `✅ 字段元数据文件已更新: ${outputPath}` : `✅ 字段元数据无变化: ${outputPath}`
+    changed || deletedFiles.length > 0
+      ? `✅ 字段元数据已拆分生成: ${modulesOutputDir}`
+      : `✅ 字段元数据无变化: ${modulesOutputDir}`
   )
-  return changed
+
+  return {
+    changed: changed || deletedFiles.length > 0,
+    deletedFiles,
+    generatedFileNames: ['index.ts', ...plans.map(plan => plan.fileName)]
+  }
 }
 
 export function validateGeneratedFile(outputPath: string): void {
@@ -1373,20 +1846,34 @@ export async function main(): Promise<void> {
   console.log('🚀 OpenAPI 类型生成工具\n')
 
   ensureDir(config.outputDir)
+  ensureDir(config.metadataOutputDir)
   ensureDir(config.modulesOutputDir)
 
   const spec = await fetchOpenApiSpec(config.openApiSource)
 
   const typesOutputPath = join(config.outputDir, 'openapi-types.ts')
-  const metadataOutputPath = join(config.outputDir, 'openapi-metadata.ts')
+  const metadataEntryOutputPath = join(config.outputDir, 'openapi-metadata.ts')
+  const metadataTypesOutputPath = join(config.outputDir, 'openapi-metadata-types.ts')
+  const metadataIndexOutputPath = join(config.metadataOutputDir, 'index.ts')
   const apiClientsOutputPath = join(config.outputDir, 'api-clients.ts')
 
   const typesChanged = await generateTypesFile(spec, typesOutputPath)
-  const metadataChanged = await generateMetadataFile(spec, metadataOutputPath)
+  const metadataResult = await generateMetadataFiles(
+    spec,
+    metadataTypesOutputPath,
+    metadataEntryOutputPath,
+    metadataIndexOutputPath,
+    config.metadataOutputDir
+  )
   const apiClientsDeleted = deleteFileIfExists(apiClientsOutputPath)
 
   validateGeneratedFile(typesOutputPath)
-  validateGeneratedFile(metadataOutputPath)
+  validateGeneratedFile(metadataEntryOutputPath)
+  validateGeneratedFile(metadataTypesOutputPath)
+
+  for (const fileName of metadataResult.generatedFileNames) {
+    validateGeneratedFile(join(config.metadataOutputDir, fileName))
+  }
 
   const modulesResult = await generateApiModules(spec, config.modulesOutputDir)
 
@@ -1396,7 +1883,11 @@ export async function main(): Promise<void> {
     validateGeneratedFile(join(config.modulesOutputDir, fileName))
   }
 
-  const changed = typesChanged || metadataChanged || apiClientsDeleted || modulesResult.changed
+  const changed =
+    typesChanged ||
+    metadataResult.changed ||
+    apiClientsDeleted ||
+    modulesResult.changed
 
   console.log(changed ? '\n✅ 类型生成完成！' : '\n✅ 类型无变化，未更新生成文件')
   console.log(`📁 生成目录: ${config.outputDir}`)
@@ -1404,6 +1895,13 @@ export async function main(): Promise<void> {
 
   if (apiClientsDeleted) {
     console.log(`🧹 已移除旧聚合客户端: ${apiClientsOutputPath}`)
+  }
+
+  if (metadataResult.deletedFiles.length > 0) {
+    console.log('\n🧹 已移除以下过期的自动生成 metadata 文件：')
+    for (const fileName of metadataResult.deletedFiles) {
+      console.log(`   - ${fileName}`)
+    }
   }
 
   if (modulesResult.deletedFiles.length > 0) {

@@ -202,21 +202,21 @@ function ratio(value: number, total: number): number {
 }
 
 const worklineHealthItems = computed(() => {
+  let blocked = 0
+  let waiting = 0
+  let stable = 0
+  let active = 0
+  for (const i of worklines.value) {
+    const hasFailure =
+      i.failed_session_count > 0 || i.offline_device_count > 0 || i.error_device_count > 0
+    const hasWaiting = i.waiting_session_count > 0
+    const isActive = i.active_session_count > 0
+    if (hasFailure) blocked++
+    else if (hasWaiting) waiting++
+    if (!hasFailure && !hasWaiting) stable++
+    if (isActive) active++
+  }
   const total = worklines.value.length || 1
-  const blocked = worklines.value.filter(
-    i => i.failed_session_count > 0 || i.offline_device_count > 0 || i.error_device_count > 0
-  ).length
-  const waiting = worklines.value.filter(
-    i => i.waiting_session_count > 0 && i.failed_session_count === 0
-  ).length
-  const stable = worklines.value.filter(
-    i =>
-      i.failed_session_count === 0 &&
-      i.offline_device_count === 0 &&
-      i.error_device_count === 0 &&
-      i.waiting_session_count === 0
-  ).length
-  const active = worklines.value.filter(i => i.active_session_count > 0).length
   return [
     {
       label: '阻塞 / 告警',
@@ -334,12 +334,35 @@ const sessionStructureItems = computed(() => {
 async function loadOverviewData(): Promise<void> {
   const [overviewData, worklineData, activeTraceData] = await Promise.all([
     runtimeApiMethods.overview().send(),
-    runtimeApiMethods.worklines().send(),
+    runtimeApiMethods.worklines({ excludeSimulation: true }).send(),
     runtimeApiMethods.queryTraces({ only_active: true, limit: 10, offset: 0 }).send()
   ])
   overview.value = {
     ...overviewData,
     recent_active_traces: activeTraceData.items,
+    recent_failed_traces: overviewData.recent_failed_traces ?? [],
+    hot_worklines: overviewData.hot_worklines ?? [],
+    abnormal_devices: overviewData.abnormal_devices ?? [],
+    device_health: overviewData.device_health ?? {
+      total: 0,
+      abnormal: 0,
+      maintenance: 0,
+      loaded: 0,
+      healthy: 0
+    }
+  }
+  worklines.value = worklineData
+  markRefreshedAt()
+}
+
+async function loadCoreData(): Promise<void> {
+  const [overviewData, worklineData] = await Promise.all([
+    runtimeApiMethods.overview().send(),
+    runtimeApiMethods.worklines({ excludeSimulation: true }).send()
+  ])
+  overview.value = {
+    ...overviewData,
+    recent_active_traces: overview.value.recent_active_traces,
     recent_failed_traces: overviewData.recent_failed_traces ?? [],
     hot_worklines: overviewData.hot_worklines ?? [],
     abnormal_devices: overviewData.abnormal_devices ?? [],
@@ -364,9 +387,18 @@ const refresh = createCoalescedAsyncTask(async () => {
   }
 })
 
+const refreshCore = createCoalescedAsyncTask(async () => {
+  loading.value = true
+  try {
+    await loadCoreData()
+  } finally {
+    loading.value = false
+  }
+})
+
 function openTrace(trace: RuntimeTraceListItem) {
   router.push({
-    name: 'RuntimeTraceExplorer',
+    name: 'RuntimeWorklines',
     query: {
       traceId: trace.trace_id || undefined,
       sessionId: trace.trace_id ? undefined : String(trace.session_id),
@@ -377,7 +409,7 @@ function openTrace(trace: RuntimeTraceListItem) {
 }
 
 function goTraceExplorer() {
-  router.push({ name: 'RuntimeTraceExplorer' })
+  router.push({ name: 'RuntimeWorklines' })
 }
 
 function handleNavigate(item: PriorityItem) {
@@ -392,6 +424,11 @@ watch(
   () => lastEvent.value,
   event => {
     if (!live.value || !event) return
+    // device 事件不影响 trace 列表，跳过 trace 请求
+    if (event.entity === 'device') {
+      void refreshCore()
+      return
+    }
     void refresh()
   }
 )

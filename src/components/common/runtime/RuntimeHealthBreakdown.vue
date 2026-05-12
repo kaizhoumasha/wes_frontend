@@ -85,7 +85,7 @@ const totalLabel = computed(() => `样本 ${props.total}`)
 <style scoped>
 .runtime-health-breakdown {
   height: 100%;
-  background: rgb(15, 23, 42, 0.72);
+  background: var(--runtime-surface);
   border: 1px solid rgb(245, 158, 11, 0.12);
 }
 
@@ -97,7 +97,7 @@ const totalLabel = computed(() => `样本 ${props.total}`)
 }
 
 .runtime-health-breakdown__title {
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   font-size: 16px;
   font-weight: 700;
 }
@@ -105,7 +105,7 @@ const totalLabel = computed(() => `样本 ${props.total}`)
 .runtime-health-breakdown__subtitle,
 .runtime-health-breakdown__total,
 .runtime-health-breakdown__item-hint {
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 12px;
 }
 
@@ -129,13 +129,13 @@ const totalLabel = computed(() => `样本 ${props.total}`)
 }
 
 .runtime-health-breakdown__item-label {
-  color: #e2e8f0;
+  color: var(--runtime-text-emphasis);
   font-size: 13px;
   font-weight: 600;
 }
 
 .runtime-health-breakdown__item-value {
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 700;
@@ -146,7 +146,7 @@ const totalLabel = computed(() => `样本 ${props.total}`)
   width: 100%;
   height: 8px;
   border-radius: 999px;
-  background: rgb(148, 163, 184, 0.12);
+  background: var(--runtime-rail);
 }
 
 .runtime-health-breakdown__bar-fill {

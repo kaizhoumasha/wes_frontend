@@ -35,7 +35,7 @@ ENV VITE_API_BASE_URL=${VITE_API_BASE_URL} \
     VITE_APP_DEV=${VITE_APP_DEV}
 
 # 先生成菜单清单，再构建生产版本
-RUN pnpm run menu:generate && pnpm run build
+RUN pnpm run generate:menu && pnpm run build
 
 # Stage 2: 生产阶段
 FROM nginx:alpine AS production

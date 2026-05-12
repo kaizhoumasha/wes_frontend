@@ -4,9 +4,9 @@ import type {
   RuntimeWorklineSummary
 } from '@/types/runtime'
 import {
-  buildRuntimeTraceQuery,
   buildRuntimeWorklineQuery
 } from '@/utils/runtime-route'
+import { resolveRuntimeProgressKey, resolveRuntimeProgressLabel } from '@/utils/runtime-display'
 
 export type ActionTier = 'critical' | 'watch' | 'known'
 
@@ -19,6 +19,8 @@ export interface PriorityItem {
   navigateTo: { name: string; query: Record<string, string | undefined> }
   score: number
 }
+
+const RUNTIME_ROUTE_NAME = 'RuntimeWorklines' as const
 
 const THRESHOLDS = {
   BACKLOG_CRITICAL: 50,
@@ -46,7 +48,7 @@ function classifyWorklines(
         id: wl.id,
         summary: `${wl.line_name} — ${wl.failed_session_count} 失败 / ${wl.offline_device_count} 离线设备`,
         context: `${wl.line_code} · ${wl.zone_name || '未配置区域'}`,
-        navigateTo: { name: 'RuntimeWorklines', query: buildRuntimeWorklineQuery(wl.id) },
+        navigateTo: { name: RUNTIME_ROUTE_NAME, query: buildRuntimeWorklineQuery(wl.id) },
         score
       })
     } else if (wl.waiting_session_count >= THRESHOLDS.WAITING_SESSION_WATCH) {
@@ -56,7 +58,7 @@ function classifyWorklines(
         id: wl.id,
         summary: `${wl.line_name} — 等待堆积 ${wl.waiting_session_count}`,
         context: `${wl.line_code} · 活跃 ${wl.active_session_count}`,
-        navigateTo: { name: 'RuntimeWorklines', query: buildRuntimeWorklineQuery(wl.id) },
+        navigateTo: { name: RUNTIME_ROUTE_NAME, query: buildRuntimeWorklineQuery(wl.id) },
         score: wl.waiting_session_count * 2
       })
     }
@@ -76,7 +78,7 @@ function classifyDevices(
         summary: `${dev.device_name} — ${dev.device_status}`,
         context: `${dev.device_code} · ${dev.workline_name || '未关联工作线'}`,
         navigateTo: {
-          name: 'RuntimeWorklines',
+          name: RUNTIME_ROUTE_NAME,
           query: buildRuntimeWorklineQuery(dev.workline_id, dev.id)
         },
         score: dev.device_status === 'OFFLINE' ? 90 : 80
@@ -89,7 +91,7 @@ function classifyDevices(
         summary: `${dev.device_name} — 维护中`,
         context: `${dev.device_code}`,
         navigateTo: {
-          name: 'RuntimeWorklines',
+          name: RUNTIME_ROUTE_NAME,
           query: buildRuntimeWorklineQuery(dev.workline_id, dev.id)
         },
         score: 10
@@ -105,12 +107,13 @@ function classifyTraces(
   const failureCounts = new Map<string, number>()
 
   for (const trace of traces) {
-    const dedupeKey = `${trace.device_id ?? 'none'}-${trace.step_code ?? 'none'}`
+    const dedupeKey = `${trace.device_id ?? 'none'}-${resolveRuntimeProgressKey(trace)}`
     failureCounts.set(dedupeKey, (failureCounts.get(dedupeKey) ?? 0) + 1)
   }
 
   for (const trace of traces) {
-    const dedupeKey = `${trace.device_id ?? 'none'}-${trace.step_code ?? 'none'}`
+    const progressLabel = resolveRuntimeProgressLabel(trace)
+    const dedupeKey = `${trace.device_id ?? 'none'}-${resolveRuntimeProgressKey(trace)}`
     const repeatCount = failureCounts.get(dedupeKey) ?? 1
 
     if (repeatCount >= THRESHOLDS.REPEAT_FAILURE_MIN) {
@@ -122,15 +125,17 @@ function classifyTraces(
           tier: 'watch',
           entity: 'trace',
           id: `repeat-${dedupeKey}`,
-          summary: `重复失败 (${repeatCount} 次) — ${trace.step_code || '未知步骤'}`,
+          summary: `重复失败 (${repeatCount} 次) — ${progressLabel}`,
           context: `${trace.device_name || '未关联设备'} · ${trace.workline_name || ''}`,
           navigateTo: {
-            name: 'RuntimeTraceExplorer',
-            query: buildRuntimeTraceQuery({
-              traceId: trace.trace_id,
-              sessionId: trace.trace_id ? undefined : trace.session_id,
-              worklineId: trace.workline_id
-            })
+            name: RUNTIME_ROUTE_NAME,
+            query: buildRuntimeWorklineQuery(
+              trace.workline_id,
+              undefined,
+              'trace',
+              trace.trace_id ? undefined : trace.session_id,
+              trace.trace_id,
+            )
           },
           score: repeatCount * 5
         })
@@ -143,11 +148,14 @@ function classifyTraces(
         summary: `${trace.session_code} — 已结束`,
         context: `${trace.workline_name || ''} · ${trace.device_name || ''}`,
         navigateTo: {
-          name: 'RuntimeTraceExplorer',
-          query: buildRuntimeTraceQuery({
-            traceId: trace.trace_id,
-            sessionId: trace.trace_id ? undefined : trace.session_id
-          })
+          name: RUNTIME_ROUTE_NAME,
+          query: buildRuntimeWorklineQuery(
+            trace.workline_id,
+            undefined,
+            'trace',
+            trace.trace_id ? undefined : trace.session_id,
+            trace.trace_id,
+          )
         },
         score: 5
       })
@@ -167,7 +175,7 @@ function classifyBacklog(
       id: 'system-backlog',
       summary: `系统积压 ${backlog} — 超过阈值`,
       context: `inbox ${statValue(stats, 'inbox_backlog')} / outbox ${statValue(stats, 'outbox_backlog')}`,
-      navigateTo: { name: 'RuntimeDashboard', query: {} },
+      navigateTo: { name: RUNTIME_ROUTE_NAME, query: {} },
       score: backlog * 0.5
     })
   }

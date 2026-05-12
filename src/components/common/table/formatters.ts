@@ -51,7 +51,8 @@
  * ```
  */
 
-import { h } from 'vue'
+import { computed, defineComponent, h, nextTick, onMounted, onUnmounted, ref } from 'vue'
+import type { PropType } from 'vue'
 import { ElTag, ElPopconfirm, ElDropdown, ElDropdownMenu, ElDropdownItem, ElMessageBox } from 'element-plus'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
@@ -393,6 +394,8 @@ export interface ActionButtonConfig {
    * - 'secondary': 次要操作，收起到下拉菜单
    */
   priority?: 'primary' | 'secondary'
+  /** 是否仅显示图标（用于空间紧张时的自适应） */
+  iconOnly?: boolean
   /** 显示条件 */
   show?: ActionValue<boolean>
   /** 禁用条件 */
@@ -414,12 +417,12 @@ export interface ActionButtonConfig {
 }
 
 export interface ActionsFormatterOptions {
-  /** 按钮间距 */
+  /** 按钮间距，默认 4px */
   gap?: number
   /** 是否显示为块级 */
   block?: boolean
-  /** 主操作最大数量，超过后显示"更多"下拉 */
-  maxPrimaryActions?: number
+  /** 列宽（用于动态自适应布局） */
+  colWidth?: number
 }
 
 /**
@@ -465,8 +468,6 @@ function renderActionButton(
   const loading = resolveActionBoolean(button.loading, row, index, false)
   const type = resolveActionValue(button.type, row, index) ?? 'primary'
   const tooltip = resolveActionValue(button.tooltip, row, index)
-  const isSecondary = button.priority === 'secondary'
-  const isLink = isSecondary // 次要操作使用 link 样式
   const { isDropdownItem = false } = options
 
   // 下拉菜单项渲染
@@ -527,23 +528,24 @@ function renderActionButton(
     )
   }
 
-  // 直接显示的按钮
-  // 主要操作：填充按钮样式（link: false）
-  // 次要操作：文字按钮样式（link: true）
+  // 直接显示的按钮：统一使用 link 样式，通过 type 色调区分
+  // iconOnly 模式：隐藏文本，仅保留图标
+  const isIconOnly = button.iconOnly === true && !!button.icon
   const buttonNode = h(
     AppButton,
     {
       type,
       size: button.size ?? 'small',
       icon: button.icon,
-      tooltip,
-      link: isLink,
+      tooltip: isIconOnly ? (tooltip ?? label) : tooltip,
+      link: true,
+      text: isIconOnly,
       disabled,
       loading,
       preserveIconSpace: true,
       onClick: button.popconfirm ? undefined : () => button.onClick(row, index)
     },
-    { default: () => String(label) }
+    isIconOnly ? undefined : { default: () => String(label) }
   )
 
   if (!button.popconfirm) {
@@ -566,8 +568,267 @@ function renderActionButton(
   )
 }
 
+// ============================================================================
+// 操作按钮单元格组件（动态自适应布局）
+// ============================================================================
+
+const DROPDOWN_TRIGGER_WIDTH = 48
+// Element Plus 表格单元格默认 padding 左右各 12px
+const CELL_HORIZONTAL_PADDING = 24
+const DEFAULT_GAP = 4
+
 /**
- * 创建操作按钮组格式化器（支持主次分离）
+ * 操作按钮单元格组件
+ *
+ * 根据列宽动态决定按钮显示模式：
+ * 1. 空间充足 → 全部 icon+text 平铺
+ * 2. 空间紧张 → 有图标的按钮变为 icon-only
+ * 3. 空间不足 → 超出按钮收入"更多"下拉
+ *
+ * 首帧使用 visibility: hidden 防止闪动，测量完成后立即展示最终布局。
+ */
+const ActionsCell = defineComponent({
+  name: 'ActionsCell',
+  props: {
+    buttons: { type: Array as PropType<ActionButtonConfig[]>, required: true },
+    colWidth: { type: Number, default: 0 },
+    gap: { type: Number, default: DEFAULT_GAP },
+    block: { type: Boolean, default: false },
+    row: { type: Object as PropType<Record<string, unknown>>, required: true },
+    index: { type: Number, required: true }
+  },
+  setup(props) {
+    const { hasPermission } = usePermission()
+    const containerRef = ref<HTMLElement | null>(null)
+    const buttonRefs = ref<HTMLElement[]>([])
+    const buttonWidths = ref<number[]>([])
+    const layoutReady = ref(false)
+    const containerWidth = ref(0)
+    const widthObserved = ref(false)
+
+    // 过滤可见按钮
+    const visibleButtons = computed(() =>
+      props.buttons.filter(
+        button =>
+          (!button.permission || hasPermission(button.permission)) &&
+          resolveActionBoolean(button.show, props.row, props.index, true)
+      )
+    )
+
+    // 测量阶段：渲染全部按钮到隐藏容器，记录宽度
+    async function measureButtons(): Promise<void> {
+      await nextTick()
+      const widths = buttonRefs.value
+        .filter(el => el !== null)
+        .map(el => el.offsetWidth)
+      buttonWidths.value = widths
+    }
+
+    // 布局计算：基于容器宽度和按钮宽度决定显示模式
+    const layoutResult = computed(() => {
+      const btns = visibleButtons.value
+      const widths = buttonWidths.value
+
+      if (btns.length === 0 || widths.length !== btns.length) {
+        return { mode: 'none', displayButtons: [], dropdownButtons: [] } as const
+      }
+
+      // 列宽来源有两种：
+      // 1. props.colWidth：页面配置的初始值（border-box），需要减去单元格 padding
+      // 2. containerWidth：ResizeObserver 读取的实际渲染宽度（content-box），已经是可用宽度
+      const fallbackWidth = 200
+      const effectiveWidth = widthObserved.value
+        ? containerWidth.value
+        : (props.colWidth || fallbackWidth)
+      const availableWidth = widthObserved.value
+        ? effectiveWidth
+        : effectiveWidth - CELL_HORIZONTAL_PADDING
+
+      // === 第一步：尝试全部 icon+text ===
+      const inlineTotal = widths.reduce((s, w) => s + w, 0) + (btns.length - 1) * props.gap
+      if (inlineTotal <= availableWidth) {
+        return {
+          mode: 'inline',
+          displayButtons: btns.map(b => ({ ...b, iconOnly: false })),
+          dropdownButtons: []
+        } as const
+      }
+
+      // === 第二步：逐按钮降级（icon+text → icon-only），直到放下 ===
+      // 从后往前逐个压缩，累积节省的宽度
+      let totalSavings = 0
+      let downgradeCount = 0
+
+      for (let i = btns.length - 1; i >= 0; i--) {
+        const btn = btns[i]
+        if (!btn.icon) continue
+        totalSavings += widths[i] - 32
+        if (inlineTotal - totalSavings <= availableWidth) {
+          downgradeCount = btns.length - i
+          break
+        }
+      }
+
+      if (downgradeCount > 0) {
+        // 部分按钮降级成功，无需下拉
+        const displayButtons = btns.map((b, i) => ({
+          ...b,
+          iconOnly: i >= btns.length - downgradeCount && !!b.icon
+        }))
+        return {
+          mode: 'mixed',
+          displayButtons,
+          dropdownButtons: []
+        } as const
+      }
+
+      // === 第三步：即使全部 icon-only 也放不下 → 使用"更多"下拉 ===
+      const displayButtons: (ActionButtonConfig & { iconOnly?: boolean })[] = []
+      const dropdownButtons: ActionButtonConfig[] = []
+      // 第一个按钮前面无 gap，从第二个开始每个按钮多一个 gap
+      let displayWidth = -props.gap
+
+      for (let i = 0; i < btns.length; i++) {
+        const btn = btns[i]
+        const btnWidth = btn.icon ? 32 : widths[i]
+        displayWidth += btnWidth + props.gap
+
+        if (displayWidth + DROPDOWN_TRIGGER_WIDTH <= availableWidth) {
+          displayButtons.push({ ...btn, iconOnly: !!btn.icon })
+        } else {
+          dropdownButtons.push(btn)
+        }
+      }
+
+      // 下拉中只有一个按钮 → 弹出显示，避免单按钮触发"更多"
+      if (dropdownButtons.length === 1) {
+        const lastBtn = dropdownButtons.pop()!
+        displayButtons.push({ ...lastBtn, iconOnly: !!lastBtn.icon })
+      }
+
+      return { mode: 'dropdown', displayButtons, dropdownButtons } as const
+    })
+
+    let resizeObserver: ResizeObserver | null = null
+    let rafId: number | null = null
+
+    onMounted(async () => {
+      // 首帧隐藏，测量按钮宽度
+      await measureButtons()
+
+      // 首帧使用 props.colWidth 作为列宽参考值
+      // 用户拖拽列宽后由 ResizeObserver 更新为真实宽度
+      if (props.colWidth > 0) {
+        containerWidth.value = props.colWidth
+      }
+
+      // 切换为最终可见容器
+      layoutReady.value = true
+
+      // 等待 DOM 切换到最终容器后再绑定 ResizeObserver
+      await nextTick()
+      if (!containerRef.value) return
+
+      resizeObserver = new ResizeObserver(entries => {
+        if (rafId !== null) cancelAnimationFrame(rafId)
+        rafId = requestAnimationFrame(() => {
+          const entry = entries[0]
+          if (entry) {
+            containerWidth.value = Math.round(entry.contentRect.width)
+            widthObserved.value = true
+          }
+          rafId = null
+        })
+      })
+      resizeObserver.observe(containerRef.value)
+    })
+
+    onUnmounted(() => {
+      resizeObserver?.disconnect()
+      if (rafId !== null) cancelAnimationFrame(rafId)
+    })
+
+    return () => {
+      const btns = visibleButtons.value
+
+      // 无可见按钮
+      if (btns.length === 0) {
+        return h('span', { class: 'text-muted' }, '-')
+      }
+
+      // 测量阶段：渲染隐藏容器用于测量
+      if (!layoutReady.value) {
+        return h(
+          'div',
+          {
+            ref: containerRef,
+            style: { visibility: 'hidden', position: 'absolute', whiteSpace: 'nowrap' },
+            class: 'flex items-center gap-1'
+          },
+          btns.map((button, i) =>
+            h('span', { ref: el => { if (el instanceof HTMLElement) buttonRefs.value[i] = el } }, [
+              renderActionButton(button, props.row, props.index)
+            ])
+          )
+        )
+      }
+
+      // 最终渲染：基于布局结果渲染
+      const layout = layoutResult.value
+      const containerClass = props.block
+        ? 'flex flex-col gap-1 items-center'
+        : 'flex items-center gap-1'
+
+      const displayNodes = layout.displayButtons.map((button, i) =>
+        h('span', { ref: el => { if (el instanceof HTMLElement) buttonRefs.value[i] = el } }, [
+          renderActionButton(button, props.row, props.index)
+        ])
+      )
+
+      // "更多"下拉触发器
+      const dropdownNode =
+        layout.dropdownButtons.length > 0
+          ? h(
+              ElDropdown,
+              { trigger: 'click', placement: 'bottom-end' },
+              {
+                default: () =>
+                  h('span', { class: 'action-more-trigger' }, [
+                    h('span', { class: 'action-more-trigger__text' }, '更多'),
+                    h('i', { class: 'i-ep-arrow-down action-more-trigger__arrow' })
+                  ]),
+                dropdown: () =>
+                  h(
+                    ElDropdownMenu,
+                    { class: 'action-dropdown-menu' },
+                    {
+                      default: () =>
+                        layout.dropdownButtons.map(button =>
+                          renderActionButton(button, props.row, props.index, { isDropdownItem: true })
+                        )
+                    }
+                  )
+              }
+            )
+          : null
+
+      const allNodes = [...displayNodes, dropdownNode].filter(Boolean)
+
+      return h(
+        'div',
+        {
+          ref: containerRef,
+          class: containerClass,
+          style: { gap: `${props.gap}px`, width: '100%', overflow: 'hidden' }
+        },
+        allNodes
+      )
+    }
+  }
+})
+
+/**
+ * 创建操作按钮组格式化器（支持列宽自适应）
  *
  * @example
  * ```ts
@@ -575,119 +836,25 @@ function renderActionButton(
  *   {
  *     label: '编辑',
  *     type: 'primary',
- *     priority: 'primary',
+ *     icon: 'lucide:edit',
+ *     tooltip: '编辑',
  *     onClick: (row) => handleEdit(row)
- *   },
- *   {
- *     label: '删除',
- *     type: 'danger',
- *     priority: 'secondary',
- *     popconfirm: { title: '确认删除？' },
- *     onClick: (row) => handleDelete(row)
  *   }
- * ]) }
+ * ], { colWidth: 200 }) }
  * ```
  */
 export function createActionsFormatter(
   buttons: ActionButtonConfig[],
   options: ActionsFormatterOptions = {}
 ): ColumnSlotRender {
-  const { hasPermission } = usePermission()
   const {
-    gap = 8,
+    gap = DEFAULT_GAP,
     block = false,
-    maxPrimaryActions = 2
+    colWidth
   } = options
 
-  return ({ row, $index }) => {
-    // 过滤可见按钮
-    const visibleButtons = buttons.filter(button =>
-      (!button.permission || hasPermission(button.permission)) &&
-      resolveActionBoolean(button.show, row, $index, true)
-    )
-
-    if (visibleButtons.length === 0) {
-      return h('span', { class: 'text-muted' }, '-')
-    }
-
-    // 按优先级分组
-    const primaryButtons = visibleButtons.filter(b => b.priority !== 'secondary')
-    const secondaryButtons = visibleButtons.filter(b => b.priority === 'secondary')
-
-    // 决定显示策略
-    const needDropdown = visibleButtons.length > maxPrimaryActions + 1 ||
-      secondaryButtons.length > 0
-
-    // 情况1: 不需要下拉菜单，全部平铺
-    if (!needDropdown) {
-      const buttonNodes = visibleButtons.map(button =>
-        renderActionButton(button, row, $index)
-      )
-
-      return h(
-        'div',
-        {
-          class: block ? 'flex flex-col gap-1' : 'flex gap-2',
-          style: !block ? { gap: `${gap}px` } : undefined
-        },
-        buttonNodes
-      )
-    }
-
-    // 情况2: 需要主次分离
-    const displayPrimaryButtons = primaryButtons.slice(0, maxPrimaryActions)
-    const dropdownButtons = [
-      ...primaryButtons.slice(maxPrimaryActions),
-      ...secondaryButtons
-    ]
-
-    // 渲染主操作按钮
-    const primaryNodes = displayPrimaryButtons.map(button =>
-      renderActionButton(button, row, $index)
-    )
-
-    // 渲染"更多"下拉菜单
-    // 使用 icon 按钮 + 下拉箭头
-    const dropdownNode = dropdownButtons.length > 0
-      ? h(
-          ElDropdown,
-          {
-            trigger: 'click',
-            placement: 'bottom-end'
-          },
-          {
-            default: () => h(
-              'span',
-              { class: 'action-more-trigger' },
-              [
-                h('span', { class: 'action-more-trigger__text' }, '更多'),
-                h('i', { class: 'i-ep-arrow-down action-more-trigger__arrow' })
-              ]
-            ),
-            dropdown: () => h(
-              ElDropdownMenu,
-              { class: 'action-dropdown-menu' },
-              {
-                default: () => dropdownButtons.map(button =>
-                  renderActionButton(button, row, $index, { isDropdownItem: true })
-                )
-              }
-            )
-          }
-        )
-      : null
-
-    const allNodes = [...primaryNodes, dropdownNode].filter(Boolean)
-
-    return h(
-      'div',
-      {
-        class: 'flex items-center gap-2',
-        style: { gap: `${gap}px` }
-      },
-      allNodes
-    )
-  }
+  return ({ row, $index }) =>
+    h(ActionsCell, { buttons, gap, block, colWidth, row, index: $index })
 }
 
 // ============================================================================
@@ -727,13 +894,20 @@ export function buildActionsColumn(
     hideable = false
   } = options
 
+  // 同时设置 width 和 minWidth：
+  // - width 控制初始宽度（页面配置的 width 或兜底 200）
+  // - minWidth 限制拖拽下限（页面配置的 minWidth 或兜底 88）
+  const effectiveWidth = width ?? 200
+  const effectiveMinWidth = minWidth ?? 88
+
   return {
     field,
     title,
-    slots: { default: createActionsFormatter(buttons) },
+    slots: { default: createActionsFormatter(buttons, { colWidth: effectiveWidth }) },
     align: 'center',
-    width,
-    minWidth,
+    width: effectiveWidth,
+    minWidth: effectiveMinWidth,
+    className: 'actions-column',
     fixed,
     reorderLocked,
     hideable,

@@ -7,6 +7,11 @@ import type {
   UpdateMenusInput as UpdateMenuInput,
   MenusItem as Menu
 } from '@/api/modules/menus'
+import {
+  MenuCreateMetadata,
+  MenuResponseMetadata,
+  MenuUpdateMetadata
+} from '@/api/generated/openapi-metadata'
 import { MenuCreateSchema, MenuUpdateSchema } from '@/types/zod-extensions'
 import {
   defineCrudResourceFieldBundle
@@ -47,9 +52,9 @@ export const {
   fieldConfig: menuPageFieldConfig
 } = defineCrudResourceFieldBundle<Menu, CreateMenuInput, UpdateMenuInput>({
   backend: {
-    readSchema: 'MenuResponse',
-    createSchema: 'MenuCreate',
-    updateSchema: 'MenuUpdate',
+    readSchema: MenuResponseMetadata,
+    createSchema: MenuCreateMetadata,
+    updateSchema: MenuUpdateMetadata,
     labelOverrides: MENU_FIELD_LABEL_OVERRIDES
   },
   fields: [

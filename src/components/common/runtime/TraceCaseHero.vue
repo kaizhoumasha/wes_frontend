@@ -6,15 +6,22 @@
     <div class="trace-case-hero__top">
       <div class="trace-case-hero__identity">
         <div class="trace-case-hero__eyebrow-row runtime-hero__eyebrow-row">
-          <div class="trace-case-hero__eyebrow">Trace 摘要</div>
-          <span class="trace-case-hero__code runtime-hero__code">{{ traceCode }}</span>
+          <div class="trace-case-hero__eyebrow">{{ heroEyebrow }}</div>
+          <span class="trace-case-hero__code runtime-hero__code">{{ heroSubCode }}</span>
         </div>
         <div class="trace-case-hero__title-row runtime-hero__title-row">
-          <h2 class="trace-case-hero__title">{{ sessionCode }}</h2>
+          <h2 class="trace-case-hero__title">{{ heroTitle }}</h2>
           <RuntimeStatusBadge
             :status="detail.summary.session_status || detail.session?.status"
             pulse
           />
+        </div>
+        <div
+          v-if="runtimeProgress !== '—'"
+          class="trace-case-hero__step-progress"
+        >
+          <span class="trace-case-hero__step-label">运行进度</span>
+          <span class="trace-case-hero__step-value">{{ runtimeProgress }}</span>
         </div>
         <p class="trace-case-hero__headline">{{ headline }}</p>
       </div>
@@ -36,10 +43,6 @@
         <strong>{{ compactEnumLabel(detail.summary.latest_timeline_action) }}</strong>
       </div>
       <div class="trace-case-hero__fact runtime-hero__fact">
-        <span>当前 Step</span>
-        <strong>{{ detail.summary.step_code || detail.session?.step_code || '—' }}</strong>
-      </div>
-      <div class="trace-case-hero__fact runtime-hero__fact">
         <span>失败域 / 失败码</span>
         <strong>{{ failureText }}</strong>
       </div>
@@ -47,7 +50,7 @@
         <span>工作线 / 设备</span>
         <strong>{{ worklineDeviceText }}</strong>
       </div>
-      <div class="trace-case-hero__fact trace-case-hero__fact--wide runtime-hero__fact">
+      <div class="trace-case-hero__fact runtime-hero__fact">
         <span>Trace / Request</span>
         <strong>{{ anchorText }}</strong>
       </div>
@@ -70,7 +73,19 @@
 import { computed } from 'vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import type { TraceDetailResponse } from '@/types/runtime'
-import { compactEnumLabel, formatRuntimeCount, formatRuntimeElapsed } from '@/utils/runtime-display'
+import {
+  compactEnumLabel,
+  formatRuntimeCount,
+  formatRuntimeElapsed,
+  resolveRuntimeProgressLabel
+} from '@/utils/runtime-display'
+
+import {
+  displaySession,
+  displayTrace,
+  displayWorkline,
+  displayDevice
+} from '@/utils/runtime-display-identity'
 
 const props = defineProps<{
   detail: TraceDetailResponse
@@ -78,11 +93,28 @@ const props = defineProps<{
   deviceName?: string | null
 }>()
 
-const sessionCode = computed(
-  () => props.detail.session?.session_code || `SES-${props.detail.trace.session_id ?? '—'}`
+const sessionCode = computed(() =>
+  displaySession({
+    session_code: props.detail.session?.session_code,
+    session_id: props.detail.trace.session_id
+  })
 )
-const traceCode = computed(
-  () => props.detail.trace.trace_id || `Session #${props.detail.trace.session_id ?? '—'}`
+const traceCode = computed(() =>
+  displayTrace({
+    trace_id: props.detail.trace.trace_id,
+    session_code: props.detail.session?.session_code,
+    session_id: props.detail.trace.session_id
+  })
+)
+const barcode = computed(() => props.detail.session?.barcode ?? null)
+const heroEyebrow = computed(() => (barcode.value ? '物料条码' : 'Trace 摘要'))
+const heroTitle = computed(() => barcode.value || sessionCode.value)
+const heroSubCode = computed(() => (barcode.value ? sessionCode.value : traceCode.value))
+const runtimeProgress = computed(() =>
+  resolveRuntimeProgressLabel({
+    ...props.detail.summary,
+    status: props.detail.session?.status
+  })
 )
 
 const headline = computed(() => {
@@ -105,14 +137,21 @@ const failureText = computed(() => {
 })
 
 const worklineDeviceText = computed(() => {
-  const line =
-    props.worklineName ||
-    (props.detail.trace.workline_id ? `工作线 #${props.detail.trace.workline_id}` : null)
-  const device =
-    props.deviceName ||
-    props.detail.trace.device_code ||
-    (props.detail.trace.device_id ? `设备 #${props.detail.trace.device_id}` : null)
-  return [line, device].filter(Boolean).join(' · ') || '—'
+  const line = displayWorkline({
+    line_name: props.worklineName,
+    line_code: null,
+    workline_id: props.detail.trace.workline_id
+  })
+  const device = displayDevice({
+    device_name: props.deviceName,
+    device_code: props.detail.trace.device_code,
+    device_id: props.detail.trace.device_id
+  })
+  return (
+    [line !== '未知工作线' ? line : null, device !== '未知设备' ? device : null]
+      .filter(Boolean)
+      .join(' · ') || '—'
+  )
 })
 
 const anchorText = computed(() => {
@@ -199,15 +238,12 @@ const counts = computed(() => [
 }
 
 .trace-case-hero__facts {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.trace-case-hero__fact--wide {
-  grid-column: span 2;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .trace-case-hero__counts {
   grid-template-columns: repeat(7, minmax(0, 1fr));
+  opacity: 0.55;
 }
 
 @media (width <= 1279px) {
@@ -218,10 +254,6 @@ const counts = computed(() => [
   .trace-case-hero__facts,
   .trace-case-hero__counts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .trace-case-hero__fact--wide {
-    grid-column: auto;
   }
 }
 
@@ -234,5 +266,31 @@ const counts = computed(() => [
   .trace-case-hero__counts {
     grid-template-columns: 1fr;
   }
+}
+.trace-case-hero__step-progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 6px 14px 6px 10px;
+  border: 1px solid rgb(59, 130, 246, 0.22);
+  border-radius: 999px;
+  background: rgb(59, 130, 246, 0.08);
+}
+
+.trace-case-hero__step-label {
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.trace-case-hero__step-value {
+  color: #93c5fd;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
 }
 </style>

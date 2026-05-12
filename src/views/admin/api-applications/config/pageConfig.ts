@@ -64,7 +64,6 @@ const API_APPLICATION_PAGE_FEATURES: CrudPageFeatures = {
 
 const API_APPLICATION_PAGE_DETAIL: CrudPageDetailConfig<APIApplication> = {
   mode: 'drawer',
-  width: 600,
   title: (app: APIApplication) => app.app_name || '未命名应用',
   sections: [
     {

@@ -15,7 +15,7 @@ export const UV_CACHE_DIR = resolve(FRONTEND_ROOT, 'node_modules/.cache/uv')
 
 const JSON_START_MARKER = '__PERMISSIONS_JSON_START__'
 const JSON_END_MARKER = '__PERMISSIONS_JSON_END__'
-const GENERATE_COMMAND = 'pnpm permission:generate'
+const GENERATE_COMMAND = 'pnpm generate:permissions'
 
 export interface PermissionRecord {
   name: string

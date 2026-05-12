@@ -145,11 +145,12 @@ export default {
       },
 
       boxShadow: {
-        // 工业风格阴影
-        'industrial-sm': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-        industrial: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
-        'industrial-lg': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
-        'industrial-xl': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+        // 工业风格阴影 - 提升 opacity
+        'industrial-sm': '0 1px 2px 0 rgba(0, 0, 0, 0.08)',
+        industrial: '0 4px 6px -1px rgba(0, 0, 0, 0.15), 0 2px 4px -2px rgba(0, 0, 0, 0.12)',
+        'industrial-lg': '0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -4px rgba(0, 0, 0, 0.15)',
+        'industrial-xl': '0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.2)',
+        'industrial-2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
 
         // 发光效果 - 工业琥珀
         'amber-glow-sm': '0 0 10px rgba(245, 158, 11, 0.3)',
@@ -161,14 +162,7 @@ export default {
         'green-glow': '0 0 20px rgba(22, 163, 74, 0.4)',
 
         // 发光效果 - 安全红
-        'red-glow-sm': '0 0 10px rgba(220, 38, 38, 0.3)',
-
-        // 兼容旧版本
-        'glow-xs': '0 0 10px rgb(0 243 255 / 8%)',
-        'glow-sm': '0 0 20px rgb(0 243 255 / 12%)',
-        glow: '0 0 40px rgb(0 243 255 / 15%)',
-        'glow-md': '0 0 40px rgb(0 243 255 / 15%)',
-        'glow-lg': '0 0 60px rgb(0 243 255 / 20%)'
+        'red-glow-sm': '0 0 10px rgba(220, 38, 38, 0.3)'
       },
 
       backgroundImage: {

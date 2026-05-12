@@ -37,6 +37,18 @@ export type DevicesItem = EnsureEntityId<CrudItem<typeof DEVICES_COLLECTION_PATH
 export type CreateDevicesInput = CrudCreateInput<typeof DEVICES_COLLECTION_PATH>
 export type UpdateDevicesInput = CrudUpdateInput<typeof DEVICES_COLLECTION_PATH>
 
+export type RuntimeEnterMaintenanceResult = ContractResponseData<'/api/v1/device/devices/{id}/runtime/enter-maintenance', 'post'>
+export type RuntimeEnterMaintenancePathParams = ContractPathParams<'/api/v1/device/devices/{id}/runtime/enter-maintenance', 'post'>
+export type RuntimeEnterMaintenanceInput = ContractRequestBody<'/api/v1/device/devices/{id}/runtime/enter-maintenance', 'post'>
+
+export type RuntimeExitMaintenanceResult = ContractResponseData<'/api/v1/device/devices/{id}/runtime/exit-maintenance', 'post'>
+export type RuntimeExitMaintenancePathParams = ContractPathParams<'/api/v1/device/devices/{id}/runtime/exit-maintenance', 'post'>
+export type RuntimeExitMaintenanceInput = ContractRequestBody<'/api/v1/device/devices/{id}/runtime/exit-maintenance', 'post'>
+
+export type RuntimeClearFaultResult = ContractResponseData<'/api/v1/device/devices/{id}/runtime/clear-fault', 'post'>
+export type RuntimeClearFaultPathParams = ContractPathParams<'/api/v1/device/devices/{id}/runtime/clear-fault', 'post'>
+export type RuntimeClearFaultInput = ContractRequestBody<'/api/v1/device/devices/{id}/runtime/clear-fault', 'post'>
+
 export type PermanentResult = ContractResponseData<'/api/v1/device/devices/{id}/permanent', 'delete'>
 export type PermanentPathParams = ContractPathParams<'/api/v1/device/devices/{id}/permanent', 'delete'>
 
@@ -52,6 +64,33 @@ const baseDevicesApiMethods = createSoftDeleteCrudRequestAdapterMethods({
 
 export const devicesApiMethods = {
   ...baseDevicesApiMethods,
+
+  /**
+   * [biz:device:update] 设备进入维护
+   * @endpoint POST /api/v1/device/devices/{id}/runtime/enter-maintenance
+   * @returns alova method instance
+   */
+  runtimeEnterMaintenance(params: ContractPathParams<'/api/v1/device/devices/{id}/runtime/enter-maintenance', 'post'>, body: ContractRequestBody<'/api/v1/device/devices/{id}/runtime/enter-maintenance', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/device/devices/{id}/runtime/enter-maintenance', { params, body, config })
+  },
+
+  /**
+   * [biz:device:update] 设备退出维护
+   * @endpoint POST /api/v1/device/devices/{id}/runtime/exit-maintenance
+   * @returns alova method instance
+   */
+  runtimeExitMaintenance(params: ContractPathParams<'/api/v1/device/devices/{id}/runtime/exit-maintenance', 'post'>, body: ContractRequestBody<'/api/v1/device/devices/{id}/runtime/exit-maintenance', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/device/devices/{id}/runtime/exit-maintenance', { params, body, config })
+  },
+
+  /**
+   * [biz:device:update] 清除设备故障
+   * @endpoint POST /api/v1/device/devices/{id}/runtime/clear-fault
+   * @returns alova method instance
+   */
+  runtimeClearFault(params: ContractPathParams<'/api/v1/device/devices/{id}/runtime/clear-fault', 'post'>, body: ContractRequestBody<'/api/v1/device/devices/{id}/runtime/clear-fault', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/device/devices/{id}/runtime/clear-fault', { params, body, config })
+  },
 
   /**
    * [biz:device:permanent_delete] 永久删除Device

@@ -71,14 +71,14 @@ async function main(): Promise<void> {
 
   if (!existsSync(PERMISSIONS_INDEX_FILE)) {
     console.log('⚠️  未找到生成的权限入口文件')
-    console.log('   请先运行: pnpm permission:generate\n')
+    console.log('   请先运行: pnpm generate:permissions\n')
     process.exit(1)
   }
 
   const record = readPermissionSyncRecord()
   if (!record) {
     console.log('⚠️  未找到权限同步记录')
-    console.log('   请先运行: pnpm permission:generate\n')
+    console.log('   请先运行: pnpm generate:permissions\n')
     process.exit(1)
   }
 
@@ -108,7 +108,7 @@ async function main(): Promise<void> {
     console.log('❌ 权限常量已过期！后端权限与前端生成文件不一致')
     console.log('')
     console.log('   请运行以下命令同步:')
-    console.log('   pnpm permission:generate')
+    console.log('   pnpm generate:permissions')
     console.log('')
     process.exit(1)
   }

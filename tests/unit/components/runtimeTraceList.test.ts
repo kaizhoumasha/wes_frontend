@@ -25,7 +25,7 @@ function createTrace(overrides: Partial<RuntimeTraceListItem> = {}): RuntimeTrac
     device_code: 'DV-201',
     command_code: 'SCAN',
     status: 'FAILED',
-    step_code: 'SCAN',
+    plugin_state: 'SCAN',
     current_wait_type: null,
     failure_domain: 'DEVICE',
     failure_code: 'DEVICE_TIMEOUT',

@@ -6,7 +6,8 @@
  * Supports responsive behavior, sections, and custom actions.
  */
 import { computed, watch, ref, nextTick } from 'vue'
-import { ElDrawer, ElDialog } from 'element-plus'
+import { ElDialog } from 'element-plus'
+import { StandardDrawer } from '@/components/ui/StandardDrawer'
 import type { CrudPageEntity } from '../types'
 import { DEFAULT_EMPTY_VALUE, type CrudPageDetailConfig, type CrudPageDetailSection } from './types'
 import { useDetailState } from './composables/useDetailState'
@@ -128,6 +129,11 @@ const sections = computed<CrudPageDetailSection<TItem>[]>(() => {
 
 const actions = computed(() => props.config?.actions ?? [])
 const showActions = computed(() => props.config?.showActions ?? false)
+const drawerPanelClass = computed(() => ({
+  'detail-panel': true,
+  'detail-panel--drawer': true,
+  'detail-panel--fullscreen': responsive.isFullscreen.value
+}))
 const detailEyebrow = computed(() => {
   const entityTypeLabel = props.config?.entityTypeLabel
 
@@ -253,20 +259,19 @@ defineExpose({
 
 <template>
   <!-- Drawer Mode (Desktop/Tablet) -->
-  <ElDrawer
+  <StandardDrawer
     v-if="responsive.resolvedMode.value === 'drawer'"
     ref="panelRef"
     v-model="internalOpen"
-    :size="responsive.resolvedWidth.value"
+    :size="responsive.resolvedDrawerSize.value"
+    :width="responsive.resolvedDrawerWidth.value"
+    body-padding="none"
     direction="rtl"
     :close-on-click-modal="true"
     :close-on-press-escape="true"
     role="dialog"
     :aria-labelledby="titleId"
-    class="detail-panel detail-panel--drawer"
-    :class="{
-      'detail-panel--fullscreen': responsive.isFullscreen.value
-    }"
+    :custom-class="drawerPanelClass"
     @close="handleClose"
     @keydown="handleKeydown"
   >
@@ -296,14 +301,16 @@ defineExpose({
       @close="handleClose"
     />
 
-    <CrudDetailActions
-      v-if="showActions && internalItem && !internalLoading && !internalError"
-      :actions="actions"
-      :item="internalItem"
-      @action-complete="handleRefresh"
-      @close="handleClose"
-    />
-  </ElDrawer>
+    <template #footer>
+      <CrudDetailActions
+        v-if="showActions && internalItem && !internalLoading && !internalError"
+        :actions="actions"
+        :item="internalItem"
+        @action-complete="handleRefresh"
+        @close="handleClose"
+      />
+    </template>
+  </StandardDrawer>
 
   <!-- Dialog Mode (Mobile Fullscreen) -->
   <ElDialog
@@ -416,20 +423,6 @@ defineExpose({
   color: var(--el-text-color-primary);
 }
 
-/* Drawer mode styling */
-.detail-panel--drawer :deep(.el-drawer__header) {
-  margin-bottom: 0;
-  padding: 24px 24px 20px;
-  border-bottom: 1px solid var(--el-border-color-lighter);
-  background: var(--el-bg-color);
-}
-
-.detail-panel--drawer :deep(.el-drawer__body) {
-  padding: 0;
-  overflow: visible;
-  background: var(--el-bg-color-page);
-}
-
 /* Dialog mode styling */
 .detail-panel--dialog :deep(.el-dialog__header) {
   margin-right: 0;
@@ -502,7 +495,6 @@ defineExpose({
     font-size: 24px;
   }
 
-  .detail-panel--drawer :deep(.el-drawer__header),
   .detail-panel--dialog :deep(.el-dialog__header) {
     padding: 20px 16px 16px;
   }

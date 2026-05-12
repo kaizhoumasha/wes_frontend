@@ -1,5 +1,6 @@
 import { nextTick, reactive, ref } from 'vue'
 import { shallowMount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 type RouteState = {
@@ -52,6 +53,7 @@ vi.mock('@/composables/usePermission', () => ({
 }))
 
 vi.mock('@/utils/runtime-display', () => ({
+  aggregateSessionsByDevice: () => new Map(),
   compactEnumLabel: (value?: string | null) => value ?? '—',
   formatRuntimeDateTime: (value?: string | null) => value ?? '—',
   formatRuntimeDurationMs: (value?: number | null) => (value == null ? '—' : `${value} ms`),
@@ -66,6 +68,7 @@ vi.mock('@/utils/runtime-display', () => ({
     const numericValue = Number(rawValue || 0)
     return Number.isFinite(numericValue) && numericValue > 0 ? numericValue : null
   },
+  resolveRuntimeProgressLabel: () => 'RUNNING',
   resolveRuntimeTone: () => 'info',
   sortByScoreDesc: <T>(items: T[]) => [...items]
 }))
@@ -90,8 +93,6 @@ const worklineSummary = {
   zone_name: 'A',
   plugin_key: 'plugin-a',
   contract_version: 'v1',
-  owner_team: 'runtime',
-  support_contact: 'ops',
   is_active: true,
   device_count: 2,
   active_session_count: 1,
@@ -178,7 +179,11 @@ function createMountOptions() {
         'el-card': true,
         'el-dialog': true,
         'el-input': true,
-        'el-switch': true
+        'el-switch': true,
+        StandardDrawer: {
+          props: ['modelValue'],
+          template: '<section v-if="modelValue"><slot name="header" /><slot /></section>'
+        }
       }
     }
   }
@@ -186,6 +191,8 @@ function createMountOptions() {
 
 describe('runtime route sync', () => {
   beforeEach(() => {
+    setActivePinia(createPinia())
+
     routeState.path = '/runtime/worklines'
     routeState.fullPath = '/runtime/worklines'
     routeState.query = {}
@@ -233,7 +240,7 @@ describe('runtime route sync', () => {
 
     expect(worklineDetailSend).toHaveBeenCalledTimes(1)
     expect(worklineDetailSend).toHaveBeenLastCalledWith(101)
-    const devicePanel = wrapper.findComponent({ name: 'DeviceDetailPanel' })
+    const devicePanel = wrapper.findComponent({ name: 'RuntimeDeviceInspector' })
     expect(devicePanel.exists()).toBe(true)
     expect(devicePanel.props()).toMatchObject({
       deviceId: 201,

@@ -11,6 +11,7 @@
 
 import { computed } from 'vue'
 import { useResponsiveLayout } from '@/composables/useResponsiveLayout'
+import type { DrawerSize } from '@/components/ui/StandardDrawer'
 import { DETAIL_WIDTH, type CrudPageDetailConfig } from '../types'
 import type { CrudPageEntity } from '../../types'
 
@@ -71,6 +72,14 @@ export function useDetailResponsive<TItem extends CrudPageEntity>(
     return DETAIL_WIDTH.desktop
   })
 
+  const resolvedDrawerSize = computed<DrawerSize>(() => config?.size ?? 'md')
+
+  const resolvedDrawerWidth = computed<number | string | undefined>(() => {
+    if (config?.width !== undefined) return config.width
+    if (isTablet.value) return config?.responsive?.tablet?.width
+    return undefined
+  })
+
   /**
    * Whether to use fullscreen dialog
    */
@@ -82,6 +91,8 @@ export function useDetailResponsive<TItem extends CrudPageEntity>(
     isMobile,
     resolvedMode,
     resolvedWidth,
+    resolvedDrawerSize,
+    resolvedDrawerWidth,
     isFullscreen
   }
 }

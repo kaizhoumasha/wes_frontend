@@ -1,0 +1,105 @@
+<template>
+  <section class="runtime-hold-decision-bar">
+    <div>
+      <span
+        class="runtime-hold-decision-bar__status"
+        :class="`is-${tone}`"
+      >
+        {{ statusLabel }}
+      </span>
+      <h1>Runtime Hold #{{ holdId }}</h1>
+      <p>{{ sourceReason }} · WorkLine {{ worklineId }}</p>
+    </div>
+    <div class="runtime-hold-decision-bar__hash">
+      <span>VERSION</span>
+      <strong>{{ version }}</strong>
+      <span>HASH</span>
+      <code>{{ evidenceHash || '—' }}</code>
+    </div>
+  </section>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+
+const props = defineProps<{
+  holdId: number
+  worklineId: number
+  status: string
+  sourceReason: string
+  version: number
+  evidenceHash?: string | null
+}>()
+
+const activeStatuses = new Set(['OPEN', 'IN_PROGRESS', 'REOPENED'])
+const statusLabel = computed(() => (activeStatuses.has(props.status) ? '待处置' : '已闭环'))
+const tone = computed(() => (activeStatuses.has(props.status) ? 'warning' : 'success'))
+</script>
+
+<style scoped>
+.runtime-hold-decision-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px;
+  border: 1px solid rgb(245, 158, 11, 0.2);
+  border-radius: 8px;
+  background: rgb(15, 23, 42, 0.92);
+}
+
+.runtime-hold-decision-bar h1 {
+  margin: 10px 0 6px;
+  color: #f8fafc;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.runtime-hold-decision-bar p {
+  margin: 0;
+  color: #94a3b8;
+}
+
+.runtime-hold-decision-bar__status {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.runtime-hold-decision-bar__status.is-warning {
+  color: #f59e0b;
+  background: rgb(245, 158, 11, 0.12);
+}
+
+.runtime-hold-decision-bar__status.is-success {
+  color: #16a34a;
+  background: rgb(22, 163, 74, 0.12);
+}
+
+.runtime-hold-decision-bar__hash {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 10px;
+  color: #94a3b8;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  text-align: right;
+}
+
+.runtime-hold-decision-bar__hash strong,
+.runtime-hold-decision-bar__hash code {
+  color: #f8fafc;
+}
+
+@media (width <= 720px) {
+  .runtime-hold-decision-bar {
+    flex-direction: column;
+  }
+
+  .runtime-hold-decision-bar__hash {
+    text-align: left;
+  }
+}
+</style>

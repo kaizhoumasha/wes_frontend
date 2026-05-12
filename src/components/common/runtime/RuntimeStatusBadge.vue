@@ -45,8 +45,8 @@ const resolvedLabel = computed(() => compactEnumLabel(props.label ?? props.statu
   padding: 0 12px;
   border: 1px solid rgb(148, 163, 184, 0.24);
   border-radius: 999px;
-  background: rgb(15, 23, 42, 0.78);
-  color: #e2e8f0;
+  background: var(--runtime-surface);
+  color: var(--runtime-text-emphasis);
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 600;
@@ -74,33 +74,33 @@ const resolvedLabel = computed(() => compactEnumLabel(props.label ?? props.statu
 }
 
 .runtime-status-badge--primary {
-  border-color: rgb(59, 130, 246, 0.32);
-  background: rgb(59, 130, 246, 0.12);
-  color: #60a5fa;
+  border-color: var(--runtime-badge-info-border);
+  background: var(--runtime-badge-info-bg);
+  color: var(--runtime-badge-info-text);
 }
 
 .runtime-status-badge--success {
-  border-color: rgb(22, 163, 74, 0.32);
-  background: rgb(22, 163, 74, 0.12);
-  color: #4ade80;
+  border-color: var(--runtime-badge-success-border);
+  background: var(--runtime-badge-success-bg);
+  color: var(--runtime-badge-success-text);
 }
 
 .runtime-status-badge--warning {
-  border-color: rgb(234, 179, 8, 0.32);
-  background: rgb(234, 179, 8, 0.12);
-  color: #facc15;
+  border-color: var(--runtime-badge-warning-border);
+  background: var(--runtime-badge-warning-bg);
+  color: var(--runtime-badge-warning-text);
 }
 
 .runtime-status-badge--danger {
-  border-color: rgb(220, 38, 38, 0.32);
-  background: rgb(220, 38, 38, 0.12);
-  color: #f87171;
+  border-color: var(--runtime-badge-danger-border);
+  background: var(--runtime-badge-danger-bg);
+  color: var(--runtime-badge-danger-text);
 }
 
 .runtime-status-badge--info {
-  border-color: rgb(148, 163, 184, 0.24);
-  background: rgb(148, 163, 184, 0.12);
-  color: #cbd5e1;
+  border-color: var(--runtime-border-neutral);
+  background: var(--runtime-surface-muted);
+  color: var(--runtime-text-emphasis);
 }
 
 @keyframes runtime-status-pulse {

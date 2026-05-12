@@ -60,7 +60,6 @@ const ROLE_PAGE_FEATURES: CrudPageFeatures = {
 
 const ROLE_PAGE_DETAIL: CrudPageDetailConfig<RolesItem> = {
   mode: 'drawer',
-  width: 600,
   title: role => role.name,
   sections: [
     {

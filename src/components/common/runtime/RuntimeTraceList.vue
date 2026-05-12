@@ -40,7 +40,15 @@
           </span>
           <span class="runtime-trace-list__workline">{{ trace.workline_name || '—' }}</span>
           <span class="runtime-trace-list__barcode">
-            {{ trace.barcode || trace.business_key || trace.trace_id || trace.session_code }}
+            {{
+              displayTrace({
+                barcode: trace.barcode,
+                business_key: trace.business_key,
+                trace_id: trace.trace_id,
+                session_code: trace.session_code,
+                session_id: trace.session_id
+              })
+            }}
           </span>
           <span class="runtime-trace-list__domain">
             {{ translateFailureDomain(trace.failure_domain) || '—' }}
@@ -70,6 +78,7 @@
 import { computed, ref } from 'vue'
 import type { RuntimeTraceListItem } from '@/types/runtime'
 import { formatRuntimeRelative } from '@/utils/runtime-display'
+import { displayTrace } from '@/utils/runtime-display-identity'
 import { translateFailureDomain } from '@/utils/runtime-labels'
 
 type TraceTab = 'all' | 'failed' | 'active'

@@ -5,7 +5,7 @@
  * 基于后端 FastAPI 路由的真实权限依赖，按权限节点生成独立文件。
  *
  * 使用方式：
- *   pnpm permission:generate
+ *   pnpm generate:permissions
  *   pnpm exec tsx scripts/generate-permissions.ts --backend-root ../wes_backend
  */
 

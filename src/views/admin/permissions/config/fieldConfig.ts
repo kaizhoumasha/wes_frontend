@@ -7,6 +7,11 @@ import type {
   UpdatePermissionsInput as UpdatePermissionInput,
   PermissionsItem as Permission
 } from '@/api/modules/permissions'
+import {
+  PermissionCreateMetadata,
+  PermissionResponseMetadata,
+  PermissionUpdateMetadata
+} from '@/api/generated/openapi-metadata'
 import { PermissionCreateSchema, PermissionUpdateSchema } from '@/types/zod-extensions'
 import {
   defineCrudResourceFieldBundle
@@ -48,9 +53,9 @@ export const {
   fieldConfig: permissionPageFieldConfig
 } = defineCrudResourceFieldBundle<Permission, CreatePermissionInput, UpdatePermissionInput>({
   backend: {
-    readSchema: 'PermissionResponse',
-    createSchema: 'PermissionCreate',
-    updateSchema: 'PermissionUpdate',
+    readSchema: PermissionResponseMetadata,
+    createSchema: PermissionCreateMetadata,
+    updateSchema: PermissionUpdateMetadata,
     labelOverrides: PERMISSION_FIELD_LABEL_OVERRIDES
   },
   fields: [

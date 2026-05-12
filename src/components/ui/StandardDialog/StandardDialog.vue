@@ -1,12 +1,6 @@
 <!--
 StandardDialog - 标准对话框组件
 
-设计理念：
-- 精致极简：企业级应用标准，视觉清晰专业
-- 尺寸系统：6 级预设尺寸，覆盖所有业务场景
-- 响应式：自动适配桌面/平板/移动端
-- 动画：优雅的入场/退场动画，方向可配置
-
 使用示例：
 ```vue
 <StandardDialog
@@ -35,6 +29,8 @@ import type {
   TitleIconType
 } from './types'
 import { SIZE_CONFIG, BREAKPOINTS, DIALOG_DIMENSIONS, TITLE_ICON_CONFIG } from './constants'
+
+const DIALOG_LEAVE_DURATION = 200
 
 // ==================== Props ====================
 
@@ -128,65 +124,39 @@ const { width: windowWidth } = useWindowSize()
  * 优先级：自定义 width > size 预设
  */
 const computedWidth = computed(() => {
-  // 自定义宽度优先
   if (props.width) {
-    if (typeof props.width === 'number') {
-      return `${props.width}px`
-    }
-    return props.width
+    return typeof props.width === 'number' ? `${props.width}px` : props.width
   }
 
-  // full 尺寸使用 vw
   if (props.size === 'full') {
     return `${SIZE_CONFIG.full.maxWidth}vw`
   }
 
   const config = SIZE_CONFIG[props.size]
+  const isMobile = windowWidth.value < BREAKPOINTS.MOBILE
+  if (isMobile) return '100vw'
+
   const maxWindowWidth = (windowWidth.value * config.maxWidth) / 100
-
-  // 如果窗口宽度小于预设宽度，使用最大宽度上限
-  if (windowWidth.value < BREAKPOINTS.MOBILE) {
-    return '100vw'
-  }
-
-  // 使用预设宽度或最大宽度上限
-  const actualWidth = Math.min(config.width, maxWindowWidth)
-  return `${actualWidth}px`
+  return `${Math.min(config.width, maxWindowWidth)}px`
 })
 
-/**
- * 计算内容区最大高度
- */
 const bodyMaxHeight = computed(() => {
-  const headerHeight = DIALOG_DIMENSIONS.HEADER_HEIGHT
   const footerHeight = props.showFooter ? DIALOG_DIMENSIONS.FOOTER_HEIGHT : 0
-  return `calc(${DIALOG_DIMENSIONS.MAX_HEIGHT_VH}vh - ${headerHeight}px - ${footerHeight}px)`
+  return `calc(${DIALOG_DIMENSIONS.MAX_HEIGHT_VH}vh - ${DIALOG_DIMENSIONS.HEADER_HEIGHT}px - ${footerHeight}px)`
 })
 
-/**
- * 计算内容区最小高度
- * 优先级：minHeight prop > autoHeight 记忆高度
- */
-const bodyMinHeight = computed(() => {
-  // 显式设置的 minHeight 优先
+const bodyMinHeight = computed<string | undefined>(() => {
   if (props.minHeight) {
-    if (typeof props.minHeight === 'number') {
-      return `${props.minHeight}px`
-    }
-    return props.minHeight
+    return typeof props.minHeight === 'number' ? `${props.minHeight}px` : props.minHeight
   }
-
-  // 自动记忆高度
   if (props.autoHeight && rememberedHeight.value > 0) {
     return `${rememberedHeight.value}px`
   }
-
   return undefined
 })
 
 // ==================== 内部状态 ====================
 
-const dialogRef = ref<HTMLDivElement | null>(null)
 const bodyRef = ref<HTMLDivElement | null>(null)
 const overlayRef = ref<HTMLDivElement | null>(null)
 const contentRendered = ref(props.modelValue || !props.destroyOnClose)
@@ -223,10 +193,9 @@ watch(
       // 重置记忆高度
       rememberedHeight.value = 0
       if (props.destroyOnClose) {
-        // 延迟销毁，等待动画完成
         setTimeout(() => {
           contentRendered.value = false
-        }, 200)
+        }, DIALOG_LEAVE_DURATION)
       }
     }
   }
@@ -310,7 +279,6 @@ function handleOverlayClick() {
 function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape' && props.closable) {
     e.preventDefault()
-    e.stopPropagation()
     close()
   }
 }
@@ -343,7 +311,6 @@ defineExpose<StandardDialogExpose>({
         >
           <div
             v-if="modelValue"
-            ref="dialogRef"
             :class="[
               'standard-dialog',
               `standard-dialog--${size}`,
@@ -447,7 +414,7 @@ defineExpose<StandardDialogExpose>({
 </template>
 
 <style scoped>
-/* ==================== 遮罩层 ==================== */
+/* Overlay */
 .standard-dialog-overlay {
   position: fixed;
   inset: 0;
@@ -459,7 +426,7 @@ defineExpose<StandardDialogExpose>({
   backdrop-filter: blur(2px);
 }
 
-/* ==================== 对话框主体 ==================== */
+/* Dialog body */
 .standard-dialog {
   position: relative;
   display: flex;
@@ -480,7 +447,7 @@ defineExpose<StandardDialogExpose>({
   justify-content: center;
 }
 
-/* ==================== Header ==================== */
+/* Header */
 .standard-dialog__header {
   position: sticky;
   top: 0;
@@ -532,7 +499,7 @@ defineExpose<StandardDialogExpose>({
   transform: scale(0.95);
 }
 
-/* ==================== Body ==================== */
+/* Body */
 .standard-dialog__body {
   flex: 1;
   padding: var(--dialog-body-padding-lg);
@@ -573,7 +540,7 @@ defineExpose<StandardDialogExpose>({
   background: var(--el-border-color-dark);
 }
 
-/* ==================== Footer ==================== */
+/* Footer */
 .standard-dialog__footer {
   display: flex;
   flex-shrink: 0;
@@ -605,7 +572,7 @@ defineExpose<StandardDialogExpose>({
 /* 主按钮 hover 增强 */
 .standard-dialog__footer-actions :deep(.el-button--primary:hover) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgb(64 158 255 / 30%);
+  box-shadow: 0 4px 12px rgb(245 158 11 / 20%);
 }
 
 /* 危险按钮 */
@@ -614,7 +581,7 @@ defineExpose<StandardDialogExpose>({
   box-shadow: 0 4px 12px rgb(245 108 108 / 30%);
 }
 
-/* ==================== 遮罩层动画 ==================== */
+/* Overlay animation */
 .dialog-overlay-enter-active {
   animation: overlay-fade-in 150ms ease-out;
 }
@@ -643,7 +610,7 @@ defineExpose<StandardDialogExpose>({
   }
 }
 
-/* ==================== 对话框退场动画 ==================== */
+/* Dialog leave animation */
 .dialog-slide-rtl-leave-active,
 .dialog-slide-ltr-leave-active,
 .dialog-slide-ttb-leave-active,
@@ -663,9 +630,7 @@ defineExpose<StandardDialogExpose>({
   }
 }
 
-/* ==================== 方向动画 ==================== */
-
-/* 从右侧 */
+/* Direction animations */
 .dialog-slide-rtl-enter-active {
   animation: dialog-slide-right 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -682,7 +647,7 @@ defineExpose<StandardDialogExpose>({
   }
 }
 
-/* 方向动画：从左侧 */
+/* From left */
 .dialog-slide-ltr-enter-active {
   animation: dialog-slide-left 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -699,7 +664,7 @@ defineExpose<StandardDialogExpose>({
   }
 }
 
-/* 方向动画：从顶部 */
+/* From top */
 .dialog-slide-ttb-enter-active {
   animation: dialog-slide-top 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -716,7 +681,7 @@ defineExpose<StandardDialogExpose>({
   }
 }
 
-/* 方向动画：从底部 */
+/* From bottom */
 .dialog-slide-btt-enter-active {
   animation: dialog-slide-bottom 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -733,7 +698,7 @@ defineExpose<StandardDialogExpose>({
   }
 }
 
-/* ==================== 移动端适配 ==================== */
+/* Mobile */
 @media (width < 768px) {
   .standard-dialog {
     max-height: 100vh;
@@ -753,7 +718,7 @@ defineExpose<StandardDialogExpose>({
   }
 }
 
-/* ==================== 平板适配 ==================== */
+/* Tablet */
 @media (width >= 768px) and (width < 1280px) {
   .standard-dialog {
     max-width: 90vw;

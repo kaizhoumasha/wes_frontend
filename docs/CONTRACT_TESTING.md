@@ -57,17 +57,17 @@ pnpm run contract:test
 
 ```bash
 # 从后端 OpenAPI 端点生成类型
-pnpm run type:generate
+pnpm run generate:types
 ```
 
 配置后端 URL：
 
 ```bash
 # 使用默认地址（localhost:8001）
-pnpm run type:generate
+pnpm run generate:types
 
 # 指定后端地址
-BACKEND_URL=http://localhost:9001/api/openapi.json pnpm run type:generate
+BACKEND_URL=http://localhost:9001/api/openapi.json pnpm run generate:types
 ```
 
 ### CI/CD 集成
