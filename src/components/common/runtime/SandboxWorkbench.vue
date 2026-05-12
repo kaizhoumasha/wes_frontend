@@ -305,6 +305,7 @@ import { useRuntimeSSE } from '@/composables/useRuntimeSSE'
 import { useWorklineRuntimeStore } from '@/stores/workline-runtime'
 import { classifyRuntimeRefresh, isRelevantRuntimeEvent } from '@/utils/runtime-event'
 import { displayCommand, displayDevice } from '@/utils/runtime-display-identity'
+import { getErrorMessage } from '@/utils/string'
 import {
   canAckSandboxOutbox,
   canSubmitSandboxResult,
@@ -528,10 +529,6 @@ function resolveSelectedOutboxDisabledReason(): string {
   return safetyBlockedReason.value
 }
 
-function errorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback
-}
-
 function isSafetyLocked(): boolean {
   if (!safetyLocked.value) return false
   ElMessage.warning(safetyBlockedReason.value)
@@ -635,7 +632,7 @@ async function simulateEstop() {
     ElMessage.success('已模拟软件急停冻结')
     emit('safetySimulated')
   } catch (e: unknown) {
-    ElMessage.error(errorMessage(e, '模拟急停失败'))
+    ElMessage.error(getErrorMessage(e, '模拟急停失败'))
   } finally {
     simulatingEstop.value = false
   }
@@ -706,7 +703,7 @@ async function handleAck() {
     resultDrawerVisible.value = false
     void loadPending()
   } catch (e: unknown) {
-    ElMessage.error(errorMessage(e, 'ACK 失败'))
+    ElMessage.error(getErrorMessage(e, 'ACK 失败'))
   } finally {
     actionLoading.value = false
   }
@@ -728,7 +725,7 @@ async function handleActionAck(item: SandboxPendingOutbox) {
     ElMessage.success('ACK 成功')
     void loadPending()
   } catch (e: unknown) {
-    ElMessage.error(errorMessage(e, 'ACK 失败'))
+    ElMessage.error(getErrorMessage(e, 'ACK 失败'))
   } finally {
     actionLoadingForItem.value = null
   }

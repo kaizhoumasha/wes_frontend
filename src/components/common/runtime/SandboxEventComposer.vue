@@ -161,6 +161,7 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import type { SandboxEventTemplate } from '@/types/runtime'
 import { RESERVED_SAFETY_EVENT_TYPES, SAFETY_LOCKED_REASON } from '@/constants/runtime-safety'
+import { getErrorMessage } from '@/utils/string'
 
 const props = defineProps<{
   worklineId: number
@@ -178,7 +179,7 @@ const disabledReasonResolved = computed(() => props.disabledReason || SAFETY_LOC
 
 // 设备信息
 const deviceDisplay = computed(() => ({
-  name: props.deviceName || props.deviceId ? `设备 #${props.deviceId}` : '未选择',
+  name: props.deviceName || (props.deviceId ? `设备 #${props.deviceId}` : '未选择'),
   code: props.deviceCode || '-',
   role: props.deviceRole || '-',
   status: props.deviceStatus || ''
@@ -244,10 +245,6 @@ function handlePayloadChange(val: string) {
 
 const rules: FormRules = {
   event_type: [{ required: true, message: '请选择事件类型', trigger: 'change' }]
-}
-
-function errorMessage(error: unknown, fallback: string) {
-  return error instanceof Error ? error.message : fallback
 }
 
 async function loadTemplates() {
@@ -316,7 +313,7 @@ async function handleSubmit() {
     updatePayloadJson()
   } catch (e: unknown) {
     console.error('发送 Event 失败:', e)
-    ElMessage.error(errorMessage(e, '发送失败，请检查控制台'))
+    ElMessage.error(getErrorMessage(e, '发送失败，请检查控制台'))
   } finally {
     submitting.value = false
   }

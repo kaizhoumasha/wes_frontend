@@ -369,6 +369,7 @@ import type {
 import { createCoalescedAsyncTask } from '@/utils/createCoalescedAsyncTask'
 import { classifyRuntimeRefresh, isRelevantRuntimeEvent } from '@/utils/runtime-event'
 import { getWorklineDeviceSafetyEvidence, getWorklineRuntimeVerdict } from '@/utils/runtime-safety'
+import { getErrorMessage } from '@/utils/string'
 import { ESTOPPED_RUNTIME_STATUS, RECONCILING_RUNTIME_STATUS } from '@/constants/runtime-safety'
 import {
   formatRuntimeDateTime,
@@ -629,10 +630,6 @@ function resolveSelectedWorklineId(): number | null {
   return store.detail?.summary.id ?? selectedWorklineId.value ?? null
 }
 
-function errorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback
-}
-
 async function clearWorklineEstop() {
   if (clearingWorklineEstop.value) return
   if (!canClearWorklineEstop.value) {
@@ -680,7 +677,7 @@ async function clearWorklineEstop() {
     ElMessage.success('已恢复接收新流程')
     await refreshAfterSafetySimulation()
   } catch (error: unknown) {
-    ElMessage.error(errorMessage(error, '恢复接收失败'))
+    ElMessage.error(getErrorMessage(error, '恢复接收失败'))
   } finally {
     clearingWorklineEstop.value = false
   }

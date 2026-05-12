@@ -156,6 +156,7 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import type { SandboxPendingOutbox } from '@/types/runtime'
 import { SAFETY_LOCKED_REASON } from '@/constants/runtime-safety'
+import { getErrorMessage } from '@/utils/string'
 
 const props = defineProps<{
   outbox: SandboxPendingOutbox | null
@@ -209,10 +210,6 @@ function updatePayloadJson() {
 
 const rules: FormRules = {
   result: [{ required: true, message: '请选择结果状态', trigger: 'change' }]
-}
-
-function errorMessage(error: unknown, fallback: string) {
-  return error instanceof Error ? error.message : fallback
 }
 
 function handleResultChange(result: 'SUCCESS' | 'FAILED') {
@@ -305,7 +302,7 @@ async function handleSubmit() {
     emit('submitted', props.outbox)
   } catch (e: unknown) {
     console.error('发送 Result 失败:', e)
-    ElMessage.error(errorMessage(e, '发送失败'))
+    ElMessage.error(getErrorMessage(e, '发送失败'))
   } finally {
     submitting.value = false
   }
