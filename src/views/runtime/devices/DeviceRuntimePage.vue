@@ -89,14 +89,54 @@
         </div>
       </div>
     </div>
+
+    <StandardDrawer
+      v-model="drawerOpen"
+      direction="rtl"
+      size="lg"
+      :close-on-click-modal="true"
+      :close-on-press-escape="true"
+      custom-class="runtime-device-drawer"
+      @close="selectedDevice = null"
+    >
+      <template #header>
+        <div
+          v-if="selectedDevice"
+          class="device-drawer__header"
+        >
+          <strong class="device-drawer__title">
+            {{ selectedDevice.device_name }}
+          </strong>
+          <span class="device-drawer__meta">
+            {{ selectedDevice.device_code }} · {{ selectedDevice.device_role }}
+          </span>
+        </div>
+      </template>
+
+      <RuntimeDeviceInspector
+        v-if="selectedDevice && selectedDevice.workline_id"
+        :device-id="selectedDevice.id"
+        :workline-id="selectedDevice.workline_id"
+        :show-header="false"
+        @close="drawerOpen = false"
+      />
+      <RuntimeEmptyState
+        v-else-if="selectedDevice"
+        title="无法加载设备详情"
+        description="该设备缺少工作线关联信息。"
+        hint="请通过工作线监控页面查看此设备。"
+      />
+    </StandardDrawer>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
+import RuntimeDeviceInspector from '@/components/runtime/devices/RuntimeDeviceInspector.vue'
 import RuntimeEmptyState from '@/components/common/runtime/RuntimeEmptyState.vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
+import { StandardDrawer } from '@/components/ui/StandardDrawer'
 import type { RuntimeDeviceSummary, RuntimeWorklineSummary } from '@/types/runtime'
 import type { RuntimeTone } from '@/utils/runtime-display'
 
@@ -109,6 +149,8 @@ const loadError = ref<string | null>(null)
 const allDevices = ref<DeviceWithWorkline[]>([])
 const filterStatus = ref<string | null>(null)
 const searchText = ref('')
+const drawerOpen = ref(false)
+const selectedDevice = ref<DeviceWithWorkline | null>(null)
 
 const filteredDevices = computed(() => {
   let items = allDevices.value
@@ -157,8 +199,8 @@ function deviceStatusTone(d: RuntimeDeviceSummary): RuntimeTone {
 }
 
 function showDetail(device: DeviceWithWorkline) {
-  void device
-  // Future: navigate to device detail or open drawer
+  selectedDevice.value = device
+  drawerOpen.value = true
 }
 
 async function loadDevices() {
@@ -284,6 +326,25 @@ onMounted(() => {
   font-size: 11px;
   font-weight: 700;
   align-self: flex-start;
+}
+
+.device-drawer__header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.device-drawer__title {
+  color: #f8fafc;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: var(--font-mono, 'JetBrains Mono');
+}
+
+.device-drawer__meta {
+  color: #94a3b8;
+  font-size: 12px;
+  font-family: var(--font-mono, 'JetBrains Mono');
 }
 
 .runtime-page__subtitle {
