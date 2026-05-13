@@ -512,6 +512,8 @@ export interface ReplayInboxPayload {
 
 export type ManualOperationType = 'HOLD' | 'RESUME' | 'CANCEL'
 
+export type WorklineMode = 'live' | 'trace' | 'sandbox'
+
 export interface ManualSessionOperationPayload {
   operation: ManualOperationType
   operator_id: string

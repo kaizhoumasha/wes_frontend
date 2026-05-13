@@ -335,9 +335,9 @@ import type {
   RuntimeDeviceDetailResponse,
   RuntimeTraceListItem,
   TraceCallbackLogItem,
-  TraceCommandItem
+  TraceCommandItem,
+  WorklineMode
 } from '@/types/runtime'
-import type { WorklineMode } from '@/composables/useWorklineMode'
 import {
   compactEnumLabel,
   formatRuntimeDateTime,
