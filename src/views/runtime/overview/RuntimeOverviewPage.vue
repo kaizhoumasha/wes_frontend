@@ -12,20 +12,20 @@
       </div>
       <div class="runtime-page__status-bar">
         <RuntimeStatusBadge
-          :label="connectionLabel"
-          :tone="connectionTone"
-          :pulse="live && state === 'connected'"
+          :label="sseStore.connectionLabel"
+          :tone="sseStore.connectionTone"
+          :pulse="sseStore.live && sseStore.state === 'connected'"
         />
         <el-switch
-          :model-value="live"
+          :model-value="sseStore.live"
           inline-prompt
           active-text="Live"
           inactive-text="Frozen"
-          @change="value => toggleLive(Boolean(value))"
+          @change="value => sseStore.toggleLive(Boolean(value))"
         />
         <RuntimeLastUpdated
-          :value="lastRefreshedAt"
-          :frozen="!live"
+          :value="sseStore.lastRefreshedAt"
+          :frozen="!sseStore.live"
         />
         <el-button
           type="primary"
@@ -36,7 +36,7 @@
       </div>
     </div>
 
-    <RuntimeFrozenNotice v-if="!live" />
+    <RuntimeFrozenNotice v-if="!sseStore.live" />
 
     <div class="runtime-overview__top">
       <RuntimeSystemVerdict
@@ -55,7 +55,7 @@
             @navigate="handleNavigate"
           />
           <div
-            v-if="isStale"
+            v-if="sseStore.isStale"
             class="runtime-overview__stale-hint"
           >
             数据可能已过期 (SSE &gt; 15s)
@@ -117,7 +117,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useNow } from '@vueuse/core'
 import RuntimeHealthBreakdown from '@/components/runtime/overview/RuntimeHealthBreakdown.vue'
 import RuntimeFrozenNotice from '@/components/common/runtime/RuntimeFrozenNotice.vue'
 import RuntimeLastUpdated from '@/components/common/runtime/RuntimeLastUpdated.vue'
@@ -127,7 +126,7 @@ import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.v
 import RuntimeSystemVerdict from '@/components/runtime/overview/RuntimeSystemVerdict.vue'
 import RuntimeTraceList from '@/components/runtime/overview/RuntimeTraceList.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
-import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
+import { useRuntimeSSEStore } from '@/stores/runtime-sse'
 import type {
   RuntimeOverviewResponse,
   RuntimeTraceListItem,
@@ -138,17 +137,7 @@ import type { RuntimeTone } from '@/utils/runtime-display'
 import { classifyToTiers, computeVerdictSummary, type PriorityItem } from '@/utils/runtime-priority'
 
 const router = useRouter()
-const {
-  connectionLabel,
-  connectionTone,
-  lastEvent,
-  lastRawEvent,
-  lastRefreshedAt,
-  live,
-  markRefreshedAt,
-  state,
-  toggleLive
-} = useRuntimePageChrome()
+const sseStore = useRuntimeSSEStore()
 
 const loading = ref(false)
 const healthExpanded = ref(['health'])
@@ -185,13 +174,6 @@ const verdictSummary = computed(() =>
   computeVerdictSummary(priorityItems.value, overview.value, worklines.value)
 )
 
-const now = useNow()
-const isStale = computed(() => {
-  if (!live.value || !lastRawEvent.value) return false
-  const ts = (lastRawEvent.value.original as MessageEvent | undefined)?.timeStamp
-  if (!ts) return false
-  return now.value.getTime() - ts > 15_000
-})
 
 function statValue(key: string): number {
   return overview.value.stats.find(s => s.key === key)?.value ?? 0
@@ -352,7 +334,7 @@ async function loadOverviewData(): Promise<void> {
     }
   }
   worklines.value = worklineData
-  markRefreshedAt()
+  sseStore.markRefreshedAt()
 }
 
 async function loadCoreData(): Promise<void> {
@@ -375,7 +357,7 @@ async function loadCoreData(): Promise<void> {
     }
   }
   worklines.value = worklineData
-  markRefreshedAt()
+  sseStore.markRefreshedAt()
 }
 
 const refresh = createCoalescedAsyncTask(async () => {
@@ -421,9 +403,9 @@ onMounted(() => {
 })
 
 watch(
-  () => lastEvent.value,
+  () => sseStore.lastEvent,
   event => {
-    if (!live.value || !event) return
+    if (!sseStore.live || !event) return
     // device 事件不影响 trace 列表，跳过 trace 请求
     if (event.entity === 'device') {
       void refreshCore()
