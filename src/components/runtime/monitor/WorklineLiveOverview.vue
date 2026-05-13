@@ -37,9 +37,9 @@
 </template>
 
 <script setup lang="ts">
-import DecisionStrip from '@/components/common/runtime/DecisionStrip.vue'
-import WorklineRouteMap from '@/components/common/runtime/WorklineRouteMap.vue'
-import SessionBoard from '@/components/common/runtime/SessionBoard.vue'
+import DecisionStrip from '@/components/runtime/devices/DecisionStrip.vue'
+import WorklineRouteMap from '@/components/runtime/monitor/WorklineRouteMap.vue'
+import SessionBoard from '@/components/runtime/monitor/SessionBoard.vue'
 import type {
   RuntimeTraceDevicePathNode,
   RuntimeTraceListItem,

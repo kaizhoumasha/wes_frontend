@@ -806,7 +806,7 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { runtimeApiMethods } from '@/api/modules/runtime'
-import TraceHealthPipeline from '@/components/common/runtime/TraceHealthPipeline.vue'
+import TraceHealthPipeline from '@/components/runtime/trace/TraceHealthPipeline.vue'
 import AppIconButton from '@/components/ui/AppIconButton.vue'
 import { displayDevice } from '@/utils/runtime-display-identity'
 import { formatRelativeTime } from '@/utils/timezone'
