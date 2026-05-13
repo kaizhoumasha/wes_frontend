@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0.1] - 2026-05-13
+
+### Changed
+
+- 运行监控中心拆解为 6 个独立模块：运行总览、工作线监控、Trace 追溯、Hold 处置、沙箱测试、设备运行时
+- SSE 连接管理统一为 Pinia store 单例，消除每页面独立连接
+- Trace 追溯和沙箱测试恢复为可见菜单入口
+- 42 个运行时组件按模块目录重组 (overview/monitor/trace/holds/sandbox/devices)
+
+### Added
+
+- 新增 Hold 列表页，支持类型/状态筛选和 Promise.allSettled 容错聚合
+- 新增设备运行时网格视图，跨工作线聚合设备状态卡片
+- 新增工作线目录搜索（纯前端过滤名称/编码/区域）
+- 新增 Trace 对比视图（并排时间线 + 分叉点自动检测高亮）
+- 新增浏览器桌面通知（急停/Hold 事件推送，60s 防抖，权限降级）
+
+### Fixed
+
+- Trace 对比视图改用 Promise.allSettled 处理单Trace查询失败
+
+### Removed
+
+- 移除 WorklineRuntimePage 巨页面（被 WorklineMonitorPage 替换）
+- 移除 useWorklineMode composable
+
 ## [0.3.0.0] - 2026-05-12
 
 ### Added
