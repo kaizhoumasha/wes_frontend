@@ -1,5 +1,5 @@
 <template>
-  <div class="runtime-page">
+  <div v-loading="loading" class="runtime-page">
     <div class="runtime-page__header">
       <div>
         <h1 class="runtime-page__title">设备运行时</h1>
@@ -8,21 +8,286 @@
         </p>
       </div>
     </div>
+
+    <div class="device-filter-bar">
+      <el-select
+        v-model="filterStatus"
+        placeholder="状态筛选"
+        clearable
+        style="width: 140px"
+      >
+        <el-option label="异常" value="abnormal" />
+        <el-option label="维护中" value="maintenance" />
+        <el-option label="正常" value="healthy" />
+        <el-option label="离线" value="offline" />
+      </el-select>
+      <el-input
+        v-model="searchText"
+        placeholder="搜索设备名称/编码..."
+        clearable
+        style="width: 220px"
+      />
+    </div>
+
+    <div
+      v-if="loading"
+      class="device-grid__loading"
+    >
+      <el-skeleton
+        v-for="n in 6"
+        :key="n"
+        animated
+        class="device-grid__skeleton"
+      />
+    </div>
+
     <RuntimeEmptyState
-      title="设备运行时视图"
-      description="此模块将在下一阶段完善。当前可通过工作线监控页面查看设备状态。"
-      hint="功能规划中：设备网格视图、按状态分组、维护模式操作。"
+      v-else-if="loadError"
+      title="加载失败"
+      :description="loadError"
+      hint="请检查后端连接后重试"
     />
+
+    <RuntimeEmptyState
+      v-else-if="!loading && allDevices.length === 0"
+      title="当前无运行中的设备"
+      description="未找到任何活跃设备数据。"
+      hint="请确认后端工作线已绑定设备。"
+    />
+
+    <div
+      v-else
+      class="device-grid"
+    >
+      <div
+        v-for="device in filteredDevices"
+        :key="device.id"
+        class="device-card"
+        :class="`device-card--${deviceStatusTone(device)}`"
+        @click="showDetail(device)"
+      >
+        <div class="device-card__top">
+          <RuntimeStatusBadge
+            :label="deviceStatusLabel(device)"
+            :tone="deviceStatusTone(device)"
+            size="small"
+          />
+          <span class="device-card__id">{{ device.device_code }}</span>
+        </div>
+        <div class="device-card__name">{{ device.device_name }}</div>
+        <div class="device-card__meta">
+          <span class="device-card__role">{{ device.device_role }}</span>
+          <template v-if="device.workline_name">
+            · {{ device.workline_name }}
+          </template>
+        </div>
+        <div
+          v-if="device.maintenance_mode"
+          class="device-card__maintenance"
+        >
+          维护中
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted, ref } from 'vue'
+import { runtimeApiMethods } from '@/api/modules/runtime'
 import RuntimeEmptyState from '@/components/common/runtime/RuntimeEmptyState.vue'
+import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
+import type { RuntimeDeviceSummary, RuntimeWorklineSummary } from '@/types/runtime'
+import type { RuntimeTone } from '@/utils/runtime-display'
+
+interface DeviceWithWorkline extends RuntimeDeviceSummary {
+  workline_name?: string | null
+}
+
+const loading = ref(false)
+const loadError = ref<string | null>(null)
+const allDevices = ref<DeviceWithWorkline[]>([])
+const filterStatus = ref<string | null>(null)
+const searchText = ref('')
+
+const filteredDevices = computed(() => {
+  let items = allDevices.value
+  if (filterStatus.value) {
+    items = items.filter(d => deviceStatusKey(d) === filterStatus.value)
+  }
+  if (searchText.value) {
+    const q = searchText.value.toLowerCase()
+    items = items.filter(
+      d =>
+        d.device_name.toLowerCase().includes(q) ||
+        d.device_code.toLowerCase().includes(q)
+    )
+  }
+  return [...items].sort((a, b) => {
+    const sev: Record<string, number> = { abnormal: 0, offline: 1, maintenance: 2, healthy: 3 }
+    return (sev[deviceStatusKey(a)] ?? 4) - (sev[deviceStatusKey(b)] ?? 4)
+  })
+})
+
+function deviceStatusKey(d: RuntimeDeviceSummary): string {
+  if (d.maintenance_mode) return 'maintenance'
+  if (d.device_status === 'ERROR' || d.device_status === 'FAULT') return 'abnormal'
+  if (d.device_status === 'OFFLINE') return 'offline'
+  return 'healthy'
+}
+
+function deviceStatusLabel(d: RuntimeDeviceSummary): string {
+  const m: Record<string, string> = {
+    abnormal: '异常',
+    offline: '离线',
+    maintenance: '维护',
+    healthy: '正常'
+  }
+  return m[deviceStatusKey(d)] ?? d.device_status
+}
+
+function deviceStatusTone(d: RuntimeDeviceSummary): RuntimeTone {
+  const m: Record<string, RuntimeTone> = {
+    abnormal: 'danger',
+    offline: 'danger',
+    maintenance: 'warning',
+    healthy: 'success'
+  }
+  return m[deviceStatusKey(d)] ?? 'info'
+}
+
+function showDetail(device: DeviceWithWorkline) {
+  void device
+  // Future: navigate to device detail or open drawer
+}
+
+async function loadDevices() {
+  loading.value = true
+  loadError.value = null
+  try {
+    const worklineList: RuntimeWorklineSummary[] =
+      await runtimeApiMethods.worklines().send()
+    const results = await Promise.allSettled(
+      worklineList.map(wl => runtimeApiMethods.devices(wl.id).send())
+    )
+    const devices: DeviceWithWorkline[] = []
+    for (let i = 0; i < results.length; i++) {
+      const r = results[i]
+      if (r.status === 'fulfilled') {
+        for (const d of r.value) {
+          devices.push({ ...d, workline_name: worklineList[i]?.line_name })
+        }
+      }
+    }
+    allDevices.value = devices
+  } catch (e: unknown) {
+    loadError.value = e instanceof Error ? e.message : '未知错误'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  void loadDevices()
+})
 </script>
 
 <style scoped>
+.device-filter-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.device-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.device-grid__loading {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.device-grid__skeleton {
+  height: 120px;
+  border-radius: 10px;
+}
+
+.device-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid rgb(245 158 11 / 0.12);
+  border-radius: 12px;
+  border-left: 3px solid rgb(245 158 11 / 0.4);
+  background: #1e293b;
+  cursor: pointer;
+  transition: border-color 0.15s ease-out;
+}
+
+.device-card:hover {
+  border-color: rgb(245 158 11 / 0.28);
+}
+
+.device-card--danger {
+  border-left-color: rgb(220 38 38 / 0.6);
+}
+
+.device-card--warning {
+  border-left-color: rgb(234 179 8 / 0.5);
+}
+
+.device-card--success {
+  border-left-color: rgb(22 163 74 / 0.5);
+}
+
+.device-card__top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.device-card__id {
+  margin-left: auto;
+  color: #64748b;
+  font-family: var(--font-mono, 'JetBrains Mono');
+  font-size: 12px;
+}
+
+.device-card__name {
+  color: #f8fafc;
+  font-family: var(--font-mono, 'JetBrains Mono');
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.device-card__meta {
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.device-card__role {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.device-card__maintenance {
+  margin-top: 2px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgb(234 179 8 / 0.12);
+  color: #eab308;
+  font-size: 11px;
+  font-weight: 700;
+  align-self: flex-start;
+}
+
 .runtime-page__subtitle {
-  max-width: 560px;
+  max-width: 600px;
   margin-top: 4px;
   color: #94a3b8;
   font-size: 13px;
