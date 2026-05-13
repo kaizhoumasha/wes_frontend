@@ -86,6 +86,14 @@
         >
           查询案件
         </el-button>
+        <el-button
+          :type="showContrast ? 'warning' : 'default'"
+          class="trace-query-bar__submit"
+          :disabled="!traceDetail"
+          @click="showContrast = !showContrast"
+        >
+          {{ showContrast ? '关闭对比' : '对比模式' }}
+        </el-button>
       </div>
     </el-card>
 
@@ -532,6 +540,12 @@
         />
       </el-card>
     </div>
+
+    <TraceContrastPanel
+      v-if="showContrast"
+      class="trace-contrast-section"
+      @close="showContrast = false"
+    />
   </div>
 </template>
 
@@ -547,6 +561,7 @@ import TraceBlockingPointCard from '@/components/runtime/trace/TraceBlockingPoin
 import TraceCaseHero from '@/components/runtime/trace/TraceCaseHero.vue'
 import TraceNextActions from '@/components/runtime/trace/TraceNextActions.vue'
 import TraceRelatedSidebar from '@/components/runtime/trace/TraceRelatedSidebar.vue'
+import TraceContrastPanel from '@/components/runtime/trace/TraceContrastPanel.vue'
 import TraceTimeline from '@/components/runtime/trace/TraceTimeline.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
@@ -590,6 +605,7 @@ const traceDetail = ref<TraceDetailResponse | null>(null)
 const blockingPoint = ref<TraceBlockingPointResponse | null>(null)
 const detailScrollRef = ref<HTMLElement | null>(null)
 const detailHeroRef = ref<HTMLElement | null>(null)
+const showContrast = ref(false)
 const showStickyContext = useRuntimeStickyContextVisibility({
   heroRef: detailHeroRef,
   scrollRootRef: detailScrollRef,
@@ -1006,6 +1022,13 @@ watch(
 </script>
 
 <style scoped>
+.trace-contrast-section {
+  margin-top: 16px;
+  padding: 20px;
+  border: 1px solid rgb(245 158 11 / 0.14);
+  border-radius: 14px;
+  background: #1e293b;
+}
 .runtime-page__subtitle {
   max-width: 900px;
 }
