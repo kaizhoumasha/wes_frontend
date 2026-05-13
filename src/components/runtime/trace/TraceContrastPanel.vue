@@ -20,6 +20,7 @@
           size="small"
           @keyup.enter="loadBoth"
         />
+        <span v-if="errorA" class="trace-contrast__error">{{ errorA }}</span>
       </div>
       <div class="trace-contrast__divider">vs</div>
       <div class="trace-contrast__input-group">
@@ -30,6 +31,7 @@
           size="small"
           @keyup.enter="loadBoth"
         />
+        <span v-if="errorB" class="trace-contrast__error">{{ errorB }}</span>
       </div>
       <el-button
         type="primary"
@@ -106,7 +108,6 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { ElMessage } from 'element-plus'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import RuntimeEmptyState from '@/components/common/runtime/RuntimeEmptyState.vue'
 import type { TraceDetailResponse } from '@/types/runtime'
@@ -161,23 +162,37 @@ const forkIndex = computed<number | null>(() => {
   return null
 })
 
+const errorA = ref<string | null>(null)
+const errorB = ref<string | null>(null)
+
 async function loadBoth() {
   if (!traceIdA.value || !traceIdB.value) return
   loading.value = true
   loaded.value = false
-  try {
-    const [a, b] = await Promise.all([
-      runtimeApiMethods.traceByTraceId(traceIdA.value).send(),
-      runtimeApiMethods.traceByTraceId(traceIdB.value).send()
-    ])
-    detailA.value = a
-    detailB.value = b
-  } catch (e: unknown) {
-    ElMessage.error(getErrorMessage(e, 'Trace 查询失败'))
-  } finally {
-    loading.value = false
-    loaded.value = true
+  errorA.value = null
+  errorB.value = null
+
+  const [ra, rb] = await Promise.allSettled([
+    runtimeApiMethods.traceByTraceId(traceIdA.value).send(),
+    runtimeApiMethods.traceByTraceId(traceIdB.value).send()
+  ])
+
+  if (ra.status === 'fulfilled') {
+    detailA.value = ra.value
+  } else {
+    detailA.value = null
+    errorA.value = getErrorMessage(ra.reason, 'Trace A 查询失败')
   }
+
+  if (rb.status === 'fulfilled') {
+    detailB.value = rb.value
+  } else {
+    detailB.value = null
+    errorB.value = getErrorMessage(rb.reason, 'Trace B 查询失败')
+  }
+
+  loading.value = false
+  loaded.value = true
 }
 </script>
 
@@ -223,6 +238,12 @@ async function loadBoth() {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+.trace-contrast__error {
+  color: #dc2626;
+  font-size: 11px;
+  margin-top: 2px;
 }
 
 .trace-contrast__divider {
