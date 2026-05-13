@@ -157,7 +157,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { ArrowDown, ArrowUp, Close } from '@element-plus/icons-vue'
-import DeviceHealthHero from '@/components/common/runtime/DeviceHealthHero.vue'
+import DeviceHealthHero from '@/components/runtime/devices/DeviceHealthHero.vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import type {

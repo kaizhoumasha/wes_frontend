@@ -104,12 +104,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import RuntimeHoldAuditTrail from '@/components/common/runtime/RuntimeHoldAuditTrail.vue'
-import RuntimeHoldChecklist from '@/components/common/runtime/RuntimeHoldChecklist.vue'
-import RuntimeHoldConflictNotice from '@/components/common/runtime/RuntimeHoldConflictNotice.vue'
-import RuntimeHoldDecisionBar from '@/components/common/runtime/RuntimeHoldDecisionBar.vue'
-import RuntimeHoldDispositionForm from '@/components/common/runtime/RuntimeHoldDispositionForm.vue'
-import RuntimeHoldEvidencePanel from '@/components/common/runtime/RuntimeHoldEvidencePanel.vue'
+import RuntimeHoldAuditTrail from '@/components/runtime/holds/RuntimeHoldAuditTrail.vue'
+import RuntimeHoldChecklist from '@/components/runtime/holds/RuntimeHoldChecklist.vue'
+import RuntimeHoldConflictNotice from '@/components/runtime/holds/RuntimeHoldConflictNotice.vue'
+import RuntimeHoldDecisionBar from '@/components/runtime/holds/RuntimeHoldDecisionBar.vue'
+import RuntimeHoldDispositionForm from '@/components/runtime/holds/RuntimeHoldDispositionForm.vue'
+import RuntimeHoldEvidencePanel from '@/components/runtime/holds/RuntimeHoldEvidencePanel.vue'
 import { useRuntimeHoldStore } from '@/stores/runtime-hold'
 import type { NgReasonOption, ResolveRuntimeHoldRequest } from '@/types/runtime'
 

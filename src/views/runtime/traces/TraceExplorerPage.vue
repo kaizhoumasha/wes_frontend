@@ -12,20 +12,20 @@
       </div>
       <div class="runtime-page__status-bar runtime-control-cluster">
         <RuntimeStatusBadge
-          :label="connectionLabel"
-          :tone="connectionTone"
-          :pulse="live && state === 'connected'"
+          :label="sseStore.connectionLabel"
+          :tone="sseStore.connectionTone"
+          :pulse="sseStore.live && sseStore.state === 'connected'"
         />
         <el-switch
-          :model-value="live"
+          :model-value="sseStore.live"
           inline-prompt
           active-text="Live"
           inactive-text="Frozen"
-          @change="value => toggleLive(Boolean(value))"
+          @change="value => sseStore.toggleLive(Boolean(value))"
         />
         <RuntimeLastUpdated
-          :value="lastRefreshedAt"
-          :frozen="!live"
+          :value="sseStore.lastRefreshedAt"
+          :frozen="!sseStore.live"
         />
         <el-button
           plain
@@ -86,10 +86,18 @@
         >
           查询案件
         </el-button>
+        <el-button
+          :type="showContrast ? 'warning' : 'default'"
+          class="trace-query-bar__submit"
+          :disabled="!traceDetail"
+          @click="showContrast = !showContrast"
+        >
+          {{ showContrast ? '关闭对比' : '对比模式' }}
+        </el-button>
       </div>
     </el-card>
 
-    <RuntimeFrozenNotice v-if="!live" />
+    <RuntimeFrozenNotice v-if="!sseStore.live" />
 
     <div class="trace-layout">
       <div class="trace-layout__detail">
@@ -532,6 +540,12 @@
         />
       </el-card>
     </div>
+
+    <TraceContrastPanel
+      v-if="showContrast"
+      class="trace-contrast-section"
+      @close="showContrast = false"
+    />
   </div>
 </template>
 
@@ -543,13 +557,14 @@ import RuntimeFrozenNotice from '@/components/common/runtime/RuntimeFrozenNotice
 import RuntimeLastUpdated from '@/components/common/runtime/RuntimeLastUpdated.vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import RuntimeStickyContextBar from '@/components/common/runtime/RuntimeStickyContextBar.vue'
-import TraceBlockingPointCard from '@/components/common/runtime/TraceBlockingPointCard.vue'
-import TraceCaseHero from '@/components/common/runtime/TraceCaseHero.vue'
-import TraceNextActions from '@/components/common/runtime/TraceNextActions.vue'
-import TraceRelatedSidebar from '@/components/common/runtime/TraceRelatedSidebar.vue'
-import TraceTimeline from '@/components/common/runtime/TraceTimeline.vue'
+import TraceBlockingPointCard from '@/components/runtime/trace/TraceBlockingPointCard.vue'
+import TraceCaseHero from '@/components/runtime/trace/TraceCaseHero.vue'
+import TraceNextActions from '@/components/runtime/trace/TraceNextActions.vue'
+import TraceRelatedSidebar from '@/components/runtime/trace/TraceRelatedSidebar.vue'
+import TraceContrastPanel from '@/components/runtime/trace/TraceContrastPanel.vue'
+import TraceTimeline from '@/components/runtime/trace/TraceTimeline.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
-import { useRuntimePageChrome } from '@/composables/useRuntimePageChrome'
+import { useRuntimeSSEStore } from '@/stores/runtime-sse'
 import { useRuntimeStickyContextVisibility } from '@/composables/useRuntimeStickyContextVisibility'
 import type {
   RuntimeTraceListItem,
@@ -570,16 +585,7 @@ import {
 
 const route = useRoute()
 const router = useRouter()
-const {
-  connectionLabel,
-  connectionTone,
-  lastEvent,
-  lastRefreshedAt,
-  live,
-  markRefreshedAt,
-  state,
-  toggleLive
-} = useRuntimePageChrome()
+const sseStore = useRuntimeSSEStore()
 
 const loading = ref(false)
 const blockingPointLoading = ref(false)
@@ -590,6 +596,7 @@ const traceDetail = ref<TraceDetailResponse | null>(null)
 const blockingPoint = ref<TraceBlockingPointResponse | null>(null)
 const detailScrollRef = ref<HTMLElement | null>(null)
 const detailHeroRef = ref<HTMLElement | null>(null)
+const showContrast = ref(false)
 const showStickyContext = useRuntimeStickyContextVisibility({
   heroRef: detailHeroRef,
   scrollRootRef: detailScrollRef,
@@ -798,12 +805,12 @@ async function syncRouteQuery(
 
 async function loadTraceBySession(sessionId: number) {
   await setTraceDetail(await runtimeApiMethods.traceBySessionId(sessionId).send())
-  markRefreshedAt()
+  sseStore.markRefreshedAt()
 }
 
 async function loadTraceByTraceId(traceId: string) {
   await setTraceDetail(await runtimeApiMethods.traceByTraceId(traceId).send())
-  markRefreshedAt()
+  sseStore.markRefreshedAt()
 }
 
 async function loadTraceByAnchor(
@@ -817,7 +824,7 @@ async function loadTraceByAnchor(
   }
 
   await setTraceDetail(await requestMap[type](value).send())
-  markRefreshedAt()
+  sseStore.markRefreshedAt()
 }
 
 async function loadTraceByBarcode(barcode: string) {
@@ -985,9 +992,9 @@ watch(
 )
 
 watch(
-  () => lastEvent.value,
+  () => sseStore.lastEvent,
   async event => {
-    if (!live.value || !event) return
+    if (!sseStore.live || !event) return
 
     if (
       !isRelevantRuntimeEvent(event, {
@@ -1006,6 +1013,13 @@ watch(
 </script>
 
 <style scoped>
+.trace-contrast-section {
+  margin-top: 16px;
+  padding: 20px;
+  border: 1px solid rgb(245 158 11 / 0.14);
+  border-radius: 14px;
+  background: #1e293b;
+}
 .runtime-page__subtitle {
   max-width: 900px;
 }
