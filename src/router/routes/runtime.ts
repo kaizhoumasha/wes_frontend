@@ -15,8 +15,6 @@ export const runtimeRoutes: RouteRecordRaw = {
     }
   },
   children: [
-    // ---- 新路由 ----
-
     {
       path: 'overview',
       name: 'RuntimeOverview',
@@ -126,37 +124,6 @@ export const runtimeRoutes: RouteRecordRaw = {
           sortOrder: 6
         }
       }
-    },
-
-    // ---- 旧路由重定向 ----
-
-    {
-      path: 'worklines',
-      redirect: to => ({
-        name: 'RuntimeMonitor',
-        query: to.query
-      })
-    },
-    {
-      path: 'status',
-      redirect: to => ({
-        name: 'RuntimeOverview',
-        query: to.query
-      })
-    },
-    {
-      path: 'dashboard',
-      redirect: to => ({
-        name: 'RuntimeOverview',
-        query: to.query
-      })
-    },
-    {
-      path: 'exceptions/:holdId',
-      redirect: to => ({
-        name: 'RuntimeHoldDetail',
-        params: to.params
-      })
     }
   ]
 }
