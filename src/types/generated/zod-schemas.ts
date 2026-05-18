@@ -438,32 +438,6 @@ export const BinContentSnapshotStatusSchema = z.enum(["COMPLETE", "PARTIAL", "UN
 
 
 /**
- * 料箱实例创建 Schema。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const BinCreateSchema = z.object({
-  /** Bin Code */
-  bin_code: z.string().min(1).max(80),
-  /** Wms Bin Id */
-  wms_bin_id: z.union([z.string().max(100), z.null()]).optional(),
-  /** Bin Type Code */
-  bin_type_code: z.string().min(1).max(50),
-  /** 料箱执行状态 */
-  status: z.lazy(() => BinStatusSchema).optional().default("UNKNOWN"),
-  /** Last Seen At */
-  last_seen_at: z.union([z.string().datetime(), z.null()]).optional(),
-  /** 来源系统 */
-  source_system: z.lazy(() => ResourceSourceSystemSchema).optional().default("MANUAL_IMPORT"),
-  /** Source Version */
-  source_version: z.union([z.string().max(100), z.null()]).optional(),
-  /** Metadata Json */
-  metadata_json: z.record(z.any()).optional(),
-})
-
-
-/**
  * 料箱实例响应 Schema。
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -488,8 +462,6 @@ export const BinResponseSchema = z.object({
   metadata_json: z.record(z.any()).optional(),
   /** Id */
   id: z.number(),
-  /** Version */
-  version: z.number(),
 })
 
 
@@ -500,30 +472,6 @@ export const BinResponseSchema = z.object({
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const BinSlotSizeSchema = z.enum(["7INCH", "13INCH", "15INCH", "LARGE"])
-
-
-/**
- * 料箱槽位模板创建 Schema。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const BinSlotTemplateCreateSchema = z.object({
-  /** Bin Type Code */
-  bin_type_code: z.string().min(1).max(50),
-  /** Bin Slot Code */
-  bin_slot_code: z.string().min(1).max(50),
-  /** 槽位尺寸 */
-  slot_size: z.lazy(() => BinSlotSizeSchema),
-  /** Max Depth Mm */
-  max_depth_mm: z.union([z.number().min(1), z.null()]).optional(),
-  /** Max Weight G */
-  max_weight_g: z.union([z.number().min(1), z.null()]).optional(),
-  /** Active */
-  active: z.boolean().optional().default(true),
-  /** Metadata Json */
-  metadata_json: z.record(z.any()).optional(),
-})
 
 
 /**
@@ -549,34 +497,6 @@ export const BinSlotTemplateResponseSchema = z.object({
   metadata_json: z.record(z.any()).optional(),
   /** Id */
   id: z.number(),
-  /** Version */
-  version: z.number(),
-})
-
-
-/**
- * 料箱槽位模板更新 Schema。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const BinSlotTemplateUpdateSchema = z.object({
-  /** Bin Type Code */
-  bin_type_code: z.union([z.string().min(1).max(50), z.null()]).optional(),
-  /** Bin Slot Code */
-  bin_slot_code: z.union([z.string().min(1).max(50), z.null()]).optional(),
-  /** 槽位尺寸 */
-  slot_size: z.union([z.lazy(() => BinSlotSizeSchema), z.null()]).optional(),
-  /** Max Depth Mm */
-  max_depth_mm: z.union([z.number().min(1), z.null()]).optional(),
-  /** Max Weight G */
-  max_weight_g: z.union([z.number().min(1), z.null()]).optional(),
-  /** Active */
-  active: z.union([z.boolean(), z.null()]).optional(),
-  /** Metadata Json */
-  metadata_json: z.union([z.record(z.any()), z.null()]).optional(),
-  /** Version */
-  version: z.number(),
 })
 
 
@@ -587,26 +507,6 @@ export const BinSlotTemplateUpdateSchema = z.object({
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const BinStatusSchema = z.enum(["EMPTY_VERIFIED", "IN_USE", "LOCKED", "FULL_SNAPSHOT", "EXCEPTION", "DISABLED", "UNKNOWN"])
-
-
-/**
- * 料箱类型创建 Schema。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const BinTypeCreateSchema = z.object({
-  /** Bin Type Code */
-  bin_type_code: z.string().min(1).max(50),
-  /** Bin Type Name */
-  bin_type_name: z.string().min(1).max(100),
-  /** Description */
-  description: z.union([z.string().max(500), z.null()]).optional(),
-  /** Active */
-  active: z.boolean().optional().default(true),
-  /** Metadata Json */
-  metadata_json: z.record(z.any()).optional(),
-})
 
 
 /**
@@ -628,58 +528,6 @@ export const BinTypeResponseSchema = z.object({
   metadata_json: z.record(z.any()).optional(),
   /** Id */
   id: z.number(),
-  /** Version */
-  version: z.number(),
-})
-
-
-/**
- * 料箱类型更新 Schema。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const BinTypeUpdateSchema = z.object({
-  /** Bin Type Code */
-  bin_type_code: z.union([z.string().min(1).max(50), z.null()]).optional(),
-  /** Bin Type Name */
-  bin_type_name: z.union([z.string().min(1).max(100), z.null()]).optional(),
-  /** Description */
-  description: z.union([z.string().max(500), z.null()]).optional(),
-  /** Active */
-  active: z.union([z.boolean(), z.null()]).optional(),
-  /** Metadata Json */
-  metadata_json: z.union([z.record(z.any()), z.null()]).optional(),
-  /** Version */
-  version: z.number(),
-})
-
-
-/**
- * 料箱实例更新 Schema。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const BinUpdateSchema = z.object({
-  /** Bin Code */
-  bin_code: z.union([z.string().min(1).max(80), z.null()]).optional(),
-  /** Wms Bin Id */
-  wms_bin_id: z.union([z.string().max(100), z.null()]).optional(),
-  /** Bin Type Code */
-  bin_type_code: z.union([z.string().min(1).max(50), z.null()]).optional(),
-  /** 料箱执行状态 */
-  status: z.union([z.lazy(() => BinStatusSchema), z.null()]).optional(),
-  /** Last Seen At */
-  last_seen_at: z.union([z.string().datetime(), z.null()]).optional(),
-  /** 来源系统 */
-  source_system: z.union([z.lazy(() => ResourceSourceSystemSchema), z.null()]).optional(),
-  /** Source Version */
-  source_version: z.union([z.string().max(100), z.null()]).optional(),
-  /** Metadata Json */
-  metadata_json: z.union([z.record(z.any()), z.null()]).optional(),
-  /** Version */
-  version: z.number(),
 })
 
 
@@ -1268,38 +1116,6 @@ export const DiagnosticCardResponseSchema = z.object({
 
 
 /**
- * 执行地码创建 Schema。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const ExecutionLocationCreateSchema = z.object({
-  /** Location Code */
-  location_code: z.string().min(1).max(80),
-  /** Zone Code */
-  zone_code: z.string().min(1).max(50),
-  /** 地码类型 */
-  location_type: z.lazy(() => ExecutionLocationTypeSchema),
-  /** Wms Location Code */
-  wms_location_code: z.union([z.string().max(100), z.null()]).optional(),
-  /** Rack Capacity */
-  rack_capacity: z.number().min(1).optional().default(1),
-  /** Allowed Rack Types */
-  allowed_rack_types: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
-        return val
-      }, z.array(z.string())).optional(),
-  /** 地码状态 */
-  status: z.lazy(() => ExecutionLocationStatusSchema).optional().default("UNKNOWN"),
-  /** Coordinates Json */
-  coordinates_json: z.record(z.any()).optional(),
-})
-
-
-/**
  * 执行地码响应 Schema。
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -1330,8 +1146,6 @@ export const ExecutionLocationResponseSchema = z.object({
   coordinates_json: z.record(z.any()).optional(),
   /** Id */
   id: z.number(),
-  /** Version */
-  version: z.number(),
 })
 
 
@@ -1351,72 +1165,6 @@ export const ExecutionLocationStatusSchema = z.enum(["AVAILABLE", "OCCUPIED", "L
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const ExecutionLocationTypeSchema = z.enum(["WORK_STATION", "BUFFER", "STORAGE", "EXCHANGE_SLOT", "QUEUE_SLOT"])
-
-
-/**
- * 执行地码更新 Schema。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const ExecutionLocationUpdateSchema = z.object({
-  /** Location Code */
-  location_code: z.union([z.string().min(1).max(80), z.null()]).optional(),
-  /** Zone Code */
-  zone_code: z.union([z.string().min(1).max(50), z.null()]).optional(),
-  /** 地码类型 */
-  location_type: z.union([z.lazy(() => ExecutionLocationTypeSchema), z.null()]).optional(),
-  /** Wms Location Code */
-  wms_location_code: z.union([z.string().max(100), z.null()]).optional(),
-  /** Rack Capacity */
-  rack_capacity: z.union([z.number().min(1), z.null()]).optional(),
-  /** Allowed Rack Types */
-  allowed_rack_types: z.union([z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
-        return val
-      }, z.array(z.string())), z.null()]).optional(),
-  /** 地码状态 */
-  status: z.union([z.lazy(() => ExecutionLocationStatusSchema), z.null()]).optional(),
-  /** Coordinates Json */
-  coordinates_json: z.union([z.record(z.any()), z.null()]).optional(),
-  /** Version */
-  version: z.number(),
-})
-
-
-/**
- * 执行区域创建 Schema。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const ExecutionZoneCreateSchema = z.object({
-  /** Zone Code */
-  zone_code: z.string().min(1).max(50),
-  /** Zone Name */
-  zone_name: z.string().min(1).max(100),
-  /** 区域类型 */
-  zone_type: z.lazy(() => ExecutionZoneTypeSchema),
-  /** Wms Zone Code */
-  wms_zone_code: z.union([z.string().max(100), z.null()]).optional(),
-  /** 区域状态 */
-  status: z.lazy(() => ResourceMasterStatusSchema).optional().default("ACTIVE"),
-  /** Allowed Rack Types */
-  allowed_rack_types: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
-        return val
-      }, z.array(z.string())).optional(),
-  /** Max Concurrent Tasks */
-  max_concurrent_tasks: z.union([z.number().min(1), z.null()]).optional(),
-  /** Metadata Json */
-  metadata_json: z.record(z.any()).optional(),
-})
 
 
 /**
@@ -1450,8 +1198,6 @@ export const ExecutionZoneResponseSchema = z.object({
   metadata_json: z.record(z.any()).optional(),
   /** Id */
   id: z.number(),
-  /** Version */
-  version: z.number(),
 })
 
 
@@ -1462,40 +1208,6 @@ export const ExecutionZoneResponseSchema = z.object({
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const ExecutionZoneTypeSchema = z.enum(["KITTING", "SMT_STORAGE", "FULL_BOX_EXCHANGE", "RETURN", "LINE_BUFFER"])
-
-
-/**
- * 执行区域更新 Schema。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const ExecutionZoneUpdateSchema = z.object({
-  /** Zone Code */
-  zone_code: z.union([z.string().min(1).max(50), z.null()]).optional(),
-  /** Zone Name */
-  zone_name: z.union([z.string().min(1).max(100), z.null()]).optional(),
-  /** 区域类型 */
-  zone_type: z.union([z.lazy(() => ExecutionZoneTypeSchema), z.null()]).optional(),
-  /** Wms Zone Code */
-  wms_zone_code: z.union([z.string().max(100), z.null()]).optional(),
-  /** 区域状态 */
-  status: z.union([z.lazy(() => ResourceMasterStatusSchema), z.null()]).optional(),
-  /** Allowed Rack Types */
-  allowed_rack_types: z.union([z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
-        return val
-      }, z.array(z.string())), z.null()]).optional(),
-  /** Max Concurrent Tasks */
-  max_concurrent_tasks: z.union([z.number().min(1), z.null()]).optional(),
-  /** Metadata Json */
-  metadata_json: z.union([z.record(z.any()), z.null()]).optional(),
-  /** Version */
-  version: z.number(),
-})
 
 
 /**
@@ -1612,8 +1324,6 @@ export const FullBoxExchangeTaskResponseSchema = z.object({
   trace_id: z.union([z.string().max(100), z.null()]).optional(),
   /** Id */
   id: z.number(),
-  /** Version */
-  version: z.number(),
 })
 
 
@@ -2910,8 +2620,6 @@ export const RackBinMountResponseSchema = z.object({
   ended_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Id */
   id: z.number(),
-  /** Version */
-  version: z.number(),
 })
 
 
@@ -2922,34 +2630,6 @@ export const RackBinMountResponseSchema = z.object({
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const RackBinMountStatusSchema = z.enum(["MOUNTED", "UNMOUNTED", "EXCHANGING", "UNKNOWN"])
-
-
-/**
- * 货架实例创建 Schema。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const RackCreateSchema = z.object({
-  /** Rack Code */
-  rack_code: z.string().min(1).max(80),
-  /** Wms Rack Id */
-  wms_rack_id: z.union([z.string().max(100), z.null()]).optional(),
-  /** Rack Type Code */
-  rack_type_code: z.string().min(1).max(50),
-  /** 货架执行状态 */
-  status: z.lazy(() => RackStatusSchema).optional().default("UNKNOWN"),
-  /** Current Location Code */
-  current_location_code: z.union([z.string().max(80), z.null()]).optional(),
-  /** Last Seen At */
-  last_seen_at: z.union([z.string().datetime(), z.null()]).optional(),
-  /** 来源系统 */
-  source_system: z.lazy(() => ResourceSourceSystemSchema).optional().default("MANUAL_IMPORT"),
-  /** Source Version */
-  source_version: z.union([z.string().max(100), z.null()]).optional(),
-  /** Metadata Json */
-  metadata_json: z.record(z.any()).optional(),
-})
 
 
 /**
@@ -3012,8 +2692,6 @@ export const RackMaterialMountResponseSchema = z.object({
   ended_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Id */
   id: z.number(),
-  /** Version */
-  version: z.number(),
 })
 
 
@@ -3057,8 +2735,6 @@ export const RackPlacementResponseSchema = z.object({
   ended_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Id */
   id: z.number(),
-  /** Version */
-  version: z.number(),
 })
 
 
@@ -3140,8 +2816,6 @@ export const RackReleaseResponseSchema = z.object({
   trace_id: z.union([z.string().max(100), z.null()]).optional(),
   /** Id */
   id: z.number(),
-  /** Version */
-  version: z.number(),
 })
 
 
@@ -3181,8 +2855,6 @@ export const RackResponseSchema = z.object({
   metadata_json: z.record(z.any()).optional(),
   /** Id */
   id: z.number(),
-  /** Version */
-  version: z.number(),
 })
 
 
@@ -3202,46 +2874,6 @@ export const RackSlotKindSchema = z.enum(["BIN_SLOT", "MATERIAL_SLOT"])
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const RackSlotSideSchema = z.enum(["A", "B", "NONE"])
-
-
-/**
- * 货架槽位模板创建 Schema。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const RackSlotTemplateCreateSchema = z.object({
-  /** Rack Type Code */
-  rack_type_code: z.string().min(1).max(50),
-  /** Slot Code */
-  slot_code: z.string().min(1).max(50),
-  /** 槽位面 */
-  side: z.lazy(() => RackSlotSideSchema).optional().default("NONE"),
-  /** Layer No */
-  layer_no: z.number().min(1).optional().default(1),
-  /** Position No */
-  position_no: z.number().min(1).optional().default(1),
-  /** 槽位承载对象类型 */
-  slot_kind: z.lazy(() => RackSlotKindSchema),
-  /** Allowed Bin Types */
-  allowed_bin_types: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
-        return val
-      }, z.array(z.string())).optional(),
-  /** Allowed Material Carrier Types */
-  allowed_material_carrier_types: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
-        return val
-      }, z.array(z.string())).optional(),
-  /** Active */
-  active: z.boolean().optional().default(true),
-})
 
 
 /**
@@ -3283,50 +2915,6 @@ export const RackSlotTemplateResponseSchema = z.object({
   active: z.boolean().optional().default(true),
   /** Id */
   id: z.number(),
-  /** Version */
-  version: z.number(),
-})
-
-
-/**
- * 货架槽位模板更新 Schema。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const RackSlotTemplateUpdateSchema = z.object({
-  /** Rack Type Code */
-  rack_type_code: z.union([z.string().min(1).max(50), z.null()]).optional(),
-  /** Slot Code */
-  slot_code: z.union([z.string().min(1).max(50), z.null()]).optional(),
-  /** 槽位面 */
-  side: z.union([z.lazy(() => RackSlotSideSchema), z.null()]).optional(),
-  /** Layer No */
-  layer_no: z.union([z.number().min(1), z.null()]).optional(),
-  /** Position No */
-  position_no: z.union([z.number().min(1), z.null()]).optional(),
-  /** 槽位承载对象类型 */
-  slot_kind: z.union([z.lazy(() => RackSlotKindSchema), z.null()]).optional(),
-  /** Allowed Bin Types */
-  allowed_bin_types: z.union([z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
-        return val
-      }, z.array(z.string())), z.null()]).optional(),
-  /** Allowed Material Carrier Types */
-  allowed_material_carrier_types: z.union([z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
-        return val
-      }, z.array(z.string())), z.null()]).optional(),
-  /** Active */
-  active: z.union([z.boolean(), z.null()]).optional(),
-  /** Version */
-  version: z.number(),
 })
 
 
@@ -3337,32 +2925,6 @@ export const RackSlotTemplateUpdateSchema = z.object({
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const RackStatusSchema = z.enum(["AVAILABLE", "LOCKED", "IN_TRANSIT", "AT_WORKLINE", "IN_EXCHANGE", "EXCEPTION", "DISABLED", "UNKNOWN"])
-
-
-/**
- * 货架类型创建 Schema。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const RackTypeCreateSchema = z.object({
-  /** Rack Type Code */
-  rack_type_code: z.string().min(1).max(50),
-  /** Rack Type Name */
-  rack_type_name: z.string().min(1).max(100),
-  /** 货架物理结构类型 */
-  rack_kind: z.lazy(() => RackKindSchema),
-  /** Slot Count */
-  slot_count: z.number().min(1),
-  /** Has Side */
-  has_side: z.boolean().optional().default(false),
-  /** Description */
-  description: z.union([z.string().max(500), z.null()]).optional(),
-  /** Active */
-  active: z.boolean().optional().default(true),
-  /** Metadata Json */
-  metadata_json: z.record(z.any()).optional(),
-})
 
 
 /**
@@ -3390,66 +2952,6 @@ export const RackTypeResponseSchema = z.object({
   metadata_json: z.record(z.any()).optional(),
   /** Id */
   id: z.number(),
-  /** Version */
-  version: z.number(),
-})
-
-
-/**
- * 货架类型更新 Schema。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const RackTypeUpdateSchema = z.object({
-  /** Rack Type Code */
-  rack_type_code: z.union([z.string().min(1).max(50), z.null()]).optional(),
-  /** Rack Type Name */
-  rack_type_name: z.union([z.string().min(1).max(100), z.null()]).optional(),
-  /** 货架物理结构类型 */
-  rack_kind: z.union([z.lazy(() => RackKindSchema), z.null()]).optional(),
-  /** Slot Count */
-  slot_count: z.union([z.number().min(1), z.null()]).optional(),
-  /** Has Side */
-  has_side: z.union([z.boolean(), z.null()]).optional(),
-  /** Description */
-  description: z.union([z.string().max(500), z.null()]).optional(),
-  /** Active */
-  active: z.union([z.boolean(), z.null()]).optional(),
-  /** Metadata Json */
-  metadata_json: z.union([z.record(z.any()), z.null()]).optional(),
-  /** Version */
-  version: z.number(),
-})
-
-
-/**
- * 货架实例更新 Schema。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const RackUpdateSchema = z.object({
-  /** Rack Code */
-  rack_code: z.union([z.string().min(1).max(80), z.null()]).optional(),
-  /** Wms Rack Id */
-  wms_rack_id: z.union([z.string().max(100), z.null()]).optional(),
-  /** Rack Type Code */
-  rack_type_code: z.union([z.string().min(1).max(50), z.null()]).optional(),
-  /** 货架执行状态 */
-  status: z.union([z.lazy(() => RackStatusSchema), z.null()]).optional(),
-  /** Current Location Code */
-  current_location_code: z.union([z.string().max(80), z.null()]).optional(),
-  /** Last Seen At */
-  last_seen_at: z.union([z.string().datetime(), z.null()]).optional(),
-  /** 来源系统 */
-  source_system: z.union([z.lazy(() => ResourceSourceSystemSchema), z.null()]).optional(),
-  /** Source Version */
-  source_version: z.union([z.string().max(100), z.null()]).optional(),
-  /** Metadata Json */
-  metadata_json: z.union([z.record(z.any()), z.null()]).optional(),
-  /** Version */
-  version: z.number(),
 })
 
 
@@ -4310,6 +3812,36 @@ export const SandboxEventTemplateSchema = z.object({
   label: z.string(),
   /** Payload Template */
   payload_template: z.record(z.any()).optional(),
+})
+
+
+/**
+ * 沙箱 External HTTP 回调模拟请求。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const SandboxExternalCallbackRequestSchema = z.object({
+  /** Dispatch Key */
+  dispatch_key: z.string().min(1).max(200),
+  /** Callback Type */
+  callback_type: z.union([z.string().max(100), z.null()]).optional(),
+  /** Payload */
+  payload: z.record(z.any()).optional(),
+  /** Source System */
+  source_system: z.string().regex(new RegExp("^(WMS|RCS)$")).optional().default("WMS"),
+  /** Source Event Id */
+  source_event_id: z.union([z.string().max(200), z.null()]).optional(),
+  /** Source Version */
+  source_version: z.string().max(50).optional().default("1"),
+  /** Request Id */
+  request_id: z.union([z.string().max(200), z.null()]).optional(),
+  /** Occurred At */
+  occurred_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Timestamp */
+  timestamp: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Signature */
+  signature: z.string().max(500).optional().default("sandbox"),
 })
 
 

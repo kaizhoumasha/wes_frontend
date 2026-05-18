@@ -110,6 +110,20 @@ export const runtimeRoutes: RouteRecordRaw = {
       }
     },
     {
+      path: 'sandbox/:worklineId',
+      name: 'RuntimeSandboxWorkbench',
+      component: () => import('@/views/runtime/sandbox/SandboxWorkbenchPage.vue'),
+      meta: {
+        requiresAuth: true,
+        title: '沙箱工作台',
+        permission: BIZ_PERMISSIONS.workline.update,
+        menu: {
+          name: 'runtime:sandbox:workbench',
+          hidden: true
+        }
+      }
+    },
+    {
       path: 'devices',
       name: 'RuntimeDevices',
       component: () => import('@/views/runtime/devices/DeviceRuntimePage.vue'),

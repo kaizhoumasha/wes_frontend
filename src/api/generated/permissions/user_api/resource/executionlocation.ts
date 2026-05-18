@@ -17,16 +17,4 @@ export const RESOURCE_EXECUTIONLOCATION_PERMISSION = {
   list: 'resource:executionlocation:list',
   /** 详情查看权限 */
   detail: 'resource:executionlocation:detail',
-  /** 创建权限 */
-  create: 'resource:executionlocation:create',
-  /** 更新权限 */
-  update: 'resource:executionlocation:update',
-  /** 删除权限 */
-  delete: 'resource:executionlocation:delete',
-  /** 恢复权限 */
-  restore: 'resource:executionlocation:restore',
-  /** 回收站权限 */
-  trash: 'resource:executionlocation:trash',
-  /** 批量永久删除ExecutionLocation */
-  permanentDelete: 'resource:executionlocation:permanent_delete',
 } as const

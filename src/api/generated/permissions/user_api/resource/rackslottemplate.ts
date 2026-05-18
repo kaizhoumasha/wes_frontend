@@ -17,16 +17,4 @@ export const RESOURCE_RACKSLOTTEMPLATE_PERMISSION = {
   list: 'resource:rackslottemplate:list',
   /** 详情查看权限 */
   detail: 'resource:rackslottemplate:detail',
-  /** 创建权限 */
-  create: 'resource:rackslottemplate:create',
-  /** 更新权限 */
-  update: 'resource:rackslottemplate:update',
-  /** 删除权限 */
-  delete: 'resource:rackslottemplate:delete',
-  /** 恢复权限 */
-  restore: 'resource:rackslottemplate:restore',
-  /** 回收站权限 */
-  trash: 'resource:rackslottemplate:trash',
-  /** 批量永久删除RackSlotTemplate */
-  permanentDelete: 'resource:rackslottemplate:permanent_delete',
 } as const

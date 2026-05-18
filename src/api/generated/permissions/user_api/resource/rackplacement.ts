@@ -17,10 +17,4 @@ export const RESOURCE_RACKPLACEMENT_PERMISSION = {
   list: 'resource:rackplacement:list',
   /** 详情查看权限 */
   detail: 'resource:rackplacement:detail',
-  /** 恢复权限 */
-  restore: 'resource:rackplacement:restore',
-  /** 回收站权限 */
-  trash: 'resource:rackplacement:trash',
-  /** 批量永久删除RackPlacement */
-  permanentDelete: 'resource:rackplacement:permanent_delete',
 } as const

@@ -6,6 +6,7 @@
     <div class="sandbox-cycle-status__phase">
       <div class="sandbox-cycle-status__dot" />
       <span class="sandbox-cycle-status__label">{{ phaseLabel }}</span>
+      <span class="sandbox-cycle-status__hint">{{ phaseHint }}</span>
     </div>
 
     <div
@@ -45,9 +46,16 @@
     </div>
 
     <div class="sandbox-cycle-status__counts">
-      <span v-if="newCount">{{ newCount }} 待派发</span>
-      <span v-if="sentCount">{{ sentCount }} 待 ACK</span>
-      <span v-if="ackedCount">{{ ackedCount }} 待 Result</span>
+      <template v-if="hasActions">
+        <span v-if="newCount">{{ newCount }} 待派发</span>
+        <span v-if="sentCount">{{ sentCount }} 待 ACK</span>
+        <span v-if="ackedCount">{{ ackedCount }} 待 Result</span>
+        <span v-if="blockedCount">{{ blockedCount }} 阻塞</span>
+      </template>
+      <span
+        v-else-if="!activeSession"
+        class="sandbox-cycle-status__counts-empty"
+      >无活跃会话</span>
     </div>
   </div>
 </template>
@@ -95,21 +103,35 @@ const blockedCount = computed(
       .length
 )
 
+const hasActions = computed(() => newCount.value + sentCount.value + ackedCount.value + blockedCount.value > 0)
+
 const phase = computed<'idle' | 'action' | 'done'>(() => {
   const hasTerminal = props.activeSessions.some(s =>
     ['COMPLETED', 'FAILED', 'CANCELLED'].includes(s.status)
   )
   if (hasTerminal) return 'done'
-  if (newCount.value + sentCount.value + ackedCount.value + blockedCount.value > 0) return 'action'
+  if (hasActions.value) return 'action'
   if (props.activeSessions.length > 0) return 'idle'
   return 'idle'
 })
 
 const phaseLabel = computed(() => {
   if (phase.value === 'done') return '循环结束'
-  if (phase.value === 'action') return '需要操作'
+  if (phase.value === 'action') return '待操作'
   if (props.activeSessions.length > 0) return '等待注入'
   return '就绪'
+})
+
+const phaseHint = computed(() => {
+  if (phase.value === 'done') return '可继续发起新 Event 开始下一轮'
+  if (phase.value === 'action') {
+    if (ackedCount.value > 0) return '有命令需要提交 Result'
+    if (sentCount.value > 0) return '有命令等待 ACK'
+    if (blockedCount.value > 0) return '有命令被阻塞'
+    return '有命令需要处理'
+  }
+  if (props.activeSessions.length > 0) return '会话运行中，等待系统派发命令'
+  return '选择设备 → 发送 Event → 开始测试'
 })
 
 const waitLabel = computed(() => {
@@ -169,6 +191,11 @@ const waitLabel = computed(() => {
   font-weight: 700;
 }
 
+.sandbox-cycle-status__hint {
+  color: var(--runtime-text-secondary);
+  font-size: 12px;
+}
+
 .sandbox-cycle-status__session {
   display: flex;
   align-items: center;
@@ -208,6 +235,12 @@ const waitLabel = computed(() => {
   color: var(--runtime-text-secondary);
   font-family: var(--font-mono);
   font-size: 11px;
+}
+
+.sandbox-cycle-status__counts-empty {
+  color: var(--runtime-text-muted);
+  font-family: var(--font-body, inherit);
+  font-style: normal;
 }
 
 @media (width <= 1279px) {

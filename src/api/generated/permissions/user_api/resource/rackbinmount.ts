@@ -17,10 +17,4 @@ export const RESOURCE_RACKBINMOUNT_PERMISSION = {
   list: 'resource:rackbinmount:list',
   /** 详情查看权限 */
   detail: 'resource:rackbinmount:detail',
-  /** 恢复权限 */
-  restore: 'resource:rackbinmount:restore',
-  /** 回收站权限 */
-  trash: 'resource:rackbinmount:trash',
-  /** 批量永久删除RackBinMount */
-  permanentDelete: 'resource:rackbinmount:permanent_delete',
 } as const

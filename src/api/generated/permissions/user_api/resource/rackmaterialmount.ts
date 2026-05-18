@@ -17,10 +17,4 @@ export const RESOURCE_RACKMATERIALMOUNT_PERMISSION = {
   list: 'resource:rackmaterialmount:list',
   /** 详情查看权限 */
   detail: 'resource:rackmaterialmount:detail',
-  /** 恢复权限 */
-  restore: 'resource:rackmaterialmount:restore',
-  /** 回收站权限 */
-  trash: 'resource:rackmaterialmount:trash',
-  /** 批量永久删除RackMaterialMount */
-  permanentDelete: 'resource:rackmaterialmount:permanent_delete',
 } as const

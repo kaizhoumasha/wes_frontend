@@ -1,8 +1,8 @@
 <template>
   <div class="sandbox-action-list">
-    <!-- Pending section -->
+    <!-- Active Materials -->
     <div class="sandbox-action-list__header">
-      <span class="sandbox-action-list__title">需人工推进命令</span>
+      <span class="sandbox-action-list__title">在途物料</span>
       <span class="sandbox-action-list__count">{{ pendingSessionViews.length }}</span>
       <span
         v-if="actionableCommandCount"
@@ -19,103 +19,147 @@
       <div
         v-for="sessionView in pendingSessionViews"
         :key="sessionView.key"
-        class="sandbox-action-list__pending-session"
+        class="sandbox-action-list__material-card"
       >
-        <div class="sandbox-action-list__pending-session-header">
+        <!-- Material Identity (hero) -->
+        <div class="sandbox-action-list__mat-hero">
+          <span class="sandbox-action-list__mat-label">{{ sessionView.identity.primary.label }}</span>
+          <span
+            class="sandbox-action-list__mat-value"
+            :title="sessionView.identity.primary.value"
+          >
+            {{ sessionView.identity.primary.value }}
+          </span>
           <RuntimeStatusBadge
             v-if="sessionView.status"
             :status="sessionView.status"
             size="small"
           />
-          <div class="sandbox-action-list__pending-session-main">
-            <div class="sandbox-action-list__completed-entity">
-              <span class="sandbox-action-list__completed-entity-label">
-                {{ sessionView.identity.primary.label }}
-              </span>
-              <span
-                class="sandbox-action-list__completed-entity-value"
-                :title="sessionView.identity.primary.value"
-              >
-                {{ sessionView.identity.primary.value }}
-              </span>
-            </div>
-            <div
-              v-if="sessionView.identity.summaryFields.length"
-              class="sandbox-action-list__completed-summary"
-            >
-              <span
-                v-for="field in sessionView.identity.summaryFields"
-                :key="`${sessionView.key}-${field.label}-${field.value}`"
-                class="sandbox-action-list__completed-chip"
-              >
-                <span class="sandbox-action-list__completed-chip-label">{{ field.label }}</span>
-                {{ field.value }}
-              </span>
-            </div>
-          </div>
-          <span class="sandbox-action-list__pending-session-state">
+          <span class="sandbox-action-list__mat-stage">
+            <span class="sandbox-action-list__mat-stage-dot" :class="stageClass(sessionView)" />
             {{ sessionView.actionSummary }}
           </span>
         </div>
 
+        <!-- Material Summary -->
+        <div
+          v-if="sessionView.identity.summaryFields.length"
+          class="sandbox-action-list__mat-chips"
+        >
+          <span
+            v-for="field in sessionView.identity.summaryFields"
+            :key="`${sessionView.key}-${field.label}-${field.value}`"
+            class="sandbox-action-list__mat-chip"
+          >
+            <span class="sandbox-action-list__mat-chip-label">{{ field.label }}</span>
+            {{ field.value }}
+          </span>
+        </div>
+
+        <!-- Flow Steps -->
         <div
           v-if="sessionView.items.length"
-          class="sandbox-action-list__items sandbox-action-list__items--nested"
+          class="sandbox-action-list__flow"
         >
-          <div
-            v-for="item in sessionView.items"
-            :key="item.id"
-            class="sandbox-action-list__item"
-            :class="{ 'is-history': item.is_current_action === false }"
-          >
-            <div class="sandbox-action-list__item-info">
-              <RuntimeStatusBadge
-                :status="item.status ?? 'NEW'"
-                size="small"
-              />
-              <span class="sandbox-action-list__item-key">{{ commandLabel(item) }}</span>
-              <span class="sandbox-action-list__item-target">→ {{ item.target_code || '—' }}</span>
-            </div>
+          <template v-for="item in sessionView.items" :key="item.id">
+            <!-- Current actionable -->
             <div
-              v-if="itemNote(item)"
-              class="sandbox-action-list__item-note"
+              v-if="isCurrentSandboxAction(item) && item.status !== 'BLOCKED_RESOURCE'"
+              class="sandbox-action-list__flow-step is-active"
             >
-              {{ itemNote(item) }}
-              <RouterLink
-                v-if="runtimeHoldId(item)"
-                class="sandbox-action-list__hold-link"
-                :to="{ name: 'RuntimeExceptionDetail', params: { holdId: runtimeHoldId(item) } }"
+              <div class="sandbox-action-list__step-info">
+                <span class="sandbox-action-list__step-cmd">{{ commandLabel(item) }}</span>
+                <span class="sandbox-action-list__step-target">→ {{ item.target_code || '—' }}</span>
+              </div>
+              <div
+                v-if="itemNote(item)"
+                class="sandbox-action-list__step-note"
               >
-                Runtime Hold #{{ runtimeHoldId(item) }}
-              </RouterLink>
+                {{ itemNote(item) }}
+                <RouterLink
+                  v-if="runtimeHoldId(item)"
+                  class="sandbox-action-list__hold-link"
+                  :to="{ name: 'RuntimeHoldDetail', params: { holdId: runtimeHoldId(item) } }"
+                >
+                  Runtime Hold #{{ runtimeHoldId(item) }}
+                </RouterLink>
+              </div>
+              <div class="sandbox-action-list__step-action">
+                <el-button
+                  v-if="canAckSandboxOutbox(item)"
+                  size="small"
+                  type="warning"
+                  plain
+                  :loading="loading === item.id"
+                  :disabled="disabled"
+                  :title="disabled ? disabledReason : undefined"
+                  @click="emit('ack', item)"
+                >
+                  模拟 ACK
+                </el-button>
+                <el-button
+                  v-else-if="canSubmitSandboxResult(item)"
+                  size="small"
+                  type="success"
+                  plain
+                  :loading="loading === item.id"
+                  :disabled="disabled || isResultSubmitted(item)"
+                  :title="buttonDisabledReason(item)"
+                  @click="emit('result', item)"
+                >
+                  模拟 Result
+                </el-button>
+              </div>
             </div>
-            <div class="sandbox-action-list__item-action">
-              <el-button
-                v-if="canAckSandboxOutbox(item)"
-                size="small"
-                type="warning"
-                plain
-                :loading="loading === item.id"
-                :disabled="disabled"
-                :title="disabled ? disabledReason : undefined"
-                @click="emit('ack', item)"
-              >
-                模拟 ACK
-              </el-button>
-              <el-button
-                v-else-if="canSubmitSandboxResult(item)"
-                size="small"
-                type="success"
-                plain
-                :loading="loading === item.id"
-                :disabled="disabled || isResultSubmitted(item)"
-                :title="buttonDisabledReason(item)"
-                @click="emit('result', item)"
-              >
-                模拟 Result
-              </el-button>
+
+            <!-- Blocked -->
+            <div
+              v-else-if="item.status === 'BLOCKED_RESOURCE'"
+              class="sandbox-action-list__flow-step is-blocked"
+            >
+              <div class="sandbox-action-list__step-info">
+                <span class="sandbox-action-list__step-cmd">{{ commandLabel(item) }}</span>
+                <span class="sandbox-action-list__step-target">→ {{ item.target_code || '—' }}</span>
+              </div>
+              <span class="sandbox-action-list__step-badge">已停靠</span>
             </div>
-          </div>
+          </template>
+
+          <!-- History toggle -->
+          <template v-if="historyItemsFor(sessionView).length > 0">
+            <button
+              type="button"
+              class="sandbox-action-list__history-toggle"
+              @click="toggleHistory(sessionView.key)"
+            >
+              <svg
+                class="sandbox-action-list__chevron"
+                :class="{ 'is-open': expandedHistory.has(sessionView.key) }"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              {{ historyItemsFor(sessionView).length }} 条历史
+            </button>
+            <div
+              v-if="expandedHistory.has(sessionView.key)"
+              class="sandbox-action-list__history-items"
+            >
+              <div
+                v-for="item in historyItemsFor(sessionView)"
+                :key="item.id"
+                class="sandbox-action-list__flow-step is-history"
+              >
+                <span class="sandbox-action-list__step-cmd">{{ commandLabel(item) }}</span>
+                <span class="sandbox-action-list__step-target">→ {{ item.target_code || '—' }}</span>
+              </div>
+            </div>
+          </template>
         </div>
         <div
           v-else
@@ -130,14 +174,14 @@
       v-else
       class="sandbox-action-list__empty"
     >
-      暂无需人工推进命令
+      暂无在途物料
     </div>
 
-    <!-- Completed section -->
+    <!-- Completed Materials -->
     <template v-if="completedItemsResolved.length">
       <div class="sandbox-action-list__divider" />
       <div class="sandbox-action-list__header">
-        <span class="sandbox-action-list__title">历史命令</span>
+        <span class="sandbox-action-list__title">已完成</span>
         <span class="sandbox-action-list__count">{{ completedItemsResolved.length }}</span>
       </div>
       <div class="sandbox-action-list__completed">
@@ -150,26 +194,6 @@
             class="sandbox-action-list__completed-session-header"
             @click="toggleSession(sessionView.sessionGroup.session.id)"
           >
-            <svg
-              class="sandbox-action-list__completed-chevron"
-              :class="{
-                'sandbox-action-list__completed-chevron--open': expandedSessions.has(
-                  sessionView.sessionGroup.session.id
-                )
-              }"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            <RuntimeStatusBadge
-              :status="sessionView.sessionGroup.session.status"
-              size="small"
-            />
             <div class="sandbox-action-list__completed-session-main">
               <div class="sandbox-action-list__completed-entity">
                 <span class="sandbox-action-list__completed-entity-label">
@@ -196,9 +220,30 @@
                 </span>
               </div>
             </div>
+            <RuntimeStatusBadge
+              :status="sessionView.sessionGroup.session.status"
+              size="small"
+            />
             <span class="sandbox-action-list__completed-session-count">
-              {{ sessionView.sessionGroup.outbox_items.length }} 条命令
+              {{ sessionView.deviceGroups.devices.length }} 台设备
+              <span v-if="sessionView.deviceGroups.externals.length">· {{ sessionView.deviceGroups.externals.length }} 外部</span>
             </span>
+            <svg
+              class="sandbox-action-list__completed-chevron"
+              :class="{
+                'sandbox-action-list__completed-chevron--open': expandedSessions.has(
+                  sessionView.sessionGroup.session.id
+                )
+              }"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                clip-rule="evenodd"
+              />
+            </svg>
           </div>
           <div
             v-if="expandedSessions.has(sessionView.sessionGroup.session.id)"
@@ -235,40 +280,120 @@
                 formatPayload(sessionView.sessionGroup.session.event_payload)
               }}</pre>
             </div>
-            <div class="sandbox-action-list__completed-items">
-              <div
-                v-for="item in sessionView.sessionGroup.outbox_items"
-                :key="`outbox-${item.id}`"
-                class="sandbox-action-list__completed-item"
-              >
-                <span class="sandbox-action-list__completed-item-key">
-                  {{ commandLabel(item) }}
-                </span>
-                <span class="sandbox-action-list__completed-item-target">
-                  → {{ item.target_code || '—' }}
-                </span>
-                <RuntimeStatusBadge
-                  :status="item.status ?? 'ACKED'"
-                  size="small"
-                />
-                <span
-                  v-if="itemNote(item)"
-                  class="sandbox-action-list__completed-item-error"
+            <!-- Device Groups -->
+            <template v-if="sessionView.deviceGroups.devices.length">
+              <div class="sandbox-action-list__completed-device-groups">
+                <div
+                  v-for="deviceGroup in sessionView.deviceGroups.devices"
+                  :key="deviceGroup.targetCode"
+                  class="sandbox-action-list__completed-device-group"
                 >
-                  {{ itemNote(item) }}
-                  <RouterLink
-                    v-if="runtimeHoldId(item)"
-                    class="sandbox-action-list__hold-link"
-                    :to="{
-                      name: 'RuntimeExceptionDetail',
-                      params: { holdId: runtimeHoldId(item) }
-                    }"
+                  <div
+                    class="sandbox-action-list__completed-device-header"
+                    :class="{ 'has-failure': deviceGroup.hasFailure }"
                   >
-                    Runtime Hold #{{ runtimeHoldId(item) }}
-                  </RouterLink>
-                </span>
+                    <div class="sandbox-action-list__completed-device-identity">
+                      <svg class="sandbox-action-list__completed-device-icon" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M2 4.25A2.25 2.25 0 014.25 2h11.5A2.25 2.25 0 0118 4.25v8.5A2.25 2.25 0 0115.75 15h-3.105a3.5 3.5 0 00-1.621.423l-1.374.716a1.5 1.5 0 01-.676.161H4.25A2.25 2.25 0 012 12.75v-8.5zM6 6a.75.75 0 01.75-.75h6.5a.75.75 0 010 1.5h-6.5A.75.75 0 016 6zm0 4a.75.75 0 01.75-.75h4.5a.75.75 0 010 1.5h-4.5A.75.75 0 016 10z" clip-rule="evenodd" />
+                      </svg>
+                      <span class="sandbox-action-list__completed-device-name">{{ deviceGroup.targetCode }}</span>
+                      <span class="sandbox-action-list__completed-device-count">{{ deviceGroup.items.length }}</span>
+                    </div>
+                    <span v-if="deviceGroup.hasFailure" class="sandbox-action-list__completed-device-badge">
+                      <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                      </svg>
+                    </span>
+                  </div>
+
+                  <div class="sandbox-action-list__completed-device-commands">
+                    <div
+                      v-for="item in deviceGroup.items"
+                      :key="`outbox-${item.id}`"
+                      class="sandbox-action-list__completed-item"
+                      :class="{ 'is-failed': item.status === 'FAILED' || item.status === 'CANCELLED' }"
+                    >
+                      <span class="sandbox-action-list__completed-item-key">
+                        {{ commandLabel(item) }}
+                      </span>
+                      <RuntimeStatusBadge
+                        :status="item.status ?? 'ACKED'"
+                        size="small"
+                      />
+                      <span
+                        v-if="itemNote(item)"
+                        class="sandbox-action-list__completed-item-error"
+                      >
+                        {{ itemNote(item) }}
+                        <RouterLink
+                          v-if="runtimeHoldId(item)"
+                          class="sandbox-action-list__hold-link"
+                          :to="{
+                            name: 'RuntimeHoldDetail',
+                            params: { holdId: runtimeHoldId(item) }
+                          }"
+                        >
+                          Runtime Hold #{{ runtimeHoldId(item) }}
+                        </RouterLink>
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            </template>
+
+            <!-- External Requests -->
+            <template v-if="sessionView.deviceGroups.externals.length">
+              <div class="sandbox-action-list__completed-external-label">外部请求</div>
+              <div class="sandbox-action-list__completed-device-groups">
+                <div
+                  v-for="extGroup in sessionView.deviceGroups.externals"
+                  :key="extGroup.targetCode"
+                  class="sandbox-action-list__completed-device-group is-external"
+                >
+                  <div
+                    class="sandbox-action-list__completed-device-header"
+                    :class="{ 'has-failure': extGroup.hasFailure }"
+                  >
+                    <div class="sandbox-action-list__completed-device-identity">
+                      <svg class="sandbox-action-list__completed-device-icon" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd" />
+                      </svg>
+                      <span class="sandbox-action-list__completed-device-name">{{ extGroup.targetCode }}</span>
+                      <span class="sandbox-action-list__completed-device-count">{{ extGroup.items.length }}</span>
+                    </div>
+                    <span v-if="extGroup.hasFailure" class="sandbox-action-list__completed-device-badge">
+                      <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                      </svg>
+                    </span>
+                  </div>
+
+                  <div class="sandbox-action-list__completed-device-commands">
+                    <div
+                      v-for="item in extGroup.items"
+                      :key="`outbox-${item.id}`"
+                      class="sandbox-action-list__completed-item"
+                      :class="{ 'is-failed': item.status === 'FAILED' || item.status === 'CANCELLED' }"
+                    >
+                      <span class="sandbox-action-list__completed-item-key">
+                        {{ commandLabel(item) }}
+                      </span>
+                      <RuntimeStatusBadge
+                        :status="item.status ?? 'ACKED'"
+                        size="small"
+                      />
+                      <span
+                        v-if="itemNote(item)"
+                        class="sandbox-action-list__completed-item-error"
+                      >
+                        {{ itemNote(item) }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </template>
           </div>
         </div>
       </div>
@@ -338,15 +463,39 @@ const submittedResultReason = computed(
 )
 
 const expandedSessions = ref<Set<number>>(new Set())
+const expandedHistory = ref<Set<string>>(new Set())
 
 function toggleSession(sessionId: number): void {
-  const nextExpandedSessions = new Set(expandedSessions.value)
-  if (nextExpandedSessions.has(sessionId)) {
-    nextExpandedSessions.delete(sessionId)
+  const next = new Set(expandedSessions.value)
+  if (next.has(sessionId)) {
+    next.delete(sessionId)
   } else {
-    nextExpandedSessions.add(sessionId)
+    next.add(sessionId)
   }
-  expandedSessions.value = nextExpandedSessions
+  expandedSessions.value = next
+}
+
+function toggleHistory(key: string): void {
+  const next = new Set(expandedHistory.value)
+  if (next.has(key)) next.delete(key)
+  else next.add(key)
+  expandedHistory.value = next
+}
+
+function historyItemsFor(view: { items: SandboxPendingOutbox[] }): SandboxPendingOutbox[] {
+  return view.items.filter(
+    item => !isCurrentSandboxAction(item) && item.status !== 'BLOCKED_RESOURCE'
+  )
+}
+
+function stageClass(view: { items: SandboxPendingOutbox[] }): string {
+  const hasAckable = view.items.some(item => canAckSandboxOutbox(item))
+  const hasResultable = view.items.some(item => canSubmitSandboxResult(item))
+  const hasBlocked = view.items.some(item => item.status === 'BLOCKED_RESOURCE')
+  if (hasResultable) return 'is-result'
+  if (hasAckable) return 'is-ack'
+  if (hasBlocked) return 'is-blocked'
+  return 'is-idle'
 }
 
 const completedItemsResolved = computed(() => props.completedItems ?? [])
@@ -376,9 +525,62 @@ interface PendingSessionView {
 const completedSessionViews = computed(() =>
   completedItemsResolved.value.map(sessionGroup => ({
     sessionGroup,
-    identity: buildSessionIdentity(sessionGroup)
+    identity: buildSessionIdentity(sessionGroup),
+    deviceGroups: groupItemsByDevice(sessionGroup.outbox_items),
   }))
 )
+
+/** 判断 outbox item 是否指向外部服务（非设备） */
+function isExternalTarget(item: SandboxPendingOutbox): boolean {
+  const t = item.target_type?.toUpperCase()
+  return t === 'HTTP_ENDPOINT' || t === 'INTERNAL_SERVICE'
+}
+
+interface CompletedDeviceGroup {
+  targetCode: string
+  items: SandboxPendingOutbox[]
+  hasFailure: boolean
+}
+
+interface CompletedSessionGroups {
+  devices: CompletedDeviceGroup[]
+  externals: CompletedDeviceGroup[]
+}
+
+/**
+ * 将单个 completed session 的 outbox_items 按 target_type 分为设备/外部请求两组，
+ * 再在各自组内按 target_code 聚合。
+ */
+function groupItemsByDevice(items: SandboxPendingOutbox[]): CompletedSessionGroups {
+  const deviceMap = new Map<string, SandboxPendingOutbox[]>()
+  const externalMap = new Map<string, SandboxPendingOutbox[]>()
+
+  for (const item of items) {
+    if (isExternalTarget(item)) {
+      const key = item.target_code || '__unknown__'
+      if (!externalMap.has(key)) externalMap.set(key, [])
+      externalMap.get(key)!.push(item)
+    } else {
+      const key = item.target_code || '__unknown__'
+      if (!deviceMap.has(key)) deviceMap.set(key, [])
+      deviceMap.get(key)!.push(item)
+    }
+  }
+
+  const makeGroups = (map: Map<string, SandboxPendingOutbox[]>) =>
+    Array.from(map.entries()).map(([targetCode, groupItems]) => ({
+      targetCode,
+      items: groupItems,
+      hasFailure: groupItems.some(
+        i => i.status === 'FAILED' || i.status === 'CANCELLED'
+      ),
+    }))
+
+  return {
+    devices: makeGroups(deviceMap),
+    externals: makeGroups(externalMap),
+  }
+}
 
 const activeSessionById = computed(() => {
   const index = new Map<number, RuntimeTraceListItem>()
@@ -726,84 +928,152 @@ function formatPayload(payload: Record<string, unknown>): string {
   font-size: 11px;
 }
 
-.sandbox-action-list__items {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
 .sandbox-action-list__pending {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.sandbox-action-list__pending-session {
-  padding: 10px;
-  border: 1px solid rgb(245, 158, 11, 0.1);
-  border-radius: 8px;
+/* ===== Material Card ===== */
+.sandbox-action-list__material-card {
+  padding: 12px;
+  border: 1px solid rgb(245, 158, 11, 0.12);
+  border-radius: 10px;
   background: var(--runtime-surface-subtle);
 }
 
-.sandbox-action-list__pending-session-header {
+.sandbox-action-list__mat-hero {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
-.sandbox-action-list__pending-session-main {
-  display: flex;
-  flex: 1;
-  min-width: 0;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.sandbox-action-list__pending-session-state {
+.sandbox-action-list__mat-label {
   color: var(--runtime-text-muted);
   font-size: 11px;
-  margin-left: auto;
+  font-weight: 700;
   flex-shrink: 0;
 }
 
-.sandbox-action-list__pending-waiting {
-  padding: 8px 10px;
-  border: 1px dashed var(--runtime-border-neutral);
-  border-radius: 6px;
-  color: var(--runtime-text-muted);
-  font-size: 12px;
+.sandbox-action-list__mat-value {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--runtime-text-primary);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.sandbox-action-list__items--nested {
+.sandbox-action-list__mat-stage {
+  display: inline-flex;
+  align-items: center;
   gap: 5px;
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--runtime-text-muted);
+  font-size: 11px;
 }
 
-.sandbox-action-list__item {
+.sandbox-action-list__mat-stage-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #475569;
+}
+
+.sandbox-action-list__mat-stage-dot.is-ack {
+  background: #eab308;
+  box-shadow: 0 0 6px rgb(234, 179, 8, 0.4);
+}
+
+.sandbox-action-list__mat-stage-dot.is-result {
+  background: #06b6d4;
+  box-shadow: 0 0 6px rgb(6, 182, 212, 0.4);
+}
+
+.sandbox-action-list__mat-stage-dot.is-blocked {
+  background: #ef4444;
+}
+
+.sandbox-action-list__mat-stage-dot.is-idle {
+  background: #3b82f6;
+}
+
+/* Summary chips */
+.sandbox-action-list__mat-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.sandbox-action-list__mat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgb(245, 158, 11, 0.08);
+  color: var(--runtime-text-secondary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.sandbox-action-list__mat-chip-label {
+  color: var(--runtime-text-muted);
+  font-family: inherit;
+  font-weight: 700;
+}
+
+/* ===== Flow Steps ===== */
+.sandbox-action-list__flow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sandbox-action-list__flow-step {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
   padding: 8px 10px;
   border: 1px solid rgb(245, 158, 11, 0.08);
   border-radius: 8px;
   background: var(--runtime-surface-subtle);
 }
 
-.sandbox-action-list__item.is-history {
-  border-color: var(--runtime-border-neutral);
-  background: var(--runtime-surface);
+.sandbox-action-list__flow-step.is-active {
+  border-color: rgb(245, 158, 11, 0.18);
+  background: rgb(245, 158, 11, 0.04);
 }
 
-.sandbox-action-list__item-info {
+.sandbox-action-list__flow-step.is-blocked {
+  border-color: rgb(239, 68, 68, 0.15);
+  opacity: 0.75;
+}
+
+.sandbox-action-list__flow-step.is-history {
+  border-color: transparent;
+  background: transparent;
+  padding: 3px 10px;
+  opacity: 0.5;
+}
+
+.sandbox-action-list__step-info {
   display: flex;
   align-items: center;
   gap: 8px;
   min-width: 0;
 }
 
-.sandbox-action-list__item-key {
+.sandbox-action-list__step-cmd {
   color: var(--runtime-text-primary);
   font-family: var(--font-mono);
   font-size: 12px;
@@ -813,21 +1083,74 @@ function formatPayload(payload: Record<string, unknown>): string {
   white-space: nowrap;
 }
 
-.sandbox-action-list__item-target {
+.sandbox-action-list__step-target {
   color: var(--runtime-text-secondary);
   font-size: 12px;
   flex-shrink: 0;
 }
 
-.sandbox-action-list__item-note {
+.sandbox-action-list__step-note {
   flex-basis: 100%;
   color: var(--runtime-text-muted);
   font-size: 12px;
   line-height: 1.4;
 }
 
-.sandbox-action-list__item-action {
+.sandbox-action-list__step-action {
   flex-shrink: 0;
+}
+
+.sandbox-action-list__step-badge {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgb(239, 68, 68, 0.12);
+  color: #ef4444;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* ===== History Toggle ===== */
+.sandbox-action-list__history-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--runtime-text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.sandbox-action-list__history-toggle:hover {
+  color: var(--runtime-text-secondary);
+}
+
+.sandbox-action-list__chevron {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.2s ease;
+}
+
+.sandbox-action-list__chevron.is-open {
+  transform: rotate(90deg);
+}
+
+.sandbox-action-list__history-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ===== Shared ===== */
+.sandbox-action-list__pending-waiting {
+  padding: 8px 10px;
+  border: 1px dashed var(--runtime-border-neutral);
+  border-radius: 6px;
+  color: var(--runtime-text-muted);
+  font-size: 12px;
 }
 
 .sandbox-action-list__empty {
@@ -842,6 +1165,12 @@ function formatPayload(payload: Record<string, unknown>): string {
   border-top: 1px solid rgb(245, 158, 11, 0.1);
 }
 
+.sandbox-action-list__hold-link {
+  color: #06b6d4;
+  font-weight: 600;
+}
+
+/* ===== Completed Section ===== */
 .sandbox-action-list__completed {
   display: flex;
   flex-direction: column;
@@ -1063,5 +1392,133 @@ function formatPayload(payload: Record<string, unknown>): string {
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ===== Device Groups (within completed session) ===== */
+.sandbox-action-list__completed-device-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sandbox-action-list__completed-device-group {
+  border: 1px solid var(--runtime-border-neutral);
+  border-radius: 8px;
+  background: var(--runtime-surface-subtle);
+  overflow: hidden;
+}
+
+.sandbox-action-list__completed-device-group:has(.has-failure) {
+  border-color: rgb(239, 68, 68, 0.2);
+}
+
+.sandbox-action-list__completed-device-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgb(245, 158, 11, 0.04);
+  border-bottom: 1px solid var(--runtime-border-neutral);
+}
+
+.sandbox-action-list__completed-device-header.has-failure {
+  background: rgb(239, 68, 68, 0.06);
+}
+
+.sandbox-action-list__completed-device-identity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.sandbox-action-list__completed-device-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--runtime-text-muted);
+  flex-shrink: 0;
+}
+
+.has-failure .sandbox-action-list__completed-device-icon {
+  color: #ef4444;
+}
+
+.sandbox-action-list__completed-device-name {
+  color: var(--runtime-text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sandbox-action-list__completed-device-count {
+  color: var(--runtime-text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.sandbox-action-list__completed-device-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgb(239, 68, 68, 0.12);
+  color: #ef4444;
+  flex-shrink: 0;
+}
+
+.sandbox-action-list__completed-device-badge svg {
+  width: 12px;
+  height: 12px;
+}
+
+.sandbox-action-list__completed-device-commands {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 6px;
+}
+
+.sandbox-action-list__completed-item.is-failed {
+  border-left: 2px solid rgb(239, 68, 68, 0.4);
+  background: rgb(239, 68, 68, 0.04);
+  opacity: 1;
+}
+
+/* ===== External Requests ===== */
+.sandbox-action-list__completed-external-label {
+  color: var(--runtime-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+  padding-left: 4px;
+}
+
+.sandbox-action-list__completed-device-group.is-external {
+  border-color: rgb(59, 130, 246, 0.15);
+}
+
+.sandbox-action-list__completed-device-group.is-external .sandbox-action-list__completed-device-header {
+  background: rgb(59, 130, 246, 0.04);
+}
+
+.sandbox-action-list__completed-device-group.is-external .sandbox-action-list__completed-device-icon {
+  color: #3b82f6;
+}
+
+.sandbox-action-list__completed-device-group.is-external.has-failure {
+  border-color: rgb(239, 68, 68, 0.2);
+}
+
+.sandbox-action-list__completed-device-group.is-external.has-failure .sandbox-action-list__completed-device-header {
+  background: rgb(239, 68, 68, 0.06);
 }
 </style>

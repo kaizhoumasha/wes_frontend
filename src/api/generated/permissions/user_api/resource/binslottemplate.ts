@@ -17,16 +17,4 @@ export const RESOURCE_BINSLOTTEMPLATE_PERMISSION = {
   list: 'resource:binslottemplate:list',
   /** 详情查看权限 */
   detail: 'resource:binslottemplate:detail',
-  /** 创建权限 */
-  create: 'resource:binslottemplate:create',
-  /** 更新权限 */
-  update: 'resource:binslottemplate:update',
-  /** 删除权限 */
-  delete: 'resource:binslottemplate:delete',
-  /** 恢复权限 */
-  restore: 'resource:binslottemplate:restore',
-  /** 回收站权限 */
-  trash: 'resource:binslottemplate:trash',
-  /** 批量永久删除BinSlotTemplate */
-  permanentDelete: 'resource:binslottemplate:permanent_delete',
 } as const
