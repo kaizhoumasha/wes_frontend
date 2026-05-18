@@ -19,6 +19,24 @@ import { BIZ_DEVICE_PERMISSION } from './user_api/biz/device'
 import { BIZ_WORKLINE_PERMISSION } from './user_api/biz/workline'
 import { CALLBACK_CALLBACK_LOG_PERMISSION } from './user_api/callback/callback_log'
 import { DEMO_DEMOPRODUCT_PERMISSION } from './user_api/demo/demoproduct'
+import { RESOURCE_BIN_PERMISSION } from './user_api/resource/bin'
+import { RESOURCE_BINCONTENTSNAPSHOT_PERMISSION } from './user_api/resource/bincontentsnapshot'
+import { RESOURCE_BINCONTENTSNAPSHOTITEM_PERMISSION } from './user_api/resource/bincontentsnapshotitem'
+import { RESOURCE_BINSLOTTEMPLATE_PERMISSION } from './user_api/resource/binslottemplate'
+import { RESOURCE_BINTYPE_PERMISSION } from './user_api/resource/bintype'
+import { RESOURCE_EXECUTIONLOCATION_PERMISSION } from './user_api/resource/executionlocation'
+import { RESOURCE_EXECUTIONZONE_PERMISSION } from './user_api/resource/executionzone'
+import { RESOURCE_FULLBOXEXCHANGETASK_PERMISSION } from './user_api/resource/fullboxexchangetask'
+import { RESOURCE_RACK_PERMISSION } from './user_api/resource/rack'
+import { RESOURCE_RACKBINMOUNT_PERMISSION } from './user_api/resource/rackbinmount'
+import { RESOURCE_RACKMATERIALMOUNT_PERMISSION } from './user_api/resource/rackmaterialmount'
+import { RESOURCE_RACKPLACEMENT_PERMISSION } from './user_api/resource/rackplacement'
+import { RESOURCE_RACKRELEASE_PERMISSION } from './user_api/resource/rackrelease'
+import { RESOURCE_RACKRELEASEBINSNAPSHOT_PERMISSION } from './user_api/resource/rackreleasebinsnapshot'
+import { RESOURCE_RACKSLOTTEMPLATE_PERMISSION } from './user_api/resource/rackslottemplate'
+import { RESOURCE_RACKTYPE_PERMISSION } from './user_api/resource/racktype'
+import { RESOURCE_RESOURCESTATEEVENT_PERMISSION } from './user_api/resource/resourcestateevent'
+import { RESOURCE_WMSWRITEBACKEVIDENCE_PERMISSION } from './user_api/resource/wmswritebackevidence'
 import { SYS_AUDITLOG_PERMISSION } from './user_api/sys/auditlog'
 
 
@@ -34,6 +52,24 @@ export { BIZ_DEVICE_PERMISSION }
 export { BIZ_WORKLINE_PERMISSION }
 export { CALLBACK_CALLBACK_LOG_PERMISSION }
 export { DEMO_DEMOPRODUCT_PERMISSION }
+export { RESOURCE_BIN_PERMISSION }
+export { RESOURCE_BINCONTENTSNAPSHOT_PERMISSION }
+export { RESOURCE_BINCONTENTSNAPSHOTITEM_PERMISSION }
+export { RESOURCE_BINSLOTTEMPLATE_PERMISSION }
+export { RESOURCE_BINTYPE_PERMISSION }
+export { RESOURCE_EXECUTIONLOCATION_PERMISSION }
+export { RESOURCE_EXECUTIONZONE_PERMISSION }
+export { RESOURCE_FULLBOXEXCHANGETASK_PERMISSION }
+export { RESOURCE_RACK_PERMISSION }
+export { RESOURCE_RACKBINMOUNT_PERMISSION }
+export { RESOURCE_RACKMATERIALMOUNT_PERMISSION }
+export { RESOURCE_RACKPLACEMENT_PERMISSION }
+export { RESOURCE_RACKRELEASE_PERMISSION }
+export { RESOURCE_RACKRELEASEBINSNAPSHOT_PERMISSION }
+export { RESOURCE_RACKSLOTTEMPLATE_PERMISSION }
+export { RESOURCE_RACKTYPE_PERMISSION }
+export { RESOURCE_RESOURCESTATEEVENT_PERMISSION }
+export { RESOURCE_WMSWRITEBACKEVIDENCE_PERMISSION }
 export { SYS_AUDITLOG_PERMISSION }
 
 /**
@@ -85,6 +121,30 @@ export const DEMO_PERMISSIONS = {
 } as const
 
 /**
+ * resource 分类权限快捷导出
+ */
+export const RESOURCE_PERMISSIONS = {
+  bin: RESOURCE_BIN_PERMISSION,
+  bincontentsnapshot: RESOURCE_BINCONTENTSNAPSHOT_PERMISSION,
+  bincontentsnapshotitem: RESOURCE_BINCONTENTSNAPSHOTITEM_PERMISSION,
+  binslottemplate: RESOURCE_BINSLOTTEMPLATE_PERMISSION,
+  bintype: RESOURCE_BINTYPE_PERMISSION,
+  executionlocation: RESOURCE_EXECUTIONLOCATION_PERMISSION,
+  executionzone: RESOURCE_EXECUTIONZONE_PERMISSION,
+  fullboxexchangetask: RESOURCE_FULLBOXEXCHANGETASK_PERMISSION,
+  rack: RESOURCE_RACK_PERMISSION,
+  rackbinmount: RESOURCE_RACKBINMOUNT_PERMISSION,
+  rackmaterialmount: RESOURCE_RACKMATERIALMOUNT_PERMISSION,
+  rackplacement: RESOURCE_RACKPLACEMENT_PERMISSION,
+  rackrelease: RESOURCE_RACKRELEASE_PERMISSION,
+  rackreleasebinsnapshot: RESOURCE_RACKRELEASEBINSNAPSHOT_PERMISSION,
+  rackslottemplate: RESOURCE_RACKSLOTTEMPLATE_PERMISSION,
+  racktype: RESOURCE_RACKTYPE_PERMISSION,
+  resourcestateevent: RESOURCE_RESOURCESTATEEVENT_PERMISSION,
+  wmswritebackevidence: RESOURCE_WMSWRITEBACKEVIDENCE_PERMISSION,
+} as const
+
+/**
  * sys 分类权限快捷导出
  */
 export const SYS_PERMISSIONS = {
@@ -101,5 +161,6 @@ export const PERMISSIONS = {
   biz: BIZ_PERMISSIONS,
   callback: CALLBACK_PERMISSIONS,
   demo: DEMO_PERMISSIONS,
+  resource: RESOURCE_PERMISSIONS,
   sys: SYS_PERMISSIONS,
 } as const

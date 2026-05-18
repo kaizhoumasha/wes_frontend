@@ -18,7 +18,7 @@ import { createWorkLinePageConfig } from './config/pageConfig'
 const router = useRouter()
 
 function openRuntime(workline: Workline) {
-  router.push({ name: 'RuntimeWorklines', query: buildRuntimeWorklineQuery(workline.id) })
+  router.push({ name: 'RuntimeMonitor', query: buildRuntimeWorklineQuery(workline.id) })
 }
 
 const pageActions = {

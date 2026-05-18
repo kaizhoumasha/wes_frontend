@@ -26,7 +26,7 @@ function openRuntime(device: Device) {
   }
 
   router.push({
-    name: 'RuntimeWorklines',
+    name: 'RuntimeMonitor',
     query: buildRuntimeWorklineQuery(device.work_line_id, device.id)
   })
 }
@@ -38,7 +38,7 @@ function openTrace(device: Device) {
   }
 
   router.push({
-    name: 'RuntimeWorklines',
+    name: 'RuntimeMonitor',
     query: buildRuntimeTraceQuery({
       deviceId: device.id,
       worklineId: device.work_line_id

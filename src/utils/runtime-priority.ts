@@ -20,7 +20,7 @@ export interface PriorityItem {
   score: number
 }
 
-const RUNTIME_ROUTE_NAME = 'RuntimeWorklines' as const
+const RUNTIME_ROUTE_NAME = 'RuntimeMonitor' as const
 
 const THRESHOLDS = {
   BACKLOG_CRITICAL: 50,

@@ -72,8 +72,8 @@ async function loadWorklines() {
 
 function goToWorkline(worklineId: number) {
   router.replace({
-    path: '/runtime/worklines',
-    query: { worklineId, mode: 'sandbox' }
+    name: 'RuntimeMonitor',
+    query: { worklineId: String(worklineId), mode: 'sandbox' }
   })
 }
 

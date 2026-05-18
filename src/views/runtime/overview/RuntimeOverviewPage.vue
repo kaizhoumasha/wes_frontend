@@ -380,7 +380,7 @@ const refreshCore = createCoalescedAsyncTask(async () => {
 
 function openTrace(trace: RuntimeTraceListItem) {
   router.push({
-    name: 'RuntimeWorklines',
+    name: 'RuntimeMonitor',
     query: {
       traceId: trace.trace_id || undefined,
       sessionId: trace.trace_id ? undefined : String(trace.session_id),
@@ -391,7 +391,7 @@ function openTrace(trace: RuntimeTraceListItem) {
 }
 
 function goTraceExplorer() {
-  router.push({ name: 'RuntimeWorklines' })
+  router.push({ name: 'RuntimeMonitor' })
 }
 
 function handleNavigate(item: PriorityItem) {
