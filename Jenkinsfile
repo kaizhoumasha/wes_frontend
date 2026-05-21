@@ -9,10 +9,10 @@ pipeline {
     }
 
     options {
-        buildDiscarder(logRotator(numToKeepStr: '10'))
+        buildDiscarder(logRotator(daysToKeepStr: '14', numToKeepStr: '10', artifactDaysToKeepStr: '7', artifactNumToKeepStr: '3'))
         timeout(time: 60, unit: 'MINUTES')
         skipDefaultCheckout(true)
-        disableConcurrentBuilds()
+        disableConcurrentBuilds(abortPrevious: true)
         timestamps()
     }
 
@@ -77,18 +77,22 @@ pipeline {
             steps {
                 sh '''
                     set -e
+                    mkdir -p /opt/jenkins_cache/pnpm-store
                     docker run --rm \
                         -e HUSKY=0 \
                         -e CI=true \
                         -e ELECTRON_SKIP_BINARY_DOWNLOAD=1 \
                         -e ELECTRON_SKIP_DOWNLOAD=1 \
+                        -e PNPM_STORE_DIR=/pnpm/store \
                         -v "$WORKSPACE:/app" \
+                        -v /opt/jenkins_cache/pnpm-store:/pnpm/store \
                         -w /app \
                         node:22-bookworm-slim \
                         sh -lc '
                             corepack enable &&
                             corepack prepare pnpm@10.10.0 --activate &&
-                            pnpm install --frozen-lockfile &&
+                            pnpm config set store-dir "${PNPM_STORE_DIR}" &&
+                            pnpm install --frozen-lockfile --prefer-offline &&
                             pnpm run menu:generate &&
                             pnpm run type:check &&
                             pnpm run build:dev
@@ -131,6 +135,29 @@ pipeline {
                         docker push "${CI_DOCKER_IMAGE_COMMIT}"
                         docker push "${CI_DOCKER_IMAGE_BRANCH}"
                     '''
+                }
+            }
+        }
+
+
+        stage('Trigger Test Deploy') {
+            when {
+                expression {
+                    env.CI_SOURCE_BRANCH == 'develop' &&
+                    env.CI_EVENT_TYPE == 'PUSH'
+                }
+            }
+            steps {
+                script {
+                    echo "🚀 Trigger Test Deploy: source=${env.CI_SOURCE_BRANCH}, event=${env.CI_EVENT_TYPE}, frontend_tag=${env.BUILD_NUMBER}-${env.CI_SHORT_COMMIT}"
+                    build job: 'wes_test_deploy',
+                        wait: true,
+                        propagate: true,
+                        parameters: [
+                            string(name: 'BACKEND_IMAGE_TAG', value: 'develop'),
+                            string(name: 'FRONTEND_IMAGE_TAG', value: "${env.BUILD_NUMBER}-${env.CI_SHORT_COMMIT}"),
+                            string(name: 'SOURCE_BRANCH', value: env.CI_SOURCE_BRANCH)
+                        ]
                 }
             }
         }
