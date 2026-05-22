@@ -7,11 +7,7 @@ import { createAlova } from 'alova'
 import VueHook from 'alova/vue'
 import adapterFetch from 'alova/fetch'
 import { env } from '@/config/env'
-import {
-  getAccessToken,
-  setAccessToken,
-  refreshAccessToken
-} from './services/token-refresh'
+import { getAccessToken, setAccessToken, refreshAccessToken } from './services/token-refresh'
 import { show } from './services/error-notification'
 import { classifyErrorByCode } from './utils/error-classifier'
 import { isSuccessCode, ClientErrorCode } from './constants/response-codes'
@@ -41,13 +37,15 @@ export class ApiResponseError extends Error {
   code: string
   message: string
   timestamp: string
+  data?: unknown
 
-  constructor(code: string, message: string, timestamp: string) {
+  constructor(code: string, message: string, timestamp: string, data?: unknown) {
     super(message)
     this.name = 'ApiResponseError'
     this.code = code
     this.message = message
     this.timestamp = timestamp
+    this.data = data
   }
 }
 
@@ -103,7 +101,7 @@ async function handleResponse(response: Response, method: any): Promise<unknown>
       ClientErrorCode.TOKEN_MISSING
     ]
     if (AUTH_ERROR_CODES.includes(code as ClientErrorCode)) {
-      const authError = new ApiResponseError(code, message, json.timestamp)
+      const authError = new ApiResponseError(code, message, json.timestamp, data)
       await handleAuthError(authError, { showMessage: true })
       throw authError
     }
@@ -117,7 +115,7 @@ async function handleResponse(response: Response, method: any): Promise<unknown>
         return await method.send()
       } catch {
         // Token 刷新失败，按认证错误处理
-        const authError = new ApiResponseError(code, message, json.timestamp)
+        const authError = new ApiResponseError(code, message, json.timestamp, data)
         await handleAuthError(authError, { showMessage: true })
         throw authError
       }
@@ -126,7 +124,7 @@ async function handleResponse(response: Response, method: any): Promise<unknown>
     // 其他错误：分类并显示通知
     const classification = classifyErrorByCode(code, message)
     await show(classification)
-    throw new ApiResponseError(code, message, json.timestamp)
+    throw new ApiResponseError(code, message, json.timestamp, data)
   } catch (error) {
     if (error instanceof ApiResponseError) {
       throw error

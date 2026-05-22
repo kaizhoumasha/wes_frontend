@@ -7,7 +7,7 @@
  * 后端目录: /Users/kaizhou/SynologyDrive/works/wes_backend
  * 权限分组: user_api:admin:permission
  *
- * 更新权限: pnpm permission:generate
+ * 更新权限: pnpm generate:permissions
  */
 
 export const ADMIN_PERMISSION = {

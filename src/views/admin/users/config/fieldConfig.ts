@@ -9,6 +9,11 @@ import type {
   UpdateUsersInput as UpdateUserInput,
   UsersItem as User
 } from '@/api/modules/users'
+import {
+  UserCreateMetadata,
+  UserResponseMetadata,
+  UserUpdateMetadata
+} from '@/api/generated/openapi-metadata'
 import { UserCreateSchema, UserUpdateSchema } from '@/types/zod-extensions'
 import {
   defineCrudResourceFieldBundle
@@ -51,9 +56,9 @@ export const {
   fieldConfig: userPageFieldConfig
 } = defineCrudResourceFieldBundle<User, CreateUserInput, UpdateUserInput>({
   backend: {
-    readSchema: 'UserResponse',
-    createSchema: 'UserCreate',
-    updateSchema: 'UserUpdate',
+    readSchema: UserResponseMetadata,
+    createSchema: UserCreateMetadata,
+    updateSchema: UserUpdateMetadata,
     labelOverrides: USER_FIELD_LABEL_OVERRIDES
   },
   fields: [

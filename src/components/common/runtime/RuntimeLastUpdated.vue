@@ -1,5 +1,8 @@
 <template>
-  <div class="runtime-last-updated" :class="{ 'is-frozen': frozen }">
+  <div
+    class="runtime-last-updated"
+    :class="{ 'is-frozen': frozen }"
+  >
     <span class="runtime-last-updated__label">{{ frozen ? '数据已冻结' : '最后刷新' }}</span>
     <span class="runtime-last-updated__value">{{ formattedValue }}</span>
   </div>
@@ -43,7 +46,7 @@ const formattedValue = computed(() => {
   padding: 10px 14px;
   border: 1px solid rgb(245, 158, 11, 0.18);
   border-radius: 12px;
-  background: rgb(15, 23, 42, 0.76);
+  background: var(--runtime-surface);
 }
 
 .runtime-last-updated.is-frozen {
@@ -52,7 +55,7 @@ const formattedValue = computed(() => {
 }
 
 .runtime-last-updated__label {
-  color: #94a3b8;
+  color: var(--runtime-text-secondary);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -60,7 +63,7 @@ const formattedValue = computed(() => {
 }
 
 .runtime-last-updated__value {
-  color: #f8fafc;
+  color: var(--runtime-text-primary);
   font-family: var(--font-mono);
   font-size: 12px;
   line-height: 1.4;

@@ -1,0 +1,224 @@
+<template>
+  <div
+    class="sandbox-cycle-status"
+    :class="[`sandbox-cycle-status--${phase}`]"
+  >
+    <div class="sandbox-cycle-status__phase">
+      <div class="sandbox-cycle-status__dot" />
+      <span class="sandbox-cycle-status__label">{{ phaseLabel }}</span>
+    </div>
+
+    <div
+      v-if="activeSession"
+      class="sandbox-cycle-status__session"
+    >
+      <RuntimeStatusBadge
+        :status="activeSession.status"
+        size="small"
+      />
+      <span class="sandbox-cycle-status__session-id">
+        {{
+          displaySession({
+            session_code: activeSession.session_code,
+            session_id: activeSession.session_id
+          })
+        }}
+      </span>
+      <span
+        v-if="activeProgress !== '—'"
+        class="sandbox-cycle-status__step"
+      >
+        {{ activeProgress }}
+      </span>
+      <span
+        v-if="activeSession.current_wait_type"
+        class="sandbox-cycle-status__wait"
+      >
+        等待 {{ waitLabel }}
+      </span>
+      <span
+        v-if="activeSession.is_timed_out"
+        class="sandbox-cycle-status__timeout"
+      >
+        已超时
+      </span>
+    </div>
+
+    <div class="sandbox-cycle-status__counts">
+      <span v-if="newCount">{{ newCount }} 待派发</span>
+      <span v-if="sentCount">{{ sentCount }} 待 ACK</span>
+      <span v-if="ackedCount">{{ ackedCount }} 待 Result</span>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
+import { displaySession } from '@/utils/runtime-display-identity'
+import { resolveRuntimeProgressLabel } from '@/utils/runtime-display'
+import {
+  canAckSandboxOutbox,
+  canSubmitSandboxResult,
+  isCurrentSandboxAction
+} from '@/utils/sandbox-outbox'
+import type { RuntimeTraceListItem, SandboxPendingOutbox } from '@/types/runtime'
+
+const props = defineProps<{
+  activeSessions: RuntimeTraceListItem[]
+  pendingOutboxes: SandboxPendingOutbox[]
+}>()
+
+const activeSession = computed(() => {
+  const nonTerminal = props.activeSessions.find(
+    s => !['COMPLETED', 'FAILED', 'CANCELLED'].includes(s.status)
+  )
+  return nonTerminal ?? props.activeSessions[0] ?? null
+})
+
+const activeProgress = computed(() => resolveRuntimeProgressLabel(activeSession.value))
+
+const newCount = computed(
+  () =>
+    props.pendingOutboxes.filter(
+      o =>
+        isCurrentSandboxAction(o) &&
+        !canAckSandboxOutbox(o) &&
+        (o.status === 'NEW' || o.status === 'DISPATCHING')
+    ).length
+)
+const sentCount = computed(() => props.pendingOutboxes.filter(canAckSandboxOutbox).length)
+const ackedCount = computed(() => props.pendingOutboxes.filter(canSubmitSandboxResult).length)
+const blockedCount = computed(
+  () =>
+    props.pendingOutboxes.filter(o => isCurrentSandboxAction(o) && o.status === 'BLOCKED_RESOURCE')
+      .length
+)
+
+const phase = computed<'idle' | 'action' | 'done'>(() => {
+  const hasTerminal = props.activeSessions.some(s =>
+    ['COMPLETED', 'FAILED', 'CANCELLED'].includes(s.status)
+  )
+  if (hasTerminal) return 'done'
+  if (newCount.value + sentCount.value + ackedCount.value + blockedCount.value > 0) return 'action'
+  if (props.activeSessions.length > 0) return 'idle'
+  return 'idle'
+})
+
+const phaseLabel = computed(() => {
+  if (phase.value === 'done') return '循环结束'
+  if (phase.value === 'action') return '需要操作'
+  if (props.activeSessions.length > 0) return '等待注入'
+  return '就绪'
+})
+
+const waitLabel = computed(() => {
+  const typeMap: Record<string, string> = {
+    DEVICE_CALLBACK: '设备回调',
+    EXTERNAL_API: '外部 API',
+    TIMER: '定时器',
+    MANUAL: '人工操作'
+  }
+  return (
+    typeMap[activeSession.value?.current_wait_type ?? ''] ??
+    activeSession.value?.current_wait_type ??
+    '—'
+  )
+})
+</script>
+
+<style scoped>
+.sandbox-cycle-status {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--runtime-border, rgb(245, 158, 11, 0.12));
+  background: var(--runtime-surface, rgb(30, 41, 59, 0.8));
+}
+
+.sandbox-cycle-status__phase {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.sandbox-cycle-status__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #475569;
+}
+
+.sandbox-cycle-status--idle .sandbox-cycle-status__dot {
+  background: #3b82f6;
+}
+.sandbox-cycle-status--action .sandbox-cycle-status__dot {
+  background: #eab308;
+  box-shadow: 0 0 6px rgb(234, 179, 8, 0.4);
+}
+.sandbox-cycle-status--done .sandbox-cycle-status__dot {
+  background: #22c55e;
+}
+
+.sandbox-cycle-status__label {
+  color: var(--runtime-text-primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sandbox-cycle-status__session {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 16px;
+  border-left: 1px solid rgb(245, 158, 11, 0.12);
+}
+
+.sandbox-cycle-status__session-id {
+  color: var(--runtime-text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sandbox-cycle-status__step {
+  color: var(--runtime-text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.sandbox-cycle-status__wait {
+  color: #fde047;
+  font-size: 11px;
+}
+
+.sandbox-cycle-status__timeout {
+  color: var(--runtime-badge-danger-text);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.sandbox-cycle-status__counts {
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
+  color: var(--runtime-text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+@media (width <= 1279px) {
+  .sandbox-cycle-status {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .sandbox-cycle-status__session {
+    border-left: none;
+    padding-left: 0;
+  }
+}
+</style>

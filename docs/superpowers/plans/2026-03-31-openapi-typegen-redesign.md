@@ -200,7 +200,7 @@ Expected: PASS
 
 - [ ] **Step 1: Run the generator against the current backend contract**
 
-Run: `pnpm type:generate`
+Run: `pnpm generate:types`
 Expected: generated `openapi-types.ts`, `openapi-metadata.ts`, and `src/api/modules/*.ts` are updated with the new structure.
 
 - [ ] **Step 2: Update business imports to mechanical model naming**
@@ -235,7 +235,7 @@ Expected: PASS
 
 - [ ] **Step 1: Re-run generation to verify idempotence**
 
-Run: `pnpm type:generate`
+Run: `pnpm generate:types`
 Expected: second run reports no unexpected changes or only stable regenerated output.
 
 - [ ] **Step 2: Run type checking**
@@ -245,7 +245,7 @@ Expected: PASS
 
 - [ ] **Step 3: Verify manual block preservation on at least one module**
 
-Add a temporary line inside one module's `CUSTOM METHODS` or `CUSTOM CONFIG` section, re-run `pnpm type:generate`, confirm the custom line remains, then remove the temporary line and regenerate once more.
+Add a temporary line inside one module's `CUSTOM METHODS` or `CUSTOM CONFIG` section, re-run `pnpm generate:types`, confirm the custom line remains, then remove the temporary line and regenerate once more.
 
 - [ ] **Step 4: Verify stale generated modules are auto-removed**
 

@@ -82,7 +82,6 @@ const PERMISSION_PAGE_FEATURES: CrudPageFeatures = {
 
 const PERMISSION_PAGE_DETAIL: CrudPageDetailConfig<Permission> = {
   mode: 'drawer',
-  width: 600,
   title: permission => permission.name,
   sections: [
     {

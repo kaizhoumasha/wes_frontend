@@ -33,6 +33,66 @@ function createFieldConfig() {
 }
 
 describe('createCrudPageConfigFromResource', () => {
+  it('rejects detail fields that are not declared in the resource field catalog', () => {
+    const methods = {
+      getById: vi.fn(),
+      query: vi.fn()
+    }
+
+    expect(() =>
+      createCrudPageConfigFromResource<TestItem, Record<string, never>, Record<string, never>>({
+        resource: {
+          key: 'test',
+          title: { text: '测试资源' },
+          methods
+        },
+        fieldConfig: createFieldConfig(),
+        detail: {
+          sections: [
+            {
+              title: '基本信息',
+              fields: [
+                { key: 'name' },
+                { key: 'undeclared_field' }
+              ]
+            }
+          ]
+        }
+      })
+    ).toThrow('Crud detail field "undeclared_field" is not declared in fieldConfig.fields')
+  })
+
+  it('resolves detail labels from declared resource fields only', () => {
+    const methods = {
+      getById: vi.fn(),
+      query: vi.fn()
+    }
+
+    const pageConfig = createCrudPageConfigFromResource<TestItem, Record<string, never>, Record<string, never>>({
+      resource: {
+        key: 'test',
+        title: { text: '测试资源' },
+        methods
+      },
+      fieldConfig: createFieldConfig(),
+      detail: {
+        sections: [
+          {
+            title: '基本信息',
+            fields: [
+              { key: 'name' }
+            ]
+          }
+        ]
+      }
+    })
+
+    expect(pageConfig.detail?.sections?.[0]?.fields?.[0]).toMatchObject({
+      key: 'name',
+      label: '名称'
+    })
+  })
+
   it('preserves tree-capable methods on the generated requestAdapter', async () => {
     const treeSend = vi.fn().mockResolvedValue([{ id: 1, name: 'root' } satisfies TestItem])
     const childrenSend = vi.fn().mockResolvedValue([{ id: 2, name: 'child' } satisfies TestItem])

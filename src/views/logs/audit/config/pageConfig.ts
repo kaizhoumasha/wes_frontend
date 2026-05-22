@@ -42,7 +42,6 @@ const AUDIT_LOG_PAGE_TABLE: Partial<AuditLogPageConfig['table']> = {
   selectable: false,
   actionsColumn: {
     width: 88,
-    minWidth: 88,
     fixed: 'right',
     reorderLocked: true,
     hideable: false
@@ -100,7 +99,7 @@ const AUDIT_LOG_TOOLBAR_ACTIONS: NonNullable<AuditLogPageConfig['extensions']>['
 
 const AUDIT_LOG_PAGE_DETAIL: CrudPageDetailConfig<AuditLog> = {
   mode: 'drawer',
-  width: 720,
+  size: 'lg',
   title: auditLog => auditLog.title || '审计日志详情',
   entityTypeLabel: '审计日志',
   sections: [

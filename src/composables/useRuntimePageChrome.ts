@@ -1,5 +1,5 @@
 import { computed, ref, type ComputedRef, type Ref } from 'vue'
-import type { SSEConnectionState } from '@/api/services/sse-client'
+import type { SSEConnectionState, SSEEvent } from '@/api/services/sse-client'
 import { useRuntimeSSE, type RuntimeSSEPayload } from '@/composables/useRuntimeSSE'
 import type { RuntimeTone } from '@/utils/runtime-display'
 
@@ -7,6 +7,7 @@ export interface UseRuntimePageChromeResult {
   live: Ref<boolean>
   state: Ref<SSEConnectionState>
   lastEvent: Ref<RuntimeSSEPayload | null>
+  lastRawEvent: Ref<SSEEvent | null>
   lastRefreshedAt: Ref<Date | null>
   connectionTone: ComputedRef<RuntimeTone>
   connectionLabel: ComputedRef<string>
@@ -15,7 +16,7 @@ export interface UseRuntimePageChromeResult {
 }
 
 export function useRuntimePageChrome(): UseRuntimePageChromeResult {
-  const { live, state, toggleLive, lastEvent } = useRuntimeSSE()
+  const { live, state, toggleLive, lastEvent, lastRawEvent } = useRuntimeSSE()
   const lastRefreshedAt = ref<Date | null>(null)
 
   const connectionTone = computed<RuntimeTone>(() => {
@@ -42,6 +43,7 @@ export function useRuntimePageChrome(): UseRuntimePageChromeResult {
     live,
     state,
     lastEvent,
+    lastRawEvent,
     lastRefreshedAt,
     connectionTone,
     connectionLabel,

@@ -84,7 +84,6 @@ const MENU_PAGE_FEATURES: CrudPageFeatures = {
 
 const MENU_PAGE_DETAIL: CrudPageDetailConfig<Menu> = {
   mode: 'drawer',
-  width: 600,
   title: menu => menu.title,
   sections: [
     {

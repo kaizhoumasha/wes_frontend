@@ -68,7 +68,8 @@ interface PropertySchema {
 
 // ==================== 配置 ====================
 
-const BACKEND_OPENAPI_URL = 'http://localhost:8001/api/openapi.json'
+const BACKEND_OPENAPI_URL =
+  process.env.BACKEND_OPENAPI_URL || 'http://localhost:8001/api/openapi.json'
 const OUTPUT_DIR = join(__dirname, '../src/types/generated')
 const OUTPUT_FILE = join(OUTPUT_DIR, 'zod-schemas.ts')
 const SYNC_RECORD_FILE = join(__dirname, '../.contract-sync-record.json')
@@ -285,7 +286,7 @@ function schemaToZod(
       const calls = ['z.string()']
       if (schema.minLength !== undefined) calls.push(`.min(${schema.minLength})`)
       if (schema.maxLength !== undefined) calls.push(`.max(${schema.maxLength})`)
-      if (schema.pattern) calls.push(`.regex(${JSON.stringify(schema.pattern)})`)
+      if (schema.pattern) calls.push(`.regex(new RegExp(${JSON.stringify(schema.pattern)}))`)
       if (schema.format === 'email') calls.push('.email()')
       else if (schema.format === 'uri' || schema.format === 'url') calls.push('.url()')
       else if (schema.format === 'date-time') calls.push('.datetime()')

@@ -1,7 +1,12 @@
 import { useTimezoneStore } from '@/stores/timezone'
-import type { RuntimeDeviceSummary, RuntimeTraceListItem, RuntimeWorklineSummary } from '@/types/runtime'
+import type {
+  RuntimeDeviceSummary,
+  RuntimeTraceListItem,
+  RuntimeWorklineSummary
+} from '@/types/runtime'
 import { formatDurationFromMilliseconds } from '@/views/logs/shared/formatters'
 import { formatRelativeTime, parseApiTime } from '@/utils/timezone'
+import { getWorklineRuntimeVerdict } from '@/utils/runtime-safety'
 
 export type RuntimeTone = 'primary' | 'success' | 'warning' | 'danger' | 'info'
 
@@ -26,6 +31,7 @@ const WARNING_STATUSES = new Set([
   'MANUAL_HOLD',
   'DEGRADED',
   'BUSY',
+  'BLOCKED_RESOURCE',
   'RETRY',
   'DISPATCHING'
 ])
@@ -83,6 +89,35 @@ export function compactEnumLabel(value?: string | null): string {
   return segments[segments.length - 1] || value
 }
 
+export interface RuntimeProgressSource {
+  current_action?: string | null
+  current_wait_type?: string | null
+  status?: string | null
+  session_status?: string | null
+  latest_timeline_action?: string | null
+  plugin_state?: string | null
+}
+
+export function resolveRuntimeProgressLabel(source?: RuntimeProgressSource | null): string {
+  if (!source) {
+    return '—'
+  }
+
+  return compactEnumLabel(
+    source.current_action ??
+      source.plugin_state ??
+      source.current_wait_type ??
+      source.latest_timeline_action ??
+      source.status ??
+      source.session_status
+  )
+}
+
+export function resolveRuntimeProgressKey(source?: RuntimeProgressSource | null): string {
+  const label = resolveRuntimeProgressLabel(source)
+  return label === '—' ? 'unknown' : label
+}
+
 export function normalizeRuntimeStatus(status?: string | null): string {
   return compactEnumLabel(status).toUpperCase()
 }
@@ -126,7 +161,10 @@ export function isActiveStatus(status?: string | null): boolean {
   return tone === 'primary' || tone === 'warning'
 }
 
-export function formatRuntimeDate(value?: string | Date | null, format = 'yyyy-MM-dd HH:mm:ss'): string {
+export function formatRuntimeDate(
+  value?: string | Date | null,
+  format = 'yyyy-MM-dd HH:mm:ss'
+): string {
   const date = toDate(value)
   if (!date) {
     return '—'
@@ -187,7 +225,10 @@ function formatHumanDuration(milliseconds: number): string {
   return parts.slice(0, 2).join(' ')
 }
 
-export function formatRuntimeElapsed(start?: string | Date | null, end?: string | Date | null): string {
+export function formatRuntimeElapsed(
+  start?: string | Date | null,
+  end?: string | Date | null
+): string {
   const startDate = toDate(start)
   const endDate = toDate(end) ?? new Date()
 
@@ -264,17 +305,30 @@ export function getTraceRiskScore(item: RuntimeTraceListItem): number {
 }
 
 export function getWorklineRiskScore(item: RuntimeWorklineSummary): number {
-  return item.failed_session_count * 7 + item.offline_device_count * 6 + item.error_device_count * 5 + item.waiting_session_count * 3 + item.active_session_count
+  const safetyVerdict = getWorklineRuntimeVerdict(item)
+  if (safetyVerdict.safetyLocked) return safetyVerdict.priority
+  return (
+    item.failed_session_count * 7 +
+    item.offline_device_count * 6 +
+    item.error_device_count * 5 +
+    item.waiting_session_count * 3 +
+    item.active_session_count
+  )
 }
 
 export function getWorklineRiskTone(item: RuntimeWorklineSummary): RuntimeTone {
-  if (item.failed_session_count > 0 || item.offline_device_count > 0 || item.error_device_count > 0) return 'danger'
+  const safetyVerdict = getWorklineRuntimeVerdict(item)
+  if (safetyVerdict.safetyLocked) return safetyVerdict.tone
+  if (item.failed_session_count > 0 || item.offline_device_count > 0 || item.error_device_count > 0)
+    return 'danger'
   if (item.waiting_session_count > 0) return 'warning'
   if (item.active_session_count > 0) return 'primary'
   return 'success'
 }
 
 export function getWorklineRiskLabel(item: RuntimeWorklineSummary): string {
+  const safetyVerdict = getWorklineRuntimeVerdict(item)
+  if (safetyVerdict.safetyLocked) return safetyVerdict.label
   const tone = getWorklineRiskTone(item)
   if (tone === 'danger') return '存在阻塞'
   if (tone === 'warning') return '有等待堆积'
@@ -289,6 +343,17 @@ export function getDeviceRiskScore(item: RuntimeDeviceSummary): number {
   if (item.maintenance_mode) score += 10
   if (item.error_code) score += 15
   return score
+}
+
+export function aggregateSessionsByDevice(sessions: RuntimeTraceListItem[]): Map<number, number> {
+  const counts = new Map<number, number>()
+
+  for (const session of sessions) {
+    if (session.device_id == null) continue
+    counts.set(session.device_id, (counts.get(session.device_id) ?? 0) + 1)
+  }
+
+  return counts
 }
 
 export function pickDominantValue(values: string[]): string {
@@ -313,4 +378,3 @@ export function pickDominantValue(values: string[]): string {
 
   return winner
 }
-

@@ -1,11 +1,21 @@
 import type { RuntimeSSEPayload } from '@/composables/useRuntimeSSE'
+import { ALLOWED_RUNTIME_EVENT_DOMAINS } from '@/constants/runtime-safety'
 
-type RuntimeEventScopeKey = 'session_id' | 'workline_id' | 'device_id'
+type RuntimeEventNumberScopeKey = 'session_id' | 'workline_id' | 'device_id'
+export type RuntimeRefreshTarget = 'worklines' | 'detail' | 'activeIncident' | 'sandbox'
 
 export interface RuntimeEventScope {
+  traceId?: string | null
   sessionId?: number | null
   worklineId?: number | null
   deviceId?: number | null
+}
+
+export interface RuntimeRefreshClassification {
+  worklines: boolean
+  detail: boolean
+  activeIncident: boolean
+  sandbox: boolean
 }
 
 function normalizeRuntimeEventValue(value: unknown): string | null {
@@ -17,7 +27,10 @@ function normalizeRuntimeEventValue(value: unknown): string | null {
   return String(rawValue)
 }
 
-export function readRuntimeEventNumber(event: RuntimeSSEPayload | null | undefined, key: RuntimeEventScopeKey): number | null {
+export function readRuntimeEventNumber(
+  event: RuntimeSSEPayload | null | undefined,
+  key: RuntimeEventNumberScopeKey
+): number | null {
   const normalizedValue = normalizeRuntimeEventValue(event?.keys?.[key])
   if (!normalizedValue) {
     return null
@@ -27,12 +40,73 @@ export function readRuntimeEventNumber(event: RuntimeSSEPayload | null | undefin
   return Number.isFinite(numericValue) && numericValue > 0 ? numericValue : null
 }
 
+export function readRuntimeEventText(
+  event: RuntimeSSEPayload | null | undefined,
+  key: string
+): string | null {
+  return normalizeRuntimeEventValue(event?.keys?.[key])
+}
+
+export function isRuntimeDomainAllowed(domain: string | null | undefined): boolean {
+  return !domain || ALLOWED_RUNTIME_EVENT_DOMAINS.has(domain)
+}
+
+export function classifyRuntimeRefresh(
+  event: RuntimeSSEPayload | null | undefined
+): RuntimeRefreshClassification {
+  const targets: RuntimeRefreshClassification = {
+    worklines: true,
+    detail: false,
+    activeIncident: false,
+    sandbox: false
+  }
+
+  if (!event) return targets
+
+  const domain = event.domain ?? ''
+  const entity = event.entity ?? ''
+
+  if (domain === 'workline_safety' || domain === 'safety' || entity === 'incident') {
+    return {
+      worklines: true,
+      detail: true,
+      activeIncident: true,
+      sandbox: false
+    }
+  }
+
+  if (entity === 'session') {
+    return {
+      worklines: true,
+      detail: true,
+      activeIncident: false,
+      sandbox: true
+    }
+  }
+
+  if (['device', 'outbox', 'command'].includes(entity)) {
+    return {
+      worklines: false,
+      detail: true,
+      activeIncident: false,
+      sandbox: true
+    }
+  }
+
+  return targets
+}
+
 export function isRelevantRuntimeEvent(
   event: RuntimeSSEPayload | null | undefined,
   scope: RuntimeEventScope
 ): boolean {
   if (!event?.keys) {
     return true
+  }
+
+  const eventTraceId = readRuntimeEventText(event, 'trace_id')
+  if (scope.traceId && eventTraceId) {
+    return scope.traceId === eventTraceId
   }
 
   const comparisons = [

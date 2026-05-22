@@ -27,7 +27,7 @@ withDefaults(
 }
 
 .runtime-frozen-notice__title {
-  color: #fde68a;
+  color: var(--runtime-badge-warning-text);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -36,7 +36,7 @@ withDefaults(
 
 .runtime-frozen-notice__description {
   margin-top: 6px;
-  color: #e2e8f0;
+  color: var(--runtime-text-emphasis);
   font-size: 13px;
   line-height: 1.6;
 }

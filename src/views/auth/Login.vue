@@ -705,7 +705,7 @@ html:not(.dark) .brand-footer {
 }
 
 .data-bit {
-  font-family: 'Courier New', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
   color: rgb(245 158 11 / 30%);
   animation: dataFlow 2s linear infinite;
@@ -852,7 +852,7 @@ html:not(.dark) .form-group label {
 
 html:not(.dark) .form-group.focused label,
 html:not(.dark) .form-group.filled label {
-  color: #409eff;
+  color: #f59e0b;
 }
 
 .form-group.focused label,
@@ -893,7 +893,7 @@ html:not(.dark) .form-group input {
 
 html:not(.dark) .form-group input:focus {
   background: #ecf5ff;
-  border-color: #409eff;
+  border-color: #f59e0b;
 }
 
 .form-group input::placeholder {
@@ -1264,7 +1264,7 @@ html:not(.dark) .status-indicator {
 
 .version-info {
   font-size: 12px;
-  font-family: 'Courier New', monospace;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .status-indicator {

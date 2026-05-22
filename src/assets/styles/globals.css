@@ -304,6 +304,53 @@
     /* Dialog */
     --dialog-shadow: 0 8px 32px rgb(0, 0, 0, 0.4);
     --dialog-overlay-bg: rgb(0, 0, 0, 0.7);
+
+    /* ==================== Runtime Dark Theme Variables ==================== */
+    --runtime-surface: rgb(30 41 59 / 0.8);
+    --runtime-surface-strong: rgb(30 41 59 / 0.96);
+    --runtime-surface-muted: rgb(30 41 59 / 0.5);
+    --runtime-surface-subtle: rgb(30 41 59 / 0.6);
+    --runtime-surface-accent: rgb(245 158 11 / 0.08);
+    --runtime-surface-accent-strong: rgb(245 158 11 / 0.12);
+    --runtime-border: rgb(245 158 11 / 0.12);
+    --runtime-border-subtle: rgb(245 158 11 / 0.08);
+    --runtime-border-accent: rgb(245 158 11 / 0.18);
+    --runtime-border-strong: rgb(245 158 11 / 0.28);
+    --runtime-text-primary: #f8fafc;
+    --runtime-text-secondary: #94a3b8;
+    --runtime-text-muted: #64748b;
+    --runtime-text-emphasis: #f8fafc;
+    --runtime-tier-critical: #dc2626;
+    --runtime-tier-watch: #eab308;
+    --runtime-tier-known: #64748b;
+    --runtime-code-bg: rgb(15 23 42 / 0.8);
+    --runtime-shadow: 0 16px 40px rgb(0 0 0 / 0.3);
+    --runtime-hero-bg:
+      radial-gradient(circle at top right, rgb(245 158 11 / 0.12), transparent 32%),
+      linear-gradient(180deg, rgb(30 41 59 / 0.98), rgb(15 23 42 / 0.98));
+    --runtime-frozen-bg:
+      linear-gradient(90deg, rgb(234 179 8 / 0.08), rgb(30 41 59 / 0.96));
+    --runtime-rail: rgb(148 163 184 / 0.18);
+    --runtime-dot-ring: rgb(15 23 42 / 0.98);
+    --runtime-border-neutral: rgb(51 65 85 / 0.4);
+    --runtime-surface-danger: rgb(127 29 29 / 0.15);
+    --runtime-surface-warning: rgb(146 64 14 / 0.15);
+    --runtime-border-danger: rgb(239 68 68 / 0.35);
+    --runtime-border-warning: rgb(245 158 11 / 0.35);
+    --runtime-badge-success-text: #4ade80;
+    --runtime-badge-success-bg: rgb(34 197 94 / 0.15);
+    --runtime-badge-danger-text: #fca5a5;
+    --runtime-badge-danger-bg: rgb(239 68 68 / 0.15);
+    --runtime-badge-info-text: #22d3ee;
+    --runtime-badge-info-bg: rgb(6 182 212 / 0.15);
+    --runtime-badge-warning-text: #fcd34d;
+    --runtime-badge-warning-bg: rgb(245 158 11 / 0.15);
+    --runtime-badge-success-border: rgb(34 197 94 / 0.3);
+    --runtime-badge-danger-border: rgb(239 68 68 / 0.3);
+    --runtime-badge-info-border: rgb(6 182 212 / 0.3);
+    --runtime-badge-warning-border: rgb(245 158 11 / 0.3);
+    --runtime-chip-bg: #f8fafc;
+    --runtime-chip-text: #0f172a;
   }
 
   /* ========================================
@@ -957,8 +1004,8 @@
     padding: 4px 8px;
     border: 1px solid rgb(245 158 11 / 0.16);
     border-radius: 999px;
-    background: rgb(15 23 42 / 0.45);
-    color: #cbd5e1;
+    background: var(--runtime-surface-subtle);
+    color: var(--runtime-text-emphasis);
     font-family: var(--font-mono);
     font-size: 11px;
     line-height: 1;
@@ -976,7 +1023,7 @@
     padding: 12px 14px;
     border: 1px solid rgb(245 158 11 / 0.12);
     border-radius: 12px;
-    background: rgb(15 23 42 / 0.48);
+    background: var(--runtime-surface-subtle);
     box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.02);
   }
 
@@ -986,9 +1033,9 @@
     gap: 10px;
     flex-wrap: wrap;
     padding: 6px;
-    border: 1px solid rgb(245 158 11 / 0.1);
+    border: 1px solid var(--runtime-border);
     border-radius: 16px;
-    background: rgb(15 23 42 / 0.36);
+    background: var(--runtime-surface);
     box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.03);
   }
 
@@ -999,7 +1046,7 @@
   .runtime-control-cluster--soft {
     padding: 4px;
     border-radius: 14px;
-    background: rgb(15 23 42 / 0.28);
+    background: var(--runtime-surface-subtle);
   }
 
   .runtime-hero__eyebrow-row {
@@ -1036,13 +1083,13 @@
 
   .runtime-page__title {
     margin: 0;
-    color: #f8fafc;
+    color: var(--runtime-text-primary);
     font-size: 32px;
   }
 
   .runtime-page__subtitle {
     margin: 8px 0 0;
-    color: #94a3b8;
+    color: var(--runtime-text-secondary);
     line-height: 1.7;
   }
 
@@ -1077,14 +1124,14 @@
   }
 
   .runtime-panel__title {
-    color: #f8fafc;
+    color: var(--runtime-text-primary);
     font-size: 16px;
     font-weight: 700;
   }
 
   .runtime-panel__subtitle {
     margin-top: 4px;
-    color: #94a3b8;
+    color: var(--runtime-text-secondary);
     font-size: 12px;
   }
 
@@ -1280,267 +1327,28 @@
       linear-gradient(90deg, rgb(var(--color-warning-rgb), 0.14), rgb(255 255 255 / 0.96));
     --runtime-rail: rgb(148 163 184 / 0.22);
     --runtime-dot-ring: rgb(248 250 252 / 0.98);
+    --runtime-border: rgb(var(--color-primary-rgb) / 0.18);
+    --runtime-tier-critical: #dc2626;
+    --runtime-tier-watch: #eab308;
+    --runtime-tier-known: #64748b;
+    --runtime-border-neutral: var(--border-color);
+    --runtime-surface-danger: rgb(var(--color-danger-rgb), 0.06);
+    --runtime-surface-warning: rgb(var(--color-primary-rgb), 0.06);
+    --runtime-border-danger: rgb(var(--color-danger-rgb), 0.28);
+    --runtime-border-warning: rgb(var(--color-primary-rgb), 0.28);
+    --runtime-badge-success-text: var(--color-success-dark);
+    --runtime-badge-success-bg: rgb(var(--color-success-rgb), 0.12);
+    --runtime-badge-danger-text: var(--color-danger-dark);
+    --runtime-badge-danger-bg: rgb(var(--color-danger-rgb), 0.12);
+    --runtime-badge-info-text: var(--color-info-dark);
+    --runtime-badge-info-bg: rgb(var(--color-info-rgb), 0.12);
+    --runtime-badge-warning-text: var(--color-warning-dark);
+    --runtime-badge-warning-bg: rgb(var(--color-primary-rgb), 0.12);
+    --runtime-badge-success-border: rgb(var(--color-success-rgb), 0.24);
+    --runtime-badge-danger-border: rgb(var(--color-danger-rgb), 0.24);
+    --runtime-badge-info-border: rgb(var(--color-info-rgb), 0.24);
+    --runtime-badge-warning-border: rgb(var(--color-warning-rgb), 0.24);
+    --runtime-chip-bg: var(--text-primary);
+    --runtime-chip-text: #fff;
   }
 
-  html:not(.dark) .runtime-page__title,
-  html:not(.dark) .runtime-panel__title,
-  html:not(.dark) .runtime-directory-card__title,
-  html:not(.dark) .trace-list__title,
-  html:not(.dark) .device-activity-item__title,
-  html:not(.dark) .runtime-risk-item__title,
-  html:not(.dark) .trace-context-card__title,
-  html:not(.dark) .trace-evidence__section-title,
-  html:not(.dark) .trace-session-card strong,
-  html:not(.dark) .hotspot-card strong,
-  html:not(.dark) .trace-case-hero__title,
-  html:not(.dark) .trace-case-hero__metric strong,
-  html:not(.dark) .trace-case-hero__fact strong,
-  html:not(.dark) .trace-case-hero__count-card strong,
-  html:not(.dark) .workline-health-hero__title,
-  html:not(.dark) .workline-health-hero__fact strong,
-  html:not(.dark) .device-health-hero__title,
-  html:not(.dark) .device-health-hero__fact strong,
-  html:not(.dark) .runtime-empty-state__title,
-  html:not(.dark) .runtime-overview-card__value,
-  html:not(.dark) .runtime-signal-card__value,
-  html:not(.dark) .runtime-health-breakdown__title,
-  html:not(.dark) .runtime-health-breakdown__item-value,
-  html:not(.dark) .trace-next-actions__title,
-  html:not(.dark) .trace-timeline__title,
-  html:not(.dark) .trace-timeline__summary-item strong,
-  html:not(.dark) .trace-timeline__message,
-  html:not(.dark) .workline-topology-strip__name,
-  html:not(.dark) .workline-topology-strip__meta-grid strong {
-    color: var(--runtime-text-primary);
-  }
-
-  html:not(.dark) .runtime-page__subtitle,
-  html:not(.dark) .runtime-panel__subtitle,
-  html:not(.dark) .runtime-directory-card__time,
-  html:not(.dark) .runtime-directory-card__hint,
-  html:not(.dark) .runtime-risk-item__time,
-  html:not(.dark) .runtime-risk-item__hint,
-  html:not(.dark) .runtime-risk-item__footer,
-  html:not(.dark) .trace-list__head span,
-  html:not(.dark) .trace-list__hint,
-  html:not(.dark) .device-activity-item__time,
-  html:not(.dark) .device-activity-item__meta,
-  html:not(.dark) .device-activity-item__summary,
-  html:not(.dark) .trace-context-card__time,
-  html:not(.dark) .trace-context-card__hint,
-  html:not(.dark) .trace-session-card span,
-  html:not(.dark) .hotspot-card span,
-  html:not(.dark) .hotspot-card p,
-  html:not(.dark) .trace-case-hero__eyebrow,
-  html:not(.dark) .trace-case-hero__metric-label,
-  html:not(.dark) .trace-case-hero__fact span,
-  html:not(.dark) .trace-case-hero__count-card span,
-  html:not(.dark) .trace-case-hero__headline,
-  html:not(.dark) .workline-health-hero__eyebrow,
-  html:not(.dark) .workline-health-hero__fact span,
-  html:not(.dark) .device-health-hero__eyebrow,
-  html:not(.dark) .device-health-hero__fact span,
-  html:not(.dark) .runtime-empty-state__hint,
-  html:not(.dark) .runtime-health-breakdown__subtitle,
-  html:not(.dark) .runtime-health-breakdown__total,
-  html:not(.dark) .runtime-health-breakdown__item-hint,
-  html:not(.dark) .runtime-health-breakdown__item-label,
-  html:not(.dark) .runtime-last-updated__label,
-  html:not(.dark) .trace-next-actions__subtitle,
-  html:not(.dark) .trace-timeline__time,
-  html:not(.dark) .trace-timeline__summary-item span,
-  html:not(.dark) .trace-timeline__message--muted,
-  html:not(.dark) .runtime-overview-card__label,
-  html:not(.dark) .runtime-signal-card__label,
-  html:not(.dark) .runtime-signal-card__hint,
-  html:not(.dark) .workline-topology-strip__role,
-  html:not(.dark) .workline-topology-strip__meta-grid span,
-  html:not(.dark) .workline-topology-strip__code {
-    color: var(--runtime-text-secondary);
-  }
-
-  html:not(.dark) .runtime-directory-card__meta,
-  html:not(.dark) .runtime-risk-item__meta,
-  html:not(.dark) .trace-list__meta,
-  html:not(.dark) .trace-context-card__meta,
-  html:not(.dark) .trace-detail__json,
-  html:not(.dark) .trace-case-hero__meta,
-  html:not(.dark) .trace-case-hero__code,
-  html:not(.dark) .workline-health-hero__meta,
-  html:not(.dark) .workline-health-hero__code,
-  html:not(.dark) .device-health-hero__meta,
-  html:not(.dark) .device-health-hero__code,
-  html:not(.dark) .runtime-empty-state__description,
-  html:not(.dark) .runtime-last-updated__value {
-    color: var(--runtime-text-emphasis);
-  }
-
-  html:not(.dark) .el-card.runtime-panel,
-  html:not(.dark) .runtime-health-breakdown,
-  html:not(.dark) .trace-next-actions,
-  html:not(.dark) .runtime-risk-item,
-  html:not(.dark) .runtime-directory-card,
-  html:not(.dark) .trace-list__item,
-  html:not(.dark) .device-activity-item,
-  html:not(.dark) .trace-context-card,
-  html:not(.dark) .trace-session-card,
-  html:not(.dark) .hotspot-card,
-  html:not(.dark) .trace-timeline__card,
-  html:not(.dark) .workline-topology-strip__node,
-  html:not(.dark) .runtime-empty-state,
-  html:not(.dark) .runtime-last-updated {
-    background: var(--runtime-surface);
-    border-color: var(--runtime-border-subtle);
-    box-shadow: var(--runtime-shadow);
-  }
-
-  html:not(.dark) .runtime-overview-card,
-  html:not(.dark) .runtime-signal-card,
-  html:not(.dark) .trace-case-hero,
-  html:not(.dark) .workline-health-hero,
-  html:not(.dark) .device-health-hero {
-    background: var(--runtime-hero-bg);
-    border-color: var(--runtime-border-accent);
-    box-shadow: var(--runtime-shadow);
-  }
-
-  html:not(.dark) .trace-case-hero__metric,
-  html:not(.dark) .trace-case-hero__fact,
-  html:not(.dark) .trace-case-hero__count-card,
-  html:not(.dark) .trace-case-hero__code,
-  html:not(.dark) .workline-health-hero__fact,
-  html:not(.dark) .workline-health-hero__code,
-  html:not(.dark) .device-health-hero__fact,
-  html:not(.dark) .device-health-hero__code {
-    background: var(--runtime-surface-subtle);
-    border-color: var(--runtime-border-subtle);
-  }
-
-  html:not(.dark) .runtime-control-cluster {
-    background: rgb(255 255 255 / 0.78);
-    border-color: var(--runtime-border-subtle);
-  }
-
-  html:not(.dark) .runtime-control-cluster--soft {
-    background: var(--runtime-surface);
-  }
-
-  html:not(.dark) .runtime-risk-item:hover,
-  html:not(.dark) .runtime-directory-card:hover,
-  html:not(.dark) .trace-list__item:hover,
-  html:not(.dark) .trace-context-card:hover,
-  html:not(.dark) .workline-topology-strip__node.is-interactive:hover {
-    background: var(--runtime-surface-strong);
-    border-color: var(--runtime-border-accent);
-  }
-
-  html:not(.dark) .runtime-directory-card.is-active,
-  html:not(.dark) .trace-context-card.is-active,
-  html:not(.dark) .workline-topology-strip__node.is-selected {
-    background: var(--runtime-surface-accent);
-    border-color: var(--runtime-border-strong);
-    box-shadow: inset 0 0 0 1px rgb(var(--color-primary-rgb), 0.18);
-  }
-
-  html:not(.dark) .runtime-health-breakdown__bar,
-  html:not(.dark) .trace-timeline__line {
-    background: var(--runtime-rail);
-  }
-
-  html:not(.dark) .trace-timeline__dot {
-    box-shadow: 0 0 0 4px var(--runtime-dot-ring);
-  }
-
-  html:not(.dark) .trace-timeline__item.is-terminal .trace-timeline__card {
-    box-shadow: inset 0 0 0 1px rgb(var(--color-info-rgb), 0.24), var(--runtime-shadow);
-  }
-
-  html:not(.dark) .trace-timeline__item.is-first-failure .trace-timeline__card {
-    border-color: rgb(var(--color-danger-rgb), 0.24);
-    background: rgb(var(--color-danger-rgb), 0.08);
-  }
-
-  html:not(.dark) .trace-timeline__item.is-last-success .trace-timeline__card {
-    border-color: rgb(var(--color-success-rgb), 0.24);
-  }
-
-  html:not(.dark) .trace-timeline__marker--success {
-    background: rgb(var(--color-success-rgb), 0.12);
-    color: var(--color-success-dark);
-  }
-
-  html:not(.dark) .trace-timeline__marker--danger {
-    background: rgb(var(--color-danger-rgb), 0.12);
-    color: var(--color-danger-dark);
-  }
-
-  html:not(.dark) .trace-timeline__marker--primary {
-    background: rgb(var(--color-info-rgb), 0.12);
-    color: var(--color-info-dark);
-  }
-
-  html:not(.dark) .trace-detail__json {
-    background: var(--runtime-code-bg);
-    border: 1px solid var(--runtime-border-subtle);
-  }
-
-  html:not(.dark) .runtime-frozen-notice {
-    background: var(--runtime-frozen-bg);
-    border-color: rgb(var(--color-warning-rgb), 0.28);
-    box-shadow: var(--runtime-shadow);
-  }
-
-  html:not(.dark) .runtime-frozen-notice__title {
-    color: #a16207;
-  }
-
-  html:not(.dark) .runtime-frozen-notice__description {
-    color: var(--runtime-text-emphasis);
-  }
-
-  html:not(.dark) .runtime-scope-chip,
-  html:not(.dark) .runtime-last-updated.is-frozen {
-    background: rgb(var(--color-warning-rgb), 0.12);
-    border-color: rgb(var(--color-warning-rgb), 0.24);
-    color: #a16207;
-  }
-
-  html:not(.dark) .runtime-signal-card__icon {
-    background: var(--runtime-surface-subtle);
-  }
-
-  html:not(.dark) .runtime-status-badge {
-    background: var(--runtime-surface-muted);
-    border-color: rgb(148 163 184 / 0.24);
-    color: var(--runtime-text-emphasis);
-  }
-
-  html:not(.dark) .runtime-status-badge--primary {
-    background: rgb(var(--color-info-rgb), 0.12);
-    border-color: rgb(var(--color-info-rgb), 0.24);
-    color: var(--color-info-dark);
-  }
-
-  html:not(.dark) .runtime-status-badge--success {
-    background: rgb(var(--color-success-rgb), 0.12);
-    border-color: rgb(var(--color-success-rgb), 0.24);
-    color: var(--color-success-dark);
-  }
-
-  html:not(.dark) .runtime-status-badge--warning {
-    background: rgb(var(--color-warning-rgb), 0.12);
-    border-color: rgb(var(--color-warning-rgb), 0.24);
-    color: var(--color-warning-dark);
-  }
-
-  html:not(.dark) .runtime-status-badge--danger {
-    background: rgb(var(--color-danger-rgb), 0.12);
-    border-color: rgb(var(--color-danger-rgb), 0.24);
-    color: var(--color-danger-dark);
-  }
-
-  html:not(.dark) .runtime-status-badge--info {
-    background: rgb(148 163 184 / 0.12);
-    border-color: rgb(148 163 184 / 0.24);
-    color: var(--runtime-text-secondary);
-  }

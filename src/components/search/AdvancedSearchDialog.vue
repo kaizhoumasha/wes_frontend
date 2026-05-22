@@ -9,7 +9,7 @@
     :scrollable="true"
     min-height="520px"
     custom-class="advanced-search-dialog"
-    @update:model-value="value => emit('update:modelValue', value)"
+    @update:model-value="(value: boolean) => emit('update:modelValue', value)"
   >
     <div class="advanced-search-dialog__layout">
       <section class="advanced-search-dialog__hero">

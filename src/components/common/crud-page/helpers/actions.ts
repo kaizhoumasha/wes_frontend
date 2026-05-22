@@ -222,7 +222,7 @@ export function buildDefaultRowActions<
 >(options: RowActionsOptions<TItem, TCreate, TUpdate>): CrudPageRowAction<TItem>[] {
   const { config, features, state, onDelete, onRestore, onPermanentDelete } = options
   const actions: CrudPageRowAction<TItem>[] = []
-  const editLabel = features.edit.label ?? '编辑'
+  const editLabel = features.edit.label ?? ''
   const editTooltip = features.edit.tooltip ?? editLabel
   const editIcon = features.edit.icon ?? 'lucide:pen-line'
   const deleteLabel = features.delete.label ?? '删除'

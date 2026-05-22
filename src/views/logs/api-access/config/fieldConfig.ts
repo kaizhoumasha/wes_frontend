@@ -1,5 +1,6 @@
 import type { SearchFieldDef } from '@/types/search'
 import { defineCrudResourceFieldBundle } from '@/components/common/crud-page/resourceFieldBuilder'
+import { APIAccessLogResponseMetadata } from '@/api/generated/openapi-metadata'
 import {
   createQuickFilterFormatter,
   formatDurationFromMilliseconds,
@@ -38,7 +39,7 @@ export const {
   fieldConfig: apiAccessLogPageFieldConfig
 } = defineCrudResourceFieldBundle<APIAccessLog, ReadonlyInput, ReadonlyInput>({
   backend: {
-    readSchema: 'APIAccessLogResponse',
+    readSchema: APIAccessLogResponseMetadata,
     labelOverrides: API_ACCESS_LOG_LABEL_OVERRIDES
   },
   fields: [
@@ -143,6 +144,21 @@ export const {
         visibleFrom: 'desktop',
         width: 100,
         sortable: true
+      }
+    },
+    // Detail-only fields (hidden in table, used in detail drawer)
+    {
+      key: 'app_id',
+      table: {
+        visibleFrom: null,
+        width: 100
+      }
+    },
+    {
+      key: 'user_agent',
+      table: {
+        visibleFrom: null,
+        width: 200
       }
     }
   ],

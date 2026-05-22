@@ -1,8 +1,10 @@
 import { authApiMethods } from '@/api/modules/auth'
+import type { ApiPermissionInfo } from '@/api/modules/auth'
 import { getAccessToken, setAccessToken } from '@/api/services/token-refresh'
 import { useCurrentUser } from '@/composables/useCurrentUser'
 import { useMenu } from '@/composables/useMenu'
 import { usePermission } from '@/composables/usePermission'
+import { SUPERUSER_PERMISSION } from '@/composables/permission-state'
 
 export interface BootstrapAuthContextOptions {
   forceRefresh?: boolean
@@ -12,6 +14,29 @@ export interface BootstrapAuthContextOptions {
 
 export interface BootstrapAuthContextResult {
   initializedFromMy: boolean
+}
+
+const SUPERUSER_PERMISSION_INFO: ApiPermissionInfo = {
+  id: 0,
+  name: SUPERUSER_PERMISSION,
+  type: 'user_api',
+  description: '超级用户通配权限',
+  category: 'system',
+  resource: '*',
+  action: '*',
+  method: null,
+  path: null
+}
+
+function normalizeContextPermissions(
+  permissions: ApiPermissionInfo[],
+  isSuperuser: boolean
+): ApiPermissionInfo[] {
+  if (!isSuperuser || permissions.some(permission => permission.name === SUPERUSER_PERMISSION)) {
+    return permissions
+  }
+
+  return [SUPERUSER_PERMISSION_INFO, ...permissions]
 }
 
 /**
@@ -41,8 +66,13 @@ export async function bootstrapAuthContext(
 
     hydrateCurrentUser(myContext.user)
 
-    if (Array.isArray(myContext.permissions) && myContext.permissions.length > 0) {
-      hydratePermissions(myContext.permissions)
+    const contextPermissions = normalizeContextPermissions(
+      Array.isArray(myContext.permissions) ? myContext.permissions : [],
+      myContext.user.is_superuser
+    )
+
+    if (contextPermissions.length > 0) {
+      hydratePermissions(contextPermissions)
     } else {
       await loadPermissions(forceRefresh)
     }

@@ -7,6 +7,11 @@ import type {
   CreateApplicationsInput as CreateAPIApplicationInput,
   UpdateApplicationsInput as UpdateAPIApplicationInput
 } from '@/api/modules/applications'
+import {
+  APIApplicationCreateMetadata,
+  APIApplicationResponseMetadata,
+  APIApplicationUpdateMetadata
+} from '@/api/generated/openapi-metadata'
 import { APIApplicationCreateSchema, APIApplicationUpdateSchema } from '@/types/zod-extensions'
 import {
   defineCrudResourceFieldBundle
@@ -47,9 +52,9 @@ export const {
   fieldConfig: apiApplicationPageFieldConfig
 } = defineCrudResourceFieldBundle<APIApplication, CreateAPIApplicationInput, UpdateAPIApplicationInput>({
   backend: {
-    readSchema: 'APIApplicationResponse',
-    createSchema: 'APIApplicationCreate',
-    updateSchema: 'APIApplicationUpdate',
+    readSchema: APIApplicationResponseMetadata,
+    createSchema: APIApplicationCreateMetadata,
+    updateSchema: APIApplicationUpdateMetadata,
     labelOverrides: API_APPLICATION_FIELD_LABEL_OVERRIDES
   },
   fields: [

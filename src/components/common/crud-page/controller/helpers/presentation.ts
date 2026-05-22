@@ -149,8 +149,8 @@ export function createViewDetailRowAction<TItem extends CrudPageEntity>(
 ): CrudPageRowAction<TItem> {
   return {
     key: `${resourceKey}-view-detail`,
-    label: '',
-    type: 'primary',
+    label: '详情',
+    type: 'info',
     tooltip: '查看详情',
     icon: 'ep:view',
     priority: 'primary',

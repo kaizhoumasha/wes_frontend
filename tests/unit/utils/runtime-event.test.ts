@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { isRelevantRuntimeEvent, readRuntimeEventNumber } from '@/utils/runtime-event'
+import {
+  classifyRuntimeRefresh,
+  isRelevantRuntimeEvent,
+  isRuntimeDomainAllowed,
+  readRuntimeEventNumber
+} from '@/utils/runtime-event'
 import type { RuntimeSSEPayload } from '@/composables/useRuntimeSSE'
 
 function createEvent(keys?: Record<string, unknown>): RuntimeSSEPayload {
@@ -32,5 +37,43 @@ describe('runtime-event', () => {
 
     expect(isRelevantRuntimeEvent(event, { worklineId: 10 })).toBe(true)
     expect(isRelevantRuntimeEvent(createEvent(), { deviceId: 21 })).toBe(true)
+  })
+
+  it('allows safety runtime domains', () => {
+    expect(isRuntimeDomainAllowed('workline_safety')).toBe(true)
+    expect(isRuntimeDomainAllowed('safety')).toBe(true)
+    expect(isRuntimeDomainAllowed('unknown_domain')).toBe(false)
+  })
+
+  it('classifies safety events as workline detail and incident refreshes', () => {
+    const refresh = classifyRuntimeRefresh({
+      domain: 'workline_safety',
+      entity: 'incident',
+      action: 'estop.activated',
+      keys: { workline_id: 10, incident_id: 20 }
+    })
+
+    expect(refresh).toEqual({
+      worklines: true,
+      detail: true,
+      activeIncident: true,
+      sandbox: false
+    })
+  })
+
+  it('classifies session updates as runtime detail and sandbox refreshes', () => {
+    const refresh = classifyRuntimeRefresh({
+      domain: 'workline_trace',
+      entity: 'session',
+      action: 'updated',
+      keys: { workline_id: 10, session_id: 20 }
+    })
+
+    expect(refresh).toEqual({
+      worklines: true,
+      detail: true,
+      activeIncident: false,
+      sandbox: true
+    })
   })
 })

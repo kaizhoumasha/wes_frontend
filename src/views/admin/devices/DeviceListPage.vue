@@ -8,8 +8,8 @@ import { useRouter } from 'vue-router'
 import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
 import { usePermission } from '@/composables/usePermission'
 import CrudPageContainer from '@/components/common/CrudPageContainer.vue'
-import type { DevicesItem as Device } from '@/api/modules/devices'
-import { buildRuntimeDeviceQuery, buildRuntimeTraceQuery } from '@/utils/runtime-route'
+import { devicesApiMethods, type DevicesItem as Device } from '@/api/modules/devices'
+import { buildRuntimeWorklineQuery, buildRuntimeTraceQuery } from '@/utils/runtime-route'
 import { createDevicePageConfig } from './config/pageConfig'
 
 const router = useRouter()
@@ -26,8 +26,8 @@ function openRuntime(device: Device) {
   }
 
   router.push({
-    name: 'RuntimeDevices',
-    query: buildRuntimeDeviceQuery(device.id, device.work_line_id)
+    name: 'RuntimeWorklines',
+    query: buildRuntimeWorklineQuery(device.work_line_id, device.id)
   })
 }
 
@@ -38,7 +38,7 @@ function openTrace(device: Device) {
   }
 
   router.push({
-    name: 'RuntimeTraceExplorer',
+    name: 'RuntimeWorklines',
     query: buildRuntimeTraceQuery({
       deviceId: device.id,
       worklineId: device.work_line_id
@@ -46,9 +46,42 @@ function openTrace(device: Device) {
   })
 }
 
+function applyRuntimeUpdate(device: Device, updated: Device | null | undefined) {
+  if (updated) {
+    Object.assign(device, updated)
+  }
+}
+
+async function enterMaintenance(device: Device) {
+  const updated = await devicesApiMethods
+    .runtimeEnterMaintenance({ id: device.id }, { reason: 'MANUAL_MAINTENANCE' })
+    .send()
+  applyRuntimeUpdate(device, updated)
+  ElMessage.success('设备已进入维护态')
+}
+
+async function exitMaintenance(device: Device) {
+  const updated = await devicesApiMethods
+    .runtimeExitMaintenance({ id: device.id }, { reason: 'MANUAL_RESUME' })
+    .send()
+  applyRuntimeUpdate(device, updated)
+  ElMessage.success('设备已退出维护态')
+}
+
+async function clearFault(device: Device) {
+  const updated = await devicesApiMethods
+    .runtimeClearFault({ id: device.id }, { reason: 'MANUAL_CLEAR_FAULT' })
+    .send()
+  applyRuntimeUpdate(device, updated)
+  ElMessage.success('设备故障已清除')
+}
+
 const config = createDevicePageConfig({
   openRuntime,
   openTrace,
-  canOpenTrace,
+  enterMaintenance,
+  exitMaintenance,
+  clearFault,
+  canOpenTrace
 })
 </script>

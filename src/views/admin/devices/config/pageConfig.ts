@@ -15,6 +15,9 @@ type DevicePageConfig = CrudPageConfig<Device, CreateDeviceInput, UpdateDeviceIn
 interface DevicePageActions {
   openRuntime: (device: Device) => void
   openTrace: (device: Device) => void
+  enterMaintenance: (device: Device) => Promise<void>
+  exitMaintenance: (device: Device) => Promise<void>
+  clearFault: (device: Device) => Promise<void>
   canOpenTrace: () => boolean
 }
 
@@ -71,7 +74,7 @@ const DEVICE_PAGE_FEATURES: CrudPageFeatures = {
 function createDeviceDetailConfig(actions: DevicePageActions): CrudPageDetailConfig<Device> {
   return {
     mode: 'drawer',
-    width: 700,
+    size: 'lg',
     title: device => device.device_name,
     showActions: true,
     actions: [
@@ -98,7 +101,6 @@ function createDeviceDetailConfig(actions: DevicePageActions): CrudPageDetailCon
         fields: [
           { key: 'device_code', layout: 'half' },
           { key: 'device_name', layout: 'half' },
-          { key: 'device_type', layout: 'half' },
           { key: 'device_role', layout: 'half' },
           { key: 'role_index', layout: 'half' },
           { key: 'is_active', layout: 'half' },
@@ -120,9 +122,7 @@ function createDeviceDetailConfig(actions: DevicePageActions): CrudPageDetailCon
         title: '能力配置',
         weight: 'secondary',
         fields: [
-          { key: 'capabilities', layout: 'full' },
-          { key: 'supported_commands', layout: 'full' },
-          { key: 'max_concurrent_tasks', layout: 'half' },
+          { key: 'capabilities_json', layout: 'full' },
           { key: 'vendor_type', layout: 'half' }
         ]
       },
@@ -133,6 +133,7 @@ function createDeviceDetailConfig(actions: DevicePageActions): CrudPageDetailCon
           { key: 'device_status', layout: 'half' },
           { key: 'current_command_id', layout: 'half' },
           { key: 'error_code', layout: 'half' },
+          { key: 'maintenance_mode', layout: 'half' },
           { key: 'last_heartbeat_at', layout: 'half' }
         ]
       },
@@ -141,9 +142,7 @@ function createDeviceDetailConfig(actions: DevicePageActions): CrudPageDetailCon
         weight: 'tertiary',
         fields: [
           { key: 'work_line_id', layout: 'half' },
-          { key: 'upstream_device_id', layout: 'half' },
-          { key: 'created_at', layout: 'half' },
-          { key: 'updated_at', layout: 'half' }
+          { key: 'upstream_device_id', layout: 'half' }
         ]
       }
     ]
@@ -162,16 +161,65 @@ export function createDevicePageConfig(actions: DevicePageActions): DevicePageCo
         {
           key: 'open-runtime',
           label: '设备运行态',
+          tooltip: '设备运行态',
           type: 'primary',
+          icon: 'lucide:layout-dashboard',
           permission: BIZ_PERMISSIONS.device.page,
           onClick: row => actions.openRuntime(row),
         },
         {
           key: 'open-trace',
           label: '最近 TRACE',
+          tooltip: '最近 TRACE',
           type: 'warning',
+          icon: 'lucide:search',
           permission: BIZ_PERMISSIONS.workline.page,
           onClick: row => actions.openTrace(row),
+        },
+        {
+          key: 'enter-maintenance',
+          label: '进入维护',
+          tooltip: '进入维护',
+          type: 'warning',
+          icon: 'ep:tools',
+          permission: BIZ_PERMISSIONS.device.update,
+          show: row => !row.maintenance_mode && row.device_status !== 'MAINTENANCE',
+          onClick: row => actions.enterMaintenance(row),
+          popconfirm: {
+            title: row => `确认将 ${row.device_name} 切换为维护态？`,
+            confirmButtonText: '进入维护',
+            confirmButtonType: 'warning'
+          }
+        },
+        {
+          key: 'exit-maintenance',
+          label: '退出维护',
+          tooltip: '退出维护',
+          type: 'success',
+          icon: 'ep:circle-check',
+          permission: BIZ_PERMISSIONS.device.update,
+          show: row => row.maintenance_mode || row.device_status === 'MAINTENANCE',
+          onClick: row => actions.exitMaintenance(row),
+          popconfirm: {
+            title: row => `确认将 ${row.device_name} 恢复为空闲态？`,
+            confirmButtonText: '退出维护',
+            confirmButtonType: 'success'
+          }
+        },
+        {
+          key: 'clear-fault',
+          label: '清除故障',
+          tooltip: '清除故障',
+          type: 'danger',
+          icon: 'ep:warning',
+          permission: BIZ_PERMISSIONS.device.update,
+          show: row => row.device_status === 'ERROR',
+          onClick: row => actions.clearFault(row),
+          popconfirm: {
+            title: row => `确认清除 ${row.device_name} 的故障投影？`,
+            confirmButtonText: '清除故障',
+            confirmButtonType: 'danger'
+          }
         },
       ]
     }

@@ -33,7 +33,7 @@ body,
 
 body {
   font-family:
-    'SF Pro Display',
+    Inter,
     -apple-system,
     BlinkMacSystemFont,
     'Segoe UI',

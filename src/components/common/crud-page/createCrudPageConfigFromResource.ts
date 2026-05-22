@@ -77,10 +77,21 @@ function resolveCrudPageDetail<TItem extends CrudPageEntity>(
       ...section,
       fields: section.fields?.map(field => ({
         ...field,
-        label: field.label ?? fieldLabelMap.get(field.key) ?? field.key
+        label: field.label ?? resolveDeclaredDetailFieldLabel(field.key, fieldLabelMap)
       }))
     }))
   }
+}
+
+function resolveDeclaredDetailFieldLabel(
+  key: string,
+  fieldLabelMap: ReadonlyMap<string, string | undefined>
+): string {
+  if (!fieldLabelMap.has(key)) {
+    throw new Error(`Crud detail field "${key}" is not declared in fieldConfig.fields`)
+  }
+
+  return fieldLabelMap.get(key) ?? key
 }
 
 function resolveCrudPageForm<

@@ -4,6 +4,7 @@ import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
 export const runtimeRoutes: RouteRecordRaw = {
   path: 'runtime',
   name: 'RuntimeRoot',
+  component: () => import('@/views/runtime/RuntimeLayout.vue'),
   meta: {
     requiresAuth: true,
     title: '运行监控中心',
@@ -14,53 +15,101 @@ export const runtimeRoutes: RouteRecordRaw = {
     }
   },
   children: [
+    // ---- 新路由 ----
+
     {
       path: 'overview',
       name: 'RuntimeOverview',
       component: () => import('@/views/runtime/overview/RuntimeOverviewPage.vue'),
       meta: {
         requiresAuth: true,
-        title: '总览 Dashboard',
+        title: '运行总览',
         permission: BIZ_PERMISSIONS.workline.page,
         menu: {
           name: 'runtime:overview:menu',
           parentName: 'runtime:system:menu',
           icon: 'ep:data-board',
-          sortOrder: 1,
-        },
-      },
+          sortOrder: 1
+        }
+      }
     },
     {
-      path: 'traces',
-      name: 'RuntimeTraceExplorer',
-      component: () => import('@/views/runtime/traces/TraceExplorerPage.vue'),
-      meta: {
-        requiresAuth: true,
-        title: 'Trace Explorer',
-        permission: BIZ_PERMISSIONS.workline.page,
-        menu: {
-          name: 'runtime:traces:menu',
-          parentName: 'runtime:system:menu',
-          icon: 'ep:connection',
-          sortOrder: 2,
-        },
-      },
-    },
-    {
-      path: 'worklines',
-      name: 'RuntimeWorklines',
-      component: () => import('@/views/runtime/worklines/WorklineRuntimePage.vue'),
+      path: 'monitor',
+      name: 'RuntimeMonitor',
+      component: () => import('@/views/runtime/worklines/WorklineMonitorPage.vue'),
       meta: {
         requiresAuth: true,
         title: '工作线监控',
         permission: BIZ_PERMISSIONS.workline.page,
         menu: {
-          name: 'runtime:worklines:menu',
+          name: 'runtime:monitor:menu',
           parentName: 'runtime:system:menu',
           icon: 'ep:share',
-          sortOrder: 3,
-        },
-      },
+          sortOrder: 2
+        }
+      }
+    },
+    {
+      path: 'traces',
+      name: 'RuntimeTraces',
+      component: () => import('@/views/runtime/traces/TraceExplorerPage.vue'),
+      meta: {
+        requiresAuth: true,
+        title: 'Trace 追溯',
+        permission: BIZ_PERMISSIONS.workline.page,
+        menu: {
+          name: 'runtime:traces:menu',
+          parentName: 'runtime:system:menu',
+          icon: 'ep:search',
+          sortOrder: 3
+        }
+      }
+    },
+    {
+      path: 'holds',
+      name: 'RuntimeHolds',
+      component: () => import('@/views/runtime/holds/HoldListPage.vue'),
+      meta: {
+        requiresAuth: true,
+        title: 'Hold 处置',
+        permission: BIZ_PERMISSIONS.workline.viewRuntimeHold,
+        menu: {
+          name: 'runtime:holds:menu',
+          parentName: 'runtime:system:menu',
+          icon: 'ep:warn-triangle-filled',
+          sortOrder: 4
+        }
+      }
+    },
+    {
+      path: 'holds/:holdId',
+      name: 'RuntimeHoldDetail',
+      component: () => import('@/views/runtime/holds/RuntimeHoldPage.vue'),
+      meta: {
+        requiresAuth: true,
+        title: 'Hold 详情',
+        permission: BIZ_PERMISSIONS.workline.viewRuntimeHold,
+        menu: {
+          name: 'runtime:hold:detail',
+          hidden: true
+        }
+      }
+    },
+    {
+      path: 'sandbox',
+      name: 'RuntimeSandbox',
+      component: () => import('@/views/runtime/sandbox/RuntimeSandboxPage.vue'),
+      meta: {
+        requiresAuth: true,
+        title: '沙箱测试',
+        permission: BIZ_PERMISSIONS.workline.update,
+        menu: {
+          name: 'runtime:sandbox:menu',
+          parentName: 'runtime:system:menu',
+          icon: 'ep:tools',
+          sortOrder: 5
+        }
+      }
     },
     {
       path: 'devices',
@@ -68,15 +117,46 @@ export const runtimeRoutes: RouteRecordRaw = {
       component: () => import('@/views/runtime/devices/DeviceRuntimePage.vue'),
       meta: {
         requiresAuth: true,
-        title: '设备监控',
+        title: '设备运行时',
         permission: BIZ_PERMISSIONS.device.page,
         menu: {
           name: 'runtime:devices:menu',
           parentName: 'runtime:system:menu',
           icon: 'ep:cpu',
-          sortOrder: 4,
-        },
-      },
+          sortOrder: 6
+        }
+      }
     },
-  ],
+
+    // ---- 旧路由重定向 ----
+
+    {
+      path: 'worklines',
+      redirect: to => ({
+        name: 'RuntimeMonitor',
+        query: to.query
+      })
+    },
+    {
+      path: 'status',
+      redirect: to => ({
+        name: 'RuntimeOverview',
+        query: to.query
+      })
+    },
+    {
+      path: 'dashboard',
+      redirect: to => ({
+        name: 'RuntimeOverview',
+        query: to.query
+      })
+    },
+    {
+      path: 'exceptions/:holdId',
+      redirect: to => ({
+        name: 'RuntimeHoldDetail',
+        params: to.params
+      })
+    }
+  ]
 }

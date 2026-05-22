@@ -119,28 +119,28 @@ const handleMenuClose = (path: string) => {
 <style scoped>
 /* ==================== CSS 变量定义 ==================== */
 
-/* 暗黑模式变量 */
+/* 暗黑模式变量 - 工业琥珀风格 */
 html.dark .app-sidebar {
-  --sidebar-bg: rgb(10 14 39 / 98%);
-  --sidebar-border: rgb(0 243 255 / 10%);
+  --sidebar-bg: rgb(15 23 42 / 98%);
+  --sidebar-border: rgb(148 163 184 / 12%);
   --sidebar-shadow: 2px 0 20px rgb(0 0 0 / 30%);
-  --header-bg: rgb(0 243 255 / 3%);
-  --header-border: rgb(0 243 255 / 8%);
+  --header-bg: rgb(30 41 59 / 50%);
+  --header-border: rgb(148 163 184 / 12%);
   --logo-text-color: #fff;
-  --logo-glow: rgb(0 243 255 / 50%);
+  --logo-glow: rgb(245 158 11 / 30%);
   --menu-color: rgb(255 255 255 / 70%);
-  --menu-hover-bg: rgb(0 243 255 / 8%);
+  --menu-hover-bg: rgb(245 158 11 / 8%);
   --menu-hover-color: rgb(255 255 255 / 100%);
-  --menu-active-bg: rgb(0 243 255 / 12%);
-  --menu-active-color: #00f3ff;
-  --menu-active-shadow: 0 0 20px rgb(0 243 255 / 10%);
-  --menu-icon-glow: rgb(0 243 255 / 50%);
-  --menu-opened-bg: rgb(0 243 255 / 5%);
+  --menu-active-bg: rgb(245 158 11 / 15%);
+  --menu-active-color: #f59e0b;
+  --menu-active-shadow: 0 0 20px rgb(245 158 11 / 15%);
+  --menu-icon-glow: rgb(245 158 11 / 30%);
+  --menu-opened-bg: rgb(30 41 59 / 30%);
   --menu-opened-color: rgb(255 255 255 / 90%);
-  --footer-border: rgb(0 243 255 / 8%);
+  --footer-border: rgb(148 163 184 / 12%);
   --footer-color: rgb(255 255 255 / 30%);
-  --scrollbar-thumb: rgb(0 243 255 / 10%);
-  --scrollbar-thumb-hover: rgb(0 243 255 / 20%);
+  --scrollbar-thumb: rgb(148 163 184 / 15%);
+  --scrollbar-thumb-hover: rgb(148 163 184 / 25%);
 }
 
 /* 亮模式变量 */
@@ -151,14 +151,14 @@ html:not(.dark) .app-sidebar {
   --header-bg: #f5f7fa;
   --header-border: #e4e7ed;
   --logo-text-color: #303133;
-  --logo-glow: rgb(64 158 255 / 50%);
+  --logo-glow: rgb(245 158 11 / 50%);
   --menu-color: #606266;
   --menu-hover-bg: #ecf5ff;
-  --menu-hover-color: #409eff;
-  --menu-active-bg: #409eff;
+  --menu-hover-color: #f59e0b;
+  --menu-active-bg: #f59e0b;
   --menu-active-color: #fff;
-  --menu-active-shadow: 0 2px 8px rgb(64 158 255 / 30%);
-  --menu-icon-glow: rgb(64 158 255 / 50%);
+  --menu-active-shadow: 0 2px 8px rgb(245 158 11 / 30%);
+  --menu-icon-glow: rgb(245 158 11 / 50%);
   --menu-opened-bg: #f5f7fa;
   --menu-opened-color: #303133;
   --footer-border: #e4e7ed;
@@ -240,7 +240,7 @@ html:not(.dark) .app-sidebar {
 
 .logo-highlight {
   font-size: 24px;
-  background: linear-gradient(135deg, #00f3ff 0%, #0f8 100%);
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
