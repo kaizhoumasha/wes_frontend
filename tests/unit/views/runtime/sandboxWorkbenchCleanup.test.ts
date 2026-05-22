@@ -1,0 +1,225 @@
+import { flushPromises, mount } from '@vue/test-utils'
+import { ref } from 'vue'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+const mocks = vi.hoisted(() => {
+  const sandboxPendingSend = vi.fn()
+  const sandboxCompletedSend = vi.fn()
+  const sandboxCleanupSend = vi.fn()
+  const summary = {
+    id: 45,
+    line_name: '右侧SMT粗分线',
+    line_code: 'SMT-RIGHT',
+    runtime_status: 'READY',
+    active_safety_incident_id: null
+  }
+  const store = {
+    detail: {
+      summary,
+      devices: [
+        {
+          id: 301,
+          device_code: 'ARM03',
+          device_name: 'ARM03',
+          device_role: 'ROBOT',
+          device_status: 'IDLE',
+          active_runtime_hold_ids: []
+        }
+      ],
+      active_sessions: []
+    },
+    findSummary: vi.fn(() => summary),
+    loadWorklines: vi.fn().mockResolvedValue(undefined),
+    loadDetail: vi.fn().mockResolvedValue(undefined),
+    clearDetail: vi.fn()
+  }
+
+  return {
+    router: { push: vi.fn() },
+    route: { params: { worklineId: '45' } },
+    hasPermission: vi.fn(() => true),
+    confirm: vi.fn(),
+    success: vi.fn(),
+    error: vi.fn(),
+    warning: vi.fn(),
+    info: vi.fn(),
+    sandboxPendingSend,
+    sandboxCompletedSend,
+    sandboxCleanupSend,
+    store,
+    runtimeApiMethods: {
+      sandboxPending: vi.fn(() => ({ send: sandboxPendingSend })),
+      sandboxCompleted: vi.fn(() => ({ send: sandboxCompletedSend })),
+      sandboxCleanup: vi.fn(() => ({ send: sandboxCleanupSend })),
+      sandboxSimulateEstop: vi.fn(() => ({ send: vi.fn() })),
+      sandboxAck: vi.fn(() => ({ send: vi.fn() })),
+      replayInbox: vi.fn(() => ({ send: vi.fn() }))
+    }
+  }
+})
+
+vi.mock('vue-router', () => ({
+  useRoute: () => mocks.route,
+  useRouter: () => mocks.router
+}))
+
+vi.mock('@/api/modules/runtime', () => ({
+  runtimeApiMethods: mocks.runtimeApiMethods
+}))
+
+vi.mock('@/stores/workline-runtime', () => ({
+  useWorklineRuntimeStore: () => mocks.store
+}))
+
+vi.mock('@/composables/useRuntimeSSE', () => ({
+  useRuntimeSSE: () => ({ lastEvent: ref(null) })
+}))
+
+vi.mock('@/composables/usePermission', () => ({
+  usePermission: () => ({ hasPermission: mocks.hasPermission })
+}))
+
+vi.mock('element-plus', async importOriginal => {
+  const actual = await importOriginal<typeof import('element-plus')>()
+  return {
+    ...actual,
+    ElMessageBox: {
+      confirm: mocks.confirm
+    },
+    ElMessage: {
+      success: mocks.success,
+      error: mocks.error,
+      warning: mocks.warning,
+      info: mocks.info
+    }
+  }
+})
+
+async function mountPage() {
+  const { default: SandboxWorkbenchPage } =
+    await import('@/views/runtime/sandbox/SandboxWorkbenchPage.vue')
+  const wrapper = mount(SandboxWorkbenchPage, {
+    global: {
+      directives: {
+        loading: {}
+      },
+      stubs: {
+        SandboxCycleStatus: true,
+        SandboxActionList: {
+          props: ['items'],
+          template:
+            '<div><span v-for="item in items" :key="item.id">{{ item.dispatch_key }}</span></div>'
+        },
+        SandboxEventComposer: true,
+        SandboxResultComposer: true,
+        WorklineRouteMap: true,
+        StandardDrawer: {
+          props: ['modelValue'],
+          template: '<aside v-if="modelValue"><slot /></aside>'
+        },
+        Teleport: true,
+        ElAlert: true,
+        ElDivider: true,
+        ElButton: {
+          props: ['disabled', 'loading'],
+          emits: ['click'],
+          template:
+            '<button v-bind="$attrs" :disabled="disabled" :data-loading="loading ? true : undefined" @click="$emit(`click`)"><slot /></button>'
+        }
+      }
+    }
+  })
+  await flushPromises()
+  return wrapper
+}
+
+describe('SandboxWorkbenchPage cleanup', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mocks.route.params.worklineId = '45'
+    mocks.hasPermission.mockReturnValue(true)
+    mocks.confirm.mockResolvedValue('confirm')
+    mocks.sandboxPendingSend.mockResolvedValue([])
+    mocks.sandboxCompletedSend.mockResolvedValue([])
+    mocks.sandboxCleanupSend
+      .mockResolvedValueOnce({
+        workline_id: 45,
+        dry_run: true,
+        deleted: false,
+        counts: { sessions: 1, inboxes: 1, outboxes: 1 },
+        affected_session_ids: [93],
+        message: '预计清理 3 条沙箱运行时数据'
+      })
+      .mockResolvedValueOnce({
+        workline_id: 45,
+        dry_run: false,
+        deleted: true,
+        counts: { sessions: 1, inboxes: 1, outboxes: 1 },
+        affected_session_ids: [93],
+        message: '已清理该 SIMULATION 工作线的沙箱运行时数据'
+      })
+  })
+
+  it('dry-runs cleanup before confirming execution with the workline code', async () => {
+    const wrapper = await mountPage()
+
+    await wrapper.get('[data-test="sandbox-cleanup"]').trigger('click')
+    await flushPromises()
+
+    expect(mocks.runtimeApiMethods.sandboxCleanup).toHaveBeenNthCalledWith(1, 45, {
+      dry_run: true
+    })
+    expect(mocks.confirm).toHaveBeenCalledWith(
+      expect.stringContaining(
+        '将清理当前工作线全部沙箱待处理、历史、Runtime Hold 与相关运行时记录，清理后旧历史不可恢复。'
+      ),
+      '清理沙箱数据',
+      expect.objectContaining({ type: 'warning' })
+    )
+    expect(mocks.runtimeApiMethods.sandboxCleanup).toHaveBeenNthCalledWith(2, 45, {
+      dry_run: false,
+      confirmation: 'SMT-RIGHT'
+    })
+    expect(mocks.success).toHaveBeenCalledWith('已清理该 SIMULATION 工作线的沙箱运行时数据')
+    expect(mocks.runtimeApiMethods.sandboxPending).toHaveBeenCalledTimes(2)
+    expect(mocks.runtimeApiMethods.sandboxCompleted).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not execute cleanup when operator cancels the confirmation', async () => {
+    mocks.confirm.mockRejectedValue('cancel')
+    const wrapper = await mountPage()
+
+    await wrapper.get('[data-test="sandbox-cleanup"]').trigger('click')
+    await flushPromises()
+
+    expect(mocks.runtimeApiMethods.sandboxCleanup).toHaveBeenCalledTimes(1)
+    expect(mocks.success).not.toHaveBeenCalled()
+  })
+
+  it('does not execute cleanup if the route changes after dry-run preview', async () => {
+    let confirmCleanup!: () => void
+    mocks.confirm.mockReturnValue(
+      new Promise(resolve => {
+        confirmCleanup = () => resolve('confirm')
+      })
+    )
+    const wrapper = await mountPage()
+
+    await wrapper.get('[data-test="sandbox-cleanup"]').trigger('click')
+    await flushPromises()
+    mocks.route.params.worklineId = '46'
+    confirmCleanup()
+    await flushPromises()
+
+    expect(mocks.runtimeApiMethods.sandboxCleanup).toHaveBeenCalledTimes(1)
+    expect(mocks.warning).toHaveBeenCalledWith('工作线已切换，已取消本次沙箱清理。')
+  })
+
+  it('hides cleanup action when user lacks sandbox cleanup permission', async () => {
+    mocks.hasPermission.mockReturnValue(false)
+
+    const wrapper = await mountPage()
+
+    expect(wrapper.find('[data-test="sandbox-cleanup"]').exists()).toBe(false)
+  })
+})

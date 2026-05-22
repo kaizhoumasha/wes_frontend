@@ -5,16 +5,16 @@
  * 此文件由 scripts/generate-permissions.ts 自动生成
  *
  * 后端目录: /Users/kaizhou/SynologyDrive/works/wes_backend
- * 权限分组: user_api:resource:executionzone
+ * 权限分组: user_api:resource:binmaterialmount
  *
  * 更新权限: pnpm generate:permissions
  */
 
-export const RESOURCE_EXECUTIONZONE_PERMISSION = {
+export const RESOURCE_BINMATERIALMOUNT_PERMISSION = {
   /** 页面访问权限 */
-  page: 'resource:executionzone:list',
+  page: 'resource:binmaterialmount:list',
   /** 列表查询权限 */
-  list: 'resource:executionzone:list',
+  list: 'resource:binmaterialmount:list',
   /** 详情查看权限 */
-  detail: 'resource:executionzone:detail',
+  detail: 'resource:binmaterialmount:detail'
 } as const

@@ -11,7 +11,14 @@
           class="sandbox-wb__back"
           @click="goBack"
         >
-          <svg viewBox="0 0 20 20"><path fill="currentColor" fill-rule="evenodd" d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z" clip-rule="evenodd" /></svg>
+          <svg viewBox="0 0 20 20">
+            <path
+              fill="currentColor"
+              fill-rule="evenodd"
+              d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z"
+              clip-rule="evenodd"
+            />
+          </svg>
         </button>
         <div class="sandbox-wb__badge">
           <span class="sandbox-wb__badge-dot" />
@@ -28,7 +35,17 @@
           :disabled="!selectedDeviceId || safetyLocked"
           @click="eventPanelOpen = true"
         >
-          <svg class="sandbox-wb__icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" /></svg>
+          <svg
+            class="sandbox-wb__icon"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
+              clip-rule="evenodd"
+            />
+          </svg>
           发送 Event
         </el-button>
         <el-button
@@ -40,6 +57,18 @@
           @click="simulateEstop"
         >
           模拟急停
+        </el-button>
+        <el-button
+          v-if="canCleanupSandbox"
+          data-test="sandbox-cleanup"
+          type="warning"
+          size="small"
+          plain
+          :loading="cleanupLoading"
+          :disabled="!worklineCode"
+          @click="handleCleanupSandbox"
+        >
+          清理沙箱数据
         </el-button>
         <el-button
           v-if="safetyLocked"
@@ -56,7 +85,17 @@
           size="small"
           @click="refreshAll"
         >
-          <svg class="sandbox-wb__icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z" clip-rule="evenodd" /></svg>
+          <svg
+            class="sandbox-wb__icon"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z"
+              clip-rule="evenodd"
+            />
+          </svg>
           刷新
         </el-button>
       </div>
@@ -83,7 +122,9 @@
           <span
             v-if="selectedDeviceId"
             class="sandbox-wb__selected-tag"
-          >{{ selectedDeviceName }}</span>
+          >
+            {{ selectedDeviceName }}
+          </span>
         </div>
         <div class="sandbox-wb__topology-wrap">
           <WorklineRouteMap
@@ -115,8 +156,11 @@
           :submitted-result-outbox-ids="submittedResultOutboxIds"
           :submitted-result-outbox-keys="submittedResultOutboxKeys"
           :submitted-result-reason="SUBMITTED_RESULT_REASON"
+          :replay-loading="replayLoadingInboxId"
+          :runtime-hold-ids="activeRuntimeHoldIds"
           @ack="handleActionAck"
           @result="handleActionResult"
+          @replay="handleReplaySessionInbox"
         />
       </main>
 
@@ -132,7 +176,14 @@
             class="sandbox-wb__panel-close"
             @click="eventPanelOpen = false"
           >
-            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" /></svg>
+            <svg
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
+              />
+            </svg>
           </button>
         </div>
         <div class="sandbox-wb__event-panel-body">
@@ -169,12 +220,16 @@
           class="sandbox-wb__ctx-item"
           :disabled="safetyLocked"
           @click="handleCtxAction('sendEvent')"
-        >发送 Event</button>
+        >
+          发送 Event
+        </button>
         <button
           type="button"
           class="sandbox-wb__ctx-item"
           @click="handleCtxAction('viewOutbox')"
-        >查看 Outbox</button>
+        >
+          查看 Outbox
+        </button>
       </div>
     </Teleport>
 
@@ -200,7 +255,9 @@
             <span
               class="sandbox-wb__result-value"
               :class="`is-${(selectedOutbox.status || '').toLowerCase()}`"
-            >{{ statusLabel(selectedOutbox.status) }}</span>
+            >
+              {{ statusLabel(selectedOutbox.status) }}
+            </span>
           </div>
         </div>
 
@@ -211,14 +268,18 @@
             :loading="actionLoading"
             :disabled="safetyLocked || selectedOutboxCompleted || selectedOutboxResultSubmitted"
             @click="handleAck"
-          >模拟 ACK</el-button>
+          >
+            模拟 ACK
+          </el-button>
           <el-button
             v-if="canSubmitSandboxResult(selectedOutbox)"
             type="primary"
             :loading="actionLoading"
             :disabled="safetyLocked || selectedOutboxCompleted || selectedOutboxResultSubmitted"
             @click="showResultComposer = true"
-          >模拟 Result</el-button>
+          >
+            模拟 Result
+          </el-button>
         </div>
 
         <template v-if="showResultComposer">
@@ -238,14 +299,16 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import SandboxCycleStatus from '@/components/runtime/sandbox/SandboxCycleStatus.vue'
 import SandboxActionList from '@/components/runtime/sandbox/SandboxActionList.vue'
 import SandboxEventComposer from '@/components/runtime/sandbox/SandboxEventComposer.vue'
 import SandboxResultComposer from '@/components/runtime/sandbox/SandboxResultComposer.vue'
 import WorklineRouteMap from '@/components/runtime/monitor/WorklineRouteMap.vue'
 import { StandardDrawer } from '@/components/ui/StandardDrawer'
+import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
 import { runtimeApiMethods } from '@/api/modules/runtime'
+import { usePermission } from '@/composables/usePermission'
 import { useRuntimeSSE } from '@/composables/useRuntimeSSE'
 import { useWorklineRuntimeStore } from '@/stores/workline-runtime'
 import { classifyRuntimeRefresh, isRelevantRuntimeEvent } from '@/utils/runtime-event'
@@ -254,7 +317,7 @@ import { getErrorMessage } from '@/utils/string'
 import {
   canAckSandboxOutbox,
   canSubmitSandboxResult,
-  isCurrentSandboxAction,
+  isCurrentSandboxAction
 } from '@/utils/sandbox-outbox'
 import { SAFETY_LOCKED_REASON } from '@/constants/runtime-safety'
 import { getWorklineDeviceSafetyEvidence, getWorklineRuntimeVerdict } from '@/utils/runtime-safety'
@@ -264,42 +327,67 @@ import type {
   RuntimeWorklineDeviceItem,
   RuntimeWorklineSummary,
   SandboxCompletedSession,
-  SandboxPendingOutbox,
+  SandboxCleanupResponse,
+  SandboxPendingOutbox
 } from '@/types/runtime'
 
 const route = useRoute()
 const router = useRouter()
 const store = useWorklineRuntimeStore()
+const { hasPermission } = usePermission()
 
 const worklineId = computed(() => Number(route.params.worklineId))
 const SUBMITTED_RESULT_REASON = '该 Result 已提交，正在等待后续编排。'
+const CLEANUP_COUNT_LABELS: Record<string, string> = {
+  sessions: '业务会话',
+  inboxes: 'Event',
+  outboxes: '下发指令',
+  commands: '设备命令',
+  runtime_holds: 'Runtime Hold',
+  ng_return_items: 'NG 回传',
+  rack_tasks: '料架任务',
+  bin_cell_reservations: '格口预约',
+  timelines: '时间线',
+  diagnostics: '诊断记录',
+  dispatch_attempts: '派发尝试',
+  safety_incidents: '安全事件'
+}
 
 // Page loading
 const pageLoading = ref(true)
-const worklineName = computed(() => store.detail?.summary?.line_name ?? store.findSummary(worklineId.value)?.line_name ?? '')
-const worklineCode = computed(() => store.detail?.summary?.line_code ?? store.findSummary(worklineId.value)?.line_code ?? '')
+const worklineName = computed(
+  () => store.detail?.summary?.line_name ?? store.findSummary(worklineId.value)?.line_name ?? ''
+)
+const worklineCode = computed(
+  () => store.detail?.summary?.line_code ?? store.findSummary(worklineId.value)?.line_code ?? ''
+)
 
 // Safety — derived from workline summary + detail
 const clearEstopLoading = ref(false)
-const worklineSummary = computed<RuntimeWorklineSummary | null>(
-  () => store.findSummary(worklineId.value),
+const worklineSummary = computed<RuntimeWorklineSummary | null>(() =>
+  store.findSummary(worklineId.value)
 )
 const safetyVerdict = computed(() => {
   const s = worklineSummary.value
   if (!s) return { safetyLocked: false, canAttemptClear: false, blockedReason: null }
-  const stub = s.active_safety_incident_id ? ({ status: 'OPEN' } as unknown as RuntimeSafetyIncidentSummary) : null
-  const evidence = store.detail?.summary.id === s.id ? getWorklineDeviceSafetyEvidence(store.detail.devices) : undefined
+  const stub = s.active_safety_incident_id
+    ? ({ status: 'OPEN' } as unknown as RuntimeSafetyIncidentSummary)
+    : null
+  const evidence =
+    store.detail?.summary.id === s.id
+      ? getWorklineDeviceSafetyEvidence(store.detail.devices)
+      : undefined
   return getWorklineRuntimeVerdict(s, stub, evidence)
 })
 const safetyLocked = computed(() => safetyVerdict.value.safetyLocked)
 const canClearEstop = computed(() => safetyVerdict.value.canAttemptClear)
-const safetyBlockedReason = computed(() => safetyVerdict.value.blockedReason || SAFETY_LOCKED_REASON)
+const safetyBlockedReason = computed(
+  () => safetyVerdict.value.blockedReason || SAFETY_LOCKED_REASON
+)
 
 // Device selection
 const selectedDeviceId = ref<number | null>(null)
-const deviceList = computed<RuntimeWorklineDeviceItem[]>(
-  () => store.detail?.devices ?? [],
-)
+const deviceList = computed<RuntimeWorklineDeviceItem[]>(() => store.detail?.devices ?? [])
 const selectedDeviceName = computed(() => {
   if (!selectedDeviceId.value) return ''
   const d = deviceList.value.find(d => d.id === selectedDeviceId.value)
@@ -310,17 +398,29 @@ const selectedDeviceInfo = computed(() => {
   const d = deviceList.value.find(d => d.id === selectedDeviceId.value)
   if (!d) return null
   return {
-    name: displayDevice({ device_name: d.device_name, device_code: d.device_code, device_id: d.id }),
+    name: displayDevice({
+      device_name: d.device_name,
+      device_code: d.device_code,
+      device_id: d.id
+    }),
     code: d.device_code || '-',
     role: d.device_role || '-',
-    status: d.device_status || '',
+    status: d.device_status || ''
   }
 })
 
 // Active sessions
 const activeSessions = computed<RuntimeTraceListItem[]>(
-  () => (store.detail?.active_sessions as RuntimeTraceListItem[] | undefined) ?? [],
+  () => (store.detail?.active_sessions as RuntimeTraceListItem[] | undefined) ?? []
 )
+
+const activeRuntimeHoldIds = computed(() => {
+  const ids = new Set<number>()
+  for (const device of deviceList.value) {
+    for (const holdId of device.active_runtime_hold_ids ?? []) ids.add(holdId)
+  }
+  return Array.from(ids)
+})
 
 // Context menu
 const contextMenu = ref({ visible: false, x: 0, y: 0, deviceId: null as number | null })
@@ -334,7 +434,10 @@ function handleCtxAction(action: 'sendEvent' | 'viewOutbox') {
   contextMenu.value.visible = false
   if (!deviceId) return
   if (action === 'sendEvent') {
-    if (safetyLocked.value) { ElMessage.warning(safetyBlockedReason.value); return }
+    if (safetyLocked.value) {
+      ElMessage.warning(safetyBlockedReason.value)
+      return
+    }
     handleSendEventFromTopology(deviceId)
   } else {
     handleViewOutboxFromTopology(deviceId)
@@ -383,7 +486,12 @@ let refreshTimers: ReturnType<typeof setTimeout>[] = []
 const openCommandCountsByDevice = computed(() => {
   const counts: Record<number, number> = {}
   for (const item of actionablePendingItems.value) {
-    if (item.status === 'FAILED' || item.status === 'CANCELLED' || item.status === 'BLOCKED_RESOURCE') continue
+    if (
+      item.status === 'FAILED' ||
+      item.status === 'CANCELLED' ||
+      item.status === 'BLOCKED_RESOURCE'
+    )
+      continue
     if (!isCurrentSandboxAction(item)) continue
     const device = deviceList.value.find(d => d.device_code === item.target_code)
     if (device) counts[device.id] = (counts[device.id] || 0) + 1
@@ -405,8 +513,8 @@ const deviceListWithCounters = computed(() =>
   deviceList.value.map(device => ({
     ...device,
     open_command_count: openCommandCountsByDevice.value[device.id] ?? 0,
-    blocked_outbox_count: blockedOutboxCountsByDevice.value[device.id] ?? 0,
-  })),
+    blocked_outbox_count: blockedOutboxCountsByDevice.value[device.id] ?? 0
+  }))
 )
 
 const completedItemIndex = computed(() => {
@@ -424,7 +532,7 @@ const completedItemIndex = computed(() => {
 })
 
 const actionablePendingItems = computed(() =>
-  pendingItems.value.filter(item => !isOutboxCompleted(item)),
+  pendingItems.value.filter(item => !isOutboxCompleted(item))
 )
 
 // Outbox selection
@@ -433,7 +541,10 @@ const resultDrawerVisible = ref(false)
 const showResultComposer = ref(false)
 const actionLoading = ref(false)
 const actionLoadingForItem = ref<number | null>(null)
+const replayLoadingInboxId = ref<number | null>(null)
 const simulatingEstop = ref(false)
+const cleanupLoading = ref(false)
+const canCleanupSandbox = computed(() => hasPermission(BIZ_PERMISSIONS.workline.cleanupSandbox))
 
 const selectedOutboxCompleted = computed(() => isOutboxCompleted(selectedOutbox.value))
 const selectedOutboxResultSubmitted = computed(() => isResultSubmitted(selectedOutbox.value))
@@ -459,7 +570,10 @@ function isResultSubmitted(outbox: SandboxPendingOutbox | null | undefined): boo
 
 function ensureOutboxActionable(outbox: SandboxPendingOutbox | null | undefined): boolean {
   if (!outbox) return false
-  if (!isCurrentSandboxAction(outbox)) { ElMessage.warning('这是历史步骤，当前不可操作。'); return false }
+  if (!isCurrentSandboxAction(outbox)) {
+    ElMessage.warning('这是历史步骤，当前不可操作。')
+    return false
+  }
   if (!isOutboxCompleted(outbox)) return true
   ElMessage.warning('该 Result 已完成，不能重复操作。')
   return false
@@ -477,23 +591,24 @@ async function loadPending() {
   try {
     const items = await runtimeApiMethods.sandboxPending(50, worklineId.value).send()
     pendingItems.value = (items || []).sort((a, b) => b.id - a.id)
-  } catch { /* SSE will retry */ }
+  } catch {
+    /* SSE will retry */
+  }
 }
 
 async function loadCompleted() {
   try {
     const items = await runtimeApiMethods.sandboxCompleted(50, worklineId.value).send()
     completedItems.value = items || []
-  } catch { /* silent */ }
+  } catch {
+    /* silent */
+  }
 }
 
 async function loadPage() {
   pageLoading.value = true
   try {
-    await Promise.all([
-      store.loadWorklines(),
-      store.loadDetail(worklineId.value),
-    ])
+    await Promise.all([store.loadWorklines(), store.loadDetail(worklineId.value)])
     await Promise.all([loadPending(), loadCompleted()])
   } finally {
     pageLoading.value = false
@@ -510,11 +625,13 @@ function queueSandboxRefresh() {
   void loadCompleted()
   void store.loadDetail(worklineId.value)
   for (const delay of [800, 2000, 5000, 10000, 15000]) {
-    refreshTimers.push(setTimeout(() => {
-      void loadPending()
-      void loadCompleted()
-      void store.loadDetail(worklineId.value)
-    }, delay))
+    refreshTimers.push(
+      setTimeout(() => {
+        void loadPending()
+        void loadCompleted()
+        void store.loadDetail(worklineId.value)
+      }, delay)
+    )
   }
 }
 
@@ -524,14 +641,19 @@ function clearRefreshTimers() {
 }
 
 async function simulateEstop() {
-  if (safetyLocked.value) { ElMessage.warning(safetyBlockedReason.value); return }
+  if (safetyLocked.value) {
+    ElMessage.warning(safetyBlockedReason.value)
+    return
+  }
   simulatingEstop.value = true
   try {
-    await runtimeApiMethods.sandboxSimulateEstop(worklineId.value, {
-      reason: 'Sandbox 模拟软件急停冻结',
-      source_device_id: selectedDeviceId.value,
-      payload: { trigger: 'sandbox_button' },
-    }).send()
+    await runtimeApiMethods
+      .sandboxSimulateEstop(worklineId.value, {
+        reason: 'Sandbox 模拟软件急停冻结',
+        source_device_id: selectedDeviceId.value,
+        payload: { trigger: 'sandbox_button' }
+      })
+      .send()
     ElMessage.success('已模拟软件急停冻结')
     await loadPage()
   } catch (e: unknown) {
@@ -541,10 +663,108 @@ async function simulateEstop() {
   }
 }
 
+async function handleCleanupSandbox() {
+  const cleanupWorklineId = getRouteWorklineId()
+  const cleanupWorklineCode = worklineCode.value
+  if (!cleanupWorklineCode) {
+    ElMessage.error('缺少工作线编码，不能清理沙箱数据')
+    return
+  }
+  cleanupLoading.value = true
+  try {
+    const preview = await runtimeApiMethods
+      .sandboxCleanup(cleanupWorklineId, { dry_run: true })
+      .send()
+    if (getCleanupTotal(preview) <= 0) {
+      ElMessage.info(preview.message || '当前没有可清理的沙箱运行时数据')
+      return
+    }
+    await ElMessageBox.confirm(
+      buildCleanupConfirmMessage(preview, cleanupWorklineCode),
+      '清理沙箱数据',
+      {
+        confirmButtonText: '确认清理',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+    if (getRouteWorklineId() !== cleanupWorklineId) {
+      ElMessage.warning('工作线已切换，已取消本次沙箱清理。')
+      return
+    }
+    const result = await runtimeApiMethods
+      .sandboxCleanup(cleanupWorklineId, {
+        dry_run: false,
+        confirmation: cleanupWorklineCode
+      })
+      .send()
+    resetSandboxLocalState()
+    ElMessage.success(result.message || '沙箱运行时数据已清理')
+    queueSandboxRefresh()
+  } catch (e: unknown) {
+    if (isConfirmCancel(e)) return
+    ElMessage.error(getErrorMessage(e, '清理沙箱数据失败'))
+  } finally {
+    cleanupLoading.value = false
+  }
+}
+
+function getRouteWorklineId(): number {
+  return Number(route.params.worklineId)
+}
+
+function resetSandboxLocalState() {
+  pendingItems.value = []
+  completedItems.value = []
+  submittedResultOutboxIds.value = new Set()
+  submittedResultOutboxKeys.value = new Set()
+  selectedOutbox.value = null
+  resultDrawerVisible.value = false
+  showResultComposer.value = false
+}
+
+function getCleanupTotal(result: SandboxCleanupResponse): number {
+  return Object.values(result.counts || {}).reduce((sum, count) => {
+    const value = Number(count)
+    return sum + (Number.isFinite(value) ? value : 0)
+  }, 0)
+}
+
+function buildCleanupConfirmMessage(
+  preview: SandboxCleanupResponse,
+  cleanupWorklineCode: string
+): string {
+  const total = getCleanupTotal(preview)
+  const countLines = Object.entries(preview.counts || {})
+    .filter(([, count]) => Number(count) > 0)
+    .map(([key, count]) => `${CLEANUP_COUNT_LABELS[key] || key}: ${count}`)
+  const affectedSessionIds = preview.affected_session_ids || []
+  const sessionLine = affectedSessionIds.length ? `涉及业务: ${affectedSessionIds.join(', ')}` : ''
+
+  return [
+    `工作线 ${cleanupWorklineCode} 将清理 ${total} 条沙箱运行时数据。`,
+    '将清理当前工作线全部沙箱待处理、历史、Runtime Hold 与相关运行时记录，清理后旧历史不可恢复。',
+    sessionLine,
+    ...countLines,
+    '清理后会重置工作线运行状态，确认后不可在页面撤销。'
+  ]
+    .filter(Boolean)
+    .join('\n')
+}
+
+function isConfirmCancel(error: unknown): boolean {
+  return error === 'cancel' || error === 'close'
+}
+
 function requestClearEstop() {
-  if (!canClearEstop.value) { ElMessage.error('当前状态不能恢复'); return }
+  if (!canClearEstop.value) {
+    ElMessage.error('当前状态不能恢复')
+    return
+  }
   clearEstopLoading.value = true
-  store.loadDetail(worklineId.value).finally(() => { clearEstopLoading.value = false })
+  store.loadDetail(worklineId.value).finally(() => {
+    clearEstopLoading.value = false
+  })
 }
 
 function handleEventSubmitted() {
@@ -561,7 +781,10 @@ function openResultDrawer(outbox: SandboxPendingOutbox) {
 async function handleAck() {
   if (safetyLocked.value) return
   if (!ensureOutboxActionable(selectedOutbox.value)) return
-  if (!selectedOutbox.value?.dispatch_key) { ElMessage.error('缺少 dispatch_key'); return }
+  if (!selectedOutbox.value?.dispatch_key) {
+    ElMessage.error('缺少 dispatch_key')
+    return
+  }
   actionLoading.value = true
   try {
     await runtimeApiMethods.sandboxAck({ dispatch_key: selectedOutbox.value.dispatch_key }).send()
@@ -578,7 +801,10 @@ async function handleAck() {
 async function handleActionAck(item: SandboxPendingOutbox) {
   if (safetyLocked.value) return
   if (!ensureOutboxActionable(item)) return
-  if (!item.dispatch_key) { ElMessage.error('缺少 dispatch_key'); return }
+  if (!item.dispatch_key) {
+    ElMessage.error('缺少 dispatch_key')
+    return
+  }
   actionLoadingForItem.value = item.id
   try {
     await runtimeApiMethods.sandboxAck({ dispatch_key: item.dispatch_key }).send()
@@ -600,13 +826,41 @@ function handleActionResult(item: SandboxPendingOutbox) {
   resultDrawerVisible.value = true
 }
 
+async function handleReplaySessionInbox(session: RuntimeTraceListItem) {
+  if (safetyLocked.value) {
+    ElMessage.warning(safetyBlockedReason.value)
+    return
+  }
+  if (!session.last_inbox_id) {
+    ElMessage.error('缺少可重放的 Inbox')
+    return
+  }
+  replayLoadingInboxId.value = session.last_inbox_id
+  try {
+    await runtimeApiMethods
+      .replayInbox(session.last_inbox_id, {
+        reason: `sandbox manual hold replay: ${session.failure_code || session.status}`
+      })
+      .send()
+    ElMessage.success('Event 已重放')
+    queueSandboxRefresh()
+  } catch (e: unknown) {
+    ElMessage.error(getErrorMessage(e, 'Event 重放失败'))
+  } finally {
+    replayLoadingInboxId.value = null
+  }
+}
+
 function handleResultSubmitted(outbox: SandboxPendingOutbox) {
   const submitted = outbox ?? selectedOutbox.value
   if (submitted) {
     submittedResultOutboxIds.value = new Set([...submittedResultOutboxIds.value, submitted.id])
   }
   if (submitted?.dispatch_key) {
-    submittedResultOutboxKeys.value = new Set([...submittedResultOutboxKeys.value, submitted.dispatch_key])
+    submittedResultOutboxKeys.value = new Set([
+      ...submittedResultOutboxKeys.value,
+      submitted.dispatch_key
+    ])
   }
   showResultComposer.value = false
   resultDrawerVisible.value = false
@@ -616,8 +870,13 @@ function handleResultSubmitted(outbox: SandboxPendingOutbox) {
 
 function statusLabel(status: string | null | undefined): string {
   const map: Record<string, string> = {
-    NEW: '待发送', DISPATCHING: '派发中', SENT: '已发送', ACKED: '已确认',
-    BLOCKED_RESOURCE: '等待设备空闲', FAILED: '失败', CANCELLED: '已取消',
+    NEW: '待发送',
+    DISPATCHING: '派发中',
+    SENT: '已发送',
+    ACKED: '已确认',
+    BLOCKED_RESOURCE: '等待设备空闲',
+    FAILED: '失败',
+    CANCELLED: '已取消'
   }
   return map[status || ''] || status || ''
 }
@@ -719,8 +978,13 @@ watch(worklineId, () => {
 }
 
 @keyframes sandbox-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
 
 .sandbox-wb__bar-info {
@@ -927,10 +1191,18 @@ watch(worklineId, () => {
   font-weight: 500;
 }
 
-.sandbox-wb__result-value.mono { font-family: var(--font-mono); }
-.sandbox-wb__result-value.is-sent { color: #f59e0b; }
-.sandbox-wb__result-value.is-acked { color: #06b6d4; }
-.sandbox-wb__result-value.is-failed { color: #ef4444; }
+.sandbox-wb__result-value.mono {
+  font-family: var(--font-mono);
+}
+.sandbox-wb__result-value.is-sent {
+  color: #f59e0b;
+}
+.sandbox-wb__result-value.is-acked {
+  color: #06b6d4;
+}
+.sandbox-wb__result-value.is-failed {
+  color: #ef4444;
+}
 
 .sandbox-wb__result-actions {
   display: flex;
@@ -969,7 +1241,9 @@ watch(worklineId, () => {
   transition: background 0.15s;
 }
 
-.sandbox-wb__ctx-item:hover { background: rgb(6, 182, 212, 0.15); }
+.sandbox-wb__ctx-item:hover {
+  background: rgb(6, 182, 212, 0.15);
+}
 .sandbox-wb__ctx-item:disabled {
   color: var(--runtime-text-muted);
   cursor: not-allowed;
@@ -978,8 +1252,14 @@ watch(worklineId, () => {
 
 /* ===== Reduced motion ===== */
 @media (prefers-reduced-motion: reduce) {
-  .sandbox-wb__badge-dot { animation: none; }
-  .sandbox-wb__body { transition: none; }
-  .sandbox-wb__event-panel { transition: none; }
+  .sandbox-wb__badge-dot {
+    animation: none;
+  }
+  .sandbox-wb__body {
+    transition: none;
+  }
+  .sandbox-wb__event-panel {
+    transition: none;
+  }
 }
 </style>

@@ -23,7 +23,9 @@
       >
         <!-- Material Identity (hero) -->
         <div class="sandbox-action-list__mat-hero">
-          <span class="sandbox-action-list__mat-label">{{ sessionView.identity.primary.label }}</span>
+          <span class="sandbox-action-list__mat-label">
+            {{ sessionView.identity.primary.label }}
+          </span>
           <span
             class="sandbox-action-list__mat-value"
             :title="sessionView.identity.primary.value"
@@ -36,7 +38,10 @@
             size="small"
           />
           <span class="sandbox-action-list__mat-stage">
-            <span class="sandbox-action-list__mat-stage-dot" :class="stageClass(sessionView)" />
+            <span
+              class="sandbox-action-list__mat-stage-dot"
+              :class="stageClass(sessionView)"
+            />
             {{ sessionView.actionSummary }}
           </span>
         </div>
@@ -56,12 +61,55 @@
           </span>
         </div>
 
+        <div
+          v-if="sessionView.intervention"
+          class="sandbox-action-list__session-alert"
+        >
+          <div class="sandbox-action-list__session-alert-head">
+            <span class="sandbox-action-list__session-alert-label">异常原因</span>
+            <span class="sandbox-action-list__session-alert-code">
+              {{ sessionView.intervention.code }}
+            </span>
+          </div>
+          <p class="sandbox-action-list__session-alert-message">
+            {{ sessionView.intervention.message }}
+          </p>
+          <p class="sandbox-action-list__session-alert-action">
+            {{ sessionView.intervention.action }}
+          </p>
+          <div class="sandbox-action-list__session-alert-actions">
+            <RouterLink
+              v-if="sessionView.intervention.holdRoute"
+              class="sandbox-action-list__hold-cta"
+              :to="sessionView.intervention.holdRoute"
+            >
+              {{ sessionView.intervention.holdLabel }}
+            </RouterLink>
+            <el-button
+              v-if="sessionView.intervention.canReplay && sessionView.session?.last_inbox_id"
+              size="small"
+              type="danger"
+              plain
+              data-test="sandbox-replay-inbox"
+              :loading="replayLoading === sessionView.session.last_inbox_id"
+              :disabled="disabled"
+              :title="disabled ? disabledReason : undefined"
+              @click="emit('replay', sessionView.session)"
+            >
+              重放 Event
+            </el-button>
+          </div>
+        </div>
+
         <!-- Flow Steps -->
         <div
           v-if="sessionView.items.length"
           class="sandbox-action-list__flow"
         >
-          <template v-for="item in sessionView.items" :key="item.id">
+          <template
+            v-for="item in sessionView.items"
+            :key="item.id"
+          >
             <!-- Current actionable -->
             <div
               v-if="isCurrentSandboxAction(item) && item.status !== 'BLOCKED_RESOURCE'"
@@ -69,7 +117,9 @@
             >
               <div class="sandbox-action-list__step-info">
                 <span class="sandbox-action-list__step-cmd">{{ commandLabel(item) }}</span>
-                <span class="sandbox-action-list__step-target">→ {{ item.target_code || '—' }}</span>
+                <span class="sandbox-action-list__step-target">
+                  → {{ item.target_code || '—' }}
+                </span>
               </div>
               <div
                 v-if="itemNote(item)"
@@ -83,6 +133,35 @@
                 >
                   Runtime Hold #{{ runtimeHoldId(item) }}
                 </RouterLink>
+              </div>
+              <div
+                v-if="hasCommandEnvelope(item)"
+                class="sandbox-action-list__command-payload"
+              >
+                <div class="sandbox-action-list__command-payload-head">
+                  <span>指令参数</span>
+                  <button
+                    type="button"
+                    class="sandbox-action-list__copy"
+                    data-test="copy-command-envelope"
+                    @click.stop="copyCommandEnvelope(item)"
+                  >
+                    复制 JSON
+                  </button>
+                </div>
+                <dl class="sandbox-action-list__command-fields">
+                  <template
+                    v-for="field in commandEnvelopeFields(item)"
+                    :key="`${item.id}-${field.label}`"
+                  >
+                    <dt>{{ field.label }}</dt>
+                    <dd>{{ field.value }}</dd>
+                  </template>
+                </dl>
+                <details class="sandbox-action-list__command-json">
+                  <summary>完整 JSON</summary>
+                  <pre>{{ commandEnvelopeJson(item) }}</pre>
+                </details>
               </div>
               <div class="sandbox-action-list__step-action">
                 <el-button
@@ -119,14 +198,45 @@
             >
               <div class="sandbox-action-list__step-info">
                 <span class="sandbox-action-list__step-cmd">{{ commandLabel(item) }}</span>
-                <span class="sandbox-action-list__step-target">→ {{ item.target_code || '—' }}</span>
+                <span class="sandbox-action-list__step-target">
+                  → {{ item.target_code || '—' }}
+                </span>
+              </div>
+              <div
+                v-if="hasCommandEnvelope(item)"
+                class="sandbox-action-list__command-payload"
+              >
+                <div class="sandbox-action-list__command-payload-head">
+                  <span>指令参数</span>
+                  <button
+                    type="button"
+                    class="sandbox-action-list__copy"
+                    data-test="copy-command-envelope"
+                    @click.stop="copyCommandEnvelope(item)"
+                  >
+                    复制 JSON
+                  </button>
+                </div>
+                <dl class="sandbox-action-list__command-fields">
+                  <template
+                    v-for="field in commandEnvelopeFields(item)"
+                    :key="`${item.id}-${field.label}`"
+                  >
+                    <dt>{{ field.label }}</dt>
+                    <dd>{{ field.value }}</dd>
+                  </template>
+                </dl>
+                <details class="sandbox-action-list__command-json">
+                  <summary>完整 JSON</summary>
+                  <pre>{{ commandEnvelopeJson(item) }}</pre>
+                </details>
               </div>
               <span class="sandbox-action-list__step-badge">已停靠</span>
             </div>
           </template>
 
           <!-- History toggle -->
-          <template v-if="historyItemsFor(sessionView).length > 0">
+          <template v-if="historyEntriesFor(sessionView).length > 0">
             <button
               type="button"
               class="sandbox-action-list__history-toggle"
@@ -144,20 +254,91 @@
                   clip-rule="evenodd"
                 />
               </svg>
-              {{ historyItemsFor(sessionView).length }} 条历史
+              {{ historyEntriesFor(sessionView).length }} 条历史
             </button>
             <div
               v-if="expandedHistory.has(sessionView.key)"
               class="sandbox-action-list__history-items"
             >
-              <div
-                v-for="item in historyItemsFor(sessionView)"
-                :key="item.id"
-                class="sandbox-action-list__flow-step is-history"
+              <template
+                v-for="entry in historyEntriesFor(sessionView)"
+                :key="entry.key"
               >
-                <span class="sandbox-action-list__step-cmd">{{ commandLabel(item) }}</span>
-                <span class="sandbox-action-list__step-target">→ {{ item.target_code || '—' }}</span>
-              </div>
+                <div
+                  v-if="entry.kind === 'command'"
+                  class="sandbox-action-list__flow-step is-history"
+                >
+                  <span class="sandbox-action-list__step-cmd">{{ commandLabel(entry.item) }}</span>
+                  <span class="sandbox-action-list__step-target">
+                    → {{ entry.item.target_code || '—' }}
+                  </span>
+                  <div
+                    v-if="hasCommandEnvelope(entry.item)"
+                    class="sandbox-action-list__command-payload"
+                  >
+                    <div class="sandbox-action-list__command-payload-head">
+                      <span>指令参数</span>
+                      <button
+                        type="button"
+                        class="sandbox-action-list__copy"
+                        data-test="copy-command-envelope"
+                        @click.stop="copyCommandEnvelope(entry.item)"
+                      >
+                        复制 JSON
+                      </button>
+                    </div>
+                    <dl class="sandbox-action-list__command-fields">
+                      <template
+                        v-for="field in commandEnvelopeFields(entry.item)"
+                        :key="`${entry.item.id}-${field.label}`"
+                      >
+                        <dt>{{ field.label }}</dt>
+                        <dd>{{ field.value }}</dd>
+                      </template>
+                    </dl>
+                    <details class="sandbox-action-list__command-json">
+                      <summary>完整 JSON</summary>
+                      <pre>{{ commandEnvelopeJson(entry.item) }}</pre>
+                    </details>
+                  </div>
+                </div>
+                <div
+                  v-else
+                  class="sandbox-action-list__event-step is-history"
+                  :class="{ 'has-failure': Boolean(eventIssueText(entry.source)) }"
+                >
+                  <div class="sandbox-action-list__event-head">
+                    <span class="sandbox-action-list__event-label">Event</span>
+                    <button
+                      type="button"
+                      class="sandbox-action-list__copy"
+                      data-test="copy-event-envelope"
+                      @click.stop="copyEventEnvelope(entry.source)"
+                    >
+                      复制 JSON
+                    </button>
+                  </div>
+                  <dl class="sandbox-action-list__event-fields">
+                    <template
+                      v-for="field in eventEnvelopeFields(entry.source)"
+                      :key="`${entry.key}-${field.label}`"
+                    >
+                      <dt>{{ field.label }}</dt>
+                      <dd>{{ field.value }}</dd>
+                    </template>
+                  </dl>
+                  <p
+                    v-if="eventIssueText(entry.source)"
+                    class="sandbox-action-list__event-issue"
+                  >
+                    {{ eventIssueText(entry.source) }}
+                  </p>
+                  <details class="sandbox-action-list__event-json">
+                    <summary>完整 JSON</summary>
+                    <pre>{{ eventEnvelopeJson(entry.source) }}</pre>
+                  </details>
+                </div>
+              </template>
             </div>
           </template>
         </div>
@@ -226,7 +407,9 @@
             />
             <span class="sandbox-action-list__completed-session-count">
               {{ sessionView.deviceGroups.devices.length }} 台设备
-              <span v-if="sessionView.deviceGroups.externals.length">· {{ sessionView.deviceGroups.externals.length }} 外部</span>
+              <span v-if="sessionView.deviceGroups.externals.length">
+                · {{ sessionView.deviceGroups.externals.length }} 外部
+              </span>
             </span>
             <svg
               class="sandbox-action-list__completed-chevron"
@@ -273,127 +456,112 @@
               </span>
             </div>
             <div
-              v-if="sessionView.sessionGroup.session.event_payload"
-              class="sandbox-action-list__completed-session-payload"
+              v-if="completedHistoryEntries(sessionView).length"
+              class="sandbox-action-list__history-items"
             >
-              <pre class="sandbox-action-list__payload-json">{{
-                formatPayload(sessionView.sessionGroup.session.event_payload)
-              }}</pre>
+              <template
+                v-for="entry in completedHistoryEntries(sessionView)"
+                :key="entry.key"
+              >
+                <div
+                  v-if="entry.kind === 'command'"
+                  class="sandbox-action-list__flow-step is-history"
+                  :class="{
+                    'is-failed': entry.item.status === 'FAILED' || entry.item.status === 'CANCELLED'
+                  }"
+                >
+                  <span class="sandbox-action-list__step-cmd">{{ commandLabel(entry.item) }}</span>
+                  <span class="sandbox-action-list__step-target">
+                    → {{ entry.item.target_code || '—' }}
+                  </span>
+                  <RuntimeStatusBadge
+                    :status="entry.item.status ?? 'ACKED'"
+                    size="small"
+                  />
+                  <span
+                    v-if="itemNote(entry.item)"
+                    class="sandbox-action-list__step-note"
+                  >
+                    {{ itemNote(entry.item) }}
+                    <RouterLink
+                      v-if="runtimeHoldId(entry.item)"
+                      class="sandbox-action-list__hold-link"
+                      :to="{
+                        name: 'RuntimeHoldDetail',
+                        params: { holdId: runtimeHoldId(entry.item) }
+                      }"
+                    >
+                      Runtime Hold #{{ runtimeHoldId(entry.item) }}
+                    </RouterLink>
+                  </span>
+                  <div
+                    v-if="hasCommandEnvelope(entry.item)"
+                    class="sandbox-action-list__command-payload"
+                  >
+                    <div class="sandbox-action-list__command-payload-head">
+                      <span>指令参数</span>
+                      <button
+                        type="button"
+                        class="sandbox-action-list__copy"
+                        data-test="copy-command-envelope"
+                        @click.stop="copyCommandEnvelope(entry.item)"
+                      >
+                        复制 JSON
+                      </button>
+                    </div>
+                    <dl class="sandbox-action-list__command-fields">
+                      <template
+                        v-for="field in commandEnvelopeFields(entry.item)"
+                        :key="`${entry.item.id}-${field.label}`"
+                      >
+                        <dt>{{ field.label }}</dt>
+                        <dd>{{ field.value }}</dd>
+                      </template>
+                    </dl>
+                    <details class="sandbox-action-list__command-json">
+                      <summary>完整 JSON</summary>
+                      <pre>{{ commandEnvelopeJson(entry.item) }}</pre>
+                    </details>
+                  </div>
+                </div>
+                <div
+                  v-else
+                  class="sandbox-action-list__event-step is-history"
+                  :class="{ 'has-failure': Boolean(eventIssueText(entry.source)) }"
+                >
+                  <div class="sandbox-action-list__event-head">
+                    <span class="sandbox-action-list__event-label">Event</span>
+                    <button
+                      type="button"
+                      class="sandbox-action-list__copy"
+                      data-test="copy-event-envelope"
+                      @click.stop="copyEventEnvelope(entry.source)"
+                    >
+                      复制 JSON
+                    </button>
+                  </div>
+                  <dl class="sandbox-action-list__event-fields">
+                    <template
+                      v-for="field in eventEnvelopeFields(entry.source)"
+                      :key="`${entry.key}-${field.label}`"
+                    >
+                      <dt>{{ field.label }}</dt>
+                      <dd>{{ field.value }}</dd>
+                    </template>
+                  </dl>
+                  <p
+                    v-if="eventIssueText(entry.source)"
+                    class="sandbox-action-list__event-issue"
+                  >
+                    {{ eventIssueText(entry.source) }}
+                  </p>
+                  <details class="sandbox-action-list__event-json">
+                    <summary>完整 JSON</summary>
+                    <pre>{{ eventEnvelopeJson(entry.source) }}</pre>
+                  </details>
+                </div>
+              </template>
             </div>
-            <!-- Device Groups -->
-            <template v-if="sessionView.deviceGroups.devices.length">
-              <div class="sandbox-action-list__completed-device-groups">
-                <div
-                  v-for="deviceGroup in sessionView.deviceGroups.devices"
-                  :key="deviceGroup.targetCode"
-                  class="sandbox-action-list__completed-device-group"
-                >
-                  <div
-                    class="sandbox-action-list__completed-device-header"
-                    :class="{ 'has-failure': deviceGroup.hasFailure }"
-                  >
-                    <div class="sandbox-action-list__completed-device-identity">
-                      <svg class="sandbox-action-list__completed-device-icon" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M2 4.25A2.25 2.25 0 014.25 2h11.5A2.25 2.25 0 0118 4.25v8.5A2.25 2.25 0 0115.75 15h-3.105a3.5 3.5 0 00-1.621.423l-1.374.716a1.5 1.5 0 01-.676.161H4.25A2.25 2.25 0 012 12.75v-8.5zM6 6a.75.75 0 01.75-.75h6.5a.75.75 0 010 1.5h-6.5A.75.75 0 016 6zm0 4a.75.75 0 01.75-.75h4.5a.75.75 0 010 1.5h-4.5A.75.75 0 016 10z" clip-rule="evenodd" />
-                      </svg>
-                      <span class="sandbox-action-list__completed-device-name">{{ deviceGroup.targetCode }}</span>
-                      <span class="sandbox-action-list__completed-device-count">{{ deviceGroup.items.length }}</span>
-                    </div>
-                    <span v-if="deviceGroup.hasFailure" class="sandbox-action-list__completed-device-badge">
-                      <svg viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
-                      </svg>
-                    </span>
-                  </div>
-
-                  <div class="sandbox-action-list__completed-device-commands">
-                    <div
-                      v-for="item in deviceGroup.items"
-                      :key="`outbox-${item.id}`"
-                      class="sandbox-action-list__completed-item"
-                      :class="{ 'is-failed': item.status === 'FAILED' || item.status === 'CANCELLED' }"
-                    >
-                      <span class="sandbox-action-list__completed-item-key">
-                        {{ commandLabel(item) }}
-                      </span>
-                      <RuntimeStatusBadge
-                        :status="item.status ?? 'ACKED'"
-                        size="small"
-                      />
-                      <span
-                        v-if="itemNote(item)"
-                        class="sandbox-action-list__completed-item-error"
-                      >
-                        {{ itemNote(item) }}
-                        <RouterLink
-                          v-if="runtimeHoldId(item)"
-                          class="sandbox-action-list__hold-link"
-                          :to="{
-                            name: 'RuntimeHoldDetail',
-                            params: { holdId: runtimeHoldId(item) }
-                          }"
-                        >
-                          Runtime Hold #{{ runtimeHoldId(item) }}
-                        </RouterLink>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </template>
-
-            <!-- External Requests -->
-            <template v-if="sessionView.deviceGroups.externals.length">
-              <div class="sandbox-action-list__completed-external-label">外部请求</div>
-              <div class="sandbox-action-list__completed-device-groups">
-                <div
-                  v-for="extGroup in sessionView.deviceGroups.externals"
-                  :key="extGroup.targetCode"
-                  class="sandbox-action-list__completed-device-group is-external"
-                >
-                  <div
-                    class="sandbox-action-list__completed-device-header"
-                    :class="{ 'has-failure': extGroup.hasFailure }"
-                  >
-                    <div class="sandbox-action-list__completed-device-identity">
-                      <svg class="sandbox-action-list__completed-device-icon" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd" />
-                      </svg>
-                      <span class="sandbox-action-list__completed-device-name">{{ extGroup.targetCode }}</span>
-                      <span class="sandbox-action-list__completed-device-count">{{ extGroup.items.length }}</span>
-                    </div>
-                    <span v-if="extGroup.hasFailure" class="sandbox-action-list__completed-device-badge">
-                      <svg viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
-                      </svg>
-                    </span>
-                  </div>
-
-                  <div class="sandbox-action-list__completed-device-commands">
-                    <div
-                      v-for="item in extGroup.items"
-                      :key="`outbox-${item.id}`"
-                      class="sandbox-action-list__completed-item"
-                      :class="{ 'is-failed': item.status === 'FAILED' || item.status === 'CANCELLED' }"
-                    >
-                      <span class="sandbox-action-list__completed-item-key">
-                        {{ commandLabel(item) }}
-                      </span>
-                      <RuntimeStatusBadge
-                        :status="item.status ?? 'ACKED'"
-                        size="small"
-                      />
-                      <span
-                        v-if="itemNote(item)"
-                        class="sandbox-action-list__completed-item-error"
-                      >
-                        {{ itemNote(item) }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </template>
           </div>
         </div>
       </div>
@@ -404,6 +572,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import type {
   RuntimeTraceListItem,
   SandboxCompletedSession,
@@ -454,6 +623,8 @@ const props = defineProps<{
   submittedResultOutboxIds?: Set<number>
   submittedResultOutboxKeys?: Set<string>
   submittedResultReason?: string
+  replayLoading?: number | null
+  runtimeHoldIds?: number[]
 }>()
 
 const disabled = computed(() => props.disabled === true)
@@ -488,6 +659,54 @@ function historyItemsFor(view: { items: SandboxPendingOutbox[] }): SandboxPendin
   )
 }
 
+function historyEntriesFor(view: {
+  key: string
+  session: RuntimeEventSource | null
+  items: SandboxPendingOutbox[]
+}): SandboxHistoryEntry[] {
+  return sortHistoryEntries([
+    ...historyItemsFor(view).map(commandHistoryEntry),
+    ...eventHistoryEntry(view.session, `${view.key}:event`)
+  ])
+}
+
+function completedHistoryEntries(view: {
+  sessionGroup: SandboxCompletedSession
+}): SandboxHistoryEntry[] {
+  return sortHistoryEntries([
+    ...view.sessionGroup.outbox_items.map(commandHistoryEntry),
+    ...eventHistoryEntry(
+      view.sessionGroup.session,
+      `completed:${view.sessionGroup.session.id}:event`
+    )
+  ])
+}
+
+function commandHistoryEntry(item: SandboxPendingOutbox): CommandHistoryEntry {
+  return {
+    kind: 'command',
+    key: `command:${item.id}`,
+    item,
+    sortValue: item.id
+  }
+}
+
+function eventHistoryEntry(source: RuntimeEventSource | null, key: string): EventHistoryEntry[] {
+  if (!source || !hasEventEnvelope(source)) return []
+  return [
+    {
+      kind: 'event',
+      key,
+      source,
+      sortValue: 0
+    }
+  ]
+}
+
+function sortHistoryEntries(entries: SandboxHistoryEntry[]): SandboxHistoryEntry[] {
+  return [...entries].sort((a, b) => b.sortValue - a.sortValue)
+}
+
 function stageClass(view: { items: SandboxPendingOutbox[] }): string {
   const hasAckable = view.items.some(item => canAckSandboxOutbox(item))
   const hasResultable = view.items.some(item => canSubmitSandboxResult(item))
@@ -519,14 +738,79 @@ interface PendingSessionView {
   session: RuntimeTraceListItem | null
   items: SandboxPendingOutbox[]
   identity: SessionIdentity
+  intervention: SessionIntervention | null
   actionSummary: string
 }
+
+interface SessionIntervention {
+  code: string
+  message: string
+  action: string
+  canReplay: boolean
+  holdRoute: RuntimeHoldRoute | null
+  holdLabel: string
+}
+
+interface CommandEnvelopeField {
+  label: string
+  value: string
+}
+
+interface EventEnvelopeField {
+  label: string
+  value: string
+}
+
+interface RuntimeEventSource {
+  event_type?: string | null
+  event_payload?: Record<string, unknown> | null
+  device_code?: string | null
+  business_key?: string | null
+  last_inbox_id?: number | null
+  failure_code?: string | null
+  failure_message?: string | null
+  latest_timeline_message?: string | null
+}
+
+interface CommandHistoryEntry {
+  kind: 'command'
+  key: string
+  item: SandboxPendingOutbox
+  sortValue: number
+}
+
+interface EventHistoryEntry {
+  kind: 'event'
+  key: string
+  source: RuntimeEventSource
+  sortValue: number
+}
+
+type SandboxHistoryEntry = CommandHistoryEntry | EventHistoryEntry
+type RuntimeHoldRoute =
+  | { name: 'RuntimeHoldDetail'; params: { holdId: number } }
+  | {
+      name: 'RuntimeHolds'
+      query: {
+        worklineId?: string
+        sessionId?: string
+        status?: string
+      }
+    }
+
+const EVENT_RUNTIME_META_KEYS = new Set([
+  'replay_of_event_id',
+  'replay_reason',
+  'replay_operator_id'
+])
+
+const runtimeHoldIdsResolved = computed(() => props.runtimeHoldIds ?? [])
 
 const completedSessionViews = computed(() =>
   completedItemsResolved.value.map(sessionGroup => ({
     sessionGroup,
     identity: buildSessionIdentity(sessionGroup),
-    deviceGroups: groupItemsByDevice(sessionGroup.outbox_items),
+    deviceGroups: groupItemsByDevice(sessionGroup.outbox_items)
   }))
 )
 
@@ -571,14 +855,12 @@ function groupItemsByDevice(items: SandboxPendingOutbox[]): CompletedSessionGrou
     Array.from(map.entries()).map(([targetCode, groupItems]) => ({
       targetCode,
       items: groupItems,
-      hasFailure: groupItems.some(
-        i => i.status === 'FAILED' || i.status === 'CANCELLED'
-      ),
+      hasFailure: groupItems.some(i => i.status === 'FAILED' || i.status === 'CANCELLED')
     }))
 
   return {
     devices: makeGroups(deviceMap),
-    externals: makeGroups(externalMap),
+    externals: makeGroups(externalMap)
   }
 }
 
@@ -669,6 +951,7 @@ const pendingSessionViews = computed<PendingSessionView[]>(() => {
       ...group,
       status: group.session?.status ?? null,
       identity: buildPendingSessionIdentity(group),
+      intervention: buildPendingSessionIntervention(group.session),
       actionSummary: pendingActionSummary(group)
     }))
     .sort((a, b) => pendingSortValue(b) - pendingSortValue(a))
@@ -685,6 +968,7 @@ function pendingOutboxKey(outboxId: number): string {
 const emit = defineEmits<{
   ack: [item: SandboxPendingOutbox]
   result: [item: SandboxPendingOutbox]
+  replay: [session: RuntimeTraceListItem]
 }>()
 
 function isResultSubmitted(item: SandboxPendingOutbox): boolean {
@@ -703,6 +987,109 @@ function commandLabel(item: SandboxPendingOutbox): string {
     command_code: null,
     dispatch_key: item.dispatch_key
   })
+}
+
+function commandPayload(item: SandboxPendingOutbox): Record<string, unknown> {
+  return isRecord(item.payload_json) ? item.payload_json : {}
+}
+
+function hasCommandEnvelope(item: SandboxPendingOutbox): boolean {
+  const payload = commandPayload(item)
+  return item.dispatch_type === 'DEVICE_COMMAND' || scalarValue(payload.command_code) !== null
+}
+
+function commandEnvelopeFields(item: SandboxPendingOutbox): CommandEnvelopeField[] {
+  const payload = commandPayload(item)
+  return [
+    { label: 'command_code', value: scalarValue(payload.command_code) },
+    {
+      label: 'task_type',
+      value: scalarValue(payload.task_type ?? payload.command_type ?? payload.action)
+    },
+    { label: 'target_code', value: scalarValue(item.target_code) },
+    { label: 'dispatch_key', value: scalarValue(item.dispatch_key) },
+    { label: 'params', value: commandParamsSummary(payload) }
+  ].filter((field): field is CommandEnvelopeField => field.value !== null)
+}
+
+function commandParamsSummary(payload: Record<string, unknown>): string | null {
+  const params = payload.params ?? payload.data
+  return compactJsonValue(params)
+}
+
+function compactJsonValue(value: unknown): string | null {
+  if (isRecord(value) || Array.isArray(value)) return JSON.stringify(value)
+  return scalarValue(value)
+}
+
+function commandEnvelopeJson(item: SandboxPendingOutbox): string {
+  return formatPayload({
+    dispatch_key: item.dispatch_key ?? null,
+    dispatch_type: item.dispatch_type ?? null,
+    target_type: item.target_type ?? null,
+    target_code: item.target_code ?? null,
+    payload_json: commandPayload(item)
+  })
+}
+
+async function copyCommandEnvelope(item: SandboxPendingOutbox): Promise<void> {
+  try {
+    await navigator.clipboard.writeText(commandEnvelopeJson(item))
+    ElMessage.success('指令 JSON 已复制')
+  } catch {
+    ElMessage.error('复制失败，请手动复制完整 JSON')
+  }
+}
+
+function eventPayload(source: RuntimeEventSource | null): Record<string, unknown> {
+  return source && isRecord(source.event_payload) ? source.event_payload : {}
+}
+
+function originalEventPayload(source: RuntimeEventSource | null): Record<string, unknown> {
+  const payload = eventPayload(source)
+  return Object.fromEntries(
+    Object.entries(payload).filter(([key]) => !EVENT_RUNTIME_META_KEYS.has(key))
+  )
+}
+
+function eventType(source: RuntimeEventSource | null): string | null {
+  const payload = eventPayload(source)
+  return scalarValue(source?.event_type ?? payload.canonical_event_type ?? payload.event_type)
+}
+
+function hasEventEnvelope(source: RuntimeEventSource | null): boolean {
+  return Boolean(eventType(source) || Object.keys(eventPayload(source)).length)
+}
+
+function eventEnvelopeFields(source: RuntimeEventSource | null): EventEnvelopeField[] {
+  const payload = eventPayload(source)
+  return [
+    { label: 'event_type', value: eventType(source) },
+    { label: 'device_code', value: scalarValue(payload.device_code ?? source?.device_code) },
+    { label: 'business_key', value: scalarValue(source?.business_key) },
+    { label: 'inbox_id', value: scalarValue(source?.last_inbox_id) },
+    { label: 'data', value: compactJsonValue(payload.data ?? payload.params) }
+  ].filter((field): field is EventEnvelopeField => field.value !== null)
+}
+
+function eventEnvelopeJson(source: RuntimeEventSource | null): string {
+  return formatPayload(originalEventPayload(source))
+}
+
+async function copyEventEnvelope(source: RuntimeEventSource | null): Promise<void> {
+  try {
+    await navigator.clipboard.writeText(eventEnvelopeJson(source))
+    ElMessage.success('Event JSON 已复制')
+  } catch {
+    ElMessage.error('复制失败，请手动复制完整 JSON')
+  }
+}
+
+function eventIssueText(source: RuntimeEventSource | null): string | null {
+  if (!source?.failure_code) return null
+  return [source.failure_code, source.latest_timeline_message ?? source.failure_message]
+    .filter(Boolean)
+    .join(': ')
 }
 
 function itemNote(item: SandboxPendingOutbox): string | null {
@@ -735,6 +1122,7 @@ function buildPendingSessionIdentity(group: {
     [
       scalarField('会话', sessionLabel),
       scalarField('进度', session ? resolveRuntimeProgressLabel(session) : null),
+      scalarField('失败', session?.failure_code),
       scalarField('等待', waitTypeLabel(session?.current_wait_type)),
       scalarField('当前命令', session?.command_code),
       scalarField('Trace', session?.trace_id)
@@ -748,6 +1136,57 @@ function buildPendingSessionIdentity(group: {
     detailFields: [],
     traceFields: []
   }
+}
+
+function buildPendingSessionIntervention(
+  session: RuntimeTraceListItem | null
+): SessionIntervention | null {
+  if (!session) return null
+  if (session.failure_code) {
+    const message = session.latest_timeline_message || session.failure_code
+    return {
+      code: session.failure_code,
+      message,
+      action:
+        session.failure_code === 'PAYLOAD_INVALID'
+          ? '请修正 Event payload 后重新发送。'
+          : '请打开 Trace 查看异常详情，确认后重新发送或人工处置。',
+      canReplay: session.failure_code === 'PAYLOAD_INVALID',
+      holdRoute: null,
+      holdLabel: ''
+    }
+  }
+  if (session.status !== 'MANUAL_HOLD') return null
+  const message = session.latest_timeline_message || session.failure_code
+  return {
+    code: 'MANUAL_HOLD',
+    message: message || '当前会话已进入人工挂起。',
+    action: '请前往 Hold 处置页确认现场状态并解除阻断。',
+    canReplay: false,
+    holdRoute: runtimeHoldRoute(session),
+    holdLabel: runtimeHoldLinkLabel()
+  }
+}
+
+function runtimeHoldRoute(session: RuntimeTraceListItem): RuntimeHoldRoute {
+  const runtimeHoldIds = runtimeHoldIdsResolved.value
+  if (runtimeHoldIds.length === 1) {
+    return { name: 'RuntimeHoldDetail', params: { holdId: runtimeHoldIds[0] } }
+  }
+  return {
+    name: 'RuntimeHolds',
+    query: {
+      worklineId: String(session.workline_id),
+      sessionId: String(session.session_id),
+      status: 'OPEN'
+    }
+  }
+}
+
+function runtimeHoldLinkLabel(): string {
+  const runtimeHoldIds = runtimeHoldIdsResolved.value
+  if (runtimeHoldIds.length === 1) return `Runtime Hold #${runtimeHoldIds[0]}`
+  return '打开 Hold 处置'
 }
 
 function waitTypeLabel(waitType: string | null | undefined): string | null {
@@ -769,12 +1208,14 @@ function pendingActionSummary(group: {
   const currentCount = group.items.filter(
     item => isCurrentSandboxAction(item) && item.status !== 'BLOCKED_RESOURCE'
   ).length
-  const historyCount = group.items.length - currentCount - blockedCount
+  const eventCount = hasEventEnvelope(group.session) ? 1 : 0
+  const historyCount = group.items.length - currentCount - blockedCount + eventCount
   if (blockedCount > 0 && currentCount > 0) return `${currentCount} 可操作 · ${blockedCount} 已停靠`
   if (blockedCount > 0) return `${blockedCount} 已停靠`
   if (currentCount > 0 && historyCount > 0) return `${currentCount} 当前 · ${historyCount} 历史`
   if (currentCount > 0) return `${currentCount} 条命令`
   if (historyCount > 0) return `${historyCount} 条历史`
+  if (group.session?.failure_code) return '需处理异常'
   const waitLabel = waitTypeLabel(group.session?.current_wait_type)
   if (waitLabel) return `等待${waitLabel}`
   if (group.session?.status === 'NEW' || group.session?.status === 'RUNNING') return '编排中'
@@ -1030,11 +1471,260 @@ function formatPayload(payload: Record<string, unknown>): string {
   font-weight: 700;
 }
 
+.sandbox-action-list__session-alert {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  border: 1px solid rgb(239, 68, 68, 0.2);
+  border-radius: 8px;
+  background: rgb(239, 68, 68, 0.06);
+  color: var(--runtime-text-secondary);
+}
+
+.sandbox-action-list__session-alert-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sandbox-action-list__session-alert-label {
+  color: #fecaca;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.sandbox-action-list__session-alert-code {
+  min-width: 0;
+  color: #fca5a5;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.sandbox-action-list__session-alert-message,
+.sandbox-action-list__session-alert-action {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.sandbox-action-list__session-alert-action {
+  color: var(--runtime-text-muted);
+}
+
+.sandbox-action-list__session-alert-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.sandbox-action-list__hold-cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border: 1px solid rgb(6, 182, 212, 0.24);
+  border-radius: 6px;
+  background: rgb(6, 182, 212, 0.1);
+  color: #67e8f9;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.sandbox-action-list__hold-cta:hover {
+  border-color: rgb(6, 182, 212, 0.42);
+  background: rgb(6, 182, 212, 0.16);
+}
+
 /* ===== Flow Steps ===== */
 .sandbox-action-list__flow {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.sandbox-action-list__event-step {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  margin-bottom: 8px;
+  padding: 9px 10px;
+  border: 1px solid rgb(34, 197, 94, 0.18);
+  border-radius: 8px;
+  background: rgb(34, 197, 94, 0.045);
+}
+
+.sandbox-action-list__event-step.has-failure {
+  border-color: rgb(239, 68, 68, 0.24);
+  background: rgb(239, 68, 68, 0.055);
+}
+
+.sandbox-action-list__event-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sandbox-action-list__event-label {
+  color: #bbf7d0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.sandbox-action-list__event-fields {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 4px 8px;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.sandbox-action-list__event-fields dt {
+  color: var(--runtime-text-muted);
+  font-weight: 700;
+}
+
+.sandbox-action-list__event-fields dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--runtime-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.sandbox-action-list__event-issue {
+  margin: 0;
+  color: var(--runtime-danger, #ef4444);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.sandbox-action-list__event-json {
+  min-width: 0;
+  color: var(--runtime-text-muted);
+  font-size: 10px;
+}
+
+.sandbox-action-list__event-json summary {
+  cursor: pointer;
+}
+
+.sandbox-action-list__event-json pre {
+  max-height: 160px;
+  margin: 6px 0 0;
+  padding: 8px;
+  overflow: auto;
+  border-radius: 6px;
+  background: rgb(15, 23, 42, 0.72);
+  color: #dcfce7;
+}
+
+.sandbox-action-list__command-payload {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  margin-top: 6px;
+  padding: 8px;
+  border: 1px solid rgb(59, 130, 246, 0.15);
+  border-radius: 6px;
+  background: rgb(59, 130, 246, 0.04);
+}
+
+.sandbox-action-list__flow-step.is-history .sandbox-action-list__command-payload,
+.sandbox-action-list__completed-item .sandbox-action-list__command-payload {
+  flex-basis: 100%;
+  width: 100%;
+}
+
+.sandbox-action-list__command-payload-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #bfdbfe;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.sandbox-action-list__copy {
+  flex: 0 0 auto;
+  padding: 2px 6px;
+  border: 1px solid rgb(147, 197, 253, 0.3);
+  border-radius: 5px;
+  background: rgb(147, 197, 253, 0.08);
+  color: #bfdbfe;
+  cursor: pointer;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.sandbox-action-list__copy:hover {
+  border-color: rgb(147, 197, 253, 0.5);
+  background: rgb(147, 197, 253, 0.14);
+}
+
+.sandbox-action-list__command-fields {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 4px 8px;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.sandbox-action-list__command-fields dt {
+  color: var(--runtime-text-muted);
+  font-weight: 700;
+}
+
+.sandbox-action-list__command-fields dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--runtime-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.sandbox-action-list__command-json {
+  min-width: 0;
+  color: var(--runtime-text-muted);
+  font-size: 10px;
+}
+
+.sandbox-action-list__command-json summary {
+  cursor: pointer;
+}
+
+.sandbox-action-list__command-json pre {
+  max-height: 160px;
+  margin: 6px 0 0;
+  padding: 8px;
+  overflow: auto;
+  border-radius: 6px;
+  background: rgb(15, 23, 42, 0.72);
+  color: #dbeafe;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .sandbox-action-list__flow-step {
@@ -1360,6 +2050,7 @@ function formatPayload(payload: Record<string, unknown>): string {
 .sandbox-action-list__completed-item {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   padding: 4px 8px;
   border-radius: 6px;
@@ -1506,11 +2197,13 @@ function formatPayload(payload: Record<string, unknown>): string {
   border-color: rgb(59, 130, 246, 0.15);
 }
 
-.sandbox-action-list__completed-device-group.is-external .sandbox-action-list__completed-device-header {
+.sandbox-action-list__completed-device-group.is-external
+  .sandbox-action-list__completed-device-header {
   background: rgb(59, 130, 246, 0.04);
 }
 
-.sandbox-action-list__completed-device-group.is-external .sandbox-action-list__completed-device-icon {
+.sandbox-action-list__completed-device-group.is-external
+  .sandbox-action-list__completed-device-icon {
   color: #3b82f6;
 }
 
@@ -1518,7 +2211,8 @@ function formatPayload(payload: Record<string, unknown>): string {
   border-color: rgb(239, 68, 68, 0.2);
 }
 
-.sandbox-action-list__completed-device-group.is-external.has-failure .sandbox-action-list__completed-device-header {
+.sandbox-action-list__completed-device-group.is-external.has-failure
+  .sandbox-action-list__completed-device-header {
   background: rgb(239, 68, 68, 0.06);
 }
 </style>

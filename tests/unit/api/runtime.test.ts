@@ -3,8 +3,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const mocks = vi.hoisted(() => {
   const send = vi.fn()
   const method = vi.fn(() => ({ send }))
+  const apiClientGet = vi.fn(() => ({ send }))
+  const apiClientPost = vi.fn(() => ({ send }))
   return {
     send,
+    apiClientGet,
+    apiClientPost,
     methods: {
       overview: method,
       worklines: method,
@@ -34,6 +38,13 @@ const mocks = vi.hoisted(() => {
 vi.mock('@/api/modules/workline', () => ({
   worklineApiMethods: mocks.methods,
   runtimeHoldApiMethods: mocks.runtimeHoldMethods
+}))
+
+vi.mock('@/api/client', () => ({
+  apiClient: {
+    Get: mocks.apiClientGet,
+    Post: mocks.apiClientPost
+  }
 }))
 
 describe('runtimeApiMethods', () => {
@@ -82,5 +93,36 @@ describe('runtimeApiMethods', () => {
     expect(mocks.methods.sandboxPending).toHaveBeenCalledWith({ limit: 25 })
     expect(mocks.methods.replayInboxes).toHaveBeenCalledWith({ inbox_id: 501 }, replayPayload)
     expect(mocks.methods.manualSessions).toHaveBeenCalledWith({ session_id: 601 }, manualPayload)
+  })
+
+  it('queries runtime holds directly with filters', async () => {
+    const { runtimeApiMethods } = await import('@/api/modules/runtime')
+
+    await runtimeApiMethods
+      .runtimeHolds({
+        workline_id: 45,
+        session_id: 93,
+        status: 'OPEN',
+        active_only: true,
+        limit: 50
+      })
+      .send()
+
+    expect(mocks.apiClientGet).toHaveBeenCalledWith(
+      '/api/v1/workline/runtime-holds?workline_id=45&session_id=93&status=OPEN&active_only=true&limit=50'
+    )
+  })
+
+  it('submits sandbox cleanup through direct workline operations endpoint', async () => {
+    const { runtimeApiMethods } = await import('@/api/modules/runtime')
+
+    await runtimeApiMethods
+      .sandboxCleanup(45, { dry_run: false, confirmation: 'WL-SMT-SIM' })
+      .send()
+
+    expect(mocks.apiClientPost).toHaveBeenCalledWith(
+      '/api/v1/workline/operations/sandbox/worklines/45/cleanup',
+      { dry_run: false, confirmation: 'WL-SMT-SIM' }
+    )
   })
 })
