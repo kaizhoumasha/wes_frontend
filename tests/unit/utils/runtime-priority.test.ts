@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  classifyToTiers,
-  computeVerdictSummary,
-  type PriorityItem
-} from '@/utils/runtime-priority'
+import { classifyToTiers, computeVerdictSummary, type PriorityItem } from '@/utils/runtime-priority'
 import type {
   RuntimeDeviceSummary,
   RuntimeOverviewResponse,
@@ -117,7 +113,11 @@ describe('runtime-priority', () => {
           { key: 'outbox_backlog', label: 'Outbox', value: 25, status: 'warning' }
         ],
         hot_worklines: [
-          createWorkline({ failed_session_count: 2, offline_device_count: 1, error_device_count: 1 }),
+          createWorkline({
+            failed_session_count: 2,
+            offline_device_count: 1,
+            error_device_count: 1
+          }),
           createWorkline({ id: 102, line_code: 'WL-102', waiting_session_count: 5 })
         ],
         abnormal_devices: [
@@ -147,7 +147,7 @@ describe('runtime-priority', () => {
           entity: 'device',
           id: 201,
           navigateTo: {
-            name: 'RuntimeWorklines',
+            name: 'RuntimeMonitor',
             query: expect.objectContaining({ worklineId: '101', deviceId: '201' })
           }
         }),
@@ -156,7 +156,7 @@ describe('runtime-priority', () => {
           entity: 'trace',
           id: 'repeat-201-SCAN',
           navigateTo: {
-            name: 'RuntimeWorklines',
+            name: 'RuntimeTraces',
             query: expect.objectContaining({ traceId: 'trace-a', worklineId: '101', mode: 'trace' })
           }
         }),
@@ -172,19 +172,45 @@ describe('runtime-priority', () => {
 
   it('summarizes verdict counts from priority tiers and overview totals', () => {
     const items: PriorityItem[] = [
-      { tier: 'critical', entity: 'backlog', id: 'backlog', summary: '', context: '', navigateTo: { name: 'RuntimeDashboard', query: {} }, score: 1 },
-      { tier: 'watch', entity: 'trace', id: 'trace', summary: '', context: '', navigateTo: { name: 'RuntimeTraceExplorer', query: {} }, score: 1 },
-      { tier: 'known', entity: 'device', id: 'device', summary: '', context: '', navigateTo: { name: 'RuntimeWorklines', query: {} }, score: 1 }
+      {
+        tier: 'critical',
+        entity: 'backlog',
+        id: 'backlog',
+        summary: '',
+        context: '',
+        navigateTo: { name: 'RuntimeMonitor', query: {} },
+        score: 1
+      },
+      {
+        tier: 'watch',
+        entity: 'trace',
+        id: 'trace',
+        summary: '',
+        context: '',
+        navigateTo: { name: 'RuntimeTraces', query: {} },
+        score: 1
+      },
+      {
+        tier: 'known',
+        entity: 'device',
+        id: 'device',
+        summary: '',
+        context: '',
+        navigateTo: { name: 'RuntimeMonitor', query: {} },
+        score: 1
+      }
     ]
     const overview = createOverview({
       stats: [{ key: 'running_sessions', label: '运行中', value: 9, status: 'primary' }],
       device_health: { total: 14, abnormal: 2, maintenance: 1, loaded: 14, healthy: 11 }
     })
 
-    expect(computeVerdictSummary(items, overview, [
-      createWorkline({ active_session_count: 2, waiting_session_count: 3 }),
-      createWorkline({ id: 102, active_session_count: 4, waiting_session_count: 1 })
-    ])).toEqual({
+    expect(
+      computeVerdictSummary(items, overview, [
+        createWorkline({ active_session_count: 2, waiting_session_count: 3 }),
+        createWorkline({ id: 102, active_session_count: 4, waiting_session_count: 1 })
+      ])
+    ).toEqual({
       critical: 1,
       watch: 1,
       known: 1,

@@ -1,5 +1,8 @@
 <template>
-  <div v-loading="loading" class="runtime-page">
+  <div
+    v-loading="loading"
+    class="runtime-page"
+  >
     <div class="runtime-page__header">
       <div>
         <h1 class="runtime-page__title">设备运行时</h1>
@@ -16,10 +19,22 @@
         clearable
         style="width: 140px"
       >
-        <el-option label="异常" value="abnormal" />
-        <el-option label="维护中" value="maintenance" />
-        <el-option label="正常" value="healthy" />
-        <el-option label="离线" value="offline" />
+        <el-option
+          label="异常"
+          value="abnormal"
+        />
+        <el-option
+          label="维护中"
+          value="maintenance"
+        />
+        <el-option
+          label="正常"
+          value="healthy"
+        />
+        <el-option
+          label="离线"
+          value="offline"
+        />
       </el-select>
       <el-input
         v-model="searchText"
@@ -77,9 +92,7 @@
         <div class="device-card__name">{{ device.device_name }}</div>
         <div class="device-card__meta">
           <span class="device-card__role">{{ device.device_role }}</span>
-          <template v-if="device.workline_name">
-            · {{ device.workline_name }}
-          </template>
+          <template v-if="device.workline_name">· {{ device.workline_name }}</template>
         </div>
         <div
           v-if="device.maintenance_mode"
@@ -119,6 +132,7 @@
         :workline-id="selectedDevice.workline_id"
         :show-header="false"
         @close="drawerOpen = false"
+        @select-session="openTrace"
       />
       <RuntimeEmptyState
         v-else-if="selectedDevice"
@@ -131,14 +145,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import RuntimeDeviceInspector from '@/components/runtime/devices/RuntimeDeviceInspector.vue'
 import RuntimeEmptyState from '@/components/common/runtime/RuntimeEmptyState.vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import { StandardDrawer } from '@/components/ui/StandardDrawer'
-import type { RuntimeDeviceSummary, RuntimeWorklineSummary } from '@/types/runtime'
-import type { RuntimeTone } from '@/utils/runtime-display'
+import type {
+  RuntimeDeviceSummary,
+  RuntimeTraceListItem,
+  RuntimeWorklineSummary
+} from '@/types/runtime'
+import { readPositiveInt, type RuntimeTone } from '@/utils/runtime-display'
 
 interface DeviceWithWorkline extends RuntimeDeviceSummary {
   workline_name?: string | null
@@ -151,6 +170,8 @@ const filterStatus = ref<string | null>(null)
 const searchText = ref('')
 const drawerOpen = ref(false)
 const selectedDevice = ref<DeviceWithWorkline | null>(null)
+const route = useRoute()
+const router = useRouter()
 
 const filteredDevices = computed(() => {
   let items = allDevices.value
@@ -160,9 +181,7 @@ const filteredDevices = computed(() => {
   if (searchText.value) {
     const q = searchText.value.toLowerCase()
     items = items.filter(
-      d =>
-        d.device_name.toLowerCase().includes(q) ||
-        d.device_code.toLowerCase().includes(q)
+      d => d.device_name.toLowerCase().includes(q) || d.device_code.toLowerCase().includes(q)
     )
   }
   return [...items].sort((a, b) => {
@@ -203,12 +222,32 @@ function showDetail(device: DeviceWithWorkline) {
   drawerOpen.value = true
 }
 
+function syncSelectedDeviceFromRoute() {
+  const deviceId = readPositiveInt(route.query.deviceId)
+  if (!deviceId) return
+
+  const device = allDevices.value.find(item => item.id === deviceId) ?? null
+  selectedDevice.value = device
+  drawerOpen.value = Boolean(device)
+}
+
+function openTrace(session: RuntimeTraceListItem) {
+  router.push({
+    name: 'RuntimeTraces',
+    query: {
+      sessionId: String(session.session_id),
+      traceId: session.trace_id ?? undefined,
+      worklineId: String(session.workline_id),
+      deviceId: session.device_id ? String(session.device_id) : undefined
+    }
+  })
+}
+
 async function loadDevices() {
   loading.value = true
   loadError.value = null
   try {
-    const worklineList: RuntimeWorklineSummary[] =
-      await runtimeApiMethods.worklines().send()
+    const worklineList: RuntimeWorklineSummary[] = await runtimeApiMethods.worklines().send()
     const results = await Promise.allSettled(
       worklineList.map(wl => runtimeApiMethods.devices(wl.id).send())
     )
@@ -222,6 +261,7 @@ async function loadDevices() {
       }
     }
     allDevices.value = devices
+    syncSelectedDeviceFromRoute()
   } catch (e: unknown) {
     loadError.value = e instanceof Error ? e.message : '未知错误'
   } finally {
@@ -232,6 +272,13 @@ async function loadDevices() {
 onMounted(() => {
   void loadDevices()
 })
+
+watch(
+  () => route.query.deviceId,
+  () => {
+    syncSelectedDeviceFromRoute()
+  }
+)
 </script>
 
 <style scoped>

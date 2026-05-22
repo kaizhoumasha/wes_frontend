@@ -6,7 +6,16 @@
     <div class="sandbox-entry__content">
       <div class="sandbox-entry__head">
         <div class="sandbox-entry__icon">
-          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" /></svg>
+          <svg
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
+              clip-rule="evenodd"
+            />
+          </svg>
         </div>
         <h1 class="sandbox-entry__title">Sandbox Testing</h1>
         <p class="sandbox-entry__desc">
@@ -35,7 +44,16 @@
           </div>
           <div class="sandbox-entry__card-code">{{ item.line_code }}</div>
           <div class="sandbox-entry__card-arrow">
-            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd" /></svg>
+            <svg
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z"
+                clip-rule="evenodd"
+              />
+            </svg>
           </div>
         </button>
       </div>
@@ -70,14 +88,14 @@ async function loadWorklines() {
     const worklines = await runtimeApiMethods.worklines().send()
     simulationWorklines.value = worklines.filter(w => w.run_mode === 'SIMULATION')
     const worklineId = route.query.worklineId
-    if (worklineId) goToWorkbench(Number(worklineId))
+    if (worklineId) goToWorkbench(Number(worklineId), 'replace')
   } finally {
     loading.value = false
   }
 }
 
-function goToWorkbench(worklineId: number) {
-  router.push({ name: 'RuntimeSandboxWorkbench', params: { worklineId } })
+function goToWorkbench(worklineId: number, method: 'push' | 'replace' = 'push') {
+  router[method]({ name: 'RuntimeSandboxWorkbench', params: { worklineId } })
 }
 
 onMounted(() => void loadWorklines())
@@ -187,7 +205,9 @@ onMounted(() => void loadWorklines())
   transform: translateY(-50%);
   color: var(--runtime-text-muted);
   opacity: 0;
-  transition: opacity 0.15s, color 0.15s;
+  transition:
+    opacity 0.15s,
+    color 0.15s;
 }
 
 .sandbox-entry__card:hover .sandbox-entry__card-arrow {
