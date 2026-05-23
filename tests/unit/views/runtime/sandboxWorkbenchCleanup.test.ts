@@ -46,7 +46,7 @@ const mocks = vi.hoisted(() => {
     error: vi.fn(),
     warning: vi.fn(),
     info: vi.fn(),
-    lastEvent: undefined as unknown as { value: unknown },
+    sseStore: undefined as unknown as { lastEvent: unknown },
     sandboxPendingSend,
     sandboxCompletedSend,
     sandboxCleanupSend,
@@ -80,11 +80,11 @@ vi.mock('@/stores/workline-runtime', () => ({
   useWorklineRuntimeStore: () => mocks.store
 }))
 
-vi.mock('@/composables/useRuntimeSSE', async () => {
+vi.mock('@/stores/runtime-sse', async () => {
   const vue = await vi.importActual<typeof import('vue')>('vue')
-  mocks.lastEvent = vue.ref(null)
+  mocks.sseStore = vue.reactive({ lastEvent: null })
   return {
-    useRuntimeSSE: () => ({ lastEvent: mocks.lastEvent })
+    useRuntimeSSEStore: () => mocks.sseStore
   }
 })
 
@@ -193,7 +193,7 @@ describe('SandboxWorkbenchPage cleanup', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.route.params.worklineId = '45'
-    if (mocks.lastEvent) mocks.lastEvent.value = null
+    if (mocks.sseStore) mocks.sseStore.lastEvent = null
     mocks.store.detail.summary.runtime_status = 'READY'
     mocks.store.detail.summary.active_safety_incident_id = null
     mocks.hasPermission.mockReturnValue(true)
@@ -337,7 +337,7 @@ describe('SandboxWorkbenchPage cleanup', () => {
     await mountPage()
     vi.clearAllMocks()
 
-    mocks.lastEvent.value = {
+    mocks.sseStore.lastEvent = {
       domain: 'workline_safety',
       entity: 'incident',
       action: 'estop.activated',

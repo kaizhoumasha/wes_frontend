@@ -310,7 +310,7 @@ import { StandardDrawer } from '@/components/ui/StandardDrawer'
 import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import { usePermission } from '@/composables/usePermission'
-import { useRuntimeSSE } from '@/composables/useRuntimeSSE'
+import { useRuntimeSSEStore } from '@/stores/runtime-sse'
 import { useWorklineRuntimeStore } from '@/stores/workline-runtime'
 import { classifyRuntimeRefresh, isRelevantRuntimeEvent } from '@/utils/runtime-event'
 import { displayDevice } from '@/utils/runtime-display-identity'
@@ -335,6 +335,7 @@ import type {
 const route = useRoute()
 const router = useRouter()
 const store = useWorklineRuntimeStore()
+const sseStore = useRuntimeSSEStore()
 const { hasPermission } = usePermission()
 
 const worklineId = computed(() => Number(route.params.worklineId))
@@ -469,19 +470,20 @@ function handleViewOutboxFromTopology(deviceId: number) {
 const eventPanelOpen = ref(false)
 
 // SSE
-const { lastEvent } = useRuntimeSSE(true)
-
-watch(lastEvent, event => {
-  if (!event) return
-  if (!isRelevantRuntimeEvent(event, { worklineId: worklineId.value })) return
-  const refreshTargets = classifyRuntimeRefresh(event)
-  if (refreshTargets.worklines) void store.loadWorklines()
-  if (refreshTargets.detail || refreshTargets.activeIncident) void loadCurrentWorklineDetail()
-  if (refreshTargets.sandbox) {
-    void loadPending()
-    void loadCompleted()
+watch(
+  () => sseStore.lastEvent,
+  event => {
+    if (!event) return
+    if (!isRelevantRuntimeEvent(event, { worklineId: worklineId.value })) return
+    const refreshTargets = classifyRuntimeRefresh(event)
+    if (refreshTargets.worklines) void store.loadWorklines()
+    if (refreshTargets.detail || refreshTargets.activeIncident) void loadCurrentWorklineDetail()
+    if (refreshTargets.sandbox) {
+      void loadPending()
+      void loadCompleted()
+    }
   }
-})
+)
 
 // Pending / completed
 const pendingItems = ref<SandboxPendingOutbox[]>([])

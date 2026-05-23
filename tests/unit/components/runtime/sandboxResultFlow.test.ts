@@ -1,6 +1,5 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ref } from 'vue'
 import type { SandboxPendingOutbox } from '@/types/runtime'
 
 const mocks = vi.hoisted(() => {
@@ -53,8 +52,8 @@ vi.mock('@/api/modules/runtime', () => ({
   runtimeApiMethods: mocks.runtimeApiMethods
 }))
 
-vi.mock('@/composables/useRuntimeSSE', () => ({
-  useRuntimeSSE: () => ({ lastEvent: ref(null) })
+vi.mock('@/stores/runtime-sse', () => ({
+  useRuntimeSSEStore: () => ({ lastEvent: null })
 }))
 
 vi.mock('@/composables/usePermission', () => ({
