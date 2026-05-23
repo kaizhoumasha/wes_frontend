@@ -163,7 +163,7 @@
             v-for="holdId in activeRuntimeHoldIds"
             :key="holdId"
             class="runtime-device-inspector__hold-card"
-            :to="{ name: 'RuntimeExceptionDetail', params: { holdId } }"
+            :to="{ name: 'RuntimeHoldDetail', params: { holdId } }"
           >
             Runtime Hold #{{ holdId }}
           </RouterLink>

@@ -44,7 +44,7 @@
         <RouterLink
           v-if="firstHoldId && canViewHold"
           class="workline-hold-panel__primary"
-          :to="{ name: 'RuntimeExceptionDetail', params: { holdId: firstHoldId } }"
+          :to="{ name: 'RuntimeHoldDetail', params: { holdId: firstHoldId } }"
         >
           打开 Hold #{{ firstHoldId }}
         </RouterLink>

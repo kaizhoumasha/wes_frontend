@@ -17,7 +17,10 @@ import type {
   RuntimeTracePathResponse,
   RuntimeSafetyIncidentSummary,
   RuntimeSimulateEstopRequest,
+  SandboxCleanupRequest,
+  SandboxCleanupResponse,
   RuntimeHoldDetailResponse,
+  RuntimeHoldSummary,
   ResolveRuntimeHoldResponse,
   NgReasonOption,
   NgReturnItemResponse,
@@ -41,10 +44,32 @@ interface RuntimeApiMethod<T> {
   send: () => Promise<T>
 }
 
+export interface RuntimeHoldListQuery {
+  workline_id?: number
+  session_id?: number
+  status?: string
+  active_only?: boolean
+  limit?: number
+}
+
 function adaptRuntimeMethod<T>(method: { send: () => Promise<unknown> }): RuntimeApiMethod<T> {
   return {
     send: () => method.send() as Promise<T>
   }
+}
+
+function runtimeHoldListUrl(query?: RuntimeHoldListQuery): string {
+  const params = new URLSearchParams()
+  if (query?.workline_id !== undefined) params.set('workline_id', String(query.workline_id))
+  if (query?.session_id !== undefined) params.set('session_id', String(query.session_id))
+  if (query?.status !== undefined) params.set('status', query.status)
+  if (query?.active_only !== undefined) params.set('active_only', String(query.active_only))
+  if (query?.limit !== undefined) params.set('limit', String(query.limit))
+
+  const queryString = params.toString()
+  return queryString
+    ? `/api/v1/workline/runtime-holds?${queryString}`
+    : '/api/v1/workline/runtime-holds'
 }
 
 export const runtimeApiMethods = {
@@ -186,6 +211,12 @@ export const runtimeApiMethods = {
     )
   },
 
+  sandboxCleanup(worklineId: number, payload: SandboxCleanupRequest) {
+    return adaptRuntimeMethod<SandboxCleanupResponse>(
+      apiClient.Post(`/api/v1/workline/operations/sandbox/worklines/${worklineId}/cleanup`, payload)
+    )
+  },
+
   sandboxTemplates(worklineId: number, deviceId?: number) {
     return adaptRuntimeMethod<SandboxTemplatesResponse>(
       worklineApiMethods.sandboxTemplates({ workline_id: worklineId, device_id: deviceId })
@@ -220,6 +251,10 @@ export const runtimeApiMethods = {
     return adaptRuntimeMethod<RuntimeTracePathResponse>(
       worklineApiMethods.tracesPath({ trace_id: traceId })
     )
+  },
+
+  runtimeHolds(query?: RuntimeHoldListQuery) {
+    return adaptRuntimeMethod<RuntimeHoldSummary[]>(apiClient.Get(runtimeHoldListUrl(query)))
   },
 
   runtimeHoldDetail(holdId: number) {

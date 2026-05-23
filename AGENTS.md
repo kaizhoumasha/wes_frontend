@@ -13,7 +13,21 @@
 - `pnpm type:check`：执行 `vue-tsc --noEmit`。
 - `pnpm lint`：依次运行类型检查、ESLint、Prettier、Stylelint，是提交前的基础质量门禁。
 - `pnpm contract:test`、`pnpm contract:verify`、`pnpm generate:types`：用于接口契约校验与类型生成。
-- `./scripts/git-worktree.sh add feature-name`：创建并行开发 worktree。
+- `./scripts/git-worktree.sh add feature-name`：仅在需要并行隔离时创建 worktree。
+
+## 分支与 Worktree 流程
+
+- 默认使用普通 Git Flow 分支：日常单任务开发从 `develop` 切 `feature/*`、`fix/*`、`chore/*` 等分支即可，不默认使用 worktree。
+- 基础分支统一使用 `develop`。创建功能/修复分支前先更新 `develop`，PR 默认以 `develop` 为 base；除发布、回滚、生产补丁等特殊流程外，不从 `main` 直接拉日常开发分支。
+- 仅在确实需要隔离时使用 worktree：长线重构、保留当前现场处理紧急修复、AI agent 执行大计划、PR review 期间继续其他工作，或需要并行运行两套本地环境。
+
+- 主仓库路径：`/Users/kaizhou/SynologyDrive/works/wes_frontend`
+- Worktree 根目录：`/Users/kaizhou/SynologyDrive/works/worktrees/wes_frontend`
+- 新建 worktree 必须放在上述根目录下，不要放进主仓库内部，也不要散落在 `/Users/kaizhou/SynologyDrive/works` 顶层。
+- Worktree 目录名使用 branch slug：把分支名里的 `/` 替换成 `-`，例如 `feature/runtime-monitoring` → `feature-runtime-monitoring`。
+- 推荐使用 `./scripts/git-worktree.sh add <branch>` 创建 worktree；脚本会自动使用统一根目录并安装依赖。
+- 每个 worktree 必须维护自己的 `.env.*`、`node_modules`、缓存和本地运行状态；不要复用其它 worktree 的本地状态。
+- 完成后使用 `./scripts/git-worktree.sh remove <branch>` 或 `git worktree remove <path>` 清理，再执行 `git worktree prune`。
 
 ## 代码风格与命名约定
 

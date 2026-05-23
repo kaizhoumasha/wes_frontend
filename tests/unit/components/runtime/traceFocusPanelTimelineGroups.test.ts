@@ -159,7 +159,7 @@ describe('TraceFocusPanel timeline groups', () => {
 
   it('renders grouped timeline as the primary execution timeline', async () => {
     const { default: TraceFocusPanel } =
-      await import('@/components/common/runtime/TraceFocusPanel.vue')
+      await import('@/components/runtime/trace/TraceFocusPanel.vue')
 
     const wrapper = mount(TraceFocusPanel, {
       props: {
@@ -185,7 +185,7 @@ describe('TraceFocusPanel timeline groups', () => {
 
   it('shows newest business-readable events first and hides raw action names by default', async () => {
     const { default: TraceFocusPanel } =
-      await import('@/components/common/runtime/TraceFocusPanel.vue')
+      await import('@/components/runtime/trace/TraceFocusPanel.vue')
 
     const wrapper = mount(TraceFocusPanel, {
       props: {
@@ -218,7 +218,7 @@ describe('TraceFocusPanel timeline groups', () => {
 
   it('labels historical wait-start events as wait started instead of still waiting', async () => {
     const { default: TraceFocusPanel } =
-      await import('@/components/common/runtime/TraceFocusPanel.vue')
+      await import('@/components/runtime/trace/TraceFocusPanel.vue')
 
     const wrapper = mount(TraceFocusPanel, {
       props: {
@@ -247,7 +247,7 @@ describe('TraceFocusPanel timeline groups', () => {
 
   it('shows elapsed duration for execution and wait steps', async () => {
     const { default: TraceFocusPanel } =
-      await import('@/components/common/runtime/TraceFocusPanel.vue')
+      await import('@/components/runtime/trace/TraceFocusPanel.vue')
 
     const wrapper = mount(TraceFocusPanel, {
       props: {
@@ -278,7 +278,7 @@ describe('TraceFocusPanel timeline groups', () => {
 
   it('hides no-op status changes in grouped timeline events', async () => {
     const { default: TraceFocusPanel } =
-      await import('@/components/common/runtime/TraceFocusPanel.vue')
+      await import('@/components/runtime/trace/TraceFocusPanel.vue')
 
     const wrapper = mount(TraceFocusPanel, {
       props: {
@@ -302,7 +302,7 @@ describe('TraceFocusPanel timeline groups', () => {
 
   it('shows event submit payload data on related timeline events', async () => {
     const { default: TraceFocusPanel } =
-      await import('@/components/common/runtime/TraceFocusPanel.vue')
+      await import('@/components/runtime/trace/TraceFocusPanel.vue')
 
     const wrapper = mount(TraceFocusPanel, {
       props: {

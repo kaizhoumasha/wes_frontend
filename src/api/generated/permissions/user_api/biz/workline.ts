@@ -27,6 +27,8 @@ export const BIZ_WORKLINE_PERMISSION = {
   restore: 'biz:workline:restore',
   /** 回收站权限 */
   trash: 'biz:workline:trash',
+  /** 清理工作线沙箱运行时数据 */
+  cleanupSandbox: 'biz:workline:cleanup-sandbox',
   /** 人工确认 checklist 后清除工作线急停 */
   clearEstop: 'biz:workline:clear-estop',
   /** 查询 NG Return Items */
@@ -38,5 +40,5 @@ export const BIZ_WORKLINE_PERMISSION = {
   /** 解除 Runtime Hold */
   resolveRuntimeHold: 'biz:workline:resolve-runtime-hold',
   /** 查询 Runtime Hold NG 原因选项 */
-  viewRuntimeHold: 'biz:workline:view-runtime-hold',
+  viewRuntimeHold: 'biz:workline:view-runtime-hold'
 } as const

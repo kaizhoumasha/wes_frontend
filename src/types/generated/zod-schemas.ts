@@ -10,7 +10,6 @@
 
 import { z } from 'zod'
 
-
 export const APIAccessLogResponseSchema = z.object({
   /** App Id */
   app_id: z.string().max(50),
@@ -35,33 +34,45 @@ export const APIAccessLogResponseSchema = z.object({
   /** Id */
   id: z.number(),
   /** Created At */
-  created_at: z.string().datetime(),
+  created_at: z.string().datetime()
 })
-
 
 export const APIApplicationCreateSchema = z.object({
   /** App Name */
   app_name: z.string().max(100),
   /** 应用类型 */
-  app_type: z.lazy(() => AppTypeSchema).optional().default("ECS"),
+  app_type: z
+    .lazy(() => AppTypeSchema)
+    .optional()
+    .default('ECS'),
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
   /** Ip Whitelist */
-  ip_whitelist: z.union([z.preprocess((val) => {
+  ip_whitelist: z
+    .union([
+      z.preprocess(val => {
         // 如果输入是字符串（换行符分隔），转换为数组
         if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
+          return val
+            .split('\n')
+            .map(s => s.trim())
+            .filter(s => s)
         }
         return val
-      }, z.array(z.string())), z.null()]).optional(),
+      }, z.array(z.string())),
+      z.null()
+    ])
+    .optional(),
   /** Rate Limit Per Minute */
   rate_limit_per_minute: z.number().min(1).max(10000).optional().default(100),
   /** Rate Limit Per Hour */
   rate_limit_per_hour: z.number().min(1).max(1000000).optional().default(5000),
   /** 有效期时长 */
-  validity_period: z.lazy(() => ValidityPeriodSchema).optional().default("1y"),
+  validity_period: z
+    .lazy(() => ValidityPeriodSchema)
+    .optional()
+    .default('1y')
 })
-
 
 export const APIApplicationResponseSchema = z.object({
   /** Version */
@@ -85,32 +96,48 @@ export const APIApplicationResponseSchema = z.object({
   /** App Name */
   app_name: z.string().max(100),
   /** 应用类型 */
-  app_type: z.lazy(() => AppTypeSchema).optional().default("ECS"),
+  app_type: z
+    .lazy(() => AppTypeSchema)
+    .optional()
+    .default('ECS'),
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
   /** Ip Whitelist */
-  ip_whitelist: z.union([z.preprocess((val) => {
+  ip_whitelist: z
+    .union([
+      z.preprocess(val => {
         // 如果输入是字符串（换行符分隔），转换为数组
         if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
+          return val
+            .split('\n')
+            .map(s => s.trim())
+            .filter(s => s)
         }
         return val
-      }, z.array(z.string())), z.null()]).optional(),
+      }, z.array(z.string())),
+      z.null()
+    ])
+    .optional(),
   /** Rate Limit Per Minute */
   rate_limit_per_minute: z.number().min(1).max(10000).optional().default(100),
   /** Rate Limit Per Hour */
   rate_limit_per_hour: z.number().min(1).max(1000000).optional().default(5000),
   /** 有效期时长 */
-  validity_period: z.lazy(() => ValidityPeriodSchema).optional().default("1y"),
+  validity_period: z
+    .lazy(() => ValidityPeriodSchema)
+    .optional()
+    .default('1y'),
   /** App Id */
   app_id: z.string(),
-  status: z.lazy(() => AppStatusSchema).optional().default("active"),
+  status: z
+    .lazy(() => AppStatusSchema)
+    .optional()
+    .default('active'),
   /** Expires At */
   expires_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Remaining Days */
-  remaining_days: z.union([z.number(), z.null()]),
+  remaining_days: z.union([z.number(), z.null()])
 })
-
 
 export const APIApplicationUpdateSchema = z.object({
   /** App Name */
@@ -120,13 +147,21 @@ export const APIApplicationUpdateSchema = z.object({
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
   /** Ip Whitelist */
-  ip_whitelist: z.union([z.preprocess((val) => {
+  ip_whitelist: z
+    .union([
+      z.preprocess(val => {
         // 如果输入是字符串（换行符分隔），转换为数组
         if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
+          return val
+            .split('\n')
+            .map(s => s.trim())
+            .filter(s => s)
         }
         return val
-      }, z.array(z.string())), z.null()]).optional(),
+      }, z.array(z.string())),
+      z.null()
+    ])
+    .optional(),
   /** Rate Limit Per Minute */
   rate_limit_per_minute: z.union([z.number().min(1).max(10000), z.null()]).optional(),
   /** Rate Limit Per Hour */
@@ -134,9 +169,8 @@ export const APIApplicationUpdateSchema = z.object({
   /** 有效期时长 */
   validity_period: z.union([z.lazy(() => ValidityPeriodSchema), z.null()]).optional(),
   /** Version */
-  version: z.number(),
+  version: z.number()
 })
-
 
 /**
  * 活跃会话列表响应 Schema
@@ -150,9 +184,8 @@ export const ActiveSessionsResponseSchema = z.object({
   /** Total */
   total: z.number(),
   /** Sessions */
-  sessions: z.array(z.lazy(() => SessionInfoSchema)),
+  sessions: z.array(z.lazy(() => SessionInfoSchema))
 })
-
 
 /**
  * API 权限信息 Schema
@@ -180,15 +213,12 @@ export const ApiPermissionInfoSchema = z.object({
   /** Method */
   method: z.union([z.string(), z.null()]).optional(),
   /** Path */
-  path: z.union([z.string(), z.null()]).optional(),
+  path: z.union([z.string(), z.null()]).optional()
 })
 
+export const AppStatusSchema = z.enum(['active', 'revoked', 'expired'])
 
-export const AppStatusSchema = z.enum(["active", "revoked", "expired"])
-
-
-export const AppTypeSchema = z.enum(["ECS", "RCS", "WMS", "Third-Party"])
-
+export const AppTypeSchema = z.enum(['ECS', 'RCS', 'WMS', 'Third-Party'])
 
 /**
  * 为用户分配角色请求
@@ -198,9 +228,8 @@ export const AppTypeSchema = z.enum(["ECS", "RCS", "WMS", "Third-Party"])
  */
 export const AssignRolesRequestSchema = z.object({
   /** Role Ids */
-  role_ids: z.array(z.number()),
+  role_ids: z.array(z.number())
 })
-
 
 /**
  * AuditLog 响应 Schema
@@ -238,7 +267,10 @@ export const AuditLogResponseSchema = z.object({
   /** Args */
   args: z.union([z.record(z.any()), z.null()]).optional(),
   /** 操作状态 */
-  status: z.lazy(() => OperaStatusSchema).optional().default("SUCCESS"),
+  status: z
+    .lazy(() => OperaStatusSchema)
+    .optional()
+    .default('SUCCESS'),
   /** Code */
   code: z.string().max(20),
   /** Msg */
@@ -256,9 +288,8 @@ export const AuditLogResponseSchema = z.object({
   /** Opera Time */
   opera_time: z.string().datetime().optional(),
   /** Id */
-  id: z.number(),
+  id: z.number()
 })
-
 
 /**
  * 当前登录用户上下文响应 Schema
@@ -277,9 +308,8 @@ export const AuthMyResponseSchema = z.object({
   /** Permissions */
   permissions: z.array(z.lazy(() => ApiPermissionInfoSchema)),
   /** Menus */
-  menus: z.array(z.lazy(() => MenuTreeResponseSimpleSchema)),
+  menus: z.array(z.lazy(() => MenuTreeResponseSimpleSchema))
 })
-
 
 /**
  * 批量操作响应模型
@@ -302,15 +332,14 @@ Example:
  */
 export const BatchOperationResponseModelSchema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** 响应数据 */
   data: z.union([z.lazy(() => BatchOperationResultSchema), z.null()]).optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
-
 
 /**
  * 批量操作结果模型
@@ -350,9 +379,8 @@ export const BatchOperationResultSchema = z.object({
   /** Results */
   results: z.union([z.array(z.any()), z.null()]).optional(),
   /** Errors */
-  errors: z.union([z.array(z.record(z.any())), z.null()]).optional(),
+  errors: z.union([z.array(z.record(z.any())), z.null()]).optional()
 })
-
 
 /**
  * 批量排序请求
@@ -362,9 +390,307 @@ export const BatchOperationResultSchema = z.object({
  */
 export const BatchSortRequestSchema = z.object({
   /** Items */
-  items: z.array(z.lazy(() => SortItemSchema)),
+  items: z.array(z.lazy(() => SortItemSchema))
 })
 
+/**
+ * 料箱格位聚合占用响应 Schema。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const BinCellOccupancyResponseSchema = z.object({
+  /** Bin Code */
+  bin_code: z.string().min(1).max(80),
+  /** Bin Cell Code */
+  bin_cell_code: z.union([z.string().max(80), z.null()]).optional(),
+  /** Bin Cell Index */
+  bin_cell_index: z.string().min(1).max(20),
+  /** Material Identity Key */
+  material_identity_key: z.string().min(1).max(300),
+  /** Material Code */
+  material_code: z.union([z.string().max(120), z.null()]).optional(),
+  /** Lot Code */
+  lot_code: z.union([z.string().max(120), z.null()]).optional(),
+  /** Date Code */
+  date_code: z.union([z.string().max(80), z.null()]).optional(),
+  /** Reel Count */
+  reel_count: z.number().min(0).optional().default(0),
+  /** Used Depth Mm */
+  used_depth_mm: z.number().min(0).optional().default(0),
+  /** Capacity Depth Mm */
+  capacity_depth_mm: z.union([z.number().min(0), z.null()]).optional(),
+  /** Remaining Depth Mm */
+  remaining_depth_mm: z.union([z.number().min(0), z.null()]).optional(),
+  /** 格位聚合占用状态 */
+  occupancy_status: z
+    .lazy(() => BinCellOccupancyStatusSchema)
+    .optional()
+    .default('UNKNOWN'),
+  /** 来源系统 */
+  source_system: z.lazy(() => ResourceSourceSystemSchema),
+  /** Source Event Id */
+  source_event_id: z.string().min(1).max(200),
+  /** Source Version */
+  source_version: z.union([z.string().max(100), z.null()]).optional(),
+  /** Trace Id */
+  trace_id: z.union([z.string().max(100), z.null()]).optional(),
+  /** Session Id */
+  session_id: z.union([z.string().max(100), z.null()]).optional(),
+  /** Started At */
+  started_at: z.string().datetime(),
+  /** Ended At */
+  ended_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Metadata Json */
+  metadata_json: z.record(z.any()).optional(),
+  /** Id */
+  id: z.number()
+})
+
+/**
+ * 料箱格位聚合占用状态。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const BinCellOccupancyStatusSchema = z.enum(['OCCUPIED', 'FULL', 'REMOVED', 'UNKNOWN'])
+
+/**
+ * 料箱内容快照明细响应 Schema。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const BinContentSnapshotItemResponseSchema = z.object({
+  /** Snapshot Id */
+  snapshot_id: z.string().min(1).max(160),
+  /** Bin Cell Code */
+  bin_cell_code: z.union([z.string().max(80), z.null()]).optional(),
+  /** Bin Cell Index */
+  bin_cell_index: z.union([z.string().max(20), z.null()]).optional(),
+  /** Pkg Code */
+  pkg_code: z.union([z.string().max(200), z.null()]).optional(),
+  /** Material Code */
+  material_code: z.union([z.string().max(120), z.null()]).optional(),
+  /** Vendor Code */
+  vendor_code: z.union([z.string().max(120), z.null()]).optional(),
+  /** Lot Code */
+  lot_code: z.union([z.string().max(120), z.null()]).optional(),
+  /** Date Code */
+  date_code: z.union([z.string().max(80), z.null()]).optional(),
+  /** Qty Snapshot */
+  qty_snapshot: z.union([z.number().min(0), z.null()]).optional(),
+  /** Thickness Mm */
+  thickness_mm: z.union([z.number().min(0), z.null()]).optional(),
+  /** Dims Json */
+  dims_json: z.record(z.any()).optional(),
+  /** Wms Inventory Id */
+  wms_inventory_id: z.union([z.string().max(160), z.null()]).optional(),
+  /** Id */
+  id: z.number()
+})
+
+/**
+ * 料箱内容快照头响应 Schema。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const BinContentSnapshotResponseSchema = z.object({
+  /** Snapshot Id */
+  snapshot_id: z.string().min(1).max(160),
+  /** Bin Code */
+  bin_code: z.string().min(1).max(80),
+  /** Source Session Id */
+  source_session_id: z.union([z.number(), z.null()]).optional(),
+  /** Source Event Id */
+  source_event_id: z.union([z.string().max(200), z.null()]).optional(),
+  /** Captured At */
+  captured_at: z.string().datetime(),
+  /** 快照完整性 */
+  snapshot_status: z
+    .lazy(() => BinContentSnapshotStatusSchema)
+    .optional()
+    .default('UNKNOWN'),
+  /** Snapshot Reason */
+  snapshot_reason: z.union([z.string().max(80), z.null()]).optional(),
+  /** Snapshot Group Key */
+  snapshot_group_key: z.union([z.string().max(160), z.null()]).optional(),
+  /** Snapshot Hash */
+  snapshot_hash: z.string().min(1).max(128),
+  /** Wms Snapshot Version */
+  wms_snapshot_version: z.union([z.string().max(160), z.null()]).optional(),
+  /** Id */
+  id: z.number()
+})
+
+/**
+ * 料箱内容快照完整性。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const BinContentSnapshotStatusSchema = z.enum(['COMPLETE', 'PARTIAL', 'UNKNOWN'])
+
+/**
+ * 物料料箱格位投影响应 Schema。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const BinMaterialMountResponseSchema = z.object({
+  /** Bin Cell Occupancy Id */
+  bin_cell_occupancy_id: z.union([z.number(), z.null()]).optional(),
+  /** Cell Stack Position */
+  cell_stack_position: z.number().min(1).optional().default(1),
+  /** Bin Code */
+  bin_code: z.string().min(1).max(80),
+  /** Bin Cell Code */
+  bin_cell_code: z.union([z.string().max(80), z.null()]).optional(),
+  /** Bin Cell Index */
+  bin_cell_index: z.string().min(1).max(20),
+  /** Material Identity Key */
+  material_identity_key: z.string().min(1).max(300),
+  /** Pkg Code */
+  pkg_code: z.union([z.string().max(200), z.null()]).optional(),
+  /** Material Code */
+  material_code: z.union([z.string().max(120), z.null()]).optional(),
+  /** Lot Code */
+  lot_code: z.union([z.string().max(120), z.null()]).optional(),
+  /** Date Code */
+  date_code: z.union([z.string().max(80), z.null()]).optional(),
+  /** Qty Snapshot */
+  qty_snapshot: z.union([z.number().min(0), z.null()]).optional(),
+  /** Reel Diameter */
+  reel_diameter: z.union([z.string().max(80), z.null()]).optional(),
+  /** Reel Thickness */
+  reel_thickness: z.union([z.string().max(80), z.null()]).optional(),
+  /** Wms Inventory Id */
+  wms_inventory_id: z.union([z.string().max(120), z.null()]).optional(),
+  /** Wms Inventory Version */
+  wms_inventory_version: z.union([z.string().max(120), z.null()]).optional(),
+  /** WMS 确认状态 */
+  wms_confirmation_status: z
+    .lazy(() => WmsConfirmationStatusSchema)
+    .optional()
+    .default('PENDING'),
+  /** Writeback Evidence Id */
+  writeback_evidence_id: z.union([z.number(), z.null()]).optional(),
+  /** 物料占用状态 */
+  mount_status: z
+    .lazy(() => BinMaterialMountStatusSchema)
+    .optional()
+    .default('UNKNOWN'),
+  /** 来源系统 */
+  source_system: z.lazy(() => ResourceSourceSystemSchema),
+  /** Source Event Id */
+  source_event_id: z.string().min(1).max(200),
+  /** Source Version */
+  source_version: z.union([z.string().max(100), z.null()]).optional(),
+  /** Trace Id */
+  trace_id: z.union([z.string().max(100), z.null()]).optional(),
+  /** Session Id */
+  session_id: z.union([z.string().max(100), z.null()]).optional(),
+  /** Started At */
+  started_at: z.string().datetime(),
+  /** Ended At */
+  ended_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Id */
+  id: z.number()
+})
+
+/**
+ * 物料料箱格位投影状态。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const BinMaterialMountStatusSchema = z.enum(['OCCUPIED', 'REMOVED', 'LOCKED', 'UNKNOWN'])
+
+/**
+ * 料箱实例响应 Schema。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const BinResponseSchema = z.object({
+  /** Bin Code */
+  bin_code: z.string().min(1).max(80),
+  /** Wms Bin Id */
+  wms_bin_id: z.union([z.string().max(100), z.null()]).optional(),
+  /** Bin Type Code */
+  bin_type_code: z.string().min(1).max(50),
+  /** 料箱主数据状态 */
+  status: z
+    .lazy(() => ResourceMasterStatusSchema)
+    .optional()
+    .default('ACTIVE'),
+  /** 来源系统 */
+  source_system: z
+    .lazy(() => ResourceSourceSystemSchema)
+    .optional()
+    .default('MANUAL_IMPORT'),
+  /** Source Version */
+  source_version: z.union([z.string().max(100), z.null()]).optional(),
+  /** Metadata Json */
+  metadata_json: z.record(z.any()).optional(),
+  /** Id */
+  id: z.number()
+})
+
+/**
+ * 料箱内部槽位尺寸。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const BinSlotSizeSchema = z.enum(['7INCH', '13INCH', '15INCH', 'LARGE'])
+
+/**
+ * 料箱槽位模板响应 Schema。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const BinSlotTemplateResponseSchema = z.object({
+  /** Bin Type Code */
+  bin_type_code: z.string().min(1).max(50),
+  /** Bin Slot Code */
+  bin_slot_code: z.string().min(1).max(50),
+  /** 槽位尺寸 */
+  slot_size: z.lazy(() => BinSlotSizeSchema),
+  /** Max Depth Mm */
+  max_depth_mm: z.union([z.number().min(1), z.null()]).optional(),
+  /** Max Weight G */
+  max_weight_g: z.union([z.number().min(1), z.null()]).optional(),
+  /** Active */
+  active: z.boolean().optional().default(true),
+  /** Metadata Json */
+  metadata_json: z.record(z.any()).optional(),
+  /** Id */
+  id: z.number()
+})
+
+/**
+ * 料箱类型响应 Schema。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const BinTypeResponseSchema = z.object({
+  /** Bin Type Code */
+  bin_type_code: z.string().min(1).max(50),
+  /** Bin Type Name */
+  bin_type_name: z.string().min(1).max(100),
+  /** Description */
+  description: z.union([z.string().max(500), z.null()]).optional(),
+  /** Active */
+  active: z.boolean().optional().default(true),
+  /** Metadata Json */
+  metadata_json: z.record(z.any()).optional(),
+  /** Id */
+  id: z.number()
+})
 
 /**
  * 设备事件回调接收响应数据。
@@ -374,7 +700,7 @@ export const BatchSortRequestSchema = z.object({
  */
 export const CallbackEventAcceptedResponseSchema = z.object({
   /** Status */
-  status: z.enum(["submitted", "duplicate"]),
+  status: z.enum(['submitted', 'duplicate']),
   /** Device Code */
   device_code: z.string(),
   /** Request Id */
@@ -384,21 +710,25 @@ export const CallbackEventAcceptedResponseSchema = z.object({
   /** Event Id */
   event_id: z.union([z.string(), z.null()]).optional(),
   /** Causation Id */
-  causation_id: z.union([z.string(), z.null()]).optional(),
+  causation_id: z.union([z.string(), z.null()]).optional()
 })
-
 
 export const CallbackEventIngressResponseSchema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** Data */
-  data: z.union([z.lazy(() => CallbackEventAcceptedResponseSchema), z.lazy(() => CallbackRejectedResponseSchema), z.null()]).optional(),
+  data: z
+    .union([
+      z.lazy(() => CallbackEventAcceptedResponseSchema),
+      z.lazy(() => CallbackRejectedResponseSchema),
+      z.null()
+    ])
+    .optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
-
 
 /**
  * 外部系统回调接收响应数据。
@@ -408,7 +738,7 @@ export const CallbackEventIngressResponseSchema = z.object({
  */
 export const CallbackExternalAcceptedResponseSchema = z.object({
   /** Status */
-  status: z.enum(["submitted", "duplicate"]),
+  status: z.enum(['submitted', 'duplicate']),
   /** Callback Type */
   callback_type: z.string(),
   /** Request Id */
@@ -418,21 +748,25 @@ export const CallbackExternalAcceptedResponseSchema = z.object({
   /** Event Id */
   event_id: z.union([z.string(), z.null()]).optional(),
   /** Causation Id */
-  causation_id: z.union([z.string(), z.null()]).optional(),
+  causation_id: z.union([z.string(), z.null()]).optional()
 })
-
 
 export const CallbackExternalIngressResponseSchema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** Data */
-  data: z.union([z.lazy(() => CallbackExternalAcceptedResponseSchema), z.lazy(() => CallbackRejectedResponseSchema), z.null()]).optional(),
+  data: z
+    .union([
+      z.lazy(() => CallbackExternalAcceptedResponseSchema),
+      z.lazy(() => CallbackRejectedResponseSchema),
+      z.null()
+    ])
+    .optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
-
 
 /**
  * 回调日志响应 Schema
@@ -474,9 +808,8 @@ export const CallbackLogResponseSchema = z.object({
   /** Created At */
   created_at: z.string().datetime(),
   /** Updated At */
-  updated_at: z.string().datetime(),
+  updated_at: z.string().datetime()
 })
-
 
 /**
  * 回调主体维度回调日志列表响应。
@@ -490,9 +823,8 @@ export const CallbackLogSubjectResponseSchema = z.object({
   /** Count */
   count: z.number().min(0),
   /** Items */
-  items: z.array(z.lazy(() => CallbackLogResponseSchema)),
+  items: z.array(z.lazy(() => CallbackLogResponseSchema))
 })
-
 
 /**
  * Trace 维度回调日志列表响应。
@@ -506,9 +838,8 @@ export const CallbackLogTraceResponseSchema = z.object({
   /** Count */
   count: z.number().min(0),
   /** Items */
-  items: z.array(z.lazy(() => CallbackLogResponseSchema)),
+  items: z.array(z.lazy(() => CallbackLogResponseSchema))
 })
-
 
 /**
  * Callback 入口拒收响应数据。
@@ -518,9 +849,8 @@ export const CallbackLogTraceResponseSchema = z.object({
  */
 export const CallbackRejectedResponseSchema = z.object({
   /** Ack */
-  ack: z.boolean().optional().default(false),
+  ack: z.boolean().optional().default(false)
 })
-
 
 /**
  * 设备结果回调接收响应数据。
@@ -538,21 +868,25 @@ export const CallbackResultAcceptedResponseSchema = z.object({
   /** Event Id */
   event_id: z.union([z.string(), z.null()]).optional(),
   /** Causation Id */
-  causation_id: z.union([z.string(), z.null()]).optional(),
+  causation_id: z.union([z.string(), z.null()]).optional()
 })
-
 
 export const CallbackResultIngressResponseSchema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** Data */
-  data: z.union([z.lazy(() => CallbackResultAcceptedResponseSchema), z.lazy(() => CallbackRejectedResponseSchema), z.null()]).optional(),
+  data: z
+    .union([
+      z.lazy(() => CallbackResultAcceptedResponseSchema),
+      z.lazy(() => CallbackRejectedResponseSchema),
+      z.null()
+    ])
+    .optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
-
 
 /**
  * 人工清除 WorkLine 急停请求。
@@ -564,9 +898,8 @@ export const ClearWorkLineEstopRequestSchema = z.object({
   /** Checks */
   checks: z.record(z.boolean()).optional(),
   /** Reason */
-  reason: z.union([z.string().max(500), z.null()]).optional(),
+  reason: z.union([z.string().max(500), z.null()]).optional()
 })
-
 
 /**
  * DemoProduct 创建模型
@@ -582,9 +915,8 @@ export const DemoProductCreateSchema = z.object({
   /** Stock */
   stock: z.number().min(0),
   /** Product Lists */
-  product_lists: z.array(z.lazy(() => DemoProductListCreateSchema)).optional(),
+  product_lists: z.array(z.lazy(() => DemoProductListCreateSchema)).optional()
 })
-
 
 /**
  * DemoProductList 创建模型
@@ -598,9 +930,8 @@ export const DemoProductListCreateSchema = z.object({
   /** Product Id */
   product_id: z.union([z.number(), z.null()]).optional(),
   /** Quantity */
-  quantity: z.number().min(0),
+  quantity: z.number().min(0)
 })
-
 
 /**
  * DemoProductList 响应模型
@@ -614,9 +945,8 @@ export const DemoProductListResponseSchema = z.object({
   /** Quantity */
   quantity: z.number().min(0),
   /** Id */
-  id: z.number(),
+  id: z.number()
 })
-
 
 /**
  * DemoProductList 更新模型
@@ -637,9 +967,8 @@ export const DemoProductListUpdateSchema = z.object({
   /** Quantity */
   quantity: z.union([z.number().min(0), z.null()]).optional(),
   /** Id */
-  id: z.union([z.number(), z.null()]).optional(),
+  id: z.union([z.number(), z.null()]).optional()
 })
-
 
 /**
  * DemoProduct 响应模型
@@ -675,9 +1004,8 @@ export const DemoProductResponseSchema = z.object({
   /** Id */
   id: z.number(),
   /** Product Lists */
-  product_lists: z.array(z.lazy(() => DemoProductListResponseSchema)),
+  product_lists: z.array(z.lazy(() => DemoProductListResponseSchema))
 })
-
 
 /**
  * DemoProduct 更新模型
@@ -697,9 +1025,8 @@ export const DemoProductUpdateSchema = z.object({
   /** Version */
   version: z.number(),
   /** Product Lists */
-  product_lists: z.array(z.lazy(() => DemoProductListUpdateSchema)).optional(),
+  product_lists: z.array(z.lazy(() => DemoProductListUpdateSchema)).optional()
 })
-
 
 /**
  * 设备创建 Schema - 接收客户端输入
@@ -735,7 +1062,10 @@ export const DeviceCreateSchema = z.object({
   /** Port */
   port: z.union([z.number().min(1).max(65535), z.null()]).optional(),
   /** 通信协议 */
-  protocol: z.lazy(() => DeviceProtocolSchema).optional().default("HTTP"),
+  protocol: z
+    .lazy(() => DeviceProtocolSchema)
+    .optional()
+    .default('HTTP'),
   /** Auth Token */
   auth_token: z.union([z.string().max(500), z.null()]).optional(),
   /** Timeout */
@@ -743,7 +1073,10 @@ export const DeviceCreateSchema = z.object({
   /** Callback Path */
   callback_path: z.union([z.string().max(255), z.null()]).optional(),
   /** 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE/MAINTENANCE） */
-  device_status: z.lazy(() => DeviceStatusSchema).optional().default("IDLE"),
+  device_status: z
+    .lazy(() => DeviceStatusSchema)
+    .optional()
+    .default('IDLE'),
   /** Current Command Id */
   current_command_id: z.union([z.number(), z.null()]).optional(),
   /** Last Heartbeat At */
@@ -757,9 +1090,8 @@ export const DeviceCreateSchema = z.object({
   /** Idempotency Ttl */
   idempotency_ttl: z.number().min(60).max(86400).optional().default(3600),
   /** Diagnostic Profile */
-  diagnostic_profile: z.record(z.any()).optional(),
+  diagnostic_profile: z.record(z.any()).optional()
 })
-
 
 /**
  * 设备维护操作请求。
@@ -769,9 +1101,8 @@ export const DeviceCreateSchema = z.object({
  */
 export const DeviceMaintenanceRequestSchema = z.object({
   /** Reason */
-  reason: z.union([z.string().max(50), z.null()]).optional(),
+  reason: z.union([z.string().max(50), z.null()]).optional()
 })
-
 
 /**
  * 设备通信协议枚举（白皮书 2.1 节）
@@ -779,8 +1110,7 @@ export const DeviceMaintenanceRequestSchema = z.object({
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
-export const DeviceProtocolSchema = z.enum(["HTTP", "HTTPS", "TCP", "MODBUS", "MQTT"])
-
+export const DeviceProtocolSchema = z.enum(['HTTP', 'HTTPS', 'TCP', 'MODBUS', 'MQTT'])
 
 /**
  * 设备响应 Schema - 返回给客户端
@@ -816,7 +1146,10 @@ export const DeviceResponseSchema = z.object({
   /** Port */
   port: z.union([z.number().min(1).max(65535), z.null()]).optional(),
   /** 通信协议 */
-  protocol: z.lazy(() => DeviceProtocolSchema).optional().default("HTTP"),
+  protocol: z
+    .lazy(() => DeviceProtocolSchema)
+    .optional()
+    .default('HTTP'),
   /** Auth Token */
   auth_token: z.union([z.string().max(500), z.null()]).optional(),
   /** Timeout */
@@ -824,7 +1157,10 @@ export const DeviceResponseSchema = z.object({
   /** Callback Path */
   callback_path: z.union([z.string().max(255), z.null()]).optional(),
   /** 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE/MAINTENANCE） */
-  device_status: z.lazy(() => DeviceStatusSchema).optional().default("IDLE"),
+  device_status: z
+    .lazy(() => DeviceStatusSchema)
+    .optional()
+    .default('IDLE'),
   /** Current Command Id */
   current_command_id: z.union([z.number(), z.null()]).optional(),
   /** Last Heartbeat At */
@@ -842,9 +1178,8 @@ export const DeviceResponseSchema = z.object({
   /** Id */
   id: z.number(),
   /** Version */
-  version: z.number(),
+  version: z.number()
 })
-
 
 /**
  * 设备运行态空操作请求，保留扩展位。
@@ -854,9 +1189,8 @@ export const DeviceResponseSchema = z.object({
  */
 export const DeviceRuntimeActionRequestSchema = z.object({
   /** Reason */
-  reason: z.union([z.string().max(200), z.null()]).optional(),
+  reason: z.union([z.string().max(200), z.null()]).optional()
 })
-
 
 /**
  * 设备状态枚举（白皮书 5.2 节）
@@ -864,8 +1198,7 @@ export const DeviceRuntimeActionRequestSchema = z.object({
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
-export const DeviceStatusSchema = z.enum(["IDLE", "RUNNING", "ERROR", "OFFLINE", "MAINTENANCE"])
-
+export const DeviceStatusSchema = z.enum(['IDLE', 'RUNNING', 'ERROR', 'OFFLINE', 'MAINTENANCE'])
 
 /**
  * 设备更新 Schema - 只允许主数据与通信配置，运行态走专用操作
@@ -913,9 +1246,8 @@ export const DeviceUpdateSchema = z.object({
   /** Diagnostic Profile */
   diagnostic_profile: z.union([z.record(z.any()), z.null()]).optional(),
   /** Version */
-  version: z.number(),
+  version: z.number()
 })
-
 
 export const DiagnosticCardResponseSchema = z.object({
   /** Title */
@@ -939,16 +1271,20 @@ export const DiagnosticCardResponseSchema = z.object({
   /** Technical Summary */
   technical_summary: z.union([z.string(), z.null()]).optional(),
   /** Next Steps */
-  next_steps: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
+  next_steps: z
+    .preprocess(val => {
+      // 如果输入是字符串（换行符分隔），转换为数组
+      if (typeof val === 'string') {
         return val
-      }, z.array(z.string())).optional(),
-  context: z.lazy(() => TraceDiagnosticContextItemSchema),
+          .split('\n')
+          .map(s => s.trim())
+          .filter(s => s)
+      }
+      return val
+    }, z.array(z.string()))
+    .optional(),
+  context: z.lazy(() => TraceDiagnosticContextItemSchema)
 })
-
 
 /**
  * Failed command evidence for operator review.
@@ -968,9 +1304,8 @@ export const FailedCommandEvidenceSchema = z.object({
   /** Error Detail */
   error_detail: z.union([z.record(z.any()), z.null()]).optional(),
   /** Result Data */
-  result_data: z.union([z.record(z.any()), z.null()]).optional(),
+  result_data: z.union([z.record(z.any()), z.null()]).optional()
 })
-
 
 /**
  * 单个过滤条件
@@ -983,9 +1318,8 @@ export const FilterConditionSchema = z.object({
   field: z.string(),
   op: z.lazy(() => FilterOperatorSchema),
   /** Value */
-  value: z.union([z.any(), z.null()]).optional(),
+  value: z.union([z.any(), z.null()]).optional()
 })
-
 
 /**
  * 过滤条件组
@@ -993,13 +1327,17 @@ export const FilterConditionSchema = z.object({
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
-export const FilterGroupSchema = z.lazy((): z.ZodTypeAny => z.object({
-  /** Couple */
-  couple: z.enum(["and", "or", "not"]).optional().default("and"),
-  /** Conditions */
-  conditions: z.array(z.union([z.lazy(() => FilterConditionSchema), z.lazy(() => FilterGroupSchema)])).optional(),
-}))
-
+export const FilterGroupSchema = z.lazy(
+  (): z.ZodTypeAny =>
+    z.object({
+      /** Couple */
+      couple: z.enum(['and', 'or', 'not']).optional().default('and'),
+      /** Conditions */
+      conditions: z
+        .array(z.union([z.lazy(() => FilterConditionSchema), z.lazy(() => FilterGroupSchema)]))
+        .optional()
+    })
+)
 
 /**
  * 过滤操作符
@@ -1007,8 +1345,20 @@ export const FilterGroupSchema = z.lazy((): z.ZodTypeAny => z.object({
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
-export const FilterOperatorSchema = z.enum(["eq", "ne", "gt", "ge", "lt", "le", "in", "nin", "ilike", "between", "is_null", "not_null"])
-
+export const FilterOperatorSchema = z.enum([
+  'eq',
+  'ne',
+  'gt',
+  'ge',
+  'lt',
+  'le',
+  'in',
+  'nin',
+  'ilike',
+  'between',
+  'is_null',
+  'not_null'
+])
 
 /**
  * 作业线类型枚举
@@ -1016,8 +1366,7 @@ export const FilterOperatorSchema = z.enum(["eq", "ne", "gt", "ge", "lt", "le", 
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
-export const LineTypeSchema = z.enum(["AUTO", "MANUAL", "HYBRID"])
-
+export const LineTypeSchema = z.enum(['AUTO', 'MANUAL', 'HYBRID'])
 
 export const ListResponseData_APIAccessLogResponse_Schema = z.object({
   /** Total */
@@ -1027,9 +1376,8 @@ export const ListResponseData_APIAccessLogResponse_Schema = z.object({
   /** Limit */
   limit: z.number().min(0).optional().default(0),
   /** Offset */
-  offset: z.number().min(0).optional().default(0),
+  offset: z.number().min(0).optional().default(0)
 })
-
 
 export const ListResponseData_APIApplicationResponse_Schema = z.object({
   /** Total */
@@ -1039,9 +1387,8 @@ export const ListResponseData_APIApplicationResponse_Schema = z.object({
   /** Limit */
   limit: z.number().min(0).optional().default(0),
   /** Offset */
-  offset: z.number().min(0).optional().default(0),
+  offset: z.number().min(0).optional().default(0)
 })
-
 
 export const ListResponseData_AuditLogResponse_Schema = z.object({
   /** Total */
@@ -1051,9 +1398,85 @@ export const ListResponseData_AuditLogResponse_Schema = z.object({
   /** Limit */
   limit: z.number().min(0).optional().default(0),
   /** Offset */
-  offset: z.number().min(0).optional().default(0),
+  offset: z.number().min(0).optional().default(0)
 })
 
+export const ListResponseData_BinCellOccupancyResponse_Schema = z.object({
+  /** Total */
+  total: z.number().min(0).optional().default(0),
+  /** Items */
+  items: z.array(z.lazy(() => BinCellOccupancyResponseSchema)).optional(),
+  /** Limit */
+  limit: z.number().min(0).optional().default(0),
+  /** Offset */
+  offset: z.number().min(0).optional().default(0)
+})
+
+export const ListResponseData_BinContentSnapshotItemResponse_Schema = z.object({
+  /** Total */
+  total: z.number().min(0).optional().default(0),
+  /** Items */
+  items: z.array(z.lazy(() => BinContentSnapshotItemResponseSchema)).optional(),
+  /** Limit */
+  limit: z.number().min(0).optional().default(0),
+  /** Offset */
+  offset: z.number().min(0).optional().default(0)
+})
+
+export const ListResponseData_BinContentSnapshotResponse_Schema = z.object({
+  /** Total */
+  total: z.number().min(0).optional().default(0),
+  /** Items */
+  items: z.array(z.lazy(() => BinContentSnapshotResponseSchema)).optional(),
+  /** Limit */
+  limit: z.number().min(0).optional().default(0),
+  /** Offset */
+  offset: z.number().min(0).optional().default(0)
+})
+
+export const ListResponseData_BinMaterialMountResponse_Schema = z.object({
+  /** Total */
+  total: z.number().min(0).optional().default(0),
+  /** Items */
+  items: z.array(z.lazy(() => BinMaterialMountResponseSchema)).optional(),
+  /** Limit */
+  limit: z.number().min(0).optional().default(0),
+  /** Offset */
+  offset: z.number().min(0).optional().default(0)
+})
+
+export const ListResponseData_BinResponse_Schema = z.object({
+  /** Total */
+  total: z.number().min(0).optional().default(0),
+  /** Items */
+  items: z.array(z.lazy(() => BinResponseSchema)).optional(),
+  /** Limit */
+  limit: z.number().min(0).optional().default(0),
+  /** Offset */
+  offset: z.number().min(0).optional().default(0)
+})
+
+export const ListResponseData_BinSlotTemplateResponse_Schema = z.object({
+  /** Total */
+  total: z.number().min(0).optional().default(0),
+  /** Items */
+  items: z.array(z.lazy(() => BinSlotTemplateResponseSchema)).optional(),
+  /** Limit */
+  limit: z.number().min(0).optional().default(0),
+  /** Offset */
+  offset: z.number().min(0).optional().default(0)
+})
+
+export const ListResponseData_BinTypeResponse_Schema = z.object({
+  /** Total */
+  total: z.number().min(0).optional().default(0),
+  /** Items */
+  items: z.array(z.lazy(() => BinTypeResponseSchema)).optional(),
+  /** Limit */
+  limit: z.number().min(0).optional().default(0),
+  /** Offset */
+  offset: z.number().min(0).optional().default(0)
+})
 
 export const ListResponseData_CallbackLogResponse_Schema = z.object({
   /** Total */
@@ -1063,9 +1486,8 @@ export const ListResponseData_CallbackLogResponse_Schema = z.object({
   /** Limit */
   limit: z.number().min(0).optional().default(0),
   /** Offset */
-  offset: z.number().min(0).optional().default(0),
+  offset: z.number().min(0).optional().default(0)
 })
-
 
 export const ListResponseData_DemoProductResponse_Schema = z.object({
   /** Total */
@@ -1075,9 +1497,8 @@ export const ListResponseData_DemoProductResponse_Schema = z.object({
   /** Limit */
   limit: z.number().min(0).optional().default(0),
   /** Offset */
-  offset: z.number().min(0).optional().default(0),
+  offset: z.number().min(0).optional().default(0)
 })
-
 
 export const ListResponseData_DeviceResponse_Schema = z.object({
   /** Total */
@@ -1087,9 +1508,8 @@ export const ListResponseData_DeviceResponse_Schema = z.object({
   /** Limit */
   limit: z.number().min(0).optional().default(0),
   /** Offset */
-  offset: z.number().min(0).optional().default(0),
+  offset: z.number().min(0).optional().default(0)
 })
-
 
 export const ListResponseData_MenuResponse_Schema = z.object({
   /** Total */
@@ -1099,9 +1519,8 @@ export const ListResponseData_MenuResponse_Schema = z.object({
   /** Limit */
   limit: z.number().min(0).optional().default(0),
   /** Offset */
-  offset: z.number().min(0).optional().default(0),
+  offset: z.number().min(0).optional().default(0)
 })
-
 
 export const ListResponseData_PermissionResponse_Schema = z.object({
   /** Total */
@@ -1111,9 +1530,74 @@ export const ListResponseData_PermissionResponse_Schema = z.object({
   /** Limit */
   limit: z.number().min(0).optional().default(0),
   /** Offset */
-  offset: z.number().min(0).optional().default(0),
+  offset: z.number().min(0).optional().default(0)
 })
 
+export const ListResponseData_RackBinMountResponse_Schema = z.object({
+  /** Total */
+  total: z.number().min(0).optional().default(0),
+  /** Items */
+  items: z.array(z.lazy(() => RackBinMountResponseSchema)).optional(),
+  /** Limit */
+  limit: z.number().min(0).optional().default(0),
+  /** Offset */
+  offset: z.number().min(0).optional().default(0)
+})
+
+export const ListResponseData_RackPlacementResponse_Schema = z.object({
+  /** Total */
+  total: z.number().min(0).optional().default(0),
+  /** Items */
+  items: z.array(z.lazy(() => RackPlacementResponseSchema)).optional(),
+  /** Limit */
+  limit: z.number().min(0).optional().default(0),
+  /** Offset */
+  offset: z.number().min(0).optional().default(0)
+})
+
+export const ListResponseData_RackResponse_Schema = z.object({
+  /** Total */
+  total: z.number().min(0).optional().default(0),
+  /** Items */
+  items: z.array(z.lazy(() => RackResponseSchema)).optional(),
+  /** Limit */
+  limit: z.number().min(0).optional().default(0),
+  /** Offset */
+  offset: z.number().min(0).optional().default(0)
+})
+
+export const ListResponseData_RackSlotTemplateResponse_Schema = z.object({
+  /** Total */
+  total: z.number().min(0).optional().default(0),
+  /** Items */
+  items: z.array(z.lazy(() => RackSlotTemplateResponseSchema)).optional(),
+  /** Limit */
+  limit: z.number().min(0).optional().default(0),
+  /** Offset */
+  offset: z.number().min(0).optional().default(0)
+})
+
+export const ListResponseData_RackTypeResponse_Schema = z.object({
+  /** Total */
+  total: z.number().min(0).optional().default(0),
+  /** Items */
+  items: z.array(z.lazy(() => RackTypeResponseSchema)).optional(),
+  /** Limit */
+  limit: z.number().min(0).optional().default(0),
+  /** Offset */
+  offset: z.number().min(0).optional().default(0)
+})
+
+export const ListResponseData_ResourceStateEventResponse_Schema = z.object({
+  /** Total */
+  total: z.number().min(0).optional().default(0),
+  /** Items */
+  items: z.array(z.lazy(() => ResourceStateEventResponseSchema)).optional(),
+  /** Limit */
+  limit: z.number().min(0).optional().default(0),
+  /** Offset */
+  offset: z.number().min(0).optional().default(0)
+})
 
 export const ListResponseData_RoleResponse_Schema = z.object({
   /** Total */
@@ -1123,9 +1607,8 @@ export const ListResponseData_RoleResponse_Schema = z.object({
   /** Limit */
   limit: z.number().min(0).optional().default(0),
   /** Offset */
-  offset: z.number().min(0).optional().default(0),
+  offset: z.number().min(0).optional().default(0)
 })
-
 
 export const ListResponseData_UserResponse_Schema = z.object({
   /** Total */
@@ -1135,9 +1618,8 @@ export const ListResponseData_UserResponse_Schema = z.object({
   /** Limit */
   limit: z.number().min(0).optional().default(0),
   /** Offset */
-  offset: z.number().min(0).optional().default(0),
+  offset: z.number().min(0).optional().default(0)
 })
-
 
 export const ListResponseData_WorkLineResponse_Schema = z.object({
   /** Total */
@@ -1147,141 +1629,288 @@ export const ListResponseData_WorkLineResponse_Schema = z.object({
   /** Limit */
   limit: z.number().min(0).optional().default(0),
   /** Offset */
-  offset: z.number().min(0).optional().default(0),
+  offset: z.number().min(0).optional().default(0)
 })
-
 
 export const ListResponseSchemaModel_APIAccessLogResponse_Schema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** 响应数据 */
   data: z.union([z.lazy(() => ListResponseData_APIAccessLogResponse_Schema), z.null()]).optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
-
 
 export const ListResponseSchemaModel_APIApplicationResponse_Schema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** 响应数据 */
-  data: z.union([z.lazy(() => ListResponseData_APIApplicationResponse_Schema), z.null()]).optional(),
+  data: z
+    .union([z.lazy(() => ListResponseData_APIApplicationResponse_Schema), z.null()])
+    .optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
-
 
 export const ListResponseSchemaModel_AuditLogResponse_Schema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** 响应数据 */
   data: z.union([z.lazy(() => ListResponseData_AuditLogResponse_Schema), z.null()]).optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
 
+export const ListResponseSchemaModel_BinCellOccupancyResponse_Schema = z.object({
+  /** Code */
+  code: z.string().optional().default('1000'),
+  /** Message */
+  message: z.string().optional().default('操作成功'),
+  /** 响应数据 */
+  data: z
+    .union([z.lazy(() => ListResponseData_BinCellOccupancyResponse_Schema), z.null()])
+    .optional(),
+  /** Timestamp */
+  timestamp: z.string().optional()
+})
+
+export const ListResponseSchemaModel_BinContentSnapshotItemResponse_Schema = z.object({
+  /** Code */
+  code: z.string().optional().default('1000'),
+  /** Message */
+  message: z.string().optional().default('操作成功'),
+  /** 响应数据 */
+  data: z
+    .union([z.lazy(() => ListResponseData_BinContentSnapshotItemResponse_Schema), z.null()])
+    .optional(),
+  /** Timestamp */
+  timestamp: z.string().optional()
+})
+
+export const ListResponseSchemaModel_BinContentSnapshotResponse_Schema = z.object({
+  /** Code */
+  code: z.string().optional().default('1000'),
+  /** Message */
+  message: z.string().optional().default('操作成功'),
+  /** 响应数据 */
+  data: z
+    .union([z.lazy(() => ListResponseData_BinContentSnapshotResponse_Schema), z.null()])
+    .optional(),
+  /** Timestamp */
+  timestamp: z.string().optional()
+})
+
+export const ListResponseSchemaModel_BinMaterialMountResponse_Schema = z.object({
+  /** Code */
+  code: z.string().optional().default('1000'),
+  /** Message */
+  message: z.string().optional().default('操作成功'),
+  /** 响应数据 */
+  data: z
+    .union([z.lazy(() => ListResponseData_BinMaterialMountResponse_Schema), z.null()])
+    .optional(),
+  /** Timestamp */
+  timestamp: z.string().optional()
+})
+
+export const ListResponseSchemaModel_BinResponse_Schema = z.object({
+  /** Code */
+  code: z.string().optional().default('1000'),
+  /** Message */
+  message: z.string().optional().default('操作成功'),
+  /** 响应数据 */
+  data: z.union([z.lazy(() => ListResponseData_BinResponse_Schema), z.null()]).optional(),
+  /** Timestamp */
+  timestamp: z.string().optional()
+})
+
+export const ListResponseSchemaModel_BinSlotTemplateResponse_Schema = z.object({
+  /** Code */
+  code: z.string().optional().default('1000'),
+  /** Message */
+  message: z.string().optional().default('操作成功'),
+  /** 响应数据 */
+  data: z
+    .union([z.lazy(() => ListResponseData_BinSlotTemplateResponse_Schema), z.null()])
+    .optional(),
+  /** Timestamp */
+  timestamp: z.string().optional()
+})
+
+export const ListResponseSchemaModel_BinTypeResponse_Schema = z.object({
+  /** Code */
+  code: z.string().optional().default('1000'),
+  /** Message */
+  message: z.string().optional().default('操作成功'),
+  /** 响应数据 */
+  data: z.union([z.lazy(() => ListResponseData_BinTypeResponse_Schema), z.null()]).optional(),
+  /** Timestamp */
+  timestamp: z.string().optional()
+})
 
 export const ListResponseSchemaModel_CallbackLogResponse_Schema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** 响应数据 */
   data: z.union([z.lazy(() => ListResponseData_CallbackLogResponse_Schema), z.null()]).optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
-
 
 export const ListResponseSchemaModel_DemoProductResponse_Schema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** 响应数据 */
   data: z.union([z.lazy(() => ListResponseData_DemoProductResponse_Schema), z.null()]).optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
-
 
 export const ListResponseSchemaModel_DeviceResponse_Schema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** 响应数据 */
   data: z.union([z.lazy(() => ListResponseData_DeviceResponse_Schema), z.null()]).optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
-
 
 export const ListResponseSchemaModel_MenuResponse_Schema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** 响应数据 */
   data: z.union([z.lazy(() => ListResponseData_MenuResponse_Schema), z.null()]).optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
-
 
 export const ListResponseSchemaModel_PermissionResponse_Schema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** 响应数据 */
   data: z.union([z.lazy(() => ListResponseData_PermissionResponse_Schema), z.null()]).optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
 
+export const ListResponseSchemaModel_RackBinMountResponse_Schema = z.object({
+  /** Code */
+  code: z.string().optional().default('1000'),
+  /** Message */
+  message: z.string().optional().default('操作成功'),
+  /** 响应数据 */
+  data: z.union([z.lazy(() => ListResponseData_RackBinMountResponse_Schema), z.null()]).optional(),
+  /** Timestamp */
+  timestamp: z.string().optional()
+})
+
+export const ListResponseSchemaModel_RackPlacementResponse_Schema = z.object({
+  /** Code */
+  code: z.string().optional().default('1000'),
+  /** Message */
+  message: z.string().optional().default('操作成功'),
+  /** 响应数据 */
+  data: z.union([z.lazy(() => ListResponseData_RackPlacementResponse_Schema), z.null()]).optional(),
+  /** Timestamp */
+  timestamp: z.string().optional()
+})
+
+export const ListResponseSchemaModel_RackResponse_Schema = z.object({
+  /** Code */
+  code: z.string().optional().default('1000'),
+  /** Message */
+  message: z.string().optional().default('操作成功'),
+  /** 响应数据 */
+  data: z.union([z.lazy(() => ListResponseData_RackResponse_Schema), z.null()]).optional(),
+  /** Timestamp */
+  timestamp: z.string().optional()
+})
+
+export const ListResponseSchemaModel_RackSlotTemplateResponse_Schema = z.object({
+  /** Code */
+  code: z.string().optional().default('1000'),
+  /** Message */
+  message: z.string().optional().default('操作成功'),
+  /** 响应数据 */
+  data: z
+    .union([z.lazy(() => ListResponseData_RackSlotTemplateResponse_Schema), z.null()])
+    .optional(),
+  /** Timestamp */
+  timestamp: z.string().optional()
+})
+
+export const ListResponseSchemaModel_RackTypeResponse_Schema = z.object({
+  /** Code */
+  code: z.string().optional().default('1000'),
+  /** Message */
+  message: z.string().optional().default('操作成功'),
+  /** 响应数据 */
+  data: z.union([z.lazy(() => ListResponseData_RackTypeResponse_Schema), z.null()]).optional(),
+  /** Timestamp */
+  timestamp: z.string().optional()
+})
+
+export const ListResponseSchemaModel_ResourceStateEventResponse_Schema = z.object({
+  /** Code */
+  code: z.string().optional().default('1000'),
+  /** Message */
+  message: z.string().optional().default('操作成功'),
+  /** 响应数据 */
+  data: z
+    .union([z.lazy(() => ListResponseData_ResourceStateEventResponse_Schema), z.null()])
+    .optional(),
+  /** Timestamp */
+  timestamp: z.string().optional()
+})
 
 export const ListResponseSchemaModel_RoleResponse_Schema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** 响应数据 */
   data: z.union([z.lazy(() => ListResponseData_RoleResponse_Schema), z.null()]).optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
-
 
 export const ListResponseSchemaModel_UserResponse_Schema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** 响应数据 */
   data: z.union([z.lazy(() => ListResponseData_UserResponse_Schema), z.null()]).optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
-
 
 export const ListResponseSchemaModel_WorkLineResponse_Schema = z.object({
   /** Code */
-  code: z.string().optional().default("1000"),
+  code: z.string().optional().default('1000'),
   /** Message */
-  message: z.string().optional().default("操作成功"),
+  message: z.string().optional().default('操作成功'),
   /** 响应数据 */
   data: z.union([z.lazy(() => ListResponseData_WorkLineResponse_Schema), z.null()]).optional(),
   /** Timestamp */
-  timestamp: z.string().optional(),
+  timestamp: z.string().optional()
 })
-
 
 /**
  * 登录请求 Schema
@@ -1293,9 +1922,8 @@ export const LoginRequestSchema = z.object({
   /** Username */
   username: z.string().min(3).max(50),
   /** Password */
-  password: z.string().min(6).max(100),
+  password: z.string().min(6).max(100)
 })
-
 
 /**
  * 登录响应 Schema
@@ -1323,9 +1951,8 @@ export const LoginResponseSchema = z.object({
   /** Expires In */
   expires_in: z.number(),
   /** Refresh Expires In */
-  refresh_expires_in: z.number(),
+  refresh_expires_in: z.number()
 })
-
 
 /**
  * 登出响应 Schema
@@ -1337,9 +1964,8 @@ export const LogoutResponseSchema = z.object({
   /** Message */
   message: z.string(),
   /** Revoked Count */
-  revoked_count: z.number().optional().default(0),
+  revoked_count: z.number().optional().default(0)
 })
-
 
 /**
  * 人工操作请求。
@@ -1349,13 +1975,12 @@ export const LogoutResponseSchema = z.object({
  */
 export const ManualOperationRequestSchema = z.object({
   /** Operation */
-  operation: z.string().regex(new RegExp("^(HOLD|RESUME|CANCEL)$")),
+  operation: z.string().regex(new RegExp('^(HOLD|RESUME|CANCEL)$')),
   /** Operator Id */
   operator_id: z.string().min(1).max(100),
   /** Reason */
-  reason: z.string().min(1).max(500),
+  reason: z.string().min(1).max(500)
 })
-
 
 /**
  * 菜单创建 Schema
@@ -1367,7 +1992,7 @@ export const MenuCreateSchema = z.object({
   /** Parent Id */
   parent_id: z.union([z.number(), z.null()]).optional(),
   /** Tree Path */
-  tree_path: z.string().optional().default("/"),
+  tree_path: z.string().optional().default('/'),
   /** Level */
   level: z.number().optional().default(1),
   /** Sort Order */
@@ -1385,9 +2010,8 @@ export const MenuCreateSchema = z.object({
   /** Icon */
   icon: z.union([z.string().max(50), z.null()]).optional(),
   /** Is Hidden */
-  is_hidden: z.boolean().optional().default(false),
+  is_hidden: z.boolean().optional().default(false)
 })
-
 
 /**
  * 菜单响应 Schema
@@ -1399,7 +2023,7 @@ export const MenuResponseSchema = z.object({
   /** Parent Id */
   parent_id: z.union([z.number(), z.null()]).optional(),
   /** Tree Path */
-  tree_path: z.string().optional().default("/"),
+  tree_path: z.string().optional().default('/'),
   /** Level */
   level: z.number().optional().default(1),
   /** Sort Order */
@@ -1423,9 +2047,50 @@ export const MenuResponseSchema = z.object({
   /** Version */
   version: z.number(),
   /** Roles */
-  roles: z.array(z.lazy(() => RoleResponseSchema)).optional(),
+  roles: z.array(z.lazy(() => RoleResponseSchema)).optional()
 })
 
+/**
+ * 菜单树响应 Schema
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const MenuTreeResponseSchema = z.lazy(
+  (): z.ZodTypeAny =>
+    z.object({
+      /** Parent Id */
+      parent_id: z.union([z.number(), z.null()]).optional(),
+      /** Tree Path */
+      tree_path: z.string().optional().default('/'),
+      /** Level */
+      level: z.number().optional().default(1),
+      /** Sort Order */
+      sort_order: z.number().optional().default(0),
+      /** Has Children */
+      has_children: z.boolean().optional().default(false),
+      /** Name */
+      name: z.string().max(50),
+      /** Title */
+      title: z.string().max(50),
+      /** Path */
+      path: z.string().max(200),
+      /** Component */
+      component: z.union([z.string().max(200), z.null()]).optional(),
+      /** Icon */
+      icon: z.union([z.string().max(50), z.null()]).optional(),
+      /** Is Hidden */
+      is_hidden: z.boolean().optional().default(false),
+      /** Id */
+      id: z.number(),
+      /** Version */
+      version: z.number(),
+      /** Roles */
+      roles: z.array(z.lazy(() => RoleResponseSchema)).optional(),
+      /** Children */
+      children: z.array(z.lazy(() => MenuTreeResponseSchema)).optional()
+    })
+)
 
 /**
  * 菜单树响应 Schema
@@ -1433,77 +2098,39 @@ export const MenuResponseSchema = z.object({
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
-export const MenuTreeResponseSchema = z.lazy((): z.ZodTypeAny => z.object({
-  /** Parent Id */
-  parent_id: z.union([z.number(), z.null()]).optional(),
-  /** Tree Path */
-  tree_path: z.string().optional().default("/"),
-  /** Level */
-  level: z.number().optional().default(1),
-  /** Sort Order */
-  sort_order: z.number().optional().default(0),
-  /** Has Children */
-  has_children: z.boolean().optional().default(false),
-  /** Name */
-  name: z.string().max(50),
-  /** Title */
-  title: z.string().max(50),
-  /** Path */
-  path: z.string().max(200),
-  /** Component */
-  component: z.union([z.string().max(200), z.null()]).optional(),
-  /** Icon */
-  icon: z.union([z.string().max(50), z.null()]).optional(),
-  /** Is Hidden */
-  is_hidden: z.boolean().optional().default(false),
-  /** Id */
-  id: z.number(),
-  /** Version */
-  version: z.number(),
-  /** Roles */
-  roles: z.array(z.lazy(() => RoleResponseSchema)).optional(),
-  /** Children */
-  children: z.array(z.lazy(() => MenuTreeResponseSchema)).optional(),
-}))
-
-
-/**
- * 菜单树响应 Schema
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const MenuTreeResponseSimpleSchema = z.lazy((): z.ZodTypeAny => z.object({
-  /** Parent Id */
-  parent_id: z.union([z.number(), z.null()]).optional(),
-  /** Tree Path */
-  tree_path: z.string().optional().default("/"),
-  /** Level */
-  level: z.number().optional().default(1),
-  /** Sort Order */
-  sort_order: z.number().optional().default(0),
-  /** Has Children */
-  has_children: z.boolean().optional().default(false),
-  /** Name */
-  name: z.string().max(50),
-  /** Title */
-  title: z.string().max(50),
-  /** Path */
-  path: z.string().max(200),
-  /** Component */
-  component: z.union([z.string().max(200), z.null()]).optional(),
-  /** Icon */
-  icon: z.union([z.string().max(50), z.null()]).optional(),
-  /** Is Hidden */
-  is_hidden: z.boolean().optional().default(false),
-  /** Id */
-  id: z.number(),
-  /** Version */
-  version: z.number(),
-  /** Children */
-  children: z.array(z.lazy(() => MenuTreeResponseSimpleSchema)).optional(),
-}))
-
+export const MenuTreeResponseSimpleSchema = z.lazy(
+  (): z.ZodTypeAny =>
+    z.object({
+      /** Parent Id */
+      parent_id: z.union([z.number(), z.null()]).optional(),
+      /** Tree Path */
+      tree_path: z.string().optional().default('/'),
+      /** Level */
+      level: z.number().optional().default(1),
+      /** Sort Order */
+      sort_order: z.number().optional().default(0),
+      /** Has Children */
+      has_children: z.boolean().optional().default(false),
+      /** Name */
+      name: z.string().max(50),
+      /** Title */
+      title: z.string().max(50),
+      /** Path */
+      path: z.string().max(200),
+      /** Component */
+      component: z.union([z.string().max(200), z.null()]).optional(),
+      /** Icon */
+      icon: z.union([z.string().max(50), z.null()]).optional(),
+      /** Is Hidden */
+      is_hidden: z.boolean().optional().default(false),
+      /** Id */
+      id: z.number(),
+      /** Version */
+      version: z.number(),
+      /** Children */
+      children: z.array(z.lazy(() => MenuTreeResponseSimpleSchema)).optional()
+    })
+)
 
 /**
  * 菜单更新 Schema
@@ -1535,9 +2162,8 @@ export const MenuUpdateSchema = z.object({
   /** Is Hidden */
   is_hidden: z.union([z.boolean(), z.null()]).optional(),
   /** Version */
-  version: z.number(),
+  version: z.number()
 })
-
 
 /**
  * Operator-selected NG reason.
@@ -1551,9 +2177,8 @@ export const NgReasonInputSchema = z.object({
   /** Code */
   code: z.string().min(1).max(100),
   /** Label */
-  label: z.string().min(1).max(200),
+  label: z.string().min(1).max(200)
 })
-
 
 /**
  * NG reason option.
@@ -1573,15 +2198,19 @@ export const NgReasonOptionSchema = z.object({
   /** Contract Version */
   contract_version: z.union([z.string(), z.null()]).optional(),
   /** Maps From */
-  maps_from: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
+  maps_from: z
+    .preprocess(val => {
+      // 如果输入是字符串（换行符分隔），转换为数组
+      if (typeof val === 'string') {
         return val
-      }, z.array(z.string())).optional(),
+          .split('\n')
+          .map(s => s.trim())
+          .filter(s => s)
+      }
+      return val
+    }, z.array(z.string()))
+    .optional()
 })
-
 
 /**
  * NG return item response.
@@ -1625,9 +2254,8 @@ export const NgReturnItemResponseSchema = z.object({
   /** Confirmed At */
   confirmed_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Created At */
-  created_at: z.union([z.string().datetime(), z.null()]).optional(),
+  created_at: z.union([z.string().datetime(), z.null()]).optional()
 })
-
 
 /**
  * 操作日志状态
@@ -1635,8 +2263,7 @@ export const NgReturnItemResponseSchema = z.object({
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
-export const OperaStatusSchema = z.enum(["FAIL", "SUCCESS"])
-
+export const OperaStatusSchema = z.enum(['FAIL', 'SUCCESS'])
 
 /**
  * API 权限创建 Schema
@@ -1648,7 +2275,7 @@ export const PermissionCreateSchema = z.object({
   /** Parent Id */
   parent_id: z.union([z.number(), z.null()]).optional(),
   /** Tree Path */
-  tree_path: z.string().optional().default("/"),
+  tree_path: z.string().optional().default('/'),
   /** Level */
   level: z.number().optional().default(1),
   /** Sort Order */
@@ -1660,7 +2287,7 @@ export const PermissionCreateSchema = z.object({
   /** Description */
   description: z.union([z.string().max(255), z.null()]).optional(),
   /** Type */
-  type: z.string().max(20).optional().default("user_api"),
+  type: z.string().max(20).optional().default('user_api'),
   /** Category */
   category: z.union([z.string().max(50), z.null()]).optional(),
   /** Resource */
@@ -1670,9 +2297,8 @@ export const PermissionCreateSchema = z.object({
   /** Method */
   method: z.union([z.string().max(10), z.null()]).optional(),
   /** Path */
-  path: z.union([z.string().max(255), z.null()]).optional(),
+  path: z.union([z.string().max(255), z.null()]).optional()
 })
-
 
 /**
  * API 权限响应 Schema（完整版）
@@ -1684,7 +2310,7 @@ export const PermissionResponseSchema = z.object({
   /** Parent Id */
   parent_id: z.union([z.number(), z.null()]).optional(),
   /** Tree Path */
-  tree_path: z.string().optional().default("/"),
+  tree_path: z.string().optional().default('/'),
   /** Level */
   level: z.number().optional().default(1),
   /** Sort Order */
@@ -1696,7 +2322,7 @@ export const PermissionResponseSchema = z.object({
   /** Description */
   description: z.union([z.string().max(255), z.null()]).optional(),
   /** Type */
-  type: z.string().max(20).optional().default("user_api"),
+  type: z.string().max(20).optional().default('user_api'),
   /** Category */
   category: z.union([z.string().max(50), z.null()]).optional(),
   /** Resource */
@@ -1710,9 +2336,8 @@ export const PermissionResponseSchema = z.object({
   /** Id */
   id: z.number(),
   /** Version */
-  version: z.number(),
+  version: z.number()
 })
-
 
 /**
  * API 权限树形结构 Schema
@@ -1722,39 +2347,41 @@ export const PermissionResponseSchema = z.object({
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
-export const PermissionTreeSchema = z.lazy((): z.ZodTypeAny => z.object({
-  /** Parent Id */
-  parent_id: z.union([z.number(), z.null()]).optional(),
-  /** Tree Path */
-  tree_path: z.string().optional().default("/"),
-  /** Level */
-  level: z.number().optional().default(1),
-  /** Sort Order */
-  sort_order: z.number().optional().default(0),
-  /** Has Children */
-  has_children: z.boolean().optional().default(false),
-  /** Name */
-  name: z.string().max(100),
-  /** Description */
-  description: z.union([z.string().max(255), z.null()]).optional(),
-  /** Type */
-  type: z.string().max(20).optional().default("user_api"),
-  /** Category */
-  category: z.union([z.string().max(50), z.null()]).optional(),
-  /** Resource */
-  resource: z.union([z.string().max(50), z.null()]).optional(),
-  /** Action */
-  action: z.union([z.string().max(50), z.null()]).optional(),
-  /** Method */
-  method: z.union([z.string().max(10), z.null()]).optional(),
-  /** Path */
-  path: z.union([z.string().max(255), z.null()]).optional(),
-  /** Id */
-  id: z.number(),
-  /** Children */
-  children: z.array(z.lazy(() => PermissionTreeSchema)).optional(),
-}))
-
+export const PermissionTreeSchema = z.lazy(
+  (): z.ZodTypeAny =>
+    z.object({
+      /** Parent Id */
+      parent_id: z.union([z.number(), z.null()]).optional(),
+      /** Tree Path */
+      tree_path: z.string().optional().default('/'),
+      /** Level */
+      level: z.number().optional().default(1),
+      /** Sort Order */
+      sort_order: z.number().optional().default(0),
+      /** Has Children */
+      has_children: z.boolean().optional().default(false),
+      /** Name */
+      name: z.string().max(100),
+      /** Description */
+      description: z.union([z.string().max(255), z.null()]).optional(),
+      /** Type */
+      type: z.string().max(20).optional().default('user_api'),
+      /** Category */
+      category: z.union([z.string().max(50), z.null()]).optional(),
+      /** Resource */
+      resource: z.union([z.string().max(50), z.null()]).optional(),
+      /** Action */
+      action: z.union([z.string().max(50), z.null()]).optional(),
+      /** Method */
+      method: z.union([z.string().max(10), z.null()]).optional(),
+      /** Path */
+      path: z.union([z.string().max(255), z.null()]).optional(),
+      /** Id */
+      id: z.number(),
+      /** Children */
+      children: z.array(z.lazy(() => PermissionTreeSchema)).optional()
+    })
+)
 
 /**
  * API 权限更新 Schema
@@ -1790,9 +2417,8 @@ export const PermissionUpdateSchema = z.object({
   /** Path */
   path: z.union([z.string().max(255), z.null()]).optional(),
   /** Version */
-  version: z.number(),
+  version: z.number()
 })
-
 
 /**
  * Client-submitted physical handoff evidence.
@@ -1815,9 +2441,8 @@ export const PhysicalHandoffEvidenceInputSchema = z.object({
   /** Late Callback Reviewed */
   late_callback_reviewed: z.boolean(),
   /** Handoff Witness Id */
-  handoff_witness_id: z.union([z.string().max(100), z.null()]).optional(),
+  handoff_witness_id: z.union([z.string().max(100), z.null()]).optional()
 })
-
 
 /**
  * 查询选项
@@ -1836,9 +2461,252 @@ export const QueryOptionsSchema = z.object({
   /** Max Depth */
   max_depth: z.number().min(0).max(3).optional().default(1),
   /** Include Deleted */
-  include_deleted: z.boolean().optional().default(false),
+  include_deleted: z.boolean().optional().default(false)
 })
 
+/**
+ * 料箱挂载投影响应 Schema。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const RackBinMountResponseSchema = z.object({
+  /** Rack Code */
+  rack_code: z.string().min(1).max(80),
+  /** Rack Slot Code */
+  rack_slot_code: z.string().min(1).max(50),
+  /** Bin Code */
+  bin_code: z.string().min(1).max(80),
+  /** 料箱挂载状态 */
+  mount_status: z
+    .lazy(() => RackBinMountStatusSchema)
+    .optional()
+    .default('UNKNOWN'),
+  /** 来源系统 */
+  source_system: z.lazy(() => ResourceSourceSystemSchema),
+  /** Source Event Id */
+  source_event_id: z.string().min(1).max(200),
+  /** Source Version */
+  source_version: z.union([z.string().max(100), z.null()]).optional(),
+  /** Trace Id */
+  trace_id: z.union([z.string().max(100), z.null()]).optional(),
+  /** Session Id */
+  session_id: z.union([z.string().max(100), z.null()]).optional(),
+  /** Started At */
+  started_at: z.string().datetime(),
+  /** Ended At */
+  ended_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Id */
+  id: z.number()
+})
+
+/**
+ * 料箱挂载投影状态。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const RackBinMountStatusSchema = z.enum(['MOUNTED', 'UNMOUNTED', 'EXCHANGING', 'UNKNOWN'])
+
+/**
+ * 货架物理结构类型。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const RackKindSchema = z.enum([
+  'SINGLE_LAYER',
+  'FIVE_LAYER',
+  'RETURN',
+  'TRANSFER',
+  'PRODUCTION'
+])
+
+/**
+ * 货架位置投影响应 Schema。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const RackPlacementResponseSchema = z.object({
+  /** Rack Code */
+  rack_code: z.string().min(1).max(80),
+  /** 货架类型 */
+  rack_kind: z.union([z.lazy(() => RackKindSchema), z.null()]).optional(),
+  /** Location Code */
+  location_code: z.union([z.string().max(80), z.null()]).optional(),
+  /** Workline Id */
+  workline_id: z.union([z.number(), z.null()]).optional(),
+  /** Workline Code */
+  workline_code: z.union([z.string().max(50), z.null()]).optional(),
+  /** Position Code */
+  position_code: z.union([z.string().max(80), z.null()]).optional(),
+  /** Position Role */
+  position_role: z.union([z.string().max(80), z.null()]).optional(),
+  /** Logic Location Code */
+  logic_location_code: z.union([z.string().max(120), z.null()]).optional(),
+  /** External Location Code */
+  external_location_code: z.union([z.string().max(120), z.null()]).optional(),
+  /** 位置投影状态 */
+  placement_status: z
+    .lazy(() => RackPlacementStatusSchema)
+    .optional()
+    .default('UNKNOWN'),
+  /** 来源系统 */
+  source_system: z.lazy(() => ResourceSourceSystemSchema),
+  /** Source Task Id */
+  source_task_id: z.union([z.string().max(120), z.null()]).optional(),
+  /** Source Event Id */
+  source_event_id: z.string().min(1).max(200),
+  /** Source Version */
+  source_version: z.union([z.string().max(100), z.null()]).optional(),
+  /** Trace Id */
+  trace_id: z.union([z.string().max(100), z.null()]).optional(),
+  /** Session Id */
+  session_id: z.union([z.string().max(100), z.null()]).optional(),
+  /** Started At */
+  started_at: z.string().datetime(),
+  /** Ended At */
+  ended_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Id */
+  id: z.number()
+})
+
+/**
+ * 货架位置投影状态。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const RackPlacementStatusSchema = z.enum(['ARRIVED', 'IN_TRANSIT', 'DEPARTED', 'UNKNOWN'])
+
+/**
+ * 货架实例响应 Schema。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const RackResponseSchema = z.object({
+  /** Rack Code */
+  rack_code: z.string().min(1).max(80),
+  /** Wms Rack Id */
+  wms_rack_id: z.union([z.string().max(100), z.null()]).optional(),
+  /** Rack Type Code */
+  rack_type_code: z.string().min(1).max(50),
+  /** 货架主数据状态 */
+  status: z
+    .lazy(() => ResourceMasterStatusSchema)
+    .optional()
+    .default('ACTIVE'),
+  /** 来源系统 */
+  source_system: z
+    .lazy(() => ResourceSourceSystemSchema)
+    .optional()
+    .default('MANUAL_IMPORT'),
+  /** Source Version */
+  source_version: z.union([z.string().max(100), z.null()]).optional(),
+  /** Metadata Json */
+  metadata_json: z.record(z.any()).optional(),
+  /** Id */
+  id: z.number()
+})
+
+/**
+ * 货架槽位承载对象类型。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const RackSlotKindSchema = z.enum(['BIN_SLOT', 'MATERIAL_SLOT'])
+
+/**
+ * 货架槽位面。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const RackSlotSideSchema = z.enum(['A', 'B', 'NONE'])
+
+/**
+ * 货架槽位模板响应 Schema。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const RackSlotTemplateResponseSchema = z.object({
+  /** Rack Type Code */
+  rack_type_code: z.string().min(1).max(50),
+  /** Slot Code */
+  slot_code: z.string().min(1).max(50),
+  /** 槽位面 */
+  side: z
+    .lazy(() => RackSlotSideSchema)
+    .optional()
+    .default('NONE'),
+  /** Layer No */
+  layer_no: z.number().min(1).optional().default(1),
+  /** Position No */
+  position_no: z.number().min(1).optional().default(1),
+  /** 槽位承载对象类型 */
+  slot_kind: z.lazy(() => RackSlotKindSchema),
+  /** Allowed Bin Types */
+  allowed_bin_types: z
+    .preprocess(val => {
+      // 如果输入是字符串（换行符分隔），转换为数组
+      if (typeof val === 'string') {
+        return val
+          .split('\n')
+          .map(s => s.trim())
+          .filter(s => s)
+      }
+      return val
+    }, z.array(z.string()))
+    .optional(),
+  /** Allowed Material Carrier Types */
+  allowed_material_carrier_types: z
+    .preprocess(val => {
+      // 如果输入是字符串（换行符分隔），转换为数组
+      if (typeof val === 'string') {
+        return val
+          .split('\n')
+          .map(s => s.trim())
+          .filter(s => s)
+      }
+      return val
+    }, z.array(z.string()))
+    .optional(),
+  /** Active */
+  active: z.boolean().optional().default(true),
+  /** Id */
+  id: z.number()
+})
+
+/**
+ * 货架类型响应 Schema。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const RackTypeResponseSchema = z.object({
+  /** Rack Type Code */
+  rack_type_code: z.string().min(1).max(50),
+  /** Rack Type Name */
+  rack_type_name: z.string().min(1).max(100),
+  /** 货架物理结构类型 */
+  rack_kind: z.lazy(() => RackKindSchema),
+  /** Slot Count */
+  slot_count: z.number().min(1),
+  /** Has Side */
+  has_side: z.boolean().optional().default(false),
+  /** Description */
+  description: z.union([z.string().max(500), z.null()]).optional(),
+  /** Active */
+  active: z.boolean().optional().default(true),
+  /** Metadata Json */
+  metadata_json: z.record(z.any()).optional(),
+  /** Id */
+  id: z.number()
+})
 
 /**
  * 刷新令牌响应 Schema
@@ -1864,9 +2732,8 @@ export const RefreshTokenResponseSchema = z.object({
   /** Expires In */
   expires_in: z.number(),
   /** Refresh Expires In */
-  refresh_expires_in: z.number(),
+  refresh_expires_in: z.number()
 })
-
 
 /**
  * Replay 请求。
@@ -1878,9 +2745,8 @@ export const ReplayInboxRequestSchema = z.object({
   /** Reason */
   reason: z.string().min(1).max(500),
   /** Operator Id */
-  operator_id: z.union([z.string().max(100), z.null()]).optional(),
+  operator_id: z.union([z.string().max(100), z.null()]).optional()
 })
-
 
 /**
  * 管理员重置密码请求
@@ -1890,9 +2756,8 @@ export const ReplayInboxRequestSchema = z.object({
  */
 export const ResetPasswordRequestSchema = z.object({
   /** New Password */
-  new_password: z.string().min(6).max(100),
+  new_password: z.string().min(6).max(100)
 })
-
 
 /**
  * 重置有效期 Schema
@@ -1904,9 +2769,8 @@ export const ResetValidityPeriodSchemaSchema = z.object({
   /** Version */
   version: z.number().optional().default(0),
   /** 新的有效期时长 */
-  validity_period: z.lazy(() => ValidityPeriodSchema),
+  validity_period: z.lazy(() => ValidityPeriodSchema)
 })
-
 
 /**
  * Resolve Runtime Hold request.
@@ -1916,25 +2780,26 @@ export const ResetValidityPeriodSchemaSchema = z.object({
  */
 export const ResolveRuntimeHoldRequestSchema = z.object({
   /** Resolution */
-  resolution: z.enum(["COMPLETED", "FAILED", "CANCELLED"]),
+  resolution: z.enum(['COMPLETED', 'FAILED', 'CANCELLED']),
   /** Checks */
   checks: z.record(z.boolean()),
   /** Operator Note */
   operator_note: z.string().min(1).max(1000),
   /** Material Disposition */
-  material_disposition: z.enum(["CONTINUE", "RETURN_TO_NG"]),
+  material_disposition: z.enum(['CONTINUE', 'RETURN_TO_NG']),
   /** RETURN_TO_NG 时必填 */
   ng_reason: z.union([z.lazy(() => NgReasonInputSchema), z.null()]).optional(),
   /** RETURN_TO_NG 时必填；只包含客户端可提交证据 */
-  physical_handoff_evidence: z.union([z.lazy(() => PhysicalHandoffEvidenceInputSchema), z.null()]).optional(),
+  physical_handoff_evidence: z
+    .union([z.lazy(() => PhysicalHandoffEvidenceInputSchema), z.null()])
+    .optional(),
   /** Result Payload */
   result_payload: z.union([z.record(z.any()), z.null()]).optional(),
   /** Hold Version */
   hold_version: z.number().min(0),
   /** Latest Evidence Hash */
-  latest_evidence_hash: z.string().min(1).max(200),
+  latest_evidence_hash: z.string().min(1).max(200)
 })
-
 
 /**
  * Resolve Runtime Hold response.
@@ -1958,9 +2823,8 @@ export const ResolveRuntimeHoldResponseSchema = z.object({
   /** Ng Return Item Id */
   ng_return_item_id: z.union([z.number(), z.null()]).optional(),
   /** Created Inbox Id */
-  created_inbox_id: z.union([z.number(), z.null()]).optional(),
+  created_inbox_id: z.union([z.number(), z.null()]).optional()
 })
-
 
 /**
  * 人工运行时对账解除请求。
@@ -1970,7 +2834,7 @@ export const ResolveRuntimeHoldResponseSchema = z.object({
  */
 export const ResolveRuntimeReconciliationRequestSchema = z.object({
   /** Resolution */
-  resolution: z.string().regex(new RegExp("^(COMPLETED|FAILED|CANCELLED)$")),
+  resolution: z.string().regex(new RegExp('^(COMPLETED|FAILED|CANCELLED)$')),
   /** Checks */
   checks: z.record(z.boolean()),
   /** Operator Note */
@@ -1978,9 +2842,103 @@ export const ResolveRuntimeReconciliationRequestSchema = z.object({
   /** Result Payload */
   result_payload: z.union([z.record(z.any()), z.null()]).optional(),
   /** Confirmed At */
-  confirmed_at: z.string().datetime(),
+  confirmed_at: z.string().datetime()
 })
 
+/**
+ * 资源主数据启停状态。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const ResourceMasterStatusSchema = z.enum(['ACTIVE', 'DISABLED'])
+
+/**
+ * 资源事实来源系统。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const ResourceSourceSystemSchema = z.enum([
+  'WMS',
+  'RCS',
+  'ECS',
+  'WES_RUNTIME',
+  'MANUAL_IMPORT',
+  'MANUAL'
+])
+
+/**
+ * 资源事实响应 Schema。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const ResourceStateEventResponseSchema = z.object({
+  /** Event Code */
+  event_code: z.string().min(1).max(160),
+  /** Idempotency Key */
+  idempotency_key: z.union([z.string().max(240), z.null()]).optional(),
+  /** 资源事件类型 */
+  event_type: z.lazy(() => ResourceStateEventTypeSchema),
+  /** 资源类型 */
+  resource_type: z.lazy(() => ResourceTypeSchema),
+  /** Resource Code */
+  resource_code: z.string().min(1).max(120),
+  /** 来源系统 */
+  source_system: z.lazy(() => ResourceSourceSystemSchema),
+  /** Source Event Id */
+  source_event_id: z.string().min(1).max(200),
+  /** Source Version */
+  source_version: z.union([z.string().max(100), z.null()]).optional(),
+  /** Trace Id */
+  trace_id: z.union([z.string().max(100), z.null()]).optional(),
+  /** Session Id */
+  session_id: z.union([z.string().max(100), z.null()]).optional(),
+  /** Workline Id */
+  workline_id: z.union([z.number(), z.null()]).optional(),
+  /** Workline Code */
+  workline_code: z.union([z.string().max(50), z.null()]).optional(),
+  /** Position Code */
+  position_code: z.union([z.string().max(80), z.null()]).optional(),
+  /** Logic Location Code */
+  logic_location_code: z.union([z.string().max(120), z.null()]).optional(),
+  /** External Location Code */
+  external_location_code: z.union([z.string().max(120), z.null()]).optional(),
+  /** Payload Json */
+  payload_json: z.record(z.any()).optional(),
+  /** Occurred At */
+  occurred_at: z.string().datetime(),
+  /** Received At */
+  received_at: z.string().datetime(),
+  /** Id */
+  id: z.number()
+})
+
+/**
+ * 资源事实事件类型。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const ResourceStateEventTypeSchema = z.enum([
+  'RACK_ARRIVED',
+  'RACK_DEPARTED',
+  'BIN_MOUNTED',
+  'BIN_UNMOUNTED',
+  'MATERIAL_MOUNTED',
+  'MATERIAL_UNMOUNTED',
+  'EXCHANGE_STATUS_UPDATED',
+  'RESOURCE_RECONCILED'
+])
+
+/**
+ * WES 运行时资源类型。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const ResourceTypeSchema = z.enum(['RACK', 'BIN', 'MATERIAL'])
 
 /**
  * 撤销会话响应 Schema
@@ -1992,9 +2950,8 @@ export const RevokeSessionResponseSchema = z.object({
   /** Message */
   message: z.string(),
   /** Session Uuid */
-  session_uuid: z.string(),
+  session_uuid: z.string()
 })
-
 
 /**
  * 角色创建 Schema
@@ -2006,9 +2963,8 @@ export const RoleCreateSchema = z.object({
   /** Name */
   name: z.string().max(100),
   /** Description */
-  description: z.union([z.string().max(255), z.null()]).optional(),
+  description: z.union([z.string().max(255), z.null()]).optional()
 })
-
 
 /**
  * 角色响应 Schema
@@ -2026,9 +2982,8 @@ export const RoleResponseSchema = z.object({
   /** Version */
   version: z.number(),
   /** Permissions */
-  permissions: z.array(z.lazy(() => PermissionResponseSchema)).optional(),
+  permissions: z.array(z.lazy(() => PermissionResponseSchema)).optional()
 })
-
 
 /**
  * 角色响应 Schema（简化版，不含权限）
@@ -2042,9 +2997,8 @@ export const RoleResponseSimpleSchema = z.object({
   /** Description */
   description: z.union([z.string().max(255), z.null()]).optional(),
   /** Id */
-  id: z.number(),
+  id: z.number()
 })
-
 
 /**
  * 角色更新 Schema
@@ -2058,9 +3012,8 @@ export const RoleUpdateSchema = z.object({
   /** Description */
   description: z.union([z.string().max(255), z.null()]).optional(),
   /** Version */
-  version: z.number(),
+  version: z.number()
 })
-
 
 export const RuntimeBlockingReasonSchema = z.object({
   /** Device Id */
@@ -2068,9 +3021,8 @@ export const RuntimeBlockingReasonSchema = z.object({
   /** Reason */
   reason: z.string(),
   /** Detail */
-  detail: z.union([z.string(), z.null()]).optional(),
+  detail: z.union([z.string(), z.null()]).optional()
 })
-
 
 export const RuntimeDeviceDetailResponseSchema = z.object({
   summary: z.lazy(() => RuntimeDeviceSummarySchema),
@@ -2079,9 +3031,8 @@ export const RuntimeDeviceDetailResponseSchema = z.object({
   /** Recent Callbacks */
   recent_callbacks: z.array(z.lazy(() => TraceCallbackLogItemSchema)).optional(),
   /** Active Sessions */
-  active_sessions: z.array(z.lazy(() => RuntimeTraceListItemSchema)).optional(),
+  active_sessions: z.array(z.lazy(() => RuntimeTraceListItemSchema)).optional()
 })
-
 
 export const RuntimeDeviceHealthSummarySchema = z.object({
   /** Total */
@@ -2093,9 +3044,8 @@ export const RuntimeDeviceHealthSummarySchema = z.object({
   /** Loaded */
   loaded: z.number().optional().default(0),
   /** Healthy */
-  healthy: z.number().optional().default(0),
+  healthy: z.number().optional().default(0)
 })
-
 
 export const RuntimeDeviceSummarySchema = z.object({
   /** Id */
@@ -2135,9 +3085,8 @@ export const RuntimeDeviceSummarySchema = z.object({
   /** Recent Callback At */
   recent_callback_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Error Code */
-  error_code: z.union([z.string(), z.null()]).optional(),
+  error_code: z.union([z.string(), z.null()]).optional()
 })
-
 
 /**
  * Another active hold blocking the same WorkLine.
@@ -2157,9 +3106,8 @@ export const RuntimeHoldBlockerSchema = z.object({
   /** Session Id */
   session_id: z.union([z.number(), z.null()]).optional(),
   /** Source Device Id */
-  source_device_id: z.union([z.number(), z.null()]).optional(),
+  source_device_id: z.union([z.number(), z.null()]).optional()
 })
-
 
 /**
  * Runtime Hold detail response.
@@ -2174,12 +3122,13 @@ export const RuntimeHoldDetailResponseSchema = z.object({
   evidence_snapshot_json: z.record(z.any()),
   /** Release Evidence Json */
   release_evidence_json: z.record(z.any()),
-  failed_command_evidence: z.union([z.lazy(() => FailedCommandEvidenceSchema), z.null()]).optional(),
+  failed_command_evidence: z
+    .union([z.lazy(() => FailedCommandEvidenceSchema), z.null()])
+    .optional(),
   release_eligibility: z.lazy(() => RuntimeHoldReleaseEligibilitySchema),
   /** Blockers */
-  blockers: z.array(z.lazy(() => RuntimeHoldBlockerSchema)).optional(),
+  blockers: z.array(z.lazy(() => RuntimeHoldBlockerSchema)).optional()
 })
-
 
 /**
  * Current release decision model.
@@ -2191,35 +3140,49 @@ export const RuntimeHoldReleaseEligibilitySchema = z.object({
   /** Can Resolve */
   can_resolve: z.boolean(),
   /** Required Checks */
-  required_checks: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
+  required_checks: z
+    .preprocess(val => {
+      // 如果输入是字符串（换行符分隔），转换为数组
+      if (typeof val === 'string') {
         return val
-      }, z.array(z.string())).optional(),
+          .split('\n')
+          .map(s => s.trim())
+          .filter(s => s)
+      }
+      return val
+    }, z.array(z.string()))
+    .optional(),
   /** Allowed Resolutions */
-  allowed_resolutions: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
+  allowed_resolutions: z
+    .preprocess(val => {
+      // 如果输入是字符串（换行符分隔），转换为数组
+      if (typeof val === 'string') {
         return val
-      }, z.array(z.string())).optional(),
+          .split('\n')
+          .map(s => s.trim())
+          .filter(s => s)
+      }
+      return val
+    }, z.array(z.string()))
+    .optional(),
   /** Allowed Material Dispositions */
-  allowed_material_dispositions: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
+  allowed_material_dispositions: z
+    .preprocess(val => {
+      // 如果输入是字符串（换行符分隔），转换为数组
+      if (typeof val === 'string') {
         return val
-      }, z.array(z.string())).optional(),
+          .split('\n')
+          .map(s => s.trim())
+          .filter(s => s)
+      }
+      return val
+    }, z.array(z.string()))
+    .optional(),
   /** Latest Evidence Hash */
   latest_evidence_hash: z.string(),
   /** Reason */
-  reason: z.union([z.string(), z.null()]).optional(),
+  reason: z.union([z.string(), z.null()]).optional()
 })
-
 
 /**
  * Runtime Hold source refs.
@@ -2241,9 +3204,8 @@ export const RuntimeHoldSourceSchema = z.object({
   /** Source Device Id */
   source_device_id: z.union([z.number(), z.null()]).optional(),
   /** Source Idempotency Key */
-  source_idempotency_key: z.string(),
+  source_idempotency_key: z.string()
 })
-
 
 /**
  * Runtime Hold summary.
@@ -2285,9 +3247,8 @@ export const RuntimeHoldSummarySchema = z.object({
   /** Resolved At */
   resolved_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Resolved By */
-  resolved_by: z.union([z.number(), z.null()]).optional(),
+  resolved_by: z.union([z.number(), z.null()]).optional()
 })
-
 
 export const RuntimeOverviewResponseSchema = z.object({
   /** Stats */
@@ -2298,9 +3259,8 @@ export const RuntimeOverviewResponseSchema = z.object({
   hot_worklines: z.array(z.lazy(() => RuntimeWorklineSummarySchema)).optional(),
   /** Abnormal Devices */
   abnormal_devices: z.array(z.lazy(() => RuntimeDeviceSummarySchema)).optional(),
-  device_health: z.lazy(() => RuntimeDeviceHealthSummarySchema).optional(),
+  device_health: z.lazy(() => RuntimeDeviceHealthSummarySchema).optional()
 })
-
 
 export const RuntimeStatCardSchema = z.object({
   /** Key */
@@ -2310,9 +3270,8 @@ export const RuntimeStatCardSchema = z.object({
   /** Value */
   value: z.number(),
   /** Status */
-  status: z.string().optional().default("info"),
+  status: z.string().optional().default('info')
 })
-
 
 export const RuntimeTraceDeviceActionSchema = z.object({
   /** Kind */
@@ -2324,9 +3283,8 @@ export const RuntimeTraceDeviceActionSchema = z.object({
   /** Timestamp */
   timestamp: z.union([z.string().datetime(), z.null()]).optional(),
   /** Message */
-  message: z.union([z.string(), z.null()]).optional(),
+  message: z.union([z.string(), z.null()]).optional()
 })
-
 
 export const RuntimeTraceDevicePathNodeSchema = z.object({
   /** Device Id */
@@ -2340,9 +3298,8 @@ export const RuntimeTraceDevicePathNodeSchema = z.object({
   /** Is Current */
   is_current: z.boolean().optional().default(false),
   /** Actions */
-  actions: z.array(z.lazy(() => RuntimeTraceDeviceActionSchema)).optional(),
+  actions: z.array(z.lazy(() => RuntimeTraceDeviceActionSchema)).optional()
 })
-
 
 /**
  * Trace 列表项。
@@ -2359,6 +3316,12 @@ export const RuntimeTraceListItemSchema = z.object({
   trace_id: z.union([z.string(), z.null()]).optional(),
   /** Request Id */
   request_id: z.union([z.string(), z.null()]).optional(),
+  /** Last Inbox Id */
+  last_inbox_id: z.union([z.number(), z.null()]).optional(),
+  /** Event Type */
+  event_type: z.union([z.string(), z.null()]).optional(),
+  /** Event Payload */
+  event_payload: z.union([z.record(z.any()), z.null()]).optional(),
   /** Business Key */
   business_key: z.union([z.string(), z.null()]).optional(),
   /** Barcode */
@@ -2414,9 +3377,8 @@ export const RuntimeTraceListItemSchema = z.object({
   /** Deadline At */
   deadline_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Is Timed Out */
-  is_timed_out: z.boolean().optional().default(false),
+  is_timed_out: z.boolean().optional().default(false)
 })
-
 
 /**
  * Trace 列表响应。
@@ -2428,9 +3390,8 @@ export const RuntimeTraceListResponseSchema = z.object({
   /** Total */
   total: z.number(),
   /** Items */
-  items: z.array(z.lazy(() => RuntimeTraceListItemSchema)),
+  items: z.array(z.lazy(() => RuntimeTraceListItemSchema))
 })
-
 
 export const RuntimeTracePathResponseSchema = z.object({
   /** Workline Id */
@@ -2446,9 +3407,8 @@ export const RuntimeTracePathResponseSchema = z.object({
   /** Current Blocking Device Id */
   current_blocking_device_id: z.union([z.number(), z.null()]).optional(),
   blocking_reason: z.union([z.lazy(() => RuntimeBlockingReasonSchema), z.null()]).optional(),
-  evidence: z.union([z.lazy(() => TraceDetailResponseSchema), z.null()]).optional(),
+  evidence: z.union([z.lazy(() => TraceDetailResponseSchema), z.null()]).optional()
 })
-
 
 export const RuntimeTraceTimelineGroupSchema = z.object({
   /** Group Key */
@@ -2466,9 +3426,8 @@ export const RuntimeTraceTimelineGroupSchema = z.object({
   /** Is Blocked */
   is_blocked: z.boolean().optional().default(false),
   /** Events */
-  events: z.array(z.lazy(() => TraceTimelineItemSchema)).optional(),
+  events: z.array(z.lazy(() => TraceTimelineItemSchema)).optional()
 })
-
 
 export const RuntimeWorklineDetailResponseSchema = z.object({
   summary: z.lazy(() => RuntimeWorklineSummarySchema),
@@ -2479,9 +3438,8 @@ export const RuntimeWorklineDetailResponseSchema = z.object({
   /** Recent Failed Traces */
   recent_failed_traces: z.array(z.lazy(() => RuntimeTraceListItemSchema)).optional(),
   /** Recent Completed Traces */
-  recent_completed_traces: z.array(z.lazy(() => RuntimeTraceListItemSchema)).optional(),
+  recent_completed_traces: z.array(z.lazy(() => RuntimeTraceListItemSchema)).optional()
 })
-
 
 export const RuntimeWorklineDeviceItemSchema = z.object({
   /** Id */
@@ -2515,9 +3473,8 @@ export const RuntimeWorklineDeviceItemSchema = z.object({
   /** Last Heartbeat At */
   last_heartbeat_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Error Code */
-  error_code: z.union([z.string(), z.null()]).optional(),
+  error_code: z.union([z.string(), z.null()]).optional()
 })
-
 
 export const RuntimeWorklineSummarySchema = z.object({
   /** Id */
@@ -2551,9 +3508,9 @@ export const RuntimeWorklineSummarySchema = z.object({
   /** Maintenance Device Count */
   maintenance_device_count: z.number().optional().default(0),
   /** Run Mode */
-  run_mode: z.string().optional().default("AUTO"),
+  run_mode: z.string().optional().default('AUTO'),
   /** Runtime Status */
-  runtime_status: z.string().optional().default("READY"),
+  runtime_status: z.string().optional().default('READY'),
   /** Active Safety Incident Id */
   active_safety_incident_id: z.union([z.number(), z.null()]).optional(),
   /** Stopped At */
@@ -2563,9 +3520,8 @@ export const RuntimeWorklineSummarySchema = z.object({
   /** Resumed At */
   resumed_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Last Activity At */
-  last_activity_at: z.union([z.string().datetime(), z.null()]).optional(),
+  last_activity_at: z.union([z.string().datetime(), z.null()]).optional()
 })
-
 
 /**
  * 沙箱 Command ACK 模拟请求。
@@ -2575,9 +3531,42 @@ export const RuntimeWorklineSummarySchema = z.object({
  */
 export const SandboxAckRequestSchema = z.object({
   /** Dispatch Key */
-  dispatch_key: z.string().min(1).max(200),
+  dispatch_key: z.string().min(1).max(200)
 })
 
+/**
+ * 沙箱工作线清理请求。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const SandboxCleanupRequestSchema = z.object({
+  /** Dry Run */
+  dry_run: z.boolean().optional().default(true),
+  /** Confirmation */
+  confirmation: z.union([z.string().max(200), z.null()]).optional()
+})
+
+/**
+ * 沙箱工作线清理响应。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const SandboxCleanupResponseSchema = z.object({
+  /** Workline Id */
+  workline_id: z.number(),
+  /** Dry Run */
+  dry_run: z.boolean(),
+  /** Deleted */
+  deleted: z.boolean(),
+  /** Counts */
+  counts: z.record(z.number()).optional(),
+  /** Affected Session Ids */
+  affected_session_ids: z.array(z.number()).optional(),
+  /** Message */
+  message: z.string()
+})
 
 /**
  * 沙箱 Event 发送请求。
@@ -2599,9 +3588,8 @@ export const SandboxEventRequestSchema = z.object({
   /** Payload */
   payload: z.record(z.any()).optional(),
   /** Timestamp */
-  timestamp: z.union([z.string().datetime(), z.null()]).optional(),
+  timestamp: z.union([z.string().datetime(), z.null()]).optional()
 })
-
 
 /**
  * 沙箱 Event 模板。
@@ -2615,9 +3603,37 @@ export const SandboxEventTemplateSchema = z.object({
   /** Label */
   label: z.string(),
   /** Payload Template */
-  payload_template: z.record(z.any()).optional(),
+  payload_template: z.record(z.any()).optional()
 })
 
+/**
+ * 沙箱 External HTTP 回调模拟请求。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const SandboxExternalCallbackRequestSchema = z.object({
+  /** Dispatch Key */
+  dispatch_key: z.string().min(1).max(200),
+  /** Callback Type */
+  callback_type: z.union([z.string().max(100), z.null()]).optional(),
+  /** Payload */
+  payload: z.record(z.any()).optional(),
+  /** Source System */
+  source_system: z.string().regex(new RegExp('^(WMS|RCS)$')).optional().default('WMS'),
+  /** Source Event Id */
+  source_event_id: z.union([z.string().max(200), z.null()]).optional(),
+  /** Source Version */
+  source_version: z.string().max(50).optional().default('1'),
+  /** Request Id */
+  request_id: z.union([z.string().max(200), z.null()]).optional(),
+  /** Occurred At */
+  occurred_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Timestamp */
+  timestamp: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Signature */
+  signature: z.string().max(500).optional().default('sandbox')
+})
 
 /**
  * 沙箱 Command Result 模拟请求。
@@ -2631,15 +3647,14 @@ export const SandboxResultRequestSchema = z.object({
   /** Device Code */
   device_code: z.string().min(1).max(100),
   /** Result */
-  result: z.string().regex(new RegExp("^(SUCCESS|FAILED)$")),
+  result: z.string().regex(new RegExp('^(SUCCESS|FAILED)$')),
   /** Payload */
   payload: z.record(z.any()).optional(),
   /** Error Detail */
   error_detail: z.union([z.string().max(500), z.null()]).optional(),
   /** Timestamp */
-  timestamp: z.union([z.string().datetime(), z.null()]).optional(),
+  timestamp: z.union([z.string().datetime(), z.null()]).optional()
 })
-
 
 /**
  * 沙箱 Result 模板。
@@ -2657,9 +3672,8 @@ export const SandboxResultTemplateSchema = z.object({
   /** Failed Payload Template */
   failed_payload_template: z.record(z.any()).optional(),
   /** Error Template */
-  error_template: z.union([z.string(), z.null()]).optional(),
+  error_template: z.union([z.string(), z.null()]).optional()
 })
-
 
 /**
  * 沙箱模板响应。
@@ -2671,9 +3685,8 @@ export const SandboxTemplatesResponseSchema = z.object({
   /** Event Templates */
   event_templates: z.array(z.lazy(() => SandboxEventTemplateSchema)).optional(),
   /** Result Templates */
-  result_templates: z.array(z.lazy(() => SandboxResultTemplateSchema)).optional(),
+  result_templates: z.array(z.lazy(() => SandboxResultTemplateSchema)).optional()
 })
-
 
 /**
  * 会话信息 Schema
@@ -2693,9 +3706,8 @@ export const SessionInfoSchema = z.object({
   /** Device Info */
   device_info: z.union([z.record(z.any()), z.null()]).optional(),
   /** Last Active */
-  last_active: z.union([z.string().datetime(), z.null()]).optional(),
+  last_active: z.union([z.string().datetime(), z.null()]).optional()
 })
-
 
 /**
  * 沙箱模拟 WorkLine 软件急停请求。
@@ -2709,9 +3721,8 @@ export const SimulateWorkLineEstopRequestSchema = z.object({
   /** Source Device Id */
   source_device_id: z.union([z.number(), z.null()]).optional(),
   /** Payload */
-  payload: z.record(z.any()).optional(),
+  payload: z.record(z.any()).optional()
 })
-
 
 /**
  * 排序字段
@@ -2723,9 +3734,8 @@ export const SortFieldSchema = z.object({
   /** Field */
   field: z.string(),
   /** Order */
-  order: z.enum(["asc", "desc"]).optional().default("desc"),
+  order: z.enum(['asc', 'desc']).optional().default('desc')
 })
-
 
 /**
  * 批量排序项
@@ -2739,9 +3749,8 @@ export const SortItemSchema = z.object({
   /** Parent Id */
   parent_id: z.union([z.number(), z.null()]).optional(),
   /** Sort Order */
-  sort_order: z.number().optional().default(0),
+  sort_order: z.number().optional().default(0)
 })
-
 
 export const TraceBlockingPointResponseSchema = z.object({
   /** Trace Id */
@@ -2760,15 +3769,19 @@ export const TraceBlockingPointResponseSchema = z.object({
   /** Evidence */
   evidence: z.record(z.any()).optional(),
   /** Next Steps */
-  next_steps: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
+  next_steps: z
+    .preprocess(val => {
+      // 如果输入是字符串（换行符分隔），转换为数组
+      if (typeof val === 'string') {
         return val
-      }, z.array(z.string())).optional(),
+          .split('\n')
+          .map(s => s.trim())
+          .filter(s => s)
+      }
+      return val
+    }, z.array(z.string()))
+    .optional()
 })
-
 
 export const TraceCallbackLogItemSchema = z.object({
   /** Id */
@@ -2800,9 +3813,8 @@ export const TraceCallbackLogItemSchema = z.object({
   /** Created At */
   created_at: z.string().datetime(),
   /** Updated At */
-  updated_at: z.union([z.string().datetime(), z.null()]).optional(),
+  updated_at: z.union([z.string().datetime(), z.null()]).optional()
 })
-
 
 export const TraceCommandItemSchema = z.object({
   /** Id */
@@ -2844,9 +3856,8 @@ export const TraceCommandItemSchema = z.object({
   /** Error Detail */
   error_detail: z.union([z.record(z.any()), z.null()]).optional(),
   /** Duration Ms */
-  duration_ms: z.union([z.number(), z.null()]).optional(),
+  duration_ms: z.union([z.number(), z.null()]).optional()
 })
-
 
 export const TraceContextResponseSchema = z.object({
   /** Request Id */
@@ -2882,9 +3893,8 @@ export const TraceContextResponseSchema = z.object({
   /** Plugin Key */
   plugin_key: z.union([z.string(), z.null()]).optional(),
   /** Contract Version */
-  contract_version: z.union([z.string(), z.null()]).optional(),
+  contract_version: z.union([z.string(), z.null()]).optional()
 })
-
 
 export const TraceDetailResponseSchema = z.object({
   trace: z.lazy(() => TraceContextResponseSchema),
@@ -2906,8 +3916,8 @@ export const TraceDetailResponseSchema = z.object({
   timelines: z.array(z.lazy(() => TraceTimelineItemSchema)).optional(),
   /** Diagnostics */
   diagnostics: z.array(z.lazy(() => TraceDiagnosticItemSchema)).optional(),
+  resource_evidence: z.lazy(() => TraceResourceEvidenceResponseSchema).optional()
 })
-
 
 export const TraceDiagnosticContextItemSchema = z.object({
   /** Request Id */
@@ -2935,9 +3945,8 @@ export const TraceDiagnosticContextItemSchema = z.object({
   /** Transition */
   transition: z.union([z.string(), z.null()]).optional(),
   /** Extra */
-  extra: z.record(z.any()).optional(),
+  extra: z.record(z.any()).optional()
 })
-
 
 export const TraceDiagnosticItemSchema = z.object({
   /** Request Id */
@@ -2965,9 +3974,8 @@ export const TraceDiagnosticItemSchema = z.object({
   /** Transition */
   transition: z.union([z.string(), z.null()]).optional(),
   /** Extra */
-  extra: z.record(z.any()).optional(),
+  extra: z.record(z.any()).optional()
 })
-
 
 export const TraceDispatchAttemptItemSchema = z.object({
   /** Id */
@@ -2995,9 +4003,8 @@ export const TraceDispatchAttemptItemSchema = z.object({
   /** Response Json */
   response_json: z.record(z.any()).optional(),
   /** Trace Json */
-  trace_json: z.record(z.any()).optional(),
+  trace_json: z.record(z.any()).optional()
 })
-
 
 export const TraceInboxItemSchema = z.object({
   /** Id */
@@ -3037,9 +4044,8 @@ export const TraceInboxItemSchema = z.object({
   /** Error Message */
   error_message: z.union([z.string(), z.null()]).optional(),
   /** Payload Json */
-  payload_json: z.record(z.any()),
+  payload_json: z.record(z.any())
 })
-
 
 export const TraceOutboxItemSchema = z.object({
   /** Id */
@@ -3081,9 +4087,8 @@ export const TraceOutboxItemSchema = z.object({
   /** Finished At */
   finished_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Payload Json */
-  payload_json: z.record(z.any()),
+  payload_json: z.record(z.any())
 })
-
 
 /**
  * Trace 详情页顶部摘要。
@@ -3113,9 +4118,8 @@ export const TraceOverviewSummarySchema = z.object({
   /** Latest Timeline Status */
   latest_timeline_status: z.union([z.string(), z.null()]).optional(),
   /** Latest Timeline Message */
-  latest_timeline_message: z.union([z.string(), z.null()]).optional(),
+  latest_timeline_message: z.union([z.string(), z.null()]).optional()
 })
-
 
 /**
  * Trace 列表查询请求。
@@ -3139,9 +4143,29 @@ export const TraceQueryRequestSchema = z.object({
   /** Limit */
   limit: z.number().min(1).max(100).optional().default(20),
   /** Offset */
-  offset: z.number().min(0).optional().default(0),
+  offset: z.number().min(0).optional().default(0)
 })
 
+/**
+ * Trace 关联的资源域证据链。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const TraceResourceEvidenceResponseSchema = z.object({
+  /** Resource State Events */
+  resource_state_events: z.array(z.record(z.any())).optional(),
+  /** Rack Releases */
+  rack_releases: z.array(z.record(z.any())).optional(),
+  /** Rack Release Bin Snapshots */
+  rack_release_bin_snapshots: z.array(z.record(z.any())).optional(),
+  /** Wms Writeback Evidence */
+  wms_writeback_evidence: z.array(z.record(z.any())).optional(),
+  /** Rack Bin Mounts */
+  rack_bin_mounts: z.array(z.record(z.any())).optional(),
+  /** Runtime Holds */
+  runtime_holds: z.array(z.record(z.any())).optional()
+})
 
 export const TraceSessionItemSchema = z.object({
   /** Id */
@@ -3221,9 +4245,8 @@ export const TraceSessionItemSchema = z.object({
   /** Last Inbox Id */
   last_inbox_id: z.union([z.number(), z.null()]).optional(),
   /** Context Json */
-  context_json: z.record(z.any()),
+  context_json: z.record(z.any())
 })
-
 
 export const TraceTimelineItemSchema = z.object({
   /** Id */
@@ -3261,9 +4284,8 @@ export const TraceTimelineItemSchema = z.object({
   /** Related Inbox Id */
   related_inbox_id: z.union([z.number(), z.null()]).optional(),
   /** Related Command Id */
-  related_command_id: z.union([z.number(), z.null()]).optional(),
+  related_command_id: z.union([z.number(), z.null()]).optional()
 })
-
 
 /**
  * 测试 API 调用数据模型
@@ -3277,17 +4299,19 @@ export const TryInvokeApplicationSchema = z.object({
   /** Command Description */
   command_description: z.string(),
   /** Command Parameters */
-  command_parameters: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
-        return val
-      }, z.array(z.string())),
+  command_parameters: z.preprocess(val => {
+    // 如果输入是字符串（换行符分隔），转换为数组
+    if (typeof val === 'string') {
+      return val
+        .split('\n')
+        .map(s => s.trim())
+        .filter(s => s)
+    }
+    return val
+  }, z.array(z.string())),
   /** Command Response */
-  command_response: z.string(),
+  command_response: z.string()
 })
-
 
 /**
  * 测试 API 调用请求模型（包裹格式）
@@ -3296,9 +4320,8 @@ export const TryInvokeApplicationSchema = z.object({
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const TryInvokeApplicationRequestSchema = z.object({
-  data: z.lazy(() => TryInvokeApplicationSchema),
+  data: z.lazy(() => TryInvokeApplicationSchema)
 })
-
 
 /**
  * 用户创建 Schema - 接收客户端输入
@@ -3314,9 +4337,8 @@ export const UserCreateSchema = z.object({
   /** Full Name */
   full_name: z.union([z.string().max(100), z.null()]).optional(),
   /** Password */
-  password: z.string().min(6).max(100),
+  password: z.string().min(6).max(100)
 })
-
 
 /**
  * 用户权限列表响应 Schema
@@ -3330,9 +4352,8 @@ export const UserPermissionsResponseSchema = z.object({
   /** Total */
   total: z.number(),
   /** Permissions */
-  permissions: z.array(z.lazy(() => ApiPermissionInfoSchema)),
+  permissions: z.array(z.lazy(() => ApiPermissionInfoSchema))
 })
-
 
 /**
  * 用户响应 Schema - 返回给客户端
@@ -3368,9 +4389,8 @@ export const UserResponseSchema = z.object({
   /** Deleted At */
   deleted_at: z.union([z.string().datetime(), z.null()]).optional(),
   /** Roles */
-  roles: z.array(z.lazy(() => RoleResponseSimpleSchema)).optional(),
+  roles: z.array(z.lazy(() => RoleResponseSimpleSchema)).optional()
 })
-
 
 /**
  * 用户响应 Schema 无关联关系 - 返回给客户端
@@ -3404,9 +4424,8 @@ export const UserSimpleResponseSchema = z.object({
   /** Deleted By */
   deleted_by: z.union([z.number(), z.null()]).optional(),
   /** Deleted At */
-  deleted_at: z.union([z.string().datetime(), z.null()]).optional(),
+  deleted_at: z.union([z.string().datetime(), z.null()]).optional()
 })
-
 
 /**
  * 用户更新 Schema - 所有字段可选
@@ -3422,9 +4441,8 @@ export const UserUpdateSchema = z.object({
   /** Full Name */
   full_name: z.union([z.string().max(100), z.null()]).optional(),
   /** Version */
-  version: z.number(),
+  version: z.number()
 })
-
 
 export const ValidationErrorSchema = z.object({
   /** Location */
@@ -3436,9 +4454,8 @@ export const ValidationErrorSchema = z.object({
   /** Input */
   input: z.any().optional(),
   /** Context */
-  ctx: z.record(z.any()).optional(),
+  ctx: z.record(z.any()).optional()
 })
-
 
 /**
  * 有效期枚举
@@ -3446,8 +4463,20 @@ export const ValidationErrorSchema = z.object({
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
-export const ValidityPeriodSchema = z.enum(["1d", "1w", "1m", "6m", "1y", "never"])
+export const ValidityPeriodSchema = z.enum(['1d', '1w', '1m', '6m', '1y', 'never'])
 
+/**
+ * WMS 确认状态。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const WmsConfirmationStatusSchema = z.enum([
+  'PENDING',
+  'CONFIRMED',
+  'REJECTED',
+  'NOT_REQUIRED'
+])
 
 /**
  * 作业线创建 Schema - 接收客户端输入
@@ -3473,15 +4502,17 @@ export const WorkLineCreateSchema = z.object({
   /** Runtime Config Json */
   runtime_config_json: z.record(z.any()).optional(),
   /** 工作线运行模式 */
-  run_mode: z.lazy(() => WorkLineRunModeSchema).optional().default("AUTO"),
+  run_mode: z
+    .lazy(() => WorkLineRunModeSchema)
+    .optional()
+    .default('AUTO'),
   /** Diagnostic Profile */
   diagnostic_profile: z.record(z.any()).optional(),
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
   /** Is Active */
-  is_active: z.boolean().optional().default(true),
+  is_active: z.boolean().optional().default(true)
 })
-
 
 /**
  * 作业线插件下拉选项。
@@ -3495,17 +4526,21 @@ export const WorkLinePluginOptionSchema = z.object({
   /** Label */
   label: z.string(),
   /** Contract Versions */
-  contract_versions: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
+  contract_versions: z
+    .preprocess(val => {
+      // 如果输入是字符串（换行符分隔），转换为数组
+      if (typeof val === 'string') {
         return val
-      }, z.array(z.string())).optional(),
+          .split('\n')
+          .map(s => s.trim())
+          .filter(s => s)
+      }
+      return val
+    }, z.array(z.string()))
+    .optional(),
   /** Default Contract Version */
-  default_contract_version: z.string(),
+  default_contract_version: z.string()
 })
-
 
 /**
  * 作业线响应 Schema - 返回给客户端
@@ -3531,7 +4566,10 @@ export const WorkLineResponseSchema = z.object({
   /** Runtime Config Json */
   runtime_config_json: z.record(z.any()).optional(),
   /** 工作线运行模式 */
-  run_mode: z.lazy(() => WorkLineRunModeSchema).optional().default("AUTO"),
+  run_mode: z
+    .lazy(() => WorkLineRunModeSchema)
+    .optional()
+    .default('AUTO'),
   /** Diagnostic Profile */
   diagnostic_profile: z.record(z.any()).optional(),
   /** Description */
@@ -3541,9 +4579,8 @@ export const WorkLineResponseSchema = z.object({
   /** Id */
   id: z.number(),
   /** Version */
-  version: z.number(),
+  version: z.number()
 })
-
 
 /**
  * 作业线运行模式枚举。
@@ -3551,8 +4588,7 @@ export const WorkLineResponseSchema = z.object({
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
-export const WorkLineRunModeSchema = z.enum(["AUTO", "MANUAL", "SIMULATION"])
-
+export const WorkLineRunModeSchema = z.enum(['AUTO', 'MANUAL', 'SIMULATION'])
 
 /**
  * 作业线更新 Schema - 所有字段可选
@@ -3586,5 +4622,5 @@ export const WorkLineUpdateSchema = z.object({
   /** Is Active */
   is_active: z.union([z.boolean(), z.null()]).optional(),
   /** Version */
-  version: z.number(),
+  version: z.number()
 })

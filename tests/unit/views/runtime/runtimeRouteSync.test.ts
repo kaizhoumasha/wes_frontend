@@ -10,8 +10,8 @@ type RouteState = {
 }
 
 const routeState = reactive<RouteState>({
-  path: '/runtime/worklines',
-  fullPath: '/runtime/worklines',
+  path: '/runtime/monitor',
+  fullPath: '/runtime/monitor',
   query: {}
 })
 
@@ -193,8 +193,8 @@ describe('runtime route sync', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
 
-    routeState.path = '/runtime/worklines'
-    routeState.fullPath = '/runtime/worklines'
+    routeState.path = '/runtime/monitor'
+    routeState.fullPath = '/runtime/monitor'
     routeState.query = {}
 
     routerMock.push.mockReset()
@@ -210,7 +210,7 @@ describe('runtime route sync', () => {
   })
 
   it('loads workline detail once when it first syncs route selection from the list result', async () => {
-    const component = await import('@/views/runtime/worklines/WorklineRuntimePage.vue')
+    const component = await import('@/views/runtime/worklines/WorklineMonitorPage.vue')
 
     shallowMount(component.default, createMountOptions())
 
@@ -224,14 +224,14 @@ describe('runtime route sync', () => {
   })
 
   it('loads device detail panel when deviceId query param is present', async () => {
-    routeState.path = '/runtime/worklines'
-    routeState.fullPath = '/runtime/worklines?worklineId=101&deviceId=201'
+    routeState.path = '/runtime/monitor'
+    routeState.fullPath = '/runtime/monitor?worklineId=101&deviceId=201'
     routeState.query = {
       worklineId: '101',
       deviceId: '201'
     }
 
-    const component = await import('@/views/runtime/worklines/WorklineRuntimePage.vue')
+    const component = await import('@/views/runtime/worklines/WorklineMonitorPage.vue')
 
     const wrapper = shallowMount(component.default, createMountOptions())
 
@@ -240,14 +240,14 @@ describe('runtime route sync', () => {
 
     expect(worklineDetailSend).toHaveBeenCalledTimes(1)
     expect(worklineDetailSend).toHaveBeenLastCalledWith(101)
-    const devicePanel = wrapper.findComponent({ name: 'RuntimeDeviceInspector' })
-    expect(devicePanel.exists()).toBe(true)
-    expect(devicePanel.props()).toMatchObject({
-      deviceId: 201,
-      worklineId: 101
-    })
+    const liveOverview = wrapper.findComponent({ name: 'WorklineLiveOverview' })
+    expect(liveOverview.exists()).toBe(true)
+    expect(liveOverview.props('selectedDeviceId')).toBe(201)
 
-    await devicePanel.vm.$emit('close')
-    expect(routerMock.replace).toHaveBeenLastCalledWith({ query: { worklineId: '101' } })
+    await liveOverview.vm.$emit('select-device', 201)
+    expect(routerMock.push).toHaveBeenLastCalledWith({
+      name: 'RuntimeDevices',
+      query: { deviceId: '201' }
+    })
   })
 })

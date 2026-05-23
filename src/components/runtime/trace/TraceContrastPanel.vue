@@ -20,7 +20,12 @@
           size="small"
           @keyup.enter="loadBoth"
         />
-        <span v-if="errorA" class="trace-contrast__error">{{ errorA }}</span>
+        <span
+          v-if="errorA"
+          class="trace-contrast__error"
+        >
+          {{ errorA }}
+        </span>
       </div>
       <div class="trace-contrast__divider">vs</div>
       <div class="trace-contrast__input-group">
@@ -31,7 +36,12 @@
           size="small"
           @keyup.enter="loadBoth"
         />
-        <span v-if="errorB" class="trace-contrast__error">{{ errorB }}</span>
+        <span
+          v-if="errorB"
+          class="trace-contrast__error"
+        >
+          {{ errorB }}
+        </span>
       </div>
       <el-button
         type="primary"

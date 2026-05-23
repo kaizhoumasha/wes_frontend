@@ -10,20 +10,56 @@
     </div>
 
     <div class="hold-filter-bar">
-      <el-select v-model="filterType" placeholder="类型筛选" clearable style="width: 150px">
-        <el-option label="急停" value="SAFETY_ESTOP" />
-        <el-option label="对账隔离" value="RUNTIME_RECONCILIATION" />
-        <el-option label="人工阻断" value="MANUAL_HOLD" />
+      <el-select
+        v-model="filterType"
+        placeholder="类型筛选"
+        clearable
+        style="width: 150px"
+      >
+        <el-option
+          label="急停"
+          value="SAFETY_ESTOP"
+        />
+        <el-option
+          label="对账隔离"
+          value="RUNTIME_RECONCILIATION"
+        />
+        <el-option
+          label="人工阻断"
+          value="MANUAL_HOLD"
+        />
       </el-select>
-      <el-select v-model="filterStatus" placeholder="状态筛选" clearable style="width: 150px">
-        <el-option label="待处理" value="OPEN" />
-        <el-option label="处理中" value="IN_PROGRESS" />
-        <el-option label="已解决" value="RESOLVED" />
+      <el-select
+        v-model="filterStatus"
+        placeholder="状态筛选"
+        clearable
+        style="width: 150px"
+      >
+        <el-option
+          label="待处理"
+          value="OPEN"
+        />
+        <el-option
+          label="处理中"
+          value="IN_PROGRESS"
+        />
+        <el-option
+          label="已解决"
+          value="RESOLVED"
+        />
       </el-select>
     </div>
 
-    <div v-if="loading" class="hold-list__loading">
-      <el-skeleton v-for="n in 4" :key="n" animated class="hold-list__skeleton" />
+    <div
+      v-if="loading"
+      class="hold-list__loading"
+    >
+      <el-skeleton
+        v-for="n in 4"
+        :key="n"
+        animated
+        class="hold-list__skeleton"
+      />
     </div>
 
     <RuntimeEmptyState
@@ -40,7 +76,10 @@
       hint="这是正常的系统状态——无需人工干预。"
     />
 
-    <div v-else class="hold-list">
+    <div
+      v-else
+      class="hold-list"
+    >
       <div
         v-for="s in filteredHolds"
         :key="s.id"
@@ -74,11 +113,10 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import RuntimeEmptyState from '@/components/common/runtime/RuntimeEmptyState.vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
-import type { RuntimeHoldSummary, RuntimeWorklineSummary } from '@/types/runtime'
+import type { RuntimeHoldSummary } from '@/types/runtime'
 import type { RuntimeTone } from '@/utils/runtime-display'
 
 const router = useRouter()
@@ -90,28 +128,46 @@ const filterStatus = ref<string | null>(null)
 
 const filteredHolds = computed(() => {
   let items = allHolds.value
-  if (filterType.value) items = items.filter((h: RuntimeHoldSummary) => h.hold_type === filterType.value)
-  if (filterStatus.value) items = items.filter((h: RuntimeHoldSummary) => h.status === filterStatus.value)
+  if (filterType.value)
+    items = items.filter((h: RuntimeHoldSummary) => h.hold_type === filterType.value)
+  if (filterStatus.value)
+    items = items.filter((h: RuntimeHoldSummary) => h.status === filterStatus.value)
   return [...items].sort((a, b) => {
     const severity: Record<string, number> = {
-      SAFETY_ESTOP: 0, RUNTIME_RECONCILIATION: 1, MANUAL_HOLD: 2
+      SAFETY_ESTOP: 0,
+      RUNTIME_RECONCILIATION: 1,
+      MANUAL_HOLD: 2
     }
     return (severity[a.hold_type] ?? 3) - (severity[b.hold_type] ?? 3)
   })
 })
 
 function holdTypeLabel(type: string): string {
-  const m: Record<string, string> = { SAFETY_ESTOP: '急停', RUNTIME_RECONCILIATION: '对账', MANUAL_HOLD: '阻断' }
+  const m: Record<string, string> = {
+    SAFETY_ESTOP: '急停',
+    RUNTIME_RECONCILIATION: '对账',
+    MANUAL_HOLD: '阻断'
+  }
   return m[type] ?? type
 }
 
 function holdTypeTone(type: string): RuntimeTone {
-  const m: Record<string, RuntimeTone> = { SAFETY_ESTOP: 'danger', RUNTIME_RECONCILIATION: 'warning', MANUAL_HOLD: 'warning' }
+  const m: Record<string, RuntimeTone> = {
+    SAFETY_ESTOP: 'danger',
+    RUNTIME_RECONCILIATION: 'warning',
+    MANUAL_HOLD: 'warning'
+  }
   return m[type] ?? 'info'
 }
 
 function holdStatusLabel(s: string): string {
-  const m: Record<string, string> = { OPEN: '待处理', IN_PROGRESS: '处理中', RESOLVED: '已解决', VOIDED: '已作废', REOPENED: '重新打开' }
+  const m: Record<string, string> = {
+    OPEN: '待处理',
+    IN_PROGRESS: '处理中',
+    RESOLVED: '已解决',
+    VOIDED: '已作废',
+    REOPENED: '重新打开'
+  }
   return m[s] ?? s
 }
 
@@ -124,8 +180,15 @@ function holdTone(hold: RuntimeHoldSummary): RuntimeTone {
 function formatTime(iso: string | null | undefined): string {
   if (!iso) return ''
   try {
-    return new Date(iso).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
-  } catch { return iso }
+    return new Date(iso).toLocaleString('zh-CN', {
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  } catch {
+    return iso
+  }
 }
 
 function selectHold(id: number) {
@@ -136,28 +199,7 @@ async function loadHolds() {
   loading.value = true
   loadError.value = null
   try {
-    const worklineList: RuntimeWorklineSummary[] = await runtimeApiMethods.worklines().send()
-    const detailResults = await Promise.allSettled(
-      worklineList.map(wl => runtimeApiMethods.worklineDetail(wl.id).send())
-    )
-    const holdIdSet = new Set<number>()
-    for (const r of detailResults) {
-      if (r.status === 'fulfilled') {
-        for (const d of r.value.devices ?? []) {
-          for (const hid of d.active_runtime_hold_ids ?? []) holdIdSet.add(hid)
-        }
-      }
-    }
-    if (holdIdSet.size === 0) { allHolds.value = []; loading.value = false; return }
-    const holdResults = await Promise.allSettled(
-      Array.from(holdIdSet).map(id => runtimeApiMethods.runtimeHoldDetail(id).send())
-    )
-    const holds: RuntimeHoldSummary[] = []
-    for (const r of holdResults) {
-      if (r.status === 'fulfilled') holds.push(r.value.summary)
-      else ElMessage.warning('部分 Hold 查询失败')
-    }
-    allHolds.value = holds
+    allHolds.value = await runtimeApiMethods.runtimeHolds({ active_only: true, limit: 100 }).send()
   } catch (e: unknown) {
     loadError.value = e instanceof Error ? e.message : '未知错误'
   } finally {
@@ -165,7 +207,9 @@ async function loadHolds() {
   }
 }
 
-onMounted(() => { void loadHolds() })
+onMounted(() => {
+  void loadHolds()
+})
 </script>
 
 <style scoped>
