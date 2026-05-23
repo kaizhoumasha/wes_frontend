@@ -1,6 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
-import { ref } from 'vue'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { nextTick } from 'vue'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { SandboxCompletedSession, SandboxPendingOutbox } from '@/types/runtime'
 
 const mocks = vi.hoisted(() => {
   const sandboxPendingSend = vi.fn()
@@ -44,6 +45,7 @@ const mocks = vi.hoisted(() => {
     error: vi.fn(),
     warning: vi.fn(),
     info: vi.fn(),
+    lastEvent: undefined as unknown as { value: unknown },
     sandboxPendingSend,
     sandboxCompletedSend,
     sandboxCleanupSend,
@@ -61,6 +63,8 @@ const mocks = vi.hoisted(() => {
   }
 })
 
+const mountedWrappers: Array<{ unmount: () => void }> = []
+
 vi.mock('vue-router', () => ({
   useRoute: () => mocks.route,
   useRouter: () => mocks.router
@@ -74,9 +78,13 @@ vi.mock('@/stores/workline-runtime', () => ({
   useWorklineRuntimeStore: () => mocks.store
 }))
 
-vi.mock('@/composables/useRuntimeSSE', () => ({
-  useRuntimeSSE: () => ({ lastEvent: ref(null) })
-}))
+vi.mock('@/composables/useRuntimeSSE', async () => {
+  const vue = await vi.importActual<typeof import('vue')>('vue')
+  mocks.lastEvent = vue.ref(null)
+  return {
+    useRuntimeSSE: () => ({ lastEvent: mocks.lastEvent })
+  }
+})
 
 vi.mock('@/composables/usePermission', () => ({
   usePermission: () => ({ hasPermission: mocks.hasPermission })
@@ -109,9 +117,9 @@ async function mountPage() {
       stubs: {
         SandboxCycleStatus: true,
         SandboxActionList: {
-          props: ['items'],
+          props: ['items', 'completedItems'],
           template:
-            '<div><span v-for="item in items" :key="item.id">{{ item.dispatch_key }}</span></div>'
+            '<div><span v-for="item in items" :key="item.id">{{ item.dispatch_key }}</span><span v-for="entry in completedItems" :key="entry.session.id">completed-{{ entry.session.id }}</span></div>'
         },
         SandboxEventComposer: true,
         SandboxResultComposer: true,
@@ -132,14 +140,58 @@ async function mountPage() {
       }
     }
   })
+  mountedWrappers.push(wrapper)
   await flushPromises()
   return wrapper
 }
 
+function createOutbox(overrides: Partial<SandboxPendingOutbox> = {}): SandboxPendingOutbox {
+  return {
+    id: 1,
+    session_id: 10,
+    workline_id: 45,
+    dispatch_key: 'device-command:CMD-1',
+    dispatch_type: 'COMMAND',
+    target_type: 'DEVICE',
+    target_code: 'ARM03',
+    status: 'ACKED',
+    payload_json: {},
+    ...overrides
+  }
+}
+
+function createCompletedSession(sessionId: number): SandboxCompletedSession {
+  return {
+    session: {
+      id: sessionId,
+      session_code: `S-${sessionId}`,
+      status: 'COMPLETED',
+      barcode: null,
+      created_at: null,
+      started_at: null,
+      ended_at: null
+    },
+    outbox_items: []
+  }
+}
+
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>(next => {
+    resolve = next
+  })
+  return { promise, resolve }
+}
+
 describe('SandboxWorkbenchPage cleanup', () => {
+  afterEach(() => {
+    for (const wrapper of mountedWrappers.splice(0)) wrapper.unmount()
+  })
+
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.route.params.worklineId = '45'
+    if (mocks.lastEvent) mocks.lastEvent.value = null
     mocks.store.detail.summary.runtime_status = 'READY'
     mocks.store.detail.summary.active_safety_incident_id = null
     mocks.hasPermission.mockReturnValue(true)
@@ -276,5 +328,40 @@ describe('SandboxWorkbenchPage cleanup', () => {
 
     expect(mocks.runtimeApiMethods.clearEstop).not.toHaveBeenCalled()
     expect(mocks.warning).toHaveBeenCalledWith('工作线已切换，已取消本次恢复接收。')
+  })
+
+  it('refreshes summary and detail when safety SSE events arrive', async () => {
+    await mountPage()
+    vi.clearAllMocks()
+
+    mocks.lastEvent.value = {
+      domain: 'workline_safety',
+      entity: 'incident',
+      action: 'estop.activated',
+      keys: { workline_id: 45, incident_id: 7 }
+    }
+    await nextTick()
+    await flushPromises()
+
+    expect(mocks.store.loadWorklines).toHaveBeenCalledTimes(1)
+    expect(mocks.store.loadDetail).toHaveBeenCalledWith(45)
+    expect(mocks.runtimeApiMethods.sandboxPending).not.toHaveBeenCalled()
+    expect(mocks.runtimeApiMethods.sandboxCompleted).not.toHaveBeenCalled()
+  })
+
+  it('ignores sandbox responses that resolve after the workline route changes', async () => {
+    const pending = deferred<SandboxPendingOutbox[]>()
+    const completed = deferred<SandboxCompletedSession[]>()
+    mocks.sandboxPendingSend.mockReturnValueOnce(pending.promise)
+    mocks.sandboxCompletedSend.mockReturnValueOnce(completed.promise)
+    const wrapper = await mountPage()
+
+    mocks.route.params.worklineId = '46'
+    pending.resolve([createOutbox({ id: 99, dispatch_key: 'stale-command' })])
+    completed.resolve([createCompletedSession(888)])
+    await flushPromises()
+
+    expect(wrapper.text()).not.toContain('stale-command')
+    expect(wrapper.text()).not.toContain('completed-888')
   })
 })

@@ -474,9 +474,13 @@ const { lastEvent } = useRuntimeSSE(true)
 watch(lastEvent, event => {
   if (!event) return
   if (!isRelevantRuntimeEvent(event, { worklineId: worklineId.value })) return
-  if (!classifyRuntimeRefresh(event).sandbox) return
-  void loadPending()
-  void loadCompleted()
+  const refreshTargets = classifyRuntimeRefresh(event)
+  if (refreshTargets.worklines) void store.loadWorklines()
+  if (refreshTargets.detail || refreshTargets.activeIncident) void loadCurrentWorklineDetail()
+  if (refreshTargets.sandbox) {
+    void loadPending()
+    void loadCompleted()
+  }
 })
 
 // Pending / completed
@@ -592,8 +596,10 @@ function ensureResultNotSubmitted(outbox: SandboxPendingOutbox | null | undefine
 
 // API
 async function loadPending() {
+  const requestWorklineId = getRouteWorklineId()
   try {
-    const items = await runtimeApiMethods.sandboxPending(50, worklineId.value).send()
+    const items = await runtimeApiMethods.sandboxPending(50, requestWorklineId).send()
+    if (getRouteWorklineId() !== requestWorklineId) return
     pendingItems.value = (items || []).sort((a, b) => b.id - a.id)
   } catch {
     /* SSE will retry */
@@ -601,12 +607,19 @@ async function loadPending() {
 }
 
 async function loadCompleted() {
+  const requestWorklineId = getRouteWorklineId()
   try {
-    const items = await runtimeApiMethods.sandboxCompleted(50, worklineId.value).send()
+    const items = await runtimeApiMethods.sandboxCompleted(50, requestWorklineId).send()
+    if (getRouteWorklineId() !== requestWorklineId) return
     completedItems.value = items || []
   } catch {
     /* silent */
   }
+}
+
+async function loadCurrentWorklineDetail() {
+  const requestWorklineId = getRouteWorklineId()
+  await store.loadDetail(requestWorklineId)
 }
 
 async function loadPage() {
@@ -627,13 +640,13 @@ function queueSandboxRefresh() {
   clearRefreshTimers()
   void loadPending()
   void loadCompleted()
-  void store.loadDetail(worklineId.value)
+  void loadCurrentWorklineDetail()
   for (const delay of [800, 2000, 5000, 10000, 15000]) {
     refreshTimers.push(
       setTimeout(() => {
         void loadPending()
         void loadCompleted()
-        void store.loadDetail(worklineId.value)
+        void loadCurrentWorklineDetail()
       }, delay)
     )
   }
