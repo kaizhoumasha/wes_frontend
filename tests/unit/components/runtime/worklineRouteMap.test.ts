@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
-import WorklineRouteMap from '@/components/common/runtime/WorklineRouteMap.vue'
+import WorklineRouteMap from '@/components/runtime/monitor/WorklineRouteMap.vue'
 import type { RuntimeWorklineDeviceItem } from '@/types/runtime'
 
 function createDevice(

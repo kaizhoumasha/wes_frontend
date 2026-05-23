@@ -84,7 +84,7 @@ const canOpenRuntimeDevice = computed(() => hasPermission(BIZ_PERMISSIONS.device
 function openWorkline() {
   if (!props.detail.trace.workline_id) return
   router.push({
-    name: 'RuntimeWorklines',
+    name: 'RuntimeMonitor',
     query: buildRuntimeWorklineQuery(props.detail.trace.workline_id)
   })
 }
@@ -92,7 +92,7 @@ function openWorkline() {
 function openDevice() {
   if (!props.detail.trace.device_id || !props.detail.trace.workline_id) return
   router.push({
-    name: 'RuntimeWorklines',
+    name: 'RuntimeMonitor',
     query: buildRuntimeWorklineQuery(props.detail.trace.workline_id, props.detail.trace.device_id)
   })
 }

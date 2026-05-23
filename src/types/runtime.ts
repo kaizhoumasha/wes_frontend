@@ -36,6 +36,9 @@ export interface RuntimeTraceListItem {
   session_code: string
   trace_id?: string | null
   request_id?: string | null
+  last_inbox_id?: number | null
+  event_type?: string | null
+  event_payload?: Record<string, unknown> | null
   business_key?: string | null
   barcode?: string | null
   workline_id: number
@@ -377,6 +380,22 @@ export interface RuntimeSimulateEstopRequest {
 export interface RuntimeClearEstopRequest {
   checks: Record<string, boolean>
   reason?: string | null
+}
+
+export interface SandboxCleanupRequest {
+  dry_run: boolean
+  confirmation?: string | null
+}
+
+export type SandboxCleanupCounts = Record<string, number>
+
+export interface SandboxCleanupResponse {
+  workline_id: number
+  dry_run: boolean
+  deleted: boolean
+  counts: SandboxCleanupCounts
+  affected_session_ids: number[]
+  message: string
 }
 
 export interface RuntimeWorklineDeviceItem {

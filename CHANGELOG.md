@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0.0] - 2026-05-23
+
+### Added
+
+- 设备运行时支持从运行监控上下文打开设备详情抽屉，并可从设备当前会话直接跳转到 Trace 追溯。
+- 沙箱测试新增独立工作台深链，操作员可以从工作线选择进入带设备拓扑、Event Composer、Result 处置、清理和急停恢复的一体化调试界面。
+- 沙箱已完成卡片支持按设备和外部目标分组展示命令历史，失败设备组会在组头给出视觉标记。
+- 新增 Runtime Hold 列表直接查询入口，支持活跃 Hold 快速筛选和详情跳转。
+- 新增运行时导航、沙箱清理、沙箱动作流、Hold 列表、工作线详情竞态等回归测试覆盖。
+
+### Changed
+
+- 运行监控路由移除旧兼容重定向，统一使用 `/runtime/overview`、`/runtime/monitor`、`/runtime/traces`、`/runtime/holds`、`/runtime/sandbox` 和 `/runtime/devices`。
+- 沙箱工作台组件拆分并重组为当前页面容器，运行态页面继续复用全局 SSE 单例。
+- Runtime API 封装更新为直接调用新的 Hold 列表和沙箱清理端点，并同步最新权限与 Zod schema。
+- 管理端设备、工作线入口和运行时优先级队列统一跳转到新的运行监控路由名称。
+
+### Fixed
+
+- 修复沙箱恢复接收、清理确认、模拟急停和 Result 提交后的刷新与锁定回归。
+- 修复运行时页面在旧路由、查询参数和直接深链场景下的导航回归。
+- 修复工作线详情请求竞态，避免较早请求晚返回后覆盖较新的工作线详情。
+- 修复运行时 SSE 被页面重复订阅导致的重复连接问题。
+
 ## [0.3.0.1] - 2026-05-13
 
 ### Changed

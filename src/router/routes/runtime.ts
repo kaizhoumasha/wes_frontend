@@ -15,8 +15,6 @@ export const runtimeRoutes: RouteRecordRaw = {
     }
   },
   children: [
-    // ---- 新路由 ----
-
     {
       path: 'overview',
       name: 'RuntimeOverview',
@@ -112,6 +110,20 @@ export const runtimeRoutes: RouteRecordRaw = {
       }
     },
     {
+      path: 'sandbox/:worklineId',
+      name: 'RuntimeSandboxWorkbench',
+      component: () => import('@/views/runtime/sandbox/SandboxWorkbenchPage.vue'),
+      meta: {
+        requiresAuth: true,
+        title: '沙箱工作台',
+        permission: BIZ_PERMISSIONS.workline.update,
+        menu: {
+          name: 'runtime:sandbox:workbench',
+          hidden: true
+        }
+      }
+    },
+    {
       path: 'devices',
       name: 'RuntimeDevices',
       component: () => import('@/views/runtime/devices/DeviceRuntimePage.vue'),
@@ -126,37 +138,6 @@ export const runtimeRoutes: RouteRecordRaw = {
           sortOrder: 6
         }
       }
-    },
-
-    // ---- 旧路由重定向 ----
-
-    {
-      path: 'worklines',
-      redirect: to => ({
-        name: 'RuntimeMonitor',
-        query: to.query
-      })
-    },
-    {
-      path: 'status',
-      redirect: to => ({
-        name: 'RuntimeOverview',
-        query: to.query
-      })
-    },
-    {
-      path: 'dashboard',
-      redirect: to => ({
-        name: 'RuntimeOverview',
-        query: to.query
-      })
-    },
-    {
-      path: 'exceptions/:holdId',
-      redirect: to => ({
-        name: 'RuntimeHoldDetail',
-        params: to.params
-      })
     }
   ]
 }

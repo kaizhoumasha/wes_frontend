@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
-import SandboxActionList from '@/components/common/runtime/SandboxActionList.vue'
+import SandboxActionList from '@/components/runtime/sandbox/SandboxActionList.vue'
 import type {
   RuntimeTraceListItem,
   SandboxCompletedSession,
@@ -25,6 +25,12 @@ function createOutbox(overrides: Partial<SandboxPendingOutbox> = {}): SandboxPen
 const routerLinkStub = {
   props: ['to'],
   template: '<a><slot /></a>'
+}
+
+function findButtonByText(wrapper: ReturnType<typeof mount>, text: string) {
+  const button = wrapper.findAll('button').find(item => item.text().includes(text))
+  expect(button).toBeDefined()
+  return button!
 }
 
 describe('sandbox safety lock', () => {
@@ -57,8 +63,8 @@ describe('sandbox safety lock', () => {
       }
     })
 
-    expect(wrapper.text()).toContain('需人工推进命令')
-    expect(wrapper.findAll('.sandbox-action-list__pending-session')).toHaveLength(1)
+    expect(wrapper.text()).toContain('在途物料')
+    expect(wrapper.findAll('.sandbox-action-list__material-card')).toHaveLength(1)
     expect(wrapper.text()).toContain('PKG-12')
     expect(wrapper.text()).toContain('WAITING_REEL')
     expect(wrapper.text()).toContain('编排中')
@@ -117,9 +123,9 @@ describe('sandbox safety lock', () => {
       }
     })
 
-    expect(wrapper.text()).toContain('需人工推进命令')
+    expect(wrapper.text()).toContain('在途物料')
     expect(wrapper.text()).toContain('3 条可操作')
-    expect(wrapper.findAll('.sandbox-action-list__pending-session')).toHaveLength(2)
+    expect(wrapper.findAll('.sandbox-action-list__material-card')).toHaveLength(2)
     expect(wrapper.text()).toContain('PKG-10')
     expect(wrapper.text()).toContain('WAITING_MEASUREMENT')
     expect(wrapper.text()).toContain('2 条命令')
@@ -162,7 +168,7 @@ describe('sandbox safety lock', () => {
       }
     })
 
-    expect(wrapper.findAll('.sandbox-action-list__pending-session')).toHaveLength(1)
+    expect(wrapper.findAll('.sandbox-action-list__material-card')).toHaveLength(1)
     expect(wrapper.text()).toContain('1 条可操作')
     expect(wrapper.text()).toContain('1 条命令')
     expect(wrapper.text()).not.toContain('事件已接收，等待运行时产生下一步命令。')
@@ -189,7 +195,7 @@ describe('sandbox safety lock', () => {
       }
     })
 
-    const button = wrapper.get('button')
+    const button = findButtonByText(wrapper, '模拟 ACK')
     await button.trigger('click')
 
     expect(wrapper.text()).toContain('模拟 ACK')
@@ -216,7 +222,7 @@ describe('sandbox safety lock', () => {
       }
     })
 
-    const button = wrapper.get('button')
+    const button = findButtonByText(wrapper, '模拟 ACK')
 
     expect(button.attributes('disabled')).toBeDefined()
     expect(button.attributes('title')).toBe('软件急停冻结')
@@ -257,7 +263,7 @@ describe('sandbox safety lock', () => {
       }
     })
 
-    expect(wrapper.text()).toContain('暂无需人工推进命令')
+    expect(wrapper.text()).toContain('暂无在途物料')
     expect(wrapper.text()).not.toContain('模拟 Result')
   })
 
@@ -352,7 +358,7 @@ describe('sandbox safety lock', () => {
       }
     })
 
-    expect(wrapper.text()).toContain('历史命令')
+    expect(wrapper.text()).toContain('已完成')
     expect(wrapper.text()).toContain('PKG-12')
     expect(wrapper.text()).toContain('DEVICE_BUSY')
   })
@@ -377,7 +383,7 @@ describe('sandbox safety lock', () => {
       }
     })
 
-    const button = wrapper.get('button')
+    const button = findButtonByText(wrapper, '模拟 Result')
 
     expect(wrapper.text()).toContain('模拟 Result')
     expect(button.attributes('disabled')).toBeDefined()
@@ -429,7 +435,7 @@ describe('sandbox safety lock', () => {
       }
     })
 
-    expect(wrapper.text()).toContain('历史命令')
+    expect(wrapper.text()).toContain('已完成')
     await wrapper.get('.sandbox-action-list__completed-session-header').trigger('click')
     expect(wrapper.text()).toContain('ACK_TIMEOUT: 设备未 ACK')
     expect(wrapper.text()).toContain('Runtime Hold #77')

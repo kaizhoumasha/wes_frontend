@@ -174,7 +174,6 @@ const verdictSummary = computed(() =>
   computeVerdictSummary(priorityItems.value, overview.value, worklines.value)
 )
 
-
 function statValue(key: string): number {
   return overview.value.stats.find(s => s.key === key)?.value ?? 0
 }
@@ -380,7 +379,7 @@ const refreshCore = createCoalescedAsyncTask(async () => {
 
 function openTrace(trace: RuntimeTraceListItem) {
   router.push({
-    name: 'RuntimeWorklines',
+    name: 'RuntimeTraces',
     query: {
       traceId: trace.trace_id || undefined,
       sessionId: trace.trace_id ? undefined : String(trace.session_id),
@@ -391,7 +390,7 @@ function openTrace(trace: RuntimeTraceListItem) {
 }
 
 function goTraceExplorer() {
-  router.push({ name: 'RuntimeWorklines' })
+  router.push({ name: 'RuntimeTraces' })
 }
 
 function handleNavigate(item: PriorityItem) {

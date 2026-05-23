@@ -3,9 +3,7 @@ import type {
   RuntimeOverviewResponse,
   RuntimeWorklineSummary
 } from '@/types/runtime'
-import {
-  buildRuntimeWorklineQuery
-} from '@/utils/runtime-route'
+import { buildRuntimeWorklineQuery } from '@/utils/runtime-route'
 import { resolveRuntimeProgressKey, resolveRuntimeProgressLabel } from '@/utils/runtime-display'
 
 export type ActionTier = 'critical' | 'watch' | 'known'
@@ -20,7 +18,8 @@ export interface PriorityItem {
   score: number
 }
 
-const RUNTIME_ROUTE_NAME = 'RuntimeWorklines' as const
+const RUNTIME_MONITOR_ROUTE_NAME = 'RuntimeMonitor' as const
+const RUNTIME_TRACE_ROUTE_NAME = 'RuntimeTraces' as const
 
 const THRESHOLDS = {
   BACKLOG_CRITICAL: 50,
@@ -32,23 +31,18 @@ function statValue(stats: RuntimeOverviewResponse['stats'], key: string): number
   return stats.find(s => s.key === key)?.value ?? 0
 }
 
-function classifyWorklines(
-  worklines: RuntimeWorklineSummary[],
-  items: PriorityItem[]
-): void {
+function classifyWorklines(worklines: RuntimeWorklineSummary[], items: PriorityItem[]): void {
   for (const wl of worklines) {
     if (wl.failed_session_count > 0 || wl.offline_device_count > 0) {
       const score =
-        wl.failed_session_count * 10 +
-        wl.offline_device_count * 8 +
-        wl.error_device_count * 6
+        wl.failed_session_count * 10 + wl.offline_device_count * 8 + wl.error_device_count * 6
       items.push({
         tier: 'critical',
         entity: 'workline',
         id: wl.id,
         summary: `${wl.line_name} — ${wl.failed_session_count} 失败 / ${wl.offline_device_count} 离线设备`,
         context: `${wl.line_code} · ${wl.zone_name || '未配置区域'}`,
-        navigateTo: { name: RUNTIME_ROUTE_NAME, query: buildRuntimeWorklineQuery(wl.id) },
+        navigateTo: { name: RUNTIME_MONITOR_ROUTE_NAME, query: buildRuntimeWorklineQuery(wl.id) },
         score
       })
     } else if (wl.waiting_session_count >= THRESHOLDS.WAITING_SESSION_WATCH) {
@@ -58,17 +52,14 @@ function classifyWorklines(
         id: wl.id,
         summary: `${wl.line_name} — 等待堆积 ${wl.waiting_session_count}`,
         context: `${wl.line_code} · 活跃 ${wl.active_session_count}`,
-        navigateTo: { name: RUNTIME_ROUTE_NAME, query: buildRuntimeWorklineQuery(wl.id) },
+        navigateTo: { name: RUNTIME_MONITOR_ROUTE_NAME, query: buildRuntimeWorklineQuery(wl.id) },
         score: wl.waiting_session_count * 2
       })
     }
   }
 }
 
-function classifyDevices(
-  devices: RuntimeDeviceSummary[],
-  items: PriorityItem[]
-): void {
+function classifyDevices(devices: RuntimeDeviceSummary[], items: PriorityItem[]): void {
   for (const dev of devices) {
     if (dev.device_status === 'ERROR' || dev.device_status === 'OFFLINE') {
       items.push({
@@ -78,7 +69,7 @@ function classifyDevices(
         summary: `${dev.device_name} — ${dev.device_status}`,
         context: `${dev.device_code} · ${dev.workline_name || '未关联工作线'}`,
         navigateTo: {
-          name: RUNTIME_ROUTE_NAME,
+          name: RUNTIME_MONITOR_ROUTE_NAME,
           query: buildRuntimeWorklineQuery(dev.workline_id, dev.id)
         },
         score: dev.device_status === 'OFFLINE' ? 90 : 80
@@ -91,7 +82,7 @@ function classifyDevices(
         summary: `${dev.device_name} — 维护中`,
         context: `${dev.device_code}`,
         navigateTo: {
-          name: RUNTIME_ROUTE_NAME,
+          name: RUNTIME_MONITOR_ROUTE_NAME,
           query: buildRuntimeWorklineQuery(dev.workline_id, dev.id)
         },
         score: 10
@@ -117,9 +108,7 @@ function classifyTraces(
     const repeatCount = failureCounts.get(dedupeKey) ?? 1
 
     if (repeatCount >= THRESHOLDS.REPEAT_FAILURE_MIN) {
-      const existing = items.find(
-        i => i.entity === 'trace' && i.id === `repeat-${dedupeKey}`
-      )
+      const existing = items.find(i => i.entity === 'trace' && i.id === `repeat-${dedupeKey}`)
       if (!existing) {
         items.push({
           tier: 'watch',
@@ -128,13 +117,13 @@ function classifyTraces(
           summary: `重复失败 (${repeatCount} 次) — ${progressLabel}`,
           context: `${trace.device_name || '未关联设备'} · ${trace.workline_name || ''}`,
           navigateTo: {
-            name: RUNTIME_ROUTE_NAME,
+            name: RUNTIME_TRACE_ROUTE_NAME,
             query: buildRuntimeWorklineQuery(
               trace.workline_id,
               undefined,
               'trace',
               trace.trace_id ? undefined : trace.session_id,
-              trace.trace_id,
+              trace.trace_id
             )
           },
           score: repeatCount * 5
@@ -148,13 +137,13 @@ function classifyTraces(
         summary: `${trace.session_code} — 已结束`,
         context: `${trace.workline_name || ''} · ${trace.device_name || ''}`,
         navigateTo: {
-          name: RUNTIME_ROUTE_NAME,
+          name: RUNTIME_TRACE_ROUTE_NAME,
           query: buildRuntimeWorklineQuery(
             trace.workline_id,
             undefined,
             'trace',
             trace.trace_id ? undefined : trace.session_id,
-            trace.trace_id,
+            trace.trace_id
           )
         },
         score: 5
@@ -163,10 +152,7 @@ function classifyTraces(
   }
 }
 
-function classifyBacklog(
-  stats: RuntimeOverviewResponse['stats'],
-  items: PriorityItem[]
-): void {
+function classifyBacklog(stats: RuntimeOverviewResponse['stats'], items: PriorityItem[]): void {
   const backlog = statValue(stats, 'inbox_backlog') + statValue(stats, 'outbox_backlog')
   if (backlog >= THRESHOLDS.BACKLOG_CRITICAL) {
     items.push({
@@ -175,7 +161,7 @@ function classifyBacklog(
       id: 'system-backlog',
       summary: `系统积压 ${backlog} — 超过阈值`,
       context: `inbox ${statValue(stats, 'inbox_backlog')} / outbox ${statValue(stats, 'outbox_backlog')}`,
-      navigateTo: { name: RUNTIME_ROUTE_NAME, query: {} },
+      navigateTo: { name: RUNTIME_MONITOR_ROUTE_NAME, query: {} },
       score: backlog * 0.5
     })
   }
@@ -215,7 +201,10 @@ export function computeVerdictSummary(
     critical: items.filter(i => i.tier === 'critical').length,
     watch: items.filter(i => i.tier === 'watch').length,
     known: items.filter(i => i.tier === 'known').length,
-    totalSessions: worklines.reduce((sum, wl) => sum + wl.active_session_count + wl.waiting_session_count, 0),
+    totalSessions: worklines.reduce(
+      (sum, wl) => sum + wl.active_session_count + wl.waiting_session_count,
+      0
+    ),
     totalDevices: overview.device_health.total,
     runningSessions: statValue(overview.stats, 'running_sessions')
   }

@@ -1,5 +1,8 @@
 <template>
-  <div v-loading="store.loading" class="runtime-page">
+  <div
+    v-loading="store.loading"
+    class="runtime-page"
+  >
     <div class="runtime-page__header">
       <div>
         <h1 class="runtime-page__title">工作线监控</h1>
@@ -11,7 +14,10 @@
 
     <div class="monitor-layout">
       <!-- 左侧工作线目录 -->
-      <el-card shadow="never" class="monitor-panel monitor-layout__list">
+      <el-card
+        shadow="never"
+        class="monitor-panel monitor-layout__list"
+      >
         <template #header>
           <div class="monitor-panel__header">
             <el-input
@@ -24,7 +30,10 @@
         </template>
 
         <div class="monitor-layout__list-scroll">
-          <div v-if="filteredWorklines.length" class="monitor-directory-list">
+          <div
+            v-if="filteredWorklines.length"
+            class="monitor-directory-list"
+          >
             <button
               v-for="item in filteredWorklines"
               :key="item.id"
@@ -46,8 +55,8 @@
                 {{ item.line_code }} · {{ item.zone_name || '未配置区域' }}
               </div>
               <div class="monitor-directory-card__hint">
-                活跃 {{ item.active_session_count }} · 等待 {{ item.waiting_session_count }}
-                · 失败 {{ item.failed_session_count }} · 离线 {{ item.offline_device_count }}
+                活跃 {{ item.active_session_count }} · 等待 {{ item.waiting_session_count }} · 失败
+                {{ item.failed_session_count }} · 离线 {{ item.offline_device_count }}
               </div>
             </button>
           </div>
@@ -98,7 +107,11 @@
           />
         </template>
 
-        <el-card v-else shadow="never" class="monitor-panel monitor-layout__empty">
+        <el-card
+          v-else
+          shadow="never"
+          class="monitor-panel monitor-layout__empty"
+        >
           <RuntimeEmptyState
             title="还没有选中工作线"
             description="请从左侧工作线目录选择一条工作线，进入拓扑与运行队列视图。"
@@ -136,7 +149,11 @@ import {
   getWorklineRiskTone as worklineRiskTone,
   readPositiveInt
 } from '@/utils/runtime-display'
-import type { RuntimeSafetyIncidentSummary, RuntimeTraceListItem, RuntimeWorklineSummary } from '@/types/runtime'
+import type {
+  RuntimeSafetyIncidentSummary,
+  RuntimeTraceListItem,
+  RuntimeWorklineSummary
+} from '@/types/runtime'
 
 const route = useRoute()
 const router = useRouter()
@@ -156,9 +173,10 @@ const filteredWorklines = computed(() => {
   if (!searchText.value) return store.orderedWorklines
   const q = searchText.value.toLowerCase()
   return store.orderedWorklines.filter(
-    w => w.line_name.toLowerCase().includes(q)
-      || w.line_code.toLowerCase().includes(q)
-      || (w.zone_name ?? '').toLowerCase().includes(q)
+    w =>
+      w.line_name.toLowerCase().includes(q) ||
+      w.line_code.toLowerCase().includes(q) ||
+      (w.zone_name ?? '').toLowerCase().includes(q)
   )
 })
 
@@ -171,9 +189,27 @@ const currentWorklineSummary = computed(() => {
 
 const currentWorklineSafetyVerdict = computed(() => {
   const s = currentWorklineSummary.value
-  if (!s) return { tone: 'success' as const, label: '稳定', priority: 0, safetyLocked: false, canAttemptClear: false, blockedReason: null, evidenceFreshness: 'not_required' as const, state: 'UNLOCKED' as const }
-  const stub = s.active_safety_incident_id ? ({ status: 'OPEN' } as unknown as RuntimeSafetyIncidentSummary) : null
-  return getWorklineRuntimeVerdict(s, stub, store.detail?.summary.id === s.id ? getWorklineDeviceSafetyEvidence(store.detail.devices) : undefined)
+  if (!s)
+    return {
+      tone: 'success' as const,
+      label: '稳定',
+      priority: 0,
+      safetyLocked: false,
+      canAttemptClear: false,
+      blockedReason: null,
+      evidenceFreshness: 'not_required' as const,
+      state: 'UNLOCKED' as const
+    }
+  const stub = s.active_safety_incident_id
+    ? ({ status: 'OPEN' } as unknown as RuntimeSafetyIncidentSummary)
+    : null
+  return getWorklineRuntimeVerdict(
+    s,
+    stub,
+    store.detail?.summary.id === s.id
+      ? getWorklineDeviceSafetyEvidence(store.detail.devices)
+      : undefined
+  )
 })
 
 const hasRuntimeHoldProjection = computed(() => {
@@ -181,9 +217,20 @@ const hasRuntimeHoldProjection = computed(() => {
   for (const d of store.detail?.devices ?? []) {
     for (const hid of d.active_runtime_hold_ids ?? []) ids.add(hid)
   }
-  const openIssues = (store.detail?.devices ?? []).reduce((t, d) => t + (d.open_issue_count ?? 0), 0)
-  const blockedOutbox = (store.detail?.devices ?? []).reduce((t, d) => t + (d.blocked_outbox_count ?? 0), 0)
-  return ids.size > 0 || openIssues > 0 || blockedOutbox > 0 || currentWorklineSummary.value?.runtime_status === RECONCILING_RUNTIME_STATUS
+  const openIssues = (store.detail?.devices ?? []).reduce(
+    (t, d) => t + (d.open_issue_count ?? 0),
+    0
+  )
+  const blockedOutbox = (store.detail?.devices ?? []).reduce(
+    (t, d) => t + (d.blocked_outbox_count ?? 0),
+    0
+  )
+  return (
+    ids.size > 0 ||
+    openIssues > 0 ||
+    blockedOutbox > 0 ||
+    currentWorklineSummary.value?.runtime_status === RECONCILING_RUNTIME_STATUS
+  )
 })
 
 function lastActivityLabel(item: RuntimeWorklineSummary) {
@@ -195,20 +242,29 @@ const refreshWorklines = createCoalescedAsyncTask(async () => {
   try {
     await store.loadWorklines()
     if (!selectedWorklineId.value && store.worklines[0]?.id) {
-      await router.replace({ query: { ...route.query, ...buildRuntimeWorklineQuery(store.worklines[0].id) } })
+      await router.replace({
+        query: { ...route.query, ...buildRuntimeWorklineQuery(store.worklines[0].id) }
+      })
     }
     sseStore.markRefreshedAt()
-  } finally { store.loading = false }
+  } finally {
+    store.loading = false
+  }
 })
 
 const refreshDetail = createCoalescedAsyncTask(async () => {
-  if (!selectedWorklineId.value) { store.clearDetail(); return }
+  if (!selectedWorklineId.value) {
+    store.clearDetail()
+    return
+  }
   if (store.detail?.summary.id === selectedWorklineId.value) return
   store.loading = true
   try {
     await store.loadDetail(selectedWorklineId.value)
     sseStore.markRefreshedAt()
-  } finally { store.loading = false }
+  } finally {
+    store.loading = false
+  }
 })
 
 function selectWorkline(row: RuntimeWorklineSummary) {
@@ -223,7 +279,11 @@ function openDevice(deviceId: number) {
 function openTrace(session: RuntimeTraceListItem) {
   router.push({
     name: 'RuntimeTraces',
-    query: { sessionId: String(session.session_id), traceId: session.trace_id ?? undefined, worklineId: String(session.workline_id) }
+    query: {
+      sessionId: String(session.session_id),
+      traceId: session.trace_id ?? undefined,
+      worklineId: String(session.workline_id)
+    }
   })
 }
 
@@ -232,30 +292,67 @@ async function clearWorklineEstop() {
   const wid = selectedWorklineId.value
   if (!wid) return
   try {
-    await ElMessageBox.confirm('确认现场/沙箱设备已复位、安全区域已清空？', '恢复 WorkLine 接收', { confirmButtonText: '恢复接收', cancelButtonText: '取消', type: 'warning' })
-  } catch { return }
+    await ElMessageBox.confirm('确认现场/沙箱设备已复位、安全区域已清空？', '恢复 WorkLine 接收', {
+      confirmButtonText: '恢复接收',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+  } catch {
+    return
+  }
   clearingWorklineEstop.value = true
   try {
-    await runtimeApiMethods.clearEstop(wid, { reason: '人工确认 WorkLine 软件急停解除', checks: { estop_button_reset: true, area_safe: true, devices_reset: true, operator_confirmed: true } }).send()
+    await runtimeApiMethods
+      .clearEstop(wid, {
+        reason: '人工确认 WorkLine 软件急停解除',
+        checks: {
+          estop_button_reset: true,
+          area_safe: true,
+          devices_reset: true,
+          operator_confirmed: true
+        }
+      })
+      .send()
     ElMessage.success('已恢复接收新流程')
     await refreshDetail()
-  } catch (e: unknown) { ElMessage.error(getErrorMessage(e, '恢复接收失败')) }
-  finally { clearingWorklineEstop.value = false }
+  } catch (e: unknown) {
+    ElMessage.error(getErrorMessage(e, '恢复接收失败'))
+  } finally {
+    clearingWorklineEstop.value = false
+  }
 }
 
-onMounted(() => { void refreshWorklines() })
-
-watch(() => selectedWorklineId.value, (next, prev) => {
-  if (next && next !== prev) void refreshDetail()
+onMounted(() => {
+  void (async () => {
+    await refreshWorklines()
+    if (selectedWorklineId.value && store.detail?.summary.id !== selectedWorklineId.value) {
+      await refreshDetail()
+    }
+  })()
 })
 
-watch(() => sseStore.lastEvent, event => {
-  if (!sseStore.live || !event) return
-  if (!isRelevantRuntimeEvent(event, { worklineId: store.detail?.summary.id ?? selectedWorklineId.value })) return
-  const targets = classifyRuntimeRefresh(event)
-  if (targets.detail && selectedWorklineId.value) void refreshDetail()
-  if (targets.worklines) void refreshWorklines()
-})
+watch(
+  () => selectedWorklineId.value,
+  (next, prev) => {
+    if (next && next !== prev) void refreshDetail()
+  }
+)
+
+watch(
+  () => sseStore.lastEvent,
+  event => {
+    if (!sseStore.live || !event) return
+    if (
+      !isRelevantRuntimeEvent(event, {
+        worklineId: store.detail?.summary.id ?? selectedWorklineId.value
+      })
+    )
+      return
+    const targets = classifyRuntimeRefresh(event)
+    if (targets.detail && selectedWorklineId.value) void refreshDetail()
+    if (targets.worklines) void refreshWorklines()
+  }
+)
 </script>
 
 <style scoped>
