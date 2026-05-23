@@ -18,6 +18,7 @@ export const useWorklineRuntimeStore = defineStore('workline-runtime', () => {
   const worklines = ref<RuntimeWorklineSummary[]>([])
   const detail = ref<RuntimeWorklineDetailResponse | null>(null)
   const loading = ref(false)
+  let detailRequestSeq = 0
 
   const orderedWorklines = computed(() =>
     sortByScoreDesc(worklines.value, getWorklineRiskScore, item => item.id)
@@ -58,7 +59,11 @@ export const useWorklineRuntimeStore = defineStore('workline-runtime', () => {
   }
 
   async function loadDetail(worklineId: number) {
-    detail.value = await runtimeApiMethods.worklineDetail(worklineId).send()
+    const requestSeq = ++detailRequestSeq
+    const nextDetail = await runtimeApiMethods.worklineDetail(worklineId).send()
+    if (requestSeq === detailRequestSeq) {
+      detail.value = nextDetail
+    }
   }
 
   const refreshWorklines = createCoalescedAsyncTask(async () => {
@@ -82,6 +87,7 @@ export const useWorklineRuntimeStore = defineStore('workline-runtime', () => {
   })
 
   function clearDetail() {
+    detailRequestSeq += 1
     detail.value = null
   }
 
