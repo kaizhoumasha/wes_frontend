@@ -55,7 +55,9 @@
       <span
         v-else-if="!activeSession"
         class="sandbox-cycle-status__counts-empty"
-      >无活跃会话</span>
+      >
+        无活跃会话
+      </span>
     </div>
   </div>
 </template>
@@ -103,7 +105,9 @@ const blockedCount = computed(
       .length
 )
 
-const hasActions = computed(() => newCount.value + sentCount.value + ackedCount.value + blockedCount.value > 0)
+const hasActions = computed(
+  () => newCount.value + sentCount.value + ackedCount.value + blockedCount.value > 0
+)
 
 const phase = computed<'idle' | 'action' | 'done'>(() => {
   const hasTerminal = props.activeSessions.some(s =>

@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
-import SessionBoard from '@/components/common/runtime/SessionBoard.vue'
+import SessionBoard from '@/components/runtime/monitor/SessionBoard.vue'
 import type { RuntimeTraceListItem } from '@/types/runtime'
 
 function createTrace(overrides: Partial<RuntimeTraceListItem> = {}): RuntimeTraceListItem {

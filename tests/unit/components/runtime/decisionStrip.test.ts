@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
-import DecisionStrip from '@/components/common/runtime/DecisionStrip.vue'
+import DecisionStrip from '@/components/runtime/devices/DecisionStrip.vue'
 import type { RuntimeWorklineDetailResponse, RuntimeWorklineSummary } from '@/types/runtime'
 
 function createSummary(overrides: Partial<RuntimeWorklineSummary> = {}): RuntimeWorklineSummary {

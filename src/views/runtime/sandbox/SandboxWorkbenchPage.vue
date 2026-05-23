@@ -72,6 +72,7 @@
         </el-button>
         <el-button
           v-if="safetyLocked"
+          data-test="sandbox-clear-estop"
           type="success"
           size="small"
           plain
@@ -380,7 +381,10 @@ const safetyVerdict = computed(() => {
   return getWorklineRuntimeVerdict(s, stub, evidence)
 })
 const safetyLocked = computed(() => safetyVerdict.value.safetyLocked)
-const canClearEstop = computed(() => safetyVerdict.value.canAttemptClear)
+const canClearWorklineEstop = computed(() => hasPermission(BIZ_PERMISSIONS.workline.clearEstop))
+const canClearEstop = computed(
+  () => canClearWorklineEstop.value && safetyVerdict.value.canAttemptClear
+)
 const safetyBlockedReason = computed(
   () => safetyVerdict.value.blockedReason || SAFETY_LOCKED_REASON
 )
@@ -756,15 +760,51 @@ function isConfirmCancel(error: unknown): boolean {
   return error === 'cancel' || error === 'close'
 }
 
-function requestClearEstop() {
-  if (!canClearEstop.value) {
-    ElMessage.error('当前状态不能恢复')
+async function requestClearEstop() {
+  if (clearEstopLoading.value) return
+  if (!canClearWorklineEstop.value) {
+    ElMessage.error('需要 biz:workline:clear-estop 权限')
+    return
+  }
+  if (!safetyVerdict.value.canAttemptClear) {
+    ElMessage.error('当前状态不能通过急停恢复入口处理')
+    return
+  }
+  const clearWorklineId = getRouteWorklineId()
+  try {
+    await ElMessageBox.confirm('确认现场/沙箱设备已复位、安全区域已清空？', '恢复 WorkLine 接收', {
+      confirmButtonText: '恢复接收',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+  } catch {
+    return
+  }
+  if (getRouteWorklineId() !== clearWorklineId) {
+    ElMessage.warning('工作线已切换，已取消本次恢复接收。')
     return
   }
   clearEstopLoading.value = true
-  store.loadDetail(worklineId.value).finally(() => {
+  try {
+    await runtimeApiMethods
+      .clearEstop(clearWorklineId, {
+        reason: '人工确认 WorkLine 软件急停解除',
+        checks: {
+          estop_button_reset: true,
+          area_safe: true,
+          devices_reset: true,
+          operator_confirmed: true
+        }
+      })
+      .send()
+    ElMessage.success('已恢复接收新流程')
+    void store.loadWorklines()
+    queueSandboxRefresh()
+  } catch (e: unknown) {
+    ElMessage.error(getErrorMessage(e, '恢复接收失败'))
+  } finally {
     clearEstopLoading.value = false
-  })
+  }
 }
 
 function handleEventSubmitted() {

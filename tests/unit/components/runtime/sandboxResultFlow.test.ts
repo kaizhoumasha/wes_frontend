@@ -1,23 +1,53 @@
-import { mount } from '@vue/test-utils'
-import { nextTick, ref } from 'vue'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { ref } from 'vue'
 import type { SandboxPendingOutbox } from '@/types/runtime'
 
 const mocks = vi.hoisted(() => {
   const pendingSend = vi.fn()
   const completedSend = vi.fn()
-  const refresh = vi.fn()
+  const summary = {
+    id: 20,
+    line_code: 'WL-20',
+    line_name: 'Workline 20',
+    runtime_status: 'READY',
+    active_safety_incident_id: null
+  }
+  const store = {
+    detail: {
+      summary,
+      devices: [{ id: 101, device_code: 'ARM01', device_name: '机械臂' }],
+      active_sessions: []
+    },
+    findSummary: vi.fn(() => summary),
+    loadWorklines: vi.fn().mockResolvedValue(undefined),
+    loadDetail: vi.fn().mockResolvedValue(undefined),
+    clearDetail: vi.fn()
+  }
 
   return {
+    route: { params: { worklineId: '20' } },
+    router: { push: vi.fn() },
+    hasPermission: vi.fn(() => true),
     pendingSend,
     completedSend,
-    refresh,
+    store,
     runtimeApiMethods: {
       sandboxPending: vi.fn(() => ({ send: pendingSend })),
-      sandboxCompleted: vi.fn(() => ({ send: completedSend }))
+      sandboxCompleted: vi.fn(() => ({ send: completedSend })),
+      sandboxCleanup: vi.fn(() => ({ send: vi.fn() })),
+      sandboxSimulateEstop: vi.fn(() => ({ send: vi.fn() })),
+      sandboxAck: vi.fn(() => ({ send: vi.fn() })),
+      replayInbox: vi.fn(() => ({ send: vi.fn() })),
+      clearEstop: vi.fn(() => ({ send: vi.fn() }))
     }
   }
 })
+
+vi.mock('vue-router', () => ({
+  useRoute: () => mocks.route,
+  useRouter: () => mocks.router
+}))
 
 vi.mock('@/api/modules/runtime', () => ({
   runtimeApiMethods: mocks.runtimeApiMethods
@@ -27,10 +57,12 @@ vi.mock('@/composables/useRuntimeSSE', () => ({
   useRuntimeSSE: () => ({ lastEvent: ref(null) })
 }))
 
+vi.mock('@/composables/usePermission', () => ({
+  usePermission: () => ({ hasPermission: mocks.hasPermission })
+}))
+
 vi.mock('@/stores/workline-runtime', () => ({
-  useWorklineRuntimeStore: () => ({
-    detail: { active_sessions: [] }
-  })
+  useWorklineRuntimeStore: () => mocks.store
 }))
 
 function createOutbox(overrides: Partial<SandboxPendingOutbox> = {}): SandboxPendingOutbox {
@@ -48,15 +80,54 @@ function createOutbox(overrides: Partial<SandboxPendingOutbox> = {}): SandboxPen
   }
 }
 
-async function flushAsync() {
-  await Promise.resolve()
-  await nextTick()
+async function mountPage() {
+  const { default: SandboxWorkbenchPage } =
+    await import('@/views/runtime/sandbox/SandboxWorkbenchPage.vue')
+  const wrapper = mount(SandboxWorkbenchPage, {
+    global: {
+      directives: {
+        loading: {}
+      },
+      stubs: {
+        SandboxCycleStatus: true,
+        WorklineRouteMap: true,
+        SandboxEventComposer: true,
+        ElAlert: true,
+        ElDivider: true,
+        ElButton: {
+          props: ['disabled', 'loading'],
+          template:
+            '<button :disabled="disabled" :data-loading="loading ? true : undefined" @click="$emit(`click`)"><slot /></button>'
+        },
+        StandardDrawer: {
+          props: ['modelValue'],
+          template: '<aside v-if="modelValue"><slot name="header" /><slot /></aside>'
+        },
+        SandboxActionList: {
+          props: ['items', 'submittedResultOutboxIds', 'submittedResultOutboxKeys'],
+          emits: ['result'],
+          template:
+            '<div><button v-for="item in items" :key="item.id" class="result-action" :disabled="submittedResultOutboxIds?.has(item.id) || submittedResultOutboxKeys?.has(item.dispatch_key)" @click="$emit(`result`, item)">模拟 Result {{ item.id }}</button></div>'
+        },
+        SandboxResultComposer: {
+          props: ['outbox', 'disabled'],
+          emits: ['submitted'],
+          template:
+            '<button class="submit-result" :disabled="disabled" @click="$emit(`submitted`, outbox)">提交 Result</button>'
+        },
+        Teleport: true
+      }
+    }
+  })
+  await flushPromises()
+  return wrapper
 }
 
 describe('sandbox result flow', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     vi.clearAllMocks()
+    mocks.route.params.worklineId = '20'
     mocks.pendingSend
       .mockResolvedValueOnce([createOutbox()])
       .mockResolvedValueOnce([createOutbox()])
@@ -66,169 +137,28 @@ describe('sandbox result flow', () => {
     mocks.completedSend.mockResolvedValue([])
   })
 
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('locks the submitted result immediately and refreshes later pending operations', async () => {
-    const { default: SandboxWorkbench } =
-      await import('@/components/common/runtime/SandboxWorkbench.vue')
-
-    const wrapper = mount(SandboxWorkbench, {
-      props: {
-        worklineId: 20,
-        devices: [{ id: 101, device_code: 'ARM01', device_name: '机械臂' }],
-        deviceId: 101,
-        safetyLocked: false
-      },
-      global: {
-        stubs: {
-          SandboxCycleStatus: true,
-          WorklineRouteMap: true,
-          SandboxEventComposer: true,
-          ElAlert: true,
-          ElCard: { template: '<section><slot name="header" /><slot /></section>' },
-          ElDivider: true,
-          ElDrawer: {
-            props: ['modelValue'],
-            template: '<aside v-if="modelValue"><slot /></aside>'
-          },
-          ElButton: {
-            props: ['disabled', 'loading'],
-            template:
-              '<button :disabled="disabled" :data-loading="loading ? true : undefined" @click="$emit(`click`)"><slot /></button>'
-          },
-          SandboxActionList: {
-            props: ['items', 'submittedResultOutboxIds', 'submittedResultOutboxKeys'],
-            emits: ['result'],
-            template:
-              '<div><button v-for="item in items" :key="item.id" class="result-action" :disabled="submittedResultOutboxIds?.has(item.id) || submittedResultOutboxKeys?.has(item.dispatch_key)" @click="$emit(`result`, item)">模拟 Result {{ item.id }}</button></div>'
-          },
-          SandboxResultComposer: {
-            props: ['outbox', 'disabled'],
-            emits: ['submitted'],
-            template:
-              '<button class="submit-result" :disabled="disabled" @click="$emit(`submitted`, outbox)">提交 Result</button>'
-          }
-        }
-      }
-    })
-
-    await flushAsync()
+    const wrapper = await mountPage()
 
     expect(wrapper.text()).toContain('模拟 Result 1')
 
     await wrapper.get('.result-action').trigger('click')
-    await nextTick()
+    await flushPromises()
     await wrapper.get('.submit-result').trigger('click')
-    await flushAsync()
+    await flushPromises()
 
     expect(wrapper.text()).toContain('模拟 Result 1')
     expect(wrapper.get('.result-action').attributes('disabled')).toBeDefined()
 
     await vi.advanceTimersByTimeAsync(800)
-    await flushAsync()
+    await flushPromises()
 
-    expect(wrapper.emitted('refresh')).toBeTruthy()
     expect(mocks.runtimeApiMethods.sandboxPending).toHaveBeenCalledWith(50, 20)
+    expect(mocks.store.loadDetail).toHaveBeenCalledWith(20)
     expect(wrapper.text()).toContain('模拟 Result 2')
-  })
-
-  it('uses StandardDrawer presets for sandbox event and result drawers', async () => {
-    const { default: SandboxWorkbench } =
-      await import('@/components/common/runtime/SandboxWorkbench.vue')
-
-    const wrapper = mount(SandboxWorkbench, {
-      props: {
-        worklineId: 20,
-        devices: [{ id: 101, device_code: 'ARM01', device_name: '机械臂' }],
-        deviceId: 101,
-        safetyLocked: false
-      },
-      global: {
-        stubs: {
-          SandboxCycleStatus: true,
-          WorklineRouteMap: true,
-          SandboxEventComposer: true,
-          ElAlert: true,
-          ElCard: { template: '<section><slot name="header" /><slot /></section>' },
-          ElDivider: true,
-          ElDrawer: {
-            props: ['modelValue', 'size', 'class'],
-            template:
-              '<aside v-if="modelValue" :class="$attrs.class" :data-size="size"><slot /></aside>'
-          },
-          ElButton: {
-            props: ['disabled', 'loading'],
-            template:
-              '<button :disabled="disabled" :data-loading="loading ? true : undefined" @click="$emit(`click`)"><slot /></button>'
-          },
-          SandboxActionList: {
-            props: ['items'],
-            emits: ['result'],
-            template:
-              '<div><button v-for="item in items" :key="item.id" class="result-action" @click="$emit(`result`, item)">模拟 Result {{ item.id }}</button></div>'
-          },
-          SandboxResultComposer: true
-        }
-      }
-    })
-
-    await flushAsync()
-
-    await wrapper.get('.sandbox-workbench__header-actions button').trigger('click')
-    await nextTick()
-
-    expect(wrapper.findAll('aside').map(drawer => drawer.attributes('data-size'))).toContain(
-      'min(640px, 92vw)'
-    )
-
-    await wrapper.get('.result-action').trigger('click')
-    await nextTick()
-
-    expect(wrapper.findAll('aside').map(drawer => drawer.attributes('data-size'))).toContain(
-      'min(800px, 92vw)'
-    )
-  })
-
-  it('disables clear-estop action when caller lacks permission', async () => {
-    const { default: SandboxWorkbench } =
-      await import('@/components/common/runtime/SandboxWorkbench.vue')
-
-    const wrapper = mount(SandboxWorkbench, {
-      props: {
-        worklineId: 20,
-        devices: [{ id: 101, device_code: 'ARM01', device_name: '机械臂' }],
-        deviceId: 101,
-        safetyLocked: true,
-        safetyLockReason: '软件急停冻结',
-        canClearEstop: false
-      },
-      global: {
-        stubs: {
-          SandboxCycleStatus: true,
-          WorklineRouteMap: true,
-          SandboxEventComposer: true,
-          ElAlert: true,
-          ElCard: { template: '<section><slot name="header" /><slot /></section>' },
-          ElDivider: true,
-          ElDrawer: {
-            props: ['modelValue'],
-            template: '<aside v-if="modelValue"><slot /></aside>'
-          },
-          ElButton: {
-            props: ['disabled', 'loading', 'title'],
-            template:
-              '<button :disabled="disabled" :title="title" :data-loading="loading ? true : undefined" @click="$emit(`click`)"><slot /></button>'
-          },
-          SandboxActionList: true,
-          SandboxResultComposer: true
-        }
-      }
-    })
-
-    await flushAsync()
-
-    const clearButton = wrapper.findAll('button').find(button => button.text().includes('恢复接收'))
-
-    expect(clearButton).toBeDefined()
-    expect(clearButton?.attributes('disabled')).toBeDefined()
-    expect(clearButton?.attributes('title')).toContain('biz:workline:clear-estop')
   })
 })

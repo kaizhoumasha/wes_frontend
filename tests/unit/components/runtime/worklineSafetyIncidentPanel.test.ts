@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
-import WorklineSafetyIncidentPanel from '@/components/common/runtime/WorklineSafetyIncidentPanel.vue'
+import WorklineSafetyIncidentPanel from '@/components/runtime/monitor/WorklineSafetyIncidentPanel.vue'
 import type { RuntimeWorklineSummary } from '@/types/runtime'
 import { getWorklineRuntimeVerdict } from '@/utils/runtime-safety'
 

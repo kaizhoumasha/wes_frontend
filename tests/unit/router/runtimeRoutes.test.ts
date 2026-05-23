@@ -2,58 +2,34 @@ import type { RouteRecordRaw } from 'vue-router'
 import { describe, expect, it } from 'vitest'
 import { runtimeRoutes } from '@/router/routes/runtime'
 
-interface RedirectInput {
-  params: Record<string, string>
-  query: Record<string, string>
-  hash: string
-}
-
-type RedirectFunction = (to: RedirectInput) => unknown
-
 function findRuntimeChild(name: string): RouteRecordRaw {
   const route = runtimeRoutes.children?.find(child => child.name === name)
   expect(route).toBeDefined()
   return route as RouteRecordRaw
 }
 
-function executeRedirect(route: RouteRecordRaw, input: RedirectInput): unknown {
-  expect(typeof route.redirect).toBe('function')
-  return (route.redirect as RedirectFunction)(input)
-}
-
 describe('runtime routes', () => {
-  it('keeps runtime status canonical while preserving legacy dashboard query state', () => {
-    const statusRoute = findRuntimeChild('RuntimeStatus')
-    const dashboardRoute = findRuntimeChild('RuntimeDashboard')
-
-    expect(statusRoute.path).toBe('status')
-    expect(typeof statusRoute.component).toBe('function')
-    expect(executeRedirect(dashboardRoute, {
-      params: {},
-      query: { worklineId: '101', deviceId: '201' },
-      hash: '#weak-signals'
-    })).toEqual({
-      name: 'RuntimeStatus',
-      query: { worklineId: '101', deviceId: '201' },
-      hash: '#weak-signals'
-    })
+  it('defines the canonical runtime pages and sandbox workbench deep link', () => {
+    expect(findRuntimeChild('RuntimeOverview').path).toBe('overview')
+    expect(findRuntimeChild('RuntimeMonitor').path).toBe('monitor')
+    expect(findRuntimeChild('RuntimeHolds').path).toBe('holds')
+    expect(findRuntimeChild('RuntimeHoldDetail').path).toBe('holds/:holdId')
+    expect(findRuntimeChild('RuntimeSandbox').path).toBe('sandbox')
+    expect(findRuntimeChild('RuntimeSandboxWorkbench').path).toBe('sandbox/:worklineId')
   })
 
-  it('keeps runtime exceptions canonical while preserving legacy hold links', () => {
-    const exceptionRoute = findRuntimeChild('RuntimeExceptionDetail')
-    const legacyHoldRoute = findRuntimeChild('RuntimeHoldDetail')
+  it('does not keep legacy runtime redirect routes after cleanup', () => {
+    const children = runtimeRoutes.children ?? []
+    const routeNames = new Set(children.map(route => route.name))
+    const routePaths = new Set(children.map(route => route.path))
 
-    expect(exceptionRoute.path).toBe('exceptions/:holdId')
-    expect(typeof exceptionRoute.component).toBe('function')
-    expect(executeRedirect(legacyHoldRoute, {
-      params: { holdId: '42' },
-      query: { tab: 'evidence' },
-      hash: '#audit'
-    })).toEqual({
-      name: 'RuntimeExceptionDetail',
-      params: { holdId: '42' },
-      query: { tab: 'evidence' },
-      hash: '#audit'
-    })
+    expect(routeNames.has('RuntimeWorklines')).toBe(false)
+    expect(routeNames.has('RuntimeStatus')).toBe(false)
+    expect(routeNames.has('RuntimeDashboard')).toBe(false)
+    expect(routeNames.has('RuntimeExceptionDetail')).toBe(false)
+    expect(routePaths.has('worklines')).toBe(false)
+    expect(routePaths.has('status')).toBe(false)
+    expect(routePaths.has('dashboard')).toBe(false)
+    expect(routePaths.has('exceptions/:holdId')).toBe(false)
   })
 })

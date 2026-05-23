@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
-import RuntimeTraceList from '@/components/common/runtime/RuntimeTraceList.vue'
+import RuntimeTraceList from '@/components/runtime/overview/RuntimeTraceList.vue'
 import type { RuntimeTraceListItem } from '@/types/runtime'
 
 vi.mock('@/utils/runtime-display', async importOriginal => {

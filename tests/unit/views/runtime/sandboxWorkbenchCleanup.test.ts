@@ -6,12 +6,13 @@ const mocks = vi.hoisted(() => {
   const sandboxPendingSend = vi.fn()
   const sandboxCompletedSend = vi.fn()
   const sandboxCleanupSend = vi.fn()
+  const clearEstopSend = vi.fn()
   const summary = {
     id: 45,
     line_name: '右侧SMT粗分线',
     line_code: 'SMT-RIGHT',
-    runtime_status: 'READY',
-    active_safety_incident_id: null
+    runtime_status: 'READY' as string,
+    active_safety_incident_id: null as number | null
   }
   const store = {
     detail: {
@@ -46,11 +47,13 @@ const mocks = vi.hoisted(() => {
     sandboxPendingSend,
     sandboxCompletedSend,
     sandboxCleanupSend,
+    clearEstopSend,
     store,
     runtimeApiMethods: {
       sandboxPending: vi.fn(() => ({ send: sandboxPendingSend })),
       sandboxCompleted: vi.fn(() => ({ send: sandboxCompletedSend })),
       sandboxCleanup: vi.fn(() => ({ send: sandboxCleanupSend })),
+      clearEstop: vi.fn(() => ({ send: clearEstopSend })),
       sandboxSimulateEstop: vi.fn(() => ({ send: vi.fn() })),
       sandboxAck: vi.fn(() => ({ send: vi.fn() })),
       replayInbox: vi.fn(() => ({ send: vi.fn() }))
@@ -137,10 +140,13 @@ describe('SandboxWorkbenchPage cleanup', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.route.params.worklineId = '45'
+    mocks.store.detail.summary.runtime_status = 'READY'
+    mocks.store.detail.summary.active_safety_incident_id = null
     mocks.hasPermission.mockReturnValue(true)
     mocks.confirm.mockResolvedValue('confirm')
     mocks.sandboxPendingSend.mockResolvedValue([])
     mocks.sandboxCompletedSend.mockResolvedValue([])
+    mocks.clearEstopSend.mockResolvedValue({})
     mocks.sandboxCleanupSend
       .mockResolvedValueOnce({
         workline_id: 45,
@@ -221,5 +227,54 @@ describe('SandboxWorkbenchPage cleanup', () => {
     const wrapper = await mountPage()
 
     expect(wrapper.find('[data-test="sandbox-cleanup"]').exists()).toBe(false)
+  })
+
+  it('submits clear-estop checks before reloading sandbox state', async () => {
+    mocks.store.detail.summary.runtime_status = 'ESTOPPED'
+    mocks.store.detail.summary.active_safety_incident_id = 7
+    const wrapper = await mountPage()
+
+    await wrapper.get('[data-test="sandbox-clear-estop"]').trigger('click')
+    await flushPromises()
+
+    expect(mocks.confirm).toHaveBeenCalledWith(
+      '确认现场/沙箱设备已复位、安全区域已清空？',
+      '恢复 WorkLine 接收',
+      expect.objectContaining({ confirmButtonText: '恢复接收', type: 'warning' })
+    )
+    expect(mocks.runtimeApiMethods.clearEstop).toHaveBeenCalledWith(45, {
+      reason: '人工确认 WorkLine 软件急停解除',
+      checks: {
+        estop_button_reset: true,
+        area_safe: true,
+        devices_reset: true,
+        operator_confirmed: true
+      }
+    })
+    expect(mocks.success).toHaveBeenCalledWith('已恢复接收新流程')
+    expect(mocks.store.loadWorklines).toHaveBeenCalledTimes(2)
+    expect(mocks.runtimeApiMethods.sandboxPending).toHaveBeenCalledTimes(2)
+    expect(mocks.runtimeApiMethods.sandboxCompleted).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not clear estop if the route changes before confirmation resolves', async () => {
+    let confirmClear!: () => void
+    mocks.store.detail.summary.runtime_status = 'ESTOPPED'
+    mocks.store.detail.summary.active_safety_incident_id = 7
+    mocks.confirm.mockReturnValue(
+      new Promise(resolve => {
+        confirmClear = () => resolve('confirm')
+      })
+    )
+    const wrapper = await mountPage()
+
+    await wrapper.get('[data-test="sandbox-clear-estop"]').trigger('click')
+    await flushPromises()
+    mocks.route.params.worklineId = '46'
+    confirmClear()
+    await flushPromises()
+
+    expect(mocks.runtimeApiMethods.clearEstop).not.toHaveBeenCalled()
+    expect(mocks.warning).toHaveBeenCalledWith('工作线已切换，已取消本次恢复接收。')
   })
 })
