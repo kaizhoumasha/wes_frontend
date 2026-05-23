@@ -40,5 +40,5 @@ export const BIZ_WORKLINE_PERMISSION = {
   /** 解除 Runtime Hold */
   resolveRuntimeHold: 'biz:workline:resolve-runtime-hold',
   /** 查询 Runtime Hold NG 原因选项 */
-  viewRuntimeHold: 'biz:workline:view-runtime-hold'
+  viewRuntimeHold: 'biz:workline:view-runtime-hold',
 } as const
