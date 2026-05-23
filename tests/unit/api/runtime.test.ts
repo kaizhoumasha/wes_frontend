@@ -113,6 +113,14 @@ describe('runtimeApiMethods', () => {
     )
   })
 
+  it('queries runtime holds base endpoint when no filters are provided', async () => {
+    const { runtimeApiMethods } = await import('@/api/modules/runtime')
+
+    await runtimeApiMethods.runtimeHolds().send()
+
+    expect(mocks.apiClientGet).toHaveBeenCalledWith('/api/v1/workline/runtime-holds')
+  })
+
   it('submits sandbox cleanup through direct workline operations endpoint', async () => {
     const { runtimeApiMethods } = await import('@/api/modules/runtime')
 

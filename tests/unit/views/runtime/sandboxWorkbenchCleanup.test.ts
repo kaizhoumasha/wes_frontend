@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => {
   const sandboxPendingSend = vi.fn()
   const sandboxCompletedSend = vi.fn()
   const sandboxCleanupSend = vi.fn()
+  const sandboxSimulateEstopSend = vi.fn()
   const clearEstopSend = vi.fn()
   const summary = {
     id: 45,
@@ -49,6 +50,7 @@ const mocks = vi.hoisted(() => {
     sandboxPendingSend,
     sandboxCompletedSend,
     sandboxCleanupSend,
+    sandboxSimulateEstopSend,
     clearEstopSend,
     store,
     runtimeApiMethods: {
@@ -56,7 +58,7 @@ const mocks = vi.hoisted(() => {
       sandboxCompleted: vi.fn(() => ({ send: sandboxCompletedSend })),
       sandboxCleanup: vi.fn(() => ({ send: sandboxCleanupSend })),
       clearEstop: vi.fn(() => ({ send: clearEstopSend })),
-      sandboxSimulateEstop: vi.fn(() => ({ send: vi.fn() })),
+      sandboxSimulateEstop: vi.fn(() => ({ send: sandboxSimulateEstopSend })),
       sandboxAck: vi.fn(() => ({ send: vi.fn() })),
       replayInbox: vi.fn(() => ({ send: vi.fn() }))
     }
@@ -199,6 +201,7 @@ describe('SandboxWorkbenchPage cleanup', () => {
     mocks.sandboxPendingSend.mockResolvedValue([])
     mocks.sandboxCompletedSend.mockResolvedValue([])
     mocks.clearEstopSend.mockResolvedValue({})
+    mocks.sandboxSimulateEstopSend.mockResolvedValue({})
     mocks.sandboxCleanupSend
       .mockResolvedValueOnce({
         workline_id: 45,
@@ -363,5 +366,37 @@ describe('SandboxWorkbenchPage cleanup', () => {
 
     expect(wrapper.text()).not.toContain('stale-command')
     expect(wrapper.text()).not.toContain('completed-888')
+  })
+
+  it('simulates estop and reloads the sandbox page state', async () => {
+    const wrapper = await mountPage()
+
+    await wrapper
+      .findAll('button')
+      .find(button => button.text().includes('模拟急停'))!
+      .trigger('click')
+    await flushPromises()
+
+    expect(mocks.runtimeApiMethods.sandboxSimulateEstop).toHaveBeenCalledWith(45, {
+      reason: 'Sandbox 模拟软件急停冻结',
+      source_device_id: null,
+      payload: { trigger: 'sandbox_button' }
+    })
+    expect(mocks.success).toHaveBeenCalledWith('已模拟软件急停冻结')
+    expect(mocks.store.loadWorklines).toHaveBeenCalledTimes(2)
+    expect(mocks.runtimeApiMethods.sandboxPending).toHaveBeenCalledTimes(2)
+    expect(mocks.runtimeApiMethods.sandboxCompleted).toHaveBeenCalledTimes(2)
+  })
+
+  it('keeps simulate-estop disabled while the sandbox is safety locked', async () => {
+    mocks.store.detail.summary.runtime_status = 'ESTOPPED'
+    mocks.store.detail.summary.active_safety_incident_id = 7
+
+    const wrapper = await mountPage()
+
+    const simulateButton = wrapper
+      .findAll('button')
+      .find(button => button.text().includes('模拟急停'))!
+    expect(simulateButton.attributes('disabled')).toBeDefined()
   })
 })
