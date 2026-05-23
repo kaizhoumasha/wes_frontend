@@ -16,5 +16,5 @@ export const RESOURCE_BINCELLOCCUPANCY_PERMISSION = {
   /** 列表查询权限 */
   list: 'resource:bincelloccupancy:list',
   /** 详情查看权限 */
-  detail: 'resource:bincelloccupancy:detail'
+  detail: 'resource:bincelloccupancy:detail',
 } as const

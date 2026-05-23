@@ -16,5 +16,5 @@ export const RESOURCE_BINMATERIALMOUNT_PERMISSION = {
   /** 列表查询权限 */
   list: 'resource:binmaterialmount:list',
   /** 详情查看权限 */
-  detail: 'resource:binmaterialmount:detail'
+  detail: 'resource:binmaterialmount:detail',
 } as const

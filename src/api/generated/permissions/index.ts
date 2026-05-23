@@ -34,6 +34,7 @@ import { RESOURCE_RACKTYPE_PERMISSION } from './user_api/resource/racktype'
 import { RESOURCE_RESOURCESTATEEVENT_PERMISSION } from './user_api/resource/resourcestateevent'
 import { SYS_AUDITLOG_PERMISSION } from './user_api/sys/auditlog'
 
+
 export { API_CALLBACK_PERMISSION }
 export { API_TRY_PERMISSION }
 export { ADMIN_MENU_PERMISSION }
@@ -68,7 +69,7 @@ export const ADMIN_PERMISSIONS = {
   menu: ADMIN_MENU_PERMISSION,
   permission: ADMIN_PERMISSION,
   role: ADMIN_ROLE_PERMISSION,
-  user: ADMIN_USER_PERMISSION
+  user: ADMIN_USER_PERMISSION,
 } as const
 
 /**
@@ -76,7 +77,7 @@ export const ADMIN_PERMISSIONS = {
  */
 export const API_PERMISSIONS = {
   callback: API_CALLBACK_PERMISSION,
-  try: API_TRY_PERMISSION
+  try: API_TRY_PERMISSION,
 } as const
 
 /**
@@ -84,7 +85,7 @@ export const API_PERMISSIONS = {
  */
 export const API_AUTH_PERMISSIONS = {
   apiApplication: API_AUTH_API_APPLICATION_PERMISSION,
-  apiaccesslog: API_AUTH_APIACCESSLOG_PERMISSION
+  apiaccesslog: API_AUTH_APIACCESSLOG_PERMISSION,
 } as const
 
 /**
@@ -92,21 +93,21 @@ export const API_AUTH_PERMISSIONS = {
  */
 export const BIZ_PERMISSIONS = {
   device: BIZ_DEVICE_PERMISSION,
-  workline: BIZ_WORKLINE_PERMISSION
+  workline: BIZ_WORKLINE_PERMISSION,
 } as const
 
 /**
  * callback 分类权限快捷导出
  */
 export const CALLBACK_PERMISSIONS = {
-  callbackLog: CALLBACK_CALLBACK_LOG_PERMISSION
+  callbackLog: CALLBACK_CALLBACK_LOG_PERMISSION,
 } as const
 
 /**
  * demo 分类权限快捷导出
  */
 export const DEMO_PERMISSIONS = {
-  demoproduct: DEMO_DEMOPRODUCT_PERMISSION
+  demoproduct: DEMO_DEMOPRODUCT_PERMISSION,
 } as const
 
 /**
@@ -125,14 +126,14 @@ export const RESOURCE_PERMISSIONS = {
   rackplacement: RESOURCE_RACKPLACEMENT_PERMISSION,
   rackslottemplate: RESOURCE_RACKSLOTTEMPLATE_PERMISSION,
   racktype: RESOURCE_RACKTYPE_PERMISSION,
-  resourcestateevent: RESOURCE_RESOURCESTATEEVENT_PERMISSION
+  resourcestateevent: RESOURCE_RESOURCESTATEEVENT_PERMISSION,
 } as const
 
 /**
  * sys 分类权限快捷导出
  */
 export const SYS_PERMISSIONS = {
-  auditlog: SYS_AUDITLOG_PERMISSION
+  auditlog: SYS_AUDITLOG_PERMISSION,
 } as const
 
 /**
@@ -146,5 +147,5 @@ export const PERMISSIONS = {
   callback: CALLBACK_PERMISSIONS,
   demo: DEMO_PERMISSIONS,
   resource: RESOURCE_PERMISSIONS,
-  sys: SYS_PERMISSIONS
+  sys: SYS_PERMISSIONS,
 } as const
