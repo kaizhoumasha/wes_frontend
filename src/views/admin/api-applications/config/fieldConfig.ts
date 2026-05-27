@@ -18,6 +18,7 @@ import {
 } from '@/components/common/crud-page/resourceFieldBuilder'
 
 const API_APPLICATION_FIELD_LABEL_OVERRIDES = {
+  app_id: 'App ID',
   app_name: '应用名称',
   app_type: '应用类型',
   description: '描述',
@@ -73,6 +74,13 @@ export const {
       search: {}
     },
     {
+      key: 'app_id',
+      table: {
+        visibleFrom: 'tablet',
+        width: 200
+      }
+    },
+    {
       key: 'app_type',
       table: {
         visibleFrom: 'mobile',
@@ -100,7 +108,8 @@ export const {
         width: 140
       },
       form: {
-        type: 'number'
+        type: 'number',
+        defaultValue: 100
       }
     },
     {
@@ -110,7 +119,8 @@ export const {
         width: 140
       },
       form: {
-        type: 'number'
+        type: 'number',
+        defaultValue: 5000
       }
     },
     {

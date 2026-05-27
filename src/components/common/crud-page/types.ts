@@ -209,6 +209,11 @@ export interface CrudPageConfig<
     defaultSort?: SortField[]
     /** 树形模式配置 */
     treeMode?: TreeModeOptions
+    /**
+     * 创建成功后回调，用于处理一次性返回的数据（如 API 密钥）
+     * @param result 创建接口返回的完整数据
+     */
+    onCreateResult?: (result: Record<string, unknown>) => void | Promise<void>
   }
   search: {
     fields: SearchFieldDef[]

@@ -1,3 +1,7 @@
+/**
+ * API 应用页面配置
+ */
+
 import type {
   ApplicationsItem as APIApplication,
   CreateApplicationsInput as CreateAPIApplicationInput,
@@ -9,6 +13,7 @@ import { createCrudPageConfigFromResource } from '@/components/common/crud-page/
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
 import { apiApplicationPageFieldConfig } from './fieldConfig'
+import { createAPIApplicationRowActions } from './actionConfig'
 
 type APIApplicationPageConfig = CrudPageConfig<APIApplication, CreateAPIApplicationInput, UpdateAPIApplicationInput>
 
@@ -70,6 +75,7 @@ const API_APPLICATION_PAGE_DETAIL: CrudPageDetailConfig<APIApplication> = {
       title: '基本信息',
       weight: 'primary',
       fields: [
+        { key: 'app_id', layout: 'full' },
         { key: 'app_name', layout: 'full' },
         { key: 'app_type', layout: 'half' },
         { key: 'validity_period', layout: 'half' },
@@ -94,12 +100,19 @@ const API_APPLICATION_PAGE_DETAIL: CrudPageDetailConfig<APIApplication> = {
   ]
 }
 
-export function createAPIApplicationPageConfig(): APIApplicationPageConfig {
+export function createAPIApplicationPageConfig(
+  openResetSecretDialog: (app: APIApplication) => void
+): APIApplicationPageConfig {
+  const rowActions = createAPIApplicationRowActions(openResetSecretDialog)
+
   return createCrudPageConfigFromResource<APIApplication, CreateAPIApplicationInput, UpdateAPIApplicationInput>({
     resource: API_APPLICATION_PAGE_RESOURCE,
     fieldConfig: apiApplicationPageFieldConfig,
     table: API_APPLICATION_PAGE_TABLE,
     detail: API_APPLICATION_PAGE_DETAIL,
-    features: API_APPLICATION_PAGE_FEATURES
+    features: API_APPLICATION_PAGE_FEATURES,
+    extensions: {
+      rowActions
+    }
   })
 }

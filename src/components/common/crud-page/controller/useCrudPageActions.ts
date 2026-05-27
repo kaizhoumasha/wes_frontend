@@ -128,7 +128,12 @@ export function useCrudPageActions<
       return
     }
 
-    await state.apiActions.handleCreate(resolveSubmitPayload(formData, config.form.submit?.create))
+    const result = await state.apiActions.handleCreate(
+      resolveSubmitPayload(formData, config.form.submit?.create)
+    )
+    if (result && config.resource.onCreateResult) {
+      await config.resource.onCreateResult(result as unknown as Record<string, unknown>)
+    }
   }
 
   return {
