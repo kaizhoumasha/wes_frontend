@@ -118,6 +118,7 @@ declare module 'vue' {
     SandboxActionList: typeof import('./../components/runtime/sandbox/SandboxActionList.vue')['default']
     SandboxCycleStatus: typeof import('./../components/runtime/sandbox/SandboxCycleStatus.vue')['default']
     SandboxEventComposer: typeof import('./../components/runtime/sandbox/SandboxEventComposer.vue')['default']
+    SandboxExternalCallbackComposer: typeof import('./../components/runtime/sandbox/SandboxExternalCallbackComposer.vue')['default']
     SandboxResultComposer: typeof import('./../components/runtime/sandbox/SandboxResultComposer.vue')['default']
     SearchConditionTag: typeof import('./../components/search/SearchConditionTag.vue')['default']
     SearchFieldPanel: typeof import('./../components/search/panels/SearchFieldPanel.vue')['default']

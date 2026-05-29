@@ -50,6 +50,7 @@
         <span v-if="newCount">{{ newCount }} 待派发</span>
         <span v-if="sentCount">{{ sentCount }} 待 ACK</span>
         <span v-if="ackedCount">{{ ackedCount }} 待 Result</span>
+        <span v-if="externalCallbackCount">{{ externalCallbackCount }} 待外部回调</span>
         <span v-if="blockedCount">{{ blockedCount }} 阻塞</span>
       </template>
       <span
@@ -69,6 +70,7 @@ import { displaySession } from '@/utils/runtime-display-identity'
 import { resolveRuntimeProgressLabel } from '@/utils/runtime-display'
 import {
   canAckSandboxOutbox,
+  canSubmitSandboxExternalCallback,
   canSubmitSandboxResult,
   isCurrentSandboxAction
 } from '@/utils/sandbox-outbox'
@@ -99,6 +101,9 @@ const newCount = computed(
 )
 const sentCount = computed(() => props.pendingOutboxes.filter(canAckSandboxOutbox).length)
 const ackedCount = computed(() => props.pendingOutboxes.filter(canSubmitSandboxResult).length)
+const externalCallbackCount = computed(
+  () => props.pendingOutboxes.filter(canSubmitSandboxExternalCallback).length
+)
 const blockedCount = computed(
   () =>
     props.pendingOutboxes.filter(o => isCurrentSandboxAction(o) && o.status === 'BLOCKED_RESOURCE')
@@ -106,7 +111,13 @@ const blockedCount = computed(
 )
 
 const hasActions = computed(
-  () => newCount.value + sentCount.value + ackedCount.value + blockedCount.value > 0
+  () =>
+    newCount.value +
+      sentCount.value +
+      ackedCount.value +
+      externalCallbackCount.value +
+      blockedCount.value >
+    0
 )
 
 const phase = computed<'idle' | 'action' | 'done'>(() => {
@@ -129,6 +140,7 @@ const phaseLabel = computed(() => {
 const phaseHint = computed(() => {
   if (phase.value === 'done') return '可继续发起新 Event 开始下一轮'
   if (phase.value === 'action') {
+    if (externalCallbackCount.value > 0) return '有外部系统回调需要模拟'
     if (ackedCount.value > 0) return '有命令需要提交 Result'
     if (sentCount.value > 0) return '有命令等待 ACK'
     if (blockedCount.value > 0) return '有命令被阻塞'

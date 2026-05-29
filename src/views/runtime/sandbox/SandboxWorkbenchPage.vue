@@ -161,6 +161,7 @@
           :runtime-hold-ids="activeRuntimeHoldIds"
           @ack="handleActionAck"
           @result="handleActionResult"
+          @external-callback="handleActionExternalCallback"
           @replay="handleReplaySessionInbox"
         />
       </main>
@@ -281,6 +282,15 @@
           >
             模拟 Result
           </el-button>
+          <el-button
+            v-if="canSubmitSandboxExternalCallback(selectedOutbox)"
+            type="primary"
+            :loading="actionLoading"
+            :disabled="safetyLocked || selectedOutboxCompleted || selectedOutboxResultSubmitted"
+            @click="handleExternalCallback"
+          >
+            模拟外部回调
+          </el-button>
         </div>
 
         <template v-if="showResultComposer">
@@ -290,6 +300,16 @@
             :disabled="safetyLocked || selectedOutboxCompleted || selectedOutboxResultSubmitted"
             :disabled-reason="selectedOutboxDisabledReason"
             @submitted="handleResultSubmitted"
+          />
+        </template>
+
+        <template v-if="showExternalCallbackComposer">
+          <el-divider />
+          <SandboxExternalCallbackComposer
+            :outbox="selectedOutbox"
+            :disabled="safetyLocked || selectedOutboxCompleted || selectedOutboxResultSubmitted"
+            :disabled-reason="selectedOutboxDisabledReason"
+            @submitted="handleExternalCallbackSubmitted"
           />
         </template>
       </div>
@@ -304,6 +324,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import SandboxCycleStatus from '@/components/runtime/sandbox/SandboxCycleStatus.vue'
 import SandboxActionList from '@/components/runtime/sandbox/SandboxActionList.vue'
 import SandboxEventComposer from '@/components/runtime/sandbox/SandboxEventComposer.vue'
+import SandboxExternalCallbackComposer from '@/components/runtime/sandbox/SandboxExternalCallbackComposer.vue'
 import SandboxResultComposer from '@/components/runtime/sandbox/SandboxResultComposer.vue'
 import WorklineRouteMap from '@/components/runtime/monitor/WorklineRouteMap.vue'
 import { StandardDrawer } from '@/components/ui/StandardDrawer'
@@ -317,6 +338,7 @@ import { displayDevice } from '@/utils/runtime-display-identity'
 import { getErrorMessage } from '@/utils/string'
 import {
   canAckSandboxOutbox,
+  canSubmitSandboxExternalCallback,
   canSubmitSandboxResult,
   isCurrentSandboxAction
 } from '@/utils/sandbox-outbox'
@@ -339,7 +361,7 @@ const sseStore = useRuntimeSSEStore()
 const { hasPermission } = usePermission()
 
 const worklineId = computed(() => Number(route.params.worklineId))
-const SUBMITTED_RESULT_REASON = '该 Result 已提交，正在等待后续编排。'
+const SUBMITTED_RESULT_REASON = '该操作已提交，正在等待后续编排。'
 const CLEANUP_COUNT_LABELS: Record<string, string> = {
   sessions: '业务会话',
   inboxes: 'Event',
@@ -549,6 +571,7 @@ const actionablePendingItems = computed(() =>
 const selectedOutbox = ref<SandboxPendingOutbox | null>(null)
 const resultDrawerVisible = ref(false)
 const showResultComposer = ref(false)
+const showExternalCallbackComposer = ref(false)
 const actionLoading = ref(false)
 const actionLoadingForItem = ref<number | null>(null)
 const replayLoadingInboxId = ref<number | null>(null)
@@ -560,7 +583,7 @@ const selectedOutboxCompleted = computed(() => isOutboxCompleted(selectedOutbox.
 const selectedOutboxResultSubmitted = computed(() => isResultSubmitted(selectedOutbox.value))
 const selectedOutboxDisabledReason = computed(() => {
   if (selectedOutboxResultSubmitted.value) return SUBMITTED_RESULT_REASON
-  if (selectedOutboxCompleted.value) return '该 Result 已完成，不能重复操作。'
+  if (selectedOutboxCompleted.value) return '该操作已完成，不能重复操作。'
   return safetyBlockedReason.value
 })
 
@@ -585,7 +608,7 @@ function ensureOutboxActionable(outbox: SandboxPendingOutbox | null | undefined)
     return false
   }
   if (!isOutboxCompleted(outbox)) return true
-  ElMessage.warning('该 Result 已完成，不能重复操作。')
+  ElMessage.warning('该操作已完成，不能重复操作。')
   return false
 }
 
@@ -740,6 +763,7 @@ function resetSandboxLocalState() {
   selectedOutbox.value = null
   resultDrawerVisible.value = false
   showResultComposer.value = false
+  showExternalCallbackComposer.value = false
 }
 
 function getCleanupTotal(result: SandboxCleanupResponse): number {
@@ -830,6 +854,7 @@ function handleEventSubmitted() {
 function openResultDrawer(outbox: SandboxPendingOutbox) {
   selectedOutbox.value = outbox
   showResultComposer.value = false
+  showExternalCallbackComposer.value = false
   resultDrawerVisible.value = true
 }
 
@@ -870,6 +895,31 @@ async function handleActionAck(item: SandboxPendingOutbox) {
   } finally {
     actionLoadingForItem.value = null
   }
+}
+
+function openExternalCallbackComposer(item: SandboxPendingOutbox) {
+  if (safetyLocked.value) {
+    ElMessage.warning(safetyBlockedReason.value)
+    return
+  }
+  if (!ensureOutboxActionable(item)) return
+  if (!item.dispatch_key) {
+    ElMessage.error('缺少 dispatch_key')
+    return
+  }
+  selectedOutbox.value = item
+  showResultComposer.value = false
+  showExternalCallbackComposer.value = true
+  resultDrawerVisible.value = true
+}
+
+function handleExternalCallback() {
+  if (!selectedOutbox.value) return
+  openExternalCallbackComposer(selectedOutbox.value)
+}
+
+function handleActionExternalCallback(item: SandboxPendingOutbox) {
+  openExternalCallbackComposer(item)
 }
 
 function handleActionResult(item: SandboxPendingOutbox) {
@@ -923,6 +973,10 @@ function handleResultSubmitted(outbox: SandboxPendingOutbox) {
   queueSandboxRefresh()
 }
 
+function handleExternalCallbackSubmitted(outbox: SandboxPendingOutbox) {
+  handleResultSubmitted(outbox)
+}
+
 function statusLabel(status: string | null | undefined): string {
   const map: Record<string, string> = {
     NEW: '待发送',
@@ -952,6 +1006,7 @@ watch(worklineId, () => {
   eventPanelOpen.value = false
   resultDrawerVisible.value = false
   selectedOutbox.value = null
+  showExternalCallbackComposer.value = false
   void loadPage()
 })
 </script>

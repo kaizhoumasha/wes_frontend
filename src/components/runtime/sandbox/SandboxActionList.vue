@@ -188,6 +188,18 @@
                 >
                   模拟 Result
                 </el-button>
+                <el-button
+                  v-else-if="canSubmitSandboxExternalCallback(item)"
+                  size="small"
+                  type="primary"
+                  plain
+                  :loading="loading === item.id"
+                  :disabled="disabled"
+                  :title="disabled ? disabledReason : undefined"
+                  @click="emit('externalCallback', item)"
+                >
+                  模拟外部回调
+                </el-button>
               </div>
             </div>
 
@@ -583,6 +595,7 @@ import { resolveRuntimeProgressLabel } from '@/utils/runtime-display'
 import { displayCommand, displaySession } from '@/utils/runtime-display-identity'
 import {
   canAckSandboxOutbox,
+  canSubmitSandboxExternalCallback,
   canSubmitSandboxResult,
   isCurrentSandboxAction
 } from '@/utils/sandbox-outbox'
@@ -710,7 +723,9 @@ function sortHistoryEntries(entries: SandboxHistoryEntry[]): SandboxHistoryEntry
 function stageClass(view: { items: SandboxPendingOutbox[] }): string {
   const hasAckable = view.items.some(item => canAckSandboxOutbox(item))
   const hasResultable = view.items.some(item => canSubmitSandboxResult(item))
+  const hasExternalCallback = view.items.some(item => canSubmitSandboxExternalCallback(item))
   const hasBlocked = view.items.some(item => item.status === 'BLOCKED_RESOURCE')
+  if (hasExternalCallback) return 'is-result'
   if (hasResultable) return 'is-result'
   if (hasAckable) return 'is-ack'
   if (hasBlocked) return 'is-blocked'
@@ -968,6 +983,7 @@ function pendingOutboxKey(outboxId: number): string {
 const emit = defineEmits<{
   ack: [item: SandboxPendingOutbox]
   result: [item: SandboxPendingOutbox]
+  externalCallback: [item: SandboxPendingOutbox]
   replay: [session: RuntimeTraceListItem]
 }>()
 

@@ -607,6 +607,19 @@ export interface SandboxAckRequest {
   dispatch_key: string
 }
 
+export interface SandboxExternalCallbackRequest {
+  dispatch_key: string
+  callback_type?: string | null
+  payload?: Record<string, unknown>
+  source_system?: 'WMS' | 'RCS'
+  source_event_id?: string | null
+  source_version?: string
+  request_id?: string | null
+  occurred_at?: string | null
+  timestamp?: string | null
+  signature?: string
+}
+
 export interface SandboxEventTemplate {
   event_type: string
   label: string

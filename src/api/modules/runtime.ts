@@ -31,6 +31,7 @@ import type {
   SandboxAckRequest,
   SandboxCompletedSession,
   SandboxEventRequest,
+  SandboxExternalCallbackRequest,
   SandboxPendingOutbox,
   SandboxResultRequest,
   SandboxTemplatesResponse,
@@ -189,6 +190,23 @@ export const runtimeApiMethods = {
     return adaptRuntimeMethod<SandboxPendingOutbox>(
       worklineApiMethods.sandboxAck({
         dispatch_key: payload.dispatch_key
+      })
+    )
+  },
+
+  sandboxExternalCallback(payload: SandboxExternalCallbackRequest) {
+    return adaptRuntimeMethod<WorklineOperationRecord>(
+      worklineApiMethods.sandboxExternalCallbacks({
+        dispatch_key: payload.dispatch_key,
+        callback_type: payload.callback_type,
+        payload: payload.payload ?? {},
+        source_system: payload.source_system ?? 'WMS',
+        source_event_id: payload.source_event_id,
+        source_version: payload.source_version ?? '1',
+        request_id: payload.request_id,
+        occurred_at: payload.occurred_at,
+        timestamp: payload.timestamp,
+        signature: payload.signature ?? 'sandbox'
       })
     )
   },
