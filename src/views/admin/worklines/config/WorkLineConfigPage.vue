@@ -748,7 +748,8 @@ import {
   Square,
   ExternalLink,
   Settings,
-  ShieldAlert
+  ShieldAlert,
+  Activity
 } from 'lucide-vue-next'
 import { workLinesApiMethods } from '@/api/modules/workLines'
 import { worklineApiMethods } from '@/api/modules/workline'
