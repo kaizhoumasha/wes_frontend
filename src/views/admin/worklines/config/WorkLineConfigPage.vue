@@ -287,6 +287,8 @@
                         size="small"
                         :type="row.status === 'PASS' ? 'success' : 'warning'"
                         class="!bg-slate-950 !border-slate-850 cursor-help"
+                        :closable="!workline?.is_active"
+                        @close="handleUnbindDevice(d)"
                       >
                         {{ d.device_code }}
                       </el-tag>
@@ -321,8 +323,9 @@
                   <el-button
                     link
                     type="primary"
-                    class="!text-amber-500 hover:!text-amber-400 flex items-center"
-                    @click="navigateToDevice(row)"
+                    class="!text-amber-500 hover:!text-amber-400 flex items-center disabled:!text-slate-500"
+                    :disabled="workline?.is_active"
+                    @click="openBindDeviceDialog(row)"
                   >
                     <ExternalLink class="w-4 h-4 mr-1" />
                     {{ row.devices.length ? '调整' : '去绑定' }}
@@ -728,6 +731,78 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 设备直接绑定对话框 -->
+    <el-dialog
+      v-model="bindDeviceDialogVisible"
+      :title="`调整设备角色绑定 - ${bindingRole}`"
+      width="520px"
+      append-to-body
+      class="config-dialog"
+      :close-on-click-modal="false"
+    >
+      <div class="space-y-4">
+        <p class="text-sm text-slate-400 leading-relaxed">
+          您可以直接选择空闲或属于本作业线的设备进行绑定。已被其他作业线占用的设备不允许直接选择绑定。
+        </p>
+
+        <el-form label-position="top">
+          <el-form-item label="选择绑定设备 (支持多选)">
+            <el-select
+              v-model="selectedDeviceIds"
+              multiple
+              filterable
+              collapse-tags
+              collapse-tags-tooltip
+              placeholder="请选择要绑定的设备"
+              class="w-full !bg-slate-900"
+            >
+              <el-option
+                v-for="d in allDevicesOptions"
+                :key="d.id"
+                :label="`${d.device_code} - ${d.device_name}`"
+                :value="d.id"
+                :disabled="d.disabled"
+              >
+                <div class="flex items-center justify-between w-full pr-2">
+                  <span
+                    class="font-mono text-sm"
+                    :class="{ 'text-slate-500': d.disabled }"
+                  >
+                    {{ d.device_code }}
+                  </span>
+                  <span
+                    class="text-xs"
+                    :class="d.disabled ? 'text-rose-500' : 'text-slate-400'"
+                  >
+                    {{ d.device_name }} {{ d.statusText }}
+                  </span>
+                </div>
+              </el-option>
+            </el-select>
+          </el-form-item>
+        </el-form>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end gap-3 pb-2">
+          <el-button
+            class="!bg-slate-900 !border-slate-800 !text-slate-300 hover:!bg-slate-800"
+            @click="bindDeviceDialogVisible = false"
+          >
+            取消
+          </el-button>
+          <el-button
+            type="primary"
+            class="!bg-amber-500 !border-transparent hover:!bg-amber-600"
+            :loading="bindLoading"
+            @click="handleSaveDeviceBinding"
+          >
+            确认绑定
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -797,6 +872,35 @@ const workline = ref<WorkLine | null>(null)
 const configStatus = ref<WorkLineConfigurationStatus | null>(null)
 const devicesList = ref<Device[]>([])
 const pluginOptions = ref<WorkLinePluginOption[]>([])
+
+// 设备直接绑定
+const bindDeviceDialogVisible = ref(false)
+const bindLoading = ref(false)
+const bindingRole = ref('')
+const selectedDeviceIds = ref<number[]>([])
+const allDevicesList = ref<Device[]>([])
+const originallyBoundDevices = ref<Device[]>([])
+
+const allDevicesOptions = computed(() => {
+  const currentWlId = workline.value?.id
+  return allDevicesList.value.map(d => {
+    const isOccupied =
+      d.work_line_id !== null && d.work_line_id !== undefined && d.work_line_id !== currentWlId
+    let statusText = '（空闲）'
+    if (d.work_line_id !== null && d.work_line_id !== undefined) {
+      if (d.work_line_id === currentWlId) {
+        statusText = d.device_role ? `（当前已绑定为 ${d.device_role}）` : '（当前已关联）'
+      } else {
+        statusText = `（已被作业线 ID ${d.work_line_id} 占用）`
+      }
+    }
+    return {
+      ...d,
+      disabled: isOccupied,
+      statusText
+    }
+  })
+})
 
 // 编辑配置表单
 const editDialogVisible = ref(false)
@@ -1020,14 +1124,130 @@ function goBack() {
   router.push({ name: 'WorkLineList' })
 }
 
-function navigateToDevice(row: RoleCoverageItem) {
-  router.push({
-    name: 'DeviceList',
-    query: {
-      search: workline.value?.line_code,
-      role: row.role
+async function openBindDeviceDialog(row: RoleCoverageItem) {
+  bindingRole.value = row.role
+  originallyBoundDevices.value = [...row.devices]
+  selectedDeviceIds.value = row.devices.map(d => d.id)
+  bindDeviceDialogVisible.value = true
+
+  try {
+    const res = (await devicesApiMethods
+      .query({
+        limit: 200,
+        filters: {
+          couple: 'and',
+          conditions: [
+            {
+              field: 'is_active',
+              op: 'eq',
+              value: true
+            }
+          ]
+        }
+      })
+      .send()) as { items?: Device[] }
+
+    const activeDevices = res?.items || []
+    const mergedList = [...activeDevices]
+
+    // 确保已绑定的设备即使不活跃也能在列表中正常显示
+    for (const d of originallyBoundDevices.value) {
+      if (!mergedList.some(item => item.id === d.id)) {
+        mergedList.push(d)
+      }
     }
-  })
+    allDevicesList.value = mergedList
+  } catch (error: unknown) {
+    const err = error as Error
+    console.error('获取所有设备列表失败:', err)
+    ElMessage.error(err.message || '获取设备列表失败')
+  }
+}
+
+async function handleSaveDeviceBinding() {
+  if (!workline.value) return
+
+  const unbindTargets = originallyBoundDevices.value.filter(
+    d => !selectedDeviceIds.value.includes(d.id)
+  )
+  const bindTargets = selectedDeviceIds.value
+    .map(id => allDevicesList.value.find(d => d.id === id))
+    .filter((d): d is Device => !!d && !originallyBoundDevices.value.some(ob => ob.id === d.id))
+
+  bindLoading.value = true
+  try {
+    // 1. 解绑不再选择的设备
+    for (const d of unbindTargets) {
+      await devicesApiMethods
+        .update(d.id, {
+          version: d.version,
+          work_line_id: null,
+          device_role: null
+        })
+        .send()
+    }
+
+    // 2. 绑定新选中的设备
+    for (const d of bindTargets) {
+      await devicesApiMethods
+        .update(d.id, {
+          version: d.version,
+          work_line_id: workline.value.id,
+          device_role: bindingRole.value
+        })
+        .send()
+    }
+
+    ElMessage.success('调整设备角色绑定成功')
+    bindDeviceDialogVisible.value = false
+    await refreshData()
+  } catch (error: unknown) {
+    const err = error as Error
+    console.error('调整设备角色绑定失败:', err)
+    ElMessage.error(err.message || '调整设备角色绑定失败')
+  } finally {
+    bindLoading.value = false
+  }
+}
+
+async function handleUnbindDevice(d: Device) {
+  if (workline.value?.is_active) {
+    ElMessage.warning('作业线处于启用状态，无法解绑设备')
+    return
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      `确定要从当前作业线解绑设备 ${d.device_code} (${d.device_name}) 吗？`,
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+        customClass: 'config-message-box'
+      }
+    )
+
+    loading.value = true
+    await devicesApiMethods
+      .update(d.id, {
+        version: d.version,
+        work_line_id: null,
+        device_role: null
+      })
+      .send()
+
+    ElMessage.success(`解绑设备 ${d.device_code} 成功`)
+    await refreshData()
+  } catch (error: unknown) {
+    if (error !== 'cancel') {
+      const err = error as Error
+      console.error('解绑设备失败:', err)
+      ElMessage.error(err.message || '解绑设备失败')
+    }
+  } finally {
+    loading.value = false
+  }
 }
 
 function navigateToRuntimeMonitor() {
