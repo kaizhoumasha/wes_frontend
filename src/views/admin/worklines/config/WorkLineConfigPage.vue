@@ -986,7 +986,7 @@ async function refreshData(isManual = false) {
     // 3. 获取已绑定设备列表
     const devicesRes = (await devicesApiMethods
       .query({
-        limit: 1000,
+        limit: 100,
         filters: {
           couple: 'and',
           conditions: [
