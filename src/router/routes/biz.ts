@@ -53,7 +53,11 @@ export const bizRoutes: RouteRecordRaw = {
       meta: {
         requiresAuth: true,
         title: '作业线配置工作台',
-        permission: BIZ_PERMISSIONS.workline.page
+        permission: BIZ_PERMISSIONS.workline.page,
+        menu: {
+          name: 'biz:workline:config',
+          hidden: true
+        }
       }
     }
   ]
