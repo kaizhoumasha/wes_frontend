@@ -1133,7 +1133,7 @@ async function openBindDeviceDialog(row: RoleCoverageItem) {
   try {
     const res = (await devicesApiMethods
       .query({
-        limit: 200,
+        limit: 100,
         filters: {
           couple: 'and',
           conditions: [
