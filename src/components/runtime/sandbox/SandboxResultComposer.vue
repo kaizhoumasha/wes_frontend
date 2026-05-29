@@ -182,12 +182,24 @@ const commandCode = computed(() => {
   return key.split(':')[1] || key || ''
 })
 
-const commandType = computed(() => {
-  // 从 payload 中提取 command_type
-  const payload = props.outbox?.payload_json || {}
-  const cmdType = payload.command_type
-  return typeof cmdType === 'string' ? cmdType : 'UNKNOWN'
-})
+type PayloadRecord = Record<string, unknown>
+
+function asPayloadRecord(value: unknown): PayloadRecord {
+  return value && typeof value === 'object' && !Array.isArray(value) ? (value as PayloadRecord) : {}
+}
+
+function resolveCommandType(payload: unknown): string {
+  const payloadRecord = asPayloadRecord(payload)
+  const taskType = payloadRecord.task_type
+  if (typeof taskType === 'string' && taskType) return taskType
+
+  const commandTypeValue = payloadRecord.command_type
+  if (typeof commandTypeValue === 'string' && commandTypeValue) return commandTypeValue
+
+  return 'UNKNOWN'
+}
+
+const commandType = computed(() => resolveCommandType(props.outbox?.payload_json))
 
 const commandPayloadPreview = computed(() => {
   const payload = props.outbox?.payload_json || {}
@@ -230,8 +242,10 @@ function handleResultChange(result: 'SUCCESS' | 'FAILED') {
 function generateSuccessPayload(cmdType: string): Record<string, unknown> {
   const basePayload = props.outbox?.payload_json || {}
   // 从 params 或直接 payload 中获取 pkg_id / PkgID
-  const params = (basePayload.params as Record<string, unknown>) || {}
-  const pkgId = params.pkg_id || params.PkgID || basePayload.PkgID || basePayload.pkg_id
+  const params = asPayloadRecord(basePayload.params)
+  const sixInOne = asPayloadRecord(params.six_in_one)
+  const pkgId =
+    params.pkg_id || params.PkgID || sixInOne.PkgID || basePayload.PkgID || basePayload.pkg_id
 
   switch (cmdType) {
     case 'MEASUREMENT_REEL':
