@@ -104,6 +104,11 @@ export const TraceDetailResponseMetadata = {
       "items": {
         "ref": "TraceDiagnosticItem"
       }
+    },
+    "resource_evidence": {
+      "required": false,
+      "nullable": false,
+      "ref": "TraceResourceEvidenceResponse"
     }
   }
 } satisfies OpenApiSchemaMetadata

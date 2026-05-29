@@ -45,6 +45,24 @@ export const RuntimeTraceListItemMetadata = {
       "required": false,
       "nullable": true
     },
+    "last_inbox_id": {
+      "title": "Last Inbox Id",
+      "type": "integer",
+      "required": false,
+      "nullable": true
+    },
+    "event_type": {
+      "title": "Event Type",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "event_payload": {
+      "title": "Event Payload",
+      "type": "object",
+      "required": false,
+      "nullable": true
+    },
     "business_key": {
       "title": "Business Key",
       "type": "string",

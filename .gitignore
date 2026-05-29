@@ -42,3 +42,4 @@ views.json
 .claude-plugin/plugin.json
 sessions/**
 .pnpm-store/**
+.antigravitycli/

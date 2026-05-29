@@ -114,14 +114,6 @@ export const WorkLineCreateMetadata = {
       "required": false,
       "nullable": true,
       "maxLength": 500
-    },
-    "is_active": {
-      "title": "Is Active",
-      "description": "是否启用",
-      "type": "boolean",
-      "required": false,
-      "nullable": false,
-      "default": true
     }
   }
 } satisfies OpenApiSchemaMetadata

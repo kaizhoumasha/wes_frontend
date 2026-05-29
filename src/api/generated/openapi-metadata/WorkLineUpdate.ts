@@ -112,13 +112,6 @@ export const WorkLineUpdateMetadata = {
       "nullable": true,
       "maxLength": 500
     },
-    "is_active": {
-      "title": "Is Active",
-      "description": "是否启用",
-      "type": "boolean",
-      "required": false,
-      "nullable": true
-    },
     "version": {
       "title": "Version",
       "description": "乐观锁版本号，更新时必传",

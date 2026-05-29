@@ -37,9 +37,7 @@ const hasCopiedSecret = ref(false)
 
 // ==================== Computed ====================
 
-const dialogTitle = computed(() =>
-  props.isReset ? '密钥已重置' : '应用创建成功'
-)
+const dialogTitle = computed(() => (props.isReset ? '密钥已重置' : '应用创建成功'))
 
 const warningMessage = computed(() =>
   props.isReset

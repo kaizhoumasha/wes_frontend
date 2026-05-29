@@ -19,7 +19,8 @@ export const WorkLineResponseMetadata = {
     "line_name",
     "line_type",
     "id",
-    "version"
+    "version",
+    "is_active"
   ],
   "fields": {
     "line_code": {
@@ -116,14 +117,6 @@ export const WorkLineResponseMetadata = {
       "nullable": true,
       "maxLength": 500
     },
-    "is_active": {
-      "title": "Is Active",
-      "description": "是否启用",
-      "type": "boolean",
-      "required": false,
-      "nullable": false,
-      "default": true
-    },
     "id": {
       "title": "Id",
       "type": "integer",
@@ -133,6 +126,12 @@ export const WorkLineResponseMetadata = {
     "version": {
       "title": "Version",
       "type": "integer",
+      "required": true,
+      "nullable": false
+    },
+    "is_active": {
+      "title": "Is Active",
+      "type": "boolean",
       "required": true,
       "nullable": false
     }

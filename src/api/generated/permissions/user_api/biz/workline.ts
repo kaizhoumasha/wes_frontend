@@ -27,10 +27,14 @@ export const BIZ_WORKLINE_PERMISSION = {
   restore: 'biz:workline:restore',
   /** 回收站权限 */
   trash: 'biz:workline:trash',
+  /** 启用作业线 */
+  activate: 'biz:workline:activate',
   /** 清理工作线沙箱运行时数据 */
   cleanupSandbox: 'biz:workline:cleanup-sandbox',
   /** 人工确认 checklist 后清除工作线急停 */
   clearEstop: 'biz:workline:clear-estop',
+  /** 停用作业线 */
+  deactivate: 'biz:workline:deactivate',
   /** 查询 NG Return Items */
   listNgReturnItem: 'biz:workline:list-ng-return-item',
   /** 批量永久删除WorkLine */

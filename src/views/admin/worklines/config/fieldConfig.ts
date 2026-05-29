@@ -233,7 +233,7 @@ export function createWorkLineFormFieldConfig(
       }]
     }
 
-    if (field.key === 'contract_version') {
+    if (field.key === 'contract_version' || field.key === 'is_active') {
       return []
     }
 

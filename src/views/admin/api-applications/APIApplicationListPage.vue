@@ -26,7 +26,11 @@ import type {
 import type { CrudPageConfig } from '@/components/common/crud-page/types'
 import { getSafeErrorMessage } from '@/utils/string'
 
-type APIApplicationPageConfig = CrudPageConfig<APIApplication, CreateAPIApplicationInput, UpdateAPIApplicationInput>
+type APIApplicationPageConfig = CrudPageConfig<
+  APIApplication,
+  CreateAPIApplicationInput,
+  UpdateAPIApplicationInput
+>
 
 // 凭证展示对话框状态
 const credentialDialogVisible = ref(false)
@@ -54,13 +58,11 @@ function handleCreateResult(result: Record<string, unknown>) {
 
 async function openResetSecretDialog(app: APIApplication) {
   try {
-    const data = await applicationsApiMethods.resetSecret({ id: app.id }).send() as Record<string, string> | undefined
+    const data = (await applicationsApiMethods.resetSecret({ id: app.id }).send()) as
+      | Record<string, string>
+      | undefined
     if (data?.app_secret) {
-      showCredential(
-        { app_secret: data.app_secret, app_id: app.app_id },
-        app.app_name,
-        true
-      )
+      showCredential({ app_secret: data.app_secret, app_id: app.app_id }, app.app_name, true)
     } else {
       ElMessage.error('密钥重置失败，未返回新密钥')
     }

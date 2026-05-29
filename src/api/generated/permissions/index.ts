@@ -18,7 +18,6 @@ import { API_AUTH_APIACCESSLOG_PERMISSION } from './user_api/api-auth/apiaccessl
 import { BIZ_DEVICE_PERMISSION } from './user_api/biz/device'
 import { BIZ_WORKLINE_PERMISSION } from './user_api/biz/workline'
 import { CALLBACK_CALLBACK_LOG_PERMISSION } from './user_api/callback/callback_log'
-import { DEMO_DEMOPRODUCT_PERMISSION } from './user_api/demo/demoproduct'
 import { RESOURCE_BIN_PERMISSION } from './user_api/resource/bin'
 import { RESOURCE_BINCELLOCCUPANCY_PERMISSION } from './user_api/resource/bincelloccupancy'
 import { RESOURCE_BINCONTENTSNAPSHOT_PERMISSION } from './user_api/resource/bincontentsnapshot'
@@ -46,7 +45,6 @@ export { API_AUTH_APIACCESSLOG_PERMISSION }
 export { BIZ_DEVICE_PERMISSION }
 export { BIZ_WORKLINE_PERMISSION }
 export { CALLBACK_CALLBACK_LOG_PERMISSION }
-export { DEMO_DEMOPRODUCT_PERMISSION }
 export { RESOURCE_BIN_PERMISSION }
 export { RESOURCE_BINCELLOCCUPANCY_PERMISSION }
 export { RESOURCE_BINCONTENTSNAPSHOT_PERMISSION }
@@ -104,13 +102,6 @@ export const CALLBACK_PERMISSIONS = {
 } as const
 
 /**
- * demo 分类权限快捷导出
- */
-export const DEMO_PERMISSIONS = {
-  demoproduct: DEMO_DEMOPRODUCT_PERMISSION,
-} as const
-
-/**
  * resource 分类权限快捷导出
  */
 export const RESOURCE_PERMISSIONS = {
@@ -145,7 +136,6 @@ export const PERMISSIONS = {
   apiAuth: API_AUTH_PERMISSIONS,
   biz: BIZ_PERMISSIONS,
   callback: CALLBACK_PERMISSIONS,
-  demo: DEMO_PERMISSIONS,
   resource: RESOURCE_PERMISSIONS,
   sys: SYS_PERMISSIONS,
 } as const

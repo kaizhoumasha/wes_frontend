@@ -21,8 +21,13 @@ function openRuntime(workline: Workline) {
   router.push({ name: 'RuntimeMonitor', query: buildRuntimeWorklineQuery(workline.id) })
 }
 
+function openConfig(workline: Workline) {
+  router.push({ name: 'WorkLineConfig', params: { id: workline.id.toString() } })
+}
+
 const pageActions = {
-  openRuntime
+  openRuntime,
+  openConfig
 }
 
 const config = shallowRef<ReturnType<typeof createWorkLinePageConfig> | null>(null)

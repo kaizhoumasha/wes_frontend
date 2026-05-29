@@ -27,6 +27,10 @@ export type SandboxPendingQuery = ContractQueryParams<'/api/v1/workline/operatio
 export type SandboxCompletedResult = ContractResponseData<'/api/v1/workline/operations/sandbox/completed', 'get'>
 export type SandboxCompletedQuery = ContractQueryParams<'/api/v1/workline/operations/sandbox/completed', 'get'>
 
+export type SandboxWorklinesCleanupResult = ContractResponseData<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/cleanup', 'post'>
+export type SandboxWorklinesCleanupPathParams = ContractPathParams<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/cleanup', 'post'>
+export type SandboxWorklinesCleanupInput = ContractRequestBody<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/cleanup', 'post'>
+
 export type ReplayInboxesResult = ContractResponseData<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>
 export type ReplayInboxesPathParams = ContractPathParams<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>
 export type ReplayInboxesInput = ContractRequestBody<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>
@@ -52,6 +56,9 @@ export type SandboxEventsInput = ContractRequestBody<'/api/v1/workline/operation
 
 export type SandboxAckResult = ContractResponseData<'/api/v1/workline/operations/sandbox/ack', 'post'>
 export type SandboxAckInput = ContractRequestBody<'/api/v1/workline/operations/sandbox/ack', 'post'>
+
+export type SandboxExternalCallbacksResult = ContractResponseData<'/api/v1/workline/operations/sandbox/external-callbacks', 'post'>
+export type SandboxExternalCallbacksInput = ContractRequestBody<'/api/v1/workline/operations/sandbox/external-callbacks', 'post'>
 
 export type ResultsResult = ContractResponseData<'/api/v1/workline/operations/results', 'post'>
 export type ResultsInput = ContractRequestBody<'/api/v1/workline/operations/results', 'post'>
@@ -86,6 +93,9 @@ export type TracesPathPathParams = ContractPathParams<'/api/v1/workline/runtime/
 export type NgReasonsResult = ContractResponseData<'/api/v1/workline/runtime-holds/ng-reasons', 'get'>
 export type NgReasonsQuery = ContractQueryParams<'/api/v1/workline/runtime-holds/ng-reasons', 'get'>
 
+export type RuntimeHoldsResult = ContractResponseData<'/api/v1/workline/runtime-holds', 'get'>
+export type RuntimeHoldsQuery = ContractQueryParams<'/api/v1/workline/runtime-holds', 'get'>
+
 export type GetByHoldIdResult = ContractResponseData<'/api/v1/workline/runtime-holds/{hold_id}', 'get'>
 export type GetByHoldIdPathParams = ContractPathParams<'/api/v1/workline/runtime-holds/{hold_id}', 'get'>
 
@@ -110,6 +120,9 @@ export type CommandPathParams = ContractPathParams<'/api/v1/workline/trace/comma
 
 export type DispatchResult = ContractResponseData<'/api/v1/workline/trace/dispatch/{dispatch_key}', 'get'>
 export type DispatchPathParams = ContractPathParams<'/api/v1/workline/trace/dispatch/{dispatch_key}', 'get'>
+
+export type ExchangeResult = ContractResponseData<'/api/v1/workline/trace/exchange/{exchange_request_code}', 'get'>
+export type ExchangePathParams = ContractPathParams<'/api/v1/workline/trace/exchange/{exchange_request_code}', 'get'>
 
 export type QueryResult = ContractResponseData<'/api/v1/workline/trace/query', 'post'>
 export type QueryInput = ContractRequestBody<'/api/v1/workline/trace/query', 'post'>
@@ -140,6 +153,15 @@ export const worklineApiMethods = {
    */
   sandboxCompleted(query?: ContractQueryParams<'/api/v1/workline/operations/sandbox/completed', 'get'>, config?: ContractRequestConfig) {
     return contractMethods.get('/api/v1/workline/operations/sandbox/completed', { query, config })
+  },
+
+  /**
+   * [biz:workline:cleanup-sandbox] 清理工作线沙箱运行时数据
+   * @endpoint POST /api/v1/workline/operations/sandbox/worklines/{workline_id}/cleanup
+   * @returns alova method instance
+   */
+  sandboxWorklinesCleanup(params: ContractPathParams<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/cleanup', 'post'>, body: ContractRequestBody<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/cleanup', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/workline/operations/sandbox/worklines/{workline_id}/cleanup', { params, body, config })
   },
 
   /**
@@ -204,6 +226,15 @@ export const worklineApiMethods = {
    */
   sandboxAck(body: ContractRequestBody<'/api/v1/workline/operations/sandbox/ack', 'post'>, config?: ContractRequestConfig) {
     return contractMethods.post('/api/v1/workline/operations/sandbox/ack', { body, config })
+  },
+
+  /**
+   * [biz:workline:update] 沙箱模拟 External HTTP 回调
+   * @endpoint POST /api/v1/workline/operations/sandbox/external-callbacks
+   * @returns alova method instance
+   */
+  sandboxExternalCallbacks(body: ContractRequestBody<'/api/v1/workline/operations/sandbox/external-callbacks', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/workline/operations/sandbox/external-callbacks', { body, config })
   },
 
   /**
@@ -307,6 +338,15 @@ export const worklineApiMethods = {
   },
 
   /**
+   * [biz:workline:view-runtime-hold] 查询 Runtime Hold 列表
+   * @endpoint GET /api/v1/workline/runtime-holds
+   * @returns alova method instance
+   */
+  runtimeHolds(query?: ContractQueryParams<'/api/v1/workline/runtime-holds', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/runtime-holds', { query, config })
+  },
+
+  /**
    * [biz:workline:view-runtime-hold] 查看 Runtime Hold 明细
    * @endpoint GET /api/v1/workline/runtime-holds/{hold_id}
    * @returns alova method instance
@@ -376,6 +416,15 @@ export const worklineApiMethods = {
    */
   dispatch(params: ContractPathParams<'/api/v1/workline/trace/dispatch/{dispatch_key}', 'get'>, config?: ContractRequestConfig) {
     return contractMethods.get('/api/v1/workline/trace/dispatch/{dispatch_key}', { params, config })
+  },
+
+  /**
+   * [biz:workline:list] 根据满箱交换请求编码查询 Trace 与资源证据
+   * @endpoint GET /api/v1/workline/trace/exchange/{exchange_request_code}
+   * @returns alova method instance
+   */
+  exchange(params: ContractPathParams<'/api/v1/workline/trace/exchange/{exchange_request_code}', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/trace/exchange/{exchange_request_code}', { params, config })
   },
 
   /**

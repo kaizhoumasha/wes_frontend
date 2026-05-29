@@ -1749,144 +1749,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/demo/demo-products": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [demo:demoproduct:create] 创建DemoProduct */
-        post: operations["demo_products_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/demo/demo-products/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [demo:demoproduct:detail] 获取DemoProduct */
-        get: operations["demo_products_get"];
-        /** [demo:demoproduct:update] 更新DemoProduct */
-        put: operations["demo_products_update"];
-        post?: never;
-        /** [demo:demoproduct:delete] 删除DemoProduct */
-        delete: operations["demo_products_delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/demo/demo-products/{id}/permanent": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** [demo:demoproduct:permanent_delete] 永久删除DemoProduct */
-        delete: operations["demo_products_permanent_delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/demo/demo-products/{id}/restore": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [demo:demoproduct:restore] 恢复DemoProduct */
-        post: operations["demo_products_restore"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/demo/demo-products/query": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [demo:demoproduct:list] 获取DemoProduct列表 */
-        post: operations["demo_products_query"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/demo/demo-products/trash": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [demo:demoproduct:trash] 获取已删除DemoProduct */
-        get: operations["demo_products_trash"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/demo/demo-products/trash/permanent": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** [demo:demoproduct:permanent_delete] 批量永久删除DemoProduct */
-        delete: operations["demo_products_batch_permanent_delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/demo/demo-products/trash/restore": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [demo:demoproduct:restore] 批量恢复DemoProduct */
-        post: operations["demo_products_batch_restore"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/device/devices": {
         parameters: {
             query?: never;
@@ -2070,6 +1932,448 @@ export interface paths {
         put?: never;
         /** [biz:device:restore] 批量恢复Device */
         post: operations["devices_batch_restore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/bin-cell-occupancies/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [resource:bincelloccupancy:detail] 获取BinCellOccupancy */
+        get: operations["bin_cell_occupancies_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/bin-cell-occupancies/query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [resource:bincelloccupancy:list] 获取BinCellOccupancy列表 */
+        post: operations["bin_cell_occupancies_query"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/bin-content-snapshot-items/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [resource:bincontentsnapshotitem:detail] 获取BinContentSnapshotItem */
+        get: operations["bin_content_snapshot_items_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/bin-content-snapshot-items/query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [resource:bincontentsnapshotitem:list] 获取BinContentSnapshotItem列表 */
+        post: operations["bin_content_snapshot_items_query"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/bin-content-snapshots/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [resource:bincontentsnapshot:detail] 获取BinContentSnapshot */
+        get: operations["bin_content_snapshots_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/bin-content-snapshots/query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [resource:bincontentsnapshot:list] 获取BinContentSnapshot列表 */
+        post: operations["bin_content_snapshots_query"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/bin-material-mounts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [resource:binmaterialmount:detail] 获取BinMaterialMount */
+        get: operations["bin_material_mounts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/bin-material-mounts/query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [resource:binmaterialmount:list] 获取BinMaterialMount列表 */
+        post: operations["bin_material_mounts_query"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/bin-slot-templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [resource:binslottemplate:detail] 获取BinSlotTemplate */
+        get: operations["bin_slot_templates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/bin-slot-templates/query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [resource:binslottemplate:list] 获取BinSlotTemplate列表 */
+        post: operations["bin_slot_templates_query"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/bin-types/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [resource:bintype:detail] 获取BinType */
+        get: operations["bin_types_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/bin-types/query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [resource:bintype:list] 获取BinType列表 */
+        post: operations["bin_types_query"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/bins/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [resource:bin:detail] 获取Bin */
+        get: operations["bins_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/bins/query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [resource:bin:list] 获取Bin列表 */
+        post: operations["bins_query"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/rack-bin-mounts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [resource:rackbinmount:detail] 获取RackBinMount */
+        get: operations["rack_bin_mounts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/rack-bin-mounts/query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [resource:rackbinmount:list] 获取RackBinMount列表 */
+        post: operations["rack_bin_mounts_query"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/rack-placements/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [resource:rackplacement:detail] 获取RackPlacement */
+        get: operations["rack_placements_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/rack-placements/query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [resource:rackplacement:list] 获取RackPlacement列表 */
+        post: operations["rack_placements_query"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/rack-slot-templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [resource:rackslottemplate:detail] 获取RackSlotTemplate */
+        get: operations["rack_slot_templates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/rack-slot-templates/query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [resource:rackslottemplate:list] 获取RackSlotTemplate列表 */
+        post: operations["rack_slot_templates_query"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/rack-types/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [resource:racktype:detail] 获取RackType */
+        get: operations["rack_types_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/rack-types/query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [resource:racktype:list] 获取RackType列表 */
+        post: operations["rack_types_query"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/racks/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [resource:rack:detail] 获取Rack */
+        get: operations["racks_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/racks/query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [resource:rack:list] 获取Rack列表 */
+        post: operations["racks_query"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/state-events/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [resource:resourcestateevent:detail] 获取ResourceStateEvent */
+        get: operations["state_events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resource/state-events/query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [resource:resourcestateevent:list] 获取ResourceStateEvent列表 */
+        post: operations["state_events_query"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2283,6 +2587,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workline/operations/sandbox/external-callbacks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [biz:workline:update] 沙箱模拟 External HTTP 回调 */
+        post: operations["workline_operations_sandbox_external_callbacks_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workline/operations/sandbox/pending": {
         parameters: {
             query?: never;
@@ -2311,6 +2632,23 @@ export interface paths {
         get: operations["workline_operations_sandbox_templates_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/operations/sandbox/worklines/{workline_id}/cleanup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [biz:workline:cleanup-sandbox] 清理工作线沙箱运行时数据 */
+        post: operations["workline_operations_sandbox_worklines_by_workline_id_cleanup_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2349,6 +2687,23 @@ export interface paths {
          * @description 从插件注册表导出作业线插件与契约版本下拉选项。
          */
         get: operations["workline_plugins_options_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/runtime-holds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:view-runtime-hold] 查询 Runtime Hold 列表 */
+        get: operations["workline_runtime_holds_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2578,6 +2933,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workline/trace/exchange/{exchange_request_code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list] 根据满箱交换请求编码查询 Trace 与资源证据 */
+        get: operations["workline_trace_exchange_by_exchange_request_code_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workline/trace/query": {
         parameters: {
             query?: never;
@@ -2677,6 +3049,66 @@ export interface paths {
         post?: never;
         /** [biz:workline:delete] 删除WorkLine */
         delete: operations["work_lines_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/work_lines/{id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * [biz:workline:activate] 启用作业线
+         * @description 通过配置预检后启用 WorkLine。
+         */
+        post: operations["workline_work_lines_by_id_activate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/work_lines/{id}/configuration-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * [biz:workline:detail] 查询作业线配置状态
+         * @description 查询 WorkLine 启用前配置状态。
+         */
+        get: operations["workline_work_lines_by_id_configuration_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/work_lines/{id}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * [biz:workline:deactivate] 停用作业线
+         * @description 确认无未完成运行负载后停用 WorkLine。
+         */
+        post: operations["workline_work_lines_by_id_deactivate_post"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3304,6 +3736,525 @@ export interface components {
              */
             items: components["schemas"]["SortItem"][];
         };
+        /**
+         * BinCellOccupancyResponse
+         * @description 料箱格位聚合占用响应 Schema。
+         */
+        BinCellOccupancyResponse: {
+            /**
+             * Bin Cell Code
+             * @description 料箱内部格位编码
+             */
+            bin_cell_code?: string | null;
+            /**
+             * Bin Cell Index
+             * @description 料箱内部格位序号
+             */
+            bin_cell_index: string;
+            /**
+             * Bin Code
+             * @description 料箱编码
+             */
+            bin_code: string;
+            /**
+             * Capacity Depth Mm
+             * @description 当前格位可用总深度
+             */
+            capacity_depth_mm?: number | null;
+            /**
+             * Date Code
+             * @description Date Code
+             */
+            date_code?: string | null;
+            /**
+             * Ended At
+             * @description 格位占用结束时间
+             */
+            ended_at?: string | null;
+            /** Id */
+            id: number;
+            /**
+             * Lot Code
+             * @description 批次展示字段
+             */
+            lot_code?: string | null;
+            /**
+             * Material Code
+             * @description 物料编码引用
+             */
+            material_code?: string | null;
+            /**
+             * Material Identity Key
+             * @description 物料属性身份键
+             */
+            material_identity_key: string;
+            /**
+             * Metadata Json
+             * @description 扩展属性
+             */
+            metadata_json?: {
+                [key: string]: unknown;
+            };
+            /**
+             * @description 格位聚合占用状态
+             * @default UNKNOWN
+             */
+            occupancy_status: components["schemas"]["BinCellOccupancyStatus"];
+            /**
+             * Reel Count
+             * @description 当前格位内 active 料盘数量
+             * @default 0
+             */
+            reel_count: number;
+            /**
+             * Remaining Depth Mm
+             * @description 当前格位剩余深度
+             */
+            remaining_depth_mm?: number | null;
+            /**
+             * Session Id
+             * @description 最近 WorkLine Session
+             */
+            session_id?: string | null;
+            /**
+             * Source Event Id
+             * @description 最近来源事件 ID
+             */
+            source_event_id: string;
+            /** @description 来源系统 */
+            source_system: components["schemas"]["ResourceSourceSystem"];
+            /**
+             * Source Version
+             * @description 来源版本
+             */
+            source_version?: string | null;
+            /**
+             * Started At
+             * Format: date-time
+             * @description 首次占用确认时间
+             */
+            started_at: string;
+            /**
+             * Trace Id
+             * @description WorkLine trace
+             */
+            trace_id?: string | null;
+            /**
+             * Used Depth Mm
+             * @description 当前格位已使用深度
+             * @default 0
+             */
+            used_depth_mm: number;
+        };
+        /**
+         * BinCellOccupancyStatus
+         * @description 料箱格位聚合占用状态。
+         * @enum {string}
+         */
+        BinCellOccupancyStatus: "OCCUPIED" | "FULL" | "REMOVED" | "UNKNOWN";
+        /**
+         * BinContentSnapshotItemResponse
+         * @description 料箱内容快照明细响应 Schema。
+         */
+        BinContentSnapshotItemResponse: {
+            /**
+             * Bin Cell Code
+             * @description 料箱内部格位编码
+             */
+            bin_cell_code?: string | null;
+            /**
+             * Bin Cell Index
+             * @description 料箱内部格位序号
+             */
+            bin_cell_index?: string | null;
+            /**
+             * Date Code
+             * @description Date Code
+             */
+            date_code?: string | null;
+            /**
+             * Dims Json
+             * @description 尺寸
+             */
+            dims_json?: {
+                [key: string]: unknown;
+            };
+            /** Id */
+            id: number;
+            /**
+             * Lot Code
+             * @description 批次展示字段
+             */
+            lot_code?: string | null;
+            /**
+             * Material Code
+             * @description 物料编码引用
+             */
+            material_code?: string | null;
+            /**
+             * Pkg Code
+             * @description PKG 展示字段
+             */
+            pkg_code?: string | null;
+            /**
+             * Qty Snapshot
+             * @description 当时执行过程看到的数量
+             */
+            qty_snapshot?: number | null;
+            /**
+             * Snapshot Id
+             * @description 所属快照业务 ID
+             */
+            snapshot_id: string;
+            /**
+             * Thickness Mm
+             * @description 厚度
+             */
+            thickness_mm?: number | null;
+            /**
+             * Vendor Code
+             * @description 供应商引用
+             */
+            vendor_code?: string | null;
+            /**
+             * Wms Inventory Id
+             * @description WMS 库存记录引用
+             */
+            wms_inventory_id?: string | null;
+        };
+        /**
+         * BinContentSnapshotResponse
+         * @description 料箱内容快照头响应 Schema。
+         */
+        BinContentSnapshotResponse: {
+            /**
+             * Bin Code
+             * @description 料箱编码
+             */
+            bin_code: string;
+            /**
+             * Captured At
+             * Format: date-time
+             * @description 快照时间
+             */
+            captured_at: string;
+            /** Id */
+            id: number;
+            /**
+             * Snapshot Group Key
+             * @description 快照分组键
+             */
+            snapshot_group_key?: string | null;
+            /**
+             * Snapshot Hash
+             * @description 快照头和明细稳定摘要
+             */
+            snapshot_hash: string;
+            /**
+             * Snapshot Id
+             * @description 快照业务 ID
+             */
+            snapshot_id: string;
+            /**
+             * Snapshot Reason
+             * @description 快照原因
+             */
+            snapshot_reason?: string | null;
+            /**
+             * @description 快照完整性
+             * @default UNKNOWN
+             */
+            snapshot_status: components["schemas"]["BinContentSnapshotStatus"];
+            /**
+             * Source Event Id
+             * @description 来源事件或命令结果
+             */
+            source_event_id?: string | null;
+            /**
+             * Source Session Id
+             * @description 产生快照的 WorklineSession
+             */
+            source_session_id?: number | null;
+            /**
+             * Wms Snapshot Version
+             * @description WMS 查询版本或时间
+             */
+            wms_snapshot_version?: string | null;
+        };
+        /**
+         * BinContentSnapshotStatus
+         * @description 料箱内容快照完整性。
+         * @enum {string}
+         */
+        BinContentSnapshotStatus: "COMPLETE" | "PARTIAL" | "UNKNOWN";
+        /**
+         * BinMaterialMountResponse
+         * @description 物料料箱格位投影响应 Schema。
+         */
+        BinMaterialMountResponse: {
+            /**
+             * Bin Cell Code
+             * @description 料箱内部格位编码
+             */
+            bin_cell_code?: string | null;
+            /**
+             * Bin Cell Index
+             * @description 料箱内部格位序号
+             */
+            bin_cell_index: string;
+            /**
+             * Bin Cell Occupancy Id
+             * @description 关联料箱格位聚合占用 ID
+             */
+            bin_cell_occupancy_id?: number | null;
+            /**
+             * Bin Code
+             * @description 料箱编码
+             */
+            bin_code: string;
+            /**
+             * Cell Stack Position
+             * @description 同一料格内入格顺序，1 为最早入格
+             * @default 1
+             */
+            cell_stack_position: number;
+            /**
+             * Date Code
+             * @description Date Code
+             */
+            date_code?: string | null;
+            /**
+             * Ended At
+             * @description 离开料箱格位时间
+             */
+            ended_at?: string | null;
+            /** Id */
+            id: number;
+            /**
+             * Lot Code
+             * @description 批次展示字段
+             */
+            lot_code?: string | null;
+            /**
+             * Material Code
+             * @description 物料编码引用
+             */
+            material_code?: string | null;
+            /**
+             * Material Identity Key
+             * @description 物料属性身份键
+             */
+            material_identity_key: string;
+            /**
+             * @description 物料占用状态
+             * @default UNKNOWN
+             */
+            mount_status: components["schemas"]["BinMaterialMountStatus"];
+            /**
+             * Pkg Code
+             * @description PKG 展示字段
+             */
+            pkg_code?: string | null;
+            /**
+             * Qty Snapshot
+             * @description 当时执行过程看到的数量
+             */
+            qty_snapshot?: number | null;
+            /**
+             * Reel Diameter
+             * @description 料盘直径
+             */
+            reel_diameter?: string | null;
+            /**
+             * Reel Thickness
+             * @description 料盘厚度
+             */
+            reel_thickness?: string | null;
+            /**
+             * Session Id
+             * @description WorkLine Session
+             */
+            session_id?: string | null;
+            /**
+             * Source Event Id
+             * @description 来源事件 ID
+             */
+            source_event_id: string;
+            /** @description 来源系统 */
+            source_system: components["schemas"]["ResourceSourceSystem"];
+            /**
+             * Source Version
+             * @description 来源版本
+             */
+            source_version?: string | null;
+            /**
+             * Started At
+             * Format: date-time
+             * @description 占用确认时间
+             */
+            started_at: string;
+            /**
+             * Trace Id
+             * @description WorkLine trace
+             */
+            trace_id?: string | null;
+            /**
+             * @description WMS 确认状态
+             * @default PENDING
+             */
+            wms_confirmation_status: components["schemas"]["WmsConfirmationStatus"];
+            /**
+             * Wms Inventory Id
+             * @description WMS 库存记录引用
+             */
+            wms_inventory_id?: string | null;
+            /**
+             * Wms Inventory Version
+             * @description WMS 库存或分拆版本引用
+             */
+            wms_inventory_version?: string | null;
+            /**
+             * Writeback Evidence Id
+             * @description 关联 WMS 回写证据
+             */
+            writeback_evidence_id?: number | null;
+        };
+        /**
+         * BinMaterialMountStatus
+         * @description 物料料箱格位投影状态。
+         * @enum {string}
+         */
+        BinMaterialMountStatus: "OCCUPIED" | "REMOVED" | "LOCKED" | "UNKNOWN";
+        /**
+         * BinResponse
+         * @description 料箱实例响应 Schema。
+         */
+        BinResponse: {
+            /**
+             * Bin Code
+             * @description WES 料箱编码
+             */
+            bin_code: string;
+            /**
+             * Bin Type Code
+             * @description 料箱类型编码
+             */
+            bin_type_code: string;
+            /** Id */
+            id: number;
+            /**
+             * Metadata Json
+             * @description 扩展属性
+             */
+            metadata_json?: {
+                [key: string]: unknown;
+            };
+            /**
+             * @description 来源系统
+             * @default MANUAL_IMPORT
+             */
+            source_system: components["schemas"]["ResourceSourceSystem"];
+            /**
+             * Source Version
+             * @description 来源版本
+             */
+            source_version?: string | null;
+            /**
+             * @description 料箱主数据状态
+             * @default ACTIVE
+             */
+            status: components["schemas"]["ResourceMasterStatus"];
+            /**
+             * Wms Bin Id
+             * @description WMS 料箱 ID
+             */
+            wms_bin_id?: string | null;
+        };
+        /**
+         * BinSlotSize
+         * @description 料箱内部槽位尺寸。
+         * @enum {string}
+         */
+        BinSlotSize: "7INCH" | "13INCH" | "15INCH" | "LARGE";
+        /**
+         * BinSlotTemplateResponse
+         * @description 料箱槽位模板响应 Schema。
+         */
+        BinSlotTemplateResponse: {
+            /**
+             * Active
+             * @description 是否启用
+             * @default true
+             */
+            active: boolean;
+            /**
+             * Bin Slot Code
+             * @description 料箱内槽位编码
+             */
+            bin_slot_code: string;
+            /**
+             * Bin Type Code
+             * @description 所属料箱类型编码
+             */
+            bin_type_code: string;
+            /** Id */
+            id: number;
+            /**
+             * Max Depth Mm
+             * @description 最大深度
+             */
+            max_depth_mm?: number | null;
+            /**
+             * Max Weight G
+             * @description 最大重量
+             */
+            max_weight_g?: number | null;
+            /**
+             * Metadata Json
+             * @description 扩展属性
+             */
+            metadata_json?: {
+                [key: string]: unknown;
+            };
+            /** @description 槽位尺寸 */
+            slot_size: components["schemas"]["BinSlotSize"];
+        };
+        /**
+         * BinTypeResponse
+         * @description 料箱类型响应 Schema。
+         */
+        BinTypeResponse: {
+            /**
+             * Active
+             * @description 是否启用
+             * @default true
+             */
+            active: boolean;
+            /**
+             * Bin Type Code
+             * @description 料箱类型编码
+             */
+            bin_type_code: string;
+            /**
+             * Bin Type Name
+             * @description 料箱类型名称
+             */
+            bin_type_name: string;
+            /**
+             * Description
+             * @description 说明
+             */
+            description?: string | null;
+            /** Id */
+            id: number;
+            /**
+             * Metadata Json
+             * @description 扩展属性
+             */
+            metadata_json?: {
+                [key: string]: unknown;
+            };
+        };
         /** Body_admin_menus_move_put */
         Body_admin_menus_move_put: {
             /**
@@ -3570,127 +4521,6 @@ export interface components {
             reason?: string | null;
         };
         /**
-         * DemoProductCreate
-         * @description DemoProduct 创建模型
-         */
-        DemoProductCreate: {
-            /** Name */
-            name: string;
-            /** Price */
-            price: number;
-            /** Product Lists */
-            product_lists?: components["schemas"]["DemoProductListCreate"][];
-            /** Stock */
-            stock: number;
-        };
-        /**
-         * DemoProductListCreate
-         * @description DemoProductList 创建模型
-         *
-         *     注意：product_id 在创建时是可选的，因为会自动从主表 ID 设置
-         */
-        DemoProductListCreate: {
-            /** Product Id */
-            product_id?: number | null;
-            /** Quantity */
-            quantity: number;
-        };
-        /**
-         * DemoProductListResponse
-         * @description DemoProductList 响应模型
-         */
-        DemoProductListResponse: {
-            /** Id */
-            id: number;
-            /** Product Id */
-            product_id: number;
-            /** Quantity */
-            quantity: number;
-        };
-        /**
-         * DemoProductListUpdate
-         * @description DemoProductList 更新模型
-         *
-         *     注意：在更新主表时，使用 Diff 算法处理从表：
-         *     - 有 id：更新现有记录
-         *     - 无 id：创建新记录
-         *     - 缺失：删除记录
-         *
-         *     因此 id 和 product_id 都是可选的
-         */
-        DemoProductListUpdate: {
-            /** Id */
-            id?: number | null;
-            /** Product Id */
-            product_id?: number | null;
-            /** Quantity */
-            quantity?: number | null;
-        };
-        /**
-         * DemoProductResponse
-         * @description DemoProduct 响应模型
-         *
-         *     包含 version 字段，前端在更新时必须传回该字段
-         */
-        DemoProductResponse: {
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at?: string;
-            /** Created By */
-            created_by?: number | null;
-            /** Deleted At */
-            deleted_at?: string | null;
-            /** Deleted By */
-            deleted_by?: number | null;
-            /** Id */
-            id: number;
-            /**
-             * Is Deleted
-             * @default false
-             */
-            is_deleted: boolean;
-            /** Name */
-            name: string;
-            /** Price */
-            price: number;
-            /** Product Lists */
-            product_lists: components["schemas"]["DemoProductListResponse"][];
-            /** Stock */
-            stock: number;
-            /** Updated At */
-            updated_at?: string | null;
-            /** Updated By */
-            updated_by?: number | null;
-            /**
-             * Version
-             * @default 0
-             */
-            version: number;
-        };
-        /**
-         * DemoProductUpdate
-         * @description DemoProduct 更新模型
-         *
-         *     注意：更新时必须包含 version 字段（乐观锁）
-         */
-        DemoProductUpdate: {
-            /** Name */
-            name?: string | null;
-            /** Price */
-            price?: number | null;
-            /** Product Lists */
-            product_lists?: components["schemas"]["DemoProductListUpdate"][];
-            /** Stock */
-            stock?: number | null;
-            /**
-             * Version
-             * @description 乐观锁版本号，更新时必传
-             */
-            version: number;
-        };
-        /**
          * DeviceCreate
          * @description 设备创建 Schema - 接收客户端输入
          */
@@ -3818,7 +4648,7 @@ export interface components {
             timeout: number;
             /**
              * Upstream Device Id
-             * @description 上游设备ID（线性拓扑）
+             * @description 上游设备ID（物理路径辅助信息）
              */
             upstream_device_id?: number | null;
             /**
@@ -3979,7 +4809,7 @@ export interface components {
             timeout: number;
             /**
              * Upstream Device Id
-             * @description 上游设备ID（线性拓扑）
+             * @description 上游设备ID（物理路径辅助信息）
              */
             upstream_device_id?: number | null;
             /**
@@ -3994,6 +4824,32 @@ export interface components {
              * @description 所属作业线 ID
              */
             work_line_id?: number | null;
+        };
+        /**
+         * DeviceRoleRequirementOption
+         * @description 设备角色要求明细。
+         */
+        DeviceRoleRequirementOption: {
+            /**
+             * Capabilities
+             * @description 要求能力声明
+             */
+            capabilities?: string[];
+            /**
+             * Max Count
+             * @description 最大数量限制
+             */
+            max_count?: number | null;
+            /**
+             * Min Count
+             * @description 最小数量限制
+             */
+            min_count: number;
+            /**
+             * Role
+             * @description 必需角色名
+             */
+            role: string;
         };
         /**
          * DeviceRuntimeActionRequest
@@ -4100,7 +4956,7 @@ export interface components {
             timeout?: number | null;
             /**
              * Upstream Device Id
-             * @description 上游设备ID（线性拓扑）
+             * @description 上游设备ID（物理路径辅助信息）
              */
             upstream_device_id?: number | null;
             /**
@@ -4225,16 +5081,40 @@ export interface components {
         ListResponseData_APIApplicationResponse_: ApiListData<components["schemas"]["APIApplicationResponse"]>;
         /** ListResponseData[AuditLogResponse] */
         ListResponseData_AuditLogResponse_: ApiListData<components["schemas"]["AuditLogResponse"]>;
+        /** ListResponseData[BinCellOccupancyResponse] */
+        ListResponseData_BinCellOccupancyResponse_: ApiListData<components["schemas"]["BinCellOccupancyResponse"]>;
+        /** ListResponseData[BinContentSnapshotItemResponse] */
+        ListResponseData_BinContentSnapshotItemResponse_: ApiListData<components["schemas"]["BinContentSnapshotItemResponse"]>;
+        /** ListResponseData[BinContentSnapshotResponse] */
+        ListResponseData_BinContentSnapshotResponse_: ApiListData<components["schemas"]["BinContentSnapshotResponse"]>;
+        /** ListResponseData[BinMaterialMountResponse] */
+        ListResponseData_BinMaterialMountResponse_: ApiListData<components["schemas"]["BinMaterialMountResponse"]>;
+        /** ListResponseData[BinResponse] */
+        ListResponseData_BinResponse_: ApiListData<components["schemas"]["BinResponse"]>;
+        /** ListResponseData[BinSlotTemplateResponse] */
+        ListResponseData_BinSlotTemplateResponse_: ApiListData<components["schemas"]["BinSlotTemplateResponse"]>;
+        /** ListResponseData[BinTypeResponse] */
+        ListResponseData_BinTypeResponse_: ApiListData<components["schemas"]["BinTypeResponse"]>;
         /** ListResponseData[CallbackLogResponse] */
         ListResponseData_CallbackLogResponse_: ApiListData<components["schemas"]["CallbackLogResponse"]>;
-        /** ListResponseData[DemoProductResponse] */
-        ListResponseData_DemoProductResponse_: ApiListData<components["schemas"]["DemoProductResponse"]>;
         /** ListResponseData[DeviceResponse] */
         ListResponseData_DeviceResponse_: ApiListData<components["schemas"]["DeviceResponse"]>;
         /** ListResponseData[MenuResponse] */
         ListResponseData_MenuResponse_: ApiListData<components["schemas"]["MenuResponse"]>;
         /** ListResponseData[PermissionResponse] */
         ListResponseData_PermissionResponse_: ApiListData<components["schemas"]["PermissionResponse"]>;
+        /** ListResponseData[RackBinMountResponse] */
+        ListResponseData_RackBinMountResponse_: ApiListData<components["schemas"]["RackBinMountResponse"]>;
+        /** ListResponseData[RackPlacementResponse] */
+        ListResponseData_RackPlacementResponse_: ApiListData<components["schemas"]["RackPlacementResponse"]>;
+        /** ListResponseData[RackResponse] */
+        ListResponseData_RackResponse_: ApiListData<components["schemas"]["RackResponse"]>;
+        /** ListResponseData[RackSlotTemplateResponse] */
+        ListResponseData_RackSlotTemplateResponse_: ApiListData<components["schemas"]["RackSlotTemplateResponse"]>;
+        /** ListResponseData[RackTypeResponse] */
+        ListResponseData_RackTypeResponse_: ApiListData<components["schemas"]["RackTypeResponse"]>;
+        /** ListResponseData[ResourceStateEventResponse] */
+        ListResponseData_ResourceStateEventResponse_: ApiListData<components["schemas"]["ResourceStateEventResponse"]>;
         /** ListResponseData[RoleResponse] */
         ListResponseData_RoleResponse_: ApiListData<components["schemas"]["RoleResponse"]>;
         /** ListResponseData[UserResponse] */
@@ -4247,16 +5127,40 @@ export interface components {
         ListResponseSchemaModel_APIApplicationResponse_: ApiListResponse<components["schemas"]["APIApplicationResponse"]>;
         /** ListResponseSchemaModel[AuditLogResponse] */
         ListResponseSchemaModel_AuditLogResponse_: ApiListResponse<components["schemas"]["AuditLogResponse"]>;
+        /** ListResponseSchemaModel[BinCellOccupancyResponse] */
+        ListResponseSchemaModel_BinCellOccupancyResponse_: ApiListResponse<components["schemas"]["BinCellOccupancyResponse"]>;
+        /** ListResponseSchemaModel[BinContentSnapshotItemResponse] */
+        ListResponseSchemaModel_BinContentSnapshotItemResponse_: ApiListResponse<components["schemas"]["BinContentSnapshotItemResponse"]>;
+        /** ListResponseSchemaModel[BinContentSnapshotResponse] */
+        ListResponseSchemaModel_BinContentSnapshotResponse_: ApiListResponse<components["schemas"]["BinContentSnapshotResponse"]>;
+        /** ListResponseSchemaModel[BinMaterialMountResponse] */
+        ListResponseSchemaModel_BinMaterialMountResponse_: ApiListResponse<components["schemas"]["BinMaterialMountResponse"]>;
+        /** ListResponseSchemaModel[BinResponse] */
+        ListResponseSchemaModel_BinResponse_: ApiListResponse<components["schemas"]["BinResponse"]>;
+        /** ListResponseSchemaModel[BinSlotTemplateResponse] */
+        ListResponseSchemaModel_BinSlotTemplateResponse_: ApiListResponse<components["schemas"]["BinSlotTemplateResponse"]>;
+        /** ListResponseSchemaModel[BinTypeResponse] */
+        ListResponseSchemaModel_BinTypeResponse_: ApiListResponse<components["schemas"]["BinTypeResponse"]>;
         /** ListResponseSchemaModel[CallbackLogResponse] */
         ListResponseSchemaModel_CallbackLogResponse_: ApiListResponse<components["schemas"]["CallbackLogResponse"]>;
-        /** ListResponseSchemaModel[DemoProductResponse] */
-        ListResponseSchemaModel_DemoProductResponse_: ApiListResponse<components["schemas"]["DemoProductResponse"]>;
         /** ListResponseSchemaModel[DeviceResponse] */
         ListResponseSchemaModel_DeviceResponse_: ApiListResponse<components["schemas"]["DeviceResponse"]>;
         /** ListResponseSchemaModel[MenuResponse] */
         ListResponseSchemaModel_MenuResponse_: ApiListResponse<components["schemas"]["MenuResponse"]>;
         /** ListResponseSchemaModel[PermissionResponse] */
         ListResponseSchemaModel_PermissionResponse_: ApiListResponse<components["schemas"]["PermissionResponse"]>;
+        /** ListResponseSchemaModel[RackBinMountResponse] */
+        ListResponseSchemaModel_RackBinMountResponse_: ApiListResponse<components["schemas"]["RackBinMountResponse"]>;
+        /** ListResponseSchemaModel[RackPlacementResponse] */
+        ListResponseSchemaModel_RackPlacementResponse_: ApiListResponse<components["schemas"]["RackPlacementResponse"]>;
+        /** ListResponseSchemaModel[RackResponse] */
+        ListResponseSchemaModel_RackResponse_: ApiListResponse<components["schemas"]["RackResponse"]>;
+        /** ListResponseSchemaModel[RackSlotTemplateResponse] */
+        ListResponseSchemaModel_RackSlotTemplateResponse_: ApiListResponse<components["schemas"]["RackSlotTemplateResponse"]>;
+        /** ListResponseSchemaModel[RackTypeResponse] */
+        ListResponseSchemaModel_RackTypeResponse_: ApiListResponse<components["schemas"]["RackTypeResponse"]>;
+        /** ListResponseSchemaModel[ResourceStateEventResponse] */
+        ListResponseSchemaModel_ResourceStateEventResponse_: ApiListResponse<components["schemas"]["ResourceStateEventResponse"]>;
         /** ListResponseSchemaModel[RoleResponse] */
         ListResponseSchemaModel_RoleResponse_: ApiListResponse<components["schemas"]["RoleResponse"]>;
         /** ListResponseSchemaModel[UserResponse] */
@@ -5115,6 +6019,337 @@ export interface components {
             sort?: components["schemas"]["SortField"][] | null;
         };
         /**
+         * RackBinMountResponse
+         * @description 料箱挂载投影响应 Schema。
+         */
+        RackBinMountResponse: {
+            /**
+             * Bin Code
+             * @description 料箱编码
+             */
+            bin_code: string;
+            /**
+             * Ended At
+             * @description 解除挂载时间
+             */
+            ended_at?: string | null;
+            /** Id */
+            id: number;
+            /**
+             * @description 料箱挂载状态
+             * @default UNKNOWN
+             */
+            mount_status: components["schemas"]["RackBinMountStatus"];
+            /**
+             * Rack Code
+             * @description 货架编码
+             */
+            rack_code: string;
+            /**
+             * Rack Slot Code
+             * @description 货架槽位编码
+             */
+            rack_slot_code: string;
+            /**
+             * Session Id
+             * @description WorkLine Session
+             */
+            session_id?: string | null;
+            /**
+             * Source Event Id
+             * @description 来源事件 ID
+             */
+            source_event_id: string;
+            /** @description 来源系统 */
+            source_system: components["schemas"]["ResourceSourceSystem"];
+            /**
+             * Source Version
+             * @description 来源版本
+             */
+            source_version?: string | null;
+            /**
+             * Started At
+             * Format: date-time
+             * @description 挂载确认时间
+             */
+            started_at: string;
+            /**
+             * Trace Id
+             * @description WorkLine trace
+             */
+            trace_id?: string | null;
+        };
+        /**
+         * RackBinMountStatus
+         * @description 料箱挂载投影状态。
+         * @enum {string}
+         */
+        RackBinMountStatus: "MOUNTED" | "UNMOUNTED" | "EXCHANGING" | "UNKNOWN";
+        /**
+         * RackKind
+         * @description 货架物理结构类型。
+         * @enum {string}
+         */
+        RackKind: "SINGLE_LAYER" | "FIVE_LAYER" | "RETURN" | "TRANSFER" | "PRODUCTION";
+        /**
+         * RackPlacementResponse
+         * @description 货架位置投影响应 Schema。
+         */
+        RackPlacementResponse: {
+            /**
+             * Ended At
+             * @description 离开该关系的时间
+             */
+            ended_at?: string | null;
+            /**
+             * External Location Code
+             * @description 外部地码证据
+             */
+            external_location_code?: string | null;
+            /** Id */
+            id: number;
+            /**
+             * Location Code
+             * @description 兼容地码或逻辑位置
+             */
+            location_code?: string | null;
+            /**
+             * Logic Location Code
+             * @description WES 逻辑位置
+             */
+            logic_location_code?: string | null;
+            /**
+             * @description 位置投影状态
+             * @default UNKNOWN
+             */
+            placement_status: components["schemas"]["RackPlacementStatus"];
+            /**
+             * Position Code
+             * @description 工作线停靠位编码
+             */
+            position_code?: string | null;
+            /**
+             * Position Role
+             * @description 工作线停靠位角色
+             */
+            position_role?: string | null;
+            /**
+             * Rack Code
+             * @description 货架编码
+             */
+            rack_code: string;
+            /** @description 货架类型 */
+            rack_kind?: components["schemas"]["RackKind"] | null;
+            /**
+             * Session Id
+             * @description WorkLine Session
+             */
+            session_id?: string | null;
+            /**
+             * Source Event Id
+             * @description 来源事件 ID
+             */
+            source_event_id: string;
+            /** @description 来源系统 */
+            source_system: components["schemas"]["ResourceSourceSystem"];
+            /**
+             * Source Task Id
+             * @description WMS/RCS 搬运任务 ID
+             */
+            source_task_id?: string | null;
+            /**
+             * Source Version
+             * @description 来源版本
+             */
+            source_version?: string | null;
+            /**
+             * Started At
+             * Format: date-time
+             * @description 进入该关系的时间
+             */
+            started_at: string;
+            /**
+             * Trace Id
+             * @description WorkLine trace
+             */
+            trace_id?: string | null;
+            /**
+             * Workline Code
+             * @description 工作线编码
+             */
+            workline_code?: string | null;
+            /**
+             * Workline Id
+             * @description 关联 WorkLine.id
+             */
+            workline_id?: number | null;
+        };
+        /**
+         * RackPlacementStatus
+         * @description 货架位置投影状态。
+         * @enum {string}
+         */
+        RackPlacementStatus: "ARRIVED" | "IN_TRANSIT" | "DEPARTED" | "UNKNOWN";
+        /**
+         * RackResponse
+         * @description 货架实例响应 Schema。
+         */
+        RackResponse: {
+            /** Id */
+            id: number;
+            /**
+             * Metadata Json
+             * @description 扩展属性
+             */
+            metadata_json?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Rack Code
+             * @description WES 货架编码
+             */
+            rack_code: string;
+            /**
+             * Rack Type Code
+             * @description 货架类型编码
+             */
+            rack_type_code: string;
+            /**
+             * @description 来源系统
+             * @default MANUAL_IMPORT
+             */
+            source_system: components["schemas"]["ResourceSourceSystem"];
+            /**
+             * Source Version
+             * @description 来源版本
+             */
+            source_version?: string | null;
+            /**
+             * @description 货架主数据状态
+             * @default ACTIVE
+             */
+            status: components["schemas"]["ResourceMasterStatus"];
+            /**
+             * Wms Rack Id
+             * @description WMS 货架 ID
+             */
+            wms_rack_id?: string | null;
+        };
+        /**
+         * RackSlotKind
+         * @description 货架槽位承载对象类型。
+         * @enum {string}
+         */
+        RackSlotKind: "BIN_SLOT" | "MATERIAL_SLOT";
+        /**
+         * RackSlotSide
+         * @description 货架槽位面。
+         * @enum {string}
+         */
+        RackSlotSide: "A" | "B" | "NONE";
+        /**
+         * RackSlotTemplateResponse
+         * @description 货架槽位模板响应 Schema。
+         */
+        RackSlotTemplateResponse: {
+            /**
+             * Active
+             * @description 是否启用
+             * @default true
+             */
+            active: boolean;
+            /**
+             * Allowed Bin Types
+             * @description 允许的料箱类型
+             */
+            allowed_bin_types?: string[];
+            /**
+             * Allowed Material Carrier Types
+             * @description 允许的物料承载形态
+             */
+            allowed_material_carrier_types?: string[];
+            /** Id */
+            id: number;
+            /**
+             * Layer No
+             * @description 层号
+             * @default 1
+             */
+            layer_no: number;
+            /**
+             * Position No
+             * @description 同层序号
+             * @default 1
+             */
+            position_no: number;
+            /**
+             * Rack Type Code
+             * @description 所属货架类型编码
+             */
+            rack_type_code: string;
+            /**
+             * @description 槽位面
+             * @default NONE
+             */
+            side: components["schemas"]["RackSlotSide"];
+            /**
+             * Slot Code
+             * @description 货架槽位编码
+             */
+            slot_code: string;
+            /** @description 槽位承载对象类型 */
+            slot_kind: components["schemas"]["RackSlotKind"];
+        };
+        /**
+         * RackTypeResponse
+         * @description 货架类型响应 Schema。
+         */
+        RackTypeResponse: {
+            /**
+             * Active
+             * @description 是否启用
+             * @default true
+             */
+            active: boolean;
+            /**
+             * Description
+             * @description 说明
+             */
+            description?: string | null;
+            /**
+             * Has Side
+             * @description 是否区分 A/B 面
+             * @default false
+             */
+            has_side: boolean;
+            /** Id */
+            id: number;
+            /**
+             * Metadata Json
+             * @description 扩展属性
+             */
+            metadata_json?: {
+                [key: string]: unknown;
+            };
+            /** @description 货架物理结构类型 */
+            rack_kind: components["schemas"]["RackKind"];
+            /**
+             * Rack Type Code
+             * @description 货架类型编码
+             */
+            rack_type_code: string;
+            /**
+             * Rack Type Name
+             * @description 货架类型名称
+             */
+            rack_type_name: string;
+            /**
+             * Slot Count
+             * @description 标准槽位数量
+             */
+            slot_count: number;
+        };
+        /**
          * RefreshTokenResponse
          * @description 刷新令牌响应 Schema
          *
@@ -5308,6 +6543,123 @@ export interface components {
                 [key: string]: unknown;
             } | null;
         };
+        /**
+         * ResourceMasterStatus
+         * @description 资源主数据启停状态。
+         * @enum {string}
+         */
+        ResourceMasterStatus: "ACTIVE" | "DISABLED";
+        /**
+         * ResourceSourceSystem
+         * @description 资源事实来源系统。
+         * @enum {string}
+         */
+        ResourceSourceSystem: "WMS" | "RCS" | "ECS" | "WES_RUNTIME" | "MANUAL_IMPORT" | "MANUAL";
+        /**
+         * ResourceStateEventResponse
+         * @description 资源事实响应 Schema。
+         */
+        ResourceStateEventResponse: {
+            /**
+             * Event Code
+             * @description 资源事件唯一编码
+             */
+            event_code: string;
+            /** @description 资源事件类型 */
+            event_type: components["schemas"]["ResourceStateEventType"];
+            /**
+             * External Location Code
+             * @description 外部地码证据
+             */
+            external_location_code?: string | null;
+            /** Id */
+            id: number;
+            /**
+             * Idempotency Key
+             * @description 资源事实幂等键
+             */
+            idempotency_key?: string | null;
+            /**
+             * Logic Location Code
+             * @description WES 逻辑位置
+             */
+            logic_location_code?: string | null;
+            /**
+             * Occurred At
+             * Format: date-time
+             * @description 事实发生时间
+             */
+            occurred_at: string;
+            /**
+             * Payload Json
+             * @description 事件事实
+             */
+            payload_json?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Position Code
+             * @description 工作线停靠位编码
+             */
+            position_code?: string | null;
+            /**
+             * Received At
+             * Format: date-time
+             * @description WES 接收时间
+             */
+            received_at: string;
+            /**
+             * Resource Code
+             * @description 资源编码
+             */
+            resource_code: string;
+            /** @description 资源类型 */
+            resource_type: components["schemas"]["ResourceType"];
+            /**
+             * Session Id
+             * @description WorkLine Session
+             */
+            session_id?: string | null;
+            /**
+             * Source Event Id
+             * @description 来源事件 ID
+             */
+            source_event_id: string;
+            /** @description 来源系统 */
+            source_system: components["schemas"]["ResourceSourceSystem"];
+            /**
+             * Source Version
+             * @description 来源版本
+             */
+            source_version?: string | null;
+            /**
+             * Trace Id
+             * @description WorkLine trace
+             */
+            trace_id?: string | null;
+            /**
+             * Workline Code
+             * @description 工作线编码
+             */
+            workline_code?: string | null;
+            /**
+             * Workline Id
+             * @description 关联 WorkLine.id
+             */
+            workline_id?: number | null;
+        };
+        /**
+         * ResourceStateEventType
+         * @description 资源事实事件类型。
+         * @enum {string}
+         */
+        ResourceStateEventType: "RACK_ARRIVED" | "RACK_DEPARTED" | "BIN_ARRIVED" | "BIN_DEPARTED" | "BIN_MOUNTED" | "BIN_UNMOUNTED" | "MATERIAL_MOUNTED" | "MATERIAL_UNMOUNTED" | "EXCHANGE_STATUS_UPDATED" | "RESOURCE_RECONCILED";
+        /**
+         * ResourceType
+         * @description WES 运行时资源类型。
+         * @enum {string}
+         */
+        ResourceType: "RACK" | "BIN" | "MATERIAL";
         /** ResponseSchemaModel[ActiveSessionsResponse] */
         ResponseSchemaModel_ActiveSessionsResponse_: ApiResponse<components["schemas"]["ActiveSessionsResponse"]>;
         /** ResponseSchemaModel[APIAccessLogResponse] */
@@ -5318,14 +6670,26 @@ export interface components {
         ResponseSchemaModel_AuditLogResponse_: ApiResponse<components["schemas"]["AuditLogResponse"]>;
         /** ResponseSchemaModel[AuthMyResponse] */
         ResponseSchemaModel_AuthMyResponse_: ApiResponse<components["schemas"]["AuthMyResponse"]>;
+        /** ResponseSchemaModel[BinCellOccupancyResponse] */
+        ResponseSchemaModel_BinCellOccupancyResponse_: ApiResponse<components["schemas"]["BinCellOccupancyResponse"]>;
+        /** ResponseSchemaModel[BinContentSnapshotItemResponse] */
+        ResponseSchemaModel_BinContentSnapshotItemResponse_: ApiResponse<components["schemas"]["BinContentSnapshotItemResponse"]>;
+        /** ResponseSchemaModel[BinContentSnapshotResponse] */
+        ResponseSchemaModel_BinContentSnapshotResponse_: ApiResponse<components["schemas"]["BinContentSnapshotResponse"]>;
+        /** ResponseSchemaModel[BinMaterialMountResponse] */
+        ResponseSchemaModel_BinMaterialMountResponse_: ApiResponse<components["schemas"]["BinMaterialMountResponse"]>;
+        /** ResponseSchemaModel[BinResponse] */
+        ResponseSchemaModel_BinResponse_: ApiResponse<components["schemas"]["BinResponse"]>;
+        /** ResponseSchemaModel[BinSlotTemplateResponse] */
+        ResponseSchemaModel_BinSlotTemplateResponse_: ApiResponse<components["schemas"]["BinSlotTemplateResponse"]>;
+        /** ResponseSchemaModel[BinTypeResponse] */
+        ResponseSchemaModel_BinTypeResponse_: ApiResponse<components["schemas"]["BinTypeResponse"]>;
         /** ResponseSchemaModel[CallbackLogResponse] */
         ResponseSchemaModel_CallbackLogResponse_: ApiResponse<components["schemas"]["CallbackLogResponse"]>;
         /** ResponseSchemaModel[CallbackLogSubjectResponse] */
         ResponseSchemaModel_CallbackLogSubjectResponse_: ApiResponse<components["schemas"]["CallbackLogSubjectResponse"]>;
         /** ResponseSchemaModel[CallbackLogTraceResponse] */
         ResponseSchemaModel_CallbackLogTraceResponse_: ApiResponse<components["schemas"]["CallbackLogTraceResponse"]>;
-        /** ResponseSchemaModel[DemoProductResponse] */
-        ResponseSchemaModel_DemoProductResponse_: ApiResponse<components["schemas"]["DemoProductResponse"]>;
         /** ResponseSchemaModel[DeviceResponse] */
         ResponseSchemaModel_DeviceResponse_: ApiResponse<components["schemas"]["DeviceResponse"]>;
         /** ResponseSchemaModel[dict[str, Any]] */
@@ -5352,6 +6716,8 @@ export interface components {
         ResponseSchemaModel_list_PermissionTree__: ApiResponse<components["schemas"]["PermissionTree"][]>;
         /** ResponseSchemaModel[list[RuntimeDeviceSummary]] */
         ResponseSchemaModel_list_RuntimeDeviceSummary__: ApiResponse<components["schemas"]["RuntimeDeviceSummary"][]>;
+        /** ResponseSchemaModel[list[RuntimeHoldSummary]] */
+        ResponseSchemaModel_list_RuntimeHoldSummary__: ApiResponse<components["schemas"]["RuntimeHoldSummary"][]>;
         /** ResponseSchemaModel[list[RuntimeWorklineSummary]] */
         ResponseSchemaModel_list_RuntimeWorklineSummary__: ApiResponse<components["schemas"]["RuntimeWorklineSummary"][]>;
         /** ResponseSchemaModel[list[WorkLinePluginOption]] */
@@ -5366,10 +6732,22 @@ export interface components {
         ResponseSchemaModel_NoneType_: ApiResponse<null>;
         /** ResponseSchemaModel[PermissionResponse] */
         ResponseSchemaModel_PermissionResponse_: ApiResponse<components["schemas"]["PermissionResponse"]>;
+        /** ResponseSchemaModel[RackBinMountResponse] */
+        ResponseSchemaModel_RackBinMountResponse_: ApiResponse<components["schemas"]["RackBinMountResponse"]>;
+        /** ResponseSchemaModel[RackPlacementResponse] */
+        ResponseSchemaModel_RackPlacementResponse_: ApiResponse<components["schemas"]["RackPlacementResponse"]>;
+        /** ResponseSchemaModel[RackResponse] */
+        ResponseSchemaModel_RackResponse_: ApiResponse<components["schemas"]["RackResponse"]>;
+        /** ResponseSchemaModel[RackSlotTemplateResponse] */
+        ResponseSchemaModel_RackSlotTemplateResponse_: ApiResponse<components["schemas"]["RackSlotTemplateResponse"]>;
+        /** ResponseSchemaModel[RackTypeResponse] */
+        ResponseSchemaModel_RackTypeResponse_: ApiResponse<components["schemas"]["RackTypeResponse"]>;
         /** ResponseSchemaModel[RefreshTokenResponse] */
         ResponseSchemaModel_RefreshTokenResponse_: ApiResponse<components["schemas"]["RefreshTokenResponse"]>;
         /** ResponseSchemaModel[ResolveRuntimeHoldResponse] */
         ResponseSchemaModel_ResolveRuntimeHoldResponse_: ApiResponse<components["schemas"]["ResolveRuntimeHoldResponse"]>;
+        /** ResponseSchemaModel[ResourceStateEventResponse] */
+        ResponseSchemaModel_ResourceStateEventResponse_: ApiResponse<components["schemas"]["ResourceStateEventResponse"]>;
         /** ResponseSchemaModel[RevokeSessionResponse] */
         ResponseSchemaModel_RevokeSessionResponse_: ApiResponse<components["schemas"]["RevokeSessionResponse"]>;
         /** ResponseSchemaModel[RoleResponse] */
@@ -5386,6 +6764,8 @@ export interface components {
         ResponseSchemaModel_RuntimeTracePathResponse_: ApiResponse<components["schemas"]["RuntimeTracePathResponse"]>;
         /** ResponseSchemaModel[RuntimeWorklineDetailResponse] */
         ResponseSchemaModel_RuntimeWorklineDetailResponse_: ApiResponse<components["schemas"]["RuntimeWorklineDetailResponse"]>;
+        /** ResponseSchemaModel[SandboxCleanupResponse] */
+        ResponseSchemaModel_SandboxCleanupResponse_: ApiResponse<components["schemas"]["SandboxCleanupResponse"]>;
         /** ResponseSchemaModel[SandboxTemplatesResponse] */
         ResponseSchemaModel_SandboxTemplatesResponse_: ApiResponse<components["schemas"]["SandboxTemplatesResponse"]>;
         /** ResponseSchemaModel[TraceBlockingPointResponse] */
@@ -5398,6 +6778,8 @@ export interface components {
         ResponseSchemaModel_UserResponse_: ApiResponse<components["schemas"]["UserResponse"]>;
         /** ResponseSchemaModel[UserSimpleResponse] */
         ResponseSchemaModel_UserSimpleResponse_: ApiResponse<components["schemas"]["UserSimpleResponse"]>;
+        /** ResponseSchemaModel[WorkLineConfigurationStatus] */
+        ResponseSchemaModel_WorkLineConfigurationStatus_: ApiResponse<components["schemas"]["WorkLineConfigurationStatus"]>;
         /** ResponseSchemaModel[WorkLineResponse] */
         ResponseSchemaModel_WorkLineResponse_: ApiResponse<components["schemas"]["WorkLineResponse"]>;
         /**
@@ -5776,6 +7158,12 @@ export interface components {
             device_id?: number | null;
             /** Device Name */
             device_name?: string | null;
+            /** Event Payload */
+            event_payload?: {
+                [key: string]: unknown;
+            } | null;
+            /** Event Type */
+            event_type?: string | null;
             /** Failure Code */
             failure_code?: string | null;
             /** Failure Domain */
@@ -5791,6 +7179,8 @@ export interface components {
             last_device_id?: number | null;
             /** Last Device Name */
             last_device_name?: string | null;
+            /** Last Inbox Id */
+            last_inbox_id?: number | null;
             /** Last Ingress At */
             last_ingress_at?: string | null;
             /** Latest Timeline Action */
@@ -6018,6 +7408,61 @@ export interface components {
             dispatch_key: string;
         };
         /**
+         * SandboxCleanupRequest
+         * @description 沙箱工作线清理请求。
+         */
+        SandboxCleanupRequest: {
+            /**
+             * Confirmation
+             * @description 执行清理时必须等于工作线编码
+             */
+            confirmation?: string | null;
+            /**
+             * Dry Run
+             * @description true 仅返回影响范围；false 执行清理
+             * @default true
+             */
+            dry_run: boolean;
+        };
+        /**
+         * SandboxCleanupResponse
+         * @description 沙箱工作线清理响应。
+         */
+        SandboxCleanupResponse: {
+            /**
+             * Affected Session Ids
+             * @description 受影响 Session ID
+             */
+            affected_session_ids?: number[];
+            /**
+             * Counts
+             * @description 影响数据计数
+             */
+            counts?: {
+                [key: string]: number;
+            };
+            /**
+             * Deleted
+             * @description 是否已执行删除
+             */
+            deleted: boolean;
+            /**
+             * Dry Run
+             * @description 是否仅预览影响范围
+             */
+            dry_run: boolean;
+            /**
+             * Message
+             * @description 清理结果消息
+             */
+            message: string;
+            /**
+             * Workline Id
+             * @description 工作线 ID
+             */
+            workline_id: number;
+        };
+        /**
          * SandboxEventRequest
          * @description 沙箱 Event 发送请求。
          */
@@ -6082,6 +7527,67 @@ export interface components {
             payload_template?: {
                 [key: string]: unknown;
             };
+        };
+        /**
+         * SandboxExternalCallbackRequest
+         * @description 沙箱 External HTTP 回调模拟请求。
+         */
+        SandboxExternalCallbackRequest: {
+            /**
+             * Callback Type
+             * @description 外部回调类型；为空时优先使用 Outbox payload.resume_callback_type
+             */
+            callback_type?: string | null;
+            /**
+             * Dispatch Key
+             * @description External HTTP Outbox Dispatch Key
+             */
+            dispatch_key: string;
+            /**
+             * Occurred At
+             * @description 外部事件发生时间
+             */
+            occurred_at?: string | null;
+            /**
+             * Payload
+             * @description 回调 Payload 增量字段
+             */
+            payload?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Request Id
+             * @description 外部请求 ID；为空时自动生成
+             */
+            request_id?: string | null;
+            /**
+             * Signature
+             * @description 沙箱签名占位
+             * @default sandbox
+             */
+            signature: string;
+            /**
+             * Source Event Id
+             * @description 外部事件 ID；为空时自动生成
+             */
+            source_event_id?: string | null;
+            /**
+             * Source System
+             * @description 外部来源系统
+             * @default WMS
+             */
+            source_system: string;
+            /**
+             * Source Version
+             * @description 外部来源版本
+             * @default 1
+             */
+            source_version: string;
+            /**
+             * Timestamp
+             * @description 外部回调时间
+             */
+            timestamp?: string | null;
         };
         /**
          * SandboxResultRequest
@@ -6434,6 +7940,7 @@ export interface components {
             inboxes?: components["schemas"]["TraceInboxItem"][];
             /** Outboxes */
             outboxes?: components["schemas"]["TraceOutboxItem"][];
+            resource_evidence?: components["schemas"]["TraceResourceEvidenceResponse"];
             session?: components["schemas"]["TraceSessionItem"] | null;
             /** Sessions */
             sessions?: components["schemas"]["TraceSessionItem"][];
@@ -6722,6 +8229,36 @@ export interface components {
             status?: string | null;
             /** Workline Id */
             workline_id?: number | null;
+        };
+        /**
+         * TraceResourceEvidenceResponse
+         * @description Trace 关联的资源域证据链。
+         */
+        TraceResourceEvidenceResponse: {
+            /** Rack Bin Mounts */
+            rack_bin_mounts?: {
+                [key: string]: unknown;
+            }[];
+            /** Rack Release Bin Snapshots */
+            rack_release_bin_snapshots?: {
+                [key: string]: unknown;
+            }[];
+            /** Rack Releases */
+            rack_releases?: {
+                [key: string]: unknown;
+            }[];
+            /** Resource State Events */
+            resource_state_events?: {
+                [key: string]: unknown;
+            }[];
+            /** Runtime Holds */
+            runtime_holds?: {
+                [key: string]: unknown;
+            }[];
+            /** Wms Writeback Evidence */
+            wms_writeback_evidence?: {
+                [key: string]: unknown;
+            }[];
         };
         /** TraceSessionItem */
         TraceSessionItem: {
@@ -7063,6 +8600,68 @@ export interface components {
          */
         ValidityPeriod: "1d" | "1w" | "1m" | "6m" | "1y" | "never";
         /**
+         * WmsConfirmationStatus
+         * @description WMS 确认状态。
+         * @enum {string}
+         */
+        WmsConfirmationStatus: "PENDING" | "CONFIRMED" | "REJECTED" | "NOT_REQUIRED";
+        /**
+         * WorkLineConfigurationCheck
+         * @description 作业线启用前结构化检查项。
+         */
+        WorkLineConfigurationCheck: {
+            /**
+             * Code
+             * @description 检查项编码
+             */
+            code: string;
+            /**
+             * Context
+             * @description 检查上下文
+             */
+            context?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Severity
+             * @description 严重程度
+             * @enum {string}
+             */
+            severity: "INFO" | "WARNING" | "BLOCKER";
+            /**
+             * Status
+             * @description 检查结果
+             * @enum {string}
+             */
+            status: "PASS" | "FAIL" | "WARN";
+        };
+        /**
+         * WorkLineConfigurationStatus
+         * @description 作业线配置状态响应。
+         */
+        WorkLineConfigurationStatus: {
+            /**
+             * Can Activate
+             * @description 是否满足启用条件
+             */
+            can_activate: boolean;
+            /**
+             * Checks
+             * @description 启用前检查项
+             */
+            checks?: components["schemas"]["WorkLineConfigurationCheck"][];
+            /**
+             * Is Active
+             * @description 是否已启用
+             */
+            is_active: boolean;
+            /**
+             * Workline Id
+             * @description 作业线 ID
+             */
+            workline_id: number;
+        };
+        /**
          * WorkLineCreate
          * @description 作业线创建 Schema - 接收客户端输入
          */
@@ -7091,12 +8690,6 @@ export interface components {
             diagnostic_profile?: {
                 [key: string]: unknown;
             };
-            /**
-             * Is Active
-             * @description 是否启用
-             * @default true
-             */
-            is_active: boolean;
             /**
              * Line Code
              * @description 作业线编码（业务主键）
@@ -7157,6 +8750,21 @@ export interface components {
              * @description 工作线执行插件标识
              */
             plugin_key: string;
+            /**
+             * Required Device Roles
+             * @description 必需设备角色
+             */
+            required_device_roles?: components["schemas"]["DeviceRoleRequirementOption"][];
+            /**
+             * Supported Commands
+             * @description 支持的命令
+             */
+            supported_commands?: string[];
+            /**
+             * Supported Events
+             * @description 支持的事件
+             */
+            supported_events?: string[];
         };
         /**
          * WorkLineResponse
@@ -7189,11 +8797,7 @@ export interface components {
             };
             /** Id */
             id: number;
-            /**
-             * Is Active
-             * @description 是否启用
-             * @default true
-             */
+            /** Is Active */
             is_active: boolean;
             /**
              * Line Code
@@ -7239,6 +8843,17 @@ export interface components {
          */
         WorkLineRunMode: "AUTO" | "MANUAL" | "SIMULATION";
         /**
+         * WorkLineStateTransitionRequest
+         * @description 作业线启停请求。
+         */
+        WorkLineStateTransitionRequest: {
+            /**
+             * Version
+             * @description WorkLine 乐观锁版本号
+             */
+            version: number;
+        };
+        /**
          * WorkLineUpdate
          * @description 作业线更新 Schema - 所有字段可选
          */
@@ -7267,11 +8882,6 @@ export interface components {
             diagnostic_profile?: {
                 [key: string]: unknown;
             } | null;
-            /**
-             * Is Active
-             * @description 是否启用
-             */
-            is_active?: boolean | null;
             /**
              * Line Code
              * @description 作业线编码（业务主键）
@@ -10279,334 +11889,6 @@ export interface operations {
             };
         };
     };
-    demo_products_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DemoProductCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_DemoProductResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    demo_products_get: {
-        parameters: {
-            query?: {
-                /** @description 是否包含已删除记录（仅软删除模型生效） */
-                include_deleted?: boolean;
-                /** @description 关系加载深度 */
-                max_depth?: number;
-            };
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_DemoProductResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    demo_products_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DemoProductUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_DemoProductResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    demo_products_delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__str__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    demo_products_permanent_delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__str__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    demo_products_restore: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_DemoProductResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    demo_products_query: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["QueryOptions"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ListResponseSchemaModel_DemoProductResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    demo_products_trash: {
-        parameters: {
-            query?: {
-                limit?: number;
-                offset?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ListResponseSchemaModel_DemoProductResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    demo_products_batch_permanent_delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": number[];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BatchOperationResponseModel"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    demo_products_batch_restore: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": number[];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BatchOperationResponseModel"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     devices_create: {
         parameters: {
             query?: never;
@@ -11040,6 +12322,903 @@ export interface operations {
             };
         };
     };
+    bin_cell_occupancies_get: {
+        parameters: {
+            query?: {
+                /** @description 是否包含已删除记录（仅软删除模型生效） */
+                include_deleted?: boolean;
+                /** @description 关系加载深度 */
+                max_depth?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_BinCellOccupancyResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bin_cell_occupancies_query: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QueryOptions"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseSchemaModel_BinCellOccupancyResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bin_content_snapshot_items_get: {
+        parameters: {
+            query?: {
+                /** @description 是否包含已删除记录（仅软删除模型生效） */
+                include_deleted?: boolean;
+                /** @description 关系加载深度 */
+                max_depth?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_BinContentSnapshotItemResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bin_content_snapshot_items_query: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QueryOptions"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseSchemaModel_BinContentSnapshotItemResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bin_content_snapshots_get: {
+        parameters: {
+            query?: {
+                /** @description 是否包含已删除记录（仅软删除模型生效） */
+                include_deleted?: boolean;
+                /** @description 关系加载深度 */
+                max_depth?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_BinContentSnapshotResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bin_content_snapshots_query: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QueryOptions"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseSchemaModel_BinContentSnapshotResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bin_material_mounts_get: {
+        parameters: {
+            query?: {
+                /** @description 是否包含已删除记录（仅软删除模型生效） */
+                include_deleted?: boolean;
+                /** @description 关系加载深度 */
+                max_depth?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_BinMaterialMountResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bin_material_mounts_query: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QueryOptions"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseSchemaModel_BinMaterialMountResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bin_slot_templates_get: {
+        parameters: {
+            query?: {
+                /** @description 是否包含已删除记录（仅软删除模型生效） */
+                include_deleted?: boolean;
+                /** @description 关系加载深度 */
+                max_depth?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_BinSlotTemplateResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bin_slot_templates_query: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QueryOptions"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseSchemaModel_BinSlotTemplateResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bin_types_get: {
+        parameters: {
+            query?: {
+                /** @description 是否包含已删除记录（仅软删除模型生效） */
+                include_deleted?: boolean;
+                /** @description 关系加载深度 */
+                max_depth?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_BinTypeResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bin_types_query: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QueryOptions"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseSchemaModel_BinTypeResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bins_get: {
+        parameters: {
+            query?: {
+                /** @description 是否包含已删除记录（仅软删除模型生效） */
+                include_deleted?: boolean;
+                /** @description 关系加载深度 */
+                max_depth?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_BinResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bins_query: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QueryOptions"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseSchemaModel_BinResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rack_bin_mounts_get: {
+        parameters: {
+            query?: {
+                /** @description 是否包含已删除记录（仅软删除模型生效） */
+                include_deleted?: boolean;
+                /** @description 关系加载深度 */
+                max_depth?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_RackBinMountResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rack_bin_mounts_query: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QueryOptions"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseSchemaModel_RackBinMountResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rack_placements_get: {
+        parameters: {
+            query?: {
+                /** @description 是否包含已删除记录（仅软删除模型生效） */
+                include_deleted?: boolean;
+                /** @description 关系加载深度 */
+                max_depth?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_RackPlacementResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rack_placements_query: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QueryOptions"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseSchemaModel_RackPlacementResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rack_slot_templates_get: {
+        parameters: {
+            query?: {
+                /** @description 是否包含已删除记录（仅软删除模型生效） */
+                include_deleted?: boolean;
+                /** @description 关系加载深度 */
+                max_depth?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_RackSlotTemplateResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rack_slot_templates_query: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QueryOptions"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseSchemaModel_RackSlotTemplateResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rack_types_get: {
+        parameters: {
+            query?: {
+                /** @description 是否包含已删除记录（仅软删除模型生效） */
+                include_deleted?: boolean;
+                /** @description 关系加载深度 */
+                max_depth?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_RackTypeResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rack_types_query: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QueryOptions"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseSchemaModel_RackTypeResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    racks_get: {
+        parameters: {
+            query?: {
+                /** @description 是否包含已删除记录（仅软删除模型生效） */
+                include_deleted?: boolean;
+                /** @description 关系加载深度 */
+                max_depth?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_RackResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    racks_query: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QueryOptions"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseSchemaModel_RackResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    state_events_get: {
+        parameters: {
+            query?: {
+                /** @description 是否包含已删除记录（仅软删除模型生效） */
+                include_deleted?: boolean;
+                /** @description 关系加载深度 */
+                max_depth?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_ResourceStateEventResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    state_events_query: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QueryOptions"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseSchemaModel_ResourceStateEventResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     audit_logs_get: {
         parameters: {
             query?: {
@@ -11447,6 +13626,39 @@ export interface operations {
             };
         };
     };
+    workline_operations_sandbox_external_callbacks_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SandboxExternalCallbackRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     workline_operations_sandbox_pending_get: {
         parameters: {
             query?: {
@@ -11512,6 +13724,41 @@ export interface operations {
             };
         };
     };
+    workline_operations_sandbox_worklines_by_workline_id_cleanup_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workline_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SandboxCleanupRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_SandboxCleanupResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     workline_operations_sandbox_worklines_by_workline_id_simulate_estop_post: {
         parameters: {
             query?: never;
@@ -11563,6 +13810,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_list_WorkLinePluginOption__"];
+                };
+            };
+        };
+    };
+    workline_runtime_holds_get: {
+        parameters: {
+            query?: {
+                active_only?: boolean;
+                limit?: number;
+                session_id?: number | null;
+                status?: string | null;
+                workline_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_list_RuntimeHoldSummary__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -11976,6 +14258,37 @@ export interface operations {
             };
         };
     };
+    workline_trace_exchange_by_exchange_request_code_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exchange_request_code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_TraceDetailResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     workline_trace_query_post: {
         parameters: {
             query?: never;
@@ -12224,6 +14537,107 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_dict_str__str__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_work_lines_by_id_activate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkLineStateTransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_WorkLineResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_work_lines_by_id_configuration_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_WorkLineConfigurationStatus_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_work_lines_by_id_deactivate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkLineStateTransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_WorkLineResponse_"];
                 };
             };
             /** @description Validation Error */

@@ -861,139 +861,6 @@ export const ClearWorkLineEstopRequestSchema = z.object({
 
 
 /**
- * DemoProduct 创建模型
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const DemoProductCreateSchema = z.object({
-  /** Name */
-  name: z.string().max(100),
-  /** Price */
-  price: z.number().min(0),
-  /** Stock */
-  stock: z.number().min(0),
-  /** Product Lists */
-  product_lists: z.array(z.lazy(() => DemoProductListCreateSchema)).optional(),
-})
-
-
-/**
- * DemoProductList 创建模型
-
-注意：product_id 在创建时是可选的，因为会自动从主表 ID 设置
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const DemoProductListCreateSchema = z.object({
-  /** Product Id */
-  product_id: z.union([z.number(), z.null()]).optional(),
-  /** Quantity */
-  quantity: z.number().min(0),
-})
-
-
-/**
- * DemoProductList 响应模型
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const DemoProductListResponseSchema = z.object({
-  /** Product Id */
-  product_id: z.number(),
-  /** Quantity */
-  quantity: z.number().min(0),
-  /** Id */
-  id: z.number(),
-})
-
-
-/**
- * DemoProductList 更新模型
-
-注意：在更新主表时，使用 Diff 算法处理从表：
-- 有 id：更新现有记录
-- 无 id：创建新记录
-- 缺失：删除记录
-
-因此 id 和 product_id 都是可选的
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const DemoProductListUpdateSchema = z.object({
-  /** Product Id */
-  product_id: z.union([z.number(), z.null()]).optional(),
-  /** Quantity */
-  quantity: z.union([z.number().min(0), z.null()]).optional(),
-  /** Id */
-  id: z.union([z.number(), z.null()]).optional(),
-})
-
-
-/**
- * DemoProduct 响应模型
-
-包含 version 字段，前端在更新时必须传回该字段
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const DemoProductResponseSchema = z.object({
-  /** Deleted By */
-  deleted_by: z.union([z.number(), z.null()]).optional(),
-  /** Deleted At */
-  deleted_at: z.union([z.string().datetime(), z.null()]).optional(),
-  /** Is Deleted */
-  is_deleted: z.boolean().optional().default(false),
-  /** Version */
-  version: z.number().optional().default(0),
-  /** Created At */
-  created_at: z.string().datetime().optional(),
-  /** Updated At */
-  updated_at: z.union([z.string().datetime(), z.null()]).optional(),
-  /** Created By */
-  created_by: z.union([z.number(), z.null()]).optional(),
-  /** Updated By */
-  updated_by: z.union([z.number(), z.null()]).optional(),
-  /** Name */
-  name: z.string().max(100),
-  /** Price */
-  price: z.number().min(0),
-  /** Stock */
-  stock: z.number().min(0),
-  /** Id */
-  id: z.number(),
-  /** Product Lists */
-  product_lists: z.array(z.lazy(() => DemoProductListResponseSchema)),
-})
-
-
-/**
- * DemoProduct 更新模型
-
-注意：更新时必须包含 version 字段（乐观锁）
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const DemoProductUpdateSchema = z.object({
-  /** Name */
-  name: z.union([z.string().max(100), z.null()]).optional(),
-  /** Price */
-  price: z.union([z.number().min(0), z.null()]).optional(),
-  /** Stock */
-  stock: z.union([z.number().min(0), z.null()]).optional(),
-  /** Version */
-  version: z.number(),
-  /** Product Lists */
-  product_lists: z.array(z.lazy(() => DemoProductListUpdateSchema)).optional(),
-})
-
-
-/**
  * 设备创建 Schema - 接收客户端输入
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -1135,6 +1002,30 @@ export const DeviceResponseSchema = z.object({
   id: z.number(),
   /** Version */
   version: z.number(),
+})
+
+
+/**
+ * 设备角色要求明细。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const DeviceRoleRequirementOptionSchema = z.object({
+  /** Role */
+  role: z.string(),
+  /** Min Count */
+  min_count: z.number(),
+  /** Max Count */
+  max_count: z.union([z.number(), z.null()]).optional(),
+  /** Capabilities */
+  capabilities: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())).optional(),
 })
 
 
@@ -1443,18 +1334,6 @@ export const ListResponseData_CallbackLogResponse_Schema = z.object({
 })
 
 
-export const ListResponseData_DemoProductResponse_Schema = z.object({
-  /** Total */
-  total: z.number().min(0).optional().default(0),
-  /** Items */
-  items: z.array(z.lazy(() => DemoProductResponseSchema)).optional(),
-  /** Limit */
-  limit: z.number().min(0).optional().default(0),
-  /** Offset */
-  offset: z.number().min(0).optional().default(0),
-})
-
-
 export const ListResponseData_DeviceResponse_Schema = z.object({
   /** Total */
   total: z.number().min(0).optional().default(0),
@@ -1726,18 +1605,6 @@ export const ListResponseSchemaModel_CallbackLogResponse_Schema = z.object({
   message: z.string().optional().default("操作成功"),
   /** 响应数据 */
   data: z.union([z.lazy(() => ListResponseData_CallbackLogResponse_Schema), z.null()]).optional(),
-  /** Timestamp */
-  timestamp: z.string().optional(),
-})
-
-
-export const ListResponseSchemaModel_DemoProductResponse_Schema = z.object({
-  /** Code */
-  code: z.string().optional().default("1000"),
-  /** Message */
-  message: z.string().optional().default("操作成功"),
-  /** 响应数据 */
-  data: z.union([z.lazy(() => ListResponseData_DemoProductResponse_Schema), z.null()]).optional(),
   /** Timestamp */
   timestamp: z.string().optional(),
 })
@@ -4465,6 +4332,42 @@ export const WmsConfirmationStatusSchema = z.enum(["PENDING", "CONFIRMED", "REJE
 
 
 /**
+ * 作业线启用前结构化检查项。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const WorkLineConfigurationCheckSchema = z.object({
+  /** Code */
+  code: z.string(),
+  /** Status */
+  status: z.enum(["PASS", "FAIL", "WARN"]),
+  /** Severity */
+  severity: z.enum(["INFO", "WARNING", "BLOCKER"]),
+  /** Context */
+  context: z.record(z.any()).optional(),
+})
+
+
+/**
+ * 作业线配置状态响应。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const WorkLineConfigurationStatusSchema = z.object({
+  /** Workline Id */
+  workline_id: z.number(),
+  /** Is Active */
+  is_active: z.boolean(),
+  /** Can Activate */
+  can_activate: z.boolean(),
+  /** Checks */
+  checks: z.array(z.lazy(() => WorkLineConfigurationCheckSchema)).optional(),
+})
+
+
+/**
  * 作业线创建 Schema - 接收客户端输入
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -4493,8 +4396,6 @@ export const WorkLineCreateSchema = z.object({
   diagnostic_profile: z.record(z.any()).optional(),
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
-  /** Is Active */
-  is_active: z.boolean().optional().default(true),
 })
 
 
@@ -4519,6 +4420,24 @@ export const WorkLinePluginOptionSchema = z.object({
       }, z.array(z.string())).optional(),
   /** Default Contract Version */
   default_contract_version: z.string(),
+  /** Required Device Roles */
+  required_device_roles: z.array(z.lazy(() => DeviceRoleRequirementOptionSchema)).optional(),
+  /** Supported Events */
+  supported_events: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())).optional(),
+  /** Supported Commands */
+  supported_commands: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())).optional(),
 })
 
 
@@ -4551,12 +4470,12 @@ export const WorkLineResponseSchema = z.object({
   diagnostic_profile: z.record(z.any()).optional(),
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
-  /** Is Active */
-  is_active: z.boolean().optional().default(true),
   /** Id */
   id: z.number(),
   /** Version */
   version: z.number(),
+  /** Is Active */
+  is_active: z.boolean(),
 })
 
 
@@ -4567,6 +4486,18 @@ export const WorkLineResponseSchema = z.object({
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const WorkLineRunModeSchema = z.enum(["AUTO", "MANUAL", "SIMULATION"])
+
+
+/**
+ * 作业线启停请求。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const WorkLineStateTransitionRequestSchema = z.object({
+  /** Version */
+  version: z.number(),
+})
 
 
 /**
@@ -4598,8 +4529,6 @@ export const WorkLineUpdateSchema = z.object({
   diagnostic_profile: z.union([z.record(z.any()), z.null()]).optional(),
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
-  /** Is Active */
-  is_active: z.union([z.boolean(), z.null()]).optional(),
   /** Version */
   version: z.number(),
 })

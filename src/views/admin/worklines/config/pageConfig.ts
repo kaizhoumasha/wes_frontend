@@ -40,6 +40,7 @@ type WorklinePluginOptions = WorklinePluginOptionsResult
 
 interface WorklinePageActions {
   openRuntime: (workline: Workline) => void
+  openConfig: (workline: Workline) => void
 }
 
 const WORKLINE_PAGE_RESOURCE = {
@@ -99,6 +100,13 @@ function createWorklineDetailConfig(actions: WorklinePageActions): CrudPageDetai
     showActions: true,
     actions: [
       {
+        key: 'open-config',
+        label: '配置工作台',
+        type: 'warning',
+        icon: 'ep:setting',
+        onClick: workline => actions.openConfig(workline),
+      },
+      {
         key: 'open-runtime',
         label: '运行看板',
         type: 'primary',
@@ -147,6 +155,15 @@ export function createWorkLinePageConfig(
     features: WORKLINE_PAGE_FEATURES,
     extensions: {
       rowActions: [
+        {
+          key: 'open-config',
+          label: '配置工作台',
+          tooltip: '配置工作台',
+          type: 'warning',
+          icon: 'ep:setting',
+          permission: BIZ_PERMISSIONS.workline.page,
+          onClick: row => actions.openConfig(row),
+        },
         {
           key: 'open-runtime',
           label: '运行看板',

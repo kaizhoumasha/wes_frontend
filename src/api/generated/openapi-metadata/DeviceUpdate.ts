@@ -84,7 +84,7 @@ export const DeviceUpdateMetadata = {
     },
     "upstream_device_id": {
       "title": "Upstream Device Id",
-      "description": "上游设备ID（线性拓扑）",
+      "description": "上游设备ID（物理路径辅助信息）",
       "type": "integer",
       "required": false,
       "nullable": true

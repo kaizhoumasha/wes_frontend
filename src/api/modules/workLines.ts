@@ -37,6 +37,17 @@ export type WorkLinesItem = EnsureEntityId<CrudItem<typeof WORK_LINES_COLLECTION
 export type CreateWorkLinesInput = CrudCreateInput<typeof WORK_LINES_COLLECTION_PATH>
 export type UpdateWorkLinesInput = CrudUpdateInput<typeof WORK_LINES_COLLECTION_PATH>
 
+export type ConfigurationStatusResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/configuration-status', 'get'>
+export type ConfigurationStatusPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/configuration-status', 'get'>
+
+export type ActivateResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/activate', 'post'>
+export type ActivatePathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/activate', 'post'>
+export type ActivateInput = ContractRequestBody<'/api/v1/workline/work_lines/{id}/activate', 'post'>
+
+export type DeactivateResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/deactivate', 'post'>
+export type DeactivatePathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/deactivate', 'post'>
+export type DeactivateInput = ContractRequestBody<'/api/v1/workline/work_lines/{id}/deactivate', 'post'>
+
 export type PermanentResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/permanent', 'delete'>
 export type PermanentPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/permanent', 'delete'>
 
@@ -52,6 +63,36 @@ const baseWorkLinesApiMethods = createSoftDeleteCrudRequestAdapterMethods({
 
 export const workLinesApiMethods = {
   ...baseWorkLinesApiMethods,
+
+  /**
+   * [biz:workline:detail] 查询作业线配置状态
+   * @description 查询 WorkLine 启用前配置状态。
+   * @endpoint GET /api/v1/workline/work_lines/{id}/configuration-status
+   * @returns alova method instance
+   */
+  configurationStatus(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/configuration-status', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/work_lines/{id}/configuration-status', { params, config })
+  },
+
+  /**
+   * [biz:workline:activate] 启用作业线
+   * @description 通过配置预检后启用 WorkLine。
+   * @endpoint POST /api/v1/workline/work_lines/{id}/activate
+   * @returns alova method instance
+   */
+  activate(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/activate', 'post'>, body: ContractRequestBody<'/api/v1/workline/work_lines/{id}/activate', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/workline/work_lines/{id}/activate', { params, body, config })
+  },
+
+  /**
+   * [biz:workline:deactivate] 停用作业线
+   * @description 确认无未完成运行负载后停用 WorkLine。
+   * @endpoint POST /api/v1/workline/work_lines/{id}/deactivate
+   * @returns alova method instance
+   */
+  deactivate(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/deactivate', 'post'>, body: ContractRequestBody<'/api/v1/workline/work_lines/{id}/deactivate', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/workline/work_lines/{id}/deactivate', { params, body, config })
+  },
 
   /**
    * [biz:workline:permanent_delete] 永久删除WorkLine
