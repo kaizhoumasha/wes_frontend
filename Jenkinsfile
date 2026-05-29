@@ -50,7 +50,7 @@ pipeline {
                         branches: [[name: "origin/${sourceBranch}"]],
                         userRemoteConfigs: [[
                             name: 'origin',
-                            url: 'http://192.168.0.220:9080/wes/wes_frontend.git',
+                            url: 'https://zt_git.happyjack.cn/wes/wes_frontend.git',
                             credentialsId: 'gitlab-http-creds',
                             refspec: '+refs/heads/*:refs/remotes/origin/*'
                         ]],
