@@ -863,6 +863,46 @@ export const ClearWorkLineEstopRequestSchema = z.object({
 
 
 /**
+ * 非生产调试过程数据清理请求。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const DebugDataCleanupRequestSchema = z.object({
+  /** Dry Run */
+  dry_run: z.boolean().optional().default(true),
+  /** Confirmation */
+  confirmation: z.union([z.string().max(200), z.null()]).optional(),
+})
+
+
+/**
+ * 非生产调试过程数据清理响应。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const DebugDataCleanupResponseSchema = z.object({
+  /** Scope */
+  scope: z.string().regex(new RegExp("^(WORKLINE|ALL)$")),
+  /** Workline Id */
+  workline_id: z.union([z.number(), z.null()]).optional(),
+  /** Dry Run */
+  dry_run: z.boolean(),
+  /** Deleted */
+  deleted: z.boolean(),
+  /** Counts */
+  counts: z.record(z.number()).optional(),
+  /** Affected Workline Ids */
+  affected_workline_ids: z.array(z.number()).optional(),
+  /** Affected Session Ids */
+  affected_session_ids: z.array(z.number()).optional(),
+  /** Message */
+  message: z.string(),
+})
+
+
+/**
  * 设备创建 Schema - 接收客户端输入
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑

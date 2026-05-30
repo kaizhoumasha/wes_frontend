@@ -41,6 +41,9 @@ type WorklinePluginOptions = WorklinePluginOptionsResult
 interface WorklinePageActions {
   openRuntime: (workline: Workline) => void
   openConfig: (workline: Workline) => void
+  cleanupDebugData?: (workline: Workline) => void | Promise<void>
+  cleanupAllDebugData?: (refresh: () => Promise<void>) => void | Promise<void>
+  isDebugCleanupVisible?: () => boolean
 }
 
 const WORKLINE_PAGE_RESOURCE = {
@@ -63,7 +66,7 @@ const WORKLINE_PAGE_RESOURCE = {
 
 const WORKLINE_PAGE_TABLE: Partial<WorklinePageConfig['table']> = {
   actionsColumn: {
-    width: 260
+    width: 340
   }
 }
 
@@ -104,14 +107,14 @@ function createWorklineDetailConfig(actions: WorklinePageActions): CrudPageDetai
         label: '配置工作台',
         type: 'warning',
         icon: 'ep:setting',
-        onClick: workline => actions.openConfig(workline),
+        onClick: workline => actions.openConfig(workline)
       },
       {
         key: 'open-runtime',
         label: '运行看板',
         type: 'primary',
         icon: 'ep:monitor',
-        onClick: workline => actions.openRuntime(workline),
+        onClick: workline => actions.openRuntime(workline)
       }
     ],
     sections: [
@@ -121,9 +124,17 @@ function createWorklineDetailConfig(actions: WorklinePageActions): CrudPageDetai
         fields: [
           { key: 'line_code', layout: 'half' },
           { key: 'line_name', layout: 'half' },
-          { key: 'line_type', layout: 'half', formatter: v => lineTypeFormatter(v, {}, {}) as VNode },
+          {
+            key: 'line_type',
+            layout: 'half',
+            formatter: v => lineTypeFormatter(v, {}, {}) as VNode
+          },
           { key: 'zone_name', layout: 'half' },
-          { key: 'is_active', layout: 'half', formatter: v => isActiveFormatter(v, {}, {}) as VNode },
+          {
+            key: 'is_active',
+            layout: 'half',
+            formatter: v => isActiveFormatter(v, {}, {}) as VNode
+          },
           { key: 'description', layout: 'full' }
         ]
       },
@@ -154,6 +165,18 @@ export function createWorkLinePageConfig(
     detail: createWorklineDetailConfig(actions),
     features: WORKLINE_PAGE_FEATURES,
     extensions: {
+      toolbarActions: [
+        {
+          key: 'cleanup-all-debug-data',
+          label: '清理全部过程数据',
+          tooltip: '清理全部工作线调试过程数据',
+          type: 'danger',
+          icon: 'lucide:database-zap',
+          permission: BIZ_PERMISSIONS.workline.cleanupDebugData,
+          showWhen: () => actions.isDebugCleanupVisible?.() ?? false,
+          handler: context => actions.cleanupAllDebugData?.(context.refresh)
+        }
+      ],
       rowActions: [
         {
           key: 'open-config',
@@ -162,7 +185,7 @@ export function createWorkLinePageConfig(
           type: 'warning',
           icon: 'ep:setting',
           permission: BIZ_PERMISSIONS.workline.page,
-          onClick: row => actions.openConfig(row),
+          onClick: row => actions.openConfig(row)
         },
         {
           key: 'open-runtime',
@@ -171,7 +194,18 @@ export function createWorkLinePageConfig(
           type: 'primary',
           icon: 'lucide:layout-dashboard',
           permission: BIZ_PERMISSIONS.workline.page,
-          onClick: row => actions.openRuntime(row),
+          onClick: row => actions.openRuntime(row)
+        },
+        {
+          key: 'cleanup-debug-data',
+          label: '清理过程',
+          tooltip: '清理该工作线调试过程数据',
+          type: 'danger',
+          icon: 'lucide:database-zap',
+          permission: BIZ_PERMISSIONS.workline.cleanupDebugData,
+          priority: 'secondary',
+          show: () => actions.isDebugCleanupVisible?.() ?? false,
+          onClick: row => actions.cleanupDebugData?.(row)
         }
       ]
     }

@@ -27,10 +27,6 @@ export type SandboxPendingQuery = ContractQueryParams<'/api/v1/workline/operatio
 export type SandboxCompletedResult = ContractResponseData<'/api/v1/workline/operations/sandbox/completed', 'get'>
 export type SandboxCompletedQuery = ContractQueryParams<'/api/v1/workline/operations/sandbox/completed', 'get'>
 
-export type SandboxWorklinesCleanupResult = ContractResponseData<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/cleanup', 'post'>
-export type SandboxWorklinesCleanupPathParams = ContractPathParams<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/cleanup', 'post'>
-export type SandboxWorklinesCleanupInput = ContractRequestBody<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/cleanup', 'post'>
-
 export type ReplayInboxesResult = ContractResponseData<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>
 export type ReplayInboxesPathParams = ContractPathParams<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>
 export type ReplayInboxesInput = ContractRequestBody<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>
@@ -65,6 +61,17 @@ export type ResultsInput = ContractRequestBody<'/api/v1/workline/operations/resu
 
 export type SandboxTemplatesResult = ContractResponseData<'/api/v1/workline/operations/sandbox/templates', 'get'>
 export type SandboxTemplatesQuery = ContractQueryParams<'/api/v1/workline/operations/sandbox/templates', 'get'>
+
+export type SandboxWorklinesCleanupResult = ContractResponseData<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/cleanup', 'post'>
+export type SandboxWorklinesCleanupPathParams = ContractPathParams<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/cleanup', 'post'>
+export type SandboxWorklinesCleanupInput = ContractRequestBody<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/cleanup', 'post'>
+
+export type DebugDataWorklinesCleanupResult = ContractResponseData<'/api/v1/workline/operations/debug-data/worklines/{workline_id}/cleanup', 'post'>
+export type DebugDataWorklinesCleanupPathParams = ContractPathParams<'/api/v1/workline/operations/debug-data/worklines/{workline_id}/cleanup', 'post'>
+export type DebugDataWorklinesCleanupInput = ContractRequestBody<'/api/v1/workline/operations/debug-data/worklines/{workline_id}/cleanup', 'post'>
+
+export type DebugDataCleanupAllResult = ContractResponseData<'/api/v1/workline/operations/debug-data/cleanup-all', 'post'>
+export type DebugDataCleanupAllInput = ContractRequestBody<'/api/v1/workline/operations/debug-data/cleanup-all', 'post'>
 
 export type OptionsResult = ContractResponseData<'/api/v1/workline/plugins/options', 'get'>
 
@@ -156,15 +163,6 @@ export const worklineApiMethods = {
   },
 
   /**
-   * [biz:workline:cleanup-sandbox] 清理工作线沙箱运行时数据
-   * @endpoint POST /api/v1/workline/operations/sandbox/worklines/{workline_id}/cleanup
-   * @returns alova method instance
-   */
-  sandboxWorklinesCleanup(params: ContractPathParams<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/cleanup', 'post'>, body: ContractRequestBody<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/cleanup', 'post'>, config?: ContractRequestConfig) {
-    return contractMethods.post('/api/v1/workline/operations/sandbox/worklines/{workline_id}/cleanup', { params, body, config })
-  },
-
-  /**
    * [biz:workline:update] Replay 历史 Inbox
    * @endpoint POST /api/v1/workline/operations/replay/inboxes/{inbox_id}
    * @returns alova method instance
@@ -253,6 +251,33 @@ export const worklineApiMethods = {
    */
   sandboxTemplates(query?: ContractQueryParams<'/api/v1/workline/operations/sandbox/templates', 'get'>, config?: ContractRequestConfig) {
     return contractMethods.get('/api/v1/workline/operations/sandbox/templates', { query, config })
+  },
+
+  /**
+   * [biz:workline:cleanup-sandbox] 清理工作线沙箱运行时数据
+   * @endpoint POST /api/v1/workline/operations/sandbox/worklines/{workline_id}/cleanup
+   * @returns alova method instance
+   */
+  sandboxWorklinesCleanup(params: ContractPathParams<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/cleanup', 'post'>, body: ContractRequestBody<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/cleanup', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/workline/operations/sandbox/worklines/{workline_id}/cleanup', { params, body, config })
+  },
+
+  /**
+   * [biz:workline:cleanup-debug-data] 清理工作线调试过程数据
+   * @endpoint POST /api/v1/workline/operations/debug-data/worklines/{workline_id}/cleanup
+   * @returns alova method instance
+   */
+  debugDataWorklinesCleanup(params: ContractPathParams<'/api/v1/workline/operations/debug-data/worklines/{workline_id}/cleanup', 'post'>, body: ContractRequestBody<'/api/v1/workline/operations/debug-data/worklines/{workline_id}/cleanup', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/workline/operations/debug-data/worklines/{workline_id}/cleanup', { params, body, config })
+  },
+
+  /**
+   * [biz:workline:cleanup-debug-data] 清理全部工作线调试过程数据
+   * @endpoint POST /api/v1/workline/operations/debug-data/cleanup-all
+   * @returns alova method instance
+   */
+  debugDataCleanupAll(body: ContractRequestBody<'/api/v1/workline/operations/debug-data/cleanup-all', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/workline/operations/debug-data/cleanup-all', { body, config })
   },
 
   /**

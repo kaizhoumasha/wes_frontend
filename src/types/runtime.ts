@@ -398,6 +398,24 @@ export interface SandboxCleanupResponse {
   message: string
 }
 
+export interface DebugDataCleanupRequest {
+  dry_run: boolean
+  confirmation?: string | null
+}
+
+export type DebugDataCleanupCounts = Record<string, number>
+
+export interface DebugDataCleanupResponse {
+  scope: 'WORKLINE' | 'ALL'
+  workline_id?: number | null
+  dry_run: boolean
+  deleted: boolean
+  counts: DebugDataCleanupCounts
+  affected_workline_ids: number[]
+  affected_session_ids: number[]
+  message: string
+}
+
 export interface RuntimeWorklineDeviceItem {
   id: number
   device_code: string
