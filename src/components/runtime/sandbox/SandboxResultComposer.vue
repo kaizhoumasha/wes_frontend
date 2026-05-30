@@ -248,37 +248,30 @@ function generateSuccessPayload(cmdType: string): Record<string, unknown> {
     params.pkg_id || params.PkgID || sixInOne.PkgID || basePayload.PkgID || basePayload.pkg_id
 
   switch (cmdType) {
-    case 'MEASUREMENT_REEL':
-      return {
-        // 必须包含 PkgID 用于业务路由
-        PkgID: pkgId,
-        // 执行结果：测量数据
-        reel_diameter: basePayload.reel_diameter ?? 7.0,
-        reel_thickness: basePayload.reel_thickness ?? 2.5,
-        measurement_result: 'SUCCESS'
-      }
-
     case 'PICK_AND_PUT':
       return {
         // 必须包含 PkgID 用于业务路由
         PkgID: pkgId,
-        from_location: params.from_location || basePayload.from_location,
-        to_location: params.to_location || basePayload.to_location,
-        // 执行结果
-        actual_qty: (params.qty as number) ?? 1,
-        pick_and_put_result: 'PUT_FINISHED'
+        from_location:
+          params.from_location ||
+          params.source_location ||
+          basePayload.from_location ||
+          basePayload.source_location ||
+          'INPUT',
+        to_location:
+          params.to_location ||
+          params.target_location ||
+          basePayload.to_location ||
+          basePayload.target_location ||
+          'PIPELINE-IN-01',
+        // PICK_AND_PUT 成功回调承载粗分机测量值，WES 校验后再决定前进或 NG。
+        reel_diameter: basePayload.reel_diameter ?? '7.0',
+        reel_thickness: basePayload.reel_thickness ?? '2.5',
+        measurement_result: 'OK'
       }
 
     case 'MOVE_FORWARD':
-      return {
-        // 必须包含 PkgID 用于业务路由
-        PkgID: pkgId,
-        from_location: params.from_location || basePayload.from_location,
-        to_location: params.to_location || basePayload.to_location,
-        // 执行结果
-        move_result: 'FINISHED',
-        completed_at: new Date().toISOString()
-      }
+      return {}
 
     default:
       // 通用成功返回：复制指令参数并添加结果状态
