@@ -133,4 +133,26 @@ describe('runtimeApiMethods', () => {
       { dry_run: false, confirmation: 'WL-SMT-SIM' }
     )
   })
+
+  it('submits debug data cleanup through non-production operations endpoints', async () => {
+    const { runtimeApiMethods } = await import('@/api/modules/runtime')
+
+    await runtimeApiMethods
+      .debugDataCleanupWorkline(45, { dry_run: false, confirmation: 'WL-SMT-AUTO' })
+      .send()
+    await runtimeApiMethods
+      .debugDataCleanupAll({ dry_run: false, confirmation: 'CLEAR-ALL-DEBUG-DATA' })
+      .send()
+
+    expect(mocks.apiClientPost).toHaveBeenNthCalledWith(
+      1,
+      '/api/v1/workline/operations/debug-data/worklines/45/cleanup',
+      { dry_run: false, confirmation: 'WL-SMT-AUTO' }
+    )
+    expect(mocks.apiClientPost).toHaveBeenNthCalledWith(
+      2,
+      '/api/v1/workline/operations/debug-data/cleanup-all',
+      { dry_run: false, confirmation: 'CLEAR-ALL-DEBUG-DATA' }
+    )
+  })
 })

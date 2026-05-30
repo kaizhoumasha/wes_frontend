@@ -2451,6 +2451,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workline/operations/debug-data/cleanup-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [biz:workline:cleanup-debug-data] 清理全部工作线调试过程数据 */
+        post: operations["workline_operations_debug_data_cleanup_all_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/operations/debug-data/worklines/{workline_id}/cleanup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [biz:workline:cleanup-debug-data] 清理工作线调试过程数据 */
+        post: operations["workline_operations_debug_data_worklines_by_workline_id_cleanup_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workline/operations/manual/sessions/{session_id}": {
         parameters: {
             query?: never;
@@ -4521,6 +4555,71 @@ export interface components {
              * @description 恢复说明
              */
             reason?: string | null;
+        };
+        /**
+         * DebugDataCleanupRequest
+         * @description 非生产调试过程数据清理请求。
+         */
+        DebugDataCleanupRequest: {
+            /**
+             * Confirmation
+             * @description 执行清理时的确认文本
+             */
+            confirmation?: string | null;
+            /**
+             * Dry Run
+             * @description true 仅返回影响范围；false 执行清理
+             * @default true
+             */
+            dry_run: boolean;
+        };
+        /**
+         * DebugDataCleanupResponse
+         * @description 非生产调试过程数据清理响应。
+         */
+        DebugDataCleanupResponse: {
+            /**
+             * Affected Session Ids
+             * @description 受影响 Session ID
+             */
+            affected_session_ids?: number[];
+            /**
+             * Affected Workline Ids
+             * @description 受影响工作线 ID
+             */
+            affected_workline_ids?: number[];
+            /**
+             * Counts
+             * @description 影响数据计数
+             */
+            counts?: {
+                [key: string]: number;
+            };
+            /**
+             * Deleted
+             * @description 是否已执行删除
+             */
+            deleted: boolean;
+            /**
+             * Dry Run
+             * @description 是否仅预览影响范围
+             */
+            dry_run: boolean;
+            /**
+             * Message
+             * @description 清理结果消息
+             */
+            message: string;
+            /**
+             * Scope
+             * @description 清理范围
+             */
+            scope: string;
+            /**
+             * Workline Id
+             * @description 按工作线清理时的工作线 ID
+             */
+            workline_id?: number | null;
         };
         /**
          * DeviceCreate
@@ -6692,6 +6791,8 @@ export interface components {
         ResponseSchemaModel_CallbackLogSubjectResponse_: ApiResponse<components["schemas"]["CallbackLogSubjectResponse"]>;
         /** ResponseSchemaModel[CallbackLogTraceResponse] */
         ResponseSchemaModel_CallbackLogTraceResponse_: ApiResponse<components["schemas"]["CallbackLogTraceResponse"]>;
+        /** ResponseSchemaModel[DebugDataCleanupResponse] */
+        ResponseSchemaModel_DebugDataCleanupResponse_: ApiResponse<components["schemas"]["DebugDataCleanupResponse"]>;
         /** ResponseSchemaModel[DeviceResponse] */
         ResponseSchemaModel_DeviceResponse_: ApiResponse<components["schemas"]["DeviceResponse"]>;
         /** ResponseSchemaModel[dict[str, Any]] */
@@ -9036,7 +9137,10 @@ export interface operations {
     };
     menus_delete: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description 是否永久删除（仅软删除模型生效） */
+                permanent?: boolean;
+            };
             header?: never;
             path: {
                 id: number;
@@ -9676,7 +9780,10 @@ export interface operations {
     };
     permissions_delete: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description 是否永久删除（仅软删除模型生效） */
+                permanent?: boolean;
+            };
             header?: never;
             path: {
                 id: number;
@@ -10208,7 +10315,10 @@ export interface operations {
     };
     roles_delete: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description 是否永久删除（仅软删除模型生效） */
+                permanent?: boolean;
+            };
             header?: never;
             path: {
                 id: number;
@@ -10536,7 +10646,10 @@ export interface operations {
     };
     users_delete: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description 是否永久删除（仅软删除模型生效） */
+                permanent?: boolean;
+            };
             header?: never;
             path: {
                 id: number;
@@ -11056,7 +11169,10 @@ export interface operations {
     };
     applications_delete: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description 是否永久删除（仅软删除模型生效） */
+                permanent?: boolean;
+            };
             header?: never;
             path: {
                 id: number;
@@ -11997,7 +12113,10 @@ export interface operations {
     };
     devices_delete: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description 是否永久删除（仅软删除模型生效） */
+                permanent?: boolean;
+            };
             header?: never;
             path: {
                 id: number;
@@ -13356,6 +13475,74 @@ export interface operations {
             };
         };
     };
+    workline_operations_debug_data_cleanup_all_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DebugDataCleanupRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_DebugDataCleanupResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_operations_debug_data_worklines_by_workline_id_cleanup_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workline_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DebugDataCleanupRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_DebugDataCleanupResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     workline_operations_manual_sessions_by_session_id_post: {
         parameters: {
             query?: never;
@@ -14523,7 +14710,10 @@ export interface operations {
     };
     work_lines_delete: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description 是否永久删除（仅软删除模型生效） */
+                permanent?: boolean;
+            };
             header?: never;
             path: {
                 id: number;

@@ -29,6 +29,8 @@ export const BIZ_WORKLINE_PERMISSION = {
   trash: 'biz:workline:trash',
   /** 启用作业线 */
   activate: 'biz:workline:activate',
+  /** 清理工作线调试过程数据 */
+  cleanupDebugData: 'biz:workline:cleanup-debug-data',
   /** 清理工作线沙箱运行时数据 */
   cleanupSandbox: 'biz:workline:cleanup-sandbox',
   /** 人工确认 checklist 后清除工作线急停 */

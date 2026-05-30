@@ -17,6 +17,8 @@ import type {
   RuntimeTracePathResponse,
   RuntimeSafetyIncidentSummary,
   RuntimeSimulateEstopRequest,
+  DebugDataCleanupRequest,
+  DebugDataCleanupResponse,
   SandboxCleanupRequest,
   SandboxCleanupResponse,
   RuntimeHoldDetailResponse,
@@ -232,6 +234,21 @@ export const runtimeApiMethods = {
   sandboxCleanup(worklineId: number, payload: SandboxCleanupRequest) {
     return adaptRuntimeMethod<SandboxCleanupResponse>(
       apiClient.Post(`/api/v1/workline/operations/sandbox/worklines/${worklineId}/cleanup`, payload)
+    )
+  },
+
+  debugDataCleanupWorkline(worklineId: number, payload: DebugDataCleanupRequest) {
+    return adaptRuntimeMethod<DebugDataCleanupResponse>(
+      apiClient.Post(
+        `/api/v1/workline/operations/debug-data/worklines/${worklineId}/cleanup`,
+        payload
+      )
+    )
+  },
+
+  debugDataCleanupAll(payload: DebugDataCleanupRequest) {
+    return adaptRuntimeMethod<DebugDataCleanupResponse>(
+      apiClient.Post('/api/v1/workline/operations/debug-data/cleanup-all', payload)
     )
   },
 

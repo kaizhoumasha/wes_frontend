@@ -330,6 +330,7 @@ import WorklineRouteMap from '@/components/runtime/monitor/WorklineRouteMap.vue'
 import { StandardDrawer } from '@/components/ui/StandardDrawer'
 import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
 import { runtimeApiMethods } from '@/api/modules/runtime'
+import { env } from '@/config/env'
 import { usePermission } from '@/composables/usePermission'
 import { useRuntimeSSEStore } from '@/stores/runtime-sse'
 import { useWorklineRuntimeStore } from '@/stores/workline-runtime'
@@ -577,7 +578,9 @@ const actionLoadingForItem = ref<number | null>(null)
 const replayLoadingInboxId = ref<number | null>(null)
 const simulatingEstop = ref(false)
 const cleanupLoading = ref(false)
-const canCleanupSandbox = computed(() => hasPermission(BIZ_PERMISSIONS.workline.cleanupSandbox))
+const canCleanupSandbox = computed(
+  () => env.isNonProd && hasPermission(BIZ_PERMISSIONS.workline.cleanupSandbox)
+)
 
 const selectedOutboxCompleted = computed(() => isOutboxCompleted(selectedOutbox.value))
 const selectedOutboxResultSubmitted = computed(() => isResultSubmitted(selectedOutbox.value))
