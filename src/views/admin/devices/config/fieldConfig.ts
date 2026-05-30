@@ -32,6 +32,7 @@ const DEVICE_FIELD_LABEL_OVERRIDES = {
   host: '主机地址',
   port: '端口',
   protocol: '通信协议',
+  callback_path: '命令接收路径',
   timeout: '超时时间(ms)',
   auth_token: '认证Token',
   vendor_type: '厂商类型',
@@ -172,6 +173,14 @@ export const {
       search: {
         dataType: 'enum'
       }
+    },
+    {
+      key: 'callback_path',
+      table: {
+        visibleFrom: 'desktop',
+        width: 180
+      },
+      form: {}
     },
     {
       key: 'vendor_type',

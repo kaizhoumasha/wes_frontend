@@ -176,6 +176,15 @@ export const APIApplicationResponseMetadata = {
       "required": false,
       "nullable": true
     },
+    "permissions": {
+      "title": "Permissions",
+      "type": "array",
+      "required": false,
+      "nullable": false,
+      "items": {
+        "ref": "PermissionResponse"
+      }
+    },
     "remaining_days": {
       "title": "Remaining Days",
       "description": "剩余天数",

@@ -114,6 +114,7 @@ function createDeviceDetailConfig(actions: DevicePageActions): CrudPageDetailCon
           { key: 'host', layout: 'half' },
           { key: 'port', layout: 'half' },
           { key: 'protocol', layout: 'half' },
+          { key: 'callback_path', layout: 'half' },
           { key: 'timeout', layout: 'half' },
           { key: 'auth_token', layout: 'full' }
         ]
