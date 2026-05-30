@@ -6,17 +6,34 @@ import type { CrudPageRowAction } from '@/components/common/crud-page/types'
 
 /**
  * 创建 API 应用行操作配置
+ * @param openPermissionDialog 打开权限配置对话框的回调函数
  * @param openResetSecretDialog 打开重置密钥对话框的回调函数
  */
 export function createAPIApplicationRowActions(
+  openPermissionDialog: (app: APIApplication) => void,
   openResetSecretDialog: (app: APIApplication) => void
 ): CrudPageRowAction<APIApplication>[] {
   const { hasPermission } = usePermission()
   const canResetSecret = computed(() =>
     hasPermission(API_AUTH_PERMISSIONS.apiApplication.resetSecret)
   )
+  const canConfigurePermissions = computed(
+    () =>
+      hasPermission(API_AUTH_PERMISSIONS.apiApplication.assignPermission) &&
+      hasPermission(API_AUTH_PERMISSIONS.apiApplication.listPermissions)
+  )
 
   return [
+    {
+      key: 'permissions',
+      label: '权限配置',
+      tooltip: '配置 API 应用可调用的接口权限',
+      type: 'primary',
+      icon: 'lucide:shield-check',
+      priority: 'secondary',
+      disabled: () => !canConfigurePermissions.value,
+      onClick: app => openPermissionDialog(app)
+    },
     {
       key: 'reset-secret',
       label: '重置密钥',

@@ -3382,6 +3382,8 @@ export interface components {
              * @default false
              */
             is_deleted: boolean;
+            /** Permissions */
+            permissions?: components["schemas"]["PermissionResponse"][];
             /**
              * Rate Limit Per Hour
              * @description 每小时请求限制

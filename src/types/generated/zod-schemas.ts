@@ -107,6 +107,8 @@ export const APIApplicationResponseSchema = z.object({
   status: z.lazy(() => AppStatusSchema).optional().default("active"),
   /** Expires At */
   expires_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Permissions */
+  permissions: z.array(z.lazy(() => PermissionResponseSchema)).optional(),
   /** Remaining Days */
   remaining_days: z.union([z.number(), z.null()]),
 })

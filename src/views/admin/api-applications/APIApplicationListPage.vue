@@ -1,6 +1,13 @@
 <template>
   <div>
-    <CrudPageContainer :config="config" />
+    <CrudPageContainer :config="config">
+      <template #extra-dialogs>
+        <ApiPermissionConfigDialog
+          v-model="permissionDialogVisible"
+          :app="selectedApplication"
+        />
+      </template>
+    </CrudPageContainer>
     <ApiCredentialResultDialog
       v-model="credentialDialogVisible"
       :app-id="credentialAppId"
@@ -16,6 +23,7 @@ import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import CrudPageContainer from '@/components/common/CrudPageContainer.vue'
 import ApiCredentialResultDialog from './components/ApiCredentialResultDialog.vue'
+import ApiPermissionConfigDialog from './components/ApiPermissionConfigDialog.vue'
 import { createAPIApplicationPageConfig } from './config/pageConfig'
 import { applicationsApiMethods } from '@/api/modules/applications'
 import type {
@@ -38,6 +46,8 @@ const credentialAppId = ref('')
 const credentialAppSecret = ref('')
 const credentialAppName = ref('')
 const credentialIsReset = ref(false)
+const permissionDialogVisible = ref(false)
+const selectedApplication = ref<APIApplication | null>(null)
 
 function showCredential(result: Record<string, unknown>, appName: string, isReset: boolean) {
   const appSecret = result.app_secret as string | undefined
@@ -71,7 +81,12 @@ async function openResetSecretDialog(app: APIApplication) {
   }
 }
 
-const baseConfig = createAPIApplicationPageConfig(openResetSecretDialog)
+function openPermissionDialog(app: APIApplication) {
+  selectedApplication.value = app
+  permissionDialogVisible.value = true
+}
+
+const baseConfig = createAPIApplicationPageConfig(openPermissionDialog, openResetSecretDialog)
 
 const config: APIApplicationPageConfig = {
   ...baseConfig,

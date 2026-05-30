@@ -15,7 +15,11 @@ import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/
 import { apiApplicationPageFieldConfig } from './fieldConfig'
 import { createAPIApplicationRowActions } from './actionConfig'
 
-type APIApplicationPageConfig = CrudPageConfig<APIApplication, CreateAPIApplicationInput, UpdateAPIApplicationInput>
+type APIApplicationPageConfig = CrudPageConfig<
+  APIApplication,
+  CreateAPIApplicationInput,
+  UpdateAPIApplicationInput
+>
 
 const API_APPLICATION_PAGE_RESOURCE = {
   key: 'api-applications',
@@ -93,19 +97,22 @@ const API_APPLICATION_PAGE_DETAIL: CrudPageDetailConfig<APIApplication> = {
     {
       title: '安全配置',
       weight: 'secondary',
-      fields: [
-        { key: 'ip_whitelist', layout: 'full' }
-      ]
+      fields: [{ key: 'ip_whitelist', layout: 'full' }]
     }
   ]
 }
 
 export function createAPIApplicationPageConfig(
+  openPermissionDialog: (app: APIApplication) => void,
   openResetSecretDialog: (app: APIApplication) => void
 ): APIApplicationPageConfig {
-  const rowActions = createAPIApplicationRowActions(openResetSecretDialog)
+  const rowActions = createAPIApplicationRowActions(openPermissionDialog, openResetSecretDialog)
 
-  return createCrudPageConfigFromResource<APIApplication, CreateAPIApplicationInput, UpdateAPIApplicationInput>({
+  return createCrudPageConfigFromResource<
+    APIApplication,
+    CreateAPIApplicationInput,
+    UpdateAPIApplicationInput
+  >({
     resource: API_APPLICATION_PAGE_RESOURCE,
     fieldConfig: apiApplicationPageFieldConfig,
     table: API_APPLICATION_PAGE_TABLE,
