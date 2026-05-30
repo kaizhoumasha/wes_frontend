@@ -6,7 +6,7 @@
  * ⚠️  请勿手动编辑 AUTO GENERATED 区域
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 资源: /api/v1/workline/ng-return-items, /api/v1/workline/operations, /api/v1/workline/plugins, /api/v1/workline/runtime, /api/v1/workline/runtime-holds, /api/v1/workline/trace
+ * 资源: /api/v1/workline/integration-debug, /api/v1/workline/ng-return-items, /api/v1/workline/operations, /api/v1/workline/plugins, /api/v1/workline/runtime, /api/v1/workline/runtime-holds, /api/v1/workline/trace
  */
 import { contractMethods } from '@/api/contract/client'
 import type {
@@ -17,6 +17,12 @@ import type {
   ContractResponseData,
 } from '@/api/contract/types'
 import type { components, paths } from '@/api/generated/openapi-types'
+
+export type CasesLatestResult = ContractResponseData<'/api/v1/workline/integration-debug/cases/latest', 'get'>
+export type CasesLatestQuery = ContractQueryParams<'/api/v1/workline/integration-debug/cases/latest', 'get'>
+
+export type CasesLookupResult = ContractResponseData<'/api/v1/workline/integration-debug/cases/lookup', 'get'>
+export type CasesLookupQuery = ContractQueryParams<'/api/v1/workline/integration-debug/cases/lookup', 'get'>
 
 export type NgReturnItemsResult = ContractResponseData<'/api/v1/workline/ng-return-items', 'get'>
 export type NgReturnItemsQuery = ContractQueryParams<'/api/v1/workline/ng-return-items', 'get'>
@@ -135,6 +141,24 @@ export type QueryResult = ContractResponseData<'/api/v1/workline/trace/query', '
 export type QueryInput = ContractRequestBody<'/api/v1/workline/trace/query', 'post'>
 
 export const worklineApiMethods = {
+  /**
+   * [biz:workline:list] 查询最新集成调试案件
+   * @endpoint GET /api/v1/workline/integration-debug/cases/latest
+   * @returns alova method instance
+   */
+  casesLatest(query?: ContractQueryParams<'/api/v1/workline/integration-debug/cases/latest', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/integration-debug/cases/latest', { query, config })
+  },
+
+  /**
+   * [biz:workline:list] 按锚点查询集成调试案件
+   * @endpoint GET /api/v1/workline/integration-debug/cases/lookup
+   * @returns alova method instance
+   */
+  casesLookup(query?: ContractQueryParams<'/api/v1/workline/integration-debug/cases/lookup', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/integration-debug/cases/lookup', { query, config })
+  },
+
   /**
    * [biz:workline:list-ng-return-item] 查询 NG Return Items
    * @endpoint GET /api/v1/workline/ng-return-items

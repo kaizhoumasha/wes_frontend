@@ -1,5 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
+import { env } from '@/config/env'
 
 export const runtimeRoutes: RouteRecordRaw = {
   path: 'runtime',
@@ -63,6 +64,26 @@ export const runtimeRoutes: RouteRecordRaw = {
         }
       }
     },
+    ...(env.isNonProd
+      ? [
+          {
+            path: 'integration-debug',
+            name: 'RuntimeIntegrationDebug',
+            component: () => import('@/views/runtime/integration-debug/IntegrationDebugPage.vue'),
+            meta: {
+              requiresAuth: true,
+              title: '集成调试',
+              permission: BIZ_PERMISSIONS.workline.page,
+              menu: {
+                name: 'runtime:integration-debug:menu',
+                parentName: 'runtime:system:menu',
+                icon: 'ep:connection',
+                sortOrder: 4
+              }
+            }
+          }
+        ]
+      : []),
     {
       path: 'holds',
       name: 'RuntimeHolds',
@@ -75,7 +96,7 @@ export const runtimeRoutes: RouteRecordRaw = {
           name: 'runtime:holds:menu',
           parentName: 'runtime:system:menu',
           icon: 'ep:warn-triangle-filled',
-          sortOrder: 4
+          sortOrder: 5
         }
       }
     },
@@ -105,7 +126,7 @@ export const runtimeRoutes: RouteRecordRaw = {
           name: 'runtime:sandbox:menu',
           parentName: 'runtime:system:menu',
           icon: 'ep:tools',
-          sortOrder: 5
+          sortOrder: 6
         }
       }
     },
@@ -135,7 +156,7 @@ export const runtimeRoutes: RouteRecordRaw = {
           name: 'runtime:devices:menu',
           parentName: 'runtime:system:menu',
           icon: 'ep:cpu',
-          sortOrder: 6
+          sortOrder: 7
         }
       }
     }

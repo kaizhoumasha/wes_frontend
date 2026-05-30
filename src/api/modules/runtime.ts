@@ -19,6 +19,10 @@ import type {
   RuntimeSimulateEstopRequest,
   DebugDataCleanupRequest,
   DebugDataCleanupResponse,
+  IntegrationDebugCaseListResponse,
+  IntegrationDebugCaseResponse,
+  IntegrationDebugLatestQuery,
+  IntegrationDebugLookupQuery,
   SandboxCleanupRequest,
   SandboxCleanupResponse,
   RuntimeHoldDetailResponse,
@@ -147,6 +151,16 @@ export const runtimeApiMethods = {
     return adaptRuntimeMethod<TraceDetailResponse>(
       worklineApiMethods.dispatch({ dispatch_key: dispatchKey })
     )
+  },
+
+  integrationDebugLatest(query?: IntegrationDebugLatestQuery) {
+    return adaptRuntimeMethod<IntegrationDebugCaseListResponse>(
+      worklineApiMethods.casesLatest(query)
+    )
+  },
+
+  integrationDebugLookup(query: IntegrationDebugLookupQuery) {
+    return adaptRuntimeMethod<IntegrationDebugCaseResponse>(worklineApiMethods.casesLookup(query))
   },
 
   sandboxPending(limit = 50, worklineId?: number, deviceId?: number) {
