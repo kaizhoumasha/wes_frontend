@@ -51,7 +51,9 @@ const appName = computed(() => activeApplication.value?.app_name ?? '')
 const appId = computed(() => activeApplication.value?.app_id ?? '')
 
 const assignedPermissionSnapshot = computed(() => {
-  return Array.isArray(activeApplication.value?.permissions) ? activeApplication.value.permissions : null
+  return Array.isArray(activeApplication.value?.permissions)
+    ? activeApplication.value.permissions
+    : null
 })
 
 const hasAssignedSnapshot = computed(() => assignedPermissionSnapshot.value !== null)
@@ -228,7 +230,10 @@ async function handleSubmit() {
 
   try {
     await applicationsApiMethods
-      .permissions({ id: activeApplication.value.id }, { permission_ids: selectedPermissionIds.value })
+      .permissions(
+        { id: activeApplication.value.id },
+        { permission_ids: selectedPermissionIds.value }
+      )
       .send()
     ElMessage.success(`已更新应用「${activeApplication.value.app_name}」的权限`)
     visible.value = false
