@@ -102,6 +102,23 @@
       </label>
     </template>
 
+    <label
+      v-if="disposition === 'CONTINUE' && resolution === 'COMPLETED'"
+      class="runtime-hold-field"
+    >
+      <span>成功回调 data JSON</span>
+      <textarea
+        data-test="continue-result-payload"
+        :value="continueResultPayloadText"
+        rows="6"
+        spellcheck="false"
+        :placeholder="continueResultPayloadPlaceholder"
+        @input="
+          $emit('update:continueResultPayloadText', ($event.target as HTMLTextAreaElement).value)
+        "
+      />
+    </label>
+
     <label class="runtime-hold-field">
       <span>现场备注</span>
       <textarea
@@ -128,6 +145,7 @@ defineProps<{
   materialScanPayload: string
   lineClearChecked: boolean
   lateCallbackReviewed: boolean
+  continueResultPayloadText: string
   operatorNote: string
 }>()
 
@@ -139,8 +157,12 @@ defineEmits<{
   'update:materialScanPayload': [value: string]
   'update:lineClearChecked': [value: boolean]
   'update:lateCallbackReviewed': [value: boolean]
+  'update:continueResultPayloadText': [value: string]
   'update:operatorNote': [value: string]
 }>()
+
+const continueResultPayloadPlaceholder =
+  '{"reel_diameter":"178.0","reel_thickness":"15.0","measurement_result":"OK"}'
 
 function dispositionLabel(value: string): string {
   return value === 'RETURN_TO_NG' ? '退回 NG' : '继续'

@@ -60,6 +60,7 @@
             :material-scan-payload="materialScanPayload"
             :line-clear-checked="lineClearChecked"
             :late-callback-reviewed="lateCallbackReviewed"
+            :continue-result-payload-text="continueResultPayloadText"
             :operator-note="operatorNote"
             @update:disposition="setDisposition"
             @update:resolution="value => (resolution = value)"
@@ -68,6 +69,7 @@
             @update:material-scan-payload="value => (materialScanPayload = value)"
             @update:line-clear-checked="value => (lineClearChecked = value)"
             @update:late-callback-reviewed="value => (lateCallbackReviewed = value)"
+            @update:continue-result-payload-text="value => (continueResultPayloadText = value)"
             @update:operator-note="value => (operatorNote = value)"
           />
         </section>
@@ -104,6 +106,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import RuntimeHoldAuditTrail from '@/components/runtime/holds/RuntimeHoldAuditTrail.vue'
 import RuntimeHoldChecklist from '@/components/runtime/holds/RuntimeHoldChecklist.vue'
 import RuntimeHoldConflictNotice from '@/components/runtime/holds/RuntimeHoldConflictNotice.vue'
@@ -124,6 +127,7 @@ const ngLocationScan = ref('')
 const materialScanPayload = ref('')
 const lineClearChecked = ref(false)
 const lateCallbackReviewed = ref(false)
+const continueResultPayloadText = ref('')
 const operatorNote = ref('')
 
 const holdId = computed(() => Number(route.params.holdId))
@@ -176,11 +180,28 @@ function syncFormState(): void {
   }
   disposition.value = eligibility.allowed_material_dispositions?.[0] ?? 'CONTINUE'
   resolution.value = defaultResolution.value
+  continueResultPayloadText.value = ''
 }
 
 function setDisposition(value: string): void {
   disposition.value = value
   resolution.value = value === 'RETURN_TO_NG' ? 'FAILED' : defaultResolution.value
+}
+
+function parseContinueResultPayload(): Record<string, unknown> | null {
+  if (disposition.value !== 'CONTINUE' || resolution.value !== 'COMPLETED') return null
+  const text = continueResultPayloadText.value.trim()
+  if (!text) return null
+  try {
+    const parsed = JSON.parse(text) as unknown
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return parsed as Record<string, unknown>
+    }
+  } catch {
+    // fall through to the validation error below
+  }
+  ElMessage.error('成功回调 data 必须是 JSON 对象')
+  throw new Error('INVALID_CONTINUE_RESULT_PAYLOAD')
 }
 
 async function load(): Promise<void> {
@@ -206,7 +227,7 @@ function buildPayload(): ResolveRuntimeHoldRequest {
     material_disposition: disposition.value as ResolveRuntimeHoldRequest['material_disposition'],
     operator_note: operatorNote.value.trim(),
     resolution: resolution.value as ResolveRuntimeHoldRequest['resolution'],
-    result_payload: null
+    result_payload: parseContinueResultPayload()
   }
 
   if (disposition.value === 'RETURN_TO_NG' && selectedReason.value) {
@@ -229,7 +250,16 @@ function buildPayload(): ResolveRuntimeHoldRequest {
 
 async function submit(): Promise<void> {
   if (!canSubmit.value) return
-  await store.resolveHold(holdId.value, buildPayload())
+  let payload: ResolveRuntimeHoldRequest
+  try {
+    payload = buildPayload()
+  } catch (error) {
+    if (!(error instanceof Error) || error.message !== 'INVALID_CONTINUE_RESULT_PAYLOAD') {
+      ElMessage.error(error instanceof Error ? error.message : '提交失败')
+    }
+    return
+  }
+  await store.resolveHold(holdId.value, payload)
   await load()
 }
 

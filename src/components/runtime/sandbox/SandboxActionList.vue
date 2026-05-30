@@ -139,16 +139,19 @@
                 class="sandbox-action-list__command-payload"
               >
                 <div class="sandbox-action-list__command-payload-head">
-                  <span>指令参数</span>
+                  <span>设备实际 Payload</span>
                   <button
                     type="button"
                     class="sandbox-action-list__copy"
                     data-test="copy-command-envelope"
                     @click.stop="copyCommandEnvelope(item)"
                   >
-                    复制 JSON
+                    复制设备 Payload
                   </button>
                 </div>
+                <p class="sandbox-action-list__command-payload-hint">
+                  仅此 JSON 会下发给设备；Outbox 元数据只用于 WES 派发追踪。
+                </p>
                 <dl class="sandbox-action-list__command-fields">
                   <template
                     v-for="field in commandEnvelopeFields(item)"
@@ -159,8 +162,12 @@
                   </template>
                 </dl>
                 <details class="sandbox-action-list__command-json">
-                  <summary>完整 JSON</summary>
+                  <summary>设备 Payload JSON</summary>
                   <pre>{{ commandEnvelopeJson(item) }}</pre>
+                </details>
+                <details class="sandbox-action-list__command-json">
+                  <summary>WES Outbox 元数据</summary>
+                  <pre>{{ commandOutboxMetadataJson(item) }}</pre>
                 </details>
               </div>
               <div class="sandbox-action-list__step-action">
@@ -219,16 +226,19 @@
                 class="sandbox-action-list__command-payload"
               >
                 <div class="sandbox-action-list__command-payload-head">
-                  <span>指令参数</span>
+                  <span>设备实际 Payload</span>
                   <button
                     type="button"
                     class="sandbox-action-list__copy"
                     data-test="copy-command-envelope"
                     @click.stop="copyCommandEnvelope(item)"
                   >
-                    复制 JSON
+                    复制设备 Payload
                   </button>
                 </div>
+                <p class="sandbox-action-list__command-payload-hint">
+                  仅此 JSON 会下发给设备；Outbox 元数据只用于 WES 派发追踪。
+                </p>
                 <dl class="sandbox-action-list__command-fields">
                   <template
                     v-for="field in commandEnvelopeFields(item)"
@@ -239,8 +249,12 @@
                   </template>
                 </dl>
                 <details class="sandbox-action-list__command-json">
-                  <summary>完整 JSON</summary>
+                  <summary>设备 Payload JSON</summary>
                   <pre>{{ commandEnvelopeJson(item) }}</pre>
+                </details>
+                <details class="sandbox-action-list__command-json">
+                  <summary>WES Outbox 元数据</summary>
+                  <pre>{{ commandOutboxMetadataJson(item) }}</pre>
                 </details>
               </div>
               <span class="sandbox-action-list__step-badge">已停靠</span>
@@ -289,16 +303,19 @@
                     class="sandbox-action-list__command-payload"
                   >
                     <div class="sandbox-action-list__command-payload-head">
-                      <span>指令参数</span>
+                      <span>设备实际 Payload</span>
                       <button
                         type="button"
                         class="sandbox-action-list__copy"
                         data-test="copy-command-envelope"
                         @click.stop="copyCommandEnvelope(entry.item)"
                       >
-                        复制 JSON
+                        复制设备 Payload
                       </button>
                     </div>
+                    <p class="sandbox-action-list__command-payload-hint">
+                      仅此 JSON 会下发给设备；Outbox 元数据只用于 WES 派发追踪。
+                    </p>
                     <dl class="sandbox-action-list__command-fields">
                       <template
                         v-for="field in commandEnvelopeFields(entry.item)"
@@ -309,8 +326,12 @@
                       </template>
                     </dl>
                     <details class="sandbox-action-list__command-json">
-                      <summary>完整 JSON</summary>
+                      <summary>设备 Payload JSON</summary>
                       <pre>{{ commandEnvelopeJson(entry.item) }}</pre>
+                    </details>
+                    <details class="sandbox-action-list__command-json">
+                      <summary>WES Outbox 元数据</summary>
+                      <pre>{{ commandOutboxMetadataJson(entry.item) }}</pre>
                     </details>
                   </div>
                 </div>
@@ -511,16 +532,19 @@
                     class="sandbox-action-list__command-payload"
                   >
                     <div class="sandbox-action-list__command-payload-head">
-                      <span>指令参数</span>
+                      <span>设备实际 Payload</span>
                       <button
                         type="button"
                         class="sandbox-action-list__copy"
                         data-test="copy-command-envelope"
                         @click.stop="copyCommandEnvelope(entry.item)"
                       >
-                        复制 JSON
+                        复制设备 Payload
                       </button>
                     </div>
+                    <p class="sandbox-action-list__command-payload-hint">
+                      仅此 JSON 会下发给设备；Outbox 元数据只用于 WES 派发追踪。
+                    </p>
                     <dl class="sandbox-action-list__command-fields">
                       <template
                         v-for="field in commandEnvelopeFields(entry.item)"
@@ -531,8 +555,12 @@
                       </template>
                     </dl>
                     <details class="sandbox-action-list__command-json">
-                      <summary>完整 JSON</summary>
+                      <summary>设备 Payload JSON</summary>
                       <pre>{{ commandEnvelopeJson(entry.item) }}</pre>
+                    </details>
+                    <details class="sandbox-action-list__command-json">
+                      <summary>WES Outbox 元数据</summary>
+                      <pre>{{ commandOutboxMetadataJson(entry.item) }}</pre>
                     </details>
                   </div>
                 </div>
@@ -1022,8 +1050,9 @@ function commandEnvelopeFields(item: SandboxPendingOutbox): CommandEnvelopeField
       label: 'task_type',
       value: scalarValue(payload.task_type ?? payload.command_type ?? payload.action)
     },
-    { label: 'target_code', value: scalarValue(item.target_code) },
-    { label: 'dispatch_key', value: scalarValue(item.dispatch_key) },
+    { label: 'device_code', value: scalarValue(payload.device_code) },
+    { label: 'priority', value: scalarValue(payload.priority) },
+    { label: 'timeout', value: scalarValue(payload.timeout) },
     { label: 'params', value: commandParamsSummary(payload) }
   ].filter((field): field is CommandEnvelopeField => field.value !== null)
 }
@@ -1039,21 +1068,26 @@ function compactJsonValue(value: unknown): string | null {
 }
 
 function commandEnvelopeJson(item: SandboxPendingOutbox): string {
+  return formatPayload(commandPayload(item))
+}
+
+function commandOutboxMetadataJson(item: SandboxPendingOutbox): string {
   return formatPayload({
     dispatch_key: item.dispatch_key ?? null,
     dispatch_type: item.dispatch_type ?? null,
     target_type: item.target_type ?? null,
     target_code: item.target_code ?? null,
-    payload_json: commandPayload(item)
+    status: item.status ?? null,
+    session_id: item.session_id ?? null
   })
 }
 
 async function copyCommandEnvelope(item: SandboxPendingOutbox): Promise<void> {
   try {
     await navigator.clipboard.writeText(commandEnvelopeJson(item))
-    ElMessage.success('指令 JSON 已复制')
+    ElMessage.success('设备 Payload 已复制')
   } catch {
-    ElMessage.error('复制失败，请手动复制完整 JSON')
+    ElMessage.error('复制失败，请手动复制设备 Payload')
   }
 }
 
@@ -1677,6 +1711,13 @@ function formatPayload(payload: Record<string, unknown>): string {
   color: #bfdbfe;
   font-size: 10px;
   font-weight: 700;
+}
+
+.sandbox-action-list__command-payload-hint {
+  margin: 0;
+  color: var(--runtime-text-muted);
+  font-size: 10px;
+  line-height: 1.5;
 }
 
 .sandbox-action-list__copy {
