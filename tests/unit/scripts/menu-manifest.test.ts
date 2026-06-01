@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -133,6 +134,29 @@ describe('menu manifest helpers', () => {
           permission: 'biz:workline:list',
         },
       ])
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true })
+    }
+  })
+
+  it('generates the non-production integration debug menu entry from the CLI', () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'menu-manifest-'))
+    const outputFile = join(tempDir, 'menu-manifest.json')
+
+    try {
+      execFileSync('pnpm', ['exec', 'tsx', 'scripts/generate-menu-manifest.ts', '--out', outputFile], {
+        cwd: process.cwd(),
+        stdio: 'pipe',
+      })
+
+      const entries = JSON.parse(readFileSync(outputFile, 'utf-8')) as Array<{ name: string; path: string }>
+
+      expect(entries).toContainEqual(
+        expect.objectContaining({
+          name: 'runtime:integration-debug:menu',
+          path: '/runtime/integration-debug',
+        }),
+      )
     } finally {
       rmSync(tempDir, { recursive: true, force: true })
     }

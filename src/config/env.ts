@@ -4,6 +4,24 @@
  */
 const API_PREFIX = '/api/v1'
 
+type RuntimeImportMetaEnv = Partial<ImportMetaEnv> & {
+  DEV?: boolean | string
+  PROD?: boolean | string
+  MODE?: string
+}
+
+function getRuntimeEnv(): RuntimeImportMetaEnv {
+  return import.meta.env ?? (globalThis as { process?: { env?: RuntimeImportMetaEnv } }).process?.env ?? {}
+}
+
+function parseEnvBoolean(value: boolean | string | undefined): boolean {
+  if (typeof value === 'boolean') {
+    return value
+  }
+
+  return value === 'true'
+}
+
 function normalizeApiBaseUrl(value: string | undefined): string | undefined {
   if (value === undefined || value === '') {
     return value
@@ -25,47 +43,46 @@ function normalizeApiBaseUrl(value: string | undefined): string | undefined {
 export const env = {
   /** 应用运行环境 */
   get appEnv() {
-    return import.meta.env.VITE_APP_ENV || import.meta.env.MODE || 'development'
+    const runtimeEnv = getRuntimeEnv()
+    return runtimeEnv.VITE_APP_ENV || runtimeEnv.MODE || 'development'
   },
 
   /** API 基础 URL */
   get apiBaseUrl() {
-    return normalizeApiBaseUrl(import.meta.env.VITE_API_BASE_URL) ?? 'http://localhost:8001'
+    return normalizeApiBaseUrl(getRuntimeEnv().VITE_API_BASE_URL) ?? 'http://localhost:8001'
   },
 
   /** SSE 实时事件流 URL */
   get sseUrl() {
-    return import.meta.env.VITE_SSE_URL ?? 'http://localhost:8001/api/v1/sys/events/stream'
+    return getRuntimeEnv().VITE_SSE_URL ?? 'http://localhost:8001/api/v1/sys/events/stream'
   },
 
   /** 应用标题 */
   get appTitle() {
-    return import.meta.env.VITE_APP_TITLE || 'P9 MCS'
+    return getRuntimeEnv().VITE_APP_TITLE || 'P9 MCS'
   },
 
   /** 是否启用 Mock 数据 */
   get isMock() {
-    return import.meta.env.VITE_APP_MOCK === 'true'
+    return getRuntimeEnv().VITE_APP_MOCK === 'true'
   },
 
   /** 是否为开发环境 */
   get isDev() {
-    return import.meta.env.VITE_APP_DEV === 'true' || import.meta.env.DEV
+    const runtimeEnv = getRuntimeEnv()
+    return runtimeEnv.VITE_APP_DEV === 'true' || parseEnvBoolean(runtimeEnv.DEV)
   },
 
   /** 是否为生产环境 */
   get isProd() {
-    return import.meta.env.PROD
+    return parseEnvBoolean(getRuntimeEnv().PROD)
   },
 
   /** 是否为非生产环境 */
   get isNonProd() {
-    const appEnv = (
-      import.meta.env.VITE_APP_ENV ||
-      import.meta.env.MODE ||
-      'development'
-    ).toLowerCase()
-    return !import.meta.env.PROD && appEnv !== 'prod' && appEnv !== 'production'
+    const runtimeEnv = getRuntimeEnv()
+    const appEnv = (runtimeEnv.VITE_APP_ENV || runtimeEnv.MODE || 'development').toLowerCase()
+    return !parseEnvBoolean(runtimeEnv.PROD) && appEnv !== 'prod' && appEnv !== 'production'
   }
 } as const
 
