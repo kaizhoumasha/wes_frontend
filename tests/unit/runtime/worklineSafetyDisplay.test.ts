@@ -67,6 +67,22 @@ describe('workline safety display', () => {
     expect(verdict.blockedReason).toContain('runtime reconciliation')
   })
 
+  it('shows STOPPED as waiting for START without safety clear semantics', () => {
+    const summary = createSummary({
+      runtime_status: 'STOPPED',
+      active_session_count: 0
+    })
+    const verdict = getWorklineRuntimeVerdict(summary, null)
+
+    expect(getWorklineRiskTone(summary)).toBe('warning')
+    expect(getWorklineRiskLabel(summary)).toBe('等待现场 START')
+    expect(verdict.tone).toBe('warning')
+    expect(verdict.label).toBe('等待现场 START')
+    expect(verdict.safetyLocked).toBe(false)
+    expect(verdict.canAttemptClear).toBe(false)
+    expect(verdict.blockedReason).toContain('未 START')
+  })
+
   it('keeps safety locked when evidence is stale or failed to load', () => {
     const staleVerdict = getWorklineRuntimeVerdict(createSummary(), null, { state: 'stale' })
     const errorVerdict = getWorklineRuntimeVerdict(createSummary(), null, { state: 'error' })

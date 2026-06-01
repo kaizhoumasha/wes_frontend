@@ -6,7 +6,9 @@ import type {
 import {
   ESTOPPED_RUNTIME_STATUS,
   RECONCILING_RUNTIME_STATUS,
-  SAFETY_EVIDENCE_STALE_MS
+  SAFETY_EVIDENCE_STALE_MS,
+  STOPPED_RUNTIME_STATUS,
+  WORKLINE_STOPPED_REASON
 } from '@/constants/runtime-safety'
 
 type WorklineRuntimeTone = 'primary' | 'success' | 'warning' | 'danger' | 'info'
@@ -73,6 +75,10 @@ function isRuntimeStatusEstopped(summary: RuntimeWorklineSummary | null | undefi
 
 function isRuntimeStatusReconciling(summary: RuntimeWorklineSummary | null | undefined): boolean {
   return summary?.runtime_status === RECONCILING_RUNTIME_STATUS
+}
+
+function isRuntimeStatusStopped(summary: RuntimeWorklineSummary | null | undefined): boolean {
+  return summary?.runtime_status === STOPPED_RUNTIME_STATUS
 }
 
 function isActiveIncident(incident: RuntimeSafetyIncidentSummary | null | undefined): boolean {
@@ -183,6 +189,16 @@ export function getWorklineRuntimeVerdict(
       blockedReason: resolveSafetyBlockedReason(evidenceFreshness, evidence),
       evidenceFreshness,
       state: evidenceFreshness === 'loading' ? 'LOCKED_LOADING_EVIDENCE' : 'LOCKED_READY'
+    })
+  }
+
+  if (isRuntimeStatusStopped(summary)) {
+    return safetyVerdict('warning', '等待现场 START', {
+      safetyLocked: false,
+      canAttemptClear: false,
+      blockedReason: WORKLINE_STOPPED_REASON,
+      evidenceFreshness,
+      state: 'UNLOCKED'
     })
   }
 

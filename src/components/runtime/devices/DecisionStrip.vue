@@ -80,6 +80,7 @@ import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import type { RuntimeWorklineDetailResponse, RuntimeWorklineSummary } from '@/types/runtime'
 import { pickDominantValue, resolveRuntimeProgressLabel } from '@/utils/runtime-display'
+import { getWorklineRuntimeVerdict } from '@/utils/runtime-safety'
 import type { RuntimeTone } from '@/utils/runtime-display'
 
 const props = defineProps<{
@@ -87,7 +88,15 @@ const props = defineProps<{
   detail?: RuntimeWorklineDetailResponse | null
 }>()
 
+const runtimeVerdict = computed(() => getWorklineRuntimeVerdict(props.summary))
+const stoppedWaitingForStart = computed(
+  () => runtimeVerdict.value.tone === 'warning' && runtimeVerdict.value.label === '等待现场 START'
+)
+
 const tone = computed<RuntimeTone>(() => {
+  if (stoppedWaitingForStart.value) {
+    return 'warning'
+  }
   if (activeHoldCount.value > 0 || openIssueCount.value > 0) {
     return 'danger'
   }
@@ -108,6 +117,7 @@ const tone = computed<RuntimeTone>(() => {
 })
 
 const label = computed(() => {
+  if (stoppedWaitingForStart.value) return runtimeVerdict.value.label
   if (tone.value === 'danger') return '存在阻塞'
   if (tone.value === 'warning') return '有等待风险'
   if (tone.value === 'primary') return '运行中'
@@ -115,6 +125,16 @@ const label = computed(() => {
 })
 
 const suggestion = computed(() => {
+  if (stoppedWaitingForStart.value) {
+    const message = props.summary.start_admission_message
+    if (props.summary.start_admission_status === 'FAILED' && message) {
+      return message
+    }
+    if (props.summary.start_admission_status === 'CHECKING') {
+      return '正在检查设备 AUTO/IDLE，检查通过后才接收生产事件'
+    }
+    return '软件冻结已解除，现场 START 后才接收生产事件'
+  }
   if (activeHoldCount.value > 0) {
     return `${activeHoldCount.value} 个 Runtime Hold 待处置，先确认线体能否继续，再决定继续或退回 NG`
   }

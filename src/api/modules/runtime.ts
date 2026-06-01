@@ -59,6 +59,11 @@ export interface RuntimeHoldListQuery {
   limit?: number
 }
 
+export interface WorklineStartRequestedPayload {
+  deviceCode: string
+  traceId?: string
+}
+
 function adaptRuntimeMethod<T>(method: { send: () => Promise<unknown> }): RuntimeApiMethod<T> {
   return {
     send: () => method.send() as Promise<T>
@@ -233,6 +238,23 @@ export const runtimeApiMethods = {
         `/api/v1/workline/operations/sandbox/worklines/${worklineId}/simulate-estop`,
         payload
       )
+    )
+  },
+
+  worklineStartRequested(worklineId: number, payload: WorklineStartRequestedPayload) {
+    const traceId = payload.traceId ?? `sandbox:start:${worklineId}:${Date.now().toString(36)}`
+    return adaptRuntimeMethod<unknown>(
+      apiClient.Post('/api/v1/callback/event', {
+        device_code: payload.deviceCode,
+        event_type: 'WORKLINE_START_REQUESTED',
+        timestamp: Date.now(),
+        trace_id: traceId,
+        event_id: traceId,
+        data: {
+          source: 'sandbox',
+          workline_id: worklineId
+        }
+      })
     )
   },
 

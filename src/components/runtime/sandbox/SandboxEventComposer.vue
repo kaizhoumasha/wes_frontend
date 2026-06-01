@@ -289,7 +289,7 @@ async function handleSubmit() {
   if (!valid) return
 
   if (RESERVED_SAFETY_EVENT_TYPES.has(form.value.event_type)) {
-    ElMessage.warning('ESTOP_PRESSED 是平台保留安全事件，不能通过普通 sandbox 发送。')
+    ElMessage.warning('该事件是平台保留事件，不能通过普通 sandbox Event 发送。')
     return
   }
 

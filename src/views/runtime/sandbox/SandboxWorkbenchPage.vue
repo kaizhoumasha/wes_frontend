@@ -32,7 +32,8 @@
       <div class="sandbox-wb__bar-actions">
         <el-button
           type="primary"
-          :disabled="!selectedDeviceId || safetyLocked"
+          :disabled="!selectedDeviceId || productionEventDisabled"
+          :title="productionEventDisabled ? productionBlockedReason : undefined"
           @click="eventPanelOpen = true"
         >
           <svg
@@ -47,6 +48,18 @@
             />
           </svg>
           发送 Event
+        </el-button>
+        <el-button
+          v-if="canShowMockStart"
+          data-test="sandbox-start-workline"
+          type="warning"
+          size="small"
+          plain
+          :loading="startAdmissionChecking"
+          :disabled="!startDeviceCode || startAdmissionChecking"
+          @click="requestMockStart"
+        >
+          模拟现场 START
         </el-button>
         <el-button
           type="danger"
@@ -113,6 +126,35 @@
       <template #title>软件急停冻结</template>
       <template #default>{{ safetyBlockedReason }}</template>
     </el-alert>
+
+    <section
+      v-if="isStoppedRuntime"
+      data-test="sandbox-start-verdict"
+      class="sandbox-wb__start-verdict"
+      aria-live="polite"
+    >
+      <div>
+        <div class="sandbox-wb__start-title">等待现场 START</div>
+        <div class="sandbox-wb__start-message">{{ startAdmissionDisplayMessage }}</div>
+      </div>
+      <dl
+        v-if="hasStartAdmissionDiagnostics"
+        class="sandbox-wb__start-diagnostics"
+      >
+        <div v-if="worklineSummary?.start_admission_failed_device_code">
+          <dt>失败设备</dt>
+          <dd>{{ worklineSummary.start_admission_failed_device_code }}</dd>
+        </div>
+        <div v-if="worklineSummary?.last_start_request_id">
+          <dt>Request</dt>
+          <dd>{{ worklineSummary.last_start_request_id }}</dd>
+        </div>
+        <div v-if="worklineSummary?.last_start_trace_id">
+          <dt>Trace</dt>
+          <dd>{{ worklineSummary.last_start_trace_id }}</dd>
+        </div>
+      </dl>
+    </section>
 
     <!-- Three-Column Workbench -->
     <div class="sandbox-wb__body">
@@ -196,8 +238,8 @@
             :device-code="selectedDeviceInfo?.code"
             :device-role="selectedDeviceInfo?.role"
             :device-status="selectedDeviceInfo?.status"
-            :disabled="safetyLocked"
-            :disabled-reason="safetyBlockedReason"
+            :disabled="productionEventDisabled"
+            :disabled-reason="productionBlockedReason"
             @submitted="handleEventSubmitted"
           />
         </div>
@@ -220,7 +262,7 @@
         <button
           type="button"
           class="sandbox-wb__ctx-item"
-          :disabled="safetyLocked"
+          :disabled="productionEventDisabled"
           @click="handleCtxAction('sendEvent')"
         >
           发送 Event
@@ -343,7 +385,12 @@ import {
   canSubmitSandboxResult,
   isCurrentSandboxAction
 } from '@/utils/sandbox-outbox'
-import { SAFETY_LOCKED_REASON } from '@/constants/runtime-safety'
+import {
+  READY_RUNTIME_STATUS,
+  SAFETY_LOCKED_REASON,
+  STOPPED_RUNTIME_STATUS,
+  WORKLINE_STOPPED_REASON
+} from '@/constants/runtime-safety'
 import { getWorklineDeviceSafetyEvidence, getWorklineRuntimeVerdict } from '@/utils/runtime-safety'
 import type {
   RuntimeSafetyIncidentSummary,
@@ -412,6 +459,43 @@ const canClearEstop = computed(
 const safetyBlockedReason = computed(
   () => safetyVerdict.value.blockedReason || SAFETY_LOCKED_REASON
 )
+const isStoppedRuntime = computed(
+  () => worklineSummary.value?.runtime_status === STOPPED_RUNTIME_STATUS
+)
+const isReadyRuntime = computed(
+  () => worklineSummary.value?.runtime_status === READY_RUNTIME_STATUS
+)
+const productionEventDisabled = computed(() => safetyLocked.value || !isReadyRuntime.value)
+const productionBlockedReason = computed(() => {
+  if (safetyLocked.value) return safetyBlockedReason.value
+  if (isStoppedRuntime.value) return WORKLINE_STOPPED_REASON
+  return '工作线运行态尚未 READY，暂不能发送生产 Event。'
+})
+const startAdmissionChecking = ref(false)
+const canShowMockStart = computed(
+  () =>
+    isStoppedRuntime.value &&
+    worklineSummary.value?.run_mode === 'SIMULATION' &&
+    !safetyLocked.value
+)
+const startAdmissionDisplayMessage = computed(() => {
+  if (
+    startAdmissionChecking.value ||
+    worklineSummary.value?.start_admission_status === 'CHECKING'
+  ) {
+    return '正在检查设备 AUTO/IDLE，检查通过后工作线进入 READY。'
+  }
+  return (
+    worklineSummary.value?.start_admission_message ||
+    '工作线未 START，现场或 mock START 后才接收生产事件。'
+  )
+})
+const hasStartAdmissionDiagnostics = computed(
+  () =>
+    Boolean(worklineSummary.value?.start_admission_failed_device_code) ||
+    Boolean(worklineSummary.value?.last_start_request_id) ||
+    Boolean(worklineSummary.value?.last_start_trace_id)
+)
 
 // Device selection
 const selectedDeviceId = ref<number | null>(null)
@@ -436,6 +520,15 @@ const selectedDeviceInfo = computed(() => {
     status: d.device_status || ''
   }
 })
+const startDevice = computed(
+  () =>
+    (selectedDeviceId.value
+      ? deviceList.value.find(device => device.id === selectedDeviceId.value)
+      : null) ??
+    deviceList.value.find(device => Boolean(device.device_code)) ??
+    null
+)
+const startDeviceCode = computed(() => startDevice.value?.device_code || '')
 
 // Active sessions
 const activeSessions = computed<RuntimeTraceListItem[]>(
@@ -462,8 +555,8 @@ function handleCtxAction(action: 'sendEvent' | 'viewOutbox') {
   contextMenu.value.visible = false
   if (!deviceId) return
   if (action === 'sendEvent') {
-    if (safetyLocked.value) {
-      ElMessage.warning(safetyBlockedReason.value)
+    if (productionEventDisabled.value) {
+      ElMessage.warning(productionBlockedReason.value)
       return
     }
     handleSendEventFromTopology(deviceId)
@@ -477,6 +570,10 @@ function handleSelectDevice(deviceId: number) {
 }
 
 function handleSendEventFromTopology(deviceId: number) {
+  if (productionEventDisabled.value) {
+    ElMessage.warning(productionBlockedReason.value)
+    return
+  }
   selectedDeviceId.value = deviceId
   eventPanelOpen.value = true
 }
@@ -708,6 +805,30 @@ async function simulateEstop() {
   }
 }
 
+async function requestMockStart() {
+  if (!canShowMockStart.value || startAdmissionChecking.value) return
+  const deviceCode = startDeviceCode.value
+  if (!deviceCode) {
+    ElMessage.error('缺少可用于 START 的设备编码')
+    return
+  }
+  startAdmissionChecking.value = true
+  try {
+    await runtimeApiMethods
+      .worklineStartRequested(worklineId.value, {
+        deviceCode
+      })
+      .send()
+    ElMessage.success('START 已提交，正在刷新工作线状态')
+    queueSandboxRefresh()
+  } catch (e: unknown) {
+    ElMessage.error(getErrorMessage(e, 'START 准入失败'))
+    queueSandboxRefresh()
+  } finally {
+    startAdmissionChecking.value = false
+  }
+}
+
 async function handleCleanupSandbox() {
   const cleanupWorklineId = getRouteWorklineId()
   const cleanupWorklineCode = worklineCode.value
@@ -839,7 +960,7 @@ async function requestClearEstop() {
         }
       })
       .send()
-    ElMessage.success('已恢复接收新流程')
+    ElMessage.success('已解除冻结，等待现场 START')
     void store.loadWorklines()
     queueSandboxRefresh()
   } catch (e: unknown) {
@@ -1123,6 +1244,11 @@ watch(worklineId, () => {
   gap: 8px;
 }
 
+.sandbox-wb__bar-actions :deep(.el-button),
+.sandbox-wb__bar-actions button {
+  min-height: 44px;
+}
+
 .sandbox-wb__icon {
   width: 14px;
   height: 14px;
@@ -1132,6 +1258,56 @@ watch(worklineId, () => {
 .sandbox-wb__safety {
   flex-shrink: 0;
   border-color: rgb(239, 68, 68, 0.4);
+}
+
+.sandbox-wb__start-verdict {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid rgb(245, 158, 11, 0.35);
+  border-radius: 10px;
+  background: rgb(245, 158, 11, 0.1);
+}
+
+.sandbox-wb__start-title {
+  color: #fde68a;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.sandbox-wb__start-message {
+  margin-top: 4px;
+  color: var(--runtime-text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.sandbox-wb__start-diagnostics {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px 16px;
+  margin: 0;
+  font-size: 12px;
+}
+
+.sandbox-wb__start-diagnostics div {
+  display: grid;
+  gap: 2px;
+}
+
+.sandbox-wb__start-diagnostics dt {
+  color: var(--runtime-text-muted);
+}
+
+.sandbox-wb__start-diagnostics dd {
+  margin: 0;
+  color: #fef3c7;
+  font-family: var(--font-mono);
+  word-break: break-all;
 }
 
 /* ===== Three-Column Body ===== */
