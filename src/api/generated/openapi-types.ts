@@ -2434,6 +2434,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workline/integration-debug/cases/latest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list] 查询最新集成调试案件 */
+        get: operations["workline_integration_debug_cases_latest_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/integration-debug/cases/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list] 按锚点查询集成调试案件 */
+        get: operations["workline_integration_debug_cases_lookup_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workline/ng-return-items": {
         parameters: {
             query?: never;
@@ -5171,6 +5205,128 @@ export interface components {
             detail?: components["schemas"]["ValidationError"][];
         };
         /**
+         * IntegrationDebugCaseListResponse
+         * @description 最新集成调试案件列表。
+         */
+        IntegrationDebugCaseListResponse: {
+            /** Items */
+            items?: components["schemas"]["IntegrationDebugCaseResponse"][];
+            /** Total */
+            total: number;
+        };
+        /**
+         * IntegrationDebugCaseResponse
+         * @description 集成调试案件定位结果。
+         */
+        IntegrationDebugCaseResponse: {
+            /** Blocking Code */
+            blocking_code?: string | null;
+            /** Blocking Domain */
+            blocking_domain?: string | null;
+            /** Case Id */
+            case_id: string;
+            /** Command Code */
+            command_code?: string | null;
+            /** Evidence Links */
+            evidence_links?: components["schemas"]["IntegrationDebugEvidenceLink"][];
+            /** Facts */
+            facts?: {
+                [key: string]: unknown;
+            };
+            /** Next Actions */
+            next_actions?: components["schemas"]["IntegrationDebugNextAction"][];
+            /** Owner */
+            owner: string;
+            /** Phase */
+            phase: string;
+            /** Recoverability */
+            recoverability: string;
+            /** Request Id */
+            request_id?: string | null;
+            /** Session Code */
+            session_code?: string | null;
+            /** Session Id */
+            session_id?: number | null;
+            /** Severity */
+            severity: string;
+            /** Stage Checks */
+            stage_checks?: components["schemas"]["IntegrationDebugStageCheck"][];
+            /** Status */
+            status: string;
+            /** Summary */
+            summary: string;
+            trace_detail?: components["schemas"]["TraceDetailResponse"] | null;
+            /** Trace Id */
+            trace_id?: string | null;
+            /** Verdict */
+            verdict: string;
+        };
+        /**
+         * IntegrationDebugEvidenceLink
+         * @description 调试证据跳转。
+         */
+        IntegrationDebugEvidenceLink: {
+            /** Api Path */
+            api_path?: string | null;
+            /** Kind */
+            kind: string;
+            /** Label */
+            label: string;
+            /** Route Name */
+            route_name?: string | null;
+            /** Route Params */
+            route_params?: {
+                [key: string]: unknown;
+            };
+            /** Route Query */
+            route_query?: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * IntegrationDebugNextAction
+         * @description 只读下一步建议。
+         */
+        IntegrationDebugNextAction: {
+            /** Description */
+            description: string;
+            /** Kind */
+            kind: string;
+            /** Label */
+            label: string;
+            /** Route Name */
+            route_name?: string | null;
+            /** Route Params */
+            route_params?: {
+                [key: string]: unknown;
+            };
+            /** Route Query */
+            route_query?: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * IntegrationDebugStageCheck
+         * @description 集成链路单阶段定位结果。
+         */
+        IntegrationDebugStageCheck: {
+            /**
+             * Evidence Count
+             * @default 0
+             */
+            evidence_count: number;
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Links */
+            links?: string[];
+            /** Primary Evidence */
+            primary_evidence?: string | null;
+            /** State */
+            state: string;
+        };
+        /**
          * LineType
          * @description 作业线类型枚举
          * @enum {string}
@@ -6799,6 +6955,10 @@ export interface components {
         ResponseSchemaModel_dict_str__Any__: ApiResponse<Record<string, unknown>>;
         /** ResponseSchemaModel[dict[str, str]] */
         ResponseSchemaModel_dict_str__str__: ApiResponse<Record<string, string>>;
+        /** ResponseSchemaModel[IntegrationDebugCaseListResponse] */
+        ResponseSchemaModel_IntegrationDebugCaseListResponse_: ApiResponse<components["schemas"]["IntegrationDebugCaseListResponse"]>;
+        /** ResponseSchemaModel[IntegrationDebugCaseResponse] */
+        ResponseSchemaModel_IntegrationDebugCaseResponse_: ApiResponse<components["schemas"]["IntegrationDebugCaseResponse"]>;
         /** ResponseSchemaModel[list[Any]] */
         ResponseSchemaModel_list_Any__: ApiResponse<unknown[]>;
         /** ResponseSchemaModel[list[dict[str, Any]]] */
@@ -13428,6 +13588,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_integration_debug_cases_latest_get: {
+        parameters: {
+            query?: {
+                device_id?: number | null;
+                limit?: number;
+                status?: string | null;
+                workline_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationDebugCaseListResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_integration_debug_cases_lookup_get: {
+        parameters: {
+            query: {
+                anchor: string;
+                anchor_type: string;
+                include_raw?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationDebugCaseResponse_"];
                 };
             };
             /** @description Validation Error */

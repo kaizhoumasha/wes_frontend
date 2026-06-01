@@ -1236,6 +1236,141 @@ export const FilterOperatorSchema = z.enum(["eq", "ne", "gt", "ge", "lt", "le", 
 
 
 /**
+ * 最新集成调试案件列表。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const IntegrationDebugCaseListResponseSchema = z.object({
+  /** Total */
+  total: z.number(),
+  /** Items */
+  items: z.array(z.lazy(() => IntegrationDebugCaseResponseSchema)).optional(),
+})
+
+
+/**
+ * 集成调试案件定位结果。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const IntegrationDebugCaseResponseSchema = z.object({
+  /** Case Id */
+  case_id: z.string(),
+  /** Session Id */
+  session_id: z.union([z.number(), z.null()]).optional(),
+  /** Session Code */
+  session_code: z.union([z.string(), z.null()]).optional(),
+  /** Trace Id */
+  trace_id: z.union([z.string(), z.null()]).optional(),
+  /** Request Id */
+  request_id: z.union([z.string(), z.null()]).optional(),
+  /** Command Code */
+  command_code: z.union([z.string(), z.null()]).optional(),
+  /** Status */
+  status: z.string(),
+  /** Phase */
+  phase: z.string(),
+  /** Verdict */
+  verdict: z.string(),
+  /** Blocking Domain */
+  blocking_domain: z.union([z.string(), z.null()]).optional(),
+  /** Blocking Code */
+  blocking_code: z.union([z.string(), z.null()]).optional(),
+  /** Owner */
+  owner: z.string(),
+  /** Severity */
+  severity: z.string(),
+  /** Recoverability */
+  recoverability: z.string(),
+  /** Summary */
+  summary: z.string(),
+  /** Facts */
+  facts: z.record(z.any()).optional(),
+  /** Stage Checks */
+  stage_checks: z.array(z.lazy(() => IntegrationDebugStageCheckSchema)).optional(),
+  /** Evidence Links */
+  evidence_links: z.array(z.lazy(() => IntegrationDebugEvidenceLinkSchema)).optional(),
+  /** Next Actions */
+  next_actions: z.array(z.lazy(() => IntegrationDebugNextActionSchema)).optional(),
+  trace_detail: z.union([z.lazy(() => TraceDetailResponseSchema), z.null()]).optional(),
+})
+
+
+/**
+ * 调试证据跳转。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const IntegrationDebugEvidenceLinkSchema = z.object({
+  /** Kind */
+  kind: z.string(),
+  /** Label */
+  label: z.string(),
+  /** Api Path */
+  api_path: z.union([z.string(), z.null()]).optional(),
+  /** Route Name */
+  route_name: z.union([z.string(), z.null()]).optional(),
+  /** Route Params */
+  route_params: z.record(z.any()).optional(),
+  /** Route Query */
+  route_query: z.record(z.any()).optional(),
+})
+
+
+/**
+ * 只读下一步建议。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const IntegrationDebugNextActionSchema = z.object({
+  /** Kind */
+  kind: z.string(),
+  /** Label */
+  label: z.string(),
+  /** Description */
+  description: z.string(),
+  /** Route Name */
+  route_name: z.union([z.string(), z.null()]).optional(),
+  /** Route Params */
+  route_params: z.record(z.any()).optional(),
+  /** Route Query */
+  route_query: z.record(z.any()).optional(),
+})
+
+
+/**
+ * 集成链路单阶段定位结果。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const IntegrationDebugStageCheckSchema = z.object({
+  /** Key */
+  key: z.string(),
+  /** Label */
+  label: z.string(),
+  /** State */
+  state: z.string(),
+  /** Evidence Count */
+  evidence_count: z.number().optional().default(0),
+  /** Primary Evidence */
+  primary_evidence: z.union([z.string(), z.null()]).optional(),
+  /** Links */
+  links: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())).optional(),
+})
+
+
+/**
  * 作业线类型枚举
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑

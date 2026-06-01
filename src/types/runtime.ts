@@ -74,6 +74,74 @@ export interface RuntimeTraceListResponse {
   items: RuntimeTraceListItem[]
 }
 
+export interface IntegrationDebugStageCheck {
+  key: string
+  label: string
+  state: 'not_started' | 'ok' | 'waiting' | 'failed' | 'blocked' | 'unknown' | string
+  evidence_count: number
+  primary_evidence?: string | null
+  links: string[]
+}
+
+export interface IntegrationDebugEvidenceLink {
+  kind: string
+  label: string
+  api_path?: string | null
+  route_name?: string | null
+  route_params: Record<string, unknown>
+  route_query: Record<string, unknown>
+}
+
+export interface IntegrationDebugNextAction {
+  kind: string
+  label: string
+  description: string
+  route_name?: string | null
+  route_params: Record<string, unknown>
+  route_query: Record<string, unknown>
+}
+
+export interface IntegrationDebugCaseResponse {
+  case_id: string
+  session_id?: number | null
+  session_code?: string | null
+  trace_id?: string | null
+  request_id?: string | null
+  command_code?: string | null
+  status: string
+  phase: string
+  verdict: 'ok' | 'waiting' | 'blocked' | 'failed' | 'unknown' | string
+  blocking_domain?: string | null
+  blocking_code?: string | null
+  owner: string
+  severity: string
+  recoverability: string
+  summary: string
+  facts: Record<string, unknown>
+  stage_checks: IntegrationDebugStageCheck[]
+  evidence_links: IntegrationDebugEvidenceLink[]
+  next_actions: IntegrationDebugNextAction[]
+  trace_detail?: TraceDetailResponse | null
+}
+
+export interface IntegrationDebugCaseListResponse {
+  total: number
+  items: IntegrationDebugCaseResponse[]
+}
+
+export interface IntegrationDebugLatestQuery {
+  limit?: number
+  workline_id?: number
+  device_id?: number
+  status?: string
+}
+
+export interface IntegrationDebugLookupQuery {
+  anchor_type: string
+  anchor: string
+  include_raw?: boolean
+}
+
 export interface TraceQueryPayload {
   workline_id?: number
   device_id?: number
