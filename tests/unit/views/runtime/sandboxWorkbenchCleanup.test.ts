@@ -416,6 +416,28 @@ describe('SandboxWorkbenchPage cleanup', () => {
     expect(wrapper.get('[data-test="sandbox-start-verdict"]').text()).toContain('正在检查设备 AUTO/IDLE')
   })
 
+  it('does not show START success when callback ingress returns rejected data', async () => {
+    const startSend = vi.fn().mockResolvedValue({
+      ack: false,
+      reason_code: 'DEVICE_NOT_IDLE',
+      diagnostic: {
+        message: '设备 ARM03 不是 IDLE'
+      }
+    })
+    mocks.runtimeApiMethods.worklineStartRequested.mockReturnValue({ send: startSend })
+    mocks.store.detail.summary.runtime_status = 'STOPPED'
+    const wrapper = await mountPage()
+
+    await wrapper.get('[data-test="sandbox-start-workline"]').trigger('click')
+    await flushPromises()
+
+    expect(mocks.success).not.toHaveBeenCalledWith('START 已提交，正在刷新工作线状态')
+    expect(mocks.error).toHaveBeenCalledWith('设备 ARM03 不是 IDLE')
+    expect(mocks.store.loadDetail).toHaveBeenCalled()
+    expect(mocks.runtimeApiMethods.sandboxPending).toHaveBeenCalledTimes(2)
+    expect(mocks.runtimeApiMethods.sandboxCompleted).toHaveBeenCalledTimes(2)
+  })
+
   it('does not clear estop if the route changes before confirmation resolves', async () => {
     let confirmClear!: () => void
     mocks.store.detail.summary.runtime_status = 'ESTOPPED'

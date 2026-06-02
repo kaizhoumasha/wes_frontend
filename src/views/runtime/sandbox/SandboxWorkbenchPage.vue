@@ -500,6 +500,21 @@ const hasStartAdmissionDiagnostics = computed(
     Boolean(worklineSummary.value?.last_start_trace_id)
 )
 
+function getStartRejectedMessage(result: unknown): string | null {
+  if (!result || typeof result !== 'object' || !('ack' in result) || result.ack !== false) {
+    return null
+  }
+  const diagnostic = 'diagnostic' in result ? result.diagnostic : null
+  if (diagnostic && typeof diagnostic === 'object' && 'message' in diagnostic) {
+    const message = diagnostic.message
+    if (typeof message === 'string' && message.trim()) {
+      return message
+    }
+  }
+  const reasonCode = 'reason_code' in result ? result.reason_code : null
+  return typeof reasonCode === 'string' && reasonCode.trim() ? reasonCode : 'START 准入失败'
+}
+
 // Device selection
 const selectedDeviceId = ref<number | null>(null)
 const deviceList = computed<RuntimeWorklineDeviceItem[]>(() => store.detail?.devices ?? [])
@@ -817,12 +832,17 @@ async function requestMockStart() {
   }
   startAdmissionChecking.value = true
   try {
-    await runtimeApiMethods
+    const result = await runtimeApiMethods
       .worklineStartRequested(worklineId.value, {
         deviceCode
       })
       .send()
-    ElMessage.success('START 已提交，正在刷新工作线状态')
+    const rejectedMessage = getStartRejectedMessage(result)
+    if (rejectedMessage) {
+      ElMessage.error(rejectedMessage)
+    } else {
+      ElMessage.success('START 已提交，正在刷新工作线状态')
+    }
     queueSandboxRefresh()
   } catch (e: unknown) {
     ElMessage.error(getErrorMessage(e, 'START 准入失败'))
