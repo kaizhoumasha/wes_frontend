@@ -193,7 +193,7 @@ export function getWorklineRuntimeVerdict(
   }
 
   if (isRuntimeStatusStopped(summary)) {
-    return safetyVerdict('warning', '等待现场 START', {
+    return safetyVerdict('warning', '等待现场硬件 START', {
       safetyLocked: false,
       canAttemptClear: false,
       blockedReason: WORKLINE_STOPPED_REASON,

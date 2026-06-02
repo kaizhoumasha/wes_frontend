@@ -10,7 +10,7 @@ export const RESERVED_SAFETY_EVENT_TYPES = new Set([
 ])
 
 export const SAFETY_LOCKED_REASON = '工作线处于软件急停冻结，已禁止发送 Event、ACK 和 Result。'
-export const WORKLINE_STOPPED_REASON = '工作线未 START，等待现场 START 后才接收生产事件。'
+export const WORKLINE_STOPPED_REASON = '工作线未 START，等待现场硬件 START'
 
 export const SAFETY_EVIDENCE_STALE_MS = 15_000
 

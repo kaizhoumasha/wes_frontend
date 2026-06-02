@@ -322,7 +322,7 @@ describe('SandboxWorkbenchPage cleanup', () => {
         operator_confirmed: true
       }
     })
-    expect(mocks.success).toHaveBeenCalledWith('已解除冻结，等待现场 START')
+    expect(mocks.success).toHaveBeenCalledWith('已解除冻结，等待现场硬件 START')
     expect(mocks.store.loadWorklines).toHaveBeenCalledTimes(2)
     expect(mocks.runtimeApiMethods.sandboxPending).toHaveBeenCalledTimes(2)
     expect(mocks.runtimeApiMethods.sandboxCompleted).toHaveBeenCalledTimes(2)
@@ -338,13 +338,14 @@ describe('SandboxWorkbenchPage cleanup', () => {
     const wrapper = await mountPage()
 
     const verdict = wrapper.get('[data-test="sandbox-start-verdict"]')
-    expect(verdict.text()).toContain('等待现场 START')
+    expect(verdict.text()).toContain('等待现场硬件 START')
     expect(verdict.text()).toContain('START 准入失败: 设备 RS-CONV-01 非空闲')
     expect(verdict.text()).toContain('RS-CONV-01')
     expect(verdict.text()).toContain('req-start-1')
     expect(verdict.text()).toContain('trace-start-1')
     expect(wrapper.get('.sandbox-event-composer-stub').attributes('data-disabled')).toBe('true')
     expect(wrapper.get('.sandbox-event-composer-stub').text()).toContain('工作线未 START')
+    expect(wrapper.get('.sandbox-event-composer-stub').text()).toContain('等待现场硬件 START')
     expect(wrapper.find('[data-test="sandbox-start-verdict"]').element.compareDocumentPosition(
       wrapper.findComponent({ name: 'WorklineRouteMap' }).element
     ) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()

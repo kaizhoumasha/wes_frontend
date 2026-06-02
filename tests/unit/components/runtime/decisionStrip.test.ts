@@ -84,8 +84,8 @@ describe('DecisionStrip', () => {
     })
 
     expect(wrapper.classes()).toContain('decision-strip--warning')
-    expect(wrapper.text()).toContain('等待现场 START')
-    expect(wrapper.text()).toContain('现场 START 后才接收生产事件')
+    expect(wrapper.text()).toContain('等待现场硬件 START')
+    expect(wrapper.text()).toContain('现场硬件 START 后才接收生产事件')
     expect(wrapper.text()).not.toContain('稳定')
   })
 })

@@ -87,10 +87,11 @@ describe('SandboxEventComposer', () => {
   it('shows the supplied non-READY disabled reason', async () => {
     const wrapper = mountComposer({
       disabled: true,
-      disabledReason: '工作线未 START，等待现场 START 后才接收生产事件。'
+      disabledReason: '工作线未 START，等待现场硬件 START'
     })
     await flushPromises()
 
     expect(wrapper.text()).toContain('工作线未 START')
+    expect(wrapper.text()).toContain('等待现场硬件 START')
   })
 })

@@ -75,9 +75,9 @@ describe('workline safety display', () => {
     const verdict = getWorklineRuntimeVerdict(summary, null)
 
     expect(getWorklineRiskTone(summary)).toBe('warning')
-    expect(getWorklineRiskLabel(summary)).toBe('等待现场 START')
+    expect(getWorklineRiskLabel(summary)).toBe('等待现场硬件 START')
     expect(verdict.tone).toBe('warning')
-    expect(verdict.label).toBe('等待现场 START')
+    expect(verdict.label).toBe('等待现场硬件 START')
     expect(verdict.safetyLocked).toBe(false)
     expect(verdict.canAttemptClear).toBe(false)
     expect(verdict.blockedReason).toContain('未 START')

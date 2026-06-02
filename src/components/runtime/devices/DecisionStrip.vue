@@ -90,7 +90,8 @@ const props = defineProps<{
 
 const runtimeVerdict = computed(() => getWorklineRuntimeVerdict(props.summary))
 const stoppedWaitingForStart = computed(
-  () => runtimeVerdict.value.tone === 'warning' && runtimeVerdict.value.label === '等待现场 START'
+  () =>
+    runtimeVerdict.value.tone === 'warning' && runtimeVerdict.value.label === '等待现场硬件 START'
 )
 
 const tone = computed<RuntimeTone>(() => {
@@ -133,7 +134,7 @@ const suggestion = computed(() => {
     if (props.summary.start_admission_status === 'CHECKING') {
       return '正在检查设备 AUTO/IDLE，检查通过后才接收生产事件'
     }
-    return '软件冻结已解除，现场 START 后才接收生产事件'
+    return '软件冻结已解除，现场硬件 START 后才接收生产事件'
   }
   if (activeHoldCount.value > 0) {
     return `${activeHoldCount.value} 个 Runtime Hold 待处置，先确认线体能否继续，再决定继续或退回 NG`

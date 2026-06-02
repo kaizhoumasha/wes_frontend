@@ -134,7 +134,7 @@
       aria-live="polite"
     >
       <div>
-        <div class="sandbox-wb__start-title">等待现场 START</div>
+        <div class="sandbox-wb__start-title">等待现场硬件 START</div>
         <div class="sandbox-wb__start-message">{{ startAdmissionDisplayMessage }}</div>
       </div>
       <dl
@@ -487,7 +487,7 @@ const startAdmissionDisplayMessage = computed(() => {
   }
   return (
     worklineSummary.value?.start_admission_message ||
-    '工作线未 START，现场或 mock START 后才接收生产事件。'
+    '工作线未 START，现场硬件 START 或 mock START 后才接收生产事件。'
   )
 })
 const hasStartAdmissionDiagnostics = computed(
@@ -960,7 +960,7 @@ async function requestClearEstop() {
         }
       })
       .send()
-    ElMessage.success('已解除冻结，等待现场 START')
+    ElMessage.success('已解除冻结，等待现场硬件 START')
     void store.loadWorklines()
     queueSandboxRefresh()
   } catch (e: unknown) {
