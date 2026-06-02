@@ -133,7 +133,7 @@ describe('SandboxActionList failure visibility', () => {
       }
     })
 
-    expect(wrapper.text()).toContain('指令参数')
+    expect(wrapper.text()).toContain('设备实际 Payload')
     expect(wrapper.text()).toContain('CMD_MEASUREMENT_REEL_001')
     expect(wrapper.text()).toContain('MEASUREMENT_REEL')
     expect(wrapper.text()).toContain('ARM03')
@@ -181,7 +181,7 @@ describe('SandboxActionList failure visibility', () => {
 
     await wrapper.find('.sandbox-action-list__history-toggle').trigger('click')
 
-    expect(wrapper.text()).toContain('指令参数')
+    expect(wrapper.text()).toContain('设备实际 Payload')
     expect(wrapper.text()).toContain('CMD_HISTORY_REEL_001')
     expect(wrapper.text()).toContain('HISTORY-PKG-001')
     expect(wrapper.find('[data-test="copy-command-envelope"]').exists()).toBe(true)
@@ -337,7 +337,7 @@ describe('SandboxActionList failure visibility', () => {
 
     await wrapper.find('.sandbox-action-list__completed-session-header').trigger('click')
 
-    expect(wrapper.text()).toContain('指令参数')
+    expect(wrapper.text()).toContain('设备实际 Payload')
     expect(wrapper.text()).toContain('CMD_COMPLETED_REEL_001')
     expect(wrapper.text()).toContain('COMPLETED-PKG-001')
     expect(wrapper.find('[data-test="copy-command-envelope"]').exists()).toBe(true)
