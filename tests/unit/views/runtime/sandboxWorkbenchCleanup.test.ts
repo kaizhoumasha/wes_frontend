@@ -541,6 +541,31 @@ describe('SandboxWorkbenchPage cleanup', () => {
     expect(mocks.runtimeApiMethods.sandboxCompleted).not.toHaveBeenCalled()
   })
 
+  it('refreshes stale STOPPED detail when a workline runtime status SSE update arrives', async () => {
+    mocks.store.detail.summary.runtime_status = 'STOPPED'
+    mocks.store.findSummary.mockReturnValue({
+      ...mocks.store.detail.summary,
+      runtime_status: 'READY'
+    })
+    await mountPage()
+    vi.clearAllMocks()
+
+    mocks.sseStore.lastEvent = {
+      domain: 'workline_trace',
+      entity: 'workline',
+      action: 'runtime_status.updated',
+      keys: { workline_id: 45 },
+      payload: { runtime_status: 'READY' }
+    }
+    await nextTick()
+    await flushPromises()
+
+    expect(mocks.store.loadWorklines).toHaveBeenCalledTimes(1)
+    expect(mocks.store.loadDetail).toHaveBeenCalledWith(45)
+    expect(mocks.runtimeApiMethods.sandboxPending).not.toHaveBeenCalled()
+    expect(mocks.runtimeApiMethods.sandboxCompleted).not.toHaveBeenCalled()
+  })
+
   it('ignores sandbox responses that resolve after the workline route changes', async () => {
     const pending = deferred<SandboxPendingOutbox[]>()
     const completed = deferred<SandboxCompletedSession[]>()

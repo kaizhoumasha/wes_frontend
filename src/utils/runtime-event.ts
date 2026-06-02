@@ -75,6 +75,15 @@ export function classifyRuntimeRefresh(
     }
   }
 
+  if (entity === 'workline') {
+    return {
+      worklines: true,
+      detail: true,
+      activeIncident: false,
+      sandbox: false
+    }
+  }
+
   if (entity === 'session') {
     return {
       worklines: true,

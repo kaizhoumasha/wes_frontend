@@ -61,6 +61,22 @@ describe('runtime-event', () => {
     })
   })
 
+  it('classifies workline updates as detail refreshes', () => {
+    const refresh = classifyRuntimeRefresh({
+      domain: 'workline_trace',
+      entity: 'workline',
+      action: 'updated',
+      keys: { workline_id: 10 }
+    })
+
+    expect(refresh).toEqual({
+      worklines: true,
+      detail: true,
+      activeIncident: false,
+      sandbox: false
+    })
+  })
+
   it('classifies session updates as runtime detail and sandbox refreshes', () => {
     const refresh = classifyRuntimeRefresh({
       domain: 'workline_trace',
