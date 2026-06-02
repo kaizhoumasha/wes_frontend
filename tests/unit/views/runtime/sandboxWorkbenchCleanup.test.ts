@@ -447,6 +447,30 @@ describe('SandboxWorkbenchPage cleanup', () => {
     expect(mocks.runtimeApiMethods.sandboxCompleted).toHaveBeenCalledTimes(2)
   })
 
+  it('shows START rejection diagnostics from failed API response data', async () => {
+    const startSend = vi.fn().mockRejectedValue({
+      data: {
+        ack: false,
+        reason_code: 'DEVICE_NOT_IDLE',
+        diagnostic: {
+          message: '设备 ARM03 不是 IDLE'
+        }
+      }
+    })
+    mocks.runtimeApiMethods.worklineStartRequested.mockReturnValue({ send: startSend })
+    mocks.store.detail.summary.runtime_status = 'STOPPED'
+    const wrapper = await mountPage()
+
+    await wrapper.get('[data-test="sandbox-start-workline"]').trigger('click')
+    await flushPromises()
+
+    expect(mocks.success).not.toHaveBeenCalledWith('START 已提交，正在刷新工作线状态')
+    expect(mocks.error).toHaveBeenCalledWith('设备 ARM03 不是 IDLE')
+    expect(mocks.store.loadDetail).toHaveBeenCalled()
+    expect(mocks.runtimeApiMethods.sandboxPending).toHaveBeenCalledTimes(2)
+    expect(mocks.runtimeApiMethods.sandboxCompleted).toHaveBeenCalledTimes(2)
+  })
+
   it('blocks replay while STOPPED without disabling the whole action list', async () => {
     const stoppedSession = {
       session_id: 91,

@@ -517,6 +517,13 @@ function getStartRejectedMessage(result: unknown): string | null {
   return typeof reasonCode === 'string' && reasonCode.trim() ? reasonCode : 'START 准入失败'
 }
 
+function getStartRejectedMessageFromError(error: unknown): string | null {
+  if (!error || typeof error !== 'object' || !('data' in error)) {
+    return null
+  }
+  return getStartRejectedMessage(error.data)
+}
+
 // Device selection
 const selectedDeviceId = ref<number | null>(null)
 const deviceList = computed<RuntimeWorklineDeviceItem[]>(() => store.detail?.devices ?? [])
@@ -847,7 +854,7 @@ async function requestMockStart() {
     }
     queueSandboxRefresh()
   } catch (e: unknown) {
-    ElMessage.error(getErrorMessage(e, 'START 准入失败'))
+    ElMessage.error(getStartRejectedMessageFromError(e) ?? getErrorMessage(e, 'START 准入失败'))
     queueSandboxRefresh()
   } finally {
     startAdmissionChecking.value = false
