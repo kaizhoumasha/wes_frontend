@@ -126,9 +126,18 @@ async function mountPage() {
       stubs: {
         SandboxCycleStatus: true,
         SandboxActionList: {
-          props: ['items', 'completedItems'],
+          name: 'SandboxActionList',
+          props: [
+            'items',
+            'completedItems',
+            'disabled',
+            'disabledReason',
+            'replayDisabled',
+            'replayDisabledReason'
+          ],
+          emits: ['replay'],
           template:
-            '<div><span v-for="item in items" :key="item.id">{{ item.dispatch_key }}</span><span v-for="entry in completedItems" :key="entry.session.id">completed-{{ entry.session.id }}</span></div>'
+            '<div class="sandbox-action-list-stub" :data-replay-disabled="replayDisabled ? `true` : `false`">{{ replayDisabledReason }}<span v-for="item in items" :key="item.id">{{ item.dispatch_key }}</span><span v-for="entry in completedItems" :key="entry.session.id">completed-{{ entry.session.id }}</span></div>'
         },
         SandboxEventComposer: {
           props: ['disabled', 'disabledReason'],
@@ -436,6 +445,36 @@ describe('SandboxWorkbenchPage cleanup', () => {
     expect(mocks.store.loadDetail).toHaveBeenCalled()
     expect(mocks.runtimeApiMethods.sandboxPending).toHaveBeenCalledTimes(2)
     expect(mocks.runtimeApiMethods.sandboxCompleted).toHaveBeenCalledTimes(2)
+  })
+
+  it('blocks replay while STOPPED without disabling the whole action list', async () => {
+    const stoppedSession = {
+      session_id: 91,
+      session_code: 'S-91',
+      trace_id: 'trace-stopped-replay',
+      workline_id: 45,
+      status: 'MANUAL_HOLD',
+      failure_code: 'PAYLOAD_INVALID',
+      last_inbox_id: 809,
+      is_timed_out: false
+    }
+    mocks.store.detail.summary.runtime_status = 'STOPPED'
+    mocks.store.detail.active_sessions = [stoppedSession]
+    const wrapper = await mountPage()
+    const actionList = wrapper.getComponent({ name: 'SandboxActionList' })
+
+    expect(actionList.props('disabled')).toBe(false)
+    expect(actionList.props('replayDisabled')).toBe(true)
+    expect(actionList.props('replayDisabledReason')).toBe('工作线未 START，等待现场硬件 START')
+    expect(wrapper.get('.sandbox-action-list-stub').text()).toContain(
+      '工作线未 START，等待现场硬件 START'
+    )
+
+    actionList.vm.$emit('replay', stoppedSession)
+    await flushPromises()
+
+    expect(mocks.runtimeApiMethods.replayInbox).not.toHaveBeenCalled()
+    expect(mocks.warning).toHaveBeenCalledWith('工作线未 START，等待现场硬件 START')
   })
 
   it('does not clear estop if the route changes before confirmation resolves', async () => {

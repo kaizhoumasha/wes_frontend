@@ -196,6 +196,8 @@
           :loading="actionLoadingForItem"
           :disabled="safetyLocked"
           :disabled-reason="safetyBlockedReason"
+          :replay-disabled="productionEventDisabled"
+          :replay-disabled-reason="productionBlockedReason"
           :submitted-result-outbox-ids="submittedResultOutboxIds"
           :submitted-result-outbox-keys="submittedResultOutboxKeys"
           :submitted-result-reason="SUBMITTED_RESULT_REASON"
@@ -1081,6 +1083,10 @@ function handleActionResult(item: SandboxPendingOutbox) {
 async function handleReplaySessionInbox(session: RuntimeTraceListItem) {
   if (safetyLocked.value) {
     ElMessage.warning(safetyBlockedReason.value)
+    return
+  }
+  if (productionEventDisabled.value) {
+    ElMessage.warning(productionBlockedReason.value)
     return
   }
   if (!session.last_inbox_id) {

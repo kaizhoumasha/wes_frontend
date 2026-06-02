@@ -92,8 +92,8 @@
               plain
               data-test="sandbox-replay-inbox"
               :loading="replayLoading === sessionView.session.last_inbox_id"
-              :disabled="disabled"
-              :title="disabled ? disabledReason : undefined"
+              :disabled="replayDisabled"
+              :title="replayDisabled ? replayDisabledReason : undefined"
               @click="emit('replay', sessionView.session)"
             >
               重放 Event
@@ -661,6 +661,8 @@ const props = defineProps<{
   loading?: number | null
   disabled?: boolean
   disabledReason?: string
+  replayDisabled?: boolean
+  replayDisabledReason?: string
   submittedResultOutboxIds?: Set<number>
   submittedResultOutboxKeys?: Set<string>
   submittedResultReason?: string
@@ -670,6 +672,8 @@ const props = defineProps<{
 
 const disabled = computed(() => props.disabled === true)
 const disabledReason = computed(() => props.disabledReason || '当前状态禁止推进 sandbox 流程。')
+const replayDisabled = computed(() => props.replayDisabled ?? disabled.value)
+const replayDisabledReason = computed(() => props.replayDisabledReason || disabledReason.value)
 const submittedResultReason = computed(
   () => props.submittedResultReason || '该 Result 已提交，正在等待后续编排。'
 )
