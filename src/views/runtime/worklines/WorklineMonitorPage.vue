@@ -313,7 +313,7 @@ async function clearWorklineEstop() {
         }
       })
       .send()
-    ElMessage.success('已恢复接收新流程')
+    ElMessage.success('已解除冻结，等待现场硬件 START')
     await refreshDetail()
   } catch (e: unknown) {
     ElMessage.error(getErrorMessage(e, '恢复接收失败'))

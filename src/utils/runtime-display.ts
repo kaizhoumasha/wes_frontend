@@ -33,7 +33,8 @@ const WARNING_STATUSES = new Set([
   'BUSY',
   'BLOCKED_RESOURCE',
   'RETRY',
-  'DISPATCHING'
+  'DISPATCHING',
+  'STOPPED'
 ])
 
 const PRIMARY_STATUSES = new Set([
@@ -318,7 +319,7 @@ export function getWorklineRiskScore(item: RuntimeWorklineSummary): number {
 
 export function getWorklineRiskTone(item: RuntimeWorklineSummary): RuntimeTone {
   const safetyVerdict = getWorklineRuntimeVerdict(item)
-  if (safetyVerdict.safetyLocked) return safetyVerdict.tone
+  if (safetyVerdict.safetyLocked || safetyVerdict.tone === 'warning') return safetyVerdict.tone
   if (item.failed_session_count > 0 || item.offline_device_count > 0 || item.error_device_count > 0)
     return 'danger'
   if (item.waiting_session_count > 0) return 'warning'
@@ -328,7 +329,7 @@ export function getWorklineRiskTone(item: RuntimeWorklineSummary): RuntimeTone {
 
 export function getWorklineRiskLabel(item: RuntimeWorklineSummary): string {
   const safetyVerdict = getWorklineRuntimeVerdict(item)
-  if (safetyVerdict.safetyLocked) return safetyVerdict.label
+  if (safetyVerdict.safetyLocked || safetyVerdict.tone === 'warning') return safetyVerdict.label
   const tone = getWorklineRiskTone(item)
   if (tone === 'danger') return '存在阻塞'
   if (tone === 'warning') return '有等待堆积'

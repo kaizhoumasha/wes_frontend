@@ -149,6 +149,7 @@ export { SandboxExternalCallbackRequestMetadata } from './SandboxExternalCallbac
 export { SandboxResultRequestMetadata } from './SandboxResultRequest'
 export { SandboxResultTemplateMetadata } from './SandboxResultTemplate'
 export { SandboxTemplatesResponseMetadata } from './SandboxTemplatesResponse'
+export { SandboxWorklineStartRequestMetadata } from './SandboxWorklineStartRequest'
 export { SessionInfoMetadata } from './SessionInfo'
 export { SimulateWorkLineEstopRequestMetadata } from './SimulateWorkLineEstopRequest'
 export { SortFieldMetadata } from './SortField'

@@ -68,4 +68,24 @@ describe('DecisionStrip', () => {
     expect(wrapper.text()).toContain('未完成 2')
     expect(wrapper.text()).toContain('进入 Hold')
   })
+
+  it('renders STOPPED as the primary warning verdict before normal idle state', () => {
+    const wrapper = mount(DecisionStrip, {
+      props: {
+        summary: createSummary({ runtime_status: 'STOPPED' }),
+        detail: { ...createDetail(), devices: [], summary: createSummary({ runtime_status: 'STOPPED' }) }
+      },
+      global: {
+        stubs: {
+          RouterLink: { props: ['to'], template: '<a><slot /></a>' },
+          ElTooltip: { template: '<span><slot /><slot name="content" /></span>' }
+        }
+      }
+    })
+
+    expect(wrapper.classes()).toContain('decision-strip--warning')
+    expect(wrapper.text()).toContain('等待现场硬件 START')
+    expect(wrapper.text()).toContain('现场硬件 START 后才接收生产事件')
+    expect(wrapper.text()).not.toContain('稳定')
+  })
 })

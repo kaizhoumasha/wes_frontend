@@ -412,6 +412,12 @@ export interface RuntimeWorklineSummary {
   run_mode: string
   runtime_status?: string | null
   active_safety_incident_id?: number | null
+  start_admission_status?: string | null
+  start_admission_message?: string | null
+  start_admission_failed_device_code?: string | null
+  start_admission_checked_at?: string | null
+  last_start_request_id?: string | null
+  last_start_trace_id?: string | null
   stopped_at?: string | null
   stopped_reason?: string | null
   resumed_at?: string | null

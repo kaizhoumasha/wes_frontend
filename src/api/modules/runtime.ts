@@ -5,9 +5,11 @@ import {
   type ReconciliationsSessionsResolveResult,
   type RuntimeHoldNgReasonsQuery,
   type NgReturnItemsQuery,
-  type ResolveInput
+  type ResolveInput,
+  type SandboxWorklinesStartInput
 } from '@/api/modules/workline'
 import { apiClient } from '@/api/client'
+import type { components } from '@/api/generated/openapi-types'
 import type {
   RuntimeClearEstopRequest,
   RuntimeDeviceDetailResponse,
@@ -58,6 +60,15 @@ export interface RuntimeHoldListQuery {
   active_only?: boolean
   limit?: number
 }
+
+export interface WorklineStartRequestedPayload {
+  deviceCode: string
+  traceId?: string
+}
+
+type CallbackEventAcceptedData = components['schemas']['CallbackEventAcceptedResponse']
+type CallbackEventRejectedData = components['schemas']['CallbackRejectedResponse']
+type WorklineStartRequestedResult = CallbackEventAcceptedData | CallbackEventRejectedData | null
 
 function adaptRuntimeMethod<T>(method: { send: () => Promise<unknown> }): RuntimeApiMethod<T> {
   return {
@@ -233,6 +244,17 @@ export const runtimeApiMethods = {
         `/api/v1/workline/operations/sandbox/worklines/${worklineId}/simulate-estop`,
         payload
       )
+    )
+  },
+
+  worklineStartRequested(worklineId: number, payload: WorklineStartRequestedPayload) {
+    const traceId = payload.traceId ?? `sandbox:start:${worklineId}:${Date.now().toString(36)}`
+    const body: SandboxWorklinesStartInput = {
+      device_code: payload.deviceCode,
+      trace_id: traceId
+    }
+    return adaptRuntimeMethod<WorklineStartRequestedResult>(
+      worklineApiMethods.sandboxWorklinesStart({ workline_id: worklineId }, body)
     )
   },
 

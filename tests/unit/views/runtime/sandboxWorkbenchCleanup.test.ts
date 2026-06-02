@@ -14,7 +14,13 @@ const mocks = vi.hoisted(() => {
     line_name: '右侧SMT粗分线',
     line_code: 'SMT-RIGHT',
     runtime_status: 'READY' as string,
-    active_safety_incident_id: null as number | null
+    active_safety_incident_id: null as number | null,
+    run_mode: 'SIMULATION',
+    start_admission_status: null as string | null,
+    start_admission_message: null as string | null,
+    start_admission_failed_device_code: null as string | null,
+    last_start_request_id: null as string | null,
+    last_start_trace_id: null as string | null
   }
   const store = {
     detail: {
@@ -59,6 +65,7 @@ const mocks = vi.hoisted(() => {
       sandboxCleanup: vi.fn(() => ({ send: sandboxCleanupSend })),
       clearEstop: vi.fn(() => ({ send: clearEstopSend })),
       sandboxSimulateEstop: vi.fn(() => ({ send: sandboxSimulateEstopSend })),
+      worklineStartRequested: vi.fn(() => ({ send: vi.fn() })),
       sandboxAck: vi.fn(() => ({ send: vi.fn() })),
       replayInbox: vi.fn(() => ({ send: vi.fn() }))
     }
@@ -119,11 +126,24 @@ async function mountPage() {
       stubs: {
         SandboxCycleStatus: true,
         SandboxActionList: {
-          props: ['items', 'completedItems'],
+          name: 'SandboxActionList',
+          props: [
+            'items',
+            'completedItems',
+            'disabled',
+            'disabledReason',
+            'replayDisabled',
+            'replayDisabledReason'
+          ],
+          emits: ['replay'],
           template:
-            '<div><span v-for="item in items" :key="item.id">{{ item.dispatch_key }}</span><span v-for="entry in completedItems" :key="entry.session.id">completed-{{ entry.session.id }}</span></div>'
+            '<div class="sandbox-action-list-stub" :data-replay-disabled="replayDisabled ? `true` : `false`">{{ replayDisabledReason }}<span v-for="item in items" :key="item.id">{{ item.dispatch_key }}</span><span v-for="entry in completedItems" :key="entry.session.id">completed-{{ entry.session.id }}</span></div>'
         },
-        SandboxEventComposer: true,
+        SandboxEventComposer: {
+          props: ['disabled', 'disabledReason'],
+          template:
+            '<div class="sandbox-event-composer-stub" :data-disabled="disabled ? `true` : `false`">{{ disabledReason }}</div>'
+        },
         SandboxResultComposer: true,
         WorklineRouteMap: true,
         StandardDrawer: {
@@ -196,6 +216,12 @@ describe('SandboxWorkbenchPage cleanup', () => {
     if (mocks.sseStore) mocks.sseStore.lastEvent = null
     mocks.store.detail.summary.runtime_status = 'READY'
     mocks.store.detail.summary.active_safety_incident_id = null
+    mocks.store.detail.summary.start_admission_status = null
+    mocks.store.detail.summary.start_admission_message = null
+    mocks.store.detail.summary.start_admission_failed_device_code = null
+    mocks.store.detail.summary.last_start_request_id = null
+    mocks.store.detail.summary.last_start_trace_id = null
+    mocks.store.findSummary.mockReturnValue(mocks.store.detail.summary)
     mocks.hasPermission.mockReturnValue(true)
     mocks.confirm.mockResolvedValue('confirm')
     mocks.sandboxPendingSend.mockResolvedValue([])
@@ -306,10 +332,173 @@ describe('SandboxWorkbenchPage cleanup', () => {
         operator_confirmed: true
       }
     })
-    expect(mocks.success).toHaveBeenCalledWith('已恢复接收新流程')
+    expect(mocks.success).toHaveBeenCalledWith('已解除冻结，等待现场硬件 START')
     expect(mocks.store.loadWorklines).toHaveBeenCalledTimes(2)
     expect(mocks.runtimeApiMethods.sandboxPending).toHaveBeenCalledTimes(2)
     expect(mocks.runtimeApiMethods.sandboxCompleted).toHaveBeenCalledTimes(2)
+  })
+
+  it('disables production events while STOPPED and keeps a visible START verdict before topology', async () => {
+    mocks.store.detail.summary.runtime_status = 'STOPPED'
+    mocks.store.detail.summary.start_admission_status = 'FAILED'
+    mocks.store.detail.summary.start_admission_message = 'START 准入失败: 设备 RS-CONV-01 非空闲'
+    mocks.store.detail.summary.start_admission_failed_device_code = 'RS-CONV-01'
+    mocks.store.detail.summary.last_start_request_id = 'req-start-1'
+    mocks.store.detail.summary.last_start_trace_id = 'trace-start-1'
+    const wrapper = await mountPage()
+
+    const verdict = wrapper.get('[data-test="sandbox-start-verdict"]')
+    expect(verdict.text()).toContain('等待现场硬件 START')
+    expect(verdict.text()).toContain('START 准入失败: 设备 RS-CONV-01 非空闲')
+    expect(verdict.text()).toContain('RS-CONV-01')
+    expect(verdict.text()).toContain('req-start-1')
+    expect(verdict.text()).toContain('trace-start-1')
+    expect(wrapper.get('.sandbox-event-composer-stub').attributes('data-disabled')).toBe('true')
+    expect(wrapper.get('.sandbox-event-composer-stub').text()).toContain('工作线未 START')
+    expect(wrapper.get('.sandbox-event-composer-stub').text()).toContain('等待现场硬件 START')
+    expect(wrapper.find('[data-test="sandbox-start-verdict"]').element.compareDocumentPosition(
+      wrapper.findComponent({ name: 'WorklineRouteMap' }).element
+    ) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('uses detail summary for START diagnostics when directory summary is stale', async () => {
+    const staleDirectorySummary = {
+      ...mocks.store.detail.summary,
+      runtime_status: 'STOPPED',
+      start_admission_status: 'NOT_REQUESTED',
+      start_admission_message: null,
+      start_admission_failed_device_code: null,
+      last_start_request_id: null,
+      last_start_trace_id: null
+    }
+    mocks.store.findSummary.mockReturnValue(staleDirectorySummary)
+    mocks.store.detail.summary = {
+      ...mocks.store.detail.summary,
+      runtime_status: 'STOPPED',
+      start_admission_status: 'FAILED',
+      start_admission_message: 'START 准入失败: 设备 RS-CONV-02 非 AUTO',
+      start_admission_failed_device_code: 'RS-CONV-02',
+      last_start_request_id: 'req-detail-start',
+      last_start_trace_id: 'trace-detail-start'
+    }
+
+    const wrapper = await mountPage()
+
+    const verdict = wrapper.get('[data-test="sandbox-start-verdict"]')
+    expect(verdict.text()).toContain('START 准入失败: 设备 RS-CONV-02 非 AUTO')
+    expect(verdict.text()).toContain('RS-CONV-02')
+    expect(verdict.text()).toContain('req-detail-start')
+    expect(verdict.text()).toContain('trace-detail-start')
+
+    wrapper.unmount()
+    mocks.store.detail.summary = {
+      ...mocks.store.detail.summary,
+      start_admission_status: 'CHECKING',
+      start_admission_message: null,
+      start_admission_failed_device_code: null,
+      last_start_request_id: null,
+      last_start_trace_id: null
+    }
+    const checkingWrapper = await mountPage()
+
+    expect(checkingWrapper.get('[data-test="sandbox-start-verdict"]').text()).toContain(
+      '正在检查设备 AUTO/IDLE'
+    )
+  })
+
+  it('shows mock START only for STOPPED simulation worklines and exposes checking state', async () => {
+    const startSend = vi.fn(() => new Promise(() => undefined))
+    mocks.runtimeApiMethods.worklineStartRequested.mockReturnValue({ send: startSend })
+    mocks.store.detail.summary.runtime_status = 'STOPPED'
+    const wrapper = await mountPage()
+
+    const startButton = wrapper.get('[data-test="sandbox-start-workline"]')
+    expect(startButton.text()).toContain('模拟现场 START')
+    await startButton.trigger('click')
+    await nextTick()
+
+    expect(mocks.runtimeApiMethods.worklineStartRequested).toHaveBeenCalledWith(
+      45,
+      expect.objectContaining({ deviceCode: 'ARM03' })
+    )
+    expect(startButton.attributes('data-loading')).toBe('true')
+    expect(wrapper.get('[data-test="sandbox-start-verdict"]').text()).toContain('正在检查设备 AUTO/IDLE')
+  })
+
+  it('does not show START success when callback ingress returns rejected data', async () => {
+    const startSend = vi.fn().mockResolvedValue({
+      ack: false,
+      reason_code: 'DEVICE_NOT_IDLE',
+      diagnostic: {
+        message: '设备 ARM03 不是 IDLE'
+      }
+    })
+    mocks.runtimeApiMethods.worklineStartRequested.mockReturnValue({ send: startSend })
+    mocks.store.detail.summary.runtime_status = 'STOPPED'
+    const wrapper = await mountPage()
+
+    await wrapper.get('[data-test="sandbox-start-workline"]').trigger('click')
+    await flushPromises()
+
+    expect(mocks.success).not.toHaveBeenCalledWith('START 已提交，正在刷新工作线状态')
+    expect(mocks.error).toHaveBeenCalledWith('设备 ARM03 不是 IDLE')
+    expect(mocks.store.loadDetail).toHaveBeenCalled()
+    expect(mocks.runtimeApiMethods.sandboxPending).toHaveBeenCalledTimes(2)
+    expect(mocks.runtimeApiMethods.sandboxCompleted).toHaveBeenCalledTimes(2)
+  })
+
+  it('shows START rejection diagnostics from failed API response data', async () => {
+    const startSend = vi.fn().mockRejectedValue({
+      data: {
+        ack: false,
+        reason_code: 'DEVICE_NOT_IDLE',
+        diagnostic: {
+          message: '设备 ARM03 不是 IDLE'
+        }
+      }
+    })
+    mocks.runtimeApiMethods.worklineStartRequested.mockReturnValue({ send: startSend })
+    mocks.store.detail.summary.runtime_status = 'STOPPED'
+    const wrapper = await mountPage()
+
+    await wrapper.get('[data-test="sandbox-start-workline"]').trigger('click')
+    await flushPromises()
+
+    expect(mocks.success).not.toHaveBeenCalledWith('START 已提交，正在刷新工作线状态')
+    expect(mocks.error).toHaveBeenCalledWith('设备 ARM03 不是 IDLE')
+    expect(mocks.store.loadDetail).toHaveBeenCalled()
+    expect(mocks.runtimeApiMethods.sandboxPending).toHaveBeenCalledTimes(2)
+    expect(mocks.runtimeApiMethods.sandboxCompleted).toHaveBeenCalledTimes(2)
+  })
+
+  it('blocks replay while STOPPED without disabling the whole action list', async () => {
+    const stoppedSession = {
+      session_id: 91,
+      session_code: 'S-91',
+      trace_id: 'trace-stopped-replay',
+      workline_id: 45,
+      status: 'MANUAL_HOLD',
+      failure_code: 'PAYLOAD_INVALID',
+      last_inbox_id: 809,
+      is_timed_out: false
+    }
+    mocks.store.detail.summary.runtime_status = 'STOPPED'
+    mocks.store.detail.active_sessions = [stoppedSession]
+    const wrapper = await mountPage()
+    const actionList = wrapper.getComponent({ name: 'SandboxActionList' })
+
+    expect(actionList.props('disabled')).toBe(false)
+    expect(actionList.props('replayDisabled')).toBe(true)
+    expect(actionList.props('replayDisabledReason')).toBe('工作线未 START，等待现场硬件 START')
+    expect(wrapper.get('.sandbox-action-list-stub').text()).toContain(
+      '工作线未 START，等待现场硬件 START'
+    )
+
+    actionList.vm.$emit('replay', stoppedSession)
+    await flushPromises()
+
+    expect(mocks.runtimeApiMethods.replayInbox).not.toHaveBeenCalled()
+    expect(mocks.warning).toHaveBeenCalledWith('工作线未 START，等待现场硬件 START')
   })
 
   it('does not clear estop if the route changes before confirmation resolves', async () => {
@@ -342,6 +531,31 @@ describe('SandboxWorkbenchPage cleanup', () => {
       entity: 'incident',
       action: 'estop.activated',
       keys: { workline_id: 45, incident_id: 7 }
+    }
+    await nextTick()
+    await flushPromises()
+
+    expect(mocks.store.loadWorklines).toHaveBeenCalledTimes(1)
+    expect(mocks.store.loadDetail).toHaveBeenCalledWith(45)
+    expect(mocks.runtimeApiMethods.sandboxPending).not.toHaveBeenCalled()
+    expect(mocks.runtimeApiMethods.sandboxCompleted).not.toHaveBeenCalled()
+  })
+
+  it('refreshes stale STOPPED detail when a workline runtime status SSE update arrives', async () => {
+    mocks.store.detail.summary.runtime_status = 'STOPPED'
+    mocks.store.findSummary.mockReturnValue({
+      ...mocks.store.detail.summary,
+      runtime_status: 'READY'
+    })
+    await mountPage()
+    vi.clearAllMocks()
+
+    mocks.sseStore.lastEvent = {
+      domain: 'workline_trace',
+      entity: 'workline',
+      action: 'runtime_status.updated',
+      keys: { workline_id: 45 },
+      payload: { runtime_status: 'READY' }
     }
     await nextTick()
     await flushPromises()

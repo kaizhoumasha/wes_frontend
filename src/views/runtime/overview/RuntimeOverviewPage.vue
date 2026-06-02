@@ -133,7 +133,7 @@ import type {
   RuntimeWorklineSummary
 } from '@/types/runtime'
 import { createCoalescedAsyncTask } from '@/utils/createCoalescedAsyncTask'
-import type { RuntimeTone } from '@/utils/runtime-display'
+import { getWorklineRiskTone, type RuntimeTone } from '@/utils/runtime-display'
 import { classifyToTiers, computeVerdictSummary, type PriorityItem } from '@/utils/runtime-priority'
 
 const router = useRouter()
@@ -188,13 +188,11 @@ const worklineHealthItems = computed(() => {
   let stable = 0
   let active = 0
   for (const i of worklines.value) {
-    const hasFailure =
-      i.failed_session_count > 0 || i.offline_device_count > 0 || i.error_device_count > 0
-    const hasWaiting = i.waiting_session_count > 0
+    const riskTone = getWorklineRiskTone(i)
     const isActive = i.active_session_count > 0
-    if (hasFailure) blocked++
-    else if (hasWaiting) waiting++
-    if (!hasFailure && !hasWaiting) stable++
+    if (riskTone === 'danger') blocked++
+    else if (riskTone === 'warning') waiting++
+    if (riskTone === 'success' || riskTone === 'primary') stable++
     if (isActive) active++
   }
   const total = worklines.value.length || 1

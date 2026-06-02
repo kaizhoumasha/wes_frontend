@@ -175,7 +175,11 @@ function createMountOptions() {
         RuntimeStatusBadge: true,
         RuntimeLastUpdated: true,
         RuntimeFrozenNotice: true,
-        RuntimeHealthBreakdown: true,
+        RuntimeHealthBreakdown: {
+          name: 'RuntimeHealthBreakdown',
+          props: ['title', 'items', 'total'],
+          template: '<section />'
+        },
         RuntimePriorityQueue: true,
         RuntimeSignalStrip: true,
         RuntimeSystemVerdict: true,
@@ -185,8 +189,8 @@ function createMountOptions() {
           template: '<section />'
         },
         'el-button': true,
-        'el-collapse': true,
-        'el-collapse-item': true,
+        'el-collapse': { template: '<section><slot /></section>' },
+        'el-collapse-item': { template: '<section><slot name="title" /><slot /></section>' },
         'el-input': true,
         'el-option': true,
         'el-select': true,
@@ -234,6 +238,34 @@ describe('runtime navigation', () => {
     await wrapper.findComponent({ name: 'RuntimeTraceList' }).vm.$emit('showMore')
 
     expect(mocks.router.push).toHaveBeenLastCalledWith({ name: 'RuntimeTraces' })
+  })
+
+  it('classifies STOPPED worklines as warning instead of stable in overview health', async () => {
+    mocks.worklinesSend.mockResolvedValue([
+      createWorkline({
+        runtime_status: 'STOPPED',
+        active_session_count: 0,
+        waiting_session_count: 0,
+        failed_session_count: 0,
+        error_device_count: 0,
+        offline_device_count: 0
+      })
+    ])
+    const { default: RuntimeOverviewPage } =
+      await import('@/views/runtime/overview/RuntimeOverviewPage.vue')
+    const wrapper = shallowMount(RuntimeOverviewPage, createMountOptions())
+    await flushViewUpdates()
+
+    const worklineHealth = wrapper
+      .findAllComponents({ name: 'RuntimeHealthBreakdown' })
+      .find(component => component.props('title') === '工作线结构健康')
+
+    expect(worklineHealth?.props('items')).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: '等待堆积', value: 1, tone: 'warning' }),
+        expect.objectContaining({ label: '稳定运行', value: 0, tone: 'success' })
+      ])
+    )
   })
 
   it('replaces query-driven sandbox redirects so Back does not reopen the redirect URL', async () => {

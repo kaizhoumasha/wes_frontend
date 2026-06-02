@@ -2743,6 +2743,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workline/operations/sandbox/worklines/{workline_id}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [biz:workline:update] 沙箱模拟现场硬件 START */
+        post: operations["workline_operations_sandbox_worklines_by_workline_id_start_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workline/plugins/options": {
         parameters: {
             query?: never;
@@ -3830,7 +3847,7 @@ export interface components {
              * Capacity Depth Mm
              * @description 当前格位可用总深度
              */
-            capacity_depth_mm?: number | null;
+            capacity_depth_mm?: string | null;
             /**
              * Date Code
              * @description Date Code
@@ -3880,7 +3897,7 @@ export interface components {
              * Remaining Depth Mm
              * @description 当前格位剩余深度
              */
-            remaining_depth_mm?: number | null;
+            remaining_depth_mm?: string | null;
             /**
              * Session Id
              * @description 最近 WorkLine Session
@@ -3914,7 +3931,7 @@ export interface components {
              * @description 当前格位已使用深度
              * @default 0
              */
-            used_depth_mm: number;
+            used_depth_mm: string;
         };
         /**
          * BinCellOccupancyStatus
@@ -4372,6 +4389,13 @@ export interface components {
              */
             device_code: string;
             /**
+             * Diagnostic
+             * @description START 准入诊断信息
+             */
+            diagnostic?: {
+                [key: string]: unknown;
+            } | null;
+            /**
              * Event Id
              * @description 供应商事件 ID
              */
@@ -4386,7 +4410,7 @@ export interface components {
              * @description 入口处理状态
              * @enum {string}
              */
-            status: "submitted" | "duplicate";
+            status: "submitted" | "duplicate" | "accepted";
             /**
              * Trace Id
              * @description Trace ID
@@ -4536,6 +4560,18 @@ export interface components {
              * @constant
              */
             ack: false;
+            /**
+             * Diagnostic
+             * @description 拒收诊断信息
+             */
+            diagnostic?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Reason Code
+             * @description 拒收原因代码
+             */
+            reason_code?: string | null;
         };
         /**
          * CallbackResultAcceptedResponse
@@ -7035,6 +7071,8 @@ export interface components {
         ResponseSchemaModel_TraceBlockingPointResponse_: ApiResponse<components["schemas"]["TraceBlockingPointResponse"]>;
         /** ResponseSchemaModel[TraceDetailResponse] */
         ResponseSchemaModel_TraceDetailResponse_: ApiResponse<components["schemas"]["TraceDetailResponse"]>;
+        /** ResponseSchemaModel[Union[CallbackEventAcceptedResponse, CallbackRejectedResponse]] */
+        ResponseSchemaModel_Union_CallbackEventAcceptedResponse__CallbackRejectedResponse__: ApiResponse<unknown>;
         /** ResponseSchemaModel[UserPermissionsResponse] */
         ResponseSchemaModel_UserPermissionsResponse_: ApiResponse<components["schemas"]["UserPermissionsResponse"]>;
         /** ResponseSchemaModel[UserResponse] */
@@ -7617,6 +7655,10 @@ export interface components {
             is_active: boolean;
             /** Last Activity At */
             last_activity_at?: string | null;
+            /** Last Start Request Id */
+            last_start_request_id?: string | null;
+            /** Last Start Trace Id */
+            last_start_trace_id?: string | null;
             /** Line Code */
             line_code: string;
             /** Line Name */
@@ -7644,9 +7686,17 @@ export interface components {
             run_mode: string;
             /**
              * Runtime Status
-             * @default READY
+             * @default STOPPED
              */
             runtime_status: string;
+            /** Start Admission Checked At */
+            start_admission_checked_at?: string | null;
+            /** Start Admission Failed Device Code */
+            start_admission_failed_device_code?: string | null;
+            /** Start Admission Message */
+            start_admission_message?: string | null;
+            /** Start Admission Status */
+            start_admission_status?: string | null;
             /** Stopped At */
             stopped_at?: string | null;
             /** Stopped Reason */
@@ -7940,6 +7990,22 @@ export interface components {
              * @description Result 模板列表
              */
             result_templates?: components["schemas"]["SandboxResultTemplate"][];
+        };
+        /**
+         * SandboxWorklineStartRequest
+         * @description 沙箱 WorkLine START 请求。
+         */
+        SandboxWorklineStartRequest: {
+            /**
+             * Device Code
+             * @description 触发 START 的设备编码
+             */
+            device_code: string;
+            /**
+             * Trace Id
+             * @description Trace ID（可选，自动生成）
+             */
+            trace_id?: string | null;
         };
         /**
          * SessionInfo
@@ -14197,6 +14263,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_operations_sandbox_worklines_by_workline_id_start_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workline_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SandboxWorklineStartRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_Union_CallbackEventAcceptedResponse__CallbackRejectedResponse__"];
                 };
             };
             /** @description Validation Error */
