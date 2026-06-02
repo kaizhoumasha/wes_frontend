@@ -5,7 +5,8 @@ import {
   type ReconciliationsSessionsResolveResult,
   type RuntimeHoldNgReasonsQuery,
   type NgReturnItemsQuery,
-  type ResolveInput
+  type ResolveInput,
+  type SandboxWorklinesStartInput
 } from '@/api/modules/workline'
 import { apiClient } from '@/api/client'
 import type { components } from '@/api/generated/openapi-types'
@@ -68,18 +69,6 @@ export interface WorklineStartRequestedPayload {
 type CallbackEventAcceptedData = components['schemas']['CallbackEventAcceptedResponse']
 type CallbackEventRejectedData = components['schemas']['CallbackRejectedResponse']
 type WorklineStartRequestedResult = CallbackEventAcceptedData | CallbackEventRejectedData | null
-
-interface WorklineStartRequestedIngressBody {
-  device_code: string
-  event_type: 'WORKLINE_START_REQUESTED'
-  timestamp: number
-  trace_id: string
-  event_id: string
-  data: {
-    source: 'sandbox'
-    workline_id: number
-  }
-}
 
 function adaptRuntimeMethod<T>(method: { send: () => Promise<unknown> }): RuntimeApiMethod<T> {
   return {
@@ -260,20 +249,12 @@ export const runtimeApiMethods = {
 
   worklineStartRequested(worklineId: number, payload: WorklineStartRequestedPayload) {
     const traceId = payload.traceId ?? `sandbox:start:${worklineId}:${Date.now().toString(36)}`
-    const body: WorklineStartRequestedIngressBody = {
+    const body: SandboxWorklinesStartInput = {
       device_code: payload.deviceCode,
-      event_type: 'WORKLINE_START_REQUESTED',
-      timestamp: Date.now(),
-      trace_id: traceId,
-      event_id: traceId,
-      data: {
-        source: 'sandbox',
-        workline_id: worklineId
-      }
+      trace_id: traceId
     }
-
     return adaptRuntimeMethod<WorklineStartRequestedResult>(
-      apiClient.Post('/api/v1/callback/event', body)
+      worklineApiMethods.sandboxWorklinesStart({ workline_id: worklineId }, body)
     )
   },
 

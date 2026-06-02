@@ -2743,6 +2743,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workline/operations/sandbox/worklines/{workline_id}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [biz:workline:update] 沙箱模拟现场硬件 START */
+        post: operations["workline_operations_sandbox_worklines_by_workline_id_start_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workline/plugins/options": {
         parameters: {
             query?: never;
@@ -7054,6 +7071,8 @@ export interface components {
         ResponseSchemaModel_TraceBlockingPointResponse_: ApiResponse<components["schemas"]["TraceBlockingPointResponse"]>;
         /** ResponseSchemaModel[TraceDetailResponse] */
         ResponseSchemaModel_TraceDetailResponse_: ApiResponse<components["schemas"]["TraceDetailResponse"]>;
+        /** ResponseSchemaModel[Union[CallbackEventAcceptedResponse, CallbackRejectedResponse]] */
+        ResponseSchemaModel_Union_CallbackEventAcceptedResponse__CallbackRejectedResponse__: ApiResponse<unknown>;
         /** ResponseSchemaModel[UserPermissionsResponse] */
         ResponseSchemaModel_UserPermissionsResponse_: ApiResponse<components["schemas"]["UserPermissionsResponse"]>;
         /** ResponseSchemaModel[UserResponse] */
@@ -7971,6 +7990,22 @@ export interface components {
              * @description Result 模板列表
              */
             result_templates?: components["schemas"]["SandboxResultTemplate"][];
+        };
+        /**
+         * SandboxWorklineStartRequest
+         * @description 沙箱 WorkLine START 请求。
+         */
+        SandboxWorklineStartRequest: {
+            /**
+             * Device Code
+             * @description 触发 START 的设备编码
+             */
+            device_code: string;
+            /**
+             * Trace Id
+             * @description Trace ID（可选，自动生成）
+             */
+            trace_id?: string | null;
         };
         /**
          * SessionInfo
@@ -14228,6 +14263,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_operations_sandbox_worklines_by_workline_id_start_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workline_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SandboxWorklineStartRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_Union_CallbackEventAcceptedResponse__CallbackRejectedResponse__"];
                 };
             };
             /** @description Validation Error */

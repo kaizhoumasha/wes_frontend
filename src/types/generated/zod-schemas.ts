@@ -3721,6 +3721,20 @@ export const SandboxTemplatesResponseSchema = z.object({
 
 
 /**
+ * 沙箱 WorkLine START 请求。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const SandboxWorklineStartRequestSchema = z.object({
+  /** Device Code */
+  device_code: z.string().min(1).max(100),
+  /** Trace Id */
+  trace_id: z.union([z.string().max(200), z.null()]).optional(),
+})
+
+
+/**
  * 会话信息 Schema
 
 描述一个活跃的用户会话

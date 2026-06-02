@@ -23,6 +23,7 @@ const mocks = vi.hoisted(() => {
       command: method,
       dispatch: method,
       sandboxPending: method,
+      sandboxWorklinesStart: method,
       replayInboxes: method,
       manualSessions: method
     },
@@ -134,7 +135,7 @@ describe('runtimeApiMethods', () => {
     )
   })
 
-  it('submits workline START request through callback event ingress body', async () => {
+  it('submits workline START request through user-auth sandbox operation endpoint', async () => {
     const { runtimeApiMethods } = await import('@/api/modules/runtime')
 
     await runtimeApiMethods
@@ -144,7 +145,52 @@ describe('runtimeApiMethods', () => {
       })
       .send()
 
-    expect(mocks.apiClientPost).toHaveBeenCalledWith('/api/v1/callback/event', {
+    expect(mocks.methods.sandboxWorklinesStart).toHaveBeenCalledWith(
+      { workline_id: 45 },
+      {
+        device_code: 'ARM03',
+        trace_id: 'sandbox:start:trace-1'
+      }
+    )
+  })
+
+  it('generates a sandbox START trace id when omitted', async () => {
+    const { runtimeApiMethods } = await import('@/api/modules/runtime')
+
+    await runtimeApiMethods
+      .worklineStartRequested(45, {
+        deviceCode: 'ARM03'
+      })
+      .send()
+
+    expect(mocks.methods.sandboxWorklinesStart).toHaveBeenCalledWith(
+      { workline_id: 45 },
+      {
+        device_code: 'ARM03',
+        trace_id: expect.stringMatching(/^sandbox:start:45:/)
+      }
+    )
+    expect(mocks.apiClientPost).not.toHaveBeenCalledWith('/api/v1/callback/event', expect.anything())
+  })
+
+  it('does not call API-app protected callback event ingress for sandbox START', async () => {
+    const { runtimeApiMethods } = await import('@/api/modules/runtime')
+
+    await runtimeApiMethods
+      .worklineStartRequested(45, {
+        deviceCode: 'ARM03',
+        traceId: 'sandbox:start:trace-1'
+      })
+      .send()
+
+    expect(mocks.methods.sandboxWorklinesStart).toHaveBeenCalledWith(
+      { workline_id: 45 },
+      {
+        device_code: 'ARM03',
+        trace_id: 'sandbox:start:trace-1'
+      }
+    )
+    expect(mocks.apiClientPost).not.toHaveBeenCalledWith('/api/v1/callback/event', {
       device_code: 'ARM03',
       event_type: 'WORKLINE_START_REQUESTED',
       timestamp: expect.any(Number),
