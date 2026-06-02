@@ -65,6 +65,10 @@ export interface WorklineStartRequestedPayload {
   traceId?: string
 }
 
+type CallbackEventAcceptedData = components['schemas']['CallbackEventAcceptedResponse']
+type CallbackEventRejectedData = components['schemas']['CallbackRejectedResponse']
+type WorklineStartRequestedResult = CallbackEventAcceptedData | CallbackEventRejectedData | null
+
 interface WorklineStartRequestedIngressBody {
   device_code: string
   event_type: 'WORKLINE_START_REQUESTED'
@@ -268,7 +272,7 @@ export const runtimeApiMethods = {
       }
     }
 
-    return adaptRuntimeMethod<components['schemas']['CallbackEventIngressResponse']>(
+    return adaptRuntimeMethod<WorklineStartRequestedResult>(
       apiClient.Post('/api/v1/callback/event', body)
     )
   },

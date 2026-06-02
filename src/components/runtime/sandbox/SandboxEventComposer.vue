@@ -160,7 +160,7 @@ import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import type { SandboxEventTemplate } from '@/types/runtime'
-import { RESERVED_SAFETY_EVENT_TYPES, SAFETY_LOCKED_REASON } from '@/constants/runtime-safety'
+import { RESERVED_RUNTIME_EVENT_TYPES, SAFETY_LOCKED_REASON } from '@/constants/runtime-safety'
 import { getErrorMessage } from '@/utils/string'
 
 const props = defineProps<{
@@ -253,7 +253,7 @@ async function loadTemplates() {
       .sandboxTemplates(props.worklineId, props.deviceId ?? undefined)
       .send()
     eventTemplates.value = (templates.event_templates ?? []).filter(
-      tpl => !RESERVED_SAFETY_EVENT_TYPES.has(tpl.event_type)
+      tpl => !RESERVED_RUNTIME_EVENT_TYPES.has(tpl.event_type)
     )
   } catch {
     eventTemplates.value = []
@@ -288,7 +288,7 @@ async function handleSubmit() {
   const valid = await formRef.value?.validate().catch(() => false)
   if (!valid) return
 
-  if (RESERVED_SAFETY_EVENT_TYPES.has(form.value.event_type)) {
+  if (RESERVED_RUNTIME_EVENT_TYPES.has(form.value.event_type)) {
     ElMessage.warning('该事件是平台保留事件，不能通过普通 sandbox Event 发送。')
     return
   }

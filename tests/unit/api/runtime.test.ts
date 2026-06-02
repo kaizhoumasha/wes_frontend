@@ -134,6 +134,29 @@ describe('runtimeApiMethods', () => {
     )
   })
 
+  it('submits workline START request through callback event ingress body', async () => {
+    const { runtimeApiMethods } = await import('@/api/modules/runtime')
+
+    await runtimeApiMethods
+      .worklineStartRequested(45, {
+        deviceCode: 'ARM03',
+        traceId: 'sandbox:start:trace-1'
+      })
+      .send()
+
+    expect(mocks.apiClientPost).toHaveBeenCalledWith('/api/v1/callback/event', {
+      device_code: 'ARM03',
+      event_type: 'WORKLINE_START_REQUESTED',
+      timestamp: expect.any(Number),
+      trace_id: 'sandbox:start:trace-1',
+      event_id: 'sandbox:start:trace-1',
+      data: {
+        source: 'sandbox',
+        workline_id: 45
+      }
+    })
+  })
+
   it('submits debug data cleanup through non-production operations endpoints', async () => {
     const { runtimeApiMethods } = await import('@/api/modules/runtime')
 

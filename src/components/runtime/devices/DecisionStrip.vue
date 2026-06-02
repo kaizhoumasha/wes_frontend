@@ -78,6 +78,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
+import { STOPPED_RUNTIME_STATUS } from '@/constants/runtime-safety'
 import type { RuntimeWorklineDetailResponse, RuntimeWorklineSummary } from '@/types/runtime'
 import { pickDominantValue, resolveRuntimeProgressLabel } from '@/utils/runtime-display'
 import { getWorklineRuntimeVerdict } from '@/utils/runtime-safety'
@@ -90,8 +91,7 @@ const props = defineProps<{
 
 const runtimeVerdict = computed(() => getWorklineRuntimeVerdict(props.summary))
 const stoppedWaitingForStart = computed(
-  () =>
-    runtimeVerdict.value.tone === 'warning' && runtimeVerdict.value.label === '等待现场硬件 START'
+  () => props.summary.runtime_status === STOPPED_RUNTIME_STATUS
 )
 
 const tone = computed<RuntimeTone>(() => {
