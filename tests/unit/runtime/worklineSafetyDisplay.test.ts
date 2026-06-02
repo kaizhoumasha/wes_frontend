@@ -70,10 +70,15 @@ describe('workline safety display', () => {
   it('shows STOPPED as waiting for START without safety clear semantics', () => {
     const summary = createSummary({
       runtime_status: 'STOPPED',
-      active_session_count: 0
+      active_session_count: 0,
+      failed_session_count: 2,
+      offline_device_count: 1,
+      error_device_count: 1,
+      waiting_session_count: 3
     })
     const verdict = getWorklineRuntimeVerdict(summary, null)
 
+    expect(getWorklineRiskScore(summary)).toBe(34)
     expect(getWorklineRiskTone(summary)).toBe('warning')
     expect(getWorklineRiskLabel(summary)).toBe('等待现场硬件 START')
     expect(verdict.tone).toBe('warning')

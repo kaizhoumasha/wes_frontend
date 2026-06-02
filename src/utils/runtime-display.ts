@@ -307,7 +307,7 @@ export function getTraceRiskScore(item: RuntimeTraceListItem): number {
 
 export function getWorklineRiskScore(item: RuntimeWorklineSummary): number {
   const safetyVerdict = getWorklineRuntimeVerdict(item)
-  if (safetyVerdict.safetyLocked || safetyVerdict.tone === 'warning') return safetyVerdict.priority
+  if (safetyVerdict.safetyLocked) return safetyVerdict.priority
   return (
     item.failed_session_count * 7 +
     item.offline_device_count * 6 +
