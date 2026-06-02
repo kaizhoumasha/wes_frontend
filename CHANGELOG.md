@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1.0] - 2026-06-02
+
+### Added
+
+- 沙箱工作台支持在 STOPPED 仿真工作线上模拟现场 START，并通过用户鉴权的工作线操作接口提交准入请求。
+- 工作线列表、总览、决策条和沙箱工作台展示 START 准入状态、失败设备、Request 和 Trace 诊断，帮助现场直接判断为什么还不能接收生产 Event。
+- 新增 STOPPED/START 合同回归测试，覆盖风险排序、运行态文案、保留事件过滤、START 拒收诊断、Replay 禁用和 SSE 状态刷新。
+
+### Changed
+
+- STOPPED 工作线在前端统一显示为“等待现场硬件 START”，并在进入 READY 前禁止发送生产 Event 和重放 Event。
+- Runtime OpenAPI 类型、字段元数据和 Zod schema 同步到后端 START 准入合同。
+
+### Fixed
+
+- 修复 STOPPED 工作线可能被总览归类为稳定、在排序中丢失 blocker 权重或继续暴露生产 Event 操作的问题。
+- 修复硬件 START 后沙箱工作台可能继续读取陈旧 STOPPED detail，导致生产 Event 按钮保持禁用的问题。
+- 修复 START 准入拒收时设备非 AUTO/IDLE 等诊断信息没有展示给操作员的问题。
+
 ## [0.4.0.0] - 2026-05-23
 
 ### Added
