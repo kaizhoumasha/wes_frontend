@@ -392,11 +392,11 @@ export const BinCellOccupancyResponseSchema = z.object({
   /** Reel Count */
   reel_count: z.number().min(0).optional().default(0),
   /** Used Depth Mm */
-  used_depth_mm: z.number().min(0).optional().default(0),
+  used_depth_mm: z.string().regex(new RegExp("^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$")).optional().default("0"),
   /** Capacity Depth Mm */
-  capacity_depth_mm: z.union([z.number().min(0), z.null()]).optional(),
+  capacity_depth_mm: z.union([z.string().regex(new RegExp("^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$")), z.null()]).optional(),
   /** Remaining Depth Mm */
-  remaining_depth_mm: z.union([z.number().min(0), z.null()]).optional(),
+  remaining_depth_mm: z.union([z.string().regex(new RegExp("^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$")), z.null()]).optional(),
   /** 格位聚合占用状态 */
   occupancy_status: z.lazy(() => BinCellOccupancyStatusSchema).optional().default("UNKNOWN"),
   /** 来源系统 */
@@ -668,7 +668,7 @@ export const BinTypeResponseSchema = z.object({
  */
 export const CallbackEventAcceptedResponseSchema = z.object({
   /** Status */
-  status: z.enum(["submitted", "duplicate"]),
+  status: z.enum(["submitted", "duplicate", "accepted"]),
   /** Device Code */
   device_code: z.string(),
   /** Request Id */
@@ -679,6 +679,8 @@ export const CallbackEventAcceptedResponseSchema = z.object({
   event_id: z.union([z.string(), z.null()]).optional(),
   /** Causation Id */
   causation_id: z.union([z.string(), z.null()]).optional(),
+  /** Diagnostic */
+  diagnostic: z.union([z.record(z.any()), z.null()]).optional(),
 })
 
 
@@ -813,6 +815,10 @@ export const CallbackLogTraceResponseSchema = z.object({
 export const CallbackRejectedResponseSchema = z.object({
   /** Ack */
   ack: z.boolean().optional().default(false),
+  /** Reason Code */
+  reason_code: z.union([z.string(), z.null()]).optional(),
+  /** Diagnostic */
+  diagnostic: z.union([z.record(z.any()), z.null()]).optional(),
 })
 
 
@@ -3514,7 +3520,7 @@ export const RuntimeWorklineSummarySchema = z.object({
   /** Run Mode */
   run_mode: z.string().optional().default("AUTO"),
   /** Runtime Status */
-  runtime_status: z.string().optional().default("READY"),
+  runtime_status: z.string().optional().default("STOPPED"),
   /** Active Safety Incident Id */
   active_safety_incident_id: z.union([z.number(), z.null()]).optional(),
   /** Stopped At */
@@ -3523,6 +3529,18 @@ export const RuntimeWorklineSummarySchema = z.object({
   stopped_reason: z.union([z.string(), z.null()]).optional(),
   /** Resumed At */
   resumed_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Start Admission Status */
+  start_admission_status: z.union([z.string(), z.null()]).optional(),
+  /** Start Admission Message */
+  start_admission_message: z.union([z.string(), z.null()]).optional(),
+  /** Start Admission Failed Device Code */
+  start_admission_failed_device_code: z.union([z.string(), z.null()]).optional(),
+  /** Start Admission Checked At */
+  start_admission_checked_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Last Start Request Id */
+  last_start_request_id: z.union([z.string(), z.null()]).optional(),
+  /** Last Start Trace Id */
+  last_start_trace_id: z.union([z.string(), z.null()]).optional(),
   /** Last Activity At */
   last_activity_at: z.union([z.string().datetime(), z.null()]).optional(),
 })

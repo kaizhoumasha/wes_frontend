@@ -3830,7 +3830,7 @@ export interface components {
              * Capacity Depth Mm
              * @description 当前格位可用总深度
              */
-            capacity_depth_mm?: number | null;
+            capacity_depth_mm?: string | null;
             /**
              * Date Code
              * @description Date Code
@@ -3880,7 +3880,7 @@ export interface components {
              * Remaining Depth Mm
              * @description 当前格位剩余深度
              */
-            remaining_depth_mm?: number | null;
+            remaining_depth_mm?: string | null;
             /**
              * Session Id
              * @description 最近 WorkLine Session
@@ -3914,7 +3914,7 @@ export interface components {
              * @description 当前格位已使用深度
              * @default 0
              */
-            used_depth_mm: number;
+            used_depth_mm: string;
         };
         /**
          * BinCellOccupancyStatus
@@ -4372,6 +4372,13 @@ export interface components {
              */
             device_code: string;
             /**
+             * Diagnostic
+             * @description START 准入诊断信息
+             */
+            diagnostic?: {
+                [key: string]: unknown;
+            } | null;
+            /**
              * Event Id
              * @description 供应商事件 ID
              */
@@ -4386,7 +4393,7 @@ export interface components {
              * @description 入口处理状态
              * @enum {string}
              */
-            status: "submitted" | "duplicate";
+            status: "submitted" | "duplicate" | "accepted";
             /**
              * Trace Id
              * @description Trace ID
@@ -4536,6 +4543,18 @@ export interface components {
              * @constant
              */
             ack: false;
+            /**
+             * Diagnostic
+             * @description 拒收诊断信息
+             */
+            diagnostic?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Reason Code
+             * @description 拒收原因代码
+             */
+            reason_code?: string | null;
         };
         /**
          * CallbackResultAcceptedResponse
@@ -7617,6 +7636,10 @@ export interface components {
             is_active: boolean;
             /** Last Activity At */
             last_activity_at?: string | null;
+            /** Last Start Request Id */
+            last_start_request_id?: string | null;
+            /** Last Start Trace Id */
+            last_start_trace_id?: string | null;
             /** Line Code */
             line_code: string;
             /** Line Name */
@@ -7644,9 +7667,17 @@ export interface components {
             run_mode: string;
             /**
              * Runtime Status
-             * @default READY
+             * @default STOPPED
              */
             runtime_status: string;
+            /** Start Admission Checked At */
+            start_admission_checked_at?: string | null;
+            /** Start Admission Failed Device Code */
+            start_admission_failed_device_code?: string | null;
+            /** Start Admission Message */
+            start_admission_message?: string | null;
+            /** Start Admission Status */
+            start_admission_status?: string | null;
             /** Stopped At */
             stopped_at?: string | null;
             /** Stopped Reason */

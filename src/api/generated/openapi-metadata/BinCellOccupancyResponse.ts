@@ -95,27 +95,24 @@ export const BinCellOccupancyResponseMetadata = {
     "used_depth_mm": {
       "title": "Used Depth Mm",
       "description": "当前格位已使用深度",
-      "type": "number",
+      "type": "string",
       "required": false,
       "nullable": false,
-      "default": 0,
-      "minimum": 0
+      "default": "0"
     },
     "capacity_depth_mm": {
       "title": "Capacity Depth Mm",
       "description": "当前格位可用总深度",
-      "type": "number",
+      "type": "string",
       "required": false,
-      "nullable": true,
-      "minimum": 0
+      "nullable": true
     },
     "remaining_depth_mm": {
       "title": "Remaining Depth Mm",
       "description": "当前格位剩余深度",
-      "type": "number",
+      "type": "string",
       "required": false,
-      "nullable": true,
-      "minimum": 0
+      "nullable": true
     },
     "occupancy_status": {
       "description": "格位聚合占用状态",

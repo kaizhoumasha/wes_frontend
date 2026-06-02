@@ -27,7 +27,8 @@ export const CallbackEventAcceptedResponseMetadata = {
       "nullable": false,
       "enum": [
         "submitted",
-        "duplicate"
+        "duplicate",
+        "accepted"
       ]
     },
     "device_code": {
@@ -62,6 +63,13 @@ export const CallbackEventAcceptedResponseMetadata = {
       "title": "Causation Id",
       "description": "因果事件 ID",
       "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "diagnostic": {
+      "title": "Diagnostic",
+      "description": "START 准入诊断信息",
+      "type": "object",
       "required": false,
       "nullable": true
     }

@@ -130,7 +130,7 @@ export const RuntimeWorklineSummaryMetadata = {
       "type": "string",
       "required": false,
       "nullable": false,
-      "default": "READY"
+      "default": "STOPPED"
     },
     "active_safety_incident_id": {
       "title": "Active Safety Incident Id",
@@ -155,6 +155,43 @@ export const RuntimeWorklineSummaryMetadata = {
       "title": "Resumed At",
       "type": "string",
       "format": "date-time",
+      "required": false,
+      "nullable": true
+    },
+    "start_admission_status": {
+      "title": "Start Admission Status",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "start_admission_message": {
+      "title": "Start Admission Message",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "start_admission_failed_device_code": {
+      "title": "Start Admission Failed Device Code",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "start_admission_checked_at": {
+      "title": "Start Admission Checked At",
+      "type": "string",
+      "format": "date-time",
+      "required": false,
+      "nullable": true
+    },
+    "last_start_request_id": {
+      "title": "Last Start Request Id",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "last_start_trace_id": {
+      "title": "Last Start Trace Id",
+      "type": "string",
       "required": false,
       "nullable": true
     },

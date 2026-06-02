@@ -23,6 +23,20 @@ export const CallbackRejectedResponseMetadata = {
       "required": false,
       "nullable": false,
       "default": false
+    },
+    "reason_code": {
+      "title": "Reason Code",
+      "description": "拒收原因代码",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "diagnostic": {
+      "title": "Diagnostic",
+      "description": "拒收诊断信息",
+      "type": "object",
+      "required": false,
+      "nullable": true
     }
   }
 } satisfies OpenApiSchemaMetadata

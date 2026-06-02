@@ -8,6 +8,7 @@ import {
   type ResolveInput
 } from '@/api/modules/workline'
 import { apiClient } from '@/api/client'
+import type { components } from '@/api/generated/openapi-types'
 import type {
   RuntimeClearEstopRequest,
   RuntimeDeviceDetailResponse,
@@ -62,6 +63,18 @@ export interface RuntimeHoldListQuery {
 export interface WorklineStartRequestedPayload {
   deviceCode: string
   traceId?: string
+}
+
+interface WorklineStartRequestedIngressBody {
+  device_code: string
+  event_type: 'WORKLINE_START_REQUESTED'
+  timestamp: number
+  trace_id: string
+  event_id: string
+  data: {
+    source: 'sandbox'
+    workline_id: number
+  }
 }
 
 function adaptRuntimeMethod<T>(method: { send: () => Promise<unknown> }): RuntimeApiMethod<T> {
@@ -243,18 +256,20 @@ export const runtimeApiMethods = {
 
   worklineStartRequested(worklineId: number, payload: WorklineStartRequestedPayload) {
     const traceId = payload.traceId ?? `sandbox:start:${worklineId}:${Date.now().toString(36)}`
-    return adaptRuntimeMethod<unknown>(
-      apiClient.Post('/api/v1/callback/event', {
-        device_code: payload.deviceCode,
-        event_type: 'WORKLINE_START_REQUESTED',
-        timestamp: Date.now(),
-        trace_id: traceId,
-        event_id: traceId,
-        data: {
-          source: 'sandbox',
-          workline_id: worklineId
-        }
-      })
+    const body: WorklineStartRequestedIngressBody = {
+      device_code: payload.deviceCode,
+      event_type: 'WORKLINE_START_REQUESTED',
+      timestamp: Date.now(),
+      trace_id: traceId,
+      event_id: traceId,
+      data: {
+        source: 'sandbox',
+        workline_id: worklineId
+      }
+    }
+
+    return adaptRuntimeMethod<components['schemas']['CallbackEventIngressResponse']>(
+      apiClient.Post('/api/v1/callback/event', body)
     )
   },
 

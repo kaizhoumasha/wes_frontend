@@ -212,6 +212,7 @@ describe('SandboxWorkbenchPage cleanup', () => {
     mocks.store.detail.summary.start_admission_failed_device_code = null
     mocks.store.detail.summary.last_start_request_id = null
     mocks.store.detail.summary.last_start_trace_id = null
+    mocks.store.findSummary.mockReturnValue(mocks.store.detail.summary)
     mocks.hasPermission.mockReturnValue(true)
     mocks.confirm.mockResolvedValue('confirm')
     mocks.sandboxPendingSend.mockResolvedValue([])
@@ -349,6 +350,51 @@ describe('SandboxWorkbenchPage cleanup', () => {
     expect(wrapper.find('[data-test="sandbox-start-verdict"]').element.compareDocumentPosition(
       wrapper.findComponent({ name: 'WorklineRouteMap' }).element
     ) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('uses detail summary for START diagnostics when directory summary is stale', async () => {
+    const staleDirectorySummary = {
+      ...mocks.store.detail.summary,
+      runtime_status: 'STOPPED',
+      start_admission_status: 'NOT_REQUESTED',
+      start_admission_message: null,
+      start_admission_failed_device_code: null,
+      last_start_request_id: null,
+      last_start_trace_id: null
+    }
+    mocks.store.findSummary.mockReturnValue(staleDirectorySummary)
+    mocks.store.detail.summary = {
+      ...mocks.store.detail.summary,
+      runtime_status: 'STOPPED',
+      start_admission_status: 'FAILED',
+      start_admission_message: 'START 准入失败: 设备 RS-CONV-02 非 AUTO',
+      start_admission_failed_device_code: 'RS-CONV-02',
+      last_start_request_id: 'req-detail-start',
+      last_start_trace_id: 'trace-detail-start'
+    }
+
+    const wrapper = await mountPage()
+
+    const verdict = wrapper.get('[data-test="sandbox-start-verdict"]')
+    expect(verdict.text()).toContain('START 准入失败: 设备 RS-CONV-02 非 AUTO')
+    expect(verdict.text()).toContain('RS-CONV-02')
+    expect(verdict.text()).toContain('req-detail-start')
+    expect(verdict.text()).toContain('trace-detail-start')
+
+    wrapper.unmount()
+    mocks.store.detail.summary = {
+      ...mocks.store.detail.summary,
+      start_admission_status: 'CHECKING',
+      start_admission_message: null,
+      start_admission_failed_device_code: null,
+      last_start_request_id: null,
+      last_start_trace_id: null
+    }
+    const checkingWrapper = await mountPage()
+
+    expect(checkingWrapper.get('[data-test="sandbox-start-verdict"]').text()).toContain(
+      '正在检查设备 AUTO/IDLE'
+    )
   })
 
   it('shows mock START only for STOPPED simulation worklines and exposes checking state', async () => {

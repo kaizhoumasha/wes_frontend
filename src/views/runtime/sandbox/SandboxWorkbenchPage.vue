@@ -436,9 +436,12 @@ const worklineCode = computed(
 
 // Safety — derived from workline summary + detail
 const clearEstopLoading = ref(false)
-const worklineSummary = computed<RuntimeWorklineSummary | null>(() =>
-  store.findSummary(worklineId.value)
-)
+const worklineSummary = computed<RuntimeWorklineSummary | null>(() => {
+  if (store.detail?.summary.id === worklineId.value) {
+    return store.detail.summary
+  }
+  return store.findSummary(worklineId.value)
+})
 const safetyVerdict = computed(() => {
   const s = worklineSummary.value
   if (!s) return { safetyLocked: false, canAttemptClear: false, blockedReason: null }
