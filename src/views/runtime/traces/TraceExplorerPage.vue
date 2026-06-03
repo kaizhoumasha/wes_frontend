@@ -516,14 +516,44 @@
         </template>
 
         <el-card
+          v-else-if="showActiveTraceBoard"
+          shadow="never"
+          class="runtime-panel trace-active-board"
+        >
+          <template #header>
+            <div class="runtime-panel__header">
+              <div>
+                <div class="runtime-panel__title">当前活动 SESSION / TRACE</div>
+                <div class="runtime-panel__subtitle">
+                  未关闭的运行、等待和人工挂起会话；点击进入单个 Trace 拓扑。
+                </div>
+              </div>
+              <RuntimeStatusBadge
+                :label="`${activeTraceItems.length} ACTIVE`"
+                tone="primary"
+                size="small"
+              />
+            </div>
+          </template>
+          <RuntimeTraceList
+            :traces="activeTraceItems"
+            :active-traces="activeTraceItems"
+            :failed-traces="[]"
+            :loading="activeTraceLoading"
+            :max-display="30"
+            @select="openTraceFromList"
+          />
+        </el-card>
+
+        <el-card
           v-else
           shadow="never"
           class="runtime-panel trace-layout__empty-state"
         >
           <RuntimeEmptyState
-            title="还没有打开任何案件"
-            description="使用上方锚点搜索直接进入案件。"
-            hint="支持 Trace ID、Request ID、Session ID、Command Code、Dispatch Key 等锚点直接跳转。"
+            title="当前没有活动 SESSION / TRACE"
+            description="没有未关闭的运行、等待或人工挂起会话。"
+            hint="可以使用上方锚点搜索历史 Trace。"
           />
         </el-card>
       </div>
@@ -545,6 +575,7 @@ import RuntimeFrozenNotice from '@/components/common/runtime/RuntimeFrozenNotice
 import RuntimeLastUpdated from '@/components/common/runtime/RuntimeLastUpdated.vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import RuntimeStickyContextBar from '@/components/common/runtime/RuntimeStickyContextBar.vue'
+import RuntimeTraceList from '@/components/runtime/overview/RuntimeTraceList.vue'
 import TraceBlockingPointCard from '@/components/runtime/trace/TraceBlockingPointCard.vue'
 import TraceNextActions from '@/components/runtime/trace/TraceNextActions.vue'
 import TraceContrastPanel from '@/components/runtime/trace/TraceContrastPanel.vue'
@@ -555,6 +586,7 @@ import { useRuntimeSSEStore } from '@/stores/runtime-sse'
 import { useRuntimeStickyContextVisibility } from '@/composables/useRuntimeStickyContextVisibility'
 import type {
   RuntimeTracePathResponse,
+  RuntimeTraceListItem,
   RuntimeWorklineDetailResponse,
   TraceBlockingPointResponse,
   TraceDetailResponse
@@ -581,12 +613,14 @@ const queryType = ref<TraceAnchorType>('trace')
 const queryValue = ref('')
 const activeTab = ref('diagnostics')
 const traceDetail = ref<TraceDetailResponse | null>(null)
+const activeTraceItems = ref<RuntimeTraceListItem[]>([])
 const blockingPoint = ref<TraceBlockingPointResponse | null>(null)
 const tracePathData = ref<RuntimeTracePathResponse | null>(null)
 const worklineDetailData = ref<RuntimeWorklineDetailResponse | null>(null)
 const detailScrollRef = ref<HTMLElement | null>(null)
 const detailHeroRef = ref<HTMLElement | null>(null)
 const showContrast = ref(false)
+const activeTraceLoading = ref(false)
 const tracePathLoading = ref(false)
 let traceRequestSeq = 0
 let pendingRouteRequestSeq: number | null = null
@@ -658,6 +692,10 @@ const traceStickyFacts = computed(() => {
     { label: '失败域 / 码', value: failureText }
   ]
 })
+
+const showActiveTraceBoard = computed(
+  () => activeTraceLoading.value || activeTraceItems.value.length > 0
+)
 
 function readRouteAnchor(): TraceAnchor | null {
   const anchorTypes: TraceAnchorType[] = [
@@ -775,6 +813,21 @@ function clearTraceSecondaryState(): void {
   worklineDetailData.value = null
   blockingPointLoading.value = false
   tracePathLoading.value = false
+}
+
+async function loadActiveTraces(): Promise<void> {
+  activeTraceLoading.value = true
+  try {
+    const response = await runtimeApiMethods
+      .queryTraces({ only_active: true, limit: 30, offset: 0 })
+      .send()
+    activeTraceItems.value = response.items
+    sseStore.markRefreshedAt()
+  } catch {
+    activeTraceItems.value = []
+  } finally {
+    activeTraceLoading.value = false
+  }
 }
 
 async function loadTraceBySession(sessionId: number, requestSeq = nextTraceRequestSeq()) {
@@ -972,6 +1025,15 @@ async function openTraceFromAction(query: RuntimeTraceQueryInput) {
   await syncRouteQuery(anchor.type, anchor.value, query)
 }
 
+async function openTraceFromList(trace: RuntimeTraceListItem) {
+  await openTraceFromAction({
+    traceId: trace.trace_id,
+    sessionId: trace.trace_id ? undefined : String(trace.session_id),
+    worklineId: trace.workline_id,
+    deviceId: trace.device_id
+  })
+}
+
 async function refreshCurrent() {
   const requestSeq = nextTraceRequestSeq()
   loading.value = true
@@ -991,6 +1053,8 @@ async function refreshCurrent() {
     const routeAnchor = readRouteAnchor()
     if (routeAnchor) {
       await loadTraceDetail(routeAnchor, requestSeq)
+    } else {
+      await loadActiveTraces()
     }
   } finally {
     if (isLatestTraceRequest(requestSeq)) {
@@ -1008,12 +1072,14 @@ async function syncTraceRouteState() {
   try {
     const routeAnchor = readRouteAnchor()
     if (routeAnchor) {
+      activeTraceItems.value = []
       applyAnchorToInputs(routeAnchor)
       await loadTraceDetail(routeAnchor, requestSeq)
     } else {
       queryValue.value = ''
       traceDetail.value = null
       clearTraceSecondaryState()
+      await loadActiveTraces()
     }
   } finally {
     if (isLatestTraceRequest(requestSeq)) {
@@ -1049,6 +1115,11 @@ watch(
   () => sseStore.lastEvent,
   async event => {
     if (!sseStore.live || !event) return
+
+    if (!traceDetail.value && !readRouteAnchor()) {
+      await loadActiveTraces()
+      return
+    }
 
     if (
       !isRelevantRuntimeEvent(event, {

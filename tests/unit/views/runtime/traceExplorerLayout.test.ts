@@ -1,6 +1,6 @@
 import { flushPromises, shallowMount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { TraceDetailResponse } from '@/types/runtime'
+import type { RuntimeTraceListItem, TraceDetailResponse } from '@/types/runtime'
 
 const mocks = vi.hoisted(() => {
   return {
@@ -16,6 +16,7 @@ const mocks = vi.hoisted(() => {
     traceBlockingPointSend: vi.fn(),
     tracePathSend: vi.fn(),
     worklineDetailSend: vi.fn(),
+    queryTracesSend: vi.fn(),
     sseStore: {
       live: true,
       state: 'connected',
@@ -43,7 +44,8 @@ vi.mock('@/api/modules/runtime', () => ({
     traceByTraceId: () => ({ send: mocks.traceByTraceIdSend }),
     traceBlockingPoint: () => ({ send: mocks.traceBlockingPointSend }),
     tracePath: () => ({ send: mocks.tracePathSend }),
-    worklineDetail: () => ({ send: mocks.worklineDetailSend })
+    worklineDetail: () => ({ send: mocks.worklineDetailSend }),
+    queryTraces: vi.fn(() => ({ send: mocks.queryTracesSend }))
   }
 }))
 
@@ -102,6 +104,30 @@ function createTraceDetail(): TraceDetailResponse {
   }
 }
 
+function createTraceListItem(overrides: Partial<RuntimeTraceListItem> = {}): RuntimeTraceListItem {
+  return {
+    session_id: 2,
+    session_code: 'S-2',
+    trace_id: 'trace-2',
+    request_id: 'req-2',
+    workline_id: 10,
+    workline_name: '工作线 10',
+    workline_code: 'WL-10',
+    device_id: 20,
+    device_name: '设备 20',
+    device_code: 'DV-20',
+    command_code: 'PICK',
+    status: 'RUNNING',
+    current_wait_type: null,
+    failure_domain: null,
+    started_at: '2026-06-03T01:00:00Z',
+    last_ingress_at: '2026-06-03T01:01:00Z',
+    deadline_at: null,
+    is_timed_out: false,
+    ...overrides
+  }
+}
+
 async function flushViewUpdates() {
   await flushPromises()
   await Promise.resolve()
@@ -128,6 +154,7 @@ async function mountPage() {
         TraceRelatedSidebar: true,
         TraceTimeline: true,
         TraceTopologySummary: true,
+        RuntimeTraceList: true,
         'el-button': true,
         'el-card': { template: '<section><slot /></section>' },
         'el-input': true,
@@ -149,6 +176,7 @@ describe('TraceExplorerPage layout', () => {
     mocks.route.query = { traceId: 'trace-1' }
     mocks.traceByTraceIdSend.mockResolvedValue(createTraceDetail())
     mocks.traceBlockingPointSend.mockRejectedValue(new Error('no blocking point'))
+    mocks.queryTracesSend.mockResolvedValue({ total: 1, items: [createTraceListItem()] })
     mocks.tracePathSend.mockResolvedValue({
       workline_id: 10,
       session_id: 1,
@@ -185,5 +213,16 @@ describe('TraceExplorerPage layout', () => {
 
     expect(wrapper.findComponent({ name: 'TraceTopologySummary' }).exists()).toBe(true)
     expect(wrapper.findComponent({ name: 'TraceRelatedSidebar' }).exists()).toBe(false)
+  })
+
+  it('shows active sessions and traces when no trace anchor is selected', async () => {
+    mocks.route.query = {}
+
+    const wrapper = await mountPage()
+    await flushViewUpdates()
+
+    expect(mocks.queryTracesSend).toHaveBeenCalled()
+    expect(wrapper.findComponent({ name: 'RuntimeTraceList' }).exists()).toBe(true)
+    expect(wrapper.findComponent({ name: 'TraceTopologySummary' }).exists()).toBe(false)
   })
 })
