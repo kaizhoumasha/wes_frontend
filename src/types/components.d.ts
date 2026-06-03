@@ -98,6 +98,7 @@ declare module 'vue' {
     MoveDialog: typeof import('./../components/common/MoveDialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    RuntimeCaseQueue: typeof import('./../components/runtime/overview/RuntimeCaseQueue.vue')['default']
     RuntimeDeviceInspector: typeof import('./../components/runtime/devices/RuntimeDeviceInspector.vue')['default']
     RuntimeEmptyState: typeof import('./../components/common/runtime/RuntimeEmptyState.vue')['default']
     RuntimeFrozenNotice: typeof import('./../components/common/runtime/RuntimeFrozenNotice.vue')['default']

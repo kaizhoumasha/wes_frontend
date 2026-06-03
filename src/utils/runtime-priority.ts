@@ -19,7 +19,7 @@ export interface PriorityItem {
 }
 
 const RUNTIME_MONITOR_ROUTE_NAME = 'RuntimeMonitor' as const
-const RUNTIME_TRACE_ROUTE_NAME = 'RuntimeTraces' as const
+const RUNTIME_CASE_ROUTE_NAME = 'RuntimeCases' as const
 
 const THRESHOLDS = {
   BACKLOG_CRITICAL: 50,
@@ -117,13 +117,13 @@ function classifyTraces(
           summary: `重复失败 (${repeatCount} 次) — ${progressLabel}`,
           context: `${trace.device_name || '未关联设备'} · ${trace.workline_name || ''}`,
           navigateTo: {
-            name: RUNTIME_TRACE_ROUTE_NAME,
+            name: RUNTIME_CASE_ROUTE_NAME,
             query: buildRuntimeWorklineQuery(
               trace.workline_id,
               undefined,
               'trace',
-              trace.trace_id ? undefined : trace.session_id,
-              trace.trace_id
+              trace.session_id,
+              undefined
             )
           },
           score: repeatCount * 5
@@ -137,13 +137,13 @@ function classifyTraces(
         summary: `${trace.session_code} — 已结束`,
         context: `${trace.workline_name || ''} · ${trace.device_name || ''}`,
         navigateTo: {
-          name: RUNTIME_TRACE_ROUTE_NAME,
+          name: RUNTIME_CASE_ROUTE_NAME,
           query: buildRuntimeWorklineQuery(
             trace.workline_id,
             undefined,
             'trace',
-            trace.trace_id ? undefined : trace.session_id,
-            trace.trace_id
+            trace.session_id,
+            undefined
           )
         },
         score: 5

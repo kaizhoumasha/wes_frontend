@@ -30,11 +30,11 @@
         查看线内设备
       </el-button>
       <el-button
-        v-if="detail.trace.trace_id"
+        v-if="detail.trace.session_id || detail.trace.trace_id"
         plain
         @click="openTraceId"
       >
-        查询当前 Trace
+        查询当前案件
       </el-button>
       <el-button
         v-if="detail.trace.command_code"
@@ -98,9 +98,10 @@ function openDevice() {
 }
 
 function openTraceId() {
-  if (!props.detail.trace.trace_id) return
+  if (!props.detail.trace.session_id && !props.detail.trace.trace_id) return
   emit('open-trace', {
-    traceId: props.detail.trace.trace_id,
+    sessionId: props.detail.trace.session_id,
+    traceId: props.detail.trace.session_id ? undefined : props.detail.trace.trace_id,
     worklineId: props.detail.trace.workline_id,
     deviceId: props.detail.trace.device_id
   })

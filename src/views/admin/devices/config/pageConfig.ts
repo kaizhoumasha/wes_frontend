@@ -87,7 +87,7 @@ function createDeviceDetailConfig(actions: DevicePageActions): CrudPageDetailCon
       },
       {
         key: 'open-trace',
-        label: '最近 TRACE',
+        label: '运行案件',
         type: 'warning',
         icon: 'ep:connection',
         showWhen: () => actions.canOpenTrace(),
@@ -170,8 +170,8 @@ export function createDevicePageConfig(actions: DevicePageActions): DevicePageCo
         },
         {
           key: 'open-trace',
-          label: '最近 TRACE',
-          tooltip: '最近 TRACE',
+          label: '运行案件',
+          tooltip: '运行案件',
           type: 'warning',
           icon: 'lucide:search',
           permission: BIZ_PERMISSIONS.workline.page,

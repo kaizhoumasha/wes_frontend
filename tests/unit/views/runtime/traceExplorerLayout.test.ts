@@ -1,6 +1,9 @@
-import { flushPromises, shallowMount } from '@vue/test-utils'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { nextTick } from 'vue'
+import { enableAutoUnmount, flushPromises, shallowMount } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RuntimeTraceListItem, TraceDetailResponse } from '@/types/runtime'
+
+enableAutoUnmount(afterEach)
 
 const mocks = vi.hoisted(() => {
   return {
@@ -13,9 +16,11 @@ const mocks = vi.hoisted(() => {
       replace: vi.fn()
     },
     traceByTraceIdSend: vi.fn(),
+    traceBySessionIdSend: vi.fn(),
     traceBlockingPointSend: vi.fn(),
     tracePathSend: vi.fn(),
     worklineDetailSend: vi.fn(),
+    queryTracesMethod: vi.fn(),
     queryTracesSend: vi.fn(),
     sseStore: {
       live: true,
@@ -30,10 +35,15 @@ const mocks = vi.hoisted(() => {
   }
 })
 
-vi.mock('vue-router', () => ({
-  useRoute: () => mocks.route,
-  useRouter: () => mocks.router
-}))
+vi.mock('vue-router', async () => {
+  const { reactive } = await vi.importActual<typeof import('vue')>('vue')
+  mocks.route = reactive(mocks.route)
+
+  return {
+    useRoute: () => mocks.route,
+    useRouter: () => mocks.router
+  }
+})
 
 vi.mock('@/stores/runtime-sse', () => ({
   useRuntimeSSEStore: () => mocks.sseStore
@@ -42,10 +52,11 @@ vi.mock('@/stores/runtime-sse', () => ({
 vi.mock('@/api/modules/runtime', () => ({
   runtimeApiMethods: {
     traceByTraceId: () => ({ send: mocks.traceByTraceIdSend }),
+    traceBySessionId: () => ({ send: mocks.traceBySessionIdSend }),
     traceBlockingPoint: () => ({ send: mocks.traceBlockingPointSend }),
     tracePath: () => ({ send: mocks.tracePathSend }),
     worklineDetail: () => ({ send: mocks.worklineDetailSend }),
-    queryTraces: vi.fn(() => ({ send: mocks.queryTracesSend }))
+    queryTraces: mocks.queryTracesMethod
   }
 }))
 
@@ -134,10 +145,10 @@ async function flushViewUpdates() {
 }
 
 async function mountPage() {
-  const { default: TraceExplorerPage } =
-    await import('@/views/runtime/traces/TraceExplorerPage.vue')
+  const { default: CaseConsolePage } =
+    await import('@/views/runtime/cases/CaseConsolePage.vue')
 
-  return shallowMount(TraceExplorerPage, {
+  return shallowMount(CaseConsolePage, {
     global: {
       directives: {
         loading: {}
@@ -154,12 +165,20 @@ async function mountPage() {
         TraceRelatedSidebar: true,
         TraceTimeline: true,
         TraceTopologySummary: true,
-        RuntimeTraceList: true,
+        RuntimeCaseQueue: true,
         'el-button': true,
-        'el-card': { template: '<section><slot /></section>' },
-        'el-input': true,
+        'el-card': { template: '<section><slot name="header" /><slot /></section>' },
+        'el-input': {
+          name: 'ElInput',
+          props: ['modelValue'],
+          template: '<input data-test="case-anchor-input" :value="modelValue" />'
+        },
         'el-option': true,
-        'el-select': true,
+        'el-select': {
+          name: 'ElSelect',
+          props: ['modelValue'],
+          template: '<select data-test="case-anchor-type" :value="modelValue"><slot /></select>'
+        },
         'el-switch': true,
         'el-tab-pane': { template: '<section><slot /></section>' },
         'el-table': true,
@@ -170,12 +189,18 @@ async function mountPage() {
   })
 }
 
-describe('TraceExplorerPage layout', () => {
+describe('CaseConsolePage layout', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.route.query = { traceId: 'trace-1' }
+    mocks.router.replace.mockImplementation(async ({ query }: { query: Record<string, unknown> }) => {
+      mocks.route.query = { ...query }
+      await nextTick()
+    })
     mocks.traceByTraceIdSend.mockResolvedValue(createTraceDetail())
+    mocks.traceBySessionIdSend.mockResolvedValue(createTraceDetail())
     mocks.traceBlockingPointSend.mockRejectedValue(new Error('no blocking point'))
+    mocks.queryTracesMethod.mockImplementation(() => ({ send: mocks.queryTracesSend }))
     mocks.queryTracesSend.mockResolvedValue({ total: 1, items: [createTraceListItem()] })
     mocks.tracePathSend.mockResolvedValue({
       workline_id: 10,
@@ -207,7 +232,90 @@ describe('TraceExplorerPage layout', () => {
     })
   })
 
-  it('keeps trace detail focused on the current trace instead of related cases', async () => {
+  it('loads a case directly by session id as the primary route anchor', async () => {
+    mocks.route.query = { sessionId: '1' }
+
+    const wrapper = await mountPage()
+    await flushViewUpdates()
+
+    expect(mocks.traceBySessionIdSend).toHaveBeenCalled()
+    expect(mocks.traceByTraceIdSend).not.toHaveBeenCalled()
+    expect(wrapper.text()).toContain('运行案件处置台')
+  })
+
+  it('normalizes trace deep links to the loaded session id', async () => {
+    const wrapper = await mountPage()
+    await flushViewUpdates()
+
+    expect(mocks.traceByTraceIdSend).toHaveBeenCalled()
+    expect(mocks.router.replace).toHaveBeenCalledWith({
+      query: {
+        sessionId: '1',
+        traceId: undefined,
+        requestId: undefined,
+        commandCode: undefined,
+        dispatchKey: undefined,
+        barcode: undefined
+      }
+    })
+    expect(mocks.tracePathSend).toHaveBeenCalled()
+    expect(mocks.worklineDetailSend).toHaveBeenCalled()
+    expect(wrapper.findComponent({ name: 'ElSelect' }).props('modelValue')).toBe('session')
+    expect(wrapper.findComponent({ name: 'ElInput' }).props('modelValue')).toBe('1')
+    expect(wrapper.text()).toContain('运行案件处置台')
+  })
+
+  it('prefers session id when a route contains both session and trace anchors', async () => {
+    mocks.route.query = { traceId: 'trace-other', sessionId: '1' }
+
+    await mountPage()
+    await flushViewUpdates()
+
+    expect(mocks.traceBySessionIdSend).toHaveBeenCalled()
+    expect(mocks.traceByTraceIdSend).not.toHaveBeenCalled()
+  })
+
+  it('prefers session id when next actions include both session and trace anchors', async () => {
+    const wrapper = await mountPage()
+    await flushViewUpdates()
+
+    await wrapper.findComponent({ name: 'TraceNextActions' }).vm.$emit('open-trace', {
+      sessionId: 1,
+      traceId: 'trace-other',
+      worklineId: 10,
+      deviceId: 20
+    })
+    await flushViewUpdates()
+
+    expect(mocks.router.replace).toHaveBeenLastCalledWith({
+      query: {
+        sessionId: '1',
+        traceId: undefined,
+        requestId: undefined,
+        commandCode: undefined,
+        dispatchKey: undefined,
+        barcode: undefined,
+        deviceId: '20',
+        worklineId: '10'
+      }
+    })
+  })
+
+  it('prefers session lookup for barcode search results that also include a trace id', async () => {
+    mocks.route.query = { barcode: 'PKG-001' }
+    mocks.queryTracesSend.mockResolvedValue({
+      total: 1,
+      items: [createTraceListItem({ session_id: 2, trace_id: 'trace-2' })]
+    })
+
+    await mountPage()
+    await flushViewUpdates()
+
+    expect(mocks.traceBySessionIdSend).toHaveBeenCalled()
+    expect(mocks.traceByTraceIdSend).not.toHaveBeenCalled()
+  })
+
+  it('keeps case detail focused on the current case instead of related cases', async () => {
     const wrapper = await mountPage()
     await flushViewUpdates()
 
@@ -215,14 +323,23 @@ describe('TraceExplorerPage layout', () => {
     expect(wrapper.findComponent({ name: 'TraceRelatedSidebar' }).exists()).toBe(false)
   })
 
-  it('shows active sessions and traces when no trace anchor is selected', async () => {
-    mocks.route.query = {}
+  it('shows active cases when no case anchor is selected', async () => {
+    mocks.route.query = { worklineId: '10', deviceId: '20' }
 
     const wrapper = await mountPage()
     await flushViewUpdates()
 
-    expect(mocks.queryTracesSend).toHaveBeenCalled()
-    expect(wrapper.findComponent({ name: 'RuntimeTraceList' }).exists()).toBe(true)
+    expect(mocks.queryTracesMethod).toHaveBeenCalledWith({
+      only_active: true,
+      limit: 30,
+      offset: 0,
+      workline_id: 10,
+      device_id: 20
+    })
+    expect(wrapper.text()).toContain('当前活动案件')
+    expect(wrapper.text()).not.toContain('当前活动 SESSION / TRACE')
+    expect(wrapper.text()).not.toContain('Trace 处置台')
+    expect(wrapper.findComponent({ name: 'RuntimeCaseQueue' }).exists()).toBe(true)
     expect(wrapper.findComponent({ name: 'TraceTopologySummary' }).exists()).toBe(false)
   })
 })

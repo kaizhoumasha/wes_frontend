@@ -7,7 +7,7 @@
       <div>
         <h1 class="runtime-page__title">运行中控台</h1>
         <p class="runtime-page__subtitle">
-          先判断哪里被阻塞，再进入 Trace、工作线或设备上下文完成处置。
+          先判断哪里被阻塞，再进入运行案件、工作线或设备上下文完成处置。
         </p>
       </div>
       <div class="runtime-page__status-bar">
@@ -96,7 +96,7 @@
       <div class="runtime-overview__column">
         <div class="runtime-overview__trace-panel">
           <div class="runtime-overview__trace-panel-header">
-            <span class="runtime-overview__trace-panel-title">Trace 处置队列</span>
+            <span class="runtime-overview__trace-panel-title">运行案件队列</span>
           </div>
           <div class="runtime-overview__trace-panel-body">
             <RuntimeTraceList
@@ -377,10 +377,10 @@ const refreshCore = createCoalescedAsyncTask(async () => {
 
 function openTrace(trace: RuntimeTraceListItem) {
   router.push({
-    name: 'RuntimeTraces',
+    name: 'RuntimeCases',
     query: {
-      traceId: trace.trace_id || undefined,
-      sessionId: trace.trace_id ? undefined : String(trace.session_id),
+      sessionId: String(trace.session_id),
+      traceId: undefined,
       worklineId: String(trace.workline_id),
       deviceId: trace.device_id ? String(trace.device_id) : undefined
     }
@@ -388,7 +388,7 @@ function openTrace(trace: RuntimeTraceListItem) {
 }
 
 function goTraceExplorer() {
-  router.push({ name: 'RuntimeTraces' })
+  router.push({ name: 'RuntimeCases' })
 }
 
 function handleNavigate(item: PriorityItem) {

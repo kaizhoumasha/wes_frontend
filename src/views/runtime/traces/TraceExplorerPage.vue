@@ -5,9 +5,9 @@
   >
     <div class="runtime-page__header">
       <div>
-        <h1 class="runtime-page__title">Trace 处置台</h1>
+        <h1 class="runtime-page__title">运行案件处置台</h1>
         <p class="runtime-page__subtitle">
-          先看阻塞点和建议动作，再沿 Timeline 与证据分组还原链路。
+          先看阻塞点和建议动作，再沿 Timeline 与证据分组还原运行案件。
         </p>
       </div>
       <div class="runtime-page__status-bar runtime-control-cluster">
@@ -47,16 +47,16 @@
           class="trace-query-bar__type"
         >
           <el-option
+            label="案件 / Session"
+            value="session"
+          />
+          <el-option
             label="Trace ID"
             value="trace"
           />
           <el-option
             label="Request ID"
             value="request"
-          />
-          <el-option
-            label="Session ID"
-            value="session"
           />
           <el-option
             label="Command Code"
@@ -75,7 +75,7 @@
           v-model="queryValue"
           class="trace-query-bar__input"
           :placeholder="
-            queryType === 'barcode' ? '输入物料条码（6 合 1 码或其他码）' : '输入 trace 锚点'
+            queryType === 'barcode' ? '输入物料条码（6 合 1 码或其他码）' : '输入案件或证据锚点'
           "
           @keyup.enter="runTraceLookup"
         />
@@ -92,7 +92,7 @@
           :disabled="!traceDetail"
           @click="showContrast = !showContrast"
         >
-          {{ showContrast ? '关闭对比' : '对比模式' }}
+          {{ showContrast ? '关闭对比' : '证据对比' }}
         </el-button>
       </div>
     </el-card>
@@ -524,9 +524,9 @@
           <template #header>
             <div class="runtime-panel__header">
               <div>
-                <div class="runtime-panel__title">当前活动 SESSION / TRACE</div>
+                <div class="runtime-panel__title">当前活动案件</div>
                 <div class="runtime-panel__subtitle">
-                  未关闭的运行、等待和人工挂起会话；点击进入单个 Trace 拓扑。
+                  未关闭的运行、等待和人工挂起会话；点击进入单个运行案件。
                 </div>
               </div>
               <RuntimeStatusBadge
@@ -536,7 +536,7 @@
               />
             </div>
           </template>
-          <RuntimeTraceList
+          <RuntimeCaseQueue
             :traces="activeTraceItems"
             :active-traces="activeTraceItems"
             :failed-traces="[]"
@@ -552,9 +552,9 @@
           class="runtime-panel trace-layout__empty-state"
         >
           <RuntimeEmptyState
-            title="当前没有活动 SESSION / TRACE"
+            title="当前没有活动案件"
             description="没有未关闭的运行、等待或人工挂起会话。"
-            hint="可以使用上方锚点搜索历史 Trace。"
+            hint="可以使用上方案件或证据锚点搜索历史运行。"
           />
         </el-card>
       </div>
@@ -576,7 +576,7 @@ import RuntimeFrozenNotice from '@/components/common/runtime/RuntimeFrozenNotice
 import RuntimeLastUpdated from '@/components/common/runtime/RuntimeLastUpdated.vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import RuntimeStickyContextBar from '@/components/common/runtime/RuntimeStickyContextBar.vue'
-import RuntimeTraceList from '@/components/runtime/overview/RuntimeTraceList.vue'
+import RuntimeCaseQueue from '@/components/runtime/overview/RuntimeCaseQueue.vue'
 import TraceBlockingPointCard from '@/components/runtime/trace/TraceBlockingPointCard.vue'
 import TraceNextActions from '@/components/runtime/trace/TraceNextActions.vue'
 import TraceContrastPanel from '@/components/runtime/trace/TraceContrastPanel.vue'
@@ -594,7 +594,11 @@ import type {
 } from '@/types/runtime'
 import { createCoalescedAsyncTask } from '@/utils/createCoalescedAsyncTask'
 import { isRelevantRuntimeEvent } from '@/utils/runtime-event'
-import { buildRuntimeTraceQuery, type RuntimeTraceQueryInput } from '@/utils/runtime-route'
+import {
+  buildRuntimeCaseQuery,
+  buildRuntimeTraceQuery,
+  type RuntimeTraceQueryInput
+} from '@/utils/runtime-route'
 import { displaySession } from '@/utils/runtime-display-identity'
 import {
   compactEnumLabel,
@@ -610,7 +614,7 @@ const sseStore = useRuntimeSSEStore()
 
 const loading = ref(false)
 const blockingPointLoading = ref(false)
-const queryType = ref<TraceAnchorType>('trace')
+const queryType = ref<TraceAnchorType>('session')
 const queryValue = ref('')
 const activeTab = ref('diagnostics')
 const traceDetail = ref<TraceDetailResponse | null>(null)
@@ -625,6 +629,7 @@ const activeTraceLoading = ref(false)
 const tracePathLoading = ref(false)
 let traceRequestSeq = 0
 let pendingRouteRequestSeq: number | null = null
+let suppressNextRouteSync = false
 const showStickyContext = useRuntimeStickyContextVisibility({
   heroRef: detailHeroRef,
   scrollRootRef: detailScrollRef,
@@ -700,9 +705,9 @@ const showActiveTraceBoard = computed(
 
 function readRouteAnchor(): TraceAnchor | null {
   const anchorTypes: TraceAnchorType[] = [
+    'session',
     'trace',
     'request',
-    'session',
     'command',
     'dispatch',
     'barcode'
@@ -747,15 +752,15 @@ function getLookupAnchor(): TraceAnchor | null {
 }
 
 function resolveTraceAnchorFromQuery(query: RuntimeTraceQueryInput): TraceAnchor | null {
-  if (query.traceId) {
-    return { type: 'trace', value: String(query.traceId) }
-  }
-
   if (query.sessionId !== null && query.sessionId !== undefined && query.sessionId !== '') {
     const value = String(query.sessionId)
     if (Number.isFinite(Number(value))) {
       return { type: 'session', value }
     }
+  }
+
+  if (query.traceId) {
+    return { type: 'trace', value: String(query.traceId) }
   }
 
   if (query.requestId) {
@@ -777,6 +782,16 @@ function resolveTraceAnchorFromQuery(query: RuntimeTraceQueryInput): TraceAnchor
   return null
 }
 
+function readFirstRouteQueryValue(value: unknown): string | undefined {
+  if (Array.isArray(value)) {
+    return readFirstRouteQueryValue(value[0])
+  }
+  if (value === null || value === undefined || value === '') {
+    return undefined
+  }
+  return String(value)
+}
+
 async function syncRouteQuery(
   type: TraceAnchorType,
   value: string,
@@ -791,10 +806,15 @@ async function syncRouteQuery(
   await router.replace({
     query: {
       ...nextQuery,
-      ...buildRuntimeTraceQuery({
-        ...query,
-        [TRACE_QUERY_KEYS[type]]: value
-      } as RuntimeTraceQueryInput)
+      ...(type === 'session'
+        ? buildRuntimeCaseQuery({
+            ...query,
+            [TRACE_QUERY_KEYS[type]]: value
+          } as RuntimeTraceQueryInput)
+        : buildRuntimeTraceQuery({
+            ...query,
+            [TRACE_QUERY_KEYS[type]]: value
+          } as RuntimeTraceQueryInput))
     }
   })
 }
@@ -819,8 +839,16 @@ function clearTraceSecondaryState(): void {
 async function loadActiveTraces(): Promise<void> {
   activeTraceLoading.value = true
   try {
+    const worklineId = readPositiveInt(route.query.worklineId)
+    const deviceId = readPositiveInt(route.query.deviceId)
     const response = await runtimeApiMethods
-      .queryTraces({ only_active: true, limit: 30, offset: 0 })
+      .queryTraces({
+        only_active: true,
+        limit: 30,
+        offset: 0,
+        workline_id: worklineId ?? undefined,
+        device_id: deviceId ?? undefined
+      })
       .send()
     activeTraceItems.value = response.items
     sseStore.markRefreshedAt()
@@ -877,10 +905,10 @@ async function loadTraceByBarcode(barcode: string, requestSeq = nextTraceRequest
     return
   }
   const item = result.items[0]
-  if (item.trace_id) {
-    await loadTraceByTraceId(item.trace_id, requestSeq)
-  } else {
+  if (item.session_id) {
     await loadTraceBySession(item.session_id, requestSeq)
+  } else if (item.trace_id) {
+    await loadTraceByTraceId(item.trace_id, requestSeq)
   }
 }
 
@@ -926,11 +954,41 @@ async function setTraceDetail(detail: TraceDetailResponse, requestSeq: number): 
   traceDetail.value = nextDetail
   const traceId = nextDetail.trace.trace_id ?? nextDetail.session?.trace_id ?? null
   const worklineId = nextDetail.session?.workline_id ?? nextDetail.trace.workline_id ?? null
+  await normalizeRouteToSession(nextDetail)
   await Promise.all([
     loadBlockingPoint(traceId, requestSeq),
     loadTracePath(traceId, requestSeq),
     loadWorklineDetail(worklineId, requestSeq)
   ])
+}
+
+async function normalizeRouteToSession(detail: TraceDetailResponse): Promise<void> {
+  const sessionId = detail.trace.session_id ?? detail.session?.id ?? null
+  if (!sessionId || route.query.sessionId === String(sessionId)) {
+    return
+  }
+
+  const nextQuery = { ...route.query }
+  for (const queryKey of Object.values(TRACE_QUERY_KEYS)) {
+    delete nextQuery[queryKey]
+  }
+
+  suppressNextRouteSync = true
+  try {
+    await router.replace({
+      query: {
+        ...nextQuery,
+        ...buildRuntimeCaseQuery({
+          sessionId,
+          worklineId: readFirstRouteQueryValue(route.query.worklineId),
+          deviceId: readFirstRouteQueryValue(route.query.deviceId)
+        })
+      }
+    })
+    applyAnchorToInputs({ type: 'session', value: String(sessionId) })
+  } finally {
+    suppressNextRouteSync = false
+  }
 }
 
 async function loadBlockingPoint(traceId: string | null, requestSeq: number): Promise<void> {
@@ -1028,8 +1086,8 @@ async function openTraceFromAction(query: RuntimeTraceQueryInput) {
 
 async function openTraceFromList(trace: RuntimeTraceListItem) {
   await openTraceFromAction({
-    traceId: trace.trace_id,
-    sessionId: trace.trace_id ? undefined : String(trace.session_id),
+    sessionId: String(trace.session_id),
+    traceId: undefined,
     worklineId: trace.workline_id,
     deviceId: trace.device_id
   })
@@ -1040,14 +1098,14 @@ async function refreshCurrent() {
   loading.value = true
   try {
     const activeSessionId = traceDetail.value?.trace.session_id
-    const activeTraceId = selectedTraceId.value
-    if (activeTraceId) {
-      await loadTraceByTraceId(activeTraceId, requestSeq)
+    if (activeSessionId) {
+      await loadTraceBySession(activeSessionId, requestSeq)
       return
     }
 
-    if (activeSessionId) {
-      await loadTraceBySession(activeSessionId, requestSeq)
+    const activeTraceId = selectedTraceId.value
+    if (activeTraceId) {
+      await loadTraceByTraceId(activeTraceId, requestSeq)
       return
     }
 
@@ -1073,6 +1131,15 @@ async function syncTraceRouteState() {
   try {
     const routeAnchor = readRouteAnchor()
     if (routeAnchor) {
+      if (
+        routeAnchor.type === 'session' &&
+        traceDetail.value &&
+        (traceDetail.value.trace.session_id === Number(routeAnchor.value) ||
+          traceDetail.value.session?.id === Number(routeAnchor.value))
+      ) {
+        applyAnchorToInputs(routeAnchor)
+        return
+      }
       activeTraceItems.value = []
       applyAnchorToInputs(routeAnchor)
       await loadTraceDetail(routeAnchor, requestSeq)
@@ -1107,6 +1174,9 @@ watch(
     route.query.deviceId
   ],
   () => {
+    if (suppressNextRouteSync) {
+      return
+    }
     pendingRouteRequestSeq = nextTraceRequestSeq()
     void syncTraceRouteStateCoalesced()
   }

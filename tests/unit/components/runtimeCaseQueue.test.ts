@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
-import RuntimeTraceList from '@/components/runtime/overview/RuntimeTraceList.vue'
+import RuntimeCaseQueue from '@/components/runtime/overview/RuntimeCaseQueue.vue'
 import type { RuntimeTraceListItem } from '@/types/runtime'
 
 vi.mock('@/utils/runtime-display', async importOriginal => {
@@ -37,9 +37,9 @@ function createTrace(overrides: Partial<RuntimeTraceListItem> = {}): RuntimeTrac
   }
 }
 
-describe('RuntimeTraceList', () => {
-  it('prefers barcode and business key before technical trace identifiers', () => {
-    const wrapper = mount(RuntimeTraceList, {
+describe('RuntimeCaseQueue', () => {
+  it('prefers barcode, session code, and business key before technical trace identifiers', () => {
+    const wrapper = mount(RuntimeCaseQueue, {
       props: {
         traces: [
           createTrace({
@@ -54,13 +54,21 @@ describe('RuntimeTraceList', () => {
             business_key: 'HHPN-002',
             trace_id: 'trace-002',
             session_code: 'S-002'
+          }),
+          createTrace({
+            session_id: 503,
+            barcode: null,
+            business_key: 'HHPN-003',
+            trace_id: 'trace-003',
+            session_code: null
           })
         ],
         loading: false
       }
     })
 
-    const identifiers = wrapper.findAll('.runtime-trace-list__barcode').map(item => item.text())
-    expect(identifiers).toEqual(['PKG-001', 'HHPN-002'])
+    const identifiers = wrapper.findAll('.runtime-case-queue__barcode').map(item => item.text())
+    expect(identifiers).toEqual(['PKG-001', 'S-002', 'HHPN-003'])
+    expect(wrapper.text()).not.toContain('trace-001')
   })
 })

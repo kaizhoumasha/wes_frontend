@@ -233,10 +233,10 @@ function syncSelectedDeviceFromRoute() {
 
 function openTrace(session: RuntimeTraceListItem) {
   router.push({
-    name: 'RuntimeTraces',
+    name: 'RuntimeCases',
     query: {
       sessionId: String(session.session_id),
-      traceId: session.trace_id ?? undefined,
+      traceId: undefined,
       worklineId: String(session.workline_id),
       deviceId: session.device_id ? String(session.device_id) : undefined
     }

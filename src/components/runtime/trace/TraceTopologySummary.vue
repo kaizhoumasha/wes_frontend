@@ -133,7 +133,7 @@ import {
   buildRuntimeTraceTopology,
   type RuntimeTraceTopologyNodeState
 } from '@/utils/runtime-trace-topology'
-import { displaySession, displayTrace } from '@/utils/runtime-display-identity'
+import { displayCase, displayTrace } from '@/utils/runtime-display-identity'
 
 const props = withDefaults(
   defineProps<{
@@ -162,13 +162,12 @@ const model = computed(() =>
 )
 
 const heroTitle = computed(() => {
-  return (
-    props.detail.session?.barcode ||
-    displaySession({
-      session_code: props.detail.session?.session_code,
-      session_id: props.detail.trace.session_id
-    })
-  )
+  return displayCase({
+    barcode: props.detail.session?.barcode,
+    session_code: props.detail.session?.session_code,
+    business_key: props.detail.session?.business_key,
+    session_id: props.detail.trace.session_id
+  })
 })
 
 const anchorText = computed(() =>

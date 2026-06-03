@@ -210,7 +210,7 @@ describe('runtime navigation', () => {
     mocks.devicesSend.mockResolvedValue([createDevice()])
   })
 
-  it('routes overview trace rows to the trace explorer', async () => {
+  it('routes overview case rows to the case console with session as the primary anchor', async () => {
     const { default: RuntimeOverviewPage } =
       await import('@/views/runtime/overview/RuntimeOverviewPage.vue')
     const wrapper = shallowMount(RuntimeOverviewPage, createMountOptions())
@@ -219,17 +219,17 @@ describe('runtime navigation', () => {
     await wrapper.findComponent({ name: 'RuntimeTraceList' }).vm.$emit('select', createTrace())
 
     expect(mocks.router.push).toHaveBeenLastCalledWith({
-      name: 'RuntimeTraces',
+      name: 'RuntimeCases',
       query: {
-        traceId: 'trace-301',
-        sessionId: undefined,
+        sessionId: '301',
+        traceId: undefined,
         worklineId: '101',
         deviceId: '201'
       }
     })
   })
 
-  it('routes overview trace show-more actions to the trace explorer', async () => {
+  it('routes overview case show-more actions to the case console', async () => {
     const { default: RuntimeOverviewPage } =
       await import('@/views/runtime/overview/RuntimeOverviewPage.vue')
     const wrapper = shallowMount(RuntimeOverviewPage, createMountOptions())
@@ -237,7 +237,7 @@ describe('runtime navigation', () => {
 
     await wrapper.findComponent({ name: 'RuntimeTraceList' }).vm.$emit('showMore')
 
-    expect(mocks.router.push).toHaveBeenLastCalledWith({ name: 'RuntimeTraces' })
+    expect(mocks.router.push).toHaveBeenLastCalledWith({ name: 'RuntimeCases' })
   })
 
   it('classifies STOPPED worklines as warning instead of stable in overview health', async () => {
@@ -315,7 +315,7 @@ describe('runtime navigation', () => {
     })
   })
 
-  it('routes device drawer session selections to the trace explorer', async () => {
+  it('routes device drawer session selections to the case console', async () => {
     const { default: DeviceRuntimePage } =
       await import('@/views/runtime/devices/DeviceRuntimePage.vue')
     const wrapper = shallowMount(DeviceRuntimePage, createMountOptions())
@@ -327,10 +327,10 @@ describe('runtime navigation', () => {
       .vm.$emit('selectSession', createTrace())
 
     expect(mocks.router.push).toHaveBeenLastCalledWith({
-      name: 'RuntimeTraces',
+      name: 'RuntimeCases',
       query: {
         sessionId: '301',
-        traceId: 'trace-301',
+        traceId: undefined,
         worklineId: '101',
         deviceId: '201'
       }
