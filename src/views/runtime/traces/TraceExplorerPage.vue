@@ -138,6 +138,7 @@
               </div>
               <TraceBlockingPointCard
                 :blocking-point="blockingPoint"
+                :detail="traceDetail"
                 :loading="blockingPointLoading"
               />
               <TraceNextActions

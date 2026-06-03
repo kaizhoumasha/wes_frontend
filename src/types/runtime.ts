@@ -243,6 +243,7 @@ export interface TraceSessionItem {
   waiting_since?: string | null
   deadline_at?: string | null
   awaiting_command_id?: number | null
+  required_operator_action?: string | null
   failure_domain?: string | null
   failure_code?: string | null
   failure_message?: string | null

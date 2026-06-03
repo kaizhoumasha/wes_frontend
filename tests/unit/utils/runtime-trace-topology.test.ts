@@ -426,4 +426,256 @@ describe('buildRuntimeTraceTopology', () => {
     expect(model.exceptionText).toContain('DEVICE / COMMAND_TIMEOUT')
     expect(model.operatorAction).toBe('检查输出机械臂并重试')
   })
+
+  it('prefers manual hold material failure over fallback unknown blocking point', () => {
+    const model = buildRuntimeTraceTopology({
+      detail: detail({
+        summary: {
+          callback_logs: 4,
+          inboxes: 4,
+          commands: 2,
+          outboxes: 3,
+          timelines: 8,
+          diagnostics: 22,
+          session_status: 'MANUAL_HOLD',
+          latest_timeline_action: 'MANUAL_HOLD',
+          latest_timeline_status: 'PENDING',
+          latest_timeline_message: 'SMT 可用货架快照必须包含 A/B/C/D 4 个料箱'
+        },
+        session: {
+          id: 11,
+          session_code: 'WL-20260603-001',
+          workline_id: 22,
+          plugin_key: 'rough_sorter',
+          run_mode: 'MOCK',
+          status: 'MANUAL_HOLD',
+          trace_id: 'rough-sorter-curl-final-1780458849',
+          failure_domain: 'MATERIAL',
+          failure_code: 'ACTIVE_RACK_SNAPSHOT_INVALID',
+          failure_message: 'SMT 可用货架快照必须包含 A/B/C/D 4 个料箱',
+          ingress_count: 2,
+          context_json: {
+            phase: 'WAITING_RACK'
+          }
+        },
+        timelines: [
+          timeline({
+            id: 1,
+            seq_no: 1,
+            action_type: 'COMMAND_SENT',
+            actor_code: 'RS-INPUT-ARM-01',
+            related_command_id: 101
+          }),
+          timeline({
+            id: 2,
+            seq_no: 2,
+            action_type: 'COMMAND_ACKED',
+            actor_code: 'RS-INPUT-ARM-01',
+            status: 'SUCCESS',
+            related_command_id: 101
+          }),
+          timeline({
+            id: 3,
+            seq_no: 3,
+            action_type: 'COMMAND_SENT',
+            actor_code: 'RS-CONVEYOR-01',
+            related_command_id: 102
+          }),
+          timeline({
+            id: 4,
+            seq_no: 4,
+            action_type: 'COMMAND_ACKED',
+            actor_code: 'RS-CONVEYOR-01',
+            status: 'SUCCESS',
+            related_command_id: 102
+          }),
+          timeline({
+            id: 5,
+            seq_no: 5,
+            stage: 'WAITING',
+            action_type: 'WAIT_STARTED',
+            actor_type: 'EXTERNAL_SYSTEM',
+            actor_code: 'WMS_RCS',
+            to_status: 'WAITING_EXTERNAL',
+            status: 'PENDING',
+            payload_json: {
+              wait_type: 'RACK_OPERATION'
+            }
+          }),
+          timeline({
+            id: 6,
+            seq_no: 6,
+            stage: 'MANUAL',
+            action_type: 'MANUAL_HOLD',
+            actor_type: 'ORCHESTRATOR',
+            actor_code: null,
+            from_status: 'WAITING_EXTERNAL',
+            to_status: 'MANUAL_HOLD',
+            status: 'PENDING',
+            failure_domain: 'MATERIAL',
+            message: 'SMT 可用货架快照必须包含 A/B/C/D 4 个料箱',
+            payload_json: {
+              reason_code: 'ACTIVE_RACK_SNAPSHOT_INVALID',
+              suggested_action: '人工检查粗分机当前物料与依赖状态'
+            }
+          })
+        ]
+      }),
+      blockingPoint: {
+        trace_id: 'rough-sorter-curl-final-1780458849',
+        blocking_point: 'none',
+        owner: 'platform',
+        recoverability: 'manual_intervention_required',
+        operator_action:
+          '发生未知系统错误。记录料盘条码和当前时间，联系技术支持，并提供页面显示的诊断码。',
+        diagnostic_card: {
+          title: 'UNKNOWN',
+          summary: '当前 trace 未发现明确阻塞点',
+          error_code: 'UNKNOWN',
+          error_domain: 'SYSTEM',
+          severity: 'error',
+          recoverability: 'manual_intervention_required',
+          problem_class: 'software',
+          user_message: '系统出现未分类异常，请联系技术支持。',
+          operator_action:
+            '发生未知系统错误。记录料盘条码和当前时间，联系技术支持，并提供页面显示的诊断码。',
+          next_steps: [],
+          context: { extra: {} }
+        },
+        evidence: {},
+        next_steps: []
+      }
+    })
+
+    expect(model.verdict).toBe('danger')
+    expect(model.exceptionText).toBe(
+      'MATERIAL / ACTIVE_RACK_SNAPSHOT_INVALID：SMT 可用货架快照必须包含 A/B/C/D 4 个料箱'
+    )
+    expect(model.exceptionText).not.toContain('UNKNOWN')
+    expect(model.operatorAction).toBe('人工检查粗分机当前物料与依赖状态')
+  })
+
+  it('keeps a real blocking point even when the diagnostic card is unknown', () => {
+    const model = buildRuntimeTraceTopology({
+      detail: detail({
+        summary: {
+          callback_logs: 0,
+          inboxes: 0,
+          commands: 0,
+          outboxes: 0,
+          timelines: 1,
+          diagnostics: 1,
+          session_status: 'RUNNING',
+          latest_timeline_action: 'WAIT_STARTED',
+          latest_timeline_status: 'PENDING'
+        },
+        session: {
+          id: 11,
+          session_code: 'WL-20260603-001',
+          workline_id: 22,
+          plugin_key: 'rough_sorter',
+          run_mode: 'MOCK',
+          status: 'RUNNING',
+          ingress_count: 1,
+          context_json: {}
+        },
+        timelines: [
+          timeline({
+            id: 1,
+            seq_no: 1,
+            action_type: 'WAIT_STARTED',
+            actor_code: 'RS-OUTPUT-ARM-01',
+            status: 'PENDING'
+          })
+        ]
+      }),
+      blockingPoint: {
+        trace_id: 'trace-ok',
+        blocking_point: 'COMMAND_TIMEOUT',
+        owner: 'device',
+        recoverability: 'manual',
+        operator_action: '检查设备连接后重试',
+        diagnostic_card: {
+          title: 'UNKNOWN',
+          summary: '后端暂未分类，但阻塞点已定位为命令超时',
+          error_code: 'UNKNOWN',
+          error_domain: 'SYSTEM',
+          severity: 'high',
+          recoverability: 'manual',
+          problem_class: 'unknown',
+          user_message: '后端暂未分类，但阻塞点已定位为命令超时',
+          operator_action: '检查设备连接后重试',
+          next_steps: [],
+          context: { extra: {} }
+        },
+        evidence: {},
+        next_steps: []
+      }
+    })
+
+    expect(model.exceptionText).toContain('SYSTEM / COMMAND_TIMEOUT')
+    expect(model.exceptionText).toContain('后端暂未分类，但阻塞点已定位为命令超时')
+    expect(model.operatorAction).toBe('检查设备连接后重试')
+  })
+
+  it('keeps fallback blocking point action when no trace-specific action exists', () => {
+    const model = buildRuntimeTraceTopology({
+      detail: detail({
+        summary: {
+          callback_logs: 0,
+          inboxes: 0,
+          commands: 0,
+          outboxes: 0,
+          timelines: 1,
+          diagnostics: 1,
+          session_status: 'RUNNING',
+          latest_timeline_action: 'WAIT_STARTED',
+          latest_timeline_status: 'PENDING'
+        },
+        session: {
+          id: 11,
+          session_code: 'WL-20260603-001',
+          workline_id: 22,
+          plugin_key: 'rough_sorter',
+          run_mode: 'MOCK',
+          status: 'RUNNING',
+          ingress_count: 1,
+          context_json: {}
+        },
+        timelines: [
+          timeline({
+            id: 1,
+            seq_no: 1,
+            action_type: 'WAIT_STARTED',
+            actor_code: 'RS-CONVEYOR-01',
+            status: 'PENDING'
+          })
+        ]
+      }),
+      blockingPoint: {
+        trace_id: 'trace-ok',
+        blocking_point: 'none',
+        owner: 'platform',
+        recoverability: 'manual_intervention_required',
+        operator_action: '记录当前时间并联系技术支持',
+        diagnostic_card: {
+          title: 'UNKNOWN',
+          summary: '当前 trace 未发现明确阻塞点',
+          error_code: 'UNKNOWN',
+          error_domain: 'SYSTEM',
+          severity: 'error',
+          recoverability: 'manual_intervention_required',
+          problem_class: 'software',
+          user_message: '系统出现未分类异常，请联系技术支持。',
+          operator_action: '记录当前时间并联系技术支持',
+          next_steps: [],
+          context: { extra: {} }
+        },
+        evidence: {},
+        next_steps: []
+      }
+    })
+
+    expect(model.operatorAction).toBe('记录当前时间并联系技术支持')
+  })
 })

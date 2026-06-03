@@ -1,7 +1,12 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
+import TraceBlockingPointCard from '@/components/runtime/trace/TraceBlockingPointCard.vue'
 import TraceTopologySummary from '@/components/runtime/trace/TraceTopologySummary.vue'
-import type { RuntimeWorklineDetailResponse, TraceDetailResponse } from '@/types/runtime'
+import type {
+  RuntimeWorklineDetailResponse,
+  TraceBlockingPointResponse,
+  TraceDetailResponse
+} from '@/types/runtime'
 
 function createDetail(): TraceDetailResponse {
   return {
@@ -141,5 +146,168 @@ describe('TraceTopologySummary', () => {
     expect(text).toContain('异常发生在哪里')
     expect(text).toContain('完整工作线拓扑')
     expect(text).toContain('流程已完成')
+  })
+})
+
+describe('TraceBlockingPointCard', () => {
+  it('shows trace material failure instead of fallback unknown diagnostic card', () => {
+    const detail = createDetail()
+    detail.summary = {
+      ...detail.summary,
+      session_status: 'MANUAL_HOLD',
+      latest_timeline_action: 'MANUAL_HOLD',
+      latest_timeline_status: 'PENDING',
+      latest_timeline_message: 'SMT 可用货架快照必须包含 A/B/C/D 4 个料箱'
+    }
+    detail.session = {
+      ...detail.session!,
+      status: 'MANUAL_HOLD',
+      failure_domain: 'MATERIAL',
+      failure_code: 'ACTIVE_RACK_SNAPSHOT_INVALID',
+      failure_message: 'SMT 可用货架快照必须包含 A/B/C/D 4 个料箱'
+    }
+    detail.timelines.push({
+      id: 4,
+      session_id: 1001,
+      workline_id: 8,
+      trace_id: 'rough-sorter-curl-final-1780458849',
+      seq_no: 4,
+      occurred_at: '2026-06-03T01:03:00Z',
+      stage: 'MANUAL',
+      action_type: 'MANUAL_HOLD',
+      actor_type: 'ORCHESTRATOR',
+      actor_code: null,
+      status: 'PENDING',
+      failure_domain: 'MATERIAL',
+      message: 'SMT 可用货架快照必须包含 A/B/C/D 4 个料箱',
+      payload_json: {
+        reason_code: 'ACTIVE_RACK_SNAPSHOT_INVALID',
+        suggested_action: '人工检查粗分机当前物料与依赖状态'
+      }
+    })
+
+    const blockingPoint: TraceBlockingPointResponse = {
+      trace_id: 'rough-sorter-curl-final-1780458849',
+      blocking_point: 'none',
+      owner: 'platform',
+      recoverability: 'manual_intervention_required',
+      operator_action:
+        '发生未知系统错误。记录料盘条码和当前时间，联系技术支持，并提供页面显示的诊断码。',
+      diagnostic_card: {
+        title: 'UNKNOWN',
+        summary: '当前 trace 未发现明确阻塞点',
+        error_code: 'UNKNOWN',
+        error_domain: 'SYSTEM',
+        severity: 'error',
+        recoverability: 'manual_intervention_required',
+        problem_class: 'software',
+        user_message: '系统出现未分类异常，请联系技术支持。',
+        operator_action:
+          '发生未知系统错误。记录料盘条码和当前时间，联系技术支持，并提供页面显示的诊断码。',
+        next_steps: [],
+        context: { extra: {} }
+      },
+      evidence: {},
+      next_steps: []
+    }
+
+    const wrapper = mount(TraceBlockingPointCard, {
+      props: {
+        detail,
+        blockingPoint
+      },
+      global: {
+        stubs: {
+          ElCard: { template: '<section><slot name="header" /><slot /></section>' },
+          RuntimeStatusBadge: { template: '<span />' }
+        }
+      }
+    })
+
+    const text = wrapper.text()
+    expect(text).toContain('MATERIAL / ACTIVE_RACK_SNAPSHOT_INVALID')
+    expect(text).toContain('SMT 可用货架快照必须包含 A/B/C/D 4 个料箱')
+    expect(text).toContain('人工检查粗分机当前物料与依赖状态')
+    expect(text).toContain('物料问题（现场人员处理）')
+    expect(text).not.toContain('系统出现未分类异常，请联系技术支持。')
+  })
+
+  it('uses timeline-only failure when session failure fields are empty', () => {
+    const detail = createDetail()
+    detail.summary = {
+      ...detail.summary,
+      session_status: 'MANUAL_HOLD',
+      latest_timeline_action: 'MANUAL_HOLD',
+      latest_timeline_status: 'PENDING',
+      latest_timeline_message: 'SMT 可用货架快照必须包含 A/B/C/D 4 个料箱'
+    }
+    detail.session = {
+      ...detail.session!,
+      status: 'MANUAL_HOLD'
+    }
+    detail.timelines.push({
+      id: 4,
+      session_id: 1001,
+      workline_id: 8,
+      trace_id: 'rough-sorter-curl-final-1780458849',
+      seq_no: 4,
+      occurred_at: '2026-06-03T01:03:00Z',
+      stage: 'MANUAL',
+      action_type: 'MANUAL_HOLD',
+      actor_type: 'ORCHESTRATOR',
+      actor_code: null,
+      status: 'PENDING',
+      failure_domain: 'MATERIAL',
+      message: 'SMT 可用货架快照必须包含 A/B/C/D 4 个料箱',
+      payload_json: {
+        reason_code: 'ACTIVE_RACK_SNAPSHOT_INVALID',
+        suggested_action: '人工检查粗分机当前物料与依赖状态'
+      }
+    })
+
+    const blockingPoint: TraceBlockingPointResponse = {
+      trace_id: 'rough-sorter-curl-final-1780458849',
+      blocking_point: 'none',
+      owner: 'platform',
+      recoverability: 'manual_intervention_required',
+      operator_action:
+        '发生未知系统错误。记录料盘条码和当前时间，联系技术支持，并提供页面显示的诊断码。',
+      diagnostic_card: {
+        title: 'UNKNOWN',
+        summary: '当前 trace 未发现明确阻塞点',
+        error_code: 'UNKNOWN',
+        error_domain: 'SYSTEM',
+        severity: 'error',
+        recoverability: 'manual_intervention_required',
+        problem_class: 'software',
+        user_message: '系统出现未分类异常，请联系技术支持。',
+        operator_action:
+          '发生未知系统错误。记录料盘条码和当前时间，联系技术支持，并提供页面显示的诊断码。',
+        next_steps: [],
+        context: { extra: {} }
+      },
+      evidence: {},
+      next_steps: []
+    }
+
+    const wrapper = mount(TraceBlockingPointCard, {
+      props: {
+        detail,
+        blockingPoint
+      },
+      global: {
+        stubs: {
+          ElCard: { template: '<section><slot name="header" /><slot /></section>' },
+          RuntimeStatusBadge: { template: '<span />' }
+        }
+      }
+    })
+
+    const text = wrapper.text()
+    expect(text).toContain('MATERIAL / ACTIVE_RACK_SNAPSHOT_INVALID')
+    expect(text).toContain('SMT 可用货架快照必须包含 A/B/C/D 4 个料箱')
+    expect(text).toContain('人工检查粗分机当前物料与依赖状态')
+    expect(text).toContain('物料问题（现场人员处理）')
+    expect(text).not.toContain('系统出现未分类异常，请联系技术支持。')
   })
 })

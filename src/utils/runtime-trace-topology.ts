@@ -184,6 +184,38 @@ function findLatestCommandTimeline(detail: TraceDetailResponse): TraceTimelineIt
   return [...detail.timelines].sort(sortTimeline).reverse().find(isCommandTimeline) ?? null
 }
 
+function isFallbackUnknownBlockingPoint(blockingPoint?: TraceBlockingPointResponse | null): boolean {
+  if (!blockingPoint) {
+    return false
+  }
+
+  const diagnostic = blockingPoint.diagnostic_card
+  const hasNoConcretePoint =
+    blockingPoint.blocking_point === 'none' || blockingPoint.blocking_point === 'UNKNOWN'
+  return (
+    hasNoConcretePoint &&
+    diagnostic?.error_domain === 'SYSTEM' &&
+    diagnostic?.error_code === 'UNKNOWN'
+  )
+}
+
+function payloadText(item: TraceTimelineItem | null | undefined, key: string): string | undefined {
+  const value = item?.payload_json?.[key]
+  return typeof value === 'string' && value.trim() ? value : undefined
+}
+
+function blockingPointCode(blockingPoint?: TraceBlockingPointResponse | null): string | undefined {
+  if (!blockingPoint || isFallbackUnknownBlockingPoint(blockingPoint)) {
+    return undefined
+  }
+
+  if (blockingPoint.diagnostic_card?.error_code !== 'UNKNOWN') {
+    return blockingPoint.diagnostic_card.error_code
+  }
+
+  return blockingPoint.blocking_point || undefined
+}
+
 function resolveCurrentDeviceCode(
   detail: TraceDetailResponse,
   path?: RuntimeTracePathResponse | null,
@@ -253,22 +285,24 @@ function buildExceptionText(
     return '无异常'
   }
 
+  const shouldUseBlockingPoint = !isFallbackUnknownBlockingPoint(blockingPoint)
   const domain =
-    blockingPoint?.diagnostic_card?.error_domain ||
     detail.session?.failure_domain ||
     firstFailure?.failure_domain ||
+    (shouldUseBlockingPoint ? blockingPoint?.diagnostic_card?.error_domain : undefined) ||
     undefined
   const code =
-    blockingPoint?.diagnostic_card?.error_code ||
     detail.session?.failure_code ||
-    blockingPoint?.blocking_point ||
+    payloadText(firstFailure, 'reason_code') ||
+    (shouldUseBlockingPoint ? blockingPointCode(blockingPoint) : undefined) ||
     firstFailure?.action_type ||
     undefined
   const message =
-    blockingPoint?.diagnostic_card?.summary ||
-    blockingPoint?.diagnostic_card?.user_message ||
     detail.session?.failure_message ||
     firstFailure?.message ||
+    detail.summary.latest_timeline_message ||
+    (shouldUseBlockingPoint ? blockingPoint?.diagnostic_card?.summary : undefined) ||
+    (shouldUseBlockingPoint ? blockingPoint?.diagnostic_card?.user_message : undefined) ||
     undefined
 
   const prefix = [domain, code].filter(Boolean).join(' / ')
@@ -277,6 +311,25 @@ function buildExceptionText(
   }
 
   return [prefix, message].filter(Boolean).join('：')
+}
+
+function buildOperatorAction(
+  detail: TraceDetailResponse,
+  blockingPoint: TraceBlockingPointResponse | null | undefined,
+  verdict: RuntimeTraceTopologyVerdict,
+  firstFailure: TraceTimelineItem | null
+): string {
+  if (verdict === 'success') {
+    return '无需处置'
+  }
+
+  return (
+    payloadText(firstFailure, 'suggested_action') ||
+    detail.session?.required_operator_action ||
+    blockingPoint?.operator_action ||
+    blockingPoint?.diagnostic_card?.operator_action ||
+    '查看阻塞点证据后处理'
+  )
 }
 
 function buildEvidenceCounts(detail: TraceDetailResponse): Array<{ label: string; value: number }> {
@@ -368,12 +421,7 @@ export function buildRuntimeTraceTopology({
     optimisticPathLabel: pathNodes.map(node => node.deviceName).join(' → ') || '暂无设备路径',
     currentLabel: currentNode ? `${currentNode.stepLabel} · ${currentNode.deviceName}` : '未知位置',
     exceptionText: buildExceptionText(detail, blockingPoint, verdict, firstFailure),
-    operatorAction:
-      verdict === 'success'
-        ? '无需处置'
-        : blockingPoint?.operator_action ||
-          blockingPoint?.diagnostic_card?.operator_action ||
-          '查看阻塞点证据后处理',
+    operatorAction: buildOperatorAction(detail, blockingPoint, verdict, firstFailure),
     pathNodes,
     currentNode,
     exceptionNode,
