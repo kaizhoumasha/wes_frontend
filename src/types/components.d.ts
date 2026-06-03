@@ -141,6 +141,7 @@ declare module 'vue' {
     TraceNextActions: typeof import('./../components/runtime/trace/TraceNextActions.vue')['default']
     TraceRelatedSidebar: typeof import('./../components/runtime/trace/TraceRelatedSidebar.vue')['default']
     TraceTimeline: typeof import('./../components/runtime/trace/TraceTimeline.vue')['default']
+    TraceTopologySummary: typeof import('./../components/runtime/trace/TraceTopologySummary.vue')['default']
     WorklineHealthHero: typeof import('./../components/runtime/monitor/WorklineHealthHero.vue')['default']
     WorklineLiveOverview: typeof import('./../components/runtime/monitor/WorklineLiveOverview.vue')['default']
     WorklineReconciliationPanel: typeof import('./../components/runtime/monitor/WorklineReconciliationPanel.vue')['default']

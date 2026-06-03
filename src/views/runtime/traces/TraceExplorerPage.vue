@@ -110,10 +110,12 @@
               ref="detailHeroRef"
               class="trace-layout__hero"
             >
-              <TraceCaseHero
+              <TraceTopologySummary
                 :detail="traceDetail"
-                :workline-name="selectedWorklineName"
-                :device-name="selectedDeviceName"
+                :blocking-point="blockingPoint"
+                :path="tracePathData"
+                :workline-detail="worklineDetailData"
+                :path-loading="tracePathLoading"
               />
             </div>
 
@@ -558,23 +560,25 @@ import RuntimeLastUpdated from '@/components/common/runtime/RuntimeLastUpdated.v
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import RuntimeStickyContextBar from '@/components/common/runtime/RuntimeStickyContextBar.vue'
 import TraceBlockingPointCard from '@/components/runtime/trace/TraceBlockingPointCard.vue'
-import TraceCaseHero from '@/components/runtime/trace/TraceCaseHero.vue'
 import TraceNextActions from '@/components/runtime/trace/TraceNextActions.vue'
 import TraceRelatedSidebar from '@/components/runtime/trace/TraceRelatedSidebar.vue'
 import TraceContrastPanel from '@/components/runtime/trace/TraceContrastPanel.vue'
 import TraceTimeline from '@/components/runtime/trace/TraceTimeline.vue'
+import TraceTopologySummary from '@/components/runtime/trace/TraceTopologySummary.vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import { useRuntimeSSEStore } from '@/stores/runtime-sse'
 import { useRuntimeStickyContextVisibility } from '@/composables/useRuntimeStickyContextVisibility'
 import type {
+  RuntimeTracePathResponse,
   RuntimeTraceListItem,
+  RuntimeWorklineDetailResponse,
   TraceBlockingPointResponse,
   TraceDetailResponse
 } from '@/types/runtime'
 import { createCoalescedAsyncTask } from '@/utils/createCoalescedAsyncTask'
 import { isRelevantRuntimeEvent } from '@/utils/runtime-event'
 import { buildRuntimeTraceQuery, type RuntimeTraceQueryInput } from '@/utils/runtime-route'
-import { displayDevice, displaySession, displayWorkline } from '@/utils/runtime-display-identity'
+import { displaySession } from '@/utils/runtime-display-identity'
 import {
   compactEnumLabel,
   formatRuntimeDateTime,
@@ -594,9 +598,14 @@ const queryValue = ref('')
 const activeTab = ref('diagnostics')
 const traceDetail = ref<TraceDetailResponse | null>(null)
 const blockingPoint = ref<TraceBlockingPointResponse | null>(null)
+const tracePathData = ref<RuntimeTracePathResponse | null>(null)
+const worklineDetailData = ref<RuntimeWorklineDetailResponse | null>(null)
 const detailScrollRef = ref<HTMLElement | null>(null)
 const detailHeroRef = ref<HTMLElement | null>(null)
 const showContrast = ref(false)
+const tracePathLoading = ref(false)
+let traceRequestSeq = 0
+let pendingRouteRequestSeq: number | null = null
 const showStickyContext = useRuntimeStickyContextVisibility({
   heroRef: detailHeroRef,
   scrollRootRef: detailScrollRef,
@@ -640,26 +649,6 @@ const relatedDeviceId = computed(() => {
 
 const relatedFailureDomain = computed(() => {
   return traceDetail.value?.session?.failure_domain ?? null
-})
-
-const selectedWorklineName = computed(() => {
-  const detail = traceDetail.value
-  if (!detail) return null
-  return displayWorkline({
-    line_name: null,
-    line_code: null,
-    workline_id: detail.session?.workline_id ?? detail.trace.workline_id
-  })
-})
-
-const selectedDeviceName = computed(() => {
-  const detail = traceDetail.value
-  if (!detail) return null
-  return displayDevice({
-    device_name: null,
-    device_code: detail.trace.device_code,
-    device_id: detail.trace.device_id
-  })
 })
 
 const traceStickyTitle = computed(() => {
@@ -803,19 +792,41 @@ async function syncRouteQuery(
   })
 }
 
-async function loadTraceBySession(sessionId: number) {
-  await setTraceDetail(await runtimeApiMethods.traceBySessionId(sessionId).send())
+function nextTraceRequestSeq(): number {
+  traceRequestSeq += 1
+  return traceRequestSeq
+}
+
+function isLatestTraceRequest(requestSeq: number): boolean {
+  return requestSeq === traceRequestSeq
+}
+
+function clearTraceSecondaryState(): void {
+  blockingPoint.value = null
+  tracePathData.value = null
+  worklineDetailData.value = null
+  blockingPointLoading.value = false
+  tracePathLoading.value = false
+}
+
+async function loadTraceBySession(sessionId: number, requestSeq = nextTraceRequestSeq()) {
+  const detail = await runtimeApiMethods.traceBySessionId(sessionId).send()
+  if (!isLatestTraceRequest(requestSeq)) return
+  await setTraceDetail(detail, requestSeq)
   sseStore.markRefreshedAt()
 }
 
-async function loadTraceByTraceId(traceId: string) {
-  await setTraceDetail(await runtimeApiMethods.traceByTraceId(traceId).send())
+async function loadTraceByTraceId(traceId: string, requestSeq = nextTraceRequestSeq()) {
+  const detail = await runtimeApiMethods.traceByTraceId(traceId).send()
+  if (!isLatestTraceRequest(requestSeq)) return
+  await setTraceDetail(detail, requestSeq)
   sseStore.markRefreshedAt()
 }
 
 async function loadTraceByAnchor(
   type: Exclude<TraceAnchorType, 'session' | 'trace' | 'barcode'>,
-  value: string
+  value: string,
+  requestSeq = nextTraceRequestSeq()
 ) {
   const requestMap = {
     request: runtimeApiMethods.traceByRequestId,
@@ -823,47 +834,54 @@ async function loadTraceByAnchor(
     dispatch: runtimeApiMethods.traceByDispatchKey
   }
 
-  await setTraceDetail(await requestMap[type](value).send())
+  const detail = await requestMap[type](value).send()
+  if (!isLatestTraceRequest(requestSeq)) return
+  await setTraceDetail(detail, requestSeq)
   sseStore.markRefreshedAt()
 }
 
-async function loadTraceByBarcode(barcode: string) {
+async function loadTraceByBarcode(barcode: string, requestSeq = nextTraceRequestSeq()) {
   let result = await runtimeApiMethods
     .queryTraces({ keyword: barcode, only_active: true, limit: 5 })
     .send()
+  if (!isLatestTraceRequest(requestSeq)) return
   if (result.items.length === 0) {
     result = await runtimeApiMethods.queryTraces({ keyword: barcode, limit: 5 }).send()
   }
+  if (!isLatestTraceRequest(requestSeq)) return
   if (result.items.length === 0) {
     traceDetail.value = null
-    blockingPoint.value = null
+    clearTraceSecondaryState()
     return
   }
   const item = result.items[0]
   if (item.trace_id) {
-    await loadTraceByTraceId(item.trace_id)
+    await loadTraceByTraceId(item.trace_id, requestSeq)
   } else {
-    await loadTraceBySession(item.session_id)
+    await loadTraceBySession(item.session_id, requestSeq)
   }
 }
 
-async function loadTraceDetail(anchor: TraceAnchor): Promise<void> {
+async function loadTraceDetail(
+  anchor: TraceAnchor,
+  requestSeq = nextTraceRequestSeq()
+): Promise<void> {
   if (anchor.type === 'trace') {
-    await loadTraceByTraceId(anchor.value)
+    await loadTraceByTraceId(anchor.value, requestSeq)
     return
   }
 
   if (anchor.type === 'session') {
-    await loadTraceBySession(Number(anchor.value))
+    await loadTraceBySession(Number(anchor.value), requestSeq)
     return
   }
 
   if (anchor.type === 'barcode') {
-    await loadTraceByBarcode(anchor.value)
+    await loadTraceByBarcode(anchor.value, requestSeq)
     return
   }
 
-  await loadTraceByAnchor(anchor.type, anchor.value)
+  await loadTraceByAnchor(anchor.type, anchor.value, requestSeq)
 }
 
 function normalizeTraceDetail(detail: TraceDetailResponse): TraceDetailResponse {
@@ -880,25 +898,93 @@ function normalizeTraceDetail(detail: TraceDetailResponse): TraceDetailResponse 
   }
 }
 
-async function setTraceDetail(detail: TraceDetailResponse): Promise<void> {
+async function setTraceDetail(detail: TraceDetailResponse, requestSeq: number): Promise<void> {
+  if (!isLatestTraceRequest(requestSeq)) return
   const nextDetail = normalizeTraceDetail(detail)
   traceDetail.value = nextDetail
-  await loadBlockingPoint(nextDetail.trace.trace_id ?? nextDetail.session?.trace_id ?? null)
+  const traceId = nextDetail.trace.trace_id ?? nextDetail.session?.trace_id ?? null
+  const worklineId = nextDetail.session?.workline_id ?? nextDetail.trace.workline_id ?? null
+  await Promise.all([
+    loadBlockingPoint(traceId, requestSeq),
+    loadTracePath(traceId, requestSeq),
+    loadWorklineDetail(worklineId, requestSeq)
+  ])
 }
 
-async function loadBlockingPoint(traceId: string | null): Promise<void> {
+async function loadBlockingPoint(traceId: string | null, requestSeq: number): Promise<void> {
   blockingPoint.value = null
   if (!traceId) {
+    if (isLatestTraceRequest(requestSeq)) {
+      blockingPointLoading.value = false
+    }
     return
   }
 
   blockingPointLoading.value = true
   try {
-    blockingPoint.value = await runtimeApiMethods.traceBlockingPoint(traceId).send()
+    const nextBlockingPoint = await runtimeApiMethods.traceBlockingPoint(traceId).send()
+    if (isLatestTraceRequest(requestSeq)) {
+      blockingPoint.value = nextBlockingPoint
+    }
   } catch {
-    blockingPoint.value = null
+    if (isLatestTraceRequest(requestSeq)) {
+      blockingPoint.value = null
+    }
   } finally {
-    blockingPointLoading.value = false
+    if (isLatestTraceRequest(requestSeq)) {
+      blockingPointLoading.value = false
+    }
+  }
+}
+
+async function loadTracePath(traceId: string | null, requestSeq: number): Promise<void> {
+  tracePathData.value = null
+  if (!traceId) {
+    if (isLatestTraceRequest(requestSeq)) {
+      tracePathLoading.value = false
+    }
+    return
+  }
+
+  tracePathLoading.value = true
+  try {
+    const nextPathData = await runtimeApiMethods.tracePath(traceId).send()
+    if (isLatestTraceRequest(requestSeq)) {
+      tracePathData.value = {
+        ...nextPathData,
+        devices: nextPathData.devices ?? [],
+        timeline_groups: nextPathData.timeline_groups ?? []
+      }
+    }
+  } catch {
+    if (isLatestTraceRequest(requestSeq)) {
+      tracePathData.value = null
+    }
+  } finally {
+    if (isLatestTraceRequest(requestSeq)) {
+      tracePathLoading.value = false
+    }
+  }
+}
+
+async function loadWorklineDetail(
+  worklineId: number | null | undefined,
+  requestSeq: number
+): Promise<void> {
+  worklineDetailData.value = null
+  if (!worklineId) {
+    return
+  }
+
+  try {
+    const nextWorklineDetail = await runtimeApiMethods.worklineDetail(worklineId).send()
+    if (isLatestTraceRequest(requestSeq)) {
+      worklineDetailData.value = nextWorklineDetail
+    }
+  } catch {
+    if (isLatestTraceRequest(requestSeq)) {
+      worklineDetailData.value = null
+    }
   }
 }
 
@@ -928,45 +1014,52 @@ async function handleRelatedSelect(trace: RuntimeTraceListItem) {
 }
 
 async function refreshCurrent() {
+  const requestSeq = nextTraceRequestSeq()
   loading.value = true
   try {
     const activeSessionId = traceDetail.value?.trace.session_id
     const activeTraceId = selectedTraceId.value
     if (activeTraceId) {
-      await loadTraceByTraceId(activeTraceId)
+      await loadTraceByTraceId(activeTraceId, requestSeq)
       return
     }
 
     if (activeSessionId) {
-      await loadTraceBySession(activeSessionId)
+      await loadTraceBySession(activeSessionId, requestSeq)
       return
     }
 
     const routeAnchor = readRouteAnchor()
     if (routeAnchor) {
-      await loadTraceDetail(routeAnchor)
+      await loadTraceDetail(routeAnchor, requestSeq)
     }
   } finally {
-    loading.value = false
+    if (isLatestTraceRequest(requestSeq)) {
+      loading.value = false
+    }
   }
 }
 
 const refreshCurrentCoalesced = createCoalescedAsyncTask(refreshCurrent)
 
 async function syncTraceRouteState() {
+  const requestSeq = pendingRouteRequestSeq ?? nextTraceRequestSeq()
+  pendingRouteRequestSeq = null
   loading.value = true
   try {
     const routeAnchor = readRouteAnchor()
     if (routeAnchor) {
       applyAnchorToInputs(routeAnchor)
-      await loadTraceDetail(routeAnchor)
+      await loadTraceDetail(routeAnchor, requestSeq)
     } else {
       queryValue.value = ''
       traceDetail.value = null
-      blockingPoint.value = null
+      clearTraceSecondaryState()
     }
   } finally {
-    loading.value = false
+    if (isLatestTraceRequest(requestSeq)) {
+      loading.value = false
+    }
   }
 }
 
@@ -983,10 +1076,12 @@ watch(
     route.query.requestId,
     route.query.commandCode,
     route.query.dispatchKey,
+    route.query.barcode,
     route.query.worklineId,
     route.query.deviceId
   ],
   () => {
+    pendingRouteRequestSeq = nextTraceRequestSeq()
     void syncTraceRouteStateCoalesced()
   }
 )
