@@ -527,20 +527,6 @@
           />
         </el-card>
       </div>
-
-      <el-card
-        v-if="traceDetail"
-        shadow="never"
-        class="runtime-panel trace-layout__sidebar"
-      >
-        <TraceRelatedSidebar
-          :current-trace-id="selectedSessionId"
-          :workline-id="relatedWorklineId"
-          :device-id="relatedDeviceId"
-          :failure-domain="relatedFailureDomain"
-          @select="handleRelatedSelect"
-        />
-      </el-card>
     </div>
 
     <TraceContrastPanel
@@ -561,7 +547,6 @@ import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.v
 import RuntimeStickyContextBar from '@/components/common/runtime/RuntimeStickyContextBar.vue'
 import TraceBlockingPointCard from '@/components/runtime/trace/TraceBlockingPointCard.vue'
 import TraceNextActions from '@/components/runtime/trace/TraceNextActions.vue'
-import TraceRelatedSidebar from '@/components/runtime/trace/TraceRelatedSidebar.vue'
 import TraceContrastPanel from '@/components/runtime/trace/TraceContrastPanel.vue'
 import TraceTimeline from '@/components/runtime/trace/TraceTimeline.vue'
 import TraceTopologySummary from '@/components/runtime/trace/TraceTopologySummary.vue'
@@ -570,7 +555,6 @@ import { useRuntimeSSEStore } from '@/stores/runtime-sse'
 import { useRuntimeStickyContextVisibility } from '@/composables/useRuntimeStickyContextVisibility'
 import type {
   RuntimeTracePathResponse,
-  RuntimeTraceListItem,
   RuntimeWorklineDetailResponse,
   TraceBlockingPointResponse,
   TraceDetailResponse
@@ -634,22 +618,6 @@ const selectedSessionId = computed(() => traceDetail.value?.trace.session_id ?? 
 const selectedTraceId = computed(
   () => traceDetail.value?.trace.trace_id ?? traceDetail.value?.session?.trace_id ?? null
 )
-
-const relatedWorklineId = computed(() => {
-  const detail = traceDetail.value
-  if (!detail) return null
-  return detail.session?.workline_id ?? detail.trace.workline_id ?? null
-})
-
-const relatedDeviceId = computed(() => {
-  const detail = traceDetail.value
-  if (!detail) return null
-  return detail.trace.device_id ?? detail.commands[0]?.device_id ?? null
-})
-
-const relatedFailureDomain = computed(() => {
-  return traceDetail.value?.session?.failure_domain ?? null
-})
 
 const traceStickyTitle = computed(() => {
   const detail = traceDetail.value
@@ -1004,15 +972,6 @@ async function openTraceFromAction(query: RuntimeTraceQueryInput) {
   await syncRouteQuery(anchor.type, anchor.value, query)
 }
 
-async function handleRelatedSelect(trace: RuntimeTraceListItem) {
-  await openTraceFromAction({
-    traceId: trace.trace_id,
-    sessionId: trace.trace_id ? undefined : String(trace.session_id),
-    worklineId: trace.workline_id,
-    deviceId: trace.device_id
-  })
-}
-
 async function refreshCurrent() {
   const requestSeq = nextTraceRequestSeq()
   loading.value = true
@@ -1143,13 +1102,8 @@ watch(
 .trace-layout {
   display: grid;
   gap: 16px;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr);
   align-items: stretch;
-}
-
-.trace-layout__detail,
-.trace-layout__sidebar {
-  min-height: 0;
 }
 
 .trace-layout__detail {
@@ -1302,24 +1256,9 @@ watch(
     overflow: hidden;
   }
 
-  .trace-layout__detail,
-  .trace-layout__sidebar {
+  .trace-layout__detail {
     height: 100%;
     min-height: 0;
-  }
-
-  .trace-layout__sidebar {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .trace-layout__sidebar :deep(.el-card__body) {
-    display: flex;
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
-    scrollbar-gutter: stable;
   }
 
   .trace-layout__detail-scroll {
