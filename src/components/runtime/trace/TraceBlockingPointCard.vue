@@ -6,12 +6,12 @@
     <template #header>
       <div class="trace-blocking-card__header">
         <div>
-          <div class="trace-blocking-card__eyebrow">现场处置</div>
-          <div class="trace-blocking-card__title">阻塞点诊断卡</div>
+          <div class="trace-blocking-card__eyebrow">{{ diagnosisView.card.headerEyebrow }}</div>
+          <div class="trace-blocking-card__title">{{ diagnosisView.card.headerTitle }}</div>
         </div>
         <RuntimeStatusBadge
-          :label="diagnosticView ? compactEnumLabel(diagnosticView.blockingPoint) : '等待诊断'"
-          :tone="blockingTone"
+          :label="diagnosisView.card.badgeLabel"
+          :tone="diagnosisView.card.badgeTone"
           size="small"
         />
       </div>
@@ -29,21 +29,21 @@
     </div>
 
     <div
-      v-else-if="diagnosticView"
+      v-else
       class="trace-blocking-card__body"
     >
       <!-- 发生了什么 -->
       <div class="trace-blocking-card__message">
-        <span>{{ diagnosticView.title }}</span>
+        <span>{{ diagnosisView.card.title }}</span>
         <p>
-          {{ diagnosticView.message }}
+          {{ diagnosisView.card.message }}
         </p>
       </div>
 
       <!-- 该做什么 -->
       <div class="trace-blocking-card__action">
         <span>建议动作</span>
-        <strong>{{ diagnosticView.operatorAction }}</strong>
+        <strong>{{ diagnosisView.card.operatorAction }}</strong>
       </div>
 
       <!-- 谁来处置 + 能否自动恢复 -->
@@ -54,7 +54,7 @@
         </div>
         <div class="trace-blocking-card__fact">
           <span>恢复方式</span>
-          <strong>{{ recoverabilityLabel }}</strong>
+          <strong>{{ diagnosisView.card.recoverabilityLabel }}</strong>
         </div>
       </div>
 
@@ -72,26 +72,22 @@
       </ol>
 
       <!-- 技术信息（工程师参考） -->
-      <details class="trace-blocking-card__tech">
+      <details
+        v-if="diagnosisView.card.showTechnicalInfo"
+        class="trace-blocking-card__tech"
+      >
         <summary>技术信息</summary>
         <div class="trace-blocking-card__tech-body">
           <div class="trace-blocking-card__tech-row">
             <span>Diagnostic Code</span>
-            <strong>{{ diagnosticView.errorCode }}</strong>
+            <strong>{{ diagnosisView.card.errorCode }}</strong>
           </div>
           <div class="trace-blocking-card__tech-row">
             <span>Problem Class</span>
-            <strong>{{ compactEnumLabel(diagnosticView.problemClass) }}</strong>
+            <strong>{{ diagnosisView.card.problemClass }}</strong>
           </div>
         </div>
       </details>
-    </div>
-
-    <div
-      v-else
-      class="trace-blocking-card__empty"
-    >
-      当前 Trace 暂无阻塞点诊断卡。
     </div>
   </el-card>
 </template>
@@ -100,8 +96,7 @@
 import { computed } from 'vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import type { TraceBlockingPointResponse, TraceDetailResponse } from '@/types/runtime'
-import type { RuntimeTone } from '@/utils/runtime-display'
-import { compactEnumLabel } from '@/utils/runtime-display'
+import { buildRuntimeDiagnosisVerdict } from '@/utils/runtime-diagnosis-verdict'
 
 const props = withDefaults(
   defineProps<{
@@ -116,127 +111,43 @@ const props = withDefaults(
   }
 )
 
-function isFallbackUnknownBlockingPoint(
-  blockingPoint?: TraceBlockingPointResponse | null
-): boolean {
-  if (!blockingPoint) {
-    return false
-  }
+const diagnosisView = computed(() =>
+  buildRuntimeDiagnosisVerdict({
+    detail: props.detail ?? emptyDetail(),
+    blockingPoint: props.blockingPoint
+  })
+)
 
-  const hasNoConcretePoint =
-    blockingPoint.blocking_point === 'none' || blockingPoint.blocking_point === 'UNKNOWN'
-  return (
-    hasNoConcretePoint &&
-    blockingPoint.diagnostic_card.error_domain === 'SYSTEM' &&
-    blockingPoint.diagnostic_card.error_code === 'UNKNOWN'
-  )
-}
-
-function latestFailureTimeline() {
-  return [...(props.detail?.timelines ?? [])]
-    .sort((left, right) => left.seq_no - right.seq_no || left.id - right.id)
-    .reverse()
-    .find(item => item.failure_domain || item.message || item.action_type === 'MANUAL_HOLD')
-}
-
-function payloadText(
-  payload: Record<string, unknown> | null | undefined,
-  key: string
-): string | undefined {
-  const value = payload?.[key]
-  return typeof value === 'string' && value.trim() ? value : undefined
-}
-
-const diagnosticView = computed(() => {
-  const blockingPoint = props.blockingPoint
-  if (!blockingPoint) {
-    return null
-  }
-
-  const timeline = latestFailureTimeline()
-  const failureDomain =
-    props.detail?.session?.failure_domain || timeline?.failure_domain || undefined
-  const failureCode =
-    props.detail?.session?.failure_code ||
-    payloadText(timeline?.payload_json, 'reason_code') ||
-    undefined
-  const failureMessage =
-    props.detail?.session?.failure_message ||
-    props.detail?.summary.latest_timeline_message ||
-    timeline?.message ||
-    payloadText(timeline?.payload_json, 'message') ||
-    undefined
-  const suggestedAction =
-    payloadText(timeline?.payload_json, 'suggested_action') ||
-    props.detail?.session?.required_operator_action ||
-    undefined
-
-  if (
-    isFallbackUnknownBlockingPoint(blockingPoint) &&
-    (failureDomain || failureCode || failureMessage)
-  ) {
-    const code = [failureDomain, failureCode].filter(Boolean).join(' / ')
-    return {
-      blockingPoint: failureCode || blockingPoint.blocking_point,
-      owner: failureDomain || blockingPoint.owner,
-      title: code || 'Trace 已定位原因',
-      message: failureMessage || 'Trace 已定位到业务异常，请按建议动作处理。',
-      operatorAction: suggestedAction || blockingPoint.operator_action,
-      errorCode: failureCode || blockingPoint.diagnostic_card.error_code,
-      problemClass: failureDomain || blockingPoint.diagnostic_card.problem_class
-    }
-  }
-
-  return {
-    blockingPoint: blockingPoint.blocking_point,
-    owner: blockingPoint.owner,
-    title: blockingPoint.diagnostic_card.title,
-    message: blockingPoint.diagnostic_card.user_message || blockingPoint.diagnostic_card.summary,
-    operatorAction: blockingPoint.operator_action,
-    errorCode: blockingPoint.diagnostic_card.error_code,
-    problemClass: blockingPoint.diagnostic_card.problem_class
-  }
-})
-
-const blockingTone = computed<RuntimeTone>(() => {
-  const point = diagnosticView.value?.blockingPoint?.toUpperCase()
-  if (!point || point === 'NONE') return 'success'
-  if (point === 'SESSION') return 'warning'
-  return 'danger'
+const ownerLabel = computed(() => {
+  return diagnosisView.value.card.ownerLabel
 })
 
 const nextSteps = computed(() => {
-  return (props.blockingPoint?.diagnostic_card.next_steps ?? []).filter(Boolean).slice(0, 5)
+  return diagnosisView.value.card.nextSteps
 })
 
-const OWNER_LABELS: Record<string, string> = {
-  DEVICE: '设备问题（联系设备维护）',
-  INTEGRATION: '接入集成问题（联系技术）',
-  WORKFLOW: '流程编排问题（联系技术）',
-  PLUGIN: '业务插件问题（联系技术）',
-  CONFIGURATION: '配置问题（联系运维）',
-  MATERIAL: '物料问题（现场人员处理）',
-  PLATFORM: '平台底层问题（联系技术支持）',
-  OPS: '运维操作（当前人员处理）',
-  OPERATOR: '运维操作（当前人员处理）'
+function emptyDetail(): TraceDetailResponse {
+  return {
+    trace: {},
+    summary: {
+      callback_logs: 0,
+      inboxes: 0,
+      commands: 0,
+      outboxes: 0,
+      timelines: 0,
+      diagnostics: 0
+    },
+    session: null,
+    sessions: [],
+    callback_logs: [],
+    inboxes: [],
+    commands: [],
+    outboxes: [],
+    dispatch_attempts: [],
+    timelines: [],
+    diagnostics: []
+  }
 }
-
-const RECOVERABILITY_LABELS: Record<string, string> = {
-  AUTO_RETRYABLE: '系统自动重试中，请等待',
-  MANUAL_RETRYABLE: '需人工触发重试',
-  MANUAL_INTERVENTION_REQUIRED: '需现场人工介入处理',
-  NON_RECOVERABLE: '当前流程不可恢复，需升级处理'
-}
-
-const ownerLabel = computed(() => {
-  const raw = diagnosticView.value?.owner?.toUpperCase() ?? ''
-  return OWNER_LABELS[raw] || compactEnumLabel(diagnosticView.value?.owner) || '—'
-})
-
-const recoverabilityLabel = computed(() => {
-  const raw = props.blockingPoint?.recoverability?.toUpperCase() ?? ''
-  return RECOVERABILITY_LABELS[raw] || compactEnumLabel(props.blockingPoint?.recoverability) || '—'
-})
 </script>
 
 <style scoped>

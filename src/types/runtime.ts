@@ -368,6 +368,69 @@ export interface DiagnosticCardResponse {
   context: TraceDiagnosticItem
 }
 
+export type DiagnosisVerdictState =
+  | 'completed_clear'
+  | 'running'
+  | 'waiting'
+  | 'blocked'
+  | 'failed'
+  | 'unknown'
+
+export type DiagnosisVerdictSeverity = 'success' | 'info' | 'warning' | 'danger'
+
+export type DiagnosisVerdictBlockingPoint =
+  | 'none'
+  | 'session'
+  | 'inbox'
+  | 'outbox'
+  | 'command'
+  | 'external_wms'
+  | 'resource'
+  | 'admission'
+  | 'unknown'
+
+export type DiagnosisEvidenceHealthLevel = 'complete' | 'partial' | 'missing'
+
+export type DiagnosisEvidenceHealthItemKey =
+  | 'session'
+  | 'timeline'
+  | 'callback'
+  | 'inbox'
+  | 'command'
+  | 'outbox'
+  | 'diagnostics'
+  | 'workline_admission'
+  | 'resource_wait'
+
+export type DiagnosisEvidenceHealthItemState = 'present' | 'empty' | 'missing' | 'not_required'
+
+export interface DiagnosisEvidenceHealthItem {
+  key: DiagnosisEvidenceHealthItemKey
+  label: string
+  count: number
+  state: DiagnosisEvidenceHealthItemState
+  hint: string
+}
+
+export interface DiagnosisEvidenceHealth {
+  level: DiagnosisEvidenceHealthLevel
+  summary: string
+  missing: string[]
+  items: DiagnosisEvidenceHealthItem[]
+}
+
+export interface DiagnosisVerdict {
+  state: DiagnosisVerdictState
+  severity: DiagnosisVerdictSeverity
+  title: string
+  summary: string
+  requires_operator_action: boolean
+  primary_action?: string | null
+  blocking_point: DiagnosisVerdictBlockingPoint
+  owner?: string | null
+  evidence_health: DiagnosisEvidenceHealth
+}
+
 export interface TraceBlockingPointResponse {
   trace_id: string
   request_id?: string | null
@@ -378,6 +441,7 @@ export interface TraceBlockingPointResponse {
   diagnostic_card: DiagnosticCardResponse
   evidence: Record<string, unknown>
   next_steps: string[]
+  diagnosis_verdict?: DiagnosisVerdict | null
 }
 
 export interface TraceDetailResponse {
@@ -392,6 +456,7 @@ export interface TraceDetailResponse {
   dispatch_attempts: TraceDispatchAttemptItem[]
   timelines: TraceTimelineItem[]
   diagnostics: TraceDiagnosticItem[]
+  diagnosis_verdict?: DiagnosisVerdict | null
 }
 
 export interface RuntimeWorklineSummary {

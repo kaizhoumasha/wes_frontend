@@ -80,6 +80,19 @@ function createDetail(): TraceDetailResponse {
         trace_id: 'rough-sorter-curl-ok-1780459094',
         seq_no: 3,
         occurred_at: '2026-06-03T01:02:00Z',
+        stage: 'CALLBACK',
+        action_type: 'COMMAND_SENT',
+        actor_type: 'DEVICE',
+        actor_code: 'RS-OUTPUT-ARM-01',
+        status: 'SUCCESS'
+      },
+      {
+        id: 4,
+        session_id: 1001,
+        workline_id: 8,
+        trace_id: 'rough-sorter-curl-ok-1780459094',
+        seq_no: 4,
+        occurred_at: '2026-06-03T01:02:00Z',
         stage: 'COMPLETE',
         action_type: 'SESSION_COMPLETED',
         actor_type: 'ORCHESTRATOR',
@@ -116,6 +129,26 @@ function createWorklineDetail(): RuntimeWorklineDetailResponse {
         device_status: 'IDLE',
         maintenance_mode: false,
         pending_command_count: 0
+      },
+      {
+        id: 2,
+        device_code: 'RS-CONVEYOR-01',
+        device_name: '测试粗分机输送线',
+        device_role: 'CONVEYOR',
+        role_index: 1,
+        device_status: 'IDLE',
+        maintenance_mode: false,
+        pending_command_count: 0
+      },
+      {
+        id: 3,
+        device_code: 'RS-OUTPUT-ARM-01',
+        device_name: '测试粗分机出料机械臂',
+        device_role: 'OUTPUT_ARM',
+        role_index: 1,
+        device_status: 'IDLE',
+        maintenance_mode: false,
+        pending_command_count: 0
       }
     ],
     active_sessions: [],
@@ -141,11 +174,15 @@ describe('TraceTopologySummary', () => {
 
     const text = wrapper.text()
     expect(text).toContain('工作线拓扑')
-    expect(text).toContain('乐观路径')
-    expect(text).toContain('现在在哪')
+    expect(text).toContain('物料过站')
+    expect(text).toContain('最终落点')
+    expect(text).toContain('RS-OUTPUT-ARM-01 / 投放到料箱')
     expect(text).toContain('异常发生在哪里')
     expect(text).toContain('完整工作线拓扑')
     expect(text).toContain('流程已完成')
+    expect(text).toContain('诊断依据')
+    expect(text).toContain('关键证据已纳入诊断')
+    expect(text).not.toContain('Callback 0')
   })
 })
 

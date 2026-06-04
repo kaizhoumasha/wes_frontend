@@ -135,6 +135,9 @@ describe('buildRuntimeTraceTopology', () => {
       'RS-OUTPUT-ARM-01'
     ])
     expect(model.currentNode?.deviceCode).toBe('RS-OUTPUT-ARM-01')
+    expect(model.pathNodes.map(node => node.state)).toEqual(['completed', 'completed', 'final'])
+    expect(model.materialPositionLabel).toBe('最终落点')
+    expect(model.materialPositionValue).toBe('RS-OUTPUT-ARM-01 / 投放到料箱')
     expect(model.exceptionNode).toBeNull()
     expect(model.exceptionText).toBe('无异常')
   })
@@ -185,7 +188,7 @@ describe('buildRuntimeTraceTopology', () => {
 
     expect(model.verdict).toBe('success')
     expect(model.exceptionText).toBe('无异常')
-    expect(model.operatorAction).toBe('无需处置')
+    expect(model.operatorAction).toBe('无需现场处置')
   })
 
   it('merges path devices with timeline command evidence', () => {
@@ -235,7 +238,7 @@ describe('buildRuntimeTraceTopology', () => {
     })
 
     expect(model.pathNodes.map(node => node.deviceName)).toEqual(['输入机械臂', '输送线'])
-    expect(model.pathNodes.map(node => node.actionLabel)).toEqual(['PICK_AND_PUT', 'MOVE_FORWARD'])
+    expect(model.pathNodes.map(node => node.actionLabel)).toEqual(['入料抓取', '输送前进'])
   })
 
   it('uses is_current path node as current location when device code is missing', () => {
@@ -300,6 +303,8 @@ describe('buildRuntimeTraceTopology', () => {
     expect(model.pathNodes[0].state).toBe('current')
     expect(model.currentNode?.deviceName).toBe('输入机械臂')
     expect(model.currentLabel).toBe('第 1 站 · 输入机械臂')
+    expect(model.materialPositionLabel).toBe('当前停留')
+    expect(model.materialPositionValue).toBe('输入机械臂 / 暂无动作证据')
   })
 
   it('shows failed timeline as exception while session is still waiting', () => {
@@ -346,7 +351,7 @@ describe('buildRuntimeTraceTopology', () => {
       })
     })
 
-    expect(model.verdict).toBe('warning')
+    expect(model.verdict).toBe('danger')
     expect(model.exceptionNode?.deviceName).toBe('RS-INPUT-ARM-01')
     expect(model.exceptionText).toContain('DEVICE')
     expect(model.exceptionText).toContain('入料机械臂回调失败')
@@ -618,7 +623,7 @@ describe('buildRuntimeTraceTopology', () => {
     expect(model.operatorAction).toBe('检查设备连接后重试')
   })
 
-  it('keeps fallback blocking point action when no trace-specific action exists', () => {
+  it('does not let fallback unknown blocking point action override non-actionable running', () => {
     const model = buildRuntimeTraceTopology({
       detail: detail({
         summary: {
@@ -676,6 +681,7 @@ describe('buildRuntimeTraceTopology', () => {
       }
     })
 
-    expect(model.operatorAction).toBe('记录当前时间并联系技术支持')
+    expect(model.operatorAction).toBe('继续观察运行进度')
+    expect(model.operatorAction).not.toContain('联系技术支持')
   })
 })

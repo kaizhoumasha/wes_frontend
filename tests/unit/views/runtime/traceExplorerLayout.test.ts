@@ -1,7 +1,7 @@
 import { nextTick } from 'vue'
 import { enableAutoUnmount, flushPromises, shallowMount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { RuntimeTraceListItem, TraceDetailResponse } from '@/types/runtime'
+import type { DiagnosisVerdict, RuntimeTraceListItem, TraceDetailResponse } from '@/types/runtime'
 
 enableAutoUnmount(afterEach)
 
@@ -112,6 +112,34 @@ function createTraceDetail(): TraceDetailResponse {
       }
     ],
     diagnostics: []
+  }
+}
+
+function createDiagnosisVerdict(overrides: Partial<DiagnosisVerdict>): DiagnosisVerdict {
+  return {
+    state: 'completed_clear',
+    severity: 'success',
+    title: '流程已完成',
+    summary: '当前案件已正常结束，未发现阻塞点。',
+    requires_operator_action: false,
+    primary_action: '无需现场处置',
+    blocking_point: 'none',
+    owner: null,
+    evidence_health: {
+      level: 'complete',
+      summary: '证据完整',
+      missing: [],
+      items: [
+        {
+          key: 'session',
+          label: 'Session',
+          count: 1,
+          state: 'present',
+          hint: '主证据'
+        }
+      ]
+    },
+    ...overrides
   }
 }
 
@@ -321,6 +349,83 @@ describe('CaseConsolePage layout', () => {
 
     expect(wrapper.findComponent({ name: 'TraceTopologySummary' }).exists()).toBe(true)
     expect(wrapper.findComponent({ name: 'TraceRelatedSidebar' }).exists()).toBe(false)
+  })
+
+  it('skips blocking-point endpoint for completed clear verdicts', async () => {
+    mocks.traceByTraceIdSend.mockResolvedValue({
+      ...createTraceDetail(),
+      diagnosis_verdict: createDiagnosisVerdict({
+        state: 'completed_clear',
+        requires_operator_action: false
+      })
+    })
+
+    await mountPage()
+    await flushViewUpdates()
+
+    expect(mocks.traceBlockingPointSend).not.toHaveBeenCalled()
+    expect(mocks.tracePathSend).toHaveBeenCalled()
+  })
+
+  it('skips blocking-point endpoint for non-actionable running verdicts', async () => {
+    mocks.traceByTraceIdSend.mockResolvedValue({
+      ...createTraceDetail(),
+      summary: {
+        ...createTraceDetail().summary,
+        session_status: 'RUNNING',
+        latest_timeline_action: 'COMMAND_SENT',
+        latest_timeline_status: 'SENT'
+      },
+      session: {
+        ...createTraceDetail().session!,
+        status: 'RUNNING'
+      },
+      diagnosis_verdict: createDiagnosisVerdict({
+        state: 'running',
+        severity: 'info',
+        title: '流程运行中',
+        summary: '当前流程正常推进。',
+        requires_operator_action: false,
+        primary_action: '继续观察',
+        blocking_point: 'none'
+      })
+    })
+
+    await mountPage()
+    await flushViewUpdates()
+
+    expect(mocks.traceBlockingPointSend).not.toHaveBeenCalled()
+  })
+
+  it('fetches blocking-point endpoint for blocked verdicts', async () => {
+    mocks.traceByTraceIdSend.mockResolvedValue({
+      ...createTraceDetail(),
+      summary: {
+        ...createTraceDetail().summary,
+        session_status: 'MANUAL_HOLD',
+        latest_timeline_action: 'MANUAL_HOLD',
+        latest_timeline_status: 'PENDING'
+      },
+      session: {
+        ...createTraceDetail().session!,
+        status: 'MANUAL_HOLD'
+      },
+      diagnosis_verdict: createDiagnosisVerdict({
+        state: 'blocked',
+        severity: 'danger',
+        title: '流程已阻塞',
+        summary: '存在明确阻塞点。',
+        requires_operator_action: true,
+        primary_action: '处理阻塞点',
+        blocking_point: 'command',
+        owner: 'device'
+      })
+    })
+
+    await mountPage()
+    await flushViewUpdates()
+
+    expect(mocks.traceBlockingPointSend).toHaveBeenCalled()
   })
 
   it('shows active cases when no case anchor is selected', async () => {

@@ -151,9 +151,9 @@
               <div class="trace-section__step">
                 <span class="trace-section__num">02</span>
                 <div>
-                  <div class="trace-section__title">Timeline 主叙事</div>
+                  <div class="trace-section__title">案件过程</div>
                   <div class="trace-section__desc">
-                    先看首次失败节点和最后成功节点，再沿时间线还原
+                    用业务语言还原案件推进，技术字段按需展开
                   </div>
                 </div>
               </div>
@@ -607,6 +607,10 @@ import {
   readPositiveInt,
   resolveRuntimeProgressLabel
 } from '@/utils/runtime-display'
+import {
+  buildRuntimeDiagnosisVerdict,
+  resolveRuntimeBlockingPointFetch
+} from '@/utils/runtime-diagnosis-verdict'
 
 const route = useRoute()
 const router = useRouter()
@@ -952,11 +956,15 @@ async function setTraceDetail(detail: TraceDetailResponse, requestSeq: number): 
   if (!isLatestTraceRequest(requestSeq)) return
   const nextDetail = normalizeTraceDetail(detail)
   traceDetail.value = nextDetail
+  const diagnosis = buildRuntimeDiagnosisVerdict({ detail: nextDetail })
+  activeTab.value = diagnosis.defaultTab
   const traceId = nextDetail.trace.trace_id ?? nextDetail.session?.trace_id ?? null
   const worklineId = nextDetail.session?.workline_id ?? nextDetail.trace.workline_id ?? null
   await normalizeRouteToSession(nextDetail)
   await Promise.all([
-    loadBlockingPoint(traceId, requestSeq),
+    resolveRuntimeBlockingPointFetch(diagnosis)
+      ? loadBlockingPoint(traceId, requestSeq)
+      : skipBlockingPoint(requestSeq),
     loadTracePath(traceId, requestSeq),
     loadWorklineDetail(worklineId, requestSeq)
   ])
@@ -1015,6 +1023,14 @@ async function loadBlockingPoint(traceId: string | null, requestSeq: number): Pr
       blockingPointLoading.value = false
     }
   }
+}
+
+function skipBlockingPoint(requestSeq: number): void {
+  if (!isLatestTraceRequest(requestSeq)) {
+    return
+  }
+  blockingPoint.value = null
+  blockingPointLoading.value = false
 }
 
 async function loadTracePath(traceId: string | null, requestSeq: number): Promise<void> {

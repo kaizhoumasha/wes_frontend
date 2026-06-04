@@ -1,16 +1,22 @@
 import type {
+  DiagnosisEvidenceHealthItem,
   RuntimeTracePathResponse,
   TraceBlockingPointResponse,
   TraceCommandItem,
   TraceDetailResponse,
   TraceTimelineItem
 } from '@/types/runtime'
-import { compactEnumLabel, isActiveStatus, isFailureStatus } from '@/utils/runtime-display'
+import { compactEnumLabel, isFailureStatus } from '@/utils/runtime-display'
+import {
+  buildRuntimeDiagnosisVerdict,
+  type RuntimeDiagnosisVerdictViewModel
+} from '@/utils/runtime-diagnosis-verdict'
 import { translateAction } from '@/utils/runtime-labels'
 
 export type RuntimeTraceTopologyVerdict = 'success' | 'danger' | 'warning' | 'primary' | 'info'
 export type RuntimeTraceTopologyNodeState =
   | 'completed'
+  | 'final'
   | 'current'
   | 'exception'
   | 'pending'
@@ -34,12 +40,16 @@ export interface RuntimeTraceTopologyModel {
   verdictDescription: string
   optimisticPathLabel: string
   currentLabel: string
+  materialPositionLabel: string
+  materialPositionValue: string
   exceptionText: string
   operatorAction: string
   pathNodes: RuntimeTraceTopologyNode[]
   currentNode: RuntimeTraceTopologyNode | null
   exceptionNode: RuntimeTraceTopologyNode | null
   evidenceCounts: Array<{ label: string; value: number }>
+  evidenceHealth: DiagnosisEvidenceHealthItem[]
+  diagnosis: RuntimeDiagnosisVerdictViewModel
 }
 
 export interface BuildRuntimeTraceTopologyOptions {
@@ -65,14 +75,52 @@ function isCommandTimeline(item: TraceTimelineItem): boolean {
   return item.action_type === 'COMMAND_SENT' && Boolean(item.actor_code)
 }
 
+function inferActionFromDeviceCode(deviceCode?: string | null): string | null {
+  const normalized = deviceCode?.toUpperCase() ?? ''
+  if (normalized.includes('OUTPUT') || normalized.includes('OUT')) {
+    return 'PUT_TO_BIN'
+  }
+  if (normalized.includes('CONVEYOR')) {
+    return 'MOVE_FORWARD'
+  }
+  if (normalized.includes('INPUT') || normalized.includes('IN')) {
+    return 'PICK_AND_PUT'
+  }
+  return null
+}
+
 function commandLabel(command?: TraceCommandItem | null, timeline?: TraceTimelineItem | null): string {
   const payloadCommand = timeline?.payload_json?.command_type
-  const raw =
+  const rawCommand =
     command?.task_type ||
     command?.command_code ||
-    (typeof payloadCommand === 'string' ? payloadCommand : null) ||
-    timeline?.action_type
-  return compactEnumLabel(raw)
+    (typeof payloadCommand === 'string' ? payloadCommand : null)
+  const raw =
+    rawCommand ||
+    (timeline?.action_type === 'COMMAND_SENT'
+      ? inferActionFromDeviceCode(timeline.actor_code)
+      : timeline?.action_type)
+  return actionLabel(raw)
+}
+
+function actionLabel(action?: string | null): string {
+  if (!action) {
+    return '暂无动作证据'
+  }
+
+  const map: Record<string, string> = {
+    PICK_AND_PUT: '入料抓取',
+    MOVE_FORWARD: '输送前进',
+    PUT_TO_BIN: '投放到料箱',
+    COMMAND_SENT: '下发动作',
+    COMMAND_ACKED: '设备确认',
+    COMMAND_COMPLETED: '动作完成',
+    COMMAND_FAILED: '动作失败',
+    WAIT_STARTED: '等待回报',
+    SESSION_COMPLETED: '流程完成'
+  }
+
+  return map[action] || compactEnumLabel(action)
 }
 
 function isSameDeviceCode(left?: string | null, right?: string | null): boolean {
@@ -184,38 +232,6 @@ function findLatestCommandTimeline(detail: TraceDetailResponse): TraceTimelineIt
   return [...detail.timelines].sort(sortTimeline).reverse().find(isCommandTimeline) ?? null
 }
 
-function isFallbackUnknownBlockingPoint(blockingPoint?: TraceBlockingPointResponse | null): boolean {
-  if (!blockingPoint) {
-    return false
-  }
-
-  const diagnostic = blockingPoint.diagnostic_card
-  const hasNoConcretePoint =
-    blockingPoint.blocking_point === 'none' || blockingPoint.blocking_point === 'UNKNOWN'
-  return (
-    hasNoConcretePoint &&
-    diagnostic?.error_domain === 'SYSTEM' &&
-    diagnostic?.error_code === 'UNKNOWN'
-  )
-}
-
-function payloadText(item: TraceTimelineItem | null | undefined, key: string): string | undefined {
-  const value = item?.payload_json?.[key]
-  return typeof value === 'string' && value.trim() ? value : undefined
-}
-
-function blockingPointCode(blockingPoint?: TraceBlockingPointResponse | null): string | undefined {
-  if (!blockingPoint || isFallbackUnknownBlockingPoint(blockingPoint)) {
-    return undefined
-  }
-
-  if (blockingPoint.diagnostic_card?.error_code !== 'UNKNOWN') {
-    return blockingPoint.diagnostic_card.error_code
-  }
-
-  return blockingPoint.blocking_point || undefined
-}
-
 function resolveCurrentDeviceCode(
   detail: TraceDetailResponse,
   path?: RuntimeTracePathResponse | null,
@@ -247,91 +263,6 @@ function resolveCurrentDeviceCode(
   return null
 }
 
-function resolveVerdict(detail: TraceDetailResponse): RuntimeTraceTopologyVerdict {
-  const status = detail.session?.status ?? detail.summary.session_status
-  if (isFailureStatus(status) || detail.session?.failure_domain || detail.session?.failure_code) {
-    return 'danger'
-  }
-
-  if (status === 'COMPLETED' || detail.summary.latest_timeline_action === 'SESSION_COMPLETED') {
-    return 'success'
-  }
-
-  if (isActiveStatus(status) || isActiveStatus(detail.summary.latest_timeline_status)) {
-    return 'warning'
-  }
-
-  return 'info'
-}
-
-function verdictTitle(verdict: RuntimeTraceTopologyVerdict): string {
-  const map: Record<RuntimeTraceTopologyVerdict, string> = {
-    success: '流程已完成',
-    danger: '流程有异常',
-    warning: '流程等待中',
-    primary: '流程运行中',
-    info: '流程状态待确认'
-  }
-  return map[verdict]
-}
-
-function buildExceptionText(
-  detail: TraceDetailResponse,
-  blockingPoint?: TraceBlockingPointResponse | null,
-  verdict?: RuntimeTraceTopologyVerdict,
-  firstFailure?: TraceTimelineItem | null
-): string {
-  if (verdict === 'success') {
-    return '无异常'
-  }
-
-  const shouldUseBlockingPoint = !isFallbackUnknownBlockingPoint(blockingPoint)
-  const domain =
-    detail.session?.failure_domain ||
-    firstFailure?.failure_domain ||
-    (shouldUseBlockingPoint ? blockingPoint?.diagnostic_card?.error_domain : undefined) ||
-    undefined
-  const code =
-    detail.session?.failure_code ||
-    payloadText(firstFailure, 'reason_code') ||
-    (shouldUseBlockingPoint ? blockingPointCode(blockingPoint) : undefined) ||
-    firstFailure?.action_type ||
-    undefined
-  const message =
-    detail.session?.failure_message ||
-    firstFailure?.message ||
-    detail.summary.latest_timeline_message ||
-    (shouldUseBlockingPoint ? blockingPoint?.diagnostic_card?.summary : undefined) ||
-    (shouldUseBlockingPoint ? blockingPoint?.diagnostic_card?.user_message : undefined) ||
-    undefined
-
-  const prefix = [domain, code].filter(Boolean).join(' / ')
-  if (!prefix && !message) {
-    return '无异常'
-  }
-
-  return [prefix, message].filter(Boolean).join('：')
-}
-
-function buildOperatorAction(
-  detail: TraceDetailResponse,
-  blockingPoint: TraceBlockingPointResponse | null | undefined,
-  verdict: RuntimeTraceTopologyVerdict,
-  firstFailure: TraceTimelineItem | null
-): string {
-  if (verdict === 'success') {
-    return '无需处置'
-  }
-
-  return (
-    payloadText(firstFailure, 'suggested_action') ||
-    detail.session?.required_operator_action ||
-    blockingPoint?.operator_action ||
-    blockingPoint?.diagnostic_card?.operator_action ||
-    '查看阻塞点证据后处理'
-  )
-}
-
 function buildEvidenceCounts(detail: TraceDetailResponse): Array<{ label: string; value: number }> {
   return [
     { label: 'Timeline', value: detail.timelines.length },
@@ -350,7 +281,8 @@ export function buildRuntimeTraceTopology({
 }: BuildRuntimeTraceTopologyOptions): RuntimeTraceTopologyModel {
   const firstFailure = findFirstFailure(detail)
   const terminal = findTerminalTimeline(detail)
-  const verdict = resolveVerdict(detail)
+  const diagnosis = buildRuntimeDiagnosisVerdict({ detail, blockingPoint })
+  const verdict = diagnosis.topology.verdict
   const currentDeviceCode = resolveCurrentDeviceCode(detail, path, firstFailure)
   const detailSeeds = buildSeedsFromDetail(detail)
   const pathSeeds = buildSeedsFromPath(path, detailSeeds)
@@ -385,7 +317,9 @@ export function buildRuntimeTraceTopology({
       ? 'exception'
       : isCurrent && verdict !== 'success'
         ? 'current'
-        : verdict === 'success' || (currentIndex >= 0 && index < currentIndex)
+        : verdict === 'success' && index === seeds.length - 1
+          ? 'final'
+          : verdict === 'success' || (currentIndex >= 0 && index < currentIndex)
           ? 'completed'
           : 'pending'
 
@@ -410,21 +344,32 @@ export function buildRuntimeTraceTopology({
     null
   const exceptionNode = pathNodes.find(node => node.state === 'exception') ?? null
   const latestAction = translateAction(terminal?.action_type) || compactEnumLabel(terminal?.action_type)
+  const finalNode = pathNodes.find(node => node.state === 'final') ?? null
+  const materialPositionLabel = finalNode ? '最终落点' : '当前停留'
+  const materialPositionValue = finalNode
+    ? `${finalNode.deviceName} / ${finalNode.actionLabel || '流程完成'}`
+    : currentNode
+      ? `${currentNode.deviceName} / ${currentNode.actionLabel || '暂无动作证据'}`
+      : '暂无设备回报证据'
 
   return {
     verdict,
-    verdictTitle: verdictTitle(verdict),
+    verdictTitle: diagnosis.topology.verdictTitle,
     verdictDescription:
-      verdict === 'success'
+      verdict === 'success' && !detail.diagnosis_verdict
         ? `乐观路径已走完，最后事件为 ${latestAction || '流程完成'}。`
-        : `当前定位在 ${currentNode?.deviceName || '未知节点'}，请先看异常与下一步动作。`,
+        : diagnosis.topology.verdictDescription,
     optimisticPathLabel: pathNodes.map(node => node.deviceName).join(' → ') || '暂无设备路径',
     currentLabel: currentNode ? `${currentNode.stepLabel} · ${currentNode.deviceName}` : '未知位置',
-    exceptionText: buildExceptionText(detail, blockingPoint, verdict, firstFailure),
-    operatorAction: buildOperatorAction(detail, blockingPoint, verdict, firstFailure),
+    materialPositionLabel,
+    materialPositionValue,
+    exceptionText: diagnosis.topology.exceptionText,
+    operatorAction: diagnosis.topology.operatorAction,
     pathNodes,
     currentNode,
     exceptionNode,
-    evidenceCounts: buildEvidenceCounts(detail)
+    evidenceCounts: buildEvidenceCounts(detail),
+    evidenceHealth: diagnosis.evidenceHealth.items,
+    diagnosis
   }
 }
