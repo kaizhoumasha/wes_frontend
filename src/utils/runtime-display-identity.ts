@@ -62,3 +62,16 @@ export function displayTrace(input: {
   if (input.session_id != null) return `Session #${input.session_id}`
   return '未知 Trace'
 }
+
+export function displayCase(input: {
+  barcode?: string | null
+  session_code?: string | null
+  business_key?: string | null
+  session_id?: number | null
+}): string {
+  if (input.barcode) return input.barcode
+  if (input.session_code) return input.session_code
+  if (input.business_key) return input.business_key
+  if (input.session_id != null) return `SES-${input.session_id}`
+  return '未知案件'
+}

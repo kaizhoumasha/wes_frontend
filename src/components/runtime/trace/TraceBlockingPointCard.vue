@@ -6,12 +6,12 @@
     <template #header>
       <div class="trace-blocking-card__header">
         <div>
-          <div class="trace-blocking-card__eyebrow">现场处置</div>
-          <div class="trace-blocking-card__title">阻塞点诊断卡</div>
+          <div class="trace-blocking-card__eyebrow">{{ diagnosisView.card.headerEyebrow }}</div>
+          <div class="trace-blocking-card__title">{{ diagnosisView.card.headerTitle }}</div>
         </div>
         <RuntimeStatusBadge
-          :label="blockingPoint ? compactEnumLabel(blockingPoint.blocking_point) : '等待诊断'"
-          :tone="blockingTone"
+          :label="diagnosisView.card.badgeLabel"
+          :tone="diagnosisView.card.badgeTone"
           size="small"
         />
       </div>
@@ -29,21 +29,21 @@
     </div>
 
     <div
-      v-else-if="blockingPoint"
+      v-else
       class="trace-blocking-card__body"
     >
       <!-- 发生了什么 -->
       <div class="trace-blocking-card__message">
-        <span>{{ blockingPoint.diagnostic_card.title }}</span>
+        <span>{{ diagnosisView.card.title }}</span>
         <p>
-          {{ blockingPoint.diagnostic_card.user_message || blockingPoint.diagnostic_card.summary }}
+          {{ diagnosisView.card.message }}
         </p>
       </div>
 
       <!-- 该做什么 -->
       <div class="trace-blocking-card__action">
         <span>建议动作</span>
-        <strong>{{ blockingPoint.operator_action }}</strong>
+        <strong>{{ diagnosisView.card.operatorAction }}</strong>
       </div>
 
       <!-- 谁来处置 + 能否自动恢复 -->
@@ -54,7 +54,7 @@
         </div>
         <div class="trace-blocking-card__fact">
           <span>恢复方式</span>
-          <strong>{{ recoverabilityLabel }}</strong>
+          <strong>{{ diagnosisView.card.recoverabilityLabel }}</strong>
         </div>
       </div>
 
@@ -72,26 +72,22 @@
       </ol>
 
       <!-- 技术信息（工程师参考） -->
-      <details class="trace-blocking-card__tech">
+      <details
+        v-if="diagnosisView.card.showTechnicalInfo"
+        class="trace-blocking-card__tech"
+      >
         <summary>技术信息</summary>
         <div class="trace-blocking-card__tech-body">
           <div class="trace-blocking-card__tech-row">
             <span>Diagnostic Code</span>
-            <strong>{{ blockingPoint.diagnostic_card.error_code }}</strong>
+            <strong>{{ diagnosisView.card.errorCode }}</strong>
           </div>
           <div class="trace-blocking-card__tech-row">
             <span>Problem Class</span>
-            <strong>{{ compactEnumLabel(blockingPoint.diagnostic_card.problem_class) }}</strong>
+            <strong>{{ diagnosisView.card.problemClass }}</strong>
           </div>
         </div>
       </details>
-    </div>
-
-    <div
-      v-else
-      class="trace-blocking-card__empty"
-    >
-      当前 Trace 暂无阻塞点诊断卡。
     </div>
   </el-card>
 </template>
@@ -99,59 +95,59 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
-import type { TraceBlockingPointResponse } from '@/types/runtime'
-import type { RuntimeTone } from '@/utils/runtime-display'
-import { compactEnumLabel } from '@/utils/runtime-display'
+import type { TraceBlockingPointResponse, TraceDetailResponse } from '@/types/runtime'
+import { buildRuntimeDiagnosisVerdict } from '@/utils/runtime-diagnosis-verdict'
 
 const props = withDefaults(
   defineProps<{
     blockingPoint?: TraceBlockingPointResponse | null
+    detail?: TraceDetailResponse | null
     loading?: boolean
   }>(),
   {
     blockingPoint: null,
+    detail: null,
     loading: false
   }
 )
 
-const blockingTone = computed<RuntimeTone>(() => {
-  const point = props.blockingPoint?.blocking_point?.toUpperCase()
-  if (!point || point === 'NONE') return 'success'
-  if (point === 'SESSION') return 'warning'
-  return 'danger'
+const diagnosisView = computed(() =>
+  buildRuntimeDiagnosisVerdict({
+    detail: props.detail ?? emptyDetail(),
+    blockingPoint: props.blockingPoint
+  })
+)
+
+const ownerLabel = computed(() => {
+  return diagnosisView.value.card.ownerLabel
 })
 
 const nextSteps = computed(() => {
-  return (props.blockingPoint?.diagnostic_card.next_steps ?? []).filter(Boolean).slice(0, 5)
+  return diagnosisView.value.card.nextSteps
 })
 
-const OWNER_LABELS: Record<string, string> = {
-  DEVICE: '设备问题（联系设备维护）',
-  INTEGRATION: '接入集成问题（联系技术）',
-  WORKFLOW: '流程编排问题（联系技术）',
-  PLUGIN: '业务插件问题（联系技术）',
-  CONFIGURATION: '配置问题（联系运维）',
-  PLATFORM: '平台底层问题（联系技术支持）',
-  OPS: '运维操作（当前人员处理）',
-  OPERATOR: '运维操作（当前人员处理）'
+function emptyDetail(): TraceDetailResponse {
+  return {
+    trace: {},
+    summary: {
+      callback_logs: 0,
+      inboxes: 0,
+      commands: 0,
+      outboxes: 0,
+      timelines: 0,
+      diagnostics: 0
+    },
+    session: null,
+    sessions: [],
+    callback_logs: [],
+    inboxes: [],
+    commands: [],
+    outboxes: [],
+    dispatch_attempts: [],
+    timelines: [],
+    diagnostics: []
+  }
 }
-
-const RECOVERABILITY_LABELS: Record<string, string> = {
-  AUTO_RETRYABLE: '系统自动重试中，请等待',
-  MANUAL_RETRYABLE: '需人工触发重试',
-  MANUAL_INTERVENTION_REQUIRED: '需现场人工介入处理',
-  NON_RECOVERABLE: '当前流程不可恢复，需升级处理'
-}
-
-const ownerLabel = computed(() => {
-  const raw = props.blockingPoint?.owner?.toUpperCase() ?? ''
-  return OWNER_LABELS[raw] || compactEnumLabel(props.blockingPoint?.owner) || '—'
-})
-
-const recoverabilityLabel = computed(() => {
-  const raw = props.blockingPoint?.recoverability?.toUpperCase() ?? ''
-  return RECOVERABILITY_LABELS[raw] || compactEnumLabel(props.blockingPoint?.recoverability) || '—'
-})
 </script>
 
 <style scoped>

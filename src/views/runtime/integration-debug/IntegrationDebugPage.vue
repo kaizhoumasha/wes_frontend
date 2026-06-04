@@ -268,6 +268,7 @@ import { runtimeApiMethods } from '@/api/modules/runtime'
 import { env } from '@/config/env'
 import { useRuntimeSSEStore } from '@/stores/runtime-sse'
 import { createCoalescedAsyncTask } from '@/utils/createCoalescedAsyncTask'
+import { buildRuntimeCaseQuery } from '@/utils/runtime-route'
 import type { IntegrationDebugCaseResponse, IntegrationDebugNextAction } from '@/types/runtime'
 
 type AnchorType =
@@ -382,17 +383,20 @@ function stageLabel(state: string): string {
 
 function openTrace(item: IntegrationDebugCaseResponse): void {
   router.push({
-    name: 'RuntimeTraces',
-    query: {
-      traceId: item.trace_id || undefined,
-      sessionId: item.trace_id ? undefined : item.session_id ? String(item.session_id) : undefined,
-      commandCode: item.trace_id ? undefined : item.command_code || undefined
-    }
+    name: 'RuntimeCases',
+    query: buildRuntimeCaseQuery({
+      sessionId: item.session_id,
+      traceId: item.trace_id,
+      commandCode: item.command_code
+    })
   })
 }
 
 function openAction(action: IntegrationDebugNextAction): void {
-  if (action.route_name === 'RuntimeTraces' && selectedCase.value) {
+  if (
+    (action.route_name === 'RuntimeTraces' || action.route_name === 'RuntimeCases') &&
+    selectedCase.value
+  ) {
     openTrace(selectedCase.value)
   }
 }

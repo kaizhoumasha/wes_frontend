@@ -9,7 +9,7 @@ import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
 import { usePermission } from '@/composables/usePermission'
 import CrudPageContainer from '@/components/common/CrudPageContainer.vue'
 import { devicesApiMethods, type DevicesItem as Device } from '@/api/modules/devices'
-import { buildRuntimeWorklineQuery, buildRuntimeTraceQuery } from '@/utils/runtime-route'
+import { buildRuntimeCaseQuery, buildRuntimeWorklineQuery } from '@/utils/runtime-route'
 import { createDevicePageConfig } from './config/pageConfig'
 
 const router = useRouter()
@@ -33,13 +33,13 @@ function openRuntime(device: Device) {
 
 function openTrace(device: Device) {
   if (!canOpenTrace()) {
-    ElMessage.warning('你暂无工作线 Trace 查看权限，暂时无法进入 Trace 工作台')
+    ElMessage.warning('你暂无工作线运行案件查看权限，暂时无法进入运行案件处置台')
     return
   }
 
   router.push({
-    name: 'RuntimeMonitor',
-    query: buildRuntimeTraceQuery({
+    name: 'RuntimeCases',
+    query: buildRuntimeCaseQuery({
       deviceId: device.id,
       worklineId: device.work_line_id
     })

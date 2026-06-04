@@ -7,7 +7,7 @@
       <div>
         <h1 class="runtime-page__title">工作线监控</h1>
         <p class="runtime-page__subtitle">
-          选择工作线查看设备拓扑、活跃会话与失败链路。先看线体摘要，再下钻设备与 Trace。
+          选择工作线查看设备拓扑、活跃会话与失败链路。先看线体摘要，再下钻设备与运行案件。
         </p>
       </div>
     </div>
@@ -278,10 +278,10 @@ function openDevice(deviceId: number) {
 
 function openTrace(session: RuntimeTraceListItem) {
   router.push({
-    name: 'RuntimeTraces',
+    name: 'RuntimeCases',
     query: {
       sessionId: String(session.session_id),
-      traceId: session.trace_id ?? undefined,
+      traceId: undefined,
       worklineId: String(session.workline_id)
     }
   })

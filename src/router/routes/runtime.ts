@@ -49,18 +49,35 @@ export const runtimeRoutes: RouteRecordRaw = {
       }
     },
     {
-      path: 'traces',
-      name: 'RuntimeTraces',
-      component: () => import('@/views/runtime/traces/TraceExplorerPage.vue'),
+      path: 'cases',
+      name: 'RuntimeCases',
+      component: () => import('@/views/runtime/cases/CaseConsolePage.vue'),
       meta: {
         requiresAuth: true,
-        title: 'Trace 追溯',
+        title: '运行案件',
         permission: BIZ_PERMISSIONS.workline.page,
         menu: {
-          name: 'runtime:traces:menu',
+          name: 'runtime:cases:menu',
           parentName: 'runtime:system:menu',
           icon: 'ep:search',
           sortOrder: 3
+        }
+      }
+    },
+    {
+      path: 'traces',
+      name: 'RuntimeTraces',
+      redirect: to => ({
+        name: 'RuntimeCases',
+        query: to.query
+      }),
+      meta: {
+        requiresAuth: true,
+        title: '运行案件',
+        permission: BIZ_PERMISSIONS.workline.page,
+        menu: {
+          name: 'runtime:traces:compat',
+          hidden: true
         }
       }
     },

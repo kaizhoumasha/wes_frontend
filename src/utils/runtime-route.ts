@@ -35,6 +35,8 @@ export interface RuntimeTraceQueryInput {
   worklineId?: RuntimeRouteQueryValue
 }
 
+export type RuntimeCaseQueryInput = RuntimeTraceQueryInput
+
 export function buildRuntimeTraceQuery(query: RuntimeTraceQueryInput) {
   return {
     traceId: toRuntimeRouteQueryValue(query.traceId),
@@ -46,4 +48,23 @@ export function buildRuntimeTraceQuery(query: RuntimeTraceQueryInput) {
     deviceId: toRuntimeRouteQueryValue(query.deviceId),
     worklineId: toRuntimeRouteQueryValue(query.worklineId)
   }
+}
+
+export function buildRuntimeCaseQuery(query: RuntimeCaseQueryInput) {
+  const sessionId = toRuntimeRouteQueryValue(query.sessionId)
+
+  if (sessionId) {
+    return {
+      sessionId,
+      traceId: undefined,
+      requestId: undefined,
+      commandCode: undefined,
+      dispatchKey: undefined,
+      barcode: undefined,
+      worklineId: toRuntimeRouteQueryValue(query.worklineId),
+      deviceId: toRuntimeRouteQueryValue(query.deviceId)
+    }
+  }
+
+  return buildRuntimeTraceQuery(query)
 }

@@ -156,8 +156,8 @@ describe('runtime-priority', () => {
           entity: 'trace',
           id: 'repeat-201-SCAN',
           navigateTo: {
-            name: 'RuntimeTraces',
-            query: expect.objectContaining({ traceId: 'trace-a', worklineId: '101', mode: 'trace' })
+            name: 'RuntimeCases',
+            query: expect.objectContaining({ sessionId: '301', worklineId: '101', mode: 'trace' })
           }
         }),
         expect.objectContaining({
@@ -187,7 +187,7 @@ describe('runtime-priority', () => {
         id: 'trace',
         summary: '',
         context: '',
-        navigateTo: { name: 'RuntimeTraces', query: {} },
+        navigateTo: { name: 'RuntimeCases', query: {} },
         score: 1
       },
       {

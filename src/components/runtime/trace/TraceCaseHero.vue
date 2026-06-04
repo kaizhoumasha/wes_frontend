@@ -81,6 +81,7 @@ import {
 } from '@/utils/runtime-display'
 
 import {
+  displayCase,
   displaySession,
   displayTrace,
   displayWorkline,
@@ -107,8 +108,15 @@ const traceCode = computed(() =>
   })
 )
 const barcode = computed(() => props.detail.session?.barcode ?? null)
-const heroEyebrow = computed(() => (barcode.value ? '物料条码' : 'Trace 摘要'))
-const heroTitle = computed(() => barcode.value || sessionCode.value)
+const heroEyebrow = computed(() => (barcode.value ? '物料条码' : '运行案件'))
+const heroTitle = computed(() =>
+  displayCase({
+    barcode: barcode.value,
+    session_code: props.detail.session?.session_code,
+    business_key: props.detail.session?.business_key,
+    session_id: props.detail.trace.session_id
+  })
+)
 const heroSubCode = computed(() => (barcode.value ? sessionCode.value : traceCode.value))
 const runtimeProgress = computed(() =>
   resolveRuntimeProgressLabel({

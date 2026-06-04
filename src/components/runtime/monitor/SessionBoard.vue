@@ -65,7 +65,7 @@
 import { computed } from 'vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import type { RuntimeTraceListItem } from '@/types/runtime'
-import { displayTrace } from '@/utils/runtime-display-identity'
+import { displayCase } from '@/utils/runtime-display-identity'
 
 const props = defineProps<{
   activeSessions: RuntimeTraceListItem[]
@@ -114,11 +114,10 @@ const columns = computed(() => [
 import { formatRuntimeElapsed, resolveRuntimeProgressLabel } from '@/utils/runtime-display'
 
 function sessionIdentity(item: RuntimeTraceListItem): string {
-  return displayTrace({
+  return displayCase({
     barcode: item.barcode,
-    business_key: item.business_key,
-    trace_id: item.trace_id,
     session_code: item.session_code,
+    business_key: item.business_key,
     session_id: item.session_id
   })
 }

@@ -1,7 +1,16 @@
 <template>
   <div class="trace-timeline">
     <div
+      v-if="!sortedItems.length"
+      class="trace-timeline__empty"
+    >
+      <strong>暂无过程记录</strong>
+      <p>当前案件没有过程事件记录，系统已根据会话状态给出诊断结论。</p>
+    </div>
+
+    <div
       v-for="(group, gi) in groupedItems"
+      v-else
       :key="gi"
       class="trace-timeline__group"
     >
@@ -22,7 +31,6 @@
         </div>
 
         <article class="trace-timeline__card">
-          <!-- 头部：序号 + 时间 + 系统标记 -->
           <div class="trace-timeline__card-header">
             <div class="trace-timeline__header-left">
               <span class="trace-timeline__seq">第 {{ item.seq_no }} 步</span>
@@ -52,43 +60,70 @@
             </div>
           </div>
 
-          <!-- 触发来源：是什么事件进入了 Inbox -->
-          <div class="trace-timeline__trigger">
-            <span class="trace-timeline__trigger-tag">{{ actionTypeLabel(item.action_type) }}</span>
-            <!-- 只对 COMMAND_SENT 显示目标设备码，其他事件的 actor 是内部组件，对操作员无意义 -->
-            <span
-              v-if="item.action_type === 'COMMAND_SENT' && item.actor_code"
-              class="trace-timeline__trigger-actor"
-            >
-              {{ item.actor_code }}
-            </span>
-          </div>
-
-          <!-- 插件决策：到了哪个阶段，状态如何迁移 -->
-          <div class="trace-timeline__decision">
+          <div class="trace-timeline__event">
             <div class="trace-timeline__title-row">
-              <h4 class="trace-timeline__title">{{ translateStage(item.stage) }}</h4>
+              <h4 class="trace-timeline__title">{{ eventTitle(item) }}</h4>
               <RuntimeStatusBadge
                 :status="item.status"
+                :label="statusLabel(item.status)"
                 :tone="historicalTone(item)"
                 size="small"
               />
             </div>
-            <div
-              v-if="item.from_status || item.to_status"
-              class="trace-timeline__transition"
-            >
-              {{ transitionText(item) }}
-            </div>
+            <p class="trace-timeline__description">
+              {{ eventDescription(item) }}
+            </p>
           </div>
 
-          <!-- 补充说明 -->
-          <p
-            v-if="item.message"
-            class="trace-timeline__message"
+          <dl
+            v-if="eventFacts(item).length"
+            class="trace-timeline__facts"
           >
-            {{ item.message }}
-          </p>
+            <div
+              v-for="fact in eventFacts(item)"
+              :key="fact.label"
+              class="trace-timeline__fact"
+            >
+              <dt>{{ fact.label }}</dt>
+              <dd>{{ fact.value }}</dd>
+            </div>
+          </dl>
+
+          <details class="trace-timeline__tech">
+            <summary>技术细节</summary>
+            <dl class="trace-timeline__tech-grid">
+              <div>
+                <dt>Action</dt>
+                <dd>{{ item.action_type }}</dd>
+              </div>
+              <div>
+                <dt>Stage</dt>
+                <dd>{{ item.stage }}</dd>
+              </div>
+              <div>
+                <dt>Status</dt>
+                <dd>{{ item.status }}</dd>
+              </div>
+              <div v-if="item.actor_code">
+                <dt>Actor</dt>
+                <dd>{{ item.actor_code }}</dd>
+              </div>
+              <div v-if="item.trace_id">
+                <dt>Trace</dt>
+                <dd>{{ item.trace_id }}</dd>
+              </div>
+              <div v-if="item.related_command_id">
+                <dt>Command</dt>
+                <dd>#{{ item.related_command_id }}</dd>
+              </div>
+              <div v-if="payloadText(item)">
+                <dt>Payload</dt>
+                <dd>
+                  <pre>{{ payloadText(item) }}</pre>
+                </dd>
+              </div>
+            </dl>
+          </details>
         </article>
       </div>
     </div>
@@ -106,7 +141,11 @@ import {
   formatRuntimeDateTime,
   type RuntimeTone
 } from '@/utils/runtime-display'
-import { translateStage, translateSessionStatus } from '@/utils/runtime-labels'
+import {
+  translateAction,
+  translateFailureDomain,
+  translateSessionStatus
+} from '@/utils/runtime-labels'
 
 const props = withDefaults(
   defineProps<{
@@ -139,12 +178,15 @@ const groupedItems = computed((): TimelineGroup[] => {
       item.actor_code &&
       item.actor_code !== last?.deviceCode
     ) {
-      groups.push({ deviceCode: item.actor_code, deviceLabel: item.actor_code, items: [item] })
+      groups.push({
+        deviceCode: item.actor_code,
+        deviceLabel: `设备 ${item.actor_code}`,
+        items: [item]
+      })
     } else if (last) {
       last.items.push(item)
     } else {
-      // COMMAND_SENT 之前的初始系统处理步骤
-      groups.push({ deviceCode: null, deviceLabel: '系统初始化', items: [item] })
+      groups.push({ deviceCode: null, deviceLabel: '系统处理', items: [item] })
     }
   }
 
@@ -206,6 +248,112 @@ function transitionText(item: TraceTimelineItem) {
   return '—'
 }
 
+function statusLabel(status?: string | null): string {
+  return translateSessionStatus(status) || compactEnumLabel(status) || '—'
+}
+
+function eventTitle(item: TraceTimelineItem): string {
+  const map: Record<string, string> = {
+    SESSION_CREATED: '收到任务',
+    SESSION_STARTED: '开始处理',
+    SESSION_RESUMED: '恢复处理',
+    DECISION_MADE: '系统完成决策',
+    COMMAND_SENT: '下发设备动作',
+    COMMAND_ACKED: '设备已确认',
+    COMMAND_COMPLETED: '设备动作完成',
+    COMMAND_FAILED: '设备动作失败',
+    WAIT_STARTED: '等待设备回报',
+    WAIT_RESUMED: '继续等待设备回报',
+    WAIT_TIMEOUT: '等待超时',
+    TIMER_TIMEOUT: '等待超时',
+    EVENT_RECEIVED: '收到设备回报',
+    EVENT_PROCESSED: '设备回报已处理',
+    EVENT_FAILED: '设备回报处理失败',
+    SESSION_COMPLETED: '流程完成',
+    SESSION_FAILED: '流程终止',
+    SESSION_CANCELLED: '流程取消',
+    ERROR_OCCURRED: '处理异常',
+    MANUAL_HOLD: '转入人工处理',
+    MANUAL_OPERATION: '人工处理',
+    MANUAL_CANCEL: '人工取消',
+    MANUAL_RESUME: '恢复自动处理',
+    INTERNAL_SIGNAL: '系统内部通知'
+  }
+
+  return map[item.action_type] ?? translateAction(item.action_type) ?? actionTypeLabel(item.action_type)
+}
+
+function eventDescription(item: TraceTimelineItem): string {
+  if (isFailureStatus(item.status) && item.message) {
+    return item.message
+  }
+
+  const actor = item.actor_code ? ` ${item.actor_code}` : ''
+
+  const map: Record<string, string> = {
+    SESSION_CREATED: '系统已建立案件会话，准备接收后续处理步骤。',
+    SESSION_STARTED: '案件进入运行处理，系统开始推进流程。',
+    SESSION_RESUMED: '案件从暂停状态恢复，系统继续推进流程。',
+    DECISION_MADE: '系统已根据当前案件上下文选择下一步动作。',
+    COMMAND_SENT: item.actor_code
+      ? `已发送给 ${item.actor_code}，等待设备执行和回报。`
+      : '已向目标设备下发动作，等待设备执行和回报。',
+    COMMAND_ACKED: `设备${actor}已确认收到动作。`,
+    COMMAND_COMPLETED: `设备${actor}动作已完成，系统继续推进后续流程。`,
+    COMMAND_FAILED: item.message || `设备${actor}动作未完成，需要查看异常原因。`,
+    WAIT_STARTED: item.actor_code
+      ? `正在等待 ${item.actor_code} 回报执行结果。`
+      : '正在等待设备回报执行结果。',
+    WAIT_RESUMED: item.actor_code
+      ? `继续等待 ${item.actor_code} 回报执行结果。`
+      : '继续等待设备回报执行结果。',
+    WAIT_TIMEOUT: item.message || '超过预期时间仍未收到回报，需要确认设备或链路状态。',
+    TIMER_TIMEOUT: item.message || '超过预期时间仍未收到回报，需要确认设备或链路状态。',
+    EVENT_RECEIVED: item.actor_code
+      ? `已收到 ${item.actor_code} 的回报，系统开始处理。`
+      : '已收到设备回报，系统开始处理。',
+    EVENT_PROCESSED: '设备回报已纳入案件记录。',
+    EVENT_FAILED: item.message || '设备回报未能正常处理，需要查看异常原因。',
+    SESSION_COMPLETED: '全部已记录步骤结束，当前案件已完成。',
+    SESSION_FAILED: item.message || '流程已停止，需要按诊断结论处理。',
+    SESSION_CANCELLED: '流程已取消，后续动作不会继续执行。',
+    ERROR_OCCURRED: item.message || '处理过程中出现异常，需要查看诊断结论。',
+    MANUAL_HOLD: item.message || '系统已暂停自动推进，等待人工确认。',
+    MANUAL_OPERATION: item.message || '该步骤由人工介入处理。',
+    MANUAL_CANCEL: item.message || '人工取消了当前流程。',
+    MANUAL_RESUME: item.message || '人工确认后，系统恢复自动推进。',
+    INTERNAL_SIGNAL: item.message || '系统记录了一次内部状态通知。'
+  }
+
+  return map[item.action_type] ?? item.message ?? `${translateAction(item.action_type) || '该步骤'}已记录。`
+}
+
+function eventFacts(item: TraceTimelineItem): Array<{ label: string; value: string }> {
+  const facts: Array<{ label: string; value: string }> = []
+
+  if (item.from_status || item.to_status) {
+    facts.push({ label: '状态变化', value: transitionText(item) })
+  }
+
+  if (item.failure_domain) {
+    facts.push({ label: '异常类型', value: translateFailureDomain(item.failure_domain) })
+  }
+
+  if (item.actor_code && item.action_type !== 'COMMAND_SENT') {
+    facts.push({ label: '相关设备', value: item.actor_code })
+  }
+
+  return facts
+}
+
+function payloadText(item: TraceTimelineItem): string {
+  if (!item.payload_json || !Object.keys(item.payload_json).length) {
+    return ''
+  }
+
+  return JSON.stringify(item.payload_json, null, 2)
+}
+
 function actionTypeLabel(type?: string | null): string {
   const map: Record<string, string> = {
     // 编排器 / 插件内部事件（实际记录的类型）
@@ -235,6 +383,26 @@ function actionTypeLabel(type?: string | null): string {
   display: flex;
   flex-direction: column;
   gap: 0;
+}
+
+.trace-timeline__empty {
+  padding: 22px;
+  border: 1px dashed rgb(148, 163, 184, 0.22);
+  border-radius: 8px;
+  background: rgb(15, 23, 42, 0.46);
+}
+
+.trace-timeline__empty strong {
+  display: block;
+  color: var(--runtime-text-primary);
+  font-size: 15px;
+}
+
+.trace-timeline__empty p {
+  margin: 8px 0 0;
+  color: var(--runtime-text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .trace-timeline__group {
@@ -268,11 +436,10 @@ function actionTypeLabel(type?: string | null): string {
   border: 1px solid rgb(148, 163, 184, 0.15);
   border-radius: 999px;
   background: rgb(15, 23, 42, 0.8);
-  color: #64748b;
-  font-family: var(--font-mono);
+  color: var(--runtime-text-secondary);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0;
   white-space: nowrap;
 }
 
@@ -314,9 +481,9 @@ function actionTypeLabel(type?: string | null): string {
 }
 
 .trace-timeline__card {
-  padding: 18px;
+  padding: 16px;
   border: 1px solid rgb(245, 158, 11, 0.12);
-  border-radius: 16px;
+  border-radius: 8px;
   background: var(--runtime-surface-strong);
 }
 
@@ -339,8 +506,7 @@ function actionTypeLabel(type?: string | null): string {
   color: var(--runtime-text-muted);
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
 .trace-timeline__time {
@@ -348,37 +514,10 @@ function actionTypeLabel(type?: string | null): string {
   font-size: 12px;
 }
 
-.trace-timeline__trigger {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 14px;
-  flex-wrap: wrap;
-}
-
-.trace-timeline__trigger-tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  border: 1px solid var(--runtime-border);
-  border-radius: 999px;
-  background: var(--runtime-surface);
-  color: var(--runtime-text-secondary);
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.trace-timeline__trigger-actor {
-  color: var(--runtime-text-emphasis);
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.trace-timeline__decision {
+.trace-timeline__event {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .trace-timeline__title-row {
@@ -391,7 +530,8 @@ function actionTypeLabel(type?: string | null): string {
 .trace-timeline__title {
   margin: 0;
   color: var(--runtime-text-primary);
-  font-size: 18px;
+  font-size: 16px;
+  line-height: 1.35;
 }
 
 .trace-timeline__labels {
@@ -408,8 +548,7 @@ function actionTypeLabel(type?: string | null): string {
   border-radius: 999px;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
 .trace-timeline__marker--success {
@@ -427,17 +566,83 @@ function actionTypeLabel(type?: string | null): string {
   color: var(--runtime-badge-info-text);
 }
 
-.trace-timeline__transition {
+.trace-timeline__description {
+  margin: 0;
+  color: var(--runtime-text-secondary);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.trace-timeline__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 14px 0 0;
+}
+
+.trace-timeline__fact {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.trace-timeline__fact dt {
   color: var(--runtime-text-muted);
-  font-family: var(--font-mono);
   font-size: 12px;
 }
 
-.trace-timeline__message {
-  margin-top: 14px;
+.trace-timeline__fact dd {
+  margin: 0;
   color: var(--runtime-text-primary);
-  font-size: 13px;
-  line-height: 1.7;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.trace-timeline__tech {
+  margin-top: 14px;
+  border-top: 1px solid rgb(148, 163, 184, 0.1);
+  padding-top: 10px;
+}
+
+.trace-timeline__tech summary {
+  width: max-content;
+  cursor: pointer;
+  color: var(--runtime-text-muted);
+  font-size: 12px;
+}
+
+.trace-timeline__tech-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
+  margin: 10px 0 0;
+}
+
+.trace-timeline__tech-grid div {
+  min-width: 0;
+}
+
+.trace-timeline__tech-grid dt {
+  color: var(--runtime-text-muted);
+  font-size: 11px;
+}
+
+.trace-timeline__tech-grid dd {
+  margin: 2px 0 0;
+  color: var(--runtime-text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.trace-timeline__tech-grid pre {
+  max-height: 180px;
+  margin: 0;
+  overflow: auto;
+  color: inherit;
+  font: inherit;
+  white-space: pre-wrap;
 }
 
 .trace-timeline__item.is-primary .trace-timeline__dot {

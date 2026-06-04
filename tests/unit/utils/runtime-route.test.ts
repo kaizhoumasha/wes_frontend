@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { buildRuntimeTraceQuery, buildRuntimeWorklineQuery } from '@/utils/runtime-route'
+import {
+  buildRuntimeCaseQuery,
+  buildRuntimeTraceQuery,
+  buildRuntimeWorklineQuery
+} from '@/utils/runtime-route'
 
 describe('runtime-route', () => {
   it('keeps workline and device selection query values shareable as strings', () => {
@@ -28,6 +32,27 @@ describe('runtime-route', () => {
       commandCode: undefined,
       dispatchKey: 'dispatch-1',
       barcode: 'PKG-001',
+      worklineId: '101',
+      deviceId: '201'
+    })
+  })
+
+  it('builds case lookup queries with session id as the normalized primary anchor', () => {
+    expect(
+      buildRuntimeCaseQuery({
+        traceId: 'trace-001',
+        sessionId: 301,
+        requestId: 'req-001',
+        worklineId: 101,
+        deviceId: 201
+      })
+    ).toEqual({
+      sessionId: '301',
+      traceId: undefined,
+      requestId: undefined,
+      commandCode: undefined,
+      dispatchKey: undefined,
+      barcode: undefined,
       worklineId: '101',
       deviceId: '201'
     })
