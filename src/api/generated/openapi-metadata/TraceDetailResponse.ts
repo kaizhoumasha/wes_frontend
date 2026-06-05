@@ -15,7 +15,8 @@ export const TraceDetailResponseMetadata = {
   "title": "TraceDetailResponse",
   "required": [
     "trace",
-    "summary"
+    "summary",
+    "diagnosis_verdict"
   ],
   "fields": {
     "trace": {
@@ -28,10 +29,10 @@ export const TraceDetailResponseMetadata = {
       "nullable": false,
       "ref": "TraceOverviewSummary"
     },
-    "session": {
-      "required": false,
-      "nullable": true,
-      "ref": "TraceSessionItem"
+    "diagnosis_verdict": {
+      "required": true,
+      "nullable": false,
+      "ref": "DiagnosisVerdictResponse"
     },
     "sessions": {
       "title": "Sessions",

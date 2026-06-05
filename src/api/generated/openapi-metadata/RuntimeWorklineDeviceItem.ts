@@ -98,6 +98,30 @@ export const RuntimeWorklineDeviceItemMetadata = {
       "nullable": false,
       "default": 0
     },
+    "blocked_reason": {
+      "title": "Blocked Reason",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "blocked_wait_seconds": {
+      "title": "Blocked Wait Seconds",
+      "type": "integer",
+      "required": false,
+      "nullable": true
+    },
+    "blocked_check_count": {
+      "title": "Blocked Check Count",
+      "type": "integer",
+      "required": false,
+      "nullable": true
+    },
+    "blocked_detail_json": {
+      "title": "Blocked Detail Json",
+      "type": "object",
+      "required": false,
+      "nullable": true
+    },
     "open_issue_count": {
       "title": "Open Issue Count",
       "type": "integer",

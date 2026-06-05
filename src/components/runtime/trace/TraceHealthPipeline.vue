@@ -56,7 +56,7 @@ interface PipelineStage {
 const stages = computed<PipelineStage[]>(() => {
   const d = props.detail
   const s = d.summary
-  const session = d.session
+  const session = d.sessions[0] ?? null
   const hasFailed = s.session_status === 'FAILED'
   const isCompleted = s.session_status === 'COMPLETED' || s.session_status === 'CANCELLED'
 

@@ -415,8 +415,8 @@ export interface DiagnosisEvidenceHealthItem {
 export interface DiagnosisEvidenceHealth {
   level: DiagnosisEvidenceHealthLevel
   summary: string
-  missing: string[]
-  items: DiagnosisEvidenceHealthItem[]
+  missing?: string[]
+  items?: DiagnosisEvidenceHealthItem[]
 }
 
 export interface DiagnosisVerdict {
@@ -435,19 +435,18 @@ export interface TraceBlockingPointResponse {
   trace_id: string
   request_id?: string | null
   blocking_point: string
+  diagnosis_verdict: DiagnosisVerdict
   owner: string
   recoverability: string
   operator_action: string
   diagnostic_card: DiagnosticCardResponse
-  evidence: Record<string, unknown>
-  next_steps: string[]
-  diagnosis_verdict?: DiagnosisVerdict | null
+  evidence?: Record<string, unknown>
+  next_steps?: string[]
 }
 
 export interface TraceDetailResponse {
   trace: TraceContextResponse
   summary: TraceOverviewSummary
-  session?: TraceSessionItem | null
   sessions: TraceSessionItem[]
   callback_logs: TraceCallbackLogItem[]
   inboxes: TraceInboxItem[]
@@ -456,7 +455,7 @@ export interface TraceDetailResponse {
   dispatch_attempts: TraceDispatchAttemptItem[]
   timelines: TraceTimelineItem[]
   diagnostics: TraceDiagnosticItem[]
-  diagnosis_verdict?: DiagnosisVerdict | null
+  diagnosis_verdict: DiagnosisVerdict
 }
 
 export interface RuntimeWorklineSummary {
@@ -711,7 +710,7 @@ export interface RuntimeTraceDevicePathNode {
   device_name?: string | null
   device_role?: string | null
   is_current: boolean
-  actions: RuntimeTraceDeviceAction[]
+  actions?: RuntimeTraceDeviceAction[]
 }
 
 export interface RuntimeTraceTimelineGroup {
@@ -722,7 +721,7 @@ export interface RuntimeTraceTimelineGroup {
   device_code?: string | null
   is_current: boolean
   is_blocked: boolean
-  events: TraceTimelineItem[]
+  events?: TraceTimelineItem[]
 }
 
 export interface RuntimeBlockingReason {
@@ -731,15 +730,51 @@ export interface RuntimeBlockingReason {
   detail?: string | null
 }
 
+export interface RuntimeActiveBinRackCellView {
+  bin_cell_index?: number | string | null
+  bin_cell_code?: string | null
+  bin_cell_location?: string | null
+  status?: string | null
+  capacity_depth_mm?: number | null
+  used_depth_mm?: number | null
+  material_identity_key?: string | null
+  pkg_code?: string | null
+  is_reserved?: boolean | null
+}
+
+export interface RuntimeActiveBinRackBinView {
+  rack_slot_code?: string | null
+  rack_slot_location_code?: string | null
+  bin_id?: number | string | null
+  bin_code?: string | null
+  bin_type?: string | null
+  bin_orientation_code?: string | null
+  cells?: RuntimeActiveBinRackCellView[]
+}
+
+export interface RuntimeActiveBinRackView {
+  rack_id?: number | string | null
+  rack_code?: string | null
+  rack_kind?: string | null
+  rack_type?: string | null
+  bins?: RuntimeActiveBinRackBinView[]
+}
+
+export interface RuntimeTraceResourceView {
+  active_bin_racks?: RuntimeActiveBinRackView[]
+}
+
 export interface RuntimeTracePathResponse {
   workline_id?: number | null
   session_id?: number | null
   trace_id?: string | null
-  devices: RuntimeTraceDevicePathNode[]
-  timeline_groups: RuntimeTraceTimelineGroup[]
+  diagnosis_verdict: DiagnosisVerdict
+  sessions?: TraceSessionItem[]
+  resource_view?: RuntimeTraceResourceView
+  devices?: RuntimeTraceDevicePathNode[]
+  timeline_groups?: RuntimeTraceTimelineGroup[]
   current_blocking_device_id?: number | null
   blocking_reason?: RuntimeBlockingReason | null
-  evidence?: TraceDetailResponse | null
 }
 
 export interface SandboxEventRequest {

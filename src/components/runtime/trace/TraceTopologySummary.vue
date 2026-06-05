@@ -12,7 +12,7 @@
         <div class="trace-topology-summary__title-row">
           <h2 class="trace-topology-summary__title">{{ heroTitle }}</h2>
           <RuntimeStatusBadge
-            :status="detail.summary.session_status || detail.session?.status"
+            :status="detail.summary.session_status || primarySession?.status"
             size="small"
             pulse
           />
@@ -177,6 +177,7 @@ const props = withDefaults(
 )
 
 const selectedDeviceId = ref<number | null>(null)
+const primarySession = computed(() => props.detail.sessions[0] ?? null)
 
 const model = computed(() =>
   buildRuntimeTraceTopology({
@@ -188,9 +189,9 @@ const model = computed(() =>
 
 const heroTitle = computed(() => {
   return displayCase({
-    barcode: props.detail.session?.barcode,
-    session_code: props.detail.session?.session_code,
-    business_key: props.detail.session?.business_key,
+    barcode: primarySession.value?.barcode,
+    session_code: primarySession.value?.session_code,
+    business_key: primarySession.value?.business_key,
     session_id: props.detail.trace.session_id
   })
 })
@@ -198,7 +199,7 @@ const heroTitle = computed(() => {
 const anchorText = computed(() =>
   displayTrace({
     trace_id: props.detail.trace.trace_id,
-    session_code: props.detail.session?.session_code,
+    session_code: primarySession.value?.session_code,
     session_id: props.detail.trace.session_id
   })
 )

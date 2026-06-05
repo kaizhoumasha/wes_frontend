@@ -11,7 +11,6 @@ import {
   buildRuntimeDiagnosisVerdict,
   type RuntimeDiagnosisVerdictViewModel
 } from '@/utils/runtime-diagnosis-verdict'
-import { translateAction } from '@/utils/runtime-labels'
 
 export type RuntimeTraceTopologyVerdict = 'success' | 'danger' | 'warning' | 'primary' | 'info'
 export type RuntimeTraceTopologyNodeState =
@@ -223,11 +222,6 @@ function findFirstFailure(detail: TraceDetailResponse): TraceTimelineItem | null
   )
 }
 
-function findTerminalTimeline(detail: TraceDetailResponse): TraceTimelineItem | null {
-  const sorted = [...detail.timelines].sort(sortTimeline)
-  return sorted[sorted.length - 1] ?? null
-}
-
 function findLatestCommandTimeline(detail: TraceDetailResponse): TraceTimelineItem | null {
   return [...detail.timelines].sort(sortTimeline).reverse().find(isCommandTimeline) ?? null
 }
@@ -280,8 +274,11 @@ export function buildRuntimeTraceTopology({
   path = null
 }: BuildRuntimeTraceTopologyOptions): RuntimeTraceTopologyModel {
   const firstFailure = findFirstFailure(detail)
-  const terminal = findTerminalTimeline(detail)
-  const diagnosis = buildRuntimeDiagnosisVerdict({ detail, blockingPoint })
+  const diagnosis = buildRuntimeDiagnosisVerdict({
+    detail,
+    verdict: path?.diagnosis_verdict ?? detail.diagnosis_verdict,
+    blockingPoint
+  })
   const verdict = diagnosis.topology.verdict
   const currentDeviceCode = resolveCurrentDeviceCode(detail, path, firstFailure)
   const detailSeeds = buildSeedsFromDetail(detail)
@@ -343,7 +340,6 @@ export function buildRuntimeTraceTopology({
     pathNodes[pathNodes.length - 1] ??
     null
   const exceptionNode = pathNodes.find(node => node.state === 'exception') ?? null
-  const latestAction = translateAction(terminal?.action_type) || compactEnumLabel(terminal?.action_type)
   const finalNode = pathNodes.find(node => node.state === 'final') ?? null
   const materialPositionLabel = finalNode ? '最终落点' : '当前停留'
   const materialPositionValue = finalNode
@@ -355,10 +351,7 @@ export function buildRuntimeTraceTopology({
   return {
     verdict,
     verdictTitle: diagnosis.topology.verdictTitle,
-    verdictDescription:
-      verdict === 'success' && !detail.diagnosis_verdict
-        ? `乐观路径已走完，最后事件为 ${latestAction || '流程完成'}。`
-        : diagnosis.topology.verdictDescription,
+    verdictDescription: diagnosis.topology.verdictDescription,
     optimisticPathLabel: pathNodes.map(node => node.deviceName).join(' → ') || '暂无设备路径',
     currentLabel: currentNode ? `${currentNode.stepLabel} · ${currentNode.deviceName}` : '未知位置',
     materialPositionLabel,

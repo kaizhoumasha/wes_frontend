@@ -67,21 +67,21 @@
           {{ getBlockedOutboxCount(device) }} 已停靠
         </div>
         <div
-          v-if="isTraced(device.id) && traceNodeFor(device.id)?.actions.length"
+          v-if="isTraced(device.id) && traceActionsFor(device.id).length"
           class="workline-route-map__trace-actions"
         >
           <span
-            v-for="(action, idx) in traceNodeFor(device.id)!.actions.slice(0, 3)"
+            v-for="(action, idx) in traceActionsFor(device.id).slice(0, 3)"
             :key="idx"
             class="workline-route-map__trace-action"
           >
             {{ action.label }}
           </span>
           <span
-            v-if="traceNodeFor(device.id)!.actions.length > 3"
+            v-if="traceActionsFor(device.id).length > 3"
             class="workline-route-map__trace-more"
           >
-            +{{ traceNodeFor(device.id)!.actions.length - 3 }}
+            +{{ traceActionsFor(device.id).length - 3 }}
           </span>
         </div>
         <div
@@ -112,7 +112,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
-import type { RuntimeTraceDevicePathNode, RuntimeWorklineDeviceItem } from '@/types/runtime'
+import type {
+  RuntimeTraceDeviceAction,
+  RuntimeTraceDevicePathNode,
+  RuntimeWorklineDeviceItem
+} from '@/types/runtime'
 import { resolveRuntimeTone } from '@/utils/runtime-display'
 
 const props = withDefaults(
@@ -186,6 +190,10 @@ function isBlocking(deviceId: number) {
 
 function traceNodeFor(deviceId: number): RuntimeTraceDevicePathNode | undefined {
   return props.tracePathNodes.find(n => n.device_id === deviceId)
+}
+
+function traceActionsFor(deviceId: number): RuntimeTraceDeviceAction[] {
+  return traceNodeFor(deviceId)?.actions ?? []
 }
 
 function statusClass(status: string) {

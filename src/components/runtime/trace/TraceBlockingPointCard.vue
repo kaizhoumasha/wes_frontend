@@ -95,18 +95,24 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
-import type { TraceBlockingPointResponse, TraceDetailResponse } from '@/types/runtime'
+import type {
+  DiagnosisVerdict,
+  TraceBlockingPointResponse,
+  TraceDetailResponse
+} from '@/types/runtime'
 import { buildRuntimeDiagnosisVerdict } from '@/utils/runtime-diagnosis-verdict'
 
 const props = withDefaults(
   defineProps<{
     blockingPoint?: TraceBlockingPointResponse | null
     detail?: TraceDetailResponse | null
+    diagnosisVerdict?: DiagnosisVerdict | null
     loading?: boolean
   }>(),
   {
     blockingPoint: null,
     detail: null,
+    diagnosisVerdict: null,
     loading: false
   }
 )
@@ -114,6 +120,7 @@ const props = withDefaults(
 const diagnosisView = computed(() =>
   buildRuntimeDiagnosisVerdict({
     detail: props.detail ?? emptyDetail(),
+    verdict: props.diagnosisVerdict ?? props.detail?.diagnosis_verdict ?? null,
     blockingPoint: props.blockingPoint
   })
 )
@@ -137,7 +144,6 @@ function emptyDetail(): TraceDetailResponse {
       timelines: 0,
       diagnostics: 0
     },
-    session: null,
     sessions: [],
     callback_logs: [],
     inboxes: [],
@@ -145,7 +151,23 @@ function emptyDetail(): TraceDetailResponse {
     outboxes: [],
     dispatch_attempts: [],
     timelines: [],
-    diagnostics: []
+    diagnostics: [],
+    diagnosis_verdict: {
+      state: 'unknown',
+      severity: 'warning',
+      title: '后端诊断缺失',
+      summary: 'Trace 响应缺少 diagnosis_verdict，无法展示后端诊断结论。',
+      requires_operator_action: false,
+      primary_action: '刷新 Trace 或检查后端契约',
+      blocking_point: 'unknown',
+      owner: 'system',
+      evidence_health: {
+        level: 'missing',
+        summary: '后端诊断契约缺失',
+        missing: ['diagnosis_verdict'],
+        items: []
+      }
+    }
   }
 }
 </script>

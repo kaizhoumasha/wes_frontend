@@ -29,6 +29,26 @@ describe('TraceFocusPanel timeline groups', () => {
       workline_id: 45,
       session_id: 20,
       trace_id: 'trace-20',
+      diagnosis_verdict: {
+        state: 'completed_clear',
+        severity: 'success',
+        title: '流程已完成',
+        summary: '当前案件已正常结束，未发现阻塞点。',
+        requires_operator_action: false,
+        primary_action: '无需现场处置',
+        blocking_point: 'none',
+        owner: null,
+        evidence_health: {
+          level: 'complete',
+          summary: '证据完整',
+          missing: [],
+          items: []
+        }
+      },
+      sessions: [],
+      resource_view: {
+        active_bin_racks: []
+      },
       devices: [],
       timeline_groups: [
         {
@@ -46,7 +66,18 @@ describe('TraceFocusPanel timeline groups', () => {
               action_type: 'SESSION_CREATED',
               actor_type: 'ORCHESTRATOR',
               status: 'SUCCESS',
-              related_inbox_id: 901
+              related_inbox_id: 901,
+              payload_json: {
+                data: {
+                  PkgID: 'PKG-001',
+                  HHPN: '620100L00-011-G',
+                  MfrPN: 'CC0402JRNPO9BN220',
+                  Qty: '7387',
+                  LotCode: '8904936031',
+                  DateCode: '122625',
+                  location: 'ARM03'
+                }
+              }
             }
           ]
         },
@@ -119,41 +150,7 @@ describe('TraceFocusPanel timeline groups', () => {
             }
           ]
         }
-      ],
-      evidence: {
-        trace: {},
-        summary: {},
-        session: null,
-        sessions: [],
-        callback_logs: [],
-        inboxes: [
-          {
-            id: 901,
-            workline_id: 45,
-            device_id: 301,
-            device_code: 'ARM03',
-            event_type: 'SCAN_COMPLETED',
-            status: 'PROCESSED',
-            received_at: '2026-05-07T01:00:00Z',
-            payload_json: {
-              data: {
-                PkgID: 'PKG-001',
-                HHPN: '620100L00-011-G',
-                MfrPN: 'CC0402JRNPO9BN220',
-                Qty: '7387',
-                LotCode: '8904936031',
-                DateCode: '122625',
-                location: 'ARM03'
-              }
-            }
-          }
-        ],
-        commands: [],
-        outboxes: [],
-        dispatch_attempts: [],
-        timelines: [],
-        diagnostics: []
-      }
+      ]
     })
   })
 
@@ -168,7 +165,6 @@ describe('TraceFocusPanel timeline groups', () => {
       },
       global: {
         stubs: {
-          TraceHealthPipeline: true,
           ElCard: { template: '<section><slot name="header" /><slot /></section>' },
           ElButton: { template: '<button><slot /></button>' },
           ElCheckbox: { template: '<label><slot /></label>' }
@@ -194,7 +190,6 @@ describe('TraceFocusPanel timeline groups', () => {
       },
       global: {
         stubs: {
-          TraceHealthPipeline: true,
           ElCard: { template: '<section><slot name="header" /><slot /></section>' },
           ElButton: { template: '<button><slot /></button>' },
           ElCheckbox: { template: '<label><slot /></label>' }
@@ -227,7 +222,6 @@ describe('TraceFocusPanel timeline groups', () => {
       },
       global: {
         stubs: {
-          TraceHealthPipeline: true,
           ElCard: { template: '<section><slot name="header" /><slot /></section>' },
           ElButton: { template: '<button><slot /></button>' },
           ElCheckbox: { template: '<label><slot /></label>' }
@@ -256,7 +250,6 @@ describe('TraceFocusPanel timeline groups', () => {
       },
       global: {
         stubs: {
-          TraceHealthPipeline: true,
           ElCard: { template: '<section><slot name="header" /><slot /></section>' },
           ElButton: { template: '<button><slot /></button>' },
           ElCheckbox: { template: '<label><slot /></label>' }
@@ -287,7 +280,6 @@ describe('TraceFocusPanel timeline groups', () => {
       },
       global: {
         stubs: {
-          TraceHealthPipeline: true,
           ElCard: { template: '<section><slot name="header" /><slot /></section>' },
           ElButton: { template: '<button><slot /></button>' },
           ElCheckbox: { template: '<label><slot /></label>' }
@@ -311,7 +303,6 @@ describe('TraceFocusPanel timeline groups', () => {
       },
       global: {
         stubs: {
-          TraceHealthPipeline: true,
           ElCard: { template: '<section><slot name="header" /><slot /></section>' },
           ElButton: { template: '<button><slot /></button>' },
           ElCheckbox: { template: '<label><slot /></label>' }
@@ -327,5 +318,152 @@ describe('TraceFocusPanel timeline groups', () => {
     expect(text).toContain('620100L00-011-G')
     expect(text).toContain('CC0402JRNPO9BN220')
     expect(text).toContain('7387')
+  })
+
+  it('renders path response when device actions or timeline group events are omitted', async () => {
+    mocks.send.mockResolvedValueOnce({
+      workline_id: 45,
+      session_id: 20,
+      trace_id: 'trace-20',
+      diagnosis_verdict: {
+        state: 'completed_clear',
+        severity: 'success',
+        title: '流程已完成',
+        summary: '当前案件已正常结束，未发现阻塞点。',
+        requires_operator_action: false,
+        primary_action: '无需现场处置',
+        blocking_point: 'none',
+        owner: null,
+        evidence_health: {
+          level: 'complete',
+          summary: '证据完整',
+          missing: [],
+          items: []
+        }
+      },
+      resource_view: {
+        active_bin_racks: []
+      },
+      devices: [
+        {
+          device_id: 301,
+          device_name: '设备 #301',
+          is_current: true
+        }
+      ],
+      timeline_groups: [
+        {
+          group_key: 'device:301',
+          group_type: 'device',
+          display_name: '设备 #301',
+          device_id: 301,
+          is_current: true,
+          is_blocked: false
+        }
+      ]
+    })
+
+    const { default: TraceFocusPanel } =
+      await import('@/components/runtime/trace/TraceFocusPanel.vue')
+
+    const wrapper = mount(TraceFocusPanel, {
+      props: {
+        worklineId: 45,
+        sessionId: 20
+      },
+      global: {
+        stubs: {
+          ElCard: { template: '<section><slot name="header" /><slot /></section>' },
+          ElButton: { template: '<button><slot /></button>' },
+          ElCheckbox: { template: '<label><slot /></label>' }
+        }
+      }
+    })
+
+    await flushAsync()
+
+    const text = wrapper.text()
+    expect(text).toContain('设备 #301')
+    expect(text).toContain('未参与执行')
+    expect(text).toContain('0 条事件')
+    expect(text).toContain('暂无资源快照')
+  })
+
+  it('renders resource snapshot when racks or bins omit optional children', async () => {
+    mocks.send.mockResolvedValueOnce({
+      workline_id: 45,
+      session_id: 20,
+      trace_id: 'trace-20',
+      diagnosis_verdict: {
+        state: 'completed_clear',
+        severity: 'success',
+        title: '流程已完成',
+        summary: '当前案件已正常结束，未发现阻塞点。',
+        requires_operator_action: false,
+        primary_action: '无需现场处置',
+        blocking_point: 'none',
+        owner: null,
+        evidence_health: {
+          level: 'complete',
+          summary: '证据完整',
+          missing: [],
+          items: []
+        }
+      },
+      resource_view: {
+        active_bin_racks: [
+          {
+            rack_code: 'RACK-A'
+          },
+          {
+            rack_code: 'RACK-B',
+            bins: [
+              {
+                bin_code: 'BIN-1'
+              },
+              {
+                bin_code: 'BIN-2',
+                cells: [
+                  {
+                    bin_cell_code: 'A1',
+                    pkg_code: 'PKG-009'
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      devices: [],
+      timeline_groups: []
+    })
+
+    const { default: TraceFocusPanel } =
+      await import('@/components/runtime/trace/TraceFocusPanel.vue')
+
+    const wrapper = mount(TraceFocusPanel, {
+      props: {
+        worklineId: 45,
+        sessionId: 20
+      },
+      global: {
+        stubs: {
+          ElCard: { template: '<section><slot name="header" /><slot /></section>' },
+          ElButton: { template: '<button><slot /></button>' },
+          ElCheckbox: { template: '<label><slot /></label>' }
+        }
+      }
+    })
+
+    await flushAsync()
+
+    const text = wrapper.text()
+    expect(text).toContain('资源快照')
+    expect(text).toContain('2 个货架')
+    expect(text).toContain('2 个料箱')
+    expect(text).toContain('1 个格口')
+    expect(text).toContain('RACK-A')
+    expect(text).toContain('BIN-2')
+    expect(text).toContain('PKG-009')
   })
 })
