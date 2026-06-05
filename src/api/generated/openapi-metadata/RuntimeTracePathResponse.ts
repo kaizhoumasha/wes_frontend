@@ -13,7 +13,9 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
 export const RuntimeTracePathResponseMetadata = {
   "title": "RuntimeTracePathResponse",
-  "required": [],
+  "required": [
+    "diagnosis_verdict"
+  ],
   "fields": {
     "workline_id": {
       "title": "Workline Id",
@@ -32,6 +34,25 @@ export const RuntimeTracePathResponseMetadata = {
       "type": "string",
       "required": false,
       "nullable": true
+    },
+    "diagnosis_verdict": {
+      "required": true,
+      "nullable": false,
+      "ref": "DiagnosisVerdictResponse"
+    },
+    "sessions": {
+      "title": "Sessions",
+      "type": "array",
+      "required": false,
+      "nullable": false,
+      "items": {
+        "ref": "TraceSessionItem"
+      }
+    },
+    "resource_view": {
+      "required": false,
+      "nullable": false,
+      "ref": "RuntimeTraceResourceView"
     },
     "devices": {
       "title": "Devices",
@@ -61,11 +82,6 @@ export const RuntimeTracePathResponseMetadata = {
       "required": false,
       "nullable": true,
       "ref": "RuntimeBlockingReason"
-    },
-    "evidence": {
-      "required": false,
-      "nullable": true,
-      "ref": "TraceDetailResponse"
     }
   }
 } satisfies OpenApiSchemaMetadata

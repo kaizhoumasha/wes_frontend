@@ -16,6 +16,7 @@ export const TraceBlockingPointResponseMetadata = {
   "required": [
     "trace_id",
     "blocking_point",
+    "diagnosis_verdict",
     "owner",
     "recoverability",
     "operator_action",
@@ -39,6 +40,11 @@ export const TraceBlockingPointResponseMetadata = {
       "type": "string",
       "required": true,
       "nullable": false
+    },
+    "diagnosis_verdict": {
+      "required": true,
+      "nullable": false,
+      "ref": "DiagnosisVerdictResponse"
     },
     "owner": {
       "title": "Owner",

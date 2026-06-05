@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { buildRuntimeTraceTopology } from '@/utils/runtime-trace-topology'
-import type { TraceDetailResponse, TraceTimelineItem } from '@/types/runtime'
+import type {
+  DiagnosisVerdict,
+  TraceDetailResponse,
+  TraceSessionItem,
+  TraceTimelineItem
+} from '@/types/runtime'
 
 function timeline(overrides: Partial<TraceTimelineItem>): TraceTimelineItem {
   return {
@@ -25,6 +30,56 @@ function timeline(overrides: Partial<TraceTimelineItem>): TraceTimelineItem {
   }
 }
 
+function traceSession(overrides: Partial<TraceSessionItem> = {}): TraceSessionItem {
+  return {
+    id: 11,
+    session_code: 'WL-20260603-001',
+    workline_id: 22,
+    plugin_key: 'rough_sorter',
+    run_mode: 'MOCK',
+    barcode: 'PKG-001',
+    status: 'COMPLETED',
+    trace_id: 'trace-ok',
+    ingress_count: 5,
+    context_json: {},
+    ...overrides
+  }
+}
+
+function diagnosisVerdict(): DiagnosisVerdict {
+  return {
+    state: 'completed_clear',
+    severity: 'success',
+    title: '流程已完成',
+    summary: '当前案件已正常结束，未发现阻塞点。',
+    requires_operator_action: false,
+    primary_action: '无需现场处置',
+    blocking_point: 'none',
+    owner: null,
+    evidence_health: {
+      level: 'complete',
+      summary: '证据完整',
+      missing: [],
+      items: []
+    }
+  }
+}
+
+function blockedVerdict(overrides: Partial<DiagnosisVerdict> = {}): DiagnosisVerdict {
+  return {
+    ...diagnosisVerdict(),
+    state: 'blocked',
+    severity: 'danger',
+    title: 'DEVICE / COMMAND_TIMEOUT',
+    summary: 'DEVICE / COMMAND_TIMEOUT：输出机械臂未回传完成',
+    requires_operator_action: true,
+    primary_action: '检查输出机械臂并重试',
+    blocking_point: 'command',
+    owner: 'device',
+    ...overrides
+  }
+}
+
 function detail(overrides: Partial<TraceDetailResponse>): TraceDetailResponse {
   return {
     trace: {
@@ -44,19 +99,7 @@ function detail(overrides: Partial<TraceDetailResponse>): TraceDetailResponse {
       latest_timeline_action: 'SESSION_COMPLETED',
       latest_timeline_status: 'SUCCESS'
     },
-    session: {
-      id: 11,
-      session_code: 'WL-20260603-001',
-      workline_id: 22,
-      plugin_key: 'rough_sorter',
-      run_mode: 'MOCK',
-      barcode: 'PKG-001',
-      status: 'COMPLETED',
-      trace_id: 'trace-ok',
-      ingress_count: 5,
-      context_json: {}
-    },
-    sessions: [],
+    sessions: [traceSession()],
     callback_logs: [],
     inboxes: [],
     commands: [
@@ -86,6 +129,7 @@ function detail(overrides: Partial<TraceDetailResponse>): TraceDetailResponse {
     outboxes: [],
     dispatch_attempts: [],
     diagnostics: [],
+    diagnosis_verdict: diagnosisVerdict(),
     ...overrides
   }
 }
@@ -215,6 +259,19 @@ describe('buildRuntimeTraceTopology', () => {
         workline_id: 22,
         session_id: 11,
         trace_id: 'trace-ok',
+        diagnosis_verdict: {
+          ...diagnosisVerdict(),
+          state: 'running',
+          severity: 'info',
+          title: '流程运行中',
+          summary: '当前流程正常推进。',
+          primary_action: '继续观察运行进度',
+          blocking_point: 'none'
+        },
+        sessions: [],
+        resource_view: {
+          active_bin_racks: []
+        },
         current_blocking_device_id: null,
         blocking_reason: null,
         timeline_groups: [],
@@ -255,16 +312,13 @@ describe('buildRuntimeTraceTopology', () => {
           latest_timeline_action: 'COMMAND_SENT',
           latest_timeline_status: 'SENT'
         },
-        session: {
-          id: 11,
-          session_code: 'WL-20260603-001',
-          workline_id: 22,
-          plugin_key: 'rough_sorter',
-          run_mode: 'MOCK',
-          status: 'RUNNING',
-          ingress_count: 1,
-          context_json: {}
-        },
+        sessions: [
+          traceSession({
+            status: 'RUNNING',
+            ingress_count: 1,
+            context_json: {}
+          })
+        ],
         timelines: [
           timeline({
             id: 1,
@@ -278,6 +332,19 @@ describe('buildRuntimeTraceTopology', () => {
         workline_id: 22,
         session_id: 11,
         trace_id: 'trace-ok',
+        diagnosis_verdict: {
+          ...diagnosisVerdict(),
+          state: 'running',
+          severity: 'info',
+          title: '流程运行中',
+          summary: '当前流程正常推进。',
+          primary_action: '继续观察运行进度',
+          blocking_point: 'none'
+        },
+        sessions: [],
+        resource_view: {
+          active_bin_racks: []
+        },
         current_blocking_device_id: null,
         blocking_reason: null,
         timeline_groups: [],
@@ -321,16 +388,18 @@ describe('buildRuntimeTraceTopology', () => {
           latest_timeline_action: 'COMMAND_FAILED',
           latest_timeline_status: 'FAILED'
         },
-        session: {
-          id: 11,
-          session_code: 'WL-20260603-001',
-          workline_id: 22,
-          plugin_key: 'rough_sorter',
-          run_mode: 'MOCK',
-          status: 'WAITING_DEVICE_RESULT',
-          ingress_count: 2,
-          context_json: {}
-        },
+        sessions: [
+          traceSession({
+            status: 'WAITING_DEVICE_RESULT',
+            ingress_count: 2,
+            context_json: {}
+          })
+        ],
+        diagnosis_verdict: blockedVerdict({
+          title: 'DEVICE / COMMAND_FAILED',
+          summary: 'DEVICE / COMMAND_FAILED：入料机械臂回调失败',
+          primary_action: '检查入料机械臂并重试'
+        }),
         timelines: [
           timeline({
             id: 1,
@@ -371,19 +440,17 @@ describe('buildRuntimeTraceTopology', () => {
           latest_timeline_action: 'COMMAND_FAILED',
           latest_timeline_status: 'FAILED'
         },
-        session: {
-          id: 11,
-          session_code: 'WL-20260603-001',
-          workline_id: 22,
-          plugin_key: 'rough_sorter',
-          run_mode: 'MOCK',
-          status: 'FAILED',
-          failure_domain: 'DEVICE',
-          failure_code: 'COMMAND_TIMEOUT',
-          failure_message: '输出机械臂未回传完成',
-          ingress_count: 3,
-          context_json: {}
-        },
+        sessions: [
+          traceSession({
+            status: 'FAILED',
+            failure_domain: 'DEVICE',
+            failure_code: 'COMMAND_TIMEOUT',
+            failure_message: '输出机械臂未回传完成',
+            ingress_count: 3,
+            context_json: {}
+          })
+        ],
+        diagnosis_verdict: blockedVerdict(),
         timelines: [
           timeline({
             id: 1,
@@ -421,7 +488,8 @@ describe('buildRuntimeTraceTopology', () => {
           context: { extra: {} }
         },
         evidence: {},
-        next_steps: []
+        next_steps: [],
+        diagnosis_verdict: blockedVerdict()
       }
     })
 
@@ -447,22 +515,26 @@ describe('buildRuntimeTraceTopology', () => {
           latest_timeline_status: 'PENDING',
           latest_timeline_message: 'SMT 可用货架快照必须包含 A/B/C/D 4 个料箱'
         },
-        session: {
-          id: 11,
-          session_code: 'WL-20260603-001',
-          workline_id: 22,
-          plugin_key: 'rough_sorter',
-          run_mode: 'MOCK',
-          status: 'MANUAL_HOLD',
-          trace_id: 'rough-sorter-curl-final-1780458849',
-          failure_domain: 'MATERIAL',
-          failure_code: 'ACTIVE_RACK_SNAPSHOT_INVALID',
-          failure_message: 'SMT 可用货架快照必须包含 A/B/C/D 4 个料箱',
-          ingress_count: 2,
-          context_json: {
-            phase: 'WAITING_RACK'
-          }
-        },
+        sessions: [
+          traceSession({
+            status: 'MANUAL_HOLD',
+            trace_id: 'rough-sorter-curl-final-1780458849',
+            failure_domain: 'MATERIAL',
+            failure_code: 'ACTIVE_RACK_SNAPSHOT_INVALID',
+            failure_message: 'SMT 可用货架快照必须包含 A/B/C/D 4 个料箱',
+            ingress_count: 2,
+            context_json: {
+              phase: 'WAITING_RACK'
+            }
+          })
+        ],
+        diagnosis_verdict: blockedVerdict({
+          title: 'MATERIAL / ACTIVE_RACK_SNAPSHOT_INVALID',
+          summary: 'MATERIAL / ACTIVE_RACK_SNAPSHOT_INVALID：SMT 可用货架快照必须包含 A/B/C/D 4 个料箱',
+          primary_action: '人工检查粗分机当前物料与依赖状态',
+          blocking_point: 'resource',
+          owner: 'material'
+        }),
         timelines: [
           timeline({
             id: 1,
@@ -548,7 +620,14 @@ describe('buildRuntimeTraceTopology', () => {
           context: { extra: {} }
         },
         evidence: {},
-        next_steps: []
+        next_steps: [],
+        diagnosis_verdict: blockedVerdict({
+          title: 'MATERIAL / ACTIVE_RACK_SNAPSHOT_INVALID',
+          summary: 'MATERIAL / ACTIVE_RACK_SNAPSHOT_INVALID：SMT 可用货架快照必须包含 A/B/C/D 4 个料箱',
+          primary_action: '人工检查粗分机当前物料与依赖状态',
+          blocking_point: 'resource',
+          owner: 'material'
+        })
       }
     })
 
@@ -574,16 +653,18 @@ describe('buildRuntimeTraceTopology', () => {
           latest_timeline_action: 'WAIT_STARTED',
           latest_timeline_status: 'PENDING'
         },
-        session: {
-          id: 11,
-          session_code: 'WL-20260603-001',
-          workline_id: 22,
-          plugin_key: 'rough_sorter',
-          run_mode: 'MOCK',
-          status: 'RUNNING',
-          ingress_count: 1,
-          context_json: {}
-        },
+        sessions: [
+          traceSession({
+            status: 'RUNNING',
+            ingress_count: 1,
+            context_json: {}
+          })
+        ],
+        diagnosis_verdict: blockedVerdict({
+          title: 'SYSTEM / COMMAND_TIMEOUT',
+          summary: 'SYSTEM / COMMAND_TIMEOUT：后端暂未分类，但阻塞点已定位为命令超时',
+          primary_action: '检查设备连接后重试'
+        }),
         timelines: [
           timeline({
             id: 1,
@@ -614,7 +695,12 @@ describe('buildRuntimeTraceTopology', () => {
           context: { extra: {} }
         },
         evidence: {},
-        next_steps: []
+        next_steps: [],
+        diagnosis_verdict: blockedVerdict({
+          title: 'SYSTEM / COMMAND_TIMEOUT',
+          summary: 'SYSTEM / COMMAND_TIMEOUT：后端暂未分类，但阻塞点已定位为命令超时',
+          primary_action: '检查设备连接后重试'
+        })
       }
     })
 
@@ -637,15 +723,21 @@ describe('buildRuntimeTraceTopology', () => {
           latest_timeline_action: 'WAIT_STARTED',
           latest_timeline_status: 'PENDING'
         },
-        session: {
-          id: 11,
-          session_code: 'WL-20260603-001',
-          workline_id: 22,
-          plugin_key: 'rough_sorter',
-          run_mode: 'MOCK',
-          status: 'RUNNING',
-          ingress_count: 1,
-          context_json: {}
+        sessions: [
+          traceSession({
+            status: 'RUNNING',
+            ingress_count: 1,
+            context_json: {}
+          })
+        ],
+        diagnosis_verdict: {
+          ...diagnosisVerdict(),
+          state: 'running',
+          severity: 'info',
+          title: '流程运行中',
+          summary: '当前流程正常推进。',
+          primary_action: '继续观察运行进度',
+          blocking_point: 'none'
         },
         timelines: [
           timeline({
@@ -677,7 +769,16 @@ describe('buildRuntimeTraceTopology', () => {
           context: { extra: {} }
         },
         evidence: {},
-        next_steps: []
+        next_steps: [],
+        diagnosis_verdict: {
+          ...diagnosisVerdict(),
+          state: 'running',
+          severity: 'info',
+          title: '流程运行中',
+          summary: '当前流程正常推进。',
+          primary_action: '继续观察运行进度',
+          blocking_point: 'none'
+        }
       }
     })
 
