@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3.0] - 2026-06-05
+
+### Added
+
+- 工作线现场态势监控设计文档，明确 `/runtime/monitor` 后续按 manifest 驱动现场模型、设备节点、执行证据叠层和资源投影边界。
+- 集成调试台最新案件状态筛选支持 `RETRY`，便于直接定位重试中的运行案件。
+- 新增集成调试台状态筛选回归测试，确保 `RETRY` 后续不会从筛选项中丢失。
+
+### Changed
+
+- 归档历史 superpowers 计划与设计文档，保持当前 specs 目录聚焦正在推进的运行现场态势监控设计。
+- 统一 Trace Explorer 模板格式，保持 merged trace path 变更通过当前 Prettier 规则。
+
 ## [0.4.2.0] - 2026-06-05
 
 ### Added
