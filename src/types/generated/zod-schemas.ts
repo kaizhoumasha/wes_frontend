@@ -1148,6 +1148,77 @@ export const DeviceUpdateSchema = z.object({
 })
 
 
+/**
+ * 诊断证据健康明细。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const DiagnosisEvidenceHealthItemResponseSchema = z.object({
+  /** Key */
+  key: z.string(),
+  /** Label */
+  label: z.string(),
+  /** Count */
+  count: z.number(),
+  /** State */
+  state: z.string(),
+  /** Hint */
+  hint: z.string(),
+})
+
+
+/**
+ * 诊断证据健康摘要。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const DiagnosisEvidenceHealthResponseSchema = z.object({
+  /** Level */
+  level: z.string(),
+  /** Summary */
+  summary: z.string(),
+  /** Missing */
+  missing: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())).optional(),
+  /** Items */
+  items: z.array(z.lazy(() => DiagnosisEvidenceHealthItemResponseSchema)).optional(),
+})
+
+
+/**
+ * Trace 统一诊断结论。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const DiagnosisVerdictResponseSchema = z.object({
+  /** State */
+  state: z.string(),
+  /** Severity */
+  severity: z.string(),
+  /** Title */
+  title: z.string(),
+  /** Summary */
+  summary: z.string(),
+  /** Requires Operator Action */
+  requires_operator_action: z.boolean(),
+  /** Primary Action */
+  primary_action: z.union([z.string(), z.null()]).optional(),
+  /** Blocking Point */
+  blocking_point: z.string(),
+  /** Owner */
+  owner: z.union([z.string(), z.null()]).optional(),
+  evidence_health: z.lazy(() => DiagnosisEvidenceHealthResponseSchema),
+})
+
+
 export const DiagnosticCardResponseSchema = z.object({
   /** Title */
   title: z.string(),
@@ -3087,6 +3158,14 @@ export const RuntimeDeviceSummarySchema = z.object({
   pending_command_count: z.number().optional().default(0),
   /** Blocked Outbox Count */
   blocked_outbox_count: z.number().optional().default(0),
+  /** Blocked Reason */
+  blocked_reason: z.union([z.string(), z.null()]).optional(),
+  /** Blocked Wait Seconds */
+  blocked_wait_seconds: z.union([z.number(), z.null()]).optional(),
+  /** Blocked Check Count */
+  blocked_check_count: z.union([z.number(), z.null()]).optional(),
+  /** Blocked Detail Json */
+  blocked_detail_json: z.union([z.record(z.any()), z.null()]).optional(),
   /** Open Issue Count */
   open_issue_count: z.number().optional().default(0),
   /** Active Runtime Hold Ids */
@@ -3475,6 +3554,14 @@ export const RuntimeWorklineDeviceItemSchema = z.object({
   pending_command_count: z.number().optional().default(0),
   /** Blocked Outbox Count */
   blocked_outbox_count: z.number().optional().default(0),
+  /** Blocked Reason */
+  blocked_reason: z.union([z.string(), z.null()]).optional(),
+  /** Blocked Wait Seconds */
+  blocked_wait_seconds: z.union([z.number(), z.null()]).optional(),
+  /** Blocked Check Count */
+  blocked_check_count: z.union([z.number(), z.null()]).optional(),
+  /** Blocked Detail Json */
+  blocked_detail_json: z.union([z.record(z.any()), z.null()]).optional(),
   /** Open Issue Count */
   open_issue_count: z.number().optional().default(0),
   /** Active Runtime Hold Ids */
@@ -3809,6 +3896,7 @@ export const TraceBlockingPointResponseSchema = z.object({
   request_id: z.union([z.string(), z.null()]).optional(),
   /** Blocking Point */
   blocking_point: z.string(),
+  diagnosis_verdict: z.lazy(() => DiagnosisVerdictResponseSchema),
   /** Owner */
   owner: z.string(),
   /** Recoverability */
@@ -3948,6 +4036,7 @@ export const TraceContextResponseSchema = z.object({
 export const TraceDetailResponseSchema = z.object({
   trace: z.lazy(() => TraceContextResponseSchema),
   summary: z.lazy(() => TraceOverviewSummarySchema),
+  diagnosis_verdict: z.lazy(() => DiagnosisVerdictResponseSchema),
   session: z.union([z.lazy(() => TraceSessionItemSchema), z.null()]).optional(),
   /** Sessions */
   sessions: z.array(z.lazy(() => TraceSessionItemSchema)).optional(),
@@ -4134,6 +4223,16 @@ export const TraceOutboxItemSchema = z.object({
   blocked_workline_id: z.union([z.number(), z.null()]).optional(),
   /** Blocked Reason */
   blocked_reason: z.union([z.string(), z.null()]).optional(),
+  /** Blocked At */
+  blocked_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Last Blocked Check At */
+  last_blocked_check_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Blocked Wait Seconds */
+  blocked_wait_seconds: z.union([z.number(), z.null()]).optional(),
+  /** Blocked Check Count */
+  blocked_check_count: z.union([z.number(), z.null()]).optional(),
+  /** Blocked Detail Json */
+  blocked_detail_json: z.union([z.record(z.any()), z.null()]).optional(),
   /** Created At */
   created_at: z.string().datetime(),
   /** Sent At */

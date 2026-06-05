@@ -56,12 +56,6 @@
     </div>
 
     <template v-else-if="pathData">
-      <!-- Health Pipeline -->
-      <TraceHealthPipeline
-        v-if="pathData.evidence"
-        :detail="pathData.evidence"
-      />
-
       <!-- Priority 1: Problem Summary Card (NEW) -->
       <div
         v-if="pathData.blocking_reason"
@@ -166,7 +160,7 @@
 
       <!-- Priority 2: Trace Topology (集成 WorklineRouteMap) -->
       <el-card
-        v-if="pathData.devices.length"
+        v-if="pathDevices.length"
         shadow="never"
         class="trace-focus-panel__topology"
       >
@@ -188,7 +182,7 @@
                 执行路径
               </div>
               <div class="trace-focus-panel__topology-subtitle">
-                {{ pathData.devices.length }} 台设备 · 点击查看动作详情
+                {{ pathDevices.length }} 台设备 · 点击查看动作详情
               </div>
             </div>
           </div>
@@ -196,7 +190,7 @@
 
         <div class="trace-focus-panel__device-list">
           <div
-            v-for="(node, idx) in pathData.devices"
+            v-for="(node, idx) in pathDevices"
             :key="node.device_id"
             class="trace-focus-panel__device-card"
             :class="{
@@ -262,11 +256,11 @@
 
             <!-- Device Actions (Expandable) -->
             <div
-              v-if="expandedDeviceId === node.device_id && node.actions.length"
+              v-if="expandedDeviceId === node.device_id && deviceActions(node).length"
               class="trace-focus-panel__device-actions"
             >
               <div
-                v-for="(action, aIdx) in node.actions"
+                v-for="(action, aIdx) in deviceActions(node)"
                 :key="aIdx"
                 class="trace-focus-panel__action-item"
               >
@@ -298,7 +292,7 @@
               </div>
             </div>
             <div
-              v-else-if="!node.actions.length"
+              v-else-if="!deviceActions(node).length"
               class="trace-focus-panel__device-empty"
             >
               未参与执行
@@ -318,15 +312,81 @@
                   clip-rule="evenodd"
                 />
               </svg>
-              {{ node.actions.length }} 个动作
+              {{ deviceActions(node).length }} 个动作
             </div>
           </div>
         </div>
       </el-card>
 
+      <el-card
+        shadow="never"
+        class="trace-focus-panel__resource-card"
+      >
+        <template #header>
+          <div class="trace-focus-panel__resource-header">
+            <div>
+              <div class="trace-focus-panel__resource-title">资源快照</div>
+              <div class="trace-focus-panel__resource-subtitle">
+                {{ resourceRacks.length }} 个货架 · {{ resourceBinCount }} 个料箱 ·
+                {{ resourceCellCount }} 个格口
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <div
+          v-if="resourceRacks.length"
+          class="trace-focus-panel__resource-list"
+        >
+          <section
+            v-for="(rack, rackIndex) in resourceRacks"
+            :key="resourceRackKey(rack, rackIndex)"
+            class="trace-focus-panel__resource-rack"
+          >
+            <div class="trace-focus-panel__resource-rack-header">
+              <strong>{{ rack.rack_code || rack.rack_id || '未知货架' }}</strong>
+              <span>{{ [rack.rack_kind, rack.rack_type].filter(Boolean).join(' · ') || '—' }}</span>
+            </div>
+            <div class="trace-focus-panel__resource-bin-list">
+              <article
+                v-for="(bin, binIndex) in rack.bins ?? []"
+                :key="resourceBinKey(rack, rackIndex, bin, binIndex)"
+                class="trace-focus-panel__resource-bin"
+              >
+                <div class="trace-focus-panel__resource-bin-header">
+                  <span>
+                    {{ bin.rack_slot_code || bin.rack_slot_location_code || '未绑定槽位' }}
+                  </span>
+                  <strong>{{ bin.bin_code || bin.bin_id || '未知料箱' }}</strong>
+                </div>
+                <div class="trace-focus-panel__resource-cell-list">
+                  <span
+                    v-for="(cell, cellIndex) in bin.cells ?? []"
+                    :key="resourceCellKey(rackIndex, bin, binIndex, cell, cellIndex)"
+                    class="trace-focus-panel__resource-cell"
+                    :class="{ 'is-reserved': cell.is_reserved }"
+                  >
+                    {{ cell.bin_cell_code || cell.bin_cell_index || '格口' }}
+                    <small v-if="cell.pkg_code || cell.material_identity_key">
+                      {{ cell.pkg_code || cell.material_identity_key }}
+                    </small>
+                  </span>
+                </div>
+              </article>
+            </div>
+          </section>
+        </div>
+        <div
+          v-else
+          class="trace-focus-panel__resource-empty"
+        >
+          暂无资源快照
+        </div>
+      </el-card>
+
       <!-- Priority 3: Grouped Execution Timeline -->
       <el-card
-        v-if="timelineGroups.length"
+        v-if="pathData"
         shadow="never"
         class="trace-focus-panel__timeline-card"
       >
@@ -367,7 +427,7 @@
         </template>
 
         <div
-          v-if="filteredTimelineGroups.length"
+          v-if="timelineGroups.length && filteredTimelineGroups.length"
           class="trace-focus-panel__timeline-groups"
         >
           <section
@@ -585,217 +645,7 @@
           v-else
           class="trace-focus-panel__timeline-empty"
         >
-          <span>筛选后无结果</span>
-        </div>
-      </el-card>
-
-      <!-- Fallback: Global Execution Timeline -->
-      <el-card
-        v-if="!timelineGroups.length && pathData.evidence?.timelines?.length"
-        shadow="never"
-        class="trace-focus-panel__timeline-card"
-      >
-        <template #header>
-          <div class="trace-focus-panel__timeline-header">
-            <div class="trace-focus-panel__timeline-title-row">
-              <svg
-                class="trace-focus-panel__timeline-icon"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-              <span class="trace-focus-panel__timeline-title">执行时间轴</span>
-              <span class="trace-focus-panel__timeline-count">
-                {{ pathData.evidence.timelines.length }} 条
-              </span>
-            </div>
-            <div class="trace-focus-panel__timeline-filters">
-              <el-checkbox
-                v-model="showOnlyFailures"
-                size="small"
-              >
-                只看失败
-              </el-checkbox>
-              <el-checkbox
-                v-model="showOnlyCurrent"
-                size="small"
-              >
-                只看当前
-              </el-checkbox>
-            </div>
-          </div>
-        </template>
-
-        <div
-          v-if="filteredTimelines.length"
-          class="trace-focus-panel__timeline-list"
-        >
-          <div
-            v-for="(item, idx) in filteredTimelines"
-            :key="idx"
-            class="trace-focus-panel__timeline-event"
-            :class="{
-              'is-failure': item.status === 'FAILED',
-              'is-success': item.status === 'SUCCESS',
-              'is-expanded': expandedTimelineId === item.id
-            }"
-            @click="toggleTimelineDetail(item.id)"
-          >
-            <div class="trace-focus-panel__timeline-dot" />
-            <div class="trace-focus-panel__timeline-content">
-              <!-- Main Info -->
-              <div class="trace-focus-panel__timeline-main">
-                <span
-                  class="trace-focus-panel__timeline-action"
-                  :class="actionStatusClass(item.status)"
-                >
-                  {{ actionKindIcon(item.action_type) }}
-                </span>
-                <span class="trace-focus-panel__timeline-type">
-                  {{ timelineActionLabel(item.action_type) }}
-                </span>
-                <span
-                  v-if="item.actor_code"
-                  class="trace-focus-panel__timeline-actor"
-                >
-                  {{ item.actor_code }}
-                </span>
-                <span
-                  class="trace-focus-panel__timeline-status"
-                  :class="actionStatusClass(item.status)"
-                >
-                  {{ actionStatusLabel(item.status) }}
-                </span>
-              </div>
-
-              <!-- Status Change -->
-              <div
-                v-if="timelineHasStatusChange(item)"
-                class="trace-focus-panel__timeline-status-change"
-              >
-                <span
-                  v-if="item.from_status"
-                  class="trace-focus-panel__timeline-status-from"
-                >
-                  {{ item.from_status }}
-                </span>
-                <span class="trace-focus-panel__timeline-status-arrow">→</span>
-                <span
-                  v-if="item.to_status"
-                  class="trace-focus-panel__timeline-status-to"
-                  :class="{ 'is-failed': item.status === 'FAILED' }"
-                >
-                  {{ item.to_status }}
-                </span>
-              </div>
-
-              <!-- Message / Error -->
-              <div
-                v-if="item.message"
-                class="trace-focus-panel__timeline-msg"
-                :class="{ 'is-error': item.status === 'FAILED' }"
-              >
-                <svg
-                  v-if="item.status === 'FAILED'"
-                  class="trace-focus-panel__timeline-msg-icon"
-                  viewBox="0 0 16 16"
-                  fill="currentColor"
-                >
-                  <path
-                    d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8z"
-                  />
-                  <path
-                    d="M8 4a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 018 4zm0 8a1 1 0 100-2 1 1 0 000 2z"
-                  />
-                </svg>
-                {{ item.message }}
-                <span
-                  v-if="item.failure_domain"
-                  class="trace-focus-panel__timeline-failure-domain"
-                >
-                  [{{ item.failure_domain }}]
-                </span>
-              </div>
-
-              <!-- Expandable Detail -->
-              <div
-                v-if="expandedTimelineId === item.id"
-                class="trace-focus-panel__timeline-detail"
-              >
-                <div
-                  v-if="item.related_command_id || item.related_inbox_id"
-                  class="trace-focus-panel__timeline-ref"
-                >
-                  <div
-                    v-if="item.related_command_id"
-                    class="trace-focus-panel__timeline-ref-item"
-                  >
-                    <span class="trace-focus-panel__timeline-ref-label">命令ID</span>
-                    <span class="trace-focus-panel__timeline-ref-value">
-                      #{{ item.related_command_id }}
-                    </span>
-                  </div>
-                  <div
-                    v-if="item.related_inbox_id"
-                    class="trace-focus-panel__timeline-ref-item"
-                  >
-                    <span class="trace-focus-panel__timeline-ref-label">事件ID</span>
-                    <span class="trace-focus-panel__timeline-ref-value">
-                      #{{ item.related_inbox_id }}
-                    </span>
-                  </div>
-                </div>
-                <div
-                  v-if="item.payload_json"
-                  class="trace-focus-panel__timeline-payload"
-                >
-                  <span class="trace-focus-panel__timeline-ref-label">负载</span>
-                  <pre class="trace-focus-panel__timeline-payload-content">{{
-                    formatPayload(item.payload_json)
-                  }}</pre>
-                </div>
-              </div>
-            </div>
-
-            <div class="trace-focus-panel__timeline-right">
-              <div class="trace-focus-panel__timeline-time">
-                {{ formatTime(item.occurred_at) }}
-              </div>
-              <svg
-                v-if="item.related_command_id || item.related_inbox_id || item.payload_json"
-                class="trace-focus-panel__timeline-expand-icon"
-                :class="{ 'is-expanded': expandedTimelineId === item.id }"
-                viewBox="0 0 16 16"
-                fill="currentColor"
-              >
-                <path
-                  d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-        <div
-          v-else
-          class="trace-focus-panel__timeline-empty"
-        >
-          <svg
-            class="trace-focus-panel__timeline-empty-icon"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-              clip-rule="evenodd"
-            />
-          </svg>
-          <span>筛选后无结果</span>
+          <span>{{ timelineGroups.length ? '筛选后无结果' : '暂无执行时间轴证据' }}</span>
         </div>
       </el-card>
     </template>
@@ -806,11 +656,15 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { runtimeApiMethods } from '@/api/modules/runtime'
-import TraceHealthPipeline from '@/components/runtime/trace/TraceHealthPipeline.vue'
 import AppIconButton from '@/components/ui/AppIconButton.vue'
 import { displayDevice } from '@/utils/runtime-display-identity'
 import { formatRelativeTime } from '@/utils/timezone'
 import type {
+  RuntimeActiveBinRackBinView,
+  RuntimeActiveBinRackCellView,
+  RuntimeActiveBinRackView,
+  RuntimeTraceDeviceAction,
+  RuntimeTraceDevicePathNode,
   RuntimeTracePathResponse,
   RuntimeTraceTimelineGroup,
   TraceTimelineItem
@@ -902,12 +756,12 @@ watch(
 
 const currentDeviceIndex = computed(() => {
   if (!pathData.value) return -1
-  return pathData.value.devices.findIndex(d => d.is_current)
+  return pathDevices.value.findIndex(d => d.is_current)
 })
 
 const blockingDeviceName = computed(() => {
   if (!pathData.value?.blocking_reason?.device_id) return '未知设备'
-  const device = pathData.value.devices.find(
+  const device = pathDevices.value.find(
     d => d.device_id === pathData.value?.blocking_reason?.device_id
   )
   return displayDevice({
@@ -950,26 +804,25 @@ const statusBadgeText = computed(() => {
   return '等待中'
 })
 
-const filteredTimelines = computed(() => {
-  if (!pathData.value?.evidence?.timelines) return []
-  let timelines = pathData.value.evidence.timelines
-
-  if (showOnlyFailures.value) {
-    timelines = timelines.filter(t => t.status === 'FAILED')
-  }
-
-  // Simple filter - in real implementation would match device_id
-  return timelines.slice(0, 20)
-})
-
 const timelineGroups = computed(() => pathData.value?.timeline_groups ?? [])
-
-const timelineGroupEventCount = computed(() =>
-  timelineGroups.value.reduce((total, group) => total + group.events.length, 0)
+const pathDevices = computed(() => pathData.value?.devices ?? [])
+const resourceRacks = computed(() => pathData.value?.resource_view?.active_bin_racks ?? [])
+const resourceBinCount = computed(() =>
+  resourceRacks.value.reduce((total, rack) => total + (rack.bins?.length ?? 0), 0)
+)
+const resourceCellCount = computed(() =>
+  resourceRacks.value.reduce(
+    (total, rack) =>
+      total + (rack.bins ?? []).reduce((binTotal, bin) => binTotal + (bin.cells?.length ?? 0), 0),
+    0
+  )
 )
 
 const timelineViewGroups = computed<RuntimeTraceTimelineViewGroup[]>(() =>
   timelineGroups.value.map(group => buildTimelineViewGroup(group)).sort(compareTimelineGroupDesc)
+)
+const timelineGroupEventCount = computed(() =>
+  timelineViewGroups.value.reduce((total, group) => total + group.events.length, 0)
 )
 
 const filteredTimelineGroups = computed<RuntimeTraceTimelineViewGroup[]>(() => {
@@ -1100,8 +953,12 @@ function actionStatusLabel(status: string | null | undefined): string {
   return labelMap[status?.toUpperCase()] || status
 }
 
+function deviceActions(node: RuntimeTraceDevicePathNode): RuntimeTraceDeviceAction[] {
+  return node.actions ?? []
+}
+
 function buildTimelineViewGroup(group: RuntimeTraceTimelineGroup): RuntimeTraceTimelineViewGroup {
-  const chronologicalEvents = [...group.events].sort(compareTimelineEventAsc)
+  const chronologicalEvents = [...(group.events ?? [])].sort(compareTimelineEventAsc)
   const durationByEventId = new Map<number, string>()
   chronologicalEvents.forEach((item, index) => {
     const nextItem = chronologicalEvents[index + 1]
@@ -1307,7 +1164,7 @@ function recordValue(value: unknown): Record<string, unknown> {
 }
 
 function timelineEventPayloadFields(item: TraceTimelineItem): TimelinePayloadField[] {
-  const candidatePayloads = [relatedInboxPayload(item.related_inbox_id), item.payload_json].filter(
+  const candidatePayloads = [item.payload_json].filter(
     (payload): payload is Record<string, unknown> => Boolean(payload)
   )
 
@@ -1316,12 +1173,6 @@ function timelineEventPayloadFields(item: TraceTimelineItem): TimelinePayloadFie
     if (fields.length) return fields
   }
   return []
-}
-
-function relatedInboxPayload(inboxId: number | null | undefined): Record<string, unknown> | null {
-  if (!inboxId) return null
-  const inbox = pathData.value?.evidence?.inboxes.find(item => item.id === inboxId)
-  return inbox?.payload_json ?? null
 }
 
 function scanPayloadFields(payload: Record<string, unknown>): TimelinePayloadField[] {
@@ -1414,6 +1265,33 @@ function formatPayload(payload: Record<string, unknown> | null): string {
   // 截断显示，最多 2000 字符
   const str = JSON.stringify(payload, null, 2)
   return str.length > 2000 ? str.slice(0, 2000) + '\n\n... [内容已截断]' : str
+}
+
+function resourceRackKey(rack: RuntimeActiveBinRackView, rackIndex: number): string {
+  return String(rack.rack_code ?? rack.rack_id ?? `rack:${rackIndex}`)
+}
+
+function resourceBinKey(
+  rack: RuntimeActiveBinRackView,
+  rackIndex: number,
+  bin: RuntimeActiveBinRackBinView,
+  binIndex: number
+): string {
+  return `${resourceRackKey(rack, rackIndex)}:${String(
+    bin.bin_id ?? bin.bin_code ?? bin.rack_slot_code ?? `bin:${binIndex}`
+  )}`
+}
+
+function resourceCellKey(
+  rackIndex: number,
+  bin: RuntimeActiveBinRackBinView,
+  binIndex: number,
+  cell: RuntimeActiveBinRackCellView,
+  cellIndex: number
+): string {
+  return `${rackIndex}:${String(bin.bin_id ?? bin.bin_code ?? `bin:${binIndex}`)}:${String(
+    cell.bin_cell_code ?? cell.bin_cell_index ?? cell.pkg_code ?? `cell:${cellIndex}`
+  )}`
 }
 </script>
 
@@ -1831,6 +1709,108 @@ function formatPayload(payload: Record<string, unknown> | null): string {
   height: 14px;
 }
 
+.trace-focus-panel__resource-card {
+  background: var(--runtime-surface-muted);
+  border: 1px solid var(--runtime-border-neutral);
+}
+
+.trace-focus-panel__resource-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.trace-focus-panel__resource-title {
+  color: var(--runtime-text-primary);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.trace-focus-panel__resource-subtitle {
+  margin-top: 4px;
+  color: var(--runtime-text-muted);
+  font-size: 12px;
+}
+
+.trace-focus-panel__resource-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.trace-focus-panel__resource-rack {
+  padding: 12px;
+  border: 1px solid var(--runtime-border-neutral);
+  border-radius: 10px;
+  background: var(--runtime-surface-subtle);
+}
+
+.trace-focus-panel__resource-rack-header,
+.trace-focus-panel__resource-bin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.trace-focus-panel__resource-rack-header strong,
+.trace-focus-panel__resource-bin-header strong {
+  color: var(--runtime-text-primary);
+  font-size: 13px;
+}
+
+.trace-focus-panel__resource-rack-header span,
+.trace-focus-panel__resource-bin-header span {
+  color: var(--runtime-text-muted);
+  font-size: 12px;
+}
+
+.trace-focus-panel__resource-bin-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.trace-focus-panel__resource-bin {
+  padding: 10px;
+  border: 1px solid var(--runtime-border-neutral);
+  border-radius: 8px;
+  background: var(--runtime-surface);
+}
+
+.trace-focus-panel__resource-cell-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.trace-focus-panel__resource-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 4px 7px;
+  border-radius: 6px;
+  background: var(--runtime-surface-subtle);
+  color: var(--runtime-text-secondary);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.trace-focus-panel__resource-cell.is-reserved {
+  background: var(--runtime-badge-warning-bg);
+  color: var(--runtime-badge-warning-text);
+}
+
+.trace-focus-panel__resource-cell small {
+  max-width: 160px;
+  overflow: hidden;
+  color: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ===== PRIORITY 3: Timeline ===== */
 .trace-focus-panel__timeline-card {
   background: var(--runtime-surface-muted);
@@ -2219,6 +2199,15 @@ function formatPayload(payload: Record<string, unknown> | null): string {
   padding: 24px;
   color: var(--runtime-text-muted);
   font-size: 13px;
+}
+
+.trace-focus-panel__resource-empty {
+  padding: 18px;
+  border: 1px dashed var(--runtime-border-neutral);
+  border-radius: 8px;
+  color: var(--runtime-text-muted);
+  font-size: 13px;
+  text-align: center;
 }
 
 .trace-focus-panel__timeline-empty-icon {

@@ -17,7 +17,9 @@ const mocks = vi.hoisted(() => {
     },
     traceByTraceIdSend: vi.fn(),
     traceBySessionIdSend: vi.fn(),
+    traceBlockingPointMethod: vi.fn(),
     traceBlockingPointSend: vi.fn(),
+    sessionPathSend: vi.fn(),
     tracePathSend: vi.fn(),
     worklineDetailSend: vi.fn(),
     queryTracesMethod: vi.fn(),
@@ -53,7 +55,8 @@ vi.mock('@/api/modules/runtime', () => ({
   runtimeApiMethods: {
     traceByTraceId: () => ({ send: mocks.traceByTraceIdSend }),
     traceBySessionId: () => ({ send: mocks.traceBySessionIdSend }),
-    traceBlockingPoint: () => ({ send: mocks.traceBlockingPointSend }),
+    traceBlockingPoint: mocks.traceBlockingPointMethod,
+    sessionPath: () => ({ send: mocks.sessionPathSend }),
     tracePath: () => ({ send: mocks.tracePathSend }),
     worklineDetail: () => ({ send: mocks.worklineDetailSend }),
     queryTraces: mocks.queryTracesMethod
@@ -80,18 +83,19 @@ function createTraceDetail(): TraceDetailResponse {
       latest_timeline_action: 'SESSION_COMPLETED',
       latest_timeline_status: 'SUCCESS'
     },
-    session: {
-      id: 1,
-      session_code: 'S-1',
-      workline_id: 10,
-      plugin_key: 'rough_sorter',
-      run_mode: 'MOCK',
-      status: 'COMPLETED',
-      trace_id: 'trace-1',
-      ingress_count: 1,
-      context_json: {}
-    },
-    sessions: [],
+    sessions: [
+      {
+        id: 1,
+        session_code: 'S-1',
+        workline_id: 10,
+        plugin_key: 'rough_sorter',
+        run_mode: 'MOCK',
+        status: 'COMPLETED',
+        trace_id: 'trace-1',
+        ingress_count: 1,
+        context_json: {}
+      }
+    ],
     callback_logs: [],
     inboxes: [],
     commands: [],
@@ -111,7 +115,8 @@ function createTraceDetail(): TraceDetailResponse {
         status: 'SUCCESS'
       }
     ],
-    diagnostics: []
+    diagnostics: [],
+    diagnosis_verdict: createDiagnosisVerdict({})
   }
 }
 
@@ -173,8 +178,7 @@ async function flushViewUpdates() {
 }
 
 async function mountPage() {
-  const { default: CaseConsolePage } =
-    await import('@/views/runtime/cases/CaseConsolePage.vue')
+  const { default: CaseConsolePage } = await import('@/views/runtime/cases/CaseConsolePage.vue')
 
   return shallowMount(CaseConsolePage, {
     global: {
@@ -221,19 +225,39 @@ describe('CaseConsolePage layout', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.route.query = { traceId: 'trace-1' }
-    mocks.router.replace.mockImplementation(async ({ query }: { query: Record<string, unknown> }) => {
-      mocks.route.query = { ...query }
-      await nextTick()
-    })
+    mocks.router.replace.mockImplementation(
+      async ({ query }: { query: Record<string, unknown> }) => {
+        mocks.route.query = { ...query }
+        await nextTick()
+      }
+    )
     mocks.traceByTraceIdSend.mockResolvedValue(createTraceDetail())
     mocks.traceBySessionIdSend.mockResolvedValue(createTraceDetail())
+    mocks.traceBlockingPointMethod.mockImplementation(() => ({ send: mocks.traceBlockingPointSend }))
     mocks.traceBlockingPointSend.mockRejectedValue(new Error('no blocking point'))
     mocks.queryTracesMethod.mockImplementation(() => ({ send: mocks.queryTracesSend }))
     mocks.queryTracesSend.mockResolvedValue({ total: 1, items: [createTraceListItem()] })
+    mocks.sessionPathSend.mockResolvedValue({
+      workline_id: 10,
+      session_id: 1,
+      trace_id: 'trace-1',
+      diagnosis_verdict: createDiagnosisVerdict({}),
+      sessions: [],
+      resource_view: {
+        active_bin_racks: []
+      },
+      devices: [],
+      timeline_groups: []
+    })
     mocks.tracePathSend.mockResolvedValue({
       workline_id: 10,
       session_id: 1,
       trace_id: 'trace-1',
+      diagnosis_verdict: createDiagnosisVerdict({}),
+      sessions: [],
+      resource_view: {
+        active_bin_racks: []
+      },
       devices: [],
       timeline_groups: []
     })
@@ -268,7 +292,32 @@ describe('CaseConsolePage layout', () => {
 
     expect(mocks.traceBySessionIdSend).toHaveBeenCalled()
     expect(mocks.traceByTraceIdSend).not.toHaveBeenCalled()
+    expect(mocks.sessionPathSend).toHaveBeenCalled()
+    expect(mocks.tracePathSend).not.toHaveBeenCalled()
     expect(wrapper.text()).toContain('运行案件处置台')
+  })
+
+  it('uses session path when detail has a session but no trace id', async () => {
+    mocks.route.query = { sessionId: '1' }
+    mocks.traceBySessionIdSend.mockResolvedValue({
+      ...createTraceDetail(),
+      trace: {
+        ...createTraceDetail().trace,
+        trace_id: null
+      },
+      sessions: [
+        {
+          ...createTraceDetail().sessions[0],
+          trace_id: null
+        }
+      ]
+    })
+
+    await mountPage()
+    await flushViewUpdates()
+
+    expect(mocks.sessionPathSend).toHaveBeenCalled()
+    expect(mocks.tracePathSend).not.toHaveBeenCalled()
   })
 
   it('normalizes trace deep links to the loaded session id', async () => {
@@ -286,7 +335,8 @@ describe('CaseConsolePage layout', () => {
         barcode: undefined
       }
     })
-    expect(mocks.tracePathSend).toHaveBeenCalled()
+    expect(mocks.sessionPathSend).toHaveBeenCalled()
+    expect(mocks.tracePathSend).not.toHaveBeenCalled()
     expect(mocks.worklineDetailSend).toHaveBeenCalled()
     expect(wrapper.findComponent({ name: 'ElSelect' }).props('modelValue')).toBe('session')
     expect(wrapper.findComponent({ name: 'ElInput' }).props('modelValue')).toBe('1')
@@ -364,7 +414,8 @@ describe('CaseConsolePage layout', () => {
     await flushViewUpdates()
 
     expect(mocks.traceBlockingPointSend).not.toHaveBeenCalled()
-    expect(mocks.tracePathSend).toHaveBeenCalled()
+    expect(mocks.sessionPathSend).toHaveBeenCalled()
+    expect(mocks.tracePathSend).not.toHaveBeenCalled()
   })
 
   it('skips blocking-point endpoint for non-actionable running verdicts', async () => {
@@ -376,10 +427,12 @@ describe('CaseConsolePage layout', () => {
         latest_timeline_action: 'COMMAND_SENT',
         latest_timeline_status: 'SENT'
       },
-      session: {
-        ...createTraceDetail().session!,
-        status: 'RUNNING'
-      },
+      sessions: [
+        {
+          ...createTraceDetail().sessions[0],
+          status: 'RUNNING'
+        }
+      ],
       diagnosis_verdict: createDiagnosisVerdict({
         state: 'running',
         severity: 'info',
@@ -398,34 +451,89 @@ describe('CaseConsolePage layout', () => {
   })
 
   it('fetches blocking-point endpoint for blocked verdicts', async () => {
+    const blockedVerdict = createDiagnosisVerdict({
+      state: 'blocked',
+      severity: 'danger',
+      title: '流程已阻塞',
+      summary: '存在明确阻塞点。',
+      requires_operator_action: true,
+      primary_action: '处理阻塞点',
+      blocking_point: 'command',
+      owner: 'device'
+    })
+    const completedVerdict = createDiagnosisVerdict({
+      state: 'completed_clear',
+      requires_operator_action: false
+    })
+    mocks.sessionPathSend.mockResolvedValueOnce({
+      workline_id: 10,
+      session_id: 1,
+      trace_id: 'trace-1',
+      diagnosis_verdict: blockedVerdict,
+      sessions: [],
+      resource_view: {
+        active_bin_racks: []
+      },
+      devices: [],
+      timeline_groups: []
+    })
     mocks.traceByTraceIdSend.mockResolvedValue({
       ...createTraceDetail(),
-      summary: {
-        ...createTraceDetail().summary,
-        session_status: 'MANUAL_HOLD',
-        latest_timeline_action: 'MANUAL_HOLD',
-        latest_timeline_status: 'PENDING'
+      diagnosis_verdict: completedVerdict
+    })
+
+    const wrapper = await mountPage()
+    await flushViewUpdates()
+
+    expect(mocks.traceBlockingPointSend).toHaveBeenCalled()
+    expect(
+      wrapper.findComponent({ name: 'TraceBlockingPointCard' }).props('diagnosisVerdict')
+    ).toStrictEqual(blockedVerdict)
+  })
+
+  it('uses path trace id when fetching blocking-point for session-only detail', async () => {
+    const blockedVerdict = createDiagnosisVerdict({
+      state: 'blocked',
+      severity: 'danger',
+      title: '流程已阻塞',
+      summary: 'Path 返回了阻塞点。',
+      requires_operator_action: true,
+      primary_action: '处理阻塞点',
+      blocking_point: 'command',
+      owner: 'device'
+    })
+    mocks.route.query = { sessionId: '1' }
+    mocks.traceBySessionIdSend.mockResolvedValue({
+      ...createTraceDetail(),
+      trace: {
+        ...createTraceDetail().trace,
+        trace_id: null
       },
-      session: {
-        ...createTraceDetail().session!,
-        status: 'MANUAL_HOLD'
+      sessions: [
+        {
+          ...createTraceDetail().sessions[0],
+          trace_id: null
+        }
+      ]
+    })
+    mocks.sessionPathSend.mockResolvedValueOnce({
+      workline_id: 10,
+      session_id: 1,
+      trace_id: 'trace-from-path',
+      diagnosis_verdict: blockedVerdict,
+      sessions: [],
+      resource_view: {
+        active_bin_racks: []
       },
-      diagnosis_verdict: createDiagnosisVerdict({
-        state: 'blocked',
-        severity: 'danger',
-        title: '流程已阻塞',
-        summary: '存在明确阻塞点。',
-        requires_operator_action: true,
-        primary_action: '处理阻塞点',
-        blocking_point: 'command',
-        owner: 'device'
-      })
+      devices: [],
+      timeline_groups: []
     })
 
     await mountPage()
     await flushViewUpdates()
 
-    expect(mocks.traceBlockingPointSend).toHaveBeenCalled()
+    expect(mocks.traceBlockingPointMethod).toHaveBeenCalledWith('trace-from-path')
+    expect(mocks.traceBlockingPointSend).toHaveBeenCalledTimes(1)
   })
 
   it('shows active cases when no case anchor is selected', async () => {

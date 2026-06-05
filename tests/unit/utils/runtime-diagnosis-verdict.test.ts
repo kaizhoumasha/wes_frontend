@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import type { DiagnosisVerdict, TraceBlockingPointResponse, TraceDetailResponse } from '@/types/runtime'
+import type {
+  DiagnosisVerdict,
+  TraceBlockingPointResponse,
+  TraceDetailResponse
+} from '@/types/runtime'
 import {
   buildRuntimeDiagnosisVerdict,
   resolveRuntimeBlockingPointFetch,
@@ -25,18 +29,19 @@ function detail(overrides: Partial<TraceDetailResponse> = {}): TraceDetailRespon
       latest_timeline_action: 'SESSION_COMPLETED',
       latest_timeline_status: 'SUCCESS'
     },
-    session: {
-      id: 11,
-      session_code: 'SESSION-11',
-      workline_id: 22,
-      plugin_key: 'rough_sorter',
-      run_mode: 'SIMULATION',
-      status: 'COMPLETED',
-      trace_id: 'trace-ok',
-      ingress_count: 0,
-      context_json: {}
-    },
-    sessions: [],
+    sessions: [
+      {
+        id: 11,
+        session_code: 'SESSION-11',
+        workline_id: 22,
+        plugin_key: 'rough_sorter',
+        run_mode: 'SIMULATION',
+        status: 'COMPLETED',
+        trace_id: 'trace-ok',
+        ingress_count: 0,
+        context_json: {}
+      }
+    ],
     callback_logs: [],
     inboxes: [],
     commands: [],
@@ -44,6 +49,7 @@ function detail(overrides: Partial<TraceDetailResponse> = {}): TraceDetailRespon
     dispatch_attempts: [],
     timelines: [],
     diagnostics: [],
+    diagnosis_verdict: verdict({}),
     ...overrides
   }
 }
@@ -111,6 +117,7 @@ function fallbackUnknownBlockingPoint(
     },
     evidence: {},
     next_steps: [],
+    diagnosis_verdict: verdict({ state: 'unknown', severity: 'warning', title: '诊断不足' }),
     ...overrides
   }
 }
@@ -139,7 +146,7 @@ describe('buildRuntimeDiagnosisVerdict', () => {
     expect(model.card.operatorAction).not.toContain('联系技术支持')
   })
 
-  it('corrects completed + none + UNKNOWN legacy fallback to completed_clear', () => {
+  it('uses backend completed_clear verdict even when blocking point is fallback UNKNOWN', () => {
     const model = buildRuntimeDiagnosisVerdict({
       detail: detail(),
       blockingPoint: fallbackUnknownBlockingPoint()

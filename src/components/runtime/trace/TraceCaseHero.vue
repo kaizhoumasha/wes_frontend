@@ -12,7 +12,7 @@
         <div class="trace-case-hero__title-row runtime-hero__title-row">
           <h2 class="trace-case-hero__title">{{ heroTitle }}</h2>
           <RuntimeStatusBadge
-            :status="detail.summary.session_status || detail.session?.status"
+            :status="detail.summary.session_status || primarySession?.status"
             pulse
           />
         </div>
@@ -35,7 +35,7 @@
       <div class="trace-case-hero__fact runtime-hero__fact">
         <span>等待类型</span>
         <strong>
-          {{ detail.summary.current_wait_type || detail.session?.current_wait_type || '—' }}
+          {{ detail.summary.current_wait_type || primarySession?.current_wait_type || '—' }}
         </strong>
       </div>
       <div class="trace-case-hero__fact runtime-hero__fact">
@@ -94,26 +94,28 @@ const props = defineProps<{
   deviceName?: string | null
 }>()
 
+const primarySession = computed(() => props.detail.sessions[0] ?? null)
+
 const sessionCode = computed(() =>
   displaySession({
-    session_code: props.detail.session?.session_code,
+    session_code: primarySession.value?.session_code,
     session_id: props.detail.trace.session_id
   })
 )
 const traceCode = computed(() =>
   displayTrace({
     trace_id: props.detail.trace.trace_id,
-    session_code: props.detail.session?.session_code,
+    session_code: primarySession.value?.session_code,
     session_id: props.detail.trace.session_id
   })
 )
-const barcode = computed(() => props.detail.session?.barcode ?? null)
+const barcode = computed(() => primarySession.value?.barcode ?? null)
 const heroEyebrow = computed(() => (barcode.value ? '物料条码' : '运行案件'))
 const heroTitle = computed(() =>
   displayCase({
     barcode: barcode.value,
-    session_code: props.detail.session?.session_code,
-    business_key: props.detail.session?.business_key,
+    session_code: primarySession.value?.session_code,
+    business_key: primarySession.value?.business_key,
     session_id: props.detail.trace.session_id
   })
 )
@@ -121,24 +123,24 @@ const heroSubCode = computed(() => (barcode.value ? sessionCode.value : traceCod
 const runtimeProgress = computed(() =>
   resolveRuntimeProgressLabel({
     ...props.detail.summary,
-    status: props.detail.session?.status
+    status: primarySession.value?.status
   })
 )
 
 const headline = computed(() => {
   return (
     props.detail.summary.latest_timeline_message ||
-    props.detail.session?.failure_message ||
+    primarySession.value?.failure_message ||
     '沿时间轴查看最后成功节点与第一处异常证据。'
   )
 })
 
 const lifecycleDuration = computed(() => {
-  return formatRuntimeElapsed(props.detail.session?.started_at, props.detail.session?.ended_at)
+  return formatRuntimeElapsed(primarySession.value?.started_at, primarySession.value?.ended_at)
 })
 
 const failureText = computed(() => {
-  const parts = [props.detail.session?.failure_domain, props.detail.session?.failure_code].filter(
+  const parts = [primarySession.value?.failure_domain, primarySession.value?.failure_code].filter(
     Boolean
   )
   return parts.length ? parts.join(' / ') : '—'

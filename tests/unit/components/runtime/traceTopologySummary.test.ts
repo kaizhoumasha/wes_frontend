@@ -27,25 +27,42 @@ function createDetail(): TraceDetailResponse {
       latest_timeline_action: 'SESSION_COMPLETED',
       latest_timeline_status: 'SUCCESS'
     },
-    session: {
-      id: 1001,
-      session_code: 'SESSION-1001',
-      workline_id: 8,
-      plugin_key: 'rough_sorter',
-      run_mode: 'MOCK',
-      barcode: 'PKG-CAP001-LOT-A',
-      status: 'COMPLETED',
-      trace_id: 'rough-sorter-curl-ok-1780459094',
-      ingress_count: 5,
-      context_json: {}
-    },
-    sessions: [],
+    sessions: [
+      {
+        id: 1001,
+        session_code: 'SESSION-1001',
+        workline_id: 8,
+        plugin_key: 'rough_sorter',
+        run_mode: 'MOCK',
+        barcode: 'PKG-CAP001-LOT-A',
+        status: 'COMPLETED',
+        trace_id: 'rough-sorter-curl-ok-1780459094',
+        ingress_count: 5,
+        context_json: {}
+      }
+    ],
     callback_logs: [],
     inboxes: [],
     commands: [],
     outboxes: [],
     dispatch_attempts: [],
     diagnostics: [],
+    diagnosis_verdict: {
+      state: 'completed_clear',
+      severity: 'success',
+      title: '流程已完成',
+      summary: '当前案件已正常结束，未发现阻塞点。',
+      requires_operator_action: false,
+      primary_action: '无需现场处置',
+      blocking_point: 'none',
+      owner: null,
+      evidence_health: {
+        level: 'complete',
+        summary: '关键证据已纳入诊断',
+        missing: [],
+        items: []
+      }
+    },
     timelines: [
       {
         id: 1,
@@ -196,12 +213,28 @@ describe('TraceBlockingPointCard', () => {
       latest_timeline_status: 'PENDING',
       latest_timeline_message: 'SMT 可用货架快照必须包含 A/B/C/D 4 个料箱'
     }
-    detail.session = {
-      ...detail.session!,
+    detail.sessions[0] = {
+      ...detail.sessions[0],
       status: 'MANUAL_HOLD',
       failure_domain: 'MATERIAL',
       failure_code: 'ACTIVE_RACK_SNAPSHOT_INVALID',
       failure_message: 'SMT 可用货架快照必须包含 A/B/C/D 4 个料箱'
+    }
+    detail.diagnosis_verdict = {
+      state: 'blocked',
+      severity: 'danger',
+      title: 'MATERIAL / ACTIVE_RACK_SNAPSHOT_INVALID',
+      summary: 'MATERIAL / ACTIVE_RACK_SNAPSHOT_INVALID：SMT 可用货架快照必须包含 A/B/C/D 4 个料箱',
+      requires_operator_action: true,
+      primary_action: '人工检查粗分机当前物料与依赖状态',
+      blocking_point: 'resource',
+      owner: 'material',
+      evidence_health: {
+        level: 'complete',
+        summary: '关键证据已纳入诊断',
+        missing: [],
+        items: []
+      }
     }
     detail.timelines.push({
       id: 4,
@@ -245,7 +278,8 @@ describe('TraceBlockingPointCard', () => {
         context: { extra: {} }
       },
       evidence: {},
-      next_steps: []
+      next_steps: [],
+      diagnosis_verdict: detail.diagnosis_verdict
     }
 
     const wrapper = mount(TraceBlockingPointCard, {
@@ -278,9 +312,25 @@ describe('TraceBlockingPointCard', () => {
       latest_timeline_status: 'PENDING',
       latest_timeline_message: 'SMT 可用货架快照必须包含 A/B/C/D 4 个料箱'
     }
-    detail.session = {
-      ...detail.session!,
+    detail.sessions[0] = {
+      ...detail.sessions[0],
       status: 'MANUAL_HOLD'
+    }
+    detail.diagnosis_verdict = {
+      state: 'blocked',
+      severity: 'danger',
+      title: 'MATERIAL / ACTIVE_RACK_SNAPSHOT_INVALID',
+      summary: 'MATERIAL / ACTIVE_RACK_SNAPSHOT_INVALID：SMT 可用货架快照必须包含 A/B/C/D 4 个料箱',
+      requires_operator_action: true,
+      primary_action: '人工检查粗分机当前物料与依赖状态',
+      blocking_point: 'resource',
+      owner: 'material',
+      evidence_health: {
+        level: 'complete',
+        summary: '关键证据已纳入诊断',
+        missing: [],
+        items: []
+      }
     }
     detail.timelines.push({
       id: 4,
@@ -324,7 +374,8 @@ describe('TraceBlockingPointCard', () => {
         context: { extra: {} }
       },
       evidence: {},
-      next_steps: []
+      next_steps: [],
+      diagnosis_verdict: detail.diagnosis_verdict
     }
 
     const wrapper = mount(TraceBlockingPointCard, {

@@ -139,6 +139,7 @@
               <TraceBlockingPointCard
                 :blocking-point="blockingPoint"
                 :detail="traceDetail"
+                :diagnosis-verdict="tracePathData?.diagnosis_verdict ?? traceDetail.diagnosis_verdict"
                 :loading="blockingPointLoading"
               />
               <TraceNextActions
@@ -323,27 +324,27 @@
                       <div class="trace-session-card">
                         <span>Trace ID</span>
                         <strong>
-                          {{ traceDetail.trace.trace_id || traceDetail.session?.trace_id || '--' }}
+                          {{ traceDetail.trace.trace_id || primaryTraceSession?.trace_id || '--' }}
                         </strong>
                       </div>
                       <div class="trace-session-card">
                         <span>Session Code</span>
-                        <strong>{{ traceDetail.session?.session_code || '--' }}</strong>
+                        <strong>{{ primaryTraceSession?.session_code || '--' }}</strong>
                       </div>
                       <div class="trace-session-card">
                         <span>Run Mode</span>
-                        <strong>{{ traceDetail.session?.run_mode || '--' }}</strong>
+                        <strong>{{ primaryTraceSession?.run_mode || '--' }}</strong>
                       </div>
                       <div class="trace-session-card">
                         <span>Started / Ended</span>
                         <strong>
-                          {{ formatRuntimeDateTime(traceDetail.session?.started_at) }} ->
-                          {{ formatRuntimeDateTime(traceDetail.session?.ended_at) }}
+                          {{ formatRuntimeDateTime(primaryTraceSession?.started_at) }} ->
+                          {{ formatRuntimeDateTime(primaryTraceSession?.ended_at) }}
                         </strong>
                       </div>
                       <div class="trace-session-card">
                         <span>Failure Message</span>
-                        <strong>{{ traceDetail.session?.failure_message || '--' }}</strong>
+                        <strong>{{ primaryTraceSession?.failure_message || '--' }}</strong>
                       </div>
                     </div>
                     <el-table
@@ -647,6 +648,12 @@ interface TraceAnchor {
   value: string
 }
 
+type TraceSession = TraceDetailResponse['sessions'][number]
+interface TracePathAnchor {
+  sessionId?: number | null
+  traceId?: string | null
+}
+
 const TRACE_QUERY_KEYS: Record<TraceAnchorType, string> = {
   trace: 'traceId',
   session: 'sessionId',
@@ -656,17 +663,22 @@ const TRACE_QUERY_KEYS: Record<TraceAnchorType, string> = {
   barcode: 'barcode'
 }
 
-const sessionJson = computed(() => JSON.stringify(traceDetail.value?.session ?? {}, null, 2))
+function primarySession(detail: TraceDetailResponse | null | undefined): TraceSession | null {
+  return detail?.sessions?.[0] ?? null
+}
+
+const primaryTraceSession = computed(() => primarySession(traceDetail.value))
+const sessionJson = computed(() => JSON.stringify(primaryTraceSession.value ?? {}, null, 2))
 const rawJson = computed(() => JSON.stringify(traceDetail.value ?? {}, null, 2))
 const selectedSessionId = computed(() => traceDetail.value?.trace.session_id ?? null)
 const selectedTraceId = computed(
-  () => traceDetail.value?.trace.trace_id ?? traceDetail.value?.session?.trace_id ?? null
+  () => traceDetail.value?.trace.trace_id ?? primaryTraceSession.value?.trace_id ?? null
 )
 
 const traceStickyTitle = computed(() => {
-  const detail = traceDetail.value
+  const session = primaryTraceSession.value
   return displaySession({
-    session_code: detail?.session?.session_code,
+    session_code: session?.session_code,
     session_id: selectedSessionId.value
   })
 })
@@ -678,7 +690,7 @@ const traceStickyCode = computed(() => {
 })
 
 const traceStickyStatus = computed(() => {
-  return traceDetail.value?.summary.session_status || traceDetail.value?.session?.status || null
+  return traceDetail.value?.summary.session_status || primaryTraceSession.value?.status || null
 })
 
 const traceStickyFacts = computed(() => {
@@ -686,9 +698,10 @@ const traceStickyFacts = computed(() => {
   if (!detail) {
     return []
   }
+  const session = primarySession(detail)
 
   const failureText =
-    [detail.session?.failure_domain, detail.session?.failure_code].filter(Boolean).join(' / ') ||
+    [session?.failure_domain, session?.failure_code].filter(Boolean).join(' / ') ||
     '--'
 
   return [
@@ -696,7 +709,7 @@ const traceStickyFacts = computed(() => {
       label: '运行进度',
       value: resolveRuntimeProgressLabel({
         ...detail.summary,
-        status: detail.session?.status
+        status: session?.status
       })
     },
     { label: '失败域 / 码', value: failureText }
@@ -941,7 +954,7 @@ async function loadTraceDetail(
 function normalizeTraceDetail(detail: TraceDetailResponse): TraceDetailResponse {
   return {
     ...detail,
-    sessions: detail.sessions ?? (detail.session ? [detail.session] : []),
+    sessions: detail.sessions ?? [],
     callback_logs: detail.callback_logs ?? [],
     inboxes: detail.inboxes ?? [],
     commands: detail.commands ?? [],
@@ -956,22 +969,29 @@ async function setTraceDetail(detail: TraceDetailResponse, requestSeq: number): 
   if (!isLatestTraceRequest(requestSeq)) return
   const nextDetail = normalizeTraceDetail(detail)
   traceDetail.value = nextDetail
-  const diagnosis = buildRuntimeDiagnosisVerdict({ detail: nextDetail })
-  activeTab.value = diagnosis.defaultTab
-  const traceId = nextDetail.trace.trace_id ?? nextDetail.session?.trace_id ?? null
-  const worklineId = nextDetail.session?.workline_id ?? nextDetail.trace.workline_id ?? null
+  const session = primarySession(nextDetail)
+  const traceId = nextDetail.trace.trace_id ?? session?.trace_id ?? null
+  const sessionId = nextDetail.trace.session_id ?? session?.id ?? null
+  const worklineId = session?.workline_id ?? nextDetail.trace.workline_id ?? null
   await normalizeRouteToSession(nextDetail)
-  await Promise.all([
-    resolveRuntimeBlockingPointFetch(diagnosis)
-      ? loadBlockingPoint(traceId, requestSeq)
-      : skipBlockingPoint(requestSeq),
-    loadTracePath(traceId, requestSeq),
+  const [pathData] = await Promise.all([
+    loadTracePath({ sessionId, traceId }, requestSeq),
     loadWorklineDetail(worklineId, requestSeq)
   ])
+  if (!isLatestTraceRequest(requestSeq)) return
+  const diagnosis = buildRuntimeDiagnosisVerdict({
+    detail: nextDetail,
+    verdict: pathData?.diagnosis_verdict ?? nextDetail.diagnosis_verdict
+  })
+  const blockingTraceId = pathData?.trace_id ?? traceId
+  activeTab.value = diagnosis.defaultTab
+  await (resolveRuntimeBlockingPointFetch(diagnosis)
+    ? loadBlockingPoint(blockingTraceId, requestSeq)
+    : skipBlockingPoint(requestSeq))
 }
 
 async function normalizeRouteToSession(detail: TraceDetailResponse): Promise<void> {
-  const sessionId = detail.trace.session_id ?? detail.session?.id ?? null
+  const sessionId = detail.trace.session_id ?? primarySession(detail)?.id ?? null
   if (!sessionId || route.query.sessionId === String(sessionId)) {
     return
   }
@@ -1033,24 +1053,33 @@ function skipBlockingPoint(requestSeq: number): void {
   blockingPointLoading.value = false
 }
 
-async function loadTracePath(traceId: string | null, requestSeq: number): Promise<void> {
+async function loadTracePath(
+  anchor: TracePathAnchor,
+  requestSeq: number
+): Promise<RuntimeTracePathResponse | null> {
   tracePathData.value = null
-  if (!traceId) {
+  const sessionId = anchor.sessionId ?? null
+  const traceId = anchor.traceId ?? null
+  if (!sessionId && !traceId) {
     if (isLatestTraceRequest(requestSeq)) {
       tracePathLoading.value = false
     }
-    return
+    return null
   }
 
   tracePathLoading.value = true
   try {
-    const nextPathData = await runtimeApiMethods.tracePath(traceId).send()
+    const nextPathData = sessionId
+      ? await runtimeApiMethods.sessionPath(sessionId).send()
+      : await runtimeApiMethods.tracePath(traceId as string).send()
     if (isLatestTraceRequest(requestSeq)) {
-      tracePathData.value = {
+      const normalizedPathData = {
         ...nextPathData,
         devices: nextPathData.devices ?? [],
         timeline_groups: nextPathData.timeline_groups ?? []
       }
+      tracePathData.value = normalizedPathData
+      return normalizedPathData
     }
   } catch {
     if (isLatestTraceRequest(requestSeq)) {
@@ -1061,6 +1090,7 @@ async function loadTracePath(traceId: string | null, requestSeq: number): Promis
       tracePathLoading.value = false
     }
   }
+  return null
 }
 
 async function loadWorklineDetail(
@@ -1113,7 +1143,7 @@ async function refreshCurrent() {
   const requestSeq = nextTraceRequestSeq()
   loading.value = true
   try {
-    const activeSessionId = traceDetail.value?.trace.session_id
+    const activeSessionId = traceDetail.value?.trace.session_id ?? primaryTraceSession.value?.id
     if (activeSessionId) {
       await loadTraceBySession(activeSessionId, requestSeq)
       return
@@ -1151,7 +1181,7 @@ async function syncTraceRouteState() {
         routeAnchor.type === 'session' &&
         traceDetail.value &&
         (traceDetail.value.trace.session_id === Number(routeAnchor.value) ||
-          traceDetail.value.session?.id === Number(routeAnchor.value))
+          primaryTraceSession.value?.id === Number(routeAnchor.value))
       ) {
         applyAnchorToInputs(routeAnchor)
         return

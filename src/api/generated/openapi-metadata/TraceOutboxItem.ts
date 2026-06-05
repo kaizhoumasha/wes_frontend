@@ -123,6 +123,38 @@ export const TraceOutboxItemMetadata = {
       "required": false,
       "nullable": true
     },
+    "blocked_at": {
+      "title": "Blocked At",
+      "type": "string",
+      "format": "date-time",
+      "required": false,
+      "nullable": true
+    },
+    "last_blocked_check_at": {
+      "title": "Last Blocked Check At",
+      "type": "string",
+      "format": "date-time",
+      "required": false,
+      "nullable": true
+    },
+    "blocked_wait_seconds": {
+      "title": "Blocked Wait Seconds",
+      "type": "integer",
+      "required": false,
+      "nullable": true
+    },
+    "blocked_check_count": {
+      "title": "Blocked Check Count",
+      "type": "integer",
+      "required": false,
+      "nullable": true
+    },
+    "blocked_detail_json": {
+      "title": "Blocked Detail Json",
+      "type": "object",
+      "required": false,
+      "nullable": true
+    },
     "created_at": {
       "title": "Created At",
       "type": "string",

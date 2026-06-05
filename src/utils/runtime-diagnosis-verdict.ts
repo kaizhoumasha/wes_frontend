@@ -9,18 +9,12 @@ import type {
   DiagnosisVerdictSeverity,
   DiagnosisVerdictState,
   TraceBlockingPointResponse,
-  TraceDetailResponse,
-  TraceTimelineItem
+  TraceDetailResponse
 } from '@/types/runtime'
 import type { RuntimeTone } from '@/utils/runtime-display'
-import { compactEnumLabel, isActiveStatus, isFailureStatus } from '@/utils/runtime-display'
+import { compactEnumLabel } from '@/utils/runtime-display'
 
-export type RuntimeDiagnosisDefaultTab =
-  | 'diagnostics'
-  | 'ingress'
-  | 'session'
-  | 'execution'
-  | 'raw'
+export type RuntimeDiagnosisDefaultTab = 'diagnostics' | 'ingress' | 'session' | 'execution' | 'raw'
 
 export type RuntimeDiagnosisTopologyVerdict = 'success' | 'danger' | 'warning' | 'primary' | 'info'
 
@@ -75,6 +69,7 @@ export interface RuntimeDiagnosisVerdictViewModel {
 
 export interface BuildRuntimeDiagnosisVerdictOptions {
   detail: TraceDetailResponse
+  verdict?: DiagnosisVerdict | null
   blockingPoint?: TraceBlockingPointResponse | null
 }
 
@@ -158,7 +153,9 @@ function normalizeBlockingPoint(value: string | null | undefined): DiagnosisVerd
   return 'unknown'
 }
 
-function normalizeEvidenceState(value: string | null | undefined): DiagnosisEvidenceHealthItemState {
+function normalizeEvidenceState(
+  value: string | null | undefined
+): DiagnosisEvidenceHealthItemState {
   const state = value?.toLowerCase()
   if (state === 'present' || state === 'empty' || state === 'missing' || state === 'not_required') {
     return state
@@ -219,115 +216,11 @@ function severityToTone(
   return 'info'
 }
 
-function latestFailureTimeline(detail: TraceDetailResponse): TraceTimelineItem | null {
-  return [...detail.timelines]
-    .sort((left, right) => left.seq_no - right.seq_no || left.id - right.id)
-    .reverse()
-    .find(item => item.failure_domain || item.message || item.action_type === 'MANUAL_HOLD') ?? null
-}
-
-function payloadText(item: TraceTimelineItem | null | undefined, key: string): string | undefined {
-  const value = item?.payload_json?.[key]
-  return typeof value === 'string' && value.trim() ? value : undefined
-}
-
-function isFallbackUnknownBlockingPoint(
-  blockingPoint?: TraceBlockingPointResponse | null
-): boolean {
-  if (!blockingPoint) {
-    return false
-  }
-
-  const diagnostic = blockingPoint.diagnostic_card
-  const hasNoConcretePoint =
-    blockingPoint.blocking_point.toLowerCase() === 'none' ||
-    blockingPoint.blocking_point.toUpperCase() === 'UNKNOWN'
-  return (
-    hasNoConcretePoint &&
-    diagnostic?.error_domain === 'SYSTEM' &&
-    diagnostic?.error_code === 'UNKNOWN'
-  )
-}
-
-function countEvidence(detail: TraceDetailResponse, key: DiagnosisEvidenceHealthItemKey): number {
-  const counts: Record<DiagnosisEvidenceHealthItemKey, number> = {
-    session: detail.session ? 1 : 0,
-    timeline: detail.timelines.length,
-    callback: detail.callback_logs.length,
-    inbox: detail.inboxes.length,
-    command: detail.commands.length,
-    outbox: detail.outboxes.length,
-    diagnostics: detail.diagnostics.length,
-    workline_admission: 0,
-    resource_wait: 0
-  }
-  return counts[key]
-}
-
-function evidenceItem(
-  detail: TraceDetailResponse,
-  key: DiagnosisEvidenceHealthItemKey,
-  state: DiagnosisEvidenceHealthItemState,
-  hint: string
-): DiagnosisEvidenceHealthItem {
-  return {
-    key,
-    label: EVIDENCE_LABELS[key],
-    count: countEvidence(detail, key),
-    state,
-    hint
-  }
-}
-
-function legacyEvidenceHealth(
-  detail: TraceDetailResponse,
-  state: DiagnosisVerdictState
-): DiagnosisEvidenceHealth {
-  if (state === 'completed_clear') {
-    return {
-      level: 'complete',
-      summary: '完成态证据已足够判断无阻塞点',
-      missing: [],
-      items: [
-        evidenceItem(detail, 'session', detail.session ? 'present' : 'missing', '主证据'),
-        evidenceItem(detail, 'timeline', detail.timelines.length ? 'present' : 'not_required', '完成态可由会话状态确认'),
-        evidenceItem(detail, 'callback', detail.callback_logs.length ? 'present' : 'not_required', '当前完成态不依赖 callback 证据'),
-        evidenceItem(detail, 'inbox', detail.inboxes.length ? 'present' : 'empty', '当前完成态无待处理 inbox'),
-        evidenceItem(detail, 'command', detail.commands.length ? 'present' : 'empty', '当前完成态无失败设备指令'),
-        evidenceItem(detail, 'outbox', detail.outboxes.length ? 'present' : 'empty', '当前完成态无待发送 outbox'),
-        evidenceItem(detail, 'diagnostics', detail.diagnostics.length ? 'present' : 'not_required', '当前完成态不依赖持久化诊断')
-      ]
-    }
-  }
-
-  const missing = [
-    !detail.session ? 'session' : null,
-    !detail.timelines.length ? 'timeline' : null,
-    !detail.diagnostics.length ? 'diagnostics' : null
-  ].filter((item): item is string => Boolean(item))
-  return {
-    level: missing.length ? 'partial' : 'complete',
-    summary: missing.length ? `缺少 ${missing.join(' / ')} 证据` : '证据足够支撑当前诊断',
-    missing,
-    items: [
-      evidenceItem(detail, 'session', detail.session ? 'present' : 'missing', '会话状态用于判断运行结论'),
-      evidenceItem(detail, 'timeline', detail.timelines.length ? 'present' : 'missing', '时间线用于定位推进位置'),
-      evidenceItem(detail, 'callback', detail.callback_logs.length ? 'present' : 'empty', '入口回调用于复核外部请求'),
-      evidenceItem(detail, 'inbox', detail.inboxes.length ? 'present' : 'empty', 'Inbox 用于复核入口处理结果'),
-      evidenceItem(detail, 'command', detail.commands.length ? 'present' : 'empty', 'Command 用于复核设备执行'),
-      evidenceItem(detail, 'outbox', detail.outboxes.length ? 'present' : 'empty', 'Outbox 用于复核外发与等待'),
-      evidenceItem(detail, 'diagnostics', detail.diagnostics.length ? 'present' : 'missing', '诊断证据用于确认责任归属')
-    ]
-  }
-}
-
 function normalizeEvidenceHealth(
-  detail: TraceDetailResponse,
-  state: DiagnosisVerdictState,
   evidenceHealth: DiagnosisEvidenceHealth | null | undefined
-): DiagnosisEvidenceHealth {
+): RuntimeDiagnosisEvidenceHealthViewModel {
   if (!evidenceHealth) {
-    return legacyEvidenceHealth(detail, state)
+    return contractMissingEvidenceHealth()
   }
 
   return {
@@ -352,140 +245,40 @@ function normalizeEvidenceHealth(
   }
 }
 
-function completedClearVerdict(detail: TraceDetailResponse): DiagnosisVerdict {
+function contractMissingEvidenceHealth(): RuntimeDiagnosisEvidenceHealthViewModel {
   return {
-    state: 'completed_clear',
-    severity: 'success',
-    title: '流程已完成',
-    summary: '当前案件已正常结束，未发现阻塞点。',
-    requires_operator_action: false,
-    primary_action: '无需现场处置',
-    blocking_point: 'none',
-    owner: null,
-    evidence_health: legacyEvidenceHealth(detail, 'completed_clear')
+    level: 'missing',
+    summary: '后端诊断契约缺失',
+    missing: ['diagnosis_verdict'],
+    items: [
+      {
+        key: 'diagnostics',
+        label: EVIDENCE_LABELS.diagnostics,
+        count: 0,
+        state: 'missing',
+        hint: 'Trace 响应缺少后端 diagnosis_verdict'
+      }
+    ]
   }
 }
 
-function legacyVerdictFromFailure(
-  detail: TraceDetailResponse,
-  blockingPoint?: TraceBlockingPointResponse | null
-): DiagnosisVerdict | null {
-  const timeline = latestFailureTimeline(detail)
-  const concreteBlockingPoint =
-    blockingPoint && !isFallbackUnknownBlockingPoint(blockingPoint) ? blockingPoint : null
-  const shouldUseBlockingPoint = Boolean(concreteBlockingPoint)
-  const hasTraceFailure = Boolean(
-    detail.session?.failure_domain ||
-      detail.session?.failure_code ||
-      detail.session?.failure_message ||
-      timeline?.failure_domain ||
-      timeline?.message ||
-      payloadText(timeline, 'reason_code')
-  )
-  const failureDomain =
-    detail.session?.failure_domain ||
-    timeline?.failure_domain ||
-    concreteBlockingPoint?.diagnostic_card.error_domain
-  const failureCode =
-    detail.session?.failure_code ||
-    payloadText(timeline, 'reason_code') ||
-    (concreteBlockingPoint
-      ? concreteBlockingPoint.diagnostic_card.error_code !== 'UNKNOWN'
-        ? concreteBlockingPoint.diagnostic_card.error_code
-        : concreteBlockingPoint.blocking_point
-      : null)
-  const failureMessage =
-    detail.session?.failure_message ||
-    timeline?.message ||
-    detail.summary.latest_timeline_message ||
-    (concreteBlockingPoint
-      ? concreteBlockingPoint.diagnostic_card.user_message || concreteBlockingPoint.diagnostic_card.summary
-      : null)
-  const suggestedAction =
-    payloadText(timeline, 'suggested_action') ||
-    detail.session?.required_operator_action ||
-    blockingPoint?.operator_action ||
-    blockingPoint?.diagnostic_card.operator_action ||
-    null
-
-  if (!hasTraceFailure && !shouldUseBlockingPoint) {
-    return null
-  }
-
-  const state = isFailureStatus(detail.session?.status ?? detail.summary.session_status)
-    ? 'failed'
-    : 'blocked'
-  const title = [failureDomain, failureCode].filter(Boolean).join(' / ') || 'Trace 已定位原因'
-  const summary = [title, failureMessage].filter(Boolean).join('：')
-  return {
-    state,
-    severity: 'danger',
-    title,
-    summary: summary || 'Trace 已定位到业务异常，请按建议动作处理。',
-    requires_operator_action: true,
-    primary_action: suggestedAction || '查看阻塞点证据后处理',
-    blocking_point: normalizeBlockingPoint(blockingPoint?.blocking_point || failureCode || 'unknown'),
-    owner: failureDomain || blockingPoint?.owner || null,
-    evidence_health: legacyEvidenceHealth(detail, state)
-  }
-}
-
-function legacyVerdict(
-  detail: TraceDetailResponse,
-  blockingPoint?: TraceBlockingPointResponse | null
-): DiagnosisVerdict {
-  const status = detail.session?.status ?? detail.summary.session_status
-  const hasCompletedStatus =
-    status === 'COMPLETED' || detail.summary.latest_timeline_action === 'SESSION_COMPLETED'
-
-  if (hasCompletedStatus && (!blockingPoint || isFallbackUnknownBlockingPoint(blockingPoint))) {
-    return completedClearVerdict(detail)
-  }
-
-  const failure = legacyVerdictFromFailure(detail, blockingPoint)
-  if (failure) {
-    return failure
-  }
-
-  if (isActiveStatus(status) || isActiveStatus(detail.summary.latest_timeline_status)) {
-    return {
-      state: detail.session?.current_wait_type ? 'waiting' : 'running',
-      severity: detail.session?.current_wait_type ? 'warning' : 'info',
-      title: detail.session?.current_wait_type ? '流程等待中' : '流程运行中',
-      summary: detail.session?.current_wait_type
-        ? `当前等待 ${compactEnumLabel(detail.session.current_wait_type)}。`
-        : '当前流程正在正常推进。',
-      requires_operator_action: false,
-      primary_action: detail.session?.current_wait_type ? '继续观察等待证据' : '继续观察运行进度',
-      blocking_point: detail.session?.current_wait_type ? 'unknown' : 'none',
-      owner: null,
-      evidence_health: legacyEvidenceHealth(
-        detail,
-        detail.session?.current_wait_type ? 'waiting' : 'running'
-      )
-    }
-  }
-
+function contractMissingVerdict(): DiagnosisVerdict {
   return {
     state: 'unknown',
     severity: 'warning',
-    title: '诊断不足',
-    summary: '缺少足够证据，无法判断当前 Trace 是否需要处置。',
+    title: '后端诊断缺失',
+    summary: 'Trace 响应缺少 diagnosis_verdict，无法展示后端诊断结论。',
     requires_operator_action: false,
-    primary_action: '补齐缺失证据后复核',
+    primary_action: '刷新 Trace 或检查后端契约',
     blocking_point: 'unknown',
-    owner: null,
-    evidence_health: legacyEvidenceHealth(detail, 'unknown')
+    owner: 'system',
+    evidence_health: contractMissingEvidenceHealth()
   }
 }
 
-function normalizeVerdict(
-  detail: TraceDetailResponse,
-  blockingPoint?: TraceBlockingPointResponse | null
-): DiagnosisVerdict {
-  const source = detail.diagnosis_verdict ?? blockingPoint?.diagnosis_verdict ?? null
+function normalizeVerdict(source: DiagnosisVerdict | null | undefined): DiagnosisVerdict {
   if (!source) {
-    return legacyVerdict(detail, blockingPoint)
+    return contractMissingVerdict()
   }
 
   const state = normalizeState(source.state)
@@ -498,7 +291,7 @@ function normalizeVerdict(
     primary_action: source.primary_action ?? defaultPrimaryAction(state),
     blocking_point: normalizeBlockingPoint(source.blocking_point),
     owner: source.owner ?? null,
-    evidence_health: normalizeEvidenceHealth(detail, state, source.evidence_health)
+    evidence_health: normalizeEvidenceHealth(source.evidence_health)
   }
 }
 
@@ -591,10 +384,11 @@ function cardNextSteps(
   verdict: DiagnosisVerdict,
   blockingPoint?: TraceBlockingPointResponse | null
 ): string[] {
-  if (verdict.state === 'unknown' && verdict.evidence_health.missing.length) {
-    return verdict.evidence_health.missing.map(item => `补齐 ${compactEnumLabel(item)} 证据`)
+  const missing = verdict.evidence_health.missing ?? []
+  if (verdict.state === 'unknown' && missing.length) {
+    return missing.map(item => `补齐 ${compactEnumLabel(item)} 证据`)
   }
-  return (blockingPoint?.diagnostic_card.next_steps ?? blockingPoint?.next_steps ?? [])
+  return (blockingPoint?.diagnostic_card?.next_steps ?? blockingPoint?.next_steps ?? [])
     .filter(Boolean)
     .slice(0, 5)
 }
@@ -620,8 +414,10 @@ function buildCardViewModel(
     recoverabilityLabel: recoverabilityLabel(blockingPoint),
     requiresFieldAction,
     showTechnicalInfo: requiresFieldAction && Boolean(blockingPoint),
-    errorCode: blockingPoint?.diagnostic_card.error_code || compactEnumLabel(verdict.blocking_point),
-    problemClass: blockingPoint?.diagnostic_card.problem_class || compactEnumLabel(verdict.owner) || '—',
+    errorCode:
+      blockingPoint?.diagnostic_card?.error_code || compactEnumLabel(verdict.blocking_point),
+    problemClass:
+      blockingPoint?.diagnostic_card?.problem_class || compactEnumLabel(verdict.owner) || '—',
     nextSteps: cardNextSteps(verdict, blockingPoint)
   }
 }
@@ -667,12 +463,14 @@ export function resolveRuntimeBlockingPointFetch(
 
 export function buildRuntimeDiagnosisVerdict({
   detail,
+  verdict = null,
   blockingPoint = null
 }: BuildRuntimeDiagnosisVerdictOptions): RuntimeDiagnosisVerdictViewModel {
-  const verdict = normalizeVerdict(detail, blockingPoint)
-  const evidenceHealth = normalizeEvidenceHealth(detail, verdict.state, verdict.evidence_health)
+  const sourceVerdict = verdict ?? detail.diagnosis_verdict ?? blockingPoint?.diagnosis_verdict ?? null
+  const normalizedSourceVerdict = normalizeVerdict(sourceVerdict)
+  const evidenceHealth = normalizeEvidenceHealth(normalizedSourceVerdict.evidence_health)
   const normalizedVerdict = {
-    ...verdict,
+    ...normalizedSourceVerdict,
     evidence_health: evidenceHealth
   }
   const defaultTab = resolveRuntimeDiagnosisDefaultTab(normalizedVerdict.state)
@@ -682,7 +480,8 @@ export function buildRuntimeDiagnosisVerdict({
     blockingPoint: normalizedVerdict.blocking_point,
     owner: normalizedVerdict.owner ?? null,
     requiresOperatorAction: normalizedVerdict.requires_operator_action,
-    primaryAction: normalizedVerdict.primary_action || defaultPrimaryAction(normalizedVerdict.state),
+    primaryAction:
+      normalizedVerdict.primary_action || defaultPrimaryAction(normalizedVerdict.state),
     title: normalizedVerdict.title,
     summary: normalizedVerdict.summary,
     card: buildCardViewModel(normalizedVerdict, blockingPoint),

@@ -5146,6 +5146,59 @@ export interface components {
              */
             work_line_id?: number | null;
         };
+        /**
+         * DiagnosisEvidenceHealthItemResponse
+         * @description 诊断证据健康明细。
+         */
+        DiagnosisEvidenceHealthItemResponse: {
+            /** Count */
+            count: number;
+            /** Hint */
+            hint: string;
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** State */
+            state: string;
+        };
+        /**
+         * DiagnosisEvidenceHealthResponse
+         * @description 诊断证据健康摘要。
+         */
+        DiagnosisEvidenceHealthResponse: {
+            /** Items */
+            items?: components["schemas"]["DiagnosisEvidenceHealthItemResponse"][];
+            /** Level */
+            level: string;
+            /** Missing */
+            missing?: string[];
+            /** Summary */
+            summary: string;
+        };
+        /**
+         * DiagnosisVerdictResponse
+         * @description Trace 统一诊断结论。
+         */
+        DiagnosisVerdictResponse: {
+            /** Blocking Point */
+            blocking_point: string;
+            evidence_health: components["schemas"]["DiagnosisEvidenceHealthResponse"];
+            /** Owner */
+            owner?: string | null;
+            /** Primary Action */
+            primary_action?: string | null;
+            /** Requires Operator Action */
+            requires_operator_action: boolean;
+            /** Severity */
+            severity: string;
+            /** State */
+            state: string;
+            /** Summary */
+            summary: string;
+            /** Title */
+            title: string;
+        };
         /** DiagnosticCardResponse */
         DiagnosticCardResponse: {
             context: components["schemas"]["TraceDiagnosticContextItem"];
@@ -7152,6 +7205,57 @@ export interface components {
              */
             version: number;
         };
+        /** RuntimeActiveBinRackBinView */
+        RuntimeActiveBinRackBinView: {
+            /** Bin Code */
+            bin_code?: string | null;
+            /** Bin Id */
+            bin_id?: string | number | null;
+            /** Bin Orientation Code */
+            bin_orientation_code?: string | null;
+            /** Bin Type */
+            bin_type?: string | null;
+            /** Cells */
+            cells?: components["schemas"]["RuntimeActiveBinRackCellView"][];
+            /** Rack Slot Code */
+            rack_slot_code?: string | null;
+            /** Rack Slot Location Code */
+            rack_slot_location_code?: string | null;
+        };
+        /** RuntimeActiveBinRackCellView */
+        RuntimeActiveBinRackCellView: {
+            /** Bin Cell Code */
+            bin_cell_code?: string | null;
+            /** Bin Cell Index */
+            bin_cell_index?: number | string | null;
+            /** Bin Cell Location */
+            bin_cell_location?: string | null;
+            /** Capacity Depth Mm */
+            capacity_depth_mm?: number | null;
+            /** Is Reserved */
+            is_reserved?: boolean | null;
+            /** Material Identity Key */
+            material_identity_key?: string | null;
+            /** Pkg Code */
+            pkg_code?: string | null;
+            /** Status */
+            status?: string | null;
+            /** Used Depth Mm */
+            used_depth_mm?: number | null;
+        };
+        /** RuntimeActiveBinRackView */
+        RuntimeActiveBinRackView: {
+            /** Bins */
+            bins?: components["schemas"]["RuntimeActiveBinRackBinView"][];
+            /** Rack Code */
+            rack_code?: string | null;
+            /** Rack Id */
+            rack_id?: string | number | null;
+            /** Rack Kind */
+            rack_kind?: string | null;
+            /** Rack Type */
+            rack_type?: string | null;
+        };
         /** RuntimeBlockingReason */
         RuntimeBlockingReason: {
             /** Detail */
@@ -7203,11 +7307,21 @@ export interface components {
         RuntimeDeviceSummary: {
             /** Active Runtime Hold Ids */
             active_runtime_hold_ids?: number[];
+            /** Blocked Check Count */
+            blocked_check_count?: number | null;
+            /** Blocked Detail Json */
+            blocked_detail_json?: {
+                [key: string]: unknown;
+            } | null;
             /**
              * Blocked Outbox Count
              * @default 0
              */
             blocked_outbox_count: number;
+            /** Blocked Reason */
+            blocked_reason?: string | null;
+            /** Blocked Wait Seconds */
+            blocked_wait_seconds?: number | null;
             /** Current Command Id */
             current_command_id?: number | null;
             /** Device Code */
@@ -7526,15 +7640,23 @@ export interface components {
             current_blocking_device_id?: number | null;
             /** Devices */
             devices?: components["schemas"]["RuntimeTraceDevicePathNode"][];
-            evidence?: components["schemas"]["TraceDetailResponse"] | null;
+            diagnosis_verdict: components["schemas"]["DiagnosisVerdictResponse"];
+            resource_view?: components["schemas"]["RuntimeTraceResourceView"];
             /** Session Id */
             session_id?: number | null;
+            /** Sessions */
+            sessions?: components["schemas"]["TraceSessionItem"][];
             /** Timeline Groups */
             timeline_groups?: components["schemas"]["RuntimeTraceTimelineGroup"][];
             /** Trace Id */
             trace_id?: string | null;
             /** Workline Id */
             workline_id?: number | null;
+        };
+        /** RuntimeTraceResourceView */
+        RuntimeTraceResourceView: {
+            /** Active Bin Racks */
+            active_bin_racks?: components["schemas"]["RuntimeActiveBinRackView"][];
         };
         /** RuntimeTraceTimelineGroup */
         RuntimeTraceTimelineGroup: {
@@ -7577,11 +7699,21 @@ export interface components {
         RuntimeWorklineDeviceItem: {
             /** Active Runtime Hold Ids */
             active_runtime_hold_ids?: number[];
+            /** Blocked Check Count */
+            blocked_check_count?: number | null;
+            /** Blocked Detail Json */
+            blocked_detail_json?: {
+                [key: string]: unknown;
+            } | null;
             /**
              * Blocked Outbox Count
              * @default 0
              */
             blocked_outbox_count: number;
+            /** Blocked Reason */
+            blocked_reason?: string | null;
+            /** Blocked Wait Seconds */
+            blocked_wait_seconds?: number | null;
             /** Current Command Id */
             current_command_id?: number | null;
             /** Device Code */
@@ -8110,6 +8242,7 @@ export interface components {
         TraceBlockingPointResponse: {
             /** Blocking Point */
             blocking_point: string;
+            diagnosis_verdict: components["schemas"]["DiagnosisVerdictResponse"];
             diagnostic_card: components["schemas"]["DiagnosticCardResponse"];
             /** Evidence */
             evidence?: {
@@ -8261,6 +8394,7 @@ export interface components {
             callback_logs?: components["schemas"]["TraceCallbackLogItem"][];
             /** Commands */
             commands?: components["schemas"]["TraceCommandItem"][];
+            diagnosis_verdict: components["schemas"]["DiagnosisVerdictResponse"];
             /** Diagnostics */
             diagnostics?: components["schemas"]["TraceDiagnosticItem"][];
             /** Dispatch Attempts */
@@ -8270,7 +8404,6 @@ export interface components {
             /** Outboxes */
             outboxes?: components["schemas"]["TraceOutboxItem"][];
             resource_evidence?: components["schemas"]["TraceResourceEvidenceResponse"];
-            session?: components["schemas"]["TraceSessionItem"] | null;
             /** Sessions */
             sessions?: components["schemas"]["TraceSessionItem"][];
             summary: components["schemas"]["TraceOverviewSummary"];
@@ -8435,14 +8568,24 @@ export interface components {
              * @default 0
              */
             attempt_count: number;
+            /** Blocked At */
+            blocked_at?: string | null;
             /** Blocked By Reconciliation Session Id */
             blocked_by_reconciliation_session_id?: number | null;
             /** Blocked By Runtime Hold Id */
             blocked_by_runtime_hold_id?: number | null;
+            /** Blocked Check Count */
+            blocked_check_count?: number | null;
+            /** Blocked Detail Json */
+            blocked_detail_json?: {
+                [key: string]: unknown;
+            } | null;
             /** Blocked Device Id */
             blocked_device_id?: number | null;
             /** Blocked Reason */
             blocked_reason?: string | null;
+            /** Blocked Wait Seconds */
+            blocked_wait_seconds?: number | null;
             /** Blocked Workline Id */
             blocked_workline_id?: number | null;
             /**
@@ -8458,6 +8601,8 @@ export interface components {
             finished_at?: string | null;
             /** Id */
             id: number;
+            /** Last Blocked Check At */
+            last_blocked_check_at?: string | null;
             /** Last Error */
             last_error?: string | null;
             /** Next Retry At */

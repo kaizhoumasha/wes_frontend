@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2.0] - 2026-06-05
+
+### Added
+
+- Runtime Trace/Cases 支持后端 trace path 诊断契约，统一 sessionId、traceId 入口，并展示诊断结论、执行证据、设备摘要和资源快照。
+- 新增 Runtime trace path OpenAPI metadata、Zod schema 和前端类型，覆盖 DiagnosisVerdict、RuntimeTracePath、ResourceView、active bin/rack 等合同。
+- 新增诊断 verdict、拓扑摘要、TraceExplorer 布局和 timeline groups 回归测试，覆盖 trace path 合同的主要 UI 分支。
+
+### Changed
+
+- Trace Focus、blocking point、case hero 和 topology summary 改为消费后端诊断证据，减少前端重复推断逻辑。
+- Runtime trace topology 和 diagnosis verdict 工具函数同步到后端 evidence contract，确保状态、资源和阻塞点文案一致。
+
+### Fixed
+
+- 修复 trace 详情缺少统一诊断证据时，前端阻塞点、资源快照和 timeline group 展示不稳定的问题。
+
 ## [0.4.1.0] - 2026-06-02
 
 ### Added
