@@ -29,6 +29,7 @@ import type {
   SandboxCleanupResponse,
   RuntimeHoldDetailResponse,
   RuntimeHoldSummary,
+  RuntimeScenePluginManifestSummary,
   ResolveRuntimeHoldResponse,
   NgReasonOption,
   NgReturnItemResponse,
@@ -102,6 +103,12 @@ export const runtimeApiMethods = {
   worklineDetail(worklineId: number) {
     return adaptRuntimeMethod<RuntimeWorklineDetailResponse>(
       worklineApiMethods.getWorklines({ workline_id: worklineId })
+    )
+  },
+
+  worklinePluginManifest(pluginKey: string) {
+    return adaptRuntimeMethod<RuntimeScenePluginManifestSummary>(
+      apiClient.Get(`/api/v1/workline/plugins/${encodeURIComponent(pluginKey)}/manifest`)
     )
   },
 
