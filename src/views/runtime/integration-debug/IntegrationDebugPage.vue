@@ -116,6 +116,10 @@
               label="RUNNING"
               value="RUNNING"
             />
+            <el-option
+              label="RETRY"
+              value="RETRY"
+            />
           </el-select>
         </div>
 

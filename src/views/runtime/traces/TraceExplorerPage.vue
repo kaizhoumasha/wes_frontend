@@ -139,7 +139,9 @@
               <TraceBlockingPointCard
                 :blocking-point="blockingPoint"
                 :detail="traceDetail"
-                :diagnosis-verdict="tracePathData?.diagnosis_verdict ?? traceDetail.diagnosis_verdict"
+                :diagnosis-verdict="
+                  tracePathData?.diagnosis_verdict ?? traceDetail.diagnosis_verdict
+                "
                 :loading="blockingPointLoading"
               />
               <TraceNextActions
@@ -153,9 +155,7 @@
                 <span class="trace-section__num">02</span>
                 <div>
                   <div class="trace-section__title">案件过程</div>
-                  <div class="trace-section__desc">
-                    用业务语言还原案件推进，技术字段按需展开
-                  </div>
+                  <div class="trace-section__desc">用业务语言还原案件推进，技术字段按需展开</div>
                 </div>
               </div>
               <el-card
@@ -701,8 +701,7 @@ const traceStickyFacts = computed(() => {
   const session = primarySession(detail)
 
   const failureText =
-    [session?.failure_domain, session?.failure_code].filter(Boolean).join(' / ') ||
-    '--'
+    [session?.failure_domain, session?.failure_code].filter(Boolean).join(' / ') || '--'
 
   return [
     {
