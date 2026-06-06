@@ -36,13 +36,13 @@
 
 ## 3. 已确认决策
 
-| 编号 | 决策                                | 说明                                                          |
-| ---- | ----------------------------------- | ------------------------------------------------------------- |
-| D1   | 采用三者融合但先做现场态势图        | 后续支持运行回放和处置舱，第一阶段只落现场态势。              |
-| D2   | 首屏右侧升级为现场态势图            | 左侧工作线目录保留，右侧从拓扑卡片列表升级为现场模型。        |
-| D3   | 不在前端维护 `runtimeSceneProfiles` | 业务语义必须来自后端 WorkLine 的 `plugin_key` 对应 manifest。 |
-| D4   | 前端组件只消费统一 scene model      | 展示组件不得直接判断具体插件 key。                            |
-| D5   | 资源只作为执行证据投影              | 遵守 SRS：库存授权和库存真相仍属于 WMS/RCS。                  |
+| 编号 | 决策                                | 说明                                                                                  |
+| ---- | ----------------------------------- | ------------------------------------------------------------------------------------- |
+| D1   | 采用三者融合但先做现场态势图        | 后续支持运行回放和处置舱，第一阶段只落现场态势。                                      |
+| D2   | 首屏右侧升级为现场态势图            | 左侧工作线目录保留，右侧从拓扑卡片列表升级为现场模型。                                |
+| D3   | 不在前端维护 `runtimeSceneProfiles` | 业务语义必须来自后端 WorkLine 的 `plugin_key` 对应 manifest。                         |
+| D4   | 前端组件只消费统一 scene model      | 展示组件不得直接判断具体插件 key。                                                    |
+| D5   | 资源只作为执行证据投影              | 遵守 SRS：库存授权和库存真相属于 WMS；RCS/AGV/CTU 只作为 WMS 转发的运输执行证据来源。 |
 
 ## 4. 信息架构
 
@@ -200,7 +200,7 @@ v1 后端依赖：
 以下示例用于说明 manifest 驱动后的显示方式，不代表前端注册表。
 
 - 粗分机 / 装箱线：输入臂、输送/扫描、输出臂、货架补给；资源证据包括 PKG、measurement、active rack、bin cell、rack supply dispatch。
-- SMT 分拣入库：source arm、scan platform、target arm、NG arm/station、workstation；资源证据包括 working bin、target slot、NG reason、sorting completion。
+- SMT 分拣入库：source arm、scan platform、target arm、NG station evidence、workstation；NG 放置由 target arm 执行，资源证据包括 working bin、target slot、NG reason、sorting completion。
 - 退料线：PDA 分类、LCR、X-Ray、贴标、退料货架；资源证据包括 original/new PKG、actual count、return rack side/slot、WMS adjust evidence。
 - 机构件拆包线：A/B pallet pair、unwrap zone、unpack line、magazine buffer；资源证据包括 pallet pair、box barcode、Part SN、magazine full、SFC push。
 
