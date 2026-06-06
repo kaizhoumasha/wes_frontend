@@ -12,17 +12,13 @@
       <template #header>
         <div class="runtime-panel__header">
           <div>
-            <div class="runtime-panel__title">拓扑主视图</div>
-            <div class="runtime-panel__subtitle">点击设备节点查看详情</div>
+            <div class="runtime-panel__title">现场态势图</div>
+            <div class="runtime-panel__subtitle">按插件 manifest 与运行证据投影设备现场状态</div>
           </div>
         </div>
       </template>
-      <WorklineRouteMap
-        :devices="devices"
-        :selected-device-id="selectedDeviceId"
-        :session-counts-by-device="sessionCountsByDevice"
-        :trace-path-nodes="tracePathNodes"
-        :blocking-device-id="blockingDeviceId"
+      <RuntimeSceneMap
+        :model="sceneModel"
         @select="emit('selectDevice', $event)"
       />
     </el-card>
@@ -37,9 +33,12 @@
 </template>
 
 <script setup lang="ts">
+import { computed, watch } from 'vue'
 import DecisionStrip from '@/components/runtime/devices/DecisionStrip.vue'
-import WorklineRouteMap from '@/components/runtime/monitor/WorklineRouteMap.vue'
+import RuntimeSceneMap from '@/components/runtime/monitor/RuntimeSceneMap.vue'
 import SessionBoard from '@/components/runtime/monitor/SessionBoard.vue'
+import { buildRuntimeSceneModel } from '@/components/runtime/monitor/runtime-scene-model'
+import { useRuntimeSceneManifest } from '@/composables/useRuntimeSceneManifest'
 import type {
   RuntimeTraceDevicePathNode,
   RuntimeTraceListItem,
@@ -48,7 +47,7 @@ import type {
   RuntimeWorklineSummary
 } from '@/types/runtime'
 
-defineProps<{
+const props = defineProps<{
   worklineSummary: RuntimeWorklineSummary
   worklineDetail?: RuntimeWorklineDetailResponse | null
   devices: RuntimeWorklineDeviceItem[]
@@ -56,7 +55,6 @@ defineProps<{
   recentFailedTraces: RuntimeTraceListItem[]
   recentCompletedTraces?: RuntimeTraceListItem[]
   selectedDeviceId?: number | null
-  sessionCountsByDevice?: Map<number, number> | Record<number, number>
   tracePathNodes?: RuntimeTraceDevicePathNode[]
   blockingDeviceId?: number | null
 }>()
@@ -65,6 +63,35 @@ const emit = defineEmits<{
   selectDevice: [deviceId: number]
   selectSession: [session: RuntimeTraceListItem]
 }>()
+
+const manifestState = useRuntimeSceneManifest()
+
+const sceneModel = computed(() =>
+  buildRuntimeSceneModel(
+    props.worklineDetail ?? {
+      summary: props.worklineSummary,
+      devices: props.devices,
+      active_sessions: props.activeSessions,
+      recent_failed_traces: props.recentFailedTraces,
+      recent_completed_traces: props.recentCompletedTraces ?? []
+    },
+    {
+      manifest: manifestState.manifest.value,
+      manifestError: manifestState.error.value,
+      selectedDeviceId: props.selectedDeviceId,
+      tracePathNodes: props.tracePathNodes,
+      blockingDeviceId: props.blockingDeviceId
+    }
+  )
+)
+
+watch(
+  () => props.worklineSummary.plugin_key,
+  pluginKey => {
+    void manifestState.load(pluginKey)
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>

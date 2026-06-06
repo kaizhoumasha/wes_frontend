@@ -101,7 +101,6 @@
             :recent-failed-traces="store.detail.recent_failed_traces"
             :recent-completed-traces="store.detail.recent_completed_traces"
             :selected-device-id="selectedDeviceId"
-            :session-counts-by-device="store.sessionCountsByDevice"
             @select-device="openDevice"
             @select-session="openTrace"
           />
@@ -258,6 +257,14 @@ const refreshDetail = createCoalescedAsyncTask(async () => {
     return
   }
   if (store.detail?.summary.id === selectedWorklineId.value) return
+  await forceRefreshDetail()
+})
+
+const forceRefreshDetail = createCoalescedAsyncTask(async () => {
+  if (!selectedWorklineId.value) {
+    store.clearDetail()
+    return
+  }
   store.loading = true
   try {
     await store.loadDetail(selectedWorklineId.value)
@@ -314,7 +321,7 @@ async function clearWorklineEstop() {
       })
       .send()
     ElMessage.success('已解除冻结，等待现场硬件 START')
-    await refreshDetail()
+    await forceRefreshDetail()
   } catch (e: unknown) {
     ElMessage.error(getErrorMessage(e, '恢复接收失败'))
   } finally {
@@ -349,7 +356,7 @@ watch(
     )
       return
     const targets = classifyRuntimeRefresh(event)
-    if (targets.detail && selectedWorklineId.value) void refreshDetail()
+    if (targets.detail && selectedWorklineId.value) void forceRefreshDetail()
     if (targets.worklines) void refreshWorklines()
   }
 )
