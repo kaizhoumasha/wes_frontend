@@ -391,4 +391,68 @@ describe('buildRuntimeSceneModel', () => {
       }
     ])
   })
+
+  it('prioritizes error state and exposes the error code on the scene node', () => {
+    const model = buildRuntimeSceneModel(
+      createDetail({
+        devices: [
+          createDevice({
+            id: 801,
+            error_code: 'E_STOP',
+            current_command_id: 900,
+            open_command_count: 1,
+            active_runtime_hold_ids: [3001],
+            blocked_outbox_count: 1
+          })
+        ],
+        active_sessions: []
+      }),
+      { manifest: null }
+    )
+
+    expect(model.nodes[0]).toMatchObject({
+      deviceId: 801,
+      state: 'error',
+      errorCode: 'E_STOP'
+    })
+  })
+
+  it('marks command-only devices as running and trace current devices as current', () => {
+    const model = buildRuntimeSceneModel(
+      createDetail({
+        devices: [
+          createDevice({
+            id: 901,
+            current_command_id: 1001,
+            open_command_count: 0,
+            blocked_outbox_count: 0,
+            active_runtime_hold_ids: []
+          }),
+          createDevice({
+            id: 902,
+            current_command_id: null,
+            open_command_count: 2,
+            blocked_outbox_count: 0,
+            active_runtime_hold_ids: []
+          })
+        ],
+        active_sessions: []
+      }),
+      {
+        manifest: null,
+        tracePathNodes: [
+          { device_id: 901, device_code: 'DV-901', device_name: '执行设备', is_current: true }
+        ]
+      }
+    )
+
+    expect(model.nodes.find(node => node.deviceId === 901)).toMatchObject({
+      state: 'running',
+      isCurrent: true
+    })
+    expect(model.nodes.find(node => node.deviceId === 902)).toMatchObject({
+      state: 'running',
+      isCurrent: false
+    })
+  })
 })

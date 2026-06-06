@@ -130,6 +130,22 @@ describe('useRuntimeSceneManifest', () => {
     expect(state.loading.value).toBe(false)
   })
 
+  it('resets manifest state without fetching when plugin key is blank', async () => {
+    mocks.worklinePluginManifest.mockReturnValue({
+      send: () => Promise.resolve(createManifest('rough_sorter'))
+    })
+    const state = useRuntimeSceneManifest()
+
+    await state.load('rough_sorter')
+    expect(state.manifest.value?.plugin_key).toBe('rough_sorter')
+
+    await expect(state.load('   ')).resolves.toBeNull()
+    expect(state.manifest.value).toBeNull()
+    expect(state.error.value).toBeNull()
+    expect(state.loading.value).toBe(false)
+    expect(mocks.worklinePluginManifest).toHaveBeenCalledTimes(1)
+  })
+
   it('does not repopulate the cache from requests that resolve after clear', async () => {
     const first = deferred<RuntimeScenePluginManifestSummary>()
     const second = deferred<RuntimeScenePluginManifestSummary>()
