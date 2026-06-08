@@ -154,14 +154,14 @@ pnpm lint
 
 - [x] 增加 manifest composable 测试，覆盖成功、失败、same-key dedupe、快速切线 stale response。
 - [x] 增加 adapter 测试，覆盖 READY、Station busy、active snapshot、waiting WMS、WMS callback evidence、NG placement、resource evidence items、截断提示。
-- [ ] 增加 `/runtime/monitor` route-sync 或组件测试，确认变更只影响监控页，不替换 sandbox、trace topology 的共享 `WorklineRouteMap`。
+- [x] 增加 `/runtime/monitor` route-sync 或组件测试，确认变更只影响监控页，不替换 sandbox、trace topology 的共享 `WorklineRouteMap`。
 - [x] 后端 OpenAPI 同步后运行契约检查，确认 generated snake_case types 与 adapter 输入一致，包括 `resource_evidence_items`。
-- [ ] 用浏览器检查桌面 `1440x900` 和移动 `390x844` 视口，确认 lease、rack operation、resource evidence 文案可见、不溢出、不遮挡。
+- [x] 用浏览器检查桌面 `1440x900` 和移动 `390x844` 视口，确认 lease、rack operation、resource evidence 文案可见、不溢出、不遮挡。
 - [x] 改造 `scripts/runtime-agent-browser-smoke.sh` 或新增等价 smoke 命令，使其登录后打开 `/runtime/monitor`，分别设置 desktop `1440x900` 和 mobile `390x844` viewport，并保存截图或 route-level visual assertions。
 - [x] monitor smoke 必须使用后端 sandbox/debug-data 种子覆盖 Station busy、等待 WMS、WMS callback evidence、generic evidence fallback、resource evidence item 截断；每个状态都要有稳定可断言文案或 selector。
 - [x] monitor smoke 必须断言 lease/rack operation/resource evidence 文案存在且无 overflow/overlap；overflow/overlap 使用 bounding-box 断言或可重复截图阈值，不只依赖人工目视截图。
 
-状态同步 2026-06-08：`tests/unit/composables/useRuntimeSceneManifest.test.ts`、`tests/unit/utils/runtime-scene.test.ts`、`tests/unit/components/runtime/runtimeSceneMap.test.ts`、`tests/unit/components/runtime/worklineLiveOverview.test.ts` 与 runtime API 测试已覆盖 manifest、adapter、scene component 与 monitor 接入；`scripts/runtime-agent-browser-smoke.sh` 已扩展 monitor seed、desktop/mobile viewport、scene selectors 与 overflow/overlap 断言。仍需补显式 route isolation 测试，并在本地前后端/agent-browser 环境实际运行 live smoke。
+状态同步 2026-06-08：`tests/unit/composables/useRuntimeSceneManifest.test.ts`、`tests/unit/utils/runtime-scene.test.ts`、`tests/unit/components/runtime/runtimeSceneMap.test.ts`、`tests/unit/components/runtime/worklineLiveOverview.test.ts`、`tests/unit/views/runtime/runtimeRouteSync.test.ts` 与 runtime API 测试已覆盖 manifest、adapter、scene component、monitor 接入和 monitor-only route isolation；`scripts/runtime-agent-browser-smoke.sh` 已扩展 monitor seed、desktop/mobile viewport、scene selectors 与 overflow/overlap 断言，并已在本地前后端/agent-browser 环境运行通过。
 
 验证：
 
@@ -173,7 +173,7 @@ pnpm test -- runtime
 pnpm smoke:runtime:agent-browser
 ```
 
-`pnpm smoke:runtime:agent-browser` 已扩展覆盖 `/runtime/monitor`、desktop/mobile viewport、固定 seed、scene selectors 与 overflow/overlap bounding-box 断言；仍需在本地前后端/agent-browser 环境实际运行后再作为通过证据。浏览器 QA 必须固定 desktop `1440x900` 与 mobile `390x844` 两个 viewport，使用固定 mock / seed / story 数据触发 Station busy、等待 WMS、WMS callback evidence、generic evidence fallback，并保留 lease/rack operation/resource evidence 的 selector 或文案断言及 overflow/overlap bounding-box 断言。若决定改用 Playwright，必须先把 Playwright 依赖、`playwright.config.*` 和 e2e spec 纳入计划后，才能使用 `pnpm exec playwright ...`。
+`pnpm smoke:runtime:agent-browser` 已扩展并实际运行通过，覆盖 `/runtime/monitor`、desktop/mobile viewport、固定 seed、scene selectors 与 overflow/overlap bounding-box 断言。浏览器 QA 固定 desktop `1440x900` 与 mobile `390x844` 两个 viewport，使用固定 seed 数据触发 Station busy、等待 WMS、WMS callback evidence、generic evidence fallback，并保留 lease/rack operation/resource evidence 的 selector 或文案断言及 overflow/overlap bounding-box 断言。若决定改用 Playwright，必须先把 Playwright 依赖、`playwright.config.*` 和 e2e spec 纳入计划后，才能使用 `pnpm exec playwright ...`。
 
 ## 验收标准
 

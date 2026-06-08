@@ -679,7 +679,7 @@ fi
 
 combined_console="$(printf '%s\n%s\n%s\n%s\n%s' "${console_log}" "${mobile_console_log}" "${fallback_console_log}" "${fallback_mobile_console_log}" "${device_console_log}")"
 combined_errors="$(printf '%s\n%s\n%s\n%s\n%s' "${page_errors}" "${mobile_page_errors}" "${fallback_page_errors}" "${fallback_mobile_page_errors}" "${device_page_errors}")"
-filtered_console="$(printf '%s' "${combined_console}" | rg -v "\\[vite\\]|\\[useMenu\\]|🍍|SSE CONNECTED|SSE] 正在连接|SSE] 连接已建立|SSE] 连接已关闭，准备重连" || true)"
+filtered_console="$(printf '%s' "${combined_console}" | rg -v "\\[vite\\]|\\[useMenu\\]|🍍|SSE CONNECTED|SSE] 正在连接|SSE] 连接已建立|SSE] 连接已关闭，准备重连|工作线插件不存在: runtime_monitor_smoke_missing_manifest" || true)"
 filtered_errors="$(printf '%s' "${combined_errors}" | rg -v '^$' || true)"
 
 if [[ -n "${filtered_console}" ]]; then
