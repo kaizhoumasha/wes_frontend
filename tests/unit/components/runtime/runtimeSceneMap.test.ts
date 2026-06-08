@@ -1,9 +1,55 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import RuntimeSceneMap from '@/components/runtime/monitor/RuntimeSceneMap.vue'
-import type { RuntimeSceneModel } from '@/utils/runtime-scene'
+import { getRuntimeSceneEvidenceKey, type RuntimeSceneModel } from '@/utils/runtime-scene'
 
 function createSceneModel(): RuntimeSceneModel {
+  const boundary: RuntimeSceneModel['boundaries'][number] = {
+    key: 'SINGLE_LAYER_A',
+    stationRole: 'TARGET',
+    stationCode: 'TARGET_ARM',
+    positionCode: 'SINGLE_LAYER_A',
+    rackKind: 'SINGLE_LAYER',
+    snapshotKind: 'ACTIVE_BIN_RACK',
+    stationLease: 'ACTIVE_DISPATCH_LEASE',
+    stationLeaseLabel: 'Station lease：调度租约占用',
+    rackSnapshot: 'ACTIVE',
+    rackSnapshotLabel: '执行快照：当前执行货架',
+    rackOperationWait: 'WAITING_WMS',
+    rackOperationWaitLabel: 'Rack operation：等待 WMS 搬运到位',
+    resourceEvidenceKind: 'WMS_CALLBACK_EVIDENCE',
+    resourceEvidenceKindLabel: 'WMS 回调证据',
+    evidenceCount: 2
+  }
+  const resourceEvidence: RuntimeSceneModel['resourceEvidence'] = [
+    {
+      resourceKind: 'RACK',
+      resourceKindLabel: 'Rack',
+      resourceCode: 'RACK-001',
+      displayLabel: 'RACK RACK-001',
+      evidenceKind: 'WES_ACTIVE_SNAPSHOT',
+      evidenceKindLabel: 'WES active snapshot evidence',
+      stationCode: 'TARGET_ARM',
+      positionCode: 'SINGLE_LAYER_A',
+      rackCode: 'RACK-001'
+    },
+    {
+      resourceKind: 'BIN',
+      resourceKindLabel: 'Bin',
+      resourceCode: 'BIN-001',
+      displayLabel: 'BIN BIN-001',
+      evidenceKind: 'WMS_CALLBACK_EVIDENCE',
+      evidenceKindLabel: 'WMS 回调证据',
+      stationCode: 'TARGET_ARM',
+      positionCode: 'SINGLE_LAYER_A',
+      rackCode: 'RACK-001',
+      binCode: 'BIN-001',
+      sourceSessionId: 20,
+      sourceTraceId: 'trace-20'
+    }
+  ]
+  const binEvidence = resourceEvidence[1]!
+
   return {
     worklineId: 45,
     worklineName: '粗分线',
@@ -11,25 +57,7 @@ function createSceneModel(): RuntimeSceneModel {
     readiness: 'READY',
     readinessLabel: '待机 / 可接收生产事件',
     runtimeStatusLabel: '现场 START 后待机 / 可接收',
-    boundaries: [
-      {
-        key: 'SINGLE_LAYER_A',
-        stationRole: 'TARGET',
-        stationCode: 'TARGET_ARM',
-        positionCode: 'SINGLE_LAYER_A',
-        rackKind: 'SINGLE_LAYER',
-        snapshotKind: 'ACTIVE_BIN_RACK',
-        stationLease: 'ACTIVE_DISPATCH_LEASE',
-        stationLeaseLabel: 'Station lease：调度租约占用',
-        rackSnapshot: 'ACTIVE',
-        rackSnapshotLabel: '执行快照：当前执行货架',
-        rackOperationWait: 'WAITING_WMS',
-        rackOperationWaitLabel: 'Rack operation：等待 WMS 搬运到位',
-        resourceEvidenceKind: 'WMS_CALLBACK_EVIDENCE',
-        resourceEvidenceKindLabel: 'WMS 回调证据',
-        evidenceCount: 2
-      }
-    ],
+    boundaries: [boundary],
     deviceNodes: [
       {
         id: 101,
@@ -46,35 +74,88 @@ function createSceneModel(): RuntimeSceneModel {
         errorCode: null
       }
     ],
-    resourceEvidence: [
+    resourceEvidence,
+    positionGroups: [
       {
-        resourceKind: 'RACK',
-        resourceKindLabel: 'Rack',
-        resourceCode: 'RACK-001',
-        displayLabel: 'RACK RACK-001',
-        evidenceKind: 'WES_ACTIVE_SNAPSHOT',
-        evidenceKindLabel: 'WES active snapshot evidence',
+        key: 'SINGLE_LAYER_A',
+        stationCode: 'TARGET_ARM',
+        stationRole: 'TARGET',
         positionCode: 'SINGLE_LAYER_A',
-        rackCode: 'RACK-001'
-      },
-      {
-        resourceKind: 'BIN',
-        resourceKindLabel: 'Bin',
-        resourceCode: 'BIN-001',
-        displayLabel: 'BIN BIN-001',
-        evidenceKind: 'WMS_CALLBACK_EVIDENCE',
-        evidenceKindLabel: 'WMS 回调证据',
-        positionCode: 'SINGLE_LAYER_A',
-        rackCode: 'RACK-001',
-        binCode: 'BIN-001',
-        sourceSessionId: 20,
-        sourceTraceId: 'trace-20'
+        boundary,
+        attentionState: 'waiting',
+        resourceStacks: [
+          {
+            key: 'rack:RACK-001',
+            anchor: {
+              kind: 'RACK',
+              code: 'RACK-001',
+              displayLabel: 'RACK RACK-001'
+            },
+            rackCode: 'RACK-001',
+            children: [
+              {
+                key: getRuntimeSceneEvidenceKey(binEvidence),
+                kind: 'BIN',
+                code: 'BIN-001',
+                displayLabel: 'BIN BIN-001',
+                evidenceKind: 'WMS_CALLBACK_EVIDENCE'
+              }
+            ],
+            evidenceCount: 2,
+            evidenceKinds: ['WES_ACTIVE_SNAPSHOT', 'WMS_CALLBACK_EVIDENCE'],
+            auditItems: resourceEvidence
+          }
+        ],
+        auditItems: resourceEvidence
       }
     ],
+    unlocatedAuditItems: [],
     resourceEvidenceTotalCount: 3,
     resourceEvidenceTruncated: true,
     semanticFallback: false,
     semanticFallbackMessage: null
+  }
+}
+
+function createBinOnlySceneModel(
+  resourceEvidence: RuntimeSceneModel['resourceEvidence']
+): RuntimeSceneModel {
+  const model = createSceneModel()
+  const boundary = model.boundaries[0]
+  if (!boundary) return model
+
+  return {
+    ...model,
+    resourceEvidence,
+    positionGroups: [
+      {
+        key: boundary.key,
+        stationCode: boundary.stationCode,
+        stationRole: boundary.stationRole,
+        positionCode: boundary.positionCode,
+        boundary,
+        attentionState: 'waiting',
+        resourceStacks: [
+          {
+            key: 'bin:BIN-001',
+            anchor: {
+              kind: 'BIN',
+              code: 'BIN-001',
+              displayLabel: 'BIN BIN-001'
+            },
+            binCode: 'BIN-001',
+            children: [],
+            evidenceCount: resourceEvidence.length,
+            evidenceKinds: ['WMS_CALLBACK_EVIDENCE'],
+            auditItems: resourceEvidence
+          }
+        ],
+        auditItems: resourceEvidence
+      }
+    ],
+    unlocatedAuditItems: [],
+    resourceEvidenceTotalCount: resourceEvidence.length,
+    resourceEvidenceTruncated: false
   }
 }
 
@@ -107,6 +188,8 @@ describe('RuntimeSceneMap', () => {
       ...createSceneModel(),
       boundaries: [],
       resourceEvidence: [],
+      positionGroups: [],
+      unlocatedAuditItems: [],
       resourceEvidenceTotalCount: 0,
       resourceEvidenceTruncated: false,
       semanticFallback: true,
@@ -131,6 +214,8 @@ describe('RuntimeSceneMap', () => {
     const model = {
       ...createSceneModel(),
       resourceEvidence: [],
+      positionGroups: [],
+      unlocatedAuditItems: [],
       resourceEvidenceTotalCount: 0,
       resourceEvidenceTruncated: false
     }
@@ -205,35 +290,7 @@ describe('RuntimeSceneMap', () => {
 
   it('keeps repeated evidence rows unique when source traces differ', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
-    const model = createSceneModel()
-    const nextModel = {
-      ...model,
-      resourceEvidence: [
-        {
-          resourceKind: 'BIN' as const,
-          resourceKindLabel: 'Bin',
-          resourceCode: 'BIN-001',
-          displayLabel: 'BIN BIN-001',
-          evidenceKind: 'WMS_CALLBACK_EVIDENCE' as const,
-          evidenceKindLabel: 'WMS 回调证据',
-          positionCode: 'SINGLE_LAYER_A',
-          sourceSessionId: 20,
-          sourceTraceId: 'trace-20'
-        },
-        {
-          resourceKind: 'BIN' as const,
-          resourceKindLabel: 'Bin',
-          resourceCode: 'BIN-001',
-          displayLabel: 'BIN BIN-001',
-          evidenceKind: 'WMS_CALLBACK_EVIDENCE' as const,
-          evidenceKindLabel: 'WMS 回调证据',
-          positionCode: 'SINGLE_LAYER_A',
-          sourceSessionId: 21,
-          sourceTraceId: 'trace-21'
-        }
-      ]
-    }
-    model.resourceEvidence = [
+    const repeatedEvidence: RuntimeSceneModel['resourceEvidence'] = [
       {
         resourceKind: 'BIN',
         resourceKindLabel: 'Bin',
@@ -241,11 +298,28 @@ describe('RuntimeSceneMap', () => {
         displayLabel: 'BIN BIN-001',
         evidenceKind: 'WMS_CALLBACK_EVIDENCE',
         evidenceKindLabel: 'WMS 回调证据',
+        stationCode: 'TARGET_ARM',
         positionCode: 'SINGLE_LAYER_A',
+        binCode: 'BIN-001',
         sourceSessionId: 20,
         sourceTraceId: 'trace-20'
+      },
+      {
+        resourceKind: 'BIN',
+        resourceKindLabel: 'Bin',
+        resourceCode: 'BIN-001',
+        displayLabel: 'BIN BIN-001',
+        evidenceKind: 'WMS_CALLBACK_EVIDENCE',
+        evidenceKindLabel: 'WMS 回调证据',
+        stationCode: 'TARGET_ARM',
+        positionCode: 'SINGLE_LAYER_A',
+        binCode: 'BIN-001',
+        sourceSessionId: 21,
+        sourceTraceId: 'trace-21'
       }
     ]
+    const model = createBinOnlySceneModel(repeatedEvidence.slice(0, 1))
+    const nextModel = createBinOnlySceneModel(repeatedEvidence)
 
     try {
       const wrapper = mount(RuntimeSceneMap, {

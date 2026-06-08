@@ -64,6 +64,44 @@ export interface RuntimeSceneResourceEvidence {
   occurredAt?: string | null
 }
 
+export type RuntimeSceneAttentionState = 'blocked' | 'waiting' | 'normal' | 'unknown'
+
+export interface RuntimeSceneResourceStackAnchor {
+  kind: RuntimeResourceKind
+  code: string
+  displayLabel: string
+}
+
+export interface RuntimeSceneResourceStackChild {
+  key: string
+  kind: RuntimeResourceKind
+  code: string
+  displayLabel: string
+  evidenceKind: RuntimeResourceEvidenceKind
+}
+
+export interface RuntimeSceneResourceStack {
+  key: string
+  anchor: RuntimeSceneResourceStackAnchor
+  rackCode?: string | null
+  binCode?: string | null
+  children: RuntimeSceneResourceStackChild[]
+  evidenceCount: number
+  evidenceKinds: RuntimeResourceEvidenceKind[]
+  auditItems: RuntimeSceneResourceEvidence[]
+}
+
+export interface RuntimeScenePositionGroup {
+  key: string
+  stationCode: string
+  stationRole: string
+  positionCode: string
+  boundary: RuntimeSceneBoundary
+  attentionState: RuntimeSceneAttentionState
+  resourceStacks: RuntimeSceneResourceStack[]
+  auditItems: RuntimeSceneResourceEvidence[]
+}
+
 export interface RuntimeSceneModel {
   worklineId: number
   worklineName: string
@@ -74,6 +112,8 @@ export interface RuntimeSceneModel {
   boundaries: RuntimeSceneBoundary[]
   deviceNodes: RuntimeSceneDeviceNode[]
   resourceEvidence: RuntimeSceneResourceEvidence[]
+  positionGroups: RuntimeScenePositionGroup[]
+  unlocatedAuditItems: RuntimeSceneResourceEvidence[]
   resourceEvidenceTotalCount: number
   resourceEvidenceTruncated: boolean
   semanticFallback: boolean
@@ -84,6 +124,11 @@ export interface BuildRuntimeSceneModelInput {
   detail: RuntimeWorklineDetailResponse
   manifest?: WorkLinePluginManifestSummary | null
   manifestLoadFailed?: boolean
+}
+
+interface RuntimeSceneEvidencePlacement {
+  item: RuntimeSceneResourceEvidence
+  physicalPositionKey: string | null
 }
 
 const READINESS_VALUES = ['READY', 'NOT_READY', 'UNKNOWN'] as const
@@ -187,6 +232,7 @@ export function getRuntimeSceneEvidenceKey(item: RuntimeSceneResourceEvidence): 
     item.resourceCode,
     item.sourceSessionId ?? '',
     item.sourceTraceId ?? '',
+    item.stationCode ? normalizeRuntimeSceneDisplayRole(item.stationCode) : '',
     item.positionCode ?? ''
   ].join(':')
 }
@@ -197,17 +243,31 @@ export function buildRuntimeSceneModel(input: BuildRuntimeSceneModelInput): Runt
   const resourceEvidenceItems = Array.isArray(detailRecord.resource_evidence_items)
     ? (detailRecord.resource_evidence_items as RuntimeResourceEvidenceItem[])
     : []
+  const hasManifestBoundaries = Boolean(manifest?.single_layer_boundaries?.length)
   const hasRuntimeSceneSemantics =
     hasRuntimeSceneContractFields(detailRecord) &&
     manifestLoadFailed === false &&
-    Boolean(manifest?.single_layer_boundaries?.length)
+    hasManifestBoundaries
   const readiness = normalizeEnum(
     detailRecord.workline_readiness,
     READINESS_VALUES,
     'UNKNOWN'
   ) as RuntimeWorklineReadiness
   const resourceEvidence = resourceEvidenceItems.map(toSceneResourceEvidence)
-  const boundaries = resolveBoundaries(detail, manifest, resourceEvidence, hasRuntimeSceneSemantics)
+  const resolvedBoundaries = resolveBoundaries(
+    detail,
+    manifest,
+    resourceEvidence,
+    hasRuntimeSceneSemantics
+  )
+  const evidencePlacements = resolveResourceEvidencePlacements(
+    resolvedBoundaries,
+    resourceEvidence,
+    !hasManifestBoundaries
+  )
+  const boundaries = applyBoundaryEvidenceCounts(resolvedBoundaries, evidencePlacements)
+  const positionGroups = buildPositionGroups(boundaries, evidencePlacements)
+  const unlocatedAuditItems = getUnlocatedAuditItems(evidencePlacements)
   const semanticFallbackMessage = getSemanticFallbackMessage(
     detailRecord,
     manifest,
@@ -222,8 +282,10 @@ export function buildRuntimeSceneModel(input: BuildRuntimeSceneModelInput): Runt
     readinessLabel: READINESS_LABELS[readiness],
     runtimeStatusLabel: toRuntimeStatusLabel(detail.summary.runtime_status),
     boundaries,
-    deviceNodes: detail.devices.map(toSceneDeviceNode),
+    deviceNodes: detail.devices.map(toRuntimeSceneDeviceNode),
     resourceEvidence,
+    positionGroups,
+    unlocatedAuditItems,
     resourceEvidenceTotalCount:
       isFiniteNumber(detailRecord.resource_evidence_total_count)
         ? detailRecord.resource_evidence_total_count
@@ -246,40 +308,49 @@ function resolveBoundaries(
   const manifestBoundaries = manifest?.single_layer_boundaries ?? []
   if (manifestBoundaries.length > 0) {
     return manifestBoundaries.map(boundary =>
-      toSceneBoundary(boundary, detail, resourceEvidence, hasRuntimeSceneSemantics)
+      toSceneBoundary(boundary, detail, hasRuntimeSceneSemantics)
     )
   }
 
-  const positionCodes = Array.from(
-    new Set(
-      resourceEvidence
-        .map(item => item.positionCode)
-        .filter((item): item is string => Boolean(item))
-    )
+  return getFallbackBoundarySummaries(resourceEvidence).map(boundary =>
+    toSceneBoundary(boundary, detail, hasRuntimeSceneSemantics)
   )
-  return positionCodes.map(positionCode =>
-    toSceneBoundary(
-      {
-        station_role: positionCode,
-        station_code: positionCode,
-        position_code: positionCode,
-        rack_kind: 'UNKNOWN',
-        snapshot_kind: 'UNKNOWN',
-        lease_scope: 'UNKNOWN',
-        business_demand_type: 'UNKNOWN',
-        wms_operation_type: 'UNKNOWN'
-      },
-      detail,
-      resourceEvidence,
-      hasRuntimeSceneSemantics
-    )
-  )
+}
+
+function getFallbackBoundarySummaries(
+  resourceEvidence: RuntimeSceneResourceEvidence[]
+): WorkLineSingleLayerRackBoundarySummary[] {
+  const seenPhysicalPositionKeys = new Set<string>()
+  const boundaries: WorkLineSingleLayerRackBoundarySummary[] = []
+
+  for (const item of resourceEvidence) {
+    if (!item.positionCode) continue
+
+    const stationCode = item.stationCode
+      ? normalizeRuntimeSceneDisplayRole(item.stationCode)
+      : item.positionCode
+    const physicalPositionKey = getPhysicalPositionKey(stationCode, item.positionCode)
+    if (seenPhysicalPositionKeys.has(physicalPositionKey)) continue
+
+    seenPhysicalPositionKeys.add(physicalPositionKey)
+    boundaries.push({
+      station_role: stationCode,
+      station_code: stationCode,
+      position_code: item.positionCode,
+      rack_kind: 'UNKNOWN',
+      snapshot_kind: 'UNKNOWN',
+      lease_scope: 'UNKNOWN',
+      business_demand_type: 'UNKNOWN',
+      wms_operation_type: 'UNKNOWN'
+    })
+  }
+
+  return boundaries
 }
 
 function toSceneBoundary(
   boundary: WorkLineSingleLayerRackBoundarySummary,
   detail: RuntimeWorklineDetailResponse,
-  resourceEvidence: RuntimeSceneResourceEvidence[],
   hasRuntimeSceneSemantics: boolean
 ): RuntimeSceneBoundary {
   const detailRecord = detail as RuntimeWorklineDetailResponse & Record<string, unknown>
@@ -307,11 +378,13 @@ function toSceneBoundary(
         'GENERIC_EVIDENCE'
       ) as RuntimeResourceEvidenceKind)
     : 'GENERIC_EVIDENCE'
+  const stationRole = normalizeRuntimeSceneDisplayRole(boundary.station_role)
+  const stationCode = normalizeRuntimeSceneDisplayRole(boundary.station_code)
 
   return {
     key: getBoundaryKey(boundary),
-    stationRole: normalizeRuntimeSceneDisplayRole(boundary.station_role),
-    stationCode: normalizeRuntimeSceneDisplayRole(boundary.station_code),
+    stationRole,
+    stationCode,
     positionCode: boundary.position_code,
     rackKind: boundary.rack_kind,
     snapshotKind: boundary.snapshot_kind,
@@ -323,8 +396,7 @@ function toSceneBoundary(
     rackOperationWaitLabel: RACK_OPERATION_WAIT_LABELS[rackOperationWait],
     resourceEvidenceKind,
     resourceEvidenceKindLabel: EVIDENCE_KIND_LABELS[resourceEvidenceKind],
-    evidenceCount: resourceEvidence.filter(item => item.positionCode === boundary.position_code)
-      .length
+    evidenceCount: 0
   }
 }
 
@@ -341,7 +413,292 @@ function getBoundaryKey(boundary: WorkLineSingleLayerRackBoundarySummary): strin
   ].join(':')
 }
 
-function toSceneDeviceNode(device: RuntimeWorklineDeviceItem): RuntimeSceneDeviceNode {
+function derivePositionAttentionState(
+  boundary: RuntimeSceneBoundary
+): RuntimeSceneAttentionState {
+  if (boundary.rackOperationWait === 'WAITING_WMS') return 'waiting'
+  if (boundary.rackOperationWait === 'TIMEOUT' || boundary.rackOperationWait === 'FAILED') {
+    return 'blocked'
+  }
+  if (
+    boundary.rackOperationWait === 'NONE' ||
+    boundary.rackOperationWait === 'WMS_CALLBACK_RECEIVED'
+  ) {
+    return 'normal'
+  }
+  return 'unknown'
+}
+
+function getResourceStackKey(item: RuntimeSceneResourceEvidence): string {
+  if (item.rackCode) return `rack:${item.rackCode}`
+  if (item.binCode) return `bin:${item.binCode}`
+  return `resource:${item.resourceKind}:${item.resourceCode}`
+}
+
+function getResourceStackAnchor(
+  item: RuntimeSceneResourceEvidence
+): RuntimeSceneResourceStackAnchor {
+  if (item.rackCode) {
+    return {
+      kind: 'RACK',
+      code: item.rackCode,
+      displayLabel: getResourceStackAnchorDisplayLabel(item, 'RACK', item.rackCode)
+    }
+  }
+  if (item.binCode) {
+    return {
+      kind: 'BIN',
+      code: item.binCode,
+      displayLabel: getResourceStackAnchorDisplayLabel(item, 'BIN', item.binCode)
+    }
+  }
+  return {
+    kind: item.resourceKind,
+    code: item.resourceCode,
+    displayLabel: item.displayLabel
+  }
+}
+
+function getResourceStackAnchorDisplayLabel(
+  item: RuntimeSceneResourceEvidence,
+  kind: RuntimeResourceKind,
+  code: string
+): string {
+  if (item.resourceKind === kind && item.resourceCode === code) return item.displayLabel
+  return `${RESOURCE_KIND_LABELS[kind]} ${code}`
+}
+
+function toResourceStackChild(
+  item: RuntimeSceneResourceEvidence
+): RuntimeSceneResourceStackChild {
+  return {
+    key: getRuntimeSceneEvidenceKey(item),
+    kind: item.resourceKind,
+    code: item.resourceCode,
+    displayLabel: item.displayLabel,
+    evidenceKind: item.evidenceKind
+  }
+}
+
+function appendUniqueEvidenceKind(
+  target: RuntimeResourceEvidenceKind[],
+  kind: RuntimeResourceEvidenceKind
+): void {
+  if (!target.includes(kind)) {
+    target.push(kind)
+  }
+}
+
+function getPhysicalPositionKey(
+  stationCode: string | null | undefined,
+  positionCode: string
+): string {
+  return `${stationCode ? normalizeRuntimeSceneDisplayRole(stationCode) : ''}:${positionCode}`
+}
+
+function resolveResourceEvidencePlacements(
+  boundaries: RuntimeSceneBoundary[],
+  resourceEvidence: RuntimeSceneResourceEvidence[],
+  preferStationlessFallbackBoundary: boolean
+): RuntimeSceneEvidencePlacement[] {
+  const physicalPositionKeysByPosition = getPhysicalPositionKeysByPosition(boundaries)
+  return resourceEvidence.map(item => ({
+    item,
+    physicalPositionKey: resolveEvidencePhysicalPositionKey(
+      item,
+      physicalPositionKeysByPosition,
+      preferStationlessFallbackBoundary
+    )
+  }))
+}
+
+function getPhysicalPositionKeysByPosition(
+  boundaries: RuntimeSceneBoundary[]
+): Map<string, Set<string>> {
+  const keysByPosition = new Map<string, Set<string>>()
+
+  for (const boundary of boundaries) {
+    const positionKeys = keysByPosition.get(boundary.positionCode) ?? new Set<string>()
+    positionKeys.add(getPhysicalPositionKey(boundary.stationCode, boundary.positionCode))
+    keysByPosition.set(boundary.positionCode, positionKeys)
+  }
+
+  return keysByPosition
+}
+
+function resolveEvidencePhysicalPositionKey(
+  item: RuntimeSceneResourceEvidence,
+  physicalPositionKeysByPosition: Map<string, Set<string>>,
+  preferStationlessFallbackBoundary: boolean
+): string | null {
+  if (!item.positionCode) return null
+  if (item.stationCode) {
+    return getPhysicalPositionKey(item.stationCode, item.positionCode)
+  }
+
+  const matchingPositionKeys = physicalPositionKeysByPosition.get(item.positionCode)
+  const stationlessFallbackKey = getPhysicalPositionKey(item.positionCode, item.positionCode)
+  if (
+    preferStationlessFallbackBoundary &&
+    matchingPositionKeys?.has(stationlessFallbackKey)
+  ) {
+    return stationlessFallbackKey
+  }
+
+  if (matchingPositionKeys?.size === 1) {
+    return Array.from(matchingPositionKeys)[0] ?? null
+  }
+
+  return getPhysicalPositionKey(null, item.positionCode)
+}
+
+function applyBoundaryEvidenceCounts(
+  boundaries: RuntimeSceneBoundary[],
+  evidencePlacements: RuntimeSceneEvidencePlacement[]
+): RuntimeSceneBoundary[] {
+  const evidenceCountByPositionKey = new Map<string, number>()
+
+  for (const placement of evidencePlacements) {
+    if (!placement.physicalPositionKey) continue
+    evidenceCountByPositionKey.set(
+      placement.physicalPositionKey,
+      (evidenceCountByPositionKey.get(placement.physicalPositionKey) ?? 0) + 1
+    )
+  }
+
+  return boundaries.map(boundary => ({
+    ...boundary,
+    evidenceCount:
+      evidenceCountByPositionKey.get(
+        getPhysicalPositionKey(boundary.stationCode, boundary.positionCode)
+      ) ?? 0
+  }))
+}
+
+function getUnlocatedAuditItems(
+  evidencePlacements: RuntimeSceneEvidencePlacement[]
+): RuntimeSceneResourceEvidence[] {
+  return evidencePlacements
+    .filter(placement => !placement.physicalPositionKey)
+    .map(placement => placement.item)
+}
+
+function buildResourceStacks(
+  items: RuntimeSceneResourceEvidence[]
+): RuntimeSceneResourceStack[] {
+  const stacks = new Map<string, RuntimeSceneResourceStack>()
+
+  for (const item of items) {
+    const key = getResourceStackKey(item)
+    let stack = stacks.get(key)
+    if (!stack) {
+      stack = {
+        key,
+        anchor: getResourceStackAnchor(item),
+        rackCode: item.rackCode,
+        binCode: item.binCode,
+        children: [],
+        evidenceCount: 0,
+        evidenceKinds: [],
+        auditItems: []
+      }
+      stacks.set(key, stack)
+    }
+
+    stack.auditItems.push(item)
+    stack.evidenceCount += 1
+    appendUniqueEvidenceKind(stack.evidenceKinds, item.evidenceKind)
+
+    const child = toResourceStackChild(item)
+    const childMatchesAnchor =
+      child.kind === stack.anchor.kind && child.code === stack.anchor.code
+    const childExists = stack.children.some(existing => existing.key === child.key)
+    if (!childMatchesAnchor && !childExists) {
+      stack.children.push(child)
+    }
+  }
+
+  return Array.from(stacks.values())
+}
+
+function buildPositionGroups(
+  boundaries: RuntimeSceneBoundary[],
+  evidencePlacements: RuntimeSceneEvidencePlacement[]
+): RuntimeScenePositionGroup[] {
+  const evidenceByPhysicalPosition = new Map<string, RuntimeSceneResourceEvidence[]>()
+  for (const placement of evidencePlacements) {
+    if (!placement.physicalPositionKey) continue
+    const positionItems = evidenceByPhysicalPosition.get(placement.physicalPositionKey) ?? []
+    positionItems.push(placement.item)
+    evidenceByPhysicalPosition.set(placement.physicalPositionKey, positionItems)
+  }
+
+  const groupedPhysicalPositionKeys = new Set<string>()
+  const groups: RuntimeScenePositionGroup[] = []
+  for (const boundary of boundaries) {
+    const physicalPositionKey = getPhysicalPositionKey(boundary.stationCode, boundary.positionCode)
+    if (groupedPhysicalPositionKeys.has(physicalPositionKey)) continue
+    groupedPhysicalPositionKeys.add(physicalPositionKey)
+    groups.push(
+      toPositionGroup(boundary, evidenceByPhysicalPosition.get(physicalPositionKey) ?? [])
+    )
+  }
+
+  for (const [physicalPositionKey, items] of evidenceByPhysicalPosition) {
+    if (groupedPhysicalPositionKeys.has(physicalPositionKey)) continue
+    const positionCode = items[0]?.positionCode
+    if (!positionCode) continue
+    groups.push(toPositionGroup(toFallbackPositionBoundary(positionCode, items), items))
+  }
+
+  return groups
+}
+
+function toPositionGroup(
+  boundary: RuntimeSceneBoundary,
+  auditItems: RuntimeSceneResourceEvidence[]
+): RuntimeScenePositionGroup {
+  return {
+    key: boundary.key,
+    stationCode: boundary.stationCode,
+    stationRole: boundary.stationRole,
+    positionCode: boundary.positionCode,
+    boundary,
+    attentionState: derivePositionAttentionState(boundary),
+    resourceStacks: buildResourceStacks(auditItems),
+    auditItems
+  }
+}
+
+function toFallbackPositionBoundary(
+  positionCode: string,
+  items: RuntimeSceneResourceEvidence[]
+): RuntimeSceneBoundary {
+  const firstItem = items[0]
+  const stationCode = normalizeRuntimeSceneDisplayRole(firstItem?.stationCode ?? positionCode)
+  const resourceEvidenceKind = firstItem?.evidenceKind ?? 'GENERIC_EVIDENCE'
+  return {
+    key: `fallback:${stationCode}:${positionCode}`,
+    stationRole: stationCode,
+    stationCode,
+    positionCode,
+    rackKind: 'UNKNOWN',
+    snapshotKind: 'UNKNOWN',
+    stationLease: 'UNKNOWN',
+    stationLeaseLabel: STATION_LEASE_LABELS.UNKNOWN,
+    rackSnapshot: 'UNKNOWN',
+    rackSnapshotLabel: RACK_SNAPSHOT_LABELS.UNKNOWN,
+    rackOperationWait: 'UNKNOWN',
+    rackOperationWaitLabel: RACK_OPERATION_WAIT_LABELS.UNKNOWN,
+    resourceEvidenceKind,
+    resourceEvidenceKindLabel: EVIDENCE_KIND_LABELS[resourceEvidenceKind],
+    evidenceCount: items.length
+  }
+}
+
+export function toRuntimeSceneDeviceNode(
+  device: RuntimeWorklineDeviceItem
+): RuntimeSceneDeviceNode {
   const deviceRole = normalizeRuntimeSceneDisplayRole(device.device_role)
   return {
     id: device.id,
