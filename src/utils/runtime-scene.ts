@@ -342,11 +342,12 @@ function getBoundaryKey(boundary: WorkLineSingleLayerRackBoundarySummary): strin
 }
 
 function toSceneDeviceNode(device: RuntimeWorklineDeviceItem): RuntimeSceneDeviceNode {
+  const deviceRole = normalizeRuntimeSceneDisplayRole(device.device_role)
   return {
     id: device.id,
     deviceCode: device.device_code,
-    deviceName: device.device_name,
-    deviceRole: normalizeRuntimeSceneDisplayRole(device.device_role),
+    deviceName: normalizeRuntimeSceneDeviceName(device.device_name, device.device_role, deviceRole),
+    deviceRole,
     roleIndex: device.role_index,
     status: device.device_status,
     maintenanceMode: device.maintenance_mode,
@@ -400,7 +401,24 @@ function normalizeEnum<T extends string>(
 
 function normalizeRuntimeSceneDisplayRole(value: string): string {
   const normalized = value.trim()
-  return normalized.toUpperCase() === LEGACY_NG_ARM_ROLE ? NG_PLACEMENT_DISPLAY_ROLE : normalized
+  const upperValue = normalized.toUpperCase()
+  if (upperValue === LEGACY_NG_ARM_ROLE) return NG_PLACEMENT_DISPLAY_ROLE
+  if (upperValue.endsWith(`_${LEGACY_NG_ARM_ROLE}`)) {
+    return `${normalized.slice(0, -LEGACY_NG_ARM_ROLE.length)}${NG_PLACEMENT_DISPLAY_ROLE}`
+  }
+  return normalized
+}
+
+function normalizeRuntimeSceneDeviceName(
+  value: string,
+  rawRole: string,
+  displayRole: string
+): string {
+  if (rawRole === displayRole) return value
+  return value
+    .replace(/\s*NG\s*机械臂/gi, '目标机械臂')
+    .replace(/NG\s*arm/gi, 'target arm')
+    .replace(/NG_ARM/g, NG_PLACEMENT_DISPLAY_ROLE)
 }
 
 function isFiniteNumber(value: unknown): value is number {
