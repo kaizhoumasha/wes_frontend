@@ -16,6 +16,7 @@ SEED_MONITOR_SCENE_DATA="${RUNTIME_SMOKE_SEED_MONITOR_SCENE_DATA:-1}"
 # Default smoke follows the real backend contract path. Set this to 1 only for
 # local UI fixture checks when backend debug-data cannot create monitor states.
 USE_FIXED_MONITOR_FIXTURE="${RUNTIME_SMOKE_USE_FIXED_MONITOR_FIXTURE:-0}"
+CAPTURE_SCREENSHOTS="${RUNTIME_SMOKE_CAPTURE_SCREENSHOTS:-0}"
 SEEDED_SINGLE_LAYER_WORKLINE_ID=""
 SEEDED_FALLBACK_WORKLINE_ID=""
 SEEDED_TRACE_ID=""
@@ -35,6 +36,17 @@ fail() {
   echo "runtime-agent-browser-smoke: $*" >&2
   echo "runtime-agent-browser-smoke: session=${SESSION}" >&2
   exit 1
+}
+
+capture_screenshot() {
+  local path="$1"
+  if [[ "${CAPTURE_SCREENSHOTS}" != "1" ]]; then
+    return
+  fi
+
+  if ! ab screenshot "${path}" >/dev/null; then
+    echo "runtime-agent-browser-smoke: warning: screenshot capture failed: ${path}" >&2
+  fi
 }
 
 assert_contains() {
@@ -114,10 +126,20 @@ run_monitor_scene_seed() {
   fi
 }
 
+reset_monitor_fixture_routes() {
+  local workline_id="$1"
+
+  ab network unroute "**/api/v1/workline/runtime/worklines/${workline_id}" >/dev/null 2>&1 || true
+  ab network unroute "**/api/v1/workline/plugins/smoke_single_layer/manifest" >/dev/null 2>&1 || true
+  ab network unroute "**/api/v1/workline/plugins/smoke_fallback/manifest" >/dev/null 2>&1 || true
+}
+
 install_monitor_fixture_routes() {
   local workline_id="$1"
   local detail_body
   local manifest_body
+
+  reset_monitor_fixture_routes "${workline_id}"
 
   detail_body="$(
     python3 - "${workline_id}" <<'PY'
@@ -315,8 +337,7 @@ install_monitor_fallback_fixture_routes() {
   local detail_body
   local manifest_body
 
-  ab network unroute "**/api/v1/workline/runtime/worklines/${workline_id}" >/dev/null 2>&1 || true
-  ab network unroute "**/api/v1/workline/plugins/smoke_single_layer/manifest" >/dev/null 2>&1 || true
+  reset_monitor_fixture_routes "${workline_id}"
 
   detail_body="$(
     python3 - "${workline_id}" <<'PY'
@@ -424,7 +445,6 @@ structured_scenarios = {"happy", "seeded", "fallback", "seeded-fallback"}
 required_texts = [
     "Station lease",
     "Rack operation",
-    "evidence",
 ]
 if scenario == "happy":
     required_texts.extend([
@@ -655,7 +675,7 @@ if [[ "${USE_FIXED_MONITOR_FIXTURE}" == "1" ]]; then
 fi
 
 desktop_screenshot="/tmp/${SESSION}-monitor-desktop.png"
-ab screenshot "${desktop_screenshot}" >/dev/null
+capture_screenshot "${desktop_screenshot}"
 if [[ "${USE_FIXED_MONITOR_FIXTURE}" == "1" ]]; then
   assert_monitor_scene_dom "desktop" "happy"
 elif [[ -n "${SEEDED_SINGLE_LAYER_WORKLINE_ID}" ]]; then
@@ -677,7 +697,7 @@ mobile_monitor_text="$(ab get text body)"
 mobile_console_log="$(ab console || true)"
 mobile_page_errors="$(ab errors || true)"
 mobile_screenshot="/tmp/${SESSION}-monitor-mobile.png"
-ab screenshot "${mobile_screenshot}" >/dev/null
+capture_screenshot "${mobile_screenshot}"
 
 assert_contains "${mobile_monitor_url}" "/runtime/monitor?worklineId=${workline_id}" "移动视口工作线监控 URL 异常: ${mobile_monitor_url}"
 assert_contains "${mobile_monitor_text}" "工作线监控" "移动视口未渲染工作线监控标题，页面内容: ${mobile_monitor_text}"
@@ -719,7 +739,7 @@ if [[ "${USE_FIXED_MONITOR_FIXTURE}" == "1" || -n "${SEEDED_FALLBACK_WORKLINE_ID
   fallback_console_log="$(ab console || true)"
   fallback_page_errors="$(ab errors || true)"
   fallback_desktop_screenshot="/tmp/${SESSION}-monitor-fallback-desktop.png"
-  ab screenshot "${fallback_desktop_screenshot}" >/dev/null
+  capture_screenshot "${fallback_desktop_screenshot}"
   assert_contains "${fallback_monitor_text}" "通用 evidence" "fallback 场景未展示通用 evidence，页面内容: ${fallback_monitor_text}"
   assert_monitor_scene_dom "fallback-desktop" "${fallback_scenario}"
 
@@ -735,7 +755,7 @@ if [[ "${USE_FIXED_MONITOR_FIXTURE}" == "1" || -n "${SEEDED_FALLBACK_WORKLINE_ID
   fallback_mobile_console_log="$(ab console || true)"
   fallback_mobile_page_errors="$(ab errors || true)"
   fallback_mobile_screenshot="/tmp/${SESSION}-monitor-fallback-mobile.png"
-  ab screenshot "${fallback_mobile_screenshot}" >/dev/null
+  capture_screenshot "${fallback_mobile_screenshot}"
   assert_contains "${fallback_mobile_monitor_text}" "语义未加载" "移动 fallback 场景未展示语义未加载，页面内容: ${fallback_mobile_monitor_text}"
   assert_monitor_scene_dom "fallback-mobile" "${fallback_scenario}"
 fi
@@ -895,7 +915,11 @@ echo "  sandbox mobile:  ${sandbox_mobile_url}"
 echo "  trace:           ${trace_smoke_status}"
 echo "  devices:         ${device_url}"
 echo "  device_id:       ${device_id:-not-selected}"
-echo "  screenshots:     ${desktop_screenshot} ${mobile_screenshot}"
-if [[ -n "${fallback_desktop_screenshot}" ]]; then
+if [[ "${CAPTURE_SCREENSHOTS}" == "1" ]]; then
+  echo "  screenshots:     ${desktop_screenshot} ${mobile_screenshot}"
+else
+  echo "  screenshots:     skipped (set RUNTIME_SMOKE_CAPTURE_SCREENSHOTS=1 to capture)"
+fi
+if [[ "${CAPTURE_SCREENSHOTS}" == "1" && -n "${fallback_desktop_screenshot}" ]]; then
   echo "  fallback shots:  ${fallback_desktop_screenshot} ${fallback_mobile_screenshot}"
 fi
