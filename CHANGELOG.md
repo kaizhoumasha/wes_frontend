@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.5.0] - 2026-06-08
+
+### Added
+
+- `/runtime/monitor` 新增单层货架运行资源边界展示，覆盖工作线 readiness、站点 lease、active snapshot、货架等待操作，以及 Rack、Bin、PKG、Slot、Cell、Part SN 等结构化 evidence。
+- 运行态 API 类型、OpenAPI metadata 与 Zod schema 同步资源边界契约，并接入单插件 manifest summary 生成方法。
+- 新增 `useRuntimeSceneManifest`、scene adapter、现场态势图组件和浏览器 smoke 覆盖，验证桌面/移动端资源证据展示和 fallback 语义。
+
+### Changed
+
+- 现场态势图改为 monitor-only 的资源边界/evidence scene model，manifest 加载按合同版本缓存并防止工作线切换后的陈旧覆盖。
+- `pnpm smoke:runtime:agent-browser` 扩展为种子化后端 monitor 状态，并校验桌面与移动端关键视口无横向溢出。
+- 更新单层货架边界、资源布局和执行计划文档，明确运行投影与库存事实边界。
+
+### Fixed
+
+- 归一化旧前缀 `*_NG_ARM` 设备角色显示，避免现场态势图继续露出 “NG 机械臂” 命名。
+- 修复现场态势图设备卡片横向溢出，以及移动端刷新时间胶囊宽度溢出。
+- 放行 smoke fallback 种子中预期的缺失 manifest 告警，避免把已验证的降级路径误判为失败。
+
 ## [0.4.4.0] - 2026-06-06
 
 ### Added
