@@ -262,6 +262,25 @@ describe('runtime route sync', () => {
     expect(worklineDetailSend).toHaveBeenLastCalledWith(101)
   })
 
+  it('keeps the monitor route isolated from the shared WorklineRouteMap topology', async () => {
+    routeState.path = '/runtime/monitor'
+    routeState.fullPath = '/runtime/monitor?worklineId=101'
+    routeState.query = {
+      worklineId: '101'
+    }
+
+    const component = await import('@/views/runtime/worklines/WorklineMonitorPage.vue')
+
+    const wrapper = shallowMount(component.default, createMountOptions())
+    mountedWrappers.push(wrapper)
+
+    await flushViewUpdates()
+    await flushViewUpdates()
+
+    expect(wrapper.findComponent({ name: 'WorklineLiveOverview' }).exists()).toBe(true)
+    expect(wrapper.findComponent({ name: 'WorklineRouteMap' }).exists()).toBe(false)
+  })
+
   it('loads device detail panel when deviceId query param is present', async () => {
     routeState.path = '/runtime/monitor'
     routeState.fullPath = '/runtime/monitor?worklineId=101&deviceId=201'
