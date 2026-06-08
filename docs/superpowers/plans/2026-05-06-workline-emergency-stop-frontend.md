@@ -63,10 +63,12 @@
 
 ### Task 0. 删除旧前端急停触发流
 
-- [ ] 从 `WorklineRuntimePage.vue` 移除旧“紧急停止”触发按钮、确认 dialog、footer 危险按钮和页面私有 emergency-stop EventSource。
-- [ ] 下线 `useWorklineEmergencyStopStore()` 在运行态页面和 sandbox workbench 中的使用。
-- [ ] 删除或迁移 `workline-emergency-stop` API module、旧 `EmergencyStopDialog.vue`、`EmergencyStopOverlay.vue`，避免前端继续呈现“发起/确认急停”的能力。
+- [x] 从 `WorklineRuntimePage.vue` 移除旧“紧急停止”触发按钮、确认 dialog、footer 危险按钮和页面私有 emergency-stop EventSource。
+- [x] 下线 `useWorklineEmergencyStopStore()` 在运行态页面和 sandbox workbench 中的使用。
+- [x] 删除或迁移 `workline-emergency-stop` API module、旧 `EmergencyStopDialog.vue`、`EmergencyStopOverlay.vue`，避免前端继续呈现“发起/确认急停”的能力。
 - [ ] 若产品仍需要“发起软件急停”，必须另开后端最终契约、权限和 UI 计划，不混入本次 clear-estop 跟进。
+
+状态同步 2026-06-08：`src` / `tests` 未发现 `worklineEmergencyStop`、`workline-emergency-stop`、`EmergencyStop`、`useWorklineEmergencyStopStore` 的运行态实现引用，仅剩 menu manifest 测试中的历史组件字符串。
 
 验证：
 
@@ -77,14 +79,16 @@ rtk pnpm type:check
 
 ### Task 1. 契约生成与类型收口
 
-- [ ] 等后端 OpenAPI 暴露最终 safety/incident/clear-estop endpoint。
+- [x] 等后端 OpenAPI 暴露最终 safety/incident/clear-estop endpoint。
 - [ ] 用脚本或 `jq` 做契约硬门禁：最终 path 存在、临时 `/operations/safety/.../clear-estop` 不进入前端生成物、clear-estop 权限是 `biz:workline:clear-estop`。
-- [ ] 运行 `pnpm generate:types` 和 `pnpm generate:permissions`。
-- [ ] 在 `src/types/runtime.ts` 增加稳定业务类型别名，不在组件里直接散落 generated schema。
-- [ ] 确认 `BIZ_PERMISSIONS.workline.clearEstop` 存在，且值为 `biz:workline:clear-estop`。
+- [x] 运行 `pnpm generate:types` 和 `pnpm generate:permissions`。
+- [x] 在 `src/types/runtime.ts` 增加稳定业务类型别名，不在组件里直接散落 generated schema。
+- [x] 确认 `BIZ_PERMISSIONS.workline.clearEstop` 存在，且值为 `biz:workline:clear-estop`。
 - [ ] 契约门禁必须包含 safety SSE：`domain`、`entity`、`action`、`keys`、样例 payload、刷新策略和错误 envelope。
 - [ ] 契约门禁必须包含 incident 状态枚举、clear-estop request/response、`ESTOP_RECOVERY_REJECTED` 的 `failed_checks` / `required_actions` 结构。
 - [ ] 写明期望生成入口：优先由生成器产出 `worklineApiMethods.clearEstop` / incident 方法；不得在 `contractMethods` 中手写第二套临时路径。
+
+状态同步 2026-06-08：generated OpenAPI / permissions 已包含 `clear-estop`、`RuntimeWorklineSummary.runtime_status`、`active_safety_incident_id`、`failed_checks`、`required_actions` 和 `biz:workline:clear-estop`。仍保留未完成项：没有发现专用契约门禁脚本；`runtimeApiMethods.clearEstop()` 仍手写 `/operations/safety/.../clear-estop`，未改用 generated `worklineApiMethods.safetyWorklinesClearEstop()`。
 
 SSE 样例门禁：
 
@@ -149,13 +153,15 @@ rtk pnpm type:check
 
 ### Task 2. 运行态显示优先级
 
-- [ ] 在 `RuntimeWorklineSummary` 增加 `runtime_status`、`active_safety_incident_id`、`stopped_at`、`stopped_reason`、`resumed_at` 等字段。
-- [ ] 新增 `getWorklineRuntimeVerdict(summary, activeIncident, evidenceState)`，统一返回 `tone`、`label`、`priority`、`safetyLocked`、`canAttemptClear`、`blockedReason`、`evidenceFreshness`。
-- [ ] 明确状态机：`UNLOCKED -> LOCKED_LOADING_EVIDENCE -> LOCKED_READY -> CLEARING -> CLEAR_UNKNOWN/CLEAR_REJECTED/CLEARED`。
-- [ ] 判定优先级：active incident 存在或 `runtime_status === "ESTOPPED"` 任一成立即进入 `软件急停冻结`；incident 加载失败或证据过期时保持冻结并禁用恢复动作。
+- [x] 在 `RuntimeWorklineSummary` 增加 `runtime_status`、`active_safety_incident_id`、`stopped_at`、`stopped_reason`、`resumed_at` 等字段。
+- [x] 新增 `getWorklineRuntimeVerdict(summary, activeIncident, evidenceState)`，统一返回 `tone`、`label`、`priority`、`safetyLocked`、`canAttemptClear`、`blockedReason`、`evidenceFreshness`。
+- [x] 明确状态机：`UNLOCKED -> LOCKED_LOADING_EVIDENCE -> LOCKED_READY -> CLEARING -> CLEAR_UNKNOWN/CLEAR_REJECTED/CLEARED`。
+- [x] 判定优先级：active incident 存在或 `runtime_status === "ESTOPPED"` 任一成立即进入 `软件急停冻结`；incident 加载失败或证据过期时保持冻结并禁用恢复动作。
 - [ ] evidence freshness 使用 store 内 `incidentLastLoadedAt = Date.now()`；不得复用 DOM `MessageEvent.timeStamp` 判断安全证据时效。
-- [ ] WorkLine 列表、详情顶部 safety panel、`DecisionStrip` 和所有禁用逻辑都只读统一 verdict；不得在组件内重新计算急停 tone/label。
+- [x] WorkLine 列表、详情顶部 safety panel、`DecisionStrip` 和所有禁用逻辑都只读统一 verdict；不得在组件内重新计算急停 tone/label。
 - [ ] `WorklineHealthHero` 当前不是运行页必经组件；执行时要么在 `WorklineLiveOverview` 中挂载并使用 verdict，要么从本计划移除该组件改造项，避免改未使用组件。
+
+状态同步 2026-06-08：`src/utils/runtime-safety.ts`、`src/utils/runtime-display.ts`、`DecisionStrip.vue`、`WorklineMonitorPage.vue` 和 `SandboxWorkbenchPage.vue` 已接入统一 verdict；相关 `worklineSafetyDisplay` 测试通过。仍未发现 `incidentLastLoadedAt` store 状态，`WorklineHealthHero` 也未挂载到运行页主路径。
 
 验证：
 
@@ -172,8 +178,10 @@ rtk pnpm type:check
 - [ ] 新增 `WorklineSafetyIncidentPanel.vue`，作为工作线详情的 incident-first 顶部状态，不是普通信息卡；展示 incident id、状态、停止时间、drain status、远端未知命令、最后刷新时间和操作区。
 - [ ] 面板必须覆盖 loading、error、empty-but-estopped、summary/incident conflict、SSE reconnecting/stale 等状态；安全证据缺失或过期时禁用“解除软件冻结 / 恢复接收”。
 - [ ] 新增最小 `WorklineSafetyAuditDrawer.vue`，从 incident list/detail 展示最近事故和恢复尝试；active 面板只负责当前状态，审计 drawer 负责追溯。
-- [ ] 新增 `isRuntimeDomainAllowed()` 和 `classifyRuntimeRefresh(event)`；SSE 收到 workline/device/outbox/command/safety 相关事件时刷新当前 detail 与 active incident。
+- [x] 新增 `isRuntimeDomainAllowed()` 和 `classifyRuntimeRefresh(event)`；SSE 收到 workline/device/outbox/command/safety 相关事件时刷新当前 detail 与 active incident。
 - [ ] clear-estop 成功后若 SSE 未及时到达，使用一次短轮询 fallback；刷新目标至少包含 worklines、detail、active incident。
+
+状态同步 2026-06-08：`WorklineSafetyIncidentPanel.vue` 已存在，但当前仅基于 summary/verdict 展示基础信息，未达到 active incident 查询、drain/remote unknown/最后刷新时间、audit drawer 和短轮询 fallback 的完整要求。`isRuntimeDomainAllowed()` / `classifyRuntimeRefresh()` 已存在并有 `runtime-event` 单测。
 
 验证：
 
@@ -194,6 +202,8 @@ rtk pnpm type:check
 - [ ] 成功后关闭对话框，刷新 worklines、detail、active incident，并提示“已恢复新流程接收，旧 session/outbox/command 不会恢复”。
 - [ ] `ESTOP_RECOVERY_REJECTED` 时显示 `failed_checks` 和 `required_actions`。
 
+状态同步 2026-06-08：当前只有 `ElMessageBox.confirm` 简化确认和 summary/verdict 驱动的 panel 操作，没有发现 `WorklineClearEstopDialog.vue`、结构化 checklist 表单、`device_confirmations`、`operator_note`、`confirmed_at`、`ESTOP_RECOVERY_REJECTED` UI 展示或 active incident 刷新闭环，本任务保持未完成。
+
 验证：
 
 ```bash
@@ -203,11 +213,13 @@ rtk pnpm type:check
 
 ### Task 5. Sandbox 急停态全推进入口只读化
 
-- [ ] 从 `SandboxEventComposer` 快捷模板中过滤 `ESTOP_PRESSED`。
-- [ ] 如果用户手动输入 `ESTOP_PRESSED`，显示平台保留安全事件提示，阻止普通 sandbox submit。
-- [ ] 在 `SandboxWorkbench` 顶层接入 `safetyLocked`，向 event composer、action list、pending queue、result composer、manual session、replay inbox 传递禁用状态和统一原因。
-- [ ] 禁用所有会推进流程的动作：sandbox event、ACK、Result、trigger orchestration、retry、manual session、replay；只保留查看、刷新、打开 incident/audit。
+- [x] 从 `SandboxEventComposer` 快捷模板中过滤 `ESTOP_PRESSED`。
+- [x] 如果用户手动输入 `ESTOP_PRESSED`，显示平台保留安全事件提示，阻止普通 sandbox submit。
+- [x] 在 `SandboxWorkbench` 顶层接入 `safetyLocked`，向 event composer、action list、pending queue、result composer、manual session、replay inbox 传递禁用状态和统一原因。
+- [x] 禁用所有会推进流程的动作：sandbox event、ACK、Result、trigger orchestration、retry、manual session、replay；只保留查看、刷新、打开 incident/audit。
 - [ ] 文案指向 incident/runtime API，不提示插件 handler；后端 sandbox 模板/API 也应拒绝平台保留安全事件，前端只做第一层防护。
+
+状态同步 2026-06-08：`SandboxEventComposer.vue`、`SandboxWorkbenchPage.vue`、`SandboxExternalCallbackComposer.vue`、`SandboxResultComposer.vue` 已接入 safety lock；`sandboxSafetyLock` 和 `runtime-event` 单测通过。后端拒绝平台保留安全事件未在前端计划内验证，最后一项保持未完成。
 
 验证：
 

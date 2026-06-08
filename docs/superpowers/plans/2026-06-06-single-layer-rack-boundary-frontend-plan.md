@@ -14,7 +14,7 @@
 
 - 后端计划：`wes_backend/docs/superpowers/plans/2026-06-06-wes-single-layer-rack-orchestration-boundary-plan.md`
 - 前端基础设计：`docs/superpowers/specs/2026-06-05-runtime-workline-scene-monitor-design.md`
-- 前端增量设计：`docs/superpowers/specs/2026-06-06-single-layer-rack-boundary-frontend-design.md`
+- 前端增量设计：`docs/superpowers/archive/specs/2026-06-06-single-layer-rack-boundary-frontend-design.md`
 
 本计划依赖后端提供或确认结构化运行字段。若后端 OpenAPI 尚未暴露字段，前端只实现通用 evidence 降级，不从 raw JSON 推断业务含义。
 
@@ -34,10 +34,12 @@
 
 ### Task 0. 合同与口径核对
 
-- [ ] 对照后端 OpenAPI / generated types，确认是否已有 WorkLine READY、Station lease、active rack snapshot、rack operation wait、resource evidence 相关 snake_case 字段。
-- [ ] 核对 generated types 是否包含 `workline_readiness`、`station_lease`、`single_layer_rack_snapshot`、`rack_operation_wait`、`resource_evidence_kind` 及上表状态集合；核对 scene adapter 输出 `worklineReadiness`、`stationLease`、`singleLayerRackSnapshot`、`rackOperationWait`、`resourceEvidenceKind`。
+- [x] 对照后端 OpenAPI / generated types，确认是否已有 WorkLine READY、Station lease、active rack snapshot、rack operation wait、resource evidence 相关 snake_case 字段。
+- [x] 核对 generated types 是否包含 `workline_readiness`、`station_lease`、`single_layer_rack_snapshot`、`rack_operation_wait`、`resource_evidence_kind` 及上表状态集合；核对 scene adapter 输出 `worklineReadiness`、`stationLease`、`singleLayerRackSnapshot`、`rackOperationWait`、`resourceEvidenceKind`。
 - [ ] 若字段缺失，记录为后端合同待办；前端不得在组件中解析 `context_json`、`payload_json` 或 `event_payload` 兜底推断。
-- [ ] 确认既有现场态势图 SPEC 已采用 `TARGET_ARM` 执行 NG 放置，NG station 作为证据或站点展示。
+- [x] 确认既有现场态势图 SPEC 已采用 `TARGET_ARM` 执行 NG 放置，NG station 作为证据或站点展示。
+
+状态同步 2026-06-08：已核对前端 generated/types/source/tests，未发现 `workline_readiness`、`station_lease`、`single_layer_rack_snapshot`、`rack_operation_wait`、`resource_evidence_kind` 或 camelCase scene adapter 输出字段；`RuntimeSceneMap` / `buildRuntimeSceneModel` 也不存在。既有 SPEC 已采用 `TARGET_ARM` + NG station evidence 口径。缺字段仍需记录到后端合同待办，故第三项保持未完成。
 
 验证：
 
@@ -68,6 +70,8 @@ raw JSON 搜索只作为 monitor scene adapter / monitor components 的门禁；
 - [ ] 增加 rack operation wait 归一化：等待 WMS、WMS 已回调、超时、失败。
 - [ ] 将 Rack/Bin/PKG/Slot evidence 标注为 WES active snapshot、WMS callback evidence 或 trace/resource evidence。
 
+状态同步 2026-06-08：未发现 runtime scene adapter 或上述边界归一化字段，Task 1 保持未完成。
+
 验证：
 
 ```bash
@@ -82,6 +86,8 @@ pnpm test -- runtime
 - [ ] WMS 搬运状态文案使用“等待 WMS 搬运到位”“WMS 回调证据”，不出现 WES 直连 RCS/AGV/CTU 的暗示。
 - [ ] 分拣机角色只展示 `SOURCE_ARM`、`TARGET_ARM`、scan/workstation/station 等实际角色；不展示 `NG_ARM`。
 - [ ] 字段缺失时显示通用 evidence fallback 和明确的语义未加载提示。
+
+状态同步 2026-06-08：`/runtime/monitor` 仍使用 `WorklineLiveOverview` + 共享 `WorklineRouteMap`，未发现 monitor-only `RuntimeSceneMap`，Task 2 保持未完成。
 
 验证：
 
@@ -102,6 +108,8 @@ pnpm lint
 - [ ] 改造 `scripts/runtime-agent-browser-smoke.sh` 或新增等价 smoke 命令，使其登录后打开 `/runtime/monitor`，分别设置 desktop `1440x900` 和 mobile `390x844` viewport，并保存截图或 route-level visual assertions。
 - [ ] monitor smoke 必须使用固定 mock / seed / story 数据覆盖 Station busy、等待 WMS、WMS callback evidence、generic evidence fallback；每个状态都要有稳定可断言文案或 selector。
 - [ ] monitor smoke 必须断言 lease/rack operation/resource evidence 文案存在且无 overflow/overlap；overflow/overlap 使用 bounding-box 断言或可重复截图阈值，不只依赖人工目视截图。
+
+状态同步 2026-06-08：未发现 adapter/scene component 专项测试，也未发现 monitor smoke 对 Station busy、等待 WMS、WMS callback evidence、generic evidence fallback 的固定数据和 overflow/overlap 断言，Task 3 保持未完成。
 
 验证：
 
