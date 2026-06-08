@@ -22,6 +22,7 @@
         :model="sceneModel"
         :selected-device-id="selectedDeviceId"
         :session-counts-by-device="sessionCountsByDevice"
+        :trace-path-nodes="tracePathNodes"
         :blocking-device-id="blockingDeviceId"
         @select-device="emit('selectDevice', $event)"
       />

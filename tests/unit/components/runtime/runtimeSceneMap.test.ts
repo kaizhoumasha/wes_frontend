@@ -21,7 +21,18 @@ function createSceneModel(): RuntimeSceneModel {
     resourceEvidenceKindLabel: 'WMS 回调证据',
     evidenceCount: 2
   }
-  const resourceEvidence: RuntimeSceneModel['resourceEvidence'] = [
+  const unlocatedAuditItems: RuntimeSceneModel['unlocatedAuditItems'] = [
+    {
+      resourceKind: 'PKG',
+      resourceKindLabel: 'PKG',
+      resourceCode: 'PKG-UNLOCATED',
+      displayLabel: 'PKG PKG-UNLOCATED',
+      evidenceKind: 'GENERIC_EVIDENCE',
+      evidenceKindLabel: '通用 evidence',
+      sourceTraceId: 'trace-unlocated'
+    }
+  ]
+  const locatedEvidence: RuntimeSceneModel['resourceEvidence'] = [
     {
       resourceKind: 'RACK',
       resourceKindLabel: 'Rack',
@@ -48,7 +59,11 @@ function createSceneModel(): RuntimeSceneModel {
       sourceTraceId: 'trace-20'
     }
   ]
-  const binEvidence = resourceEvidence[1]!
+  const resourceEvidence: RuntimeSceneModel['resourceEvidence'] = [
+    ...locatedEvidence,
+    ...unlocatedAuditItems
+  ]
+  const binEvidence = locatedEvidence[1]!
 
   return {
     worklineId: 45,
@@ -103,14 +118,14 @@ function createSceneModel(): RuntimeSceneModel {
             ],
             evidenceCount: 2,
             evidenceKinds: ['WES_ACTIVE_SNAPSHOT', 'WMS_CALLBACK_EVIDENCE'],
-            auditItems: resourceEvidence
+            auditItems: locatedEvidence
           }
         ],
-        auditItems: resourceEvidence
+        auditItems: locatedEvidence
       }
     ],
-    unlocatedAuditItems: [],
-    resourceEvidenceTotalCount: 3,
+    unlocatedAuditItems,
+    resourceEvidenceTotalCount: 7,
     resourceEvidenceTruncated: true,
     semanticFallback: false,
     semanticFallbackMessage: null
@@ -160,15 +175,20 @@ function createBinOnlySceneModel(
 }
 
 describe('RuntimeSceneMap', () => {
-  it('renders boundary state and item-level resource evidence', () => {
+  it('renders grouped position resources, focus evidence, and unlocated audit items', async () => {
     const wrapper = mount(RuntimeSceneMap, {
       props: {
         model: createSceneModel()
       }
     })
 
-    expect(wrapper.text()).toContain('TARGET_ARM')
-    expect(wrapper.text()).toContain('SINGLE_LAYER_A')
+    expect(wrapper.findAll('[data-test="runtime-scene-evidence-item"]')).toHaveLength(0)
+    expect(wrapper.get('[data-test="runtime-scene-position-group"]').text()).toContain(
+      'SINGLE_LAYER_A'
+    )
+    expect(wrapper.get('[data-test="runtime-scene-resource-stack"]').text()).toContain(
+      'RACK-001'
+    )
     expect(wrapper.get('[data-test="runtime-scene-station-lease"]').text()).toContain(
       'Station lease：调度租约占用'
     )
@@ -178,9 +198,22 @@ describe('RuntimeSceneMap', () => {
     expect(wrapper.get('[data-test="runtime-scene-rack-snapshot"]').text()).toContain(
       '执行快照：当前执行货架'
     )
-    expect(wrapper.text()).toContain('RACK-001')
-    expect(wrapper.text()).toContain('BIN-001')
-    expect(wrapper.text()).toContain('仅展示前 2 条证据 / 共 3 条')
+    expect(wrapper.get('[data-test="runtime-scene-focus-panel"]').text()).toContain('trace-20')
+    expect(wrapper.get('[data-test="runtime-scene-focus-panel"]').text()).not.toContain(
+      'PKG-UNLOCATED'
+    )
+    expect(wrapper.get('[data-test="runtime-scene-truncated"]').text()).toBe(
+      '仅展示前 3 条证据 / 共 7 条'
+    )
+    const unlocatedAudit = wrapper.get('[data-test="runtime-scene-unlocated-audit"]')
+    expect(unlocatedAudit.text()).toContain('PKG-UNLOCATED')
+    expect(unlocatedAudit.get('[data-test="runtime-scene-evidence-truncated"]').text()).toBe(
+      '仅展示前 3 条证据 / 共 7 条'
+    )
+
+    await wrapper.get('[data-test="runtime-scene-resource-stack"]').trigger('click')
+
+    expect(wrapper.get('[data-test="runtime-scene-focus-panel"]').text()).toContain('BIN-001')
   })
 
   it('renders semantic fallback when plugin manifest or contract fields are unavailable', () => {
@@ -232,17 +265,26 @@ describe('RuntimeSceneMap', () => {
   })
 
   it('marks the selected device and shows active session counts', () => {
+    const model = createSceneModel()
+    model.deviceNodes = [
+      {
+        ...model.deviceNodes[0]!,
+        blockedOutboxCount: 1
+      }
+    ]
     const wrapper = mount(RuntimeSceneMap, {
       props: {
-        model: createSceneModel(),
+        model,
         selectedDeviceId: 101,
         sessionCountsByDevice: new Map([[101, 3]])
       }
     })
 
-    const device = wrapper.get('.runtime-scene-map__device')
+    const device = wrapper.get('[data-test="runtime-scene-device"]')
     expect(device.classes()).toContain('is-selected')
-    expect(wrapper.get('[data-test="runtime-scene-device-signal"]').text()).toContain('3条等待')
+    expect(device.text()).toContain('3条等待')
+    expect(device.text()).toContain('1 已停靠')
+    expect(device.text()).not.toContain('未完成命令')
   })
 
   it('renders device risk signals from runtime counters', () => {
@@ -274,9 +316,7 @@ describe('RuntimeSceneMap', () => {
     expect(device.classes()).toContain('has-runtime-hold')
     expect(device.classes()).toContain('has-parked-outbox')
     expect(wrapper.text()).toContain('维护')
-    expect(wrapper.get('[data-test="runtime-scene-device-signal"]').text()).toContain(
-      'ERROR: DEVICE_FAULT'
-    )
+    expect(device.text()).toContain('ERROR: DEVICE_FAULT')
     expect(wrapper.get('[data-test="runtime-scene-device-open-command"]').text()).toContain(
       '2 未完成命令'
     )
