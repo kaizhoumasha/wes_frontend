@@ -18,6 +18,7 @@ SEED_MONITOR_SCENE_DATA="${RUNTIME_SMOKE_SEED_MONITOR_SCENE_DATA:-1}"
 USE_FIXED_MONITOR_FIXTURE="${RUNTIME_SMOKE_USE_FIXED_MONITOR_FIXTURE:-0}"
 SEEDED_SINGLE_LAYER_WORKLINE_ID=""
 SEEDED_FALLBACK_WORKLINE_ID=""
+SEEDED_TRACE_ID=""
 
 ab() {
   agent-browser --session "$SESSION" "$@"
@@ -107,6 +108,10 @@ run_monitor_scene_seed() {
 
   SEEDED_SINGLE_LAYER_WORKLINE_ID="$(json_field "${seed_output}" "data['single_layer_workline']['id']")"
   SEEDED_FALLBACK_WORKLINE_ID="$(json_field "${seed_output}" "data['fallback_workline']['id']")"
+  SEEDED_TRACE_ID="$(json_field "${seed_output}" "data.get('trace_id', '')")"
+  if [[ -z "${SEEDED_TRACE_ID}" && -n "${SEEDED_SINGLE_LAYER_WORKLINE_ID}" ]]; then
+    SEEDED_TRACE_ID="runtime-monitor-smoke-wms-callback"
+  fi
 }
 
 install_monitor_fixture_routes() {
@@ -155,6 +160,7 @@ detail = {
             "station_code": "TARGET_ARM",
             "position_code": "SINGLE_LAYER_A",
             "rack_code": "RACK-SMOKE-001",
+            "source_trace_id": "trace-smoke-resource-layout",
             "occurred_at": "2026-06-08T00:00:00Z",
         },
         {
@@ -169,6 +175,66 @@ detail = {
             "source_session_id": 88001,
             "source_trace_id": "trace-smoke-wms-callback",
             "occurred_at": "2026-06-08T00:00:01Z",
+        },
+        {
+            "resource_kind": "SLOT",
+            "resource_code": "SLOT-SMOKE-A1",
+            "display_label": "Slot SLOT-SMOKE-A1",
+            "evidence_kind": "TRACE_RESOURCE_EVIDENCE",
+            "station_code": "TARGET_ARM",
+            "position_code": "SINGLE_LAYER_A",
+            "rack_code": "RACK-SMOKE-001",
+            "bin_code": "BIN-SMOKE-001",
+            "slot_code": "SLOT-SMOKE-A1",
+            "source_trace_id": "trace-smoke-resource-layout",
+            "occurred_at": "2026-06-08T00:00:02Z",
+        },
+        {
+            "resource_kind": "CELL",
+            "resource_code": "CELL-SMOKE-A1",
+            "display_label": "Cell CELL-SMOKE-A1",
+            "evidence_kind": "TRACE_RESOURCE_EVIDENCE",
+            "station_code": "TARGET_ARM",
+            "position_code": "SINGLE_LAYER_A",
+            "rack_code": "RACK-SMOKE-001",
+            "bin_code": "BIN-SMOKE-001",
+            "source_trace_id": "trace-smoke-resource-layout",
+            "occurred_at": "2026-06-08T00:00:03Z",
+        },
+        {
+            "resource_kind": "PKG",
+            "resource_code": "PKG-SMOKE-001",
+            "display_label": "PKG PKG-SMOKE-001",
+            "evidence_kind": "WMS_CALLBACK_EVIDENCE",
+            "station_code": "TARGET_ARM",
+            "position_code": "SINGLE_LAYER_A",
+            "rack_code": "RACK-SMOKE-001",
+            "bin_code": "BIN-SMOKE-001",
+            "pkg_code": "PKG-SMOKE-001",
+            "source_session_id": 88001,
+            "source_trace_id": "trace-smoke-wms-callback",
+            "occurred_at": "2026-06-08T00:00:04Z",
+        },
+        {
+            "resource_kind": "PART_SN",
+            "resource_code": "PART-SMOKE-001",
+            "display_label": "Part SN PART-SMOKE-001",
+            "evidence_kind": "TRACE_RESOURCE_EVIDENCE",
+            "station_code": "TARGET_ARM",
+            "position_code": "SINGLE_LAYER_A",
+            "rack_code": "RACK-SMOKE-001",
+            "bin_code": "BIN-SMOKE-001",
+            "part_sn": "PART-SMOKE-001",
+            "source_trace_id": "trace-smoke-resource-layout",
+            "occurred_at": "2026-06-08T00:00:05Z",
+        },
+        {
+            "resource_kind": "PKG",
+            "resource_code": "PKG-SMOKE-UNLOCATED",
+            "display_label": "PKG PKG-SMOKE-UNLOCATED",
+            "evidence_kind": "GENERIC_EVIDENCE",
+            "source_trace_id": "trace-smoke-unlocated",
+            "occurred_at": "2026-06-08T00:00:06Z",
         },
     ],
     "resource_evidence_total_count": 8,
@@ -354,6 +420,7 @@ import json
 import sys
 
 scenario = sys.argv[1]
+structured_scenarios = {"happy", "seeded", "fallback", "seeded-fallback"}
 required_texts = [
     "Station lease",
     "Rack operation",
@@ -364,8 +431,15 @@ if scenario == "happy":
         "Station lease：调度租约占用",
         "Rack operation：等待 WMS 搬运到位",
         "WMS 回调证据",
-        "仅展示前 2 条证据 / 共 8 条",
+        "仅展示前 7 条证据 / 共 8 条",
         "TARGET_ARM",
+        "RACK-SMOKE-001",
+        "BIN-SMOKE-001",
+        "SLOT-SMOKE-A1",
+        "CELL-SMOKE-A1",
+        "PKG-SMOKE-001",
+        "PART-SMOKE-001",
+        "PKG-SMOKE-UNLOCATED",
     ])
 elif scenario == "seeded":
     required_texts.extend([
@@ -396,11 +470,21 @@ elif scenario == "seeded-fallback":
 required_selectors = [
     '[data-test="runtime-scene-map"]',
     '[data-test="runtime-scene-readiness"]',
-    '[data-test="runtime-scene-boundary"]',
-    '[data-test="runtime-scene-station-lease"]',
-    '[data-test="runtime-scene-rack-operation"]',
-    '[data-test="runtime-scene-evidence-kind"]',
+    '[data-test="runtime-scene-device-flow"]',
 ]
+if scenario in structured_scenarios:
+    required_selectors.extend([
+        '[data-test="runtime-scene-position-group"]',
+        '[data-test="runtime-scene-resource-stack"]',
+        '[data-test="runtime-scene-focus-panel"]',
+        '[data-test="runtime-scene-station-lease"]',
+        '[data-test="runtime-scene-rack-snapshot"]',
+        '[data-test="runtime-scene-rack-operation"]',
+        '[data-test="runtime-scene-evidence-panel"]',
+        '[data-test="runtime-scene-evidence-row"]',
+    ])
+if scenario == "happy":
+    required_selectors.append('[data-test="runtime-scene-unlocated-audit"]')
 if scenario in {"fallback", "seeded-fallback"}:
     required_selectors.append('[data-test="runtime-scene-fallback"]')
 
@@ -408,13 +492,16 @@ print(f"""
 (() => {{
   const errors = [];
   const requiredSelectors = {json.dumps(required_selectors, ensure_ascii=False)};
-  const evidenceSelector = '[data-test="runtime-scene-evidence-item"], [data-test="runtime-scene-empty-evidence"]';
+  const evidenceSelector = '[data-test="runtime-scene-evidence-row"], [data-test="runtime-scene-empty-evidence"]';
   const visible = el => {{
     if (!el) return false;
     const rect = el.getBoundingClientRect();
     const style = window.getComputedStyle(el);
     return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
   }};
+  for (const details of document.querySelectorAll('[data-test="runtime-scene-unlocated-audit"]')) {{
+    details.open = true;
+  }}
   for (const selector of requiredSelectors) {{
     const el = document.querySelector(selector);
     if (!visible(el)) errors.push(`missing or hidden selector: ${{selector}}`);
@@ -428,16 +515,19 @@ print(f"""
   }}
   const checkedNodes = document.querySelectorAll([
     '[data-test="runtime-scene-readiness"]',
-    '[data-test="runtime-scene-boundary"]',
+    '[data-test="runtime-scene-position-group"]',
+    '[data-test="runtime-scene-resource-stack"]',
+    '[data-test="runtime-scene-focus-panel"]',
     '[data-test="runtime-scene-station-lease"]',
     '[data-test="runtime-scene-rack-snapshot"]',
     '[data-test="runtime-scene-rack-operation"]',
-    '[data-test="runtime-scene-evidence-kind"]',
     '[data-test="runtime-scene-truncated"]',
-    '[data-test="runtime-scene-evidence-item"]',
+    '[data-test="runtime-scene-evidence-panel"]',
+    '[data-test="runtime-scene-evidence-row"]',
     '[data-test="runtime-scene-empty-evidence"]'
   ].join(','));
   for (const el of checkedNodes) {{
+    if (!visible(el)) continue;
     const rect = el.getBoundingClientRect();
     if (rect.left < -1 || rect.right > window.innerWidth + 1) {{
       errors.push(`viewport overflow: ${{el.getAttribute('data-test') || el.className}}`);
@@ -463,12 +553,11 @@ print(f"""
       }}
     }}
   }};
-  checkOverlapGroup('boundary', document.querySelectorAll('[data-test="runtime-scene-boundary"]'));
   checkOverlapGroup('device', document.querySelectorAll('[data-test="runtime-scene-device"]'));
-  checkOverlapGroup('evidence', document.querySelectorAll('[data-test="runtime-scene-evidence-item"]'));
-  for (const grid of document.querySelectorAll('.runtime-scene-map__boundary-grid')) {{
-    checkOverlapGroup('boundary-status', grid.children);
-  }}
+  checkOverlapGroup('position', document.querySelectorAll('[data-test="runtime-scene-position-group"]'));
+  checkOverlapGroup('resource-stack', document.querySelectorAll('[data-test="runtime-scene-resource-stack"]'));
+  checkOverlapGroup('focus-panel', document.querySelectorAll('[data-test="runtime-scene-focus-panel"]'));
+  checkOverlapGroup('evidence', document.querySelectorAll('[data-test="runtime-scene-evidence-row"]'));
   if (errors.length) throw new Error(errors.join('\\n'));
   return 'runtime scene assertions passed';
 }})()
@@ -651,6 +740,92 @@ if [[ "${USE_FIXED_MONITOR_FIXTURE}" == "1" || -n "${SEEDED_FALLBACK_WORKLINE_ID
   assert_monitor_scene_dom "fallback-mobile" "${fallback_scenario}"
 fi
 
+sandbox_desktop_url=""
+sandbox_mobile_url=""
+sandbox_desktop_console_log=""
+sandbox_desktop_page_errors=""
+sandbox_mobile_console_log=""
+sandbox_mobile_page_errors=""
+
+if [[ "${USE_FIXED_MONITOR_FIXTURE}" == "1" ]]; then
+  install_monitor_fixture_routes "${workline_id}"
+fi
+
+ab console --clear >/dev/null || true
+ab errors --clear >/dev/null || true
+ab network requests --clear >/dev/null || true
+
+ab set viewport 1440 900 >/dev/null
+ab open "${BASE_URL}/runtime/sandbox/${workline_id}" >/dev/null
+ab wait 5000 >/dev/null
+
+sandbox_desktop_url="$(ab get url)"
+sandbox_desktop_text="$(ab get text body)"
+sandbox_desktop_console_log="$(ab console || true)"
+sandbox_desktop_page_errors="$(ab errors || true)"
+
+assert_contains "${sandbox_desktop_text}" "设备拓扑" "sandbox 桌面视口未展示设备拓扑，页面内容: ${sandbox_desktop_text}"
+if [[ "${USE_FIXED_MONITOR_FIXTURE}" == "1" ]]; then
+  assert_contains "${sandbox_desktop_text}" "SMOKE-TARGET-ARM" "sandbox 桌面视口未展示目标设备，页面内容: ${sandbox_desktop_text}"
+fi
+
+ab console --clear >/dev/null || true
+ab errors --clear >/dev/null || true
+ab network requests --clear >/dev/null || true
+
+ab set viewport 390 844 >/dev/null
+ab open "${BASE_URL}/runtime/sandbox/${workline_id}" >/dev/null
+ab wait 5000 >/dev/null
+
+sandbox_mobile_url="$(ab get url)"
+sandbox_mobile_text="$(ab get text body)"
+sandbox_mobile_console_log="$(ab console || true)"
+sandbox_mobile_page_errors="$(ab errors || true)"
+
+assert_contains "${sandbox_mobile_text}" "设备拓扑" "sandbox 移动视口未展示设备拓扑，页面内容: ${sandbox_mobile_text}"
+
+trace_desktop_url=""
+trace_mobile_url=""
+trace_desktop_console_log=""
+trace_desktop_page_errors=""
+trace_mobile_console_log=""
+trace_mobile_page_errors=""
+trace_smoke_status="skipped"
+
+if [[ -n "${SEEDED_TRACE_ID:-}" ]]; then
+  trace_smoke_status="covered:${SEEDED_TRACE_ID}"
+  ab console --clear >/dev/null || true
+  ab errors --clear >/dev/null || true
+  ab network requests --clear >/dev/null || true
+
+  ab set viewport 1440 900 >/dev/null
+  ab open "${BASE_URL}/runtime/cases?traceId=${SEEDED_TRACE_ID}" >/dev/null
+  ab wait 5000 >/dev/null
+
+  trace_desktop_url="$(ab get url)"
+  trace_desktop_text="$(ab get text body)"
+  trace_desktop_console_log="$(ab console || true)"
+  trace_desktop_page_errors="$(ab errors || true)"
+
+  assert_contains "${trace_desktop_text}" "工作线拓扑" "trace 桌面视口未展示工作线拓扑，页面内容: ${trace_desktop_text}"
+  assert_contains "${trace_desktop_text}" "完整设备拓扑" "trace 桌面视口未展示完整设备拓扑，页面内容: ${trace_desktop_text}"
+
+  ab console --clear >/dev/null || true
+  ab errors --clear >/dev/null || true
+  ab network requests --clear >/dev/null || true
+
+  ab set viewport 390 844 >/dev/null
+  ab open "${BASE_URL}/runtime/cases?traceId=${SEEDED_TRACE_ID}" >/dev/null
+  ab wait 5000 >/dev/null
+
+  trace_mobile_url="$(ab get url)"
+  trace_mobile_text="$(ab get text body)"
+  trace_mobile_console_log="$(ab console || true)"
+  trace_mobile_page_errors="$(ab errors || true)"
+
+  assert_contains "${trace_mobile_text}" "工作线拓扑" "trace 移动视口未展示工作线拓扑，页面内容: ${trace_mobile_text}"
+fi
+
 ab console --clear >/dev/null || true
 ab errors --clear >/dev/null || true
 ab network requests --clear >/dev/null || true
@@ -677,8 +852,30 @@ if [[ -n "${device_id}" ]]; then
   fi
 fi
 
-combined_console="$(printf '%s\n%s\n%s\n%s\n%s' "${console_log}" "${mobile_console_log}" "${fallback_console_log}" "${fallback_mobile_console_log}" "${device_console_log}")"
-combined_errors="$(printf '%s\n%s\n%s\n%s\n%s' "${page_errors}" "${mobile_page_errors}" "${fallback_page_errors}" "${fallback_mobile_page_errors}" "${device_page_errors}")"
+combined_console="$(
+  printf '%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s' \
+    "${console_log:-}" \
+    "${mobile_console_log:-}" \
+    "${fallback_console_log:-}" \
+    "${fallback_mobile_console_log:-}" \
+    "${sandbox_desktop_console_log:-}" \
+    "${sandbox_mobile_console_log:-}" \
+    "${trace_desktop_console_log:-}" \
+    "${trace_mobile_console_log:-}" \
+    "${device_console_log:-}"
+)"
+combined_errors="$(
+  printf '%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s' \
+    "${page_errors:-}" \
+    "${mobile_page_errors:-}" \
+    "${fallback_page_errors:-}" \
+    "${fallback_mobile_page_errors:-}" \
+    "${sandbox_desktop_page_errors:-}" \
+    "${sandbox_mobile_page_errors:-}" \
+    "${trace_desktop_page_errors:-}" \
+    "${trace_mobile_page_errors:-}" \
+    "${device_page_errors:-}"
+)"
 filtered_console="$(printf '%s' "${combined_console}" | rg -v "\\[vite\\]|\\[useMenu\\]|🍍|SSE CONNECTED|SSE] 正在连接|SSE] 连接已建立|SSE] 连接已关闭，准备重连|工作线插件不存在: runtime_monitor_smoke_missing_manifest" || true)"
 filtered_errors="$(printf '%s' "${combined_errors}" | rg -v '^$' || true)"
 
@@ -693,6 +890,9 @@ fi
 echo "runtime-agent-browser-smoke: PASS"
 echo "  monitor desktop: ${monitor_url}"
 echo "  monitor mobile:  ${mobile_monitor_url}"
+echo "  sandbox desktop: ${sandbox_desktop_url}"
+echo "  sandbox mobile:  ${sandbox_mobile_url}"
+echo "  trace:           ${trace_smoke_status}"
 echo "  devices:         ${device_url}"
 echo "  device_id:       ${device_id:-not-selected}"
 echo "  screenshots:     ${desktop_screenshot} ${mobile_screenshot}"
