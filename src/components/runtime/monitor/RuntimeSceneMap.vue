@@ -333,14 +333,13 @@ function signalClass(device: RuntimeSceneDeviceNode): string {
 
 .runtime-scene-map__lane {
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(160px, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
   gap: 10px;
-  overflow-x: auto;
   padding-bottom: 4px;
 }
 
 .runtime-scene-map__device {
+  min-width: 0;
   min-height: 96px;
   padding: 10px;
   border: 1px solid rgb(59, 130, 246, 0.16);
@@ -381,6 +380,8 @@ function signalClass(device: RuntimeSceneDeviceNode): string {
 
 .runtime-scene-map__device-role,
 .runtime-scene-map__device-status {
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-size: 11px;
   font-weight: 700;
   color: rgb(37, 99, 235);
