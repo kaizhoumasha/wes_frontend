@@ -262,7 +262,7 @@ describe('runtime route sync', () => {
     expect(worklineDetailSend).toHaveBeenLastCalledWith(101)
   })
 
-  it('keeps the monitor route isolated from the shared WorklineRouteMap topology', async () => {
+  it('keeps the monitor route isolated from the shared topology component', async () => {
     routeState.path = '/runtime/monitor'
     routeState.fullPath = '/runtime/monitor?worklineId=101'
     routeState.query = {
@@ -278,7 +278,7 @@ describe('runtime route sync', () => {
     await flushViewUpdates()
 
     expect(wrapper.findComponent({ name: 'WorklineLiveOverview' }).exists()).toBe(true)
-    expect(wrapper.findComponent({ name: 'WorklineRouteMap' }).exists()).toBe(false)
+    expect(wrapper.findComponent({ name: 'RuntimeSceneDeviceFlow' }).exists()).toBe(false)
   })
 
   it('loads device detail panel when deviceId query param is present', async () => {

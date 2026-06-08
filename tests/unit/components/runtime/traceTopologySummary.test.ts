@@ -184,7 +184,7 @@ describe('TraceTopologySummary', () => {
       global: {
         stubs: {
           RuntimeStatusBadge: { template: '<span />' },
-          WorklineRouteMap: { template: '<div>完整工作线拓扑</div>' }
+          RuntimeSceneDeviceFlow: { template: '<div>完整工作线拓扑</div>' }
         }
       }
     })

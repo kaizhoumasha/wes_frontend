@@ -170,13 +170,11 @@
           </span>
         </div>
         <div class="sandbox-wb__topology-wrap">
-          <WorklineRouteMap
-            :devices="deviceListWithCounters"
+          <RuntimeSceneDeviceFlow
+            :devices="deviceFlowNodes"
             :selected-device-id="selectedDeviceId"
-            :open-command-counts-by-device="openCommandCountsByDevice"
             @select="handleSelectDevice"
             @send-event="handleSendEventFromTopology"
-            @view-outbox="handleViewOutboxFromTopology"
             @show-context-menu="handleShowContextMenu"
           />
         </div>
@@ -370,7 +368,7 @@ import SandboxActionList from '@/components/runtime/sandbox/SandboxActionList.vu
 import SandboxEventComposer from '@/components/runtime/sandbox/SandboxEventComposer.vue'
 import SandboxExternalCallbackComposer from '@/components/runtime/sandbox/SandboxExternalCallbackComposer.vue'
 import SandboxResultComposer from '@/components/runtime/sandbox/SandboxResultComposer.vue'
-import WorklineRouteMap from '@/components/runtime/monitor/WorklineRouteMap.vue'
+import RuntimeSceneDeviceFlow from '@/components/runtime/shared/RuntimeSceneDeviceFlow.vue'
 import { StandardDrawer } from '@/components/ui/StandardDrawer'
 import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
 import { runtimeApiMethods } from '@/api/modules/runtime'
@@ -380,6 +378,7 @@ import { useRuntimeSSEStore } from '@/stores/runtime-sse'
 import { useWorklineRuntimeStore } from '@/stores/workline-runtime'
 import { classifyRuntimeRefresh, isRelevantRuntimeEvent } from '@/utils/runtime-event'
 import { displayDevice } from '@/utils/runtime-display-identity'
+import { toRuntimeSceneDeviceNode } from '@/utils/runtime-scene'
 import { getErrorMessage } from '@/utils/string'
 import {
   canAckSandboxOutbox,
@@ -673,6 +672,7 @@ const deviceListWithCounters = computed(() =>
     blocked_outbox_count: blockedOutboxCountsByDevice.value[device.id] ?? 0
   }))
 )
+const deviceFlowNodes = computed(() => deviceListWithCounters.value.map(toRuntimeSceneDeviceNode))
 
 const completedItemIndex = computed(() => {
   const outboxIds = new Set<number>()
@@ -1406,20 +1406,20 @@ watch(worklineId, () => {
   overflow: hidden;
 }
 
-.sandbox-wb__topology-wrap :deep(.workline-route-map) {
+.sandbox-wb__topology-wrap :deep(.runtime-scene-device-flow) {
   flex-direction: column;
   min-height: 0;
   gap: 6px;
 }
 
-.sandbox-wb__topology-wrap :deep(.workline-route-map__node) {
+.sandbox-wb__topology-wrap :deep(.runtime-scene-device-flow__device) {
   min-width: 0;
   min-height: 0;
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
-.sandbox-wb__topology-wrap :deep(.workline-route-map__edge) {
+.sandbox-wb__topology-wrap :deep(.runtime-scene-device-flow__edge) {
   display: none;
 }
 

@@ -158,7 +158,7 @@
         </div>
       </div>
 
-      <!-- Priority 2: Trace Topology (集成 WorklineRouteMap) -->
+      <!-- Priority 2: Trace Topology -->
       <el-card
         v-if="pathDevices.length"
         shadow="never"
