@@ -1,21 +1,25 @@
-import { flushPromises, shallowMount } from '@vue/test-utils'
+import { shallowMount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import WorklineLiveOverview from '@/components/runtime/monitor/WorklineLiveOverview.vue'
-import type {
-  RuntimeScenePluginManifestSummary,
-  RuntimeWorklineDetailResponse,
-  RuntimeWorklineDeviceItem,
-  RuntimeWorklineSummary
-} from '@/types/runtime'
+import type { RuntimeWorklineDetailResponse, RuntimeWorklineSummary } from '@/types/runtime'
 
 const mocks = vi.hoisted(() => ({
-  worklinePluginManifest: vi.fn()
+  buildRuntimeSceneModel: vi.fn(),
+  loadManifest: vi.fn(),
+  manifestRef: { value: null as { plugin_key: string; contract_version: string } | null },
+  errorRef: { value: null as unknown }
 }))
 
-vi.mock('@/api/modules/runtime', () => ({
-  runtimeApiMethods: {
-    worklinePluginManifest: mocks.worklinePluginManifest
-  }
+vi.mock('@/utils/runtime-scene', () => ({
+  buildRuntimeSceneModel: mocks.buildRuntimeSceneModel
+}))
+
+vi.mock('@/composables/useRuntimeSceneManifest', () => ({
+  useRuntimeSceneManifest: () => ({
+    manifest: mocks.manifestRef,
+    error: mocks.errorRef,
+    loadManifest: mocks.loadManifest
+  })
 }))
 
 function createSummary(overrides: Partial<RuntimeWorklineSummary> = {}): RuntimeWorklineSummary {
@@ -24,8 +28,6 @@ function createSummary(overrides: Partial<RuntimeWorklineSummary> = {}): Runtime
     line_code: 'WL-45',
     line_name: '粗分线',
     line_type: 'SORTING',
-    plugin_key: 'rough_sorter',
-    contract_version: 'v1',
     is_active: true,
     device_count: 1,
     active_session_count: 0,
@@ -34,92 +36,158 @@ function createSummary(overrides: Partial<RuntimeWorklineSummary> = {}): Runtime
     error_device_count: 0,
     offline_device_count: 0,
     maintenance_device_count: 0,
-    run_mode: 'AUTO',
+    run_mode: 'SIMULATION',
+    runtime_status: 'READY',
+    plugin_key: 'rough_sorter',
     ...overrides
   }
 }
 
-function createDevice(overrides: Partial<RuntimeWorklineDeviceItem> = {}): RuntimeWorklineDeviceItem {
+function createDetail(summary = createSummary()): RuntimeWorklineDetailResponse {
   return {
-    id: 101,
-    device_code: 'DV-101',
-    device_name: '扫描设备',
-    device_role: 'scanner',
-    role_index: 1,
-    device_status: 'ONLINE',
-    maintenance_mode: false,
-    pending_command_count: 0,
-    ...overrides
-  }
-}
-
-function createDetail(): RuntimeWorklineDetailResponse {
-  return {
-    summary: createSummary(),
-    devices: [createDevice()],
+    summary,
+    workline_readiness: 'READY',
+    station_lease: 'IDLE',
+    single_layer_rack_snapshot: 'ACTIVE',
+    rack_operation_wait: 'NONE',
+    resource_evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+    resource_evidence_items: [],
+    resource_evidence_total_count: 0,
+    resource_evidence_truncated: false,
+    devices: [],
     active_sessions: [],
     recent_failed_traces: [],
     recent_completed_traces: []
   }
 }
 
-const manifest: RuntimeScenePluginManifestSummary = {
-  plugin_key: 'rough_sorter',
-  contract_version: 'v1',
-  required_device_roles: [
-    { role: 'scanner', min_count: 1 },
-    { role: 'arm', min_count: 1 }
-  ],
-  event_source_roles: { SCAN_DONE: ['scanner'] },
-  command_target_roles: { MOVE_ARM: ['arm'] },
-  supported_events: ['SCAN_DONE'],
-  supported_commands: ['MOVE_ARM']
+function mountOverview() {
+  const summary = createSummary()
+  return shallowMount(WorklineLiveOverview, {
+    props: {
+      worklineSummary: summary,
+      worklineDetail: createDetail(summary),
+      devices: [],
+      activeSessions: [],
+      recentFailedTraces: [],
+      recentCompletedTraces: []
+    },
+    global: {
+      stubs: {
+        ElCard: {
+          template: '<div><slot name="header" /><slot /></div>'
+        }
+      }
+    }
+  })
 }
 
 describe('WorklineLiveOverview', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mocks.worklinePluginManifest.mockReturnValue({ send: vi.fn().mockResolvedValue(manifest) })
+    mocks.manifestRef.value = null
+    mocks.buildRuntimeSceneModel.mockReturnValue({
+      worklineId: 45,
+      worklineName: '粗分线',
+      worklineCode: 'WL-45',
+      readiness: 'READY',
+      readinessLabel: '待机 / 可接收生产事件',
+      runtimeStatusLabel: '现场 START 后待机 / 可接收',
+      boundaries: [],
+      deviceNodes: [],
+      resourceEvidence: [],
+      resourceEvidenceTotalCount: 0,
+      resourceEvidenceTruncated: false,
+      semanticFallback: false,
+      semanticFallbackMessage: null
+    })
+    mocks.errorRef.value = null
   })
 
-  it('loads plugin manifest and passes a scene model to RuntimeSceneMap', async () => {
-    const detail = createDetail()
-    const wrapper = shallowMount(WorklineLiveOverview, {
+  it('handles manifest load failures started by the background watcher', () => {
+    const catchSpy = vi.fn(() => Promise.resolve(null))
+    mocks.loadManifest.mockReturnValueOnce({ catch: catchSpy })
+
+    mountOverview()
+
+    expect(mocks.loadManifest).toHaveBeenCalledWith('rough_sorter', null)
+    expect(catchSpy).toHaveBeenCalled()
+  })
+
+  it('does not pass a stale manifest from a previous plugin into the scene model', () => {
+    mocks.manifestRef.value = { plugin_key: 'other_plugin', contract_version: 'v1' }
+    mocks.loadManifest.mockReturnValueOnce({ catch: vi.fn() })
+
+    mountOverview()
+
+    expect(mocks.buildRuntimeSceneModel).toHaveBeenCalledWith(
+      expect.objectContaining({
+        manifest: null
+      })
+    )
+  })
+
+  it('fails closed instead of using a manifest with a mismatched contract version', () => {
+    const summary = createSummary({ contract_version: 'v2' })
+    mocks.manifestRef.value = { plugin_key: 'rough_sorter', contract_version: 'v1' }
+    mocks.loadManifest.mockReturnValueOnce({ catch: vi.fn() })
+
+    shallowMount(WorklineLiveOverview, {
       props: {
-        worklineSummary: detail.summary,
-        worklineDetail: detail,
-        devices: detail.devices,
-        activeSessions: detail.active_sessions,
-        recentFailedTraces: detail.recent_failed_traces,
-        recentCompletedTraces: detail.recent_completed_traces,
-        selectedDeviceId: 101
+        worklineSummary: summary,
+        worklineDetail: createDetail(summary),
+        devices: [],
+        activeSessions: [],
+        recentFailedTraces: [],
+        recentCompletedTraces: []
       },
       global: {
         stubs: {
-          DecisionStrip: true,
-          SessionBoard: true,
-          'el-card': {
-            template: '<section><slot name="header" /><slot /></section>'
+          ElCard: {
+            template: '<div><slot name="header" /><slot /></div>'
           }
         }
       }
     })
 
-    await flushPromises()
+    expect(mocks.loadManifest).toHaveBeenCalledWith('rough_sorter', 'v2')
+    expect(mocks.buildRuntimeSceneModel).toHaveBeenCalledWith(
+      expect.objectContaining({
+        manifest: null
+      })
+    )
+  })
 
-    expect(mocks.worklinePluginManifest).toHaveBeenCalledWith('rough_sorter')
-    const sceneMap = wrapper.findComponent({ name: 'RuntimeSceneMap' })
-    expect(sceneMap.exists()).toBe(true)
-    const model = sceneMap.props('model')
-    expect(model.lanes.map((lane: { label: string }) => lane.label)).toContain('arm')
-    expect(model.gaps).toEqual([
-      {
-        id: 'gap:arm',
-        role: 'arm',
-        label: 'arm',
-        requiredCount: 1,
-        actualCount: 0
+  it('passes only the matching manifest and forwards manifest failure to scene model fallback', () => {
+    const matchingManifest = { plugin_key: 'rough_sorter', contract_version: 'v1' }
+    const summary = createSummary({ contract_version: 'v1' })
+    mocks.manifestRef.value = matchingManifest
+    mocks.errorRef.value = new Error('manifest failed')
+    mocks.loadManifest.mockReturnValueOnce({ catch: vi.fn() })
+
+    shallowMount(WorklineLiveOverview, {
+      props: {
+        worklineSummary: summary,
+        worklineDetail: createDetail(summary),
+        devices: [],
+        activeSessions: [],
+        recentFailedTraces: [],
+        recentCompletedTraces: []
+      },
+      global: {
+        stubs: {
+          ElCard: {
+            template: '<div><slot name="header" /><slot /></div>'
+          }
+        }
       }
-    ])
+    })
+
+    expect(mocks.buildRuntimeSceneModel).toHaveBeenCalledWith(
+      expect.objectContaining({
+        manifest: matchingManifest,
+        manifestLoadFailed: true
+      })
+    )
   })
 })

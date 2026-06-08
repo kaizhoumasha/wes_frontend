@@ -1,166 +1,221 @@
 <template>
-  <div class="runtime-scene-map">
-    <div
-      v-if="model.verdict.manifestWarning"
-      class="runtime-scene-map__warning"
-    >
-      {{ model.verdict.manifestWarning }}
-    </div>
-
-    <div
-      v-if="model.gaps.length"
-      class="runtime-scene-map__gaps"
-    >
-      <span
-        v-for="gap in model.gaps"
-        :key="gap.id"
-        class="runtime-scene-map__gap"
+  <div
+    class="runtime-scene-map"
+    data-test="runtime-scene-map"
+  >
+    <div class="runtime-scene-map__header">
+      <div>
+        <div class="runtime-scene-map__title">{{ model.worklineName }}</div>
+        <div
+          class="runtime-scene-map__meta"
+          data-test="runtime-scene-readiness"
+        >
+          {{ model.worklineCode }} · {{ model.readinessLabel }} · {{ model.runtimeStatusLabel }}
+        </div>
+      </div>
+      <div
+        v-if="model.resourceEvidenceTruncated"
+        class="runtime-scene-map__count"
+        data-test="runtime-scene-truncated"
       >
-        缺少 {{ gap.label }} {{ gap.actualCount }}/{{ gap.requiredCount }}
-      </span>
+        仅展示前 {{ model.resourceEvidence.length }} 条证据 / 共
+        {{ model.resourceEvidenceTotalCount }} 条
+      </div>
     </div>
 
     <div
-      v-if="model.overlays.length"
-      class="runtime-scene-map__overlays"
+      v-if="model.semanticFallback"
+      class="runtime-scene-map__fallback"
+      data-test="runtime-scene-fallback"
     >
-      <span
-        v-for="overlay in model.overlays"
-        :key="overlay.id"
-        class="runtime-scene-map__overlay"
-        :class="`is-${overlay.tone}`"
-      >
-        {{ overlay.label }}
-        <template v-if="overlay.deviceId">· #{{ overlay.deviceId }}</template>
-      </span>
+      {{ model.semanticFallbackMessage }}
     </div>
 
     <div
-      v-if="model.flows.length"
-      class="runtime-scene-map__flows"
-    >
-      <span
-        v-for="flow in readableFlows"
-        :key="flow.id"
-        class="runtime-scene-map__flow"
-      >
-        {{ flow.from }} → {{ flow.to }}
-      </span>
-    </div>
-
-    <div
-      v-if="model.lanes.length"
-      class="runtime-scene-map__canvas"
+      v-if="model.boundaries.length"
+      class="runtime-scene-map__boundaries"
     >
       <section
-        v-for="lane in lanesWithNodes"
-        :key="lane.id"
-        class="runtime-scene-map__lane"
-        :class="{ 'is-gap': lane.nodes.length === 0 }"
+        v-for="boundary in model.boundaries"
+        :key="boundary.key"
+        class="runtime-scene-map__boundary"
+        data-test="runtime-scene-boundary"
       >
-        <div class="runtime-scene-map__lane-header">
-          <div class="runtime-scene-map__lane-title">{{ lane.label }}</div>
-          <div class="runtime-scene-map__lane-meta">{{ lane.nodes.length }} 设备</div>
-        </div>
-
-        <div class="runtime-scene-map__nodes">
-          <button
-            v-for="node in lane.nodes"
-            :key="node.id"
-            type="button"
-            class="runtime-scene-map__node"
-            :class="[
-              `is-${node.state}`,
-              {
-                'is-selected': node.isSelected,
-                'is-current': node.isCurrent,
-                'is-maintenance': node.maintenanceMode
-              }
-            ]"
-            @click="emit('select', node.deviceId)"
+        <div class="runtime-scene-map__boundary-top">
+          <span
+            class="runtime-scene-map__role"
+            data-test="runtime-scene-station-role"
           >
-            <div class="runtime-scene-map__node-top">
-              <RuntimeStatusBadge
-                :status="node.status"
-                size="small"
-              />
-              <span class="runtime-scene-map__role">#{{ node.roleIndex }}</span>
-            </div>
-            <div class="runtime-scene-map__name">{{ node.deviceName }}</div>
-            <div class="runtime-scene-map__code">{{ node.deviceCode }}</div>
-            <div
-              v-if="node.errorCode"
-              class="runtime-scene-map__error"
-            >
-              ERROR: {{ node.errorCode }}
-            </div>
-            <div
-              v-if="node.badges.length"
-              class="runtime-scene-map__badges"
-            >
-              <span
-                v-for="badge in node.badges"
-                :key="`${node.id}:${badge.kind}`"
-                class="runtime-scene-map__badge"
-                :class="`is-${badge.tone}`"
-              >
-                {{ badge.label }}
-              </span>
-            </div>
-          </button>
+            {{ boundary.stationRole }}
+          </span>
+          <span class="runtime-scene-map__position">{{ boundary.positionCode }}</span>
+        </div>
+        <div class="runtime-scene-map__station">{{ boundary.stationCode }}</div>
+        <div class="runtime-scene-map__boundary-grid">
+          <span data-test="runtime-scene-station-lease">{{ boundary.stationLeaseLabel }}</span>
+          <span data-test="runtime-scene-rack-snapshot">{{ boundary.rackSnapshotLabel }}</span>
+          <span data-test="runtime-scene-rack-operation">
+            {{ boundary.rackOperationWaitLabel }}
+          </span>
+          <span data-test="runtime-scene-evidence-kind">
+            {{ boundary.resourceEvidenceKindLabel }}
+          </span>
+        </div>
+        <div class="runtime-scene-map__boundary-foot">
+          {{ boundary.rackKind }} · {{ boundary.evidenceCount }} 条结构化 evidence
         </div>
       </section>
+    </div>
+
+    <div class="runtime-scene-map__lane">
+      <button
+        v-for="device in model.deviceNodes"
+        :key="device.id"
+        type="button"
+        class="runtime-scene-map__device"
+        :class="{
+          'is-selected': selectedDeviceId === device.id,
+          'is-blocking': blockingDeviceId === device.id,
+          'has-runtime-hold': hasRuntimeHold(device),
+          'has-parked-outbox': device.blockedOutboxCount > 0
+        }"
+        data-test="runtime-scene-device"
+        @click="emit('selectDevice', device.id)"
+      >
+        <div class="runtime-scene-map__device-top">
+          <span class="runtime-scene-map__device-role">
+            {{ device.deviceRole }} #{{ device.roleIndex }}
+          </span>
+          <span
+            v-if="device.maintenanceMode"
+            class="runtime-scene-map__device-maintenance"
+          >
+            维护
+          </span>
+        </div>
+        <div class="runtime-scene-map__device-name">{{ device.deviceName }}</div>
+        <div class="runtime-scene-map__device-code">{{ device.deviceCode }}</div>
+        <div class="runtime-scene-map__device-status">{{ device.status }}</div>
+        <div
+          class="runtime-scene-map__device-signal"
+          :class="signalClass(device)"
+          data-test="runtime-scene-device-signal"
+        >
+          {{ signalText(device) }}
+        </div>
+        <div
+          v-if="device.openCommandCount > 0"
+          class="runtime-scene-map__device-badge"
+          data-test="runtime-scene-device-open-command"
+        >
+          {{ device.openCommandCount }} 未完成命令
+        </div>
+        <div
+          v-if="hasRuntimeHold(device)"
+          class="runtime-scene-map__device-badge is-danger"
+          data-test="runtime-scene-device-runtime-hold"
+        >
+          Runtime Hold {{ device.runtimeHoldCount }}
+        </div>
+        <div
+          v-if="device.blockedOutboxCount > 0"
+          class="runtime-scene-map__device-badge is-warning"
+          data-test="runtime-scene-device-parked-outbox"
+        >
+          {{ device.blockedOutboxCount }} 已停靠
+        </div>
+        <div
+          v-if="blockingDeviceId === device.id"
+          class="runtime-scene-map__device-badge is-danger"
+        >
+          BLOCKED
+        </div>
+      </button>
+    </div>
+
+    <div
+      v-if="model.resourceEvidence.length"
+      class="runtime-scene-map__evidence"
+    >
+      <div
+        v-for="item in model.resourceEvidence"
+        :key="getRuntimeSceneEvidenceKey(item)"
+        class="runtime-scene-map__evidence-item"
+        data-test="runtime-scene-evidence-item"
+      >
+        <div class="runtime-scene-map__evidence-main">
+          <span class="runtime-scene-map__resource-kind">{{ item.resourceKindLabel }}</span>
+          <span class="runtime-scene-map__resource-code">{{ item.resourceCode }}</span>
+        </div>
+        <div class="runtime-scene-map__evidence-meta">
+          {{ item.evidenceKindLabel }}
+          <template v-if="item.positionCode">· {{ item.positionCode }}</template>
+          <template v-if="item.sourceTraceId">· {{ item.sourceTraceId }}</template>
+        </div>
+      </div>
     </div>
 
     <div
       v-else
       class="runtime-scene-map__empty"
+      data-test="runtime-scene-empty-evidence"
     >
-      暂无设备现场数据
+      {{
+        model.semanticFallback
+          ? '暂无结构化资源证据，当前仅展示通用 evidence 兜底。'
+          : '暂无结构化资源证据'
+      }}
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
-import type {
-  RuntimeSceneFlow,
-  RuntimeSceneLane,
-  RuntimeSceneModel,
-  RuntimeSceneNode
-} from '@/types/runtime'
+import {
+  getRuntimeSceneEvidenceKey,
+  type RuntimeSceneDeviceNode,
+  type RuntimeSceneModel
+} from '@/utils/runtime-scene'
 
 const props = defineProps<{
   model: RuntimeSceneModel
+  selectedDeviceId?: number | null
+  sessionCountsByDevice?: Map<number, number> | Record<number, number>
+  blockingDeviceId?: number | null
 }>()
 
 const emit = defineEmits<{
-  select: [deviceId: number]
+  selectDevice: [deviceId: number]
 }>()
 
-const lanesWithNodes = computed(() =>
-  props.model.lanes.map(lane => ({
-    ...lane,
-    nodes: nodesForLane(lane)
-  }))
-)
-
-const readableFlows = computed(() =>
-  props.model.flows.map(flow => ({
-    id: flow.id,
-    from: flowNodeLabel(flow, 'fromNodeId'),
-    to: flowNodeLabel(flow, 'toNodeId')
-  }))
-)
-
-function nodesForLane(lane: RuntimeSceneLane): RuntimeSceneNode[] {
-  return props.model.nodes.filter(node => node.laneId === lane.id)
+function getSessionCount(deviceId: number): number {
+  const map = props.sessionCountsByDevice
+  if (!map) return 0
+  if (map instanceof Map) return map.get(deviceId) ?? 0
+  return map[deviceId] ?? 0
 }
 
-function flowNodeLabel(flow: RuntimeSceneFlow, key: 'fromNodeId' | 'toNodeId'): string {
-  const node = props.model.nodes.find(item => item.id === flow[key])
-  return node?.deviceCode ?? flow[key].replace('device:', '#')
+function hasRuntimeHold(device: RuntimeSceneDeviceNode): boolean {
+  return device.runtimeHoldCount > 0
+}
+
+function signalText(device: RuntimeSceneDeviceNode): string {
+  if (device.errorCode) return `ERROR: ${device.errorCode}`
+  if (hasRuntimeHold(device)) return '异常待处置'
+  if (device.blockedOutboxCount > 0) return '等待设备空闲'
+  const sessionCount = getSessionCount(device.id)
+  if (sessionCount > 0) return `${sessionCount}条等待`
+  if (device.currentCommandId) return '执行中'
+  return '空闲'
+}
+
+function signalClass(device: RuntimeSceneDeviceNode): string {
+  if (device.errorCode) return 'is-danger'
+  if (hasRuntimeHold(device)) return 'is-danger'
+  if (device.blockedOutboxCount > 0) return 'is-warning'
+  const sessionCount = getSessionCount(device.id)
+  if (sessionCount > 0) return 'is-warning'
+  if (device.currentCommandId) return 'is-primary'
+  return 'is-idle'
 }
 </script>
 
@@ -168,257 +223,267 @@ function flowNodeLabel(flow: RuntimeSceneFlow, key: 'fromNodeId' | 'toNodeId'): 
 .runtime-scene-map {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  min-width: 0;
 }
 
-.runtime-scene-map__warning {
-  padding: 10px 12px;
-  border: 1px solid rgb(245 158 11 / 0.28);
-  border-radius: 8px;
-  background: rgb(245 158 11 / 0.08);
-  color: #fbbf24;
-  font-size: 13px;
-}
-
-.runtime-scene-map__gaps,
-.runtime-scene-map__overlays,
-.runtime-scene-map__flows {
+.runtime-scene-map__header {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
 }
 
-.runtime-scene-map__gap {
-  padding: 6px 10px;
-  border: 1px solid rgb(239 68 68 / 0.28);
-  border-radius: 999px;
-  background: rgb(239 68 68 / 0.08);
-  color: #fecaca;
+.runtime-scene-map__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--runtime-text);
+}
+
+.runtime-scene-map__meta,
+.runtime-scene-map__boundary-foot,
+.runtime-scene-map__evidence-meta {
+  margin-top: 4px;
   font-size: 12px;
-  line-height: 1.2;
+  color: var(--runtime-text-muted);
 }
 
-.runtime-scene-map__overlay,
-.runtime-scene-map__flow {
-  max-width: 100%;
-  overflow: hidden;
-  padding: 6px 10px;
-  border-radius: 999px;
+.runtime-scene-map__count {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgb(245, 158, 11, 0.12);
+  color: rgb(146, 64, 14);
   font-size: 12px;
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-weight: 600;
 }
 
-.runtime-scene-map__overlay.is-info {
-  border: 1px solid rgb(148 163 184 / 0.22);
-  background: rgb(148 163 184 / 0.1);
-  color: #cbd5e1;
+.runtime-scene-map__fallback {
+  padding: 10px 12px;
+  border: 1px solid rgb(245, 158, 11, 0.32);
+  border-radius: 8px;
+  background: rgb(255, 251, 235);
+  color: rgb(146, 64, 14);
+  font-size: 12px;
+  font-weight: 600;
 }
 
-.runtime-scene-map__overlay.is-primary {
-  border: 1px solid rgb(59 130 246 / 0.28);
-  background: rgb(59 130 246 / 0.1);
-  color: #bfdbfe;
-}
-
-.runtime-scene-map__overlay.is-warning {
-  border: 1px solid rgb(245 158 11 / 0.28);
-  background: rgb(245 158 11 / 0.1);
-  color: #fde68a;
-}
-
-.runtime-scene-map__overlay.is-danger {
-  border: 1px solid rgb(239 68 68 / 0.28);
-  background: rgb(239 68 68 / 0.1);
-  color: #fecaca;
-}
-
-.runtime-scene-map__flow {
-  border: 1px solid rgb(59 130 246 / 0.2);
-  background: rgb(59 130 246 / 0.08);
-  color: #bfdbfe;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-}
-
-.runtime-scene-map__canvas {
+.runtime-scene-map__boundaries {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 12px;
 }
 
-.runtime-scene-map__lane {
+.runtime-scene-map__boundary {
   min-width: 0;
   padding: 12px;
-  border: 1px solid rgb(148 163 184 / 0.16);
+  border: 1px solid rgb(15, 23, 42, 0.1);
   border-radius: 8px;
-  background: rgb(15 23 42 / 0.38);
+  background: rgb(255, 255, 255, 0.72);
 }
 
-.runtime-scene-map__lane.is-gap {
-  border-style: dashed;
-  opacity: 0.72;
-}
-
-.runtime-scene-map__lane-header {
+.runtime-scene-map__boundary-top,
+.runtime-scene-map__evidence-main {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 10px;
 }
 
-.runtime-scene-map__lane-title {
-  min-width: 0;
-  overflow: hidden;
-  color: #e2e8f0;
-  font-size: 13px;
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.runtime-scene-map__lane-meta {
-  flex: 0 0 auto;
-  color: #94a3b8;
+.runtime-scene-map__role,
+.runtime-scene-map__resource-kind {
   font-size: 12px;
+  font-weight: 700;
+  color: rgb(15, 23, 42);
 }
 
-.runtime-scene-map__nodes {
-  display: grid;
-  gap: 10px;
-}
-
-.runtime-scene-map__node {
-  display: grid;
-  gap: 7px;
+.runtime-scene-map__position,
+.runtime-scene-map__resource-code {
   min-width: 0;
-  min-height: 132px;
-  padding: 12px;
-  border: 1px solid rgb(148 163 184 / 0.18);
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  color: rgb(71, 85, 105);
+}
+
+.runtime-scene-map__station {
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgb(30, 41, 59);
+}
+
+.runtime-scene-map__boundary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.runtime-scene-map__boundary-grid span {
+  min-width: 0;
+  padding: 5px 6px;
+  border-radius: 6px;
+  background: rgb(248, 250, 252);
+  color: rgb(51, 65, 85);
+  font-size: 11px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.runtime-scene-map__lane {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+  gap: 10px;
+  padding-bottom: 4px;
+}
+
+.runtime-scene-map__device {
+  min-width: 0;
+  min-height: 96px;
+  padding: 10px;
+  border: 1px solid rgb(59, 130, 246, 0.16);
   border-radius: 8px;
-  background: #1e293b;
-  color: #e2e8f0;
+  background: rgb(248, 250, 252);
   text-align: left;
   cursor: pointer;
-  transition:
-    border-color 150ms ease-out,
-    box-shadow 150ms ease-out,
-    transform 150ms ease-out;
 }
 
-.runtime-scene-map__node:hover {
-  transform: translateY(-1px);
-  border-color: rgb(59 130 246 / 0.36);
+.runtime-scene-map__device:hover {
+  border-color: rgb(59, 130, 246, 0.36);
 }
 
-.runtime-scene-map__node.is-selected {
-  box-shadow: inset 0 0 0 1px rgb(59 130 246 / 0.44);
+.runtime-scene-map__device.is-selected {
+  border-color: rgb(59, 130, 246, 0.62);
+  background: rgb(239, 246, 255);
+  box-shadow: 0 0 0 2px rgb(59, 130, 246, 0.12);
 }
 
-.runtime-scene-map__node.is-current {
-  border-color: rgb(59 130 246 / 0.52);
+.runtime-scene-map__device.is-blocking {
+  border-color: rgb(239, 68, 68, 0.52);
 }
 
-.runtime-scene-map__node.is-error,
-.runtime-scene-map__node.is-hold {
-  border-color: rgb(239 68 68 / 0.48);
+.runtime-scene-map__device.has-runtime-hold {
+  border-color: rgb(239, 68, 68, 0.52);
 }
 
-.runtime-scene-map__node.is-waiting {
-  border-color: rgb(245 158 11 / 0.42);
+.runtime-scene-map__device.has-parked-outbox {
+  border-color: rgb(245, 158, 11, 0.48);
 }
 
-.runtime-scene-map__node.is-running {
-  border-color: rgb(59 130 246 / 0.38);
-}
-
-.runtime-scene-map__node.is-maintenance {
-  opacity: 0.8;
-}
-
-.runtime-scene-map__node-top,
-.runtime-scene-map__badges {
+.runtime-scene-map__device-top {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-.runtime-scene-map__role {
-  color: #94a3b8;
-  font-size: 12px;
-}
-
-.runtime-scene-map__name,
-.runtime-scene-map__code,
-.runtime-scene-map__error {
+.runtime-scene-map__device-role,
+.runtime-scene-map__device-status {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgb(37, 99, 235);
 }
 
-.runtime-scene-map__name {
-  color: #f8fafc;
+.runtime-scene-map__device-maintenance {
+  flex: 0 0 auto;
+  padding: 2px 5px;
+  border-radius: 6px;
+  background: rgb(245, 158, 11, 0.12);
+  color: rgb(146, 64, 14);
+  font-size: 11px;
   font-weight: 700;
 }
 
-.runtime-scene-map__code {
-  color: #94a3b8;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+.runtime-scene-map__device-name {
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgb(15, 23, 42);
+}
+
+.runtime-scene-map__device-code {
+  margin-top: 4px;
+  overflow-wrap: anywhere;
   font-size: 12px;
+  color: rgb(71, 85, 105);
 }
 
-.runtime-scene-map__error {
-  color: #fca5a5;
-  font-size: 12px;
+.runtime-scene-map__device-status {
+  margin-top: 10px;
+  color: rgb(71, 85, 105);
 }
 
-.runtime-scene-map__badge {
-  max-width: 100%;
-  overflow: hidden;
-  padding: 4px 7px;
-  border-radius: 999px;
-  font-size: 12px;
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.runtime-scene-map__device-signal {
+  display: inline-flex;
+  margin-top: 8px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: rgb(226, 232, 240, 0.75);
+  color: rgb(51, 65, 85);
+  font-size: 11px;
+  font-weight: 700;
 }
 
-.runtime-scene-map__badge.is-info {
-  background: rgb(148 163 184 / 0.14);
-  color: #cbd5e1;
+.runtime-scene-map__device-signal.is-danger {
+  background: rgb(239, 68, 68, 0.12);
+  color: rgb(153, 27, 27);
 }
 
-.runtime-scene-map__badge.is-primary {
-  background: rgb(59 130 246 / 0.14);
-  color: #bfdbfe;
+.runtime-scene-map__device-signal.is-warning {
+  background: rgb(245, 158, 11, 0.12);
+  color: rgb(146, 64, 14);
 }
 
-.runtime-scene-map__badge.is-warning {
-  background: rgb(245 158 11 / 0.14);
-  color: #fde68a;
+.runtime-scene-map__device-signal.is-primary {
+  background: rgb(59, 130, 246, 0.12);
+  color: rgb(29, 78, 216);
 }
 
-.runtime-scene-map__badge.is-danger {
-  background: rgb(239 68 68 / 0.14);
-  color: #fecaca;
+.runtime-scene-map__device-badge {
+  display: inline-flex;
+  margin-top: 8px;
+  margin-right: 6px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: rgb(245, 158, 11, 0.12);
+  color: rgb(146, 64, 14);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.runtime-scene-map__device-badge.is-danger {
+  background: rgb(239, 68, 68, 0.12);
+  color: rgb(153, 27, 27);
+}
+
+.runtime-scene-map__device-badge.is-warning {
+  background: rgb(245, 158, 11, 0.12);
+  color: rgb(146, 64, 14);
+}
+
+.runtime-scene-map__evidence {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+.runtime-scene-map__evidence-item {
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid rgb(15, 23, 42, 0.08);
+  border-radius: 8px;
+  background: rgb(255, 255, 255, 0.78);
 }
 
 .runtime-scene-map__empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 180px;
-  border: 1px dashed rgb(148 163 184 / 0.2);
+  padding: 18px;
+  border: 1px dashed rgb(148, 163, 184, 0.5);
   border-radius: 8px;
-  color: #94a3b8;
-}
-
-@media (width <= 720px) {
-  .runtime-scene-map__canvas {
-    grid-template-columns: 1fr;
-  }
+  color: var(--runtime-text-muted);
+  text-align: center;
 }
 </style>

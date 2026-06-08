@@ -1,89 +1,129 @@
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { runtimeApiMethods } from '@/api/modules/runtime'
-import type { RuntimeScenePluginManifestSummary } from '@/types/runtime'
+import type { WorkLinePluginManifestSummary } from '@/types/runtime'
 
-const manifestCache = new Map<string, RuntimeScenePluginManifestSummary>()
-const inFlightRequests = new Map<string, Promise<RuntimeScenePluginManifestSummary>>()
-let cacheGeneration = 0
+const manifestCache = new Map<string, WorkLinePluginManifestSummary>()
+const manifestInflight = new Map<string, Promise<WorkLinePluginManifestSummary>>()
 
-function normalizePluginKey(pluginKey?: string | null): string | null {
-  const key = pluginKey?.trim()
-  return key ? key : null
+export function clearRuntimeSceneManifestCache() {
+  manifestCache.clear()
+  manifestInflight.clear()
 }
 
-async function fetchManifest(pluginKey: string): Promise<RuntimeScenePluginManifestSummary> {
-  const cached = manifestCache.get(pluginKey)
-  if (cached) return cached
+function normalizePluginKey(pluginKey?: string | null): string | null {
+  const normalized = pluginKey?.trim()
+  return normalized || null
+}
 
-  const existingRequest = inFlightRequests.get(pluginKey)
-  if (existingRequest) return existingRequest
+function normalizeContractVersion(contractVersion?: string | null): string | null {
+  const normalized = contractVersion?.trim()
+  return normalized || null
+}
 
-  const generation = cacheGeneration
-  const activeRequest = runtimeApiMethods
+function matchesContractVersion(
+  manifest: WorkLinePluginManifestSummary,
+  expectedContractVersion?: string | null
+): boolean {
+  const normalizedContractVersion = normalizeContractVersion(expectedContractVersion)
+  return !normalizedContractVersion || manifest.contract_version === normalizedContractVersion
+}
+
+function matchesPluginKey(manifest: WorkLinePluginManifestSummary, pluginKey: string): boolean {
+  return normalizePluginKey(manifest.plugin_key) === pluginKey
+}
+
+function getManifestCacheKey(pluginKey: string, expectedContractVersion?: string | null): string {
+  return `${pluginKey}:${normalizeContractVersion(expectedContractVersion) ?? ''}`
+}
+
+function getCachedManifest(
+  pluginKey: string,
+  expectedContractVersion?: string | null
+): WorkLinePluginManifestSummary | null {
+  const cached = manifestCache.get(getManifestCacheKey(pluginKey, expectedContractVersion))
+  return cached && matchesContractVersion(cached, expectedContractVersion) ? cached : null
+}
+
+function cacheManifest(
+  pluginKey: string,
+  manifest: WorkLinePluginManifestSummary,
+  expectedContractVersion?: string | null
+) {
+  manifestCache.set(getManifestCacheKey(pluginKey, manifest.contract_version), manifest)
+  if (!normalizeContractVersion(expectedContractVersion)) {
+    manifestCache.set(getManifestCacheKey(pluginKey), manifest)
+  }
+}
+
+function fetchManifest(
+  pluginKey: string,
+  expectedContractVersion?: string | null
+): Promise<WorkLinePluginManifestSummary> {
+  const cached = getCachedManifest(pluginKey, expectedContractVersion)
+  if (cached) {
+    return Promise.resolve(cached)
+  }
+
+  const inflightKey = getManifestCacheKey(pluginKey, expectedContractVersion)
+  const pending = manifestInflight.get(inflightKey)
+  if (pending) return pending
+
+  const request = runtimeApiMethods
     .worklinePluginManifest(pluginKey)
     .send()
     .then(manifest => {
-      if (generation === cacheGeneration) {
-        manifestCache.set(pluginKey, manifest)
+      if (!matchesPluginKey(manifest, pluginKey)) {
+        throw new Error(`Manifest plugin key mismatch: expected ${pluginKey}, got ${manifest.plugin_key}`)
       }
+      cacheManifest(pluginKey, manifest, expectedContractVersion)
       return manifest
     })
-
-  inFlightRequests.set(pluginKey, activeRequest)
-  const clearActiveRequest = () => {
-    if (inFlightRequests.get(pluginKey) === activeRequest) {
-      inFlightRequests.delete(pluginKey)
-    }
-  }
-  activeRequest.then(clearActiveRequest, clearActiveRequest)
-
-  return activeRequest
-}
-
-export function clearRuntimeSceneManifestCache() {
-  cacheGeneration += 1
-  manifestCache.clear()
-  inFlightRequests.clear()
+    .finally(() => {
+      manifestInflight.delete(inflightKey)
+    })
+  manifestInflight.set(inflightKey, request)
+  return request
 }
 
 export function useRuntimeSceneManifest() {
-  const manifest = ref<RuntimeScenePluginManifestSummary | null>(null)
+  const manifest = ref<WorkLinePluginManifestSummary | null>(null)
   const loading = ref(false)
   const error = ref<unknown>(null)
-  let requestToken = 0
+  let requestSeq = 0
 
-  async function load(pluginKey?: string | null) {
-    const key = normalizePluginKey(pluginKey)
-    requestToken += 1
-    const token = requestToken
+  async function loadManifest(pluginKey?: string | null, expectedContractVersion?: string | null) {
+    const normalizedPluginKey = normalizePluginKey(pluginKey)
+    const seq = ++requestSeq
+    error.value = null
 
-    if (!key) {
+    if (!normalizedPluginKey) {
       manifest.value = null
-      error.value = null
       loading.value = false
       return null
     }
 
-    if (manifest.value?.plugin_key !== key) {
-      manifest.value = null
+    const cached = getCachedManifest(normalizedPluginKey, expectedContractVersion)
+    if (cached) {
+      manifest.value = cached
+      loading.value = false
+      return cached
     }
-    loading.value = true
-    error.value = null
 
+    loading.value = true
     try {
-      const nextManifest = await fetchManifest(key)
-      if (token === requestToken) {
+      const nextManifest = await fetchManifest(normalizedPluginKey, expectedContractVersion)
+      if (seq === requestSeq) {
         manifest.value = nextManifest
       }
       return nextManifest
     } catch (e: unknown) {
-      if (token === requestToken) {
-        manifest.value = null
+      if (seq === requestSeq) {
         error.value = e
+        manifest.value = null
       }
-      return null
+      throw e
     } finally {
-      if (token === requestToken) {
+      if (seq === requestSeq) {
         loading.value = false
       }
     }
@@ -93,7 +133,6 @@ export function useRuntimeSceneManifest() {
     manifest,
     loading,
     error,
-    hasError: computed(() => error.value !== null),
-    load
+    loadManifest
   }
 }

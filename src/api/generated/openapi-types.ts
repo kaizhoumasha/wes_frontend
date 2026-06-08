@@ -2760,6 +2760,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workline/plugins/{plugin_key}/manifest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * [biz:workline:list] 获取单个作业线插件 manifest 摘要
+         * @description 从插件注册表导出单个作业线插件 manifest 摘要。
+         */
+        get: operations["workline_plugins_by_plugin_key_manifest_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workline/plugins/options": {
         parameters: {
             query?: never;
@@ -7134,6 +7154,8 @@ export interface components {
         ResponseSchemaModel_UserSimpleResponse_: ApiResponse<components["schemas"]["UserSimpleResponse"]>;
         /** ResponseSchemaModel[WorkLineConfigurationStatus] */
         ResponseSchemaModel_WorkLineConfigurationStatus_: ApiResponse<components["schemas"]["WorkLineConfigurationStatus"]>;
+        /** ResponseSchemaModel[WorkLinePluginManifestSummary] */
+        ResponseSchemaModel_WorkLinePluginManifestSummary_: ApiResponse<components["schemas"]["WorkLinePluginManifestSummary"]>;
         /** ResponseSchemaModel[WorkLineResponse] */
         ResponseSchemaModel_WorkLineResponse_: ApiResponse<components["schemas"]["WorkLineResponse"]>;
         /**
@@ -7497,6 +7519,55 @@ export interface components {
             /** Stats */
             stats: components["schemas"]["RuntimeStatCard"][];
         };
+        /**
+         * RuntimeRackOperationWait
+         * @enum {string}
+         */
+        RuntimeRackOperationWait: "WAITING_WMS" | "WMS_CALLBACK_RECEIVED" | "TIMEOUT" | "FAILED" | "NONE" | "UNKNOWN";
+        /** RuntimeResourceEvidenceItem */
+        RuntimeResourceEvidenceItem: {
+            /** Bin Code */
+            bin_code?: string | null;
+            /** Display Label */
+            display_label: string;
+            evidence_kind: components["schemas"]["RuntimeResourceEvidenceKind"];
+            /** Occurred At */
+            occurred_at?: string | null;
+            /** Part Sn */
+            part_sn?: string | null;
+            /** Pkg Code */
+            pkg_code?: string | null;
+            /** Position Code */
+            position_code?: string | null;
+            /** Rack Code */
+            rack_code?: string | null;
+            /** Resource Code */
+            resource_code: string;
+            resource_kind: components["schemas"]["RuntimeResourceKind"];
+            /** Slot Code */
+            slot_code?: string | null;
+            /** Source Session Id */
+            source_session_id?: number | null;
+            /** Source Trace Id */
+            source_trace_id?: string | null;
+            /** Station Code */
+            station_code?: string | null;
+        };
+        /**
+         * RuntimeResourceEvidenceKind
+         * @enum {string}
+         */
+        RuntimeResourceEvidenceKind: "WES_ACTIVE_SNAPSHOT" | "WMS_CALLBACK_EVIDENCE" | "TRACE_RESOURCE_EVIDENCE" | "GENERIC_EVIDENCE" | "UNKNOWN";
+        /**
+         * RuntimeResourceKind
+         * @enum {string}
+         */
+        RuntimeResourceKind: "RACK" | "BIN" | "PKG" | "SLOT" | "CELL" | "MAGAZINE" | "PART_SN" | "UNKNOWN";
+        /**
+         * RuntimeSingleLayerRackSnapshot
+         * @enum {string}
+         */
+        RuntimeSingleLayerRackSnapshot: "ACTIVE" | "MISSING" | "INVALID" | "NON_SINGLE_LAYER_EVIDENCE" | "UNKNOWN";
         /** RuntimeStatCard */
         RuntimeStatCard: {
             /** Key */
@@ -7511,6 +7582,11 @@ export interface components {
             /** Value */
             value: number;
         };
+        /**
+         * RuntimeStationLease
+         * @enum {string}
+         */
+        RuntimeStationLease: "IDLE" | "ACTIVE_RACK_BOUND" | "ACTIVE_DISPATCH_LEASE" | "ACTIVE_SESSION_BOUND" | "UNKNOWN";
         /** RuntimeTraceDeviceAction */
         RuntimeTraceDeviceAction: {
             /** Kind */
@@ -7689,11 +7765,33 @@ export interface components {
             active_sessions?: components["schemas"]["RuntimeTraceListItem"][];
             /** Devices */
             devices?: components["schemas"]["RuntimeWorklineDeviceItem"][];
+            /** @default NONE */
+            rack_operation_wait: components["schemas"]["RuntimeRackOperationWait"];
             /** Recent Completed Traces */
             recent_completed_traces?: components["schemas"]["RuntimeTraceListItem"][];
             /** Recent Failed Traces */
             recent_failed_traces?: components["schemas"]["RuntimeTraceListItem"][];
+            /** Resource Evidence Items */
+            resource_evidence_items?: components["schemas"]["RuntimeResourceEvidenceItem"][];
+            /** @default UNKNOWN */
+            resource_evidence_kind: components["schemas"]["RuntimeResourceEvidenceKind"];
+            /**
+             * Resource Evidence Total Count
+             * @default 0
+             */
+            resource_evidence_total_count: number;
+            /**
+             * Resource Evidence Truncated
+             * @default false
+             */
+            resource_evidence_truncated: boolean;
+            /** @default UNKNOWN */
+            single_layer_rack_snapshot: components["schemas"]["RuntimeSingleLayerRackSnapshot"];
+            /** @default UNKNOWN */
+            station_lease: components["schemas"]["RuntimeStationLease"];
             summary: components["schemas"]["RuntimeWorklineSummary"];
+            /** @default UNKNOWN */
+            workline_readiness: components["schemas"]["RuntimeWorklineReadiness"];
         };
         /** RuntimeWorklineDeviceItem */
         RuntimeWorklineDeviceItem: {
@@ -7755,6 +7853,11 @@ export interface components {
             /** Upstream Device Id */
             upstream_device_id?: number | null;
         };
+        /**
+         * RuntimeWorklineReadiness
+         * @enum {string}
+         */
+        RuntimeWorklineReadiness: "READY" | "NOT_READY" | "UNKNOWN";
         /** RuntimeWorklineSummary */
         RuntimeWorklineSummary: {
             /** Active Safety Incident Id */
@@ -9200,6 +9303,56 @@ export interface components {
             zone_name?: string | null;
         };
         /**
+         * WorkLinePluginManifestSummary
+         * @description 单插件 manifest 摘要。
+         */
+        WorkLinePluginManifestSummary: {
+            /**
+             * Command Target Roles
+             * @description 命令目标设备角色映射
+             */
+            command_target_roles?: {
+                [key: string]: string[];
+            };
+            /**
+             * Contract Version
+             * @description 插件契约版本
+             */
+            contract_version: string;
+            /**
+             * Event Source Roles
+             * @description 事件来源设备角色映射
+             */
+            event_source_roles?: {
+                [key: string]: string[];
+            };
+            /**
+             * Plugin Key
+             * @description 工作线执行插件标识
+             */
+            plugin_key: string;
+            /**
+             * Required Device Roles
+             * @description 必需设备角色
+             */
+            required_device_roles?: components["schemas"]["DeviceRoleRequirementOption"][];
+            /**
+             * Single Layer Boundaries
+             * @description 插件声明的货架承接边界
+             */
+            single_layer_boundaries?: components["schemas"]["WorkLineSingleLayerRackBoundarySummary"][];
+            /**
+             * Supported Commands
+             * @description 支持的命令
+             */
+            supported_commands?: string[];
+            /**
+             * Supported Events
+             * @description 支持的事件
+             */
+            supported_events?: string[];
+        };
+        /**
          * WorkLinePluginOption
          * @description 作业线插件下拉选项。
          */
@@ -9316,6 +9469,52 @@ export interface components {
          * @enum {string}
          */
         WorkLineRunMode: "AUTO" | "MANUAL" | "SIMULATION";
+        /**
+         * WorkLineSingleLayerRackBoundarySummary
+         * @description 插件声明的货架承接边界。
+         */
+        WorkLineSingleLayerRackBoundarySummary: {
+            /**
+             * Business Demand Type
+             * @description 驱动该边界的业务需求类型
+             */
+            business_demand_type: string;
+            /**
+             * Lease Scope
+             * @description WES 业务预占范围
+             */
+            lease_scope: string;
+            /**
+             * Position Code
+             * @description WMS/RCS 约定的逻辑位置编码
+             */
+            position_code: string;
+            /**
+             * Rack Kind
+             * @description 承接货架类型
+             */
+            rack_kind: string;
+            /**
+             * Snapshot Kind
+             * @description WES 需要读取的 active 快照类型
+             */
+            snapshot_kind: string;
+            /**
+             * Station Code
+             * @description 插件内 station/工作位逻辑编码
+             */
+            station_code: string;
+            /**
+             * Station Role
+             * @description 该边界在插件业务中的承接角色
+             */
+            station_role: string;
+            /**
+             * Wms Operation Type
+             * @description 由 WMS 转发的货架运输 operation 类型
+             */
+            wms_operation_type: string;
+        };
         /**
          * WorkLineStateTransitionRequest
          * @description 作业线启停请求。
@@ -14443,6 +14642,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_Union_CallbackEventAcceptedResponse__CallbackRejectedResponse__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_plugins_by_plugin_key_manifest_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plugin_key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_WorkLinePluginManifestSummary_"];
                 };
             };
             /** @description Validation Error */

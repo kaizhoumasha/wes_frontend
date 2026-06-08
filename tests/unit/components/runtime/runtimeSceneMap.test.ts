@@ -1,134 +1,263 @@
 import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import RuntimeSceneMap from '@/components/runtime/monitor/RuntimeSceneMap.vue'
-import type { RuntimeSceneModel } from '@/types/runtime'
+import type { RuntimeSceneModel } from '@/utils/runtime-scene'
 
-function createModel(): RuntimeSceneModel {
+function createSceneModel(): RuntimeSceneModel {
   return {
-    workline: {
-      id: 45,
-      line_code: 'WL-45',
-      line_name: '粗分线',
-      line_type: 'SORTING',
-      is_active: true,
-      device_count: 1,
-      active_session_count: 1,
-      waiting_session_count: 0,
-      failed_session_count: 0,
-      error_device_count: 0,
-      offline_device_count: 0,
-      maintenance_device_count: 0,
-      run_mode: 'AUTO'
-    },
-    verdict: {
-      label: 'READY',
-      manifestLoaded: false,
-      manifestWarning: '插件语义未加载，按设备角色原样展示'
-    },
-    lanes: [
+    worklineId: 45,
+    worklineName: '粗分线',
+    worklineCode: 'WL-45',
+    readiness: 'READY',
+    readinessLabel: '待机 / 可接收生产事件',
+    runtimeStatusLabel: '现场 START 后待机 / 可接收',
+    boundaries: [
       {
-        id: 'role:scanner',
-        label: '扫描段',
-        role: 'scanner',
-        order: 1,
-        kind: 'manifest'
+        key: 'SINGLE_LAYER_A',
+        stationRole: 'TARGET',
+        stationCode: 'TARGET_ARM',
+        positionCode: 'SINGLE_LAYER_A',
+        rackKind: 'SINGLE_LAYER',
+        snapshotKind: 'ACTIVE_BIN_RACK',
+        stationLease: 'ACTIVE_DISPATCH_LEASE',
+        stationLeaseLabel: 'Station lease：调度租约占用',
+        rackSnapshot: 'ACTIVE',
+        rackSnapshotLabel: '执行快照：当前执行货架',
+        rackOperationWait: 'WAITING_WMS',
+        rackOperationWaitLabel: 'Rack operation：等待 WMS 搬运到位',
+        resourceEvidenceKind: 'WMS_CALLBACK_EVIDENCE',
+        resourceEvidenceKindLabel: 'WMS 回调证据',
+        evidenceCount: 2
       }
     ],
-    nodes: [
+    deviceNodes: [
       {
-        id: 'device:101',
-        deviceId: 101,
-        laneId: 'role:scanner',
-        role: 'scanner',
+        id: 101,
+        deviceCode: 'ARM01',
+        deviceName: '机械臂 1',
+        deviceRole: 'ARM',
         roleIndex: 1,
-        deviceCode: 'DV-101',
-        deviceName: '扫描设备',
-        status: 'ONLINE',
-        state: 'waiting',
-        isSelected: true,
-        isCurrent: false,
+        status: 'IDLE',
         maintenanceMode: false,
-        badges: [
-          {
-            kind: 'active-session',
-            label: '1 活跃 Session',
-            tone: 'info',
-            count: 1
-          }
-        ]
+        currentCommandId: null,
+        openCommandCount: 0,
+        blockedOutboxCount: 0,
+        runtimeHoldCount: 0,
+        errorCode: null
       }
     ],
-    flows: [
+    resourceEvidence: [
       {
-        id: 'flow:101:102',
-        fromNodeId: 'device:101',
-        toNodeId: 'device:102',
-        source: 'fallback-order'
+        resourceKind: 'RACK',
+        resourceKindLabel: 'Rack',
+        resourceCode: 'RACK-001',
+        displayLabel: 'RACK RACK-001',
+        evidenceKind: 'WES_ACTIVE_SNAPSHOT',
+        evidenceKindLabel: 'WES active snapshot evidence',
+        positionCode: 'SINGLE_LAYER_A',
+        rackCode: 'RACK-001'
+      },
+      {
+        resourceKind: 'BIN',
+        resourceKindLabel: 'Bin',
+        resourceCode: 'BIN-001',
+        displayLabel: 'BIN BIN-001',
+        evidenceKind: 'WMS_CALLBACK_EVIDENCE',
+        evidenceKindLabel: 'WMS 回调证据',
+        positionCode: 'SINGLE_LAYER_A',
+        rackCode: 'RACK-001',
+        binCode: 'BIN-001',
+        sourceSessionId: 20,
+        sourceTraceId: 'trace-20'
       }
     ],
-    overlays: [
-      {
-        id: 'blocking-device:101',
-        kind: 'blocking-device',
-        deviceId: 101,
-        label: '阻塞点',
-        tone: 'danger'
-      }
-    ],
-    gaps: [
-      {
-        id: 'gap:arm',
-        role: 'arm',
-        label: '机械臂段',
-        requiredCount: 1,
-        actualCount: 0
-      }
-    ]
+    resourceEvidenceTotalCount: 3,
+    resourceEvidenceTruncated: true,
+    semanticFallback: false,
+    semanticFallbackMessage: null
   }
 }
 
 describe('RuntimeSceneMap', () => {
-  it('renders scene warnings, config gaps, nodes, and badges', async () => {
+  it('renders boundary state and item-level resource evidence', () => {
     const wrapper = mount(RuntimeSceneMap, {
       props: {
-        model: createModel()
-      },
-      global: {
-        stubs: {
-          RuntimeStatusBadge: true
-        }
+        model: createSceneModel()
       }
     })
 
-    expect(wrapper.text()).toContain('插件语义未加载')
-    expect(wrapper.text()).toContain('缺少 机械臂段 0/1')
-    expect(wrapper.text()).toContain('扫描设备')
-    expect(wrapper.text()).toContain('DV-101')
-    expect(wrapper.text()).toContain('1 活跃 Session')
-    expect(wrapper.text()).toContain('阻塞点')
-    expect(wrapper.text()).toContain('DV-101 → #102')
-
-    await wrapper.find('button').trigger('click')
-    expect(wrapper.emitted('select')).toEqual([[101]])
+    expect(wrapper.text()).toContain('TARGET_ARM')
+    expect(wrapper.text()).toContain('SINGLE_LAYER_A')
+    expect(wrapper.get('[data-test="runtime-scene-station-lease"]').text()).toContain(
+      'Station lease：调度租约占用'
+    )
+    expect(wrapper.get('[data-test="runtime-scene-rack-operation"]').text()).toContain(
+      '等待 WMS 搬运到位'
+    )
+    expect(wrapper.get('[data-test="runtime-scene-rack-snapshot"]').text()).toContain(
+      '执行快照：当前执行货架'
+    )
+    expect(wrapper.text()).toContain('RACK-001')
+    expect(wrapper.text()).toContain('BIN-001')
+    expect(wrapper.text()).toContain('仅展示前 2 条证据 / 共 3 条')
   })
 
-  it('renders manifest gap lanes even when there are no devices', () => {
-    const model = createModel()
-    model.nodes = []
-    model.flows = []
+  it('renders semantic fallback when plugin manifest or contract fields are unavailable', () => {
+    const model = {
+      ...createSceneModel(),
+      boundaries: [],
+      resourceEvidence: [],
+      resourceEvidenceTotalCount: 0,
+      resourceEvidenceTruncated: false,
+      semanticFallback: true,
+      semanticFallbackMessage: '插件边界 manifest 加载失败，当前仅展示通用 evidence。'
+    }
 
     const wrapper = mount(RuntimeSceneMap, {
-      props: { model },
-      global: {
-        stubs: {
-          RuntimeStatusBadge: true
-        }
+      props: {
+        model
       }
     })
 
-    expect(wrapper.find('.runtime-scene-map__canvas').exists()).toBe(true)
-    expect(wrapper.text()).toContain('扫描段')
-    expect(wrapper.text()).toContain('0 设备')
-    expect(wrapper.text()).not.toContain('暂无设备现场数据')
+    expect(wrapper.get('[data-test="runtime-scene-fallback"]').text()).toContain(
+      'manifest 加载失败'
+    )
+    expect(wrapper.get('[data-test="runtime-scene-empty-evidence"]').text()).toContain(
+      '通用 evidence'
+    )
+  })
+
+  it('uses neutral empty evidence copy when semantics are loaded', () => {
+    const model = {
+      ...createSceneModel(),
+      resourceEvidence: [],
+      resourceEvidenceTotalCount: 0,
+      resourceEvidenceTruncated: false
+    }
+
+    const wrapper = mount(RuntimeSceneMap, {
+      props: {
+        model
+      }
+    })
+
+    const empty = wrapper.get('[data-test="runtime-scene-empty-evidence"]')
+    expect(empty.text()).toBe('暂无结构化资源证据')
+    expect(empty.text()).not.toContain('通用 evidence')
+  })
+
+  it('marks the selected device and shows active session counts', () => {
+    const wrapper = mount(RuntimeSceneMap, {
+      props: {
+        model: createSceneModel(),
+        selectedDeviceId: 101,
+        sessionCountsByDevice: new Map([[101, 3]])
+      }
+    })
+
+    const device = wrapper.get('.runtime-scene-map__device')
+    expect(device.classes()).toContain('is-selected')
+    expect(wrapper.get('[data-test="runtime-scene-device-signal"]').text()).toContain('3条等待')
+  })
+
+  it('renders device risk signals from runtime counters', () => {
+    const model = createSceneModel()
+    model.deviceNodes = [
+      {
+        id: 101,
+        deviceCode: 'ARM01',
+        deviceName: '机械臂 1',
+        deviceRole: 'ARM',
+        roleIndex: 1,
+        status: 'ERROR',
+        maintenanceMode: true,
+        currentCommandId: 3001,
+        openCommandCount: 2,
+        blockedOutboxCount: 1,
+        runtimeHoldCount: 1,
+        errorCode: 'DEVICE_FAULT'
+      }
+    ]
+
+    const wrapper = mount(RuntimeSceneMap, {
+      props: {
+        model
+      }
+    })
+
+    const device = wrapper.get('[data-test="runtime-scene-device"]')
+    expect(device.classes()).toContain('has-runtime-hold')
+    expect(device.classes()).toContain('has-parked-outbox')
+    expect(wrapper.text()).toContain('维护')
+    expect(wrapper.get('[data-test="runtime-scene-device-signal"]').text()).toContain(
+      'ERROR: DEVICE_FAULT'
+    )
+    expect(wrapper.get('[data-test="runtime-scene-device-open-command"]').text()).toContain(
+      '2 未完成命令'
+    )
+    expect(wrapper.get('[data-test="runtime-scene-device-runtime-hold"]').text()).toContain(
+      'Runtime Hold 1'
+    )
+    expect(wrapper.get('[data-test="runtime-scene-device-parked-outbox"]').text()).toContain(
+      '1 已停靠'
+    )
+  })
+
+  it('keeps repeated evidence rows unique when source traces differ', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const model = createSceneModel()
+    const nextModel = {
+      ...model,
+      resourceEvidence: [
+        {
+          resourceKind: 'BIN' as const,
+          resourceKindLabel: 'Bin',
+          resourceCode: 'BIN-001',
+          displayLabel: 'BIN BIN-001',
+          evidenceKind: 'WMS_CALLBACK_EVIDENCE' as const,
+          evidenceKindLabel: 'WMS 回调证据',
+          positionCode: 'SINGLE_LAYER_A',
+          sourceSessionId: 20,
+          sourceTraceId: 'trace-20'
+        },
+        {
+          resourceKind: 'BIN' as const,
+          resourceKindLabel: 'Bin',
+          resourceCode: 'BIN-001',
+          displayLabel: 'BIN BIN-001',
+          evidenceKind: 'WMS_CALLBACK_EVIDENCE' as const,
+          evidenceKindLabel: 'WMS 回调证据',
+          positionCode: 'SINGLE_LAYER_A',
+          sourceSessionId: 21,
+          sourceTraceId: 'trace-21'
+        }
+      ]
+    }
+    model.resourceEvidence = [
+      {
+        resourceKind: 'BIN',
+        resourceKindLabel: 'Bin',
+        resourceCode: 'BIN-001',
+        displayLabel: 'BIN BIN-001',
+        evidenceKind: 'WMS_CALLBACK_EVIDENCE',
+        evidenceKindLabel: 'WMS 回调证据',
+        positionCode: 'SINGLE_LAYER_A',
+        sourceSessionId: 20,
+        sourceTraceId: 'trace-20'
+      }
+    ]
+
+    try {
+      const wrapper = mount(RuntimeSceneMap, {
+        props: {
+          model
+        }
+      })
+      await wrapper.setProps({ model: nextModel })
+      const warnings = warnSpy.mock.calls.flat().join('\n')
+      expect(warnings).not.toContain('Duplicate keys')
+    } finally {
+      warnSpy.mockRestore()
+    }
   })
 })

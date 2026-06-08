@@ -36,13 +36,13 @@
 
 ## 3. 已确认决策
 
-| 编号 | 决策                                | 说明                                                          |
-| ---- | ----------------------------------- | ------------------------------------------------------------- |
-| D1   | 采用三者融合但先做现场态势图        | 后续支持运行回放和处置舱，第一阶段只落现场态势。              |
-| D2   | 首屏右侧升级为现场态势图            | 左侧工作线目录保留，右侧从拓扑卡片列表升级为现场模型。        |
-| D3   | 不在前端维护 `runtimeSceneProfiles` | 业务语义必须来自后端 WorkLine 的 `plugin_key` 对应 manifest。 |
-| D4   | 前端组件只消费统一 scene model      | 展示组件不得直接判断具体插件 key。                            |
-| D5   | 资源只作为执行证据投影              | 遵守 SRS：库存授权和库存真相仍属于 WMS/RCS。                  |
+| 编号 | 决策                                | 说明                                                                                  |
+| ---- | ----------------------------------- | ------------------------------------------------------------------------------------- |
+| D1   | 采用三者融合但先做现场态势图        | 后续支持运行回放和处置舱，第一阶段只落现场态势。                                      |
+| D2   | 首屏右侧升级为现场态势图            | 左侧工作线目录保留，右侧从拓扑卡片列表升级为现场模型。                                |
+| D3   | 不在前端维护 `runtimeSceneProfiles` | 业务语义必须来自后端 WorkLine 的 `plugin_key` 对应 manifest。                         |
+| D4   | 前端组件只消费统一 scene model      | 展示组件不得直接判断具体插件 key。                                                    |
+| D5   | 资源只作为执行证据投影              | 遵守 SRS：库存授权和库存真相属于 WMS；RCS/AGV/CTU 只作为 WMS 转发的运输执行证据来源。 |
 
 ## 4. 信息架构
 
@@ -200,7 +200,7 @@ v1 后端依赖：
 以下示例用于说明 manifest 驱动后的显示方式，不代表前端注册表。
 
 - 粗分机 / 装箱线：输入臂、输送/扫描、输出臂、货架补给；资源证据包括 PKG、measurement、active rack、bin cell、rack supply dispatch。
-- SMT 分拣入库：source arm、scan platform、target arm、NG arm/station、workstation；资源证据包括 working bin、target slot、NG reason、sorting completion。
+- SMT 分拣入库：source arm、scan platform、target arm、NG station evidence、workstation；NG 放置由 target arm 执行，资源证据包括 working bin、target slot、NG reason、sorting completion。
 - 退料线：PDA 分类、LCR、X-Ray、贴标、退料货架；资源证据包括 original/new PKG、actual count、return rack side/slot、WMS adjust evidence。
 - 机构件拆包线：A/B pallet pair、unwrap zone、unpack line、magazine buffer；资源证据包括 pallet pair、box barcode、Part SN、magazine full、SFC push。
 
@@ -354,34 +354,41 @@ Execution order: launch A and B only after agreeing the endpoint wire shape; C c
 
 ### Implementation Tasks
 
-- [ ] **T1 (P1, human: ~2h / CC: ~20min)** — backend — 新增插件 manifest summary endpoint，并覆盖角色映射契约测试
+- [x] **T1 (P1, human: ~2h / CC: ~20min)** — backend — 新增插件 manifest summary endpoint，并覆盖角色映射契约测试
   - Surfaced by: Architecture Review — current options DTO lacks event/command role maps.
   - Files: `../wes_backend/src/app/workline`, `../wes_backend/src/workline_runtime`
   - Verify: backend contract/schema tests for required role fields.
+  - 状态同步 2026-06-08：已验证后端 `GET /plugins/{plugin_key:path}/manifest`、`WorkLineService.get_plugin_manifest_summary()` 和对应 pytest 存在并通过。
 - [ ] **T2 (P1, human: ~1h / CC: ~10min)** — frontend-api — 接入 manifest summary API，生成/复用类型并实现按 plugin_key 缓存的 composable
   - Surfaced by: Architecture + Performance Review — manifest must come from backend and avoid repeated/stale fetches.
   - Files: `src/api`, `src/composables`, `src/types`
   - Verify: frontend API/composable tests for success, failure, dedupe, stale guard.
+  - 状态同步 2026-06-08：前端 generated/api/composable 未发现 manifest summary 接入，保持未完成。
 - [ ] **T3 (P1, human: ~2h / CC: ~20min)** — scene-adapter — 实现纯函数 `buildRuntimeSceneModel`，禁止插件 key 硬编码和 raw JSON 挖掘
   - Surfaced by: Code Quality Review — v1 badges use structured runtime fields only.
   - Files: `src/components/runtime`, `src/types`
   - Verify: pure adapter tests for ordering, fallback, gaps, uncategorized devices, active session overlay.
+  - 状态同步 2026-06-08：`src` / `tests` 未发现 `buildRuntimeSceneModel`。
 - [ ] **T4 (P1, human: ~3h / CC: ~30min)** — monitor-ui — 新增 monitor-only `RuntimeSceneMap` 并集成到 `WorklineLiveOverview`
   - Surfaced by: Architecture Review — isolate v1 to `/runtime/monitor` and keep shared `WorklineRouteMap` unchanged.
   - Files: `src/components/runtime/monitor`, `src/views/runtime/worklines`
   - Verify: component tests plus browser visual QA on desktop/mobile.
+  - 状态同步 2026-06-08：`/runtime/monitor` 仍由 `WorklineLiveOverview` 集成共享 `WorklineRouteMap`，未发现 `RuntimeSceneMap`。
 - [ ] **T5 (P1, human: ~3h / CC: ~30min)** — tests — 补齐 API、scene builder、scene component、route sync 和后端 contract 测试
   - Surfaced by: Test Review — `type:check`/lint alone is insufficient.
   - Files: `tests/unit`, `../wes_backend/tests`
   - Verify: full Vitest runtime suite, backend contract tests, `pnpm type:check`, `pnpm lint` before ship.
+  - 状态同步 2026-06-08：后端 manifest 测试已存在；前端 scene builder/component/API 测试未发现。
 - [ ] **T6 (P3, human: ~1h / CC: ~10min)** — follow-up — 在 TODO 中记录结构化运行资源证据契约，v1 不实现 raw JSON overlay
   - Surfaced by: TODO Review D7.
   - Files: `TODOS.md`, `../wes_backend/TODOS.md`
   - Verify: TODO includes What/Why/Context/Effort/Priority/Depends on.
+  - 状态同步 2026-06-08：`../wes_backend/TODOS.md` 已记录；前端仓库未发现 `TODOS.md` 对应条目，保持未完成。
 - [ ] **T7 (P3, human: ~1h / CC: ~10min)** — follow-up — 在 TODO 中记录 `RuntimeSceneFocusPanel` 与共享拓扑收敛，v1 不实现
   - Surfaced by: TODO Review D8.
   - Files: `TODOS.md`
   - Verify: TODO explains v1 monitor-only decision and follow-up trigger.
+  - 状态同步 2026-06-08：前端仓库未发现 `TODOS.md` 对应条目，保持未完成。
 
 ### Completion Summary
 

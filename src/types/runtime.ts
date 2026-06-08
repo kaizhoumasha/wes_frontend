@@ -10,6 +10,17 @@ export type ResolveRuntimeHoldRequest = components['schemas']['ResolveRuntimeHol
 export type ResolveRuntimeHoldResponse = components['schemas']['ResolveRuntimeHoldResponse']
 export type NgReasonOption = components['schemas']['NgReasonOption']
 export type NgReturnItemResponse = components['schemas']['NgReturnItemResponse']
+export type RuntimeRackOperationWait = components['schemas']['RuntimeRackOperationWait']
+export type RuntimeResourceEvidenceItem = components['schemas']['RuntimeResourceEvidenceItem']
+export type RuntimeResourceEvidenceKind = components['schemas']['RuntimeResourceEvidenceKind']
+export type RuntimeResourceKind = components['schemas']['RuntimeResourceKind']
+export type RuntimeSingleLayerRackSnapshot = components['schemas']['RuntimeSingleLayerRackSnapshot']
+export type RuntimeStationLease = components['schemas']['RuntimeStationLease']
+export type TraceResourceEvidenceResponse = components['schemas']['TraceResourceEvidenceResponse']
+export type RuntimeWorklineReadiness = components['schemas']['RuntimeWorklineReadiness']
+export type WorkLinePluginManifestSummary = components['schemas']['WorkLinePluginManifestSummary']
+export type WorkLineSingleLayerRackBoundarySummary =
+  components['schemas']['WorkLineSingleLayerRackBoundarySummary']
 
 export interface RuntimeHoldConflictModel {
   code?: string
@@ -455,6 +466,7 @@ export interface TraceDetailResponse {
   dispatch_attempts: TraceDispatchAttemptItem[]
   timelines: TraceTimelineItem[]
   diagnostics: TraceDiagnosticItem[]
+  resource_evidence?: TraceResourceEvidenceResponse
   diagnosis_verdict: DiagnosisVerdict
 }
 
@@ -576,6 +588,14 @@ export interface RuntimeWorklineDeviceItem {
 
 export interface RuntimeWorklineDetailResponse {
   summary: RuntimeWorklineSummary
+  workline_readiness?: RuntimeWorklineReadiness
+  station_lease?: RuntimeStationLease
+  single_layer_rack_snapshot?: RuntimeSingleLayerRackSnapshot
+  rack_operation_wait?: RuntimeRackOperationWait
+  resource_evidence_kind?: RuntimeResourceEvidenceKind
+  resource_evidence_items?: RuntimeResourceEvidenceItem[]
+  resource_evidence_total_count?: number
+  resource_evidence_truncated?: boolean
   devices: RuntimeWorklineDeviceItem[]
   active_sessions: RuntimeTraceListItem[]
   recent_failed_traces: RuntimeTraceListItem[]

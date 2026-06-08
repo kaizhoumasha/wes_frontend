@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => {
     methods: {
       overview: method,
       worklines: method,
+      manifest: method,
       getWorklines: method,
       devices: method,
       getDevices: method,
@@ -85,6 +86,14 @@ describe('runtimeApiMethods', () => {
     expect(result).toEqual({ ok: true })
   })
 
+  it('loads a workline plugin manifest by plugin key', async () => {
+    const { runtimeApiMethods } = await import('@/api/modules/runtime')
+
+    await runtimeApiMethods.worklinePluginManifest('rough_sorter').send()
+
+    expect(mocks.methods.manifest).toHaveBeenCalledWith({ plugin_key: 'rough_sorter' })
+  })
+
   it('routes sandbox operation helpers with path params and payloads intact', async () => {
     const { runtimeApiMethods } = await import('@/api/modules/runtime')
     const replayPayload = { reason: 'retry after callback repair' }
@@ -128,14 +137,12 @@ describe('runtimeApiMethods', () => {
     expect(mocks.apiClientGet).toHaveBeenCalledWith('/api/v1/workline/runtime-holds')
   })
 
-  it('loads a single plugin manifest summary through the runtime endpoint', async () => {
+  it('passes plugin manifest keys with path characters to the generated contract method', async () => {
     const { runtimeApiMethods } = await import('@/api/modules/runtime')
 
     await runtimeApiMethods.worklinePluginManifest('rough sorter/1').send()
 
-    expect(mocks.apiClientGet).toHaveBeenCalledWith(
-      '/api/v1/workline/plugins/rough%20sorter%2F1/manifest'
-    )
+    expect(mocks.methods.manifest).toHaveBeenCalledWith({ plugin_key: 'rough sorter/1' })
   })
 
   it('submits sandbox cleanup through direct workline operations endpoint', async () => {

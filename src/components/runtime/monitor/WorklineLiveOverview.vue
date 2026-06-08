@@ -12,14 +12,18 @@
       <template #header>
         <div class="runtime-panel__header">
           <div>
-            <div class="runtime-panel__title">现场态势图</div>
-            <div class="runtime-panel__subtitle">按插件 manifest 与运行证据投影设备现场状态</div>
+            <div class="runtime-panel__title">拓扑主视图</div>
+            <div class="runtime-panel__subtitle">点击设备节点查看详情</div>
           </div>
         </div>
       </template>
       <RuntimeSceneMap
+        v-if="sceneModel"
         :model="sceneModel"
-        @select="emit('selectDevice', $event)"
+        :selected-device-id="selectedDeviceId"
+        :session-counts-by-device="sessionCountsByDevice"
+        :blocking-device-id="blockingDeviceId"
+        @select-device="emit('selectDevice', $event)"
       />
     </el-card>
 
@@ -37,7 +41,6 @@ import { computed, watch } from 'vue'
 import DecisionStrip from '@/components/runtime/devices/DecisionStrip.vue'
 import RuntimeSceneMap from '@/components/runtime/monitor/RuntimeSceneMap.vue'
 import SessionBoard from '@/components/runtime/monitor/SessionBoard.vue'
-import { buildRuntimeSceneModel } from '@/components/runtime/monitor/runtime-scene-model'
 import { useRuntimeSceneManifest } from '@/composables/useRuntimeSceneManifest'
 import type {
   RuntimeTraceDevicePathNode,
@@ -46,6 +49,7 @@ import type {
   RuntimeWorklineDeviceItem,
   RuntimeWorklineSummary
 } from '@/types/runtime'
+import { buildRuntimeSceneModel } from '@/utils/runtime-scene'
 
 const props = defineProps<{
   worklineSummary: RuntimeWorklineSummary
@@ -55,6 +59,7 @@ const props = defineProps<{
   recentFailedTraces: RuntimeTraceListItem[]
   recentCompletedTraces?: RuntimeTraceListItem[]
   selectedDeviceId?: number | null
+  sessionCountsByDevice?: Map<number, number> | Record<number, number>
   tracePathNodes?: RuntimeTraceDevicePathNode[]
   blockingDeviceId?: number | null
 }>()
@@ -64,31 +69,44 @@ const emit = defineEmits<{
   selectSession: [session: RuntimeTraceListItem]
 }>()
 
-const manifestState = useRuntimeSceneManifest()
+const { manifest, error: manifestError, loadManifest } = useRuntimeSceneManifest()
+
+const pluginKey = computed(
+  () => props.worklineDetail?.summary.plugin_key ?? props.worklineSummary.plugin_key ?? null
+)
+
+const contractVersion = computed(
+  () =>
+    props.worklineDetail?.summary.contract_version ?? props.worklineSummary.contract_version ?? null
+)
+
+const matchedManifest = computed(() => {
+  const currentPluginKey = pluginKey.value
+  if (!currentPluginKey) return null
+  if (manifest.value?.plugin_key !== currentPluginKey) return null
+
+  const currentContractVersion = contractVersion.value?.trim()
+  if (currentContractVersion && manifest.value.contract_version !== currentContractVersion) {
+    return null
+  }
+
+  return manifest.value
+})
 
 const sceneModel = computed(() =>
-  buildRuntimeSceneModel(
-    props.worklineDetail ?? {
-      summary: props.worklineSummary,
-      devices: props.devices,
-      active_sessions: props.activeSessions,
-      recent_failed_traces: props.recentFailedTraces,
-      recent_completed_traces: props.recentCompletedTraces ?? []
-    },
-    {
-      manifest: manifestState.manifest.value,
-      manifestError: manifestState.error.value,
-      selectedDeviceId: props.selectedDeviceId,
-      tracePathNodes: props.tracePathNodes,
-      blockingDeviceId: props.blockingDeviceId
-    }
-  )
+  props.worklineDetail
+    ? buildRuntimeSceneModel({
+        detail: props.worklineDetail,
+        manifest: matchedManifest.value,
+        manifestLoadFailed: Boolean(manifestError.value)
+      })
+    : null
 )
 
 watch(
-  () => props.worklineSummary.plugin_key,
-  pluginKey => {
-    void manifestState.load(pluginKey)
+  [pluginKey, contractVersion],
+  ([key, version]) => {
+    void loadManifest(key, version).catch(() => undefined)
   },
   { immediate: true }
 )

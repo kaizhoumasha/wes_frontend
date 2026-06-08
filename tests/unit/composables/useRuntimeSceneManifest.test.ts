@@ -1,9 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import {
-  clearRuntimeSceneManifestCache,
-  useRuntimeSceneManifest
-} from '@/composables/useRuntimeSceneManifest'
-import type { RuntimeScenePluginManifestSummary } from '@/types/runtime'
 
 const mocks = vi.hoisted(() => ({
   worklinePluginManifest: vi.fn()
@@ -18,174 +13,140 @@ vi.mock('@/api/modules/runtime', () => ({
 function deferred<T>() {
   let resolve!: (value: T) => void
   let reject!: (reason?: unknown) => void
-  const promise = new Promise<T>((next, fail) => {
-    resolve = next
-    reject = fail
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res
+    reject = rej
   })
   return { promise, resolve, reject }
 }
 
-function createManifest(pluginKey: string): RuntimeScenePluginManifestSummary {
-  return {
-    plugin_key: pluginKey,
-    contract_version: 'v1',
-    required_device_roles: [{ role: 'scanner', min_count: 1 }],
-    event_source_roles: { SCAN_DONE: ['scanner'] },
-    command_target_roles: { MOVE_ARM: ['arm'] },
-    supported_events: ['SCAN_DONE'],
-    supported_commands: ['MOVE_ARM']
-  }
-}
-
 describe('useRuntimeSceneManifest', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks()
+    const { clearRuntimeSceneManifestCache } = await import('@/composables/useRuntimeSceneManifest')
     clearRuntimeSceneManifestCache()
   })
 
-  it('dedupes concurrent loads and reuses the plugin_key cache', async () => {
-    const request = deferred<RuntimeScenePluginManifestSummary>()
-    mocks.worklinePluginManifest.mockReturnValue({ send: () => request.promise })
-    const first = useRuntimeSceneManifest()
-    const second = useRuntimeSceneManifest()
+  it('dedupes in-flight requests and reuses cached manifests', async () => {
+    const { useRuntimeSceneManifest } = await import('@/composables/useRuntimeSceneManifest')
+    const pending = deferred<{ plugin_key: string; contract_version: string }>()
+    mocks.worklinePluginManifest.mockReturnValueOnce({ send: () => pending.promise })
 
-    const firstLoad = first.load('rough_sorter')
-    const secondLoad = second.load('rough_sorter')
-    request.resolve(createManifest('rough_sorter'))
-    await Promise.all([firstLoad, secondLoad])
+    const state = useRuntimeSceneManifest()
+    const first = state.loadManifest('rough_sorter')
+    const second = state.loadManifest('rough_sorter')
 
     expect(mocks.worklinePluginManifest).toHaveBeenCalledTimes(1)
-    expect(first.manifest.value?.plugin_key).toBe('rough_sorter')
-    expect(second.manifest.value?.plugin_key).toBe('rough_sorter')
+    pending.resolve({ plugin_key: 'rough_sorter', contract_version: 'v1' })
+    await Promise.all([first, second])
 
-    const third = useRuntimeSceneManifest()
-    await third.load('rough_sorter')
+    expect(state.manifest.value?.plugin_key).toBe('rough_sorter')
+
+    await state.loadManifest('rough_sorter')
     expect(mocks.worklinePluginManifest).toHaveBeenCalledTimes(1)
-    expect(third.manifest.value?.plugin_key).toBe('rough_sorter')
   })
 
-  it('ignores stale responses after a newer plugin manifest request starts', async () => {
-    const first = deferred<RuntimeScenePluginManifestSummary>()
-    const second = deferred<RuntimeScenePluginManifestSummary>()
-    const third = deferred<RuntimeScenePluginManifestSummary>()
-    mocks.worklinePluginManifest.mockImplementation((pluginKey: string) => ({
-      send: () => {
-        if (pluginKey === 'old_plugin') return first.promise
-        if (pluginKey === 'new_plugin') return second.promise
-        return third.promise
-      }
-    }))
+  it('ignores stale responses from older plugin loads', async () => {
+    const { useRuntimeSceneManifest } = await import('@/composables/useRuntimeSceneManifest')
+    const slow = deferred<{ plugin_key: string; contract_version: string }>()
+    const fast = deferred<{ plugin_key: string; contract_version: string }>()
+    mocks.worklinePluginManifest
+      .mockReturnValueOnce({ send: () => slow.promise })
+      .mockReturnValueOnce({ send: () => fast.promise })
+
     const state = useRuntimeSceneManifest()
+    const slowLoad = state.loadManifest('plugin-a')
+    const fastLoad = state.loadManifest('plugin-b')
 
-    const oldLoad = state.load('old_plugin')
-    const newLoad = state.load('new_plugin')
-    second.resolve(createManifest('new_plugin'))
-    await newLoad
-    expect(state.manifest.value?.plugin_key).toBe('new_plugin')
+    fast.resolve({ plugin_key: 'plugin-b', contract_version: 'v2' })
+    await fastLoad
+    slow.resolve({ plugin_key: 'plugin-a', contract_version: 'v1' })
+    await slowLoad
 
-    first.resolve(createManifest('old_plugin'))
-    await oldLoad
-    expect(state.manifest.value?.plugin_key).toBe('new_plugin')
-
-    const latestLoad = state.load('latest_plugin')
-    expect(state.manifest.value).toBeNull()
-    third.resolve(createManifest('latest_plugin'))
-    await latestLoad
-    expect(state.manifest.value?.plugin_key).toBe('latest_plugin')
-  })
-
-  it('keeps the current state on a stale failure', async () => {
-    const first = deferred<RuntimeScenePluginManifestSummary>()
-    const second = deferred<RuntimeScenePluginManifestSummary>()
-    mocks.worklinePluginManifest.mockImplementation((pluginKey: string) => ({
-      send: () => (pluginKey === 'old_plugin' ? first.promise : second.promise)
-    }))
-    const state = useRuntimeSceneManifest()
-
-    const oldLoad = state.load('old_plugin')
-    const newLoad = state.load('new_plugin')
-    second.resolve(createManifest('new_plugin'))
-    await newLoad
-
-    first.reject(new Error('old failed'))
-    await oldLoad
-    expect(state.manifest.value?.plugin_key).toBe('new_plugin')
-    expect(state.error.value).toBeNull()
-  })
-
-  it('exposes fallback state when the current manifest request fails', async () => {
-    const request = deferred<RuntimeScenePluginManifestSummary>()
-    const failure = new Error('manifest unavailable')
-    mocks.worklinePluginManifest.mockReturnValue({ send: () => request.promise })
-    const state = useRuntimeSceneManifest()
-
-    const load = state.load('rough_sorter')
-    expect(state.loading.value).toBe(true)
-    request.reject(failure)
-
-    await expect(load).resolves.toBeNull()
-    expect(state.manifest.value).toBeNull()
-    expect(state.error.value).toBe(failure)
-    expect(state.hasError.value).toBe(true)
+    expect(state.manifest.value?.plugin_key).toBe('plugin-b')
     expect(state.loading.value).toBe(false)
   })
 
-  it('resets manifest state without fetching when plugin key is blank', async () => {
-    mocks.worklinePluginManifest.mockReturnValue({
-      send: () => Promise.resolve(createManifest('rough_sorter'))
-    })
+  it('records load failure, clears manifest and allows retry', async () => {
+    const { useRuntimeSceneManifest } = await import('@/composables/useRuntimeSceneManifest')
+    const error = new Error('manifest unavailable')
+    mocks.worklinePluginManifest
+      .mockReturnValueOnce({ send: () => Promise.reject(error) })
+      .mockReturnValueOnce({
+        send: () => Promise.resolve({ plugin_key: 'rough_sorter', contract_version: 'v1' })
+      })
+
     const state = useRuntimeSceneManifest()
+    await expect(state.loadManifest('rough_sorter')).rejects.toThrow('manifest unavailable')
 
-    await state.load('rough_sorter')
-    expect(state.manifest.value?.plugin_key).toBe('rough_sorter')
-
-    await expect(state.load('   ')).resolves.toBeNull()
+    expect(state.error.value).toBe(error)
     expect(state.manifest.value).toBeNull()
-    expect(state.error.value).toBeNull()
     expect(state.loading.value).toBe(false)
-    expect(mocks.worklinePluginManifest).toHaveBeenCalledTimes(1)
-  })
 
-  it('does not repopulate the cache from requests that resolve after clear', async () => {
-    const first = deferred<RuntimeScenePluginManifestSummary>()
-    const second = deferred<RuntimeScenePluginManifestSummary>()
-    mocks.worklinePluginManifest
-      .mockReturnValueOnce({ send: () => first.promise })
-      .mockReturnValueOnce({ send: () => second.promise })
-
-    const state = useRuntimeSceneManifest()
-    const firstLoad = state.load('rough_sorter')
-    clearRuntimeSceneManifestCache()
-    first.resolve(createManifest('rough_sorter'))
-    await firstLoad
-
-    const secondLoad = state.load('rough_sorter')
-    second.resolve(createManifest('rough_sorter'))
-    await secondLoad
-
-    expect(mocks.worklinePluginManifest).toHaveBeenCalledTimes(2)
+    await state.loadManifest('rough_sorter')
     expect(state.manifest.value?.plugin_key).toBe('rough_sorter')
+    expect(mocks.worklinePluginManifest).toHaveBeenCalledTimes(2)
   })
 
-  it('keeps newer in-flight requests after an older cleared request settles', async () => {
-    const first = deferred<RuntimeScenePluginManifestSummary>()
-    const second = deferred<RuntimeScenePluginManifestSummary>()
+  it('refetches a cached plugin manifest when the expected contract version differs', async () => {
+    const { useRuntimeSceneManifest } = await import('@/composables/useRuntimeSceneManifest')
     mocks.worklinePluginManifest
-      .mockReturnValueOnce({ send: () => first.promise })
-      .mockReturnValueOnce({ send: () => second.promise })
+      .mockReturnValueOnce({
+        send: () => Promise.resolve({ plugin_key: 'rough_sorter', contract_version: 'v1' })
+      })
+      .mockReturnValueOnce({
+        send: () => Promise.resolve({ plugin_key: 'rough_sorter', contract_version: 'v2' })
+      })
 
     const state = useRuntimeSceneManifest()
-    const firstLoad = state.load('rough_sorter')
-    clearRuntimeSceneManifestCache()
-    const secondLoad = state.load('rough_sorter')
+    await state.loadManifest('rough_sorter', 'v1')
+    await state.loadManifest('rough_sorter', 'v2')
 
-    first.resolve(createManifest('rough_sorter'))
-    await firstLoad
-    const dedupedSecondLoad = state.load('rough_sorter')
-
+    expect(state.manifest.value?.contract_version).toBe('v2')
     expect(mocks.worklinePluginManifest).toHaveBeenCalledTimes(2)
-    second.resolve(createManifest('rough_sorter'))
-    await Promise.all([secondLoad, dedupedSecondLoad])
+  })
+
+  it('keeps versioned manifest cache entries isolated when older responses resolve later', async () => {
+    const { useRuntimeSceneManifest } = await import('@/composables/useRuntimeSceneManifest')
+    const slowV1 = deferred<{ plugin_key: string; contract_version: string }>()
+    const fastV2 = deferred<{ plugin_key: string; contract_version: string }>()
+    mocks.worklinePluginManifest
+      .mockReturnValueOnce({ send: () => slowV1.promise })
+      .mockReturnValueOnce({ send: () => fastV2.promise })
+
+    const state = useRuntimeSceneManifest()
+    const first = state.loadManifest('rough_sorter', 'v1')
+    const second = state.loadManifest('rough_sorter', 'v2')
+
+    fastV2.resolve({ plugin_key: 'rough_sorter', contract_version: 'v2' })
+    await second
+    slowV1.resolve({ plugin_key: 'rough_sorter', contract_version: 'v1' })
+    await first
+
+    await state.loadManifest('rough_sorter', 'v2')
+
+    expect(state.manifest.value?.contract_version).toBe('v2')
+    expect(mocks.worklinePluginManifest).toHaveBeenCalledTimes(2)
+  })
+
+  it('rejects and does not cache manifests returned for a different plugin key', async () => {
+    const { useRuntimeSceneManifest } = await import('@/composables/useRuntimeSceneManifest')
+    mocks.worklinePluginManifest
+      .mockReturnValueOnce({
+        send: () => Promise.resolve({ plugin_key: 'wrong_plugin', contract_version: 'v1' })
+      })
+      .mockReturnValueOnce({
+        send: () => Promise.resolve({ plugin_key: 'rough_sorter', contract_version: 'v1' })
+      })
+
+    const state = useRuntimeSceneManifest()
+    await expect(state.loadManifest('rough_sorter', 'v1')).rejects.toThrow(
+      'Manifest plugin key mismatch'
+    )
+    expect(state.manifest.value).toBeNull()
+
+    await state.loadManifest('rough_sorter', 'v1')
+
     expect(state.manifest.value?.plugin_key).toBe('rough_sorter')
     expect(mocks.worklinePluginManifest).toHaveBeenCalledTimes(2)
   })

@@ -5,6 +5,7 @@ import {
   type ReconciliationsSessionsResolveResult,
   type RuntimeHoldNgReasonsQuery,
   type NgReturnItemsQuery,
+  type ManifestResult,
   type ResolveInput,
   type SandboxWorklinesStartInput
 } from '@/api/modules/workline'
@@ -29,7 +30,6 @@ import type {
   SandboxCleanupResponse,
   RuntimeHoldDetailResponse,
   RuntimeHoldSummary,
-  RuntimeScenePluginManifestSummary,
   ResolveRuntimeHoldResponse,
   NgReasonOption,
   NgReturnItemResponse,
@@ -107,9 +107,7 @@ export const runtimeApiMethods = {
   },
 
   worklinePluginManifest(pluginKey: string) {
-    return adaptRuntimeMethod<RuntimeScenePluginManifestSummary>(
-      apiClient.Get(`/api/v1/workline/plugins/${encodeURIComponent(pluginKey)}/manifest`)
-    )
+    return adaptRuntimeMethod<ManifestResult>(worklineApiMethods.manifest({ plugin_key: pluginKey }))
   },
 
   devices(worklineId: number) {
