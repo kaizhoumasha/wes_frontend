@@ -17,13 +17,13 @@
           </div>
         </div>
       </template>
-      <WorklineRouteMap
-        :devices="devices"
+      <RuntimeSceneMap
+        v-if="sceneModel"
+        :model="sceneModel"
         :selected-device-id="selectedDeviceId"
         :session-counts-by-device="sessionCountsByDevice"
-        :trace-path-nodes="tracePathNodes"
         :blocking-device-id="blockingDeviceId"
-        @select="emit('selectDevice', $event)"
+        @select-device="emit('selectDevice', $event)"
       />
     </el-card>
 
@@ -37,9 +37,11 @@
 </template>
 
 <script setup lang="ts">
+import { computed, watch } from 'vue'
 import DecisionStrip from '@/components/runtime/devices/DecisionStrip.vue'
-import WorklineRouteMap from '@/components/runtime/monitor/WorklineRouteMap.vue'
+import RuntimeSceneMap from '@/components/runtime/monitor/RuntimeSceneMap.vue'
 import SessionBoard from '@/components/runtime/monitor/SessionBoard.vue'
+import { useRuntimeSceneManifest } from '@/composables/useRuntimeSceneManifest'
 import type {
   RuntimeTraceDevicePathNode,
   RuntimeTraceListItem,
@@ -47,8 +49,9 @@ import type {
   RuntimeWorklineDeviceItem,
   RuntimeWorklineSummary
 } from '@/types/runtime'
+import { buildRuntimeSceneModel } from '@/utils/runtime-scene'
 
-defineProps<{
+const props = defineProps<{
   worklineSummary: RuntimeWorklineSummary
   worklineDetail?: RuntimeWorklineDetailResponse | null
   devices: RuntimeWorklineDeviceItem[]
@@ -65,6 +68,48 @@ const emit = defineEmits<{
   selectDevice: [deviceId: number]
   selectSession: [session: RuntimeTraceListItem]
 }>()
+
+const { manifest, error: manifestError, loadManifest } = useRuntimeSceneManifest()
+
+const pluginKey = computed(
+  () => props.worklineDetail?.summary.plugin_key ?? props.worklineSummary.plugin_key ?? null
+)
+
+const contractVersion = computed(
+  () =>
+    props.worklineDetail?.summary.contract_version ?? props.worklineSummary.contract_version ?? null
+)
+
+const matchedManifest = computed(() => {
+  const currentPluginKey = pluginKey.value
+  if (!currentPluginKey) return null
+  if (manifest.value?.plugin_key !== currentPluginKey) return null
+
+  const currentContractVersion = contractVersion.value?.trim()
+  if (currentContractVersion && manifest.value.contract_version !== currentContractVersion) {
+    return null
+  }
+
+  return manifest.value
+})
+
+const sceneModel = computed(() =>
+  props.worklineDetail
+    ? buildRuntimeSceneModel({
+        detail: props.worklineDetail,
+        manifest: matchedManifest.value,
+        manifestLoadFailed: Boolean(manifestError.value)
+      })
+    : null
+)
+
+watch(
+  [pluginKey, contractVersion],
+  ([key, version]) => {
+    void loadManifest(key, version).catch(() => undefined)
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>

@@ -85,6 +85,9 @@ export type DebugDataCleanupAllInput = ContractRequestBody<'/api/v1/workline/ope
 
 export type OptionsResult = ContractResponseData<'/api/v1/workline/plugins/options', 'get'>
 
+export type ManifestResult = ContractResponseData<'/api/v1/workline/plugins/{plugin_key}/manifest', 'get'>
+export type ManifestPathParams = ContractPathParams<'/api/v1/workline/plugins/{plugin_key}/manifest', 'get'>
+
 export type OverviewResult = ContractResponseData<'/api/v1/workline/runtime/overview', 'get'>
 export type OverviewQuery = ContractQueryParams<'/api/v1/workline/runtime/overview', 'get'>
 
@@ -325,6 +328,16 @@ export const worklineApiMethods = {
    */
   options(config?: ContractRequestConfig) {
     return contractMethods.get('/api/v1/workline/plugins/options', { config })
+  },
+
+  /**
+   * [biz:workline:list] 获取单个作业线插件 manifest 摘要
+   * @description 从插件注册表导出单个作业线插件 manifest 摘要。
+   * @endpoint GET /api/v1/workline/plugins/{plugin_key}/manifest
+   * @returns alova method instance
+   */
+  manifest(params: ContractPathParams<'/api/v1/workline/plugins/{plugin_key}/manifest', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/plugins/{plugin_key}/manifest', { params, config })
   },
 
   /**

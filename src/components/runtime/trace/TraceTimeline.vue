@@ -280,7 +280,9 @@ function eventTitle(item: TraceTimelineItem): string {
     INTERNAL_SIGNAL: '系统内部通知'
   }
 
-  return map[item.action_type] ?? translateAction(item.action_type) ?? actionTypeLabel(item.action_type)
+  return (
+    map[item.action_type] ?? translateAction(item.action_type) ?? actionTypeLabel(item.action_type)
+  )
 }
 
 function eventDescription(item: TraceTimelineItem): string {
@@ -325,7 +327,11 @@ function eventDescription(item: TraceTimelineItem): string {
     INTERNAL_SIGNAL: item.message || '系统记录了一次内部状态通知。'
   }
 
-  return map[item.action_type] ?? item.message ?? `${translateAction(item.action_type) || '该步骤'}已记录。`
+  return (
+    map[item.action_type] ??
+    item.message ??
+    `${translateAction(item.action_type) || '该步骤'}已记录。`
+  )
 }
 
 function eventFacts(item: TraceTimelineItem): Array<{ label: string; value: string }> {

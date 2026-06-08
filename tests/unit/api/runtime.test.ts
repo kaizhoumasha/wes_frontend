@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => {
     methods: {
       overview: method,
       worklines: method,
+      manifest: method,
       getWorklines: method,
       devices: method,
       getDevices: method,
@@ -77,6 +78,14 @@ describe('runtimeApiMethods', () => {
       workline_id: 101
     })
     expect(result).toEqual({ ok: true })
+  })
+
+  it('loads a workline plugin manifest by plugin key', async () => {
+    const { runtimeApiMethods } = await import('@/api/modules/runtime')
+
+    await runtimeApiMethods.worklinePluginManifest('rough_sorter').send()
+
+    expect(mocks.methods.manifest).toHaveBeenCalledWith({ plugin_key: 'rough_sorter' })
   })
 
   it('routes sandbox operation helpers with path params and payloads intact', async () => {

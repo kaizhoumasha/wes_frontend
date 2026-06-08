@@ -3094,6 +3094,60 @@ export const RoleUpdateSchema = z.object({
 })
 
 
+export const RuntimeActiveBinRackBinViewSchema = z.object({
+  /** Rack Slot Code */
+  rack_slot_code: z.union([z.string(), z.null()]).optional(),
+  /** Rack Slot Location Code */
+  rack_slot_location_code: z.union([z.string(), z.null()]).optional(),
+  /** Bin Id */
+  bin_id: z.union([z.string(), z.number(), z.null()]).optional(),
+  /** Bin Code */
+  bin_code: z.union([z.string(), z.null()]).optional(),
+  /** Bin Type */
+  bin_type: z.union([z.string(), z.null()]).optional(),
+  /** Bin Orientation Code */
+  bin_orientation_code: z.union([z.string(), z.null()]).optional(),
+  /** Cells */
+  cells: z.array(z.lazy(() => RuntimeActiveBinRackCellViewSchema)).optional(),
+})
+
+
+export const RuntimeActiveBinRackCellViewSchema = z.object({
+  /** Bin Cell Index */
+  bin_cell_index: z.union([z.number(), z.string(), z.null()]).optional(),
+  /** Bin Cell Code */
+  bin_cell_code: z.union([z.string(), z.null()]).optional(),
+  /** Bin Cell Location */
+  bin_cell_location: z.union([z.string(), z.null()]).optional(),
+  /** Status */
+  status: z.union([z.string(), z.null()]).optional(),
+  /** Capacity Depth Mm */
+  capacity_depth_mm: z.union([z.number(), z.number(), z.null()]).optional(),
+  /** Used Depth Mm */
+  used_depth_mm: z.union([z.number(), z.number(), z.null()]).optional(),
+  /** Material Identity Key */
+  material_identity_key: z.union([z.string(), z.null()]).optional(),
+  /** Pkg Code */
+  pkg_code: z.union([z.string(), z.null()]).optional(),
+  /** Is Reserved */
+  is_reserved: z.union([z.boolean(), z.null()]).optional(),
+})
+
+
+export const RuntimeActiveBinRackViewSchema = z.object({
+  /** Rack Id */
+  rack_id: z.union([z.string(), z.number(), z.null()]).optional(),
+  /** Rack Code */
+  rack_code: z.union([z.string(), z.null()]).optional(),
+  /** Rack Kind */
+  rack_kind: z.union([z.string(), z.null()]).optional(),
+  /** Rack Type */
+  rack_type: z.union([z.string(), z.null()]).optional(),
+  /** Bins */
+  bins: z.array(z.lazy(() => RuntimeActiveBinRackBinViewSchema)).optional(),
+})
+
+
 export const RuntimeBlockingReasonSchema = z.object({
   /** Device Id */
   device_id: z.union([z.number(), z.null()]).optional(),
@@ -3342,6 +3396,72 @@ export const RuntimeOverviewResponseSchema = z.object({
 })
 
 
+/**
+ * 料架操作等待状态，描述 WMS 回调与超时结果。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const RuntimeRackOperationWaitSchema = z.enum(["WAITING_WMS", "WMS_CALLBACK_RECEIVED", "TIMEOUT", "FAILED", "NONE", "UNKNOWN"])
+
+
+export const RuntimeResourceEvidenceItemSchema = z.object({
+  resource_kind: z.lazy(() => RuntimeResourceKindSchema),
+  /** Resource Code */
+  resource_code: z.string(),
+  /** Display Label */
+  display_label: z.string(),
+  evidence_kind: z.lazy(() => RuntimeResourceEvidenceKindSchema),
+  /** Station Code */
+  station_code: z.union([z.string(), z.null()]).optional(),
+  /** Position Code */
+  position_code: z.union([z.string(), z.null()]).optional(),
+  /** Rack Code */
+  rack_code: z.union([z.string(), z.null()]).optional(),
+  /** Bin Code */
+  bin_code: z.union([z.string(), z.null()]).optional(),
+  /** Slot Code */
+  slot_code: z.union([z.string(), z.null()]).optional(),
+  /** Pkg Code */
+  pkg_code: z.union([z.string(), z.null()]).optional(),
+  /** Part Sn */
+  part_sn: z.union([z.string(), z.null()]).optional(),
+  /** Source Session Id */
+  source_session_id: z.union([z.number(), z.null()]).optional(),
+  /** Source Trace Id */
+  source_trace_id: z.union([z.string(), z.null()]).optional(),
+  /** Occurred At */
+  occurred_at: z.union([z.string().datetime(), z.null()]).optional(),
+})
+
+
+/**
+ * 运行时资源证据来源类型，用于区分快照、回调和 Trace 证据。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const RuntimeResourceEvidenceKindSchema = z.enum(["WES_ACTIVE_SNAPSHOT", "WMS_CALLBACK_EVIDENCE", "TRACE_RESOURCE_EVIDENCE", "GENERIC_EVIDENCE", "UNKNOWN"])
+
+
+/**
+ * 运行时资源标识类型，用于统一料架、料盒、工位槽等资源编码。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const RuntimeResourceKindSchema = z.enum(["RACK", "BIN", "PKG", "SLOT", "CELL", "MAGAZINE", "PART_SN", "UNKNOWN"])
+
+
+/**
+ * 单层料架快照状态，用于运行时资源视图诊断。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const RuntimeSingleLayerRackSnapshotSchema = z.enum(["ACTIVE", "MISSING", "INVALID", "NON_SINGLE_LAYER_EVIDENCE", "UNKNOWN"])
+
+
 export const RuntimeStatCardSchema = z.object({
   /** Key */
   key: z.string(),
@@ -3352,6 +3472,15 @@ export const RuntimeStatCardSchema = z.object({
   /** Status */
   status: z.string().optional().default("info"),
 })
+
+
+/**
+ * 工站当前占用来源，用于判断是否可继续调度。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const RuntimeStationLeaseSchema = z.enum(["IDLE", "ACTIVE_RACK_BOUND", "ACTIVE_DISPATCH_LEASE", "ACTIVE_SESSION_BOUND", "UNKNOWN"])
 
 
 export const RuntimeTraceDeviceActionSchema = z.object({
@@ -3485,6 +3614,10 @@ export const RuntimeTracePathResponseSchema = z.object({
   session_id: z.union([z.number(), z.null()]).optional(),
   /** Trace Id */
   trace_id: z.union([z.string(), z.null()]).optional(),
+  diagnosis_verdict: z.lazy(() => DiagnosisVerdictResponseSchema),
+  /** Sessions */
+  sessions: z.array(z.lazy(() => TraceSessionItemSchema)).optional(),
+  resource_view: z.lazy(() => RuntimeTraceResourceViewSchema).optional(),
   /** Devices */
   devices: z.array(z.lazy(() => RuntimeTraceDevicePathNodeSchema)).optional(),
   /** Timeline Groups */
@@ -3492,7 +3625,12 @@ export const RuntimeTracePathResponseSchema = z.object({
   /** Current Blocking Device Id */
   current_blocking_device_id: z.union([z.number(), z.null()]).optional(),
   blocking_reason: z.union([z.lazy(() => RuntimeBlockingReasonSchema), z.null()]).optional(),
-  evidence: z.union([z.lazy(() => TraceDetailResponseSchema), z.null()]).optional(),
+})
+
+
+export const RuntimeTraceResourceViewSchema = z.object({
+  /** Active Bin Racks */
+  active_bin_racks: z.array(z.lazy(() => RuntimeActiveBinRackViewSchema)).optional(),
 })
 
 
@@ -3518,6 +3656,17 @@ export const RuntimeTraceTimelineGroupSchema = z.object({
 
 export const RuntimeWorklineDetailResponseSchema = z.object({
   summary: z.lazy(() => RuntimeWorklineSummarySchema),
+  workline_readiness: z.lazy(() => RuntimeWorklineReadinessSchema).optional().default("UNKNOWN"),
+  station_lease: z.lazy(() => RuntimeStationLeaseSchema).optional().default("UNKNOWN"),
+  single_layer_rack_snapshot: z.lazy(() => RuntimeSingleLayerRackSnapshotSchema).optional().default("UNKNOWN"),
+  rack_operation_wait: z.lazy(() => RuntimeRackOperationWaitSchema).optional().default("NONE"),
+  resource_evidence_kind: z.lazy(() => RuntimeResourceEvidenceKindSchema).optional().default("UNKNOWN"),
+  /** Resource Evidence Items */
+  resource_evidence_items: z.array(z.lazy(() => RuntimeResourceEvidenceItemSchema)).optional(),
+  /** Resource Evidence Total Count */
+  resource_evidence_total_count: z.number().optional().default(0),
+  /** Resource Evidence Truncated */
+  resource_evidence_truncated: z.boolean().optional().default(false),
   /** Devices */
   devices: z.array(z.lazy(() => RuntimeWorklineDeviceItemSchema)).optional(),
   /** Active Sessions */
@@ -3571,6 +3720,15 @@ export const RuntimeWorklineDeviceItemSchema = z.object({
   /** Error Code */
   error_code: z.union([z.string(), z.null()]).optional(),
 })
+
+
+/**
+ * 产线启动准入与运行准备状态。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const RuntimeWorklineReadinessSchema = z.enum(["READY", "NOT_READY", "UNKNOWN"])
 
 
 export const RuntimeWorklineSummarySchema = z.object({
@@ -4037,7 +4195,6 @@ export const TraceDetailResponseSchema = z.object({
   trace: z.lazy(() => TraceContextResponseSchema),
   summary: z.lazy(() => TraceOverviewSummarySchema),
   diagnosis_verdict: z.lazy(() => DiagnosisVerdictResponseSchema),
-  session: z.union([z.lazy(() => TraceSessionItemSchema), z.null()]).optional(),
   /** Sessions */
   sessions: z.array(z.lazy(() => TraceSessionItemSchema)).optional(),
   /** Callback Logs */
@@ -4708,6 +4865,56 @@ export const WorkLineCreateSchema = z.object({
 
 
 /**
+ * 单插件 manifest 摘要。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const WorkLinePluginManifestSummarySchema = z.object({
+  /** Plugin Key */
+  plugin_key: z.string(),
+  /** Contract Version */
+  contract_version: z.string(),
+  /** Required Device Roles */
+  required_device_roles: z.array(z.lazy(() => DeviceRoleRequirementOptionSchema)).optional(),
+  /** Event Source Roles */
+  event_source_roles: z.record(z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string()))).optional(),
+  /** Command Target Roles */
+  command_target_roles: z.record(z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string()))).optional(),
+  /** Supported Events */
+  supported_events: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())).optional(),
+  /** Supported Commands */
+  supported_commands: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())).optional(),
+  /** Single Layer Boundaries */
+  single_layer_boundaries: z.array(z.lazy(() => WorkLineSingleLayerRackBoundarySummarySchema)).optional(),
+})
+
+
+/**
  * 作业线插件下拉选项。
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -4794,6 +5001,32 @@ export const WorkLineResponseSchema = z.object({
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const WorkLineRunModeSchema = z.enum(["AUTO", "MANUAL", "SIMULATION"])
+
+
+/**
+ * 插件声明的货架承接边界。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const WorkLineSingleLayerRackBoundarySummarySchema = z.object({
+  /** Station Code */
+  station_code: z.string(),
+  /** Position Code */
+  position_code: z.string(),
+  /** Rack Kind */
+  rack_kind: z.string(),
+  /** Station Role */
+  station_role: z.string(),
+  /** Business Demand Type */
+  business_demand_type: z.string(),
+  /** Wms Operation Type */
+  wms_operation_type: z.string(),
+  /** Snapshot Kind */
+  snapshot_kind: z.string(),
+  /** Lease Scope */
+  lease_scope: z.string(),
+})
 
 
 /**

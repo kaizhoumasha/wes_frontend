@@ -5,6 +5,7 @@ import {
   type ReconciliationsSessionsResolveResult,
   type RuntimeHoldNgReasonsQuery,
   type NgReturnItemsQuery,
+  type ManifestResult,
   type ResolveInput,
   type SandboxWorklinesStartInput
 } from '@/api/modules/workline'
@@ -103,6 +104,10 @@ export const runtimeApiMethods = {
     return adaptRuntimeMethod<RuntimeWorklineDetailResponse>(
       worklineApiMethods.getWorklines({ workline_id: worklineId })
     )
+  },
+
+  worklinePluginManifest(pluginKey: string) {
+    return adaptRuntimeMethod<ManifestResult>(worklineApiMethods.manifest({ plugin_key: pluginKey }))
   },
 
   devices(worklineId: number) {

@@ -111,6 +111,7 @@ declare module 'vue' {
     RuntimeHoldEvidencePanel: typeof import('./../components/runtime/holds/RuntimeHoldEvidencePanel.vue')['default']
     RuntimeLastUpdated: typeof import('./../components/common/runtime/RuntimeLastUpdated.vue')['default']
     RuntimePriorityQueue: typeof import('./../components/runtime/overview/RuntimePriorityQueue.vue')['default']
+    RuntimeSceneMap: typeof import('./../components/runtime/monitor/RuntimeSceneMap.vue')['default']
     RuntimeSignalStrip: typeof import('./../components/runtime/overview/RuntimeSignalStrip.vue')['default']
     RuntimeStatusBadge: typeof import('./../components/common/runtime/RuntimeStatusBadge.vue')['default']
     RuntimeStickyContextBar: typeof import('./../components/common/runtime/RuntimeStickyContextBar.vue')['default']
