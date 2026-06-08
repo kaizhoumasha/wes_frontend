@@ -39,10 +39,13 @@ const formattedValue = computed(() => {
 
 <style scoped>
 .runtime-last-updated {
+  box-sizing: border-box;
   display: inline-flex;
   flex-direction: column;
+  flex: 1 1 180px;
   gap: 4px;
-  min-width: 220px;
+  min-width: 0;
+  max-width: 220px;
   padding: 10px 14px;
   border: 1px solid rgb(245, 158, 11, 0.18);
   border-radius: 12px;
@@ -55,6 +58,8 @@ const formattedValue = computed(() => {
 }
 
 .runtime-last-updated__label {
+  min-width: 0;
+  overflow-wrap: anywhere;
   color: var(--runtime-text-secondary);
   font-size: 11px;
   font-weight: 700;
@@ -63,6 +68,8 @@ const formattedValue = computed(() => {
 }
 
 .runtime-last-updated__value {
+  min-width: 0;
+  overflow-wrap: anywhere;
   color: var(--runtime-text-primary);
   font-family: var(--font-mono);
   font-size: 12px;
