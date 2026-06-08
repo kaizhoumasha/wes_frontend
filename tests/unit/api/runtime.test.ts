@@ -24,7 +24,13 @@ const mocks = vi.hoisted(() => {
       command: method,
       dispatch: method,
       sandboxPending: method,
+      sandboxCompleted: method,
+      sandboxEvents: method,
+      results: method,
+      sandboxAck: method,
+      sandboxExternalCallbacks: method,
       sandboxWorklinesStart: method,
+      sandboxTemplates: method,
       replayInboxes: method,
       manualSessions: method
     },
@@ -129,6 +135,14 @@ describe('runtimeApiMethods', () => {
     await runtimeApiMethods.runtimeHolds().send()
 
     expect(mocks.apiClientGet).toHaveBeenCalledWith('/api/v1/workline/runtime-holds')
+  })
+
+  it('passes plugin manifest keys with path characters to the generated contract method', async () => {
+    const { runtimeApiMethods } = await import('@/api/modules/runtime')
+
+    await runtimeApiMethods.worklinePluginManifest('rough sorter/1').send()
+
+    expect(mocks.methods.manifest).toHaveBeenCalledWith({ plugin_key: 'rough sorter/1' })
   })
 
   it('submits sandbox cleanup through direct workline operations endpoint', async () => {

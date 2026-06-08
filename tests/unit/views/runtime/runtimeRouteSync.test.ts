@@ -1,7 +1,7 @@
-import { nextTick, reactive, ref } from 'vue'
+import { nextTick, reactive } from 'vue'
 import { shallowMount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 type RouteState = {
   path: string
@@ -23,9 +23,29 @@ const routerMock = {
   })
 }
 
+const mountedWrappers: Array<{ unmount: () => void }> = []
+
 const worklinesSend = vi.fn()
 const worklineDetailSend = vi.fn()
 const deviceDetailSend = vi.fn()
+const worklinePluginManifestSend = vi.fn()
+const sseStoreMock = reactive({
+  connectionLabel: 'SSE Connected',
+  connectionTone: 'success',
+  lastEvent: null as null | {
+    domain?: string
+    entity?: string
+    action?: string
+    keys?: Record<string, unknown>
+    payload?: Record<string, unknown>
+  },
+  lastRawEvent: null,
+  lastRefreshedAt: null,
+  live: true,
+  state: 'connected',
+  markRefreshedAt: vi.fn(),
+  toggleLive: vi.fn()
+})
 
 vi.mock('vue-router', () => ({
   useRoute: () => routeState,
@@ -33,17 +53,11 @@ vi.mock('vue-router', () => ({
 }))
 
 vi.mock('@/composables/useRuntimePageChrome', () => ({
-  useRuntimePageChrome: () => ({
-    connectionLabel: ref('SSE Connected'),
-    connectionTone: ref('success'),
-    lastEvent: ref(null),
-    lastRawEvent: ref(null),
-    lastRefreshedAt: ref(null),
-    live: ref(true),
-    markRefreshedAt: vi.fn(),
-    state: ref('connected'),
-    toggleLive: vi.fn()
-  })
+  useRuntimePageChrome: () => sseStoreMock
+}))
+
+vi.mock('@/stores/runtime-sse', () => ({
+  useRuntimeSSEStore: () => sseStoreMock
 }))
 
 vi.mock('@/composables/usePermission', () => ({
@@ -78,6 +92,9 @@ vi.mock('@/api/modules/runtime', () => ({
     worklines: () => ({ send: worklinesSend }),
     worklineDetail: (worklineId: number) => ({
       send: () => worklineDetailSend(worklineId)
+    }),
+    worklinePluginManifest: () => ({
+      send: worklinePluginManifestSend
     }),
     deviceDetail: (deviceId: number, worklineId: number) => ({
       send: () => deviceDetailSend(deviceId, worklineId)
@@ -190,6 +207,12 @@ function createMountOptions() {
 }
 
 describe('runtime route sync', () => {
+  afterEach(() => {
+    for (const wrapper of mountedWrappers.splice(0)) {
+      wrapper.unmount()
+    }
+  })
+
   beforeEach(() => {
     setActivePinia(createPinia())
 
@@ -199,20 +222,36 @@ describe('runtime route sync', () => {
 
     routerMock.push.mockReset()
     routerMock.replace.mockClear()
+    sseStoreMock.lastEvent = null
+    sseStoreMock.lastRefreshedAt = null
+    sseStoreMock.live = true
+    sseStoreMock.markRefreshedAt.mockClear()
+    sseStoreMock.toggleLive.mockClear()
 
     worklinesSend.mockReset()
     worklineDetailSend.mockReset()
     deviceDetailSend.mockReset()
+    worklinePluginManifestSend.mockReset()
 
     worklinesSend.mockResolvedValue([worklineSummary])
     worklineDetailSend.mockImplementation(async (worklineId: number) => createWorklineDetail(worklineId))
     deviceDetailSend.mockImplementation(async (deviceId: number, worklineId: number) => createDeviceDetail(deviceId, worklineId))
+    worklinePluginManifestSend.mockResolvedValue({
+      plugin_key: 'plugin-a',
+      contract_version: 'v1',
+      required_device_roles: [{ role: 'scanner', min_count: 1 }],
+      event_source_roles: {},
+      command_target_roles: {},
+      supported_events: [],
+      supported_commands: []
+    })
   })
 
   it('loads workline detail once when it first syncs route selection from the list result', async () => {
     const component = await import('@/views/runtime/worklines/WorklineMonitorPage.vue')
 
-    shallowMount(component.default, createMountOptions())
+    const wrapper = shallowMount(component.default, createMountOptions())
+    mountedWrappers.push(wrapper)
 
     await flushViewUpdates()
     await flushViewUpdates()
@@ -234,6 +273,7 @@ describe('runtime route sync', () => {
     const component = await import('@/views/runtime/worklines/WorklineMonitorPage.vue')
 
     const wrapper = shallowMount(component.default, createMountOptions())
+    mountedWrappers.push(wrapper)
 
     await flushViewUpdates()
     await flushViewUpdates()
@@ -249,5 +289,35 @@ describe('runtime route sync', () => {
       name: 'RuntimeDevices',
       query: { deviceId: '201' }
     })
+  })
+
+  it('refreshes the current workline detail when a relevant SSE detail event arrives', async () => {
+    routeState.path = '/runtime/monitor'
+    routeState.fullPath = '/runtime/monitor?worklineId=101'
+    routeState.query = {
+      worklineId: '101'
+    }
+
+    const component = await import('@/views/runtime/worklines/WorklineMonitorPage.vue')
+
+    const wrapper = shallowMount(component.default, createMountOptions())
+    mountedWrappers.push(wrapper)
+
+    await flushViewUpdates()
+    await flushViewUpdates()
+
+    expect(worklineDetailSend).toHaveBeenCalledTimes(1)
+
+    sseStoreMock.lastEvent = {
+      domain: 'runtime',
+      entity: 'device',
+      action: 'updated',
+      keys: { workline_id: 101, device_id: 201 }
+    }
+    await flushViewUpdates()
+    await flushViewUpdates()
+
+    expect(worklineDetailSend).toHaveBeenCalledTimes(2)
+    expect(worklineDetailSend).toHaveBeenLastCalledWith(101)
   })
 })

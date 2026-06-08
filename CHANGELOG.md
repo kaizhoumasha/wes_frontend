@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.4.0] - 2026-06-06
+
+### Added
+
+- 工作线监控新增 manifest 驱动的现场态势图，操作员可以在 `/runtime/monitor` 直接查看设备角色段、现场流向、配置缺口和运行证据叠层。
+- 前端接入单插件 manifest summary 接口，并缓存插件语义，避免工作线切换和 SSE 刷新时重复拉取相同 manifest。
+- 新增 Runtime scene model、现场态势图、manifest 缓存、路由同步和运行证据投影回归测试，覆盖缺失角色、SMT 角色、设备流向、Runtime Hold、停靠 outbox、命令状态和 raw JSON 资源证据隔离。
+
+### Changed
+
+- `/runtime/monitor` 主叙事从设备拓扑卡片切换为现场态势图，保留 Session 看板作为辅助列表，并继续只在 monitor 页面替换主图。
+- 现场模型统一按后端 manifest、设备运行状态和结构化运行字段生成，不在前端硬编码具体插件 key。
+
 ## [0.4.3.0] - 2026-06-05
 
 ### Added

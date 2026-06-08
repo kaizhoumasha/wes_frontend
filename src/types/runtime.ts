@@ -602,6 +602,97 @@ export interface RuntimeWorklineDetailResponse {
   recent_completed_traces: RuntimeTraceListItem[]
 }
 
+export interface RuntimeSceneDeviceRoleRequirement {
+  role: string
+  min_count: number
+  max_count?: number | null
+  capabilities?: string[]
+}
+
+export interface RuntimeScenePluginManifestSummary {
+  plugin_key: string
+  contract_version?: string | null
+  required_device_roles?: RuntimeSceneDeviceRoleRequirement[]
+  event_source_roles?: Record<string, string[]>
+  command_target_roles?: Record<string, string[]>
+  supported_events?: string[]
+  supported_commands?: string[]
+}
+
+export type RuntimeSceneNodeState = 'idle' | 'running' | 'waiting' | 'hold' | 'error'
+
+export interface RuntimeSceneLane {
+  id: string
+  label: string
+  role: string
+  order: number
+  kind: 'manifest' | 'fallback' | 'uncategorized'
+}
+
+export interface RuntimeSceneNodeBadge {
+  kind: 'current-command' | 'open-command' | 'runtime-hold' | 'parked-outbox' | 'active-session'
+  label: string
+  tone: 'info' | 'primary' | 'warning' | 'danger'
+  count?: number
+}
+
+export interface RuntimeSceneNode {
+  id: string
+  deviceId: number
+  laneId: string
+  role: string
+  roleIndex: number
+  deviceCode: string
+  deviceName: string
+  status: string
+  state: RuntimeSceneNodeState
+  isSelected: boolean
+  isCurrent: boolean
+  maintenanceMode: boolean
+  errorCode?: string | null
+  badges: RuntimeSceneNodeBadge[]
+}
+
+export interface RuntimeSceneFlow {
+  id: string
+  fromNodeId: string
+  toNodeId: string
+  source: 'upstream' | 'fallback-order'
+}
+
+export interface RuntimeSceneOverlay {
+  id: string
+  kind: 'active-session' | 'blocking-device'
+  deviceId?: number | null
+  label: string
+  tone: 'info' | 'primary' | 'warning' | 'danger'
+}
+
+export interface RuntimeSceneGap {
+  id: string
+  role: string
+  label: string
+  requiredCount: number
+  actualCount: number
+}
+
+export interface RuntimeSceneVerdict {
+  status?: string | null
+  label: string
+  manifestLoaded: boolean
+  manifestWarning?: string | null
+}
+
+export interface RuntimeSceneModel {
+  workline: RuntimeWorklineSummary
+  verdict: RuntimeSceneVerdict
+  lanes: RuntimeSceneLane[]
+  nodes: RuntimeSceneNode[]
+  flows: RuntimeSceneFlow[]
+  overlays: RuntimeSceneOverlay[]
+  gaps: RuntimeSceneGap[]
+}
+
 export interface RuntimeDeviceSummary {
   id: number
   device_code: string
