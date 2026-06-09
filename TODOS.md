@@ -4,7 +4,7 @@
 
 ### RuntimeSceneFocusPanel 与共享拓扑收敛
 
-**Completed:** v0.4.5.0 (2026-06-08)
+**Completed:** v0.4.6.0 (2026-06-09)
 
 **What**: `/runtime/monitor` 已补充 `RuntimeSceneFocusPanel`，sandbox 与 trace 的完整设备拓扑已收敛到共享 `RuntimeSceneDeviceFlow`。
 
