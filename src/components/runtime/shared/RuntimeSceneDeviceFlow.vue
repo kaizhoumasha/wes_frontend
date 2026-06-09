@@ -307,24 +307,30 @@ function signalClass(device: RuntimeSceneDeviceNode): string {
 }
 
 .runtime-scene-device-flow__name {
+  min-width: 0;
   margin-top: 14px;
   color: var(--runtime-text-primary);
   font-size: 18px;
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .runtime-scene-device-flow__code {
+  min-width: 0;
   margin-top: 4px;
   color: var(--runtime-text-secondary);
   font-size: 12px;
   font-family: var(--font-mono);
+  overflow-wrap: anywhere;
 }
 
 .runtime-scene-device-flow__signal {
+  min-width: 0;
   margin-top: 12px;
   font-size: 13px;
   font-weight: 600;
   font-family: var(--font-mono);
+  overflow-wrap: anywhere;
 }
 
 .runtime-scene-device-flow__signal.is-danger {
