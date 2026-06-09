@@ -112,16 +112,16 @@ pnpm contract:test
 
 ## 技术栈关键约束
 
-| 技术栈           | 版本要求 | 说明                                      |
-| ---------------- | -------- | ----------------------------------------- |
-| **Node.js**      | 22+      | 推荐 22 LTS                               |
-| **pnpm**         | 10+      | 当前 packageManager 为 pnpm 10            |
-| **Vue**          | 3.5+     | 仅使用 Composition API + `<script setup>` |
-| **TypeScript**   | 5.9+     | 严格模式开启                              |
-| **Vite**         | 7.3+     | 当前版本，配置已优化                      |
-| **Element Plus** | 2.13+    | 企业级 UI 组件库                          |
-| **alova**        | 3.5+     | HTTP 客户端（非 axios）                   |
-| **Tailwind CSS** | 4.2+     | 原子化 CSS                                |
+| 技术栈           | 版本要求        | 说明                                      |
+| ---------------- | --------------- | ----------------------------------------- |
+| **Node.js**      | 20.19+ / 22.12+ | Vite 7 要求，推荐 22 LTS                  |
+| **pnpm**         | 10+             | 当前 packageManager 为 pnpm 10            |
+| **Vue**          | 3.5+            | 仅使用 Composition API + `<script setup>` |
+| **TypeScript**   | 5.9+            | 严格模式开启                              |
+| **Vite**         | 7.3+            | 当前版本，配置已优化                      |
+| **Element Plus** | 2.13+           | 企业级 UI 组件库                          |
+| **alova**        | 3.5+            | HTTP 客户端（非 axios）                   |
+| **Tailwind CSS** | 4.2+            | 原子化 CSS                                |
 
 ---
 
