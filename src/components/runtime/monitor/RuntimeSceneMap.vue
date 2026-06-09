@@ -18,7 +18,7 @@
         class="runtime-scene-map__count"
         data-test="runtime-scene-truncated"
       >
-        仅展示前 {{ model.resourceEvidence.length }} 条证据 / 共
+        仅展示前 {{ resourceEvidenceVisibleCount }} 条证据 / 共
         {{ model.resourceEvidenceTotalCount }} 条
       </div>
     </div>
@@ -31,128 +31,38 @@
       {{ model.semanticFallbackMessage }}
     </div>
 
-    <div
-      v-if="model.boundaries.length"
-      class="runtime-scene-map__boundaries"
-    >
-      <section
-        v-for="boundary in model.boundaries"
-        :key="boundary.key"
-        class="runtime-scene-map__boundary"
-        data-test="runtime-scene-boundary"
-      >
-        <div class="runtime-scene-map__boundary-top">
-          <span
-            class="runtime-scene-map__role"
-            data-test="runtime-scene-station-role"
-          >
-            {{ boundary.stationRole }}
-          </span>
-          <span class="runtime-scene-map__position">{{ boundary.positionCode }}</span>
-        </div>
-        <div class="runtime-scene-map__station">{{ boundary.stationCode }}</div>
-        <div class="runtime-scene-map__boundary-grid">
-          <span data-test="runtime-scene-station-lease">{{ boundary.stationLeaseLabel }}</span>
-          <span data-test="runtime-scene-rack-snapshot">{{ boundary.rackSnapshotLabel }}</span>
-          <span data-test="runtime-scene-rack-operation">
-            {{ boundary.rackOperationWaitLabel }}
-          </span>
-          <span data-test="runtime-scene-evidence-kind">
-            {{ boundary.resourceEvidenceKindLabel }}
-          </span>
-        </div>
-        <div class="runtime-scene-map__boundary-foot">
-          {{ boundary.rackKind }} · {{ boundary.evidenceCount }} 条结构化 evidence
-        </div>
-      </section>
-    </div>
-
-    <div class="runtime-scene-map__lane">
-      <button
-        v-for="device in model.deviceNodes"
-        :key="device.id"
-        type="button"
-        class="runtime-scene-map__device"
-        :class="{
-          'is-selected': selectedDeviceId === device.id,
-          'is-blocking': blockingDeviceId === device.id,
-          'has-runtime-hold': hasRuntimeHold(device),
-          'has-parked-outbox': device.blockedOutboxCount > 0
-        }"
-        data-test="runtime-scene-device"
-        @click="emit('selectDevice', device.id)"
-      >
-        <div class="runtime-scene-map__device-top">
-          <span class="runtime-scene-map__device-role">
-            {{ device.deviceRole }} #{{ device.roleIndex }}
-          </span>
-          <span
-            v-if="device.maintenanceMode"
-            class="runtime-scene-map__device-maintenance"
-          >
-            维护
-          </span>
-        </div>
-        <div class="runtime-scene-map__device-name">{{ device.deviceName }}</div>
-        <div class="runtime-scene-map__device-code">{{ device.deviceCode }}</div>
-        <div class="runtime-scene-map__device-status">{{ device.status }}</div>
-        <div
-          class="runtime-scene-map__device-signal"
-          :class="signalClass(device)"
-          data-test="runtime-scene-device-signal"
-        >
-          {{ signalText(device) }}
-        </div>
-        <div
-          v-if="device.openCommandCount > 0"
-          class="runtime-scene-map__device-badge"
-          data-test="runtime-scene-device-open-command"
-        >
-          {{ device.openCommandCount }} 未完成命令
-        </div>
-        <div
-          v-if="hasRuntimeHold(device)"
-          class="runtime-scene-map__device-badge is-danger"
-          data-test="runtime-scene-device-runtime-hold"
-        >
-          Runtime Hold {{ device.runtimeHoldCount }}
-        </div>
-        <div
-          v-if="device.blockedOutboxCount > 0"
-          class="runtime-scene-map__device-badge is-warning"
-          data-test="runtime-scene-device-parked-outbox"
-        >
-          {{ device.blockedOutboxCount }} 已停靠
-        </div>
-        <div
-          v-if="blockingDeviceId === device.id"
-          class="runtime-scene-map__device-badge is-danger"
-        >
-          BLOCKED
-        </div>
-      </button>
-    </div>
+    <RuntimeSceneDeviceFlow
+      :devices="model.deviceNodes"
+      :selected-device-id="selectedDeviceId"
+      :session-counts-by-device="sessionCountsByDevice"
+      :trace-path-nodes="tracePathNodes"
+      :blocking-device-id="blockingDeviceId"
+      @select="emit('selectDevice', $event)"
+    />
 
     <div
-      v-if="model.resourceEvidence.length"
-      class="runtime-scene-map__evidence"
+      v-if="model.positionGroups.length"
+      class="runtime-scene-map__layout"
     >
-      <div
-        v-for="item in model.resourceEvidence"
-        :key="getRuntimeSceneEvidenceKey(item)"
-        class="runtime-scene-map__evidence-item"
-        data-test="runtime-scene-evidence-item"
-      >
-        <div class="runtime-scene-map__evidence-main">
-          <span class="runtime-scene-map__resource-kind">{{ item.resourceKindLabel }}</span>
-          <span class="runtime-scene-map__resource-code">{{ item.resourceCode }}</span>
-        </div>
-        <div class="runtime-scene-map__evidence-meta">
-          {{ item.evidenceKindLabel }}
-          <template v-if="item.positionCode">· {{ item.positionCode }}</template>
-          <template v-if="item.sourceTraceId">· {{ item.sourceTraceId }}</template>
-        </div>
+      <div class="runtime-scene-map__positions">
+        <RuntimeScenePositionGroup
+          v-for="group in model.positionGroups"
+          :key="group.key"
+          :group="group"
+          :selected="selectedGroup?.key === group.key"
+          :selected-stack-key="selectedGroup?.key === group.key ? selectedStackKey : null"
+          @select-position="selectGroup(group)"
+          @select-stack="selectStack(group, $event)"
+        />
       </div>
+
+      <RuntimeSceneFocusPanel
+        :group="selectedGroup"
+        :stack="selectedStack"
+        :resource-evidence-truncated="model.resourceEvidenceTruncated"
+        :resource-evidence-visible-count="resourceEvidenceVisibleCount"
+        :resource-evidence-total-count="model.resourceEvidenceTotalCount"
+      />
     </div>
 
     <div
@@ -166,57 +76,111 @@
           : '暂无结构化资源证据'
       }}
     </div>
+
+    <details
+      v-if="model.unlocatedAuditItems.length"
+      class="runtime-scene-map__unlocated"
+      data-test="runtime-scene-unlocated-audit"
+    >
+      <summary class="runtime-scene-map__unlocated-summary">
+        未定位证据 {{ model.unlocatedAuditItems.length }}
+      </summary>
+      <div class="runtime-scene-map__unlocated-body">
+        <RuntimeSceneEvidencePanel
+          :items="model.unlocatedAuditItems"
+          :resource-evidence-truncated="model.resourceEvidenceTruncated"
+          :resource-evidence-visible-count="resourceEvidenceVisibleCount"
+          :resource-evidence-total-count="model.resourceEvidenceTotalCount"
+        />
+      </div>
+    </details>
   </div>
 </template>
 
 <script setup lang="ts">
-import {
-  getRuntimeSceneEvidenceKey,
-  type RuntimeSceneDeviceNode,
-  type RuntimeSceneModel
+import { computed, ref, watch } from 'vue'
+import RuntimeSceneDeviceFlow from '@/components/runtime/shared/RuntimeSceneDeviceFlow.vue'
+import RuntimeSceneEvidencePanel from './RuntimeSceneEvidencePanel.vue'
+import RuntimeSceneFocusPanel from './RuntimeSceneFocusPanel.vue'
+import RuntimeScenePositionGroup from './RuntimeScenePositionGroup.vue'
+import type { RuntimeTraceDevicePathNode } from '@/types/runtime'
+import type {
+  RuntimeSceneModel,
+  RuntimeScenePositionGroup as PositionGroup
 } from '@/utils/runtime-scene'
 
-const props = defineProps<{
-  model: RuntimeSceneModel
-  selectedDeviceId?: number | null
-  sessionCountsByDevice?: Map<number, number> | Record<number, number>
-  blockingDeviceId?: number | null
-}>()
+const props = withDefaults(
+  defineProps<{
+    model: RuntimeSceneModel
+    selectedDeviceId?: number | null
+    sessionCountsByDevice?: Map<number, number> | Record<number, number>
+    tracePathNodes?: RuntimeTraceDevicePathNode[]
+    blockingDeviceId?: number | null
+  }>(),
+  {
+    selectedDeviceId: null,
+    sessionCountsByDevice: undefined,
+    tracePathNodes: () => [],
+    blockingDeviceId: null
+  }
+)
 
 const emit = defineEmits<{
   selectDevice: [deviceId: number]
 }>()
 
-function getSessionCount(deviceId: number): number {
-  const map = props.sessionCountsByDevice
-  if (!map) return 0
-  if (map instanceof Map) return map.get(deviceId) ?? 0
-  return map[deviceId] ?? 0
+const selectedPositionKey = ref<string | null>(null)
+const selectedStackKey = ref<string | null>(null)
+
+const resourceEvidenceVisibleCount = computed(() => props.model.resourceEvidence.length)
+
+const selectedGroup = computed(
+  () => props.model.positionGroups.find(group => group.key === selectedPositionKey.value) ?? null
+)
+
+const selectedStack = computed(
+  () =>
+    selectedGroup.value?.resourceStacks.find(stack => stack.key === selectedStackKey.value) ?? null
+)
+
+function getDefaultGroup(groups: PositionGroup[]): PositionGroup | null {
+  return (
+    groups.find(
+      group => group.attentionState === 'blocked' || group.attentionState === 'waiting'
+    ) ??
+    groups.find(group => group.resourceStacks.length > 0) ??
+    groups[0] ??
+    null
+  )
 }
 
-function hasRuntimeHold(device: RuntimeSceneDeviceNode): boolean {
-  return device.runtimeHoldCount > 0
+function syncSelection(): void {
+  const groups = props.model.positionGroups
+  const currentGroup = groups.find(group => group.key === selectedPositionKey.value)
+  const nextGroup = currentGroup ?? getDefaultGroup(groups)
+
+  selectedPositionKey.value = nextGroup?.key ?? null
+
+  if (!nextGroup) {
+    selectedStackKey.value = null
+    return
+  }
+
+  const currentStack = nextGroup.resourceStacks.find(stack => stack.key === selectedStackKey.value)
+  selectedStackKey.value = currentStack?.key ?? nextGroup.resourceStacks[0]?.key ?? null
 }
 
-function signalText(device: RuntimeSceneDeviceNode): string {
-  if (device.errorCode) return `ERROR: ${device.errorCode}`
-  if (hasRuntimeHold(device)) return '异常待处置'
-  if (device.blockedOutboxCount > 0) return '等待设备空闲'
-  const sessionCount = getSessionCount(device.id)
-  if (sessionCount > 0) return `${sessionCount}条等待`
-  if (device.currentCommandId) return '执行中'
-  return '空闲'
+function selectGroup(group: PositionGroup): void {
+  selectedPositionKey.value = group.key
+  selectedStackKey.value = group.resourceStacks[0]?.key ?? null
 }
 
-function signalClass(device: RuntimeSceneDeviceNode): string {
-  if (device.errorCode) return 'is-danger'
-  if (hasRuntimeHold(device)) return 'is-danger'
-  if (device.blockedOutboxCount > 0) return 'is-warning'
-  const sessionCount = getSessionCount(device.id)
-  if (sessionCount > 0) return 'is-warning'
-  if (device.currentCommandId) return 'is-primary'
-  return 'is-idle'
+function selectStack(group: PositionGroup, stackKey: string): void {
+  selectedPositionKey.value = group.key
+  selectedStackKey.value = stackKey
 }
+
+watch(() => props.model.positionGroups, syncSelection, { immediate: true, deep: true })
 </script>
 
 <style scoped>
@@ -235,17 +199,15 @@ function signalClass(device: RuntimeSceneDeviceNode): string {
 }
 
 .runtime-scene-map__title {
+  color: var(--runtime-text);
   font-size: 16px;
   font-weight: 700;
-  color: var(--runtime-text);
 }
 
-.runtime-scene-map__meta,
-.runtime-scene-map__boundary-foot,
-.runtime-scene-map__evidence-meta {
+.runtime-scene-map__meta {
   margin-top: 4px;
-  font-size: 12px;
   color: var(--runtime-text-muted);
+  font-size: 12px;
 }
 
 .runtime-scene-map__count {
@@ -268,222 +230,54 @@ function signalClass(device: RuntimeSceneDeviceNode): string {
   font-weight: 600;
 }
 
-.runtime-scene-map__boundaries {
+.runtime-scene-map__layout {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: minmax(280px, 1fr) minmax(300px, 0.9fr);
   gap: 12px;
-}
-
-.runtime-scene-map__boundary {
+  align-items: start;
   min-width: 0;
-  padding: 12px;
-  border: 1px solid rgb(15, 23, 42, 0.1);
-  border-radius: 8px;
-  background: rgb(255, 255, 255, 0.72);
 }
 
-.runtime-scene-map__boundary-top,
-.runtime-scene-map__evidence-main {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.runtime-scene-map__role,
-.runtime-scene-map__resource-kind {
-  font-size: 12px;
-  font-weight: 700;
-  color: rgb(15, 23, 42);
-}
-
-.runtime-scene-map__position,
-.runtime-scene-map__resource-code {
-  min-width: 0;
-  overflow-wrap: anywhere;
-  font-size: 12px;
-  color: rgb(71, 85, 105);
-}
-
-.runtime-scene-map__station {
-  margin-top: 8px;
-  overflow-wrap: anywhere;
-  font-size: 14px;
-  font-weight: 700;
-  color: rgb(30, 41, 59);
-}
-
-.runtime-scene-map__boundary-grid {
+.runtime-scene-map__positions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
-  margin-top: 10px;
-}
-
-.runtime-scene-map__boundary-grid span {
-  min-width: 0;
-  padding: 5px 6px;
-  border-radius: 6px;
-  background: rgb(248, 250, 252);
-  color: rgb(51, 65, 85);
-  font-size: 11px;
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-
-.runtime-scene-map__lane {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
   gap: 10px;
-  padding-bottom: 4px;
-}
-
-.runtime-scene-map__device {
   min-width: 0;
-  min-height: 96px;
-  padding: 10px;
-  border: 1px solid rgb(59, 130, 246, 0.16);
-  border-radius: 8px;
-  background: rgb(248, 250, 252);
-  text-align: left;
-  cursor: pointer;
-}
-
-.runtime-scene-map__device:hover {
-  border-color: rgb(59, 130, 246, 0.36);
-}
-
-.runtime-scene-map__device.is-selected {
-  border-color: rgb(59, 130, 246, 0.62);
-  background: rgb(239, 246, 255);
-  box-shadow: 0 0 0 2px rgb(59, 130, 246, 0.12);
-}
-
-.runtime-scene-map__device.is-blocking {
-  border-color: rgb(239, 68, 68, 0.52);
-}
-
-.runtime-scene-map__device.has-runtime-hold {
-  border-color: rgb(239, 68, 68, 0.52);
-}
-
-.runtime-scene-map__device.has-parked-outbox {
-  border-color: rgb(245, 158, 11, 0.48);
-}
-
-.runtime-scene-map__device-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.runtime-scene-map__device-role,
-.runtime-scene-map__device-status {
-  min-width: 0;
-  overflow-wrap: anywhere;
-  font-size: 11px;
-  font-weight: 700;
-  color: rgb(37, 99, 235);
-}
-
-.runtime-scene-map__device-maintenance {
-  flex: 0 0 auto;
-  padding: 2px 5px;
-  border-radius: 6px;
-  background: rgb(245, 158, 11, 0.12);
-  color: rgb(146, 64, 14);
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.runtime-scene-map__device-name {
-  margin-top: 8px;
-  overflow-wrap: anywhere;
-  font-size: 13px;
-  font-weight: 700;
-  color: rgb(15, 23, 42);
-}
-
-.runtime-scene-map__device-code {
-  margin-top: 4px;
-  overflow-wrap: anywhere;
-  font-size: 12px;
-  color: rgb(71, 85, 105);
-}
-
-.runtime-scene-map__device-status {
-  margin-top: 10px;
-  color: rgb(71, 85, 105);
-}
-
-.runtime-scene-map__device-signal {
-  display: inline-flex;
-  margin-top: 8px;
-  padding: 3px 6px;
-  border-radius: 6px;
-  background: rgb(226, 232, 240, 0.75);
-  color: rgb(51, 65, 85);
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.runtime-scene-map__device-signal.is-danger {
-  background: rgb(239, 68, 68, 0.12);
-  color: rgb(153, 27, 27);
-}
-
-.runtime-scene-map__device-signal.is-warning {
-  background: rgb(245, 158, 11, 0.12);
-  color: rgb(146, 64, 14);
-}
-
-.runtime-scene-map__device-signal.is-primary {
-  background: rgb(59, 130, 246, 0.12);
-  color: rgb(29, 78, 216);
-}
-
-.runtime-scene-map__device-badge {
-  display: inline-flex;
-  margin-top: 8px;
-  margin-right: 6px;
-  padding: 3px 6px;
-  border-radius: 6px;
-  background: rgb(245, 158, 11, 0.12);
-  color: rgb(146, 64, 14);
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.runtime-scene-map__device-badge.is-danger {
-  background: rgb(239, 68, 68, 0.12);
-  color: rgb(153, 27, 27);
-}
-
-.runtime-scene-map__device-badge.is-warning {
-  background: rgb(245, 158, 11, 0.12);
-  color: rgb(146, 64, 14);
-}
-
-.runtime-scene-map__evidence {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 8px;
-}
-
-.runtime-scene-map__evidence-item {
-  min-width: 0;
-  padding: 9px 10px;
-  border: 1px solid rgb(15, 23, 42, 0.08);
-  border-radius: 8px;
-  background: rgb(255, 255, 255, 0.78);
 }
 
 .runtime-scene-map__empty {
   padding: 18px;
-  border: 1px dashed rgb(148, 163, 184, 0.5);
+  border: 1px dashed var(--runtime-border-subtle, rgb(148, 163, 184, 0.5));
   border-radius: 8px;
   color: var(--runtime-text-muted);
   text-align: center;
+}
+
+.runtime-scene-map__unlocated {
+  min-width: 0;
+  border: 1px solid var(--runtime-border-subtle, rgb(148, 163, 184, 0.2));
+  border-radius: 8px;
+  background: var(--runtime-surface);
+}
+
+.runtime-scene-map__unlocated-summary {
+  padding: 10px 12px;
+  color: var(--runtime-text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.runtime-scene-map__unlocated-body {
+  padding: 0 12px 12px;
+}
+
+@media (width <= 768px) {
+  .runtime-scene-map__header {
+    flex-direction: column;
+  }
+
+  .runtime-scene-map__layout {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

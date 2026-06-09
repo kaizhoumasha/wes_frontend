@@ -106,9 +106,9 @@
       class="trace-topology-summary__topology-detail"
     >
       <summary>完整设备拓扑</summary>
-      <WorklineRouteMap
+      <RuntimeSceneDeviceFlow
         class="trace-topology-summary__route-map"
-        :devices="worklineDevices"
+        :devices="worklineDeviceNodes"
         :selected-device-id="selectedDeviceId"
         :trace-path-nodes="path?.devices ?? []"
         :blocking-device-id="path?.current_blocking_device_id ?? null"
@@ -146,7 +146,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
-import WorklineRouteMap from '@/components/runtime/monitor/WorklineRouteMap.vue'
+import RuntimeSceneDeviceFlow from '@/components/runtime/shared/RuntimeSceneDeviceFlow.vue'
 import type {
   DiagnosisEvidenceHealthItemState,
   RuntimeTracePathResponse,
@@ -159,6 +159,7 @@ import {
   type RuntimeTraceTopologyNodeState
 } from '@/utils/runtime-trace-topology'
 import { displayCase, displayTrace } from '@/utils/runtime-display-identity'
+import { toRuntimeSceneDeviceNode } from '@/utils/runtime-scene'
 
 const props = withDefaults(
   defineProps<{
@@ -205,6 +206,7 @@ const anchorText = computed(() =>
 )
 
 const worklineDevices = computed(() => props.worklineDetail?.devices ?? [])
+const worklineDeviceNodes = computed(() => worklineDevices.value.map(toRuntimeSceneDeviceNode))
 
 const evidenceAttentionItems = computed(() =>
   model.value.evidenceHealth.filter(item => item.state === 'missing')
@@ -442,12 +444,12 @@ function evidenceStateLabel(state: DiagnosisEvidenceHealthItemState): string {
   margin-top: 12px;
 }
 
-.trace-topology-summary__route-map :deep(.workline-route-map__node) {
+.trace-topology-summary__route-map :deep(.runtime-scene-device-flow__device) {
   min-width: 150px;
 }
 
-.trace-topology-summary__route-map :deep(.workline-route-map__role),
-.trace-topology-summary__route-map :deep(.workline-route-map__code) {
+.trace-topology-summary__route-map :deep(.runtime-scene-device-flow__role),
+.trace-topology-summary__route-map :deep(.runtime-scene-device-flow__code) {
   max-width: 100%;
   overflow-wrap: anywhere;
 }

@@ -1,7 +1,8 @@
 <template>
   <div
-    class="workline-route-map"
+    class="runtime-scene-device-flow"
     :class="{ 'is-compact': compact }"
+    data-test="runtime-scene-device-flow"
   >
     <template
       v-for="(device, index) in devices"
@@ -9,9 +10,9 @@
     >
       <button
         type="button"
-        class="workline-route-map__node"
+        class="runtime-scene-device-flow__device"
         :class="[
-          statusClass(device.device_status),
+          statusClass(device.status),
           {
             'is-selected': selectedDeviceId === device.id,
             'is-traced': tracePathNodes.length > 0 && isTraced(device.id),
@@ -21,88 +22,92 @@
             'is-dimmed': tracePathNodes.length > 0 && !isTraced(device.id)
           }
         ]"
+        data-test="runtime-scene-device"
         @click="handleClick(device.id)"
         @dblclick="emit('sendEvent', device.id)"
         @contextmenu.prevent="handleContextMenu($event, device.id)"
       >
-        <div class="workline-route-map__node-top">
+        <div class="runtime-scene-device-flow__device-top">
           <RuntimeStatusBadge
-            :status="device.device_status"
+            :status="device.status"
             size="small"
           />
-          <span class="workline-route-map__role">
-            {{ device.device_role }} · #{{ device.role_index }}
+          <span class="runtime-scene-device-flow__role">
+            {{ device.deviceRole }} · #{{ device.roleIndex }}
           </span>
           <span
-            v-if="device.maintenance_mode"
-            class="workline-route-map__maintenance"
+            v-if="device.maintenanceMode"
+            class="runtime-scene-device-flow__maintenance"
           >
             维护
           </span>
         </div>
-        <div class="workline-route-map__name">{{ device.device_name }}</div>
-        <div class="workline-route-map__code">{{ device.device_code }}</div>
+        <div class="runtime-scene-device-flow__name">{{ device.deviceName }}</div>
+        <div class="runtime-scene-device-flow__code">{{ device.deviceCode }}</div>
         <div
-          class="workline-route-map__signal"
+          class="runtime-scene-device-flow__signal"
           :class="signalClass(device)"
         >
           {{ signalText(device) }}
         </div>
         <div
-          v-if="getDeviceOpenCommandCount(device) > 0"
-          class="workline-route-map__open-command-badge"
+          v-if="device.openCommandCount > 0"
+          class="runtime-scene-device-flow__open-command-badge"
+          data-test="runtime-scene-device-open-command"
         >
-          {{ getDeviceOpenCommandCount(device) }} 未完成命令
+          {{ device.openCommandCount }} 未完成命令
         </div>
         <div
           v-if="hasRuntimeHold(device)"
-          class="workline-route-map__hold-badge"
+          class="runtime-scene-device-flow__hold-badge"
+          data-test="runtime-scene-device-runtime-hold"
         >
-          Runtime Hold {{ getRuntimeHoldCount(device) }}
+          Runtime Hold {{ device.runtimeHoldCount }}
         </div>
         <div
           v-if="getBlockedOutboxCount(device) > 0"
-          class="workline-route-map__parked-badge"
+          class="runtime-scene-device-flow__parked-badge"
+          data-test="runtime-scene-device-parked-outbox"
         >
           {{ getBlockedOutboxCount(device) }} 已停靠
         </div>
         <div
           v-if="isTraced(device.id) && traceActionsFor(device.id).length"
-          class="workline-route-map__trace-actions"
+          class="runtime-scene-device-flow__trace-actions"
         >
           <span
             v-for="(action, idx) in traceActionsFor(device.id).slice(0, 3)"
             :key="idx"
-            class="workline-route-map__trace-action"
+            class="runtime-scene-device-flow__trace-action"
           >
             {{ action.label }}
           </span>
           <span
             v-if="traceActionsFor(device.id).length > 3"
-            class="workline-route-map__trace-more"
+            class="runtime-scene-device-flow__trace-more"
           >
             +{{ traceActionsFor(device.id).length - 3 }}
           </span>
         </div>
         <div
           v-if="isBlocking(device.id)"
-          class="workline-route-map__blocking-badge"
+          class="runtime-scene-device-flow__blocking-badge"
         >
           BLOCKED
         </div>
       </button>
       <div
         v-if="index < devices.length - 1"
-        class="workline-route-map__edge"
+        class="runtime-scene-device-flow__edge"
       >
-        <span class="workline-route-map__edge-line" />
-        <span class="workline-route-map__edge-arrow">→</span>
+        <span class="runtime-scene-device-flow__edge-line" />
+        <span class="runtime-scene-device-flow__edge-arrow">→</span>
       </div>
     </template>
 
     <div
       v-if="!devices.length"
-      class="workline-route-map__empty"
+      class="runtime-scene-device-flow__empty"
     >
       暂无设备拓扑数据
     </div>
@@ -112,23 +117,18 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
-import type {
-  RuntimeTraceDeviceAction,
-  RuntimeTraceDevicePathNode,
-  RuntimeWorklineDeviceItem
-} from '@/types/runtime'
+import type { RuntimeTraceDeviceAction, RuntimeTraceDevicePathNode } from '@/types/runtime'
 import { resolveRuntimeTone } from '@/utils/runtime-display'
+import type { RuntimeSceneDeviceNode } from '@/utils/runtime-scene'
 
 const props = withDefaults(
   defineProps<{
-    devices?: RuntimeWorklineDeviceItem[]
+    devices?: RuntimeSceneDeviceNode[]
     selectedDeviceId?: number | null
     sessionCountsByDevice?: Map<number, number> | Record<number, number>
     tracePathNodes?: RuntimeTraceDevicePathNode[]
     blockingDeviceId?: number | null
     compact?: boolean
-    openCommandCountsByDevice?: Map<number, number> | Record<number, number>
-    showQuickActions?: boolean
   }>(),
   {
     devices: () => [],
@@ -136,55 +136,40 @@ const props = withDefaults(
     sessionCountsByDevice: undefined,
     tracePathNodes: () => [],
     blockingDeviceId: null,
-    compact: false,
-    openCommandCountsByDevice: undefined,
-    showQuickActions: false
+    compact: false
   }
 )
 
 const emit = defineEmits<{
   select: [deviceId: number]
   sendEvent: [deviceId: number]
-  viewOutbox: [deviceId: number]
   showContextMenu: [payload: { deviceId: number; x: number; y: number }]
 }>()
 
 const tracedDeviceIds = computed(() => new Set(props.tracePathNodes.map(n => n.device_id)))
 
-function isTraced(deviceId: number) {
+function isTraced(deviceId: number): boolean {
   return tracedDeviceIds.value.has(deviceId)
 }
 
-function getDeviceOpenCommandCount(device: RuntimeWorklineDeviceItem): number {
-  const map = props.openCommandCountsByDevice
-  if (map instanceof Map) return map.get(device.id) ?? 0
-  if (map) return map[device.id] ?? 0
-  return device.open_command_count ?? device.pending_command_count ?? 0
+function getBlockedOutboxCount(device: RuntimeSceneDeviceNode): number {
+  return device.blockedOutboxCount
 }
 
-function getBlockedOutboxCount(device: RuntimeWorklineDeviceItem): number {
-  return device.blocked_outbox_count ?? 0
+function hasRuntimeHold(device: RuntimeSceneDeviceNode): boolean {
+  return device.runtimeHoldCount > 0
 }
 
-function getRuntimeHoldCount(device: RuntimeWorklineDeviceItem): number {
-  return device.active_runtime_hold_ids?.length || device.open_issue_count || 0
-}
-
-function hasRuntimeHold(device: RuntimeWorklineDeviceItem): boolean {
-  return getRuntimeHoldCount(device) > 0
-}
-
-function handleClick(deviceId: number) {
+function handleClick(deviceId: number): void {
   emit('select', deviceId)
 }
 
-function handleContextMenu(event: MouseEvent, deviceId: number) {
-  // 选中设备并显示右键菜单
+function handleContextMenu(event: MouseEvent, deviceId: number): void {
   emit('select', deviceId)
   emit('showContextMenu', { deviceId, x: event.clientX, y: event.clientY })
 }
 
-function isBlocking(deviceId: number) {
+function isBlocking(deviceId: number): boolean {
   return props.blockingDeviceId === deviceId
 }
 
@@ -196,7 +181,7 @@ function traceActionsFor(deviceId: number): RuntimeTraceDeviceAction[] {
   return traceNodeFor(deviceId)?.actions ?? []
 }
 
-function statusClass(status: string) {
+function statusClass(status: string): string {
   return `is-${resolveRuntimeTone(status)}`
 }
 
@@ -207,29 +192,29 @@ function getSessionCount(deviceId: number): number {
   return map[deviceId] ?? 0
 }
 
-function signalText(device: RuntimeWorklineDeviceItem): string {
-  if (device.error_code) return `ERROR: ${device.error_code}`
+function signalText(device: RuntimeSceneDeviceNode): string {
+  if (device.errorCode) return `ERROR: ${device.errorCode}`
   if (hasRuntimeHold(device)) return '异常待处置'
-  if (getBlockedOutboxCount(device) > 0) return '等待设备空闲'
   const sessionCount = getSessionCount(device.id)
   if (sessionCount > 0) return `${sessionCount}条等待`
-  if (device.current_command_id) return '执行中'
+  if (getBlockedOutboxCount(device) > 0) return '等待设备空闲'
+  if (device.currentCommandId) return '执行中'
   return '空闲'
 }
 
-function signalClass(device: RuntimeWorklineDeviceItem): string {
-  if (device.error_code) return 'is-danger'
+function signalClass(device: RuntimeSceneDeviceNode): string {
+  if (device.errorCode) return 'is-danger'
   if (hasRuntimeHold(device)) return 'is-danger'
-  if (getBlockedOutboxCount(device) > 0) return 'is-warning'
   const sessionCount = getSessionCount(device.id)
   if (sessionCount > 0) return 'is-warning'
-  if (device.current_command_id) return 'is-primary'
+  if (getBlockedOutboxCount(device) > 0) return 'is-warning'
+  if (device.currentCommandId) return 'is-primary'
   return 'is-idle'
 }
 </script>
 
 <style scoped>
-.workline-route-map {
+.runtime-scene-device-flow {
   display: flex;
   align-items: stretch;
   gap: 14px;
@@ -237,80 +222,79 @@ function signalClass(device: RuntimeWorklineDeviceItem): string {
   padding-bottom: 8px;
 }
 
-.workline-route-map__node {
+.runtime-scene-device-flow__device {
   min-width: 240px;
   min-height: 120px;
   padding: 18px;
   border: 1px solid rgb(245, 158, 11, 0.16);
-  border-radius: 16px;
+  border-radius: 8px;
   background: var(--runtime-surface);
   text-align: left;
   cursor: pointer;
   transition:
     transform 150ms ease-out,
     border-color 150ms ease-out,
-    background 150ms ease-out,
-    min-height 150ms ease-out;
+    background 150ms ease-out;
 }
 
-.workline-route-map__node:hover {
+.runtime-scene-device-flow__device:hover {
   transform: translateY(-2px);
   border-color: rgb(245, 158, 11, 0.3);
 }
 
-.workline-route-map__node.is-selected {
+.runtime-scene-device-flow__device.is-selected {
   box-shadow: inset 0 0 0 1px rgb(245, 158, 11, 0.34);
 }
 
-.workline-route-map__node.is-dimmed {
+.runtime-scene-device-flow__device.is-dimmed {
   opacity: 0.35;
 }
 
-.workline-route-map__node.is-traced {
+.runtime-scene-device-flow__device.is-traced {
   border-color: rgb(59, 130, 246, 0.4);
 }
 
-.workline-route-map__node.is-blocking {
+.runtime-scene-device-flow__device.is-blocking {
   border-color: rgb(220, 38, 38, 0.6);
   box-shadow: 0 0 12px rgb(220, 38, 38, 0.2);
 }
 
-.workline-route-map__node.has-runtime-hold {
+.runtime-scene-device-flow__device.has-runtime-hold {
   border-color: rgb(239, 68, 68, 0.52);
 }
 
-.workline-route-map__node.has-parked-outbox {
+.runtime-scene-device-flow__device.has-parked-outbox {
   box-shadow: inset 0 0 0 1px rgb(245, 158, 11, 0.18);
 }
 
-.workline-route-map__node.is-danger {
+.runtime-scene-device-flow__device.is-danger {
   border-color: rgb(220, 38, 38, 0.4);
 }
 
-.workline-route-map__node.is-warning {
+.runtime-scene-device-flow__device.is-warning {
   border-color: rgb(234, 179, 8, 0.36);
 }
 
-.workline-route-map__node.is-success {
+.runtime-scene-device-flow__device.is-success {
   border-color: rgb(22, 163, 74, 0.28);
 }
 
-.workline-route-map__node.is-primary {
+.runtime-scene-device-flow__device.is-primary {
   border-color: rgb(59, 130, 246, 0.32);
 }
 
-.workline-route-map__node-top {
+.runtime-scene-device-flow__device-top {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.workline-route-map__role {
+.runtime-scene-device-flow__role {
   color: var(--runtime-text-secondary);
   font-size: 12px;
 }
 
-.workline-route-map__maintenance {
+.runtime-scene-device-flow__maintenance {
   margin-left: auto;
   padding: 2px 6px;
   border-radius: 4px;
@@ -322,68 +306,85 @@ function signalClass(device: RuntimeWorklineDeviceItem): string {
   text-transform: uppercase;
 }
 
-.workline-route-map__name {
+.runtime-scene-device-flow__name {
+  min-width: 0;
   margin-top: 14px;
   color: var(--runtime-text-primary);
   font-size: 18px;
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
-.workline-route-map__code {
+.runtime-scene-device-flow__code {
+  min-width: 0;
   margin-top: 4px;
   color: var(--runtime-text-secondary);
   font-size: 12px;
   font-family: var(--font-mono);
+  overflow-wrap: anywhere;
 }
 
-.workline-route-map__signal {
+.runtime-scene-device-flow__signal {
+  min-width: 0;
   margin-top: 12px;
   font-size: 13px;
   font-weight: 600;
   font-family: var(--font-mono);
+  overflow-wrap: anywhere;
 }
 
-.workline-route-map__signal.is-danger {
+.runtime-scene-device-flow__signal.is-danger {
   color: #dc2626;
 }
 
-.workline-route-map__signal.is-warning {
+.runtime-scene-device-flow__signal.is-warning {
   color: #d97706;
 }
 
-.workline-route-map__signal.is-idle {
+.runtime-scene-device-flow__signal.is-primary {
+  color: #2563eb;
+}
+
+.runtime-scene-device-flow__signal.is-idle {
   color: var(--runtime-text-muted);
 }
 
-.workline-route-map__edge {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-width: 36px;
+.runtime-scene-device-flow__open-command-badge,
+.runtime-scene-device-flow__hold-badge,
+.runtime-scene-device-flow__parked-badge {
+  margin-top: 8px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
 }
 
-.workline-route-map__edge-line {
-  width: 36px;
-  height: 2px;
-  background: linear-gradient(90deg, rgb(245, 158, 11, 0.18), rgb(245, 158, 11, 0.88));
+.runtime-scene-device-flow__open-command-badge {
+  background: rgb(245, 158, 11, 0.15);
+  color: #fbbf24;
 }
 
-.workline-route-map__edge-arrow {
-  color: #f59e0b;
-  font-family: var(--font-mono);
-  font-size: 12px;
+.runtime-scene-device-flow__hold-badge {
+  border: 1px solid rgb(239, 68, 68, 0.3);
+  background: rgb(239, 68, 68, 0.14);
+  color: #fca5a5;
 }
 
-.workline-route-map__trace-actions {
+.runtime-scene-device-flow__parked-badge {
+  border: 1px solid rgb(245, 158, 11, 0.28);
+  background: rgb(245, 158, 11, 0.1);
+  color: #fde68a;
+}
+
+.runtime-scene-device-flow__trace-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
   margin-top: 8px;
 }
 
-.workline-route-map__trace-action {
+.runtime-scene-device-flow__trace-action {
   padding: 1px 5px;
   border-radius: 3px;
   background: var(--runtime-badge-info-bg);
@@ -394,13 +395,13 @@ function signalClass(device: RuntimeWorklineDeviceItem): string {
   letter-spacing: 0.03em;
 }
 
-.workline-route-map__trace-more {
+.runtime-scene-device-flow__trace-more {
   color: var(--runtime-text-muted);
   font-size: 9px;
   font-family: var(--font-mono);
 }
 
-.workline-route-map__blocking-badge {
+.runtime-scene-device-flow__blocking-badge {
   margin-top: 8px;
   padding: 2px 8px;
   border-radius: 4px;
@@ -412,7 +413,28 @@ function signalClass(device: RuntimeWorklineDeviceItem): string {
   text-align: center;
 }
 
-.workline-route-map__empty {
+.runtime-scene-device-flow__edge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 36px;
+}
+
+.runtime-scene-device-flow__edge-line {
+  width: 36px;
+  height: 2px;
+  background: linear-gradient(90deg, rgb(245, 158, 11, 0.18), rgb(245, 158, 11, 0.88));
+}
+
+.runtime-scene-device-flow__edge-arrow {
+  color: #f59e0b;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.runtime-scene-device-flow__empty {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -422,107 +444,50 @@ function signalClass(device: RuntimeWorklineDeviceItem): string {
   font-size: 13px;
 }
 
-/* 紧凑模式 */
-.workline-route-map.is-compact {
+.runtime-scene-device-flow.is-compact {
   gap: 8px;
 }
 
-.workline-route-map.is-compact .workline-route-map__node {
+.runtime-scene-device-flow.is-compact .runtime-scene-device-flow__device {
   min-width: 100px;
   min-height: 80px;
   padding: 10px;
-  border-radius: 8px;
 }
 
-.workline-route-map.is-compact .workline-route-map__node-top {
+.runtime-scene-device-flow.is-compact .runtime-scene-device-flow__device-top {
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.workline-route-map.is-compact .workline-route-map__role {
-  font-size: 10px;
+.runtime-scene-device-flow.is-compact .runtime-scene-device-flow__role {
   order: 1;
   width: 100%;
+  font-size: 10px;
 }
 
-.workline-route-map.is-compact .workline-route-map__maintenance {
+.runtime-scene-device-flow.is-compact .runtime-scene-device-flow__maintenance {
   order: 0;
 }
 
-.workline-route-map.is-compact .workline-route-map__name {
+.runtime-scene-device-flow.is-compact .runtime-scene-device-flow__name {
   margin-top: 6px;
   font-size: 13px;
 }
 
-.workline-route-map.is-compact .workline-route-map__code {
+.runtime-scene-device-flow.is-compact .runtime-scene-device-flow__code {
   font-size: 10px;
 }
 
-.workline-route-map.is-compact .workline-route-map__signal {
-  font-size: 10px;
+.runtime-scene-device-flow.is-compact .runtime-scene-device-flow__signal {
   padding: 3px 0;
+  font-size: 10px;
 }
 
-.workline-route-map.is-compact .workline-route-map__edge {
+.runtime-scene-device-flow.is-compact .runtime-scene-device-flow__edge {
   gap: 8px;
 }
 
-.workline-route-map.is-compact .workline-route-map__edge-line {
+.runtime-scene-device-flow.is-compact .runtime-scene-device-flow__edge-line {
   width: 20px;
-}
-
-.workline-route-map__open-command-badge,
-.workline-route-map__hold-badge,
-.workline-route-map__parked-badge {
-  margin-top: 8px;
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  text-align: center;
-}
-
-.workline-route-map__open-command-badge {
-  background: rgb(245, 158, 11, 0.15);
-  color: #fbbf24;
-}
-
-.workline-route-map__hold-badge {
-  border: 1px solid rgb(239, 68, 68, 0.3);
-  background: rgb(239, 68, 68, 0.14);
-  color: #fca5a5;
-}
-
-.workline-route-map__parked-badge {
-  border: 1px solid rgb(245, 158, 11, 0.28);
-  background: rgb(245, 158, 11, 0.1);
-  color: #fde68a;
-}
-
-/* Quick Actions */
-.workline-route-map__quick-actions {
-  display: flex;
-  gap: 6px;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--runtime-badge-info-border);
-}
-
-.workline-route-map__quick-action {
-  flex: 1;
-  padding: 6px 8px;
-  border: 1px solid var(--runtime-badge-info-border);
-  border-radius: 6px;
-  background: var(--runtime-badge-info-bg);
-  color: var(--runtime-badge-info-text);
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.workline-route-map__quick-action:hover {
-  background: rgb(6, 182, 212, 0.2);
-  border-color: rgb(6, 182, 212, 0.5);
 }
 </style>

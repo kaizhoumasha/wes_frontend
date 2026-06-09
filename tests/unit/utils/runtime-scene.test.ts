@@ -166,6 +166,258 @@ describe('buildRuntimeSceneModel', () => {
     )
   })
 
+  it('groups structured evidence by position, stack anchor, and child resources', () => {
+    const model = buildRuntimeSceneModel({
+      detail: createDetail({
+        resource_evidence_total_count: 7,
+        resource_evidence_truncated: true,
+        resource_evidence_items: [
+          {
+            resource_kind: 'RACK',
+            resource_code: 'RACK-001',
+            display_label: 'Rack RACK-001',
+            evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001'
+          },
+          {
+            resource_kind: 'BIN',
+            resource_code: 'BIN-001',
+            display_label: 'Bin BIN-001',
+            evidence_kind: 'WMS_CALLBACK_EVIDENCE',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001',
+            bin_code: 'BIN-001'
+          },
+          {
+            resource_kind: 'SLOT',
+            resource_code: 'SLOT-A1',
+            display_label: 'Slot SLOT-A1',
+            evidence_kind: 'TRACE_RESOURCE_EVIDENCE',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001',
+            bin_code: 'BIN-001',
+            slot_code: 'SLOT-A1'
+          },
+          {
+            resource_kind: 'CELL',
+            resource_code: 'CELL-A1',
+            display_label: 'Cell CELL-A1',
+            evidence_kind: 'TRACE_RESOURCE_EVIDENCE',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001',
+            bin_code: 'BIN-001'
+          },
+          {
+            resource_kind: 'PKG',
+            resource_code: 'PKG-001',
+            display_label: 'PKG PKG-001',
+            evidence_kind: 'WMS_CALLBACK_EVIDENCE',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001',
+            bin_code: 'BIN-001',
+            pkg_code: 'PKG-001'
+          },
+          {
+            resource_kind: 'PART_SN',
+            resource_code: 'PART-001',
+            display_label: 'Part SN PART-001',
+            evidence_kind: 'TRACE_RESOURCE_EVIDENCE',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001',
+            bin_code: 'BIN-001',
+            part_sn: 'PART-001'
+          },
+          {
+            resource_kind: 'PKG',
+            resource_code: 'PKG-UNLOCATED',
+            display_label: 'PKG PKG-UNLOCATED',
+            evidence_kind: 'GENERIC_EVIDENCE',
+            source_trace_id: 'trace-unlocated'
+          }
+        ]
+      }),
+      manifest
+    })
+
+    expect(model.resourceEvidence).toHaveLength(7)
+    expect(model.resourceEvidenceTotalCount).toBe(7)
+    expect(model.resourceEvidenceTruncated).toBe(true)
+    expect(model.unlocatedAuditItems.map(item => item.resourceCode)).toEqual(['PKG-UNLOCATED'])
+    expect(model.positionGroups).toHaveLength(1)
+    expect(model.positionGroups[0]).toEqual(
+      expect.objectContaining({
+        stationCode: 'TARGET_ARM',
+        positionCode: 'SINGLE_LAYER_A',
+        attentionState: 'waiting'
+      })
+    )
+    expect(model.positionGroups[0]?.auditItems.map(item => item.resourceCode)).toEqual([
+      'RACK-001',
+      'BIN-001',
+      'SLOT-A1',
+      'CELL-A1',
+      'PKG-001',
+      'PART-001'
+    ])
+
+    const stack = model.positionGroups[0]?.resourceStacks[0]
+    expect(stack?.key).toBe('rack:RACK-001')
+    expect(stack?.anchor).toEqual({
+      kind: 'RACK',
+      code: 'RACK-001',
+      displayLabel: 'Rack RACK-001'
+    })
+    expect(stack?.children.map(child => `${child.kind}:${child.code}`)).toEqual([
+      'BIN:BIN-001',
+      'SLOT:SLOT-A1',
+      'CELL:CELL-A1',
+      'PKG:PKG-001',
+      'PART_SN:PART-001'
+    ])
+    expect(stack?.evidenceKinds).toEqual([
+      'WES_ACTIVE_SNAPSHOT',
+      'WMS_CALLBACK_EVIDENCE',
+      'TRACE_RESOURCE_EVIDENCE'
+    ])
+  })
+
+  it.each([
+    ['WAITING_WMS', 'waiting'],
+    ['TIMEOUT', 'blocked'],
+    ['FAILED', 'blocked'],
+    ['NONE', 'normal'],
+    ['WMS_CALLBACK_RECEIVED', 'normal'],
+    ['UNKNOWN', 'unknown']
+  ] as const)('derives attentionState %s -> %s', (rackOperationWait, attentionState) => {
+    const model = buildRuntimeSceneModel({
+      detail: createDetail({ rack_operation_wait: rackOperationWait }),
+      manifest
+    })
+
+    expect(model.positionGroups[0]?.attentionState).toBe(attentionState)
+  })
+
+  it('uses resource kind and resource code as a stack anchor when rack and bin are absent', () => {
+    const model = buildRuntimeSceneModel({
+      detail: createDetail({
+        resource_evidence_items: [
+          {
+            resource_kind: 'CELL',
+            resource_code: 'CELL-STANDALONE',
+            display_label: 'Cell CELL-STANDALONE',
+            evidence_kind: 'TRACE_RESOURCE_EVIDENCE',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A'
+          }
+        ]
+      }),
+      manifest
+    })
+
+    expect(model.positionGroups[0]?.resourceStacks[0]).toEqual(
+      expect.objectContaining({
+        key: 'resource:CELL:CELL-STANDALONE',
+        anchor: {
+          kind: 'CELL',
+          code: 'CELL-STANDALONE',
+          displayLabel: 'Cell CELL-STANDALONE'
+        }
+      })
+    )
+  })
+
+  it('uses bin code as a stack anchor when rack code is absent', () => {
+    const model = buildRuntimeSceneModel({
+      detail: createDetail({
+        resource_evidence_items: [
+          {
+            resource_kind: 'BIN',
+            resource_code: 'BIN-STANDALONE',
+            display_label: 'Bin BIN-STANDALONE',
+            evidence_kind: 'WMS_CALLBACK_EVIDENCE',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            bin_code: 'BIN-STANDALONE'
+          }
+        ]
+      }),
+      manifest
+    })
+
+    expect(model.positionGroups[0]?.resourceStacks[0]).toEqual(
+      expect.objectContaining({
+        key: 'bin:BIN-STANDALONE',
+        anchor: {
+          kind: 'BIN',
+          code: 'BIN-STANDALONE',
+          displayLabel: 'Bin BIN-STANDALONE'
+        },
+        auditItems: [expect.objectContaining({ resourceCode: 'BIN-STANDALONE' })]
+      })
+    )
+  })
+
+  it('keeps repeated child resources distinct when evidence context differs', () => {
+    const model = buildRuntimeSceneModel({
+      detail: createDetail({
+        resource_evidence_items: [
+          {
+            resource_kind: 'RACK',
+            resource_code: 'RACK-001',
+            display_label: 'Rack RACK-001',
+            evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001'
+          },
+          {
+            resource_kind: 'BIN',
+            resource_code: 'BIN-001',
+            display_label: 'Bin BIN-001',
+            evidence_kind: 'WMS_CALLBACK_EVIDENCE',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001',
+            bin_code: 'BIN-001',
+            source_session_id: 20,
+            source_trace_id: 'trace-20'
+          },
+          {
+            resource_kind: 'BIN',
+            resource_code: 'BIN-001',
+            display_label: 'Bin BIN-001',
+            evidence_kind: 'TRACE_RESOURCE_EVIDENCE',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001',
+            bin_code: 'BIN-001',
+            source_session_id: 21,
+            source_trace_id: 'trace-21'
+          }
+        ]
+      }),
+      manifest
+    })
+
+    const stack = model.positionGroups[0]?.resourceStacks[0]
+    const childEvidence = model.resourceEvidence.filter(item => item.resourceKind === 'BIN')
+
+    expect(stack?.children.map(child => child.key)).toEqual(
+      childEvidence.map(getRuntimeSceneEvidenceKey)
+    )
+    expect(stack?.children.map(child => child.evidenceKind)).toEqual([
+      'WMS_CALLBACK_EVIDENCE',
+      'TRACE_RESOURCE_EVIDENCE'
+    ])
+  })
+
   it.each<
     [
       RuntimeStationLease,
@@ -279,7 +531,7 @@ describe('buildRuntimeSceneModel', () => {
     expect(JSON.stringify(model)).not.toContain('NG_ARM')
   })
 
-  it('builds composite boundary keys when stations share a position code', () => {
+  it('builds composite boundary keys while grouping duplicate physical positions once', () => {
     const duplicatePositionManifest: WorkLinePluginManifestSummary = {
       ...manifest,
       single_layer_boundaries: [
@@ -302,7 +554,29 @@ describe('buildRuntimeSceneModel', () => {
     }
 
     const model = buildRuntimeSceneModel({
-      detail: createDetail(),
+      detail: createDetail({
+        resource_evidence_items: [
+          {
+            resource_kind: 'RACK',
+            resource_code: 'RACK-010',
+            display_label: 'Rack RACK-010',
+            evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+            station_code: 'SOURCE_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-010'
+          },
+          {
+            resource_kind: 'BIN',
+            resource_code: 'BIN-010',
+            display_label: 'Bin BIN-010',
+            evidence_kind: 'WMS_CALLBACK_EVIDENCE',
+            station_code: 'SOURCE_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-010',
+            bin_code: 'BIN-010'
+          }
+        ]
+      }),
       manifest: duplicatePositionManifest
     })
 
@@ -310,6 +584,152 @@ describe('buildRuntimeSceneModel', () => {
     expect(model.boundaries.map(item => item.key)).toEqual([
       'SOURCE_ARM:SOURCE_ARM:SINGLE_LAYER_A:SINGLE_LAYER:ACTIVE_BIN_RACK:POSITION:SORTING_TARGET:RACK_MOVE',
       'SOURCE_ARM:SOURCE_ARM:SINGLE_LAYER_A:SINGLE_LAYER:ACTIVE_BIN_RACK:WORKSTATION:SORTING_NG:RACK_RETURN'
+    ])
+    expect(model.positionGroups).toHaveLength(1)
+    expect(model.positionGroups[0]?.key).toBe(model.boundaries[0]?.key)
+    expect(model.positionGroups[0]?.auditItems.map(item => item.resourceCode)).toEqual([
+      'RACK-010',
+      'BIN-010'
+    ])
+    expect(model.positionGroups[0]?.resourceStacks).toHaveLength(1)
+  })
+
+  it('keeps same-position resources separated by station code', () => {
+    const sharedPositionManifest: WorkLinePluginManifestSummary = {
+      ...manifest,
+      single_layer_boundaries: [
+        {
+          ...manifest.single_layer_boundaries![0],
+          station_role: 'SOURCE_ARM',
+          station_code: 'SOURCE_ARM',
+          position_code: 'SINGLE_LAYER_SHARED'
+        },
+        {
+          ...manifest.single_layer_boundaries![0],
+          station_role: 'TARGET_ARM',
+          station_code: 'TARGET_ARM',
+          position_code: 'SINGLE_LAYER_SHARED'
+        }
+      ]
+    }
+
+    const model = buildRuntimeSceneModel({
+      detail: createDetail({
+        resource_evidence_items: [
+          {
+            resource_kind: 'RACK',
+            resource_code: 'RACK-SOURCE',
+            display_label: 'Rack RACK-SOURCE',
+            evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+            station_code: 'SOURCE_ARM',
+            position_code: 'SINGLE_LAYER_SHARED',
+            rack_code: 'RACK-SOURCE'
+          },
+          {
+            resource_kind: 'RACK',
+            resource_code: 'RACK-TARGET',
+            display_label: 'Rack RACK-TARGET',
+            evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_SHARED',
+            rack_code: 'RACK-TARGET'
+          }
+        ]
+      }),
+      manifest: sharedPositionManifest
+    })
+
+    expect(model.positionGroups.map(group => group.stationCode)).toEqual([
+      'SOURCE_ARM',
+      'TARGET_ARM'
+    ])
+    expect(model.positionGroups.map(group => group.auditItems.map(item => item.resourceCode))).toEqual([
+      ['RACK-SOURCE'],
+      ['RACK-TARGET']
+    ])
+  })
+
+  it('assigns stationless positioned evidence to a unique matching manifest boundary', () => {
+    const model = buildRuntimeSceneModel({
+      detail: createDetail({
+        resource_evidence_items: [
+          {
+            resource_kind: 'RACK',
+            resource_code: 'RACK-STATIONLESS',
+            display_label: 'Rack RACK-STATIONLESS',
+            evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-STATIONLESS'
+          }
+        ]
+      }),
+      manifest
+    })
+
+    expect(model.boundaries[0]?.evidenceCount).toBe(1)
+    expect(model.positionGroups).toHaveLength(1)
+    expect(model.positionGroups[0]).toEqual(
+      expect.objectContaining({
+        key: model.boundaries[0]?.key,
+        stationCode: 'TARGET_ARM',
+        positionCode: 'SINGLE_LAYER_A'
+      })
+    )
+    expect(model.positionGroups[0]?.auditItems.map(item => item.resourceCode)).toEqual([
+      'RACK-STATIONLESS'
+    ])
+    expect(model.unlocatedAuditItems).toEqual([])
+  })
+
+  it('keeps stationless positioned evidence as fallback when manifest station is ambiguous', () => {
+    const sharedPositionManifest: WorkLinePluginManifestSummary = {
+      ...manifest,
+      single_layer_boundaries: [
+        {
+          ...manifest.single_layer_boundaries![0],
+          station_role: 'SOURCE_ARM',
+          station_code: 'SOURCE_ARM',
+          position_code: 'SINGLE_LAYER_SHARED'
+        },
+        {
+          ...manifest.single_layer_boundaries![0],
+          station_role: 'TARGET_ARM',
+          station_code: 'TARGET_ARM',
+          position_code: 'SINGLE_LAYER_SHARED'
+        }
+      ]
+    }
+
+    const model = buildRuntimeSceneModel({
+      detail: createDetail({
+        resource_evidence_items: [
+          {
+            resource_kind: 'RACK',
+            resource_code: 'RACK-STATIONLESS',
+            display_label: 'Rack RACK-STATIONLESS',
+            evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+            position_code: 'SINGLE_LAYER_SHARED',
+            rack_code: 'RACK-STATIONLESS'
+          }
+        ]
+      }),
+      manifest: sharedPositionManifest
+    })
+
+    expect(model.boundaries.map(boundary => boundary.evidenceCount)).toEqual([0, 0])
+    expect(model.unlocatedAuditItems).toEqual([])
+
+    const groupsWithEvidence = model.positionGroups.filter(group => group.auditItems.length > 0)
+    expect(groupsWithEvidence).toHaveLength(1)
+    expect(groupsWithEvidence[0]).toEqual(
+      expect.objectContaining({
+        key: 'fallback:SINGLE_LAYER_SHARED:SINGLE_LAYER_SHARED',
+        stationCode: 'SINGLE_LAYER_SHARED',
+        positionCode: 'SINGLE_LAYER_SHARED'
+      })
+    )
+    expect(groupsWithEvidence[0]?.auditItems.map(item => item.resourceCode)).toEqual([
+      'RACK-STATIONLESS'
     ])
   })
 
@@ -424,6 +844,83 @@ describe('buildRuntimeSceneModel', () => {
     )
   })
 
+  it('keeps no-manifest station and position evidence in one fallback physical group', () => {
+    const model = buildRuntimeSceneModel({
+      detail: createDetail({
+        resource_evidence_items: [
+          {
+            resource_kind: 'RACK',
+            resource_code: 'RACK-NO-MANIFEST',
+            display_label: 'Rack RACK-NO-MANIFEST',
+            evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-NO-MANIFEST'
+          }
+        ]
+      }),
+      manifest: null
+    })
+
+    expect(model.boundaries).toHaveLength(1)
+    expect(model.boundaries[0]).toEqual(
+      expect.objectContaining({
+        stationCode: 'TARGET_ARM',
+        positionCode: 'SINGLE_LAYER_A',
+        evidenceCount: 1
+      })
+    )
+    expect(model.positionGroups).toHaveLength(1)
+    expect(model.positionGroups[0]).toEqual(
+      expect.objectContaining({
+        key: model.boundaries[0]?.key,
+        stationCode: 'TARGET_ARM',
+        positionCode: 'SINGLE_LAYER_A'
+      })
+    )
+    expect(model.positionGroups[0]?.auditItems.map(item => item.resourceCode)).toEqual([
+      'RACK-NO-MANIFEST'
+    ])
+  })
+
+  it('keeps no-manifest mixed station-scoped and stationless evidence out of empty duplicate groups', () => {
+    const model = buildRuntimeSceneModel({
+      detail: createDetail({
+        resource_evidence_items: [
+          {
+            resource_kind: 'RACK',
+            resource_code: 'RACK-SCOPED',
+            display_label: 'Rack RACK-SCOPED',
+            evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-SCOPED'
+          },
+          {
+            resource_kind: 'RACK',
+            resource_code: 'RACK-STATIONLESS',
+            display_label: 'Rack RACK-STATIONLESS',
+            evidence_kind: 'TRACE_RESOURCE_EVIDENCE',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-STATIONLESS'
+          }
+        ]
+      }),
+      manifest: null
+    })
+
+    expect(model.boundaries.map(boundary => boundary.evidenceCount)).toEqual([1, 1])
+    expect(model.positionGroups.map(group => group.auditItems.map(item => item.resourceCode))).toEqual([
+      ['RACK-SCOPED'],
+      ['RACK-STATIONLESS']
+    ])
+    expect(model.positionGroups.every(group => group.auditItems.length > 0)).toBe(true)
+    expect(model.positionGroups.flatMap(group => group.auditItems.map(item => item.resourceCode))).toEqual([
+      'RACK-SCOPED',
+      'RACK-STATIONLESS'
+    ])
+  })
+
   it('builds distinct resource evidence keys for the same resource from different traces', () => {
     const first = getRuntimeSceneEvidenceKey({
       resourceKind: 'BIN',
@@ -449,5 +946,34 @@ describe('buildRuntimeSceneModel', () => {
     })
 
     expect(first).not.toBe(second)
+  })
+
+  it('builds distinct resource evidence keys for the same resource in different stations', () => {
+    const source = getRuntimeSceneEvidenceKey({
+      resourceKind: 'BIN',
+      resourceKindLabel: 'Bin',
+      resourceCode: 'BIN-001',
+      displayLabel: 'BIN BIN-001',
+      evidenceKind: 'WMS_CALLBACK_EVIDENCE',
+      evidenceKindLabel: 'WMS 回调证据',
+      stationCode: 'SOURCE_ARM',
+      positionCode: 'SINGLE_LAYER_SHARED',
+      sourceSessionId: 20,
+      sourceTraceId: 'trace-20'
+    })
+    const target = getRuntimeSceneEvidenceKey({
+      resourceKind: 'BIN',
+      resourceKindLabel: 'Bin',
+      resourceCode: 'BIN-001',
+      displayLabel: 'BIN BIN-001',
+      evidenceKind: 'WMS_CALLBACK_EVIDENCE',
+      evidenceKindLabel: 'WMS 回调证据',
+      stationCode: 'TARGET_ARM',
+      positionCode: 'SINGLE_LAYER_SHARED',
+      sourceSessionId: 20,
+      sourceTraceId: 'trace-20'
+    })
+
+    expect(source).not.toBe(target)
   })
 })

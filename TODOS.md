@@ -1,28 +1,26 @@
 # TODOS
 
-## P3 - RuntimeSceneFocusPanel 与共享拓扑收敛
+## Completed
 
-**What**: 在 `/runtime/monitor` 现场态势图稳定后，补充 `RuntimeSceneFocusPanel`，并评估 sandbox、trace topology 是否收敛到同一套 scene model。
+### RuntimeSceneFocusPanel 与共享拓扑收敛
 
-**Why**: v1 为降低回归面只替换 monitor 主图，sandbox 和 trace 继续使用 `WorklineRouteMap`。后续如果三个页面长期保留不同拓扑语义，操作员在处置、回放和沙箱验证之间会看到不一致的设备状态表达。
+**Completed:** v0.4.6.0 (2026-06-09)
 
-**Context**: `docs/superpowers/specs/2026-06-05-runtime-workline-scene-monitor-design.md` 工程评审已接受该后续项。当前 v1 只实现 monitor-only `RuntimeSceneMap`，不做点击焦点面板，不替换共享 `WorklineRouteMap`。
+**What**: `/runtime/monitor` 已补充 `RuntimeSceneFocusPanel`，sandbox 与 trace 的完整设备拓扑已收敛到共享 `RuntimeSceneDeviceFlow`。
+
+**Why**: 三个运行态入口现在使用同一套设备信号表达，操作员在处置、回放和沙箱验证之间不会看到不一致的 Runtime Hold、停靠 outbox、未完成命令和 trace path 状态。
+
+**Context**: `docs/superpowers/specs/2026-06-08-runtime-monitor-resource-layout-design.md` 将该收敛项纳入本次资源布局工作，并明确删除旧 `WorklineRouteMap` 兼容 wrapper。
 
 **Scope**:
 
-- 点击设备、Session、Runtime Hold、停靠 outbox 后展示统一焦点上下文
-- 对比 `RuntimeSceneMap` 与 `WorklineRouteMap` 在 monitor、sandbox、trace topology 的职责边界
-- 只在 scene model 稳定后再决定是否替换 sandbox/trace，避免一次 PR 扩大回归面
-
-**Dependencies**: `/runtime/monitor` 现场态势图在生产/沙箱数据上稳定，scene model 字段能覆盖处置和回放入口。
-
-**Effort**: M (human: ~1 day / CC: ~1 hour)
+- 点击现场位置和资源 stack 后展示统一焦点上下文
+- monitor、sandbox、trace topology 共享 `RuntimeSceneDeviceFlow`
+- 删除旧 `WorklineRouteMap` 与对应单测
 
 **Priority**: P3
 
 ---
-
-## Completed
 
 ### Runtime scene 资源证据前端展示契约接入
 

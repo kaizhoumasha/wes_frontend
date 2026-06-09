@@ -64,6 +64,19 @@ pnpm lint:prettier
 pnpm lint:stylelint
 ```
 
+### 运行态浏览器 Smoke
+
+```bash
+# 默认使用本地后端 seed，覆盖 monitor/devices/sandbox/trace 运行态路径
+pnpm smoke:runtime:agent-browser
+
+# 固定前端 fixture，复核运行态 monitor 资源布局
+RUNTIME_SMOKE_USE_FIXED_MONITOR_FIXTURE=1 pnpm smoke:runtime:agent-browser
+
+# 需要截图证据时额外开启
+RUNTIME_SMOKE_CAPTURE_SCREENSHOTS=1 pnpm smoke:runtime:agent-browser
+```
+
 ### 契约与代码生成
 
 ```bash
@@ -101,10 +114,10 @@ pnpm contract:test
 
 | 技术栈           | 版本要求        | 说明                                      |
 | ---------------- | --------------- | ----------------------------------------- |
-| **Node.js**      | 20.19+ / 22.12+ | Vite 要求                                 |
-| **pnpm**         | 9+              | 推荐包管理器                              |
+| **Node.js**      | 20.19+ / 22.12+ | Vite 7 要求，推荐 22 LTS                  |
+| **pnpm**         | 10+             | 当前 packageManager 为 pnpm 10            |
 | **Vue**          | 3.5+            | 仅使用 Composition API + `<script setup>` |
-| **TypeScript**   | 5.8+            | 严格模式开启                              |
+| **TypeScript**   | 5.9+            | 严格模式开启                              |
 | **Vite**         | 7.3+            | 当前版本，配置已优化                      |
 | **Element Plus** | 2.13+           | 企业级 UI 组件库                          |
 | **alova**        | 3.5+            | HTTP 客户端（非 axios）                   |
@@ -492,7 +505,7 @@ git branch -d fix-login-validation
 ./scripts/git-worktree.sh add feature-auth
 
 # 2. 进入 worktree 开发
-cd ../wes_frontend-worktrees/feature-auth
+cd /Users/kaizhou/SynologyDrive/works/worktrees/wes_frontend/feature-auth
 # ... 编码 ...
 pnpm lint
 
@@ -517,10 +530,11 @@ cd ../../wes_frontend
 │   ├── .git/                        # Git 仓库
 │   ├── src/
 │   └── scripts/
-└── wes_frontend-worktrees/          # Worktree 基础目录（大功能使用）
-    ├── feature-auth/                # 功能分支 worktree
-    ├── feature-inbound/             # 功能分支 worktree
-    └── hotfix-device-status/        # 热修复分支 worktree
+└── worktrees/
+    └── wes_frontend/                # Worktree 基础目录（大功能使用）
+        ├── feature-auth/            # 功能分支 worktree
+        ├── feature-inbound/         # 功能分支 worktree
+        └── hotfix-device-status/    # 热修复分支 worktree
 ```
 
 ### 为什么使用混合模式？
@@ -686,9 +700,13 @@ Closes #123
 
 ## 项目文档
 
+- **设计系统**: `DESIGN.md`
+- **更新日志**: `CHANGELOG.md`
+- **TODO 清单**: `TODOS.md`
 - **技术栈详解**: `docs/WES_FRONTEND_TECH_STACK.md`
 - **时区处理**: `docs/TIMEZONE_HANDLING.md`
 - **第一阶段任务**: `docs/TASKS_PHASE_1.md`
+- **运行态资源布局设计**: `docs/superpowers/specs/2026-06-08-runtime-monitor-resource-layout-design.md`
 
 ---
 

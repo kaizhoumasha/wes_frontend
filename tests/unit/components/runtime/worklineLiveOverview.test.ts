@@ -1,7 +1,11 @@
 import { shallowMount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import WorklineLiveOverview from '@/components/runtime/monitor/WorklineLiveOverview.vue'
-import type { RuntimeWorklineDetailResponse, RuntimeWorklineSummary } from '@/types/runtime'
+import type {
+  RuntimeTraceDevicePathNode,
+  RuntimeWorklineDetailResponse,
+  RuntimeWorklineSummary
+} from '@/types/runtime'
 
 const mocks = vi.hoisted(() => ({
   buildRuntimeSceneModel: vi.fn(),
@@ -96,6 +100,8 @@ describe('WorklineLiveOverview', () => {
       boundaries: [],
       deviceNodes: [],
       resourceEvidence: [],
+      positionGroups: [],
+      unlocatedAuditItems: [],
       resourceEvidenceTotalCount: 0,
       resourceEvidenceTruncated: false,
       semanticFallback: false,
@@ -188,6 +194,44 @@ describe('WorklineLiveOverview', () => {
         manifest: matchingManifest,
         manifestLoadFailed: true
       })
+    )
+  })
+
+  it('passes trace path nodes into the runtime scene map', () => {
+    mocks.loadManifest.mockReturnValueOnce({ catch: vi.fn() })
+    const tracePathNodes: RuntimeTraceDevicePathNode[] = [
+      {
+        device_id: 101,
+        device_code: 'ARM01',
+        device_name: '机械臂 1',
+        device_role: 'ARM',
+        is_current: true,
+        actions: [{ kind: 'send', label: '发送命令' }]
+      }
+    ]
+    const summary = createSummary()
+
+    const wrapper = shallowMount(WorklineLiveOverview, {
+      props: {
+        worklineSummary: summary,
+        worklineDetail: createDetail(summary),
+        devices: [],
+        activeSessions: [],
+        recentFailedTraces: [],
+        recentCompletedTraces: [],
+        tracePathNodes
+      },
+      global: {
+        stubs: {
+          ElCard: {
+            template: '<div><slot name="header" /><slot /></div>'
+          }
+        }
+      }
+    })
+
+    expect(wrapper.findComponent({ name: 'RuntimeSceneMap' }).props('tracePathNodes')).toEqual(
+      tracePathNodes
     )
   })
 })

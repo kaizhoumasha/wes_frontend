@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.6.0] - 2026-06-09
+
+### Added
+
+- `/runtime/monitor` 新增按现场位置分组的资源布局视图，聚合 Rack、Bin、Slot、Cell、PKG、Part SN 等证据 stack，并提供焦点面板和未定位证据审计区。
+- 新增共享 `RuntimeSceneDeviceFlow`，统一 monitor、sandbox 与 trace topology 中的设备状态、trace path、Runtime Hold、停靠 outbox 和未完成命令表达。
+- 新增资源布局、焦点面板、共享设备流和 smoke fixture 覆盖，验证 stationless、重复资源、fallback manifest、桌面/移动端布局和完整设备拓扑场景。
+
+### Changed
+
+- `RuntimeSceneModel` 改为按物理位置解析资源 evidence，支持 manifest 边界、同位置多站点、模糊 stationless evidence、fallback 边界和未定位审计项。
+- 沙箱工作台与 trace 完整拓扑从旧 `WorklineRouteMap` 收敛到共享设备流，保留选择设备、双击发送 Event 和右键查看 Outbox 的页面行为。
+- Runtime smoke 脚本扩展资源布局 fixture、trace 拓扑验证和可选截图采集，便于发布前复核 monitor、devices、sandbox 与 trace 路由。
+
+### Fixed
+
+- 修复共享设备流长设备名称、编码和 badge 在紧凑拓扑中可能横向溢出的问题。
+- 更新资源布局执行资料，确保共享拓扑收敛和焦点面板交付范围与本次发布一致。
+
 ## [0.4.5.0] - 2026-06-08
 
 ### Added

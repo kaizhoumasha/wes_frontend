@@ -145,7 +145,10 @@ async function mountPage() {
             '<div class="sandbox-event-composer-stub" :data-disabled="disabled ? `true` : `false`">{{ disabledReason }}</div>'
         },
         SandboxResultComposer: true,
-        WorklineRouteMap: true,
+        RuntimeSceneDeviceFlow: {
+          name: 'RuntimeSceneDeviceFlow',
+          template: '<div class="runtime-scene-device-flow-stub" />'
+        },
         StandardDrawer: {
           props: ['modelValue'],
           template: '<aside v-if="modelValue"><slot /></aside>'
@@ -356,9 +359,13 @@ describe('SandboxWorkbenchPage cleanup', () => {
     expect(wrapper.get('.sandbox-event-composer-stub').attributes('data-disabled')).toBe('true')
     expect(wrapper.get('.sandbox-event-composer-stub').text()).toContain('工作线未 START')
     expect(wrapper.get('.sandbox-event-composer-stub').text()).toContain('等待现场硬件 START')
-    expect(wrapper.find('[data-test="sandbox-start-verdict"]').element.compareDocumentPosition(
-      wrapper.findComponent({ name: 'WorklineRouteMap' }).element
-    ) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(
+      wrapper
+        .find('[data-test="sandbox-start-verdict"]')
+        .element.compareDocumentPosition(
+          wrapper.findComponent({ name: 'RuntimeSceneDeviceFlow' }).element
+        ) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
   })
 
   it('uses detail summary for START diagnostics when directory summary is stale', async () => {

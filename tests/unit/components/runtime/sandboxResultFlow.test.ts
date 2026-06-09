@@ -15,7 +15,18 @@ const mocks = vi.hoisted(() => {
   const store = {
     detail: {
       summary,
-      devices: [{ id: 101, device_code: 'ARM01', device_name: '机械臂' }],
+      devices: [
+        {
+          id: 101,
+          device_code: 'ARM01',
+          device_name: '机械臂',
+          device_role: 'ROBOT',
+          role_index: 1,
+          device_status: 'IDLE',
+          maintenance_mode: false,
+          active_runtime_hold_ids: []
+        }
+      ],
       active_sessions: []
     },
     findSummary: vi.fn(() => summary),
@@ -89,7 +100,7 @@ async function mountPage() {
       },
       stubs: {
         SandboxCycleStatus: true,
-        WorklineRouteMap: true,
+        RuntimeSceneDeviceFlow: true,
         SandboxEventComposer: true,
         ElAlert: true,
         ElDivider: true,
