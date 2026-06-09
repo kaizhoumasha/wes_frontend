@@ -104,11 +104,15 @@ src/
 
 ## 相关文档
 
+- [设计系统](./DESIGN.md)
+- [更新日志](./CHANGELOG.md)
+- [TODO 清单](./TODOS.md)
 - [技术选型文档](./docs/WES_FRONTEND_TECH_STACK.md)
 - [CRUD 开发指南](./docs/CRUD_DEVELOPMENT_GUIDE.md)
 - [智能搜索组件架构](./docs/SMART_SEARCH_COMPONENT_ARCHITECTURE.md)
 - [时区处理指南](./docs/TIMEZONE_HANDLING.md)
 - [契约同步工作流](./docs/CONTRACT_SYNC_WORKFLOW.md)
+- [运行态资源布局设计](./docs/superpowers/specs/2026-06-08-runtime-monitor-resource-layout-design.md)
 
 ## CI/CD
 
@@ -117,14 +121,26 @@ src/
 
 ## 开发命令
 
-| 命令                 | 说明           |
-| -------------------- | -------------- |
-| `pnpm dev`           | 启动开发服务器 |
-| `pnpm build`         | 构建生产版本   |
-| `pnpm preview`       | 预览构建结果   |
-| `pnpm lint`          | 代码检查       |
-| `pnpm type:check`    | 类型检查       |
-| `pnpm contract:test` | 契约测试       |
+| 命令                               | 说明               |
+| ---------------------------------- | ------------------ |
+| `pnpm dev`                         | 启动开发服务器     |
+| `pnpm build`                       | 构建生产版本       |
+| `pnpm preview`                     | 预览构建结果       |
+| `pnpm lint`                        | 代码检查           |
+| `pnpm type:check`                  | 类型检查           |
+| `pnpm test`                        | 单元测试           |
+| `pnpm contract:test`               | 契约测试           |
+| `pnpm smoke:runtime:agent-browser` | 运行态浏览器 smoke |
+
+### 运行态浏览器 Smoke
+
+```bash
+pnpm smoke:runtime:agent-browser
+RUNTIME_SMOKE_USE_FIXED_MONITOR_FIXTURE=1 pnpm smoke:runtime:agent-browser
+RUNTIME_SMOKE_CAPTURE_SCREENSHOTS=1 pnpm smoke:runtime:agent-browser
+```
+
+默认 smoke 使用本地后端 seed；固定 fixture 模式用于前端资源布局复核，`RUNTIME_SMOKE_CAPTURE_SCREENSHOTS=1` 会额外采集截图。
 
 ## 后端 API
 
