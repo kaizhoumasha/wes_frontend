@@ -66,4 +66,41 @@ describe('useWorklineRuntimeStore', () => {
     await firstLoad
     expect(store.projection?.summary.id).toBe(46)
   })
+
+  it('keeps the current projection when refresh fails', async () => {
+    const current = createProjection(45)
+    mocks.worklineProjection.mockReturnValueOnce({
+      send: vi.fn().mockResolvedValue(current)
+    })
+
+    const store = useWorklineRuntimeStore()
+    await store.loadProjection(45)
+    expect(store.projection?.summary.id).toBe(45)
+
+    mocks.worklineProjection.mockReturnValueOnce({
+      send: vi.fn().mockRejectedValue(new Error('backend unavailable'))
+    })
+
+    await expect(store.refreshProjection()).rejects.toThrow('backend unavailable')
+    expect(store.projection).toEqual(current)
+    expect(store.projection?.summary.id).toBe(45)
+    expect(store.loading).toBe(false)
+  })
+
+  it('does not resurrect an in-flight projection after clearProjection', async () => {
+    const pending = deferred<RuntimeWorklineMonitorProjectionResponse>()
+    mocks.worklineProjection.mockReturnValue({
+      send: () => pending.promise
+    })
+
+    const store = useWorklineRuntimeStore()
+    const load = store.loadProjection(45)
+
+    store.clearProjection()
+    expect(store.projection).toBeNull()
+
+    pending.resolve(createProjection(45))
+    await load
+    expect(store.projection).toBeNull()
+  })
 })
