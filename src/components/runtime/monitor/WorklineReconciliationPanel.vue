@@ -118,11 +118,12 @@
 import { computed, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
-import type { components } from '@/api/generated/openapi-types'
-import type { RuntimeWorklineSummary } from '@/types/runtime'
+import type {
+  RuntimeMonitorReconciliationCandidate,
+  RuntimeWorklineSummary
+} from '@/types/runtime'
 import { formatRuntimeDateTime } from '@/utils/runtime-display'
 
-type TraceSessionContract = components['schemas']['TraceSessionItem']
 type Resolution = 'COMPLETED' | 'FAILED' | 'CANCELLED'
 
 interface CheckItem {
@@ -151,7 +152,7 @@ const REASON_LABELS: Record<string, string> = {
 
 const props = defineProps<{
   summary: RuntimeWorklineSummary
-  session?: TraceSessionContract | null
+  candidate?: RuntimeMonitorReconciliationCandidate | null
   loading?: boolean
   resolving?: boolean
   canResolve?: boolean
@@ -176,9 +177,7 @@ const operatorNote = ref('')
 const resultPayloadText = ref('')
 const resultPayloadPlaceholder = '可选业务结果 JSON，例如 {"confirmed_by":"operator"}'
 
-const reason = computed(
-  () => props.session?.reconciliation_reason ?? props.summary.stopped_reason ?? null
-)
+const reason = computed(() => props.candidate?.reason ?? props.summary.stopped_reason ?? null)
 
 const requiredChecks = computed(() => {
   if (reason.value === 'COMMAND_ACK_EXHAUSTED' || reason.value === 'OUTBOX_DISPATCH_FAILED') {
@@ -197,7 +196,7 @@ watch(
 )
 
 const ownerSessionLabel = computed(() => {
-  if (props.session) return `${props.session.session_code} (#${props.session.id})`
+  if (props.candidate) return `${props.candidate.session_code} (#${props.candidate.session_id})`
   return props.loading ? '加载中' : '未找到 pending session'
 })
 
@@ -207,24 +206,20 @@ const reasonLabel = computed(() => {
 })
 
 const occurredAtLabel = computed(() => {
-  const occurredAt = props.session?.reconciliation_occurred_at ?? props.summary.stopped_at
+  const occurredAt = props.candidate?.occurred_at ?? props.summary.stopped_at
   return occurredAt ? formatRuntimeDateTime(occurredAt) : '—'
 })
 
 const deviceCommandLabel = computed(() => {
   const parts = [
-    props.session?.reconciliation_device_id
-      ? `Device #${props.session.reconciliation_device_id}`
-      : null,
-    props.session?.reconciliation_command_id
-      ? `Command #${props.session.reconciliation_command_id}`
-      : null
+    props.candidate?.device_id ? `Device #${props.candidate.device_id}` : null,
+    props.candidate?.command_id ? `Command #${props.candidate.command_id}` : null
   ].filter(Boolean)
   return parts.length ? parts.join(' / ') : '—'
 })
 
 const lateEvidenceLabel = computed(() =>
-  props.session?.reconciliation_late_evidence_received ? '已收到' : '未收到'
+  props.candidate?.late_evidence_received ? '已收到' : '未收到'
 )
 
 const allChecksConfirmed = computed(() =>
@@ -233,7 +228,7 @@ const allChecksConfirmed = computed(() =>
 
 const submitDisabledReason = computed(() => {
   if (!props.canResolve) return '需要 biz:workline:resolve-reconciliation 权限'
-  if (!props.session?.id) return '等待 pending reconciliation session 证据'
+  if (!props.candidate?.session_id) return '等待 pending reconciliation session 证据'
   if (!allChecksConfirmed.value) return '需要确认全部 checklist'
   if (!operatorNote.value.trim()) return '需要填写现场确认说明'
   return undefined
@@ -264,11 +259,11 @@ function parseResultPayload(): Record<string, unknown> | null {
 }
 
 function submitResolve() {
-  if (submitDisabled.value || !props.session?.id) return
+  if (submitDisabled.value || !props.candidate?.session_id) return
   const resultPayload = parseResultPayload()
   if (resolution.value === 'COMPLETED' && resultPayload === null) return
   emit('resolve', {
-    sessionId: props.session.id,
+    sessionId: props.candidate.session_id,
     resolution: resolution.value,
     checks: buildChecks(),
     operatorNote: operatorNote.value.trim(),

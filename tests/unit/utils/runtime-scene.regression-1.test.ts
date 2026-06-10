@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { buildRuntimeSceneModel } from '@/utils/runtime-scene'
-import type { RuntimeWorklineDetailResponse, WorkLinePluginManifestSummary } from '@/types/runtime'
+import type { RuntimeWorklineMonitorProjectionResponse, WorkLinePluginManifestSummary } from '@/types/runtime'
 
 const manifest: WorkLinePluginManifestSummary = {
   plugin_key: 'smt_sorting_inbound',
@@ -22,7 +22,7 @@ const manifest: WorkLinePluginManifestSummary = {
   supported_commands: []
 }
 
-function createDetail(): RuntimeWorklineDetailResponse {
+function createProjection(): RuntimeWorklineMonitorProjectionResponse {
   return {
     summary: {
       id: 2,
@@ -41,15 +41,19 @@ function createDetail(): RuntimeWorklineDetailResponse {
       runtime_status: 'STOPPED',
       plugin_key: 'smt_sorting_inbound'
     },
-    workline_readiness: 'NOT_READY',
-    station_lease: 'IDLE',
-    single_layer_rack_snapshot: 'MISSING',
-    rack_operation_wait: 'NONE',
-    resource_evidence_kind: 'GENERIC_EVIDENCE',
-    resource_evidence_items: [],
-    resource_evidence_total_count: 0,
-    resource_evidence_truncated: false,
-    devices: [
+    boundary: {
+      workline_readiness: 'NOT_READY',
+      station_lease: 'IDLE',
+      single_layer_rack_snapshot: 'MISSING',
+      rack_operation_wait: 'NONE'
+    },
+    resource_evidence: {
+      kind: 'GENERIC_EVIDENCE',
+      items: [],
+      total_count: 0,
+      truncated: false
+    },
+    device_nodes: [
       {
         id: 203,
         device_code: 'SORT-NG-ARM-01',
@@ -61,10 +65,12 @@ function createDetail(): RuntimeWorklineDetailResponse {
         pending_command_count: 0
       }
     ],
-    active_sessions: [],
-    recent_failed_traces: [],
-    recent_completed_traces: []
-  }
+    active_sessions: { items: [], total_count: 0, truncated: false },
+    recent_failed_traces: { items: [], total_count: 0, truncated: false },
+    recent_completed_traces: { items: [], total_count: 0, truncated: false },
+    action_candidates: { pending_reconciliation: null },
+    generated_at: new Date().toISOString()
+  } as unknown as RuntimeWorklineMonitorProjectionResponse
 }
 
 describe('runtime scene QA regressions', () => {
@@ -72,7 +78,7 @@ describe('runtime scene QA regressions', () => {
     // Regression: ISSUE-001 — /runtime/monitor displayed SORTING_NG_ARM as an independent arm.
     // Found by /qa on 2026-06-08.
     const model = buildRuntimeSceneModel({
-      detail: createDetail(),
+      projection: createProjection(),
       manifest
     })
 

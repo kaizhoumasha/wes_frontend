@@ -10,7 +10,6 @@ const mocks = vi.hoisted(() => {
     runtimeHolds,
     runtimeHoldsSend,
     worklines: vi.fn(),
-    worklineDetail: vi.fn(),
     runtimeHoldDetail: vi.fn()
   }
 })
@@ -23,7 +22,6 @@ vi.mock('@/api/modules/runtime', () => ({
   runtimeApiMethods: {
     runtimeHolds: mocks.runtimeHolds,
     worklines: mocks.worklines,
-    worklineDetail: mocks.worklineDetail,
     runtimeHoldDetail: mocks.runtimeHoldDetail
   }
 }))

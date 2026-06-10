@@ -567,40 +567,16 @@ export interface DebugDataCleanupResponse {
   message: string
 }
 
-export interface RuntimeWorklineDeviceItem {
-  id: number
-  device_code: string
-  device_name: string
-  device_role: string
-  role_index: number
-  upstream_device_id?: number | null
-  device_status: string
-  maintenance_mode: boolean
-  current_command_id?: number | null
-  open_command_count?: number
-  pending_command_count: number
-  blocked_outbox_count?: number
-  open_issue_count?: number
-  active_runtime_hold_ids?: number[]
-  last_heartbeat_at?: string | null
-  error_code?: string | null
-}
-
-export interface RuntimeWorklineDetailResponse {
-  summary: RuntimeWorklineSummary
-  workline_readiness?: RuntimeWorklineReadiness
-  station_lease?: RuntimeStationLease
-  single_layer_rack_snapshot?: RuntimeSingleLayerRackSnapshot
-  rack_operation_wait?: RuntimeRackOperationWait
-  resource_evidence_kind?: RuntimeResourceEvidenceKind
-  resource_evidence_items?: RuntimeResourceEvidenceItem[]
-  resource_evidence_total_count?: number
-  resource_evidence_truncated?: boolean
-  devices: RuntimeWorklineDeviceItem[]
-  active_sessions: RuntimeTraceListItem[]
-  recent_failed_traces: RuntimeTraceListItem[]
-  recent_completed_traces: RuntimeTraceListItem[]
-}
+export type RuntimeWorklineMonitorProjectionResponse = components['schemas']['RuntimeWorklineMonitorProjectionResponse']
+export type RuntimeWorklineBoundary = components['schemas']['RuntimeWorklineBoundary']
+export type RuntimeMonitorDeviceNode = components['schemas']['RuntimeMonitorDeviceNode']
+export type RuntimeMonitorSessionSection = components['schemas']['RuntimeMonitorSessionSection']
+export type RuntimeMonitorTraceSection = components['schemas']['RuntimeMonitorTraceSection']
+export type RuntimeMonitorEvidenceSection = components['schemas']['RuntimeMonitorEvidenceSection']
+export type RuntimeMonitorActionCandidates = components['schemas']['RuntimeMonitorActionCandidates']
+export type RuntimeMonitorTraceItem = components['schemas']['RuntimeMonitorTraceItem']
+export type RuntimeMonitorSessionItem = components['schemas']['RuntimeMonitorSessionItem']
+export type RuntimeMonitorReconciliationCandidate = components['schemas']['RuntimeMonitorReconciliationCandidate']
 
 export interface RuntimeSceneDeviceRoleRequirement {
   role: string

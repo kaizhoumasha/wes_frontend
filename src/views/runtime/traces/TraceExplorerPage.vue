@@ -114,7 +114,7 @@
                 :detail="traceDetail"
                 :blocking-point="blockingPoint"
                 :path="tracePathData"
-                :workline-detail="worklineDetailData"
+                :workline-projection="worklineProjectionData"
                 :path-loading="tracePathLoading"
               />
             </div>
@@ -589,7 +589,7 @@ import { useRuntimeStickyContextVisibility } from '@/composables/useRuntimeStick
 import type {
   RuntimeTracePathResponse,
   RuntimeTraceListItem,
-  RuntimeWorklineDetailResponse,
+  RuntimeWorklineMonitorProjectionResponse,
   TraceBlockingPointResponse,
   TraceDetailResponse
 } from '@/types/runtime'
@@ -626,7 +626,7 @@ const traceDetail = ref<TraceDetailResponse | null>(null)
 const activeTraceItems = ref<RuntimeTraceListItem[]>([])
 const blockingPoint = ref<TraceBlockingPointResponse | null>(null)
 const tracePathData = ref<RuntimeTracePathResponse | null>(null)
-const worklineDetailData = ref<RuntimeWorklineDetailResponse | null>(null)
+const worklineProjectionData = ref<RuntimeWorklineMonitorProjectionResponse | null>(null)
 const detailScrollRef = ref<HTMLElement | null>(null)
 const detailHeroRef = ref<HTMLElement | null>(null)
 const showContrast = ref(false)
@@ -847,7 +847,7 @@ function isLatestTraceRequest(requestSeq: number): boolean {
 function clearTraceSecondaryState(): void {
   blockingPoint.value = null
   tracePathData.value = null
-  worklineDetailData.value = null
+  worklineProjectionData.value = null
   blockingPointLoading.value = false
   tracePathLoading.value = false
 }
@@ -975,7 +975,7 @@ async function setTraceDetail(detail: TraceDetailResponse, requestSeq: number): 
   await normalizeRouteToSession(nextDetail)
   const [pathData] = await Promise.all([
     loadTracePath({ sessionId, traceId }, requestSeq),
-    loadWorklineDetail(worklineId, requestSeq)
+    loadWorklineProjection(worklineId, requestSeq)
   ])
   if (!isLatestTraceRequest(requestSeq)) return
   const diagnosis = buildRuntimeDiagnosisVerdict({
@@ -1092,23 +1092,23 @@ async function loadTracePath(
   return null
 }
 
-async function loadWorklineDetail(
+async function loadWorklineProjection(
   worklineId: number | null | undefined,
   requestSeq: number
 ): Promise<void> {
-  worklineDetailData.value = null
+  worklineProjectionData.value = null
   if (!worklineId) {
     return
   }
 
   try {
-    const nextWorklineDetail = await runtimeApiMethods.worklineDetail(worklineId).send()
+    const nextWorklineProjection = await runtimeApiMethods.worklineProjection(worklineId).send()
     if (isLatestTraceRequest(requestSeq)) {
-      worklineDetailData.value = nextWorklineDetail
+      worklineProjectionData.value = nextWorklineProjection
     }
   } catch {
     if (isLatestTraceRequest(requestSeq)) {
-      worklineDetailData.value = null
+      worklineProjectionData.value = null
     }
   }
 }

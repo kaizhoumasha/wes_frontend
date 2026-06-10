@@ -50,12 +50,12 @@
 
 <script setup lang="ts">
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
-import type { RuntimeWorklineDeviceItem } from '@/types/runtime'
+import type { RuntimeMonitorDeviceNode } from '@/types/runtime'
 import { resolveRuntimeTone } from '@/utils/runtime-display'
 
 const props = withDefaults(
   defineProps<{
-    devices?: RuntimeWorklineDeviceItem[]
+    devices?: RuntimeMonitorDeviceNode[]
     selectedDeviceId?: number | null
     interactive?: boolean
     sessionCountsByDevice?: Map<number, number> | Record<number, number>
@@ -88,14 +88,14 @@ function getSessionCount(deviceId: number): number {
   return map[deviceId] ?? 0
 }
 
-function signalText(device: RuntimeWorklineDeviceItem): string {
+function signalText(device: RuntimeMonitorDeviceNode): string {
   if (device.error_code) return `ERROR: ${device.error_code}`
   const waiting = getSessionCount(device.id)
   if (waiting > 0) return `${waiting}条等待`
   return '空闲'
 }
 
-function signalClass(device: RuntimeWorklineDeviceItem): string {
+function signalClass(device: RuntimeMonitorDeviceNode): string {
   if (device.error_code) return 'is-danger'
   if (getSessionCount(device.id) > 0) return 'is-warning'
   return 'is-idle'

@@ -228,11 +228,15 @@ const selectedRackSlot = computed(
 )
 
 function getDefaultGroup(groups: PositionGroup[]): PositionGroup | null {
+  const hasRenderableEvidence = (group: PositionGroup) =>
+    group.rackLayouts.length > 0 || group.resourceStacks.length > 0
+  const isHighAttention = (group: PositionGroup) =>
+    group.attentionState === 'blocked' || group.attentionState === 'waiting'
+
   return (
-    groups.find(
-      group => group.attentionState === 'blocked' || group.attentionState === 'waiting'
-    ) ??
-    groups.find(group => group.resourceStacks.length > 0) ??
+    groups.find(group => isHighAttention(group) && hasRenderableEvidence(group)) ??
+    groups.find(isHighAttention) ??
+    groups.find(hasRenderableEvidence) ??
     groups[0] ??
     null
   )
@@ -471,6 +475,16 @@ watch(() => props.model.positionGroups, syncSelection, { immediate: true, deep: 
 
   .runtime-scene-map__layout {
     grid-template-columns: 1fr;
+  }
+
+  .runtime-scene-map__position-rail {
+    display: grid;
+    grid-template-columns: 1fr;
+    overflow-x: visible;
+  }
+
+  .runtime-scene-map__position-tab {
+    width: 100%;
   }
 }
 </style>

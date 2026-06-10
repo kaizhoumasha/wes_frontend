@@ -395,8 +395,9 @@ import {
 import { getWorklineDeviceSafetyEvidence, getWorklineRuntimeVerdict } from '@/utils/runtime-safety'
 import type {
   RuntimeSafetyIncidentSummary,
-  RuntimeTraceListItem,
-  RuntimeWorklineDeviceItem,
+  RuntimeMonitorDeviceNode,
+  RuntimeMonitorSessionItem,
+  RuntimeMonitorTraceItem,
   RuntimeWorklineSummary,
   SandboxCompletedSession,
   SandboxCleanupResponse,
@@ -429,17 +430,17 @@ const CLEANUP_COUNT_LABELS: Record<string, string> = {
 // Page loading
 const pageLoading = ref(true)
 const worklineName = computed(
-  () => store.detail?.summary?.line_name ?? store.findSummary(worklineId.value)?.line_name ?? ''
+  () => store.projection?.summary?.line_name ?? store.findSummary(worklineId.value)?.line_name ?? ''
 )
 const worklineCode = computed(
-  () => store.detail?.summary?.line_code ?? store.findSummary(worklineId.value)?.line_code ?? ''
+  () => store.projection?.summary?.line_code ?? store.findSummary(worklineId.value)?.line_code ?? ''
 )
 
-// Safety — derived from workline summary + detail
+// Safety — derived from workline summary + projection
 const clearEstopLoading = ref(false)
 const worklineSummary = computed<RuntimeWorklineSummary | null>(() => {
-  if (store.detail?.summary.id === worklineId.value) {
-    return store.detail.summary
+  if (store.projection?.summary.id === worklineId.value) {
+    return store.projection.summary
   }
   return store.findSummary(worklineId.value)
 })
@@ -450,8 +451,8 @@ const safetyVerdict = computed(() => {
     ? ({ status: 'OPEN' } as unknown as RuntimeSafetyIncidentSummary)
     : null
   const evidence =
-    store.detail?.summary.id === s.id
-      ? getWorklineDeviceSafetyEvidence(store.detail.devices)
+    store.projection?.summary.id === s.id
+      ? getWorklineDeviceSafetyEvidence(store.projection.device_nodes ?? [])
       : undefined
   return getWorklineRuntimeVerdict(s, stub, evidence)
 })
@@ -525,7 +526,7 @@ function getStartRejectedMessageFromError(error: unknown): string | null {
 
 // Device selection
 const selectedDeviceId = ref<number | null>(null)
-const deviceList = computed<RuntimeWorklineDeviceItem[]>(() => store.detail?.devices ?? [])
+const deviceList = computed<RuntimeMonitorDeviceNode[]>(() => store.projection?.device_nodes ?? [])
 const selectedDeviceName = computed(() => {
   if (!selectedDeviceId.value) return ''
   const d = deviceList.value.find(d => d.id === selectedDeviceId.value)
@@ -557,8 +558,11 @@ const startDevice = computed(
 const startDeviceCode = computed(() => startDevice.value?.device_code || '')
 
 // Active sessions
-const activeSessions = computed<RuntimeTraceListItem[]>(
-  () => (store.detail?.active_sessions as RuntimeTraceListItem[] | undefined) ?? []
+const activeSessions = computed<(RuntimeMonitorSessionItem | RuntimeMonitorTraceItem)[]>(
+  () =>
+    (store.projection?.active_sessions.items as
+      | (RuntimeMonitorSessionItem | RuntimeMonitorTraceItem)[]
+      | undefined) ?? []
 )
 
 const activeRuntimeHoldIds = computed(() => {
@@ -623,7 +627,7 @@ watch(
     if (!isRelevantRuntimeEvent(event, { worklineId: worklineId.value })) return
     const refreshTargets = classifyRuntimeRefresh(event)
     if (refreshTargets.worklines) void store.loadWorklines()
-    if (refreshTargets.detail || refreshTargets.activeIncident) void loadCurrentWorklineDetail()
+    if (refreshTargets.projection || refreshTargets.activeIncident) void loadCurrentWorklineProjection()
     if (refreshTargets.sandbox) {
       void loadPending()
       void loadCompleted()
@@ -769,15 +773,15 @@ async function loadCompleted() {
   }
 }
 
-async function loadCurrentWorklineDetail() {
+async function loadCurrentWorklineProjection() {
   const requestWorklineId = getRouteWorklineId()
-  await store.loadDetail(requestWorklineId)
+  await store.loadProjection(requestWorklineId)
 }
 
 async function loadPage() {
   pageLoading.value = true
   try {
-    await Promise.all([store.loadWorklines(), store.loadDetail(worklineId.value)])
+    await Promise.all([store.loadWorklines(), store.loadProjection(worklineId.value)])
     await Promise.all([loadPending(), loadCompleted()])
   } finally {
     pageLoading.value = false
@@ -792,13 +796,13 @@ function queueSandboxRefresh() {
   clearRefreshTimers()
   void loadPending()
   void loadCompleted()
-  void loadCurrentWorklineDetail()
+  void loadCurrentWorklineProjection()
   for (const delay of [800, 2000, 5000, 10000, 15000]) {
     refreshTimers.push(
       setTimeout(() => {
         void loadPending()
         void loadCompleted()
-        void loadCurrentWorklineDetail()
+        void loadCurrentWorklineProjection()
       }, delay)
     )
   }
@@ -1087,7 +1091,9 @@ function handleActionResult(item: SandboxPendingOutbox) {
   resultDrawerVisible.value = true
 }
 
-async function handleReplaySessionInbox(session: RuntimeTraceListItem) {
+async function handleReplaySessionInbox(
+  session: RuntimeMonitorSessionItem | RuntimeMonitorTraceItem
+) {
   if (safetyLocked.value) {
     ElMessage.warning(safetyBlockedReason.value)
     return
@@ -1096,14 +1102,15 @@ async function handleReplaySessionInbox(session: RuntimeTraceListItem) {
     ElMessage.warning(productionBlockedReason.value)
     return
   }
-  if (!session.last_inbox_id) {
+  const lastInboxId = (session as unknown as { last_inbox_id?: number | null }).last_inbox_id
+  if (!lastInboxId) {
     ElMessage.error('缺少可重放的 Inbox')
     return
   }
-  replayLoadingInboxId.value = session.last_inbox_id
+  replayLoadingInboxId.value = lastInboxId
   try {
     await runtimeApiMethods
-      .replayInbox(session.last_inbox_id, {
+      .replayInbox(lastInboxId, {
         reason: `sandbox manual hold replay: ${session.failure_code || session.status}`
       })
       .send()
@@ -1158,7 +1165,7 @@ onMounted(() => void loadPage())
 
 onUnmounted(() => {
   clearRefreshTimers()
-  store.clearDetail()
+  store.clearProjection()
 })
 
 watch(worklineId, () => {

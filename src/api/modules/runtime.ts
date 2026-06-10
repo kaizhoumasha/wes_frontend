@@ -33,7 +33,7 @@ import type {
   ResolveRuntimeHoldResponse,
   NgReasonOption,
   NgReturnItemResponse,
-  RuntimeWorklineDetailResponse,
+  RuntimeWorklineMonitorProjectionResponse,
   RuntimeWorklineSummary,
   ManualSessionOperationPayload,
   ReplayInboxPayload,
@@ -100,8 +100,8 @@ export const runtimeApiMethods = {
     return adaptRuntimeMethod<RuntimeWorklineSummary[]>(worklineApiMethods.worklines(query))
   },
 
-  worklineDetail(worklineId: number) {
-    return adaptRuntimeMethod<RuntimeWorklineDetailResponse>(
+  worklineProjection(worklineId: number) {
+    return adaptRuntimeMethod<RuntimeWorklineMonitorProjectionResponse>(
       worklineApiMethods.getWorklines({ workline_id: worklineId })
     )
   },

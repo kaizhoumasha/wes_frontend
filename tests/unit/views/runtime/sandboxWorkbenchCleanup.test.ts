@@ -1,7 +1,11 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { SandboxCompletedSession, SandboxPendingOutbox } from '@/types/runtime'
+import type {
+  RuntimeMonitorSessionItem,
+  SandboxCompletedSession,
+  SandboxPendingOutbox
+} from '@/types/runtime'
 
 const mocks = vi.hoisted(() => {
   const sandboxPendingSend = vi.fn()
@@ -23,9 +27,9 @@ const mocks = vi.hoisted(() => {
     last_start_trace_id: null as string | null
   }
   const store = {
-    detail: {
+    projection: {
       summary,
-      devices: [
+      device_nodes: [
         {
           id: 301,
           device_code: 'ARM03',
@@ -35,12 +39,16 @@ const mocks = vi.hoisted(() => {
           active_runtime_hold_ids: []
         }
       ],
-      active_sessions: []
+      active_sessions: {
+        items: [] as RuntimeMonitorSessionItem[],
+        total_count: 0,
+        truncated: false
+      }
     },
     findSummary: vi.fn(() => summary),
     loadWorklines: vi.fn().mockResolvedValue(undefined),
-    loadDetail: vi.fn().mockResolvedValue(undefined),
-    clearDetail: vi.fn()
+    loadProjection: vi.fn().mockResolvedValue(undefined),
+    clearProjection: vi.fn()
   }
 
   return {
@@ -217,14 +225,14 @@ describe('SandboxWorkbenchPage cleanup', () => {
     vi.clearAllMocks()
     mocks.route.params.worklineId = '45'
     if (mocks.sseStore) mocks.sseStore.lastEvent = null
-    mocks.store.detail.summary.runtime_status = 'READY'
-    mocks.store.detail.summary.active_safety_incident_id = null
-    mocks.store.detail.summary.start_admission_status = null
-    mocks.store.detail.summary.start_admission_message = null
-    mocks.store.detail.summary.start_admission_failed_device_code = null
-    mocks.store.detail.summary.last_start_request_id = null
-    mocks.store.detail.summary.last_start_trace_id = null
-    mocks.store.findSummary.mockReturnValue(mocks.store.detail.summary)
+    mocks.store.projection.summary.runtime_status = 'READY'
+    mocks.store.projection.summary.active_safety_incident_id = null
+    mocks.store.projection.summary.start_admission_status = null
+    mocks.store.projection.summary.start_admission_message = null
+    mocks.store.projection.summary.start_admission_failed_device_code = null
+    mocks.store.projection.summary.last_start_request_id = null
+    mocks.store.projection.summary.last_start_trace_id = null
+    mocks.store.findSummary.mockReturnValue(mocks.store.projection.summary)
     mocks.hasPermission.mockReturnValue(true)
     mocks.confirm.mockResolvedValue('confirm')
     mocks.sandboxPendingSend.mockResolvedValue([])
@@ -314,8 +322,8 @@ describe('SandboxWorkbenchPage cleanup', () => {
   })
 
   it('submits clear-estop checks before reloading sandbox state', async () => {
-    mocks.store.detail.summary.runtime_status = 'ESTOPPED'
-    mocks.store.detail.summary.active_safety_incident_id = 7
+    mocks.store.projection.summary.runtime_status = 'ESTOPPED'
+    mocks.store.projection.summary.active_safety_incident_id = 7
     const wrapper = await mountPage()
 
     await wrapper.get('[data-test="sandbox-clear-estop"]').trigger('click')
@@ -342,12 +350,12 @@ describe('SandboxWorkbenchPage cleanup', () => {
   })
 
   it('disables production events while STOPPED and keeps a visible START verdict before topology', async () => {
-    mocks.store.detail.summary.runtime_status = 'STOPPED'
-    mocks.store.detail.summary.start_admission_status = 'FAILED'
-    mocks.store.detail.summary.start_admission_message = 'START 准入失败: 设备 RS-CONV-01 非空闲'
-    mocks.store.detail.summary.start_admission_failed_device_code = 'RS-CONV-01'
-    mocks.store.detail.summary.last_start_request_id = 'req-start-1'
-    mocks.store.detail.summary.last_start_trace_id = 'trace-start-1'
+    mocks.store.projection.summary.runtime_status = 'STOPPED'
+    mocks.store.projection.summary.start_admission_status = 'FAILED'
+    mocks.store.projection.summary.start_admission_message = 'START 准入失败: 设备 RS-CONV-01 非空闲'
+    mocks.store.projection.summary.start_admission_failed_device_code = 'RS-CONV-01'
+    mocks.store.projection.summary.last_start_request_id = 'req-start-1'
+    mocks.store.projection.summary.last_start_trace_id = 'trace-start-1'
     const wrapper = await mountPage()
 
     const verdict = wrapper.get('[data-test="sandbox-start-verdict"]')
@@ -368,9 +376,9 @@ describe('SandboxWorkbenchPage cleanup', () => {
     ).toBeTruthy()
   })
 
-  it('uses detail summary for START diagnostics when directory summary is stale', async () => {
+  it('uses projection summary for START diagnostics when directory summary is stale', async () => {
     const staleDirectorySummary = {
-      ...mocks.store.detail.summary,
+      ...mocks.store.projection.summary,
       runtime_status: 'STOPPED',
       start_admission_status: 'NOT_REQUESTED',
       start_admission_message: null,
@@ -379,8 +387,8 @@ describe('SandboxWorkbenchPage cleanup', () => {
       last_start_trace_id: null
     }
     mocks.store.findSummary.mockReturnValue(staleDirectorySummary)
-    mocks.store.detail.summary = {
-      ...mocks.store.detail.summary,
+    mocks.store.projection.summary = {
+      ...mocks.store.projection.summary,
       runtime_status: 'STOPPED',
       start_admission_status: 'FAILED',
       start_admission_message: 'START 准入失败: 设备 RS-CONV-02 非 AUTO',
@@ -398,8 +406,8 @@ describe('SandboxWorkbenchPage cleanup', () => {
     expect(verdict.text()).toContain('trace-detail-start')
 
     wrapper.unmount()
-    mocks.store.detail.summary = {
-      ...mocks.store.detail.summary,
+    mocks.store.projection.summary = {
+      ...mocks.store.projection.summary,
       start_admission_status: 'CHECKING',
       start_admission_message: null,
       start_admission_failed_device_code: null,
@@ -416,7 +424,7 @@ describe('SandboxWorkbenchPage cleanup', () => {
   it('shows mock START only for STOPPED simulation worklines and exposes checking state', async () => {
     const startSend = vi.fn(() => new Promise(() => undefined))
     mocks.runtimeApiMethods.worklineStartRequested.mockReturnValue({ send: startSend })
-    mocks.store.detail.summary.runtime_status = 'STOPPED'
+    mocks.store.projection.summary.runtime_status = 'STOPPED'
     const wrapper = await mountPage()
 
     const startButton = wrapper.get('[data-test="sandbox-start-workline"]')
@@ -441,7 +449,7 @@ describe('SandboxWorkbenchPage cleanup', () => {
       }
     })
     mocks.runtimeApiMethods.worklineStartRequested.mockReturnValue({ send: startSend })
-    mocks.store.detail.summary.runtime_status = 'STOPPED'
+    mocks.store.projection.summary.runtime_status = 'STOPPED'
     const wrapper = await mountPage()
 
     await wrapper.get('[data-test="sandbox-start-workline"]').trigger('click')
@@ -449,7 +457,7 @@ describe('SandboxWorkbenchPage cleanup', () => {
 
     expect(mocks.success).not.toHaveBeenCalledWith('START 已提交，正在刷新工作线状态')
     expect(mocks.error).toHaveBeenCalledWith('设备 ARM03 不是 IDLE')
-    expect(mocks.store.loadDetail).toHaveBeenCalled()
+    expect(mocks.store.loadProjection).toHaveBeenCalled()
     expect(mocks.runtimeApiMethods.sandboxPending).toHaveBeenCalledTimes(2)
     expect(mocks.runtimeApiMethods.sandboxCompleted).toHaveBeenCalledTimes(2)
   })
@@ -465,7 +473,7 @@ describe('SandboxWorkbenchPage cleanup', () => {
       }
     })
     mocks.runtimeApiMethods.worklineStartRequested.mockReturnValue({ send: startSend })
-    mocks.store.detail.summary.runtime_status = 'STOPPED'
+    mocks.store.projection.summary.runtime_status = 'STOPPED'
     const wrapper = await mountPage()
 
     await wrapper.get('[data-test="sandbox-start-workline"]').trigger('click')
@@ -473,7 +481,7 @@ describe('SandboxWorkbenchPage cleanup', () => {
 
     expect(mocks.success).not.toHaveBeenCalledWith('START 已提交，正在刷新工作线状态')
     expect(mocks.error).toHaveBeenCalledWith('设备 ARM03 不是 IDLE')
-    expect(mocks.store.loadDetail).toHaveBeenCalled()
+    expect(mocks.store.loadProjection).toHaveBeenCalled()
     expect(mocks.runtimeApiMethods.sandboxPending).toHaveBeenCalledTimes(2)
     expect(mocks.runtimeApiMethods.sandboxCompleted).toHaveBeenCalledTimes(2)
   })
@@ -489,8 +497,8 @@ describe('SandboxWorkbenchPage cleanup', () => {
       last_inbox_id: 809,
       is_timed_out: false
     }
-    mocks.store.detail.summary.runtime_status = 'STOPPED'
-    mocks.store.detail.active_sessions = [stoppedSession]
+    mocks.store.projection.summary.runtime_status = 'STOPPED'
+    mocks.store.projection.active_sessions.items = [stoppedSession]
     const wrapper = await mountPage()
     const actionList = wrapper.getComponent({ name: 'SandboxActionList' })
 
@@ -510,8 +518,8 @@ describe('SandboxWorkbenchPage cleanup', () => {
 
   it('does not clear estop if the route changes before confirmation resolves', async () => {
     let confirmClear!: () => void
-    mocks.store.detail.summary.runtime_status = 'ESTOPPED'
-    mocks.store.detail.summary.active_safety_incident_id = 7
+    mocks.store.projection.summary.runtime_status = 'ESTOPPED'
+    mocks.store.projection.summary.active_safety_incident_id = 7
     mocks.confirm.mockReturnValue(
       new Promise(resolve => {
         confirmClear = () => resolve('confirm')
@@ -529,12 +537,12 @@ describe('SandboxWorkbenchPage cleanup', () => {
     expect(mocks.warning).toHaveBeenCalledWith('工作线已切换，已取消本次恢复接收。')
   })
 
-  it('refreshes summary and detail when safety SSE events arrive', async () => {
+  it('refreshes summary and projection when safety SSE events arrive', async () => {
     await mountPage()
     vi.clearAllMocks()
 
     mocks.sseStore.lastEvent = {
-      domain: 'workline_safety',
+      domain: 'workline_runtime',
       entity: 'incident',
       action: 'estop.activated',
       keys: { workline_id: 45, incident_id: 7 }
@@ -543,22 +551,22 @@ describe('SandboxWorkbenchPage cleanup', () => {
     await flushPromises()
 
     expect(mocks.store.loadWorklines).toHaveBeenCalledTimes(1)
-    expect(mocks.store.loadDetail).toHaveBeenCalledWith(45)
+    expect(mocks.store.loadProjection).toHaveBeenCalledWith(45)
     expect(mocks.runtimeApiMethods.sandboxPending).not.toHaveBeenCalled()
     expect(mocks.runtimeApiMethods.sandboxCompleted).not.toHaveBeenCalled()
   })
 
-  it('refreshes stale STOPPED detail when a workline runtime status SSE update arrives', async () => {
-    mocks.store.detail.summary.runtime_status = 'STOPPED'
+  it('refreshes stale STOPPED projection when a workline runtime status SSE update arrives', async () => {
+    mocks.store.projection.summary.runtime_status = 'STOPPED'
     mocks.store.findSummary.mockReturnValue({
-      ...mocks.store.detail.summary,
+      ...mocks.store.projection.summary,
       runtime_status: 'READY'
     })
     await mountPage()
     vi.clearAllMocks()
 
     mocks.sseStore.lastEvent = {
-      domain: 'workline_trace',
+      domain: 'workline_runtime',
       entity: 'workline',
       action: 'runtime_status.updated',
       keys: { workline_id: 45 },
@@ -568,7 +576,7 @@ describe('SandboxWorkbenchPage cleanup', () => {
     await flushPromises()
 
     expect(mocks.store.loadWorklines).toHaveBeenCalledTimes(1)
-    expect(mocks.store.loadDetail).toHaveBeenCalledWith(45)
+    expect(mocks.store.loadProjection).toHaveBeenCalledWith(45)
     expect(mocks.runtimeApiMethods.sandboxPending).not.toHaveBeenCalled()
     expect(mocks.runtimeApiMethods.sandboxCompleted).not.toHaveBeenCalled()
   })
@@ -610,8 +618,8 @@ describe('SandboxWorkbenchPage cleanup', () => {
   })
 
   it('keeps simulate-estop disabled while the sandbox is safety locked', async () => {
-    mocks.store.detail.summary.runtime_status = 'ESTOPPED'
-    mocks.store.detail.summary.active_safety_incident_id = 7
+    mocks.store.projection.summary.runtime_status = 'ESTOPPED'
+    mocks.store.projection.summary.active_safety_incident_id = 7
 
     const wrapper = await mountPage()
 

@@ -5,8 +5,8 @@ import type {
   RuntimeResourceKind,
   RuntimeSingleLayerRackSnapshot,
   RuntimeStationLease,
-  RuntimeWorklineDetailResponse,
-  RuntimeWorklineDeviceItem,
+  RuntimeMonitorDeviceNode,
+  RuntimeWorklineMonitorProjectionResponse,
   RuntimeWorklineReadiness,
   WorkLinePluginManifestSummary,
   WorkLineSingleLayerRackBoundarySummary
@@ -219,7 +219,7 @@ export interface RuntimeSceneModel {
 }
 
 export interface BuildRuntimeSceneModelInput {
-  detail: RuntimeWorklineDetailResponse
+  projection: RuntimeWorklineMonitorProjectionResponse
   manifest?: WorkLinePluginManifestSummary | null
   manifestLoadFailed?: boolean
 }
@@ -336,24 +336,26 @@ export function getRuntimeSceneEvidenceKey(item: RuntimeSceneResourceEvidence): 
 }
 
 export function buildRuntimeSceneModel(input: BuildRuntimeSceneModelInput): RuntimeSceneModel {
-  const { detail, manifest, manifestLoadFailed = false } = input
-  const detailRecord = detail as RuntimeWorklineDetailResponse & Record<string, unknown>
-  const resourceEvidenceItems = Array.isArray(detailRecord.resource_evidence_items)
-    ? (detailRecord.resource_evidence_items as RuntimeResourceEvidenceItem[])
+  const { projection, manifest, manifestLoadFailed = false } = input
+  const projectionRecord = projection as RuntimeWorklineMonitorProjectionResponse & Record<string, unknown>
+  const evidenceObj = (projectionRecord.resource_evidence || {}) as Record<string, unknown>
+  const resourceEvidenceItems = Array.isArray(evidenceObj.items)
+    ? (evidenceObj.items as RuntimeResourceEvidenceItem[])
     : []
   const hasManifestBoundaries = Boolean(manifest?.single_layer_boundaries?.length)
   const hasRuntimeSceneSemantics =
-    hasRuntimeSceneContractFields(detailRecord) &&
+    hasRuntimeSceneContractFields(projectionRecord) &&
     manifestLoadFailed === false &&
     hasManifestBoundaries
+  const boundaryObj = (projectionRecord.boundary || {}) as Record<string, unknown>
   const readiness = normalizeEnum(
-    detailRecord.workline_readiness,
+    boundaryObj.workline_readiness,
     READINESS_VALUES,
     'UNKNOWN'
   ) as RuntimeWorklineReadiness
   const resourceEvidence = resourceEvidenceItems.map(toSceneResourceEvidence)
   const resolvedBoundaries = resolveBoundaries(
-    detail,
+    projection,
     manifest,
     resourceEvidence,
     hasRuntimeSceneSemantics
@@ -367,29 +369,29 @@ export function buildRuntimeSceneModel(input: BuildRuntimeSceneModelInput): Runt
   const positionGroups = buildPositionGroups(boundaries, evidencePlacements)
   const unlocatedAuditItems = getUnlocatedAuditItems(evidencePlacements)
   const semanticFallbackMessage = getSemanticFallbackMessage(
-    detailRecord,
+    projectionRecord,
     manifest,
     manifestLoadFailed
   )
 
   return {
-    worklineId: detail.summary.id,
-    worklineName: detail.summary.line_name,
-    worklineCode: detail.summary.line_code,
+    worklineId: projection.summary.id,
+    worklineName: projection.summary.line_name,
+    worklineCode: projection.summary.line_code,
     readiness,
     readinessLabel: READINESS_LABELS[readiness],
-    runtimeStatusLabel: toRuntimeStatusLabel(detail.summary.runtime_status),
+    runtimeStatusLabel: toRuntimeStatusLabel(projection.summary.runtime_status),
     boundaries,
-    deviceNodes: detail.devices.map(toRuntimeSceneDeviceNode),
+    deviceNodes: (projection.device_nodes ?? []).map(toRuntimeSceneDeviceNode),
     resourceEvidence,
     positionGroups,
     unlocatedAuditItems,
-    resourceEvidenceTotalCount: isFiniteNumber(detailRecord.resource_evidence_total_count)
-      ? detailRecord.resource_evidence_total_count
+    resourceEvidenceTotalCount: isFiniteNumber(evidenceObj.total_count)
+      ? (evidenceObj.total_count as number)
       : resourceEvidence.length,
     resourceEvidenceTruncated:
-      typeof detailRecord.resource_evidence_truncated === 'boolean'
-        ? detailRecord.resource_evidence_truncated
+      typeof evidenceObj.truncated === 'boolean'
+        ? (evidenceObj.truncated as boolean)
         : false,
     semanticFallback: Boolean(semanticFallbackMessage),
     semanticFallbackMessage
@@ -397,7 +399,7 @@ export function buildRuntimeSceneModel(input: BuildRuntimeSceneModelInput): Runt
 }
 
 function resolveBoundaries(
-  detail: RuntimeWorklineDetailResponse,
+  projection: RuntimeWorklineMonitorProjectionResponse,
   manifest: WorkLinePluginManifestSummary | null | undefined,
   resourceEvidence: RuntimeSceneResourceEvidence[],
   hasRuntimeSceneSemantics: boolean
@@ -405,12 +407,12 @@ function resolveBoundaries(
   const manifestBoundaries = manifest?.single_layer_boundaries ?? []
   if (manifestBoundaries.length > 0) {
     return manifestBoundaries.map(boundary =>
-      toSceneBoundary(boundary, detail, hasRuntimeSceneSemantics)
+      toSceneBoundary(boundary, projection, hasRuntimeSceneSemantics)
     )
   }
 
   return getFallbackBoundarySummaries(resourceEvidence).map(boundary =>
-    toSceneBoundary(boundary, detail, hasRuntimeSceneSemantics)
+    toSceneBoundary(boundary, projection, hasRuntimeSceneSemantics)
   )
 }
 
@@ -447,34 +449,35 @@ function getFallbackBoundarySummaries(
 
 function toSceneBoundary(
   boundary: WorkLineSingleLayerRackBoundarySummary,
-  detail: RuntimeWorklineDetailResponse,
+  projection: RuntimeWorklineMonitorProjectionResponse,
   hasRuntimeSceneSemantics: boolean
 ): RuntimeSceneBoundary {
-  const detailRecord = detail as RuntimeWorklineDetailResponse & Record<string, unknown>
+  const boundaryObj = (projection.boundary || {}) as Record<string, unknown>
+  const evidenceObj = (projection.resource_evidence || {}) as Record<string, unknown>
   const stationLease = hasRuntimeSceneSemantics
     ? (normalizeEnum(
-        detailRecord.station_lease,
+        boundaryObj.station_lease,
         STATION_LEASE_VALUES,
         'UNKNOWN'
       ) as RuntimeStationLease)
     : 'UNKNOWN'
   const rackSnapshot = hasRuntimeSceneSemantics
     ? (normalizeEnum(
-        detailRecord.single_layer_rack_snapshot,
+        boundaryObj.single_layer_rack_snapshot,
         RACK_SNAPSHOT_VALUES,
         'UNKNOWN'
       ) as RuntimeSingleLayerRackSnapshot)
     : 'UNKNOWN'
   const rackOperationWait = hasRuntimeSceneSemantics
     ? (normalizeEnum(
-        detailRecord.rack_operation_wait,
+        boundaryObj.rack_operation_wait,
         RACK_OPERATION_WAIT_VALUES,
         'UNKNOWN'
       ) as RuntimeRackOperationWait)
     : 'UNKNOWN'
   const resourceEvidenceKind = hasRuntimeSceneSemantics
     ? (normalizeEnum(
-        detailRecord.resource_evidence_kind,
+        evidenceObj.kind,
         EVIDENCE_KIND_VALUES,
         'GENERIC_EVIDENCE'
       ) as RuntimeResourceEvidenceKind)
@@ -718,16 +721,28 @@ function buildRackLayouts(
   items: RuntimeSceneResourceEvidence[]
 ): RuntimeSceneRackLayout[] {
   const layouts = new Map<string, RuntimeSceneRackLayout>()
+  const racksWithPlacementEvidence = new Set<string>()
+
+  for (const item of items) {
+    const rackCode = getRackCode(item)
+    if (!rackCode) continue
+    if (getSlotCode(item) || getBinCode(item) || getCellCode(item)) {
+      racksWithPlacementEvidence.add(rackCode)
+    }
+  }
 
   for (const item of items) {
     const rackCode = getRackCode(item)
     if (!rackCode) continue
 
+    const slotCode = getSlotCode(item)
+    const binCode = getBinCode(item)
+    const cellCode = getCellCode(item)
+    if (!slotCode && !binCode && !cellCode && !racksWithPlacementEvidence.has(rackCode)) continue
+
     const layout = ensureRackLayout(layouts, boundary, attentionState, item, rackCode)
     appendRackAuditItem(layout, item)
 
-    const slotCode = getSlotCode(item)
-    const binCode = getBinCode(item)
     const slot = slotCode
       ? ensureRackSlot(layout, item, slotCode)
       : getExistingRackSlotByBin(layout, item)
@@ -740,7 +755,6 @@ function buildRackLayouts(
       : null
     if (bin) appendRackAuditItem(bin, item)
 
-    const cellCode = getCellCode(item)
     const cell = cellCode && bin ? ensureRackCell(bin, item, cellCode) : null
     if (cell) appendRackAuditItem(cell, item)
   }
@@ -1251,7 +1265,7 @@ function toFallbackPositionBoundary(
 }
 
 export function toRuntimeSceneDeviceNode(
-  device: RuntimeWorklineDeviceItem
+  device: RuntimeMonitorDeviceNode
 ): RuntimeSceneDeviceNode {
   const deviceRole = normalizeRuntimeSceneDisplayRole(device.device_role)
   return {
@@ -1378,21 +1392,21 @@ function getOptionalNumberField(
   return isFiniteNumber(value) ? value : undefined
 }
 
-function hasRuntimeSceneContractFields(detail: Record<string, unknown>): boolean {
-  const requiredFields = [
+function hasRuntimeSceneContractFields(projection: Record<string, unknown>): boolean {
+  const boundary = (projection.boundary || {}) as Record<string, unknown>
+  const evidence = (projection.resource_evidence || {}) as Record<string, unknown>
+  const requiredBoundaryFields = [
     'workline_readiness',
     'station_lease',
     'single_layer_rack_snapshot',
-    'rack_operation_wait',
-    'resource_evidence_kind'
+    'rack_operation_wait'
   ]
-  if (requiredFields.some(field => detail[field] == null)) return false
+  if (requiredBoundaryFields.some(field => boundary[field] == null)) return false
+  if (evidence.kind == null) return false
   return (
-    (detail.resource_evidence_items == null || Array.isArray(detail.resource_evidence_items)) &&
-    (detail.resource_evidence_total_count == null ||
-      isFiniteNumber(detail.resource_evidence_total_count)) &&
-    (detail.resource_evidence_truncated == null ||
-      typeof detail.resource_evidence_truncated === 'boolean')
+    (evidence.items == null || Array.isArray(evidence.items)) &&
+    (evidence.total_count == null || isFiniteNumber(evidence.total_count)) &&
+    (evidence.truncated == null || typeof evidence.truncated === 'boolean')
   )
 }
 

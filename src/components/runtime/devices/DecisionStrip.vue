@@ -79,14 +79,17 @@
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { STOPPED_RUNTIME_STATUS } from '@/constants/runtime-safety'
-import type { RuntimeWorklineDetailResponse, RuntimeWorklineSummary } from '@/types/runtime'
+import type {
+  RuntimeWorklineMonitorProjectionResponse,
+  RuntimeWorklineSummary
+} from '@/types/runtime'
 import { pickDominantValue, resolveRuntimeProgressLabel } from '@/utils/runtime-display'
 import { getWorklineRuntimeVerdict } from '@/utils/runtime-safety'
 import type { RuntimeTone } from '@/utils/runtime-display'
 
 const props = defineProps<{
   summary: RuntimeWorklineSummary
-  detail?: RuntimeWorklineDetailResponse | null
+  projection?: RuntimeWorklineMonitorProjectionResponse | null
 }>()
 
 const runtimeVerdict = computed(() => getWorklineRuntimeVerdict(props.summary))
@@ -161,7 +164,7 @@ const suggestion = computed(() => {
 })
 
 const hotspotDevice = computed(() => {
-  const devices = props.detail?.devices ?? []
+  const devices = props.projection?.device_nodes ?? []
   return (
     devices.find(item => ['ERROR', 'OFFLINE'].includes(item.device_status)) ??
     devices.find(item => Boolean(item.error_code)) ??
@@ -170,16 +173,18 @@ const hotspotDevice = computed(() => {
 })
 
 const mostFailedBusinessStage = computed(() =>
-  pickDominantValue(props.detail?.recent_failed_traces.map(resolveRuntimeProgressLabel) ?? [])
+  pickDominantValue(
+    props.projection?.recent_failed_traces.items?.map(resolveRuntimeProgressLabel) ?? []
+  )
 )
 
 const dominantActiveBusinessStage = computed(() =>
-  pickDominantValue(props.detail?.active_sessions.map(resolveRuntimeProgressLabel) ?? [])
+  pickDominantValue(props.projection?.active_sessions.items?.map(resolveRuntimeProgressLabel) ?? [])
 )
 
 const activeRuntimeHoldIds = computed(() => {
   const ids = new Set<number>()
-  for (const device of props.detail?.devices ?? []) {
+  for (const device of props.projection?.device_nodes ?? []) {
     for (const holdId of device.active_runtime_hold_ids ?? []) {
       ids.add(holdId)
     }
@@ -190,16 +195,19 @@ const activeRuntimeHoldIds = computed(() => {
 const firstRuntimeHoldId = computed(() => activeRuntimeHoldIds.value[0] ?? null)
 const activeHoldCount = computed(() => activeRuntimeHoldIds.value.length)
 const openIssueCount = computed(() =>
-  (props.detail?.devices ?? []).reduce((total, device) => total + (device.open_issue_count ?? 0), 0)
+  (props.projection?.device_nodes ?? []).reduce(
+    (total, device) => total + (device.open_issue_count ?? 0),
+    0
+  )
 )
 const blockedOutboxCount = computed(() =>
-  (props.detail?.devices ?? []).reduce(
+  (props.projection?.device_nodes ?? []).reduce(
     (total, device) => total + (device.blocked_outbox_count ?? 0),
     0
   )
 )
 const openCommandCount = computed(() =>
-  (props.detail?.devices ?? []).reduce(
+  (props.projection?.device_nodes ?? []).reduce(
     (total, device) => total + (device.open_command_count ?? device.pending_command_count ?? 0),
     0
   )

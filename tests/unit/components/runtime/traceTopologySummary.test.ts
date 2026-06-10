@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import TraceBlockingPointCard from '@/components/runtime/trace/TraceBlockingPointCard.vue'
 import TraceTopologySummary from '@/components/runtime/trace/TraceTopologySummary.vue'
 import type {
-  RuntimeWorklineDetailResponse,
+  RuntimeWorklineMonitorProjectionResponse,
   TraceBlockingPointResponse,
   TraceDetailResponse
 } from '@/types/runtime'
@@ -119,7 +119,7 @@ function createDetail(): TraceDetailResponse {
   }
 }
 
-function createWorklineDetail(): RuntimeWorklineDetailResponse {
+function createWorklineProjection(): RuntimeWorklineMonitorProjectionResponse {
   return {
     summary: {
       id: 8,
@@ -134,9 +134,11 @@ function createWorklineDetail(): RuntimeWorklineDetailResponse {
       error_device_count: 0,
       offline_device_count: 0,
       maintenance_device_count: 0,
-      run_mode: 'MOCK'
+      run_mode: 'MOCK',
+      runtime_status: 'READY',
+      plugin_key: 'rough_sorter'
     },
-    devices: [
+    device_nodes: [
       {
         id: 1,
         device_code: 'RS-INPUT-ARM-01',
@@ -145,7 +147,7 @@ function createWorklineDetail(): RuntimeWorklineDetailResponse {
         role_index: 1,
         device_status: 'IDLE',
         maintenance_mode: false,
-        pending_command_count: 0
+        active_runtime_hold_ids: []
       },
       {
         id: 2,
@@ -155,7 +157,7 @@ function createWorklineDetail(): RuntimeWorklineDetailResponse {
         role_index: 1,
         device_status: 'IDLE',
         maintenance_mode: false,
-        pending_command_count: 0
+        active_runtime_hold_ids: []
       },
       {
         id: 3,
@@ -165,12 +167,33 @@ function createWorklineDetail(): RuntimeWorklineDetailResponse {
         role_index: 1,
         device_status: 'IDLE',
         maintenance_mode: false,
-        pending_command_count: 0
+        active_runtime_hold_ids: []
       }
     ],
-    active_sessions: [],
-    recent_failed_traces: [],
-    recent_completed_traces: []
+    active_sessions: {
+      items: [],
+      total_count: 0,
+      truncated: false
+    },
+    recent_failed_traces: {
+      items: [],
+      total_count: 0,
+      truncated: false
+    },
+    recent_completed_traces: {
+      items: [],
+      total_count: 0,
+      truncated: false
+    },
+    resource_evidence: {
+      items: [],
+      total_count: 0,
+      truncated: false
+    },
+    action_candidates: {
+      pending_reconciliation: null
+    },
+    generated_at: '2026-06-03T01:00:00Z'
   }
 }
 
@@ -179,7 +202,7 @@ describe('TraceTopologySummary', () => {
     const wrapper = mount(TraceTopologySummary, {
       props: {
         detail: createDetail(),
-        worklineDetail: createWorklineDetail()
+        worklineProjection: createWorklineProjection()
       },
       global: {
         stubs: {

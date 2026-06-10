@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { runtimeApiMethods } from '@/api/modules/runtime'
 import type {
   RuntimeWorklineSummary,
-  RuntimeWorklineDetailResponse,
+  RuntimeWorklineMonitorProjectionResponse,
 } from '@/types/runtime'
 import {
   aggregateSessionsByDevice,
@@ -16,16 +16,16 @@ import { createCoalescedAsyncTask } from '@/utils/createCoalescedAsyncTask'
 
 export const useWorklineRuntimeStore = defineStore('workline-runtime', () => {
   const worklines = ref<RuntimeWorklineSummary[]>([])
-  const detail = ref<RuntimeWorklineDetailResponse | null>(null)
+  const projection = ref<RuntimeWorklineMonitorProjectionResponse | null>(null)
   const loading = ref(false)
-  let detailRequestSeq = 0
+  let projectionRequestSeq = 0
 
   const orderedWorklines = computed(() =>
     sortByScoreDesc(worklines.value, getWorklineRiskScore, item => item.id)
   )
 
   const hotspotDevice = computed(() => {
-    const devices = detail.value?.devices ?? []
+    const devices = projection.value?.device_nodes ?? []
     return (
       devices.find(item => ['ERROR', 'OFFLINE'].includes(item.device_status)) ??
       devices.find(item => Boolean(item.error_code)) ??
@@ -35,15 +35,15 @@ export const useWorklineRuntimeStore = defineStore('workline-runtime', () => {
   })
 
   const mostFailedBusinessStage = computed(() =>
-    pickDominantValue(detail.value?.recent_failed_traces.map(resolveRuntimeProgressLabel) ?? [])
+    pickDominantValue(projection.value?.recent_failed_traces.items?.map(resolveRuntimeProgressLabel) ?? [])
   )
 
   const dominantActiveBusinessStage = computed(() =>
-    pickDominantValue(detail.value?.active_sessions.map(resolveRuntimeProgressLabel) ?? [])
+    pickDominantValue(projection.value?.active_sessions.items?.map(resolveRuntimeProgressLabel) ?? [])
   )
 
   const sessionCountsByDevice = computed(() =>
-    aggregateSessionsByDevice(detail.value?.active_sessions ?? [])
+    aggregateSessionsByDevice(projection.value?.active_sessions.items ?? [])
   )
 
   function findSummary(worklineId: number): RuntimeWorklineSummary | null {
@@ -51,18 +51,18 @@ export const useWorklineRuntimeStore = defineStore('workline-runtime', () => {
   }
 
   function findDevice(deviceId: number) {
-    return detail.value?.devices.find(item => item.id === deviceId) ?? null
+    return projection.value?.device_nodes?.find(item => item.id === deviceId) ?? null
   }
 
   async function loadWorklines() {
     worklines.value = await runtimeApiMethods.worklines().send()
   }
 
-  async function loadDetail(worklineId: number) {
-    const requestSeq = ++detailRequestSeq
-    const nextDetail = await runtimeApiMethods.worklineDetail(worklineId).send()
-    if (requestSeq === detailRequestSeq) {
-      detail.value = nextDetail
+  async function loadProjection(worklineId: number) {
+    const requestSeq = ++projectionRequestSeq
+    const nextProjection = await runtimeApiMethods.worklineProjection(worklineId).send()
+    if (requestSeq === projectionRequestSeq) {
+      projection.value = nextProjection
     }
   }
 
@@ -75,25 +75,25 @@ export const useWorklineRuntimeStore = defineStore('workline-runtime', () => {
     }
   })
 
-  const refreshDetail = createCoalescedAsyncTask(async (worklineId?: number) => {
-    const id = worklineId ?? detail.value?.summary.id
+  const refreshProjection = createCoalescedAsyncTask(async (worklineId?: number) => {
+    const id = worklineId ?? projection.value?.summary.id
     if (!id) return
     loading.value = true
     try {
-      await loadDetail(id)
+      await loadProjection(id)
     } finally {
       loading.value = false
     }
   })
 
-  function clearDetail() {
-    detailRequestSeq += 1
-    detail.value = null
+  function clearProjection() {
+    projectionRequestSeq += 1
+    projection.value = null
   }
 
   return {
     worklines,
-    detail,
+    projection,
     loading,
     orderedWorklines,
     hotspotDevice,
@@ -103,9 +103,9 @@ export const useWorklineRuntimeStore = defineStore('workline-runtime', () => {
     findSummary,
     findDevice,
     loadWorklines,
-    loadDetail,
+    loadProjection,
     refreshWorklines,
-    refreshDetail,
-    clearDetail,
+    refreshProjection,
+    clearProjection,
   }
 })

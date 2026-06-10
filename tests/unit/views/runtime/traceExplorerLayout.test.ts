@@ -21,7 +21,7 @@ const mocks = vi.hoisted(() => {
     traceBlockingPointSend: vi.fn(),
     sessionPathSend: vi.fn(),
     tracePathSend: vi.fn(),
-    worklineDetailSend: vi.fn(),
+    worklineProjectionSend: vi.fn(),
     queryTracesMethod: vi.fn(),
     queryTracesSend: vi.fn(),
     sseStore: {
@@ -58,7 +58,7 @@ vi.mock('@/api/modules/runtime', () => ({
     traceBlockingPoint: mocks.traceBlockingPointMethod,
     sessionPath: () => ({ send: mocks.sessionPathSend }),
     tracePath: () => ({ send: mocks.tracePathSend }),
-    worklineDetail: () => ({ send: mocks.worklineDetailSend }),
+    worklineProjection: () => ({ send: mocks.worklineProjectionSend }),
     queryTraces: mocks.queryTracesMethod
   }
 }))
@@ -261,7 +261,7 @@ describe('CaseConsolePage layout', () => {
       devices: [],
       timeline_groups: []
     })
-    mocks.worklineDetailSend.mockResolvedValue({
+    mocks.worklineProjectionSend.mockResolvedValue({
       summary: {
         id: 10,
         line_code: 'WL-10',
@@ -337,7 +337,7 @@ describe('CaseConsolePage layout', () => {
     })
     expect(mocks.sessionPathSend).toHaveBeenCalled()
     expect(mocks.tracePathSend).not.toHaveBeenCalled()
-    expect(mocks.worklineDetailSend).toHaveBeenCalled()
+    expect(mocks.worklineProjectionSend).toHaveBeenCalled()
     expect(wrapper.findComponent({ name: 'ElSelect' }).props('modelValue')).toBe('session')
     expect(wrapper.findComponent({ name: 'ElInput' }).props('modelValue')).toBe('1')
     expect(wrapper.text()).toContain('运行案件处置台')

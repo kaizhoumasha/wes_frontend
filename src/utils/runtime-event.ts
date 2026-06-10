@@ -2,7 +2,7 @@ import type { RuntimeSSEPayload } from '@/composables/useRuntimeSSE'
 import { ALLOWED_RUNTIME_EVENT_DOMAINS } from '@/constants/runtime-safety'
 
 type RuntimeEventNumberScopeKey = 'session_id' | 'workline_id' | 'device_id'
-export type RuntimeRefreshTarget = 'worklines' | 'detail' | 'activeIncident' | 'sandbox'
+export type RuntimeRefreshTarget = 'worklines' | 'projection' | 'activeIncident' | 'sandbox'
 
 export interface RuntimeEventScope {
   traceId?: string | null
@@ -13,7 +13,7 @@ export interface RuntimeEventScope {
 
 export interface RuntimeRefreshClassification {
   worklines: boolean
-  detail: boolean
+  projection: boolean
   activeIncident: boolean
   sandbox: boolean
 }
@@ -48,7 +48,7 @@ export function readRuntimeEventText(
 }
 
 export function isRuntimeDomainAllowed(domain: string | null | undefined): boolean {
-  return !domain || ALLOWED_RUNTIME_EVENT_DOMAINS.has(domain)
+  return Boolean(domain && ALLOWED_RUNTIME_EVENT_DOMAINS.has(domain))
 }
 
 export function classifyRuntimeRefresh(
@@ -56,20 +56,27 @@ export function classifyRuntimeRefresh(
 ): RuntimeRefreshClassification {
   const targets: RuntimeRefreshClassification = {
     worklines: true,
-    detail: false,
+    projection: false,
     activeIncident: false,
     sandbox: false
   }
 
   if (!event) return targets
+  if (!isRuntimeDomainAllowed(event.domain)) {
+    return {
+      worklines: false,
+      projection: false,
+      activeIncident: false,
+      sandbox: false
+    }
+  }
 
-  const domain = event.domain ?? ''
   const entity = event.entity ?? ''
 
-  if (domain === 'workline_safety' || domain === 'safety' || entity === 'incident') {
+  if (entity === 'incident') {
     return {
       worklines: true,
-      detail: true,
+      projection: true,
       activeIncident: true,
       sandbox: false
     }
@@ -78,7 +85,7 @@ export function classifyRuntimeRefresh(
   if (entity === 'workline') {
     return {
       worklines: true,
-      detail: true,
+      projection: true,
       activeIncident: false,
       sandbox: false
     }
@@ -87,7 +94,7 @@ export function classifyRuntimeRefresh(
   if (entity === 'session') {
     return {
       worklines: true,
-      detail: true,
+      projection: true,
       activeIncident: false,
       sandbox: true
     }
@@ -96,7 +103,7 @@ export function classifyRuntimeRefresh(
   if (['device', 'outbox', 'command'].includes(entity)) {
     return {
       worklines: false,
-      detail: true,
+      projection: true,
       activeIncident: false,
       sandbox: true
     }
@@ -109,6 +116,10 @@ export function isRelevantRuntimeEvent(
   event: RuntimeSSEPayload | null | undefined,
   scope: RuntimeEventScope
 ): boolean {
+  if (event && !isRuntimeDomainAllowed(event.domain)) {
+    return false
+  }
+
   if (!event?.keys) {
     return true
   }

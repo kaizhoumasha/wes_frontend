@@ -15,11 +15,5 @@ export const WORKLINE_STOPPED_REASON = '工作线未 START，等待现场硬件 
 export const SAFETY_EVIDENCE_STALE_MS = 15_000
 
 export const ALLOWED_RUNTIME_EVENT_DOMAINS = new Set([
-  'workline_trace',
-  'workline',
-  'device',
-  'outbox',
-  'command',
-  'workline_safety',
-  'safety'
+  'workline_runtime'
 ])

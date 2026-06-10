@@ -150,7 +150,7 @@ import RuntimeSceneDeviceFlow from '@/components/runtime/shared/RuntimeSceneDevi
 import type {
   DiagnosisEvidenceHealthItemState,
   RuntimeTracePathResponse,
-  RuntimeWorklineDetailResponse,
+  RuntimeWorklineMonitorProjectionResponse,
   TraceBlockingPointResponse,
   TraceDetailResponse
 } from '@/types/runtime'
@@ -166,13 +166,13 @@ const props = withDefaults(
     detail: TraceDetailResponse
     blockingPoint?: TraceBlockingPointResponse | null
     path?: RuntimeTracePathResponse | null
-    worklineDetail?: RuntimeWorklineDetailResponse | null
+    worklineProjection?: RuntimeWorklineMonitorProjectionResponse | null
     pathLoading?: boolean
   }>(),
   {
     blockingPoint: null,
     path: null,
-    worklineDetail: null,
+    worklineProjection: null,
     pathLoading: false
   }
 )
@@ -205,7 +205,7 @@ const anchorText = computed(() =>
   })
 )
 
-const worklineDevices = computed(() => props.worklineDetail?.devices ?? [])
+const worklineDevices = computed(() => props.worklineProjection?.device_nodes ?? [])
 const worklineDeviceNodes = computed(() => worklineDevices.value.map(toRuntimeSceneDeviceNode))
 
 const evidenceAttentionItems = computed(() =>

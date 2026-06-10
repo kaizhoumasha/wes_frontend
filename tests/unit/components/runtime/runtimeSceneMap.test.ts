@@ -468,6 +468,40 @@ describe('RuntimeSceneMap', () => {
     ])
   })
 
+  it('defaults to the waiting position that has rack evidence', () => {
+    const model = createSceneModel()
+    const rackGroup = model.positionGroups[0]!
+    const emptyBoundary = {
+      ...rackGroup.boundary,
+      key: 'SOURCE_STATION_A',
+      stationRole: 'SOURCE',
+      stationCode: 'SOURCE_STATION_A',
+      positionCode: 'SOURCE_STATION_A'
+    }
+    model.positionGroups = [
+      {
+        ...rackGroup,
+        key: 'SOURCE_STATION_A',
+        stationRole: 'SOURCE',
+        stationCode: 'SOURCE_STATION_A',
+        positionCode: 'SOURCE_STATION_A',
+        boundary: emptyBoundary,
+        resourceStacks: [],
+        rackLayouts: [],
+        auditItems: []
+      },
+      rackGroup
+    ]
+
+    const wrapper = mount(RuntimeSceneMap, {
+      props: {
+        model
+      }
+    })
+
+    expect(wrapper.get('[data-test="runtime-rack-layout-panel"]').text()).toContain('RACK-001')
+  })
+
   it('uses cell reel counts for rack and slot summaries instead of material entity count', () => {
     const model = createSceneModel()
     const cell = model.positionGroups[0]?.rackLayouts[0]?.slots[0]?.bin?.cells[0]

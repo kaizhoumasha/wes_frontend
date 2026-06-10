@@ -31,8 +31,8 @@ const mocks = vi.hoisted(() => {
     },
     findSummary: vi.fn(() => summary),
     loadWorklines: vi.fn().mockResolvedValue(undefined),
-    loadDetail: vi.fn().mockResolvedValue(undefined),
-    clearDetail: vi.fn()
+    loadProjection: vi.fn().mockResolvedValue(undefined),
+    clearProjection: vi.fn()
   }
 
   return {
@@ -168,7 +168,7 @@ describe('sandbox result flow', () => {
     await flushPromises()
 
     expect(mocks.runtimeApiMethods.sandboxPending).toHaveBeenCalledWith(50, 20)
-    expect(mocks.store.loadDetail).toHaveBeenCalledWith(20)
+    expect(mocks.store.loadProjection).toHaveBeenCalledWith(20)
     expect(wrapper.text()).toContain('模拟 Result 2')
   })
 })
