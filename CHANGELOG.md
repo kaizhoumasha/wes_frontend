@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0.0] - 2026-06-11
+
+### Added
+
+- 工作线监控主屏切换到工作线级监控投影，操作员可以在 `/runtime/monitor` 直接看到投影驱动的线体目录、实时场景和行动舱。
+- 行动舱接入 `pending_reconciliation` 候选，支持在可核销对象存在时完成运行时对账解除，并在成功后刷新投影与工作线摘要。
+- 新增 dev proxy 防回归测试和投影刷新边界测试，覆盖本地代理端口、刷新失败保留旧投影、清空后在途响应不能复活旧状态。
+
+### Changed
+
+- Runtime API、Pinia store、scene builder、monitor/sandbox/trace 消费者统一使用 OpenAPI 生成的 `RuntimeWorklineMonitorProjectionResponse`，不再保留旧 `detail/loadDetail/refreshDetail` 主屏入口。
+- `/runtime/monitor` 改为目录、场景、行动舱三栏结构，资源证据、capped sessions/traces、Manifest 降级和移动 smoke fixture 都基于投影 shape。
+- Runtime SSE 主屏刷新只接受 canonical `workline_runtime` 域，旧 `workline_trace`、`device`、`safety` 等域不再驱动监控主屏刷新。
+
+### Fixed
+
+- 修复开发环境代理误指向 WMS mock 端口导致本地登录和 `/api/v1/auth/login` 404 的问题，`.env.development` 与契约同步记录统一指向本地 WES backend `8001`。
+
 ## [0.4.6.0] - 2026-06-09
 
 ### Added
