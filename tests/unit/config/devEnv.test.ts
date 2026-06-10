@@ -15,10 +15,18 @@ function readEnvFile(path: string): Record<string, string> {
 }
 
 describe('.env.development', () => {
-  it('points the same-origin dev proxy at the generated backend contract source', () => {
+  it('points the same-origin dev proxy at the local WES backend', () => {
     const env = readEnvFile(resolve(process.cwd(), '.env.development'))
 
     expect(env.VITE_API_BASE_URL ?? '').toBe('')
-    expect(env.VITE_API_PROXY_TARGET).toBe('http://127.0.0.1:8011')
+    expect(env.VITE_API_PROXY_TARGET).toBe('http://127.0.0.1:8001')
+  })
+
+  it('keeps the contract sync record on the same WES backend port', () => {
+    const record = JSON.parse(
+      readFileSync(resolve(process.cwd(), '.contract-sync-record.json'), 'utf8')
+    ) as { backendUrl?: string }
+
+    expect(record.backendUrl).toBe('http://localhost:8001/api/openapi.json')
   })
 })
