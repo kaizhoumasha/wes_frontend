@@ -45,6 +45,30 @@ function createSceneModel(): RuntimeSceneModel {
       rackCode: 'RACK-001'
     },
     {
+      resourceKind: 'SLOT',
+      resourceKindLabel: 'Slot',
+      resourceCode: 'A',
+      displayLabel: 'Slot A',
+      evidenceKind: 'WES_ACTIVE_SNAPSHOT',
+      evidenceKindLabel: 'WES active snapshot evidence',
+      stationCode: 'TARGET_ARM',
+      positionCode: 'SINGLE_LAYER_A',
+      rackCode: 'RACK-001',
+      slotCode: 'A'
+    },
+    {
+      resourceKind: 'SLOT',
+      resourceKindLabel: 'Slot',
+      resourceCode: 'B',
+      displayLabel: 'Slot B',
+      evidenceKind: 'WES_ACTIVE_SNAPSHOT',
+      evidenceKindLabel: 'WES active snapshot evidence',
+      stationCode: 'TARGET_ARM',
+      positionCode: 'SINGLE_LAYER_A',
+      rackCode: 'RACK-001',
+      slotCode: 'B'
+    },
+    {
       resourceKind: 'BIN',
       resourceKindLabel: 'Bin',
       resourceCode: 'BIN-001',
@@ -54,16 +78,71 @@ function createSceneModel(): RuntimeSceneModel {
       stationCode: 'TARGET_ARM',
       positionCode: 'SINGLE_LAYER_A',
       rackCode: 'RACK-001',
+      slotCode: 'A',
       binCode: 'BIN-001',
       sourceSessionId: 20,
       sourceTraceId: 'trace-20'
+    },
+    {
+      resourceKind: 'CELL',
+      resourceKindLabel: 'Cell',
+      resourceCode: 'CELL-A1',
+      displayLabel: 'Cell CELL-A1',
+      evidenceKind: 'TRACE_RESOURCE_EVIDENCE',
+      evidenceKindLabel: 'Trace 资源证据',
+      stationCode: 'TARGET_ARM',
+      positionCode: 'SINGLE_LAYER_A',
+      rackCode: 'RACK-001',
+      slotCode: 'A',
+      binCode: 'BIN-001'
+    },
+    {
+      resourceKind: 'PKG',
+      resourceKindLabel: 'PKG',
+      resourceCode: 'PKG-001',
+      displayLabel: 'PKG PKG-001',
+      evidenceKind: 'TRACE_RESOURCE_EVIDENCE',
+      evidenceKindLabel: 'Trace 资源证据',
+      stationCode: 'TARGET_ARM',
+      positionCode: 'SINGLE_LAYER_A',
+      rackCode: 'RACK-001',
+      slotCode: 'A',
+      binCode: 'BIN-001',
+      pkgCode: 'PKG-001',
+      materialCode: '620100L00-011-G',
+      dateCode: '2401',
+      lotCode: 'LOT-A',
+      reelCode: 'REEL-BOTTOM',
+      positionIndex: 1
+    },
+    {
+      resourceKind: 'PKG',
+      resourceKindLabel: 'PKG',
+      resourceCode: 'PKG-002',
+      displayLabel: 'PKG PKG-002',
+      evidenceKind: 'TRACE_RESOURCE_EVIDENCE',
+      evidenceKindLabel: 'Trace 资源证据',
+      stationCode: 'TARGET_ARM',
+      positionCode: 'SINGLE_LAYER_A',
+      rackCode: 'RACK-001',
+      slotCode: 'A',
+      binCode: 'BIN-001',
+      pkgCode: 'PKG-002',
+      materialCode: '620100L00-011-G',
+      dateCode: '2401',
+      lotCode: 'LOT-A',
+      reelCode: 'REEL-TOP',
+      positionIndex: 2
     }
   ]
   const resourceEvidence: RuntimeSceneModel['resourceEvidence'] = [
     ...locatedEvidence,
     ...unlocatedAuditItems
   ]
-  const binEvidence = locatedEvidence[1]!
+  const binEvidence = locatedEvidence[3]!
+  const cellEvidence = locatedEvidence[4]!
+  const bottomPkgEvidence = locatedEvidence[5]!
+  const topPkgEvidence = locatedEvidence[6]!
 
   return {
     worklineId: 45,
@@ -116,8 +195,144 @@ function createSceneModel(): RuntimeSceneModel {
                 evidenceKind: 'WMS_CALLBACK_EVIDENCE'
               }
             ],
-            evidenceCount: 2,
-            evidenceKinds: ['WES_ACTIVE_SNAPSHOT', 'WMS_CALLBACK_EVIDENCE'],
+            evidenceCount: locatedEvidence.length,
+            evidenceKinds: [
+              'WES_ACTIVE_SNAPSHOT',
+              'WMS_CALLBACK_EVIDENCE',
+              'TRACE_RESOURCE_EVIDENCE'
+            ],
+            auditItems: locatedEvidence
+          }
+        ],
+        rackLayouts: [
+          {
+            key: 'rack-layout:RACK-001',
+            rackCode: 'RACK-001',
+            displayLabel: 'RACK RACK-001',
+            stationCode: 'TARGET_ARM',
+            positionCode: 'SINGLE_LAYER_A',
+            attentionState: 'waiting',
+            slots: [
+              {
+                key: 'rack-layout:RACK-001:slot:A',
+                code: 'A',
+                displayLabel: 'Slot A',
+                bin: {
+                  key: 'rack-layout:RACK-001:bin:BIN-001',
+                  code: 'BIN-001',
+                  displayLabel: 'BIN BIN-001',
+                  slotCode: 'A',
+                  cells: [
+                    {
+                      key: 'rack-layout:RACK-001:bin:BIN-001:cell:CELL-A1',
+                      code: 'CELL-A1',
+                      displayLabel: 'Cell CELL-A1',
+                      materials: [
+                        {
+                          key: 'material:PKG:PKG-001',
+                          kind: 'PKG',
+                          code: 'PKG-001',
+                          displayLabel: 'PKG PKG-001',
+                          evidenceKind: 'TRACE_RESOURCE_EVIDENCE',
+                          materialCode: '620100L00-011-G',
+                          dateCode: '2401',
+                          lotCode: 'LOT-A',
+                          reelCode: 'REEL-BOTTOM',
+                          positionIndex: 1,
+                          auditItems: [bottomPkgEvidence]
+                        },
+                        {
+                          key: 'material:PKG:PKG-002',
+                          kind: 'PKG',
+                          code: 'PKG-002',
+                          displayLabel: 'PKG PKG-002',
+                          evidenceKind: 'TRACE_RESOURCE_EVIDENCE',
+                          materialCode: '620100L00-011-G',
+                          dateCode: '2401',
+                          lotCode: 'LOT-A',
+                          reelCode: 'REEL-TOP',
+                          positionIndex: 2,
+                          auditItems: [topPkgEvidence]
+                        }
+                      ],
+                      materialSummary: {
+                        materialCode: '620100L00-011-G',
+                        dateCode: '2401',
+                        lotCode: 'LOT-A',
+                        reelCount: 2,
+                        batchStatus: 'single',
+                        hasBatchFields: true
+                      },
+                      materialReels: [
+                        {
+                          key: 'material:PKG:PKG-001:reel:REEL-BOTTOM:0',
+                          reelCode: 'REEL-BOTTOM',
+                          materialCode: '620100L00-011-G',
+                          dateCode: '2401',
+                          lotCode: 'LOT-A',
+                          positionIndex: 1,
+                          displayLabel: 'PKG PKG-001',
+                          evidenceKind: 'TRACE_RESOURCE_EVIDENCE',
+                          auditItems: [bottomPkgEvidence]
+                        },
+                        {
+                          key: 'material:PKG:PKG-002:reel:REEL-TOP:1',
+                          reelCode: 'REEL-TOP',
+                          materialCode: '620100L00-011-G',
+                          dateCode: '2401',
+                          lotCode: 'LOT-A',
+                          positionIndex: 2,
+                          displayLabel: 'PKG PKG-002',
+                          evidenceKind: 'TRACE_RESOURCE_EVIDENCE',
+                          auditItems: [topPkgEvidence]
+                        }
+                      ],
+                      evidenceCount: 3,
+                      evidenceKinds: ['TRACE_RESOURCE_EVIDENCE'],
+                      auditItems: [cellEvidence, bottomPkgEvidence, topPkgEvidence]
+                    }
+                  ],
+                  looseMaterials: [],
+                  evidenceCount: 4,
+                  evidenceKinds: ['WMS_CALLBACK_EVIDENCE', 'TRACE_RESOURCE_EVIDENCE'],
+                  auditItems: [binEvidence, cellEvidence, bottomPkgEvidence, topPkgEvidence]
+                },
+                looseMaterials: [],
+                state: 'material',
+                evidenceCount: 5,
+                evidenceKinds: [
+                  'WES_ACTIVE_SNAPSHOT',
+                  'WMS_CALLBACK_EVIDENCE',
+                  'TRACE_RESOURCE_EVIDENCE'
+                ],
+                auditItems: [
+                  locatedEvidence[1]!,
+                  binEvidence,
+                  cellEvidence,
+                  bottomPkgEvidence,
+                  topPkgEvidence
+                ]
+              },
+              {
+                key: 'rack-layout:RACK-001:slot:B',
+                code: 'B',
+                displayLabel: 'Slot B',
+                bin: null,
+                looseMaterials: [],
+                state: 'empty',
+                evidenceCount: 1,
+                evidenceKinds: ['WES_ACTIVE_SNAPSHOT'],
+                auditItems: [locatedEvidence[2]!]
+              }
+            ],
+            unlocatedBins: [],
+            looseMaterials: [],
+            evidenceCount: locatedEvidence.length,
+            evidenceKinds: [
+              'WES_ACTIVE_SNAPSHOT',
+              'WMS_CALLBACK_EVIDENCE',
+              'TRACE_RESOURCE_EVIDENCE'
+            ],
             auditItems: locatedEvidence
           }
         ],
@@ -125,7 +340,7 @@ function createSceneModel(): RuntimeSceneModel {
       }
     ],
     unlocatedAuditItems,
-    resourceEvidenceTotalCount: 7,
+    resourceEvidenceTotalCount: 8,
     resourceEvidenceTruncated: true,
     semanticFallback: false,
     semanticFallbackMessage: null
@@ -165,6 +380,7 @@ function createBinOnlySceneModel(
             auditItems: resourceEvidence
           }
         ],
+        rackLayouts: [],
         auditItems: resourceEvidence
       }
     ],
@@ -186,9 +402,7 @@ describe('RuntimeSceneMap', () => {
     expect(wrapper.get('[data-test="runtime-scene-position-group"]').text()).toContain(
       'SINGLE_LAYER_A'
     )
-    expect(wrapper.get('[data-test="runtime-scene-resource-stack"]').text()).toContain(
-      'RACK-001'
-    )
+    expect(wrapper.get('[data-test="runtime-rack-layout-panel"]').text()).toContain('RACK-001')
     expect(wrapper.get('[data-test="runtime-scene-station-lease"]').text()).toContain(
       'Station lease：调度租约占用'
     )
@@ -198,22 +412,136 @@ describe('RuntimeSceneMap', () => {
     expect(wrapper.get('[data-test="runtime-scene-rack-snapshot"]').text()).toContain(
       '执行快照：当前执行货架'
     )
-    expect(wrapper.get('[data-test="runtime-scene-focus-panel"]').text()).toContain('trace-20')
-    expect(wrapper.get('[data-test="runtime-scene-focus-panel"]').text()).not.toContain(
+    expect(wrapper.get('[data-test="runtime-rack-inspector"]').text()).toContain('BIN-001')
+    expect(wrapper.get('[data-test="runtime-rack-inspector"]').text()).not.toContain(
       'PKG-UNLOCATED'
     )
     expect(wrapper.get('[data-test="runtime-scene-truncated"]').text()).toBe(
-      '仅展示前 3 条证据 / 共 7 条'
+      '仅展示前 8 条证据 / 共 8 条'
     )
     const unlocatedAudit = wrapper.get('[data-test="runtime-scene-unlocated-audit"]')
     expect(unlocatedAudit.text()).toContain('PKG-UNLOCATED')
     expect(unlocatedAudit.get('[data-test="runtime-scene-evidence-truncated"]').text()).toBe(
-      '仅展示前 3 条证据 / 共 7 条'
+      '仅展示前 8 条证据 / 共 8 条'
     )
+  })
 
-    await wrapper.get('[data-test="runtime-scene-resource-stack"]').trigger('click')
+  it('renders a rack grid and drills from slot to bin, cell, and material evidence', async () => {
+    const wrapper = mount(RuntimeSceneMap, {
+      props: {
+        model: createSceneModel()
+      }
+    })
 
-    expect(wrapper.get('[data-test="runtime-scene-focus-panel"]').text()).toContain('BIN-001')
+    expect(wrapper.get('[data-test="runtime-rack-layout-panel"]').text()).toContain('RACK-001')
+    const slots = wrapper.findAll('[data-test="runtime-rack-slot"]')
+    expect(slots).toHaveLength(2)
+    expect(slots[0]?.text()).toContain('BIN-001')
+    expect(slots[1]?.text()).toContain('空位')
+
+    await slots[0]?.trigger('click')
+
+    const inspector = wrapper.get('[data-test="runtime-rack-inspector"]')
+    expect(inspector.text()).toContain('BIN-001')
+    expect(inspector.get('[data-test="runtime-bin-cell-grid"]').text()).toContain('A')
+    expect(inspector.get('[data-test="runtime-bin-cell-grid"]').text()).toContain('B')
+    expect(inspector.get('[data-test="runtime-bin-cell-grid"]').text()).toContain('C')
+    expect(inspector.get('[data-test="runtime-bin-cell-grid"]').text()).toContain('D')
+    expect(inspector.text()).toContain('CELL-A1')
+    expect(inspector.text()).toContain('PKG-001')
+    expect(inspector.get('[data-test="runtime-bin-cell-grid"]').text()).toContain(
+      '620100L00-011-G'
+    )
+    expect(inspector.get('[data-test="runtime-bin-cell-grid"]').text()).toContain('DC 2401')
+    expect(inspector.get('[data-test="runtime-bin-cell-grid"]').text()).toContain('LC LOT-A')
+    expect(inspector.get('[data-test="runtime-bin-cell-grid"]').text()).toContain('2 盘')
+    expect(inspector.get('[data-test="runtime-rack-cell-summary"]').text()).toContain(
+      '620100L00-011-G'
+    )
+    expect(inspector.get('[data-test="runtime-rack-material-stack"]').text()).toContain('底部')
+    expect(inspector.get('[data-test="runtime-rack-material-stack"]').text()).toContain('顶部')
+    expect(
+      inspector.findAll('[data-test="runtime-rack-material-reel"]').map(reel => reel.text())
+    ).toEqual([
+      expect.stringContaining('底层REEL-BOTTOM'),
+      expect.stringContaining('顶层REEL-TOP')
+    ])
+  })
+
+  it('uses cell reel counts for rack and slot summaries instead of material entity count', () => {
+    const model = createSceneModel()
+    const cell = model.positionGroups[0]?.rackLayouts[0]?.slots[0]?.bin?.cells[0]
+    if (!cell?.materialSummary) throw new Error('expected test fixture cell summary')
+    cell.materialSummary.reelCount = 19
+    cell.materials = cell.materials.slice(0, 1)
+    cell.materialReels = []
+
+    const wrapper = mount(RuntimeSceneMap, {
+      props: {
+        model
+      }
+    })
+
+    const panelText = wrapper.get('[data-test="runtime-rack-layout-panel"]').text()
+    expect(panelText).toContain('2 格 · 1 箱 · 19 盘')
+    expect(panelText).toContain('1 格 · 19 盘')
+    expect(panelText).not.toContain('1 料')
+  })
+
+  it('does not double count bin-scoped material evidence when cells already report reel counts', () => {
+    const model = createSceneModel()
+    const slot = model.positionGroups[0]?.rackLayouts[0]?.slots[0]
+    const bin = slot?.bin
+    const cell = bin?.cells[0]
+    if (!bin || !cell?.materialSummary) throw new Error('expected test fixture bin and cell')
+
+    cell.materialSummary.reelCount = 5
+    cell.materialReels = []
+    bin.looseMaterials = Array.from({ length: 5 }, (_, index) => ({
+      key: `material:PKG:LOOSE-${index + 1}`,
+      kind: 'PKG',
+      code: `LOOSE-${index + 1}`,
+      displayLabel: `PKG LOOSE-${index + 1}`,
+      evidenceKind: 'TRACE_RESOURCE_EVIDENCE',
+      auditItems: []
+    }))
+
+    const wrapper = mount(RuntimeSceneMap, {
+      props: {
+        model
+      }
+    })
+
+    const panelText = wrapper.get('[data-test="runtime-rack-layout-panel"]').text()
+    expect(panelText).toContain('2 格 · 1 箱 · 5 盘')
+    expect(panelText).toContain('1 格 · 5 盘')
+    expect(panelText).toContain('5 条未定位')
+    expect(panelText).not.toContain('10 盘')
+
+    const inspector = wrapper.get('[data-test="runtime-rack-inspector"]')
+    expect(inspector.text()).toContain('未定位证据')
+    expect(inspector.text()).toContain('未绑定料格，不计入物理盘数')
+  })
+
+  it('explains when a cell has aggregate reel count but no reel-level details', async () => {
+    const model = createSceneModel()
+    const cell = model.positionGroups[0]?.rackLayouts[0]?.slots[0]?.bin?.cells[0]
+    if (!cell?.materialSummary) throw new Error('expected test fixture cell summary')
+    cell.materialSummary.reelCount = 19
+    cell.materials = cell.materials.slice(0, 1)
+    cell.materialReels = []
+
+    const wrapper = mount(RuntimeSceneMap, {
+      props: {
+        model
+      }
+    })
+
+    await wrapper.findAll('[data-test="runtime-rack-slot"]')[0]?.trigger('click')
+
+    const inspector = wrapper.get('[data-test="runtime-rack-inspector"]')
+    expect(inspector.get('[data-test="runtime-rack-cell-summary"]').text()).toContain('19 盘')
+    expect(inspector.text()).toContain('当前接口只提供汇总盘数，未提供逐盘明细')
   })
 
   it('renders semantic fallback when plugin manifest or contract fields are unavailable', () => {

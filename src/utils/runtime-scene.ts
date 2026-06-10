@@ -57,8 +57,15 @@ export interface RuntimeSceneResourceEvidence {
   rackCode?: string | null
   binCode?: string | null
   slotCode?: string | null
+  cellCode?: string | null
   pkgCode?: string | null
   partSn?: string | null
+  materialCode?: string | null
+  dateCode?: string | null
+  lotCode?: string | null
+  reelCount?: number | null
+  reelCode?: string | null
+  positionIndex?: number | null
   sourceSessionId?: number | null
   sourceTraceId?: string | null
   occurredAt?: string | null
@@ -91,6 +98,96 @@ export interface RuntimeSceneResourceStack {
   auditItems: RuntimeSceneResourceEvidence[]
 }
 
+export type RuntimeSceneRackSlotState = 'empty' | 'occupied' | 'material'
+export type RuntimeSceneRackCellBatchStatus = 'empty' | 'single' | 'mixed' | 'unknown'
+
+export interface RuntimeSceneRackCellMaterialSummary {
+  materialCode?: string | null
+  dateCode?: string | null
+  lotCode?: string | null
+  reelCount: number
+  batchStatus: RuntimeSceneRackCellBatchStatus
+  hasBatchFields: boolean
+}
+
+export interface RuntimeSceneRackMaterialReel {
+  key: string
+  reelCode: string
+  materialCode?: string | null
+  dateCode?: string | null
+  lotCode?: string | null
+  positionIndex?: number | null
+  displayLabel: string
+  evidenceKind: RuntimeResourceEvidenceKind
+  auditItems: RuntimeSceneResourceEvidence[]
+}
+
+export interface RuntimeSceneRackMaterial {
+  key: string
+  kind: RuntimeResourceKind
+  code: string
+  displayLabel: string
+  evidenceKind: RuntimeResourceEvidenceKind
+  materialCode?: string | null
+  dateCode?: string | null
+  lotCode?: string | null
+  reelCount?: number | null
+  reelCode?: string | null
+  positionIndex?: number | null
+  auditItems: RuntimeSceneResourceEvidence[]
+}
+
+export interface RuntimeSceneRackCell {
+  key: string
+  code: string
+  displayLabel: string
+  materials: RuntimeSceneRackMaterial[]
+  materialSummary: RuntimeSceneRackCellMaterialSummary | null
+  materialReels: RuntimeSceneRackMaterialReel[]
+  evidenceCount: number
+  evidenceKinds: RuntimeResourceEvidenceKind[]
+  auditItems: RuntimeSceneResourceEvidence[]
+}
+
+export interface RuntimeSceneRackBin {
+  key: string
+  code: string
+  displayLabel: string
+  slotCode?: string | null
+  cells: RuntimeSceneRackCell[]
+  looseMaterials: RuntimeSceneRackMaterial[]
+  evidenceCount: number
+  evidenceKinds: RuntimeResourceEvidenceKind[]
+  auditItems: RuntimeSceneResourceEvidence[]
+}
+
+export interface RuntimeSceneRackSlot {
+  key: string
+  code: string
+  displayLabel: string
+  bin: RuntimeSceneRackBin | null
+  looseMaterials: RuntimeSceneRackMaterial[]
+  state: RuntimeSceneRackSlotState
+  evidenceCount: number
+  evidenceKinds: RuntimeResourceEvidenceKind[]
+  auditItems: RuntimeSceneResourceEvidence[]
+}
+
+export interface RuntimeSceneRackLayout {
+  key: string
+  rackCode: string
+  displayLabel: string
+  stationCode: string
+  positionCode: string
+  attentionState: RuntimeSceneAttentionState
+  slots: RuntimeSceneRackSlot[]
+  unlocatedBins: RuntimeSceneRackBin[]
+  looseMaterials: RuntimeSceneRackMaterial[]
+  evidenceCount: number
+  evidenceKinds: RuntimeResourceEvidenceKind[]
+  auditItems: RuntimeSceneResourceEvidence[]
+}
+
 export interface RuntimeScenePositionGroup {
   key: string
   stationCode: string
@@ -99,6 +196,7 @@ export interface RuntimeScenePositionGroup {
   boundary: RuntimeSceneBoundary
   attentionState: RuntimeSceneAttentionState
   resourceStacks: RuntimeSceneResourceStack[]
+  rackLayouts: RuntimeSceneRackLayout[]
   auditItems: RuntimeSceneResourceEvidence[]
 }
 
@@ -286,10 +384,9 @@ export function buildRuntimeSceneModel(input: BuildRuntimeSceneModelInput): Runt
     resourceEvidence,
     positionGroups,
     unlocatedAuditItems,
-    resourceEvidenceTotalCount:
-      isFiniteNumber(detailRecord.resource_evidence_total_count)
-        ? detailRecord.resource_evidence_total_count
-        : resourceEvidence.length,
+    resourceEvidenceTotalCount: isFiniteNumber(detailRecord.resource_evidence_total_count)
+      ? detailRecord.resource_evidence_total_count
+      : resourceEvidence.length,
     resourceEvidenceTruncated:
       typeof detailRecord.resource_evidence_truncated === 'boolean'
         ? detailRecord.resource_evidence_truncated
@@ -355,7 +452,11 @@ function toSceneBoundary(
 ): RuntimeSceneBoundary {
   const detailRecord = detail as RuntimeWorklineDetailResponse & Record<string, unknown>
   const stationLease = hasRuntimeSceneSemantics
-    ? (normalizeEnum(detailRecord.station_lease, STATION_LEASE_VALUES, 'UNKNOWN') as RuntimeStationLease)
+    ? (normalizeEnum(
+        detailRecord.station_lease,
+        STATION_LEASE_VALUES,
+        'UNKNOWN'
+      ) as RuntimeStationLease)
     : 'UNKNOWN'
   const rackSnapshot = hasRuntimeSceneSemantics
     ? (normalizeEnum(
@@ -413,9 +514,7 @@ function getBoundaryKey(boundary: WorkLineSingleLayerRackBoundarySummary): strin
   ].join(':')
 }
 
-function derivePositionAttentionState(
-  boundary: RuntimeSceneBoundary
-): RuntimeSceneAttentionState {
+function derivePositionAttentionState(boundary: RuntimeSceneBoundary): RuntimeSceneAttentionState {
   if (boundary.rackOperationWait === 'WAITING_WMS') return 'waiting'
   if (boundary.rackOperationWait === 'TIMEOUT' || boundary.rackOperationWait === 'FAILED') {
     return 'blocked'
@@ -468,9 +567,7 @@ function getResourceStackAnchorDisplayLabel(
   return `${RESOURCE_KIND_LABELS[kind]} ${code}`
 }
 
-function toResourceStackChild(
-  item: RuntimeSceneResourceEvidence
-): RuntimeSceneResourceStackChild {
+function toResourceStackChild(item: RuntimeSceneResourceEvidence): RuntimeSceneResourceStackChild {
   return {
     key: getRuntimeSceneEvidenceKey(item),
     kind: item.resourceKind,
@@ -538,10 +635,7 @@ function resolveEvidencePhysicalPositionKey(
 
   const matchingPositionKeys = physicalPositionKeysByPosition.get(item.positionCode)
   const stationlessFallbackKey = getPhysicalPositionKey(item.positionCode, item.positionCode)
-  if (
-    preferStationlessFallbackBoundary &&
-    matchingPositionKeys?.has(stationlessFallbackKey)
-  ) {
+  if (preferStationlessFallbackBoundary && matchingPositionKeys?.has(stationlessFallbackKey)) {
     return stationlessFallbackKey
   }
 
@@ -583,9 +677,7 @@ function getUnlocatedAuditItems(
     .map(placement => placement.item)
 }
 
-function buildResourceStacks(
-  items: RuntimeSceneResourceEvidence[]
-): RuntimeSceneResourceStack[] {
+function buildResourceStacks(items: RuntimeSceneResourceEvidence[]): RuntimeSceneResourceStack[] {
   const stacks = new Map<string, RuntimeSceneResourceStack>()
 
   for (const item of items) {
@@ -610,8 +702,7 @@ function buildResourceStacks(
     appendUniqueEvidenceKind(stack.evidenceKinds, item.evidenceKind)
 
     const child = toResourceStackChild(item)
-    const childMatchesAnchor =
-      child.kind === stack.anchor.kind && child.code === stack.anchor.code
+    const childMatchesAnchor = child.kind === stack.anchor.kind && child.code === stack.anchor.code
     const childExists = stack.children.some(existing => existing.key === child.key)
     if (!childMatchesAnchor && !childExists) {
       stack.children.push(child)
@@ -619,6 +710,467 @@ function buildResourceStacks(
   }
 
   return Array.from(stacks.values())
+}
+
+function buildRackLayouts(
+  boundary: RuntimeSceneBoundary,
+  attentionState: RuntimeSceneAttentionState,
+  items: RuntimeSceneResourceEvidence[]
+): RuntimeSceneRackLayout[] {
+  const layouts = new Map<string, RuntimeSceneRackLayout>()
+
+  for (const item of items) {
+    const rackCode = getRackCode(item)
+    if (!rackCode) continue
+
+    const layout = ensureRackLayout(layouts, boundary, attentionState, item, rackCode)
+    appendRackAuditItem(layout, item)
+
+    const slotCode = getSlotCode(item)
+    const binCode = getBinCode(item)
+    const slot = slotCode
+      ? ensureRackSlot(layout, item, slotCode)
+      : getExistingRackSlotByBin(layout, item)
+    if (slot) appendRackAuditItem(slot, item)
+
+    const bin = binCode
+      ? slot
+        ? ensureRackSlotBin(layout, slot, item, binCode)
+        : ensureUnlocatedRackBin(layout, item, binCode)
+      : null
+    if (bin) appendRackAuditItem(bin, item)
+
+    const cellCode = getCellCode(item)
+    const cell = cellCode && bin ? ensureRackCell(bin, item, cellCode) : null
+    if (cell) appendRackAuditItem(cell, item)
+  }
+
+  for (const item of items) {
+    const material = toRackMaterial(item)
+    if (!material) continue
+
+    const layout = getExistingRackLayout(layouts, item)
+    if (!layout) continue
+
+    const slot = getExistingRackSlot(layout, item) ?? getExistingRackSlotByBin(layout, item)
+    const bin = slot?.bin ?? getExistingUnlocatedRackBin(layout, item)
+    const cell = bin ? getExistingRackCell(bin, item) : null
+
+    if (cell) {
+      appendRackMaterial(cell.materials, material)
+      appendRackAuditItem(cell, item)
+    } else if (bin) {
+      appendRackMaterial(bin.looseMaterials, material)
+    } else if (slot) {
+      appendRackMaterial(slot.looseMaterials, material)
+    } else {
+      appendRackMaterial(layout.looseMaterials, material)
+    }
+  }
+
+  for (const layout of layouts.values()) {
+    for (const slot of layout.slots) {
+      for (const cell of slot.bin?.cells ?? []) {
+        finalizeRackCellMaterialState(cell)
+      }
+      slot.state = deriveRackSlotState(slot)
+    }
+    for (const bin of layout.unlocatedBins) {
+      for (const cell of bin.cells) {
+        finalizeRackCellMaterialState(cell)
+      }
+    }
+  }
+
+  return Array.from(layouts.values())
+}
+
+function getRackCode(item: RuntimeSceneResourceEvidence): string | null {
+  return item.rackCode ?? (item.resourceKind === 'RACK' ? item.resourceCode : null)
+}
+
+function getSlotCode(item: RuntimeSceneResourceEvidence): string | null {
+  return item.slotCode ?? (item.resourceKind === 'SLOT' ? item.resourceCode : null)
+}
+
+function getBinCode(item: RuntimeSceneResourceEvidence): string | null {
+  return item.binCode ?? (item.resourceKind === 'BIN' ? item.resourceCode : null)
+}
+
+function getCellCode(item: RuntimeSceneResourceEvidence): string | null {
+  return item.cellCode ?? (item.resourceKind === 'CELL' ? item.resourceCode : null)
+}
+
+function getMaterialIdentity(
+  item: RuntimeSceneResourceEvidence
+): { kind: RuntimeResourceKind; code: string } | null {
+  if (item.partSn || item.resourceKind === 'PART_SN') {
+    return { kind: 'PART_SN', code: item.partSn ?? item.resourceCode }
+  }
+  if (item.pkgCode || item.resourceKind === 'PKG') {
+    return { kind: 'PKG', code: item.pkgCode ?? item.resourceCode }
+  }
+  if (item.resourceKind === 'MAGAZINE') {
+    return { kind: 'MAGAZINE', code: item.resourceCode }
+  }
+  return null
+}
+
+function toRackMaterial(item: RuntimeSceneResourceEvidence): RuntimeSceneRackMaterial | null {
+  const identity = getMaterialIdentity(item)
+  if (!identity) return null
+
+  return {
+    key: `material:${identity.kind}:${identity.code}`,
+    kind: identity.kind,
+    code: identity.code,
+    displayLabel:
+      item.resourceKind === identity.kind && item.resourceCode === identity.code
+        ? item.displayLabel
+        : `${RESOURCE_KIND_LABELS[identity.kind]} ${identity.code}`,
+    evidenceKind: item.evidenceKind,
+    materialCode: item.materialCode,
+    dateCode: item.dateCode,
+    lotCode: item.lotCode,
+    reelCount: item.reelCount,
+    reelCode: item.reelCode,
+    positionIndex: item.positionIndex,
+    auditItems: [item]
+  }
+}
+
+function getRackLayoutKey(rackCode: string): string {
+  return `rack-layout:${rackCode}`
+}
+
+function ensureRackLayout(
+  layouts: Map<string, RuntimeSceneRackLayout>,
+  boundary: RuntimeSceneBoundary,
+  attentionState: RuntimeSceneAttentionState,
+  item: RuntimeSceneResourceEvidence,
+  rackCode: string
+): RuntimeSceneRackLayout {
+  const key = getRackLayoutKey(rackCode)
+  let layout = layouts.get(key)
+  if (!layout) {
+    layout = {
+      key,
+      rackCode,
+      displayLabel:
+        item.resourceKind === 'RACK' && item.resourceCode === rackCode
+          ? item.displayLabel
+          : `${RESOURCE_KIND_LABELS.RACK} ${rackCode}`,
+      stationCode: boundary.stationCode,
+      positionCode: boundary.positionCode,
+      attentionState,
+      slots: [],
+      unlocatedBins: [],
+      looseMaterials: [],
+      evidenceCount: 0,
+      evidenceKinds: [],
+      auditItems: []
+    }
+    layouts.set(key, layout)
+  }
+  return layout
+}
+
+function getExistingRackLayout(
+  layouts: Map<string, RuntimeSceneRackLayout>,
+  item: RuntimeSceneResourceEvidence
+): RuntimeSceneRackLayout | null {
+  const rackCode = getRackCode(item)
+  return rackCode ? (layouts.get(getRackLayoutKey(rackCode)) ?? null) : null
+}
+
+function getRackSlotKey(layout: RuntimeSceneRackLayout, slotCode: string): string {
+  return `${layout.key}:slot:${slotCode}`
+}
+
+function ensureRackSlot(
+  layout: RuntimeSceneRackLayout,
+  item: RuntimeSceneResourceEvidence,
+  slotCode: string
+): RuntimeSceneRackSlot {
+  const key = getRackSlotKey(layout, slotCode)
+  let slot = layout.slots.find(existing => existing.key === key)
+  if (!slot) {
+    slot = {
+      key,
+      code: slotCode,
+      displayLabel:
+        item.resourceKind === 'SLOT' && item.resourceCode === slotCode
+          ? item.displayLabel
+          : `${RESOURCE_KIND_LABELS.SLOT} ${slotCode}`,
+      bin: null,
+      looseMaterials: [],
+      state: 'empty',
+      evidenceCount: 0,
+      evidenceKinds: [],
+      auditItems: []
+    }
+    layout.slots.push(slot)
+  }
+  return slot
+}
+
+function getExistingRackSlot(
+  layout: RuntimeSceneRackLayout,
+  item: RuntimeSceneResourceEvidence
+): RuntimeSceneRackSlot | null {
+  const slotCode = getSlotCode(item)
+  return slotCode
+    ? (layout.slots.find(slot => slot.key === getRackSlotKey(layout, slotCode)) ?? null)
+    : null
+}
+
+function getExistingRackSlotByBin(
+  layout: RuntimeSceneRackLayout,
+  item: RuntimeSceneResourceEvidence
+): RuntimeSceneRackSlot | null {
+  const binCode = getBinCode(item)
+  return binCode ? (layout.slots.find(slot => slot.bin?.code === binCode) ?? null) : null
+}
+
+function createRackBin(
+  layout: RuntimeSceneRackLayout,
+  item: RuntimeSceneResourceEvidence,
+  binCode: string,
+  slotCode?: string | null
+): RuntimeSceneRackBin {
+  return {
+    key: `${layout.key}:bin:${binCode}`,
+    code: binCode,
+    displayLabel:
+      item.resourceKind === 'BIN' && item.resourceCode === binCode
+        ? item.displayLabel
+        : `${RESOURCE_KIND_LABELS.BIN} ${binCode}`,
+    slotCode,
+    cells: [],
+    looseMaterials: [],
+    evidenceCount: 0,
+    evidenceKinds: [],
+    auditItems: []
+  }
+}
+
+function ensureRackSlotBin(
+  layout: RuntimeSceneRackLayout,
+  slot: RuntimeSceneRackSlot,
+  item: RuntimeSceneResourceEvidence,
+  binCode: string
+): RuntimeSceneRackBin {
+  if (!slot.bin || slot.bin.code !== binCode) {
+    const unlocatedBinIndex = layout.unlocatedBins.findIndex(bin => bin.code === binCode)
+    const unlocatedBin = unlocatedBinIndex >= 0 ? layout.unlocatedBins[unlocatedBinIndex] : null
+    if (unlocatedBin) {
+      unlocatedBin.slotCode = slot.code
+      slot.bin = unlocatedBin
+      layout.unlocatedBins.splice(unlocatedBinIndex, 1)
+    } else {
+      slot.bin = createRackBin(layout, item, binCode, slot.code)
+    }
+  }
+  return slot.bin
+}
+
+function ensureUnlocatedRackBin(
+  layout: RuntimeSceneRackLayout,
+  item: RuntimeSceneResourceEvidence,
+  binCode: string
+): RuntimeSceneRackBin {
+  let bin = layout.unlocatedBins.find(existing => existing.code === binCode)
+  if (!bin) {
+    bin = createRackBin(layout, item, binCode)
+    layout.unlocatedBins.push(bin)
+  }
+  return bin
+}
+
+function getExistingUnlocatedRackBin(
+  layout: RuntimeSceneRackLayout,
+  item: RuntimeSceneResourceEvidence
+): RuntimeSceneRackBin | null {
+  const binCode = getBinCode(item)
+  return binCode ? (layout.unlocatedBins.find(bin => bin.code === binCode) ?? null) : null
+}
+
+function getRackCellKey(bin: RuntimeSceneRackBin, cellCode: string): string {
+  return `${bin.key}:cell:${cellCode}`
+}
+
+function ensureRackCell(
+  bin: RuntimeSceneRackBin,
+  item: RuntimeSceneResourceEvidence,
+  cellCode: string
+): RuntimeSceneRackCell {
+  const key = getRackCellKey(bin, cellCode)
+  let cell = bin.cells.find(existing => existing.key === key)
+  if (!cell) {
+    cell = {
+      key,
+      code: cellCode,
+      displayLabel: item.displayLabel,
+      materials: [],
+      materialSummary: null,
+      materialReels: [],
+      evidenceCount: 0,
+      evidenceKinds: [],
+      auditItems: []
+    }
+    bin.cells.push(cell)
+  }
+  return cell
+}
+
+function getExistingRackCell(
+  bin: RuntimeSceneRackBin,
+  item: RuntimeSceneResourceEvidence
+): RuntimeSceneRackCell | null {
+  const cellCode = getCellCode(item)
+  return cellCode
+    ? (bin.cells.find(cell => cell.key === getRackCellKey(bin, cellCode)) ?? null)
+    : null
+}
+
+function appendRackAuditItem(
+  target: {
+    auditItems: RuntimeSceneResourceEvidence[]
+    evidenceCount: number
+    evidenceKinds: RuntimeResourceEvidenceKind[]
+  },
+  item: RuntimeSceneResourceEvidence
+): void {
+  const key = getRuntimeSceneEvidenceKey(item)
+  if (!target.auditItems.some(existing => getRuntimeSceneEvidenceKey(existing) === key)) {
+    target.auditItems.push(item)
+  }
+  target.evidenceCount = target.auditItems.length
+  appendUniqueEvidenceKind(target.evidenceKinds, item.evidenceKind)
+}
+
+function appendRackMaterial(
+  target: RuntimeSceneRackMaterial[],
+  material: RuntimeSceneRackMaterial
+): void {
+  const existing = target.find(item => item.key === material.key)
+  if (existing) {
+    existing.materialCode ??= material.materialCode
+    existing.dateCode ??= material.dateCode
+    existing.lotCode ??= material.lotCode
+    existing.reelCount ??= material.reelCount
+    existing.reelCode ??= material.reelCode
+    existing.positionIndex ??= material.positionIndex
+    for (const auditItem of material.auditItems) {
+      if (
+        !existing.auditItems.some(
+          existingItem =>
+            getRuntimeSceneEvidenceKey(existingItem) === getRuntimeSceneEvidenceKey(auditItem)
+        )
+      ) {
+        existing.auditItems.push(auditItem)
+      }
+    }
+    return
+  }
+  target.push(material)
+}
+
+function rackBinHasMaterial(bin: RuntimeSceneRackBin): boolean {
+  return bin.looseMaterials.length > 0 || bin.cells.some(cell => cell.materials.length > 0)
+}
+
+function deriveRackSlotState(slot: RuntimeSceneRackSlot): RuntimeSceneRackSlotState {
+  if (slot.looseMaterials.length > 0 || (slot.bin && rackBinHasMaterial(slot.bin))) {
+    return 'material'
+  }
+  return slot.bin ? 'occupied' : 'empty'
+}
+
+function finalizeRackCellMaterialState(cell: RuntimeSceneRackCell): void {
+  cell.materialReels = buildRackCellMaterialReels(cell)
+  cell.materialSummary = buildRackCellMaterialSummary(cell)
+}
+
+function buildRackCellMaterialReels(
+  cell: RuntimeSceneRackCell
+): RuntimeSceneRackMaterialReel[] {
+  return cell.materials
+    .map((material, index) => ({
+      key: `${material.key}:reel:${material.reelCode ?? material.code}:${index}`,
+      reelCode: material.reelCode ?? material.code,
+      materialCode: material.materialCode,
+      dateCode: material.dateCode,
+      lotCode: material.lotCode,
+      positionIndex: material.positionIndex ?? index + 1,
+      displayLabel: material.displayLabel,
+      evidenceKind: material.evidenceKind,
+      auditItems: material.auditItems
+    }))
+    .sort((left, right) => {
+      const leftIndex = left.positionIndex ?? Number.MAX_SAFE_INTEGER
+      const rightIndex = right.positionIndex ?? Number.MAX_SAFE_INTEGER
+      if (leftIndex !== rightIndex) return leftIndex - rightIndex
+      return left.reelCode.localeCompare(right.reelCode)
+    })
+}
+
+function buildRackCellMaterialSummary(
+  cell: RuntimeSceneRackCell
+): RuntimeSceneRackCellMaterialSummary | null {
+  const materialCodes = getUniquePresentValues([
+    ...cell.auditItems.map(item => item.materialCode),
+    ...cell.materials.map(material => material.materialCode)
+  ])
+  const dateCodes = getUniquePresentValues([
+    ...cell.auditItems.map(item => item.dateCode),
+    ...cell.materials.map(material => material.dateCode)
+  ])
+  const lotCodes = getUniquePresentValues([
+    ...cell.auditItems.map(item => item.lotCode),
+    ...cell.materials.map(material => material.lotCode)
+  ])
+  const hasBatchFields = Boolean(materialCodes.length || dateCodes.length || lotCodes.length)
+  const reelCount = getRackCellReelCount(cell)
+
+  if (!hasBatchFields && reelCount === 0) return null
+
+  const hasMixedBatch = materialCodes.length > 1 || dateCodes.length > 1 || lotCodes.length > 1
+  const batchStatus: RuntimeSceneRackCellBatchStatus = hasMixedBatch
+    ? 'mixed'
+    : hasBatchFields
+      ? 'single'
+      : 'unknown'
+
+  return {
+    materialCode: materialCodes[0] ?? null,
+    dateCode: dateCodes[0] ?? null,
+    lotCode: lotCodes[0] ?? null,
+    reelCount,
+    batchStatus,
+    hasBatchFields
+  }
+}
+
+function getRackCellReelCount(cell: RuntimeSceneRackCell): number {
+  const explicitCellCounts = cell.auditItems
+    .filter(item => item.resourceKind === 'CELL')
+    .map(item => item.reelCount)
+    .filter(isPositiveFiniteNumber)
+  if (explicitCellCounts.length) return Math.max(...explicitCellCounts)
+
+  const explicitMaterialCounts = cell.materials
+    .map(material => material.reelCount)
+    .filter(isPositiveFiniteNumber)
+  if (explicitMaterialCounts.length) {
+    return explicitMaterialCounts.reduce((total, count) => total + count, 0)
+  }
+
+  return cell.materials.length
+}
+
+function getUniquePresentValues(values: Array<string | null | undefined>): string[] {
+  return Array.from(new Set(values.filter(isPresentString)))
 }
 
 function buildPositionGroups(
@@ -658,14 +1210,16 @@ function toPositionGroup(
   boundary: RuntimeSceneBoundary,
   auditItems: RuntimeSceneResourceEvidence[]
 ): RuntimeScenePositionGroup {
+  const attentionState = derivePositionAttentionState(boundary)
   return {
     key: boundary.key,
     stationCode: boundary.stationCode,
     stationRole: boundary.stationRole,
     positionCode: boundary.positionCode,
     boundary,
-    attentionState: derivePositionAttentionState(boundary),
+    attentionState,
     resourceStacks: buildResourceStacks(auditItems),
+    rackLayouts: buildRackLayouts(boundary, attentionState, auditItems),
     auditItems
   }
 }
@@ -717,6 +1271,7 @@ export function toRuntimeSceneDeviceNode(
 }
 
 function toSceneResourceEvidence(item: RuntimeResourceEvidenceItem): RuntimeSceneResourceEvidence {
+  const itemRecord = item as RuntimeResourceEvidenceItem & Record<string, unknown>
   const resourceKind = normalizeEnum(
     item.resource_kind,
     RESOURCE_KIND_VALUES,
@@ -740,8 +1295,20 @@ function toSceneResourceEvidence(item: RuntimeResourceEvidenceItem): RuntimeScen
     rackCode: item.rack_code,
     binCode: item.bin_code,
     slotCode: item.slot_code,
+    cellCode:
+      getOptionalStringField(itemRecord, 'cell_code') ??
+      getOptionalStringField(itemRecord, 'bin_cell_code') ??
+      getOptionalStringField(itemRecord, 'bin_cell_index'),
     pkgCode: item.pkg_code,
     partSn: item.part_sn,
+    materialCode: getOptionalStringField(itemRecord, 'material_code'),
+    dateCode: getOptionalStringField(itemRecord, 'date_code'),
+    lotCode: getOptionalStringField(itemRecord, 'lot_code'),
+    reelCount: getOptionalNumberField(itemRecord, 'reel_count'),
+    reelCode: getOptionalStringField(itemRecord, 'reel_code'),
+    positionIndex:
+      getOptionalNumberField(itemRecord, 'position_index') ??
+      getOptionalNumberField(itemRecord, 'stack_index'),
     sourceSessionId: item.source_session_id,
     sourceTraceId: item.source_trace_id,
     occurredAt: item.occurred_at
@@ -780,6 +1347,35 @@ function normalizeRuntimeSceneDeviceName(
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value)
+}
+
+function isPositiveFiniteNumber(value: unknown): value is number {
+  return isFiniteNumber(value) && value > 0
+}
+
+function isPresentString(value: string | null | undefined): value is string {
+  return typeof value === 'string' && value.length > 0
+}
+
+function getOptionalStringField(
+  record: Record<string, unknown>,
+  field: string
+): string | null | undefined {
+  const value = record[field]
+  if (value == null) return value as null | undefined
+  if (typeof value !== 'string') return undefined
+
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : null
+}
+
+function getOptionalNumberField(
+  record: Record<string, unknown>,
+  field: string
+): number | null | undefined {
+  const value = record[field]
+  if (value == null) return value as null | undefined
+  return isFiniteNumber(value) ? value : undefined
 }
 
 function hasRuntimeSceneContractFields(detail: Record<string, unknown>): boolean {

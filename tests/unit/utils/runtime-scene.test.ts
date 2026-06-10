@@ -288,6 +288,415 @@ describe('buildRuntimeSceneModel', () => {
     ])
   })
 
+  it('projects single-layer rack evidence into slot, bin, cell, and material hierarchy', () => {
+    const model = buildRuntimeSceneModel({
+      detail: createDetail({
+        resource_evidence_items: [
+          {
+            resource_kind: 'RACK',
+            resource_code: 'RACK-001',
+            display_label: 'Rack RACK-001',
+            evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001'
+          },
+          {
+            resource_kind: 'SLOT',
+            resource_code: 'A',
+            display_label: 'Slot A',
+            evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001',
+            slot_code: 'A'
+          },
+          {
+            resource_kind: 'SLOT',
+            resource_code: 'B',
+            display_label: 'Slot B',
+            evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001',
+            slot_code: 'B'
+          },
+          {
+            resource_kind: 'BIN',
+            resource_code: 'BIN-001',
+            display_label: 'Bin BIN-001',
+            evidence_kind: 'WMS_CALLBACK_EVIDENCE',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001',
+            slot_code: 'A',
+            bin_code: 'BIN-001'
+          },
+          {
+            resource_kind: 'CELL',
+            resource_code: 'CELL-A1',
+            display_label: 'Cell CELL-A1',
+            evidence_kind: 'TRACE_RESOURCE_EVIDENCE',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001',
+            slot_code: 'A',
+            bin_code: 'BIN-001'
+          },
+          {
+            resource_kind: 'PKG',
+            resource_code: 'PKG-001',
+            display_label: 'PKG PKG-001',
+            evidence_kind: 'TRACE_RESOURCE_EVIDENCE',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001',
+            slot_code: 'A',
+            bin_code: 'BIN-001',
+            cell_code: 'CELL-A1',
+            pkg_code: 'PKG-001'
+          },
+          {
+            resource_kind: 'BIN',
+            resource_code: 'BIN-FLOATING',
+            display_label: 'Bin BIN-FLOATING',
+            evidence_kind: 'WMS_CALLBACK_EVIDENCE',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001',
+            bin_code: 'BIN-FLOATING'
+          }
+        ]
+      }),
+      manifest
+    })
+
+    const layout = model.positionGroups[0]?.rackLayouts[0]
+
+    expect(layout).toEqual(
+      expect.objectContaining({
+        rackCode: 'RACK-001',
+        displayLabel: 'Rack RACK-001',
+        evidenceCount: 7
+      })
+    )
+    expect(layout?.slots.map(slot => `${slot.code}:${slot.state}`)).toEqual([
+      'A:material',
+      'B:empty'
+    ])
+    expect(layout?.slots[0]?.bin).toEqual(
+      expect.objectContaining({
+        code: 'BIN-001',
+        evidenceCount: 3
+      })
+    )
+    expect(layout?.slots[0]?.bin?.cells[0]).toEqual(
+      expect.objectContaining({
+        code: 'CELL-A1',
+        materials: [expect.objectContaining({ kind: 'PKG', code: 'PKG-001' })]
+      })
+    )
+    expect(layout?.unlocatedBins.map(bin => bin.code)).toEqual(['BIN-FLOATING'])
+  })
+
+  it('preserves material batch summary and bottom-to-top reel order for rack cells', () => {
+    const resourceEvidenceItems = [
+      {
+        resource_kind: 'RACK',
+        resource_code: 'RACK-001',
+        display_label: 'Rack RACK-001',
+        evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+        station_code: 'TARGET_ARM',
+        position_code: 'SINGLE_LAYER_A',
+        rack_code: 'RACK-001'
+      },
+      {
+        resource_kind: 'SLOT',
+        resource_code: 'A',
+        display_label: 'Slot A',
+        evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+        station_code: 'TARGET_ARM',
+        position_code: 'SINGLE_LAYER_A',
+        rack_code: 'RACK-001',
+        slot_code: 'A'
+      },
+      {
+        resource_kind: 'BIN',
+        resource_code: 'BIN-001',
+        display_label: 'Bin BIN-001',
+        evidence_kind: 'WMS_CALLBACK_EVIDENCE',
+        station_code: 'TARGET_ARM',
+        position_code: 'SINGLE_LAYER_A',
+        rack_code: 'RACK-001',
+        slot_code: 'A',
+        bin_code: 'BIN-001'
+      },
+      {
+        resource_kind: 'CELL',
+        resource_code: 'CELL-1',
+        display_label: 'Cell CELL-1',
+        evidence_kind: 'TRACE_RESOURCE_EVIDENCE',
+        station_code: 'TARGET_ARM',
+        position_code: 'SINGLE_LAYER_A',
+        rack_code: 'RACK-001',
+        slot_code: 'A',
+        bin_code: 'BIN-001',
+        material_code: '620100L00-011-G',
+        date_code: '2401',
+        lot_code: 'LOT-A',
+        reel_count: 2
+      },
+      {
+        resource_kind: 'PKG',
+        resource_code: 'PKG-BOTTOM',
+        display_label: 'PKG PKG-BOTTOM',
+        evidence_kind: 'TRACE_RESOURCE_EVIDENCE',
+        station_code: 'TARGET_ARM',
+        position_code: 'SINGLE_LAYER_A',
+        rack_code: 'RACK-001',
+        slot_code: 'A',
+        bin_code: 'BIN-001',
+        cell_code: 'CELL-1',
+        pkg_code: 'PKG-BOTTOM',
+        material_code: '620100L00-011-G',
+        date_code: '2401',
+        lot_code: 'LOT-A',
+        reel_code: 'REEL-BOTTOM',
+        position_index: 1
+      },
+      {
+        resource_kind: 'PKG',
+        resource_code: 'PKG-TOP',
+        display_label: 'PKG PKG-TOP',
+        evidence_kind: 'TRACE_RESOURCE_EVIDENCE',
+        station_code: 'TARGET_ARM',
+        position_code: 'SINGLE_LAYER_A',
+        rack_code: 'RACK-001',
+        slot_code: 'A',
+        bin_code: 'BIN-001',
+        cell_code: 'CELL-1',
+        pkg_code: 'PKG-TOP',
+        material_code: '620100L00-011-G',
+        date_code: '2401',
+        lot_code: 'LOT-A',
+        reel_code: 'REEL-TOP',
+        position_index: 2
+      }
+    ] as RuntimeWorklineDetailResponse['resource_evidence_items']
+
+    const model = buildRuntimeSceneModel({
+      detail: createDetail({
+        resource_evidence_items: resourceEvidenceItems
+      }),
+      manifest
+    })
+
+    const cell = model.positionGroups[0]?.rackLayouts[0]?.slots[0]?.bin?.cells[0]
+
+    expect(cell).toEqual(
+      expect.objectContaining({
+        materialSummary: expect.objectContaining({
+          materialCode: '620100L00-011-G',
+          dateCode: '2401',
+          lotCode: 'LOT-A',
+          reelCount: 2,
+          batchStatus: 'single'
+        }),
+        materialReels: [
+          expect.objectContaining({
+            reelCode: 'REEL-BOTTOM',
+            materialCode: '620100L00-011-G',
+            positionIndex: 1
+          }),
+          expect.objectContaining({
+            reelCode: 'REEL-TOP',
+            materialCode: '620100L00-011-G',
+            positionIndex: 2
+          })
+        ]
+      })
+    )
+  })
+
+  it('moves a previously unlocated bin into its slot when later evidence supplies slot code', () => {
+    const model = buildRuntimeSceneModel({
+      detail: createDetail({
+        resource_evidence_items: [
+          {
+            resource_kind: 'RACK',
+            resource_code: 'RACK-001',
+            display_label: 'Rack RACK-001',
+            evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001'
+          },
+          {
+            resource_kind: 'BIN',
+            resource_code: 'BIN-001',
+            display_label: 'Bin BIN-001',
+            evidence_kind: 'WMS_CALLBACK_EVIDENCE',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001',
+            bin_code: 'BIN-001'
+          },
+          {
+            resource_kind: 'SLOT',
+            resource_code: 'A',
+            display_label: 'Slot A',
+            evidence_kind: 'TRACE_RESOURCE_EVIDENCE',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001',
+            slot_code: 'A',
+            bin_code: 'BIN-001'
+          }
+        ]
+      }),
+      manifest
+    })
+
+    const layout = model.positionGroups[0]?.rackLayouts[0]
+
+    expect(layout?.slots[0]?.bin?.code).toBe('BIN-001')
+    expect(layout?.slots[0]?.bin?.auditItems.map(item => item.resourceCode)).toEqual([
+      'BIN-001',
+      'A'
+    ])
+    expect(layout?.unlocatedBins).toEqual([])
+  })
+
+  it('attaches bin-scoped cell and material evidence to a slot-bound bin when slot code is omitted', () => {
+    const model = buildRuntimeSceneModel({
+      detail: createDetail({
+        resource_evidence_items: [
+          {
+            resource_kind: 'RACK',
+            resource_code: 'RACK-001',
+            display_label: 'Rack RACK-001',
+            evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001'
+          },
+          {
+            resource_kind: 'BIN',
+            resource_code: 'BIN-001',
+            display_label: 'Bin BIN-001',
+            evidence_kind: 'WMS_CALLBACK_EVIDENCE',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001',
+            bin_code: 'BIN-001'
+          },
+          {
+            resource_kind: 'SLOT',
+            resource_code: 'A',
+            display_label: 'Slot A',
+            evidence_kind: 'TRACE_RESOURCE_EVIDENCE',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001',
+            slot_code: 'A',
+            bin_code: 'BIN-001'
+          },
+          {
+            resource_kind: 'CELL',
+            resource_code: 'CELL-A1',
+            display_label: 'Cell CELL-A1',
+            evidence_kind: 'TRACE_RESOURCE_EVIDENCE',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001',
+            bin_code: 'BIN-001'
+          },
+          {
+            resource_kind: 'PKG',
+            resource_code: 'PKG-001',
+            display_label: 'PKG PKG-001',
+            evidence_kind: 'WMS_CALLBACK_EVIDENCE',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001',
+            bin_code: 'BIN-001',
+            cell_code: 'CELL-A1',
+            pkg_code: 'PKG-001'
+          }
+        ]
+      }),
+      manifest
+    })
+
+    const layout = model.positionGroups[0]?.rackLayouts[0]
+    const slot = layout?.slots[0]
+
+    expect(slot?.bin?.cells[0]?.code).toBe('CELL-A1')
+    expect(slot?.bin?.cells[0]?.materials.map(material => material.code)).toEqual(['PKG-001'])
+    expect(slot?.state).toBe('material')
+    expect(layout?.unlocatedBins).toEqual([])
+  })
+
+  it('keeps bin-scoped material evidence outside cells when no cell code is supplied', () => {
+    const model = buildRuntimeSceneModel({
+      detail: createDetail({
+        resource_evidence_items: [
+          {
+            resource_kind: 'RACK',
+            resource_code: 'RACK-001',
+            display_label: 'Rack RACK-001',
+            evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001'
+          },
+          {
+            resource_kind: 'SLOT',
+            resource_code: 'A',
+            display_label: 'Slot A',
+            evidence_kind: 'TRACE_RESOURCE_EVIDENCE',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001',
+            slot_code: 'A',
+            bin_code: 'BIN-001'
+          },
+          {
+            resource_kind: 'CELL',
+            resource_code: 'CELL-A1',
+            display_label: 'Cell CELL-A1',
+            evidence_kind: 'TRACE_RESOURCE_EVIDENCE',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001',
+            slot_code: 'A',
+            bin_code: 'BIN-001',
+            reel_count: 1
+          },
+          {
+            resource_kind: 'PKG',
+            resource_code: 'PKG-BIN-SCOPED',
+            display_label: 'PKG PKG-BIN-SCOPED',
+            evidence_kind: 'TRACE_RESOURCE_EVIDENCE',
+            station_code: 'TARGET_ARM',
+            position_code: 'SINGLE_LAYER_A',
+            rack_code: 'RACK-001',
+            slot_code: 'A',
+            bin_code: 'BIN-001',
+            pkg_code: 'PKG-BIN-SCOPED'
+          }
+        ]
+      }),
+      manifest
+    })
+
+    const bin = model.positionGroups[0]?.rackLayouts[0]?.slots[0]?.bin
+
+    expect(bin?.cells[0]?.materials).toEqual([])
+    expect(bin?.cells[0]?.materialSummary?.reelCount).toBe(1)
+    expect(bin?.looseMaterials.map(material => material.code)).toEqual(['PKG-BIN-SCOPED'])
+  })
+
   it.each([
     ['WAITING_WMS', 'waiting'],
     ['TIMEOUT', 'blocked'],
@@ -643,10 +1052,9 @@ describe('buildRuntimeSceneModel', () => {
       'SOURCE_ARM',
       'TARGET_ARM'
     ])
-    expect(model.positionGroups.map(group => group.auditItems.map(item => item.resourceCode))).toEqual([
-      ['RACK-SOURCE'],
-      ['RACK-TARGET']
-    ])
+    expect(
+      model.positionGroups.map(group => group.auditItems.map(item => item.resourceCode))
+    ).toEqual([['RACK-SOURCE'], ['RACK-TARGET']])
   })
 
   it('assigns stationless positioned evidence to a unique matching manifest boundary', () => {
@@ -751,22 +1159,23 @@ describe('buildRuntimeSceneModel', () => {
     expect(model.boundaries[0]?.resourceEvidenceKindLabel).toBe('通用 evidence')
   })
 
-  it.each(['resource_evidence_items', 'resource_evidence_total_count', 'resource_evidence_truncated'])(
-    'uses generated defaults when optional evidence field %s is missing',
-    field => {
-      const detail = createDetail() as RuntimeWorklineDetailResponse & Record<string, unknown>
-      delete detail[field]
+  it.each([
+    'resource_evidence_items',
+    'resource_evidence_total_count',
+    'resource_evidence_truncated'
+  ])('uses generated defaults when optional evidence field %s is missing', field => {
+    const detail = createDetail() as RuntimeWorklineDetailResponse & Record<string, unknown>
+    delete detail[field]
 
-      const model = buildRuntimeSceneModel({
-        detail,
-        manifest
-      })
+    const model = buildRuntimeSceneModel({
+      detail,
+      manifest
+    })
 
-      expect(model.semanticFallback).toBe(false)
-      expect(model.boundaries[0]?.stationLeaseLabel).toBe('Station lease：调度租约占用')
-      expect(model.boundaries[0]?.resourceEvidenceKindLabel).toBe('WMS 回调证据')
-    }
-  )
+    expect(model.semanticFallback).toBe(false)
+    expect(model.boundaries[0]?.stationLeaseLabel).toBe('Station lease：调度租约占用')
+    expect(model.boundaries[0]?.resourceEvidenceKindLabel).toBe('WMS 回调证据')
+  })
 
   it('reports semantic fallback when a required semantic contract field is missing', () => {
     const detail = createDetail() as RuntimeWorklineDetailResponse & Record<string, unknown>
@@ -910,15 +1319,13 @@ describe('buildRuntimeSceneModel', () => {
     })
 
     expect(model.boundaries.map(boundary => boundary.evidenceCount)).toEqual([1, 1])
-    expect(model.positionGroups.map(group => group.auditItems.map(item => item.resourceCode))).toEqual([
-      ['RACK-SCOPED'],
-      ['RACK-STATIONLESS']
-    ])
+    expect(
+      model.positionGroups.map(group => group.auditItems.map(item => item.resourceCode))
+    ).toEqual([['RACK-SCOPED'], ['RACK-STATIONLESS']])
     expect(model.positionGroups.every(group => group.auditItems.length > 0)).toBe(true)
-    expect(model.positionGroups.flatMap(group => group.auditItems.map(item => item.resourceCode))).toEqual([
-      'RACK-SCOPED',
-      'RACK-STATIONLESS'
-    ])
+    expect(
+      model.positionGroups.flatMap(group => group.auditItems.map(item => item.resourceCode))
+    ).toEqual(['RACK-SCOPED', 'RACK-STATIONLESS'])
   })
 
   it('builds distinct resource evidence keys for the same resource from different traces', () => {

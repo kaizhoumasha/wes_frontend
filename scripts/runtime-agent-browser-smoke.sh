@@ -220,6 +220,10 @@ detail = {
             "position_code": "SINGLE_LAYER_A",
             "rack_code": "RACK-SMOKE-001",
             "bin_code": "BIN-SMOKE-001",
+            "material_code": "620100L00-011-G",
+            "date_code": "2401",
+            "lot_code": "LOT-A",
+            "reel_count": 2,
             "source_trace_id": "trace-smoke-resource-layout",
             "occurred_at": "2026-06-08T00:00:03Z",
         },
@@ -233,6 +237,12 @@ detail = {
             "rack_code": "RACK-SMOKE-001",
             "bin_code": "BIN-SMOKE-001",
             "pkg_code": "PKG-SMOKE-001",
+            "cell_code": "CELL-SMOKE-A1",
+            "material_code": "620100L00-011-G",
+            "date_code": "2401",
+            "lot_code": "LOT-A",
+            "reel_code": "REEL-BOTTOM",
+            "position_index": 1,
             "source_session_id": 88001,
             "source_trace_id": "trace-smoke-wms-callback",
             "occurred_at": "2026-06-08T00:00:04Z",
@@ -247,6 +257,12 @@ detail = {
             "rack_code": "RACK-SMOKE-001",
             "bin_code": "BIN-SMOKE-001",
             "part_sn": "PART-SMOKE-001",
+            "cell_code": "CELL-SMOKE-A1",
+            "material_code": "620100L00-011-G",
+            "date_code": "2401",
+            "lot_code": "LOT-A",
+            "reel_code": "REEL-TOP",
+            "position_index": 2,
             "source_trace_id": "trace-smoke-resource-layout",
             "occurred_at": "2026-06-08T00:00:05Z",
         },
@@ -442,6 +458,8 @@ import sys
 
 scenario = sys.argv[1]
 structured_scenarios = {"happy", "seeded", "fallback", "seeded-fallback"}
+rack_layout_scenarios = {"happy", "seeded"}
+legacy_resource_scenarios = {"fallback", "seeded-fallback"}
 required_texts = [
     "Station lease",
     "Rack operation",
@@ -459,6 +477,12 @@ if scenario == "happy":
         "CELL-SMOKE-A1",
         "PKG-SMOKE-001",
         "PART-SMOKE-001",
+        "620100L00-011-G",
+        "DC 2401",
+        "LC LOT-A",
+        "2 盘",
+        "REEL-BOTTOM",
+        "REEL-TOP",
         "PKG-SMOKE-UNLOCATED",
     ])
 elif scenario == "seeded":
@@ -495,16 +519,32 @@ required_selectors = [
 if scenario in structured_scenarios:
     required_selectors.extend([
         '[data-test="runtime-scene-position-group"]',
-        '[data-test="runtime-scene-resource-stack"]',
-        '[data-test="runtime-scene-focus-panel"]',
         '[data-test="runtime-scene-station-lease"]',
         '[data-test="runtime-scene-rack-snapshot"]',
         '[data-test="runtime-scene-rack-operation"]',
         '[data-test="runtime-scene-evidence-panel"]',
         '[data-test="runtime-scene-evidence-row"]',
     ])
+if scenario in rack_layout_scenarios:
+    required_selectors.extend([
+        '[data-test="runtime-rack-layout-panel"]',
+        '[data-test="runtime-rack-slot"]',
+        '[data-test="runtime-rack-inspector"]',
+        '[data-test="runtime-bin-cell-grid"]',
+        '[data-test="runtime-bin-cell"]',
+    ])
+if scenario in legacy_resource_scenarios:
+    required_selectors.extend([
+        '[data-test="runtime-scene-resource-stack"]',
+        '[data-test="runtime-scene-focus-panel"]',
+    ])
 if scenario == "happy":
     required_selectors.append('[data-test="runtime-scene-unlocated-audit"]')
+    required_selectors.extend([
+        '[data-test="runtime-rack-cell-summary"]',
+        '[data-test="runtime-rack-material-stack"]',
+        '[data-test="runtime-rack-material-reel"]',
+    ])
 if scenario in {"fallback", "seeded-fallback"}:
     required_selectors.append('[data-test="runtime-scene-fallback"]')
 
@@ -519,7 +559,7 @@ print(f"""
     const style = window.getComputedStyle(el);
     return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
   }};
-  for (const details of document.querySelectorAll('[data-test="runtime-scene-unlocated-audit"]')) {{
+  for (const details of document.querySelectorAll('details')) {{
     details.open = true;
   }}
   for (const selector of requiredSelectors) {{
@@ -536,8 +576,14 @@ print(f"""
   const checkedNodes = document.querySelectorAll([
     '[data-test="runtime-scene-readiness"]',
     '[data-test="runtime-scene-position-group"]',
-    '[data-test="runtime-scene-resource-stack"]',
-    '[data-test="runtime-scene-focus-panel"]',
+    '[data-test="runtime-rack-layout-panel"]',
+    '[data-test="runtime-rack-slot"]',
+    '[data-test="runtime-rack-inspector"]',
+    '[data-test="runtime-bin-cell-grid"]',
+    '[data-test="runtime-bin-cell"]',
+    '[data-test="runtime-rack-cell-summary"]',
+    '[data-test="runtime-rack-material-stack"]',
+    '[data-test="runtime-rack-material-reel"]',
     '[data-test="runtime-scene-station-lease"]',
     '[data-test="runtime-scene-rack-snapshot"]',
     '[data-test="runtime-scene-rack-operation"]',
@@ -575,8 +621,9 @@ print(f"""
   }};
   checkOverlapGroup('device', document.querySelectorAll('[data-test="runtime-scene-device"]'));
   checkOverlapGroup('position', document.querySelectorAll('[data-test="runtime-scene-position-group"]'));
-  checkOverlapGroup('resource-stack', document.querySelectorAll('[data-test="runtime-scene-resource-stack"]'));
-  checkOverlapGroup('focus-panel', document.querySelectorAll('[data-test="runtime-scene-focus-panel"]'));
+  checkOverlapGroup('rack-slot', document.querySelectorAll('[data-test="runtime-rack-slot"]'));
+  checkOverlapGroup('bin-cell', document.querySelectorAll('[data-test="runtime-bin-cell"]'));
+  checkOverlapGroup('rack-inspector', document.querySelectorAll('[data-test="runtime-rack-inspector"]'));
   checkOverlapGroup('evidence', document.querySelectorAll('[data-test="runtime-scene-evidence-row"]'));
   if (errors.length) throw new Error(errors.join('\\n'));
   return 'runtime scene assertions passed';

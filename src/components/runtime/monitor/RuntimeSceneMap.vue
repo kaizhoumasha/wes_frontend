@@ -44,19 +44,87 @@
       v-if="model.positionGroups.length"
       class="runtime-scene-map__layout"
     >
-      <div class="runtime-scene-map__positions">
-        <RuntimeScenePositionGroup
-          v-for="group in model.positionGroups"
-          :key="group.key"
-          :group="group"
-          :selected="selectedGroup?.key === group.key"
-          :selected-stack-key="selectedGroup?.key === group.key ? selectedStackKey : null"
-          @select-position="selectGroup(group)"
-          @select-stack="selectStack(group, $event)"
-        />
+      <div class="runtime-scene-map__rack-stage">
+        <div class="runtime-scene-map__position-rail">
+          <button
+            v-for="group in model.positionGroups"
+            :key="group.key"
+            type="button"
+            class="runtime-scene-map__position-tab"
+            :class="[
+              `is-${group.attentionState}`,
+              { 'is-selected': selectedGroup?.key === group.key }
+            ]"
+            data-test="runtime-scene-position-group"
+            @click="selectGroup(group)"
+          >
+            <span class="runtime-scene-map__position-role">{{ group.stationRole }}</span>
+            <strong>{{ group.stationCode }} / {{ group.positionCode }}</strong>
+            <span data-test="runtime-scene-station-lease">
+              {{ group.boundary.stationLeaseLabel }}
+            </span>
+            <span data-test="runtime-scene-rack-snapshot">
+              {{ group.boundary.rackSnapshotLabel }}
+            </span>
+            <span data-test="runtime-scene-rack-operation">
+              {{ group.boundary.rackOperationWaitLabel }}
+            </span>
+          </button>
+        </div>
+
+        <template v-if="selectedGroup?.rackLayouts.length">
+          <div
+            v-if="selectedGroup.rackLayouts.length > 1"
+            class="runtime-scene-map__rack-tabs"
+          >
+            <button
+              v-for="layout in selectedGroup.rackLayouts"
+              :key="layout.key"
+              type="button"
+              class="runtime-scene-map__rack-tab"
+              :class="{ 'is-selected': selectedRackLayout?.key === layout.key }"
+              @click="selectRackLayout(layout.key)"
+            >
+              {{ layout.rackCode }}
+            </button>
+          </div>
+
+          <RuntimeRackLayoutPanel
+            v-if="selectedRackLayout"
+            :layout="selectedRackLayout"
+            :selected-slot-key="selectedRackSlotKey"
+            @select-slot="selectRackSlot"
+          />
+        </template>
+
+        <div
+          v-else
+          class="runtime-scene-map__positions"
+        >
+          <RuntimeScenePositionGroup
+            v-for="group in model.positionGroups"
+            :key="group.key"
+            :group="group"
+            :selected="selectedGroup?.key === group.key"
+            :selected-stack-key="selectedGroup?.key === group.key ? selectedStackKey : null"
+            @select-position="selectGroup(group)"
+            @select-stack="selectStack(group, $event)"
+          />
+        </div>
       </div>
 
+      <RuntimeRackInspector
+        v-if="selectedGroup?.rackLayouts.length"
+        :group="selectedGroup"
+        :layout="selectedRackLayout"
+        :selected-slot="selectedRackSlot"
+        :resource-evidence-truncated="model.resourceEvidenceTruncated"
+        :resource-evidence-visible-count="resourceEvidenceVisibleCount"
+        :resource-evidence-total-count="model.resourceEvidenceTotalCount"
+      />
+
       <RuntimeSceneFocusPanel
+        v-else
         :group="selectedGroup"
         :stack="selectedStack"
         :resource-evidence-truncated="model.resourceEvidenceTruncated"
@@ -100,13 +168,17 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import RuntimeSceneDeviceFlow from '@/components/runtime/shared/RuntimeSceneDeviceFlow.vue'
+import RuntimeRackInspector from './RuntimeRackInspector.vue'
+import RuntimeRackLayoutPanel from './RuntimeRackLayoutPanel.vue'
 import RuntimeSceneEvidencePanel from './RuntimeSceneEvidencePanel.vue'
 import RuntimeSceneFocusPanel from './RuntimeSceneFocusPanel.vue'
 import RuntimeScenePositionGroup from './RuntimeScenePositionGroup.vue'
 import type { RuntimeTraceDevicePathNode } from '@/types/runtime'
 import type {
   RuntimeSceneModel,
-  RuntimeScenePositionGroup as PositionGroup
+  RuntimeScenePositionGroup as PositionGroup,
+  RuntimeSceneRackLayout as RackLayout,
+  RuntimeSceneRackSlot as RackSlot
 } from '@/utils/runtime-scene'
 
 const props = withDefaults(
@@ -131,6 +203,8 @@ const emit = defineEmits<{
 
 const selectedPositionKey = ref<string | null>(null)
 const selectedStackKey = ref<string | null>(null)
+const selectedRackLayoutKey = ref<string | null>(null)
+const selectedRackSlotKey = ref<string | null>(null)
 
 const resourceEvidenceVisibleCount = computed(() => props.model.resourceEvidence.length)
 
@@ -141,6 +215,16 @@ const selectedGroup = computed(
 const selectedStack = computed(
   () =>
     selectedGroup.value?.resourceStacks.find(stack => stack.key === selectedStackKey.value) ?? null
+)
+
+const selectedRackLayout = computed(
+  () =>
+    selectedGroup.value?.rackLayouts.find(layout => layout.key === selectedRackLayoutKey.value) ??
+    null
+)
+
+const selectedRackSlot = computed(
+  () => selectedRackLayout.value?.slots.find(slot => slot.key === selectedRackSlotKey.value) ?? null
 )
 
 function getDefaultGroup(groups: PositionGroup[]): PositionGroup | null {
@@ -168,16 +252,53 @@ function syncSelection(): void {
 
   const currentStack = nextGroup.resourceStacks.find(stack => stack.key === selectedStackKey.value)
   selectedStackKey.value = currentStack?.key ?? nextGroup.resourceStacks[0]?.key ?? null
+
+  const currentRackLayout = nextGroup.rackLayouts.find(
+    layout => layout.key === selectedRackLayoutKey.value
+  )
+  const nextRackLayout = currentRackLayout ?? getDefaultRackLayout(nextGroup)
+  selectedRackLayoutKey.value = nextRackLayout?.key ?? null
+  selectedRackSlotKey.value = nextRackLayout
+    ? (getNextRackSlot(nextRackLayout, selectedRackSlotKey.value)?.key ?? null)
+    : null
 }
 
 function selectGroup(group: PositionGroup): void {
   selectedPositionKey.value = group.key
   selectedStackKey.value = group.resourceStacks[0]?.key ?? null
+  const layout = getDefaultRackLayout(group)
+  selectedRackLayoutKey.value = layout?.key ?? null
+  selectedRackSlotKey.value = layout ? (getNextRackSlot(layout, null)?.key ?? null) : null
 }
 
 function selectStack(group: PositionGroup, stackKey: string): void {
   selectedPositionKey.value = group.key
   selectedStackKey.value = stackKey
+}
+
+function getDefaultRackLayout(group: PositionGroup): RackLayout | null {
+  return group.rackLayouts[0] ?? null
+}
+
+function getNextRackSlot(layout: RackLayout, currentSlotKey: string | null): RackSlot | null {
+  const currentSlot = layout.slots.find(slot => slot.key === currentSlotKey)
+  return (
+    currentSlot ??
+    layout.slots.find(slot => slot.state === 'material') ??
+    layout.slots.find(slot => slot.state === 'occupied') ??
+    layout.slots[0] ??
+    null
+  )
+}
+
+function selectRackLayout(layoutKey: string): void {
+  selectedRackLayoutKey.value = layoutKey
+  const layout = selectedGroup.value?.rackLayouts.find(item => item.key === layoutKey) ?? null
+  selectedRackSlotKey.value = layout ? (getNextRackSlot(layout, null)?.key ?? null) : null
+}
+
+function selectRackSlot(slotKey: string): void {
+  selectedRackSlotKey.value = slotKey
 }
 
 watch(() => props.model.positionGroups, syncSelection, { immediate: true, deep: true })
@@ -232,10 +353,82 @@ watch(() => props.model.positionGroups, syncSelection, { immediate: true, deep: 
 
 .runtime-scene-map__layout {
   display: grid;
-  grid-template-columns: minmax(280px, 1fr) minmax(300px, 0.9fr);
+  grid-template-columns: minmax(360px, 1fr) minmax(320px, 0.82fr);
   gap: 12px;
   align-items: start;
   min-width: 0;
+}
+
+.runtime-scene-map__rack-stage {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.runtime-scene-map__position-rail,
+.runtime-scene-map__rack-tabs {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.runtime-scene-map__position-tab,
+.runtime-scene-map__rack-tab {
+  min-width: 0;
+  border: 1px solid var(--runtime-border-subtle, rgb(148, 163, 184, 0.2));
+  border-radius: 6px;
+  background: var(--runtime-surface);
+  color: var(--runtime-text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.runtime-scene-map__position-tab {
+  display: grid;
+  gap: 3px;
+  flex: 1 0 min(260px, 90%);
+  padding: 9px 10px;
+}
+
+.runtime-scene-map__position-tab strong {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.runtime-scene-map__position-tab span {
+  color: var(--runtime-text-muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.runtime-scene-map__position-role {
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.runtime-scene-map__position-tab.is-selected,
+.runtime-scene-map__rack-tab.is-selected {
+  border-color: rgb(245, 158, 11, 0.58);
+  box-shadow: inset 0 0 0 1px rgb(245, 158, 11, 0.22);
+}
+
+.runtime-scene-map__position-tab.is-blocked {
+  border-color: rgb(220, 38, 38, 0.45);
+}
+
+.runtime-scene-map__position-tab.is-waiting {
+  border-color: rgb(245, 158, 11, 0.42);
+}
+
+.runtime-scene-map__rack-tab {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .runtime-scene-map__positions {
