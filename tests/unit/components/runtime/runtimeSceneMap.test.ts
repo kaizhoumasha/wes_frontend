@@ -391,10 +391,43 @@ function createBinOnlySceneModel(
 }
 
 describe('RuntimeSceneMap', () => {
+  it('keeps business and rack projection details out of the topology canvas', () => {
+    const model = createSceneModel()
+    model.deviceNodes = [
+      {
+        id: 901,
+        deviceCode: 'CLS-01',
+        deviceName: '1号分类工位',
+        deviceRole: 'CLASSIFIER_WORK',
+        roleIndex: 1,
+        status: 'ONLINE',
+        maintenanceMode: false,
+        openCommandCount: 0,
+        blockedOutboxCount: 0,
+        runtimeHoldCount: 0
+      }
+    ]
+
+    const wrapper = mount(RuntimeSceneMap, {
+      props: {
+        model
+      }
+    })
+
+    expect(wrapper.get('[data-test="runtime-scene-map"]').text()).not.toContain('CLASSIFIER_WORK')
+    expect(wrapper.get('[data-test="runtime-scene-map"]').text()).not.toContain('Station lease')
+    expect(wrapper.get('[data-test="runtime-scene-map"]').text()).not.toContain('执行快照')
+    expect(wrapper.get('[data-test="runtime-scene-map"]').text()).not.toContain('单层货架')
+    expect(wrapper.get('[data-test="runtime-scene-map"]').text()).not.toContain('RACK-001')
+    expect(wrapper.get('[data-test="runtime-scene-map"]').text()).not.toContain('BIN-001')
+    expect(wrapper.get('[data-test="runtime-scene-map"]').text()).not.toContain('CELL-A1')
+  })
+
   it('renders grouped position resources, focus evidence, and unlocated audit items', async () => {
     const wrapper = mount(RuntimeSceneMap, {
       props: {
-        model: createSceneModel()
+        model: createSceneModel(),
+        showRackDetails: true
       }
     })
 
@@ -403,14 +436,8 @@ describe('RuntimeSceneMap', () => {
       'SINGLE_LAYER_A'
     )
     expect(wrapper.get('[data-test="runtime-rack-layout-panel"]').text()).toContain('RACK-001')
-    expect(wrapper.get('[data-test="runtime-scene-station-lease"]').text()).toContain(
-      'Station lease：调度租约占用'
-    )
-    expect(wrapper.get('[data-test="runtime-scene-rack-operation"]').text()).toContain(
-      '等待 WMS 搬运到位'
-    )
-    expect(wrapper.get('[data-test="runtime-scene-rack-snapshot"]').text()).toContain(
-      '执行快照：当前执行货架'
+    expect(wrapper.get('[data-test="runtime-scene-position-group"]').text()).toContain(
+      '7 条投影证据'
     )
     expect(wrapper.get('[data-test="runtime-rack-inspector"]').text()).toContain('BIN-001')
     expect(wrapper.get('[data-test="runtime-rack-inspector"]').text()).not.toContain(
@@ -429,7 +456,8 @@ describe('RuntimeSceneMap', () => {
   it('renders a rack grid and drills from slot to bin, cell, and material evidence', async () => {
     const wrapper = mount(RuntimeSceneMap, {
       props: {
-        model: createSceneModel()
+        model: createSceneModel(),
+        showRackDetails: true
       }
     })
 
@@ -495,7 +523,8 @@ describe('RuntimeSceneMap', () => {
 
     const wrapper = mount(RuntimeSceneMap, {
       props: {
-        model
+        model,
+        showRackDetails: true
       }
     })
 
@@ -512,7 +541,8 @@ describe('RuntimeSceneMap', () => {
 
     const wrapper = mount(RuntimeSceneMap, {
       props: {
-        model
+        model,
+        showRackDetails: true
       }
     })
 
@@ -542,7 +572,8 @@ describe('RuntimeSceneMap', () => {
 
     const wrapper = mount(RuntimeSceneMap, {
       props: {
-        model
+        model,
+        showRackDetails: true
       }
     })
 
@@ -567,7 +598,8 @@ describe('RuntimeSceneMap', () => {
 
     const wrapper = mount(RuntimeSceneMap, {
       props: {
-        model
+        model,
+        showRackDetails: true
       }
     })
 

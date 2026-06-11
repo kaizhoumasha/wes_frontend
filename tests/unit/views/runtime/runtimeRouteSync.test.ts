@@ -30,6 +30,10 @@ const worklineProjectionSend = vi.fn()
 const deviceDetailSend = vi.fn()
 const worklinePluginManifestSend = vi.fn()
 const resolveRuntimeReconciliationSend = vi.fn()
+const darkModeMock = vi.hoisted(() => ({
+  isDark: { value: false, __v_isRef: true },
+  toggle: vi.fn()
+}))
 const sseStoreMock = reactive({
   connectionLabel: 'SSE Connected',
   connectionTone: 'success',
@@ -55,6 +59,10 @@ vi.mock('vue-router', () => ({
 
 vi.mock('@/composables/useRuntimePageChrome', () => ({
   useRuntimePageChrome: () => sseStoreMock
+}))
+
+vi.mock('@/composables/useDarkMode', () => ({
+  useDarkMode: () => darkModeMock
 }))
 
 vi.mock('@/stores/runtime-sse', () => ({
@@ -175,20 +183,22 @@ function createWorklineProjection(
       rack_operation_wait: 'NONE',
       resource_evidence_kind: 'WES_ACTIVE_SNAPSHOT'
     },
-    device_nodes: deviceRows.filter(d => d.workline_id === id).map(d => ({
-      id: d.id,
-      device_code: d.device_code,
-      device_name: d.device_name,
-      device_role: d.device_role,
-      role_index: d.role_index,
-      device_status: d.device_status,
-      maintenance_mode: d.maintenance_mode,
-      pending_command_count: d.pending_command_count,
-      open_command_count: 0,
-      blocked_outbox_count: 0,
-      open_issue_count: d.error_code ? 1 : 0,
-      active_runtime_hold_ids: []
-    })),
+    device_nodes: deviceRows
+      .filter(d => d.workline_id === id)
+      .map(d => ({
+        id: d.id,
+        device_code: d.device_code,
+        device_name: d.device_name,
+        device_role: d.device_role,
+        role_index: d.role_index,
+        device_status: d.device_status,
+        maintenance_mode: d.maintenance_mode,
+        pending_command_count: d.pending_command_count,
+        open_command_count: 0,
+        blocked_outbox_count: 0,
+        open_issue_count: d.error_code ? 1 : 0,
+        active_runtime_hold_ids: []
+      })),
     active_sessions: {
       items: [],
       total_count: 0,
@@ -205,8 +215,29 @@ function createWorklineProjection(
       truncated: false
     },
     resource_evidence: {
-      items: [],
-      total_count: 0,
+      items: [
+        {
+          resource_kind: 'RACK',
+          resource_code: 'RACK-101',
+          display_label: 'Rack RACK-101',
+          evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+          station_code: 'TARGET_ARM',
+          position_code: 'SINGLE_LAYER_A',
+          rack_code: 'RACK-101'
+        },
+        {
+          resource_kind: 'BIN',
+          resource_code: 'BIN-101',
+          display_label: 'Bin BIN-101',
+          evidence_kind: 'WMS_CALLBACK_EVIDENCE',
+          station_code: 'TARGET_ARM',
+          position_code: 'SINGLE_LAYER_A',
+          rack_code: 'RACK-101',
+          bin_code: 'BIN-101',
+          cell_code: 'CELL-A1'
+        }
+      ],
+      total_count: 2,
       truncated: false
     },
     action_candidates: {
@@ -276,6 +307,8 @@ describe('runtime route sync', () => {
     sseStoreMock.live = true
     sseStoreMock.markRefreshedAt.mockClear()
     sseStoreMock.toggleLive.mockClear()
+    darkModeMock.isDark.value = false
+    darkModeMock.toggle.mockClear()
 
     worklinesSend.mockReset()
     worklineProjectionSend.mockReset()
@@ -284,8 +317,12 @@ describe('runtime route sync', () => {
     resolveRuntimeReconciliationSend.mockReset()
 
     worklinesSend.mockResolvedValue([worklineSummary])
-    worklineProjectionSend.mockImplementation(async (worklineId: number) => createWorklineProjection(worklineId))
-    deviceDetailSend.mockImplementation(async (deviceId: number, worklineId: number) => createDeviceDetail(deviceId, worklineId))
+    worklineProjectionSend.mockImplementation(async (worklineId: number) =>
+      createWorklineProjection(worklineId)
+    )
+    deviceDetailSend.mockImplementation(async (deviceId: number, worklineId: number) =>
+      createDeviceDetail(deviceId, worklineId)
+    )
     resolveRuntimeReconciliationSend.mockResolvedValue({})
     worklinePluginManifestSend.mockResolvedValue({
       plugin_key: 'plugin-a',
@@ -358,6 +395,139 @@ describe('runtime route sync', () => {
     expect(actionCabin.find('[data-test="monitor-refresh-projection"]').exists()).toBe(true)
   })
 
+  it('renders an immersive monitor top bar with theme and live controls', async () => {
+    routeState.path = '/runtime/monitor'
+    routeState.fullPath = '/runtime/monitor?worklineId=101'
+    routeState.query = {
+      worklineId: '101'
+    }
+
+    const component = await import('@/views/runtime/worklines/WorklineMonitorPage.vue')
+
+    const wrapper = shallowMount(component.default, createMountOptions())
+    mountedWrappers.push(wrapper)
+
+    await flushViewUpdates()
+    await flushViewUpdates()
+
+    expect(wrapper.get('[data-test="monitor-shell-topbar"]').exists()).toBe(true)
+    expect(wrapper.get('[data-test="monitor-back-overview"]').exists()).toBe(true)
+    expect(wrapper.get('[data-test="monitor-theme-toggle"]').attributes('aria-pressed')).toBe(
+      'false'
+    )
+    expect(wrapper.get('[data-test="monitor-live-toggle"]').exists()).toBe(true)
+    expect(wrapper.get('[data-test="monitor-refresh-projection"]').exists()).toBe(true)
+
+    await wrapper.get('[data-test="monitor-theme-toggle"]').trigger('click')
+
+    expect(darkModeMock.toggle).toHaveBeenCalledTimes(1)
+  })
+
+  it('exposes monitor landmarks and mobile pane controls for line, scene, and actions', async () => {
+    routeState.path = '/runtime/monitor'
+    routeState.fullPath = '/runtime/monitor?worklineId=101'
+    routeState.query = {
+      worklineId: '101'
+    }
+
+    const component = await import('@/views/runtime/worklines/WorklineMonitorPage.vue')
+
+    const wrapper = shallowMount(component.default, createMountOptions())
+    mountedWrappers.push(wrapper)
+
+    await flushViewUpdates()
+    await flushViewUpdates()
+
+    expect(wrapper.get('main[aria-label="工作线监控"]').exists()).toBe(true)
+    expect(wrapper.get('aside[aria-label="工作线目录"]').exists()).toBe(true)
+    expect(wrapper.get('section[aria-label="运行场景"]').exists()).toBe(true)
+    expect(wrapper.get('aside[aria-label="工作线行动舱"]').exists()).toBe(true)
+
+    expect(wrapper.get('[data-test="monitor-mobile-pane-line"]').attributes('aria-pressed')).toBe(
+      'false'
+    )
+    expect(wrapper.get('[data-test="monitor-mobile-pane-scene"]').attributes('aria-pressed')).toBe(
+      'true'
+    )
+    expect(
+      wrapper.get('[data-test="monitor-mobile-pane-actions"]').attributes('aria-pressed')
+    ).toBe('false')
+    expect(wrapper.get('.monitor-layout__live').classes()).toContain('is-mobile-pane-active')
+
+    await wrapper.get('[data-test="monitor-mobile-pane-actions"]').trigger('click')
+
+    expect(
+      wrapper.get('[data-test="monitor-mobile-pane-actions"]').attributes('aria-pressed')
+    ).toBe('true')
+    expect(wrapper.get('.monitor-layout__actions').classes()).toContain('is-mobile-pane-active')
+    expect(wrapper.get('.monitor-layout__live').classes()).not.toContain('is-mobile-pane-active')
+  })
+
+  it('renders workline cards with design-aligned separate stats instead of a compressed hint line', async () => {
+    routeState.path = '/runtime/monitor'
+    routeState.fullPath = '/runtime/monitor?worklineId=101'
+    routeState.query = {
+      worklineId: '101'
+    }
+
+    const component = await import('@/views/runtime/worklines/WorklineMonitorPage.vue')
+
+    const wrapper = shallowMount(component.default, createMountOptions())
+    mountedWrappers.push(wrapper)
+
+    await flushViewUpdates()
+    await flushViewUpdates()
+
+    const card = wrapper.get('[data-test="monitor-workline-card"]')
+    expect(card.text()).toContain('Workline 101')
+    expect(card.findAll('[data-test="monitor-workline-card-stat"]')).toHaveLength(4)
+    expect(card.find('[data-test="monitor-workline-card-hint"]').exists()).toBe(false)
+  })
+
+  it('forwards only live SSE events into the center log console without loading history', async () => {
+    routeState.path = '/runtime/monitor'
+    routeState.fullPath = '/runtime/monitor?worklineId=101'
+    routeState.query = {
+      worklineId: '101'
+    }
+
+    const component = await import('@/views/runtime/worklines/WorklineMonitorPage.vue')
+
+    const wrapper = shallowMount(component.default, createMountOptions())
+    mountedWrappers.push(wrapper)
+
+    await flushViewUpdates()
+    await flushViewUpdates()
+
+    const emptyOverview = wrapper.findComponent({ name: 'WorklineLiveOverview' })
+    expect(emptyOverview.props('eventLogEntries')).toEqual([])
+
+    sseStoreMock.lastEvent = {
+      domain: 'workline_runtime',
+      entity: 'device',
+      action: 'estop_pressed',
+      keys: {
+        workline_id: 101,
+        device_code: 'ST-02'
+      },
+      payload: {
+        error_code: 'ERR_CONVEYOR_JAM_102'
+      }
+    }
+
+    await flushViewUpdates()
+    await flushViewUpdates()
+
+    const liveOverview = wrapper.findComponent({ name: 'WorklineLiveOverview' })
+    expect(liveOverview.props('eventLogEntries')).toEqual([
+      expect.objectContaining({
+        level: 'err',
+        tag: 'ERROR',
+        text: expect.stringContaining('ST-02')
+      })
+    ])
+  })
+
   it('force reloads the current projection from the stable action cabin refresh', async () => {
     routeState.path = '/runtime/monitor'
     routeState.fullPath = '/runtime/monitor?worklineId=101'
@@ -383,7 +553,7 @@ describe('runtime route sync', () => {
     expect(worklineProjectionSend).toHaveBeenLastCalledWith(101)
   })
 
-  it('loads device detail panel when deviceId query param is present', async () => {
+  it('loads the selected device panel and keeps device selection on the monitor route', async () => {
     routeState.path = '/runtime/monitor'
     routeState.fullPath = '/runtime/monitor?worklineId=101&deviceId=201'
     routeState.query = {
@@ -404,12 +574,47 @@ describe('runtime route sync', () => {
     const liveOverview = wrapper.findComponent({ name: 'WorklineLiveOverview' })
     expect(liveOverview.exists()).toBe(true)
     expect(liveOverview.props('selectedDeviceId')).toBe(201)
+    expect(wrapper.get('[data-test="monitor-selected-device-panel"]').text()).toContain(
+      'Device 201'
+    )
 
     await liveOverview.vm.$emit('select-device', 201)
     expect(routerMock.push).toHaveBeenLastCalledWith({
-      name: 'RuntimeDevices',
-      query: { deviceId: '201' }
+      query: {
+        worklineId: '101',
+        deviceId: '201'
+      }
     })
+  })
+
+  it('moves raw device role and rack projection details into the right-side business association tab', async () => {
+    routeState.path = '/runtime/monitor'
+    routeState.fullPath = '/runtime/monitor?worklineId=101&deviceId=201'
+    routeState.query = {
+      worklineId: '101',
+      deviceId: '201'
+    }
+
+    const component = await import('@/views/runtime/worklines/WorklineMonitorPage.vue')
+
+    const wrapper = shallowMount(component.default, createMountOptions())
+    mountedWrappers.push(wrapper)
+
+    await flushViewUpdates()
+    await flushViewUpdates()
+
+    expect(wrapper.get('[data-test="monitor-side-tab-control"]').text()).toContain('诊断与控制')
+    expect(wrapper.get('[data-test="monitor-side-tab-business"]').text()).toContain('业务关联投影')
+
+    await wrapper.get('[data-test="monitor-side-tab-business"]').trigger('click')
+
+    const businessPanel = wrapper.get('[data-test="monitor-business-projection"]')
+    expect(businessPanel.text()).toContain('scanner')
+    expect(businessPanel.text()).toContain('单层货架')
+    expect(businessPanel.text()).toContain('RACK-101')
+    expect(businessPanel.text()).toContain('BIN-101')
+    expect(businessPanel.text()).toContain('执行快照')
+    expect(wrapper.find('[data-test="monitor-device-control-panel"]').exists()).toBe(false)
   })
 
   it('refreshes the current workline projection when a relevant SSE projection event arrives', async () => {
@@ -476,9 +681,7 @@ describe('runtime route sync', () => {
 
     const reconciliationPanel = wrapper.findComponent({ name: 'WorklineReconciliationPanel' })
     expect(reconciliationPanel.exists()).toBe(true)
-    expect(reconciliationPanel.props('candidate')).toEqual(
-      pendingReconciliation
-    )
+    expect(reconciliationPanel.props('candidate')).toEqual(pendingReconciliation)
 
     await reconciliationPanel.vm.$emit('resolve', {
       sessionId: 909,

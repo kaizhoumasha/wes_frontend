@@ -49,6 +49,92 @@ capture_screenshot() {
   fi
 }
 
+set_monitor_theme() {
+  local theme="$1"
+  local script_path="/tmp/${SESSION}-set-monitor-theme.js"
+
+  cat >"${script_path}" <<JS
+(() => {
+  const theme = '${theme}';
+  if (theme === 'dark') {
+    document.documentElement.classList.add('dark');
+    localStorage.setItem('vueuse-color-scheme', 'dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+    localStorage.setItem('vueuse-color-scheme', 'light');
+  }
+  return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+})()
+JS
+
+  ab eval "$(cat "${script_path}")" >/dev/null || fail "无法切换监控页主题: ${theme}"
+  rm -f "${script_path}"
+}
+
+assert_monitor_immersive_shell() {
+  local viewport_label="$1"
+  local theme="$2"
+  local script_path="/tmp/${SESSION}-${viewport_label}-monitor-shell.js"
+
+  cat >"${script_path}" <<JS
+(() => {
+  const errors = [];
+  const expectedDark = '${theme}' === 'dark';
+  const visible = el => {
+    if (!el) return false;
+    const rect = el.getBoundingClientRect();
+    const style = window.getComputedStyle(el);
+    return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+  };
+  const htmlIsDark = document.documentElement.classList.contains('dark');
+  const isMobile = window.innerWidth < 768;
+  if (htmlIsDark !== expectedDark) {
+    errors.push('theme mismatch: expected ${theme}, got ' + (htmlIsDark ? 'dark' : 'light'));
+  }
+  const requiredSelectors = [
+    '[data-test="monitor-shell-topbar"]',
+    '[data-test="monitor-theme-toggle"]',
+    '[data-test="monitor-live-toggle"]',
+    '[aria-label="运行场景"]'
+  ];
+  if (isMobile) {
+    requiredSelectors.push(
+      '[data-test="monitor-mobile-pane-line"]',
+      '[data-test="monitor-mobile-pane-scene"]',
+      '[data-test="monitor-mobile-pane-actions"]'
+    );
+  } else {
+    requiredSelectors.push('[aria-label="工作线目录"]', '[aria-label="工作线行动舱"]');
+  }
+  for (const selector of requiredSelectors) {
+    if (!visible(document.querySelector(selector))) {
+      errors.push('missing immersive shell selector: ' + selector);
+    }
+  }
+  for (const selector of [
+    '.app-sidebar',
+    '.app-header',
+    '.runtime-layout__chrome'
+  ]) {
+    if (visible(document.querySelector(selector))) {
+      errors.push('shared chrome still visible: ' + selector);
+    }
+  }
+  if (document.documentElement.scrollWidth > window.innerWidth + 1) {
+    errors.push('document overflow: ' + document.documentElement.scrollWidth + ' > ' + window.innerWidth);
+  }
+  if (document.body.scrollWidth > window.innerWidth + 1) {
+    errors.push('body overflow: ' + document.body.scrollWidth + ' > ' + window.innerWidth);
+  }
+  if (errors.length) throw new Error(errors.join('\\n'));
+  return 'immersive monitor shell assertions passed';
+})()
+JS
+
+  ab eval "$(cat "${script_path}")" >/dev/null || fail "${viewport_label} monitor shell 断言失败"
+  rm -f "${script_path}"
+}
+
 assert_contains() {
   local haystack="$1"
   local needle="$2"
@@ -499,55 +585,39 @@ import sys
 
 scenario = sys.argv[1]
 structured_scenarios = {"happy", "seeded", "fallback", "seeded-fallback"}
-rack_layout_scenarios = {"happy", "seeded"}
-legacy_resource_scenarios = {"fallback", "seeded-fallback"}
-required_texts = [
+required_texts = []
+forbidden_scene_texts = [
     "Station lease",
     "Rack operation",
+    "执行快照",
+    "单层货架",
 ]
 if scenario == "happy":
     required_texts.extend([
-        "Station lease：调度租约占用",
-        "Rack operation：等待 WMS 搬运到位",
-        "WMS 回调证据",
         "仅展示前 7 条证据 / 共 8 条",
         "TARGET_ARM",
+        "PKG-SMOKE-UNLOCATED",
+    ])
+    forbidden_scene_texts.extend([
         "RACK-SMOKE-001",
         "BIN-SMOKE-001",
         "SLOT-SMOKE-A1",
         "CELL-SMOKE-A1",
-        "PKG-SMOKE-001",
-        "PART-SMOKE-001",
-        "620100L00-011-G",
-        "DC 2401",
-        "LC LOT-A",
-        "2 盘",
-        "REEL-BOTTOM",
-        "REEL-TOP",
-        "PKG-SMOKE-UNLOCATED",
     ])
 elif scenario == "seeded":
     required_texts.extend([
-        "Station lease：调度租约占用",
-        "Rack operation：等待 WMS 搬运到位",
-        "WMS 回调证据",
         "仅展示前 50 条证据 / 共",
         "TARGET_STATION",
-        "PKG-SMOKE",
     ])
 elif scenario == "fallback":
     required_texts.extend([
         "运行态边界字段未加载",
-        "Station lease：语义未加载",
-        "Rack operation：语义未加载",
         "通用 evidence",
         "FALLBACK_POSITION",
     ])
 elif scenario == "seeded-fallback":
     required_texts.extend([
         "manifest 加载失败",
-        "Station lease：语义未加载",
-        "Rack operation：语义未加载",
         "通用 evidence",
         "FALLBACK_POSITION",
     ])
@@ -560,32 +630,9 @@ required_selectors = [
 if scenario in structured_scenarios:
     required_selectors.extend([
         '[data-test="runtime-scene-position-group"]',
-        '[data-test="runtime-scene-station-lease"]',
-        '[data-test="runtime-scene-rack-snapshot"]',
-        '[data-test="runtime-scene-rack-operation"]',
-        '[data-test="runtime-scene-evidence-panel"]',
-        '[data-test="runtime-scene-evidence-row"]',
-    ])
-if scenario in rack_layout_scenarios:
-    required_selectors.extend([
-        '[data-test="runtime-rack-layout-panel"]',
-        '[data-test="runtime-rack-slot"]',
-        '[data-test="runtime-rack-inspector"]',
-        '[data-test="runtime-bin-cell-grid"]',
-        '[data-test="runtime-bin-cell"]',
-    ])
-if scenario in legacy_resource_scenarios:
-    required_selectors.extend([
-        '[data-test="runtime-scene-resource-stack"]',
-        '[data-test="runtime-scene-focus-panel"]',
     ])
 if scenario == "happy":
     required_selectors.append('[data-test="runtime-scene-unlocated-audit"]')
-    required_selectors.extend([
-        '[data-test="runtime-rack-cell-summary"]',
-        '[data-test="runtime-rack-material-stack"]',
-        '[data-test="runtime-rack-material-reel"]',
-    ])
 if scenario in {"fallback", "seeded-fallback"}:
     required_selectors.append('[data-test="runtime-scene-fallback"]')
 
@@ -593,7 +640,6 @@ print(f"""
 (() => {{
   const errors = [];
   const requiredSelectors = {json.dumps(required_selectors, ensure_ascii=False)};
-  const evidenceSelector = '[data-test="runtime-scene-evidence-row"], [data-test="runtime-scene-empty-evidence"]';
   const visible = el => {{
     if (!el) return false;
     const rect = el.getBoundingClientRect();
@@ -607,27 +653,17 @@ print(f"""
     const el = document.querySelector(selector);
     if (!visible(el)) errors.push(`missing or hidden selector: ${{selector}}`);
   }}
-  if (!visible(document.querySelector(evidenceSelector))) {{
-    errors.push(`missing or hidden selector: ${{evidenceSelector}}`);
-  }}
   const bodyText = document.body.innerText || '';
   for (const text of {json.dumps(required_texts, ensure_ascii=False)}) {{
     if (!bodyText.includes(text)) errors.push(`missing text: ${{text}}`);
   }}
+  const sceneText = document.querySelector('[data-test="runtime-scene-map"]')?.innerText || '';
+  for (const text of {json.dumps(forbidden_scene_texts, ensure_ascii=False)}) {{
+    if (sceneText.includes(text)) errors.push(`forbidden scene text: ${{text}}`);
+  }}
   const checkedNodes = document.querySelectorAll([
     '[data-test="runtime-scene-readiness"]',
     '[data-test="runtime-scene-position-group"]',
-    '[data-test="runtime-rack-layout-panel"]',
-    '[data-test="runtime-rack-slot"]',
-    '[data-test="runtime-rack-inspector"]',
-    '[data-test="runtime-bin-cell-grid"]',
-    '[data-test="runtime-bin-cell"]',
-    '[data-test="runtime-rack-cell-summary"]',
-    '[data-test="runtime-rack-material-stack"]',
-    '[data-test="runtime-rack-material-reel"]',
-    '[data-test="runtime-scene-station-lease"]',
-    '[data-test="runtime-scene-rack-snapshot"]',
-    '[data-test="runtime-scene-rack-operation"]',
     '[data-test="runtime-scene-truncated"]',
     '[data-test="runtime-scene-evidence-panel"]',
     '[data-test="runtime-scene-evidence-row"]',
@@ -662,9 +698,6 @@ print(f"""
   }};
   checkOverlapGroup('device', document.querySelectorAll('[data-test="runtime-scene-device"]'));
   checkOverlapGroup('position', document.querySelectorAll('[data-test="runtime-scene-position-group"]'));
-  checkOverlapGroup('rack-slot', document.querySelectorAll('[data-test="runtime-rack-slot"]'));
-  checkOverlapGroup('bin-cell', document.querySelectorAll('[data-test="runtime-bin-cell"]'));
-  checkOverlapGroup('rack-inspector', document.querySelectorAll('[data-test="runtime-rack-inspector"]'));
   checkOverlapGroup('evidence', document.querySelectorAll('[data-test="runtime-scene-evidence-row"]'));
   if (errors.length) throw new Error(errors.join('\\n'));
   return 'runtime scene assertions passed';
@@ -673,6 +706,184 @@ print(f"""
 PY
 
   ab eval "$(cat "${script_path}")" >/dev/null || fail "${viewport_label} monitor scene DOM 断言失败"
+  rm -f "${script_path}"
+}
+
+is_monitor_business_projection_scenario() {
+  case "$1" in
+    happy | seeded | fallback | seeded-fallback)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+select_monitor_first_device() {
+  local viewport_label="$1"
+  local scenario="$2"
+  if ! is_monitor_business_projection_scenario "${scenario}"; then
+    return
+  fi
+
+  ab click "[data-test=\"runtime-scene-device\"]" >/dev/null \
+    || fail "${viewport_label} 未能选中拓扑设备"
+  ab wait 300 >/dev/null
+}
+
+assert_monitor_business_projection() {
+  local viewport_label="$1"
+  local scenario="$2"
+  local script_path="/tmp/${SESSION}-${viewport_label}-monitor-business.js"
+
+  if ! is_monitor_business_projection_scenario "${scenario}"; then
+    return
+  fi
+
+  ab click "[data-test=\"monitor-side-tab-business\"]" >/dev/null \
+    || fail "${viewport_label} 未能打开业务关联投影 tab"
+  ab wait 300 >/dev/null
+
+  python3 - "${scenario}" >"${script_path}" <<'PY'
+import json
+import sys
+
+scenario = sys.argv[1]
+expected_texts = ["业务关联投影", "设备角色"]
+if scenario in {"happy", "seeded"}:
+    expected_texts.extend([
+        "单层货架",
+        "Station lease：调度租约占用",
+        "执行快照：当前执行货架",
+        "Rack operation：等待 WMS 搬运到位",
+    ])
+    if scenario == "happy":
+        expected_texts.extend([
+            "RACK-SMOKE-001",
+            "BIN-SMOKE-001",
+            "CELL-SMOKE-A1",
+        ])
+elif scenario in {"fallback", "seeded-fallback"}:
+    expected_texts.extend([
+        "货架形态未加载",
+        "Station lease：语义未加载",
+        "执行快照：语义未加载",
+        "Rack operation：语义未加载",
+    ])
+
+print(f"""
+(() => {{
+  const errors = [];
+  const expectedTexts = {json.dumps(expected_texts, ensure_ascii=False)};
+  const visible = el => {{
+    if (!el) return false;
+    const rect = el.getBoundingClientRect();
+    const style = window.getComputedStyle(el);
+    return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+  }};
+  const requiredSelectors = [
+    '[data-test="monitor-side-tab-control"]',
+    '[data-test="monitor-side-tab-business"]',
+    '[data-test="monitor-business-projection"]'
+  ];
+  for (const selector of requiredSelectors) {{
+    if (!visible(document.querySelector(selector))) {{
+      errors.push(`missing or hidden business projection selector: ${{selector}}`);
+    }}
+  }}
+  const projection = document.querySelector('[data-test="monitor-business-projection"]');
+  const projectionText = projection?.innerText || '';
+  for (const text of expectedTexts) {{
+    if (!projectionText.includes(text)) errors.push(`missing business projection text: ${{text}}`);
+  }}
+  for (const el of document.querySelectorAll([
+    '[data-test="monitor-side-tab-control"]',
+    '[data-test="monitor-side-tab-business"]',
+    '[data-test="monitor-business-projection"]'
+  ].join(','))) {{
+    if (!visible(el)) continue;
+    if (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1) {{
+      errors.push(`business projection overflow: ${{el.getAttribute('data-test') || el.className}}`);
+    }}
+  }}
+  if (errors.length) throw new Error(errors.join('\\n'));
+  return 'monitor business projection assertions passed';
+}})()
+""")
+PY
+
+  ab eval "$(cat "${script_path}")" >/dev/null || fail "${viewport_label} business projection 断言失败"
+  rm -f "${script_path}"
+}
+
+assert_monitor_mobile_panes() {
+  local viewport_label="$1"
+  local scenario="$2"
+  local script_path="/tmp/${SESSION}-${viewport_label}-monitor-panes.js"
+
+  cat >"${script_path}" <<'JS'
+(() => {
+  const errors = [];
+  const visible = el => {
+    if (!el) return false;
+    const rect = el.getBoundingClientRect();
+    const style = window.getComputedStyle(el);
+    return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+  };
+  const buttons = [
+    '[data-test="monitor-mobile-pane-line"]',
+    '[data-test="monitor-mobile-pane-scene"]',
+    '[data-test="monitor-mobile-pane-actions"]'
+  ];
+  for (const selector of buttons) {
+    const el = document.querySelector(selector);
+    if (!visible(el)) errors.push(`missing or hidden mobile pane button: ${selector}`);
+  }
+  const sceneButton = document.querySelector('[data-test="monitor-mobile-pane-scene"]');
+  const scenePane = document.querySelector('[aria-label="运行场景"]');
+  if (sceneButton?.getAttribute('aria-pressed') !== 'true') {
+    errors.push('scene pane is not the default active mobile pane');
+  }
+  if (!visible(scenePane)) errors.push('scene pane is not visible by default');
+  if (errors.length) throw new Error(errors.join('\n'));
+  return 'mobile monitor pane defaults passed';
+})()
+JS
+  ab eval "$(cat "${script_path}")" >/dev/null || fail "${viewport_label} mobile pane 默认断言失败"
+
+  select_monitor_first_device "${viewport_label}" "${scenario}"
+
+  ab click "[data-test=\"monitor-mobile-pane-actions\"]" >/dev/null
+  ab wait 300 >/dev/null
+  cat >"${script_path}" <<'JS'
+(() => {
+  const errors = [];
+  const visible = el => {
+    if (!el) return false;
+    const rect = el.getBoundingClientRect();
+    const style = window.getComputedStyle(el);
+    return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+  };
+  const actionsButton = document.querySelector('[data-test="monitor-mobile-pane-actions"]');
+  const actionsPane = document.querySelector('[aria-label="工作线行动舱"]');
+  if (actionsButton?.getAttribute('aria-pressed') !== 'true') {
+    errors.push('actions pane button is not pressed after click');
+  }
+  if (!visible(actionsPane)) errors.push('actions pane is not visible after click');
+  if (!visible(document.querySelector('[data-test="monitor-refresh-projection"]'))) {
+    errors.push('monitor refresh action is not visible in actions pane');
+  }
+  if (errors.length) throw new Error(errors.join('\n'));
+  return 'mobile monitor actions pane passed';
+})()
+JS
+  ab eval "$(cat "${script_path}")" >/dev/null || fail "${viewport_label} mobile 行动 pane 断言失败"
+  assert_monitor_business_projection "${viewport_label}-business" "${scenario}"
+
+  ab click "[data-test=\"monitor-mobile-pane-scene\"]" >/dev/null
+  ab wait 300 >/dev/null
+  assert_monitor_scene_dom "${viewport_label}-scene" "${scenario}"
   rm -f "${script_path}"
 }
 
@@ -742,7 +953,7 @@ if [[ -n "${SEEDED_SINGLE_LAYER_WORKLINE_ID}" ]]; then
 else
   assert_contains "${monitor_url}" "/runtime/monitor?worklineId=" "工作线监控页未自动同步默认 worklineId: ${monitor_url}"
 fi
-assert_contains "${monitor_text}" "工作线监控" "工作线监控页未渲染标题，页面内容: ${monitor_text}"
+assert_contains "${monitor_text}" "WES 运行监控中心" "工作线监控页未渲染监控顶栏标题，页面内容: ${monitor_text}"
 assert_contains "${monitor_text}" "拓扑主视图" "工作线监控页未渲染拓扑主视图，页面内容: ${monitor_text}"
 assert_contains "${monitor_text}" "SSE CONNECTED" "工作线监控页未建立实时连接，页面内容: ${monitor_text}"
 
@@ -762,8 +973,19 @@ if [[ "${USE_FIXED_MONITOR_FIXTURE}" == "1" ]]; then
   page_errors="$(ab errors || true)"
 fi
 
-desktop_screenshot="/tmp/${SESSION}-monitor-desktop.png"
-capture_screenshot "${desktop_screenshot}"
+if [[ "${USE_FIXED_MONITOR_FIXTURE}" == "1" ]]; then
+  monitor_scenario="happy"
+elif [[ -n "${SEEDED_SINGLE_LAYER_WORKLINE_ID}" ]]; then
+  monitor_scenario="seeded"
+else
+  monitor_scenario="live"
+fi
+
+set_monitor_theme "dark"
+desktop_dark_screenshot="/tmp/${SESSION}-monitor-desktop-dark.png"
+desktop_screenshot="${desktop_dark_screenshot}"
+capture_screenshot "${desktop_dark_screenshot}"
+assert_monitor_immersive_shell "monitor-desktop-dark" "dark"
 if [[ "${USE_FIXED_MONITOR_FIXTURE}" == "1" ]]; then
   assert_monitor_scene_dom "desktop" "happy"
 elif [[ -n "${SEEDED_SINGLE_LAYER_WORKLINE_ID}" ]]; then
@@ -771,6 +993,16 @@ elif [[ -n "${SEEDED_SINGLE_LAYER_WORKLINE_ID}" ]]; then
 else
   assert_monitor_scene_dom "desktop" "live"
 fi
+select_monitor_first_device "desktop" "${monitor_scenario}"
+assert_monitor_business_projection "desktop" "${monitor_scenario}"
+
+set_monitor_theme "light"
+desktop_light_screenshot="/tmp/${SESSION}-monitor-desktop-light.png"
+capture_screenshot "${desktop_light_screenshot}"
+assert_monitor_immersive_shell "monitor-desktop-light" "light"
+assert_monitor_scene_dom "desktop-light" "${monitor_scenario}"
+select_monitor_first_device "desktop-light" "${monitor_scenario}"
+assert_monitor_business_projection "desktop-light" "${monitor_scenario}"
 
 ab console --clear >/dev/null || true
 ab errors --clear >/dev/null || true
@@ -784,19 +1016,28 @@ mobile_monitor_url="$(ab get url)"
 mobile_monitor_text="$(ab get text body)"
 mobile_console_log="$(ab console || true)"
 mobile_page_errors="$(ab errors || true)"
-mobile_screenshot="/tmp/${SESSION}-monitor-mobile.png"
-capture_screenshot "${mobile_screenshot}"
+set_monitor_theme "dark"
+mobile_dark_screenshot="/tmp/${SESSION}-monitor-mobile-dark.png"
+mobile_screenshot="${mobile_dark_screenshot}"
+capture_screenshot "${mobile_dark_screenshot}"
+assert_monitor_immersive_shell "monitor-mobile-dark" "dark"
 
 assert_contains "${mobile_monitor_url}" "/runtime/monitor?worklineId=${workline_id}" "移动视口工作线监控 URL 异常: ${mobile_monitor_url}"
-assert_contains "${mobile_monitor_text}" "工作线监控" "移动视口未渲染工作线监控标题，页面内容: ${mobile_monitor_text}"
+assert_contains "${mobile_monitor_text}" "WES 运行监控中心" "移动视口未渲染监控顶栏标题，页面内容: ${mobile_monitor_text}"
 assert_contains "${mobile_monitor_text}" "拓扑主视图" "移动视口未渲染拓扑主视图，页面内容: ${mobile_monitor_text}"
 if [[ "${USE_FIXED_MONITOR_FIXTURE}" == "1" ]]; then
-  assert_monitor_scene_dom "mobile" "happy"
+  assert_monitor_mobile_panes "mobile" "happy"
 elif [[ -n "${SEEDED_SINGLE_LAYER_WORKLINE_ID}" ]]; then
-  assert_monitor_scene_dom "mobile" "seeded"
+  assert_monitor_mobile_panes "mobile" "seeded"
 else
-  assert_monitor_scene_dom "mobile" "live"
+  assert_monitor_mobile_panes "mobile" "live"
 fi
+
+set_monitor_theme "light"
+mobile_light_screenshot="/tmp/${SESSION}-monitor-mobile-light.png"
+capture_screenshot "${mobile_light_screenshot}"
+assert_monitor_immersive_shell "monitor-mobile-light" "light"
+assert_monitor_mobile_panes "mobile-light" "${monitor_scenario}"
 
 fallback_desktop_screenshot=""
 fallback_mobile_screenshot=""
@@ -830,6 +1071,8 @@ if [[ "${USE_FIXED_MONITOR_FIXTURE}" == "1" || -n "${SEEDED_FALLBACK_WORKLINE_ID
   capture_screenshot "${fallback_desktop_screenshot}"
   assert_contains "${fallback_monitor_text}" "通用 evidence" "fallback 场景未展示通用 evidence，页面内容: ${fallback_monitor_text}"
   assert_monitor_scene_dom "fallback-desktop" "${fallback_scenario}"
+  select_monitor_first_device "fallback-desktop" "${fallback_scenario}"
+  assert_monitor_business_projection "fallback-desktop" "${fallback_scenario}"
 
   ab console --clear >/dev/null || true
   ab errors --clear >/dev/null || true
@@ -845,7 +1088,7 @@ if [[ "${USE_FIXED_MONITOR_FIXTURE}" == "1" || -n "${SEEDED_FALLBACK_WORKLINE_ID
   fallback_mobile_screenshot="/tmp/${SESSION}-monitor-fallback-mobile.png"
   capture_screenshot "${fallback_mobile_screenshot}"
   assert_contains "${fallback_mobile_monitor_text}" "语义未加载" "移动 fallback 场景未展示语义未加载，页面内容: ${fallback_mobile_monitor_text}"
-  assert_monitor_scene_dom "fallback-mobile" "${fallback_scenario}"
+  assert_monitor_mobile_panes "fallback-mobile" "${fallback_scenario}"
 fi
 
 sandbox_desktop_url=""
@@ -1004,7 +1247,7 @@ echo "  trace:           ${trace_smoke_status}"
 echo "  devices:         ${device_url}"
 echo "  device_id:       ${device_id:-not-selected}"
 if [[ "${CAPTURE_SCREENSHOTS}" == "1" ]]; then
-  echo "  screenshots:     ${desktop_screenshot} ${mobile_screenshot}"
+  echo "  screenshots:     ${desktop_dark_screenshot} ${desktop_light_screenshot} ${mobile_dark_screenshot} ${mobile_light_screenshot}"
 else
   echo "  screenshots:     skipped (set RUNTIME_SMOKE_CAPTURE_SCREENSHOTS=1 to capture)"
 fi

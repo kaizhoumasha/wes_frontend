@@ -37,12 +37,14 @@
       :session-counts-by-device="sessionCountsByDevice"
       :trace-path-nodes="tracePathNodes"
       :blocking-device-id="blockingDeviceId"
+      :show-role-details="false"
       @select="emit('selectDevice', $event)"
     />
 
     <div
       v-if="model.positionGroups.length"
       class="runtime-scene-map__layout"
+      :class="{ 'is-summary-only': !showRackDetails }"
     >
       <div class="runtime-scene-map__rack-stage">
         <div class="runtime-scene-map__position-rail">
@@ -60,19 +62,11 @@
           >
             <span class="runtime-scene-map__position-role">{{ group.stationRole }}</span>
             <strong>{{ group.stationCode }} / {{ group.positionCode }}</strong>
-            <span data-test="runtime-scene-station-lease">
-              {{ group.boundary.stationLeaseLabel }}
-            </span>
-            <span data-test="runtime-scene-rack-snapshot">
-              {{ group.boundary.rackSnapshotLabel }}
-            </span>
-            <span data-test="runtime-scene-rack-operation">
-              {{ group.boundary.rackOperationWaitLabel }}
-            </span>
+            <span>{{ group.auditItems.length }} 条投影证据</span>
           </button>
         </div>
 
-        <template v-if="selectedGroup?.rackLayouts.length">
+        <template v-if="showRackDetails && selectedGroup?.rackLayouts.length">
           <div
             v-if="selectedGroup.rackLayouts.length > 1"
             class="runtime-scene-map__rack-tabs"
@@ -98,7 +92,7 @@
         </template>
 
         <div
-          v-else
+          v-else-if="showRackDetails"
           class="runtime-scene-map__positions"
         >
           <RuntimeScenePositionGroup
@@ -114,7 +108,7 @@
       </div>
 
       <RuntimeRackInspector
-        v-if="selectedGroup?.rackLayouts.length"
+        v-if="showRackDetails && selectedGroup?.rackLayouts.length"
         :group="selectedGroup"
         :layout="selectedRackLayout"
         :selected-slot="selectedRackSlot"
@@ -124,7 +118,7 @@
       />
 
       <RuntimeSceneFocusPanel
-        v-else
+        v-else-if="showRackDetails"
         :group="selectedGroup"
         :stack="selectedStack"
         :resource-evidence-truncated="model.resourceEvidenceTruncated"
@@ -188,12 +182,14 @@ const props = withDefaults(
     sessionCountsByDevice?: Map<number, number> | Record<number, number>
     tracePathNodes?: RuntimeTraceDevicePathNode[]
     blockingDeviceId?: number | null
+    showRackDetails?: boolean
   }>(),
   {
     selectedDeviceId: null,
     sessionCountsByDevice: undefined,
     tracePathNodes: () => [],
-    blockingDeviceId: null
+    blockingDeviceId: null,
+    showRackDetails: false
   }
 )
 
@@ -339,8 +335,8 @@ watch(() => props.model.positionGroups, syncSelection, { immediate: true, deep: 
   flex: 0 0 auto;
   padding: 4px 8px;
   border-radius: 8px;
-  background: rgb(245, 158, 11, 0.12);
-  color: rgb(146, 64, 14);
+  background: var(--runtime-surface-accent, rgb(245, 158, 11, 0.12));
+  color: var(--runtime-text-emphasis, rgb(245, 158, 11));
   font-size: 12px;
   font-weight: 600;
 }
@@ -349,8 +345,8 @@ watch(() => props.model.positionGroups, syncSelection, { immediate: true, deep: 
   padding: 10px 12px;
   border: 1px solid rgb(245, 158, 11, 0.32);
   border-radius: 8px;
-  background: rgb(255, 251, 235);
-  color: rgb(146, 64, 14);
+  background: var(--runtime-surface-accent, rgb(245, 158, 11, 0.12));
+  color: var(--runtime-text-emphasis, rgb(245, 158, 11));
   font-size: 12px;
   font-weight: 600;
 }
@@ -361,6 +357,10 @@ watch(() => props.model.positionGroups, syncSelection, { immediate: true, deep: 
   gap: 12px;
   align-items: start;
   min-width: 0;
+}
+
+.runtime-scene-map__layout.is-summary-only {
+  grid-template-columns: 1fr;
 }
 
 .runtime-scene-map__rack-stage {

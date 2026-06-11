@@ -28,12 +28,42 @@
       />
     </el-card>
 
-    <SessionBoard
-      :active-sessions="activeSessions"
-      :recent-failed-traces="recentFailedTraces"
-      :recent-completed-traces="recentCompletedTraces"
-      @select-session="emit('selectSession', $event)"
-    />
+    <section
+      class="monitor-event-log"
+      data-test="monitor-event-log-panel"
+      aria-label="即时事件日志"
+    >
+      <header class="monitor-event-log__header">
+        <div class="monitor-event-log__title">即时事件日志</div>
+        <span class="monitor-event-log__count">{{ eventLogEntries.length }}</span>
+      </header>
+      <div
+        v-if="eventLogEntries.length"
+        class="monitor-event-log__body"
+      >
+        <div
+          v-for="entry in eventLogEntries"
+          :key="entry.id"
+          class="monitor-event-log__row"
+          data-test="monitor-event-log-row"
+        >
+          <span class="monitor-event-log__time">[{{ entry.time }}]</span>
+          <span
+            class="monitor-event-log__tag"
+            :class="`is-${entry.level}`"
+          >
+            {{ entry.tag }}
+          </span>
+          <span class="monitor-event-log__text">{{ entry.text }}</span>
+        </div>
+      </div>
+      <div
+        v-else
+        class="monitor-event-log__empty"
+      >
+        暂无即时事件
+      </div>
+    </section>
   </div>
 </template>
 
@@ -41,7 +71,6 @@
 import { computed, watch } from 'vue'
 import DecisionStrip from '@/components/runtime/devices/DecisionStrip.vue'
 import RuntimeSceneMap from '@/components/runtime/monitor/RuntimeSceneMap.vue'
-import SessionBoard from '@/components/runtime/monitor/SessionBoard.vue'
 import { useRuntimeSceneManifest } from '@/composables/useRuntimeSceneManifest'
 import type {
   RuntimeTraceDevicePathNode,
@@ -53,18 +82,38 @@ import type {
 } from '@/types/runtime'
 import { buildRuntimeSceneModel } from '@/utils/runtime-scene'
 
-const props = defineProps<{
-  worklineSummary: RuntimeWorklineSummary
-  worklineProjection?: RuntimeWorklineMonitorProjectionResponse | null
-  devices: RuntimeMonitorDeviceNode[]
-  activeSessions: (RuntimeMonitorSessionItem | RuntimeMonitorTraceItem)[]
-  recentFailedTraces: (RuntimeMonitorSessionItem | RuntimeMonitorTraceItem)[]
-  recentCompletedTraces?: (RuntimeMonitorSessionItem | RuntimeMonitorTraceItem)[]
-  selectedDeviceId?: number | null
-  sessionCountsByDevice?: Map<number, number> | Record<number, number>
-  tracePathNodes?: RuntimeTraceDevicePathNode[]
-  blockingDeviceId?: number | null
-}>()
+export interface MonitorEventLogEntry {
+  id: string
+  time: string
+  level: 'info' | 'warn' | 'err'
+  tag: string
+  text: string
+}
+
+const props = withDefaults(
+  defineProps<{
+    worklineSummary: RuntimeWorklineSummary
+    worklineProjection?: RuntimeWorklineMonitorProjectionResponse | null
+    devices: RuntimeMonitorDeviceNode[]
+    activeSessions: (RuntimeMonitorSessionItem | RuntimeMonitorTraceItem)[]
+    recentFailedTraces: (RuntimeMonitorSessionItem | RuntimeMonitorTraceItem)[]
+    recentCompletedTraces?: (RuntimeMonitorSessionItem | RuntimeMonitorTraceItem)[]
+    eventLogEntries?: MonitorEventLogEntry[]
+    selectedDeviceId?: number | null
+    sessionCountsByDevice?: Map<number, number> | Record<number, number>
+    tracePathNodes?: RuntimeTraceDevicePathNode[]
+    blockingDeviceId?: number | null
+  }>(),
+  {
+    worklineProjection: null,
+    recentCompletedTraces: () => [],
+    eventLogEntries: () => [],
+    selectedDeviceId: null,
+    sessionCountsByDevice: undefined,
+    tracePathNodes: () => [],
+    blockingDeviceId: null
+  }
+)
 
 const emit = defineEmits<{
   selectDevice: [deviceId: number]
@@ -120,6 +169,88 @@ watch(
 .workline-live-overview {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
+  min-height: 0;
+}
+
+.workline-live-overview :deep(.runtime-panel) {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.monitor-event-log {
+  flex: 0 0 140px;
+  min-height: 120px;
+  padding: 10px 14px;
+  border: 1px solid var(--runtime-border-subtle, rgb(148 163 184 / 0.2));
+  border-radius: 8px;
+  background: var(--runtime-surface-strong, rgb(4 6 13 / 0.9));
+  color: var(--runtime-text-primary);
+  font-family: var(--font-mono, 'JetBrains Mono');
+  font-size: 11px;
+}
+
+.monitor-event-log__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.monitor-event-log__title {
+  color: var(--runtime-text-primary);
+  font-weight: 800;
+}
+
+.monitor-event-log__count {
+  color: var(--runtime-text-muted);
+}
+
+.monitor-event-log__body {
+  display: grid;
+  gap: 5px;
+  max-height: 94px;
+  overflow-y: auto;
+}
+
+.monitor-event-log__row {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  gap: 9px;
+  align-items: start;
+  min-width: 0;
+}
+
+.monitor-event-log__time {
+  color: var(--runtime-text-muted);
+}
+
+.monitor-event-log__tag {
+  font-weight: 900;
+}
+
+.monitor-event-log__tag.is-info {
+  color: var(--runtime-badge-info-text, #38bdf8);
+}
+
+.monitor-event-log__tag.is-warn {
+  color: var(--runtime-badge-warning-text, #f59e0b);
+}
+
+.monitor-event-log__tag.is-err {
+  color: var(--runtime-badge-danger-text, #ef4444);
+}
+
+.monitor-event-log__text,
+.monitor-event-log__empty {
+  min-width: 0;
+  color: var(--runtime-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.monitor-event-log__empty {
+  padding: 24px 0;
+  text-align: center;
 }
 </style>

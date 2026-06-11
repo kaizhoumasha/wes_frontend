@@ -15,18 +15,6 @@
         </div>
       </header>
 
-      <div class="runtime-rack-inspector__facts">
-        <span data-test="runtime-scene-station-lease">
-          {{ group.boundary.stationLeaseLabel }}
-        </span>
-        <span data-test="runtime-scene-rack-snapshot">
-          {{ group.boundary.rackSnapshotLabel }}
-        </span>
-        <span data-test="runtime-scene-rack-operation">
-          {{ group.boundary.rackOperationWaitLabel }}
-        </span>
-      </div>
-
       <section
         v-if="selectedSlot"
         class="runtime-rack-inspector__section"
@@ -349,7 +337,7 @@ watch(
   padding: 8px;
   border: 1px solid rgb(14, 165, 233, 0.18);
   border-radius: 6px;
-  background: rgb(15, 23, 42, 0.24);
+  background: var(--runtime-surface-muted, rgb(15, 23, 42, 0.24));
 }
 
 .runtime-rack-inspector__batch-summary span {
@@ -400,7 +388,8 @@ watch(
   border: 1px solid rgb(20, 184, 166, 0.28);
   border-radius: 6px;
   background:
-    linear-gradient(90deg, rgb(20, 184, 166, 0.18), rgb(15, 23, 42, 0.18)), rgb(15, 23, 42, 0.24);
+    linear-gradient(90deg, rgb(20, 184, 166, 0.18), transparent),
+    var(--runtime-surface-muted, rgb(15, 23, 42, 0.24));
 }
 
 .runtime-rack-material-stack__reel strong,

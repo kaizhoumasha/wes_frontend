@@ -73,6 +73,12 @@ const resolvedLabel = computed(() => compactEnumLabel(props.label ?? props.statu
   animation: runtime-status-pulse 1.8s infinite;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .runtime-status-badge__dot.is-pulse {
+    animation: none;
+  }
+}
+
 .runtime-status-badge--primary {
   border-color: var(--runtime-badge-info-border);
   background: var(--runtime-badge-info-bg);

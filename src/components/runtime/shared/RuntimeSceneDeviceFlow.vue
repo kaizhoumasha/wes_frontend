@@ -32,7 +32,10 @@
             :status="device.status"
             size="small"
           />
-          <span class="runtime-scene-device-flow__role">
+          <span
+            v-if="showRoleDetails"
+            class="runtime-scene-device-flow__role"
+          >
             {{ device.deviceRole }} · #{{ device.roleIndex }}
           </span>
           <span
@@ -129,6 +132,7 @@ const props = withDefaults(
     tracePathNodes?: RuntimeTraceDevicePathNode[]
     blockingDeviceId?: number | null
     compact?: boolean
+    showRoleDetails?: boolean
   }>(),
   {
     devices: () => [],
@@ -136,7 +140,8 @@ const props = withDefaults(
     sessionCountsByDevice: undefined,
     tracePathNodes: () => [],
     blockingDeviceId: null,
-    compact: false
+    compact: false,
+    showRoleDetails: true
   }
 )
 
@@ -216,14 +221,16 @@ function signalClass(device: RuntimeSceneDeviceNode): string {
 <style scoped>
 .runtime-scene-device-flow {
   display: flex;
+  flex-wrap: wrap;
   align-items: stretch;
   gap: 14px;
-  overflow-x: auto;
+  overflow-x: visible;
   padding-bottom: 8px;
 }
 
 .runtime-scene-device-flow__device {
-  min-width: 240px;
+  flex: 1 1 190px;
+  min-width: min(190px, 100%);
   min-height: 120px;
   padding: 18px;
   border: 1px solid rgb(245, 158, 11, 0.16);

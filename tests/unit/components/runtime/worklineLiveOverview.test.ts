@@ -94,7 +94,8 @@ function mountOverview() {
       devices: [],
       activeSessions: [],
       recentFailedTraces: [],
-      recentCompletedTraces: []
+      recentCompletedTraces: [],
+      eventLogEntries: []
     },
     global: {
       stubs: {
@@ -253,5 +254,43 @@ describe('WorklineLiveOverview', () => {
     expect(wrapper.findComponent({ name: 'RuntimeSceneMap' }).props('tracePathNodes')).toEqual(
       tracePathNodes
     )
+  })
+
+  it('uses an immediate SSE log console instead of the historical session board in the center pane', () => {
+    mocks.loadManifest.mockReturnValueOnce({ catch: vi.fn() })
+    const summary = createSummary()
+
+    const wrapper = shallowMount(WorklineLiveOverview, {
+      props: {
+        worklineSummary: summary,
+        worklineProjection: createProjection(summary),
+        devices: [],
+        activeSessions: [],
+        recentFailedTraces: [],
+        recentCompletedTraces: [],
+        eventLogEntries: [
+          {
+            id: 'evt-1',
+            time: '15:40:04',
+            level: 'err',
+            tag: 'ERROR',
+            text: 'ECS 设备事件回调：[ST-02] 抛出急停警报 ERR_CONVEYOR_JAM_102'
+          }
+        ]
+      },
+      global: {
+        stubs: {
+          ElCard: {
+            template: '<div><slot name="header" /><slot /></div>'
+          }
+        }
+      }
+    })
+
+    expect(wrapper.findComponent({ name: 'SessionBoard' }).exists()).toBe(false)
+    expect(wrapper.get('[data-test="monitor-event-log-panel"]').text()).toContain(
+      'ECS 设备事件回调'
+    )
+    expect(wrapper.get('[data-test="monitor-event-log-panel"]').text()).toContain('ERROR')
   })
 })

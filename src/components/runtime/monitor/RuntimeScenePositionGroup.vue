@@ -19,18 +19,6 @@
       </div>
     </div>
 
-    <div class="runtime-scene-position-group__facts">
-      <span data-test="runtime-scene-station-lease">
-        {{ group.boundary.stationLeaseLabel }}
-      </span>
-      <span data-test="runtime-scene-rack-snapshot">
-        {{ group.boundary.rackSnapshotLabel }}
-      </span>
-      <span data-test="runtime-scene-rack-operation">
-        {{ group.boundary.rackOperationWaitLabel }}
-      </span>
-    </div>
-
     <div
       v-if="group.resourceStacks.length"
       class="runtime-scene-position-group__stacks"
