@@ -5,7 +5,6 @@
   >
     <div class="runtime-scene-map__header">
       <div>
-        <div class="runtime-scene-map__title">拓扑主视图</div>
         <div
           class="runtime-scene-map__meta"
           data-test="runtime-scene-readiness"
@@ -38,6 +37,7 @@
       :trace-path-nodes="tracePathNodes"
       :blocking-device-id="blockingDeviceId"
       :show-role-details="false"
+      :rack-occupancy-by-device="rackOccupancyByDevice"
       @select="emit('selectDevice', $event)"
     />
 
@@ -168,6 +168,7 @@ import RuntimeSceneEvidencePanel from './RuntimeSceneEvidencePanel.vue'
 import RuntimeSceneFocusPanel from './RuntimeSceneFocusPanel.vue'
 import RuntimeScenePositionGroup from './RuntimeScenePositionGroup.vue'
 import type { RuntimeTraceDevicePathNode } from '@/types/runtime'
+import { buildRackOccupancyByDevice } from '@/utils/runtime-topology'
 import type {
   RuntimeSceneModel,
   RuntimeScenePositionGroup as PositionGroup,
@@ -203,6 +204,10 @@ const selectedRackLayoutKey = ref<string | null>(null)
 const selectedRackSlotKey = ref<string | null>(null)
 
 const resourceEvidenceVisibleCount = computed(() => props.model.resourceEvidence.length)
+
+const rackOccupancyByDevice = computed(() =>
+  buildRackOccupancyByDevice(props.model.deviceNodes, props.model.positionGroups)
+)
 
 const selectedGroup = computed(
   () => props.model.positionGroups.find(group => group.key === selectedPositionKey.value) ?? null
@@ -317,12 +322,6 @@ watch(() => props.model.positionGroups, syncSelection, { immediate: true, deep: 
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-}
-
-.runtime-scene-map__title {
-  color: var(--runtime-text);
-  font-size: 16px;
-  font-weight: 700;
 }
 
 .runtime-scene-map__meta {

@@ -1,57 +1,56 @@
 <template>
-  <div class="workline-topology-strip">
-    <template
-      v-for="(device, index) in devices"
-      :key="device.id"
-    >
-      <button
-        type="button"
-        class="workline-topology-strip__node"
-        :class="[
-          statusClass(device.device_status),
-          { 'is-selected': selectedDeviceId === device.id, 'is-interactive': interactive }
-        ]"
-        @click="emitSelect(device.id)"
-      >
-        <div class="workline-topology-strip__node-top">
-          <RuntimeStatusBadge
-            :status="device.device_status"
-            size="small"
-          />
-          <span class="workline-topology-strip__role">
-            {{ device.device_role }} · #{{ device.role_index }}
-          </span>
-          <span
-            v-if="device.maintenance_mode"
-            class="workline-topology-strip__maintenance"
-          >
-            维护
-          </span>
-        </div>
-        <div class="workline-topology-strip__name">{{ device.device_name }}</div>
-        <div class="workline-topology-strip__code">{{ device.device_code }}</div>
-        <div
-          class="workline-topology-strip__signal"
-          :class="signalClass(device)"
-        >
-          {{ signalText(device) }}
-        </div>
-      </button>
+  <div
+    class="workline-topology-strip"
+  >
+    <template v-if="convertedDevices.length">
+      <!-- Canvas wrapper: sized to computed layout -->
       <div
-        v-if="index < devices.length - 1"
-        class="workline-topology-strip__edge"
+        class="workline-topology-strip__canvas"
+        :style="{ width: layout.canvasWidth + 'px', height: layout.canvasHeight + 'px' }"
       >
-        <span class="workline-topology-strip__edge-line" />
-        <span class="workline-topology-strip__edge-arrow">→</span>
+        <!-- SVG Connection Layer -->
+        <svg
+          class="workline-topology-strip__connections"
+          :width="layout.canvasWidth"
+          :height="layout.canvasHeight"
+          :viewBox="`0 0 ${layout.canvasWidth} ${layout.canvasHeight}`"
+          :style="{ width: layout.canvasWidth + 'px', height: layout.canvasHeight + 'px' }"
+        >
+          <path
+            v-for="edge in layout.edges"
+            :key="edge.id"
+            :d="edge.path"
+            :class="['flow-line', `flow-line--${edge.status}`]"
+          />
+        </svg>
+
+        <!-- Node Layer -->
+        <div class="workline-topology-strip__nodes">
+          <TopologyDeviceNode
+            v-for="node in layout.nodes"
+            :key="node.id"
+            :device="node.device"
+            :selected="selectedDeviceId === node.id"
+            :show-role-details="true"
+            :signal-text="signalText(node.device)"
+            :signal-class="signalClass(node.device)"
+            :compact="true"
+            :style="{ left: node.x + 'px', top: node.y + 'px', width: '240px', minHeight: '100px' }"
+            :class="{ 'is-interactive': interactive }"
+            @click="emitSelect"
+          />
+        </div>
       </div>
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
+import { computed } from 'vue'
+import TopologyDeviceNode from '@/components/runtime/shared/TopologyDeviceNode.vue'
 import type { RuntimeMonitorDeviceNode } from '@/types/runtime'
-import { resolveRuntimeTone } from '@/utils/runtime-display'
+import { useTopologyLayout } from '@/composables/useTopologyLayout'
+import { toRuntimeSceneDeviceNode, type RuntimeSceneDeviceNode } from '@/utils/runtime-scene'
 
 const props = withDefaults(
   defineProps<{
@@ -64,7 +63,7 @@ const props = withDefaults(
     devices: () => [],
     selectedDeviceId: null,
     interactive: true,
-    sessionCountsByDevice: undefined
+    sessionCountsByDevice: undefined,
   }
 )
 
@@ -72,9 +71,15 @@ const emit = defineEmits<{
   select: [deviceId: number]
 }>()
 
-function statusClass(status: string) {
-  return `is-${resolveRuntimeTone(status)}`
-}
+// Convert API snake_case devices to camelCase scene nodes
+const convertedDevices = computed<RuntimeSceneDeviceNode[]>(() =>
+  props.devices.map(toRuntimeSceneDeviceNode)
+)
+
+// Linear layout (single row)
+const { layout } = useTopologyLayout(convertedDevices, {
+  linear: true,
+})
 
 function emitSelect(deviceId: number) {
   if (!props.interactive) return
@@ -88,15 +93,15 @@ function getSessionCount(deviceId: number): number {
   return map[deviceId] ?? 0
 }
 
-function signalText(device: RuntimeMonitorDeviceNode): string {
-  if (device.error_code) return `ERROR: ${device.error_code}`
+function signalText(device: RuntimeSceneDeviceNode): string {
+  if (device.errorCode) return `ERROR: ${device.errorCode}`
   const waiting = getSessionCount(device.id)
   if (waiting > 0) return `${waiting}条等待`
   return '空闲'
 }
 
-function signalClass(device: RuntimeMonitorDeviceNode): string {
-  if (device.error_code) return 'is-danger'
+function signalClass(device: RuntimeSceneDeviceNode): string {
+  if (device.errorCode) return 'is-danger'
   if (getSessionCount(device.id) > 0) return 'is-warning'
   return 'is-idle'
 }
@@ -104,129 +109,66 @@ function signalClass(device: RuntimeMonitorDeviceNode): string {
 
 <style scoped>
 .workline-topology-strip {
-  display: flex;
-  align-items: stretch;
-  gap: 14px;
+  position: relative;
   overflow-x: auto;
   padding-bottom: 8px;
 }
 
-.workline-topology-strip__node {
-  min-width: 240px;
-  padding: 18px;
-  border: 1px solid rgb(245, 158, 11, 0.16);
-  border-radius: 16px;
-  background: rgb(30, 41, 59, 0.78);
-  text-align: left;
+/* Canvas wrapper: sized to computed layout, scrolls if wider than container */
+.workline-topology-strip__canvas {
+  position: relative;
+  flex-shrink: 0;
 }
 
-.workline-topology-strip__node.is-interactive {
-  cursor: pointer;
-  transition:
-    transform 150ms ease-out,
-    border-color 150ms ease-out,
-    background 150ms ease-out;
+/* SVG Connection Layer */
+.workline-topology-strip__connections {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 1;
 }
 
-.workline-topology-strip__node.is-interactive:hover {
-  transform: translateY(-2px);
-  border-color: rgb(245, 158, 11, 0.3);
+/* Node Layer */
+.workline-topology-strip__nodes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
 }
 
-.workline-topology-strip__node.is-selected {
-  box-shadow: inset 0 0 0 1px rgb(245, 158, 11, 0.34);
+/* Flow line styles */
+.flow-line {
+  fill: none;
+  stroke-width: 2;
 }
 
-.workline-topology-strip__node.is-danger {
-  border-color: rgb(220, 38, 38, 0.4);
+.flow-line--idle {
+  stroke: var(--runtime-border);
 }
 
-.workline-topology-strip__node.is-warning {
-  border-color: rgb(234, 179, 8, 0.36);
+.flow-line--active {
+  stroke: #f59e0b;
+  stroke-dasharray: 6, 6;
+  animation: topology-strip-dash 20s linear infinite;
 }
 
-.workline-topology-strip__node.is-success {
-  border-color: rgb(22, 163, 74, 0.28);
+.flow-line--fault {
+  stroke: #dc2626;
+  stroke-width: 2.5;
+  stroke-dasharray: 4, 4;
+  animation: topology-strip-dash 8s linear infinite;
 }
 
-.workline-topology-strip__node.is-primary {
-  border-color: rgb(59, 130, 246, 0.32);
+.flow-line--warning {
+  stroke: #eab308;
+  stroke-dasharray: 5, 5;
+  animation: topology-strip-dash 15s linear infinite;
 }
 
-.workline-topology-strip__node-top {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.workline-topology-strip__role {
-  color: #94a3b8;
-  font-size: 12px;
-}
-
-.workline-topology-strip__maintenance {
-  margin-left: auto;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: rgb(234, 179, 8, 0.12);
-  color: #eab308;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.workline-topology-strip__name {
-  margin-top: 14px;
-  color: #f8fafc;
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.workline-topology-strip__code {
-  margin-top: 4px;
-  color: #94a3b8;
-  font-size: 12px;
-  font-family: var(--font-mono);
-}
-
-.workline-topology-strip__signal {
-  margin-top: 12px;
-  font-size: 13px;
-  font-weight: 600;
-  font-family: var(--font-mono);
-}
-
-.workline-topology-strip__signal.is-danger {
-  color: #dc2626;
-}
-
-.workline-topology-strip__signal.is-warning {
-  color: #d97706;
-}
-
-.workline-topology-strip__signal.is-idle {
-  color: #64748b;
-}
-
-.workline-topology-strip__edge {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-width: 36px;
-}
-
-.workline-topology-strip__edge-line {
-  width: 36px;
-  height: 2px;
-  background: linear-gradient(90deg, rgb(245, 158, 11, 0.18), rgb(245, 158, 11, 0.88));
-}
-
-.workline-topology-strip__edge-arrow {
-  color: #f59e0b;
-  font-family: var(--font-mono);
-  font-size: 12px;
+@keyframes topology-strip-dash {
+  to {
+    stroke-dashoffset: -1000;
+  }
 }
 </style>

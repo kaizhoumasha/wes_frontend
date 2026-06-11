@@ -444,16 +444,6 @@ function evidenceStateLabel(state: DiagnosisEvidenceHealthItemState): string {
   margin-top: 12px;
 }
 
-.trace-topology-summary__route-map :deep(.runtime-scene-device-flow__device) {
-  min-width: 150px;
-}
-
-.trace-topology-summary__route-map :deep(.runtime-scene-device-flow__role),
-.trace-topology-summary__route-map :deep(.runtime-scene-device-flow__code) {
-  max-width: 100%;
-  overflow-wrap: anywhere;
-}
-
 .trace-topology-summary__node-wrap {
   display: flex;
   align-items: center;

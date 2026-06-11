@@ -143,6 +143,7 @@ declare module 'vue' {
     TableColumnConfigDialog: typeof import('./../components/common/TableColumnConfigDialog.vue')['default']
     ThemeToggle: typeof import('./../components/common/ThemeToggle.vue')['default']
     TimezoneSettings: typeof import('./../components/common/TimezoneSettings.vue')['default']
+    TopologyDeviceNode: typeof import('./../components/runtime/shared/TopologyDeviceNode.vue')['default']
     TraceBlockingPointCard: typeof import('./../components/runtime/trace/TraceBlockingPointCard.vue')['default']
     TraceCaseHero: typeof import('./../components/runtime/trace/TraceCaseHero.vue')['default']
     TraceContrastPanel: typeof import('./../components/runtime/trace/TraceContrastPanel.vue')['default']

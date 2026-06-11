@@ -4,107 +4,51 @@
     :class="{ 'is-compact': compact }"
     data-test="runtime-scene-device-flow"
   >
-    <template
-      v-for="(device, index) in devices"
-      :key="device.id"
-    >
-      <button
-        type="button"
-        class="runtime-scene-device-flow__device"
-        :class="[
-          statusClass(device.status),
-          {
-            'is-selected': selectedDeviceId === device.id,
-            'is-traced': tracePathNodes.length > 0 && isTraced(device.id),
-            'is-blocking': isBlocking(device.id),
-            'has-runtime-hold': hasRuntimeHold(device),
-            'has-parked-outbox': getBlockedOutboxCount(device) > 0,
-            'is-dimmed': tracePathNodes.length > 0 && !isTraced(device.id)
-          }
-        ]"
-        data-test="runtime-scene-device"
-        @click="handleClick(device.id)"
-        @dblclick="emit('sendEvent', device.id)"
-        @contextmenu.prevent="handleContextMenu($event, device.id)"
-      >
-        <div class="runtime-scene-device-flow__device-top">
-          <RuntimeStatusBadge
-            :status="device.status"
-            size="small"
-          />
-          <span
-            v-if="showRoleDetails"
-            class="runtime-scene-device-flow__role"
-          >
-            {{ device.deviceRole }} · #{{ device.roleIndex }}
-          </span>
-          <span
-            v-if="device.maintenanceMode"
-            class="runtime-scene-device-flow__maintenance"
-          >
-            维护
-          </span>
-        </div>
-        <div class="runtime-scene-device-flow__name">{{ device.deviceName }}</div>
-        <div class="runtime-scene-device-flow__code">{{ device.deviceCode }}</div>
-        <div
-          class="runtime-scene-device-flow__signal"
-          :class="signalClass(device)"
-        >
-          {{ signalText(device) }}
-        </div>
-        <div
-          v-if="device.openCommandCount > 0"
-          class="runtime-scene-device-flow__open-command-badge"
-          data-test="runtime-scene-device-open-command"
-        >
-          {{ device.openCommandCount }} 未完成命令
-        </div>
-        <div
-          v-if="hasRuntimeHold(device)"
-          class="runtime-scene-device-flow__hold-badge"
-          data-test="runtime-scene-device-runtime-hold"
-        >
-          Runtime Hold {{ device.runtimeHoldCount }}
-        </div>
-        <div
-          v-if="getBlockedOutboxCount(device) > 0"
-          class="runtime-scene-device-flow__parked-badge"
-          data-test="runtime-scene-device-parked-outbox"
-        >
-          {{ getBlockedOutboxCount(device) }} 已停靠
-        </div>
-        <div
-          v-if="isTraced(device.id) && traceActionsFor(device.id).length"
-          class="runtime-scene-device-flow__trace-actions"
-        >
-          <span
-            v-for="(action, idx) in traceActionsFor(device.id).slice(0, 3)"
-            :key="idx"
-            class="runtime-scene-device-flow__trace-action"
-          >
-            {{ action.label }}
-          </span>
-          <span
-            v-if="traceActionsFor(device.id).length > 3"
-            class="runtime-scene-device-flow__trace-more"
-          >
-            +{{ traceActionsFor(device.id).length - 3 }}
-          </span>
-        </div>
-        <div
-          v-if="isBlocking(device.id)"
-          class="runtime-scene-device-flow__blocking-badge"
-        >
-          BLOCKED
-        </div>
-      </button>
+    <template v-if="devices.length">
+      <!-- Canvas wrapper: sized to computed layout, centered in container -->
       <div
-        v-if="index < devices.length - 1"
-        class="runtime-scene-device-flow__edge"
+        class="runtime-scene-device-flow__canvas"
+        :style="{ width: layout.canvasWidth + 'px', height: layout.canvasHeight + 'px' }"
       >
-        <span class="runtime-scene-device-flow__edge-line" />
-        <span class="runtime-scene-device-flow__edge-arrow">→</span>
+        <!-- SVG Connection Layer -->
+        <svg
+          class="runtime-scene-device-flow__connections"
+          :width="layout.canvasWidth"
+          :height="layout.canvasHeight"
+          :viewBox="`0 0 ${layout.canvasWidth} ${layout.canvasHeight}`"
+          :style="{ width: layout.canvasWidth + 'px', height: layout.canvasHeight + 'px' }"
+        >
+          <path
+            v-for="edge in layout.edges"
+            :key="edge.id"
+            :d="edge.path"
+            :class="['flow-line', `flow-line--${edge.status}`]"
+          />
+        </svg>
+
+        <!-- Node Layer -->
+        <div class="runtime-scene-device-flow__nodes">
+          <TopologyDeviceNode
+            v-for="node in layout.nodes"
+            :key="node.id"
+            :device="node.device"
+            :selected="selectedDeviceId === node.id"
+            :traced="tracePathNodes.length > 0 && isTraced(node.id)"
+            :blocking="isBlocking(node.id)"
+            :dimmed="tracePathNodes.length > 0 && !isTraced(node.id)"
+            :signal-text="signalText(node.device)"
+            :signal-class="signalClass(node.device)"
+            :trace-actions="traceActionsFor(node.id)"
+            :show-role-details="showRoleDetails"
+            :compact="compact"
+            :occupancy="rackOccupancyByDevice?.get(node.id)"
+            :style="{ left: node.x + 'px', top: node.y + 'px' }"
+            data-test="runtime-scene-device"
+            @click="handleClick"
+            @dblclick="handleDblClick"
+            @contextmenu="handleNodeContextMenu"
+          />
+        </div>
       </div>
     </template>
 
@@ -118,10 +62,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
+import { computed, toRef } from 'vue'
+import TopologyDeviceNode from './TopologyDeviceNode.vue'
 import type { RuntimeTraceDeviceAction, RuntimeTraceDevicePathNode } from '@/types/runtime'
-import { resolveRuntimeTone } from '@/utils/runtime-display'
+import { useTopologyLayout } from '@/composables/useTopologyLayout'
+import type { RackOccupancySummary } from '@/utils/runtime-topology'
 import type { RuntimeSceneDeviceNode } from '@/utils/runtime-scene'
 
 const props = withDefaults(
@@ -133,6 +78,7 @@ const props = withDefaults(
     blockingDeviceId?: number | null
     compact?: boolean
     showRoleDetails?: boolean
+    rackOccupancyByDevice?: Map<number, RackOccupancySummary>
   }>(),
   {
     devices: () => [],
@@ -141,7 +87,8 @@ const props = withDefaults(
     tracePathNodes: () => [],
     blockingDeviceId: null,
     compact: false,
-    showRoleDetails: true
+    showRoleDetails: true,
+    rackOccupancyByDevice: undefined,
   }
 )
 
@@ -151,27 +98,16 @@ const emit = defineEmits<{
   showContextMenu: [payload: { deviceId: number; x: number; y: number }]
 }>()
 
+// Layout computation
+const { layout } = useTopologyLayout(toRef(props, 'devices'), {
+  compact: props.compact,
+})
+
+// Trace & selection helpers
 const tracedDeviceIds = computed(() => new Set(props.tracePathNodes.map(n => n.device_id)))
 
 function isTraced(deviceId: number): boolean {
   return tracedDeviceIds.value.has(deviceId)
-}
-
-function getBlockedOutboxCount(device: RuntimeSceneDeviceNode): number {
-  return device.blockedOutboxCount
-}
-
-function hasRuntimeHold(device: RuntimeSceneDeviceNode): boolean {
-  return device.runtimeHoldCount > 0
-}
-
-function handleClick(deviceId: number): void {
-  emit('select', deviceId)
-}
-
-function handleContextMenu(event: MouseEvent, deviceId: number): void {
-  emit('select', deviceId)
-  emit('showContextMenu', { deviceId, x: event.clientX, y: event.clientY })
 }
 
 function isBlocking(deviceId: number): boolean {
@@ -186,10 +122,21 @@ function traceActionsFor(deviceId: number): RuntimeTraceDeviceAction[] {
   return traceNodeFor(deviceId)?.actions ?? []
 }
 
-function statusClass(status: string): string {
-  return `is-${resolveRuntimeTone(status)}`
+// Event handlers
+function handleClick(deviceId: number): void {
+  emit('select', deviceId)
 }
 
+function handleDblClick(deviceId: number): void {
+  emit('sendEvent', deviceId)
+}
+
+function handleNodeContextMenu(event: MouseEvent, deviceId: number): void {
+  emit('select', deviceId)
+  emit('showContextMenu', { deviceId, x: event.clientX, y: event.clientY })
+}
+
+// Signal computation
 function getSessionCount(deviceId: number): number {
   const map = props.sessionCountsByDevice
   if (!map) return 0
@@ -199,20 +146,20 @@ function getSessionCount(deviceId: number): number {
 
 function signalText(device: RuntimeSceneDeviceNode): string {
   if (device.errorCode) return `ERROR: ${device.errorCode}`
-  if (hasRuntimeHold(device)) return '异常待处置'
+  if (device.runtimeHoldCount > 0) return '异常待处置'
   const sessionCount = getSessionCount(device.id)
   if (sessionCount > 0) return `${sessionCount}条等待`
-  if (getBlockedOutboxCount(device) > 0) return '等待设备空闲'
+  if (device.blockedOutboxCount > 0) return '等待设备空闲'
   if (device.currentCommandId) return '执行中'
   return '空闲'
 }
 
 function signalClass(device: RuntimeSceneDeviceNode): string {
   if (device.errorCode) return 'is-danger'
-  if (hasRuntimeHold(device)) return 'is-danger'
+  if (device.runtimeHoldCount > 0) return 'is-danger'
   const sessionCount = getSessionCount(device.id)
   if (sessionCount > 0) return 'is-warning'
-  if (getBlockedOutboxCount(device) > 0) return 'is-warning'
+  if (device.blockedOutboxCount > 0) return 'is-warning'
   if (device.currentCommandId) return 'is-primary'
   return 'is-idle'
 }
@@ -220,281 +167,88 @@ function signalClass(device: RuntimeSceneDeviceNode): string {
 
 <style scoped>
 .runtime-scene-device-flow {
+  position: relative;
   display: flex;
-  flex-wrap: wrap;
-  align-items: stretch;
-  gap: 14px;
-  overflow-x: visible;
-  padding-bottom: 8px;
-}
-
-.runtime-scene-device-flow__device {
-  flex: 1 1 190px;
-  min-width: min(190px, 100%);
-  min-height: 120px;
-  padding: 18px;
-  border: 1px solid rgb(245, 158, 11, 0.16);
-  border-radius: 8px;
-  background: var(--runtime-surface);
-  text-align: left;
-  cursor: pointer;
-  transition:
-    transform 150ms ease-out,
-    border-color 150ms ease-out,
-    background 150ms ease-out;
-}
-
-.runtime-scene-device-flow__device:hover {
-  transform: translateY(-2px);
-  border-color: rgb(245, 158, 11, 0.3);
-}
-
-.runtime-scene-device-flow__device.is-selected {
-  box-shadow: inset 0 0 0 1px rgb(245, 158, 11, 0.34);
-}
-
-.runtime-scene-device-flow__device.is-dimmed {
-  opacity: 0.35;
-}
-
-.runtime-scene-device-flow__device.is-traced {
-  border-color: rgb(59, 130, 246, 0.4);
-}
-
-.runtime-scene-device-flow__device.is-blocking {
-  border-color: rgb(220, 38, 38, 0.6);
-  box-shadow: 0 0 12px rgb(220, 38, 38, 0.2);
-}
-
-.runtime-scene-device-flow__device.has-runtime-hold {
-  border-color: rgb(239, 68, 68, 0.52);
-}
-
-.runtime-scene-device-flow__device.has-parked-outbox {
-  box-shadow: inset 0 0 0 1px rgb(245, 158, 11, 0.18);
-}
-
-.runtime-scene-device-flow__device.is-danger {
-  border-color: rgb(220, 38, 38, 0.4);
-}
-
-.runtime-scene-device-flow__device.is-warning {
-  border-color: rgb(234, 179, 8, 0.36);
-}
-
-.runtime-scene-device-flow__device.is-success {
-  border-color: rgb(22, 163, 74, 0.28);
-}
-
-.runtime-scene-device-flow__device.is-primary {
-  border-color: rgb(59, 130, 246, 0.32);
-}
-
-.runtime-scene-device-flow__device-top {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.runtime-scene-device-flow__role {
-  color: var(--runtime-text-secondary);
-  font-size: 12px;
-}
-
-.runtime-scene-device-flow__maintenance {
-  margin-left: auto;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: rgb(234, 179, 8, 0.12);
-  color: #eab308;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.runtime-scene-device-flow__name {
-  min-width: 0;
-  margin-top: 14px;
-  color: var(--runtime-text-primary);
-  font-size: 18px;
-  font-weight: 700;
-  overflow-wrap: anywhere;
-}
-
-.runtime-scene-device-flow__code {
-  min-width: 0;
-  margin-top: 4px;
-  color: var(--runtime-text-secondary);
-  font-size: 12px;
-  font-family: var(--font-mono);
-  overflow-wrap: anywhere;
-}
-
-.runtime-scene-device-flow__signal {
-  min-width: 0;
-  margin-top: 12px;
-  font-size: 13px;
-  font-weight: 600;
-  font-family: var(--font-mono);
-  overflow-wrap: anywhere;
-}
-
-.runtime-scene-device-flow__signal.is-danger {
-  color: #dc2626;
-}
-
-.runtime-scene-device-flow__signal.is-warning {
-  color: #d97706;
-}
-
-.runtime-scene-device-flow__signal.is-primary {
-  color: #2563eb;
-}
-
-.runtime-scene-device-flow__signal.is-idle {
-  color: var(--runtime-text-muted);
-}
-
-.runtime-scene-device-flow__open-command-badge,
-.runtime-scene-device-flow__hold-badge,
-.runtime-scene-device-flow__parked-badge {
-  margin-top: 8px;
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  text-align: center;
-}
-
-.runtime-scene-device-flow__open-command-badge {
-  background: rgb(245, 158, 11, 0.15);
-  color: #fbbf24;
-}
-
-.runtime-scene-device-flow__hold-badge {
-  border: 1px solid rgb(239, 68, 68, 0.3);
-  background: rgb(239, 68, 68, 0.14);
-  color: #fca5a5;
-}
-
-.runtime-scene-device-flow__parked-badge {
-  border: 1px solid rgb(245, 158, 11, 0.28);
-  background: rgb(245, 158, 11, 0.1);
-  color: #fde68a;
-}
-
-.runtime-scene-device-flow__trace-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 8px;
-}
-
-.runtime-scene-device-flow__trace-action {
-  padding: 1px 5px;
-  border-radius: 3px;
-  background: var(--runtime-badge-info-bg);
-  color: var(--runtime-badge-info-text);
-  font-size: 9px;
-  font-family: var(--font-mono);
-  font-weight: 600;
-  letter-spacing: 0.03em;
-}
-
-.runtime-scene-device-flow__trace-more {
-  color: var(--runtime-text-muted);
-  font-size: 9px;
-  font-family: var(--font-mono);
-}
-
-.runtime-scene-device-flow__blocking-badge {
-  margin-top: 8px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: var(--runtime-badge-danger-bg);
-  color: var(--runtime-badge-danger-text);
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-align: center;
-}
-
-.runtime-scene-device-flow__edge {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-width: 36px;
+  overflow: auto;
+  background:
+    radial-gradient(circle, rgb(245 158 11 / 0.04) 1px, transparent 1px),
+    linear-gradient(180deg, rgb(15 23 42), rgb(10 15 30));
+  background-size: 20px 20px, 100% 100%;
+  border-radius: 12px;
+  border: 1px solid var(--runtime-border);
+  min-height: 240px;
+  padding: 24px;
 }
 
-.runtime-scene-device-flow__edge-line {
-  width: 36px;
-  height: 2px;
-  background: linear-gradient(90deg, rgb(245, 158, 11, 0.18), rgb(245, 158, 11, 0.88));
+/* Canvas wrapper: sized to computed layout, centered by flex */
+.runtime-scene-device-flow__canvas {
+  position: relative;
+  flex-shrink: 0;
 }
 
-.runtime-scene-device-flow__edge-arrow {
-  color: #f59e0b;
-  font-family: var(--font-mono);
-  font-size: 12px;
+/* SVG Connection Layer */
+.runtime-scene-device-flow__connections {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 1;
 }
 
+/* Node Layer */
+.runtime-scene-device-flow__nodes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+}
+
+/* Flow line base styles */
+.flow-line {
+  fill: none;
+  stroke-width: 2;
+  transition: stroke 200ms ease-out;
+}
+
+.flow-line--idle {
+  stroke: rgb(245 158 11 / 0.25);
+}
+
+.flow-line--active {
+  stroke: #f59e0b;
+  stroke-dasharray: 8, 6;
+  animation: topology-dash 20s linear infinite;
+}
+
+.flow-line--fault {
+  stroke: #dc2626;
+  stroke-width: 2.5;
+  stroke-dasharray: 6, 4;
+  animation: topology-dash 8s linear infinite;
+}
+
+.flow-line--warning {
+  stroke: #eab308;
+  stroke-dasharray: 6, 5;
+  animation: topology-dash 15s linear infinite;
+}
+
+@keyframes topology-dash {
+  to {
+    stroke-dashoffset: -1000;
+  }
+}
+
+/* Empty state */
 .runtime-scene-device-flow__empty {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
+  min-height: 200px;
   padding: 32px;
   color: var(--runtime-text-muted);
   font-size: 13px;
-}
-
-.runtime-scene-device-flow.is-compact {
-  gap: 8px;
-}
-
-.runtime-scene-device-flow.is-compact .runtime-scene-device-flow__device {
-  min-width: 100px;
-  min-height: 80px;
-  padding: 10px;
-}
-
-.runtime-scene-device-flow.is-compact .runtime-scene-device-flow__device-top {
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.runtime-scene-device-flow.is-compact .runtime-scene-device-flow__role {
-  order: 1;
-  width: 100%;
-  font-size: 10px;
-}
-
-.runtime-scene-device-flow.is-compact .runtime-scene-device-flow__maintenance {
-  order: 0;
-}
-
-.runtime-scene-device-flow.is-compact .runtime-scene-device-flow__name {
-  margin-top: 6px;
-  font-size: 13px;
-}
-
-.runtime-scene-device-flow.is-compact .runtime-scene-device-flow__code {
-  font-size: 10px;
-}
-
-.runtime-scene-device-flow.is-compact .runtime-scene-device-flow__signal {
-  padding: 3px 0;
-  font-size: 10px;
-}
-
-.runtime-scene-device-flow.is-compact .runtime-scene-device-flow__edge {
-  gap: 8px;
-}
-
-.runtime-scene-device-flow.is-compact .runtime-scene-device-flow__edge-line {
-  width: 20px;
 }
 </style>
