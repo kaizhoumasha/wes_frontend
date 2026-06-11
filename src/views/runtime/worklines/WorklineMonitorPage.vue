@@ -1394,6 +1394,28 @@ html:not(.dark) .runtime-page {
 }
 
 @media (width <= 767px) {
+  .monitor-shell-topbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .monitor-shell-topbar__brand,
+  .monitor-shell-topbar__controls {
+    width: 100%;
+  }
+
+  .monitor-shell-topbar__controls {
+    flex: 1 1 auto;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .monitor-shell-topbar__controls :deep(.runtime-last-updated) {
+    flex: 1 1 150px;
+    max-width: none;
+    min-width: 150px;
+  }
+
   .monitor-pane-switcher {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
