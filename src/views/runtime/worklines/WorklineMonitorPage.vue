@@ -75,49 +75,107 @@
         </div>
       </el-card>
 
-      <!-- 右侧详情面板 -->
-      <div class="monitor-layout__detail">
-        <template v-if="store.detail">
+      <!-- 中央实时总览 -->
+      <div
+        v-if="store.projection"
+        class="monitor-layout__live"
+      >
+        <WorklineLiveOverview
+          :workline-summary="store.projection.summary"
+          :workline-projection="store.projection"
+          :devices="store.projection.device_nodes || []"
+          :active-sessions="store.projection.active_sessions.items || []"
+          :recent-failed-traces="store.projection.recent_failed_traces.items || []"
+          :recent-completed-traces="store.projection.recent_completed_traces.items || []"
+          :selected-device-id="selectedDeviceId"
+          @select-device="openDevice"
+          @select-session="openTrace"
+        />
+      </div>
+
+      <!-- 右侧行动舱 -->
+      <div
+        v-if="store.projection"
+        class="monitor-layout__actions"
+      >
+        <el-card
+          shadow="never"
+          class="monitor-panel monitor-action-cabin"
+          aria-label="工作线行动舱"
+        >
+          <template #header>
+            <div class="monitor-action-cabin__header">
+              <div>
+                <div class="monitor-action-cabin__title">行动舱</div>
+                <div class="monitor-action-cabin__meta">
+                  {{ store.projection.summary.line_code }} ·
+                  {{ formatRuntimeDateTime(store.projection.generated_at) }}
+                </div>
+              </div>
+              <el-button
+                size="small"
+                plain
+                :loading="store.loading"
+                data-test="monitor-refresh-projection"
+                @click="forceRefreshProjection"
+              >
+                刷新投影
+              </el-button>
+            </div>
+          </template>
+          <RuntimeEmptyState
+            v-if="!pendingReconciliationCandidate"
+            data-test="monitor-no-reconciliation"
+            title="暂无可核销对象"
+            description="当前投影没有 pending runtime reconciliation owner。"
+            hint="如现场状态刚变化，可手动刷新投影后再处置。"
+          />
+          <p
+            v-else
+            class="monitor-action-cabin__hint"
+          >
+            已发现待核销对象，请在下方完成现场确认后解除隔离。
+          </p>
+        </el-card>
+        <template v-if="store.projection">
           <WorklineRuntimeHoldSummaryPanel
             v-if="hasRuntimeHoldProjection"
-            :summary="store.detail.summary"
-            :detail="store.detail"
+            :summary="store.projection.summary"
+            :projection="store.projection"
             :can-view-hold="canViewRuntimeHold"
           />
           <WorklineSafetyIncidentPanel
             v-if="currentWorklineSafetyVerdict.safetyLocked && !hasRuntimeHoldProjection"
-            :summary="store.detail.summary"
+            :summary="store.projection.summary"
             :verdict="currentWorklineSafetyVerdict"
             :can-clear-estop="canClearWorklineEstop"
             :clear-estop-loading="clearingWorklineEstop"
-            @refresh="refreshDetail"
+            @refresh="forceRefreshProjection"
             @clear-estop="clearWorklineEstop"
           />
-          <WorklineLiveOverview
-            :workline-summary="store.detail.summary"
-            :workline-detail="store.detail"
-            :devices="store.detail.devices"
-            :active-sessions="store.detail.active_sessions"
-            :recent-failed-traces="store.detail.recent_failed_traces"
-            :recent-completed-traces="store.detail.recent_completed_traces"
-            :selected-device-id="selectedDeviceId"
-            @select-device="openDevice"
-            @select-session="openTrace"
+          <WorklineReconciliationPanel
+            v-if="pendingReconciliationCandidate"
+            :summary="store.projection.summary"
+            :candidate="pendingReconciliationCandidate"
+            :can-resolve="canResolveReconciliation"
+            :resolving="resolvingReconciliation"
+            @refresh="forceRefreshProjection"
+            @resolve="resolveRuntimeReconciliation"
           />
         </template>
-
-        <el-card
-          v-else
-          shadow="never"
-          class="monitor-panel monitor-layout__empty"
-        >
-          <RuntimeEmptyState
-            title="还没有选中工作线"
-            description="请从左侧工作线目录选择一条工作线，进入拓扑与运行队列视图。"
-            hint="目录会保持稳定排序。"
-          />
-        </el-card>
       </div>
+
+      <el-card
+        v-else
+        shadow="never"
+        class="monitor-panel monitor-layout__empty"
+      >
+        <RuntimeEmptyState
+          title="还没有选中工作线"
+          description="请从左侧工作线目录选择一条工作线，进入拓扑与运行队列视图。"
+          hint="目录会保持稳定排序。"
+        />
+      </el-card>
     </div>
   </div>
 </template>
@@ -130,6 +188,7 @@ import { runtimeApiMethods } from '@/api/modules/runtime'
 import RuntimeEmptyState from '@/components/common/runtime/RuntimeEmptyState.vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import WorklineLiveOverview from '@/components/runtime/monitor/WorklineLiveOverview.vue'
+import WorklineReconciliationPanel from '@/components/runtime/monitor/WorklineReconciliationPanel.vue'
 import WorklineSafetyIncidentPanel from '@/components/runtime/monitor/WorklineSafetyIncidentPanel.vue'
 import WorklineRuntimeHoldSummaryPanel from '@/components/runtime/monitor/WorklineRuntimeHoldSummaryPanel.vue'
 import { usePermission } from '@/composables/usePermission'
@@ -150,7 +209,9 @@ import {
 } from '@/utils/runtime-display'
 import type {
   RuntimeSafetyIncidentSummary,
-  RuntimeTraceListItem,
+  RuntimeMonitorReconciliationCandidate,
+  RuntimeMonitorSessionItem,
+  RuntimeMonitorTraceItem,
   RuntimeWorklineSummary
 } from '@/types/runtime'
 
@@ -161,8 +222,12 @@ const sseStore = useRuntimeSSEStore()
 const { hasPermission } = usePermission()
 const canClearWorklineEstop = computed(() => hasPermission(BIZ_PERMISSIONS.workline.clearEstop))
 const canViewRuntimeHold = computed(() => hasPermission(BIZ_PERMISSIONS.workline.viewRuntimeHold))
+const canResolveReconciliation = computed(() =>
+  hasPermission(BIZ_PERMISSIONS.workline.resolveReconciliation)
+)
 
 const clearingWorklineEstop = ref(false)
+const resolvingReconciliation = ref(false)
 const searchText = ref('')
 
 const selectedWorklineId = computed(() => readPositiveInt(route.query.worklineId))
@@ -182,9 +247,13 @@ const filteredWorklines = computed(() => {
 const currentWorklineSummary = computed(() => {
   const id = selectedWorklineId.value
   if (!id) return null
-  if (store.detail?.summary.id === id) return store.detail.summary
+  if (store.projection?.summary.id === id) return store.projection.summary
   return store.findSummary(id) ?? null
 })
+
+const pendingReconciliationCandidate = computed(
+  () => store.projection?.action_candidates.pending_reconciliation ?? null
+)
 
 const currentWorklineSafetyVerdict = computed(() => {
   const s = currentWorklineSummary.value
@@ -205,25 +274,20 @@ const currentWorklineSafetyVerdict = computed(() => {
   return getWorklineRuntimeVerdict(
     s,
     stub,
-    store.detail?.summary.id === s.id
-      ? getWorklineDeviceSafetyEvidence(store.detail.devices)
+    store.projection?.summary.id === s.id
+      ? getWorklineDeviceSafetyEvidence(store.projection.device_nodes ?? [])
       : undefined
   )
 })
 
 const hasRuntimeHoldProjection = computed(() => {
   const ids = new Set<number>()
-  for (const d of store.detail?.devices ?? []) {
+  const deviceNodes = store.projection?.device_nodes ?? []
+  for (const d of deviceNodes) {
     for (const hid of d.active_runtime_hold_ids ?? []) ids.add(hid)
   }
-  const openIssues = (store.detail?.devices ?? []).reduce(
-    (t, d) => t + (d.open_issue_count ?? 0),
-    0
-  )
-  const blockedOutbox = (store.detail?.devices ?? []).reduce(
-    (t, d) => t + (d.blocked_outbox_count ?? 0),
-    0
-  )
+  const openIssues = deviceNodes.reduce((t, d) => t + (d.open_issue_count ?? 0), 0)
+  const blockedOutbox = deviceNodes.reduce((t, d) => t + (d.blocked_outbox_count ?? 0), 0)
   return (
     ids.size > 0 ||
     openIssues > 0 ||
@@ -251,23 +315,23 @@ const refreshWorklines = createCoalescedAsyncTask(async () => {
   }
 })
 
-const refreshDetail = createCoalescedAsyncTask(async () => {
+const refreshProjection = createCoalescedAsyncTask(async () => {
   if (!selectedWorklineId.value) {
-    store.clearDetail()
+    store.clearProjection()
     return
   }
-  if (store.detail?.summary.id === selectedWorklineId.value) return
-  await forceRefreshDetail()
+  if (store.projection?.summary.id === selectedWorklineId.value) return
+  await forceRefreshProjection()
 })
 
-const forceRefreshDetail = createCoalescedAsyncTask(async () => {
+const forceRefreshProjection = createCoalescedAsyncTask(async () => {
   if (!selectedWorklineId.value) {
-    store.clearDetail()
+    store.clearProjection()
     return
   }
   store.loading = true
   try {
-    await store.loadDetail(selectedWorklineId.value)
+    await store.loadProjection(selectedWorklineId.value)
     sseStore.markRefreshedAt()
   } finally {
     store.loading = false
@@ -283,7 +347,7 @@ function openDevice(deviceId: number) {
   router.push({ name: 'RuntimeDevices', query: { deviceId: String(deviceId) } })
 }
 
-function openTrace(session: RuntimeTraceListItem) {
+function openTrace(session: RuntimeMonitorSessionItem | RuntimeMonitorTraceItem) {
   router.push({
     name: 'RuntimeCases',
     query: {
@@ -321,7 +385,7 @@ async function clearWorklineEstop() {
       })
       .send()
     ElMessage.success('已解除冻结，等待现场硬件 START')
-    await forceRefreshDetail()
+    await forceRefreshProjection()
   } catch (e: unknown) {
     ElMessage.error(getErrorMessage(e, '恢复接收失败'))
   } finally {
@@ -329,11 +393,43 @@ async function clearWorklineEstop() {
   }
 }
 
+async function resolveRuntimeReconciliation(payload: {
+  sessionId: number
+  resolution: 'COMPLETED' | 'FAILED' | 'CANCELLED'
+  checks: Record<string, boolean>
+  operatorNote: string
+  resultPayload: Record<string, unknown> | null
+}) {
+  if (!canResolveReconciliation.value) return
+  const candidate: RuntimeMonitorReconciliationCandidate | null = pendingReconciliationCandidate.value
+  if (!candidate || candidate.session_id !== payload.sessionId) return
+
+  resolvingReconciliation.value = true
+  try {
+    await runtimeApiMethods
+      .resolveRuntimeReconciliation(payload.sessionId, {
+        resolution: payload.resolution,
+        checks: payload.checks,
+        operator_note: payload.operatorNote,
+        result_payload: payload.resultPayload,
+        confirmed_at: new Date().toISOString()
+      })
+      .send()
+    ElMessage.success('已解除运行时对账隔离')
+    await forceRefreshProjection()
+    await refreshWorklines()
+  } catch (e: unknown) {
+    ElMessage.error(getErrorMessage(e, '解除运行时对账隔离失败'))
+  } finally {
+    resolvingReconciliation.value = false
+  }
+}
+
 onMounted(() => {
   void (async () => {
     await refreshWorklines()
-    if (selectedWorklineId.value && store.detail?.summary.id !== selectedWorklineId.value) {
-      await refreshDetail()
+    if (selectedWorklineId.value && store.projection?.summary.id !== selectedWorklineId.value) {
+      await refreshProjection()
     }
   })()
 })
@@ -341,7 +437,7 @@ onMounted(() => {
 watch(
   () => selectedWorklineId.value,
   (next, prev) => {
-    if (next && next !== prev) void refreshDetail()
+    if (next && next !== prev) void refreshProjection()
   }
 )
 
@@ -351,12 +447,12 @@ watch(
     if (!sseStore.live || !event) return
     if (
       !isRelevantRuntimeEvent(event, {
-        worklineId: store.detail?.summary.id ?? selectedWorklineId.value
+        worklineId: store.projection?.summary.id ?? selectedWorklineId.value
       })
     )
       return
     const targets = classifyRuntimeRefresh(event)
-    if (targets.detail && selectedWorklineId.value) void forceRefreshDetail()
+    if (targets.projection && selectedWorklineId.value) void forceRefreshProjection()
     if (targets.worklines) void refreshWorklines()
   }
 )
@@ -370,7 +466,7 @@ watch(
 .monitor-layout {
   display: grid;
   gap: 16px;
-  grid-template-columns: 340px minmax(0, 1fr);
+  grid-template-columns: 340px minmax(0, 1fr) minmax(320px, 380px);
   align-items: stretch;
 }
 
@@ -409,7 +505,8 @@ watch(
   padding-right: 6px;
 }
 
-.monitor-layout__detail {
+.monitor-layout__live,
+.monitor-layout__actions {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -418,10 +515,32 @@ watch(
 }
 
 .monitor-layout__empty {
+  grid-column: 2 / -1;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 540px;
+}
+
+.monitor-action-cabin__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.monitor-action-cabin__title {
+  color: var(--runtime-text-primary);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.monitor-action-cabin__meta,
+.monitor-action-cabin__hint {
+  margin: 0;
+  color: var(--runtime-text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 .monitor-directory-list {
@@ -490,7 +609,8 @@ watch(
   }
 
   .monitor-layout__list,
-  .monitor-layout__detail {
+  .monitor-layout__live,
+  .monitor-layout__actions {
     height: 100%;
     min-height: 0;
   }

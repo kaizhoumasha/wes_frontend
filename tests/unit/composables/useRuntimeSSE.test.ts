@@ -80,7 +80,7 @@ describe('useRuntimeSSE', () => {
     expect(sseMock.on).toHaveBeenCalledWith('message', expect.any(Function))
 
     sseMock.emit('message', {
-      domain: 'workline_trace',
+      domain: 'workline_runtime',
       entity: 'session',
       action: 'updated',
       keys: {

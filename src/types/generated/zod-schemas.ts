@@ -3383,6 +3383,200 @@ export const RuntimeHoldSummarySchema = z.object({
 })
 
 
+export const RuntimeMonitorActionCandidatesSchema = z.object({
+  pending_reconciliation: z.union([z.lazy(() => RuntimeMonitorReconciliationCandidateSchema), z.null()]).optional(),
+})
+
+
+export const RuntimeMonitorDeviceNodeSchema = z.object({
+  /** Id */
+  id: z.number(),
+  /** Device Code */
+  device_code: z.string(),
+  /** Device Name */
+  device_name: z.string(),
+  /** Device Role */
+  device_role: z.string(),
+  /** Role Index */
+  role_index: z.number(),
+  /** Upstream Device Id */
+  upstream_device_id: z.union([z.number(), z.null()]).optional(),
+  /** Device Status */
+  device_status: z.string(),
+  /** Maintenance Mode */
+  maintenance_mode: z.boolean().optional().default(false),
+  /** Current Command Id */
+  current_command_id: z.union([z.number(), z.null()]).optional(),
+  /** Open Command Count */
+  open_command_count: z.number().optional().default(0),
+  /** Pending Command Count */
+  pending_command_count: z.number().optional().default(0),
+  /** Blocked Outbox Count */
+  blocked_outbox_count: z.number().optional().default(0),
+  /** Blocked Reason */
+  blocked_reason: z.union([z.string(), z.null()]).optional(),
+  /** Blocked Wait Seconds */
+  blocked_wait_seconds: z.union([z.number(), z.null()]).optional(),
+  /** Blocked Check Count */
+  blocked_check_count: z.union([z.number(), z.null()]).optional(),
+  /** Open Issue Count */
+  open_issue_count: z.number().optional().default(0),
+  /** Active Runtime Hold Ids */
+  active_runtime_hold_ids: z.array(z.number()).optional(),
+  /** Last Heartbeat At */
+  last_heartbeat_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Error Code */
+  error_code: z.union([z.string(), z.null()]).optional(),
+})
+
+
+export const RuntimeMonitorEvidenceSectionSchema = z.object({
+  kind: z.lazy(() => RuntimeResourceEvidenceKindSchema).optional().default("UNKNOWN"),
+  /** Items */
+  items: z.array(z.lazy(() => RuntimeResourceEvidenceItemSchema)).optional(),
+  /** Total Count */
+  total_count: z.number().optional().default(0),
+  /** Truncated */
+  truncated: z.boolean().optional().default(false),
+})
+
+
+export const RuntimeMonitorReconciliationCandidateSchema = z.object({
+  /** Session Id */
+  session_id: z.number(),
+  /** Session Code */
+  session_code: z.string(),
+  /** Trace Id */
+  trace_id: z.union([z.string(), z.null()]).optional(),
+  /** Request Id */
+  request_id: z.union([z.string(), z.null()]).optional(),
+  /** Reason */
+  reason: z.string(),
+  /** Source Kind */
+  source_kind: z.string(),
+  /** Device Id */
+  device_id: z.union([z.number(), z.null()]).optional(),
+  /** Command Id */
+  command_id: z.union([z.number(), z.null()]).optional(),
+  /** Wait Token */
+  wait_token: z.union([z.string(), z.null()]).optional(),
+  /** Occurred At */
+  occurred_at: z.string().datetime(),
+  /** Deadline At */
+  deadline_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Late Evidence Received */
+  late_evidence_received: z.boolean().optional().default(false),
+})
+
+
+export const RuntimeMonitorSessionItemSchema = z.object({
+  /** Session Id */
+  session_id: z.number(),
+  /** Session Code */
+  session_code: z.string(),
+  /** Trace Id */
+  trace_id: z.union([z.string(), z.null()]).optional(),
+  /** Request Id */
+  request_id: z.union([z.string(), z.null()]).optional(),
+  /** Last Inbox Id */
+  last_inbox_id: z.union([z.number(), z.null()]).optional(),
+  /** Barcode */
+  barcode: z.union([z.string(), z.null()]).optional(),
+  /** Workline Id */
+  workline_id: z.number(),
+  /** Device Id */
+  device_id: z.union([z.number(), z.null()]).optional(),
+  /** Device Name */
+  device_name: z.union([z.string(), z.null()]).optional(),
+  /** Device Code */
+  device_code: z.union([z.string(), z.null()]).optional(),
+  /** Status */
+  status: z.string(),
+  /** Current Wait Type */
+  current_wait_type: z.union([z.string(), z.null()]).optional(),
+  /** Failure Domain */
+  failure_domain: z.union([z.string(), z.null()]).optional(),
+  /** Failure Code */
+  failure_code: z.union([z.string(), z.null()]).optional(),
+  /** Latest Timeline Action */
+  latest_timeline_action: z.union([z.string(), z.null()]).optional(),
+  /** Latest Timeline Status */
+  latest_timeline_status: z.union([z.string(), z.null()]).optional(),
+  /** Latest Timeline Message */
+  latest_timeline_message: z.union([z.string(), z.null()]).optional(),
+  /** Started At */
+  started_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Last Ingress At */
+  last_ingress_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Deadline At */
+  deadline_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Is Timed Out */
+  is_timed_out: z.boolean().optional().default(false),
+})
+
+
+export const RuntimeMonitorSessionSectionSchema = z.object({
+  /** Items */
+  items: z.array(z.lazy(() => RuntimeMonitorSessionItemSchema)).optional(),
+  /** Total Count */
+  total_count: z.number().optional().default(0),
+  /** Truncated */
+  truncated: z.boolean().optional().default(false),
+})
+
+
+export const RuntimeMonitorTraceItemSchema = z.object({
+  /** Session Id */
+  session_id: z.number(),
+  /** Session Code */
+  session_code: z.string(),
+  /** Trace Id */
+  trace_id: z.union([z.string(), z.null()]).optional(),
+  /** Request Id */
+  request_id: z.union([z.string(), z.null()]).optional(),
+  /** Barcode */
+  barcode: z.union([z.string(), z.null()]).optional(),
+  /** Workline Id */
+  workline_id: z.number(),
+  /** Device Id */
+  device_id: z.union([z.number(), z.null()]).optional(),
+  /** Device Name */
+  device_name: z.union([z.string(), z.null()]).optional(),
+  /** Device Code */
+  device_code: z.union([z.string(), z.null()]).optional(),
+  /** Status */
+  status: z.string(),
+  /** Failure Domain */
+  failure_domain: z.union([z.string(), z.null()]).optional(),
+  /** Failure Code */
+  failure_code: z.union([z.string(), z.null()]).optional(),
+  /** Latest Timeline Action */
+  latest_timeline_action: z.union([z.string(), z.null()]).optional(),
+  /** Latest Timeline Status */
+  latest_timeline_status: z.union([z.string(), z.null()]).optional(),
+  /** Latest Timeline Message */
+  latest_timeline_message: z.union([z.string(), z.null()]).optional(),
+  /** Started At */
+  started_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Last Ingress At */
+  last_ingress_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Deadline At */
+  deadline_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Is Timed Out */
+  is_timed_out: z.boolean().optional().default(false),
+})
+
+
+export const RuntimeMonitorTraceSectionSchema = z.object({
+  /** Items */
+  items: z.array(z.lazy(() => RuntimeMonitorTraceItemSchema)).optional(),
+  /** Total Count */
+  total_count: z.number().optional().default(0),
+  /** Truncated */
+  truncated: z.boolean().optional().default(false),
+})
+
+
 export const RuntimeOverviewResponseSchema = z.object({
   /** Stats */
   stats: z.array(z.lazy(() => RuntimeStatCardSchema)),
@@ -3422,10 +3616,24 @@ export const RuntimeResourceEvidenceItemSchema = z.object({
   bin_code: z.union([z.string(), z.null()]).optional(),
   /** Slot Code */
   slot_code: z.union([z.string(), z.null()]).optional(),
+  /** Cell Code */
+  cell_code: z.union([z.string(), z.null()]).optional(),
   /** Pkg Code */
   pkg_code: z.union([z.string(), z.null()]).optional(),
   /** Part Sn */
   part_sn: z.union([z.string(), z.null()]).optional(),
+  /** Material Code */
+  material_code: z.union([z.string(), z.null()]).optional(),
+  /** Date Code */
+  date_code: z.union([z.string(), z.null()]).optional(),
+  /** Lot Code */
+  lot_code: z.union([z.string(), z.null()]).optional(),
+  /** Reel Count */
+  reel_count: z.union([z.number(), z.number(), z.null()]).optional(),
+  /** Reel Code */
+  reel_code: z.union([z.string(), z.null()]).optional(),
+  /** Position Index */
+  position_index: z.union([z.number(), z.number(), z.null()]).optional(),
   /** Source Session Id */
   source_session_id: z.union([z.number(), z.null()]).optional(),
   /** Source Trace Id */
@@ -3654,71 +3862,26 @@ export const RuntimeTraceTimelineGroupSchema = z.object({
 })
 
 
-export const RuntimeWorklineDetailResponseSchema = z.object({
-  summary: z.lazy(() => RuntimeWorklineSummarySchema),
+export const RuntimeWorklineBoundarySchema = z.object({
   workline_readiness: z.lazy(() => RuntimeWorklineReadinessSchema).optional().default("UNKNOWN"),
   station_lease: z.lazy(() => RuntimeStationLeaseSchema).optional().default("UNKNOWN"),
   single_layer_rack_snapshot: z.lazy(() => RuntimeSingleLayerRackSnapshotSchema).optional().default("UNKNOWN"),
   rack_operation_wait: z.lazy(() => RuntimeRackOperationWaitSchema).optional().default("NONE"),
-  resource_evidence_kind: z.lazy(() => RuntimeResourceEvidenceKindSchema).optional().default("UNKNOWN"),
-  /** Resource Evidence Items */
-  resource_evidence_items: z.array(z.lazy(() => RuntimeResourceEvidenceItemSchema)).optional(),
-  /** Resource Evidence Total Count */
-  resource_evidence_total_count: z.number().optional().default(0),
-  /** Resource Evidence Truncated */
-  resource_evidence_truncated: z.boolean().optional().default(false),
-  /** Devices */
-  devices: z.array(z.lazy(() => RuntimeWorklineDeviceItemSchema)).optional(),
-  /** Active Sessions */
-  active_sessions: z.array(z.lazy(() => RuntimeTraceListItemSchema)).optional(),
-  /** Recent Failed Traces */
-  recent_failed_traces: z.array(z.lazy(() => RuntimeTraceListItemSchema)).optional(),
-  /** Recent Completed Traces */
-  recent_completed_traces: z.array(z.lazy(() => RuntimeTraceListItemSchema)).optional(),
 })
 
 
-export const RuntimeWorklineDeviceItemSchema = z.object({
-  /** Id */
-  id: z.number(),
-  /** Device Code */
-  device_code: z.string(),
-  /** Device Name */
-  device_name: z.string(),
-  /** Device Role */
-  device_role: z.string(),
-  /** Role Index */
-  role_index: z.number(),
-  /** Upstream Device Id */
-  upstream_device_id: z.union([z.number(), z.null()]).optional(),
-  /** Device Status */
-  device_status: z.string(),
-  /** Maintenance Mode */
-  maintenance_mode: z.boolean().optional().default(false),
-  /** Current Command Id */
-  current_command_id: z.union([z.number(), z.null()]).optional(),
-  /** Open Command Count */
-  open_command_count: z.number().optional().default(0),
-  /** Pending Command Count */
-  pending_command_count: z.number().optional().default(0),
-  /** Blocked Outbox Count */
-  blocked_outbox_count: z.number().optional().default(0),
-  /** Blocked Reason */
-  blocked_reason: z.union([z.string(), z.null()]).optional(),
-  /** Blocked Wait Seconds */
-  blocked_wait_seconds: z.union([z.number(), z.null()]).optional(),
-  /** Blocked Check Count */
-  blocked_check_count: z.union([z.number(), z.null()]).optional(),
-  /** Blocked Detail Json */
-  blocked_detail_json: z.union([z.record(z.any()), z.null()]).optional(),
-  /** Open Issue Count */
-  open_issue_count: z.number().optional().default(0),
-  /** Active Runtime Hold Ids */
-  active_runtime_hold_ids: z.array(z.number()).optional(),
-  /** Last Heartbeat At */
-  last_heartbeat_at: z.union([z.string().datetime(), z.null()]).optional(),
-  /** Error Code */
-  error_code: z.union([z.string(), z.null()]).optional(),
+export const RuntimeWorklineMonitorProjectionResponseSchema = z.object({
+  summary: z.lazy(() => RuntimeWorklineSummarySchema),
+  boundary: z.lazy(() => RuntimeWorklineBoundarySchema),
+  /** Device Nodes */
+  device_nodes: z.array(z.lazy(() => RuntimeMonitorDeviceNodeSchema)).optional(),
+  active_sessions: z.lazy(() => RuntimeMonitorSessionSectionSchema),
+  recent_failed_traces: z.lazy(() => RuntimeMonitorTraceSectionSchema),
+  recent_completed_traces: z.lazy(() => RuntimeMonitorTraceSectionSchema),
+  resource_evidence: z.lazy(() => RuntimeMonitorEvidenceSectionSchema),
+  action_candidates: z.lazy(() => RuntimeMonitorActionCandidatesSchema),
+  /** Generated At */
+  generated_at: z.string().datetime(),
 })
 
 

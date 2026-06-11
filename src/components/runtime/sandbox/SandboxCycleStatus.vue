@@ -32,7 +32,7 @@
         {{ activeProgress }}
       </span>
       <span
-        v-if="activeSession.current_wait_type"
+        v-if="activeWaitType"
         class="sandbox-cycle-status__wait"
       >
         等待 {{ waitLabel }}
@@ -74,10 +74,14 @@ import {
   canSubmitSandboxResult,
   isCurrentSandboxAction
 } from '@/utils/sandbox-outbox'
-import type { RuntimeTraceListItem, SandboxPendingOutbox } from '@/types/runtime'
+import type {
+  RuntimeMonitorSessionItem,
+  RuntimeMonitorTraceItem,
+  SandboxPendingOutbox
+} from '@/types/runtime'
 
 const props = defineProps<{
-  activeSessions: RuntimeTraceListItem[]
+  activeSessions: (RuntimeMonitorSessionItem | RuntimeMonitorTraceItem)[]
   pendingOutboxes: SandboxPendingOutbox[]
 }>()
 
@@ -150,6 +154,13 @@ const phaseHint = computed(() => {
   return '选择设备 → 发送 Event → 开始测试'
 })
 
+const activeWaitType = computed(() => {
+  return (
+    (activeSession.value as unknown as { current_wait_type?: string | null })?.current_wait_type ??
+    null
+  )
+})
+
 const waitLabel = computed(() => {
   const typeMap: Record<string, string> = {
     DEVICE_CALLBACK: '设备回调',
@@ -157,11 +168,8 @@ const waitLabel = computed(() => {
     TIMER: '定时器',
     MANUAL: '人工操作'
   }
-  return (
-    typeMap[activeSession.value?.current_wait_type ?? ''] ??
-    activeSession.value?.current_wait_type ??
-    '—'
-  )
+  const waitType = activeWaitType.value
+  return typeMap[waitType ?? ''] ?? waitType ?? '—'
 })
 </script>
 

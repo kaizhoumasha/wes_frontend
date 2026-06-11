@@ -1,15 +1,15 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useWorklineRuntimeStore } from '@/stores/workline-runtime'
-import type { RuntimeWorklineDetailResponse } from '@/types/runtime'
+import type { RuntimeWorklineMonitorProjectionResponse } from '@/types/runtime'
 
 const mocks = vi.hoisted(() => ({
-  worklineDetail: vi.fn()
+  worklineProjection: vi.fn()
 }))
 
 vi.mock('@/api/modules/runtime', () => ({
   runtimeApiMethods: {
-    worklineDetail: mocks.worklineDetail,
+    worklineProjection: mocks.worklineProjection,
     worklines: vi.fn(() => ({ send: vi.fn() }))
   }
 }))
@@ -22,7 +22,7 @@ function deferred<T>() {
   return { promise, resolve }
 }
 
-function createDetail(worklineId: number): RuntimeWorklineDetailResponse {
+function createProjection(worklineId: number): RuntimeWorklineMonitorProjectionResponse {
   return {
     summary: {
       id: worklineId,
@@ -30,10 +30,15 @@ function createDetail(worklineId: number): RuntimeWorklineDetailResponse {
       line_code: `WL-${worklineId}`,
       runtime_status: 'READY'
     },
-    devices: [],
-    active_sessions: [],
-    recent_failed_traces: []
-  } as unknown as RuntimeWorklineDetailResponse
+    boundary: {},
+    device_nodes: [],
+    active_sessions: { items: [], total_count: 0, truncated: false },
+    recent_failed_traces: { items: [], total_count: 0, truncated: false },
+    recent_completed_traces: { items: [], total_count: 0, truncated: false },
+    resource_evidence: { items: [], total_count: 0, truncated: false },
+    action_candidates: { pending_reconciliation: null },
+    generated_at: new Date().toISOString()
+  } as unknown as RuntimeWorklineMonitorProjectionResponse
 }
 
 describe('useWorklineRuntimeStore', () => {
@@ -42,23 +47,60 @@ describe('useWorklineRuntimeStore', () => {
     vi.clearAllMocks()
   })
 
-  it('ignores stale detail responses after a newer workline detail request starts', async () => {
-    const first = deferred<RuntimeWorklineDetailResponse>()
-    const second = deferred<RuntimeWorklineDetailResponse>()
-    mocks.worklineDetail.mockImplementation((worklineId: number) => ({
+  it('ignores stale projection responses after a newer workline projection request starts', async () => {
+    const first = deferred<RuntimeWorklineMonitorProjectionResponse>()
+    const second = deferred<RuntimeWorklineMonitorProjectionResponse>()
+    mocks.worklineProjection.mockImplementation((worklineId: number) => ({
       send: () => (worklineId === 45 ? first.promise : second.promise)
     }))
 
     const store = useWorklineRuntimeStore()
-    const firstLoad = store.loadDetail(45)
-    const secondLoad = store.loadDetail(46)
+    const firstLoad = store.loadProjection(45)
+    const secondLoad = store.loadProjection(46)
 
-    second.resolve(createDetail(46))
+    second.resolve(createProjection(46))
     await secondLoad
-    expect(store.detail?.summary.id).toBe(46)
+    expect(store.projection?.summary.id).toBe(46)
 
-    first.resolve(createDetail(45))
+    first.resolve(createProjection(45))
     await firstLoad
-    expect(store.detail?.summary.id).toBe(46)
+    expect(store.projection?.summary.id).toBe(46)
+  })
+
+  it('keeps the current projection when refresh fails', async () => {
+    const current = createProjection(45)
+    mocks.worklineProjection.mockReturnValueOnce({
+      send: vi.fn().mockResolvedValue(current)
+    })
+
+    const store = useWorklineRuntimeStore()
+    await store.loadProjection(45)
+    expect(store.projection?.summary.id).toBe(45)
+
+    mocks.worklineProjection.mockReturnValueOnce({
+      send: vi.fn().mockRejectedValue(new Error('backend unavailable'))
+    })
+
+    await expect(store.refreshProjection()).rejects.toThrow('backend unavailable')
+    expect(store.projection).toEqual(current)
+    expect(store.projection?.summary.id).toBe(45)
+    expect(store.loading).toBe(false)
+  })
+
+  it('does not resurrect an in-flight projection after clearProjection', async () => {
+    const pending = deferred<RuntimeWorklineMonitorProjectionResponse>()
+    mocks.worklineProjection.mockReturnValue({
+      send: () => pending.promise
+    })
+
+    const store = useWorklineRuntimeStore()
+    const load = store.loadProjection(45)
+
+    store.clearProjection()
+    expect(store.projection).toBeNull()
+
+    pending.resolve(createProjection(45))
+    await load
+    expect(store.projection).toBeNull()
   })
 })

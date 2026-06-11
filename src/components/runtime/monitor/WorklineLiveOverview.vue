@@ -2,7 +2,7 @@
   <div class="workline-live-overview">
     <DecisionStrip
       :summary="worklineSummary"
-      :detail="worklineDetail"
+      :projection="worklineProjection"
     />
 
     <el-card
@@ -45,20 +45,21 @@ import SessionBoard from '@/components/runtime/monitor/SessionBoard.vue'
 import { useRuntimeSceneManifest } from '@/composables/useRuntimeSceneManifest'
 import type {
   RuntimeTraceDevicePathNode,
-  RuntimeTraceListItem,
-  RuntimeWorklineDetailResponse,
-  RuntimeWorklineDeviceItem,
+  RuntimeMonitorSessionItem,
+  RuntimeMonitorTraceItem,
+  RuntimeWorklineMonitorProjectionResponse,
+  RuntimeMonitorDeviceNode,
   RuntimeWorklineSummary
 } from '@/types/runtime'
 import { buildRuntimeSceneModel } from '@/utils/runtime-scene'
 
 const props = defineProps<{
   worklineSummary: RuntimeWorklineSummary
-  worklineDetail?: RuntimeWorklineDetailResponse | null
-  devices: RuntimeWorklineDeviceItem[]
-  activeSessions: RuntimeTraceListItem[]
-  recentFailedTraces: RuntimeTraceListItem[]
-  recentCompletedTraces?: RuntimeTraceListItem[]
+  worklineProjection?: RuntimeWorklineMonitorProjectionResponse | null
+  devices: RuntimeMonitorDeviceNode[]
+  activeSessions: (RuntimeMonitorSessionItem | RuntimeMonitorTraceItem)[]
+  recentFailedTraces: (RuntimeMonitorSessionItem | RuntimeMonitorTraceItem)[]
+  recentCompletedTraces?: (RuntimeMonitorSessionItem | RuntimeMonitorTraceItem)[]
   selectedDeviceId?: number | null
   sessionCountsByDevice?: Map<number, number> | Record<number, number>
   tracePathNodes?: RuntimeTraceDevicePathNode[]
@@ -67,18 +68,20 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   selectDevice: [deviceId: number]
-  selectSession: [session: RuntimeTraceListItem]
+  selectSession: [session: RuntimeMonitorSessionItem | RuntimeMonitorTraceItem]
 }>()
 
 const { manifest, error: manifestError, loadManifest } = useRuntimeSceneManifest()
 
 const pluginKey = computed(
-  () => props.worklineDetail?.summary.plugin_key ?? props.worklineSummary.plugin_key ?? null
+  () => props.worklineProjection?.summary.plugin_key ?? props.worklineSummary.plugin_key ?? null
 )
 
 const contractVersion = computed(
   () =>
-    props.worklineDetail?.summary.contract_version ?? props.worklineSummary.contract_version ?? null
+    props.worklineProjection?.summary.contract_version ??
+    props.worklineSummary.contract_version ??
+    null
 )
 
 const matchedManifest = computed(() => {
@@ -87,7 +90,7 @@ const matchedManifest = computed(() => {
   if (manifest.value?.plugin_key !== currentPluginKey) return null
 
   const currentContractVersion = contractVersion.value?.trim()
-  if (currentContractVersion && manifest.value.contract_version !== currentContractVersion) {
+  if (currentContractVersion && manifest.value?.contract_version !== currentContractVersion) {
     return null
   }
 
@@ -95,9 +98,9 @@ const matchedManifest = computed(() => {
 })
 
 const sceneModel = computed(() =>
-  props.worklineDetail
+  props.worklineProjection
     ? buildRuntimeSceneModel({
-        detail: props.worklineDetail,
+        projection: props.worklineProjection,
         manifest: matchedManifest.value,
         manifestLoadFailed: Boolean(manifestError.value)
       })

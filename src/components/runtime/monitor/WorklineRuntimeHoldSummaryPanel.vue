@@ -68,17 +68,20 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
-import type { RuntimeWorklineDetailResponse, RuntimeWorklineSummary } from '@/types/runtime'
+import type {
+  RuntimeWorklineMonitorProjectionResponse,
+  RuntimeWorklineSummary
+} from '@/types/runtime'
 
 const props = defineProps<{
   summary: RuntimeWorklineSummary
-  detail: RuntimeWorklineDetailResponse
+  projection: RuntimeWorklineMonitorProjectionResponse
   canViewHold?: boolean
 }>()
 
 const activeHoldIds = computed(() => {
   const ids = new Set<number>()
-  for (const device of props.detail.devices) {
+  for (const device of props.projection.device_nodes ?? []) {
     for (const holdId of device.active_runtime_hold_ids ?? []) ids.add(holdId)
   }
   return Array.from(ids)
@@ -86,13 +89,19 @@ const activeHoldIds = computed(() => {
 
 const firstHoldId = computed(() => activeHoldIds.value[0] ?? null)
 const openIssueCount = computed(() =>
-  props.detail.devices.reduce((total, device) => total + (device.open_issue_count ?? 0), 0)
+  (props.projection.device_nodes ?? []).reduce(
+    (total, device) => total + (device.open_issue_count ?? 0),
+    0
+  )
 )
 const blockedOutboxCount = computed(() =>
-  props.detail.devices.reduce((total, device) => total + (device.blocked_outbox_count ?? 0), 0)
+  (props.projection.device_nodes ?? []).reduce(
+    (total, device) => total + (device.blocked_outbox_count ?? 0),
+    0
+  )
 )
 const openCommandCount = computed(() =>
-  props.detail.devices.reduce(
+  (props.projection.device_nodes ?? []).reduce(
     (total, device) => total + (device.open_command_count ?? device.pending_command_count ?? 0),
     0
   )

@@ -86,15 +86,18 @@
               {{ sessionView.intervention.holdLabel }}
             </RouterLink>
             <el-button
-              v-if="sessionView.intervention.canReplay && sessionView.session?.last_inbox_id"
+              v-if="
+                sessionView.intervention.canReplay &&
+                getLegacyFields(sessionView.session)?.last_inbox_id
+              "
               size="small"
               type="danger"
               plain
               data-test="sandbox-replay-inbox"
-              :loading="replayLoading === sessionView.session.last_inbox_id"
+              :loading="replayLoading === getLegacyFields(sessionView.session)?.last_inbox_id"
               :disabled="replayDisabled"
               :title="replayDisabled ? replayDisabledReason : undefined"
-              @click="emit('replay', sessionView.session)"
+              @click="emit('replay', sessionView.session!)"
             >
               重放 Event
             </el-button>
@@ -614,7 +617,8 @@ import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type {
-  RuntimeTraceListItem,
+  RuntimeMonitorSessionItem,
+  RuntimeMonitorTraceItem,
   SandboxCompletedSession,
   SandboxPendingOutbox
 } from '@/types/runtime'
@@ -656,7 +660,7 @@ const DETAIL_IDENTITY_CANDIDATES: SessionIdentityCandidateGroup[] = [
 
 const props = defineProps<{
   items: SandboxPendingOutbox[]
-  activeSessions?: RuntimeTraceListItem[]
+  activeSessions?: (RuntimeMonitorSessionItem | RuntimeMonitorTraceItem)[]
   completedItems?: SandboxCompletedSession[]
   loading?: number | null
   disabled?: boolean
@@ -677,6 +681,17 @@ const replayDisabledReason = computed(() => props.replayDisabledReason || disabl
 const submittedResultReason = computed(
   () => props.submittedResultReason || '该 Result 已提交，正在等待后续编排。'
 )
+
+interface LegacySessionFields {
+  business_key?: string | null
+  command_code?: string | null
+  current_wait_type?: string | null
+  last_inbox_id?: number | null
+}
+
+function getLegacyFields(session: unknown): LegacySessionFields {
+  return (session || {}) as LegacySessionFields
+}
 
 const expandedSessions = ref<Set<number>>(new Set())
 const expandedHistory = ref<Set<string>>(new Set())
@@ -782,7 +797,7 @@ interface PendingSessionView {
   key: string
   sessionId: number | null
   status: string | null
-  session: RuntimeTraceListItem | null
+  session: RuntimeMonitorSessionItem | RuntimeMonitorTraceItem | null
   items: SandboxPendingOutbox[]
   identity: SessionIdentity
   intervention: SessionIntervention | null
@@ -912,7 +927,7 @@ function groupItemsByDevice(items: SandboxPendingOutbox[]): CompletedSessionGrou
 }
 
 const activeSessionById = computed(() => {
-  const index = new Map<number, RuntimeTraceListItem>()
+  const index = new Map<number, RuntimeMonitorSessionItem | RuntimeMonitorTraceItem>()
   for (const session of props.activeSessions ?? []) {
     index.set(session.session_id, session)
   }
@@ -958,7 +973,7 @@ const pendingSessionViews = computed<PendingSessionView[]>(() => {
     {
       key: string
       sessionId: number | null
-      session: RuntimeTraceListItem | null
+      session: RuntimeMonitorSessionItem | RuntimeMonitorTraceItem | null
       items: SandboxPendingOutbox[]
     }
   >()
@@ -1016,7 +1031,7 @@ const emit = defineEmits<{
   ack: [item: SandboxPendingOutbox]
   result: [item: SandboxPendingOutbox]
   externalCallback: [item: SandboxPendingOutbox]
-  replay: [session: RuntimeTraceListItem]
+  replay: [session: RuntimeMonitorSessionItem | RuntimeMonitorTraceItem]
 }>()
 
 function isResultSubmitted(item: SandboxPendingOutbox): boolean {
@@ -1162,14 +1177,14 @@ function runtimeHoldId(item: SandboxPendingOutbox): number | null {
 
 function buildPendingSessionIdentity(group: {
   sessionId: number | null
-  session: RuntimeTraceListItem | null
+  session: RuntimeMonitorSessionItem | RuntimeMonitorTraceItem | null
 }): SessionIdentity {
   const session = group.session
   const sessionLabel = displaySession({
     session_code: session?.session_code,
     session_id: group.sessionId
   })
-  const primary = scalarField('业务', session?.business_key) ??
+  const primary = scalarField('业务', getLegacyFields(session).business_key) ??
     scalarField('扫码', session?.barcode) ?? { label: '会话', value: sessionLabel }
 
   const summaryFields = uniqueFields(
@@ -1177,8 +1192,8 @@ function buildPendingSessionIdentity(group: {
       scalarField('会话', sessionLabel),
       scalarField('进度', session ? resolveRuntimeProgressLabel(session) : null),
       scalarField('失败', session?.failure_code),
-      scalarField('等待', waitTypeLabel(session?.current_wait_type)),
-      scalarField('当前命令', session?.command_code),
+      scalarField('等待', waitTypeLabel(getLegacyFields(session).current_wait_type)),
+      scalarField('当前命令', getLegacyFields(session).command_code),
       scalarField('Trace', session?.trace_id)
     ],
     primary
@@ -1193,7 +1208,7 @@ function buildPendingSessionIdentity(group: {
 }
 
 function buildPendingSessionIntervention(
-  session: RuntimeTraceListItem | null
+  session: RuntimeMonitorSessionItem | RuntimeMonitorTraceItem | null
 ): SessionIntervention | null {
   if (!session) return null
   if (session.failure_code) {
@@ -1222,7 +1237,9 @@ function buildPendingSessionIntervention(
   }
 }
 
-function runtimeHoldRoute(session: RuntimeTraceListItem): RuntimeHoldRoute {
+function runtimeHoldRoute(
+  session: RuntimeMonitorSessionItem | RuntimeMonitorTraceItem
+): RuntimeHoldRoute {
   const runtimeHoldIds = runtimeHoldIdsResolved.value
   if (runtimeHoldIds.length === 1) {
     return { name: 'RuntimeHoldDetail', params: { holdId: runtimeHoldIds[0] } }
@@ -1255,7 +1272,7 @@ function waitTypeLabel(waitType: string | null | undefined): string | null {
 }
 
 function pendingActionSummary(group: {
-  session: RuntimeTraceListItem | null
+  session: RuntimeMonitorSessionItem | RuntimeMonitorTraceItem | null
   items: SandboxPendingOutbox[]
 }): string {
   const blockedCount = group.items.filter(item => item.status === 'BLOCKED_RESOURCE').length
@@ -1270,7 +1287,7 @@ function pendingActionSummary(group: {
   if (currentCount > 0) return `${currentCount} 条命令`
   if (historyCount > 0) return `${historyCount} 条历史`
   if (group.session?.failure_code) return '需处理异常'
-  const waitLabel = waitTypeLabel(group.session?.current_wait_type)
+  const waitLabel = waitTypeLabel(getLegacyFields(group.session).current_wait_type)
   if (waitLabel) return `等待${waitLabel}`
   if (group.session?.status === 'NEW' || group.session?.status === 'RUNNING') return '编排中'
   return '暂无命令'

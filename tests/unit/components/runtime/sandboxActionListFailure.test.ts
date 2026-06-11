@@ -1,7 +1,11 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import SandboxActionList from '@/components/runtime/sandbox/SandboxActionList.vue'
-import type { RuntimeTraceListItem, SandboxPendingOutbox } from '@/types/runtime'
+import type {
+  RuntimeMonitorSessionItem,
+  RuntimeTraceListItem,
+  SandboxPendingOutbox
+} from '@/types/runtime'
 
 const routerLinkStub = {
   props: ['to'],
@@ -15,7 +19,6 @@ describe('SandboxActionList failure visibility', () => {
         session_id: 93,
         session_code: 'SES_08b230946aea4eef',
         trace_id: 'sandbox:mpgo094b-qn761w',
-        business_key: 'e1167e54de47c5eb',
         barcode: '1111111',
         workline_id: 45,
         status: 'MANUAL_HOLD',
@@ -26,7 +29,7 @@ describe('SandboxActionList failure visibility', () => {
         last_inbox_id: 370,
         is_timed_out: false
       }
-    ] as RuntimeTraceListItem[]
+    ] satisfies RuntimeMonitorSessionItem[]
 
     const wrapper = mount(SandboxActionList, {
       props: {
@@ -61,7 +64,6 @@ describe('SandboxActionList failure visibility', () => {
         session_id: 93,
         session_code: 'SES_08b230946aea4eef',
         trace_id: 'sandbox:mpgo094b-qn761w',
-        business_key: 'e1167e54de47c5eb',
         barcode: '1111111',
         workline_id: 45,
         status: 'MANUAL_HOLD',
@@ -69,7 +71,7 @@ describe('SandboxActionList failure visibility', () => {
         latest_timeline_message: 'Command ACK exhausted; runtime reconciliation started.',
         is_timed_out: false
       }
-    ] as RuntimeTraceListItem[]
+    ] satisfies RuntimeMonitorSessionItem[]
 
     const wrapper = mount(SandboxActionList, {
       props: {

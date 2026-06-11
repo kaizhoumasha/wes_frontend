@@ -359,7 +359,7 @@ export const worklineApiMethods = {
   },
 
   /**
-   * [biz:workline:list] 工作线运行态详情
+   * [biz:workline:list] 工作线运行态监控投影
    * @endpoint GET /api/v1/workline/runtime/worklines/{workline_id}
    * @returns alova method instance
    */

@@ -1,6 +1,6 @@
 import type {
   RuntimeSafetyIncidentSummary,
-  RuntimeWorklineDeviceItem,
+  RuntimeMonitorDeviceNode,
   RuntimeWorklineSummary
 } from '@/types/runtime'
 import {
@@ -87,7 +87,7 @@ function isActiveIncident(incident: RuntimeSafetyIncidentSummary | null | undefi
 }
 
 export function getWorklineDeviceSafetyEvidence(
-  devices: RuntimeWorklineDeviceItem[] | null | undefined
+  devices: RuntimeMonitorDeviceNode[] | null | undefined
 ): WorklineSafetyEvidenceInput | undefined {
   const estoppedDevices = devices?.filter(device => device.error_code === 'WORKLINE_ESTOPPED') ?? []
   if (estoppedDevices.length === 0) return undefined

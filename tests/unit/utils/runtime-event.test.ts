@@ -9,7 +9,7 @@ import type { RuntimeSSEPayload } from '@/composables/useRuntimeSSE'
 
 function createEvent(keys?: Record<string, unknown>): RuntimeSSEPayload {
   return {
-    domain: 'workline_trace',
+    domain: 'workline_runtime',
     keys
   }
 }
@@ -32,6 +32,18 @@ describe('runtime-event', () => {
     expect(isRelevantRuntimeEvent(event, { worklineId: 11, deviceId: 99 })).toBe(false)
   })
 
+  it('rejects legacy domains before matching scope keys', () => {
+    expect(
+      isRelevantRuntimeEvent(
+        {
+          domain: 'workline_trace',
+          keys: { workline_id: 10 }
+        },
+        { worklineId: 10 }
+      )
+    ).toBe(false)
+  })
+
   it('falls back to refresh when the event does not carry comparable scope keys', () => {
     const event = createEvent({ session_id: 15 })
 
@@ -40,14 +52,16 @@ describe('runtime-event', () => {
   })
 
   it('allows safety runtime domains', () => {
-    expect(isRuntimeDomainAllowed('workline_safety')).toBe(true)
-    expect(isRuntimeDomainAllowed('safety')).toBe(true)
+    expect(isRuntimeDomainAllowed('workline_runtime')).toBe(true)
+    expect(isRuntimeDomainAllowed(undefined)).toBe(false)
+    expect(isRuntimeDomainAllowed('workline_safety')).toBe(false)
+    expect(isRuntimeDomainAllowed('safety')).toBe(false)
     expect(isRuntimeDomainAllowed('unknown_domain')).toBe(false)
   })
 
-  it('classifies safety events as workline detail and incident refreshes', () => {
+  it('classifies safety events as workline projection and incident refreshes', () => {
     const refresh = classifyRuntimeRefresh({
-      domain: 'workline_safety',
+      domain: 'workline_runtime',
       entity: 'incident',
       action: 'estop.activated',
       keys: { workline_id: 10, incident_id: 20 }
@@ -55,15 +69,15 @@ describe('runtime-event', () => {
 
     expect(refresh).toEqual({
       worklines: true,
-      detail: true,
+      projection: true,
       activeIncident: true,
       sandbox: false
     })
   })
 
-  it('classifies workline updates as detail refreshes', () => {
+  it('classifies workline updates as projection refreshes', () => {
     const refresh = classifyRuntimeRefresh({
-      domain: 'workline_trace',
+      domain: 'workline_runtime',
       entity: 'workline',
       action: 'updated',
       keys: { workline_id: 10 }
@@ -71,13 +85,29 @@ describe('runtime-event', () => {
 
     expect(refresh).toEqual({
       worklines: true,
-      detail: true,
+      projection: true,
       activeIncident: false,
       sandbox: false
     })
   })
 
-  it('classifies session updates as runtime detail and sandbox refreshes', () => {
+  it('classifies session updates as runtime projection and sandbox refreshes', () => {
+    const refresh = classifyRuntimeRefresh({
+      domain: 'workline_runtime',
+      entity: 'session',
+      action: 'updated',
+      keys: { workline_id: 10, session_id: 20 }
+    })
+
+    expect(refresh).toEqual({
+      worklines: true,
+      projection: true,
+      activeIncident: false,
+      sandbox: true
+    })
+  })
+
+  it('does not classify legacy event domains as refresh triggers', () => {
     const refresh = classifyRuntimeRefresh({
       domain: 'workline_trace',
       entity: 'session',
@@ -86,10 +116,26 @@ describe('runtime-event', () => {
     })
 
     expect(refresh).toEqual({
-      worklines: true,
-      detail: true,
+      worklines: false,
+      projection: false,
       activeIncident: false,
-      sandbox: true
+      sandbox: false
+    })
+  })
+
+  it('does not classify domainless runtime-shaped events as refresh triggers', () => {
+    const event = {
+      entity: 'session',
+      action: 'updated',
+      keys: { workline_id: 10, session_id: 20 }
+    }
+
+    expect(isRelevantRuntimeEvent(event, { worklineId: 10 })).toBe(false)
+    expect(classifyRuntimeRefresh(event)).toEqual({
+      worklines: false,
+      projection: false,
+      activeIncident: false,
+      sandbox: false
     })
   })
 })

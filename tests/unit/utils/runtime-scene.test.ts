@@ -1,43 +1,46 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it } from 'vitest'
 import { buildRuntimeSceneModel, getRuntimeSceneEvidenceKey } from '@/utils/runtime-scene'
 import type {
   RuntimeRackOperationWait,
   RuntimeSingleLayerRackSnapshot,
   RuntimeStationLease,
-  RuntimeWorklineDetailResponse,
+  RuntimeWorklineMonitorProjectionResponse,
   WorkLinePluginManifestSummary
 } from '@/types/runtime'
 
 function createDetail(
-  overrides: Partial<RuntimeWorklineDetailResponse> = {}
-): RuntimeWorklineDetailResponse {
-  return {
-    summary: {
-      id: 45,
-      line_code: 'WL-45',
-      line_name: '粗分线',
-      line_type: 'SORTING',
-      is_active: true,
-      device_count: 2,
-      active_session_count: 1,
-      waiting_session_count: 1,
-      failed_session_count: 0,
-      error_device_count: 0,
-      offline_device_count: 0,
-      maintenance_device_count: 0,
-      run_mode: 'SIMULATION',
-      runtime_status: 'READY',
-      plugin_key: 'rough_sorter',
-      ...overrides.summary
-    },
+  overrides: Record<string, any> = {}
+): RuntimeWorklineMonitorProjectionResponse {
+  const summary = {
+    id: 45,
+    line_code: 'WL-45',
+    line_name: '粗分线',
+    line_type: 'SORTING',
+    is_active: true,
+    device_count: 2,
+    active_session_count: 1,
+    waiting_session_count: 1,
+    failed_session_count: 0,
+    error_device_count: 0,
+    offline_device_count: 0,
+    maintenance_device_count: 0,
+    run_mode: 'SIMULATION',
+    runtime_status: 'READY',
+    plugin_key: 'rough_sorter',
+    ...overrides.summary
+  }
+  const boundary = {
     workline_readiness: overrides.workline_readiness ?? 'READY',
     station_lease: overrides.station_lease ?? 'ACTIVE_DISPATCH_LEASE',
     single_layer_rack_snapshot: overrides.single_layer_rack_snapshot ?? 'ACTIVE',
-    rack_operation_wait: overrides.rack_operation_wait ?? 'WAITING_WMS',
-    resource_evidence_kind: overrides.resource_evidence_kind ?? 'WMS_CALLBACK_EVIDENCE',
-    resource_evidence_total_count: overrides.resource_evidence_total_count ?? 3,
-    resource_evidence_truncated: overrides.resource_evidence_truncated ?? true,
-    resource_evidence_items: overrides.resource_evidence_items ?? [
+    rack_operation_wait: overrides.rack_operation_wait ?? 'WAITING_WMS'
+  }
+  const resource_evidence = {
+    kind: overrides.resource_evidence_kind ?? 'WMS_CALLBACK_EVIDENCE',
+    total_count: overrides.resource_evidence_total_count ?? 3,
+    truncated: overrides.resource_evidence_truncated ?? true,
+    items: overrides.resource_evidence_items ?? [
       {
         resource_kind: 'RACK',
         resource_code: 'RACK-001',
@@ -57,33 +60,47 @@ function createDetail(
         source_session_id: 20,
         source_trace_id: 'trace-20'
       }
-    ],
-    devices: overrides.devices ?? [
-      {
-        id: 101,
-        device_code: 'ARM01',
-        device_name: '机械臂 1',
-        device_role: 'ARM',
-        role_index: 1,
-        device_status: 'IDLE',
-        maintenance_mode: false,
-        pending_command_count: 0
-      },
-      {
-        id: 102,
-        device_code: 'PLC01',
-        device_name: 'PLC',
-        device_role: 'PLC',
-        role_index: 1,
-        device_status: 'RUNNING',
-        maintenance_mode: false,
-        pending_command_count: 1
-      }
-    ],
-    active_sessions: overrides.active_sessions ?? [],
-    recent_failed_traces: overrides.recent_failed_traces ?? [],
-    recent_completed_traces: overrides.recent_completed_traces ?? []
+    ]
   }
+  const device_nodes = overrides.devices ?? [
+    {
+      id: 101,
+      device_code: 'ARM01',
+      device_name: '机械臂 1',
+      device_role: 'ARM',
+      role_index: 1,
+      device_status: 'IDLE',
+      maintenance_mode: false,
+      pending_command_count: 0
+    },
+    {
+      id: 102,
+      device_code: 'PLC01',
+      device_name: 'PLC',
+      device_role: 'PLC',
+      role_index: 1,
+      device_status: 'RUNNING',
+      maintenance_mode: false,
+      pending_command_count: 1
+    }
+  ]
+  const active_sessions = overrides.active_sessions ?? { items: [], total_count: 0, truncated: false }
+  const recent_failed_traces = overrides.recent_failed_traces ?? { items: [], total_count: 0, truncated: false }
+  const recent_completed_traces = overrides.recent_completed_traces ?? { items: [], total_count: 0, truncated: false }
+  const action_candidates = overrides.action_candidates ?? { pending_reconciliation: null }
+  const generated_at = overrides.generated_at ?? new Date().toISOString()
+
+  return {
+    summary,
+    boundary,
+    device_nodes,
+    resource_evidence,
+    active_sessions: Array.isArray(active_sessions) ? { items: active_sessions, total_count: active_sessions.length, truncated: false } : active_sessions,
+    recent_failed_traces: Array.isArray(recent_failed_traces) ? { items: recent_failed_traces, total_count: recent_failed_traces.length, truncated: false } : recent_failed_traces,
+    recent_completed_traces: Array.isArray(recent_completed_traces) ? { items: recent_completed_traces, total_count: recent_completed_traces.length, truncated: false } : recent_completed_traces,
+    action_candidates,
+    generated_at
+  } as unknown as RuntimeWorklineMonitorProjectionResponse
 }
 
 const manifest: WorkLinePluginManifestSummary = {
@@ -107,9 +124,9 @@ const manifest: WorkLinePluginManifestSummary = {
 }
 
 describe('buildRuntimeSceneModel', () => {
-  it('normalizes detail and manifest into a camelCase scene model', () => {
+  it('normalizes projection and manifest into a camelCase scene model', () => {
     const model = buildRuntimeSceneModel({
-      detail: createDetail(),
+      projection: createDetail(),
       manifest
     })
 
@@ -168,7 +185,7 @@ describe('buildRuntimeSceneModel', () => {
 
   it('groups structured evidence by position, stack anchor, and child resources', () => {
     const model = buildRuntimeSceneModel({
-      detail: createDetail({
+      projection: createDetail({
         resource_evidence_total_count: 7,
         resource_evidence_truncated: true,
         resource_evidence_items: [
@@ -290,7 +307,7 @@ describe('buildRuntimeSceneModel', () => {
 
   it('projects single-layer rack evidence into slot, bin, cell, and material hierarchy', () => {
     const model = buildRuntimeSceneModel({
-      detail: createDetail({
+      projection: createDetail({
         resource_evidence_items: [
           {
             resource_kind: 'RACK',
@@ -482,10 +499,10 @@ describe('buildRuntimeSceneModel', () => {
         reel_code: 'REEL-TOP',
         position_index: 2
       }
-    ] as RuntimeWorklineDetailResponse['resource_evidence_items']
+    ] as RuntimeResourceEvidenceItem[]
 
     const model = buildRuntimeSceneModel({
-      detail: createDetail({
+      projection: createDetail({
         resource_evidence_items: resourceEvidenceItems
       }),
       manifest
@@ -520,7 +537,7 @@ describe('buildRuntimeSceneModel', () => {
 
   it('moves a previously unlocated bin into its slot when later evidence supplies slot code', () => {
     const model = buildRuntimeSceneModel({
-      detail: createDetail({
+      projection: createDetail({
         resource_evidence_items: [
           {
             resource_kind: 'RACK',
@@ -569,7 +586,7 @@ describe('buildRuntimeSceneModel', () => {
 
   it('attaches bin-scoped cell and material evidence to a slot-bound bin when slot code is omitted', () => {
     const model = buildRuntimeSceneModel({
-      detail: createDetail({
+      projection: createDetail({
         resource_evidence_items: [
           {
             resource_kind: 'RACK',
@@ -639,7 +656,7 @@ describe('buildRuntimeSceneModel', () => {
 
   it('keeps bin-scoped material evidence outside cells when no cell code is supplied', () => {
     const model = buildRuntimeSceneModel({
-      detail: createDetail({
+      projection: createDetail({
         resource_evidence_items: [
           {
             resource_kind: 'RACK',
@@ -706,7 +723,7 @@ describe('buildRuntimeSceneModel', () => {
     ['UNKNOWN', 'unknown']
   ] as const)('derives attentionState %s -> %s', (rackOperationWait, attentionState) => {
     const model = buildRuntimeSceneModel({
-      detail: createDetail({ rack_operation_wait: rackOperationWait }),
+      projection: createDetail({ rack_operation_wait: rackOperationWait }),
       manifest
     })
 
@@ -715,7 +732,7 @@ describe('buildRuntimeSceneModel', () => {
 
   it('uses resource kind and resource code as a stack anchor when rack and bin are absent', () => {
     const model = buildRuntimeSceneModel({
-      detail: createDetail({
+      projection: createDetail({
         resource_evidence_items: [
           {
             resource_kind: 'CELL',
@@ -744,7 +761,7 @@ describe('buildRuntimeSceneModel', () => {
 
   it('uses bin code as a stack anchor when rack code is absent', () => {
     const model = buildRuntimeSceneModel({
-      detail: createDetail({
+      projection: createDetail({
         resource_evidence_items: [
           {
             resource_kind: 'BIN',
@@ -775,7 +792,7 @@ describe('buildRuntimeSceneModel', () => {
 
   it('keeps repeated child resources distinct when evidence context differs', () => {
     const model = buildRuntimeSceneModel({
-      detail: createDetail({
+      projection: createDetail({
         resource_evidence_items: [
           {
             resource_kind: 'RACK',
@@ -865,7 +882,7 @@ describe('buildRuntimeSceneModel', () => {
     'maps lease %s, snapshot %s and rack wait %s to operator labels',
     (stationLease, rackSnapshot, rackOperationWait, leaseLabel, snapshotLabel, waitLabel) => {
       const model = buildRuntimeSceneModel({
-        detail: createDetail({
+        projection: createDetail({
           station_lease: stationLease,
           single_layer_rack_snapshot: rackSnapshot,
           rack_operation_wait: rackOperationWait
@@ -896,7 +913,7 @@ describe('buildRuntimeSceneModel', () => {
       ]
     }
     const model = buildRuntimeSceneModel({
-      detail: createDetail(),
+      projection: createDetail(),
       manifest: ngManifest
     })
 
@@ -917,7 +934,7 @@ describe('buildRuntimeSceneModel', () => {
       ]
     }
     const model = buildRuntimeSceneModel({
-      detail: createDetail({
+      projection: createDetail({
         devices: [
           {
             id: 103,
@@ -963,7 +980,7 @@ describe('buildRuntimeSceneModel', () => {
     }
 
     const model = buildRuntimeSceneModel({
-      detail: createDetail({
+      projection: createDetail({
         resource_evidence_items: [
           {
             resource_kind: 'RACK',
@@ -1023,7 +1040,7 @@ describe('buildRuntimeSceneModel', () => {
     }
 
     const model = buildRuntimeSceneModel({
-      detail: createDetail({
+      projection: createDetail({
         resource_evidence_items: [
           {
             resource_kind: 'RACK',
@@ -1059,7 +1076,7 @@ describe('buildRuntimeSceneModel', () => {
 
   it('assigns stationless positioned evidence to a unique matching manifest boundary', () => {
     const model = buildRuntimeSceneModel({
-      detail: createDetail({
+      projection: createDetail({
         resource_evidence_items: [
           {
             resource_kind: 'RACK',
@@ -1109,7 +1126,7 @@ describe('buildRuntimeSceneModel', () => {
     }
 
     const model = buildRuntimeSceneModel({
-      detail: createDetail({
+      projection: createDetail({
         resource_evidence_items: [
           {
             resource_kind: 'RACK',
@@ -1142,13 +1159,13 @@ describe('buildRuntimeSceneModel', () => {
   })
 
   it('falls back to generic evidence when contract fields or manifest are missing', () => {
-    const detail = createDetail() as RuntimeWorklineDetailResponse & Record<string, unknown>
-    delete detail.station_lease
-    delete detail.rack_operation_wait
-    delete detail.resource_evidence_kind
+    const projection = createDetail() as any
+    delete projection.boundary.station_lease
+    delete projection.boundary.rack_operation_wait
+    delete projection.resource_evidence.kind
 
     const model = buildRuntimeSceneModel({
-      detail,
+      projection,
       manifest: null
     })
 
@@ -1160,15 +1177,15 @@ describe('buildRuntimeSceneModel', () => {
   })
 
   it.each([
-    'resource_evidence_items',
-    'resource_evidence_total_count',
-    'resource_evidence_truncated'
-  ])('uses generated defaults when optional evidence field %s is missing', field => {
-    const detail = createDetail() as RuntimeWorklineDetailResponse & Record<string, unknown>
-    delete detail[field]
+    ['items', 'resource_evidence'],
+    ['total_count', 'resource_evidence'],
+    ['truncated', 'resource_evidence']
+  ])('uses generated defaults when optional evidence field %s is missing', (field, section) => {
+    const projection = createDetail() as any
+    delete projection[section][field]
 
     const model = buildRuntimeSceneModel({
-      detail,
+      projection,
       manifest
     })
 
@@ -1178,11 +1195,11 @@ describe('buildRuntimeSceneModel', () => {
   })
 
   it('reports semantic fallback when a required semantic contract field is missing', () => {
-    const detail = createDetail() as RuntimeWorklineDetailResponse & Record<string, unknown>
-    delete detail.resource_evidence_kind
+    const projection = createDetail() as any
+    delete projection.resource_evidence.kind
 
     const model = buildRuntimeSceneModel({
-      detail,
+      projection,
       manifest
     })
 
@@ -1191,13 +1208,13 @@ describe('buildRuntimeSceneModel', () => {
   })
 
   it('reports semantic fallback when evidence contract field shapes are invalid', () => {
-    const detail = createDetail() as RuntimeWorklineDetailResponse & Record<string, unknown>
-    detail.resource_evidence_items = {}
-    detail.resource_evidence_total_count = Number.NaN
-    detail.resource_evidence_truncated = 'false'
+    const projection = createDetail() as any
+    projection.resource_evidence.items = {}
+    projection.resource_evidence.total_count = Number.NaN
+    projection.resource_evidence.truncated = 'false'
 
     const model = buildRuntimeSceneModel({
-      detail,
+      projection,
       manifest
     })
 
@@ -1218,7 +1235,7 @@ describe('buildRuntimeSceneModel', () => {
 
   it('reports manifest load failure as semantic fallback', () => {
     const model = buildRuntimeSceneModel({
-      detail: createDetail(),
+      projection: createDetail(),
       manifest: null,
       manifestLoadFailed: true
     })
@@ -1237,7 +1254,7 @@ describe('buildRuntimeSceneModel', () => {
 
   it('does not render precise boundary labels when manifest boundaries are unavailable', () => {
     const model = buildRuntimeSceneModel({
-      detail: createDetail(),
+      projection: createDetail(),
       manifest: null
     })
 
@@ -1255,7 +1272,7 @@ describe('buildRuntimeSceneModel', () => {
 
   it('keeps no-manifest station and position evidence in one fallback physical group', () => {
     const model = buildRuntimeSceneModel({
-      detail: createDetail({
+      projection: createDetail({
         resource_evidence_items: [
           {
             resource_kind: 'RACK',
@@ -1290,11 +1307,19 @@ describe('buildRuntimeSceneModel', () => {
     expect(model.positionGroups[0]?.auditItems.map(item => item.resourceCode)).toEqual([
       'RACK-NO-MANIFEST'
     ])
+    expect(model.positionGroups[0]?.resourceStacks).toHaveLength(1)
+    expect(model.positionGroups[0]?.resourceStacks[0]).toEqual(
+      expect.objectContaining({
+        rackCode: 'RACK-NO-MANIFEST',
+        evidenceCount: 1
+      })
+    )
+    expect(model.positionGroups[0]?.rackLayouts).toHaveLength(0)
   })
 
   it('keeps no-manifest mixed station-scoped and stationless evidence out of empty duplicate groups', () => {
     const model = buildRuntimeSceneModel({
-      detail: createDetail({
+      projection: createDetail({
         resource_evidence_items: [
           {
             resource_kind: 'RACK',

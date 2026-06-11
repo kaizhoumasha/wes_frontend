@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import DecisionStrip from '@/components/runtime/devices/DecisionStrip.vue'
-import type { RuntimeWorklineDetailResponse, RuntimeWorklineSummary } from '@/types/runtime'
+import type { RuntimeWorklineMonitorProjectionResponse, RuntimeWorklineSummary } from '@/types/runtime'
 
 function createSummary(overrides: Partial<RuntimeWorklineSummary> = {}): RuntimeWorklineSummary {
   return {
@@ -22,10 +22,17 @@ function createSummary(overrides: Partial<RuntimeWorklineSummary> = {}): Runtime
   }
 }
 
-function createDetail(): RuntimeWorklineDetailResponse {
+function createProjection(summary = createSummary()): RuntimeWorklineMonitorProjectionResponse {
   return {
-    summary: createSummary(),
-    devices: [
+    summary,
+    boundary: {
+      workline_readiness: 'READY',
+      station_lease: 'IDLE',
+      single_layer_rack_snapshot: 'ACTIVE',
+      rack_operation_wait: 'NONE',
+      resource_evidence_kind: 'WES_ACTIVE_SNAPSHOT'
+    },
+    device_nodes: [
       {
         id: 101,
         device_code: 'ARM03',
@@ -41,9 +48,30 @@ function createDetail(): RuntimeWorklineDetailResponse {
         active_runtime_hold_ids: [77]
       }
     ],
-    active_sessions: [],
-    recent_failed_traces: [],
-    recent_completed_traces: []
+    active_sessions: {
+      items: [],
+      total_count: 0,
+      truncated: false
+    },
+    recent_failed_traces: {
+      items: [],
+      total_count: 0,
+      truncated: false
+    },
+    recent_completed_traces: {
+      items: [],
+      total_count: 0,
+      truncated: false
+    },
+    resource_evidence: {
+      items: [],
+      total_count: 0,
+      truncated: false
+    },
+    action_candidates: {
+      pending_reconciliation: null
+    },
+    generated_at: '2026-06-10T12:00:00Z'
   }
 }
 
@@ -52,7 +80,7 @@ describe('DecisionStrip', () => {
     const wrapper = mount(DecisionStrip, {
       props: {
         summary: createSummary(),
-        detail: createDetail()
+        projection: createProjection()
       },
       global: {
         stubs: {
@@ -73,7 +101,7 @@ describe('DecisionStrip', () => {
     const wrapper = mount(DecisionStrip, {
       props: {
         summary: createSummary({ runtime_status: 'STOPPED' }),
-        detail: { ...createDetail(), devices: [], summary: createSummary({ runtime_status: 'STOPPED' }) }
+        projection: createProjection(createSummary({ runtime_status: 'STOPPED' }))
       },
       global: {
         stubs: {

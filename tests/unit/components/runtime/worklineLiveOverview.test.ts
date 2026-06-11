@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import WorklineLiveOverview from '@/components/runtime/monitor/WorklineLiveOverview.vue'
 import type {
   RuntimeTraceDevicePathNode,
-  RuntimeWorklineDetailResponse,
+  RuntimeWorklineMonitorProjectionResponse,
   RuntimeWorklineSummary
 } from '@/types/runtime'
 
@@ -47,21 +47,41 @@ function createSummary(overrides: Partial<RuntimeWorklineSummary> = {}): Runtime
   }
 }
 
-function createDetail(summary = createSummary()): RuntimeWorklineDetailResponse {
+function createProjection(summary = createSummary()): RuntimeWorklineMonitorProjectionResponse {
   return {
     summary,
-    workline_readiness: 'READY',
-    station_lease: 'IDLE',
-    single_layer_rack_snapshot: 'ACTIVE',
-    rack_operation_wait: 'NONE',
-    resource_evidence_kind: 'WES_ACTIVE_SNAPSHOT',
-    resource_evidence_items: [],
-    resource_evidence_total_count: 0,
-    resource_evidence_truncated: false,
-    devices: [],
-    active_sessions: [],
-    recent_failed_traces: [],
-    recent_completed_traces: []
+    boundary: {
+      workline_readiness: 'READY',
+      station_lease: 'IDLE',
+      single_layer_rack_snapshot: 'ACTIVE',
+      rack_operation_wait: 'NONE',
+      resource_evidence_kind: 'WES_ACTIVE_SNAPSHOT'
+    },
+    device_nodes: [],
+    active_sessions: {
+      items: [],
+      total_count: 0,
+      truncated: false
+    },
+    recent_failed_traces: {
+      items: [],
+      total_count: 0,
+      truncated: false
+    },
+    recent_completed_traces: {
+      items: [],
+      total_count: 0,
+      truncated: false
+    },
+    resource_evidence: {
+      items: [],
+      total_count: 0,
+      truncated: false
+    },
+    action_candidates: {
+      pending_reconciliation: null
+    },
+    generated_at: '2026-06-10T12:00:00Z'
   }
 }
 
@@ -70,7 +90,7 @@ function mountOverview() {
   return shallowMount(WorklineLiveOverview, {
     props: {
       worklineSummary: summary,
-      worklineDetail: createDetail(summary),
+      worklineProjection: createProjection(summary),
       devices: [],
       activeSessions: [],
       recentFailedTraces: [],
@@ -141,7 +161,7 @@ describe('WorklineLiveOverview', () => {
     shallowMount(WorklineLiveOverview, {
       props: {
         worklineSummary: summary,
-        worklineDetail: createDetail(summary),
+        worklineProjection: createProjection(summary),
         devices: [],
         activeSessions: [],
         recentFailedTraces: [],
@@ -174,7 +194,7 @@ describe('WorklineLiveOverview', () => {
     shallowMount(WorklineLiveOverview, {
       props: {
         worklineSummary: summary,
-        worklineDetail: createDetail(summary),
+        worklineProjection: createProjection(summary),
         devices: [],
         activeSessions: [],
         recentFailedTraces: [],
@@ -214,7 +234,7 @@ describe('WorklineLiveOverview', () => {
     const wrapper = shallowMount(WorklineLiveOverview, {
       props: {
         worklineSummary: summary,
-        worklineDetail: createDetail(summary),
+        worklineProjection: createProjection(summary),
         devices: [],
         activeSessions: [],
         recentFailedTraces: [],
