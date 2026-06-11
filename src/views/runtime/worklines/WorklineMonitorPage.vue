@@ -301,6 +301,7 @@
             class="monitor-device-panel__tab-panel monitor-business-projection"
             data-test="monitor-business-projection"
           >
+            <div class="monitor-device-panel__section-title">业务关联投影</div>
             <dl class="monitor-business-projection__facts">
               <div
                 v-for="row in businessProjectionRows"

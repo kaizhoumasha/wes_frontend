@@ -609,6 +609,7 @@ describe('runtime route sync', () => {
     await wrapper.get('[data-test="monitor-side-tab-business"]').trigger('click')
 
     const businessPanel = wrapper.get('[data-test="monitor-business-projection"]')
+    expect(businessPanel.text()).toContain('业务关联投影')
     expect(businessPanel.text()).toContain('scanner')
     expect(businessPanel.text()).toContain('单层货架')
     expect(businessPanel.text()).toContain('RACK-101')
