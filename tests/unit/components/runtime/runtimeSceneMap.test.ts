@@ -393,6 +393,7 @@ function createBinOnlySceneModel(
 describe('RuntimeSceneMap', () => {
   it('keeps business and rack projection details out of the topology canvas', () => {
     const model = createSceneModel()
+    model.worklineName = 'Smoke 单层货架线'
     model.deviceNodes = [
       {
         id: 901,

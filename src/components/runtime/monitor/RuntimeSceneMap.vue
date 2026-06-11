@@ -5,7 +5,7 @@
   >
     <div class="runtime-scene-map__header">
       <div>
-        <div class="runtime-scene-map__title">{{ model.worklineName }}</div>
+        <div class="runtime-scene-map__title">拓扑主视图</div>
         <div
           class="runtime-scene-map__meta"
           data-test="runtime-scene-readiness"
