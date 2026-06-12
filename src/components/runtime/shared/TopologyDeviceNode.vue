@@ -11,8 +11,8 @@
         'is-dimmed': dimmed,
         'has-runtime-hold': device.runtimeHoldCount > 0,
         'has-parked-outbox': device.blockedOutboxCount > 0,
-        'is-compact': compact,
-      },
+        'is-compact': compact
+      }
     ]"
     data-test="topology-device-node"
     @click="$emit('click', device.id)"
@@ -20,39 +20,30 @@
     @contextmenu.prevent="$emit('contextmenu', $event, device.id)"
   >
     <div class="topology-device-node__top">
-      <RuntimeStatusBadge :status="device.status" size="small" />
-      <span v-if="showRoleDetails" class="topology-device-node__role">
+      <RuntimeStatusBadge
+        :status="device.status"
+        size="small"
+      />
+      <span
+        v-if="showRoleDetails"
+        class="topology-device-node__role"
+      >
         {{ device.deviceRole }} · #{{ device.roleIndex }}
       </span>
-      <span v-if="device.maintenanceMode" class="topology-device-node__maintenance">
+      <span
+        v-if="device.maintenanceMode"
+        class="topology-device-node__maintenance"
+      >
         维护
       </span>
     </div>
     <div class="topology-device-node__name">{{ device.deviceName }}</div>
     <div class="topology-device-node__code">{{ device.deviceCode }}</div>
-    <div class="topology-device-node__signal" :class="computedSignalClass">
+    <div
+      class="topology-device-node__signal"
+      :class="computedSignalClass"
+    >
       {{ computedSignalText }}
-    </div>
-
-    <!-- Rack Occupancy Mini Matrix -->
-    <div v-if="occupancy" class="topology-device-node__occupancy">
-      <div class="topology-device-node__occupancy-grid">
-        <div
-          v-for="slot in occupancy.slots"
-          :key="slot.code"
-          class="topology-device-node__occupancy-cell"
-          :class="[`is-${slot.state}`]"
-          :title="slot.code"
-        />
-      </div>
-      <div class="topology-device-node__occupancy-summary">
-        <span class="topology-device-node__occupancy-stat">
-          {{ occupancy.occupiedSlots }}/{{ occupancy.totalSlots }}
-        </span>
-        <span v-if="occupancy.auditSlots > 0" class="topology-device-node__occupancy-audit">
-          {{ occupancy.auditSlots }} 对账异常
-        </span>
-      </div>
     </div>
 
     <div
@@ -88,12 +79,18 @@
       >
         {{ action.label }}
       </span>
-      <span v-if="traceActions.length > 3" class="topology-device-node__trace-more">
+      <span
+        v-if="traceActions.length > 3"
+        class="topology-device-node__trace-more"
+      >
         +{{ traceActions.length - 3 }}
       </span>
     </div>
 
-    <div v-if="blocking" class="topology-device-node__blocking-badge">
+    <div
+      v-if="blocking"
+      class="topology-device-node__blocking-badge"
+    >
       BLOCKED
     </div>
   </button>
@@ -105,7 +102,6 @@ import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.v
 import type { RuntimeTraceDeviceAction } from '@/types/runtime'
 import { resolveRuntimeTone } from '@/utils/runtime-display'
 import type { RuntimeSceneDeviceNode } from '@/utils/runtime-scene'
-import type { RackOccupancySummary } from '@/utils/runtime-topology'
 
 const props = withDefaults(
   defineProps<{
@@ -119,7 +115,6 @@ const props = withDefaults(
     traceActions?: RuntimeTraceDeviceAction[]
     showRoleDetails?: boolean
     compact?: boolean
-    occupancy?: RackOccupancySummary
   }>(),
   {
     selected: false,
@@ -130,8 +125,7 @@ const props = withDefaults(
     signalClass: 'is-idle',
     traceActions: () => [],
     showRoleDetails: true,
-    compact: false,
-    occupancy: undefined,
+    compact: false
   }
 )
 
@@ -170,7 +164,9 @@ function statusClass(status: string): string {
 .topology-device-node:hover {
   transform: translateY(-4px);
   border-color: rgb(245 158 11 / 0.3);
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.2);
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.4),
+    0 4px 6px -4px rgb(0 0 0 / 0.2);
 }
 
 .topology-device-node.is-selected {
@@ -292,63 +288,6 @@ function statusClass(status: string): string {
 
 .topology-device-node__signal.is-idle {
   color: var(--runtime-text-muted);
-}
-
-/* Rack Occupancy Mini Matrix */
-.topology-device-node__occupancy {
-  margin-top: 12px;
-}
-
-.topology-device-node__occupancy-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
-  padding: 6px;
-  background: rgb(15 23 42 / 0.5);
-  border-radius: 6px;
-  border: 1px solid rgb(51 65 85 / 0.3);
-}
-
-.topology-device-node__occupancy-cell {
-  aspect-ratio: 1.4;
-  border-radius: 3px;
-  border: 1px solid rgb(51 65 85 / 0.4);
-  background: rgb(30 41 59 / 0.3);
-}
-
-.topology-device-node__occupancy-cell.is-occupied {
-  background: rgb(245 158 11 / 0.25);
-  border-color: rgb(245 158 11 / 0.5);
-}
-
-.topology-device-node__occupancy-cell.is-audit {
-  background: rgb(234 179 8 / 0.2);
-  border-color: rgb(234 179 8 / 0.6);
-  animation: topology-audit-blink 2s infinite;
-}
-
-@keyframes topology-audit-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.topology-device-node__occupancy-summary {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 4px;
-  font-size: 10px;
-  font-family: var(--font-mono);
-}
-
-.topology-device-node__occupancy-stat {
-  color: var(--runtime-text-secondary);
-}
-
-.topology-device-node__occupancy-audit {
-  color: #eab308;
-  font-weight: 600;
 }
 
 /* Badges */

@@ -33,11 +33,7 @@
     <RuntimeSceneDeviceFlow
       :devices="model.deviceNodes"
       :selected-device-id="selectedDeviceId"
-      :session-counts-by-device="sessionCountsByDevice"
-      :trace-path-nodes="tracePathNodes"
-      :blocking-device-id="blockingDeviceId"
       :show-role-details="false"
-      :rack-occupancy-by-device="rackOccupancyByDevice"
       @select="emit('selectDevice', $event)"
     />
 
@@ -167,8 +163,6 @@ import RuntimeRackLayoutPanel from './RuntimeRackLayoutPanel.vue'
 import RuntimeSceneEvidencePanel from './RuntimeSceneEvidencePanel.vue'
 import RuntimeSceneFocusPanel from './RuntimeSceneFocusPanel.vue'
 import RuntimeScenePositionGroup from './RuntimeScenePositionGroup.vue'
-import type { RuntimeTraceDevicePathNode } from '@/types/runtime'
-import { buildRackOccupancyByDevice } from '@/utils/runtime-topology'
 import type {
   RuntimeSceneModel,
   RuntimeScenePositionGroup as PositionGroup,
@@ -180,16 +174,10 @@ const props = withDefaults(
   defineProps<{
     model: RuntimeSceneModel
     selectedDeviceId?: number | null
-    sessionCountsByDevice?: Map<number, number> | Record<number, number>
-    tracePathNodes?: RuntimeTraceDevicePathNode[]
-    blockingDeviceId?: number | null
     showRackDetails?: boolean
   }>(),
   {
     selectedDeviceId: null,
-    sessionCountsByDevice: undefined,
-    tracePathNodes: () => [],
-    blockingDeviceId: null,
     showRackDetails: false
   }
 )
@@ -204,10 +192,6 @@ const selectedRackLayoutKey = ref<string | null>(null)
 const selectedRackSlotKey = ref<string | null>(null)
 
 const resourceEvidenceVisibleCount = computed(() => props.model.resourceEvidence.length)
-
-const rackOccupancyByDevice = computed(() =>
-  buildRackOccupancyByDevice(props.model.deviceNodes, props.model.positionGroups)
-)
 
 const selectedGroup = computed(
   () => props.model.positionGroups.find(group => group.key === selectedPositionKey.value) ?? null

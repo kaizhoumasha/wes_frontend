@@ -134,7 +134,6 @@ declare module 'vue' {
     SearchFieldPanel: typeof import('./../components/search/panels/SearchFieldPanel.vue')['default']
     SearchPopoverPanel: typeof import('./../components/search/SearchPopoverPanel.vue')['default']
     SearchQuickPanel: typeof import('./../components/search/panels/SearchQuickPanel.vue')['default']
-    SessionBoard: typeof import('./../components/runtime/monitor/SessionBoard.vue')['default']
     SidebarMenuItem: typeof import('./../components/common/SidebarMenuItem.vue')['default']
     SmartSearchBar: typeof import('./../components/search/SmartSearchBar.vue')['default']
     SortDialog: typeof import('./../components/common/SortDialog.vue')['default']
@@ -153,13 +152,10 @@ declare module 'vue' {
     TraceRelatedSidebar: typeof import('./../components/runtime/trace/TraceRelatedSidebar.vue')['default']
     TraceTimeline: typeof import('./../components/runtime/trace/TraceTimeline.vue')['default']
     TraceTopologySummary: typeof import('./../components/runtime/trace/TraceTopologySummary.vue')['default']
-    WorklineHealthHero: typeof import('./../components/runtime/monitor/WorklineHealthHero.vue')['default']
     WorklineLiveOverview: typeof import('./../components/runtime/monitor/WorklineLiveOverview.vue')['default']
     WorklineReconciliationPanel: typeof import('./../components/runtime/monitor/WorklineReconciliationPanel.vue')['default']
     WorklineRuntimeHoldSummaryPanel: typeof import('./../components/runtime/monitor/WorklineRuntimeHoldSummaryPanel.vue')['default']
     WorklineSafetyIncidentPanel: typeof import('./../components/runtime/monitor/WorklineSafetyIncidentPanel.vue')['default']
-    WorklineTaskQueue: typeof import('./../components/runtime/monitor/WorklineTaskQueue.vue')['default']
-    WorklineTopologyStrip: typeof import('./../components/runtime/monitor/WorklineTopologyStrip.vue')['default']
   }
   export interface GlobalDirectives {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

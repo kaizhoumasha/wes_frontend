@@ -194,14 +194,9 @@
         <WorklineLiveOverview
           :workline-summary="store.projection.summary"
           :workline-projection="store.projection"
-          :devices="store.projection.device_nodes || []"
-          :active-sessions="store.projection.active_sessions.items || []"
-          :recent-failed-traces="store.projection.recent_failed_traces.items || []"
-          :recent-completed-traces="store.projection.recent_completed_traces.items || []"
           :event-log-entries="eventLogEntries"
           :selected-device-id="selectedDeviceId"
           @select-device="openDevice"
-          @select-session="openTrace"
         />
       </section>
 
@@ -426,12 +421,16 @@ import WorklineSafetyIncidentPanel from '@/components/runtime/monitor/WorklineSa
 import WorklineRuntimeHoldSummaryPanel from '@/components/runtime/monitor/WorklineRuntimeHoldSummaryPanel.vue'
 import { useDarkMode } from '@/composables/useDarkMode'
 import { usePermission } from '@/composables/usePermission'
-import { useRuntimeSSEStore, type RuntimeSSEPayload } from '@/stores/runtime-sse'
+import { useRuntimeSSEStore } from '@/stores/runtime-sse'
 import { useWorklineRuntimeStore } from '@/stores/workline-runtime'
 import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
 import { RECONCILING_RUNTIME_STATUS } from '@/constants/runtime-safety'
 import { createCoalescedAsyncTask } from '@/utils/createCoalescedAsyncTask'
-import { classifyRuntimeRefresh, isRelevantRuntimeEvent } from '@/utils/runtime-event'
+import {
+  classifyRuntimeRefresh,
+  isRelevantRuntimeEvent,
+  type RuntimeSSEPayload
+} from '@/utils/runtime-event'
 import { getWorklineDeviceSafetyEvidence, getWorklineRuntimeVerdict } from '@/utils/runtime-safety'
 import { getErrorMessage } from '@/utils/string'
 import { buildRuntimeWorklineQuery } from '@/utils/runtime-route'

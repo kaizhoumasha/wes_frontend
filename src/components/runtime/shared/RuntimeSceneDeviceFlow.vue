@@ -41,7 +41,6 @@
             :trace-actions="traceActionsFor(node.id)"
             :show-role-details="showRoleDetails"
             :compact="compact"
-            :occupancy="rackOccupancyByDevice?.get(node.id)"
             :style="{ left: node.x + 'px', top: node.y + 'px' }"
             data-test="runtime-scene-device"
             @click="handleClick"
@@ -66,29 +65,24 @@ import { computed, toRef } from 'vue'
 import TopologyDeviceNode from './TopologyDeviceNode.vue'
 import type { RuntimeTraceDeviceAction, RuntimeTraceDevicePathNode } from '@/types/runtime'
 import { useTopologyLayout } from '@/composables/useTopologyLayout'
-import type { RackOccupancySummary } from '@/utils/runtime-topology'
 import type { RuntimeSceneDeviceNode } from '@/utils/runtime-scene'
 
 const props = withDefaults(
   defineProps<{
     devices?: RuntimeSceneDeviceNode[]
     selectedDeviceId?: number | null
-    sessionCountsByDevice?: Map<number, number> | Record<number, number>
     tracePathNodes?: RuntimeTraceDevicePathNode[]
     blockingDeviceId?: number | null
     compact?: boolean
     showRoleDetails?: boolean
-    rackOccupancyByDevice?: Map<number, RackOccupancySummary>
   }>(),
   {
     devices: () => [],
     selectedDeviceId: null,
-    sessionCountsByDevice: undefined,
     tracePathNodes: () => [],
     blockingDeviceId: null,
     compact: false,
-    showRoleDetails: true,
-    rackOccupancyByDevice: undefined,
+    showRoleDetails: true
   }
 )
 
@@ -100,7 +94,7 @@ const emit = defineEmits<{
 
 // Layout computation
 const { layout } = useTopologyLayout(toRef(props, 'devices'), {
-  compact: props.compact,
+  compact: props.compact
 })
 
 // Trace & selection helpers
@@ -137,18 +131,9 @@ function handleNodeContextMenu(event: MouseEvent, deviceId: number): void {
 }
 
 // Signal computation
-function getSessionCount(deviceId: number): number {
-  const map = props.sessionCountsByDevice
-  if (!map) return 0
-  if (map instanceof Map) return map.get(deviceId) ?? 0
-  return map[deviceId] ?? 0
-}
-
 function signalText(device: RuntimeSceneDeviceNode): string {
   if (device.errorCode) return `ERROR: ${device.errorCode}`
   if (device.runtimeHoldCount > 0) return '异常待处置'
-  const sessionCount = getSessionCount(device.id)
-  if (sessionCount > 0) return `${sessionCount}条等待`
   if (device.blockedOutboxCount > 0) return '等待设备空闲'
   if (device.currentCommandId) return '执行中'
   return '空闲'
@@ -157,8 +142,6 @@ function signalText(device: RuntimeSceneDeviceNode): string {
 function signalClass(device: RuntimeSceneDeviceNode): string {
   if (device.errorCode) return 'is-danger'
   if (device.runtimeHoldCount > 0) return 'is-danger'
-  const sessionCount = getSessionCount(device.id)
-  if (sessionCount > 0) return 'is-warning'
   if (device.blockedOutboxCount > 0) return 'is-warning'
   if (device.currentCommandId) return 'is-primary'
   return 'is-idle'
@@ -174,7 +157,9 @@ function signalClass(device: RuntimeSceneDeviceNode): string {
   background:
     radial-gradient(circle, rgb(245 158 11 / 0.04) 1px, transparent 1px),
     linear-gradient(180deg, rgb(15 23 42), rgb(10 15 30));
-  background-size: 20px 20px, 100% 100%;
+  background-size:
+    20px 20px,
+    100% 100%;
   border-radius: 12px;
   border: 1px solid var(--runtime-border);
   min-height: 240px;

@@ -5,7 +5,7 @@ import {
   isRuntimeDomainAllowed,
   readRuntimeEventNumber
 } from '@/utils/runtime-event'
-import type { RuntimeSSEPayload } from '@/composables/useRuntimeSSE'
+import type { RuntimeSSEPayload } from '@/utils/runtime-event'
 
 function createEvent(keys?: Record<string, unknown>): RuntimeSSEPayload {
   return {

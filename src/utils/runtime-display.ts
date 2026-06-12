@@ -1,9 +1,5 @@
 import { useTimezoneStore } from '@/stores/timezone'
-import type {
-  RuntimeDeviceSummary,
-  RuntimeTraceListItem,
-  RuntimeWorklineSummary
-} from '@/types/runtime'
+import type { RuntimeWorklineSummary } from '@/types/runtime'
 import { formatDurationFromMilliseconds } from '@/views/logs/shared/formatters'
 import { formatRelativeTime, parseApiTime } from '@/utils/timezone'
 import { getWorklineRuntimeVerdict } from '@/utils/runtime-safety'
@@ -295,16 +291,6 @@ export function takeTopByScoreDesc<T>(
   return sortByScoreDesc(items, getScore, getTieBreaker).slice(0, limit)
 }
 
-export function getTraceRiskScore(item: RuntimeTraceListItem): number {
-  let score = 0
-  if (isFailureStatus(item.status)) score += 80
-  if (item.is_timed_out) score += 50
-  if (item.failure_domain) score += 20
-  if (isWaitingStatus(item.status)) score += 15
-  if (item.current_wait_type) score += 10
-  return score
-}
-
 export function getWorklineRiskScore(item: RuntimeWorklineSummary): number {
   const safetyVerdict = getWorklineRuntimeVerdict(item)
   if (safetyVerdict.safetyLocked) return safetyVerdict.priority
@@ -335,26 +321,6 @@ export function getWorklineRiskLabel(item: RuntimeWorklineSummary): string {
   if (tone === 'warning') return '有等待堆积'
   if (tone === 'primary') return '正在运行'
   return '稳定'
-}
-
-export function getDeviceRiskScore(item: RuntimeDeviceSummary): number {
-  let score = item.pending_command_count * 3
-  if (item.device_status === 'ERROR') score += 80
-  if (item.device_status === 'OFFLINE') score += 90
-  if (item.maintenance_mode) score += 10
-  if (item.error_code) score += 15
-  return score
-}
-
-export function aggregateSessionsByDevice(sessions: RuntimeTraceListItem[]): Map<number, number> {
-  const counts = new Map<number, number>()
-
-  for (const session of sessions) {
-    if (session.device_id == null) continue
-    counts.set(session.device_id, (counts.get(session.device_id) ?? 0) + 1)
-  }
-
-  return counts
 }
 
 export function pickDominantValue(values: string[]): string {

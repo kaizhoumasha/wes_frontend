@@ -21,9 +21,6 @@
         v-if="sceneModel"
         :model="sceneModel"
         :selected-device-id="selectedDeviceId"
-        :session-counts-by-device="sessionCountsByDevice"
-        :trace-path-nodes="tracePathNodes"
-        :blocking-device-id="blockingDeviceId"
         @select-device="emit('selectDevice', $event)"
       />
     </el-card>
@@ -73,11 +70,7 @@ import DecisionStrip from '@/components/runtime/devices/DecisionStrip.vue'
 import RuntimeSceneMap from '@/components/runtime/monitor/RuntimeSceneMap.vue'
 import { useRuntimeSceneManifest } from '@/composables/useRuntimeSceneManifest'
 import type {
-  RuntimeTraceDevicePathNode,
-  RuntimeMonitorSessionItem,
-  RuntimeMonitorTraceItem,
   RuntimeWorklineMonitorProjectionResponse,
-  RuntimeMonitorDeviceNode,
   RuntimeWorklineSummary
 } from '@/types/runtime'
 import { buildRuntimeSceneModel } from '@/utils/runtime-scene'
@@ -94,30 +87,18 @@ const props = withDefaults(
   defineProps<{
     worklineSummary: RuntimeWorklineSummary
     worklineProjection?: RuntimeWorklineMonitorProjectionResponse | null
-    devices: RuntimeMonitorDeviceNode[]
-    activeSessions: (RuntimeMonitorSessionItem | RuntimeMonitorTraceItem)[]
-    recentFailedTraces: (RuntimeMonitorSessionItem | RuntimeMonitorTraceItem)[]
-    recentCompletedTraces?: (RuntimeMonitorSessionItem | RuntimeMonitorTraceItem)[]
     eventLogEntries?: MonitorEventLogEntry[]
     selectedDeviceId?: number | null
-    sessionCountsByDevice?: Map<number, number> | Record<number, number>
-    tracePathNodes?: RuntimeTraceDevicePathNode[]
-    blockingDeviceId?: number | null
   }>(),
   {
     worklineProjection: null,
-    recentCompletedTraces: () => [],
     eventLogEntries: () => [],
-    selectedDeviceId: null,
-    sessionCountsByDevice: undefined,
-    tracePathNodes: () => [],
-    blockingDeviceId: null
+    selectedDeviceId: null
   }
 )
 
 const emit = defineEmits<{
   selectDevice: [deviceId: number]
-  selectSession: [session: RuntimeMonitorSessionItem | RuntimeMonitorTraceItem]
 }>()
 
 const { manifest, error: manifestError, loadManifest } = useRuntimeSceneManifest()

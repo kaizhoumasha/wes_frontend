@@ -57,10 +57,6 @@ vi.mock('vue-router', () => ({
   useRouter: () => routerMock
 }))
 
-vi.mock('@/composables/useRuntimePageChrome', () => ({
-  useRuntimePageChrome: () => sseStoreMock
-}))
-
 vi.mock('@/composables/useDarkMode', () => ({
   useDarkMode: () => darkModeMock
 }))
@@ -76,12 +72,10 @@ vi.mock('@/composables/usePermission', () => ({
 }))
 
 vi.mock('@/utils/runtime-display', () => ({
-  aggregateSessionsByDevice: () => new Map(),
   compactEnumLabel: (value?: string | null) => value ?? '—',
   formatRuntimeDateTime: (value?: string | null) => value ?? '—',
   formatRuntimeDurationMs: (value?: number | null) => (value == null ? '—' : `${value} ms`),
   formatRuntimeElapsed: () => '1m',
-  getDeviceRiskScore: () => 0,
   getWorklineRiskLabel: () => 'stable',
   getWorklineRiskScore: () => 0,
   getWorklineRiskTone: () => 'success',

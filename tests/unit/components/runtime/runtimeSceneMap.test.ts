@@ -659,7 +659,7 @@ describe('RuntimeSceneMap', () => {
     expect(empty.text()).not.toContain('通用 evidence')
   })
 
-  it('marks the selected device and shows active session counts', () => {
+  it('marks the selected device and shows parked outbox signals', () => {
     const model = createSceneModel()
     model.deviceNodes = [
       {
@@ -670,14 +670,12 @@ describe('RuntimeSceneMap', () => {
     const wrapper = mount(RuntimeSceneMap, {
       props: {
         model,
-        selectedDeviceId: 101,
-        sessionCountsByDevice: new Map([[101, 3]])
+        selectedDeviceId: 101
       }
     })
 
     const device = wrapper.get('[data-test="runtime-scene-device"]')
     expect(device.classes()).toContain('is-selected')
-    expect(device.text()).toContain('3条等待')
     expect(device.text()).toContain('1 已停靠')
     expect(device.text()).not.toContain('未完成命令')
   })
@@ -712,13 +710,13 @@ describe('RuntimeSceneMap', () => {
     expect(device.classes()).toContain('has-parked-outbox')
     expect(wrapper.text()).toContain('维护')
     expect(device.text()).toContain('ERROR: DEVICE_FAULT')
-    expect(wrapper.get('[data-test="runtime-scene-device-open-command"]').text()).toContain(
+    expect(wrapper.get('[data-test="topology-device-open-command"]').text()).toContain(
       '2 未完成命令'
     )
-    expect(wrapper.get('[data-test="runtime-scene-device-runtime-hold"]').text()).toContain(
+    expect(wrapper.get('[data-test="topology-device-runtime-hold"]').text()).toContain(
       'Runtime Hold 1'
     )
-    expect(wrapper.get('[data-test="runtime-scene-device-parked-outbox"]').text()).toContain(
+    expect(wrapper.get('[data-test="topology-device-parked-outbox"]').text()).toContain(
       '1 已停靠'
     )
   })

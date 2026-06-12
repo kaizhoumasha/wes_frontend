@@ -9,11 +9,6 @@
  */
 
 import type { RuntimeSceneDeviceNode } from '@/utils/runtime-scene'
-import type {
-  RuntimeScenePositionGroup,
-  RuntimeSceneRackLayout,
-  RuntimeSceneRackSlot,
-} from '@/utils/runtime-scene'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -458,93 +453,4 @@ export function computeLinearLayout(
   const canvasHeight = config.paddingY * 2 + config.nodeHeight
 
   return { nodes, edges, canvasWidth, canvasHeight }
-}
-
-// ---------------------------------------------------------------------------
-// Rack Occupancy Summary (for mini matrix in device nodes)
-// ---------------------------------------------------------------------------
-
-export interface RackSlotMini {
-  code: string
-  state: 'empty' | 'occupied' | 'audit'
-}
-
-export interface RackOccupancySummary {
-  rackCode: string
-  totalSlots: number
-  occupiedSlots: number
-  auditSlots: number
-  slots: RackSlotMini[]
-}
-
-const MAX_DISPLAY_SLOTS = 8
-
-/**
- * Build a map from device ID to rack occupancy summary.
- * Matches position groups to devices via stationCode === deviceCode.
- */
-export function buildRackOccupancyByDevice(
-  devices: RuntimeSceneDeviceNode[],
-  positionGroups: RuntimeScenePositionGroup[]
-): Map<number, RackOccupancySummary> {
-  const result = new Map<number, RackOccupancySummary>()
-  if (devices.length === 0 || positionGroups.length === 0) return result
-
-  // Index devices by deviceCode for quick lookup
-  const deviceByCode = new Map<string, RuntimeSceneDeviceNode>()
-  for (const device of devices) {
-    deviceByCode.set(device.deviceCode, device)
-  }
-
-  // Collect all rack layouts per device
-  const layoutsByDevice = new Map<number, RuntimeSceneRackLayout[]>()
-
-  for (const group of positionGroups) {
-    const device = deviceByCode.get(group.stationCode)
-    if (!device) continue
-
-    const layouts = layoutsByDevice.get(device.id) ?? []
-    layouts.push(...group.rackLayouts)
-    layoutsByDevice.set(device.id, layouts)
-  }
-
-  // Build summary for each device with rack layouts
-  for (const [deviceId, layouts] of layoutsByDevice) {
-    const allSlots: RackSlotMini[] = []
-    let occupiedCount = 0
-    let auditCount = 0
-
-    for (const layout of layouts) {
-      for (const slot of layout.slots) {
-        const hasAudit = slot.auditItems.length > 0
-        const state = mapSlotState(slot, hasAudit)
-
-        allSlots.push({ code: slot.code, state })
-
-        if (state === 'occupied') occupiedCount++
-        if (state === 'audit') auditCount++
-      }
-    }
-
-    if (allSlots.length === 0) continue
-
-    result.set(deviceId, {
-      rackCode: layouts[0].rackCode,
-      totalSlots: allSlots.length,
-      occupiedSlots: occupiedCount,
-      auditSlots: auditCount,
-      slots: allSlots.slice(0, MAX_DISPLAY_SLOTS),
-    })
-  }
-
-  return result
-}
-
-function mapSlotState(
-  slot: RuntimeSceneRackSlot,
-  hasAudit: boolean
-): RackSlotMini['state'] {
-  if (hasAudit) return 'audit'
-  if (slot.state === 'occupied' || slot.state === 'material') return 'occupied'
-  return 'empty'
 }

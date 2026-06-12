@@ -48,13 +48,13 @@ describe('RuntimeSceneDeviceFlow', () => {
       ]
     })
 
-    expect(wrapper.get('[data-test="runtime-scene-device-open-command"]').text()).toBe(
+    expect(wrapper.get('[data-test="topology-device-open-command"]').text()).toBe(
       '2 未完成命令'
     )
-    expect(wrapper.get('[data-test="runtime-scene-device-runtime-hold"]').text()).toBe(
+    expect(wrapper.get('[data-test="topology-device-runtime-hold"]').text()).toBe(
       'Runtime Hold 1'
     )
-    expect(wrapper.get('[data-test="runtime-scene-device-parked-outbox"]').text()).toBe(
+    expect(wrapper.get('[data-test="topology-device-parked-outbox"]').text()).toBe(
       '1 已停靠'
     )
     expect(wrapper.text()).toContain('异常待处置')
@@ -136,18 +136,17 @@ describe('RuntimeSceneDeviceFlow', () => {
     ])
   })
 
-  it('does not turn parked outboxes and session counts into unfinished command copy', () => {
+  it('does not turn parked outboxes into unfinished command copy', () => {
     const wrapper = mountFlow({
       devices: [
         createDevice({
           blockedOutboxCount: 2
         })
-      ],
-      sessionCountsByDevice: { 101: 3 }
+      ]
     })
 
-    expect(wrapper.text()).toContain('3条等待')
-    expect(wrapper.get('[data-test="runtime-scene-device-parked-outbox"]').text()).toBe(
+    expect(wrapper.text()).toContain('等待设备空闲')
+    expect(wrapper.get('[data-test="topology-device-parked-outbox"]').text()).toBe(
       '2 已停靠'
     )
     expect(wrapper.text()).not.toContain('未完成命令')

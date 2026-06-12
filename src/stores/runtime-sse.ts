@@ -8,23 +8,13 @@ import {
   addStateListener,
   getConnectionState
 } from '@/api/services/sse-client'
-import { isRuntimeDomainAllowed } from '@/utils/runtime-event'
+import {
+  isRuntimeDomainAllowed,
+  isRuntimeSSEPayload,
+  type RuntimeSSEPayload
+} from '@/utils/runtime-event'
 import { ESTOPPED_RUNTIME_STATUS } from '@/constants/runtime-safety'
 import type { RuntimeTone } from '@/utils/runtime-display'
-
-export interface RuntimeSSEPayload {
-  domain?: string
-  entity?: string
-  action?: string
-  keys?: Record<string, unknown>
-  payload?: Record<string, unknown>
-}
-
-function isRuntimeSSEPayload(value: unknown): value is RuntimeSSEPayload {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
-  const p = value as RuntimeSSEPayload
-  return Boolean(p.domain || p.entity || p.action || p.keys)
-}
 
 const NOTIFICATION_COOLDOWN_MS = 60_000
 const STALE_THRESHOLD_MS = 15_000
