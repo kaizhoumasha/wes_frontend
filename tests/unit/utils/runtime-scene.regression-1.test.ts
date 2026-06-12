@@ -5,10 +5,24 @@ import type { RuntimeWorklineMonitorProjectionResponse, WorkLinePluginManifestSu
 const manifest: WorkLinePluginManifestSummary = {
   plugin_key: 'smt_sorting_inbound',
   contract_version: 'v1',
-  single_layer_boundaries: [
+  devices: [],
+  events: [],
+  commands: [],
+  positions: [
     {
-      station_role: 'TARGET',
+      code: 'TARGET_STATION',
+      role: 'TARGET',
       station_code: 'TARGET_STATION',
+      carrier_capability: {
+        min_capacity: 0,
+        max_capacity: 1,
+        allowed_rack_kinds: ['SINGLE_LAYER'],
+        allowed_slot_kinds: ['BIN_SLOT']
+      }
+    }
+  ],
+  resource_boundaries: [
+    {
       position_code: 'TARGET_STATION',
       rack_kind: 'SINGLE_LAYER',
       snapshot_kind: 'ACTIVE_BIN_RACK',
@@ -17,9 +31,15 @@ const manifest: WorkLinePluginManifestSummary = {
       wms_operation_type: 'RACK_MOVE'
     }
   ],
-  required_device_roles: [],
-  supported_events: [],
-  supported_commands: []
+  topology: {
+    flow_edges: [
+      {
+        type: 'material_flow',
+        from_node: { kind: 'device_role', ref: 'SORTING_NG_ARM' },
+        to_node: { kind: 'position', ref: 'TARGET_STATION' }
+      }
+    ]
+  }
 }
 
 function createProjection(): RuntimeWorklineMonitorProjectionResponse {

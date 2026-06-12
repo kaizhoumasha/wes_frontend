@@ -169,16 +169,16 @@
                 </span>
                 <div class="flex flex-wrap gap-2">
                   <el-tag
-                    v-for="ev in selectedPluginManifest?.supported_events"
-                    :key="ev"
+                    v-for="ev in selectedPluginEvents"
+                    :key="ev.event"
                     size="small"
                     type="info"
                     class="!bg-slate-900 !border-slate-850 !text-slate-300 font-mono"
                   >
-                    {{ ev }}
+                    {{ ev.event }}
                   </el-tag>
                   <span
-                    v-if="!selectedPluginManifest?.supported_events?.length"
+                    v-if="!selectedPluginEvents.length"
                     class="text-sm text-slate-500"
                   >
                     无
@@ -193,16 +193,16 @@
                 </span>
                 <div class="flex flex-wrap gap-2">
                   <el-tag
-                    v-for="cmd in selectedPluginManifest?.supported_commands"
-                    :key="cmd"
+                    v-for="cmd in selectedPluginCommands"
+                    :key="cmd.command"
                     size="small"
                     type="info"
                     class="!bg-slate-900 !border-slate-850 !text-slate-300 font-mono"
                   >
-                    {{ cmd }}
+                    {{ cmd.command }}
                   </el-tag>
                   <span
-                    v-if="!selectedPluginManifest?.supported_commands?.length"
+                    v-if="!selectedPluginCommands.length"
                     class="text-sm text-slate-500"
                   >
                     无
@@ -807,7 +807,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
@@ -836,6 +836,7 @@ type WorkLine = components['schemas']['WorkLineResponse']
 type WorkLineConfigurationStatus = components['schemas']['WorkLineConfigurationStatus']
 type Device = components['schemas']['DeviceResponse']
 type WorkLinePluginOption = components['schemas']['WorkLinePluginOption']
+type WorkLinePluginManifestSummary = components['schemas']['WorkLinePluginManifestSummary']
 type WorkLineUpdate = components['schemas']['WorkLineUpdate']
 
 interface WorkloadSummary {
@@ -872,6 +873,7 @@ const workline = ref<WorkLine | null>(null)
 const configStatus = ref<WorkLineConfigurationStatus | null>(null)
 const devicesList = ref<Device[]>([])
 const pluginOptions = ref<WorkLinePluginOption[]>([])
+const selectedPluginManifest = ref<WorkLinePluginManifestSummary | null>(null)
 
 // 设备直接绑定
 const bindDeviceDialogVisible = ref(false)
@@ -954,19 +956,16 @@ const runModeTagType = computed(() => {
   return 'info'
 })
 
-// 当前选中的插件定义
-const selectedPluginManifest = computed(() => {
-  const key = workline.value?.plugin_key
-  if (!key) return null
-  return pluginOptions.value.find(p => p.plugin_key === key) || null
-})
+// 当前选中的插件合同详情
+const selectedPluginEvents = computed(() => selectedPluginManifest.value?.events ?? [])
+const selectedPluginCommands = computed(() => selectedPluginManifest.value?.commands ?? [])
 
 // 设备角色覆盖数据构建
 const roleCoverageList = computed<RoleCoverageItem[]>(() => {
   const manifest = selectedPluginManifest.value
   if (!manifest) return []
 
-  const requiredRoles = manifest.required_device_roles || []
+  const requiredRoles = manifest.devices || []
   return requiredRoles.map(req => {
     // 过滤出绑定到当前角色与本工作线下的设备
     const boundDevices = devicesList.value.filter(d => d.device_role === req.role)
@@ -1072,6 +1071,35 @@ const checksList = computed(() => {
 })
 
 // 数据获取
+let manifestRequestSeq = 0
+
+async function loadSelectedPluginManifest(pluginKey: string | null | undefined) {
+  const requestSeq = ++manifestRequestSeq
+  selectedPluginManifest.value = null
+  if (!pluginKey) return
+
+  try {
+    const manifest = await worklineApiMethods.manifest({ plugin_key: pluginKey }).send()
+    if (requestSeq === manifestRequestSeq) {
+      selectedPluginManifest.value = manifest
+    }
+  } catch (error: unknown) {
+    if (requestSeq === manifestRequestSeq) {
+      selectedPluginManifest.value = null
+    }
+    const err = error as Error
+    console.error('加载插件合同详情失败:', err)
+    ElMessage.error(err.message || '加载插件合同详情失败')
+  }
+}
+
+watch(
+  () => [workline.value?.plugin_key ?? null, workline.value?.contract_version ?? null] as const,
+  ([pluginKey]) => {
+    void loadSelectedPluginManifest(pluginKey)
+  }
+)
+
 async function refreshData(isManual = false) {
   if (isManual) {
     refreshing.value = true

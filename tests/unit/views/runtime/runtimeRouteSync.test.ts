@@ -290,11 +290,12 @@ describe('runtime route sync', () => {
     worklinePluginManifestSend.mockResolvedValue({
       plugin_key: 'plugin-a',
       contract_version: 'v1',
-      required_device_roles: [{ role: 'scanner', min_count: 1 }],
-      event_source_roles: {},
-      command_target_roles: {},
-      supported_events: [],
-      supported_commands: []
+      devices: [{ role: 'scanner', min_count: 1, max_count: null, hardware_capabilities: [] }],
+      positions: [],
+      topology: { flow_edges: [] },
+      events: [],
+      commands: [],
+      resource_boundaries: []
     })
   })
 

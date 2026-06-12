@@ -8,9 +8,24 @@ import type {
   RuntimeMonitorDeviceNode,
   RuntimeWorklineMonitorProjectionResponse,
   RuntimeWorklineReadiness,
-  WorkLinePluginManifestSummary,
-  WorkLineSingleLayerRackBoundarySummary
+  WorkLinePluginManifestSummary
 } from '@/types/runtime'
+
+type RuntimeSceneManifestPosition = NonNullable<WorkLinePluginManifestSummary['positions']>[number]
+type RuntimeSceneManifestResourceBoundary = NonNullable<
+  WorkLinePluginManifestSummary['resource_boundaries']
+>[number]
+
+interface RuntimeSceneBoundarySummary {
+  station_role: string
+  station_code: string
+  position_code: string
+  rack_kind: string
+  snapshot_kind?: string | null
+  lease_scope: string
+  business_demand_type: string
+  wms_operation_type: string
+}
 
 export interface RuntimeSceneBoundary {
   key: string
@@ -342,7 +357,7 @@ export function buildRuntimeSceneModel(input: BuildRuntimeSceneModelInput): Runt
   const resourceEvidenceItems = Array.isArray(evidenceObj.items)
     ? (evidenceObj.items as RuntimeResourceEvidenceItem[])
     : []
-  const hasManifestBoundaries = Boolean(manifest?.single_layer_boundaries?.length)
+  const hasManifestBoundaries = Boolean(manifest?.resource_boundaries?.length)
   const hasRuntimeSceneSemantics =
     hasRuntimeSceneContractFields(projectionRecord) &&
     manifestLoadFailed === false &&
@@ -404,7 +419,7 @@ function resolveBoundaries(
   resourceEvidence: RuntimeSceneResourceEvidence[],
   hasRuntimeSceneSemantics: boolean
 ): RuntimeSceneBoundary[] {
-  const manifestBoundaries = manifest?.single_layer_boundaries ?? []
+  const manifestBoundaries = getManifestBoundarySummaries(manifest)
   if (manifestBoundaries.length > 0) {
     return manifestBoundaries.map(boundary =>
       toSceneBoundary(boundary, projection, hasRuntimeSceneSemantics)
@@ -416,11 +431,45 @@ function resolveBoundaries(
   )
 }
 
+function getManifestBoundarySummaries(
+  manifest: WorkLinePluginManifestSummary | null | undefined
+): RuntimeSceneBoundarySummary[] {
+  const resourceBoundaries = manifest?.resource_boundaries ?? []
+  if (resourceBoundaries.length === 0) return []
+
+  const positionsByCode = new Map<string, RuntimeSceneManifestPosition>(
+    (manifest?.positions ?? []).map(position => [position.code, position])
+  )
+
+  return resourceBoundaries.map(boundary =>
+    toBoundarySummary(boundary, positionsByCode.get(boundary.position_code))
+  )
+}
+
+function toBoundarySummary(
+  boundary: RuntimeSceneManifestResourceBoundary,
+  position: RuntimeSceneManifestPosition | undefined
+): RuntimeSceneBoundarySummary {
+  const stationRole = position?.role ?? boundary.position_code
+  const stationCode = position?.station_code ?? boundary.position_code
+
+  return {
+    station_role: stationRole,
+    station_code: stationCode,
+    position_code: boundary.position_code,
+    rack_kind: boundary.rack_kind,
+    snapshot_kind: boundary.snapshot_kind,
+    lease_scope: boundary.lease_scope,
+    business_demand_type: boundary.business_demand_type,
+    wms_operation_type: boundary.wms_operation_type
+  }
+}
+
 function getFallbackBoundarySummaries(
   resourceEvidence: RuntimeSceneResourceEvidence[]
-): WorkLineSingleLayerRackBoundarySummary[] {
+): RuntimeSceneBoundarySummary[] {
   const seenPhysicalPositionKeys = new Set<string>()
-  const boundaries: WorkLineSingleLayerRackBoundarySummary[] = []
+  const boundaries: RuntimeSceneBoundarySummary[] = []
 
   for (const item of resourceEvidence) {
     if (!item.positionCode) continue
@@ -448,7 +497,7 @@ function getFallbackBoundarySummaries(
 }
 
 function toSceneBoundary(
-  boundary: WorkLineSingleLayerRackBoundarySummary,
+  boundary: RuntimeSceneBoundarySummary,
   projection: RuntimeWorklineMonitorProjectionResponse,
   hasRuntimeSceneSemantics: boolean
 ): RuntimeSceneBoundary {
@@ -504,7 +553,7 @@ function toSceneBoundary(
   }
 }
 
-function getBoundaryKey(boundary: WorkLineSingleLayerRackBoundarySummary): string {
+function getBoundaryKey(boundary: RuntimeSceneBoundarySummary): string {
   return [
     normalizeRuntimeSceneDisplayRole(boundary.station_role),
     normalizeRuntimeSceneDisplayRole(boundary.station_code),
@@ -1422,8 +1471,8 @@ function getSemanticFallbackMessage(
   if (!hasRuntimeSceneContractFields(detail)) {
     return '运行态边界字段未加载，当前仅展示通用 evidence。'
   }
-  if (!manifest?.single_layer_boundaries?.length) {
-    return '插件边界 manifest 未加载，当前仅展示通用 evidence。'
+  if (!manifest?.resource_boundaries?.length) {
+    return '插件 resource boundaries manifest 未加载，当前仅展示通用 evidence。'
   }
   return null
 }
