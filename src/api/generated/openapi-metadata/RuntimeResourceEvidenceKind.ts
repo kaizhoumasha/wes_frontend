@@ -13,10 +13,12 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
 export const RuntimeResourceEvidenceKindMetadata = {
   "title": "RuntimeResourceEvidenceKind",
+  "description": "运行时资源证据来源类型，用于区分快照、回调和 Trace 证据。",
   "required": [],
   "fields": {
     "__enum": {
       "title": "RuntimeResourceEvidenceKind",
+      "description": "运行时资源证据来源类型，用于区分快照、回调和 Trace 证据。",
       "type": "string",
       "required": true,
       "nullable": false,

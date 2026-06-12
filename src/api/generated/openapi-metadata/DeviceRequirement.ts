@@ -1,5 +1,5 @@
 /**
- * 自动生成的 OpenAPI schema 字段元数据: DeviceRoleRequirementOption
+ * 自动生成的 OpenAPI schema 字段元数据: DeviceRequirement
  *
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
@@ -11,9 +11,9 @@
 
 import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
-export const DeviceRoleRequirementOptionMetadata = {
-  "title": "DeviceRoleRequirementOption",
-  "description": "设备角色要求明细。",
+export const DeviceRequirementMetadata = {
+  "title": "DeviceRequirement",
+  "description": "插件所需设备角色和数量/能力约束。",
   "required": [
     "role",
     "min_count"
@@ -40,9 +40,9 @@ export const DeviceRoleRequirementOptionMetadata = {
       "required": false,
       "nullable": true
     },
-    "capabilities": {
-      "title": "Capabilities",
-      "description": "要求能力声明",
+    "hardware_capabilities": {
+      "title": "Hardware Capabilities",
+      "description": "要求硬件能力声明",
       "type": "array",
       "required": false,
       "nullable": false,

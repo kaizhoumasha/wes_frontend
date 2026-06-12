@@ -13,10 +13,12 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
 export const RuntimeWorklineReadinessMetadata = {
   "title": "RuntimeWorklineReadiness",
+  "description": "产线启动准入与运行准备状态。",
   "required": [],
   "fields": {
     "__enum": {
       "title": "RuntimeWorklineReadiness",
+      "description": "产线启动准入与运行准备状态。",
       "type": "string",
       "required": true,
       "nullable": false,

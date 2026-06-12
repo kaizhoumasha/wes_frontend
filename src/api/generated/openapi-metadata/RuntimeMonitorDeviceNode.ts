@@ -1,5 +1,5 @@
 /**
- * 自动生成的 OpenAPI schema 字段元数据: RuntimeWorklineDeviceItem
+ * 自动生成的 OpenAPI schema 字段元数据: RuntimeMonitorDeviceNode
  *
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
@@ -11,8 +11,8 @@
 
 import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
-export const RuntimeWorklineDeviceItemMetadata = {
-  "title": "RuntimeWorklineDeviceItem",
+export const RuntimeMonitorDeviceNodeMetadata = {
+  "title": "RuntimeMonitorDeviceNode",
   "required": [
     "id",
     "device_code",
@@ -113,12 +113,6 @@ export const RuntimeWorklineDeviceItemMetadata = {
     "blocked_check_count": {
       "title": "Blocked Check Count",
       "type": "integer",
-      "required": false,
-      "nullable": true
-    },
-    "blocked_detail_json": {
-      "title": "Blocked Detail Json",
-      "type": "object",
       "required": false,
       "nullable": true
     },

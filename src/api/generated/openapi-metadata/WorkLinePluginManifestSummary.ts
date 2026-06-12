@@ -16,7 +16,8 @@ export const WorkLinePluginManifestSummaryMetadata = {
   "description": "单插件 manifest 摘要。",
   "required": [
     "plugin_key",
-    "contract_version"
+    "contract_version",
+    "topology"
   ],
   "fields": {
     "plugin_key": {
@@ -33,58 +34,60 @@ export const WorkLinePluginManifestSummaryMetadata = {
       "required": true,
       "nullable": false
     },
-    "required_device_roles": {
-      "title": "Required Device Roles",
-      "description": "必需设备角色",
+    "devices": {
+      "title": "Devices",
+      "description": "设备角色要求",
       "type": "array",
       "required": false,
       "nullable": false,
       "items": {
-        "ref": "DeviceRoleRequirementOption"
+        "ref": "DeviceRequirement"
       }
     },
-    "event_source_roles": {
-      "title": "Event Source Roles",
-      "description": "事件来源设备角色映射",
-      "type": "object",
-      "required": false,
-      "nullable": false
-    },
-    "command_target_roles": {
-      "title": "Command Target Roles",
-      "description": "命令目标设备角色映射",
-      "type": "object",
-      "required": false,
-      "nullable": false
-    },
-    "supported_events": {
-      "title": "Supported Events",
-      "description": "支持的事件",
+    "positions": {
+      "title": "Positions",
+      "description": "逻辑位置声明",
       "type": "array",
       "required": false,
       "nullable": false,
       "items": {
-        "type": "string"
+        "ref": "Position"
       }
     },
-    "supported_commands": {
-      "title": "Supported Commands",
-      "description": "支持的命令",
+    "topology": {
+      "description": "静态拓扑声明",
+      "required": true,
+      "nullable": false,
+      "ref": "TopologySpec"
+    },
+    "events": {
+      "title": "Events",
+      "description": "事件绑定",
       "type": "array",
       "required": false,
       "nullable": false,
       "items": {
-        "type": "string"
+        "ref": "EventBinding"
       }
     },
-    "single_layer_boundaries": {
-      "title": "Single Layer Boundaries",
-      "description": "插件声明的货架承接边界",
+    "commands": {
+      "title": "Commands",
+      "description": "命令绑定",
       "type": "array",
       "required": false,
       "nullable": false,
       "items": {
-        "ref": "WorkLineSingleLayerRackBoundarySummary"
+        "ref": "CommandBinding"
+      }
+    },
+    "resource_boundaries": {
+      "title": "Resource Boundaries",
+      "description": "资源边界",
+      "type": "array",
+      "required": false,
+      "nullable": false,
+      "items": {
+        "ref": "ResourceBoundary"
       }
     }
   }

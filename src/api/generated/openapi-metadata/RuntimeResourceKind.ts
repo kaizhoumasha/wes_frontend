@@ -13,10 +13,12 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
 export const RuntimeResourceKindMetadata = {
   "title": "RuntimeResourceKind",
+  "description": "运行时资源标识类型，用于统一料架、料盒、工位槽等资源编码。",
   "required": [],
   "fields": {
     "__enum": {
       "title": "RuntimeResourceKind",
+      "description": "运行时资源标识类型，用于统一料架、料盒、工位槽等资源编码。",
       "type": "string",
       "required": true,
       "nullable": false,

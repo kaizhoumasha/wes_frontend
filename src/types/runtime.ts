@@ -19,8 +19,7 @@ export type RuntimeStationLease = components['schemas']['RuntimeStationLease']
 export type TraceResourceEvidenceResponse = components['schemas']['TraceResourceEvidenceResponse']
 export type RuntimeWorklineReadiness = components['schemas']['RuntimeWorklineReadiness']
 export type WorkLinePluginManifestSummary = components['schemas']['WorkLinePluginManifestSummary']
-export type WorkLineSingleLayerRackBoundarySummary =
-  components['schemas']['WorkLineSingleLayerRackBoundarySummary']
+export type ResourceBoundary = components['schemas']['ResourceBoundary']
 
 export interface RuntimeHoldConflictModel {
   code?: string
@@ -578,22 +577,7 @@ export type RuntimeMonitorTraceItem = components['schemas']['RuntimeMonitorTrace
 export type RuntimeMonitorSessionItem = components['schemas']['RuntimeMonitorSessionItem']
 export type RuntimeMonitorReconciliationCandidate = components['schemas']['RuntimeMonitorReconciliationCandidate']
 
-export interface RuntimeSceneDeviceRoleRequirement {
-  role: string
-  min_count: number
-  max_count?: number | null
-  capabilities?: string[]
-}
-
-export interface RuntimeScenePluginManifestSummary {
-  plugin_key: string
-  contract_version?: string | null
-  required_device_roles?: RuntimeSceneDeviceRoleRequirement[]
-  event_source_roles?: Record<string, string[]>
-  command_target_roles?: Record<string, string[]>
-  supported_events?: string[]
-  supported_commands?: string[]
-}
+export type RuntimeScenePluginManifestSummary = WorkLinePluginManifestSummary
 
 export type RuntimeSceneNodeState = 'idle' | 'running' | 'waiting' | 'hold' | 'error'
 

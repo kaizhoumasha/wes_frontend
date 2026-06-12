@@ -13,10 +13,12 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
 export const RuntimeSingleLayerRackSnapshotMetadata = {
   "title": "RuntimeSingleLayerRackSnapshot",
+  "description": "单层料架快照状态，用于运行时资源视图诊断。",
   "required": [],
   "fields": {
     "__enum": {
       "title": "RuntimeSingleLayerRackSnapshot",
+      "description": "单层料架快照状态，用于运行时资源视图诊断。",
       "type": "string",
       "required": true,
       "nullable": false,

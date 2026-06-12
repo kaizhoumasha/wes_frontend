@@ -13,10 +13,12 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
 export const RuntimeStationLeaseMetadata = {
   "title": "RuntimeStationLease",
+  "description": "工站当前占用来源，用于判断是否可继续调度。",
   "required": [],
   "fields": {
     "__enum": {
       "title": "RuntimeStationLease",
+      "description": "工站当前占用来源，用于判断是否可继续调度。",
       "type": "string",
       "required": true,
       "nullable": false,

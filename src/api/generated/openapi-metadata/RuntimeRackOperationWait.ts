@@ -13,10 +13,12 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
 export const RuntimeRackOperationWaitMetadata = {
   "title": "RuntimeRackOperationWait",
+  "description": "料架操作等待状态，描述 WMS 回调与超时结果。",
   "required": [],
   "fields": {
     "__enum": {
       "title": "RuntimeRackOperationWait",
+      "description": "料架操作等待状态，描述 WMS 回调与超时结果。",
       "type": "string",
       "required": true,
       "nullable": false,

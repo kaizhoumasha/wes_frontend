@@ -89,6 +89,12 @@ export const RuntimeResourceEvidenceItemMetadata = {
       "required": false,
       "nullable": true
     },
+    "cell_code": {
+      "title": "Cell Code",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
     "pkg_code": {
       "title": "Pkg Code",
       "type": "string",
@@ -98,6 +104,40 @@ export const RuntimeResourceEvidenceItemMetadata = {
     "part_sn": {
       "title": "Part Sn",
       "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "material_code": {
+      "title": "Material Code",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "date_code": {
+      "title": "Date Code",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "lot_code": {
+      "title": "Lot Code",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "reel_count": {
+      "title": "Reel Count",
+      "required": false,
+      "nullable": true
+    },
+    "reel_code": {
+      "title": "Reel Code",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "position_index": {
+      "title": "Position Index",
       "required": false,
       "nullable": true
     },

@@ -50,36 +50,6 @@ export const WorkLinePluginOptionMetadata = {
       "type": "string",
       "required": true,
       "nullable": false
-    },
-    "required_device_roles": {
-      "title": "Required Device Roles",
-      "description": "必需设备角色",
-      "type": "array",
-      "required": false,
-      "nullable": false,
-      "items": {
-        "ref": "DeviceRoleRequirementOption"
-      }
-    },
-    "supported_events": {
-      "title": "Supported Events",
-      "description": "支持的事件",
-      "type": "array",
-      "required": false,
-      "nullable": false,
-      "items": {
-        "type": "string"
-      }
-    },
-    "supported_commands": {
-      "title": "Supported Commands",
-      "description": "支持的命令",
-      "type": "array",
-      "required": false,
-      "nullable": false,
-      "items": {
-        "type": "string"
-      }
     }
   }
 } satisfies OpenApiSchemaMetadata
