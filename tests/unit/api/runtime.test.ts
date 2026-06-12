@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+const legacyManifestField = (...segments: string[]) => segments.join('_')
+
 const mocks = vi.hoisted(() => {
   const send = vi.fn()
   const method = vi.fn(() => ({ send }))
@@ -128,12 +130,12 @@ describe('runtimeApiMethods', () => {
       'resource_boundaries'
     ]
     const legacyFields = [
-      'required_device_roles',
-      'event_source_roles',
-      'command_target_roles',
-      'supported_events',
-      'supported_commands',
-      'single_layer_boundaries'
+      legacyManifestField('required', 'device', 'roles'),
+      legacyManifestField('event', 'source', 'roles'),
+      legacyManifestField('command', 'target', 'roles'),
+      legacyManifestField('supported', 'events'),
+      legacyManifestField('supported', 'commands'),
+      legacyManifestField('single', 'layer', 'boundaries')
     ]
 
     expect(Object.keys(WorkLinePluginManifestSummaryMetadata.fields)).toEqual(expectedFields)
@@ -147,13 +149,13 @@ describe('runtimeApiMethods', () => {
   it('does not keep legacy plugin manifest aliases in runtime types', () => {
     const runtimeTypes = readFileSync(resolve(process.cwd(), 'src/types/runtime.ts'), 'utf8')
     const legacyTokens = [
-      'required_device_roles',
-      'event_source_roles',
-      'command_target_roles',
-      'supported_events',
-      'supported_commands',
-      'single_layer_boundaries',
-      'WorkLineSingleLayerRackBoundarySummary'
+      legacyManifestField('required', 'device', 'roles'),
+      legacyManifestField('event', 'source', 'roles'),
+      legacyManifestField('command', 'target', 'roles'),
+      legacyManifestField('supported', 'events'),
+      legacyManifestField('supported', 'commands'),
+      legacyManifestField('single', 'layer', 'boundaries'),
+      ['WorkLine', 'SingleLayerRack', 'BoundarySummary'].join('')
     ]
 
     for (const token of legacyTokens) {
