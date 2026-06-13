@@ -109,6 +109,23 @@ const SlotStub = defineComponent({
   }
 })
 
+const OptionStub = defineComponent({
+  name: 'OptionStub',
+  props: {
+    label: {
+      type: String,
+      default: ''
+    },
+    value: {
+      type: String,
+      default: ''
+    }
+  },
+  setup(props) {
+    return () => h('div', { class: 'el-option-stub' }, [props.label, props.value])
+  }
+})
+
 const ButtonStub = defineComponent({
   name: 'ButtonStub',
   emits: ['click'],
@@ -215,7 +232,7 @@ function mountPage() {
         ElForm: SlotStub,
         ElFormItem: SlotStub,
         ElInput: SlotStub,
-        ElOption: SlotStub,
+        ElOption: OptionStub,
         ElSelect: SlotStub,
         ElTable: ElTableStub,
         ElTableColumn: ElTableColumnStub,
@@ -232,6 +249,22 @@ async function flushPageUpdates() {
   await nextTick()
   await flushPromises()
   await nextTick()
+}
+
+async function mountLoadedPage() {
+  const wrapper = mountPage()
+  await flushPageUpdates()
+  return wrapper
+}
+
+function createDeferred<T>() {
+  let resolve!: (value: T) => void
+  let reject!: (reason?: unknown) => void
+  const promise = new Promise<T>((promiseResolve, promiseReject) => {
+    resolve = promiseResolve
+    reject = promiseReject
+  })
+  return { promise, resolve, reject }
 }
 
 describe('WorkLineConfigPage manifest detail', () => {
@@ -277,19 +310,50 @@ describe('WorkLineConfigPage manifest detail', () => {
     manifestSend.mockResolvedValue({ ...manifest })
   })
 
-  it('keeps plugin options selector-only while loading manifest detail for role, event, and command display', async () => {
-    const wrapper = mountPage()
-
-    await flushPageUpdates()
+  it('renders plugin option label and key when selector options contain no device roles', async () => {
+    const wrapper = await mountLoadedPage()
 
     expect(optionsSend).toHaveBeenCalledTimes(1)
+    expect(wrapper.text()).toContain('粗分线插件')
+    expect(wrapper.text()).toContain('rough_sorter')
+  })
+
+  it('loads selected plugin manifest detail by plugin_key', async () => {
+    await mountLoadedPage()
+
     expect(manifestSend).toHaveBeenCalledWith({ plugin_key: 'rough_sorter' })
-    expect(wrapper.text()).toContain('RACK_SCAN_COMPLETED')
-    expect(wrapper.text()).toContain('MOVE_RACK_TO_TARGET')
+  })
+
+  it('builds role coverage from manifest devices instead of plugin options', async () => {
+    const wrapper = await mountLoadedPage()
+
     expect(wrapper.text()).toContain('SOURCE_SCANNER')
     expect(wrapper.text()).toContain('TARGET_ARM')
     expect(wrapper.text()).toContain('SCAN-01')
     expect(wrapper.text()).toContain('ARM-01')
+  })
+
+  it('renders event tags from manifest events', async () => {
+    const wrapper = await mountLoadedPage()
+
+    expect(wrapper.text()).toContain('RACK_SCAN_COMPLETED')
+  })
+
+  it('renders command tags from manifest commands', async () => {
+    const wrapper = await mountLoadedPage()
+
+    expect(wrapper.text()).toContain('MOVE_RACK_TO_TARGET')
+  })
+
+  it('keeps the page usable when options only contain selector fields', async () => {
+    const wrapper = await mountLoadedPage()
+
+    expect(wrapper.text()).toContain('粗分线')
+    expect(wrapper.text()).toContain('WL-45')
+    expect(wrapper.text()).toContain('粗分线插件')
+    expect(wrapper.text()).toContain('SOURCE_SCANNER')
+    expect(wrapper.text()).toContain('RACK_SCAN_COMPLETED')
+    expect(wrapper.text()).toContain('MOVE_RACK_TO_TARGET')
   })
 
   it('keeps base status and device data available when manifest detail fails to load', async () => {
@@ -332,5 +396,127 @@ describe('WorkLineConfigPage manifest detail', () => {
     expect(manifestSend).toHaveBeenCalledTimes(1)
     expect(manifestSend).toHaveBeenCalledWith({ plugin_key: 'rough_sorter' })
     expect(wrapper.text()).toContain('v3')
+  })
+
+  it('does not reload manifest detail when manual refresh keeps the same plugin and contract', async () => {
+    const wrapper = await mountLoadedPage()
+
+    manifestSend.mockClear()
+    getByIdSend.mockResolvedValueOnce({
+      ...workline,
+      version: 4
+    })
+
+    const refreshButton = wrapper.findAll('button').find(button => button.text().includes('刷新状态'))
+    expect(refreshButton).toBeDefined()
+    await refreshButton!.trigger('click')
+    await flushPageUpdates()
+
+    expect(manifestSend).not.toHaveBeenCalled()
+  })
+
+  it('does not duplicate same-key manifest request while the current request is pending', async () => {
+    const pendingManifestRequest = createDeferred<WorkLinePluginManifestSummary>()
+    manifestSend.mockReturnValueOnce(pendingManifestRequest.promise)
+
+    const wrapper = mountPage()
+    await flushPageUpdates()
+
+    getByIdSend.mockResolvedValueOnce({
+      ...workline,
+      version: 4
+    })
+
+    const refreshButton = wrapper.findAll('button').find(button => button.text().includes('刷新状态'))
+    expect(refreshButton).toBeDefined()
+    await refreshButton!.trigger('click')
+    await flushPageUpdates()
+
+    expect(manifestSend).toHaveBeenCalledTimes(1)
+
+    pendingManifestRequest.resolve({ ...manifest })
+    await flushPageUpdates()
+
+    expect(wrapper.text()).toContain('RACK_SCAN_COMPLETED')
+    expect(elementPlusMocks.message.error).not.toHaveBeenCalled()
+  })
+
+  it('retries manifest detail on same-key manual refresh after a transient failure', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    manifestSend.mockRejectedValueOnce(new Error('transient manifest unavailable'))
+
+    try {
+      const wrapper = mountPage()
+      await flushPageUpdates()
+
+      expect(wrapper.text()).not.toContain('RACK_SCAN_COMPLETED')
+      expect(elementPlusMocks.message.error).toHaveBeenCalledWith(
+        'transient manifest unavailable'
+      )
+
+      manifestSend.mockClear()
+      elementPlusMocks.message.error.mockClear()
+      getByIdSend.mockResolvedValueOnce({
+        ...workline,
+        version: 4
+      })
+      manifestSend.mockResolvedValueOnce({ ...manifest })
+
+      const refreshButton = wrapper.findAll('button').find(button => button.text().includes('刷新状态'))
+      expect(refreshButton).toBeDefined()
+      await refreshButton!.trigger('click')
+      await flushPageUpdates()
+
+      expect(manifestSend).toHaveBeenCalledTimes(1)
+      expect(manifestSend).toHaveBeenCalledWith({ plugin_key: 'rough_sorter' })
+      expect(wrapper.text()).toContain('RACK_SCAN_COMPLETED')
+      expect(elementPlusMocks.message.error).not.toHaveBeenCalled()
+    } finally {
+      consoleErrorSpy.mockRestore()
+    }
+  })
+
+  it('does not show stale manifest errors after a newer manifest request succeeds', async () => {
+    const firstManifestRequest = createDeferred<WorkLinePluginManifestSummary>()
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    manifestSend
+      .mockReturnValueOnce(firstManifestRequest.promise)
+      .mockResolvedValueOnce({
+        ...manifest,
+        plugin_key: 'rough_sorter_v2',
+        contract_version: 'v3'
+      })
+
+    try {
+      const wrapper = mountPage()
+      await flushPageUpdates()
+
+      getByIdSend.mockResolvedValueOnce({
+        ...workline,
+        plugin_key: 'rough_sorter_v2',
+        contract_version: 'v3',
+        version: 4
+      })
+
+      const refreshButton = wrapper.findAll('button').find(button => button.text().includes('刷新状态'))
+      expect(refreshButton).toBeDefined()
+      await refreshButton!.trigger('click')
+      await flushPageUpdates()
+
+      firstManifestRequest.reject(new Error('stale manifest unavailable'))
+      await flushPageUpdates()
+
+      expect(manifestSend).toHaveBeenCalledTimes(2)
+      expect(wrapper.text()).toContain('v3')
+      expect(consoleErrorSpy).not.toHaveBeenCalledWith(
+        '加载插件合同详情失败:',
+        expect.any(Error)
+      )
+      expect(elementPlusMocks.message.error).not.toHaveBeenCalledWith(
+        'stale manifest unavailable'
+      )
+    } finally {
+      consoleErrorSpy.mockRestore()
+    }
   })
 })

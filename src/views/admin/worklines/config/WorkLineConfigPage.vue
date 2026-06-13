@@ -860,6 +860,8 @@ interface RoleCoverageItem {
   statusReason: string
 }
 
+type ManifestRequestStatus = 'idle' | 'loading' | 'success' | 'failed'
+
 // 路由与环境
 const route = useRoute()
 const router = useRouter()
@@ -1072,31 +1074,74 @@ const checksList = computed(() => {
 
 // 数据获取
 let manifestRequestSeq = 0
+const manifestRequestKey = ref<string | null>(null)
+const manifestRequestStatus = ref<ManifestRequestStatus>('idle')
 
-async function loadSelectedPluginManifest(pluginKey: string | null | undefined) {
+async function loadSelectedPluginManifest(
+  pluginKey: string | null | undefined,
+  lookupKey = selectedManifestLookupKey.value
+) {
+  if (
+    lookupKey &&
+    manifestRequestKey.value === lookupKey &&
+    manifestRequestStatus.value === 'loading'
+  ) {
+    return
+  }
+
   const requestSeq = ++manifestRequestSeq
+  manifestRequestKey.value = lookupKey
   selectedPluginManifest.value = null
-  if (!pluginKey) return
+  if (!pluginKey || !lookupKey) {
+    manifestRequestStatus.value = 'idle'
+    return
+  }
+
+  manifestRequestStatus.value = 'loading'
 
   try {
     const manifest = await worklineApiMethods.manifest({ plugin_key: pluginKey }).send()
-    if (requestSeq === manifestRequestSeq) {
+    if (requestSeq === manifestRequestSeq && manifestRequestKey.value === lookupKey) {
       selectedPluginManifest.value = manifest
+      manifestRequestStatus.value = 'success'
     }
   } catch (error: unknown) {
-    if (requestSeq === manifestRequestSeq) {
+    if (requestSeq === manifestRequestSeq && manifestRequestKey.value === lookupKey) {
       selectedPluginManifest.value = null
+      manifestRequestStatus.value = 'failed'
+      const err = error as Error
+      console.error('加载插件合同详情失败:', err)
+      ElMessage.error(err.message || '加载插件合同详情失败')
     }
-    const err = error as Error
-    console.error('加载插件合同详情失败:', err)
-    ElMessage.error(err.message || '加载插件合同详情失败')
   }
 }
 
+const selectedManifestLookupKey = computed(() => {
+  const pluginKey = workline.value?.plugin_key ?? null
+  if (!pluginKey) return null
+  return `${pluginKey}:${workline.value?.contract_version ?? ''}`
+})
+
 watch(
-  () => [workline.value?.plugin_key ?? null, workline.value?.contract_version ?? null] as const,
-  ([pluginKey]) => {
-    void loadSelectedPluginManifest(pluginKey)
+  () => ({
+    lookupKey: selectedManifestLookupKey.value,
+    pluginKey: workline.value?.plugin_key ?? null,
+    workline: workline.value,
+    requestKey: manifestRequestKey.value,
+    requestStatus: manifestRequestStatus.value
+  }),
+  (current, previous) => {
+    const lookupKeyChanged = current.lookupKey !== previous?.lookupKey
+    const shouldRetryMissingManifest =
+      Boolean(current.lookupKey) &&
+      current.lookupKey === previous?.lookupKey &&
+      current.requestKey === current.lookupKey &&
+      current.requestStatus === 'failed' &&
+      current.workline !== previous?.workline
+
+    if (lookupKeyChanged || shouldRetryMissingManifest) {
+      void loadSelectedPluginManifest(current.pluginKey, current.lookupKey)
+    }
   }
 )
 

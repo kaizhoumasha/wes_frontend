@@ -138,8 +138,22 @@ function manifestWithBoundaries(boundaries: BoundaryFixture[]): WorkLinePluginMa
     contract_version: 'v1',
     devices: [],
     events: [],
-    commands: [],
-    topology: { flow_edges: [] },
+    commands: [
+      {
+        command: 'PICK_AND_PUT',
+        target_device_role: 'TARGET_ARM',
+        payload_schema_ref: 'schemas/commands/pick-and-put.json',
+        position_args: [],
+        result_bindings: []
+      }
+    ],
+    topology: {
+      flow_edges: Array.from(positionsByCode.values()).map(boundary => ({
+        type: 'material_flow',
+        from_node: { kind: 'device_role', ref: boundary.station_role },
+        to_node: { kind: 'position', ref: boundary.position_code }
+      }))
+    },
     positions: Array.from(positionsByCode.values()).map(boundary => ({
       code: boundary.position_code,
       role: boundary.station_role,
@@ -188,6 +202,25 @@ describe('buildRuntimeSceneModel', () => {
         resourceEvidenceKindLabel: 'WMS 回调证据'
       })
     ])
+    expect(manifest.commands).toEqual([
+      expect.objectContaining({
+        command: 'PICK_AND_PUT',
+        position_args: []
+      })
+    ])
+    expect(manifest.topology?.flow_edges).toEqual([
+      expect.objectContaining({
+        type: 'material_flow',
+        from_node: { kind: 'device_role', ref: 'TARGET' },
+        to_node: { kind: 'position', ref: 'SINGLE_LAYER_A' }
+      })
+    ])
+    expect(model.positionGroups[0]).toEqual(
+      expect.objectContaining({
+        stationCode: 'TARGET_ARM',
+        positionCode: 'SINGLE_LAYER_A'
+      })
+    )
     expect(model.resourceEvidence).toEqual([
       expect.objectContaining({
         resourceKind: 'RACK',
@@ -1319,7 +1352,7 @@ describe('buildRuntimeSceneModel', () => {
     })
 
     expect(model.semanticFallback).toBe(true)
-    expect(model.semanticFallbackMessage).toContain('manifest 未加载')
+    expect(model.semanticFallbackMessage).toContain('manifest/resource boundaries')
     expect(model.boundaries[0]).toEqual(
       expect.objectContaining({
         stationLeaseLabel: 'Station lease：语义未加载',
@@ -1328,6 +1361,68 @@ describe('buildRuntimeSceneModel', () => {
         resourceEvidenceKindLabel: '通用 evidence'
       })
     )
+  })
+
+  it('does not derive boundaries from command position args when manifest resource boundaries are absent', () => {
+    const commandOnlyManifest = {
+      plugin_key: 'rough_sorter',
+      contract_version: 'v1',
+      devices: [],
+      events: [],
+      commands: [
+        {
+          command: 'MOVE_RACK_TO_TARGET',
+          target_device_role: 'TARGET_ARM',
+          payload_schema_ref: 'schemas/commands/move-rack-to-target.json',
+          position_args: [
+            {
+              name: 'target_position',
+              position_code: 'COMMAND_ONLY_POSITION',
+              rack_kind: 'SINGLE_LAYER'
+            }
+          ],
+          result_bindings: []
+        }
+      ],
+      positions: [
+        {
+          code: 'COMMAND_ONLY_POSITION',
+          role: 'TARGET_ARM',
+          station_code: 'TARGET_ARM',
+          carrier_capability: {
+            min_capacity: 0,
+            max_capacity: 1,
+            allowed_rack_kinds: ['SINGLE_LAYER'],
+            allowed_slot_kinds: ['BIN_SLOT']
+          }
+        }
+      ],
+      resource_boundaries: [],
+      topology: {
+        flow_edges: [
+          {
+            type: 'material_flow',
+            from_node: { kind: 'device_role', ref: 'TARGET_ARM' },
+            to_node: { kind: 'position', ref: 'COMMAND_ONLY_POSITION' }
+          }
+        ]
+      }
+    } as unknown as WorkLinePluginManifestSummary
+
+    const model = buildRuntimeSceneModel({
+      projection: createDetail({
+        resource_evidence_items: [],
+        resource_evidence_total_count: 0,
+        resource_evidence_truncated: false
+      }),
+      manifest: commandOnlyManifest
+    })
+
+    expect(model.semanticFallback).toBe(true)
+    expect(model.semanticFallbackMessage).toContain('manifest/resource boundaries')
+    expect(model.boundaries).toEqual([])
+    expect(model.positionGroups).toEqual([])
+    expect(JSON.stringify(model)).not.toContain('COMMAND_ONLY_POSITION')
   })
 
   it('keeps no-manifest station and position evidence in one fallback physical group', () => {

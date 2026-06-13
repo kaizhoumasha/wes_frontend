@@ -1472,7 +1472,7 @@ function getSemanticFallbackMessage(
     return '运行态边界字段未加载，当前仅展示通用 evidence。'
   }
   if (!manifest?.resource_boundaries?.length) {
-    return '插件 resource boundaries manifest 未加载，当前仅展示通用 evidence。'
+    return '插件 manifest/resource boundaries 未加载，当前仅展示通用 evidence。'
   }
   return null
 }
