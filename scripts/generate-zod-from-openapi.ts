@@ -68,8 +68,9 @@ interface PropertySchema {
 
 // ==================== 配置 ====================
 
+const DEFAULT_BACKEND_OPENAPI_URL = 'http://localhost:8001/api/openapi.json'
 const BACKEND_OPENAPI_URL =
-  process.env.BACKEND_OPENAPI_URL || 'http://localhost:8001/api/openapi.json'
+  process.env.BACKEND_OPENAPI_URL || DEFAULT_BACKEND_OPENAPI_URL
 const OUTPUT_DIR = join(__dirname, '../src/types/generated')
 const OUTPUT_FILE = join(OUTPUT_DIR, 'zod-schemas.ts')
 const SYNC_RECORD_FILE = join(__dirname, '../.contract-sync-record.json')
@@ -125,7 +126,7 @@ function writeSyncRecord(openApiData: Record<string, unknown>): boolean {
   const record: SyncRecord = {
     lastSyncTime: new Date().toISOString(),
     openApiHash: simpleHash(schemas),
-    backendUrl: BACKEND_OPENAPI_URL,
+    backendUrl: DEFAULT_BACKEND_OPENAPI_URL,
   }
   const changed = writeFileIfChanged(SYNC_RECORD_FILE, `${JSON.stringify(record, null, 2)}\n`)
   if (changed) {
@@ -534,7 +535,7 @@ async function main(): Promise<void> {
     const recordNeedsUpdate =
       !record ||
       record.openApiHash !== schemasHash ||
-      record.backendUrl !== BACKEND_OPENAPI_URL
+      record.backendUrl !== DEFAULT_BACKEND_OPENAPI_URL
     const syncRecordChanged = recordNeedsUpdate ? writeSyncRecord(openApiData) : false
 
     if (!fileChanged && !extensionChanged && !syncRecordChanged) {

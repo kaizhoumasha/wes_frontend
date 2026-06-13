@@ -23,6 +23,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 const ENUM_MARKER = '__enum'
+export const DEFAULT_BACKEND_OPENAPI_URL = 'http://localhost:8001/api/openapi.json'
 
 export const AUTO_GENERATED_START =
   '// ==================== AUTO GENERATED START ===================='
@@ -141,6 +142,7 @@ interface GeneratedOpenApiSchemaMetadata {
 
 interface Config {
   openApiSource: string
+  generatedOpenApiSourceLabel: string
   outputDir: string
   metadataOutputDir: string
   modulesOutputDir: string
@@ -166,8 +168,27 @@ function resolveOpenApiSource(): string {
   return filePath
 }
 
+export function resolveGeneratedOpenApiSourceLabel(openApiSource: string): string {
+  try {
+    const url = new URL(openApiSource)
+    const isLocalHost = ['localhost', '127.0.0.1', '::1'].includes(url.hostname)
+    const isOpenApiEndpoint = /\/api\/openapi\.json$/i.test(url.pathname)
+
+    if (isLocalHost && isOpenApiEndpoint) {
+      return DEFAULT_BACKEND_OPENAPI_URL
+    }
+  } catch {
+    return openApiSource
+  }
+
+  return openApiSource
+}
+
+const openApiSource = resolveOpenApiSource()
+
 const config: Config = {
-  openApiSource: resolveOpenApiSource(),
+  openApiSource,
+  generatedOpenApiSourceLabel: resolveGeneratedOpenApiSourceLabel(openApiSource),
   outputDir: join(__dirname, '../src/api/generated'),
   metadataOutputDir: join(__dirname, '../src/api/generated/openapi-metadata'),
   modulesOutputDir: join(__dirname, '../src/api/modules')
@@ -649,7 +670,7 @@ async function generateTypesFile(spec: unknown, outputPath: string): Promise<boo
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 后端 OpenAPI 端点: ${config.openApiSource}
+ * 后端 OpenAPI 端点: ${config.generatedOpenApiSourceLabel}
  *
  * 更新类型: pnpm generate:types
  */
@@ -813,7 +834,7 @@ function buildMetadataTypesTemplate(): string {
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 后端 OpenAPI 端点: ${config.openApiSource}
+ * 后端 OpenAPI 端点: ${config.generatedOpenApiSourceLabel}
  *
  * 更新类型: pnpm generate:types
  */
@@ -861,7 +882,7 @@ function buildMetadataModuleTemplate(plan: MetadataModulePlan): string {
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 后端 OpenAPI 端点: ${config.openApiSource}
+ * 后端 OpenAPI 端点: ${config.generatedOpenApiSourceLabel}
  *
  * 更新类型: pnpm generate:types
  */
@@ -883,7 +904,7 @@ function buildMetadataIndexTemplate(plans: MetadataModulePlan[]): string {
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 后端 OpenAPI 端点: ${config.openApiSource}
+ * 后端 OpenAPI 端点: ${config.generatedOpenApiSourceLabel}
  *
  * 更新类型: pnpm generate:types
  */
@@ -906,7 +927,7 @@ function buildMetadataEntryTemplate(): string {
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 后端 OpenAPI 端点: ${config.openApiSource}
+ * 后端 OpenAPI 端点: ${config.generatedOpenApiSourceLabel}
  *
  * 更新类型: pnpm generate:types
  */
