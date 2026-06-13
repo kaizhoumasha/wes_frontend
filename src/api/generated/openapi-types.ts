@@ -6532,19 +6532,19 @@ export interface components {
         };
         /**
          * Position
-         * @description 插件声明的逻辑位置。
+         * @description WES 管理的货架停靠位/库存事实锚点，不代表泛化物理位置。
          */
         Position: {
-            /** @description 位置承载能力 */
+            /** @description 货架停靠位承载能力 */
             carrier_capability: components["schemas"]["PositionCarrierCapability"];
             /**
              * Code
-             * @description 位置编码
+             * @description WES 管理货架停靠位编码，也是库存事实锚点编码
              */
             code: string;
             /**
              * Role
-             * @description 位置业务角色
+             * @description 货架停靠位业务角色
              */
             role: string;
             /**
@@ -6605,27 +6605,27 @@ export interface components {
         };
         /**
          * PositionCarrierCapability
-         * @description 位置可承载货架/槽位能力。
+         * @description WES 管理货架停靠位的货架/槽位承载能力。
          */
         PositionCarrierCapability: {
             /**
              * Allowed Rack Kinds
-             * @description 允许货架类型
+             * @description 停靠位允许承载的货架类型
              */
             allowed_rack_kinds?: string[];
             /**
              * Allowed Slot Kinds
-             * @description 允许槽位类型
+             * @description 停靠位允许承载的槽位类型
              */
             allowed_slot_kinds?: string[];
             /**
              * Max Capacity
-             * @description 最大容量限制
+             * @description 停靠位最大承载容量限制
              */
             max_capacity: number;
             /**
              * Min Capacity
-             * @description 最小容量限制
+             * @description 停靠位最小承载容量限制
              */
             min_capacity: number;
         };

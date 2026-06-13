@@ -2641,7 +2641,7 @@ export const PhysicalHandoffEvidenceInputSchema = z.object({
 
 
 /**
- * 插件声明的逻辑位置。
+ * WES 管理的货架停靠位/库存事实锚点，不代表泛化物理位置。
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
@@ -2653,7 +2653,7 @@ export const PositionSchema = z.object({
   role: z.string(),
   /** Station Code */
   station_code: z.string(),
-  /** 位置承载能力 */
+  /** 货架停靠位承载能力 */
   carrier_capability: z.lazy(() => PositionCarrierCapabilitySchema),
 })
 
@@ -2695,7 +2695,7 @@ export const PositionArgSourceSchema = z.object({
 
 
 /**
- * 位置可承载货架/槽位能力。
+ * WES 管理货架停靠位的货架/槽位承载能力。
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改

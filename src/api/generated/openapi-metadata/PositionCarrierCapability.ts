@@ -13,7 +13,7 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
 export const PositionCarrierCapabilityMetadata = {
   "title": "PositionCarrierCapability",
-  "description": "位置可承载货架/槽位能力。",
+  "description": "WES 管理货架停靠位的货架/槽位承载能力。",
   "required": [
     "min_capacity",
     "max_capacity"
@@ -21,7 +21,7 @@ export const PositionCarrierCapabilityMetadata = {
   "fields": {
     "allowed_rack_kinds": {
       "title": "Allowed Rack Kinds",
-      "description": "允许货架类型",
+      "description": "停靠位允许承载的货架类型",
       "type": "array",
       "required": false,
       "nullable": false,
@@ -31,21 +31,21 @@ export const PositionCarrierCapabilityMetadata = {
     },
     "min_capacity": {
       "title": "Min Capacity",
-      "description": "最小容量限制",
+      "description": "停靠位最小承载容量限制",
       "type": "integer",
       "required": true,
       "nullable": false
     },
     "max_capacity": {
       "title": "Max Capacity",
-      "description": "最大容量限制",
+      "description": "停靠位最大承载容量限制",
       "type": "integer",
       "required": true,
       "nullable": false
     },
     "allowed_slot_kinds": {
       "title": "Allowed Slot Kinds",
-      "description": "允许槽位类型",
+      "description": "停靠位允许承载的槽位类型",
       "type": "array",
       "required": false,
       "nullable": false,

@@ -13,7 +13,7 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
 export const PositionMetadata = {
   "title": "Position",
-  "description": "插件声明的逻辑位置。",
+  "description": "WES 管理的货架停靠位/库存事实锚点，不代表泛化物理位置。",
   "required": [
     "code",
     "role",
@@ -23,14 +23,14 @@ export const PositionMetadata = {
   "fields": {
     "code": {
       "title": "Code",
-      "description": "位置编码",
+      "description": "WES 管理货架停靠位编码，也是库存事实锚点编码",
       "type": "string",
       "required": true,
       "nullable": false
     },
     "role": {
       "title": "Role",
-      "description": "位置业务角色",
+      "description": "货架停靠位业务角色",
       "type": "string",
       "required": true,
       "nullable": false
@@ -43,7 +43,7 @@ export const PositionMetadata = {
       "nullable": false
     },
     "carrier_capability": {
-      "description": "位置承载能力",
+      "description": "货架停靠位承载能力",
       "required": true,
       "nullable": false,
       "ref": "PositionCarrierCapability"
