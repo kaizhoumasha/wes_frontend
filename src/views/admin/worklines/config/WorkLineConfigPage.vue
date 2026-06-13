@@ -410,9 +410,7 @@
               重新加载合同
             </el-button>
           </div>
-          <div
-            v-else-if="manifestRequestStatus === 'success' && selectedPluginManifest"
-          >
+          <div v-else-if="manifestRequestStatus === 'success' && selectedPluginManifest">
             <el-table
               :data="roleCoverageList"
               class="config-table"
@@ -575,7 +573,7 @@
             <div class="space-y-3.5 max-h-[360px] overflow-y-auto pr-1">
               <div
                 v-for="check in checksList"
-                :key="check.code"
+                :key="check.id"
                 class="flex gap-3 p-3 bg-slate-950 border border-slate-850 rounded text-sm transition hover:border-slate-800"
               >
                 <div class="mt-0.5">
@@ -1194,6 +1192,65 @@ function formatContractVersion(value: string | null | undefined) {
   return value || '未指定'
 }
 
+function isRackKindAllowed(
+  actual: string | null | undefined,
+  expected: string[] | null | undefined
+) {
+  return Boolean(actual && expected?.includes(actual))
+}
+
+// 后端会对 manifest 声明的逻辑位置逐项预检，失败时要保留位置、货架类型和容量等诊断上下文。
+// 否则多个同 code 的检查项会退化成泛化文案，无法判断是哪一个逻辑位置阻断激活。
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function describePositionCarrierCapability(status: string, context: any) {
+  const expectedRackKinds = formatList(context?.allowed_rack_kinds)
+  const expectedCapacity = `${context?.min_capacity ?? '未配置'}-${context?.max_capacity ?? '未配置'}`
+
+  if (status === 'PASS') {
+    return `已满足要求：货架 ${expectedRackKinds}，容量 ${context?.capacity ?? '未配置'}`
+  }
+
+  if (context?.missing_position_config) {
+    return `缺少位置配置：角色 ${context?.position_role || '未知'}，期望货架 ${expectedRackKinds}，容量 ${expectedCapacity}`
+  }
+
+  const details: string[] = []
+  if (!isRackKindAllowed(context?.allowed_rack_kind, context?.allowed_rack_kinds)) {
+    details.push(
+      `货架类型不匹配 (当前: ${context?.allowed_rack_kind || '未配置'}, 期望: ${expectedRackKinds})`
+    )
+  }
+
+  const capacity = typeof context?.capacity === 'number' ? context.capacity : null
+  const minCapacity = typeof context?.min_capacity === 'number' ? context.min_capacity : null
+  const maxCapacity = typeof context?.max_capacity === 'number' ? context.max_capacity : null
+  const capacityTooSmall = capacity !== null && minCapacity !== null && capacity < minCapacity
+  const capacityTooLarge = capacity !== null && maxCapacity !== null && capacity > maxCapacity
+  if (capacity === null || capacityTooSmall || capacityTooLarge) {
+    details.push(`容量不匹配 (当前: ${context?.capacity ?? '未配置'}, 期望: ${expectedCapacity})`)
+  }
+
+  return details.length ? details.join('；') : context?.message || '位置能力不满足插件要求'
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function describeCommandTargetCommunication(status: string, context: any) {
+  const commands = formatList(context?.command_types)
+  const endpoint =
+    context?.scheme && context?.host && context?.port
+      ? `${context.scheme}://${context.host}:${context.port}${context?.status_path || ''}`
+      : '未配置'
+
+  if (status === 'PASS') {
+    return `命令 ${commands} 的目标设备通讯配置完整，状态检查地址: ${endpoint}`
+  }
+
+  const missingFields = formatList(context?.missing_fields)
+  return context?.missing_fields?.length
+    ? `命令 ${commands} 的目标设备通讯配置缺失字段: ${missingFields}`
+    : `命令 ${commands} 的目标设备通讯配置不可用`
+}
+
 // 设备角色覆盖数据构建
 const roleCoverageList = computed<RoleCoverageItem[]>(() => {
   const manifest = selectedPluginManifest.value
@@ -1245,7 +1302,7 @@ const roleCoverageList = computed<RoleCoverageItem[]>(() => {
 // 预检项描述列表
 const checksList = computed(() => {
   const checks = configStatus.value?.checks || []
-  return checks.map(c => {
+  return checks.map((c, index) => {
     let title = '配置检查'
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const context = c.context as any
@@ -1293,9 +1350,23 @@ const checksList = computed(() => {
         c.status === 'PASS'
           ? '已绑定能接收该命令的设备'
           : `缺少设备支持接收该命令，关联角色: ${context?.roles?.join(', ')}`
+    } else if (c.code === 'COMMAND_TARGET_COMMUNICATION') {
+      title = `命令通讯: ${context?.device_code || '未知设备'}`
+      message = describeCommandTargetCommunication(c.status, context)
+    } else if (c.code === 'POSITION_CARRIER_CAPABILITY') {
+      title = `逻辑位置: ${context?.position_code || '未知位置'}`
+      message = describePositionCarrierCapability(c.status, context)
     }
+    const checkIdentity =
+      context?.role ||
+      context?.device_code ||
+      context?.event_type ||
+      context?.command_type ||
+      context?.position_code ||
+      index
 
     return {
+      id: `${c.code}:${checkIdentity}`,
       code: c.code,
       title,
       message,
