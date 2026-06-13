@@ -345,6 +345,17 @@ describe('WorkLineConfigPage manifest detail', () => {
     expect(wrapper.text()).toContain('MOVE_RACK_TO_TARGET')
   })
 
+  it('renders manifest positions, resource boundaries, and required hardware capabilities', async () => {
+    const wrapper = await mountLoadedPage()
+
+    expect(wrapper.text()).toContain('SOURCE_PORT')
+    expect(wrapper.text()).toContain('SOURCE_STATION')
+    expect(wrapper.text()).toContain('SINGLE_LAYER')
+    expect(wrapper.text()).toContain('ACTIVE_BIN_RACK')
+    expect(wrapper.text()).toContain('barcode.read')
+    expect(wrapper.text()).toContain('rack.move')
+  })
+
   it('keeps the page usable when options only contain selector fields', async () => {
     const wrapper = await mountLoadedPage()
 
@@ -369,9 +380,81 @@ describe('WorkLineConfigPage manifest detail', () => {
       expect(devicesQuerySend).toHaveBeenCalledTimes(1)
       expect(wrapper.text()).toContain('粗分线')
       expect(wrapper.text()).toContain('WL-45')
+      expect(wrapper.text()).toContain('插件合同加载失败')
+      expect(wrapper.text()).toContain('manifest unavailable')
+      expect(wrapper.text()).toContain('角色覆盖无法计算')
+      expect(wrapper.text()).toContain('重新加载合同')
       expect(wrapper.text()).not.toContain('RACK_SCAN_COMPLETED')
       expect(consoleErrorSpy).toHaveBeenCalledWith('加载插件合同详情失败:', expect.any(Error))
       expect(elementPlusMocks.message.error).toHaveBeenCalledWith('manifest unavailable')
+    } finally {
+      consoleErrorSpy.mockRestore()
+    }
+  })
+
+  it('shows failed state and clears stale manifest when contract versions do not match', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    manifestSend.mockResolvedValueOnce({
+      ...manifest,
+      contract_version: 'v1'
+    })
+
+    try {
+      const wrapper = await mountLoadedPage()
+
+      expect(wrapper.text()).toContain('插件合同版本不匹配')
+      expect(wrapper.text()).toContain('角色覆盖无法计算')
+      expect(wrapper.text()).not.toContain('RACK_SCAN_COMPLETED')
+      expect(wrapper.text()).not.toContain('MOVE_RACK_TO_TARGET')
+      expect(elementPlusMocks.message.error).toHaveBeenCalledWith(
+        expect.stringContaining('插件合同版本不匹配')
+      )
+    } finally {
+      consoleErrorSpy.mockRestore()
+    }
+  })
+
+  it('treats an empty workline contract version as a manifest version mismatch', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    getByIdSend.mockResolvedValueOnce({
+      ...workline,
+      contract_version: null
+    })
+
+    try {
+      const wrapper = await mountLoadedPage()
+
+      expect(wrapper.text()).toContain('插件合同版本不匹配')
+      expect(wrapper.text()).toContain('当前工作线需要 未指定')
+      expect(wrapper.text()).not.toContain('RACK_SCAN_COMPLETED')
+      expect(wrapper.text()).not.toContain('SOURCE_SCANNER')
+      expect(elementPlusMocks.message.error).toHaveBeenCalledWith(
+        expect.stringContaining('插件合同版本不匹配')
+      )
+    } finally {
+      consoleErrorSpy.mockRestore()
+    }
+  })
+
+  it('does not treat null and empty-string contract versions as equivalent', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    getByIdSend.mockResolvedValueOnce({
+      ...workline,
+      contract_version: null
+    })
+    manifestSend.mockResolvedValueOnce({
+      ...manifest,
+      contract_version: ''
+    })
+
+    try {
+      const wrapper = await mountLoadedPage()
+
+      expect(wrapper.text()).toContain('插件合同版本不匹配')
+      expect(wrapper.text()).toContain('当前工作线需要 未指定')
+      expect(wrapper.text()).toContain('返回合同为 未指定')
+      expect(wrapper.text()).not.toContain('RACK_SCAN_COMPLETED')
+      expect(wrapper.text()).not.toContain('SOURCE_SCANNER')
     } finally {
       consoleErrorSpy.mockRestore()
     }
@@ -387,8 +470,14 @@ describe('WorkLineConfigPage manifest detail', () => {
       contract_version: 'v3',
       version: 4
     })
+    manifestSend.mockResolvedValueOnce({
+      ...manifest,
+      contract_version: 'v3'
+    })
 
-    const refreshButton = wrapper.findAll('button').find(button => button.text().includes('刷新状态'))
+    const refreshButton = wrapper
+      .findAll('button')
+      .find(button => button.text().includes('刷新状态'))
     expect(refreshButton).toBeDefined()
     await refreshButton!.trigger('click')
     await flushPageUpdates()
@@ -407,7 +496,9 @@ describe('WorkLineConfigPage manifest detail', () => {
       version: 4
     })
 
-    const refreshButton = wrapper.findAll('button').find(button => button.text().includes('刷新状态'))
+    const refreshButton = wrapper
+      .findAll('button')
+      .find(button => button.text().includes('刷新状态'))
     expect(refreshButton).toBeDefined()
     await refreshButton!.trigger('click')
     await flushPageUpdates()
@@ -427,7 +518,9 @@ describe('WorkLineConfigPage manifest detail', () => {
       version: 4
     })
 
-    const refreshButton = wrapper.findAll('button').find(button => button.text().includes('刷新状态'))
+    const refreshButton = wrapper
+      .findAll('button')
+      .find(button => button.text().includes('刷新状态'))
     expect(refreshButton).toBeDefined()
     await refreshButton!.trigger('click')
     await flushPageUpdates()
@@ -450,9 +543,7 @@ describe('WorkLineConfigPage manifest detail', () => {
       await flushPageUpdates()
 
       expect(wrapper.text()).not.toContain('RACK_SCAN_COMPLETED')
-      expect(elementPlusMocks.message.error).toHaveBeenCalledWith(
-        'transient manifest unavailable'
-      )
+      expect(elementPlusMocks.message.error).toHaveBeenCalledWith('transient manifest unavailable')
 
       manifestSend.mockClear()
       elementPlusMocks.message.error.mockClear()
@@ -462,7 +553,9 @@ describe('WorkLineConfigPage manifest detail', () => {
       })
       manifestSend.mockResolvedValueOnce({ ...manifest })
 
-      const refreshButton = wrapper.findAll('button').find(button => button.text().includes('刷新状态'))
+      const refreshButton = wrapper
+        .findAll('button')
+        .find(button => button.text().includes('刷新状态'))
       expect(refreshButton).toBeDefined()
       await refreshButton!.trigger('click')
       await flushPageUpdates()
@@ -479,13 +572,11 @@ describe('WorkLineConfigPage manifest detail', () => {
   it('does not show stale manifest errors after a newer manifest request succeeds', async () => {
     const firstManifestRequest = createDeferred<WorkLinePluginManifestSummary>()
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
-    manifestSend
-      .mockReturnValueOnce(firstManifestRequest.promise)
-      .mockResolvedValueOnce({
-        ...manifest,
-        plugin_key: 'rough_sorter_v2',
-        contract_version: 'v3'
-      })
+    manifestSend.mockReturnValueOnce(firstManifestRequest.promise).mockResolvedValueOnce({
+      ...manifest,
+      plugin_key: 'rough_sorter_v2',
+      contract_version: 'v3'
+    })
 
     try {
       const wrapper = mountPage()
@@ -498,7 +589,9 @@ describe('WorkLineConfigPage manifest detail', () => {
         version: 4
       })
 
-      const refreshButton = wrapper.findAll('button').find(button => button.text().includes('刷新状态'))
+      const refreshButton = wrapper
+        .findAll('button')
+        .find(button => button.text().includes('刷新状态'))
       expect(refreshButton).toBeDefined()
       await refreshButton!.trigger('click')
       await flushPageUpdates()
@@ -508,13 +601,8 @@ describe('WorkLineConfigPage manifest detail', () => {
 
       expect(manifestSend).toHaveBeenCalledTimes(2)
       expect(wrapper.text()).toContain('v3')
-      expect(consoleErrorSpy).not.toHaveBeenCalledWith(
-        '加载插件合同详情失败:',
-        expect.any(Error)
-      )
-      expect(elementPlusMocks.message.error).not.toHaveBeenCalledWith(
-        'stale manifest unavailable'
-      )
+      expect(consoleErrorSpy).not.toHaveBeenCalledWith('加载插件合同详情失败:', expect.any(Error))
+      expect(elementPlusMocks.message.error).not.toHaveBeenCalledWith('stale manifest unavailable')
     } finally {
       consoleErrorSpy.mockRestore()
     }

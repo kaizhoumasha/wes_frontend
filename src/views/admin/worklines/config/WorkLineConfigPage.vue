@@ -160,55 +160,209 @@
               </el-descriptions-item>
             </el-descriptions>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-              <div class="bg-slate-950 p-4 border border-slate-850 rounded">
-                <span
-                  class="text-xs font-semibold text-slate-400 tracking-wider block mb-2 uppercase"
-                >
-                  支持的事件 (Events)
-                </span>
-                <div class="flex flex-wrap gap-2">
-                  <el-tag
-                    v-for="ev in selectedPluginEvents"
-                    :key="ev.event"
-                    size="small"
-                    type="info"
-                    class="!bg-slate-900 !border-slate-850 !text-slate-300 font-mono"
-                  >
-                    {{ ev.event }}
-                  </el-tag>
+            <div
+              v-if="manifestRequestStatus === 'loading'"
+              class="text-center py-6 text-slate-500"
+            >
+              插件合同加载中...
+            </div>
+            <div
+              v-else-if="manifestRequestStatus === 'failed'"
+              class="bg-rose-950/20 border border-rose-900/30 rounded p-4 text-sm"
+            >
+              <div class="font-semibold text-rose-400">插件合同加载失败</div>
+              <p class="text-rose-300/90 mt-2 leading-relaxed">
+                {{ manifestErrorMessage || '请重新加载插件合同。' }}
+              </p>
+              <el-button
+                size="small"
+                type="danger"
+                plain
+                class="mt-3 !bg-slate-950 !border-rose-900/50 !text-rose-300 hover:!bg-rose-950/30"
+                @click="retrySelectedPluginManifest"
+              >
+                <RefreshCw class="w-3.5 h-3.5 mr-1.5" />
+                重新加载合同
+              </el-button>
+            </div>
+            <div
+              v-else-if="manifestRequestStatus === 'success' && selectedPluginManifest"
+              class="space-y-4"
+            >
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                <div class="bg-slate-950 p-4 border border-slate-850 rounded">
                   <span
-                    v-if="!selectedPluginEvents.length"
-                    class="text-sm text-slate-500"
+                    class="text-xs font-semibold text-slate-400 tracking-wider block mb-2 uppercase"
                   >
-                    无
+                    支持的事件 (Events)
                   </span>
+                  <div class="flex flex-wrap gap-2">
+                    <el-tag
+                      v-for="ev in selectedPluginEvents"
+                      :key="ev.event"
+                      size="small"
+                      type="info"
+                      class="!bg-slate-900 !border-slate-850 !text-slate-300 font-mono"
+                    >
+                      {{ ev.event }}
+                    </el-tag>
+                    <span
+                      v-if="!selectedPluginEvents.length"
+                      class="text-sm text-slate-500"
+                    >
+                      无
+                    </span>
+                  </div>
+                </div>
+                <div class="bg-slate-950 p-4 border border-slate-850 rounded">
+                  <span
+                    class="text-xs font-semibold text-slate-400 tracking-wider block mb-2 uppercase"
+                  >
+                    支持的命令 (Commands)
+                  </span>
+                  <div class="flex flex-wrap gap-2">
+                    <el-tag
+                      v-for="cmd in selectedPluginCommands"
+                      :key="cmd.command"
+                      size="small"
+                      type="info"
+                      class="!bg-slate-900 !border-slate-850 !text-slate-300 font-mono"
+                    >
+                      {{ cmd.command }}
+                    </el-tag>
+                    <span
+                      v-if="!selectedPluginCommands.length"
+                      class="text-sm text-slate-500"
+                    >
+                      无
+                    </span>
+                  </div>
                 </div>
               </div>
+
               <div class="bg-slate-950 p-4 border border-slate-850 rounded">
                 <span
-                  class="text-xs font-semibold text-slate-400 tracking-wider block mb-2 uppercase"
+                  class="text-xs font-semibold text-slate-400 tracking-wider block mb-3 uppercase"
                 >
-                  支持的命令 (Commands)
+                  逻辑位置 (Positions)
                 </span>
-                <div class="flex flex-wrap gap-2">
-                  <el-tag
-                    v-for="cmd in selectedPluginCommands"
-                    :key="cmd.command"
-                    size="small"
-                    type="info"
-                    class="!bg-slate-900 !border-slate-850 !text-slate-300 font-mono"
+                <div
+                  v-if="selectedPluginPositions.length"
+                  class="space-y-3"
+                >
+                  <div
+                    v-for="position in selectedPluginPositions"
+                    :key="position.code"
+                    class="rounded border border-slate-850 bg-slate-900/60 p-3 text-sm"
                   >
-                    {{ cmd.command }}
-                  </el-tag>
-                  <span
-                    v-if="!selectedPluginCommands.length"
-                    class="text-sm text-slate-500"
-                  >
-                    无
-                  </span>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="font-mono font-semibold text-amber-400">
+                        {{ position.code }}
+                      </span>
+                      <el-tag
+                        size="small"
+                        type="info"
+                        class="!bg-slate-950 !border-slate-800 !text-slate-300 font-mono"
+                      >
+                        {{ position.role }}
+                      </el-tag>
+                    </div>
+                    <div
+                      class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-400"
+                    >
+                      <span>
+                        站点:
+                        <b class="font-mono text-slate-300">{{ position.station_code }}</b>
+                      </span>
+                      <span>
+                        容量范围:
+                        <b class="font-mono text-slate-300">
+                          {{ formatCapacityRange(position.carrier_capability) }}
+                        </b>
+                      </span>
+                      <span>
+                        货架类型:
+                        <b class="font-mono text-slate-300">
+                          {{ formatList(position.carrier_capability.allowed_rack_kinds) }}
+                        </b>
+                      </span>
+                      <span>
+                        槽位类型:
+                        <b class="font-mono text-slate-300">
+                          {{ formatList(position.carrier_capability.allowed_slot_kinds) }}
+                        </b>
+                      </span>
+                    </div>
+                  </div>
                 </div>
+                <span
+                  v-else
+                  class="text-sm text-slate-500"
+                >
+                  无
+                </span>
               </div>
+
+              <div class="bg-slate-950 p-4 border border-slate-850 rounded">
+                <span
+                  class="text-xs font-semibold text-slate-400 tracking-wider block mb-3 uppercase"
+                >
+                  资源边界 (Resource Boundaries)
+                </span>
+                <div
+                  v-if="selectedPluginResourceBoundaries.length"
+                  class="space-y-3"
+                >
+                  <div
+                    v-for="boundary in selectedPluginResourceBoundaries"
+                    :key="`${boundary.position_code}:${boundary.rack_kind}:${boundary.lease_scope}`"
+                    class="rounded border border-slate-850 bg-slate-900/60 p-3 text-xs text-slate-400"
+                  >
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
+                      <span>
+                        位置:
+                        <b class="font-mono text-slate-300">{{ boundary.position_code }}</b>
+                      </span>
+                      <span>
+                        货架:
+                        <b class="font-mono text-slate-300">{{ boundary.rack_kind }}</b>
+                      </span>
+                      <span>
+                        业务需求:
+                        <b class="font-mono text-slate-300">
+                          {{ boundary.business_demand_type }}
+                        </b>
+                      </span>
+                      <span>
+                        WMS 操作:
+                        <b class="font-mono text-slate-300">
+                          {{ boundary.wms_operation_type }}
+                        </b>
+                      </span>
+                      <span>
+                        快照:
+                        <b class="font-mono text-slate-300">{{ boundary.snapshot_kind }}</b>
+                      </span>
+                      <span>
+                        预占范围:
+                        <b class="font-mono text-slate-300">{{ boundary.lease_scope }}</b>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <span
+                  v-else
+                  class="text-sm text-slate-500"
+                >
+                  无
+                </span>
+              </div>
+            </div>
+            <div
+              v-else
+              class="text-center py-6 text-slate-500"
+            >
+              插件合同待加载。
             </div>
           </div>
         </el-card>
@@ -231,7 +385,34 @@
           >
             未配置插件，无角色拓扑需求。
           </div>
-          <div v-else>
+          <div
+            v-else-if="manifestRequestStatus === 'loading'"
+            class="text-center py-6 text-slate-500"
+          >
+            插件合同加载中，角色覆盖待计算。
+          </div>
+          <div
+            v-else-if="manifestRequestStatus === 'failed'"
+            class="bg-rose-950/20 border border-rose-900/30 rounded p-4 text-sm"
+          >
+            <div class="font-semibold text-rose-400">角色覆盖无法计算</div>
+            <p class="text-rose-300/90 mt-2 leading-relaxed">
+              {{ manifestErrorMessage || '插件合同加载失败，请重新加载合同。' }}
+            </p>
+            <el-button
+              size="small"
+              type="danger"
+              plain
+              class="mt-3 !bg-slate-950 !border-rose-900/50 !text-rose-300 hover:!bg-rose-950/30"
+              @click="retrySelectedPluginManifest"
+            >
+              <RefreshCw class="w-3.5 h-3.5 mr-1.5" />
+              重新加载合同
+            </el-button>
+          </div>
+          <div
+            v-else-if="manifestRequestStatus === 'success' && selectedPluginManifest"
+          >
             <el-table
               :data="roleCoverageList"
               class="config-table"
@@ -255,6 +436,31 @@
                   <span class="font-mono text-slate-300">
                     {{ row.min_count }}{{ row.max_count !== null ? `/${row.max_count}` : '+' }}
                   </span>
+                </template>
+              </el-table-column>
+
+              <el-table-column
+                label="要求能力"
+                min-width="180"
+              >
+                <template #default="{ row }">
+                  <div class="flex flex-wrap gap-2">
+                    <el-tag
+                      v-for="capability in row.hardware_capabilities"
+                      :key="capability"
+                      size="small"
+                      type="info"
+                      class="!bg-slate-950 !border-slate-850 !text-slate-300 font-mono"
+                    >
+                      {{ capability }}
+                    </el-tag>
+                    <span
+                      v-if="!row.hardware_capabilities.length"
+                      class="text-sm text-slate-500"
+                    >
+                      -
+                    </span>
+                  </div>
                 </template>
               </el-table-column>
 
@@ -333,6 +539,12 @@
                 </template>
               </el-table-column>
             </el-table>
+          </div>
+          <div
+            v-else
+            class="text-center py-6 text-slate-500"
+          >
+            插件合同待加载，角色覆盖待计算。
           </div>
         </el-card>
       </div>
@@ -855,6 +1067,7 @@ interface RoleCoverageItem {
   role: string
   min_count: number
   max_count: number | null
+  hardware_capabilities: string[]
   devices: Device[]
   status: string
   statusReason: string
@@ -876,6 +1089,7 @@ const configStatus = ref<WorkLineConfigurationStatus | null>(null)
 const devicesList = ref<Device[]>([])
 const pluginOptions = ref<WorkLinePluginOption[]>([])
 const selectedPluginManifest = ref<WorkLinePluginManifestSummary | null>(null)
+const manifestErrorMessage = ref('')
 
 // 设备直接绑定
 const bindDeviceDialogVisible = ref(false)
@@ -961,6 +1175,24 @@ const runModeTagType = computed(() => {
 // 当前选中的插件合同详情
 const selectedPluginEvents = computed(() => selectedPluginManifest.value?.events ?? [])
 const selectedPluginCommands = computed(() => selectedPluginManifest.value?.commands ?? [])
+const selectedPluginPositions = computed(() => selectedPluginManifest.value?.positions ?? [])
+const selectedPluginResourceBoundaries = computed(
+  () => selectedPluginManifest.value?.resource_boundaries ?? []
+)
+
+function formatList(values: string[] | null | undefined) {
+  return values?.length ? values.join(', ') : '无'
+}
+
+function formatCapacityRange(
+  carrierCapability: components['schemas']['PositionCarrierCapability']
+) {
+  return `${carrierCapability.min_capacity}-${carrierCapability.max_capacity}`
+}
+
+function formatContractVersion(value: string | null | undefined) {
+  return value || '未指定'
+}
 
 // 设备角色覆盖数据构建
 const roleCoverageList = computed<RoleCoverageItem[]>(() => {
@@ -1002,6 +1234,7 @@ const roleCoverageList = computed<RoleCoverageItem[]>(() => {
       role: req.role,
       min_count: req.min_count,
       max_count: req.max_count ?? null,
+      hardware_capabilities: req.hardware_capabilities ?? [],
       devices: boundDevices,
       status,
       statusReason
@@ -1092,6 +1325,7 @@ async function loadSelectedPluginManifest(
   const requestSeq = ++manifestRequestSeq
   manifestRequestKey.value = lookupKey
   selectedPluginManifest.value = null
+  manifestErrorMessage.value = ''
   if (!pluginKey || !lookupKey) {
     manifestRequestStatus.value = 'idle'
     return
@@ -1102,18 +1336,37 @@ async function loadSelectedPluginManifest(
   try {
     const manifest = await worklineApiMethods.manifest({ plugin_key: pluginKey }).send()
     if (requestSeq === manifestRequestSeq && manifestRequestKey.value === lookupKey) {
+      const expectedContractVersion = workline.value?.contract_version ?? null
+      const actualContractVersion = manifest.contract_version
+      if (actualContractVersion !== expectedContractVersion) {
+        const message = `插件合同版本不匹配：当前工作线需要 ${formatContractVersion(
+          expectedContractVersion
+        )}，返回合同为 ${formatContractVersion(actualContractVersion)}`
+        selectedPluginManifest.value = null
+        manifestRequestStatus.value = 'failed'
+        manifestErrorMessage.value = message
+        console.error('加载插件合同详情失败:', new Error(message))
+        ElMessage.error(message)
+        return
+      }
       selectedPluginManifest.value = manifest
       manifestRequestStatus.value = 'success'
+      manifestErrorMessage.value = ''
     }
   } catch (error: unknown) {
     if (requestSeq === manifestRequestSeq && manifestRequestKey.value === lookupKey) {
       selectedPluginManifest.value = null
       manifestRequestStatus.value = 'failed'
       const err = error as Error
+      manifestErrorMessage.value = err.message || '加载插件合同详情失败'
       console.error('加载插件合同详情失败:', err)
-      ElMessage.error(err.message || '加载插件合同详情失败')
+      ElMessage.error(manifestErrorMessage.value)
     }
   }
+}
+
+function retrySelectedPluginManifest() {
+  void loadSelectedPluginManifest(workline.value?.plugin_key, selectedManifestLookupKey.value)
 }
 
 const selectedManifestLookupKey = computed(() => {

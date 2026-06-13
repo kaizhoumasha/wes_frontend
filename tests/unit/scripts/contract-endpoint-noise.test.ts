@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
@@ -15,6 +15,16 @@ const OLD_MANIFEST_FIELDS = [
 const OLD_MANIFEST_FIELD_PATTERN = new RegExp(
   `(?<![A-Za-z0-9_])(${OLD_MANIFEST_FIELDS.join('|')})(?![A-Za-z0-9_])`
 )
+const WORKLINE_CONTRACT_DRIFT_FILES = [
+  'src/api/modules/workline.ts',
+  'src/api/generated/openapi-types.ts',
+  'src/api/generated/openapi-metadata/index.ts',
+  'src/types/generated/zod-schemas.ts',
+]
+const FORBIDDEN_WORKLINE_CONTRACT_DRIFT = [
+  '/api/v1/workline/inbound-handoff',
+  'SmtInboundHandoff',
+]
 
 describe('contract generation endpoint noise', () => {
   it('keeps generated API type source labels stable for local OpenAPI endpoints', async () => {
@@ -51,5 +61,24 @@ describe('contract generation endpoint noise', () => {
     expect(source).toContain('"events"')
     expect(source).toContain('"commands"')
     expect(source).toContain('"resource_boundaries"')
+  })
+
+  it('keeps unrelated SMT inbound handoff contracts out of generated workline sources', () => {
+    for (const filePath of WORKLINE_CONTRACT_DRIFT_FILES) {
+      const source = readFileSync(join(process.cwd(), filePath), 'utf-8')
+
+      for (const forbiddenContract of FORBIDDEN_WORKLINE_CONTRACT_DRIFT) {
+        expect(source, `${filePath} should not contain ${forbiddenContract}`).not.toContain(
+          forbiddenContract
+        )
+      }
+    }
+
+    const metadataFiles = readdirSync(
+      join(process.cwd(), 'src/api/generated/openapi-metadata')
+    )
+    expect(metadataFiles.filter(fileName => fileName.startsWith('SmtInboundHandoff'))).toEqual(
+      []
+    )
   })
 })
