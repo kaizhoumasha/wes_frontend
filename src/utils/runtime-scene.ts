@@ -11,7 +11,7 @@ import type {
   WorkLinePluginManifestSummary
 } from '@/types/runtime'
 
-type RuntimeSceneManifestPosition = NonNullable<WorkLinePluginManifestSummary['positions']>[number]
+type RuntimeSceneManifestRackPosition = NonNullable<WorkLinePluginManifestSummary['rack_positions']>[number]
 type RuntimeSceneManifestResourceBoundary = NonNullable<
   WorkLinePluginManifestSummary['resource_boundaries']
 >[number]
@@ -437,26 +437,26 @@ function getManifestBoundarySummaries(
   const resourceBoundaries = manifest?.resource_boundaries ?? []
   if (resourceBoundaries.length === 0) return []
 
-  const positionsByCode = new Map<string, RuntimeSceneManifestPosition>(
-    (manifest?.positions ?? []).map(position => [position.code, position])
+  const rackPositionsByCode = new Map<string, RuntimeSceneManifestRackPosition>(
+    (manifest?.rack_positions ?? []).map(rackPosition => [rackPosition.code, rackPosition])
   )
 
   return resourceBoundaries.map(boundary =>
-    toBoundarySummary(boundary, positionsByCode.get(boundary.position_code))
+    toBoundarySummary(boundary, rackPositionsByCode.get(boundary.rack_position_code))
   )
 }
 
 function toBoundarySummary(
   boundary: RuntimeSceneManifestResourceBoundary,
-  position: RuntimeSceneManifestPosition | undefined
+  rackPosition: RuntimeSceneManifestRackPosition | undefined
 ): RuntimeSceneBoundarySummary {
-  const stationRole = position?.role ?? boundary.position_code
-  const stationCode = position?.station_code ?? boundary.position_code
+  const stationRole = rackPosition?.role ?? boundary.rack_position_code
+  const stationCode = rackPosition?.station_code ?? boundary.rack_position_code
 
   return {
     station_role: stationRole,
     station_code: stationCode,
-    position_code: boundary.position_code,
+    position_code: boundary.rack_position_code,
     rack_kind: boundary.rack_kind,
     snapshot_kind: boundary.snapshot_kind,
     lease_scope: boundary.lease_scope,

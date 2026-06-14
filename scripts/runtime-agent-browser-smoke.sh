@@ -351,7 +351,7 @@ manifest = {
             "required": True,
         },
     ],
-    "positions": [
+    "rack_positions": [
         {
             "code": "SINGLE_LAYER_A",
             "role": "TARGET_ARM",
@@ -368,8 +368,8 @@ manifest = {
         "flow_edges": [
             {
                 "type": "material_flow",
-                "from_node": {"kind": "device_role", "ref": "SOURCE_ARM"},
-                "to_node": {"kind": "position", "ref": "SINGLE_LAYER_A"},
+                "from_node": {"kind": "DEVICE_ROLE", "ref": "SOURCE_ARM"},
+                "to_node": {"kind": "RACK_POSITION", "ref": "SINGLE_LAYER_A"},
             }
         ]
     },
@@ -377,7 +377,7 @@ manifest = {
     "commands": [],
     "resource_boundaries": [
         {
-            "position_code": "SINGLE_LAYER_A",
+            "rack_position_code": "SINGLE_LAYER_A",
             "rack_kind": "SINGLE_LAYER",
             "snapshot_kind": "ACTIVE_BIN_RACK",
             "lease_scope": "POSITION",
@@ -502,7 +502,7 @@ manifest = {
     "plugin_key": "smoke_fallback",
     "contract_version": "smoke-v1",
     "devices": [],
-    "positions": [],
+    "rack_positions": [],
     "topology": {
         "flow_edges": [],
     },

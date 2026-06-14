@@ -879,8 +879,8 @@ export const CommandBindingSchema = z.object({
   command: z.string(),
   /** Target Device Role */
   target_device_role: z.string(),
-  /** Position Args */
-  position_args: z.array(z.lazy(() => PositionArgSchema)).optional(),
+  /** Rack Position Args */
+  rack_position_args: z.array(z.lazy(() => RackPositionArgSchema)).optional(),
   /** Payload Schema Ref */
   payload_schema_ref: z.union([z.string(), z.null()]).optional(),
   /** Result Bindings */
@@ -2641,90 +2641,6 @@ export const PhysicalHandoffEvidenceInputSchema = z.object({
 
 
 /**
- * WES 管理的货架停靠位/库存事实锚点，不代表泛化物理位置。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const PositionSchema = z.object({
-  /** Code */
-  code: z.string(),
-  /** Role */
-  role: z.string(),
-  /** Station Code */
-  station_code: z.string(),
-  /** 货架停靠位承载能力 */
-  carrier_capability: z.lazy(() => PositionCarrierCapabilitySchema),
-})
-
-
-/**
- * 命令中的位置参数声明。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const PositionArgSchema = z.object({
-  /** Name */
-  name: z.string(),
-  /** Role */
-  role: z.string(),
-  /** Required */
-  required: z.boolean().optional().default(true),
-  /** Position Ref */
-  position_ref: z.union([z.string(), z.null()]).optional(),
-  /** 动态来源 */
-  source: z.union([z.lazy(() => PositionArgSourceSchema), z.null()]).optional(),
-})
-
-
-/**
- * 命令位置参数的动态解析来源。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const PositionArgSourceSchema = z.object({
-  /** Kind */
-  kind: z.string(),
-  /** Path */
-  path: z.string(),
-  /** Fallback Position Ref */
-  fallback_position_ref: z.union([z.string(), z.null()]).optional(),
-})
-
-
-/**
- * WES 管理货架停靠位的货架/槽位承载能力。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const PositionCarrierCapabilitySchema = z.object({
-  /** Allowed Rack Kinds */
-  allowed_rack_kinds: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
-        return val
-      }, z.array(z.string())).optional(),
-  /** Min Capacity */
-  min_capacity: z.number(),
-  /** Max Capacity */
-  max_capacity: z.number(),
-  /** Allowed Slot Kinds */
-  allowed_slot_kinds: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
-        return val
-      }, z.array(z.string())).optional(),
-})
-
-
-/**
  * 查询选项
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -2852,6 +2768,90 @@ export const RackPlacementResponseSchema = z.object({
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const RackPlacementStatusSchema = z.enum(["ARRIVED", "IN_TRANSIT", "DEPARTED", "UNKNOWN"])
+
+
+/**
+ * WES 管理的货架停靠位/库存事实锚点，不代表泛化物理位置。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const RackPositionSchema = z.object({
+  /** Code */
+  code: z.string(),
+  /** Role */
+  role: z.string(),
+  /** Station Code */
+  station_code: z.string(),
+  /** 货架停靠位承载能力 */
+  carrier_capability: z.lazy(() => RackPositionCarrierCapabilitySchema),
+})
+
+
+/**
+ * 命令中的货架位参数声明。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const RackPositionArgSchema = z.object({
+  /** Name */
+  name: z.string(),
+  /** Role */
+  role: z.string(),
+  /** Required */
+  required: z.boolean().optional().default(true),
+  /** Rack Position Ref */
+  rack_position_ref: z.union([z.string(), z.null()]).optional(),
+  /** 动态来源 */
+  source: z.union([z.lazy(() => RackPositionArgSourceSchema), z.null()]).optional(),
+})
+
+
+/**
+ * 命令货架位参数的动态解析来源。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const RackPositionArgSourceSchema = z.object({
+  /** Kind */
+  kind: z.string(),
+  /** Path */
+  path: z.string(),
+  /** Fallback Rack Position Ref */
+  fallback_rack_position_ref: z.union([z.string(), z.null()]).optional(),
+})
+
+
+/**
+ * WES 管理货架停靠位的货架/槽位承载能力。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const RackPositionCarrierCapabilitySchema = z.object({
+  /** Allowed Rack Kinds */
+  allowed_rack_kinds: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())).optional(),
+  /** Min Capacity */
+  min_capacity: z.number(),
+  /** Max Capacity */
+  max_capacity: z.number(),
+  /** Allowed Slot Kinds */
+  allowed_slot_kinds: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())).optional(),
+})
 
 
 /**
@@ -3117,8 +3117,8 @@ export const ResolveRuntimeReconciliationRequestSchema = z.object({
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const ResourceBoundarySchema = z.object({
-  /** Position Code */
-  position_code: z.string(),
+  /** Rack Position Code */
+  rack_position_code: z.string(),
   /** Rack Kind */
   rack_kind: z.string(),
   /** Business Demand Type */
@@ -4383,6 +4383,224 @@ export const SimulateWorkLineEstopRequestSchema = z.object({
 
 
 /**
+ * SMT 入库 handoff 手工动作响应。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const SmtInboundHandoffActionResponseSchema = z.object({
+  /** Id */
+  id: z.number(),
+  /** Status */
+  status: z.string(),
+  /** Available Actions */
+  available_actions: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())).optional(),
+})
+
+
+/**
+ * SMT 入库 handoff demand 详情投影。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const SmtInboundHandoffDemandDetailResponseSchema = z.object({
+  /** Id */
+  id: z.number(),
+  /** Demand Key */
+  demand_key: z.string(),
+  /** Rack Release Id */
+  rack_release_id: z.string(),
+  /** Source Workline Id */
+  source_workline_id: z.union([z.number(), z.null()]).optional(),
+  /** Source Workline Code */
+  source_workline_code: z.union([z.string(), z.null()]).optional(),
+  /** Target Workline Id */
+  target_workline_id: z.union([z.number(), z.null()]).optional(),
+  /** Target Workline Code */
+  target_workline_code: z.union([z.string(), z.null()]).optional(),
+  /** Single Layer Rack Code */
+  single_layer_rack_code: z.string(),
+  /** Release Reason Code */
+  release_reason_code: z.union([z.string(), z.null()]).optional(),
+  /** Decision Status */
+  decision_status: z.union([z.string(), z.null()]).optional(),
+  /** Handling Operation Key */
+  handling_operation_key: z.union([z.string(), z.null()]).optional(),
+  /** Sorting Source Demand Key */
+  sorting_source_demand_key: z.union([z.string(), z.null()]).optional(),
+  /** Status */
+  status: z.string(),
+  /** Failure Code */
+  failure_code: z.union([z.string(), z.null()]).optional(),
+  /** Failure Message */
+  failure_message: z.union([z.string(), z.null()]).optional(),
+  /** Trace Id */
+  trace_id: z.union([z.string(), z.null()]).optional(),
+  /** Item Status Counts */
+  item_status_counts: z.record(z.number()).optional(),
+  /** Handling Trace Summary */
+  handling_trace_summary: z.record(z.any()).optional(),
+  /** Claim Recovery Summary */
+  claim_recovery_summary: z.record(z.number()).optional(),
+  /** Available Actions */
+  available_actions: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())).optional(),
+  /** Release Snapshot */
+  release_snapshot: z.record(z.any()).optional(),
+  /** Source Items */
+  source_items: z.array(z.lazy(() => SmtInboundHandoffSourceItemDetailResponseSchema)).optional(),
+})
+
+
+/**
+ * SMT 入库 handoff demand 列表响应数据。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const SmtInboundHandoffDemandListResponseSchema = z.object({
+  /** Total */
+  total: z.number().min(0).optional().default(0),
+  /** Items */
+  items: z.array(z.lazy(() => SmtInboundHandoffDemandSummaryResponseSchema)).optional(),
+  /** Limit */
+  limit: z.number().min(1).optional().default(50),
+  /** Offset */
+  offset: z.number().min(0).optional().default(0),
+})
+
+
+/**
+ * SMT 入库 handoff demand 列表摘要投影。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const SmtInboundHandoffDemandSummaryResponseSchema = z.object({
+  /** Id */
+  id: z.number(),
+  /** Demand Key */
+  demand_key: z.string(),
+  /** Rack Release Id */
+  rack_release_id: z.string(),
+  /** Source Workline Id */
+  source_workline_id: z.union([z.number(), z.null()]).optional(),
+  /** Source Workline Code */
+  source_workline_code: z.union([z.string(), z.null()]).optional(),
+  /** Target Workline Id */
+  target_workline_id: z.union([z.number(), z.null()]).optional(),
+  /** Target Workline Code */
+  target_workline_code: z.union([z.string(), z.null()]).optional(),
+  /** Single Layer Rack Code */
+  single_layer_rack_code: z.string(),
+  /** Release Reason Code */
+  release_reason_code: z.union([z.string(), z.null()]).optional(),
+  /** Decision Status */
+  decision_status: z.union([z.string(), z.null()]).optional(),
+  /** Handling Operation Key */
+  handling_operation_key: z.union([z.string(), z.null()]).optional(),
+  /** Sorting Source Demand Key */
+  sorting_source_demand_key: z.union([z.string(), z.null()]).optional(),
+  /** Status */
+  status: z.string(),
+  /** Failure Code */
+  failure_code: z.union([z.string(), z.null()]).optional(),
+  /** Failure Message */
+  failure_message: z.union([z.string(), z.null()]).optional(),
+  /** Trace Id */
+  trace_id: z.union([z.string(), z.null()]).optional(),
+  /** Item Status Counts */
+  item_status_counts: z.record(z.number()).optional(),
+  /** Handling Trace Summary */
+  handling_trace_summary: z.record(z.any()).optional(),
+  /** Claim Recovery Summary */
+  claim_recovery_summary: z.record(z.number()).optional(),
+  /** Available Actions */
+  available_actions: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())).optional(),
+})
+
+
+/**
+ * SMT 入库 handoff source item 详情投影。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const SmtInboundHandoffSourceItemDetailResponseSchema = z.object({
+  /** Id */
+  id: z.number(),
+  /** Item Key */
+  item_key: z.union([z.string(), z.null()]).optional(),
+  /** Bin Code */
+  bin_code: z.union([z.string(), z.null()]).optional(),
+  /** Bin Cell Index */
+  bin_cell_index: z.union([z.number(), z.null()]).optional(),
+  /** Bin Cell Code */
+  bin_cell_code: z.union([z.string(), z.null()]).optional(),
+  /** Material Identity Key */
+  material_identity_key: z.union([z.string(), z.null()]).optional(),
+  /** Pkg Code */
+  pkg_code: z.union([z.string(), z.null()]).optional(),
+  /** Reel Thickness Mm */
+  reel_thickness_mm: z.union([z.string(), z.null()]).optional(),
+  /** Status */
+  status: z.string(),
+  /** Target Workline Id */
+  target_workline_id: z.union([z.number(), z.null()]).optional(),
+  /** Target Workline Code */
+  target_workline_code: z.union([z.string(), z.null()]).optional(),
+  /** Sorting Session Id */
+  sorting_session_id: z.union([z.number(), z.null()]).optional(),
+  /** Claim Attempt No */
+  claim_attempt_no: z.number().optional().default(1),
+  /** Source Pick Inbox Id */
+  source_pick_inbox_id: z.union([z.number(), z.null()]).optional(),
+  /** Source Pick Command Id */
+  source_pick_command_id: z.union([z.number(), z.null()]).optional(),
+  /** Source Pick Command Code */
+  source_pick_command_code: z.union([z.string(), z.null()]).optional(),
+  /** Source Pick Dispatch Key */
+  source_pick_dispatch_key: z.union([z.string(), z.null()]).optional(),
+  /** Failure Code */
+  failure_code: z.union([z.string(), z.null()]).optional(),
+  /** Failure Message */
+  failure_message: z.union([z.string(), z.null()]).optional(),
+  /** Source Pick Inbox */
+  source_pick_inbox: z.union([z.record(z.any()), z.null()]).optional(),
+  /** Source Pick Command */
+  source_pick_command: z.union([z.record(z.any()), z.null()]).optional(),
+  /** Source Pick Outbox */
+  source_pick_outbox: z.union([z.record(z.any()), z.null()]).optional(),
+  /** Available Actions */
+  available_actions: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())).optional(),
+})
+
+
+/**
  * 排序字段
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -5254,8 +5472,8 @@ export const WorkLinePluginManifestSummarySchema = z.object({
   contract_version: z.string(),
   /** Devices */
   devices: z.array(z.lazy(() => DeviceRequirementSchema)).optional(),
-  /** Positions */
-  positions: z.array(z.lazy(() => PositionSchema)).optional(),
+  /** Rack Positions */
+  rack_positions: z.array(z.lazy(() => RackPositionSchema)).optional(),
   /** 静态拓扑声明 */
   topology: z.lazy(() => TopologySpecSchema),
   /** Events */

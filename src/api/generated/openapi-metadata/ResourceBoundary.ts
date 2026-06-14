@@ -4,7 +4,7 @@
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 后端 OpenAPI 端点: http://localhost:8001/api/openapi.json
+ * 后端 OpenAPI 端点: http://127.0.0.1:8001/api/openapi.json
  *
  * 更新类型: pnpm generate:types
  */
@@ -15,7 +15,7 @@ export const ResourceBoundaryMetadata = {
   "title": "ResourceBoundary",
   "description": "插件声明的资源边界。",
   "required": [
-    "position_code",
+    "rack_position_code",
     "rack_kind",
     "business_demand_type",
     "wms_operation_type",
@@ -23,9 +23,9 @@ export const ResourceBoundaryMetadata = {
     "lease_scope"
   ],
   "fields": {
-    "position_code": {
-      "title": "Position Code",
-      "description": "WMS/RCS 约定的逻辑位置编码",
+    "rack_position_code": {
+      "title": "Rack Position Code",
+      "description": "manifest 货架停靠位编码",
       "type": "string",
       "required": true,
       "nullable": false

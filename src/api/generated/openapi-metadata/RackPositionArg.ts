@@ -1,19 +1,19 @@
 /**
- * 自动生成的 OpenAPI schema 字段元数据: PositionArg
+ * 自动生成的 OpenAPI schema 字段元数据: RackPositionArg
  *
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 后端 OpenAPI 端点: http://localhost:8001/api/openapi.json
+ * 后端 OpenAPI 端点: http://127.0.0.1:8001/api/openapi.json
  *
  * 更新类型: pnpm generate:types
  */
 
 import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
-export const PositionArgMetadata = {
-  "title": "PositionArg",
-  "description": "命令中的位置参数声明。",
+export const RackPositionArgMetadata = {
+  "title": "RackPositionArg",
+  "description": "命令中的货架位参数声明。",
   "required": [
     "name",
     "role"
@@ -41,9 +41,9 @@ export const PositionArgMetadata = {
       "nullable": false,
       "default": true
     },
-    "position_ref": {
-      "title": "Position Ref",
-      "description": "静态位置引用",
+    "rack_position_ref": {
+      "title": "Rack Position Ref",
+      "description": "静态货架位引用",
       "type": "string",
       "required": false,
       "nullable": true
@@ -52,7 +52,7 @@ export const PositionArgMetadata = {
       "description": "动态来源",
       "required": false,
       "nullable": true,
-      "ref": "PositionArgSource"
+      "ref": "RackPositionArgSource"
     }
   }
 } satisfies OpenApiSchemaMetadata

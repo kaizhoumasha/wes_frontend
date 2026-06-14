@@ -1,18 +1,18 @@
 /**
- * 自动生成的 OpenAPI schema 字段元数据: Position
+ * 自动生成的 OpenAPI schema 字段元数据: RackPosition
  *
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 后端 OpenAPI 端点: http://localhost:8001/api/openapi.json
+ * 后端 OpenAPI 端点: http://127.0.0.1:8001/api/openapi.json
  *
  * 更新类型: pnpm generate:types
  */
 
 import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
-export const PositionMetadata = {
-  "title": "Position",
+export const RackPositionMetadata = {
+  "title": "RackPosition",
   "description": "WES 管理的货架停靠位/库存事实锚点，不代表泛化物理位置。",
   "required": [
     "code",
@@ -46,7 +46,7 @@ export const PositionMetadata = {
       "description": "货架停靠位承载能力",
       "required": true,
       "nullable": false,
-      "ref": "PositionCarrierCapability"
+      "ref": "RackPositionCarrierCapability"
     }
   }
 } satisfies OpenApiSchemaMetadata

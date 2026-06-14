@@ -4,7 +4,7 @@
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 后端 OpenAPI 端点: http://localhost:8001/api/openapi.json
+ * 后端 OpenAPI 端点: http://127.0.0.1:8001/api/openapi.json
  *
  * 更新类型: pnpm generate:types
  */
@@ -44,14 +44,14 @@ export const WorkLinePluginManifestSummaryMetadata = {
         "ref": "DeviceRequirement"
       }
     },
-    "positions": {
-      "title": "Positions",
-      "description": "逻辑位置声明",
+    "rack_positions": {
+      "title": "Rack Positions",
+      "description": "货架停靠位声明",
       "type": "array",
       "required": false,
       "nullable": false,
       "items": {
-        "ref": "Position"
+        "ref": "RackPosition"
       }
     },
     "topology": {

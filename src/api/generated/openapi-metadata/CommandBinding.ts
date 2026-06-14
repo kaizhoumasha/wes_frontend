@@ -4,7 +4,7 @@
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 后端 OpenAPI 端点: http://localhost:8001/api/openapi.json
+ * 后端 OpenAPI 端点: http://127.0.0.1:8001/api/openapi.json
  *
  * 更新类型: pnpm generate:types
  */
@@ -33,14 +33,14 @@ export const CommandBindingMetadata = {
       "required": true,
       "nullable": false
     },
-    "position_args": {
-      "title": "Position Args",
-      "description": "位置参数声明",
+    "rack_position_args": {
+      "title": "Rack Position Args",
+      "description": "货架位参数声明",
       "type": "array",
       "required": false,
       "nullable": false,
       "items": {
-        "ref": "PositionArg"
+        "ref": "RackPositionArg"
       }
     },
     "payload_schema_ref": {

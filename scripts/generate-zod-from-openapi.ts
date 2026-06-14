@@ -68,7 +68,7 @@ interface PropertySchema {
 
 // ==================== 配置 ====================
 
-const DEFAULT_BACKEND_OPENAPI_URL = 'http://localhost:8001/api/openapi.json'
+const DEFAULT_BACKEND_OPENAPI_URL = 'http://127.0.0.1:8001/api/openapi.json'
 const BACKEND_OPENAPI_URL =
   process.env.BACKEND_OPENAPI_URL || DEFAULT_BACKEND_OPENAPI_URL
 const OUTPUT_DIR = join(__dirname, '../src/types/generated')

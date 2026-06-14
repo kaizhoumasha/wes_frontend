@@ -20,7 +20,8 @@ const __dirname = join(__filename, '..')
 
 // ==================== 配置 ====================
 
-const BACKEND_OPENAPI_URL = process.env.BACKEND_OPENAPI_URL || 'http://localhost:8001/api/openapi.json'
+const BACKEND_OPENAPI_URL =
+  process.env.BACKEND_OPENAPI_URL || 'http://127.0.0.1:8001/api/openapi.json'
 const SYNC_RECORD_FILE = join(__dirname, '../.contract-sync-record.json')
 const GENERATED_SCHEMA_FILE = join(__dirname, '../src/types/generated/zod-schemas.ts')
 

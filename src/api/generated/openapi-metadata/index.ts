@@ -4,7 +4,7 @@
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 后端 OpenAPI 端点: http://localhost:8001/api/openapi.json
+ * 后端 OpenAPI 端点: http://127.0.0.1:8001/api/openapi.json
  *
  * 更新类型: pnpm generate:types
  */
@@ -100,16 +100,16 @@ export { PermissionResponseMetadata } from './PermissionResponse'
 export { PermissionTreeMetadata } from './PermissionTree'
 export { PermissionUpdateMetadata } from './PermissionUpdate'
 export { PhysicalHandoffEvidenceInputMetadata } from './PhysicalHandoffEvidenceInput'
-export { PositionMetadata } from './Position'
-export { PositionArgMetadata } from './PositionArg'
-export { PositionArgSourceMetadata } from './PositionArgSource'
-export { PositionCarrierCapabilityMetadata } from './PositionCarrierCapability'
 export { QueryOptionsMetadata } from './QueryOptions'
 export { RackBinMountResponseMetadata } from './RackBinMountResponse'
 export { RackBinMountStatusMetadata } from './RackBinMountStatus'
 export { RackKindMetadata } from './RackKind'
 export { RackPlacementResponseMetadata } from './RackPlacementResponse'
 export { RackPlacementStatusMetadata } from './RackPlacementStatus'
+export { RackPositionMetadata } from './RackPosition'
+export { RackPositionArgMetadata } from './RackPositionArg'
+export { RackPositionArgSourceMetadata } from './RackPositionArgSource'
+export { RackPositionCarrierCapabilityMetadata } from './RackPositionCarrierCapability'
 export { RackResponseMetadata } from './RackResponse'
 export { RackSlotKindMetadata } from './RackSlotKind'
 export { RackSlotSideMetadata } from './RackSlotSide'
@@ -184,6 +184,11 @@ export { SandboxTemplatesResponseMetadata } from './SandboxTemplatesResponse'
 export { SandboxWorklineStartRequestMetadata } from './SandboxWorklineStartRequest'
 export { SessionInfoMetadata } from './SessionInfo'
 export { SimulateWorkLineEstopRequestMetadata } from './SimulateWorkLineEstopRequest'
+export { SmtInboundHandoffActionResponseMetadata } from './SmtInboundHandoffActionResponse'
+export { SmtInboundHandoffDemandDetailResponseMetadata } from './SmtInboundHandoffDemandDetailResponse'
+export { SmtInboundHandoffDemandListResponseMetadata } from './SmtInboundHandoffDemandListResponse'
+export { SmtInboundHandoffDemandSummaryResponseMetadata } from './SmtInboundHandoffDemandSummaryResponse'
+export { SmtInboundHandoffSourceItemDetailResponseMetadata } from './SmtInboundHandoffSourceItemDetailResponse'
 export { SortFieldMetadata } from './SortField'
 export { SortItemMetadata } from './SortItem'
 export { TopologySpecMetadata } from './TopologySpec'

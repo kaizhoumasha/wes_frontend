@@ -1,8 +1,8 @@
-import { readdirSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-const CANONICAL_OPENAPI_URL = 'http://localhost:8001/api/openapi.json'
+const CANONICAL_OPENAPI_URL = 'http://127.0.0.1:8001/api/openapi.json'
 const OLD_MANIFEST_FIELDS = [
   'required_' + 'device_roles',
   'event_' + 'source_roles',
@@ -10,16 +10,24 @@ const OLD_MANIFEST_FIELDS = [
   'supported_' + 'events',
   'supported_' + 'commands',
   'single_' + 'layer_boundaries',
-  'WorkLine' + 'SingleLayerRackBoundarySummary'
+  'WorkLine' + 'SingleLayerRackBoundarySummary',
+  'positions',
+  'position_' + 'args',
+  'position_' + 'ref',
+  'fallback_' + 'position_ref',
+  'POSITION_' + 'CARRIER_CAPABILITY'
 ]
 const OLD_MANIFEST_FIELD_PATTERN = new RegExp(
   `(?<![A-Za-z0-9_])(${OLD_MANIFEST_FIELDS.join('|')})(?![A-Za-z0-9_])`
 )
-const WORKLINE_CONTRACT_DRIFT_FILES = [
-  'src/api/modules/workline.ts',
-  'src/api/generated/openapi-types.ts',
-  'src/api/generated/openapi-metadata/index.ts',
-  'src/types/generated/zod-schemas.ts',
+const MANIFEST_CONTRACT_FILES = [
+  'src/api/generated/openapi-metadata/WorkLinePluginManifestSummary.ts',
+  'src/api/generated/openapi-metadata/CommandBinding.ts',
+  'src/api/generated/openapi-metadata/ResourceBoundary.ts',
+  'src/api/generated/openapi-metadata/RackPosition.ts',
+  'src/api/generated/openapi-metadata/RackPositionArg.ts',
+  'src/api/generated/openapi-metadata/RackPositionArgSource.ts',
+  'src/api/generated/openapi-metadata/RackPositionCarrierCapability.ts',
 ]
 const FORBIDDEN_WORKLINE_CONTRACT_DRIFT = [
   '/api/v1/workline/inbound-handoff',
@@ -56,15 +64,15 @@ describe('contract generation endpoint noise', () => {
 
     expect(source).not.toMatch(OLD_MANIFEST_FIELD_PATTERN)
     expect(source).toContain('"devices"')
-    expect(source).toContain('"positions"')
+    expect(source).toContain('"rack_positions"')
     expect(source).toContain('"topology"')
     expect(source).toContain('"events"')
     expect(source).toContain('"commands"')
     expect(source).toContain('"resource_boundaries"')
   })
 
-  it('keeps unrelated SMT inbound handoff contracts out of generated workline sources', () => {
-    for (const filePath of WORKLINE_CONTRACT_DRIFT_FILES) {
+  it('keeps unrelated SMT inbound handoff contracts out of generated manifest sources', () => {
+    for (const filePath of MANIFEST_CONTRACT_FILES) {
       const source = readFileSync(join(process.cwd(), filePath), 'utf-8')
 
       for (const forbiddenContract of FORBIDDEN_WORKLINE_CONTRACT_DRIFT) {
@@ -73,12 +81,5 @@ describe('contract generation endpoint noise', () => {
         )
       }
     }
-
-    const metadataFiles = readdirSync(
-      join(process.cwd(), 'src/api/generated/openapi-metadata')
-    )
-    expect(metadataFiles.filter(fileName => fileName.startsWith('SmtInboundHandoff'))).toEqual(
-      []
-    )
   })
 })

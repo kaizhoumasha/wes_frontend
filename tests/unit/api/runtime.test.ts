@@ -119,7 +119,7 @@ describe('runtimeApiMethods', () => {
       'plugin_key',
       'contract_version',
       'devices',
-      'positions',
+      'rack_positions',
       'topology',
       'events',
       'commands',

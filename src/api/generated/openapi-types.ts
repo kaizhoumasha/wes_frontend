@@ -4,7 +4,7 @@
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 后端 OpenAPI 端点: http://localhost:8001/api/openapi.json
+ * 后端 OpenAPI 端点: http://127.0.0.1:8001/api/openapi.json
  *
  * 更新类型: pnpm generate:types
  */
@@ -2434,6 +2434,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workline/inbound-handoff/demands": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:list] 查询 SMT 入库 handoff demand 列表 */
+        get: operations["workline_inbound_handoff_demands_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/inbound-handoff/demands/{demand_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:detail] 查询 SMT 入库 handoff demand 详情 */
+        get: operations["workline_inbound_handoff_demands_by_demand_id_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/inbound-handoff/source-items/{source_item_id}/actions/retry-source-pick": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [biz:workline:update] 重试 SMT 入库 handoff source-pick */
+        post: operations["workline_inbound_handoff_source_items_by_source_item_id_actions_retry_source_pick_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workline/integration-debug/cases/latest": {
         parameters: {
             query?: never;
@@ -4662,10 +4713,10 @@ export interface components {
              */
             payload_schema_ref?: string | null;
             /**
-             * Position Args
-             * @description 位置参数声明
+             * Rack Position Args
+             * @description 货架位参数声明
              */
-            position_args?: components["schemas"]["PositionArg"][];
+            rack_position_args?: components["schemas"]["RackPositionArg"][];
             /**
              * Result Bindings
              * @description 命令结果绑定
@@ -6480,105 +6531,6 @@ export interface components {
             ng_location_scan: string;
         };
         /**
-         * Position
-         * @description WES 管理的货架停靠位/库存事实锚点，不代表泛化物理位置。
-         */
-        Position: {
-            /** @description 货架停靠位承载能力 */
-            carrier_capability: components["schemas"]["PositionCarrierCapability"];
-            /**
-             * Code
-             * @description WES 管理货架停靠位编码，也是库存事实锚点编码
-             */
-            code: string;
-            /**
-             * Role
-             * @description 货架停靠位业务角色
-             */
-            role: string;
-            /**
-             * Station Code
-             * @description 插件内 station/工作位逻辑编码
-             */
-            station_code: string;
-        };
-        /**
-         * PositionArg
-         * @description 命令中的位置参数声明。
-         */
-        PositionArg: {
-            /**
-             * Name
-             * @description 参数名
-             */
-            name: string;
-            /**
-             * Position Ref
-             * @description 静态位置引用
-             */
-            position_ref?: string | null;
-            /**
-             * Required
-             * @description 是否必填
-             * @default true
-             */
-            required: boolean;
-            /**
-             * Role
-             * @description 参数业务角色
-             */
-            role: string;
-            /** @description 动态来源 */
-            source?: components["schemas"]["PositionArgSource"] | null;
-        };
-        /**
-         * PositionArgSource
-         * @description 命令位置参数的动态解析来源。
-         */
-        PositionArgSource: {
-            /**
-             * Fallback Position Ref
-             * @description 兜底静态位置引用
-             */
-            fallback_position_ref?: string | null;
-            /**
-             * Kind
-             * @description 参数来源类型
-             */
-            kind: string;
-            /**
-             * Path
-             * @description 参数来源路径
-             */
-            path: string;
-        };
-        /**
-         * PositionCarrierCapability
-         * @description WES 管理货架停靠位的货架/槽位承载能力。
-         */
-        PositionCarrierCapability: {
-            /**
-             * Allowed Rack Kinds
-             * @description 停靠位允许承载的货架类型
-             */
-            allowed_rack_kinds?: string[];
-            /**
-             * Allowed Slot Kinds
-             * @description 停靠位允许承载的槽位类型
-             */
-            allowed_slot_kinds?: string[];
-            /**
-             * Max Capacity
-             * @description 停靠位最大承载容量限制
-             */
-            max_capacity: number;
-            /**
-             * Min Capacity
-             * @description 停靠位最小承载容量限制
-             */
-            min_capacity: number;
-        };
-        /**
          * QueryOptions
          * @description 查询选项
          */
@@ -6780,6 +6732,105 @@ export interface components {
          * @enum {string}
          */
         RackPlacementStatus: "ARRIVED" | "IN_TRANSIT" | "DEPARTED" | "UNKNOWN";
+        /**
+         * RackPosition
+         * @description WES 管理的货架停靠位/库存事实锚点，不代表泛化物理位置。
+         */
+        RackPosition: {
+            /** @description 货架停靠位承载能力 */
+            carrier_capability: components["schemas"]["RackPositionCarrierCapability"];
+            /**
+             * Code
+             * @description WES 管理货架停靠位编码，也是库存事实锚点编码
+             */
+            code: string;
+            /**
+             * Role
+             * @description 货架停靠位业务角色
+             */
+            role: string;
+            /**
+             * Station Code
+             * @description 插件内 station/工作位逻辑编码
+             */
+            station_code: string;
+        };
+        /**
+         * RackPositionArg
+         * @description 命令中的货架位参数声明。
+         */
+        RackPositionArg: {
+            /**
+             * Name
+             * @description 参数名
+             */
+            name: string;
+            /**
+             * Rack Position Ref
+             * @description 静态货架位引用
+             */
+            rack_position_ref?: string | null;
+            /**
+             * Required
+             * @description 是否必填
+             * @default true
+             */
+            required: boolean;
+            /**
+             * Role
+             * @description 参数业务角色
+             */
+            role: string;
+            /** @description 动态来源 */
+            source?: components["schemas"]["RackPositionArgSource"] | null;
+        };
+        /**
+         * RackPositionArgSource
+         * @description 命令货架位参数的动态解析来源。
+         */
+        RackPositionArgSource: {
+            /**
+             * Fallback Rack Position Ref
+             * @description 兜底静态货架位引用
+             */
+            fallback_rack_position_ref?: string | null;
+            /**
+             * Kind
+             * @description 参数来源类型
+             */
+            kind: string;
+            /**
+             * Path
+             * @description 参数来源路径
+             */
+            path: string;
+        };
+        /**
+         * RackPositionCarrierCapability
+         * @description WES 管理货架停靠位的货架/槽位承载能力。
+         */
+        RackPositionCarrierCapability: {
+            /**
+             * Allowed Rack Kinds
+             * @description 停靠位允许承载的货架类型
+             */
+            allowed_rack_kinds?: string[];
+            /**
+             * Allowed Slot Kinds
+             * @description 停靠位允许承载的槽位类型
+             */
+            allowed_slot_kinds?: string[];
+            /**
+             * Max Capacity
+             * @description 停靠位最大承载容量限制
+             */
+            max_capacity: number;
+            /**
+             * Min Capacity
+             * @description 停靠位最小承载容量限制
+             */
+            min_capacity: number;
+        };
         /**
          * RackResponse
          * @description 货架实例响应 Schema。
@@ -7149,15 +7200,15 @@ export interface components {
              */
             lease_scope: string;
             /**
-             * Position Code
-             * @description WMS/RCS 约定的逻辑位置编码
-             */
-            position_code: string;
-            /**
              * Rack Kind
              * @description 承接货架类型
              */
             rack_kind: string;
+            /**
+             * Rack Position Code
+             * @description manifest 货架停靠位编码
+             */
+            rack_position_code: string;
             /**
              * Snapshot Kind
              * @description WES 需要读取的 active 快照类型
@@ -7400,6 +7451,12 @@ export interface components {
         ResponseSchemaModel_SandboxCleanupResponse_: ApiResponse<components["schemas"]["SandboxCleanupResponse"]>;
         /** ResponseSchemaModel[SandboxTemplatesResponse] */
         ResponseSchemaModel_SandboxTemplatesResponse_: ApiResponse<components["schemas"]["SandboxTemplatesResponse"]>;
+        /** ResponseSchemaModel[SmtInboundHandoffActionResponse] */
+        ResponseSchemaModel_SmtInboundHandoffActionResponse_: ApiResponse<components["schemas"]["SmtInboundHandoffActionResponse"]>;
+        /** ResponseSchemaModel[SmtInboundHandoffDemandDetailResponse] */
+        ResponseSchemaModel_SmtInboundHandoffDemandDetailResponse_: ApiResponse<components["schemas"]["SmtInboundHandoffDemandDetailResponse"]>;
+        /** ResponseSchemaModel[SmtInboundHandoffDemandListResponse] */
+        ResponseSchemaModel_SmtInboundHandoffDemandListResponse_: ApiResponse<components["schemas"]["SmtInboundHandoffDemandListResponse"]>;
         /** ResponseSchemaModel[TraceBlockingPointResponse] */
         ResponseSchemaModel_TraceBlockingPointResponse_: ApiResponse<components["schemas"]["TraceBlockingPointResponse"]>;
         /** ResponseSchemaModel[TraceDetailResponse] */
@@ -8748,6 +8805,212 @@ export interface components {
             source_device_id?: number | null;
         };
         /**
+         * SmtInboundHandoffActionResponse
+         * @description SMT 入库 handoff 手工动作响应。
+         */
+        SmtInboundHandoffActionResponse: {
+            /** Available Actions */
+            available_actions?: string[];
+            /** Id */
+            id: number;
+            /** Status */
+            status: string;
+        };
+        /**
+         * SmtInboundHandoffDemandDetailResponse
+         * @description SMT 入库 handoff demand 详情投影。
+         */
+        SmtInboundHandoffDemandDetailResponse: {
+            /** Available Actions */
+            available_actions?: string[];
+            /** Claim Recovery Summary */
+            claim_recovery_summary?: {
+                [key: string]: number;
+            };
+            /** Decision Status */
+            decision_status?: string | null;
+            /** Demand Key */
+            demand_key: string;
+            /** Failure Code */
+            failure_code?: string | null;
+            /** Failure Message */
+            failure_message?: string | null;
+            /** Handling Operation Key */
+            handling_operation_key?: string | null;
+            /** Handling Trace Summary */
+            handling_trace_summary?: {
+                [key: string]: unknown;
+            };
+            /** Id */
+            id: number;
+            /** Item Status Counts */
+            item_status_counts?: {
+                [key: string]: number;
+            };
+            /** Rack Release Id */
+            rack_release_id: string;
+            /** Release Reason Code */
+            release_reason_code?: string | null;
+            /** Release Snapshot */
+            release_snapshot?: {
+                [key: string]: unknown;
+            };
+            /** Single Layer Rack Code */
+            single_layer_rack_code: string;
+            /** Sorting Source Demand Key */
+            sorting_source_demand_key?: string | null;
+            /** Source Items */
+            source_items?: components["schemas"]["SmtInboundHandoffSourceItemDetailResponse"][];
+            /** Source Workline Code */
+            source_workline_code?: string | null;
+            /** Source Workline Id */
+            source_workline_id?: number | null;
+            /** Status */
+            status: string;
+            /** Target Workline Code */
+            target_workline_code?: string | null;
+            /** Target Workline Id */
+            target_workline_id?: number | null;
+            /** Trace Id */
+            trace_id?: string | null;
+        };
+        /**
+         * SmtInboundHandoffDemandListResponse
+         * @description SMT 入库 handoff demand 列表响应数据。
+         */
+        SmtInboundHandoffDemandListResponse: {
+            /** Items */
+            items?: components["schemas"]["SmtInboundHandoffDemandSummaryResponse"][];
+            /**
+             * Limit
+             * @default 50
+             */
+            limit: number;
+            /**
+             * Offset
+             * @default 0
+             */
+            offset: number;
+            /**
+             * Total
+             * @default 0
+             */
+            total: number;
+        };
+        /**
+         * SmtInboundHandoffDemandSummaryResponse
+         * @description SMT 入库 handoff demand 列表摘要投影。
+         */
+        SmtInboundHandoffDemandSummaryResponse: {
+            /** Available Actions */
+            available_actions?: string[];
+            /** Claim Recovery Summary */
+            claim_recovery_summary?: {
+                [key: string]: number;
+            };
+            /** Decision Status */
+            decision_status?: string | null;
+            /** Demand Key */
+            demand_key: string;
+            /** Failure Code */
+            failure_code?: string | null;
+            /** Failure Message */
+            failure_message?: string | null;
+            /** Handling Operation Key */
+            handling_operation_key?: string | null;
+            /** Handling Trace Summary */
+            handling_trace_summary?: {
+                [key: string]: unknown;
+            };
+            /** Id */
+            id: number;
+            /** Item Status Counts */
+            item_status_counts?: {
+                [key: string]: number;
+            };
+            /** Rack Release Id */
+            rack_release_id: string;
+            /** Release Reason Code */
+            release_reason_code?: string | null;
+            /** Single Layer Rack Code */
+            single_layer_rack_code: string;
+            /** Sorting Source Demand Key */
+            sorting_source_demand_key?: string | null;
+            /** Source Workline Code */
+            source_workline_code?: string | null;
+            /** Source Workline Id */
+            source_workline_id?: number | null;
+            /** Status */
+            status: string;
+            /** Target Workline Code */
+            target_workline_code?: string | null;
+            /** Target Workline Id */
+            target_workline_id?: number | null;
+            /** Trace Id */
+            trace_id?: string | null;
+        };
+        /**
+         * SmtInboundHandoffSourceItemDetailResponse
+         * @description SMT 入库 handoff source item 详情投影。
+         */
+        SmtInboundHandoffSourceItemDetailResponse: {
+            /** Available Actions */
+            available_actions?: string[];
+            /** Bin Cell Code */
+            bin_cell_code?: string | null;
+            /** Bin Cell Index */
+            bin_cell_index?: number | null;
+            /** Bin Code */
+            bin_code?: string | null;
+            /**
+             * Claim Attempt No
+             * @default 1
+             */
+            claim_attempt_no: number;
+            /** Failure Code */
+            failure_code?: string | null;
+            /** Failure Message */
+            failure_message?: string | null;
+            /** Id */
+            id: number;
+            /** Item Key */
+            item_key?: string | null;
+            /** Material Identity Key */
+            material_identity_key?: string | null;
+            /** Pkg Code */
+            pkg_code?: string | null;
+            /** Reel Thickness Mm */
+            reel_thickness_mm?: string | null;
+            /** Sorting Session Id */
+            sorting_session_id?: number | null;
+            /** Source Pick Command */
+            source_pick_command?: {
+                [key: string]: unknown;
+            } | null;
+            /** Source Pick Command Code */
+            source_pick_command_code?: string | null;
+            /** Source Pick Command Id */
+            source_pick_command_id?: number | null;
+            /** Source Pick Dispatch Key */
+            source_pick_dispatch_key?: string | null;
+            /** Source Pick Inbox */
+            source_pick_inbox?: {
+                [key: string]: unknown;
+            } | null;
+            /** Source Pick Inbox Id */
+            source_pick_inbox_id?: number | null;
+            /** Source Pick Outbox */
+            source_pick_outbox?: {
+                [key: string]: unknown;
+            } | null;
+            /** Status */
+            status: string;
+            /** Target Workline Code */
+            target_workline_code?: string | null;
+            /** Target Workline Id */
+            target_workline_id?: number | null;
+        };
+        /**
          * SortField
          * @description 排序字段
          * @example {
@@ -9790,10 +10053,10 @@ export interface components {
              */
             plugin_key: string;
             /**
-             * Positions
-             * @description 逻辑位置声明
+             * Rack Positions
+             * @description 货架停靠位声明
              */
-            positions?: components["schemas"]["Position"][];
+            rack_positions?: components["schemas"]["RackPosition"][];
             /**
              * Resource Boundaries
              * @description 资源边界
@@ -14387,6 +14650,101 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_inbound_handoff_demands_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                status?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_SmtInboundHandoffDemandListResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_inbound_handoff_demands_by_demand_id_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                demand_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_SmtInboundHandoffDemandDetailResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_inbound_handoff_source_items_by_source_item_id_actions_retry_source_pick_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_SmtInboundHandoffActionResponse_"];
                 };
             };
             /** @description Validation Error */

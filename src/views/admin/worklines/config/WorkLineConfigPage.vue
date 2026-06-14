@@ -244,14 +244,14 @@
                 <span
                   class="text-xs font-semibold text-slate-400 tracking-wider block mb-3 uppercase"
                 >
-                  逻辑位置 (Positions)
+                  货架位 (Rack Positions)
                 </span>
                 <div
-                  v-if="selectedPluginPositions.length"
+                  v-if="selectedPluginRackPositions.length"
                   class="space-y-3"
                 >
                   <div
-                    v-for="position in selectedPluginPositions"
+                    v-for="position in selectedPluginRackPositions"
                     :key="position.code"
                     class="rounded border border-slate-850 bg-slate-900/60 p-3 text-sm"
                   >
@@ -315,13 +315,13 @@
                 >
                   <div
                     v-for="boundary in selectedPluginResourceBoundaries"
-                    :key="`${boundary.position_code}:${boundary.rack_kind}:${boundary.lease_scope}`"
+                    :key="`${boundary.rack_position_code}:${boundary.rack_kind}:${boundary.lease_scope}`"
                     class="rounded border border-slate-850 bg-slate-900/60 p-3 text-xs text-slate-400"
                   >
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
                       <span>
-                        位置:
-                        <b class="font-mono text-slate-300">{{ boundary.position_code }}</b>
+                        货架位:
+                        <b class="font-mono text-slate-300">{{ boundary.rack_position_code }}</b>
                       </span>
                       <span>
                         货架:
@@ -1173,7 +1173,9 @@ const runModeTagType = computed(() => {
 // 当前选中的插件合同详情
 const selectedPluginEvents = computed(() => selectedPluginManifest.value?.events ?? [])
 const selectedPluginCommands = computed(() => selectedPluginManifest.value?.commands ?? [])
-const selectedPluginPositions = computed(() => selectedPluginManifest.value?.positions ?? [])
+const selectedPluginRackPositions = computed(
+  () => selectedPluginManifest.value?.rack_positions ?? []
+)
 const selectedPluginResourceBoundaries = computed(
   () => selectedPluginManifest.value?.resource_boundaries ?? []
 )
@@ -1183,7 +1185,7 @@ function formatList(values: string[] | null | undefined) {
 }
 
 function formatCapacityRange(
-  carrierCapability: components['schemas']['PositionCarrierCapability']
+  carrierCapability: components['schemas']['RackPositionCarrierCapability']
 ) {
   return `${carrierCapability.min_capacity}-${carrierCapability.max_capacity}`
 }
@@ -1199,10 +1201,10 @@ function isRackKindAllowed(
   return Boolean(actual && expected?.includes(actual))
 }
 
-// 后端会对 manifest 声明的逻辑位置逐项预检，失败时要保留位置、货架类型和容量等诊断上下文。
-// 否则多个同 code 的检查项会退化成泛化文案，无法判断是哪一个逻辑位置阻断激活。
+// 后端会对 manifest 声明的货架位逐项预检，失败时要保留货架位、货架类型和容量等诊断上下文。
+// 否则多个同 code 的检查项会退化成泛化文案，无法判断是哪一个货架位阻断激活。
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function describePositionCarrierCapability(status: string, context: any) {
+function describeRackPositionCarrierCapability(status: string, context: any) {
   const expectedRackKinds = formatList(context?.allowed_rack_kinds)
   const expectedCapacity = `${context?.min_capacity ?? '未配置'}-${context?.max_capacity ?? '未配置'}`
 
@@ -1210,13 +1212,13 @@ function describePositionCarrierCapability(status: string, context: any) {
     return `已满足要求：货架 ${expectedRackKinds}，容量 ${context?.capacity ?? '未配置'}`
   }
 
-  if (context?.missing_position_config) {
-    return `缺少位置配置：角色 ${context?.position_role || '未知'}，期望货架 ${expectedRackKinds}，容量 ${expectedCapacity}`
+  if (context?.missing_rack_position_config) {
+    return `缺少货架位配置：角色 ${context?.rack_position_role || '未知'}，期望货架 ${expectedRackKinds}，容量 ${expectedCapacity}`
   }
 
   const details: string[] = []
   if (context?.enabled === false) {
-    details.push('位置未启用 (请先启用该逻辑位置)')
+    details.push('货架位未启用 (请先启用该货架位)')
   }
 
   if (!isRackKindAllowed(context?.allowed_rack_kind, context?.allowed_rack_kinds)) {
@@ -1234,7 +1236,7 @@ function describePositionCarrierCapability(status: string, context: any) {
     details.push(`容量不匹配 (当前: ${context?.capacity ?? '未配置'}, 期望: ${expectedCapacity})`)
   }
 
-  return details.length ? details.join('；') : context?.message || '位置能力不满足插件要求'
+  return details.length ? details.join('；') : context?.message || '货架位能力不满足插件要求'
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1253,6 +1255,10 @@ function describeCommandTargetCommunication(status: string, context: any) {
   return context?.missing_fields?.length
     ? `命令 ${commands} 的目标设备通讯配置缺失字段: ${missingFields}`
     : `命令 ${commands} 的目标设备通讯配置不可用`
+}
+
+function isRackPositionCarrierCapabilityCheck(code: string) {
+  return code === 'RACK_POSITION_CARRIER_CAPABILITY' || code === 'POSITION_CARRIER_CAPABILITY'
 }
 
 // 设备角色覆盖数据构建
@@ -1357,16 +1363,16 @@ const checksList = computed(() => {
     } else if (c.code === 'COMMAND_TARGET_COMMUNICATION') {
       title = `命令通讯: ${context?.device_code || '未知设备'}`
       message = describeCommandTargetCommunication(c.status, context)
-    } else if (c.code === 'POSITION_CARRIER_CAPABILITY') {
-      title = `逻辑位置: ${context?.position_code || '未知位置'}`
-      message = describePositionCarrierCapability(c.status, context)
+    } else if (isRackPositionCarrierCapabilityCheck(c.code)) {
+      title = `货架位: ${context?.rack_position_code || '未知货架位'}`
+      message = describeRackPositionCarrierCapability(c.status, context)
     }
     const checkIdentity =
       context?.role ||
       context?.device_code ||
       context?.event_type ||
       context?.command_type ||
-      context?.position_code ||
+      context?.rack_position_code ||
       index
 
     return {

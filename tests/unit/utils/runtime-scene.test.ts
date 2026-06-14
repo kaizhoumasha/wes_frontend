@@ -126,10 +126,10 @@ const baseBoundary: BoundaryFixture = {
 }
 
 function manifestWithBoundaries(boundaries: BoundaryFixture[]): WorkLinePluginManifestSummary {
-  const positionsByCode = new Map<string, BoundaryFixture>()
+  const rackPositionsByCode = new Map<string, BoundaryFixture>()
   for (const boundary of boundaries) {
-    if (!positionsByCode.has(boundary.position_code)) {
-      positionsByCode.set(boundary.position_code, boundary)
+    if (!rackPositionsByCode.has(boundary.position_code)) {
+      rackPositionsByCode.set(boundary.position_code, boundary)
     }
   }
 
@@ -143,18 +143,18 @@ function manifestWithBoundaries(boundaries: BoundaryFixture[]): WorkLinePluginMa
         command: 'PICK_AND_PUT',
         target_device_role: 'TARGET_ARM',
         payload_schema_ref: 'schemas/commands/pick-and-put.json',
-        position_args: [],
+        rack_position_args: [],
         result_bindings: []
       }
     ],
     topology: {
-      flow_edges: Array.from(positionsByCode.values()).map(boundary => ({
+      flow_edges: Array.from(rackPositionsByCode.values()).map(boundary => ({
         type: 'material_flow',
-        from_node: { kind: 'device_role', ref: boundary.station_role },
-        to_node: { kind: 'position', ref: boundary.position_code }
+        from_node: { kind: 'DEVICE_ROLE', ref: boundary.station_role },
+        to_node: { kind: 'RACK_POSITION', ref: boundary.position_code }
       }))
     },
-    positions: Array.from(positionsByCode.values()).map(boundary => ({
+    rack_positions: Array.from(rackPositionsByCode.values()).map(boundary => ({
       code: boundary.position_code,
       role: boundary.station_role,
       station_code: boundary.station_code,
@@ -166,7 +166,7 @@ function manifestWithBoundaries(boundaries: BoundaryFixture[]): WorkLinePluginMa
       }
     })),
     resource_boundaries: boundaries.map(boundary => ({
-      position_code: boundary.position_code,
+      rack_position_code: boundary.position_code,
       rack_kind: boundary.rack_kind,
       snapshot_kind: boundary.snapshot_kind,
       lease_scope: boundary.lease_scope,
@@ -205,14 +205,14 @@ describe('buildRuntimeSceneModel', () => {
     expect(manifest.commands).toEqual([
       expect.objectContaining({
         command: 'PICK_AND_PUT',
-        position_args: []
+        rack_position_args: []
       })
     ])
     expect(manifest.topology?.flow_edges).toEqual([
       expect.objectContaining({
         type: 'material_flow',
-        from_node: { kind: 'device_role', ref: 'TARGET' },
-        to_node: { kind: 'position', ref: 'SINGLE_LAYER_A' }
+        from_node: { kind: 'DEVICE_ROLE', ref: 'TARGET' },
+        to_node: { kind: 'RACK_POSITION', ref: 'SINGLE_LAYER_A' }
       })
     ])
     expect(model.positionGroups[0]).toEqual(
@@ -257,13 +257,13 @@ describe('buildRuntimeSceneModel', () => {
     )
   })
 
-  it('falls back to position code when a resource boundary has no matching manifest position', () => {
+  it('falls back to rack position code when a resource boundary has no matching manifest rack position', () => {
     const orphanManifest: WorkLinePluginManifestSummary = {
       ...manifest,
-      positions: [],
+      rack_positions: [],
       resource_boundaries: [
         {
-          position_code: 'ORPHAN_LAYER',
+          rack_position_code: 'ORPHAN_LAYER',
           rack_kind: 'SINGLE_LAYER',
           snapshot_kind: 'ACTIVE_BIN_RACK',
           lease_scope: 'POSITION',
@@ -1374,17 +1374,16 @@ describe('buildRuntimeSceneModel', () => {
           command: 'MOVE_RACK_TO_TARGET',
           target_device_role: 'TARGET_ARM',
           payload_schema_ref: 'schemas/commands/move-rack-to-target.json',
-          position_args: [
+          rack_position_args: [
             {
               name: 'target_position',
-              position_code: 'COMMAND_ONLY_POSITION',
-              rack_kind: 'SINGLE_LAYER'
+              rack_position_ref: 'COMMAND_ONLY_POSITION'
             }
           ],
           result_bindings: []
         }
       ],
-      positions: [
+      rack_positions: [
         {
           code: 'COMMAND_ONLY_POSITION',
           role: 'TARGET_ARM',
@@ -1402,8 +1401,8 @@ describe('buildRuntimeSceneModel', () => {
         flow_edges: [
           {
             type: 'material_flow',
-            from_node: { kind: 'device_role', ref: 'TARGET_ARM' },
-            to_node: { kind: 'position', ref: 'COMMAND_ONLY_POSITION' }
+            from_node: { kind: 'DEVICE_ROLE', ref: 'TARGET_ARM' },
+            to_node: { kind: 'RACK_POSITION', ref: 'COMMAND_ONLY_POSITION' }
           }
         ]
       }

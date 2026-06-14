@@ -160,7 +160,7 @@ const manifest: WorkLinePluginManifestSummary = {
   devices: [],
   events: [],
   commands: [],
-  positions: [
+  rack_positions: [
     {
       code: 'TARGET_STATION',
       role: 'TARGET',
@@ -230,7 +230,7 @@ async function mountLoadedPage() {
   return wrapper
 }
 
-describe('WorkLineConfigPage position capability diagnostics', () => {
+describe('WorkLineConfigPage rack position capability diagnostics', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     getByIdSend.mockResolvedValue({ ...workline })
@@ -252,12 +252,12 @@ describe('WorkLineConfigPage position capability diagnostics', () => {
           }
         },
         {
-          code: 'POSITION_CARRIER_CAPABILITY',
+          code: 'RACK_POSITION_CARRIER_CAPABILITY',
           status: 'FAIL',
           severity: 'BLOCKER',
           context: {
-            position_code: 'TARGET_STATION',
-            position_role: 'TARGET',
+            rack_position_code: 'TARGET_STATION',
+            rack_position_role: 'TARGET',
             allowed_rack_kind: 'SINGLE_LAYER',
             allowed_rack_kinds: ['FIVE_LAYER'],
             capacity: 1,
@@ -270,9 +270,9 @@ describe('WorkLineConfigPage position capability diagnostics', () => {
           status: 'FAIL',
           severity: 'BLOCKER',
           context: {
-            position_code: 'NG_STATION',
-            position_role: 'NG',
-            missing_position_config: true,
+            rack_position_code: 'NG_STATION',
+            rack_position_role: 'NG',
+            missing_rack_position_config: true,
             allowed_rack_kind: null,
             allowed_rack_kinds: ['SINGLE_LAYER'],
             capacity: null,
@@ -300,12 +300,12 @@ describe('WorkLineConfigPage position capability diagnostics', () => {
 
     expect(text).toContain('命令通讯: SORT-TARGET-ARM-01')
     expect(text).toContain('目标设备通讯配置完整')
-    expect(text).toContain('逻辑位置: TARGET_STATION')
+    expect(text).toContain('货架位: TARGET_STATION')
     expect(text).toContain('货架类型不匹配')
     expect(text).toContain('当前: SINGLE_LAYER')
     expect(text).toContain('期望: FIVE_LAYER')
-    expect(text).toContain('逻辑位置: NG_STATION')
-    expect(text).toContain('缺少位置配置')
+    expect(text).toContain('货架位: NG_STATION')
+    expect(text).toContain('缺少货架位配置')
     expect(text).toContain('角色 NG')
     expect(text).toContain('期望货架 SINGLE_LAYER')
   })
@@ -319,8 +319,8 @@ describe('WorkLineConfigPage position capability diagnostics', () => {
           status: 'FAIL',
           severity: 'BLOCKER',
           context: {
-            position_code: 'TARGET_STATION',
-            position_role: 'TARGET',
+            rack_position_code: 'TARGET_STATION',
+            rack_position_role: 'TARGET',
             allowed_rack_kind: 'FIVE_LAYER',
             allowed_rack_kinds: ['FIVE_LAYER'],
             capacity: 1,
@@ -335,8 +335,8 @@ describe('WorkLineConfigPage position capability diagnostics', () => {
     const wrapper = await mountLoadedPage()
     const text = wrapper.text()
 
-    expect(text).toContain('逻辑位置: TARGET_STATION')
-    expect(text).toContain('位置未启用')
-    expect(text).not.toContain('位置能力不满足插件要求')
+    expect(text).toContain('货架位: TARGET_STATION')
+    expect(text).toContain('货架位未启用')
+    expect(text).not.toContain('货架位能力不满足插件要求')
   })
 })

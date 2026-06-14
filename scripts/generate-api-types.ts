@@ -23,7 +23,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 const ENUM_MARKER = '__enum'
-export const DEFAULT_BACKEND_OPENAPI_URL = 'http://localhost:8001/api/openapi.json'
+export const DEFAULT_BACKEND_OPENAPI_URL = 'http://127.0.0.1:8001/api/openapi.json'
 
 export const AUTO_GENERATED_START =
   '// ==================== AUTO GENERATED START ===================='
@@ -153,7 +153,7 @@ function resolveOpenApiSource(): string {
   const baseOrSpecUrl = explicitSource || process.env.VITE_API_BASE_URL || process.env.BACKEND_URL
 
   if (!baseOrSpecUrl) {
-    return 'http://localhost:8001/api/openapi.json'
+    return DEFAULT_BACKEND_OPENAPI_URL
   }
 
   if (/^https?:\/\//.test(baseOrSpecUrl)) {
@@ -663,7 +663,7 @@ async function generateTypesFile(spec: unknown, outputPath: string): Promise<boo
     }
   })
 
-  const generatedTypes = astToString(ast)
+  const generatedTypes = astToString(ast).trimEnd()
   const content = `/**
  * 自动生成的 OpenAPI 类型定义
  *

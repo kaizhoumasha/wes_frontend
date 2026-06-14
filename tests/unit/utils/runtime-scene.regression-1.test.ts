@@ -8,7 +8,7 @@ const manifest: WorkLinePluginManifestSummary = {
   devices: [],
   events: [],
   commands: [],
-  positions: [
+  rack_positions: [
     {
       code: 'TARGET_STATION',
       role: 'TARGET',
@@ -23,7 +23,7 @@ const manifest: WorkLinePluginManifestSummary = {
   ],
   resource_boundaries: [
     {
-      position_code: 'TARGET_STATION',
+      rack_position_code: 'TARGET_STATION',
       rack_kind: 'SINGLE_LAYER',
       snapshot_kind: 'ACTIVE_BIN_RACK',
       lease_scope: 'POSITION',
@@ -35,8 +35,8 @@ const manifest: WorkLinePluginManifestSummary = {
     flow_edges: [
       {
         type: 'material_flow',
-        from_node: { kind: 'device_role', ref: 'SORTING_NG_ARM' },
-        to_node: { kind: 'position', ref: 'TARGET_STATION' }
+        from_node: { kind: 'DEVICE_ROLE', ref: 'SORTING_NG_ARM' },
+        to_node: { kind: 'RACK_POSITION', ref: 'TARGET_STATION' }
       }
     ]
   }

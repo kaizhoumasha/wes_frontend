@@ -27,6 +27,6 @@ describe('.env.development', () => {
       readFileSync(resolve(process.cwd(), '.contract-sync-record.json'), 'utf8')
     ) as { backendUrl?: string }
 
-    expect(record.backendUrl).toBe('http://localhost:8001/api/openapi.json')
+    expect(record.backendUrl).toBe('http://127.0.0.1:8001/api/openapi.json')
   })
 })

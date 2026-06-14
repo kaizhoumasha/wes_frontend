@@ -184,11 +184,11 @@ const manifest: WorkLinePluginManifestSummary = {
       command: 'MOVE_RACK_TO_TARGET',
       target_device_role: 'TARGET_ARM',
       payload_schema_ref: 'schemas/commands/move-rack-to-target.json',
-      position_args: [],
+      rack_position_args: [],
       result_bindings: []
     }
   ],
-  positions: [
+  rack_positions: [
     {
       code: 'SOURCE_PORT',
       role: 'SOURCE',
@@ -203,7 +203,7 @@ const manifest: WorkLinePluginManifestSummary = {
   ],
   resource_boundaries: [
     {
-      position_code: 'SOURCE_PORT',
+      rack_position_code: 'SOURCE_PORT',
       rack_kind: 'SINGLE_LAYER',
       business_demand_type: 'SORTING_SOURCE',
       wms_operation_type: 'RACK_MOVE',
@@ -215,8 +215,8 @@ const manifest: WorkLinePluginManifestSummary = {
     flow_edges: [
       {
         type: 'material_flow',
-        from_node: { kind: 'device_role', ref: 'SOURCE_SCANNER' },
-        to_node: { kind: 'position', ref: 'SOURCE_PORT' }
+        from_node: { kind: 'DEVICE_ROLE', ref: 'SOURCE_SCANNER' },
+        to_node: { kind: 'RACK_POSITION', ref: 'SOURCE_PORT' }
       }
     ]
   }
@@ -353,7 +353,7 @@ describe('WorkLineConfigPage manifest detail', () => {
     expect(wrapper.text()).toContain('MOVE_RACK_TO_TARGET')
   })
 
-  it('renders manifest positions, resource boundaries, and required hardware capabilities', async () => {
+  it('renders manifest rack positions, resource boundaries, and required hardware capabilities', async () => {
     const wrapper = await mountLoadedPage()
 
     expect(wrapper.text()).toContain('SOURCE_PORT')

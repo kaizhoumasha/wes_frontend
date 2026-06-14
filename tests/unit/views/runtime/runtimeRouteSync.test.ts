@@ -291,7 +291,7 @@ describe('runtime route sync', () => {
       plugin_key: 'plugin-a',
       contract_version: 'v1',
       devices: [{ role: 'scanner', min_count: 1, max_count: null, hardware_capabilities: [] }],
-      positions: [],
+      rack_positions: [],
       topology: { flow_edges: [] },
       events: [],
       commands: [],

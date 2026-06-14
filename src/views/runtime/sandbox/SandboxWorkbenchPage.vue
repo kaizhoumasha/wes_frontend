@@ -627,7 +627,8 @@ watch(
     if (!isRelevantRuntimeEvent(event, { worklineId: worklineId.value })) return
     const refreshTargets = classifyRuntimeRefresh(event)
     if (refreshTargets.worklines) void store.loadWorklines()
-    if (refreshTargets.projection || refreshTargets.activeIncident) void loadCurrentWorklineProjection()
+    if (refreshTargets.projection || refreshTargets.activeIncident)
+      void loadCurrentWorklineProjection()
     if (refreshTargets.sandbox) {
       void loadPending()
       void loadCompleted()
