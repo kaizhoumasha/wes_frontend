@@ -52,9 +52,14 @@ vi.mock('@/api/modules/workLines', () => ({
 vi.mock('@/api/modules/workline', () => ({
   worklineApiMethods: {
     options: vi.fn(() => ({ send: optionsSend })),
-    manifest: vi.fn((params: { plugin_key: string }) => ({
-      send: () => manifestSend(params)
-    }))
+    manifest: vi.fn(
+      (
+        params: { plugin_key: string },
+        query?: { contract_version?: string | null } | undefined
+      ) => ({
+        send: () => manifestSend({ ...params, ...query })
+      })
+    )
   }
 }))
 
@@ -318,10 +323,13 @@ describe('WorkLineConfigPage manifest detail', () => {
     expect(wrapper.text()).toContain('rough_sorter')
   })
 
-  it('loads selected plugin manifest detail by plugin_key', async () => {
+  it('loads selected plugin manifest detail by plugin_key and pinned contract version', async () => {
     await mountLoadedPage()
 
-    expect(manifestSend).toHaveBeenCalledWith({ plugin_key: 'rough_sorter' })
+    expect(manifestSend).toHaveBeenCalledWith({
+      plugin_key: 'rough_sorter',
+      contract_version: 'v2'
+    })
   })
 
   it('builds role coverage from manifest devices instead of plugin options', async () => {
@@ -483,7 +491,10 @@ describe('WorkLineConfigPage manifest detail', () => {
     await flushPageUpdates()
 
     expect(manifestSend).toHaveBeenCalledTimes(1)
-    expect(manifestSend).toHaveBeenCalledWith({ plugin_key: 'rough_sorter' })
+    expect(manifestSend).toHaveBeenCalledWith({
+      plugin_key: 'rough_sorter',
+      contract_version: 'v3'
+    })
     expect(wrapper.text()).toContain('v3')
   })
 
@@ -561,7 +572,10 @@ describe('WorkLineConfigPage manifest detail', () => {
       await flushPageUpdates()
 
       expect(manifestSend).toHaveBeenCalledTimes(1)
-      expect(manifestSend).toHaveBeenCalledWith({ plugin_key: 'rough_sorter' })
+      expect(manifestSend).toHaveBeenCalledWith({
+        plugin_key: 'rough_sorter',
+        contract_version: 'v2'
+      })
       expect(wrapper.text()).toContain('RACK_SCAN_COMPLETED')
       expect(elementPlusMocks.message.error).not.toHaveBeenCalled()
     } finally {

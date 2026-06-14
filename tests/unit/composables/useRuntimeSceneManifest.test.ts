@@ -104,6 +104,8 @@ describe('useRuntimeSceneManifest', () => {
 
     expect(state.manifest.value?.contract_version).toBe('v2')
     expect(mocks.worklinePluginManifest).toHaveBeenCalledTimes(2)
+    expect(mocks.worklinePluginManifest).toHaveBeenNthCalledWith(1, 'rough_sorter', 'v1')
+    expect(mocks.worklinePluginManifest).toHaveBeenNthCalledWith(2, 'rough_sorter', 'v2')
   })
 
   it('isolates cached manifests by plugin key and contract version', async () => {
@@ -128,9 +130,9 @@ describe('useRuntimeSceneManifest', () => {
 
     expect(state.manifest.value).toEqual({ plugin_key: 'rough_sorter', contract_version: 'v2' })
     expect(mocks.worklinePluginManifest).toHaveBeenCalledTimes(3)
-    expect(mocks.worklinePluginManifest).toHaveBeenNthCalledWith(1, 'rough_sorter')
-    expect(mocks.worklinePluginManifest).toHaveBeenNthCalledWith(2, 'rough_sorter')
-    expect(mocks.worklinePluginManifest).toHaveBeenNthCalledWith(3, 'smt_inbound')
+    expect(mocks.worklinePluginManifest).toHaveBeenNthCalledWith(1, 'rough_sorter', 'v1')
+    expect(mocks.worklinePluginManifest).toHaveBeenNthCalledWith(2, 'rough_sorter', 'v2')
+    expect(mocks.worklinePluginManifest).toHaveBeenNthCalledWith(3, 'smt_inbound', 'v1')
   })
 
   it('keeps versioned manifest cache entries isolated when older responses resolve later', async () => {

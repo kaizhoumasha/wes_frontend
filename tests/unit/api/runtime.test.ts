@@ -90,34 +90,30 @@ describe('runtimeApiMethods', () => {
     expect(result).toEqual({ ok: true })
   })
 
-  it('loads a workline plugin manifest by plugin key', async () => {
+  it('loads a workline plugin manifest by plugin key and contract version', async () => {
     const { runtimeApiMethods } = await import('@/api/modules/runtime')
 
-    await runtimeApiMethods.worklinePluginManifest('rough_sorter').send()
+    await runtimeApiMethods.worklinePluginManifest('rough_sorter', 'v2').send()
 
-    expect(mocks.methods.manifest).toHaveBeenCalledWith({ plugin_key: 'rough_sorter' })
+    expect(mocks.methods.manifest).toHaveBeenCalledWith(
+      { plugin_key: 'rough_sorter' },
+      { contract_version: 'v2' }
+    )
   })
 
   it('keeps generated workline plugin option contract limited to selector fields', async () => {
-    const { WorkLinePluginOptionMetadata } = await import(
-      '@/api/generated/openapi-metadata/WorkLinePluginOption'
-    )
+    const { WorkLinePluginOptionMetadata } =
+      await import('@/api/generated/openapi-metadata/WorkLinePluginOption')
     const { WorkLinePluginOptionSchema } = await import('@/types/generated/zod-schemas')
-    const expectedFields = [
-      'plugin_key',
-      'label',
-      'contract_versions',
-      'default_contract_version'
-    ]
+    const expectedFields = ['plugin_key', 'label', 'contract_versions', 'default_contract_version']
 
     expect(Object.keys(WorkLinePluginOptionMetadata.fields)).toEqual(expectedFields)
     expect(Object.keys(WorkLinePluginOptionSchema.shape)).toEqual(expectedFields)
   })
 
   it('uses generated workline plugin manifest contract fields without legacy aliases', async () => {
-    const { WorkLinePluginManifestSummaryMetadata } = await import(
-      '@/api/generated/openapi-metadata/WorkLinePluginManifestSummary'
-    )
+    const { WorkLinePluginManifestSummaryMetadata } =
+      await import('@/api/generated/openapi-metadata/WorkLinePluginManifestSummary')
     const { WorkLinePluginManifestSummarySchema } = await import('@/types/generated/zod-schemas')
     const expectedFields = [
       'plugin_key',
@@ -211,7 +207,7 @@ describe('runtimeApiMethods', () => {
 
     await runtimeApiMethods.worklinePluginManifest('rough sorter/1').send()
 
-    expect(mocks.methods.manifest).toHaveBeenCalledWith({ plugin_key: 'rough sorter/1' })
+    expect(mocks.methods.manifest).toHaveBeenCalledWith({ plugin_key: 'rough sorter/1' }, undefined)
   })
 
   it('submits sandbox cleanup through direct workline operations endpoint', async () => {
@@ -262,7 +258,10 @@ describe('runtimeApiMethods', () => {
         trace_id: expect.stringMatching(/^sandbox:start:45:/)
       }
     )
-    expect(mocks.apiClientPost).not.toHaveBeenCalledWith('/api/v1/callback/event', expect.anything())
+    expect(mocks.apiClientPost).not.toHaveBeenCalledWith(
+      '/api/v1/callback/event',
+      expect.anything()
+    )
   })
 
   it('does not call API-app protected callback event ingress for sandbox START', async () => {

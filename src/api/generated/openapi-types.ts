@@ -15046,7 +15046,9 @@ export interface operations {
     };
     workline_plugins_by_plugin_key_manifest_get: {
         parameters: {
-            query?: never;
+            query?: {
+                contract_version?: string | null;
+            };
             header?: never;
             path: {
                 plugin_key: string;

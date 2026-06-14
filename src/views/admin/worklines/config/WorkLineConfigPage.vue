@@ -1215,6 +1215,10 @@ function describePositionCarrierCapability(status: string, context: any) {
   }
 
   const details: string[] = []
+  if (context?.enabled === false) {
+    details.push('位置未启用 (请先启用该逻辑位置)')
+  }
+
   if (!isRackKindAllowed(context?.allowed_rack_kind, context?.allowed_rack_kinds)) {
     details.push(
       `货架类型不匹配 (当前: ${context?.allowed_rack_kind || '未配置'}, 期望: ${expectedRackKinds})`
@@ -1405,9 +1409,14 @@ async function loadSelectedPluginManifest(
   manifestRequestStatus.value = 'loading'
 
   try {
-    const manifest = await worklineApiMethods.manifest({ plugin_key: pluginKey }).send()
+    const expectedContractVersion = workline.value?.contract_version ?? null
+    const manifestQuery = expectedContractVersion
+      ? { contract_version: expectedContractVersion }
+      : undefined
+    const manifest = await worklineApiMethods
+      .manifest({ plugin_key: pluginKey }, manifestQuery)
+      .send()
     if (requestSeq === manifestRequestSeq && manifestRequestKey.value === lookupKey) {
-      const expectedContractVersion = workline.value?.contract_version ?? null
       const actualContractVersion = manifest.contract_version
       if (actualContractVersion !== expectedContractVersion) {
         const message = `插件合同版本不匹配：当前工作线需要 ${formatContractVersion(

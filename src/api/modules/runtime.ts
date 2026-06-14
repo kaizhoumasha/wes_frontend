@@ -106,8 +106,11 @@ export const runtimeApiMethods = {
     )
   },
 
-  worklinePluginManifest(pluginKey: string) {
-    return adaptRuntimeMethod<ManifestResult>(worklineApiMethods.manifest({ plugin_key: pluginKey }))
+  worklinePluginManifest(pluginKey: string, contractVersion?: string | null) {
+    const query = contractVersion ? { contract_version: contractVersion } : undefined
+    return adaptRuntimeMethod<ManifestResult>(
+      worklineApiMethods.manifest({ plugin_key: pluginKey }, query)
+    )
   },
 
   devices(worklineId: number) {

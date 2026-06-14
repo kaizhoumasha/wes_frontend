@@ -87,6 +87,7 @@ export type OptionsResult = ContractResponseData<'/api/v1/workline/plugins/optio
 
 export type ManifestResult = ContractResponseData<'/api/v1/workline/plugins/{plugin_key}/manifest', 'get'>
 export type ManifestPathParams = ContractPathParams<'/api/v1/workline/plugins/{plugin_key}/manifest', 'get'>
+export type ManifestQuery = ContractQueryParams<'/api/v1/workline/plugins/{plugin_key}/manifest', 'get'>
 
 export type OverviewResult = ContractResponseData<'/api/v1/workline/runtime/overview', 'get'>
 export type OverviewQuery = ContractQueryParams<'/api/v1/workline/runtime/overview', 'get'>
@@ -336,8 +337,8 @@ export const worklineApiMethods = {
    * @endpoint GET /api/v1/workline/plugins/{plugin_key}/manifest
    * @returns alova method instance
    */
-  manifest(params: ContractPathParams<'/api/v1/workline/plugins/{plugin_key}/manifest', 'get'>, config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/workline/plugins/{plugin_key}/manifest', { params, config })
+  manifest(params: ContractPathParams<'/api/v1/workline/plugins/{plugin_key}/manifest', 'get'>, query?: ContractQueryParams<'/api/v1/workline/plugins/{plugin_key}/manifest', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/plugins/{plugin_key}/manifest', { params, query, config })
   },
 
   /**

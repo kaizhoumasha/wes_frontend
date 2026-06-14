@@ -52,9 +52,14 @@ vi.mock('@/api/modules/workLines', () => ({
 vi.mock('@/api/modules/workline', () => ({
   worklineApiMethods: {
     options: vi.fn(() => ({ send: optionsSend })),
-    manifest: vi.fn((params: { plugin_key: string }) => ({
-      send: () => manifestSend(params)
-    }))
+    manifest: vi.fn(
+      (
+        params: { plugin_key: string },
+        query?: { contract_version?: string | null } | undefined
+      ) => ({
+        send: () => manifestSend({ ...params, ...query })
+      })
+    )
   }
 }))
 
@@ -303,5 +308,35 @@ describe('WorkLineConfigPage position capability diagnostics', () => {
     expect(text).toContain('缺少位置配置')
     expect(text).toContain('角色 NG')
     expect(text).toContain('期望货架 SINGLE_LAYER')
+  })
+
+  it('renders disabled position as an actionable position capability blocker', async () => {
+    configurationStatusSend.mockResolvedValueOnce({
+      can_activate: false,
+      checks: [
+        {
+          code: 'POSITION_CARRIER_CAPABILITY',
+          status: 'FAIL',
+          severity: 'BLOCKER',
+          context: {
+            position_code: 'TARGET_STATION',
+            position_role: 'TARGET',
+            allowed_rack_kind: 'FIVE_LAYER',
+            allowed_rack_kinds: ['FIVE_LAYER'],
+            capacity: 1,
+            min_capacity: 1,
+            max_capacity: 1,
+            enabled: false
+          }
+        }
+      ]
+    })
+
+    const wrapper = await mountLoadedPage()
+    const text = wrapper.text()
+
+    expect(text).toContain('逻辑位置: TARGET_STATION')
+    expect(text).toContain('位置未启用')
+    expect(text).not.toContain('位置能力不满足插件要求')
   })
 })
