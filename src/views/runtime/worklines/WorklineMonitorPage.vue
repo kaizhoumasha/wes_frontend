@@ -401,7 +401,8 @@ async function resolveRuntimeReconciliation(payload: {
   resultPayload: Record<string, unknown> | null
 }) {
   if (!canResolveReconciliation.value) return
-  const candidate: RuntimeMonitorReconciliationCandidate | null = pendingReconciliationCandidate.value
+  const candidate: RuntimeMonitorReconciliationCandidate | null =
+    pendingReconciliationCandidate.value
   if (!candidate || candidate.session_id !== payload.sessionId) return
 
   resolvingReconciliation.value = true
@@ -613,6 +614,21 @@ watch(
   .monitor-layout__actions {
     height: 100%;
     min-height: 0;
+  }
+}
+
+@media (1280px <= width <= 1439px) {
+  .monitor-layout {
+    grid-template-columns: minmax(300px, 340px) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .monitor-layout__actions {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    align-items: start;
+    overflow-y: visible;
   }
 }
 
