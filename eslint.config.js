@@ -6,7 +6,7 @@ import globals from 'globals'
 
 export default [
   // 忽略的文件和目录
-  { ignores: ['dist', 'node_modules', '**/*.d.ts'] },
+  { ignores: ['dist', 'node_modules', '**/*.d.ts', '.gitnexus/**', '.gstack/**'] },
 
   // JavaScript 配置
   eslint.configs.recommended,
@@ -64,6 +64,12 @@ export default [
   },
 
   // 自定义规则
+  {
+    files: ['eslint.config.js'],
+    languageOptions: {
+      globals: { ...globals.node }
+    }
+  },
   {
     rules: {
       'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',

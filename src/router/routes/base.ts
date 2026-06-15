@@ -31,12 +31,6 @@ export const shellBaseChildren: RouteRecordRaw[] = [
     name: 'NotFound',
     component: () => import('@/views/error/NotFound.vue'),
     meta: { requiresAuth: true }
-  },
-  {
-    path: 'examples/user-form',
-    name: 'UserFormExample',
-    component: () => import('@/views/examples/UserFormExample.vue'),
-    meta: { requiresAuth: false }
   }
 ]
 
