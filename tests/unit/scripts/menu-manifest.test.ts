@@ -54,7 +54,7 @@ describe('menu manifest helpers', () => {
       {
         path: 'debug/example',
         name: 'DebugExample',
-        component: '@/views/examples/UserFormExample.vue',
+        component: '@/views/dashboard/Dashboard.vue',
         meta: {
           requiresAuth: false,
           title: '调试页',

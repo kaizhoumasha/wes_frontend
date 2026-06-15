@@ -194,7 +194,6 @@ async function mountPage() {
         TraceBlockingPointCard: true,
         TraceContrastPanel: true,
         TraceNextActions: true,
-        TraceRelatedSidebar: true,
         TraceTimeline: true,
         TraceTopologySummary: true,
         RuntimeCaseQueue: true,
@@ -395,14 +394,6 @@ describe('CaseConsolePage layout', () => {
 
     expect(mocks.traceBySessionIdSend).toHaveBeenCalled()
     expect(mocks.traceByTraceIdSend).not.toHaveBeenCalled()
-  })
-
-  it('keeps case detail focused on the current case instead of related cases', async () => {
-    const wrapper = await mountPage()
-    await flushViewUpdates()
-
-    expect(wrapper.findComponent({ name: 'TraceTopologySummary' }).exists()).toBe(true)
-    expect(wrapper.findComponent({ name: 'TraceRelatedSidebar' }).exists()).toBe(false)
   })
 
   it('skips blocking-point endpoint for completed clear verdicts', async () => {

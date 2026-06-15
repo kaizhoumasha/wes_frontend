@@ -118,7 +118,7 @@ export interface CrudToolbarProps {
 
   /**
    * 操作按钮配置数组（可选）.
-   * 由 useToolbarActions 返回的 filteredActions，组件内部自动渲染标准按钮.
+   * 由 CrudPageController 派生的 filteredActions，组件内部自动渲染标准按钮.
    * 如果不传此 prop，则必须使用 #actions 插槽自定义操作区.
    */
   actions?: ToolbarAction[]
