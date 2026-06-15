@@ -44,3 +44,4 @@ sessions/**
 .pnpm-store/**
 .antigravitycli/
 .superpowers/
+.gbrain-source

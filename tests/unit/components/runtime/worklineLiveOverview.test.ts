@@ -2,7 +2,6 @@ import { shallowMount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import WorklineLiveOverview from '@/components/runtime/monitor/WorklineLiveOverview.vue'
 import type {
-  RuntimeTraceDevicePathNode,
   RuntimeWorklineMonitorProjectionResponse,
   RuntimeWorklineSummary
 } from '@/types/runtime'
@@ -91,10 +90,7 @@ function mountOverview() {
     props: {
       worklineSummary: summary,
       worklineProjection: createProjection(summary),
-      devices: [],
-      activeSessions: [],
-      recentFailedTraces: [],
-      recentCompletedTraces: []
+      eventLogEntries: []
     },
     global: {
       stubs: {
@@ -161,11 +157,7 @@ describe('WorklineLiveOverview', () => {
     shallowMount(WorklineLiveOverview, {
       props: {
         worklineSummary: summary,
-        worklineProjection: createProjection(summary),
-        devices: [],
-        activeSessions: [],
-        recentFailedTraces: [],
-        recentCompletedTraces: []
+        worklineProjection: createProjection(summary)
       },
       global: {
         stubs: {
@@ -194,11 +186,7 @@ describe('WorklineLiveOverview', () => {
     shallowMount(WorklineLiveOverview, {
       props: {
         worklineSummary: summary,
-        worklineProjection: createProjection(summary),
-        devices: [],
-        activeSessions: [],
-        recentFailedTraces: [],
-        recentCompletedTraces: []
+        worklineProjection: createProjection(summary)
       },
       global: {
         stubs: {
@@ -217,29 +205,23 @@ describe('WorklineLiveOverview', () => {
     )
   })
 
-  it('passes trace path nodes into the runtime scene map', () => {
+  it('uses an immediate SSE log console instead of the historical session board in the center pane', () => {
     mocks.loadManifest.mockReturnValueOnce({ catch: vi.fn() })
-    const tracePathNodes: RuntimeTraceDevicePathNode[] = [
-      {
-        device_id: 101,
-        device_code: 'ARM01',
-        device_name: '机械臂 1',
-        device_role: 'ARM',
-        is_current: true,
-        actions: [{ kind: 'send', label: '发送命令' }]
-      }
-    ]
     const summary = createSummary()
 
     const wrapper = shallowMount(WorklineLiveOverview, {
       props: {
         worklineSummary: summary,
         worklineProjection: createProjection(summary),
-        devices: [],
-        activeSessions: [],
-        recentFailedTraces: [],
-        recentCompletedTraces: [],
-        tracePathNodes
+        eventLogEntries: [
+          {
+            id: 'evt-1',
+            time: '15:40:04',
+            level: 'err',
+            tag: 'ERROR',
+            text: 'ECS 设备事件回调：[ST-02] 抛出急停警报 ERR_CONVEYOR_JAM_102'
+          }
+        ]
       },
       global: {
         stubs: {
@@ -250,8 +232,10 @@ describe('WorklineLiveOverview', () => {
       }
     })
 
-    expect(wrapper.findComponent({ name: 'RuntimeSceneMap' }).props('tracePathNodes')).toEqual(
-      tracePathNodes
+    expect(wrapper.text()).not.toContain('会话面板')
+    expect(wrapper.get('[data-test="monitor-event-log-panel"]').text()).toContain(
+      'ECS 设备事件回调'
     )
+    expect(wrapper.get('[data-test="monitor-event-log-panel"]').text()).toContain('ERROR')
   })
 })

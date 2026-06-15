@@ -5,7 +5,7 @@
   >
     <header class="runtime-rack-layout-panel__header">
       <div>
-        <div class="runtime-rack-layout-panel__eyebrow">单层货架</div>
+        <div class="runtime-rack-layout-panel__eyebrow">Rack</div>
         <div class="runtime-rack-layout-panel__title">{{ layout.rackCode }}</div>
         <div class="runtime-rack-layout-panel__meta">
           {{ layout.stationCode }} / {{ layout.positionCode }}
@@ -155,8 +155,7 @@ function slotStateLabel(state: RuntimeSceneRackSlot['state']): string {
   padding: 14px;
   border: 1px solid var(--runtime-border-subtle, rgb(148, 163, 184, 0.22));
   border-radius: 8px;
-  background:
-    linear-gradient(180deg, rgb(15, 23, 42, 0.3), rgb(15, 23, 42, 0)), var(--runtime-surface);
+  background: var(--runtime-surface);
   color: var(--runtime-text);
 }
 
@@ -211,7 +210,7 @@ function slotStateLabel(state: RuntimeSceneRackSlot['state']): string {
   padding: 10px;
   border: 1px solid rgb(71, 85, 105, 0.55);
   border-radius: 6px;
-  background: rgb(15, 23, 42, 0.32);
+  background: var(--runtime-surface-muted, rgb(15, 23, 42, 0.32));
   color: var(--runtime-text);
   text-align: left;
   cursor: pointer;
@@ -243,12 +242,13 @@ function slotStateLabel(state: RuntimeSceneRackSlot['state']): string {
 
 .runtime-rack-slot.is-empty {
   border-style: dashed;
-  background: rgb(15, 23, 42, 0.18);
+  background: var(--runtime-surface-subtle, rgb(15, 23, 42, 0.18));
 }
 
 .runtime-rack-slot.is-material {
   background:
-    linear-gradient(135deg, rgb(20, 184, 166, 0.14), rgb(15, 23, 42, 0.22)), rgb(15, 23, 42, 0.32);
+    linear-gradient(135deg, rgb(20, 184, 166, 0.14), transparent),
+    var(--runtime-surface-muted, rgb(15, 23, 42, 0.32));
 }
 
 .runtime-rack-slot__code,

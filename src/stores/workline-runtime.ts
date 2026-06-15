@@ -6,7 +6,6 @@ import type {
   RuntimeWorklineMonitorProjectionResponse,
 } from '@/types/runtime'
 import {
-  aggregateSessionsByDevice,
   getWorklineRiskScore,
   pickDominantValue,
   resolveRuntimeProgressLabel,
@@ -40,10 +39,6 @@ export const useWorklineRuntimeStore = defineStore('workline-runtime', () => {
 
   const dominantActiveBusinessStage = computed(() =>
     pickDominantValue(projection.value?.active_sessions.items?.map(resolveRuntimeProgressLabel) ?? [])
-  )
-
-  const sessionCountsByDevice = computed(() =>
-    aggregateSessionsByDevice(projection.value?.active_sessions.items ?? [])
   )
 
   function findSummary(worklineId: number): RuntimeWorklineSummary | null {
@@ -99,7 +94,6 @@ export const useWorklineRuntimeStore = defineStore('workline-runtime', () => {
     hotspotDevice,
     mostFailedBusinessStage,
     dominantActiveBusinessStage,
-    sessionCountsByDevice,
     findSummary,
     findDevice,
     loadWorklines,

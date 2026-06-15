@@ -1,8 +1,15 @@
-import type { RuntimeSSEPayload } from '@/composables/useRuntimeSSE'
 import { ALLOWED_RUNTIME_EVENT_DOMAINS } from '@/constants/runtime-safety'
 
 type RuntimeEventNumberScopeKey = 'session_id' | 'workline_id' | 'device_id'
 export type RuntimeRefreshTarget = 'worklines' | 'projection' | 'activeIncident' | 'sandbox'
+
+export interface RuntimeSSEPayload {
+  domain?: string
+  entity?: string
+  action?: string
+  keys?: Record<string, unknown>
+  payload?: Record<string, unknown>
+}
 
 export interface RuntimeEventScope {
   traceId?: string | null
@@ -16,6 +23,12 @@ export interface RuntimeRefreshClassification {
   projection: boolean
   activeIncident: boolean
   sandbox: boolean
+}
+
+export function isRuntimeSSEPayload(value: unknown): value is RuntimeSSEPayload {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const payload = value as RuntimeSSEPayload
+  return Boolean(payload.domain || payload.entity || payload.action || payload.keys)
 }
 
 function normalizeRuntimeEventValue(value: unknown): string | null {

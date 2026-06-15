@@ -1,14 +1,14 @@
 <template>
   <div
     class="default-layout"
-    :class="{ 'sidebar-collapsed': sidebarCollapsed }"
+    :class="{ 'sidebar-collapsed': sidebarCollapsed, 'is-immersive': isImmersiveRoute }"
   >
     <!-- 侧边栏 -->
-    <app-sidebar />
+    <app-sidebar v-if="!isImmersiveRoute" />
 
     <!-- 移动端侧边栏遮罩层 -->
     <div
-      v-if="isMobile && isMobileMenuOpen"
+      v-if="!isImmersiveRoute && isMobile && isMobileMenuOpen"
       class="sidebar-overlay"
       @click="closeMobileMenu"
     />
@@ -16,10 +16,10 @@
     <!-- 主内容区 -->
     <div
       class="main-content"
-      :style="{ marginLeft: contentMarginLeft }"
+      :style="{ marginLeft: isImmersiveRoute ? '0' : contentMarginLeft }"
     >
       <!-- 顶部导航栏 -->
-      <app-header />
+      <app-header v-if="!isImmersiveRoute" />
 
       <!-- 页面内容 -->
       <main class="page-main">
@@ -37,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import AppSidebar from '@/components/common/AppSidebar.vue'
 import AppHeader from '@/components/common/AppHeader.vue'
@@ -53,6 +53,7 @@ const { selectMenu, isMenuLoaded, loadMenus } = useMenu()
 // ==================== 路由 ====================
 
 const route = useRoute()
+const isImmersiveRoute = computed(() => route.meta.runtimeImmersive === true)
 
 // ==================== 生命周期 ====================
 
@@ -77,6 +78,11 @@ onMounted(() => {
 
   min-height: 100vh;
   overflow: hidden;
+}
+
+.default-layout.is-immersive {
+  --layout-header-height: 0px;
+  --layout-page-padding: 0px;
 }
 
 /* 暗黑模式背景 */

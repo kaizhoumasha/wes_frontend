@@ -40,6 +40,7 @@ export const runtimeRoutes: RouteRecordRaw = {
         requiresAuth: true,
         title: '工作线监控',
         permission: BIZ_PERMISSIONS.workline.page,
+        runtimeImmersive: true,
         menu: {
           name: 'runtime:monitor:menu',
           parentName: 'runtime:system:menu',

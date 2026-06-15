@@ -103,7 +103,9 @@ describe('RuntimeSceneFocusPanel', () => {
     })
 
     expect(wrapper.text()).toContain('TARGET_ARM / SINGLE_LAYER_A')
-    expect(wrapper.text()).toContain('Rack operation：等待 WMS 搬运到位')
+    expect(wrapper.text()).not.toContain('Station lease')
+    expect(wrapper.text()).not.toContain('Rack operation')
+    expect(wrapper.text()).not.toContain('执行快照')
     expect(wrapper.text()).toContain('RACK-001')
     expect(wrapper.text()).toContain('BIN-001')
     expect(wrapper.text()).toContain('trace-runtime-focus-001')

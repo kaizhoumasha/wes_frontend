@@ -1,9 +1,19 @@
 # P9 WES 工作线运行监控中心重构设计规约
 
-> **文档状态**: 已按事实调查与 Eng Review 收敛，待实施
-> **最后修改时间**: 2026-06-10
+> **文档状态**: 已实施；前端 PR #37 已合并到 `develop`，预发布部署通过
+> **最后修改时间**: 2026-06-11
 > **作者**: Antigravity / Codex
 > **关联模块**: `src/views/runtime/worklines/WorklineMonitorPage.vue`, `src/stores/workline-runtime.ts`, `src/utils/runtime-scene.ts`
+> **关联发布**: 前端 `v0.5.0.0` / PR #37 / merge `6fab22775668e620577dbd81a0b0a1d64258f4a3`；后端合同提交 `7c1466dc`
+
+---
+
+## 0. 实施状态
+
+- **前端落地**：PR #37 已 squash merge 到 `develop`，merge commit 为 `6fab22775668e620577dbd81a0b0a1d64258f4a3`。
+- **后端依赖**：`../wes_backend` 合同提交 `7c1466dc feat(runtime): 提供工作线监控投影合同` 已进入后端 `origin/develop`。
+- **验证结果**：前端 `pnpm test` 72 files / 526 tests、`pnpm type:check`、`pnpm contract:verify`、`pnpm lint`、`pnpm build`、固定 fixture runtime smoke 均已通过；后端目标 API/SSE/seed tests 90 passed。
+- **部署结果**：develop 分支 `CI/CD Pipeline` run `27317604527` 成功，Cloudflare Pages 预发布环境部署完成；该 workflow 注释明确 main 私有化生产部署不在本次自动部署范围。
 
 ---
 
@@ -90,7 +100,7 @@ P9 WES 工作线运行监控中心面向现场维保、设备工程师和运行�
 - 后端当前路由 `src/app/workline/v1/runtime.py` 的 `/worklines/{workline_id}` 响应模型是 `RuntimeWorklineDetailResponse`。
 - `RuntimeWorklineDetailResponse` 当前复用 `RuntimeTraceListItem` 填充 `active_sessions`、`recent_failed_traces`、`recent_completed_traces`。
 - `RuntimeTraceListItem` 包含 raw `event_payload`，这对 Trace/Debug 页面有价值，但不应进入监控主屏高频投影。
-- 前端当前 `src/stores/workline-runtime.ts` 使用 `detail/loadDetail/refreshDetail` 语义，`WorklineMonitorPage.vue` 和 `runtime-scene.ts` 仍以旧详情 DTO 构建主屏。
+- 实施前基线中，前端 `src/stores/workline-runtime.ts` 使用 `detail/loadDetail/refreshDetail` 语义，`WorklineMonitorPage.vue` 和 `runtime-scene.ts` 仍以旧详情 DTO 构建主屏。
 - 因此，本 SPEC 不能只要求“轻量化响应”，还必须要求旧详情 DTO、旧 store 命名和旧 scene model 一起退出监控主屏。
 
 第一性原理判断：
@@ -391,6 +401,22 @@ Design Review 判定：本计划是面向现场值守的 APP UI，不是营销�
 - 右栏行动舱只展示当前选中线体/对象能执行的动作；不可执行动作不占主按钮位置。
 - 底部日志和证据列表不得抢占首屏主路径，默认作为验证和追溯区。
 
+### 7.1.2 设计偏差修正：沉浸式与双主题
+
+`/runtime/monitor` 必须作为当前路由的沉浸式监控台呈现，不新增平行页面：
+
+- 隐藏通用后台侧栏、顶部导航和 runtime 二级 chrome；页面内提供紧凑监控顶栏，包含返回运行总览、SSE 状态、Live/Frozen、更新时间、主题切换和刷新。
+- 系统支持深浅色调配置；不得通过强制深色主题满足设计稿。深色应贴近 `dashboard-v3.html` 的工业控制台意图，浅色应保留相同信息架构、空间密度和状态层级。
+- 中栏拓扑是主画布，不应被后台管理卡片视觉包住；设备流、资源证据、fallback 提示和截断提示必须使用 runtime 主题变量。
+- 右栏采用“选中设备优先”：设备点击留在 `/runtime/monitor?...&deviceId=...`，右栏展示当前投影可得的设备事实、WES -> ECS 合同链和关联会话；无选中设备时回退线体行动舱。
+- 本期只展示已闭环动作：刷新投影、解除急停、对账核销。不新增维护旁路、直接 ECS/PLC 命令、禁用占位按钮或 TODO。
+
+验收要求：
+
+- fixed fixture smoke 至少覆盖深色/浅色各 `1440x900` 与 `390x844`。
+- 自动断言监控顶栏存在、通用 app chrome 不可见、`html.dark` 状态符合主题、关键区域无横向溢出或明显重叠。
+- 截图必须按主题和视口保存，供设计复核；人工设计验收不得只使用单一深色截图。
+
 ### 7.2 左栏：工作线目录
 
 - 展示线体名称、编码、区域、健康摘要、会话数和告警数。
@@ -615,13 +641,14 @@ Backend projection DTO/API
 
 ## GSTACK REVIEW REPORT
 
-| Review        | Trigger               | Why                       | Runs | Status                | Findings                                                                                                                 |
-| ------------- | --------------------- | ------------------------- | ---- | --------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| CEO Review    | `/plan-ceo-review`    | Scope & strategy          | 0    | Not run for this SPEC | -                                                                                                                        |
-| Codex Review  | `/codex review`       | Independent 2nd opinion   | 0    | Not run               | -                                                                                                                        |
-| Eng Review    | `/plan-eng-review`    | Architecture & tests      | 7    | CLEAR                 | 最终审计补齐 backend SSE 专项测试、旧事件域零匹配守卫、行动舱手动刷新范围和 SPEC/Plan 真源一致性；0 critical gaps        |
-| Design Review | `/plan-design-review` | UI/UX gaps                | 1    | CLEAR (text-only)     | gstack designer 不可用；已补齐 APP UI 分类、既有设计资产、不做事项、首屏层级、交互状态矩阵、用户旅程、响应式和 a11y 验收 |
-| DX Review     | `/plan-devex-review`  | Developer experience gaps | 0    | Not run               | -                                                                                                                        |
+| Review        | Trigger                      | Why                         | Runs | Status                | Findings                                                                                                                 |
+| ------------- | ---------------------------- | --------------------------- | ---- | --------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| CEO Review    | `/plan-ceo-review`           | Scope & strategy            | 0    | Not run for this SPEC | -                                                                                                                        |
+| Codex Review  | `/codex review`              | Independent 2nd opinion     | 0    | Not run               | -                                                                                                                        |
+| Eng Review    | `/plan-eng-review`           | Architecture & tests        | 7    | CLEAR                 | 最终审计补齐 backend SSE 专项测试、旧事件域零匹配守卫、行动舱手动刷新范围和 SPEC/Plan 真源一致性；0 critical gaps        |
+| Design Review | `/plan-design-review`        | UI/UX gaps                  | 1    | CLEAR (text-only)     | gstack designer 不可用；已补齐 APP UI 分类、既有设计资产、不做事项、首屏层级、交互状态矩阵、用户旅程、响应式和 a11y 验收 |
+| DX Review     | `/plan-devex-review`         | Developer experience gaps   | 0    | Not run               | -                                                                                                                        |
+| Delivery      | `/ship` + `/land-and-deploy` | PR readiness, merge, deploy | 1    | LANDED                | PR #37 已合并到 `develop`；CI/CD 与 Cloudflare Pages 预发布部署成功；站点 canary 因 Pages URL 被 secrets mask 未执行     |
 
 - **UNRESOLVED:** 0.
-- **VERDICT:** ENG + DESIGN CLEARED，SPEC 已围绕单一破坏性合同、端到端投影收敛路径和监控页 UI/UX 验收更新；当前仅作为文档优化结果，不代表已进入代码实施。
+- **VERDICT:** ENG + DESIGN CLEARED，SPEC 已按单一破坏性合同、端到端投影收敛路径和监控页 UI/UX 验收落地到前端 `v0.5.0.0`；剩余 P3 event replay 与物理占用真值模型保留为后续事项。

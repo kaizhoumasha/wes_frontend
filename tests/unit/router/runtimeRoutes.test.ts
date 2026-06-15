@@ -32,4 +32,10 @@ describe('runtime routes', () => {
     expect(routePaths.has('dashboard')).toBe(false)
     expect(routePaths.has('exceptions/:holdId')).toBe(false)
   })
+
+  it('marks the workline monitor as an immersive runtime console', () => {
+    expect(findRuntimeChild('RuntimeMonitor').meta?.runtimeImmersive).toBe(true)
+    expect(findRuntimeChild('RuntimeOverview').meta?.runtimeImmersive).toBeUndefined()
+    expect(findRuntimeChild('RuntimeCases').meta?.runtimeImmersive).toBeUndefined()
+  })
 })

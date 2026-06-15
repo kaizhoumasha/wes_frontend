@@ -10,6 +10,20 @@
 
 **Source of truth:** `docs/superpowers/specs/2026-06-10-workline-monitor-design.md`。若本计划与 SPEC 冲突，以 SPEC 为准。
 
+**Status:** DONE. 2026-06-11 前端 PR #37 已合并到 `develop`，merge commit 为 `6fab22775668e620577dbd81a0b0a1d64258f4a3`；后端合同提交 `7c1466dc` 已进入 `../wes_backend` 的 `origin/develop`。
+
+**Release verification:** 前端 `pnpm test` 72 files / 526 tests、`pnpm type:check`、`pnpm contract:verify`、`pnpm lint`、`pnpm build`、固定 fixture runtime smoke 均已通过；后端目标 API/SSE/seed tests 90 passed；develop `CI/CD Pipeline` run `27317604527` 与 Cloudflare Pages 预发布部署成功。
+
+**Design correction status:** DONE on `fix/workline-monitor-a11y-acceptance`. 2026-06-11 追加修正：`/runtime/monitor` 按 `dashboard-v3.html` 设计意图切换为沉浸式监控台，但保留系统深/浅主题能力；右栏改为设备优先诊断，动作范围仍只限已闭环的刷新投影、解除急停和对账核销。
+
+追加验收：
+
+- [x] `RuntimeMonitor` route 标记沉浸式，`DefaultLayout` 和 `RuntimeLayout` 对该 route 隐藏通用 chrome。
+- [x] 页内紧凑监控顶栏承载返回运行总览、SSE 状态、Live/Frozen、更新时间、主题切换和刷新。
+- [x] 设备选择保持在 `/runtime/monitor?...&deviceId=...`，右栏优先展示选中设备事实；无设备时回退线体行动舱。
+- [x] `scripts/runtime-agent-browser-smoke.sh` 增加深色/浅色桌面与移动截图、沉浸式 chrome 断言和主题状态断言。
+- [x] 重新运行 `pnpm type:check`、`pnpm contract:verify`、`pnpm lint`、`pnpm build` 和 fixed fixture runtime smoke 后，将本段状态改为 DONE。
+
 ---
 
 ## Systematic Debugging 结论
@@ -26,15 +40,15 @@
 
 ---
 
-## 当前事实与硬约束
+## 已落地事实与硬约束
 
-- `../wes_backend/src/app/workline/v1/runtime.py` 当前 `/worklines/{workline_id}` 仍返回 `ResponseSchemaModel[RuntimeWorklineDetailResponse]`。
-- `RuntimeQueryService.get_workline_detail` 当前仍构造旧 `RuntimeWorklineDetailResponse`，并复用 `RuntimeTraceListItem`。
-- `../wes_backend/src/app/device/services/device_service.py` 当前仍可发出 `domain: "workline_trace"` 的 runtime 相关 SSE payload。
-- `../wes_frontend/src/stores/workline-runtime.ts` 当前仍有 `detail/loadDetail/refreshDetail`、请求序列保护和 coalesced refresh。
-- `../wes_frontend/src/utils/runtime-scene.ts` 当前承载资源证据、货架布局、未定位证据、截断提示等已有能力；实施时必须迁移输入合同，不得重写成简化 lane/node/flow 模型。
-- `../wes_frontend/src/constants/runtime-safety.ts` 当前允许旧 runtime 事件域；实施时必须切换到 `workline_runtime`。
-- 本系统未发布，允许破坏性优化；不保留旧主屏 detail 合同、旧 SSE 域或旧 scene model 兼容别名。
+- `../wes_backend` 已落地 `RuntimeWorklineMonitorProjectionResponse` 合同，前端 PR #37 的后端依赖提交 `7c1466dc feat(runtime): 提供工作线监控投影合同` 已进入后端 `origin/develop`。
+- 前端生成类型、Zod schema、API adapter、Pinia store、Scene Builder、页面消费者和 smoke fixture 已切到 projection shape。
+- `src/stores/workline-runtime.ts` 已收敛到 `projection/loadProjection/refreshProjection/clearProjection` 语义，并保留请求序列保护、coalesced refresh、失败保留旧投影和 clear 后防旧响应复活能力。
+- `src/utils/runtime-scene.ts` 是唯一 scene builder；旧 `src/components/runtime/monitor/runtime-scene-model.ts` 已删除。
+- runtime 主屏刷新只接受 canonical `workline_runtime` 域；旧 `workline_trace`、`device`、`safety` 等域不再驱动监控主屏刷新。
+- 行动舱已接入 `projection.action_candidates.pending_reconciliation`，对账核销成功后刷新 projection 和列表摘要，失败时保留旧 projection。
+- 本系统仍按未发布阶段的破坏性优化原则处理；不恢复旧主屏 detail 合同、旧 SSE 域或旧 scene model 兼容别名。
 
 ---
 
@@ -42,24 +56,24 @@
 
 ### Task 0. 影响分析与基线确认
 
-- [ ] 在 `../wes_backend` 修改任何函数、类、方法前，按项目规则对将变更的 backend symbol 执行 GitNexus impact analysis；若 HIGH/CRITICAL，先向用户汇报。
-- [ ] 确认后端 base 为 `develop`，前端 base 为 `develop`；两个仓库都处于可识别的工作区状态。
-- [ ] 在前端记录当前正向引用清单，作为后续静态守卫的基线：`RuntimeWorklineDetailResponse`、`worklineDetail(`、`loadDetail`、`refreshDetail`、`runtime-scene-model`。
-- [ ] 不运行会改写 repo-tracked 文件的生成/格式化命令，直到进入对应任务。
+- [x] 在 `../wes_backend` 修改任何函数、类、方法前，按项目规则对将变更的 backend symbol 执行 GitNexus impact analysis；若 HIGH/CRITICAL，先向用户汇报。
+- [x] 确认后端 base 为 `develop`，前端 base 为 `develop`；两个仓库都处于可识别的工作区状态。
+- [x] 在前端记录当前正向引用清单，作为后续静态守卫的基线：`RuntimeWorklineDetailResponse`、`worklineDetail(`、`loadDetail`、`refreshDetail`、`runtime-scene-model`。
+- [x] 不运行会改写 repo-tracked 文件的生成/格式化命令，直到进入对应任务。
 
 验收：能明确列出后端 route/service/model/API test 影响面，以及前端 store/page/scene/tests 影响面。
 
 ### Task 1. 后端监控投影合同
 
-- [ ] 在 `../wes_backend` 新增监控投影 DTO 族，使用 `RuntimeWorklineMonitorProjectionResponse` 作为 `GET /runtime/worklines/{workline_id}` 的业务 payload。
-- [ ] 投影 DTO 不复用 `RuntimeTraceListItem`、`RuntimeDeviceSummary`、`RuntimeWorklineDeviceItem`、`RuntimeWorklineDetailResponse` 作为外部响应 DTO。
-- [ ] 投影保留统一 envelope：`ResponseSchemaModel[RuntimeWorklineMonitorProjectionResponse]`；权限 `biz:workline:list` 和 `DEFAULT_NOT_FOUND` 失败语义不变。
-- [ ] 在 `RuntimeQueryService` 内将旧详情聚合改造成 `get_workline_monitor_projection` 语义；复用已有 summary、boundary、blocked outbox、open command、runtime hold 查询能力。
-- [ ] `active_sessions`、`recent_failed_traces`、`recent_completed_traces`、`resource_evidence` 均使用 capped section：`items`、真实 `total_count`、`truncated`。
-- [ ] 新增 `action_candidates.pending_reconciliation`，作为行动舱对账核销的唯一主屏候选；该字段不得受 capped session/trace sections 截断影响，不复用 `TraceSessionItem`，不携带 raw payload。
-- [ ] `generated_at` 使用 aware UTC ISO；不得对 naive datetime 调用 `.timestamp()`。
-- [ ] 后端 runtime SSE 发射器统一输出 `domain: "workline_runtime"`、snake_case keys，并停止向前端 runtime 主屏依赖旧事件域。
-- [ ] 建立 backend 侧 runtime SSE/event emitter 验收边界，覆盖 `defer_sse_event` 及 runtime 主屏刷新来源，证明旧 `workline_trace`、`workline_safety`、`device` 等旧域不会再作为主屏刷新合同输出。
+- [x] 在 `../wes_backend` 新增监控投影 DTO 族，使用 `RuntimeWorklineMonitorProjectionResponse` 作为 `GET /runtime/worklines/{workline_id}` 的业务 payload。
+- [x] 投影 DTO 不复用 `RuntimeTraceListItem`、`RuntimeDeviceSummary`、`RuntimeWorklineDeviceItem`、`RuntimeWorklineDetailResponse` 作为外部响应 DTO。
+- [x] 投影保留统一 envelope：`ResponseSchemaModel[RuntimeWorklineMonitorProjectionResponse]`；权限 `biz:workline:list` 和 `DEFAULT_NOT_FOUND` 失败语义不变。
+- [x] 在 `RuntimeQueryService` 内将旧详情聚合改造成 `get_workline_monitor_projection` 语义；复用已有 summary、boundary、blocked outbox、open command、runtime hold 查询能力。
+- [x] `active_sessions`、`recent_failed_traces`、`recent_completed_traces`、`resource_evidence` 均使用 capped section：`items`、真实 `total_count`、`truncated`。
+- [x] 新增 `action_candidates.pending_reconciliation`，作为行动舱对账核销的唯一主屏候选；该字段不得受 capped session/trace sections 截断影响，不复用 `TraceSessionItem`，不携带 raw payload。
+- [x] `generated_at` 使用 aware UTC ISO；不得对 naive datetime 调用 `.timestamp()`。
+- [x] 后端 runtime SSE 发射器统一输出 `domain: "workline_runtime"`、snake_case keys，并停止向前端 runtime 主屏依赖旧事件域。
+- [x] 建立 backend 侧 runtime SSE/event emitter 验收边界，覆盖 `defer_sse_event` 及 runtime 主屏刷新来源，证明旧 `workline_trace`、`workline_safety`、`device` 等旧域不会再作为主屏刷新合同输出。
 
 验收：
 
@@ -69,11 +83,10 @@
 
 ### Task 2. OpenAPI 类型同步
 
-- [ ] 启动或指定后端 OpenAPI 服务，确保前端 typegen 读取的是 Task 1 后的新合同。
-- [ ] 在 `../wes_frontend` 运行 `pnpm generate:types` 和 `pnpm generate:zod`。
-- [ ] `src/types/runtime.ts` 对监控投影只 re-export / alias `components["schemas"]["RuntimeWorklineMonitorProjectionResponse"]` 及其子类型；不得手写投影接口，不新增临时 fallback shape。Trace/Debug 既有手写类型不因本任务整体迁移，除非它们仍消费 `/runtime/worklines/{id}`。
-- [ ] 如果生成结果仍包含 `/runtime/worklines/{id}` -> `RuntimeWorklineDetailResponse`，停止前端实施，回到 Task 1 修后端合同。
-- [ ] 更新 fixed smoke fixture 和测试 fixture，使其使用 projection shape，不再伪造旧 detail shape。
+- [x] **Task 2. OpenAPI Type Sync**
+  - [x] Run typegen commands (`pnpm generate:types`, `pnpm generate:zod`) against the updated backend schema.
+  - [x] Re-export/alias generated types in `src/types/runtime.ts` (remove hand-written projection interfaces).
+  - [x] Update fixed smoke fixtures and test fixtures with the new projection shape.
 
 验收：
 
@@ -83,12 +96,12 @@
 
 ### Task 3. 前端 API、Store 与事件语义收敛
 
-- [ ] 将 `runtimeApiMethods.worklineDetail(worklineId)` 破坏性改名为 `worklineProjection(worklineId)`，并使用 OpenAPI 生成的 projection 类型。
-- [ ] 将 `src/stores/workline-runtime.ts` 的主屏状态从 `detail` 改为 `projection` 或 `monitorProjection`，动作为 `loadProjection` / `refreshProjection` / `clearProjection`。
-- [ ] 保留并迁移现有请求序列保护、coalesced refresh、loading/error 处理和派生查询能力；不得用极简 store 覆盖现有并发保护。
-- [ ] 将 runtime event target / classifier 中的 `detail` 语义迁移为 `projection` 语义。
-- [ ] `ALLOWED_RUNTIME_EVENT_DOMAINS` 只接受 canonical `workline_runtime`；普通事件合并刷新，高风险、断线重连、陈旧恢复立即刷新。
-- [ ] 行动舱操作成功后刷新 projection 和必要列表摘要；失败时保留旧 projection，不乐观改写资源证据或货格状态。
+- [x] 将 `runtimeApiMethods.worklineDetail(worklineId)` 破坏性改名为 `worklineProjection(worklineId)`，并使用 OpenAPI 生成的 projection 类型。
+- [x] 将 `src/stores/workline-runtime.ts` 的主屏状态从 `detail` 改为 `projection` 或 `monitorProjection`，动作为 `loadProjection` / `refreshProjection` / `clearProjection`。
+- [x] 保留并迁移现有请求序列保护、coalesced refresh、loading/error 处理和派生查询能力；不得用极简 store 覆盖现有并发保护。
+- [x] 将 runtime event target / classifier 中的 `detail` 语义迁移为 `projection` 语义。
+- [x] `ALLOWED_RUNTIME_EVENT_DOMAINS` 只接受 canonical `workline_runtime`；普通事件合并刷新，高风险、断线重连、陈旧恢复立即刷新。
+- [x] 行动舱操作成功后刷新 projection 和必要列表摘要；失败时保留旧 projection，不乐观改写资源证据或货格状态。
 
 验收：
 
@@ -97,11 +110,11 @@
 
 ### Task 4. Scene Builder 单轨化
 
-- [ ] 删除 `src/components/runtime/monitor/runtime-scene-model.ts`，不保留兼容 wrapper。
-- [ ] 将 `src/utils/runtime-scene.ts` 的输入迁移为 `RuntimeWorklineMonitorProjectionResponse + WorkLinePluginManifestSummary`。
-- [ ] 保留现有 scene model 能力：设备流、position groups、rack layouts、resource stacks、unlocated evidence、focus panel、截断提示和 Manifest 失败语义降级。
-- [ ] Scene Builder 只读取 projection 的 `device_nodes`、capped session/trace sections、`boundary` 和 `resource_evidence`；不得读取旧 `detail.devices`、旧平铺 `resource_evidence_items`。
-- [ ] Manifest 不可用时输出语义分组和诊断提示，不伪造完整物理拓扑。
+- [x] 删除 `src/components/runtime/monitor/runtime-scene-model.ts`，不保留兼容 wrapper。
+- [x] 将 `src/utils/runtime-scene.ts` 的输入迁移为 `RuntimeWorklineMonitorProjectionResponse + WorkLinePluginManifestSummary`。
+- [x] 保留现有 scene model 能力：设备流、position groups、rack layouts、resource stacks、unlocated evidence、focus panel、截断提示和 Manifest 失败语义降级。
+- [x] Scene Builder 只读取 projection 的 `device_nodes`、capped session/trace sections、`boundary` 和 `resource_evidence`；不得读取旧 `detail.devices`、旧平铺 `resource_evidence_items`。
+- [x] Manifest 不可用时输出语义分组和诊断提示，不伪造完整物理拓扑。
 
 验收：
 
@@ -110,12 +123,12 @@
 
 ### Task 5. 页面与所有路由消费者迁移
 
-- [ ] `WorklineMonitorPage.vue` 使用三栏主路径：左栏目录、中栏运行场景、右栏行动舱；不得退化为双栏或堆叠 dashboard cards。
-- [ ] `WorklineLiveOverview`、`DecisionStrip`、`WorklineRuntimeHoldSummaryPanel`、`SessionBoard` 等主屏组件改为 projection/capped sections 输入。
-- [ ] 将 `WorklineReconciliationPanel` 接入 `projection.action_candidates.pending_reconciliation`；候选为空时显示无可核销对象原因，候选存在时调用 `runtimeApiMethods.resolveRuntimeReconciliation`，成功后刷新 projection。
-- [ ] `TraceExplorerPage.vue`、`SandboxWorkbenchPage.vue`、route sync tests 等所有 `GET /runtime/worklines/{id}` 消费者必须迁移：需要主屏上下文时使用 projection，需要 Trace/Session 详情时使用专用下钻 API。
-- [ ] 主屏不从 `/runtime/devices`、`/traces/query`、`/sessions/{id}/path` 多源拼装事实；这些接口只服务设备页、Trace Explorer 或下钻视图。
-- [ ] 行动舱只保留解除急停、对账核销、手动刷新；不展示维护旁路按钮、隐藏入口或 TODO。
+- [x] `WorklineMonitorPage.vue` 使用三栏主路径：左栏目录、中栏运行场景、右栏行动舱；不得退化为双栏或堆叠 dashboard cards。
+- [x] `WorklineLiveOverview`、`DecisionStrip`、`WorklineRuntimeHoldSummaryPanel`、`SessionBoard` 等主屏组件改为 projection/capped sections 输入。
+- [x] 将 `WorklineReconciliationPanel` 接入 `projection.action_candidates.pending_reconciliation`；候选为空时显示无可核销对象原因，候选存在时调用 `runtimeApiMethods.resolveRuntimeReconciliation`，成功后刷新 projection。
+- [x] `TraceExplorerPage.vue`、`SandboxWorkbenchPage.vue`、route sync tests 等所有 `GET /runtime/worklines/{id}` 消费者必须迁移：需要主屏上下文时使用 projection，需要 Trace/Session 详情时使用专用下钻 API。
+- [x] 主屏不从 `/runtime/devices`、`/traces/query`、`/sessions/{id}/path` 多源拼装事实；这些接口只服务设备页、Trace Explorer 或下钻视图。
+- [x] 行动舱只保留解除急停、对账核销、手动刷新；不展示维护旁路按钮、隐藏入口或 TODO。
 
 验收：
 
@@ -124,13 +137,13 @@
 
 ### Task 6. UI 状态、响应式与可访问性
 
-- [ ] 桌面端实现目录 -> 场景 -> 行动三栏结构；任一时刻只允许一个最高风险状态成为主视觉。
-- [ ] 覆盖工作线目录、监控投影、Manifest/场景、行动舱、日志与证据的 loading、empty、error、success、partial/stale 状态。
-- [ ] 资源证据和 capped section 显示 `items.length / total_count` 与截断提示；不得让用户误以为 capped 列表是完整列表。
-- [ ] `< 768px` 使用“线体 / 场景 / 行动”分段切换；`< 480px` 只保留线体状态、最高风险对象、可执行动作和刷新/断线状态。
-- [ ] 页面语义区使用 `main`、`aside`、`section` 和可读 label；目录项、场景节点、行动按钮均支持键盘焦点。
-- [ ] 危险、警告、成功状态不得只靠颜色表达；必须有文本、图标或状态徽标；关键刷新失败、SSE 断线、动作成功/失败可被读屏感知。
-- [ ] 尊重 `prefers-reduced-motion`，危险提醒只能短促提示，不能无限循环制造噪音。
+- [x] 桌面端实现目录 -> 场景 -> 行动三栏结构；任一时刻只允许一个最高风险状态成为主视觉。
+- [x] 覆盖工作线目录、监控投影、Manifest/场景、行动舱、日志与证据的 loading、empty、error、success、partial/stale 状态。
+- [x] 资源证据和 capped section 显示 `items.length / total_count` 与截断提示；不得让用户误以为 capped 列表是完整列表。
+- [x] `< 768px` 使用“线体 / 场景 / 行动”分段切换；`< 480px` 只保留线体状态、最高风险对象、可执行动作和刷新/断线状态。
+- [x] 页面语义区使用 `main`、`aside`、`section` 和可读 label；目录项、场景节点、行动按钮均支持键盘焦点。
+- [x] 危险、警告、成功状态不得只靠颜色表达；必须有文本、图标或状态徽标；关键刷新失败、SSE 断线、动作成功/失败可被读屏感知。
+- [x] 尊重 `prefers-reduced-motion`，危险提醒只能短促提示，不能无限循环制造噪音。
 
 验收：
 
@@ -139,16 +152,16 @@
 
 ### Task 7. 静态守卫、契约验证与最终回归
 
-- [ ] 所有静态守卫按“零匹配即通过”执行；`rg` 无匹配返回 1 是预期成功，任何正向命中都必须先解释并收敛范围，不能作为 warning 放过。
-- [ ] 前端静态守卫分两类执行，避免 generic `loadDetail/refreshDetail` 误报：
+- [x] 所有静态守卫按“零匹配即通过”执行；`rg` 无匹配返回 1 是预期成功，任何正向命中都必须先解释并收敛范围，不能作为 warning 放过。
+- [x] 前端静态守卫分两类执行，避免 generic `loadDetail/refreshDetail` 误报：
   - `! rg "RuntimeWorklineDetailResponse|runtime-scene-model|worklineDetail\\(" src/views/runtime src/stores src/utils src/components/runtime tests/unit`
   - `! rg "loadDetail|refreshDetail" src/stores/workline-runtime.ts src/views/runtime/worklines tests/unit/stores tests/unit/views/runtime`
-- [ ] 后端 runtime SSE 静态守卫限定在主屏事件发射路径，必须零匹配旧主屏事件域：
+- [x] 后端 runtime SSE 静态守卫限定在主屏事件发射路径，必须零匹配旧主屏事件域：
   - `! rg '"domain": "(workline_trace|workline|device|outbox|command|workline_safety|safety)"' ../wes_backend/src/app/device/services ../wes_backend/src/app/callback/services ../wes_backend/src/app/workline/services ../wes_backend/src/celery_app/tasks/workline.py`
-- [ ] 如果需要把守卫固化到 `package.json` 或后端脚本，脚本必须保留“零匹配即通过”的退出语义，并复用上述拆分范围；不得用单条过宽命令误伤设备详情、Trace 下钻或合法非主屏函数。
-- [ ] 后端提交前运行 GitNexus detect changes，确认变更范围符合预期。
-- [ ] 前端最终验证按顺序执行：`pnpm generate:types`、`pnpm generate:zod`、`pnpm contract:verify -- --require-backend`、`pnpm type:check`、`pnpm test -- runtime-event`、`pnpm test -- runtime-scene`、`pnpm test -- WorklineMonitorPage`、`pnpm smoke:runtime:agent-browser`。
-- [ ] 如果任一验证失败，按 systematic debugging 回到根因调查，不叠加猜测式修复。
+- [x] 如果需要把守卫固化到 `package.json` 或后端脚本，脚本必须保留“零匹配即通过”的退出语义，并复用上述拆分范围；不得用单条过宽命令误伤设备详情、Trace 下钻或合法非主屏函数。
+- [x] 后端提交前运行 GitNexus detect changes，确认变更范围符合预期。
+- [x] 前端最终验证按顺序执行：`pnpm generate:types`、`pnpm generate:zod`、`pnpm contract:verify -- --require-backend`、`pnpm type:check`、`pnpm test -- runtime-event`、`pnpm test -- runtime-scene`、`pnpm test -- WorklineMonitorPage`、`pnpm smoke:runtime:agent-browser`。
+- [x] 如果任一验证失败，按 systematic debugging 回到根因调查，不叠加猜测式修复。
 
 验收：后端、前端、contract、unit、smoke 全部通过；静态守卫无正向引用。
 
@@ -213,9 +226,10 @@ Backend impact analysis
 
 ## GSTACK REVIEW REPORT
 
-| Review        | Trigger                 | Why                              | Runs | Status | Findings                                                                                                     |
-| ------------- | ----------------------- | -------------------------------- | ---- | ------ | ------------------------------------------------------------------------------------------------------------ |
-| Readiness Fix | `$systematic-debugging` | 修复实施前评审发现的文档门禁缺口 | 1    | CLEAR  | 已补齐行动舱 pending reconciliation 候选、`src/types/runtime.ts` 迁移范围、backend/frontend SSE 测试职责拆分 |
+| Review        | Trigger                      | Why                              | Runs | Status | Findings                                                                                                                     |
+| ------------- | ---------------------------- | -------------------------------- | ---- | ------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| Readiness Fix | `$systematic-debugging`      | 修复实施前评审发现的文档门禁缺口 | 1    | CLEAR  | 已补齐行动舱 pending reconciliation 候选、`src/types/runtime.ts` 迁移范围、backend/frontend SSE 测试职责拆分                 |
+| Delivery      | `$ship` + `$land-and-deploy` | 合并、部署、发布验证             | 1    | LANDED | PR #37 已合并到 `develop`；develop CI/CD 与 Cloudflare Pages 预发布部署成功；站点 canary 因 Pages URL 被 secrets mask 未执行 |
 
 - **UNRESOLVED:** 0.
-- **VERDICT:** 文档门禁已更新；可进入 Task 0，但实施前仍需按计划确认前后端工作区状态和后端 GitNexus impact analysis。
+- **VERDICT:** 实施计划已完成；后端合同、前端投影迁移、静态守卫、测试、smoke、PR 合并和 develop 预发布部署均已完成。P3 event replay 与物理占用真值模型保留为后续事项。

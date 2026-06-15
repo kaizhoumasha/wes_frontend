@@ -22,18 +22,6 @@
         </div>
       </header>
 
-      <div class="runtime-scene-focus-panel__facts">
-        <span data-test="runtime-scene-station-lease">
-          {{ group.boundary.stationLeaseLabel }}
-        </span>
-        <span data-test="runtime-scene-rack-snapshot">
-          {{ group.boundary.rackSnapshotLabel }}
-        </span>
-        <span data-test="runtime-scene-rack-operation">
-          {{ group.boundary.rackOperationWaitLabel }}
-        </span>
-      </div>
-
       <section
         v-if="stack"
         class="runtime-scene-focus-panel__stack"
@@ -133,16 +121,10 @@ const evidenceItems = computed(() => props.stack?.auditItems ?? props.group?.aud
 }
 
 .runtime-scene-focus-panel__attention,
-.runtime-scene-focus-panel__facts,
 .runtime-scene-focus-panel__stack-label {
   color: var(--runtime-text-muted);
   font-size: 12px;
   overflow-wrap: anywhere;
-}
-
-.runtime-scene-focus-panel__facts {
-  display: grid;
-  gap: 4px;
 }
 
 .runtime-scene-focus-panel__stack {

@@ -206,7 +206,7 @@ function materialCodeLabel(cell: RuntimeSceneRackCell): string {
   overflow: hidden;
   border: 2px solid rgb(14, 165, 233, 0.78);
   border-radius: 3px;
-  background: rgb(15, 23, 42, 0.32);
+  background: var(--runtime-surface-muted, rgb(15, 23, 42, 0.32));
 }
 
 .runtime-bin-cell-grid__frame.is-three-cell {
@@ -222,7 +222,7 @@ function materialCodeLabel(cell: RuntimeSceneRackCell): string {
   padding: 7px;
   border-right: 0;
   border-bottom: 1px solid rgb(14, 165, 233, 0.45);
-  background: rgb(20, 184, 166, 0.12);
+  background: var(--runtime-surface-subtle, rgb(20, 184, 166, 0.12));
   color: var(--runtime-text);
   text-align: left;
   cursor: pointer;
@@ -237,7 +237,7 @@ function materialCodeLabel(cell: RuntimeSceneRackCell): string {
 }
 
 .runtime-bin-cell.is-empty {
-  background: rgb(15, 23, 42, 0.18);
+  background: var(--runtime-surface-subtle, rgb(15, 23, 42, 0.18));
   color: var(--runtime-text-muted);
   cursor: default;
 }
@@ -250,7 +250,8 @@ function materialCodeLabel(cell: RuntimeSceneRackCell): string {
 
 .runtime-bin-cell.has-material {
   background:
-    linear-gradient(180deg, rgb(20, 184, 166, 0.18), rgb(20, 184, 166, 0.08)), rgb(15, 23, 42, 0.24);
+    linear-gradient(180deg, rgb(20, 184, 166, 0.18), rgb(20, 184, 166, 0.08)),
+    var(--runtime-surface-muted, rgb(15, 23, 42, 0.24));
 }
 
 .runtime-bin-cell__index,
@@ -282,7 +283,7 @@ function materialCodeLabel(cell: RuntimeSceneRackCell): string {
 }
 
 .runtime-bin-cell__hhpn {
-  color: rgb(226, 232, 240);
+  color: var(--runtime-text-primary, rgb(226, 232, 240));
   font-size: 10px;
   font-weight: 900;
 }
