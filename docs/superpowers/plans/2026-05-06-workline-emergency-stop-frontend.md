@@ -24,6 +24,8 @@
 - 仍有效待办：`runtimeApiMethods.clearEstop()` 需要改用生成的 `worklineApiMethods.safetyWorklinesClearEstop()`，避免手写 `apiClient.Post` 路径。
 - 仍有效待办：若产品仍需要 active incident 详情、事故审计、drain/remote unknown 证据和恢复拒绝结构化字段，需要另补后端合同或 projection 字段后再实施前端。
 - 仍有效待办：后端普通 sandbox event 提交路径仍需拒绝平台保留安全事件（至少 `ESTOP_PRESSED`）；前端只保留第一层防护。
+- 后端近期变更复核：`../wes_backend/src/app/workline/services/operation_service.py` 仍在普通 sandbox event 模板中包含 `ESTOP_PRESSED`，且 `submit_sandbox_event()` 未拒绝该事件；专用 `simulate-estop` / `clear-estop` 合同存在，但不能替代普通 sandbox API 的保留事件防护。
+- 前端近期变更复核：`src/api/modules/runtime.ts` 的 `clearEstop()` 仍手写 `apiClient.Post('/api/v1/workline/operations/safety/.../clear-estop')`，`src/components/runtime/monitor/WorklineClearEstopDialog.vue` 仍不存在。因此本计划不满足归档条件，应保留在 current `plans`。
 
 ## 前端原则
 
