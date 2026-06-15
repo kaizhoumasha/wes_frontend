@@ -4,7 +4,7 @@
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 后端 OpenAPI 端点: http://localhost:8001/api/openapi.json
+ * 后端 OpenAPI 端点: http://127.0.0.1:8001/api/openapi.json
  *
  * 更新类型: pnpm generate:types
  */
@@ -89,6 +89,12 @@ export const RuntimeResourceEvidenceItemMetadata = {
       "required": false,
       "nullable": true
     },
+    "cell_code": {
+      "title": "Cell Code",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
     "pkg_code": {
       "title": "Pkg Code",
       "type": "string",
@@ -98,6 +104,40 @@ export const RuntimeResourceEvidenceItemMetadata = {
     "part_sn": {
       "title": "Part Sn",
       "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "material_code": {
+      "title": "Material Code",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "date_code": {
+      "title": "Date Code",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "lot_code": {
+      "title": "Lot Code",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "reel_count": {
+      "title": "Reel Count",
+      "required": false,
+      "nullable": true
+    },
+    "reel_code": {
+      "title": "Reel Code",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "position_index": {
+      "title": "Position Index",
       "required": false,
       "nullable": true
     },

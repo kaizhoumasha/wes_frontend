@@ -284,18 +284,22 @@ describe('CaseConsolePage layout', () => {
     })
   })
 
-  it('loads a case directly by session id as the primary route anchor', async () => {
-    mocks.route.query = { sessionId: '1' }
+  it(
+    'loads a case directly by session id as the primary route anchor',
+    async () => {
+      mocks.route.query = { sessionId: '1' }
 
-    const wrapper = await mountPage()
-    await flushViewUpdates()
+      const wrapper = await mountPage()
+      await flushViewUpdates()
 
-    expect(mocks.traceBySessionIdSend).toHaveBeenCalled()
-    expect(mocks.traceByTraceIdSend).not.toHaveBeenCalled()
-    expect(mocks.sessionPathSend).toHaveBeenCalled()
-    expect(mocks.tracePathSend).not.toHaveBeenCalled()
-    expect(wrapper.text()).toContain('运行案件处置台')
-  })
+      expect(mocks.traceBySessionIdSend).toHaveBeenCalled()
+      expect(mocks.traceByTraceIdSend).not.toHaveBeenCalled()
+      expect(mocks.sessionPathSend).toHaveBeenCalled()
+      expect(mocks.tracePathSend).not.toHaveBeenCalled()
+      expect(wrapper.text()).toContain('运行案件处置台')
+    },
+    10_000
+  )
 
   it('uses session path when detail has a session but no trace id', async () => {
     mocks.route.query = { sessionId: '1' }

@@ -104,6 +104,35 @@ describe('useRuntimeSceneManifest', () => {
 
     expect(state.manifest.value?.contract_version).toBe('v2')
     expect(mocks.worklinePluginManifest).toHaveBeenCalledTimes(2)
+    expect(mocks.worklinePluginManifest).toHaveBeenNthCalledWith(1, 'rough_sorter', 'v1')
+    expect(mocks.worklinePluginManifest).toHaveBeenNthCalledWith(2, 'rough_sorter', 'v2')
+  })
+
+  it('isolates cached manifests by plugin key and contract version', async () => {
+    const { useRuntimeSceneManifest } = await import('@/composables/useRuntimeSceneManifest')
+    mocks.worklinePluginManifest
+      .mockReturnValueOnce({
+        send: () => Promise.resolve({ plugin_key: 'rough_sorter', contract_version: 'v1' })
+      })
+      .mockReturnValueOnce({
+        send: () => Promise.resolve({ plugin_key: 'rough_sorter', contract_version: 'v2' })
+      })
+      .mockReturnValueOnce({
+        send: () => Promise.resolve({ plugin_key: 'smt_inbound', contract_version: 'v1' })
+      })
+
+    const state = useRuntimeSceneManifest()
+    await state.loadManifest('rough_sorter', 'v1')
+    await state.loadManifest('rough_sorter', 'v2')
+    await state.loadManifest('smt_inbound', 'v1')
+    await state.loadManifest('rough_sorter', 'v1')
+    await state.loadManifest('rough_sorter', 'v2')
+
+    expect(state.manifest.value).toEqual({ plugin_key: 'rough_sorter', contract_version: 'v2' })
+    expect(mocks.worklinePluginManifest).toHaveBeenCalledTimes(3)
+    expect(mocks.worklinePluginManifest).toHaveBeenNthCalledWith(1, 'rough_sorter', 'v1')
+    expect(mocks.worklinePluginManifest).toHaveBeenNthCalledWith(2, 'rough_sorter', 'v2')
+    expect(mocks.worklinePluginManifest).toHaveBeenNthCalledWith(3, 'smt_inbound', 'v1')
   })
 
   it('keeps versioned manifest cache entries isolated when older responses resolve later', async () => {

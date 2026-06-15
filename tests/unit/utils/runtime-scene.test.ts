@@ -103,25 +103,80 @@ function createDetail(
   } as unknown as RuntimeWorklineMonitorProjectionResponse
 }
 
-const manifest: WorkLinePluginManifestSummary = {
-  plugin_key: 'rough_sorter',
-  contract_version: 'v1',
-  single_layer_boundaries: [
-    {
-      station_role: 'TARGET',
-      station_code: 'TARGET_ARM',
-      position_code: 'SINGLE_LAYER_A',
-      rack_kind: 'SINGLE_LAYER',
-      snapshot_kind: 'ACTIVE_BIN_RACK',
-      lease_scope: 'POSITION',
-      business_demand_type: 'SORTING_TARGET',
-      wms_operation_type: 'RACK_MOVE'
-    }
-  ],
-  required_device_roles: [],
-  supported_events: [],
-  supported_commands: []
+interface BoundaryFixture {
+  station_role: string
+  station_code: string
+  position_code: string
+  rack_kind: string
+  snapshot_kind: string
+  lease_scope: string
+  business_demand_type: string
+  wms_operation_type: string
 }
+
+const baseBoundary: BoundaryFixture = {
+  station_role: 'TARGET',
+  station_code: 'TARGET_ARM',
+  position_code: 'SINGLE_LAYER_A',
+  rack_kind: 'SINGLE_LAYER',
+  snapshot_kind: 'ACTIVE_BIN_RACK',
+  lease_scope: 'POSITION',
+  business_demand_type: 'SORTING_TARGET',
+  wms_operation_type: 'RACK_MOVE'
+}
+
+function manifestWithBoundaries(boundaries: BoundaryFixture[]): WorkLinePluginManifestSummary {
+  const rackPositionsByCode = new Map<string, BoundaryFixture>()
+  for (const boundary of boundaries) {
+    if (!rackPositionsByCode.has(boundary.position_code)) {
+      rackPositionsByCode.set(boundary.position_code, boundary)
+    }
+  }
+
+  return {
+    plugin_key: 'rough_sorter',
+    contract_version: 'v1',
+    devices: [],
+    events: [],
+    commands: [
+      {
+        command: 'PICK_AND_PUT',
+        target_device_role: 'TARGET_ARM',
+        payload_schema_ref: 'schemas/commands/pick-and-put.json',
+        rack_position_args: [],
+        result_bindings: []
+      }
+    ],
+    topology: {
+      flow_edges: Array.from(rackPositionsByCode.values()).map(boundary => ({
+        type: 'material_flow',
+        from_node: { kind: 'DEVICE_ROLE', ref: boundary.station_role },
+        to_node: { kind: 'RACK_POSITION', ref: boundary.position_code }
+      }))
+    },
+    rack_positions: Array.from(rackPositionsByCode.values()).map(boundary => ({
+      code: boundary.position_code,
+      role: boundary.station_role,
+      station_code: boundary.station_code,
+      carrier_capability: {
+        allowed_rack_kinds: [boundary.rack_kind],
+        allowed_slot_kinds: [],
+        min_capacity: 0,
+        max_capacity: 1
+      }
+    })),
+    resource_boundaries: boundaries.map(boundary => ({
+      rack_position_code: boundary.position_code,
+      rack_kind: boundary.rack_kind,
+      snapshot_kind: boundary.snapshot_kind,
+      lease_scope: boundary.lease_scope,
+      business_demand_type: boundary.business_demand_type,
+      wms_operation_type: boundary.wms_operation_type
+    }))
+  }
+}
+
+const manifest = manifestWithBoundaries([baseBoundary])
 
 describe('buildRuntimeSceneModel', () => {
   it('normalizes projection and manifest into a camelCase scene model', () => {
@@ -147,6 +202,25 @@ describe('buildRuntimeSceneModel', () => {
         resourceEvidenceKindLabel: 'WMS 回调证据'
       })
     ])
+    expect(manifest.commands).toEqual([
+      expect.objectContaining({
+        command: 'PICK_AND_PUT',
+        rack_position_args: []
+      })
+    ])
+    expect(manifest.topology?.flow_edges).toEqual([
+      expect.objectContaining({
+        type: 'material_flow',
+        from_node: { kind: 'DEVICE_ROLE', ref: 'TARGET' },
+        to_node: { kind: 'RACK_POSITION', ref: 'SINGLE_LAYER_A' }
+      })
+    ])
+    expect(model.positionGroups[0]).toEqual(
+      expect.objectContaining({
+        stationCode: 'TARGET_ARM',
+        positionCode: 'SINGLE_LAYER_A'
+      })
+    )
     expect(model.resourceEvidence).toEqual([
       expect.objectContaining({
         resourceKind: 'RACK',
@@ -179,6 +253,37 @@ describe('buildRuntimeSceneModel', () => {
         runtimeHoldCount: 0,
         maintenanceMode: false,
         errorCode: undefined
+      })
+    )
+  })
+
+  it('falls back to rack position code when a resource boundary has no matching manifest rack position', () => {
+    const orphanManifest: WorkLinePluginManifestSummary = {
+      ...manifest,
+      rack_positions: [],
+      resource_boundaries: [
+        {
+          rack_position_code: 'ORPHAN_LAYER',
+          rack_kind: 'SINGLE_LAYER',
+          snapshot_kind: 'ACTIVE_BIN_RACK',
+          lease_scope: 'POSITION',
+          business_demand_type: 'SORTING_TARGET',
+          wms_operation_type: 'RACK_MOVE'
+        }
+      ]
+    }
+
+    const model = buildRuntimeSceneModel({
+      projection: createDetail(),
+      manifest: orphanManifest
+    })
+
+    expect(model.boundaries[0]).toEqual(
+      expect.objectContaining({
+        stationRole: 'ORPHAN_LAYER',
+        stationCode: 'ORPHAN_LAYER',
+        positionCode: 'ORPHAN_LAYER',
+        rackKind: 'SINGLE_LAYER'
       })
     )
   })
@@ -901,17 +1006,14 @@ describe('buildRuntimeSceneModel', () => {
   )
 
   it('keeps NG placement on TARGET_ARM instead of creating a separate NG role', () => {
-    const ngManifest: WorkLinePluginManifestSummary = {
-      ...manifest,
-      single_layer_boundaries: [
-        {
-          ...manifest.single_layer_boundaries![0],
-          station_role: 'TARGET_ARM',
-          station_code: 'TARGET_ARM',
-          business_demand_type: 'NG_PLACE'
-        }
-      ]
-    }
+    const ngManifest = manifestWithBoundaries([
+      {
+        ...baseBoundary,
+        station_role: 'TARGET_ARM',
+        station_code: 'TARGET_ARM',
+        business_demand_type: 'NG_PLACE'
+      }
+    ])
     const model = buildRuntimeSceneModel({
       projection: createDetail(),
       manifest: ngManifest
@@ -922,17 +1024,14 @@ describe('buildRuntimeSceneModel', () => {
   })
 
   it('maps legacy NG_ARM role data to TARGET_ARM before display', () => {
-    const legacyManifest: WorkLinePluginManifestSummary = {
-      ...manifest,
-      single_layer_boundaries: [
-        {
-          ...manifest.single_layer_boundaries![0],
-          station_role: 'NG_ARM',
-          station_code: 'NG_ARM',
-          business_demand_type: 'NG_PLACE'
-        }
-      ]
-    }
+    const legacyManifest = manifestWithBoundaries([
+      {
+        ...baseBoundary,
+        station_role: 'NG_ARM',
+        station_code: 'NG_ARM',
+        business_demand_type: 'NG_PLACE'
+      }
+    ])
     const model = buildRuntimeSceneModel({
       projection: createDetail({
         devices: [
@@ -958,26 +1057,23 @@ describe('buildRuntimeSceneModel', () => {
   })
 
   it('builds composite boundary keys while grouping duplicate physical positions once', () => {
-    const duplicatePositionManifest: WorkLinePluginManifestSummary = {
-      ...manifest,
-      single_layer_boundaries: [
-        {
-          ...manifest.single_layer_boundaries![0],
-          station_role: 'SOURCE_ARM',
-          station_code: 'SOURCE_ARM',
-          position_code: 'SINGLE_LAYER_A'
-        },
-        {
-          ...manifest.single_layer_boundaries![0],
-          station_role: 'SOURCE_ARM',
-          station_code: 'SOURCE_ARM',
-          position_code: 'SINGLE_LAYER_A',
-          lease_scope: 'WORKSTATION',
-          business_demand_type: 'SORTING_NG',
-          wms_operation_type: 'RACK_RETURN'
-        }
-      ]
-    }
+    const duplicatePositionManifest = manifestWithBoundaries([
+      {
+        ...baseBoundary,
+        station_role: 'SOURCE_ARM',
+        station_code: 'SOURCE_ARM',
+        position_code: 'SINGLE_LAYER_A'
+      },
+      {
+        ...baseBoundary,
+        station_role: 'SOURCE_ARM',
+        station_code: 'SOURCE_ARM',
+        position_code: 'SINGLE_LAYER_A',
+        lease_scope: 'WORKSTATION',
+        business_demand_type: 'SORTING_NG',
+        wms_operation_type: 'RACK_RETURN'
+      }
+    ])
 
     const model = buildRuntimeSceneModel({
       projection: createDetail({
@@ -1020,24 +1116,21 @@ describe('buildRuntimeSceneModel', () => {
     expect(model.positionGroups[0]?.resourceStacks).toHaveLength(1)
   })
 
-  it('keeps same-position resources separated by station code', () => {
-    const sharedPositionManifest: WorkLinePluginManifestSummary = {
-      ...manifest,
-      single_layer_boundaries: [
-        {
-          ...manifest.single_layer_boundaries![0],
-          station_role: 'SOURCE_ARM',
-          station_code: 'SOURCE_ARM',
-          position_code: 'SINGLE_LAYER_SHARED'
-        },
-        {
-          ...manifest.single_layer_boundaries![0],
-          station_role: 'TARGET_ARM',
-          station_code: 'TARGET_ARM',
-          position_code: 'SINGLE_LAYER_SHARED'
-        }
-      ]
-    }
+  it('keeps shared rack-kind resources separated by manifest position code', () => {
+    const sharedPositionManifest = manifestWithBoundaries([
+      {
+        ...baseBoundary,
+        station_role: 'SOURCE_ARM',
+        station_code: 'SOURCE_ARM',
+        position_code: 'SOURCE_LAYER_SHARED'
+      },
+      {
+        ...baseBoundary,
+        station_role: 'TARGET_ARM',
+        station_code: 'TARGET_ARM',
+        position_code: 'TARGET_LAYER_SHARED'
+      }
+    ])
 
     const model = buildRuntimeSceneModel({
       projection: createDetail({
@@ -1048,7 +1141,7 @@ describe('buildRuntimeSceneModel', () => {
             display_label: 'Rack RACK-SOURCE',
             evidence_kind: 'WES_ACTIVE_SNAPSHOT',
             station_code: 'SOURCE_ARM',
-            position_code: 'SINGLE_LAYER_SHARED',
+            position_code: 'SOURCE_LAYER_SHARED',
             rack_code: 'RACK-SOURCE'
           },
           {
@@ -1057,7 +1150,7 @@ describe('buildRuntimeSceneModel', () => {
             display_label: 'Rack RACK-TARGET',
             evidence_kind: 'WES_ACTIVE_SNAPSHOT',
             station_code: 'TARGET_ARM',
-            position_code: 'SINGLE_LAYER_SHARED',
+            position_code: 'TARGET_LAYER_SHARED',
             rack_code: 'RACK-TARGET'
           }
         ]
@@ -1106,24 +1199,24 @@ describe('buildRuntimeSceneModel', () => {
     expect(model.unlocatedAuditItems).toEqual([])
   })
 
-  it('keeps stationless positioned evidence as fallback when manifest station is ambiguous', () => {
-    const sharedPositionManifest: WorkLinePluginManifestSummary = {
-      ...manifest,
-      single_layer_boundaries: [
-        {
-          ...manifest.single_layer_boundaries![0],
-          station_role: 'SOURCE_ARM',
-          station_code: 'SOURCE_ARM',
-          position_code: 'SINGLE_LAYER_SHARED'
-        },
-        {
-          ...manifest.single_layer_boundaries![0],
-          station_role: 'TARGET_ARM',
-          station_code: 'TARGET_ARM',
-          position_code: 'SINGLE_LAYER_SHARED'
-        }
-      ]
-    }
+  it('assigns stationless positioned evidence to duplicate resource contracts on one position', () => {
+    const sharedPositionManifest = manifestWithBoundaries([
+      {
+        ...baseBoundary,
+        station_role: 'SOURCE_ARM',
+        station_code: 'SOURCE_ARM',
+        position_code: 'SINGLE_LAYER_SHARED'
+      },
+      {
+        ...baseBoundary,
+        station_role: 'SOURCE_ARM',
+        station_code: 'SOURCE_ARM',
+        position_code: 'SINGLE_LAYER_SHARED',
+        lease_scope: 'WORKSTATION',
+        business_demand_type: 'SORTING_NG',
+        wms_operation_type: 'RACK_RETURN'
+      }
+    ])
 
     const model = buildRuntimeSceneModel({
       projection: createDetail({
@@ -1141,15 +1234,15 @@ describe('buildRuntimeSceneModel', () => {
       manifest: sharedPositionManifest
     })
 
-    expect(model.boundaries.map(boundary => boundary.evidenceCount)).toEqual([0, 0])
+    expect(model.boundaries.map(boundary => boundary.evidenceCount)).toEqual([1, 1])
     expect(model.unlocatedAuditItems).toEqual([])
 
     const groupsWithEvidence = model.positionGroups.filter(group => group.auditItems.length > 0)
     expect(groupsWithEvidence).toHaveLength(1)
     expect(groupsWithEvidence[0]).toEqual(
       expect.objectContaining({
-        key: 'fallback:SINGLE_LAYER_SHARED:SINGLE_LAYER_SHARED',
-        stationCode: 'SINGLE_LAYER_SHARED',
+        key: model.boundaries[0]?.key,
+        stationCode: 'SOURCE_ARM',
         positionCode: 'SINGLE_LAYER_SHARED'
       })
     )
@@ -1259,7 +1352,7 @@ describe('buildRuntimeSceneModel', () => {
     })
 
     expect(model.semanticFallback).toBe(true)
-    expect(model.semanticFallbackMessage).toContain('manifest 未加载')
+    expect(model.semanticFallbackMessage).toContain('manifest/resource boundaries')
     expect(model.boundaries[0]).toEqual(
       expect.objectContaining({
         stationLeaseLabel: 'Station lease：语义未加载',
@@ -1268,6 +1361,67 @@ describe('buildRuntimeSceneModel', () => {
         resourceEvidenceKindLabel: '通用 evidence'
       })
     )
+  })
+
+  it('does not derive boundaries from command position args when manifest resource boundaries are absent', () => {
+    const commandOnlyManifest = {
+      plugin_key: 'rough_sorter',
+      contract_version: 'v1',
+      devices: [],
+      events: [],
+      commands: [
+        {
+          command: 'MOVE_RACK_TO_TARGET',
+          target_device_role: 'TARGET_ARM',
+          payload_schema_ref: 'schemas/commands/move-rack-to-target.json',
+          rack_position_args: [
+            {
+              name: 'target_position',
+              rack_position_ref: 'COMMAND_ONLY_POSITION'
+            }
+          ],
+          result_bindings: []
+        }
+      ],
+      rack_positions: [
+        {
+          code: 'COMMAND_ONLY_POSITION',
+          role: 'TARGET_ARM',
+          station_code: 'TARGET_ARM',
+          carrier_capability: {
+            min_capacity: 0,
+            max_capacity: 1,
+            allowed_rack_kinds: ['SINGLE_LAYER'],
+            allowed_slot_kinds: ['BIN_SLOT']
+          }
+        }
+      ],
+      resource_boundaries: [],
+      topology: {
+        flow_edges: [
+          {
+            type: 'material_flow',
+            from_node: { kind: 'DEVICE_ROLE', ref: 'TARGET_ARM' },
+            to_node: { kind: 'RACK_POSITION', ref: 'COMMAND_ONLY_POSITION' }
+          }
+        ]
+      }
+    } as unknown as WorkLinePluginManifestSummary
+
+    const model = buildRuntimeSceneModel({
+      projection: createDetail({
+        resource_evidence_items: [],
+        resource_evidence_total_count: 0,
+        resource_evidence_truncated: false
+      }),
+      manifest: commandOnlyManifest
+    })
+
+    expect(model.semanticFallback).toBe(true)
+    expect(model.semanticFallbackMessage).toContain('manifest/resource boundaries')
+    expect(model.boundaries).toEqual([])
+    expect(model.positionGroups).toEqual([])
+    expect(JSON.stringify(model)).not.toContain('COMMAND_ONLY_POSITION')
   })
 
   it('keeps no-manifest station and position evidence in one fallback physical group', () => {

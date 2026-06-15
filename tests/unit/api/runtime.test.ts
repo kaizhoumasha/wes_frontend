@@ -1,4 +1,8 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+const legacyManifestField = (...segments: string[]) => segments.join('_')
 
 const mocks = vi.hoisted(() => {
   const send = vi.fn()
@@ -86,12 +90,73 @@ describe('runtimeApiMethods', () => {
     expect(result).toEqual({ ok: true })
   })
 
-  it('loads a workline plugin manifest by plugin key', async () => {
+  it('loads a workline plugin manifest by plugin key and contract version', async () => {
     const { runtimeApiMethods } = await import('@/api/modules/runtime')
 
-    await runtimeApiMethods.worklinePluginManifest('rough_sorter').send()
+    await runtimeApiMethods.worklinePluginManifest('rough_sorter', 'v2').send()
 
-    expect(mocks.methods.manifest).toHaveBeenCalledWith({ plugin_key: 'rough_sorter' })
+    expect(mocks.methods.manifest).toHaveBeenCalledWith(
+      { plugin_key: 'rough_sorter' },
+      { contract_version: 'v2' }
+    )
+  })
+
+  it('keeps generated workline plugin option contract limited to selector fields', async () => {
+    const { WorkLinePluginOptionMetadata } =
+      await import('@/api/generated/openapi-metadata/WorkLinePluginOption')
+    const { WorkLinePluginOptionSchema } = await import('@/types/generated/zod-schemas')
+    const expectedFields = ['plugin_key', 'label', 'contract_versions', 'default_contract_version']
+
+    expect(Object.keys(WorkLinePluginOptionMetadata.fields)).toEqual(expectedFields)
+    expect(Object.keys(WorkLinePluginOptionSchema.shape)).toEqual(expectedFields)
+  })
+
+  it('uses generated workline plugin manifest contract fields without legacy aliases', async () => {
+    const { WorkLinePluginManifestSummaryMetadata } =
+      await import('@/api/generated/openapi-metadata/WorkLinePluginManifestSummary')
+    const { WorkLinePluginManifestSummarySchema } = await import('@/types/generated/zod-schemas')
+    const expectedFields = [
+      'plugin_key',
+      'contract_version',
+      'devices',
+      'rack_positions',
+      'topology',
+      'events',
+      'commands',
+      'resource_boundaries'
+    ]
+    const legacyFields = [
+      legacyManifestField('required', 'device', 'roles'),
+      legacyManifestField('event', 'source', 'roles'),
+      legacyManifestField('command', 'target', 'roles'),
+      legacyManifestField('supported', 'events'),
+      legacyManifestField('supported', 'commands'),
+      legacyManifestField('single', 'layer', 'boundaries')
+    ]
+
+    expect(Object.keys(WorkLinePluginManifestSummaryMetadata.fields)).toEqual(expectedFields)
+    expect(Object.keys(WorkLinePluginManifestSummarySchema.shape)).toEqual(expectedFields)
+    for (const field of legacyFields) {
+      expect(WorkLinePluginManifestSummaryMetadata.fields).not.toHaveProperty(field)
+      expect(WorkLinePluginManifestSummarySchema.shape).not.toHaveProperty(field)
+    }
+  })
+
+  it('does not keep legacy plugin manifest aliases in runtime types', () => {
+    const runtimeTypes = readFileSync(resolve(process.cwd(), 'src/types/runtime.ts'), 'utf8')
+    const legacyTokens = [
+      legacyManifestField('required', 'device', 'roles'),
+      legacyManifestField('event', 'source', 'roles'),
+      legacyManifestField('command', 'target', 'roles'),
+      legacyManifestField('supported', 'events'),
+      legacyManifestField('supported', 'commands'),
+      legacyManifestField('single', 'layer', 'boundaries'),
+      ['WorkLine', 'SingleLayerRack', 'BoundarySummary'].join('')
+    ]
+
+    for (const token of legacyTokens) {
+      expect(runtimeTypes).not.toContain(token)
+    }
   })
 
   it('routes sandbox operation helpers with path params and payloads intact', async () => {
@@ -142,7 +207,7 @@ describe('runtimeApiMethods', () => {
 
     await runtimeApiMethods.worklinePluginManifest('rough sorter/1').send()
 
-    expect(mocks.methods.manifest).toHaveBeenCalledWith({ plugin_key: 'rough sorter/1' })
+    expect(mocks.methods.manifest).toHaveBeenCalledWith({ plugin_key: 'rough sorter/1' }, undefined)
   })
 
   it('submits sandbox cleanup through direct workline operations endpoint', async () => {
@@ -193,7 +258,10 @@ describe('runtimeApiMethods', () => {
         trace_id: expect.stringMatching(/^sandbox:start:45:/)
       }
     )
-    expect(mocks.apiClientPost).not.toHaveBeenCalledWith('/api/v1/callback/event', expect.anything())
+    expect(mocks.apiClientPost).not.toHaveBeenCalledWith(
+      '/api/v1/callback/event',
+      expect.anything()
+    )
   })
 
   it('does not call API-app protected callback event ingress for sandbox START', async () => {

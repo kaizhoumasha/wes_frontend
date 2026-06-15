@@ -69,11 +69,13 @@ function fetchManifest(
   if (pending) return pending
 
   const request = runtimeApiMethods
-    .worklinePluginManifest(pluginKey)
+    .worklinePluginManifest(pluginKey, normalizeContractVersion(expectedContractVersion))
     .send()
     .then(manifest => {
       if (!matchesPluginKey(manifest, pluginKey)) {
-        throw new Error(`Manifest plugin key mismatch: expected ${pluginKey}, got ${manifest.plugin_key}`)
+        throw new Error(
+          `Manifest plugin key mismatch: expected ${pluginKey}, got ${manifest.plugin_key}`
+        )
       }
       cacheManifest(pluginKey, manifest, expectedContractVersion)
       return manifest

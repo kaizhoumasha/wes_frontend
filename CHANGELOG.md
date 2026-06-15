@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0.0] - 2026-06-15
+
+### Added
+
+- 工作线配置页接入新插件 manifest 合同，展示设备、事件、命令、货架位、资源边界和硬件能力要求。
+- 运行态现场模型支持通过 manifest `rack_positions` 与 `resource_boundaries` 构建资源边界，并在 manifest 缺失或加载失败时保留通用 evidence 降级。
+- 新增 manifest 版本加载、货架位能力诊断、runtime scene 合同迁移和合同噪声防回归测试。
+
+### Changed
+
+- 前端 OpenAPI 类型、metadata 与 Zod schema 同步到 rack position manifest 合同，移除旧 manifest 字段依赖。
+- 单插件 manifest 请求按工作线固定 `contract_version` 加载，运行态 manifest 缓存也按插件 key 和合同版本隔离。
+- 合同生成与同步记录统一本地 OpenAPI 源标签，避免不同本地端口造成无意义生成差异。
+
+### Fixed
+
+- 修复禁用货架位导致的能力预检失败只显示泛化文案的问题，现在会提示先启用对应货架位。
+- 修复工作线固定非默认合同版本时配置页误取默认 manifest，导致设备、事件和角色覆盖丢失的问题。
+- 修复运行监控窄屏布局中关键状态区域可能拥挤溢出的回归。
+
 ## [0.5.0.0] - 2026-06-11
 
 ### Added

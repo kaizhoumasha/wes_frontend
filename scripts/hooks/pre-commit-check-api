@@ -21,7 +21,7 @@ fi
 echo "📦 检测到 API 模块变更"
 
 # 检查后端服务是否可访问
-if ! curl -s http://localhost:8001/api/openapi.json > /dev/null 2>&1; then
+if ! curl -s http://127.0.0.1:8001/api/openapi.json > /dev/null 2>&1; then
     echo -e "${YELLOW}⚠️  后端服务未启动，跳过 API 契约检查${NC}"
     exit 0
 fi

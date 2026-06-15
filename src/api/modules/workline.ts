@@ -6,7 +6,7 @@
  * ⚠️  请勿手动编辑 AUTO GENERATED 区域
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 资源: /api/v1/workline/integration-debug, /api/v1/workline/ng-return-items, /api/v1/workline/operations, /api/v1/workline/plugins, /api/v1/workline/runtime, /api/v1/workline/runtime-holds, /api/v1/workline/trace
+ * 资源: /api/v1/workline/inbound-handoff, /api/v1/workline/integration-debug, /api/v1/workline/ng-return-items, /api/v1/workline/operations, /api/v1/workline/plugins, /api/v1/workline/runtime, /api/v1/workline/runtime-holds, /api/v1/workline/trace
  */
 import { contractMethods } from '@/api/contract/client'
 import type {
@@ -17,6 +17,15 @@ import type {
   ContractResponseData,
 } from '@/api/contract/types'
 import type { components, paths } from '@/api/generated/openapi-types'
+
+export type DemandsResult = ContractResponseData<'/api/v1/workline/inbound-handoff/demands', 'get'>
+export type DemandsQuery = ContractQueryParams<'/api/v1/workline/inbound-handoff/demands', 'get'>
+
+export type GetDemandsResult = ContractResponseData<'/api/v1/workline/inbound-handoff/demands/{demand_id}', 'get'>
+export type GetDemandsPathParams = ContractPathParams<'/api/v1/workline/inbound-handoff/demands/{demand_id}', 'get'>
+
+export type SourceItemsActionsRetrySourcePickResult = ContractResponseData<'/api/v1/workline/inbound-handoff/source-items/{source_item_id}/actions/retry-source-pick', 'post'>
+export type SourceItemsActionsRetrySourcePickPathParams = ContractPathParams<'/api/v1/workline/inbound-handoff/source-items/{source_item_id}/actions/retry-source-pick', 'post'>
 
 export type CasesLatestResult = ContractResponseData<'/api/v1/workline/integration-debug/cases/latest', 'get'>
 export type CasesLatestQuery = ContractQueryParams<'/api/v1/workline/integration-debug/cases/latest', 'get'>
@@ -87,6 +96,7 @@ export type OptionsResult = ContractResponseData<'/api/v1/workline/plugins/optio
 
 export type ManifestResult = ContractResponseData<'/api/v1/workline/plugins/{plugin_key}/manifest', 'get'>
 export type ManifestPathParams = ContractPathParams<'/api/v1/workline/plugins/{plugin_key}/manifest', 'get'>
+export type ManifestQuery = ContractQueryParams<'/api/v1/workline/plugins/{plugin_key}/manifest', 'get'>
 
 export type OverviewResult = ContractResponseData<'/api/v1/workline/runtime/overview', 'get'>
 export type OverviewQuery = ContractQueryParams<'/api/v1/workline/runtime/overview', 'get'>
@@ -148,6 +158,33 @@ export type QueryResult = ContractResponseData<'/api/v1/workline/trace/query', '
 export type QueryInput = ContractRequestBody<'/api/v1/workline/trace/query', 'post'>
 
 export const worklineApiMethods = {
+  /**
+   * [biz:workline:list] 查询 SMT 入库 handoff demand 列表
+   * @endpoint GET /api/v1/workline/inbound-handoff/demands
+   * @returns alova method instance
+   */
+  demands(query?: ContractQueryParams<'/api/v1/workline/inbound-handoff/demands', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/inbound-handoff/demands', { query, config })
+  },
+
+  /**
+   * [biz:workline:detail] 查询 SMT 入库 handoff demand 详情
+   * @endpoint GET /api/v1/workline/inbound-handoff/demands/{demand_id}
+   * @returns alova method instance
+   */
+  getDemands(params: ContractPathParams<'/api/v1/workline/inbound-handoff/demands/{demand_id}', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/inbound-handoff/demands/{demand_id}', { params, config })
+  },
+
+  /**
+   * [biz:workline:update] 重试 SMT 入库 handoff source-pick
+   * @endpoint POST /api/v1/workline/inbound-handoff/source-items/{source_item_id}/actions/retry-source-pick
+   * @returns alova method instance
+   */
+  sourceItemsActionsRetrySourcePick(params: ContractPathParams<'/api/v1/workline/inbound-handoff/source-items/{source_item_id}/actions/retry-source-pick', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/workline/inbound-handoff/source-items/{source_item_id}/actions/retry-source-pick', { params, config })
+  },
+
   /**
    * [biz:workline:list] 查询最新集成调试案件
    * @endpoint GET /api/v1/workline/integration-debug/cases/latest
@@ -336,8 +373,8 @@ export const worklineApiMethods = {
    * @endpoint GET /api/v1/workline/plugins/{plugin_key}/manifest
    * @returns alova method instance
    */
-  manifest(params: ContractPathParams<'/api/v1/workline/plugins/{plugin_key}/manifest', 'get'>, config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/workline/plugins/{plugin_key}/manifest', { params, config })
+  manifest(params: ContractPathParams<'/api/v1/workline/plugins/{plugin_key}/manifest', 'get'>, query?: ContractQueryParams<'/api/v1/workline/plugins/{plugin_key}/manifest', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/plugins/{plugin_key}/manifest', { params, query, config })
   },
 
   /**

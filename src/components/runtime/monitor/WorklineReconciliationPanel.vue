@@ -118,10 +118,7 @@
 import { computed, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
-import type {
-  RuntimeMonitorReconciliationCandidate,
-  RuntimeWorklineSummary
-} from '@/types/runtime'
+import type { RuntimeMonitorReconciliationCandidate, RuntimeWorklineSummary } from '@/types/runtime'
 import { formatRuntimeDateTime } from '@/utils/runtime-display'
 
 type Resolution = 'COMPLETED' | 'FAILED' | 'CANCELLED'

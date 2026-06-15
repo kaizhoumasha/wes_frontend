@@ -339,11 +339,45 @@ import json
 manifest = {
     "plugin_key": "smoke_single_layer",
     "contract_version": "smoke-v1",
-    "single_layer_boundaries": [
+    "devices": [
         {
-            "station_role": "TARGET_ARM",
+            "role": "SOURCE_ARM",
+            "min_count": 1,
+            "required": True,
+        },
+        {
+            "role": "TARGET_ARM",
+            "min_count": 1,
+            "required": True,
+        },
+    ],
+    "rack_positions": [
+        {
+            "code": "SINGLE_LAYER_A",
+            "role": "TARGET_ARM",
             "station_code": "TARGET_ARM",
-            "position_code": "SINGLE_LAYER_A",
+            "carrier_capability": {
+                "allowed_rack_kinds": ["SINGLE_LAYER"],
+                "allowed_slot_kinds": [],
+                "min_capacity": 0,
+                "max_capacity": 1,
+            },
+        }
+    ],
+    "topology": {
+        "flow_edges": [
+            {
+                "type": "material_flow",
+                "from_node": {"kind": "DEVICE_ROLE", "ref": "SOURCE_ARM"},
+                "to_node": {"kind": "RACK_POSITION", "ref": "SINGLE_LAYER_A"},
+            }
+        ]
+    },
+    "events": [],
+    "commands": [],
+    "resource_boundaries": [
+        {
+            "rack_position_code": "SINGLE_LAYER_A",
             "rack_kind": "SINGLE_LAYER",
             "snapshot_kind": "ACTIVE_BIN_RACK",
             "lease_scope": "POSITION",
@@ -351,9 +385,6 @@ manifest = {
             "wms_operation_type": "RACK_MOVE",
         }
     ],
-    "required_device_roles": [],
-    "supported_events": [],
-    "supported_commands": [],
 }
 print(json.dumps({
     "code": "1000",
@@ -470,10 +501,14 @@ import json
 manifest = {
     "plugin_key": "smoke_fallback",
     "contract_version": "smoke-v1",
-    "single_layer_boundaries": [],
-    "required_device_roles": [],
-    "supported_events": [],
-    "supported_commands": [],
+    "devices": [],
+    "rack_positions": [],
+    "topology": {
+        "flow_edges": [],
+    },
+    "events": [],
+    "commands": [],
+    "resource_boundaries": [],
 }
 print(json.dumps({
     "code": "1000",
