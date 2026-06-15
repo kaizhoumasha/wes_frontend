@@ -1,6 +1,7 @@
 # Runtime Monitor Resource Layout Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **Status sync 2026-06-15:** 当前实现已包含 `buildRuntimeSceneModel` 资源归组、`RuntimeSceneDeviceFlow`、position/resource/focus/evidence 组件、monitor/sandbox/trace 收敛、fixed fixture smoke 断言与对应 Vitest 覆盖；git 历史包含 `v0.4.6.0 feat(runtime): 收敛资源布局与共享拓扑 (#36)` 及后续 runtime monitor 投影收敛和遗留清理提交。本计划 checklist 已按当前落地状态全量勾选并归档。
 
 **Goal:** Build the reviewed runtime monitor resource layout, monitor focus panel, evidence panel, and shared device flow convergence across monitor, sandbox, and trace topology.
 
@@ -34,7 +35,7 @@
 - Modify: `src/utils/runtime-scene.ts`
 - Test: `tests/unit/utils/runtime-scene.test.ts`
 
-- [ ] **Step 1: Write failing adapter tests**
+- [x] **Step 1: Write failing adapter tests**
 
 Add these tests inside `describe('buildRuntimeSceneModel', () => { ... })` in `tests/unit/utils/runtime-scene.test.ts`:
 
@@ -206,7 +207,7 @@ it('uses resource kind and resource code as a stack anchor when rack and bin are
 })
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -216,7 +217,7 @@ pnpm test -- tests/unit/utils/runtime-scene.test.ts
 
 Expected: FAIL with TypeScript or assertion errors for missing `positionGroups`, `unlocatedAuditItems`, `attentionState`, `anchor`, and `children`.
 
-- [ ] **Step 3: Extend scene model types**
+- [x] **Step 3: Extend scene model types**
 
 In `src/utils/runtime-scene.ts`, add these exported types after `RuntimeSceneResourceEvidence` and before `RuntimeSceneModel`:
 
@@ -267,7 +268,7 @@ Then add the new fields to `RuntimeSceneModel`:
   unlocatedAuditItems: RuntimeSceneResourceEvidence[]
 ```
 
-- [ ] **Step 4: Export the device node adapter**
+- [x] **Step 4: Export the device node adapter**
 
 Rename the existing private `toSceneDeviceNode` function to `toRuntimeSceneDeviceNode`, export it, and update the `buildRuntimeSceneModel` call site:
 
@@ -297,7 +298,7 @@ export function toRuntimeSceneDeviceNode(
 }
 ```
 
-- [ ] **Step 5: Add grouping helpers**
+- [x] **Step 5: Add grouping helpers**
 
 Add these helpers below `toSceneResourceEvidence`:
 
@@ -434,7 +435,7 @@ function buildPositionGroups(
 }
 ```
 
-- [ ] **Step 6: Return grouped fields from the adapter**
+- [x] **Step 6: Return grouped fields from the adapter**
 
 Inside `buildRuntimeSceneModel`, compute and return the grouped fields:
 
@@ -450,7 +451,7 @@ Add to the returned object:
     unlocatedAuditItems,
 ```
 
-- [ ] **Step 7: Run adapter tests**
+- [x] **Step 7: Run adapter tests**
 
 Run:
 
@@ -460,7 +461,7 @@ pnpm test -- tests/unit/utils/runtime-scene.test.ts
 
 Expected: PASS.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/utils/runtime-scene.ts tests/unit/utils/runtime-scene.test.ts
@@ -475,7 +476,7 @@ git commit -m "feat(runtime): group scene resource evidence"
 - Create: `tests/unit/components/runtime/runtimeSceneDeviceFlow.test.ts`
 - Delete: `tests/unit/components/runtime/worklineRouteMap.test.ts`
 
-- [ ] **Step 1: Write failing shared device flow tests**
+- [x] **Step 1: Write failing shared device flow tests**
 
 Create `tests/unit/components/runtime/runtimeSceneDeviceFlow.test.ts`:
 
@@ -599,7 +600,7 @@ describe('RuntimeSceneDeviceFlow', () => {
 })
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -609,7 +610,7 @@ pnpm test -- tests/unit/components/runtime/runtimeSceneDeviceFlow.test.ts
 
 Expected: FAIL because `RuntimeSceneDeviceFlow.vue` does not exist.
 
-- [ ] **Step 3: Create the component**
+- [x] **Step 3: Create the component**
 
 Create `src/components/runtime/shared/RuntimeSceneDeviceFlow.vue`:
 
@@ -930,11 +931,11 @@ function handleContextMenu(event: MouseEvent, deviceId: number) {
 </style>
 ```
 
-- [ ] **Step 4: Remove the old test file**
+- [x] **Step 4: Remove the old test file**
 
 Delete `tests/unit/components/runtime/worklineRouteMap.test.ts`.
 
-- [ ] **Step 5: Run shared device flow tests**
+- [x] **Step 5: Run shared device flow tests**
 
 Run:
 
@@ -944,7 +945,7 @@ pnpm test -- tests/unit/components/runtime/runtimeSceneDeviceFlow.test.ts
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/components/runtime/shared/RuntimeSceneDeviceFlow.vue tests/unit/components/runtime/runtimeSceneDeviceFlow.test.ts tests/unit/components/runtime/worklineRouteMap.test.ts
@@ -961,7 +962,7 @@ git commit -m "feat(runtime): add shared scene device flow"
 - Create: `src/components/runtime/monitor/RuntimeSceneFocusPanel.vue`
 - Test: `tests/unit/components/runtime/runtimeSceneFocusPanel.test.ts`
 
-- [ ] **Step 1: Write failing focus panel tests**
+- [x] **Step 1: Write failing focus panel tests**
 
 Create `tests/unit/components/runtime/runtimeSceneFocusPanel.test.ts`:
 
@@ -1076,7 +1077,7 @@ describe('RuntimeSceneFocusPanel', () => {
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run:
 
@@ -1086,7 +1087,7 @@ pnpm test -- tests/unit/components/runtime/runtimeSceneFocusPanel.test.ts
 
 Expected: FAIL because the focus/evidence components do not exist.
 
-- [ ] **Step 3: Create `RuntimeSceneEvidencePanel.vue`**
+- [x] **Step 3: Create `RuntimeSceneEvidencePanel.vue`**
 
 Create `src/components/runtime/monitor/RuntimeSceneEvidencePanel.vue`:
 
@@ -1248,7 +1249,7 @@ defineProps<{
 </style>
 ```
 
-- [ ] **Step 4: Create `RuntimeSceneResourceStack.vue`**
+- [x] **Step 4: Create `RuntimeSceneResourceStack.vue`**
 
 Create `src/components/runtime/monitor/RuntimeSceneResourceStack.vue`:
 
@@ -1348,7 +1349,7 @@ const emit = defineEmits<{
 </style>
 ```
 
-- [ ] **Step 5: Create `RuntimeScenePositionGroup.vue`**
+- [x] **Step 5: Create `RuntimeScenePositionGroup.vue`**
 
 Create `src/components/runtime/monitor/RuntimeScenePositionGroup.vue`:
 
@@ -1484,7 +1485,7 @@ const emit = defineEmits<{
 </style>
 ```
 
-- [ ] **Step 6: Create `RuntimeSceneFocusPanel.vue`**
+- [x] **Step 6: Create `RuntimeSceneFocusPanel.vue`**
 
 Create `src/components/runtime/monitor/RuntimeSceneFocusPanel.vue`:
 
@@ -1633,7 +1634,7 @@ defineProps<{
 </style>
 ```
 
-- [ ] **Step 7: Run focus panel tests**
+- [x] **Step 7: Run focus panel tests**
 
 Run:
 
@@ -1643,7 +1644,7 @@ pnpm test -- tests/unit/components/runtime/runtimeSceneFocusPanel.test.ts
 
 Expected: PASS.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/components/runtime/monitor/RuntimeScenePositionGroup.vue src/components/runtime/monitor/RuntimeSceneResourceStack.vue src/components/runtime/monitor/RuntimeSceneEvidencePanel.vue src/components/runtime/monitor/RuntimeSceneFocusPanel.vue tests/unit/components/runtime/runtimeSceneFocusPanel.test.ts
@@ -1659,7 +1660,7 @@ git commit -m "feat(runtime): add scene resource focus components"
 - Modify: `src/components/runtime/monitor/WorklineLiveOverview.vue`
 - Modify: `tests/unit/components/runtime/worklineLiveOverview.test.ts`
 
-- [ ] **Step 1: Update map tests for grouped UI**
+- [x] **Step 1: Update map tests for grouped UI**
 
 In `tests/unit/components/runtime/runtimeSceneMap.test.ts`, update `createSceneModel()` so the returned model includes `positionGroups` and `unlocatedAuditItems`. Use this object shape:
 
@@ -1777,7 +1778,7 @@ it('renders grouped position stacks, focus panel, and global unlocated audit', a
 })
 ```
 
-- [ ] **Step 2: Run map test to verify it fails**
+- [x] **Step 2: Run map test to verify it fails**
 
 Run:
 
@@ -1787,7 +1788,7 @@ pnpm test -- tests/unit/components/runtime/runtimeSceneMap.test.ts
 
 Expected: FAIL because `RuntimeSceneMap` still renders flat evidence rows or does not render the new components.
 
-- [ ] **Step 3: Replace the flat evidence grid in `RuntimeSceneMap.vue`**
+- [x] **Step 3: Replace the flat evidence grid in `RuntimeSceneMap.vue`**
 
 In `src/components/runtime/monitor/RuntimeSceneMap.vue`, import new components:
 
@@ -1895,11 +1896,11 @@ Replace the old device lane and evidence grid with this structure:
     </details>
 ```
 
-- [ ] **Step 4: Remove obsolete functions from `RuntimeSceneMap.vue`**
+- [x] **Step 4: Remove obsolete functions from `RuntimeSceneMap.vue`**
 
 Remove local `signalText`, `signalClass`, `getSessionCount`, and `hasRuntimeHold` from `RuntimeSceneMap.vue` because `RuntimeSceneDeviceFlow` owns that behavior.
 
-- [ ] **Step 5: Add responsive layout styles**
+- [x] **Step 5: Add responsive layout styles**
 
 Add these styles to `RuntimeSceneMap.vue`:
 
@@ -1937,7 +1938,7 @@ Add these styles to `RuntimeSceneMap.vue`:
 }
 ```
 
-- [ ] **Step 6: Run map and live overview tests**
+- [x] **Step 6: Run map and live overview tests**
 
 Run:
 
@@ -1947,7 +1948,7 @@ pnpm test -- tests/unit/components/runtime/runtimeSceneMap.test.ts tests/unit/co
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/components/runtime/monitor/RuntimeSceneMap.vue src/components/runtime/monitor/WorklineLiveOverview.vue tests/unit/components/runtime/runtimeSceneMap.test.ts tests/unit/components/runtime/worklineLiveOverview.test.ts
@@ -1964,7 +1965,7 @@ git commit -m "feat(runtime): render grouped monitor resource layout"
 - Modify: `tests/unit/components/runtime/traceTopologySummary.test.ts`
 - Delete: `src/components/runtime/monitor/WorklineRouteMap.vue`
 
-- [ ] **Step 1: Update sandbox and trace tests to expect `RuntimeSceneDeviceFlow`**
+- [x] **Step 1: Update sandbox and trace tests to expect `RuntimeSceneDeviceFlow`**
 
 In `tests/unit/views/runtime/sandboxWorkbenchCleanup.test.ts`, replace the assertion that references `WorklineRouteMap` with:
 
@@ -1995,7 +1996,7 @@ RuntimeSceneDeviceFlow: {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -2005,7 +2006,7 @@ pnpm test -- tests/unit/views/runtime/sandboxWorkbenchCleanup.test.ts tests/unit
 
 Expected: FAIL because the pages still import and render `WorklineRouteMap`.
 
-- [ ] **Step 3: Replace sandbox topology component**
+- [x] **Step 3: Replace sandbox topology component**
 
 In `src/views/runtime/sandbox/SandboxWorkbenchPage.vue`, replace:
 
@@ -2040,7 +2041,7 @@ Replace the template component:
 
 Remove `@view-outbox` because the old component did not expose a visible view-outbox control in the rendered template and the new component keeps only used events.
 
-- [ ] **Step 4: Replace trace full topology component**
+- [x] **Step 4: Replace trace full topology component**
 
 In `src/components/runtime/trace/TraceTopologySummary.vue`, replace:
 
@@ -2075,7 +2076,7 @@ Replace the details component:
 />
 ```
 
-- [ ] **Step 5: Delete old `WorklineRouteMap.vue`**
+- [x] **Step 5: Delete old `WorklineRouteMap.vue`**
 
 Delete:
 
@@ -2083,7 +2084,7 @@ Delete:
 src/components/runtime/monitor/WorklineRouteMap.vue
 ```
 
-- [ ] **Step 6: Remove remaining references**
+- [x] **Step 6: Remove remaining references**
 
 Run:
 
@@ -2093,7 +2094,7 @@ rg "WorklineRouteMap" src tests
 
 Expected: no output.
 
-- [ ] **Step 7: Run convergence tests**
+- [x] **Step 7: Run convergence tests**
 
 Run:
 
@@ -2103,7 +2104,7 @@ pnpm test -- tests/unit/views/runtime/sandboxWorkbenchCleanup.test.ts tests/unit
 
 Expected: PASS.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/views/runtime/sandbox/SandboxWorkbenchPage.vue src/components/runtime/trace/TraceTopologySummary.vue src/components/runtime/monitor/WorklineRouteMap.vue tests/unit/views/runtime/sandboxWorkbenchCleanup.test.ts tests/unit/components/runtime/traceTopologySummary.test.ts
@@ -2116,7 +2117,7 @@ git commit -m "refactor(runtime): converge topology on scene device flow"
 
 - Modify: `scripts/runtime-agent-browser-smoke.sh`
 
-- [ ] **Step 1: Extend fixed monitor fixture resource evidence**
+- [x] **Step 1: Extend fixed monitor fixture resource evidence**
 
 In `install_monitor_fixture_routes()`, replace the fixed `resource_evidence_items` array with:
 
@@ -2214,7 +2215,7 @@ Keep:
     "resource_evidence_truncated": True,
 ```
 
-- [ ] **Step 2: Extend monitor DOM assertions**
+- [x] **Step 2: Extend monitor DOM assertions**
 
 In `assert_monitor_scene_dom()`, for scenario `"happy"`, require these texts:
 
@@ -2239,7 +2240,7 @@ Add required selectors for monitor happy and seeded scenarios:
     ])
 ```
 
-- [ ] **Step 3: Add sandbox and trace smoke assertions**
+- [x] **Step 3: Add sandbox and trace smoke assertions**
 
 After monitor fallback assertions and before the devices page block, add:
 
@@ -2312,7 +2313,7 @@ combined_console="$(printf '%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s' "${conso
 combined_errors="$(printf '%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s' "${page_errors}" "${mobile_page_errors}" "${fallback_page_errors}" "${fallback_mobile_page_errors}" "${sandbox_page_errors:-}" "${sandbox_mobile_page_errors:-}" "${trace_page_errors:-}" "${trace_mobile_page_errors:-}" "${device_page_errors}")"
 ```
 
-- [ ] **Step 4: Run script syntax check**
+- [x] **Step 4: Run script syntax check**
 
 Run:
 
@@ -2322,7 +2323,7 @@ bash -n scripts/runtime-agent-browser-smoke.sh
 
 Expected: no output and exit code 0.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/runtime-agent-browser-smoke.sh
@@ -2336,7 +2337,7 @@ git commit -m "test(runtime): expand resource layout smoke coverage"
 - Modify generated component declarations only if `vue-tsc` reports missing global component declarations.
 - No source edits are expected before running the first verification command.
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 ```bash
 pnpm test -- tests/unit/utils/runtime-scene.test.ts tests/unit/components/runtime/runtimeSceneDeviceFlow.test.ts tests/unit/components/runtime/runtimeSceneFocusPanel.test.ts tests/unit/components/runtime/runtimeSceneMap.test.ts tests/unit/components/runtime/worklineLiveOverview.test.ts tests/unit/components/runtime/traceTopologySummary.test.ts tests/unit/views/runtime/sandboxWorkbenchCleanup.test.ts
@@ -2344,7 +2345,7 @@ pnpm test -- tests/unit/utils/runtime-scene.test.ts tests/unit/components/runtim
 
 Expected: PASS.
 
-- [ ] **Step 2: Run type check**
+- [x] **Step 2: Run type check**
 
 ```bash
 pnpm type:check
@@ -2352,7 +2353,7 @@ pnpm type:check
 
 Expected: PASS.
 
-- [ ] **Step 3: Run lint**
+- [x] **Step 3: Run lint**
 
 ```bash
 pnpm lint
@@ -2360,7 +2361,7 @@ pnpm lint
 
 Expected: PASS. This repository's lint command may rewrite formatting; inspect `git diff` after it runs and keep only formatting changes related to files in this plan.
 
-- [ ] **Step 4: Run runtime smoke**
+- [x] **Step 4: Run runtime smoke**
 
 Start the dev server if one is not already running:
 
@@ -2376,7 +2377,7 @@ RUNTIME_SMOKE_USE_FIXED_MONITOR_FIXTURE=1 pnpm smoke:runtime:agent-browser
 
 Expected: PASS, with monitor desktop/mobile screenshots and no unfiltered console/page errors.
 
-- [ ] **Step 5: Confirm old topology component is gone**
+- [x] **Step 5: Confirm old topology component is gone**
 
 ```bash
 rg "WorklineRouteMap" src tests
@@ -2384,7 +2385,7 @@ rg "WorklineRouteMap" src tests
 
 Expected: no output.
 
-- [ ] **Step 6: Review diff**
+- [x] **Step 6: Review diff**
 
 ```bash
 git diff --stat
@@ -2394,7 +2395,7 @@ git diff -- src/utils/runtime-scene.ts src/components/runtime/monitor src/views/
 
 Expected: diff only contains runtime scene model, monitor layout components, topology convergence, tests, and smoke coverage from this plan.
 
-- [ ] **Step 7: Commit final verification fixes**
+- [x] **Step 7: Commit final verification fixes**
 
 If Step 3 produced formatting changes or Step 4 required smoke assertion fixes, commit them:
 

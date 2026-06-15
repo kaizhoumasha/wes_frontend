@@ -159,9 +159,10 @@ rtk pnpm type:check
 - [x] 判定优先级：active incident 存在或 `runtime_status === "ESTOPPED"` 任一成立即进入 `软件急停冻结`；incident 加载失败或证据过期时保持冻结并禁用恢复动作。
 - [ ] evidence freshness 使用 store 内 `incidentLastLoadedAt = Date.now()`；不得复用 DOM `MessageEvent.timeStamp` 判断安全证据时效。
 - [x] WorkLine 列表、详情顶部 safety panel、`DecisionStrip` 和所有禁用逻辑都只读统一 verdict；不得在组件内重新计算急停 tone/label。
-- [ ] `WorklineHealthHero` 当前不是运行页必经组件；执行时要么在 `WorklineLiveOverview` 中挂载并使用 verdict，要么从本计划移除该组件改造项，避免改未使用组件。
+- [x] `WorklineHealthHero` 当前不是运行页必经组件；执行时要么在 `WorklineLiveOverview` 中挂载并使用 verdict，要么从本计划移除该组件改造项，避免改未使用组件。
 
 状态同步 2026-06-08：`src/utils/runtime-safety.ts`、`src/utils/runtime-display.ts`、`DecisionStrip.vue`、`WorklineMonitorPage.vue` 和 `SandboxWorkbenchPage.vue` 已接入统一 verdict；相关 `worklineSafetyDisplay` 测试通过。仍未发现 `incidentLastLoadedAt` store 状态，`WorklineHealthHero` 也未挂载到运行页主路径。
+状态同步 2026-06-15：再次核对 `src` / `tests`，当前已不存在 `WorklineHealthHero` 组件或运行页挂载路径，实际运行页由 `WorklineMonitorPage.vue`、`WorklineSafetyIncidentPanel.vue`、`DecisionStrip.vue` 消费统一 verdict；该闲置组件改造项视为已从实施面移除。其余未完成项保持不变：没有 `incidentLastLoadedAt` / active incident 查询、结构化恢复对话框、审计 drawer 或 clear-estop 短轮询闭环。
 
 验证：
 
@@ -220,6 +221,7 @@ rtk pnpm type:check
 - [ ] 文案指向 incident/runtime API，不提示插件 handler；后端 sandbox 模板/API 也应拒绝平台保留安全事件，前端只做第一层防护。
 
 状态同步 2026-06-08：`SandboxEventComposer.vue`、`SandboxWorkbenchPage.vue`、`SandboxExternalCallbackComposer.vue`、`SandboxResultComposer.vue` 已接入 safety lock；`sandboxSafetyLock` 和 `runtime-event` 单测通过。后端拒绝平台保留安全事件未在前端计划内验证，最后一项保持未完成。
+状态同步 2026-06-15：前端 sandbox 普通动作仍会在 safety lock 下禁用，且未发现插件 handler 文案；但后端 `WorklineOperationService.submit_sandbox_event()` 仍可按传入 `event_type` 写入 sandbox inbox，未在该路径看到 `ESTOP_PRESSED` 拒绝逻辑，因此最后一项继续保持未完成。
 
 验证：
 

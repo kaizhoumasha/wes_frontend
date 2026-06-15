@@ -2,6 +2,7 @@
 
 日期: 2026-06-15
 分支建议: `chore/dead-code-cleanup-2026-06`
+状态同步 2026-06-15：已核对当前仓库，§2.1 删除清单均已不在 git tracked 文件中，`examples/user-form` 路由、幽灵注释、Trace 相关测试孤儿和 menu manifest fixture 已按 §2.2 收敛，`TODOS.md` 已加入 knip / ts-prune 后续项；本设计已实施并归档。
 
 ## 1. 目标
 
