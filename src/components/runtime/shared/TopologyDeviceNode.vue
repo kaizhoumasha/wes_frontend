@@ -43,6 +43,7 @@
       class="topology-device-node__signal"
       :class="computedSignalClass"
     >
+      <span class="topology-device-node__signal-dot" />
       {{ computedSignalText }}
     </div>
 
@@ -148,8 +149,8 @@ function statusClass(status: string): string {
   position: absolute;
   width: 190px;
   min-height: 120px;
-  padding: 18px;
-  border: 1px solid rgb(245 158 11 / 0.16);
+  padding: 12px;
+  border: 2px solid rgb(245 158 11 / 0.16);
   border-radius: 8px;
   background: var(--runtime-surface);
   text-align: left;
@@ -162,15 +163,15 @@ function statusClass(status: string): string {
 }
 
 .topology-device-node:hover {
-  transform: translateY(-4px);
-  border-color: rgb(245 158 11 / 0.3);
-  box-shadow:
-    0 10px 15px -3px rgb(0 0 0 / 0.4),
-    0 4px 6px -4px rgb(0 0 0 / 0.2);
+  transform: translateY(-2px);
+  border-color: rgb(245 158 11 / 0.4);
+  box-shadow: 0 8px 18px -6px rgb(0 0 0 / 0.4);
 }
 
 .topology-device-node.is-selected {
-  box-shadow: inset 0 0 0 1px rgb(245 158 11 / 0.34);
+  box-shadow:
+    inset 0 0 0 1px rgb(59 130 246 / 0.32),
+    0 0 12px rgb(59 130 246 / 0.18);
 }
 
 .topology-device-node.is-dimmed {
@@ -178,48 +179,65 @@ function statusClass(status: string): string {
 }
 
 .topology-device-node.is-traced {
-  border-color: rgb(59 130 246 / 0.4);
+  border-color: rgb(59 130 246 / 0.5);
+  box-shadow: 0 0 10px rgb(59 130 246 / 0.25);
 }
 
 .topology-device-node.is-blocking {
-  border-color: rgb(220 38 38 / 0.6);
-  box-shadow: 0 0 12px rgb(220 38 38 / 0.2);
+  border-color: rgb(220 38 38 / 0.7);
+  box-shadow: 0 0 14px rgb(220 38 38 / 0.35);
+}
+
+/* Status tones — five-tier mapping per DESIGN.md + dashboard-v3 glow */
+.topology-device-node.is-success {
+  border-color: rgb(22 163 74 / 0.5);
+  box-shadow: 0 0 12px rgb(22 163 74 / 0.32);
+}
+.topology-device-node.is-success:hover {
+  box-shadow: 0 0 18px rgb(22 163 74 / 0.5);
+}
+
+.topology-device-node.is-danger {
+  border-color: rgb(220 38 38 / 0.55);
+  animation: topology-node-danger-blink 1.5s infinite alternate;
+}
+.topology-device-node.is-danger:hover {
+  box-shadow: 0 0 18px rgb(220 38 38 / 0.55);
+}
+
+.topology-device-node.is-warning {
+  border-color: rgb(234 179 8 / 0.5);
+  box-shadow: 0 0 10px rgb(234 179 8 / 0.32);
+}
+.topology-device-node.is-warning:hover {
+  box-shadow: 0 0 16px rgb(234 179 8 / 0.5);
+}
+
+.topology-device-node.is-primary {
+  border-color: rgb(59 130 246 / 0.5);
+  box-shadow: 0 0 10px rgb(59 130 246 / 0.32);
+}
+
+.topology-device-node.is-info {
+  border-color: rgb(245 158 11 / 0.16);
 }
 
 .topology-device-node.has-runtime-hold {
-  border-color: rgb(239 68 68 / 0.52);
+  border-color: rgb(220 38 38 / 0.55);
 }
 
 .topology-device-node.has-parked-outbox {
   box-shadow: inset 0 0 0 1px rgb(245 158 11 / 0.18);
 }
 
-/* Status tones */
-.topology-device-node.is-danger {
-  border-color: rgb(220 38 38 / 0.4);
-  animation: topology-node-danger-blink 1.5s infinite alternate;
-}
-
-.topology-device-node.is-warning {
-  border-color: rgb(234 179 8 / 0.36);
-}
-
-.topology-device-node.is-success {
-  border-color: rgb(22 163 74 / 0.28);
-}
-
-.topology-device-node.is-primary {
-  border-color: rgb(59 130 246 / 0.32);
-}
-
 @keyframes topology-node-danger-blink {
   from {
-    border-color: rgb(220 38 38 / 0.4);
-    box-shadow: none;
+    border-color: rgb(220 38 38 / 0.5);
+    box-shadow: 0 0 0 transparent;
   }
   to {
-    border-color: rgb(252 165 165 / 0.8);
-    box-shadow: 0 0 16px rgb(239 68 68 / 0.6);
+    border-color: rgb(252 165 165 / 0.85);
+    box-shadow: 0 0 18px rgb(239 68 68 / 0.55);
   }
 }
 
@@ -227,51 +245,86 @@ function statusClass(status: string): string {
 .topology-device-node__top {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .topology-device-node__role {
-  color: var(--runtime-text-secondary);
-  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgb(30 41 59 / 0.7);
+  color: rgb(148 163 184);
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .topology-device-node__maintenance {
   margin-left: auto;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: rgb(234 179 8 / 0.12);
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgb(234 179 8 / 0.15);
   color: #eab308;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--font-mono);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .topology-device-node__name {
   min-width: 0;
-  margin-top: 14px;
+  margin-top: 8px;
   color: var(--runtime-text-primary);
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
   overflow-wrap: anywhere;
 }
 
 .topology-device-node__code {
   min-width: 0;
-  margin-top: 4px;
+  margin-top: 2px;
   color: var(--runtime-text-secondary);
-  font-size: 12px;
+  font-size: 10px;
   font-family: var(--font-mono);
   overflow-wrap: anywhere;
 }
 
 .topology-device-node__signal {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   min-width: 0;
-  margin-top: 12px;
-  font-size: 13px;
+  margin-top: 6px;
+  font-size: 10px;
   font-weight: 600;
   font-family: var(--font-mono);
   overflow-wrap: anywhere;
+}
+
+.topology-device-node__signal-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentcolor;
+  flex-shrink: 0;
+}
+.topology-device-node__signal.is-danger .topology-device-node__signal-dot {
+  animation: topology-signal-blink 1s infinite;
+}
+
+@keyframes topology-signal-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
 
 .topology-device-node__signal.is-danger {
@@ -292,11 +345,12 @@ function statusClass(status: string): string {
 
 /* Badges */
 .topology-device-node__badge {
-  margin-top: 8px;
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-size: 11px;
+  margin-top: 6px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 9px;
   font-weight: 700;
+  font-family: var(--font-mono);
   text-align: center;
 }
 
@@ -321,7 +375,7 @@ function statusClass(status: string): string {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 .topology-device-node__trace-action {
@@ -342,8 +396,8 @@ function statusClass(status: string): string {
 }
 
 .topology-device-node__blocking-badge {
-  margin-top: 8px;
-  padding: 2px 8px;
+  margin-top: 6px;
+  padding: 2px 6px;
   border-radius: 4px;
   background: var(--runtime-badge-danger-bg);
   color: var(--runtime-badge-danger-text);
@@ -357,35 +411,28 @@ function statusClass(status: string): string {
 .topology-device-node.is-compact {
   width: 120px;
   min-height: 80px;
-  padding: 10px;
+  padding: 8px;
 }
 
 .topology-device-node.is-compact .topology-device-node__top {
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 4px;
 }
 
 .topology-device-node.is-compact .topology-device-node__role {
-  order: 1;
-  width: 100%;
-  font-size: 10px;
-}
-
-.topology-device-node.is-compact .topology-device-node__maintenance {
-  order: 0;
+  font-size: 8px;
 }
 
 .topology-device-node.is-compact .topology-device-node__name {
-  margin-top: 6px;
-  font-size: 13px;
+  margin-top: 4px;
+  font-size: 11px;
 }
 
 .topology-device-node.is-compact .topology-device-node__code {
-  font-size: 10px;
+  font-size: 9px;
 }
 
 .topology-device-node.is-compact .topology-device-node__signal {
-  padding: 3px 0;
-  font-size: 10px;
+  font-size: 9px;
 }
 </style>
