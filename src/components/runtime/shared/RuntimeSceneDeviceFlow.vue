@@ -61,11 +61,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, toRef } from 'vue'
+import { computed } from 'vue'
 import TopologyDeviceNode from './TopologyDeviceNode.vue'
 import type { RuntimeTraceDeviceAction, RuntimeTraceDevicePathNode } from '@/types/runtime'
 import { useTopologyLayout } from '@/composables/useTopologyLayout'
 import type { RuntimeSceneDeviceNode } from '@/utils/runtime-scene'
+import type {
+  ExplicitLayoutEdge,
+  LayoutNodeInput
+} from '@/utils/runtime-topology'
 
 const props = withDefaults(
   defineProps<{
@@ -75,6 +79,14 @@ const props = withDefaults(
     blockingDeviceId?: number | null
     compact?: boolean
     showRoleDetails?: boolean
+    /**
+     * Optional explicit topology nodes (devices + rack-positions). When
+     * provided together with `explicitEdges`, layout uses manifest-driven
+     * mode rather than the device-only fallback. Wired via getters so a
+     * late-arriving manifest still triggers layout recomputation.
+     */
+    explicitNodes?: LayoutNodeInput[]
+    explicitEdges?: ExplicitLayoutEdge[]
   }>(),
   {
     devices: () => [],
@@ -82,7 +94,9 @@ const props = withDefaults(
     tracePathNodes: () => [],
     blockingDeviceId: null,
     compact: false,
-    showRoleDetails: true
+    showRoleDetails: true,
+    explicitNodes: undefined,
+    explicitEdges: undefined
   }
 )
 
@@ -92,9 +106,12 @@ const emit = defineEmits<{
   showContextMenu: [payload: { deviceId: number; x: number; y: number }]
 }>()
 
-// Layout computation
-const { layout } = useTopologyLayout(toRef(props, 'devices'), {
-  compact: props.compact
+// Layout computation. All inputs as getters so late-arriving manifest
+// edges / config changes correctly trigger layout recomputation.
+const { layout } = useTopologyLayout(() => props.devices, {
+  compact: () => props.compact,
+  explicitNodes: () => props.explicitNodes,
+  explicitEdges: () => props.explicitEdges
 })
 
 // Filter to device nodes only — fallback layout never produces rack-position
