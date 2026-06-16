@@ -675,7 +675,7 @@ describe('runtime route sync', () => {
     await flushViewUpdates()
     await flushViewUpdates()
 
-    const reconciliationPanel = wrapper.findComponent({ name: 'WorklineReconciliationPanel' })
+    const reconciliationPanel = wrapper.findComponent({ name: 'WorklineReconciliationForm' })
     expect(reconciliationPanel.exists()).toBe(true)
     expect(reconciliationPanel.props('candidate')).toEqual(pendingReconciliation)
 

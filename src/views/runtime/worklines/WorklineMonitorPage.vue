@@ -380,7 +380,7 @@
             @refresh="forceRefreshProjection"
             @clear-estop="clearWorklineEstop"
           />
-          <WorklineReconciliationPanel
+          <WorklineReconciliationForm
             v-if="pendingReconciliationCandidate"
             :summary="store.projection.summary"
             :candidate="pendingReconciliationCandidate"
@@ -412,11 +412,12 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { runtimeApiMethods } from '@/api/modules/runtime'
+import { devicesApiMethods } from '@/api/modules/devices'
 import RuntimeEmptyState from '@/components/common/runtime/RuntimeEmptyState.vue'
 import RuntimeLastUpdated from '@/components/common/runtime/RuntimeLastUpdated.vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import WorklineLiveOverview from '@/components/runtime/monitor/WorklineLiveOverview.vue'
-import WorklineReconciliationPanel from '@/components/runtime/monitor/WorklineReconciliationPanel.vue'
+import WorklineReconciliationForm from '@/components/runtime/monitor/WorklineReconciliationForm.vue'
 import WorklineSafetyIncidentPanel from '@/components/runtime/monitor/WorklineSafetyIncidentPanel.vue'
 import WorklineRuntimeHoldSummaryPanel from '@/components/runtime/monitor/WorklineRuntimeHoldSummaryPanel.vue'
 import { useDarkMode } from '@/composables/useDarkMode'
@@ -475,9 +476,12 @@ const canViewRuntimeHold = computed(() => hasPermission(BIZ_PERMISSIONS.workline
 const canResolveReconciliation = computed(() =>
   hasPermission(BIZ_PERMISSIONS.workline.resolveReconciliation)
 )
+const canUpdateDevice = computed(() => hasPermission(BIZ_PERMISSIONS.device.update))
 
 const clearingWorklineEstop = ref(false)
 const resolvingReconciliation = ref(false)
+const enteringDeviceMaintenance = ref(false)
+const exitingDeviceMaintenance = ref(false)
 const searchText = ref('')
 const activeMobilePane = ref<MonitorMobilePane>('line')
 const activeSideTab = ref<MonitorSideTab>('control')
@@ -752,6 +756,67 @@ async function resolveRuntimeReconciliation(payload: {
     ElMessage.error(getErrorMessage(e, '解除运行时对账隔离失败'))
   } finally {
     resolvingReconciliation.value = false
+  }
+}
+
+// T9: handlers prepared for the device control tab/action group; T10 wires them up.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function enterDeviceMaintenance(deviceId: number, reason?: string) {
+  if (!canUpdateDevice.value) {
+    ElMessage.error('需要 biz:device:update 权限')
+    return
+  }
+  if (!Number.isInteger(deviceId) || deviceId <= 0) return
+  try {
+    await ElMessageBox.confirm('确认让该设备进入维护模式？维护期间设备将停止参与派发。', '设备进入维护', {
+      confirmButtonText: '进入维护',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+  } catch {
+    return
+  }
+  enteringDeviceMaintenance.value = true
+  try {
+    await devicesApiMethods
+      .runtimeEnterMaintenance({ id: deviceId }, { reason: reason ?? '人工触发设备进入维护' })
+      .send()
+    ElMessage.success('设备已进入维护')
+    await forceRefreshProjection()
+  } catch (e: unknown) {
+    ElMessage.error(getErrorMessage(e, '设备进入维护失败'))
+  } finally {
+    enteringDeviceMaintenance.value = false
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function exitDeviceMaintenance(deviceId: number, reason?: string) {
+  if (!canUpdateDevice.value) {
+    ElMessage.error('需要 biz:device:update 权限')
+    return
+  }
+  if (!Number.isInteger(deviceId) || deviceId <= 0) return
+  try {
+    await ElMessageBox.confirm('确认让该设备退出维护并恢复派发？', '设备退出维护', {
+      confirmButtonText: '退出维护',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+  } catch {
+    return
+  }
+  exitingDeviceMaintenance.value = true
+  try {
+    await devicesApiMethods
+      .runtimeExitMaintenance({ id: deviceId }, { reason: reason ?? '人工触发设备退出维护' })
+      .send()
+    ElMessage.success('设备已退出维护')
+    await forceRefreshProjection()
+  } catch (e: unknown) {
+    ElMessage.error(getErrorMessage(e, '设备退出维护失败'))
+  } finally {
+    exitingDeviceMaintenance.value = false
   }
 }
 
