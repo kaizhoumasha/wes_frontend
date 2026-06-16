@@ -197,6 +197,7 @@
           :event-log-entries="eventLogEntries"
           :selected-device-id="selectedDeviceId"
           @select-device="openDevice"
+          @select-rack-position="onRackPositionSelect"
         />
       </section>
 
@@ -208,7 +209,7 @@
         aria-label="工作线行动舱"
       >
         <section
-          v-if="selectedDevice"
+          v-if="panelMode === 'control' && selectedDevice"
           class="monitor-panel monitor-device-panel"
           data-test="monitor-selected-device-panel"
           aria-label="选中设备诊断"
@@ -229,35 +230,7 @@
             />
           </header>
 
-          <div
-            class="monitor-device-panel__tabs"
-            role="tablist"
-            aria-label="设备详情视图"
-          >
-            <button
-              type="button"
-              class="monitor-device-panel__tab"
-              :class="{ 'is-active': activeSideTab === 'control' }"
-              :aria-pressed="activeSideTab === 'control'"
-              data-test="monitor-side-tab-control"
-              @click="activeSideTab = 'control'"
-            >
-              诊断与控制
-            </button>
-            <button
-              type="button"
-              class="monitor-device-panel__tab"
-              :class="{ 'is-active': activeSideTab === 'business' }"
-              :aria-pressed="activeSideTab === 'business'"
-              data-test="monitor-side-tab-business"
-              @click="activeSideTab = 'business'"
-            >
-              业务关联投影
-            </button>
-          </div>
-
           <section
-            v-if="activeSideTab === 'control'"
             class="monitor-device-panel__tab-panel"
             data-test="monitor-device-control-panel"
           >
@@ -286,17 +259,26 @@
               @exit-maintenance="onExitMaintenanceFromActionGroup"
             />
           </section>
+        </section>
+
+        <section
+          v-else-if="panelMode === 'business' && selectedRackPositionCode"
+          class="monitor-panel monitor-device-panel"
+          data-test="monitor-rack-position-panel"
+          :aria-label="`选中货位 ${selectedRackPositionCode}`"
+        >
+          <header class="monitor-device-panel__header">
+            <div>
+              <div class="monitor-device-panel__eyebrow">选中货位</div>
+              <h2 class="monitor-device-panel__title">{{ selectedRackPositionCode }}</h2>
+              <p class="monitor-device-panel__meta">业务关联投影</p>
+            </div>
+          </header>
 
           <section
-            v-else
             class="monitor-device-panel__tab-panel monitor-business-projection"
             data-test="monitor-business-projection"
           >
-            <MonitorToteTwinCard
-              v-if="deviceToteTwinView"
-              :view="deviceToteTwinView"
-            />
-
             <MonitorRackOccupancyMatrix
               v-if="deviceRackOccupancyView"
               :view="deviceRackOccupancyView"
@@ -305,29 +287,23 @@
             />
 
             <p
-              v-if="!deviceToteTwinView && !deviceRackOccupancyView"
+              v-if="!deviceRackOccupancyView"
               class="monitor-device-panel__hint"
             >
-              选中设备没有可投影的物料/货格信息。
+              选中货位暂无库存投影数据。
             </p>
-
-            <div
-              v-if="selectedDeviceSessions.length"
-              class="monitor-device-panel__sessions"
-            >
-              <div class="monitor-device-panel__section-title">关联会话</div>
-              <button
-                v-for="session in selectedDeviceSessions.slice(0, 3)"
-                :key="`${session.session_id}-${session.status}`"
-                type="button"
-                class="monitor-device-panel__session"
-                @click="openTrace(session)"
-              >
-                <span>{{ session.session_code }}</span>
-                <strong>{{ session.status }}</strong>
-              </button>
-            </div>
           </section>
+        </section>
+
+        <section
+          v-else
+          class="monitor-panel monitor-device-panel"
+          data-test="monitor-panel-idle"
+          aria-label="未选择目标"
+        >
+          <p class="monitor-device-panel__hint">
+            在左侧拓扑或货位矩阵中选择设备 / 货位以查看诊断与控制 / 业务关联投影。
+          </p>
         </section>
 
         <el-card
@@ -418,7 +394,6 @@ import WorklineRuntimeHoldSummaryPanel from '@/components/runtime/monitor/Workli
 import MonitorAlertCard from '@/components/runtime/monitor/MonitorAlertCard.vue'
 import MonitorCommandChain from '@/components/runtime/monitor/MonitorCommandChain.vue'
 import MonitorDeviceActionGroup from '@/components/runtime/monitor/MonitorDeviceActionGroup.vue'
-import MonitorToteTwinCard from '@/components/runtime/monitor/MonitorToteTwinCard.vue'
 import MonitorRackOccupancyMatrix from '@/components/runtime/monitor/MonitorRackOccupancyMatrix.vue'
 import { useDarkMode } from '@/composables/useDarkMode'
 import { usePermission } from '@/composables/usePermission'
@@ -437,8 +412,7 @@ import { getErrorMessage } from '@/utils/string'
 import { buildRuntimeWorklineQuery } from '@/utils/runtime-route'
 import {
   buildRackOccupancyView,
-  buildSelectedDeviceCommandView,
-  buildSelectedDeviceToteTwinView
+  buildSelectedDeviceCommandView
 } from '@/utils/runtime-scene'
 import {
   formatRuntimeDateTime,
@@ -450,13 +424,11 @@ import type {
   RuntimeMonitorDeviceNode,
   RuntimeSafetyIncidentSummary,
   RuntimeMonitorReconciliationCandidate,
-  RuntimeMonitorSessionItem,
-  RuntimeMonitorTraceItem,
   RuntimeWorklineSummary
 } from '@/types/runtime'
 
 type MonitorMobilePane = 'line' | 'scene' | 'actions'
-type MonitorSideTab = 'control' | 'business'
+type MonitorPanelMode = 'control' | 'business' | 'idle'
 
 interface MonitorEventLogEntry {
   id: string
@@ -487,7 +459,7 @@ const enteringDeviceMaintenance = ref(false)
 const exitingDeviceMaintenance = ref(false)
 const searchText = ref('')
 const activeMobilePane = ref<MonitorMobilePane>('line')
-const activeSideTab = ref<MonitorSideTab>('control')
+const selectedRackPositionCode = ref<string | null>(null)
 const hasInitializedProjectionPane = ref(false)
 const eventLogEntries = ref<MonitorEventLogEntry[]>([])
 const selectedRackSlotKey = ref<string | null>(null)
@@ -498,16 +470,6 @@ const selectedDevice = computed<RuntimeMonitorDeviceNode | null>(() => {
   const id = selectedDeviceId.value
   if (!id) return null
   return store.projection?.device_nodes?.find(device => device.id === id) ?? null
-})
-
-const selectedDeviceSessions = computed(() => {
-  const device = selectedDevice.value
-  if (!device || !store.projection) return []
-  return [
-    ...(store.projection.active_sessions.items ?? []),
-    ...(store.projection.recent_failed_traces.items ?? []),
-    ...(store.projection.recent_completed_traces.items ?? [])
-  ].filter(session => session.device_id === device.id)
 })
 
 const filteredWorklines = computed(() => {
@@ -621,13 +583,19 @@ const busyAnyAction = computed(
     exitingDeviceMaintenance.value
 )
 
-const deviceToteTwinView = computed(() =>
-  buildSelectedDeviceToteTwinView(selectedDevice.value, selectedDeviceSessions.value)
-)
-
 const deviceRackOccupancyView = computed(() => {
   if (!store.projection) return null
   return buildRackOccupancyView(store.projection, { columns: 4 })
+})
+
+// panelMode drives the right-side aside: business when a rack-position is
+// selected, control when a device is selected (and no rack is active),
+// idle otherwise. Rack-position selection takes priority so users can
+// inspect a specific position even while a device is still highlighted.
+const panelMode = computed<MonitorPanelMode>(() => {
+  if (selectedRackPositionCode.value) return 'business'
+  if (selectedDevice.value) return 'control'
+  return 'idle'
 })
 
 function lastActivityLabel(item: RuntimeWorklineSummary) {
@@ -687,19 +655,14 @@ function goRuntimeOverview() {
 
 function openDevice(deviceId: number) {
   activeMobilePane.value = 'actions'
-  activeSideTab.value = 'control'
+  selectedRackPositionCode.value = null
   router.push({ query: { ...route.query, deviceId: String(deviceId) } })
 }
 
-function openTrace(session: RuntimeMonitorSessionItem | RuntimeMonitorTraceItem) {
-  router.push({
-    name: 'RuntimeCases',
-    query: {
-      sessionId: String(session.session_id),
-      traceId: undefined,
-      worklineId: String(session.workline_id)
-    }
-  })
+function onRackPositionSelect(rackCode: string) {
+  activeMobilePane.value = 'actions'
+  selectedRackPositionCode.value =
+    selectedRackPositionCode.value === rackCode ? null : rackCode
 }
 
 async function clearWorklineEstop() {
@@ -1159,8 +1122,7 @@ html:not(.dark) .runtime-page {
   gap: 12px;
 }
 
-.monitor-device-panel__eyebrow,
-.monitor-device-panel__section-title {
+.monitor-device-panel__eyebrow {
   color: var(--monitor-shell-accent);
   font-size: 11px;
   font-weight: 800;
@@ -1181,34 +1143,6 @@ html:not(.dark) .runtime-page {
   line-height: 1.6;
 }
 
-.monitor-device-panel__tabs {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
-  margin-top: 14px;
-  padding: 4px;
-  border: 1px solid var(--monitor-shell-border);
-  border-radius: 8px;
-  background: var(--monitor-shell-surface-muted);
-}
-
-.monitor-device-panel__tab {
-  min-height: 30px;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--runtime-text-secondary);
-  font-size: 12px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.monitor-device-panel__tab.is-active {
-  border-color: rgb(245 158 11 / 0.34);
-  background: rgb(245 158 11 / 0.09);
-  color: var(--runtime-text-primary);
-}
-
 .monitor-device-panel__tab-panel {
   display: flex;
   flex-direction: column;
@@ -1221,28 +1155,6 @@ html:not(.dark) .runtime-page {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
-.monitor-device-panel__sessions {
-  display: grid;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.monitor-device-panel__session {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 34px;
-  padding: 0 9px;
-  border: 1px solid var(--monitor-shell-border);
-  border-radius: 7px;
-  background: transparent;
-  color: var(--runtime-text-primary);
-  font-size: 12px;
-  text-align: left;
-  cursor: pointer;
 }
 
 .monitor-action-cabin__title {

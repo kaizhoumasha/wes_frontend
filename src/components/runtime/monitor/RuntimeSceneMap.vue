@@ -37,7 +37,7 @@
       :selected-device-id="selectedDeviceId"
       :show-role-details="false"
       @select="emit('selectDevice', $event)"
-      @select-rack-position="handleSelectRackPosition"
+      @select-rack-position="rackCode => emit('selectRackPosition', rackCode)"
     />
 
     <div
@@ -193,6 +193,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   selectDevice: [deviceId: number]
+  selectRackPosition: [rackCode: string]
 }>()
 
 const selectedPositionKey = ref<string | null>(null)
@@ -246,13 +247,8 @@ const layoutExplicitEdges = computed<ExplicitLayoutEdge[] | undefined>(() => {
   )
 })
 
-// Rack-position node clicks are handled here without forwarding so they do
-// not collide with device-only events. T8/T11 will replace the no-op with
-// boundary group highlighting once selection state is plumbed through.
-function handleSelectRackPosition(): void {
-  // intentional no-op for now — see TODO above.
-}
-
+// Rack-position node clicks are forwarded to parent components, which
+// drive the right-panel context-aware switching (panelMode = 'business').
 const selectedGroup = computed(
   () => props.model.positionGroups.find(group => group.key === selectedPositionKey.value) ?? null
 )

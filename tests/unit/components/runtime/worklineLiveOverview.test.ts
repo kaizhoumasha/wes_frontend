@@ -238,4 +238,23 @@ describe('WorklineLiveOverview', () => {
     )
     expect(wrapper.get('[data-test="monitor-event-log-panel"]').text()).toContain('ERROR')
   })
+
+  it('forwards select-rack-position from RuntimeSceneMap to the parent', async () => {
+    mocks.loadManifest.mockReturnValueOnce({ catch: vi.fn() })
+    const wrapper = mountOverview()
+    const map = wrapper.findComponent({ name: 'RuntimeSceneMap' })
+    expect(map.exists()).toBe(true)
+    map.vm.$emit('selectRackPosition', 'RACK-A1')
+    await wrapper.vm.$nextTick()
+    expect(wrapper.emitted('selectRackPosition')?.[0]).toEqual(['RACK-A1'])
+  })
+
+  it('forwards select-device from RuntimeSceneMap to the parent', async () => {
+    mocks.loadManifest.mockReturnValueOnce({ catch: vi.fn() })
+    const wrapper = mountOverview()
+    const map = wrapper.findComponent({ name: 'RuntimeSceneMap' })
+    map.vm.$emit('selectDevice', 42)
+    await wrapper.vm.$nextTick()
+    expect(wrapper.emitted('selectDevice')?.[0]).toEqual([42])
+  })
 })

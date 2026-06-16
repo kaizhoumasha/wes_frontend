@@ -582,7 +582,7 @@ describe('runtime route sync', () => {
     })
   })
 
-  it('moves raw device role and rack projection details into the right-side business association tab', async () => {
+  it('moves raw device role and rack projection details into the right-side business panel via rack-position selection', async () => {
     routeState.path = '/runtime/monitor'
     routeState.fullPath = '/runtime/monitor?worklineId=101&deviceId=201'
     routeState.query = {
@@ -598,22 +598,23 @@ describe('runtime route sync', () => {
     await flushViewUpdates()
     await flushViewUpdates()
 
-    expect(wrapper.get('[data-test="monitor-side-tab-control"]').text()).toContain('诊断与控制')
-    expect(wrapper.get('[data-test="monitor-side-tab-business"]').text()).toContain('业务关联投影')
+    // T4: dual tabs are gone. The right side resolves panelMode from the
+    // selected target — a device alone yields control panel, a rack-position
+    // selection yields business panel.
+    expect(wrapper.find('[data-test="monitor-side-tab-control"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="monitor-side-tab-business"]').exists()).toBe(false)
+    expect(wrapper.get('[data-test="monitor-selected-device-panel"]').exists()).toBe(true)
 
-    await wrapper.get('[data-test="monitor-side-tab-business"]').trigger('click')
+    // Selecting a rack position from the topology canvas swaps to the business panel.
+    const liveOverview = wrapper.findComponent({ name: 'WorklineLiveOverview' })
+    liveOverview.vm.$emit('selectRackPosition', 'RACK-A1')
+    await flushViewUpdates()
 
-    const businessPanel = wrapper.get('[data-test="monitor-business-projection"]')
-    // The business tab itself is labeled "业务关联投影"; T10 dashboard-v3
-    // replaces the old section-title DOM with MonitorToteTwinCard +
-    // MonitorRackOccupancyMatrix (auto-stubbed by shallowMount, so we look
-    // for the tag rather than by component name). The rack evidence in this
-    // fixture has a cell_code, so RackOccupancyMatrix is the one that renders;
-    // ToteTwinCard stays hidden because there is no active session.
+    const businessPanel = wrapper.get('[data-test="monitor-rack-position-panel"]')
     const businessHtml = businessPanel.html()
     expect(businessHtml).toContain('monitor-rack-occupancy-matrix-stub')
-    expect(businessHtml).not.toContain('选中设备没有可投影的物料/货格信息')
     expect(wrapper.find('[data-test="monitor-device-control-panel"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="monitor-selected-device-panel"]').exists()).toBe(false)
   })
 
   it('refreshes the current workline projection when a relevant SSE projection event arrives', async () => {

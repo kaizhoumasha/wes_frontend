@@ -460,7 +460,7 @@ describe('WorklineMonitorPage assembly (T10)', () => {
     )
   })
 
-  it('renders MonitorToteTwinCard in the business tab when the selected device has an active session', async () => {
+  it('drops the per-device tote-twin card from the business panel (panelMode is rack-position-driven now)', async () => {
     const activeSessionItems = [
       {
         session_id: 909,
@@ -482,17 +482,14 @@ describe('WorklineMonitorPage assembly (T10)', () => {
     )
 
     const wrapper = await mountWithQuery(301, 401)
-    // Switch to business tab
-    const businessTab = wrapper.find('[data-test="monitor-side-tab-business"]')
-    expect(businessTab.exists()).toBe(true)
-    await businessTab.trigger('click')
-    await flushViewUpdates()
-
-    const toteTwin = wrapper.find('[data-test="monitor-tote-twin-card"]')
-    expect(toteTwin.exists()).toBe(true)
+    // No more business tab to click; panel-mode auto-resolves to 'control' for a selected device.
+    expect(wrapper.find('[data-test="monitor-side-tab-business"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="monitor-side-tab-control"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="monitor-selected-device-panel"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="monitor-tote-twin-card"]').exists()).toBe(false)
   })
 
-  it('renders MonitorRackOccupancyMatrix in the business tab when resource_evidence has cells', async () => {
+  it('renders MonitorRackOccupancyMatrix in the business panel after selecting a rack position', async () => {
     const rackEvidence = [
       {
         resource_kind: 'BIN',
@@ -509,16 +506,19 @@ describe('WorklineMonitorPage assembly (T10)', () => {
     worklineProjectionSend.mockResolvedValue(createProjection(301, { rackEvidence }))
 
     const wrapper = await mountWithQuery(301, 401)
-    const businessTab = wrapper.find('[data-test="monitor-side-tab-business"]')
-    await businessTab.trigger('click')
+    const overview = wrapper.findComponent({ name: 'WorklineLiveOverview' })
+    overview.vm.$emit('selectRackPosition', 'RACK-101')
     await flushViewUpdates()
+
+    const businessPanel = wrapper.find('[data-test="monitor-rack-position-panel"]')
+    expect(businessPanel.exists()).toBe(true)
 
     const matrix = wrapper.find('[data-test="monitor-rack-occupancy-matrix"]')
     expect(matrix.exists()).toBe(true)
     expect(Number(matrix.attributes('data-slot-count'))).toBe(1)
   })
 
-  it('highlights the selected rack cell and toggles it off on second click', async () => {
+  it('highlights the selected rack cell and toggles it off on second click (rack-position panelMode)', async () => {
     const rackEvidence = [
       {
         resource_kind: 'BIN',
@@ -535,8 +535,8 @@ describe('WorklineMonitorPage assembly (T10)', () => {
     worklineProjectionSend.mockResolvedValue(createProjection(301, { rackEvidence }))
 
     const wrapper = await mountWithQuery(301, 401)
-    const businessTab = wrapper.find('[data-test="monitor-side-tab-business"]')
-    await businessTab.trigger('click')
+    const overview = wrapper.findComponent({ name: 'WorklineLiveOverview' })
+    overview.vm.$emit('selectRackPosition', 'RACK-101')
     await flushViewUpdates()
 
     const matrix = wrapper.find('[data-test="monitor-rack-occupancy-matrix"]')
@@ -553,5 +553,38 @@ describe('WorklineMonitorPage assembly (T10)', () => {
     await flushViewUpdates()
     const matrixAfterSecond = wrapper.find('[data-test="monitor-rack-occupancy-matrix"]')
     expect(matrixAfterSecond.attributes('data-selected-slot-key')).toBe('null')
+  })
+
+  it('panelMode = control when only a device is selected (no rack position active)', async () => {
+    worklineProjectionSend.mockResolvedValue(createProjection(301))
+    const wrapper = await mountWithQuery(301, 401)
+    expect(wrapper.find('[data-test="monitor-selected-device-panel"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="monitor-rack-position-panel"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="monitor-panel-idle"]').exists()).toBe(false)
+  })
+
+  it('panelMode = business when a rack position is selected, hiding the device panel', async () => {
+    worklineProjectionSend.mockResolvedValue(createProjection(301))
+    const wrapper = await mountWithQuery(301, 401)
+    const overview = wrapper.findComponent({ name: 'WorklineLiveOverview' })
+    overview.vm.$emit('selectRackPosition', 'RACK-A1')
+    await flushViewUpdates()
+    expect(wrapper.find('[data-test="monitor-rack-position-panel"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="monitor-selected-device-panel"]').exists()).toBe(false)
+  })
+
+  it('toggling the same rack position twice returns to control panelMode for the device', async () => {
+    worklineProjectionSend.mockResolvedValue(createProjection(301))
+    const wrapper = await mountWithQuery(301, 401)
+    const overview = wrapper.findComponent({ name: 'WorklineLiveOverview' })
+    overview.vm.$emit('selectRackPosition', 'RACK-A1')
+    await flushViewUpdates()
+    expect(wrapper.find('[data-test="monitor-rack-position-panel"]').exists()).toBe(true)
+
+    // Click the same rack-position again → toggle off → back to control mode
+    overview.vm.$emit('selectRackPosition', 'RACK-A1')
+    await flushViewUpdates()
+    expect(wrapper.find('[data-test="monitor-rack-position-panel"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="monitor-selected-device-panel"]').exists()).toBe(true)
   })
 })

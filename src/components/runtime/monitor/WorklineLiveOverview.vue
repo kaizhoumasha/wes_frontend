@@ -22,6 +22,7 @@
         :model="sceneModel"
         :selected-device-id="selectedDeviceId"
         @select-device="emit('selectDevice', $event)"
+        @select-rack-position="emit('selectRackPosition', $event)"
       />
     </el-card>
 
@@ -99,6 +100,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   selectDevice: [deviceId: number]
+  selectRackPosition: [rackCode: string]
 }>()
 
 const { manifest, error: manifestError, loadManifest } = useRuntimeSceneManifest()
