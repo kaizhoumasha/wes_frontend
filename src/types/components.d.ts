@@ -141,6 +141,7 @@ declare module 'vue' {
     ThemeToggle: typeof import('./../components/common/ThemeToggle.vue')['default']
     TimezoneSettings: typeof import('./../components/common/TimezoneSettings.vue')['default']
     TopologyDeviceNode: typeof import('./../components/runtime/shared/TopologyDeviceNode.vue')['default']
+    TopologyRackPositionNode: typeof import('./../components/runtime/shared/TopologyRackPositionNode.vue')['default']
     TraceBlockingPointCard: typeof import('./../components/runtime/trace/TraceBlockingPointCard.vue')['default']
     TraceContrastPanel: typeof import('./../components/runtime/trace/TraceContrastPanel.vue')['default']
     TraceNextActions: typeof import('./../components/runtime/trace/TraceNextActions.vue')['default']

@@ -3,6 +3,12 @@ import { describe, expect, it } from 'vitest'
 import RuntimeSceneDeviceFlow from '@/components/runtime/shared/RuntimeSceneDeviceFlow.vue'
 import type { RuntimeTraceDevicePathNode } from '@/types/runtime'
 import type { RuntimeSceneDeviceNode } from '@/utils/runtime-scene'
+import {
+  makeDeviceKey,
+  makeRackPositionKey,
+  type ExplicitLayoutEdge,
+  type LayoutNodeInput
+} from '@/utils/runtime-topology'
 
 function createDevice(overrides: Partial<RuntimeSceneDeviceNode> = {}): RuntimeSceneDeviceNode {
   return {
@@ -151,5 +157,92 @@ describe('RuntimeSceneDeviceFlow', () => {
     )
     expect(wrapper.text()).not.toContain('未完成命令')
     expect(wrapper.text()).not.toContain('待处理')
+  })
+
+  it('marks the selected device with is-selected and danger devices with is-danger', () => {
+    const wrapper = mountFlow({
+      devices: [
+        createDevice({ id: 201, status: 'IDLE', deviceCode: 'ARM-A' }),
+        createDevice({ id: 202, status: 'ERROR', deviceCode: 'ARM-B' })
+      ],
+      selectedDeviceId: 201
+    })
+
+    const nodes = wrapper.findAll('[data-test="runtime-scene-device"]')
+    expect(nodes).toHaveLength(2)
+    expect(nodes[0]?.classes()).toContain('is-selected')
+    expect(nodes[1]?.classes()).not.toContain('is-selected')
+    expect(nodes[1]?.classes()).toContain('is-danger')
+  })
+
+  it('renders rack-position nodes when explicit topology nodes are provided', () => {
+    const device = createDevice({ id: 301, deviceRole: 'ARM' })
+    const explicitNodes: LayoutNodeInput[] = [
+      { kind: 'device', device },
+      { kind: 'rack_position', code: 'P_INLET', label: '上料货位' },
+      { kind: 'rack_position', code: 'P_OUTLET' }
+    ]
+
+    const wrapper = mountFlow({
+      devices: [device],
+      explicitNodes,
+      explicitEdges: []
+    })
+
+    const rackNodes = wrapper.findAll('[data-test="runtime-scene-rack-position"]')
+    expect(rackNodes).toHaveLength(2)
+    expect(rackNodes[0]?.text()).toContain('上料货位')
+    expect(rackNodes[0]?.text()).toContain('P_INLET')
+    expect(rackNodes[1]?.text()).toContain('P_OUTLET')
+  })
+
+  it('renders one SVG path per explicit edge', () => {
+    const inletDevice = createDevice({ id: 401, deviceRole: 'INLET' })
+    const armDevice = createDevice({ id: 402, deviceRole: 'ARM', deviceCode: 'ARM-X' })
+    const outletDevice = createDevice({ id: 403, deviceRole: 'OUTLET' })
+
+    const explicitNodes: LayoutNodeInput[] = [
+      { kind: 'device', device: inletDevice },
+      { kind: 'device', device: armDevice },
+      { kind: 'device', device: outletDevice },
+      { kind: 'rack_position', code: 'P_BUFFER' }
+    ]
+    const explicitEdges: ExplicitLayoutEdge[] = [
+      { fromKey: makeDeviceKey(401), toKey: makeDeviceKey(402), type: 'MATERIAL_FLOW' },
+      { fromKey: makeDeviceKey(402), toKey: makeRackPositionKey('P_BUFFER'), type: 'OPERATION' },
+      { fromKey: makeRackPositionKey('P_BUFFER'), toKey: makeDeviceKey(403), type: 'MATERIAL_FLOW' }
+    ]
+
+    const wrapper = mountFlow({
+      devices: [inletDevice, armDevice, outletDevice],
+      explicitNodes,
+      explicitEdges
+    })
+
+    const flowEdges = wrapper.findAll('[data-test="runtime-scene-flow-edge"]')
+    expect(flowEdges).toHaveLength(3)
+  })
+
+  it('clicking a rack-position node emits selectRackPosition without firing device events', async () => {
+    const device = createDevice({ id: 501 })
+    const explicitNodes: LayoutNodeInput[] = [
+      { kind: 'device', device },
+      { kind: 'rack_position', code: 'P_INLET', label: '上料货位' }
+    ]
+
+    const wrapper = mountFlow({
+      devices: [device],
+      explicitNodes,
+      explicitEdges: []
+    })
+
+    const rackNode = wrapper.get('[data-test="runtime-scene-rack-position"]')
+    await rackNode.trigger('click')
+    await rackNode.trigger('contextmenu', { clientX: 10, clientY: 20 })
+
+    expect(wrapper.emitted('selectRackPosition')).toEqual([['P_INLET']])
+    expect(wrapper.emitted('select')).toBeUndefined()
+    expect(wrapper.emitted('sendEvent')).toBeUndefined()
+    expect(wrapper.emitted('showContextMenu')).toBeUndefined()
   })
 })

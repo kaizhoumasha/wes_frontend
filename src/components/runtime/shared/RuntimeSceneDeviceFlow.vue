@@ -4,7 +4,7 @@
     :class="{ 'is-compact': compact }"
     data-test="runtime-scene-device-flow"
   >
-    <template v-if="devices.length">
+    <template v-if="hasRenderableNodes">
       <!-- Canvas wrapper: sized to computed layout, centered in container -->
       <div
         class="runtime-scene-device-flow__canvas"
@@ -23,36 +23,51 @@
             :key="edge.id"
             :d="edge.path"
             :class="['flow-line', `flow-line--${edge.status}`]"
+            :data-edge-type="edge.type"
+            data-test="runtime-scene-flow-edge"
           />
         </svg>
 
         <!-- Node Layer -->
         <div class="runtime-scene-device-flow__nodes">
-          <TopologyDeviceNode
-            v-for="node in deviceLayoutNodes"
+          <template
+            v-for="node in layout.nodes"
             :key="node.id"
-            :device="node.device!"
-            :selected="selectedDeviceId === node.device!.id"
-            :traced="tracePathNodes.length > 0 && isTraced(node.device!.id)"
-            :blocking="isBlocking(node.device!.id)"
-            :dimmed="tracePathNodes.length > 0 && !isTraced(node.device!.id)"
-            :signal-text="signalText(node.device!)"
-            :signal-class="signalClass(node.device!)"
-            :trace-actions="traceActionsFor(node.device!.id)"
-            :show-role-details="showRoleDetails"
-            :compact="compact"
-            :style="{ left: node.x + 'px', top: node.y + 'px' }"
-            data-test="runtime-scene-device"
-            @click="handleClick"
-            @dblclick="handleDblClick"
-            @contextmenu="handleNodeContextMenu"
-          />
+          >
+            <TopologyDeviceNode
+              v-if="node.kind === 'device' && node.device"
+              :device="node.device"
+              :selected="selectedDeviceId === node.device.id"
+              :traced="tracePathNodes.length > 0 && isTraced(node.device.id)"
+              :blocking="isBlocking(node.device.id)"
+              :dimmed="tracePathNodes.length > 0 && !isTraced(node.device.id)"
+              :signal-text="signalText(node.device)"
+              :signal-class="signalClass(node.device)"
+              :trace-actions="traceActionsFor(node.device.id)"
+              :show-role-details="showRoleDetails"
+              :compact="compact"
+              :style="{ left: node.x + 'px', top: node.y + 'px' }"
+              data-test="runtime-scene-device"
+              @click="handleClick"
+              @dblclick="handleDblClick"
+              @contextmenu="handleNodeContextMenu"
+            />
+            <TopologyRackPositionNode
+              v-else-if="node.kind === 'rack_position' && node.rackPosition"
+              :code="node.rackPosition.code"
+              :label="node.rackPosition.label"
+              :compact="compact"
+              :style="{ left: node.x + 'px', top: node.y + 'px' }"
+              data-test="runtime-scene-rack-position"
+              @click="handleRackClick(node.rackPosition.code)"
+            />
+          </template>
         </div>
       </div>
     </template>
 
     <div
-      v-if="!devices.length"
+      v-else
       class="runtime-scene-device-flow__empty"
     >
       暂无设备拓扑数据
@@ -63,6 +78,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import TopologyDeviceNode from './TopologyDeviceNode.vue'
+import TopologyRackPositionNode from './TopologyRackPositionNode.vue'
 import type { RuntimeTraceDeviceAction, RuntimeTraceDevicePathNode } from '@/types/runtime'
 import { useTopologyLayout } from '@/composables/useTopologyLayout'
 import type { RuntimeSceneDeviceNode } from '@/utils/runtime-scene'
@@ -104,6 +120,7 @@ const emit = defineEmits<{
   select: [deviceId: number]
   sendEvent: [deviceId: number]
   showContextMenu: [payload: { deviceId: number; x: number; y: number }]
+  selectRackPosition: [rackCode: string]
 }>()
 
 // Layout computation. All inputs as getters so late-arriving manifest
@@ -114,11 +131,7 @@ const { layout } = useTopologyLayout(() => props.devices, {
   explicitEdges: () => props.explicitEdges
 })
 
-// Filter to device nodes only — fallback layout never produces rack-position
-// nodes; this guard satisfies the discriminated-union narrowing for templates.
-const deviceLayoutNodes = computed(() =>
-  layout.value.nodes.filter(node => node.kind === 'device')
-)
+const hasRenderableNodes = computed(() => layout.value.nodes.length > 0)
 
 // Trace & selection helpers
 const tracedDeviceIds = computed(() => new Set(props.tracePathNodes.map(n => n.device_id)))
@@ -151,6 +164,10 @@ function handleDblClick(deviceId: number): void {
 function handleNodeContextMenu(event: MouseEvent, deviceId: number): void {
   emit('select', deviceId)
   emit('showContextMenu', { deviceId, x: event.clientX, y: event.clientY })
+}
+
+function handleRackClick(rackCode: string): void {
+  emit('selectRackPosition', rackCode)
 }
 
 // Signal computation

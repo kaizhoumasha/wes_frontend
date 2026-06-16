@@ -32,9 +32,12 @@
 
     <RuntimeSceneDeviceFlow
       :devices="model.deviceNodes"
+      :explicit-nodes="layoutExplicitNodes"
+      :explicit-edges="layoutExplicitEdges"
       :selected-device-id="selectedDeviceId"
       :show-role-details="false"
       @select="emit('selectDevice', $event)"
+      @select-rack-position="handleSelectRackPosition"
     />
 
     <div
@@ -163,6 +166,12 @@ import RuntimeRackLayoutPanel from './RuntimeRackLayoutPanel.vue'
 import RuntimeSceneEvidencePanel from './RuntimeSceneEvidencePanel.vue'
 import RuntimeSceneFocusPanel from './RuntimeSceneFocusPanel.vue'
 import RuntimeScenePositionGroup from './RuntimeScenePositionGroup.vue'
+import {
+  expandManifestEdgesForLayout,
+  type ExplicitLayoutEdge,
+  type LayoutNodeInput,
+  type ManifestTopologyEdgeInput
+} from '@/utils/runtime-topology'
 import type {
   RuntimeSceneModel,
   RuntimeScenePositionGroup as PositionGroup,
@@ -192,6 +201,57 @@ const selectedRackLayoutKey = ref<string | null>(null)
 const selectedRackSlotKey = ref<string | null>(null)
 
 const resourceEvidenceVisibleCount = computed(() => props.model.resourceEvidence.length)
+
+// Topology layout inputs derived from the scene model. When the manifest has
+// neither nodes nor edges we leave both `undefined` so RuntimeSceneDeviceFlow
+// falls back to the device-only layout (preserves prior behavior).
+const layoutExplicitNodes = computed<LayoutNodeInput[] | undefined>(() => {
+  const topologyNodes = props.model.topologyNodes ?? []
+  const topologyEdges = props.model.topologyEdges ?? []
+  if (topologyNodes.length === 0 && topologyEdges.length === 0) {
+    return undefined
+  }
+
+  const inputs: LayoutNodeInput[] = []
+  for (const device of props.model.deviceNodes) {
+    inputs.push({ kind: 'device', device })
+  }
+  for (const node of topologyNodes) {
+    if (node.kind === 'RACK_POSITION' && node.resolved) {
+      inputs.push({ kind: 'rack_position', code: node.ref })
+    }
+  }
+  return inputs
+})
+
+const layoutExplicitEdges = computed<ExplicitLayoutEdge[] | undefined>(() => {
+  const topologyEdges = props.model.topologyEdges ?? []
+  if (topologyEdges.length === 0) return undefined
+
+  const knownRackPositions = new Set(
+    (props.model.topologyNodes ?? [])
+      .filter(node => node.kind === 'RACK_POSITION' && node.resolved)
+      .map(node => node.ref)
+  )
+
+  const manifestInputs: ManifestTopologyEdgeInput[] = topologyEdges.map(edge => ({
+    fromNode: { kind: edge.fromNode.kind, ref: edge.fromNode.ref },
+    toNode: { kind: edge.toNode.kind, ref: edge.toNode.ref },
+    type: edge.type
+  }))
+  return expandManifestEdgesForLayout(
+    manifestInputs,
+    props.model.deviceNodes,
+    knownRackPositions
+  )
+})
+
+// Rack-position node clicks are handled here without forwarding so they do
+// not collide with device-only events. T8/T11 will replace the no-op with
+// boundary group highlighting once selection state is plumbed through.
+function handleSelectRackPosition(): void {
+  // intentional no-op for now — see TODO above.
+}
 
 const selectedGroup = computed(
   () => props.model.positionGroups.find(group => group.key === selectedPositionKey.value) ?? null
