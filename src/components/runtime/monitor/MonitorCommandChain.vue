@@ -52,7 +52,7 @@
           class="monitor-command-chain__mono"
           data-test="monitor-command-chain-sent-at"
         >
-          {{ formatTimestamp(command.sentAt) }}
+          {{ formatRuntimeDateTime(command.sentAt) }}
         </dd>
       </div>
       <div class="monitor-command-chain__cell">
@@ -61,7 +61,7 @@
           class="monitor-command-chain__mono"
           data-test="monitor-command-chain-ack-at"
         >
-          {{ formatTimestamp(command.ackReceivedAt) }}
+          {{ formatRuntimeDateTime(command.ackReceivedAt) }}
         </dd>
       </div>
       <div
@@ -94,6 +94,7 @@ import type {
   RuntimeSceneCommandAckState,
   RuntimeSceneCommandSnapshotView
 } from '@/utils/runtime-scene'
+import { formatRuntimeDateTime } from '@/utils/runtime-display'
 
 const props = defineProps<{
   command: RuntimeSceneCommandSnapshotView | null
@@ -111,11 +112,6 @@ const ACK_LABELS: Record<RuntimeSceneCommandAckState | 'idle', string> = {
 const ackStateLabel = computed(() =>
   props.command ? ACK_LABELS[props.command.ackState] : ACK_LABELS.idle
 )
-
-function formatTimestamp(value: string | null): string {
-  if (!value) return '—'
-  return value
-}
 </script>
 
 <style scoped>

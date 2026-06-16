@@ -4,52 +4,54 @@
     :data-mode="mode"
     data-test="monitor-device-action-group"
   >
-    <button
-      v-if="mode === 'estop'"
-      type="button"
-      class="monitor-device-action-group__btn monitor-device-action-group__btn--primary"
-      :disabled="!clearEstopEnabled || busy"
-      data-test="monitor-device-action-clear-estop"
-      @click="emit('clear-estop')"
-    >
-      下发清除急停
-    </button>
+    <template v-if="hasAvailableAction">
+      <button
+        v-if="mode === 'estop' && clearEstopEnabled"
+        type="button"
+        class="monitor-device-action-group__btn monitor-device-action-group__btn--primary"
+        :disabled="busy"
+        data-test="monitor-device-action-clear-estop"
+        @click="emit('clear-estop')"
+      >
+        下发清除急停
+      </button>
 
-    <button
-      v-if="mode === 'reconciliation'"
-      type="button"
-      class="monitor-device-action-group__btn monitor-device-action-group__btn--primary"
-      :disabled="!resolveEnabled || busy"
-      data-test="monitor-device-action-resolve-reconciliation"
-      @click="emit('resolve-reconciliation')"
-    >
-      人工确认对账
-    </button>
+      <button
+        v-if="mode === 'reconciliation' && resolveEnabled"
+        type="button"
+        class="monitor-device-action-group__btn monitor-device-action-group__btn--primary"
+        :disabled="busy"
+        data-test="monitor-device-action-resolve-reconciliation"
+        @click="emit('resolve-reconciliation')"
+      >
+        人工确认对账
+      </button>
 
-    <button
-      v-if="canManageMaintenance && !maintenanceActive"
-      type="button"
-      class="monitor-device-action-group__btn monitor-device-action-group__btn--ghost"
-      :disabled="busy"
-      data-test="monitor-device-action-enter-maintenance"
-      @click="emit('enter-maintenance')"
-    >
-      进入维护
-    </button>
+      <button
+        v-if="canManageMaintenance && !maintenanceActive"
+        type="button"
+        class="monitor-device-action-group__btn monitor-device-action-group__btn--ghost"
+        :disabled="busy"
+        data-test="monitor-device-action-enter-maintenance"
+        @click="emit('enter-maintenance')"
+      >
+        进入维护
+      </button>
 
-    <button
-      v-if="canManageMaintenance && maintenanceActive"
-      type="button"
-      class="monitor-device-action-group__btn monitor-device-action-group__btn--ghost"
-      :disabled="busy"
-      data-test="monitor-device-action-exit-maintenance"
-      @click="emit('exit-maintenance')"
-    >
-      退出维护
-    </button>
+      <button
+        v-if="canManageMaintenance && maintenanceActive"
+        type="button"
+        class="monitor-device-action-group__btn monitor-device-action-group__btn--ghost"
+        :disabled="busy"
+        data-test="monitor-device-action-exit-maintenance"
+        @click="emit('exit-maintenance')"
+      >
+        退出维护
+      </button>
+    </template>
 
     <p
-      v-if="!hasAvailableAction"
+      v-else
       class="monitor-device-action-group__empty"
       data-test="monitor-device-action-empty"
     >
@@ -104,8 +106,8 @@ const clearEstopEnabled = computed(() => props.canClearEstop && props.canAttempt
 const resolveEnabled = computed(() => props.canResolve)
 
 const hasPrimaryAction = computed(() => {
-  if (props.mode === 'estop') return true
-  if (props.mode === 'reconciliation') return true
+  if (props.mode === 'estop') return clearEstopEnabled.value
+  if (props.mode === 'reconciliation') return resolveEnabled.value
   return false
 })
 

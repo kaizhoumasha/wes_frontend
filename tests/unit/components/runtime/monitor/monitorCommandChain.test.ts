@@ -1,7 +1,12 @@
 import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import MonitorCommandChain from '@/components/runtime/monitor/MonitorCommandChain.vue'
 import type { RuntimeSceneCommandSnapshotView } from '@/utils/runtime-scene'
+
+vi.mock('@/utils/runtime-display', () => ({
+  formatRuntimeDateTime: (value?: string | null) =>
+    value ? `${value} · just now` : '—'
+}))
 
 function createCommand(
   overrides: Partial<RuntimeSceneCommandSnapshotView> = {}
@@ -46,7 +51,7 @@ describe('MonitorCommandChain', () => {
       'PENDING'
     )
     expect(wrapper.get('[data-test="monitor-command-chain-sent-at"]').text()).toBe(
-      '2026-06-15T15:40:01Z'
+      '2026-06-15T15:40:01Z · just now'
     )
     expect(wrapper.get('[data-test="monitor-command-chain-ack-at"]').text()).toBe('—')
     expect(wrapper.get('[data-test="monitor-command-chain-ack-state"]').text()).toBe(
@@ -71,7 +76,7 @@ describe('MonitorCommandChain', () => {
       '已 ACK'
     )
     expect(wrapper.get('[data-test="monitor-command-chain-ack-at"]').text()).toBe(
-      '2026-06-15T15:40:03Z'
+      '2026-06-15T15:40:03Z · just now'
     )
     const detail = wrapper.get('[data-test="monitor-command-chain-ack-detail"]').text()
     expect(detail).toContain('200')

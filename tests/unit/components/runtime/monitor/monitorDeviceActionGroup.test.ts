@@ -34,21 +34,67 @@ describe('MonitorDeviceActionGroup', () => {
     expect(wrapper.emitted('clear-estop')).toEqual([[]])
   })
 
-  it('disables the clear-estop button when permission is missing', () => {
+  it('omits the clear-estop button and shows empty state when no path is enabled', () => {
     const wrapper = mount(MonitorDeviceActionGroup, {
       props: {
         mode: 'estop',
         canClearEstop: false,
         canAttemptClear: true,
+        canManageMaintenance: false,
         blockedReason: '权限不足'
       }
     })
 
-    const button = wrapper.get('[data-test="monitor-device-action-clear-estop"]')
-    expect(button.attributes('disabled')).toBeDefined()
+    expect(wrapper.find('[data-test="monitor-device-action-clear-estop"]').exists()).toBe(
+      false
+    )
+    expect(wrapper.get('[data-test="monitor-device-action-empty"]').text()).toContain(
+      '暂无可用直控动作'
+    )
     expect(
       wrapper.get('[data-test="monitor-device-action-blocked-reason"]').text()
     ).toContain('权限不足')
+  })
+
+  it('shows estop empty state when both estop and maintenance paths are unauthorized', () => {
+    const wrapper = mount(MonitorDeviceActionGroup, {
+      props: {
+        mode: 'estop',
+        canClearEstop: false,
+        canAttemptClear: false,
+        canManageMaintenance: false
+      }
+    })
+
+    expect(wrapper.find('[data-test="monitor-device-action-clear-estop"]').exists()).toBe(
+      false
+    )
+    expect(
+      wrapper.find('[data-test="monitor-device-action-enter-maintenance"]').exists()
+    ).toBe(false)
+    expect(wrapper.get('[data-test="monitor-device-action-empty"]').text()).toContain(
+      '暂无可用直控动作'
+    )
+  })
+
+  it('shows only maintenance button when estop path is unauthorized but maintenance is allowed', () => {
+    const wrapper = mount(MonitorDeviceActionGroup, {
+      props: {
+        mode: 'estop',
+        canClearEstop: false,
+        canAttemptClear: false,
+        canManageMaintenance: true,
+        maintenanceActive: false
+      }
+    })
+
+    expect(wrapper.find('[data-test="monitor-device-action-clear-estop"]').exists()).toBe(
+      false
+    )
+    expect(wrapper.find('[data-test="monitor-device-action-empty"]').exists()).toBe(false)
+    expect(
+      wrapper.get('[data-test="monitor-device-action-enter-maintenance"]').text()
+    ).toContain('进入维护')
   })
 
   it('shows resolve-reconciliation in reconciliation mode and emits on click', async () => {
