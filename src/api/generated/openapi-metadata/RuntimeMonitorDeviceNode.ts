@@ -77,6 +77,11 @@ export const RuntimeMonitorDeviceNodeMetadata = {
       "required": false,
       "nullable": true
     },
+    "current_command": {
+      "required": false,
+      "nullable": true,
+      "ref": "RuntimeMonitorCommandSnapshot"
+    },
     "open_command_count": {
       "title": "Open Command Count",
       "type": "integer",
