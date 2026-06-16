@@ -213,6 +213,24 @@ interface DerivedEdge {
 }
 
 /**
+ * 当 `deriveEdges()` 因设备只分布在单列或 < 2 列时返回 0 条边时，
+ * 按 `roleIndex` 升序串成一条链。id 升序作为 tie-breaker 保持稳定。
+ * 用于 fallback 模式，让 SVG 至少有连线可视化拓扑方向。
+ */
+function deriveChainEdges(devices: RuntimeSceneDeviceNode[]): DerivedEdge[] {
+  if (devices.length < 2) return []
+  const sorted = [...devices].sort((a, b) => {
+    if (a.roleIndex !== b.roleIndex) return a.roleIndex - b.roleIndex
+    return a.id - b.id
+  })
+  const edges: DerivedEdge[] = []
+  for (let i = 0; i < sorted.length - 1; i++) {
+    edges.push({ fromDeviceId: sorted[i].id, toDeviceId: sorted[i + 1].id })
+  }
+  return edges
+}
+
+/**
  * Derive edges between adjacent columns.
  * Strategy:
  * - Group devices by column
@@ -446,9 +464,11 @@ function computeFallbackLayout(
   })
 
   const derivedEdges = deriveEdges(columned)
+  const fallbackChainEdges = derivedEdges.length > 0 ? [] : deriveChainEdges(devices)
+  const edgesToRender = derivedEdges.length > 0 ? derivedEdges : fallbackChainEdges
   const deviceMap = new Map(devices.map(d => [d.id, d]))
 
-  const edges: LayoutEdge[] = derivedEdges.map(edge => {
+  const edges: LayoutEdge[] = edgesToRender.map(edge => {
     const fromPos = nodePositionByDeviceId.get(edge.fromDeviceId)!
     const toPos = nodePositionByDeviceId.get(edge.toDeviceId)!
     const fromDevice = deviceMap.get(edge.fromDeviceId)!

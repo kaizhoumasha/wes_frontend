@@ -340,3 +340,42 @@ describe('runtime-topology — duplicate explicit edges get distinct ids', () =>
     expect(layout.edges.every(e => e.type === 'OPERATION')).toBe(true)
   })
 })
+
+describe('runtime-topology — fallback serializes when no adjacent columns', () => {
+  it('connects devices in a single column via roleIndex-ordered chain', () => {
+    const devices: RuntimeSceneDeviceNode[] = [
+      makeDevice({ id: 1, deviceRole: 'STATION', roleIndex: 0, deviceName: 'A' }),
+      makeDevice({ id: 2, deviceRole: 'STATION', roleIndex: 1, deviceName: 'B' }),
+      makeDevice({ id: 3, deviceRole: 'STATION', roleIndex: 2, deviceName: 'C' }),
+    ]
+    const layout = computeLayout(devices)
+    expect(layout.edges).toHaveLength(2)
+    expect(layout.edges[0].fromKey).toBe(makeDeviceKey(1))
+    expect(layout.edges[0].toKey).toBe(makeDeviceKey(2))
+    expect(layout.edges[1].fromKey).toBe(makeDeviceKey(2))
+    expect(layout.edges[1].toKey).toBe(makeDeviceKey(3))
+  })
+
+  it('returns one self-skip edge for a single device (no edges, empty result)', () => {
+    const devices: RuntimeSceneDeviceNode[] = [
+      makeDevice({ id: 1, deviceRole: 'STATION', deviceName: 'Only' }),
+    ]
+    const layout = computeLayout(devices)
+    // A single device cannot form a chain — keep current empty behaviour.
+    expect(layout.edges).toHaveLength(0)
+  })
+
+  it('keeps roleIndex as tie-breaker for stable ordering', () => {
+    const devices: RuntimeSceneDeviceNode[] = [
+      makeDevice({ id: 10, deviceRole: 'STATION', roleIndex: 2, deviceName: 'C' }),
+      makeDevice({ id: 11, deviceRole: 'STATION', roleIndex: 0, deviceName: 'A' }),
+      makeDevice({ id: 12, deviceRole: 'STATION', roleIndex: 1, deviceName: 'B' }),
+    ]
+    const layout = computeLayout(devices)
+    const ordered = layout.edges.map(e => e.fromKey)
+    expect(ordered).toEqual([
+      makeDeviceKey(11), // roleIndex 0
+      makeDeviceKey(12), // roleIndex 1
+    ])
+  })
+})
