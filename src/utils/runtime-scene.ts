@@ -203,6 +203,36 @@ export interface RuntimeSceneRackLayout {
   auditItems: RuntimeSceneResourceEvidence[]
 }
 
+export type RuntimeSceneTopologyNodeKind = 'DEVICE_ROLE' | 'RACK_POSITION'
+export type RuntimeSceneTopologyEdgeType = 'MATERIAL_FLOW' | 'OPERATION'
+
+export interface RuntimeSceneTopologyNodeRef {
+  kind: RuntimeSceneTopologyNodeKind
+  ref: string
+  resolved: boolean
+}
+
+export interface RuntimeSceneTopologyEdge {
+  key: string
+  fromNode: RuntimeSceneTopologyNodeRef
+  toNode: RuntimeSceneTopologyNodeRef
+  type: RuntimeSceneTopologyEdgeType
+}
+
+export type RuntimeSceneTopologyDiagnosticCode =
+  | 'UNKNOWN_DEVICE_ROLE'
+  | 'UNKNOWN_RACK_POSITION'
+  | 'UNKNOWN_NODE_KIND'
+  | 'UNKNOWN_EDGE_TYPE'
+  | 'MANIFEST_MISSING'
+  | 'MANIFEST_LOAD_FAILED'
+
+export interface RuntimeSceneTopologyDiagnostic {
+  code: RuntimeSceneTopologyDiagnosticCode
+  message: string
+  ref?: string
+}
+
 export interface RuntimeScenePositionGroup {
   key: string
   stationCode: string
@@ -231,6 +261,9 @@ export interface RuntimeSceneModel {
   resourceEvidenceTruncated: boolean
   semanticFallback: boolean
   semanticFallbackMessage: string | null
+  topologyNodes: RuntimeSceneTopologyNodeRef[]
+  topologyEdges: RuntimeSceneTopologyEdge[]
+  topologyDiagnostics: RuntimeSceneTopologyDiagnostic[]
 }
 
 export interface BuildRuntimeSceneModelInput {
@@ -388,6 +421,7 @@ export function buildRuntimeSceneModel(input: BuildRuntimeSceneModelInput): Runt
     manifest,
     manifestLoadFailed
   )
+  const topology = buildRuntimeSceneTopology(projection, manifest, manifestLoadFailed)
 
   return {
     worklineId: projection.summary.id,
@@ -409,8 +443,159 @@ export function buildRuntimeSceneModel(input: BuildRuntimeSceneModelInput): Runt
         ? (evidenceObj.truncated as boolean)
         : false,
     semanticFallback: Boolean(semanticFallbackMessage),
-    semanticFallbackMessage
+    semanticFallbackMessage,
+    topologyNodes: topology.nodes,
+    topologyEdges: topology.edges,
+    topologyDiagnostics: topology.diagnostics
   }
+}
+
+interface RuntimeSceneTopologyBuildResult {
+  nodes: RuntimeSceneTopologyNodeRef[]
+  edges: RuntimeSceneTopologyEdge[]
+  diagnostics: RuntimeSceneTopologyDiagnostic[]
+}
+
+const TOPOLOGY_NODE_KIND_VALUES = ['DEVICE_ROLE', 'RACK_POSITION'] as const
+const TOPOLOGY_EDGE_TYPE_VALUES = ['MATERIAL_FLOW', 'OPERATION'] as const
+
+function buildRuntimeSceneTopology(
+  projection: RuntimeWorklineMonitorProjectionResponse,
+  manifest: WorkLinePluginManifestSummary | null | undefined,
+  manifestLoadFailed: boolean
+): RuntimeSceneTopologyBuildResult {
+  if (manifestLoadFailed) {
+    return {
+      nodes: [],
+      edges: [],
+      diagnostics: [
+        {
+          code: 'MANIFEST_LOAD_FAILED',
+          message: '插件 manifest 加载失败，无法构建拓扑边。'
+        }
+      ]
+    }
+  }
+
+  if (!manifest) {
+    return {
+      nodes: [],
+      edges: [],
+      diagnostics: [
+        {
+          code: 'MANIFEST_MISSING',
+          message: '插件 manifest 缺失，未渲染拓扑边。'
+        }
+      ]
+    }
+  }
+
+  const flowEdges = manifest.topology?.flow_edges ?? []
+  const knownDeviceRoles = new Set(
+    (projection.device_nodes ?? []).map(node => normalizeRuntimeSceneDisplayRole(node.device_role))
+  )
+  const knownRackPositions = new Set(
+    (manifest.rack_positions ?? []).map(rackPosition => rackPosition.code)
+  )
+
+  const nodesByKey = new Map<string, RuntimeSceneTopologyNodeRef>()
+  const edges: RuntimeSceneTopologyEdge[] = []
+  const diagnostics: RuntimeSceneTopologyDiagnostic[] = []
+
+  function registerNode(node: RuntimeSceneTopologyNodeRef): RuntimeSceneTopologyNodeRef {
+    const key = getTopologyNodeKey(node.kind, node.ref)
+    const existing = nodesByKey.get(key)
+    if (existing) {
+      if (!existing.resolved && node.resolved) existing.resolved = true
+      return existing
+    }
+    nodesByKey.set(key, node)
+    return node
+  }
+
+  function diagnose(
+    code: RuntimeSceneTopologyDiagnosticCode,
+    message: string,
+    ref?: string
+  ): void {
+    diagnostics.push(ref === undefined ? { code, message } : { code, message, ref })
+  }
+
+  function resolveNode(
+    nodeRef: { kind: string; ref: string } | null | undefined,
+    role: 'from' | 'to'
+  ): RuntimeSceneTopologyNodeRef | null {
+    if (!nodeRef) return null
+    const kindUpper = typeof nodeRef.kind === 'string' ? nodeRef.kind.toUpperCase() : ''
+    if (!TOPOLOGY_NODE_KIND_VALUES.includes(kindUpper as RuntimeSceneTopologyNodeKind)) {
+      diagnose(
+        'UNKNOWN_NODE_KIND',
+        `拓扑边的${role === 'from' ? '起点' : '终点'}节点 kind "${nodeRef.kind}" 不在允许范围内。`,
+        nodeRef.ref
+      )
+      return null
+    }
+    const kind = kindUpper as RuntimeSceneTopologyNodeKind
+    const ref =
+      kind === 'DEVICE_ROLE' ? normalizeRuntimeSceneDisplayRole(nodeRef.ref) : nodeRef.ref
+    const resolved =
+      kind === 'DEVICE_ROLE' ? knownDeviceRoles.has(ref) : knownRackPositions.has(ref)
+    if (!resolved) {
+      diagnose(
+        kind === 'DEVICE_ROLE' ? 'UNKNOWN_DEVICE_ROLE' : 'UNKNOWN_RACK_POSITION',
+        kind === 'DEVICE_ROLE'
+          ? `拓扑引用的 device role "${ref}" 在 projection.device_nodes 中未找到。`
+          : `拓扑引用的 rack position "${ref}" 在 manifest.rack_positions 中未找到。`,
+        ref
+      )
+    }
+    return registerNode({ kind, ref, resolved })
+  }
+
+  for (const edge of flowEdges) {
+    const fromNode = resolveNode(edge.from_node, 'from')
+    const toNode = resolveNode(edge.to_node, 'to')
+    const edgeType = normalizeTopologyEdgeType(edge.type)
+    if (!edgeType) {
+      diagnose('UNKNOWN_EDGE_TYPE', `拓扑边类型 "${edge.type}" 不在允许范围内。`)
+      continue
+    }
+    if (!fromNode || !toNode) continue
+    if (!fromNode.resolved || !toNode.resolved) continue
+
+    edges.push({
+      key: getTopologyEdgeKey(fromNode, toNode, edgeType),
+      fromNode,
+      toNode,
+      type: edgeType
+    })
+  }
+
+  return {
+    nodes: Array.from(nodesByKey.values()),
+    edges,
+    diagnostics
+  }
+}
+
+function normalizeTopologyEdgeType(value: unknown): RuntimeSceneTopologyEdgeType | null {
+  if (typeof value !== 'string') return null
+  const upper = value.toUpperCase()
+  return TOPOLOGY_EDGE_TYPE_VALUES.includes(upper as RuntimeSceneTopologyEdgeType)
+    ? (upper as RuntimeSceneTopologyEdgeType)
+    : null
+}
+
+function getTopologyNodeKey(kind: RuntimeSceneTopologyNodeKind, ref: string): string {
+  return `${kind}:${ref}`
+}
+
+function getTopologyEdgeKey(
+  fromNode: RuntimeSceneTopologyNodeRef,
+  toNode: RuntimeSceneTopologyNodeRef,
+  type: RuntimeSceneTopologyEdgeType
+): string {
+  return `${getTopologyNodeKey(fromNode.kind, fromNode.ref)}->${getTopologyNodeKey(toNode.kind, toNode.ref)}:${type}`
 }
 
 function resolveBoundaries(

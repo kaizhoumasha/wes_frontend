@@ -1421,7 +1421,11 @@ describe('buildRuntimeSceneModel', () => {
     expect(model.semanticFallbackMessage).toContain('manifest/resource boundaries')
     expect(model.boundaries).toEqual([])
     expect(model.positionGroups).toEqual([])
-    expect(JSON.stringify(model)).not.toContain('COMMAND_ONLY_POSITION')
+    // COMMAND_ONLY_POSITION may legitimately appear in topologyNodes/topologyEdges
+    // (T4: scene model consumes manifest.topology.flow_edges), but must not leak
+    // into boundaries / position groups / resource layout.
+    expect(model.unlocatedAuditItems).toEqual([])
+    expect(model.resourceEvidence).toEqual([])
   })
 
   it('keeps no-manifest station and position evidence in one fallback physical group', () => {
@@ -1561,5 +1565,163 @@ describe('buildRuntimeSceneModel', () => {
     })
 
     expect(source).not.toBe(target)
+  })
+
+  describe('topology model from manifest', () => {
+    function createTopologyManifest(overrides: {
+      flow_edges: Array<{
+        type: string
+        from_node: { kind: string; ref: string }
+        to_node: { kind: string; ref: string }
+      }>
+      rack_position_codes: string[]
+    }): WorkLinePluginManifestSummary {
+      return {
+        plugin_key: 'rough_sorter',
+        contract_version: 'v1',
+        devices: [],
+        events: [],
+        commands: [],
+        topology: { flow_edges: overrides.flow_edges },
+        rack_positions: overrides.rack_position_codes.map(code => ({
+          code,
+          role: 'TARGET_ARM',
+          station_code: 'TARGET_ARM',
+          carrier_capability: {
+            allowed_rack_kinds: ['SINGLE_LAYER'],
+            allowed_slot_kinds: [],
+            min_capacity: 0,
+            max_capacity: 1
+          }
+        })),
+        resource_boundaries: []
+      } as unknown as WorkLinePluginManifestSummary
+    }
+
+    it('maps DEVICE_ROLE -> RACK_POSITION flow edge with resolved nodes', () => {
+      const manifestWithDeviceFlow = createTopologyManifest({
+        rack_position_codes: ['SINGLE_LAYER_A'],
+        flow_edges: [
+          {
+            type: 'material_flow',
+            from_node: { kind: 'DEVICE_ROLE', ref: 'ARM' },
+            to_node: { kind: 'RACK_POSITION', ref: 'SINGLE_LAYER_A' }
+          }
+        ]
+      })
+
+      const model = buildRuntimeSceneModel({
+        projection: createDetail(),
+        manifest: manifestWithDeviceFlow
+      })
+
+      expect(model.topologyEdges).toEqual([
+        {
+          key: 'DEVICE_ROLE:ARM->RACK_POSITION:SINGLE_LAYER_A:MATERIAL_FLOW',
+          fromNode: { kind: 'DEVICE_ROLE', ref: 'ARM', resolved: true },
+          toNode: { kind: 'RACK_POSITION', ref: 'SINGLE_LAYER_A', resolved: true },
+          type: 'MATERIAL_FLOW'
+        }
+      ])
+      expect(model.topologyNodes).toEqual([
+        { kind: 'DEVICE_ROLE', ref: 'ARM', resolved: true },
+        { kind: 'RACK_POSITION', ref: 'SINGLE_LAYER_A', resolved: true }
+      ])
+      expect(model.topologyDiagnostics).toEqual([])
+    })
+
+    it('maps RACK_POSITION -> RACK_POSITION operation edge with stable key order', () => {
+      const manifestWithRackToRack = createTopologyManifest({
+        rack_position_codes: ['SOURCE_POS', 'TARGET_POS'],
+        flow_edges: [
+          {
+            type: 'OPERATION',
+            from_node: { kind: 'RACK_POSITION', ref: 'SOURCE_POS' },
+            to_node: { kind: 'RACK_POSITION', ref: 'TARGET_POS' }
+          }
+        ]
+      })
+
+      const model = buildRuntimeSceneModel({
+        projection: createDetail(),
+        manifest: manifestWithRackToRack
+      })
+
+      expect(model.topologyEdges).toHaveLength(1)
+      expect(model.topologyEdges[0]).toEqual({
+        key: 'RACK_POSITION:SOURCE_POS->RACK_POSITION:TARGET_POS:OPERATION',
+        fromNode: { kind: 'RACK_POSITION', ref: 'SOURCE_POS', resolved: true },
+        toNode: { kind: 'RACK_POSITION', ref: 'TARGET_POS', resolved: true },
+        type: 'OPERATION'
+      })
+      expect(model.topologyNodes.map(node => node.ref)).toEqual(['SOURCE_POS', 'TARGET_POS'])
+      expect(model.topologyDiagnostics).toEqual([])
+    })
+
+    it('emits MANIFEST_MISSING diagnostic and empty edges when manifest is null', () => {
+      const model = buildRuntimeSceneModel({
+        projection: createDetail(),
+        manifest: null
+      })
+
+      expect(model.topologyEdges).toEqual([])
+      expect(model.topologyNodes).toEqual([])
+      expect(model.topologyDiagnostics).toEqual([
+        expect.objectContaining({ code: 'MANIFEST_MISSING' })
+      ])
+    })
+
+    it('emits MANIFEST_LOAD_FAILED diagnostic when manifestLoadFailed is true', () => {
+      const model = buildRuntimeSceneModel({
+        projection: createDetail(),
+        manifest: undefined,
+        manifestLoadFailed: true
+      })
+
+      expect(model.topologyEdges).toEqual([])
+      expect(model.topologyNodes).toEqual([])
+      expect(model.topologyDiagnostics).toEqual([
+        expect.objectContaining({ code: 'MANIFEST_LOAD_FAILED' })
+      ])
+    })
+
+    it('drops edges with unknown DEVICE_ROLE / RACK_POSITION refs without throwing', () => {
+      const manifestWithUnknownRefs = createTopologyManifest({
+        rack_position_codes: ['SINGLE_LAYER_A'],
+        flow_edges: [
+          {
+            type: 'material_flow',
+            from_node: { kind: 'DEVICE_ROLE', ref: 'UNKNOWN_ROLE' },
+            to_node: { kind: 'RACK_POSITION', ref: 'SINGLE_LAYER_A' }
+          },
+          {
+            type: 'material_flow',
+            from_node: { kind: 'DEVICE_ROLE', ref: 'ARM' },
+            to_node: { kind: 'RACK_POSITION', ref: 'UNKNOWN_POSITION' }
+          }
+        ]
+      })
+
+      const model = buildRuntimeSceneModel({
+        projection: createDetail(),
+        manifest: manifestWithUnknownRefs
+      })
+
+      expect(model.topologyEdges).toEqual([])
+      expect(model.topologyDiagnostics).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ code: 'UNKNOWN_DEVICE_ROLE', ref: 'UNKNOWN_ROLE' }),
+          expect.objectContaining({ code: 'UNKNOWN_RACK_POSITION', ref: 'UNKNOWN_POSITION' })
+        ])
+      )
+      expect(
+        model.topologyNodes.find(node => node.kind === 'DEVICE_ROLE' && node.ref === 'UNKNOWN_ROLE')
+      ).toEqual({ kind: 'DEVICE_ROLE', ref: 'UNKNOWN_ROLE', resolved: false })
+      expect(
+        model.topologyNodes.find(
+          node => node.kind === 'RACK_POSITION' && node.ref === 'UNKNOWN_POSITION'
+        )
+      ).toEqual({ kind: 'RACK_POSITION', ref: 'UNKNOWN_POSITION', resolved: false })
+    })
   })
 })
