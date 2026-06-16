@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it } from 'vitest'
-import { buildRuntimeSceneModel, getRuntimeSceneEvidenceKey } from '@/utils/runtime-scene'
+import {
+  HIDDEN_TOPOLOGY_ROLES,
+  buildRuntimeSceneModel,
+  getRuntimeSceneEvidenceKey
+} from '@/utils/runtime-scene'
 import type {
   RuntimeRackOperationWait,
   RuntimeSingleLayerRackSnapshot,
@@ -1723,5 +1727,73 @@ describe('buildRuntimeSceneModel', () => {
         )
       ).toEqual({ kind: 'RACK_POSITION', ref: 'UNKNOWN_POSITION', resolved: false })
     })
+  })
+})
+
+describe('buildRuntimeSceneModel — HIDDEN_TOPOLOGY_ROLES', () => {
+  it('exposes CLASSIFIER_WORK in HIDDEN_TOPOLOGY_ROLES by default', () => {
+    expect(HIDDEN_TOPOLOGY_ROLES.has('CLASSIFIER_WORK')).toBe(true)
+  })
+
+  it('excludes devices whose device_role matches HIDDEN_TOPOLOGY_ROLES from deviceNodes', () => {
+    const projection = createDetail({
+      devices: [
+        {
+          id: 1,
+          device_code: 'ST-01',
+          device_name: '工位 1',
+          device_role: 'STATION',
+          role_index: 0,
+          device_status: 'ONLINE',
+          maintenance_mode: false,
+          pending_command_count: 0
+        },
+        {
+          id: 2,
+          device_code: 'CLS-01',
+          device_name: '分类工位',
+          device_role: 'CLASSIFIER_WORK',
+          role_index: 1,
+          device_status: 'ONLINE',
+          maintenance_mode: false,
+          pending_command_count: 0
+        },
+        {
+          id: 3,
+          device_code: 'OUT-01',
+          device_name: '出料',
+          device_role: 'CONVEYOR_OUT',
+          role_index: 2,
+          device_status: 'ONLINE',
+          maintenance_mode: false,
+          pending_command_count: 0
+        }
+      ]
+    })
+
+    const model = buildRuntimeSceneModel({ projection, manifest })
+    const ids = model.deviceNodes.map(d => d.id)
+    expect(ids).toContain(1)
+    expect(ids).toContain(3)
+    expect(ids).not.toContain(2)
+  })
+
+  it('matches case-insensitively (lowercase device_role still filtered)', () => {
+    const projection = createDetail({
+      devices: [
+        {
+          id: 99,
+          device_code: 'CLS-99',
+          device_name: '分类工位',
+          device_role: 'classifier_work',
+          role_index: 0,
+          device_status: 'ONLINE',
+          maintenance_mode: false,
+          pending_command_count: 0
+        }
+      ]
+    })
+    const model = buildRuntimeSceneModel({ projection, manifest })
+    expect(model.deviceNodes).toHaveLength(0)
   })
 })

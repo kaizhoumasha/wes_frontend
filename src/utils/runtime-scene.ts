@@ -544,6 +544,15 @@ const RESOURCE_KIND_LABELS: Record<RuntimeResourceKind, string> = {
 const LEGACY_NG_ARM_ROLE = 'NG_ARM'
 const NG_PLACEMENT_DISPLAY_ROLE = 'TARGET_ARM'
 
+/**
+ * 拓扑画布上**不显示**的设备 role。这些设备仍参与 projection 的
+ * 业务 / 资源统计（detail panel、sandbox 等），但不会出现在
+ * `RuntimeSceneModel.deviceNodes` 中，避免污染物料流视图。
+ *
+ * 命中规则：role 字符串大写后存在于该集合中即跳过。
+ */
+export const HIDDEN_TOPOLOGY_ROLES: ReadonlySet<string> = new Set(['CLASSIFIER_WORK'])
+
 export function getRuntimeSceneEvidenceKey(item: RuntimeSceneResourceEvidence): string {
   return [
     item.evidenceKind,
@@ -604,7 +613,9 @@ export function buildRuntimeSceneModel(input: BuildRuntimeSceneModelInput): Runt
     readinessLabel: READINESS_LABELS[readiness],
     runtimeStatusLabel: toRuntimeStatusLabel(projection.summary.runtime_status),
     boundaries,
-    deviceNodes: (projection.device_nodes ?? []).map(toRuntimeSceneDeviceNode),
+    deviceNodes: (projection.device_nodes ?? [])
+      .filter(node => !HIDDEN_TOPOLOGY_ROLES.has((node.device_role ?? '').toUpperCase()))
+      .map(toRuntimeSceneDeviceNode),
     resourceEvidence,
     positionGroups,
     unlocatedAuditItems,
