@@ -155,7 +155,6 @@ declare module 'vue' {
     WorklineLiveOverview: typeof import('./../components/runtime/monitor/WorklineLiveOverview.vue')['default']
     WorklineReconciliationForm: typeof import('./../components/runtime/monitor/WorklineReconciliationForm.vue')['default']
     WorklineRuntimeHoldSummaryPanel: typeof import('./../components/runtime/monitor/WorklineRuntimeHoldSummaryPanel.vue')['default']
-    WorklineSafetyIncidentPanel: typeof import('./../components/runtime/monitor/WorklineSafetyIncidentPanel.vue')['default']
   }
   export interface GlobalDirectives {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

@@ -261,34 +261,30 @@
             class="monitor-device-panel__tab-panel"
             data-test="monitor-device-control-panel"
           >
-            <dl class="monitor-device-panel__facts">
-              <div>
-                <dt>命令</dt>
-                <dd>
-                  {{ selectedDevice.open_command_count }} 未完成 /
-                  {{ selectedDevice.pending_command_count }} 等待
-                </dd>
-              </div>
-              <div>
-                <dt>阻塞</dt>
-                <dd>
-                  {{ selectedDevice.blocked_outbox_count }} 停靠 /
-                  {{ selectedDevice.open_issue_count }} 问题
-                </dd>
-              </div>
-              <div>
-                <dt>心跳</dt>
-                <dd>{{ formatRuntimeDateTime(selectedDevice.last_heartbeat_at) }}</dd>
-              </div>
-            </dl>
-            <div class="monitor-device-panel__chain">
-              <span>WES</span>
-              <span>HTTP 合同</span>
-              <span>ECS</span>
-            </div>
-            <p class="monitor-device-panel__hint">
-              仅展示当前监控投影中的设备事实。处置动作仍按线体急停和对账候选闭环执行。
-            </p>
+            <MonitorAlertCard
+              v-if="deviceAlertContent"
+              :tone="deviceAlertContent.tone"
+              :title="deviceAlertContent.title"
+              :message="deviceAlertContent.message"
+              :source="deviceAlertContent.source"
+            />
+
+            <MonitorCommandChain :command="deviceCommandView" />
+
+            <MonitorDeviceActionGroup
+              :mode="deviceActionMode"
+              :can-clear-estop="canClearWorklineEstop"
+              :can-attempt-clear="currentWorklineSafetyVerdict.canAttemptClear"
+              :can-resolve="canResolveReconciliation"
+              :can-manage-maintenance="canUpdateDevice"
+              :maintenance-active="isSelectedDeviceInMaintenance"
+              :busy="busyAnyAction"
+              :blocked-reason="currentWorklineSafetyVerdict.blockedReason"
+              @clear-estop="clearWorklineEstop"
+              @resolve-reconciliation="onResolveReconciliationFromActionGroup"
+              @enter-maintenance="onEnterMaintenanceFromActionGroup"
+              @exit-maintenance="onExitMaintenanceFromActionGroup"
+            />
           </section>
 
           <section
@@ -296,16 +292,24 @@
             class="monitor-device-panel__tab-panel monitor-business-projection"
             data-test="monitor-business-projection"
           >
-            <div class="monitor-device-panel__section-title">业务关联投影</div>
-            <dl class="monitor-business-projection__facts">
-              <div
-                v-for="row in businessProjectionRows"
-                :key="row.label"
-              >
-                <dt>{{ row.label }}</dt>
-                <dd>{{ row.value }}</dd>
-              </div>
-            </dl>
+            <MonitorToteTwinCard
+              v-if="deviceToteTwinView"
+              :view="deviceToteTwinView"
+            />
+
+            <MonitorRackOccupancyMatrix
+              v-if="deviceRackOccupancyView"
+              :view="deviceRackOccupancyView"
+              @select="onRackCellSelect"
+            />
+
+            <p
+              v-if="!deviceToteTwinView && !deviceRackOccupancyView"
+              class="monitor-device-panel__hint"
+            >
+              选中设备没有可投影的物料/货格信息。
+            </p>
+
             <div
               v-if="selectedDeviceSessions.length"
               class="monitor-device-panel__sessions"
@@ -371,15 +375,6 @@
             :projection="store.projection"
             :can-view-hold="canViewRuntimeHold"
           />
-          <WorklineSafetyIncidentPanel
-            v-if="currentWorklineSafetyVerdict.safetyLocked && !hasRuntimeHoldProjection"
-            :summary="store.projection.summary"
-            :verdict="currentWorklineSafetyVerdict"
-            :can-clear-estop="canClearWorklineEstop"
-            :clear-estop-loading="clearingWorklineEstop"
-            @refresh="forceRefreshProjection"
-            @clear-estop="clearWorklineEstop"
-          />
           <WorklineReconciliationForm
             v-if="pendingReconciliationCandidate"
             :summary="store.projection.summary"
@@ -418,8 +413,12 @@ import RuntimeLastUpdated from '@/components/common/runtime/RuntimeLastUpdated.v
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import WorklineLiveOverview from '@/components/runtime/monitor/WorklineLiveOverview.vue'
 import WorklineReconciliationForm from '@/components/runtime/monitor/WorklineReconciliationForm.vue'
-import WorklineSafetyIncidentPanel from '@/components/runtime/monitor/WorklineSafetyIncidentPanel.vue'
 import WorklineRuntimeHoldSummaryPanel from '@/components/runtime/monitor/WorklineRuntimeHoldSummaryPanel.vue'
+import MonitorAlertCard from '@/components/runtime/monitor/MonitorAlertCard.vue'
+import MonitorCommandChain from '@/components/runtime/monitor/MonitorCommandChain.vue'
+import MonitorDeviceActionGroup from '@/components/runtime/monitor/MonitorDeviceActionGroup.vue'
+import MonitorToteTwinCard from '@/components/runtime/monitor/MonitorToteTwinCard.vue'
+import MonitorRackOccupancyMatrix from '@/components/runtime/monitor/MonitorRackOccupancyMatrix.vue'
 import { useDarkMode } from '@/composables/useDarkMode'
 import { usePermission } from '@/composables/usePermission'
 import { useRuntimeSSEStore } from '@/stores/runtime-sse'
@@ -436,6 +435,11 @@ import { getWorklineDeviceSafetyEvidence, getWorklineRuntimeVerdict } from '@/ut
 import { getErrorMessage } from '@/utils/string'
 import { buildRuntimeWorklineQuery } from '@/utils/runtime-route'
 import {
+  buildRackOccupancyView,
+  buildSelectedDeviceCommandView,
+  buildSelectedDeviceToteTwinView
+} from '@/utils/runtime-scene'
+import {
   formatRuntimeDateTime,
   getWorklineRiskLabel as worklineRiskLabel,
   getWorklineRiskTone as worklineRiskTone,
@@ -445,10 +449,8 @@ import type {
   RuntimeMonitorDeviceNode,
   RuntimeSafetyIncidentSummary,
   RuntimeMonitorReconciliationCandidate,
-  RuntimeResourceEvidenceItem,
   RuntimeMonitorSessionItem,
   RuntimeMonitorTraceItem,
-  RuntimeWorklineMonitorProjectionResponse,
   RuntimeWorklineSummary
 } from '@/types/runtime'
 
@@ -504,56 +506,6 @@ const selectedDeviceSessions = computed(() => {
     ...(store.projection.recent_failed_traces.items ?? []),
     ...(store.projection.recent_completed_traces.items ?? [])
   ].filter(session => session.device_id === device.id)
-})
-
-const businessProjectionRows = computed(() => {
-  const device = selectedDevice.value
-  const projection = store.projection
-  if (!device || !projection) return []
-  const boundary = projection.boundary
-  const resourceEvidence = projection.resource_evidence
-  const resourceEvidenceItems = resourceEvidence.items ?? []
-  const rackCodes = collectProjectionCodes(resourceEvidenceItems, item => item.rack_code)
-  const containerCodes = collectProjectionCodes(resourceEvidenceItems, item => [
-    item.bin_code,
-    item.cell_code,
-    item.slot_code
-  ])
-
-  return [
-    {
-      label: '设备角色',
-      value: `${device.device_role} #${device.role_index}`
-    },
-    {
-      label: '执行快照',
-      value: singleLayerRackSnapshotLabel(boundary.single_layer_rack_snapshot)
-    },
-    {
-      label: '货架形态',
-      value: projectionRackKindLabel(projection)
-    },
-    {
-      label: '货架投影',
-      value: formatProjectionCodes(rackCodes)
-    },
-    {
-      label: '容器投影',
-      value: formatProjectionCodes(containerCodes)
-    },
-    {
-      label: 'Station lease',
-      value: stationLeaseLabel(boundary.station_lease)
-    },
-    {
-      label: 'Rack operation',
-      value: rackOperationWaitLabel(boundary.rack_operation_wait)
-    },
-    {
-      label: '资源证据',
-      value: `${resourceEvidenceItems.length} / ${resourceEvidence.total_count} · ${resourceEvidence.kind ?? 'UNKNOWN'}`
-    }
-  ]
 })
 
 const filteredWorklines = computed(() => {
@@ -617,6 +569,63 @@ const hasRuntimeHoldProjection = computed(() => {
     blockedOutbox > 0 ||
     currentWorklineSummary.value?.runtime_status === RECONCILING_RUNTIME_STATUS
   )
+})
+
+const deviceAlertContent = computed<{
+  tone: 'danger' | 'warning'
+  title: string
+  message: string
+  source?: string
+} | null>(() => {
+  if (currentWorklineSafetyVerdict.value.safetyLocked) {
+    return {
+      tone: 'danger',
+      title: 'WORKLINE_ESTOPPED',
+      message:
+        currentWorklineSummary.value?.stopped_reason ||
+        '工作线已软件急停冻结，请确认现场设备状态后恢复接收',
+      source: currentWorklineSafetyVerdict.value.blockedReason ?? undefined
+    }
+  }
+  const candidate = pendingReconciliationCandidate.value
+  if (candidate) {
+    return {
+      tone: 'warning',
+      title: candidate.reason ?? 'RECONCILE_PENDING',
+      message: `Owner Session ${candidate.session_code} 已隔离派发，请在下方确认现场状态后解除`,
+      source: candidate.occurred_at ? formatRuntimeDateTime(candidate.occurred_at) : undefined
+    }
+  }
+  return null
+})
+
+const deviceCommandView = computed(() => buildSelectedDeviceCommandView(selectedDevice.value))
+
+const deviceActionMode = computed<'idle' | 'estop' | 'reconciliation'>(() => {
+  if (currentWorklineSafetyVerdict.value.safetyLocked) return 'estop'
+  if (pendingReconciliationCandidate.value) return 'reconciliation'
+  return 'idle'
+})
+
+const isSelectedDeviceInMaintenance = computed(() =>
+  Boolean(selectedDevice.value?.maintenance_mode)
+)
+
+const busyAnyAction = computed(
+  () =>
+    clearingWorklineEstop.value ||
+    resolvingReconciliation.value ||
+    enteringDeviceMaintenance.value ||
+    exitingDeviceMaintenance.value
+)
+
+const deviceToteTwinView = computed(() =>
+  buildSelectedDeviceToteTwinView(selectedDevice.value, selectedDeviceSessions.value)
+)
+
+const deviceRackOccupancyView = computed(() => {
+  if (!store.projection) return null
+  return buildRackOccupancyView(store.projection, { columns: 4 })
 })
 
 function lastActivityLabel(item: RuntimeWorklineSummary) {
@@ -759,8 +768,7 @@ async function resolveRuntimeReconciliation(payload: {
   }
 }
 
-// T9: handlers prepared for the device control tab/action group; T10 wires them up.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// T9 handlers wired up by T10 ActionGroup adapters below.
 async function enterDeviceMaintenance(deviceId: number, reason?: string) {
   if (!canUpdateDevice.value) {
     ElMessage.error('需要 biz:device:update 权限')
@@ -790,7 +798,6 @@ async function enterDeviceMaintenance(deviceId: number, reason?: string) {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function exitDeviceMaintenance(deviceId: number, reason?: string) {
   if (!canUpdateDevice.value) {
     ElMessage.error('需要 biz:device:update 权限')
@@ -818,6 +825,27 @@ async function exitDeviceMaintenance(deviceId: number, reason?: string) {
   } finally {
     exitingDeviceMaintenance.value = false
   }
+}
+
+function onResolveReconciliationFromActionGroup() {
+  // The reconciliation form renders below whenever a pending candidate exists;
+  // the ActionGroup button only signals operator intent — no extra work needed.
+}
+
+function onEnterMaintenanceFromActionGroup() {
+  const id = selectedDeviceId.value
+  if (!id) return
+  void enterDeviceMaintenance(id)
+}
+
+function onExitMaintenanceFromActionGroup() {
+  const id = selectedDeviceId.value
+  if (!id) return
+  void exitDeviceMaintenance(id)
+}
+
+function onRackCellSelect() {
+  // Rack cell selection is forwarded for future highlighting linkage; T11 verifies.
 }
 
 onMounted(() => {
@@ -911,74 +939,6 @@ function readStringEventValue(value: unknown): string | null {
   if (typeof value === 'string' && value.trim()) return value.trim()
   if (typeof value === 'number' && Number.isFinite(value)) return String(value)
   return null
-}
-
-function stationLeaseLabel(value?: string | null): string {
-  const labels: Record<string, string> = {
-    IDLE: 'Station lease：空闲',
-    ACTIVE_RACK_BOUND: 'Station lease：执行货架占用',
-    ACTIVE_DISPATCH_LEASE: 'Station lease：调度租约占用',
-    ACTIVE_SESSION_BOUND: 'Station lease：会话占用',
-    UNKNOWN: 'Station lease：语义未加载'
-  }
-  return labels[value || 'UNKNOWN'] ?? `Station lease：${value}`
-}
-
-function singleLayerRackSnapshotLabel(value?: string | null): string {
-  const labels: Record<string, string> = {
-    ACTIVE: '执行快照：当前执行货架',
-    MISSING: '执行快照：未找到当前执行货架',
-    INVALID: '执行快照：无效',
-    NON_SINGLE_LAYER_EVIDENCE: '执行快照：非单层 evidence',
-    UNKNOWN: '执行快照：语义未加载'
-  }
-  return labels[value || 'UNKNOWN'] ?? `执行快照：${value}`
-}
-
-function projectionRackKindLabel(projection: RuntimeWorklineMonitorProjectionResponse): string {
-  const snapshot = projection.boundary.single_layer_rack_snapshot
-  const hasSingleLayerEvidence = (projection.resource_evidence.items ?? []).some(
-    item => item.rack_code || item.bin_code || item.slot_code || item.cell_code
-  )
-
-  if ((snapshot && snapshot !== 'UNKNOWN') || hasSingleLayerEvidence) return '单层货架'
-  return '货架形态未加载'
-}
-
-function collectProjectionCodes(
-  items: RuntimeResourceEvidenceItem[],
-  readCode: (
-    item: RuntimeResourceEvidenceItem
-  ) => string | null | undefined | (string | null | undefined)[]
-): string[] {
-  const codes = new Set<string>()
-  for (const item of items) {
-    const value = readCode(item)
-    const values = Array.isArray(value) ? value : [value]
-    for (const code of values) {
-      if (code?.trim()) codes.add(code.trim())
-    }
-  }
-  return [...codes]
-}
-
-function formatProjectionCodes(codes: string[]): string {
-  if (codes.length === 0) return '未加载'
-  const visibleCodes = codes.slice(0, 4)
-  const suffix = codes.length > visibleCodes.length ? ` +${codes.length - visibleCodes.length}` : ''
-  return `${visibleCodes.join(' / ')}${suffix}`
-}
-
-function rackOperationWaitLabel(value?: string | null): string {
-  const labels: Record<string, string> = {
-    WAITING_WMS: 'Rack operation：等待 WMS 搬运到位',
-    WMS_CALLBACK_RECEIVED: 'Rack operation：WMS 回调证据已收到',
-    TIMEOUT: 'Rack operation：等待 WMS 超时',
-    FAILED: 'Rack operation：WMS 搬运结果失败',
-    NONE: 'Rack operation：无等待',
-    UNKNOWN: 'Rack operation：语义未加载'
-  }
-  return labels[value || 'UNKNOWN'] ?? `Rack operation：${value}`
 }
 </script>
 
@@ -1159,7 +1119,16 @@ html:not(.dark) .runtime-page {
   border-radius: 8px;
   background:
     linear-gradient(var(--monitor-shell-surface), var(--monitor-shell-surface)),
-    repeating-linear-gradient(90deg, rgb(148 163 184 / 0.08) 0 1px, transparent 1px 32px);
+    radial-gradient(rgb(148 163 184 / 0.15) 1px, transparent 1px),
+    radial-gradient(rgb(148 163 184 / 0.1) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    20px 20px,
+    20px 20px;
+  background-position:
+    0 0,
+    0 0,
+    10px 10px;
 }
 
 .monitor-layout__empty {
@@ -1210,39 +1179,6 @@ html:not(.dark) .runtime-page {
   line-height: 1.6;
 }
 
-.monitor-device-panel__facts {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-  margin: 14px 0 0;
-}
-
-.monitor-device-panel__facts > div,
-.monitor-business-projection__facts > div {
-  display: grid;
-  gap: 3px;
-  padding: 9px;
-  border: 1px solid var(--monitor-shell-border);
-  border-radius: 7px;
-  background: var(--monitor-shell-surface-muted);
-}
-
-.monitor-device-panel__facts dt,
-.monitor-business-projection__facts dt {
-  color: var(--runtime-text-muted);
-  font-size: 11px;
-}
-
-.monitor-device-panel__facts dd,
-.monitor-business-projection__facts dd {
-  margin: 0;
-  color: var(--runtime-text-primary);
-  font-family: var(--font-mono, 'JetBrains Mono');
-  font-size: 12px;
-  font-weight: 700;
-  overflow-wrap: anywhere;
-}
-
 .monitor-device-panel__tabs {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1272,33 +1208,17 @@ html:not(.dark) .runtime-page {
 }
 
 .monitor-device-panel__tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
   min-width: 0;
 }
 
-.monitor-business-projection__facts {
-  display: grid;
-  gap: 8px;
-  margin: 14px 0 0;
-}
-
-.monitor-device-panel__chain {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 8px;
-  margin-top: 12px;
-  color: var(--runtime-text-secondary);
-  font-family: var(--font-mono, 'JetBrains Mono');
-  font-size: 11px;
-}
-
-.monitor-device-panel__chain span {
-  min-width: 0;
-  padding: 7px 8px;
-  border: 1px solid var(--monitor-shell-border);
-  border-radius: 6px;
-  background: var(--monitor-shell-surface-muted);
-  text-align: center;
+.monitor-business-projection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .monitor-device-panel__sessions {

@@ -604,12 +604,15 @@ describe('runtime route sync', () => {
     await wrapper.get('[data-test="monitor-side-tab-business"]').trigger('click')
 
     const businessPanel = wrapper.get('[data-test="monitor-business-projection"]')
-    expect(businessPanel.text()).toContain('业务关联投影')
-    expect(businessPanel.text()).toContain('scanner')
-    expect(businessPanel.text()).toContain('单层货架')
-    expect(businessPanel.text()).toContain('RACK-101')
-    expect(businessPanel.text()).toContain('BIN-101')
-    expect(businessPanel.text()).toContain('执行快照')
+    // The business tab itself is labeled "业务关联投影"; T10 dashboard-v3
+    // replaces the old section-title DOM with MonitorToteTwinCard +
+    // MonitorRackOccupancyMatrix (auto-stubbed by shallowMount, so we look
+    // for the tag rather than by component name). The rack evidence in this
+    // fixture has a cell_code, so RackOccupancyMatrix is the one that renders;
+    // ToteTwinCard stays hidden because there is no active session.
+    const businessHtml = businessPanel.html()
+    expect(businessHtml).toContain('monitor-rack-occupancy-matrix-stub')
+    expect(businessHtml).not.toContain('选中设备没有可投影的物料/货格信息')
     expect(wrapper.find('[data-test="monitor-device-control-panel"]').exists()).toBe(false)
   })
 
@@ -702,43 +705,5 @@ describe('runtime route sync', () => {
     )
     expect(worklineProjectionSend).toHaveBeenCalledTimes(2)
     expect(worklinesSend).toHaveBeenCalledTimes(2)
-  })
-
-  it('force reloads the current projection from the safety panel refresh action', async () => {
-    routeState.path = '/runtime/monitor'
-    routeState.fullPath = '/runtime/monitor?worklineId=101'
-    routeState.query = {
-      worklineId: '101'
-    }
-    worklinesSend.mockResolvedValue([{ ...worklineSummary, active_safety_incident_id: 88 }])
-    worklineProjectionSend.mockImplementation(async (worklineId: number) => ({
-      ...createWorklineProjection(worklineId),
-      summary: {
-        ...worklineSummary,
-        id: worklineId,
-        line_code: `WL-${worklineId}`,
-        line_name: `Workline ${worklineId}`,
-        active_safety_incident_id: 88
-      }
-    }))
-
-    const component = await import('@/views/runtime/worklines/WorklineMonitorPage.vue')
-
-    const wrapper = shallowMount(component.default, createMountOptions())
-    mountedWrappers.push(wrapper)
-
-    await flushViewUpdates()
-    await flushViewUpdates()
-
-    const safetyPanel = wrapper.findComponent({ name: 'WorklineSafetyIncidentPanel' })
-    expect(safetyPanel.exists()).toBe(true)
-    expect(worklineProjectionSend).toHaveBeenCalledTimes(1)
-
-    await safetyPanel.vm.$emit('refresh')
-    await flushViewUpdates()
-    await flushViewUpdates()
-
-    expect(worklineProjectionSend).toHaveBeenCalledTimes(2)
-    expect(worklineProjectionSend).toHaveBeenLastCalledWith(101)
   })
 })
