@@ -464,8 +464,7 @@ function computeFallbackLayout(
   })
 
   const derivedEdges = deriveEdges(columned)
-  const fallbackChainEdges = derivedEdges.length > 0 ? [] : deriveChainEdges(devices)
-  const edgesToRender = derivedEdges.length > 0 ? derivedEdges : fallbackChainEdges
+  const edgesToRender = derivedEdges.length > 0 ? derivedEdges : deriveChainEdges(devices)
   const deviceMap = new Map(devices.map(d => [d.id, d]))
 
   const edges: LayoutEdge[] = edgesToRender.map(edge => {

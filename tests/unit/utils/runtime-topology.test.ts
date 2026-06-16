@@ -372,10 +372,10 @@ describe('runtime-topology — fallback serializes when no adjacent columns', ()
       makeDevice({ id: 12, deviceRole: 'STATION', roleIndex: 1, deviceName: 'B' }),
     ]
     const layout = computeLayout(devices)
-    const ordered = layout.edges.map(e => e.fromKey)
+    const ordered = layout.edges.map(e => `${e.fromKey}->${e.toKey}`)
     expect(ordered).toEqual([
-      makeDeviceKey(11), // roleIndex 0
-      makeDeviceKey(12), // roleIndex 1
+      `${makeDeviceKey(11)}->${makeDeviceKey(12)}`, // roleIndex 0 -> roleIndex 1
+      `${makeDeviceKey(12)}->${makeDeviceKey(10)}`, // roleIndex 1 -> roleIndex 2 (chain closes to highest)
     ])
   })
 })
