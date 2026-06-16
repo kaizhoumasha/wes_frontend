@@ -5,7 +5,9 @@ import type {
   RuntimeResourceKind,
   RuntimeSingleLayerRackSnapshot,
   RuntimeStationLease,
+  RuntimeMonitorCommandSnapshot,
   RuntimeMonitorDeviceNode,
+  RuntimeMonitorSessionItem,
   RuntimeWorklineMonitorProjectionResponse,
   RuntimeWorklineReadiness,
   WorkLinePluginManifestSummary
@@ -270,6 +272,177 @@ export interface BuildRuntimeSceneModelInput {
   projection: RuntimeWorklineMonitorProjectionResponse
   manifest?: WorkLinePluginManifestSummary | null
   manifestLoadFailed?: boolean
+}
+
+export type RuntimeSceneCommandAckState =
+  | 'pending'
+  | 'acked'
+  | 'rejected'
+  | 'expired'
+  | 'unknown'
+
+export interface RuntimeSceneCommandSnapshotView {
+  id: number
+  code: string
+  status: string
+  ackState: RuntimeSceneCommandAckState
+  sentAt: string | null
+  ackReceivedAt: string | null
+  ackCode: number | null
+  ackMessage: string | null
+}
+
+export interface RuntimeSceneToteTwinRow {
+  label: string
+  value: string
+  emphasis?: 'info' | 'danger' | 'warning'
+}
+
+export interface RuntimeSceneToteTwinView {
+  lpn: string
+  typeLabel: string | null
+  tone: 'info' | 'warning'
+  rows: RuntimeSceneToteTwinRow[]
+}
+
+export type RuntimeSceneRackSlotViewState = 'empty' | 'occupied' | 'reconciling'
+
+export interface RuntimeSceneRackOccupancySlotView {
+  key: string
+  code: string
+  state: RuntimeSceneRackSlotViewState
+  tote: string | null
+  alarm: string | null
+}
+
+export interface RuntimeSceneRackOccupancyView {
+  columns: number
+  slots: RuntimeSceneRackOccupancySlotView[]
+}
+
+export function buildSelectedDeviceCommandView(
+  device: RuntimeMonitorDeviceNode | null
+): RuntimeSceneCommandSnapshotView | null {
+  if (!device?.current_command) return null
+  const command = device.current_command
+  return {
+    id: command.id,
+    code: command.command_code,
+    status: command.status,
+    ackState: deriveCommandAckState(command),
+    sentAt: command.sent_at ?? null,
+    ackReceivedAt: command.ack_received_at ?? null,
+    ackCode: command.ack_code ?? null,
+    ackMessage: command.ack_message ?? null
+  }
+}
+
+function deriveCommandAckState(
+  command: RuntimeMonitorCommandSnapshot
+): RuntimeSceneCommandAckState {
+  if (command.ack_received_at) return 'acked'
+  const status = (command.status ?? '').toUpperCase()
+  if (status === 'ACKED') return 'acked'
+  if (status === 'REJECTED' || status === 'FAILED') return 'rejected'
+  if (status === 'EXPIRED' || status === 'TIMEOUT') return 'expired'
+  if (status === 'PENDING' || status === 'SENT' || status === 'DISPATCHED') return 'pending'
+  return 'unknown'
+}
+
+export function buildSelectedDeviceToteTwinView(
+  device: RuntimeMonitorDeviceNode | null,
+  sessions: RuntimeMonitorSessionItem[]
+): RuntimeSceneToteTwinView | null {
+  if (!device) return null
+  const session = sessions.find(item => item.device_id === device.id)
+  if (!session) return null
+
+  const sessionRecord = session as RuntimeMonitorSessionItem & Record<string, unknown>
+  const lpnSource =
+    getOptionalStringField(sessionRecord, 'barcode') ?? session.session_code ?? '—'
+
+  const rows: RuntimeSceneToteTwinRow[] = []
+  const status = session.status?.trim()
+  if (status) {
+    rows.push({ label: '会话状态', value: status, emphasis: 'info' })
+  }
+
+  const waitType = session.current_wait_type?.trim()
+  if (waitType) {
+    rows.push({
+      label: '等待类型',
+      value: waitType,
+      emphasis: session.is_timed_out ? 'danger' : undefined
+    })
+  }
+
+  const failureCode = session.failure_code?.trim()
+  if (failureCode) {
+    rows.push({ label: '失败编码', value: failureCode, emphasis: 'danger' })
+  }
+
+  const timelineMessage = session.latest_timeline_message?.trim()
+  if (timelineMessage) {
+    rows.push({ label: '最近事件', value: timelineMessage })
+  }
+
+  const startedAt = session.started_at?.trim()
+  if (startedAt) {
+    rows.push({ label: '开始时间', value: startedAt })
+  }
+
+  const tone: RuntimeSceneToteTwinView['tone'] =
+    session.is_timed_out || failureCode ? 'warning' : 'info'
+
+  return {
+    lpn: lpnSource,
+    typeLabel: session.latest_timeline_action ?? null,
+    tone,
+    rows
+  }
+}
+
+export function buildRackOccupancyView(
+  projection: RuntimeWorklineMonitorProjectionResponse,
+  options?: { columns?: number }
+): RuntimeSceneRackOccupancyView | null {
+  const projectionRecord = projection as RuntimeWorklineMonitorProjectionResponse &
+    Record<string, unknown>
+  const evidenceObj = (projectionRecord.resource_evidence || {}) as Record<string, unknown>
+  const items = Array.isArray(evidenceObj.items)
+    ? (evidenceObj.items as RuntimeResourceEvidenceItem[])
+    : []
+
+  const slotItems = items.filter(item =>
+    Boolean(item.cell_code || item.bin_code || item.slot_code)
+  )
+  if (slotItems.length === 0) return null
+
+  const columns = options?.columns ?? 4
+  const slots: RuntimeSceneRackOccupancySlotView[] = slotItems.map((item, index) => {
+    const code =
+      item.cell_code ?? item.slot_code ?? item.bin_code ?? `LOC-${index + 1}`
+    return {
+      key: `${item.rack_code ?? 'unknown'}-${code}-${index}`,
+      code,
+      state: deriveRackOccupancySlotState(item),
+      tote: item.bin_code ?? null,
+      alarm: null
+    }
+  })
+
+  return { columns, slots }
+}
+
+function deriveRackOccupancySlotState(
+  item: RuntimeResourceEvidenceItem
+): RuntimeSceneRackSlotViewState {
+  const evidenceKind = (item.evidence_kind ?? '').toString().toUpperCase()
+  if (evidenceKind === 'WMS_CALLBACK_EVIDENCE' || evidenceKind === 'TRACE_RESOURCE_EVIDENCE') {
+    return 'reconciling'
+  }
+  if (item.bin_code || item.part_sn || item.pkg_code) return 'occupied'
+  return 'empty'
 }
 
 interface RuntimeSceneEvidencePlacement {
