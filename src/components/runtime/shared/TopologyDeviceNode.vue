@@ -217,7 +217,11 @@ function statusClass(status: string): string {
   border-color: rgb(59 130 246 / 0.5);
   box-shadow: 0 0 10px rgb(59 130 246 / 0.32);
 }
+.topology-device-node.is-primary:hover {
+  box-shadow: 0 0 16px rgb(59 130 246 / 0.5);
+}
 
+/* is-info: explicit fallback ruleset — no glow, matches base amber border. */
 .topology-device-node.is-info {
   border-color: rgb(245 158 11 / 0.16);
 }
