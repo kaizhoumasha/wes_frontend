@@ -1,17 +1,44 @@
 /**
  * Runtime Topology Layout Engine
  *
- * Pure functions for computing multi-column DAG topology layout
- * from a flat device node array. No Vue dependencies.
+ * Pure functions for computing multi-column DAG topology layout.
+ * No Vue dependencies.
+ *
+ * Two modes:
+ *  1. Fallback mode (no `options.explicitNodes`): build a device-only layout
+ *     using role-column rules and `deriveEdges()`. Backwards-compatible with
+ *     callers that pass only `devices`.
+ *  2. Manifest mode (`options.explicitNodes` provided): build a layout with
+ *     device nodes and rack-position nodes as first-class citizens. Edges
+ *     come from `options.explicitEdges` if provided; manifest edges that
+ *     reference DEVICE_ROLE are fanned out to all devices in that role.
  *
  * Architecture:
- *   devices[] → assignColumns() → deriveEdges() → computeLayout() → { nodes[], edges[], canvasSize }
+ *   devices[] (+ explicitNodes/Edges?) → assignColumns()
+ *     → deriveEdges() OR explicit edges → computeLayout()
+ *     → { nodes: LayoutNode[], edges: LayoutEdge[], canvasSize }
+ *
+ * Stable string keys:
+ *  - device node:        `device:${id}`
+ *  - rack position node: `rack:${positionCode}`
  */
 
 import type { RuntimeSceneDeviceNode } from '@/utils/runtime-scene'
 
 // ---------------------------------------------------------------------------
-// Types
+// Stable key helpers
+// ---------------------------------------------------------------------------
+
+export function makeDeviceKey(deviceId: number): string {
+  return `device:${deviceId}`
+}
+
+export function makeRackPositionKey(positionCode: string): string {
+  return `rack:${positionCode}`
+}
+
+// ---------------------------------------------------------------------------
+// Layout config
 // ---------------------------------------------------------------------------
 
 export interface LayoutConfig {
@@ -41,23 +68,39 @@ export const COMPACT_LAYOUT_CONFIG: LayoutConfig = {
   paddingY: 16,
 }
 
+// ---------------------------------------------------------------------------
+// Layout result types (string-keyed)
+// ---------------------------------------------------------------------------
+
+export type LayoutNodeKind = 'device' | 'rack_position'
+
+export interface LayoutRackPositionInfo {
+  code: string
+  label?: string
+}
+
 export interface LayoutNode {
-  id: number
-  device: RuntimeSceneDeviceNode
+  id: string
+  kind: LayoutNodeKind
   column: number
   row: number
   x: number
   y: number
+  device?: RuntimeSceneDeviceNode
+  rackPosition?: LayoutRackPositionInfo
 }
 
 export type EdgeStatus = 'idle' | 'active' | 'warning' | 'fault'
 
+export type LayoutEdgeType = 'MATERIAL_FLOW' | 'OPERATION'
+
 export interface LayoutEdge {
   id: string
-  fromNodeId: number
-  toNodeId: number
-  path: string
+  fromKey: string
+  toKey: string
+  type: LayoutEdgeType
   status: EdgeStatus
+  path: string
 }
 
 export interface LayoutResult {
@@ -65,6 +108,35 @@ export interface LayoutResult {
   edges: LayoutEdge[]
   canvasWidth: number
   canvasHeight: number
+}
+
+// ---------------------------------------------------------------------------
+// Explicit input types (manifest-driven mode)
+// ---------------------------------------------------------------------------
+
+export interface LayoutDeviceNodeInput {
+  kind: 'device'
+  device: RuntimeSceneDeviceNode
+}
+
+export interface LayoutRackPositionNodeInput {
+  kind: 'rack_position'
+  code: string
+  label?: string
+}
+
+export type LayoutNodeInput = LayoutDeviceNodeInput | LayoutRackPositionNodeInput
+
+export interface ExplicitLayoutEdge {
+  fromKey: string
+  toKey: string
+  type: LayoutEdgeType
+  status?: EdgeStatus
+}
+
+export interface ComputeLayoutOptions {
+  explicitNodes?: LayoutNodeInput[]
+  explicitEdges?: ExplicitLayoutEdge[]
 }
 
 // ---------------------------------------------------------------------------
@@ -97,7 +169,7 @@ export const DEFAULT_ROLE_COLUMN_RULES: RoleColumnRule[] = [
 ]
 
 // ---------------------------------------------------------------------------
-// Column Assignment
+// Column Assignment (devices only)
 // ---------------------------------------------------------------------------
 
 interface ColumnedDevice {
@@ -119,13 +191,11 @@ export function assignColumns(
   if (devices.length === 0) return []
 
   return devices.map((device, index) => {
-    // Match against both role and name — name often carries flow-position hints
     const matchText = `${device.deviceRole} ${device.deviceName}`
     const matchedRule = rules.find(r => r.pattern.test(matchText))
     if (matchedRule) {
       return { device, column: matchedRule.column }
     }
-    // Fallback: proportional column assignment based on original order
     const fallbackColumn = devices.length <= 1
       ? 0
       : Math.round((index / (devices.length - 1)) * (fallbackColumnCount - 1))
@@ -134,12 +204,12 @@ export function assignColumns(
 }
 
 // ---------------------------------------------------------------------------
-// Edge Derivation
+// Edge Derivation (devices only, fallback mode)
 // ---------------------------------------------------------------------------
 
 interface DerivedEdge {
-  fromNodeId: number
-  toNodeId: number
+  fromDeviceId: number
+  toDeviceId: number
 }
 
 /**
@@ -155,7 +225,6 @@ interface DerivedEdge {
 export function deriveEdges(columnedDevices: ColumnedDevice[]): DerivedEdge[] {
   const edges: DerivedEdge[] = []
 
-  // Group by column
   const columnMap = new Map<number, RuntimeSceneDeviceNode[]>()
   for (const cd of columnedDevices) {
     const group = columnMap.get(cd.column) ?? []
@@ -163,25 +232,20 @@ export function deriveEdges(columnedDevices: ColumnedDevice[]): DerivedEdge[] {
     columnMap.set(cd.column, group)
   }
 
-  // Get sorted column indices
   const sortedColumns = [...columnMap.keys()].sort((a, b) => a - b)
   if (sortedColumns.length < 2) return edges
 
-  // Connect adjacent non-empty columns
   for (let i = 0; i < sortedColumns.length - 1; i++) {
     const sourceCol = columnMap.get(sortedColumns[i])!
     const targetCol = columnMap.get(sortedColumns[i + 1])!
 
     if (sourceCol.length === 0 || targetCol.length === 0) continue
 
-    // Generate connections between source and target columns
     if (sourceCol.length === targetCol.length) {
-      // 1:1 mapping
       for (let j = 0; j < sourceCol.length; j++) {
-        edges.push({ fromNodeId: sourceCol[j].id, toNodeId: targetCol[j].id })
+        edges.push({ fromDeviceId: sourceCol[j].id, toDeviceId: targetCol[j].id })
       }
     } else if (sourceCol.length < targetCol.length) {
-      // Fan-out: each source connects to proportional targets
       for (const src of sourceCol) {
         const startIdx = Math.round(
           (sourceCol.indexOf(src) / sourceCol.length) * targetCol.length
@@ -190,11 +254,10 @@ export function deriveEdges(columnedDevices: ColumnedDevice[]): DerivedEdge[] {
           ((sourceCol.indexOf(src) + 1) / sourceCol.length) * targetCol.length
         )
         for (let j = startIdx; j < endIdx && j < targetCol.length; j++) {
-          edges.push({ fromNodeId: src.id, toNodeId: targetCol[j].id })
+          edges.push({ fromDeviceId: src.id, toDeviceId: targetCol[j].id })
         }
       }
     } else {
-      // Fan-in: each target connects from proportional sources
       for (const tgt of targetCol) {
         const startIdx = Math.round(
           (targetCol.indexOf(tgt) / targetCol.length) * sourceCol.length
@@ -203,7 +266,7 @@ export function deriveEdges(columnedDevices: ColumnedDevice[]): DerivedEdge[] {
           ((targetCol.indexOf(tgt) + 1) / targetCol.length) * sourceCol.length
         )
         for (let j = startIdx; j < endIdx && j < sourceCol.length; j++) {
-          edges.push({ fromNodeId: sourceCol[j].id, toNodeId: tgt.id })
+          edges.push({ fromDeviceId: sourceCol[j].id, toDeviceId: tgt.id })
         }
       }
     }
@@ -216,22 +279,16 @@ export function deriveEdges(columnedDevices: ColumnedDevice[]): DerivedEdge[] {
 // Edge Status Derivation
 // ---------------------------------------------------------------------------
 
-/**
- * Derive edge status from connected device states.
- */
 export function deriveEdgeStatus(
   fromDevice: RuntimeSceneDeviceNode,
   toDevice: RuntimeSceneDeviceNode
 ): EdgeStatus {
-  // Danger takes priority
   if (isDangerStatus(fromDevice.status) || isDangerStatus(toDevice.status)) {
     return 'fault'
   }
-  // Warning
   if (isWarningStatus(fromDevice.status) || isWarningStatus(toDevice.status)) {
     return 'warning'
   }
-  // Active (device has ongoing command)
   if (fromDevice.currentCommandId || toDevice.currentCommandId) {
     return 'active'
   }
@@ -305,20 +362,45 @@ export function computeHorizontalPath(
 
 /**
  * Compute the complete topology layout: node positions + edge paths.
+ *
+ * If `options.explicitNodes` is provided, layout includes those nodes
+ * (devices and rack-positions) as first-class citizens. Otherwise the
+ * layout is built from `devices` only, using `deriveEdges()` for edges.
+ *
+ * If `options.explicitEdges` is provided, those replace derived edges
+ * (with DEVICE_ROLE refs fanned out across all matching devices).
  */
 export function computeLayout(
   devices: RuntimeSceneDeviceNode[],
   config: LayoutConfig = DEFAULT_LAYOUT_CONFIG,
-  rules: RoleColumnRule[] = DEFAULT_ROLE_COLUMN_RULES
+  rules: RoleColumnRule[] = DEFAULT_ROLE_COLUMN_RULES,
+  options: ComputeLayoutOptions = {}
+): LayoutResult {
+  const hasExplicitNodes = Array.isArray(options.explicitNodes)
+  const hasExplicitEdges = Array.isArray(options.explicitEdges)
+
+  if (hasExplicitNodes || hasExplicitEdges) {
+    return computeExplicitLayout(devices, config, rules, options)
+  }
+
+  return computeFallbackLayout(devices, config, rules)
+}
+
+// ---------------------------------------------------------------------------
+// Fallback layout: devices only, derived edges
+// ---------------------------------------------------------------------------
+
+function computeFallbackLayout(
+  devices: RuntimeSceneDeviceNode[],
+  config: LayoutConfig,
+  rules: RoleColumnRule[]
 ): LayoutResult {
   if (devices.length === 0) {
     return { nodes: [], edges: [], canvasWidth: 0, canvasHeight: 0 }
   }
 
-  // Step 1: Assign columns
   const columned = assignColumns(devices, rules)
 
-  // Step 2: Group by column and compute positions
   const columnMap = new Map<number, ColumnedDevice[]>()
   for (const cd of columned) {
     const group = columnMap.get(cd.column) ?? []
@@ -329,8 +411,10 @@ export function computeLayout(
   const sortedColumns = [...columnMap.keys()].sort((a, b) => a - b)
   const columnCount = sortedColumns.length
 
-  // Compute node positions (normalize column indices to start at 0)
-  const nodePositionMap = new Map<number, { x: number; y: number; column: number; row: number }>()
+  const nodePositionByDeviceId = new Map<
+    number,
+    { x: number; y: number; column: number; row: number }
+  >()
   let maxColumnHeight = 0
 
   for (let displayCol = 0; displayCol < sortedColumns.length; displayCol++) {
@@ -341,24 +425,18 @@ export function computeLayout(
     for (let row = 0; row < group.length; row++) {
       const device = group[row].device
       const y = config.paddingY + row * (config.nodeHeight + config.rowGap)
-
-      nodePositionMap.set(device.id, {
-        x: columnX,
-        y,
-        column: originalCol,
-        row,
-      })
+      nodePositionByDeviceId.set(device.id, { x: columnX, y, column: originalCol, row })
     }
 
     const columnHeight = group.length * config.nodeHeight + (group.length - 1) * config.rowGap
     maxColumnHeight = Math.max(maxColumnHeight, columnHeight)
   }
 
-  // Build layout nodes
   const nodes: LayoutNode[] = devices.map(device => {
-    const pos = nodePositionMap.get(device.id)!
+    const pos = nodePositionByDeviceId.get(device.id)!
     return {
-      id: device.id,
+      id: makeDeviceKey(device.id),
+      kind: 'device',
       device,
       column: pos.column,
       row: pos.row,
@@ -367,20 +445,23 @@ export function computeLayout(
     }
   })
 
-  // Step 3: Derive and compute edges
   const derivedEdges = deriveEdges(columned)
   const deviceMap = new Map(devices.map(d => [d.id, d]))
 
   const edges: LayoutEdge[] = derivedEdges.map(edge => {
-    const fromPos = nodePositionMap.get(edge.fromNodeId)!
-    const toPos = nodePositionMap.get(edge.toNodeId)!
-    const fromDevice = deviceMap.get(edge.fromNodeId)!
-    const toDevice = deviceMap.get(edge.toNodeId)!
+    const fromPos = nodePositionByDeviceId.get(edge.fromDeviceId)!
+    const toPos = nodePositionByDeviceId.get(edge.toDeviceId)!
+    const fromDevice = deviceMap.get(edge.fromDeviceId)!
+    const toDevice = deviceMap.get(edge.toDeviceId)!
+    const fromKey = makeDeviceKey(edge.fromDeviceId)
+    const toKey = makeDeviceKey(edge.toDeviceId)
 
     return {
-      id: `edge-${edge.fromNodeId}-${edge.toNodeId}`,
-      fromNodeId: edge.fromNodeId,
-      toNodeId: edge.toNodeId,
+      id: makeEdgeId(fromKey, toKey, 'MATERIAL_FLOW'),
+      fromKey,
+      toKey,
+      type: 'MATERIAL_FLOW',
+      status: deriveEdgeStatus(fromDevice, toDevice),
       path: computeBezierPath(
         fromPos.x,
         fromPos.y,
@@ -389,11 +470,9 @@ export function computeLayout(
         config.nodeWidth,
         config.nodeHeight
       ),
-      status: deriveEdgeStatus(fromDevice, toDevice),
     }
   })
 
-  // Canvas dimensions
   const canvasWidth =
     config.paddingX * 2 +
     columnCount * config.nodeWidth +
@@ -402,6 +481,358 @@ export function computeLayout(
 
   return { nodes, edges, canvasWidth, canvasHeight }
 }
+
+// ---------------------------------------------------------------------------
+// Explicit layout: device + rack-position nodes, manifest-driven edges
+// ---------------------------------------------------------------------------
+
+interface ColumnedNodeInput {
+  input: LayoutNodeInput
+  column: number
+}
+
+function computeExplicitLayout(
+  devices: RuntimeSceneDeviceNode[],
+  config: LayoutConfig,
+  rules: RoleColumnRule[],
+  options: ComputeLayoutOptions
+): LayoutResult {
+  const explicitNodes = options.explicitNodes ?? []
+  const explicitEdges = options.explicitEdges ?? []
+
+  if (explicitNodes.length === 0 && explicitEdges.length === 0) {
+    return { nodes: [], edges: [], canvasWidth: 0, canvasHeight: 0 }
+  }
+
+  // Index devices by role for fan-out resolution.
+  // Stable ordering: roleIndex ascending, then id ascending.
+  const devicesByRole = new Map<string, RuntimeSceneDeviceNode[]>()
+  for (const device of devices) {
+    const list = devicesByRole.get(device.deviceRole) ?? []
+    list.push(device)
+    devicesByRole.set(device.deviceRole, list)
+  }
+  for (const list of devicesByRole.values()) {
+    list.sort((a, b) => {
+      if (a.roleIndex !== b.roleIndex) return a.roleIndex - b.roleIndex
+      return a.id - b.id
+    })
+  }
+
+  // Step 1: assign columns to explicit device nodes via role rules; rack
+  // positions get a placeholder column, refined after device columns settle.
+  const explicitDeviceInputs = explicitNodes.filter(
+    (n): n is LayoutDeviceNodeInput => n.kind === 'device'
+  )
+  const explicitDevices = explicitDeviceInputs.map(n => n.device)
+  const columnedDevices = assignColumns(explicitDevices, rules)
+  const deviceColumnByDeviceId = new Map<number, number>()
+  for (const cd of columnedDevices) {
+    deviceColumnByDeviceId.set(cd.device.id, cd.column)
+  }
+
+  // Step 2: derive rack-position columns based on adjacency in explicit edges.
+  // Heuristic:
+  //  - If a rack-position is the target of an edge whose source is a device,
+  //    place it just right (column + 1) of the source's column.
+  //  - If it's only the source of an edge whose target is a device, place it
+  //    just left (column - 1) of the target's column.
+  //  - If both, pick whichever rule yields the rightmost placement so it
+  //    does not collide with an upstream device column.
+  //  - For rack→rack edges, propagate columns through a simple 2-pass scan.
+  //  - Rack positions with no edges fall to column 0.
+  const rackPositionColumns = new Map<string, number>()
+  for (const node of explicitNodes) {
+    if (node.kind === 'rack_position') rackPositionColumns.set(node.code, 0)
+  }
+
+  const isRackKey = (key: string) => key.startsWith('rack:')
+  const rackCodeFromKey = (key: string) => key.slice('rack:'.length)
+  const deviceIdFromKey = (key: string) => Number(key.slice('device:'.length))
+
+  function devicesInColumn(deviceKey: string): number | undefined {
+    const id = deviceIdFromKey(deviceKey)
+    return deviceColumnByDeviceId.get(id)
+  }
+
+  // First pass: rack columns from device-rack edges.
+  for (const edge of explicitEdges) {
+    if (isRackKey(edge.fromKey) && !isRackKey(edge.toKey)) {
+      // rack -> device: rack sits at device.column - 1 (min 0)
+      const targetCol = devicesInColumn(edge.toKey)
+      if (targetCol !== undefined) {
+        const code = rackCodeFromKey(edge.fromKey)
+        const candidate = Math.max(0, targetCol - 1)
+        const current = rackPositionColumns.get(code) ?? candidate
+        rackPositionColumns.set(code, Math.min(current, candidate))
+      }
+    }
+    if (!isRackKey(edge.fromKey) && isRackKey(edge.toKey)) {
+      // device -> rack: rack sits at device.column + 1
+      const sourceCol = devicesInColumn(edge.fromKey)
+      if (sourceCol !== undefined) {
+        const code = rackCodeFromKey(edge.toKey)
+        const candidate = sourceCol + 1
+        const current = rackPositionColumns.get(code) ?? candidate
+        rackPositionColumns.set(code, Math.max(current, candidate))
+      }
+    }
+  }
+
+  // For rack -> rack edges (manifest can describe RACK→RACK material flow),
+  // ensure target rack > source rack column. Iterate until stable (bounded
+  // by rack count to avoid infinite loops).
+  const rackNodeCount = rackPositionColumns.size
+  for (let pass = 0; pass < rackNodeCount + 1; pass++) {
+    let changed = false
+    for (const edge of explicitEdges) {
+      if (isRackKey(edge.fromKey) && isRackKey(edge.toKey)) {
+        const fromCode = rackCodeFromKey(edge.fromKey)
+        const toCode = rackCodeFromKey(edge.toKey)
+        const fromCol = rackPositionColumns.get(fromCode) ?? 0
+        const toCol = rackPositionColumns.get(toCode) ?? 0
+        if (toCol <= fromCol) {
+          rackPositionColumns.set(toCode, fromCol + 1)
+          changed = true
+        }
+      }
+    }
+    if (!changed) break
+  }
+
+  // Step 3: place rack-position-only layouts (no devices) starting at column 0.
+  // If there are no device columns at all, normalize rack columns to start at 0.
+  if (explicitDevices.length === 0 && rackPositionColumns.size > 0) {
+    const minCol = Math.min(...rackPositionColumns.values())
+    if (minCol > 0) {
+      for (const [code, col] of rackPositionColumns) {
+        rackPositionColumns.set(code, col - minCol)
+      }
+    }
+  }
+
+  // Step 4: merge into a unified column map.
+  const allInputs: ColumnedNodeInput[] = []
+  for (const node of explicitNodes) {
+    if (node.kind === 'device') {
+      const col = deviceColumnByDeviceId.get(node.device.id) ?? 0
+      allInputs.push({ input: node, column: col })
+    } else {
+      const col = rackPositionColumns.get(node.code) ?? 0
+      allInputs.push({ input: node, column: col })
+    }
+  }
+
+  const groupByColumn = new Map<number, ColumnedNodeInput[]>()
+  for (const item of allInputs) {
+    const list = groupByColumn.get(item.column) ?? []
+    list.push(item)
+    groupByColumn.set(item.column, list)
+  }
+
+  const sortedColumns = [...groupByColumn.keys()].sort((a, b) => a - b)
+  const columnCount = sortedColumns.length
+
+  const positions = new Map<
+    string,
+    { x: number; y: number; column: number; row: number }
+  >()
+  let maxColumnHeight = 0
+
+  for (let displayCol = 0; displayCol < sortedColumns.length; displayCol++) {
+    const originalCol = sortedColumns[displayCol]
+    const group = groupByColumn.get(originalCol)!
+    const columnX = config.paddingX + displayCol * (config.nodeWidth + config.columnGap)
+
+    // Sort within column for stability
+    const sortedGroup = [...group].sort((a, b) => {
+      const ka = nodeKeyOf(a.input)
+      const kb = nodeKeyOf(b.input)
+      return ka.localeCompare(kb)
+    })
+
+    for (let row = 0; row < sortedGroup.length; row++) {
+      const item = sortedGroup[row]
+      const y = config.paddingY + row * (config.nodeHeight + config.rowGap)
+      positions.set(nodeKeyOf(item.input), {
+        x: columnX,
+        y,
+        column: originalCol,
+        row,
+      })
+    }
+
+    const columnHeight =
+      sortedGroup.length * config.nodeHeight +
+      Math.max(0, sortedGroup.length - 1) * config.rowGap
+    maxColumnHeight = Math.max(maxColumnHeight, columnHeight)
+  }
+
+  const nodes: LayoutNode[] = explicitNodes.map(input => {
+    const key = nodeKeyOf(input)
+    const pos = positions.get(key)!
+    if (input.kind === 'device') {
+      return {
+        id: key,
+        kind: 'device',
+        device: input.device,
+        column: pos.column,
+        row: pos.row,
+        x: pos.x,
+        y: pos.y,
+      }
+    }
+    return {
+      id: key,
+      kind: 'rack_position',
+      rackPosition: { code: input.code, label: input.label },
+      column: pos.column,
+      row: pos.row,
+      x: pos.x,
+      y: pos.y,
+    }
+  })
+
+  // Step 5: build edges from explicit edges with DEVICE_ROLE fan-out.
+  // We treat any device-keyed edge endpoint that does NOT match an explicit
+  // device input as a potential role reference (DEVICE_ROLE), to be resolved
+  // against `devicesByRole`. Callers building manifest edges typically pass
+  // role-name-based keys via a different convention; for parity with the
+  // `RuntimeSceneTopologyEdge` shape, we expose a helper:
+  // `expandManifestEdgesForLayout()` below. The edges passed into this
+  // engine are assumed to already reference concrete device keys (after
+  // fan-out has been applied externally), OR refer to rack-position keys
+  // we know about. Unknown keys are skipped silently.
+  const knownKeys = new Set(positions.keys())
+  const edges: LayoutEdge[] = []
+  // Track id occurrence count to disambiguate manifest authors who declare
+  // multiple edges with the same (fromKey, toKey, type) tuple. The first
+  // occurrence keeps its base id (backward compat); subsequent occurrences
+  // get an `:i1`, `:i2`, … suffix in input order to remain deterministic.
+  const idOccurrences = new Map<string, number>()
+  for (const edge of explicitEdges) {
+    if (!knownKeys.has(edge.fromKey) || !knownKeys.has(edge.toKey)) {
+      continue
+    }
+    const fromPos = positions.get(edge.fromKey)!
+    const toPos = positions.get(edge.toKey)!
+    const baseId = makeEdgeId(edge.fromKey, edge.toKey, edge.type)
+    const seen = idOccurrences.get(baseId) ?? 0
+    idOccurrences.set(baseId, seen + 1)
+    const id = seen === 0 ? baseId : `${baseId}:i${seen}`
+    edges.push({
+      id,
+      fromKey: edge.fromKey,
+      toKey: edge.toKey,
+      type: edge.type,
+      status: edge.status ?? 'idle',
+      path: computeBezierPath(
+        fromPos.x,
+        fromPos.y,
+        toPos.x,
+        toPos.y,
+        config.nodeWidth,
+        config.nodeHeight
+      ),
+    })
+  }
+
+  const canvasWidth =
+    columnCount === 0
+      ? 0
+      : config.paddingX * 2 +
+        columnCount * config.nodeWidth +
+        Math.max(0, columnCount - 1) * config.columnGap
+  const canvasHeight =
+    columnCount === 0 ? 0 : config.paddingY * 2 + maxColumnHeight
+
+  return { nodes, edges, canvasWidth, canvasHeight }
+}
+
+function nodeKeyOf(input: LayoutNodeInput): string {
+  return input.kind === 'device' ? makeDeviceKey(input.device.id) : makeRackPositionKey(input.code)
+}
+
+function makeEdgeId(fromKey: string, toKey: string, type: LayoutEdgeType): string {
+  return `${fromKey}->${toKey}:${type}`
+}
+
+// ---------------------------------------------------------------------------
+// Manifest edge expansion helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Manifest topology edge as exposed by `RuntimeSceneModel.topologyEdges`,
+ * minus implementation details. Use `expandManifestEdgesForLayout()` to
+ * convert these (with DEVICE_ROLE fan-out) into `ExplicitLayoutEdge[]`
+ * suitable for passing to `computeLayout(..., { explicitEdges })`.
+ */
+export interface ManifestTopologyEdgeInput {
+  fromNode: { kind: 'DEVICE_ROLE' | 'RACK_POSITION'; ref: string }
+  toNode: { kind: 'DEVICE_ROLE' | 'RACK_POSITION'; ref: string }
+  type: LayoutEdgeType
+}
+
+/**
+ * Expand manifest-level topology edges into concrete layout edges:
+ *  - DEVICE_ROLE refs fan out to all matching devices in
+ *    `devicesByRole[ref]` (already sorted by roleIndex+id by caller)
+ *  - RACK_POSITION refs map directly to rack-position keys
+ *  - Unknown refs (no matching device or rack position) are silently
+ *    skipped — the caller's diagnostic layer (scene model) is expected
+ *    to surface them
+ */
+export function expandManifestEdgesForLayout(
+  manifestEdges: ManifestTopologyEdgeInput[],
+  devices: RuntimeSceneDeviceNode[],
+  knownRackPositionCodes: ReadonlySet<string>
+): ExplicitLayoutEdge[] {
+  const devicesByRole = new Map<string, RuntimeSceneDeviceNode[]>()
+  for (const device of devices) {
+    const list = devicesByRole.get(device.deviceRole) ?? []
+    list.push(device)
+    devicesByRole.set(device.deviceRole, list)
+  }
+  for (const list of devicesByRole.values()) {
+    list.sort((a, b) => {
+      if (a.roleIndex !== b.roleIndex) return a.roleIndex - b.roleIndex
+      return a.id - b.id
+    })
+  }
+
+  const result: ExplicitLayoutEdge[] = []
+  for (const edge of manifestEdges) {
+    const fromKeys = resolveManifestEndpoint(edge.fromNode, devicesByRole, knownRackPositionCodes)
+    const toKeys = resolveManifestEndpoint(edge.toNode, devicesByRole, knownRackPositionCodes)
+    if (fromKeys.length === 0 || toKeys.length === 0) continue
+
+    for (const fk of fromKeys) {
+      for (const tk of toKeys) {
+        result.push({ fromKey: fk, toKey: tk, type: edge.type })
+      }
+    }
+  }
+  return result
+}
+
+function resolveManifestEndpoint(
+  endpoint: { kind: 'DEVICE_ROLE' | 'RACK_POSITION'; ref: string },
+  devicesByRole: Map<string, RuntimeSceneDeviceNode[]>,
+  knownRackPositionCodes: ReadonlySet<string>
+): string[] {
+  if (endpoint.kind === 'RACK_POSITION') {
+    return knownRackPositionCodes.has(endpoint.ref)
+      ? [makeRackPositionKey(endpoint.ref)]
+      : []
+  }
+  const list = devicesByRole.get(endpoint.ref)
+  if (!list || list.length === 0) return []
+  return list.map(d => makeDeviceKey(d.id))
+}
+
+// ---------------------------------------------------------------------------
+// Linear strip layout (unchanged behavior; string keys)
+// ---------------------------------------------------------------------------
 
 /**
  * Compute a simple linear horizontal layout for the topology strip.
@@ -416,7 +847,8 @@ export function computeLinearLayout(
   }
 
   const nodes: LayoutNode[] = devices.map((device, index) => ({
-    id: device.id,
+    id: makeDeviceKey(device.id),
+    kind: 'device',
     device,
     column: index,
     row: 0,
@@ -431,9 +863,11 @@ export function computeLinearLayout(
     const to = nodes[i + 1]
 
     edges.push({
-      id: `edge-${from.id}-${to.id}`,
-      fromNodeId: from.id,
-      toNodeId: to.id,
+      id: makeEdgeId(from.id, to.id, 'MATERIAL_FLOW'),
+      fromKey: from.id,
+      toKey: to.id,
+      type: 'MATERIAL_FLOW',
+      status: deriveEdgeStatus(from.device!, to.device!),
       path: computeBezierPath(
         from.x,
         from.y,
@@ -442,7 +876,6 @@ export function computeLinearLayout(
         config.nodeWidth,
         config.nodeHeight
       ),
-      status: deriveEdgeStatus(from.device, to.device),
     })
   }
 

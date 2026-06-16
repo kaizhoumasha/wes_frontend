@@ -29,16 +29,16 @@
         <!-- Node Layer -->
         <div class="runtime-scene-device-flow__nodes">
           <TopologyDeviceNode
-            v-for="node in layout.nodes"
+            v-for="node in deviceLayoutNodes"
             :key="node.id"
-            :device="node.device"
-            :selected="selectedDeviceId === node.id"
-            :traced="tracePathNodes.length > 0 && isTraced(node.id)"
-            :blocking="isBlocking(node.id)"
-            :dimmed="tracePathNodes.length > 0 && !isTraced(node.id)"
-            :signal-text="signalText(node.device)"
-            :signal-class="signalClass(node.device)"
-            :trace-actions="traceActionsFor(node.id)"
+            :device="node.device!"
+            :selected="selectedDeviceId === node.device!.id"
+            :traced="tracePathNodes.length > 0 && isTraced(node.device!.id)"
+            :blocking="isBlocking(node.device!.id)"
+            :dimmed="tracePathNodes.length > 0 && !isTraced(node.device!.id)"
+            :signal-text="signalText(node.device!)"
+            :signal-class="signalClass(node.device!)"
+            :trace-actions="traceActionsFor(node.device!.id)"
             :show-role-details="showRoleDetails"
             :compact="compact"
             :style="{ left: node.x + 'px', top: node.y + 'px' }"
@@ -96,6 +96,12 @@ const emit = defineEmits<{
 const { layout } = useTopologyLayout(toRef(props, 'devices'), {
   compact: props.compact
 })
+
+// Filter to device nodes only — fallback layout never produces rack-position
+// nodes; this guard satisfies the discriminated-union narrowing for templates.
+const deviceLayoutNodes = computed(() =>
+  layout.value.nodes.filter(node => node.kind === 'device')
+)
 
 // Trace & selection helpers
 const tracedDeviceIds = computed(() => new Set(props.tracePathNodes.map(n => n.device_id)))
