@@ -16,9 +16,16 @@
         v-for="slot in view.slots"
         :key="slot.key"
         type="button"
-        :class="['monitor-rack-occupancy-matrix__slot', `monitor-rack-occupancy-matrix__slot--${slot.state}`]"
+        :class="[
+          'monitor-rack-occupancy-matrix__slot',
+          `monitor-rack-occupancy-matrix__slot--${slot.state}`,
+          slot.key === selectedSlotKey
+            ? 'monitor-rack-occupancy-matrix__slot--selected'
+            : null
+        ]"
         :data-state="slot.state"
         :data-slot-key="slot.key"
+        :data-selected="slot.key === selectedSlotKey ? 'true' : undefined"
         data-test="monitor-rack-occupancy-matrix-slot"
         @click="emit('select', slot.key)"
       >
@@ -43,9 +50,13 @@
 <script setup lang="ts">
 import type { RuntimeSceneRackOccupancyView } from '@/utils/runtime-scene'
 
-defineProps<{
-  view: RuntimeSceneRackOccupancyView | null
-}>()
+withDefaults(
+  defineProps<{
+    view: RuntimeSceneRackOccupancyView | null
+    selectedSlotKey?: string | null
+  }>(),
+  { selectedSlotKey: null }
+)
 
 const emit = defineEmits<{
   (event: 'select', slotKey: string): void
@@ -119,6 +130,12 @@ const emit = defineEmits<{
   background: rgb(234, 179, 8, 0.14);
   color: #b45309;
   animation: monitor-rack-occupancy-blink 1.2s infinite alternate;
+}
+
+.monitor-rack-occupancy-matrix__slot--selected {
+  border-color: rgb(59, 130, 246, 0.95);
+  background: rgb(59, 130, 246, 0.22);
+  box-shadow: 0 0 0 2px rgb(59, 130, 246, 0.4);
 }
 
 .monitor-rack-occupancy-matrix__slot-code {

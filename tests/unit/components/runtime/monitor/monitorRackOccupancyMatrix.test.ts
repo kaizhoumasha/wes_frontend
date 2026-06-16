@@ -58,4 +58,20 @@ describe('MonitorRackOccupancyMatrix', () => {
 
     expect(wrapper.emitted('select')).toEqual([['slot-B']])
   })
+
+  it('marks the slot whose key matches selectedSlotKey with the selected class', () => {
+    const wrapper = mount(MonitorRackOccupancyMatrix, {
+      props: { view: buildView(), selectedSlotKey: 'slot-B' }
+    })
+
+    const slots = wrapper.findAll('[data-test="monitor-rack-occupancy-matrix-slot"]')
+    const selected = slots.find(item => item.attributes('data-slot-key') === 'slot-B')
+    expect(selected).toBeTruthy()
+    expect(selected!.classes()).toContain('monitor-rack-occupancy-matrix__slot--selected')
+    expect(selected!.attributes('data-selected')).toBe('true')
+
+    const notSelected = slots.find(item => item.attributes('data-slot-key') === 'slot-A')
+    expect(notSelected!.classes()).not.toContain('monitor-rack-occupancy-matrix__slot--selected')
+    expect(notSelected!.attributes('data-selected')).toBeUndefined()
+  })
 })

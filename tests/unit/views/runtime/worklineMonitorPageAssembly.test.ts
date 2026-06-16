@@ -264,9 +264,9 @@ function createMountOptions() {
         },
         MonitorRackOccupancyMatrix: {
           name: 'MonitorRackOccupancyMatrix',
-          props: ['view'],
+          props: ['view', 'selectedSlotKey'],
           template:
-            '<div data-test="monitor-rack-occupancy-matrix" :data-slot-count="view?.slots?.length ?? 0" @click="$emit(\'select\', \'cell-1\')" />'
+            '<div data-test="monitor-rack-occupancy-matrix" :data-slot-count="view?.slots?.length ?? 0" :data-selected-slot-key="selectedSlotKey === null || selectedSlotKey === undefined ? \'null\' : selectedSlotKey"><button data-test="rack-slot-cell-1" @click="$emit(\'select\', \'cell-1\')" /><button data-test="rack-slot-cell-2" @click="$emit(\'select\', \'cell-2\')" /></div>'
         }
       }
     }
@@ -516,5 +516,42 @@ describe('WorklineMonitorPage assembly (T10)', () => {
     const matrix = wrapper.find('[data-test="monitor-rack-occupancy-matrix"]')
     expect(matrix.exists()).toBe(true)
     expect(Number(matrix.attributes('data-slot-count'))).toBe(1)
+  })
+
+  it('highlights the selected rack cell and toggles it off on second click', async () => {
+    const rackEvidence = [
+      {
+        resource_kind: 'BIN',
+        resource_code: 'BIN-101',
+        display_label: 'Bin BIN-101',
+        evidence_kind: 'WMS_CALLBACK_EVIDENCE',
+        station_code: 'TARGET_ARM',
+        position_code: 'SINGLE_LAYER_A',
+        rack_code: 'RACK-101',
+        bin_code: 'BIN-101',
+        cell_code: 'CELL-A1'
+      }
+    ]
+    worklineProjectionSend.mockResolvedValue(createProjection(301, { rackEvidence }))
+
+    const wrapper = await mountWithQuery(301, 401)
+    const businessTab = wrapper.find('[data-test="monitor-side-tab-business"]')
+    await businessTab.trigger('click')
+    await flushViewUpdates()
+
+    const matrix = wrapper.find('[data-test="monitor-rack-occupancy-matrix"]')
+    expect(matrix.exists()).toBe(true)
+    expect(matrix.attributes('data-selected-slot-key')).toBe('null')
+
+    await wrapper.find('[data-test="rack-slot-cell-1"]').trigger('click')
+    await flushViewUpdates()
+    const matrixAfterFirst = wrapper.find('[data-test="monitor-rack-occupancy-matrix"]')
+    expect(matrixAfterFirst.attributes('data-selected-slot-key')).toBe('cell-1')
+
+    // Second click on the same cell should clear the highlight
+    await wrapper.find('[data-test="rack-slot-cell-1"]').trigger('click')
+    await flushViewUpdates()
+    const matrixAfterSecond = wrapper.find('[data-test="monitor-rack-occupancy-matrix"]')
+    expect(matrixAfterSecond.attributes('data-selected-slot-key')).toBe('null')
   })
 })

@@ -132,6 +132,56 @@ describe('MonitorDeviceActionGroup', () => {
     ).toBe(false)
   })
 
+  it('emits enter-maintenance when the enter-maintenance button is clicked', async () => {
+    const wrapper = mount(MonitorDeviceActionGroup, {
+      props: {
+        mode: 'idle',
+        canManageMaintenance: true,
+        maintenanceActive: false
+      }
+    })
+
+    await wrapper
+      .get('[data-test="monitor-device-action-enter-maintenance"]')
+      .trigger('click')
+    expect(wrapper.emitted('enter-maintenance')).toEqual([[]])
+  })
+
+  it('emits exit-maintenance when the exit-maintenance button is clicked', async () => {
+    const wrapper = mount(MonitorDeviceActionGroup, {
+      props: {
+        mode: 'idle',
+        canManageMaintenance: true,
+        maintenanceActive: true
+      }
+    })
+
+    await wrapper
+      .get('[data-test="monitor-device-action-exit-maintenance"]')
+      .trigger('click')
+    expect(wrapper.emitted('exit-maintenance')).toEqual([[]])
+  })
+
+  it('omits both maintenance buttons when canManageMaintenance is false', () => {
+    const wrapper = mount(MonitorDeviceActionGroup, {
+      props: {
+        mode: 'idle',
+        canManageMaintenance: false,
+        maintenanceActive: false
+      }
+    })
+
+    expect(
+      wrapper.find('[data-test="monitor-device-action-enter-maintenance"]').exists()
+    ).toBe(false)
+    expect(
+      wrapper.find('[data-test="monitor-device-action-exit-maintenance"]').exists()
+    ).toBe(false)
+    expect(wrapper.get('[data-test="monitor-device-action-empty"]').text()).toContain(
+      '暂无可用直控动作'
+    )
+  })
+
   it('does NOT render bypass / unlock affordances (no-fake-button rule)', () => {
     const wrapper = mount(MonitorDeviceActionGroup, {
       props: {

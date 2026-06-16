@@ -38,9 +38,18 @@
           v-model="resolution"
           size="small"
         >
-          <el-radio-button label="COMPLETED">现场已完成</el-radio-button>
-          <el-radio-button label="FAILED">现场失败</el-radio-button>
-          <el-radio-button label="CANCELLED">取消流程</el-radio-button>
+          <el-radio-button
+            label="COMPLETED"
+            data-test="resolution-completed"
+          >现场已完成</el-radio-button>
+          <el-radio-button
+            label="FAILED"
+            data-test="resolution-failed"
+          >现场失败</el-radio-button>
+          <el-radio-button
+            label="CANCELLED"
+            data-test="resolution-cancelled"
+          >取消流程</el-radio-button>
         </el-radio-group>
 
         <el-checkbox-group
@@ -63,6 +72,7 @@
           maxlength="1000"
           show-word-limit
           placeholder="填写现场确认说明"
+          data-test="operator-note"
         />
 
         <el-input
@@ -71,6 +81,7 @@
           type="textarea"
           :autosize="{ minRows: 2, maxRows: 5 }"
           :placeholder="resultPayloadPlaceholder"
+          data-test="result-payload"
         />
       </div>
 
@@ -78,6 +89,7 @@
         <el-button
           plain
           :loading="loading"
+          data-test="refresh-evidence"
           @click="emit('refresh')"
         >
           刷新证据
@@ -87,6 +99,7 @@
           :loading="resolving"
           :disabled="submitDisabled"
           :title="submitDisabledReason"
+          data-test="submit-resolve"
           @click="submitResolve"
         >
           解除隔离 / 恢复派发

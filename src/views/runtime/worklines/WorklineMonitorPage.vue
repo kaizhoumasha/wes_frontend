@@ -300,6 +300,7 @@
             <MonitorRackOccupancyMatrix
               v-if="deviceRackOccupancyView"
               :view="deviceRackOccupancyView"
+              :selected-slot-key="selectedRackSlotKey"
               @select="onRackCellSelect"
             />
 
@@ -489,6 +490,7 @@ const activeMobilePane = ref<MonitorMobilePane>('line')
 const activeSideTab = ref<MonitorSideTab>('control')
 const hasInitializedProjectionPane = ref(false)
 const eventLogEntries = ref<MonitorEventLogEntry[]>([])
+const selectedRackSlotKey = ref<string | null>(null)
 
 const selectedWorklineId = computed(() => readPositiveInt(route.query.worklineId))
 const selectedDeviceId = computed(() => readPositiveInt(route.query.deviceId))
@@ -844,8 +846,8 @@ function onExitMaintenanceFromActionGroup() {
   void exitDeviceMaintenance(id)
 }
 
-function onRackCellSelect() {
-  // Rack cell selection is forwarded for future highlighting linkage; T11 verifies.
+function onRackCellSelect(slotKey: string) {
+  selectedRackSlotKey.value = selectedRackSlotKey.value === slotKey ? null : slotKey
 }
 
 onMounted(() => {

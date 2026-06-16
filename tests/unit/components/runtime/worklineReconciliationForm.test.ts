@@ -55,7 +55,7 @@ const elementStubs = {
   ElButton: {
     props: ['disabled', 'loading', 'title', 'plain', 'type'],
     template:
-      '<button :disabled="disabled" :title="title" :data-loading="loading ? true : undefined"><slot /></button>'
+      '<button :disabled="disabled" :title="title" :data-loading="loading ? true : undefined" :data-test="$attrs[\'data-test\']"><slot /></button>'
   },
   ElRadioGroup: {
     props: ['modelValue'],
@@ -65,7 +65,8 @@ const elementStubs = {
   },
   ElRadioButton: {
     props: ['label'],
-    template: '<button type="button" :data-value="label"><slot /></button>'
+    template:
+      '<button type="button" :data-value="label" :data-test="$attrs[\'data-test\']"><slot /></button>'
   },
   ElCheckboxGroup: {
     props: ['modelValue'],
@@ -81,7 +82,7 @@ const elementStubs = {
     props: ['modelValue', 'placeholder'],
     emits: ['update:modelValue'],
     template:
-      '<textarea :placeholder="placeholder" :value="modelValue" @input="$emit(`update:modelValue`, $event.target.value)" />'
+      '<textarea :placeholder="placeholder" :value="modelValue" :data-test="$attrs[\'data-test\']" @input="$emit(`update:modelValue`, $event.target.value)" />'
   }
 }
 
@@ -210,6 +211,112 @@ describe('WorklineReconciliationForm', () => {
       late_callback_reviewed: true
     })
     expect(payload.resultPayload).toBeNull()
+  })
+
+  it('emits resolve with COMPLETED resolution and parsed JSON result payload', async () => {
+    const wrapper = mount(WorklineReconciliationForm, {
+      props: {
+        summary: createSummary(),
+        candidate: createCandidate({ reason: 'CALLBACK_DEADLINE_EXPIRED' }),
+        canResolve: true
+      },
+      global: { stubs: elementStubs }
+    })
+
+    // Switch to COMPLETED resolution via the data-test hook
+    const completedRadio = wrapper.find('[data-test="resolution-completed"]')
+    expect(completedRadio.exists()).toBe(true)
+    await completedRadio.trigger('click')
+    await wrapper.vm.$nextTick()
+
+    // Tick all 4 callback-timeout checks
+    const vm = wrapper.vm as unknown as {
+      checkedKeys: string[]
+      operatorNote: string
+      resultPayloadText: string
+      resolution: 'FAILED' | 'COMPLETED' | 'CANCELLED'
+    }
+    vm.checkedKeys = [
+      'device_inspected',
+      'physical_state_confirmed',
+      'inventory_or_position_reconciled',
+      'late_callback_reviewed'
+    ]
+    vm.operatorNote = '已现场确认'
+    vm.resultPayloadText = '{"confirmed_by":"operator","qty":12}'
+    await wrapper.vm.$nextTick()
+
+    // The result-payload textarea is now visible (only rendered for COMPLETED)
+    const payloadTextarea = wrapper.find('[data-test="result-payload"]')
+    expect(payloadTextarea.exists()).toBe(true)
+
+    const submitButton = wrapper
+      .findAll('button')
+      .find(btn => btn.text().includes('解除隔离'))
+    if (!submitButton) throw new Error('missing submit button')
+    expect(submitButton.attributes('disabled')).toBeUndefined()
+
+    await submitButton.trigger('click')
+
+    const events = wrapper.emitted('resolve')
+    expect(events?.length).toBe(1)
+    const payload = events![0][0] as {
+      sessionId: number
+      resolution: string
+      checks: Record<string, boolean>
+      operatorNote: string
+      resultPayload: Record<string, unknown> | null
+    }
+    expect(payload.sessionId).toBe(909)
+    expect(payload.resolution).toBe('COMPLETED')
+    expect(payload.operatorNote).toBe('已现场确认')
+    expect(payload.resultPayload).toEqual({
+      confirmed_by: 'operator',
+      qty: 12
+    })
+    expect(payload.checks).toEqual({
+      device_inspected: true,
+      physical_state_confirmed: true,
+      inventory_or_position_reconciled: true,
+      late_callback_reviewed: true
+    })
+  })
+
+  it('does not emit resolve and reports an error when COMPLETED result payload is not valid JSON', async () => {
+    const wrapper = mount(WorklineReconciliationForm, {
+      props: {
+        summary: createSummary(),
+        candidate: createCandidate({ reason: 'CALLBACK_DEADLINE_EXPIRED' }),
+        canResolve: true
+      },
+      global: { stubs: elementStubs }
+    })
+
+    const vm = wrapper.vm as unknown as {
+      checkedKeys: string[]
+      operatorNote: string
+      resultPayloadText: string
+      resolution: 'FAILED' | 'COMPLETED' | 'CANCELLED'
+    }
+    vm.resolution = 'COMPLETED'
+    vm.checkedKeys = [
+      'device_inspected',
+      'physical_state_confirmed',
+      'inventory_or_position_reconciled',
+      'late_callback_reviewed'
+    ]
+    vm.operatorNote = 'JSON 解析失败'
+    vm.resultPayloadText = '{ this is not json }'
+    await wrapper.vm.$nextTick()
+
+    const submitButton = wrapper
+      .findAll('button')
+      .find(btn => btn.text().includes('解除隔离'))
+    if (!submitButton) throw new Error('missing submit button')
+    expect(submitButton.attributes('disabled')).toBeUndefined()
+
+    await submitButton.trigger('click')
+    expect(wrapper.emitted('resolve')).toBeUndefined()
   })
 
   it('emits refresh when refresh button is clicked', async () => {
