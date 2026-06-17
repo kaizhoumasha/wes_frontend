@@ -229,7 +229,7 @@ const openCommandCount = computed(() =>
   flex-shrink: 0;
 }
 .decision-strip--danger .decision-strip__indicator {
-  background: #ef4444;
+  background: var(--color-danger-light);
 }
 .decision-strip--warning .decision-strip__indicator {
   background: var(--color-warning);
@@ -238,7 +238,7 @@ const openCommandCount = computed(() =>
   background: var(--color-info);
 }
 .decision-strip--success .decision-strip__indicator {
-  background: #22c55e;
+  background: var(--color-success-light);
 }
 
 .decision-strip__body {
@@ -261,10 +261,10 @@ const openCommandCount = computed(() =>
 }
 
 .decision-strip--danger .decision-strip__label {
-  color: #fca5a5;
+  color: var(--color-danger-light);
 }
 .decision-strip--warning .decision-strip__label {
-  color: #fde047;
+  color: var(--color-warning-light);
 }
 
 .decision-strip__counts {
@@ -279,13 +279,13 @@ const openCommandCount = computed(() =>
   white-space: nowrap;
 }
 .decision-strip__count--danger {
-  color: #fca5a5;
+  color: var(--color-danger-light);
 }
 .decision-strip__count--warning {
-  color: #fde047;
+  color: var(--color-warning-light);
 }
 .decision-strip__count--primary {
-  color: #93c5fd;
+  color: var(--color-info-light);
 }
 
 .decision-strip__suggestion {
@@ -313,7 +313,7 @@ const openCommandCount = computed(() =>
   min-height: 44px;
   padding: 0 14px;
   border-left: 1px solid rgb(239, 68, 68, 0.22);
-  color: #fca5a5;
+  color: var(--color-danger-light);
   font-size: 12px;
   font-weight: 800;
   text-decoration: none;

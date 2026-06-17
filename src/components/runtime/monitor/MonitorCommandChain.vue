@@ -167,7 +167,7 @@ const ackStateLabel = computed(() =>
 
 .monitor-command-chain__pill--expired {
   background: rgb(var(--color-warning-rgb) / 0.14);
-  color: #b45309;
+  color: var(--color-primary-700);
 }
 
 .monitor-command-chain__idle {

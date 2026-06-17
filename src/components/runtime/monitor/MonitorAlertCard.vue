@@ -109,7 +109,7 @@ defineProps<{
 }
 
 .monitor-alert-card--warning .monitor-alert-card__title {
-  color: #b45309;
+  color: var(--color-primary-700);
 }
 
 .monitor-alert-card__message {

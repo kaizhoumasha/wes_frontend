@@ -109,7 +109,7 @@ defineProps<{
 
 .device-health-hero__meta {
   margin: 8px 0 0;
-  color: #cbd5e1;
+  color: var(--color-industrial-light-border-hover);
   font-size: 13px;
   line-height: 1.6;
 }

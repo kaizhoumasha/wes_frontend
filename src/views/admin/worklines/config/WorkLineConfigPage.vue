@@ -1893,7 +1893,7 @@ onMounted(async () => {
 }
 
 .config-dialog :deep(.el-dialog__body) {
-  color: #e2e8f0 !important;
+  color: var(--color-industrial-light-border) !important;
 }
 
 .config-dialog :deep(.el-form-item__label) {

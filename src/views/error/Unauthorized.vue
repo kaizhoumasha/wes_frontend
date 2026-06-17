@@ -198,7 +198,7 @@ html:not(.dark) .hazard-stripes {
 }
 
 html.dark .lock-icon {
-  color: #f87171;
+  color: var(--color-danger-light);
   filter: drop-shadow(0 0 16px rgb(248 113 113 / 50%));
 }
 
@@ -228,7 +228,7 @@ html:not(.dark) .lock-icon {
 }
 
 html.dark .pulse-ring {
-  border-color: #ef4444;
+  border-color: var(--color-danger-light);
 }
 
 html:not(.dark) .pulse-ring {
@@ -272,7 +272,7 @@ html:not(.dark) .pulse-ring {
 }
 
 html.dark .key-icon {
-  color: #f87171;
+  color: var(--color-danger-light);
 }
 
 html:not(.dark) .key-icon {
@@ -306,13 +306,13 @@ html:not(.dark) .label {
 html.dark .permission-code {
   background: rgb(239 68 68 / 12%);
   border: 1px solid rgb(239 68 68 / 25%);
-  color: #fca5a5;
+  color: var(--color-danger-light);
 }
 
 html:not(.dark) .permission-code {
   background: rgb(254 226 226 / 60%);
   border: 1px solid rgb(252 165 165 / 50%);
-  color: #b91c1c;
+  color: var(--color-danger-dark);
 }
 
 /* 按钮样式 */
@@ -340,8 +340,8 @@ html:not(.dark) .permission-code {
 }
 
 html.dark .btn-primary {
-  background: linear-gradient(135deg, #ef4444 0%, var(--color-danger) 100%);
-  color: #fff;
+  background: linear-gradient(135deg, var(--color-danger-light) 0%, var(--color-danger) 100%);
+  color: var(--color-industrial-light-surface);
   box-shadow:
     0 4px 20px rgb(239 68 68 / 30%),
     inset 0 1px 0 rgb(255 255 255 / 15%);
@@ -355,8 +355,8 @@ html.dark .btn-primary:hover {
 }
 
 html:not(.dark) .btn-primary {
-  background: linear-gradient(135deg, var(--color-danger) 0%, #b91c1c 100%);
-  color: #fff;
+  background: linear-gradient(135deg, var(--color-danger) 0%, var(--color-danger-dark) 100%);
+  color: var(--color-industrial-light-surface);
   box-shadow: 0 4px 20px rgb(var(--color-danger-rgb) / 25%);
 }
 
@@ -382,7 +382,7 @@ html.dark .btn-secondary:hover {
 
 html:not(.dark) .btn-secondary {
   color: var(--color-industrial-light-text-secondary);
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--color-industrial-light-border-hover);
 }
 
 html:not(.dark) .btn-secondary:hover {

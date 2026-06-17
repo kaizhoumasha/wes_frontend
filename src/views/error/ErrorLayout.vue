@@ -115,7 +115,7 @@ html.dark .error-layout {
 
 /* 浅色主题 */
 html:not(.dark) .error-layout {
-  background: linear-gradient(135deg, var(--color-industrial-dark-text) 0%, #e2e8f0 50%, var(--color-industrial-dark-text) 100%);
+  background: linear-gradient(135deg, var(--color-industrial-dark-text) 0%, var(--color-industrial-light-border) 50%, var(--color-industrial-dark-text) 100%);
   color: var(--color-industrial-dark-surface);
 }
 

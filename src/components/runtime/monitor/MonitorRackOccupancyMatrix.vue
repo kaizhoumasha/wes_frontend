@@ -181,7 +181,7 @@ const emit = defineEmits<{
 .monitor-rack-occupancy-matrix__cell--reconciling {
   border-color: rgb(var(--color-warning-rgb) / 0.5);
   background: rgb(var(--color-warning-rgb) / 0.14);
-  color: #b45309;
+  color: var(--color-primary-700);
   animation: monitor-rack-occupancy-blink 1.2s infinite alternate;
 }
 

@@ -206,7 +206,7 @@ const waitLabel = computed(() => {
   box-shadow: 0 0 6px rgb(var(--color-warning-rgb) / 0.4);
 }
 .sandbox-cycle-status--done .sandbox-cycle-status__dot {
-  background: #22c55e;
+  background: var(--color-success-light);
 }
 
 .sandbox-cycle-status__label {
@@ -242,7 +242,7 @@ const waitLabel = computed(() => {
 }
 
 .sandbox-cycle-status__wait {
-  color: #fde047;
+  color: var(--color-warning-light);
   font-size: 11px;
 }
 

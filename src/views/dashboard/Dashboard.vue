@@ -368,7 +368,7 @@ html:not(.dark) .stat-label {
 
 /* 暗黑模式数值 */
 html.dark .stat-value {
-  color: #fff;
+  color: var(--color-industrial-light-surface);
 }
 
 /* 亮模式数值 */
@@ -438,7 +438,7 @@ html:not(.dark) .status-card {
 
 /* 暗黑模式标题 */
 html.dark .card-title {
-  color: #fff;
+  color: var(--color-industrial-light-surface);
 }
 
 /* 亮模式标题 */

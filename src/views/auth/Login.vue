@@ -439,7 +439,7 @@ html.dark .login-page {
 
 /* 亮模式登录页背景 */
 html:not(.dark) .login-page {
-  background: linear-gradient(135deg, var(--color-industrial-dark-text) 0%, #f1f5f9 100%);
+  background: linear-gradient(135deg, var(--color-industrial-dark-text) 0%, var(--color-industrial-light-surface-elevated) 100%);
 }
 
 /* ==================== 网格背景 ==================== */
@@ -574,8 +574,8 @@ html.dark .main-container {
 
 /* 亮模式主容器 */
 html:not(.dark) .main-container {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--color-industrial-light-surface);
+  border: 1px solid var(--color-industrial-light-border);
   box-shadow:
     0 20px 60px rgb(0, 0, 0, 0.1),
     inset 0 1px 0 rgb(255, 255, 255, 1);
@@ -797,7 +797,7 @@ html:not(.dark) .form-section::before {
 
 /* 暗黑模式表单头部 */
 html.dark .form-header h2 {
-  color: #fff;
+  color: var(--color-industrial-light-surface);
 }
 
 html.dark .form-header p {
@@ -874,7 +874,7 @@ html:not(.dark) .form-group.filled label {
 
 /* 暗黑模式输入框 */
 html.dark .form-group input {
-  color: #fff;
+  color: var(--color-industrial-light-surface);
   background: rgb(255 255 255 / 3%);
   border: 1px solid rgb(255 255 255 / 10%);
 }
@@ -887,7 +887,7 @@ html.dark .form-group input:focus {
 /* 亮模式输入框 */
 html:not(.dark) .form-group input {
   color: #303133;
-  background: #fff;
+  background: var(--color-industrial-light-surface);
   border: 1px solid #dcdfe6;
 }
 
@@ -1074,7 +1074,7 @@ html.dark .remember-checkbox input:checked + .checkmark {
 /* 亮模式复选框 */
 html:not(.dark) .checkmark {
   border-color: #dcdfe6;
-  background: #fff;
+  background: var(--color-industrial-light-surface);
 }
 
 html:not(.dark) .remember-checkbox:hover .checkmark {
@@ -1084,7 +1084,7 @@ html:not(.dark) .remember-checkbox:hover .checkmark {
 html:not(.dark) .remember-checkbox input:checked + .checkmark {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: #fff;
+  color: var(--color-industrial-light-surface);
 }
 
 .remember-text {

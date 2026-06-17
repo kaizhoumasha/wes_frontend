@@ -125,7 +125,7 @@ const evidenceStatus = computed(() =>
 .workline-hold-panel__status-bar {
   width: 4px;
   flex-shrink: 0;
-  background: #ef4444;
+  background: var(--color-danger-light);
 }
 
 .workline-hold-panel__body {
@@ -143,7 +143,7 @@ const evidenceStatus = computed(() =>
 }
 
 .workline-hold-panel__eyebrow {
-  color: #fca5a5;
+  color: var(--color-danger-light);
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 800;
@@ -213,7 +213,7 @@ const evidenceStatus = computed(() =>
 }
 
 .workline-hold-panel__requirement strong {
-  color: #fecaca;
+  color: var(--color-danger-light);
   font-size: 12px;
 }
 
@@ -239,7 +239,7 @@ const evidenceStatus = computed(() =>
 .workline-hold-panel__primary {
   border: 1px solid rgb(239, 68, 68, 0.38);
   background: rgb(239, 68, 68, 0.16);
-  color: #fecaca;
+  color: var(--color-danger-light);
   text-decoration: none;
 }
 

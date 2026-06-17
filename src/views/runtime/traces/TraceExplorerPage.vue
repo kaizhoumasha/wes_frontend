@@ -1406,7 +1406,7 @@ watch(
   border: 1px solid rgb(var(--color-info-rgb) / 0.3);
   border-radius: 999px;
   background: rgb(var(--color-info-rgb) / 0.12);
-  color: #60a5fa;
+  color: var(--color-info-light);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -1419,7 +1419,7 @@ watch(
 }
 
 .trace-section__title {
-  color: #f1f5f9;
+  color: var(--color-industrial-light-surface-elevated);
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.02em;

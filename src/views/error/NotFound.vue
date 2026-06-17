@@ -269,9 +269,9 @@ html.dark .path-code {
 }
 
 html:not(.dark) .path-code {
-  background: #fff;
+  background: var(--color-industrial-light-surface);
   color: var(--color-industrial-dark-surface);
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-industrial-light-border);
 }
 
 /* 按钮样式 */
@@ -315,7 +315,7 @@ html.dark .btn-primary:hover {
 
 html:not(.dark) .btn-primary {
   background: linear-gradient(135deg, #1e40af 0%, var(--color-info) 100%);
-  color: #fff;
+  color: var(--color-industrial-light-surface);
   box-shadow: 0 4px 20px rgb(30 64 175 / 25%);
 }
 
@@ -341,7 +341,7 @@ html.dark .btn-secondary:hover {
 
 html:not(.dark) .btn-secondary {
   color: var(--color-industrial-light-text-secondary);
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--color-industrial-light-border-hover);
 }
 
 html:not(.dark) .btn-secondary:hover {

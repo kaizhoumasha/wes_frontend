@@ -213,7 +213,7 @@ function dispositionLabel(value: string): string {
   align-items: center;
   min-height: 44px;
   gap: 10px;
-  color: #cbd5e1;
+  color: var(--color-industrial-light-border-hover);
 }
 
 .runtime-hold-field {
@@ -253,7 +253,7 @@ function dispositionLabel(value: string): string {
 }
 
 .runtime-hold-alert.is-danger {
-  color: #fecaca;
+  color: var(--color-danger-light);
   background: rgb(var(--color-danger-rgb) / 14%);
 }
 </style>

@@ -369,7 +369,7 @@ function evidenceStateLabel(state: DiagnosisEvidenceHealthItemState): string {
 .trace-topology-summary__description {
   max-width: 760px;
   margin: 6px 0 0;
-  color: #cbd5e1;
+  color: var(--color-industrial-light-border-hover);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -430,7 +430,7 @@ function evidenceStateLabel(state: DiagnosisEvidenceHealthItemState): string {
 }
 
 .trace-topology-summary__route-label strong {
-  color: #bfdbfe;
+  color: var(--color-info-light);
 }
 
 .trace-topology-summary__nodes {
@@ -504,7 +504,7 @@ function evidenceStateLabel(state: DiagnosisEvidenceHealthItemState): string {
 .trace-topology-summary__node-meta {
   justify-content: space-between;
   margin-top: auto;
-  color: #cbd5e1;
+  color: var(--color-industrial-light-border-hover);
   font-size: 12px;
   line-height: 1.45;
 }
@@ -515,7 +515,7 @@ function evidenceStateLabel(state: DiagnosisEvidenceHealthItemState): string {
   padding: 3px 8px;
   border-radius: 999px;
   background: rgb(34 197 94 / 0.14);
-  color: #bbf7d0;
+  color: var(--color-success-light);
   font-size: 11px;
   font-weight: 700;
 }
@@ -597,7 +597,7 @@ function evidenceStateLabel(state: DiagnosisEvidenceHealthItemState): string {
 }
 
 .trace-topology-summary__evidence-item.is-present strong {
-  color: #bbf7d0;
+  color: var(--color-success-light);
 }
 
 @media (width <= 1279px) {

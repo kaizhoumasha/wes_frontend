@@ -221,7 +221,7 @@ function emptyDetail(): TraceDetailResponse {
 .trace-blocking-card__action strong {
   display: block;
   margin-top: 8px;
-  color: #fef3c7;
+  color: var(--color-primary-100);
   font-size: 15px;
   font-weight: 700;
   line-height: 1.7;

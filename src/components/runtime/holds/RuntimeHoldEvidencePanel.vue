@@ -105,12 +105,12 @@ const evidenceSnapshotJson = computed(() => JSON.stringify(props.evidenceSnapsho
 }
 
 .runtime-hold-alert.is-danger {
-  color: #fecaca;
+  color: var(--color-danger-light);
   background: rgb(var(--color-danger-rgb) / 0.14);
 }
 
 .runtime-hold-alert.is-warning {
-  color: #fde68a;
+  color: var(--color-primary-200);
   background: rgb(var(--color-primary-rgb) / 0.14);
 }
 
@@ -142,7 +142,7 @@ pre {
   margin: 0;
   padding: 12px;
   border-radius: 8px;
-  color: #cbd5e1;
+  color: var(--color-industrial-light-border-hover);
   background: rgb(15, 23, 42, 0.78);
   font-size: 12px;
 }

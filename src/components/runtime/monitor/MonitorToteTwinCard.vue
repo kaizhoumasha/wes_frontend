@@ -151,7 +151,7 @@ defineProps<{
 }
 
 .monitor-tote-twin-card__row--warning dd {
-  color: #b45309;
+  color: var(--color-primary-700);
 }
 
 .monitor-tote-twin-card__row--danger dd {

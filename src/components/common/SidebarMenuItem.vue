@@ -218,7 +218,7 @@ html.dark .sidebar-submenu-popup .el-menu-item.is-active {
 
 /* 亮模式子菜单弹出层 */
 html:not(.dark) .sidebar-submenu-popup {
-  background: #fff !important;
+  background: var(--color-industrial-light-surface) !important;
   border: 1px solid #e4e7ed !important;
   box-shadow: 0 2px 12px rgb(0 0 0 / 10%) !important;
 }
@@ -234,7 +234,7 @@ html:not(.dark) .sidebar-submenu-popup .el-menu-item:hover {
 
 html:not(.dark) .sidebar-submenu-popup .el-menu-item.is-active {
   background: var(--color-primary) !important;
-  color: #fff !important;
+  color: var(--color-industrial-light-surface) !important;
 }
 
 .sidebar-submenu-popup .el-menu-item .menu-title {

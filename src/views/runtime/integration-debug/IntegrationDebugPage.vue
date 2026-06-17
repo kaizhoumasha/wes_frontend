@@ -493,7 +493,7 @@ watch(
 
 .integration-debug__panel-head h2 {
   margin: 0;
-  color: #e2e8f0;
+  color: var(--color-industrial-light-border);
   font-size: 15px;
 }
 
@@ -583,7 +583,7 @@ watch(
   padding: 3px 8px;
   border: 1px solid rgb(148 163 184 / 0.16);
   border-radius: 999px;
-  color: #cbd5e1;
+  color: var(--color-industrial-light-border-hover);
   font-size: 12px;
 }
 
@@ -614,7 +614,7 @@ watch(
 
 .integration-debug__stage strong {
   margin-top: 12px;
-  color: #e2e8f0;
+  color: var(--color-industrial-light-border);
   font-size: 15px;
 }
 
@@ -659,7 +659,7 @@ watch(
 .integration-debug__facts dd {
   min-width: 0;
   margin: 0;
-  color: #e2e8f0;
+  color: var(--color-industrial-light-border);
   font-size: 13px;
   overflow-wrap: anywhere;
 }

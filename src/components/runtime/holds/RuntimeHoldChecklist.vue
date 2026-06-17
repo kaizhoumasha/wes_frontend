@@ -76,6 +76,6 @@ function checkLabel(value: string): string {
   align-items: center;
   min-height: 44px;
   gap: 10px;
-  color: #cbd5e1;
+  color: var(--color-industrial-light-border-hover);
 }
 </style>

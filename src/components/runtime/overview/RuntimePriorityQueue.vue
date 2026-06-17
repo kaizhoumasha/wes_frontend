@@ -229,11 +229,11 @@ function onKeyDown(event: KeyboardEvent, item: PriorityItem) {
 }
 
 .runtime-priority-queue__tier-header--critical .runtime-priority-queue__tier-label {
-  color: #f87171;
+  color: var(--color-danger-light);
 }
 
 .runtime-priority-queue__tier-header--watch .runtime-priority-queue__tier-label {
-  color: #facc15;
+  color: var(--color-warning-light);
 }
 
 .runtime-priority-queue__tier-header--known .runtime-priority-queue__tier-label {
@@ -250,12 +250,12 @@ function onKeyDown(event: KeyboardEvent, item: PriorityItem) {
 
 .runtime-priority-queue__tier-header--critical .runtime-priority-queue__tier-count {
   background: rgb(var(--color-danger-rgb) / 0.15);
-  color: #f87171;
+  color: var(--color-danger-light);
 }
 
 .runtime-priority-queue__tier-header--watch .runtime-priority-queue__tier-count {
   background: rgb(var(--color-warning-rgb) / 0.15);
-  color: #facc15;
+  color: var(--color-warning-light);
 }
 
 .runtime-priority-queue__tier-header--known .runtime-priority-queue__tier-count {
@@ -323,11 +323,11 @@ function onKeyDown(event: KeyboardEvent, item: PriorityItem) {
 }
 
 .runtime-priority-queue__card-strip--critical {
-  background: var(--runtime-tier-critical, var(--color-danger));
+  background: var(--runtime-tier-critical);
 }
 
 .runtime-priority-queue__card-strip--watch {
-  background: var(--runtime-tier-watch, var(--color-warning));
+  background: var(--runtime-tier-watch);
 }
 
 .runtime-priority-queue__card-strip--known {

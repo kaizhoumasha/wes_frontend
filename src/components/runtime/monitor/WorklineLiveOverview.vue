@@ -355,11 +355,11 @@ onBeforeUnmount(() => {
 }
 
 .monitor-event-log__tag.is-warn {
-  color: var(--runtime-badge-warning-text, var(--color-primary));
+  color: var(--runtime-badge-warning-text);
 }
 
 .monitor-event-log__tag.is-err {
-  color: var(--runtime-badge-danger-text, #ef4444);
+  color: var(--runtime-badge-danger-text);
 }
 
 .monitor-event-log__text,

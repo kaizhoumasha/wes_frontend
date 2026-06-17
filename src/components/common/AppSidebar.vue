@@ -126,7 +126,7 @@ html.dark .app-sidebar {
   --sidebar-shadow: 2px 0 20px rgb(0 0 0 / 30%);
   --header-bg: rgb(30 41 59 / 50%);
   --header-border: rgb(148 163 184 / 12%);
-  --logo-text-color: #fff;
+  --logo-text-color: var(--color-industrial-light-surface);
   --logo-glow: rgb(var(--color-primary-rgb) / 30%);
   --menu-color: rgb(255 255 255 / 70%);
   --menu-hover-bg: rgb(var(--color-primary-rgb) / 8%);
@@ -156,7 +156,7 @@ html:not(.dark) .app-sidebar {
   --menu-hover-bg: #ecf5ff;
   --menu-hover-color: var(--color-primary);
   --menu-active-bg: var(--color-primary);
-  --menu-active-color: #fff;
+  --menu-active-color: var(--color-industrial-light-surface);
   --menu-active-shadow: 0 2px 8px rgb(var(--color-primary-rgb) / 30%);
   --menu-icon-glow: rgb(var(--color-primary-rgb) / 50%);
   --menu-opened-bg: #f5f7fa;

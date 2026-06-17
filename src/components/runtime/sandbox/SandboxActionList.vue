@@ -1507,7 +1507,7 @@ function formatPayload(payload: Record<string, unknown>): string {
 }
 
 .sandbox-action-list__mat-stage-dot.is-blocked {
-  background: #ef4444;
+  background: var(--color-danger-light);
 }
 
 .sandbox-action-list__mat-stage-dot.is-idle {
@@ -1562,14 +1562,14 @@ function formatPayload(payload: Record<string, unknown>): string {
 }
 
 .sandbox-action-list__session-alert-label {
-  color: #fecaca;
+  color: var(--color-danger-light);
   font-size: 10px;
   font-weight: 700;
 }
 
 .sandbox-action-list__session-alert-code {
   min-width: 0;
-  color: #fca5a5;
+  color: var(--color-danger-light);
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 700;
@@ -1647,7 +1647,7 @@ function formatPayload(payload: Record<string, unknown>): string {
 }
 
 .sandbox-action-list__event-label {
-  color: #bbf7d0;
+  color: var(--color-success-light);
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 800;
@@ -1677,7 +1677,7 @@ function formatPayload(payload: Record<string, unknown>): string {
 
 .sandbox-action-list__event-issue {
   margin: 0;
-  color: var(--runtime-danger, #ef4444);
+  color: var(--runtime-danger);
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
@@ -1702,7 +1702,7 @@ function formatPayload(payload: Record<string, unknown>): string {
   overflow: auto;
   border-radius: 6px;
   background: rgb(15, 23, 42, 0.72);
-  color: #dcfce7;
+  color: var(--color-success-light);
 }
 
 .sandbox-action-list__command-payload {
@@ -1729,7 +1729,7 @@ function formatPayload(payload: Record<string, unknown>): string {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  color: #bfdbfe;
+  color: var(--color-info-light);
   font-size: 10px;
   font-weight: 700;
 }
@@ -1747,7 +1747,7 @@ function formatPayload(payload: Record<string, unknown>): string {
   border: 1px solid rgb(147, 197, 253, 0.3);
   border-radius: 5px;
   background: rgb(147, 197, 253, 0.08);
-  color: #bfdbfe;
+  color: var(--color-info-light);
   cursor: pointer;
   font-size: 10px;
   line-height: 1.4;
@@ -1797,7 +1797,7 @@ function formatPayload(payload: Record<string, unknown>): string {
   overflow: auto;
   border-radius: 6px;
   background: rgb(15, 23, 42, 0.72);
-  color: #dbeafe;
+  color: var(--color-info-light);
   font-family: var(--font-mono);
   font-size: 10px;
   line-height: 1.45;
@@ -1872,7 +1872,7 @@ function formatPayload(payload: Record<string, unknown>): string {
   padding: 2px 6px;
   border-radius: 4px;
   background: rgb(239, 68, 68, 0.12);
-  color: #ef4444;
+  color: var(--color-danger-light);
   font-size: 10px;
   font-weight: 600;
 }
@@ -2155,7 +2155,7 @@ function formatPayload(payload: Record<string, unknown>): string {
 .sandbox-action-list__completed-item-error {
   min-width: 0;
   overflow: hidden;
-  color: var(--runtime-danger, #ef4444);
+  color: var(--runtime-danger);
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
@@ -2210,7 +2210,7 @@ function formatPayload(payload: Record<string, unknown>): string {
 }
 
 .has-failure .sandbox-action-list__completed-device-icon {
-  color: #ef4444;
+  color: var(--color-danger-light);
 }
 
 .sandbox-action-list__completed-device-name {
@@ -2238,7 +2238,7 @@ function formatPayload(payload: Record<string, unknown>): string {
   height: 18px;
   border-radius: 50%;
   background: rgb(239, 68, 68, 0.12);
-  color: #ef4444;
+  color: var(--color-danger-light);
   flex-shrink: 0;
 }
 

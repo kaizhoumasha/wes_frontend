@@ -597,7 +597,7 @@ import { formatRuntimeElapsed } from '@/utils/runtime-display'
 }
 
 .runtime-device-inspector__alert.is-error .runtime-device-inspector__alert-icon {
-  color: #ef4444;
+  color: var(--color-danger-light);
 }
 
 .runtime-device-inspector__alert.is-maintenance .runtime-device-inspector__alert-icon {
@@ -751,7 +751,7 @@ import { formatRuntimeElapsed } from '@/utils/runtime-display'
 .runtime-device-inspector__hold-card {
   border-color: rgb(239, 68, 68, 0.28);
   background: rgb(239, 68, 68, 0.1);
-  color: #fecaca;
+  color: var(--color-danger-light);
   font-size: 13px;
   font-weight: 800;
   text-decoration: none;

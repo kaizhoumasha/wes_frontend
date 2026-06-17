@@ -287,13 +287,13 @@ onMounted(load)
   border: 1px solid rgb(var(--color-primary-rgb) / 18%);
   border-radius: 8px;
   background: rgb(30 41 59 / 82%);
-  color: #cbd5e1;
+  color: var(--color-industrial-light-border-hover);
 }
 
 .runtime-hold-state.is-compact {
   max-width: none;
   margin: 16px 0;
-  color: #86efac;
+  color: var(--color-success-light);
 }
 
 .runtime-hold-state h1 {

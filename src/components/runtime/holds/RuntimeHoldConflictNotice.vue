@@ -61,19 +61,19 @@ const materialConflictItems = computed(() => {
   padding: 12px 14px;
   border: 1px solid rgb(var(--color-primary-rgb) / 0.26);
   border-radius: 8px;
-  color: #fde68a;
+  color: var(--color-primary-200);
   background: rgb(var(--color-primary-rgb) / 0.12);
 }
 
 .runtime-hold-conflict.is-evidence {
   border-color: rgb(var(--color-info-rgb) / 0.28);
-  color: #bfdbfe;
+  color: var(--color-info-light);
   background: rgb(var(--color-info-rgb) / 0.12);
 }
 
 .runtime-hold-conflict.is-material {
   border-color: rgb(239, 68, 68, 0.28);
-  color: #fecaca;
+  color: var(--color-danger-light);
   background: rgb(239, 68, 68, 0.12);
 }
 
