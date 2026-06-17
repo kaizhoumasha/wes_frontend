@@ -229,9 +229,44 @@ describe('Style token invariants (SPEC 2026-06-17)', () => {
     })
   })
 
-  describe('#8 — Vue <style> blocks (informational baseline, not strict yet)', () => {
-    // P3 启用 stylelint 后此测试转为 strict;当前仅记录 baseline
-    it.todo('Vue <style> blocks contain no modeled hardcoded color (P3 启用)')
+  describe('#8 — Vue <style> blocks contain no modeled hardcoded color', () => {
+    it('SFC scoped styles 无已建模硬编码色裸值', () => {
+      const allFiles = walkSrcCssAndVue(SRC_DIR).filter((f) => f.endsWith('.vue'))
+      const violators: string[] = []
+
+      const PATTERNS: Array<{ name: string; re: RegExp }> = [
+        { name: '#F59E0B primary', re: /#[fF]59[eE]0[bB]\b/ },
+        { name: '#D97706 primary-dark', re: /#[dD]97706\b/ },
+        { name: '#FBBF24 primary-light', re: /#[fF][bB][bB][fF]24\b/ },
+        { name: '#DC2626 danger', re: /#[dD][cC]2626\b/ },
+        { name: '#16A34A success', re: /#16[aA]34[aA]\b/ },
+        { name: '#EAB308 warning', re: /#[eE][aA][bB]308\b/ },
+        { name: '#3B82F6 info', re: /#3[bB]82[fF]6\b/ },
+        { name: '#0F172A industrial-dark-bg', re: /#0[fF]172[aA]\b/ },
+        { name: '#1E293B industrial-dark-surface', re: /#1[eE]293[bB]\b/ },
+        { name: '#334155 industrial-dark-surface-elevated', re: /#334155\b/ },
+        { name: '#475569 light-text-secondary', re: /#475569\b/ },
+        { name: '#64748B text-muted', re: /#64748[bB]\b/ },
+        { name: '#94A3B8 text-secondary', re: /#94[aA]3[bB]8\b/ },
+        { name: '#F8FAFC industrial-dark-text/light-bg', re: /#[fF]8[fF][aA][fF][cC]\b/ },
+        { name: 'rgb(245 158 11) primary', re: /rgba?\(\s*245(?:\s*,\s*|\s+)158(?:\s*,\s*|\s+)11/ }
+      ]
+
+      for (const file of allFiles) {
+        const content = readFileSync(file, 'utf-8')
+        // 提取所有 <style> 块内容(包括 scoped 与非 scoped)
+        const styleBlocks = content.match(/<style[^>]*>[\s\S]*?<\/style>/g) || []
+        const styleText = styleBlocks.join('\n')
+        for (const p of PATTERNS) {
+          const matches = styleText.match(new RegExp(p.re.source, 'g')) || []
+          if (matches.length > 0) {
+            violators.push(`${file.replace(REPO_ROOT, '.')}: ${p.name} × ${matches.length}`)
+          }
+        }
+      }
+
+      expect(violators, `SFC <style> 残留:\n${violators.join('\n')}`).toEqual([])
+    })
   })
 
   describe('#9 — No double-slash TODO comments in CSS', () => {

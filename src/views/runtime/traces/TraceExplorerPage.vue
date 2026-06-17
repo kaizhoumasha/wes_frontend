@@ -1257,9 +1257,9 @@ watch(
 .trace-contrast-section {
   margin-top: 16px;
   padding: 20px;
-  border: 1px solid rgb(245 158 11 / 0.14);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.14);
   border-radius: 14px;
-  background: #1e293b;
+  background: var(--color-industrial-dark-surface);
 }
 .runtime-page__subtitle {
   max-width: 900px;
@@ -1342,7 +1342,7 @@ watch(
 
 .trace-session-card {
   padding: 14px;
-  border: 1px solid rgb(245, 158, 11, 0.12);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.12);
   border-radius: 12px;
   background: var(--runtime-surface);
 }
@@ -1393,7 +1393,7 @@ watch(
   align-items: center;
   gap: 12px;
   padding-bottom: 10px;
-  border-bottom: 1px solid rgb(148, 163, 184, 0.1);
+  border-bottom: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.1);
 }
 
 .trace-section__num {
@@ -1403,9 +1403,9 @@ watch(
   justify-content: center;
   width: 26px;
   height: 26px;
-  border: 1px solid rgb(59, 130, 246, 0.3);
+  border: 1px solid rgb(var(--color-info-rgb) / 0.3);
   border-radius: 999px;
-  background: rgb(59, 130, 246, 0.12);
+  background: rgb(var(--color-info-rgb) / 0.12);
   color: #60a5fa;
   font-size: 11px;
   font-weight: 800;
@@ -1413,9 +1413,9 @@ watch(
 }
 
 .trace-section__num--dim {
-  border-color: rgb(148, 163, 184, 0.18);
-  background: rgb(148, 163, 184, 0.06);
-  color: #475569;
+  border-color: rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.18);
+  background: rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.06);
+  color: var(--color-industrial-light-text-secondary);
 }
 
 .trace-section__title {
@@ -1426,12 +1426,12 @@ watch(
 }
 
 .trace-section__title--dim {
-  color: #475569;
+  color: var(--color-industrial-light-text-secondary);
 }
 
 .trace-section__desc {
   margin-top: 2px;
-  color: #475569;
+  color: var(--color-industrial-light-text-secondary);
   font-size: 12px;
   line-height: 1.5;
 }

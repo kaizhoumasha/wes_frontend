@@ -78,11 +78,11 @@ withDefaults(
   justify-content: space-between;
   gap: 16px;
   padding: 10px 14px;
-  border: 1px solid rgb(245, 158, 11, 0.16);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.16);
   border-radius: 16px;
   background:
     linear-gradient(180deg, var(--runtime-hero-bg), var(--runtime-hero-bg)),
-    linear-gradient(135deg, rgb(245, 158, 11, 0.1), transparent 42%);
+    linear-gradient(135deg, rgb(var(--color-primary-rgb) / 0.1), transparent 42%);
   box-shadow:
     0 10px 24px rgb(15, 23, 42, 0.16),
     inset 0 1px 0 rgb(255, 255, 255, 0.04);
@@ -140,7 +140,7 @@ withDefaults(
 .runtime-sticky-context__fact {
   min-width: 0;
   padding: 8px 10px;
-  border: 1px solid rgb(245, 158, 11, 0.12);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.12);
   border-radius: 999px;
   background: var(--runtime-surface-subtle);
 }

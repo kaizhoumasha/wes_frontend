@@ -241,24 +241,24 @@ onMounted(() => {
   flex-direction: column;
   gap: 8px;
   padding: 14px 16px;
-  border: 1px solid rgb(245 158 11 / 0.12);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.12);
   border-radius: 10px;
-  border-left: 3px solid rgb(245 158 11 / 0.4);
-  background: #1e293b;
+  border-left: 3px solid rgb(var(--color-primary-rgb) / 0.4);
+  background: var(--color-industrial-dark-surface);
   cursor: pointer;
   transition: border-color 0.15s ease-out;
 }
 
 .hold-card:hover {
-  border-color: rgb(245 158 11 / 0.32);
+  border-color: rgb(var(--color-primary-rgb) / 0.32);
 }
 
 .hold-card--danger {
-  border-left-color: rgb(220 38 38 / 0.6);
+  border-left-color: rgb(var(--color-danger-rgb) / 0.6);
 }
 
 .hold-card--success {
-  border-left-color: rgb(22 163 74 / 0.5);
+  border-left-color: rgb(var(--color-success-rgb) / 0.5);
 }
 
 .hold-card__top {
@@ -268,25 +268,25 @@ onMounted(() => {
 }
 
 .hold-card__status {
-  color: #94a3b8;
+  color: var(--color-industrial-dark-text-secondary);
   font-size: 12px;
 }
 
 .hold-card__id {
   margin-left: auto;
-  color: #64748b;
+  color: var(--color-industrial-dark-text-muted);
   font-family: var(--font-mono, 'JetBrains Mono');
   font-size: 12px;
 }
 
 .hold-card__reason {
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
   font-size: 14px;
   font-weight: 600;
 }
 
 .hold-card__meta {
-  color: #94a3b8;
+  color: var(--color-industrial-dark-text-secondary);
   font-family: var(--font-mono, 'JetBrains Mono');
   font-size: 12px;
 }
@@ -294,7 +294,7 @@ onMounted(() => {
 .runtime-page__subtitle {
   max-width: 640px;
   margin-top: 4px;
-  color: #94a3b8;
+  color: var(--color-industrial-dark-text-secondary);
   font-size: 13px;
   line-height: 1.6;
 }

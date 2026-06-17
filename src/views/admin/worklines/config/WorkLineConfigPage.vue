@@ -1831,13 +1831,13 @@ onMounted(async () => {
 
 <style scoped>
 .config-page :deep(.el-card) {
-  --el-card-border-color: #334155;
-  --el-card-bg-color: #1e293b;
+  --el-card-border-color: var(--color-industrial-dark-surface-elevated);
+  --el-card-bg-color: var(--color-industrial-dark-surface);
   --el-card-padding: 20px;
 }
 
 .config-page :deep(.el-card__header) {
-  border-bottom: 1.5px solid #334155;
+  border-bottom: 1.5px solid var(--color-industrial-dark-surface-elevated);
   padding: 14px 20px;
   background-color: rgb(30, 41, 59, 0.5);
 }
@@ -1848,27 +1848,27 @@ onMounted(async () => {
 
 .config-descriptions :deep(.el-descriptions__label) {
   background-color: rgb(15, 23, 42, 0.45) !important;
-  color: #94a3b8 !important;
-  border-color: #334155 !important;
+  color: var(--color-industrial-dark-text-secondary) !important;
+  border-color: var(--color-industrial-dark-surface-elevated) !important;
   width: 140px;
 }
 
 .config-descriptions :deep(.el-descriptions__content) {
   background-color: transparent !important;
-  color: #f8fafc !important;
-  border-color: #334155 !important;
+  color: var(--color-industrial-dark-text) !important;
+  border-color: var(--color-industrial-dark-surface-elevated) !important;
 }
 
 .config-table :deep(.el-table__header-wrapper) th {
-  background-color: #0f172a !important;
-  color: #94a3b8 !important;
-  border-bottom: 2px solid #334155 !important;
+  background-color: var(--color-industrial-dark-bg) !important;
+  color: var(--color-industrial-dark-text-secondary) !important;
+  border-bottom: 2px solid var(--color-industrial-dark-surface-elevated) !important;
 }
 
 .config-table :deep(.el-table__row) td {
-  background-color: #1e293b !important;
-  border-bottom: 1px solid #334155 !important;
-  color: #f8fafc;
+  background-color: var(--color-industrial-dark-surface) !important;
+  border-bottom: 1px solid var(--color-industrial-dark-surface-elevated) !important;
+  color: var(--color-industrial-dark-text);
 }
 
 .config-table :deep(.el-table__row):hover td {
@@ -1877,18 +1877,18 @@ onMounted(async () => {
 
 .config-table :deep(.el-table__inner-wrapper::after),
 .config-table :deep(.el-table::before) {
-  background-color: #334155 !important;
+  background-color: var(--color-industrial-dark-surface-elevated) !important;
 }
 
 /* 弹出框主题化 */
 .config-dialog :deep(.el-dialog) {
-  background-color: #1e293b !important;
-  border: 1px solid #334155 !important;
+  background-color: var(--color-industrial-dark-surface) !important;
+  border: 1px solid var(--color-industrial-dark-surface-elevated) !important;
   border-radius: 8px;
 }
 
 .config-dialog :deep(.el-dialog__title) {
-  color: #f8fafc !important;
+  color: var(--color-industrial-dark-text) !important;
   font-weight: 600;
 }
 
@@ -1897,44 +1897,44 @@ onMounted(async () => {
 }
 
 .config-dialog :deep(.el-form-item__label) {
-  color: #94a3b8 !important;
+  color: var(--color-industrial-dark-text-secondary) !important;
   font-weight: 500;
 }
 
 .config-dialog :deep(.el-input__wrapper) {
-  background-color: #0f172a !important;
-  box-shadow: 0 0 0 1px #334155 inset !important;
+  background-color: var(--color-industrial-dark-bg) !important;
+  box-shadow: 0 0 0 1px var(--color-industrial-dark-surface-elevated) inset !important;
 }
 
 .config-dialog :deep(.el-input__inner) {
-  color: #f8fafc !important;
+  color: var(--color-industrial-dark-text) !important;
 }
 
 .config-dialog :deep(.el-input__wrapper.is-focus) {
-  box-shadow: 0 0 0 1px #f59e0b inset !important;
+  box-shadow: 0 0 0 1px var(--color-primary) inset !important;
 }
 
 .config-dialog :deep(.el-textarea__inner) {
-  background-color: #0f172a !important;
-  box-shadow: 0 0 0 1px #334155 inset !important;
-  color: #f8fafc !important;
+  background-color: var(--color-industrial-dark-bg) !important;
+  box-shadow: 0 0 0 1px var(--color-industrial-dark-surface-elevated) inset !important;
+  color: var(--color-industrial-dark-text) !important;
 }
 
 .config-dialog :deep(.el-textarea__inner:focus) {
-  box-shadow: 0 0 0 1px #f59e0b inset !important;
+  box-shadow: 0 0 0 1px var(--color-primary) inset !important;
 }
 
 .config-dialog :deep(.el-select__wrapper) {
-  background-color: #0f172a !important;
-  box-shadow: 0 0 0 1px #334155 inset !important;
+  background-color: var(--color-industrial-dark-bg) !important;
+  box-shadow: 0 0 0 1px var(--color-industrial-dark-surface-elevated) inset !important;
 }
 
 .config-dialog :deep(.el-select__selected-item) {
-  color: #f8fafc !important;
+  color: var(--color-industrial-dark-text) !important;
 }
 
 .config-dialog :deep(.el-dialog__footer) {
-  border-top: 1px solid #334155;
+  border-top: 1px solid var(--color-industrial-dark-surface-elevated);
   padding-top: 16px;
 }
 </style>

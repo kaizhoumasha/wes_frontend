@@ -197,9 +197,9 @@ function onKeyDown(event: KeyboardEvent, item: PriorityItem) {
   border-radius: 10px;
   background: linear-gradient(
     90deg,
-    rgb(148, 163, 184, 0.08),
-    rgb(148, 163, 184, 0.16),
-    rgb(148, 163, 184, 0.08)
+    rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.08),
+    rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.16),
+    rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.08)
   );
   background-size: 200% 100%;
   animation: pq-shimmer 1.6s ease-in-out infinite;
@@ -237,7 +237,7 @@ function onKeyDown(event: KeyboardEvent, item: PriorityItem) {
 }
 
 .runtime-priority-queue__tier-header--known .runtime-priority-queue__tier-label {
-  color: var(--runtime-text-secondary, #94a3b8);
+  color: var(--runtime-text-secondary);
 }
 
 .runtime-priority-queue__tier-count {
@@ -249,18 +249,18 @@ function onKeyDown(event: KeyboardEvent, item: PriorityItem) {
 }
 
 .runtime-priority-queue__tier-header--critical .runtime-priority-queue__tier-count {
-  background: rgb(220, 38, 38, 0.15);
+  background: rgb(var(--color-danger-rgb) / 0.15);
   color: #f87171;
 }
 
 .runtime-priority-queue__tier-header--watch .runtime-priority-queue__tier-count {
-  background: rgb(234, 179, 8, 0.15);
+  background: rgb(var(--color-warning-rgb) / 0.15);
   color: #facc15;
 }
 
 .runtime-priority-queue__tier-header--known .runtime-priority-queue__tier-count {
   background: rgb(100, 116, 139, 0.15);
-  color: #94a3b8;
+  color: var(--color-industrial-dark-text-secondary);
 }
 
 .runtime-priority-queue__tier-toggle {
@@ -276,7 +276,7 @@ function onKeyDown(event: KeyboardEvent, item: PriorityItem) {
 }
 
 .runtime-priority-queue__expand-icon {
-  color: var(--runtime-text-secondary, #94a3b8);
+  color: var(--runtime-text-secondary);
   font-size: 10px;
 }
 
@@ -292,7 +292,7 @@ function onKeyDown(event: KeyboardEvent, item: PriorityItem) {
   gap: 12px;
   width: 100%;
   padding: 12px 14px;
-  border: 1px solid var(--runtime-border, rgb(245, 158, 11, 0.12));
+  border: 1px solid var(--runtime-border, rgb(var(--color-primary-rgb) / 0.12));
   border-radius: 10px;
   background: var(--runtime-surface, rgb(30, 41, 59, 0.6));
   text-align: left;
@@ -306,12 +306,12 @@ function onKeyDown(event: KeyboardEvent, item: PriorityItem) {
 .runtime-priority-queue__card:hover,
 .runtime-priority-queue__card:focus-visible {
   transform: translateY(-1px);
-  border-color: var(--runtime-border-strong, rgb(245, 158, 11, 0.28));
+  border-color: var(--runtime-border-strong, rgb(var(--color-primary-rgb) / 0.28));
   background: var(--runtime-surface-strong, rgb(30, 41, 59, 0.88));
 }
 
 .runtime-priority-queue__card:focus-visible {
-  outline: 2px solid var(--runtime-border-accent, rgb(245, 158, 11, 0.5));
+  outline: 2px solid var(--runtime-border-accent, rgb(var(--color-primary-rgb) / 0.5));
   outline-offset: 2px;
 }
 
@@ -323,15 +323,15 @@ function onKeyDown(event: KeyboardEvent, item: PriorityItem) {
 }
 
 .runtime-priority-queue__card-strip--critical {
-  background: var(--runtime-tier-critical, #dc2626);
+  background: var(--runtime-tier-critical, var(--color-danger));
 }
 
 .runtime-priority-queue__card-strip--watch {
-  background: var(--runtime-tier-watch, #eab308);
+  background: var(--runtime-tier-watch, var(--color-warning));
 }
 
 .runtime-priority-queue__card-strip--known {
-  background: var(--runtime-tier-known, #64748b);
+  background: var(--runtime-tier-known);
 }
 
 .runtime-priority-queue__card-body {
@@ -340,7 +340,7 @@ function onKeyDown(event: KeyboardEvent, item: PriorityItem) {
 }
 
 .runtime-priority-queue__card-summary {
-  color: var(--runtime-text-primary, #f8fafc);
+  color: var(--runtime-text-primary);
   font-size: 13px;
   font-weight: 600;
   line-height: 1.5;
@@ -348,7 +348,7 @@ function onKeyDown(event: KeyboardEvent, item: PriorityItem) {
 
 .runtime-priority-queue__card-context {
   margin-top: 2px;
-  color: var(--runtime-text-secondary, #94a3b8);
+  color: var(--runtime-text-secondary);
   font-size: 12px;
   line-height: 1.5;
   white-space: nowrap;
@@ -358,16 +358,16 @@ function onKeyDown(event: KeyboardEvent, item: PriorityItem) {
 
 .runtime-priority-queue__card-arrow {
   flex: 0 0 auto;
-  color: var(--runtime-text-secondary, #94a3b8);
+  color: var(--runtime-text-secondary);
   font-size: 14px;
 }
 
 .runtime-priority-queue__empty {
   padding: 24px;
-  border: 1px dashed rgb(148, 163, 184, 0.28);
+  border: 1px dashed rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.28);
   border-radius: 14px;
   background: rgb(15, 23, 42, 0.42);
-  color: var(--runtime-text-secondary, #94a3b8);
+  color: var(--runtime-text-secondary);
   font-size: 14px;
   font-weight: 600;
   text-align: center;

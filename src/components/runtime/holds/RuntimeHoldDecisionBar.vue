@@ -43,21 +43,21 @@ const tone = computed(() => (activeStatuses.has(props.status) ? 'warning' : 'suc
   justify-content: space-between;
   gap: 24px;
   padding: 22px;
-  border: 1px solid rgb(245, 158, 11, 0.2);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.2);
   border-radius: 8px;
   background: rgb(15, 23, 42, 0.92);
 }
 
 .runtime-hold-decision-bar h1 {
   margin: 10px 0 6px;
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
   font-size: 28px;
   line-height: 1.2;
 }
 
 .runtime-hold-decision-bar p {
   margin: 0;
-  color: #94a3b8;
+  color: var(--color-industrial-dark-text-secondary);
 }
 
 .runtime-hold-decision-bar__status {
@@ -69,20 +69,20 @@ const tone = computed(() => (activeStatuses.has(props.status) ? 'warning' : 'suc
 }
 
 .runtime-hold-decision-bar__status.is-warning {
-  color: #f59e0b;
-  background: rgb(245, 158, 11, 0.12);
+  color: var(--color-primary);
+  background: rgb(var(--color-primary-rgb) / 0.12);
 }
 
 .runtime-hold-decision-bar__status.is-success {
-  color: #16a34a;
-  background: rgb(22, 163, 74, 0.12);
+  color: var(--color-success);
+  background: rgb(var(--color-success-rgb) / 0.12);
 }
 
 .runtime-hold-decision-bar__hash {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 4px 10px;
-  color: #94a3b8;
+  color: var(--color-industrial-dark-text-secondary);
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
   text-align: right;
@@ -90,7 +90,7 @@ const tone = computed(() => (activeStatuses.has(props.status) ? 'warning' : 'suc
 
 .runtime-hold-decision-bar__hash strong,
 .runtime-hold-decision-bar__hash code {
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
 }
 
 @media (width <= 720px) {

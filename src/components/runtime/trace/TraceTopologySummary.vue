@@ -301,7 +301,7 @@ function evidenceStateLabel(state: DiagnosisEvidenceHealthItemState): string {
 }
 
 .trace-topology-summary.is-warning {
-  border-color: rgb(245 158 11 / 0.34);
+  border-color: rgb(var(--color-primary-rgb) / 0.34);
 }
 
 .trace-topology-summary__header,
@@ -335,7 +335,7 @@ function evidenceStateLabel(state: DiagnosisEvidenceHealthItemState): string {
 .trace-topology-summary__evidence-item span,
 .trace-topology-summary__node-step,
 .trace-topology-summary__node-state {
-  color: #94a3b8;
+  color: var(--color-industrial-dark-text-secondary);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0;
@@ -343,7 +343,7 @@ function evidenceStateLabel(state: DiagnosisEvidenceHealthItemState): string {
 
 .trace-topology-summary__code {
   min-width: 0;
-  color: #64748b;
+  color: var(--color-industrial-dark-text-muted);
   font-family: var(--font-mono);
   font-size: 12px;
   overflow-wrap: anywhere;
@@ -352,7 +352,7 @@ function evidenceStateLabel(state: DiagnosisEvidenceHealthItemState): string {
 .trace-topology-summary__title {
   min-width: 0;
   margin: 0;
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
   font-family: var(--font-mono);
   font-size: 24px;
   line-height: 1.2;
@@ -361,7 +361,7 @@ function evidenceStateLabel(state: DiagnosisEvidenceHealthItemState): string {
 
 .trace-topology-summary__verdict {
   margin: 12px 0 0;
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
   font-size: 17px;
   font-weight: 800;
 }
@@ -396,7 +396,7 @@ function evidenceStateLabel(state: DiagnosisEvidenceHealthItemState): string {
 .trace-topology-summary__evidence-item strong {
   display: block;
   margin-top: 6px;
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
   font-family: var(--font-mono);
   font-size: 13px;
   line-height: 1.45;
@@ -414,7 +414,7 @@ function evidenceStateLabel(state: DiagnosisEvidenceHealthItemState): string {
 
 .trace-topology-summary__evidence-summary strong {
   margin-top: 0;
-  color: #94a3b8;
+  color: var(--color-industrial-dark-text-secondary);
   font-size: 12px;
   text-align: right;
 }
@@ -424,7 +424,7 @@ function evidenceStateLabel(state: DiagnosisEvidenceHealthItemState): string {
   flex-direction: column;
   gap: 12px;
   padding: 14px;
-  border: 1px solid rgb(59 130 246 / 0.16);
+  border: 1px solid rgb(var(--color-info-rgb) / 0.16);
   border-radius: 8px;
   background: rgb(2 6 23 / 0.22);
 }
@@ -476,7 +476,7 @@ function evidenceStateLabel(state: DiagnosisEvidenceHealthItemState): string {
 }
 
 .trace-topology-summary__node.is-current {
-  border-color: rgb(59 130 246 / 0.42);
+  border-color: rgb(var(--color-info-rgb) / 0.42);
   background: linear-gradient(180deg, rgb(30 64 175 / 0.3), rgb(15 23 42 / 0.9));
 }
 
@@ -494,7 +494,7 @@ function evidenceStateLabel(state: DiagnosisEvidenceHealthItemState): string {
 }
 
 .trace-topology-summary__node-name {
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
   font-family: var(--font-mono);
   font-size: 14px;
   line-height: 1.35;
@@ -525,7 +525,7 @@ function evidenceStateLabel(state: DiagnosisEvidenceHealthItemState): string {
   flex: 0 0 22px;
   height: 2px;
   margin: 0 8px;
-  background: linear-gradient(90deg, rgb(59 130 246 / 0.2), rgb(34 197 94 / 0.48));
+  background: linear-gradient(90deg, rgb(var(--color-info-rgb) / 0.2), rgb(34 197 94 / 0.48));
 }
 
 .trace-topology-summary__topology-detail {
@@ -536,7 +536,7 @@ function evidenceStateLabel(state: DiagnosisEvidenceHealthItemState): string {
 .trace-topology-summary__topology-detail summary {
   width: max-content;
   cursor: pointer;
-  color: #94a3b8;
+  color: var(--color-industrial-dark-text-secondary);
   font-size: 12px;
   font-weight: 700;
 }
@@ -548,7 +548,7 @@ function evidenceStateLabel(state: DiagnosisEvidenceHealthItemState): string {
 }
 
 .trace-topology-summary__focus-block {
-  border-color: rgb(59 130 246 / 0.18);
+  border-color: rgb(var(--color-info-rgb) / 0.18);
 }
 
 .trace-topology-summary__focus-block.is-empty {
@@ -556,12 +556,12 @@ function evidenceStateLabel(state: DiagnosisEvidenceHealthItemState): string {
 }
 
 .trace-topology-summary__focus-block--action {
-  border-color: rgb(245 158 11 / 0.22);
+  border-color: rgb(var(--color-primary-rgb) / 0.22);
 }
 
 .trace-topology-summary__focus-block p {
   margin: 6px 0 0;
-  color: #94a3b8;
+  color: var(--color-industrial-dark-text-secondary);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -587,13 +587,13 @@ function evidenceStateLabel(state: DiagnosisEvidenceHealthItemState): string {
 
 .trace-topology-summary__evidence-item p {
   margin: 6px 0 0;
-  color: #64748b;
+  color: var(--color-industrial-dark-text-muted);
   font-size: 11px;
   line-height: 1.5;
 }
 
 .trace-topology-summary__evidence-item.is-missing strong {
-  color: #fbbf24;
+  color: var(--color-primary-light);
 }
 
 .trace-topology-summary__evidence-item.is-present strong {
@@ -643,7 +643,7 @@ function evidenceStateLabel(state: DiagnosisEvidenceHealthItemState): string {
     width: 2px;
     height: 18px;
     margin: 6px auto;
-    background: linear-gradient(180deg, rgb(59 130 246 / 0.2), rgb(34 197 94 / 0.48));
+    background: linear-gradient(180deg, rgb(var(--color-info-rgb) / 0.2), rgb(34 197 94 / 0.48));
   }
 }
 </style>

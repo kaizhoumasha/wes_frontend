@@ -393,7 +393,7 @@ function actionTypeLabel(type?: string | null): string {
 
 .trace-timeline__empty {
   padding: 22px;
-  border: 1px dashed rgb(148, 163, 184, 0.22);
+  border: 1px dashed rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.22);
   border-radius: 8px;
   background: rgb(15, 23, 42, 0.46);
 }
@@ -434,12 +434,12 @@ function actionTypeLabel(type?: string | null): string {
   content: '';
   flex: 1;
   height: 1px;
-  background: rgb(148, 163, 184, 0.12);
+  background: rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.12);
 }
 
 .trace-timeline__group-device {
   padding: 3px 12px;
-  border: 1px solid rgb(148, 163, 184, 0.15);
+  border: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.15);
   border-radius: 999px;
   background: rgb(15, 23, 42, 0.8);
   color: var(--runtime-text-secondary);
@@ -468,7 +468,7 @@ function actionTypeLabel(type?: string | null): string {
   height: 12px;
   margin-top: 22px;
   border-radius: 999px;
-  background: #64748b;
+  background: var(--color-industrial-dark-text-muted);
   box-shadow: 0 0 0 4px var(--runtime-dot-ring);
 }
 
@@ -488,7 +488,7 @@ function actionTypeLabel(type?: string | null): string {
 
 .trace-timeline__card {
   padding: 16px;
-  border: 1px solid rgb(245, 158, 11, 0.12);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.12);
   border-radius: 8px;
   background: var(--runtime-surface-strong);
 }
@@ -607,7 +607,7 @@ function actionTypeLabel(type?: string | null): string {
 
 .trace-timeline__tech {
   margin-top: 14px;
-  border-top: 1px solid rgb(148, 163, 184, 0.1);
+  border-top: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.1);
   padding-top: 10px;
 }
 
@@ -652,23 +652,23 @@ function actionTypeLabel(type?: string | null): string {
 }
 
 .trace-timeline__item.is-primary .trace-timeline__dot {
-  background: #3b82f6;
+  background: var(--color-info);
 }
 
 .trace-timeline__item.is-success .trace-timeline__dot {
-  background: #16a34a;
+  background: var(--color-success);
 }
 
 .trace-timeline__item.is-warning .trace-timeline__dot {
-  background: #eab308;
+  background: var(--color-warning);
 }
 
 .trace-timeline__item.is-danger .trace-timeline__dot {
-  background: #dc2626;
+  background: var(--color-danger);
 }
 
 .trace-timeline__item.is-terminal .trace-timeline__card {
-  box-shadow: inset 0 0 0 1px rgb(59, 130, 246, 0.28);
+  box-shadow: inset 0 0 0 1px rgb(var(--color-info-rgb) / 0.28);
 }
 
 .trace-timeline__item.is-first-failure .trace-timeline__card {
@@ -683,7 +683,7 @@ function actionTypeLabel(type?: string | null): string {
 }
 
 .trace-timeline__item.is-last-success .trace-timeline__card {
-  border-color: rgb(22, 163, 74, 0.22);
+  border-color: rgb(var(--color-success-rgb) / 0.22);
 }
 
 @media (width <= 1279px) {

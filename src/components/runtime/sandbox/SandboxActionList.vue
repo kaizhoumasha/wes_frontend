@@ -1421,7 +1421,7 @@ function formatPayload(payload: Record<string, unknown>): string {
 }
 
 .sandbox-action-list__title {
-  color: var(--runtime-text-secondary, #94a3b8);
+  color: var(--runtime-text-secondary);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -1449,7 +1449,7 @@ function formatPayload(payload: Record<string, unknown>): string {
 /* ===== Material Card ===== */
 .sandbox-action-list__material-card {
   padding: 12px;
-  border: 1px solid rgb(245, 158, 11, 0.12);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.12);
   border-radius: 10px;
   background: var(--runtime-surface-subtle);
 }
@@ -1493,12 +1493,12 @@ function formatPayload(payload: Record<string, unknown>): string {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #475569;
+  background: var(--color-industrial-light-text-secondary);
 }
 
 .sandbox-action-list__mat-stage-dot.is-ack {
-  background: #eab308;
-  box-shadow: 0 0 6px rgb(234, 179, 8, 0.4);
+  background: var(--color-warning);
+  box-shadow: 0 0 6px rgb(var(--color-warning-rgb) / 0.4);
 }
 
 .sandbox-action-list__mat-stage-dot.is-result {
@@ -1511,7 +1511,7 @@ function formatPayload(payload: Record<string, unknown>): string {
 }
 
 .sandbox-action-list__mat-stage-dot.is-idle {
-  background: #3b82f6;
+  background: var(--color-info);
 }
 
 /* Summary chips */
@@ -1529,7 +1529,7 @@ function formatPayload(payload: Record<string, unknown>): string {
   max-width: 100%;
   padding: 2px 6px;
   border-radius: 6px;
-  background: rgb(245, 158, 11, 0.08);
+  background: rgb(var(--color-primary-rgb) / 0.08);
   color: var(--runtime-text-secondary);
   font-family: var(--font-mono);
   font-size: 10px;
@@ -1713,9 +1713,9 @@ function formatPayload(payload: Record<string, unknown>): string {
   min-width: 0;
   margin-top: 6px;
   padding: 8px;
-  border: 1px solid rgb(59, 130, 246, 0.15);
+  border: 1px solid rgb(var(--color-info-rgb) / 0.15);
   border-radius: 6px;
-  background: rgb(59, 130, 246, 0.04);
+  background: rgb(var(--color-info-rgb) / 0.04);
 }
 
 .sandbox-action-list__flow-step.is-history .sandbox-action-list__command-payload,
@@ -1812,14 +1812,14 @@ function formatPayload(payload: Record<string, unknown>): string {
   flex-wrap: wrap;
   gap: 10px;
   padding: 8px 10px;
-  border: 1px solid rgb(245, 158, 11, 0.08);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.08);
   border-radius: 8px;
   background: var(--runtime-surface-subtle);
 }
 
 .sandbox-action-list__flow-step.is-active {
-  border-color: rgb(245, 158, 11, 0.18);
-  background: rgb(245, 158, 11, 0.04);
+  border-color: rgb(var(--color-primary-rgb) / 0.18);
+  background: rgb(var(--color-primary-rgb) / 0.04);
 }
 
 .sandbox-action-list__flow-step.is-blocked {
@@ -1930,7 +1930,7 @@ function formatPayload(payload: Record<string, unknown>): string {
 
 .sandbox-action-list__divider {
   margin: 16px 0;
-  border-top: 1px solid rgb(245, 158, 11, 0.1);
+  border-top: 1px solid rgb(var(--color-primary-rgb) / 0.1);
 }
 
 .sandbox-action-list__hold-link {
@@ -2020,7 +2020,7 @@ function formatPayload(payload: Record<string, unknown>): string {
   max-width: 100%;
   padding: 2px 6px;
   border-radius: 6px;
-  background: rgb(245, 158, 11, 0.08);
+  background: rgb(var(--color-primary-rgb) / 0.08);
   color: var(--runtime-text-secondary);
   font-family: var(--font-mono);
   font-size: 10px;
@@ -2187,7 +2187,7 @@ function formatPayload(payload: Record<string, unknown>): string {
   justify-content: space-between;
   gap: 8px;
   padding: 8px 10px;
-  background: rgb(245, 158, 11, 0.04);
+  background: rgb(var(--color-primary-rgb) / 0.04);
   border-bottom: 1px solid var(--runtime-border-neutral);
 }
 
@@ -2272,17 +2272,17 @@ function formatPayload(payload: Record<string, unknown>): string {
 }
 
 .sandbox-action-list__completed-device-group.is-external {
-  border-color: rgb(59, 130, 246, 0.15);
+  border-color: rgb(var(--color-info-rgb) / 0.15);
 }
 
 .sandbox-action-list__completed-device-group.is-external
   .sandbox-action-list__completed-device-header {
-  background: rgb(59, 130, 246, 0.04);
+  background: rgb(var(--color-info-rgb) / 0.04);
 }
 
 .sandbox-action-list__completed-device-group.is-external
   .sandbox-action-list__completed-device-icon {
-  color: #3b82f6;
+  color: var(--color-info);
 }
 
 .sandbox-action-list__completed-device-group.is-external.has-failure {

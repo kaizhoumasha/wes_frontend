@@ -272,10 +272,10 @@ onMounted(load)
   min-height: 100%;
   padding: 24px;
   background:
-    linear-gradient(rgb(245 158 11 / 4%) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(245 158 11 / 4%) 1px, transparent 1px), #0f172a;
+    linear-gradient(rgb(var(--color-primary-rgb) / 4%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--color-primary-rgb) / 4%) 1px, transparent 1px), var(--color-industrial-dark-bg);
   background-size: 28px 28px;
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
 }
 
 .runtime-hold-state {
@@ -284,7 +284,7 @@ onMounted(load)
   max-width: 560px;
   margin: 64px auto;
   padding: 22px;
-  border: 1px solid rgb(245 158 11 / 18%);
+  border: 1px solid rgb(var(--color-primary-rgb) / 18%);
   border-radius: 8px;
   background: rgb(30 41 59 / 82%);
   color: #cbd5e1;
@@ -298,7 +298,7 @@ onMounted(load)
 
 .runtime-hold-state h1 {
   margin: 0;
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
 }
 
 .runtime-hold-state button,
@@ -306,16 +306,16 @@ onMounted(load)
   min-height: 44px;
   border: 0;
   border-radius: 8px;
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: #0f172a;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: var(--color-industrial-dark-bg);
   padding: 0 18px;
   font-weight: 700;
 }
 
 .runtime-hold-submit-bar button:disabled {
   cursor: not-allowed;
-  background: #475569;
-  color: #94a3b8;
+  background: var(--color-industrial-light-text-secondary);
+  color: var(--color-industrial-dark-text-secondary);
 }
 
 .runtime-hold-grid {
@@ -339,7 +339,7 @@ onMounted(load)
   justify-content: flex-end;
   margin-top: 16px;
   padding: 12px 0 0;
-  background: linear-gradient(to top, #0f172a 72%, rgb(15 23 42 / 0%));
+  background: linear-gradient(to top, var(--color-industrial-dark-bg) 72%, rgb(15 23 42 / 0%));
 }
 
 @media (width <= 720px) {

@@ -97,8 +97,8 @@ import logoSvg from '@/assets/logo.svg'
   border: 1px solid rgb(148 163 184 / 30%);
   background: rgb(15 23 42 / 95%);
   box-shadow:
-    inset 0 0 40px rgb(245 158 11 / 10%),
-    0 0 30px rgb(245 158 11 / 10%);
+    inset 0 0 40px rgb(var(--color-primary-rgb) / 10%),
+    0 0 30px rgb(var(--color-primary-rgb) / 10%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -108,22 +108,22 @@ import logoSvg from '@/assets/logo.svg'
 
 /* 亮模式样式调整 */
 html:not(.dark) .cube-face {
-  border: 1px solid rgb(245 158 11 / 30%);
+  border: 1px solid rgb(var(--color-primary-rgb) / 30%);
   background: rgb(255 255 255 / 95%);
   box-shadow:
-    inset 0 0 40px rgb(245 158 11 / 10%),
-    0 0 30px rgb(245 158 11 / 10%);
+    inset 0 0 40px rgb(var(--color-primary-rgb) / 10%),
+    0 0 30px rgb(var(--color-primary-rgb) / 10%);
 }
 
 .cube-logo {
   width: 80%;
   height: 80%;
   object-fit: contain;
-  filter: drop-shadow(0 0 10px rgb(245 158 11 / 30%));
+  filter: drop-shadow(0 0 10px rgb(var(--color-primary-rgb) / 30%));
 }
 
 html:not(.dark) .cube-logo {
-  filter: drop-shadow(0 0 10px rgb(245 158 11 / 30%));
+  filter: drop-shadow(0 0 10px rgb(var(--color-primary-rgb) / 30%));
 }
 
 .cube-face-front {

@@ -367,9 +367,9 @@ html.dark .collapse-button {
 }
 
 html.dark .collapse-button:hover {
-  color: #f59e0b;
-  background: rgb(245 158 11 / 8%);
-  border-color: rgb(245 158 11 / 30%);
+  color: var(--color-primary);
+  background: rgb(var(--color-primary-rgb) / 8%);
+  border-color: rgb(var(--color-primary-rgb) / 30%);
 }
 
 /* 亮模式折叠按钮 */
@@ -380,9 +380,9 @@ html:not(.dark) .collapse-button {
 }
 
 html:not(.dark) .collapse-button:hover {
-  color: #f59e0b;
-  background: rgb(245 158 11 / 8%);
-  border-color: rgb(245 158 11 / 30%);
+  color: var(--color-primary);
+  background: rgb(var(--color-primary-rgb) / 8%);
+  border-color: rgb(var(--color-primary-rgb) / 30%);
 }
 
 .collapse-button {
@@ -415,7 +415,7 @@ html.dark .breadcrumb :deep(.el-breadcrumb__inner) {
 }
 
 html.dark .breadcrumb :deep(.el-breadcrumb__inner:hover) {
-  color: #f59e0b;
+  color: var(--color-primary);
 }
 
 html.dark .breadcrumb :deep(.el-breadcrumb__item:last-child .el-breadcrumb__inner) {
@@ -435,7 +435,7 @@ html:not(.dark) .breadcrumb :deep(.el-breadcrumb__inner) {
 }
 
 html:not(.dark) .breadcrumb :deep(.el-breadcrumb__inner:hover) {
-  color: #f59e0b;
+  color: var(--color-primary);
 }
 
 html:not(.dark) .breadcrumb :deep(.el-breadcrumb__item:last-child .el-breadcrumb__inner) {
@@ -475,9 +475,9 @@ html:not(.dark) .search-placeholder {
 }
 
 html:not(.dark) .search-placeholder:hover {
-  color: #f59e0b;
-  background: rgb(245 158 11 / 8%);
-  border-color: rgb(245 158 11 / 30%);
+  color: var(--color-primary);
+  background: rgb(var(--color-primary-rgb) / 8%);
+  border-color: rgb(var(--color-primary-rgb) / 30%);
 }
 
 .search-placeholder {
@@ -539,13 +539,13 @@ html:not(.dark) .dropdown-arrow {
 }
 
 html:not(.dark) .user-dropdown:hover .dropdown-arrow {
-  color: #f59e0b;
+  color: var(--color-primary);
 }
 
 .user-avatar {
-  color: #f59e0b;
-  background: rgb(245 158 11 / 10%);
-  border: 1px solid rgb(245 158 11 / 30%);
+  color: var(--color-primary);
+  background: rgb(var(--color-primary-rgb) / 10%);
+  border: 1px solid rgb(var(--color-primary-rgb) / 30%);
 }
 
 .user-name {
@@ -577,7 +577,7 @@ html.dark .user-dropdown-menu :deep(.el-dropdown-menu__item) {
 }
 
 html.dark .user-dropdown-menu :deep(.el-dropdown-menu__item:hover) {
-  background: rgb(245 158 11 / 8%);
+  background: rgb(var(--color-primary-rgb) / 8%);
   color: rgb(255 255 255 / 100%);
 }
 
@@ -597,8 +597,8 @@ html:not(.dark) .user-dropdown-menu :deep(.el-dropdown-menu__item) {
 }
 
 html:not(.dark) .user-dropdown-menu :deep(.el-dropdown-menu__item:hover) {
-  background: rgb(245 158 11 / 8%);
-  color: #f59e0b;
+  background: rgb(var(--color-primary-rgb) / 8%);
+  color: var(--color-primary);
 }
 
 html:not(.dark) .user-dropdown-menu :deep(.el-dropdown-menu__item.is-divided) {
@@ -649,16 +649,16 @@ html:not(.dark) .user-dropdown-menu :deep(.el-dropdown-menu__item.is-divided) {
 
 /* 暗黑模式时区标签 */
 html.dark .timezone-tag {
-  background: rgb(245 158 11 / 15%);
-  border-color: rgb(245 158 11 / 30%);
-  color: rgb(245 158 11 / 90%);
+  background: rgb(var(--color-primary-rgb) / 15%);
+  border-color: rgb(var(--color-primary-rgb) / 30%);
+  color: rgb(var(--color-primary-rgb) / 90%);
 }
 
 /* 亮模式时区标签 */
 html:not(.dark) .timezone-tag {
-  background: rgb(245 158 11 / 8%);
-  border-color: rgb(245 158 11 / 30%);
-  color: #f59e0b;
+  background: rgb(var(--color-primary-rgb) / 8%);
+  border-color: rgb(var(--color-primary-rgb) / 30%);
+  color: var(--color-primary);
 }
 
 /* ==================== 响应式设计 ==================== */

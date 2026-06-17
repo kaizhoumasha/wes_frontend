@@ -208,12 +208,12 @@ html.dark .sidebar-submenu-popup .el-menu-item {
 }
 
 html.dark .sidebar-submenu-popup .el-menu-item:hover {
-  background: rgb(245 158 11 / 8%) !important;
+  background: rgb(var(--color-primary-rgb) / 8%) !important;
 }
 
 html.dark .sidebar-submenu-popup .el-menu-item.is-active {
-  background: rgb(245 158 11 / 12%) !important;
-  color: #f59e0b !important;
+  background: rgb(var(--color-primary-rgb) / 12%) !important;
+  color: var(--color-primary) !important;
 }
 
 /* 亮模式子菜单弹出层 */
@@ -233,7 +233,7 @@ html:not(.dark) .sidebar-submenu-popup .el-menu-item:hover {
 }
 
 html:not(.dark) .sidebar-submenu-popup .el-menu-item.is-active {
-  background: #f59e0b !important;
+  background: var(--color-primary) !important;
   color: #fff !important;
 }
 

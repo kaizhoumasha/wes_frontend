@@ -65,10 +65,10 @@ defineProps<{
 
 <style scoped>
 .device-health-hero {
-  border: 1px solid rgb(245, 158, 11, 0.16);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.16);
   border-radius: 16px;
   background:
-    radial-gradient(circle at top right, rgb(245, 158, 11, 0.12), transparent 32%),
+    radial-gradient(circle at top right, rgb(var(--color-primary-rgb) / 0.12), transparent 32%),
     linear-gradient(180deg, rgb(30, 41, 59, 0.96), rgb(15, 23, 42, 0.94));
 }
 
@@ -92,7 +92,7 @@ defineProps<{
 
 .device-health-hero__eyebrow,
 .device-health-hero__fact span {
-  color: #94a3b8;
+  color: var(--color-industrial-dark-text-secondary);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -101,7 +101,7 @@ defineProps<{
 
 .device-health-hero__title {
   margin: 0;
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
   font-size: 24px;
   font-weight: 700;
   line-height: 1.2;
@@ -121,7 +121,7 @@ defineProps<{
 .device-health-hero__fact strong {
   display: block;
   margin-top: 6px;
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
   font-family: var(--font-mono);
   font-size: 13px;
   line-height: 1.45;

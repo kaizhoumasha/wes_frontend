@@ -151,22 +151,22 @@ const ackStateLabel = computed(() =>
 }
 
 .monitor-command-chain__pill--pending {
-  background: rgb(59, 130, 246, 0.14);
-  color: #3b82f6;
+  background: rgb(var(--color-info-rgb) / 0.14);
+  color: var(--color-info);
 }
 
 .monitor-command-chain__pill--acked {
-  background: rgb(22, 163, 74, 0.14);
-  color: #16a34a;
+  background: rgb(var(--color-success-rgb) / 0.14);
+  color: var(--color-success);
 }
 
 .monitor-command-chain__pill--rejected {
-  background: rgb(220, 38, 38, 0.14);
-  color: #dc2626;
+  background: rgb(var(--color-danger-rgb) / 0.14);
+  color: var(--color-danger);
 }
 
 .monitor-command-chain__pill--expired {
-  background: rgb(234, 179, 8, 0.14);
+  background: rgb(var(--color-warning-rgb) / 0.14);
   color: #b45309;
 }
 

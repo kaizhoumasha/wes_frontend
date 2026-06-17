@@ -441,7 +441,7 @@ watch(
 }
 
 .runtime-overview__trace-panel {
-  border: 1px solid var(--runtime-border, rgb(245, 158, 11, 0.12));
+  border: 1px solid var(--runtime-border, rgb(var(--color-primary-rgb) / 0.12));
   border-radius: 14px;
   background: var(--runtime-surface, rgb(30, 41, 59, 0.8));
   overflow: hidden;
@@ -453,7 +453,7 @@ watch(
   align-items: center;
 }
 .runtime-overview__trace-panel-title {
-  color: var(--runtime-text-secondary, #94a3b8);
+  color: var(--runtime-text-secondary);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -466,14 +466,14 @@ watch(
   margin-top: 6px;
   padding: 6px 12px;
   border-radius: 6px;
-  background: var(--runtime-surface-accent, rgb(234, 179, 8, 0.08));
-  color: var(--runtime-tier-watch, #eab308);
+  background: var(--runtime-surface-accent, rgb(var(--color-warning-rgb) / 0.08));
+  color: var(--runtime-tier-watch, var(--color-warning));
   font-size: 11px;
   font-weight: 600;
 }
 
 .runtime-overview__health-collapse {
-  border: 1px solid var(--runtime-border, rgb(245, 158, 11, 0.12));
+  border: 1px solid var(--runtime-border, rgb(var(--color-primary-rgb) / 0.12));
   border-radius: 14px;
   background: var(--runtime-surface, rgb(30, 41, 59, 0.8));
 }
@@ -481,7 +481,7 @@ watch(
   padding: 0 16px;
   border-bottom: none;
   background: transparent;
-  color: var(--runtime-text-primary, #f8fafc);
+  color: var(--runtime-text-primary);
   font-size: 14px;
   font-weight: 700;
   height: 44px;
@@ -496,7 +496,7 @@ watch(
 }
 
 .runtime-overview__health-title {
-  color: var(--runtime-text-secondary, #94a3b8);
+  color: var(--runtime-text-secondary);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.04em;

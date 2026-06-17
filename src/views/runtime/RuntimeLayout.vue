@@ -55,7 +55,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 12px;
   min-height: 0;
-  background: #0f172a;
+  background: var(--color-industrial-dark-bg);
 }
 
 .runtime-layout.is-immersive {
@@ -73,7 +73,7 @@ onBeforeUnmount(() => {
   gap: 12px;
   padding: 10px 16px;
   background: rgb(15 23 42 / 0.95);
-  border-bottom: 1px solid rgb(245 158 11 / 0.12);
+  border-bottom: 1px solid rgb(var(--color-primary-rgb) / 0.12);
   backdrop-filter: blur(12px);
 }
 </style>

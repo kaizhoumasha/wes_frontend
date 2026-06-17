@@ -130,14 +130,14 @@ onMounted(() => void loadWorklines())
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: rgb(245, 158, 11, 0.12);
+  background: rgb(var(--color-primary-rgb) / 0.12);
   margin-bottom: 4px;
 }
 
 .sandbox-entry__icon svg {
   width: 24px;
   height: 24px;
-  color: #f59e0b;
+  color: var(--color-primary);
 }
 
 .sandbox-entry__title {
@@ -166,7 +166,7 @@ onMounted(() => void loadWorklines())
   gap: 4px;
   width: 100%;
   padding: 16px 48px 16px 20px;
-  border: 1px solid rgb(245, 158, 11, 0.14);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.14);
   border-radius: 12px;
   background: var(--runtime-surface);
   text-align: left;
@@ -175,8 +175,8 @@ onMounted(() => void loadWorklines())
 }
 
 .sandbox-entry__card:hover {
-  border-color: rgb(245, 158, 11, 0.35);
-  background: rgb(245, 158, 11, 0.04);
+  border-color: rgb(var(--color-primary-rgb) / 0.35);
+  background: rgb(var(--color-primary-rgb) / 0.04);
 }
 
 .sandbox-entry__card-head {
@@ -212,7 +212,7 @@ onMounted(() => void loadWorklines())
 
 .sandbox-entry__card:hover .sandbox-entry__card-arrow {
   opacity: 1;
-  color: #f59e0b;
+  color: var(--color-primary);
 }
 
 .sandbox-entry__card-arrow svg {

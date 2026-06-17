@@ -72,11 +72,11 @@ defineProps<{
 }
 
 .monitor-tote-twin-card--info::before {
-  background: #3b82f6;
+  background: var(--color-info);
 }
 
 .monitor-tote-twin-card--warning::before {
-  background: #eab308;
+  background: var(--color-warning);
 }
 
 .monitor-tote-twin-card__header {
@@ -105,8 +105,8 @@ defineProps<{
 .monitor-tote-twin-card__type {
   padding: 2px 6px;
   border-radius: 4px;
-  background: rgb(59, 130, 246, 0.12);
-  color: #3b82f6;
+  background: rgb(var(--color-info-rgb) / 0.12);
+  color: var(--color-info);
   font-size: 11px;
   font-weight: 600;
 }
@@ -147,7 +147,7 @@ defineProps<{
 }
 
 .monitor-tote-twin-card__row--info dd {
-  color: #3b82f6;
+  color: var(--color-info);
 }
 
 .monitor-tote-twin-card__row--warning dd {
@@ -155,6 +155,6 @@ defineProps<{
 }
 
 .monitor-tote-twin-card__row--danger dd {
-  color: #dc2626;
+  color: var(--color-danger);
 }
 </style>

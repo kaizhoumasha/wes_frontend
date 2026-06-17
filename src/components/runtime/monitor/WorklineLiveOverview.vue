@@ -295,7 +295,7 @@ onBeforeUnmount(() => {
 
 .workline-live-overview__resize-handle:hover::before,
 .workline-live-overview__resize-handle:focus-visible::before {
-  background: rgb(245, 158, 11, 0.6);
+  background: rgb(var(--color-primary-rgb) / 0.6);
 }
 
 .monitor-event-log {
@@ -355,7 +355,7 @@ onBeforeUnmount(() => {
 }
 
 .monitor-event-log__tag.is-warn {
-  color: var(--runtime-badge-warning-text, #f59e0b);
+  color: var(--runtime-badge-warning-text, var(--color-primary));
 }
 
 .monitor-event-log__tag.is-err {

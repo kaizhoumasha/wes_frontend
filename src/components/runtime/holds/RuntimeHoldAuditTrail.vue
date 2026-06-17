@@ -41,7 +41,7 @@ defineProps<{
 <style scoped>
 .runtime-hold-panel {
   padding: 18px;
-  border: 1px solid rgb(245, 158, 11, 0.14);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.14);
   border-radius: 8px;
   background: rgb(30, 41, 59, 0.74);
 }
@@ -55,12 +55,12 @@ defineProps<{
 
 .runtime-hold-panel h2 {
   margin: 0;
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
   font-size: 16px;
 }
 
 .runtime-hold-panel header span {
-  color: #f59e0b;
+  color: var(--color-primary);
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
 }
@@ -78,13 +78,13 @@ defineProps<{
 }
 
 .runtime-hold-kv dt {
-  color: #94a3b8;
+  color: var(--color-industrial-dark-text-secondary);
 }
 
 .runtime-hold-kv dd {
   min-width: 0;
   margin: 0;
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
   overflow-wrap: anywhere;
   font-family: 'JetBrains Mono', monospace;
 }

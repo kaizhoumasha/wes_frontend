@@ -912,7 +912,7 @@ watch(
   width: 100%;
   overflow: hidden;
   background:
-    radial-gradient(circle, rgb(245 158 11 / 0.04) 1px, transparent 1px),
+    radial-gradient(circle, rgb(var(--color-primary-rgb) / 0.04) 1px, transparent 1px),
     linear-gradient(180deg, rgb(15 23 42), rgb(10 15 30));
   background-size:
     20px 20px,

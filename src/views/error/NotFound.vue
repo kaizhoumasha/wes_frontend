@@ -186,8 +186,8 @@ function goDashboard(): void {
 }
 
 html.dark .maze-icon {
-  color: #f59e0b;
-  filter: drop-shadow(0 0 10px rgb(245 158 11 / 40%));
+  color: var(--color-primary);
+  filter: drop-shadow(0 0 10px rgb(var(--color-primary-rgb) / 40%));
 }
 
 html:not(.dark) .maze-icon {
@@ -215,7 +215,7 @@ html:not(.dark) .maze-icon {
 }
 
 html.dark .compass-ring {
-  border-color: rgb(245 158 11 / 25%);
+  border-color: rgb(var(--color-primary-rgb) / 25%);
 }
 
 html:not(.dark) .compass-ring {
@@ -250,7 +250,7 @@ html.dark .label {
 }
 
 html:not(.dark) .label {
-  color: #64748b;
+  color: var(--color-industrial-dark-text-muted);
 }
 
 .path-code {
@@ -265,12 +265,12 @@ html:not(.dark) .label {
 html.dark .path-code {
   background: rgb(0 0 0 / 40%);
   color: #7cf7ff;
-  border: 1px solid rgb(245 158 11 / 15%);
+  border: 1px solid rgb(var(--color-primary-rgb) / 15%);
 }
 
 html:not(.dark) .path-code {
   background: #fff;
-  color: #1e293b;
+  color: var(--color-industrial-dark-surface);
   border: 1px solid #e2e8f0;
 }
 
@@ -299,22 +299,22 @@ html:not(.dark) .path-code {
 }
 
 html.dark .btn-primary {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   color: #0d1117;
   box-shadow:
-    0 4px 20px rgb(245 158 11 / 30%),
+    0 4px 20px rgb(var(--color-primary-rgb) / 30%),
     inset 0 1px 0 rgb(255 255 255 / 20%);
 }
 
 html.dark .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow:
-    0 8px 30px rgb(245 158 11 / 40%),
+    0 8px 30px rgb(var(--color-primary-rgb) / 40%),
     inset 0 1px 0 rgb(255 255 255 / 20%);
 }
 
 html:not(.dark) .btn-primary {
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, #1e40af 0%, var(--color-info) 100%);
   color: #fff;
   box-shadow: 0 4px 20px rgb(30 64 175 / 25%);
 }
@@ -335,17 +335,17 @@ html.dark .btn-secondary {
 
 html.dark .btn-secondary:hover {
   background: rgb(255 255 255 / 5%);
-  border-color: rgb(245 158 11 / 30%);
+  border-color: rgb(var(--color-primary-rgb) / 30%);
   transform: translateY(-2px);
 }
 
 html:not(.dark) .btn-secondary {
-  color: #475569;
+  color: var(--color-industrial-light-text-secondary);
   border: 1px solid #cbd5e1;
 }
 
 html:not(.dark) .btn-secondary:hover {
-  background: #f8fafc;
+  background: var(--color-industrial-dark-text);
   border-color: #1e40af;
   color: #1e40af;
   transform: translateY(-2px);

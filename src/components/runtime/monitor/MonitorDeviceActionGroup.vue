@@ -121,7 +121,7 @@ const hasAvailableAction = computed(() => hasPrimaryAction.value || props.canMan
   gap: 8px;
   align-items: center;
   padding: 12px;
-  border: 1px solid var(--runtime-border-subtle, rgb(148, 163, 184, 0.2));
+  border: 1px solid var(--runtime-border-subtle, rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.2));
   border-radius: 8px;
   background: var(--runtime-surface);
 }
@@ -143,27 +143,27 @@ const hasAvailableAction = computed(() => hasPrimaryAction.value || props.canMan
 }
 
 .monitor-device-action-group__btn:focus-visible {
-  outline: 2px solid #f59e0b;
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
 .monitor-device-action-group__btn--primary {
-  background: #f59e0b;
-  color: #0f172a;
+  background: var(--color-primary);
+  color: var(--color-industrial-dark-bg);
 }
 
 .monitor-device-action-group__btn--primary:hover:not(:disabled) {
-  background: #d97706;
+  background: var(--color-primary-dark);
 }
 
 .monitor-device-action-group__btn--ghost {
-  border-color: rgb(245, 158, 11, 0.4);
+  border-color: rgb(var(--color-primary-rgb) / 0.4);
   background: transparent;
-  color: #f59e0b;
+  color: var(--color-primary);
 }
 
 .monitor-device-action-group__btn--ghost:hover:not(:disabled) {
-  background: rgb(245, 158, 11, 0.1);
+  background: rgb(var(--color-primary-rgb) / 0.1);
 }
 
 .monitor-device-action-group__empty {

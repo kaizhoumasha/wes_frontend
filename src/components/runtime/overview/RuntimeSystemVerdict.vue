@@ -69,7 +69,7 @@ const verdictDetail = computed(() => {
   gap: 14px;
   padding: 16px 20px;
   border-radius: 14px;
-  border: 1px solid var(--runtime-border, rgb(245, 158, 11, 0.12));
+  border: 1px solid var(--runtime-border, rgb(var(--color-primary-rgb) / 0.12));
   background: var(--runtime-surface, rgb(30, 41, 59, 0.8));
   transition:
     background 0.3s ease,
@@ -77,18 +77,18 @@ const verdictDetail = computed(() => {
 }
 
 .runtime-verdict--ok {
-  border-color: rgb(22, 163, 74, 0.28);
-  background: rgb(22, 163, 74, 0.08);
+  border-color: rgb(var(--color-success-rgb) / 0.28);
+  background: rgb(var(--color-success-rgb) / 0.08);
 }
 
 .runtime-verdict--watch {
-  border-color: rgb(234, 179, 8, 0.32);
-  background: rgb(234, 179, 8, 0.1);
+  border-color: rgb(var(--color-warning-rgb) / 0.32);
+  background: rgb(var(--color-warning-rgb) / 0.1);
 }
 
 .runtime-verdict--critical {
-  border-color: rgb(220, 38, 38, 0.32);
-  background: rgb(220, 38, 38, 0.1);
+  border-color: rgb(var(--color-danger-rgb) / 0.32);
+  background: rgb(var(--color-danger-rgb) / 0.1);
 }
 
 .runtime-verdict__indicator {
@@ -100,22 +100,22 @@ const verdictDetail = computed(() => {
   width: 12px;
   height: 12px;
   border-radius: 999px;
-  background: var(--runtime-text-secondary, #94a3b8);
+  background: var(--runtime-text-secondary);
 }
 
 .runtime-verdict--ok .runtime-verdict__dot {
-  background: #16a34a;
-  box-shadow: 0 0 8px rgb(22, 163, 74, 0.5);
+  background: var(--color-success);
+  box-shadow: 0 0 8px rgb(var(--color-success-rgb) / 0.5);
 }
 
 .runtime-verdict--watch .runtime-verdict__dot {
-  background: #eab308;
-  box-shadow: 0 0 8px rgb(234, 179, 8, 0.5);
+  background: var(--color-warning);
+  box-shadow: 0 0 8px rgb(var(--color-warning-rgb) / 0.5);
 }
 
 .runtime-verdict--critical .runtime-verdict__dot {
-  background: #dc2626;
-  box-shadow: 0 0 8px rgb(220, 38, 38, 0.5);
+  background: var(--color-danger);
+  box-shadow: 0 0 8px rgb(var(--color-danger-rgb) / 0.5);
 }
 
 .runtime-verdict__body {
@@ -126,13 +126,13 @@ const verdictDetail = computed(() => {
 }
 
 .runtime-verdict__message {
-  color: var(--runtime-text-primary, #f8fafc);
+  color: var(--runtime-text-primary);
   font-size: 16px;
   font-weight: 700;
 }
 
 .runtime-verdict__detail {
-  color: var(--runtime-text-secondary, #94a3b8);
+  color: var(--runtime-text-secondary);
   font-size: 13px;
   line-height: 1.5;
 }
