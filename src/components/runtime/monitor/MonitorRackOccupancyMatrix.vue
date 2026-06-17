@@ -6,53 +6,72 @@
   >
     <header class="monitor-rack-occupancy-matrix__header">
       <span class="monitor-rack-occupancy-matrix__title">货架占用矩阵</span>
-      <span class="monitor-rack-occupancy-matrix__count">{{ view.slots.length }} 槽位</span>
+      <span class="monitor-rack-occupancy-matrix__count">
+        {{ view.rackCode }} · {{ view.totalCellCount }} 槽位
+      </span>
     </header>
-    <div
-      class="monitor-rack-occupancy-matrix__grid"
-      :style="{ gridTemplateColumns: `repeat(${view.columns}, minmax(0, 1fr))` }"
-    >
-      <button
-        v-for="slot in view.slots"
-        :key="slot.key"
-        type="button"
-        :class="[
-          'monitor-rack-occupancy-matrix__slot',
-          `monitor-rack-occupancy-matrix__slot--${slot.state}`,
-          slot.key === selectedSlotKey
-            ? 'monitor-rack-occupancy-matrix__slot--selected'
-            : null
-        ]"
-        :data-state="slot.state"
-        :data-slot-key="slot.key"
-        :data-selected="slot.key === selectedSlotKey ? 'true' : undefined"
-        data-test="monitor-rack-occupancy-matrix-slot"
-        @click="emit('select', slot.key)"
+
+    <div class="monitor-rack-occupancy-matrix__groups">
+      <section
+        v-for="group in view.slotGroups"
+        :key="group.key"
+        class="monitor-rack-occupancy-matrix__slot-group"
+        :data-slot-code="group.code"
+        data-test="monitor-rack-occupancy-matrix-slot-group"
       >
-        <span class="monitor-rack-occupancy-matrix__slot-code">{{ slot.code }}</span>
-        <span
-          v-if="slot.tote"
-          class="monitor-rack-occupancy-matrix__slot-tote"
+        <div class="monitor-rack-occupancy-matrix__slot-group-head">
+          <span class="monitor-rack-occupancy-matrix__slot-code">SLOT {{ group.code }}</span>
+          <span class="monitor-rack-occupancy-matrix__bin-label">{{ group.binDisplayLabel }}</span>
+        </div>
+        <div
+          class="monitor-rack-occupancy-matrix__cell-grid"
+          :style="{
+            gridTemplateColumns: `repeat(${group.cells.length}, minmax(0, 1fr))`
+          }"
         >
-          {{ slot.tote }}
-        </span>
-        <span
-          v-if="slot.alarm"
-          class="monitor-rack-occupancy-matrix__slot-alarm"
-        >
-          {{ slot.alarm }}
-        </span>
-      </button>
+          <button
+            v-for="cell in group.cells"
+            :key="cell.key"
+            type="button"
+            :class="[
+              'monitor-rack-occupancy-matrix__cell',
+              `monitor-rack-occupancy-matrix__cell--${cell.state}`,
+              cell.key === selectedSlotKey
+                ? 'monitor-rack-occupancy-matrix__cell--selected'
+                : null
+            ]"
+            :data-state="cell.state"
+            :data-slot-key="cell.key"
+            :data-selected="cell.key === selectedSlotKey ? 'true' : undefined"
+            data-test="monitor-rack-occupancy-matrix-slot"
+            @click="emit('select', cell.key)"
+          >
+            <span class="monitor-rack-occupancy-matrix__cell-code">{{ cell.code }}</span>
+            <span
+              v-if="cell.tote"
+              class="monitor-rack-occupancy-matrix__cell-tote"
+            >
+              {{ cell.tote }}
+            </span>
+            <span
+              v-if="cell.alarm"
+              class="monitor-rack-occupancy-matrix__cell-alarm"
+            >
+              {{ cell.alarm }}
+            </span>
+          </button>
+        </div>
+      </section>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { RuntimeSceneRackOccupancyView } from '@/utils/runtime-scene'
+import type { RuntimeSceneRackHierarchyView } from '@/utils/runtime-scene'
 
 withDefaults(
   defineProps<{
-    view: RuntimeSceneRackOccupancyView | null
+    view: RuntimeSceneRackHierarchyView | null
     selectedSlotKey?: string | null
   }>(),
   { selectedSlotKey: null }
@@ -91,12 +110,48 @@ const emit = defineEmits<{
   font-size: 11px;
 }
 
-.monitor-rack-occupancy-matrix__grid {
+.monitor-rack-occupancy-matrix__groups {
+  display: grid;
+  gap: 12px;
+}
+
+.monitor-rack-occupancy-matrix__slot-group {
+  display: grid;
+  gap: 6px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--runtime-border-subtle, rgb(148, 163, 184, 0.25));
+}
+
+.monitor-rack-occupancy-matrix__slot-group:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.monitor-rack-occupancy-matrix__slot-group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 11px;
+}
+
+.monitor-rack-occupancy-matrix__slot-code {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--runtime-text);
+}
+
+.monitor-rack-occupancy-matrix__bin-label {
+  color: var(--runtime-text-muted);
+  font-weight: 600;
+}
+
+.monitor-rack-occupancy-matrix__cell-grid {
   display: grid;
   gap: 6px;
 }
 
-.monitor-rack-occupancy-matrix__slot {
+.monitor-rack-occupancy-matrix__cell {
   display: grid;
   gap: 2px;
   padding: 8px 6px;
@@ -108,50 +163,50 @@ const emit = defineEmits<{
   transition: transform 0.1s ease;
 }
 
-.monitor-rack-occupancy-matrix__slot:hover {
+.monitor-rack-occupancy-matrix__cell:hover {
   transform: translateY(-1px);
 }
 
-.monitor-rack-occupancy-matrix__slot--empty {
+.monitor-rack-occupancy-matrix__cell--empty {
   border-color: var(--runtime-border-subtle, rgb(148, 163, 184, 0.25));
   border-style: dashed;
   background: transparent;
   color: var(--runtime-text-muted);
 }
 
-.monitor-rack-occupancy-matrix__slot--occupied {
+.monitor-rack-occupancy-matrix__cell--occupied {
   border-color: rgb(59, 130, 246, 0.4);
   background: rgb(59, 130, 246, 0.12);
   color: #3b82f6;
 }
 
-.monitor-rack-occupancy-matrix__slot--reconciling {
+.monitor-rack-occupancy-matrix__cell--reconciling {
   border-color: rgb(234, 179, 8, 0.5);
   background: rgb(234, 179, 8, 0.14);
   color: #b45309;
   animation: monitor-rack-occupancy-blink 1.2s infinite alternate;
 }
 
-.monitor-rack-occupancy-matrix__slot--selected {
+.monitor-rack-occupancy-matrix__cell--selected {
   border-color: rgb(59, 130, 246, 0.95);
   background: rgb(59, 130, 246, 0.22);
   box-shadow: 0 0 0 2px rgb(59, 130, 246, 0.4);
 }
 
-.monitor-rack-occupancy-matrix__slot-code {
+.monitor-rack-occupancy-matrix__cell-code {
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
   font-size: 12px;
   font-weight: 700;
   overflow-wrap: anywhere;
 }
 
-.monitor-rack-occupancy-matrix__slot-tote {
+.monitor-rack-occupancy-matrix__cell-tote {
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
   font-size: 11px;
   overflow-wrap: anywhere;
 }
 
-.monitor-rack-occupancy-matrix__slot-alarm {
+.monitor-rack-occupancy-matrix__cell-alarm {
   font-size: 10px;
   font-weight: 600;
 }

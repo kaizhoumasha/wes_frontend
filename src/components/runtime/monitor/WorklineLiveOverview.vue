@@ -26,10 +26,20 @@
       />
     </el-card>
 
+    <div
+      class="workline-live-overview__resize-handle"
+      data-test="workline-live-overview-resize-handle"
+      role="separator"
+      aria-orientation="horizontal"
+      aria-label="调整即时事件日志高度"
+      @mousedown="onResizeStart"
+    ></div>
+
     <section
       class="monitor-event-log"
       data-test="monitor-event-log-panel"
       aria-label="即时事件日志"
+      :style="{ flexBasis: eventLogHeight + 'px' }"
     >
       <header class="monitor-event-log__header">
         <div class="monitor-event-log__title">即时事件日志</div>
@@ -66,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import DecisionStrip from '@/components/runtime/devices/DecisionStrip.vue'
 import RuntimeSceneMap from '@/components/runtime/monitor/RuntimeSceneMap.vue'
 import { useRuntimeSceneManifest } from '@/composables/useRuntimeSceneManifest'
@@ -146,24 +156,123 @@ watch(
   },
   { immediate: true }
 )
+
+// ---------------------------------------------------------------------------
+// Resizable event log
+// ---------------------------------------------------------------------------
+
+const EVENT_LOG_MIN_HEIGHT = 80
+const EVENT_LOG_MAX_HEIGHT = 480
+const EVENT_LOG_DEFAULT_HEIGHT = 140
+
+const eventLogHeight = ref(EVENT_LOG_DEFAULT_HEIGHT)
+let dragOrigin: { clientY: number; height: number } | null = null
+
+function onResizeStart(event: MouseEvent): void {
+  if (event.button !== 0) return
+  event.preventDefault()
+  dragOrigin = { clientY: event.clientY, height: eventLogHeight.value }
+  window.addEventListener('mousemove', onResizeMove)
+  window.addEventListener('mouseup', onResizeEnd)
+  // 拖动时禁止文字选中
+  document.body.style.userSelect = 'none'
+  document.body.style.cursor = 'row-resize'
+}
+
+function onResizeMove(event: MouseEvent): void {
+  if (!dragOrigin) return
+  const delta = event.clientY - dragOrigin.clientY
+  // 拖动 handle 向上 → 减高度（事件日志缩小，canvas 占更大空间）
+  // 拖动 handle 向下 → 增高度
+  const next = dragOrigin.height - delta
+  eventLogHeight.value = Math.min(
+    EVENT_LOG_MAX_HEIGHT,
+    Math.max(EVENT_LOG_MIN_HEIGHT, next)
+  )
+}
+
+function onResizeEnd(): void {
+  dragOrigin = null
+  window.removeEventListener('mousemove', onResizeMove)
+  window.removeEventListener('mouseup', onResizeEnd)
+  document.body.style.userSelect = ''
+  document.body.style.cursor = ''
+}
+
+onBeforeUnmount(() => {
+  // 组件卸载时清理全局事件监听
+  window.removeEventListener('mousemove', onResizeMove)
+  window.removeEventListener('mouseup', onResizeEnd)
+  document.body.style.userSelect = ''
+  document.body.style.cursor = ''
+})
 </script>
 
 <style scoped>
 .workline-live-overview {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0;
   min-height: 0;
+
+  /*
+   * runtime-panel 占满剩余空间，event-log 高度由拖动控制。两者之间的
+   * resize-handle 占用 4px 并提供拖动手柄。
+   */
 }
 
 .workline-live-overview :deep(.runtime-panel) {
   flex: 1 1 auto;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 让 el-card body 内部允许 RuntimeSceneMap 占满高度 */
+.workline-live-overview :deep(.runtime-panel .el-card__body) {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+}
+
+.workline-live-overview :deep(.runtime-panel .el-card__body > *) {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/*
+ * 拖动条：4px 高的水平条，hover 时变明显，鼠标移上去变 row-resize 光标。
+ */
+.workline-live-overview__resize-handle {
+  flex: 0 0 4px;
+  cursor: row-resize;
+  background: transparent;
+  position: relative;
+}
+
+.workline-live-overview__resize-handle::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 36px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--runtime-border-subtle, rgb(148, 163, 184, 0.25));
+  transition: background 150ms ease-out;
+}
+
+.workline-live-overview__resize-handle:hover::before,
+.workline-live-overview__resize-handle:focus-visible::before {
+  background: rgb(245, 158, 11, 0.6);
 }
 
 .monitor-event-log {
-  flex: 0 0 140px;
-  min-height: 120px;
+  flex: 0 0 auto;
+  min-height: 80px;
   padding: 10px 14px;
   border: 1px solid var(--runtime-border-subtle, rgb(148 163 184 / 0.2));
   border-radius: 8px;

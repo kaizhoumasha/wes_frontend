@@ -266,7 +266,7 @@ function createMountOptions() {
           name: 'MonitorRackOccupancyMatrix',
           props: ['view', 'selectedSlotKey'],
           template:
-            '<div data-test="monitor-rack-occupancy-matrix" :data-slot-count="view?.slots?.length ?? 0" :data-selected-slot-key="selectedSlotKey === null || selectedSlotKey === undefined ? \'null\' : selectedSlotKey"><button data-test="rack-slot-cell-1" @click="$emit(\'select\', \'cell-1\')" /><button data-test="rack-slot-cell-2" @click="$emit(\'select\', \'cell-2\')" /></div>'
+            '<div data-test="monitor-rack-occupancy-matrix" :data-slot-count="view?.slotGroups?.reduce((acc, g) => acc + g.cells.length, 0) ?? 0" :data-selected-slot-key="selectedSlotKey === null || selectedSlotKey === undefined ? \'null\' : selectedSlotKey"><button data-test="rack-slot-cell-1" @click="$emit(\'select\', \'cell-1\')" /><button data-test="rack-slot-cell-2" @click="$emit(\'select\', \'cell-2\')" /></div>'
         }
       }
     }
@@ -501,6 +501,18 @@ describe('WorklineMonitorPage assembly (T10)', () => {
         rack_code: 'RACK-101',
         bin_code: 'BIN-101',
         cell_code: 'CELL-A1'
+      },
+      {
+        resource_kind: 'CELL',
+        resource_code: 'CELL-A1',
+        display_label: 'Cell CELL-A1',
+        evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+        station_code: 'TARGET_ARM',
+        position_code: 'SINGLE_LAYER_A',
+        rack_code: 'RACK-101',
+        slot_code: 'A',
+        bin_code: 'BIN-101',
+        cell_code: 'CELL-A1'
       }
     ]
     worklineProjectionSend.mockResolvedValue(createProjection(301, { rackEvidence }))
@@ -528,6 +540,18 @@ describe('WorklineMonitorPage assembly (T10)', () => {
         station_code: 'TARGET_ARM',
         position_code: 'SINGLE_LAYER_A',
         rack_code: 'RACK-101',
+        bin_code: 'BIN-101',
+        cell_code: 'CELL-A1'
+      },
+      {
+        resource_kind: 'CELL',
+        resource_code: 'CELL-A1',
+        display_label: 'Cell CELL-A1',
+        evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+        station_code: 'TARGET_ARM',
+        position_code: 'SINGLE_LAYER_A',
+        rack_code: 'RACK-101',
+        slot_code: 'A',
         bin_code: 'BIN-101',
         cell_code: 'CELL-A1'
       }

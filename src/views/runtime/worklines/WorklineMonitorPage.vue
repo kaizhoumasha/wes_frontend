@@ -411,7 +411,7 @@ import { getWorklineDeviceSafetyEvidence, getWorklineRuntimeVerdict } from '@/ut
 import { getErrorMessage } from '@/utils/string'
 import { buildRuntimeWorklineQuery } from '@/utils/runtime-route'
 import {
-  buildRackOccupancyView,
+  buildRackHierarchyView,
   buildSelectedDeviceCommandView
 } from '@/utils/runtime-scene'
 import {
@@ -585,7 +585,7 @@ const busyAnyAction = computed(
 
 const deviceRackOccupancyView = computed(() => {
   if (!store.projection) return null
-  return buildRackOccupancyView(store.projection, { columns: 4 })
+  return buildRackHierarchyView(store.projection)
 })
 
 // panelMode drives the right-side aside: business when a rack-position is

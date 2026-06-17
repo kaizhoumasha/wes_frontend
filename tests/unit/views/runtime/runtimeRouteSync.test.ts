@@ -229,9 +229,21 @@ function createWorklineProjection(
           rack_code: 'RACK-101',
           bin_code: 'BIN-101',
           cell_code: 'CELL-A1'
+        },
+        {
+          resource_kind: 'CELL',
+          resource_code: 'CELL-A1',
+          display_label: 'Cell CELL-A1',
+          evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+          station_code: 'TARGET_ARM',
+          position_code: 'SINGLE_LAYER_A',
+          rack_code: 'RACK-101',
+          slot_code: 'A',
+          bin_code: 'BIN-101',
+          cell_code: 'CELL-A1'
         }
       ],
-      total_count: 2,
+      total_count: 3,
       truncated: false
     },
     action_candidates: {

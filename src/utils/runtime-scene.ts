@@ -320,6 +320,36 @@ export interface RuntimeSceneRackOccupancyView {
   slots: RuntimeSceneRackOccupancySlotView[]
 }
 
+/**
+ * 层级化货位视图：一个货架按 (slot_code, bin_code) 分组，每个分组下是该 bin
+ * 的 cell 列表。SLOT 是行号别名、Bin 是该行的料箱，SLOT ↔ Bin 一一对应。
+ *
+ * 与扁平 {@link RuntimeSceneRackOccupancyView} 的区别：扁平版本把所有含
+ * `cell_code`/`bin_code`/`slot_code` 的 evidence items 都当槽位展示，
+ * 导致 SLOT/BIN/CELL/PKG 四个层级混入 4+4+18+1=27 条；层级版只取
+ * `resource_kind === 'CELL'` 的物理 cell 条目（18 条），按业务定义组织。
+ */
+export interface RuntimeSceneRackSlotGroup {
+  /**
+   * 分组唯一 key，格式 `${rackCode}:${slotCode}`。
+   */
+  key: string
+  /** 行号别名，如 "A" / "B" / "C" / "D" */
+  code: string
+  /** 该 SLOT 关联的料箱 code，如 "BIN-001" */
+  binCode: string
+  /** 料箱显示名（来自 BIN 摘要条目）；fallback 到 `binCode` 本身 */
+  binDisplayLabel: string
+  /** 该 slot/bin 下的物理 cell 列表 */
+  cells: RuntimeSceneRackOccupancySlotView[]
+}
+
+export interface RuntimeSceneRackHierarchyView {
+  rackCode: string
+  slotGroups: RuntimeSceneRackSlotGroup[]
+  totalCellCount: number
+}
+
 export function buildSelectedDeviceCommandView(
   device: RuntimeMonitorDeviceNode | null
 ): RuntimeSceneCommandSnapshotView | null {
@@ -402,17 +432,17 @@ export function buildSelectedDeviceToteTwinView(
   }
 }
 
+/**
+ * @deprecated v2026-06 起改用 {@link buildRackHierarchyView}。旧实现把所有含
+ * `cell_code`/`bin_code`/`slot_code` 的 evidence items 都当槽位展示，导致
+ * SLOT/BIN/CELL/PKG 四个层级混入（27 条）。保留以避免破坏外部消费者，
+ * 下个版本将移除。
+ */
 export function buildRackOccupancyView(
   projection: RuntimeWorklineMonitorProjectionResponse,
   options?: { columns?: number }
 ): RuntimeSceneRackOccupancyView | null {
-  const projectionRecord = projection as RuntimeWorklineMonitorProjectionResponse &
-    Record<string, unknown>
-  const evidenceObj = (projectionRecord.resource_evidence || {}) as Record<string, unknown>
-  const items = Array.isArray(evidenceObj.items)
-    ? (evidenceObj.items as RuntimeResourceEvidenceItem[])
-    : []
-
+  const items = extractEvidenceItems(projection)
   const slotItems = items.filter(item =>
     Boolean(item.cell_code || item.bin_code || item.slot_code)
   )
@@ -434,6 +464,110 @@ export function buildRackOccupancyView(
   return { columns, slots }
 }
 
+/**
+ * 从 `resource_evidence.items` 构建层级化货位视图：
+ *   货架 rackCode → SLOT 分组（按 slot_code 升序）→ 各自 cells。
+ *
+ * 与 {@link buildRackOccupancyView} 的核心区别：
+ * 1. 只取 `resource_kind === 'CELL'` 的物理 cell 条目（18 条），不再混入
+ *    SLOT/BIN/PKG 等更高层级的摘要条目。
+ * 2. 按 (slot_code, bin_code) 归组，SLOT ↔ Bin 一一对应（SLOT 是行号别名）。
+ * 3. SLOT/BIN 摘要条目仅用于派生 `binDisplayLabel`，不参与 cell 计数。
+ */
+export function buildRackHierarchyView(
+  projection: RuntimeWorklineMonitorProjectionResponse
+): RuntimeSceneRackHierarchyView | null {
+  const items = extractEvidenceItems(projection)
+  if (items.length === 0) return null
+
+  // 1) 取所有 cell 条目（物理位置）
+  const cellItems = items.filter(item => item.resource_kind === 'CELL')
+  if (cellItems.length === 0) return null
+
+  // 2) 取 BIN 摘要条目 → 用于派生 binDisplayLabel
+  const binSummaryByKey = new Map<string, RuntimeResourceEvidenceItem>()
+  for (const item of items) {
+    if (item.resource_kind === 'BIN' && item.bin_code) {
+      binSummaryByKey.set(item.bin_code, item)
+    }
+  }
+
+  // 3) 按 (slot_code, bin_code) 归组 cell
+  type GroupAccumulator = {
+    slotCode: string
+    binCode: string
+    rackCode: string | null
+    cells: RuntimeSceneRackOccupancySlotView[]
+  }
+  const groupsByKey = new Map<string, GroupAccumulator>()
+  for (const item of cellItems) {
+    const slotCode = (item.slot_code ?? '').toString()
+    const binCode = (item.bin_code ?? '').toString()
+    if (!slotCode || !binCode) continue
+    const groupKey = `${slotCode}:${binCode}`
+    let group = groupsByKey.get(groupKey)
+    if (!group) {
+      group = { slotCode, binCode, rackCode: item.rack_code ?? null, cells: [] }
+      groupsByKey.set(groupKey, group)
+    }
+    const cellCode =
+      (item.cell_code ?? '').toString() ||
+      (item.resource_code ?? '').toString() ||
+      binCode
+    const rackCode = item.rack_code ?? group.rackCode ?? 'unknown'
+    const cellKey = `${rackCode}:${cellCode}`
+    group.cells.push({
+      key: cellKey,
+      code: cellCode,
+      state: deriveRackOccupancySlotState(item),
+      tote: item.pkg_code ?? item.part_sn ?? null,
+      alarm: null
+    })
+  }
+
+  if (groupsByKey.size === 0) return null
+
+  // 4) 按 slot_code 升序输出
+  const slotGroups: RuntimeSceneRackSlotGroup[] = [...groupsByKey.values()]
+    .sort((a, b) => a.slotCode.localeCompare(b.slotCode))
+    .map(group => {
+      const binSummary = binSummaryByKey.get(group.binCode)
+      const binDisplayLabel =
+        binSummary?.display_label ??
+        (group.binCode ? `BIN ${group.binCode}` : 'BIN ?')
+      return {
+        key: `${group.rackCode ?? 'unknown'}:${group.slotCode}`,
+        code: group.slotCode,
+        binCode: group.binCode,
+        binDisplayLabel,
+        cells: group.cells
+      }
+    })
+
+  // 5) rackCode 取所有 cell 共享的 rackCode（同一货架视图内应一致）
+  const rackCode =
+    cellItems.find(item => item.rack_code)?.rack_code ??
+    slotGroups[0]?.key.split(':')[0] ??
+    'unknown'
+
+  return {
+    rackCode,
+    slotGroups,
+    totalCellCount: slotGroups.reduce((acc, g) => acc + g.cells.length, 0)
+  }
+}
+
+function extractEvidenceItems(
+  projection: RuntimeWorklineMonitorProjectionResponse
+): RuntimeResourceEvidenceItem[] {
+  const projectionRecord = projection as RuntimeWorklineMonitorProjectionResponse &
+    Record<string, unknown>
+  const evidenceObj = (projectionRecord.resource_evidence || {}) as Record<string, unknown>
+  return Array.isArray(evidenceObj.items)
+    ? (evidenceObj.items as RuntimeResourceEvidenceItem[])
+    : []
+}
+
 function deriveRackOccupancySlotState(
   item: RuntimeResourceEvidenceItem
 ): RuntimeSceneRackSlotViewState {
@@ -441,7 +575,16 @@ function deriveRackOccupancySlotState(
   if (evidenceKind === 'WMS_CALLBACK_EVIDENCE' || evidenceKind === 'TRACE_RESOURCE_EVIDENCE') {
     return 'reconciling'
   }
-  if (item.bin_code || item.part_sn || item.pkg_code) return 'occupied'
+  // CELL 视角下，cell 上的物料标识可能落在 pkg_code / part_sn / material_code /
+  // reel_count 任一字段。统一视为"已占用"。
+  if (
+    item.pkg_code ||
+    item.part_sn ||
+    item.material_code ||
+    (item.reel_count != null && item.reel_count > 0)
+  ) {
+    return 'occupied'
+  }
   return 'empty'
 }
 
