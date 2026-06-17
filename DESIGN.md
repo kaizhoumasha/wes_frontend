@@ -74,6 +74,43 @@ P9 MCS 的界面是一场对仓储现场的数字化复刻。打开任何一个�
 - **悬浮阴影**: `0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.2)`
 - **输入框聚焦发光**: `0 0 0 3px rgba(245, 158, 11, 0.15)`
 
+### Token 引用契约(SPEC 2026-06-17 P0~P3)
+
+设计 token 体系分三层,SFC `<style scoped>` 必须**仅**引用 L2 / EP 变量,**禁止**直接使用硬编码已建模色:
+
+```text
+L1: tailwind.config.js          (色板权威定义,build-time)
+        ↓ 镜像
+L2: globals.css                 (CSS 变量层,runtime)
+   ├── L2a 静态层(:root):
+   │     --color-primary / --color-success / --color-info / ...
+   │     --color-industrial-{dark,light}-{bg,surface,text,border,...}
+   │     各色 -rgb 三元组(空格分隔,支持 CSS Color 4 slash-alpha)
+   │
+   └── L2b 主题感知层(html.dark / html:not(.dark) 各定义一套):
+        --color-bg / --color-bg-solid / --color-body-text
+        --color-surface / --color-surface-elevated / --color-surface-subtle
+        --color-border / --color-border-hover / --color-border-strong
+        --color-text-{primary,secondary,muted,disabled,inverse}
+        --color-shadow-rgb
+        ↓ 派生
+   --runtime-* (运行态语义层,在 html.dark / html:not(.dark) 各 ~42 个,
+                100% 派生自 --color-* 或 --color-shadow-rgb)
+        ↓ 引用
+L3: SFC <style scoped> + .css   (使用层)
+   ├── 主/语义色 → var(--color-primary), var(--color-danger), ...
+   ├── 主题感知 → var(--color-text-primary), var(--color-bg), ...
+   ├── 运行态语义 → var(--runtime-surface), var(--runtime-tier-critical), ...
+   ├── EP 集成 → var(--el-bg-color), var(--el-text-color-primary), ...
+   └── ❌ 禁止:#F59E0B / rgba(245, 158, 11, ...) / #1E293B 等已建模硬编码
+```
+
+**Stylelint 拦截**:`stylelint.config.js` 启用 `declaration-property-value-disallowed-list`(Vue override),含 18 项已建模色 regex,违规 = error 阻塞 lint。`globals.css` 自身豁免(token 定义源头需要硬编码原始值)。
+
+**不变量保证**:`tests/unit/styles/style-token-invariants.test.ts` 9 项测试覆盖 token 三层契约,任一不变量被破坏 CI 失败。
+
+**Canvas / SVG 例外**:`<script>` 段中给 canvas `ctx.fillStyle` 等的颜色字符串需用字面 hex(canvas API 不支持 CSS var()),lint 不扫 `<script>` 段。当前唯一例外:`RuntimeSceneDeviceFlow.vue`。
+
 ## 3. 排版规则
 
 ### 字体族
@@ -447,7 +484,6 @@ background: repeating-linear-gradient(90deg, #f59e0b 0px, #f59e0b 40px, #dc2626 
 
 ## 12. 已知局限
 
-- 暗色/浅色模式的切换策略（用户偏好持久化、系统跟随）尚未在 design tokens 层面形式化
 - 动效的具体时长值 (micro/short/medium/long) 未经过实际用户测试验证
 - 表格组件的列宽策略、固定列、虚拟滚动样式未在本设计系统中定义
 - 侧边栏的折叠/展开动效细节未覆盖
