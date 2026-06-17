@@ -298,7 +298,7 @@ function submitResolve() {
 .workline-reconciliation-form__body {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(280px, 1.1fr) auto;
-  gap: 18px;
+  gap: 16px;
   width: 100%;
   padding: 16px;
   align-items: start;

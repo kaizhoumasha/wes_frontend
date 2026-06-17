@@ -111,9 +111,7 @@ const hasPrimaryAction = computed(() => {
   return false
 })
 
-const hasAvailableAction = computed(
-  () => hasPrimaryAction.value || props.canManageMaintenance
-)
+const hasAvailableAction = computed(() => hasPrimaryAction.value || props.canManageMaintenance)
 </script>
 
 <style scoped>
@@ -142,6 +140,11 @@ const hasAvailableAction = computed(
 .monitor-device-action-group__btn:disabled {
   cursor: not-allowed;
   opacity: 0.5;
+}
+
+.monitor-device-action-group__btn:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
 }
 
 .monitor-device-action-group__btn--primary {

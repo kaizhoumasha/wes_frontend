@@ -51,8 +51,10 @@ defineProps<{
 
 <style scoped>
 .monitor-tote-twin-card {
+  position: relative;
   display: grid;
   gap: 10px;
+  overflow: hidden;
   padding: 12px;
   border: 1px solid var(--runtime-border-subtle, rgb(148, 163, 184, 0.2));
   border-radius: 8px;
@@ -60,12 +62,21 @@ defineProps<{
   color: var(--runtime-text);
 }
 
-.monitor-tote-twin-card--info {
-  border-left: 3px solid #3b82f6;
+.monitor-tote-twin-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
 }
 
-.monitor-tote-twin-card--warning {
-  border-left: 3px solid #eab308;
+.monitor-tote-twin-card--info::before {
+  background: #3b82f6;
+}
+
+.monitor-tote-twin-card--warning::before {
+  background: #eab308;
 }
 
 .monitor-tote-twin-card__header {
