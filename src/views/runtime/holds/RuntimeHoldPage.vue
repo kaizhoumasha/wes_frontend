@@ -273,7 +273,8 @@ onMounted(load)
   padding: 24px;
   background:
     linear-gradient(rgb(var(--color-primary-rgb) / 4%) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(var(--color-primary-rgb) / 4%) 1px, transparent 1px), var(--color-industrial-dark-bg);
+    linear-gradient(90deg, rgb(var(--color-primary-rgb) / 4%) 1px, transparent 1px),
+    var(--color-industrial-dark-bg);
   background-size: 28px 28px;
   color: var(--color-industrial-dark-text);
 }
@@ -286,7 +287,7 @@ onMounted(load)
   padding: 22px;
   border: 1px solid rgb(var(--color-primary-rgb) / 18%);
   border-radius: 8px;
-  background: rgb(30 41 59 / 82%);
+  background: rgb(var(--color-industrial-dark-surface-rgb) / 82%);
   color: var(--color-industrial-light-border-hover);
 }
 
@@ -339,7 +340,11 @@ onMounted(load)
   justify-content: flex-end;
   margin-top: 16px;
   padding: 12px 0 0;
-  background: linear-gradient(to top, var(--color-industrial-dark-bg) 72%, rgb(15 23 42 / 0%));
+  background: linear-gradient(
+    to top,
+    var(--color-industrial-dark-bg) 72%,
+    rgb(var(--color-industrial-dark-bg-rgb) / 0%)
+  );
 }
 
 @media (width <= 720px) {

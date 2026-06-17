@@ -1393,7 +1393,7 @@ watch(
   align-items: center;
   gap: 12px;
   padding-bottom: 10px;
-  border-bottom: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.1);
+  border-bottom: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.1);
 }
 
 .trace-section__num {
@@ -1413,8 +1413,8 @@ watch(
 }
 
 .trace-section__num--dim {
-  border-color: rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.18);
-  background: rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.06);
+  border-color: rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.18);
+  background: rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.06);
   color: var(--color-industrial-light-text-secondary);
 }
 

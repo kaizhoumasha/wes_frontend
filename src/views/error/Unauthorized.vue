@@ -158,7 +158,7 @@ function goHome(): void {
   background: repeating-conic-gradient(
     from 0deg,
     transparent 0deg 30deg,
-    rgb(255 255 255 / 5%) 30deg 60deg
+    rgb(var(--color-industrial-light-surface-rgb) / 5%) 30deg 60deg
   );
   animation: stripesRotate 30s linear infinite;
 }
@@ -175,7 +175,7 @@ html:not(.dark) .hazard-stripes {
   background: repeating-conic-gradient(
     from 0deg,
     rgb(239 68 68 / 10%) 0deg 30deg,
-    rgb(255 255 255 / 50%) 30deg 60deg
+    rgb(var(--color-industrial-light-surface-rgb) / 50%) 30deg 60deg
   );
 }
 
@@ -344,14 +344,14 @@ html.dark .btn-primary {
   color: var(--color-industrial-light-surface);
   box-shadow:
     0 4px 20px rgb(239 68 68 / 30%),
-    inset 0 1px 0 rgb(255 255 255 / 15%);
+    inset 0 1px 0 rgb(var(--color-industrial-light-surface-rgb) / 15%);
 }
 
 html.dark .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow:
     0 8px 30px rgb(239 68 68 / 40%),
-    inset 0 1px 0 rgb(255 255 255 / 15%);
+    inset 0 1px 0 rgb(var(--color-industrial-light-surface-rgb) / 15%);
 }
 
 html:not(.dark) .btn-primary {
@@ -371,11 +371,11 @@ html:not(.dark) .btn-primary:hover {
 
 html.dark .btn-secondary {
   color: #e6edf3;
-  border: 1px solid rgb(255 255 255 / 15%);
+  border: 1px solid rgb(var(--color-industrial-light-surface-rgb) / 15%);
 }
 
 html.dark .btn-secondary:hover {
-  background: rgb(255 255 255 / 5%);
+  background: rgb(var(--color-industrial-light-surface-rgb) / 5%);
   border-color: rgb(239 68 68 / 30%);
   transform: translateY(-2px);
 }
@@ -386,7 +386,7 @@ html:not(.dark) .btn-secondary {
 }
 
 html:not(.dark) .btn-secondary:hover {
-  background: var(--color-industrial-dark-text);
+  background: var(--color-industrial-light-bg);
   border-color: var(--color-danger);
   color: var(--color-danger);
   transform: translateY(-2px);

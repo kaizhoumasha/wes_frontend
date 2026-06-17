@@ -155,9 +155,9 @@ const hasMore = computed(() => filteredTraces.value.length > props.maxDisplay)
   border-radius: 6px;
   background: linear-gradient(
     90deg,
-    rgb(148, 163, 184, 0.06),
-    rgb(148, 163, 184, 0.14),
-    rgb(148, 163, 184, 0.06)
+    rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.06),
+    rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.14),
+    rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.06)
   );
   background-size: 200% 100%;
   animation: cq-shimmer 1.6s ease-in-out infinite;
@@ -192,7 +192,7 @@ const hasMore = computed(() => filteredTraces.value.length > props.maxDisplay)
 }
 
 .runtime-case-queue__tab:hover {
-  background: rgb(148, 163, 184, 0.08);
+  background: rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.08);
   color: var(--runtime-text-primary);
 }
 
@@ -250,7 +250,8 @@ const hasMore = computed(() => filteredTraces.value.length > props.maxDisplay)
 
 .runtime-case-queue__empty {
   padding: 16px;
-  border: 1px dashed var(--runtime-border-subtle, rgb(148, 163, 184, 0.18));
+  border: 1px dashed
+    var(--runtime-border-subtle, rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.18));
   border-radius: 8px;
   color: var(--runtime-text-secondary);
   font-size: 13px;
@@ -260,7 +261,8 @@ const hasMore = computed(() => filteredTraces.value.length > props.maxDisplay)
 .runtime-case-queue__more {
   align-self: flex-start;
   padding: 6px 10px;
-  border: 1px solid var(--runtime-border-subtle, rgb(148, 163, 184, 0.18));
+  border: 1px solid
+    var(--runtime-border-subtle, rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.18));
   border-radius: 6px;
   background: transparent;
   color: var(--runtime-text-secondary);

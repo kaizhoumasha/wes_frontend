@@ -121,7 +121,8 @@ const hasAvailableAction = computed(() => hasPrimaryAction.value || props.canMan
   gap: 8px;
   align-items: center;
   padding: 12px;
-  border: 1px solid var(--runtime-border-subtle, rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.2));
+  border: 1px solid
+    var(--runtime-border-subtle, rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.2));
   border-radius: 8px;
   background: var(--runtime-surface);
 }

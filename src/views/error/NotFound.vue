@@ -303,14 +303,14 @@ html.dark .btn-primary {
   color: #0d1117;
   box-shadow:
     0 4px 20px rgb(var(--color-primary-rgb) / 30%),
-    inset 0 1px 0 rgb(255 255 255 / 20%);
+    inset 0 1px 0 rgb(var(--color-industrial-light-surface-rgb) / 20%);
 }
 
 html.dark .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow:
     0 8px 30px rgb(var(--color-primary-rgb) / 40%),
-    inset 0 1px 0 rgb(255 255 255 / 20%);
+    inset 0 1px 0 rgb(var(--color-industrial-light-surface-rgb) / 20%);
 }
 
 html:not(.dark) .btn-primary {
@@ -330,11 +330,11 @@ html:not(.dark) .btn-primary:hover {
 
 html.dark .btn-secondary {
   color: #e6edf3;
-  border: 1px solid rgb(255 255 255 / 15%);
+  border: 1px solid rgb(var(--color-industrial-light-surface-rgb) / 15%);
 }
 
 html.dark .btn-secondary:hover {
-  background: rgb(255 255 255 / 5%);
+  background: rgb(var(--color-industrial-light-surface-rgb) / 5%);
   border-color: rgb(var(--color-primary-rgb) / 30%);
   transform: translateY(-2px);
 }
@@ -345,7 +345,7 @@ html:not(.dark) .btn-secondary {
 }
 
 html:not(.dark) .btn-secondary:hover {
-  background: var(--color-industrial-dark-text);
+  background: var(--color-industrial-light-bg);
   border-color: #1e40af;
   color: #1e40af;
   transform: translateY(-2px);

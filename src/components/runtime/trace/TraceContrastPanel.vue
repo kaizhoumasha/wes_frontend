@@ -279,7 +279,7 @@ async function loadBoth() {
 .trace-contrast__panel-header {
   padding: 10px 14px;
   border-bottom: 1px solid rgb(var(--color-primary-rgb) / 0.08);
-  background: rgb(15 23 42 / 0.6);
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 0.6);
 }
 
 .trace-contrast__panel-label {

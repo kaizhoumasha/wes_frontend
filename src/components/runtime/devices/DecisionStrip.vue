@@ -221,7 +221,7 @@ const openCommandCount = computed(() =>
   border-radius: 10px;
   overflow: hidden;
   border: 1px solid var(--runtime-border, rgb(var(--color-primary-rgb) / 0.12));
-  background: var(--runtime-surface, rgb(30, 41, 59, 0.8));
+  background: var(--runtime-surface, rgb(var(--color-industrial-dark-surface-rgb) / 0.8));
 }
 
 .decision-strip__indicator {

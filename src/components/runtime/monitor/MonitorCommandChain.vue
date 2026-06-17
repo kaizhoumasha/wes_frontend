@@ -119,7 +119,8 @@ const ackStateLabel = computed(() =>
   display: grid;
   gap: 10px;
   padding: 12px;
-  border: 1px solid var(--runtime-border-subtle, rgb(148, 163, 184, 0.2));
+  border: 1px solid
+    var(--runtime-border-subtle, rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.2));
   border-radius: 8px;
   background: var(--runtime-surface);
   color: var(--runtime-text);
@@ -142,7 +143,7 @@ const ackStateLabel = computed(() =>
 .monitor-command-chain__pill {
   padding: 2px 8px;
   border-radius: 999px;
-  background: rgb(148, 163, 184, 0.16);
+  background: rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.16);
   color: var(--runtime-text-muted);
   font-size: 11px;
   font-weight: 600;
@@ -172,7 +173,8 @@ const ackStateLabel = computed(() =>
 
 .monitor-command-chain__idle {
   padding: 16px 12px;
-  border: 1px dashed var(--runtime-border-subtle, rgb(148, 163, 184, 0.25));
+  border: 1px dashed
+    var(--runtime-border-subtle, rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.25));
   border-radius: 6px;
   color: var(--runtime-text-muted);
   font-size: 12px;
@@ -191,9 +193,10 @@ const ackStateLabel = computed(() =>
   gap: 4px;
   min-width: 0;
   padding: 8px 10px;
-  border: 1px solid var(--runtime-border-subtle, rgb(148, 163, 184, 0.18));
+  border: 1px solid
+    var(--runtime-border-subtle, rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.18));
   border-radius: 6px;
-  background: rgb(15, 23, 42, 0.04);
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 0.04);
 }
 
 .monitor-command-chain__cell--full {

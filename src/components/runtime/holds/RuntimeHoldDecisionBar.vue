@@ -45,7 +45,7 @@ const tone = computed(() => (activeStatuses.has(props.status) ? 'warning' : 'suc
   padding: 22px;
   border: 1px solid rgb(var(--color-primary-rgb) / 0.2);
   border-radius: 8px;
-  background: rgb(15, 23, 42, 0.92);
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 0.92);
 }
 
 .runtime-hold-decision-bar h1 {

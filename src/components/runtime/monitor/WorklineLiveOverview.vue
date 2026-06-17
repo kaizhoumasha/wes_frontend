@@ -289,7 +289,10 @@ onBeforeUnmount(() => {
   width: 36px;
   height: 2px;
   border-radius: 1px;
-  background: var(--runtime-border-subtle, rgb(148, 163, 184, 0.25));
+  background: var(
+    --runtime-border-subtle,
+    rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.25)
+  );
   transition: background 150ms ease-out;
 }
 
@@ -302,9 +305,9 @@ onBeforeUnmount(() => {
   flex: 0 0 auto;
   min-height: 80px;
   padding: 10px 14px;
-  border: 1px solid var(--runtime-border-subtle, rgb(148 163 184 / 0.2));
+  border: 1px solid var(--runtime-border-subtle);
   border-radius: 8px;
-  background: var(--runtime-surface-strong, rgb(4 6 13 / 0.9));
+  background: var(--runtime-surface-strong);
   color: var(--runtime-text-primary);
   font-family: var(--font-mono, 'JetBrains Mono');
   font-size: 11px;
@@ -351,7 +354,7 @@ onBeforeUnmount(() => {
 }
 
 .monitor-event-log__tag.is-info {
-  color: var(--runtime-badge-info-text, #38bdf8);
+  color: var(--runtime-badge-info-text);
 }
 
 .monitor-event-log__tag.is-warn {

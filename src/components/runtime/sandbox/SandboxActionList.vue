@@ -1629,9 +1629,9 @@ function formatPayload(payload: Record<string, unknown>): string {
   min-width: 0;
   margin-bottom: 8px;
   padding: 9px 10px;
-  border: 1px solid rgb(34, 197, 94, 0.18);
+  border: 1px solid rgb(var(--color-success-rgb) / 0.18);
   border-radius: 8px;
-  background: rgb(34, 197, 94, 0.045);
+  background: rgb(var(--color-success-rgb) / 0.045);
 }
 
 .sandbox-action-list__event-step.has-failure {
@@ -1677,7 +1677,7 @@ function formatPayload(payload: Record<string, unknown>): string {
 
 .sandbox-action-list__event-issue {
   margin: 0;
-  color: var(--runtime-danger);
+  color: var(--color-danger-light);
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
@@ -1701,7 +1701,7 @@ function formatPayload(payload: Record<string, unknown>): string {
   padding: 8px;
   overflow: auto;
   border-radius: 6px;
-  background: rgb(15, 23, 42, 0.72);
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 0.72);
   color: var(--color-success-light);
 }
 
@@ -1796,7 +1796,7 @@ function formatPayload(payload: Record<string, unknown>): string {
   padding: 8px;
   overflow: auto;
   border-radius: 6px;
-  background: rgb(15, 23, 42, 0.72);
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 0.72);
   color: var(--color-info-light);
   font-family: var(--font-mono);
   font-size: 10px;
@@ -2155,7 +2155,7 @@ function formatPayload(payload: Record<string, unknown>): string {
 .sandbox-action-list__completed-item-error {
   min-width: 0;
   overflow: hidden;
-  color: var(--runtime-danger);
+  color: var(--color-danger-light);
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;

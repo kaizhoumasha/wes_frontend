@@ -62,7 +62,7 @@ const features: FeatureItem[] = [
 /* 暗黑模式特性项 */
 html.dark .feature-item {
   background: rgb(var(--color-primary-rgb) / 5%);
-  border: 1px solid rgb(148 163 184 / 12%);
+  border: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb) / 12%);
 }
 
 html.dark .feature-item:hover {
@@ -71,7 +71,7 @@ html.dark .feature-item:hover {
 }
 
 html.dark .feature-item span {
-  color: rgb(255 255 255 / 70%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 70%);
 }
 
 /* 亮模式特性项 */

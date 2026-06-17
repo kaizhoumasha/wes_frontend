@@ -181,7 +181,7 @@ const waitLabel = computed(() => {
   padding: 10px 14px;
   border-radius: 10px;
   border: 1px solid var(--runtime-border, rgb(var(--color-primary-rgb) / 0.12));
-  background: var(--runtime-surface, rgb(30, 41, 59, 0.8));
+  background: var(--runtime-surface, rgb(var(--color-industrial-dark-surface-rgb) / 0.8));
 }
 
 .sandbox-cycle-status__phase {

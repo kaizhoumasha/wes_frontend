@@ -49,7 +49,7 @@ function checkLabel(value: string): string {
   padding: 18px;
   border: 1px solid rgb(var(--color-primary-rgb) / 0.14);
   border-radius: 8px;
-  background: rgb(30, 41, 59, 0.74);
+  background: rgb(var(--color-industrial-dark-surface-rgb) / 0.74);
 }
 
 .runtime-hold-panel header {

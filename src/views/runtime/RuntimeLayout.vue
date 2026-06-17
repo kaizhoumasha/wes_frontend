@@ -72,7 +72,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 12px;
   padding: 10px 16px;
-  background: rgb(15 23 42 / 0.95);
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 0.95);
   border-bottom: 1px solid rgb(var(--color-primary-rgb) / 0.12);
   backdrop-filter: blur(12px);
 }

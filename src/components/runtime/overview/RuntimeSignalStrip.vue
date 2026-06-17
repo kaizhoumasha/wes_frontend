@@ -89,8 +89,11 @@ const coreKpis = computed<CoreKpi[]>(() => {
   padding: 20px;
   border: 1px solid var(--runtime-border, rgb(var(--color-primary-rgb) / 0.16));
   border-radius: 16px;
-  background: var(--runtime-surface, rgb(30, 41, 59, 0.8));
-  box-shadow: var(--runtime-shadow, inset 0 1px 0 rgb(255, 255, 255, 0.03));
+  background: var(--runtime-surface, rgb(var(--color-industrial-dark-surface-rgb) / 0.8));
+  box-shadow: var(
+    --runtime-shadow,
+    inset 0 1px 0 rgb(var(--color-industrial-light-surface-rgb) / 0.03)
+  );
 }
 
 .runtime-signal-card::before {
@@ -102,11 +105,11 @@ const coreKpis = computed<CoreKpi[]>(() => {
 }
 
 .runtime-signal-card--danger::before {
-  background: var(--runtime-tier-critical, var(--color-danger));
+  background: var(--runtime-tier-critical);
 }
 
 .runtime-signal-card--warning::before {
-  background: var(--runtime-tier-watch, var(--color-warning));
+  background: var(--runtime-tier-watch);
 }
 
 .runtime-signal-card__label {
@@ -140,7 +143,7 @@ const coreKpis = computed<CoreKpi[]>(() => {
 }
 
 .runtime-signal-card__trend--up {
-  color: var(--runtime-tier-critical, var(--color-danger));
+  color: var(--runtime-tier-critical);
 }
 
 .runtime-signal-card__trend--down {

@@ -284,9 +284,9 @@ function emptyDetail(): TraceDetailResponse {
   border-radius: 8px;
   background: linear-gradient(
     90deg,
-    rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.06),
-    rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.14),
-    rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.06)
+    rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.06),
+    rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.14),
+    rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.06)
   );
   background-size: 200% 100%;
   animation: tbc-shimmer 1.6s ease-in-out infinite;
@@ -302,7 +302,7 @@ function emptyDetail(): TraceDetailResponse {
 }
 
 .trace-blocking-card__tech {
-  border-top: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.1);
+  border-top: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.1);
   padding-top: 10px;
 }
 

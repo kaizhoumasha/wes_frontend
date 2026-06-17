@@ -84,8 +84,8 @@ withDefaults(
     linear-gradient(180deg, var(--runtime-hero-bg), var(--runtime-hero-bg)),
     linear-gradient(135deg, rgb(var(--color-primary-rgb) / 0.1), transparent 42%);
   box-shadow:
-    0 10px 24px rgb(15, 23, 42, 0.16),
-    inset 0 1px 0 rgb(255, 255, 255, 0.04);
+    0 10px 24px rgb(var(--color-industrial-dark-bg-rgb) / 0.16),
+    inset 0 1px 0 rgb(var(--color-industrial-light-surface-rgb) / 0.04);
   backdrop-filter: blur(14px);
 }
 

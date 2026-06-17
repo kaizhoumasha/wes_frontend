@@ -31,6 +31,7 @@ const modeledHardcodedColorValues = [
   '/#[bB][bB][fF]7[dD]0/', // success-300 #BBF7D0
   '/#[dD][cC][fF][cC][eE]7/', // success-100 #DCFCE7
   '/rgba?\\(\\s*22(?:\\s*,\\s*|\\s+)163(?:\\s*,\\s*|\\s+)74\\b/',
+  '/rgba?\\(\\s*34(?:\\s*,\\s*|\\s+)197(?:\\s*,\\s*|\\s+)94\\b/', // #22C55E success-light RGB
 
   // === Warning 系 ===
   '/#[eE][aA][bB]308/', // warning #EAB308
@@ -61,8 +62,18 @@ const modeledHardcodedColorValues = [
   '/#[eE]2[eE]8[fF]0/', // industrial-light-border #E2E8F0
   '/#[cC][bB][dD]5[eE]1/', // industrial-light-border-hover #CBD5E1
   '/#[fF]1[fF]5[fF]9/', // industrial-light-surface-elevated #F1F5F9
-  '/^#[fF][fF][fF]$/', // industrial-light-surface #FFF (短)
-  '/^#[fF][fF][fF][fF][fF][fF]$/' // industrial-light-surface #FFFFFF (长)
+  '/(?<![0-9a-fA-F])#[fF][fF][fF](?![0-9a-fA-F])/', // industrial-light-surface #FFF (短,边界匹配)
+  '/(?<![0-9a-fA-F])#[fF][fF][fF][fF][fF][fF](?![0-9a-fA-F])/', // industrial-light-surface #FFFFFF (长,边界匹配)
+  '/rgba?\\(\\s*255(?:\\s*,\\s*|\\s+)255(?:\\s*,\\s*|\\s+)255\\b/', // 白色 RGB
+
+  // === Industrial 中性色 RGB 字面量(防 #94A3B8 / #1E293B 等的 RGB 形式漏拦)===
+  '/rgba?\\(\\s*148(?:\\s*,\\s*|\\s+)163(?:\\s*,\\s*|\\s+)184\\b/', // #94A3B8 RGB
+  '/rgba?\\(\\s*100(?:\\s*,\\s*|\\s+)116(?:\\s*,\\s*|\\s+)139\\b/', // #64748B RGB
+  '/rgba?\\(\\s*71(?:\\s*,\\s*|\\s+)85(?:\\s*,\\s*|\\s+)105\\b/', // #475569 RGB
+  '/rgba?\\(\\s*15(?:\\s*,\\s*|\\s+)23(?:\\s*,\\s*|\\s+)42\\b/', // #0F172A RGB
+  '/rgba?\\(\\s*30(?:\\s*,\\s*|\\s+)41(?:\\s*,\\s*|\\s+)59\\b/', // #1E293B RGB
+  '/rgba?\\(\\s*51(?:\\s*,\\s*|\\s+)65(?:\\s*,\\s*|\\s+)85\\b/', // #334155 RGB
+  '/rgba?\\(\\s*248(?:\\s*,\\s*|\\s+)250(?:\\s*,\\s*|\\s+)252\\b/' // #F8FAFC RGB
 ]
 
 export default {

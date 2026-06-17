@@ -443,7 +443,7 @@ watch(
 .runtime-overview__trace-panel {
   border: 1px solid var(--runtime-border, rgb(var(--color-primary-rgb) / 0.12));
   border-radius: 14px;
-  background: var(--runtime-surface, rgb(30, 41, 59, 0.8));
+  background: var(--runtime-surface, rgb(var(--color-industrial-dark-surface-rgb) / 0.8));
   overflow: hidden;
 }
 .runtime-overview__trace-panel-header {
@@ -467,7 +467,7 @@ watch(
   padding: 6px 12px;
   border-radius: 6px;
   background: var(--runtime-surface-accent, rgb(var(--color-warning-rgb) / 0.08));
-  color: var(--runtime-tier-watch, var(--color-warning));
+  color: var(--runtime-tier-watch);
   font-size: 11px;
   font-weight: 600;
 }
@@ -475,7 +475,7 @@ watch(
 .runtime-overview__health-collapse {
   border: 1px solid var(--runtime-border, rgb(var(--color-primary-rgb) / 0.12));
   border-radius: 14px;
-  background: var(--runtime-surface, rgb(30, 41, 59, 0.8));
+  background: var(--runtime-surface, rgb(var(--color-industrial-dark-surface-rgb) / 0.8));
 }
 .runtime-overview__health-collapse :deep(.el-collapse-item__header) {
   padding: 0 16px;

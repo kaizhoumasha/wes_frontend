@@ -513,9 +513,9 @@ watch(
 
 .integration-debug__case-row,
 .integration-debug__action {
-  border: 1px solid rgb(148 163 184 / 0.16);
+  border: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.16);
   border-radius: 8px;
-  background: rgb(15 23 42 / 0.62);
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 0.62);
   color: inherit;
   cursor: pointer;
   text-align: left;
@@ -581,7 +581,7 @@ watch(
 
 .integration-debug__meta span {
   padding: 3px 8px;
-  border: 1px solid rgb(148 163 184 / 0.16);
+  border: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.16);
   border-radius: 999px;
   color: var(--color-industrial-light-border-hover);
   font-size: 12px;
@@ -597,9 +597,9 @@ watch(
 .integration-debug__stage {
   min-height: 74px;
   padding: 10px;
-  border: 1px solid rgb(148 163 184 / 0.16);
+  border: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.16);
   border-radius: 8px;
-  background: rgb(15 23 42 / 0.5);
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 0.5);
 }
 
 .integration-debug__stage span,
@@ -619,7 +619,7 @@ watch(
 }
 
 .integration-debug__stage--ok {
-  border-color: rgb(34 197 94 / 0.36);
+  border-color: rgb(var(--color-success-rgb) / 0.36);
 }
 
 .integration-debug__stage--waiting {

@@ -172,6 +172,10 @@ const totalLabel = computed(() => `样本 ${props.total}`)
 }
 
 .runtime-health-breakdown__bar-fill--info {
-  background: linear-gradient(90deg, rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.65), var(--color-industrial-dark-text-secondary));
+  background: linear-gradient(
+    90deg,
+    rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.65),
+    var(--color-industrial-dark-text-secondary)
+  );
 }
 </style>

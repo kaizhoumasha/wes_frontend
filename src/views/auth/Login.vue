@@ -434,12 +434,21 @@ onMounted(() => {
 
 /* 暗黑模式登录页背景 */
 html.dark .login-page {
-  background: linear-gradient(135deg, var(--color-industrial-dark-bg) 0%, var(--color-industrial-dark-surface) 50%, var(--color-industrial-dark-bg) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-industrial-dark-bg) 0%,
+    var(--color-industrial-dark-surface) 50%,
+    var(--color-industrial-dark-bg) 100%
+  );
 }
 
 /* 亮模式登录页背景 */
 html:not(.dark) .login-page {
-  background: linear-gradient(135deg, var(--color-industrial-dark-text) 0%, var(--color-industrial-light-surface-elevated) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-industrial-light-bg) 0%,
+    var(--color-industrial-light-surface-elevated) 100%
+  );
 }
 
 /* ==================== 网格背景 ==================== */
@@ -523,12 +532,20 @@ html:not(.dark) .grid-dot {
 
 /* 暗黑模式粒子 - 工业琥珀色 */
 html.dark .particle {
-  background: linear-gradient(180deg, rgb(var(--color-primary-rgb) / 0.8) 0%, rgb(var(--color-primary-rgb) / 0) 100%);
+  background: linear-gradient(
+    180deg,
+    rgb(var(--color-primary-rgb) / 0.8) 0%,
+    rgb(var(--color-primary-rgb) / 0) 100%
+  );
 }
 
 /* 亮模式粒子 */
 html:not(.dark) .particle {
-  background: linear-gradient(180deg, rgb(var(--color-primary-rgb) / 0.6) 0%, rgb(var(--color-primary-rgb) / 0) 100%);
+  background: linear-gradient(
+    180deg,
+    rgb(var(--color-primary-rgb) / 0.6) 0%,
+    rgb(var(--color-primary-rgb) / 0) 100%
+  );
 }
 
 @keyframes float {
@@ -564,12 +581,12 @@ html:not(.dark) .particle {
 
 /* 暗黑模式主容器 - 工业仓储风格 */
 html.dark .main-container {
-  background: rgb(30, 41, 59, 0.8);
+  background: rgb(var(--color-industrial-dark-surface-rgb) / 0.8);
   border: 1px solid rgb(var(--color-primary-rgb) / 0.15);
   box-shadow:
     0 0 80px rgb(var(--color-primary-rgb) / 0.1),
     0 20px 60px rgb(0, 0, 0, 0.5),
-    inset 0 1px 0 rgb(255, 255, 255, 0.05);
+    inset 0 1px 0 rgb(var(--color-industrial-light-surface-rgb) / 0.05);
 }
 
 /* 亮模式主容器 */
@@ -578,7 +595,7 @@ html:not(.dark) .main-container {
   border: 1px solid var(--color-industrial-light-border);
   box-shadow:
     0 20px 60px rgb(0, 0, 0, 0.1),
-    inset 0 1px 0 rgb(255, 255, 255, 1);
+    inset 0 1px 0 rgb(var(--color-industrial-light-surface-rgb) / 1);
 }
 
 /* ==================== 品牌区 ==================== */
@@ -607,7 +624,11 @@ html.dark .brand-section {
 }
 
 html.dark .brand-section::before {
-  background: radial-gradient(circle at 30% 50%, rgb(var(--color-primary-rgb) / 0.1) 0%, transparent 50%);
+  background: radial-gradient(
+    circle at 30% 50%,
+    rgb(var(--color-primary-rgb) / 0.1) 0%,
+    transparent 50%
+  );
 }
 
 /* 亮模式品牌区 */
@@ -624,7 +645,11 @@ html:not(.dark) .brand-section {
 }
 
 html:not(.dark) .brand-section::before {
-  background: radial-gradient(circle at 30% 50%, rgb(var(--color-primary-rgb) / 0.05) 0%, transparent 50%);
+  background: radial-gradient(
+    circle at 30% 50%,
+    rgb(var(--color-primary-rgb) / 0.05) 0%,
+    transparent 50%
+  );
 }
 
 .brand-section::before {
@@ -676,7 +701,7 @@ html:not(.dark) .brand-section::before {
 
 /* 暗黑模式副标题 */
 html.dark .brand-subtitle {
-  color: rgb(255 255 255 / 50%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 50%);
 }
 
 /* 亮模式副标题 */
@@ -740,7 +765,7 @@ html:not(.dark) .data-bit {
 
 /* 暗黑模式表单区 */
 html.dark .form-section {
-  background: rgb(15, 23, 42, 0.5);
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 0.5);
   border-left: 1px solid rgb(var(--color-primary-rgb) / 0.1);
 }
 
@@ -801,7 +826,7 @@ html.dark .form-header h2 {
 }
 
 html.dark .form-header p {
-  color: rgb(255 255 255 / 40%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 40%);
 }
 
 /* 亮模式表单头部 */
@@ -837,7 +862,7 @@ html:not(.dark) .form-header p {
 
 /* 暗黑模式标签 */
 html.dark .form-group label {
-  color: rgb(255 255 255 / 40%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 40%);
 }
 
 html.dark .form-group.focused label,
@@ -875,8 +900,8 @@ html:not(.dark) .form-group.filled label {
 /* 暗黑模式输入框 */
 html.dark .form-group input {
   color: var(--color-industrial-light-surface);
-  background: rgb(255 255 255 / 3%);
-  border: 1px solid rgb(255 255 255 / 10%);
+  background: rgb(var(--color-industrial-light-surface-rgb) / 3%);
+  border: 1px solid rgb(var(--color-industrial-light-surface-rgb) / 10%);
 }
 
 html.dark .form-group input:focus {
@@ -921,7 +946,7 @@ html:not(.dark) .form-group input:focus {
   transform: translateY(-50%);
   width: 24px;
   height: 24px;
-  color: rgb(255 255 255 / 30%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 30%);
   transition: all 0.3s ease;
 }
 
@@ -950,7 +975,7 @@ html:not(.dark) .form-group input:focus {
   background: transparent;
   border: none;
   cursor: pointer;
-  color: rgb(255 255 255 / 40%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 40%);
   transition: all 0.3s ease;
   padding: 0;
 }
@@ -1057,7 +1082,7 @@ html:not(.dark) .form-group.error input:focus {
 
 /* 暗黑模式复选框 */
 html.dark .checkmark {
-  border-color: rgb(255 255 255 / 30%);
+  border-color: rgb(var(--color-industrial-light-surface-rgb) / 30%);
   background: transparent;
 }
 
@@ -1093,7 +1118,7 @@ html:not(.dark) .remember-checkbox input:checked + .checkmark {
 }
 
 html.dark .remember-text {
-  color: rgb(255 255 255 / 60%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 60%);
 }
 
 html:not(.dark) .remember-text {
@@ -1154,7 +1179,7 @@ html:not(.dark) .login-button:disabled {
   inset: 0;
   background: radial-gradient(
     circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-    rgb(255 255 255 / 30%) 0%,
+    rgb(var(--color-industrial-light-surface-rgb) / 30%) 0%,
     transparent 50%
   );
   opacity: 0;
@@ -1238,15 +1263,15 @@ html:not(.dark) .login-button:disabled {
 
 /* 暗黑模式底部 */
 html.dark .form-footer {
-  border-top: 1px solid rgb(255 255 255 / 5%);
+  border-top: 1px solid rgb(var(--color-industrial-light-surface-rgb) / 5%);
 }
 
 html.dark .version-info {
-  color: rgb(255 255 255 / 30%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 30%);
 }
 
 html.dark .status-indicator {
-  color: rgb(255 255 255 / 40%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 40%);
 }
 
 /* 亮模式底部 */

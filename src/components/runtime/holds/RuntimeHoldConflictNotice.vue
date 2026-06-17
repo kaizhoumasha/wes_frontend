@@ -94,7 +94,7 @@ const materialConflictItems = computed(() => {
 }
 
 .runtime-hold-conflict dt {
-  color: rgb(248, 250, 252, 0.68);
+  color: rgb(var(--color-industrial-light-bg-rgb) / 0.68);
 }
 
 .runtime-hold-conflict dd {

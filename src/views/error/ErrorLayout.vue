@@ -115,7 +115,12 @@ html.dark .error-layout {
 
 /* 浅色主题 */
 html:not(.dark) .error-layout {
-  background: linear-gradient(135deg, var(--color-industrial-dark-text) 0%, var(--color-industrial-light-border) 50%, var(--color-industrial-dark-text) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-industrial-light-bg) 0%,
+    var(--color-industrial-light-border) 50%,
+    var(--color-industrial-light-bg) 100%
+  );
   color: var(--color-industrial-dark-surface);
 }
 
@@ -256,17 +261,17 @@ html.dark .error-container {
   box-shadow:
     0 0 0 1px rgb(var(--color-primary-rgb) / 5%),
     0 20px 40px -12px rgb(0 0 0 / 60%),
-    inset 0 1px 0 rgb(255 255 255 / 3%);
+    inset 0 1px 0 rgb(var(--color-industrial-light-surface-rgb) / 3%);
   backdrop-filter: blur(16px);
 }
 
 html:not(.dark) .error-container {
-  background: rgb(255 255 255 / 90%);
+  background: rgb(var(--color-industrial-light-surface-rgb) / 90%);
   border: 1px solid rgb(30 64 175 / 12%);
   box-shadow:
     0 0 0 1px rgb(30 64 175 / 5%),
     0 20px 40px -12px rgb(0 0 0 / 15%),
-    inset 0 1px 0 rgb(255 255 255 / 100%);
+    inset 0 1px 0 rgb(var(--color-industrial-light-surface-rgb) / 100%);
   backdrop-filter: blur(16px);
 }
 
@@ -442,7 +447,7 @@ html:not(.dark) .error-description {
 
 html.dark .info-section {
   background: rgb(0 0 0 / 30%);
-  border: 1px solid rgb(255 255 255 / 8%);
+  border: 1px solid rgb(var(--color-industrial-light-surface-rgb) / 8%);
 }
 
 html:not(.dark) .info-section {

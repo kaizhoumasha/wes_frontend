@@ -70,7 +70,7 @@ const verdictDetail = computed(() => {
   padding: 16px 20px;
   border-radius: 14px;
   border: 1px solid var(--runtime-border, rgb(var(--color-primary-rgb) / 0.12));
-  background: var(--runtime-surface, rgb(30, 41, 59, 0.8));
+  background: var(--runtime-surface, rgb(var(--color-industrial-dark-surface-rgb) / 0.8));
   transition:
     background 0.3s ease,
     border-color 0.3s ease;
@@ -146,9 +146,9 @@ const verdictDetail = computed(() => {
   border-radius: 6px;
   background: linear-gradient(
     90deg,
-    rgb(148, 163, 184, 0.12),
-    rgb(148, 163, 184, 0.22),
-    rgb(148, 163, 184, 0.12)
+    rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.12),
+    rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.22),
+    rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.12)
   );
   background-size: 200% 100%;
   animation: verdict-skeleton-shimmer 1.6s ease-in-out infinite;

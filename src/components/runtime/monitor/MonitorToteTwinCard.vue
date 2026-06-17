@@ -56,7 +56,8 @@ defineProps<{
   gap: 10px;
   overflow: hidden;
   padding: 12px;
-  border: 1px solid var(--runtime-border-subtle, rgb(148, 163, 184, 0.2));
+  border: 1px solid
+    var(--runtime-border-subtle, rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.2));
   border-radius: 8px;
   background: var(--runtime-surface);
   color: var(--runtime-text);
@@ -123,7 +124,8 @@ defineProps<{
   gap: 8px;
   align-items: baseline;
   padding: 4px 0;
-  border-bottom: 1px solid var(--runtime-border-subtle, rgb(148, 163, 184, 0.16));
+  border-bottom: 1px solid
+    var(--runtime-border-subtle, rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.16));
 }
 
 .monitor-tote-twin-card__row:last-child {

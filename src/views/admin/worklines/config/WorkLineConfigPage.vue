@@ -1839,7 +1839,7 @@ onMounted(async () => {
 .config-page :deep(.el-card__header) {
   border-bottom: 1.5px solid var(--color-industrial-dark-surface-elevated);
   padding: 14px 20px;
-  background-color: rgb(30, 41, 59, 0.5);
+  background-color: rgb(var(--color-industrial-dark-surface-rgb) / 0.5);
 }
 
 .config-descriptions :deep(.el-descriptions__body) {
@@ -1847,7 +1847,7 @@ onMounted(async () => {
 }
 
 .config-descriptions :deep(.el-descriptions__label) {
-  background-color: rgb(15, 23, 42, 0.45) !important;
+  background-color: rgb(var(--color-industrial-dark-bg-rgb) / 0.45) !important;
   color: var(--color-industrial-dark-text-secondary) !important;
   border-color: var(--color-industrial-dark-surface-elevated) !important;
   width: 140px;
@@ -1872,7 +1872,7 @@ onMounted(async () => {
 }
 
 .config-table :deep(.el-table__row):hover td {
-  background-color: rgb(15, 23, 42, 0.3) !important;
+  background-color: rgb(var(--color-industrial-dark-bg-rgb) / 0.3) !important;
 }
 
 .config-table :deep(.el-table__inner-wrapper::after),

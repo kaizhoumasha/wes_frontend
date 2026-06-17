@@ -119,7 +119,7 @@ const evidenceStatus = computed(() =>
   overflow: hidden;
   border: 1px solid rgb(239, 68, 68, 0.28);
   border-radius: 8px;
-  background: rgb(15, 23, 42, 0.86);
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 0.86);
 }
 
 .workline-hold-panel__status-bar {

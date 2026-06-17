@@ -106,8 +106,11 @@
     --color-industrial-dark-border: rgb(var(--color-primary-rgb) / 0.15);
     --color-industrial-dark-border-hover: rgb(var(--color-primary-rgb) / 0.3);
     --color-industrial-dark-text: #F8FAFC;
+    --color-industrial-dark-text-rgb: 248 250 252;
     --color-industrial-dark-text-secondary: #94A3B8;
+    --color-industrial-dark-text-secondary-rgb: 148 163 184;
     --color-industrial-dark-text-muted: #64748B;
+    --color-industrial-dark-text-muted-rgb: 100 116 139;
     --color-industrial-light-bg: #F8FAFC;
     --color-industrial-light-bg-rgb: 248 250 252;
     --color-industrial-light-surface: #FFF;
@@ -117,8 +120,11 @@
     --color-industrial-light-border: #E2E8F0;
     --color-industrial-light-border-hover: #CBD5E1;
     --color-industrial-light-text: #0F172A;
+    --color-industrial-light-text-rgb: 15 23 42;
     --color-industrial-light-text-secondary: #475569;
+    --color-industrial-light-text-secondary-rgb: 71 85 105;
     --color-industrial-light-text-muted: #94A3B8;
+    --color-industrial-light-text-muted-rgb: 148 163 184;
 
     /* ========================================
      * 字体

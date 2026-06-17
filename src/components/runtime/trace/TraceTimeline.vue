@@ -393,9 +393,9 @@ function actionTypeLabel(type?: string | null): string {
 
 .trace-timeline__empty {
   padding: 22px;
-  border: 1px dashed rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.22);
+  border: 1px dashed rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.22);
   border-radius: 8px;
-  background: rgb(15, 23, 42, 0.46);
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 0.46);
 }
 
 .trace-timeline__empty strong {
@@ -434,14 +434,14 @@ function actionTypeLabel(type?: string | null): string {
   content: '';
   flex: 1;
   height: 1px;
-  background: rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.12);
+  background: rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.12);
 }
 
 .trace-timeline__group-device {
   padding: 3px 12px;
-  border: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.15);
+  border: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.15);
   border-radius: 999px;
-  background: rgb(15, 23, 42, 0.8);
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 0.8);
   color: var(--runtime-text-secondary);
   font-size: 11px;
   font-weight: 700;
@@ -607,7 +607,7 @@ function actionTypeLabel(type?: string | null): string {
 
 .trace-timeline__tech {
   margin-top: 14px;
-  border-top: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.1);
+  border-top: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.1);
   padding-top: 10px;
 }
 

@@ -201,7 +201,7 @@ html:not(.dark) .welcome-card {
 
 /* 暗黑模式副标题 */
 html.dark .welcome-subtitle {
-  color: rgb(255 255 255 / 60%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 60%);
 }
 
 /* 亮模式副标题 */
@@ -350,7 +350,7 @@ html:not(.dark) .stat-icon {
 
 /* 暗黑模式标签文字 */
 html.dark .stat-label {
-  color: rgb(255 255 255 / 60%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 60%);
 }
 
 /* 亮模式标签文字 */
@@ -397,8 +397,8 @@ html:not(.dark) .stat-value {
 }
 
 .stat-indicator.stable {
-  color: rgb(255 255 255 / 60%);
-  background: rgb(255 255 255 / 5%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 60%);
+  background: rgb(var(--color-industrial-light-surface-rgb) / 5%);
 }
 
 /* ==================== 状态卡片 ==================== */
@@ -485,7 +485,7 @@ html:not(.dark) .card-title {
 
 /* 暗黑模式内容文字 */
 html.dark .card-content p {
-  color: rgb(255 255 255 / 70%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 70%);
 }
 
 html.dark .card-content strong {

@@ -1000,10 +1000,19 @@ function readStringEventValue(value: unknown): string | null {
 
 <style scoped>
 .runtime-page {
-  --monitor-shell-border: var(--runtime-border-subtle, rgb(148 163 184 / 0.18));
-  --monitor-shell-surface: var(--runtime-surface, rgb(15 23 42 / 0.78));
-  --monitor-shell-surface-strong: var(--runtime-surface-strong, rgb(15 23 42 / 0.92));
-  --monitor-shell-surface-muted: var(--runtime-surface-muted, rgb(30 41 59 / 0.72));
+  --monitor-shell-border: var(
+    --runtime-border-subtle,
+    rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.18)
+  );
+  --monitor-shell-surface: var(--runtime-surface, rgb(var(--color-industrial-dark-bg-rgb) / 0.78));
+  --monitor-shell-surface-strong: var(
+    --runtime-surface-strong,
+    rgb(var(--color-industrial-dark-bg-rgb) / 0.92)
+  );
+  --monitor-shell-surface-muted: var(
+    --runtime-surface-muted,
+    rgb(var(--color-industrial-dark-surface-rgb) / 0.72)
+  );
   --monitor-shell-accent: rgb(var(--color-primary-rgb) / 0.72);
   --runtime-text: var(--runtime-text-primary);
 
@@ -1026,7 +1035,7 @@ html.dark .runtime-page {
 html:not(.dark) .runtime-page {
   --monitor-shell-bg:
     radial-gradient(circle at 58% 20%, rgb(var(--color-primary-rgb) / 0.13), transparent 30%),
-    linear-gradient(135deg, var(--color-industrial-dark-text) 0%, #e8edf3 100%);
+    linear-gradient(135deg, var(--color-industrial-light-bg) 0%, #e8edf3 100%);
 }
 
 .monitor-shell-topbar {
@@ -1175,8 +1184,11 @@ html:not(.dark) .runtime-page {
   border-radius: 8px;
   background:
     linear-gradient(var(--monitor-shell-surface), var(--monitor-shell-surface)),
-    radial-gradient(rgb(148 163 184 / 0.15) 1px, transparent 1px),
-    radial-gradient(rgb(148 163 184 / 0.1) 1px, transparent 1px);
+    radial-gradient(
+      rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.15) 1px,
+      transparent 1px
+    ),
+    radial-gradient(rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.1) 1px, transparent 1px);
   background-size:
     100% 100%,
     20px 20px,

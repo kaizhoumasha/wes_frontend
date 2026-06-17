@@ -69,7 +69,11 @@ defineProps<{
   border-radius: 16px;
   background:
     radial-gradient(circle at top right, rgb(var(--color-primary-rgb) / 0.12), transparent 32%),
-    linear-gradient(180deg, rgb(30, 41, 59, 0.96), rgb(15, 23, 42, 0.94));
+    linear-gradient(
+      180deg,
+      rgb(var(--color-industrial-dark-surface-rgb) / 0.96),
+      rgb(var(--color-industrial-dark-bg-rgb) / 0.94)
+    );
 }
 
 .device-health-hero :deep(.el-card__body) {

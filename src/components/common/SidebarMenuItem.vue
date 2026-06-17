@@ -196,14 +196,14 @@ function handleMenuClick(): void {
 
 /* 暗黑模式子菜单弹出层 */
 html.dark .sidebar-submenu-popup {
-  background: rgb(15 23 42 / 98%) !important;
-  border: 1px solid rgb(148 163 184 / 12%) !important;
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 98%) !important;
+  border: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb) / 12%) !important;
   box-shadow: 0 4px 20px rgb(0 0 0 / 30%) !important;
   backdrop-filter: blur(20px) !important;
 }
 
 html.dark .sidebar-submenu-popup .el-menu-item {
-  color: rgb(255 255 255 / 70%) !important;
+  color: rgb(var(--color-industrial-light-surface-rgb) / 70%) !important;
   background: transparent !important;
 }
 

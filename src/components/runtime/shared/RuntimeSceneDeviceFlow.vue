@@ -913,7 +913,7 @@ watch(
   overflow: hidden;
   background:
     radial-gradient(circle, rgb(var(--color-primary-rgb) / 0.04) 1px, transparent 1px),
-    linear-gradient(180deg, rgb(15 23 42), rgb(10 15 30));
+    linear-gradient(180deg, var(--color-industrial-dark-bg), var(--color-industrial-dark-bg));
   background-size:
     20px 20px,
     100% 100%;
@@ -949,7 +949,7 @@ watch(
   bottom: 8px;
   padding: 3px 8px;
   border-radius: 6px;
-  background: rgb(15 23 42 / 0.78);
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 0.78);
   color: var(--runtime-text-muted);
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
   font-size: 10px;

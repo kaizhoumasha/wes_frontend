@@ -146,7 +146,7 @@ const layoutExplicitEdges = computed<ExplicitLayoutEdge[] | undefined>(() => {
   padding: 4px 8px;
   border-radius: 8px;
   background: var(--runtime-surface-accent, rgb(var(--color-primary-rgb) / 0.12));
-  color: var(--runtime-text-emphasis));
+  color: var(--runtime-text-emphasis);
   font-size: 12px;
   font-weight: 600;
 }
@@ -156,7 +156,7 @@ const layoutExplicitEdges = computed<ExplicitLayoutEdge[] | undefined>(() => {
   border: 1px solid rgb(var(--color-primary-rgb) / 0.32);
   border-radius: 8px;
   background: var(--runtime-surface-accent, rgb(var(--color-primary-rgb) / 0.12));
-  color: var(--runtime-text-emphasis));
+  color: var(--runtime-text-emphasis);
   font-size: 12px;
   font-weight: 600;
 }

@@ -286,7 +286,7 @@ function submitResolve() {
   overflow: hidden;
   border: 1px solid rgb(var(--color-primary-rgb) / 0.36);
   border-radius: 8px;
-  background: var(--runtime-surface, #111827);
+  background: var(--runtime-surface);
 }
 
 .workline-reconciliation-form__status-bar {

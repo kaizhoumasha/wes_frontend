@@ -85,7 +85,8 @@ const emit = defineEmits<{
   display: grid;
   gap: 10px;
   padding: 12px;
-  border: 1px solid var(--runtime-border-subtle, rgb(148, 163, 184, 0.2));
+  border: 1px solid
+    var(--runtime-border-subtle, rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.2));
   border-radius: 8px;
   background: var(--runtime-surface);
   color: var(--runtime-text);
@@ -117,7 +118,8 @@ const emit = defineEmits<{
   display: grid;
   gap: 6px;
   padding-bottom: 8px;
-  border-bottom: 1px dashed var(--runtime-border-subtle, rgb(148, 163, 184, 0.25));
+  border-bottom: 1px dashed
+    var(--runtime-border-subtle, rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.25));
 }
 
 .monitor-rack-occupancy-matrix__slot-group:last-child {
@@ -166,7 +168,10 @@ const emit = defineEmits<{
 }
 
 .monitor-rack-occupancy-matrix__cell--empty {
-  border-color: var(--runtime-border-subtle, rgb(148, 163, 184, 0.25));
+  border-color: var(
+    --runtime-border-subtle,
+    rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.25)
+  );
   border-style: dashed;
   background: transparent;
   color: var(--runtime-text-muted);

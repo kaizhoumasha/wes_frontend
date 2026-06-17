@@ -852,7 +852,11 @@ import { formatRuntimeElapsed } from '@/utils/runtime-display'
   width: 1px;
   min-height: 20px;
   margin: 4px 0;
-  background: linear-gradient(180deg, rgb(var(--color-primary-rgb) / 0.3) 0%, rgb(var(--color-primary-rgb) / 0.1) 100%);
+  background: linear-gradient(
+    180deg,
+    rgb(var(--color-primary-rgb) / 0.3) 0%,
+    rgb(var(--color-primary-rgb) / 0.1) 100%
+  );
 }
 
 .runtime-device-inspector__timeline-content {

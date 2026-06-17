@@ -174,7 +174,7 @@ function dispositionLabel(value: string): string {
   padding: 18px;
   border: 1px solid rgb(var(--color-primary-rgb) / 14%);
   border-radius: 8px;
-  background: rgb(30 41 59 / 74%);
+  background: rgb(var(--color-industrial-dark-surface-rgb) / 74%);
 }
 
 .runtime-hold-panel header {
@@ -235,7 +235,7 @@ function dispositionLabel(value: string): string {
   min-height: 44px;
   border: 1px solid rgb(var(--color-primary-rgb) / 22%);
   border-radius: 8px;
-  background: rgb(15 23 42 / 72%);
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 72%);
   color: var(--color-industrial-dark-text);
   padding: 10px 12px;
 }
@@ -243,7 +243,7 @@ function dispositionLabel(value: string): string {
 .runtime-hold-field input:disabled,
 .runtime-hold-field select:disabled {
   color: var(--color-industrial-dark-text-muted);
-  border-color: rgb(100 116 139 / 35%);
+  border-color: rgb(var(--color-industrial-dark-text-muted-rgb) / 35%);
 }
 
 .runtime-hold-alert {

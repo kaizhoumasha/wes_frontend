@@ -197,9 +197,9 @@ function onKeyDown(event: KeyboardEvent, item: PriorityItem) {
   border-radius: 10px;
   background: linear-gradient(
     90deg,
-    rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.08),
-    rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.16),
-    rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.08)
+    rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.08),
+    rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.16),
+    rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.08)
   );
   background-size: 200% 100%;
   animation: pq-shimmer 1.6s ease-in-out infinite;
@@ -259,7 +259,7 @@ function onKeyDown(event: KeyboardEvent, item: PriorityItem) {
 }
 
 .runtime-priority-queue__tier-header--known .runtime-priority-queue__tier-count {
-  background: rgb(100, 116, 139, 0.15);
+  background: rgb(var(--color-industrial-dark-text-muted-rgb) / 0.15);
   color: var(--color-industrial-dark-text-secondary);
 }
 
@@ -294,7 +294,7 @@ function onKeyDown(event: KeyboardEvent, item: PriorityItem) {
   padding: 12px 14px;
   border: 1px solid var(--runtime-border, rgb(var(--color-primary-rgb) / 0.12));
   border-radius: 10px;
-  background: var(--runtime-surface, rgb(30, 41, 59, 0.6));
+  background: var(--runtime-surface, rgb(var(--color-industrial-dark-surface-rgb) / 0.6));
   text-align: left;
   cursor: pointer;
   transition:
@@ -307,7 +307,7 @@ function onKeyDown(event: KeyboardEvent, item: PriorityItem) {
 .runtime-priority-queue__card:focus-visible {
   transform: translateY(-1px);
   border-color: var(--runtime-border-strong, rgb(var(--color-primary-rgb) / 0.28));
-  background: var(--runtime-surface-strong, rgb(30, 41, 59, 0.88));
+  background: var(--runtime-surface-strong, rgb(var(--color-industrial-dark-surface-rgb) / 0.88));
 }
 
 .runtime-priority-queue__card:focus-visible {
@@ -364,9 +364,9 @@ function onKeyDown(event: KeyboardEvent, item: PriorityItem) {
 
 .runtime-priority-queue__empty {
   padding: 24px;
-  border: 1px dashed rgb(var(--color-industrial-dark-text-secondary-rgb, 148 163 184) / 0.28);
+  border: 1px dashed rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.28);
   border-radius: 14px;
-  background: rgb(15, 23, 42, 0.42);
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 0.42);
   color: var(--runtime-text-secondary);
   font-size: 14px;
   font-weight: 600;

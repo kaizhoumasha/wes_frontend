@@ -94,8 +94,8 @@ import logoSvg from '@/assets/logo.svg'
   position: absolute;
   width: 150px;
   height: 150px;
-  border: 1px solid rgb(148 163 184 / 30%);
-  background: rgb(15 23 42 / 95%);
+  border: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb) / 30%);
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 95%);
   box-shadow:
     inset 0 0 40px rgb(var(--color-primary-rgb) / 10%),
     0 0 30px rgb(var(--color-primary-rgb) / 10%);
@@ -109,7 +109,7 @@ import logoSvg from '@/assets/logo.svg'
 /* 亮模式样式调整 */
 html:not(.dark) .cube-face {
   border: 1px solid rgb(var(--color-primary-rgb) / 30%);
-  background: rgb(255 255 255 / 95%);
+  background: rgb(var(--color-industrial-light-surface-rgb) / 95%);
   box-shadow:
     inset 0 0 40px rgb(var(--color-primary-rgb) / 10%),
     0 0 30px rgb(var(--color-primary-rgb) / 10%);
