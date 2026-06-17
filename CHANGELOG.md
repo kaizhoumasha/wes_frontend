@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0.0] - 2026-06-17
+
+### Added
+
+- 工作线监控接入 dashboard-v3 右侧行动舱，按设备、货位和空闲状态展示报警、ECS ACK 链、料箱孪生、货架库存矩阵和真实操作入口。
+- 中央拓扑支持 manifest `DEVICE_ROLE` / `RACK_POSITION` 显式节点与边，并在 manifest 缺失时保留稳定 fallback 连线。
+- 新增运行监控右栏组件、拓扑布局、资源矩阵、路由同步、运行事件和画布交互回归测试。
+
+### Changed
+
+- `/runtime/monitor` 右侧面板改为按选择目标自动切换的单视图，移除旧双 Tab 和旧 safety/reconciliation 独立面板。
+- 运行监控画布改为容器适配渲染，并让 compact/default 绘制尺寸、hit-test 和布局配置保持一致。
+- 前端 OpenAPI 类型、metadata 与 Zod schema 同步运行监控 command snapshot 合同。
+
+### Fixed
+
+- 修复设备 status、拒绝 ACK、离线/故障节点、货架选择、Path2D 缓存和静态告警边重绘等运行监控回归。
+- 修复多货架工作线的库存矩阵串货、切换工作线后旧货架选择残留，以及无设备选中时清急停入口不可见的问题。
+- 隐藏 `CLASSIFIER_WORK` 等非传输角色，避免它们出现在 topology 画布中。
+
 ## [0.6.0.0] - 2026-06-15
 
 ### Added
