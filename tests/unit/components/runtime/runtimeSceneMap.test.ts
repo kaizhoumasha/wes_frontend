@@ -441,6 +441,40 @@ describe('RuntimeSceneMap', () => {
     expect(wrapper.find('[data-test="runtime-scene-device-flow-canvas"]').exists()).toBe(true)
   })
 
+  it('passes manifest topology nodes and edges into the canvas layout adapter', () => {
+    const model = createSceneModel()
+    model.topologyNodes = [
+      { kind: 'DEVICE_ROLE', ref: 'ARM', resolved: true },
+      { kind: 'RACK_POSITION', ref: 'SINGLE_LAYER_A', resolved: true },
+      { kind: 'RACK_POSITION', ref: 'UNKNOWN_RACK', resolved: false }
+    ]
+    model.topologyEdges = [
+      {
+        key: 'DEVICE_ROLE:ARM->RACK_POSITION:SINGLE_LAYER_A:MATERIAL_FLOW',
+        fromNode: { kind: 'DEVICE_ROLE', ref: 'ARM', resolved: true },
+        toNode: { kind: 'RACK_POSITION', ref: 'SINGLE_LAYER_A', resolved: true },
+        type: 'MATERIAL_FLOW'
+      }
+    ]
+
+    const wrapper = mount(RuntimeSceneMap, {
+      props: { model }
+    })
+
+    const flow = wrapper.findComponent({ name: 'RuntimeSceneDeviceFlow' })
+    expect(flow.props('explicitNodes')).toEqual([
+      { kind: 'device', device: model.deviceNodes[0] },
+      { kind: 'rack_position', code: 'SINGLE_LAYER_A' }
+    ])
+    expect(flow.props('explicitEdges')).toEqual([
+      {
+        fromKey: 'device:101',
+        toKey: 'rack:SINGLE_LAYER_A',
+        type: 'MATERIAL_FLOW'
+      }
+    ])
+  })
+
   it('renders the semantic fallback banner when manifest load fails', () => {
     const model = {
       ...createSceneModel(),

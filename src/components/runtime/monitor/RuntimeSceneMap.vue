@@ -106,11 +106,7 @@ const layoutExplicitEdges = computed<ExplicitLayoutEdge[] | undefined>(() => {
     toNode: { kind: edge.toNode.kind, ref: edge.toNode.ref },
     type: edge.type
   }))
-  return expandManifestEdgesForLayout(
-    manifestInputs,
-    props.model.deviceNodes,
-    knownRackPositions
-  )
+  return expandManifestEdgesForLayout(manifestInputs, props.model.deviceNodes, knownRackPositions)
 })
 </script>
 

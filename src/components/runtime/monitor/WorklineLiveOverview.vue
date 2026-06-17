@@ -32,7 +32,12 @@
       role="separator"
       aria-orientation="horizontal"
       aria-label="调整即时事件日志高度"
+      :aria-valuemin="EVENT_LOG_MIN_HEIGHT"
+      :aria-valuemax="EVENT_LOG_MAX_HEIGHT"
+      :aria-valuenow="eventLogHeight"
+      tabindex="0"
       @mousedown="onResizeStart"
+      @keydown="onResizeKeydown"
     ></div>
 
     <section
@@ -164,9 +169,14 @@ watch(
 const EVENT_LOG_MIN_HEIGHT = 80
 const EVENT_LOG_MAX_HEIGHT = 480
 const EVENT_LOG_DEFAULT_HEIGHT = 140
+const EVENT_LOG_KEYBOARD_STEP = 10
 
 const eventLogHeight = ref(EVENT_LOG_DEFAULT_HEIGHT)
 let dragOrigin: { clientY: number; height: number } | null = null
+
+function clampEventLogHeight(value: number): number {
+  return Math.min(EVENT_LOG_MAX_HEIGHT, Math.max(EVENT_LOG_MIN_HEIGHT, value))
+}
 
 function onResizeStart(event: MouseEvent): void {
   if (event.button !== 0) return
@@ -182,13 +192,9 @@ function onResizeStart(event: MouseEvent): void {
 function onResizeMove(event: MouseEvent): void {
   if (!dragOrigin) return
   const delta = event.clientY - dragOrigin.clientY
-  // 拖动 handle 向上 → 减高度（事件日志缩小，canvas 占更大空间）
-  // 拖动 handle 向下 → 增高度
+  // 拖动 handle 向上 → 增高度；向下 → 减高度。
   const next = dragOrigin.height - delta
-  eventLogHeight.value = Math.min(
-    EVENT_LOG_MAX_HEIGHT,
-    Math.max(EVENT_LOG_MIN_HEIGHT, next)
-  )
+  eventLogHeight.value = clampEventLogHeight(next)
 }
 
 function onResizeEnd(): void {
@@ -197,6 +203,28 @@ function onResizeEnd(): void {
   window.removeEventListener('mouseup', onResizeEnd)
   document.body.style.userSelect = ''
   document.body.style.cursor = ''
+}
+
+function onResizeKeydown(event: KeyboardEvent): void {
+  if (event.key === 'ArrowUp') {
+    event.preventDefault()
+    eventLogHeight.value = clampEventLogHeight(eventLogHeight.value + EVENT_LOG_KEYBOARD_STEP)
+    return
+  }
+  if (event.key === 'ArrowDown') {
+    event.preventDefault()
+    eventLogHeight.value = clampEventLogHeight(eventLogHeight.value - EVENT_LOG_KEYBOARD_STEP)
+    return
+  }
+  if (event.key === 'Home') {
+    event.preventDefault()
+    eventLogHeight.value = EVENT_LOG_MIN_HEIGHT
+    return
+  }
+  if (event.key === 'End') {
+    event.preventDefault()
+    eventLogHeight.value = EVENT_LOG_MAX_HEIGHT
+  }
 }
 
 onBeforeUnmount(() => {

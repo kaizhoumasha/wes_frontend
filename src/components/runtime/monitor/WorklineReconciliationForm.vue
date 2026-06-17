@@ -42,17 +42,23 @@
             label="COMPLETED"
             value="COMPLETED"
             data-test="resolution-completed"
-          >现场已完成</el-radio-button>
+          >
+            现场已完成
+          </el-radio-button>
           <el-radio-button
             label="FAILED"
             value="FAILED"
             data-test="resolution-failed"
-          >现场失败</el-radio-button>
+          >
+            现场失败
+          </el-radio-button>
           <el-radio-button
             label="CANCELLED"
             value="CANCELLED"
             data-test="resolution-cancelled"
-          >取消流程</el-radio-button>
+          >
+            取消流程
+          </el-radio-button>
         </el-radio-group>
 
         <el-checkbox-group

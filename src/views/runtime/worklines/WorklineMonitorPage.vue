@@ -449,10 +449,7 @@ import {
 import { getWorklineDeviceSafetyEvidence, getWorklineRuntimeVerdict } from '@/utils/runtime-safety'
 import { getErrorMessage } from '@/utils/string'
 import { buildRuntimeWorklineQuery } from '@/utils/runtime-route'
-import {
-  buildRackHierarchyView,
-  buildSelectedDeviceCommandView
-} from '@/utils/runtime-scene'
+import { buildRackHierarchyView, buildSelectedDeviceCommandView } from '@/utils/runtime-scene'
 import {
   formatRuntimeDateTime,
   getWorklineRiskLabel as worklineRiskLabel,
@@ -828,11 +825,15 @@ async function enterDeviceMaintenance(deviceId: number, reason?: string) {
   }
   if (!Number.isInteger(deviceId) || deviceId <= 0) return
   try {
-    await ElMessageBox.confirm('确认让该设备进入维护模式？维护期间设备将停止参与派发。', '设备进入维护', {
-      confirmButtonText: '进入维护',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
+    await ElMessageBox.confirm(
+      '确认让该设备进入维护模式？维护期间设备将停止参与派发。',
+      '设备进入维护',
+      {
+        confirmButtonText: '进入维护',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
   } catch {
     return
   }

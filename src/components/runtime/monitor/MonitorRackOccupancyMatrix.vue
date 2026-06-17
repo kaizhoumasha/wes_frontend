@@ -36,9 +36,7 @@
             :class="[
               'monitor-rack-occupancy-matrix__cell',
               `monitor-rack-occupancy-matrix__cell--${cell.state}`,
-              cell.key === selectedSlotKey
-                ? 'monitor-rack-occupancy-matrix__cell--selected'
-                : null
+              cell.key === selectedSlotKey ? 'monitor-rack-occupancy-matrix__cell--selected' : null
             ]"
             :data-state="cell.state"
             :data-slot-key="cell.key"
