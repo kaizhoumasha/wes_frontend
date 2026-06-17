@@ -2,6 +2,7 @@ import { nextTick, reactive } from 'vue'
 import { shallowMount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { ElMessage } from 'element-plus'
 
 type RouteState = {
   path: string
@@ -306,6 +307,7 @@ describe('WorklineMonitorPage assembly (T10)', () => {
     resolveRuntimeReconciliationSend.mockReset()
     runtimeEnterMaintenanceSend.mockReset()
     runtimeExitMaintenanceSend.mockReset()
+    vi.mocked(ElMessage.error).mockClear()
     sseStoreMock.lastEvent = null
   })
 
@@ -501,6 +503,68 @@ describe('WorklineMonitorPage assembly (T10)', () => {
     expect(runtimeExitMaintenanceSend).toHaveBeenCalledWith(
       { id: 401 },
       expect.objectContaining({ reason: expect.any(String) })
+    )
+  })
+
+  it('surfaces enter-maintenance API failures and resets the busy state', async () => {
+    worklineProjectionSend.mockResolvedValue(createProjection(301))
+    let rejectEnterMaintenance: (error: Error) => void = () => undefined
+    runtimeEnterMaintenanceSend.mockReturnValueOnce(
+      new Promise((_resolve, reject) => {
+        rejectEnterMaintenance = reject
+      })
+    )
+
+    const wrapper = await mountWithQuery(301, 401)
+    await wrapper.find('[data-test="action-enter-maintenance"]').trigger('click')
+    await flushViewUpdates()
+
+    expect(wrapper.find('[data-test="monitor-device-action-group"]').attributes('data-busy')).toBe(
+      'true'
+    )
+
+    rejectEnterMaintenance(new Error('enter failed'))
+    await flushViewUpdates()
+
+    expect(runtimeEnterMaintenanceSend).toHaveBeenCalledWith(
+      { id: 401 },
+      expect.objectContaining({ reason: expect.any(String) })
+    )
+    expect(ElMessage.error).toHaveBeenCalledWith('enter failed')
+    expect(wrapper.find('[data-test="monitor-device-action-group"]').attributes('data-busy')).toBe(
+      'false'
+    )
+  })
+
+  it('surfaces exit-maintenance API failures and resets the busy state', async () => {
+    worklineProjectionSend.mockResolvedValue(
+      createProjection(301, { device: { maintenance_mode: true } })
+    )
+    let rejectExitMaintenance: (error: Error) => void = () => undefined
+    runtimeExitMaintenanceSend.mockReturnValueOnce(
+      new Promise((_resolve, reject) => {
+        rejectExitMaintenance = reject
+      })
+    )
+
+    const wrapper = await mountWithQuery(301, 401)
+    await wrapper.find('[data-test="action-exit-maintenance"]').trigger('click')
+    await flushViewUpdates()
+
+    expect(wrapper.find('[data-test="monitor-device-action-group"]').attributes('data-busy')).toBe(
+      'true'
+    )
+
+    rejectExitMaintenance(new Error('exit failed'))
+    await flushViewUpdates()
+
+    expect(runtimeExitMaintenanceSend).toHaveBeenCalledWith(
+      { id: 401 },
+      expect.objectContaining({ reason: expect.any(String) })
+    )
+    expect(ElMessage.error).toHaveBeenCalledWith('exit failed')
+    expect(wrapper.find('[data-test="monitor-device-action-group"]').attributes('data-busy')).toBe(
+      'false'
     )
   })
 

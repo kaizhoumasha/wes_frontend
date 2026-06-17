@@ -511,7 +511,7 @@ interface ColumnedNodeInput {
 }
 
 function computeExplicitLayout(
-  devices: RuntimeSceneDeviceNode[],
+  _devices: RuntimeSceneDeviceNode[],
   config: LayoutConfig,
   rules: RoleColumnRule[],
   options: ComputeLayoutOptions
@@ -521,21 +521,6 @@ function computeExplicitLayout(
 
   if (explicitNodes.length === 0 && explicitEdges.length === 0) {
     return { nodes: [], edges: [], canvasWidth: 0, canvasHeight: 0 }
-  }
-
-  // Index devices by role for fan-out resolution.
-  // Stable ordering: roleIndex ascending, then id ascending.
-  const devicesByRole = new Map<string, RuntimeSceneDeviceNode[]>()
-  for (const device of devices) {
-    const list = devicesByRole.get(device.deviceRole) ?? []
-    list.push(device)
-    devicesByRole.set(device.deviceRole, list)
-  }
-  for (const list of devicesByRole.values()) {
-    list.sort((a, b) => {
-      if (a.roleIndex !== b.roleIndex) return a.roleIndex - b.roleIndex
-      return a.id - b.id
-    })
   }
 
   // Step 1: assign columns to explicit device nodes via role rules; rack
@@ -712,16 +697,9 @@ function computeExplicitLayout(
     }
   })
 
-  // Step 5: build edges from explicit edges with DEVICE_ROLE fan-out.
-  // We treat any device-keyed edge endpoint that does NOT match an explicit
-  // device input as a potential role reference (DEVICE_ROLE), to be resolved
-  // against `devicesByRole`. Callers building manifest edges typically pass
-  // role-name-based keys via a different convention; for parity with the
-  // `RuntimeSceneTopologyEdge` shape, we expose a helper:
-  // `expandManifestEdgesForLayout()` below. The edges passed into this
-  // engine are assumed to already reference concrete device keys (after
-  // fan-out has been applied externally), OR refer to rack-position keys
-  // we know about. Unknown keys are skipped silently.
+  // Step 5: build edges from explicit edges. The edges passed into this
+  // engine are assumed to already reference concrete device keys, OR refer
+  // to rack-position keys we know about. Unknown keys are skipped silently.
   const knownKeys = new Set(positions.keys())
   const edges: LayoutEdge[] = []
   // Track id occurrence count to disambiguate manifest authors who declare
