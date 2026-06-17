@@ -370,13 +370,22 @@ export function buildSelectedDeviceCommandView(
 function deriveCommandAckState(
   command: RuntimeMonitorCommandSnapshot
 ): RuntimeSceneCommandAckState {
-  if (command.ack_received_at) return 'acked'
   const status = (command.status ?? '').toUpperCase()
-  if (status === 'ACKED') return 'acked'
   if (status === 'REJECTED' || status === 'FAILED') return 'rejected'
+  if (isRejectedAckCode(command.ack_code)) return 'rejected'
+  if (command.ack_received_at) return 'acked'
+  if (status === 'ACKED') return 'acked'
   if (status === 'EXPIRED' || status === 'TIMEOUT') return 'expired'
   if (status === 'PENDING' || status === 'SENT' || status === 'DISPATCHED') return 'pending'
   return 'unknown'
+}
+
+function isRejectedAckCode(ackCode: unknown): boolean {
+  if (typeof ackCode === 'number') return ackCode >= 400
+  if (typeof ackCode !== 'string') return false
+
+  const normalized = ackCode.trim().toUpperCase()
+  return ['REJECTED', 'FAILED', 'ERROR', 'NACK', 'NG'].includes(normalized)
 }
 
 export function buildSelectedDeviceToteTwinView(

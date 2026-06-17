@@ -109,6 +109,36 @@ describe('runtime-scene right-panel adapters', () => {
       expect(view?.ackState).toBe('rejected')
     })
 
+    it('keeps terminal rejection ahead of ack_received_at', () => {
+      const view = buildSelectedDeviceCommandView(
+        makeDevice({
+          current_command: makeCommand({
+            status: 'FAILED',
+            ack_received_at: '2026-06-15T15:40:03Z',
+            ack_code: 200,
+            ack_message: 'Rejected by ECS'
+          })
+        })
+      )
+
+      expect(view?.ackState).toBe('rejected')
+    })
+
+    it('keeps failure ack_code ahead of ack_received_at', () => {
+      const view = buildSelectedDeviceCommandView(
+        makeDevice({
+          current_command: makeCommand({
+            status: 'ACKED',
+            ack_received_at: '2026-06-15T15:40:03Z',
+            ack_code: 500,
+            ack_message: 'NACK'
+          })
+        })
+      )
+
+      expect(view?.ackState).toBe('rejected')
+    })
+
     it('derives ackState=expired when status is EXPIRED', () => {
       const view = buildSelectedDeviceCommandView(
         makeDevice({ current_command: makeCommand({ status: 'EXPIRED' }) })

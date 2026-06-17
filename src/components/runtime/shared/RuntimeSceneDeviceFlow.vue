@@ -661,7 +661,7 @@ function handleCanvasContextMenu(event: MouseEvent): void {
 }
 
 // ---------------------------------------------------------------------------
-// Animation loop (active/warning/fault edges need dashoffset animation)
+// Animation loop (only active edges change dash offset over time)
 // ---------------------------------------------------------------------------
 
 function tick(): void {
@@ -687,7 +687,7 @@ function stopAnimation(): void {
 }
 
 function hasAnimatedEdges(currentLayout: import('@/utils/runtime-topology').LayoutResult): boolean {
-  return currentLayout.edges.some(e => ['active', 'warning', 'fault'].includes(e.status))
+  return currentLayout.edges.some(e => e.status === 'active')
 }
 
 // ---------------------------------------------------------------------------

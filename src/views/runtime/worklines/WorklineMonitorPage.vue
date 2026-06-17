@@ -262,6 +262,38 @@
         </section>
 
         <section
+          v-else-if="worklineRecoveryActionMode"
+          class="monitor-panel monitor-device-panel"
+          data-test="monitor-workline-recovery-panel"
+          aria-label="工作线恢复"
+        >
+          <section
+            class="monitor-device-panel__tab-panel"
+            data-test="monitor-workline-recovery-control-panel"
+          >
+            <MonitorAlertCard
+              v-if="deviceAlertContent"
+              :tone="deviceAlertContent.tone"
+              :title="deviceAlertContent.title"
+              :message="deviceAlertContent.message"
+              :source="deviceAlertContent.source"
+            />
+
+            <MonitorDeviceActionGroup
+              :mode="worklineRecoveryActionMode"
+              :can-clear-estop="canClearWorklineEstop"
+              :can-attempt-clear="currentWorklineSafetyVerdict.canAttemptClear"
+              :can-resolve="false"
+              :can-manage-maintenance="false"
+              :maintenance-active="false"
+              :busy="busyAnyAction"
+              :blocked-reason="currentWorklineSafetyVerdict.blockedReason"
+              @clear-estop="clearWorklineEstop"
+            />
+          </section>
+        </section>
+
+        <section
           v-else-if="panelMode === 'business' && selectedRackPositionCode"
           class="monitor-panel monitor-device-panel"
           data-test="monitor-rack-position-panel"
@@ -287,7 +319,14 @@
             />
 
             <p
-              v-if="!deviceRackOccupancyView"
+              v-if="selectedRackEvidenceTruncated"
+              class="monitor-device-panel__hint"
+            >
+              库存投影数据已截断，无法确认该货位库存状态。
+            </p>
+
+            <p
+              v-else-if="!deviceRackOccupancyView"
               class="monitor-device-panel__hint"
             >
               选中货位暂无库存投影数据。
@@ -424,6 +463,7 @@ import type {
   RuntimeMonitorDeviceNode,
   RuntimeSafetyIncidentSummary,
   RuntimeMonitorReconciliationCandidate,
+  RuntimeWorklineMonitorProjectionResponse,
   RuntimeWorklineSummary
 } from '@/types/runtime'
 
@@ -571,6 +611,11 @@ const deviceActionMode = computed<'idle' | 'estop' | 'reconciliation'>(() => {
   return 'idle'
 })
 
+const worklineRecoveryActionMode = computed<'estop' | null>(() => {
+  if (selectedDevice.value || selectedRackPositionCode.value) return null
+  return currentWorklineSafetyVerdict.value.safetyLocked ? 'estop' : null
+})
+
 const isSelectedDeviceInMaintenance = computed(() =>
   Boolean(selectedDevice.value?.maintenance_mode)
 )
@@ -585,7 +630,14 @@ const busyAnyAction = computed(
 
 const deviceRackOccupancyView = computed(() => {
   if (!store.projection) return null
-  return buildRackHierarchyView(store.projection)
+  return buildRackHierarchyView(getRackScopedProjection(store.projection))
+})
+
+const selectedRackEvidenceTruncated = computed(() => {
+  if (!selectedRackPositionCode.value || !store.projection?.resource_evidence.truncated) {
+    return false
+  }
+  return !deviceRackOccupancyView.value
 })
 
 // panelMode drives the right-side aside: business when a rack-position is
@@ -643,6 +695,7 @@ const forceRefreshProjection = createCoalescedAsyncTask(async () => {
 function selectWorkline(row: RuntimeWorklineSummary) {
   if (selectedWorklineId.value === row.id) return
   activeMobilePane.value = 'scene'
+  clearRackSelection()
   router.push({ query: { ...route.query, ...buildRuntimeWorklineQuery(row.id) } })
 }
 
@@ -655,14 +708,48 @@ function goRuntimeOverview() {
 
 function openDevice(deviceId: number) {
   activeMobilePane.value = 'actions'
-  selectedRackPositionCode.value = null
+  clearRackSelection()
   router.push({ query: { ...route.query, deviceId: String(deviceId) } })
 }
 
 function onRackPositionSelect(rackCode: string) {
   activeMobilePane.value = 'actions'
-  selectedRackPositionCode.value =
-    selectedRackPositionCode.value === rackCode ? null : rackCode
+  const nextRackCode = selectedRackPositionCode.value === rackCode ? null : rackCode
+  selectedRackPositionCode.value = nextRackCode
+  selectedRackSlotKey.value = null
+}
+
+function clearRackSelection() {
+  selectedRackPositionCode.value = null
+  selectedRackSlotKey.value = null
+}
+
+function getRackScopedProjection(
+  projection: RuntimeWorklineMonitorProjectionResponse
+): RuntimeWorklineMonitorProjectionResponse {
+  const rackCode = selectedRackPositionCode.value
+  if (!rackCode) return projection
+  const evidence = projection.resource_evidence
+  const scopedItems = getRackScopedEvidenceItems(projection)
+  return {
+    ...projection,
+    resource_evidence: {
+      ...evidence,
+      items: scopedItems,
+      total_count: scopedItems.length
+    }
+  }
+}
+
+function getRackScopedEvidenceItems(projection: RuntimeWorklineMonitorProjectionResponse) {
+  const rackCode = selectedRackPositionCode.value
+  if (!rackCode) return projection.resource_evidence.items ?? []
+  return (projection.resource_evidence.items ?? []).filter(
+    item =>
+      item.rack_code === rackCode ||
+      item.position_code === rackCode ||
+      item.resource_code === rackCode
+  )
 }
 
 async function clearWorklineEstop() {
@@ -825,7 +912,10 @@ onMounted(() => {
 watch(
   () => selectedWorklineId.value,
   (next, prev) => {
-    if (next !== prev) eventLogEntries.value = []
+    if (next !== prev) {
+      eventLogEntries.value = []
+      clearRackSelection()
+    }
     if (next && next !== prev) void refreshProjection()
   }
 )

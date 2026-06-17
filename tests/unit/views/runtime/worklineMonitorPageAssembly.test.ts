@@ -255,7 +255,7 @@ function createMountOptions() {
           name: 'MonitorDeviceActionGroup',
           props: ['mode', 'canClearEstop', 'canAttemptClear', 'canResolve', 'canManageMaintenance', 'maintenanceActive', 'busy', 'blockedReason'],
           template:
-            '<div data-test="monitor-device-action-group" :data-mode="mode" :data-maintenance-active="maintenanceActive" :data-can-manage-maintenance="canManageMaintenance"><button data-test="action-clear-estop" @click="$emit(\'clear-estop\')" /><button data-test="action-resolve-reconciliation" @click="$emit(\'resolve-reconciliation\')" /><button data-test="action-enter-maintenance" @click="$emit(\'enter-maintenance\')" /><button data-test="action-exit-maintenance" @click="$emit(\'exit-maintenance\')" /></div>'
+            '<div data-test="monitor-device-action-group" :data-mode="mode" :data-maintenance-active="maintenanceActive" :data-can-manage-maintenance="canManageMaintenance" :data-can-clear-estop="canClearEstop" :data-can-attempt-clear="canAttemptClear" :data-busy="busy"><button v-if="canClearEstop && canAttemptClear && !busy" data-test="action-clear-estop" @click="$emit(\'clear-estop\')" /><button data-test="action-resolve-reconciliation" @click="$emit(\'resolve-reconciliation\')" /><button v-if="canManageMaintenance" data-test="action-enter-maintenance" @click="$emit(\'enter-maintenance\')" /><button v-if="canManageMaintenance" data-test="action-exit-maintenance" @click="$emit(\'exit-maintenance\')" /></div>'
         },
         MonitorToteTwinCard: {
           name: 'MonitorToteTwinCard',
@@ -266,21 +266,27 @@ function createMountOptions() {
           name: 'MonitorRackOccupancyMatrix',
           props: ['view', 'selectedSlotKey'],
           template:
-            '<div data-test="monitor-rack-occupancy-matrix" :data-slot-count="view?.slotGroups?.reduce((acc, g) => acc + g.cells.length, 0) ?? 0" :data-selected-slot-key="selectedSlotKey === null || selectedSlotKey === undefined ? \'null\' : selectedSlotKey"><button data-test="rack-slot-cell-1" @click="$emit(\'select\', \'cell-1\')" /><button data-test="rack-slot-cell-2" @click="$emit(\'select\', \'cell-2\')" /></div>'
+            '<div data-test="monitor-rack-occupancy-matrix" :data-rack-code="view?.rackCode ?? null" :data-slot-count="view?.slotGroups?.reduce((acc, g) => acc + g.cells.length, 0) ?? 0" :data-cell-codes="view?.slotGroups?.flatMap(g => g.cells.map(c => c.code)).join(\',\') ?? \'\'" :data-selected-slot-key="selectedSlotKey === null || selectedSlotKey === undefined ? \'null\' : selectedSlotKey"><button data-test="rack-slot-cell-1" @click="$emit(\'select\', \'cell-1\')" /><button data-test="rack-slot-cell-2" @click="$emit(\'select\', \'cell-2\')" /></div>'
         }
       }
     }
   }
 }
 
-async function mountWithQuery(worklineId: number, deviceId: number) {
+async function mountWithQuery(
+  worklineId: number,
+  deviceId?: number,
+  options: { worklines?: Array<Record<string, unknown>> } = {}
+) {
   routeState.path = '/runtime/monitor'
-  routeState.fullPath = `/runtime/monitor?worklineId=${worklineId}&deviceId=${deviceId}`
+  routeState.fullPath = deviceId
+    ? `/runtime/monitor?worklineId=${worklineId}&deviceId=${deviceId}`
+    : `/runtime/monitor?worklineId=${worklineId}`
   routeState.query = {
     worklineId: String(worklineId),
-    deviceId: String(deviceId)
+    ...(deviceId ? { deviceId: String(deviceId) } : {})
   }
-  worklinesSend.mockResolvedValue([worklineSummary])
+  worklinesSend.mockResolvedValue(options.worklines ?? [worklineSummary])
   const component = await import('@/views/runtime/worklines/WorklineMonitorPage.vue')
   const wrapper = shallowMount(component.default, createMountOptions())
   mountedWrappers.push(wrapper)
@@ -430,6 +436,44 @@ describe('WorklineMonitorPage assembly (T10)', () => {
     )
   })
 
+  it('keeps workline estop recovery visible without a selected device', async () => {
+    worklineProjectionSend.mockImplementation(async (id: number) => ({
+      ...createProjection(id),
+      summary: {
+        ...worklineSummary,
+        id,
+        runtime_status: 'ESTOPPED',
+        stopped_reason: '现场急停按钮被按下',
+        active_safety_incident_id: 1
+      }
+    }))
+
+    const wrapper = await mountWithQuery(301)
+
+    expect(wrapper.find('[data-test="monitor-selected-device-panel"]').exists()).toBe(false)
+    const actionGroup = wrapper.find('[data-test="monitor-device-action-group"]')
+    expect(actionGroup.exists()).toBe(true)
+    expect(actionGroup.attributes('data-mode')).toBe('estop')
+    expect(actionGroup.attributes('data-can-manage-maintenance')).toBe('false')
+    expect(actionGroup.attributes('data-can-clear-estop')).toBe('true')
+    expect(actionGroup.attributes('data-can-attempt-clear')).toBe('true')
+    expect(actionGroup.attributes('data-busy')).toBe('false')
+    expect(wrapper.find('[data-test="action-enter-maintenance"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="action-exit-maintenance"]').exists()).toBe(false)
+
+    await wrapper.find('[data-test="action-clear-estop"]').trigger('click')
+    await flushViewUpdates()
+
+    expect(clearEstopSend).toHaveBeenCalledWith(
+      301,
+      expect.objectContaining({
+        reason: expect.any(String)
+      })
+    )
+    expect(runtimeEnterMaintenanceSend).not.toHaveBeenCalled()
+    expect(runtimeExitMaintenanceSend).not.toHaveBeenCalled()
+  })
+
   it('routes ActionGroup enter-maintenance to devicesApiMethods.runtimeEnterMaintenance with selectedDeviceId', async () => {
     worklineProjectionSend.mockResolvedValue(createProjection(301))
 
@@ -530,6 +574,142 @@ describe('WorklineMonitorPage assembly (T10)', () => {
     expect(Number(matrix.attributes('data-slot-count'))).toBe(1)
   })
 
+  it('filters rack occupancy to the selected rack position', async () => {
+    const rackEvidence = [
+      {
+        resource_kind: 'BIN',
+        resource_code: 'BIN-101',
+        display_label: 'Bin BIN-101',
+        evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+        rack_code: 'RACK-101',
+        bin_code: 'BIN-101',
+        cell_code: 'CELL-101-A'
+      },
+      {
+        resource_kind: 'CELL',
+        resource_code: 'CELL-101-A',
+        display_label: 'Cell CELL-101-A',
+        evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+        rack_code: 'RACK-101',
+        slot_code: 'A',
+        bin_code: 'BIN-101',
+        cell_code: 'CELL-101-A'
+      },
+      {
+        resource_kind: 'BIN',
+        resource_code: 'BIN-202',
+        display_label: 'Bin BIN-202',
+        evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+        rack_code: 'RACK-202',
+        bin_code: 'BIN-202',
+        cell_code: 'CELL-202-A'
+      },
+      {
+        resource_kind: 'CELL',
+        resource_code: 'CELL-202-A',
+        display_label: 'Cell CELL-202-A',
+        evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+        rack_code: 'RACK-202',
+        slot_code: 'A',
+        bin_code: 'BIN-202',
+        cell_code: 'CELL-202-A'
+      }
+    ]
+    worklineProjectionSend.mockResolvedValue(createProjection(301, { rackEvidence }))
+
+    const wrapper = await mountWithQuery(301, 401)
+    const overview = wrapper.findComponent({ name: 'WorklineLiveOverview' })
+    overview.vm.$emit('selectRackPosition', 'RACK-101')
+    await flushViewUpdates()
+
+    const matrix = wrapper.find('[data-test="monitor-rack-occupancy-matrix"]')
+    expect(matrix.exists()).toBe(true)
+    expect(matrix.attributes('data-rack-code')).toBe('RACK-101')
+    expect(matrix.attributes('data-cell-codes')).toBe('CELL-101-A')
+    expect(matrix.attributes('data-cell-codes')).not.toContain('CELL-202-A')
+  })
+
+  it('shows the existing empty rack hint when the selected rack has no cell evidence', async () => {
+    const rackEvidence = [
+      {
+        resource_kind: 'CELL',
+        resource_code: 'CELL-202-A',
+        display_label: 'Cell CELL-202-A',
+        evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+        rack_code: 'RACK-202',
+        slot_code: 'A',
+        bin_code: 'BIN-202',
+        cell_code: 'CELL-202-A'
+      }
+    ]
+    worklineProjectionSend.mockResolvedValue(createProjection(301, { rackEvidence }))
+
+    const wrapper = await mountWithQuery(301, 401)
+    const overview = wrapper.findComponent({ name: 'WorklineLiveOverview' })
+    overview.vm.$emit('selectRackPosition', 'RACK-101')
+    await flushViewUpdates()
+
+    expect(wrapper.find('[data-test="monitor-rack-occupancy-matrix"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="monitor-business-projection"]').text()).toContain(
+      '选中货位暂无库存投影数据。'
+    )
+  })
+
+  it('shows a truncation hint instead of an empty hint when selected rack evidence may be beyond the loaded slice', async () => {
+    const rackEvidence = [
+      {
+        resource_kind: 'CELL',
+        resource_code: 'CELL-202-A',
+        display_label: 'Cell CELL-202-A',
+        evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+        rack_code: 'RACK-202',
+        slot_code: 'A',
+        bin_code: 'BIN-202',
+        cell_code: 'CELL-202-A'
+      }
+    ]
+    const projection = createProjection(301, { rackEvidence })
+    projection.resource_evidence.truncated = true
+    worklineProjectionSend.mockResolvedValue(projection)
+
+    const wrapper = await mountWithQuery(301, 401)
+    const overview = wrapper.findComponent({ name: 'WorklineLiveOverview' })
+    overview.vm.$emit('selectRackPosition', 'RACK-101')
+    await flushViewUpdates()
+
+    const businessProjectionText = wrapper.find('[data-test="monitor-business-projection"]').text()
+    expect(wrapper.find('[data-test="monitor-rack-occupancy-matrix"]').exists()).toBe(false)
+    expect(businessProjectionText).toContain('库存投影数据已截断，无法确认该货位库存状态。')
+    expect(businessProjectionText).not.toContain('选中货位暂无库存投影数据。')
+  })
+
+  it('shows a truncation hint when the loaded selected rack evidence has BIN only and no CELL evidence', async () => {
+    const rackEvidence = [
+      {
+        resource_kind: 'BIN',
+        resource_code: 'BIN-101',
+        display_label: 'Bin BIN-101',
+        evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+        rack_code: 'RACK-101',
+        bin_code: 'BIN-101',
+        cell_code: 'CELL-101-A'
+      }
+    ]
+    const projection = createProjection(301, { rackEvidence })
+    projection.resource_evidence.truncated = true
+    worklineProjectionSend.mockResolvedValue(projection)
+
+    const wrapper = await mountWithQuery(301, 401)
+    const overview = wrapper.findComponent({ name: 'WorklineLiveOverview' })
+    overview.vm.$emit('selectRackPosition', 'RACK-101')
+    await flushViewUpdates()
+
+    const businessProjectionText = wrapper.find('[data-test="monitor-business-projection"]').text()
+    expect(wrapper.find('[data-test="monitor-rack-occupancy-matrix"]').exists()).toBe(false)
+    expect(businessProjectionText).toContain('库存投影数据已截断，无法确认该货位库存状态。')
+    expect(businessProjectionText).not.toContain('选中货位暂无库存投影数据。')
+  })
+
   it('highlights the selected rack cell and toggles it off on second click (rack-position panelMode)', async () => {
     const rackEvidence = [
       {
@@ -610,5 +790,87 @@ describe('WorklineMonitorPage assembly (T10)', () => {
     await flushViewUpdates()
     expect(wrapper.find('[data-test="monitor-rack-position-panel"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="monitor-selected-device-panel"]').exists()).toBe(true)
+  })
+
+  it('clears rack selection and selected cell when switching worklines', async () => {
+    const worklines = [
+      worklineSummary,
+      {
+        ...worklineSummary,
+        id: 302,
+        line_code: 'WL-302',
+        line_name: 'Workline 302'
+      }
+    ]
+    const rackEvidence = [
+      {
+        resource_kind: 'CELL',
+        resource_code: 'CELL-101-A',
+        display_label: 'Cell CELL-101-A',
+        evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+        rack_code: 'RACK-101',
+        slot_code: 'A',
+        bin_code: 'BIN-101',
+        cell_code: 'CELL-101-A'
+      }
+    ]
+    worklineProjectionSend.mockResolvedValue(createProjection(301, { rackEvidence }))
+
+    const wrapper = await mountWithQuery(301, 401, { worklines })
+    const overview = wrapper.findComponent({ name: 'WorklineLiveOverview' })
+    overview.vm.$emit('selectRackPosition', 'RACK-101')
+    await flushViewUpdates()
+    await wrapper.find('[data-test="rack-slot-cell-1"]').trigger('click')
+    await flushViewUpdates()
+
+    expect(wrapper.find('[data-test="monitor-rack-position-panel"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="monitor-rack-occupancy-matrix"]').attributes('data-selected-slot-key')).toBe(
+      'cell-1'
+    )
+
+    const worklineCards = wrapper.findAll('[data-test="monitor-workline-card"]')
+    await worklineCards[1].trigger('click')
+    await flushViewUpdates()
+
+    expect(wrapper.find('[data-test="monitor-rack-position-panel"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="monitor-selected-device-panel"]').exists()).toBe(true)
+    expect(routerMock.push).toHaveBeenCalledWith({
+      query: expect.objectContaining({ worklineId: '302' })
+    })
+  })
+
+  it('clears rack selection when workline changes through route updates', async () => {
+    const rackEvidence = [
+      {
+        resource_kind: 'CELL',
+        resource_code: 'CELL-101-A',
+        display_label: 'Cell CELL-101-A',
+        evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+        rack_code: 'RACK-101',
+        slot_code: 'A',
+        bin_code: 'BIN-101',
+        cell_code: 'CELL-101-A'
+      }
+    ]
+    worklineProjectionSend.mockResolvedValue(createProjection(301, { rackEvidence }))
+
+    const wrapper = await mountWithQuery(301, 401)
+    const overview = wrapper.findComponent({ name: 'WorklineLiveOverview' })
+    overview.vm.$emit('selectRackPosition', 'RACK-101')
+    await flushViewUpdates()
+    await wrapper.find('[data-test="rack-slot-cell-1"]').trigger('click')
+    await flushViewUpdates()
+
+    expect(wrapper.find('[data-test="monitor-rack-position-panel"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="monitor-rack-occupancy-matrix"]').attributes('data-selected-slot-key')).toBe(
+      'cell-1'
+    )
+
+    routeState.fullPath = '/runtime/monitor?worklineId=302&deviceId=401'
+    routeState.query = { ...routeState.query, worklineId: '302' }
+    await flushViewUpdates()
+
+    expect(wrapper.find('[data-test="monitor-rack-position-panel"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="monitor-rack-occupancy-matrix"]').exists()).toBe(false)
   })
 })

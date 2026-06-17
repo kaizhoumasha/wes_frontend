@@ -216,6 +216,35 @@ function mockCanvasContext(
   }
 }
 
+function mockRequestAnimationFrameQueue(): {
+  callbacks: FrameRequestCallback[]
+  restore: () => void
+  runNextFrame: () => void
+} {
+  const originalRequestAnimationFrame = globalThis.requestAnimationFrame
+  const originalCancelAnimationFrame = globalThis.cancelAnimationFrame
+  const callbacks: FrameRequestCallback[] = []
+
+  globalThis.requestAnimationFrame = vi.fn((callback: FrameRequestCallback) => {
+    callbacks.push(callback)
+    return callbacks.length
+  }) as typeof globalThis.requestAnimationFrame
+  globalThis.cancelAnimationFrame = vi.fn() as typeof globalThis.cancelAnimationFrame
+
+  return {
+    callbacks,
+    restore: () => {
+      globalThis.requestAnimationFrame = originalRequestAnimationFrame
+      globalThis.cancelAnimationFrame = originalCancelAnimationFrame
+    },
+    runNextFrame: () => {
+      const callback = callbacks.shift()
+      expect(callback).toBeDefined()
+      callback?.(Date.now())
+    }
+  }
+}
+
 async function capturePaintedDeviceText(
   overrides: Partial<RuntimeSceneDeviceNode>
 ): Promise<CanvasDrawSnapshot[]> {
@@ -395,6 +424,89 @@ describe('RuntimeSceneDeviceFlow (canvas)', () => {
       } else {
         Reflect.deleteProperty(globalThis, 'Path2D')
       }
+    }
+  })
+
+  it('does not keep scheduling animation frames for warning and fault only edges', async () => {
+    const raf = mockRequestAnimationFrameQueue()
+    const originalPath2D = globalThis.Path2D
+    globalThis.Path2D = MockPath2D as unknown as typeof Path2D
+    const restoreRect = mockElementBoundingRect(640, 360)
+    const restoreContext = mockCanvasContext()
+    try {
+      mountFlow({
+        devices: [createDevice({ id: 101 }), createDevice({ id: 102 }), createDevice({ id: 103 })],
+        explicitNodes: [
+          { kind: 'device', device: createDevice({ id: 101 }) },
+          { kind: 'device', device: createDevice({ id: 102 }) },
+          { kind: 'device', device: createDevice({ id: 103 }) }
+        ],
+        explicitEdges: [
+          {
+            fromKey: makeDeviceKey(101),
+            toKey: makeDeviceKey(102),
+            type: 'MATERIAL_FLOW',
+            status: 'warning'
+          },
+          {
+            fromKey: makeDeviceKey(102),
+            toKey: makeDeviceKey(103),
+            type: 'MATERIAL_FLOW',
+            status: 'fault'
+          }
+        ]
+      })
+      await nextTick()
+
+      expect(raf.callbacks).toHaveLength(0)
+    } finally {
+      restoreContext()
+      restoreRect()
+      if (originalPath2D) {
+        globalThis.Path2D = originalPath2D
+      } else {
+        Reflect.deleteProperty(globalThis, 'Path2D')
+      }
+      raf.restore()
+    }
+  })
+
+  it('keeps scheduling animation frames for active edges', async () => {
+    const raf = mockRequestAnimationFrameQueue()
+    const originalPath2D = globalThis.Path2D
+    globalThis.Path2D = MockPath2D as unknown as typeof Path2D
+    const restoreRect = mockElementBoundingRect(640, 360)
+    const restoreContext = mockCanvasContext()
+    try {
+      mountFlow({
+        devices: [createDevice({ id: 101 }), createDevice({ id: 102 })],
+        explicitNodes: [
+          { kind: 'device', device: createDevice({ id: 101 }) },
+          { kind: 'device', device: createDevice({ id: 102 }) }
+        ],
+        explicitEdges: [
+          {
+            fromKey: makeDeviceKey(101),
+            toKey: makeDeviceKey(102),
+            type: 'MATERIAL_FLOW',
+            status: 'active'
+          }
+        ]
+      })
+      await nextTick()
+
+      expect(raf.callbacks).toHaveLength(1)
+      raf.runNextFrame()
+      expect(raf.callbacks).toHaveLength(1)
+    } finally {
+      restoreContext()
+      restoreRect()
+      if (originalPath2D) {
+        globalThis.Path2D = originalPath2D
+      } else {
+        Reflect.deleteProperty(globalThis, 'Path2D')
+      }
+      raf.restore()
     }
   })
 

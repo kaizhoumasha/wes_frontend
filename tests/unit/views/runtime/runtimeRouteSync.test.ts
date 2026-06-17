@@ -619,7 +619,7 @@ describe('runtime route sync', () => {
 
     // Selecting a rack position from the topology canvas swaps to the business panel.
     const liveOverview = wrapper.findComponent({ name: 'WorklineLiveOverview' })
-    liveOverview.vm.$emit('selectRackPosition', 'RACK-A1')
+    liveOverview.vm.$emit('selectRackPosition', 'RACK-101')
     await flushViewUpdates()
 
     const businessPanel = wrapper.get('[data-test="monitor-rack-position-panel"]')
