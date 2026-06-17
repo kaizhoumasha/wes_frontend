@@ -1,67 +1,74 @@
 <template>
   <section
-    class="workline-reconciliation-panel"
+    class="workline-reconciliation-form"
     role="alert"
     aria-live="assertive"
   >
-    <div class="workline-reconciliation-panel__status-bar" />
-    <div class="workline-reconciliation-panel__body">
-      <div class="workline-reconciliation-panel__main">
+    <div class="workline-reconciliation-form__status-bar" />
+    <div class="workline-reconciliation-form__body">
+      <div class="workline-reconciliation-form__main">
         <RuntimeStatusBadge
           label="运行时对账中"
           tone="warning"
           size="small"
         />
-        <h2 class="workline-reconciliation-panel__title">运行时对账中</h2>
-        <p class="workline-reconciliation-panel__copy">
+        <h2 class="workline-reconciliation-form__title">运行时对账中</h2>
+        <p class="workline-reconciliation-form__copy">
           已暂停该 WorkLine 的后续派发；需人工确认现场状态后解除隔离。
+        </p>
+        <p class="workline-reconciliation-form__meta">
+          <span>{{ ownerSessionLabel }}</span>
+          <span aria-hidden="true">·</span>
+          <span>{{ reasonLabel }}</span>
+          <span aria-hidden="true">·</span>
+          <span>{{ occurredAtLabel }}</span>
+        </p>
+        <p
+          v-if="deviceCommandLabel !== '—' || lateEvidenceLabel"
+          class="workline-reconciliation-form__meta workline-reconciliation-form__meta--secondary"
+        >
+          <span>{{ deviceCommandLabel }}</span>
+          <span aria-hidden="true">·</span>
+          <span>迟到证据 {{ lateEvidenceLabel }}</span>
         </p>
       </div>
 
-      <dl class="workline-reconciliation-panel__facts">
-        <div class="workline-reconciliation-panel__fact">
-          <dt>工作线</dt>
-          <dd>{{ summary.line_name }}</dd>
-        </div>
-        <div class="workline-reconciliation-panel__fact">
-          <dt>Owner Session</dt>
-          <dd>{{ ownerSessionLabel }}</dd>
-        </div>
-        <div class="workline-reconciliation-panel__fact">
-          <dt>原因</dt>
-          <dd>{{ reasonLabel }}</dd>
-        </div>
-        <div class="workline-reconciliation-panel__fact">
-          <dt>发生时间</dt>
-          <dd>{{ occurredAtLabel }}</dd>
-        </div>
-        <div class="workline-reconciliation-panel__fact">
-          <dt>设备 / 指令</dt>
-          <dd>{{ deviceCommandLabel }}</dd>
-        </div>
-        <div class="workline-reconciliation-panel__fact">
-          <dt>迟到证据</dt>
-          <dd>{{ lateEvidenceLabel }}</dd>
-        </div>
-      </dl>
-
-      <div class="workline-reconciliation-panel__form">
+      <div class="workline-reconciliation-form__form">
         <el-radio-group
           v-model="resolution"
           size="small"
         >
-          <el-radio-button label="COMPLETED">现场已完成</el-radio-button>
-          <el-radio-button label="FAILED">现场失败</el-radio-button>
-          <el-radio-button label="CANCELLED">取消流程</el-radio-button>
+          <el-radio-button
+            label="COMPLETED"
+            value="COMPLETED"
+            data-test="resolution-completed"
+          >
+            现场已完成
+          </el-radio-button>
+          <el-radio-button
+            label="FAILED"
+            value="FAILED"
+            data-test="resolution-failed"
+          >
+            现场失败
+          </el-radio-button>
+          <el-radio-button
+            label="CANCELLED"
+            value="CANCELLED"
+            data-test="resolution-cancelled"
+          >
+            取消流程
+          </el-radio-button>
         </el-radio-group>
 
         <el-checkbox-group
           v-model="checkedKeys"
-          class="workline-reconciliation-panel__checks"
+          class="workline-reconciliation-form__checks"
         >
           <el-checkbox
             v-for="item in requiredChecks"
             :key="item.key"
+            :value="item.key"
             :label="item.key"
           >
             {{ item.label }}
@@ -75,6 +82,7 @@
           maxlength="1000"
           show-word-limit
           placeholder="填写现场确认说明"
+          data-test="operator-note"
         />
 
         <el-input
@@ -83,13 +91,15 @@
           type="textarea"
           :autosize="{ minRows: 2, maxRows: 5 }"
           :placeholder="resultPayloadPlaceholder"
+          data-test="result-payload"
         />
       </div>
 
-      <div class="workline-reconciliation-panel__actions">
+      <div class="workline-reconciliation-form__actions">
         <el-button
           plain
           :loading="loading"
+          data-test="refresh-evidence"
           @click="emit('refresh')"
         >
           刷新证据
@@ -99,13 +109,14 @@
           :loading="resolving"
           :disabled="submitDisabled"
           :title="submitDisabledReason"
+          data-test="submit-resolve"
           @click="submitResolve"
         >
           解除隔离 / 恢复派发
         </el-button>
         <p
           v-if="submitDisabledReason && !resolving"
-          class="workline-reconciliation-panel__disabled-reason"
+          class="workline-reconciliation-form__disabled-reason"
         >
           {{ submitDisabledReason }}
         </p>
@@ -270,7 +281,7 @@ function submitResolve() {
 </script>
 
 <style scoped>
-.workline-reconciliation-panel {
+.workline-reconciliation-form {
   display: flex;
   overflow: hidden;
   border: 1px solid rgb(245, 158, 11, 0.36);
@@ -278,78 +289,68 @@ function submitResolve() {
   background: var(--runtime-surface, #111827);
 }
 
-.workline-reconciliation-panel__status-bar {
+.workline-reconciliation-form__status-bar {
   width: 4px;
   flex: 0 0 auto;
   background: #f59e0b;
 }
 
-.workline-reconciliation-panel__body {
+.workline-reconciliation-form__body {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(280px, 1fr) minmax(300px, 1.1fr) auto;
-  gap: 18px;
+  grid-template-columns: minmax(0, 0.9fr) minmax(280px, 1.1fr) auto;
+  gap: 16px;
   width: 100%;
   padding: 16px;
   align-items: start;
 }
 
-.workline-reconciliation-panel__main,
-.workline-reconciliation-panel__form,
-.workline-reconciliation-panel__actions {
+.workline-reconciliation-form__main,
+.workline-reconciliation-form__form,
+.workline-reconciliation-form__actions {
   display: flex;
   flex-direction: column;
   gap: 10px;
   min-width: 0;
 }
 
-.workline-reconciliation-panel__title {
+.workline-reconciliation-form__title {
   margin: 0;
   color: var(--runtime-text-primary);
   font-size: 18px;
   font-weight: 700;
 }
 
-.workline-reconciliation-panel__copy {
+.workline-reconciliation-form__copy {
   margin: 0;
   color: var(--runtime-text-secondary);
   font-size: 13px;
   line-height: 1.6;
 }
 
-.workline-reconciliation-panel__facts {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px 14px;
+.workline-reconciliation-form__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
   margin: 0;
+  color: var(--runtime-text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
-.workline-reconciliation-panel__fact {
-  min-width: 0;
-}
-
-.workline-reconciliation-panel__fact dt {
+.workline-reconciliation-form__meta--secondary {
   color: var(--runtime-text-muted);
-  font-size: 11px;
-  font-weight: 700;
 }
 
-.workline-reconciliation-panel__fact dd {
-  margin: 4px 0 0;
-  overflow-wrap: anywhere;
-  color: var(--runtime-text-primary);
-  font-size: 13px;
-}
-
-.workline-reconciliation-panel__checks {
+.workline-reconciliation-form__checks {
   display: grid;
   gap: 4px;
 }
 
-.workline-reconciliation-panel__actions {
+.workline-reconciliation-form__actions {
   min-width: 180px;
 }
 
-.workline-reconciliation-panel__disabled-reason {
+.workline-reconciliation-form__disabled-reason {
   margin: 0;
   color: var(--runtime-text-secondary);
   font-size: 11px;
@@ -357,11 +358,11 @@ function submitResolve() {
 }
 
 @media (width <= 1180px) {
-  .workline-reconciliation-panel__body {
+  .workline-reconciliation-form__body {
     grid-template-columns: 1fr;
   }
 
-  .workline-reconciliation-panel__actions {
+  .workline-reconciliation-form__actions {
     min-width: 0;
   }
 }

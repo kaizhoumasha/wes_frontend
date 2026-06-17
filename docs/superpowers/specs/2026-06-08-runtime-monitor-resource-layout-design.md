@@ -4,6 +4,8 @@
 > 范围：前端运行态资源布局、`/runtime/monitor` 焦点详情、共享设备拓扑收敛
 > 状态：工程评审后修订
 > 约束：当前功能未发布，不保留旧平铺 UI，不做向后兼容分支。
+> 状态同步 2026-06-15：主实现、组件、测试和 smoke 已落地，对应实施计划已全量勾选并归档；本设计文档暂不归档，因为 `src/types/runtime.ts` 仍保留只服务旧模型的 `RuntimeSceneLane/Node/Flow/Overlay/Gap/Verdict` 类型，尚未完全满足“同步删除旧类型”要求。
+> 状态同步 2026-06-15 后端近期变更复核：`../wes_backend` 当前 `RuntimeWorklineMonitorProjectionResponse` 已提供 `boundary`、`resource_evidence`、`RuntimeWorklineReadiness`、single-layer rack snapshot 和 rack operation wait 等本设计所需投影合同；本设计的后端前提仍有效，剩余不归档原因仍是前端旧 scene model 类型未清理。
 
 ## 背景
 

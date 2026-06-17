@@ -5,7 +5,9 @@ import type {
   RuntimeResourceKind,
   RuntimeSingleLayerRackSnapshot,
   RuntimeStationLease,
+  RuntimeMonitorCommandSnapshot,
   RuntimeMonitorDeviceNode,
+  RuntimeMonitorSessionItem,
   RuntimeWorklineMonitorProjectionResponse,
   RuntimeWorklineReadiness,
   WorkLinePluginManifestSummary
@@ -203,6 +205,36 @@ export interface RuntimeSceneRackLayout {
   auditItems: RuntimeSceneResourceEvidence[]
 }
 
+export type RuntimeSceneTopologyNodeKind = 'DEVICE_ROLE' | 'RACK_POSITION'
+export type RuntimeSceneTopologyEdgeType = 'MATERIAL_FLOW' | 'OPERATION'
+
+export interface RuntimeSceneTopologyNodeRef {
+  kind: RuntimeSceneTopologyNodeKind
+  ref: string
+  resolved: boolean
+}
+
+export interface RuntimeSceneTopologyEdge {
+  key: string
+  fromNode: RuntimeSceneTopologyNodeRef
+  toNode: RuntimeSceneTopologyNodeRef
+  type: RuntimeSceneTopologyEdgeType
+}
+
+export type RuntimeSceneTopologyDiagnosticCode =
+  | 'UNKNOWN_DEVICE_ROLE'
+  | 'UNKNOWN_RACK_POSITION'
+  | 'UNKNOWN_NODE_KIND'
+  | 'UNKNOWN_EDGE_TYPE'
+  | 'MANIFEST_MISSING'
+  | 'MANIFEST_LOAD_FAILED'
+
+export interface RuntimeSceneTopologyDiagnostic {
+  code: RuntimeSceneTopologyDiagnosticCode
+  message: string
+  ref?: string
+}
+
 export interface RuntimeScenePositionGroup {
   key: string
   stationCode: string
@@ -231,12 +263,338 @@ export interface RuntimeSceneModel {
   resourceEvidenceTruncated: boolean
   semanticFallback: boolean
   semanticFallbackMessage: string | null
+  topologyNodes: RuntimeSceneTopologyNodeRef[]
+  topologyEdges: RuntimeSceneTopologyEdge[]
+  topologyDiagnostics: RuntimeSceneTopologyDiagnostic[]
 }
 
 export interface BuildRuntimeSceneModelInput {
   projection: RuntimeWorklineMonitorProjectionResponse
   manifest?: WorkLinePluginManifestSummary | null
   manifestLoadFailed?: boolean
+}
+
+export type RuntimeSceneCommandAckState =
+  | 'pending'
+  | 'acked'
+  | 'rejected'
+  | 'expired'
+  | 'unknown'
+
+export interface RuntimeSceneCommandSnapshotView {
+  id: number
+  code: string
+  status: string
+  ackState: RuntimeSceneCommandAckState
+  sentAt: string | null
+  ackReceivedAt: string | null
+  ackCode: number | null
+  ackMessage: string | null
+}
+
+export interface RuntimeSceneToteTwinRow {
+  label: string
+  value: string
+  emphasis?: 'info' | 'danger' | 'warning'
+}
+
+export interface RuntimeSceneToteTwinView {
+  lpn: string
+  typeLabel: string | null
+  tone: 'info' | 'warning'
+  rows: RuntimeSceneToteTwinRow[]
+}
+
+export type RuntimeSceneRackSlotViewState = 'empty' | 'occupied' | 'reconciling'
+
+export interface RuntimeSceneRackOccupancySlotView {
+  key: string
+  code: string
+  state: RuntimeSceneRackSlotViewState
+  tote: string | null
+  alarm: string | null
+}
+
+export interface RuntimeSceneRackOccupancyView {
+  columns: number
+  slots: RuntimeSceneRackOccupancySlotView[]
+}
+
+/**
+ * 层级化货位视图：一个货架按 (slot_code, bin_code) 分组，每个分组下是该 bin
+ * 的 cell 列表。SLOT 是行号别名、Bin 是该行的料箱，SLOT ↔ Bin 一一对应。
+ *
+ * 与扁平 {@link RuntimeSceneRackOccupancyView} 的区别：扁平版本把所有含
+ * `cell_code`/`bin_code`/`slot_code` 的 evidence items 都当槽位展示，
+ * 导致 SLOT/BIN/CELL/PKG 四个层级混入 4+4+18+1=27 条；层级版只取
+ * `resource_kind === 'CELL'` 的物理 cell 条目（18 条），按业务定义组织。
+ */
+export interface RuntimeSceneRackSlotGroup {
+  /**
+   * 分组唯一 key，格式 `${rackCode}:${slotCode}`。
+   */
+  key: string
+  /** 行号别名，如 "A" / "B" / "C" / "D" */
+  code: string
+  /** 该 SLOT 关联的料箱 code，如 "BIN-001" */
+  binCode: string
+  /** 料箱显示名（来自 BIN 摘要条目）；fallback 到 `binCode` 本身 */
+  binDisplayLabel: string
+  /** 该 slot/bin 下的物理 cell 列表 */
+  cells: RuntimeSceneRackOccupancySlotView[]
+}
+
+export interface RuntimeSceneRackHierarchyView {
+  rackCode: string
+  slotGroups: RuntimeSceneRackSlotGroup[]
+  totalCellCount: number
+}
+
+export function buildSelectedDeviceCommandView(
+  device: RuntimeMonitorDeviceNode | null
+): RuntimeSceneCommandSnapshotView | null {
+  if (!device?.current_command) return null
+  const command = device.current_command
+  return {
+    id: command.id,
+    code: command.command_code,
+    status: command.status,
+    ackState: deriveCommandAckState(command),
+    sentAt: command.sent_at ?? null,
+    ackReceivedAt: command.ack_received_at ?? null,
+    ackCode: command.ack_code ?? null,
+    ackMessage: command.ack_message ?? null
+  }
+}
+
+function deriveCommandAckState(
+  command: RuntimeMonitorCommandSnapshot
+): RuntimeSceneCommandAckState {
+  const status = (command.status ?? '').toUpperCase()
+  if (status === 'REJECTED' || status === 'FAILED') return 'rejected'
+  if (isRejectedAckCode(command.ack_code)) return 'rejected'
+  if (command.ack_received_at) return 'acked'
+  if (status === 'ACKED') return 'acked'
+  if (status === 'EXPIRED' || status === 'TIMEOUT') return 'expired'
+  if (status === 'PENDING' || status === 'SENT' || status === 'DISPATCHED') return 'pending'
+  return 'unknown'
+}
+
+function isRejectedAckCode(ackCode: unknown): boolean {
+  if (typeof ackCode === 'number') return ackCode >= 400
+  if (typeof ackCode !== 'string') return false
+
+  const normalized = ackCode.trim().toUpperCase()
+  return ['REJECTED', 'FAILED', 'ERROR', 'NACK', 'NG'].includes(normalized)
+}
+
+export function buildSelectedDeviceToteTwinView(
+  device: RuntimeMonitorDeviceNode | null,
+  sessions: RuntimeMonitorSessionItem[]
+): RuntimeSceneToteTwinView | null {
+  if (!device) return null
+  const session = sessions.find(item => item.device_id === device.id)
+  if (!session) return null
+
+  const sessionRecord = session as RuntimeMonitorSessionItem & Record<string, unknown>
+  const lpnSource =
+    getOptionalStringField(sessionRecord, 'barcode') ?? session.session_code ?? '—'
+
+  const rows: RuntimeSceneToteTwinRow[] = []
+  const status = session.status?.trim()
+  if (status) {
+    rows.push({ label: '会话状态', value: status, emphasis: 'info' })
+  }
+
+  const waitType = session.current_wait_type?.trim()
+  if (waitType) {
+    rows.push({
+      label: '等待类型',
+      value: waitType,
+      emphasis: session.is_timed_out ? 'danger' : undefined
+    })
+  }
+
+  const failureCode = session.failure_code?.trim()
+  if (failureCode) {
+    rows.push({ label: '失败编码', value: failureCode, emphasis: 'danger' })
+  }
+
+  const timelineMessage = session.latest_timeline_message?.trim()
+  if (timelineMessage) {
+    rows.push({ label: '最近事件', value: timelineMessage })
+  }
+
+  const startedAt = session.started_at?.trim()
+  if (startedAt) {
+    rows.push({ label: '开始时间', value: startedAt })
+  }
+
+  const tone: RuntimeSceneToteTwinView['tone'] =
+    session.is_timed_out || failureCode ? 'warning' : 'info'
+
+  return {
+    lpn: lpnSource,
+    typeLabel: session.latest_timeline_action ?? null,
+    tone,
+    rows
+  }
+}
+
+/**
+ * @deprecated v2026-06 起改用 {@link buildRackHierarchyView}。旧实现把所有含
+ * `cell_code`/`bin_code`/`slot_code` 的 evidence items 都当槽位展示，导致
+ * SLOT/BIN/CELL/PKG 四个层级混入（27 条）。保留以避免破坏外部消费者，
+ * 下个版本将移除。
+ */
+export function buildRackOccupancyView(
+  projection: RuntimeWorklineMonitorProjectionResponse,
+  options?: { columns?: number }
+): RuntimeSceneRackOccupancyView | null {
+  const items = extractEvidenceItems(projection)
+  const slotItems = items.filter(item =>
+    Boolean(item.cell_code || item.bin_code || item.slot_code)
+  )
+  if (slotItems.length === 0) return null
+
+  const columns = options?.columns ?? 4
+  const slots: RuntimeSceneRackOccupancySlotView[] = slotItems.map((item, index) => {
+    const code =
+      item.cell_code ?? item.slot_code ?? item.bin_code ?? `LOC-${index + 1}`
+    return {
+      key: `${item.rack_code ?? 'unknown'}-${code}-${index}`,
+      code,
+      state: deriveRackOccupancySlotState(item),
+      tote: item.bin_code ?? null,
+      alarm: null
+    }
+  })
+
+  return { columns, slots }
+}
+
+/**
+ * 从 `resource_evidence.items` 构建层级化货位视图：
+ *   货架 rackCode → SLOT 分组（按 slot_code 升序）→ 各自 cells。
+ *
+ * 与 {@link buildRackOccupancyView} 的核心区别：
+ * 1. 只取 `resource_kind === 'CELL'` 的物理 cell 条目（18 条），不再混入
+ *    SLOT/BIN/PKG 等更高层级的摘要条目。
+ * 2. 按 (slot_code, bin_code) 归组，SLOT ↔ Bin 一一对应（SLOT 是行号别名）。
+ * 3. SLOT/BIN 摘要条目仅用于派生 `binDisplayLabel`，不参与 cell 计数。
+ */
+export function buildRackHierarchyView(
+  projection: RuntimeWorklineMonitorProjectionResponse
+): RuntimeSceneRackHierarchyView | null {
+  const items = extractEvidenceItems(projection)
+  if (items.length === 0) return null
+
+  // 1) 取所有 cell 条目（物理位置）
+  const cellItems = items.filter(item => item.resource_kind === 'CELL')
+  if (cellItems.length === 0) return null
+
+  // 2) 取 BIN 摘要条目 → 用于派生 binDisplayLabel
+  const binSummaryByKey = new Map<string, RuntimeResourceEvidenceItem>()
+  for (const item of items) {
+    if (item.resource_kind === 'BIN' && item.bin_code) {
+      binSummaryByKey.set(item.bin_code, item)
+    }
+  }
+
+  // 3) 按 (slot_code, bin_code) 归组 cell
+  type GroupAccumulator = {
+    slotCode: string
+    binCode: string
+    rackCode: string | null
+    cells: RuntimeSceneRackOccupancySlotView[]
+  }
+  const groupsByKey = new Map<string, GroupAccumulator>()
+  for (const item of cellItems) {
+    const slotCode = (item.slot_code ?? '').toString()
+    const binCode = (item.bin_code ?? '').toString()
+    if (!slotCode || !binCode) continue
+    const groupKey = `${slotCode}:${binCode}`
+    let group = groupsByKey.get(groupKey)
+    if (!group) {
+      group = { slotCode, binCode, rackCode: item.rack_code ?? null, cells: [] }
+      groupsByKey.set(groupKey, group)
+    }
+    const cellCode =
+      (item.cell_code ?? '').toString() ||
+      (item.resource_code ?? '').toString() ||
+      binCode
+    const rackCode = item.rack_code ?? group.rackCode ?? 'unknown'
+    const cellKey = `${rackCode}:${cellCode}`
+    group.cells.push({
+      key: cellKey,
+      code: cellCode,
+      state: deriveRackOccupancySlotState(item),
+      tote: item.pkg_code ?? item.part_sn ?? null,
+      alarm: null
+    })
+  }
+
+  if (groupsByKey.size === 0) return null
+
+  // 4) 按 slot_code 升序输出
+  const slotGroups: RuntimeSceneRackSlotGroup[] = [...groupsByKey.values()]
+    .sort((a, b) => a.slotCode.localeCompare(b.slotCode))
+    .map(group => {
+      const binSummary = binSummaryByKey.get(group.binCode)
+      const binDisplayLabel =
+        binSummary?.display_label ??
+        (group.binCode ? `BIN ${group.binCode}` : 'BIN ?')
+      return {
+        key: `${group.rackCode ?? 'unknown'}:${group.slotCode}`,
+        code: group.slotCode,
+        binCode: group.binCode,
+        binDisplayLabel,
+        cells: group.cells
+      }
+    })
+
+  // 5) rackCode 取所有 cell 共享的 rackCode（同一货架视图内应一致）
+  const rackCode =
+    cellItems.find(item => item.rack_code)?.rack_code ??
+    slotGroups[0]?.key.split(':')[0] ??
+    'unknown'
+
+  return {
+    rackCode,
+    slotGroups,
+    totalCellCount: slotGroups.reduce((acc, g) => acc + g.cells.length, 0)
+  }
+}
+
+function extractEvidenceItems(
+  projection: RuntimeWorklineMonitorProjectionResponse
+): RuntimeResourceEvidenceItem[] {
+  const projectionRecord = projection as RuntimeWorklineMonitorProjectionResponse &
+    Record<string, unknown>
+  const evidenceObj = (projectionRecord.resource_evidence || {}) as Record<string, unknown>
+  return Array.isArray(evidenceObj.items)
+    ? (evidenceObj.items as RuntimeResourceEvidenceItem[])
+    : []
+}
+
+function deriveRackOccupancySlotState(
+  item: RuntimeResourceEvidenceItem
+): RuntimeSceneRackSlotViewState {
+  const evidenceKind = (item.evidence_kind ?? '').toString().toUpperCase()
+  if (evidenceKind === 'WMS_CALLBACK_EVIDENCE' || evidenceKind === 'TRACE_RESOURCE_EVIDENCE') {
+    return 'reconciling'
+  }
+  // CELL 视角下，cell 上的物料标识可能落在 pkg_code / part_sn / material_code /
+  // reel_count 任一字段。统一视为"已占用"。
+  if (
+    item.pkg_code ||
+    item.part_sn ||
+    item.material_code ||
+    (item.reel_count != null && item.reel_count > 0)
+  ) {
+    return 'occupied'
+  }
+  return 'empty'
 }
 
 interface RuntimeSceneEvidencePlacement {
@@ -338,6 +696,15 @@ const RESOURCE_KIND_LABELS: Record<RuntimeResourceKind, string> = {
 const LEGACY_NG_ARM_ROLE = 'NG_ARM'
 const NG_PLACEMENT_DISPLAY_ROLE = 'TARGET_ARM'
 
+/**
+ * 拓扑画布上**不显示**的设备 role。这些设备仍参与 projection 的
+ * 业务 / 资源统计（detail panel、sandbox 等），但不会出现在
+ * `RuntimeSceneModel.deviceNodes` 中，避免污染物料流视图。
+ *
+ * 命中规则：role 字符串大写后存在于该集合中即跳过。
+ */
+export const HIDDEN_TOPOLOGY_ROLES: ReadonlySet<string> = new Set(['CLASSIFIER_WORK'])
+
 export function getRuntimeSceneEvidenceKey(item: RuntimeSceneResourceEvidence): string {
   return [
     item.evidenceKind,
@@ -388,6 +755,7 @@ export function buildRuntimeSceneModel(input: BuildRuntimeSceneModelInput): Runt
     manifest,
     manifestLoadFailed
   )
+  const topology = buildRuntimeSceneTopology(projection, manifest, manifestLoadFailed)
 
   return {
     worklineId: projection.summary.id,
@@ -397,7 +765,9 @@ export function buildRuntimeSceneModel(input: BuildRuntimeSceneModelInput): Runt
     readinessLabel: READINESS_LABELS[readiness],
     runtimeStatusLabel: toRuntimeStatusLabel(projection.summary.runtime_status),
     boundaries,
-    deviceNodes: (projection.device_nodes ?? []).map(toRuntimeSceneDeviceNode),
+    deviceNodes: (projection.device_nodes ?? [])
+      .filter(node => !HIDDEN_TOPOLOGY_ROLES.has((node.device_role ?? '').toUpperCase()))
+      .map(toRuntimeSceneDeviceNode),
     resourceEvidence,
     positionGroups,
     unlocatedAuditItems,
@@ -409,8 +779,159 @@ export function buildRuntimeSceneModel(input: BuildRuntimeSceneModelInput): Runt
         ? (evidenceObj.truncated as boolean)
         : false,
     semanticFallback: Boolean(semanticFallbackMessage),
-    semanticFallbackMessage
+    semanticFallbackMessage,
+    topologyNodes: topology.nodes,
+    topologyEdges: topology.edges,
+    topologyDiagnostics: topology.diagnostics
   }
+}
+
+interface RuntimeSceneTopologyBuildResult {
+  nodes: RuntimeSceneTopologyNodeRef[]
+  edges: RuntimeSceneTopologyEdge[]
+  diagnostics: RuntimeSceneTopologyDiagnostic[]
+}
+
+const TOPOLOGY_NODE_KIND_VALUES = ['DEVICE_ROLE', 'RACK_POSITION'] as const
+const TOPOLOGY_EDGE_TYPE_VALUES = ['MATERIAL_FLOW', 'OPERATION'] as const
+
+function buildRuntimeSceneTopology(
+  projection: RuntimeWorklineMonitorProjectionResponse,
+  manifest: WorkLinePluginManifestSummary | null | undefined,
+  manifestLoadFailed: boolean
+): RuntimeSceneTopologyBuildResult {
+  if (manifestLoadFailed) {
+    return {
+      nodes: [],
+      edges: [],
+      diagnostics: [
+        {
+          code: 'MANIFEST_LOAD_FAILED',
+          message: '插件 manifest 加载失败，无法构建拓扑边。'
+        }
+      ]
+    }
+  }
+
+  if (!manifest) {
+    return {
+      nodes: [],
+      edges: [],
+      diagnostics: [
+        {
+          code: 'MANIFEST_MISSING',
+          message: '插件 manifest 缺失，未渲染拓扑边。'
+        }
+      ]
+    }
+  }
+
+  const flowEdges = manifest.topology?.flow_edges ?? []
+  const knownDeviceRoles = new Set(
+    (projection.device_nodes ?? []).map(node => normalizeRuntimeSceneDisplayRole(node.device_role))
+  )
+  const knownRackPositions = new Set(
+    (manifest.rack_positions ?? []).map(rackPosition => rackPosition.code)
+  )
+
+  const nodesByKey = new Map<string, RuntimeSceneTopologyNodeRef>()
+  const edges: RuntimeSceneTopologyEdge[] = []
+  const diagnostics: RuntimeSceneTopologyDiagnostic[] = []
+
+  function registerNode(node: RuntimeSceneTopologyNodeRef): RuntimeSceneTopologyNodeRef {
+    const key = getTopologyNodeKey(node.kind, node.ref)
+    const existing = nodesByKey.get(key)
+    if (existing) {
+      if (!existing.resolved && node.resolved) existing.resolved = true
+      return existing
+    }
+    nodesByKey.set(key, node)
+    return node
+  }
+
+  function diagnose(
+    code: RuntimeSceneTopologyDiagnosticCode,
+    message: string,
+    ref?: string
+  ): void {
+    diagnostics.push(ref === undefined ? { code, message } : { code, message, ref })
+  }
+
+  function resolveNode(
+    nodeRef: { kind: string; ref: string } | null | undefined,
+    role: 'from' | 'to'
+  ): RuntimeSceneTopologyNodeRef | null {
+    if (!nodeRef) return null
+    const kindUpper = typeof nodeRef.kind === 'string' ? nodeRef.kind.toUpperCase() : ''
+    if (!TOPOLOGY_NODE_KIND_VALUES.includes(kindUpper as RuntimeSceneTopologyNodeKind)) {
+      diagnose(
+        'UNKNOWN_NODE_KIND',
+        `拓扑边的${role === 'from' ? '起点' : '终点'}节点 kind "${nodeRef.kind}" 不在允许范围内。`,
+        nodeRef.ref
+      )
+      return null
+    }
+    const kind = kindUpper as RuntimeSceneTopologyNodeKind
+    const ref =
+      kind === 'DEVICE_ROLE' ? normalizeRuntimeSceneDisplayRole(nodeRef.ref) : nodeRef.ref
+    const resolved =
+      kind === 'DEVICE_ROLE' ? knownDeviceRoles.has(ref) : knownRackPositions.has(ref)
+    if (!resolved) {
+      diagnose(
+        kind === 'DEVICE_ROLE' ? 'UNKNOWN_DEVICE_ROLE' : 'UNKNOWN_RACK_POSITION',
+        kind === 'DEVICE_ROLE'
+          ? `拓扑引用的 device role "${ref}" 在 projection.device_nodes 中未找到。`
+          : `拓扑引用的 rack position "${ref}" 在 manifest.rack_positions 中未找到。`,
+        ref
+      )
+    }
+    return registerNode({ kind, ref, resolved })
+  }
+
+  for (const edge of flowEdges) {
+    const fromNode = resolveNode(edge.from_node, 'from')
+    const toNode = resolveNode(edge.to_node, 'to')
+    const edgeType = normalizeTopologyEdgeType(edge.type)
+    if (!edgeType) {
+      diagnose('UNKNOWN_EDGE_TYPE', `拓扑边类型 "${edge.type}" 不在允许范围内。`)
+      continue
+    }
+    if (!fromNode || !toNode) continue
+    if (!fromNode.resolved || !toNode.resolved) continue
+
+    edges.push({
+      key: getTopologyEdgeKey(fromNode, toNode, edgeType),
+      fromNode,
+      toNode,
+      type: edgeType
+    })
+  }
+
+  return {
+    nodes: Array.from(nodesByKey.values()),
+    edges,
+    diagnostics
+  }
+}
+
+function normalizeTopologyEdgeType(value: unknown): RuntimeSceneTopologyEdgeType | null {
+  if (typeof value !== 'string') return null
+  const upper = value.toUpperCase()
+  return TOPOLOGY_EDGE_TYPE_VALUES.includes(upper as RuntimeSceneTopologyEdgeType)
+    ? (upper as RuntimeSceneTopologyEdgeType)
+    : null
+}
+
+function getTopologyNodeKey(kind: RuntimeSceneTopologyNodeKind, ref: string): string {
+  return `${kind}:${ref}`
+}
+
+function getTopologyEdgeKey(
+  fromNode: RuntimeSceneTopologyNodeRef,
+  toNode: RuntimeSceneTopologyNodeRef,
+  type: RuntimeSceneTopologyEdgeType
+): string {
+  return `${getTopologyNodeKey(fromNode.kind, fromNode.ref)}->${getTopologyNodeKey(toNode.kind, toNode.ref)}:${type}`
 }
 
 function resolveBoundaries(

@@ -107,6 +107,54 @@ describe('runtime-event', () => {
     })
   })
 
+  it('classifies command events as projection + sandbox refresh', () => {
+    const refresh = classifyRuntimeRefresh({
+      domain: 'workline_runtime',
+      entity: 'command',
+      action: 'acked',
+      keys: { workline_id: 1, device_id: 2, command_id: 3, command_code: 'CMD-1' }
+    })
+
+    expect(refresh).toEqual({
+      worklines: false,
+      projection: true,
+      activeIncident: false,
+      sandbox: true
+    })
+  })
+
+  it('classifies device updates as projection + sandbox refresh', () => {
+    const refresh = classifyRuntimeRefresh({
+      domain: 'workline_runtime',
+      entity: 'device',
+      action: 'status.changed',
+      keys: { workline_id: 1, device_id: 2 }
+    })
+
+    expect(refresh).toEqual({
+      worklines: false,
+      projection: true,
+      activeIncident: false,
+      sandbox: true
+    })
+  })
+
+  it('classifies outbox updates as projection + sandbox refresh', () => {
+    const refresh = classifyRuntimeRefresh({
+      domain: 'workline_runtime',
+      entity: 'outbox',
+      action: 'dispatched',
+      keys: { workline_id: 1, device_id: 2, outbox_id: 4 }
+    })
+
+    expect(refresh).toEqual({
+      worklines: false,
+      projection: true,
+      activeIncident: false,
+      sandbox: true
+    })
+  })
+
   it('does not classify legacy event domains as refresh triggers', () => {
     const refresh = classifyRuntimeRefresh({
       domain: 'workline_trace',

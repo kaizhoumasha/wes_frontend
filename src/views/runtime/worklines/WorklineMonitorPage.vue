@@ -197,6 +197,7 @@
           :event-log-entries="eventLogEntries"
           :selected-device-id="selectedDeviceId"
           @select-device="openDevice"
+          @select-rack-position="onRackPositionSelect"
         />
       </section>
 
@@ -208,7 +209,7 @@
         aria-label="工作线行动舱"
       >
         <section
-          v-if="selectedDevice"
+          v-if="panelMode === 'control' && selectedDevice"
           class="monitor-panel monitor-device-panel"
           data-test="monitor-selected-device-panel"
           aria-label="选中设备诊断"
@@ -229,100 +230,119 @@
             />
           </header>
 
-          <div
-            class="monitor-device-panel__tabs"
-            role="tablist"
-            aria-label="设备详情视图"
-          >
-            <button
-              type="button"
-              class="monitor-device-panel__tab"
-              :class="{ 'is-active': activeSideTab === 'control' }"
-              :aria-pressed="activeSideTab === 'control'"
-              data-test="monitor-side-tab-control"
-              @click="activeSideTab = 'control'"
-            >
-              诊断与控制
-            </button>
-            <button
-              type="button"
-              class="monitor-device-panel__tab"
-              :class="{ 'is-active': activeSideTab === 'business' }"
-              :aria-pressed="activeSideTab === 'business'"
-              data-test="monitor-side-tab-business"
-              @click="activeSideTab = 'business'"
-            >
-              业务关联投影
-            </button>
-          </div>
-
           <section
-            v-if="activeSideTab === 'control'"
             class="monitor-device-panel__tab-panel"
             data-test="monitor-device-control-panel"
           >
-            <dl class="monitor-device-panel__facts">
-              <div>
-                <dt>命令</dt>
-                <dd>
-                  {{ selectedDevice.open_command_count }} 未完成 /
-                  {{ selectedDevice.pending_command_count }} 等待
-                </dd>
-              </div>
-              <div>
-                <dt>阻塞</dt>
-                <dd>
-                  {{ selectedDevice.blocked_outbox_count }} 停靠 /
-                  {{ selectedDevice.open_issue_count }} 问题
-                </dd>
-              </div>
-              <div>
-                <dt>心跳</dt>
-                <dd>{{ formatRuntimeDateTime(selectedDevice.last_heartbeat_at) }}</dd>
-              </div>
-            </dl>
-            <div class="monitor-device-panel__chain">
-              <span>WES</span>
-              <span>HTTP 合同</span>
-              <span>ECS</span>
-            </div>
-            <p class="monitor-device-panel__hint">
-              仅展示当前监控投影中的设备事实。处置动作仍按线体急停和对账候选闭环执行。
-            </p>
+            <MonitorAlertCard
+              v-if="deviceAlertContent"
+              :tone="deviceAlertContent.tone"
+              :title="deviceAlertContent.title"
+              :message="deviceAlertContent.message"
+              :source="deviceAlertContent.source"
+            />
+
+            <MonitorCommandChain :command="deviceCommandView" />
+
+            <MonitorDeviceActionGroup
+              :mode="deviceActionMode"
+              :can-clear-estop="canClearWorklineEstop"
+              :can-attempt-clear="currentWorklineSafetyVerdict.canAttemptClear"
+              :can-resolve="canResolveReconciliation"
+              :can-manage-maintenance="canUpdateDevice"
+              :maintenance-active="isSelectedDeviceInMaintenance"
+              :busy="busyAnyAction"
+              :blocked-reason="currentWorklineSafetyVerdict.blockedReason"
+              @clear-estop="clearWorklineEstop"
+              @resolve-reconciliation="onResolveReconciliationFromActionGroup"
+              @enter-maintenance="onEnterMaintenanceFromActionGroup"
+              @exit-maintenance="onExitMaintenanceFromActionGroup"
+            />
           </section>
+        </section>
+
+        <section
+          v-else-if="worklineRecoveryActionMode"
+          class="monitor-panel monitor-device-panel"
+          data-test="monitor-workline-recovery-panel"
+          aria-label="工作线恢复"
+        >
+          <section
+            class="monitor-device-panel__tab-panel"
+            data-test="monitor-workline-recovery-control-panel"
+          >
+            <MonitorAlertCard
+              v-if="deviceAlertContent"
+              :tone="deviceAlertContent.tone"
+              :title="deviceAlertContent.title"
+              :message="deviceAlertContent.message"
+              :source="deviceAlertContent.source"
+            />
+
+            <MonitorDeviceActionGroup
+              :mode="worklineRecoveryActionMode"
+              :can-clear-estop="canClearWorklineEstop"
+              :can-attempt-clear="currentWorklineSafetyVerdict.canAttemptClear"
+              :can-resolve="false"
+              :can-manage-maintenance="false"
+              :maintenance-active="false"
+              :busy="busyAnyAction"
+              :blocked-reason="currentWorklineSafetyVerdict.blockedReason"
+              @clear-estop="clearWorklineEstop"
+            />
+          </section>
+        </section>
+
+        <section
+          v-else-if="panelMode === 'business' && selectedRackPositionCode"
+          class="monitor-panel monitor-device-panel"
+          data-test="monitor-rack-position-panel"
+          :aria-label="`选中货位 ${selectedRackPositionCode}`"
+        >
+          <header class="monitor-device-panel__header">
+            <div>
+              <div class="monitor-device-panel__eyebrow">选中货位</div>
+              <h2 class="monitor-device-panel__title">{{ selectedRackPositionCode }}</h2>
+              <p class="monitor-device-panel__meta">业务关联投影</p>
+            </div>
+          </header>
 
           <section
-            v-else
             class="monitor-device-panel__tab-panel monitor-business-projection"
             data-test="monitor-business-projection"
           >
-            <div class="monitor-device-panel__section-title">业务关联投影</div>
-            <dl class="monitor-business-projection__facts">
-              <div
-                v-for="row in businessProjectionRows"
-                :key="row.label"
-              >
-                <dt>{{ row.label }}</dt>
-                <dd>{{ row.value }}</dd>
-              </div>
-            </dl>
-            <div
-              v-if="selectedDeviceSessions.length"
-              class="monitor-device-panel__sessions"
+            <MonitorRackOccupancyMatrix
+              v-if="deviceRackOccupancyView"
+              :view="deviceRackOccupancyView"
+              :selected-slot-key="selectedRackSlotKey"
+              @select="onRackCellSelect"
+            />
+
+            <p
+              v-if="selectedRackEvidenceTruncated"
+              class="monitor-device-panel__hint"
             >
-              <div class="monitor-device-panel__section-title">关联会话</div>
-              <button
-                v-for="session in selectedDeviceSessions.slice(0, 3)"
-                :key="`${session.session_id}-${session.status}`"
-                type="button"
-                class="monitor-device-panel__session"
-                @click="openTrace(session)"
-              >
-                <span>{{ session.session_code }}</span>
-                <strong>{{ session.status }}</strong>
-              </button>
-            </div>
+              库存投影数据已截断，无法确认该货位库存状态。
+            </p>
+
+            <p
+              v-else-if="!deviceRackOccupancyView"
+              class="monitor-device-panel__hint"
+            >
+              选中货位暂无库存投影数据。
+            </p>
           </section>
+        </section>
+
+        <section
+          v-else
+          class="monitor-panel monitor-device-panel"
+          data-test="monitor-panel-idle"
+          aria-label="未选择目标"
+        >
+          <p class="monitor-device-panel__hint">
+            在左侧拓扑或货位矩阵中选择设备 / 货位以查看诊断与控制 / 业务关联投影。
+          </p>
         </section>
 
         <el-card
@@ -371,16 +391,7 @@
             :projection="store.projection"
             :can-view-hold="canViewRuntimeHold"
           />
-          <WorklineSafetyIncidentPanel
-            v-if="currentWorklineSafetyVerdict.safetyLocked && !hasRuntimeHoldProjection"
-            :summary="store.projection.summary"
-            :verdict="currentWorklineSafetyVerdict"
-            :can-clear-estop="canClearWorklineEstop"
-            :clear-estop-loading="clearingWorklineEstop"
-            @refresh="forceRefreshProjection"
-            @clear-estop="clearWorklineEstop"
-          />
-          <WorklineReconciliationPanel
+          <WorklineReconciliationForm
             v-if="pendingReconciliationCandidate"
             :summary="store.projection.summary"
             :candidate="pendingReconciliationCandidate"
@@ -412,13 +423,17 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { runtimeApiMethods } from '@/api/modules/runtime'
+import { devicesApiMethods } from '@/api/modules/devices'
 import RuntimeEmptyState from '@/components/common/runtime/RuntimeEmptyState.vue'
 import RuntimeLastUpdated from '@/components/common/runtime/RuntimeLastUpdated.vue'
 import RuntimeStatusBadge from '@/components/common/runtime/RuntimeStatusBadge.vue'
 import WorklineLiveOverview from '@/components/runtime/monitor/WorklineLiveOverview.vue'
-import WorklineReconciliationPanel from '@/components/runtime/monitor/WorklineReconciliationPanel.vue'
-import WorklineSafetyIncidentPanel from '@/components/runtime/monitor/WorklineSafetyIncidentPanel.vue'
+import WorklineReconciliationForm from '@/components/runtime/monitor/WorklineReconciliationForm.vue'
 import WorklineRuntimeHoldSummaryPanel from '@/components/runtime/monitor/WorklineRuntimeHoldSummaryPanel.vue'
+import MonitorAlertCard from '@/components/runtime/monitor/MonitorAlertCard.vue'
+import MonitorCommandChain from '@/components/runtime/monitor/MonitorCommandChain.vue'
+import MonitorDeviceActionGroup from '@/components/runtime/monitor/MonitorDeviceActionGroup.vue'
+import MonitorRackOccupancyMatrix from '@/components/runtime/monitor/MonitorRackOccupancyMatrix.vue'
 import { useDarkMode } from '@/composables/useDarkMode'
 import { usePermission } from '@/composables/usePermission'
 import { useRuntimeSSEStore } from '@/stores/runtime-sse'
@@ -434,6 +449,7 @@ import {
 import { getWorklineDeviceSafetyEvidence, getWorklineRuntimeVerdict } from '@/utils/runtime-safety'
 import { getErrorMessage } from '@/utils/string'
 import { buildRuntimeWorklineQuery } from '@/utils/runtime-route'
+import { buildRackHierarchyView, buildSelectedDeviceCommandView } from '@/utils/runtime-scene'
 import {
   formatRuntimeDateTime,
   getWorklineRiskLabel as worklineRiskLabel,
@@ -444,15 +460,12 @@ import type {
   RuntimeMonitorDeviceNode,
   RuntimeSafetyIncidentSummary,
   RuntimeMonitorReconciliationCandidate,
-  RuntimeResourceEvidenceItem,
-  RuntimeMonitorSessionItem,
-  RuntimeMonitorTraceItem,
   RuntimeWorklineMonitorProjectionResponse,
   RuntimeWorklineSummary
 } from '@/types/runtime'
 
 type MonitorMobilePane = 'line' | 'scene' | 'actions'
-type MonitorSideTab = 'control' | 'business'
+type MonitorPanelMode = 'control' | 'business' | 'idle'
 
 interface MonitorEventLogEntry {
   id: string
@@ -475,14 +488,18 @@ const canViewRuntimeHold = computed(() => hasPermission(BIZ_PERMISSIONS.workline
 const canResolveReconciliation = computed(() =>
   hasPermission(BIZ_PERMISSIONS.workline.resolveReconciliation)
 )
+const canUpdateDevice = computed(() => hasPermission(BIZ_PERMISSIONS.device.update))
 
 const clearingWorklineEstop = ref(false)
 const resolvingReconciliation = ref(false)
+const enteringDeviceMaintenance = ref(false)
+const exitingDeviceMaintenance = ref(false)
 const searchText = ref('')
 const activeMobilePane = ref<MonitorMobilePane>('line')
-const activeSideTab = ref<MonitorSideTab>('control')
+const selectedRackPositionCode = ref<string | null>(null)
 const hasInitializedProjectionPane = ref(false)
 const eventLogEntries = ref<MonitorEventLogEntry[]>([])
+const selectedRackSlotKey = ref<string | null>(null)
 
 const selectedWorklineId = computed(() => readPositiveInt(route.query.worklineId))
 const selectedDeviceId = computed(() => readPositiveInt(route.query.deviceId))
@@ -490,66 +507,6 @@ const selectedDevice = computed<RuntimeMonitorDeviceNode | null>(() => {
   const id = selectedDeviceId.value
   if (!id) return null
   return store.projection?.device_nodes?.find(device => device.id === id) ?? null
-})
-
-const selectedDeviceSessions = computed(() => {
-  const device = selectedDevice.value
-  if (!device || !store.projection) return []
-  return [
-    ...(store.projection.active_sessions.items ?? []),
-    ...(store.projection.recent_failed_traces.items ?? []),
-    ...(store.projection.recent_completed_traces.items ?? [])
-  ].filter(session => session.device_id === device.id)
-})
-
-const businessProjectionRows = computed(() => {
-  const device = selectedDevice.value
-  const projection = store.projection
-  if (!device || !projection) return []
-  const boundary = projection.boundary
-  const resourceEvidence = projection.resource_evidence
-  const resourceEvidenceItems = resourceEvidence.items ?? []
-  const rackCodes = collectProjectionCodes(resourceEvidenceItems, item => item.rack_code)
-  const containerCodes = collectProjectionCodes(resourceEvidenceItems, item => [
-    item.bin_code,
-    item.cell_code,
-    item.slot_code
-  ])
-
-  return [
-    {
-      label: '设备角色',
-      value: `${device.device_role} #${device.role_index}`
-    },
-    {
-      label: '执行快照',
-      value: singleLayerRackSnapshotLabel(boundary.single_layer_rack_snapshot)
-    },
-    {
-      label: '货架形态',
-      value: projectionRackKindLabel(projection)
-    },
-    {
-      label: '货架投影',
-      value: formatProjectionCodes(rackCodes)
-    },
-    {
-      label: '容器投影',
-      value: formatProjectionCodes(containerCodes)
-    },
-    {
-      label: 'Station lease',
-      value: stationLeaseLabel(boundary.station_lease)
-    },
-    {
-      label: 'Rack operation',
-      value: rackOperationWaitLabel(boundary.rack_operation_wait)
-    },
-    {
-      label: '资源证据',
-      value: `${resourceEvidenceItems.length} / ${resourceEvidence.total_count} · ${resourceEvidence.kind ?? 'UNKNOWN'}`
-    }
-  ]
 })
 
 const filteredWorklines = computed(() => {
@@ -615,6 +572,81 @@ const hasRuntimeHoldProjection = computed(() => {
   )
 })
 
+const deviceAlertContent = computed<{
+  tone: 'danger' | 'warning'
+  title: string
+  message: string
+  source?: string
+} | null>(() => {
+  if (currentWorklineSafetyVerdict.value.safetyLocked) {
+    return {
+      tone: 'danger',
+      title: 'WORKLINE_ESTOPPED',
+      message:
+        currentWorklineSummary.value?.stopped_reason ||
+        '工作线已软件急停冻结，请确认现场设备状态后恢复接收',
+      source: currentWorklineSafetyVerdict.value.blockedReason ?? undefined
+    }
+  }
+  const candidate = pendingReconciliationCandidate.value
+  if (candidate) {
+    return {
+      tone: 'warning',
+      title: candidate.reason ?? 'RECONCILE_PENDING',
+      message: `Owner Session ${candidate.session_code} 已隔离派发，请在下方确认现场状态后解除`,
+      source: candidate.occurred_at ? formatRuntimeDateTime(candidate.occurred_at) : undefined
+    }
+  }
+  return null
+})
+
+const deviceCommandView = computed(() => buildSelectedDeviceCommandView(selectedDevice.value))
+
+const deviceActionMode = computed<'idle' | 'estop' | 'reconciliation'>(() => {
+  if (currentWorklineSafetyVerdict.value.safetyLocked) return 'estop'
+  if (pendingReconciliationCandidate.value) return 'reconciliation'
+  return 'idle'
+})
+
+const worklineRecoveryActionMode = computed<'estop' | null>(() => {
+  if (selectedDevice.value || selectedRackPositionCode.value) return null
+  return currentWorklineSafetyVerdict.value.safetyLocked ? 'estop' : null
+})
+
+const isSelectedDeviceInMaintenance = computed(() =>
+  Boolean(selectedDevice.value?.maintenance_mode)
+)
+
+const busyAnyAction = computed(
+  () =>
+    clearingWorklineEstop.value ||
+    resolvingReconciliation.value ||
+    enteringDeviceMaintenance.value ||
+    exitingDeviceMaintenance.value
+)
+
+const deviceRackOccupancyView = computed(() => {
+  if (!store.projection) return null
+  return buildRackHierarchyView(getRackScopedProjection(store.projection))
+})
+
+const selectedRackEvidenceTruncated = computed(() => {
+  if (!selectedRackPositionCode.value || !store.projection?.resource_evidence.truncated) {
+    return false
+  }
+  return !deviceRackOccupancyView.value
+})
+
+// panelMode drives the right-side aside: business when a rack-position is
+// selected, control when a device is selected (and no rack is active),
+// idle otherwise. Rack-position selection takes priority so users can
+// inspect a specific position even while a device is still highlighted.
+const panelMode = computed<MonitorPanelMode>(() => {
+  if (selectedRackPositionCode.value) return 'business'
+  if (selectedDevice.value) return 'control'
+  return 'idle'
+})
+
 function lastActivityLabel(item: RuntimeWorklineSummary) {
   return item.last_activity_at ? formatRuntimeDateTime(item.last_activity_at) : '暂无活动'
 }
@@ -660,6 +692,7 @@ const forceRefreshProjection = createCoalescedAsyncTask(async () => {
 function selectWorkline(row: RuntimeWorklineSummary) {
   if (selectedWorklineId.value === row.id) return
   activeMobilePane.value = 'scene'
+  clearRackSelection()
   router.push({ query: { ...route.query, ...buildRuntimeWorklineQuery(row.id) } })
 }
 
@@ -672,19 +705,48 @@ function goRuntimeOverview() {
 
 function openDevice(deviceId: number) {
   activeMobilePane.value = 'actions'
-  activeSideTab.value = 'control'
+  clearRackSelection()
   router.push({ query: { ...route.query, deviceId: String(deviceId) } })
 }
 
-function openTrace(session: RuntimeMonitorSessionItem | RuntimeMonitorTraceItem) {
-  router.push({
-    name: 'RuntimeCases',
-    query: {
-      sessionId: String(session.session_id),
-      traceId: undefined,
-      worklineId: String(session.workline_id)
+function onRackPositionSelect(rackCode: string) {
+  activeMobilePane.value = 'actions'
+  const nextRackCode = selectedRackPositionCode.value === rackCode ? null : rackCode
+  selectedRackPositionCode.value = nextRackCode
+  selectedRackSlotKey.value = null
+}
+
+function clearRackSelection() {
+  selectedRackPositionCode.value = null
+  selectedRackSlotKey.value = null
+}
+
+function getRackScopedProjection(
+  projection: RuntimeWorklineMonitorProjectionResponse
+): RuntimeWorklineMonitorProjectionResponse {
+  const rackCode = selectedRackPositionCode.value
+  if (!rackCode) return projection
+  const evidence = projection.resource_evidence
+  const scopedItems = getRackScopedEvidenceItems(projection)
+  return {
+    ...projection,
+    resource_evidence: {
+      ...evidence,
+      items: scopedItems,
+      total_count: scopedItems.length
     }
-  })
+  }
+}
+
+function getRackScopedEvidenceItems(projection: RuntimeWorklineMonitorProjectionResponse) {
+  const rackCode = selectedRackPositionCode.value
+  if (!rackCode) return projection.resource_evidence.items ?? []
+  return (projection.resource_evidence.items ?? []).filter(
+    item =>
+      item.rack_code === rackCode ||
+      item.position_code === rackCode ||
+      item.resource_code === rackCode
+  )
 }
 
 async function clearWorklineEstop() {
@@ -755,6 +817,90 @@ async function resolveRuntimeReconciliation(payload: {
   }
 }
 
+// T9 handlers wired up by T10 ActionGroup adapters below.
+async function enterDeviceMaintenance(deviceId: number, reason?: string) {
+  if (!canUpdateDevice.value) {
+    ElMessage.error('需要 biz:device:update 权限')
+    return
+  }
+  if (!Number.isInteger(deviceId) || deviceId <= 0) return
+  try {
+    await ElMessageBox.confirm(
+      '确认让该设备进入维护模式？维护期间设备将停止参与派发。',
+      '设备进入维护',
+      {
+        confirmButtonText: '进入维护',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+  } catch {
+    return
+  }
+  enteringDeviceMaintenance.value = true
+  try {
+    await devicesApiMethods
+      .runtimeEnterMaintenance({ id: deviceId }, { reason: reason ?? '人工触发设备进入维护' })
+      .send()
+    ElMessage.success('设备已进入维护')
+    await forceRefreshProjection()
+  } catch (e: unknown) {
+    ElMessage.error(getErrorMessage(e, '设备进入维护失败'))
+  } finally {
+    enteringDeviceMaintenance.value = false
+  }
+}
+
+async function exitDeviceMaintenance(deviceId: number, reason?: string) {
+  if (!canUpdateDevice.value) {
+    ElMessage.error('需要 biz:device:update 权限')
+    return
+  }
+  if (!Number.isInteger(deviceId) || deviceId <= 0) return
+  try {
+    await ElMessageBox.confirm('确认让该设备退出维护并恢复派发？', '设备退出维护', {
+      confirmButtonText: '退出维护',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+  } catch {
+    return
+  }
+  exitingDeviceMaintenance.value = true
+  try {
+    await devicesApiMethods
+      .runtimeExitMaintenance({ id: deviceId }, { reason: reason ?? '人工触发设备退出维护' })
+      .send()
+    ElMessage.success('设备已退出维护')
+    await forceRefreshProjection()
+  } catch (e: unknown) {
+    ElMessage.error(getErrorMessage(e, '设备退出维护失败'))
+  } finally {
+    exitingDeviceMaintenance.value = false
+  }
+}
+
+function onResolveReconciliationFromActionGroup() {
+  // The reconciliation form renders below whenever a pending candidate exists;
+  // the ActionGroup button only signals operator intent — no extra work needed.
+}
+
+function onEnterMaintenanceFromActionGroup() {
+  const id = selectedDeviceId.value
+  if (!id) return
+  void enterDeviceMaintenance(id)
+}
+
+function onExitMaintenanceFromActionGroup() {
+  const id = selectedDeviceId.value
+  if (!id) return
+  void exitDeviceMaintenance(id)
+}
+
+function onRackCellSelect(slotKey: string) {
+  selectedRackSlotKey.value = selectedRackSlotKey.value === slotKey ? null : slotKey
+}
+
 onMounted(() => {
   void (async () => {
     await refreshWorklines()
@@ -767,7 +913,10 @@ onMounted(() => {
 watch(
   () => selectedWorklineId.value,
   (next, prev) => {
-    if (next !== prev) eventLogEntries.value = []
+    if (next !== prev) {
+      eventLogEntries.value = []
+      clearRackSelection()
+    }
     if (next && next !== prev) void refreshProjection()
   }
 )
@@ -846,74 +995,6 @@ function readStringEventValue(value: unknown): string | null {
   if (typeof value === 'string' && value.trim()) return value.trim()
   if (typeof value === 'number' && Number.isFinite(value)) return String(value)
   return null
-}
-
-function stationLeaseLabel(value?: string | null): string {
-  const labels: Record<string, string> = {
-    IDLE: 'Station lease：空闲',
-    ACTIVE_RACK_BOUND: 'Station lease：执行货架占用',
-    ACTIVE_DISPATCH_LEASE: 'Station lease：调度租约占用',
-    ACTIVE_SESSION_BOUND: 'Station lease：会话占用',
-    UNKNOWN: 'Station lease：语义未加载'
-  }
-  return labels[value || 'UNKNOWN'] ?? `Station lease：${value}`
-}
-
-function singleLayerRackSnapshotLabel(value?: string | null): string {
-  const labels: Record<string, string> = {
-    ACTIVE: '执行快照：当前执行货架',
-    MISSING: '执行快照：未找到当前执行货架',
-    INVALID: '执行快照：无效',
-    NON_SINGLE_LAYER_EVIDENCE: '执行快照：非单层 evidence',
-    UNKNOWN: '执行快照：语义未加载'
-  }
-  return labels[value || 'UNKNOWN'] ?? `执行快照：${value}`
-}
-
-function projectionRackKindLabel(projection: RuntimeWorklineMonitorProjectionResponse): string {
-  const snapshot = projection.boundary.single_layer_rack_snapshot
-  const hasSingleLayerEvidence = (projection.resource_evidence.items ?? []).some(
-    item => item.rack_code || item.bin_code || item.slot_code || item.cell_code
-  )
-
-  if ((snapshot && snapshot !== 'UNKNOWN') || hasSingleLayerEvidence) return '单层货架'
-  return '货架形态未加载'
-}
-
-function collectProjectionCodes(
-  items: RuntimeResourceEvidenceItem[],
-  readCode: (
-    item: RuntimeResourceEvidenceItem
-  ) => string | null | undefined | (string | null | undefined)[]
-): string[] {
-  const codes = new Set<string>()
-  for (const item of items) {
-    const value = readCode(item)
-    const values = Array.isArray(value) ? value : [value]
-    for (const code of values) {
-      if (code?.trim()) codes.add(code.trim())
-    }
-  }
-  return [...codes]
-}
-
-function formatProjectionCodes(codes: string[]): string {
-  if (codes.length === 0) return '未加载'
-  const visibleCodes = codes.slice(0, 4)
-  const suffix = codes.length > visibleCodes.length ? ` +${codes.length - visibleCodes.length}` : ''
-  return `${visibleCodes.join(' / ')}${suffix}`
-}
-
-function rackOperationWaitLabel(value?: string | null): string {
-  const labels: Record<string, string> = {
-    WAITING_WMS: 'Rack operation：等待 WMS 搬运到位',
-    WMS_CALLBACK_RECEIVED: 'Rack operation：WMS 回调证据已收到',
-    TIMEOUT: 'Rack operation：等待 WMS 超时',
-    FAILED: 'Rack operation：WMS 搬运结果失败',
-    NONE: 'Rack operation：无等待',
-    UNKNOWN: 'Rack operation：语义未加载'
-  }
-  return labels[value || 'UNKNOWN'] ?? `Rack operation：${value}`
 }
 </script>
 
@@ -1094,7 +1175,16 @@ html:not(.dark) .runtime-page {
   border-radius: 8px;
   background:
     linear-gradient(var(--monitor-shell-surface), var(--monitor-shell-surface)),
-    repeating-linear-gradient(90deg, rgb(148 163 184 / 0.08) 0 1px, transparent 1px 32px);
+    radial-gradient(rgb(148 163 184 / 0.15) 1px, transparent 1px),
+    radial-gradient(rgb(148 163 184 / 0.1) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    20px 20px,
+    20px 20px;
+  background-position:
+    0 0,
+    0 0,
+    10px 10px;
 }
 
 .monitor-layout__empty {
@@ -1123,8 +1213,7 @@ html:not(.dark) .runtime-page {
   gap: 12px;
 }
 
-.monitor-device-panel__eyebrow,
-.monitor-device-panel__section-title {
+.monitor-device-panel__eyebrow {
   color: var(--monitor-shell-accent);
   font-size: 11px;
   font-weight: 800;
@@ -1145,117 +1234,18 @@ html:not(.dark) .runtime-page {
   line-height: 1.6;
 }
 
-.monitor-device-panel__facts {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-  margin: 14px 0 0;
-}
-
-.monitor-device-panel__facts > div,
-.monitor-business-projection__facts > div {
-  display: grid;
-  gap: 3px;
-  padding: 9px;
-  border: 1px solid var(--monitor-shell-border);
-  border-radius: 7px;
-  background: var(--monitor-shell-surface-muted);
-}
-
-.monitor-device-panel__facts dt,
-.monitor-business-projection__facts dt {
-  color: var(--runtime-text-muted);
-  font-size: 11px;
-}
-
-.monitor-device-panel__facts dd,
-.monitor-business-projection__facts dd {
-  margin: 0;
-  color: var(--runtime-text-primary);
-  font-family: var(--font-mono, 'JetBrains Mono');
-  font-size: 12px;
-  font-weight: 700;
-  overflow-wrap: anywhere;
-}
-
-.monitor-device-panel__tabs {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
-  margin-top: 14px;
-  padding: 4px;
-  border: 1px solid var(--monitor-shell-border);
-  border-radius: 8px;
-  background: var(--monitor-shell-surface-muted);
-}
-
-.monitor-device-panel__tab {
-  min-height: 30px;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--runtime-text-secondary);
-  font-size: 12px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.monitor-device-panel__tab.is-active {
-  border-color: rgb(245 158 11 / 0.34);
-  background: rgb(245 158 11 / 0.09);
-  color: var(--runtime-text-primary);
-}
-
 .monitor-device-panel__tab-panel {
-  min-width: 0;
-}
-
-.monitor-business-projection__facts {
-  display: grid;
-  gap: 8px;
-  margin: 14px 0 0;
-}
-
-.monitor-device-panel__chain {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 8px;
-  margin-top: 12px;
-  color: var(--runtime-text-secondary);
-  font-family: var(--font-mono, 'JetBrains Mono');
-  font-size: 11px;
-}
-
-.monitor-device-panel__chain span {
-  min-width: 0;
-  padding: 7px 8px;
-  border: 1px solid var(--monitor-shell-border);
-  border-radius: 6px;
-  background: var(--monitor-shell-surface-muted);
-  text-align: center;
-}
-
-.monitor-device-panel__sessions {
-  display: grid;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.monitor-device-panel__session {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 34px;
-  padding: 0 9px;
-  border: 1px solid var(--monitor-shell-border);
-  border-radius: 7px;
-  background: transparent;
-  color: var(--runtime-text-primary);
-  font-size: 12px;
-  text-align: left;
-  cursor: pointer;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
+  min-width: 0;
+}
+
+.monitor-business-projection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .monitor-action-cabin__title {

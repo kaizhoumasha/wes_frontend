@@ -576,6 +576,7 @@ export type RuntimeMonitorActionCandidates = components['schemas']['RuntimeMonit
 export type RuntimeMonitorTraceItem = components['schemas']['RuntimeMonitorTraceItem']
 export type RuntimeMonitorSessionItem = components['schemas']['RuntimeMonitorSessionItem']
 export type RuntimeMonitorReconciliationCandidate = components['schemas']['RuntimeMonitorReconciliationCandidate']
+export type RuntimeMonitorCommandSnapshot = components['schemas']['RuntimeMonitorCommandSnapshot']
 
 export type RuntimeScenePluginManifestSummary = WorkLinePluginManifestSummary
 

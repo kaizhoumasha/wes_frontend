@@ -7828,6 +7828,28 @@ export interface components {
         RuntimeMonitorActionCandidates: {
             pending_reconciliation?: components["schemas"]["RuntimeMonitorReconciliationCandidate"] | null;
         };
+        /**
+         * RuntimeMonitorCommandSnapshot
+         * @description 运行监控视图中的设备当前指令快照。
+         *
+         *     字段固定，专供 dashboard ECS ACK 链消费；不引入业务流转字段。
+         */
+        RuntimeMonitorCommandSnapshot: {
+            /** Ack Code */
+            ack_code?: number | null;
+            /** Ack Message */
+            ack_message?: string | null;
+            /** Ack Received At */
+            ack_received_at?: string | null;
+            /** Command Code */
+            command_code: string;
+            /** Id */
+            id: number;
+            /** Sent At */
+            sent_at?: string | null;
+            /** Status */
+            status: string;
+        };
         /** RuntimeMonitorDeviceNode */
         RuntimeMonitorDeviceNode: {
             /** Active Runtime Hold Ids */
@@ -7843,6 +7865,7 @@ export interface components {
             blocked_reason?: string | null;
             /** Blocked Wait Seconds */
             blocked_wait_seconds?: number | null;
+            current_command?: components["schemas"]["RuntimeMonitorCommandSnapshot"] | null;
             /** Current Command Id */
             current_command_id?: number | null;
             /** Device Code */

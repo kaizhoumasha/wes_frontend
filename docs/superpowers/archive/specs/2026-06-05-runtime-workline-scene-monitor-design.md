@@ -359,36 +359,36 @@ Execution order: launch A and B only after agreeing the endpoint wire shape; C c
   - Files: `../wes_backend/src/app/workline`, `../wes_backend/src/workline_runtime`
   - Verify: backend contract/schema tests for required role fields.
   - 状态同步 2026-06-08：已验证后端 `GET /plugins/{plugin_key:path}/manifest`、`WorkLineService.get_plugin_manifest_summary()` 和对应 pytest 存在并通过。
-- [ ] **T2 (P1, human: ~1h / CC: ~10min)** — frontend-api — 接入 manifest summary API，生成/复用类型并实现按 plugin_key 缓存的 composable
+- [x] **T2 (P1, human: ~1h / CC: ~10min)** — frontend-api — 接入 manifest summary API，生成/复用类型并实现按 plugin_key 缓存的 composable
   - Surfaced by: Architecture + Performance Review — manifest must come from backend and avoid repeated/stale fetches.
   - Files: `src/api`, `src/composables`, `src/types`
   - Verify: frontend API/composable tests for success, failure, dedupe, stale guard.
-  - 状态同步 2026-06-08：前端 generated/api/composable 未发现 manifest summary 接入，保持未完成。
-- [ ] **T3 (P1, human: ~2h / CC: ~20min)** — scene-adapter — 实现纯函数 `buildRuntimeSceneModel`，禁止插件 key 硬编码和 raw JSON 挖掘
+  - 状态同步 2026-06-15：`src/api/modules/workline.ts` 已生成 `GET /api/v1/workline/plugins/{plugin_key}/manifest` 方法，`src/api/modules/runtime.ts` 已封装 `worklinePluginManifest()`，`src/composables/useRuntimeSceneManifest.ts` 已实现按 plugin_key / contract version 缓存、in-flight dedupe、失败重试和 stale guard；`tests/unit/composables/useRuntimeSceneManifest.test.ts` 与 `tests/unit/api/runtime.test.ts` 覆盖对应路径。
+- [x] **T3 (P1, human: ~2h / CC: ~20min)** — scene-adapter — 实现纯函数 `buildRuntimeSceneModel`，禁止插件 key 硬编码和 raw JSON 挖掘
   - Surfaced by: Code Quality Review — v1 badges use structured runtime fields only.
   - Files: `src/components/runtime`, `src/types`
   - Verify: pure adapter tests for ordering, fallback, gaps, uncategorized devices, active session overlay.
-  - 状态同步 2026-06-08：`src` / `tests` 未发现 `buildRuntimeSceneModel`。
-- [ ] **T4 (P1, human: ~3h / CC: ~30min)** — monitor-ui — 新增 monitor-only `RuntimeSceneMap` 并集成到 `WorklineLiveOverview`
+  - 状态同步 2026-06-15：`src/utils/runtime-scene.ts` 已实现 `buildRuntimeSceneModel()`，输入为监控投影和 manifest summary；`tests/unit/utils/runtime-scene.test.ts` 覆盖 READY、Station busy、active snapshot、WMS wait/callback、NG role normalization、resource evidence 与截断提示。`src` 内未发现 monitor 主屏从 `context_json` / `payload_json` / `event_payload` 推断资源事实。
+- [x] **T4 (P1, human: ~3h / CC: ~30min)** — monitor-ui — 新增 monitor-only `RuntimeSceneMap` 并集成到 `WorklineLiveOverview`
   - Surfaced by: Architecture Review — isolate v1 to `/runtime/monitor` and keep shared `WorklineRouteMap` unchanged.
   - Files: `src/components/runtime/monitor`, `src/views/runtime/worklines`
   - Verify: component tests plus browser visual QA on desktop/mobile.
-  - 状态同步 2026-06-08：`/runtime/monitor` 仍由 `WorklineLiveOverview` 集成共享 `WorklineRouteMap`，未发现 `RuntimeSceneMap`。
-- [ ] **T5 (P1, human: ~3h / CC: ~30min)** — tests — 补齐 API、scene builder、scene component、route sync 和后端 contract 测试
+  - 状态同步 2026-06-15：`src/components/runtime/monitor/RuntimeSceneMap.vue` 已由 `WorklineLiveOverview.vue` 集成，sandbox/trace 已收敛到共享 `RuntimeSceneDeviceFlow`；`src` / `tests` 未发现 `WorklineRouteMap` 产品引用。
+- [x] **T5 (P1, human: ~3h / CC: ~30min)** — tests — 补齐 API、scene builder、scene component、route sync 和后端 contract 测试
   - Surfaced by: Test Review — `type:check`/lint alone is insufficient.
   - Files: `tests/unit`, `../wes_backend/tests`
   - Verify: full Vitest runtime suite, backend contract tests, `pnpm type:check`, `pnpm lint` before ship.
-  - 状态同步 2026-06-08：后端 manifest 测试已存在；前端 scene builder/component/API 测试未发现。
-- [ ] **T6 (P3, human: ~1h / CC: ~10min)** — follow-up — 在 TODO 中记录结构化运行资源证据契约，v1 不实现 raw JSON overlay
+  - 状态同步 2026-06-15：前端已补齐 `runtime-scene`、`runtimeSceneMap`、`runtimeSceneDeviceFlow`、`runtimeSceneFocusPanel`、`worklineLiveOverview`、`runtimeRouteSync`、`useRuntimeSceneManifest`、`runtime-agent-browser-smoke` 等测试；后端 manifest / runtime monitor 相关测试已存在。后续更大范围质量门禁由归档后的实施计划记录。
+- [x] **T6 (P3, human: ~1h / CC: ~10min)** — follow-up — 在 TODO 中记录结构化运行资源证据契约，v1 不实现 raw JSON overlay
   - Surfaced by: TODO Review D7.
   - Files: `TODOS.md`, `../wes_backend/TODOS.md`
   - Verify: TODO includes What/Why/Context/Effort/Priority/Depends on.
-  - 状态同步 2026-06-08：`../wes_backend/TODOS.md` 已记录；前端仓库未发现 `TODOS.md` 对应条目，保持未完成。
-- [ ] **T7 (P3, human: ~1h / CC: ~10min)** — follow-up — 在 TODO 中记录 `RuntimeSceneFocusPanel` 与共享拓扑收敛，v1 不实现
+  - 状态同步 2026-06-15：`TODOS.md` 已记录“Runtime scene 结构化运行资源证据契约”，`../wes_backend/TODOS.md` 仍保留后端结构化运行资源证据契约 TODO；前端当前实现不从 raw JSON overlay 推断资源。
+- [x] **T7 (P3, human: ~1h / CC: ~10min)** — follow-up — 在 TODO 中记录 `RuntimeSceneFocusPanel` 与共享拓扑收敛，v1 不实现
   - Surfaced by: TODO Review D8.
   - Files: `TODOS.md`
   - Verify: TODO explains v1 monitor-only decision and follow-up trigger.
-  - 状态同步 2026-06-08：前端仓库未发现 `TODOS.md` 对应条目，保持未完成。
+  - 状态同步 2026-06-15：`TODOS.md` 已记录“RuntimeSceneFocusPanel 与共享拓扑收敛”，且当前实现已经补充 `RuntimeSceneFocusPanel` 并让 sandbox / trace 使用共享 `RuntimeSceneDeviceFlow`。
 
 ### Completion Summary
 

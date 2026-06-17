@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import RuntimeSceneMap from '@/components/runtime/monitor/RuntimeSceneMap.vue'
 import { getRuntimeSceneEvidenceKey, type RuntimeSceneModel } from '@/utils/runtime-scene'
 
@@ -347,50 +347,44 @@ function createSceneModel(): RuntimeSceneModel {
   }
 }
 
-function createBinOnlySceneModel(
-  resourceEvidence: RuntimeSceneModel['resourceEvidence']
-): RuntimeSceneModel {
-  const model = createSceneModel()
-  const boundary = model.boundaries[0]
-  if (!boundary) return model
-
-  return {
-    ...model,
-    resourceEvidence,
-    positionGroups: [
-      {
-        key: boundary.key,
-        stationCode: boundary.stationCode,
-        stationRole: boundary.stationRole,
-        positionCode: boundary.positionCode,
-        boundary,
-        attentionState: 'waiting',
-        resourceStacks: [
-          {
-            key: 'bin:BIN-001',
-            anchor: {
-              kind: 'BIN',
-              code: 'BIN-001',
-              displayLabel: 'BIN BIN-001'
-            },
-            binCode: 'BIN-001',
-            children: [],
-            evidenceCount: resourceEvidence.length,
-            evidenceKinds: ['WMS_CALLBACK_EVIDENCE'],
-            auditItems: resourceEvidence
-          }
-        ],
-        rackLayouts: [],
-        auditItems: resourceEvidence
-      }
-    ],
-    unlocatedAuditItems: [],
-    resourceEvidenceTotalCount: resourceEvidence.length,
-    resourceEvidenceTruncated: false
-  }
-}
-
 describe('RuntimeSceneMap', () => {
+  beforeEach(() => {
+    // jsdom 的 canvas API 默认返回 null；RuntimeSceneDeviceFlow 内部
+    // 调 getContext('2d') 时给个 mock，避免 onMounted 抛错。
+    if (typeof HTMLCanvasElement !== 'undefined') {
+      const proto = HTMLCanvasElement.prototype
+      if (!proto.getContext) {
+        proto.getContext = function () {
+          return {
+            save: () => undefined,
+            restore: () => undefined,
+            setTransform: () => undefined,
+            clearRect: () => undefined,
+            beginPath: () => undefined,
+            closePath: () => undefined,
+            moveTo: () => undefined,
+            lineTo: () => undefined,
+            arc: () => undefined,
+            arcTo: () => undefined,
+            fill: () => undefined,
+            stroke: () => undefined,
+            fillText: () => undefined,
+            setLineDash: () => undefined,
+            fillStyle: '',
+            strokeStyle: '',
+            lineWidth: 0,
+            lineDashOffset: 0,
+            globalAlpha: 1,
+            font: '',
+            textBaseline: 'top',
+            shadowColor: '',
+            shadowBlur: 0
+          } as unknown as CanvasRenderingContext2D
+        }
+      }
+    }
+  })
+
   it('keeps business and rack projection details out of the topology canvas', () => {
     const model = createSceneModel()
     model.worklineName = 'Smoke 单层货架线'
@@ -415,203 +409,73 @@ describe('RuntimeSceneMap', () => {
       }
     })
 
-    expect(wrapper.get('[data-test="runtime-scene-map"]').text()).not.toContain('CLASSIFIER_WORK')
-    expect(wrapper.get('[data-test="runtime-scene-map"]').text()).not.toContain('Station lease')
-    expect(wrapper.get('[data-test="runtime-scene-map"]').text()).not.toContain('执行快照')
-    expect(wrapper.get('[data-test="runtime-scene-map"]').text()).not.toContain('单层货架')
-    expect(wrapper.get('[data-test="runtime-scene-map"]').text()).not.toContain('RACK-001')
-    expect(wrapper.get('[data-test="runtime-scene-map"]').text()).not.toContain('BIN-001')
-    expect(wrapper.get('[data-test="runtime-scene-map"]').text()).not.toContain('CELL-A1')
+    const text = wrapper.get('[data-test="runtime-scene-map"]').text()
+    // CLASSIFIER_WORK 设备被 HIDDEN_TOPOLOGY_ROLES 过滤掉, 不进 deviceNodes,
+    // canvas 画布就不会出现这条设备对应的 text 提示。`CLASSIFIER_WORK` 也
+    // 不会再作为 position role 显式渲染。
+    expect(text).not.toContain('CLASSIFIER_WORK')
+    expect(text).not.toContain('Station lease')
+    expect(text).not.toContain('执行快照')
+    expect(text).not.toContain('单层货架')
+    expect(text).not.toContain('RACK-001')
+    expect(text).not.toContain('BIN-001')
+    expect(text).not.toContain('CELL-A1')
   })
 
-  it('renders grouped position resources, focus evidence, and unlocated audit items', async () => {
+  it('renders the readiness header line and truncated evidence counter', () => {
     const wrapper = mount(RuntimeSceneMap, {
-      props: {
-        model: createSceneModel(),
-        showRackDetails: true
-      }
+      props: { model: createSceneModel() }
     })
 
-    expect(wrapper.findAll('[data-test="runtime-scene-evidence-item"]')).toHaveLength(0)
-    expect(wrapper.get('[data-test="runtime-scene-position-group"]').text()).toContain(
-      'SINGLE_LAYER_A'
-    )
-    expect(wrapper.get('[data-test="runtime-rack-layout-panel"]').text()).toContain('RACK-001')
-    expect(wrapper.get('[data-test="runtime-scene-position-group"]').text()).toContain(
-      '7 条投影证据'
-    )
-    expect(wrapper.get('[data-test="runtime-rack-inspector"]').text()).toContain('BIN-001')
-    expect(wrapper.get('[data-test="runtime-rack-inspector"]').text()).not.toContain(
-      'PKG-UNLOCATED'
-    )
+    expect(wrapper.get('[data-test="runtime-scene-readiness"]').text()).toContain('WL-45')
+    expect(wrapper.get('[data-test="runtime-scene-readiness"]').text()).toContain('待机')
     expect(wrapper.get('[data-test="runtime-scene-truncated"]').text()).toBe(
       '仅展示前 8 条证据 / 共 8 条'
     )
-    const unlocatedAudit = wrapper.get('[data-test="runtime-scene-unlocated-audit"]')
-    expect(unlocatedAudit.text()).toContain('PKG-UNLOCATED')
-    expect(unlocatedAudit.get('[data-test="runtime-scene-evidence-truncated"]').text()).toBe(
-      '仅展示前 8 条证据 / 共 8 条'
-    )
   })
 
-  it('renders a rack grid and drills from slot to bin, cell, and material evidence', async () => {
+  it('renders a single canvas element for the topology flow', () => {
     const wrapper = mount(RuntimeSceneMap, {
-      props: {
-        model: createSceneModel(),
-        showRackDetails: true
-      }
+      props: { model: createSceneModel() }
     })
-
-    expect(wrapper.get('[data-test="runtime-rack-layout-panel"]').text()).toContain('RACK-001')
-    const slots = wrapper.findAll('[data-test="runtime-rack-slot"]')
-    expect(slots).toHaveLength(2)
-    expect(slots[0]?.text()).toContain('BIN-001')
-    expect(slots[1]?.text()).toContain('空位')
-
-    await slots[0]?.trigger('click')
-
-    const inspector = wrapper.get('[data-test="runtime-rack-inspector"]')
-    expect(inspector.text()).toContain('BIN-001')
-    expect(inspector.get('[data-test="runtime-bin-cell-grid"]').text()).toContain('A')
-    expect(inspector.get('[data-test="runtime-bin-cell-grid"]').text()).toContain('B')
-    expect(inspector.get('[data-test="runtime-bin-cell-grid"]').text()).toContain('C')
-    expect(inspector.get('[data-test="runtime-bin-cell-grid"]').text()).toContain('D')
-    expect(inspector.text()).toContain('CELL-A1')
-    expect(inspector.text()).toContain('PKG-001')
-    expect(inspector.get('[data-test="runtime-bin-cell-grid"]').text()).toContain(
-      '620100L00-011-G'
-    )
-    expect(inspector.get('[data-test="runtime-bin-cell-grid"]').text()).toContain('DC 2401')
-    expect(inspector.get('[data-test="runtime-bin-cell-grid"]').text()).toContain('LC LOT-A')
-    expect(inspector.get('[data-test="runtime-bin-cell-grid"]').text()).toContain('2 盘')
-    expect(inspector.get('[data-test="runtime-rack-cell-summary"]').text()).toContain(
-      '620100L00-011-G'
-    )
-    expect(inspector.get('[data-test="runtime-rack-material-stack"]').text()).toContain('底部')
-    expect(inspector.get('[data-test="runtime-rack-material-stack"]').text()).toContain('顶部')
-    expect(
-      inspector.findAll('[data-test="runtime-rack-material-reel"]').map(reel => reel.text())
-    ).toEqual([
-      expect.stringContaining('底层REEL-BOTTOM'),
-      expect.stringContaining('顶层REEL-TOP')
-    ])
+    expect(wrapper.find('[data-test="runtime-scene-device-flow-canvas"]').exists()).toBe(true)
   })
 
-  it('defaults to the waiting position that has rack evidence', () => {
+  it('passes manifest topology nodes and edges into the canvas layout adapter', () => {
     const model = createSceneModel()
-    const rackGroup = model.positionGroups[0]!
-    const emptyBoundary = {
-      ...rackGroup.boundary,
-      key: 'SOURCE_STATION_A',
-      stationRole: 'SOURCE',
-      stationCode: 'SOURCE_STATION_A',
-      positionCode: 'SOURCE_STATION_A'
-    }
-    model.positionGroups = [
+    model.topologyNodes = [
+      { kind: 'DEVICE_ROLE', ref: 'ARM', resolved: true },
+      { kind: 'RACK_POSITION', ref: 'SINGLE_LAYER_A', resolved: true },
+      { kind: 'RACK_POSITION', ref: 'UNKNOWN_RACK', resolved: false }
+    ]
+    model.topologyEdges = [
       {
-        ...rackGroup,
-        key: 'SOURCE_STATION_A',
-        stationRole: 'SOURCE',
-        stationCode: 'SOURCE_STATION_A',
-        positionCode: 'SOURCE_STATION_A',
-        boundary: emptyBoundary,
-        resourceStacks: [],
-        rackLayouts: [],
-        auditItems: []
-      },
-      rackGroup
+        key: 'DEVICE_ROLE:ARM->RACK_POSITION:SINGLE_LAYER_A:MATERIAL_FLOW',
+        fromNode: { kind: 'DEVICE_ROLE', ref: 'ARM', resolved: true },
+        toNode: { kind: 'RACK_POSITION', ref: 'SINGLE_LAYER_A', resolved: true },
+        type: 'MATERIAL_FLOW'
+      }
     ]
 
     const wrapper = mount(RuntimeSceneMap, {
-      props: {
-        model,
-        showRackDetails: true
-      }
+      props: { model }
     })
 
-    expect(wrapper.get('[data-test="runtime-rack-layout-panel"]').text()).toContain('RACK-001')
-  })
-
-  it('uses cell reel counts for rack and slot summaries instead of material entity count', () => {
-    const model = createSceneModel()
-    const cell = model.positionGroups[0]?.rackLayouts[0]?.slots[0]?.bin?.cells[0]
-    if (!cell?.materialSummary) throw new Error('expected test fixture cell summary')
-    cell.materialSummary.reelCount = 19
-    cell.materials = cell.materials.slice(0, 1)
-    cell.materialReels = []
-
-    const wrapper = mount(RuntimeSceneMap, {
-      props: {
-        model,
-        showRackDetails: true
+    const flow = wrapper.findComponent({ name: 'RuntimeSceneDeviceFlow' })
+    expect(flow.props('explicitNodes')).toEqual([
+      { kind: 'device', device: model.deviceNodes[0] },
+      { kind: 'rack_position', code: 'SINGLE_LAYER_A' }
+    ])
+    expect(flow.props('explicitEdges')).toEqual([
+      {
+        fromKey: 'device:101',
+        toKey: 'rack:SINGLE_LAYER_A',
+        type: 'MATERIAL_FLOW'
       }
-    })
-
-    const panelText = wrapper.get('[data-test="runtime-rack-layout-panel"]').text()
-    expect(panelText).toContain('2 格 · 1 箱 · 19 盘')
-    expect(panelText).toContain('1 格 · 19 盘')
-    expect(panelText).not.toContain('1 料')
+    ])
   })
 
-  it('does not double count bin-scoped material evidence when cells already report reel counts', () => {
-    const model = createSceneModel()
-    const slot = model.positionGroups[0]?.rackLayouts[0]?.slots[0]
-    const bin = slot?.bin
-    const cell = bin?.cells[0]
-    if (!bin || !cell?.materialSummary) throw new Error('expected test fixture bin and cell')
-
-    cell.materialSummary.reelCount = 5
-    cell.materialReels = []
-    bin.looseMaterials = Array.from({ length: 5 }, (_, index) => ({
-      key: `material:PKG:LOOSE-${index + 1}`,
-      kind: 'PKG',
-      code: `LOOSE-${index + 1}`,
-      displayLabel: `PKG LOOSE-${index + 1}`,
-      evidenceKind: 'TRACE_RESOURCE_EVIDENCE',
-      auditItems: []
-    }))
-
-    const wrapper = mount(RuntimeSceneMap, {
-      props: {
-        model,
-        showRackDetails: true
-      }
-    })
-
-    const panelText = wrapper.get('[data-test="runtime-rack-layout-panel"]').text()
-    expect(panelText).toContain('2 格 · 1 箱 · 5 盘')
-    expect(panelText).toContain('1 格 · 5 盘')
-    expect(panelText).toContain('5 条未定位')
-    expect(panelText).not.toContain('10 盘')
-
-    const inspector = wrapper.get('[data-test="runtime-rack-inspector"]')
-    expect(inspector.text()).toContain('未定位证据')
-    expect(inspector.text()).toContain('未绑定料格，不计入物理盘数')
-  })
-
-  it('explains when a cell has aggregate reel count but no reel-level details', async () => {
-    const model = createSceneModel()
-    const cell = model.positionGroups[0]?.rackLayouts[0]?.slots[0]?.bin?.cells[0]
-    if (!cell?.materialSummary) throw new Error('expected test fixture cell summary')
-    cell.materialSummary.reelCount = 19
-    cell.materials = cell.materials.slice(0, 1)
-    cell.materialReels = []
-
-    const wrapper = mount(RuntimeSceneMap, {
-      props: {
-        model,
-        showRackDetails: true
-      }
-    })
-
-    await wrapper.findAll('[data-test="runtime-rack-slot"]')[0]?.trigger('click')
-
-    const inspector = wrapper.get('[data-test="runtime-rack-inspector"]')
-    expect(inspector.get('[data-test="runtime-rack-cell-summary"]').text()).toContain('19 盘')
-    expect(inspector.text()).toContain('当前接口只提供汇总盘数，未提供逐盘明细')
-  })
-
-  it('renders semantic fallback when plugin manifest or contract fields are unavailable', () => {
+  it('renders the semantic fallback banner when manifest load fails', () => {
     const model = {
       ...createSceneModel(),
       boundaries: [],
@@ -625,146 +489,53 @@ describe('RuntimeSceneMap', () => {
     }
 
     const wrapper = mount(RuntimeSceneMap, {
-      props: {
-        model
-      }
+      props: { model }
     })
 
     expect(wrapper.get('[data-test="runtime-scene-fallback"]').text()).toContain(
       'manifest 加载失败'
     )
-    expect(wrapper.get('[data-test="runtime-scene-empty-evidence"]').text()).toContain(
-      '通用 evidence'
-    )
   })
 
-  it('uses neutral empty evidence copy when semantics are loaded', () => {
-    const model = {
-      ...createSceneModel(),
-      resourceEvidence: [],
-      positionGroups: [],
-      unlocatedAuditItems: [],
-      resourceEvidenceTotalCount: 0,
-      resourceEvidenceTruncated: false
+  it('forwards select-device and select-rack-position events from the canvas', async () => {
+    // jsdom 默认 getBoundingClientRect 返回 0/0，hit-test 永远失败。注入一个
+    // 假矩形让 css 坐标可预测，再点击设备节点中心。
+    const original = HTMLCanvasElement.prototype.getBoundingClientRect
+    HTMLCanvasElement.prototype.getBoundingClientRect = function () {
+      return {
+        x: 0,
+        y: 0,
+        left: 0,
+        top: 0,
+        right: 2000,
+        bottom: 2000,
+        width: 2000,
+        height: 2000,
+        toJSON: () => ({})
+      }
     }
-
-    const wrapper = mount(RuntimeSceneMap, {
-      props: {
-        model
-      }
-    })
-
-    const empty = wrapper.get('[data-test="runtime-scene-empty-evidence"]')
-    expect(empty.text()).toBe('暂无结构化资源证据')
-    expect(empty.text()).not.toContain('通用 evidence')
-  })
-
-  it('marks the selected device and shows parked outbox signals', () => {
-    const model = createSceneModel()
-    model.deviceNodes = [
-      {
-        ...model.deviceNodes[0]!,
-        blockedOutboxCount: 1
-      }
-    ]
-    const wrapper = mount(RuntimeSceneMap, {
-      props: {
-        model,
-        selectedDeviceId: 101
-      }
-    })
-
-    const device = wrapper.get('[data-test="runtime-scene-device"]')
-    expect(device.classes()).toContain('is-selected')
-    expect(device.text()).toContain('1 已停靠')
-    expect(device.text()).not.toContain('未完成命令')
-  })
-
-  it('renders device risk signals from runtime counters', () => {
-    const model = createSceneModel()
-    model.deviceNodes = [
-      {
-        id: 101,
-        deviceCode: 'ARM01',
-        deviceName: '机械臂 1',
-        deviceRole: 'ARM',
-        roleIndex: 1,
-        status: 'ERROR',
-        maintenanceMode: true,
-        currentCommandId: 3001,
-        openCommandCount: 2,
-        blockedOutboxCount: 1,
-        runtimeHoldCount: 1,
-        errorCode: 'DEVICE_FAULT'
-      }
-    ]
-
-    const wrapper = mount(RuntimeSceneMap, {
-      props: {
-        model
-      }
-    })
-
-    const device = wrapper.get('[data-test="runtime-scene-device"]')
-    expect(device.classes()).toContain('has-runtime-hold')
-    expect(device.classes()).toContain('has-parked-outbox')
-    expect(wrapper.text()).toContain('维护')
-    expect(device.text()).toContain('ERROR: DEVICE_FAULT')
-    expect(wrapper.get('[data-test="topology-device-open-command"]').text()).toContain(
-      '2 未完成命令'
-    )
-    expect(wrapper.get('[data-test="topology-device-runtime-hold"]').text()).toContain(
-      'Runtime Hold 1'
-    )
-    expect(wrapper.get('[data-test="topology-device-parked-outbox"]').text()).toContain(
-      '1 已停靠'
-    )
-  })
-
-  it('keeps repeated evidence rows unique when source traces differ', async () => {
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
-    const repeatedEvidence: RuntimeSceneModel['resourceEvidence'] = [
-      {
-        resourceKind: 'BIN',
-        resourceKindLabel: 'Bin',
-        resourceCode: 'BIN-001',
-        displayLabel: 'BIN BIN-001',
-        evidenceKind: 'WMS_CALLBACK_EVIDENCE',
-        evidenceKindLabel: 'WMS 回调证据',
-        stationCode: 'TARGET_ARM',
-        positionCode: 'SINGLE_LAYER_A',
-        binCode: 'BIN-001',
-        sourceSessionId: 20,
-        sourceTraceId: 'trace-20'
-      },
-      {
-        resourceKind: 'BIN',
-        resourceKindLabel: 'Bin',
-        resourceCode: 'BIN-001',
-        displayLabel: 'BIN BIN-001',
-        evidenceKind: 'WMS_CALLBACK_EVIDENCE',
-        evidenceKindLabel: 'WMS 回调证据',
-        stationCode: 'TARGET_ARM',
-        positionCode: 'SINGLE_LAYER_A',
-        binCode: 'BIN-001',
-        sourceSessionId: 21,
-        sourceTraceId: 'trace-21'
-      }
-    ]
-    const model = createBinOnlySceneModel(repeatedEvidence.slice(0, 1))
-    const nextModel = createBinOnlySceneModel(repeatedEvidence)
-
     try {
       const wrapper = mount(RuntimeSceneMap, {
-        props: {
-          model
-        }
+        props: { model: createSceneModel() }
       })
-      await wrapper.setProps({ model: nextModel })
-      const warnings = warnSpy.mock.calls.flat().join('\n')
-      expect(warnings).not.toContain('Duplicate keys')
+      const canvas = wrapper.find('[data-test="runtime-scene-device-flow-canvas"]')
+      // 设备 1 在 fallback layout 第一格 (x=24, y=24)，中心 (134, 64)。
+      await canvas.trigger('click', { clientX: 134, clientY: 64 })
+      expect(wrapper.emitted('selectDevice')).toBeDefined()
+      expect(wrapper.emitted('selectDevice')![0]).toEqual([101])
     } finally {
-      warnSpy.mockRestore()
+      HTMLCanvasElement.prototype.getBoundingClientRect = original
     }
+  })
+
+  it('omits the position-tab, rack-layout-panel, rack-inspector, and unlocated-audit sections', () => {
+    const wrapper = mount(RuntimeSceneMap, {
+      props: { model: createSceneModel() }
+    })
+    expect(wrapper.find('[data-test="runtime-scene-position-group"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="runtime-rack-layout-panel"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="runtime-rack-inspector"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="runtime-scene-unlocated-audit"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="runtime-scene-focus-panel"]').exists()).toBe(false)
   })
 })

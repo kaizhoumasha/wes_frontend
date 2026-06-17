@@ -377,6 +377,7 @@ import { usePermission } from '@/composables/usePermission'
 import { useRuntimeSSEStore } from '@/stores/runtime-sse'
 import { useWorklineRuntimeStore } from '@/stores/workline-runtime'
 import { classifyRuntimeRefresh, isRelevantRuntimeEvent } from '@/utils/runtime-event'
+import { createCoalescedAsyncTask } from '@/utils/createCoalescedAsyncTask'
 import { displayDevice } from '@/utils/runtime-display-identity'
 import { toRuntimeSceneDeviceNode } from '@/utils/runtime-scene'
 import { getErrorMessage } from '@/utils/string'
@@ -752,7 +753,7 @@ function ensureResultNotSubmitted(outbox: SandboxPendingOutbox | null | undefine
 }
 
 // API
-async function loadPending() {
+async function loadPendingRaw() {
   const requestWorklineId = getRouteWorklineId()
   try {
     const items = await runtimeApiMethods.sandboxPending(50, requestWorklineId).send()
@@ -763,7 +764,7 @@ async function loadPending() {
   }
 }
 
-async function loadCompleted() {
+async function loadCompletedRaw() {
   const requestWorklineId = getRouteWorklineId()
   try {
     const items = await runtimeApiMethods.sandboxCompleted(50, requestWorklineId).send()
@@ -773,6 +774,11 @@ async function loadCompleted() {
     /* silent */
   }
 }
+
+// Coalesce burst-triggered refreshes (e.g. ACK/result SSE bursts) so a single
+// in-flight request absorbs the wave; one follow-up run drains the queue.
+const loadPending = createCoalescedAsyncTask(loadPendingRaw)
+const loadCompleted = createCoalescedAsyncTask(loadCompletedRaw)
 
 async function loadCurrentWorklineProjection() {
   const requestWorklineId = getRouteWorklineId()

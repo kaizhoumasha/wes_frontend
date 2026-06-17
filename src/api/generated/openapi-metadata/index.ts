@@ -146,6 +146,7 @@ export { RuntimeHoldReleaseEligibilityMetadata } from './RuntimeHoldReleaseEligi
 export { RuntimeHoldSourceMetadata } from './RuntimeHoldSource'
 export { RuntimeHoldSummaryMetadata } from './RuntimeHoldSummary'
 export { RuntimeMonitorActionCandidatesMetadata } from './RuntimeMonitorActionCandidates'
+export { RuntimeMonitorCommandSnapshotMetadata } from './RuntimeMonitorCommandSnapshot'
 export { RuntimeMonitorDeviceNodeMetadata } from './RuntimeMonitorDeviceNode'
 export { RuntimeMonitorEvidenceSectionMetadata } from './RuntimeMonitorEvidenceSection'
 export { RuntimeMonitorReconciliationCandidateMetadata } from './RuntimeMonitorReconciliationCandidate'

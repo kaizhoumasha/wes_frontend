@@ -238,4 +238,52 @@ describe('WorklineLiveOverview', () => {
     )
     expect(wrapper.get('[data-test="monitor-event-log-panel"]').text()).toContain('ERROR')
   })
+
+  it('supports keyboard resizing on the event log separator', async () => {
+    mocks.loadManifest.mockReturnValueOnce({ catch: vi.fn() })
+    const wrapper = mountOverview()
+    const handle = wrapper.get('[data-test="workline-live-overview-resize-handle"]')
+    const eventLog = wrapper.get('[data-test="monitor-event-log-panel"]')
+
+    expect(handle.attributes('tabindex')).toBe('0')
+    expect(handle.attributes('aria-valuemin')).toBe('80')
+    expect(handle.attributes('aria-valuemax')).toBe('480')
+    expect(handle.attributes('aria-valuenow')).toBe('140')
+    expect(eventLog.attributes('style')).toContain('flex-basis: 140px')
+
+    await handle.trigger('keydown', { key: 'ArrowUp' })
+    expect(handle.attributes('aria-valuenow')).toBe('150')
+    expect(eventLog.attributes('style')).toContain('flex-basis: 150px')
+
+    await handle.trigger('keydown', { key: 'Home' })
+    expect(handle.attributes('aria-valuenow')).toBe('80')
+    expect(eventLog.attributes('style')).toContain('flex-basis: 80px')
+
+    await handle.trigger('keydown', { key: 'End' })
+    expect(handle.attributes('aria-valuenow')).toBe('480')
+    expect(eventLog.attributes('style')).toContain('flex-basis: 480px')
+
+    await handle.trigger('keydown', { key: 'ArrowDown' })
+    expect(handle.attributes('aria-valuenow')).toBe('470')
+    expect(eventLog.attributes('style')).toContain('flex-basis: 470px')
+  })
+
+  it('forwards select-rack-position from RuntimeSceneMap to the parent', async () => {
+    mocks.loadManifest.mockReturnValueOnce({ catch: vi.fn() })
+    const wrapper = mountOverview()
+    const map = wrapper.findComponent({ name: 'RuntimeSceneMap' })
+    expect(map.exists()).toBe(true)
+    map.vm.$emit('selectRackPosition', 'RACK-A1')
+    await wrapper.vm.$nextTick()
+    expect(wrapper.emitted('selectRackPosition')?.[0]).toEqual(['RACK-A1'])
+  })
+
+  it('forwards select-device from RuntimeSceneMap to the parent', async () => {
+    mocks.loadManifest.mockReturnValueOnce({ catch: vi.fn() })
+    const wrapper = mountOverview()
+    const map = wrapper.findComponent({ name: 'RuntimeSceneMap' })
+    map.vm.$emit('selectDevice', 42)
+    await wrapper.vm.$nextTick()
+    expect(wrapper.emitted('selectDevice')?.[0]).toEqual([42])
+  })
 })

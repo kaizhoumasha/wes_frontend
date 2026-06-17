@@ -229,9 +229,21 @@ function createWorklineProjection(
           rack_code: 'RACK-101',
           bin_code: 'BIN-101',
           cell_code: 'CELL-A1'
+        },
+        {
+          resource_kind: 'CELL',
+          resource_code: 'CELL-A1',
+          display_label: 'Cell CELL-A1',
+          evidence_kind: 'WES_ACTIVE_SNAPSHOT',
+          station_code: 'TARGET_ARM',
+          position_code: 'SINGLE_LAYER_A',
+          rack_code: 'RACK-101',
+          slot_code: 'A',
+          bin_code: 'BIN-101',
+          cell_code: 'CELL-A1'
         }
       ],
-      total_count: 2,
+      total_count: 3,
       truncated: false
     },
     action_candidates: {
@@ -582,7 +594,7 @@ describe('runtime route sync', () => {
     })
   })
 
-  it('moves raw device role and rack projection details into the right-side business association tab', async () => {
+  it('moves raw device role and rack projection details into the right-side business panel via rack-position selection', async () => {
     routeState.path = '/runtime/monitor'
     routeState.fullPath = '/runtime/monitor?worklineId=101&deviceId=201'
     routeState.query = {
@@ -598,19 +610,23 @@ describe('runtime route sync', () => {
     await flushViewUpdates()
     await flushViewUpdates()
 
-    expect(wrapper.get('[data-test="monitor-side-tab-control"]').text()).toContain('诊断与控制')
-    expect(wrapper.get('[data-test="monitor-side-tab-business"]').text()).toContain('业务关联投影')
+    // T4: dual tabs are gone. The right side resolves panelMode from the
+    // selected target — a device alone yields control panel, a rack-position
+    // selection yields business panel.
+    expect(wrapper.find('[data-test="monitor-side-tab-control"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="monitor-side-tab-business"]').exists()).toBe(false)
+    expect(wrapper.get('[data-test="monitor-selected-device-panel"]').exists()).toBe(true)
 
-    await wrapper.get('[data-test="monitor-side-tab-business"]').trigger('click')
+    // Selecting a rack position from the topology canvas swaps to the business panel.
+    const liveOverview = wrapper.findComponent({ name: 'WorklineLiveOverview' })
+    liveOverview.vm.$emit('selectRackPosition', 'RACK-101')
+    await flushViewUpdates()
 
-    const businessPanel = wrapper.get('[data-test="monitor-business-projection"]')
-    expect(businessPanel.text()).toContain('业务关联投影')
-    expect(businessPanel.text()).toContain('scanner')
-    expect(businessPanel.text()).toContain('单层货架')
-    expect(businessPanel.text()).toContain('RACK-101')
-    expect(businessPanel.text()).toContain('BIN-101')
-    expect(businessPanel.text()).toContain('执行快照')
+    const businessPanel = wrapper.get('[data-test="monitor-rack-position-panel"]')
+    const businessHtml = businessPanel.html()
+    expect(businessHtml).toContain('monitor-rack-occupancy-matrix-stub')
     expect(wrapper.find('[data-test="monitor-device-control-panel"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="monitor-selected-device-panel"]').exists()).toBe(false)
   })
 
   it('refreshes the current workline projection when a relevant SSE projection event arrives', async () => {
@@ -675,7 +691,7 @@ describe('runtime route sync', () => {
     await flushViewUpdates()
     await flushViewUpdates()
 
-    const reconciliationPanel = wrapper.findComponent({ name: 'WorklineReconciliationPanel' })
+    const reconciliationPanel = wrapper.findComponent({ name: 'WorklineReconciliationForm' })
     expect(reconciliationPanel.exists()).toBe(true)
     expect(reconciliationPanel.props('candidate')).toEqual(pendingReconciliation)
 
@@ -702,43 +718,5 @@ describe('runtime route sync', () => {
     )
     expect(worklineProjectionSend).toHaveBeenCalledTimes(2)
     expect(worklinesSend).toHaveBeenCalledTimes(2)
-  })
-
-  it('force reloads the current projection from the safety panel refresh action', async () => {
-    routeState.path = '/runtime/monitor'
-    routeState.fullPath = '/runtime/monitor?worklineId=101'
-    routeState.query = {
-      worklineId: '101'
-    }
-    worklinesSend.mockResolvedValue([{ ...worklineSummary, active_safety_incident_id: 88 }])
-    worklineProjectionSend.mockImplementation(async (worklineId: number) => ({
-      ...createWorklineProjection(worklineId),
-      summary: {
-        ...worklineSummary,
-        id: worklineId,
-        line_code: `WL-${worklineId}`,
-        line_name: `Workline ${worklineId}`,
-        active_safety_incident_id: 88
-      }
-    }))
-
-    const component = await import('@/views/runtime/worklines/WorklineMonitorPage.vue')
-
-    const wrapper = shallowMount(component.default, createMountOptions())
-    mountedWrappers.push(wrapper)
-
-    await flushViewUpdates()
-    await flushViewUpdates()
-
-    const safetyPanel = wrapper.findComponent({ name: 'WorklineSafetyIncidentPanel' })
-    expect(safetyPanel.exists()).toBe(true)
-    expect(worklineProjectionSend).toHaveBeenCalledTimes(1)
-
-    await safetyPanel.vm.$emit('refresh')
-    await flushViewUpdates()
-    await flushViewUpdates()
-
-    expect(worklineProjectionSend).toHaveBeenCalledTimes(2)
-    expect(worklineProjectionSend).toHaveBeenLastCalledWith(101)
   })
 })

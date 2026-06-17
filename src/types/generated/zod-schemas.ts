@@ -3590,6 +3590,32 @@ export const RuntimeMonitorActionCandidatesSchema = z.object({
 })
 
 
+/**
+ * 运行监控视图中的设备当前指令快照。
+
+字段固定，专供 dashboard ECS ACK 链消费；不引入业务流转字段。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const RuntimeMonitorCommandSnapshotSchema = z.object({
+  /** Id */
+  id: z.number(),
+  /** Command Code */
+  command_code: z.string(),
+  /** Status */
+  status: z.string(),
+  /** Sent At */
+  sent_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Ack Received At */
+  ack_received_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Ack Code */
+  ack_code: z.union([z.number(), z.null()]).optional(),
+  /** Ack Message */
+  ack_message: z.union([z.string(), z.null()]).optional(),
+})
+
+
 export const RuntimeMonitorDeviceNodeSchema = z.object({
   /** Id */
   id: z.number(),
@@ -3609,6 +3635,7 @@ export const RuntimeMonitorDeviceNodeSchema = z.object({
   maintenance_mode: z.boolean().optional().default(false),
   /** Current Command Id */
   current_command_id: z.union([z.number(), z.null()]).optional(),
+  current_command: z.union([z.lazy(() => RuntimeMonitorCommandSnapshotSchema), z.null()]).optional(),
   /** Open Command Count */
   open_command_count: z.number().optional().default(0),
   /** Pending Command Count */

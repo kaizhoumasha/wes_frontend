@@ -366,6 +366,8 @@ TTL = 30 秒  # 平衡实时性与性能
 ## 6. 验收标准
 
 状态同步 2026-06-08：已核对前后端实现，当前仅有审计日志和 API 访问日志的只读 CRUD、前端列表页、基础权限和模型测试。未发现本需求要求的统计接口、最近异常接口、慢请求分析接口、专项性能验收或对应 OpenAPI/权限契约，因此以下验收项保持未完成。
+状态同步 2026-06-15：再次核对 `src/api/generated/openapi-types.ts`、`src/api/modules/sys.ts`、`src/api/modules/apiAuth.ts`、前端日志页和 `../wes_backend/src/app/sys` / `../wes_backend/src/app/api_auth`，仍只发现 `/audit-logs/query`、`/audit-logs/{id}`、`/access-log/query`、`/access-log/{id}` 等只读 CRUD；未发现 `/stats`、`/recent-anomalies`、`/slow-analysis` 或对应专项性能/契约测试，验收项继续保持未完成。
+状态同步 2026-06-15 后端近期变更复核：`../wes_backend` 近期 workline/runtime 变更未补齐日志中心专项接口；`../wes_backend/src/app/sys/v1/audit_log.py` 与 `../wes_backend/src/app/api_auth/v1/api_access_log.py` 仍由 `BaseAPI` 生成只读 CRUD。因此本需求仍有效且未完成，不应归档。
 
 ### 6.1 功能验收
 
