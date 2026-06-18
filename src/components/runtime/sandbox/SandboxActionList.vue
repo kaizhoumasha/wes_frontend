@@ -1421,7 +1421,7 @@ function formatPayload(payload: Record<string, unknown>): string {
 }
 
 .sandbox-action-list__title {
-  color: var(--runtime-text-secondary, #94a3b8);
+  color: var(--runtime-text-secondary);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -1449,7 +1449,7 @@ function formatPayload(payload: Record<string, unknown>): string {
 /* ===== Material Card ===== */
 .sandbox-action-list__material-card {
   padding: 12px;
-  border: 1px solid rgb(245, 158, 11, 0.12);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.12);
   border-radius: 10px;
   background: var(--runtime-surface-subtle);
 }
@@ -1493,12 +1493,12 @@ function formatPayload(payload: Record<string, unknown>): string {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #475569;
+  background: var(--color-industrial-light-text-secondary);
 }
 
 .sandbox-action-list__mat-stage-dot.is-ack {
-  background: #eab308;
-  box-shadow: 0 0 6px rgb(234, 179, 8, 0.4);
+  background: var(--color-warning);
+  box-shadow: 0 0 6px rgb(var(--color-warning-rgb) / 0.4);
 }
 
 .sandbox-action-list__mat-stage-dot.is-result {
@@ -1507,11 +1507,11 @@ function formatPayload(payload: Record<string, unknown>): string {
 }
 
 .sandbox-action-list__mat-stage-dot.is-blocked {
-  background: #ef4444;
+  background: var(--color-danger-light);
 }
 
 .sandbox-action-list__mat-stage-dot.is-idle {
-  background: #3b82f6;
+  background: var(--color-info);
 }
 
 /* Summary chips */
@@ -1529,7 +1529,7 @@ function formatPayload(payload: Record<string, unknown>): string {
   max-width: 100%;
   padding: 2px 6px;
   border-radius: 6px;
-  background: rgb(245, 158, 11, 0.08);
+  background: rgb(var(--color-primary-rgb) / 0.08);
   color: var(--runtime-text-secondary);
   font-family: var(--font-mono);
   font-size: 10px;
@@ -1562,14 +1562,14 @@ function formatPayload(payload: Record<string, unknown>): string {
 }
 
 .sandbox-action-list__session-alert-label {
-  color: #fecaca;
+  color: var(--color-danger-light);
   font-size: 10px;
   font-weight: 700;
 }
 
 .sandbox-action-list__session-alert-code {
   min-width: 0;
-  color: #fca5a5;
+  color: var(--color-danger-light);
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 700;
@@ -1629,9 +1629,9 @@ function formatPayload(payload: Record<string, unknown>): string {
   min-width: 0;
   margin-bottom: 8px;
   padding: 9px 10px;
-  border: 1px solid rgb(34, 197, 94, 0.18);
+  border: 1px solid rgb(var(--color-success-rgb) / 0.18);
   border-radius: 8px;
-  background: rgb(34, 197, 94, 0.045);
+  background: rgb(var(--color-success-rgb) / 0.045);
 }
 
 .sandbox-action-list__event-step.has-failure {
@@ -1647,7 +1647,7 @@ function formatPayload(payload: Record<string, unknown>): string {
 }
 
 .sandbox-action-list__event-label {
-  color: #bbf7d0;
+  color: var(--color-success-light);
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 800;
@@ -1677,7 +1677,7 @@ function formatPayload(payload: Record<string, unknown>): string {
 
 .sandbox-action-list__event-issue {
   margin: 0;
-  color: var(--runtime-danger, #ef4444);
+  color: var(--color-danger-light);
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
@@ -1701,8 +1701,8 @@ function formatPayload(payload: Record<string, unknown>): string {
   padding: 8px;
   overflow: auto;
   border-radius: 6px;
-  background: rgb(15, 23, 42, 0.72);
-  color: #dcfce7;
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 0.72);
+  color: var(--color-success-light);
 }
 
 .sandbox-action-list__command-payload {
@@ -1713,9 +1713,9 @@ function formatPayload(payload: Record<string, unknown>): string {
   min-width: 0;
   margin-top: 6px;
   padding: 8px;
-  border: 1px solid rgb(59, 130, 246, 0.15);
+  border: 1px solid rgb(var(--color-info-rgb) / 0.15);
   border-radius: 6px;
-  background: rgb(59, 130, 246, 0.04);
+  background: rgb(var(--color-info-rgb) / 0.04);
 }
 
 .sandbox-action-list__flow-step.is-history .sandbox-action-list__command-payload,
@@ -1729,7 +1729,7 @@ function formatPayload(payload: Record<string, unknown>): string {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  color: #bfdbfe;
+  color: var(--color-info-light);
   font-size: 10px;
   font-weight: 700;
 }
@@ -1747,7 +1747,7 @@ function formatPayload(payload: Record<string, unknown>): string {
   border: 1px solid rgb(147, 197, 253, 0.3);
   border-radius: 5px;
   background: rgb(147, 197, 253, 0.08);
-  color: #bfdbfe;
+  color: var(--color-info-light);
   cursor: pointer;
   font-size: 10px;
   line-height: 1.4;
@@ -1796,8 +1796,8 @@ function formatPayload(payload: Record<string, unknown>): string {
   padding: 8px;
   overflow: auto;
   border-radius: 6px;
-  background: rgb(15, 23, 42, 0.72);
-  color: #dbeafe;
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 0.72);
+  color: var(--color-info-light);
   font-family: var(--font-mono);
   font-size: 10px;
   line-height: 1.45;
@@ -1812,14 +1812,14 @@ function formatPayload(payload: Record<string, unknown>): string {
   flex-wrap: wrap;
   gap: 10px;
   padding: 8px 10px;
-  border: 1px solid rgb(245, 158, 11, 0.08);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.08);
   border-radius: 8px;
   background: var(--runtime-surface-subtle);
 }
 
 .sandbox-action-list__flow-step.is-active {
-  border-color: rgb(245, 158, 11, 0.18);
-  background: rgb(245, 158, 11, 0.04);
+  border-color: rgb(var(--color-primary-rgb) / 0.18);
+  background: rgb(var(--color-primary-rgb) / 0.04);
 }
 
 .sandbox-action-list__flow-step.is-blocked {
@@ -1872,7 +1872,7 @@ function formatPayload(payload: Record<string, unknown>): string {
   padding: 2px 6px;
   border-radius: 4px;
   background: rgb(239, 68, 68, 0.12);
-  color: #ef4444;
+  color: var(--color-danger-light);
   font-size: 10px;
   font-weight: 600;
 }
@@ -1930,7 +1930,7 @@ function formatPayload(payload: Record<string, unknown>): string {
 
 .sandbox-action-list__divider {
   margin: 16px 0;
-  border-top: 1px solid rgb(245, 158, 11, 0.1);
+  border-top: 1px solid rgb(var(--color-primary-rgb) / 0.1);
 }
 
 .sandbox-action-list__hold-link {
@@ -2020,7 +2020,7 @@ function formatPayload(payload: Record<string, unknown>): string {
   max-width: 100%;
   padding: 2px 6px;
   border-radius: 6px;
-  background: rgb(245, 158, 11, 0.08);
+  background: rgb(var(--color-primary-rgb) / 0.08);
   color: var(--runtime-text-secondary);
   font-family: var(--font-mono);
   font-size: 10px;
@@ -2155,7 +2155,7 @@ function formatPayload(payload: Record<string, unknown>): string {
 .sandbox-action-list__completed-item-error {
   min-width: 0;
   overflow: hidden;
-  color: var(--runtime-danger, #ef4444);
+  color: var(--color-danger-light);
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
@@ -2187,7 +2187,7 @@ function formatPayload(payload: Record<string, unknown>): string {
   justify-content: space-between;
   gap: 8px;
   padding: 8px 10px;
-  background: rgb(245, 158, 11, 0.04);
+  background: rgb(var(--color-primary-rgb) / 0.04);
   border-bottom: 1px solid var(--runtime-border-neutral);
 }
 
@@ -2210,7 +2210,7 @@ function formatPayload(payload: Record<string, unknown>): string {
 }
 
 .has-failure .sandbox-action-list__completed-device-icon {
-  color: #ef4444;
+  color: var(--color-danger-light);
 }
 
 .sandbox-action-list__completed-device-name {
@@ -2238,7 +2238,7 @@ function formatPayload(payload: Record<string, unknown>): string {
   height: 18px;
   border-radius: 50%;
   background: rgb(239, 68, 68, 0.12);
-  color: #ef4444;
+  color: var(--color-danger-light);
   flex-shrink: 0;
 }
 
@@ -2272,17 +2272,17 @@ function formatPayload(payload: Record<string, unknown>): string {
 }
 
 .sandbox-action-list__completed-device-group.is-external {
-  border-color: rgb(59, 130, 246, 0.15);
+  border-color: rgb(var(--color-info-rgb) / 0.15);
 }
 
 .sandbox-action-list__completed-device-group.is-external
   .sandbox-action-list__completed-device-header {
-  background: rgb(59, 130, 246, 0.04);
+  background: rgb(var(--color-info-rgb) / 0.04);
 }
 
 .sandbox-action-list__completed-device-group.is-external
   .sandbox-action-list__completed-device-icon {
-  color: #3b82f6;
+  color: var(--color-info);
 }
 
 .sandbox-action-list__completed-device-group.is-external.has-failure {

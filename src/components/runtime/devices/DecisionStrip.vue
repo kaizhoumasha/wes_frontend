@@ -220,8 +220,8 @@ const openCommandCount = computed(() =>
   align-items: stretch;
   border-radius: 10px;
   overflow: hidden;
-  border: 1px solid var(--runtime-border, rgb(245, 158, 11, 0.12));
-  background: var(--runtime-surface, rgb(30, 41, 59, 0.8));
+  border: 1px solid var(--runtime-border, rgb(var(--color-primary-rgb) / 0.12));
+  background: var(--runtime-surface, rgb(var(--color-industrial-dark-surface-rgb) / 0.8));
 }
 
 .decision-strip__indicator {
@@ -229,16 +229,16 @@ const openCommandCount = computed(() =>
   flex-shrink: 0;
 }
 .decision-strip--danger .decision-strip__indicator {
-  background: #ef4444;
+  background: var(--color-danger-light);
 }
 .decision-strip--warning .decision-strip__indicator {
-  background: #eab308;
+  background: var(--color-warning);
 }
 .decision-strip--primary .decision-strip__indicator {
-  background: #3b82f6;
+  background: var(--color-info);
 }
 .decision-strip--success .decision-strip__indicator {
-  background: #22c55e;
+  background: var(--color-success-light);
 }
 
 .decision-strip__body {
@@ -254,17 +254,17 @@ const openCommandCount = computed(() =>
 }
 
 .decision-strip__label {
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
   font-size: 14px;
   font-weight: 700;
   flex-shrink: 0;
 }
 
 .decision-strip--danger .decision-strip__label {
-  color: #fca5a5;
+  color: var(--color-danger-light);
 }
 .decision-strip--warning .decision-strip__label {
-  color: #fde047;
+  color: var(--color-warning-light);
 }
 
 .decision-strip__counts {
@@ -279,18 +279,18 @@ const openCommandCount = computed(() =>
   white-space: nowrap;
 }
 .decision-strip__count--danger {
-  color: #fca5a5;
+  color: var(--color-danger-light);
 }
 .decision-strip__count--warning {
-  color: #fde047;
+  color: var(--color-warning-light);
 }
 .decision-strip__count--primary {
-  color: #93c5fd;
+  color: var(--color-info-light);
 }
 
 .decision-strip__suggestion {
   margin-top: 4px;
-  color: var(--runtime-text-secondary, #94a3b8);
+  color: var(--runtime-text-secondary);
   font-size: 12px;
   line-height: 1.4;
 }
@@ -299,7 +299,7 @@ const openCommandCount = computed(() =>
   display: flex;
   align-items: center;
   padding: 0 10px;
-  color: var(--runtime-text-secondary, #94a3b8);
+  color: var(--runtime-text-secondary);
   font-size: 18px;
   font-weight: 700;
   letter-spacing: 2px;
@@ -313,7 +313,7 @@ const openCommandCount = computed(() =>
   min-height: 44px;
   padding: 0 14px;
   border-left: 1px solid rgb(239, 68, 68, 0.22);
-  color: #fca5a5;
+  color: var(--color-danger-light);
   font-size: 12px;
   font-weight: 800;
   text-decoration: none;

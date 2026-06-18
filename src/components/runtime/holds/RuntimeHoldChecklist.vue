@@ -47,9 +47,9 @@ function checkLabel(value: string): string {
 <style scoped>
 .runtime-hold-panel {
   padding: 18px;
-  border: 1px solid rgb(245, 158, 11, 0.14);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.14);
   border-radius: 8px;
-  background: rgb(30, 41, 59, 0.74);
+  background: rgb(var(--color-industrial-dark-surface-rgb) / 0.74);
 }
 
 .runtime-hold-panel header {
@@ -61,12 +61,12 @@ function checkLabel(value: string): string {
 
 .runtime-hold-panel h2 {
   margin: 0;
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
   font-size: 16px;
 }
 
 .runtime-hold-panel header span {
-  color: #f59e0b;
+  color: var(--color-primary);
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
 }
@@ -76,6 +76,6 @@ function checkLabel(value: string): string {
   align-items: center;
   min-height: 44px;
   gap: 10px;
-  color: #cbd5e1;
+  color: var(--color-industrial-light-border-hover);
 }
 </style>

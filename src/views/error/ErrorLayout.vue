@@ -115,8 +115,13 @@ html.dark .error-layout {
 
 /* 浅色主题 */
 html:not(.dark) .error-layout {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f8fafc 100%);
-  color: #1e293b;
+  background: linear-gradient(
+    135deg,
+    var(--color-industrial-light-bg) 0%,
+    var(--color-industrial-light-border) 50%,
+    var(--color-industrial-light-bg) 100%
+  );
+  color: var(--color-industrial-dark-surface);
 }
 
 /* 动态网格背景 */
@@ -135,15 +140,15 @@ html:not(.dark) .error-layout {
       0deg,
       transparent,
       transparent 60px,
-      rgb(245 158 11 / 6%) 60px,
-      rgb(245 158 11 / 6%) 61px
+      rgb(var(--color-primary-rgb) / 6%) 60px,
+      rgb(var(--color-primary-rgb) / 6%) 61px
     ),
     repeating-linear-gradient(
       90deg,
       transparent,
       transparent 60px,
-      rgb(245 158 11 / 6%) 60px,
-      rgb(245 158 11 / 6%) 61px
+      rgb(var(--color-primary-rgb) / 6%) 60px,
+      rgb(var(--color-primary-rgb) / 6%) 61px
     );
   animation: gridPulse 8s ease-in-out infinite;
 }
@@ -182,13 +187,13 @@ html:not(.dark) .grid-lines {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent 0%, #f59e0b 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, var(--color-primary) 50%, transparent 100%);
   animation: scanMove 4s linear infinite;
   opacity: 0.3;
 }
 
 html:not(.dark) .scan-line {
-  background: linear-gradient(90deg, transparent 0%, #3b82f6 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, var(--color-info) 50%, transparent 100%);
 }
 
 @keyframes scanMove {
@@ -205,7 +210,7 @@ html:not(.dark) .scan-line {
   position: absolute;
   width: 60px;
   height: 60px;
-  border: 2px solid rgb(245 158 11 / 20%);
+  border: 2px solid rgb(var(--color-primary-rgb) / 20%);
 }
 
 html:not(.dark) .corner-decoration {
@@ -252,21 +257,21 @@ html:not(.dark) .corner-decoration {
 
 html.dark .error-container {
   background: rgb(22 27 34 / 85%);
-  border: 1px solid rgb(245 158 11 / 15%);
+  border: 1px solid rgb(var(--color-primary-rgb) / 15%);
   box-shadow:
-    0 0 0 1px rgb(245 158 11 / 5%),
+    0 0 0 1px rgb(var(--color-primary-rgb) / 5%),
     0 20px 40px -12px rgb(0 0 0 / 60%),
-    inset 0 1px 0 rgb(255 255 255 / 3%);
+    inset 0 1px 0 rgb(var(--color-industrial-light-surface-rgb) / 3%);
   backdrop-filter: blur(16px);
 }
 
 html:not(.dark) .error-container {
-  background: rgb(255 255 255 / 90%);
+  background: rgb(var(--color-industrial-light-surface-rgb) / 90%);
   border: 1px solid rgb(30 64 175 / 12%);
   box-shadow:
     0 0 0 1px rgb(30 64 175 / 5%),
     0 20px 40px -12px rgb(0 0 0 / 15%),
-    inset 0 1px 0 rgb(255 255 255 / 100%);
+    inset 0 1px 0 rgb(var(--color-industrial-light-surface-rgb) / 100%);
   backdrop-filter: blur(16px);
 }
 
@@ -286,10 +291,10 @@ html:not(.dark) .error-container {
 }
 
 html.dark .status-code {
-  color: #f59e0b;
+  color: var(--color-primary);
   text-shadow:
-    0 0 10px rgb(245 158 11 / 50%),
-    0 0 40px rgb(245 158 11 / 20%);
+    0 0 10px rgb(var(--color-primary-rgb) / 50%),
+    0 0 40px rgb(var(--color-primary-rgb) / 20%);
 }
 
 html:not(.dark) .status-code {
@@ -411,7 +416,7 @@ html.dark .error-title {
 }
 
 html:not(.dark) .error-title {
-  color: #1e293b;
+  color: var(--color-industrial-dark-surface);
 }
 
 /* 描述 */
@@ -428,7 +433,7 @@ html.dark .error-description {
 }
 
 html:not(.dark) .error-description {
-  color: #475569;
+  color: var(--color-industrial-light-text-secondary);
 }
 
 /* 附加信息区域 */
@@ -442,7 +447,7 @@ html:not(.dark) .error-description {
 
 html.dark .info-section {
   background: rgb(0 0 0 / 30%);
-  border: 1px solid rgb(255 255 255 / 8%);
+  border: 1px solid rgb(var(--color-industrial-light-surface-rgb) / 8%);
 }
 
 html:not(.dark) .info-section {
@@ -470,7 +475,7 @@ html.dark .hint-text {
 }
 
 html:not(.dark) .hint-text {
-  color: #64748b;
+  color: var(--color-industrial-dark-text-muted);
 }
 
 /* 底部品牌 */
@@ -492,7 +497,7 @@ html.dark .brand-footer {
 }
 
 html:not(.dark) .brand-footer {
-  color: #94a3b8;
+  color: var(--color-industrial-dark-text-secondary);
 }
 
 .brand-text {
@@ -501,7 +506,7 @@ html:not(.dark) .brand-footer {
 }
 
 html.dark .brand-text {
-  color: #f59e0b;
+  color: var(--color-primary);
 }
 
 html:not(.dark) .brand-text {

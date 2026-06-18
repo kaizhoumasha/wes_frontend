@@ -129,7 +129,7 @@ function openRequest() {
 
 <style scoped>
 .trace-next-actions {
-  border: 1px solid rgb(245, 158, 11, 0.12);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.12);
   background: var(--runtime-surface);
 }
 

@@ -122,12 +122,12 @@ html:not(.dark) .default-layout {
 }
 
 .page-main::-webkit-scrollbar-thumb {
-  background: rgb(148 163 184 / 15%);
+  background: rgb(var(--color-industrial-dark-text-secondary-rgb) / 15%);
   border-radius: 4px;
 }
 
 .page-main::-webkit-scrollbar-thumb:hover {
-  background: rgb(148 163 184 / 25%);
+  background: rgb(var(--color-industrial-dark-text-secondary-rgb) / 25%);
 }
 
 /* ==================== 页面切换动画 ==================== */

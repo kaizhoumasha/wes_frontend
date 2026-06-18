@@ -47,7 +47,7 @@
     --color-primary: #F59E0B;
     --color-primary-light: #FBBF24;
     --color-primary-dark: #D97706;
-    --color-primary-rgb: 245, 158, 11;
+    --color-primary-rgb: 245 158 11;
     --color-primary-50: #FFFBEB;
     --color-primary-100: #FEF3C7;
     --color-primary-200: #FDE68A;
@@ -78,19 +78,53 @@
     --color-success: #16A34A;
     --color-success-light: #22C55E;
     --color-success-dark: #15803D;
-    --color-success-rgb: 22, 163, 74;
+    --color-success-rgb: 22 163 74;
     --color-warning: #EAB308;
     --color-warning-light: #FACC15;
     --color-warning-dark: #CA8A04;
-    --color-warning-rgb: 234, 179, 8;
+    --color-warning-rgb: 234 179 8;
     --color-danger: #DC2626;
     --color-danger-light: #EF4444;
     --color-danger-dark: #B91C1C;
-    --color-danger-rgb: 220, 38, 38;
+    --color-danger-rgb: 220 38 38;
     --color-info: #3B82F6;
     --color-info-light: #60A5FA;
     --color-info-dark: #2563EB;
-    --color-info-rgb: 59, 130, 246;
+    --color-info-rgb: 59 130 246;
+
+    /* ========================================
+     * L2a 静态工业色 token(SPEC 2026-06-17,P0)
+     * 镜像 tailwind.config.js industrial-{dark|light}.*
+     * 仅供 globals.css 内部 L2b 派生使用,SFC 应引用 L2b 主题感知 token
+     * ======================================== */
+    --color-industrial-dark-bg: #0F172A;
+    --color-industrial-dark-bg-rgb: 15 23 42;
+    --color-industrial-dark-surface: #1E293B;
+    --color-industrial-dark-surface-rgb: 30 41 59;
+    --color-industrial-dark-surface-elevated: #334155;
+    --color-industrial-dark-surface-elevated-rgb: 51 65 85;
+    --color-industrial-dark-border: rgb(var(--color-primary-rgb) / 0.15);
+    --color-industrial-dark-border-hover: rgb(var(--color-primary-rgb) / 0.3);
+    --color-industrial-dark-text: #F8FAFC;
+    --color-industrial-dark-text-rgb: 248 250 252;
+    --color-industrial-dark-text-secondary: #94A3B8;
+    --color-industrial-dark-text-secondary-rgb: 148 163 184;
+    --color-industrial-dark-text-muted: #64748B;
+    --color-industrial-dark-text-muted-rgb: 100 116 139;
+    --color-industrial-light-bg: #F8FAFC;
+    --color-industrial-light-bg-rgb: 248 250 252;
+    --color-industrial-light-surface: #FFF;
+    --color-industrial-light-surface-rgb: 255 255 255;
+    --color-industrial-light-surface-elevated: #F1F5F9;
+    --color-industrial-light-surface-elevated-rgb: 241 245 249;
+    --color-industrial-light-border: #E2E8F0;
+    --color-industrial-light-border-hover: #CBD5E1;
+    --color-industrial-light-text: #0F172A;
+    --color-industrial-light-text-rgb: 15 23 42;
+    --color-industrial-light-text-secondary: #475569;
+    --color-industrial-light-text-secondary-rgb: 71 85 105;
+    --color-industrial-light-text-muted: #94A3B8;
+    --color-industrial-light-text-muted-rgb: 148 163 184;
 
     /* ========================================
      * 字体
@@ -179,28 +213,30 @@
    * ======================================== */
   html.dark {
     /* 滚动条 */
-    --scrollbar-thumb: rgb(245, 158, 11, 0.2);
-    --scrollbar-thumb-hover: rgb(245, 158, 11, 0.4);
+    --scrollbar-thumb: rgb(245 158 11 / 0.2);
+    --scrollbar-thumb-hover: rgb(245 158 11 / 0.4);
 
-    /* 背景 */
-    --body-bg: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
-    --body-color: #F8FAFC;
-
-    /* 表面色 */
-    --surface-bg: #1E293B;
-    --surface-bg-elevated: #334155;
-    --surface-bg-subtle: rgb(30, 41, 59, 0.5);
-
-    /* 边框 */
-    --border-color: rgb(245, 158, 11, 0.15);
-    --border-color-hover: rgb(245, 158, 11, 0.3);
-    --border-color-strong: rgb(245, 158, 11, 0.5);
-
-    /* 文字 */
-    --text-primary: #F8FAFC;
-    --text-secondary: #94A3B8;
-    --text-muted: #64748B;
-    --text-disabled: #475569;
+    /* L2b 主题感知 token(SPEC 2026-06-17 P0)— SFC 引用此层,自动跟随 dark/light */
+    --color-bg:
+      linear-gradient(
+        135deg,
+        var(--color-industrial-dark-bg) 0%,
+        var(--color-industrial-dark-surface) 100%
+      );
+    --color-bg-solid: var(--color-industrial-dark-bg);
+    --color-body-text: var(--color-industrial-dark-text);
+    --color-surface: var(--color-industrial-dark-surface);
+    --color-surface-elevated: var(--color-industrial-dark-surface-elevated);
+    --color-surface-subtle: rgb(var(--color-industrial-dark-surface-rgb) / 0.5);
+    --color-border: var(--color-industrial-dark-border);
+    --color-border-hover: var(--color-industrial-dark-border-hover);
+    --color-border-strong: rgb(var(--color-primary-rgb) / 0.5);
+    --color-text-primary: var(--color-industrial-dark-text);
+    --color-text-secondary: var(--color-industrial-dark-text-secondary);
+    --color-text-muted: var(--color-industrial-dark-text-muted);
+    --color-text-disabled: #475569;
+    --color-text-inverse: #0F172A;
+    --color-shadow-rgb: 0 0 0;
 
     /* ========================================
      * Element Plus 变量覆盖
@@ -305,52 +341,60 @@
     --dialog-shadow: 0 8px 32px rgb(0, 0, 0, 0.4);
     --dialog-overlay-bg: rgb(0, 0, 0, 0.7);
 
-    /* ==================== Runtime Dark Theme Variables ==================== */
-    --runtime-surface: rgb(30 41 59 / 0.8);
-    --runtime-surface-strong: rgb(30 41 59 / 0.96);
-    --runtime-surface-muted: rgb(30 41 59 / 0.5);
-    --runtime-surface-subtle: rgb(30 41 59 / 0.6);
-    --runtime-surface-accent: rgb(245 158 11 / 0.08);
-    --runtime-surface-accent-strong: rgb(245 158 11 / 0.12);
-    --runtime-border: rgb(245 158 11 / 0.12);
-    --runtime-border-subtle: rgb(245 158 11 / 0.08);
-    --runtime-border-accent: rgb(245 158 11 / 0.18);
-    --runtime-border-strong: rgb(245 158 11 / 0.28);
-    --runtime-text-primary: #f8fafc;
-    --runtime-text-secondary: #94a3b8;
-    --runtime-text-muted: #64748b;
-    --runtime-text-emphasis: #f8fafc;
-    --runtime-tier-critical: #dc2626;
-    --runtime-tier-watch: #eab308;
-    --runtime-tier-known: #64748b;
-    --runtime-code-bg: rgb(15 23 42 / 0.8);
-    --runtime-shadow: 0 16px 40px rgb(0 0 0 / 0.3);
+    /* ==================== Runtime Dark Theme Variables(SPEC 2026-06-17 P1)==================== */
+    --runtime-surface: rgb(var(--color-industrial-dark-surface-rgb) / 0.8);
+    --runtime-surface-strong: rgb(var(--color-industrial-dark-surface-rgb) / 0.96);
+    --runtime-surface-muted: rgb(var(--color-industrial-dark-surface-rgb) / 0.5);
+    --runtime-surface-subtle: rgb(var(--color-industrial-dark-surface-rgb) / 0.6);
+    --runtime-surface-accent: rgb(var(--color-primary-rgb) / 0.08);
+    --runtime-surface-accent-strong: rgb(var(--color-primary-rgb) / 0.12);
+    --runtime-border: rgb(var(--color-primary-rgb) / 0.12);
+    --runtime-border-subtle: rgb(var(--color-primary-rgb) / 0.08);
+    --runtime-border-accent: rgb(var(--color-primary-rgb) / 0.18);
+    --runtime-border-strong: rgb(var(--color-primary-rgb) / 0.28);
+    --runtime-text-primary: var(--color-text-primary);
+    --runtime-text-secondary: var(--color-text-secondary);
+    --runtime-text-muted: var(--color-text-muted);
+    --runtime-text-emphasis: var(--color-text-primary);
+    --runtime-tier-critical: var(--color-danger);
+    --runtime-tier-watch: var(--color-warning);
+    --runtime-tier-known: var(--color-text-muted);
+    --runtime-code-bg: rgb(var(--color-industrial-dark-bg-rgb) / 0.8);
+    --runtime-shadow: 0 16px 40px rgb(var(--color-shadow-rgb) / 0.3);
     --runtime-hero-bg:
-      radial-gradient(circle at top right, rgb(245 158 11 / 0.12), transparent 32%),
-      linear-gradient(180deg, rgb(30 41 59 / 0.98), rgb(15 23 42 / 0.98));
+      radial-gradient(circle at top right, rgb(var(--color-primary-rgb) / 0.12), transparent 32%),
+      linear-gradient(
+        180deg,
+        rgb(var(--color-industrial-dark-surface-rgb) / 0.98),
+        rgb(var(--color-industrial-dark-bg-rgb) / 0.98)
+      );
     --runtime-frozen-bg:
-      linear-gradient(90deg, rgb(234 179 8 / 0.08), rgb(30 41 59 / 0.96));
-    --runtime-rail: rgb(148 163 184 / 0.18);
-    --runtime-dot-ring: rgb(15 23 42 / 0.98);
-    --runtime-border-neutral: rgb(51 65 85 / 0.4);
-    --runtime-surface-danger: rgb(127 29 29 / 0.15);
-    --runtime-surface-warning: rgb(146 64 14 / 0.15);
-    --runtime-border-danger: rgb(239 68 68 / 0.35);
-    --runtime-border-warning: rgb(245 158 11 / 0.35);
-    --runtime-badge-success-text: #4ade80;
-    --runtime-badge-success-bg: rgb(34 197 94 / 0.15);
-    --runtime-badge-danger-text: #fca5a5;
-    --runtime-badge-danger-bg: rgb(239 68 68 / 0.15);
-    --runtime-badge-info-text: #22d3ee;
-    --runtime-badge-info-bg: rgb(6 182 212 / 0.15);
-    --runtime-badge-warning-text: #fcd34d;
-    --runtime-badge-warning-bg: rgb(245 158 11 / 0.15);
-    --runtime-badge-success-border: rgb(34 197 94 / 0.3);
-    --runtime-badge-danger-border: rgb(239 68 68 / 0.3);
-    --runtime-badge-info-border: rgb(6 182 212 / 0.3);
-    --runtime-badge-warning-border: rgb(245 158 11 / 0.3);
-    --runtime-chip-bg: #f8fafc;
-    --runtime-chip-text: #0f172a;
+      linear-gradient(
+        90deg,
+        rgb(var(--color-warning-rgb) / 0.08),
+        rgb(var(--color-industrial-dark-surface-rgb) / 0.96)
+      );
+    --runtime-rail: var(--color-border);
+    --runtime-dot-ring: rgb(var(--color-industrial-dark-bg-rgb) / 0.98);
+    --runtime-border-neutral: var(--color-border);
+    --runtime-surface-danger: rgb(var(--color-danger-rgb) / 0.15);
+    --runtime-surface-warning: rgb(var(--color-warning-rgb) / 0.15);
+    --runtime-border-danger: rgb(var(--color-danger-rgb) / 0.35);
+    --runtime-border-warning: rgb(var(--color-primary-rgb) / 0.35);
+    --runtime-badge-success-text: var(--color-success-light);
+    --runtime-badge-success-bg: rgb(var(--color-success-rgb) / 0.15);
+    --runtime-badge-danger-text: var(--color-danger-light);
+    --runtime-badge-danger-bg: rgb(var(--color-danger-rgb) / 0.15);
+    --runtime-badge-info-text: var(--color-info-light);
+    --runtime-badge-info-bg: rgb(var(--color-info-rgb) / 0.15);
+    --runtime-badge-warning-text: var(--color-warning-light);
+    --runtime-badge-warning-bg: rgb(var(--color-primary-rgb) / 0.15);
+    --runtime-badge-success-border: rgb(var(--color-success-rgb) / 0.3);
+    --runtime-badge-danger-border: rgb(var(--color-danger-rgb) / 0.3);
+    --runtime-badge-info-border: rgb(var(--color-info-rgb) / 0.3);
+    --runtime-badge-warning-border: rgb(var(--color-primary-rgb) / 0.3);
+    --runtime-chip-bg: var(--color-text-primary);
+    --runtime-chip-text: var(--color-text-inverse);
   }
 
   /* ========================================
@@ -358,28 +402,30 @@
    * ======================================== */
   html:not(.dark) {
     /* 滚动条 */
-    --scrollbar-thumb: rgb(0, 0, 0, 0.2);
-    --scrollbar-thumb-hover: rgb(0, 0, 0, 0.3);
+    --scrollbar-thumb: rgb(0 0 0 / 0.2);
+    --scrollbar-thumb-hover: rgb(0 0 0 / 0.3);
 
-    /* 背景 */
-    --body-bg: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
-    --body-color: #0F172A;
-
-    /* 表面色 */
-    --surface-bg: #FFF;
-    --surface-bg-elevated: #F1F5F9;
-    --surface-bg-subtle: rgb(255, 255, 255, 0.8);
-
-    /* 边框 */
-    --border-color: #E2E8F0;
-    --border-color-hover: #F59E0B;
-    --border-color-strong: #CBD5E1;
-
-    /* 文字 */
-    --text-primary: #0F172A;
-    --text-secondary: #475569;
-    --text-muted: #94A3B8;
-    --text-disabled: #CBD5E1;
+    /* L2b 主题感知 token(SPEC 2026-06-17 P0)— light 模式定义,SFC 自动跟随 */
+    --color-bg:
+      linear-gradient(
+        135deg,
+        var(--color-industrial-light-bg) 0%,
+        var(--color-industrial-light-surface-elevated) 100%
+      );
+    --color-bg-solid: var(--color-industrial-light-bg);
+    --color-body-text: var(--color-industrial-light-text);
+    --color-surface: var(--color-industrial-light-surface);
+    --color-surface-elevated: var(--color-industrial-light-surface-elevated);
+    --color-surface-subtle: rgb(var(--color-industrial-light-surface-rgb) / 0.8);
+    --color-border: var(--color-industrial-light-border);
+    --color-border-hover: var(--color-industrial-light-border-hover);
+    --color-border-strong: #CBD5E1;
+    --color-text-primary: var(--color-industrial-light-text);
+    --color-text-secondary: var(--color-industrial-light-text-secondary);
+    --color-text-muted: var(--color-industrial-light-text-muted);
+    --color-text-disabled: #CBD5E1;
+    --color-text-inverse: #FFF;
+    --color-shadow-rgb: 15 23 42;
 
     /* ========================================
      * Element Plus 变量覆盖
@@ -483,12 +529,67 @@
     /* Dialog */
     --dialog-shadow: 0 8px 32px rgb(0, 0, 0, 0.12);
     --dialog-overlay-bg: rgb(0, 0, 0, 0.5);
+
+    /* ==================== Runtime Light Theme Variables(SPEC 2026-06-17 P1,归位至 @layer theme 内)==================== */
+    --runtime-surface: rgb(var(--color-industrial-light-surface-rgb) / 0.9);
+    --runtime-surface-strong: rgb(var(--color-industrial-light-surface-rgb) / 0.96);
+    --runtime-surface-muted: rgb(var(--color-industrial-light-bg-rgb) / 0.96);
+    --runtime-surface-subtle: rgb(var(--color-industrial-light-surface-elevated-rgb) / 0.92);
+    --runtime-surface-accent: rgb(var(--color-primary-rgb) / 0.08);
+    --runtime-surface-accent-strong: rgb(var(--color-primary-rgb) / 0.12);
+    --runtime-border: rgb(var(--color-primary-rgb) / 0.18);
+    --runtime-border-subtle: var(--color-border);
+    --runtime-border-accent: rgb(var(--color-primary-rgb) / 0.24);
+    --runtime-border-strong: rgb(var(--color-primary-rgb) / 0.34);
+    --runtime-text-primary: var(--color-text-primary);
+    --runtime-text-secondary: var(--color-text-secondary);
+    --runtime-text-muted: var(--color-text-muted);
+    --runtime-text-emphasis: var(--color-industrial-dark-surface-elevated);
+    --runtime-tier-critical: var(--color-danger);
+    --runtime-tier-watch: var(--color-warning);
+    --runtime-tier-known: var(--color-text-muted);
+    --runtime-code-bg: var(--color-industrial-light-bg);
+    --runtime-shadow: 0 16px 40px rgb(var(--color-shadow-rgb) / 0.08);
+    --runtime-hero-bg:
+      radial-gradient(circle at top right, rgb(var(--color-primary-rgb) / 0.14), transparent 32%),
+      linear-gradient(
+        180deg,
+        rgb(var(--color-industrial-light-surface-rgb) / 0.98),
+        rgb(var(--color-industrial-light-bg-rgb) / 0.98)
+      );
+    --runtime-frozen-bg:
+      linear-gradient(
+        90deg,
+        rgb(var(--color-warning-rgb) / 0.14),
+        rgb(var(--color-industrial-light-surface-rgb) / 0.96)
+      );
+    --runtime-rail: var(--color-border);
+    --runtime-dot-ring: rgb(var(--color-industrial-light-bg-rgb) / 0.98);
+    --runtime-border-neutral: var(--color-border);
+    --runtime-surface-danger: rgb(var(--color-danger-rgb) / 0.06);
+    --runtime-surface-warning: rgb(var(--color-primary-rgb) / 0.06);
+    --runtime-border-danger: rgb(var(--color-danger-rgb) / 0.28);
+    --runtime-border-warning: rgb(var(--color-primary-rgb) / 0.28);
+    --runtime-badge-success-text: var(--color-success-dark);
+    --runtime-badge-success-bg: rgb(var(--color-success-rgb) / 0.12);
+    --runtime-badge-danger-text: var(--color-danger-dark);
+    --runtime-badge-danger-bg: rgb(var(--color-danger-rgb) / 0.12);
+    --runtime-badge-info-text: var(--color-info-dark);
+    --runtime-badge-info-bg: rgb(var(--color-info-rgb) / 0.12);
+    --runtime-badge-warning-text: var(--color-warning-dark);
+    --runtime-badge-warning-bg: rgb(var(--color-primary-rgb) / 0.12);
+    --runtime-badge-success-border: rgb(var(--color-success-rgb) / 0.24);
+    --runtime-badge-danger-border: rgb(var(--color-danger-rgb) / 0.24);
+    --runtime-badge-info-border: rgb(var(--color-info-rgb) / 0.24);
+    --runtime-badge-warning-border: rgb(var(--color-primary-rgb) / 0.24);
+    --runtime-chip-bg: var(--color-text-primary);
+    --runtime-chip-text: var(--color-text-inverse);
   }
 
   /* 应用背景 */
   body {
-    background: var(--body-bg);
-    color: var(--body-color);
+    background: var(--color-bg);
+    color: var(--color-body-text);
   }
 
   /* 滚动条样式 */
@@ -539,15 +640,15 @@
    * 工业风格卡片组件
    * ======================================== */
   .industrial-card {
-    background: var(--surface-bg);
-    border: 1px solid var(--border-color);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     padding: var(--space-md);
     transition: all var(--duration-normal) var(--ease-out);
   }
 
   .industrial-card:hover {
-    border-color: var(--border-color-hover);
+    border-color: var(--color-border-hover);
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
   }
@@ -555,8 +656,8 @@
   /* 带顶部状态条的卡片 */
   .industrial-card-status {
     position: relative;
-    background: var(--surface-bg);
-    border: 1px solid var(--border-color);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     padding: var(--space-md);
     overflow: hidden;
@@ -579,10 +680,10 @@
     width: 100%;
     height: 48px;
     padding: 0 var(--space-sm);
-    background: var(--surface-bg-subtle);
-    border: 1px solid var(--border-color);
+    background: var(--color-surface-subtle);
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
-    color: var(--text-primary);
+    color: var(--color-text-primary);
     font-family: var(--font-mono);
     font-size: 0.875rem;
     transition: all var(--duration-fast) var(--ease-out);
@@ -719,7 +820,7 @@
     gap: 2px;
     padding: 4px 8px;
     font-size: 13px;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     cursor: pointer;
     border-radius: 4px;
     transition: all 0.2s ease;
@@ -959,7 +1060,7 @@
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
   }
 
   /* 数据字体 */
@@ -987,13 +1088,13 @@
   }
 
   .runtime-compact-context__name {
-    color: var(--runtime-text-primary, #f8fafc);
+    color: var(--runtime-text-primary);
     font-size: 14px;
     line-height: 1.35;
   }
 
   .runtime-compact-context__meta {
-    color: var(--runtime-text-secondary, #94a3b8);
+    color: var(--runtime-text-secondary);
     font-size: 12px;
     line-height: 1.45;
   }
@@ -1137,11 +1238,11 @@
 
   /* 边框工具类 */
   .border-industrial {
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--color-border);
   }
 
   .border-industrial-hover:hover {
-    border-color: var(--border-color-hover);
+    border-color: var(--color-border-hover);
   }
 
   /* 发光效果 */
@@ -1274,24 +1375,24 @@
 
 /* 输入框样式 */
 .el-input__wrapper {
-  --el-input-bg-color: var(--surface-bg-subtle);
-  --el-input-border-color: var(--border-color);
-  --el-input-hover-border-color: var(--border-color-hover);
+  --el-input-bg-color: var(--color-surface-subtle);
+  --el-input-border-color: var(--color-border);
+  --el-input-hover-border-color: var(--color-border-hover);
   --el-input-focus-border-color: var(--color-primary);
 }
 
 /* 卡片样式 */
 .el-card {
-  --el-card-bg-color: var(--surface-bg);
-  --el-card-border-color: var(--border-color);
+  --el-card-bg-color: var(--color-surface);
+  --el-card-border-color: var(--color-border);
 }
 
 /* 表格样式 */
 .el-table {
   --el-table-bg-color: transparent;
-  --el-table-tr-bg-color: var(--surface-bg);
-  --el-table-header-bg-color: var(--surface-bg-elevated);
-  --el-table-border-color: var(--border-color);
+  --el-table-tr-bg-color: var(--color-surface);
+  --el-table-header-bg-color: var(--color-surface-elevated);
+  --el-table-border-color: var(--color-border);
   --el-table-row-hover-bg-color: var(--el-fill-color-light);
 }
 
@@ -1302,53 +1403,3 @@
   --el-menu-hover-text-color: var(--menu-text-hover);
   --el-menu-active-color: var(--menu-text-active);
 }
-
-/* ==================== Runtime Light Theme Overrides ==================== */
-  html:not(.dark) {
-    --runtime-surface: rgb(255 255 255 / 0.9);
-    --runtime-surface-strong: rgb(255 255 255 / 0.96);
-    --runtime-surface-muted: rgb(248 250 252 / 0.96);
-    --runtime-surface-subtle: rgb(241 245 249 / 0.92);
-    --runtime-surface-accent: rgb(var(--color-primary-rgb), 0.08);
-    --runtime-surface-accent-strong: rgb(var(--color-primary-rgb), 0.12);
-    --runtime-border-subtle: var(--border-color);
-    --runtime-border-accent: rgb(var(--color-primary-rgb), 0.24);
-    --runtime-border-strong: rgb(var(--color-primary-rgb), 0.34);
-    --runtime-text-primary: var(--text-primary);
-    --runtime-text-secondary: var(--text-secondary);
-    --runtime-text-muted: var(--text-muted);
-    --runtime-text-emphasis: #334155;
-    --runtime-code-bg: #f8fafc;
-    --runtime-shadow: 0 16px 40px rgb(15 23 42 / 0.08);
-    --runtime-hero-bg:
-      radial-gradient(circle at top right, rgb(var(--color-primary-rgb), 0.14), transparent 32%),
-      linear-gradient(180deg, rgb(255 255 255 / 0.98), rgb(248 250 252 / 0.98));
-    --runtime-frozen-bg:
-      linear-gradient(90deg, rgb(var(--color-warning-rgb), 0.14), rgb(255 255 255 / 0.96));
-    --runtime-rail: rgb(148 163 184 / 0.22);
-    --runtime-dot-ring: rgb(248 250 252 / 0.98);
-    --runtime-border: rgb(var(--color-primary-rgb) / 0.18);
-    --runtime-tier-critical: #dc2626;
-    --runtime-tier-watch: #eab308;
-    --runtime-tier-known: #64748b;
-    --runtime-border-neutral: var(--border-color);
-    --runtime-surface-danger: rgb(var(--color-danger-rgb), 0.06);
-    --runtime-surface-warning: rgb(var(--color-primary-rgb), 0.06);
-    --runtime-border-danger: rgb(var(--color-danger-rgb), 0.28);
-    --runtime-border-warning: rgb(var(--color-primary-rgb), 0.28);
-    --runtime-badge-success-text: var(--color-success-dark);
-    --runtime-badge-success-bg: rgb(var(--color-success-rgb), 0.12);
-    --runtime-badge-danger-text: var(--color-danger-dark);
-    --runtime-badge-danger-bg: rgb(var(--color-danger-rgb), 0.12);
-    --runtime-badge-info-text: var(--color-info-dark);
-    --runtime-badge-info-bg: rgb(var(--color-info-rgb), 0.12);
-    --runtime-badge-warning-text: var(--color-warning-dark);
-    --runtime-badge-warning-bg: rgb(var(--color-primary-rgb), 0.12);
-    --runtime-badge-success-border: rgb(var(--color-success-rgb), 0.24);
-    --runtime-badge-danger-border: rgb(var(--color-danger-rgb), 0.24);
-    --runtime-badge-info-border: rgb(var(--color-info-rgb), 0.24);
-    --runtime-badge-warning-border: rgb(var(--color-warning-rgb), 0.24);
-    --runtime-chip-bg: var(--text-primary);
-    --runtime-chip-text: #fff;
-  }
-

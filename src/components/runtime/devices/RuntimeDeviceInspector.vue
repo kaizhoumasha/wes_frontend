@@ -515,7 +515,7 @@ import { formatRuntimeElapsed } from '@/utils/runtime-display'
 }
 
 .runtime-device-inspector__error-text {
-  color: #dc2626;
+  color: var(--color-danger);
   font-size: 13px;
 }
 
@@ -525,7 +525,7 @@ import { formatRuntimeElapsed } from '@/utils/runtime-display'
   flex-direction: column;
   gap: 8px;
   padding: 16px;
-  border: 1px solid rgb(245, 158, 11, 0.16);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.16);
   border-radius: 12px;
   background: var(--runtime-hero-bg);
 }
@@ -597,11 +597,11 @@ import { formatRuntimeElapsed } from '@/utils/runtime-display'
 }
 
 .runtime-device-inspector__alert.is-error .runtime-device-inspector__alert-icon {
-  color: #ef4444;
+  color: var(--color-danger-light);
 }
 
 .runtime-device-inspector__alert.is-maintenance .runtime-device-inspector__alert-icon {
-  color: rgb(245, 158, 11);
+  color: var(--color-primary);
 }
 
 .runtime-device-inspector__alert-content strong {
@@ -622,7 +622,7 @@ import { formatRuntimeElapsed } from '@/utils/runtime-display'
   flex-direction: column;
   gap: 6px;
   padding: 14px;
-  border: 1px solid rgb(245, 158, 11, 0.1);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.1);
   border-radius: 10px;
   background: var(--runtime-surface-subtle);
 }
@@ -691,8 +691,8 @@ import { formatRuntimeElapsed } from '@/utils/runtime-display'
   height: 18px;
   padding: 0 5px;
   border-radius: 9px;
-  background: rgb(245, 158, 11, 0.2);
-  color: rgb(245, 158, 11);
+  background: rgb(var(--color-primary-rgb) / 0.2);
+  color: var(--color-primary);
   font-size: 10px;
   font-weight: 700;
 }
@@ -718,7 +718,7 @@ import { formatRuntimeElapsed } from '@/utils/runtime-display'
   gap: 10px;
   min-height: 44px;
   padding: 10px 12px;
-  border: 1px solid rgb(245, 158, 11, 0.1);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.1);
   border-radius: 8px;
   background: var(--runtime-surface-subtle);
 }
@@ -751,7 +751,7 @@ import { formatRuntimeElapsed } from '@/utils/runtime-display'
 .runtime-device-inspector__hold-card {
   border-color: rgb(239, 68, 68, 0.28);
   background: rgb(239, 68, 68, 0.1);
-  color: #fecaca;
+  color: var(--color-danger-light);
   font-size: 13px;
   font-weight: 800;
   text-decoration: none;
@@ -775,7 +775,7 @@ import { formatRuntimeElapsed } from '@/utils/runtime-display'
   gap: 12px;
   width: 100%;
   padding: 12px 14px;
-  border: 1px solid rgb(245, 158, 11, 0.1);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.1);
   border-radius: 10px;
   background: var(--runtime-surface-subtle);
   cursor: pointer;
@@ -784,7 +784,7 @@ import { formatRuntimeElapsed } from '@/utils/runtime-display'
 }
 
 .runtime-device-inspector__session-card:hover {
-  border-color: rgb(245, 158, 11, 0.25);
+  border-color: rgb(var(--color-primary-rgb) / 0.25);
   background: var(--runtime-surface);
   transform: translateX(2px);
 }
@@ -843,8 +843,8 @@ import { formatRuntimeElapsed } from '@/utils/runtime-display'
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: rgb(245, 158, 11, 0.6);
-  box-shadow: 0 0 0 3px rgb(245, 158, 11, 0.15);
+  background: rgb(var(--color-primary-rgb) / 0.6);
+  box-shadow: 0 0 0 3px rgb(var(--color-primary-rgb) / 0.15);
 }
 
 .runtime-device-inspector__timeline-line {
@@ -852,7 +852,11 @@ import { formatRuntimeElapsed } from '@/utils/runtime-display'
   width: 1px;
   min-height: 20px;
   margin: 4px 0;
-  background: linear-gradient(180deg, rgb(245, 158, 11, 0.3) 0%, rgb(245, 158, 11, 0.1) 100%);
+  background: linear-gradient(
+    180deg,
+    rgb(var(--color-primary-rgb) / 0.3) 0%,
+    rgb(var(--color-primary-rgb) / 0.1) 100%
+  );
 }
 
 .runtime-device-inspector__timeline-content {

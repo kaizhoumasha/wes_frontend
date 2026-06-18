@@ -572,7 +572,7 @@ defineExpose<StandardDialogExpose>({
 /* 主按钮 hover 增强 */
 .standard-dialog__footer-actions :deep(.el-button--primary:hover) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgb(245 158 11 / 20%);
+  box-shadow: 0 4px 12px rgb(var(--color-primary-rgb) / 20%);
 }
 
 /* 危险按钮 */

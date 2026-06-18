@@ -180,8 +180,8 @@ const waitLabel = computed(() => {
   gap: 16px;
   padding: 10px 14px;
   border-radius: 10px;
-  border: 1px solid var(--runtime-border, rgb(245, 158, 11, 0.12));
-  background: var(--runtime-surface, rgb(30, 41, 59, 0.8));
+  border: 1px solid var(--runtime-border, rgb(var(--color-primary-rgb) / 0.12));
+  background: var(--runtime-surface, rgb(var(--color-industrial-dark-surface-rgb) / 0.8));
 }
 
 .sandbox-cycle-status__phase {
@@ -195,18 +195,18 @@ const waitLabel = computed(() => {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #475569;
+  background: var(--color-industrial-light-text-secondary);
 }
 
 .sandbox-cycle-status--idle .sandbox-cycle-status__dot {
-  background: #3b82f6;
+  background: var(--color-info);
 }
 .sandbox-cycle-status--action .sandbox-cycle-status__dot {
-  background: #eab308;
-  box-shadow: 0 0 6px rgb(234, 179, 8, 0.4);
+  background: var(--color-warning);
+  box-shadow: 0 0 6px rgb(var(--color-warning-rgb) / 0.4);
 }
 .sandbox-cycle-status--done .sandbox-cycle-status__dot {
-  background: #22c55e;
+  background: var(--color-success-light);
 }
 
 .sandbox-cycle-status__label {
@@ -225,7 +225,7 @@ const waitLabel = computed(() => {
   align-items: center;
   gap: 8px;
   padding-left: 16px;
-  border-left: 1px solid rgb(245, 158, 11, 0.12);
+  border-left: 1px solid rgb(var(--color-primary-rgb) / 0.12);
 }
 
 .sandbox-cycle-status__session-id {
@@ -242,7 +242,7 @@ const waitLabel = computed(() => {
 }
 
 .sandbox-cycle-status__wait {
-  color: #fde047;
+  color: var(--color-warning-light);
   font-size: 11px;
 }
 

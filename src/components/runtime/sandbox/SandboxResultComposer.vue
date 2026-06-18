@@ -400,12 +400,12 @@ watch(
 }
 
 .sandbox-result-composer__payload-error {
-  color: #ef4444;
+  color: var(--color-danger-light);
   font-size: 12px;
   margin-top: 4px;
 }
 
 :deep(.el-textarea.is-error .el-textarea__inner) {
-  border-color: #ef4444;
+  border-color: var(--color-danger-light);
 }
 </style>

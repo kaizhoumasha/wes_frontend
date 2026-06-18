@@ -140,10 +140,10 @@ const rowHeight = computed(() => rowHeightMap[props.density] || 48)
 
 /* 暗黑模式适配 */
 html.dark .data-table-skeleton__row {
-  border-bottom-color: rgb(255 255 255 / 10%);
+  border-bottom-color: rgb(var(--color-industrial-light-surface-rgb) / 10%);
 }
 
 html.dark .data-table-skeleton__header {
-  border-bottom-color: rgb(255 255 255 / 10%);
+  border-bottom-color: rgb(var(--color-industrial-light-surface-rgb) / 10%);
 }
 </style>

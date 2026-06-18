@@ -155,9 +155,9 @@ const hasMore = computed(() => filteredTraces.value.length > props.maxDisplay)
   border-radius: 6px;
   background: linear-gradient(
     90deg,
-    rgb(148, 163, 184, 0.06),
-    rgb(148, 163, 184, 0.14),
-    rgb(148, 163, 184, 0.06)
+    rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.06),
+    rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.14),
+    rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.06)
   );
   background-size: 200% 100%;
   animation: cq-shimmer 1.6s ease-in-out infinite;
@@ -182,7 +182,7 @@ const hasMore = computed(() => filteredTraces.value.length > props.maxDisplay)
   border: 1px solid transparent;
   border-radius: 6px;
   background: transparent;
-  color: var(--runtime-text-secondary, #94a3b8);
+  color: var(--runtime-text-secondary);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -192,14 +192,14 @@ const hasMore = computed(() => filteredTraces.value.length > props.maxDisplay)
 }
 
 .runtime-case-queue__tab:hover {
-  background: rgb(148, 163, 184, 0.08);
-  color: var(--runtime-text-primary, #f8fafc);
+  background: rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.08);
+  color: var(--runtime-text-primary);
 }
 
 .runtime-case-queue__tab.is-active {
-  border-color: var(--runtime-border-accent, rgb(245, 158, 11, 0.24));
-  background: var(--runtime-surface-accent, rgb(245, 158, 11, 0.1));
-  color: var(--runtime-text-primary, #f8fafc);
+  border-color: var(--runtime-border-accent, rgb(var(--color-primary-rgb) / 0.24));
+  background: var(--runtime-surface-accent, rgb(var(--color-primary-rgb) / 0.1));
+  color: var(--runtime-text-primary);
 }
 
 .runtime-case-queue__rows {
@@ -218,7 +218,7 @@ const hasMore = computed(() => filteredTraces.value.length > props.maxDisplay)
   border: 1px solid transparent;
   border-radius: 8px;
   background: transparent;
-  color: var(--runtime-text-primary, #f8fafc);
+  color: var(--runtime-text-primary);
   font-size: 13px;
   text-align: left;
   cursor: pointer;
@@ -228,15 +228,15 @@ const hasMore = computed(() => filteredTraces.value.length > props.maxDisplay)
 }
 
 .runtime-case-queue__row:hover {
-  border-color: var(--runtime-border-accent, rgb(245, 158, 11, 0.24));
-  background: rgb(245, 158, 11, 0.06);
+  border-color: var(--runtime-border-accent, rgb(var(--color-primary-rgb) / 0.24));
+  background: rgb(var(--color-primary-rgb) / 0.06);
 }
 
 .runtime-case-queue__time,
 .runtime-case-queue__workline,
 .runtime-case-queue__domain {
   overflow: hidden;
-  color: var(--runtime-text-secondary, #94a3b8);
+  color: var(--runtime-text-secondary);
   white-space: nowrap;
   text-overflow: ellipsis;
 }
@@ -250,9 +250,10 @@ const hasMore = computed(() => filteredTraces.value.length > props.maxDisplay)
 
 .runtime-case-queue__empty {
   padding: 16px;
-  border: 1px dashed var(--runtime-border-subtle, rgb(148, 163, 184, 0.18));
+  border: 1px dashed
+    var(--runtime-border-subtle, rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.18));
   border-radius: 8px;
-  color: var(--runtime-text-secondary, #94a3b8);
+  color: var(--runtime-text-secondary);
   font-size: 13px;
   text-align: center;
 }
@@ -260,10 +261,11 @@ const hasMore = computed(() => filteredTraces.value.length > props.maxDisplay)
 .runtime-case-queue__more {
   align-self: flex-start;
   padding: 6px 10px;
-  border: 1px solid var(--runtime-border-subtle, rgb(148, 163, 184, 0.18));
+  border: 1px solid
+    var(--runtime-border-subtle, rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.18));
   border-radius: 6px;
   background: transparent;
-  color: var(--runtime-text-secondary, #94a3b8);
+  color: var(--runtime-text-secondary);
   font-size: 12px;
   cursor: pointer;
 }

@@ -33,7 +33,7 @@ withDefaults(
   gap: 8px;
   min-height: 140px;
   padding: 18px;
-  border: 1px dashed rgb(148, 163, 184, 0.28);
+  border: 1px dashed rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.28);
   border-radius: 14px;
   background: var(--runtime-surface-subtle);
 }

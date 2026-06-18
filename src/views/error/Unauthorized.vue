@@ -158,7 +158,7 @@ function goHome(): void {
   background: repeating-conic-gradient(
     from 0deg,
     transparent 0deg 30deg,
-    rgb(255 255 255 / 5%) 30deg 60deg
+    rgb(var(--color-industrial-light-surface-rgb) / 5%) 30deg 60deg
   );
   animation: stripesRotate 30s linear infinite;
 }
@@ -175,7 +175,7 @@ html:not(.dark) .hazard-stripes {
   background: repeating-conic-gradient(
     from 0deg,
     rgb(239 68 68 / 10%) 0deg 30deg,
-    rgb(255 255 255 / 50%) 30deg 60deg
+    rgb(var(--color-industrial-light-surface-rgb) / 50%) 30deg 60deg
   );
 }
 
@@ -198,13 +198,13 @@ html:not(.dark) .hazard-stripes {
 }
 
 html.dark .lock-icon {
-  color: #f87171;
+  color: var(--color-danger-light);
   filter: drop-shadow(0 0 16px rgb(248 113 113 / 50%));
 }
 
 html:not(.dark) .lock-icon {
-  color: #dc2626;
-  filter: drop-shadow(0 0 16px rgb(220 38 38 / 40%));
+  color: var(--color-danger);
+  filter: drop-shadow(0 0 16px rgb(var(--color-danger-rgb) / 40%));
 }
 
 @keyframes lockPulse {
@@ -228,11 +228,11 @@ html:not(.dark) .lock-icon {
 }
 
 html.dark .pulse-ring {
-  border-color: #ef4444;
+  border-color: var(--color-danger-light);
 }
 
 html:not(.dark) .pulse-ring {
-  border-color: #dc2626;
+  border-color: var(--color-danger);
 }
 
 .pulse-ring.delay-1 {
@@ -272,11 +272,11 @@ html:not(.dark) .pulse-ring {
 }
 
 html.dark .key-icon {
-  color: #f87171;
+  color: var(--color-danger-light);
 }
 
 html:not(.dark) .key-icon {
-  color: #dc2626;
+  color: var(--color-danger);
 }
 
 .label {
@@ -291,7 +291,7 @@ html.dark .label {
 }
 
 html:not(.dark) .label {
-  color: #64748b;
+  color: var(--color-industrial-dark-text-muted);
 }
 
 .permission-code {
@@ -306,13 +306,13 @@ html:not(.dark) .label {
 html.dark .permission-code {
   background: rgb(239 68 68 / 12%);
   border: 1px solid rgb(239 68 68 / 25%);
-  color: #fca5a5;
+  color: var(--color-danger-light);
 }
 
 html:not(.dark) .permission-code {
   background: rgb(254 226 226 / 60%);
   border: 1px solid rgb(252 165 165 / 50%);
-  color: #b91c1c;
+  color: var(--color-danger-dark);
 }
 
 /* 按钮样式 */
@@ -340,29 +340,29 @@ html:not(.dark) .permission-code {
 }
 
 html.dark .btn-primary {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: #fff;
+  background: linear-gradient(135deg, var(--color-danger-light) 0%, var(--color-danger) 100%);
+  color: var(--color-industrial-light-surface);
   box-shadow:
     0 4px 20px rgb(239 68 68 / 30%),
-    inset 0 1px 0 rgb(255 255 255 / 15%);
+    inset 0 1px 0 rgb(var(--color-industrial-light-surface-rgb) / 15%);
 }
 
 html.dark .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow:
     0 8px 30px rgb(239 68 68 / 40%),
-    inset 0 1px 0 rgb(255 255 255 / 15%);
+    inset 0 1px 0 rgb(var(--color-industrial-light-surface-rgb) / 15%);
 }
 
 html:not(.dark) .btn-primary {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  color: #fff;
-  box-shadow: 0 4px 20px rgb(220 38 38 / 25%);
+  background: linear-gradient(135deg, var(--color-danger) 0%, var(--color-danger-dark) 100%);
+  color: var(--color-industrial-light-surface);
+  box-shadow: 0 4px 20px rgb(var(--color-danger-rgb) / 25%);
 }
 
 html:not(.dark) .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgb(220 38 38 / 35%);
+  box-shadow: 0 8px 30px rgb(var(--color-danger-rgb) / 35%);
 }
 
 .btn-secondary {
@@ -371,24 +371,24 @@ html:not(.dark) .btn-primary:hover {
 
 html.dark .btn-secondary {
   color: #e6edf3;
-  border: 1px solid rgb(255 255 255 / 15%);
+  border: 1px solid rgb(var(--color-industrial-light-surface-rgb) / 15%);
 }
 
 html.dark .btn-secondary:hover {
-  background: rgb(255 255 255 / 5%);
+  background: rgb(var(--color-industrial-light-surface-rgb) / 5%);
   border-color: rgb(239 68 68 / 30%);
   transform: translateY(-2px);
 }
 
 html:not(.dark) .btn-secondary {
-  color: #475569;
-  border: 1px solid #cbd5e1;
+  color: var(--color-industrial-light-text-secondary);
+  border: 1px solid var(--color-industrial-light-border-hover);
 }
 
 html:not(.dark) .btn-secondary:hover {
-  background: #f8fafc;
-  border-color: #dc2626;
-  color: #dc2626;
+  background: var(--color-industrial-light-bg);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
   transform: translateY(-2px);
 }
 

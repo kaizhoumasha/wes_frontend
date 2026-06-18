@@ -59,26 +59,26 @@ const materialConflictItems = computed(() => {
   display: grid;
   gap: 4px;
   padding: 12px 14px;
-  border: 1px solid rgb(245, 158, 11, 0.26);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.26);
   border-radius: 8px;
-  color: #fde68a;
-  background: rgb(245, 158, 11, 0.12);
+  color: var(--color-primary-200);
+  background: rgb(var(--color-primary-rgb) / 0.12);
 }
 
 .runtime-hold-conflict.is-evidence {
-  border-color: rgb(59, 130, 246, 0.28);
-  color: #bfdbfe;
-  background: rgb(59, 130, 246, 0.12);
+  border-color: rgb(var(--color-info-rgb) / 0.28);
+  color: var(--color-info-light);
+  background: rgb(var(--color-info-rgb) / 0.12);
 }
 
 .runtime-hold-conflict.is-material {
   border-color: rgb(239, 68, 68, 0.28);
-  color: #fecaca;
+  color: var(--color-danger-light);
   background: rgb(239, 68, 68, 0.12);
 }
 
 .runtime-hold-conflict strong {
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
 }
 
 .runtime-hold-conflict code {
@@ -94,13 +94,13 @@ const materialConflictItems = computed(() => {
 }
 
 .runtime-hold-conflict dt {
-  color: rgb(248, 250, 252, 0.68);
+  color: rgb(var(--color-industrial-light-bg-rgb) / 0.68);
 }
 
 .runtime-hold-conflict dd {
   min-width: 0;
   margin: 0;
   overflow-wrap: anywhere;
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
 }
 </style>
