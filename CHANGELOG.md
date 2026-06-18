@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1.0] - 2026-06-18
+
 ### Added
 
 - **Token 三层契约落地**:`globals.css` 新增 L2a 静态工业 token 层(`--color-industrial-{dark,light}-{bg,surface,surface-elevated,border,border-hover,text,text-secondary,text-muted}` + 各 `-rgb` 三元组,空格分隔)与 L2b 主题感知层(`--color-bg/-bg-solid/-body-text/-surface/-surface-elevated/-surface-subtle/-border/-border-hover/-border-strong/-text-{primary,secondary,muted,disabled,inverse}/-shadow-rgb`),`html.dark` 与 `html:not(.dark)` 各定义一套,SFC 引用主题感知 token 自动跟随主题切换。
