@@ -4,8 +4,6 @@
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 后端 OpenAPI 端点: http://127.0.0.1:8001/api/openapi.json
- *
  * 更新类型: pnpm generate:types
  */
 
@@ -13,7 +11,7 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
 export const CommandBindingMetadata = {
   "title": "CommandBinding",
-  "description": "插件命令及目标设备/结果绑定。",
+  "description": "插件命令及目标设备角色。",
   "required": [
     "command",
     "target_device_role"
@@ -32,33 +30,6 @@ export const CommandBindingMetadata = {
       "type": "string",
       "required": true,
       "nullable": false
-    },
-    "rack_position_args": {
-      "title": "Rack Position Args",
-      "description": "货架位参数声明",
-      "type": "array",
-      "required": false,
-      "nullable": false,
-      "items": {
-        "ref": "RackPositionArg"
-      }
-    },
-    "payload_schema_ref": {
-      "title": "Payload Schema Ref",
-      "description": "命令 payload schema 引用",
-      "type": "string",
-      "required": false,
-      "nullable": true
-    },
-    "result_bindings": {
-      "title": "Result Bindings",
-      "description": "命令结果绑定",
-      "type": "array",
-      "required": false,
-      "nullable": false,
-      "items": {
-        "ref": "CommandResultBinding"
-      }
     }
   }
 } satisfies OpenApiSchemaMetadata

@@ -869,7 +869,7 @@ export const ClearWorkLineEstopRequestSchema = z.object({
 
 
 /**
- * 插件命令及目标设备/结果绑定。
+ * 插件命令及目标设备角色。
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
@@ -879,34 +879,6 @@ export const CommandBindingSchema = z.object({
   command: z.string(),
   /** Target Device Role */
   target_device_role: z.string(),
-  /** Rack Position Args */
-  rack_position_args: z.array(z.lazy(() => RackPositionArgSchema)).optional(),
-  /** Payload Schema Ref */
-  payload_schema_ref: z.union([z.string(), z.null()]).optional(),
-  /** Result Bindings */
-  result_bindings: z.array(z.lazy(() => CommandResultBindingSchema)).optional(),
-})
-
-
-/**
- * 命令结果到事件的静态绑定。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const CommandResultBindingSchema = z.object({
-  /** Result */
-  result: z.string(),
-  /** Event */
-  event: z.string(),
-  /** Category */
-  category: z.string(),
-  /** Classification */
-  classification: z.union([z.string(), z.null()]).optional(),
-  /** Terminal */
-  terminal: z.boolean().optional().default(false),
-  /** Next Event */
-  next_event: z.union([z.string(), z.null()]).optional(),
 })
 
 
@@ -1313,8 +1285,6 @@ export const EventBindingSchema = z.object({
       }, z.array(z.string())).optional(),
   /** Category */
   category: z.string(),
-  /** Payload Schema Ref */
-  payload_schema_ref: z.union([z.string(), z.null()]).optional(),
 })
 
 
@@ -2785,42 +2755,6 @@ export const RackPositionSchema = z.object({
   station_code: z.string(),
   /** 货架停靠位承载能力 */
   carrier_capability: z.lazy(() => RackPositionCarrierCapabilitySchema),
-})
-
-
-/**
- * 命令中的货架位参数声明。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const RackPositionArgSchema = z.object({
-  /** Name */
-  name: z.string(),
-  /** Role */
-  role: z.string(),
-  /** Required */
-  required: z.boolean().optional().default(true),
-  /** Rack Position Ref */
-  rack_position_ref: z.union([z.string(), z.null()]).optional(),
-  /** 动态来源 */
-  source: z.union([z.lazy(() => RackPositionArgSourceSchema), z.null()]).optional(),
-})
-
-
-/**
- * 命令货架位参数的动态解析来源。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const RackPositionArgSourceSchema = z.object({
-  /** Kind */
-  kind: z.string(),
-  /** Path */
-  path: z.string(),
-  /** Fallback Rack Position Ref */
-  fallback_rack_position_ref: z.union([z.string(), z.null()]).optional(),
 })
 
 

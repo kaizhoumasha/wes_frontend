@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
@@ -25,35 +25,71 @@ const MANIFEST_CONTRACT_FILES = [
   'src/api/generated/openapi-metadata/CommandBinding.ts',
   'src/api/generated/openapi-metadata/ResourceBoundary.ts',
   'src/api/generated/openapi-metadata/RackPosition.ts',
-  'src/api/generated/openapi-metadata/RackPositionArg.ts',
-  'src/api/generated/openapi-metadata/RackPositionArgSource.ts',
-  'src/api/generated/openapi-metadata/RackPositionCarrierCapability.ts',
+  'src/api/generated/openapi-metadata/RackPositionCarrierCapability.ts'
 ]
-const FORBIDDEN_WORKLINE_CONTRACT_DRIFT = [
-  '/api/v1/workline/inbound-handoff',
-  'SmtInboundHandoff',
+const REMOVED_MANIFEST_CONTRACT_FILES = [
+  `src/api/generated/openapi-metadata/${'Command' + 'ResultBinding'}.ts`,
+  `src/api/generated/openapi-metadata/${'Rack' + 'PositionArg'}.ts`,
+  `src/api/generated/openapi-metadata/${'Rack' + 'PositionArgSource'}.ts`
 ]
+const FORBIDDEN_WORKLINE_CONTRACT_DRIFT = ['/api/v1/workline/inbound-handoff', 'SmtInboundHandoff']
 
 describe('contract generation endpoint noise', () => {
-  it('keeps generated API type source labels stable for local OpenAPI endpoints', async () => {
-    const generator = await import('../../../scripts/generate-api-types')
-
-    expect(
-      (generator as {
-        resolveGeneratedOpenApiSourceLabel?: (source: string) => string
-      }).resolveGeneratedOpenApiSourceLabel?.('http://127.0.0.1:8012/api/openapi.json')
-    ).toBe(CANONICAL_OPENAPI_URL)
-  })
-
-  it('writes zod sync records with the canonical backend URL rather than the fetch URL', () => {
-    const source = readFileSync(
-      join(process.cwd(), 'scripts/generate-zod-from-openapi.ts'),
+  it('omits OpenAPI source labels from generated API contract files', () => {
+    const generatedApiRoot = join(process.cwd(), 'src/api/generated')
+    const generatedApiFiles = [
+      'openapi-types.ts',
+      'openapi-metadata.ts',
+      'openapi-metadata-types.ts',
+      ...readdirSync(join(generatedApiRoot, 'openapi-metadata')).map(
+        fileName => `openapi-metadata/${fileName}`
+      )
+    ].filter(filePath => filePath.endsWith('.ts'))
+    const generatorSource = readFileSync(
+      join(process.cwd(), 'scripts/generate-api-types.ts'),
       'utf-8'
     )
 
-    expect(source).toContain(`DEFAULT_BACKEND_OPENAPI_URL = '${CANONICAL_OPENAPI_URL}'`)
-    expect(source).toContain('backendUrl: DEFAULT_BACKEND_OPENAPI_URL')
-    expect(source).toContain('record.backendUrl !== DEFAULT_BACKEND_OPENAPI_URL')
+    expect(generatorSource).not.toContain('后端 OpenAPI 端点:')
+    expect(generatorSource).not.toContain('generatedOpenApiSourceLabel')
+
+    for (const filePath of generatedApiFiles) {
+      const source = readFileSync(join(generatedApiRoot, filePath), 'utf-8')
+
+      expect(source, filePath).not.toContain('后端 OpenAPI 端点:')
+      expect(source, filePath).not.toContain(CANONICAL_OPENAPI_URL)
+      expect(source, filePath).not.toContain(
+        'contracts/openapi.workline-plugin-manifest-yaml-topology.json'
+      )
+    }
+  })
+
+  it('writes zod sync records with the OpenAPI source that generated the hash', () => {
+    return Promise.all([
+      import('../../../scripts/generate-zod-from-openapi'),
+      import('../../../scripts/verify-contract-sync')
+    ]).then(([zodGenerator, verifier]) => {
+      expect(zodGenerator.resolveOpenApiSourceRecordFromEnv({})).toBe(CANONICAL_OPENAPI_URL)
+      expect(
+        zodGenerator.resolveOpenApiSourceRecordFromEnv({
+          OPENAPI_SPEC_PATH: 'contracts/openapi.workline-plugin-manifest-yaml-topology.json',
+          OPENAPI_SPEC_URL: 'https://example.test/openapi.json',
+          BACKEND_OPENAPI_URL: 'http://127.0.0.1:8012/api/openapi.json'
+        })
+      ).toBe('contracts/openapi.workline-plugin-manifest-yaml-topology.json')
+      expect(
+        zodGenerator.resolveOpenApiSourceRecordFromEnv({
+          BACKEND_OPENAPI_URL: 'http://127.0.0.1:8012/api/openapi.json'
+        })
+      ).toBe('http://127.0.0.1:8012/api/openapi.json')
+      expect(
+        verifier.resolveOpenApiSource({
+          lastSyncTime: '2026-06-18T00:00:00.000Z',
+          openApiHash: 'fqiikh',
+          backendUrl: 'contracts/openapi.workline-plugin-manifest-yaml-topology.json'
+        })
+      ).toBe(join(process.cwd(), 'contracts/openapi.workline-plugin-manifest-yaml-topology.json'))
+    })
   })
 
   it('keeps runtime smoke manifest fixtures on the new manifest summary contract', () => {
@@ -80,6 +116,12 @@ describe('contract generation endpoint noise', () => {
           forbiddenContract
         )
       }
+    }
+  })
+
+  it('does not keep removed payload-binding manifest metadata files', () => {
+    for (const filePath of REMOVED_MANIFEST_CONTRACT_FILES) {
+      expect(existsSync(join(process.cwd(), filePath)), `${filePath} should be removed`).toBe(false)
     }
   })
 })

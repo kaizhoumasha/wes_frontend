@@ -4,8 +4,6 @@
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 后端 OpenAPI 端点: http://127.0.0.1:8001/api/openapi.json
- *
  * 更新类型: pnpm generate:types
  */
 
@@ -4699,7 +4697,7 @@ export interface components {
         };
         /**
          * CommandBinding
-         * @description 插件命令及目标设备/结果绑定。
+         * @description 插件命令及目标设备角色。
          */
         CommandBinding: {
             /**
@@ -4708,62 +4706,10 @@ export interface components {
              */
             command: string;
             /**
-             * Payload Schema Ref
-             * @description 命令 payload schema 引用
-             */
-            payload_schema_ref?: string | null;
-            /**
-             * Rack Position Args
-             * @description 货架位参数声明
-             */
-            rack_position_args?: components["schemas"]["RackPositionArg"][];
-            /**
-             * Result Bindings
-             * @description 命令结果绑定
-             */
-            result_bindings?: components["schemas"]["CommandResultBinding"][];
-            /**
              * Target Device Role
              * @description 目标设备角色
              */
             target_device_role: string;
-        };
-        /**
-         * CommandResultBinding
-         * @description 命令结果到事件的静态绑定。
-         */
-        CommandResultBinding: {
-            /**
-             * Category
-             * @description 事件分类
-             */
-            category: string;
-            /**
-             * Classification
-             * @description 结果分类
-             */
-            classification?: string | null;
-            /**
-             * Event
-             * @description 派生事件
-             */
-            event: string;
-            /**
-             * Next Event
-             * @description 后续事件
-             */
-            next_event?: string | null;
-            /**
-             * Result
-             * @description 命令结果
-             */
-            result: string;
-            /**
-             * Terminal
-             * @description 是否终止当前流程
-             * @default false
-             */
-            terminal: boolean;
         };
         /**
          * DebugDataCleanupRequest
@@ -5379,11 +5325,6 @@ export interface components {
              * @description 事件类型
              */
             event: string;
-            /**
-             * Payload Schema Ref
-             * @description 事件 payload schema 引用
-             */
-            payload_schema_ref?: string | null;
             /**
              * Source Device Roles
              * @description 来源设备角色
@@ -6754,56 +6695,6 @@ export interface components {
              * @description 插件内 station/工作位逻辑编码
              */
             station_code: string;
-        };
-        /**
-         * RackPositionArg
-         * @description 命令中的货架位参数声明。
-         */
-        RackPositionArg: {
-            /**
-             * Name
-             * @description 参数名
-             */
-            name: string;
-            /**
-             * Rack Position Ref
-             * @description 静态货架位引用
-             */
-            rack_position_ref?: string | null;
-            /**
-             * Required
-             * @description 是否必填
-             * @default true
-             */
-            required: boolean;
-            /**
-             * Role
-             * @description 参数业务角色
-             */
-            role: string;
-            /** @description 动态来源 */
-            source?: components["schemas"]["RackPositionArgSource"] | null;
-        };
-        /**
-         * RackPositionArgSource
-         * @description 命令货架位参数的动态解析来源。
-         */
-        RackPositionArgSource: {
-            /**
-             * Fallback Rack Position Ref
-             * @description 兜底静态货架位引用
-             */
-            fallback_rack_position_ref?: string | null;
-            /**
-             * Kind
-             * @description 参数来源类型
-             */
-            kind: string;
-            /**
-             * Path
-             * @description 参数来源路径
-             */
-            path: string;
         };
         /**
          * RackPositionCarrierCapability

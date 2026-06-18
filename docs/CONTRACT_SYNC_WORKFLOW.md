@@ -31,14 +31,27 @@
 
 ## 📝 同步步骤
 
-### 1. 确认后端已运行
+### 1. 确认 OpenAPI 来源
 
 ```bash
-# 检查后端是否运行
-curl -s http://localhost:8001/api/openapi.json | jq '.info.title'
+# 默认从本地后端读取
+curl -s http://127.0.0.1:8001/api/openapi.json | jq '.info.title'
 
 # 应该返回：P9 WES
 ```
+
+如果前后端 feature 分支需要一起提交，但当前 `8001` 不是目标后端合同，可以使用仓库内
+OpenAPI snapshot 作为稳定来源：
+
+```bash
+OPENAPI_SPEC_PATH=contracts/openapi.workline-plugin-manifest-yaml-topology.json pnpm generate:types
+OPENAPI_SPEC_PATH=contracts/openapi.workline-plugin-manifest-yaml-topology.json pnpm generate:zod
+pnpm contract:verify
+```
+
+`generate:zod` 会把实际 OpenAPI 来源写入 `.contract-sync-record.json`。提交记录中的
+`backendUrl` 必须是可复现来源：默认 `http://127.0.0.1:8001/api/openapi.json` 或仓库内相对
+snapshot 路径；不要提交临时本地端口或机器绝对路径。
 
 ### 2. 运行同步脚本
 
@@ -54,12 +67,12 @@ pnpm generate:zod
 ```
 🚀 开始生成 Zod schemas...
 
-📡 从后端获取 OpenAPI schema: http://localhost:8001/api/openapi.json
-📊 找到 42 个 schemas
+📡 从后端获取 OpenAPI schema: http://127.0.0.1:8001/api/openapi.json
+✅ 成功获取 <schema-count> 个 schemas
 
 📝 生成 Zod schemas...
 ✅ 生成文件: src/types/generated/zod-schemas.ts
-✅ 生成文件: src/types/zod-extensions.ts
+✅ 生成文件无变化: src/types/zod-extensions.ts
 
 ✨ 完成！
 
@@ -130,7 +143,7 @@ cd ../wes_backend
 python -m uvicorn src.main:app --reload
 ```
 
-### 问题 2：端口被占用
+### 问题 2：端口被占用或当前后端不是目标合同
 
 **错误信息**：
 
@@ -140,12 +153,16 @@ python -m uvicorn src.main:app --reload
 
 **解决方案**：
 
-检查后端运行端口，修改 `scripts/generate-zod-from-openapi.ts` 中的 `BACKEND_OPENAPI_URL`：
+通过环境变量指定实际 OpenAPI 来源，不要修改脚本常量：
 
-```typescript
-const BACKEND_OPENAPI_URL = 'http://localhost:8001/api/openapi.json'
-// 改为实际端口，如 8000, 8080 等
+```bash
+BACKEND_OPENAPI_URL=http://127.0.0.1:8012/api/openapi.json pnpm generate:zod
+OPENAPI_SPEC_PATH=contracts/openapi.workline-plugin-manifest-yaml-topology.json pnpm generate:zod
 ```
+
+若生成结果要提交，优先使用仓库内相对 `OPENAPI_SPEC_PATH`，确保其他开发者和 CI 可以复现同一 hash。
+`OPENAPI_SPEC_PATH`、`OPENAPI_SPEC_URL`、`BACKEND_OPENAPI_URL` 表示完整 OpenAPI 文档来源；
+`VITE_API_BASE_URL`、`BACKEND_URL` 是旧式后端 base URL，类型生成脚本会为它们追加 `/api/openapi.json`。
 
 ### 问题 3：生成后发现验证规则不对
 

@@ -12,7 +12,7 @@
  */
 
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { isAbsolute, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -69,8 +69,8 @@ interface PropertySchema {
 // ==================== 配置 ====================
 
 const DEFAULT_BACKEND_OPENAPI_URL = 'http://127.0.0.1:8001/api/openapi.json'
-const BACKEND_OPENAPI_URL =
-  process.env.BACKEND_OPENAPI_URL || DEFAULT_BACKEND_OPENAPI_URL
+const OPENAPI_SOURCE_RECORD = resolveOpenApiSourceRecordFromEnv()
+const OPENAPI_SOURCE = resolveOpenApiSource(OPENAPI_SOURCE_RECORD)
 const OUTPUT_DIR = join(__dirname, '../src/types/generated')
 const OUTPUT_FILE = join(OUTPUT_DIR, 'zod-schemas.ts')
 const SYNC_RECORD_FILE = join(__dirname, '../.contract-sync-record.json')
@@ -126,7 +126,7 @@ function writeSyncRecord(openApiData: Record<string, unknown>): boolean {
   const record: SyncRecord = {
     lastSyncTime: new Date().toISOString(),
     openApiHash: simpleHash(schemas),
-    backendUrl: DEFAULT_BACKEND_OPENAPI_URL,
+    backendUrl: OPENAPI_SOURCE_RECORD,
   }
   const changed = writeFileIfChanged(SYNC_RECORD_FILE, `${JSON.stringify(record, null, 2)}\n`)
   if (changed) {
@@ -144,10 +144,24 @@ async function fetchOpenAPISchema(): Promise<{
   schemas: Record<string, OpenAPISchema>
   openApiData: Record<string, unknown>
 }> {
-  console.log(`📡 从后端获取 OpenAPI schema: ${BACKEND_OPENAPI_URL}`)
+  if (!/^https?:\/\//.test(OPENAPI_SOURCE)) {
+    console.log(`📡 从本地文件读取 OpenAPI schema: ${OPENAPI_SOURCE}`)
+
+    if (!existsSync(OPENAPI_SOURCE)) {
+      throw new Error(`本地 OpenAPI schema 文件不存在: ${OPENAPI_SOURCE}`)
+    }
+
+    const openApiData = JSON.parse(readFileSync(OPENAPI_SOURCE, 'utf-8')) as Record<string, unknown>
+    const schemas = (openApiData.components as { schemas?: Record<string, OpenAPISchema> })?.schemas || {}
+
+    console.log(`✅ 成功获取 ${Object.keys(schemas).length} 个 schemas`)
+    return { schemas, openApiData }
+  }
+
+  console.log(`📡 从后端获取 OpenAPI schema: ${OPENAPI_SOURCE}`)
 
   try {
-    const response = await fetch(BACKEND_OPENAPI_URL)
+    const response = await fetch(OPENAPI_SOURCE)
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
@@ -161,6 +175,30 @@ async function fetchOpenAPISchema(): Promise<{
     console.error('❌ 获取 OpenAPI schema 失败:', error)
     throw error
   }
+}
+
+type OpenApiSourceRecordEnv = Pick<
+  NodeJS.ProcessEnv,
+  'OPENAPI_SPEC_PATH' | 'OPENAPI_SPEC_URL' | 'BACKEND_OPENAPI_URL'
+>
+
+export function resolveOpenApiSourceRecordFromEnv(
+  env: OpenApiSourceRecordEnv = process.env
+): string {
+  return (
+    env.OPENAPI_SPEC_PATH ||
+    env.OPENAPI_SPEC_URL ||
+    env.BACKEND_OPENAPI_URL ||
+    DEFAULT_BACKEND_OPENAPI_URL
+  )
+}
+
+function resolveOpenApiSource(source: string): string {
+  if (/^https?:\/\//.test(source)) {
+    return source
+  }
+
+  return isAbsolute(source) ? source : resolve(__dirname, '..', source)
 }
 
 function formatLiteral(value: unknown): string {
@@ -535,7 +573,7 @@ async function main(): Promise<void> {
     const recordNeedsUpdate =
       !record ||
       record.openApiHash !== schemasHash ||
-      record.backendUrl !== DEFAULT_BACKEND_OPENAPI_URL
+      record.backendUrl !== OPENAPI_SOURCE_RECORD
     const syncRecordChanged = recordNeedsUpdate ? writeSyncRecord(openApiData) : false
 
     if (!fileChanged && !extensionChanged && !syncRecordChanged) {
@@ -559,4 +597,11 @@ async function main(): Promise<void> {
   }
 }
 
-main()
+function isCliEntry(): boolean {
+  const executedFile = process.argv[1]
+  return !!executedFile && __filename === executedFile
+}
+
+if (isCliEntry()) {
+  main()
+}

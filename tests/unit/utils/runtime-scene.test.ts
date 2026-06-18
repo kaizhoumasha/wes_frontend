@@ -88,9 +88,21 @@ function createDetail(
       pending_command_count: 1
     }
   ]
-  const active_sessions = overrides.active_sessions ?? { items: [], total_count: 0, truncated: false }
-  const recent_failed_traces = overrides.recent_failed_traces ?? { items: [], total_count: 0, truncated: false }
-  const recent_completed_traces = overrides.recent_completed_traces ?? { items: [], total_count: 0, truncated: false }
+  const active_sessions = overrides.active_sessions ?? {
+    items: [],
+    total_count: 0,
+    truncated: false
+  }
+  const recent_failed_traces = overrides.recent_failed_traces ?? {
+    items: [],
+    total_count: 0,
+    truncated: false
+  }
+  const recent_completed_traces = overrides.recent_completed_traces ?? {
+    items: [],
+    total_count: 0,
+    truncated: false
+  }
   const action_candidates = overrides.action_candidates ?? { pending_reconciliation: null }
   const generated_at = overrides.generated_at ?? new Date().toISOString()
 
@@ -99,9 +111,19 @@ function createDetail(
     boundary,
     device_nodes,
     resource_evidence,
-    active_sessions: Array.isArray(active_sessions) ? { items: active_sessions, total_count: active_sessions.length, truncated: false } : active_sessions,
-    recent_failed_traces: Array.isArray(recent_failed_traces) ? { items: recent_failed_traces, total_count: recent_failed_traces.length, truncated: false } : recent_failed_traces,
-    recent_completed_traces: Array.isArray(recent_completed_traces) ? { items: recent_completed_traces, total_count: recent_completed_traces.length, truncated: false } : recent_completed_traces,
+    active_sessions: Array.isArray(active_sessions)
+      ? { items: active_sessions, total_count: active_sessions.length, truncated: false }
+      : active_sessions,
+    recent_failed_traces: Array.isArray(recent_failed_traces)
+      ? { items: recent_failed_traces, total_count: recent_failed_traces.length, truncated: false }
+      : recent_failed_traces,
+    recent_completed_traces: Array.isArray(recent_completed_traces)
+      ? {
+          items: recent_completed_traces,
+          total_count: recent_completed_traces.length,
+          truncated: false
+        }
+      : recent_completed_traces,
     action_candidates,
     generated_at
   } as unknown as RuntimeWorklineMonitorProjectionResponse
@@ -145,15 +167,12 @@ function manifestWithBoundaries(boundaries: BoundaryFixture[]): WorkLinePluginMa
     commands: [
       {
         command: 'PICK_AND_PUT',
-        target_device_role: 'TARGET_ARM',
-        payload_schema_ref: 'schemas/commands/pick-and-put.json',
-        rack_position_args: [],
-        result_bindings: []
+        target_device_role: 'TARGET_ARM'
       }
     ],
     topology: {
       flow_edges: Array.from(rackPositionsByCode.values()).map(boundary => ({
-        type: 'material_flow',
+        type: 'OPERATION',
         from_node: { kind: 'DEVICE_ROLE', ref: boundary.station_role },
         to_node: { kind: 'RACK_POSITION', ref: boundary.position_code }
       }))
@@ -209,12 +228,12 @@ describe('buildRuntimeSceneModel', () => {
     expect(manifest.commands).toEqual([
       expect.objectContaining({
         command: 'PICK_AND_PUT',
-        rack_position_args: []
+        target_device_role: 'TARGET_ARM'
       })
     ])
     expect(manifest.topology?.flow_edges).toEqual([
       expect.objectContaining({
-        type: 'material_flow',
+        type: 'OPERATION',
         from_node: { kind: 'DEVICE_ROLE', ref: 'TARGET' },
         to_node: { kind: 'RACK_POSITION', ref: 'SINGLE_LAYER_A' }
       })
@@ -1367,7 +1386,7 @@ describe('buildRuntimeSceneModel', () => {
     )
   })
 
-  it('does not derive boundaries from command position args when manifest resource boundaries are absent', () => {
+  it('does not derive resource layout from commands when manifest resource boundaries are absent', () => {
     const commandOnlyManifest = {
       plugin_key: 'rough_sorter',
       contract_version: 'v1',
@@ -1376,15 +1395,7 @@ describe('buildRuntimeSceneModel', () => {
       commands: [
         {
           command: 'MOVE_RACK_TO_TARGET',
-          target_device_role: 'TARGET_ARM',
-          payload_schema_ref: 'schemas/commands/move-rack-to-target.json',
-          rack_position_args: [
-            {
-              name: 'target_position',
-              rack_position_ref: 'COMMAND_ONLY_POSITION'
-            }
-          ],
-          result_bindings: []
+          target_device_role: 'TARGET_ARM'
         }
       ],
       rack_positions: [
@@ -1404,7 +1415,7 @@ describe('buildRuntimeSceneModel', () => {
       topology: {
         flow_edges: [
           {
-            type: 'material_flow',
+            type: 'OPERATION',
             from_node: { kind: 'DEVICE_ROLE', ref: 'TARGET_ARM' },
             to_node: { kind: 'RACK_POSITION', ref: 'COMMAND_ONLY_POSITION' }
           }
@@ -1607,7 +1618,7 @@ describe('buildRuntimeSceneModel', () => {
         rack_position_codes: ['SINGLE_LAYER_A'],
         flow_edges: [
           {
-            type: 'material_flow',
+            type: 'OPERATION',
             from_node: { kind: 'DEVICE_ROLE', ref: 'ARM' },
             to_node: { kind: 'RACK_POSITION', ref: 'SINGLE_LAYER_A' }
           }
@@ -1621,10 +1632,10 @@ describe('buildRuntimeSceneModel', () => {
 
       expect(model.topologyEdges).toEqual([
         {
-          key: 'DEVICE_ROLE:ARM->RACK_POSITION:SINGLE_LAYER_A:MATERIAL_FLOW',
+          key: 'DEVICE_ROLE:ARM->RACK_POSITION:SINGLE_LAYER_A:OPERATION',
           fromNode: { kind: 'DEVICE_ROLE', ref: 'ARM', resolved: true },
           toNode: { kind: 'RACK_POSITION', ref: 'SINGLE_LAYER_A', resolved: true },
-          type: 'MATERIAL_FLOW'
+          type: 'OPERATION'
         }
       ])
       expect(model.topologyNodes).toEqual([
@@ -1694,12 +1705,12 @@ describe('buildRuntimeSceneModel', () => {
         rack_position_codes: ['SINGLE_LAYER_A'],
         flow_edges: [
           {
-            type: 'material_flow',
+            type: 'OPERATION',
             from_node: { kind: 'DEVICE_ROLE', ref: 'UNKNOWN_ROLE' },
             to_node: { kind: 'RACK_POSITION', ref: 'SINGLE_LAYER_A' }
           },
           {
-            type: 'material_flow',
+            type: 'OPERATION',
             from_node: { kind: 'DEVICE_ROLE', ref: 'ARM' },
             to_node: { kind: 'RACK_POSITION', ref: 'UNKNOWN_POSITION' }
           }

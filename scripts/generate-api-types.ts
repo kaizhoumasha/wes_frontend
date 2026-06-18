@@ -142,53 +142,53 @@ interface GeneratedOpenApiSchemaMetadata {
 
 interface Config {
   openApiSource: string
-  generatedOpenApiSourceLabel: string
   outputDir: string
   metadataOutputDir: string
   modulesOutputDir: string
 }
 
-function resolveOpenApiSource(): string {
-  const explicitSource = process.env.OPENAPI_SPEC_PATH || process.env.OPENAPI_SPEC_URL
-  const baseOrSpecUrl = explicitSource || process.env.VITE_API_BASE_URL || process.env.BACKEND_URL
-
-  if (!baseOrSpecUrl) {
-    return DEFAULT_BACKEND_OPENAPI_URL
-  }
-
-  if (/^https?:\/\//.test(baseOrSpecUrl)) {
-    if (/\/(openapi|swagger)\.(json|ya?ml)$/i.test(baseOrSpecUrl)) {
-      return baseOrSpecUrl
-    }
-
-    return `${baseOrSpecUrl.replace(/\/$/, '')}/api/openapi.json`
-  }
-
-  const filePath = isAbsolute(baseOrSpecUrl) ? baseOrSpecUrl : resolve(__dirname, '..', baseOrSpecUrl)
-  return filePath
+interface OpenApiSourceResolution {
+  record: string
+  source: string
 }
 
-export function resolveGeneratedOpenApiSourceLabel(openApiSource: string): string {
-  try {
-    const url = new URL(openApiSource)
-    const isLocalHost = ['localhost', '127.0.0.1', '::1'].includes(url.hostname)
-    const isOpenApiEndpoint = /\/api\/openapi\.json$/i.test(url.pathname)
+type OpenApiSourceEnv = Pick<
+  NodeJS.ProcessEnv,
+  'OPENAPI_SPEC_PATH' | 'OPENAPI_SPEC_URL' | 'BACKEND_OPENAPI_URL' | 'VITE_API_BASE_URL' | 'BACKEND_URL'
+>
 
-    if (isLocalHost && isOpenApiEndpoint) {
-      return DEFAULT_BACKEND_OPENAPI_URL
-    }
-  } catch {
-    return openApiSource
-  }
-
-  return openApiSource
+function resolveFileSource(source: string): string {
+  return isAbsolute(source) ? source : resolve(__dirname, '..', source)
 }
 
-const openApiSource = resolveOpenApiSource()
+function resolveLegacyBackendBaseUrl(source: string): string {
+  if (/^https?:\/\//.test(source)) {
+    return `${source.replace(/\/$/, '')}/api/openapi.json`
+  }
+
+  return resolveFileSource(source)
+}
+
+export function resolveOpenApiSourceFromEnv(env: OpenApiSourceEnv = process.env): OpenApiSourceResolution {
+  const exactSource = env.OPENAPI_SPEC_PATH || env.OPENAPI_SPEC_URL || env.BACKEND_OPENAPI_URL
+  if (exactSource) {
+    return {
+      record: exactSource,
+      source: env.OPENAPI_SPEC_PATH ? resolveFileSource(exactSource) : exactSource
+    }
+  }
+
+  const legacySource = env.VITE_API_BASE_URL || env.BACKEND_URL || DEFAULT_BACKEND_OPENAPI_URL
+  return {
+    record: legacySource,
+    source: resolveLegacyBackendBaseUrl(legacySource)
+  }
+}
+
+const { source: openApiSource } = resolveOpenApiSourceFromEnv()
 
 const config: Config = {
   openApiSource,
-  generatedOpenApiSourceLabel: resolveGeneratedOpenApiSourceLabel(openApiSource),
   outputDir: join(__dirname, '../src/api/generated'),
   metadataOutputDir: join(__dirname, '../src/api/generated/openapi-metadata'),
   modulesOutputDir: join(__dirname, '../src/api/modules')
@@ -670,8 +670,6 @@ async function generateTypesFile(spec: unknown, outputPath: string): Promise<boo
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 后端 OpenAPI 端点: ${config.generatedOpenApiSourceLabel}
- *
  * 更新类型: pnpm generate:types
  */
 
@@ -834,8 +832,6 @@ function buildMetadataTypesTemplate(): string {
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 后端 OpenAPI 端点: ${config.generatedOpenApiSourceLabel}
- *
  * 更新类型: pnpm generate:types
  */
 
@@ -882,8 +878,6 @@ function buildMetadataModuleTemplate(plan: MetadataModulePlan): string {
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 后端 OpenAPI 端点: ${config.generatedOpenApiSourceLabel}
- *
  * 更新类型: pnpm generate:types
  */
 
@@ -903,8 +897,6 @@ function buildMetadataIndexTemplate(plans: MetadataModulePlan[]): string {
  *
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
- *
- * 后端 OpenAPI 端点: ${config.generatedOpenApiSourceLabel}
  *
  * 更新类型: pnpm generate:types
  */
@@ -926,8 +918,6 @@ function buildMetadataEntryTemplate(): string {
  *
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
- *
- * 后端 OpenAPI 端点: ${config.generatedOpenApiSourceLabel}
  *
  * 更新类型: pnpm generate:types
  */
