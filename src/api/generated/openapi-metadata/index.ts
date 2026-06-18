@@ -4,8 +4,6 @@
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 后端 OpenAPI 端点: http://127.0.0.1:8001/api/openapi.json
- *
  * 更新类型: pnpm generate:types
  */
 
@@ -53,7 +51,6 @@ export { CallbackRejectedResponseMetadata } from './CallbackRejectedResponse'
 export { CallbackResultAcceptedResponseMetadata } from './CallbackResultAcceptedResponse'
 export { ClearWorkLineEstopRequestMetadata } from './ClearWorkLineEstopRequest'
 export { CommandBindingMetadata } from './CommandBinding'
-export { CommandResultBindingMetadata } from './CommandResultBinding'
 export { DebugDataCleanupRequestMetadata } from './DebugDataCleanupRequest'
 export { DebugDataCleanupResponseMetadata } from './DebugDataCleanupResponse'
 export { DeviceCreateMetadata } from './DeviceCreate'
@@ -107,8 +104,6 @@ export { RackKindMetadata } from './RackKind'
 export { RackPlacementResponseMetadata } from './RackPlacementResponse'
 export { RackPlacementStatusMetadata } from './RackPlacementStatus'
 export { RackPositionMetadata } from './RackPosition'
-export { RackPositionArgMetadata } from './RackPositionArg'
-export { RackPositionArgSourceMetadata } from './RackPositionArgSource'
 export { RackPositionCarrierCapabilityMetadata } from './RackPositionCarrierCapability'
 export { RackResponseMetadata } from './RackResponse'
 export { RackSlotKindMetadata } from './RackSlotKind'

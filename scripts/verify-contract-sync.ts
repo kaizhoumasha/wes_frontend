@@ -12,7 +12,7 @@
  */
 
 import { readFileSync, existsSync } from 'node:fs'
-import { join } from 'node:path'
+import { isAbsolute, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -20,8 +20,7 @@ const __dirname = join(__filename, '..')
 
 // ==================== 配置 ====================
 
-const BACKEND_OPENAPI_URL =
-  process.env.BACKEND_OPENAPI_URL || 'http://127.0.0.1:8001/api/openapi.json'
+const DEFAULT_BACKEND_OPENAPI_URL = 'http://127.0.0.1:8001/api/openapi.json'
 const SYNC_RECORD_FILE = join(__dirname, '../.contract-sync-record.json')
 const GENERATED_SCHEMA_FILE = join(__dirname, '../src/types/generated/zod-schemas.ts')
 
@@ -51,9 +50,19 @@ function simpleHash(str: string): string {
 /**
  * 获取 OpenAPI schema 的哈希值（仅包含 schemas 部分）
  */
-async function getOpenApiHash(): Promise<string> {
+async function getOpenApiHash(openApiSource: string): Promise<string> {
   try {
-    const response = await fetch(BACKEND_OPENAPI_URL)
+    if (!/^https?:\/\//.test(openApiSource)) {
+      if (!existsSync(openApiSource)) {
+        throw new Error(`本地 OpenAPI schema 文件不存在: ${openApiSource}`)
+      }
+
+      const openapi = JSON.parse(readFileSync(openApiSource, 'utf-8'))
+      const schemas = JSON.stringify(openapi.components?.schemas || {})
+      return simpleHash(schemas)
+    }
+
+    const response = await fetch(openApiSource)
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
@@ -64,7 +73,7 @@ async function getOpenApiHash(): Promise<string> {
   } catch (error) {
     if ((error as Error).message.includes('fetch failed') || (error as Error).message.includes('ECONNREFUSED')) {
       console.warn('⚠️  后端服务未运行，跳过契约同步检查')
-      console.log('   提示：如需启用检查，请确保后端运行在', BACKEND_OPENAPI_URL)
+      console.log('   提示：如需启用检查，请确保后端运行在', openApiSource)
       return 'backend-not-running'
     }
     throw error
@@ -86,6 +95,31 @@ function readSyncRecord(): SyncRecord | null {
   }
 }
 
+type ContractVerifySourceEnv = Pick<
+  NodeJS.ProcessEnv,
+  'OPENAPI_SPEC_PATH' | 'OPENAPI_SPEC_URL' | 'BACKEND_OPENAPI_URL'
+>
+
+export function resolveOpenApiSource(
+  record: SyncRecord | null,
+  env: ContractVerifySourceEnv = process.env
+): string {
+  const explicitSource =
+    env.OPENAPI_SPEC_PATH ||
+    env.OPENAPI_SPEC_URL ||
+    env.BACKEND_OPENAPI_URL ||
+    record?.backendUrl ||
+    DEFAULT_BACKEND_OPENAPI_URL
+
+  if (/^https?:\/\//.test(explicitSource)) {
+    return explicitSource
+  }
+
+  return isAbsolute(explicitSource)
+    ? explicitSource
+    : resolve(__dirname, '..', explicitSource)
+}
+
 // ==================== 主函数 ====================
 
 async function main(): Promise<void> {
@@ -102,19 +136,7 @@ async function main(): Promise<void> {
     process.exit(1) // 失败：需要生成
   }
 
-  // 2. 如果后端未运行且不强制要求，跳过检查
-  const currentHash = await getOpenApiHash()
-  if (currentHash === 'backend-not-running') {
-    if (!requireBackend) {
-      console.log('✅ 后端未运行，跳过契约同步检查\n')
-      process.exit(0) // 通过：跳过检查
-    }
-    console.log('❌ 后端服务未运行')
-    console.log(`   请确保后端运行在: ${BACKEND_OPENAPI_URL}\n`)
-    process.exit(1) // 失败：后端未运行
-  }
-
-  // 3. 读取同步记录
+  // 2. 读取同步记录
   const record = readSyncRecord()
   if (!record) {
     console.log('⚠️  未找到同步记录')
@@ -122,8 +144,23 @@ async function main(): Promise<void> {
     process.exit(1) // 失败：首次运行
   }
 
+  const openApiSource = resolveOpenApiSource(record)
+
+  // 3. 如果后端未运行且不强制要求，跳过检查
+  const currentHash = await getOpenApiHash(openApiSource)
+  if (currentHash === 'backend-not-running') {
+    if (!requireBackend) {
+      console.log('✅ 后端未运行，跳过契约同步检查\n')
+      process.exit(0) // 通过：跳过检查
+    }
+    console.log('❌ 后端服务未运行')
+    console.log(`   请确保后端运行在: ${openApiSource}\n`)
+    process.exit(1) // 失败：后端未运行
+  }
+
   if (!silent) {
     console.log(`📅 上次生成: ${record.lastSyncTime}`)
+    console.log(`🔗 OpenAPI 来源: ${openApiSource}`)
   }
 
   // 4. 对比哈希值
@@ -146,7 +183,14 @@ async function main(): Promise<void> {
 
 // ==================== 执行 ====================
 
-main().catch(error => {
-  console.error('❌ 检查失败:', error)
-  process.exit(1)
-})
+function isCliEntry(): boolean {
+  const executedFile = process.argv[1]
+  return !!executedFile && __filename === executedFile
+}
+
+if (isCliEntry()) {
+  main().catch(error => {
+    console.error('❌ 检查失败:', error)
+    process.exit(1)
+  })
+}

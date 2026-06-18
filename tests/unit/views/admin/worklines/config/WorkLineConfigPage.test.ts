@@ -175,17 +175,13 @@ const manifest: WorkLinePluginManifestSummary = {
     {
       event: 'RACK_SCAN_COMPLETED',
       category: 'SOURCE',
-      source_device_roles: ['SOURCE_SCANNER'],
-      payload_schema_ref: 'schemas/events/rack-scan-completed.json'
+      source_device_roles: ['SOURCE_SCANNER']
     }
   ],
   commands: [
     {
       command: 'MOVE_RACK_TO_TARGET',
-      target_device_role: 'TARGET_ARM',
-      payload_schema_ref: 'schemas/commands/move-rack-to-target.json',
-      rack_position_args: [],
-      result_bindings: []
+      target_device_role: 'TARGET_ARM'
     }
   ],
   rack_positions: [
@@ -214,7 +210,7 @@ const manifest: WorkLinePluginManifestSummary = {
   topology: {
     flow_edges: [
       {
-        type: 'material_flow',
+        type: 'OPERATION',
         from_node: { kind: 'DEVICE_ROLE', ref: 'SOURCE_SCANNER' },
         to_node: { kind: 'RACK_POSITION', ref: 'SOURCE_PORT' }
       }

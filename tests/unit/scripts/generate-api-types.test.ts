@@ -15,6 +15,7 @@ import {
   deleteStaleGeneratedModules,
   groupEndpointsByModuleModel,
   mergeModuleWithCustomSections,
+  resolveOpenApiSourceFromEnv,
   type EndpointInfo,
 } from '../../../scripts/generate-api-types'
 
@@ -27,6 +28,50 @@ function makeEndpoint(path: string, method: EndpointInfo['method']): EndpointInf
 }
 
 describe('generate-api-types helpers', () => {
+  it('resolves exact OpenAPI document sources before legacy base URLs', () => {
+    expect(
+      resolveOpenApiSourceFromEnv({
+        OPENAPI_SPEC_PATH: 'contracts/openapi.workline-plugin-manifest-yaml-topology.json',
+        BACKEND_OPENAPI_URL: 'http://127.0.0.1:8012/api/openapi.json',
+        VITE_API_BASE_URL: 'http://127.0.0.1:8001',
+      })
+    ).toEqual({
+      record: 'contracts/openapi.workline-plugin-manifest-yaml-topology.json',
+      source: join(process.cwd(), 'contracts/openapi.workline-plugin-manifest-yaml-topology.json'),
+    })
+
+    expect(
+      resolveOpenApiSourceFromEnv({
+        OPENAPI_SPEC_URL: 'https://example.test/openapi.workline-plugin-manifest-yaml-topology.json',
+        VITE_API_BASE_URL: 'http://127.0.0.1:8001',
+      })
+    ).toEqual({
+      record: 'https://example.test/openapi.workline-plugin-manifest-yaml-topology.json',
+      source: 'https://example.test/openapi.workline-plugin-manifest-yaml-topology.json',
+    })
+
+    expect(
+      resolveOpenApiSourceFromEnv({
+        BACKEND_OPENAPI_URL: 'http://127.0.0.1:8012/api/openapi.json',
+        VITE_API_BASE_URL: 'http://127.0.0.1:8001',
+      })
+    ).toEqual({
+      record: 'http://127.0.0.1:8012/api/openapi.json',
+      source: 'http://127.0.0.1:8012/api/openapi.json',
+    })
+  })
+
+  it('appends the OpenAPI path only for legacy backend base URL inputs', () => {
+    expect(
+      resolveOpenApiSourceFromEnv({
+        VITE_API_BASE_URL: 'http://127.0.0.1:8012',
+      })
+    ).toEqual({
+      record: 'http://127.0.0.1:8012',
+      source: 'http://127.0.0.1:8012/api/openapi.json',
+    })
+  })
+
   it('groups endpoints by module and model from path', () => {
     const groups = groupEndpointsByModuleModel([
       makeEndpoint('/api/v1/admin/users', 'post'),
