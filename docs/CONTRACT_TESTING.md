@@ -66,8 +66,8 @@ pnpm run generate:types
 # 使用默认地址（localhost:8001）
 pnpm run generate:types
 
-# 指定后端地址
-BACKEND_URL=http://localhost:9001/api/openapi.json pnpm run generate:types
+# 指定完整 OpenAPI 文档地址
+BACKEND_OPENAPI_URL=http://localhost:9001/api/openapi.json pnpm run generate:types
 ```
 
 ### CI/CD 集成
