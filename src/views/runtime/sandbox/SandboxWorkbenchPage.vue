@@ -1230,8 +1230,8 @@ watch(worklineId, () => {
 }
 
 .sandbox-wb__back:hover {
-  background: rgb(245, 158, 11, 0.12);
-  color: #f59e0b;
+  background: rgb(var(--color-primary-rgb) / 0.12);
+  color: var(--color-primary);
 }
 
 .sandbox-wb__back svg {
@@ -1245,9 +1245,9 @@ watch(worklineId, () => {
   gap: 6px;
   padding: 4px 10px;
   border-radius: 6px;
-  background: rgb(245, 158, 11, 0.15);
-  border: 1px solid rgb(245, 158, 11, 0.3);
-  color: #f59e0b;
+  background: rgb(var(--color-primary-rgb) / 0.15);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.3);
+  color: var(--color-primary);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -1257,7 +1257,7 @@ watch(worklineId, () => {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #f59e0b;
+  background: var(--color-primary);
   animation: sandbox-pulse 2s ease-in-out infinite;
 }
 
@@ -1317,13 +1317,13 @@ watch(worklineId, () => {
   justify-content: space-between;
   gap: 16px;
   padding: 14px 16px;
-  border: 1px solid rgb(245, 158, 11, 0.35);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.35);
   border-radius: 10px;
-  background: rgb(245, 158, 11, 0.1);
+  background: rgb(var(--color-primary-rgb) / 0.1);
 }
 
 .sandbox-wb__start-title {
-  color: #fde68a;
+  color: var(--color-primary-200);
   font-size: 14px;
   font-weight: 700;
 }
@@ -1355,7 +1355,7 @@ watch(worklineId, () => {
 
 .sandbox-wb__start-diagnostics dd {
   margin: 0;
-  color: #fef3c7;
+  color: var(--color-primary-100);
   font-family: var(--font-mono);
   word-break: break-all;
 }
@@ -1409,8 +1409,8 @@ watch(worklineId, () => {
 .sandbox-wb__selected-tag {
   padding: 2px 8px;
   border-radius: 10px;
-  background: rgb(245, 158, 11, 0.15);
-  color: #f59e0b;
+  background: rgb(var(--color-primary-rgb) / 0.15);
+  color: var(--color-primary);
   font-size: 11px;
   font-weight: 600;
 }
@@ -1488,7 +1488,7 @@ watch(worklineId, () => {
 
 .sandbox-wb__panel-close:hover {
   background: rgb(239, 68, 68, 0.12);
-  color: #ef4444;
+  color: var(--color-danger-light);
 }
 
 .sandbox-wb__panel-close svg {
@@ -1534,13 +1534,13 @@ watch(worklineId, () => {
   font-family: var(--font-mono);
 }
 .sandbox-wb__result-value.is-sent {
-  color: #f59e0b;
+  color: var(--color-primary);
 }
 .sandbox-wb__result-value.is-acked {
   color: #06b6d4;
 }
 .sandbox-wb__result-value.is-failed {
-  color: #ef4444;
+  color: var(--color-danger-light);
 }
 
 .sandbox-wb__result-actions {

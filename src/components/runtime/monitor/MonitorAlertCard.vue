@@ -56,13 +56,13 @@ defineProps<{
 }
 
 .monitor-alert-card--danger {
-  border-color: #dc2626;
-  background: rgb(220, 38, 38, 0.08);
+  border-color: var(--color-danger);
+  background: rgb(var(--color-danger-rgb) / 0.08);
 }
 
 .monitor-alert-card--warning {
-  border-color: #eab308;
-  background: rgb(234, 179, 8, 0.08);
+  border-color: var(--color-warning);
+  background: rgb(var(--color-warning-rgb) / 0.08);
 }
 
 .monitor-alert-card__indicator {
@@ -83,11 +83,11 @@ defineProps<{
 }
 
 .monitor-alert-card--danger .monitor-alert-card__dot {
-  background: #dc2626;
+  background: var(--color-danger);
 }
 
 .monitor-alert-card--warning .monitor-alert-card__dot {
-  background: #eab308;
+  background: var(--color-warning);
 }
 
 .monitor-alert-card__body {
@@ -105,11 +105,11 @@ defineProps<{
 }
 
 .monitor-alert-card--danger .monitor-alert-card__title {
-  color: #dc2626;
+  color: var(--color-danger);
 }
 
 .monitor-alert-card--warning .monitor-alert-card__title {
-  color: #b45309;
+  color: var(--color-primary-700);
 }
 
 .monitor-alert-card__message {

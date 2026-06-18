@@ -121,26 +121,26 @@ const handleMenuClose = (path: string) => {
 
 /* 暗黑模式变量 - 工业琥珀风格 */
 html.dark .app-sidebar {
-  --sidebar-bg: rgb(15 23 42 / 98%);
-  --sidebar-border: rgb(148 163 184 / 12%);
+  --sidebar-bg: rgb(var(--color-industrial-dark-bg-rgb) / 98%);
+  --sidebar-border: rgb(var(--color-industrial-dark-text-secondary-rgb) / 12%);
   --sidebar-shadow: 2px 0 20px rgb(0 0 0 / 30%);
-  --header-bg: rgb(30 41 59 / 50%);
-  --header-border: rgb(148 163 184 / 12%);
-  --logo-text-color: #fff;
-  --logo-glow: rgb(245 158 11 / 30%);
-  --menu-color: rgb(255 255 255 / 70%);
-  --menu-hover-bg: rgb(245 158 11 / 8%);
-  --menu-hover-color: rgb(255 255 255 / 100%);
-  --menu-active-bg: rgb(245 158 11 / 15%);
-  --menu-active-color: #f59e0b;
-  --menu-active-shadow: 0 0 20px rgb(245 158 11 / 15%);
-  --menu-icon-glow: rgb(245 158 11 / 30%);
-  --menu-opened-bg: rgb(30 41 59 / 30%);
-  --menu-opened-color: rgb(255 255 255 / 90%);
-  --footer-border: rgb(148 163 184 / 12%);
-  --footer-color: rgb(255 255 255 / 30%);
-  --scrollbar-thumb: rgb(148 163 184 / 15%);
-  --scrollbar-thumb-hover: rgb(148 163 184 / 25%);
+  --header-bg: rgb(var(--color-industrial-dark-surface-rgb) / 50%);
+  --header-border: rgb(var(--color-industrial-dark-text-secondary-rgb) / 12%);
+  --logo-text-color: var(--color-industrial-light-surface);
+  --logo-glow: rgb(var(--color-primary-rgb) / 30%);
+  --menu-color: rgb(var(--color-industrial-light-surface-rgb) / 70%);
+  --menu-hover-bg: rgb(var(--color-primary-rgb) / 8%);
+  --menu-hover-color: rgb(var(--color-industrial-light-surface-rgb) / 100%);
+  --menu-active-bg: rgb(var(--color-primary-rgb) / 15%);
+  --menu-active-color: var(--color-primary);
+  --menu-active-shadow: 0 0 20px rgb(var(--color-primary-rgb) / 15%);
+  --menu-icon-glow: rgb(var(--color-primary-rgb) / 30%);
+  --menu-opened-bg: rgb(var(--color-industrial-dark-surface-rgb) / 30%);
+  --menu-opened-color: rgb(var(--color-industrial-light-surface-rgb) / 90%);
+  --footer-border: rgb(var(--color-industrial-dark-text-secondary-rgb) / 12%);
+  --footer-color: rgb(var(--color-industrial-light-surface-rgb) / 30%);
+  --scrollbar-thumb: rgb(var(--color-industrial-dark-text-secondary-rgb) / 15%);
+  --scrollbar-thumb-hover: rgb(var(--color-industrial-dark-text-secondary-rgb) / 25%);
 }
 
 /* 亮模式变量 */
@@ -151,14 +151,14 @@ html:not(.dark) .app-sidebar {
   --header-bg: #f5f7fa;
   --header-border: #e4e7ed;
   --logo-text-color: #303133;
-  --logo-glow: rgb(245 158 11 / 50%);
+  --logo-glow: rgb(var(--color-primary-rgb) / 50%);
   --menu-color: #606266;
   --menu-hover-bg: #ecf5ff;
-  --menu-hover-color: #f59e0b;
-  --menu-active-bg: #f59e0b;
-  --menu-active-color: #fff;
-  --menu-active-shadow: 0 2px 8px rgb(245 158 11 / 30%);
-  --menu-icon-glow: rgb(245 158 11 / 50%);
+  --menu-hover-color: var(--color-primary);
+  --menu-active-bg: var(--color-primary);
+  --menu-active-color: var(--color-industrial-light-surface);
+  --menu-active-shadow: 0 2px 8px rgb(var(--color-primary-rgb) / 30%);
+  --menu-icon-glow: rgb(var(--color-primary-rgb) / 50%);
   --menu-opened-bg: #f5f7fa;
   --menu-opened-color: #303133;
   --footer-border: #e4e7ed;
@@ -240,7 +240,7 @@ html:not(.dark) .app-sidebar {
 
 .logo-highlight {
   font-size: 24px;
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }

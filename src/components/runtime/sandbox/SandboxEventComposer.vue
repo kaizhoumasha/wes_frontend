@@ -363,8 +363,8 @@ watch(
   gap: 14px;
   padding: 16px;
   border-radius: 12px;
-  background: rgb(245, 158, 11, 0.08);
-  border: 1px solid rgb(245, 158, 11, 0.2);
+  background: rgb(var(--color-primary-rgb) / 0.08);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.2);
 }
 
 .sandbox-event-composer__device-icon {
@@ -374,13 +374,13 @@ watch(
   width: 44px;
   height: 44px;
   border-radius: 10px;
-  background: rgb(245, 158, 11, 0.15);
+  background: rgb(var(--color-primary-rgb) / 0.15);
 }
 
 .sandbox-event-composer__device-icon svg {
   width: 22px;
   height: 22px;
-  color: #f59e0b;
+  color: var(--color-primary);
 }
 
 .sandbox-event-composer__device-info {
@@ -464,13 +464,13 @@ watch(
 
 /* Payload Error */
 .sandbox-event-composer__payload-error {
-  color: #ef4444;
+  color: var(--color-danger-light);
   font-size: 12px;
   margin-top: 4px;
 }
 
 :deep(.el-textarea.is-error .el-textarea__inner) {
-  border-color: #ef4444;
+  border-color: var(--color-danger-light);
 }
 
 :deep(.el-divider) {

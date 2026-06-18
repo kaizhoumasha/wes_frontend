@@ -310,28 +310,28 @@ watch(
   flex-direction: column;
   gap: 8px;
   padding: 16px;
-  border: 1px solid rgb(245 158 11 / 0.12);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.12);
   border-radius: 12px;
-  border-left: 3px solid rgb(245 158 11 / 0.4);
-  background: #1e293b;
+  border-left: 3px solid rgb(var(--color-primary-rgb) / 0.4);
+  background: var(--color-industrial-dark-surface);
   cursor: pointer;
   transition: border-color 0.15s ease-out;
 }
 
 .device-card:hover {
-  border-color: rgb(245 158 11 / 0.28);
+  border-color: rgb(var(--color-primary-rgb) / 0.28);
 }
 
 .device-card--danger {
-  border-left-color: rgb(220 38 38 / 0.6);
+  border-left-color: rgb(var(--color-danger-rgb) / 0.6);
 }
 
 .device-card--warning {
-  border-left-color: rgb(234 179 8 / 0.5);
+  border-left-color: rgb(var(--color-warning-rgb) / 0.5);
 }
 
 .device-card--success {
-  border-left-color: rgb(22 163 74 / 0.5);
+  border-left-color: rgb(var(--color-success-rgb) / 0.5);
 }
 
 .device-card__top {
@@ -342,25 +342,25 @@ watch(
 
 .device-card__id {
   margin-left: auto;
-  color: #64748b;
+  color: var(--color-industrial-dark-text-muted);
   font-family: var(--font-mono, 'JetBrains Mono');
   font-size: 12px;
 }
 
 .device-card__name {
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
   font-family: var(--font-mono, 'JetBrains Mono');
   font-size: 16px;
   font-weight: 700;
 }
 
 .device-card__meta {
-  color: #94a3b8;
+  color: var(--color-industrial-dark-text-secondary);
   font-size: 12px;
 }
 
 .device-card__role {
-  color: #f59e0b;
+  color: var(--color-primary);
   font-weight: 600;
 }
 
@@ -368,8 +368,8 @@ watch(
   margin-top: 2px;
   padding: 2px 8px;
   border-radius: 4px;
-  background: rgb(234 179 8 / 0.12);
-  color: #eab308;
+  background: rgb(var(--color-warning-rgb) / 0.12);
+  color: var(--color-warning);
   font-size: 11px;
   font-weight: 700;
   align-self: flex-start;
@@ -382,14 +382,14 @@ watch(
 }
 
 .device-drawer__title {
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
   font-size: 18px;
   font-weight: 700;
   font-family: var(--font-mono, 'JetBrains Mono');
 }
 
 .device-drawer__meta {
-  color: #94a3b8;
+  color: var(--color-industrial-dark-text-secondary);
   font-size: 12px;
   font-family: var(--font-mono, 'JetBrains Mono');
 }
@@ -397,7 +397,7 @@ watch(
 .runtime-page__subtitle {
   max-width: 600px;
   margin-top: 4px;
-  color: #94a3b8;
+  color: var(--color-industrial-dark-text-secondary);
   font-size: 13px;
   line-height: 1.6;
 }

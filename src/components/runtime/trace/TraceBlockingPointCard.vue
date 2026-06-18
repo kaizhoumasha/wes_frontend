@@ -174,7 +174,7 @@ function emptyDetail(): TraceDetailResponse {
 
 <style scoped>
 .trace-blocking-card {
-  border: 1px solid rgb(245, 158, 11, 0.18);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.18);
   border-radius: 16px;
   background: var(--runtime-surface);
 }
@@ -190,7 +190,7 @@ function emptyDetail(): TraceDetailResponse {
 .trace-blocking-card__fact span,
 .trace-blocking-card__action span,
 .trace-blocking-card__message span {
-  color: var(--runtime-text-secondary, #94a3b8);
+  color: var(--runtime-text-secondary);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -199,7 +199,7 @@ function emptyDetail(): TraceDetailResponse {
 
 .trace-blocking-card__title {
   margin-top: 4px;
-  color: var(--runtime-text-primary, #f8fafc);
+  color: var(--runtime-text-primary);
   font-size: 16px;
   font-weight: 800;
 }
@@ -212,16 +212,16 @@ function emptyDetail(): TraceDetailResponse {
 
 .trace-blocking-card__action {
   padding: 14px 16px;
-  border: 1px solid rgb(245, 158, 11, 0.22);
-  border-left: 3px solid rgb(245, 158, 11, 0.7);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.22);
+  border-left: 3px solid rgb(var(--color-primary-rgb) / 0.7);
   border-radius: 10px;
-  background: rgb(245, 158, 11, 0.1);
+  background: rgb(var(--color-primary-rgb) / 0.1);
 }
 
 .trace-blocking-card__action strong {
   display: block;
   margin-top: 8px;
-  color: #fef3c7;
+  color: var(--color-primary-100);
   font-size: 15px;
   font-weight: 700;
   line-height: 1.7;
@@ -243,7 +243,7 @@ function emptyDetail(): TraceDetailResponse {
 .trace-blocking-card__fact strong {
   display: block;
   margin-top: 6px;
-  color: var(--runtime-text-primary, #f8fafc);
+  color: var(--runtime-text-primary);
   font-family: var(--font-mono);
   font-size: 12px;
   line-height: 1.5;
@@ -269,7 +269,7 @@ function emptyDetail(): TraceDetailResponse {
 }
 
 .trace-blocking-card__empty {
-  color: var(--runtime-text-secondary, #94a3b8);
+  color: var(--runtime-text-secondary);
   font-size: 13px;
 }
 
@@ -284,9 +284,9 @@ function emptyDetail(): TraceDetailResponse {
   border-radius: 8px;
   background: linear-gradient(
     90deg,
-    rgb(148, 163, 184, 0.06),
-    rgb(148, 163, 184, 0.14),
-    rgb(148, 163, 184, 0.06)
+    rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.06),
+    rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.14),
+    rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.06)
   );
   background-size: 200% 100%;
   animation: tbc-shimmer 1.6s ease-in-out infinite;
@@ -302,12 +302,12 @@ function emptyDetail(): TraceDetailResponse {
 }
 
 .trace-blocking-card__tech {
-  border-top: 1px solid rgb(148, 163, 184, 0.1);
+  border-top: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.1);
   padding-top: 10px;
 }
 
 .trace-blocking-card__tech summary {
-  color: #475569;
+  color: var(--color-industrial-light-text-secondary);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -341,7 +341,7 @@ function emptyDetail(): TraceDetailResponse {
 
 .trace-blocking-card__tech-row span {
   flex-shrink: 0;
-  color: #475569;
+  color: var(--color-industrial-light-text-secondary);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -350,7 +350,7 @@ function emptyDetail(): TraceDetailResponse {
 }
 
 .trace-blocking-card__tech-row strong {
-  color: #64748b;
+  color: var(--color-industrial-dark-text-muted);
   font-family: var(--font-mono);
   font-size: 12px;
 }

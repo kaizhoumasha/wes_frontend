@@ -47,14 +47,14 @@ const formattedValue = computed(() => {
   min-width: 0;
   max-width: 220px;
   padding: 10px 14px;
-  border: 1px solid rgb(245, 158, 11, 0.18);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.18);
   border-radius: 12px;
   background: var(--runtime-surface);
 }
 
 .runtime-last-updated.is-frozen {
-  border-color: rgb(234, 179, 8, 0.28);
-  background: rgb(234, 179, 8, 0.08);
+  border-color: rgb(var(--color-warning-rgb) / 0.28);
+  background: rgb(var(--color-warning-rgb) / 0.08);
 }
 
 .runtime-last-updated__label {

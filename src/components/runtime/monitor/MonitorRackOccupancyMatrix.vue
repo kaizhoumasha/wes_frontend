@@ -85,7 +85,8 @@ const emit = defineEmits<{
   display: grid;
   gap: 10px;
   padding: 12px;
-  border: 1px solid var(--runtime-border-subtle, rgb(148, 163, 184, 0.2));
+  border: 1px solid
+    var(--runtime-border-subtle, rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.2));
   border-radius: 8px;
   background: var(--runtime-surface);
   color: var(--runtime-text);
@@ -117,7 +118,8 @@ const emit = defineEmits<{
   display: grid;
   gap: 6px;
   padding-bottom: 8px;
-  border-bottom: 1px dashed var(--runtime-border-subtle, rgb(148, 163, 184, 0.25));
+  border-bottom: 1px dashed
+    var(--runtime-border-subtle, rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.25));
 }
 
 .monitor-rack-occupancy-matrix__slot-group:last-child {
@@ -166,29 +168,32 @@ const emit = defineEmits<{
 }
 
 .monitor-rack-occupancy-matrix__cell--empty {
-  border-color: var(--runtime-border-subtle, rgb(148, 163, 184, 0.25));
+  border-color: var(
+    --runtime-border-subtle,
+    rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.25)
+  );
   border-style: dashed;
   background: transparent;
   color: var(--runtime-text-muted);
 }
 
 .monitor-rack-occupancy-matrix__cell--occupied {
-  border-color: rgb(59, 130, 246, 0.4);
-  background: rgb(59, 130, 246, 0.12);
-  color: #3b82f6;
+  border-color: rgb(var(--color-info-rgb) / 0.4);
+  background: rgb(var(--color-info-rgb) / 0.12);
+  color: var(--color-info);
 }
 
 .monitor-rack-occupancy-matrix__cell--reconciling {
-  border-color: rgb(234, 179, 8, 0.5);
-  background: rgb(234, 179, 8, 0.14);
-  color: #b45309;
+  border-color: rgb(var(--color-warning-rgb) / 0.5);
+  background: rgb(var(--color-warning-rgb) / 0.14);
+  color: var(--color-primary-700);
   animation: monitor-rack-occupancy-blink 1.2s infinite alternate;
 }
 
 .monitor-rack-occupancy-matrix__cell--selected {
-  border-color: rgb(59, 130, 246, 0.95);
-  background: rgb(59, 130, 246, 0.22);
-  box-shadow: 0 0 0 2px rgb(59, 130, 246, 0.4);
+  border-color: rgb(var(--color-info-rgb) / 0.95);
+  background: rgb(var(--color-info-rgb) / 0.22);
+  box-shadow: 0 0 0 2px rgb(var(--color-info-rgb) / 0.4);
 }
 
 .monitor-rack-occupancy-matrix__cell-code {

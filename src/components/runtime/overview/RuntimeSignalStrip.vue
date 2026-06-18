@@ -87,10 +87,13 @@ const coreKpis = computed<CoreKpi[]>(() => {
   position: relative;
   overflow: hidden;
   padding: 20px;
-  border: 1px solid var(--runtime-border, rgb(245, 158, 11, 0.16));
+  border: 1px solid var(--runtime-border, rgb(var(--color-primary-rgb) / 0.16));
   border-radius: 16px;
-  background: var(--runtime-surface, rgb(30, 41, 59, 0.8));
-  box-shadow: var(--runtime-shadow, inset 0 1px 0 rgb(255, 255, 255, 0.03));
+  background: var(--runtime-surface, rgb(var(--color-industrial-dark-surface-rgb) / 0.8));
+  box-shadow: var(
+    --runtime-shadow,
+    inset 0 1px 0 rgb(var(--color-industrial-light-surface-rgb) / 0.03)
+  );
 }
 
 .runtime-signal-card::before {
@@ -102,16 +105,16 @@ const coreKpis = computed<CoreKpi[]>(() => {
 }
 
 .runtime-signal-card--danger::before {
-  background: var(--runtime-tier-critical, #dc2626);
+  background: var(--runtime-tier-critical);
 }
 
 .runtime-signal-card--warning::before {
-  background: var(--runtime-tier-watch, #eab308);
+  background: var(--runtime-tier-watch);
 }
 
 .runtime-signal-card__label {
   display: block;
-  color: var(--runtime-text-secondary, #94a3b8);
+  color: var(--runtime-text-secondary);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -126,7 +129,7 @@ const coreKpis = computed<CoreKpi[]>(() => {
 }
 
 .runtime-signal-card__value {
-  color: var(--runtime-text-primary, #f8fafc);
+  color: var(--runtime-text-primary);
   font-family: var(--font-mono);
   font-size: 24px;
   font-weight: 700;
@@ -140,11 +143,11 @@ const coreKpis = computed<CoreKpi[]>(() => {
 }
 
 .runtime-signal-card__trend--up {
-  color: var(--runtime-tier-critical, #dc2626);
+  color: var(--runtime-tier-critical);
 }
 
 .runtime-signal-card__trend--down {
-  color: #16a34a;
+  color: var(--color-success);
 }
 
 @media (width <= 1279px) {

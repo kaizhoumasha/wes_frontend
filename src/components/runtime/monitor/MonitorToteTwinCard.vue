@@ -56,7 +56,8 @@ defineProps<{
   gap: 10px;
   overflow: hidden;
   padding: 12px;
-  border: 1px solid var(--runtime-border-subtle, rgb(148, 163, 184, 0.2));
+  border: 1px solid
+    var(--runtime-border-subtle, rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.2));
   border-radius: 8px;
   background: var(--runtime-surface);
   color: var(--runtime-text);
@@ -72,11 +73,11 @@ defineProps<{
 }
 
 .monitor-tote-twin-card--info::before {
-  background: #3b82f6;
+  background: var(--color-info);
 }
 
 .monitor-tote-twin-card--warning::before {
-  background: #eab308;
+  background: var(--color-warning);
 }
 
 .monitor-tote-twin-card__header {
@@ -105,8 +106,8 @@ defineProps<{
 .monitor-tote-twin-card__type {
   padding: 2px 6px;
   border-radius: 4px;
-  background: rgb(59, 130, 246, 0.12);
-  color: #3b82f6;
+  background: rgb(var(--color-info-rgb) / 0.12);
+  color: var(--color-info);
   font-size: 11px;
   font-weight: 600;
 }
@@ -123,7 +124,8 @@ defineProps<{
   gap: 8px;
   align-items: baseline;
   padding: 4px 0;
-  border-bottom: 1px solid var(--runtime-border-subtle, rgb(148, 163, 184, 0.16));
+  border-bottom: 1px solid
+    var(--runtime-border-subtle, rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.16));
 }
 
 .monitor-tote-twin-card__row:last-child {
@@ -147,14 +149,14 @@ defineProps<{
 }
 
 .monitor-tote-twin-card__row--info dd {
-  color: #3b82f6;
+  color: var(--color-info);
 }
 
 .monitor-tote-twin-card__row--warning dd {
-  color: #b45309;
+  color: var(--color-primary-700);
 }
 
 .monitor-tote-twin-card__row--danger dd {
-  color: #dc2626;
+  color: var(--color-danger);
 }
 </style>

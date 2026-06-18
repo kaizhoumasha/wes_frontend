@@ -145,18 +145,18 @@ const layoutExplicitEdges = computed<ExplicitLayoutEdge[] | undefined>(() => {
   flex: 0 0 auto;
   padding: 4px 8px;
   border-radius: 8px;
-  background: var(--runtime-surface-accent, rgb(245, 158, 11, 0.12));
-  color: var(--runtime-text-emphasis, rgb(245, 158, 11));
+  background: var(--runtime-surface-accent, rgb(var(--color-primary-rgb) / 0.12));
+  color: var(--runtime-text-emphasis);
   font-size: 12px;
   font-weight: 600;
 }
 
 .runtime-scene-map__fallback {
   padding: 10px 12px;
-  border: 1px solid rgb(245, 158, 11, 0.32);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.32);
   border-radius: 8px;
-  background: var(--runtime-surface-accent, rgb(245, 158, 11, 0.12));
-  color: var(--runtime-text-emphasis, rgb(245, 158, 11));
+  background: var(--runtime-surface-accent, rgb(var(--color-primary-rgb) / 0.12));
+  color: var(--runtime-text-emphasis);
   font-size: 12px;
   font-weight: 600;
 }

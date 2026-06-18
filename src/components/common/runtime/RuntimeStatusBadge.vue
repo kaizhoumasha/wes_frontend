@@ -43,7 +43,7 @@ const resolvedLabel = computed(() => compactEnumLabel(props.label ?? props.statu
   gap: 8px;
   min-height: 30px;
   padding: 0 12px;
-  border: 1px solid rgb(148, 163, 184, 0.24);
+  border: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.24);
   border-radius: 999px;
   background: var(--runtime-surface);
   color: var(--runtime-text-emphasis);

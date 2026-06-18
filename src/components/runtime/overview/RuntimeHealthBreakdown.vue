@@ -86,7 +86,7 @@ const totalLabel = computed(() => `样本 ${props.total}`)
 .runtime-health-breakdown {
   height: 100%;
   background: var(--runtime-surface);
-  border: 1px solid rgb(245, 158, 11, 0.12);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.12);
 }
 
 .runtime-health-breakdown__header {
@@ -156,22 +156,26 @@ const totalLabel = computed(() => `样本 ${props.total}`)
 }
 
 .runtime-health-breakdown__bar-fill--primary {
-  background: linear-gradient(90deg, rgb(59, 130, 246, 0.65), #3b82f6);
+  background: linear-gradient(90deg, rgb(var(--color-info-rgb) / 0.65), var(--color-info));
 }
 
 .runtime-health-breakdown__bar-fill--success {
-  background: linear-gradient(90deg, rgb(22, 163, 74, 0.65), #16a34a);
+  background: linear-gradient(90deg, rgb(var(--color-success-rgb) / 0.65), var(--color-success));
 }
 
 .runtime-health-breakdown__bar-fill--warning {
-  background: linear-gradient(90deg, rgb(234, 179, 8, 0.65), #eab308);
+  background: linear-gradient(90deg, rgb(var(--color-warning-rgb) / 0.65), var(--color-warning));
 }
 
 .runtime-health-breakdown__bar-fill--danger {
-  background: linear-gradient(90deg, rgb(220, 38, 38, 0.65), #dc2626);
+  background: linear-gradient(90deg, rgb(var(--color-danger-rgb) / 0.65), var(--color-danger));
 }
 
 .runtime-health-breakdown__bar-fill--info {
-  background: linear-gradient(90deg, rgb(148, 163, 184, 0.65), #94a3b8);
+  background: linear-gradient(
+    90deg,
+    rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.65),
+    var(--color-industrial-dark-text-secondary)
+  );
 }
 </style>

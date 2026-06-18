@@ -21,9 +21,13 @@ withDefaults(
 <style scoped>
 .runtime-frozen-notice {
   padding: 14px 16px;
-  border: 1px solid rgb(234, 179, 8, 0.28);
+  border: 1px solid rgb(var(--color-warning-rgb) / 0.28);
   border-radius: 14px;
-  background: linear-gradient(90deg, rgb(234, 179, 8, 0.12), rgb(15, 23, 42, 0.72));
+  background: linear-gradient(
+    90deg,
+    rgb(var(--color-warning-rgb) / 0.12),
+    rgb(var(--color-industrial-dark-bg-rgb) / 0.72)
+  );
 }
 
 .runtime-frozen-notice__title {

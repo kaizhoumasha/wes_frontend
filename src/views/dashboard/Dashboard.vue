@@ -163,7 +163,7 @@ const statistics = shallowRef([
 /* 暗黑模式欢迎卡片 */
 html.dark .welcome-card {
   background: rgb(10 14 39 / 80%);
-  border: 1px solid rgb(245 158 11 / 10%);
+  border: 1px solid rgb(var(--color-primary-rgb) / 10%);
 }
 
 /* 亮模式欢迎卡片 */
@@ -182,7 +182,7 @@ html:not(.dark) .welcome-card {
   font-size: 36px;
   font-weight: 700;
   margin: 0 0 8px;
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -201,7 +201,7 @@ html:not(.dark) .welcome-card {
 
 /* 暗黑模式副标题 */
 html.dark .welcome-subtitle {
-  color: rgb(255 255 255 / 60%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 60%);
 }
 
 /* 亮模式副标题 */
@@ -226,7 +226,7 @@ html:not(.dark) .welcome-subtitle {
   right: 0;
   width: 200px;
   height: 1px;
-  background: linear-gradient(90deg, transparent 0%, rgb(245 158 11 / 30%) 100%);
+  background: linear-gradient(90deg, transparent 0%, rgb(var(--color-primary-rgb) / 30%) 100%);
 }
 
 .decoration-grid {
@@ -238,7 +238,7 @@ html:not(.dark) .welcome-subtitle {
   position: absolute;
   width: 4px;
   height: 4px;
-  background: rgb(245 158 11 / 20%);
+  background: rgb(var(--color-primary-rgb) / 20%);
   border-radius: 50%;
 }
 
@@ -274,11 +274,11 @@ html:not(.dark) .welcome-subtitle {
 /* 暗黑模式统计卡片 */
 html.dark .stat-card {
   background: rgb(13 17 23 / 80%);
-  border: 1px solid rgb(245 158 11 / 10%);
+  border: 1px solid rgb(var(--color-primary-rgb) / 10%);
 }
 
 html.dark .stat-card:hover {
-  border-color: rgb(245 158 11 / 30%);
+  border-color: rgb(var(--color-primary-rgb) / 30%);
 }
 
 /* 亮模式统计卡片 */
@@ -289,8 +289,8 @@ html:not(.dark) .stat-card {
 }
 
 html:not(.dark) .stat-card:hover {
-  border-color: #f59e0b;
-  box-shadow: 0 4px 16px rgb(245 158 11 / 15%);
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 16px rgb(var(--color-primary-rgb) / 15%);
 }
 
 .stat-card::before {
@@ -300,7 +300,7 @@ html:not(.dark) .stat-card:hover {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent 0%, #f59e0b 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, var(--color-primary) 50%, transparent 100%);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -315,16 +315,16 @@ html:not(.dark) .stat-card:hover {
 
 /* 暗黑模式统计图标 */
 html.dark .stat-icon {
-  color: #f59e0b;
-  background: rgb(245 158 11 / 8%);
-  border: 1px solid rgb(245 158 11 / 20%);
+  color: var(--color-primary);
+  background: rgb(var(--color-primary-rgb) / 8%);
+  border: 1px solid rgb(var(--color-primary-rgb) / 20%);
 }
 
 /* 亮模式统计图标 */
 html:not(.dark) .stat-icon {
-  color: #f59e0b;
+  color: var(--color-primary);
   background: #ecf5ff;
-  border: 1px solid #f59e0b;
+  border: 1px solid var(--color-primary);
 }
 
 .stat-icon {
@@ -350,7 +350,7 @@ html:not(.dark) .stat-icon {
 
 /* 暗黑模式标签文字 */
 html.dark .stat-label {
-  color: rgb(255 255 255 / 60%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 60%);
 }
 
 /* 亮模式标签文字 */
@@ -368,7 +368,7 @@ html:not(.dark) .stat-label {
 
 /* 暗黑模式数值 */
 html.dark .stat-value {
-  color: #fff;
+  color: var(--color-industrial-light-surface);
 }
 
 /* 亮模式数值 */
@@ -387,8 +387,8 @@ html:not(.dark) .stat-value {
 }
 
 .stat-indicator.up {
-  color: #16a34a;
-  background: rgb(22 163 74 / 10%);
+  color: var(--color-success);
+  background: rgb(var(--color-success-rgb) / 10%);
 }
 
 .stat-indicator.down {
@@ -397,8 +397,8 @@ html:not(.dark) .stat-value {
 }
 
 .stat-indicator.stable {
-  color: rgb(255 255 255 / 60%);
-  background: rgb(255 255 255 / 5%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 60%);
+  background: rgb(var(--color-industrial-light-surface-rgb) / 5%);
 }
 
 /* ==================== 状态卡片 ==================== */
@@ -412,7 +412,7 @@ html:not(.dark) .stat-value {
 /* 暗黑模式状态卡片 */
 html.dark .status-card {
   background: rgb(13 17 23 / 80%);
-  border: 1px solid rgb(245 158 11 / 10%);
+  border: 1px solid rgb(var(--color-primary-rgb) / 10%);
 }
 
 /* 亮模式状态卡片 */
@@ -438,7 +438,7 @@ html:not(.dark) .status-card {
 
 /* 暗黑模式标题 */
 html.dark .card-title {
-  color: #fff;
+  color: var(--color-industrial-light-surface);
 }
 
 /* 亮模式标题 */
@@ -451,20 +451,20 @@ html:not(.dark) .card-title {
   align-items: center;
   gap: 8px;
   padding: 6px 12px;
-  background: rgb(22 163 74 / 8%);
-  border: 1px solid rgb(22 163 74 / 20%);
+  background: rgb(var(--color-success-rgb) / 8%);
+  border: 1px solid rgb(var(--color-success-rgb) / 20%);
   border-radius: 6px;
   font-size: 13px;
-  color: #16a34a;
+  color: var(--color-success);
 }
 
 .status-dot {
   width: 6px;
   height: 6px;
-  background: #16a34a;
+  background: var(--color-success);
   border-radius: 50%;
   animation: statusPulse 2s ease-in-out infinite;
-  box-shadow: 0 0 10px rgb(22 163 74 / 50%);
+  box-shadow: 0 0 10px rgb(var(--color-success-rgb) / 50%);
 }
 
 @keyframes statusPulse {
@@ -485,11 +485,11 @@ html:not(.dark) .card-title {
 
 /* 暗黑模式内容文字 */
 html.dark .card-content p {
-  color: rgb(255 255 255 / 70%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 70%);
 }
 
 html.dark .card-content strong {
-  color: #f59e0b;
+  color: var(--color-primary);
 }
 
 /* 亮模式内容文字 */
@@ -498,7 +498,7 @@ html:not(.dark) .card-content p {
 }
 
 html:not(.dark) .card-content strong {
-  color: #f59e0b;
+  color: var(--color-primary);
 }
 
 /* ==================== 响应式设计 ==================== */

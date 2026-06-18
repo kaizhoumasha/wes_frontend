@@ -172,9 +172,9 @@ function dispositionLabel(value: string): string {
 <style scoped>
 .runtime-hold-panel {
   padding: 18px;
-  border: 1px solid rgb(245 158 11 / 14%);
+  border: 1px solid rgb(var(--color-primary-rgb) / 14%);
   border-radius: 8px;
-  background: rgb(30 41 59 / 74%);
+  background: rgb(var(--color-industrial-dark-surface-rgb) / 74%);
 }
 
 .runtime-hold-panel header {
@@ -186,12 +186,12 @@ function dispositionLabel(value: string): string {
 
 .runtime-hold-panel h2 {
   margin: 0;
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
   font-size: 16px;
 }
 
 .runtime-hold-panel header span {
-  color: #f59e0b;
+  color: var(--color-primary);
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
 }
@@ -213,13 +213,13 @@ function dispositionLabel(value: string): string {
   align-items: center;
   min-height: 44px;
   gap: 10px;
-  color: #cbd5e1;
+  color: var(--color-industrial-light-border-hover);
 }
 
 .runtime-hold-field {
   display: grid;
   gap: 6px;
-  color: #94a3b8;
+  color: var(--color-industrial-dark-text-secondary);
   font-size: 12px;
 }
 
@@ -233,17 +233,17 @@ function dispositionLabel(value: string): string {
 .runtime-hold-field textarea {
   width: 100%;
   min-height: 44px;
-  border: 1px solid rgb(245 158 11 / 22%);
+  border: 1px solid rgb(var(--color-primary-rgb) / 22%);
   border-radius: 8px;
-  background: rgb(15 23 42 / 72%);
-  color: #f8fafc;
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 72%);
+  color: var(--color-industrial-dark-text);
   padding: 10px 12px;
 }
 
 .runtime-hold-field input:disabled,
 .runtime-hold-field select:disabled {
-  color: #64748b;
-  border-color: rgb(100 116 139 / 35%);
+  color: var(--color-industrial-dark-text-muted);
+  border-color: rgb(var(--color-industrial-dark-text-muted-rgb) / 35%);
 }
 
 .runtime-hold-alert {
@@ -253,7 +253,7 @@ function dispositionLabel(value: string): string {
 }
 
 .runtime-hold-alert.is-danger {
-  color: #fecaca;
-  background: rgb(220 38 38 / 14%);
+  color: var(--color-danger-light);
+  background: rgb(var(--color-danger-rgb) / 14%);
 }
 </style>

@@ -327,8 +327,8 @@ const handleLogoutConfirm = async () => {
 
 /* 暗黑模式头部 - 工业琥珀风格 */
 html.dark .app-header {
-  background: rgb(15 23 42 / 80%);
-  border-bottom: 1px solid rgb(148 163 184 / 12%);
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 80%);
+  border-bottom: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb) / 12%);
   backdrop-filter: blur(20px);
   box-shadow: 0 2px 20px rgb(0 0 0 / 30%);
 }
@@ -361,15 +361,15 @@ html:not(.dark) .app-header {
 
 /* 暗黑模式折叠按钮 */
 html.dark .collapse-button {
-  color: rgb(255 255 255 / 70%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 70%);
   background: transparent;
-  border: 1px solid rgb(255 255 255 / 10%);
+  border: 1px solid rgb(var(--color-industrial-light-surface-rgb) / 10%);
 }
 
 html.dark .collapse-button:hover {
-  color: #f59e0b;
-  background: rgb(245 158 11 / 8%);
-  border-color: rgb(245 158 11 / 30%);
+  color: var(--color-primary);
+  background: rgb(var(--color-primary-rgb) / 8%);
+  border-color: rgb(var(--color-primary-rgb) / 30%);
 }
 
 /* 亮模式折叠按钮 */
@@ -380,9 +380,9 @@ html:not(.dark) .collapse-button {
 }
 
 html:not(.dark) .collapse-button:hover {
-  color: #f59e0b;
-  background: rgb(245 158 11 / 8%);
-  border-color: rgb(245 158 11 / 30%);
+  color: var(--color-primary);
+  background: rgb(var(--color-primary-rgb) / 8%);
+  border-color: rgb(var(--color-primary-rgb) / 30%);
 }
 
 .collapse-button {
@@ -409,21 +409,21 @@ html:not(.dark) .collapse-button:hover {
 
 /* 暗黑模式面包屑 */
 html.dark .breadcrumb :deep(.el-breadcrumb__inner) {
-  color: rgb(255 255 255 / 60%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 60%);
   font-size: 14px;
   transition: all 0.3s ease;
 }
 
 html.dark .breadcrumb :deep(.el-breadcrumb__inner:hover) {
-  color: #f59e0b;
+  color: var(--color-primary);
 }
 
 html.dark .breadcrumb :deep(.el-breadcrumb__item:last-child .el-breadcrumb__inner) {
-  color: rgb(255 255 255 / 90%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 90%);
 }
 
 html.dark .breadcrumb :deep(.el-breadcrumb__separator) {
-  color: rgb(255 255 255 / 30%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 30%);
   margin: 0 8px;
 }
 
@@ -435,7 +435,7 @@ html:not(.dark) .breadcrumb :deep(.el-breadcrumb__inner) {
 }
 
 html:not(.dark) .breadcrumb :deep(.el-breadcrumb__inner:hover) {
-  color: #f59e0b;
+  color: var(--color-primary);
 }
 
 html:not(.dark) .breadcrumb :deep(.el-breadcrumb__item:last-child .el-breadcrumb__inner) {
@@ -456,15 +456,15 @@ html:not(.dark) .breadcrumb :deep(.el-breadcrumb__separator) {
 
 /* 暗黑模式搜索占位符 */
 html.dark .search-placeholder {
-  color: rgb(255 255 255 / 40%);
-  background: rgb(255 255 255 / 5%);
-  border: 1px solid rgb(255 255 255 / 10%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 40%);
+  background: rgb(var(--color-industrial-light-surface-rgb) / 5%);
+  border: 1px solid rgb(var(--color-industrial-light-surface-rgb) / 10%);
 }
 
 html.dark .search-placeholder:hover {
-  color: rgb(255 255 255 / 70%);
-  background: rgb(255 255 255 / 8%);
-  border-color: rgb(255 255 255 / 20%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 70%);
+  background: rgb(var(--color-industrial-light-surface-rgb) / 8%);
+  border-color: rgb(var(--color-industrial-light-surface-rgb) / 20%);
 }
 
 /* 亮模式搜索占位符 */
@@ -475,9 +475,9 @@ html:not(.dark) .search-placeholder {
 }
 
 html:not(.dark) .search-placeholder:hover {
-  color: #f59e0b;
-  background: rgb(245 158 11 / 8%);
-  border-color: rgb(245 158 11 / 30%);
+  color: var(--color-primary);
+  background: rgb(var(--color-primary-rgb) / 8%);
+  border-color: rgb(var(--color-primary-rgb) / 30%);
 }
 
 .search-placeholder {
@@ -510,19 +510,19 @@ html:not(.dark) .search-placeholder:hover {
 
 /* 暗黑模式用户菜单 */
 html.dark .user-dropdown:hover {
-  background: rgb(255 255 255 / 5%);
+  background: rgb(var(--color-industrial-light-surface-rgb) / 5%);
 }
 
 html.dark .user-name {
-  color: rgb(255 255 255 / 90%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 90%);
 }
 
 html.dark .dropdown-arrow {
-  color: rgb(255 255 255 / 40%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 40%);
 }
 
 html.dark .user-dropdown:hover .dropdown-arrow {
-  color: rgb(255 255 255 / 70%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 70%);
 }
 
 /* 亮模式用户菜单 */
@@ -539,13 +539,13 @@ html:not(.dark) .dropdown-arrow {
 }
 
 html:not(.dark) .user-dropdown:hover .dropdown-arrow {
-  color: #f59e0b;
+  color: var(--color-primary);
 }
 
 .user-avatar {
-  color: #f59e0b;
-  background: rgb(245 158 11 / 10%);
-  border: 1px solid rgb(245 158 11 / 30%);
+  color: var(--color-primary);
+  background: rgb(var(--color-primary-rgb) / 10%);
+  border: 1px solid rgb(var(--color-primary-rgb) / 30%);
 }
 
 .user-name {
@@ -566,23 +566,23 @@ html:not(.dark) .user-dropdown:hover .dropdown-arrow {
 
 /* 暗黑模式下拉菜单 */
 html.dark .user-dropdown-menu {
-  background: rgb(15 23 42 / 98%);
-  border: 1px solid rgb(148 163 184 / 12%);
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 98%);
+  border: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb) / 12%);
   box-shadow: 0 4px 20px rgb(0 0 0 / 30%);
   backdrop-filter: blur(20px);
 }
 
 html.dark .user-dropdown-menu :deep(.el-dropdown-menu__item) {
-  color: rgb(255 255 255 / 70%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 70%);
 }
 
 html.dark .user-dropdown-menu :deep(.el-dropdown-menu__item:hover) {
-  background: rgb(245 158 11 / 8%);
-  color: rgb(255 255 255 / 100%);
+  background: rgb(var(--color-primary-rgb) / 8%);
+  color: rgb(var(--color-industrial-light-surface-rgb) / 100%);
 }
 
 html.dark .user-dropdown-menu :deep(.el-dropdown-menu__item.is-divided) {
-  border-top: 1px solid rgb(148 163 184 / 12%);
+  border-top: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb) / 12%);
 }
 
 /* 亮模式下拉菜单 */
@@ -597,8 +597,8 @@ html:not(.dark) .user-dropdown-menu :deep(.el-dropdown-menu__item) {
 }
 
 html:not(.dark) .user-dropdown-menu :deep(.el-dropdown-menu__item:hover) {
-  background: rgb(245 158 11 / 8%);
-  color: #f59e0b;
+  background: rgb(var(--color-primary-rgb) / 8%);
+  color: var(--color-primary);
 }
 
 html:not(.dark) .user-dropdown-menu :deep(.el-dropdown-menu__item.is-divided) {
@@ -649,16 +649,16 @@ html:not(.dark) .user-dropdown-menu :deep(.el-dropdown-menu__item.is-divided) {
 
 /* 暗黑模式时区标签 */
 html.dark .timezone-tag {
-  background: rgb(245 158 11 / 15%);
-  border-color: rgb(245 158 11 / 30%);
-  color: rgb(245 158 11 / 90%);
+  background: rgb(var(--color-primary-rgb) / 15%);
+  border-color: rgb(var(--color-primary-rgb) / 30%);
+  color: rgb(var(--color-primary-rgb) / 90%);
 }
 
 /* 亮模式时区标签 */
 html:not(.dark) .timezone-tag {
-  background: rgb(245 158 11 / 8%);
-  border-color: rgb(245 158 11 / 30%);
-  color: #f59e0b;
+  background: rgb(var(--color-primary-rgb) / 8%);
+  border-color: rgb(var(--color-primary-rgb) / 30%);
+  color: var(--color-primary);
 }
 
 /* ==================== 响应式设计 ==================== */

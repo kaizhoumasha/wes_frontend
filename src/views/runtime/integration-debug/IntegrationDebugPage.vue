@@ -428,11 +428,11 @@ watch(
 <style scoped>
 .runtime-page__subtitle {
   max-width: 860px;
-  color: #94a3b8;
+  color: var(--color-industrial-dark-text-secondary);
 }
 
 .runtime-page__title {
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
 }
 
 .integration-debug {
@@ -493,12 +493,12 @@ watch(
 
 .integration-debug__panel-head h2 {
   margin: 0;
-  color: #e2e8f0;
+  color: var(--color-industrial-light-border);
   font-size: 15px;
 }
 
 .integration-debug__panel-head span {
-  color: #94a3b8;
+  color: var(--color-industrial-dark-text-secondary);
   font-size: 12px;
 }
 
@@ -513,9 +513,9 @@ watch(
 
 .integration-debug__case-row,
 .integration-debug__action {
-  border: 1px solid rgb(148 163 184 / 0.16);
+  border: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.16);
   border-radius: 8px;
-  background: rgb(15 23 42 / 0.62);
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 0.62);
   color: inherit;
   cursor: pointer;
   text-align: left;
@@ -530,14 +530,14 @@ watch(
 }
 
 .integration-debug__case-row--active {
-  border-color: rgb(245 158 11 / 0.72);
-  background: rgb(245 158 11 / 0.1);
+  border-color: rgb(var(--color-primary-rgb) / 0.72);
+  background: rgb(var(--color-primary-rgb) / 0.1);
 }
 
 .integration-debug__case-row strong,
 .integration-debug__action strong {
   display: block;
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
   font-size: 13px;
 }
 
@@ -545,7 +545,7 @@ watch(
 .integration-debug__action span {
   display: -webkit-box;
   overflow: hidden;
-  color: #94a3b8;
+  color: var(--color-industrial-dark-text-secondary);
   font-size: 12px;
   line-height: 1.5;
   -webkit-line-clamp: 2;
@@ -569,7 +569,7 @@ watch(
 
 .integration-debug__verdict h2 {
   margin: 0;
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
   font-size: 22px;
   line-height: 1.3;
 }
@@ -581,9 +581,9 @@ watch(
 
 .integration-debug__meta span {
   padding: 3px 8px;
-  border: 1px solid rgb(148 163 184 / 0.16);
+  border: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.16);
   border-radius: 999px;
-  color: #cbd5e1;
+  color: var(--color-industrial-light-border-hover);
   font-size: 12px;
 }
 
@@ -597,9 +597,9 @@ watch(
 .integration-debug__stage {
   min-height: 74px;
   padding: 10px;
-  border: 1px solid rgb(148 163 184 / 0.16);
+  border: 1px solid rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.16);
   border-radius: 8px;
-  background: rgb(15 23 42 / 0.5);
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 0.5);
 }
 
 .integration-debug__stage span,
@@ -608,22 +608,22 @@ watch(
 }
 
 .integration-debug__stage span {
-  color: #94a3b8;
+  color: var(--color-industrial-dark-text-secondary);
   font-size: 12px;
 }
 
 .integration-debug__stage strong {
   margin-top: 12px;
-  color: #e2e8f0;
+  color: var(--color-industrial-light-border);
   font-size: 15px;
 }
 
 .integration-debug__stage--ok {
-  border-color: rgb(34 197 94 / 0.36);
+  border-color: rgb(var(--color-success-rgb) / 0.36);
 }
 
 .integration-debug__stage--waiting {
-  border-color: rgb(245 158 11 / 0.4);
+  border-color: rgb(var(--color-primary-rgb) / 0.4);
 }
 
 .integration-debug__stage--blocked,
@@ -652,14 +652,14 @@ watch(
 }
 
 .integration-debug__facts dt {
-  color: #94a3b8;
+  color: var(--color-industrial-dark-text-secondary);
   font-size: 12px;
 }
 
 .integration-debug__facts dd {
   min-width: 0;
   margin: 0;
-  color: #e2e8f0;
+  color: var(--color-industrial-light-border);
   font-size: 13px;
   overflow-wrap: anywhere;
 }

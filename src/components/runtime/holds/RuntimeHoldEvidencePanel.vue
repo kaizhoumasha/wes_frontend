@@ -74,9 +74,9 @@ const evidenceSnapshotJson = computed(() => JSON.stringify(props.evidenceSnapsho
 <style scoped>
 .runtime-hold-panel {
   padding: 18px;
-  border: 1px solid rgb(245, 158, 11, 0.14);
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.14);
   border-radius: 8px;
-  background: rgb(30, 41, 59, 0.74);
+  background: rgb(var(--color-industrial-dark-surface-rgb) / 0.74);
 }
 
 .runtime-hold-panel header {
@@ -88,12 +88,12 @@ const evidenceSnapshotJson = computed(() => JSON.stringify(props.evidenceSnapsho
 
 .runtime-hold-panel h2 {
   margin: 0;
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
   font-size: 16px;
 }
 
 .runtime-hold-panel header span {
-  color: #f59e0b;
+  color: var(--color-primary);
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
 }
@@ -105,13 +105,13 @@ const evidenceSnapshotJson = computed(() => JSON.stringify(props.evidenceSnapsho
 }
 
 .runtime-hold-alert.is-danger {
-  color: #fecaca;
-  background: rgb(220, 38, 38, 0.14);
+  color: var(--color-danger-light);
+  background: rgb(var(--color-danger-rgb) / 0.14);
 }
 
 .runtime-hold-alert.is-warning {
-  color: #fde68a;
-  background: rgb(245, 158, 11, 0.14);
+  color: var(--color-primary-200);
+  background: rgb(var(--color-primary-rgb) / 0.14);
 }
 
 .runtime-hold-kv {
@@ -127,12 +127,12 @@ const evidenceSnapshotJson = computed(() => JSON.stringify(props.evidenceSnapsho
 }
 
 .runtime-hold-kv dt {
-  color: #94a3b8;
+  color: var(--color-industrial-dark-text-secondary);
 }
 
 .runtime-hold-kv dd {
   margin: 0;
-  color: #f8fafc;
+  color: var(--color-industrial-dark-text);
   font-family: 'JetBrains Mono', monospace;
 }
 
@@ -142,8 +142,8 @@ pre {
   margin: 0;
   padding: 12px;
   border-radius: 8px;
-  color: #cbd5e1;
-  background: rgb(15, 23, 42, 0.78);
+  color: var(--color-industrial-light-border-hover);
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 0.78);
   font-size: 12px;
 }
 </style>

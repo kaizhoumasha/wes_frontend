@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
 ## [0.7.2.0] - 2026-06-18
 
 ### Changed
@@ -16,6 +18,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - 更新契约测试文档中的完整 OpenAPI 地址示例，改用 `BACKEND_OPENAPI_URL`，避免旧 `BACKEND_URL` 示例被当作后端 base URL 再追加路径。
+
+## [0.7.1.0] - 2026-06-18
+
+### Added
+
+- **Token 三层契约落地**:`globals.css` 新增 L2a 静态工业 token 层(`--color-industrial-{dark,light}-{bg,surface,surface-elevated,border,border-hover,text,text-secondary,text-muted}` + 各 `-rgb` 三元组,空格分隔)与 L2b 主题感知层(`--color-bg/-bg-solid/-body-text/-surface/-surface-elevated/-surface-subtle/-border/-border-hover/-border-strong/-text-{primary,secondary,muted,disabled,inverse}/-shadow-rgb`),`html.dark` 与 `html:not(.dark)` 各定义一套,SFC 引用主题感知 token 自动跟随主题切换。
+- **Stylelint 硬编码已建模色拦截**(`stylelint.config.js`):新增 `declaration-property-value-disallowed-list` 规则,Vue override 启用,18 项 regex 覆盖主色 / 语义色 / 工业中性色族,违规 = error 阻塞 lint;`globals.css` 自身豁免(token 定义源头需要硬编码原始值)。
+- **Token 不变量测试**(`tests/unit/styles/style-token-invariants.test.ts`):9 项不变量验证 token 三层契约 — 旧 token 定义/引用零、`--color-*-rgb` 空格分隔、dark/light selector 暴露相同 `--color-*` 与 `--runtime-*` 名称、每个 `--runtime-*` 派生自 `--color-*`、`--runtime-badge-info-*` 用 `--color-info` 而非 safety-blue、SFC `<style>` 块零硬编码、CSS 无双斜线 TODO。
+- DESIGN.md 新增 `### Token 引用契约` 子节,定义 L1/L2a/L2b/L3 引用规则与 Stylelint 拦截策略。
+
+### Changed
+
+- **`--runtime-*` 改为派生层**:`html.dark` / `html:not(.dark)` 各 ~42 个 `--runtime-*` 变量从硬编码 hex/rgb 改为 100% `var(--color-*)` 或 `rgb(var(--color-*-rgb) / α)` 派生。改主色一处,Runtime Monitor 与全站同步响应。
+- **删除旧 token 体系**(R3-C C2):删除 `globals.css` 中 13 个旧 token(`--body-bg/--body-color/--surface-bg*/--border-color*/--text-{primary,secondary,muted,disabled,inverse}`)的定义与引用,SFC 中 22 处 `var(--legacy)` 引用全部替换为 `var(--color-*)`。
+- **CSS Color 4 slash-alpha 语法迁移**:5 个 `--color-*-rgb` 元组从逗号分隔(`245, 158, 11`)改为空格分隔(`245 158 11`),18 处 `rgb(var(--color-*-rgb), N)` 旧逗号 alpha 语法迁移为 `rgb(var(--color-*-rgb) / N)` slash 语法。
+- **SFC 硬编码颜色清零**:543 处违规 → 0,57 个 SFC 文件全部改用 `var(--color-*)` 派生(主色族 / 语义色 / industrial 中性色)。共新增 565 处 `var(--color-*)` 引用(280 主色 + 141 语义色 + 145 industrial 静态)。
+- **Runtime Light Theme 段归位**:`globals.css:1306` 起原本位于 `@layer theme` 之外的 Light Theme overrides 段已归位到 `html:not(.dark)` 块内(R2 Q4 失误修正)。
+- **运行态色彩语义对齐 SPEC**(P1):`--runtime-rail` / `--runtime-border-neutral` 从中灰半透改为琥珀半透;`--runtime-badge-info-*` 从 cyan(`#22d3ee`)改为 info-blue(`var(--color-info-light)`);light 模式 `--color-border-hover` 从主色高亮改为中灰(`#CBD5E1`)。
+
+### Fixed
+
+- 修复 `--runtime-badge-info-*` 此前误用不存在的 `--color-safety-blue-rgb`(实际项目变量是 `--color-info-rgb`)的隐 bug(R3-F)。
+- 修复 `--color-*-rgb` 与 `rgb(var(...) / α)` 格式不兼容导致的视觉静默失败(空格分隔 RGB + slash alpha 是 CSS Color 4 唯一兼容组合)。
 
 ## [0.7.0.0] - 2026-06-17
 

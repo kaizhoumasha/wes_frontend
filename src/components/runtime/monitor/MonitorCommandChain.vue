@@ -119,7 +119,8 @@ const ackStateLabel = computed(() =>
   display: grid;
   gap: 10px;
   padding: 12px;
-  border: 1px solid var(--runtime-border-subtle, rgb(148, 163, 184, 0.2));
+  border: 1px solid
+    var(--runtime-border-subtle, rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.2));
   border-radius: 8px;
   background: var(--runtime-surface);
   color: var(--runtime-text);
@@ -142,7 +143,7 @@ const ackStateLabel = computed(() =>
 .monitor-command-chain__pill {
   padding: 2px 8px;
   border-radius: 999px;
-  background: rgb(148, 163, 184, 0.16);
+  background: rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.16);
   color: var(--runtime-text-muted);
   font-size: 11px;
   font-weight: 600;
@@ -151,28 +152,29 @@ const ackStateLabel = computed(() =>
 }
 
 .monitor-command-chain__pill--pending {
-  background: rgb(59, 130, 246, 0.14);
-  color: #3b82f6;
+  background: rgb(var(--color-info-rgb) / 0.14);
+  color: var(--color-info);
 }
 
 .monitor-command-chain__pill--acked {
-  background: rgb(22, 163, 74, 0.14);
-  color: #16a34a;
+  background: rgb(var(--color-success-rgb) / 0.14);
+  color: var(--color-success);
 }
 
 .monitor-command-chain__pill--rejected {
-  background: rgb(220, 38, 38, 0.14);
-  color: #dc2626;
+  background: rgb(var(--color-danger-rgb) / 0.14);
+  color: var(--color-danger);
 }
 
 .monitor-command-chain__pill--expired {
-  background: rgb(234, 179, 8, 0.14);
-  color: #b45309;
+  background: rgb(var(--color-warning-rgb) / 0.14);
+  color: var(--color-primary-700);
 }
 
 .monitor-command-chain__idle {
   padding: 16px 12px;
-  border: 1px dashed var(--runtime-border-subtle, rgb(148, 163, 184, 0.25));
+  border: 1px dashed
+    var(--runtime-border-subtle, rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.25));
   border-radius: 6px;
   color: var(--runtime-text-muted);
   font-size: 12px;
@@ -191,9 +193,10 @@ const ackStateLabel = computed(() =>
   gap: 4px;
   min-width: 0;
   padding: 8px 10px;
-  border: 1px solid var(--runtime-border-subtle, rgb(148, 163, 184, 0.18));
+  border: 1px solid
+    var(--runtime-border-subtle, rgb(var(--color-industrial-dark-text-secondary-rgb) / 0.18));
   border-radius: 6px;
-  background: rgb(15, 23, 42, 0.04);
+  background: rgb(var(--color-industrial-dark-bg-rgb) / 0.04);
 }
 
 .monitor-command-chain__cell--full {
