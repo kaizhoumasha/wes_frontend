@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.2.0] - 2026-06-18
+
+### Changed
+
+- 工作线插件 manifest 合同同步到可复现的本地 OpenAPI snapshot，配置页和运行态依赖的 API 类型、metadata 与 Zod schema 保持一致。
+- API 类型、Zod 生成和契约校验支持通过精确 OpenAPI 文件或 URL 复现同一合同 hash，避免依赖临时本地后端端口。
+- 自动生成的 API 合同文件不再写入 OpenAPI 来源地址，减少不同机器或端口造成的无意义生成差异。
+
+### Fixed
+
+- 更新契约测试文档中的完整 OpenAPI 地址示例，改用 `BACKEND_OPENAPI_URL`，避免旧 `BACKEND_URL` 示例被当作后端 base URL 再追加路径。
+
 ## [0.7.0.0] - 2026-06-17
 
 ### Added
