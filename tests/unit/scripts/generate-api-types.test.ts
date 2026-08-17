@@ -15,72 +15,41 @@ import {
   deleteStaleGeneratedModules,
   groupEndpointsByModuleModel,
   mergeModuleWithCustomSections,
-  resolveOpenApiSourceFromEnv,
-  type EndpointInfo,
+  type EndpointInfo
 } from '../../../scripts/generate-api-types'
 
 function makeEndpoint(path: string, method: EndpointInfo['method']): EndpointInfo {
   return {
     path,
     method,
-    operation: {},
+    operation: {}
   }
 }
 
 describe('generate-api-types helpers', () => {
-  it('resolves exact OpenAPI document sources before legacy base URLs', () => {
-    expect(
-      resolveOpenApiSourceFromEnv({
-        OPENAPI_SPEC_PATH: 'contracts/openapi.workline-plugin-manifest-yaml-topology.json',
-        BACKEND_OPENAPI_URL: 'http://127.0.0.1:8012/api/openapi.json',
-        VITE_API_BASE_URL: 'http://127.0.0.1:8001',
-      })
-    ).toEqual({
-      record: 'contracts/openapi.workline-plugin-manifest-yaml-topology.json',
-      source: join(process.cwd(), 'contracts/openapi.workline-plugin-manifest-yaml-topology.json'),
-    })
-
-    expect(
-      resolveOpenApiSourceFromEnv({
-        OPENAPI_SPEC_URL: 'https://example.test/openapi.workline-plugin-manifest-yaml-topology.json',
-        VITE_API_BASE_URL: 'http://127.0.0.1:8001',
-      })
-    ).toEqual({
-      record: 'https://example.test/openapi.workline-plugin-manifest-yaml-topology.json',
-      source: 'https://example.test/openapi.workline-plugin-manifest-yaml-topology.json',
-    })
-
-    expect(
-      resolveOpenApiSourceFromEnv({
-        BACKEND_OPENAPI_URL: 'http://127.0.0.1:8012/api/openapi.json',
-        VITE_API_BASE_URL: 'http://127.0.0.1:8001',
-      })
-    ).toEqual({
-      record: 'http://127.0.0.1:8012/api/openapi.json',
-      source: 'http://127.0.0.1:8012/api/openapi.json',
-    })
-  })
-
-  it('appends the OpenAPI path only for legacy backend base URL inputs', () => {
-    expect(
-      resolveOpenApiSourceFromEnv({
-        VITE_API_BASE_URL: 'http://127.0.0.1:8012',
-      })
-    ).toEqual({
-      record: 'http://127.0.0.1:8012',
-      source: 'http://127.0.0.1:8012/api/openapi.json',
-    })
-  })
-
   it('groups endpoints by module and model from path', () => {
     const groups = groupEndpointsByModuleModel([
       makeEndpoint('/api/v1/admin/users', 'post'),
       makeEndpoint('/api/v1/admin/users/query', 'post'),
-      makeEndpoint('/api/v1/admin/roles', 'post'),
+      makeEndpoint('/api/v1/admin/roles', 'post')
     ])
 
     expect(groups.map(group => group.key)).toEqual(['admin:roles', 'admin:users'])
     expect(groups[1]?.collectionPath).toBe('/api/v1/admin/users')
+  })
+
+  it('filters system-owned endpoints before grouping browser modules', () => {
+    const groups = groupEndpointsByModuleModel([
+      makeEndpoint('/api/v1/wms/events', 'post'),
+      makeEndpoint('/api/v1/callback/external', 'post'),
+      makeEndpoint('/api/v1/callback/logs', 'get'),
+      makeEndpoint('/api/v1/admin/users', 'post')
+    ])
+
+    expect(groups.flatMap(group => group.endpoints.map(endpoint => endpoint.path))).toEqual([
+      '/api/v1/admin/users',
+      '/api/v1/callback/logs'
+    ])
   })
 
   it('derives method names from relative paths instead of operationId heuristics', () => {
@@ -99,7 +68,7 @@ describe('generate-api-types helpers', () => {
       makeEndpoint('/api/v1/admin/users/{id}/restore', 'post'),
       makeEndpoint('/api/v1/admin/users/trash', 'get'),
       makeEndpoint('/api/v1/admin/users/trash/restore', 'post'),
-      makeEndpoint('/api/v1/admin/users/trash/permanent', 'delete'),
+      makeEndpoint('/api/v1/admin/users/trash/permanent', 'delete')
     ])
 
     expect(capabilities.kind).toBe('soft-delete')
@@ -115,18 +84,21 @@ describe('generate-api-types helpers', () => {
       makeEndpoint('/api/v1/admin/users/{id}', 'get'),
       makeEndpoint('/api/v1/admin/users/{id}', 'put'),
       makeEndpoint('/api/v1/admin/users/{id}', 'delete'),
-      makeEndpoint('/api/v1/admin/users/query', 'post'),
+      makeEndpoint('/api/v1/admin/users/query', 'post')
     ])
 
     const plans = buildModulePlans(groups)
 
     expect(
       plans
-        .map(plan => ({ fileBaseName: plan.fileBaseName, groupKeys: plan.groups.map(group => group.key) }))
+        .map(plan => ({
+          fileBaseName: plan.fileBaseName,
+          groupKeys: plan.groups.map(group => group.key)
+        }))
         .sort((left, right) => left.fileBaseName.localeCompare(right.fileBaseName))
     ).toEqual([
       { fileBaseName: 'auth', groupKeys: ['auth:login', 'auth:my', 'auth:permissions'] },
-      { fileBaseName: 'users', groupKeys: ['admin:users'] },
+      { fileBaseName: 'users', groupKeys: ['admin:users'] }
     ])
   })
 
@@ -147,7 +119,7 @@ describe('generate-api-types helpers', () => {
         '// ==================== CUSTOM CONFIG START ====================',
         '// custom config',
         '// ==================== CUSTOM CONFIG END ====================',
-        '',
+        ''
       ].join('\n'),
       [
         '// ==================== AUTO GENERATED START ====================',
@@ -164,7 +136,7 @@ describe('generate-api-types helpers', () => {
         '// ==================== CUSTOM CONFIG START ====================',
         'export const cacheFor = 3000',
         '// ==================== CUSTOM CONFIG END ====================',
-        '',
+        ''
       ].join('\n')
     )
 
@@ -172,6 +144,41 @@ describe('generate-api-types helpers', () => {
     expect(merged).toContain('export const keepMe = true')
     expect(merged).toContain('export const cacheFor = 3000')
     expect(merged).not.toContain('old auto')
+  })
+
+  it('accepts compact empty custom blocks after obsolete custom code is removed', () => {
+    const generated = mergeModuleWithCustomSections(
+      [
+        AUTO_GENERATED_START,
+        'new auto',
+        AUTO_GENERATED_END,
+        '',
+        CUSTOM_METHODS_START,
+        '',
+        CUSTOM_METHODS_END,
+        '',
+        CUSTOM_CONFIG_START,
+        '',
+        CUSTOM_CONFIG_END,
+        ''
+      ].join('\n'),
+      [
+        AUTO_GENERATED_START,
+        'old auto',
+        AUTO_GENERATED_END,
+        '',
+        CUSTOM_METHODS_START,
+        CUSTOM_METHODS_END,
+        '',
+        CUSTOM_CONFIG_START,
+        '',
+        CUSTOM_CONFIG_END,
+        ''
+      ].join('\n')
+    )
+
+    expect(generated).toContain('new auto')
+    expect(generated).not.toContain('old auto')
   })
 
   it('deletes stale generated modules without touching manual files', () => {
@@ -195,7 +202,7 @@ describe('generate-api-types helpers', () => {
           CUSTOM_CONFIG_START,
           '',
           CUSTOM_CONFIG_END,
-          '',
+          ''
         ].join('\n')
       )
       writeFileSync(manualFile, 'export const keepManualFile = true\n')

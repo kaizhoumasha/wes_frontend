@@ -1,7 +1,17 @@
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, unlinkSync, writeFileSync } from 'node:fs'
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  unlinkSync,
+  writeFileSync
+} from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { writeFileAtomically } from './atomic-file'
+import { computeSha256 } from './sha256'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -39,9 +49,8 @@ export interface PermissionGroup {
 }
 
 export interface PermissionSyncRecord {
-  lastSyncTime: string
-  permissionsHash: string
-  backendRoot: string
+  backendCommit: string
+  permissionsSha256: string
   permissionCount: number
 }
 
@@ -128,8 +137,14 @@ print("${JSON_END_MARKER}")
       stdout?: string | Buffer
       stderr?: string | Buffer
     }
-    const stderr = typeof cause.stderr === 'string' ? cause.stderr.trim() : cause.stderr?.toString('utf-8').trim()
-    const stdout = typeof cause.stdout === 'string' ? cause.stdout.trim() : cause.stdout?.toString('utf-8').trim()
+    const stderr =
+      typeof cause.stderr === 'string'
+        ? cause.stderr.trim()
+        : cause.stderr?.toString('utf-8').trim()
+    const stdout =
+      typeof cause.stdout === 'string'
+        ? cause.stdout.trim()
+        : cause.stdout?.toString('utf-8').trim()
     const details = [stderr, stdout].filter(Boolean).join('\n')
 
     throw new Error(
@@ -157,7 +172,10 @@ function toCamelCase(value: string): string {
     return value
   }
 
-  return first.toLowerCase() + rest.map(segment => segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase()).join('')
+  return (
+    first.toLowerCase() +
+    rest.map(segment => segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase()).join('')
+  )
 }
 
 function toPascalCase(value: string): string {
@@ -167,7 +185,9 @@ function toPascalCase(value: string): string {
 }
 
 function toUpperSnakeCase(value: string): string {
-  return splitWords(value).map(segment => segment.toUpperCase()).join('_')
+  return splitWords(value)
+    .map(segment => segment.toUpperCase())
+    .join('_')
 }
 
 function normalizePathSegment(value: string): string {
@@ -253,10 +273,7 @@ function getActionComment(permission: PermissionRecord): string {
   return ACTION_COMMENT_MAP[action] || permission.description || `${action} 权限`
 }
 
-export function buildPermissionFileContent(
-  group: PermissionGroup,
-  backendRoot: string
-): string {
+export function buildPermissionFileContent(group: PermissionGroup): string {
   const lines: string[] = [
     '/**',
     ' * 自动生成的权限常量定义',
@@ -264,7 +281,6 @@ export function buildPermissionFileContent(
     ' * ⚠️ 请勿手动编辑此文件',
     ' * 此文件由 scripts/generate-permissions.ts 自动生成',
     ' *',
-    ` * 后端目录: ${backendRoot}`,
     ` * 权限分组: ${group.key}`,
     ' *',
     ` * 更新权限: ${GENERATE_COMMAND}`,
@@ -296,7 +312,7 @@ export function buildPermissionFileContent(
   return lines.join('\n')
 }
 
-export function buildPermissionsIndexContent(groups: PermissionGroup[], backendRoot: string): string {
+export function buildPermissionsIndexContent(groups: PermissionGroup[]): string {
   const lines: string[] = [
     '/**',
     ' * 自动生成的权限常量导出入口',
@@ -304,7 +320,6 @@ export function buildPermissionsIndexContent(groups: PermissionGroup[], backendR
     ' * ⚠️ 请勿手动编辑此文件',
     ' * 此文件由 scripts/generate-permissions.ts 自动生成',
     ' *',
-    ` * 后端目录: ${backendRoot}`,
     ' */',
     ''
   ]
@@ -330,13 +345,23 @@ export function buildPermissionsIndexContent(groups: PermissionGroup[], backendR
     }
   }
 
-  for (const [category, categoryPermissionGroups] of [...categoryGroups.entries()].sort((left, right) => left[0].localeCompare(right[0]))) {
+  for (const [category, categoryPermissionGroups] of [...categoryGroups.entries()].sort(
+    (left, right) => left[0].localeCompare(right[0])
+  )) {
     const usedProps = new Set<string>()
     const categoryConstName = `${toUpperSnakeCase(category)}_PERMISSIONS`
 
-    lines.push('', '/**', ` * ${category} 分类权限快捷导出`, ' */', `export const ${categoryConstName} = {`)
+    lines.push(
+      '',
+      '/**',
+      ` * ${category} 分类权限快捷导出`,
+      ' */',
+      `export const ${categoryConstName} = {`
+    )
 
-    for (const group of categoryPermissionGroups.sort((left, right) => left.resource.localeCompare(right.resource))) {
+    for (const group of categoryPermissionGroups.sort((left, right) =>
+      left.resource.localeCompare(right.resource)
+    )) {
       let resourceProp = toCamelCase(group.resource)
       if (usedProps.has(resourceProp)) {
         resourceProp = `${resourceProp}${toPascalCase(group.type)}`
@@ -350,7 +375,9 @@ export function buildPermissionsIndexContent(groups: PermissionGroup[], backendR
 
   lines.push('', '/**', ' * 全量权限快捷导出', ' */', 'export const PERMISSIONS = {')
 
-  for (const category of [...categoryGroups.keys()].sort((left, right) => left.localeCompare(right))) {
+  for (const category of [...categoryGroups.keys()].sort((left, right) =>
+    left.localeCompare(right)
+  )) {
     lines.push(`  ${toCamelCase(category)}: ${toUpperSnakeCase(category)}_PERMISSIONS,`)
   }
 
@@ -401,10 +428,7 @@ export function writeFileIfChanged(outputPath: string, content: string): boolean
   return true
 }
 
-export function writePermissionGroupFile(
-  group: PermissionGroup,
-  content: string
-): boolean {
+export function writePermissionGroupFile(group: PermissionGroup, content: string): boolean {
   const outputPath = resolve(PERMISSIONS_OUTPUT_DIR, group.relativeFilePath)
   return writeFileIfChanged(outputPath, content)
 }
@@ -425,16 +449,6 @@ export function removeStalePermissionFiles(expectedFiles: string[]): string[] {
   return staleFiles
 }
 
-export function simpleHash(str: string): string {
-  let hash = 0
-  for (let index = 0; index < str.length; index += 1) {
-    const char = str.charCodeAt(index)
-    hash = ((hash << 5) - hash) + char
-    hash &= hash
-  }
-  return Math.abs(hash).toString(36)
-}
-
 export function computePermissionsHash(permissions: PermissionRecord[]): string {
   const normalized = [...permissions]
     .sort((left, right) => left.name.localeCompare(right.name))
@@ -442,27 +456,73 @@ export function computePermissionsHash(permissions: PermissionRecord[]): string 
       name: permission.name,
       type: permission.type,
       category: permission.category,
+      description: permission.description,
       resource: permission.resource,
       action: permission.action,
       method: permission.method,
       path: permission.path
     }))
 
-  return simpleHash(JSON.stringify(normalized))
+  return computeSha256(JSON.stringify(normalized))
 }
 
 export function writePermissionSyncRecord(record: PermissionSyncRecord): void {
-  writeFileIfChanged(PERMISSION_SYNC_RECORD_FILE, `${JSON.stringify(record, null, 2)}\n`)
+  const content = `${JSON.stringify(record, null, 2)}\n`
+  if (
+    !existsSync(PERMISSION_SYNC_RECORD_FILE) ||
+    readFileSync(PERMISSION_SYNC_RECORD_FILE, 'utf-8') !== content
+  ) {
+    writeFileAtomically(PERMISSION_SYNC_RECORD_FILE, content)
+  }
 }
 
-export function readPermissionSyncRecord(): PermissionSyncRecord | null {
-  if (!existsSync(PERMISSION_SYNC_RECORD_FILE)) {
+function isExactPermissionSyncRecord(value: unknown): value is PermissionSyncRecord {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return false
+  }
+
+  const record = value as Record<string, unknown>
+  const keys = Object.keys(record).sort()
+  const expectedKeys = ['backendCommit', 'permissionCount', 'permissionsSha256']
+  return (
+    keys.length === expectedKeys.length &&
+    keys.every((key, index) => key === expectedKeys[index]) &&
+    typeof record.backendCommit === 'string' &&
+    /^[a-f0-9]{40}$/.test(record.backendCommit) &&
+    typeof record.permissionsSha256 === 'string' &&
+    /^[a-f0-9]{64}$/.test(record.permissionsSha256) &&
+    typeof record.permissionCount === 'number' &&
+    Number.isInteger(record.permissionCount) &&
+    record.permissionCount >= 0
+  )
+}
+
+export function readPermissionSyncRecord(
+  recordPath: string = PERMISSION_SYNC_RECORD_FILE
+): PermissionSyncRecord | null {
+  if (!existsSync(recordPath)) {
     return null
   }
 
   try {
-    return JSON.parse(readFileSync(PERMISSION_SYNC_RECORD_FILE, 'utf-8')) as PermissionSyncRecord
+    const record: unknown = JSON.parse(readFileSync(recordPath, 'utf-8'))
+    return isExactPermissionSyncRecord(record) ? record : null
   } catch {
     return null
   }
+}
+
+export function assertPermissionRecordBackendCommit(
+  record: PermissionSyncRecord | null,
+  backendCommit: string
+): PermissionSyncRecord {
+  if (!record) {
+    throw new Error('权限同步记录缺失或格式无效')
+  }
+  if (record.backendCommit !== backendCommit) {
+    throw new Error(
+      `权限同步记录 backend commit 不匹配：记录 ${record.backendCommit}，当前 ${backendCommit}`
+    )
+  }
+  return record
 }

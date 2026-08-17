@@ -1,274 +1,109 @@
-# 前后端契约同步工作流
+# 前后端契约同步流程
 
-## 📋 概述
+## 真源与边界
 
-本文档定义了当后端模型变化时，前端验证规则的同步流程。
+前端只消费已提交的 `contracts/openapi.current.json`。该文件必须由一个明确指定的、`develop` 分支且工作树干净的后端 checkout 冻结得到，不能从正在运行的服务、网络地址或开发环境配置推断。
 
-### 核心机制
+合同同步记录 `.contract-sync-record.json` 只有三个字段：
 
-```
-后端 Pydantic Model → OpenAPI → Zod Schema → 前端表单验证
-        ↓                    ↓            ↓           ↓
-    唯一权威源          自动同步      类型安全     用户反馈
-```
-
----
-
-## 🔄 同步触发条件
-
-### 需要同步的场景
-
-| 场景             | 说明                                  | 是否需要同步 |
-| ---------------- | ------------------------------------- | ------------ |
-| 修改字段长度约束 | 如 `min_length=3` 改为 `min_length=5` | ✅ 需要      |
-| 添加/删除字段    | 如新增 `phone` 字段                   | ✅ 需要      |
-| 修改字段类型     | 如 `int` 改为 `str`                   | ✅ 需要      |
-| 添加新模型       | 如新增 `DeviceCreate`                 | ✅ 需要      |
-| 修改字段可选性   | 如 `required` 改为 `optional`         | ✅ 需要      |
-| 仅修改后端逻辑   | 如业务逻辑变化，接口契约不变          | ❌ 不需要    |
-
----
-
-## 📝 同步步骤
-
-### 1. 确认 OpenAPI 来源
-
-```bash
-# 默认从本地后端读取
-curl -s http://127.0.0.1:8001/api/openapi.json | jq '.info.title'
-
-# 应该返回：P9 WES
-```
-
-如果前后端 feature 分支需要一起提交，但当前 `8001` 不是目标后端合同，可以使用仓库内
-OpenAPI snapshot 作为稳定来源：
-
-```bash
-OPENAPI_SPEC_PATH=contracts/openapi.workline-plugin-manifest-yaml-topology.json pnpm generate:types
-OPENAPI_SPEC_PATH=contracts/openapi.workline-plugin-manifest-yaml-topology.json pnpm generate:zod
-pnpm contract:verify
-```
-
-`generate:zod` 会把实际 OpenAPI 来源写入 `.contract-sync-record.json`。提交记录中的
-`backendUrl` 必须是可复现来源：默认 `http://127.0.0.1:8001/api/openapi.json` 或仓库内相对
-snapshot 路径；不要提交临时本地端口或机器绝对路径。
-
-### 2. 运行同步脚本
-
-```bash
-# 在前端项目根目录执行
-pnpm generate:zod
-```
-
-### 3. 验证生成结果
-
-脚本成功执行后会显示：
-
-```
-🚀 开始生成 Zod schemas...
-
-📡 从后端获取 OpenAPI schema: http://127.0.0.1:8001/api/openapi.json
-✅ 成功获取 <schema-count> 个 schemas
-
-📝 生成 Zod schemas...
-✅ 生成文件: src/types/generated/zod-schemas.ts
-✅ 生成文件无变化: src/types/zod-extensions.ts
-
-✨ 完成！
-
-📖 使用方法:
-  import { UserCreateSchema } from "@/types/zod-extensions"
-  import { useForm } from "vee-validate"
-  const { handleSubmit } = useForm({
-    validationSchema: UserCreateSchema
-  })
-```
-
-### 4. 检查生成时间戳
-
-生成的文件头部包含同步时间戳：
-
-```typescript
-/**
- * Zod Validation Schemas
- *
- * 此文件由 scripts/generate-zod-from-openapi.ts 自动生成
- * 从后端 FastAPI OpenAPI schema 提取验证规则
- *
- * ⚠️ 请勿手动编辑此文件
- * 如需自定义验证规则，请修改 src/types/zod-extensions.ts
- *
- * 生成时间: 2026-03-10T08:30:45.123Z  ← 检查这个时间
- */
-```
-
-### 5. 运行类型检查
-
-```bash
-# 确保没有类型错误
-pnpm type:check
-```
-
-### 6. 测试表单验证
-
-启动开发服务器测试表单：
-
-```bash
-pnpm dev
-```
-
-访问受影响的表单页面，验证：
-
-- 字段必填/可选状态正确
-- 字段长度限制生效
-- 错误提示准确显示
-
----
-
-## ⚠️ 常见问题
-
-### 问题 1：后端未运行
-
-**错误信息**：
-
-```
-❌ 生成失败: Error: fetch failed
-```
-
-**解决方案**：
-
-```bash
-# 启动后端服务
-cd ../wes_backend
-python -m uvicorn src.main:app --reload
-```
-
-### 问题 2：端口被占用或当前后端不是目标合同
-
-**错误信息**：
-
-```
-❌ 生成失败: Error: connect ECONNREFUSED
-```
-
-**解决方案**：
-
-通过环境变量指定实际 OpenAPI 来源，不要修改脚本常量：
-
-```bash
-BACKEND_OPENAPI_URL=http://127.0.0.1:8012/api/openapi.json pnpm generate:zod
-OPENAPI_SPEC_PATH=contracts/openapi.workline-plugin-manifest-yaml-topology.json pnpm generate:zod
-```
-
-若生成结果要提交，优先使用仓库内相对 `OPENAPI_SPEC_PATH`，确保其他开发者和 CI 可以复现同一 hash。
-`OPENAPI_SPEC_PATH`、`OPENAPI_SPEC_URL`、`BACKEND_OPENAPI_URL` 表示完整 OpenAPI 文档来源；
-`VITE_API_BASE_URL`、`BACKEND_URL` 是旧式后端 base URL，类型生成脚本会为它们追加 `/api/openapi.json`。
-
-### 问题 3：生成后发现验证规则不对
-
-**可能原因**：后端 OpenAPI 未正确暴露验证规则
-
-**检查方法**：
-
-```bash
-# 查看特定 schema 的 OpenAPI 定义
-curl -s http://localhost:8001/api/openapi.json | jq '.components.schemas.UserCreate'
-```
-
-**解决方案**：修复后端 Pydantic 模型，确保约束正确暴露到 OpenAPI。
-
----
-
-## 🔍 漂移检测
-
-### 当前生成时间
-
-```bash
-# 查看最后生成时间
-head -15 src/types/generated/zod-schemas.ts | grep "生成时间"
-```
-
-### 与后端对比
-
-```bash
-# 1. 获取后端 schema 摘要
-curl -s http://localhost:8001/api/openapi.json | jq '.components.schemas | keys'
-
-# 2. 与前端生成的 schema 对比
-grep "^export const.*Schema = z.object" src/types/generated/zod-schemas.ts | wc -l
-```
-
----
-
-## 🚀 自动化建议
-
-### 开发环境
-
-在开发时，可以设置 `watch` 模式自动检测变化：
-
-```bash
-# 方案 1：使用 concurrently 同时运行前后端
-# (需要安装 pnpm add -D concurrently)
-pnpm add -D concurrently
-
-# package.json
+```json
 {
-  "dev:full": "concurrently \"pnpm dev\" \"cd ../wes_backend && pnpm dev\""
+  "backendCommit": "40 位 Git 提交哈希",
+  "openApiSha256": "64 位 SHA-256",
+  "snapshotPath": "contracts/openapi.current.json"
 }
 ```
 
-### CI/CD 集成
+权限同步记录 `.permission-sync-record.json` 只有三个字段：
 
-在 CI 流程中添加契约同步检查：
-
-```yaml
-# .github/workflows/contract-check.yml
-name: Contract Sync Check
-
-on:
-  pull_request:
-    paths:
-      - 'wes_backend/src/app/admin/models/**'
-      - 'wes_frontend/src/types/generated/**'
-
-jobs:
-  check-sync:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Python
-        run: |
-          cd wes_backend
-          python -m uvicorn src.main:app --port 8001 &
-          sleep 5
-      - name: Sync Schemas
-        run: |
-          cd wes_frontend
-          pnpm install
-          pnpm generate:zod
-      - name: Check for Changes
-        run: |
-          git diff --exit-code src/types/generated/
+```json
+{
+  "backendCommit": "40 位 Git 提交哈希",
+  "permissionsSha256": "64 位 SHA-256",
+  "permissionCount": 110
+}
 ```
 
----
+记录不保存机器目录、服务地址或易变元数据。OpenAPI 和权限必须绑定同一个后端提交。
 
-## 📚 相关文档
+## 冻结 OpenAPI
 
-- [表单验证方案](./ZOD_VALIDATION.md)
-- [用户管理模块规范](./PHASE3_USER_MANAGEMENT_GUIDE.md)
-- [后端 API 文档](../wes_backend/docs/API.md)
+先确认后端 checkout 是预期提交，再从前端仓库执行：
 
----
+```bash
+git -C /path/to/wes_backend branch --show-current
+git -C /path/to/wes_backend status --porcelain=v1
+git -C /path/to/wes_backend rev-parse HEAD
 
-## ✅ 同步检查清单
+pnpm contract:freeze -- --backend-root /path/to/wes_backend
+```
 
-使用此清单确保同步完成：
+冻结命令会在后端目录内执行 `uv run python`，直接导入 `main.app` 并调用 `app.openapi()`。提取结果先写入私有临时目录；只有 OpenAPI 3 文档校验、前后 HEAD 一致性和后端干净状态全部通过后，才写 canonical 快照和同步记录。失败不会留下新的部分产物。
 
-- [ ] 后端服务正在运行
-- [ ] 后端模型修改已提交
-- [ ] 运行 `pnpm generate:zod` 成功
-- [ ] 生成时间戳已更新
-- [ ] 类型检查通过 `pnpm type:check`
-- [ ] 受影响的表单已测试
-- [ ] 提交更新后的 `src/types/generated/zod-schemas.ts`
+冻结结束后，`.contract-sync-record.json.backendCommit` 必须等于操作前确认的提交。若不同，停止同步并重新做影响评审。
+
+## 再生成合同与权限
+
+按顺序执行：
+
+```bash
+pnpm generate:types
+pnpm generate:zod
+pnpm generate:permissions -- --backend-root /path/to/wes_backend
+```
+
+类型和 Zod 生成器只读取 canonical 快照。两者的入口文件写入相同的 `@openapi-sha256` marker。权限生成器在扫描前后检查后端 HEAD，并要求其等于合同同步记录中的提交。
+
+`/api/v1/wms/**` 和精确路径 `/api/v1/callback/external` 是系统间端点：它们保留在 raw OpenAPI type mirror 中，但不生成浏览器 API 方法或模块。callback 日志和管理读取端点仍属于浏览器端。
+
+生成文件不可手工修改。需要保留的通用自定义代码只能放在生成器管理的 custom markers 内；已经退役的 Runtime 自定义代码不得恢复。
+
+## 验证
+
+离线合同检查不需要后端 checkout：
+
+```bash
+pnpm contract:test
+pnpm contract:verify
+pnpm type:check
+```
+
+`contract:verify` 会校验：
+
+- canonical 快照存在、格式有效并使用固定 JSON 序列化；
+- 整份快照的 SHA-256 等于合同同步记录；
+- TypeScript 与 Zod 入口 marker 都等于同一 SHA-256；
+- 任一文件缺失、记录含旧字段或哈希不匹配时非零退出。
+
+权限检查是显式跨仓门禁，必须提供可扫描的后端 checkout：
+
+```bash
+pnpm permission:verify -- --backend-root /path/to/wes_backend
+```
+
+后端目录缺失、不干净、分支错误、提交不匹配、扫描失败、权限数量或 SHA-256 不匹配都会失败，不存在成功跳过模式。
+
+## 可复现性门禁
+
+提交生成基线后，在同一干净快照上重跑生成器：
+
+```bash
+pnpm generate:types
+pnpm generate:zod
+pnpm generate:permissions -- --backend-root /path/to/wes_backend
+git diff --exit-code -- \
+  .contract-sync-record.json \
+  .permission-sync-record.json \
+  src/api/generated \
+  src/api/modules \
+  src/types/generated/zod-schemas.ts
+```
+
+任何 diff 都表示已提交基线不完整，不能进入后续任务。
+
+## 仓库门禁
+
+- pre-commit：离线执行 `contract:verify --silent`，失败直接中止，然后运行 `lint-staged`。
+- pre-push：依赖缺失时失败；依次执行单元测试、合同不变量测试和离线合同同步检查。
+- 前端 CI：执行只读 lint/type 检查、单元测试、合同不变量测试和离线合同同步检查。
+- 跨仓权限检查不放入前端单仓 CI，因为该环境没有后端 checkout。

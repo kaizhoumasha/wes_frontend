@@ -13,9 +13,19 @@ export const ReplayInboxRequestMetadata = {
   "title": "ReplayInboxRequest",
   "description": "Replay 请求。",
   "required": [
+    "request_id",
     "reason"
   ],
+  "additionalProperties": false,
   "fields": {
+    "request_id": {
+      "title": "Request Id",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "minLength": 1,
+      "maxLength": 100
+    },
     "reason": {
       "title": "Reason",
       "type": "string",
@@ -23,13 +33,6 @@ export const ReplayInboxRequestMetadata = {
       "nullable": false,
       "minLength": 1,
       "maxLength": 500
-    },
-    "operator_id": {
-      "title": "Operator Id",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 100
     }
   }
 } satisfies OpenApiSchemaMetadata

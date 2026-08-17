@@ -66,7 +66,7 @@ export const BinMaterialMountResponseMetadata = {
     },
     "material_identity_key": {
       "title": "Material Identity Key",
-      "description": "物料属性身份键",
+      "description": "事件证据快照；料盘属性主源以 material_units 为准",
       "type": "string",
       "required": true,
       "nullable": false,
@@ -83,7 +83,7 @@ export const BinMaterialMountResponseMetadata = {
     },
     "material_code": {
       "title": "Material Code",
-      "description": "物料编码引用",
+      "description": "事件证据快照；料盘属性主源以 material_units 为准",
       "type": "string",
       "required": false,
       "nullable": true,
@@ -91,7 +91,7 @@ export const BinMaterialMountResponseMetadata = {
     },
     "lot_code": {
       "title": "Lot Code",
-      "description": "批次展示字段",
+      "description": "事件证据快照；料盘属性主源以 material_units 为准",
       "type": "string",
       "required": false,
       "nullable": true,
@@ -99,7 +99,7 @@ export const BinMaterialMountResponseMetadata = {
     },
     "date_code": {
       "title": "Date Code",
-      "description": "Date Code",
+      "description": "事件证据快照；料盘属性主源以 material_units 为准",
       "type": "string",
       "required": false,
       "nullable": true,
@@ -217,13 +217,12 @@ export const BinMaterialMountResponseMetadata = {
       "nullable": true,
       "maxLength": 100
     },
-    "session_id": {
-      "title": "Session Id",
-      "description": "WorkLine Session",
-      "type": "string",
+    "workline_session_id": {
+      "title": "Workline Session Id",
+      "description": "关联 workline_sessions.id",
+      "type": "integer",
       "required": false,
-      "nullable": true,
-      "maxLength": 100
+      "nullable": true
     },
     "started_at": {
       "title": "Started At",

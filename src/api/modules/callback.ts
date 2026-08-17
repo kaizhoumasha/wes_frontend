@@ -6,7 +6,7 @@
  * ⚠️  请勿手动编辑 AUTO GENERATED 区域
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 资源: /api/v1/callback/event, /api/v1/callback/external, /api/v1/callback/logs, /api/v1/callback/result
+ * 资源: /api/v1/callback/event, /api/v1/callback/logs, /api/v1/callback/result
  */
 import { contractMethods } from '@/api/contract/client'
 import type {
@@ -19,8 +19,6 @@ import type {
 import type { components, paths } from '@/api/generated/openapi-types'
 
 export type EventResult = ContractResponseData<'/api/v1/callback/event', 'post'>
-
-export type ExternalResult = ContractResponseData<'/api/v1/callback/external', 'post'>
 
 export type RequestResult = ContractResponseData<'/api/v1/callback/logs/request/{request_id}', 'get'>
 export type RequestPathParams = ContractPathParams<'/api/v1/callback/logs/request/{request_id}', 'get'>
@@ -43,23 +41,12 @@ export type ResultResult = ContractResponseData<'/api/v1/callback/result', 'post
 
 export const callbackApiMethods = {
   /**
-   * 设备事件上报
-   * @description 设备发生状态变更或传感器触发业务信号时，调用此接口上报事件（白皮书 3.2.2）
+   * Accept Device Event
    * @endpoint POST /api/v1/callback/event
    * @returns alova method instance
    */
   event(config?: ContractRequestConfig) {
     return contractMethods.post('/api/v1/callback/event', { config })
-  },
-
-  /**
-   * 外部系统回调
-   * @description 库位分配、AGV 等外部系统异步回调入口
-   * @endpoint POST /api/v1/callback/external
-   * @returns alova method instance
-   */
-  external(config?: ContractRequestConfig) {
-    return contractMethods.post('/api/v1/callback/external', { config })
   },
 
   /**
@@ -111,8 +98,7 @@ export const callbackApiMethods = {
   },
 
   /**
-   * 任务结果回传
-   * @description 设备完成指令后，调用此接口回传执行结果
+   * Accept Device Result
    * @endpoint POST /api/v1/callback/result
    * @returns alova method instance
    */

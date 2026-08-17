@@ -11,12 +11,12 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
 export const LineTypeMetadata = {
   "title": "LineType",
-  "description": "作业线类型枚举",
+  "description": "作业线类型枚举。",
   "required": [],
   "fields": {
     "__enum": {
       "title": "LineType",
-      "description": "作业线类型枚举",
+      "description": "作业线类型枚举。",
       "type": "string",
       "required": true,
       "nullable": false,

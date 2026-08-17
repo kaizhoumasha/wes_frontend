@@ -101,13 +101,12 @@ export const RackBinMountResponseMetadata = {
       "nullable": true,
       "maxLength": 100
     },
-    "session_id": {
-      "title": "Session Id",
-      "description": "WorkLine Session",
-      "type": "string",
+    "workline_session_id": {
+      "title": "Workline Session Id",
+      "description": "关联 workline_sessions.id",
+      "type": "integer",
       "required": false,
-      "nullable": true,
-      "maxLength": 100
+      "nullable": true
     },
     "started_at": {
       "title": "Started At",

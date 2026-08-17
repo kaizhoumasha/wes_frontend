@@ -14,6 +14,7 @@ export const BinSlotTemplateResponseMetadata = {
   "description": "料箱槽位模板响应 Schema。",
   "required": [
     "bin_type_code",
+    "bin_slot_index",
     "bin_slot_code",
     "slot_size",
     "id"
@@ -27,6 +28,14 @@ export const BinSlotTemplateResponseMetadata = {
       "nullable": false,
       "minLength": 1,
       "maxLength": 50
+    },
+    "bin_slot_index": {
+      "title": "Bin Slot Index",
+      "description": "料箱内槽位权威序号",
+      "type": "integer",
+      "required": true,
+      "nullable": false,
+      "minimum": 1
     },
     "bin_slot_code": {
       "title": "Bin Slot Code",

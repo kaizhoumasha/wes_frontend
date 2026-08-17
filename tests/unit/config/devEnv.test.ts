@@ -1,6 +1,11 @@
-import { existsSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import {
+  CANONICAL_OPENAPI_SNAPSHOT_PATH,
+  readCanonicalOpenApiSnapshot,
+  readContractSyncRecord
+} from '../../../scripts/lib/openapi-sync'
 
 function readEnvFile(path: string): Record<string, string> {
   const result: Record<string, string> = {}
@@ -15,8 +20,6 @@ function readEnvFile(path: string): Record<string, string> {
 }
 
 describe('.env.development', () => {
-  const snapshotPath = 'contracts/openapi.workline-plugin-manifest-yaml-topology.json'
-
   it('points the same-origin dev proxy at the local WES backend', () => {
     const env = readEnvFile(resolve(process.cwd(), '.env.development'))
 
@@ -24,23 +27,13 @@ describe('.env.development', () => {
     expect(env.VITE_API_PROXY_TARGET).toBe('http://127.0.0.1:8001')
   })
 
-  it('keeps the default contract sync endpoint on the local WES backend port', () => {
-    const generatorSource = readFileSync(
-      resolve(process.cwd(), 'scripts/generate-zod-from-openapi.ts'),
-      'utf8'
-    )
+  it('binds the exact sync record to the checked-in canonical snapshot', () => {
+    const frontendRoot = process.cwd()
+    const record = readContractSyncRecord(resolve(frontendRoot, '.contract-sync-record.json'))
+    const snapshot = readCanonicalOpenApiSnapshot(frontendRoot)
 
-    expect(generatorSource).toContain(
-      "DEFAULT_BACKEND_OPENAPI_URL = 'http://127.0.0.1:8001/api/openapi.json'"
-    )
-  })
-
-  it('records the OpenAPI source that produced the checked-in contract hash', () => {
-    const record = JSON.parse(
-      readFileSync(resolve(process.cwd(), '.contract-sync-record.json'), 'utf8')
-    ) as { backendUrl?: string }
-
-    expect(record.backendUrl).toBe(snapshotPath)
-    expect(existsSync(resolve(process.cwd(), snapshotPath))).toBe(true)
+    expect(Object.keys(record).sort()).toEqual(['backendCommit', 'openApiSha256', 'snapshotPath'])
+    expect(record.snapshotPath).toBe(CANONICAL_OPENAPI_SNAPSHOT_PATH)
+    expect(snapshot.sha256).toBe(record.openApiSha256)
   })
 })

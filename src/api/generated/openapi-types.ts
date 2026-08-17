@@ -1,3 +1,4 @@
+/** @openapi-sha256 0dec280667c717b44447c540078bdaacfe3e9e792aef648348c7b802f27e2067 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -1602,10 +1603,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * 设备事件上报
-         * @description 设备发生状态变更或传感器触发业务信号时，调用此接口上报事件（白皮书 3.2.2）
-         */
+        /** Accept Device Event */
         post: operations["callback_event_post"];
         delete?: never;
         options?: never;
@@ -1622,10 +1620,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * 外部系统回调
-         * @description 库位分配、AGV 等外部系统异步回调入口
-         */
+        /** Callback External */
         post: operations["callback_external_post"];
         delete?: never;
         options?: never;
@@ -1736,10 +1731,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * 任务结果回传
-         * @description 设备完成指令后，调用此接口回传执行结果
-         */
+        /** Accept Device Result */
         post: operations["callback_result_post"];
         delete?: never;
         options?: never;
@@ -1817,57 +1809,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/device/devices/{id}/runtime/clear-fault": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [biz:device:update] 清除设备故障 */
-        post: operations["device_devices_by_id_runtime_clear_fault_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/device/devices/{id}/runtime/enter-maintenance": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [biz:device:update] 设备进入维护 */
-        post: operations["device_devices_by_id_runtime_enter_maintenance_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/device/devices/{id}/runtime/exit-maintenance": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [biz:device:update] 设备退出维护 */
-        post: operations["device_devices_by_id_runtime_exit_maintenance_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/device/devices/query": {
         parameters: {
             query?: never;
@@ -1930,6 +1871,26 @@ export interface paths {
         put?: never;
         /** [biz:device:restore] 批量恢复Device */
         post: operations["devices_batch_restore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/material/material-units/location-query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * [biz:material:location-query] 查询物料作业期位置
+         * @description 统一 MaterialLocationQuery 入口，API 层只委托查询 service。
+         */
+        get: operations["material_material_units_location_query_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2432,41 +2393,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/workline/inbound-handoff/demands": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:workline:list] 查询 SMT 入库 handoff demand 列表 */
-        get: operations["workline_inbound_handoff_demands_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/inbound-handoff/demands/{demand_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:workline:detail] 查询 SMT 入库 handoff demand 详情 */
-        get: operations["workline_inbound_handoff_demands_by_demand_id_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/inbound-handoff/source-items/{source_item_id}/actions/retry-source-pick": {
+    "/api/v1/wms/events": {
         parameters: {
             query?: never;
             header?: never;
@@ -2475,66 +2402,15 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [biz:workline:update] 重试 SMT 入库 handoff source-pick */
-        post: operations["workline_inbound_handoff_source_items_by_source_item_id_actions_retry_source_pick_post"];
+        /** Receive Transport Event */
+        post: operations["wms_events_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/workline/integration-debug/cases/latest": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:workline:list] 查询最新集成调试案件 */
-        get: operations["workline_integration_debug_cases_latest_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/integration-debug/cases/lookup": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:workline:list] 按锚点查询集成调试案件 */
-        get: operations["workline_integration_debug_cases_lookup_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/ng-return-items": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:workline:list-ng-return-item] 查询 NG Return Items */
-        get: operations["workline_ng_return_items_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/operations/debug-data/cleanup-all": {
+    "/api/v1/workline/operations/reconciliations/effects/{dispatch_key}/resolve": {
         parameters: {
             query?: never;
             header?: never;
@@ -2543,42 +2419,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [biz:workline:cleanup-debug-data] 清理全部工作线调试过程数据 */
-        post: operations["workline_operations_debug_data_cleanup_all_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/operations/debug-data/worklines/{workline_id}/cleanup": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [biz:workline:cleanup-debug-data] 清理工作线调试过程数据 */
-        post: operations["workline_operations_debug_data_worklines_by_workline_id_cleanup_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/operations/manual/sessions/{session_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [biz:workline:update] 创建人工操作 */
-        post: operations["workline_operations_manual_sessions_by_session_id_post"];
+        /** [biz:workline:resolve-reconciliation] 提交 EFFECT reconciliation 人工决议 */
+        post: operations["workline_operations_reconciliations_effects_by_dispatch_key_resolve_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2594,7 +2436,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [biz:workline:resolve-reconciliation] 解除 runtime reconciliation 隔离，不重发设备命令、不调用 timeout 插件处理、释放安全停靠队列 */
+        /** [biz:workline:resolve-reconciliation] 解除 runtime reconciliation 隔离，不重发设备命令、不重复执行超时处理、释放安全停靠队列 */
         post: operations["workline_operations_reconciliations_sessions_by_session_id_resolve_post"];
         delete?: never;
         options?: never;
@@ -2613,23 +2455,6 @@ export interface paths {
         put?: never;
         /** [biz:workline:update] Replay 历史 Inbox */
         post: operations["workline_operations_replay_inboxes_by_inbox_id_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/operations/results": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [biz:workline:update] 沙箱模拟 Command Result */
-        post: operations["workline_operations_results_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2687,23 +2512,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/workline/operations/sandbox/events": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [biz:workline:update] 沙箱发送 Event */
-        post: operations["workline_operations_sandbox_events_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/workline/operations/sandbox/external-callbacks": {
         parameters: {
             query?: never;
@@ -2732,40 +2540,6 @@ export interface paths {
         get: operations["workline_operations_sandbox_pending_get"];
         put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/operations/sandbox/templates": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:workline:list] 获取沙箱模板 */
-        get: operations["workline_operations_sandbox_templates_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/operations/sandbox/worklines/{workline_id}/cleanup": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [biz:workline:cleanup-sandbox] 清理工作线沙箱运行时数据 */
-        post: operations["workline_operations_sandbox_worklines_by_workline_id_cleanup_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2809,7 +2583,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/workline/plugins/{plugin_key}/manifest": {
+    "/api/v1/workline/runtime-operations/northbound": {
         parameters: {
             query?: never;
             header?: never;
@@ -2817,353 +2591,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * [biz:workline:list] 获取单个作业线插件 manifest 摘要
-         * @description 从插件注册表导出单个作业线插件 manifest 摘要。
+         * [sys:runtime-operations:view] 获取北向 operation 运维快照
+         * @description 只允许 Service 读取 owner-scoped 聚合 SLI；不得返回 payload/trace/secret。
          */
-        get: operations["workline_plugins_by_plugin_key_manifest_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/plugins/options": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * [biz:workline:list] 获取作业线插件选项
-         * @description 从插件注册表导出作业线插件与契约版本下拉选项。
-         */
-        get: operations["workline_plugins_options_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/runtime-holds": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:workline:view-runtime-hold] 查询 Runtime Hold 列表 */
-        get: operations["workline_runtime_holds_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/runtime-holds/{hold_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:workline:view-runtime-hold] 查看 Runtime Hold 明细 */
-        get: operations["workline_runtime_holds_by_hold_id_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/runtime-holds/{hold_id}/resolve": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [biz:workline:resolve-runtime-hold] 解除 Runtime Hold */
-        post: operations["workline_runtime_holds_by_hold_id_resolve_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/runtime-holds/ng-reasons": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:workline:view-runtime-hold] 查询 Runtime Hold NG 原因选项 */
-        get: operations["workline_runtime_holds_ng_reasons_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/runtime/devices": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:device:list] 设备运行态列表 */
-        get: operations["workline_runtime_devices_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/runtime/devices/{device_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:device:list] 设备运行态详情 */
-        get: operations["workline_runtime_devices_by_device_id_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/runtime/overview": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:workline:list] 运行监控总览 */
-        get: operations["workline_runtime_overview_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/runtime/sessions/{session_id}/path": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:workline:list] Session 设备路径视图 */
-        get: operations["workline_runtime_sessions_by_session_id_path_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/runtime/traces/{trace_id}/path": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:workline:list] Trace 设备路径视图 */
-        get: operations["workline_runtime_traces_by_trace_id_path_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/runtime/worklines": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:workline:list] 工作线运行态列表 */
-        get: operations["workline_runtime_worklines_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/runtime/worklines/{workline_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:workline:list] 工作线运行态监控投影 */
-        get: operations["workline_runtime_worklines_by_workline_id_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/trace/{trace_id}/blocking-point": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:workline:list] 查询 Trace 阻塞点诊断卡 */
-        get: operations["workline_trace_by_trace_id_blocking_point_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/trace/command/{command_code}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:workline:list] 根据 command_code 查询 Trace */
-        get: operations["workline_trace_command_by_command_code_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/trace/dispatch/{dispatch_key}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:workline:list] 根据 dispatch_key 查询 Trace */
-        get: operations["workline_trace_dispatch_by_dispatch_key_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/trace/exchange/{exchange_request_code}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:workline:list] 根据满箱交换请求编码查询 Trace 与资源证据 */
-        get: operations["workline_trace_exchange_by_exchange_request_code_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/trace/query": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [biz:workline:list] Trace 列表查询 */
-        post: operations["workline_trace_query_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/trace/request/{request_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:workline:list] 根据 request_id 查询 Trace */
-        get: operations["workline_trace_request_by_request_id_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/trace/session/{session_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:workline:list] 根据 session_id 查询 Trace */
-        get: operations["workline_trace_session_by_session_id_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/trace/trace/{trace_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:workline:list] 根据 trace_id 查询 Trace */
-        get: operations["workline_trace_trace_by_trace_id_get"];
+        get: operations["workline_runtime_operations_northbound_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3228,6 +2659,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workline/work_lines/{id}/active-objects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * [biz:workline:detail] 查询作业线当前 active objects
+         * @description 读取 WorklineActiveObjects；API 层不直接访问 repository。
+         */
+        get: operations["workline_work_lines_by_id_active_objects_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workline/work_lines/{id}/configuration-status": {
         parameters: {
             query?: never;
@@ -3280,6 +2731,46 @@ export interface paths {
         post?: never;
         /** [biz:workline:permanent_delete] 永久删除WorkLine */
         delete: operations["work_lines_permanent_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/work_lines/{id}/plane/scene": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * [biz:workline:view-plane-scene] 获取作业线平面静态场景
+         * @description 读取 WorkLine 平面态势静态 scene。
+         */
+        get: operations["workline_work_lines_by_id_plane_scene_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/work_lines/{id}/plane/snapshot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * [biz:workline:view-plane-snapshot] 获取作业线平面动态快照
+         * @description 读取 WorkLine 平面态势动态 snapshot。
+         */
+        get: operations["workline_work_lines_by_id_plane_snapshot_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3919,7 +3410,7 @@ export interface components {
             capacity_depth_mm?: string | null;
             /**
              * Date Code
-             * @description Date Code
+             * @description 格位聚合键快照；料盘属性权威以 material_units 为准
              */
             date_code?: string | null;
             /**
@@ -3931,17 +3422,17 @@ export interface components {
             id: number;
             /**
              * Lot Code
-             * @description 批次展示字段
+             * @description 格位聚合键快照；料盘属性权威以 material_units 为准
              */
             lot_code?: string | null;
             /**
              * Material Code
-             * @description 物料编码引用
+             * @description 格位聚合键引用；料盘属性权威以 material_units 为准
              */
             material_code?: string | null;
             /**
              * Material Identity Key
-             * @description 物料属性身份键
+             * @description 格位聚合键；料盘属性权威以 material_units 为准
              */
             material_identity_key: string;
             /**
@@ -3967,11 +3458,6 @@ export interface components {
              * @description 当前格位剩余深度
              */
             remaining_depth_mm?: string | null;
-            /**
-             * Session Id
-             * @description 最近 WorkLine Session
-             */
-            session_id?: string | null;
             /**
              * Source Event Id
              * @description 最近来源事件 ID
@@ -4001,6 +3487,11 @@ export interface components {
              * @default 0
              */
             used_depth_mm: string;
+            /**
+             * Workline Session Id
+             * @description 最近关联 workline_sessions.id
+             */
+            workline_session_id?: number | null;
         };
         /**
          * BinCellOccupancyStatus
@@ -4176,7 +3667,7 @@ export interface components {
             cell_stack_position: number;
             /**
              * Date Code
-             * @description Date Code
+             * @description 事件证据快照；料盘属性主源以 material_units 为准
              */
             date_code?: string | null;
             /**
@@ -4188,17 +3679,17 @@ export interface components {
             id: number;
             /**
              * Lot Code
-             * @description 批次展示字段
+             * @description 事件证据快照；料盘属性主源以 material_units 为准
              */
             lot_code?: string | null;
             /**
              * Material Code
-             * @description 物料编码引用
+             * @description 事件证据快照；料盘属性主源以 material_units 为准
              */
             material_code?: string | null;
             /**
              * Material Identity Key
-             * @description 物料属性身份键
+             * @description 事件证据快照；料盘属性主源以 material_units 为准
              */
             material_identity_key: string;
             /**
@@ -4226,11 +3717,6 @@ export interface components {
              * @description 料盘厚度
              */
             reel_thickness?: string | null;
-            /**
-             * Session Id
-             * @description WorkLine Session
-             */
-            session_id?: string | null;
             /**
              * Source Event Id
              * @description 来源事件 ID
@@ -4269,6 +3755,11 @@ export interface components {
              * @description WMS 库存或分拆版本引用
              */
             wms_inventory_version?: string | null;
+            /**
+             * Workline Session Id
+             * @description 关联 workline_sessions.id
+             */
+            workline_session_id?: number | null;
             /**
              * Writeback Evidence Id
              * @description 关联 WMS 回写证据
@@ -4348,6 +3839,11 @@ export interface components {
              * @description 料箱内槽位编码
              */
             bin_slot_code: string;
+            /**
+             * Bin Slot Index
+             * @description 料箱内槽位权威序号
+             */
+            bin_slot_index: number;
             /**
              * Bin Type Code
              * @description 所属料箱类型编码
@@ -4443,52 +3939,6 @@ export interface components {
             permission_ids: number[];
         };
         /**
-         * CallbackEventAcceptedResponse
-         * @description 设备事件回调接收响应数据。
-         */
-        CallbackEventAcceptedResponse: {
-            /**
-             * Causation Id
-             * @description 因果事件 ID
-             */
-            causation_id?: string | null;
-            /**
-             * Device Code
-             * @description 设备编码
-             */
-            device_code: string;
-            /**
-             * Diagnostic
-             * @description START 准入诊断信息
-             */
-            diagnostic?: {
-                [key: string]: unknown;
-            } | null;
-            /**
-             * Event Id
-             * @description 供应商事件 ID
-             */
-            event_id?: string | null;
-            /**
-             * Request Id
-             * @description 入口请求 ID
-             */
-            request_id?: string | null;
-            /**
-             * Status
-             * @description 入口处理状态
-             * @enum {string}
-             */
-            status: "submitted" | "duplicate" | "accepted";
-            /**
-             * Trace Id
-             * @description Trace ID
-             */
-            trace_id?: string | null;
-        };
-        /** ResponseSchemaModel[Union[CallbackEventAcceptedResponse, CallbackRejectedResponse]] */
-        CallbackEventIngressResponse: ApiResponse<unknown>;
-        /**
          * CallbackExternalAcceptedResponse
          * @description 外部系统回调接收响应数据。
          */
@@ -4527,6 +3977,17 @@ export interface components {
         };
         /** ResponseSchemaModel[Union[CallbackExternalAcceptedResponse, CallbackRejectedResponse]] */
         CallbackExternalIngressResponse: ApiResponse<unknown>;
+        /**
+         * CallbackHTTPExceptionResponse
+         * @description Callback 入口由 HTTPException 返回的传输层错误。
+         */
+        CallbackHTTPExceptionResponse: {
+            /**
+             * Detail
+             * @description 可重试或请求体限制错误说明
+             */
+            detail: string;
+        };
         /**
          * CallbackLogResponse
          * @description 回调日志响应 Schema
@@ -4643,41 +4104,6 @@ export interface components {
             reason_code?: string | null;
         };
         /**
-         * CallbackResultAcceptedResponse
-         * @description 设备结果回调接收响应数据。
-         */
-        CallbackResultAcceptedResponse: {
-            /**
-             * Ack
-             * @description 入口是否接收
-             * @default true
-             * @constant
-             */
-            ack: true;
-            /**
-             * Causation Id
-             * @description 因果事件 ID
-             */
-            causation_id?: string | null;
-            /**
-             * Event Id
-             * @description 供应商事件 ID
-             */
-            event_id?: string | null;
-            /**
-             * Request Id
-             * @description 入口请求 ID
-             */
-            request_id?: string | null;
-            /**
-             * Trace Id
-             * @description Trace ID
-             */
-            trace_id?: string | null;
-        };
-        /** ResponseSchemaModel[Union[CallbackResultAcceptedResponse, CallbackRejectedResponse]] */
-        CallbackResultIngressResponse: ApiResponse<unknown>;
-        /**
          * ClearWorkLineEstopRequest
          * @description 人工清除 WorkLine 急停请求。
          */
@@ -4696,121 +4122,15 @@ export interface components {
             reason?: string | null;
         };
         /**
-         * CommandBinding
-         * @description 插件命令及目标设备角色。
-         */
-        CommandBinding: {
-            /**
-             * Command
-             * @description 命令类型
-             */
-            command: string;
-            /**
-             * Target Device Role
-             * @description 目标设备角色
-             */
-            target_device_role: string;
-        };
-        /**
-         * DebugDataCleanupRequest
-         * @description 非生产调试过程数据清理请求。
-         */
-        DebugDataCleanupRequest: {
-            /**
-             * Confirmation
-             * @description 执行清理时的确认文本
-             */
-            confirmation?: string | null;
-            /**
-             * Dry Run
-             * @description true 仅返回影响范围；false 执行清理
-             * @default true
-             */
-            dry_run: boolean;
-        };
-        /**
-         * DebugDataCleanupResponse
-         * @description 非生产调试过程数据清理响应。
-         */
-        DebugDataCleanupResponse: {
-            /**
-             * Affected Session Ids
-             * @description 受影响 Session ID
-             */
-            affected_session_ids?: number[];
-            /**
-             * Affected Workline Ids
-             * @description 受影响工作线 ID
-             */
-            affected_workline_ids?: number[];
-            /**
-             * Counts
-             * @description 影响数据计数
-             */
-            counts?: {
-                [key: string]: number;
-            };
-            /**
-             * Deleted
-             * @description 是否已执行删除
-             */
-            deleted: boolean;
-            /**
-             * Dry Run
-             * @description 是否仅预览影响范围
-             */
-            dry_run: boolean;
-            /**
-             * Message
-             * @description 清理结果消息
-             */
-            message: string;
-            /**
-             * Scope
-             * @description 清理范围
-             */
-            scope: string;
-            /**
-             * Workline Id
-             * @description 按工作线清理时的工作线 ID
-             */
-            workline_id?: number | null;
-        };
-        /**
          * DeviceCreate
-         * @description 设备创建 Schema - 接收客户端输入
+         * @description 设备创建合同。
          */
         DeviceCreate: {
-            /**
-             * Auth Token
-             * @description 认证 Token（Bearer Token）
-             */
-            auth_token?: string | null;
-            /**
-             * Callback Path
-             * @description 设备侧回调/命令接收路径覆盖
-             */
-            callback_path?: string | null;
-            /**
-             * Capabilities Json
-             * @description 设备能力声明（支持事件、命令、回调等）
-             */
-            capabilities_json?: {
-                [key: string]: unknown;
-            };
-            /**
-             * Current Command Id
-             * @description 当前执行的指令 ID（关联 DeviceCommand.id）
-             */
-            current_command_id?: number | null;
-            /**
-             * Description
-             * @description 设备用途说明
-             */
+            /** Description */
             description?: string | null;
             /**
              * Device Code
-             * @description 设备编码（业务主键）
+             * @description 独立命令资源编码
              */
             device_code: string;
             /**
@@ -4820,182 +4140,44 @@ export interface components {
             device_name: string;
             /**
              * Device Role
-             * @description 设备业务角色（SCANNER, ROBOT_ARM, XRAY, CONVEYOR）
+             * @description 物理拓扑角色
              */
             device_role: string;
-            /**
-             * @description 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE/MAINTENANCE）
-             * @default IDLE
-             */
-            device_status: components["schemas"]["DeviceStatus"];
-            /**
-             * Diagnostic Profile
-             * @description 设备诊断配置（责任角色、显示偏好、扩展属性）
-             */
+            /** Diagnostic Profile */
             diagnostic_profile?: {
                 [key: string]: unknown;
             };
             /**
-             * Error Code
-             * @description 错误代码（status=ERROR 时）
-             */
-            error_code?: string | null;
-            /**
-             * Host
-             * @description 设备 IP 地址
-             */
-            host?: string | null;
-            /**
-             * Idempotency Ttl
-             * @description 指令去重缓存时间（秒，默认 1 小时）
-             * @default 3600
-             */
-            idempotency_ttl: number;
-            /**
              * Is Active
-             * @description 是否启用
+             * @description 是否允许进入新运行代际
              * @default true
              */
             is_active: boolean;
             /**
-             * Last Heartbeat At
-             * @description 最后心跳时间
-             */
-            last_heartbeat_at?: string | null;
-            /**
-             * Maintenance Mode
-             * @description 是否处于维护模式（维护中不参与正常编排）
-             * @default false
-             */
-            maintenance_mode: boolean;
-            /**
-             * Max Concurrent Tasks
-             * @description 固定为 1：单设备同一时间只允许一个硬件任务
-             * @default 1
-             */
-            max_concurrent_tasks: number;
-            /**
-             * Port
-             * @description 服务端口
-             */
-            port?: number | null;
-            /**
-             * @description 通信协议
-             * @default HTTP
-             */
-            protocol: components["schemas"]["DeviceProtocol"];
-            /**
              * Role Index
-             * @description 同角色序号（1, 2, 3...）
              * @default 1
              */
             role_index: number;
             /**
              * Sort Order
-             * @description 排序顺序
              * @default 0
              */
             sort_order: number;
-            /**
-             * Timeout
-             * @description 请求超时时间（毫秒，默认 10s）
-             * @default 10000
-             */
-            timeout: number;
-            /**
-             * Upstream Device Id
-             * @description 上游设备ID（物理路径辅助信息）
-             */
+            /** Upstream Device Id */
             upstream_device_id?: number | null;
-            /**
-             * Vendor Type
-             * @description 厂商类型（ECS, KEYENCE, FANUC...）
-             */
-            vendor_type?: string | null;
-            /**
-             * Work Line Id
-             * @description 所属作业线 ID
-             */
+            /** Work Line Id */
             work_line_id?: number | null;
-        };
-        /**
-         * DeviceMaintenanceRequest
-         * @description 设备维护操作请求。
-         */
-        DeviceMaintenanceRequest: {
-            /**
-             * Reason
-             * @description 维护原因码
-             */
-            reason?: string | null;
-        };
-        /**
-         * DeviceProtocol
-         * @description 设备通信协议枚举（白皮书 2.1 节）
-         * @enum {string}
-         */
-        DeviceProtocol: "HTTP" | "HTTPS" | "TCP" | "MODBUS" | "MQTT";
-        /**
-         * DeviceRequirement
-         * @description 插件所需设备角色和数量/能力约束。
-         */
-        DeviceRequirement: {
-            /**
-             * Hardware Capabilities
-             * @description 要求硬件能力声明
-             */
-            hardware_capabilities?: string[];
-            /**
-             * Max Count
-             * @description 最大数量限制
-             */
-            max_count?: number | null;
-            /**
-             * Min Count
-             * @description 最小数量限制
-             */
-            min_count: number;
-            /**
-             * Role
-             * @description 必需角色名
-             */
-            role: string;
         };
         /**
          * DeviceResponse
-         * @description 设备响应 Schema - 返回给客户端
+         * @description 设备静态主数据响应。
          */
         DeviceResponse: {
-            /**
-             * Auth Token
-             * @description 认证 Token（Bearer Token）
-             */
-            auth_token?: string | null;
-            /**
-             * Callback Path
-             * @description 设备侧回调/命令接收路径覆盖
-             */
-            callback_path?: string | null;
-            /**
-             * Capabilities Json
-             * @description 设备能力声明（支持事件、命令、回调等）
-             */
-            capabilities_json?: {
-                [key: string]: unknown;
-            };
-            /**
-             * Current Command Id
-             * @description 当前执行的指令 ID（关联 DeviceCommand.id）
-             */
-            current_command_id?: number | null;
-            /**
-             * Description
-             * @description 设备用途说明
-             */
+            /** Description */
             description?: string | null;
             /**
              * Device Code
-             * @description 设备编码（业务主键）
+             * @description 独立命令资源编码
              */
             device_code: string;
             /**
@@ -5005,353 +4187,79 @@ export interface components {
             device_name: string;
             /**
              * Device Role
-             * @description 设备业务角色（SCANNER, ROBOT_ARM, XRAY, CONVEYOR）
+             * @description 物理拓扑角色
              */
             device_role: string;
-            /**
-             * @description 设备实时状态（IDLE/RUNNING/ERROR/OFFLINE/MAINTENANCE）
-             * @default IDLE
-             */
-            device_status: components["schemas"]["DeviceStatus"];
-            /**
-             * Diagnostic Profile
-             * @description 设备诊断配置（责任角色、显示偏好、扩展属性）
-             */
+            /** Diagnostic Profile */
             diagnostic_profile?: {
                 [key: string]: unknown;
             };
-            /**
-             * Error Code
-             * @description 错误代码（status=ERROR 时）
-             */
-            error_code?: string | null;
-            /**
-             * Host
-             * @description 设备 IP 地址
-             */
-            host?: string | null;
             /** Id */
             id: number;
             /**
-             * Idempotency Ttl
-             * @description 指令去重缓存时间（秒，默认 1 小时）
-             * @default 3600
-             */
-            idempotency_ttl: number;
-            /**
              * Is Active
-             * @description 是否启用
+             * @description 是否允许进入新运行代际
              * @default true
              */
             is_active: boolean;
             /**
-             * Last Heartbeat At
-             * @description 最后心跳时间
-             */
-            last_heartbeat_at?: string | null;
-            /**
-             * Maintenance Mode
-             * @description 是否处于维护模式（维护中不参与正常编排）
-             * @default false
-             */
-            maintenance_mode: boolean;
-            /**
-             * Max Concurrent Tasks
-             * @description 固定为 1：单设备同一时间只允许一个硬件任务
-             * @default 1
-             */
-            max_concurrent_tasks: number;
-            /**
-             * Port
-             * @description 服务端口
-             */
-            port?: number | null;
-            /**
-             * @description 通信协议
-             * @default HTTP
-             */
-            protocol: components["schemas"]["DeviceProtocol"];
-            /**
              * Role Index
-             * @description 同角色序号（1, 2, 3...）
              * @default 1
              */
             role_index: number;
             /**
              * Sort Order
-             * @description 排序顺序
              * @default 0
              */
             sort_order: number;
-            /**
-             * Timeout
-             * @description 请求超时时间（毫秒，默认 10s）
-             * @default 10000
-             */
-            timeout: number;
-            /**
-             * Upstream Device Id
-             * @description 上游设备ID（物理路径辅助信息）
-             */
+            /** Upstream Device Id */
             upstream_device_id?: number | null;
-            /**
-             * Vendor Type
-             * @description 厂商类型（ECS, KEYENCE, FANUC...）
-             */
-            vendor_type?: string | null;
             /** Version */
             version: number;
-            /**
-             * Work Line Id
-             * @description 所属作业线 ID
-             */
+            /** Work Line Id */
             work_line_id?: number | null;
         };
         /**
-         * DeviceRuntimeActionRequest
-         * @description 设备运行态空操作请求，保留扩展位。
-         */
-        DeviceRuntimeActionRequest: {
-            /**
-             * Reason
-             * @description 操作原因
-             */
-            reason?: string | null;
-        };
-        /**
-         * DeviceStatus
-         * @description 设备状态枚举（白皮书 5.2 节）
-         * @enum {string}
-         */
-        DeviceStatus: "IDLE" | "RUNNING" | "ERROR" | "OFFLINE" | "MAINTENANCE";
-        /**
          * DeviceUpdate
-         * @description 设备更新 Schema - 只允许主数据与通信配置，运行态走专用操作
+         * @description 设备静态主数据更新合同。
          */
         DeviceUpdate: {
-            /**
-             * Auth Token
-             * @description 认证 Token（Bearer Token）
-             */
-            auth_token?: string | null;
-            /**
-             * Callback Path
-             * @description 设备侧回调/命令接收路径覆盖
-             */
-            callback_path?: string | null;
-            /**
-             * Capabilities Json
-             * @description 设备能力声明（支持事件、命令、回调等）
-             */
-            capabilities_json?: {
-                [key: string]: unknown;
-            } | null;
-            /**
-             * Description
-             * @description 设备用途说明
-             */
+            /** Description */
             description?: string | null;
-            /**
-             * Device Code
-             * @description 设备编码（业务主键）
-             */
+            /** Device Code */
             device_code?: string | null;
-            /**
-             * Device Name
-             * @description 设备名称
-             */
+            /** Device Name */
             device_name?: string | null;
-            /**
-             * Device Role
-             * @description 设备业务角色（SCANNER, ROBOT_ARM, XRAY, CONVEYOR）
-             */
+            /** Device Role */
             device_role?: string | null;
-            /**
-             * Diagnostic Profile
-             * @description 设备诊断配置（责任角色、显示偏好、扩展属性）
-             */
+            /** Diagnostic Profile */
             diagnostic_profile?: {
                 [key: string]: unknown;
             } | null;
-            /**
-             * Host
-             * @description 设备 IP 地址
-             */
-            host?: string | null;
-            /**
-             * Idempotency Ttl
-             * @description 指令去重缓存时间（秒，默认 1 小时）
-             */
-            idempotency_ttl?: number | null;
-            /**
-             * Is Active
-             * @description 是否启用
-             */
+            /** Is Active */
             is_active?: boolean | null;
-            /**
-             * Port
-             * @description 服务端口
-             */
-            port?: number | null;
-            /** @description 通信协议 */
-            protocol?: components["schemas"]["DeviceProtocol"] | null;
-            /**
-             * Role Index
-             * @description 同角色序号（1, 2, 3...）
-             */
+            /** Role Index */
             role_index?: number | null;
-            /**
-             * Sort Order
-             * @description 排序顺序
-             */
+            /** Sort Order */
             sort_order?: number | null;
-            /**
-             * Timeout
-             * @description 请求超时时间（毫秒，默认 10s）
-             */
-            timeout?: number | null;
-            /**
-             * Upstream Device Id
-             * @description 上游设备ID（物理路径辅助信息）
-             */
+            /** Upstream Device Id */
             upstream_device_id?: number | null;
-            /**
-             * Vendor Type
-             * @description 厂商类型（ECS, KEYENCE, FANUC...）
-             */
-            vendor_type?: string | null;
             /**
              * Version
              * @description 乐观锁版本号，更新时必传
              */
             version: number;
-            /**
-             * Work Line Id
-             * @description 所属作业线 ID
-             */
+            /** Work Line Id */
             work_line_id?: number | null;
         };
-        /**
-         * DiagnosisEvidenceHealthItemResponse
-         * @description 诊断证据健康明细。
-         */
-        DiagnosisEvidenceHealthItemResponse: {
-            /** Count */
-            count: number;
-            /** Hint */
-            hint: string;
-            /** Key */
-            key: string;
-            /** Label */
-            label: string;
-            /** State */
-            state: string;
-        };
-        /**
-         * DiagnosisEvidenceHealthResponse
-         * @description 诊断证据健康摘要。
-         */
-        DiagnosisEvidenceHealthResponse: {
-            /** Items */
-            items?: components["schemas"]["DiagnosisEvidenceHealthItemResponse"][];
-            /** Level */
-            level: string;
-            /** Missing */
-            missing?: string[];
-            /** Summary */
-            summary: string;
-        };
-        /**
-         * DiagnosisVerdictResponse
-         * @description Trace 统一诊断结论。
-         */
-        DiagnosisVerdictResponse: {
-            /** Blocking Point */
-            blocking_point: string;
-            evidence_health: components["schemas"]["DiagnosisEvidenceHealthResponse"];
-            /** Owner */
-            owner?: string | null;
-            /** Primary Action */
-            primary_action?: string | null;
-            /** Requires Operator Action */
-            requires_operator_action: boolean;
-            /** Severity */
-            severity: string;
-            /** State */
-            state: string;
-            /** Summary */
-            summary: string;
-            /** Title */
-            title: string;
-        };
-        /** DiagnosticCardResponse */
-        DiagnosticCardResponse: {
-            context: components["schemas"]["TraceDiagnosticContextItem"];
-            /** Error Code */
-            error_code: string;
-            /** Error Domain */
-            error_domain: string;
-            /** Next Steps */
-            next_steps?: string[];
-            /** Operator Action */
-            operator_action?: string | null;
-            /** Problem Class */
-            problem_class: string;
-            /** Recoverability */
-            recoverability: string;
-            /** Severity */
-            severity: string;
-            /** Summary */
-            summary: string;
-            /** Technical Summary */
-            technical_summary?: string | null;
-            /** Title */
-            title: string;
-            /** User Message */
-            user_message: string;
-        };
-        /**
-         * EventBinding
-         * @description 插件声明的业务事件及来源设备角色。
-         */
-        EventBinding: {
-            /**
-             * Category
-             * @description 事件分类
-             */
-            category: string;
-            /**
-             * Event
-             * @description 事件类型
-             */
-            event: string;
-            /**
-             * Source Device Roles
-             * @description 来源设备角色
-             */
-            source_device_roles?: string[];
-        };
-        /**
-         * FailedCommandEvidence
-         * @description Failed command evidence for operator review.
-         */
-        FailedCommandEvidence: {
-            /** Command Code */
-            command_code?: string | null;
-            /** Command Id */
-            command_id?: number | null;
-            /** Error Detail */
-            error_detail?: {
-                [key: string]: unknown;
-            } | null;
-            /** Result */
-            result?: string | null;
-            /** Result Data */
-            result_data?: {
-                [key: string]: unknown;
-            } | null;
-            /** Status */
-            status?: string | null;
+        /** EcsCallbackAck */
+        EcsCallbackAck: {
+            /** Code */
+            code: number;
+            /** Message */
+            message: string;
+            /** Trace Id */
+            trace_id?: string | null;
         };
         /**
          * FilterCondition
@@ -5394,151 +4302,14 @@ export interface components {
          * @enum {string}
          */
         FilterOperator: "eq" | "ne" | "gt" | "ge" | "lt" | "le" | "in" | "nin" | "ilike" | "between" | "is_null" | "not_null";
-        /**
-         * FlowEdge
-         * @description 拓扑中的物料流或操作关系。
-         */
-        FlowEdge: {
-            /** @description 起点节点 */
-            from_node: components["schemas"]["NodeRef"];
-            /** @description 终点节点 */
-            to_node: components["schemas"]["NodeRef"];
-            /**
-             * Type
-             * @description 拓扑边类型
-             */
-            type: string;
-        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
         /**
-         * IntegrationDebugCaseListResponse
-         * @description 最新集成调试案件列表。
-         */
-        IntegrationDebugCaseListResponse: {
-            /** Items */
-            items?: components["schemas"]["IntegrationDebugCaseResponse"][];
-            /** Total */
-            total: number;
-        };
-        /**
-         * IntegrationDebugCaseResponse
-         * @description 集成调试案件定位结果。
-         */
-        IntegrationDebugCaseResponse: {
-            /** Blocking Code */
-            blocking_code?: string | null;
-            /** Blocking Domain */
-            blocking_domain?: string | null;
-            /** Case Id */
-            case_id: string;
-            /** Command Code */
-            command_code?: string | null;
-            /** Evidence Links */
-            evidence_links?: components["schemas"]["IntegrationDebugEvidenceLink"][];
-            /** Facts */
-            facts?: {
-                [key: string]: unknown;
-            };
-            /** Next Actions */
-            next_actions?: components["schemas"]["IntegrationDebugNextAction"][];
-            /** Owner */
-            owner: string;
-            /** Phase */
-            phase: string;
-            /** Recoverability */
-            recoverability: string;
-            /** Request Id */
-            request_id?: string | null;
-            /** Session Code */
-            session_code?: string | null;
-            /** Session Id */
-            session_id?: number | null;
-            /** Severity */
-            severity: string;
-            /** Stage Checks */
-            stage_checks?: components["schemas"]["IntegrationDebugStageCheck"][];
-            /** Status */
-            status: string;
-            /** Summary */
-            summary: string;
-            trace_detail?: components["schemas"]["TraceDetailResponse"] | null;
-            /** Trace Id */
-            trace_id?: string | null;
-            /** Verdict */
-            verdict: string;
-        };
-        /**
-         * IntegrationDebugEvidenceLink
-         * @description 调试证据跳转。
-         */
-        IntegrationDebugEvidenceLink: {
-            /** Api Path */
-            api_path?: string | null;
-            /** Kind */
-            kind: string;
-            /** Label */
-            label: string;
-            /** Route Name */
-            route_name?: string | null;
-            /** Route Params */
-            route_params?: {
-                [key: string]: unknown;
-            };
-            /** Route Query */
-            route_query?: {
-                [key: string]: unknown;
-            };
-        };
-        /**
-         * IntegrationDebugNextAction
-         * @description 只读下一步建议。
-         */
-        IntegrationDebugNextAction: {
-            /** Description */
-            description: string;
-            /** Kind */
-            kind: string;
-            /** Label */
-            label: string;
-            /** Route Name */
-            route_name?: string | null;
-            /** Route Params */
-            route_params?: {
-                [key: string]: unknown;
-            };
-            /** Route Query */
-            route_query?: {
-                [key: string]: unknown;
-            };
-        };
-        /**
-         * IntegrationDebugStageCheck
-         * @description 集成链路单阶段定位结果。
-         */
-        IntegrationDebugStageCheck: {
-            /**
-             * Evidence Count
-             * @default 0
-             */
-            evidence_count: number;
-            /** Key */
-            key: string;
-            /** Label */
-            label: string;
-            /** Links */
-            links?: string[];
-            /** Primary Evidence */
-            primary_evidence?: string | null;
-            /** State */
-            state: string;
-        };
-        /**
          * LineType
-         * @description 作业线类型枚举
+         * @description 作业线类型枚举。
          * @enum {string}
          */
         LineType: "AUTO" | "MANUAL" | "HYBRID";
@@ -5724,16 +4495,71 @@ export interface components {
             revoked_count: number;
         };
         /**
-         * ManualOperationRequest
-         * @description 人工操作请求。
+         * MaterialLocationConflictState
+         * @description MaterialLocationQuery 冲突状态。
+         * @enum {string}
          */
-        ManualOperationRequest: {
-            /** Operation */
-            operation: string;
-            /** Operator Id */
-            operator_id: string;
-            /** Reason */
-            reason: string;
+        MaterialLocationConflictState: "OK" | "NOT_FOUND" | "RECONCILING" | "WMS_UNAVAILABLE";
+        /**
+         * MaterialLocationEvidence
+         * @description 单个位置来源 evidence。
+         */
+        MaterialLocationEvidence: {
+            /** Correlation Id */
+            correlation_id?: string | null;
+            /** Evidence Json */
+            evidence_json?: {
+                [key: string]: unknown;
+            };
+            /** Evidence Ref */
+            evidence_ref?: string | null;
+            /** External Reference */
+            external_reference?: string | null;
+            /** Location Code */
+            location_code?: string | null;
+            /** Location Scope */
+            location_scope?: string | null;
+            /** Object Key */
+            object_key: string;
+            /** Object Type */
+            object_type: string;
+            /** Observed At */
+            observed_at?: string | null;
+            /** Priority */
+            priority: number;
+            /** Provider Code */
+            provider_code?: string | null;
+            /** Semantic Status */
+            semantic_status?: string | null;
+            /** Source */
+            source: string;
+            /** Source Event Id */
+            source_event_id?: string | null;
+            /** Source Version */
+            source_version?: string | null;
+        };
+        /**
+         * MaterialLocationResult
+         * @description 统一位置查询结果。
+         */
+        MaterialLocationResult: {
+            conflict_state: components["schemas"]["MaterialLocationConflictState"];
+            /** Correlation Id */
+            correlation_id?: string | null;
+            /** Evidence */
+            evidence?: components["schemas"]["MaterialLocationEvidence"][];
+            /** Location Code */
+            location_code?: string | null;
+            /** Location Scope */
+            location_scope?: string | null;
+            /** Object Key */
+            object_key?: string | null;
+            /** Object Type */
+            object_type?: string | null;
+            /** Query Entry */
+            query_entry: string;
+            /** Source */
+            source?: string | null;
         };
         /**
          * MenuCreate
@@ -6043,105 +4869,67 @@ export interface components {
             version: number;
         };
         /**
-         * NgReasonInput
-         * @description Operator-selected NG reason.
+         * NorthboundOperationalSnapshot
+         * @description 租户作用域的北向运维快照。
          */
-        NgReasonInput: {
+        NorthboundOperationalSnapshot: {
             /**
-             * Code
-             * @description Canonical NG reason code
+             * Catalog Version
+             * @default northbound-operation-slo.v1
+             * @constant
              */
-            code: string;
+            catalog_version: "northbound-operation-slo.v1";
             /**
-             * Label
-             * @description Human-readable NG reason label
+             * Generated At
+             * Format: date-time
              */
-            label: string;
+            generated_at: string;
+            /** Operations */
+            operations: components["schemas"]["NorthboundOperationHealth"][];
             /**
-             * Source
-             * @description NG reason source
+             * Schema Version
+             * @default northbound-operational-snapshot.v1
+             * @constant
              */
-            source: string;
+            schema_version: "northbound-operational-snapshot.v1";
+            /** Tenant Id */
+            tenant_id: number | null;
+            /**
+             * Tenant Scope
+             * @enum {string}
+             */
+            tenant_scope: "WORKLINE_OWNER" | "PLATFORM";
+            /** Workline Id */
+            workline_id: number | null;
         };
         /**
-         * NgReasonOption
-         * @description NG reason option.
+         * NorthboundOperationHealth
+         * @description 只暴露低基数 identity、operation mode 和聚合 SLI，不暴露行级证据或 payload。
          */
-        NgReasonOption: {
-            /** Code */
-            code: string;
-            /** Contract Version */
-            contract_version?: string | null;
-            /** Label */
-            label: string;
-            /** Maps From */
-            maps_from?: string[];
-            /** Plugin Key */
-            plugin_key?: string | null;
-            /** Source */
-            source: string;
-        };
-        /**
-         * NgReturnItemResponse
-         * @description NG return item response.
-         */
-        NgReturnItemResponse: {
-            /** Confirmed At */
-            confirmed_at?: string | null;
-            /** Confirmed By */
-            confirmed_by?: number | null;
-            /** Created At */
-            created_at?: string | null;
-            /** Created From Runtime Hold Id */
-            created_from_runtime_hold_id?: number | null;
-            /** Disposition */
-            disposition: string;
-            /** Id */
-            id: number;
-            /** Material Identity Json */
-            material_identity_json: {
-                [key: string]: unknown;
-            };
-            /** Material Identity Key */
-            material_identity_key: string;
-            /** Ng Reason Code */
-            ng_reason_code: string;
-            /** Ng Reason Label */
-            ng_reason_label: string;
-            /** Ng Reason Source */
-            ng_reason_source: string;
-            /** Operator Note */
-            operator_note?: string | null;
-            /** Physical Handoff Evidence Json */
-            physical_handoff_evidence_json: {
-                [key: string]: unknown;
-            };
-            /** Source Command Id */
-            source_command_id?: number | null;
-            /** Source Event Id */
-            source_event_id?: string | null;
-            /** Source Session Id */
-            source_session_id: number;
-            /** Source Workline Id */
-            source_workline_id: number;
-            /** Status */
-            status: string;
-        };
-        /**
-         * NodeRef
-         * @description 拓扑节点引用。
-         */
-        NodeRef: {
+        NorthboundOperationHealth: {
+            /** Active Lease Count */
+            active_lease_count: number;
+            /** Backlog Count */
+            backlog_count: number;
+            /** Lease Loss Count */
+            lease_loss_count: number;
             /**
-             * Kind
-             * @description 拓扑节点引用类型
+             * Mode
+             * @enum {string}
              */
-            kind: string;
-            /**
-             * Ref
-             * @description 拓扑节点引用值
-             */
-            ref: string;
+            mode: "QUERY" | "EFFECT";
+            /** Oldest Queue Age Seconds */
+            oldest_queue_age_seconds: number;
+            /** Operation Identity */
+            operation_identity: string;
+            /** Provider Profile Identity */
+            provider_profile_identity: string;
+            /** Rate Limited Count */
+            rate_limited_count: number;
+            /** Reconciliation Open Count */
+            reconciliation_open_count: number;
+            /** Unknown Count */
+            unknown_count: number;
         };
         /**
          * OperaStatus
@@ -6431,45 +5219,93 @@ export interface components {
             version: number;
         };
         /**
-         * PhysicalHandoffEvidenceInput
-         * @description Client-submitted physical handoff evidence.
-         *
-         *     Server-owned facts such as confirmed_by, confirmed_at and material_identity
-         *     are intentionally not part of this schema.
+         * PlaneEdge
+         * @description Plane scene edge.
          */
-        PhysicalHandoffEvidenceInput: {
+        PlaneEdge: {
+            /** Code */
+            code: string;
+            /** From Code */
+            from_code: string;
+            /** Label */
+            label?: string | null;
+            /** To Code */
+            to_code: string;
+        };
+        /**
+         * PlaneExtremeState
+         * @description Plane snapshot extreme state marker.
+         */
+        PlaneExtremeState: {
+            /** Code */
+            code: string;
+            /** Label */
+            label: string;
+            /** Severity */
+            severity: string;
+        };
+        /**
+         * PlaneNode
+         * @description Plane scene node with stable code and display label.
+         */
+        PlaneNode: {
+            /** Code */
+            code: string;
+            /** Kind */
+            kind: string;
+            /** Label */
+            label: string;
+        };
+        /**
+         * PlaneObjectSnapshot
+         * @description Plane snapshot object state.
+         */
+        PlaneObjectSnapshot: {
+            /** Object Code */
+            object_code: string;
+            /** Object Label */
+            object_label: string;
+            /** State */
+            state: string;
+        };
+        /**
+         * PlaneSceneView
+         * @description WorkLine plane static scene view.
+         */
+        PlaneSceneView: {
+            /** Edges */
+            edges: components["schemas"]["PlaneEdge"][];
+            /** Nodes */
+            nodes: components["schemas"]["PlaneNode"][];
             /**
-             * Handoff Witness Id
-             * @description 可选见证人
+             * Schema Version
+             * @constant
              */
-            handoff_witness_id?: string | null;
+            schema_version: "plane.scene.v1";
+            /** Workline Code */
+            workline_code: string;
+        };
+        /**
+         * PlaneSnapshot
+         * @description WorkLine plane dynamic snapshot.
+         */
+        PlaneSnapshot: {
+            /** Extremes */
+            extremes: components["schemas"]["PlaneExtremeState"][];
+            /** Objects */
+            objects: components["schemas"]["PlaneObjectSnapshot"][];
             /**
-             * Late Callback Reviewed
-             * @description 已复核迟到 callback evidence
+             * Scene Schema Version
+             * @constant
              */
-            late_callback_reviewed: boolean;
+            scene_schema_version: "plane.scene.v1";
             /**
-             * Line Clear Checked
-             * @description 已确认工位/设备无残留同一物料
+             * Schema Version
+             * @constant
              */
-            line_clear_checked: boolean;
-            /**
-             * Material Scan Payload
-             * @description 现场重新扫描到的物料原文
-             */
-            material_scan_payload: {
-                [key: string]: unknown;
-            } | string;
-            /**
-             * Ng Location Code
-             * @description NG 暂存位置编码
-             */
-            ng_location_code: string;
-            /**
-             * Ng Location Scan
-             * @description NG 位置扫码原文
-             */
-            ng_location_scan: string;
+            schema_version: "plane.snapshot.v1";
+            /** Workline Code */
+            workline_code: string;
         };
         /**
          * QueryOptions
@@ -6534,11 +5370,6 @@ export interface components {
              */
             rack_slot_code: string;
             /**
-             * Session Id
-             * @description WorkLine Session
-             */
-            session_id?: string | null;
-            /**
              * Source Event Id
              * @description 来源事件 ID
              */
@@ -6561,6 +5392,11 @@ export interface components {
              * @description WorkLine trace
              */
             trace_id?: string | null;
+            /**
+             * Workline Session Id
+             * @description 关联 workline_sessions.id
+             */
+            workline_session_id?: number | null;
         };
         /**
          * RackBinMountStatus
@@ -6624,11 +5460,6 @@ export interface components {
             /** @description 货架类型 */
             rack_kind?: components["schemas"]["RackKind"] | null;
             /**
-             * Session Id
-             * @description WorkLine Session
-             */
-            session_id?: string | null;
-            /**
              * Source Event Id
              * @description 来源事件 ID
              */
@@ -6666,6 +5497,11 @@ export interface components {
              * @description 关联 WorkLine.id
              */
             workline_id?: number | null;
+            /**
+             * Workline Session Id
+             * @description 关联 workline_sessions.id
+             */
+            workline_session_id?: number | null;
         };
         /**
          * RackPlacementStatus
@@ -6673,55 +5509,6 @@ export interface components {
          * @enum {string}
          */
         RackPlacementStatus: "ARRIVED" | "IN_TRANSIT" | "DEPARTED" | "UNKNOWN";
-        /**
-         * RackPosition
-         * @description WES 管理的货架停靠位/库存事实锚点，不代表泛化物理位置。
-         */
-        RackPosition: {
-            /** @description 货架停靠位承载能力 */
-            carrier_capability: components["schemas"]["RackPositionCarrierCapability"];
-            /**
-             * Code
-             * @description WES 管理货架停靠位编码，也是库存事实锚点编码
-             */
-            code: string;
-            /**
-             * Role
-             * @description 货架停靠位业务角色
-             */
-            role: string;
-            /**
-             * Station Code
-             * @description 插件内 station/工作位逻辑编码
-             */
-            station_code: string;
-        };
-        /**
-         * RackPositionCarrierCapability
-         * @description WES 管理货架停靠位的货架/槽位承载能力。
-         */
-        RackPositionCarrierCapability: {
-            /**
-             * Allowed Rack Kinds
-             * @description 停靠位允许承载的货架类型
-             */
-            allowed_rack_kinds?: string[];
-            /**
-             * Allowed Slot Kinds
-             * @description 停靠位允许承载的槽位类型
-             */
-            allowed_slot_kinds?: string[];
-            /**
-             * Max Capacity
-             * @description 停靠位最大承载容量限制
-             */
-            max_capacity: number;
-            /**
-             * Min Capacity
-             * @description 停靠位最小承载容量限制
-             */
-            min_capacity: number;
-        };
         /**
          * RackResponse
          * @description 货架实例响应 Schema。
@@ -6936,10 +5723,10 @@ export interface components {
          * @description Replay 请求。
          */
         ReplayInboxRequest: {
-            /** Operator Id */
-            operator_id?: string | null;
             /** Reason */
             reason: string;
+            /** Request Id */
+            request_id: string;
         };
         /**
          * ResetPasswordRequest
@@ -6967,77 +5754,27 @@ export interface components {
             version: number;
         };
         /**
-         * ResolveRuntimeHoldRequest
-         * @description Resolve Runtime Hold request.
+         * ResolveEffectReconciliationRequest
+         * @description 人工 EFFECT 对账决议请求。
          */
-        ResolveRuntimeHoldRequest: {
-            /**
-             * Checks
-             * @description 服务端要求的 release checklist
-             */
-            checks: {
-                [key: string]: boolean;
-            };
-            /**
-             * Hold Version
-             * @description RuntimeHold 乐观锁版本
-             */
-            hold_version: number;
-            /**
-             * Latest Evidence Hash
-             * @description 页面看到的最新证据 hash
-             */
-            latest_evidence_hash: string;
-            /**
-             * Material Disposition
-             * @description 物料处置
-             * @enum {string}
-             */
-            material_disposition: "CONTINUE" | "RETURN_TO_NG";
-            /** @description RETURN_TO_NG 时必填 */
-            ng_reason?: components["schemas"]["NgReasonInput"] | null;
+        ResolveEffectReconciliationRequest: {
+            /** @description E03/E07 同步义务 typed 对账裁决 */
+            obligation_resolution?: components["schemas"]["WmsSyncObligationResolution"] | null;
             /**
              * Operator Note
-             * @description 现场确认说明
+             * @description 人工核验说明
              */
             operator_note: string;
-            /** @description RETURN_TO_NG 时必填；只包含客户端可提交证据 */
-            physical_handoff_evidence?: components["schemas"]["PhysicalHandoffEvidenceInput"] | null;
+            /**
+             * Request Id
+             * @description 通用决议稳定幂等请求 ID
+             */
+            request_id?: string | null;
             /**
              * Resolution
-             * @description Session 结论
-             * @enum {string}
+             * @description 非 E03/E07 EFFECT 最终决议
              */
-            resolution: "COMPLETED" | "FAILED" | "CANCELLED";
-            /**
-             * Result Payload
-             * @description CONTINUE/COMPLETED 可补充业务结果
-             */
-            result_payload?: {
-                [key: string]: unknown;
-            } | null;
-        };
-        /**
-         * ResolveRuntimeHoldResponse
-         * @description Resolve Runtime Hold response.
-         */
-        ResolveRuntimeHoldResponse: {
-            /** Created Inbox Id */
-            created_inbox_id?: number | null;
-            /** Hold Id */
-            hold_id: number;
-            /** Ng Return Item Id */
-            ng_return_item_id?: number | null;
-            /** Released Outbox Count */
-            released_outbox_count: number;
-            /** Remaining Active Blocking Holds */
-            remaining_active_blocking_holds: number;
-            /** Status */
-            status: string;
-            /** Workline Id */
-            workline_id: number;
-            /** Workline Runtime Status */
-            workline_runtime_status: string;
+            resolution?: string | null;
         };
         /**
          * ResolveRuntimeReconciliationRequest
@@ -7074,42 +5811,6 @@ export interface components {
             result_payload?: {
                 [key: string]: unknown;
             } | null;
-        };
-        /**
-         * ResourceBoundary
-         * @description 插件声明的资源边界。
-         */
-        ResourceBoundary: {
-            /**
-             * Business Demand Type
-             * @description 驱动该边界的业务需求类型
-             */
-            business_demand_type: string;
-            /**
-             * Lease Scope
-             * @description WES 业务预占范围
-             */
-            lease_scope: string;
-            /**
-             * Rack Kind
-             * @description 承接货架类型
-             */
-            rack_kind: string;
-            /**
-             * Rack Position Code
-             * @description manifest 货架停靠位编码
-             */
-            rack_position_code: string;
-            /**
-             * Snapshot Kind
-             * @description WES 需要读取的 active 快照类型
-             */
-            snapshot_kind: string;
-            /**
-             * Wms Operation Type
-             * @description 由 WMS 转发的货架运输 operation 类型
-             */
-            wms_operation_type: string;
         };
         /**
          * ResourceMasterStatus
@@ -7184,11 +5885,6 @@ export interface components {
             /** @description 资源类型 */
             resource_type: components["schemas"]["ResourceType"];
             /**
-             * Session Id
-             * @description WorkLine Session
-             */
-            session_id?: string | null;
-            /**
              * Source Event Id
              * @description 来源事件 ID
              */
@@ -7215,6 +5911,11 @@ export interface components {
              * @description 关联 WorkLine.id
              */
             workline_id?: number | null;
+            /**
+             * Workline Session Id
+             * @description 关联 workline_sessions.id
+             */
+            workline_session_id?: number | null;
         };
         /**
          * ResourceStateEventType
@@ -7258,18 +5959,12 @@ export interface components {
         ResponseSchemaModel_CallbackLogSubjectResponse_: ApiResponse<components["schemas"]["CallbackLogSubjectResponse"]>;
         /** ResponseSchemaModel[CallbackLogTraceResponse] */
         ResponseSchemaModel_CallbackLogTraceResponse_: ApiResponse<components["schemas"]["CallbackLogTraceResponse"]>;
-        /** ResponseSchemaModel[DebugDataCleanupResponse] */
-        ResponseSchemaModel_DebugDataCleanupResponse_: ApiResponse<components["schemas"]["DebugDataCleanupResponse"]>;
         /** ResponseSchemaModel[DeviceResponse] */
         ResponseSchemaModel_DeviceResponse_: ApiResponse<components["schemas"]["DeviceResponse"]>;
         /** ResponseSchemaModel[dict[str, Any]] */
         ResponseSchemaModel_dict_str__Any__: ApiResponse<Record<string, unknown>>;
         /** ResponseSchemaModel[dict[str, str]] */
         ResponseSchemaModel_dict_str__str__: ApiResponse<Record<string, string>>;
-        /** ResponseSchemaModel[IntegrationDebugCaseListResponse] */
-        ResponseSchemaModel_IntegrationDebugCaseListResponse_: ApiResponse<components["schemas"]["IntegrationDebugCaseListResponse"]>;
-        /** ResponseSchemaModel[IntegrationDebugCaseResponse] */
-        ResponseSchemaModel_IntegrationDebugCaseResponse_: ApiResponse<components["schemas"]["IntegrationDebugCaseResponse"]>;
         /** ResponseSchemaModel[list[Any]] */
         ResponseSchemaModel_list_Any__: ApiResponse<unknown[]>;
         /** ResponseSchemaModel[list[dict[str, Any]]] */
@@ -7280,32 +5975,28 @@ export interface components {
         ResponseSchemaModel_list_MenuTreeResponse__: ApiResponse<components["schemas"]["MenuTreeResponse"][]>;
         /** ResponseSchemaModel[list[MenuTreeResponseSimple]] */
         ResponseSchemaModel_list_MenuTreeResponseSimple__: ApiResponse<components["schemas"]["MenuTreeResponseSimple"][]>;
-        /** ResponseSchemaModel[list[NgReasonOption]] */
-        ResponseSchemaModel_list_NgReasonOption__: ApiResponse<components["schemas"]["NgReasonOption"][]>;
-        /** ResponseSchemaModel[list[NgReturnItemResponse]] */
-        ResponseSchemaModel_list_NgReturnItemResponse__: ApiResponse<components["schemas"]["NgReturnItemResponse"][]>;
         /** ResponseSchemaModel[list[PermissionResponse]] */
         ResponseSchemaModel_list_PermissionResponse__: ApiResponse<components["schemas"]["PermissionResponse"][]>;
         /** ResponseSchemaModel[list[PermissionTree]] */
         ResponseSchemaModel_list_PermissionTree__: ApiResponse<components["schemas"]["PermissionTree"][]>;
-        /** ResponseSchemaModel[list[RuntimeDeviceSummary]] */
-        ResponseSchemaModel_list_RuntimeDeviceSummary__: ApiResponse<components["schemas"]["RuntimeDeviceSummary"][]>;
-        /** ResponseSchemaModel[list[RuntimeHoldSummary]] */
-        ResponseSchemaModel_list_RuntimeHoldSummary__: ApiResponse<components["schemas"]["RuntimeHoldSummary"][]>;
-        /** ResponseSchemaModel[list[RuntimeWorklineSummary]] */
-        ResponseSchemaModel_list_RuntimeWorklineSummary__: ApiResponse<components["schemas"]["RuntimeWorklineSummary"][]>;
-        /** ResponseSchemaModel[list[WorkLinePluginOption]] */
-        ResponseSchemaModel_list_WorkLinePluginOption__: ApiResponse<components["schemas"]["WorkLinePluginOption"][]>;
         /** ResponseSchemaModel[LoginResponse] */
         ResponseSchemaModel_LoginResponse_: ApiResponse<components["schemas"]["LoginResponse"]>;
         /** ResponseSchemaModel[LogoutResponse] */
         ResponseSchemaModel_LogoutResponse_: ApiResponse<components["schemas"]["LogoutResponse"]>;
+        /** ResponseSchemaModel[MaterialLocationResult] */
+        ResponseSchemaModel_MaterialLocationResult_: ApiResponse<components["schemas"]["MaterialLocationResult"]>;
         /** ResponseSchemaModel[MenuResponse] */
         ResponseSchemaModel_MenuResponse_: ApiResponse<components["schemas"]["MenuResponse"]>;
         /** ResponseSchemaModel[NoneType] */
         ResponseSchemaModel_NoneType_: ApiResponse<null>;
+        /** ResponseSchemaModel[NorthboundOperationalSnapshot] */
+        ResponseSchemaModel_NorthboundOperationalSnapshot_: ApiResponse<components["schemas"]["NorthboundOperationalSnapshot"]>;
         /** ResponseSchemaModel[PermissionResponse] */
         ResponseSchemaModel_PermissionResponse_: ApiResponse<components["schemas"]["PermissionResponse"]>;
+        /** ResponseSchemaModel[PlaneSceneView] */
+        ResponseSchemaModel_PlaneSceneView_: ApiResponse<components["schemas"]["PlaneSceneView"]>;
+        /** ResponseSchemaModel[PlaneSnapshot] */
+        ResponseSchemaModel_PlaneSnapshot_: ApiResponse<components["schemas"]["PlaneSnapshot"]>;
         /** ResponseSchemaModel[RackBinMountResponse] */
         ResponseSchemaModel_RackBinMountResponse_: ApiResponse<components["schemas"]["RackBinMountResponse"]>;
         /** ResponseSchemaModel[RackPlacementResponse] */
@@ -7318,52 +6009,24 @@ export interface components {
         ResponseSchemaModel_RackTypeResponse_: ApiResponse<components["schemas"]["RackTypeResponse"]>;
         /** ResponseSchemaModel[RefreshTokenResponse] */
         ResponseSchemaModel_RefreshTokenResponse_: ApiResponse<components["schemas"]["RefreshTokenResponse"]>;
-        /** ResponseSchemaModel[ResolveRuntimeHoldResponse] */
-        ResponseSchemaModel_ResolveRuntimeHoldResponse_: ApiResponse<components["schemas"]["ResolveRuntimeHoldResponse"]>;
         /** ResponseSchemaModel[ResourceStateEventResponse] */
         ResponseSchemaModel_ResourceStateEventResponse_: ApiResponse<components["schemas"]["ResourceStateEventResponse"]>;
         /** ResponseSchemaModel[RevokeSessionResponse] */
         ResponseSchemaModel_RevokeSessionResponse_: ApiResponse<components["schemas"]["RevokeSessionResponse"]>;
         /** ResponseSchemaModel[RoleResponse] */
         ResponseSchemaModel_RoleResponse_: ApiResponse<components["schemas"]["RoleResponse"]>;
-        /** ResponseSchemaModel[RuntimeDeviceDetailResponse] */
-        ResponseSchemaModel_RuntimeDeviceDetailResponse_: ApiResponse<components["schemas"]["RuntimeDeviceDetailResponse"]>;
-        /** ResponseSchemaModel[RuntimeHoldDetailResponse] */
-        ResponseSchemaModel_RuntimeHoldDetailResponse_: ApiResponse<components["schemas"]["RuntimeHoldDetailResponse"]>;
-        /** ResponseSchemaModel[RuntimeOverviewResponse] */
-        ResponseSchemaModel_RuntimeOverviewResponse_: ApiResponse<components["schemas"]["RuntimeOverviewResponse"]>;
-        /** ResponseSchemaModel[RuntimeTraceListResponse] */
-        ResponseSchemaModel_RuntimeTraceListResponse_: ApiResponse<components["schemas"]["RuntimeTraceListResponse"]>;
-        /** ResponseSchemaModel[RuntimeTracePathResponse] */
-        ResponseSchemaModel_RuntimeTracePathResponse_: ApiResponse<components["schemas"]["RuntimeTracePathResponse"]>;
-        /** ResponseSchemaModel[RuntimeWorklineMonitorProjectionResponse] */
-        ResponseSchemaModel_RuntimeWorklineMonitorProjectionResponse_: ApiResponse<components["schemas"]["RuntimeWorklineMonitorProjectionResponse"]>;
-        /** ResponseSchemaModel[SandboxCleanupResponse] */
-        ResponseSchemaModel_SandboxCleanupResponse_: ApiResponse<components["schemas"]["SandboxCleanupResponse"]>;
-        /** ResponseSchemaModel[SandboxTemplatesResponse] */
-        ResponseSchemaModel_SandboxTemplatesResponse_: ApiResponse<components["schemas"]["SandboxTemplatesResponse"]>;
-        /** ResponseSchemaModel[SmtInboundHandoffActionResponse] */
-        ResponseSchemaModel_SmtInboundHandoffActionResponse_: ApiResponse<components["schemas"]["SmtInboundHandoffActionResponse"]>;
-        /** ResponseSchemaModel[SmtInboundHandoffDemandDetailResponse] */
-        ResponseSchemaModel_SmtInboundHandoffDemandDetailResponse_: ApiResponse<components["schemas"]["SmtInboundHandoffDemandDetailResponse"]>;
-        /** ResponseSchemaModel[SmtInboundHandoffDemandListResponse] */
-        ResponseSchemaModel_SmtInboundHandoffDemandListResponse_: ApiResponse<components["schemas"]["SmtInboundHandoffDemandListResponse"]>;
-        /** ResponseSchemaModel[TraceBlockingPointResponse] */
-        ResponseSchemaModel_TraceBlockingPointResponse_: ApiResponse<components["schemas"]["TraceBlockingPointResponse"]>;
-        /** ResponseSchemaModel[TraceDetailResponse] */
-        ResponseSchemaModel_TraceDetailResponse_: ApiResponse<components["schemas"]["TraceDetailResponse"]>;
-        /** ResponseSchemaModel[Union[CallbackEventAcceptedResponse, CallbackRejectedResponse]] */
-        ResponseSchemaModel_Union_CallbackEventAcceptedResponse__CallbackRejectedResponse__: ApiResponse<unknown>;
+        /** ResponseSchemaModel[SandboxWorklineStartResponse] */
+        ResponseSchemaModel_SandboxWorklineStartResponse_: ApiResponse<components["schemas"]["SandboxWorklineStartResponse"]>;
         /** ResponseSchemaModel[UserPermissionsResponse] */
         ResponseSchemaModel_UserPermissionsResponse_: ApiResponse<components["schemas"]["UserPermissionsResponse"]>;
         /** ResponseSchemaModel[UserResponse] */
         ResponseSchemaModel_UserResponse_: ApiResponse<components["schemas"]["UserResponse"]>;
         /** ResponseSchemaModel[UserSimpleResponse] */
         ResponseSchemaModel_UserSimpleResponse_: ApiResponse<components["schemas"]["UserSimpleResponse"]>;
+        /** ResponseSchemaModel[WorklineActiveObjectsResponse] */
+        ResponseSchemaModel_WorklineActiveObjectsResponse_: ApiResponse<components["schemas"]["WorklineActiveObjectsResponse"]>;
         /** ResponseSchemaModel[WorkLineConfigurationStatus] */
         ResponseSchemaModel_WorkLineConfigurationStatus_: ApiResponse<components["schemas"]["WorkLineConfigurationStatus"]>;
-        /** ResponseSchemaModel[WorkLinePluginManifestSummary] */
-        ResponseSchemaModel_WorkLinePluginManifestSummary_: ApiResponse<components["schemas"]["WorkLinePluginManifestSummary"]>;
         /** ResponseSchemaModel[WorkLineResponse] */
         ResponseSchemaModel_WorkLineResponse_: ApiResponse<components["schemas"]["WorkLineResponse"]>;
         /**
@@ -7435,931 +6098,17 @@ export interface components {
              */
             version: number;
         };
-        /** RuntimeActiveBinRackBinView */
-        RuntimeActiveBinRackBinView: {
-            /** Bin Code */
-            bin_code?: string | null;
-            /** Bin Id */
-            bin_id?: string | number | null;
-            /** Bin Orientation Code */
-            bin_orientation_code?: string | null;
-            /** Bin Type */
-            bin_type?: string | null;
-            /** Cells */
-            cells?: components["schemas"]["RuntimeActiveBinRackCellView"][];
-            /** Rack Slot Code */
-            rack_slot_code?: string | null;
-            /** Rack Slot Location Code */
-            rack_slot_location_code?: string | null;
-        };
-        /** RuntimeActiveBinRackCellView */
-        RuntimeActiveBinRackCellView: {
-            /** Bin Cell Code */
-            bin_cell_code?: string | null;
-            /** Bin Cell Index */
-            bin_cell_index?: number | string | null;
-            /** Bin Cell Location */
-            bin_cell_location?: string | null;
-            /** Capacity Depth Mm */
-            capacity_depth_mm?: number | null;
-            /** Is Reserved */
-            is_reserved?: boolean | null;
-            /** Material Identity Key */
-            material_identity_key?: string | null;
-            /** Pkg Code */
-            pkg_code?: string | null;
-            /** Status */
-            status?: string | null;
-            /** Used Depth Mm */
-            used_depth_mm?: number | null;
-        };
-        /** RuntimeActiveBinRackView */
-        RuntimeActiveBinRackView: {
-            /** Bins */
-            bins?: components["schemas"]["RuntimeActiveBinRackBinView"][];
-            /** Rack Code */
-            rack_code?: string | null;
-            /** Rack Id */
-            rack_id?: string | number | null;
-            /** Rack Kind */
-            rack_kind?: string | null;
-            /** Rack Type */
-            rack_type?: string | null;
-        };
-        /** RuntimeBlockingReason */
-        RuntimeBlockingReason: {
-            /** Detail */
-            detail?: string | null;
-            /** Device Id */
-            device_id?: number | null;
-            /** Reason */
-            reason: string;
-        };
-        /** RuntimeDeviceDetailResponse */
-        RuntimeDeviceDetailResponse: {
-            /** Active Sessions */
-            active_sessions?: components["schemas"]["RuntimeTraceListItem"][];
-            /** Recent Callbacks */
-            recent_callbacks?: components["schemas"]["TraceCallbackLogItem"][];
-            /** Recent Commands */
-            recent_commands?: components["schemas"]["TraceCommandItem"][];
-            summary: components["schemas"]["RuntimeDeviceSummary"];
-        };
-        /** RuntimeDeviceHealthSummary */
-        RuntimeDeviceHealthSummary: {
-            /**
-             * Abnormal
-             * @default 0
-             */
-            abnormal: number;
-            /**
-             * Healthy
-             * @default 0
-             */
-            healthy: number;
-            /**
-             * Loaded
-             * @default 0
-             */
-            loaded: number;
-            /**
-             * Maintenance
-             * @default 0
-             */
-            maintenance: number;
-            /**
-             * Total
-             * @default 0
-             */
-            total: number;
-        };
-        /** RuntimeDeviceSummary */
-        RuntimeDeviceSummary: {
-            /** Active Runtime Hold Ids */
-            active_runtime_hold_ids?: number[];
-            /** Blocked Check Count */
-            blocked_check_count?: number | null;
-            /** Blocked Detail Json */
-            blocked_detail_json?: {
-                [key: string]: unknown;
-            } | null;
-            /**
-             * Blocked Outbox Count
-             * @default 0
-             */
-            blocked_outbox_count: number;
-            /** Blocked Reason */
-            blocked_reason?: string | null;
-            /** Blocked Wait Seconds */
-            blocked_wait_seconds?: number | null;
-            /** Current Command Id */
-            current_command_id?: number | null;
-            /** Device Code */
-            device_code: string;
-            /** Device Name */
-            device_name: string;
-            /** Device Role */
-            device_role: string;
-            /** Device Status */
-            device_status: string;
-            /** Error Code */
-            error_code?: string | null;
-            /** Id */
-            id: number;
-            /** Last Heartbeat At */
-            last_heartbeat_at?: string | null;
-            /**
-             * Maintenance Mode
-             * @default false
-             */
-            maintenance_mode: boolean;
-            /**
-             * Open Command Count
-             * @default 0
-             */
-            open_command_count: number;
-            /**
-             * Open Issue Count
-             * @default 0
-             */
-            open_issue_count: number;
-            /**
-             * Pending Command Count
-             * @default 0
-             */
-            pending_command_count: number;
-            /** Recent Callback At */
-            recent_callback_at?: string | null;
-            /** Role Index */
-            role_index: number;
-            /** Workline Code */
-            workline_code?: string | null;
-            /** Workline Id */
-            workline_id?: number | null;
-            /** Workline Name */
-            workline_name?: string | null;
-        };
         /**
-         * RuntimeHoldBlocker
-         * @description Another active hold blocking the same WorkLine.
+         * RuntimeHoldView
+         * @description Active object 关联 RuntimeHold 展示字段。
          */
-        RuntimeHoldBlocker: {
-            /** Hold Type */
-            hold_type: string;
-            /** Id */
-            id: number;
-            /** Session Id */
-            session_id?: number | null;
-            /** Source Device Id */
-            source_device_id?: number | null;
-            /** Source Reason */
-            source_reason: string;
-            /** Status */
-            status: string;
-        };
-        /**
-         * RuntimeHoldDetailResponse
-         * @description Runtime Hold detail response.
-         */
-        RuntimeHoldDetailResponse: {
-            /** Blockers */
-            blockers?: components["schemas"]["RuntimeHoldBlocker"][];
-            /** Evidence Snapshot Json */
-            evidence_snapshot_json: {
-                [key: string]: unknown;
-            };
-            failed_command_evidence?: components["schemas"]["FailedCommandEvidence"] | null;
-            release_eligibility: components["schemas"]["RuntimeHoldReleaseEligibility"];
-            /** Release Evidence Json */
-            release_evidence_json: {
-                [key: string]: unknown;
-            };
-            source: components["schemas"]["RuntimeHoldSource"];
-            summary: components["schemas"]["RuntimeHoldSummary"];
-        };
-        /**
-         * RuntimeHoldReleaseEligibility
-         * @description Current release decision model.
-         */
-        RuntimeHoldReleaseEligibility: {
-            /** Allowed Material Dispositions */
-            allowed_material_dispositions?: string[];
-            /** Allowed Resolutions */
-            allowed_resolutions?: string[];
-            /** Can Resolve */
-            can_resolve: boolean;
-            /** Latest Evidence Hash */
-            latest_evidence_hash: string;
-            /** Reason */
-            reason?: string | null;
-            /** Required Checks */
-            required_checks?: string[];
-        };
-        /**
-         * RuntimeHoldSource
-         * @description Runtime Hold source refs.
-         */
-        RuntimeHoldSource: {
-            /** Source Command Id */
-            source_command_id?: number | null;
-            /** Source Device Id */
-            source_device_id?: number | null;
-            /** Source Idempotency Key */
-            source_idempotency_key: string;
-            /** Source Inbox Id */
-            source_inbox_id?: number | null;
-            /** Source Kind */
-            source_kind: string;
-            /** Source Outbox Id */
-            source_outbox_id?: number | null;
-            /** Source Reason */
-            source_reason: string;
-        };
-        /**
-         * RuntimeHoldSummary
-         * @description Runtime Hold summary.
-         */
-        RuntimeHoldSummary: {
-            /** Blocking */
-            blocking: boolean;
-            /** Contract Version */
-            contract_version?: string | null;
-            /** Created At */
-            created_at?: string | null;
-            /** Hold Type */
-            hold_type: string;
-            /** Id */
-            id: number;
-            /** Material Disposition */
-            material_disposition?: string | null;
-            /** Ng Reason Code */
-            ng_reason_code?: string | null;
-            /** Ng Reason Label */
-            ng_reason_label?: string | null;
-            /** Plugin Key */
-            plugin_key?: string | null;
-            /** Resolved At */
-            resolved_at?: string | null;
-            /** Resolved By */
-            resolved_by?: number | null;
-            /** Session Id */
-            session_id?: number | null;
-            /** Source Reason */
-            source_reason: string;
-            /** Status */
-            status: string;
-            /** Trace Id */
-            trace_id?: string | null;
-            /** Version */
-            version: number;
-            /** Workline Id */
-            workline_id: number;
-        };
-        /** RuntimeMonitorActionCandidates */
-        RuntimeMonitorActionCandidates: {
-            pending_reconciliation?: components["schemas"]["RuntimeMonitorReconciliationCandidate"] | null;
-        };
-        /**
-         * RuntimeMonitorCommandSnapshot
-         * @description 运行监控视图中的设备当前指令快照。
-         *
-         *     字段固定，专供 dashboard ECS ACK 链消费；不引入业务流转字段。
-         */
-        RuntimeMonitorCommandSnapshot: {
-            /** Ack Code */
-            ack_code?: number | null;
-            /** Ack Message */
-            ack_message?: string | null;
-            /** Ack Received At */
-            ack_received_at?: string | null;
-            /** Command Code */
-            command_code: string;
-            /** Id */
-            id: number;
-            /** Sent At */
-            sent_at?: string | null;
-            /** Status */
-            status: string;
-        };
-        /** RuntimeMonitorDeviceNode */
-        RuntimeMonitorDeviceNode: {
-            /** Active Runtime Hold Ids */
-            active_runtime_hold_ids?: number[];
-            /** Blocked Check Count */
-            blocked_check_count?: number | null;
-            /**
-             * Blocked Outbox Count
-             * @default 0
-             */
-            blocked_outbox_count: number;
-            /** Blocked Reason */
-            blocked_reason?: string | null;
-            /** Blocked Wait Seconds */
-            blocked_wait_seconds?: number | null;
-            current_command?: components["schemas"]["RuntimeMonitorCommandSnapshot"] | null;
-            /** Current Command Id */
-            current_command_id?: number | null;
-            /** Device Code */
-            device_code: string;
-            /** Device Name */
-            device_name: string;
-            /** Device Role */
-            device_role: string;
-            /** Device Status */
-            device_status: string;
-            /** Error Code */
-            error_code?: string | null;
-            /** Id */
-            id: number;
-            /** Last Heartbeat At */
-            last_heartbeat_at?: string | null;
-            /**
-             * Maintenance Mode
-             * @default false
-             */
-            maintenance_mode: boolean;
-            /**
-             * Open Command Count
-             * @default 0
-             */
-            open_command_count: number;
-            /**
-             * Open Issue Count
-             * @default 0
-             */
-            open_issue_count: number;
-            /**
-             * Pending Command Count
-             * @default 0
-             */
-            pending_command_count: number;
-            /** Role Index */
-            role_index: number;
-            /** Upstream Device Id */
-            upstream_device_id?: number | null;
-        };
-        /** RuntimeMonitorEvidenceSection */
-        RuntimeMonitorEvidenceSection: {
-            /** Items */
-            items?: components["schemas"]["RuntimeResourceEvidenceItem"][];
-            /** @default UNKNOWN */
-            kind: components["schemas"]["RuntimeResourceEvidenceKind"];
-            /**
-             * Total Count
-             * @default 0
-             */
-            total_count: number;
-            /**
-             * Truncated
-             * @default false
-             */
-            truncated: boolean;
-        };
-        /** RuntimeMonitorReconciliationCandidate */
-        RuntimeMonitorReconciliationCandidate: {
-            /** Command Id */
-            command_id?: number | null;
-            /** Deadline At */
-            deadline_at?: string | null;
-            /** Device Id */
-            device_id?: number | null;
-            /**
-             * Late Evidence Received
-             * @default false
-             */
-            late_evidence_received: boolean;
-            /**
-             * Occurred At
-             * Format: date-time
-             */
-            occurred_at: string;
-            /** Reason */
-            reason: string;
-            /** Request Id */
-            request_id?: string | null;
-            /** Session Code */
-            session_code: string;
-            /** Session Id */
-            session_id: number;
-            /** Source Kind */
-            source_kind: string;
-            /** Trace Id */
-            trace_id?: string | null;
-            /** Wait Token */
-            wait_token?: string | null;
-        };
-        /** RuntimeMonitorSessionItem */
-        RuntimeMonitorSessionItem: {
-            /** Barcode */
-            barcode?: string | null;
-            /** Current Wait Type */
-            current_wait_type?: string | null;
-            /** Deadline At */
-            deadline_at?: string | null;
-            /** Device Code */
-            device_code?: string | null;
-            /** Device Id */
-            device_id?: number | null;
-            /** Device Name */
-            device_name?: string | null;
-            /** Failure Code */
-            failure_code?: string | null;
-            /** Failure Domain */
-            failure_domain?: string | null;
-            /**
-             * Is Timed Out
-             * @default false
-             */
-            is_timed_out: boolean;
-            /** Last Inbox Id */
-            last_inbox_id?: number | null;
-            /** Last Ingress At */
-            last_ingress_at?: string | null;
-            /** Latest Timeline Action */
-            latest_timeline_action?: string | null;
-            /** Latest Timeline Message */
-            latest_timeline_message?: string | null;
-            /** Latest Timeline Status */
-            latest_timeline_status?: string | null;
-            /** Request Id */
-            request_id?: string | null;
-            /** Session Code */
-            session_code: string;
-            /** Session Id */
-            session_id: number;
-            /** Started At */
-            started_at?: string | null;
-            /** Status */
-            status: string;
-            /** Trace Id */
-            trace_id?: string | null;
-            /** Workline Id */
-            workline_id: number;
-        };
-        /** RuntimeMonitorSessionSection */
-        RuntimeMonitorSessionSection: {
-            /** Items */
-            items?: components["schemas"]["RuntimeMonitorSessionItem"][];
-            /**
-             * Total Count
-             * @default 0
-             */
-            total_count: number;
-            /**
-             * Truncated
-             * @default false
-             */
-            truncated: boolean;
-        };
-        /** RuntimeMonitorTraceItem */
-        RuntimeMonitorTraceItem: {
-            /** Barcode */
-            barcode?: string | null;
-            /** Deadline At */
-            deadline_at?: string | null;
-            /** Device Code */
-            device_code?: string | null;
-            /** Device Id */
-            device_id?: number | null;
-            /** Device Name */
-            device_name?: string | null;
-            /** Failure Code */
-            failure_code?: string | null;
-            /** Failure Domain */
-            failure_domain?: string | null;
-            /**
-             * Is Timed Out
-             * @default false
-             */
-            is_timed_out: boolean;
-            /** Last Ingress At */
-            last_ingress_at?: string | null;
-            /** Latest Timeline Action */
-            latest_timeline_action?: string | null;
-            /** Latest Timeline Message */
-            latest_timeline_message?: string | null;
-            /** Latest Timeline Status */
-            latest_timeline_status?: string | null;
-            /** Request Id */
-            request_id?: string | null;
-            /** Session Code */
-            session_code: string;
-            /** Session Id */
-            session_id: number;
-            /** Started At */
-            started_at?: string | null;
-            /** Status */
-            status: string;
-            /** Trace Id */
-            trace_id?: string | null;
-            /** Workline Id */
-            workline_id: number;
-        };
-        /** RuntimeMonitorTraceSection */
-        RuntimeMonitorTraceSection: {
-            /** Items */
-            items?: components["schemas"]["RuntimeMonitorTraceItem"][];
-            /**
-             * Total Count
-             * @default 0
-             */
-            total_count: number;
-            /**
-             * Truncated
-             * @default false
-             */
-            truncated: boolean;
-        };
-        /** RuntimeOverviewResponse */
-        RuntimeOverviewResponse: {
-            /** Abnormal Devices */
-            abnormal_devices?: components["schemas"]["RuntimeDeviceSummary"][];
-            device_health?: components["schemas"]["RuntimeDeviceHealthSummary"];
-            /** Hot Worklines */
-            hot_worklines?: components["schemas"]["RuntimeWorklineSummary"][];
-            /** Recent Failed Traces */
-            recent_failed_traces?: components["schemas"]["RuntimeTraceListItem"][];
-            /** Stats */
-            stats: components["schemas"]["RuntimeStatCard"][];
-        };
-        /**
-         * RuntimeRackOperationWait
-         * @description 料架操作等待状态，描述 WMS 回调与超时结果。
-         * @enum {string}
-         */
-        RuntimeRackOperationWait: "WAITING_WMS" | "WMS_CALLBACK_RECEIVED" | "TIMEOUT" | "FAILED" | "NONE" | "UNKNOWN";
-        /** RuntimeResourceEvidenceItem */
-        RuntimeResourceEvidenceItem: {
-            /** Bin Code */
-            bin_code?: string | null;
-            /** Cell Code */
-            cell_code?: string | null;
-            /** Date Code */
-            date_code?: string | null;
-            /** Display Label */
-            display_label: string;
-            evidence_kind: components["schemas"]["RuntimeResourceEvidenceKind"];
-            /** Lot Code */
-            lot_code?: string | null;
-            /** Material Code */
-            material_code?: string | null;
-            /** Occurred At */
-            occurred_at?: string | null;
-            /** Part Sn */
-            part_sn?: string | null;
-            /** Pkg Code */
-            pkg_code?: string | null;
-            /** Position Code */
-            position_code?: string | null;
-            /** Position Index */
-            position_index?: number | null;
-            /** Rack Code */
-            rack_code?: string | null;
-            /** Reel Code */
-            reel_code?: string | null;
-            /** Reel Count */
-            reel_count?: number | null;
-            /** Resource Code */
-            resource_code: string;
-            resource_kind: components["schemas"]["RuntimeResourceKind"];
-            /** Slot Code */
-            slot_code?: string | null;
-            /** Source Session Id */
-            source_session_id?: number | null;
-            /** Source Trace Id */
-            source_trace_id?: string | null;
-            /** Station Code */
-            station_code?: string | null;
-        };
-        /**
-         * RuntimeResourceEvidenceKind
-         * @description 运行时资源证据来源类型，用于区分快照、回调和 Trace 证据。
-         * @enum {string}
-         */
-        RuntimeResourceEvidenceKind: "WES_ACTIVE_SNAPSHOT" | "WMS_CALLBACK_EVIDENCE" | "TRACE_RESOURCE_EVIDENCE" | "GENERIC_EVIDENCE" | "UNKNOWN";
-        /**
-         * RuntimeResourceKind
-         * @description 运行时资源标识类型，用于统一料架、料盒、工位槽等资源编码。
-         * @enum {string}
-         */
-        RuntimeResourceKind: "RACK" | "BIN" | "PKG" | "SLOT" | "CELL" | "MAGAZINE" | "PART_SN" | "UNKNOWN";
-        /**
-         * RuntimeSingleLayerRackSnapshot
-         * @description 单层料架快照状态，用于运行时资源视图诊断。
-         * @enum {string}
-         */
-        RuntimeSingleLayerRackSnapshot: "ACTIVE" | "MISSING" | "INVALID" | "NON_SINGLE_LAYER_EVIDENCE" | "UNKNOWN";
-        /** RuntimeStatCard */
-        RuntimeStatCard: {
-            /** Key */
-            key: string;
-            /** Label */
-            label: string;
-            /**
-             * Status
-             * @default info
-             */
-            status: string;
-            /** Value */
-            value: number;
-        };
-        /**
-         * RuntimeStationLease
-         * @description 工站当前占用来源，用于判断是否可继续调度。
-         * @enum {string}
-         */
-        RuntimeStationLease: "IDLE" | "ACTIVE_RACK_BOUND" | "ACTIVE_DISPATCH_LEASE" | "ACTIVE_SESSION_BOUND" | "UNKNOWN";
-        /** RuntimeTraceDeviceAction */
-        RuntimeTraceDeviceAction: {
-            /** Kind */
-            kind: string;
-            /** Label */
-            label: string;
-            /** Message */
-            message?: string | null;
-            /** Status */
-            status?: string | null;
-            /** Timestamp */
-            timestamp?: string | null;
-        };
-        /** RuntimeTraceDevicePathNode */
-        RuntimeTraceDevicePathNode: {
-            /** Actions */
-            actions?: components["schemas"]["RuntimeTraceDeviceAction"][];
-            /** Device Code */
-            device_code?: string | null;
-            /** Device Id */
-            device_id: number;
-            /** Device Name */
-            device_name?: string | null;
-            /** Device Role */
-            device_role?: string | null;
-            /**
-             * Is Current
-             * @default false
-             */
-            is_current: boolean;
-        };
-        /**
-         * RuntimeTraceListItem
-         * @description Trace 列表项。
-         */
-        RuntimeTraceListItem: {
-            /** Barcode */
-            barcode?: string | null;
-            /** Business Key */
-            business_key?: string | null;
-            /** Command Code */
-            command_code?: string | null;
-            /** Current Action */
-            current_action?: string | null;
-            /** Current Action Source */
-            current_action_source?: string | null;
-            /** Current Device Code */
-            current_device_code?: string | null;
-            /** Current Device Id */
-            current_device_id?: number | null;
-            /** Current Device Name */
-            current_device_name?: string | null;
-            /** Current Wait Type */
-            current_wait_type?: string | null;
-            /** Deadline At */
-            deadline_at?: string | null;
-            /** Device Code */
-            device_code?: string | null;
-            /** Device Id */
-            device_id?: number | null;
-            /** Device Name */
-            device_name?: string | null;
-            /** Event Payload */
-            event_payload?: {
-                [key: string]: unknown;
-            } | null;
-            /** Event Type */
-            event_type?: string | null;
-            /** Failure Code */
-            failure_code?: string | null;
-            /** Failure Domain */
-            failure_domain?: string | null;
-            /**
-             * Is Timed Out
-             * @default false
-             */
-            is_timed_out: boolean;
-            /** Last Device Code */
-            last_device_code?: string | null;
-            /** Last Device Id */
-            last_device_id?: number | null;
-            /** Last Device Name */
-            last_device_name?: string | null;
-            /** Last Inbox Id */
-            last_inbox_id?: number | null;
-            /** Last Ingress At */
-            last_ingress_at?: string | null;
-            /** Latest Timeline Action */
-            latest_timeline_action?: string | null;
-            /** Latest Timeline Message */
-            latest_timeline_message?: string | null;
-            /** Latest Timeline Status */
-            latest_timeline_status?: string | null;
-            /** Request Id */
-            request_id?: string | null;
-            /** Session Code */
-            session_code: string;
-            /** Session Id */
-            session_id: number;
-            /** Started At */
-            started_at?: string | null;
-            /** Status */
-            status: string;
-            /** Trace Id */
-            trace_id?: string | null;
-            /** Workline Code */
-            workline_code?: string | null;
-            /** Workline Id */
-            workline_id: number;
-            /** Workline Name */
-            workline_name?: string | null;
-        };
-        /**
-         * RuntimeTraceListResponse
-         * @description Trace 列表响应。
-         */
-        RuntimeTraceListResponse: {
-            /** Items */
-            items: components["schemas"]["RuntimeTraceListItem"][];
-            /** Total */
-            total: number;
-        };
-        /** RuntimeTracePathResponse */
-        RuntimeTracePathResponse: {
-            blocking_reason?: components["schemas"]["RuntimeBlockingReason"] | null;
-            /** Current Blocking Device Id */
-            current_blocking_device_id?: number | null;
-            /** Devices */
-            devices?: components["schemas"]["RuntimeTraceDevicePathNode"][];
-            diagnosis_verdict: components["schemas"]["DiagnosisVerdictResponse"];
-            resource_view?: components["schemas"]["RuntimeTraceResourceView"];
-            /** Session Id */
-            session_id?: number | null;
-            /** Sessions */
-            sessions?: components["schemas"]["TraceSessionItem"][];
-            /** Timeline Groups */
-            timeline_groups?: components["schemas"]["RuntimeTraceTimelineGroup"][];
-            /** Trace Id */
-            trace_id?: string | null;
-            /** Workline Id */
-            workline_id?: number | null;
-        };
-        /** RuntimeTraceResourceView */
-        RuntimeTraceResourceView: {
-            /** Active Bin Racks */
-            active_bin_racks?: components["schemas"]["RuntimeActiveBinRackView"][];
-        };
-        /** RuntimeTraceTimelineGroup */
-        RuntimeTraceTimelineGroup: {
-            /** Device Code */
-            device_code?: string | null;
-            /** Device Id */
-            device_id?: number | null;
-            /** Display Name */
-            display_name: string;
-            /** Events */
-            events?: components["schemas"]["TraceTimelineItem"][];
-            /** Group Key */
-            group_key: string;
-            /** Group Type */
-            group_type: string;
-            /**
-             * Is Blocked
-             * @default false
-             */
-            is_blocked: boolean;
-            /**
-             * Is Current
-             * @default false
-             */
-            is_current: boolean;
-        };
-        /** RuntimeWorklineBoundary */
-        RuntimeWorklineBoundary: {
-            /** @default NONE */
-            rack_operation_wait: components["schemas"]["RuntimeRackOperationWait"];
-            /** @default UNKNOWN */
-            single_layer_rack_snapshot: components["schemas"]["RuntimeSingleLayerRackSnapshot"];
-            /** @default UNKNOWN */
-            station_lease: components["schemas"]["RuntimeStationLease"];
-            /** @default UNKNOWN */
-            workline_readiness: components["schemas"]["RuntimeWorklineReadiness"];
-        };
-        /** RuntimeWorklineMonitorProjectionResponse */
-        RuntimeWorklineMonitorProjectionResponse: {
-            action_candidates: components["schemas"]["RuntimeMonitorActionCandidates"];
-            active_sessions: components["schemas"]["RuntimeMonitorSessionSection"];
-            boundary: components["schemas"]["RuntimeWorklineBoundary"];
-            /** Device Nodes */
-            device_nodes?: components["schemas"]["RuntimeMonitorDeviceNode"][];
-            /**
-             * Generated At
-             * Format: date-time
-             */
-            generated_at: string;
-            recent_completed_traces: components["schemas"]["RuntimeMonitorTraceSection"];
-            recent_failed_traces: components["schemas"]["RuntimeMonitorTraceSection"];
-            resource_evidence: components["schemas"]["RuntimeMonitorEvidenceSection"];
-            summary: components["schemas"]["RuntimeWorklineSummary"];
-        };
-        /**
-         * RuntimeWorklineReadiness
-         * @description 产线启动准入与运行准备状态。
-         * @enum {string}
-         */
-        RuntimeWorklineReadiness: "READY" | "NOT_READY" | "UNKNOWN";
-        /** RuntimeWorklineSummary */
-        RuntimeWorklineSummary: {
-            /** Active Safety Incident Id */
-            active_safety_incident_id?: number | null;
-            /**
-             * Active Session Count
-             * @default 0
-             */
-            active_session_count: number;
-            /** Contract Version */
-            contract_version?: string | null;
-            /**
-             * Device Count
-             * @default 0
-             */
-            device_count: number;
-            /**
-             * Error Device Count
-             * @default 0
-             */
-            error_device_count: number;
-            /**
-             * Failed Session Count
-             * @default 0
-             */
-            failed_session_count: number;
-            /** Id */
-            id: number;
-            /** Is Active */
-            is_active: boolean;
-            /** Last Activity At */
-            last_activity_at?: string | null;
-            /** Last Start Request Id */
-            last_start_request_id?: string | null;
-            /** Last Start Trace Id */
-            last_start_trace_id?: string | null;
-            /** Line Code */
-            line_code: string;
-            /** Line Name */
-            line_name: string;
-            /** Line Type */
-            line_type: string;
-            /**
-             * Maintenance Device Count
-             * @default 0
-             */
-            maintenance_device_count: number;
-            /**
-             * Offline Device Count
-             * @default 0
-             */
-            offline_device_count: number;
-            /** Plugin Key */
-            plugin_key?: string | null;
-            /** Resumed At */
-            resumed_at?: string | null;
-            /**
-             * Run Mode
-             * @default AUTO
-             */
-            run_mode: string;
-            /**
-             * Runtime Status
-             * @default STOPPED
-             */
-            runtime_status: string;
-            /** Start Admission Checked At */
-            start_admission_checked_at?: string | null;
-            /** Start Admission Failed Device Code */
-            start_admission_failed_device_code?: string | null;
-            /** Start Admission Message */
-            start_admission_message?: string | null;
-            /** Start Admission Status */
-            start_admission_status?: string | null;
-            /** Stopped At */
-            stopped_at?: string | null;
-            /** Stopped Reason */
-            stopped_reason?: string | null;
-            /**
-             * Waiting Session Count
-             * @default 0
-             */
-            waiting_session_count: number;
-            /** Zone Name */
-            zone_name?: string | null;
+        RuntimeHoldView: {
+            /** Allowed Next Effect Scope */
+            allowed_next_effect_scope?: string | null;
+            /** Freeze Scope */
+            freeze_scope?: string | null;
+            /** Reason Code */
+            reason_code?: string | null;
         };
         /**
          * SandboxAckRequest
@@ -8371,127 +6120,6 @@ export interface components {
              * @description Dispatch Key
              */
             dispatch_key: string;
-        };
-        /**
-         * SandboxCleanupRequest
-         * @description 沙箱工作线清理请求。
-         */
-        SandboxCleanupRequest: {
-            /**
-             * Confirmation
-             * @description 执行清理时必须等于工作线编码
-             */
-            confirmation?: string | null;
-            /**
-             * Dry Run
-             * @description true 仅返回影响范围；false 执行清理
-             * @default true
-             */
-            dry_run: boolean;
-        };
-        /**
-         * SandboxCleanupResponse
-         * @description 沙箱工作线清理响应。
-         */
-        SandboxCleanupResponse: {
-            /**
-             * Affected Session Ids
-             * @description 受影响 Session ID
-             */
-            affected_session_ids?: number[];
-            /**
-             * Counts
-             * @description 影响数据计数
-             */
-            counts?: {
-                [key: string]: number;
-            };
-            /**
-             * Deleted
-             * @description 是否已执行删除
-             */
-            deleted: boolean;
-            /**
-             * Dry Run
-             * @description 是否仅预览影响范围
-             */
-            dry_run: boolean;
-            /**
-             * Message
-             * @description 清理结果消息
-             */
-            message: string;
-            /**
-             * Workline Id
-             * @description 工作线 ID
-             */
-            workline_id: number;
-        };
-        /**
-         * SandboxEventRequest
-         * @description 沙箱 Event 发送请求。
-         */
-        SandboxEventRequest: {
-            /**
-             * Device Id
-             * @description 目标设备 ID
-             */
-            device_id: number;
-            /**
-             * Event Type
-             * @description 事件类型
-             */
-            event_type: string;
-            /**
-             * Payload
-             * @description 事件 Payload
-             */
-            payload?: {
-                [key: string]: unknown;
-            };
-            /**
-             * Session Id
-             * @description Session ID（可选）
-             */
-            session_id?: number | null;
-            /**
-             * Timestamp
-             * @description 事件时间戳（默认当前时间）
-             */
-            timestamp?: string | null;
-            /**
-             * Trace Id
-             * @description Trace ID（可选，自动生成）
-             */
-            trace_id?: string | null;
-            /**
-             * Workline Id
-             * @description 工作线 ID
-             */
-            workline_id: number;
-        };
-        /**
-         * SandboxEventTemplate
-         * @description 沙箱 Event 模板。
-         */
-        SandboxEventTemplate: {
-            /**
-             * Event Type
-             * @description 事件类型标识
-             */
-            event_type: string;
-            /**
-             * Label
-             * @description 事件类型显示名称
-             */
-            label: string;
-            /**
-             * Payload Template
-             * @description Payload 模板
-             */
-            payload_template?: {
-                [key: string]: unknown;
-            };
         };
         /**
          * SandboxExternalCallbackRequest
@@ -8555,95 +6183,6 @@ export interface components {
             timestamp?: string | null;
         };
         /**
-         * SandboxResultRequest
-         * @description 沙箱 Command Result 模拟请求。
-         */
-        SandboxResultRequest: {
-            /**
-             * Command Code
-             * @description Command Code
-             */
-            command_code: string;
-            /**
-             * Device Code
-             * @description 设备 Code
-             */
-            device_code: string;
-            /**
-             * Error Detail
-             * @description 错误详情（FAILED 时）
-             */
-            error_detail?: string | null;
-            /**
-             * Payload
-             * @description Result Payload
-             */
-            payload?: {
-                [key: string]: unknown;
-            };
-            /**
-             * Result
-             * @description 结果状态
-             */
-            result: string;
-            /**
-             * Timestamp
-             * @description 结果时间戳（默认当前时间）
-             */
-            timestamp?: string | null;
-        };
-        /**
-         * SandboxResultTemplate
-         * @description 沙箱 Result 模板。
-         */
-        SandboxResultTemplate: {
-            /**
-             * Command Type
-             * @description Command 类型标识
-             */
-            command_type: string;
-            /**
-             * Error Template
-             * @description 错误信息模板
-             */
-            error_template?: string | null;
-            /**
-             * Failed Payload Template
-             * @description 失败 Payload 模板
-             */
-            failed_payload_template?: {
-                [key: string]: unknown;
-            };
-            /**
-             * Label
-             * @description Command 类型显示名称
-             */
-            label: string;
-            /**
-             * Success Payload Template
-             * @description 成功 Payload 模板
-             */
-            success_payload_template?: {
-                [key: string]: unknown;
-            };
-        };
-        /**
-         * SandboxTemplatesResponse
-         * @description 沙箱模板响应。
-         */
-        SandboxTemplatesResponse: {
-            /**
-             * Event Templates
-             * @description Event 模板列表
-             */
-            event_templates?: components["schemas"]["SandboxEventTemplate"][];
-            /**
-             * Result Templates
-             * @description Result 模板列表
-             */
-            result_templates?: components["schemas"]["SandboxResultTemplate"][];
-        };
-        /**
          * SandboxWorklineStartRequest
          * @description 沙箱 WorkLine START 请求。
          */
@@ -8657,6 +6196,26 @@ export interface components {
              * Trace Id
              * @description Trace ID（可选，自动生成）
              */
+            trace_id?: string | null;
+        };
+        /**
+         * SandboxWorklineStartResponse
+         * @description 沙箱 WorkLine START 准入结果。
+         */
+        SandboxWorklineStartResponse: {
+            /** Ack */
+            ack?: boolean | null;
+            /** Device Code */
+            device_code?: string | null;
+            /** Diagnostic */
+            diagnostic?: {
+                [key: string]: unknown;
+            } | null;
+            /** Reason Code */
+            reason_code?: string | null;
+            /** Status */
+            status?: string | null;
+            /** Trace Id */
             trace_id?: string | null;
         };
         /**
@@ -8719,212 +6278,6 @@ export interface components {
             source_device_id?: number | null;
         };
         /**
-         * SmtInboundHandoffActionResponse
-         * @description SMT 入库 handoff 手工动作响应。
-         */
-        SmtInboundHandoffActionResponse: {
-            /** Available Actions */
-            available_actions?: string[];
-            /** Id */
-            id: number;
-            /** Status */
-            status: string;
-        };
-        /**
-         * SmtInboundHandoffDemandDetailResponse
-         * @description SMT 入库 handoff demand 详情投影。
-         */
-        SmtInboundHandoffDemandDetailResponse: {
-            /** Available Actions */
-            available_actions?: string[];
-            /** Claim Recovery Summary */
-            claim_recovery_summary?: {
-                [key: string]: number;
-            };
-            /** Decision Status */
-            decision_status?: string | null;
-            /** Demand Key */
-            demand_key: string;
-            /** Failure Code */
-            failure_code?: string | null;
-            /** Failure Message */
-            failure_message?: string | null;
-            /** Handling Operation Key */
-            handling_operation_key?: string | null;
-            /** Handling Trace Summary */
-            handling_trace_summary?: {
-                [key: string]: unknown;
-            };
-            /** Id */
-            id: number;
-            /** Item Status Counts */
-            item_status_counts?: {
-                [key: string]: number;
-            };
-            /** Rack Release Id */
-            rack_release_id: string;
-            /** Release Reason Code */
-            release_reason_code?: string | null;
-            /** Release Snapshot */
-            release_snapshot?: {
-                [key: string]: unknown;
-            };
-            /** Single Layer Rack Code */
-            single_layer_rack_code: string;
-            /** Sorting Source Demand Key */
-            sorting_source_demand_key?: string | null;
-            /** Source Items */
-            source_items?: components["schemas"]["SmtInboundHandoffSourceItemDetailResponse"][];
-            /** Source Workline Code */
-            source_workline_code?: string | null;
-            /** Source Workline Id */
-            source_workline_id?: number | null;
-            /** Status */
-            status: string;
-            /** Target Workline Code */
-            target_workline_code?: string | null;
-            /** Target Workline Id */
-            target_workline_id?: number | null;
-            /** Trace Id */
-            trace_id?: string | null;
-        };
-        /**
-         * SmtInboundHandoffDemandListResponse
-         * @description SMT 入库 handoff demand 列表响应数据。
-         */
-        SmtInboundHandoffDemandListResponse: {
-            /** Items */
-            items?: components["schemas"]["SmtInboundHandoffDemandSummaryResponse"][];
-            /**
-             * Limit
-             * @default 50
-             */
-            limit: number;
-            /**
-             * Offset
-             * @default 0
-             */
-            offset: number;
-            /**
-             * Total
-             * @default 0
-             */
-            total: number;
-        };
-        /**
-         * SmtInboundHandoffDemandSummaryResponse
-         * @description SMT 入库 handoff demand 列表摘要投影。
-         */
-        SmtInboundHandoffDemandSummaryResponse: {
-            /** Available Actions */
-            available_actions?: string[];
-            /** Claim Recovery Summary */
-            claim_recovery_summary?: {
-                [key: string]: number;
-            };
-            /** Decision Status */
-            decision_status?: string | null;
-            /** Demand Key */
-            demand_key: string;
-            /** Failure Code */
-            failure_code?: string | null;
-            /** Failure Message */
-            failure_message?: string | null;
-            /** Handling Operation Key */
-            handling_operation_key?: string | null;
-            /** Handling Trace Summary */
-            handling_trace_summary?: {
-                [key: string]: unknown;
-            };
-            /** Id */
-            id: number;
-            /** Item Status Counts */
-            item_status_counts?: {
-                [key: string]: number;
-            };
-            /** Rack Release Id */
-            rack_release_id: string;
-            /** Release Reason Code */
-            release_reason_code?: string | null;
-            /** Single Layer Rack Code */
-            single_layer_rack_code: string;
-            /** Sorting Source Demand Key */
-            sorting_source_demand_key?: string | null;
-            /** Source Workline Code */
-            source_workline_code?: string | null;
-            /** Source Workline Id */
-            source_workline_id?: number | null;
-            /** Status */
-            status: string;
-            /** Target Workline Code */
-            target_workline_code?: string | null;
-            /** Target Workline Id */
-            target_workline_id?: number | null;
-            /** Trace Id */
-            trace_id?: string | null;
-        };
-        /**
-         * SmtInboundHandoffSourceItemDetailResponse
-         * @description SMT 入库 handoff source item 详情投影。
-         */
-        SmtInboundHandoffSourceItemDetailResponse: {
-            /** Available Actions */
-            available_actions?: string[];
-            /** Bin Cell Code */
-            bin_cell_code?: string | null;
-            /** Bin Cell Index */
-            bin_cell_index?: number | null;
-            /** Bin Code */
-            bin_code?: string | null;
-            /**
-             * Claim Attempt No
-             * @default 1
-             */
-            claim_attempt_no: number;
-            /** Failure Code */
-            failure_code?: string | null;
-            /** Failure Message */
-            failure_message?: string | null;
-            /** Id */
-            id: number;
-            /** Item Key */
-            item_key?: string | null;
-            /** Material Identity Key */
-            material_identity_key?: string | null;
-            /** Pkg Code */
-            pkg_code?: string | null;
-            /** Reel Thickness Mm */
-            reel_thickness_mm?: string | null;
-            /** Sorting Session Id */
-            sorting_session_id?: number | null;
-            /** Source Pick Command */
-            source_pick_command?: {
-                [key: string]: unknown;
-            } | null;
-            /** Source Pick Command Code */
-            source_pick_command_code?: string | null;
-            /** Source Pick Command Id */
-            source_pick_command_id?: number | null;
-            /** Source Pick Dispatch Key */
-            source_pick_dispatch_key?: string | null;
-            /** Source Pick Inbox */
-            source_pick_inbox?: {
-                [key: string]: unknown;
-            } | null;
-            /** Source Pick Inbox Id */
-            source_pick_inbox_id?: number | null;
-            /** Source Pick Outbox */
-            source_pick_outbox?: {
-                [key: string]: unknown;
-            } | null;
-            /** Status */
-            status: string;
-            /** Target Workline Code */
-            target_workline_code?: string | null;
-            /** Target Workline Id */
-            target_workline_id?: number | null;
-        };
-        /**
          * SortField
          * @description 排序字段
          * @example {
@@ -8963,646 +6316,6 @@ export interface components {
              * @default 0
              */
             sort_order: number;
-        };
-        /**
-         * TopologySpec
-         * @description 插件声明的静态拓扑。
-         */
-        TopologySpec: {
-            /**
-             * Flow Edges
-             * @description 拓扑边列表
-             */
-            flow_edges?: components["schemas"]["FlowEdge"][];
-        };
-        /** TraceBlockingPointResponse */
-        TraceBlockingPointResponse: {
-            /** Blocking Point */
-            blocking_point: string;
-            diagnosis_verdict: components["schemas"]["DiagnosisVerdictResponse"];
-            diagnostic_card: components["schemas"]["DiagnosticCardResponse"];
-            /** Evidence */
-            evidence?: {
-                [key: string]: unknown;
-            };
-            /** Next Steps */
-            next_steps?: string[];
-            /** Operator Action */
-            operator_action: string;
-            /** Owner */
-            owner: string;
-            /** Recoverability */
-            recoverability: string;
-            /** Request Id */
-            request_id?: string | null;
-            /** Trace Id */
-            trace_id: string;
-        };
-        /** TraceCallbackLogItem */
-        TraceCallbackLogItem: {
-            /** Callback Type */
-            callback_type: string;
-            /** Causation Id */
-            causation_id?: string | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Error Message */
-            error_message?: string | null;
-            /** Event Id */
-            event_id?: string | null;
-            /** Failure Stage */
-            failure_stage?: string | null;
-            /** Id */
-            id: number;
-            /** Ingress Outcome */
-            ingress_outcome?: string | null;
-            /** Request Body */
-            request_body: {
-                [key: string]: unknown;
-            };
-            /** Request Id */
-            request_id?: string | null;
-            /** Response Status */
-            response_status: number;
-            /** Response Time Ms */
-            response_time_ms: number;
-            /** Subject Code */
-            subject_code: string;
-            /** Trace Id */
-            trace_id?: string | null;
-            /** Updated At */
-            updated_at?: string | null;
-        };
-        /** TraceCommandItem */
-        TraceCommandItem: {
-            /** Ack Code */
-            ack_code?: number | null;
-            /** Ack Message */
-            ack_message?: string | null;
-            /** Ack Received At */
-            ack_received_at?: string | null;
-            /** Ack Trace Id */
-            ack_trace_id?: string | null;
-            /** Command Code */
-            command_code: string;
-            /** Completed At */
-            completed_at?: string | null;
-            /** Device Id */
-            device_id: number;
-            /** Duration Ms */
-            duration_ms?: number | null;
-            /** Error Detail */
-            error_detail?: {
-                [key: string]: unknown;
-            } | null;
-            /** Id */
-            id: number;
-            /** Params */
-            params: {
-                [key: string]: unknown;
-            };
-            /** Result */
-            result?: string | null;
-            /** Result Data */
-            result_data?: {
-                [key: string]: unknown;
-            } | null;
-            /**
-             * Retry Count
-             * @default 0
-             */
-            retry_count: number;
-            /** Sent At */
-            sent_at?: string | null;
-            /** Session Id */
-            session_id?: string | null;
-            /** Status */
-            status: string;
-            /** Task Type */
-            task_type: string;
-            /** Trace Id */
-            trace_id?: string | null;
-            /** Workline Id */
-            workline_id?: number | null;
-        };
-        /** TraceContextResponse */
-        TraceContextResponse: {
-            /** Canonical Event Type */
-            canonical_event_type?: string | null;
-            /** Causation Id */
-            causation_id?: string | null;
-            /** Command Code */
-            command_code?: string | null;
-            /** Command Id */
-            command_id?: number | null;
-            /** Contract Version */
-            contract_version?: string | null;
-            /** Device Code */
-            device_code?: string | null;
-            /** Device Id */
-            device_id?: number | null;
-            /** Dispatch Key */
-            dispatch_key?: string | null;
-            /** Event Id */
-            event_id?: string | null;
-            /** Inbox Id */
-            inbox_id?: number | null;
-            /** Outbox Id */
-            outbox_id?: number | null;
-            /** Plugin Key */
-            plugin_key?: string | null;
-            /** Request Id */
-            request_id?: string | null;
-            /** Session Id */
-            session_id?: number | null;
-            /** Trace Id */
-            trace_id?: string | null;
-            /** Transition */
-            transition?: string | null;
-            /** Workline Id */
-            workline_id?: number | null;
-        };
-        /** TraceDetailResponse */
-        TraceDetailResponse: {
-            /** Callback Logs */
-            callback_logs?: components["schemas"]["TraceCallbackLogItem"][];
-            /** Commands */
-            commands?: components["schemas"]["TraceCommandItem"][];
-            diagnosis_verdict: components["schemas"]["DiagnosisVerdictResponse"];
-            /** Diagnostics */
-            diagnostics?: components["schemas"]["TraceDiagnosticItem"][];
-            /** Dispatch Attempts */
-            dispatch_attempts?: components["schemas"]["TraceDispatchAttemptItem"][];
-            /** Inboxes */
-            inboxes?: components["schemas"]["TraceInboxItem"][];
-            /** Outboxes */
-            outboxes?: components["schemas"]["TraceOutboxItem"][];
-            resource_evidence?: components["schemas"]["TraceResourceEvidenceResponse"];
-            /** Sessions */
-            sessions?: components["schemas"]["TraceSessionItem"][];
-            summary: components["schemas"]["TraceOverviewSummary"];
-            /** Timelines */
-            timelines?: components["schemas"]["TraceTimelineItem"][];
-            trace: components["schemas"]["TraceContextResponse"];
-        };
-        /** TraceDiagnosticContextItem */
-        TraceDiagnosticContextItem: {
-            /** Canonical Event Type */
-            canonical_event_type?: string | null;
-            /** Command Code */
-            command_code?: string | null;
-            /** Device Code */
-            device_code?: string | null;
-            /** Extra */
-            extra?: {
-                [key: string]: unknown;
-            };
-            /** Inbox Id */
-            inbox_id?: number | null;
-            /** Outbox Id */
-            outbox_id?: number | null;
-            /** Plugin Key */
-            plugin_key?: string | null;
-            /** Request Id */
-            request_id?: string | null;
-            /** Session Id */
-            session_id?: number | null;
-            /** Trace Id */
-            trace_id?: string | null;
-            /** Transition */
-            transition?: string | null;
-            /** Workline Code */
-            workline_code?: string | null;
-            /** Workline Id */
-            workline_id?: number | null;
-        };
-        /** TraceDiagnosticItem */
-        TraceDiagnosticItem: {
-            /** Canonical Event Type */
-            canonical_event_type?: string | null;
-            /** Command Code */
-            command_code?: string | null;
-            /** Device Code */
-            device_code?: string | null;
-            /** Extra */
-            extra?: {
-                [key: string]: unknown;
-            };
-            /** Inbox Id */
-            inbox_id?: number | null;
-            /** Outbox Id */
-            outbox_id?: number | null;
-            /** Plugin Key */
-            plugin_key?: string | null;
-            /** Request Id */
-            request_id?: string | null;
-            /** Session Id */
-            session_id?: number | null;
-            /** Trace Id */
-            trace_id?: string | null;
-            /** Transition */
-            transition?: string | null;
-            /** Workline Code */
-            workline_code?: string | null;
-            /** Workline Id */
-            workline_id?: number | null;
-        };
-        /** TraceDispatchAttemptItem */
-        TraceDispatchAttemptItem: {
-            /** Attempt No */
-            attempt_no: number;
-            /** Dispatch Key */
-            dispatch_key: string;
-            /** Error Message */
-            error_message?: string | null;
-            /** Finalized At */
-            finalized_at?: string | null;
-            /** Id */
-            id: number;
-            /** Lease Token */
-            lease_token: string;
-            /** Outbox Id */
-            outbox_id: number;
-            /** Response Json */
-            response_json?: {
-                [key: string]: unknown;
-            };
-            /**
-             * Started At
-             * Format: date-time
-             */
-            started_at: string;
-            /** Status */
-            status: string;
-            /** Target Code */
-            target_code?: string | null;
-            /** Target Type */
-            target_type?: string | null;
-            /** Trace Json */
-            trace_json?: {
-                [key: string]: unknown;
-            };
-        };
-        /** TraceInboxItem */
-        TraceInboxItem: {
-            /**
-             * Attempt Count
-             * @default 0
-             */
-            attempt_count: number;
-            /** Causation Id */
-            causation_id?: string | null;
-            /** Command Id */
-            command_id?: number | null;
-            /** Device Id */
-            device_id?: number | null;
-            /** Error Message */
-            error_message?: string | null;
-            /** Event Id */
-            event_id?: string | null;
-            /** Id */
-            id: number;
-            /** Kind */
-            kind: string;
-            /**
-             * Max Attempts
-             * @default 0
-             */
-            max_attempts: number;
-            /** Next Retry At */
-            next_retry_at?: string | null;
-            /** Payload Json */
-            payload_json: {
-                [key: string]: unknown;
-            };
-            /** Processed At */
-            processed_at?: string | null;
-            /**
-             * Received At
-             * Format: date-time
-             */
-            received_at: string;
-            /** Session Id */
-            session_id?: number | null;
-            /** Source Message Id */
-            source_message_id?: string | null;
-            /** Source System */
-            source_system: string;
-            /** Status */
-            status: string;
-            /** Trace Id */
-            trace_id?: string | null;
-            /** Workline Id */
-            workline_id?: number | null;
-        };
-        /** TraceOutboxItem */
-        TraceOutboxItem: {
-            /**
-             * Attempt Count
-             * @default 0
-             */
-            attempt_count: number;
-            /** Blocked At */
-            blocked_at?: string | null;
-            /** Blocked By Reconciliation Session Id */
-            blocked_by_reconciliation_session_id?: number | null;
-            /** Blocked By Runtime Hold Id */
-            blocked_by_runtime_hold_id?: number | null;
-            /** Blocked Check Count */
-            blocked_check_count?: number | null;
-            /** Blocked Detail Json */
-            blocked_detail_json?: {
-                [key: string]: unknown;
-            } | null;
-            /** Blocked Device Id */
-            blocked_device_id?: number | null;
-            /** Blocked Reason */
-            blocked_reason?: string | null;
-            /** Blocked Wait Seconds */
-            blocked_wait_seconds?: number | null;
-            /** Blocked Workline Id */
-            blocked_workline_id?: number | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Dispatch Key */
-            dispatch_key: string;
-            /** Dispatch Type */
-            dispatch_type: string;
-            /** Finished At */
-            finished_at?: string | null;
-            /** Id */
-            id: number;
-            /** Last Blocked Check At */
-            last_blocked_check_at?: string | null;
-            /** Last Error */
-            last_error?: string | null;
-            /** Next Retry At */
-            next_retry_at?: string | null;
-            /** Payload Json */
-            payload_json: {
-                [key: string]: unknown;
-            };
-            /** Sent At */
-            sent_at?: string | null;
-            /** Session Id */
-            session_id?: number | null;
-            /** Status */
-            status: string;
-            /** Target Code */
-            target_code: string;
-            /** Target Type */
-            target_type: string;
-            /** Workline Id */
-            workline_id: number;
-        };
-        /**
-         * TraceOverviewSummary
-         * @description Trace 详情页顶部摘要。
-         */
-        TraceOverviewSummary: {
-            /**
-             * Callback Logs
-             * @default 0
-             */
-            callback_logs: number;
-            /**
-             * Commands
-             * @default 0
-             */
-            commands: number;
-            /** Current Wait Type */
-            current_wait_type?: string | null;
-            /**
-             * Diagnostics
-             * @default 0
-             */
-            diagnostics: number;
-            /**
-             * Inboxes
-             * @default 0
-             */
-            inboxes: number;
-            /** Latest Timeline Action */
-            latest_timeline_action?: string | null;
-            /** Latest Timeline Message */
-            latest_timeline_message?: string | null;
-            /** Latest Timeline Status */
-            latest_timeline_status?: string | null;
-            /**
-             * Outboxes
-             * @default 0
-             */
-            outboxes: number;
-            /** Session Status */
-            session_status?: string | null;
-            /**
-             * Timelines
-             * @default 0
-             */
-            timelines: number;
-        };
-        /**
-         * TraceQueryRequest
-         * @description Trace 列表查询请求。
-         */
-        TraceQueryRequest: {
-            /** Device Id */
-            device_id?: number | null;
-            /** Keyword */
-            keyword?: string | null;
-            /**
-             * Limit
-             * @default 20
-             */
-            limit: number;
-            /**
-             * Offset
-             * @default 0
-             */
-            offset: number;
-            /**
-             * Only Active
-             * @default false
-             */
-            only_active: boolean;
-            /**
-             * Only Failed
-             * @default false
-             */
-            only_failed: boolean;
-            /** Status */
-            status?: string | null;
-            /** Workline Id */
-            workline_id?: number | null;
-        };
-        /**
-         * TraceResourceEvidenceResponse
-         * @description Trace 关联的资源域证据链。
-         */
-        TraceResourceEvidenceResponse: {
-            /** Rack Bin Mounts */
-            rack_bin_mounts?: {
-                [key: string]: unknown;
-            }[];
-            /** Rack Release Bin Snapshots */
-            rack_release_bin_snapshots?: {
-                [key: string]: unknown;
-            }[];
-            /** Rack Releases */
-            rack_releases?: {
-                [key: string]: unknown;
-            }[];
-            /** Resource State Events */
-            resource_state_events?: {
-                [key: string]: unknown;
-            }[];
-            /** Runtime Holds */
-            runtime_holds?: {
-                [key: string]: unknown;
-            }[];
-            /** Wms Writeback Evidence */
-            wms_writeback_evidence?: {
-                [key: string]: unknown;
-            }[];
-        };
-        /** TraceSessionItem */
-        TraceSessionItem: {
-            /** Awaiting Command Id */
-            awaiting_command_id?: number | null;
-            /** Barcode */
-            barcode?: string | null;
-            /** Business Key */
-            business_key?: string | null;
-            /** Context Json */
-            context_json: {
-                [key: string]: unknown;
-            };
-            /** Current Wait Timeout Seconds */
-            current_wait_timeout_seconds?: number | null;
-            /** Current Wait Type */
-            current_wait_type?: string | null;
-            /** Deadline At */
-            deadline_at?: string | null;
-            /** Ended At */
-            ended_at?: string | null;
-            /** Failure Code */
-            failure_code?: string | null;
-            /** Failure Domain */
-            failure_domain?: string | null;
-            /** Failure Message */
-            failure_message?: string | null;
-            /** Id */
-            id: number;
-            /**
-             * Ingress Count
-             * @default 0
-             */
-            ingress_count: number;
-            /** Last Inbox Id */
-            last_inbox_id?: number | null;
-            /** Last Ingress At */
-            last_ingress_at?: string | null;
-            /** Last Request Id */
-            last_request_id?: string | null;
-            /** Plugin Key */
-            plugin_key: string;
-            /** Reconciliation Ack Received At */
-            reconciliation_ack_received_at?: string | null;
-            /** Reconciliation Command Id */
-            reconciliation_command_id?: number | null;
-            /** Reconciliation Deadline At */
-            reconciliation_deadline_at?: string | null;
-            /** Reconciliation Device Id */
-            reconciliation_device_id?: number | null;
-            /**
-             * Reconciliation Late Evidence Received
-             * @default false
-             */
-            reconciliation_late_evidence_received: boolean;
-            /** Reconciliation Occurred At */
-            reconciliation_occurred_at?: string | null;
-            /** Reconciliation Reason */
-            reconciliation_reason?: string | null;
-            /** Reconciliation Resolution */
-            reconciliation_resolution?: string | null;
-            /** Reconciliation Resolved At */
-            reconciliation_resolved_at?: string | null;
-            /** Reconciliation Source Inbox Id */
-            reconciliation_source_inbox_id?: number | null;
-            /** Reconciliation Source Kind */
-            reconciliation_source_kind?: string | null;
-            /** Reconciliation Source Outbox Id */
-            reconciliation_source_outbox_id?: number | null;
-            /** Reconciliation State */
-            reconciliation_state?: string | null;
-            /** Reconciliation Wait Token */
-            reconciliation_wait_token?: string | null;
-            /** Required Operator Action */
-            required_operator_action?: string | null;
-            /** Run Mode */
-            run_mode: string;
-            /** Session Code */
-            session_code: string;
-            /** Started At */
-            started_at?: string | null;
-            /** Status */
-            status: string;
-            /** Trace Id */
-            trace_id?: string | null;
-            /** Waiting Since */
-            waiting_since?: string | null;
-            /** Workline Id */
-            workline_id: number;
-        };
-        /** TraceTimelineItem */
-        TraceTimelineItem: {
-            /** Action Type */
-            action_type: string;
-            /** Actor Code */
-            actor_code?: string | null;
-            /** Actor Type */
-            actor_type: string;
-            /** Failure Domain */
-            failure_domain?: string | null;
-            /** From Status */
-            from_status?: string | null;
-            /** Id */
-            id: number;
-            /** Message */
-            message?: string | null;
-            /**
-             * Occurred At
-             * Format: date-time
-             */
-            occurred_at: string;
-            /** Payload Json */
-            payload_json?: {
-                [key: string]: unknown;
-            } | null;
-            /** Related Command Id */
-            related_command_id?: number | null;
-            /** Related Inbox Id */
-            related_inbox_id?: number | null;
-            /** Seq No */
-            seq_no: number;
-            /** Session Id */
-            session_id: number;
-            /** Stage */
-            stage: string;
-            /** Status */
-            status: string;
-            /** To Status */
-            to_status?: string | null;
-            /** Trace Id */
-            trace_id?: string | null;
-            /** Workline Id */
-            workline_id: number;
         };
         /**
          * TryInvokeApplication
@@ -9817,6 +6530,75 @@ export interface components {
          */
         WmsConfirmationStatus: "PENDING" | "CONFIRMED" | "REJECTED" | "NOT_REQUIRED";
         /**
+         * WmsSyncObligationResolution
+         * @description 明确满足单项 E03/E07 同步义务的已关闭对账裁决。
+         */
+        WmsSyncObligationResolution: {
+            /** Evidence Reference */
+            evidence_reference: string;
+            /**
+             * Resolution
+             * @constant
+             */
+            resolution: "OBLIGATION_SATISFIED";
+            /** Resolved Fact Version */
+            resolved_fact_version: string;
+            /**
+             * Resolved Operation Identity
+             * @enum {string}
+             */
+            resolved_operation_identity: "wms.inventory.confirm_inbound@v1" | "wms.fulfillment.notify_pkg_binding@v1";
+            /** Source Event Id */
+            source_event_id: string;
+        };
+        /**
+         * WorklineActiveObjectConflictState
+         * @description WorklineActiveObjects 冲突展示状态。
+         * @enum {string}
+         */
+        WorklineActiveObjectConflictState: "OK" | "TRANSIENT" | "RECONCILING";
+        /**
+         * WorklineActiveObjectsResponse
+         * @description WorkLine active objects 聚合响应。
+         */
+        WorklineActiveObjectsResponse: {
+            /** Objects */
+            objects?: components["schemas"]["WorklineActiveObjectView"][];
+            /**
+             * Total Count
+             * @default 0
+             */
+            total_count: number;
+            /**
+             * Truncated
+             * @default false
+             */
+            truncated: boolean;
+            /** Workline Id */
+            workline_id: number;
+        };
+        /**
+         * WorklineActiveObjectView
+         * @description 单个 active object 只读视图。
+         */
+        WorklineActiveObjectView: {
+            /** All Sources */
+            all_sources?: string[];
+            conflict_state: components["schemas"]["WorklineActiveObjectConflictState"];
+            /** Evidence Refs */
+            evidence_refs?: string[];
+            location_summary?: components["schemas"]["MaterialLocationResult"] | null;
+            /** Object Key */
+            object_key: string;
+            /** Object Type */
+            object_type: string;
+            /** Operator Hint */
+            operator_hint?: string | null;
+            /** Primary Source */
+            primary_source?: string | null;
+            runtime_hold?: components["schemas"]["RuntimeHoldView"] | null;
+        };
+        /**
          * WorkLineConfigurationCheck
          * @description 作业线启用前结构化检查项。
          */
@@ -9835,7 +6617,7 @@ export interface components {
             };
             /**
              * Severity
-             * @description 严重程度
+             * @description 检查严重程度
              * @enum {string}
              */
             severity: "INFO" | "WARNING" | "BLOCKER";
@@ -9874,21 +6656,16 @@ export interface components {
         };
         /**
          * WorkLineCreate
-         * @description 作业线创建 Schema - 接收客户端输入
+         * @description 作业线创建 Schema。
          */
         WorkLineCreate: {
             /**
              * Config
-             * @description 工作线插件配置
+             * @description 工作线通用配置
              */
             config?: {
                 [key: string]: unknown;
             };
-            /**
-             * Contract Version
-             * @description 工作线默认插件契约版本
-             */
-            contract_version?: string | null;
             /**
              * Description
              * @description 作业线描述
@@ -9914,11 +6691,6 @@ export interface components {
             /** @description 作业线类型 */
             line_type: components["schemas"]["LineType"];
             /**
-             * Plugin Key
-             * @description 工作线执行插件标识
-             */
-            plugin_key?: string | null;
-            /**
              * @description 工作线运行模式
              * @default AUTO
              */
@@ -9937,91 +6709,17 @@ export interface components {
             zone_name?: string | null;
         };
         /**
-         * WorkLinePluginManifestSummary
-         * @description 单插件 manifest 摘要。
-         */
-        WorkLinePluginManifestSummary: {
-            /**
-             * Commands
-             * @description 命令绑定
-             */
-            commands?: components["schemas"]["CommandBinding"][];
-            /**
-             * Contract Version
-             * @description 插件契约版本
-             */
-            contract_version: string;
-            /**
-             * Devices
-             * @description 设备角色要求
-             */
-            devices?: components["schemas"]["DeviceRequirement"][];
-            /**
-             * Events
-             * @description 事件绑定
-             */
-            events?: components["schemas"]["EventBinding"][];
-            /**
-             * Plugin Key
-             * @description 工作线执行插件标识
-             */
-            plugin_key: string;
-            /**
-             * Rack Positions
-             * @description 货架停靠位声明
-             */
-            rack_positions?: components["schemas"]["RackPosition"][];
-            /**
-             * Resource Boundaries
-             * @description 资源边界
-             */
-            resource_boundaries?: components["schemas"]["ResourceBoundary"][];
-            /** @description 静态拓扑声明 */
-            topology: components["schemas"]["TopologySpec"];
-        };
-        /**
-         * WorkLinePluginOption
-         * @description 作业线插件下拉选项。
-         */
-        WorkLinePluginOption: {
-            /**
-             * Contract Versions
-             * @description 可选契约版本
-             */
-            contract_versions?: string[];
-            /**
-             * Default Contract Version
-             * @description 默认契约版本
-             */
-            default_contract_version: string;
-            /**
-             * Label
-             * @description 插件显示文本
-             */
-            label: string;
-            /**
-             * Plugin Key
-             * @description 工作线执行插件标识
-             */
-            plugin_key: string;
-        };
-        /**
          * WorkLineResponse
-         * @description 作业线响应 Schema - 返回给客户端
+         * @description 作业线响应 Schema。
          */
         WorkLineResponse: {
             /**
              * Config
-             * @description 工作线插件配置
+             * @description 工作线通用配置
              */
             config?: {
                 [key: string]: unknown;
             };
-            /**
-             * Contract Version
-             * @description 工作线默认插件契约版本
-             */
-            contract_version?: string | null;
             /**
              * Description
              * @description 作业线描述
@@ -10050,11 +6748,6 @@ export interface components {
             line_name: string;
             /** @description 作业线类型 */
             line_type: components["schemas"]["LineType"];
-            /**
-             * Plugin Key
-             * @description 工作线执行插件标识
-             */
-            plugin_key?: string | null;
             /**
              * @description 工作线运行模式
              * @default AUTO
@@ -10094,21 +6787,16 @@ export interface components {
         };
         /**
          * WorkLineUpdate
-         * @description 作业线更新 Schema - 所有字段可选
+         * @description 作业线更新 Schema。
          */
         WorkLineUpdate: {
             /**
              * Config
-             * @description 工作线插件配置
+             * @description 工作线通用配置
              */
             config?: {
                 [key: string]: unknown;
             } | null;
-            /**
-             * Contract Version
-             * @description 工作线默认插件契约版本
-             */
-            contract_version?: string | null;
             /**
              * Description
              * @description 作业线描述
@@ -10133,11 +6821,6 @@ export interface components {
             line_name?: string | null;
             /** @description 作业线类型 */
             line_type?: components["schemas"]["LineType"] | null;
-            /**
-             * Plugin Key
-             * @description 工作线执行插件标识
-             */
-            plugin_key?: string | null;
             /** @description 工作线运行模式 */
             run_mode?: components["schemas"]["WorkLineRunMode"] | null;
             /**
@@ -12934,7 +9617,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CallbackEventIngressResponse"];
+                    "application/json": components["schemas"]["EcsCallbackAck"];
                 };
             };
         };
@@ -12946,7 +9629,56 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Callback Type
+                     * @description 已注册的外部 callback 类型
+                     */
+                    callback_type: string;
+                    /**
+                     * Causation Id
+                     * @description 因果事件 ID
+                     */
+                    causation_id?: string | null;
+                    /**
+                     * Data
+                     * @description 供应商业务载荷；具体字段由 callback_type 决定
+                     */
+                    data?: {
+                        [key: string]: unknown;
+                    } | null;
+                    /**
+                     * Dispatch Key
+                     * @description 异步 EFFECT 调度身份
+                     */
+                    dispatch_key?: string | null;
+                    /**
+                     * Event Id
+                     * @description 供应商事件 ID
+                     */
+                    event_id?: string | null;
+                    /**
+                     * Occurred At
+                     * @description 外部事件发生时间（offset-aware ISO 8601）
+                     */
+                    occurred_at?: string | null;
+                    /**
+                     * Source Event Id
+                     * @description 供应商幂等事件 ID
+                     */
+                    source_event_id?: string | null;
+                    /**
+                     * Trace Id
+                     * @description 端到端追踪 ID
+                     */
+                    trace_id?: string | null;
+                } & {
+                    [key: string]: unknown;
+                };
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -12955,6 +9687,33 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CallbackExternalIngressResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CallbackExternalIngressResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CallbackExternalIngressResponse"];
+                };
+            };
+            /** @description Content Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CallbackHTTPExceptionResponse"];
                 };
             };
         };
@@ -13138,7 +9897,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CallbackResultIngressResponse"];
+                    "application/json": components["schemas"]["EcsCallbackAck"];
                 };
             };
         };
@@ -13343,111 +10102,6 @@ export interface operations {
             };
         };
     };
-    device_devices_by_id_runtime_clear_fault_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DeviceRuntimeActionRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_DeviceResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    device_devices_by_id_runtime_enter_maintenance_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DeviceMaintenanceRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_DeviceResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    device_devices_by_id_runtime_exit_maintenance_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DeviceRuntimeActionRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_DeviceResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     devices_query: {
         parameters: {
             query?: never;
@@ -13566,6 +10220,60 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BatchOperationResponseModel"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    material_material_units_location_query_get: {
+        parameters: {
+            query?: {
+                /** @description 料箱编码 */
+                bin_code?: string | null;
+                /** @description ExecutionCorrelation.correlation_id */
+                correlation_id?: string | null;
+                /** @description 外部引用类型 */
+                external_reference_type?: string | null;
+                /** @description 外部引用值 */
+                external_reference_value?: string | null;
+                /** @description 物料身份键 */
+                material_identity_key?: string | null;
+                /** @description 运行对象键 */
+                object_key?: string | null;
+                /** @description 运行对象类型 */
+                object_type?: string | null;
+                /** @description PkgID / package_id */
+                package_id?: string | null;
+                /** @description provider code */
+                provider_code?: string | null;
+                /** @description 货架编码 */
+                rack_code?: string | null;
+                /** @description 货架面 */
+                rack_side?: string | null;
+                /** @description WorkLine.id */
+                workline_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_MaterialLocationResult_"];
                 };
             };
             /** @description Validation Error */
@@ -14577,203 +11285,7 @@ export interface operations {
             };
         };
     };
-    workline_inbound_handoff_demands_get: {
-        parameters: {
-            query?: {
-                limit?: number;
-                offset?: number;
-                status?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_SmtInboundHandoffDemandListResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_inbound_handoff_demands_by_demand_id_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                demand_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_SmtInboundHandoffDemandDetailResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_inbound_handoff_source_items_by_source_item_id_actions_retry_source_pick_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                source_item_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_SmtInboundHandoffActionResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_cases_latest_get: {
-        parameters: {
-            query?: {
-                device_id?: number | null;
-                limit?: number;
-                status?: string | null;
-                workline_id?: number | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationDebugCaseListResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_cases_lookup_get: {
-        parameters: {
-            query: {
-                anchor: string;
-                anchor_type: string;
-                include_raw?: boolean;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationDebugCaseResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_ng_return_items_get: {
-        parameters: {
-            query?: {
-                limit?: number;
-                material_identity_key?: string | null;
-                runtime_hold_id?: number | null;
-                status?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_list_NgReturnItemResponse__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_operations_debug_data_cleanup_all_post: {
+    wms_events_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -14782,77 +11294,352 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["DebugDataCleanupRequest"];
+                "application/json": {
+                    data: {
+                        container_id: string;
+                        /** @enum {string} */
+                        milestone: "SOURCE_PICKED";
+                        transport_task_id: string;
+                    } | {
+                        container_id: string;
+                        /** @enum {string} */
+                        milestone: "POSITION_UNKNOWN";
+                        transport_task_id: string;
+                    } | {
+                        container_id: string;
+                        final_position: {
+                            /** @enum {string} */
+                            kind: "RACK_BIN_SLOT";
+                            /** @enum {string} */
+                            rack_face: "A" | "B";
+                            rack_id: string;
+                            slot_id: string;
+                        } | {
+                            /** @enum {string} */
+                            kind: "HANDOFF_POSITION";
+                            location_code: string;
+                        };
+                        /** @enum {string} */
+                        milestone: "TARGET_PLACED";
+                        transport_task_id: string;
+                    };
+                    /** @enum {string} */
+                    operation: "transport.task.member_position_changed@v1";
+                    /** @description WMS 生成的小写 canonical UUIDv7 幂等号 */
+                    operation_id: string;
+                    /**
+                     * Format: int64
+                     * @description Unix 毫秒时间戳
+                     */
+                    timestamp: number;
+                } | {
+                    data: {
+                        /** @enum {string} */
+                        arrival_face: "A" | "B";
+                        final_position: {
+                            /** @enum {string} */
+                            kind: "RACK_POSITION";
+                            location_code: string;
+                        };
+                        /** @enum {string} */
+                        kind: "RACK_MOVE" | "RACK_ROTATE";
+                        /** Format: int64 */
+                        outcome_revision: number;
+                        rack_id: string;
+                        /** @enum {string} */
+                        status: "SUCCEEDED";
+                        transport_task_id: string;
+                    } | {
+                        /** @enum {string} */
+                        arrival_face: "A" | "B";
+                        /** @enum {string} */
+                        failure_code: "MANUAL_ABORTED" | "RCS_EXECUTION_FAILED" | "RCS_TASK_REJECTED";
+                        final_position: {
+                            /** @enum {string} */
+                            kind: "RACK_POSITION";
+                            location_code: string;
+                        };
+                        /** @enum {string} */
+                        kind: "RACK_MOVE" | "RACK_ROTATE";
+                        /** Format: int64 */
+                        outcome_revision: number;
+                        rack_id: string;
+                        /** @enum {string} */
+                        status: "FAILED";
+                        transport_task_id: string;
+                    } | {
+                        /** @enum {string} */
+                        failure_code: "POSITION_UNKNOWN";
+                        /** @enum {string} */
+                        kind: "RACK_MOVE" | "RACK_ROTATE";
+                        /** Format: int64 */
+                        outcome_revision: number;
+                        /** @enum {boolean} */
+                        position_unknown: true;
+                        rack_id: string;
+                        /** @enum {string} */
+                        status: "FAILED";
+                        transport_task_id: string;
+                    } | {
+                        /** @enum {string} */
+                        kind: "BIN_MOVE";
+                        /** Format: int64 */
+                        outcome_revision: number;
+                        results: ({
+                            container_id: string;
+                            final_position: {
+                                /** @enum {string} */
+                                kind: "RACK_BIN_SLOT";
+                                /** @enum {string} */
+                                rack_face: "A" | "B";
+                                rack_id: string;
+                                slot_id: string;
+                            } | {
+                                /** @enum {string} */
+                                kind: "HANDOFF_POSITION";
+                                location_code: string;
+                            };
+                            /** @enum {string} */
+                            status: "SUCCEEDED";
+                        } | {
+                            container_id: string;
+                            /** @enum {string} */
+                            failure_code: "MANUAL_ABORTED" | "RCS_EXECUTION_FAILED" | "RCS_TASK_REJECTED";
+                            final_position: {
+                                /** @enum {string} */
+                                kind: "RACK_BIN_SLOT";
+                                /** @enum {string} */
+                                rack_face: "A" | "B";
+                                rack_id: string;
+                                slot_id: string;
+                            } | {
+                                /** @enum {string} */
+                                kind: "HANDOFF_POSITION";
+                                location_code: string;
+                            };
+                            /** @enum {string} */
+                            status: "FAILED";
+                        } | {
+                            container_id: string;
+                            /** @enum {string} */
+                            failure_code: "POSITION_UNKNOWN";
+                            /** @enum {boolean} */
+                            position_unknown: true;
+                            /** @enum {string} */
+                            status: "FAILED";
+                        })[];
+                        transport_task_id: string;
+                    } | {
+                        /** @enum {string} */
+                        kind: "BIN_EXCHANGE";
+                        /** Format: int64 */
+                        outcome_revision: number;
+                        results: ({
+                            container_id: string;
+                            final_position: {
+                                /** @enum {string} */
+                                kind: "RACK_BIN_SLOT";
+                                /** @enum {string} */
+                                rack_face: "A" | "B";
+                                rack_id: string;
+                                slot_id: string;
+                            } | {
+                                /** @enum {string} */
+                                kind: "HANDOFF_POSITION";
+                                location_code: string;
+                            };
+                            /** @enum {string} */
+                            status: "SUCCEEDED";
+                        } | {
+                            container_id: string;
+                            /** @enum {string} */
+                            failure_code: "MANUAL_ABORTED" | "RCS_EXECUTION_FAILED" | "RCS_TASK_REJECTED";
+                            final_position: {
+                                /** @enum {string} */
+                                kind: "RACK_BIN_SLOT";
+                                /** @enum {string} */
+                                rack_face: "A" | "B";
+                                rack_id: string;
+                                slot_id: string;
+                            } | {
+                                /** @enum {string} */
+                                kind: "HANDOFF_POSITION";
+                                location_code: string;
+                            };
+                            /** @enum {string} */
+                            status: "FAILED";
+                        } | {
+                            container_id: string;
+                            /** @enum {string} */
+                            failure_code: "POSITION_UNKNOWN";
+                            /** @enum {boolean} */
+                            position_unknown: true;
+                            /** @enum {string} */
+                            status: "FAILED";
+                        })[];
+                        transport_task_id: string;
+                    };
+                    /** @enum {string} */
+                    operation: "transport.task.resulted@v1";
+                    /** @description WMS 生成的小写 canonical UUIDv7 幂等号 */
+                    operation_id: string;
+                    /**
+                     * Format: int64
+                     * @description Unix 毫秒时间戳
+                     */
+                    timestamp: number;
+                };
             };
         };
         responses: {
-            /** @description Successful Response */
+            /** @description 重复 evidence 已确认 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_DebugDataCleanupResponse_"];
+                    "application/json": {
+                        /** @enum {string} */
+                        code: "DUPLICATE";
+                        data: {
+                            transport_task_id: string;
+                        };
+                        /** @description WMS 生成的小写 canonical UUIDv7 幂等号 */
+                        operation_id: string;
+                        /**
+                         * Format: int64
+                         * @description Unix 毫秒时间戳
+                         */
+                        timestamp: number;
+                    };
                 };
             };
-            /** @description Validation Error */
+            /** @description evidence 已持久化 */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        code: "RECEIVED";
+                        data: {
+                            transport_task_id: string;
+                        };
+                        /** @description WMS 生成的小写 canonical UUIDv7 幂等号 */
+                        operation_id: string;
+                        /**
+                         * Format: int64
+                         * @description Unix 毫秒时间戳
+                         */
+                        timestamp: number;
+                    };
+                };
+            };
+            /** @description 请求媒体类型、编码或 evidence envelope 不满足封闭合同 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 部署 profile 不允许无签名 callback */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description operation_id 或 outcome_revision 身份冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        code: "CONFLICT";
+                        data: Record<string, never> | {
+                            transport_task_id: string;
+                        };
+                        /** @description WMS 生成的小写 canonical UUIDv7 幂等号 */
+                        operation_id: string;
+                        /**
+                         * Format: int64
+                         * @description Unix 毫秒时间戳
+                         */
+                        timestamp: number;
+                    };
+                };
+            };
+            /** @description 请求体超过固定上限 */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description evidence data 不满足对应 operation 的封闭合同 */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
+                    "application/json": {
+                        /** @enum {string} */
+                        code: "REJECTED";
+                        data: {
+                            /** @enum {string} */
+                            reason_code: "INVALID_EVIDENCE" | "UNSUPPORTED_OPERATION";
+                        } | {
+                            /** @enum {string} */
+                            reason_code: "INVALID_EVIDENCE" | "UNSUPPORTED_OPERATION";
+                            transport_task_id: string;
+                        };
+                        /** @description WMS 生成的小写 canonical UUIDv7 幂等号 */
+                        operation_id: string;
+                        /**
+                         * Format: int64
+                         * @description Unix 毫秒时间戳
+                         */
+                        timestamp: number;
+                    };
+                };
+            };
+            /** @description Transport runtime 尚未就绪或当前无法可靠持久化 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        code: "UNAVAILABLE";
+                        data: Record<string, never>;
+                        /** @description WMS 生成的小写 canonical UUIDv7 幂等号 */
+                        operation_id: string;
+                        /**
+                         * Format: int64
+                         * @description Unix 毫秒时间戳
+                         */
+                        timestamp: number;
+                    };
                 };
             };
         };
     };
-    workline_operations_debug_data_worklines_by_workline_id_cleanup_post: {
+    workline_operations_reconciliations_effects_by_dispatch_key_resolve_post: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                workline_id: number;
+                dispatch_key: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["DebugDataCleanupRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_DebugDataCleanupResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_operations_manual_sessions_by_session_id_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                session_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ManualOperationRequest"];
+                "application/json": components["schemas"]["ResolveEffectReconciliationRequest"];
             };
         };
         responses: {
@@ -14935,32 +11722,26 @@ export interface operations {
                     "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
                 };
             };
-            /** @description Validation Error */
-            422: {
+            /** @description 源 Inbox 当前状态不允许 Replay */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
                 };
             };
-        };
-    };
-    workline_operations_results_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SandboxResultRequest"];
+            /** @description 源 Inbox 或所属工作线不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
             };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
+            /** @description Replay 幂等身份冲突 */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -14975,6 +11756,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Replay 审计证据暂时无法持久化 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
                 };
             };
         };
@@ -15050,8 +11840,11 @@ export interface operations {
     workline_operations_sandbox_completed_get: {
         parameters: {
             query?: {
+                /** @description 按设备过滤 */
                 device_id?: number | null;
+                /** @description 最多返回条数 */
                 limit?: number;
+                /** @description 按工作线过滤 */
                 workline_id?: number | null;
             };
             header?: never;
@@ -15067,39 +11860,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_list_dict_str__Any___"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_operations_sandbox_events_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SandboxEventRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
                 };
             };
             /** @description Validation Error */
@@ -15149,8 +11909,11 @@ export interface operations {
     workline_operations_sandbox_pending_get: {
         parameters: {
             query?: {
+                /** @description 按设备过滤 */
                 device_id?: number | null;
+                /** @description 最多返回条数 */
                 limit?: number;
+                /** @description 按工作线过滤 */
                 workline_id?: number | null;
             };
             header?: never;
@@ -15166,73 +11929,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_list_dict_str__Any___"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_operations_sandbox_templates_get: {
-        parameters: {
-            query: {
-                device_id?: number | null;
-                workline_id: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_SandboxTemplatesResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_operations_sandbox_worklines_by_workline_id_cleanup_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                workline_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SandboxCleanupRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_SandboxCleanupResponse_"];
                 };
             };
             /** @description Validation Error */
@@ -15302,7 +11998,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_Union_CallbackEventAcceptedResponse__CallbackRejectedResponse__"];
+                    "application/json": components["schemas"]["ResponseSchemaModel_SandboxWorklineStartResponse_"];
                 };
             };
             /** @description Validation Error */
@@ -15316,66 +12012,9 @@ export interface operations {
             };
         };
     };
-    workline_plugins_by_plugin_key_manifest_get: {
+    workline_runtime_operations_northbound_get: {
         parameters: {
             query?: {
-                contract_version?: string | null;
-            };
-            header?: never;
-            path: {
-                plugin_key: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_WorkLinePluginManifestSummary_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_plugins_options_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_list_WorkLinePluginOption__"];
-                };
-            };
-        };
-    };
-    workline_runtime_holds_get: {
-        parameters: {
-            query?: {
-                active_only?: boolean;
-                limit?: number;
-                session_id?: number | null;
-                status?: string | null;
                 workline_id?: number | null;
             };
             header?: never;
@@ -15390,573 +12029,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_list_RuntimeHoldSummary__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_runtime_holds_by_hold_id_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                hold_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_RuntimeHoldDetailResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_runtime_holds_by_hold_id_resolve_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                hold_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ResolveRuntimeHoldRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_ResolveRuntimeHoldResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_runtime_holds_ng_reasons_get: {
-        parameters: {
-            query?: {
-                plugin_key?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_list_NgReasonOption__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_runtime_devices_get: {
-        parameters: {
-            query: {
-                worklineId: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_list_RuntimeDeviceSummary__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_runtime_devices_by_device_id_get: {
-        parameters: {
-            query: {
-                worklineId: number;
-            };
-            header?: never;
-            path: {
-                device_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_RuntimeDeviceDetailResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_runtime_overview_get: {
-        parameters: {
-            query?: {
-                includeSim?: boolean;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_RuntimeOverviewResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_runtime_sessions_by_session_id_path_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                session_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_RuntimeTracePathResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_runtime_traces_by_trace_id_path_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                trace_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_RuntimeTracePathResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_runtime_worklines_get: {
-        parameters: {
-            query?: {
-                excludeSimulation?: boolean;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_list_RuntimeWorklineSummary__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_runtime_worklines_by_workline_id_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                workline_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_RuntimeWorklineMonitorProjectionResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_trace_by_trace_id_blocking_point_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                trace_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_TraceBlockingPointResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_trace_command_by_command_code_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                command_code: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_TraceDetailResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_trace_dispatch_by_dispatch_key_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                dispatch_key: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_TraceDetailResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_trace_exchange_by_exchange_request_code_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                exchange_request_code: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_TraceDetailResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_trace_query_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TraceQueryRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_RuntimeTraceListResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_trace_request_by_request_id_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                request_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_TraceDetailResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_trace_session_by_session_id_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                session_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_TraceDetailResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_trace_trace_by_trace_id_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                trace_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_TraceDetailResponse_"];
+                    "application/json": components["schemas"]["ResponseSchemaModel_NorthboundOperationalSnapshot_"];
                 };
             };
             /** @description Validation Error */
@@ -16143,6 +12216,38 @@ export interface operations {
             };
         };
     };
+    workline_work_lines_by_id_active_objects_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description WorkLine.id */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_WorklineActiveObjectsResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     workline_work_lines_by_id_configuration_status_get: {
         parameters: {
             query?: never;
@@ -16227,6 +12332,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_dict_str__str__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_work_lines_by_id_plane_scene_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_PlaneSceneView_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_work_lines_by_id_plane_snapshot_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_PlaneSnapshot_"];
                 };
             };
             /** @description Validation Error */

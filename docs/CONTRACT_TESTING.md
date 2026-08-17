@@ -1,273 +1,81 @@
-# 前后端契约测试
+# 契约测试指南
 
-本文档说明如何使用契约测试工具确保前后端 API 类型一致性。
+## 验证层级
 
-## 🎯 目的
+四类命令回答不同问题，不能互相替代：
 
-防止前后端 API 契约漂移，在开发早期发现类型不一致问题：
+| 命令                                                            | 证明内容                                       | 是否需要后端 checkout |
+| --------------------------------------------------------------- | ---------------------------------------------- | --------------------- |
+| `pnpm contract:test`                                            | 当前 DTO、路径、端点所有权和退役符号不变量     | 否                    |
+| `pnpm contract:verify`                                          | 已提交快照、同步记录和生成入口 marker 完全一致 | 否                    |
+| `pnpm permission:verify -- --backend-root /path/to/wes_backend` | 当前后端提交的权限扫描结果与前端基线一致       | 是                    |
+| `pnpm type:check`                                               | 当前生成类型与维护代码能够完成严格类型检查     | 否                    |
 
-- 字段缺失
-- 类型不匹配
-- 枚举值不一致
-- 可选字段错误
+前端单仓绿灯不能证明后端权限扫描通过；合同同步通过也不能代替类型检查。
 
-## 📁 文件结构
+## 当前合同不变量
 
-```
-wes_frontend/
-├── scripts/
-│   ├── generate-api-types.ts  # OpenAPI 类型生成工具
-│   └── contract-test.ts        # 契约测试工具
-└── src/api/
-    ├── generated/               # 自动生成的类型（可选）
-    │   └── openapi-types.ts
-    ├── modules/                 # API 模块
-    │   ├── user.ts
-    │   └── device.ts
-    └── types/                   # 类型定义
-        └── models/
-            └── auth.ts
-```
+`contract:test` 检查以下机器事实：
 
-## 🚀 使用方法
+- WorkLine DTO 包含 `runtime_config_json`、`diagnostic_profile`，不再包含 `plugin_key`、`contract_version`；本轮只验证合同，不提供这两个配置的编辑器。
+- Device DTO 只保留静态拓扑、排序、启停和诊断字段，不包含连接、协议、心跳、运行状态或当前命令字段。
+- 作业线 `plane/scene` 与 `plane/snapshot` 路径存在。
+- 已退役的 workline runtime 与 plugin 路径不存在。
+- `/api/v1/wms/events` 存在于 raw type mirror，但浏览器模块没有对应方法。
+- 精确入站回调不生成浏览器方法，callback 日志管理端点仍保留。
+- 类型与 Zod 入口包含当前整份快照的 SHA-256 marker。
+- 已删除的 Runtime API、SSE client/session 文件和旧权限记录字段不会被生成器带回。
 
-### 本地开发
+## 日常检查
 
-#### 1. 运行契约测试
+只修改前端维护代码时执行：
 
 ```bash
-# 测试前后端类型一致性
-pnpm run contract:test
+pnpm contract:test
+pnpm contract:verify
+pnpm type:check
 ```
 
-输出示例：
-
-```
-🔍 前后端契约测试
-
-📋 检查 User DTO 契约...
-📋 检查 Device DTO 契约...
-📋 检查认证响应契约...
-
-✅ 所有契约检查通过！
-前后端类型定义一致
-```
-
-#### 2. 生成 OpenAPI 类型（可选）
+后端合同或权限发生变更时，先按同步流程冻结并生成，再执行：
 
 ```bash
-# 从后端 OpenAPI 端点生成类型
-pnpm run generate:types
+pnpm contract:test
+pnpm contract:verify
+pnpm permission:verify -- --backend-root /path/to/wes_backend
+pnpm type:check
 ```
 
-配置后端 URL：
+## Fail-closed 检查
+
+合同验证必须对输入缺失和漂移非零退出。可在本地做一次受控故障注入：
+
+1. 用补丁只修改 canonical 快照中的一处无害描述。
+2. 运行 `pnpm contract:verify`，确认非零退出并报告 SHA-256 不匹配。
+3. 用补丁精确恢复该行。
+4. 再次运行 `pnpm contract:verify`，确认通过。
+
+不要使用宽泛的 Git 恢复命令，以免覆盖同一工作树中的其它修改。
+
+权限验证同样 fail-closed。以下情况必须失败：后端目录缺失、不是 `develop`、工作树不干净、提交不匹配、扫描命令失败、记录格式不精确、数量或 SHA-256 漂移。
+
+## 零差异再生成
+
+合同与权限产物的最终验收是“同一输入再次生成无 diff”：
 
 ```bash
-# 使用默认地址（localhost:8001）
-pnpm run generate:types
-
-# 指定完整 OpenAPI 文档地址
-BACKEND_OPENAPI_URL=http://localhost:9001/api/openapi.json pnpm run generate:types
+pnpm generate:types
+pnpm generate:zod
+pnpm generate:permissions -- --backend-root /path/to/wes_backend
+git diff --exit-code -- \
+  .contract-sync-record.json \
+  .permission-sync-record.json \
+  src/api/generated \
+  src/api/modules \
+  src/types/generated/zod-schemas.ts
 ```
 
-### CI/CD 集成
+若出现权限文件路径变化、旧模块复活、metadata 缺失、marker 变化或同步记录变化，说明生成基线尚未闭合。
 
-契约测试已集成到 CI/CD 流程：
+## 自动门禁
 
-```yaml
-jobs:
-  contract-test: # 契约测试（最先执行）
-  lint-and-test: # 代码检查（依赖契约测试）
-  build: # 构建（依赖代码检查）
-```
-
-**执行顺序：**
-
-```
-契约测试 → 代码检查 → 构建 → 部署
-    ↓
-   失败则停止
-```
-
-## 🔧 契约检查项
-
-当前契约测试验证以下项目：
-
-### User DTO
-
-- ✅ `id` 字段存在
-- ✅ `username` 字段存在
-- ✅ `is_multi_login` 字段存在
-- ✅ `roles` 字段存在
-- ⚠️ 不应包含 `phone`、`status`、`last_login_at` 等已废弃字段
-
-### Device DTO
-
-- ✅ `device_code` 字段存在
-- ✅ `device_name` 字段存在
-- ✅ `device_status` 字段存在
-- ✅ `device_type` 枚举值完整（PDA、INDUSTRIAL_PC、CONVEYOR 等）
-
-### 认证响应
-
-- ✅ `expires_in` 字段存在（OAuth 2.0 标准）
-- ✅ `refresh_expires_in` 字段存在
-
-### 会话响应
-
-- ✅ `/api/v1/auth/sessions` 的 `SessionInfo` 包含 `last_active`
-- ❌ 不应使用历史字段 `last_active_at`
-
-### API 配置
-
-- ✅ `credentials: 'include'` 配置（支持 HttpOnly Cookie）
-
-## 📝 扩展契约测试
-
-在 `scripts/contract-test.ts` 中添加新的检查项：
-
-```typescript
-/**
- * 检查新的 DTO 契约
- */
-function checkNewDtoContract(): FieldIssue[] {
-  const issues: FieldIssue[] = []
-
-  // 1. 检查文件存在
-  const dtoPath = join(TYPES_DIR, 'models/new-dto.ts')
-  if (!existsSync(dtoPath)) {
-    issues.push({ field: 'NewDto', type: 'missing', severity: 'error' })
-    return issues
-  }
-
-  // 2. 检查必需字段
-  const content = readFileSync(dtoPath, 'utf-8')
-  const requiredFields = ['id', 'name', 'status']
-
-  for (const field of requiredFields) {
-    if (!content.includes(field)) {
-      issues.push({
-        field,
-        type: 'missing',
-        severity: 'error',
-        expected: `NewDto 应包含 ${field} 字段`
-      })
-    }
-  }
-
-  return issues
-}
-```
-
-然后在 `main()` 函数中调用：
-
-```typescript
-// 新 DTO 契约检查
-console.log('📋 检查 NewDto 契约...')
-const newDtoIssues = checkNewDtoContract()
-if (newDtoIssues.length > 0) {
-  allIssues.push({
-    endpoint: 'NewDto',
-    method: 'DTO',
-    issues: newDtoIssues
-  })
-}
-```
-
-## 🐛 故障排查
-
-### 契约测试失败
-
-```
-❌ 发现契约不一致问题：
-
-📌 User (DTO)
-  ❌ username: User 应包含 username 字段
-```
-
-**解决方案：**
-
-1. 检查后端 API 定义：
-
-   ```bash
-   # 访问后端 Swagger 文档
-   open http://localhost:8001/api/docs
-   ```
-
-2. 更新前端类型定义：
-
-   ```typescript
-   // scripts/generate-zod-from-openapi.ts
-   // 然后重新生成 src/types/generated/zod-schemas.ts
-   export const UserResponseSchema = z.object({
-     username: z.string() // 添加缺失字段
-   })
-   ```
-
-3. 重新运行测试：
-   ```bash
-   pnpm run contract:test
-   ```
-
-### 后端未运行
-
-```
-❌ 获取 OpenAPI 规范失败: 500 Internal Server Error
-```
-
-**解决方案：**
-
-1. 启动后端服务
-2. 确认 OpenAPI 端点可访问：
-   ```bash
-   curl http://localhost:8001/api/openapi.json
-   ```
-
-### 枚举值不匹配
-
-```
-📌 Device (DTO)
-  ❌ DeviceType: DeviceType 应包含 ROBOT
-```
-
-**解决方案：**
-
-同步前端枚举定义与后端：
-
-```typescript
-// 后端: src/app/device/models/device.py
-class DeviceType(str, Enum):
-    ROBOT = "ROBOT"
-
-// 前端: src/api/modules/device.ts
-export enum DeviceType {
-  ROBOT = 'ROBOT'  // 添加缺失枚举值
-}
-```
-
-## 🔄 工作流程
-
-### 推荐的开发流程
-
-```
-1. 后端开发 → 2. 前端类型更新 → 3. 契约测试 → 4. 功能开发
-                                         ↓
-                                       失败
-                                         ↓
-                                  修复类型定义
-                                         ↓
-                                    重新测试
-```
-
-### 后端 API 变更时
-
-1. 后端更新 Pydantic Schema
-2. 前端同步类型定义
-3. 运行 `pnpm run contract:test` 验证
-4. 提交代码（CI 会再次验证）
-
-## 📚 参考资源
-
-- [FastAPI OpenAPI 文档](https://fastapi.tiangolo.com/tutorial/metadata/)
-- [OpenAPI 规范](https://swagger.io/specification/)
-- [TypeScript 类型系统](https://www.typescriptlang.org/docs/handbook/2/types-from-types.html)
+lint 相关 package scripts 只检查，不修改工作树。pre-commit 离线验证合同；pre-push 和 CI 都执行测试与合同门禁。前端 CI 不执行跨仓权限验证，权限基线必须在具有明确后端 checkout 的本地或集成环境完成。

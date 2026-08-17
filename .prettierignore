@@ -17,6 +17,7 @@ dist-ssr
 # Generated files
 *.d.ts
 !vite-env.d.ts
+contracts/openapi.current.json
 
 # Config files
 pnpm-lock.yaml

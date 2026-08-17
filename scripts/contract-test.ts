@@ -1,350 +1,218 @@
 #!/usr/bin/env tsx
-/**
- * 前后端契约测试
- */
 
-import { readFileSync, existsSync } from 'node:fs'
-import { join } from 'node:path'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { dirname } from 'node:path'
+import {
+  type ContractSyncRecord,
+  readCanonicalOpenApiSnapshot,
+  readContractSyncRecord,
+  readOpenApiMarker
+} from './lib/openapi-sync'
+import {
+  assertPermissionRecordBackendCommit,
+  type PermissionSyncRecord,
+  readPermissionSyncRecord
+} from './lib/permissions-codegen'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+const SCRIPT_PATH = fileURLToPath(import.meta.url)
+const FRONTEND_ROOT = resolve(dirname(SCRIPT_PATH), '..')
 
-interface FieldIssue {
-  field: string
-  type: 'missing' | 'type_mismatch' | 'enum_mismatch' | 'optional_mismatch' | 'export_error'
-  expected?: string
-  actual?: string
-  severity: 'error' | 'warning'
+function requireObject(value: unknown, label: string): Record<string, unknown> {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw new Error(`${label} 缺失或不是对象`)
+  }
+  return value as Record<string, unknown>
 }
 
-const API_MODULES_DIR = join(__dirname, '../src/api/modules')
-const OPENAPI_TYPES_PATH = join(__dirname, '../src/api/generated/openapi-types.ts')
-
-function readOpenApiTypes(): string | null {
-  if (!existsSync(OPENAPI_TYPES_PATH)) {
-    return null
-  }
-
-  return readFileSync(OPENAPI_TYPES_PATH, 'utf-8')
+function requireSchemaProperties(
+  schemas: Record<string, unknown>,
+  schemaName: string
+): Record<string, unknown> {
+  const schema = requireObject(schemas[schemaName], `schema ${schemaName}`)
+  return requireObject(schema.properties, `schema ${schemaName}.properties`)
 }
 
-function extractNamedBlock(content: string, blockName: string): string | null {
-  const marker = `${blockName}: {`
-  const start = content.indexOf(marker)
-
-  if (start === -1) {
-    return null
-  }
-
-  let braceDepth = 0
-  let blockStarted = false
-
-  for (let index = start; index < content.length; index++) {
-    const char = content[index]
-
-    if (char === '{') {
-      braceDepth += 1
-      blockStarted = true
-    } else if (char === '}') {
-      braceDepth -= 1
-
-      if (blockStarted && braceDepth === 0) {
-        return content.slice(start, index + 1)
-      }
+function assertFields(
+  schemaName: string,
+  properties: Record<string, unknown>,
+  required: string[],
+  forbidden: string[]
+): void {
+  for (const field of required) {
+    if (!(field in properties)) {
+      throw new Error(`${schemaName} 缺少当前字段 ${field}`)
     }
   }
-
-  return null
+  for (const field of forbidden) {
+    if (field in properties) {
+      throw new Error(`${schemaName} 仍包含已退役字段 ${field}`)
+    }
+  }
 }
 
-function requireSchemaBlock(
-  issues: FieldIssue[],
-  openApiTypesContent: string | null,
-  schemaName: string
-): string | null {
-  if (!openApiTypesContent) {
-    issues.push({
-      field: schemaName,
-      type: 'missing',
-      severity: 'error',
-      expected: `src/api/generated/openapi-types.ts 应生成 ${schemaName} schema`,
-    })
-    return null
-  }
-
-  const schemaBlock = extractNamedBlock(openApiTypesContent, schemaName)
-
-  if (!schemaBlock) {
-    issues.push({
-      field: schemaName,
-      type: 'missing',
-      severity: 'error',
-      expected: `OpenAPI components.schemas 中应包含 ${schemaName}`,
-    })
-    return null
-  }
-
-  return schemaBlock
-}
-
-function extractExportedTypes(filePath: string): string[] {
-  if (!existsSync(filePath)) {
+function walkTypeScriptFiles(root: string): string[] {
+  if (!existsSync(root)) {
     return []
   }
-
-  const content = readFileSync(filePath, 'utf-8')
-  const types: string[] = []
-
-  const interfaceRegex = /export\s+(?:interface|type)\s+(\w+)/g
-  let match
-  while ((match = interfaceRegex.exec(content)) !== null) {
-    types.push(match[1])
-  }
-
-  return types
+  return readdirSync(root, { withFileTypes: true }).flatMap(entry => {
+    const path = join(root, entry.name)
+    return entry.isDirectory() ? walkTypeScriptFiles(path) : path.endsWith('.ts') ? [path] : []
+  })
 }
 
-function validateTypeExports(): FieldIssue[] {
-  const issues: FieldIssue[] = []
+function assertCurrentDtoContracts(schemas: Record<string, unknown>): void {
+  for (const schemaName of ['WorkLineCreate', 'WorkLineResponse', 'WorkLineUpdate']) {
+    assertFields(
+      schemaName,
+      requireSchemaProperties(schemas, schemaName),
+      ['runtime_config_json', 'diagnostic_profile'],
+      ['plugin_key', 'contract_version']
+    )
+  }
 
-  const authModulePath = join(API_MODULES_DIR, 'auth.ts')
-  const userModulePath = join(API_MODULES_DIR, 'users.ts')
-  const authTypes = extractExportedTypes(authModulePath)
-  const userTypes = extractExportedTypes(userModulePath)
+  const retiredDeviceFields = [
+    'auth_token',
+    'callback_path',
+    'capabilities_json',
+    'current_command_id',
+    'device_status',
+    'error_code',
+    'host',
+    'idempotency_ttl',
+    'last_heartbeat_at',
+    'maintenance_mode',
+    'max_concurrent_tasks',
+    'port',
+    'protocol',
+    'timeout',
+    'vendor_type'
+  ]
+  for (const schemaName of ['DeviceCreate', 'DeviceResponse', 'DeviceUpdate']) {
+    assertFields(
+      schemaName,
+      requireSchemaProperties(schemas, schemaName),
+      ['device_role', 'role_index', 'upstream_device_id', 'work_line_id', 'diagnostic_profile'],
+      retiredDeviceFields
+    )
+  }
+}
 
-  for (const exportedType of ['ApiPermissionInfo', 'UserInfo']) {
-    if (!authTypes.includes(exportedType)) {
-      issues.push({
-        field: `modules/auth.${exportedType}`,
-        type: 'export_error',
-        severity: 'error',
-        expected: `类型 ${exportedType} 在 modules/auth.ts 中不存在或未导出`,
-      })
+function assertCurrentPaths(paths: Record<string, unknown>): void {
+  for (const path of [
+    '/api/v1/workline/work_lines/{id}/plane/scene',
+    '/api/v1/workline/work_lines/{id}/plane/snapshot',
+    '/api/v1/wms/events'
+  ]) {
+    if (!(path in paths)) {
+      throw new Error(`OpenAPI 缺少当前路径 ${path}`)
     }
   }
 
-  for (const exportedType of ['UsersItem', 'CreateUsersInput', 'UpdateUsersInput']) {
-    if (!userTypes.includes(exportedType)) {
-      issues.push({
-        field: `modules/users.${exportedType}`,
-        type: 'export_error',
-        severity: 'error',
-        expected: `类型 ${exportedType} 在 modules/users.ts 中不存在或未导出`,
-      })
+  const retiredPath = Object.keys(paths).find(
+    path =>
+      path === '/api/v1/workline/runtime' ||
+      path.startsWith('/api/v1/workline/runtime/') ||
+      path === '/api/v1/workline/plugins' ||
+      path.startsWith('/api/v1/workline/plugins/')
+  )
+  if (retiredPath) {
+    throw new Error(`OpenAPI 仍包含已退役路径 ${retiredPath}`)
+  }
+}
+
+function assertGeneratedArtifacts(openApiSha256: string): void {
+  const openApiTypesPath = resolve(FRONTEND_ROOT, 'src/api/generated/openapi-types.ts')
+  const zodPath = resolve(FRONTEND_ROOT, 'src/types/generated/zod-schemas.ts')
+  for (const filePath of [openApiTypesPath, zodPath]) {
+    const marker = readOpenApiMarker(readFileSync(filePath, 'utf-8'), filePath)
+    if (marker !== openApiSha256) {
+      throw new Error(`生成入口 marker 与当前 OpenAPI SHA-256 不一致: ${filePath}`)
     }
   }
 
-  return issues
-}
-
-function checkUserContract(): FieldIssue[] {
-  const issues: FieldIssue[] = []
-  const schemaBlock = requireSchemaBlock(issues, readOpenApiTypes(), 'UserResponse')
-
-  if (!schemaBlock) {
-    return issues
+  const openApiTypes = readFileSync(openApiTypesPath, 'utf-8')
+  if (!openApiTypes.includes('"/api/v1/wms/events"')) {
+    throw new Error('raw OpenAPI type mirror 缺少 /api/v1/wms/events')
   }
 
-  const requiredFields = ['id', 'username', 'is_multi_login', 'roles']
+  const moduleFiles = walkTypeScriptFiles(resolve(FRONTEND_ROOT, 'src/api/modules'))
+  const moduleSources = moduleFiles.map(path => readFileSync(path, 'utf-8')).join('\n')
+  for (const systemPath of ['/api/v1/wms/', "'/api/v1/callback/external'"]) {
+    if (moduleSources.includes(systemPath)) {
+      throw new Error(`浏览器 API 模块不应包含系统端点 ${systemPath}`)
+    }
+  }
+  if (!moduleSources.includes('/api/v1/callback/logs')) {
+    throw new Error('callback 管理读取端点被错误过滤')
+  }
 
-  for (const field of requiredFields) {
-    if (!schemaBlock.includes(field)) {
-      issues.push({
-        field,
-        type: 'missing',
-        severity: 'error',
-        expected: `OpenAPI UserResponse schema 应包含 ${field} 字段`,
-      })
+  const generatedFiles = [
+    ...walkTypeScriptFiles(resolve(FRONTEND_ROOT, 'src/api/generated')),
+    ...moduleFiles,
+    zodPath
+  ]
+  for (const filePath of generatedFiles) {
+    if (
+      readFileSync(filePath, 'utf-8').includes('openapi.workline-plugin-manifest-yaml-topology')
+    ) {
+      throw new Error(`生成物仍引用旧 OpenAPI 快照: ${filePath}`)
+    }
+  }
+}
+
+function assertLegacyRuntimeDoesNotReturn(): void {
+  for (const removedFile of ['src/api/services/sse-client.ts', 'src/api/services/sse-session.ts']) {
+    if (existsSync(resolve(FRONTEND_ROOT, removedFile))) {
+      throw new Error(`已删除的 Runtime 文件被重新生成: ${removedFile}`)
     }
   }
 
-  return issues
-}
-
-function checkDeviceContract(): FieldIssue[] {
-  const issues: FieldIssue[] = []
-  const schemaBlock = requireSchemaBlock(issues, readOpenApiTypes(), 'DeviceResponse')
-
-  if (!schemaBlock) {
-    return issues
-  }
-
-  const requiredFields = ['device_code', 'device_name', 'device_status', 'host', 'port']
-
-  for (const field of requiredFields) {
-    if (!schemaBlock.includes(field)) {
-      issues.push({
-        field,
-        type: 'missing',
-        severity: 'error',
-        expected: `OpenAPI DeviceResponse schema 应包含 ${field} 字段`,
-      })
+  const maintainedSources = walkTypeScriptFiles(resolve(FRONTEND_ROOT, 'src/api/modules'))
+    .map(path => readFileSync(path, 'utf-8'))
+    .join('\n')
+  for (const removedSymbol of ['RuntimeHoldNgReasonsQuery', 'runtimeHoldApiMethods']) {
+    if (maintainedSources.includes(removedSymbol)) {
+      throw new Error(`已删除的 Runtime symbol 被重新生成: ${removedSymbol}`)
     }
   }
-
-  return issues
 }
 
-function checkAuthResponseContract(): FieldIssue[] {
-  const issues: FieldIssue[] = []
-  const schemaBlock = requireSchemaBlock(issues, readOpenApiTypes(), 'LoginResponse')
-
-  if (!schemaBlock) {
-    return issues
-  }
-
-  const oauthFields = ['expires_in', 'refresh_expires_in']
-
-  for (const field of oauthFields) {
-    if (!schemaBlock.includes(field)) {
-      issues.push({
-        field: `LoginResponse.${field}`,
-        type: 'missing',
-        severity: 'error',
-        expected: `OpenAPI 登录响应契约应包含 OAuth 2.0 标准字段 ${field}`,
-      })
-    }
-  }
-
-  return issues
+export function assertPermissionRecordMatchesContract(
+  contractRecord: ContractSyncRecord,
+  permissionRecordPath: string
+): PermissionSyncRecord {
+  return assertPermissionRecordBackendCommit(
+    readPermissionSyncRecord(permissionRecordPath),
+    contractRecord.backendCommit
+  )
 }
 
-function checkSessionContract(): FieldIssue[] {
-  const issues: FieldIssue[] = []
-  const schemaBlock = requireSchemaBlock(issues, readOpenApiTypes(), 'SessionInfo')
+function main(): void {
+  const record = readContractSyncRecord(resolve(FRONTEND_ROOT, '.contract-sync-record.json'))
+  const snapshot = readCanonicalOpenApiSnapshot(FRONTEND_ROOT)
+  const components = requireObject(snapshot.document.components, 'OpenAPI components')
+  const schemas = requireObject(components.schemas, 'OpenAPI components.schemas')
+  const paths = requireObject(snapshot.document.paths, 'OpenAPI paths')
 
-  if (!schemaBlock) {
-    return issues
-  }
+  assertCurrentDtoContracts(schemas)
+  assertCurrentPaths(paths)
+  assertGeneratedArtifacts(record.openApiSha256)
+  assertLegacyRuntimeDoesNotReturn()
 
-  if (!schemaBlock.includes('last_active')) {
-    issues.push({
-      field: 'SessionInfo.last_active',
-      type: 'missing',
-      severity: 'error',
-      expected: 'OpenAPI SessionInfo schema 应包含 last_active 字段',
-    })
-  }
+  assertPermissionRecordMatchesContract(
+    record,
+    resolve(FRONTEND_ROOT, '.permission-sync-record.json')
+  )
 
-  if (schemaBlock.includes('last_active_at')) {
-    issues.push({
-      field: 'SessionInfo.last_active_at',
-      type: 'type_mismatch',
-      severity: 'error',
-      expected: 'OpenAPI SessionInfo schema 不应使用 last_active_at，请统一为 last_active',
-    })
-  }
-
-  return issues
+  console.log('✅ 当前 OpenAPI、浏览器端点所有权与生成物不变量检查通过')
 }
 
-function checkApiPathContract(): FieldIssue[] {
-  const issues: FieldIssue[] = []
-
-  const clientPath = join(__dirname, '../src/api/client.ts')
-  if (!existsSync(clientPath)) {
-    return issues
+if (process.argv[1] && resolve(process.argv[1]) === SCRIPT_PATH) {
+  try {
+    main()
+  } catch (error) {
+    console.error(`❌ 契约测试失败: ${(error as Error).message}`)
+    process.exit(1)
   }
-
-  const clientContent = readFileSync(clientPath, 'utf-8')
-
-  if (!clientContent.includes('credentials')) {
-    issues.push({
-      field: 'credentials',
-      type: 'missing',
-      severity: 'error',
-      expected: 'API 客户端应配置 credentials: "include" 以支持 Cookie',
-    })
-  }
-
-  return issues
 }
-
-async function main(): Promise<void> {
-  console.log('🔍 前后端契约测试\n')
-
-  const allIssues: ContractIssue[] = []
-
-  console.log('📋 检查类型导出完整性...')
-  const exportIssues = validateTypeExports()
-  if (exportIssues.length > 0) {
-    allIssues.push({ endpoint: 'Type Exports', method: 'Validation', issues: exportIssues })
-  }
-
-  console.log('📋 检查 User DTO 契约...')
-  const userIssues = checkUserContract()
-  if (userIssues.length > 0) {
-    allIssues.push({ endpoint: 'User', method: 'DTO', issues: userIssues })
-  }
-
-  console.log('📋 检查 Device DTO 契约...')
-  const deviceIssues = checkDeviceContract()
-  if (deviceIssues.length > 0) {
-    allIssues.push({ endpoint: 'Device', method: 'DTO', issues: deviceIssues })
-  }
-
-  console.log('📋 检查认证响应契约...')
-  const authIssues = checkAuthResponseContract()
-  if (authIssues.length > 0) {
-    allIssues.push({ endpoint: '/api/v1/auth/login', method: 'POST', issues: authIssues })
-  }
-
-  console.log('📋 检查会话响应契约...')
-  const sessionIssues = checkSessionContract()
-  if (sessionIssues.length > 0) {
-    allIssues.push({ endpoint: '/api/v1/auth/sessions', method: 'GET', issues: sessionIssues })
-  }
-
-  console.log('📋 检查 API 配置契约...')
-  const configIssues = checkApiPathContract()
-  if (configIssues.length > 0) {
-    allIssues.push({ endpoint: 'Client', method: 'Config', issues: configIssues })
-  }
-
-  console.log('\n' + '='.repeat(60))
-
-  if (allIssues.length === 0) {
-    console.log('✅ 所有契约检查通过！')
-    console.log('前后端类型定义一致')
-  } else {
-    console.log('❌ 发现契约不一致问题：\n')
-
-    let errorCount = 0
-    let warningCount = 0
-
-    for (const issue of allIssues) {
-      console.log(`\n📌 ${issue.endpoint} (${issue.method})`)
-
-      for (const detail of issue.issues) {
-        const icon = detail.severity === 'error' ? '❌' : '⚠️'
-        console.log(`  ${icon} ${detail.field}: ${detail.expected || detail.type}`)
-
-        if (detail.severity === 'error') {
-          errorCount++
-        } else {
-          warningCount++
-        }
-      }
-    }
-
-    console.log('\n' + '='.repeat(60))
-    console.log(`总计: ${errorCount} 个错误, ${warningCount} 个警告\n`)
-
-    if (errorCount > 0) {
-      console.log('💡 修复建议:')
-      console.log('   1. 检查并移除不存在的类型导出')
-      console.log('   2. 检查后端 API 定义')
-      console.log('   3. 更新前端 DTO 定义以匹配后端')
-      console.log('   4. 确保字段名、类型、枚举值完全一致')
-      console.log('   5. 运行 pnpm run type:check 验证类型正确性')
-
-      process.exit(1)
-    }
-  }
-
-  console.log()
-}
-
-main()

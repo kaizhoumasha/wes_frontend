@@ -4,7 +4,7 @@ name: CI/CD Pipeline
 # - develop 分支 → Cloudflare Pages（预发布环境）
 # - main 分支   → 私有化部署（生产环境，不通过此 workflow）
 #
-# 注意：契约测试已在本地 pre-push hook 中执行，CI 不再重复检查
+# 前端 CI 使用已提交的 canonical 契约快照，不依赖后端 checkout。
 
 on:
   push:
@@ -46,6 +46,18 @@ jobs:
 
       - name: Prettier 检查
         run: pnpm run lint:prettier
+
+      - name: Stylelint 检查
+        run: pnpm run lint:stylelint
+
+      - name: 单元测试
+        run: pnpm test
+
+      - name: 契约不变量测试
+        run: pnpm contract:test
+
+      - name: 离线契约同步检查
+        run: pnpm contract:verify
 
   build:
     name: 构建项目
