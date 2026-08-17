@@ -147,9 +147,7 @@ const { originalData, resetDialogState, resolveEditData } = useCrudFormEditSessi
 })
 
 const visibleFields = computed(() => {
-  return props.fieldConfig.filter(field =>
-    isFieldVisibleInMode(field, currentFormMode.value)
-  )
+  return props.fieldConfig.filter(field => isFieldVisibleInMode(field, currentFormMode.value))
 })
 
 const { submitting, conflictDialogVisible, resetSubmitState, onSubmit, handleConflictRefresh } =
