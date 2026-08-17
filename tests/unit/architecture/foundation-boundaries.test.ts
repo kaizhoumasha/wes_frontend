@@ -1,10 +1,10 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { dirname, join, relative, resolve, sep } from 'node:path'
+import { parse as parseVueSfc } from 'vue/compiler-sfc'
 import ts from 'typescript'
 import { describe, expect, it } from 'vitest'
 
 const FOUNDATION_DIRECTORIES = ['src/components/common', 'src/components/ui', 'src/api/base']
-const VUE_SCRIPT_BLOCK = /<script(?:\s[^>]*)?>([\s\S]*?)<\/script\s*>/gi
 
 function collectSourceFiles(directory: string): string[] {
   const files: string[] = []
@@ -52,18 +52,43 @@ function extractModuleSpecifiersFromScript(
   return specifiers
 }
 
-function extractModuleSpecifiers(source: string, sourceFile: string): string[] {
+function extractSourceDependencies(
+  source: string,
+  sourceFile: string
+): { moduleSpecifiers: string[]; externalScriptSources: string[] } {
   if (!sourceFile.endsWith('.vue')) {
     const scriptKind = sourceFile.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS
-    return extractModuleSpecifiersFromScript(source, sourceFile, scriptKind)
+    return {
+      moduleSpecifiers: extractModuleSpecifiersFromScript(source, sourceFile, scriptKind),
+      externalScriptSources: []
+    }
   }
 
-  return Array.from(source.matchAll(VUE_SCRIPT_BLOCK)).flatMap((match, index) => {
-    const scriptKind = /\blang\s*=\s*["']tsx["']/i.test(match[0])
-      ? ts.ScriptKind.TSX
-      : ts.ScriptKind.TS
-    return extractModuleSpecifiersFromScript(match[1], `${sourceFile}#script-${index}`, scriptKind)
-  })
+  const parsedSfc = parseVueSfc(source, { filename: sourceFile })
+  if (parsedSfc.errors.length > 0) {
+    const details = parsedSfc.errors
+      .map(error => (error instanceof Error ? error.message : String(error)))
+      .join('; ')
+    throw new Error(`Foundation Vue SFC 解析失败 (${sourceFile}): ${details}`)
+  }
+
+  const descriptor = parsedSfc.descriptor
+  const scriptBlocks = [descriptor.script, descriptor.scriptSetup]
+
+  return {
+    moduleSpecifiers: scriptBlocks.flatMap((block, index) => {
+      if (!block) {
+        return []
+      }
+      const scriptKind = block.lang === 'tsx' ? ts.ScriptKind.TSX : ts.ScriptKind.TS
+      return extractModuleSpecifiersFromScript(
+        block.content,
+        `${sourceFile}#script-${index}`,
+        scriptKind
+      )
+    }),
+    externalScriptSources: scriptBlocks.flatMap(block => (block?.src ? [block.src] : []))
+  }
 }
 
 function resolveModuleSpecifier(
@@ -80,16 +105,24 @@ function resolveModuleSpecifier(
   return null
 }
 
-function findBusinessApiSpecifiers(source: string, sourceFile: string, repoRoot: string): string[] {
+function findFoundationDependencyViolations(
+  source: string,
+  sourceFile: string,
+  repoRoot: string
+): string[] {
   const businessApiDirectory = resolve(repoRoot, 'src/api/modules')
+  const dependencies = extractSourceDependencies(source, sourceFile)
 
-  return extractModuleSpecifiers(source, sourceFile).filter(specifier => {
-    const resolvedSpecifier = resolveModuleSpecifier(specifier, sourceFile, repoRoot)
-    return (
-      resolvedSpecifier === businessApiDirectory ||
-      resolvedSpecifier?.startsWith(`${businessApiDirectory}${sep}`)
-    )
-  })
+  return [
+    ...dependencies.externalScriptSources.map(source => `<script src>: ${source}`),
+    ...dependencies.moduleSpecifiers.filter(specifier => {
+      const resolvedSpecifier = resolveModuleSpecifier(specifier, sourceFile, repoRoot)
+      return (
+        resolvedSpecifier === businessApiDirectory ||
+        resolvedSpecifier?.startsWith(`${businessApiDirectory}${sep}`)
+      )
+    })
+  ]
 }
 
 describe('foundation dependency boundaries', () => {
@@ -101,7 +134,9 @@ describe('foundation dependency boundaries', () => {
     const repoRoot = resolve(process.cwd())
     const sourceFile = resolve(repoRoot, 'src/components/common/example.ts')
 
-    expect(findBusinessApiSpecifiers(source, sourceFile, repoRoot)).toEqual(['@/api/modules/x'])
+    expect(findFoundationDependencyViolations(source, sourceFile, repoRoot)).toEqual([
+      '@/api/modules/x'
+    ])
   })
 
   it('detects relative imports that resolve into business API modules', () => {
@@ -109,7 +144,9 @@ describe('foundation dependency boundaries', () => {
     const repoRoot = resolve(process.cwd())
     const sourceFile = resolve(repoRoot, 'src/components/common/example.ts')
 
-    expect(findBusinessApiSpecifiers(source, sourceFile, repoRoot)).toEqual(['../../api/modules/x'])
+    expect(findFoundationDependencyViolations(source, sourceFile, repoRoot)).toEqual([
+      '../../api/modules/x'
+    ])
   })
 
   it('detects relative export-from dependencies separated by comment trivia', () => {
@@ -117,7 +154,9 @@ describe('foundation dependency boundaries', () => {
     const repoRoot = resolve(process.cwd())
     const sourceFile = resolve(repoRoot, 'src/components/common/example.ts')
 
-    expect(findBusinessApiSpecifiers(source, sourceFile, repoRoot)).toEqual(['../../api/modules/x'])
+    expect(findFoundationDependencyViolations(source, sourceFile, repoRoot)).toEqual([
+      '../../api/modules/x'
+    ])
   })
 
   it('detects dynamic imports with a static template literal', () => {
@@ -125,7 +164,9 @@ describe('foundation dependency boundaries', () => {
     const repoRoot = resolve(process.cwd())
     const sourceFile = resolve(repoRoot, 'src/components/common/example.ts')
 
-    expect(findBusinessApiSpecifiers(source, sourceFile, repoRoot)).toEqual(['@/api/modules/x'])
+    expect(findFoundationDependencyViolations(source, sourceFile, repoRoot)).toEqual([
+      '@/api/modules/x'
+    ])
   })
 
   it('parses Vue script blocks without treating template text as imports', () => {
@@ -138,18 +179,44 @@ describe('foundation dependency boundaries', () => {
     const repoRoot = resolve(process.cwd())
     const sourceFile = resolve(repoRoot, 'src/components/common/example.vue')
 
-    expect(findBusinessApiSpecifiers(source, sourceFile, repoRoot)).toEqual(['../../api/modules/x'])
+    expect(findFoundationDependencyViolations(source, sourceFile, repoRoot)).toEqual([
+      '../../api/modules/x'
+    ])
+  })
+
+  it('rejects foundation Vue external script sources', () => {
+    const source = '<script src="../../api/modules/x.ts"></script>'
+    const repoRoot = resolve(process.cwd())
+    const sourceFile = resolve(repoRoot, 'src/components/common/example.vue')
+
+    expect(findFoundationDependencyViolations(source, sourceFile, repoRoot)).toEqual([
+      '<script src>: ../../api/modules/x.ts'
+    ])
+  })
+
+  it('fails closed when Vue rejects an external script setup source', () => {
+    const source = '<script setup src="./shared.ts"></script>'
+    const repoRoot = resolve(process.cwd())
+    const sourceFile = resolve(repoRoot, 'src/components/common/example.vue')
+
+    expect(() => findFoundationDependencyViolations(source, sourceFile, repoRoot)).toThrow(
+      /Foundation Vue SFC 解析失败.*script setup.*src/i
+    )
   })
 
   it('does not import business API modules from common, ui, or api base', () => {
     const repoRoot = resolve(process.cwd())
     const violations = FOUNDATION_DIRECTORIES.flatMap(directory =>
       collectSourceFiles(resolve(repoRoot, directory)).flatMap(file => {
-        const specifiers = findBusinessApiSpecifiers(readFileSync(file, 'utf-8'), file, repoRoot)
-        return specifiers.map(specifier => `${relative(repoRoot, file)}: ${specifier}`)
+        const violations = findFoundationDependencyViolations(
+          readFileSync(file, 'utf-8'),
+          file,
+          repoRoot
+        )
+        return violations.map(violation => `${relative(repoRoot, file)}: ${violation}`)
       })
     )
 
-    expect(violations, `基础层不得依赖业务 API:\n${violations.join('\n')}`).toEqual([])
+    expect(violations, `基础层依赖违规:\n${violations.join('\n')}`).toEqual([])
   })
 })
