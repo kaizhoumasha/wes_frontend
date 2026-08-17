@@ -1,13 +1,10 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { dirname, join, relative, resolve, sep } from 'node:path'
+import ts from 'typescript'
 import { describe, expect, it } from 'vitest'
 
 const FOUNDATION_DIRECTORIES = ['src/components/common', 'src/components/ui', 'src/api/base']
-const MODULE_SPECIFIER_PATTERNS = [
-  /\bimport\s+(?:type\s+)?(?:[^'";]*?\s+from\s+)?['"]([^'"]+)['"]/g,
-  /\bexport\s+(?:type\s+)?[^'";]*?\s+from\s+['"]([^'"]+)['"]/g,
-  /\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g
-]
+const VUE_SCRIPT_BLOCK = /<script(?:\s[^>]*)?>([\s\S]*?)<\/script\s*>/gi
 
 function collectSourceFiles(directory: string): string[] {
   const files: string[] = []
@@ -22,10 +19,51 @@ function collectSourceFiles(directory: string): string[] {
   return files
 }
 
-function extractModuleSpecifiers(source: string): string[] {
-  return MODULE_SPECIFIER_PATTERNS.flatMap(pattern =>
-    Array.from(source.matchAll(pattern), match => match[1])
-  )
+function getStaticModuleSpecifier(node: ts.Node | undefined): string | null {
+  return node && (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node))
+    ? node.text
+    : null
+}
+
+function extractModuleSpecifiersFromScript(
+  source: string,
+  sourceFile: string,
+  scriptKind: ts.ScriptKind
+): string[] {
+  const parsed = ts.createSourceFile(sourceFile, source, ts.ScriptTarget.Latest, true, scriptKind)
+  const specifiers: string[] = []
+
+  function visit(node: ts.Node): void {
+    let specifier: string | null = null
+
+    if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) {
+      specifier = getStaticModuleSpecifier(node.moduleSpecifier)
+    } else if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) {
+      specifier = getStaticModuleSpecifier(node.arguments[0])
+    }
+
+    if (specifier !== null) {
+      specifiers.push(specifier)
+    }
+    ts.forEachChild(node, visit)
+  }
+
+  visit(parsed)
+  return specifiers
+}
+
+function extractModuleSpecifiers(source: string, sourceFile: string): string[] {
+  if (!sourceFile.endsWith('.vue')) {
+    const scriptKind = sourceFile.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS
+    return extractModuleSpecifiersFromScript(source, sourceFile, scriptKind)
+  }
+
+  return Array.from(source.matchAll(VUE_SCRIPT_BLOCK)).flatMap((match, index) => {
+    const scriptKind = /\blang\s*=\s*["']tsx["']/i.test(match[0])
+      ? ts.ScriptKind.TSX
+      : ts.ScriptKind.TS
+    return extractModuleSpecifiersFromScript(match[1], `${sourceFile}#script-${index}`, scriptKind)
+  })
 }
 
 function resolveModuleSpecifier(
@@ -45,7 +83,7 @@ function resolveModuleSpecifier(
 function findBusinessApiSpecifiers(source: string, sourceFile: string, repoRoot: string): string[] {
   const businessApiDirectory = resolve(repoRoot, 'src/api/modules')
 
-  return extractModuleSpecifiers(source).filter(specifier => {
+  return extractModuleSpecifiers(source, sourceFile).filter(specifier => {
     const resolvedSpecifier = resolveModuleSpecifier(specifier, sourceFile, repoRoot)
     return (
       resolvedSpecifier === businessApiDirectory ||
@@ -70,6 +108,35 @@ describe('foundation dependency boundaries', () => {
     const source = "import { x } from '../../api/modules/x'"
     const repoRoot = resolve(process.cwd())
     const sourceFile = resolve(repoRoot, 'src/components/common/example.ts')
+
+    expect(findBusinessApiSpecifiers(source, sourceFile, repoRoot)).toEqual(['../../api/modules/x'])
+  })
+
+  it('detects relative export-from dependencies separated by comment trivia', () => {
+    const source = "export { x } from /* boundary */ '../../api/modules/x'"
+    const repoRoot = resolve(process.cwd())
+    const sourceFile = resolve(repoRoot, 'src/components/common/example.ts')
+
+    expect(findBusinessApiSpecifiers(source, sourceFile, repoRoot)).toEqual(['../../api/modules/x'])
+  })
+
+  it('detects dynamic imports with a static template literal', () => {
+    const source = 'const module = import(`@/api/modules/x`)'
+    const repoRoot = resolve(process.cwd())
+    const sourceFile = resolve(repoRoot, 'src/components/common/example.ts')
+
+    expect(findBusinessApiSpecifiers(source, sourceFile, repoRoot)).toEqual(['@/api/modules/x'])
+  })
+
+  it('parses Vue script blocks without treating template text as imports', () => {
+    const source = `
+      <template>import('@/api/modules/template-only')</template>
+      <script setup lang="ts">
+      export { x } from /* boundary */ '../../api/modules/x'
+      </script>
+    `
+    const repoRoot = resolve(process.cwd())
+    const sourceFile = resolve(repoRoot, 'src/components/common/example.vue')
 
     expect(findBusinessApiSpecifiers(source, sourceFile, repoRoot)).toEqual(['../../api/modules/x'])
   })
