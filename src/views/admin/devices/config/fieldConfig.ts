@@ -22,27 +22,13 @@ import {
 const DEVICE_FIELD_LABEL_OVERRIDES = {
   device_code: '设备编码',
   device_name: '设备名称',
-  device_status: '设备状态',
   device_role: '设备角色',
   role_index: '角色序号',
   description: '描述',
   is_active: '是否激活',
   work_line_id: '作业线',
   upstream_device_id: '上游设备',
-  host: '主机地址',
-  port: '端口',
-  protocol: '通信协议',
-  callback_path: '命令接收路径',
-  timeout: '超时时间(ms)',
-  auth_token: '认证Token',
-  vendor_type: '厂商类型',
-  current_command_id: '当前指令',
-  last_heartbeat_at: '最后心跳时间',
-  error_code: '错误码',
-  maintenance_mode: '维护模式',
-  capabilities_json: '设备能力',
-  sort_order: '排序号',
-  version: '版本'
+  sort_order: '排序号'
 } as const
 
 export const DEVICE_TABLE_STORAGE_KEY = 'wes-device-table-columns'
@@ -103,20 +89,13 @@ export const {
       search: {}
     },
     {
-      key: 'device_status',
-      table: {
-        visibleFrom: 'mobile',
-        width: 100
-      },
-      search: {
-        dataType: 'enum'
-      }
-    },
-    {
       key: 'is_active',
       table: {
         visibleFrom: 'mobile',
         width: 90
+      },
+      form: {
+        type: 'switch'
       },
       search: {
         dataType: 'boolean'
@@ -144,53 +123,6 @@ export const {
       }
     },
     {
-      key: 'host',
-      table: {
-        visibleFrom: 'desktop',
-        width: 140
-      },
-      form: {}
-    },
-    {
-      key: 'port',
-      table: {
-        visibleFrom: 'desktop',
-        width: 80
-      },
-      form: {
-        type: 'number'
-      }
-    },
-    {
-      key: 'protocol',
-      table: {
-        visibleFrom: 'desktop',
-        width: 100
-      },
-      form: {
-        type: 'select'
-      },
-      search: {
-        dataType: 'enum'
-      }
-    },
-    {
-      key: 'callback_path',
-      table: {
-        visibleFrom: 'desktop',
-        width: 180
-      },
-      form: {}
-    },
-    {
-      key: 'vendor_type',
-      table: {
-        visibleFrom: 'desktop',
-        width: 120
-      },
-      form: {}
-    },
-    {
       key: 'description',
       table: {
         visibleFrom: 'desktop',
@@ -201,57 +133,20 @@ export const {
       }
     },
     {
-      key: 'timeout',
-      table: {
-        visibleFrom: 'desktop',
-        width: 120
-      },
-      form: {
-        type: 'number'
-      }
-    },
-    {
-      key: 'last_heartbeat_at',
-      table: {
-        visibleFrom: 'desktop',
-        width: 180
-      }
-    },
-    {
-      key: 'maintenance_mode',
-      table: {
-        visibleFrom: 'tablet',
-        width: 100
-      },
-      search: {
-        dataType: 'boolean'
-      }
-    },
-    {
-      key: 'auth_token'
-    },
-    {
-      key: 'capabilities_json'
-    },
-    {
-      key: 'current_command_id',
-      table: {
-        visibleFrom: 'desktop',
-        width: 110
-      }
-    },
-    {
-      key: 'error_code',
-      table: {
-        visibleFrom: 'desktop',
-        width: 150
-      }
-    },
-    {
       key: 'work_line_id'
     },
     {
       key: 'upstream_device_id'
+    },
+    {
+      key: 'sort_order',
+      table: {
+        visibleFrom: 'tablet',
+        width: 90
+      },
+      form: {
+        type: 'number'
+      }
     }
   ],
   storageKey: DEVICE_TABLE_STORAGE_KEY,
