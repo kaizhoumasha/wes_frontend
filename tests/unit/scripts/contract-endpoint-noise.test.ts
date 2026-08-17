@@ -3,23 +3,6 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 const CANONICAL_OPENAPI_URL = 'http://127.0.0.1:8001/api/openapi.json'
-const OLD_MANIFEST_FIELDS = [
-  'required_' + 'device_roles',
-  'event_' + 'source_roles',
-  'command_' + 'target_roles',
-  'supported_' + 'events',
-  'supported_' + 'commands',
-  'single_' + 'layer_boundaries',
-  'WorkLine' + 'SingleLayerRackBoundarySummary',
-  'positions',
-  'position_' + 'args',
-  'position_' + 'ref',
-  'fallback_' + 'position_ref',
-  'POSITION_' + 'CARRIER_CAPABILITY'
-]
-const OLD_MANIFEST_FIELD_PATTERN = new RegExp(
-  `(?<![A-Za-z0-9_])(${OLD_MANIFEST_FIELDS.join('|')})(?![A-Za-z0-9_])`
-)
 const MANIFEST_CONTRACT_FILES = [
   'src/api/generated/openapi-metadata/WorkLinePluginManifestSummary.ts',
   'src/api/generated/openapi-metadata/CommandBinding.ts',
@@ -90,21 +73,6 @@ describe('contract generation endpoint noise', () => {
         })
       ).toBe(join(process.cwd(), 'contracts/openapi.workline-plugin-manifest-yaml-topology.json'))
     })
-  })
-
-  it('keeps runtime smoke manifest fixtures on the new manifest summary contract', () => {
-    const source = readFileSync(
-      join(process.cwd(), 'scripts/runtime-agent-browser-smoke.sh'),
-      'utf-8'
-    )
-
-    expect(source).not.toMatch(OLD_MANIFEST_FIELD_PATTERN)
-    expect(source).toContain('"devices"')
-    expect(source).toContain('"rack_positions"')
-    expect(source).toContain('"topology"')
-    expect(source).toContain('"events"')
-    expect(source).toContain('"commands"')
-    expect(source).toContain('"resource_boundaries"')
   })
 
   it('keeps unrelated SMT inbound handoff contracts out of generated manifest sources', () => {

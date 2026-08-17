@@ -64,19 +64,6 @@ pnpm lint:prettier
 pnpm lint:stylelint
 ```
 
-### 运行态浏览器 Smoke
-
-```bash
-# 默认使用本地后端 seed，覆盖 monitor/devices/sandbox/trace 运行态路径
-pnpm smoke:runtime:agent-browser
-
-# 固定前端 fixture，复核运行态 monitor 资源布局
-RUNTIME_SMOKE_USE_FIXED_MONITOR_FIXTURE=1 pnpm smoke:runtime:agent-browser
-
-# 需要截图证据时额外开启
-RUNTIME_SMOKE_CAPTURE_SCREENSHOTS=1 pnpm smoke:runtime:agent-browser
-```
-
 ### 契约与代码生成
 
 ```bash
@@ -164,7 +151,7 @@ src/
 ├── api/               # API 请求层
 │   ├── base/          # CRUD/API 基类
 │   ├── modules/       # 业务 API 模块
-│   ├── services/      # token 刷新、SSE、认证错误处理
+│   ├── services/      # token 刷新与认证错误处理
 │   ├── generated/     # 生成的权限码等产物
 │   └── client.ts      # alova 实例配置，包含请求/响应拦截器
 ├── assets/            # 静态资源（图片、样式）
@@ -249,7 +236,7 @@ api/
 ├── client.ts        # 统一的 alova 实例
 ├── base/            # CRUD/API 抽象
 ├── modules/         # auth / user / menu / device 等业务模块
-├── services/        # token-refresh / auth-error-handler / sse-client
+├── services/        # token-refresh / auth-error-handler
 ├── generated/       # 生成的权限码等文件
 ├── types/           # request / response / model 类型
 └── utils/           # 错误分类等辅助函数
@@ -706,7 +693,6 @@ Closes #123
 - **技术栈详解**: `docs/WES_FRONTEND_TECH_STACK.md`
 - **时区处理**: `docs/TIMEZONE_HANDLING.md`
 - **第一阶段任务**: `docs/TASKS_PHASE_1.md`
-- **运行态资源布局设计**: `docs/superpowers/specs/2026-06-08-runtime-monitor-resource-layout-design.md`
 
 ---
 

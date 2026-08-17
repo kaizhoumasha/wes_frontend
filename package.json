@@ -10,7 +10,6 @@
     "build:dev": "vite build --mode development",
     "generate:menu": "tsx scripts/generate-menu-manifest.ts",
     "menu:generate": "pnpm run generate:menu",
-    "smoke:runtime:agent-browser": "bash scripts/runtime-agent-browser-smoke.sh",
     "preview": "vite preview",
     "bootstrap": "pnpm install",
     "prepare": "husky",

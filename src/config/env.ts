@@ -52,11 +52,6 @@ export const env = {
     return normalizeApiBaseUrl(getRuntimeEnv().VITE_API_BASE_URL) ?? 'http://localhost:8001'
   },
 
-  /** SSE 实时事件流 URL */
-  get sseUrl() {
-    return getRuntimeEnv().VITE_SSE_URL ?? 'http://localhost:8001/api/v1/sys/events/stream'
-  },
-
   /** 应用标题 */
   get appTitle() {
     return getRuntimeEnv().VITE_APP_TITLE || 'P9 MCS'

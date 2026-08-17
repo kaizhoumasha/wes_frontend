@@ -36,15 +36,7 @@ describe('env', () => {
     expect(env.appTitle).toBe('P9 MCS')
   })
 
-  it('preserves an empty SSE URL when explicitly provided', () => {
-    vi.stubEnv('VITE_SSE_URL', '')
-
-    expect(env.sseUrl).toBe('')
-  })
-
-  it('falls back to the default SSE URL only when unset', () => {
-    vi.stubEnv('VITE_SSE_URL', undefined)
-
-    expect(env.sseUrl).toBe('http://localhost:8001/api/v1/sys/events/stream')
+  it('does not expose retired transport configuration', () => {
+    expect(env).not.toHaveProperty('sseUrl')
   })
 })

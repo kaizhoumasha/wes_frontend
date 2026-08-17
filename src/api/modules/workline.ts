@@ -551,31 +551,6 @@ export const worklineApiMethods = {
 // ==================== AUTO GENERATED END ====================
 
 // ==================== CUSTOM METHODS START ====================
-export interface RuntimeHoldNgReasonsQuery {
-  plugin_key?: string | null
-  contract_version?: string | null
-}
-
-export const runtimeHoldApiMethods = {
-  runtimeHoldDetail(holdId: number, config?: ContractRequestConfig) {
-    return worklineApiMethods.getByHoldId({ hold_id: holdId }, config)
-  },
-
-  resolveRuntimeHold(holdId: number, body: ResolveInput, config?: ContractRequestConfig) {
-    return worklineApiMethods.resolve({ hold_id: holdId }, body, config)
-  },
-
-  runtimeHoldNgReasons(query?: RuntimeHoldNgReasonsQuery, config?: ContractRequestConfig) {
-    return worklineApiMethods.ngReasons(
-      query ? { plugin_key: query.plugin_key } : undefined,
-      config
-    )
-  },
-
-  ngReturnItems(query?: NgReturnItemsQuery, config?: ContractRequestConfig) {
-    return worklineApiMethods.ngReturnItems(query, config)
-  }
-}
 // ==================== CUSTOM METHODS END ====================
 
 // ==================== CUSTOM CONFIG START ====================
