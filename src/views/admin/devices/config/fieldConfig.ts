@@ -133,10 +133,12 @@ export const {
       }
     },
     {
-      key: 'work_line_id'
+      key: 'work_line_id',
+      form: {}
     },
     {
-      key: 'upstream_device_id'
+      key: 'upstream_device_id',
+      form: {}
     },
     {
       key: 'sort_order',

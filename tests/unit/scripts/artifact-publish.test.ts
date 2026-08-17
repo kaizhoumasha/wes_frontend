@@ -75,4 +75,28 @@ describe.sequential('generated artifact publication', () => {
     expect(existsSync(recordPath)).toBe(false)
     expect(readdirSync(generatedRoot)).toEqual(['permissions'])
   })
+
+  it('preserves the previous permission directory when creating its backup fails', () => {
+    const generatedRoot = join(root, 'generated')
+    const outputDirectory = join(generatedRoot, 'permissions')
+    const stagedDirectory = join(generatedRoot, '.permissions-staged')
+    const backupDirectory = `${stagedDirectory}-backup`
+    const recordPath = join(root, '.permission-sync-record.json')
+    mkdirSync(outputDirectory, { recursive: true })
+    mkdirSync(stagedDirectory)
+    mkdirSync(backupDirectory)
+    writeFileSync(join(outputDirectory, 'index.ts'), 'old\n')
+    writeFileSync(join(stagedDirectory, 'index.ts'), 'new\n')
+    writeFileSync(join(backupDirectory, 'blocker.txt'), 'blocker\n')
+
+    expect(() =>
+      replaceGeneratedPermissions(stagedDirectory, RECORD, {
+        outputDirectory,
+        recordPath
+      })
+    ).toThrow()
+
+    expect(readFileSync(join(outputDirectory, 'index.ts'), 'utf-8')).toBe('old\n')
+    expect(existsSync(recordPath)).toBe(false)
+  })
 })

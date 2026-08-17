@@ -72,17 +72,26 @@ export function replaceGeneratedPermissions(
   const backupDirectory = `${stagedDirectory}-backup`
   const previousRecord = existsSync(recordPath) ? readFileSync(recordPath, 'utf-8') : null
   const hadGeneratedDirectory = existsSync(outputDirectory)
+  let backupCreated = false
+  let stagedInstalled = false
 
   try {
     if (hadGeneratedDirectory) {
       renameSync(outputDirectory, backupDirectory)
+      backupCreated = true
     }
     renameSync(stagedDirectory, outputDirectory)
+    stagedInstalled = true
     writeFileAtomically(recordPath, `${JSON.stringify(record, null, 2)}\n`)
-    rmSync(backupDirectory, { force: true, recursive: true })
+    if (backupCreated) {
+      rmSync(backupDirectory, { force: true, recursive: true })
+      backupCreated = false
+    }
   } catch (error) {
-    rmSync(outputDirectory, { force: true, recursive: true })
-    if (existsSync(backupDirectory)) {
+    if (stagedInstalled) {
+      rmSync(outputDirectory, { force: true, recursive: true })
+    }
+    if (backupCreated) {
       renameSync(backupDirectory, outputDirectory)
     }
     if (previousRecord === null) {
@@ -95,7 +104,6 @@ export function replaceGeneratedPermissions(
     throw error
   } finally {
     rmSync(stagedDirectory, { force: true, recursive: true })
-    rmSync(backupDirectory, { force: true, recursive: true })
   }
 }
 

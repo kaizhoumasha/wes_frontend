@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEVICE_FIELDS } from '@/views/admin/devices/config/fieldConfig'
+import { DEVICE_FIELDS, devicePageFieldConfig } from '@/views/admin/devices/config/fieldConfig'
 import { createDevicePageConfig } from '@/views/admin/devices/config/pageConfig'
 
 describe('Device static master-data page', () => {
@@ -37,5 +37,11 @@ describe('Device static master-data page', () => {
     expect(config.resource.defaultSort).toEqual([{ field: 'id', order: 'asc' }])
     expect(config.extensions?.rowActions ?? []).toEqual([])
     expect(config.detail?.actions ?? []).toEqual([])
+  })
+
+  it('publishes writable topology fields in the actual form config', () => {
+    const formFieldKeys = devicePageFieldConfig.form.fieldConfig.map(field => field.key)
+
+    expect(formFieldKeys).toEqual(expect.arrayContaining(['work_line_id', 'upstream_device_id']))
   })
 })
