@@ -4,7 +4,6 @@ import type {
   UpdateWorkLinesInput as UpdateWorklineInput,
   WorkLinesItem as Workline
 } from '@/api/modules/workLines'
-import type { OptionsResult as WorklinePluginOptionsResult } from '@/api/modules/workline'
 import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
 import { workLinesApiMethods } from '@/api/modules/workLines'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
@@ -36,16 +35,6 @@ const isActiveFormatter = createBooleanTagFormatter({
 })
 
 type WorklinePageConfig = CrudPageConfig<Workline, CreateWorklineInput, UpdateWorklineInput>
-type WorklinePluginOptions = WorklinePluginOptionsResult
-
-interface WorklinePageActions {
-  openRuntime: (workline: Workline) => void
-  openConfig: (workline: Workline) => void
-  cleanupDebugData?: (workline: Workline) => void | Promise<void>
-  cleanupAllDebugData?: (refresh: () => Promise<void>) => void | Promise<void>
-  isDebugCleanupVisible?: () => boolean
-}
-
 const WORKLINE_PAGE_RESOURCE = {
   key: 'worklines',
   title: {
@@ -62,12 +51,6 @@ const WORKLINE_PAGE_RESOURCE = {
   permissions: BIZ_PERMISSIONS.workline,
   optimisticUpdate: true,
   defaultSort: [{ field: 'id', order: 'asc' as const }]
-}
-
-const WORKLINE_PAGE_TABLE: Partial<WorklinePageConfig['table']> = {
-  actionsColumn: {
-    width: 340
-  }
 }
 
 const WORKLINE_PAGE_FEATURES: CrudPageFeatures = {
@@ -96,27 +79,12 @@ const WORKLINE_PAGE_FEATURES: CrudPageFeatures = {
   }
 }
 
-function createWorklineDetailConfig(actions: WorklinePageActions): CrudPageDetailConfig<Workline> {
+function createWorklineDetailConfig(): CrudPageDetailConfig<Workline> {
   return {
     mode: 'drawer',
     title: workline => workline.line_name,
-    showActions: true,
-    actions: [
-      {
-        key: 'open-config',
-        label: '配置工作台',
-        type: 'warning',
-        icon: 'ep:setting',
-        onClick: workline => actions.openConfig(workline)
-      },
-      {
-        key: 'open-runtime',
-        label: '运行看板',
-        type: 'primary',
-        icon: 'ep:monitor',
-        onClick: workline => actions.openRuntime(workline)
-      }
-    ],
+    showActions: false,
+    actions: [],
     sections: [
       {
         title: '基本信息',
@@ -139,75 +107,27 @@ function createWorklineDetailConfig(actions: WorklinePageActions): CrudPageDetai
         ]
       },
       {
-        title: '运行配置',
+        title: '作业线属性',
         weight: 'secondary',
         fields: [
-          { key: 'run_mode', layout: 'half', formatter: v => runModeFormatter(v, {}, {}) as VNode },
-          { key: 'plugin_key', layout: 'half' },
-          { key: 'contract_version', layout: 'half' }
+          { key: 'run_mode', layout: 'half', formatter: v => runModeFormatter(v, {}, {}) as VNode }
         ]
       }
     ]
   }
 }
 
-export function createWorkLinePageConfig(
-  actions: WorklinePageActions,
-  pluginOptions: WorklinePluginOptions = []
-): WorklinePageConfig {
+export function createWorkLinePageConfig(): WorklinePageConfig {
   return createCrudPageConfigFromResource<Workline, CreateWorklineInput, UpdateWorklineInput>({
     resource: WORKLINE_PAGE_RESOURCE,
     fieldConfig: workLinePageFieldConfig,
-    table: WORKLINE_PAGE_TABLE,
     form: {
-      fieldConfig: createWorkLineFormFieldConfig(pluginOptions)
+      fieldConfig: createWorkLineFormFieldConfig()
     },
-    detail: createWorklineDetailConfig(actions),
+    detail: createWorklineDetailConfig(),
     features: WORKLINE_PAGE_FEATURES,
     extensions: {
-      toolbarActions: [
-        {
-          key: 'cleanup-all-debug-data',
-          label: '清理全部过程数据',
-          tooltip: '清理全部工作线调试过程数据',
-          type: 'danger',
-          icon: 'lucide:database-zap',
-          permission: BIZ_PERMISSIONS.workline.cleanupDebugData,
-          showWhen: () => actions.isDebugCleanupVisible?.() ?? false,
-          handler: context => actions.cleanupAllDebugData?.(context.refresh)
-        }
-      ],
-      rowActions: [
-        {
-          key: 'open-config',
-          label: '配置工作台',
-          tooltip: '配置工作台',
-          type: 'warning',
-          icon: 'ep:setting',
-          permission: BIZ_PERMISSIONS.workline.page,
-          onClick: row => actions.openConfig(row)
-        },
-        {
-          key: 'open-runtime',
-          label: '运行看板',
-          tooltip: '运行看板',
-          type: 'primary',
-          icon: 'lucide:layout-dashboard',
-          permission: BIZ_PERMISSIONS.workline.page,
-          onClick: row => actions.openRuntime(row)
-        },
-        {
-          key: 'cleanup-debug-data',
-          label: '清理过程',
-          tooltip: '清理该工作线调试过程数据',
-          type: 'danger',
-          icon: 'lucide:database-zap',
-          permission: BIZ_PERMISSIONS.workline.cleanupDebugData,
-          priority: 'secondary',
-          show: () => actions.isDebugCleanupVisible?.() ?? false,
-          onClick: row => actions.cleanupDebugData?.(row)
-        }
-      ]
+      rowActions: []
     }
   })
 }
