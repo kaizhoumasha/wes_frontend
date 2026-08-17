@@ -107,13 +107,13 @@ describe('menu manifest helpers', () => {
       writeMenuManifestFile(
         [
           {
-            name: 'runtime:worklines:menu',
-            title: '工作线监控',
-            path: '/runtime/worklines',
-            component: 'views/runtime/worklines/WorklineRuntimePage.vue',
+            name: 'biz:workline:menu',
+            title: '作业线管理',
+            path: '/biz/worklines',
+            component: 'views/admin/worklines/WorkLineListPage.vue',
             sortOrder: 3,
-            parentName: 'runtime:system:menu',
-            icon: 'ep:share',
+            parentName: 'biz:system:menu',
+            icon: 'ep:connection',
             isHidden: false,
             permission: 'biz:workline:list',
           },
@@ -123,13 +123,13 @@ describe('menu manifest helpers', () => {
 
       expect(JSON.parse(readFileSync(outputFile, 'utf-8'))).toEqual([
         {
-          name: 'runtime:worklines:menu',
-          title: '工作线监控',
-          path: '/runtime/worklines',
-          component: 'views/runtime/worklines/WorklineRuntimePage.vue',
+          name: 'biz:workline:menu',
+          title: '作业线管理',
+          path: '/biz/worklines',
+          component: 'views/admin/worklines/WorkLineListPage.vue',
           sortOrder: 3,
-          parentName: 'runtime:system:menu',
-          icon: 'ep:share',
+          parentName: 'biz:system:menu',
+          icon: 'ep:connection',
           isHidden: false,
           permission: 'biz:workline:list',
         },
@@ -139,7 +139,7 @@ describe('menu manifest helpers', () => {
     }
   })
 
-  it('generates the non-production integration debug menu entry from the CLI', () => {
+  it('generates the current business menu without a runtime root from the CLI', () => {
     const tempDir = mkdtempSync(join(tmpdir(), 'menu-manifest-'))
     const outputFile = join(tempDir, 'menu-manifest.json')
 
@@ -153,10 +153,12 @@ describe('menu manifest helpers', () => {
 
       expect(entries).toContainEqual(
         expect.objectContaining({
-          name: 'runtime:integration-debug:menu',
-          path: '/runtime/integration-debug',
+          name: 'biz:workline:menu',
+          path: '/biz/worklines',
         }),
       )
+      expect(entries.some(entry => entry.name.startsWith('runtime:'))).toBe(false)
+      expect(entries.some(entry => entry.path.startsWith('/runtime'))).toBe(false)
     } finally {
       rmSync(tempDir, { recursive: true, force: true })
     }
