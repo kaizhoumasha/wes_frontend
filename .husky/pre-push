@@ -6,6 +6,11 @@ if [ ! -d node_modules ]; then
   exit 1
 fi
 
+# Git exports repository-local variables to hooks. Clear them before tests create
+# temporary repositories, then let Git rediscover this worktree from the cwd.
+GIT_LOCAL_ENV_VARS=$(git rev-parse --local-env-vars)
+unset $GIT_LOCAL_ENV_VARS
+
 echo "🔍 运行推送前质量门禁..."
 pnpm test
 pnpm contract:test

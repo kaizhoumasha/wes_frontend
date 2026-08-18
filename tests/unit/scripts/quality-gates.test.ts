@@ -180,6 +180,35 @@ describe.sequential('repository quality gates', () => {
     expect(result.trace).toBe('test\ncontract:test\ncontract:verify\n')
   })
 
+  it('clears Git hook repository variables before running quality gates', () => {
+    const caseRoot = join(root, 'pre-push-git-environment')
+    const hookPath = join(caseRoot, 'pre-push')
+    const binRoot = join(caseRoot, 'bin')
+    mkdirSync(join(caseRoot, 'node_modules'), { recursive: true })
+    mkdirSync(binRoot)
+    writeFileSync(hookPath, readFileSync(join(REPOSITORY_ROOT, '.husky/pre-push'), 'utf-8'))
+    makeExecutable(
+      join(binRoot, 'pnpm'),
+      '#!/bin/sh\n[ -z "$GIT_DIR" ] || exit 41\n'
+    )
+    execFileSync('git', ['init', '-b', 'feature/test'], { cwd: caseRoot })
+
+    const result = spawnSync('sh', [hookPath], {
+      cwd: caseRoot,
+      encoding: 'utf-8',
+      env: {
+        ...process.env,
+        GIT_DIR: execFileSync('git', ['rev-parse', '--absolute-git-dir'], {
+          cwd: REPOSITORY_ROOT,
+          encoding: 'utf-8'
+        }).trim(),
+        PATH: `${binRoot}:${process.env.PATH ?? ''}`
+      }
+    })
+
+    expect(result.status).toBe(0)
+  })
+
   it.each([
     ['test', 'test\n'],
     ['contract:test', 'test\ncontract:test\n'],
