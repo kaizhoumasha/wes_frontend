@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1.0] - 2026-08-19
+
+### Changed
+
+- 前端合同同步到后端 `3a3759a` 基线，入库恢复裁决事件和 WMS event 通用回执语义可由 canonical OpenAPI、TypeScript 类型与 Zod schema 一致复现。
+- 合同与权限记录继续绑定同一后端提交；110 条权限保持不变，系统接口仍不会生成浏览器 API 模块。
+
+### Removed
+
+- 删除后端已退役的 WMS 确认状态及物料挂载确认字段生成物，避免二次开发继续依赖失效合同。
+- 将已完成的旧 Runtime 清理实施计划移出项目目录归档，避免历史过程文档继续被当作当前真源。
+
 ## [0.8.0.0] - 2026-08-18
 
 ### Added
