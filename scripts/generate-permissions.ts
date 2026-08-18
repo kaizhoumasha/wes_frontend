@@ -1,114 +1,168 @@
 #!/usr/bin/env tsx
-/**
- * 权限常量生成脚本
- *
- * 基于后端 FastAPI 路由的真实权限依赖，按权限节点生成独立文件。
- *
- * 使用方式：
- *   pnpm generate:permissions
- *   pnpm exec tsx scripts/generate-permissions.ts --backend-root ../wes_backend
- */
 
 import {
-  DEFAULT_BACKEND_ROOT,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  unlinkSync,
+  writeFileSync
+} from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { assertBackendCheckout } from './lib/backend-checkout'
+import { writeFileAtomically } from './lib/atomic-file'
+import { readContractSyncRecord } from './lib/openapi-sync'
+import {
   FRONTEND_ROOT,
-  PERMISSIONS_INDEX_FILE,
   PERMISSIONS_OUTPUT_DIR,
+  PERMISSION_SYNC_RECORD_FILE,
   buildPermissionFileContent,
   buildPermissionsIndexContent,
   computePermissionsHash,
   groupPermissions,
-  listGeneratedPermissionFiles,
-  readPermissionSyncRecord,
-  removeStalePermissionFiles,
   scanBackendPermissions,
-  writePermissionGroupFile,
-  writePermissionSyncRecord,
-  writePermissionsIndex
+  type PermissionSyncRecord
 } from './lib/permissions-codegen'
-import { resolve as resolvePath } from 'node:path'
-import { resolve } from 'node:path'
 
 interface CliOptions {
   backendRoot: string
 }
 
-function parseArgs(argv: string[]): CliOptions {
-  let backendRoot = DEFAULT_BACKEND_ROOT
+export interface PermissionPublicationPaths {
+  outputDirectory: string
+  recordPath: string
+}
+
+export function parseGeneratePermissionsArgs(argv: string[]): CliOptions {
+  let backendRoot: string | undefined
 
   for (let index = 0; index < argv.length; index += 1) {
-    const arg = argv[index]
-
-    if (arg === '--backend-root') {
+    const argument = argv[index]
+    if (argument === '--') {
+      continue
+    }
+    if (argument === '--backend-root') {
       const value = argv[index + 1]
-      if (!value) {
+      if (!value || value.startsWith('--')) {
         throw new Error('`--backend-root` 缺少目录参数')
       }
       backendRoot = resolve(FRONTEND_ROOT, value)
       index += 1
       continue
     }
-
-    throw new Error(`不支持的参数: ${arg}`)
+    throw new Error(`不支持的参数: ${argument}`)
   }
 
+  if (!backendRoot) {
+    throw new Error('必须提供 `--backend-root`')
+  }
   return { backendRoot }
 }
 
-async function main(): Promise<void> {
-  const options = parseArgs(process.argv.slice(2))
-
-  console.log('🚀 权限常量生成工具\n')
-  console.log(`📦 后端目录: ${options.backendRoot}`)
-
-  const permissions = scanBackendPermissions(options.backendRoot)
-  console.log(`🔍 已扫描后端权限 ${permissions.length} 条`)
-  const permissionsHash = computePermissionsHash(permissions)
-
-  const groups = groupPermissions(permissions)
-  console.log(`🧩 已生成权限分组 ${groups.length} 组`)
-
-  const expectedGroupFiles = groups.map(group => resolvePath(PERMISSIONS_OUTPUT_DIR, group.relativeFilePath))
-  const expectedFiles = [...expectedGroupFiles, PERMISSIONS_INDEX_FILE].sort()
-  const currentFiles = listGeneratedPermissionFiles()
-  const hasFileSetChange =
-    currentFiles.length !== expectedFiles.length ||
-    currentFiles.some((filePath, index) => filePath !== expectedFiles[index])
-
-  const record = readPermissionSyncRecord()
-  const recordUnchanged =
-    record?.permissionsHash === permissionsHash &&
-    record.backendRoot === options.backendRoot &&
-    record.permissionCount === permissions.length
-
-  let hasContentChange = hasFileSetChange
-  for (const group of groups) {
-    const content = buildPermissionFileContent(group, options.backendRoot)
-    hasContentChange = writePermissionGroupFile(group, content) || hasContentChange
+export function replaceGeneratedPermissions(
+  stagedDirectory: string,
+  record: PermissionSyncRecord,
+  paths: PermissionPublicationPaths = {
+    outputDirectory: PERMISSIONS_OUTPUT_DIR,
+    recordPath: PERMISSION_SYNC_RECORD_FILE
   }
+): void {
+  const { outputDirectory, recordPath } = paths
+  const backupDirectory = `${stagedDirectory}-backup`
+  const previousRecord = existsSync(recordPath) ? readFileSync(recordPath, 'utf-8') : null
+  const hadGeneratedDirectory = existsSync(outputDirectory)
+  let backupCreated = false
+  let stagedInstalled = false
 
-  const indexContent = buildPermissionsIndexContent(groups, options.backendRoot)
-  hasContentChange = writePermissionsIndex(indexContent) || hasContentChange
-
-  const staleFiles = removeStalePermissionFiles(expectedFiles)
-  hasContentChange = staleFiles.length > 0 || hasContentChange
-
-  if (!hasContentChange && recordUnchanged) {
-    console.log('\n✅ 权限常量无变化，未更新生成文件')
-    return
+  try {
+    if (hadGeneratedDirectory) {
+      renameSync(outputDirectory, backupDirectory)
+      backupCreated = true
+    }
+    renameSync(stagedDirectory, outputDirectory)
+    stagedInstalled = true
+    writeFileAtomically(recordPath, `${JSON.stringify(record, null, 2)}\n`)
+    if (backupCreated) {
+      rmSync(backupDirectory, { force: true, recursive: true })
+      backupCreated = false
+    }
+  } catch (error) {
+    if (stagedInstalled) {
+      rmSync(outputDirectory, { force: true, recursive: true })
+    }
+    if (backupCreated) {
+      renameSync(backupDirectory, outputDirectory)
+    }
+    if (previousRecord === null) {
+      if (existsSync(recordPath)) {
+        unlinkSync(recordPath)
+      }
+    } else {
+      writeFileAtomically(recordPath, previousRecord)
+    }
+    throw error
+  } finally {
+    rmSync(stagedDirectory, { force: true, recursive: true })
   }
-
-  writePermissionSyncRecord({
-    lastSyncTime: new Date().toISOString(),
-    permissionsHash,
-    backendRoot: options.backendRoot,
-    permissionCount: permissions.length
-  })
-
-  console.log('\n✅ 权限常量生成完成')
 }
 
-main().catch(error => {
-  console.error('\n❌ 权限常量生成失败:', error)
-  process.exit(1)
-})
+export function generatePermissions(options: CliOptions): PermissionSyncRecord {
+  const contractRecord = readContractSyncRecord(
+    resolve(FRONTEND_ROOT, '.contract-sync-record.json')
+  )
+  const backendCommit = assertBackendCheckout(options.backendRoot, contractRecord.backendCommit)
+  const permissions = scanBackendPermissions(options.backendRoot)
+  const permissionsSha256 = computePermissionsHash(permissions)
+  const groups = groupPermissions(permissions)
+
+  const backendCommitAfterScan = assertBackendCheckout(options.backendRoot)
+  if (backendCommitAfterScan !== backendCommit) {
+    throw new Error(
+      `后端 HEAD 在权限扫描期间发生变化：${backendCommit} -> ${backendCommitAfterScan}`
+    )
+  }
+
+  const generatedParent = dirname(PERMISSIONS_OUTPUT_DIR)
+  mkdirSync(generatedParent, { recursive: true })
+  const stagedDirectory = mkdtempSync(resolve(generatedParent, '.permissions-'))
+  const record: PermissionSyncRecord = {
+    backendCommit,
+    permissionsSha256,
+    permissionCount: permissions.length
+  }
+  try {
+    for (const group of groups) {
+      const outputPath = resolve(stagedDirectory, group.relativeFilePath)
+      mkdirSync(dirname(outputPath), { recursive: true })
+      writeFileSync(outputPath, buildPermissionFileContent(group), 'utf-8')
+    }
+    writeFileSync(
+      resolve(stagedDirectory, 'index.ts'),
+      buildPermissionsIndexContent(groups),
+      'utf-8'
+    )
+    replaceGeneratedPermissions(stagedDirectory, record)
+  } finally {
+    rmSync(stagedDirectory, { force: true, recursive: true })
+  }
+  return record
+}
+
+function isCliEntry(): boolean {
+  const executedFile = process.argv[1]
+  return !!executedFile && resolve(executedFile) === fileURLToPath(import.meta.url)
+}
+
+if (isCliEntry()) {
+  try {
+    const options = parseGeneratePermissionsArgs(process.argv.slice(2))
+    const record = generatePermissions(options)
+    console.log(`✅ 权限常量生成完成：${record.permissionCount} 条`)
+  } catch (error) {
+    console.error(`❌ 权限常量生成失败: ${(error as Error).message}`)
+    process.exit(1)
+  }
+}

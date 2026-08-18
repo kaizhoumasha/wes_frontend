@@ -1,5 +1,5 @@
 {
-  "lastSyncTime": "2026-06-18T02:38:56.571Z",
-  "openApiHash": "fqiikh",
-  "backendUrl": "contracts/openapi.workline-plugin-manifest-yaml-topology.json"
+  "backendCommit": "de034e721befae2e1658d0aff96f2f2e43a0ffbb",
+  "openApiSha256": "0dec280667c717b44447c540078bdaacfe3e9e792aef648348c7b802f27e2067",
+  "snapshotPath": "contracts/openapi.current.json"
 }

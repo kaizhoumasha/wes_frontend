@@ -45,20 +45,6 @@ export const bizRoutes: RouteRecordRaw = {
           sortOrder: 2
         }
       }
-    },
-    {
-      path: 'worklines/:id/config',
-      name: 'WorkLineConfig',
-      component: () => import('@/views/admin/worklines/config/WorkLineConfigPage.vue'),
-      meta: {
-        requiresAuth: true,
-        title: '作业线配置工作台',
-        permission: BIZ_PERMISSIONS.workline.page,
-        menu: {
-          name: 'biz:workline:config',
-          hidden: true
-        }
-      }
     }
   ]
 }

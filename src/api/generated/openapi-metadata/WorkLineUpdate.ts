@@ -11,7 +11,7 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
 export const WorkLineUpdateMetadata = {
   "title": "WorkLineUpdate",
-  "description": "作业线更新 Schema - 所有字段可选",
+  "description": "作业线更新 Schema。",
   "required": [
     "version"
   ],
@@ -54,25 +54,9 @@ export const WorkLineUpdateMetadata = {
       "nullable": true,
       "maxLength": 100
     },
-    "plugin_key": {
-      "title": "Plugin Key",
-      "description": "工作线执行插件标识",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 100
-    },
-    "contract_version": {
-      "title": "Contract Version",
-      "description": "工作线默认插件契约版本",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 50
-    },
     "config": {
       "title": "Config",
-      "description": "工作线插件配置",
+      "description": "工作线通用配置",
       "type": "object",
       "required": false,
       "nullable": true

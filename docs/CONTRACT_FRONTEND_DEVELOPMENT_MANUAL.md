@@ -52,7 +52,7 @@
 
 团队成员操作方式：
 
-- 通过 `pnpm generate:types` 更新
+- 先执行 `pnpm contract:freeze -- --backend-root /path/to/wes_backend` 冻结指定后端 checkout，再通过 `pnpm generate:types` 更新
 - 接入前先查看目标路径和目标 schema
 
 #### 3.1.2 业务 API 模块
@@ -97,7 +97,7 @@
 
 团队成员操作方式：
 
-- 通过 `pnpm generate:permissions` 更新
+- 通过 `pnpm generate:permissions -- --backend-root /path/to/wes_backend` 更新
 - 在页面配置和动作配置中接入对应权限
 
 ### 3.2 架构层公共支撑文件
@@ -198,10 +198,10 @@
 
 ### 步骤 1：同步契约生成物
 
-- [ ] 拉取后端最新契约
+- [ ] 执行 `pnpm contract:freeze -- --backend-root /path/to/wes_backend` 冻结指定后端 checkout
 - [ ] 执行 `pnpm generate:types`
 - [ ] 按需执行 `pnpm generate:zod`
-- [ ] 按需执行 `pnpm generate:permissions`
+- [ ] 按需执行 `pnpm generate:permissions -- --backend-root /path/to/wes_backend`
 - [ ] 检查新增路径、schema、operation 是否进入生成文件
 
 ### 步骤 2：识别资源结构
@@ -425,9 +425,10 @@ export const usersApiMethods = {
 ### 9.1 契约同步
 
 ```bash
+pnpm contract:freeze -- --backend-root /path/to/wes_backend
 pnpm generate:types
 pnpm generate:zod
-pnpm generate:permissions
+pnpm generate:permissions -- --backend-root /path/to/wes_backend
 ```
 
 ### 9.2 质量检查

@@ -85,8 +85,10 @@ async function handle401Error(): Promise<string> {
 // ==================== 响应拦截器 ====================
 
 async function handleResponse(response: Response, method: any): Promise<unknown> {
+  const responseBody = await response.text()
+
   try {
-    const json: ApiResponse<unknown> = await response.json()
+    const json = JSON.parse(responseBody) as ApiResponse<unknown>
     const { code, message, data } = json
 
     if (isSuccessCode(code)) {
@@ -130,7 +132,7 @@ async function handleResponse(response: Response, method: any): Promise<unknown>
       throw error
     }
     if (error instanceof SyntaxError) {
-      console.error('[API] 响应JSON解析失败:', await response.text())
+      console.error('[API] 响应JSON解析失败:', responseBody)
       throw new Error('服务器响应格式错误')
     }
     throw error

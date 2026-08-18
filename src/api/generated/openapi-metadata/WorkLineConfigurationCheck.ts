@@ -39,7 +39,7 @@ export const WorkLineConfigurationCheckMetadata = {
     },
     "severity": {
       "title": "Severity",
-      "description": "严重程度",
+      "description": "检查严重程度",
       "type": "string",
       "required": true,
       "nullable": false,

@@ -4,10 +4,9 @@
  * ⚠️ 请勿手动编辑此文件
  * 此文件由 scripts/generate-permissions.ts 自动生成
  *
- * 后端目录: /Users/kaizhou/SynologyDrive/works/wes_backend
  * 权限分组: user_api:biz:device
  *
- * 更新权限: pnpm generate:permissions
+ * 更新权限: pnpm generate:permissions -- --backend-root /path/to/wes_backend
  */
 
 export const BIZ_DEVICE_PERMISSION = {

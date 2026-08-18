@@ -12,8 +12,9 @@
  */
 
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'node:fs'
-import { isAbsolute, join, resolve } from 'node:path'
+import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { buildOpenApiMarker, readCanonicalOpenApiSnapshot } from './lib/openapi-sync'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = join(__filename, '..')
@@ -34,6 +35,7 @@ interface OpenAPISchema {
   pattern?: string
   format?: string
   enum?: EnumValue[]
+  const?: unknown
   default?: unknown
   items?: PropertySchema
   required?: string[]
@@ -59,6 +61,7 @@ interface PropertySchema {
   oneOf?: PropertySchema[]
   allOf?: PropertySchema[]
   enum?: EnumValue[]
+  const?: unknown
   default?: unknown
   items?: PropertySchema
   required?: string[]
@@ -68,48 +71,9 @@ interface PropertySchema {
 
 // ==================== 配置 ====================
 
-const DEFAULT_BACKEND_OPENAPI_URL = 'http://127.0.0.1:8001/api/openapi.json'
-const OPENAPI_SOURCE_RECORD = resolveOpenApiSourceRecordFromEnv()
-const OPENAPI_SOURCE = resolveOpenApiSource(OPENAPI_SOURCE_RECORD)
+const FRONTEND_ROOT = resolve(__dirname, '..')
 const OUTPUT_DIR = join(__dirname, '../src/types/generated')
 const OUTPUT_FILE = join(OUTPUT_DIR, 'zod-schemas.ts')
-const SYNC_RECORD_FILE = join(__dirname, '../.contract-sync-record.json')
-
-// ==================== 同步记录 ====================
-
-/**
- * 计算字符串的简单哈希值
- */
-function simpleHash(str: string): string {
-  let hash = 0
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i)
-    hash = ((hash << 5) - hash) + char
-    hash = hash & hash // Convert to 32bit integer
-  }
-  return Math.abs(hash).toString(36)
-}
-
-/**
- * 写入同步记录
- */
-interface SyncRecord {
-  lastSyncTime: string
-  openApiHash: string
-  backendUrl: string
-}
-
-function readSyncRecord(): SyncRecord | null {
-  if (!existsSync(SYNC_RECORD_FILE)) {
-    return null
-  }
-
-  try {
-    return JSON.parse(readFileSync(SYNC_RECORD_FILE, 'utf-8')) as SyncRecord
-  } catch {
-    return null
-  }
-}
 
 function writeFileIfChanged(path: string, content: string): boolean {
   const previous = existsSync(path) ? readFileSync(path, 'utf-8') : null
@@ -121,85 +85,7 @@ function writeFileIfChanged(path: string, content: string): boolean {
   return true
 }
 
-function writeSyncRecord(openApiData: Record<string, unknown>): boolean {
-  const schemas = JSON.stringify(openApiData.components?.schemas || {})
-  const record: SyncRecord = {
-    lastSyncTime: new Date().toISOString(),
-    openApiHash: simpleHash(schemas),
-    backendUrl: OPENAPI_SOURCE_RECORD,
-  }
-  const changed = writeFileIfChanged(SYNC_RECORD_FILE, `${JSON.stringify(record, null, 2)}\n`)
-  if (changed) {
-    console.log(`✅ 记录同步状态: ${SYNC_RECORD_FILE}`)
-  }
-  return changed
-}
-
 // ==================== 工具函数 ====================
-
-/**
- * 获取 OpenAPI schema
- */
-async function fetchOpenAPISchema(): Promise<{
-  schemas: Record<string, OpenAPISchema>
-  openApiData: Record<string, unknown>
-}> {
-  if (!/^https?:\/\//.test(OPENAPI_SOURCE)) {
-    console.log(`📡 从本地文件读取 OpenAPI schema: ${OPENAPI_SOURCE}`)
-
-    if (!existsSync(OPENAPI_SOURCE)) {
-      throw new Error(`本地 OpenAPI schema 文件不存在: ${OPENAPI_SOURCE}`)
-    }
-
-    const openApiData = JSON.parse(readFileSync(OPENAPI_SOURCE, 'utf-8')) as Record<string, unknown>
-    const schemas = (openApiData.components as { schemas?: Record<string, OpenAPISchema> })?.schemas || {}
-
-    console.log(`✅ 成功获取 ${Object.keys(schemas).length} 个 schemas`)
-    return { schemas, openApiData }
-  }
-
-  console.log(`📡 从后端获取 OpenAPI schema: ${OPENAPI_SOURCE}`)
-
-  try {
-    const response = await fetch(OPENAPI_SOURCE)
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-    }
-
-    const openApiData = await response.json() as Record<string, unknown>
-    const schemas = (openApiData.components as { schemas?: Record<string, OpenAPISchema> })?.schemas || {}
-
-    console.log(`✅ 成功获取 ${Object.keys(schemas).length} 个 schemas`)
-    return { schemas, openApiData }
-  } catch (error) {
-    console.error('❌ 获取 OpenAPI schema 失败:', error)
-    throw error
-  }
-}
-
-type OpenApiSourceRecordEnv = Pick<
-  NodeJS.ProcessEnv,
-  'OPENAPI_SPEC_PATH' | 'OPENAPI_SPEC_URL' | 'BACKEND_OPENAPI_URL'
->
-
-export function resolveOpenApiSourceRecordFromEnv(
-  env: OpenApiSourceRecordEnv = process.env
-): string {
-  return (
-    env.OPENAPI_SPEC_PATH ||
-    env.OPENAPI_SPEC_URL ||
-    env.BACKEND_OPENAPI_URL ||
-    DEFAULT_BACKEND_OPENAPI_URL
-  )
-}
-
-function resolveOpenApiSource(source: string): string {
-  if (/^https?:\/\//.test(source)) {
-    return source
-  }
-
-  return isAbsolute(source) ? source : resolve(__dirname, '..', source)
-}
 
 function formatLiteral(value: unknown): string {
   if (typeof value === 'string') {
@@ -229,16 +115,14 @@ function buildEnumZod(values: EnumValue[]): string {
     return 'z.null()'
   }
 
-  const allStrings = nonNullValues.every((value) => typeof value === 'string')
+  const allStrings = nonNullValues.every(value => typeof value === 'string')
   const baseEnum = allStrings
-    ? `z.enum([${nonNullValues.map((value) => formatLiteral(value)).join(', ')}])`
+    ? `z.enum([${nonNullValues.map(value => formatLiteral(value)).join(', ')}])`
     : nonNullValues.length === 1
       ? `z.literal(${formatLiteral(nonNullValues[0])})`
-      : `z.union([${nonNullValues.map((value) => `z.literal(${formatLiteral(value)})`).join(', ')}])`
+      : `z.union([${nonNullValues.map(value => `z.literal(${formatLiteral(value)})`).join(', ')}])`
 
-  return values.includes(null)
-    ? `z.union([${baseEnum}, z.null()])`
-    : baseEnum
+  return values.includes(null) ? `z.union([${baseEnum}, z.null()])` : baseEnum
 }
 
 function buildUnion(parts: string[]): string {
@@ -258,15 +142,13 @@ function buildIntersection(parts: string[]): string {
     return 'z.any()'
   }
 
-  return parts.reduce((result, part, index) => (
-    index === 0 ? part : `z.intersection(${result}, ${part})`
-  ), '')
+  return parts.reduce(
+    (result, part, index) => (index === 0 ? part : `z.intersection(${result}, ${part})`),
+    ''
+  )
 }
 
-function buildObjectZod(
-  schema: OpenAPISchema,
-  schemas: Record<string, OpenAPISchema>
-): string {
+function buildObjectZod(schema: OpenAPISchema, schemas: Record<string, OpenAPISchema>): string {
   const requiredFields = new Set(schema.required || [])
   const properties = schema.properties || {}
   const lines = Object.entries(properties).flatMap(([fieldName, prop]) => {
@@ -275,7 +157,9 @@ function buildObjectZod(
     if (comment) {
       fieldLines.push(`  /** ${comment} */`)
     }
-    fieldLines.push(`  ${fieldName}: ${propertyToZod(prop, requiredFields.has(fieldName), schemas)},`)
+    fieldLines.push(
+      `  ${fieldName}: ${propertyToZod(prop, requiredFields.has(fieldName), schemas)},`
+    )
     return fieldLines
   })
 
@@ -295,10 +179,14 @@ function wrapSelfReferentialSchema(schemaName: string, zodDef: string): string {
   return `z.lazy((): z.ZodTypeAny => ${zodDef})`
 }
 
-function schemaToZod(
+export function schemaToZod(
   schema: PropertySchema,
   schemas: Record<string, OpenAPISchema>
 ): string {
+  if ('const' in schema) {
+    return `z.literal(${formatLiteral(schema.const)})`
+  }
+
   if (schema.$ref) {
     const refSchemaName = getRefSchemaName(schema.$ref)
     return refSchemaName ? `z.lazy(() => ${refSchemaName}Schema)` : 'z.any()'
@@ -309,15 +197,15 @@ function schemaToZod(
   }
 
   if (schema.allOf?.length) {
-    return buildIntersection(schema.allOf.map((item) => schemaToZod(item, schemas)))
+    return buildIntersection(schema.allOf.map(item => schemaToZod(item, schemas)))
   }
 
   if (schema.anyOf?.length) {
-    return buildUnion(schema.anyOf.map((item) => schemaToZod(item, schemas)))
+    return buildUnion(schema.anyOf.map(item => schemaToZod(item, schemas)))
   }
 
   if (schema.oneOf?.length) {
-    return buildUnion(schema.oneOf.map((item) => schemaToZod(item, schemas)))
+    return buildUnion(schema.oneOf.map(item => schemaToZod(item, schemas)))
   }
 
   switch (schema.type) {
@@ -448,7 +336,9 @@ function generateZodSchema(
     }
 
     const objectSchema = `z.object({\n${objectLines.join('\n')}\n})`
-    lines.push(`export const ${schemaName}Schema = ${wrapSelfReferentialSchema(schemaName, objectSchema)}`)
+    lines.push(
+      `export const ${schemaName}Schema = ${wrapSelfReferentialSchema(schemaName, objectSchema)}`
+    )
     return lines.join('\n')
   }
 
@@ -464,8 +354,11 @@ function generateZodSchema(
 /**
  * 生成完整的 Zod schemas 文件
  */
-function generateZodSchemasFile(schemas: Record<string, OpenAPISchema>): string {
-  const lines: string[] = []
+function generateZodSchemasFile(
+  schemas: Record<string, OpenAPISchema>,
+  openApiSha256: string
+): string {
+  const lines: string[] = [buildOpenApiMarker(openApiSha256)]
 
   // 文件头注释
   lines.push('/**')
@@ -545,20 +438,22 @@ async function main(): Promise<void> {
   console.log('🚀 开始生成 Zod schemas...\n')
 
   try {
-    // 1. 获取 OpenAPI schema
-    const { schemas, openApiData } = await fetchOpenAPISchema()
-    const schemasHash = simpleHash(JSON.stringify(openApiData.components?.schemas || {}))
+    // 1. 读取已提交的 canonical OpenAPI 快照
+    const snapshot = readCanonicalOpenApiSnapshot(FRONTEND_ROOT)
+    const schemas =
+      (snapshot.document.components as { schemas?: Record<string, OpenAPISchema> } | undefined)
+        ?.schemas ?? {}
+    console.log(`📡 从 canonical 快照读取 ${Object.keys(schemas).length} 个 schemas`)
 
     // 2. 生成 Zod schemas 文件
     console.log('\n📝 生成 Zod schemas...')
-    const content = generateZodSchemasFile(schemas)
+    const content = generateZodSchemasFile(schemas, snapshot.sha256)
 
     // 3. 确保输出目录存在
     if (!existsSync(OUTPUT_DIR)) {
       mkdirSync(OUTPUT_DIR, { recursive: true })
     }
 
-    const record = readSyncRecord()
     const fileChanged = writeFileIfChanged(OUTPUT_FILE, content)
     if (fileChanged) {
       console.log(`✅ 生成文件: ${OUTPUT_FILE}`)
@@ -569,14 +464,7 @@ async function main(): Promise<void> {
     // 5. 生成扩展文件
     const extensionChanged = generateExtensionFile()
 
-    // 6. 写入同步记录
-    const recordNeedsUpdate =
-      !record ||
-      record.openApiHash !== schemasHash ||
-      record.backendUrl !== OPENAPI_SOURCE_RECORD
-    const syncRecordChanged = recordNeedsUpdate ? writeSyncRecord(openApiData) : false
-
-    if (!fileChanged && !extensionChanged && !syncRecordChanged) {
+    if (!fileChanged && !extensionChanged) {
       console.log('\n✨ 无变化，未更新生成文件')
       return
     }
@@ -590,7 +478,6 @@ async function main(): Promise<void> {
     console.log('  })')
     console.log('\n📖 详细文档: docs/ZOD_VALIDATION.md')
     console.log('📖 同步流程: docs/CONTRACT_SYNC_WORKFLOW.md')
-
   } catch (error) {
     console.error('\n❌ 生成失败:', error)
     process.exit(1)

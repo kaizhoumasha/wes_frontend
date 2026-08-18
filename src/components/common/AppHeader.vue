@@ -142,7 +142,6 @@ import {
 import { useLayout } from '@/composables/useLayout'
 import { useMenu } from '@/composables/useMenu'
 import { logout } from '@/api/services/token-refresh'
-import { resetSSESession } from '@/api/services/sse-client'
 import { apiClient } from '@/api/client'
 import { usePermission } from '@/composables/usePermission'
 import { useCurrentUser } from '@/composables/useCurrentUser'
@@ -286,9 +285,6 @@ const handleLogoutConfirm = async () => {
   try {
     // 调用后端登出接口
     await logout(apiClient)
-
-    // 断开并重置 SSE 会话级游标，避免跨登录态复用 Last-Event-ID
-    resetSSESession()
 
     // 清除权限和菜单
     clearPermissions()

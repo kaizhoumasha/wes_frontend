@@ -29,7 +29,6 @@
 配套文档：
 
 - 规范文档：`docs/PHASE3_USER_MANAGEMENT_GUIDE.md`
-- 总任务清单：`docs/TASKS_PHASE_1.md`
 
 ---
 

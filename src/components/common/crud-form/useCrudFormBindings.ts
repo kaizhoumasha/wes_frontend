@@ -4,6 +4,10 @@ type FieldBindingValue = unknown
 
 type FieldBindingAttrs = unknown
 
+function withEmptyFallback(value: unknown): unknown {
+  return value === undefined ? '' : value
+}
+
 export interface CrudFieldBindings {
   getFieldValue: (key: string) => unknown
   getFieldHandler: (key: string) => (value: unknown) => void
@@ -27,7 +31,7 @@ export function useCrudFormBindings(options: {
           const [value, attrs] = options.defineField(field.key)
           fieldBindingsMap.set(field.key, { value, attrs })
         } catch {
-          const defaultValue = options.formValues.value[field.key] ?? ''
+          const defaultValue = withEmptyFallback(options.formValues.value[field.key])
           fieldBindingsMap.set(field.key, { value: defaultValue, attrs: null })
         }
       })
@@ -37,14 +41,14 @@ export function useCrudFormBindings(options: {
 
   function getFieldValue(key: string): unknown {
     const binding = fieldBindingsMap.get(key)
-    if (!binding) return options.formValues.value[key] ?? ''
+    if (!binding) return withEmptyFallback(options.formValues.value[key])
 
     const bindingValue = binding.value as { value?: unknown } | unknown
     if (typeof bindingValue === 'object' && bindingValue !== null && 'value' in bindingValue) {
-      return bindingValue.value ?? ''
+      return withEmptyFallback(bindingValue.value)
     }
 
-    return bindingValue ?? ''
+    return withEmptyFallback(bindingValue)
   }
 
   function getFieldHandler(key: string) {

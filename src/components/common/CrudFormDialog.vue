@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { computed, toRef, watch, ref } from 'vue'
-import { workLinesApiMethods } from '@/api/modules/workLines'
+import { computed, toRef, watch } from 'vue'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
 import type { ZodSchema } from 'zod'
@@ -147,48 +146,8 @@ const { originalData, resetDialogState, resolveEditData } = useCrudFormEditSessi
   closeDialog: () => emit('update:open', false)
 })
 
-const isWorklineActive = ref(false)
-const isDeviceForm = computed(() => props.fieldConfig.some(f => f.key === 'device_role'))
-
-watch(
-  () => originalData.value,
-  async newData => {
-    isWorklineActive.value = false
-    const workLineId =
-      newData && typeof newData === 'object' && 'work_line_id' in newData
-        ? (newData as Record<string, unknown>).work_line_id
-        : null
-    if (isDeviceForm.value && workLineId) {
-      try {
-        const wl = await workLinesApiMethods.getById(workLineId as number).send()
-        isWorklineActive.value = !!wl?.is_active
-      } catch (e) {
-        console.error('Failed to fetch workline status for device:', e)
-      }
-    }
-  },
-  { immediate: true }
-)
-
 const visibleFields = computed(() => {
-  const fields = props.fieldConfig.filter(field =>
-    isFieldVisibleInMode(field, currentFormMode.value)
-  )
-
-  if (isEditMode.value && isWorklineActive.value) {
-    const topologyFields = ['work_line_id', 'device_role', 'is_active', 'capabilities_json']
-    return fields.map(f => {
-      if (topologyFields.includes(f.key)) {
-        return {
-          ...f,
-          disabled: true,
-          placeholder: '所属作业线已激活，如需调整拓扑，请前往作业线配置工作台先停用'
-        }
-      }
-      return f
-    })
-  }
-  return fields
+  return props.fieldConfig.filter(field => isFieldVisibleInMode(field, currentFormMode.value))
 })
 
 const { submitting, conflictDialogVisible, resetSubmitState, onSubmit, handleConflictRefresh } =

@@ -47,17 +47,17 @@ createCrudPageConfigFromResource()  ← 页面配置
 **⚠️ 重要：开发新功能前，必须先从后端同步最新的 OpenAPI 契约！**
 
 ```bash
-# 1. 确保后端服务已启动
-# http://localhost:8001/api/openapi.json 应能访问
+# 1. 从指定的 clean develop checkout 冻结当前契约
+pnpm contract:freeze -- --backend-root /path/to/wes_backend
 
-# 2. 生成 TypeScript 类型（从 OpenAPI）
+# 2. 从 canonical OpenAPI 快照生成 TypeScript 类型
 pnpm generate:types
 
 # 3. 生成 Zod Schema（用于表单验证）
 pnpm generate:zod
 
 # 4. 生成权限常量
-pnpm generate:permissions
+pnpm generate:permissions -- --backend-root /path/to/wes_backend
 ```
 
 **坑点预警**：如果跳过后端同步，可能出现：
@@ -297,22 +297,22 @@ bash scripts/data/sync_menus.sh \
 **开发任何新功能之前，必须执行以下步骤同步后端契约：**
 
 ```bash
-# 1. 确保后端服务已启动
-# 访问 http://localhost:8001/api/docs 确认 Swagger 文档可用
+# 1. 从指定的 clean develop checkout 冻结当前契约
+pnpm contract:freeze -- --backend-root /path/to/wes_backend
 
-# 2. 生成 TypeScript 类型
+# 2. 从 canonical OpenAPI 快照生成 TypeScript 类型
 pnpm generate:types
 
 # 3. 生成 Zod Schema（表单验证用）
 pnpm generate:zod
 
 # 4. 生成权限常量
-pnpm generate:permissions
+pnpm generate:permissions -- --backend-root /path/to/wes_backend
 
 # 5. 验证生成结果
-ls src/types/generated/      # 查看生成的类型
-ls src/types/zod-extensions.ts  # 查看 Zod schemas
-ls src/api/generated/permissions.ts  # 查看权限常量
+ls src/api/generated/openapi-types.ts         # 查看生成的类型
+ls src/types/generated/zod-schemas.ts         # 查看 Zod schemas
+ls src/api/generated/permissions/index.ts     # 查看权限常量入口
 ```
 
 **同步后必做：检查后端 API 能力**
@@ -539,17 +539,18 @@ bash scripts/data/sync_menus.sh \
 
 ```bash
 # 开发新功能前必须执行
+pnpm contract:freeze -- --backend-root /path/to/wes_backend
 pnpm generate:types    # 生成 TypeScript 类型
 pnpm generate:zod     # 生成 Zod Schema
-pnpm generate:permissions  # 生成权限常量
+pnpm generate:permissions -- --backend-root /path/to/wes_backend  # 生成权限常量
 ```
 
 **检查清单**：
 
-- [ ] 后端服务已启动（http://localhost:8001/api/docs 可访问）
+- [ ] 已从指定的 clean develop checkout 冻结 canonical OpenAPI
 - [ ] 执行了 `pnpm generate:types`
 - [ ] 执行了 `pnpm generate:zod`
-- [ ] 执行了 `pnpm generate:permissions`
+- [ ] 执行了 `pnpm generate:permissions -- --backend-root /path/to/wes_backend`
 
 ---
 
@@ -741,7 +742,7 @@ permission: ADMIN_PERMISSIONS.role.page
 
 | 问题                 | 排查                               | 解决                                                                  |
 | -------------------- | ---------------------------------- | --------------------------------------------------------------------- |
-| 类型/Zod/权限找不到  | 是否同步了后端契约                 | 执行 `pnpm generate:types` 和 `pnpm generate:zod`                     |
+| 类型/Zod/权限找不到  | 是否同步了后端契约                 | 按“Step 0: 前置准备”执行 freeze → types/Zod/permissions               |
 | 缺少回收站/额外 API  | 检查后端 OpenAPI 端点              | 使用 `createSoftDeleteCrudRequestAdapterMethods` 或 `extensions` 扩展 |
 | 菜单同步后数据库没有 | 检查 `--frontend-path` 是否正确    | 使用绝对路径指定 worktree                                             |
 | 表格列不显示         | 检查 `visibleFrom` 和 `storageKey` | 设置 `visibleFrom: 'mobile'`，确保 key 唯一                           |
@@ -843,52 +844,6 @@ interface CrudFieldConfig {
 - [时区处理指南](./TIMEZONE_HANDLING.md)
 - [Zod 验证指南](./ZOD_VALIDATION.md)
 - [智能搜索组件架构](./SMART_SEARCH_COMPONENT_ARCHITECTURE.md)
-
----
-
-## 自动化检查（Hooks）
-
-可以通过 Hooks 自动检查后端 API 能力，避免遗漏。
-
-### Claude Code Hook（推荐）
-
-项目已配置 `.claude/settings.json`，当对话中提到开发新功能时自动触发检查：
-
-```bash
-# 触发关键词示例
-"帮我开发一个商品管理页面"
-"create a new order api"
-"添加用户分配角色功能"
-```
-
-**Hook 会检查**：
-
-- 后端服务是否启动
-- API 契约是否需要同步
-- 是否遗漏软删除/额外 API 能力
-
-### Git Pre-commit Hook
-
-提交前自动检查 API 模块变更：
-
-```bash
-# 安装 hook（worktree 需指定主仓库路径）
-ln -s "$(pwd)/scripts/hooks/pre-commit-check-api" \
-  /Users/kaizhou/SynologyDrive/works/wes_frontend/.git/hooks/pre-commit
-
-# 手动运行检查
-bash scripts/hooks/pre-commit-check-api
-```
-
-**Hook 会阻止提交的情况**：
-
-- 后端 API 已变更但未同步契约
-- 检测到软删除端点但使用了 `createCrudRequestAdapterMethods`
-
-```bash
-# 绕过检查强制提交
-git commit --no-verify
-```
 
 ---
 

@@ -12,7 +12,6 @@ import {
   WorkLineResponseMetadata,
   WorkLineUpdateMetadata
 } from '@/api/generated/openapi-metadata'
-import type { OptionsResult as WorklinePluginOptionsResult } from '@/api/modules/workline'
 import type { FormFieldConfig } from '@/composables/useTableColumns'
 import { WorkLineCreateSchema, WorkLineUpdateSchema } from '@/types/zod-extensions'
 import {
@@ -28,8 +27,6 @@ const WORKLINE_FIELD_LABEL_OVERRIDES = {
   line_name: '作业线名称',
   line_type: '作业线类型',
   zone_name: '区域名称',
-  plugin_key: '插件标识',
-  contract_version: '契约版本',
   config: '配置参数',
   run_mode: '运行模式',
   description: '描述',
@@ -49,8 +46,6 @@ const RUN_MODE_OPTIONS = [
   { label: '人工确认', value: 'MANUAL' },
   { label: '沙箱模拟', value: 'SIMULATION' }
 ]
-
-type WorklinePluginOption = WorklinePluginOptionsResult[number]
 
 export const WORKLINE_TABLE_STORAGE_KEY = 'wes-workline-table-columns'
 
@@ -166,27 +161,13 @@ export const {
       },
       form: {
         type: 'select',
+        defaultValue: 'AUTO',
         options: RUN_MODE_OPTIONS
       },
       search: {
         dataType: 'enum',
         options: RUN_MODE_OPTIONS
       }
-    },
-    {
-      key: 'plugin_key',
-      table: {
-        visibleFrom: 'desktop',
-        width: 160
-      },
-      form: {
-        type: 'select',
-        options: []
-      }
-    },
-    {
-      key: 'contract_version',
-      form: {}
     },
     {
       key: 'description',
@@ -205,35 +186,9 @@ export const {
   form: workLineFormConfig
 })
 
-export function createWorkLineFormFieldConfig(
-  pluginOptions: readonly WorklinePluginOption[] = []
-): FormFieldConfig[] {
-  const pluginSelectOptions = pluginOptions.flatMap(option => {
-    if (!option.plugin_key) {
-      return []
-    }
-
-    const contractVersion = option.default_contract_version
-    const label = contractVersion
-      ? `${option.label || option.plugin_key} / ${contractVersion}`
-      : option.label || option.plugin_key
-
-    return [{
-      label,
-      value: option.plugin_key
-    }]
-  })
-
+export function createWorkLineFormFieldConfig(): FormFieldConfig[] {
   return workLinePageFieldConfig.form.fieldConfig.flatMap(field => {
-    if (field.key === 'plugin_key') {
-      return [{
-        ...field,
-        type: 'select',
-        options: pluginSelectOptions
-      }]
-    }
-
-    if (field.key === 'contract_version' || field.key === 'is_active') {
+    if (field.key === 'is_active') {
       return []
     }
 

@@ -7,23 +7,31 @@
  */
 
 import {
+  cpSync,
   existsSync,
   mkdirSync,
+  mkdtempSync,
   readFileSync,
   readdirSync,
+  renameSync,
+  rmSync,
   unlinkSync,
   writeFileSync
 } from 'node:fs'
-import { dirname, isAbsolute, join, resolve } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import openapiTS, { astToString } from 'openapi-typescript'
 import ts from 'typescript'
+import {
+  buildOpenApiMarker,
+  isBrowserOwnedEndpoint,
+  readCanonicalOpenApiSnapshot
+} from './lib/openapi-sync'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 const ENUM_MARKER = '__enum'
-export const DEFAULT_BACKEND_OPENAPI_URL = 'http://127.0.0.1:8001/api/openapi.json'
 
 export const AUTO_GENERATED_START =
   '// ==================== AUTO GENERATED START ===================='
@@ -141,54 +149,14 @@ interface GeneratedOpenApiSchemaMetadata {
 }
 
 interface Config {
-  openApiSource: string
   outputDir: string
   metadataOutputDir: string
   modulesOutputDir: string
 }
 
-interface OpenApiSourceResolution {
-  record: string
-  source: string
-}
-
-type OpenApiSourceEnv = Pick<
-  NodeJS.ProcessEnv,
-  'OPENAPI_SPEC_PATH' | 'OPENAPI_SPEC_URL' | 'BACKEND_OPENAPI_URL' | 'VITE_API_BASE_URL' | 'BACKEND_URL'
->
-
-function resolveFileSource(source: string): string {
-  return isAbsolute(source) ? source : resolve(__dirname, '..', source)
-}
-
-function resolveLegacyBackendBaseUrl(source: string): string {
-  if (/^https?:\/\//.test(source)) {
-    return `${source.replace(/\/$/, '')}/api/openapi.json`
-  }
-
-  return resolveFileSource(source)
-}
-
-export function resolveOpenApiSourceFromEnv(env: OpenApiSourceEnv = process.env): OpenApiSourceResolution {
-  const exactSource = env.OPENAPI_SPEC_PATH || env.OPENAPI_SPEC_URL || env.BACKEND_OPENAPI_URL
-  if (exactSource) {
-    return {
-      record: exactSource,
-      source: env.OPENAPI_SPEC_PATH ? resolveFileSource(exactSource) : exactSource
-    }
-  }
-
-  const legacySource = env.VITE_API_BASE_URL || env.BACKEND_URL || DEFAULT_BACKEND_OPENAPI_URL
-  return {
-    record: legacySource,
-    source: resolveLegacyBackendBaseUrl(legacySource)
-  }
-}
-
-const { source: openApiSource } = resolveOpenApiSourceFromEnv()
+const FRONTEND_ROOT = resolve(__dirname, '..')
 
 const config: Config = {
-  openApiSource,
   outputDir: join(__dirname, '../src/api/generated'),
   metadataOutputDir: join(__dirname, '../src/api/generated/openapi-metadata'),
   modulesOutputDir: join(__dirname, '../src/api/modules')
@@ -270,39 +238,6 @@ function deleteFileIfExists(path: string): boolean {
 
   unlinkSync(path)
   return true
-}
-
-async function fetchOpenApiSpec(source: string): Promise<unknown> {
-  if (!/^https?:\/\//.test(source)) {
-    console.log(`📥 正在从本地读取 OpenAPI 规范: ${source}`)
-
-    if (!existsSync(source)) {
-      throw new Error(`本地 OpenAPI 规范文件不存在: ${source}`)
-    }
-
-    const raw = readFileSync(source, 'utf-8')
-    const spec = JSON.parse(raw)
-    console.log('✅ OpenAPI 规范读取成功')
-    return spec
-  }
-
-  console.log(`📥 正在从后端获取 OpenAPI 规范: ${source}`)
-
-  const response = await fetch(source, {
-    headers: {
-      Accept: 'application/json'
-    },
-    // @ts-expect-error Node fetch extra option in local dev
-    ignoreHTTPSErrors: true
-  })
-
-  if (!response.ok) {
-    throw new Error(`获取 OpenAPI 规范失败: ${response.status} ${response.statusText}`)
-  }
-
-  const spec = await response.json()
-  console.log('✅ OpenAPI 规范获取成功')
-  return spec
 }
 
 function getSchemas(spec: unknown): Record<string, OpenApiPropertySchema> {
@@ -497,7 +432,9 @@ interface GenericResponseWrapperSchema {
 function parseGenericResponseWrapperTitle(
   title: string | undefined
 ): GenericResponseWrapperSchema | undefined {
-  const match = title?.match(/^(ResponseSchemaModel|ListResponseData|ListResponseSchemaModel)\[(.+)]$/)
+  const match = title?.match(
+    /^(ResponseSchemaModel|ListResponseData|ListResponseSchemaModel)\[(.+)]$/
+  )
 
   if (!match) {
     return undefined
@@ -641,7 +578,11 @@ function createGenericResponseWrapperTypeNode(
   return ts.factory.createTypeReferenceNode('ApiListResponse', [typeArgument])
 }
 
-async function generateTypesFile(spec: unknown, outputPath: string): Promise<boolean> {
+async function generateTypesFile(
+  spec: unknown,
+  outputPath: string,
+  openApiSha256: string
+): Promise<boolean> {
   console.log('🔧 正在生成类型定义文件...')
 
   const schemaNames = new Set(Object.keys(getSchemas(spec)))
@@ -664,7 +605,8 @@ async function generateTypesFile(spec: unknown, outputPath: string): Promise<boo
   })
 
   const generatedTypes = astToString(ast).trimEnd()
-  const content = `/**
+  const content = `${buildOpenApiMarker(openApiSha256)}
+/**
  * 自动生成的 OpenAPI 类型定义
  *
  * ⚠️  请勿手动编辑此文件
@@ -984,9 +926,7 @@ async function generateMetadataFiles(
 
     const outputPath = join(modulesOutputDir, plan.fileName)
     const fileChanged = writeFileIfChanged(outputPath, buildMetadataModuleTemplate(plan))
-    console.log(
-      fileChanged ? `  ✅ 已更新: ${plan.fileName}` : `  ✅ 无变化: ${plan.fileName}`
-    )
+    console.log(fileChanged ? `  ✅ 已更新: ${plan.fileName}` : `  ✅ 无变化: ${plan.fileName}`)
     changed = changed || fileChanged
   }
 
@@ -1074,6 +1014,10 @@ export function groupEndpointsByModuleModel(endpoints: EndpointInfo[]): ModuleMo
   const groups = new Map<string, ModuleModelGroup>()
 
   for (const endpoint of endpoints) {
+    if (!isBrowserOwnedEndpoint(endpoint.path)) {
+      continue
+    }
+
     const parsed = parseModuleModelFromPath(endpoint.path)
     if (!parsed) {
       continue
@@ -1671,7 +1615,9 @@ function generateModuleAutoSection(plan: ModulePlan): string {
   }
 
   if (plan.kind === 'resource' && capabilities.kind === 'soft-delete') {
-    lines.push(`const base${pascalBaseName}ApiMethods = createSoftDeleteCrudRequestAdapterMethods({`)
+    lines.push(
+      `const base${pascalBaseName}ApiMethods = createSoftDeleteCrudRequestAdapterMethods({`
+    )
     lines.push(`  collection: ${collectionConst} as unknown as ${resourcePathType},`)
     lines.push(`  item: \`\${${collectionConst}}/{id}\` as const,`)
     lines.push(`  query: \`\${${collectionConst}}/query\` as const,`)
@@ -1740,11 +1686,11 @@ function buildModuleTemplate(autoContent: string, customMethods = '', customConf
 function parseModuleSections(content: string): ExistingModuleSections {
   const normalized = content.replace(/\r\n/g, '\n')
   const pattern = new RegExp(
-    `^${escapeForRegex(AUTO_GENERATED_START)}\\n([\\s\\S]*?)\\n${escapeForRegex(
+    `^${escapeForRegex(AUTO_GENERATED_START)}\\n([\\s\\S]*?)${escapeForRegex(
       AUTO_GENERATED_END
-    )}\\n\\n${escapeForRegex(CUSTOM_METHODS_START)}\\n([\\s\\S]*?)\\n${escapeForRegex(
+    )}\\n\\n${escapeForRegex(CUSTOM_METHODS_START)}\\n([\\s\\S]*?)${escapeForRegex(
       CUSTOM_METHODS_END
-    )}\\n\\n${escapeForRegex(CUSTOM_CONFIG_START)}\\n([\\s\\S]*?)\\n${escapeForRegex(
+    )}\\n\\n${escapeForRegex(CUSTOM_CONFIG_START)}\\n([\\s\\S]*?)${escapeForRegex(
       CUSTOM_CONFIG_END
     )}\\n?$`
   )
@@ -1799,7 +1745,10 @@ function collectStaleGeneratedModules(outputDir: string, expectedFiles: Set<stri
     .sort()
 }
 
-export function deleteStaleGeneratedModules(outputDir: string, expectedFiles: Set<string>): string[] {
+export function deleteStaleGeneratedModules(
+  outputDir: string,
+  expectedFiles: Set<string>
+): string[] {
   const staleFiles = collectStaleGeneratedModules(outputDir, expectedFiles)
 
   for (const fileName of staleFiles) {
@@ -1853,71 +1802,132 @@ function isCliEntry(): boolean {
   return !!executedFile && fileURLToPath(import.meta.url) === executedFile
 }
 
+function stageCurrentArtifacts(stagingRoot: string): Config {
+  const stagedOutputDir = join(stagingRoot, 'generated')
+  const stagedModulesOutputDir = join(stagingRoot, 'modules')
+
+  if (existsSync(config.outputDir)) {
+    cpSync(config.outputDir, stagedOutputDir, { recursive: true })
+  } else {
+    mkdirSync(stagedOutputDir, { recursive: true })
+  }
+  if (existsSync(config.modulesOutputDir)) {
+    cpSync(config.modulesOutputDir, stagedModulesOutputDir, { recursive: true })
+  } else {
+    mkdirSync(stagedModulesOutputDir, { recursive: true })
+  }
+
+  return {
+    outputDir: stagedOutputDir,
+    metadataOutputDir: join(stagedOutputDir, 'openapi-metadata'),
+    modulesOutputDir: stagedModulesOutputDir
+  }
+}
+
+function installStagedArtifacts(stagingRoot: string, stagedConfig: Config): void {
+  const generatedBackup = join(stagingRoot, 'generated-backup')
+  const modulesBackup = join(stagingRoot, 'modules-backup')
+  let generatedInstalled = false
+  let modulesInstalled = false
+
+  try {
+    if (existsSync(config.outputDir)) {
+      renameSync(config.outputDir, generatedBackup)
+    }
+    renameSync(stagedConfig.outputDir, config.outputDir)
+    generatedInstalled = true
+
+    if (existsSync(config.modulesOutputDir)) {
+      renameSync(config.modulesOutputDir, modulesBackup)
+    }
+    renameSync(stagedConfig.modulesOutputDir, config.modulesOutputDir)
+    modulesInstalled = true
+  } catch (error) {
+    if (modulesInstalled) {
+      rmSync(config.modulesOutputDir, { force: true, recursive: true })
+    }
+    if (existsSync(modulesBackup)) {
+      renameSync(modulesBackup, config.modulesOutputDir)
+    }
+    if (generatedInstalled) {
+      rmSync(config.outputDir, { force: true, recursive: true })
+    }
+    if (existsSync(generatedBackup)) {
+      renameSync(generatedBackup, config.outputDir)
+    }
+    throw error
+  }
+}
+
 export async function main(): Promise<void> {
   console.log('🚀 OpenAPI 类型生成工具\n')
 
-  ensureDir(config.outputDir)
-  ensureDir(config.metadataOutputDir)
-  ensureDir(config.modulesOutputDir)
+  const snapshot = readCanonicalOpenApiSnapshot(FRONTEND_ROOT)
+  const spec = snapshot.document
+  const stagingRoot = mkdtempSync(join(FRONTEND_ROOT, '.openapi-generation-'))
+  let changed: boolean
+  let apiClientsDeleted: boolean
+  let metadataDeletedFiles: string[]
+  let moduleDeletedFiles: string[]
 
-  const spec = await fetchOpenApiSpec(config.openApiSource)
+  try {
+    const stagedConfig = stageCurrentArtifacts(stagingRoot)
+    const typesOutputPath = join(stagedConfig.outputDir, 'openapi-types.ts')
+    const metadataEntryOutputPath = join(stagedConfig.outputDir, 'openapi-metadata.ts')
+    const metadataTypesOutputPath = join(stagedConfig.outputDir, 'openapi-metadata-types.ts')
+    const metadataIndexOutputPath = join(stagedConfig.metadataOutputDir, 'index.ts')
+    const apiClientsOutputPath = join(stagedConfig.outputDir, 'api-clients.ts')
 
-  const typesOutputPath = join(config.outputDir, 'openapi-types.ts')
-  const metadataEntryOutputPath = join(config.outputDir, 'openapi-metadata.ts')
-  const metadataTypesOutputPath = join(config.outputDir, 'openapi-metadata-types.ts')
-  const metadataIndexOutputPath = join(config.metadataOutputDir, 'index.ts')
-  const apiClientsOutputPath = join(config.outputDir, 'api-clients.ts')
+    const typesChanged = await generateTypesFile(spec, typesOutputPath, snapshot.sha256)
+    const metadataResult = await generateMetadataFiles(
+      spec,
+      metadataTypesOutputPath,
+      metadataEntryOutputPath,
+      metadataIndexOutputPath,
+      stagedConfig.metadataOutputDir
+    )
+    apiClientsDeleted = deleteFileIfExists(apiClientsOutputPath)
 
-  const typesChanged = await generateTypesFile(spec, typesOutputPath)
-  const metadataResult = await generateMetadataFiles(
-    spec,
-    metadataTypesOutputPath,
-    metadataEntryOutputPath,
-    metadataIndexOutputPath,
-    config.metadataOutputDir
-  )
-  const apiClientsDeleted = deleteFileIfExists(apiClientsOutputPath)
+    validateGeneratedFile(typesOutputPath)
+    validateGeneratedFile(metadataEntryOutputPath)
+    validateGeneratedFile(metadataTypesOutputPath)
+    for (const fileName of metadataResult.generatedFileNames) {
+      validateGeneratedFile(join(stagedConfig.metadataOutputDir, fileName))
+    }
 
-  validateGeneratedFile(typesOutputPath)
-  validateGeneratedFile(metadataEntryOutputPath)
-  validateGeneratedFile(metadataTypesOutputPath)
+    const modulesResult = await generateApiModules(spec, stagedConfig.modulesOutputDir)
+    for (const fileName of readdirSync(stagedConfig.modulesOutputDir).filter(file =>
+      file.endsWith('.ts')
+    )) {
+      validateGeneratedFile(join(stagedConfig.modulesOutputDir, fileName))
+    }
 
-  for (const fileName of metadataResult.generatedFileNames) {
-    validateGeneratedFile(join(config.metadataOutputDir, fileName))
+    changed = typesChanged || metadataResult.changed || apiClientsDeleted || modulesResult.changed
+    metadataDeletedFiles = metadataResult.deletedFiles
+    moduleDeletedFiles = modulesResult.deletedFiles
+    installStagedArtifacts(stagingRoot, stagedConfig)
+  } finally {
+    rmSync(stagingRoot, { force: true, recursive: true })
   }
-
-  const modulesResult = await generateApiModules(spec, config.modulesOutputDir)
-
-  for (const fileName of readdirSync(config.modulesOutputDir).filter(file =>
-    file.endsWith('.ts')
-  )) {
-    validateGeneratedFile(join(config.modulesOutputDir, fileName))
-  }
-
-  const changed =
-    typesChanged ||
-    metadataResult.changed ||
-    apiClientsDeleted ||
-    modulesResult.changed
 
   console.log(changed ? '\n✅ 类型生成完成！' : '\n✅ 类型无变化，未更新生成文件')
   console.log(`📁 生成目录: ${config.outputDir}`)
   console.log(`📁 模块目录: ${config.modulesOutputDir}`)
 
   if (apiClientsDeleted) {
-    console.log(`🧹 已移除旧聚合客户端: ${apiClientsOutputPath}`)
+    console.log(`🧹 已移除旧聚合客户端: ${join(config.outputDir, 'api-clients.ts')}`)
   }
 
-  if (metadataResult.deletedFiles.length > 0) {
+  if (metadataDeletedFiles.length > 0) {
     console.log('\n🧹 已移除以下过期的自动生成 metadata 文件：')
-    for (const fileName of metadataResult.deletedFiles) {
+    for (const fileName of metadataDeletedFiles) {
       console.log(`   - ${fileName}`)
     }
   }
 
-  if (modulesResult.deletedFiles.length > 0) {
+  if (moduleDeletedFiles.length > 0) {
     console.log('\n🧹 已移除以下过期的自动生成模块文件：')
-    for (const fileName of modulesResult.deletedFiles) {
+    for (const fileName of moduleDeletedFiles) {
       console.log(`   - ${fileName}`)
     }
   }

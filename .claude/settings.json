@@ -1,18 +1,5 @@
 {
   "enabledPlugins": {
     "claude-mem@thedotmack": true
-  },
-  "hooks": {
-    "UserPromptSubmit": [
-      {
-        "matcher": "(create|add|implement|开发|创建).*(api|crud|page|页面)",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/hooks/check-backend-api.sh"
-          }
-        ]
-      }
-    ]
   }
 }

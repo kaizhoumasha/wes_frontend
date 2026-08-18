@@ -4,7 +4,6 @@ import { apiAuthRoutes } from './routes/api-auth'
 import { shellBaseChildren } from './routes/base'
 import { bizRoutes } from './routes/biz'
 import { logRoutes } from './routes/logs'
-import { runtimeRoutes } from './routes/runtime'
 
 export interface MenuManifestEntry {
   name: string
@@ -50,7 +49,6 @@ export function createMenuSourceRoutes(): ManifestRoute[] {
     adminRoutes,
     bizRoutes,
     apiAuthRoutes,
-    runtimeRoutes,
     logRoutes,
   ] as ManifestRoute[]
 }

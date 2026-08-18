@@ -4,15 +4,12 @@
  * ⚠️ 请勿手动编辑此文件
  * 此文件由 scripts/generate-permissions.ts 自动生成
  *
- * 后端目录: /Users/kaizhou/SynologyDrive/works/wes_backend
  * 权限分组: app_api:api:callback
  *
- * 更新权限: pnpm generate:permissions
+ * 更新权限: pnpm generate:permissions -- --backend-root /path/to/wes_backend
  */
 
 export const API_CALLBACK_PERMISSION = {
-  /** 设备事件上报 */
+  /** callback_external */
   event: 'api:callback:event',
-  /** 任务结果回传 */
-  result: 'api:callback:result',
 } as const

@@ -48,8 +48,17 @@ export type DeactivateResult = ContractResponseData<'/api/v1/workline/work_lines
 export type DeactivatePathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/deactivate', 'post'>
 export type DeactivateInput = ContractRequestBody<'/api/v1/workline/work_lines/{id}/deactivate', 'post'>
 
+export type PlaneSceneResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/plane/scene', 'get'>
+export type PlaneScenePathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/plane/scene', 'get'>
+
+export type PlaneSnapshotResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/plane/snapshot', 'get'>
+export type PlaneSnapshotPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/plane/snapshot', 'get'>
+
 export type PermanentResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/permanent', 'delete'>
 export type PermanentPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/permanent', 'delete'>
+
+export type ActiveObjectsResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/active-objects', 'get'>
+export type ActiveObjectsPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/active-objects', 'get'>
 
 const baseWorkLinesApiMethods = createSoftDeleteCrudRequestAdapterMethods({
   collection: WORK_LINES_COLLECTION_PATH as unknown as SoftDeleteCrudResourceCollectionPath,
@@ -95,12 +104,42 @@ export const workLinesApiMethods = {
   },
 
   /**
+   * [biz:workline:view-plane-scene] 获取作业线平面静态场景
+   * @description 读取 WorkLine 平面态势静态 scene。
+   * @endpoint GET /api/v1/workline/work_lines/{id}/plane/scene
+   * @returns alova method instance
+   */
+  planeScene(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/plane/scene', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/work_lines/{id}/plane/scene', { params, config })
+  },
+
+  /**
+   * [biz:workline:view-plane-snapshot] 获取作业线平面动态快照
+   * @description 读取 WorkLine 平面态势动态 snapshot。
+   * @endpoint GET /api/v1/workline/work_lines/{id}/plane/snapshot
+   * @returns alova method instance
+   */
+  planeSnapshot(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/plane/snapshot', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/work_lines/{id}/plane/snapshot', { params, config })
+  },
+
+  /**
    * [biz:workline:permanent_delete] 永久删除WorkLine
    * @endpoint DELETE /api/v1/workline/work_lines/{id}/permanent
    * @returns alova method instance
    */
   permanent(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/permanent', 'delete'>, config?: ContractRequestConfig) {
     return contractMethods.delete('/api/v1/workline/work_lines/{id}/permanent', { params, config })
+  },
+
+  /**
+   * [biz:workline:detail] 查询作业线当前 active objects
+   * @description 读取 WorklineActiveObjects；API 层不直接访问 repository。
+   * @endpoint GET /api/v1/workline/work_lines/{id}/active-objects
+   * @returns alova method instance
+   */
+  activeObjects(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/active-objects', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/work_lines/{id}/active-objects', { params, config })
   }
 }
 // ==================== AUTO GENERATED END ====================

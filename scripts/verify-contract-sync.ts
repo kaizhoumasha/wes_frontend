@@ -1,196 +1,83 @@
 #!/usr/bin/env tsx
-/**
- * 前后端契约同步验证脚本
- *
- * 用于 pre-commit hook 中，确保 Zod schemas 与后端 OpenAPI 保持同步
- *
- * 检查逻辑：
- * 1. 检查后端是否运行（可选，通过 --require-backend 参数控制）
- * 2. 获取当前 OpenAPI schema 的哈希值
- * 3. 与上次同步记录的哈希值对比
- * 4. 如果不一致，提示运行 pnpm generate:zod
- */
 
-import { readFileSync, existsSync } from 'node:fs'
-import { isAbsolute, join, resolve } from 'node:path'
+import { existsSync, readFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import {
+  CANONICAL_OPENAPI_SNAPSHOT_PATH,
+  readCanonicalOpenApiSnapshot,
+  readContractSyncRecord,
+  readOpenApiMarker,
+  serializeOpenApiDocument
+} from './lib/openapi-sync'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = join(__filename, '..')
+const SCRIPT_PATH = fileURLToPath(import.meta.url)
+const FRONTEND_ROOT = resolve(dirname(SCRIPT_PATH), '..')
 
-// ==================== 配置 ====================
-
-const DEFAULT_BACKEND_OPENAPI_URL = 'http://127.0.0.1:8001/api/openapi.json'
-const SYNC_RECORD_FILE = join(__dirname, '../.contract-sync-record.json')
-const GENERATED_SCHEMA_FILE = join(__dirname, '../src/types/generated/zod-schemas.ts')
-
-// ==================== 类型定义 ====================
-
-interface SyncRecord {
-  lastSyncTime: string
-  openApiHash: string
-  backendUrl: string
+interface CliOptions {
+  silent: boolean
 }
 
-// ==================== 工具函数 ====================
-
-/**
- * 计算字符串的简单哈希值
- */
-function simpleHash(str: string): string {
-  let hash = 0
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i)
-    hash = ((hash << 5) - hash) + char
-    hash = hash & hash // Convert to 32bit integer
-  }
-  return Math.abs(hash).toString(36)
-}
-
-/**
- * 获取 OpenAPI schema 的哈希值（仅包含 schemas 部分）
- */
-async function getOpenApiHash(openApiSource: string): Promise<string> {
-  try {
-    if (!/^https?:\/\//.test(openApiSource)) {
-      if (!existsSync(openApiSource)) {
-        throw new Error(`本地 OpenAPI schema 文件不存在: ${openApiSource}`)
-      }
-
-      const openapi = JSON.parse(readFileSync(openApiSource, 'utf-8'))
-      const schemas = JSON.stringify(openapi.components?.schemas || {})
-      return simpleHash(schemas)
+export function parseVerifyContractArgs(argv: string[]): CliOptions {
+  let silent = false
+  for (const argument of argv) {
+    if (argument === '--') {
+      continue
     }
-
-    const response = await fetch(openApiSource)
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    if (argument === '--silent') {
+      silent = true
+      continue
     }
+    throw new Error(`不支持的参数: ${argument}`)
+  }
+  return { silent }
+}
 
-    const openapi = await response.json()
-    const schemas = JSON.stringify(openapi.components?.schemas || {})
-    return simpleHash(schemas)
-  } catch (error) {
-    if ((error as Error).message.includes('fetch failed') || (error as Error).message.includes('ECONNREFUSED')) {
-      console.warn('⚠️  后端服务未运行，跳过契约同步检查')
-      console.log('   提示：如需启用检查，请确保后端运行在', openApiSource)
-      return 'backend-not-running'
+export function verifyContract(frontendRoot: string = FRONTEND_ROOT): void {
+  const record = readContractSyncRecord(resolve(frontendRoot, '.contract-sync-record.json'))
+  const snapshot = readCanonicalOpenApiSnapshot(frontendRoot)
+  const canonicalSerialization = serializeOpenApiDocument(snapshot.document)
+  if (snapshot.serialized !== canonicalSerialization) {
+    throw new Error('OpenAPI 快照未使用 canonical JSON 序列化')
+  }
+  if (snapshot.sha256 !== record.openApiSha256) {
+    throw new Error(
+      `OpenAPI 快照 SHA-256 不匹配：记录 ${record.openApiSha256}，当前 ${snapshot.sha256}`
+    )
+  }
+  if (record.snapshotPath !== CANONICAL_OPENAPI_SNAPSHOT_PATH) {
+    throw new Error(`契约快照路径必须是 ${CANONICAL_OPENAPI_SNAPSHOT_PATH}`)
+  }
+
+  const generatedEntries = [
+    resolve(frontendRoot, 'src/api/generated/openapi-types.ts'),
+    resolve(frontendRoot, 'src/types/generated/zod-schemas.ts')
+  ]
+  for (const filePath of generatedEntries) {
+    if (!existsSync(filePath)) {
+      throw new Error(`生成入口不存在: ${filePath}`)
     }
-    throw error
-  }
-}
-
-/**
- * 读取同步记录
- */
-function readSyncRecord(): SyncRecord | null {
-  if (!existsSync(SYNC_RECORD_FILE)) {
-    return null
-  }
-  try {
-    const content = readFileSync(SYNC_RECORD_FILE, 'utf-8')
-    return JSON.parse(content) as SyncRecord
-  } catch {
-    return null
-  }
-}
-
-type ContractVerifySourceEnv = Pick<
-  NodeJS.ProcessEnv,
-  'OPENAPI_SPEC_PATH' | 'OPENAPI_SPEC_URL' | 'BACKEND_OPENAPI_URL'
->
-
-export function resolveOpenApiSource(
-  record: SyncRecord | null,
-  env: ContractVerifySourceEnv = process.env
-): string {
-  const explicitSource =
-    env.OPENAPI_SPEC_PATH ||
-    env.OPENAPI_SPEC_URL ||
-    env.BACKEND_OPENAPI_URL ||
-    record?.backendUrl ||
-    DEFAULT_BACKEND_OPENAPI_URL
-
-  if (/^https?:\/\//.test(explicitSource)) {
-    return explicitSource
-  }
-
-  return isAbsolute(explicitSource)
-    ? explicitSource
-    : resolve(__dirname, '..', explicitSource)
-}
-
-// ==================== 主函数 ====================
-
-async function main(): Promise<void> {
-  const args = process.argv.slice(2)
-  const requireBackend = args.includes('--require-backend')
-  const silent = args.includes('--silent')
-
-  console.log('🔍 检查前后端契约同步状态...\n')
-
-  // 1. 检查生成文件是否存在
-  if (!existsSync(GENERATED_SCHEMA_FILE)) {
-    console.log('⚠️  未找到生成的 Zod schemas 文件')
-    console.log('   请先运行: pnpm generate:zod\n')
-    process.exit(1) // 失败：需要生成
-  }
-
-  // 2. 读取同步记录
-  const record = readSyncRecord()
-  if (!record) {
-    console.log('⚠️  未找到同步记录')
-    console.log('   这是首次检查，请先运行: pnpm generate:zod\n')
-    process.exit(1) // 失败：首次运行
-  }
-
-  const openApiSource = resolveOpenApiSource(record)
-
-  // 3. 如果后端未运行且不强制要求，跳过检查
-  const currentHash = await getOpenApiHash(openApiSource)
-  if (currentHash === 'backend-not-running') {
-    if (!requireBackend) {
-      console.log('✅ 后端未运行，跳过契约同步检查\n')
-      process.exit(0) // 通过：跳过检查
+    const generatedSha256 = readOpenApiMarker(readFileSync(filePath, 'utf-8'), filePath)
+    if (generatedSha256 !== record.openApiSha256) {
+      throw new Error(`生成入口 OpenAPI SHA-256 不匹配: ${filePath}（${generatedSha256}）`)
     }
-    console.log('❌ 后端服务未运行')
-    console.log(`   请确保后端运行在: ${openApiSource}\n`)
-    process.exit(1) // 失败：后端未运行
   }
-
-  if (!silent) {
-    console.log(`📅 上次生成: ${record.lastSyncTime}`)
-    console.log(`🔗 OpenAPI 来源: ${openApiSource}`)
-  }
-
-  // 4. 对比哈希值
-  if (currentHash !== record.openApiHash) {
-    console.log('❌ 契约已漂移！后端 OpenAPI 与前端 Zod schemas 不同步')
-    console.log('')
-    console.log('   请运行以下命令同步:')
-    console.log('   pnpm generate:zod')
-    console.log('')
-    console.log('   详细文档: docs/CONTRACT_SYNC_WORKFLOW.md\n')
-    process.exit(1) // 失败：需要同步
-  }
-
-  // 5. 检查通过
-  if (!silent) {
-    console.log('✅ 契约同步检查通过\n')
-  }
-  process.exit(0) // 通过
 }
-
-// ==================== 执行 ====================
 
 function isCliEntry(): boolean {
   const executedFile = process.argv[1]
-  return !!executedFile && __filename === executedFile
+  return !!executedFile && resolve(executedFile) === SCRIPT_PATH
 }
 
 if (isCliEntry()) {
-  main().catch(error => {
-    console.error('❌ 检查失败:', error)
+  try {
+    const options = parseVerifyContractArgs(process.argv.slice(2))
+    verifyContract()
+    if (!options.silent) {
+      console.log('✅ 契约同步检查通过')
+    }
+  } catch (error) {
+    console.error(`❌ 契约同步检查失败: ${(error as Error).message}`)
     process.exit(1)
-  })
+  }
 }

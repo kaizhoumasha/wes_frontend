@@ -24,14 +24,14 @@
 
 ### 1. 生成 Zod Schemas
 
-从后端 OpenAPI 自动生成验证规则：
+从冻结的 canonical OpenAPI 快照生成验证规则：
 
 ```bash
-# 确保后端正在运行
-cd ../wes_backend && python -m uvicorn src.main:app --reload
+# 从指定的 clean develop checkout 冻结契约
+pnpm contract:freeze -- --backend-root /path/to/wes_backend
 
-# 在前端项目生成 schemas
-pnpm exec tsx scripts/generate-zod-from-openapi.ts
+# 从 canonical 快照生成 schemas
+pnpm generate:zod
 ```
 
 生成文件：
@@ -322,8 +322,8 @@ const { handleSubmit } = useForm<CreateUserInput>({
 
 ```mermaid
 graph LR
-    A[修改后端模型] --> B[重启后端]
-    B --> C[运行生成脚本]
+    A[修改后端模型] --> B[冻结指定后端 checkout]
+    B --> C[从 canonical 快照生成]
     C --> D[生成 Zod Schemas]
     D --> E[添加自定义验证]
     E --> F[组件中使用]
@@ -332,19 +332,19 @@ graph LR
 ### 后端验证规则变更时的处理
 
 1. **后端修改 Pydantic 模型**（如修改 `min_length`）
-2. **重启后端**（更新 OpenAPI）
-3. **运行生成脚本**：`pnpm exec tsx scripts/generate-zod-from-openapi.ts`
+2. **冻结指定后端 checkout**：`pnpm contract:freeze -- --backend-root /path/to/wes_backend`
+3. **运行生成脚本**：`pnpm generate:zod`
 4. **前端自动同步** - 无需手动修改验证规则 ✅
 
 ### 关键原则
 
-| 原则           | 说明                            | 示例                                                 |
-| -------------- | ------------------------------- | ---------------------------------------------------- |
-| **单一数据源** | 后端 Pydantic 模型是唯一权威源  | 用户名长度约束只在一处定义                           |
-| **自动生成**   | 前端验证规则从 OpenAPI 自动生成 | `pnpm exec tsx scripts/generate-zod-from-openapi.ts` |
-| **前端扩展**   | 业务特定验证在扩展文件中添加    | 用户名不能包含特殊字符                               |
-| **类型安全**   | 完整的 TypeScript 类型推断      | `values` 自动推断为 `CreateUserInput`                |
-| **零维护**     | 后端修改后重新生成即可自动同步  | 无需手动维护验证规则                                 |
+| 原则           | 说明                              | 示例                                  |
+| -------------- | --------------------------------- | ------------------------------------- |
+| **单一数据源** | 后端 Pydantic 模型是唯一权威源    | 用户名长度约束只在一处定义            |
+| **自动生成**   | 前端验证规则从 canonical 快照生成 | `pnpm generate:zod`                   |
+| **前端扩展**   | 业务特定验证在扩展文件中添加      | 用户名不能包含特殊字符                |
+| **类型安全**   | 完整的 TypeScript 类型推断        | `values` 自动推断为 `CreateUserInput` |
+| **零维护**     | 后端修改后重新生成即可自动同步    | 无需手动维护验证规则                  |
 
 ---
 

@@ -1,22 +1,16 @@
 #!/usr/bin/env tsx
-/**
- * 权限生成同步验证脚本
- *
- * 用于 pre-commit hook 中，确保前端生成的权限常量与后端真实权限保持同步。
- *
- * 检查逻辑：
- * 1. 检查生成入口文件是否存在
- * 2. 检查同步记录是否存在
- * 3. 扫描后端最新权限并计算哈希
- * 4. 与上次生成记录对比，不一致则提示重新生成
- */
 
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { assertBackendCheckout } from './lib/backend-checkout'
+import { readContractSyncRecord } from './lib/openapi-sync'
 import {
-  DEFAULT_BACKEND_ROOT,
   FRONTEND_ROOT,
+  GENERATE_PERMISSIONS_COMMAND,
   PERMISSIONS_INDEX_FILE,
+  assertGeneratedPermissionFiles,
+  assertPermissionRecordBackendCommit,
   computePermissionsHash,
   readPermissionSyncRecord,
   scanBackendPermissions
@@ -24,101 +18,87 @@ import {
 
 interface CliOptions {
   backendRoot: string
-  requireBackend: boolean
   silent: boolean
 }
 
-function parseArgs(argv: string[]): CliOptions {
-  let backendRoot = DEFAULT_BACKEND_ROOT
-  let requireBackend = false
+export function parseVerifyPermissionsArgs(argv: string[]): CliOptions {
+  let backendRoot: string | undefined
   let silent = false
 
   for (let index = 0; index < argv.length; index += 1) {
-    const arg = argv[index]
-
-    if (arg === '--backend-root') {
+    const argument = argv[index]
+    if (argument === '--') {
+      continue
+    }
+    if (argument === '--backend-root') {
       const value = argv[index + 1]
-      if (!value) {
+      if (!value || value.startsWith('--')) {
         throw new Error('`--backend-root` 缺少目录参数')
       }
       backendRoot = resolve(FRONTEND_ROOT, value)
       index += 1
       continue
     }
-
-    if (arg === '--silent') {
+    if (argument === '--silent') {
       silent = true
       continue
     }
-
-    if (arg === '--require-backend') {
-      requireBackend = true
-      continue
-    }
-
-    throw new Error(`不支持的参数: ${arg}`)
+    throw new Error(`不支持的参数: ${argument}`)
   }
 
-  return { backendRoot, requireBackend, silent }
+  if (!backendRoot) {
+    throw new Error('必须提供 `--backend-root`')
+  }
+  return { backendRoot, silent }
 }
 
-async function main(): Promise<void> {
-  const options = parseArgs(process.argv.slice(2))
-
-  if (!options.silent) {
-    console.log('🔍 检查权限常量同步状态...\n')
-  }
-
+export function verifyPermissions(options: CliOptions): void {
   if (!existsSync(PERMISSIONS_INDEX_FILE)) {
-    console.log('⚠️  未找到生成的权限入口文件')
-    console.log('   请先运行: pnpm generate:permissions\n')
-    process.exit(1)
+    throw new Error(`未找到生成的权限入口文件，请先运行 ${GENERATE_PERMISSIONS_COMMAND}`)
   }
 
-  const record = readPermissionSyncRecord()
-  if (!record) {
-    console.log('⚠️  未找到权限同步记录')
-    console.log('   请先运行: pnpm generate:permissions\n')
-    process.exit(1)
+  const contractRecord = readContractSyncRecord(
+    resolve(FRONTEND_ROOT, '.contract-sync-record.json')
+  )
+  const backendCommit = assertBackendCheckout(options.backendRoot, contractRecord.backendCommit)
+  const permissionRecord = assertPermissionRecordBackendCommit(
+    readPermissionSyncRecord(),
+    backendCommit
+  )
+  const permissions = scanBackendPermissions(options.backendRoot)
+  const backendCommitAfterScan = assertBackendCheckout(options.backendRoot)
+  if (backendCommitAfterScan !== backendCommit) {
+    throw new Error(
+      `后端 HEAD 在权限扫描期间发生变化：${backendCommit} -> ${backendCommitAfterScan}`
+    )
   }
 
-  if (!options.silent) {
-    console.log(`📅 上次生成: ${record.lastSyncTime}`)
-    console.log(`📦 上次扫描权限数: ${record.permissionCount}`)
+  if (permissions.length !== permissionRecord.permissionCount) {
+    throw new Error(
+      `权限数量不匹配：记录 ${permissionRecord.permissionCount}，当前 ${permissions.length}`
+    )
   }
-
-  let permissions
-  try {
-    permissions = scanBackendPermissions(options.backendRoot)
-  } catch (error) {
-    if (options.requireBackend) {
-      throw error
-    }
-
-    console.warn('⚠️  后端权限扫描失败，跳过权限同步检查')
-    if (!options.silent) {
-      console.warn(`   提示：如需强制检查，可运行: pnpm permission:verify -- --require-backend`)
-    }
-    process.exit(0)
+  const permissionsSha256 = computePermissionsHash(permissions)
+  if (permissionsSha256 !== permissionRecord.permissionsSha256) {
+    throw new Error(`权限 SHA-256 不匹配，请重新运行 ${GENERATE_PERMISSIONS_COMMAND}`)
   }
-
-  const currentHash = computePermissionsHash(permissions)
-
-  if (currentHash !== record.permissionsHash) {
-    console.log('❌ 权限常量已过期！后端权限与前端生成文件不一致')
-    console.log('')
-    console.log('   请运行以下命令同步:')
-    console.log('   pnpm generate:permissions')
-    console.log('')
-    process.exit(1)
-  }
-
-  if (!options.silent) {
-    console.log('✅ 权限同步检查通过\n')
-  }
+  assertGeneratedPermissionFiles(permissions)
 }
 
-main().catch(error => {
-  console.error('❌ 检查失败:', error)
-  process.exit(1)
-})
+function isCliEntry(): boolean {
+  const executedFile = process.argv[1]
+  return !!executedFile && resolve(executedFile) === fileURLToPath(import.meta.url)
+}
+
+if (isCliEntry()) {
+  try {
+    const options = parseVerifyPermissionsArgs(process.argv.slice(2))
+    verifyPermissions(options)
+    if (!options.silent) {
+      console.log('✅ 权限同步检查通过')
+    }
+  } catch (error) {
+    console.error(`❌ 权限同步检查失败: ${(error as Error).message}`)
+    process.exit(1)
+  }
+}

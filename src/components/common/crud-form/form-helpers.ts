@@ -63,11 +63,16 @@ export function buildFormValuesFromData(options: {
   })
 
   options.fieldConfig.forEach(field => {
+    if (!(field.key in options.data)) {
+      formValues[field.key] = undefined
+      return
+    }
+
     const value = options.data[field.key]
     if (options.isTreeSelectField(field.key)) {
       formValues[field.key] = value ?? null
     } else {
-      formValues[field.key] = value ?? ''
+      formValues[field.key] = value === null ? null : value ?? ''
     }
   })
 
