@@ -95,7 +95,8 @@ export const {
         width: 90
       },
       form: {
-        type: 'switch'
+        type: 'switch',
+        defaultValue: true
       },
       search: {
         dataType: 'boolean'
@@ -119,7 +120,8 @@ export const {
         width: 90
       },
       form: {
-        type: 'number'
+        type: 'number',
+        defaultValue: 1
       }
     },
     {
@@ -129,16 +131,21 @@ export const {
         minWidth: 200
       },
       form: {
-        type: 'textarea'
+        type: 'textarea',
+        defaultValue: null
       }
     },
     {
       key: 'work_line_id',
-      form: {}
+      form: {
+        defaultValue: null
+      }
     },
     {
       key: 'upstream_device_id',
-      form: {}
+      form: {
+        defaultValue: null
+      }
     },
     {
       key: 'sort_order',
@@ -147,7 +154,8 @@ export const {
         width: 90
       },
       form: {
-        type: 'number'
+        type: 'number',
+        defaultValue: 0
       }
     }
   ],

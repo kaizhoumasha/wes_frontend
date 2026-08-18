@@ -1,10 +1,11 @@
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { parseGeneratePermissionsArgs } from '../../../scripts/generate-permissions'
 import {
   assertPermissionRecordBackendCommit,
+  assertGeneratedPermissionFiles,
   buildPermissionFileContent,
   buildPermissionsIndexContent,
   computePermissionsHash,
@@ -66,6 +67,27 @@ describe('permission code generation', () => {
     expect(groupContent).toContain(
       'pnpm generate:permissions -- --backend-root /path/to/wes_backend'
     )
+  })
+
+  it('rejects generated permission files that differ from the scanned permissions', () => {
+    const outputDir = mkdtempSync(join(tmpdir(), 'generated-permissions-'))
+    const [group] = groupPermissions(permissions)
+    const groupPath = join(outputDir, group.relativeFilePath)
+
+    try {
+      mkdirSync(dirname(groupPath), { recursive: true })
+      writeFileSync(groupPath, buildPermissionFileContent(group))
+      writeFileSync(join(outputDir, 'index.ts'), buildPermissionsIndexContent([group]))
+
+      expect(() => assertGeneratedPermissionFiles(permissions, outputDir)).not.toThrow()
+
+      writeFileSync(groupPath, '// valid TypeScript, but not generated from the backend permissions\n')
+      expect(() => assertGeneratedPermissionFiles(permissions, outputDir)).toThrow(
+        /生成权限文件与后端权限不一致/
+      )
+    } finally {
+      rmSync(outputDir, { force: true, recursive: true })
+    }
   })
 
   it('accepts only the exact permission record and rejects legacy records', () => {

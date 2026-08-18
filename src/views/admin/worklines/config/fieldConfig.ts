@@ -161,6 +161,7 @@ export const {
       },
       form: {
         type: 'select',
+        defaultValue: 'AUTO',
         options: RUN_MODE_OPTIONS
       },
       search: {

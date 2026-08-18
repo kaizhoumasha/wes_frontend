@@ -793,7 +793,7 @@ export const CallbackLogTraceResponseSchema = z.object({
  */
 export const CallbackRejectedResponseSchema = z.object({
   /** Ack */
-  ack: z.boolean().optional().default(false),
+  ack: z.literal(false).optional().default(false),
   /** Reason Code */
   reason_code: z.union([z.string(), z.null()]).optional(),
   /** Diagnostic */
@@ -1874,9 +1874,9 @@ export const NorthboundOperationHealthSchema = z.object({
  */
 export const NorthboundOperationalSnapshotSchema = z.object({
   /** Schema Version */
-  schema_version: z.string().optional().default("northbound-operational-snapshot.v1"),
+  schema_version: z.literal("northbound-operational-snapshot.v1").optional().default("northbound-operational-snapshot.v1"),
   /** Catalog Version */
-  catalog_version: z.string().optional().default("northbound-operation-slo.v1"),
+  catalog_version: z.literal("northbound-operation-slo.v1").optional().default("northbound-operation-slo.v1"),
   /** Generated At */
   generated_at: z.string().datetime(),
   /** Tenant Scope */
@@ -2129,7 +2129,7 @@ export const PlaneObjectSnapshotSchema = z.object({
  */
 export const PlaneSceneViewSchema = z.object({
   /** Schema Version */
-  schema_version: z.string(),
+  schema_version: z.literal("plane.scene.v1"),
   /** Workline Code */
   workline_code: z.string().min(1).max(80),
   /** Nodes */
@@ -2147,11 +2147,11 @@ export const PlaneSceneViewSchema = z.object({
  */
 export const PlaneSnapshotSchema = z.object({
   /** Schema Version */
-  schema_version: z.string(),
+  schema_version: z.literal("plane.snapshot.v1"),
   /** Workline Code */
   workline_code: z.string().min(1).max(80),
   /** Scene Schema Version */
-  scene_schema_version: z.string(),
+  scene_schema_version: z.literal("plane.scene.v1"),
   /** Objects */
   objects: z.array(z.lazy(() => PlaneObjectSnapshotSchema)),
   /** Extremes */
@@ -3040,7 +3040,7 @@ export const WmsSyncObligationResolutionSchema = z.object({
   /** Resolved Fact Version */
   resolved_fact_version: z.string().min(1).max(120),
   /** Resolution */
-  resolution: z.string(),
+  resolution: z.literal("OBLIGATION_SATISFIED"),
   /** Source Event Id */
   source_event_id: z.string().min(1).max(240),
   /** Evidence Reference */

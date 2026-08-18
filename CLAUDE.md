@@ -695,7 +695,6 @@ Closes #123
 - **TODO 清单**: `TODOS.md`
 - **技术栈详解**: `docs/WES_FRONTEND_TECH_STACK.md`
 - **时区处理**: `docs/TIMEZONE_HANDLING.md`
-- **第一阶段任务**: `docs/TASKS_PHASE_1.md`
 
 ---
 

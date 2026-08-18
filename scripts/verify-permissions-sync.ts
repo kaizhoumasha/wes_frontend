@@ -9,6 +9,7 @@ import {
   FRONTEND_ROOT,
   GENERATE_PERMISSIONS_COMMAND,
   PERMISSIONS_INDEX_FILE,
+  assertGeneratedPermissionFiles,
   assertPermissionRecordBackendCommit,
   computePermissionsHash,
   readPermissionSyncRecord,
@@ -81,6 +82,7 @@ export function verifyPermissions(options: CliOptions): void {
   if (permissionsSha256 !== permissionRecord.permissionsSha256) {
     throw new Error(`权限 SHA-256 不匹配，请重新运行 ${GENERATE_PERMISSIONS_COMMAND}`)
   }
+  assertGeneratedPermissionFiles(permissions)
 }
 
 function isCliEntry(): boolean {

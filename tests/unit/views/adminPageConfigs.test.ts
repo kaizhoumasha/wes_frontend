@@ -12,13 +12,7 @@ describe('admin page field configuration', () => {
     const open = vi.fn()
 
     expect(() => createAPIApplicationPageConfig()).not.toThrow()
-    expect(() =>
-      createDevicePageConfig({
-        openRuntime: open,
-        openTrace: open,
-        canOpenTrace: () => true
-      })
-    ).not.toThrow()
+    expect(() => createDevicePageConfig()).not.toThrow()
     expect(() => createMenuPageConfig()).not.toThrow()
     expect(() => createPermissionPageConfig()).not.toThrow()
     expect(() => createRolePageConfig()).not.toThrow()
@@ -32,5 +26,12 @@ describe('admin page field configuration', () => {
     expect(config.detail?.actions ?? []).toEqual([])
     expect(config.extensions?.rowActions ?? []).toEqual([])
     expect(config.extensions?.toolbarActions ?? []).toEqual([])
+  })
+
+  it('does not expose runtime actions from device management', () => {
+    const config = createDevicePageConfig()
+
+    expect(config.detail?.actions ?? []).toEqual([])
+    expect(config.extensions?.rowActions ?? []).toEqual([])
   })
 })

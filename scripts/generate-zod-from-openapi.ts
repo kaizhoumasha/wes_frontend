@@ -35,6 +35,7 @@ interface OpenAPISchema {
   pattern?: string
   format?: string
   enum?: EnumValue[]
+  const?: unknown
   default?: unknown
   items?: PropertySchema
   required?: string[]
@@ -60,6 +61,7 @@ interface PropertySchema {
   oneOf?: PropertySchema[]
   allOf?: PropertySchema[]
   enum?: EnumValue[]
+  const?: unknown
   default?: unknown
   items?: PropertySchema
   required?: string[]
@@ -177,7 +179,14 @@ function wrapSelfReferentialSchema(schemaName: string, zodDef: string): string {
   return `z.lazy((): z.ZodTypeAny => ${zodDef})`
 }
 
-function schemaToZod(schema: PropertySchema, schemas: Record<string, OpenAPISchema>): string {
+export function schemaToZod(
+  schema: PropertySchema,
+  schemas: Record<string, OpenAPISchema>
+): string {
+  if ('const' in schema) {
+    return `z.literal(${formatLiteral(schema.const)})`
+  }
+
   if (schema.$ref) {
     const refSchemaName = getRefSchemaName(schema.$ref)
     return refSchemaName ? `z.lazy(() => ${refSchemaName}Schema)` : 'z.any()'

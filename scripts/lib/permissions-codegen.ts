@@ -8,7 +8,7 @@ import {
   unlinkSync,
   writeFileSync
 } from 'node:fs'
-import { dirname, resolve } from 'node:path'
+import { dirname, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { writeFileAtomically } from './atomic-file'
 import { computeSha256 } from './sha256'
@@ -415,6 +415,30 @@ function walkFiles(dirPath: string): string[] {
 
 export function listGeneratedPermissionFiles(): string[] {
   return walkFiles(PERMISSIONS_OUTPUT_DIR)
+}
+
+export function assertGeneratedPermissionFiles(
+  permissions: PermissionRecord[],
+  outputDir: string = PERMISSIONS_OUTPUT_DIR
+): void {
+  const groups = groupPermissions(permissions)
+  const expectedFiles = new Map<string, string>([
+    ...groups.map(group => [group.relativeFilePath, buildPermissionFileContent(group)] as const),
+    ['index.ts', buildPermissionsIndexContent(groups)]
+  ])
+  const actualFiles = walkFiles(outputDir)
+
+  if (
+    actualFiles.length !== expectedFiles.size ||
+    actualFiles.some(filePath => {
+      const expectedContent = expectedFiles.get(relative(outputDir, filePath))
+      return expectedContent === undefined || readFileSync(filePath, 'utf-8') !== expectedContent
+    })
+  ) {
+    throw new Error(
+      `生成权限文件与后端权限不一致，请重新运行 ${GENERATE_PERMISSIONS_COMMAND}`
+    )
+  }
 }
 
 export function writeFileIfChanged(outputPath: string, content: string): boolean {
