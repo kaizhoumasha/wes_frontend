@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 修复可空数字字段被通用表单绑定转换为空字符串并最终提交为 `0` 的问题，设备可以在不指定作业线和上游设备时正常创建、编辑。
 - 修复非 JSON 错误响应被重复读取，导致原始服务端错误被 `body stream already read` 覆盖的问题。
+- 修复 pre-push 门禁向测试进程泄漏当前仓库 Git 环境，导致临时仓库测试无法独立提交的问题。
 
 ### Removed
 
