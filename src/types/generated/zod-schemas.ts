@@ -1,4 +1,4 @@
-/** @openapi-sha256 0dec280667c717b44447c540078bdaacfe3e9e792aef648348c7b802f27e2067 */
+/** @openapi-sha256 efb677d12fb0de38d51f9b149a89a10470cf8db2cb1baa45192940498cf6e441 */
 /**
  * Zod Validation Schemas
  *
@@ -544,8 +544,6 @@ export const BinMaterialMountResponseSchema = z.object({
   wms_inventory_id: z.union([z.string().max(120), z.null()]).optional(),
   /** Wms Inventory Version */
   wms_inventory_version: z.union([z.string().max(120), z.null()]).optional(),
-  /** WMS 确认状态 */
-  wms_confirmation_status: z.lazy(() => WmsConfirmationStatusSchema).optional().default("PENDING"),
   /** Writeback Evidence Id */
   writeback_evidence_id: z.union([z.number(), z.null()]).optional(),
   /** 物料占用状态 */
@@ -3017,15 +3015,6 @@ export const ValidationErrorSchema = z.object({
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const ValidityPeriodSchema = z.enum(["1d", "1w", "1m", "6m", "1y", "never"])
-
-
-/**
- * WMS 确认状态。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const WmsConfirmationStatusSchema = z.enum(["PENDING", "CONFIRMED", "REJECTED", "NOT_REQUIRED"])
 
 
 /**

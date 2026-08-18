@@ -1,4 +1,4 @@
-/** @openapi-sha256 0dec280667c717b44447c540078bdaacfe3e9e792aef648348c7b802f27e2067 */
+/** @openapi-sha256 efb677d12fb0de38d51f9b149a89a10470cf8db2cb1baa45192940498cf6e441 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -3741,11 +3741,6 @@ export interface components {
              */
             trace_id?: string | null;
             /**
-             * @description WMS 确认状态
-             * @default PENDING
-             */
-            wms_confirmation_status: components["schemas"]["WmsConfirmationStatus"];
-            /**
              * Wms Inventory Id
              * @description WMS 库存记录引用
              */
@@ -6523,12 +6518,6 @@ export interface components {
          * @enum {string}
          */
         ValidityPeriod: "1d" | "1w" | "1m" | "6m" | "1y" | "never";
-        /**
-         * WmsConfirmationStatus
-         * @description WMS 确认状态。
-         * @enum {string}
-         */
-        WmsConfirmationStatus: "PENDING" | "CONFIRMED" | "REJECTED" | "NOT_REQUIRED";
         /**
          * WmsSyncObligationResolution
          * @description 明确满足单项 E03/E07 同步义务的已关闭对账裁决。
@@ -11488,11 +11477,45 @@ export interface operations {
                      * @description Unix 毫秒时间戳
                      */
                     timestamp: number;
+                } | {
+                    data: {
+                        authoritative_position: {
+                            location_code: string & (unknown & unknown);
+                            /** @enum {string} */
+                            type: "HANDOFF_POSITION";
+                        } | {
+                            location_code: string & (unknown & unknown);
+                            /** @enum {string} */
+                            type: "NG_POSITION";
+                        } | {
+                            bin_cell_id: string & (unknown & unknown);
+                            bin_id: string & (unknown & unknown);
+                            rack_id: string & (unknown & unknown);
+                            rack_slot_code: string & (unknown & unknown);
+                            /** @enum {string} */
+                            type: "ONE_LAYER_BIN_CELL";
+                        } | null;
+                        /** @enum {string} */
+                        decision: "CONTINUE" | "ABORT";
+                        material_execution_id: string & (unknown & unknown);
+                        material_trace_id: string & (unknown & unknown);
+                        reason_code: string & (unknown & unknown);
+                        reconciling_evidence_id: string & (unknown & unknown);
+                        recovery_id: string & (unknown & unknown);
+                    } & unknown;
+                    /** @enum {string} */
+                    operation: "inbound.execution.recovery_decided@v1";
+                    operation_id: string;
+                    /**
+                     * Format: int64
+                     * @description Unix 毫秒时间戳
+                     */
+                    timestamp: number;
                 };
             };
         };
         responses: {
-            /** @description 重复 evidence 已确认 */
+            /** @description 相同 WMS event 已可靠持久化 */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -11503,7 +11526,7 @@ export interface operations {
                         code: "DUPLICATE";
                         data: {
                             transport_task_id: string;
-                        };
+                        } | Record<string, never>;
                         /** @description WMS 生成的小写 canonical UUIDv7 幂等号 */
                         operation_id: string;
                         /**
@@ -11514,7 +11537,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description evidence 已持久化 */
+            /** @description WMS event 已可靠持久化 */
             202: {
                 headers: {
                     [name: string]: unknown;
@@ -11525,7 +11548,7 @@ export interface operations {
                         code: "RECEIVED";
                         data: {
                             transport_task_id: string;
-                        };
+                        } | Record<string, never>;
                         /** @description WMS 生成的小写 canonical UUIDv7 幂等号 */
                         operation_id: string;
                         /**
@@ -11550,7 +11573,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description operation_id 或 outcome_revision 身份冲突 */
+            /** @description WMS event 身份、内容或不可变事实冲突 */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -11579,7 +11602,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description evidence data 不满足对应 operation 的封闭合同 */
+            /** @description WMS event 信封或 operation 专属 data 不合法 */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -11595,6 +11618,9 @@ export interface operations {
                             /** @enum {string} */
                             reason_code: "INVALID_EVIDENCE" | "UNSUPPORTED_OPERATION";
                             transport_task_id: string;
+                        } | {
+                            /** @enum {string} */
+                            reason_code: "INVALID_DATA" | "UNSUPPORTED_OPERATION";
                         };
                         /** @description WMS 生成的小写 canonical UUIDv7 幂等号 */
                         operation_id: string;
@@ -11606,7 +11632,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Transport runtime 尚未就绪或当前无法可靠持久化 */
+            /** @description 对应 WMS event runtime 未就绪或无法可靠持久化 */
             503: {
                 headers: {
                     [name: string]: unknown;
