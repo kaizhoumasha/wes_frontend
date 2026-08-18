@@ -67,15 +67,18 @@ pnpm lint:stylelint
 ### 契约与代码生成
 
 ```bash
-# OpenAPI 类型生成
+# 从指定的 clean develop checkout 冻结 canonical OpenAPI
+pnpm contract:freeze -- --backend-root /path/to/wes_backend
+
+# 从 canonical 快照生成 OpenAPI 类型
 pnpm generate:types
 
-# Zod Schema 生成
+# 从 canonical 快照生成 Zod Schema
 pnpm generate:zod
 
 # 权限码生成 / 校验
-pnpm generate:permissions
-pnpm permission:verify
+pnpm generate:permissions -- --backend-root /path/to/wes_backend
+pnpm permission:verify -- --backend-root /path/to/wes_backend
 
 # 前后端契约校验 / 测试
 pnpm contract:verify
@@ -737,10 +740,13 @@ const onSubmit = handleSubmit(async (values: FormValues) => {
 ### Zod Schema 生成与使用
 
 ```bash
-# 1. 从后端 OpenAPI 生成 Zod schemas
+# 1. 从指定的 clean develop checkout 冻结 canonical OpenAPI
+pnpm contract:freeze -- --backend-root /path/to/wes_backend
+
+# 2. 从 canonical 快照生成 Zod schemas
 pnpm run generate:zod
 
-# 2. 在组件中使用
+# 3. 在组件中使用
 import { UserCreateSchema } from '@/types/zod-extensions'
 ```
 

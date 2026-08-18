@@ -16,7 +16,6 @@ import { assertBackendCheckout } from './lib/backend-checkout'
 import { writeFileAtomically } from './lib/atomic-file'
 import { readContractSyncRecord } from './lib/openapi-sync'
 import {
-  DEFAULT_BACKEND_ROOT,
   FRONTEND_ROOT,
   PERMISSIONS_OUTPUT_DIR,
   PERMISSION_SYNC_RECORD_FILE,
@@ -38,7 +37,7 @@ export interface PermissionPublicationPaths {
 }
 
 export function parseGeneratePermissionsArgs(argv: string[]): CliOptions {
-  let backendRoot = DEFAULT_BACKEND_ROOT
+  let backendRoot: string | undefined
 
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index]
@@ -57,6 +56,9 @@ export function parseGeneratePermissionsArgs(argv: string[]): CliOptions {
     throw new Error(`不支持的参数: ${argument}`)
   }
 
+  if (!backendRoot) {
+    throw new Error('必须提供 `--backend-root`')
+  }
   return { backendRoot }
 }
 

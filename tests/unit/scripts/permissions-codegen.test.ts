@@ -2,6 +2,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { parseGeneratePermissionsArgs } from '../../../scripts/generate-permissions'
 import {
   assertPermissionRecordBackendCommit,
   buildPermissionFileContent,
@@ -10,6 +11,7 @@ import {
   groupPermissions,
   readPermissionSyncRecord
 } from '../../../scripts/lib/permissions-codegen'
+import { parseVerifyPermissionsArgs } from '../../../scripts/verify-permissions-sync'
 
 const BACKEND_COMMIT = 'de034e721befae2e1658d0aff96f2f2e43a0ffbb'
 const permissions = [
@@ -26,6 +28,18 @@ const permissions = [
 ]
 
 describe('permission code generation', () => {
+  it('requires an explicit backend checkout for generation and verification', () => {
+    expect(() => parseGeneratePermissionsArgs([])).toThrow(/必须提供 `--backend-root`/)
+    expect(() => parseVerifyPermissionsArgs([])).toThrow(/必须提供 `--backend-root`/)
+
+    expect(parseGeneratePermissionsArgs(['--', '--backend-root', '/tmp/wes_backend'])).toEqual({
+      backendRoot: '/tmp/wes_backend'
+    })
+    expect(
+      parseVerifyPermissionsArgs(['--backend-root', '/tmp/wes_backend', '--silent'])
+    ).toEqual({ backendRoot: '/tmp/wes_backend', silent: true })
+  })
+
   it('uses deterministic SHA-256 over normalized permission facts', () => {
     const hash = computePermissionsHash(permissions)
 
@@ -49,6 +63,9 @@ describe('permission code generation', () => {
       expect(content).toContain('scripts/generate-permissions.ts')
     }
     expect(groupContent).toContain(`权限分组: ${group.key}`)
+    expect(groupContent).toContain(
+      'pnpm generate:permissions -- --backend-root /path/to/wes_backend'
+    )
   })
 
   it('accepts only the exact permission record and rejects legacy records', () => {

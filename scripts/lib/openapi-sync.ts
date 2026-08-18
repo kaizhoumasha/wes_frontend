@@ -134,7 +134,13 @@ export function readOpenApiMarker(content: string, filePath: string): string {
   return marker.split(' ')[2]
 }
 
+const SYSTEM_OWNED_CALLBACK_PATHS = new Set([
+  '/api/v1/callback/event',
+  '/api/v1/callback/external',
+  '/api/v1/callback/result'
+])
+
 export function isBrowserOwnedEndpoint(path: string): boolean {
   const isWmsEndpoint = path === '/api/v1/wms' || path.startsWith('/api/v1/wms/')
-  return !isWmsEndpoint && path !== '/api/v1/callback/external'
+  return !isWmsEndpoint && !SYSTEM_OWNED_CALLBACK_PATHS.has(path)
 }

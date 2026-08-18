@@ -6,7 +6,7 @@
  *
  * 权限分组: user_api:api-auth:apiaccesslog
  *
- * 更新权限: pnpm generate:permissions
+ * 更新权限: pnpm generate:permissions -- --backend-root /path/to/wes_backend
  */
 
 export const API_AUTH_APIACCESSLOG_PERMISSION = {

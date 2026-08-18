@@ -17,7 +17,6 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 export const FRONTEND_ROOT = resolve(__dirname, '../..')
-export const DEFAULT_BACKEND_ROOT = resolve(FRONTEND_ROOT, '../wes_backend')
 export const PERMISSIONS_OUTPUT_DIR = resolve(FRONTEND_ROOT, 'src/api/generated/permissions')
 export const PERMISSIONS_INDEX_FILE = resolve(PERMISSIONS_OUTPUT_DIR, 'index.ts')
 export const PERMISSION_SYNC_RECORD_FILE = resolve(FRONTEND_ROOT, '.permission-sync-record.json')
@@ -25,7 +24,8 @@ export const UV_CACHE_DIR = resolve(FRONTEND_ROOT, 'node_modules/.cache/uv')
 
 const JSON_START_MARKER = '__PERMISSIONS_JSON_START__'
 const JSON_END_MARKER = '__PERMISSIONS_JSON_END__'
-const GENERATE_COMMAND = 'pnpm generate:permissions'
+export const GENERATE_PERMISSIONS_COMMAND =
+  'pnpm generate:permissions -- --backend-root /path/to/wes_backend'
 
 export interface PermissionRecord {
   name: string
@@ -283,7 +283,7 @@ export function buildPermissionFileContent(group: PermissionGroup): string {
     ' *',
     ` * 权限分组: ${group.key}`,
     ' *',
-    ` * 更新权限: ${GENERATE_COMMAND}`,
+    ` * 更新权限: ${GENERATE_PERMISSIONS_COMMAND}`,
     ' */',
     '',
     `export const ${group.constName} = {`

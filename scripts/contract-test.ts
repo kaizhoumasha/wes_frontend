@@ -5,6 +5,7 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
   type ContractSyncRecord,
+  isBrowserOwnedEndpoint,
   readCanonicalOpenApiSnapshot,
   readContractSyncRecord,
   readOpenApiMarker
@@ -98,11 +99,14 @@ function assertCurrentDtoContracts(schemas: Record<string, unknown>): void {
   }
 }
 
-function assertCurrentPaths(paths: Record<string, unknown>): void {
+export function assertCurrentPaths(paths: Record<string, unknown>): void {
   for (const path of [
     '/api/v1/workline/work_lines/{id}/plane/scene',
     '/api/v1/workline/work_lines/{id}/plane/snapshot',
-    '/api/v1/wms/events'
+    '/api/v1/wms/events',
+    '/api/v1/callback/event',
+    '/api/v1/callback/external',
+    '/api/v1/callback/result'
   ]) {
     if (!(path in paths)) {
       throw new Error(`OpenAPI 缺少当前路径 ${path}`)
@@ -121,7 +125,21 @@ function assertCurrentPaths(paths: Record<string, unknown>): void {
   }
 }
 
-function assertGeneratedArtifacts(openApiSha256: string): void {
+export function assertNoSystemOwnedPathsInModules(
+  moduleSources: string,
+  paths: Record<string, unknown>
+): void {
+  for (const systemPath of Object.keys(paths).filter(path => !isBrowserOwnedEndpoint(path))) {
+    if (moduleSources.includes(systemPath)) {
+      throw new Error(`浏览器 API 模块不应包含系统端点 ${systemPath}`)
+    }
+  }
+}
+
+function assertGeneratedArtifacts(
+  openApiSha256: string,
+  paths: Record<string, unknown>
+): void {
   const openApiTypesPath = resolve(FRONTEND_ROOT, 'src/api/generated/openapi-types.ts')
   const zodPath = resolve(FRONTEND_ROOT, 'src/types/generated/zod-schemas.ts')
   for (const filePath of [openApiTypesPath, zodPath]) {
@@ -138,11 +156,7 @@ function assertGeneratedArtifacts(openApiSha256: string): void {
 
   const moduleFiles = walkTypeScriptFiles(resolve(FRONTEND_ROOT, 'src/api/modules'))
   const moduleSources = moduleFiles.map(path => readFileSync(path, 'utf-8')).join('\n')
-  for (const systemPath of ['/api/v1/wms/', "'/api/v1/callback/external'"]) {
-    if (moduleSources.includes(systemPath)) {
-      throw new Error(`浏览器 API 模块不应包含系统端点 ${systemPath}`)
-    }
-  }
+  assertNoSystemOwnedPathsInModules(moduleSources, paths)
   if (!moduleSources.includes('/api/v1/callback/logs')) {
     throw new Error('callback 管理读取端点被错误过滤')
   }
@@ -197,7 +211,7 @@ function main(): void {
 
   assertCurrentDtoContracts(schemas)
   assertCurrentPaths(paths)
-  assertGeneratedArtifacts(record.openApiSha256)
+  assertGeneratedArtifacts(record.openApiSha256, paths)
   assertLegacyRuntimeDoesNotReturn()
 
   assertPermissionRecordMatchesContract(

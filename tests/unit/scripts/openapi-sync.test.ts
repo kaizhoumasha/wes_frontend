@@ -98,7 +98,9 @@ describe('OpenAPI sync helpers', () => {
   it('keeps system endpoints in the mirror but excludes only their browser clients', () => {
     expect(isBrowserOwnedEndpoint('/api/v1/wms/events')).toBe(false)
     expect(isBrowserOwnedEndpoint('/api/v1/wms/tasks/123')).toBe(false)
+    expect(isBrowserOwnedEndpoint('/api/v1/callback/event')).toBe(false)
     expect(isBrowserOwnedEndpoint('/api/v1/callback/external')).toBe(false)
+    expect(isBrowserOwnedEndpoint('/api/v1/callback/result')).toBe(false)
 
     expect(isBrowserOwnedEndpoint('/api/v1/callback/logs')).toBe(true)
     expect(isBrowserOwnedEndpoint('/api/v1/callback/logs/123')).toBe(true)

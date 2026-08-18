@@ -2,7 +2,11 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { assertPermissionRecordMatchesContract } from '../../../scripts/contract-test'
+import {
+  assertCurrentPaths,
+  assertNoSystemOwnedPathsInModules,
+  assertPermissionRecordMatchesContract
+} from '../../../scripts/contract-test'
 import type { ContractSyncRecord } from '../../../scripts/lib/openapi-sync'
 
 const BACKEND_COMMIT = 'de034e721befae2e1658d0aff96f2f2e43a0ffbb'
@@ -67,5 +71,65 @@ describe('contract permission record binding', () => {
     expect(() =>
       assertPermissionRecordMatchesContract(contractRecord, permissionRecordPath)
     ).toThrow(/缺失或格式无效/)
+  })
+})
+
+describe('contract browser module ownership', () => {
+  const currentPaths = {
+    '/api/v1/wms/events': {},
+    '/api/v1/callback/event': {},
+    '/api/v1/callback/external': {},
+    '/api/v1/callback/result': {},
+    '/api/v1/callback/logs/query': {}
+  }
+
+  const systemPaths = [
+    '/api/v1/wms/events',
+    '/api/v1/callback/event',
+    '/api/v1/callback/external',
+    '/api/v1/callback/result'
+  ]
+
+  it.each([
+    ['single-quoted', (path: string) => `'${path}'`],
+    ['double-quoted', (path: string) => `"${path}"`],
+    ['template', (path: string) => `\`${path}\``]
+  ])('rejects %s system-owned paths from browser modules', (_literalKind, literal) => {
+    for (const systemPath of systemPaths) {
+      expect(() =>
+        assertNoSystemOwnedPathsInModules(`contractMethods.post(${literal(systemPath)})`, currentPaths)
+      ).toThrow(systemPath)
+    }
+  })
+
+  it('keeps callback administration paths browser-owned', () => {
+    expect(() =>
+      assertNoSystemOwnedPathsInModules(
+        "contractMethods.post('/api/v1/callback/logs/query')",
+        currentPaths
+      )
+    ).not.toThrow()
+  })
+})
+
+describe('contract required system paths', () => {
+  const currentPaths = {
+    '/api/v1/workline/work_lines/{id}/plane/scene': {},
+    '/api/v1/workline/work_lines/{id}/plane/snapshot': {},
+    '/api/v1/wms/events': {},
+    '/api/v1/callback/event': {},
+    '/api/v1/callback/external': {},
+    '/api/v1/callback/result': {}
+  }
+
+  it.each([
+    '/api/v1/callback/event',
+    '/api/v1/callback/external',
+    '/api/v1/callback/result'
+  ])('rejects a raw contract missing %s', missingPath => {
+    const paths = { ...currentPaths }
+    delete paths[missingPath as keyof typeof paths]
+
+    expect(() => assertCurrentPaths(paths)).toThrow(missingPath)
   })
 })

@@ -6,7 +6,7 @@
  *
  * 权限分组: user_api:admin:permission
  *
- * 更新权限: pnpm generate:permissions
+ * 更新权限: pnpm generate:permissions -- --backend-root /path/to/wes_backend
  */
 
 export const ADMIN_PERMISSION = {

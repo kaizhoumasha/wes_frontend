@@ -6,7 +6,7 @@
  * ⚠️  请勿手动编辑 AUTO GENERATED 区域
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 资源: /api/v1/callback/event, /api/v1/callback/logs, /api/v1/callback/result
+ * 资源: /api/v1/callback/logs
  */
 import { contractMethods } from '@/api/contract/client'
 import type {
@@ -17,8 +17,6 @@ import type {
   ContractResponseData,
 } from '@/api/contract/types'
 import type { components, paths } from '@/api/generated/openapi-types'
-
-export type EventResult = ContractResponseData<'/api/v1/callback/event', 'post'>
 
 export type RequestResult = ContractResponseData<'/api/v1/callback/logs/request/{request_id}', 'get'>
 export type RequestPathParams = ContractPathParams<'/api/v1/callback/logs/request/{request_id}', 'get'>
@@ -37,18 +35,7 @@ export type GetByIdQuery = ContractQueryParams<'/api/v1/callback/logs/{id}', 'ge
 export type QueryResult = ContractResponseData<'/api/v1/callback/logs/query', 'post'>
 export type QueryInput = ContractRequestBody<'/api/v1/callback/logs/query', 'post'>
 
-export type ResultResult = ContractResponseData<'/api/v1/callback/result', 'post'>
-
 export const callbackApiMethods = {
-  /**
-   * Accept Device Event
-   * @endpoint POST /api/v1/callback/event
-   * @returns alova method instance
-   */
-  event(config?: ContractRequestConfig) {
-    return contractMethods.post('/api/v1/callback/event', { config })
-  },
-
   /**
    * [callback:callback_log:detail] 根据请求 ID 查询回调日志
    * @description 根据 request_id 查询单条回调日志记录
@@ -95,15 +82,6 @@ export const callbackApiMethods = {
    */
   query(body: ContractRequestBody<'/api/v1/callback/logs/query', 'post'>, config?: ContractRequestConfig) {
     return contractMethods.post('/api/v1/callback/logs/query', { body, config })
-  },
-
-  /**
-   * Accept Device Result
-   * @endpoint POST /api/v1/callback/result
-   * @returns alova method instance
-   */
-  result(config?: ContractRequestConfig) {
-    return contractMethods.post('/api/v1/callback/result', { config })
   }
 }
 // ==================== AUTO GENERATED END ====================

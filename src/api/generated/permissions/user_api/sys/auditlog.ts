@@ -6,7 +6,7 @@
  *
  * 权限分组: user_api:sys:auditlog
  *
- * 更新权限: pnpm generate:permissions
+ * 更新权限: pnpm generate:permissions -- --backend-root /path/to/wes_backend
  */
 
 export const SYS_AUDITLOG_PERMISSION = {

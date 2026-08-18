@@ -1,8 +1,8 @@
 /**
  * Style Token Invariants
  *
- * 不变量测试 — 验证 SPEC `docs/superpowers/specs/2026-06-17-scoped-style-token-compliance.md`
- * 锁定的 token 三层契约。任一不变量失败即代表 token 体系被破坏。
+ * 不变量测试 — 锁定当前全局颜色 token 契约。
+ * 任一不变量失败即代表 token 体系被破坏。
  *
  * 实现注意:不能依赖单行 `rg` 正则匹配 — 必须解析完整 CSS 自定义属性声明
  * (从属性名到结束分号,包括跨行渐变),否则会漏掉多行声明的违规。
@@ -79,7 +79,7 @@ function walkSrcCssAndVue(dir: string): string[] {
   return out
 }
 
-describe('Style token invariants (SPEC 2026-06-17)', () => {
+describe('Style token invariants', () => {
   describe('#1 / #2 — Legacy tokens removed', () => {
     it('legacy theme token definitions absent from globals.css', () => {
       const violators: string[] = []

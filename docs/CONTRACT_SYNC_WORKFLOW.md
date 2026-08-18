@@ -54,7 +54,7 @@ pnpm generate:permissions -- --backend-root /path/to/wes_backend
 
 类型和 Zod 生成器只读取 canonical 快照。两者的入口文件写入相同的 `@openapi-sha256` marker。权限生成器在扫描前后检查后端 HEAD，并要求其等于合同同步记录中的提交。
 
-`/api/v1/wms/**` 和精确路径 `/api/v1/callback/external` 是系统间端点：它们保留在 raw OpenAPI type mirror 中，但不生成浏览器 API 方法或模块。callback 日志和管理读取端点仍属于浏览器端。
+`/api/v1/wms/**` 以及精确路径 `/api/v1/callback/event`、`/api/v1/callback/external`、`/api/v1/callback/result` 是系统间端点：它们保留在 raw OpenAPI type mirror 中，但不生成浏览器 API 方法或模块。callback 日志和管理读取端点仍属于浏览器端。
 
 生成文件不可手工修改。需要保留的通用自定义代码只能放在生成器管理的 custom markers 内；已经退役的 Runtime 自定义代码不得恢复。
 

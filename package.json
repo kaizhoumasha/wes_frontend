@@ -25,7 +25,6 @@
     "generate:permissions": "tsx scripts/generate-permissions.ts",
     "type:generate": "pnpm run generate:types",
     "zod:generate": "pnpm run generate:zod",
-    "permission:generate": "pnpm run generate:permissions",
     "permission:verify": "tsx scripts/verify-permissions-sync.ts",
     "contract:verify": "tsx scripts/verify-contract-sync.ts",
     "contract:freeze": "tsx scripts/freeze-backend-contract.ts",

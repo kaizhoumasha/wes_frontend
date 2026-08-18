@@ -6,7 +6,6 @@ WORKDIR /app
 
 # 构建参数
 ARG VITE_API_BASE_URL=/api/v1
-ARG VITE_SSE_URL=/api/v1/sys/events/stream
 ARG VITE_APP_TITLE="P9 MCS"
 ARG VITE_APP_DEV=false
 
@@ -30,7 +29,6 @@ COPY . .
 
 # 注入构建期环境变量，生成可被 nginx 同域反代消费的静态产物
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL} \
-    VITE_SSE_URL=${VITE_SSE_URL} \
     VITE_APP_TITLE=${VITE_APP_TITLE} \
     VITE_APP_DEV=${VITE_APP_DEV}
 

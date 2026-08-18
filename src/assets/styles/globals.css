@@ -93,9 +93,9 @@
     --color-info-rgb: 59 130 246;
 
     /* ========================================
-     * L2a 静态工业色 token(SPEC 2026-06-17,P0)
+     * 静态工业色 token
      * 镜像 tailwind.config.js industrial-{dark|light}.*
-     * 仅供 globals.css 内部 L2b 派生使用,SFC 应引用 L2b 主题感知 token
+     * 供 globals.css 内部主题变量派生使用，SFC 应引用主题感知 token
      * ======================================== */
     --color-industrial-dark-bg: #0F172A;
     --color-industrial-dark-bg-rgb: 15 23 42;
@@ -216,7 +216,7 @@
     --scrollbar-thumb: rgb(245 158 11 / 0.2);
     --scrollbar-thumb-hover: rgb(245 158 11 / 0.4);
 
-    /* L2b 主题感知 token(SPEC 2026-06-17 P0)— SFC 引用此层,自动跟随 dark/light */
+    /* 主题感知 token：SFC 引用此层并自动跟随 dark/light */
     --color-bg:
       linear-gradient(
         135deg,
@@ -351,7 +351,7 @@
     --scrollbar-thumb: rgb(0 0 0 / 0.2);
     --scrollbar-thumb-hover: rgb(0 0 0 / 0.3);
 
-    /* L2b 主题感知 token(SPEC 2026-06-17 P0)— light 模式定义,SFC 自动跟随 */
+    /* 主题感知 token：light 模式定义，SFC 自动跟随 */
     --color-bg:
       linear-gradient(
         135deg,

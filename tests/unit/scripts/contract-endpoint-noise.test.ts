@@ -35,7 +35,9 @@ describe('contract generation endpoint noise', () => {
       .join('\n')
 
     expect(moduleSources).not.toContain('/api/v1/wms/')
+    expect(moduleSources).not.toContain("'/api/v1/callback/event'")
     expect(moduleSources).not.toContain("'/api/v1/callback/external'")
+    expect(moduleSources).not.toContain("'/api/v1/callback/result'")
     expect(moduleSources).toContain('/api/v1/callback/logs')
   })
 

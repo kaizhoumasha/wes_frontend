@@ -6,8 +6,8 @@ import { fileURLToPath } from 'node:url'
 import { assertBackendCheckout } from './lib/backend-checkout'
 import { readContractSyncRecord } from './lib/openapi-sync'
 import {
-  DEFAULT_BACKEND_ROOT,
   FRONTEND_ROOT,
+  GENERATE_PERMISSIONS_COMMAND,
   PERMISSIONS_INDEX_FILE,
   assertPermissionRecordBackendCommit,
   computePermissionsHash,
@@ -21,7 +21,7 @@ interface CliOptions {
 }
 
 export function parseVerifyPermissionsArgs(argv: string[]): CliOptions {
-  let backendRoot = DEFAULT_BACKEND_ROOT
+  let backendRoot: string | undefined
   let silent = false
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -45,12 +45,15 @@ export function parseVerifyPermissionsArgs(argv: string[]): CliOptions {
     throw new Error(`不支持的参数: ${argument}`)
   }
 
+  if (!backendRoot) {
+    throw new Error('必须提供 `--backend-root`')
+  }
   return { backendRoot, silent }
 }
 
 export function verifyPermissions(options: CliOptions): void {
   if (!existsSync(PERMISSIONS_INDEX_FILE)) {
-    throw new Error('未找到生成的权限入口文件，请先运行 pnpm generate:permissions')
+    throw new Error(`未找到生成的权限入口文件，请先运行 ${GENERATE_PERMISSIONS_COMMAND}`)
   }
 
   const contractRecord = readContractSyncRecord(
@@ -76,7 +79,7 @@ export function verifyPermissions(options: CliOptions): void {
   }
   const permissionsSha256 = computePermissionsHash(permissions)
   if (permissionsSha256 !== permissionRecord.permissionsSha256) {
-    throw new Error('权限 SHA-256 不匹配，请重新运行 pnpm generate:permissions')
+    throw new Error(`权限 SHA-256 不匹配，请重新运行 ${GENERATE_PERMISSIONS_COMMAND}`)
   }
 }
 

@@ -74,42 +74,27 @@ P9 MCS 的界面是一场对仓储现场的数字化复刻。打开任何一个�
 - **悬浮阴影**: `0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.2)`
 - **输入框聚焦发光**: `0 0 0 3px rgba(245, 158, 11, 0.15)`
 
-### Token 引用契约(SPEC 2026-06-17 P0~P3)
+### Token 引用契约
 
-设计 token 体系分三层,SFC `<style scoped>` 必须**仅**引用 L2 / EP 变量,**禁止**直接使用硬编码已建模色:
+当前 token 体系保持两层：`globals.css` 定义全局颜色变量，SFC 和普通 CSS 直接消费这些变量或 Element Plus 变量。不要为单一页面增加全局业务语义 token；只有多个页面确有相同语义时，才提升为共享 token。
 
 ```text
-L1: tailwind.config.js          (色板权威定义,build-time)
-        ↓ 镜像
-L2: globals.css                 (CSS 变量层,runtime)
-   ├── L2a 静态层(:root):
-   │     --color-primary / --color-success / --color-info / ...
-   │     --color-industrial-{dark,light}-{bg,surface,text,border,...}
-   │     各色 -rgb 三元组(空格分隔,支持 CSS Color 4 slash-alpha)
-   │
-   └── L2b 主题感知层(html.dark / html:not(.dark) 各定义一套):
-        --color-bg / --color-bg-solid / --color-body-text
-        --color-surface / --color-surface-elevated / --color-surface-subtle
-        --color-border / --color-border-hover / --color-border-strong
-        --color-text-{primary,secondary,muted,disabled,inverse}
-        --color-shadow-rgb
-        ↓ 派生
-   --runtime-* (运行态语义层,在 html.dark / html:not(.dark) 各 ~42 个,
-                100% 派生自 --color-* 或 --color-shadow-rgb)
-        ↓ 引用
-L3: SFC <style scoped> + .css   (使用层)
-   ├── 主/语义色 → var(--color-primary), var(--color-danger), ...
-   ├── 主题感知 → var(--color-text-primary), var(--color-bg), ...
-   ├── 运行态语义 → var(--runtime-surface), var(--runtime-tier-critical), ...
+定义层: src/assets/styles/globals.css
+   ├── :root: --color-primary / --color-success / --color-info / ...
+   ├── :root: --color-industrial-{dark,light}-{bg,surface,text,border,...}
+   ├── html.dark 与 html:not(.dark): 成对定义主题感知 --color-* 变量
+   └── Element Plus 映射: --el-*
+        ↓
+使用层: SFC <style scoped> + .css
+   ├── 主色与语义色 → var(--color-primary), var(--color-danger), ...
+   ├── 主题感知色 → var(--color-text-primary), var(--color-bg), ...
    ├── EP 集成 → var(--el-bg-color), var(--el-text-color-primary), ...
-   └── ❌ 禁止:#F59E0B / rgba(245, 158, 11, ...) / #1E293B 等已建模硬编码
+   └── 禁止直接使用已由全局 token 建模的硬编码颜色
 ```
 
-**Stylelint 拦截**:`stylelint.config.js` 启用 `declaration-property-value-disallowed-list`(Vue override),含 18 项已建模色 regex,违规 = error 阻塞 lint。`globals.css` 自身豁免(token 定义源头需要硬编码原始值)。
+**Stylelint 拦截**：`stylelint.config.js` 使用 `declaration-property-value-disallowed-list` 拦截 SFC 中已建模的硬编码颜色；`globals.css` 是 token 定义源，允许保留原始色值。
 
-**不变量保证**:`tests/unit/styles/style-token-invariants.test.ts` 9 项测试覆盖 token 三层契约,任一不变量被破坏 CI 失败。
-
-**Canvas / SVG 例外**:`<script>` 段中给 canvas `ctx.fillStyle` 等的颜色字符串需用字面 hex(canvas API 不支持 CSS var()),lint 不扫 `<script>` 段。当前唯一例外:`RuntimeSceneDeviceFlow.vue`。
+**不变量保证**：`tests/unit/styles/style-token-invariants.test.ts` 当前覆盖旧 token 清除、RGB 三元组格式、深浅主题变量对称、SFC 已建模硬编码色清除和无效 CSS TODO 清除。
 
 ## 3. 排版规则
 

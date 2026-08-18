@@ -1,5 +1,13 @@
 import { execFileSync, spawnSync } from 'node:child_process'
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync
+} from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -190,5 +198,67 @@ describe.sequential('repository quality gates', () => {
     expect(workflow).toContain('run: pnpm contract:test')
     expect(workflow).toContain('run: pnpm contract:verify')
     expect(workflow).not.toContain('run: pnpm permission:verify')
+  })
+
+  it('runs repository quality gates before the Jenkins image build', () => {
+    const jenkinsfile = readFileSync(join(REPOSITORY_ROOT, 'Jenkinsfile'), 'utf-8')
+
+    const testIndex = jenkinsfile.indexOf('pnpm run test')
+    const contractTestIndex = jenkinsfile.indexOf('pnpm run contract:test')
+    const contractVerifyIndex = jenkinsfile.indexOf('pnpm run contract:verify')
+    const lintIndex = jenkinsfile.indexOf('pnpm run lint')
+    const buildIndex = jenkinsfile.indexOf('pnpm run build:dev')
+
+    expect(testIndex).toBeGreaterThan(-1)
+    expect(contractTestIndex).toBeGreaterThan(testIndex)
+    expect(contractVerifyIndex).toBeGreaterThan(contractTestIndex)
+    expect(lintIndex).toBeGreaterThan(contractVerifyIndex)
+    expect(buildIndex).toBeGreaterThan(lintIndex)
+  })
+
+  it('documents only explicit backend checkout permission commands', () => {
+    const maintainedDocs = [
+      'README.md',
+      'CLAUDE.md',
+      'docs/CONTRACT_FRONTEND_DEVELOPMENT_MANUAL.md',
+      'docs/CONTRACT_SYNC_WORKFLOW.md',
+      'docs/CONTRACT_TESTING.md',
+      'docs/CRUD_DEVELOPMENT_GUIDE.md'
+    ]
+    const barePermissionCommand =
+      /pnpm (?:generate:permissions|permission:verify)(?!\s+--\s+--backend-root)/
+
+    for (const filePath of maintainedDocs) {
+      const content = readFileSync(join(REPOSITORY_ROOT, filePath), 'utf-8')
+      expect(content, filePath).not.toMatch(barePermissionCommand)
+    }
+  })
+
+  it('does not retain live-backend contract hooks beside the canonical gates', () => {
+    expect(existsSync(join(REPOSITORY_ROOT, '.claude/hooks/check-backend-api.sh'))).toBe(false)
+    expect(existsSync(join(REPOSITORY_ROOT, 'scripts/hooks/pre-commit-check-api'))).toBe(false)
+
+    const claudeSettings = readFileSync(
+      join(REPOSITORY_ROOT, '.claude/settings.json'),
+      'utf-8'
+    )
+    const crudGuide = readFileSync(
+      join(REPOSITORY_ROOT, 'docs/CRUD_DEVELOPMENT_GUIDE.md'),
+      'utf-8'
+    )
+    expect(claudeSettings).not.toContain('check-backend-api')
+    expect(crudGuide).not.toMatch(/check-backend-api|pre-commit-check-api/)
+
+    const packageJson = JSON.parse(
+      readFileSync(join(REPOSITORY_ROOT, 'package.json'), 'utf-8')
+    ) as { scripts: Record<string, string> }
+    expect(packageJson.scripts).not.toHaveProperty('permission:generate')
+  })
+
+  it('does not expose retired SSE build configuration', () => {
+    for (const filePath of ['Dockerfile', 'Jenkinsfile', '.env.development', '.env.production']) {
+      const content = readFileSync(join(REPOSITORY_ROOT, filePath), 'utf-8')
+      expect(content, filePath).not.toContain('VITE_SSE_URL')
+    }
   })
 })

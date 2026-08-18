@@ -149,7 +149,7 @@ rtk git rev-parse HEAD
 pnpm type:check
 pnpm test
 pnpm contract:verify
-pnpm permission:verify -- --backend-root /Users/kaizhou/codeDev/wes_backend --require-backend
+pnpm permission:verify -- --backend-root /Users/kaizhou/codeDev/wes_backend
 ```
 
 Expected: 记录每条命令结果。已知旧 `contract:verify` 可能对 `contracts/openapi.workline-plugin-manifest-yaml-topology.json` 自证通过；权限校验应暴露当前漂移。不要为了得到绿色基线改写记录文件。
@@ -483,15 +483,20 @@ rtk git commit -m "refactor(device): 收敛静态设备主数据页面"
 - Modify: `CLAUDE.md`
 - Modify: `.env.development`
 - Modify: `.env.production`
+- Modify: `Dockerfile`
+- Modify: `Jenkinsfile`
 - Modify: `src/config/env.ts`
 - Modify: `src/components/common/AppHeader.vue`
 - Modify: `src/assets/styles/globals.css`
+- Modify: `stylelint.config.js`
+- Modify: `DESIGN.md`
 - Modify: `src/types/components.d.ts`
 - Modify: `scripts/contract-test.ts`
 - Modify: `tests/unit/api/token-refresh.test.ts`
 - Modify: `tests/unit/config/env.test.ts`
 - Modify: `tests/unit/styles/style-token-invariants.test.ts`
 - Modify: `tests/unit/scripts/contract-endpoint-noise.test.ts`
+- Create: `tests/unit/scripts/quality-gates.test.ts`
 - Delete: `tests/unit/api/sse-client.test.ts`
 - Delete tests: `tests/unit/api/runtime.test.ts`
 - Delete directory: `tests/unit/components/runtime/`
@@ -512,7 +517,7 @@ rtk git commit -m "refactor(device): 收敛静态设备主数据页面"
 - 删除 `runtimeApiMethods`、Runtime DTO/store/utils 和运行域 UI，不提供替代 facade。
 - 删除无人连接消费的 SSE client/session、环境配置和认证清理耦合；`/api/v1/sys/events/stream` 可继续存在于原始 OpenAPI/生成模块中，但本计划不为未来用途保留手写传输实现。
 - 删除 `src/api/modules/workline.ts` custom 区中的 `RuntimeHoldNgReasonsQuery` 与 `runtimeHoldApiMethods`；生成器继续保留通用 custom 区机制，不为旧符号增加特例。
-- 删除行为已由 Task 1–3 的入口和静态 CRUD tests 锁定；本任务不为已删除实现编写“仍然不存在”的永久测试。
+- 删除行为已由 Task 1–3 的入口和静态 CRUD tests 锁定；本任务不为已删除实现编写“仍然不存在”的永久测试。`VITE_SSE_URL` 属于生产构建的公开配置入口，单独使用仓库门禁锁定其退役，防止部署配置再次承诺无消费者的能力。
 
 **Preserve exactly:**
 
@@ -523,10 +528,12 @@ rtk git commit -m "refactor(device): 收敛静态设备主数据页面"
 - [ ] **Step 1: Prove the SSE closure has no surviving connection consumer**
 
 ```bash
-rtk rg -n "from ['\"]@/api/services/sse-client|from ['\"]\./sse-session|resetSSESession|VITE_SSE_URL" src tests scripts .env.development .env.production
+rtk rg -n "from ['\"]@/api/services/sse-client|from ['\"]\./sse-session|resetSSESession|VITE_SSE_URL" src tests scripts .env.development .env.production Dockerfile Jenkinsfile
 ```
 
-Expected before deletion: matches are limited to the runtime store/views, `AppHeader.vue`, token refresh, SSE/config tests, contract assertions and the two environment files. There is no surviving non-runtime `connect()` caller. If another real consumer exists, stop and re-evaluate this deletion rather than silently breaking it.
+Expected before deletion: matches are limited to the runtime store/views, `AppHeader.vue`, token refresh, SSE/config tests, contract assertions, the two environment files, `Dockerfile` and `Jenkinsfile`. There is no surviving non-runtime `connect()` caller. If another real consumer exists, stop and re-evaluate this deletion rather than silently breaking it.
+
+Add `tests/unit/scripts/quality-gates.test.ts` with one repository-level assertion that `Dockerfile`, `Jenkinsfile`, `.env.development` and `.env.production` contain no `VITE_SSE_URL`, then run it and confirm RED against the two production build files before editing them.
 
 - [ ] **Step 2: Delete the runtime views, components and domain state**
 
@@ -540,9 +547,9 @@ Delete `tests/unit/api/sse-client.test.ts` with the client. Update `tests/unit/a
 
 - [ ] **Step 4: Remove runtime-only tooling and styling**
 
-Remove `smoke:runtime:agent-browser` from `package.json` and `CLAUDE.md`, delete its script/test, and delete the `--runtime-*` token block plus runtime-only selectors from `src/assets/styles/globals.css`. Update `style-token-invariants.test.ts` by removing only assertions for deleted tokens. This documentation edit does not require new test code.
+Remove `smoke:runtime:agent-browser` from `package.json` and `CLAUDE.md`, delete its script/test, and delete the `--runtime-*` token block plus runtime-only selectors from `src/assets/styles/globals.css`. Update `style-token-invariants.test.ts` by removing only assertions for deleted tokens. Update `stylelint.config.js`, `DESIGN.md`, `globals.css` and the surviving test comments so active guidance describes only the current `--color-*` / `--el-*` contract and does not cite the retired style-token spec. These comment/document edits do not require new test code.
 
-Remove `VITE_SSE_URL` from both `.env` files and remove `env.sseUrl` from `src/config/env.ts`. Remove `resetSSESession` from `AppHeader.vue` logout and `resetSSESessionState` from token refresh. Do not leave no-op hooks.
+Remove `VITE_SSE_URL` from both `.env` files, the `Dockerfile` build argument/environment injection and the Jenkins image build arguments; remove `env.sseUrl` from `src/config/env.ts`. Remove `resetSSESession` from `AppHeader.vue` logout and `resetSSESessionState` from token refresh. Do not leave no-op hooks or deployment parameters with no consumer.
 
 Remove deleted component declarations from `src/types/components.d.ts`; if Vite regenerates this file during build, inspect the generated diff and keep only the removal.
 
@@ -558,7 +565,7 @@ test ! -e src/components/runtime
 test ! -e src/components/common/runtime
 test ! -e tests/unit/views/runtime
 test ! -e tests/unit/components/runtime
-rtk rg -n "@/api/modules/runtime|@/types/runtime|@/stores/(runtime-hold|runtime-sse|workline-runtime)|@/utils/runtime-(diagnosis-verdict|display|event|labels|priority|route|safety|scene|topology|trace-topology)|@/utils/sandbox-outbox|RuntimeRoot|RuntimeMonitor|RuntimeCases|RuntimeHolds|RuntimeSandbox|smoke:runtime:agent-browser|sse-client|sse-session|resetSSESession|VITE_SSE_URL|RuntimeHoldNgReasonsQuery|runtimeHoldApiMethods" src scripts package.json CLAUDE.md .env.development .env.production
+rtk rg -n "@/api/modules/runtime|@/types/runtime|@/stores/(runtime-hold|runtime-sse|workline-runtime)|@/utils/runtime-(diagnosis-verdict|display|event|labels|priority|route|safety|scene|topology|trace-topology)|@/utils/sandbox-outbox|RuntimeRoot|RuntimeMonitor|RuntimeCases|RuntimeHolds|RuntimeSandbox|smoke:runtime:agent-browser|sse-client|sse-session|resetSSESession|VITE_SSE_URL|RuntimeHoldNgReasonsQuery|runtimeHoldApiMethods|--runtime-|2026-06-17-scoped-style-token-compliance" src scripts package.json CLAUDE.md DESIGN.md stylelint.config.js .env.development .env.production Dockerfile Jenkinsfile
 ```
 
 Expected: all deleted-directory checks pass and `rg` exits 1 with no maintained-source matches. Do not scan tests that intentionally name retired symbols in negative assertions, and do not turn this temporary scan into a permanent runtime-name ban that would block a later rewrite.
@@ -566,7 +573,7 @@ Expected: all deleted-directory checks pass and `rg` exits 1 with no maintained-
 - [ ] **Step 7: Verify surviving foundation and application compilation**
 
 ```bash
-pnpm exec vitest run tests/unit/api/token-refresh.test.ts tests/unit/config/env.test.ts tests/unit/router/runtime-removal.test.ts tests/unit/views/admin/worklines/WorkLineListPage.test.ts tests/unit/views/admin/devices/DeviceListPage.test.ts tests/unit/architecture/foundation-boundaries.test.ts
+pnpm exec vitest run tests/unit/api/token-refresh.test.ts tests/unit/config/env.test.ts tests/unit/router/runtime-removal.test.ts tests/unit/views/admin/worklines/WorkLineListPage.test.ts tests/unit/views/admin/devices/DeviceListPage.test.ts tests/unit/architecture/foundation-boundaries.test.ts tests/unit/scripts/quality-gates.test.ts
 pnpm type:check
 ```
 
@@ -575,7 +582,7 @@ Expected: PASS. A full generated-contract gate is deferred to Task 5 because cur
 - [ ] **Step 8: Commit**
 
 ```bash
-rtk git add package.json CLAUDE.md .env.development .env.production src/config/env.ts src/components/common/AppHeader.vue src/api/modules/workline.ts src/api/services/token-refresh.ts scripts/contract-test.ts src/assets/styles/globals.css src/types/components.d.ts tests/unit/api/token-refresh.test.ts tests/unit/config/env.test.ts tests/unit/styles/style-token-invariants.test.ts tests/unit/scripts/contract-endpoint-noise.test.ts
+rtk git add package.json CLAUDE.md DESIGN.md stylelint.config.js .env.development .env.production Dockerfile Jenkinsfile src/config/env.ts src/components/common/AppHeader.vue src/api/modules/workline.ts src/api/services/token-refresh.ts scripts/contract-test.ts src/assets/styles/globals.css src/types/components.d.ts tests/unit/api/token-refresh.test.ts tests/unit/config/env.test.ts tests/unit/styles/style-token-invariants.test.ts tests/unit/scripts/contract-endpoint-noise.test.ts tests/unit/scripts/quality-gates.test.ts
 rtk git add -u -- src/views/runtime src/components/runtime src/components/common/runtime src/api/modules/runtime.ts src/api/services/sse-client.ts src/api/services/sse-session.ts src/composables/useRuntimeSceneManifest.ts src/composables/useRuntimeStickyContextVisibility.ts src/composables/useTopologyLayout.ts src/stores/runtime-hold.ts src/stores/runtime-sse.ts src/stores/workline-runtime.ts src/types/runtime.ts src/utils/runtime-diagnosis-verdict.ts src/utils/runtime-display-identity.ts src/utils/runtime-display.ts src/utils/runtime-event.ts src/utils/runtime-labels.ts src/utils/runtime-priority.ts src/utils/runtime-route.ts src/utils/runtime-safety.ts src/utils/runtime-scene.ts src/utils/runtime-topology.ts src/utils/runtime-trace-topology.ts src/utils/sandbox-outbox.ts scripts/runtime-agent-browser-smoke.sh
 rtk git add -u -- tests/unit/api/runtime.test.ts tests/unit/api/sse-client.test.ts tests/unit/components/runtime tests/unit/components/runtimeCaseQueue.test.ts tests/unit/composables/useRuntimeSceneManifest.test.ts tests/unit/composables/useRuntimeStickyContextVisibility.test.ts tests/unit/composables/useTopologyLayout.test.ts tests/unit/runtime/worklineSafetyDisplay.test.ts tests/unit/stores/runtime-hold.test.ts tests/unit/stores/workline-runtime.test.ts tests/unit/utils tests/unit/views/runtime tests/unit/scripts/runtime-agent-browser-smoke.test.ts
 rtk git commit -m "refactor(runtime): 删除旧运行域实现闭包"
@@ -596,7 +603,7 @@ Before committing, inspect `rtk git diff --cached --name-status`; every staged p
 - Create: `tests/unit/scripts/openapi-sync.test.ts`
 - Create: `tests/unit/scripts/freeze-backend-contract.test.ts`
 - Create: `tests/unit/scripts/permissions-codegen.test.ts`
-- Create: `tests/unit/scripts/quality-gates.test.ts`
+- Modify: `tests/unit/scripts/quality-gates.test.ts`
 - Modify: `scripts/generate-api-types.ts`
 - Modify: `scripts/generate-zod-from-openapi.ts`
 - Modify: `scripts/lib/permissions-codegen.ts`
@@ -608,6 +615,11 @@ Before committing, inspect `rtk git diff --cached --name-status`; every staged p
 - Modify: `tests/unit/scripts/contract-endpoint-noise.test.ts`
 - Modify: `docs/CONTRACT_SYNC_WORKFLOW.md`
 - Modify: `docs/CONTRACT_TESTING.md`
+- Modify: `docs/CONTRACT_FRONTEND_DEVELOPMENT_MANUAL.md`
+- Modify: `docs/CRUD_DEVELOPMENT_GUIDE.md`
+- Modify: `docs/ZOD_VALIDATION.md`
+- Modify: `README.md`
+- Modify: `CLAUDE.md`
 - Modify: `.husky/pre-commit`
 - Modify: `.husky/pre-push`
 - Modify: `.github/workflows/ci-cd.yml`
@@ -653,7 +665,7 @@ Write focused tests for these boundaries:
 - `openapi-sync.test.ts`: deterministic serialization, full-document SHA-256, malformed OpenAPI/record rejection and browser/system endpoint ownership.
 - `freeze-backend-contract.test.ts`: missing root, wrong branch, dirty tree, Python extraction failure, invalid OpenAPI, HEAD change and success; failed cases write neither snapshot nor record and clean their temporary directory.
 - `permissions-codegen.test.ts`: deterministic SHA-256, exact record validation, no absolute backend path/timestamp in generated content, legacy record rejection and backend commit mismatch.
-- `quality-gates.test.ts`: lint scripts are check-only, pre-commit does not swallow contract failure, pre-push does not skip missing dependencies, and CI runs test/contract gates.
+- `quality-gates.test.ts`: preserve the Task 4 production SSE-configuration retirement gate; add checks that lint scripts are check-only, pre-commit does not swallow contract failure, pre-push does not skip missing dependencies, and CI runs test/contract gates.
 
 - [ ] **Step 2: Run tests to verify RED**
 
@@ -688,9 +700,9 @@ Add the package script:
 
 - [ ] **Step 5: Replace the permission sync record directly**
 
-`generate:permissions` must scan only the supplied/default sibling backend after verifying its HEAD equals `.contract-sync-record.json.backendCommit`; repeat the HEAD check after scanning. Replace the record with `backendCommit`, `permissionsSha256` and `permissionCount`. Generated headers must describe the generator and permission group only, never an absolute path. Delete `lastSyncTime`, `backendRoot`, `permissionsHash`, `simpleHash` and all compatibility parsing.
+`generate:permissions` must require `--backend-root` and scan only that explicitly selected backend after verifying its HEAD equals `.contract-sync-record.json.backendCommit`; repeat the HEAD check after scanning. Replace the record with `backendCommit`, `permissionsSha256` and `permissionCount`. Generated headers must describe the generator and permission group only, never an absolute path. Delete `lastSyncTime`, `backendRoot`, `permissionsHash`, `simpleHash` and all compatibility parsing.
 
-`permission:verify` accepts `--backend-root` and `--silent`; remove `--require-backend`. Missing backend, scanner failure, malformed/legacy record, commit mismatch or hash mismatch always exit non-zero.
+`permission:verify` requires `--backend-root`, accepts optional `--silent`, and removes `--require-backend`. Missing backend, scanner failure, malformed/legacy record, commit mismatch or hash mismatch always exit non-zero.
 
 - [ ] **Step 6: Make generators and verifier consume only the canonical snapshot**
 
@@ -706,7 +718,7 @@ const OPENAPI_MARKER_PATTERN = /^\/\*\* @openapi-sha256 [a-f0-9]{64} \*\/$/m
 
 - [ ] **Step 7: Filter system-owned endpoints before module planning**
 
-Implement `isBrowserOwnedEndpoint()` so `/api/v1/wms/**` and the exact inbound endpoint `/api/v1/callback/external` remain in the raw OpenAPI type mirror but do not produce browser API methods/modules. Do not hide callback log/admin read endpoints.
+Implement `isBrowserOwnedEndpoint()` so `/api/v1/wms/**` and the exact inbound endpoints `/api/v1/callback/event`, `/api/v1/callback/external`, and `/api/v1/callback/result` remain in the raw OpenAPI type mirror but do not produce browser API methods/modules. Do not hide callback log/admin read endpoints.
 
 - [ ] **Step 8: Freeze the unchanged backend HEAD**
 
@@ -736,7 +748,7 @@ Update `scripts/contract-test.ts` and the two Vitest files to assert:
 - Device schemas exclude old connectivity/runtime fields and include static topology/diagnostic fields.
 - `plane/scene` and `plane/snapshot` exist.
 - retired `/api/v1/workline/runtime/**` and `/api/v1/workline/plugins/**` paths are absent.
-- `/api/v1/wms/events` exists in raw OpenAPI but has no generated browser API module/method.
+- `/api/v1/wms/events` and the three exact inbound callback endpoints exist in raw OpenAPI but have no generated browser API module/method.
 - generated artifacts contain the current SHA marker and no old snapshot filename.
 - `RuntimeHoldNgReasonsQuery`、`runtimeHoldApiMethods`、SSE client/session symbols and legacy permission-record fields are absent from maintained source.
 
@@ -767,10 +779,13 @@ Use `apply_patch` to change one harmless snapshot description, run `pnpm contrac
 
 - [ ] **Step 13: Update current contract documentation without adding tests**
 
-Rewrite `docs/CONTRACT_SYNC_WORKFLOW.md` and `docs/CONTRACT_TESTING.md` around direct checkout extraction, the canonical committed snapshot, full-document SHA-256, portable permission records, offline fail-closed contract verification, explicit cross-repository permission verification, the zero-diff regeneration gate and system-to-system endpoint exclusion. Remove all instructions for `OPENAPI_SPEC_PATH`, `OPENAPI_SPEC_URL`, `BACKEND_OPENAPI_URL`, `backendUrl`, schema-only hashes, machine paths, timestamps and backend-unavailable success.
+Rewrite `docs/CONTRACT_SYNC_WORKFLOW.md` and `docs/CONTRACT_TESTING.md` around direct checkout extraction, the canonical committed snapshot, full-document SHA-256, portable permission records, offline fail-closed contract verification, explicit cross-repository permission verification, the zero-diff regeneration gate and system-to-system endpoint exclusion. Synchronize the executable quick-start and troubleshooting commands in `README.md`, `CLAUDE.md`, `docs/CONTRACT_FRONTEND_DEVELOPMENT_MANUAL.md`, `docs/CRUD_DEVELOPMENT_GUIDE.md` and `docs/ZOD_VALIDATION.md`: backend changes must run `contract:freeze -- --backend-root ...` before generators; type/Zod generators read only the canonical snapshot; permission generate/verify always receive an explicit backend root. Remove all instructions for `OPENAPI_SPEC_PATH`, `OPENAPI_SPEC_URL`, `BACKEND_OPENAPI_URL`, `backendUrl`, schema-only hashes, machine paths, timestamps, direct live-backend Zod generation and backend-unavailable success.
 
 ```bash
-rtk rg -n "OPENAPI_SPEC|BACKEND_OPENAPI|openapi.workline-plugin-manifest-yaml-topology|backendUrl|lastSyncTime|simpleHash|--source|--require-backend" docs/CONTRACT_SYNC_WORKFLOW.md docs/CONTRACT_TESTING.md
+contract_docs=(README.md CLAUDE.md docs/CONTRACT_FRONTEND_DEVELOPMENT_MANUAL.md docs/CONTRACT_SYNC_WORKFLOW.md docs/CONTRACT_TESTING.md docs/CRUD_DEVELOPMENT_GUIDE.md docs/ZOD_VALIDATION.md)
+rtk rg -n "OPENAPI_SPEC|BACKEND_OPENAPI|openapi.workline-plugin-manifest-yaml-topology|backendUrl|lastSyncTime|simpleHash|--require-backend|generate-zod-from-openapi|确保后端正在运行|重启后端" "${contract_docs[@]}"
+rtk rg -n -- "--source" docs/CONTRACT_SYNC_WORKFLOW.md docs/CONTRACT_TESTING.md
+rtk rg --pcre2 -n 'pnpm (?:generate:permissions|permission:verify)(?!\s+--\s+--backend-root)' "${contract_docs[@]}"
 ```
 
 Expected: no matches. This is a document-level check; do not add tests for prose.
@@ -778,7 +793,7 @@ Expected: no matches. This is a document-level check; do not add tests for prose
 - [ ] **Step 14: Commit**
 
 ```bash
-rtk git add scripts/lib/sha256.ts scripts/lib/backend-checkout.ts scripts/lib/openapi-sync.ts scripts/lib/permissions-codegen.ts scripts/freeze-backend-contract.ts scripts/generate-api-types.ts scripts/generate-zod-from-openapi.ts scripts/generate-permissions.ts scripts/verify-contract-sync.ts scripts/verify-permissions-sync.ts scripts/contract-test.ts tests/unit/scripts/openapi-sync.test.ts tests/unit/scripts/freeze-backend-contract.test.ts tests/unit/scripts/permissions-codegen.test.ts tests/unit/scripts/quality-gates.test.ts tests/unit/scripts/generate-api-types.test.ts tests/unit/scripts/contract-endpoint-noise.test.ts docs/CONTRACT_SYNC_WORKFLOW.md docs/CONTRACT_TESTING.md .husky/pre-commit .husky/pre-push .github/workflows/ci-cd.yml package.json contracts/openapi.current.json .contract-sync-record.json .permission-sync-record.json src/api/generated src/api/modules src/types/generated/zod-schemas.ts
+rtk git add scripts/lib/sha256.ts scripts/lib/backend-checkout.ts scripts/lib/openapi-sync.ts scripts/lib/permissions-codegen.ts scripts/freeze-backend-contract.ts scripts/generate-api-types.ts scripts/generate-zod-from-openapi.ts scripts/generate-permissions.ts scripts/verify-contract-sync.ts scripts/verify-permissions-sync.ts scripts/contract-test.ts tests/unit/scripts/openapi-sync.test.ts tests/unit/scripts/freeze-backend-contract.test.ts tests/unit/scripts/permissions-codegen.test.ts tests/unit/scripts/quality-gates.test.ts tests/unit/scripts/generate-api-types.test.ts tests/unit/scripts/contract-endpoint-noise.test.ts README.md CLAUDE.md docs/CONTRACT_FRONTEND_DEVELOPMENT_MANUAL.md docs/CONTRACT_SYNC_WORKFLOW.md docs/CONTRACT_TESTING.md docs/CRUD_DEVELOPMENT_GUIDE.md docs/ZOD_VALIDATION.md .husky/pre-commit .husky/pre-push .github/workflows/ci-cd.yml package.json contracts/openapi.current.json .contract-sync-record.json .permission-sync-record.json src/api/generated src/api/modules src/types/generated/zod-schemas.ts
 rtk git add -u contracts/openapi.workline-plugin-manifest-yaml-topology.json
 rtk git commit -m "refactor(contract): 冻结当前后端契约真源"
 ```
@@ -813,12 +828,12 @@ Expected: zero diff, including no added stale module, missing metadata file, per
 - `docs/superpowers/plans/2026-06-15-workline-monitor-dashboard-v3-alignment.md`
 - `docs/superpowers/plans/2026-06-16-workline-monitor-ui-fixes.md`
 - `docs/superpowers/specs/2026-06-08-runtime-monitor-resource-layout-design.md`
+- `docs/superpowers/specs/2026-06-17-scoped-style-token-compliance.md`（最终复审确认其仍依赖已退役 Runtime 基线；使用独立一次性归档根 `2026-08-18-scoped-style-token-compliance-retired/`）
 
 **Files to keep in the repository:**
 
 - `docs/superpowers/plans/2026-08-17-frontend-legacy-runtime-cleanup.md`
 - `docs/superpowers/specs/2026-04-14-log-center-backend-requirements.md`
-- `docs/superpowers/specs/2026-06-17-scoped-style-token-compliance.md`
 - Entire `docs/hardware/` directory if present.
 
 **Interfaces:**
@@ -833,12 +848,13 @@ This task is documentation-only. Do not add or modify test code.
 
 ```bash
 rtk find docs/superpowers/archive -type f | sort
-rtk ls docs/superpowers/plans/2026-05-06-workline-emergency-stop-frontend.md docs/superpowers/plans/2026-06-15-workline-monitor-dashboard-v3-alignment.md docs/superpowers/plans/2026-06-16-workline-monitor-ui-fixes.md docs/superpowers/specs/2026-06-08-runtime-monitor-resource-layout-design.md
+rtk ls docs/superpowers/plans/2026-05-06-workline-emergency-stop-frontend.md docs/superpowers/plans/2026-06-15-workline-monitor-dashboard-v3-alignment.md docs/superpowers/plans/2026-06-16-workline-monitor-ui-fixes.md docs/superpowers/specs/2026-06-08-runtime-monitor-resource-layout-design.md docs/superpowers/specs/2026-06-17-scoped-style-token-compliance.md
 test ! -e /Users/kaizhou/codeDev/wes_frontend-archive/process-docs/2026-08-17-legacy-runtime-cleanup
+test ! -e /Users/kaizhou/codeDev/wes_frontend-archive/process-docs/2026-08-18-scoped-style-token-compliance-retired
 if test -d docs/hardware; then rtk git diff --name-only -- docs/hardware; fi
 ```
 
-Expected: move set matches this task exactly, the entire fixed archive root is absent, and hardware diff is empty. If the root already exists, stop; do not merge, overwrite or choose a new root silently.
+Expected: move set matches this task exactly, the entire fixed archive root is absent, and hardware diff is empty. If the root already exists, stop; do not merge, overwrite or choose a new root silently. The post-review style-token correction uses its separately named one-file archive root because the original archive was already sealed.
 
 - [ ] **Step 2: Create the external archive structure and manifest**
 
@@ -849,6 +865,8 @@ mkdir -p /Users/kaizhou/codeDev/wes_frontend-archive/process-docs
 mkdir /Users/kaizhou/codeDev/wes_frontend-archive/process-docs/2026-08-17-legacy-runtime-cleanup
 mkdir -p /Users/kaizhou/codeDev/wes_frontend-archive/process-docs/2026-08-17-legacy-runtime-cleanup/docs/superpowers/plans
 mkdir -p /Users/kaizhou/codeDev/wes_frontend-archive/process-docs/2026-08-17-legacy-runtime-cleanup/docs/superpowers/specs
+mkdir /Users/kaizhou/codeDev/wes_frontend-archive/process-docs/2026-08-18-scoped-style-token-compliance-retired
+mkdir -p /Users/kaizhou/codeDev/wes_frontend-archive/process-docs/2026-08-18-scoped-style-token-compliance-retired/docs/superpowers/specs
 ```
 
 - [ ] **Step 3: Move the documents**
@@ -859,22 +877,26 @@ mv docs/superpowers/plans/2026-05-06-workline-emergency-stop-frontend.md /Users/
 mv docs/superpowers/plans/2026-06-15-workline-monitor-dashboard-v3-alignment.md /Users/kaizhou/codeDev/wes_frontend-archive/process-docs/2026-08-17-legacy-runtime-cleanup/docs/superpowers/plans/
 mv docs/superpowers/plans/2026-06-16-workline-monitor-ui-fixes.md /Users/kaizhou/codeDev/wes_frontend-archive/process-docs/2026-08-17-legacy-runtime-cleanup/docs/superpowers/plans/
 mv docs/superpowers/specs/2026-06-08-runtime-monitor-resource-layout-design.md /Users/kaizhou/codeDev/wes_frontend-archive/process-docs/2026-08-17-legacy-runtime-cleanup/docs/superpowers/specs/
+mv docs/superpowers/specs/2026-06-17-scoped-style-token-compliance.md /Users/kaizhou/codeDev/wes_frontend-archive/process-docs/2026-08-18-scoped-style-token-compliance-retired/docs/superpowers/specs/
 ```
 
 Use `apply_patch` to remove the two obsolete Runtime entries from the `TODOS.md` Completed section. Do not alter the active knip/ts-prune TODO and do not add a speculative new-runtime TODO.
 
 - [ ] **Step 4: Perform document-level verification**
 
-After every move succeeds, use `apply_patch` to create `/Users/kaizhou/codeDev/wes_frontend-archive/process-docs/2026-08-17-legacy-runtime-cleanup/ARCHIVE-MANIFEST.md` containing the source repository, archive date, reason, frozen frontend commit, and the exact archived file list. This manifest is external evidence, not a project truth source.
+After every move succeeds, use `apply_patch` to create one `ARCHIVE-MANIFEST.md` in each archive root. Each manifest contains the source repository, archive date, reason, frozen frontend commit, and its exact archived file list. The style-token manifest must also record source SHA-256 `1b2c6fd15a9684853523ea7a956357b9455bcfbc0d1e1c767c1e336661fb755a`. These manifests are external evidence, not project truth sources.
 
 ```bash
 test ! -e docs/superpowers/archive
 test -f /Users/kaizhou/codeDev/wes_frontend-archive/process-docs/2026-08-17-legacy-runtime-cleanup/ARCHIVE-MANIFEST.md
+test -f /Users/kaizhou/codeDev/wes_frontend-archive/process-docs/2026-08-18-scoped-style-token-compliance-retired/ARCHIVE-MANIFEST.md
+test -f /Users/kaizhou/codeDev/wes_frontend-archive/process-docs/2026-08-18-scoped-style-token-compliance-retired/docs/superpowers/specs/2026-06-17-scoped-style-token-compliance.md
+test "$(shasum -a 256 /Users/kaizhou/codeDev/wes_frontend-archive/process-docs/2026-08-18-scoped-style-token-compliance-retired/docs/superpowers/specs/2026-06-17-scoped-style-token-compliance.md | awk '{print $1}')" = "1b2c6fd15a9684853523ea7a956357b9455bcfbc0d1e1c767c1e336661fb755a"
 test -f docs/superpowers/plans/2026-08-17-frontend-legacy-runtime-cleanup.md
 test -f docs/superpowers/specs/2026-04-14-log-center-backend-requirements.md
-test -f docs/superpowers/specs/2026-06-17-scoped-style-token-compliance.md
+test ! -e docs/superpowers/specs/2026-06-17-scoped-style-token-compliance.md
 if test -d docs/hardware; then test -z "$(rtk git diff --name-only -- docs/hardware)"; fi
-rtk rg -n "2026-05-06-workline-emergency-stop-frontend|2026-06-15-workline-monitor-dashboard-v3-alignment|2026-06-16-workline-monitor-ui-fixes|2026-06-08-runtime-monitor-resource-layout-design|RuntimeSceneFocusPanel|Runtime scene 资源证据" docs TODOS.md --glob '!docs/hardware/**' --glob '!docs/superpowers/plans/2026-08-17-frontend-legacy-runtime-cleanup.md'
+rtk rg -n "2026-05-06-workline-emergency-stop-frontend|2026-06-15-workline-monitor-dashboard-v3-alignment|2026-06-16-workline-monitor-ui-fixes|2026-06-08-runtime-monitor-resource-layout-design|2026-06-17-scoped-style-token-compliance|RuntimeSceneFocusPanel|Runtime scene 资源证据" docs TODOS.md --glob '!docs/hardware/**' --glob '!docs/superpowers/plans/2026-08-17-frontend-legacy-runtime-cleanup.md'
 ```
 
 Expected: all existence checks pass; final `rg` returns no references. If current docs still link to an archived process document, update the current doc to describe the current rule directly rather than linking back into history.
@@ -913,13 +935,13 @@ test ! -e src/views/runtime
 test ! -e src/components/runtime
 test ! -e src/api/services/sse-client.ts
 test ! -e src/api/services/sse-session.ts
-rtk rg -n "RuntimeRoot|RuntimeMonitor|RuntimeCases|RuntimeHolds|RuntimeSandbox|runtime:system:menu|@/api/modules/runtime|@/types/runtime|@/stores/(runtime-hold|runtime-sse|workline-runtime)|sse-client|sse-session|resetSSESession|VITE_SSE_URL|RuntimeHoldNgReasonsQuery|runtimeHoldApiMethods" src package.json CLAUDE.md .env.development .env.production
+rtk rg -n "RuntimeRoot|RuntimeMonitor|RuntimeCases|RuntimeHolds|RuntimeSandbox|runtime:system:menu|@/api/modules/runtime|@/types/runtime|@/stores/(runtime-hold|runtime-sse|workline-runtime)|sse-client|sse-session|resetSSESession|VITE_SSE_URL|RuntimeHoldNgReasonsQuery|runtimeHoldApiMethods" src package.json CLAUDE.md .env.development .env.production Dockerfile Jenkinsfile
 rtk rg -n '\b(plugin_key|contract_version|host|port|protocol|callback_path|auth_token|capabilities_json|vendor_type|device_status|maintenance_mode)\b' src/views/admin/worklines src/views/admin/devices
 rtk rg -n "/api/v1/wms/events" src/api/modules
 rtk rg -n "openapi.workline-plugin-manifest-yaml-topology|OPENAPI_SPEC|BACKEND_OPENAPI|--source|--require-backend" contracts docs --glob '!docs/hardware/**' --glob '!docs/superpowers/plans/2026-08-17-frontend-legacy-runtime-cleanup.md'
 ```
 
-Expected: existence checks pass and all four `rg` commands return no matches. Negative tests intentionally name retired symbols, so they are verified by the test runner rather than included in raw source-name scans. Raw `contracts/openapi.current.json` and `src/api/generated/openapi-types.ts` may contain `/api/v1/wms/events`; browser modules may not.
+Expected: existence checks pass and all four `rg` commands return no matches. Negative tests intentionally name retired symbols, so they are verified by the test runner rather than included in raw source-name scans. Raw `contracts/openapi.current.json` and `src/api/generated/openapi-types.ts` may contain `/api/v1/wms/events` and the three exact inbound callback endpoints; browser modules may not.
 
 - [ ] **Step 3: Run all quality gates**
 
@@ -975,7 +997,7 @@ Expected: the branch worktree is clean, external archive manifest exists, and ha
 1. `plane/scene` 只负责静态平面场景；`plane/snapshot` 只负责动态事实快照。
 2. WorkLine/Device 静态主数据、运行事实、人工操作、WMS 系统接口分属不同能力，不再聚合进一个万能 `runtimeApiMethods`。
 3. 先定义最短可用监控场景，再决定是否需要 SSE、案件、reconciliation 或沙箱页面；不能因为后端有端点就默认全部做 UI。
-4. `/api/v1/wms/**` 永远不是浏览器业务入口。
+4. `/api/v1/wms/**` 与三个精确入站 callback 端点永远不是浏览器业务入口。
 5. 新重写不得复活本计划删除的 DTO、组件、路由名称或兼容跳转。
 
 ## Test Coverage Map

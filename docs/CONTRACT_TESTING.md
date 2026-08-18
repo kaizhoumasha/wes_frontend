@@ -22,7 +22,7 @@
 - 作业线 `plane/scene` 与 `plane/snapshot` 路径存在。
 - 已退役的 workline runtime 与 plugin 路径不存在。
 - `/api/v1/wms/events` 存在于 raw type mirror，但浏览器模块没有对应方法。
-- 精确入站回调不生成浏览器方法，callback 日志管理端点仍保留。
+- `/api/v1/callback/event`、`/api/v1/callback/external`、`/api/v1/callback/result` 三个精确入站回调不生成浏览器方法，callback 日志管理端点仍保留。
 - 类型与 Zod 入口包含当前整份快照的 SHA-256 marker。
 - 已删除的 Runtime API、SSE client/session 文件和旧权限记录字段不会被生成器带回。
 

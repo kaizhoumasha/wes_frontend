@@ -1,5 +1,5 @@
-// Modeled hardcoded color denylist — SPEC P3 (2026-06-17)
-// 任何属性匹配以下 regex 时,值不允许为列表中的硬编码已建模色;必须改为 var(--color-*) / var(--runtime-*) / var(--el-*)
+// 已建模硬编码颜色禁用清单
+// 任何属性匹配以下 regex 时，值不允许使用已建模的硬编码色；必须改为 var(--color-*) / var(--el-*)
 // globals.css 自身需要硬编码原始值(token 定义),通过下方 overrides 排除
 const modeledHardcodedColorProperties =
   '/^(?:color|background(?:-color|-image)?|border(?:-(?:color|top|right|bottom|left|block|block-start|block-end|inline|inline-start|inline-end))?(?:-color)?|border-image(?:-source)?|box-shadow|text-shadow|filter|outline(?:-color)?|text-decoration(?:-color)?|caret-color|accent-color|fill|stroke|stop-color|flood-color|lighting-color|scrollbar-color|column-rule(?:-color)?|--.*(?:color|bg|background|border|shadow|surface|text|decoration|accent|fill|stroke).*)$/'
@@ -121,7 +121,7 @@ export default {
         'rule-empty-line-before': null,
         // 允许灵活的选择器顺序
         'no-descending-specificity': null,
-        // SPEC P3: 拦截 SFC <style> 中的硬编码已建模色
+        // 拦截 SFC <style> 中已由全局 token 建模的硬编码颜色
         'declaration-property-value-disallowed-list': [
           {
             [modeledHardcodedColorProperties]: modeledHardcodedColorValues
@@ -135,7 +135,7 @@ export default {
       files: ['*.scss', '**/*.scss'],
       customSyntax: 'postcss-scss'
     },
-    // SPEC P3: globals.css 是 token 定义源头,必须含硬编码原始值,豁免拦截
+    // globals.css 是 token 定义源，必须包含硬编码原始值，因此豁免拦截
     {
       files: ['src/assets/styles/globals.css'],
       rules: {
