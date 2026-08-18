@@ -9907,6 +9907,462 @@
                       "timestamp",
                       "data"
                     ]
+                  },
+                  {
+                    "properties": {
+                      "operation_id": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                      },
+                      "operation": {
+                        "type": "string",
+                        "enum": [
+                          "inbound.execution.recovery_decided@v1"
+                        ]
+                      },
+                      "timestamp": {
+                        "type": "integer",
+                        "maximum": 9223372036854776000,
+                        "minimum": 1,
+                        "format": "int64",
+                        "description": "Unix 毫秒时间戳"
+                      },
+                      "data": {
+                        "allOf": [
+                          {
+                            "if": {
+                              "properties": {
+                                "decision": {
+                                  "const": "CONTINUE"
+                                }
+                              },
+                              "required": [
+                                "decision"
+                              ]
+                            },
+                            "then": {
+                              "properties": {
+                                "authoritative_position": {
+                                  "oneOf": [
+                                    {
+                                      "properties": {
+                                        "type": {
+                                          "type": "string",
+                                          "enum": [
+                                            "HANDOFF_POSITION"
+                                          ]
+                                        },
+                                        "location_code": {
+                                          "allOf": [
+                                            {
+                                              "not": {
+                                                "pattern": "^\\s*$"
+                                              }
+                                            },
+                                            {
+                                              "not": {
+                                                "pattern": "\\u0000"
+                                              }
+                                            }
+                                          ],
+                                          "type": "string",
+                                          "minLength": 1
+                                        }
+                                      },
+                                      "additionalProperties": false,
+                                      "type": "object",
+                                      "required": [
+                                        "type",
+                                        "location_code"
+                                      ]
+                                    },
+                                    {
+                                      "properties": {
+                                        "type": {
+                                          "type": "string",
+                                          "enum": [
+                                            "NG_POSITION"
+                                          ]
+                                        },
+                                        "location_code": {
+                                          "allOf": [
+                                            {
+                                              "not": {
+                                                "pattern": "^\\s*$"
+                                              }
+                                            },
+                                            {
+                                              "not": {
+                                                "pattern": "\\u0000"
+                                              }
+                                            }
+                                          ],
+                                          "type": "string",
+                                          "minLength": 1
+                                        }
+                                      },
+                                      "additionalProperties": false,
+                                      "type": "object",
+                                      "required": [
+                                        "type",
+                                        "location_code"
+                                      ]
+                                    },
+                                    {
+                                      "properties": {
+                                        "type": {
+                                          "type": "string",
+                                          "enum": [
+                                            "ONE_LAYER_BIN_CELL"
+                                          ]
+                                        },
+                                        "rack_id": {
+                                          "allOf": [
+                                            {
+                                              "not": {
+                                                "pattern": "^\\s*$"
+                                              }
+                                            },
+                                            {
+                                              "not": {
+                                                "pattern": "\\u0000"
+                                              }
+                                            }
+                                          ],
+                                          "type": "string",
+                                          "minLength": 1
+                                        },
+                                        "rack_slot_code": {
+                                          "allOf": [
+                                            {
+                                              "not": {
+                                                "pattern": "^\\s*$"
+                                              }
+                                            },
+                                            {
+                                              "not": {
+                                                "pattern": "\\u0000"
+                                              }
+                                            }
+                                          ],
+                                          "type": "string",
+                                          "minLength": 1
+                                        },
+                                        "bin_id": {
+                                          "allOf": [
+                                            {
+                                              "not": {
+                                                "pattern": "^\\s*$"
+                                              }
+                                            },
+                                            {
+                                              "not": {
+                                                "pattern": "\\u0000"
+                                              }
+                                            }
+                                          ],
+                                          "type": "string",
+                                          "minLength": 1
+                                        },
+                                        "bin_cell_id": {
+                                          "allOf": [
+                                            {
+                                              "not": {
+                                                "pattern": "^\\s*$"
+                                              }
+                                            },
+                                            {
+                                              "not": {
+                                                "pattern": "\\u0000"
+                                              }
+                                            }
+                                          ],
+                                          "type": "string",
+                                          "minLength": 1
+                                        }
+                                      },
+                                      "additionalProperties": false,
+                                      "type": "object",
+                                      "required": [
+                                        "type",
+                                        "rack_id",
+                                        "rack_slot_code",
+                                        "bin_id",
+                                        "bin_cell_id"
+                                      ]
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "properties": {
+                          "recovery_id": {
+                            "allOf": [
+                              {
+                                "not": {
+                                  "pattern": "^\\s*$"
+                                }
+                              },
+                              {
+                                "not": {
+                                  "pattern": "\\u0000"
+                                }
+                              }
+                            ],
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "material_execution_id": {
+                            "allOf": [
+                              {
+                                "not": {
+                                  "pattern": "^\\s*$"
+                                }
+                              },
+                              {
+                                "not": {
+                                  "pattern": "\\u0000"
+                                }
+                              }
+                            ],
+                            "type": "string",
+                            "maxLength": 120,
+                            "minLength": 1
+                          },
+                          "material_trace_id": {
+                            "allOf": [
+                              {
+                                "not": {
+                                  "pattern": "^\\s*$"
+                                }
+                              },
+                              {
+                                "not": {
+                                  "pattern": "\\u0000"
+                                }
+                              }
+                            ],
+                            "type": "string",
+                            "maxLength": 160,
+                            "minLength": 1
+                          },
+                          "reconciling_evidence_id": {
+                            "allOf": [
+                              {
+                                "not": {
+                                  "pattern": "^\\s*$"
+                                }
+                              },
+                              {
+                                "not": {
+                                  "pattern": "\\u0000"
+                                }
+                              }
+                            ],
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "decision": {
+                            "type": "string",
+                            "enum": [
+                              "CONTINUE",
+                              "ABORT"
+                            ]
+                          },
+                          "authoritative_position": {
+                            "oneOf": [
+                              {
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "HANDOFF_POSITION"
+                                    ]
+                                  },
+                                  "location_code": {
+                                    "allOf": [
+                                      {
+                                        "not": {
+                                          "pattern": "^\\s*$"
+                                        }
+                                      },
+                                      {
+                                        "not": {
+                                          "pattern": "\\u0000"
+                                        }
+                                      }
+                                    ],
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                },
+                                "additionalProperties": false,
+                                "type": "object",
+                                "required": [
+                                  "type",
+                                  "location_code"
+                                ]
+                              },
+                              {
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "NG_POSITION"
+                                    ]
+                                  },
+                                  "location_code": {
+                                    "allOf": [
+                                      {
+                                        "not": {
+                                          "pattern": "^\\s*$"
+                                        }
+                                      },
+                                      {
+                                        "not": {
+                                          "pattern": "\\u0000"
+                                        }
+                                      }
+                                    ],
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                },
+                                "additionalProperties": false,
+                                "type": "object",
+                                "required": [
+                                  "type",
+                                  "location_code"
+                                ]
+                              },
+                              {
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "ONE_LAYER_BIN_CELL"
+                                    ]
+                                  },
+                                  "rack_id": {
+                                    "allOf": [
+                                      {
+                                        "not": {
+                                          "pattern": "^\\s*$"
+                                        }
+                                      },
+                                      {
+                                        "not": {
+                                          "pattern": "\\u0000"
+                                        }
+                                      }
+                                    ],
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "rack_slot_code": {
+                                    "allOf": [
+                                      {
+                                        "not": {
+                                          "pattern": "^\\s*$"
+                                        }
+                                      },
+                                      {
+                                        "not": {
+                                          "pattern": "\\u0000"
+                                        }
+                                      }
+                                    ],
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "bin_id": {
+                                    "allOf": [
+                                      {
+                                        "not": {
+                                          "pattern": "^\\s*$"
+                                        }
+                                      },
+                                      {
+                                        "not": {
+                                          "pattern": "\\u0000"
+                                        }
+                                      }
+                                    ],
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "bin_cell_id": {
+                                    "allOf": [
+                                      {
+                                        "not": {
+                                          "pattern": "^\\s*$"
+                                        }
+                                      },
+                                      {
+                                        "not": {
+                                          "pattern": "\\u0000"
+                                        }
+                                      }
+                                    ],
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                },
+                                "additionalProperties": false,
+                                "type": "object",
+                                "required": [
+                                  "type",
+                                  "rack_id",
+                                  "rack_slot_code",
+                                  "bin_id",
+                                  "bin_cell_id"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "reason_code": {
+                            "allOf": [
+                              {
+                                "not": {
+                                  "pattern": "^\\s*$"
+                                }
+                              },
+                              {
+                                "not": {
+                                  "pattern": "\\u0000"
+                                }
+                              }
+                            ],
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "additionalProperties": false,
+                        "type": "object",
+                        "required": [
+                          "recovery_id",
+                          "material_execution_id",
+                          "material_trace_id",
+                          "reconciling_evidence_id",
+                          "decision",
+                          "authoritative_position",
+                          "reason_code"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false,
+                    "type": "object",
+                    "required": [
+                      "operation_id",
+                      "operation",
+                      "timestamp",
+                      "data"
+                    ]
                   }
                 ]
               }
@@ -9916,7 +10372,7 @@
         },
         "responses": {
           "200": {
-            "description": "重复 evidence 已确认",
+            "description": "相同 WMS event 已可靠持久化",
             "content": {
               "application/json": {
                 "schema": {
@@ -9940,18 +10396,28 @@
                       "description": "Unix 毫秒时间戳"
                     },
                     "data": {
-                      "properties": {
-                        "transport_task_id": {
-                          "type": "string",
-                          "maxLength": 80,
-                          "minLength": 1,
-                          "pattern": ".*\\S.*"
+                      "oneOf": [
+                        {
+                          "properties": {
+                            "transport_task_id": {
+                              "type": "string",
+                              "maxLength": 80,
+                              "minLength": 1,
+                              "pattern": ".*\\S.*"
+                            }
+                          },
+                          "additionalProperties": false,
+                          "type": "object",
+                          "required": [
+                            "transport_task_id"
+                          ]
+                        },
+                        {
+                          "properties": {},
+                          "additionalProperties": false,
+                          "type": "object",
+                          "required": []
                         }
-                      },
-                      "additionalProperties": false,
-                      "type": "object",
-                      "required": [
-                        "transport_task_id"
                       ]
                     }
                   },
@@ -9968,7 +10434,7 @@
             }
           },
           "202": {
-            "description": "evidence 已持久化",
+            "description": "WMS event 已可靠持久化",
             "content": {
               "application/json": {
                 "schema": {
@@ -9992,18 +10458,28 @@
                       "description": "Unix 毫秒时间戳"
                     },
                     "data": {
-                      "properties": {
-                        "transport_task_id": {
-                          "type": "string",
-                          "maxLength": 80,
-                          "minLength": 1,
-                          "pattern": ".*\\S.*"
+                      "oneOf": [
+                        {
+                          "properties": {
+                            "transport_task_id": {
+                              "type": "string",
+                              "maxLength": 80,
+                              "minLength": 1,
+                              "pattern": ".*\\S.*"
+                            }
+                          },
+                          "additionalProperties": false,
+                          "type": "object",
+                          "required": [
+                            "transport_task_id"
+                          ]
+                        },
+                        {
+                          "properties": {},
+                          "additionalProperties": false,
+                          "type": "object",
+                          "required": []
                         }
-                      },
-                      "additionalProperties": false,
-                      "type": "object",
-                      "required": [
-                        "transport_task_id"
                       ]
                     }
                   },
@@ -10027,7 +10503,7 @@
             "x-operational-error": true
           },
           "409": {
-            "description": "operation_id 或 outcome_revision 身份冲突",
+            "description": "WMS event 身份、内容或不可变事实冲突",
             "content": {
               "application/json": {
                 "schema": {
@@ -10092,7 +10568,7 @@
             "description": "请求体超过固定上限"
           },
           "422": {
-            "description": "evidence data 不满足对应 operation 的封闭合同",
+            "description": "WMS event 信封或 operation 专属 data 不合法",
             "content": {
               "application/json": {
                 "schema": {
@@ -10155,6 +10631,22 @@
                             "transport_task_id",
                             "reason_code"
                           ]
+                        },
+                        {
+                          "properties": {
+                            "reason_code": {
+                              "type": "string",
+                              "enum": [
+                                "INVALID_DATA",
+                                "UNSUPPORTED_OPERATION"
+                              ]
+                            }
+                          },
+                          "additionalProperties": false,
+                          "type": "object",
+                          "required": [
+                            "reason_code"
+                          ]
                         }
                       ]
                     }
@@ -10172,7 +10664,7 @@
             }
           },
           "503": {
-            "description": "Transport runtime 尚未就绪或当前无法可靠持久化",
+            "description": "对应 WMS event runtime 未就绪或无法可靠持久化",
             "content": {
               "application/json": {
                 "schema": {
@@ -11909,11 +12401,6 @@
             ],
             "title": "Wms Inventory Version",
             "description": "WMS 库存或分拆版本引用"
-          },
-          "wms_confirmation_status": {
-            "$ref": "#/components/schemas/WmsConfirmationStatus",
-            "description": "WMS 确认状态",
-            "default": "PENDING"
           },
           "writeback_evidence_id": {
             "anyOf": [
@@ -21419,17 +21906,6 @@
         ],
         "title": "ValidityPeriod",
         "description": "有效期枚举"
-      },
-      "WmsConfirmationStatus": {
-        "type": "string",
-        "enum": [
-          "PENDING",
-          "CONFIRMED",
-          "REJECTED",
-          "NOT_REQUIRED"
-        ],
-        "title": "WmsConfirmationStatus",
-        "description": "WMS 确认状态。"
       },
       "WmsSyncObligationResolution": {
         "properties": {

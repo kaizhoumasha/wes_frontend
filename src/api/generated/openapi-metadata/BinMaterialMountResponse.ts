@@ -145,19 +145,6 @@ export const BinMaterialMountResponseMetadata = {
       "nullable": true,
       "maxLength": 120
     },
-    "wms_confirmation_status": {
-      "description": "WMS 确认状态",
-      "required": false,
-      "nullable": false,
-      "default": "PENDING",
-      "enum": [
-        "PENDING",
-        "CONFIRMED",
-        "REJECTED",
-        "NOT_REQUIRED"
-      ],
-      "ref": "WmsConfirmationStatus"
-    },
     "writeback_evidence_id": {
       "title": "Writeback Evidence Id",
       "description": "关联 WMS 回写证据",
