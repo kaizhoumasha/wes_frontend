@@ -4,7 +4,12 @@ import {
   createEmptyFormValues
 } from '@/components/common/crud-form/form-helpers'
 import { DeviceCreateSchema, DeviceUpdateSchema } from '@/types/zod-extensions'
-import { DEVICE_FIELDS, devicePageFieldConfig } from '@/views/admin/devices/config/fieldConfig'
+import {
+  DeviceCreateFormSchema,
+  DeviceUpdateFormSchema,
+  DEVICE_FIELDS,
+  devicePageFieldConfig
+} from '@/views/admin/devices/config/fieldConfig'
 import { createDevicePageConfig } from '@/views/admin/devices/config/pageConfig'
 
 describe('Device static master-data page', () => {
@@ -48,6 +53,29 @@ describe('Device static master-data page', () => {
     const formFieldKeys = devicePageFieldConfig.form.fieldConfig.map(field => field.key)
 
     expect(formFieldKeys).toEqual(expect.arrayContaining(['work_line_id', 'upstream_device_id']))
+  })
+
+  it('publishes the optional Device Endpoint in form and detail metadata', () => {
+    const config = createDevicePageConfig()
+    const formKeys = devicePageFieldConfig.form.fieldConfig.map(field => field.key)
+    const detailKeys = config.detail?.sections.flatMap(section => section.fields.map(field => field.key))
+
+    expect(DEVICE_FIELDS.map(field => field.key)).toContain('endpoint_base_url')
+    expect(formKeys).toContain('endpoint_base_url')
+    expect(detailKeys).toContain('endpoint_base_url')
+  })
+
+  it('normalizes a cleared Endpoint to null before Device create or update', () => {
+    const create = DeviceCreateFormSchema.parse({
+      device_code: 'MEASURE-01',
+      device_name: '测量设备 01',
+      device_role: 'MEASUREMENT_DEVICE',
+      endpoint_base_url: ''
+    })
+    const update = DeviceUpdateFormSchema.parse({ version: 3, endpoint_base_url: '' })
+
+    expect(create.endpoint_base_url).toBeNull()
+    expect(update.endpoint_base_url).toBeNull()
   })
 
   it('initializes optional create fields with contract-valid values', () => {
