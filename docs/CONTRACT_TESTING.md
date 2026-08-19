@@ -18,7 +18,7 @@
 `contract:test` 检查以下机器事实：
 
 - WorkLine DTO 包含 `runtime_config_json`、`diagnostic_profile`，不再包含 `plugin_key`、`contract_version`；本轮只验证合同，不提供这两个配置的编辑器。
-- Device DTO 只保留静态拓扑、排序、启停和诊断字段，不包含连接、协议、心跳、运行状态或当前命令字段。
+- Device DTO 保留静态拓扑、排序、启停、诊断和 `endpoint_base_url`；不包含协议、心跳、运行状态或当前命令字段。
 - 作业线 `plane/scene` 与 `plane/snapshot` 路径存在。
 - 已退役的 workline runtime 与 plugin 路径不存在。
 - `/api/v1/wms/events` 存在于 raw type mirror，但浏览器模块没有对应方法。
