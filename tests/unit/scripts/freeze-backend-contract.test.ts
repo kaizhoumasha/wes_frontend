@@ -11,11 +11,20 @@ import {
 } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   freezeBackendContract,
   parseFreezeBackendContractArgs
 } from '../../../scripts/freeze-backend-contract'
+import { writeFileAtomically } from '../../../scripts/lib/atomic-file'
+
+vi.mock('../../../scripts/lib/atomic-file', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../../scripts/lib/atomic-file')>()
+  return {
+    ...actual,
+    writeFileAtomically: vi.fn(actual.writeFileAtomically)
+  }
+})
 
 const VALID_OPENAPI = {
   openapi: '3.1.0',
@@ -134,13 +143,16 @@ describe.sequential('freeze backend contract', () => {
     const snapshotPath = join(contractsRoot, 'openapi.current.json')
     mkdirSync(contractsRoot)
     writeFileSync(snapshotPath, 'previous snapshot\n')
-    chmodSync(frontendRoot, 0o555)
-
-    try {
-      expect(() => freeze()).toThrow()
-    } finally {
-      chmodSync(frontendRoot, 0o755)
+    const atomicWrite = vi.mocked(writeFileAtomically)
+    const realAtomicWrite = atomicWrite.getMockImplementation()
+    if (!realAtomicWrite) {
+      throw new Error('atomic write test double is missing its real implementation')
     }
+    atomicWrite.mockImplementationOnce(realAtomicWrite).mockImplementationOnce(() => {
+      throw new Error('simulated record publication failure')
+    })
+
+    expect(() => freeze()).toThrow('simulated record publication failure')
 
     expect(readFileSync(snapshotPath, 'utf-8')).toBe('previous snapshot\n')
     expect(existsSync(join(frontendRoot, '.contract-sync-record.json'))).toBe(false)

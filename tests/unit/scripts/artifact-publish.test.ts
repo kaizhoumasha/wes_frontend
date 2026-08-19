@@ -1,5 +1,4 @@
 import {
-  chmodSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -10,9 +9,17 @@ import {
 } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { replaceGeneratedPermissions } from '../../../scripts/generate-permissions'
 import { writeFileAtomically } from '../../../scripts/lib/atomic-file'
+
+vi.mock('../../../scripts/lib/atomic-file', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../../scripts/lib/atomic-file')>()
+  return {
+    ...actual,
+    writeFileAtomically: vi.fn(actual.writeFileAtomically)
+  }
+})
 
 const RECORD = {
   backendCommit: 'de034e721befae2e1658d0aff96f2f2e43a0ffbb',
@@ -28,7 +35,6 @@ describe.sequential('generated artifact publication', () => {
   })
 
   afterEach(() => {
-    chmodSync(root, 0o755)
     rmSync(root, { force: true, recursive: true })
   })
 
@@ -62,7 +68,9 @@ describe.sequential('generated artifact publication', () => {
     mkdirSync(stagedDirectory)
     writeFileSync(join(outputDirectory, 'index.ts'), 'old\n')
     writeFileSync(join(stagedDirectory, 'index.ts'), 'new\n')
-    chmodSync(root, 0o555)
+    vi.mocked(writeFileAtomically).mockImplementationOnce(() => {
+      throw new Error('simulated record publication failure')
+    })
 
     expect(() =>
       replaceGeneratedPermissions(stagedDirectory, RECORD, {
