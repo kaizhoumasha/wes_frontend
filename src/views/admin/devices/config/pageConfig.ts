@@ -82,7 +82,8 @@ function createDeviceDetailConfig(): CrudPageDetailConfig<Device> {
         fields: [
           { key: 'work_line_id', layout: 'half' },
           { key: 'upstream_device_id', layout: 'half' },
-          { key: 'sort_order', layout: 'half' }
+          { key: 'sort_order', layout: 'half' },
+          { key: 'endpoint_base_url', layout: 'full' }
         ]
       }
     ]

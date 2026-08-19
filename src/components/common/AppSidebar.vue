@@ -46,18 +46,6 @@
         :sidebar-collapsed="sidebarCollapsed"
       />
     </el-menu>
-
-    <!-- 底部信息 -->
-    <div class="sidebar-footer">
-      <transition name="footer-text">
-        <div
-          v-show="!sidebarCollapsed"
-          class="version-info"
-        >
-          v{{ APP_VERSION }}
-        </div>
-      </transition>
-    </div>
   </aside>
 </template>
 
@@ -67,7 +55,6 @@ import logoSvg from '@/assets/logo.svg'
 import SidebarMenuItem from './SidebarMenuItem.vue'
 import { useLayout } from '@/composables/useLayout'
 import { useMenu } from '@/composables/useMenu'
-import { APP_VERSION } from '@/constants/app'
 
 // ==================== 状态管理 ====================
 
@@ -137,8 +124,6 @@ html.dark .app-sidebar {
   --menu-icon-glow: rgb(var(--color-primary-rgb) / 30%);
   --menu-opened-bg: rgb(var(--color-industrial-dark-surface-rgb) / 30%);
   --menu-opened-color: rgb(var(--color-industrial-light-surface-rgb) / 90%);
-  --footer-border: rgb(var(--color-industrial-dark-text-secondary-rgb) / 12%);
-  --footer-color: rgb(var(--color-industrial-light-surface-rgb) / 30%);
   --scrollbar-thumb: rgb(var(--color-industrial-dark-text-secondary-rgb) / 15%);
   --scrollbar-thumb-hover: rgb(var(--color-industrial-dark-text-secondary-rgb) / 25%);
 }
@@ -161,8 +146,6 @@ html:not(.dark) .app-sidebar {
   --menu-icon-glow: rgb(var(--color-primary-rgb) / 50%);
   --menu-opened-bg: #f5f7fa;
   --menu-opened-color: #303133;
-  --footer-border: #e4e7ed;
-  --footer-color: #909399;
   --scrollbar-thumb: rgb(0 0 0 / 10%);
   --scrollbar-thumb-hover: rgb(0 0 0 / 20%);
 }
@@ -351,22 +334,6 @@ html:not(.dark) .app-sidebar {
   background: transparent;
 }
 
-/* ==================== 底部信息 ==================== */
-.sidebar-footer {
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  border-top: 1px solid var(--footer-border);
-}
-
-.version-info {
-  font-size: 12px;
-  font-family: 'Courier New', monospace;
-  color: var(--footer-color);
-}
-
 /* ==================== 过渡动画 ==================== */
 .logo-text-enter-active,
 .logo-text-leave-active {
@@ -377,16 +344,5 @@ html:not(.dark) .app-sidebar {
 .logo-text-leave-to {
   opacity: 0;
   transform: translateX(-10px);
-}
-
-.footer-text-enter-active,
-.footer-text-leave-active {
-  transition: all 0.3s ease;
-}
-
-.footer-text-enter-from,
-.footer-text-leave-to {
-  opacity: 0;
-  transform: translateY(10px);
 }
 </style>

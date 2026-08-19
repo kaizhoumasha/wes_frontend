@@ -85,6 +85,13 @@ export const DeviceUpdateMetadata = {
       "required": false,
       "nullable": true
     },
+    "endpoint_base_url": {
+      "title": "Endpoint Base Url",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 255
+    },
     "version": {
       "title": "Version",
       "description": "乐观锁版本号，更新时必传",

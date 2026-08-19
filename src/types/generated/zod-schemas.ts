@@ -1,4 +1,4 @@
-/** @openapi-sha256 efb677d12fb0de38d51f9b149a89a10470cf8db2cb1baa45192940498cf6e441 */
+/** @openapi-sha256 07838307cd7a470b5eae5a9c5287549145b04937c50e21ceb750abd25a096c11 */
 /**
  * Zod Validation Schemas
  *
@@ -840,6 +840,8 @@ export const DeviceCreateSchema = z.object({
   upstream_device_id: z.union([z.number(), z.null()]).optional(),
   /** Diagnostic Profile */
   diagnostic_profile: z.record(z.any()).optional(),
+  /** Endpoint Base Url */
+  endpoint_base_url: z.union([z.string().max(255), z.null()]).optional(),
 })
 
 
@@ -870,6 +872,8 @@ export const DeviceResponseSchema = z.object({
   upstream_device_id: z.union([z.number(), z.null()]).optional(),
   /** Diagnostic Profile */
   diagnostic_profile: z.record(z.any()).optional(),
+  /** Endpoint Base Url */
+  endpoint_base_url: z.union([z.string().max(255), z.null()]).optional(),
   /** Id */
   id: z.number(),
   /** Version */
@@ -904,6 +908,8 @@ export const DeviceUpdateSchema = z.object({
   upstream_device_id: z.union([z.number(), z.null()]).optional(),
   /** Diagnostic Profile */
   diagnostic_profile: z.union([z.record(z.any()), z.null()]).optional(),
+  /** Endpoint Base Url */
+  endpoint_base_url: z.union([z.string().max(255), z.null()]).optional(),
   /** Version */
   version: z.number(),
 })
@@ -2730,42 +2736,6 @@ export const SandboxExternalCallbackRequestSchema = z.object({
 
 
 /**
- * 沙箱 WorkLine START 请求。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const SandboxWorklineStartRequestSchema = z.object({
-  /** Device Code */
-  device_code: z.string().min(1).max(100),
-  /** Trace Id */
-  trace_id: z.union([z.string().max(200), z.null()]).optional(),
-})
-
-
-/**
- * 沙箱 WorkLine START 准入结果。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const SandboxWorklineStartResponseSchema = z.object({
-  /** Status */
-  status: z.union([z.string(), z.null()]).optional(),
-  /** Ack */
-  ack: z.union([z.boolean(), z.null()]).optional(),
-  /** Device Code */
-  device_code: z.union([z.string(), z.null()]).optional(),
-  /** Trace Id */
-  trace_id: z.union([z.string(), z.null()]).optional(),
-  /** Reason Code */
-  reason_code: z.union([z.string(), z.null()]).optional(),
-  /** Diagnostic */
-  diagnostic: z.union([z.record(z.any()), z.null()]).optional(),
-})
-
-
-/**
  * 会话信息 Schema
 
 描述一个活跃的用户会话
@@ -3142,6 +3112,62 @@ export const WorkLineResponseSchema = z.object({
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const WorkLineRunModeSchema = z.enum(["AUTO", "MANUAL", "SIMULATION"])
+
+
+/**
+ * Stable machine-readable START rejection.
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const WorkLineStartErrorResponseSchema = z.object({
+  /** Reason */
+  reason: z.enum(["WORKLINE_NOT_FOUND", "INVALID_STATE", "CONFIGURATION_INVALID", "IDEMPOTENCY_CONFLICT", "SERVICE_UNAVAILABLE"]),
+})
+
+
+/**
+ * Stable identity for one WorkLine START attempt.
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const WorkLineStartRequestSchema = z.object({
+  /** Request Id */
+  request_id: z.string().min(1).max(100),
+})
+
+
+/**
+ * Frozen Epoch identity and the current WorkLine projection.
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const WorkLineStartResponseSchema = z.object({
+  /** Line Run Epoch Id */
+  line_run_epoch_id: z.number(),
+  /** Epoch Code */
+  epoch_code: z.string(),
+  /** Workline Id */
+  workline_id: z.number(),
+  /** Plugin Key */
+  plugin_key: z.string(),
+  /** Plugin Version */
+  plugin_version: z.string(),
+  /** Flow Mode */
+  flow_mode: z.string(),
+  /** Epoch Status */
+  epoch_status: z.enum(["ACTIVE", "CLOSED"]),
+  /** Epoch Started At */
+  epoch_started_at: z.string().datetime(),
+  /** Epoch Closed At */
+  epoch_closed_at: z.union([z.string().datetime(), z.null()]),
+  /** Current Workline Runtime Status */
+  current_workline_runtime_status: z.union([z.string(), z.null()]),
+  /** Created */
+  created: z.boolean(),
+})
 
 
 /**

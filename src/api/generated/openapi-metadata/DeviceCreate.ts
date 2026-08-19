@@ -93,6 +93,13 @@ export const DeviceCreateMetadata = {
       "type": "object",
       "required": false,
       "nullable": false
+    },
+    "endpoint_base_url": {
+      "title": "Endpoint Base Url",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 255
     }
   }
 } satisfies OpenApiSchemaMetadata

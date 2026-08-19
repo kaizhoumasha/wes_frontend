@@ -324,13 +324,7 @@
           </form>
 
           <!-- 底部信息 -->
-          <div class="form-footer">
-            <div class="version-info">v{{ APP_VERSION }}</div>
-            <div class="status-indicator">
-              <span class="status-dot" />
-              <span>系统正常运行</span>
-            </div>
-          </div>
+          <div class="form-footer">请使用授权账号登录</div>
         </div>
       </div>
     </div>
@@ -349,7 +343,6 @@ import ThemeToggle from '@/components/common/ThemeToggle.vue'
 import LoginLogo from '@/components/common/LoginLogo.vue'
 import BrandFeatures from '@/components/common/BrandFeatures.vue'
 import { useLoginForm } from '@/composables/useLoginForm'
-import { APP_VERSION } from '@/constants/app'
 
 const {
   loading,
@@ -1253,69 +1246,25 @@ html:not(.dark) .login-button:disabled {
 /* 表单底部 */
 .form-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   margin-top: 40px;
   padding-top: 24px;
   border-top: 1px solid;
+  font-size: 12px;
   transition: border-color 0.3s ease;
 }
 
 /* 暗黑模式底部 */
 html.dark .form-footer {
   border-top: 1px solid rgb(var(--color-industrial-light-surface-rgb) / 5%);
-}
-
-html.dark .version-info {
   color: rgb(var(--color-industrial-light-surface-rgb) / 30%);
-}
-
-html.dark .status-indicator {
-  color: rgb(var(--color-industrial-light-surface-rgb) / 40%);
 }
 
 /* 亮模式底部 */
 html:not(.dark) .form-footer {
   border-top: 1px solid #e4e7ed;
-}
-
-html:not(.dark) .version-info {
   color: #909399;
-}
-
-html:not(.dark) .status-indicator {
-  color: #606266;
-}
-
-.version-info {
-  font-size: 12px;
-  font-family: 'JetBrains Mono', monospace;
-}
-
-.status-indicator {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  background: var(--color-success);
-  border-radius: 50%;
-  animation: statusPulse 2s ease-in-out infinite;
-  box-shadow: 0 0 10px rgb(var(--color-success-rgb) / 50%);
-}
-
-@keyframes statusPulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
 }
 
 /* ==================== 角落装饰 ==================== */

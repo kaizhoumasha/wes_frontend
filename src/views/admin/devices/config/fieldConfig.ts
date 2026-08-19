@@ -14,7 +14,11 @@ import {
   DeviceResponseMetadata,
   DeviceUpdateMetadata
 } from '@/api/generated/openapi-metadata'
-import { DeviceCreateSchema, DeviceUpdateSchema } from '@/types/zod-extensions'
+import { z } from 'zod'
+import {
+  DeviceCreateSchema as GeneratedDeviceCreateSchema,
+  DeviceUpdateSchema as GeneratedDeviceUpdateSchema
+} from '@/types/zod-extensions'
 import {
   defineCrudResourceFieldBundle
 } from '@/components/common/crud-page/resourceFieldBuilder'
@@ -28,7 +32,8 @@ const DEVICE_FIELD_LABEL_OVERRIDES = {
   is_active: '是否激活',
   work_line_id: '作业线',
   upstream_device_id: '上游设备',
-  sort_order: '排序号'
+  sort_order: '排序号',
+  endpoint_base_url: '设备 Endpoint'
 } as const
 
 export const DEVICE_TABLE_STORAGE_KEY = 'wes-device-table-columns'
@@ -39,9 +44,26 @@ export const deviceSearchConfig = {
   favorites: []
 }
 
+const createEndpointInput = z.preprocess(
+  value => value === '' ? null : value,
+  GeneratedDeviceCreateSchema.shape.endpoint_base_url
+)
+const updateEndpointInput = z.preprocess(
+  value => value === '' ? null : value,
+  GeneratedDeviceUpdateSchema.shape.endpoint_base_url
+)
+
+export const DeviceCreateFormSchema = GeneratedDeviceCreateSchema.extend({
+  endpoint_base_url: createEndpointInput
+})
+
+export const DeviceUpdateFormSchema = GeneratedDeviceUpdateSchema.extend({
+  endpoint_base_url: updateEndpointInput
+})
+
 export const deviceFormConfig = {
-  createSchema: DeviceCreateSchema,
-  updateSchema: DeviceUpdateSchema
+  createSchema: DeviceCreateFormSchema,
+  updateSchema: DeviceUpdateFormSchema
 }
 
 /**
@@ -133,6 +155,14 @@ export const {
       form: {
         type: 'textarea',
         defaultValue: null
+      }
+    },
+    {
+      key: 'endpoint_base_url',
+      form: {
+        type: 'input',
+        defaultValue: null,
+        placeholder: '例如 http://192.168.10.20:8000'
       }
     },
     {

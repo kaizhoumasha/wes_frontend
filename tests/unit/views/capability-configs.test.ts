@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createUserPageConfig } from '@/views/admin/users/config/pageConfig'
 import { createRolePageConfig } from '@/views/admin/roles/config/pageConfig'
 import { createDevicePageConfig } from '@/views/admin/devices/config/pageConfig'
@@ -7,17 +7,27 @@ import { createAPIApplicationPageConfig } from '@/views/admin/api-applications/c
 import { createAuditLogPageConfig } from '@/views/logs/audit/config/pageConfig'
 import { createAPIAccessLogPageConfig } from '@/views/logs/api-access/config/pageConfig'
 
-function hasTrashCapability(value: unknown): value is { getTrash: (...args: unknown[]) => unknown } {
-  return typeof value === 'object' && value !== null && 'getTrash' in value && typeof (value as { getTrash?: unknown }).getTrash === 'function'
+function hasTrashCapability(
+  value: unknown
+): value is { getTrash: (...args: unknown[]) => unknown } {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'getTrash' in value &&
+    typeof (value as { getTrash?: unknown }).getTrash === 'function'
+  )
 }
 
 describe('capability configs', () => {
   it('soft-delete admin pages enable trash feature and expose getTrash capability on request adapters', () => {
     const configs = [
-      createUserPageConfig(() => undefined, () => undefined),
+      createUserPageConfig(
+        () => undefined,
+        () => undefined
+      ),
       createRolePageConfig(),
       createDevicePageConfig(),
-      createWorkLinePageConfig(),
+      createWorkLinePageConfig(vi.fn(), vi.fn()),
       createAPIApplicationPageConfig()
     ]
 

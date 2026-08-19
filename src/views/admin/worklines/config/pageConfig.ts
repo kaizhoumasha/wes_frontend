@@ -13,6 +13,7 @@ import {
   createBooleanTagFormatter,
   createStatusTagFormatter
 } from '@/components/common/table/formatters'
+import { createWorkLineRowActions } from './actionConfig'
 import { createWorkLineFormFieldConfig, workLinePageFieldConfig } from './fieldConfig'
 
 const lineTypeFormatter = createStatusTagFormatter({
@@ -117,7 +118,10 @@ function createWorklineDetailConfig(): CrudPageDetailConfig<Workline> {
   }
 }
 
-export function createWorkLinePageConfig(): WorklinePageConfig {
+export function createWorkLinePageConfig(
+  openConfig: (workline: Workline) => void,
+  openStart: (workline: Workline) => void
+): WorklinePageConfig {
   return createCrudPageConfigFromResource<Workline, CreateWorklineInput, UpdateWorklineInput>({
     resource: WORKLINE_PAGE_RESOURCE,
     fieldConfig: workLinePageFieldConfig,
@@ -127,7 +131,7 @@ export function createWorkLinePageConfig(): WorklinePageConfig {
     detail: createWorklineDetailConfig(),
     features: WORKLINE_PAGE_FEATURES,
     extensions: {
-      rowActions: []
+      rowActions: createWorkLineRowActions(openConfig, openStart)
     }
   })
 }

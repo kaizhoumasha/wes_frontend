@@ -4838,13 +4838,14 @@
         }
       }
     },
-    "/api/v1/workline/operations/sandbox/worklines/{workline_id}/start": {
+    "/api/v1/workline/operations/worklines/{workline_id}/start": {
       "post": {
         "tags": [
           "工作线诊断操作"
         ],
-        "summary": "[biz:workline:update] 沙箱模拟现场硬件 START",
-        "operationId": "workline_operations_sandbox_worklines_by_workline_id_start_post",
+        "summary": "[biz:workline:start] 启动 WorkLine 并激活运行代际",
+        "description": "In one transaction replay or create the complete Epoch, then wake SYSTEM outbox.",
+        "operationId": "workline_operations_worklines_by_workline_id_start_post",
         "security": [
           {
             "HTTPBearer": []
@@ -4866,18 +4867,38 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboxWorklineStartRequest"
+                "$ref": "#/components/schemas/WorkLineStartRequest"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "START 成功或幂等 replay 成功",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_SandboxWorklineStartResponse_"
+                  "$ref": "#/components/schemas/ResponseSchemaModel_WorkLineStartResponse_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WorkLine 不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_WorkLineStartErrorResponse_"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "START 状态或幂等身份冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_WorkLineStartErrorResponse_"
                 }
               }
             }
@@ -4888,6 +4909,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "START 服务不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_WorkLineStartErrorResponse_"
                 }
               }
             }
@@ -13308,6 +13339,18 @@
             "additionalProperties": true,
             "type": "object",
             "title": "Diagnostic Profile"
+          },
+          "endpoint_base_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint Base Url"
           }
         },
         "additionalProperties": false,
@@ -13398,6 +13441,18 @@
             "additionalProperties": true,
             "type": "object",
             "title": "Diagnostic Profile"
+          },
+          "endpoint_base_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint Base Url"
           },
           "id": {
             "type": "integer",
@@ -13539,6 +13594,18 @@
               }
             ],
             "title": "Diagnostic Profile"
+          },
+          "endpoint_base_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint Base Url"
           },
           "version": {
             "type": "integer",
@@ -20093,7 +20160,7 @@
         "type": "object",
         "title": "ResponseSchemaModel[RoleResponse]"
       },
-      "ResponseSchemaModel_SandboxWorklineStartResponse_": {
+      "ResponseSchemaModel_Union_WorkLineStartResponse__WorkLineStartErrorResponse__": {
         "properties": {
           "code": {
             "type": "string",
@@ -20118,12 +20185,16 @@
           "data": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/SandboxWorklineStartResponse"
+                "$ref": "#/components/schemas/WorkLineStartResponse"
+              },
+              {
+                "$ref": "#/components/schemas/WorkLineStartErrorResponse"
               },
               {
                 "type": "null"
               }
             ],
+            "title": "Data",
             "description": "响应数据"
           },
           "timestamp": {
@@ -20136,7 +20207,7 @@
           }
         },
         "type": "object",
-        "title": "ResponseSchemaModel[SandboxWorklineStartResponse]"
+        "title": "ResponseSchemaModel[Union[WorkLineStartResponse, WorkLineStartErrorResponse]]"
       },
       "ResponseSchemaModel_UserPermissionsResponse_": {
         "properties": {
@@ -20362,6 +20433,96 @@
         },
         "type": "object",
         "title": "ResponseSchemaModel[WorkLineResponse]"
+      },
+      "ResponseSchemaModel_WorkLineStartErrorResponse_": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "响应码",
+            "default": "1000",
+            "examples": [
+              "1000",
+              "2000"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "响应消息",
+            "default": "操作成功",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ]
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkLineStartErrorResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp",
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ResponseSchemaModel[WorkLineStartErrorResponse]"
+      },
+      "ResponseSchemaModel_WorkLineStartResponse_": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "响应码",
+            "default": "1000",
+            "examples": [
+              "1000",
+              "2000"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "响应消息",
+            "default": "操作成功",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ]
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkLineStartResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp",
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ResponseSchemaModel[WorkLineStartResponse]"
       },
       "ResponseSchemaModel_WorklineActiveObjectsResponse_": {
         "properties": {
@@ -21176,110 +21337,6 @@
         ],
         "title": "SandboxExternalCallbackRequest",
         "description": "沙箱 External HTTP 回调模拟请求。"
-      },
-      "SandboxWorklineStartRequest": {
-        "properties": {
-          "device_code": {
-            "type": "string",
-            "maxLength": 100,
-            "minLength": 1,
-            "title": "Device Code",
-            "description": "触发 START 的设备编码"
-          },
-          "trace_id": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 200
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Trace Id",
-            "description": "Trace ID（可选，自动生成）"
-          }
-        },
-        "type": "object",
-        "required": [
-          "device_code"
-        ],
-        "title": "SandboxWorklineStartRequest",
-        "description": "沙箱 WorkLine START 请求。"
-      },
-      "SandboxWorklineStartResponse": {
-        "properties": {
-          "status": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Status"
-          },
-          "ack": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Ack"
-          },
-          "device_code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Device Code"
-          },
-          "trace_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Trace Id"
-          },
-          "reason_code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Reason Code"
-          },
-          "diagnostic": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Diagnostic"
-          }
-        },
-        "type": "object",
-        "title": "SandboxWorklineStartResponse",
-        "description": "沙箱 WorkLine START 准入结果。"
       },
       "SessionInfo": {
         "properties": {
@@ -22214,6 +22271,128 @@
         ],
         "title": "WorkLineRunMode",
         "description": "作业线运行模式枚举。"
+      },
+      "WorkLineStartErrorResponse": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "enum": [
+              "WORKLINE_NOT_FOUND",
+              "INVALID_STATE",
+              "CONFIGURATION_INVALID",
+              "IDEMPOTENCY_CONFLICT",
+              "SERVICE_UNAVAILABLE"
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "WorkLineStartErrorResponse",
+        "description": "Stable machine-readable START rejection."
+      },
+      "WorkLineStartRequest": {
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Request Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "request_id"
+        ],
+        "title": "WorkLineStartRequest",
+        "description": "Stable identity for one WorkLine START attempt."
+      },
+      "WorkLineStartResponse": {
+        "properties": {
+          "line_run_epoch_id": {
+            "type": "integer",
+            "title": "Line Run Epoch Id"
+          },
+          "epoch_code": {
+            "type": "string",
+            "title": "Epoch Code"
+          },
+          "workline_id": {
+            "type": "integer",
+            "title": "Workline Id"
+          },
+          "plugin_key": {
+            "type": "string",
+            "title": "Plugin Key"
+          },
+          "plugin_version": {
+            "type": "string",
+            "title": "Plugin Version"
+          },
+          "flow_mode": {
+            "type": "string",
+            "title": "Flow Mode"
+          },
+          "epoch_status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "CLOSED"
+            ],
+            "title": "Epoch Status"
+          },
+          "epoch_started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Epoch Started At"
+          },
+          "epoch_closed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Epoch Closed At"
+          },
+          "current_workline_runtime_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Workline Runtime Status"
+          },
+          "created": {
+            "type": "boolean",
+            "title": "Created"
+          }
+        },
+        "type": "object",
+        "required": [
+          "line_run_epoch_id",
+          "epoch_code",
+          "workline_id",
+          "plugin_key",
+          "plugin_version",
+          "flow_mode",
+          "epoch_status",
+          "epoch_started_at",
+          "epoch_closed_at",
+          "current_workline_runtime_status",
+          "created"
+        ],
+        "title": "WorkLineStartResponse",
+        "description": "Frozen Epoch identity and the current WorkLine projection."
       },
       "WorkLineStateTransitionRequest": {
         "properties": {
