@@ -1,4 +1,4 @@
-import { defineComponent, h, nextTick } from 'vue'
+import { nextTick } from 'vue'
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import CrudFormDialog from '@/components/common/CrudFormDialog.vue'
@@ -9,23 +9,6 @@ import {
   DeviceUpdateFormSchema,
   devicePageFieldConfig
 } from '@/views/admin/devices/config/fieldConfig'
-
-const StandardDialogStub = defineComponent({
-  name: 'StandardDialog',
-  emits: ['update:modelValue', 'confirm'],
-  setup(_, { emit, slots }) {
-    return () => h('div', [
-      slots.default?.(),
-      h('button', { onClick: () => emit('confirm') }, 'confirm')
-    ])
-  }
-})
-
-const SlotStub = defineComponent({
-  setup(_, { slots }) {
-    return () => h('div', slots.default?.())
-  }
-})
 
 function mountDeviceForm(options: {
   editId: number | null
@@ -42,18 +25,21 @@ function mountDeviceForm(options: {
     },
     global: {
       stubs: {
-        StandardDialog: StandardDialogStub,
-        ElForm: SlotStub,
-        ElFormItem: SlotStub,
-        ElInput: SlotStub,
-        ElSelect: SlotStub,
-        ElOption: SlotStub,
-        ElSwitch: SlotStub,
-        ElCheckboxGroup: SlotStub,
-        ElCheckbox: SlotStub,
-        ElInputNumber: SlotStub,
-        ElTreeSelect: SlotStub,
-        ElDatePicker: SlotStub
+        StandardDialog: {
+          emits: ['confirm'],
+          template: '<div><slot /><button data-testid="confirm" @click="$emit(\'confirm\')" /></div>'
+        },
+        ElForm: { template: '<div><slot /></div>' },
+        ElFormItem: { template: '<div><slot /></div>' },
+        ElInput: { template: '<div><slot /></div>' },
+        ElSelect: { template: '<div><slot /></div>' },
+        ElOption: { template: '<div><slot /></div>' },
+        ElSwitch: { template: '<div><slot /></div>' },
+        ElCheckboxGroup: { template: '<div><slot /></div>' },
+        ElCheckbox: { template: '<div><slot /></div>' },
+        ElInputNumber: { template: '<div><slot /></div>' },
+        ElTreeSelect: { template: '<div><slot /></div>' },
+        ElDatePicker: { template: '<div><slot /></div>' }
       }
     }
   })
@@ -87,7 +73,7 @@ describe('Device Endpoint form', () => {
     await nextTick()
 
     await setFieldValue(wrapper, 'endpoint_base_url', '')
-    wrapper.findComponent(StandardDialogStub).vm.$emit('confirm')
+    await wrapper.get('[data-testid="confirm"]').trigger('click')
     await flushPromises()
     await new Promise(resolve => setTimeout(resolve, 20))
 
@@ -105,7 +91,7 @@ describe('Device Endpoint form', () => {
     await setFieldValue(wrapper, 'device_name', '测量设备 01')
     await setFieldValue(wrapper, 'device_role', 'MEASUREMENT_DEVICE')
     await setFieldValue(wrapper, 'endpoint_base_url', '')
-    wrapper.findComponent(StandardDialogStub).vm.$emit('confirm')
+    await wrapper.get('[data-testid="confirm"]').trigger('click')
     await flushPromises()
     await new Promise(resolve => setTimeout(resolve, 20))
 
