@@ -10,7 +10,28 @@ import {
 describe('WorkLine START request identity', () => {
   beforeEach(() => sessionStorage.clear())
 
-  afterEach(() => vi.useRealTimers())
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+  })
+
+  it('generates and reuses a UUID-v4 request id without randomUUID on plain HTTP', () => {
+    const getRandomValues = vi.fn((bytes: Uint8Array) => {
+      bytes.fill(0xff)
+      return bytes
+    })
+    vi.stubGlobal('crypto', { getRandomValues })
+
+    const first = ensurePendingStartRequest(7)
+    const replay = ensurePendingStartRequest(7)
+
+    expect(globalThis.crypto.randomUUID).toBeUndefined()
+    expect(first).toBe('ffffffff-ffff-4fff-bfff-ffffffffffff')
+    expect(first).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)
+    expect(replay).toBe(first)
+    expect(sessionStorage.getItem('wes:workline:start:7')).toBe(first)
+    expect(getRandomValues).toHaveBeenCalledOnce()
+  })
 
   it('keeps one request id per WorkLine without a timestamp or TTL', () => {
     const first = ensurePendingStartRequest(7, () => 'request-7')

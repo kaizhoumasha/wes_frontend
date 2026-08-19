@@ -129,9 +129,6 @@ describe('WorkLineStartDialog', () => {
     vi.restoreAllMocks()
     vi.clearAllMocks()
     mocks.worklinesStart.mockImplementation(() => ({ send: mocks.send }))
-    vi.spyOn(globalThis.crypto, 'randomUUID')
-      .mockReturnValueOnce('00000000-0000-4000-8000-000000000007')
-      .mockReturnValueOnce('00000000-0000-4000-8000-000000000008')
   })
 
   it('opens the selected WorkLine in an idle confirmation view', () => {
@@ -195,6 +192,28 @@ describe('WorkLineStartDialog', () => {
     )
   })
 
+  it('shows an actionable local preparation error and retries without sending a second intent', async () => {
+    const getRandomValues = vi
+      .spyOn(globalThis.crypto, 'getRandomValues')
+      .mockImplementationOnce(() => {
+        throw new Error('random source unavailable')
+      })
+    mocks.send.mockResolvedValueOnce(successResponse)
+    const wrapper = mountDialog()
+
+    await confirm(wrapper)
+
+    expect(wrapper.text()).toContain('本地无法生成或保存 START 请求标识')
+    expect(wrapper.text()).toContain('未发送任何请求')
+    expect(standardDialog(wrapper).props('showFooter')).toBe(true)
+    expect(worklineApiMethods.worklinesStart).not.toHaveBeenCalled()
+    expect(readPendingStartRequest(workline.id)).toBeNull()
+
+    getRandomValues.mockRestore()
+    await confirm(wrapper)
+    await vi.waitFor(() => expect(worklineApiMethods.worklinesStart).toHaveBeenCalledOnce())
+  })
+
   it.each([
     ['WORKLINE_NOT_FOUND', '工作线不存在或已删除'],
     ['INVALID_STATE', '当前工作线状态不允许创建新的运行代际'],
@@ -255,7 +274,11 @@ describe('WorkLineStartDialog', () => {
     expect(worklineApiMethods.worklinesStart).toHaveBeenNthCalledWith(
       2,
       { workline_id: 8 },
-      { request_id: '00000000-0000-4000-8000-000000000008' }
+      {
+        request_id: expect.stringMatching(
+          /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+        )
+      }
     )
   })
 

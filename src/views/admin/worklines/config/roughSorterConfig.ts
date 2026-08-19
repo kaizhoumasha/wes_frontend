@@ -6,13 +6,6 @@ export const ROUGH_SORTER_DEVICE_ROLES = [
   'PLACEMENT_DEVICE'
 ] as const
 
-export const ROUGH_SORTER_POSITION_ROLES = [
-  'MEASUREMENT_POSITION',
-  'PIPELINE_INLET',
-  'PIPELINE_OUTLET',
-  'NG_POSITION'
-] as const
-
 const requiredText = z.string().trim().min(1)
 const positiveInteger = z.number().int().positive()
 

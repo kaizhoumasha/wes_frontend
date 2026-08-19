@@ -27,9 +27,10 @@ const DEVICE_ROLE_LABELS: Record<(typeof ROUGH_SORTER_DEVICE_ROLES)[number], str
 }
 
 const props = defineProps<{ workline: Workline | null }>()
-const visible = defineModel<boolean>({ default: false })
+const modelValue = defineModel<boolean>({ default: false })
 const refresh = inject(CRUD_PAGE_REFRESH_KEY)
 const { hasPermission } = usePermission()
+const sessionVisible = ref(false)
 const currentWorkline = ref<Workline | null>(null)
 const form = ref<RoughSorterConfig>(createEmptyRoughSorterConfig())
 const errors = ref<string[]>([])
@@ -40,6 +41,15 @@ let loadSequence = 0
 
 const canUpdate = computed(() => hasPermission(BIZ_PERMISSIONS.workline.update))
 const readonly = computed(() => currentWorkline.value?.is_active === true || !canUpdate.value)
+const formDisabled = computed(() => readonly.value || submitting.value)
+const dialogVisible = computed({
+  get: () => sessionVisible.value,
+  set: value => {
+    if (!value && submitting.value) return
+    sessionVisible.value = value
+    if (modelValue.value !== value) modelValue.value = value
+  }
+})
 
 function resetLoadState(): void {
   currentWorkline.value = null
@@ -48,11 +58,10 @@ function resetLoadState(): void {
   loadFailed.value = false
 }
 
-async function loadLatest(): Promise<void> {
-  const row = props.workline
+async function loadLatest(row: Workline): Promise<void> {
   const sequence = ++loadSequence
   resetLoadState()
-  if (!visible.value || !row) return
+  if (!sessionVisible.value) return
   loading.value = true
   try {
     const latest = await workLinesApiMethods.getById(row.id).send()
@@ -86,27 +95,37 @@ async function submit(): Promise<void> {
       config: mergeRoughSorterConfig(currentWorkline.value.config, parsed.data)
     } satisfies UpdateWorkLinesInput
     await workLinesApiMethods.update(currentWorkline.value.id, payload).send()
-    visible.value = false
-    ElMessage.success('粗分机配置保存成功')
-    if (refresh) {
-      try {
-        await refresh()
-      } catch {
-        ElMessage.warning('保存成功，列表刷新失败，请手动刷新')
-      }
-    }
   } catch (error) {
     ElMessage.error(`保存粗分机配置失败：${getSafeErrorMessage(error)}`)
+    return
   } finally {
     submitting.value = false
+  }
+  dialogVisible.value = false
+  ElMessage.success('粗分机配置保存成功')
+  if (refresh) {
+    try {
+      await refresh()
+    } catch {
+      ElMessage.warning('保存成功，列表刷新失败，请手动刷新')
+    }
   }
 }
 
 watch(
-  [visible, () => props.workline?.id],
-  ([isOpen]) => {
-    if (isOpen) void loadLatest()
-    else {
+  modelValue,
+  isOpen => {
+    if (!isOpen && submitting.value) return
+    sessionVisible.value = isOpen
+  },
+  { immediate: true }
+)
+
+watch(
+  sessionVisible,
+  (isOpen, wasOpen) => {
+    if (isOpen && !wasOpen && props.workline) void loadLatest(props.workline)
+    else if (!isOpen && wasOpen) {
       ++loadSequence
       resetLoadState()
     }
@@ -117,13 +136,15 @@ watch(
 
 <template>
   <StandardDialog
-    v-model="visible"
+    v-model="dialogVisible"
     :title="`粗分机配置${currentWorkline ? `：${currentWorkline.line_name}` : ''}`"
     size="xl"
     confirm-text="保存配置"
     confirm-icon="lucide:save"
+    :closable="!submitting"
+    :hide-cancel="submitting"
     :confirm-loading="submitting"
-    :confirm-disabled="loading || loadFailed || readonly || !currentWorkline"
+    :confirm-disabled="loading || loadFailed || readonly || submitting || !currentWorkline"
     @confirm="submit"
   >
     <div
@@ -180,35 +201,35 @@ watch(
             <ElInput
               v-model="form.device_contracts[role].ecs_version"
               :data-field="`${role}.ecs_version`"
-              :disabled="readonly"
+              :disabled="formDisabled"
             />
           </ElFormItem>
           <ElFormItem label="网关合同版本">
             <ElInput
               v-model="form.device_contracts[role].gateway_version"
               :data-field="`${role}.gateway_version`"
-              :disabled="readonly"
+              :disabled="formDisabled"
             />
           </ElFormItem>
           <ElFormItem label="设备型号">
             <ElInput
               v-model="form.device_contracts[role].device_model"
               :data-field="`${role}.device_model`"
-              :disabled="readonly"
+              :disabled="formDisabled"
             />
           </ElFormItem>
           <ElFormItem label="固件版本">
             <ElInput
               v-model="form.device_contracts[role].firmware_version"
               :data-field="`${role}.firmware_version`"
-              :disabled="readonly"
+              :disabled="formDisabled"
             />
           </ElFormItem>
           <ElFormItem label="状态最大时效（毫秒）">
             <ElInputNumber
               v-model="form.device_contracts[role].status_max_age_ms"
               :data-field="`${role}.status_max_age_ms`"
-              :disabled="readonly"
+              :disabled="formDisabled"
               :min="1"
             />
           </ElFormItem>
@@ -216,7 +237,7 @@ watch(
             <ElInputNumber
               v-model="form.device_contracts[role].command_timeout_ms"
               :data-field="`${role}.command_timeout_ms`"
-              :disabled="readonly"
+              :disabled="formDisabled"
               :min="1"
             />
           </ElFormItem>
@@ -224,14 +245,14 @@ watch(
             <ElInput
               v-model="form.device_contracts[role].time_source"
               :data-field="`${role}.time_source`"
-              :disabled="readonly"
+              :disabled="formDisabled"
             />
           </ElFormItem>
           <ElFormItem label="允许时钟偏差（毫秒）">
             <ElInputNumber
               v-model="form.device_contracts[role].allowed_clock_skew_ms"
               :data-field="`${role}.allowed_clock_skew_ms`"
-              :disabled="readonly"
+              :disabled="formDisabled"
               :min="1"
             />
           </ElFormItem>
@@ -239,7 +260,7 @@ watch(
             <ElInputNumber
               v-model="form.device_contracts[role].callback_retry_window_ms"
               :data-field="`${role}.callback_retry_window_ms`"
-              :disabled="readonly"
+              :disabled="formDisabled"
               :min="1"
             />
           </ElFormItem>
@@ -247,7 +268,7 @@ watch(
             <ElInputNumber
               v-model="form.device_contracts[role].evidence_retention_days"
               :data-field="`${role}.evidence_retention_days`"
-              :disabled="readonly"
+              :disabled="formDisabled"
               :min="1"
             />
           </ElFormItem>
@@ -261,7 +282,7 @@ watch(
             <ElInput
               v-model="form.position_bindings.MEASUREMENT_POSITION"
               data-field="MEASUREMENT_POSITION"
-              :disabled="readonly"
+              :disabled="formDisabled"
               maxlength="120"
             />
           </ElFormItem>
@@ -269,7 +290,7 @@ watch(
             <ElInput
               v-model="form.position_bindings.PIPELINE_INLET"
               data-field="PIPELINE_INLET"
-              :disabled="readonly"
+              :disabled="formDisabled"
               maxlength="120"
             />
           </ElFormItem>
@@ -277,7 +298,7 @@ watch(
             <ElInput
               v-model="form.position_bindings.PIPELINE_OUTLET"
               data-field="PIPELINE_OUTLET"
-              :disabled="readonly"
+              :disabled="formDisabled"
               maxlength="120"
             />
           </ElFormItem>
@@ -285,7 +306,7 @@ watch(
             <ElInput
               v-model="form.position_bindings.NG_POSITION"
               data-field="NG_POSITION"
-              :disabled="readonly"
+              :disabled="formDisabled"
               maxlength="120"
             />
           </ElFormItem>

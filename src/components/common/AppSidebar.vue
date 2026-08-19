@@ -124,8 +124,6 @@ html.dark .app-sidebar {
   --menu-icon-glow: rgb(var(--color-primary-rgb) / 30%);
   --menu-opened-bg: rgb(var(--color-industrial-dark-surface-rgb) / 30%);
   --menu-opened-color: rgb(var(--color-industrial-light-surface-rgb) / 90%);
-  --footer-border: rgb(var(--color-industrial-dark-text-secondary-rgb) / 12%);
-  --footer-color: rgb(var(--color-industrial-light-surface-rgb) / 30%);
   --scrollbar-thumb: rgb(var(--color-industrial-dark-text-secondary-rgb) / 15%);
   --scrollbar-thumb-hover: rgb(var(--color-industrial-dark-text-secondary-rgb) / 25%);
 }
@@ -148,8 +146,6 @@ html:not(.dark) .app-sidebar {
   --menu-icon-glow: rgb(var(--color-primary-rgb) / 50%);
   --menu-opened-bg: #f5f7fa;
   --menu-opened-color: #303133;
-  --footer-border: #e4e7ed;
-  --footer-color: #909399;
   --scrollbar-thumb: rgb(0 0 0 / 10%);
   --scrollbar-thumb-hover: rgb(0 0 0 / 20%);
 }

@@ -14,6 +14,7 @@ export type WorkLineStartViewState =
   | 'submitting'
   | 'succeeded'
   | 'rejected'
+  | 'preparation-failed'
   | 'delivery-unknown'
 
 export function useWorkLineStart(
@@ -33,17 +34,31 @@ export function useWorkLineStart(
     workline.value = row
     result.value = null
     rejectionReason.value = null
-    state.value = readPendingStartRequest(row.id) ? 'delivery-unknown' : 'idle'
+    try {
+      state.value = readPendingStartRequest(row.id) ? 'delivery-unknown' : 'idle'
+    } catch {
+      state.value = 'preparation-failed'
+    }
   }
 
   async function submit(): Promise<void> {
-    if (!workline.value || (state.value !== 'idle' && state.value !== 'delivery-unknown')) return
+    if (
+      !workline.value ||
+      (state.value !== 'idle' &&
+        state.value !== 'delivery-unknown' &&
+        state.value !== 'preparation-failed')
+    ) {
+      return
+    }
 
     const row = workline.value
-    const requestId = ensurePendingStartRequest(
-      row.id,
-      options.createRequestId ?? (() => crypto.randomUUID())
-    )
+    let requestId: string
+    try {
+      requestId = ensurePendingStartRequest(row.id, options.createRequestId)
+    } catch {
+      state.value = 'preparation-failed'
+      return
+    }
     state.value = 'submitting'
 
     try {

@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { WorkLinesItem as Workline } from '@/api/modules/workLines'
 import { workLinesApiMethods } from '@/api/modules/workLines'
 import { CRUD_PAGE_REFRESH_KEY } from '@/components/common/crud-page/types'
+import StandardDialog from '@/components/ui/StandardDialog/StandardDialog.vue'
 import RoughSorterConfigDialog from '@/views/admin/worklines/components/RoughSorterConfigDialog.vue'
 import { createEmptyRoughSorterConfig } from '@/views/admin/worklines/config/roughSorterConfig'
 
@@ -41,29 +42,37 @@ vi.mock('element-plus', () => ({
   }
 }))
 
-const StandardDialogStub = defineComponent({
-  name: 'StandardDialog',
+const ButtonStub = defineComponent({
+  name: 'ElButton',
+  inheritAttrs: false,
   props: {
-    modelValue: { type: Boolean, required: true },
-    confirmDisabled: Boolean,
-    confirmLoading: Boolean
+    disabled: Boolean,
+    loading: Boolean,
+    type: { type: String, default: undefined },
+    nativeType: { type: String as PropType<'button' | 'submit' | 'reset'>, default: 'button' }
   },
-  emits: ['update:modelValue', 'confirm'],
-  setup(props, { emit, slots }) {
+  emits: ['click'],
+  setup(props, { attrs, emit, slots }) {
     return () =>
-      h('section', { 'data-testid': 'dialog' }, [
-        slots.default?.(),
-        h(
-          'button',
-          {
-            'data-testid': 'save',
-            disabled: props.confirmDisabled,
-            onClick: () => emit('confirm')
-          },
-          '保存'
-        )
-      ])
+      h(
+        'button',
+        {
+          ...attrs,
+          type: props.nativeType,
+          disabled: props.disabled || props.loading,
+          onClick: () => emit('click')
+        },
+        slots.default?.()
+      )
   }
+})
+
+const TooltipStub = defineComponent({
+  name: 'ElTooltip',
+  setup:
+    (_, { slots }) =>
+    () =>
+      slots.default?.()
 })
 
 const InputStub = defineComponent({
@@ -80,8 +89,9 @@ const InputStub = defineComponent({
         ...attrs,
         value: props.modelValue,
         disabled: props.disabled,
-        onInput: (event: Event) =>
-          emit('update:modelValue', (event.target as HTMLInputElement).value)
+        onInput: (event: Event) => {
+          if (!props.disabled) emit('update:modelValue', (event.target as HTMLInputElement).value)
+        }
       })
   }
 })
@@ -101,8 +111,11 @@ const InputNumberStub = defineComponent({
         type: 'number',
         value: props.modelValue,
         disabled: props.disabled,
-        onInput: (event: Event) =>
-          emit('update:modelValue', Number((event.target as HTMLInputElement).value))
+        onInput: (event: Event) => {
+          if (!props.disabled) {
+            emit('update:modelValue', Number((event.target as HTMLInputElement).value))
+          }
+        }
       })
   }
 })
@@ -172,7 +185,10 @@ function mountDialog(row: Workline, refresh = vi.fn().mockResolvedValue(undefine
       global: {
         provide: { [CRUD_PAGE_REFRESH_KEY as symbol]: refresh },
         stubs: {
-          StandardDialog: StandardDialogStub,
+          Teleport: true,
+          AppIcon: true,
+          ElButton: ButtonStub,
+          ElTooltip: TooltipStub,
           ElInput: InputStub,
           ElInputNumber: InputNumberStub,
           ElForm: defineComponent({
@@ -209,8 +225,12 @@ async function settle() {
 }
 
 async function submit(wrapper: VueWrapper) {
-  wrapper.findComponent(StandardDialogStub).vm.$emit('confirm')
+  standardDialog(wrapper).vm.$emit('confirm')
   await nextTick()
+}
+
+function standardDialog(wrapper: VueWrapper) {
+  return wrapper.findComponent(StandardDialog)
 }
 
 async function setField(wrapper: VueWrapper, field: string, value: string) {
@@ -248,19 +268,20 @@ describe('RoughSorterConfigDialog', () => {
     })
   })
 
-  it('clears a valid WorkLine immediately and blocks an invalid next WorkLine', async () => {
+  it('clears a valid WorkLine on close and blocks an invalid WorkLine after reopen', async () => {
     response(Promise.resolve(workline(11)))
     const { wrapper } = mountDialog(workline(11))
     await settle()
     expect(wrapper.find('[data-field="NG_POSITION"]').exists()).toBe(true)
 
+    await wrapper.setProps({ modelValue: false })
     let resolveInvalid!: (value: Workline) => void
     response(
       new Promise(resolve => {
         resolveInvalid = resolve
       })
     )
-    await wrapper.setProps({ workline: workline(12) })
+    await wrapper.setProps({ workline: workline(12), modelValue: true })
     expect(wrapper.find('[data-field="NG_POSITION"]').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('NG-01')
 
@@ -268,9 +289,29 @@ describe('RoughSorterConfigDialog', () => {
       workline(12, { config: { owner: 'WES', rough_sorter: { device_contracts: {} } } })
     )
     await vi.waitFor(() => expect(wrapper.text()).toContain('已阻止覆盖'))
-    expect(wrapper.find('[data-testid="save"]').attributes('disabled')).toBeDefined()
+    expect(standardDialog(wrapper).props('confirmDisabled')).toBe(true)
     await submit(wrapper)
     expect(workLinesApiMethods.update).not.toHaveBeenCalled()
+  })
+
+  it('binds one WorkLine until an actual close and reopen', async () => {
+    response(Promise.resolve(workline(11)))
+    const { wrapper } = mountDialog(workline(11))
+    await settle()
+
+    await wrapper.setProps({ workline: workline(12) })
+
+    expect(workLinesApiMethods.getById).toHaveBeenCalledOnce()
+    expect(wrapper.text()).toContain('作业线 11')
+    expect(wrapper.text()).not.toContain('作业线 12')
+
+    await wrapper.setProps({ modelValue: false })
+    response(Promise.resolve(workline(12)))
+    await wrapper.setProps({ modelValue: true })
+    await vi.waitFor(() => expect(workLinesApiMethods.getById).toHaveBeenCalledWith(12))
+
+    expect(wrapper.text()).toContain('作业线 12')
+    expect(wrapper.text()).not.toContain('作业线 11')
   })
 
   it('ignores stale success after the next WorkLine loads and updates only the next WorkLine', async () => {
@@ -285,8 +326,9 @@ describe('RoughSorterConfigDialog', () => {
       version: 9,
       config: { owner: 'B', rough_sorter: roughSorterB }
     })
+    await wrapper.setProps({ modelValue: false })
     response(Promise.resolve(latestB))
-    await wrapper.setProps({ workline: workline(12) })
+    await wrapper.setProps({ workline: workline(12), modelValue: true })
     await vi.waitFor(() =>
       expect(wrapper.find<HTMLInputElement>('[data-field="NG_POSITION"]').element.value).toBe(
         'B-NG-01'
@@ -322,6 +364,7 @@ describe('RoughSorterConfigDialog', () => {
 
     const roughSorterB = validRoughSorter()
     roughSorterB.position_bindings.NG_POSITION = 'B-NG-01'
+    await wrapper.setProps({ modelValue: false })
     response(
       Promise.resolve(
         workline(12, {
@@ -329,7 +372,7 @@ describe('RoughSorterConfigDialog', () => {
         })
       )
     )
-    await wrapper.setProps({ workline: workline(12) })
+    await wrapper.setProps({ workline: workline(12), modelValue: true })
     await vi.waitFor(() =>
       expect(wrapper.find<HTMLInputElement>('[data-field="NG_POSITION"]').element.value).toBe(
         'B-NG-01'
@@ -344,7 +387,7 @@ describe('RoughSorterConfigDialog', () => {
       'B-NG-01'
     )
     expect(wrapper.text()).not.toContain('已阻止覆盖')
-    expect(wrapper.find('[data-testid="save"]').attributes('disabled')).toBeUndefined()
+    expect(standardDialog(wrapper).props('confirmDisabled')).toBe(false)
   })
 
   it.each([
@@ -372,7 +415,7 @@ describe('RoughSorterConfigDialog', () => {
     expect(
       wrapper.findAll('input').every(input => input.attributes('disabled') !== undefined)
     ).toBe(true)
-    expect(wrapper.find('[data-testid="save"]').attributes('disabled')).toBeDefined()
+    expect(standardDialog(wrapper).props('confirmDisabled')).toBe(true)
   })
 
   it('allows detail-only access to read but only update permission to save', async () => {
@@ -382,7 +425,7 @@ describe('RoughSorterConfigDialog', () => {
     await settle()
 
     expect(detailOnly.find('[data-field="NG_POSITION"]').exists()).toBe(true)
-    expect(detailOnly.find('[data-testid="save"]').attributes('disabled')).toBeDefined()
+    expect(standardDialog(detailOnly).props('confirmDisabled')).toBe(true)
     await submit(detailOnly)
     expect(workLinesApiMethods.update).not.toHaveBeenCalled()
     detailOnly.unmount()
@@ -417,8 +460,9 @@ describe('RoughSorterConfigDialog', () => {
     const { wrapper } = mountDialog(workline(11))
     await settle()
 
+    await wrapper.setProps({ modelValue: false })
     response(Promise.reject(new Error('network failed')))
-    await wrapper.setProps({ workline: workline(12) })
+    await wrapper.setProps({ workline: workline(12), modelValue: true })
     await vi.waitFor(() => expect(wrapper.text()).toContain('已阻止覆盖'))
 
     expect(wrapper.find('[data-field="NG_POSITION"]').exists()).toBe(false)
@@ -441,5 +485,82 @@ describe('RoughSorterConfigDialog', () => {
 
     expect(wrapper.emitted('update:modelValue')).toBeUndefined()
     expect(refresh).not.toHaveBeenCalled()
+  })
+
+  it('blocks every close and edit path while pending and keeps late failure in its session', async () => {
+    response(Promise.resolve(workline(11)))
+    const update = deferred<void>()
+    mocks.update.mockReturnValueOnce({ send: vi.fn().mockReturnValue(update.promise) })
+    const { wrapper } = mountDialog(workline(11))
+    await settle()
+    const originalNgPosition = wrapper.find<HTMLInputElement>('[data-field="NG_POSITION"]').element
+      .value
+
+    await submit(wrapper)
+    await submit(wrapper)
+
+    expect(workLinesApiMethods.update).toHaveBeenCalledOnce()
+    expect(standardDialog(wrapper).props()).toMatchObject({
+      modelValue: true,
+      closable: false,
+      hideCancel: true,
+      confirmLoading: true,
+      confirmDisabled: true
+    })
+    expect(wrapper.find('[aria-label="关闭对话框"]').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('取消')
+    expect(wrapper.findAll('input')).not.toHaveLength(0)
+    expect(
+      wrapper.findAll('input').every(input => input.attributes('disabled') !== undefined)
+    ).toBe(true)
+
+    await setField(wrapper, 'NG_POSITION', 'PENDING-EDIT')
+    await wrapper.find('.standard-dialog').trigger('keydown', { key: 'Escape' })
+    standardDialog(wrapper).vm.$emit('update:modelValue', false)
+    await wrapper.setProps({ workline: workline(12), modelValue: false })
+
+    expect(standardDialog(wrapper).props('modelValue')).toBe(true)
+    expect(wrapper.text()).toContain('作业线 11')
+    expect(wrapper.text()).not.toContain('作业线 12')
+
+    update.reject(new Error('version conflict'))
+    await vi.waitFor(() =>
+      expect(mocks.error).toHaveBeenCalledWith('保存粗分机配置失败：version conflict')
+    )
+
+    expect(standardDialog(wrapper).props('modelValue')).toBe(true)
+    expect(wrapper.find<HTMLInputElement>('[data-field="NG_POSITION"]').element.value).toBe(
+      originalNgPosition
+    )
+    expect(workLinesApiMethods.update).toHaveBeenCalledOnce()
+  })
+
+  it('lets late success close only the bound session and loads a new row only after reopen', async () => {
+    response(Promise.resolve(workline(11)))
+    const update = deferred<void>()
+    mocks.update.mockReturnValueOnce({ send: vi.fn().mockReturnValue(update.promise) })
+    const { wrapper } = mountDialog(workline(11))
+    await settle()
+
+    await submit(wrapper)
+    await wrapper.setProps({ workline: workline(12) })
+
+    expect(workLinesApiMethods.getById).toHaveBeenCalledOnce()
+    expect(wrapper.text()).toContain('作业线 11')
+
+    update.resolve()
+    await vi.waitFor(() => expect(wrapper.emitted('update:modelValue')).toContainEqual([false]))
+
+    expect(workLinesApiMethods.update).toHaveBeenCalledOnce()
+    expect(workLinesApiMethods.update).toHaveBeenCalledWith(11, expect.any(Object))
+
+    await wrapper.setProps({ modelValue: false })
+    response(Promise.resolve(workline(12)))
+    await wrapper.setProps({ modelValue: true })
+    await vi.waitFor(() => expect(workLinesApiMethods.getById).toHaveBeenCalledWith(12))
+
+    expect(wrapper.text()).toContain('作业线 12')
+    expect(wrapper.text()).not.toContain('作业线 11')
+    expect(workLinesApiMethods.update).toHaveBeenCalledOnce()
   })
 })

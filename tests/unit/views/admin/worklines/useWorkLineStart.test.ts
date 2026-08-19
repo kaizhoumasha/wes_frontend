@@ -126,6 +126,54 @@ describe('useWorkLineStart', () => {
     )
   })
 
+  it('reports local preparation failure and sends only one intent after a safe retry', async () => {
+    const createRequestId = vi
+      .fn()
+      .mockImplementationOnce(() => {
+        throw new Error('random source unavailable')
+      })
+      .mockReturnValueOnce('request-7')
+    mocks.send.mockResolvedValue(successResponse)
+    const start = useWorkLineStart({ createRequestId })
+
+    start.open(workline)
+    await start.submit()
+
+    expect(start.state.value).toBe('preparation-failed')
+    expect(readPendingStartRequest(workline.id)).toBeNull()
+    expect(worklineApiMethods.worklinesStart).not.toHaveBeenCalled()
+
+    await start.submit()
+
+    expect(worklineApiMethods.worklinesStart).toHaveBeenCalledOnce()
+    expect(worklineApiMethods.worklinesStart).toHaveBeenCalledWith(
+      { workline_id: 7 },
+      { request_id: 'request-7' }
+    )
+    expect(start.state.value).toBe('succeeded')
+  })
+
+  it('does not send when session storage cannot persist the request id', async () => {
+    const setItem = vi.spyOn(sessionStorage, 'setItem').mockImplementationOnce(() => {
+      throw new DOMException('storage unavailable', 'QuotaExceededError')
+    })
+    const start = useWorkLineStart({ createRequestId: () => 'request-7' })
+
+    start.open(workline)
+    await start.submit()
+
+    expect(start.state.value).toBe('preparation-failed')
+    expect(worklineApiMethods.worklinesStart).not.toHaveBeenCalled()
+    expect(readPendingStartRequest(workline.id)).toBeNull()
+    setItem.mockRestore()
+
+    mocks.send.mockResolvedValueOnce(successResponse)
+    await start.submit()
+
+    expect(worklineApiMethods.worklinesStart).toHaveBeenCalledOnce()
+    expect(start.state.value).toBe('succeeded')
+  })
+
   it('does not turn a terminal result into another intent without reopen', async () => {
     mocks.send.mockResolvedValue(successResponse)
     const start = useWorkLineStart({ createRequestId: () => 'request-7' })

@@ -19,7 +19,11 @@ const start = useWorkLineStart()
 const { state, result, rejectionReason, submitting } = start
 
 const showActionFooter = computed(
-  () => state.value === 'idle' || state.value === 'submitting' || state.value === 'delivery-unknown'
+  () =>
+    state.value === 'idle' ||
+    state.value === 'submitting' ||
+    state.value === 'preparation-failed' ||
+    state.value === 'delivery-unknown'
 )
 const dialogVisible = computed({
   get: () => modelValue.value,
@@ -66,6 +70,13 @@ watch(
       >
         确认启动此 WorkLine 并创建新的运行代际？
       </p>
+
+      <div
+        v-else-if="state === 'preparation-failed'"
+        class="workline-start-dialog__notice workline-start-dialog__notice--danger"
+      >
+        本地无法生成或保存 START 请求标识，未发送任何请求。请检查浏览器存储设置后重试。
+      </div>
 
       <div
         v-else-if="state === 'delivery-unknown'"
