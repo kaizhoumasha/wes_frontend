@@ -219,7 +219,47 @@ describe('WorkLineStartDialog', () => {
     }
   )
 
-  it('separates historical Epoch facts from the current projection and requires reopen to resubmit', async () => {
+  it('keeps a stable rejection bound to the original WorkLine until close and reopen', async () => {
+    mocks.send.mockRejectedValueOnce(
+      new ApiResponseError('4000', 'invalid', 'now', { reason: 'INVALID_STATE' })
+    )
+    const wrapper = mountDialog()
+
+    await confirm(wrapper)
+    await vi.waitFor(() => expect(wrapper.text()).toContain('当前工作线状态不允许创建新的运行代际'))
+
+    await wrapper.setProps({ workline: otherWorkline })
+
+    expect(wrapper.text()).toContain('当前工作线状态不允许创建新的运行代际')
+    expect(wrapper.text()).toContain('七号线')
+    expect(wrapper.text()).not.toContain('八号线')
+    expect(standardDialog(wrapper).props('showFooter')).toBe(false)
+    await confirm(wrapper)
+    expect(mocks.send).toHaveBeenCalledOnce()
+
+    await wrapper.setProps({ modelValue: false })
+    await wrapper.setProps({ modelValue: true })
+    expect(wrapper.text()).toContain('八号线')
+    expect(wrapper.text()).toContain('确认启动此 WorkLine 并创建新的运行代际？')
+    expect(standardDialog(wrapper).props('showFooter')).toBe(true)
+
+    mocks.send.mockResolvedValueOnce({
+      ...successResponse,
+      workline_id: 8,
+      line_run_epoch_id: 81,
+      epoch_code: 'request-8',
+      created: true
+    })
+    await confirm(wrapper)
+    await vi.waitFor(() => expect(mocks.send).toHaveBeenCalledTimes(2))
+    expect(worklineApiMethods.worklinesStart).toHaveBeenNthCalledWith(
+      2,
+      { workline_id: 8 },
+      { request_id: '00000000-0000-4000-8000-000000000008' }
+    )
+  })
+
+  it('keeps a success bound to the original WorkLine until close and reopen', async () => {
     mocks.send.mockResolvedValue(successResponse)
     const wrapper = mountDialog()
 
@@ -236,17 +276,38 @@ describe('WorkLineStartDialog', () => {
     expect(wrapper.text()).toContain('2026-08-20T02:00:00Z')
     expect(standardDialog(wrapper).props('showFooter')).toBe(false)
 
+    await wrapper.setProps({ workline: otherWorkline })
+
+    expect(wrapper.text()).toContain('幂等重放')
+    expect(wrapper.text()).toContain('七号线')
+    expect(wrapper.text()).not.toContain('八号线')
+    expect(standardDialog(wrapper).props('showFooter')).toBe(false)
     await confirm(wrapper)
     expect(mocks.send).toHaveBeenCalledOnce()
 
     await wrapper.setProps({ modelValue: false })
     await wrapper.setProps({ modelValue: true })
-    mocks.send.mockResolvedValueOnce({ ...successResponse, created: true })
+    expect(wrapper.text()).toContain('八号线')
+    expect(wrapper.text()).toContain('确认启动此 WorkLine 并创建新的运行代际？')
+    expect(standardDialog(wrapper).props('showFooter')).toBe(true)
+
+    mocks.send.mockResolvedValueOnce({
+      ...successResponse,
+      workline_id: 8,
+      line_run_epoch_id: 81,
+      epoch_code: 'request-8',
+      created: true
+    })
     await confirm(wrapper)
     await vi.waitFor(() => expect(mocks.send).toHaveBeenCalledTimes(2))
 
     const firstRequestId = mocks.worklinesStart.mock.calls[0]?.[1]?.request_id
     const secondRequestId = mocks.worklinesStart.mock.calls[1]?.[1]?.request_id
     expect(secondRequestId).not.toBe(firstRequestId)
+    expect(worklineApiMethods.worklinesStart).toHaveBeenNthCalledWith(
+      2,
+      { workline_id: 8 },
+      { request_id: secondRequestId }
+    )
   })
 })

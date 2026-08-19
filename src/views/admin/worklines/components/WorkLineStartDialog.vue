@@ -36,9 +36,9 @@ const rejectionMessage = computed(() =>
 )
 
 watch(
-  [dialogVisible, () => props.workline?.id],
-  ([isOpen]) => {
-    if (isOpen && props.workline) start.open(props.workline)
+  dialogVisible,
+  (isOpen, wasOpen) => {
+    if (isOpen && !wasOpen && props.workline) start.open(props.workline)
   },
   { immediate: true }
 )
