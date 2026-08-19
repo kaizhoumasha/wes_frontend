@@ -17,14 +17,17 @@ describe('admin page field configuration', () => {
     expect(() => createPermissionPageConfig()).not.toThrow()
     expect(() => createRolePageConfig()).not.toThrow()
     expect(() => createUserPageConfig(open, open)).not.toThrow()
-    expect(() => createWorkLinePageConfig()).not.toThrow()
+    expect(() => createWorkLinePageConfig(open, open)).not.toThrow()
   })
 
   it('does not expose runtime or debug cleanup actions from workline management', () => {
-    const config = createWorkLinePageConfig()
+    const config = createWorkLinePageConfig(vi.fn(), vi.fn())
 
     expect(config.detail?.actions ?? []).toEqual([])
-    expect(config.extensions?.rowActions ?? []).toEqual([])
+    expect(config.extensions?.rowActions?.map(action => action.key)).toEqual([
+      'rough-sorter-config',
+      'workline-start'
+    ])
     expect(config.extensions?.toolbarActions ?? []).toEqual([])
   })
 
