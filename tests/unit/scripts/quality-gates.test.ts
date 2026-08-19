@@ -245,6 +245,22 @@ describe.sequential('repository quality gates', () => {
     expect(buildIndex).toBeGreaterThan(lintIndex)
   })
 
+  it('binds the frontend image to the exact revision and source tree', () => {
+    const dockerfile = readFileSync(join(REPOSITORY_ROOT, 'Dockerfile'), 'utf-8')
+    const jenkinsfile = readFileSync(join(REPOSITORY_ROOT, 'Jenkinsfile'), 'utf-8')
+
+    expect(dockerfile).toContain('ARG WES_VCS_REVISION')
+    expect(dockerfile).toContain('ARG WES_SOURCE_TREE')
+    expect(dockerfile).toContain('org.opencontainers.image.revision="${WES_VCS_REVISION}"')
+    expect(dockerfile).toContain('com.zontec.wes.source-manifest="${WES_SOURCE_TREE}"')
+    expect(jenkinsfile).toContain(
+      "String sourceTree = sh(returnStdout: true, script: 'git rev-parse HEAD^{tree}').trim()"
+    )
+    expect(jenkinsfile).toContain('env.CI_SOURCE_TREE = sourceTree')
+    expect(jenkinsfile).toContain('--build-arg WES_VCS_REVISION="${CI_COMMIT_SHA}"')
+    expect(jenkinsfile).toContain('--build-arg WES_SOURCE_TREE="${CI_SOURCE_TREE}"')
+  })
+
   it('documents only explicit backend checkout permission commands', () => {
     const maintainedDocs = [
       'README.md',

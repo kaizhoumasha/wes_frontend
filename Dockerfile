@@ -38,6 +38,11 @@ RUN pnpm run generate:menu && pnpm run build
 # Stage 2: 生产阶段
 FROM nginx:alpine AS production
 
+ARG WES_VCS_REVISION
+ARG WES_SOURCE_TREE
+LABEL org.opencontainers.image.revision="${WES_VCS_REVISION}" \
+      com.zontec.wes.source-manifest="${WES_SOURCE_TREE}"
+
 # 从构建阶段复制构建产物
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY --from=builder /app/artifacts/menu-manifest.json /opt/wes/menu-manifest.json

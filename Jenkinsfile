@@ -58,10 +58,12 @@ pipeline {
                     ])
 
                     String fullCommit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+                    String sourceTree = sh(returnStdout: true, script: 'git rev-parse HEAD^{tree}').trim()
                     String shortCommit = fullCommit.take(7)
                     String branchTag = sourceBranch.replaceAll(/[^A-Za-z0-9_.-]+/, '-')
 
                     env.CI_COMMIT_SHA = fullCommit
+                    env.CI_SOURCE_TREE = sourceTree
                     env.CI_SHORT_COMMIT = shortCommit
                     env.CI_BRANCH_TAG = branchTag
                     env.CI_DOCKER_IMAGE_LOCAL = "wes-frontend-ci:${env.BUILD_NUMBER}-${shortCommit}"
@@ -112,6 +114,8 @@ pipeline {
                     docker build \
                         --provenance=false \
                         --sbom=false \
+                        --build-arg WES_VCS_REVISION="${CI_COMMIT_SHA}" \
+                        --build-arg WES_SOURCE_TREE="${CI_SOURCE_TREE}" \
                         --build-arg VITE_API_BASE_URL=/api/v1 \
                         --build-arg VITE_APP_DEV=false \
                         --build-arg VITE_APP_TITLE="P9 MCS" \
