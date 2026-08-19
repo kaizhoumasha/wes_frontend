@@ -154,6 +154,16 @@ function updateResponse(value: unknown = undefined) {
   mocks.update.mockReturnValueOnce({ send: vi.fn().mockResolvedValue(value) })
 }
 
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  let reject!: (reason?: unknown) => void
+  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise
+    reject = rejectPromise
+  })
+  return { promise, resolve, reject }
+}
+
 function mountDialog(row: Workline, refresh = vi.fn().mockResolvedValue(undefined)) {
   return {
     refresh,
@@ -261,6 +271,80 @@ describe('RoughSorterConfigDialog', () => {
     expect(wrapper.find('[data-testid="save"]').attributes('disabled')).toBeDefined()
     await submit(wrapper)
     expect(workLinesApiMethods.update).not.toHaveBeenCalled()
+  })
+
+  it('ignores stale success after the next WorkLine loads and updates only the next WorkLine', async () => {
+    const pendingA = deferred<Workline>()
+    response(pendingA.promise)
+    const { wrapper } = mountDialog(workline(11))
+    await vi.waitFor(() => expect(mocks.getById).toHaveBeenCalledWith(11))
+
+    const roughSorterB = validRoughSorter()
+    roughSorterB.position_bindings.NG_POSITION = 'B-NG-01'
+    const latestB = workline(12, {
+      version: 9,
+      config: { owner: 'B', rough_sorter: roughSorterB }
+    })
+    response(Promise.resolve(latestB))
+    await wrapper.setProps({ workline: workline(12) })
+    await vi.waitFor(() =>
+      expect(wrapper.find<HTMLInputElement>('[data-field="NG_POSITION"]').element.value).toBe(
+        'B-NG-01'
+      )
+    )
+
+    pendingA.resolve(workline(11))
+    await pendingA.promise
+    await nextTick()
+
+    expect(wrapper.find<HTMLInputElement>('[data-field="NG_POSITION"]').element.value).toBe(
+      'B-NG-01'
+    )
+    expect(wrapper.text()).not.toContain('已阻止覆盖')
+
+    updateResponse()
+    await submit(wrapper)
+    await vi.waitFor(() => expect(mocks.update).toHaveBeenCalledOnce())
+    expect(workLinesApiMethods.update).toHaveBeenCalledWith(
+      12,
+      expect.objectContaining({
+        version: 9,
+        config: expect.objectContaining({ owner: 'B' })
+      })
+    )
+  })
+
+  it('ignores stale rejection after the next WorkLine loads', async () => {
+    const pendingA = deferred<Workline>()
+    response(pendingA.promise)
+    const { wrapper } = mountDialog(workline(11))
+    await vi.waitFor(() => expect(mocks.getById).toHaveBeenCalledWith(11))
+
+    const roughSorterB = validRoughSorter()
+    roughSorterB.position_bindings.NG_POSITION = 'B-NG-01'
+    response(
+      Promise.resolve(
+        workline(12, {
+          config: { owner: 'B', rough_sorter: roughSorterB }
+        })
+      )
+    )
+    await wrapper.setProps({ workline: workline(12) })
+    await vi.waitFor(() =>
+      expect(wrapper.find<HTMLInputElement>('[data-field="NG_POSITION"]').element.value).toBe(
+        'B-NG-01'
+      )
+    )
+
+    pendingA.reject(new Error('stale A failed'))
+    await pendingA.promise.catch(() => undefined)
+    await nextTick()
+
+    expect(wrapper.find<HTMLInputElement>('[data-field="NG_POSITION"]').element.value).toBe(
+      'B-NG-01'
+    )
+    expect(wrapper.text()).not.toContain('已阻止覆盖')
+    expect(wrapper.find('[data-testid="save"]').attributes('disabled')).toBeUndefined()
   })
 
   it.each([
