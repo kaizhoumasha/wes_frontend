@@ -20,7 +20,7 @@
 {
   "backendCommit": "40 位 Git 提交哈希",
   "permissionsSha256": "64 位 SHA-256",
-  "permissionCount": 110
+  "permissionCount": 111
 }
 ```
 
