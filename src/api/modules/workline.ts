@@ -40,9 +40,9 @@ export type SandboxWorklinesSimulateEstopResult = ContractResponseData<'/api/v1/
 export type SandboxWorklinesSimulateEstopPathParams = ContractPathParams<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/simulate-estop', 'post'>
 export type SandboxWorklinesSimulateEstopInput = ContractRequestBody<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/simulate-estop', 'post'>
 
-export type SandboxWorklinesStartResult = ContractResponseData<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/start', 'post'>
-export type SandboxWorklinesStartPathParams = ContractPathParams<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/start', 'post'>
-export type SandboxWorklinesStartInput = ContractRequestBody<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/start', 'post'>
+export type WorklinesStartResult = ContractResponseData<'/api/v1/workline/operations/worklines/{workline_id}/start', 'post'>
+export type WorklinesStartPathParams = ContractPathParams<'/api/v1/workline/operations/worklines/{workline_id}/start', 'post'>
+export type WorklinesStartInput = ContractRequestBody<'/api/v1/workline/operations/worklines/{workline_id}/start', 'post'>
 
 export type SafetyWorklinesClearEstopResult = ContractResponseData<'/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop', 'post'>
 export type SafetyWorklinesClearEstopPathParams = ContractPathParams<'/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop', 'post'>
@@ -114,12 +114,13 @@ export const worklineApiMethods = {
   },
 
   /**
-   * [biz:workline:update] 沙箱模拟现场硬件 START
-   * @endpoint POST /api/v1/workline/operations/sandbox/worklines/{workline_id}/start
+   * [biz:workline:start] 启动 WorkLine 并激活运行代际
+   * @description In one transaction replay or create the complete Epoch, then wake SYSTEM outbox.
+   * @endpoint POST /api/v1/workline/operations/worklines/{workline_id}/start
    * @returns alova method instance
    */
-  sandboxWorklinesStart(params: ContractPathParams<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/start', 'post'>, body: ContractRequestBody<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/start', 'post'>, config?: ContractRequestConfig) {
-    return contractMethods.post('/api/v1/workline/operations/sandbox/worklines/{workline_id}/start', { params, body, config })
+  worklinesStart(params: ContractPathParams<'/api/v1/workline/operations/worklines/{workline_id}/start', 'post'>, body: ContractRequestBody<'/api/v1/workline/operations/worklines/{workline_id}/start', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/workline/operations/worklines/{workline_id}/start', { params, body, config })
   },
 
   /**

@@ -1,4 +1,4 @@
-/** @openapi-sha256 efb677d12fb0de38d51f9b149a89a10470cf8db2cb1baa45192940498cf6e441 */
+/** @openapi-sha256 07838307cd7a470b5eae5a9c5287549145b04937c50e21ceb750abd25a096c11 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -2566,7 +2566,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/workline/operations/sandbox/worklines/{workline_id}/start": {
+    "/api/v1/workline/operations/worklines/{workline_id}/start": {
         parameters: {
             query?: never;
             header?: never;
@@ -2575,8 +2575,11 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [biz:workline:update] 沙箱模拟现场硬件 START */
-        post: operations["workline_operations_sandbox_worklines_by_workline_id_start_post"];
+        /**
+         * [biz:workline:start] 启动 WorkLine 并激活运行代际
+         * @description In one transaction replay or create the complete Epoch, then wake SYSTEM outbox.
+         */
+        post: operations["workline_operations_worklines_by_workline_id_start_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4142,6 +4145,8 @@ export interface components {
             diagnostic_profile?: {
                 [key: string]: unknown;
             };
+            /** Endpoint Base Url */
+            endpoint_base_url?: string | null;
             /**
              * Is Active
              * @description 是否允许进入新运行代际
@@ -4189,6 +4194,8 @@ export interface components {
             diagnostic_profile?: {
                 [key: string]: unknown;
             };
+            /** Endpoint Base Url */
+            endpoint_base_url?: string | null;
             /** Id */
             id: number;
             /**
@@ -4231,6 +4238,8 @@ export interface components {
             diagnostic_profile?: {
                 [key: string]: unknown;
             } | null;
+            /** Endpoint Base Url */
+            endpoint_base_url?: string | null;
             /** Is Active */
             is_active?: boolean | null;
             /** Role Index */
@@ -6010,8 +6019,8 @@ export interface components {
         ResponseSchemaModel_RevokeSessionResponse_: ApiResponse<components["schemas"]["RevokeSessionResponse"]>;
         /** ResponseSchemaModel[RoleResponse] */
         ResponseSchemaModel_RoleResponse_: ApiResponse<components["schemas"]["RoleResponse"]>;
-        /** ResponseSchemaModel[SandboxWorklineStartResponse] */
-        ResponseSchemaModel_SandboxWorklineStartResponse_: ApiResponse<components["schemas"]["SandboxWorklineStartResponse"]>;
+        /** ResponseSchemaModel[Union[WorkLineStartResponse, WorkLineStartErrorResponse]] */
+        ResponseSchemaModel_Union_WorkLineStartResponse__WorkLineStartErrorResponse__: ApiResponse<unknown>;
         /** ResponseSchemaModel[UserPermissionsResponse] */
         ResponseSchemaModel_UserPermissionsResponse_: ApiResponse<components["schemas"]["UserPermissionsResponse"]>;
         /** ResponseSchemaModel[UserResponse] */
@@ -6024,6 +6033,10 @@ export interface components {
         ResponseSchemaModel_WorkLineConfigurationStatus_: ApiResponse<components["schemas"]["WorkLineConfigurationStatus"]>;
         /** ResponseSchemaModel[WorkLineResponse] */
         ResponseSchemaModel_WorkLineResponse_: ApiResponse<components["schemas"]["WorkLineResponse"]>;
+        /** ResponseSchemaModel[WorkLineStartErrorResponse] */
+        ResponseSchemaModel_WorkLineStartErrorResponse_: ApiResponse<components["schemas"]["WorkLineStartErrorResponse"]>;
+        /** ResponseSchemaModel[WorkLineStartResponse] */
+        ResponseSchemaModel_WorkLineStartResponse_: ApiResponse<components["schemas"]["WorkLineStartResponse"]>;
         /**
          * RevokeSessionResponse
          * @description 撤销会话响应 Schema
@@ -6176,42 +6189,6 @@ export interface components {
              * @description 外部回调时间
              */
             timestamp?: string | null;
-        };
-        /**
-         * SandboxWorklineStartRequest
-         * @description 沙箱 WorkLine START 请求。
-         */
-        SandboxWorklineStartRequest: {
-            /**
-             * Device Code
-             * @description 触发 START 的设备编码
-             */
-            device_code: string;
-            /**
-             * Trace Id
-             * @description Trace ID（可选，自动生成）
-             */
-            trace_id?: string | null;
-        };
-        /**
-         * SandboxWorklineStartResponse
-         * @description 沙箱 WorkLine START 准入结果。
-         */
-        SandboxWorklineStartResponse: {
-            /** Ack */
-            ack?: boolean | null;
-            /** Device Code */
-            device_code?: string | null;
-            /** Diagnostic */
-            diagnostic?: {
-                [key: string]: unknown;
-            } | null;
-            /** Reason Code */
-            reason_code?: string | null;
-            /** Status */
-            status?: string | null;
-            /** Trace Id */
-            trace_id?: string | null;
         };
         /**
          * SessionInfo
@@ -6763,6 +6740,59 @@ export interface components {
          * @enum {string}
          */
         WorkLineRunMode: "AUTO" | "MANUAL" | "SIMULATION";
+        /**
+         * WorkLineStartErrorResponse
+         * @description Stable machine-readable START rejection.
+         */
+        WorkLineStartErrorResponse: {
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "WORKLINE_NOT_FOUND" | "INVALID_STATE" | "CONFIGURATION_INVALID" | "IDEMPOTENCY_CONFLICT" | "SERVICE_UNAVAILABLE";
+        };
+        /**
+         * WorkLineStartRequest
+         * @description Stable identity for one WorkLine START attempt.
+         */
+        WorkLineStartRequest: {
+            /** Request Id */
+            request_id: string;
+        };
+        /**
+         * WorkLineStartResponse
+         * @description Frozen Epoch identity and the current WorkLine projection.
+         */
+        WorkLineStartResponse: {
+            /** Created */
+            created: boolean;
+            /** Current Workline Runtime Status */
+            current_workline_runtime_status: string | null;
+            /** Epoch Closed At */
+            epoch_closed_at: string | null;
+            /** Epoch Code */
+            epoch_code: string;
+            /**
+             * Epoch Started At
+             * Format: date-time
+             */
+            epoch_started_at: string;
+            /**
+             * Epoch Status
+             * @enum {string}
+             */
+            epoch_status: "ACTIVE" | "CLOSED";
+            /** Flow Mode */
+            flow_mode: string;
+            /** Line Run Epoch Id */
+            line_run_epoch_id: number;
+            /** Plugin Key */
+            plugin_key: string;
+            /** Plugin Version */
+            plugin_version: string;
+            /** Workline Id */
+            workline_id: number;
+        };
         /**
          * WorkLineStateTransitionRequest
          * @description 作业线启停请求。
@@ -12003,7 +12033,7 @@ export interface operations {
             };
         };
     };
-    workline_operations_sandbox_worklines_by_workline_id_start_post: {
+    workline_operations_worklines_by_workline_id_start_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -12014,17 +12044,35 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SandboxWorklineStartRequest"];
+                "application/json": components["schemas"]["WorkLineStartRequest"];
             };
         };
         responses: {
-            /** @description Successful Response */
+            /** @description START 成功或幂等 replay 成功 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_SandboxWorklineStartResponse_"];
+                    "application/json": components["schemas"]["ResponseSchemaModel_WorkLineStartResponse_"];
+                };
+            };
+            /** @description WorkLine 不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_WorkLineStartErrorResponse_"];
+                };
+            };
+            /** @description START 状态或幂等身份冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_WorkLineStartErrorResponse_"];
                 };
             };
             /** @description Validation Error */
@@ -12034,6 +12082,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description START 服务不可用 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_WorkLineStartErrorResponse_"];
                 };
             };
         };

@@ -36,6 +36,8 @@ export const BIZ_WORKLINE_PERMISSION = {
   permanentDelete: 'biz:workline:permanent_delete',
   /** 解除 runtime reconciliation 隔离，不重发设备命令、不重复执行超时处理、释放安全停靠队列 */
   resolveReconciliation: 'biz:workline:resolve-reconciliation',
+  /** 启动 WorkLine 并激活运行代际 */
+  start: 'biz:workline:start',
   /** 获取作业线平面静态场景 */
   viewPlaneScene: 'biz:workline:view-plane-scene',
   /** 获取作业线平面动态快照 */
