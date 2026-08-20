@@ -1,4 +1,4 @@
-/** @openapi-sha256 dfadebe5a048e601266199331d10fbbbce03a384d19682f152206d84f71b9b46 */
+/** @openapi-sha256 e69750714ddc1ee7a83def0f920839dfe89a6bcc07e2b878189cbb13852ee97c */
 /**
  * Zod Validation Schemas
  *
@@ -748,6 +748,14 @@ export const ClearWorkLineEstopRequestSchema = z.object({
   checks: z.record(z.boolean()).optional(),
   /** Reason */
   reason: z.union([z.string().max(500), z.null()]).optional(),
+})
+
+
+export const DebugTransportTaskCreatedSchema = z.object({
+  /** Transport Task Id */
+  transport_task_id: z.string(),
+  /** Client Request Id */
+  client_request_id: z.string(),
 })
 
 
@@ -2091,6 +2099,9 @@ export const RackBinMountResponseSchema = z.object({
 export const RackBinMountStatusSchema = z.enum(["MOUNTED", "UNMOUNTED", "EXCHANGING", "UNKNOWN"])
 
 
+export const RackFaceSchema = z.enum(["A", "B"])
+
+
 /**
  * 货架物理结构类型。
  *
@@ -2667,6 +2678,45 @@ export const SortItemSchema = z.object({
 })
 
 
+export const TransportEvidenceResponseSchema = z.object({
+  /** Operation */
+  operation: z.string(),
+  /** Operation Id */
+  operation_id: z.string(),
+  /** Outcome Revision */
+  outcome_revision: z.union([z.number(), z.null()]),
+  /** Status */
+  status: z.enum(["PENDING", "APPLIED", "CONFLICT"]),
+  /** Conflict Code */
+  conflict_code: z.union([z.string(), z.null()]),
+  /** Received At */
+  received_at: z.string(),
+  /** Processed At */
+  processed_at: z.union([z.string(), z.null()]),
+})
+
+
+export const TransportTaskResponseSchema = z.object({
+  /** Transport Task Id */
+  transport_task_id: z.string(),
+  /** Client Request Id */
+  client_request_id: z.string(),
+  /** Submit Operation Id */
+  submit_operation_id: z.string(),
+  /** Kind */
+  kind: z.enum(["RACK_MOVE", "RACK_ROTATE", "BIN_MOVE", "BIN_EXCHANGE"]),
+  /** Status */
+  status: z.enum(["PENDING", "ACCEPTED", "REJECTED", "SUCCEEDED", "FAILED", "RECONCILING"]),
+  /** Reason Code */
+  reason_code: z.union([z.string(), z.null()]),
+  /** Created At */
+  created_at: z.string(),
+  /** Updated At */
+  updated_at: z.string(),
+  latest_evidence: z.union([z.lazy(() => TransportEvidenceResponseSchema), z.null()]),
+})
+
+
 /**
  * 测试 API 调用数据模型
  *
@@ -3137,4 +3187,128 @@ export const WorklineActiveObjectsResponseSchema = z.object({
   truncated: z.boolean().optional().default(false),
   /** Total Count */
   total_count: z.number().optional().default(0),
+})
+
+
+export const _BinExchangeDataSchema = z.object({
+  /** Exchange Pairs */
+  exchange_pairs: z.array(z.lazy(() => _BinExchangePairSchema)),
+})
+
+
+export const _BinExchangeDebugTaskSchema = z.object({
+  /** Client Request Id */
+  client_request_id: z.string().min(36).max(36).regex(new RegExp("^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")),
+  /** Station Id */
+  station_id: z.union([z.string().min(1).max(100).regex(new RegExp(".*\\S.*")), z.null()]).optional(),
+  /** Kind */
+  kind: z.literal("BIN_EXCHANGE"),
+  data: z.lazy(() => _BinExchangeDataSchema),
+})
+
+
+export const _BinExchangePairSchema = z.object({
+  /** Left Bin Id */
+  left_bin_id: z.string().min(1).max(100).regex(new RegExp(".*\\S.*")),
+  left_location: z.lazy(() => _RackBinSlotSchema),
+  /** Right Bin Id */
+  right_bin_id: z.string().min(1).max(100).regex(new RegExp(".*\\S.*")),
+  right_location: z.lazy(() => _RackBinSlotSchema),
+})
+
+
+export const _BinMoveDataSchema = z.object({
+  /** Moves */
+  moves: z.array(z.lazy(() => _BinMoveMemberSchema)),
+})
+
+
+export const _BinMoveDebugTaskSchema = z.object({
+  /** Client Request Id */
+  client_request_id: z.string().min(36).max(36).regex(new RegExp("^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")),
+  /** Station Id */
+  station_id: z.union([z.string().min(1).max(100).regex(new RegExp(".*\\S.*")), z.null()]).optional(),
+  /** Kind */
+  kind: z.literal("BIN_MOVE"),
+  data: z.lazy(() => _BinMoveDataSchema),
+})
+
+
+export const _BinMoveMemberSchema = z.object({
+  /** Bin Id */
+  bin_id: z.string().min(1).max(100).regex(new RegExp(".*\\S.*")),
+  source: z.lazy(() => _BinPositionSchema),
+  target: z.lazy(() => _BinPositionSchema),
+})
+
+
+export const _BinPositionSchema = z.union([z.lazy(() => _RackBinSlotSchema), z.lazy(() => _HandoffPositionSchema)])
+
+
+export const _DebugTransportTaskRequestSchema = z.union([z.lazy(() => _RackMoveDebugTaskSchema), z.lazy(() => _RackRotateDebugTaskSchema), z.lazy(() => _BinMoveDebugTaskSchema), z.lazy(() => _BinExchangeDebugTaskSchema)])
+
+
+export const _HandoffPositionSchema = z.object({
+  /** Kind */
+  kind: z.literal("HANDOFF_POSITION"),
+  /** Location Code */
+  location_code: z.string().min(1).max(100).regex(new RegExp(".*\\S.*")),
+})
+
+
+export const _RackBinSlotSchema = z.object({
+  /** Kind */
+  kind: z.literal("RACK_BIN_SLOT"),
+  /** Rack Id */
+  rack_id: z.string().min(1).max(100).regex(new RegExp(".*\\S.*")),
+  rack_face: z.lazy(() => RackFaceSchema),
+  /** Slot Id */
+  slot_id: z.string().min(1).max(100).regex(new RegExp(".*\\S.*")),
+})
+
+
+export const _RackMoveDataSchema = z.object({
+  /** Rack Id */
+  rack_id: z.string().min(1).max(100).regex(new RegExp(".*\\S.*")),
+  source: z.lazy(() => _RackPositionSchema),
+  target: z.lazy(() => _RackPositionSchema),
+  target_face: z.lazy(() => RackFaceSchema),
+})
+
+
+export const _RackMoveDebugTaskSchema = z.object({
+  /** Client Request Id */
+  client_request_id: z.string().min(36).max(36).regex(new RegExp("^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")),
+  /** Station Id */
+  station_id: z.union([z.string().min(1).max(100).regex(new RegExp(".*\\S.*")), z.null()]).optional(),
+  /** Kind */
+  kind: z.literal("RACK_MOVE"),
+  data: z.lazy(() => _RackMoveDataSchema),
+})
+
+
+export const _RackPositionSchema = z.object({
+  /** Kind */
+  kind: z.literal("RACK_POSITION"),
+  /** Location Code */
+  location_code: z.string().min(1).max(100).regex(new RegExp(".*\\S.*")),
+})
+
+
+export const _RackRotateDataSchema = z.object({
+  /** Rack Id */
+  rack_id: z.string().min(1).max(100).regex(new RegExp(".*\\S.*")),
+  position: z.lazy(() => _RackPositionSchema),
+  target_face: z.lazy(() => RackFaceSchema),
+})
+
+
+export const _RackRotateDebugTaskSchema = z.object({
+  /** Client Request Id */
+  client_request_id: z.string().min(36).max(36).regex(new RegExp("^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")),
+  /** Station Id */
+  station_id: z.union([z.string().min(1).max(100).regex(new RegExp(".*\\S.*")), z.null()]).optional(),
+  /** Kind */
+  kind: z.literal("RACK_ROTATE"),
+  data: z.lazy(() => _RackRotateDataSchema),
 })

@@ -10025,6 +10025,242 @@
           }
         }
       }
+    },
+    "/api/v1/transport/debug-tasks": {
+      "post": {
+        "tags": [
+          "Transport 调试"
+        ],
+        "summary": "[ops:transport:debug-create] 创建 Transport 调试任务",
+        "operationId": "transport_debug_tasks_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/_DebugTransportTaskRequest"
+              },
+              "examples": {
+                "rack_move": {
+                  "summary": "移动货架",
+                  "value": {
+                    "client_request_id": "0198c480-5a00-7c31-8000-000000000001",
+                    "station_id": "STATION-DEBUG",
+                    "kind": "RACK_MOVE",
+                    "data": {
+                      "rack_id": "RACK-01",
+                      "source": {
+                        "kind": "RACK_POSITION",
+                        "location_code": "BUFFER-01"
+                      },
+                      "target": {
+                        "kind": "RACK_POSITION",
+                        "location_code": "LINE-01"
+                      },
+                      "target_face": "A"
+                    }
+                  }
+                },
+                "rack_rotate": {
+                  "summary": "旋转货架",
+                  "value": {
+                    "client_request_id": "0198c480-5a00-7c31-8000-000000000002",
+                    "station_id": "STATION-DEBUG",
+                    "kind": "RACK_ROTATE",
+                    "data": {
+                      "rack_id": "RACK-01",
+                      "position": {
+                        "kind": "RACK_POSITION",
+                        "location_code": "LINE-01"
+                      },
+                      "target_face": "B"
+                    }
+                  }
+                },
+                "bin_move": {
+                  "summary": "移动料箱",
+                  "value": {
+                    "client_request_id": "0198c480-5a00-7c31-8000-000000000003",
+                    "station_id": "STATION-DEBUG",
+                    "kind": "BIN_MOVE",
+                    "data": {
+                      "moves": [
+                        {
+                          "bin_id": "BIN-01",
+                          "source": {
+                            "kind": "RACK_BIN_SLOT",
+                            "rack_id": "RACK-01",
+                            "rack_face": "A",
+                            "slot_id": "SLOT-01"
+                          },
+                          "target": {
+                            "kind": "HANDOFF_POSITION",
+                            "location_code": "HANDOFF-01"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                },
+                "bin_exchange": {
+                  "summary": "交换料箱",
+                  "value": {
+                    "client_request_id": "0198c480-5a00-7c31-8000-000000000004",
+                    "station_id": "STATION-DEBUG",
+                    "kind": "BIN_EXCHANGE",
+                    "data": {
+                      "exchange_pairs": [
+                        {
+                          "left_bin_id": "BIN-01",
+                          "left_location": {
+                            "kind": "RACK_BIN_SLOT",
+                            "rack_id": "RACK-01",
+                            "rack_face": "A",
+                            "slot_id": "SLOT-01"
+                          },
+                          "right_bin_id": "BIN-02",
+                          "right_location": {
+                            "kind": "RACK_BIN_SLOT",
+                            "rack_id": "RACK-02",
+                            "rack_face": "A",
+                            "slot_id": "SLOT-01"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_DebugTransportTaskCreated_"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Transport 请求不满足领域约束",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "幂等身份或 Transport 资源冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Transport runtime 不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/transport/tasks/{transport_task_id}": {
+      "get": {
+        "tags": [
+          "Transport 调试"
+        ],
+        "summary": "[ops:transport:read] 查询本地 Transport 任务",
+        "operationId": "transport_tasks_by_transport_task_id_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "transport_task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120,
+              "title": "Transport Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_TransportTaskResponse_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "TransportTask 不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Transport runtime 不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -12343,6 +12579,25 @@
         "type": "object",
         "title": "ClearWorkLineEstopRequest",
         "description": "人工清除 WorkLine 急停请求。"
+      },
+      "DebugTransportTaskCreated": {
+        "properties": {
+          "transport_task_id": {
+            "type": "string",
+            "title": "Transport Task Id"
+          },
+          "client_request_id": {
+            "type": "string",
+            "title": "Client Request Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "transport_task_id",
+          "client_request_id"
+        ],
+        "title": "DebugTransportTaskCreated"
       },
       "DeviceCreate": {
         "properties": {
@@ -16468,6 +16723,14 @@
         "title": "RackBinMountStatus",
         "description": "料箱挂载投影状态。"
       },
+      "RackFace": {
+        "type": "string",
+        "enum": [
+          "A",
+          "B"
+        ],
+        "title": "RackFace"
+      },
       "RackKind": {
         "type": "string",
         "enum": [
@@ -18086,6 +18349,51 @@
         "type": "object",
         "title": "ResponseSchemaModel[CallbackLogTraceResponse]"
       },
+      "ResponseSchemaModel_DebugTransportTaskCreated_": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "响应码",
+            "default": "1000",
+            "examples": [
+              "1000",
+              "2000"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "响应消息",
+            "default": "操作成功",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ]
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DebugTransportTaskCreated"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp",
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ResponseSchemaModel[DebugTransportTaskCreated]"
+      },
       "ResponseSchemaModel_DeviceResponse_": {
         "properties": {
           "code": {
@@ -18934,6 +19242,51 @@
         },
         "type": "object",
         "title": "ResponseSchemaModel[RoleResponse]"
+      },
+      "ResponseSchemaModel_TransportTaskResponse_": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "响应码",
+            "default": "1000",
+            "examples": [
+              "1000",
+              "2000"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "响应消息",
+            "default": "操作成功",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ]
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TransportTaskResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp",
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ResponseSchemaModel[TransportTaskResponse]"
       },
       "ResponseSchemaModel_Union_WorkLineStartResponse__WorkLineStartErrorResponse__": {
         "properties": {
@@ -20265,6 +20618,157 @@
         "title": "SortItem",
         "description": "批量排序项"
       },
+      "TransportEvidenceResponse": {
+        "properties": {
+          "operation": {
+            "type": "string",
+            "title": "Operation"
+          },
+          "operation_id": {
+            "type": "string",
+            "title": "Operation Id"
+          },
+          "outcome_revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome Revision"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "APPLIED",
+              "CONFLICT"
+            ],
+            "title": "Status"
+          },
+          "conflict_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conflict Code"
+          },
+          "received_at": {
+            "type": "string",
+            "title": "Received At"
+          },
+          "processed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Processed At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "operation",
+          "operation_id",
+          "outcome_revision",
+          "status",
+          "conflict_code",
+          "received_at",
+          "processed_at"
+        ],
+        "title": "TransportEvidenceResponse"
+      },
+      "TransportTaskResponse": {
+        "properties": {
+          "transport_task_id": {
+            "type": "string",
+            "title": "Transport Task Id"
+          },
+          "client_request_id": {
+            "type": "string",
+            "title": "Client Request Id"
+          },
+          "submit_operation_id": {
+            "type": "string",
+            "title": "Submit Operation Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "RACK_MOVE",
+              "RACK_ROTATE",
+              "BIN_MOVE",
+              "BIN_EXCHANGE"
+            ],
+            "title": "Kind"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACCEPTED",
+              "REJECTED",
+              "SUCCEEDED",
+              "FAILED",
+              "RECONCILING"
+            ],
+            "title": "Status"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Code"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          },
+          "latest_evidence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TransportEvidenceResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "transport_task_id",
+          "client_request_id",
+          "submit_operation_id",
+          "kind",
+          "status",
+          "reason_code",
+          "created_at",
+          "updated_at",
+          "latest_evidence"
+        ],
+        "title": "TransportTaskResponse"
+      },
       "TryInvokeApplication": {
         "properties": {
           "command_name": {
@@ -21434,6 +21938,443 @@
         ],
         "title": "WorklineActiveObjectsResponse",
         "description": "WorkLine active objects 聚合响应。"
+      },
+      "_BinExchangeData": {
+        "properties": {
+          "exchange_pairs": {
+            "items": {
+              "$ref": "#/components/schemas/_BinExchangePair"
+            },
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 1,
+            "title": "Exchange Pairs"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "exchange_pairs"
+        ],
+        "title": "_BinExchangeData"
+      },
+      "_BinExchangeDebugTask": {
+        "properties": {
+          "client_request_id": {
+            "type": "string",
+            "maxLength": 36,
+            "minLength": 36,
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            "title": "Client Request Id"
+          },
+          "station_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1,
+                "pattern": ".*\\S.*"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station Id"
+          },
+          "kind": {
+            "type": "string",
+            "const": "BIN_EXCHANGE",
+            "title": "Kind"
+          },
+          "data": {
+            "$ref": "#/components/schemas/_BinExchangeData"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "client_request_id",
+          "kind",
+          "data"
+        ],
+        "title": "_BinExchangeDebugTask"
+      },
+      "_BinExchangePair": {
+        "properties": {
+          "left_bin_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Left Bin Id"
+          },
+          "left_location": {
+            "$ref": "#/components/schemas/_RackBinSlot"
+          },
+          "right_bin_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Right Bin Id"
+          },
+          "right_location": {
+            "$ref": "#/components/schemas/_RackBinSlot"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "left_bin_id",
+          "left_location",
+          "right_bin_id",
+          "right_location"
+        ],
+        "title": "_BinExchangePair"
+      },
+      "_BinMoveData": {
+        "properties": {
+          "moves": {
+            "items": {
+              "$ref": "#/components/schemas/_BinMoveMember"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Moves"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "moves"
+        ],
+        "title": "_BinMoveData"
+      },
+      "_BinMoveDebugTask": {
+        "properties": {
+          "client_request_id": {
+            "type": "string",
+            "maxLength": 36,
+            "minLength": 36,
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            "title": "Client Request Id"
+          },
+          "station_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1,
+                "pattern": ".*\\S.*"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station Id"
+          },
+          "kind": {
+            "type": "string",
+            "const": "BIN_MOVE",
+            "title": "Kind"
+          },
+          "data": {
+            "$ref": "#/components/schemas/_BinMoveData"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "client_request_id",
+          "kind",
+          "data"
+        ],
+        "title": "_BinMoveDebugTask"
+      },
+      "_BinMoveMember": {
+        "properties": {
+          "bin_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Bin Id"
+          },
+          "source": {
+            "$ref": "#/components/schemas/_BinPosition"
+          },
+          "target": {
+            "$ref": "#/components/schemas/_BinPosition"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "bin_id",
+          "source",
+          "target"
+        ],
+        "title": "_BinMoveMember"
+      },
+      "_BinPosition": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/_RackBinSlot"
+          },
+          {
+            "$ref": "#/components/schemas/_HandoffPosition"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "kind",
+          "mapping": {
+            "HANDOFF_POSITION": "#/components/schemas/_HandoffPosition",
+            "RACK_BIN_SLOT": "#/components/schemas/_RackBinSlot"
+          }
+        }
+      },
+      "_DebugTransportTaskRequest": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/_RackMoveDebugTask"
+          },
+          {
+            "$ref": "#/components/schemas/_RackRotateDebugTask"
+          },
+          {
+            "$ref": "#/components/schemas/_BinMoveDebugTask"
+          },
+          {
+            "$ref": "#/components/schemas/_BinExchangeDebugTask"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "kind",
+          "mapping": {
+            "BIN_EXCHANGE": "#/components/schemas/_BinExchangeDebugTask",
+            "BIN_MOVE": "#/components/schemas/_BinMoveDebugTask",
+            "RACK_MOVE": "#/components/schemas/_RackMoveDebugTask",
+            "RACK_ROTATE": "#/components/schemas/_RackRotateDebugTask"
+          }
+        }
+      },
+      "_HandoffPosition": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "HANDOFF_POSITION",
+            "title": "Kind"
+          },
+          "location_code": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Location Code"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "location_code"
+        ],
+        "title": "_HandoffPosition"
+      },
+      "_RackBinSlot": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "RACK_BIN_SLOT",
+            "title": "Kind"
+          },
+          "rack_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Rack Id"
+          },
+          "rack_face": {
+            "$ref": "#/components/schemas/RackFace"
+          },
+          "slot_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Slot Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "rack_id",
+          "rack_face",
+          "slot_id"
+        ],
+        "title": "_RackBinSlot"
+      },
+      "_RackMoveData": {
+        "properties": {
+          "rack_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Rack Id"
+          },
+          "source": {
+            "$ref": "#/components/schemas/_RackPosition"
+          },
+          "target": {
+            "$ref": "#/components/schemas/_RackPosition"
+          },
+          "target_face": {
+            "$ref": "#/components/schemas/RackFace"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "rack_id",
+          "source",
+          "target",
+          "target_face"
+        ],
+        "title": "_RackMoveData"
+      },
+      "_RackMoveDebugTask": {
+        "properties": {
+          "client_request_id": {
+            "type": "string",
+            "maxLength": 36,
+            "minLength": 36,
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            "title": "Client Request Id"
+          },
+          "station_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1,
+                "pattern": ".*\\S.*"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station Id"
+          },
+          "kind": {
+            "type": "string",
+            "const": "RACK_MOVE",
+            "title": "Kind"
+          },
+          "data": {
+            "$ref": "#/components/schemas/_RackMoveData"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "client_request_id",
+          "kind",
+          "data"
+        ],
+        "title": "_RackMoveDebugTask"
+      },
+      "_RackPosition": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "RACK_POSITION",
+            "title": "Kind"
+          },
+          "location_code": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Location Code"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "location_code"
+        ],
+        "title": "_RackPosition"
+      },
+      "_RackRotateData": {
+        "properties": {
+          "rack_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Rack Id"
+          },
+          "position": {
+            "$ref": "#/components/schemas/_RackPosition"
+          },
+          "target_face": {
+            "$ref": "#/components/schemas/RackFace"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "rack_id",
+          "position",
+          "target_face"
+        ],
+        "title": "_RackRotateData"
+      },
+      "_RackRotateDebugTask": {
+        "properties": {
+          "client_request_id": {
+            "type": "string",
+            "maxLength": 36,
+            "minLength": 36,
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            "title": "Client Request Id"
+          },
+          "station_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1,
+                "pattern": ".*\\S.*"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station Id"
+          },
+          "kind": {
+            "type": "string",
+            "const": "RACK_ROTATE",
+            "title": "Kind"
+          },
+          "data": {
+            "$ref": "#/components/schemas/_RackRotateData"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "client_request_id",
+          "kind",
+          "data"
+        ],
+        "title": "_RackRotateDebugTask"
       }
     },
     "securitySchemes": {

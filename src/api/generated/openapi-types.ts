@@ -1,4 +1,4 @@
-/** @openapi-sha256 dfadebe5a048e601266199331d10fbbbce03a384d19682f152206d84f71b9b46 */
+/** @openapi-sha256 e69750714ddc1ee7a83def0f920839dfe89a6bcc07e2b878189cbb13852ee97c */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -2210,6 +2210,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/transport/debug-tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [ops:transport:debug-create] 创建 Transport 调试任务 */
+        post: operations["transport_debug_tasks_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transport/tasks/{transport_task_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [ops:transport:read] 查询本地 Transport 任务 */
+        get: operations["transport_tasks_by_transport_task_id_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/wms/events": {
         parameters: {
             query?: never;
@@ -2685,6 +2719,134 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** _BinExchangeData */
+        _BinExchangeData: {
+            /** Exchange Pairs */
+            exchange_pairs: components["schemas"]["_BinExchangePair"][];
+        };
+        /** _BinExchangeDebugTask */
+        _BinExchangeDebugTask: {
+            /** Client Request Id */
+            client_request_id: string;
+            data: components["schemas"]["_BinExchangeData"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "BIN_EXCHANGE";
+            /** Station Id */
+            station_id?: string | null;
+        };
+        /** _BinExchangePair */
+        _BinExchangePair: {
+            /** Left Bin Id */
+            left_bin_id: string;
+            left_location: components["schemas"]["_RackBinSlot"];
+            /** Right Bin Id */
+            right_bin_id: string;
+            right_location: components["schemas"]["_RackBinSlot"];
+        };
+        /** _BinMoveData */
+        _BinMoveData: {
+            /** Moves */
+            moves: components["schemas"]["_BinMoveMember"][];
+        };
+        /** _BinMoveDebugTask */
+        _BinMoveDebugTask: {
+            /** Client Request Id */
+            client_request_id: string;
+            data: components["schemas"]["_BinMoveData"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "BIN_MOVE";
+            /** Station Id */
+            station_id?: string | null;
+        };
+        /** _BinMoveMember */
+        _BinMoveMember: {
+            /** Bin Id */
+            bin_id: string;
+            source: components["schemas"]["_BinPosition"];
+            target: components["schemas"]["_BinPosition"];
+        };
+        _BinPosition: components["schemas"]["_RackBinSlot"] | components["schemas"]["_HandoffPosition"];
+        _DebugTransportTaskRequest: components["schemas"]["_RackMoveDebugTask"] | components["schemas"]["_RackRotateDebugTask"] | components["schemas"]["_BinMoveDebugTask"] | components["schemas"]["_BinExchangeDebugTask"];
+        /** _HandoffPosition */
+        _HandoffPosition: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "HANDOFF_POSITION";
+            /** Location Code */
+            location_code: string;
+        };
+        /** _RackBinSlot */
+        _RackBinSlot: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "RACK_BIN_SLOT";
+            rack_face: components["schemas"]["RackFace"];
+            /** Rack Id */
+            rack_id: string;
+            /** Slot Id */
+            slot_id: string;
+        };
+        /** _RackMoveData */
+        _RackMoveData: {
+            /** Rack Id */
+            rack_id: string;
+            source: components["schemas"]["_RackPosition"];
+            target: components["schemas"]["_RackPosition"];
+            target_face: components["schemas"]["RackFace"];
+        };
+        /** _RackMoveDebugTask */
+        _RackMoveDebugTask: {
+            /** Client Request Id */
+            client_request_id: string;
+            data: components["schemas"]["_RackMoveData"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "RACK_MOVE";
+            /** Station Id */
+            station_id?: string | null;
+        };
+        /** _RackPosition */
+        _RackPosition: {
+            /**
+             * Kind
+             * @constant
+             */
+            kind: "RACK_POSITION";
+            /** Location Code */
+            location_code: string;
+        };
+        /** _RackRotateData */
+        _RackRotateData: {
+            position: components["schemas"]["_RackPosition"];
+            /** Rack Id */
+            rack_id: string;
+            target_face: components["schemas"]["RackFace"];
+        };
+        /** _RackRotateDebugTask */
+        _RackRotateDebugTask: {
+            /** Client Request Id */
+            client_request_id: string;
+            data: components["schemas"]["_RackRotateData"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "RACK_ROTATE";
+            /** Station Id */
+            station_id?: string | null;
+        };
         /**
          * ActiveSessionsResponse
          * @description 活跃会话列表响应 Schema
@@ -3848,6 +4010,13 @@ export interface components {
              */
             reason?: string | null;
         };
+        /** DebugTransportTaskCreated */
+        DebugTransportTaskCreated: {
+            /** Client Request Id */
+            client_request_id: string;
+            /** Transport Task Id */
+            transport_task_id: string;
+        };
         /**
          * DeviceCreate
          * @description 设备创建合同。
@@ -5008,6 +5177,11 @@ export interface components {
          */
         RackBinMountStatus: "MOUNTED" | "UNMOUNTED" | "EXCHANGING" | "UNKNOWN";
         /**
+         * RackFace
+         * @enum {string}
+         */
+        RackFace: "A" | "B";
+        /**
          * RackKind
          * @description 货架物理结构类型。
          * @enum {string}
@@ -5562,6 +5736,8 @@ export interface components {
         ResponseSchemaModel_CallbackLogSubjectResponse_: ApiResponse<components["schemas"]["CallbackLogSubjectResponse"]>;
         /** ResponseSchemaModel[CallbackLogTraceResponse] */
         ResponseSchemaModel_CallbackLogTraceResponse_: ApiResponse<components["schemas"]["CallbackLogTraceResponse"]>;
+        /** ResponseSchemaModel[DebugTransportTaskCreated] */
+        ResponseSchemaModel_DebugTransportTaskCreated_: ApiResponse<components["schemas"]["DebugTransportTaskCreated"]>;
         /** ResponseSchemaModel[DeviceResponse] */
         ResponseSchemaModel_DeviceResponse_: ApiResponse<components["schemas"]["DeviceResponse"]>;
         /** ResponseSchemaModel[dict[str, Any]] */
@@ -5618,6 +5794,8 @@ export interface components {
         ResponseSchemaModel_RevokeSessionResponse_: ApiResponse<components["schemas"]["RevokeSessionResponse"]>;
         /** ResponseSchemaModel[RoleResponse] */
         ResponseSchemaModel_RoleResponse_: ApiResponse<components["schemas"]["RoleResponse"]>;
+        /** ResponseSchemaModel[TransportTaskResponse] */
+        ResponseSchemaModel_TransportTaskResponse_: ApiResponse<components["schemas"]["TransportTaskResponse"]>;
         /** ResponseSchemaModel[Union[WorkLineStartResponse, WorkLineStartErrorResponse]] */
         ResponseSchemaModel_Union_WorkLineStartResponse__WorkLineStartErrorResponse__: ApiResponse<unknown>;
         /** ResponseSchemaModel[UserPermissionsResponse] */
@@ -5887,6 +6065,52 @@ export interface components {
              * @default 0
              */
             sort_order: number;
+        };
+        /** TransportEvidenceResponse */
+        TransportEvidenceResponse: {
+            /** Conflict Code */
+            conflict_code: string | null;
+            /** Operation */
+            operation: string;
+            /** Operation Id */
+            operation_id: string;
+            /** Outcome Revision */
+            outcome_revision: number | null;
+            /** Processed At */
+            processed_at: string | null;
+            /** Received At */
+            received_at: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "PENDING" | "APPLIED" | "CONFLICT";
+        };
+        /** TransportTaskResponse */
+        TransportTaskResponse: {
+            /** Client Request Id */
+            client_request_id: string;
+            /** Created At */
+            created_at: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "RACK_MOVE" | "RACK_ROTATE" | "BIN_MOVE" | "BIN_EXCHANGE";
+            latest_evidence: components["schemas"]["TransportEvidenceResponse"] | null;
+            /** Reason Code */
+            reason_code: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "PENDING" | "ACCEPTED" | "REJECTED" | "SUCCEEDED" | "FAILED" | "RECONCILING";
+            /** Submit Operation Id */
+            submit_operation_id: string;
+            /** Transport Task Id */
+            transport_task_id: string;
+            /** Updated At */
+            updated_at: string;
         };
         /**
          * TryInvokeApplication
@@ -10455,6 +10679,115 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    transport_debug_tasks_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["_DebugTransportTaskRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_DebugTransportTaskCreated_"];
+                };
+            };
+            /** @description Transport 请求不满足领域约束 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description 幂等身份或 Transport 资源冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Transport runtime 不可用 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+        };
+    };
+    transport_tasks_by_transport_task_id_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transport_task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_TransportTaskResponse_"];
+                };
+            };
+            /** @description TransportTask 不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Transport runtime 不可用 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
                 };
             };
         };

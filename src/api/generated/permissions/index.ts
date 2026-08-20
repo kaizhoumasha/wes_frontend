@@ -17,6 +17,7 @@ import { BIZ_DEVICE_PERMISSION } from './user_api/biz/device'
 import { BIZ_MATERIAL_PERMISSION } from './user_api/biz/material'
 import { BIZ_WORKLINE_PERMISSION } from './user_api/biz/workline'
 import { CALLBACK_CALLBACK_LOG_PERMISSION } from './user_api/callback/callback_log'
+import { OPS_TRANSPORT_PERMISSION } from './user_api/ops/transport'
 import { RESOURCE_BIN_PERMISSION } from './user_api/resource/bin'
 import { RESOURCE_BINCELLOCCUPANCY_PERMISSION } from './user_api/resource/bincelloccupancy'
 import { RESOURCE_BINCONTENTSNAPSHOT_PERMISSION } from './user_api/resource/bincontentsnapshot'
@@ -45,6 +46,7 @@ export { BIZ_DEVICE_PERMISSION }
 export { BIZ_MATERIAL_PERMISSION }
 export { BIZ_WORKLINE_PERMISSION }
 export { CALLBACK_CALLBACK_LOG_PERMISSION }
+export { OPS_TRANSPORT_PERMISSION }
 export { RESOURCE_BIN_PERMISSION }
 export { RESOURCE_BINCELLOCCUPANCY_PERMISSION }
 export { RESOURCE_BINCONTENTSNAPSHOT_PERMISSION }
@@ -103,6 +105,13 @@ export const CALLBACK_PERMISSIONS = {
 } as const
 
 /**
+ * ops 分类权限快捷导出
+ */
+export const OPS_PERMISSIONS = {
+  transport: OPS_TRANSPORT_PERMISSION,
+} as const
+
+/**
  * resource 分类权限快捷导出
  */
 export const RESOURCE_PERMISSIONS = {
@@ -138,6 +147,7 @@ export const PERMISSIONS = {
   apiAuth: API_AUTH_PERMISSIONS,
   biz: BIZ_PERMISSIONS,
   callback: CALLBACK_PERMISSIONS,
+  ops: OPS_PERMISSIONS,
   resource: RESOURCE_PERMISSIONS,
   sys: SYS_PERMISSIONS,
 } as const
