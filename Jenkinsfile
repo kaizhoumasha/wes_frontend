@@ -59,11 +59,21 @@ pipeline {
 
                     String fullCommit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
                     String sourceTree = sh(returnStdout: true, script: 'git rev-parse HEAD^{tree}').trim()
+                    String openApiSha256 = readJSON(file: '.contract-sync-record.json').openApiSha256?.toString()?.trim()
+                    String permissionsSha256 = readJSON(file: '.permission-sync-record.json').permissionsSha256?.toString()?.trim()
+                    if (!(openApiSha256 ==~ /[0-9a-f]{64}/)) {
+                        error('contract sync record 中的 openApiSha256 必须是 64 位小写 SHA-256')
+                    }
+                    if (!(permissionsSha256 ==~ /[0-9a-f]{64}/)) {
+                        error('permission sync record 中的 permissionsSha256 必须是 64 位小写 SHA-256')
+                    }
                     String shortCommit = fullCommit.take(7)
                     String branchTag = sourceBranch.replaceAll(/[^A-Za-z0-9_.-]+/, '-')
 
                     env.CI_COMMIT_SHA = fullCommit
                     env.CI_SOURCE_TREE = sourceTree
+                    env.CI_OPENAPI_SHA256 = openApiSha256
+                    env.CI_PERMISSIONS_SHA256 = permissionsSha256
                     env.CI_SHORT_COMMIT = shortCommit
                     env.CI_BRANCH_TAG = branchTag
                     env.CI_DOCKER_IMAGE_LOCAL = "wes-frontend-ci:${env.BUILD_NUMBER}-${shortCommit}"
@@ -119,6 +129,8 @@ pipeline {
                         --sbom=false \
                         --build-arg WES_VCS_REVISION="${CI_COMMIT_SHA}" \
                         --build-arg WES_SOURCE_TREE="${CI_SOURCE_TREE}" \
+                        --build-arg WES_OPENAPI_SHA256="${CI_OPENAPI_SHA256}" \
+                        --build-arg WES_PERMISSIONS_SHA256="${CI_PERMISSIONS_SHA256}" \
                         --build-arg VITE_API_BASE_URL=/api/v1 \
                         --build-arg VITE_APP_DEV=false \
                         --build-arg VITE_APP_TITLE="P9 MCS" \
@@ -165,6 +177,9 @@ pipeline {
                         parameters: [
                             string(name: 'BACKEND_IMAGE_TAG', value: 'develop'),
                             string(name: 'FRONTEND_IMAGE_TAG', value: "${env.BUILD_NUMBER}-${env.CI_SHORT_COMMIT}"),
+                            string(name: 'FRONTEND_COMMIT_SHA', value: env.CI_COMMIT_SHA),
+                            string(name: 'OPENAPI_SHA256', value: env.CI_OPENAPI_SHA256),
+                            string(name: 'PERMISSIONS_SHA256', value: env.CI_PERMISSIONS_SHA256),
                             string(name: 'SOURCE_BRANCH', value: env.CI_SOURCE_BRANCH)
                         ]
                 }
