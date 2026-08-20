@@ -17,33 +17,32 @@ import type {
   ContractResponseData,
 } from '@/api/contract/types'
 import type { components, paths } from '@/api/generated/openapi-types'
+import { createReadonlyCrudRequestAdapterFromMethods } from '@/api/base/createReadonlyCrudRequestAdapter'
 
-export type GetByIdResult = ContractResponseData<'/api/v1/api_auth/access-log/{id}', 'get'>
-export type GetByIdPathParams = ContractPathParams<'/api/v1/api_auth/access-log/{id}', 'get'>
-export type GetByIdQuery = ContractQueryParams<'/api/v1/api_auth/access-log/{id}', 'get'>
+const ACCESS_LOG_COLLECTION_PATH = '/api/v1/api_auth/access-log' as const
 
-export type QueryResult = ContractResponseData<'/api/v1/api_auth/access-log/query', 'post'>
-export type QueryInput = ContractRequestBody<'/api/v1/api_auth/access-log/query', 'post'>
+type EnsureEntityId<TItem> = TItem extends { id?: infer TId }
+  ? Omit<TItem, 'id'> & { id: Exclude<TId, null | undefined> }
+  : TItem
 
-export const apiAuthApiMethods = {
-  /**
-   * [api-auth:apiaccesslog:detail] 获取APIAccessLog
-   * @endpoint GET /api/v1/api_auth/access-log/{id}
-   * @returns alova method instance
-   */
+export type AccessLogItem = EnsureEntityId<ContractResponseData<'/api/v1/api_auth/access-log/{id}', 'get'>>
+export type ReadonlyInput = Record<string, never>
+
+const baseAccessLogApiMethods = {
   getById(params: ContractPathParams<'/api/v1/api_auth/access-log/{id}', 'get'>, query?: ContractQueryParams<'/api/v1/api_auth/access-log/{id}', 'get'>, config?: ContractRequestConfig) {
     return contractMethods.get('/api/v1/api_auth/access-log/{id}', { params, query, config })
   },
 
-  /**
-   * [api-auth:apiaccesslog:list] 获取APIAccessLog列表
-   * @endpoint POST /api/v1/api_auth/access-log/query
-   * @returns alova method instance
-   */
   query(body: ContractRequestBody<'/api/v1/api_auth/access-log/query', 'post'>, config?: ContractRequestConfig) {
     return contractMethods.post('/api/v1/api_auth/access-log/query', { body, config })
   }
 }
+
+export const accessLogApiMethods = {
+  ...baseAccessLogApiMethods,
+}
+
+export const accessLogApi = createReadonlyCrudRequestAdapterFromMethods(accessLogApiMethods)
 // ==================== AUTO GENERATED END ====================
 
 // ==================== CUSTOM METHODS START ====================

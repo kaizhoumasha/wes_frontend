@@ -26,11 +26,15 @@ export const API_AUTH_API_APPLICATION_PERMISSION = {
   restore: 'api-auth:api_application:restore',
   /** 回收站权限 */
   trash: 'api-auth:api_application:trash',
+  /** 批量恢复权限 */
+  batchRestore: 'api-auth:api_application:batch_restore',
+  /** 批量永久删除权限 */
+  batchPermanentDelete: 'api-auth:api_application:batch_permanent_delete',
   /** 分配权限 */
   assignPermission: 'api-auth:api_application:assign_permission',
   /** 获取系统支持的 API 权限列表 */
   listPermissions: 'api-auth:api_application:list_permissions',
-  /** 批量永久删除APIApplication */
+  /** 永久删除APIApplication */
   permanentDelete: 'api-auth:api_application:permanent_delete',
   /** 重置应用密钥 */
   resetSecret: 'api-auth:api_application:reset_secret',
@@ -38,6 +42,4 @@ export const API_AUTH_API_APPLICATION_PERMISSION = {
   resetValidity: 'api-auth:api_application:reset_validity',
   /** 撤销 API 应用 */
   revoke: 'api-auth:api_application:revoke',
-  /** 重新扫描并同步 API 权限 */
-  syncPermissions: 'api-auth:api_application:sync_permissions',
 } as const

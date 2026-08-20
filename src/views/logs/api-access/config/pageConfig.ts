@@ -1,4 +1,4 @@
-import { apiAuthApiMethods } from '@/api/modules/apiAuth'
+import { accessLogApiMethods } from '@/api/modules/accessLog'
 import { API_AUTH_PERMISSIONS } from '@/api/generated/permissions'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
@@ -26,7 +26,7 @@ const API_ACCESS_LOG_PAGE_RESOURCE = {
     subtitle: 'API 异常排查与性能分析',
     icon: 'ep:histogram'
   },
-  methods: apiAuthApiMethods,
+  methods: accessLogApiMethods,
   permissions: {
     create: API_AUTH_PERMISSIONS.apiaccesslog.list,
     update: API_AUTH_PERMISSIONS.apiaccesslog.detail,

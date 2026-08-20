@@ -16,18 +16,12 @@ export const ADMIN_PERMISSION = {
   list: 'admin:permission:list',
   /** 详情查看权限 */
   detail: 'admin:permission:detail',
-  /** 创建权限 */
-  create: 'admin:permission:create',
-  /** 更新权限 */
-  update: 'admin:permission:update',
-  /** 删除权限 */
-  delete: 'admin:permission:delete',
-  /** 恢复权限 */
-  restore: 'admin:permission:restore',
-  /** 回收站权限 */
-  trash: 'admin:permission:trash',
-  /** 批量永久删除Permission */
-  permanentDelete: 'admin:permission:permanent_delete',
+  /** get_ancestors */
+  ancestors: 'admin:permission:ancestors',
+  /** get_children */
+  children: 'admin:permission:children',
+  /** get_siblings */
+  siblings: 'admin:permission:siblings',
   /** get_tree */
   tree: 'admin:permission:tree',
 } as const

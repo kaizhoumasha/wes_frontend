@@ -40,6 +40,7 @@ export function useCrudPageToolbarActions<
       update: { value: boolean }
       delete: { value: boolean }
       restore: { value: boolean }
+      permanentDelete: { value: boolean }
     }
     tree?: {
       isTreeMode: { value: boolean }
@@ -86,7 +87,7 @@ export function useCrudPageToolbarActions<
       const sortLabel = features.sort.label ?? '排序'
       const sortTooltip = features.sort.tooltip ?? '拖拽调整菜单顺序和层级'
       const sortIcon = features.sort.icon ?? 'lucide:arrow-down-up'
-      const sortPermission = features.sort.permission ?? config.resource.permissions?.update
+      const sortPermission = features.sort.permission ?? config.resource.permissions?.batchSort
 
       actions.push({
         key: `${config.resource.key}-sort`,

@@ -1,4 +1,4 @@
-/** @openapi-sha256 07838307cd7a470b5eae5a9c5287549145b04937c50e21ceb750abd25a096c11 */
+/** @openapi-sha256 2572eee43de4ee93de1bc6d438961eef6f25eec091b05ebaf9259a350c9132d7 */
 /**
  * Zod Validation Schemas
  *
@@ -1904,42 +1904,6 @@ export const OperaStatusSchema = z.enum(["FAIL", "SUCCESS"])
 
 
 /**
- * API 权限创建 Schema
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const PermissionCreateSchema = z.object({
-  /** Parent Id */
-  parent_id: z.union([z.number(), z.null()]).optional(),
-  /** Tree Path */
-  tree_path: z.string().optional().default("/"),
-  /** Level */
-  level: z.number().optional().default(1),
-  /** Sort Order */
-  sort_order: z.number().optional().default(0),
-  /** Has Children */
-  has_children: z.boolean().optional().default(false),
-  /** Name */
-  name: z.string().max(100),
-  /** Description */
-  description: z.union([z.string().max(255), z.null()]).optional(),
-  /** Type */
-  type: z.string().max(20).optional().default("user_api"),
-  /** Category */
-  category: z.union([z.string().max(50), z.null()]).optional(),
-  /** Resource */
-  resource: z.union([z.string().max(50), z.null()]).optional(),
-  /** Action */
-  action: z.union([z.string().max(50), z.null()]).optional(),
-  /** Method */
-  method: z.union([z.string().max(10), z.null()]).optional(),
-  /** Path */
-  path: z.union([z.string().max(255), z.null()]).optional(),
-})
-
-
-/**
  * API 权限响应 Schema（完整版）
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -2019,44 +1983,6 @@ export const PermissionTreeSchema = z.lazy((): z.ZodTypeAny => z.object({
   /** Children */
   children: z.array(z.lazy(() => PermissionTreeSchema)).optional(),
 }))
-
-
-/**
- * API 权限更新 Schema
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const PermissionUpdateSchema = z.object({
-  /** Parent Id */
-  parent_id: z.union([z.number(), z.null()]).optional(),
-  /** Tree Path */
-  tree_path: z.union([z.string(), z.null()]).optional(),
-  /** Level */
-  level: z.union([z.number(), z.null()]).optional(),
-  /** Sort Order */
-  sort_order: z.union([z.number(), z.null()]).optional(),
-  /** Has Children */
-  has_children: z.union([z.boolean(), z.null()]).optional(),
-  /** Name */
-  name: z.union([z.string().max(100), z.null()]).optional(),
-  /** Description */
-  description: z.union([z.string().max(255), z.null()]).optional(),
-  /** Type */
-  type: z.union([z.string().max(20), z.null()]).optional(),
-  /** Category */
-  category: z.union([z.string().max(50), z.null()]).optional(),
-  /** Resource */
-  resource: z.union([z.string().max(50), z.null()]).optional(),
-  /** Action */
-  action: z.union([z.string().max(50), z.null()]).optional(),
-  /** Method */
-  method: z.union([z.string().max(10), z.null()]).optional(),
-  /** Path */
-  path: z.union([z.string().max(255), z.null()]).optional(),
-  /** Version */
-  version: z.number(),
-})
 
 
 /**

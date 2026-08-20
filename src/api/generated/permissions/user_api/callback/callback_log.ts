@@ -16,4 +16,10 @@ export const CALLBACK_CALLBACK_LOG_PERMISSION = {
   list: 'callback:callback_log:list',
   /** 详情查看权限 */
   detail: 'callback:callback_log:detail',
+  /** 根据请求 ID 查询回调日志 */
+  detailByRequestId: 'callback:callback_log:detail-by-request-id',
+  /** 根据回调主体编码查询回调日志 */
+  listBySubjectCode: 'callback:callback_log:list-by-subject-code',
+  /** 根据 Trace ID 查询回调日志 */
+  listByTraceId: 'callback:callback_log:list-by-trace-id',
 } as const

@@ -1,5 +1,5 @@
-import type { GetByIdResult as APIAccessLogBase } from '@/api/modules/apiAuth'
-import type { GetByIdResult as AuditLogBase } from '@/api/modules/sys'
+import type { AccessLogItem as APIAccessLogBase } from '@/api/modules/accessLog'
+import type { AuditLogsItem as AuditLogBase } from '@/api/modules/auditLogs'
 
 export interface AuditLogStructuredFields {
   object_type?: string | null

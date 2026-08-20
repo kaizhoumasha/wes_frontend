@@ -9,11 +9,9 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { applicationsApiMethods } from '@/api/modules/applications'
 import type { ApplicationsItem as APIApplication } from '@/api/modules/applications'
 import type { components } from '@/api/generated/openapi-types'
-import { API_AUTH_PERMISSIONS } from '@/api/generated/permissions'
 import { CRUD_PAGE_REFRESH_KEY } from '@/components/common/crud-page/types'
 import AppIcon from '@/components/ui/AppIcon.vue'
 import StandardDialog from '@/components/ui/StandardDialog/StandardDialog.vue'
-import { usePermission } from '@/composables/usePermission'
 import { getSafeErrorMessage } from '@/utils/string'
 
 type PermissionItem = components['schemas']['PermissionResponse']
@@ -31,20 +29,14 @@ const emit = defineEmits<{
 }>()
 
 const refresh = inject(CRUD_PAGE_REFRESH_KEY)
-const { hasPermission } = usePermission()
 
 const allPermissions = ref<PermissionItem[]>([])
 const selectedPermissionIds = ref<number[]>([])
 const currentApplication = ref<APIApplication | null>(null)
 const loading = ref(false)
 const submitting = ref(false)
-const syncing = ref(false)
 const leftSearchKeyword = ref('')
 const rightSearchKeyword = ref('')
-
-const canSyncPermissions = computed(() =>
-  hasPermission(API_AUTH_PERMISSIONS.apiApplication.syncPermissions)
-)
 
 const activeApplication = computed(() => currentApplication.value ?? props.app)
 const appName = computed(() => activeApplication.value?.app_name ?? '')
@@ -150,7 +142,7 @@ function selectCallbackPermissions() {
   )
 
   if (missingNames.length > 0) {
-    ElMessage.warning(`未找到回调权限：${missingNames.join('、')}，请先同步权限`)
+    ElMessage.warning(`未找到回调权限：${missingNames.join('、')}，请确认权限目录已包含对应项`)
     return
   }
 
@@ -181,24 +173,6 @@ async function loadDialogData() {
     ElMessage.error(`加载应用权限失败：${getSafeErrorMessage(e)}`)
   } finally {
     loading.value = false
-  }
-}
-
-async function syncPermissions() {
-  if (!canSyncPermissions.value) return
-
-  syncing.value = true
-
-  try {
-    const permissions = (await applicationsApiMethods
-      .availablePermissionsSync()
-      .send()) as PermissionItem[]
-    allPermissions.value = permissions
-    ElMessage.success('权限已同步')
-  } catch (e: unknown) {
-    ElMessage.error(`同步权限失败：${getSafeErrorMessage(e)}`)
-  } finally {
-    syncing.value = false
   }
 }
 
@@ -275,7 +249,7 @@ watch(visible, async isOpen => {
     :title="`配置应用权限${appName ? `：${appName}` : ''}`"
     size="lg"
     :confirm-loading="submitting"
-    :confirm-disabled="loading || syncing || !app"
+    :confirm-disabled="loading || !app"
     confirm-text="保存权限"
     confirm-icon="lucide:save"
     @confirm="handleSubmit"
@@ -308,20 +282,6 @@ watch(visible, async isOpen => {
             />
             勾选回调权限
           </button>
-          <button
-            v-if="canSyncPermissions"
-            type="button"
-            class="summary-action"
-            :disabled="syncing"
-            @click="syncPermissions"
-          >
-            <AppIcon
-              icon="lucide:refresh-cw"
-              :size="14"
-              :class="{ 'is-spinning': syncing }"
-            />
-            同步权限
-          </button>
         </div>
       </div>
 
@@ -344,7 +304,7 @@ watch(visible, async isOpen => {
           icon="ep:info-filled"
           :size="16"
         />
-        <span>权限列表中缺少联调回调权限，可使用“同步权限”刷新后再配置。</span>
+        <span>权限目录中缺少联调回调权限，当前无法勾选对应权限。</span>
       </div>
 
       <div class="transfer-container">
@@ -621,10 +581,6 @@ watch(visible, async isOpen => {
   background: var(--el-color-primary-light-9);
 }
 
-.is-spinning {
-  animation: spin 0.8s linear infinite;
-}
-
 .permission-warning {
   display: flex;
   align-items: center;
@@ -872,16 +828,6 @@ watch(visible, async isOpen => {
 
 .permission-list-move {
   transition: transform 0.2s ease;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 @media (width < 720px) {

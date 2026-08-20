@@ -13,6 +13,7 @@ import {
   CUSTOM_METHODS_END,
   CUSTOM_METHODS_START,
   deleteStaleGeneratedModules,
+  generateModuleAutoSection,
   groupEndpointsByModuleModel,
   mergeModuleWithCustomSections,
   type EndpointInfo
@@ -73,6 +74,51 @@ describe('generate-api-types helpers', () => {
 
     expect(capabilities.kind).toBe('soft-delete')
     expect(capabilities.hasBulkDelete).toBe(false)
+  })
+
+  it('classifies detail and query resources as readonly', () => {
+    const capabilities = classifyCrudCapabilities('/api/v1/admin/permissions', [
+      makeEndpoint('/api/v1/admin/permissions/{id}', 'get'),
+      makeEndpoint('/api/v1/admin/permissions/query', 'post')
+    ])
+
+    expect(capabilities).toEqual({
+      kind: 'readonly',
+      hasBulkDelete: false
+    })
+  })
+
+  it('generates readonly methods and an adapter without write inputs', () => {
+    const plans = buildModulePlans(
+      groupEndpointsByModuleModel([
+        makeEndpoint('/api/v1/admin/permissions/{id}', 'get'),
+        makeEndpoint('/api/v1/admin/permissions/query', 'post')
+      ])
+    )
+
+    expect(plans).toHaveLength(1)
+    expect(plans[0]?.kind).toBe('resource')
+
+    const source = generateModuleAutoSection(plans[0]!)
+
+    expect(source).toContain(
+      `import { createReadonlyCrudRequestAdapterFromMethods } from '@/api/base/createReadonlyCrudRequestAdapter'`
+    )
+    expect(source).toContain('export type ReadonlyInput = Record<string, never>')
+    expect(source).toContain('export const permissionsApiMethods = {')
+    expect(source).toContain(
+      `return contractMethods.get('/api/v1/admin/permissions/{id}', { params, query, config })`
+    )
+    expect(source).toContain(
+      `return contractMethods.post('/api/v1/admin/permissions/query', { body, config })`
+    )
+    expect(source).toContain(
+      'export const permissionsApi = createReadonlyCrudRequestAdapterFromMethods(permissionsApiMethods)'
+    )
+    expect(source).not.toContain('CreatePermissionsInput')
+    expect(source).not.toContain('UpdatePermissionsInput')
+    expect(source).not.toContain('createCrudRequestAdapterMethods')
+    expect(source).not.toContain('createSoftDeleteCrudRequestAdapterMethods')
   })
 
   it('aggregates pure action resources into a module-level file', () => {
