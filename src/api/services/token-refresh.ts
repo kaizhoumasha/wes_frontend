@@ -172,6 +172,11 @@ function processQueue(error?: unknown): void {
   failedQueue = []
 }
 
+function finishRefresh(error?: unknown): void {
+  isRefreshing = false
+  processQueue(error)
+}
+
 // ==================== Token刷新 ====================
 
 /**
@@ -219,8 +224,8 @@ export async function refreshAccessToken(apiClient: TokenRequestClient): Promise
     const expiresAt = Date.now() + expiresInSeconds * 1000
     setTokenExpiresAt(expiresAt)
 
-    // 处理队列中的请求（全部成功）
-    processQueue()
+    // 先结束刷新状态，再释放队列，避免后到请求加入已清空的队列。
+    finishRefresh()
 
     // Token 刷新成功后，刷新用户上下文
     if (onTokenRefreshedCallback) {
@@ -237,15 +242,13 @@ export async function refreshAccessToken(apiClient: TokenRequestClient): Promise
     // 刷新失败，清除Token并跳转登录
     clearTokens()
 
-    // 处理队列中的请求（全部失败）
-    processQueue(error)
+    // 先结束刷新状态，再拒绝队列，避免跳转期间出现无人处理的新 waiter。
+    finishRefresh(error)
 
     // 跳转到登录页
     await redirectToLogin()
 
     throw error
-  } finally {
-    isRefreshing = false
   }
 }
 

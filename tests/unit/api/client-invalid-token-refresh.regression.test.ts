@@ -188,4 +188,76 @@ describe('invalid access-token refresh regression', () => {
     expect(originalRequestCount).toBe(2)
     expect(handleAuthErrorMock).toHaveBeenCalledTimes(1)
   })
+
+  it('does not strand a late invalid-token response after the refreshed token is published', async () => {
+    let releaseLateResponse!: () => void
+    const lateResponseGate = new Promise<void>(resolve => {
+      releaseLateResponse = resolve
+    })
+    let releaseContextRefresh!: () => void
+    const contextRefreshGate = new Promise<void>(resolve => {
+      releaseContextRefresh = resolve
+    })
+    let markContextRefreshStarted!: () => void
+    const contextRefreshStarted = new Promise<void>(resolve => {
+      markContextRefreshStarted = resolve
+    })
+    const originalAttempts = new Map<string, number>()
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const path = requestPath(input)
+      if (path === '/api/v1/auth/refresh') {
+        return apiResponse('1000', {
+          access_token: 'refreshed-access-token',
+          expires_in: 3600
+        })
+      }
+
+      const attempt = (originalAttempts.get(path) ?? 0) + 1
+      originalAttempts.set(path, attempt)
+      if (path === '/api/v1/admin/users' && attempt === 1) {
+        await lateResponseGate
+      }
+      return attempt === 1
+        ? apiResponse('2012', null, 'Token 已失效')
+        : apiResponse('1000', { path })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    localStorage.setItem('access_token', 'invalid-access-token')
+
+    const [{ apiClient }, { setOnTokenRefreshed }] = await Promise.all([
+      import('@/api/client'),
+      import('@/api/services/token-refresh')
+    ])
+    let contextRefreshCount = 0
+    setOnTokenRefreshed(async () => {
+      contextRefreshCount++
+      if (contextRefreshCount === 1) {
+        markContextRefreshStarted()
+        await contextRefreshGate
+      }
+    })
+
+    const firstRequest = apiClient
+      .Get('/api/v1/api-auth/applications')
+      .then(result => result)
+    const lateRequest = apiClient.Get('/api/v1/admin/users').then(result => result)
+
+    await contextRefreshStarted
+    releaseLateResponse()
+    const lateOutcome = await Promise.race([
+      lateRequest.then(value => ({ settled: true as const, value })),
+      new Promise<{ settled: false }>(resolve => {
+        setTimeout(() => resolve({ settled: false }), 250)
+      })
+    ])
+    releaseContextRefresh()
+
+    await expect(firstRequest).resolves.toEqual({ path: '/api/v1/api-auth/applications' })
+    expect(lateOutcome).toEqual({
+      settled: true,
+      value: { path: '/api/v1/admin/users' }
+    })
+    expect(originalAttempts.get('/api/v1/admin/users')).toBe(2)
+    expect(handleAuthErrorMock).not.toHaveBeenCalled()
+  })
 })
