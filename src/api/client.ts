@@ -49,39 +49,6 @@ export class ApiResponseError extends Error {
   }
 }
 
-// ==================== Token刷新状态 ====================
-// 注意：Token 刷新状态统一由 token-refresh.ts 管理
-// client.ts 只负责调用 refreshAccessToken 并处理响应
-
-/** Token刷新重试次数（防止死循环） */
-let refreshRetryCount = 0
-/** 最大刷新重试次数 */
-const MAX_REFRESH_RETRY = 1
-
-function resetRefreshRetryCount(): void {
-  refreshRetryCount = 0
-}
-
-async function handle401Error(): Promise<string> {
-  // 检查刷新重试次数，防止死循环
-  if (refreshRetryCount >= MAX_REFRESH_RETRY) {
-    console.error('[API] Token刷新重试次数超限，停止刷新')
-    throw new Error('Token刷新失败：重试次数超限')
-  }
-
-  refreshRetryCount++
-
-  try {
-    // refreshAccessToken 内部已实现并发队列管理
-    const newToken = await refreshAccessToken(apiClient)
-    // 刷新成功，重置计数器
-    resetRefreshRetryCount()
-    return newToken
-  } catch {
-    throw new Error('Token刷新失败')
-  }
-}
-
 // ==================== 响应拦截器 ====================
 
 async function handleResponse(response: Response, method: any): Promise<unknown> {
@@ -96,23 +63,30 @@ async function handleResponse(response: Response, method: any): Promise<unknown>
     }
 
     const isRefreshRequest = method.meta?.isRefreshRequest === true
+    const authRefreshAttempted = method.meta?.authRefreshAttempted === true
     const isRefreshableAccessTokenError =
       !isRefreshRequest &&
+      !authRefreshAttempted &&
       (code === ClientErrorCode.INVALID_TOKEN || code === ClientErrorCode.TOKEN_EXPIRED)
 
     // Access token 可能在 JWT 与 Redis 的过期边界返回 2012 或 2013。
     // 两者都先用 HttpOnly refresh cookie 续期；刷新请求自身失败时不得递归。
     if (isRefreshableAccessTokenError) {
+      method.meta = { ...method.meta, authRefreshAttempted: true }
+
+      let newToken: string
       try {
-        const newToken = await handle401Error()
-        setAccessToken(newToken)
-        method.config.headers.Authorization = `Bearer ${newToken}`
-        return await method.send()
+        // refreshAccessToken 统一管理并发队列；每个原请求只允许进入一次。
+        newToken = await refreshAccessToken(apiClient)
       } catch {
         const authError = new ApiResponseError(code, message, json.timestamp, data)
         await handleAuthError(authError, { showMessage: true })
         throw authError
       }
+
+      setAccessToken(newToken)
+      method.config.headers.Authorization = `Bearer ${newToken}`
+      return await method.send()
     }
 
     // 其余认证错误统一处理（2010/2011/2012/2013/2014）

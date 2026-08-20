@@ -31,6 +31,11 @@ function apiResponse(code: string, data: unknown, message = 'ok'): Response {
   )
 }
 
+function requestPath(input: RequestInfo | URL): string {
+  const url = input instanceof Request ? input.url : String(input)
+  return new URL(url).pathname
+}
+
 describe('invalid access-token refresh regression', () => {
   beforeEach(() => {
     vi.resetModules()
@@ -102,5 +107,85 @@ describe('invalid access-token refresh regression', () => {
     expect(localStorage.getItem('access_token')).toBeNull()
     expect(push).toHaveBeenCalledWith('/login')
     expect(handleAuthErrorMock).toHaveBeenCalled()
+  })
+
+  it('queues concurrent invalid-token requests behind one refresh', async () => {
+    let releaseRefresh!: () => void
+    const refreshGate = new Promise<void>(resolve => {
+      releaseRefresh = resolve
+    })
+    const originalAttempts = new Map<string, number>()
+    let refreshRequestCount = 0
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const path = requestPath(input)
+      if (path === '/api/v1/auth/refresh') {
+        refreshRequestCount++
+        await refreshGate
+        return apiResponse('1000', {
+          access_token: 'refreshed-access-token',
+          expires_in: 3600
+        })
+      }
+
+      const attempt = (originalAttempts.get(path) ?? 0) + 1
+      originalAttempts.set(path, attempt)
+      return attempt === 1
+        ? apiResponse('2012', null, 'Token 已失效')
+        : apiResponse('1000', { path })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    localStorage.setItem('access_token', 'invalid-access-token')
+
+    const { apiClient } = await import('@/api/client')
+    const resultsPromise = Promise.all([
+      apiClient.Get('/api/v1/api-auth/applications'),
+      apiClient.Get('/api/v1/admin/users')
+    ])
+
+    await vi.waitFor(() => {
+      expect(refreshRequestCount).toBe(1)
+      expect(originalAttempts.get('/api/v1/api-auth/applications')).toBe(1)
+      expect(originalAttempts.get('/api/v1/admin/users')).toBe(1)
+    })
+    releaseRefresh()
+
+    await expect(resultsPromise).resolves.toEqual([
+      { path: '/api/v1/api-auth/applications' },
+      { path: '/api/v1/admin/users' }
+    ])
+    expect(refreshRequestCount).toBe(1)
+    expect(originalAttempts.get('/api/v1/api-auth/applications')).toBe(2)
+    expect(originalAttempts.get('/api/v1/admin/users')).toBe(2)
+    expect(handleAuthErrorMock).not.toHaveBeenCalled()
+  })
+
+  it('refreshes each original request at most once', async () => {
+    let originalRequestCount = 0
+    let refreshRequestCount = 0
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      if (requestPath(input) === '/api/v1/auth/refresh') {
+        refreshRequestCount++
+        return refreshRequestCount === 1
+          ? apiResponse('1000', {
+              access_token: 'refreshed-access-token',
+              expires_in: 3600
+            })
+          : apiResponse('2012', null, 'Refresh Token 已失效')
+      }
+
+      originalRequestCount++
+      return apiResponse('2012', null, 'Token 已失效')
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    localStorage.setItem('access_token', 'invalid-access-token')
+
+    const { apiClient } = await import('@/api/client')
+
+    await expect(apiClient.Get('/api/v1/api-auth/applications')).rejects.toMatchObject({
+      code: '2012'
+    })
+    expect(refreshRequestCount).toBe(1)
+    expect(originalRequestCount).toBe(2)
+    expect(handleAuthErrorMock).toHaveBeenCalledTimes(1)
   })
 })
