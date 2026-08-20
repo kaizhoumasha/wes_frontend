@@ -88,6 +88,19 @@ describe('generate-api-types helpers', () => {
     })
   })
 
+  it('does not classify partially writable resources as readonly', () => {
+    const capabilities = classifyCrudCapabilities('/api/v1/admin/permissions', [
+      makeEndpoint('/api/v1/admin/permissions', 'post'),
+      makeEndpoint('/api/v1/admin/permissions/{id}', 'get'),
+      makeEndpoint('/api/v1/admin/permissions/query', 'post')
+    ])
+
+    expect(capabilities).toEqual({
+      kind: 'none',
+      hasBulkDelete: false
+    })
+  })
+
   it('generates readonly methods and an adapter without write inputs', () => {
     const plans = buildModulePlans(
       groupEndpointsByModuleModel([

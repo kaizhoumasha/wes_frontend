@@ -101,6 +101,61 @@ describe('split CRUD permission bindings', () => {
     expect(rowActions.find(action => action.key === 'test-delete')?.permission).toBe('test:delete')
   })
 
+  it('keeps the legacy batch-delete fallback without widening destructive trash permissions', () => {
+    const config = createConfig()
+    config.resource.permissions = {
+      delete: 'test:delete',
+      restore: 'test:restore'
+    }
+    const activeFeatures = resolveCrudPageFeatures({ batchDelete: true })
+    const trashFeatures = resolveCrudPageFeatures({
+      batchRestore: true,
+      permanentDelete: true,
+      batchPermanentDelete: true
+    })
+
+    const activeActions = buildDefaultToolbarActions({
+      config,
+      features: activeFeatures,
+      state: createState('active'),
+      onBatchDelete: vi.fn(),
+      onBatchRestore: vi.fn(),
+      onBatchPermanentDelete: vi.fn()
+    })
+    const trashState = createState('trash')
+    trashState.permissions.delete.value = true
+    trashState.permissions.permanentDelete.value = false
+    const trashToolbarActions = buildDefaultToolbarActions({
+      config,
+      features: trashFeatures,
+      state: trashState,
+      onBatchDelete: vi.fn(),
+      onBatchRestore: vi.fn(),
+      onBatchPermanentDelete: vi.fn()
+    })
+    const trashRowActions = buildDefaultRowActions({
+      config,
+      features: trashFeatures,
+      state: trashState,
+      onDelete: vi.fn(),
+      onRestore: vi.fn(),
+      onPermanentDelete: vi.fn()
+    })
+
+    expect(activeActions.find(action => action.key === 'test-batch-delete')?.permission).toBe(
+      'test:delete'
+    )
+    expect(trashToolbarActions.map(action => [action.key, action.permission])).toEqual([
+      ['test-batch-restore', undefined],
+      ['test-batch-permanent-delete', undefined]
+    ])
+    const permanentDeleteAction = trashRowActions.find(
+      action => action.key === 'test-permanent-delete'
+    )
+    expect(permanentDeleteAction?.permission).toBeUndefined()
+    expect((permanentDeleteAction?.show as (row: TestItem) => boolean)({ id: 1 })).toBe(false)
+  })
+
   it('binds row and batch trash actions to their route-specific permissions', () => {
     const config = createConfig()
     const features = resolveCrudPageFeatures({
