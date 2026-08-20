@@ -161,6 +161,58 @@ describe('generate-api-types helpers', () => {
     ])
   })
 
+  it('generates the Transport debug and read operations in one module', () => {
+    const plans = buildModulePlans(
+      groupEndpointsByModuleModel([
+        {
+          path: '/api/v1/transport/debug-tasks',
+          method: 'post',
+          operation: {
+            requestBody: {
+              content: {
+                'application/json': { schema: {} }
+              }
+            }
+          }
+        },
+        {
+          path: '/api/v1/transport/tasks/{transport_task_id}',
+          method: 'get',
+          operation: {
+            parameters: [
+              {
+                name: 'transport_task_id',
+                in: 'path',
+                required: true,
+                schema: {}
+              }
+            ]
+          }
+        }
+      ])
+    )
+
+    expect(plans).toHaveLength(1)
+    expect(plans[0]).toMatchObject({
+      kind: 'module-actions',
+      fileBaseName: 'transport'
+    })
+
+    const source = generateModuleAutoSection(plans[0]!)
+    expect(source).toContain(
+      `debugTasks(body: ContractRequestBody<'/api/v1/transport/debug-tasks', 'post'>`
+    )
+    expect(source).toContain(
+      `return contractMethods.post('/api/v1/transport/debug-tasks', { body, config })`
+    )
+    expect(source).toContain(
+      `getByTransportTaskId(params: ContractPathParams<'/api/v1/transport/tasks/{transport_task_id}', 'get'>`
+    )
+    expect(source).toContain(
+      `return contractMethods.get('/api/v1/transport/tasks/{transport_task_id}', { params, config })`
+    )
+  })
+
   it('preserves custom blocks when regenerating module content', () => {
     const merged = mergeModuleWithCustomSections(
       [
