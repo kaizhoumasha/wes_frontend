@@ -107,6 +107,7 @@ export interface CrudPagePermissionConfig {
   create?: string
   update?: string
   delete?: string
+  bulkDelete?: string
   restore?: string
   trash?: string
   batchRestore?: string

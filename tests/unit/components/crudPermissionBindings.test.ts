@@ -19,6 +19,7 @@ type TestItem = {
 const SPLIT_PERMISSIONS = {
   update: 'test:update',
   delete: 'test:delete',
+  bulkDelete: 'test:bulk-delete',
   restore: 'test:restore',
   permanentDelete: 'test:permanent-delete',
   batchRestore: 'test:batch-restore',
@@ -72,6 +73,34 @@ function createState(viewMode: 'active' | 'trash') {
 }
 
 describe('split CRUD permission bindings', () => {
+  it('binds row and batch delete actions to their route-specific permissions', () => {
+    const config = createConfig()
+    const features = resolveCrudPageFeatures({ delete: true, batchDelete: true })
+    const state = createState('active')
+
+    const toolbarActions = buildDefaultToolbarActions({
+      config,
+      features,
+      state,
+      onBatchDelete: vi.fn(),
+      onBatchRestore: vi.fn(),
+      onBatchPermanentDelete: vi.fn()
+    })
+    const rowActions = buildDefaultRowActions({
+      config,
+      features,
+      state,
+      onDelete: vi.fn(),
+      onRestore: vi.fn(),
+      onPermanentDelete: vi.fn()
+    })
+
+    expect(toolbarActions.find(action => action.key === 'test-batch-delete')?.permission).toBe(
+      'test:bulk-delete'
+    )
+    expect(rowActions.find(action => action.key === 'test-delete')?.permission).toBe('test:delete')
+  })
+
   it('binds row and batch trash actions to their route-specific permissions', () => {
     const config = createConfig()
     const features = resolveCrudPageFeatures({

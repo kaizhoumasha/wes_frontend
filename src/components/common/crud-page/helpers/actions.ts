@@ -142,7 +142,9 @@ export function buildDefaultToolbarActions<
   const batchDeleteTooltip = features.batchDelete.tooltip ?? '删除选中的数据'
   const batchDeleteIcon = features.batchDelete.icon ?? 'ep:delete'
   const batchDeletePermission =
-    features.batchDelete.permission ?? config.resource.permissions?.delete
+    features.batchDelete.permission ??
+    config.resource.permissions?.bulkDelete ??
+    config.resource.permissions?.delete
   const batchRestoreLabel = features.batchRestore.label ?? '批量恢复'
   const batchRestoreTooltip = features.batchRestore.tooltip ?? '恢复选中的数据'
   const batchRestoreIcon = features.batchRestore.icon ?? 'ep:refresh-left'
