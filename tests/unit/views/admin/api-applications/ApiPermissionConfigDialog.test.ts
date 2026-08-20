@@ -35,4 +35,28 @@ describe('ApiPermissionConfigDialog', () => {
     expect(buttonLabels).not.toContain('同步权限')
     expect('availablePermissionsSync' in applicationsApiMethods).toBe(false)
   })
+
+  it('does not expose retired callback permission shortcuts', () => {
+    const wrapper = mount(ApiPermissionConfigDialog, {
+      props: {
+        app: null
+      },
+      global: {
+        directives: {
+          loading: () => undefined
+        },
+        provide: {
+          [CRUD_PAGE_REFRESH_KEY as symbol]: vi.fn()
+        },
+        stubs: {
+          AppIcon: true,
+          ElInput: true,
+          StandardDialog: StandardDialogStub
+        }
+      }
+    })
+
+    expect(wrapper.text()).not.toContain('勾选回调权限')
+    expect(wrapper.text()).not.toContain('缺少联调回调权限')
+  })
 })

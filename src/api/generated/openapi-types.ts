@@ -1,4 +1,4 @@
-/** @openapi-sha256 2572eee43de4ee93de1bc6d438961eef6f25eec091b05ebaf9259a350c9132d7 */
+/** @openapi-sha256 dfadebe5a048e601266199331d10fbbbce03a384d19682f152206d84f71b9b46 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -1439,23 +1439,6 @@ export interface paths {
         put?: never;
         /** Accept Device Event */
         post: operations["callback_event_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/callback/external": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Callback External */
-        post: operations["callback_external_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3758,56 +3741,6 @@ export interface components {
             permission_ids: number[];
         };
         /**
-         * CallbackExternalAcceptedResponse
-         * @description 外部系统回调接收响应数据。
-         */
-        CallbackExternalAcceptedResponse: {
-            /**
-             * Callback Type
-             * @description 外部回调类型
-             */
-            callback_type: string;
-            /**
-             * Causation Id
-             * @description 因果事件 ID
-             */
-            causation_id?: string | null;
-            /**
-             * Event Id
-             * @description 供应商事件 ID
-             */
-            event_id?: string | null;
-            /**
-             * Request Id
-             * @description 入口请求 ID
-             */
-            request_id?: string | null;
-            /**
-             * Status
-             * @description 入口处理状态
-             * @enum {string}
-             */
-            status: "submitted" | "duplicate";
-            /**
-             * Trace Id
-             * @description Trace ID
-             */
-            trace_id?: string | null;
-        };
-        /** ResponseSchemaModel[Union[CallbackExternalAcceptedResponse, CallbackRejectedResponse]] */
-        CallbackExternalIngressResponse: ApiResponse<unknown>;
-        /**
-         * CallbackHTTPExceptionResponse
-         * @description Callback 入口由 HTTPException 返回的传输层错误。
-         */
-        CallbackHTTPExceptionResponse: {
-            /**
-             * Detail
-             * @description 可重试或请求体限制错误说明
-             */
-            detail: string;
-        };
-        /**
          * CallbackLogResponse
          * @description 回调日志响应 Schema
          */
@@ -3896,31 +3829,6 @@ export interface components {
              * @description Trace ID
              */
             trace_id: string;
-        };
-        /**
-         * CallbackRejectedResponse
-         * @description Callback 入口拒收响应数据。
-         */
-        CallbackRejectedResponse: {
-            /**
-             * Ack
-             * @description 入口是否接收
-             * @default false
-             * @constant
-             */
-            ack: false;
-            /**
-             * Diagnostic
-             * @description 拒收诊断信息
-             */
-            diagnostic?: {
-                [key: string]: unknown;
-            } | null;
-            /**
-             * Reason Code
-             * @description 拒收原因代码
-             */
-            reason_code?: string | null;
         };
         /**
          * ClearWorkLineEstopRequest
@@ -8980,102 +8888,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EcsCallbackAck"];
-                };
-            };
-        };
-    };
-    callback_external_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /**
-                     * Callback Type
-                     * @description 已注册的外部 callback 类型
-                     */
-                    callback_type: string;
-                    /**
-                     * Causation Id
-                     * @description 因果事件 ID
-                     */
-                    causation_id?: string | null;
-                    /**
-                     * Data
-                     * @description 供应商业务载荷；具体字段由 callback_type 决定
-                     */
-                    data?: {
-                        [key: string]: unknown;
-                    } | null;
-                    /**
-                     * Dispatch Key
-                     * @description 异步 EFFECT 调度身份
-                     */
-                    dispatch_key?: string | null;
-                    /**
-                     * Event Id
-                     * @description 供应商事件 ID
-                     */
-                    event_id?: string | null;
-                    /**
-                     * Occurred At
-                     * @description 外部事件发生时间（offset-aware ISO 8601）
-                     */
-                    occurred_at?: string | null;
-                    /**
-                     * Source Event Id
-                     * @description 供应商幂等事件 ID
-                     */
-                    source_event_id?: string | null;
-                    /**
-                     * Trace Id
-                     * @description 端到端追踪 ID
-                     */
-                    trace_id?: string | null;
-                } & {
-                    [key: string]: unknown;
-                };
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CallbackExternalIngressResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CallbackExternalIngressResponse"];
-                };
-            };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CallbackExternalIngressResponse"];
-                };
-            };
-            /** @description Content Too Large */
-            413: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CallbackHTTPExceptionResponse"];
                 };
             };
         };

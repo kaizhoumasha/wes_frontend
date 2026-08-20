@@ -1,4 +1,4 @@
-/** @openapi-sha256 2572eee43de4ee93de1bc6d438961eef6f25eec091b05ebaf9259a350c9132d7 */
+/** @openapi-sha256 dfadebe5a048e601266199331d10fbbbce03a384d19682f152206d84f71b9b46 */
 /**
  * Zod Validation Schemas
  *
@@ -662,52 +662,6 @@ export const BinTypeResponseSchema = z.object({
 
 
 /**
- * 外部系统回调接收响应数据。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const CallbackExternalAcceptedResponseSchema = z.object({
-  /** Status */
-  status: z.enum(["submitted", "duplicate"]),
-  /** Callback Type */
-  callback_type: z.string(),
-  /** Request Id */
-  request_id: z.union([z.string(), z.null()]).optional(),
-  /** Trace Id */
-  trace_id: z.union([z.string(), z.null()]).optional(),
-  /** Event Id */
-  event_id: z.union([z.string(), z.null()]).optional(),
-  /** Causation Id */
-  causation_id: z.union([z.string(), z.null()]).optional(),
-})
-
-
-export const CallbackExternalIngressResponseSchema = z.object({
-  /** Code */
-  code: z.string().optional().default("1000"),
-  /** Message */
-  message: z.string().optional().default("操作成功"),
-  /** Data */
-  data: z.union([z.lazy(() => CallbackExternalAcceptedResponseSchema), z.lazy(() => CallbackRejectedResponseSchema), z.null()]).optional(),
-  /** Timestamp */
-  timestamp: z.string().optional(),
-})
-
-
-/**
- * Callback 入口由 HTTPException 返回的传输层错误。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const CallbackHTTPExceptionResponseSchema = z.object({
-  /** Detail */
-  detail: z.string(),
-})
-
-
-/**
  * 回调日志响应 Schema
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -780,22 +734,6 @@ export const CallbackLogTraceResponseSchema = z.object({
   count: z.number().min(0),
   /** Items */
   items: z.array(z.lazy(() => CallbackLogResponseSchema)),
-})
-
-
-/**
- * Callback 入口拒收响应数据。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const CallbackRejectedResponseSchema = z.object({
-  /** Ack */
-  ack: z.literal(false).optional().default(false),
-  /** Reason Code */
-  reason_code: z.union([z.string(), z.null()]).optional(),
-  /** Diagnostic */
-  diagnostic: z.union([z.record(z.any()), z.null()]).optional(),
 })
 
 

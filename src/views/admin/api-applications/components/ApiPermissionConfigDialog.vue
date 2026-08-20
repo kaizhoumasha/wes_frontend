@@ -16,8 +16,6 @@ import { getSafeErrorMessage } from '@/utils/string'
 
 type PermissionItem = components['schemas']['PermissionResponse']
 
-const CALLBACK_PERMISSION_NAMES: readonly string[] = ['api:callback:event', 'api:callback:result']
-
 const props = defineProps<{
   app: APIApplication | null
 }>()
@@ -70,16 +68,6 @@ const filteredSelectedPermissions = computed(() =>
 
 const selectedCount = computed(() => selectedPermissionIds.value.length)
 const availableCount = computed(() => availablePermissions.value.length)
-
-const callbackPermissions = computed(() =>
-  allPermissions.value.filter(permission => CALLBACK_PERMISSION_NAMES.includes(permission.name))
-)
-
-const hasAllCallbackPermissions = computed(() =>
-  CALLBACK_PERMISSION_NAMES.every(name =>
-    allPermissions.value.some(permission => permission.name === name)
-  )
-)
 
 function resetSearch() {
   leftSearchKeyword.value = ''
@@ -134,23 +122,6 @@ function clearSelected() {
 
 function selectAll() {
   selectedPermissionIds.value = allPermissions.value.map(permission => permission.id)
-}
-
-function selectCallbackPermissions() {
-  const missingNames = CALLBACK_PERMISSION_NAMES.filter(
-    name => !allPermissions.value.some(permission => permission.name === name)
-  )
-
-  if (missingNames.length > 0) {
-    ElMessage.warning(`未找到回调权限：${missingNames.join('、')}，请确认权限目录已包含对应项`)
-    return
-  }
-
-  for (const permission of callbackPermissions.value) {
-    addPermission(permission)
-  }
-
-  ElMessage.success('已勾选回调事件与回调结果权限')
 }
 
 async function loadDialogData() {
@@ -269,20 +240,6 @@ watch(visible, async isOpen => {
             <code class="app-summary__id">{{ appId || '—' }}</code>
           </div>
         </div>
-
-        <div class="app-summary__actions">
-          <button
-            type="button"
-            class="summary-action summary-action--primary"
-            @click="selectCallbackPermissions"
-          >
-            <AppIcon
-              icon="lucide:radio-tower"
-              :size="14"
-            />
-            勾选回调权限
-          </button>
-        </div>
       </div>
 
       <div
@@ -294,17 +251,6 @@ watch(visible, async isOpen => {
           :size="16"
         />
         <span>当前接口未返回已授权权限快照，保存时会以右侧已选权限覆盖该应用权限。</span>
-      </div>
-
-      <div
-        v-else-if="!hasAllCallbackPermissions"
-        class="permission-warning permission-warning--soft"
-      >
-        <AppIcon
-          icon="ep:info-filled"
-          :size="16"
-        />
-        <span>权限目录中缺少联调回调权限，当前无法勾选对应权限。</span>
       </div>
 
       <div class="transfer-container">
@@ -516,14 +462,10 @@ watch(visible, async isOpen => {
   border-radius: 8px;
 }
 
-.app-summary__identity,
-.app-summary__actions {
+.app-summary__identity {
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.app-summary__identity {
   min-width: 0;
   color: var(--el-color-primary);
 }
@@ -550,37 +492,6 @@ watch(visible, async isOpen => {
   word-break: break-all;
 }
 
-.summary-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 10px;
-  font-size: 12px;
-  color: var(--el-text-color-regular);
-  cursor: pointer;
-  background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color-light);
-  border-radius: 6px;
-  transition: all 0.15s ease;
-}
-
-.summary-action:hover:not(:disabled) {
-  color: var(--el-color-primary);
-  border-color: var(--el-color-primary-light-5);
-  background: var(--el-color-primary-light-9);
-}
-
-.summary-action:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.summary-action--primary {
-  color: var(--el-color-primary);
-  border-color: var(--el-color-primary-light-5);
-  background: var(--el-color-primary-light-9);
-}
-
 .permission-warning {
   display: flex;
   align-items: center;
@@ -592,12 +503,6 @@ watch(visible, async isOpen => {
   background: var(--el-color-warning-light-9);
   border: 1px solid var(--el-color-warning-light-7);
   border-radius: 6px;
-}
-
-.permission-warning--soft {
-  color: var(--el-color-primary);
-  background: var(--el-color-primary-light-9);
-  border-color: var(--el-color-primary-light-7);
 }
 
 .transfer-container {
@@ -834,10 +739,6 @@ watch(visible, async isOpen => {
   .app-summary {
     align-items: stretch;
     flex-direction: column;
-  }
-
-  .app-summary__actions {
-    flex-wrap: wrap;
   }
 
   .transfer-container {

@@ -6,7 +6,6 @@
  *
  */
 
-import { API_CALLBACK_PERMISSION } from './app_api/api/callback'
 import { API_TRY_PERMISSION } from './app_api/api/try'
 import { ADMIN_MENU_PERMISSION } from './user_api/admin/menu'
 import { ADMIN_PERMISSION } from './user_api/admin/permission'
@@ -35,7 +34,6 @@ import { SYS_AUDITLOG_PERMISSION } from './user_api/sys/auditlog'
 import { SYS_RUNTIME_OPERATIONS_PERMISSION } from './user_api/sys/runtime-operations'
 
 
-export { API_CALLBACK_PERMISSION }
 export { API_TRY_PERMISSION }
 export { ADMIN_MENU_PERMISSION }
 export { ADMIN_PERMISSION }
@@ -77,7 +75,6 @@ export const ADMIN_PERMISSIONS = {
  * api 分类权限快捷导出
  */
 export const API_PERMISSIONS = {
-  callback: API_CALLBACK_PERMISSION,
   try: API_TRY_PERMISSION,
 } as const
 

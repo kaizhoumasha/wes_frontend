@@ -78,7 +78,6 @@ describe('contract browser module ownership', () => {
   const currentPaths = {
     '/api/v1/wms/events': {},
     '/api/v1/callback/event': {},
-    '/api/v1/callback/external': {},
     '/api/v1/callback/result': {},
     '/api/v1/callback/logs/query': {}
   }
@@ -86,7 +85,6 @@ describe('contract browser module ownership', () => {
   const systemPaths = [
     '/api/v1/wms/events',
     '/api/v1/callback/event',
-    '/api/v1/callback/external',
     '/api/v1/callback/result'
   ]
 
@@ -118,18 +116,25 @@ describe('contract required system paths', () => {
     '/api/v1/workline/work_lines/{id}/plane/snapshot': {},
     '/api/v1/wms/events': {},
     '/api/v1/callback/event': {},
-    '/api/v1/callback/external': {},
     '/api/v1/callback/result': {}
   }
 
   it.each([
     '/api/v1/callback/event',
-    '/api/v1/callback/external',
     '/api/v1/callback/result'
   ])('rejects a raw contract missing %s', missingPath => {
     const paths = { ...currentPaths }
     delete paths[missingPath as keyof typeof paths]
 
     expect(() => assertCurrentPaths(paths)).toThrow(missingPath)
+  })
+
+  it('rejects the retired external callback ingress', () => {
+    expect(() =>
+      assertCurrentPaths({
+        ...currentPaths,
+        '/api/v1/callback/external': {}
+      })
+    ).toThrow('/api/v1/callback/external')
   })
 })
