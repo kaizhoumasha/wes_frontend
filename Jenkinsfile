@@ -204,6 +204,7 @@ pipeline {
                             string(name: 'BACKEND_IMAGE_TAG', value: env.CI_BACKEND_IMAGE_TAG),
                             string(name: 'FRONTEND_IMAGE_TAG', value: "${env.BUILD_NUMBER}-${env.CI_SHORT_COMMIT}"),
                             string(name: 'BACKEND_COMMIT_SHA', value: env.CI_BACKEND_COMMIT_SHA),
+                            string(name: 'DEPLOY_SOURCE_COMMIT_SHA', value: env.CI_BACKEND_COMMIT_SHA),
                             string(name: 'FRONTEND_COMMIT_SHA', value: env.CI_COMMIT_SHA),
                             string(name: 'OPENAPI_SHA256', value: env.CI_OPENAPI_SHA256),
                             string(name: 'PERMISSIONS_SHA256', value: env.CI_PERMISSIONS_SHA256),

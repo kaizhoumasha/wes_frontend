@@ -300,6 +300,9 @@ describe.sequential('repository quality gates', () => {
       "string(name: 'BACKEND_COMMIT_SHA', value: env.CI_BACKEND_COMMIT_SHA)"
     )
     expect(jenkinsfile).toContain(
+      "string(name: 'DEPLOY_SOURCE_COMMIT_SHA', value: env.CI_BACKEND_COMMIT_SHA)"
+    )
+    expect(jenkinsfile).toContain(
       "string(name: 'FRONTEND_COMMIT_SHA', value: env.CI_COMMIT_SHA)"
     )
     expect(jenkinsfile).toContain(
