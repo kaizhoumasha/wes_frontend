@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+const handleAuthErrorMock = vi.hoisted(() => vi.fn())
+
 vi.mock('@/router', () => ({
   default: {
     push: vi.fn()
@@ -8,6 +10,10 @@ vi.mock('@/router', () => ({
 
 vi.mock('@/composables/permission-state', () => ({
   clearPermissionState: vi.fn()
+}))
+
+vi.mock('@/api/services/auth-error-handler', () => ({
+  handleAuthError: handleAuthErrorMock
 }))
 
 function apiResponse(code: string, data: unknown, message = 'ok'): Response {
@@ -29,6 +35,7 @@ describe('invalid access-token refresh regression', () => {
   beforeEach(() => {
     vi.resetModules()
     vi.unstubAllGlobals()
+    handleAuthErrorMock.mockReset()
     localStorage.clear()
   })
 
@@ -68,6 +75,32 @@ describe('invalid access-token refresh regression', () => {
       const retriedHeaders =
         retriedInput instanceof Request ? retriedInput.headers : new Headers(retriedInit?.headers)
       expect(retriedHeaders.get('Authorization')).toBe('Bearer refreshed-access-token')
+      expect(handleAuthErrorMock).not.toHaveBeenCalled()
     }
   )
+
+  it('does not recursively refresh when the refresh request itself is rejected', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(apiResponse('2012', null, 'Token 已失效'))
+      .mockResolvedValueOnce(apiResponse('2012', null, 'Refresh Token 已失效'))
+    vi.stubGlobal('fetch', fetchMock)
+    localStorage.setItem('access_token', 'invalid-access-token')
+
+    const [{ apiClient }, { setTokenRefreshRouter }] = await Promise.all([
+      import('@/api/client'),
+      import('@/api/services/token-refresh')
+    ])
+    const push = vi.fn().mockResolvedValue(undefined)
+    setTokenRefreshRouter({ push } as never)
+
+    await expect(apiClient.Get('/api/v1/api-auth/applications')).rejects.toMatchObject({
+      code: '2012'
+    })
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(localStorage.getItem('access_token')).toBeNull()
+    expect(push).toHaveBeenCalledWith('/login')
+    expect(handleAuthErrorMock).toHaveBeenCalled()
+  })
 })
