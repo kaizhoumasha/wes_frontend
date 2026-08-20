@@ -253,11 +253,15 @@ describe.sequential('repository quality gates', () => {
     expect(dockerfile).toContain('ARG WES_SOURCE_TREE')
     expect(dockerfile).toContain('ARG WES_OPENAPI_SHA256')
     expect(dockerfile).toContain('ARG WES_PERMISSIONS_SHA256')
+    expect(dockerfile).toContain('ARG WES_BACKEND_CONTRACT_REVISION')
     expect(dockerfile).toContain('org.opencontainers.image.revision="${WES_VCS_REVISION}"')
     expect(dockerfile).toContain('com.zontec.wes.source-manifest="${WES_SOURCE_TREE}"')
     expect(dockerfile).toContain('com.zontec.wes.openapi-sha256="${WES_OPENAPI_SHA256}"')
     expect(dockerfile).toContain(
       'com.zontec.wes.permissions-sha256="${WES_PERMISSIONS_SHA256}"'
+    )
+    expect(dockerfile).toContain(
+      'com.zontec.wes.backend-contract-revision="${WES_BACKEND_CONTRACT_REVISION}"'
     )
     expect(dockerfile).toContain('test "${#WES_OPENAPI_SHA256}" -eq 64')
     expect(dockerfile).toContain('test "${#WES_PERMISSIONS_SHA256}" -eq 64')
@@ -269,12 +273,15 @@ describe.sequential('repository quality gates', () => {
       "String sourceTree = sh(returnStdout: true, script: 'git rev-parse HEAD^{tree}').trim()"
     )
     expect(jenkinsfile).toContain('env.CI_SOURCE_TREE = sourceTree')
-    expect(jenkinsfile).toContain(
-      "readJSON(file: '.contract-sync-record.json').openApiSha256"
-    )
-    expect(jenkinsfile).toContain(
-      "readJSON(file: '.permission-sync-record.json').permissionsSha256"
-    )
+    expect(jenkinsfile).toContain("readJSON(file: '.contract-sync-record.json')")
+    expect(jenkinsfile).toContain("readJSON(file: '.permission-sync-record.json')")
+    expect(jenkinsfile).toContain('contractSyncRecord.openApiSha256')
+    expect(jenkinsfile).toContain('permissionSyncRecord.permissionsSha256')
+    expect(jenkinsfile).toContain("params.BACKEND_COMMIT_SHA?.trim()")
+    expect(jenkinsfile).toContain("params.BACKEND_IMAGE_TAG?.trim()")
+    expect(jenkinsfile).toContain('contractBackendCommit != approvedBackendCommit')
+    expect(jenkinsfile).toContain('permissionsBackendCommit != approvedBackendCommit')
+    expect(jenkinsfile).toContain('/[0-9]+-${approvedBackendCommit.take(7)}/')
     expect(jenkinsfile).toContain('openApiSha256 ==~ /[0-9a-f]{64}/')
     expect(jenkinsfile).toContain('permissionsSha256 ==~ /[0-9a-f]{64}/')
     expect(jenkinsfile).toContain('--build-arg WES_VCS_REVISION="${CI_COMMIT_SHA}"')
@@ -282,6 +289,15 @@ describe.sequential('repository quality gates', () => {
     expect(jenkinsfile).toContain('--build-arg WES_OPENAPI_SHA256="${CI_OPENAPI_SHA256}"')
     expect(jenkinsfile).toContain(
       '--build-arg WES_PERMISSIONS_SHA256="${CI_PERMISSIONS_SHA256}"'
+    )
+    expect(jenkinsfile).toContain(
+      '--build-arg WES_BACKEND_CONTRACT_REVISION="${CI_BACKEND_COMMIT_SHA}"'
+    )
+    expect(jenkinsfile).toContain(
+      "string(name: 'BACKEND_IMAGE_TAG', value: env.CI_BACKEND_IMAGE_TAG)"
+    )
+    expect(jenkinsfile).toContain(
+      "string(name: 'BACKEND_COMMIT_SHA', value: env.CI_BACKEND_COMMIT_SHA)"
     )
     expect(jenkinsfile).toContain(
       "string(name: 'FRONTEND_COMMIT_SHA', value: env.CI_COMMIT_SHA)"
@@ -293,6 +309,11 @@ describe.sequential('repository quality gates', () => {
       "string(name: 'PERMISSIONS_SHA256', value: env.CI_PERMISSIONS_SHA256)"
     )
     expect(dockerfile).not.toMatch(/ARG WES_(?:OPENAPI|PERMISSIONS)_SHA256=/)
+    expect(jenkinsfile).toContain("string(name: 'BACKEND_IMAGE_TAG', description:")
+    expect(jenkinsfile).toContain("string(name: 'BACKEND_COMMIT_SHA', description:")
+    expect(jenkinsfile).not.toMatch(
+      /string\(name: 'BACKEND_(?:IMAGE_TAG|COMMIT_SHA)', defaultValue:/
+    )
   })
 
   it('documents only explicit backend checkout permission commands', () => {

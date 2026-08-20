@@ -42,12 +42,16 @@ ARG WES_VCS_REVISION
 ARG WES_SOURCE_TREE
 ARG WES_OPENAPI_SHA256
 ARG WES_PERMISSIONS_SHA256
-RUN test "${#WES_OPENAPI_SHA256}" -eq 64 \
+ARG WES_BACKEND_CONTRACT_REVISION
+RUN test "${#WES_BACKEND_CONTRACT_REVISION}" -eq 40 \
+    && case "${WES_BACKEND_CONTRACT_REVISION}" in *[!0-9a-f]*) exit 1 ;; esac \
+    && test "${#WES_OPENAPI_SHA256}" -eq 64 \
     && case "${WES_OPENAPI_SHA256}" in *[!0-9a-f]*) exit 1 ;; esac \
     && test "${#WES_PERMISSIONS_SHA256}" -eq 64 \
     && case "${WES_PERMISSIONS_SHA256}" in *[!0-9a-f]*) exit 1 ;; esac
 LABEL org.opencontainers.image.revision="${WES_VCS_REVISION}" \
       com.zontec.wes.source-manifest="${WES_SOURCE_TREE}" \
+      com.zontec.wes.backend-contract-revision="${WES_BACKEND_CONTRACT_REVISION}" \
       com.zontec.wes.openapi-sha256="${WES_OPENAPI_SHA256}" \
       com.zontec.wes.permissions-sha256="${WES_PERMISSIONS_SHA256}"
 
