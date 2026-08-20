@@ -95,32 +95,38 @@ async function handleResponse(response: Response, method: any): Promise<unknown>
       return data
     }
 
-    // 认证相关错误统一处理（2010/2011/2012/2014）
-    const AUTH_ERROR_CODES = [
-      ClientErrorCode.UNAUTHORIZED,
-      ClientErrorCode.INVALID_CREDENTIALS,
-      ClientErrorCode.INVALID_TOKEN,
-      ClientErrorCode.TOKEN_MISSING
-    ]
-    if (AUTH_ERROR_CODES.includes(code as ClientErrorCode)) {
-      const authError = new ApiResponseError(code, message, json.timestamp, data)
-      await handleAuthError(authError, { showMessage: true })
-      throw authError
-    }
+    const isRefreshRequest = method.meta?.isRefreshRequest === true
+    const isRefreshableAccessTokenError =
+      !isRefreshRequest &&
+      (code === ClientErrorCode.INVALID_TOKEN || code === ClientErrorCode.TOKEN_EXPIRED)
 
-    // Token 过期（2013）：触发 Token 刷新
-    if (code === ClientErrorCode.TOKEN_EXPIRED) {
+    // Access token 可能在 JWT 与 Redis 的过期边界返回 2012 或 2013。
+    // 两者都先用 HttpOnly refresh cookie 续期；刷新请求自身失败时不得递归。
+    if (isRefreshableAccessTokenError) {
       try {
         const newToken = await handle401Error()
         setAccessToken(newToken)
         method.config.headers.Authorization = `Bearer ${newToken}`
         return await method.send()
       } catch {
-        // Token 刷新失败，按认证错误处理
         const authError = new ApiResponseError(code, message, json.timestamp, data)
         await handleAuthError(authError, { showMessage: true })
         throw authError
       }
+    }
+
+    // 其余认证错误统一处理（2010/2011/2012/2013/2014）
+    const AUTH_ERROR_CODES = [
+      ClientErrorCode.UNAUTHORIZED,
+      ClientErrorCode.INVALID_CREDENTIALS,
+      ClientErrorCode.INVALID_TOKEN,
+      ClientErrorCode.TOKEN_EXPIRED,
+      ClientErrorCode.TOKEN_MISSING
+    ]
+    if (AUTH_ERROR_CODES.includes(code as ClientErrorCode)) {
+      const authError = new ApiResponseError(code, message, json.timestamp, data)
+      await handleAuthError(authError, { showMessage: true })
+      throw authError
     }
 
     // 其他错误：分类并显示通知
