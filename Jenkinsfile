@@ -35,7 +35,6 @@ pipeline {
                     env.CI_SOURCE_BRANCH = sourceBranch
                     env.CI_TARGET_BRANCH = targetBranch
                     env.CI_EVENT_TYPE = gitlabActionType ?: 'MANUAL'
-                    env.CI_IS_MERGE_REQUEST = isMergeRequest ? 'true' : 'false'
 
                     echo "📥 检出前端源码: source=${sourceBranch}, target=${targetBranch ?: '-'}, event=${env.CI_EVENT_TYPE}"
 
