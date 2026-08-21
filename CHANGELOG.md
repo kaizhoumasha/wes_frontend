@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.1.0] - 2026-08-22
+
+### Changed
+
+- 将 OpenAPI 与权限生成记录绑定到已通过前后端 QA 的后端 `4ca6045`，保证后续镜像和部署门禁使用同一份后端来源。
+
+### Fixed
+
+- 在 Docker 开发环境中预构建 Element Plus 深层样式依赖，避免首次打开懒加载页面时出现 `504 Outdated Optimize Dep` 和动态导入失败。
+
+### Verification
+
+- 前端 57 个测试文件、446 项测试通过；lint、契约校验、权限同步校验与冷缓存 9 个懒加载路由验收通过。
+- 记录移动端日志筛选工具栏在 375px 视口下的 P3 布局问题，保留为后续视觉优化，不阻塞本次功能发布。
+
 ## [0.10.0.0] - 2026-08-21
 
 ### Added
