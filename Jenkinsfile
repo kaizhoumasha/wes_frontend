@@ -6,6 +6,7 @@ pipeline {
     parameters {
         string(name: 'BACKEND_IMAGE_TAG', description: '已批准的后端不可变镜像标签（构建号-commit 前 7 位）')
         string(name: 'BACKEND_COMMIT_SHA', description: '已批准且用于冻结前端契约的后端完整 commit SHA')
+        string(name: 'FRONTEND_COMMIT_SHA', description: '已批准发布的前端完整 commit SHA')
     }
 
     environment {
@@ -68,21 +69,21 @@ pipeline {
                     def permissionSyncRecord = readJSON(file: '.permission-sync-record.json')
                     String approvedBackendCommit = params.BACKEND_COMMIT_SHA?.trim()
                     String approvedBackendTag = params.BACKEND_IMAGE_TAG?.trim()
+                    String approvedFrontendCommit = params.FRONTEND_COMMIT_SHA?.trim()
                     String contractBackendCommit = contractSyncRecord.backendCommit?.toString()?.trim()
                     String permissionsBackendCommit = permissionSyncRecord.backendCommit?.toString()?.trim()
                     String openApiSha256 = contractSyncRecord.openApiSha256?.toString()?.trim()
                     String permissionsSha256 = permissionSyncRecord.permissionsSha256?.toString()?.trim()
-                    if (!(approvedBackendCommit ==~ /[0-9a-f]{40}/)) {
-                        error('BACKEND_COMMIT_SHA 必须是已批准的 40 位小写 commit SHA')
+                    boolean hasAnyReleaseInput = approvedBackendCommit || approvedBackendTag || approvedFrontendCommit
+                    boolean hasAllReleaseInputs = approvedBackendCommit && approvedBackendTag && approvedFrontendCommit
+                    if (hasAnyReleaseInput && !hasAllReleaseInputs) {
+                        error('成对发布必须同时提供 BACKEND_IMAGE_TAG、BACKEND_COMMIT_SHA 和 FRONTEND_COMMIT_SHA')
                     }
-                    if (contractBackendCommit != approvedBackendCommit) {
-                        error('contract sync record 未绑定到已批准的后端 commit')
+                    if (!(contractBackendCommit ==~ /[0-9a-f]{40}/)) {
+                        error('contract sync record 中的 backendCommit 必须是 40 位小写 commit SHA')
                     }
-                    if (permissionsBackendCommit != approvedBackendCommit) {
-                        error('permission sync record 未绑定到已批准的后端 commit')
-                    }
-                    if (!(approvedBackendTag ==~ /[0-9]+-${approvedBackendCommit.take(7)}/)) {
-                        error('BACKEND_IMAGE_TAG 必须是已批准后端 commit 对应的不可变构建标签')
+                    if (permissionsBackendCommit != contractBackendCommit) {
+                        error('contract 与 permission sync record 未绑定到同一后端 commit')
                     }
                     if (!(openApiSha256 ==~ /[0-9a-f]{64}/)) {
                         error('contract sync record 中的 openApiSha256 必须是 64 位小写 SHA-256')
@@ -90,15 +91,39 @@ pipeline {
                     if (!(permissionsSha256 ==~ /[0-9a-f]{64}/)) {
                         error('permission sync record 中的 permissionsSha256 必须是 64 位小写 SHA-256')
                     }
+                    if (hasAllReleaseInputs) {
+                        if (!(approvedBackendCommit ==~ /[0-9a-f]{40}/)) {
+                            error('BACKEND_COMMIT_SHA 必须是已批准的 40 位小写 commit SHA')
+                        }
+                        if (contractBackendCommit != approvedBackendCommit) {
+                            error('contract sync record 未绑定到已批准的后端 commit')
+                        }
+                        if (!(approvedBackendTag ==~ /[0-9]+-${approvedBackendCommit.take(7)}/)) {
+                            error('BACKEND_IMAGE_TAG 必须是已批准后端 commit 对应的不可变构建标签')
+                        }
+                        if (!(approvedFrontendCommit ==~ /[0-9a-f]{40}/)) {
+                            error('FRONTEND_COMMIT_SHA 必须是已批准的 40 位小写 commit SHA')
+                        }
+                        if (approvedFrontendCommit != fullCommit) {
+                            error('FRONTEND_COMMIT_SHA 与实际检出的前端 commit 不一致')
+                        }
+                        if (sourceBranch != 'develop') {
+                            error('成对发布只能从 develop 分支执行')
+                        }
+                        if (env.CI_EVENT_TYPE != 'MANUAL') {
+                            error('成对发布只能通过显式参数化构建执行')
+                        }
+                    }
                     String shortCommit = fullCommit.take(7)
                     String branchTag = sourceBranch.replaceAll(/[^A-Za-z0-9_.-]+/, '-')
 
                     env.CI_COMMIT_SHA = fullCommit
                     env.CI_SOURCE_TREE = sourceTree
-                    env.CI_BACKEND_COMMIT_SHA = approvedBackendCommit
+                    env.CI_BACKEND_COMMIT_SHA = contractBackendCommit
                     env.CI_BACKEND_IMAGE_TAG = approvedBackendTag
                     env.CI_OPENAPI_SHA256 = openApiSha256
                     env.CI_PERMISSIONS_SHA256 = permissionsSha256
+                    env.CI_PAIRED_RELEASE = hasAllReleaseInputs ? 'true' : 'false'
                     env.CI_SHORT_COMMIT = shortCommit
                     env.CI_BRANCH_TAG = branchTag
                     env.CI_DOCKER_IMAGE_LOCAL = "wes-frontend-ci:${env.BUILD_NUMBER}-${shortCommit}"
@@ -169,7 +194,7 @@ pipeline {
         stage('Push Frontend Image') {
             when {
                 expression {
-                    env.CI_IS_MERGE_REQUEST != 'true'
+                    env.CI_PAIRED_RELEASE == 'true'
                 }
             }
             steps {
@@ -190,8 +215,7 @@ pipeline {
         stage('Trigger Test Deploy') {
             when {
                 expression {
-                    env.CI_SOURCE_BRANCH == 'develop' &&
-                    env.CI_EVENT_TYPE == 'PUSH'
+                    env.CI_PAIRED_RELEASE == 'true'
                 }
             }
             steps {
