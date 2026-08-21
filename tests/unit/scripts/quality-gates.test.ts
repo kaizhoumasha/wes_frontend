@@ -280,7 +280,8 @@ describe.sequential('repository quality gates', () => {
     expect(jenkinsfile).toContain("params.BACKEND_COMMIT_SHA?.trim()")
     expect(jenkinsfile).toContain("params.BACKEND_IMAGE_TAG?.trim()")
     expect(jenkinsfile).toContain('contractBackendCommit != approvedBackendCommit')
-    expect(jenkinsfile).toContain('permissionsBackendCommit != approvedBackendCommit')
+    expect(jenkinsfile).toContain('permissionsBackendCommit != contractBackendCommit')
+    expect(jenkinsfile).toContain('env.CI_BACKEND_COMMIT_SHA = contractBackendCommit')
     expect(jenkinsfile).toContain('/[0-9]+-${approvedBackendCommit.take(7)}/')
     expect(jenkinsfile).toContain('openApiSha256 ==~ /[0-9a-f]{64}/')
     expect(jenkinsfile).toContain('permissionsSha256 ==~ /[0-9a-f]{64}/')
@@ -317,6 +318,28 @@ describe.sequential('repository quality gates', () => {
     expect(jenkinsfile).not.toMatch(
       /string\(name: 'BACKEND_(?:IMAGE_TAG|COMMIT_SHA)', defaultValue:/
     )
+  })
+
+  it('keeps webhook CI separate from an explicitly pinned paired release', () => {
+    const jenkinsfile = readFileSync(join(REPOSITORY_ROOT, 'Jenkinsfile'), 'utf-8')
+    const pushStage = jenkinsfile.slice(
+      jenkinsfile.indexOf("stage('Push Frontend Image')"),
+      jenkinsfile.indexOf("stage('Trigger Test Deploy')")
+    )
+    const deployStage = jenkinsfile.slice(jenkinsfile.indexOf("stage('Trigger Test Deploy')"))
+
+    expect(jenkinsfile).toContain("string(name: 'FRONTEND_COMMIT_SHA', description:")
+    expect(jenkinsfile).toContain("params.FRONTEND_COMMIT_SHA?.trim()")
+    expect(jenkinsfile).toContain('boolean hasAnyReleaseInput =')
+    expect(jenkinsfile).toContain('boolean hasAllReleaseInputs =')
+    expect(jenkinsfile).toContain('if (hasAnyReleaseInput && !hasAllReleaseInputs)')
+    expect(jenkinsfile).toContain("env.CI_PAIRED_RELEASE = hasAllReleaseInputs ? 'true' : 'false'")
+    expect(jenkinsfile).toContain('approvedFrontendCommit != fullCommit')
+    expect(jenkinsfile).toContain("sourceBranch != 'develop'")
+    expect(jenkinsfile).toContain("env.CI_EVENT_TYPE != 'MANUAL'")
+    expect(pushStage).toContain("env.CI_PAIRED_RELEASE == 'true'")
+    expect(deployStage).toContain("env.CI_PAIRED_RELEASE == 'true'")
+    expect(deployStage).not.toContain("env.CI_EVENT_TYPE == 'PUSH'")
   })
 
   it('documents only explicit backend checkout permission commands', () => {
