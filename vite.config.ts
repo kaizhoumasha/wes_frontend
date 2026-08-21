@@ -131,7 +131,16 @@ export default defineConfig(({ mode, command }) => {
 
     // 依赖优化
     optimizeDeps: {
-      include: ['vue', 'vue-router', 'pinia', 'element-plus', 'lodash-es', '@vueuse/core', 'alova'],
+      include: [
+        'vue',
+        'vue-router',
+        'pinia',
+        'element-plus',
+        'element-plus/es/components/**/style/index',
+        'lodash-es',
+        '@vueuse/core',
+        'alova'
+      ],
       exclude: [] // 需要排除预构建的依赖
     },
 
