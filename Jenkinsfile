@@ -6,12 +6,14 @@ pipeline {
     parameters {
         string(name: 'BACKEND_IMAGE_TAG', description: '已批准的后端不可变镜像标签（构建号-commit 前 7 位）')
         string(name: 'BACKEND_COMMIT_SHA', description: '已批准且用于冻结前端契约的后端完整 commit SHA')
+        string(name: 'DEPLOY_SOURCE_COMMIT_SHA', description: '已批准的后端部署编排完整 commit SHA')
         string(name: 'FRONTEND_COMMIT_SHA', description: '已批准发布的前端完整 commit SHA')
     }
 
     environment {
         REGISTRY_URL = '192.168.0.220:5050'
         IMAGE_REPO = '192.168.0.220:5050/wes/wes_frontend'
+        CI_TOOLS_IMAGE = 'wes-frontend-ci-tools:node22-pnpm10'
     }
 
     options {
@@ -66,15 +68,16 @@ pipeline {
                     String sourceTree = sh(returnStdout: true, script: 'git rev-parse HEAD^{tree}').trim()
                     String approvedBackendCommit = params.BACKEND_COMMIT_SHA?.trim()
                     String approvedBackendTag = params.BACKEND_IMAGE_TAG?.trim()
+                    String approvedDeploySourceCommit = params.DEPLOY_SOURCE_COMMIT_SHA?.trim()
                     String approvedFrontendCommit = params.FRONTEND_COMMIT_SHA?.trim()
                     String contractBackendCommit = sh(returnStdout: true, script: '''awk -F'"' '$2 == "backendCommit" { print $4 }' .contract-sync-record.json''').trim()
                     String permissionsBackendCommit = sh(returnStdout: true, script: '''awk -F'"' '$2 == "backendCommit" { print $4 }' .permission-sync-record.json''').trim()
                     String openApiSha256 = sh(returnStdout: true, script: '''awk -F'"' '$2 == "openApiSha256" { print $4 }' .contract-sync-record.json''').trim()
                     String permissionsSha256 = sh(returnStdout: true, script: '''awk -F'"' '$2 == "permissionsSha256" { print $4 }' .permission-sync-record.json''').trim()
-                    boolean hasAnyReleaseInput = approvedBackendCommit || approvedBackendTag || approvedFrontendCommit
-                    boolean hasAllReleaseInputs = approvedBackendCommit && approvedBackendTag && approvedFrontendCommit
+                    boolean hasAnyReleaseInput = approvedBackendCommit || approvedBackendTag || approvedDeploySourceCommit || approvedFrontendCommit
+                    boolean hasAllReleaseInputs = approvedBackendCommit && approvedBackendTag && approvedDeploySourceCommit && approvedFrontendCommit
                     if (hasAnyReleaseInput && !hasAllReleaseInputs) {
-                        error('成对发布必须同时提供 BACKEND_IMAGE_TAG、BACKEND_COMMIT_SHA 和 FRONTEND_COMMIT_SHA')
+                        error('成对发布必须同时提供 BACKEND_IMAGE_TAG、BACKEND_COMMIT_SHA、DEPLOY_SOURCE_COMMIT_SHA 和 FRONTEND_COMMIT_SHA')
                     }
                     if (!(contractBackendCommit ==~ /[0-9a-f]{40}/)) {
                         error('contract sync record 中的 backendCommit 必须是 40 位小写 commit SHA')
@@ -98,6 +101,9 @@ pipeline {
                         if (!(approvedBackendTag ==~ /[0-9]+-${approvedBackendCommit.take(7)}/)) {
                             error('BACKEND_IMAGE_TAG 必须是已批准后端 commit 对应的不可变构建标签')
                         }
+                        if (!(approvedDeploySourceCommit ==~ /[0-9a-f]{40}/)) {
+                            error('DEPLOY_SOURCE_COMMIT_SHA 必须是已批准的 40 位小写 commit SHA')
+                        }
                         if (!(approvedFrontendCommit ==~ /[0-9a-f]{40}/)) {
                             error('FRONTEND_COMMIT_SHA 必须是已批准的 40 位小写 commit SHA')
                         }
@@ -118,6 +124,7 @@ pipeline {
                     env.CI_SOURCE_TREE = sourceTree
                     env.CI_BACKEND_COMMIT_SHA = contractBackendCommit
                     env.CI_BACKEND_IMAGE_TAG = approvedBackendTag
+                    env.CI_DEPLOY_SOURCE_COMMIT_SHA = approvedDeploySourceCommit
                     env.CI_OPENAPI_SHA256 = openApiSha256
                     env.CI_PERMISSIONS_SHA256 = permissionsSha256
                     env.CI_PAIRED_RELEASE = hasAllReleaseInputs ? 'true' : 'false'
@@ -129,6 +136,20 @@ pipeline {
 
                     echo "🐳 前端镜像标签: ${env.CI_DOCKER_IMAGE_COMMIT}"
                 }
+            }
+        }
+
+        stage('Build Frontend CI Tools Image') {
+            steps {
+                sh '''
+                    set -e
+                    docker build \
+                        --provenance=false \
+                        --sbom=false \
+                        -f docker/ci/Dockerfile \
+                        -t "${CI_TOOLS_IMAGE}" \
+                        docker/ci
+                '''
             }
         }
 
@@ -146,13 +167,8 @@ pipeline {
                         -v "$WORKSPACE:/app" \
                         -v /opt/jenkins_cache/pnpm-store:/pnpm/store \
                         -w /app \
-                        node:22-bookworm-slim \
+                        "${CI_TOOLS_IMAGE}" \
                         sh -lc '
-                            apt-get update -qq &&
-                            apt-get install -y --no-install-recommends git &&
-                            rm -rf /var/lib/apt/lists/* &&
-                            corepack enable &&
-                            corepack prepare pnpm@10.10.0 --activate &&
                             pnpm config set store-dir "${PNPM_STORE_DIR}" &&
                             pnpm install --frozen-lockfile --prefer-offline &&
                             pnpm run menu:generate &&
@@ -225,7 +241,7 @@ pipeline {
                             string(name: 'BACKEND_IMAGE_TAG', value: env.CI_BACKEND_IMAGE_TAG),
                             string(name: 'FRONTEND_IMAGE_TAG', value: "${env.BUILD_NUMBER}-${env.CI_SHORT_COMMIT}"),
                             string(name: 'BACKEND_COMMIT_SHA', value: env.CI_BACKEND_COMMIT_SHA),
-                            string(name: 'DEPLOY_SOURCE_COMMIT_SHA', value: env.CI_BACKEND_COMMIT_SHA),
+                            string(name: 'DEPLOY_SOURCE_COMMIT_SHA', value: env.CI_DEPLOY_SOURCE_COMMIT_SHA),
                             string(name: 'FRONTEND_COMMIT_SHA', value: env.CI_COMMIT_SHA),
                             string(name: 'OPENAPI_SHA256', value: env.CI_OPENAPI_SHA256),
                             string(name: 'PERMISSIONS_SHA256', value: env.CI_PERMISSIONS_SHA256),
