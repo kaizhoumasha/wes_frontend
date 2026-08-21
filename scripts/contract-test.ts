@@ -105,7 +105,6 @@ export function assertCurrentPaths(paths: Record<string, unknown>): void {
     '/api/v1/workline/work_lines/{id}/plane/snapshot',
     '/api/v1/wms/events',
     '/api/v1/callback/event',
-    '/api/v1/callback/external',
     '/api/v1/callback/result'
   ]) {
     if (!(path in paths)) {
@@ -118,7 +117,8 @@ export function assertCurrentPaths(paths: Record<string, unknown>): void {
       path === '/api/v1/workline/runtime' ||
       path.startsWith('/api/v1/workline/runtime/') ||
       path === '/api/v1/workline/plugins' ||
-      path.startsWith('/api/v1/workline/plugins/')
+      path.startsWith('/api/v1/workline/plugins/') ||
+      path === '/api/v1/callback/external'
   )
   if (retiredPath) {
     throw new Error(`OpenAPI 仍包含已退役路径 ${retiredPath}`)

@@ -9,16 +9,12 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { applicationsApiMethods } from '@/api/modules/applications'
 import type { ApplicationsItem as APIApplication } from '@/api/modules/applications'
 import type { components } from '@/api/generated/openapi-types'
-import { API_AUTH_PERMISSIONS } from '@/api/generated/permissions'
 import { CRUD_PAGE_REFRESH_KEY } from '@/components/common/crud-page/types'
 import AppIcon from '@/components/ui/AppIcon.vue'
 import StandardDialog from '@/components/ui/StandardDialog/StandardDialog.vue'
-import { usePermission } from '@/composables/usePermission'
 import { getSafeErrorMessage } from '@/utils/string'
 
 type PermissionItem = components['schemas']['PermissionResponse']
-
-const CALLBACK_PERMISSION_NAMES: readonly string[] = ['api:callback:event', 'api:callback:result']
 
 const props = defineProps<{
   app: APIApplication | null
@@ -31,20 +27,14 @@ const emit = defineEmits<{
 }>()
 
 const refresh = inject(CRUD_PAGE_REFRESH_KEY)
-const { hasPermission } = usePermission()
 
 const allPermissions = ref<PermissionItem[]>([])
 const selectedPermissionIds = ref<number[]>([])
 const currentApplication = ref<APIApplication | null>(null)
 const loading = ref(false)
 const submitting = ref(false)
-const syncing = ref(false)
 const leftSearchKeyword = ref('')
 const rightSearchKeyword = ref('')
-
-const canSyncPermissions = computed(() =>
-  hasPermission(API_AUTH_PERMISSIONS.apiApplication.syncPermissions)
-)
 
 const activeApplication = computed(() => currentApplication.value ?? props.app)
 const appName = computed(() => activeApplication.value?.app_name ?? '')
@@ -78,16 +68,6 @@ const filteredSelectedPermissions = computed(() =>
 
 const selectedCount = computed(() => selectedPermissionIds.value.length)
 const availableCount = computed(() => availablePermissions.value.length)
-
-const callbackPermissions = computed(() =>
-  allPermissions.value.filter(permission => CALLBACK_PERMISSION_NAMES.includes(permission.name))
-)
-
-const hasAllCallbackPermissions = computed(() =>
-  CALLBACK_PERMISSION_NAMES.every(name =>
-    allPermissions.value.some(permission => permission.name === name)
-  )
-)
 
 function resetSearch() {
   leftSearchKeyword.value = ''
@@ -144,23 +124,6 @@ function selectAll() {
   selectedPermissionIds.value = allPermissions.value.map(permission => permission.id)
 }
 
-function selectCallbackPermissions() {
-  const missingNames = CALLBACK_PERMISSION_NAMES.filter(
-    name => !allPermissions.value.some(permission => permission.name === name)
-  )
-
-  if (missingNames.length > 0) {
-    ElMessage.warning(`未找到回调权限：${missingNames.join('、')}，请先同步权限`)
-    return
-  }
-
-  for (const permission of callbackPermissions.value) {
-    addPermission(permission)
-  }
-
-  ElMessage.success('已勾选回调事件与回调结果权限')
-}
-
 async function loadDialogData() {
   if (!props.app) return
 
@@ -181,24 +144,6 @@ async function loadDialogData() {
     ElMessage.error(`加载应用权限失败：${getSafeErrorMessage(e)}`)
   } finally {
     loading.value = false
-  }
-}
-
-async function syncPermissions() {
-  if (!canSyncPermissions.value) return
-
-  syncing.value = true
-
-  try {
-    const permissions = (await applicationsApiMethods
-      .availablePermissionsSync()
-      .send()) as PermissionItem[]
-    allPermissions.value = permissions
-    ElMessage.success('权限已同步')
-  } catch (e: unknown) {
-    ElMessage.error(`同步权限失败：${getSafeErrorMessage(e)}`)
-  } finally {
-    syncing.value = false
   }
 }
 
@@ -275,7 +220,7 @@ watch(visible, async isOpen => {
     :title="`配置应用权限${appName ? `：${appName}` : ''}`"
     size="lg"
     :confirm-loading="submitting"
-    :confirm-disabled="loading || syncing || !app"
+    :confirm-disabled="loading || !app"
     confirm-text="保存权限"
     confirm-icon="lucide:save"
     @confirm="handleSubmit"
@@ -295,34 +240,6 @@ watch(visible, async isOpen => {
             <code class="app-summary__id">{{ appId || '—' }}</code>
           </div>
         </div>
-
-        <div class="app-summary__actions">
-          <button
-            type="button"
-            class="summary-action summary-action--primary"
-            @click="selectCallbackPermissions"
-          >
-            <AppIcon
-              icon="lucide:radio-tower"
-              :size="14"
-            />
-            勾选回调权限
-          </button>
-          <button
-            v-if="canSyncPermissions"
-            type="button"
-            class="summary-action"
-            :disabled="syncing"
-            @click="syncPermissions"
-          >
-            <AppIcon
-              icon="lucide:refresh-cw"
-              :size="14"
-              :class="{ 'is-spinning': syncing }"
-            />
-            同步权限
-          </button>
-        </div>
       </div>
 
       <div
@@ -334,17 +251,6 @@ watch(visible, async isOpen => {
           :size="16"
         />
         <span>当前接口未返回已授权权限快照，保存时会以右侧已选权限覆盖该应用权限。</span>
-      </div>
-
-      <div
-        v-else-if="!hasAllCallbackPermissions"
-        class="permission-warning permission-warning--soft"
-      >
-        <AppIcon
-          icon="ep:info-filled"
-          :size="16"
-        />
-        <span>权限列表中缺少联调回调权限，可使用“同步权限”刷新后再配置。</span>
       </div>
 
       <div class="transfer-container">
@@ -556,14 +462,10 @@ watch(visible, async isOpen => {
   border-radius: 8px;
 }
 
-.app-summary__identity,
-.app-summary__actions {
+.app-summary__identity {
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.app-summary__identity {
   min-width: 0;
   color: var(--el-color-primary);
 }
@@ -590,41 +492,6 @@ watch(visible, async isOpen => {
   word-break: break-all;
 }
 
-.summary-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 10px;
-  font-size: 12px;
-  color: var(--el-text-color-regular);
-  cursor: pointer;
-  background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color-light);
-  border-radius: 6px;
-  transition: all 0.15s ease;
-}
-
-.summary-action:hover:not(:disabled) {
-  color: var(--el-color-primary);
-  border-color: var(--el-color-primary-light-5);
-  background: var(--el-color-primary-light-9);
-}
-
-.summary-action:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.summary-action--primary {
-  color: var(--el-color-primary);
-  border-color: var(--el-color-primary-light-5);
-  background: var(--el-color-primary-light-9);
-}
-
-.is-spinning {
-  animation: spin 0.8s linear infinite;
-}
-
 .permission-warning {
   display: flex;
   align-items: center;
@@ -636,12 +503,6 @@ watch(visible, async isOpen => {
   background: var(--el-color-warning-light-9);
   border: 1px solid var(--el-color-warning-light-7);
   border-radius: 6px;
-}
-
-.permission-warning--soft {
-  color: var(--el-color-primary);
-  background: var(--el-color-primary-light-9);
-  border-color: var(--el-color-primary-light-7);
 }
 
 .transfer-container {
@@ -874,24 +735,10 @@ watch(visible, async isOpen => {
   transition: transform 0.2s ease;
 }
 
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 @media (width < 720px) {
   .app-summary {
     align-items: stretch;
     flex-direction: column;
-  }
-
-  .app-summary__actions {
-    flex-wrap: wrap;
   }
 
   .transfer-container {

@@ -6,7 +6,6 @@
  *
  */
 
-import { API_CALLBACK_PERMISSION } from './app_api/api/callback'
 import { API_TRY_PERMISSION } from './app_api/api/try'
 import { ADMIN_MENU_PERMISSION } from './user_api/admin/menu'
 import { ADMIN_PERMISSION } from './user_api/admin/permission'
@@ -18,6 +17,7 @@ import { BIZ_DEVICE_PERMISSION } from './user_api/biz/device'
 import { BIZ_MATERIAL_PERMISSION } from './user_api/biz/material'
 import { BIZ_WORKLINE_PERMISSION } from './user_api/biz/workline'
 import { CALLBACK_CALLBACK_LOG_PERMISSION } from './user_api/callback/callback_log'
+import { OPS_TRANSPORT_PERMISSION } from './user_api/ops/transport'
 import { RESOURCE_BIN_PERMISSION } from './user_api/resource/bin'
 import { RESOURCE_BINCELLOCCUPANCY_PERMISSION } from './user_api/resource/bincelloccupancy'
 import { RESOURCE_BINCONTENTSNAPSHOT_PERMISSION } from './user_api/resource/bincontentsnapshot'
@@ -35,7 +35,6 @@ import { SYS_AUDITLOG_PERMISSION } from './user_api/sys/auditlog'
 import { SYS_RUNTIME_OPERATIONS_PERMISSION } from './user_api/sys/runtime-operations'
 
 
-export { API_CALLBACK_PERMISSION }
 export { API_TRY_PERMISSION }
 export { ADMIN_MENU_PERMISSION }
 export { ADMIN_PERMISSION }
@@ -47,6 +46,7 @@ export { BIZ_DEVICE_PERMISSION }
 export { BIZ_MATERIAL_PERMISSION }
 export { BIZ_WORKLINE_PERMISSION }
 export { CALLBACK_CALLBACK_LOG_PERMISSION }
+export { OPS_TRANSPORT_PERMISSION }
 export { RESOURCE_BIN_PERMISSION }
 export { RESOURCE_BINCELLOCCUPANCY_PERMISSION }
 export { RESOURCE_BINCONTENTSNAPSHOT_PERMISSION }
@@ -77,7 +77,6 @@ export const ADMIN_PERMISSIONS = {
  * api 分类权限快捷导出
  */
 export const API_PERMISSIONS = {
-  callback: API_CALLBACK_PERMISSION,
   try: API_TRY_PERMISSION,
 } as const
 
@@ -103,6 +102,13 @@ export const BIZ_PERMISSIONS = {
  */
 export const CALLBACK_PERMISSIONS = {
   callbackLog: CALLBACK_CALLBACK_LOG_PERMISSION,
+} as const
+
+/**
+ * ops 分类权限快捷导出
+ */
+export const OPS_PERMISSIONS = {
+  transport: OPS_TRANSPORT_PERMISSION,
 } as const
 
 /**
@@ -141,6 +147,7 @@ export const PERMISSIONS = {
   apiAuth: API_AUTH_PERMISSIONS,
   biz: BIZ_PERMISSIONS,
   callback: CALLBACK_PERMISSIONS,
+  ops: OPS_PERMISSIONS,
   resource: RESOURCE_PERMISSIONS,
   sys: SYS_PERMISSIONS,
 } as const

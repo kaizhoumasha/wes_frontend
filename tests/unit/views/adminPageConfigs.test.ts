@@ -37,4 +37,18 @@ describe('admin page field configuration', () => {
     expect(config.detail?.actions ?? []).toEqual([])
     expect(config.extensions?.rowActions ?? []).toEqual([])
   })
+
+  it('uses only generated read permissions for the permission catalog page', () => {
+    const config = createPermissionPageConfig()
+
+    expect(config.resource.permissions).toEqual({
+      page: 'admin:permission:list',
+      list: 'admin:permission:list',
+      detail: 'admin:permission:detail',
+      ancestors: 'admin:permission:ancestors',
+      children: 'admin:permission:children',
+      siblings: 'admin:permission:siblings',
+      tree: 'admin:permission:tree'
+    })
+  })
 })

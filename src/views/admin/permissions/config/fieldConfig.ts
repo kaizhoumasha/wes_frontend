@@ -3,16 +3,10 @@
  */
 
 import type {
-  CreatePermissionsInput as CreatePermissionInput,
-  UpdatePermissionsInput as UpdatePermissionInput,
-  PermissionsItem as Permission
+  PermissionsItem as Permission,
+  ReadonlyInput
 } from '@/api/modules/permissions'
-import {
-  PermissionCreateMetadata,
-  PermissionResponseMetadata,
-  PermissionUpdateMetadata
-} from '@/api/generated/openapi-metadata'
-import { PermissionCreateSchema, PermissionUpdateSchema } from '@/types/zod-extensions'
+import { PermissionResponseMetadata } from '@/api/generated/openapi-metadata'
 import {
   defineCrudResourceFieldBundle
 } from '@/components/common/crud-page/resourceFieldBuilder'
@@ -43,19 +37,12 @@ export const permissionSearchConfig = {
   favorites: []
 }
 
-export const permissionFormConfig = {
-  createSchema: PermissionCreateSchema,
-  updateSchema: PermissionUpdateSchema
-}
-
 export const {
   fields: PERMISSION_FIELDS,
   fieldConfig: permissionPageFieldConfig
-} = defineCrudResourceFieldBundle<Permission, CreatePermissionInput, UpdatePermissionInput>({
+} = defineCrudResourceFieldBundle<Permission, ReadonlyInput, ReadonlyInput>({
   backend: {
     readSchema: PermissionResponseMetadata,
-    createSchema: PermissionCreateMetadata,
-    updateSchema: PermissionUpdateMetadata,
     labelOverrides: PERMISSION_FIELD_LABEL_OVERRIDES
   },
   fields: [
@@ -182,6 +169,5 @@ export const {
   ],
   storageKey: PERMISSION_TABLE_STORAGE_KEY,
   reorderLockedKeys: ['name', 'description'],
-  search: permissionSearchConfig,
-  form: permissionFormConfig
+  search: permissionSearchConfig
 })

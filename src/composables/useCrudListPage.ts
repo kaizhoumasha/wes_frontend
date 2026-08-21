@@ -14,7 +14,10 @@ import {
   type QueryOptions,
   type SortField
 } from '@/api/base/crud-request-adapter'
-import type { CrudPageViewMode } from '@/components/common/crud-page/types'
+import type {
+  CrudPagePermissionConfig,
+  CrudPageViewMode
+} from '@/components/common/crud-page/types'
 import type { TableSortOrder } from '@/components/ui/table/table.types'
 import type { SearchFieldDef, QuickSearchPreset, SearchFavorite } from '@/types/search'
 
@@ -107,13 +110,7 @@ export interface UseCrudListPageOptions<
   favorites?: SearchFavorite[]
 
   /** 权限常量 */
-  permissions?: {
-    create?: string
-    update?: string
-    delete?: string
-    restore?: string
-    trash?: string
-  }
+  permissions?: CrudPagePermissionConfig
 
   /** 初始分页大小 */
   pageSize?: number
@@ -205,6 +202,7 @@ export interface UseCrudListPageReturn<T, C, U, TDeleteOptions = undefined> {
     update: ComputedRef<boolean>
     delete: ComputedRef<boolean>
     restore: ComputedRef<boolean>
+    permanentDelete: ComputedRef<boolean>
     trash: ComputedRef<boolean>
   }
 
@@ -306,6 +304,7 @@ export function useCrudListPage<
   const updatePermission = createPermissionRef(permissions?.update)
   const deletePermission = createPermissionRef(permissions?.delete)
   const restorePermission = createPermissionRef(permissions?.restore)
+  const permanentDeletePermission = createPermissionRef(permissions?.permanentDelete)
   const trashPermission = createPermissionRef(permissions?.trash)
 
   // ==================== CRUD 请求适配器 ====================
@@ -559,6 +558,7 @@ export function useCrudListPage<
       update: updatePermission,
       delete: deletePermission,
       restore: restorePermission,
+      permanentDelete: permanentDeletePermission,
       trash: trashPermission
     },
 

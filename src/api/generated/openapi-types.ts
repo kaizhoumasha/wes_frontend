@@ -1,4 +1,4 @@
-/** @openapi-sha256 07838307cd7a470b5eae5a9c5287549145b04937c50e21ceb750abd25a096c11 */
+/** @openapi-sha256 e69750714ddc1ee7a83def0f920839dfe89a6bcc07e2b878189cbb13852ee97c */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -260,7 +260,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** [admin:menu:permanent_delete] 批量永久删除Menu */
+        /** [admin:menu:batch_permanent_delete] 批量永久删除Menu */
         delete: operations["menus_batch_permanent_delete"];
         options?: never;
         head?: never;
@@ -276,7 +276,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [admin:menu:restore] 批量恢复Menu */
+        /** [admin:menu:batch_restore] 批量恢复Menu */
         post: operations["menus_batch_restore"];
         delete?: never;
         options?: never;
@@ -396,23 +396,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/admin/permissions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [admin:permission:create] 创建Permission */
-        post: operations["permissions_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/admin/permissions/{id}": {
         parameters: {
             query?: never;
@@ -422,44 +405,8 @@ export interface paths {
         };
         /** [admin:permission:detail] 获取Permission */
         get: operations["permissions_get"];
-        /** [admin:permission:update] 更新Permission */
-        put: operations["permissions_update"];
-        post?: never;
-        /** [admin:permission:delete] 删除Permission */
-        delete: operations["permissions_delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/permissions/{id}/permanent": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
         put?: never;
         post?: never;
-        /** [admin:permission:permanent_delete] 永久删除Permission */
-        delete: operations["permissions_permanent_delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/permissions/{id}/restore": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [admin:permission:restore] 恢复Permission */
-        post: operations["permissions_restore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -486,28 +433,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/admin/permissions/batch-sort": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Batch Sort
-         * @description 批量排序节点
-         *
-         *     适用于拖拽排序场景，一次请求更新多个节点的 parent_id 和 sort_order
-         */
-        put: operations["admin_permissions_batch_sort_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/admin/permissions/children/{node_id}": {
         parameters: {
             query?: never;
@@ -521,26 +446,6 @@ export interface paths {
          */
         get: operations["admin_permissions_children_by_node_id_get"];
         put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/permissions/move": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Move Node
-         * @description 移动节点
-         */
-        put: operations["admin_permissions_move_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -579,57 +484,6 @@ export interface paths {
         get: operations["admin_permissions_siblings_by_node_id_get"];
         put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/permissions/trash": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [admin:permission:trash] 获取已删除Permission */
-        get: operations["permissions_trash"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/permissions/trash/permanent": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** [admin:permission:permanent_delete] 批量永久删除Permission */
-        delete: operations["permissions_batch_permanent_delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/permissions/trash/restore": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [admin:permission:restore] 批量恢复Permission */
-        post: operations["permissions_batch_restore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -770,7 +624,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** [admin:role:permanent_delete] 批量永久删除Role */
+        /** [admin:role:batch_permanent_delete] 批量永久删除Role */
         delete: operations["roles_batch_permanent_delete"];
         options?: never;
         head?: never;
@@ -786,7 +640,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [admin:role:restore] 批量恢复Role */
+        /** [admin:role:batch_restore] 批量恢复Role */
         post: operations["roles_batch_restore"];
         delete?: never;
         options?: never;
@@ -1022,7 +876,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** [admin:user:permanent_delete] 批量永久删除User */
+        /** [admin:user:batch_permanent_delete] 批量永久删除User */
         delete: operations["users_batch_permanent_delete"];
         options?: never;
         head?: never;
@@ -1038,7 +892,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [admin:user:restore] 批量恢复User */
+        /** [admin:user:batch_restore] 批量恢复User */
         post: operations["users_batch_restore"];
         delete?: never;
         options?: never;
@@ -1261,26 +1115,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/api_auth/applications/available-permissions/sync": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * [api-auth:api_application:sync_permissions] 重新扫描并同步 API 权限
-         * @description 重新扫描代码中的权限并同步到数据库。
-         */
-        post: operations["api_auth_applications_available_permissions_sync_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/api_auth/applications/query": {
         parameters: {
             query?: never;
@@ -1325,7 +1159,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** [api-auth:api_application:permanent_delete] 批量永久删除APIApplication */
+        /** [api-auth:api_application:batch_permanent_delete] 批量永久删除APIApplication */
         delete: operations["applications_batch_permanent_delete"];
         options?: never;
         head?: never;
@@ -1341,7 +1175,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [api-auth:api_application:restore] 批量恢复APIApplication */
+        /** [api-auth:api_application:batch_restore] 批量恢复APIApplication */
         post: operations["applications_batch_restore"];
         delete?: never;
         options?: never;
@@ -1611,23 +1445,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/callback/external": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Callback External */
-        post: operations["callback_external_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/callback/logs/{id}": {
         parameters: {
             query?: never;
@@ -1670,7 +1487,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * [callback:callback_log:detail] 根据请求 ID 查询回调日志
+         * [callback:callback_log:detail-by-request-id] 根据请求 ID 查询回调日志
          * @description 根据 request_id 查询单条回调日志记录
          */
         get: operations["callback_logs_request_by_request_id_get"];
@@ -1690,7 +1507,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * [callback:callback_log:list] 根据回调主体编码查询回调日志
+         * [callback:callback_log:list-by-subject-code] 根据回调主体编码查询回调日志
          * @description 查询指定回调主体最近的回调记录。设备回调主体通常是 device_code。
          */
         get: operations["callback_logs_subject_by_subject_code_get"];
@@ -1710,7 +1527,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * [callback:callback_log:list] 根据 Trace ID 查询回调日志
+         * [callback:callback_log:list-by-trace-id] 根据 Trace ID 查询回调日志
          * @description 根据 trace_id 查询所有相关的回调日志（用于串联整个流程）
          */
         get: operations["callback_logs_trace_by_trace_id_get"];
@@ -1853,7 +1670,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** [biz:device:permanent_delete] 批量永久删除Device */
+        /** [biz:device:batch_permanent_delete] 批量永久删除Device */
         delete: operations["devices_batch_permanent_delete"];
         options?: never;
         head?: never;
@@ -1869,7 +1686,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [biz:device:restore] 批量恢复Device */
+        /** [biz:device:batch_restore] 批量恢复Device */
         post: operations["devices_batch_restore"];
         delete?: never;
         options?: never;
@@ -2393,6 +2210,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/transport/debug-tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [ops:transport:debug-create] 创建 Transport 调试任务 */
+        post: operations["transport_debug_tasks_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transport/tasks/{transport_task_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [ops:transport:read] 查询本地 Transport 任务 */
+        get: operations["transport_tasks_by_transport_task_id_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/wms/events": {
         parameters: {
             query?: never;
@@ -2419,7 +2270,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [biz:workline:resolve-reconciliation] 提交 EFFECT reconciliation 人工决议 */
+        /** [biz:workline:resolve-effect-reconciliation] 提交 EFFECT reconciliation 人工决议 */
         post: operations["workline_operations_reconciliations_effects_by_dispatch_key_resolve_post"];
         delete?: never;
         options?: never;
@@ -2453,7 +2304,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [biz:workline:update] Replay 历史 Inbox */
+        /** [biz:workline:replay-inbox] Replay 历史 Inbox */
         post: operations["workline_operations_replay_inboxes_by_inbox_id_post"];
         delete?: never;
         options?: never;
@@ -2487,7 +2338,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [biz:workline:update] 沙箱模拟 Command ACK */
+        /** [biz:workline:submit-sandbox-ack] 沙箱模拟 Command ACK */
         post: operations["workline_operations_sandbox_ack_post"];
         delete?: never;
         options?: never;
@@ -2502,7 +2353,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** [biz:workline:list] 查询沙箱已完成 Outbox */
+        /** [biz:workline:sandbox-completed] 查询沙箱已完成 Outbox */
         get: operations["workline_operations_sandbox_completed_get"];
         put?: never;
         post?: never;
@@ -2521,7 +2372,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [biz:workline:update] 沙箱模拟 External HTTP 回调 */
+        /** [biz:workline:submit-sandbox-external-callback] 沙箱模拟 External HTTP 回调 */
         post: operations["workline_operations_sandbox_external_callbacks_post"];
         delete?: never;
         options?: never;
@@ -2536,7 +2387,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** [biz:workline:list] 查询沙箱待处理 Outbox */
+        /** [biz:workline:sandbox-pending] 查询沙箱待处理 Outbox */
         get: operations["workline_operations_sandbox_pending_get"];
         put?: never;
         post?: never;
@@ -2556,7 +2407,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * [biz:workline:update] 沙箱模拟 WorkLine 软件急停冻结
+         * [biz:workline:simulate-estop] 沙箱模拟 WorkLine 软件急停冻结
          * @description 沙箱专用安全模拟入口；不通过普通 sandbox event 流。
          */
         post: operations["workline_operations_sandbox_worklines_by_workline_id_simulate_estop_post"];
@@ -2670,7 +2521,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * [biz:workline:detail] 查询作业线当前 active objects
+         * [biz:workline:active-objects] 查询作业线当前 active objects
          * @description 读取 WorklineActiveObjects；API 层不直接访问 repository。
          */
         get: operations["workline_work_lines_by_id_active_objects_get"];
@@ -2690,7 +2541,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * [biz:workline:detail] 查询作业线配置状态
+         * [biz:workline:configuration-status] 查询作业线配置状态
          * @description 查询 WorkLine 启用前配置状态。
          */
         get: operations["workline_work_lines_by_id_configuration_status_get"];
@@ -2840,7 +2691,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** [biz:workline:permanent_delete] 批量永久删除WorkLine */
+        /** [biz:workline:batch_permanent_delete] 批量永久删除WorkLine */
         delete: operations["work_lines_batch_permanent_delete"];
         options?: never;
         head?: never;
@@ -2856,7 +2707,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [biz:workline:restore] 批量恢复WorkLine */
+        /** [biz:workline:batch_restore] 批量恢复WorkLine */
         post: operations["work_lines_batch_restore"];
         delete?: never;
         options?: never;
@@ -2868,6 +2719,134 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** _BinExchangeData */
+        _BinExchangeData: {
+            /** Exchange Pairs */
+            exchange_pairs: components["schemas"]["_BinExchangePair"][];
+        };
+        /** _BinExchangeDebugTask */
+        _BinExchangeDebugTask: {
+            /** Client Request Id */
+            client_request_id: string;
+            data: components["schemas"]["_BinExchangeData"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "BIN_EXCHANGE";
+            /** Station Id */
+            station_id?: string | null;
+        };
+        /** _BinExchangePair */
+        _BinExchangePair: {
+            /** Left Bin Id */
+            left_bin_id: string;
+            left_location: components["schemas"]["_RackBinSlot"];
+            /** Right Bin Id */
+            right_bin_id: string;
+            right_location: components["schemas"]["_RackBinSlot"];
+        };
+        /** _BinMoveData */
+        _BinMoveData: {
+            /** Moves */
+            moves: components["schemas"]["_BinMoveMember"][];
+        };
+        /** _BinMoveDebugTask */
+        _BinMoveDebugTask: {
+            /** Client Request Id */
+            client_request_id: string;
+            data: components["schemas"]["_BinMoveData"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "BIN_MOVE";
+            /** Station Id */
+            station_id?: string | null;
+        };
+        /** _BinMoveMember */
+        _BinMoveMember: {
+            /** Bin Id */
+            bin_id: string;
+            source: components["schemas"]["_BinPosition"];
+            target: components["schemas"]["_BinPosition"];
+        };
+        _BinPosition: components["schemas"]["_RackBinSlot"] | components["schemas"]["_HandoffPosition"];
+        _DebugTransportTaskRequest: components["schemas"]["_RackMoveDebugTask"] | components["schemas"]["_RackRotateDebugTask"] | components["schemas"]["_BinMoveDebugTask"] | components["schemas"]["_BinExchangeDebugTask"];
+        /** _HandoffPosition */
+        _HandoffPosition: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "HANDOFF_POSITION";
+            /** Location Code */
+            location_code: string;
+        };
+        /** _RackBinSlot */
+        _RackBinSlot: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "RACK_BIN_SLOT";
+            rack_face: components["schemas"]["RackFace"];
+            /** Rack Id */
+            rack_id: string;
+            /** Slot Id */
+            slot_id: string;
+        };
+        /** _RackMoveData */
+        _RackMoveData: {
+            /** Rack Id */
+            rack_id: string;
+            source: components["schemas"]["_RackPosition"];
+            target: components["schemas"]["_RackPosition"];
+            target_face: components["schemas"]["RackFace"];
+        };
+        /** _RackMoveDebugTask */
+        _RackMoveDebugTask: {
+            /** Client Request Id */
+            client_request_id: string;
+            data: components["schemas"]["_RackMoveData"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "RACK_MOVE";
+            /** Station Id */
+            station_id?: string | null;
+        };
+        /** _RackPosition */
+        _RackPosition: {
+            /**
+             * Kind
+             * @constant
+             */
+            kind: "RACK_POSITION";
+            /** Location Code */
+            location_code: string;
+        };
+        /** _RackRotateData */
+        _RackRotateData: {
+            position: components["schemas"]["_RackPosition"];
+            /** Rack Id */
+            rack_id: string;
+            target_face: components["schemas"]["RackFace"];
+        };
+        /** _RackRotateDebugTask */
+        _RackRotateDebugTask: {
+            /** Client Request Id */
+            client_request_id: string;
+            data: components["schemas"]["_RackRotateData"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "RACK_ROTATE";
+            /** Station Id */
+            station_id?: string | null;
+        };
         /**
          * ActiveSessionsResponse
          * @description 活跃会话列表响应 Schema
@@ -3918,73 +3897,10 @@ export interface components {
              */
             node_id: number;
         };
-        /** Body_admin_permissions_move_put */
-        Body_admin_permissions_move_put: {
-            /**
-             * New Parent Id
-             * @description 新的父节点ID
-             */
-            new_parent_id: number | null;
-            /**
-             * Node Id
-             * @description 要移动的节点ID
-             */
-            node_id: number;
-        };
         /** Body_api_auth_applications_by_id_permissions_post */
         Body_api_auth_applications_by_id_permissions_post: {
             /** Permission Ids */
             permission_ids: number[];
-        };
-        /**
-         * CallbackExternalAcceptedResponse
-         * @description 外部系统回调接收响应数据。
-         */
-        CallbackExternalAcceptedResponse: {
-            /**
-             * Callback Type
-             * @description 外部回调类型
-             */
-            callback_type: string;
-            /**
-             * Causation Id
-             * @description 因果事件 ID
-             */
-            causation_id?: string | null;
-            /**
-             * Event Id
-             * @description 供应商事件 ID
-             */
-            event_id?: string | null;
-            /**
-             * Request Id
-             * @description 入口请求 ID
-             */
-            request_id?: string | null;
-            /**
-             * Status
-             * @description 入口处理状态
-             * @enum {string}
-             */
-            status: "submitted" | "duplicate";
-            /**
-             * Trace Id
-             * @description Trace ID
-             */
-            trace_id?: string | null;
-        };
-        /** ResponseSchemaModel[Union[CallbackExternalAcceptedResponse, CallbackRejectedResponse]] */
-        CallbackExternalIngressResponse: ApiResponse<unknown>;
-        /**
-         * CallbackHTTPExceptionResponse
-         * @description Callback 入口由 HTTPException 返回的传输层错误。
-         */
-        CallbackHTTPExceptionResponse: {
-            /**
-             * Detail
-             * @description 可重试或请求体限制错误说明
-             */
-            detail: string;
         };
         /**
          * CallbackLogResponse
@@ -4077,31 +3993,6 @@ export interface components {
             trace_id: string;
         };
         /**
-         * CallbackRejectedResponse
-         * @description Callback 入口拒收响应数据。
-         */
-        CallbackRejectedResponse: {
-            /**
-             * Ack
-             * @description 入口是否接收
-             * @default false
-             * @constant
-             */
-            ack: false;
-            /**
-             * Diagnostic
-             * @description 拒收诊断信息
-             */
-            diagnostic?: {
-                [key: string]: unknown;
-            } | null;
-            /**
-             * Reason Code
-             * @description 拒收原因代码
-             */
-            reason_code?: string | null;
-        };
-        /**
          * ClearWorkLineEstopRequest
          * @description 人工清除 WorkLine 急停请求。
          */
@@ -4118,6 +4009,13 @@ export interface components {
              * @description 恢复说明
              */
             reason?: string | null;
+        };
+        /** DebugTransportTaskCreated */
+        DebugTransportTaskCreated: {
+            /** Client Request Id */
+            client_request_id: string;
+            /** Transport Task Id */
+            transport_task_id: string;
         };
         /**
          * DeviceCreate
@@ -4942,75 +4840,6 @@ export interface components {
          */
         OperaStatus: "FAIL" | "SUCCESS";
         /**
-         * PermissionCreate
-         * @description API 权限创建 Schema
-         */
-        PermissionCreate: {
-            /**
-             * Action
-             * @description 操作：create、read、update、delete、list 等
-             */
-            action?: string | null;
-            /**
-             * Category
-             * @description 权限分类：admin、system、business 等
-             */
-            category?: string | null;
-            /**
-             * Description
-             * @description 权限描述
-             */
-            description?: string | null;
-            /**
-             * Has Children
-             * @default false
-             */
-            has_children: boolean;
-            /**
-             * Level
-             * @default 1
-             */
-            level: number;
-            /**
-             * Method
-             * @description HTTP 方法：GET、POST、PUT、DELETE、PATCH 等
-             */
-            method?: string | null;
-            /**
-             * Name
-             * @description 权限标识，如 admin:role:create
-             */
-            name: string;
-            /** Parent Id */
-            parent_id?: number | null;
-            /**
-             * Path
-             * @description API 路径：/admin/users/{id}、/api/v1/warehouses 等
-             */
-            path?: string | null;
-            /**
-             * Resource
-             * @description 资源类型：user、role、permission、warehouse 等
-             */
-            resource?: string | null;
-            /**
-             * Sort Order
-             * @default 0
-             */
-            sort_order: number;
-            /**
-             * Tree Path
-             * @default /
-             */
-            tree_path: string;
-            /**
-             * Type
-             * @description 权限类型：user_api（内部管理API）、app_api（外部应用API）
-             * @default user_api
-             */
-            type: string;
-        };
-        /**
          * PermissionResponse
          * @description API 权限响应 Schema（完整版）
          */
@@ -5160,67 +4989,6 @@ export interface components {
              * @default user_api
              */
             type: string;
-        };
-        /**
-         * PermissionUpdate
-         * @description API 权限更新 Schema
-         */
-        PermissionUpdate: {
-            /**
-             * Action
-             * @description 操作：create、read、update、delete、list 等
-             */
-            action?: string | null;
-            /**
-             * Category
-             * @description 权限分类：admin、system、business 等
-             */
-            category?: string | null;
-            /**
-             * Description
-             * @description 权限描述
-             */
-            description?: string | null;
-            /** Has Children */
-            has_children?: boolean | null;
-            /** Level */
-            level?: number | null;
-            /**
-             * Method
-             * @description HTTP 方法：GET、POST、PUT、DELETE、PATCH 等
-             */
-            method?: string | null;
-            /**
-             * Name
-             * @description 权限标识，如 admin:role:create
-             */
-            name?: string | null;
-            /** Parent Id */
-            parent_id?: number | null;
-            /**
-             * Path
-             * @description API 路径：/admin/users/{id}、/api/v1/warehouses 等
-             */
-            path?: string | null;
-            /**
-             * Resource
-             * @description 资源类型：user、role、permission、warehouse 等
-             */
-            resource?: string | null;
-            /** Sort Order */
-            sort_order?: number | null;
-            /** Tree Path */
-            tree_path?: string | null;
-            /**
-             * Type
-             * @description 权限类型：user_api（内部管理API）、app_api（外部应用API）
-             */
-            type?: string | null;
-            /**
-             * Version
-             * @description 乐观锁版本号，更新时必传
-             */
-            version: number;
         };
         /**
          * PlaneEdge
@@ -5408,6 +5176,11 @@ export interface components {
          * @enum {string}
          */
         RackBinMountStatus: "MOUNTED" | "UNMOUNTED" | "EXCHANGING" | "UNKNOWN";
+        /**
+         * RackFace
+         * @enum {string}
+         */
+        RackFace: "A" | "B";
         /**
          * RackKind
          * @description 货架物理结构类型。
@@ -5963,6 +5736,8 @@ export interface components {
         ResponseSchemaModel_CallbackLogSubjectResponse_: ApiResponse<components["schemas"]["CallbackLogSubjectResponse"]>;
         /** ResponseSchemaModel[CallbackLogTraceResponse] */
         ResponseSchemaModel_CallbackLogTraceResponse_: ApiResponse<components["schemas"]["CallbackLogTraceResponse"]>;
+        /** ResponseSchemaModel[DebugTransportTaskCreated] */
+        ResponseSchemaModel_DebugTransportTaskCreated_: ApiResponse<components["schemas"]["DebugTransportTaskCreated"]>;
         /** ResponseSchemaModel[DeviceResponse] */
         ResponseSchemaModel_DeviceResponse_: ApiResponse<components["schemas"]["DeviceResponse"]>;
         /** ResponseSchemaModel[dict[str, Any]] */
@@ -6019,6 +5794,8 @@ export interface components {
         ResponseSchemaModel_RevokeSessionResponse_: ApiResponse<components["schemas"]["RevokeSessionResponse"]>;
         /** ResponseSchemaModel[RoleResponse] */
         ResponseSchemaModel_RoleResponse_: ApiResponse<components["schemas"]["RoleResponse"]>;
+        /** ResponseSchemaModel[TransportTaskResponse] */
+        ResponseSchemaModel_TransportTaskResponse_: ApiResponse<components["schemas"]["TransportTaskResponse"]>;
         /** ResponseSchemaModel[Union[WorkLineStartResponse, WorkLineStartErrorResponse]] */
         ResponseSchemaModel_Union_WorkLineStartResponse__WorkLineStartErrorResponse__: ApiResponse<unknown>;
         /** ResponseSchemaModel[UserPermissionsResponse] */
@@ -6288,6 +6065,52 @@ export interface components {
              * @default 0
              */
             sort_order: number;
+        };
+        /** TransportEvidenceResponse */
+        TransportEvidenceResponse: {
+            /** Conflict Code */
+            conflict_code: string | null;
+            /** Operation */
+            operation: string;
+            /** Operation Id */
+            operation_id: string;
+            /** Outcome Revision */
+            outcome_revision: number | null;
+            /** Processed At */
+            processed_at: string | null;
+            /** Received At */
+            received_at: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "PENDING" | "APPLIED" | "CONFLICT";
+        };
+        /** TransportTaskResponse */
+        TransportTaskResponse: {
+            /** Client Request Id */
+            client_request_id: string;
+            /** Created At */
+            created_at: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "RACK_MOVE" | "RACK_ROTATE" | "BIN_MOVE" | "BIN_EXCHANGE";
+            latest_evidence: components["schemas"]["TransportEvidenceResponse"] | null;
+            /** Reason Code */
+            reason_code: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "PENDING" | "ACCEPTED" | "REJECTED" | "SUCCEEDED" | "FAILED" | "RECONCILING";
+            /** Submit Operation Id */
+            submit_operation_id: string;
+            /** Transport Task Id */
+            transport_task_id: string;
+            /** Updated At */
+            updated_at: string;
         };
         /**
          * TryInvokeApplication
@@ -7512,39 +7335,6 @@ export interface operations {
             };
         };
     };
-    permissions_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PermissionCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_PermissionResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     permissions_get: {
         parameters: {
             query?: {
@@ -7553,137 +7343,6 @@ export interface operations {
                 /** @description 关系加载深度 */
                 max_depth?: number;
             };
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_PermissionResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    permissions_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PermissionUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_PermissionResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    permissions_delete: {
-        parameters: {
-            query?: {
-                /** @description 是否永久删除（仅软删除模型生效） */
-                permanent?: boolean;
-            };
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__str__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    permissions_permanent_delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__str__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    permissions_restore: {
-        parameters: {
-            query?: never;
             header?: never;
             path: {
                 id: number;
@@ -7747,39 +7406,6 @@ export interface operations {
             };
         };
     };
-    admin_permissions_batch_sort_put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BatchSortRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_NoneType_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     admin_permissions_children_by_node_id_get: {
         parameters: {
             query?: never;
@@ -7799,39 +7425,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_list_PermissionResponse__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    admin_permissions_move_put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["Body_admin_permissions_move_put"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_PermissionResponse_"];
                 };
             };
             /** @description Validation Error */
@@ -7900,104 +7493,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_list_PermissionResponse__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    permissions_trash: {
-        parameters: {
-            query?: {
-                limit?: number;
-                offset?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ListResponseSchemaModel_PermissionResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    permissions_batch_permanent_delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": number[];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BatchOperationResponseModel"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    permissions_batch_restore: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": number[];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BatchOperationResponseModel"];
                 };
             };
             /** @description Validation Error */
@@ -9253,26 +8748,6 @@ export interface operations {
             };
         };
     };
-    api_auth_applications_available_permissions_sync_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_list_Any__"];
-                };
-            };
-        };
-    };
     applications_query: {
         parameters: {
             query?: never;
@@ -9637,102 +9112,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EcsCallbackAck"];
-                };
-            };
-        };
-    };
-    callback_external_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /**
-                     * Callback Type
-                     * @description 已注册的外部 callback 类型
-                     */
-                    callback_type: string;
-                    /**
-                     * Causation Id
-                     * @description 因果事件 ID
-                     */
-                    causation_id?: string | null;
-                    /**
-                     * Data
-                     * @description 供应商业务载荷；具体字段由 callback_type 决定
-                     */
-                    data?: {
-                        [key: string]: unknown;
-                    } | null;
-                    /**
-                     * Dispatch Key
-                     * @description 异步 EFFECT 调度身份
-                     */
-                    dispatch_key?: string | null;
-                    /**
-                     * Event Id
-                     * @description 供应商事件 ID
-                     */
-                    event_id?: string | null;
-                    /**
-                     * Occurred At
-                     * @description 外部事件发生时间（offset-aware ISO 8601）
-                     */
-                    occurred_at?: string | null;
-                    /**
-                     * Source Event Id
-                     * @description 供应商幂等事件 ID
-                     */
-                    source_event_id?: string | null;
-                    /**
-                     * Trace Id
-                     * @description 端到端追踪 ID
-                     */
-                    trace_id?: string | null;
-                } & {
-                    [key: string]: unknown;
-                };
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CallbackExternalIngressResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CallbackExternalIngressResponse"];
-                };
-            };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CallbackExternalIngressResponse"];
-                };
-            };
-            /** @description Content Too Large */
-            413: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CallbackHTTPExceptionResponse"];
                 };
             };
         };
@@ -11300,6 +10679,115 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    transport_debug_tasks_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["_DebugTransportTaskRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_DebugTransportTaskCreated_"];
+                };
+            };
+            /** @description Transport 请求不满足领域约束 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description 幂等身份或 Transport 资源冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Transport runtime 不可用 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+        };
+    };
+    transport_tasks_by_transport_task_id_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transport_task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_TransportTaskResponse_"];
+                };
+            };
+            /** @description TransportTask 不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Transport runtime 不可用 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
                 };
             };
         };

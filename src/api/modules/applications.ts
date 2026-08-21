@@ -39,8 +39,6 @@ export type UpdateApplicationsInput = CrudUpdateInput<typeof APPLICATIONS_COLLEC
 
 export type AvailablePermissionsResult = ContractResponseData<'/api/v1/api_auth/applications/available-permissions', 'get'>
 
-export type AvailablePermissionsSyncResult = ContractResponseData<'/api/v1/api_auth/applications/available-permissions/sync', 'post'>
-
 export type RevokeResult = ContractResponseData<'/api/v1/api_auth/applications/{id}/revoke', 'post'>
 export type RevokePathParams = ContractPathParams<'/api/v1/api_auth/applications/{id}/revoke', 'post'>
 
@@ -82,16 +80,6 @@ export const applicationsApiMethods = {
    */
   availablePermissions(config?: ContractRequestConfig) {
     return contractMethods.get('/api/v1/api_auth/applications/available-permissions', { config })
-  },
-
-  /**
-   * [api-auth:api_application:sync_permissions] 重新扫描并同步 API 权限
-   * @description 重新扫描代码中的权限并同步到数据库。
-   * @endpoint POST /api/v1/api_auth/applications/available-permissions/sync
-   * @returns alova method instance
-   */
-  availablePermissionsSync(config?: ContractRequestConfig) {
-    return contractMethods.post('/api/v1/api_auth/applications/available-permissions/sync', { config })
   },
 
   /**

@@ -441,12 +441,73 @@
         ]
       }
     },
+    "/api/v1/admin/users/trash": {
+      "get": {
+        "tags": [
+          "用户管理"
+        ],
+        "summary": "[admin:user:trash] 获取已删除User",
+        "operationId": "users_trash",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 10,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponseSchemaModel_UserResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/admin/users/trash/restore": {
       "post": {
         "tags": [
           "用户管理"
         ],
-        "summary": "[admin:user:restore] 批量恢复User",
+        "summary": "[admin:user:batch_restore] 批量恢复User",
         "operationId": "users_batch_restore",
         "requestBody": {
           "content": {
@@ -496,7 +557,7 @@
         "tags": [
           "用户管理"
         ],
-        "summary": "[admin:user:permanent_delete] 批量永久删除User",
+        "summary": "[admin:user:batch_permanent_delete] 批量永久删除User",
         "operationId": "users_batch_permanent_delete",
         "requestBody": {
           "content": {
@@ -618,67 +679,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ResponseSchemaModel_UserResponse_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/admin/users/trash": {
-      "get": {
-        "tags": [
-          "用户管理"
-        ],
-        "summary": "[admin:user:trash] 获取已删除User",
-        "operationId": "users_trash",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 100,
-              "minimum": 1,
-              "default": 10,
-              "title": "Limit"
-            }
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 0,
-              "default": 0,
-              "title": "Offset"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ListResponseSchemaModel_UserResponse_"
                 }
               }
             }
@@ -973,12 +973,73 @@
         ]
       }
     },
+    "/api/v1/admin/roles/trash": {
+      "get": {
+        "tags": [
+          "角色管理"
+        ],
+        "summary": "[admin:role:trash] 获取已删除Role",
+        "operationId": "roles_trash",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 10,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponseSchemaModel_RoleResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/admin/roles/trash/restore": {
       "post": {
         "tags": [
           "角色管理"
         ],
-        "summary": "[admin:role:restore] 批量恢复Role",
+        "summary": "[admin:role:batch_restore] 批量恢复Role",
         "operationId": "roles_batch_restore",
         "requestBody": {
           "content": {
@@ -1028,7 +1089,7 @@
         "tags": [
           "角色管理"
         ],
-        "summary": "[admin:role:permanent_delete] 批量永久删除Role",
+        "summary": "[admin:role:batch_permanent_delete] 批量永久删除Role",
         "operationId": "roles_batch_permanent_delete",
         "requestBody": {
           "content": {
@@ -1150,67 +1211,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ResponseSchemaModel_RoleResponse_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/admin/roles/trash": {
-      "get": {
-        "tags": [
-          "角色管理"
-        ],
-        "summary": "[admin:role:trash] 获取已删除Role",
-        "operationId": "roles_trash",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 100,
-              "minimum": 1,
-              "default": 10,
-              "title": "Limit"
-            }
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 0,
-              "default": 0,
-              "title": "Offset"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ListResponseSchemaModel_RoleResponse_"
                 }
               }
             }
@@ -1764,514 +1764,7 @@
         }
       }
     },
-    "/api/v1/admin/permissions/move": {
-      "put": {
-        "tags": [
-          "权限管理"
-        ],
-        "summary": "Move Node",
-        "description": "移动节点",
-        "operationId": "admin_permissions_move_put",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Body_admin_permissions_move_put"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_PermissionResponse_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
-      }
-    },
-    "/api/v1/admin/permissions/batch-sort": {
-      "put": {
-        "tags": [
-          "权限管理"
-        ],
-        "summary": "Batch Sort",
-        "description": "批量排序节点\n\n适用于拖拽排序场景，一次请求更新多个节点的 parent_id 和 sort_order",
-        "operationId": "admin_permissions_batch_sort_put",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BatchSortRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_NoneType_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
-      }
-    },
-    "/api/v1/admin/permissions/trash/restore": {
-      "post": {
-        "tags": [
-          "权限管理"
-        ],
-        "summary": "[admin:permission:restore] 批量恢复Permission",
-        "operationId": "permissions_batch_restore",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "items": {
-                  "type": "integer"
-                },
-                "type": "array",
-                "title": "Ids"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BatchOperationResponseModel"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
-      }
-    },
-    "/api/v1/admin/permissions/trash/permanent": {
-      "delete": {
-        "tags": [
-          "权限管理"
-        ],
-        "summary": "[admin:permission:permanent_delete] 批量永久删除Permission",
-        "operationId": "permissions_batch_permanent_delete",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "items": {
-                  "type": "integer"
-                },
-                "type": "array",
-                "title": "Ids"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BatchOperationResponseModel"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
-      }
-    },
-    "/api/v1/admin/permissions/{id}/permanent": {
-      "delete": {
-        "tags": [
-          "权限管理"
-        ],
-        "summary": "[admin:permission:permanent_delete] 永久删除Permission",
-        "operationId": "permissions_permanent_delete",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__str__"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/admin/permissions/{id}/restore": {
-      "post": {
-        "tags": [
-          "权限管理"
-        ],
-        "summary": "[admin:permission:restore] 恢复Permission",
-        "operationId": "permissions_restore",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_PermissionResponse_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/admin/permissions/trash": {
-      "get": {
-        "tags": [
-          "权限管理"
-        ],
-        "summary": "[admin:permission:trash] 获取已删除Permission",
-        "operationId": "permissions_trash",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 100,
-              "minimum": 1,
-              "default": 10,
-              "title": "Limit"
-            }
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 0,
-              "default": 0,
-              "title": "Offset"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ListResponseSchemaModel_PermissionResponse_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/admin/permissions": {
-      "post": {
-        "tags": [
-          "权限管理"
-        ],
-        "summary": "[admin:permission:create] 创建Permission",
-        "operationId": "permissions_create",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PermissionCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_PermissionResponse_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
-      }
-    },
     "/api/v1/admin/permissions/{id}": {
-      "put": {
-        "tags": [
-          "权限管理"
-        ],
-        "summary": "[admin:permission:update] 更新Permission",
-        "operationId": "permissions_update",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PermissionUpdate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_PermissionResponse_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "权限管理"
-        ],
-        "summary": "[admin:permission:delete] 删除Permission",
-        "operationId": "permissions_delete",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Id"
-            }
-          },
-          {
-            "name": "permanent",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "description": "是否永久删除（仅软删除模型生效）",
-              "default": false,
-              "title": "Permanent"
-            },
-            "description": "是否永久删除（仅软删除模型生效）"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__str__"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
       "get": {
         "tags": [
           "权限管理"
@@ -2770,12 +2263,73 @@
         ]
       }
     },
+    "/api/v1/admin/menus/trash": {
+      "get": {
+        "tags": [
+          "菜单管理"
+        ],
+        "summary": "[admin:menu:trash] 获取已删除Menu",
+        "operationId": "menus_trash",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 10,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponseSchemaModel_MenuResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/admin/menus/trash/restore": {
       "post": {
         "tags": [
           "菜单管理"
         ],
-        "summary": "[admin:menu:restore] 批量恢复Menu",
+        "summary": "[admin:menu:batch_restore] 批量恢复Menu",
         "operationId": "menus_batch_restore",
         "requestBody": {
           "content": {
@@ -2825,7 +2379,7 @@
         "tags": [
           "菜单管理"
         ],
-        "summary": "[admin:menu:permanent_delete] 批量永久删除Menu",
+        "summary": "[admin:menu:batch_permanent_delete] 批量永久删除Menu",
         "operationId": "menus_batch_permanent_delete",
         "requestBody": {
           "content": {
@@ -2947,67 +2501,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ResponseSchemaModel_MenuResponse_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/admin/menus/trash": {
-      "get": {
-        "tags": [
-          "菜单管理"
-        ],
-        "summary": "[admin:menu:trash] 获取已删除Menu",
-        "operationId": "menus_trash",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 100,
-              "minimum": 1,
-              "default": 10,
-              "title": "Limit"
-            }
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 0,
-              "default": 0,
-              "title": "Offset"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ListResponseSchemaModel_MenuResponse_"
                 }
               }
             }
@@ -3592,7 +3085,7 @@
         "tags": [
           "作业线管理"
         ],
-        "summary": "[biz:workline:detail] 查询作业线配置状态",
+        "summary": "[biz:workline:configuration-status] 查询作业线配置状态",
         "description": "查询 WorkLine 启用前配置状态。",
         "operationId": "workline_work_lines_by_id_configuration_status_get",
         "security": [
@@ -3847,13 +3340,75 @@
         }
       }
     },
+    "/api/v1/workline/work_lines/trash": {
+      "get": {
+        "tags": [
+          "作业线管理",
+          "作业线管理"
+        ],
+        "summary": "[biz:workline:trash] 获取已删除WorkLine",
+        "operationId": "work_lines_trash",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 10,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponseSchemaModel_WorkLineResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/workline/work_lines/trash/restore": {
       "post": {
         "tags": [
           "作业线管理",
           "作业线管理"
         ],
-        "summary": "[biz:workline:restore] 批量恢复WorkLine",
+        "summary": "[biz:workline:batch_restore] 批量恢复WorkLine",
         "operationId": "work_lines_batch_restore",
         "requestBody": {
           "content": {
@@ -3904,7 +3459,7 @@
           "作业线管理",
           "作业线管理"
         ],
-        "summary": "[biz:workline:permanent_delete] 批量永久删除WorkLine",
+        "summary": "[biz:workline:batch_permanent_delete] 批量永久删除WorkLine",
         "operationId": "work_lines_batch_permanent_delete",
         "requestBody": {
           "content": {
@@ -4028,68 +3583,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ResponseSchemaModel_WorkLineResponse_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/workline/work_lines/trash": {
-      "get": {
-        "tags": [
-          "作业线管理",
-          "作业线管理"
-        ],
-        "summary": "[biz:workline:trash] 获取已删除WorkLine",
-        "operationId": "work_lines_trash",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 100,
-              "minimum": 1,
-              "default": 10,
-              "title": "Limit"
-            }
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 0,
-              "default": 0,
-              "title": "Offset"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ListResponseSchemaModel_WorkLineResponse_"
                 }
               }
             }
@@ -4394,7 +3887,7 @@
         "tags": [
           "工作线诊断操作"
         ],
-        "summary": "[biz:workline:list] 查询沙箱待处理 Outbox",
+        "summary": "[biz:workline:sandbox-pending] 查询沙箱待处理 Outbox",
         "operationId": "workline_operations_sandbox_pending_get",
         "security": [
           {
@@ -4484,7 +3977,7 @@
         "tags": [
           "工作线诊断操作"
         ],
-        "summary": "[biz:workline:list] 查询沙箱已完成 Outbox",
+        "summary": "[biz:workline:sandbox-completed] 查询沙箱已完成 Outbox",
         "operationId": "workline_operations_sandbox_completed_get",
         "security": [
           {
@@ -4574,7 +4067,7 @@
         "tags": [
           "工作线诊断操作"
         ],
-        "summary": "[biz:workline:update] Replay 历史 Inbox",
+        "summary": "[biz:workline:replay-inbox] Replay 历史 Inbox",
         "operationId": "workline_operations_replay_inboxes_by_inbox_id_post",
         "security": [
           {
@@ -4728,7 +4221,7 @@
         "tags": [
           "工作线诊断操作"
         ],
-        "summary": "[biz:workline:resolve-reconciliation] 提交 EFFECT reconciliation 人工决议",
+        "summary": "[biz:workline:resolve-effect-reconciliation] 提交 EFFECT reconciliation 人工决议",
         "operationId": "workline_operations_reconciliations_effects_by_dispatch_key_resolve_post",
         "security": [
           {
@@ -4785,7 +4278,7 @@
         "tags": [
           "工作线诊断操作"
         ],
-        "summary": "[biz:workline:update] 沙箱模拟 WorkLine 软件急停冻结",
+        "summary": "[biz:workline:simulate-estop] 沙箱模拟 WorkLine 软件急停冻结",
         "description": "沙箱专用安全模拟入口；不通过普通 sandbox event 流。",
         "operationId": "workline_operations_sandbox_worklines_by_workline_id_simulate_estop_post",
         "security": [
@@ -4988,7 +4481,7 @@
         "tags": [
           "工作线诊断操作"
         ],
-        "summary": "[biz:workline:update] 沙箱模拟 Command ACK",
+        "summary": "[biz:workline:submit-sandbox-ack] 沙箱模拟 Command ACK",
         "operationId": "workline_operations_sandbox_ack_post",
         "requestBody": {
           "content": {
@@ -5034,7 +4527,7 @@
         "tags": [
           "工作线诊断操作"
         ],
-        "summary": "[biz:workline:update] 沙箱模拟 External HTTP 回调",
+        "summary": "[biz:workline:submit-sandbox-external-callback] 沙箱模拟 External HTTP 回调",
         "operationId": "workline_operations_sandbox_external_callbacks_post",
         "requestBody": {
           "content": {
@@ -5136,7 +4629,7 @@
         "tags": [
           "作业线运行视图"
         ],
-        "summary": "[biz:workline:detail] 查询作业线当前 active objects",
+        "summary": "[biz:workline:active-objects] 查询作业线当前 active objects",
         "description": "读取 WorklineActiveObjects；API 层不直接访问 repository。",
         "operationId": "workline_work_lines_by_id_active_objects_get",
         "security": [
@@ -5181,12 +4674,73 @@
         }
       }
     },
+    "/api/v1/device/devices/trash": {
+      "get": {
+        "tags": [
+          "设备管理"
+        ],
+        "summary": "[biz:device:trash] 获取已删除Device",
+        "operationId": "devices_trash",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 10,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponseSchemaModel_DeviceResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/device/devices/trash/restore": {
       "post": {
         "tags": [
           "设备管理"
         ],
-        "summary": "[biz:device:restore] 批量恢复Device",
+        "summary": "[biz:device:batch_restore] 批量恢复Device",
         "operationId": "devices_batch_restore",
         "requestBody": {
           "content": {
@@ -5236,7 +4790,7 @@
         "tags": [
           "设备管理"
         ],
-        "summary": "[biz:device:permanent_delete] 批量永久删除Device",
+        "summary": "[biz:device:batch_permanent_delete] 批量永久删除Device",
         "operationId": "devices_batch_permanent_delete",
         "requestBody": {
           "content": {
@@ -5358,67 +4912,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ResponseSchemaModel_DeviceResponse_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/device/devices/trash": {
-      "get": {
-        "tags": [
-          "设备管理"
-        ],
-        "summary": "[biz:device:trash] 获取已删除Device",
-        "operationId": "devices_trash",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 100,
-              "minimum": 1,
-              "default": 10,
-              "title": "Limit"
-            }
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 0,
-              "default": 0,
-              "title": "Offset"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ListResponseSchemaModel_DeviceResponse_"
                 }
               }
             }
@@ -7584,33 +7077,6 @@
         ]
       }
     },
-    "/api/v1/api_auth/applications/available-permissions/sync": {
-      "post": {
-        "tags": [
-          "API 认证管理"
-        ],
-        "summary": "[api-auth:api_application:sync_permissions] 重新扫描并同步 API 权限",
-        "description": "重新扫描代码中的权限并同步到数据库。",
-        "operationId": "api_auth_applications_available_permissions_sync_post",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_list_Any__"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
-      }
-    },
     "/api/v1/api_auth/applications": {
       "post": {
         "tags": [
@@ -7910,12 +7376,73 @@
         }
       }
     },
+    "/api/v1/api_auth/applications/trash": {
+      "get": {
+        "tags": [
+          "API 认证管理"
+        ],
+        "summary": "[api-auth:api_application:trash] 获取已删除APIApplication",
+        "operationId": "applications_trash",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 10,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponseSchemaModel_APIApplicationResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/api_auth/applications/trash/restore": {
       "post": {
         "tags": [
           "API 认证管理"
         ],
-        "summary": "[api-auth:api_application:restore] 批量恢复APIApplication",
+        "summary": "[api-auth:api_application:batch_restore] 批量恢复APIApplication",
         "operationId": "applications_batch_restore",
         "requestBody": {
           "content": {
@@ -7965,7 +7492,7 @@
         "tags": [
           "API 认证管理"
         ],
-        "summary": "[api-auth:api_application:permanent_delete] 批量永久删除APIApplication",
+        "summary": "[api-auth:api_application:batch_permanent_delete] 批量永久删除APIApplication",
         "operationId": "applications_batch_permanent_delete",
         "requestBody": {
           "content": {
@@ -8087,67 +7614,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ResponseSchemaModel_APIApplicationResponse_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/api_auth/applications/trash": {
-      "get": {
-        "tags": [
-          "API 认证管理"
-        ],
-        "summary": "[api-auth:api_application:trash] 获取已删除APIApplication",
-        "operationId": "applications_trash",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 100,
-              "minimum": 1,
-              "default": 10,
-              "title": "Limit"
-            }
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 0,
-              "default": 0,
-              "title": "Offset"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ListResponseSchemaModel_APIApplicationResponse_"
                 }
               }
             }
@@ -8515,193 +7981,13 @@
         ]
       }
     },
-    "/api/v1/callback/external": {
-      "post": {
-        "tags": [
-          "Callback"
-        ],
-        "summary": "Callback External",
-        "operationId": "callback_external_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "properties": {
-                  "callback_type": {
-                    "type": "string",
-                    "maxLength": 120,
-                    "minLength": 1,
-                    "title": "Callback Type",
-                    "description": "已注册的外部 callback 类型"
-                  },
-                  "trace_id": {
-                    "anyOf": [
-                      {
-                        "type": "string",
-                        "maxLength": 120
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ],
-                    "title": "Trace Id",
-                    "description": "端到端追踪 ID"
-                  },
-                  "event_id": {
-                    "anyOf": [
-                      {
-                        "type": "string",
-                        "maxLength": 200
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ],
-                    "title": "Event Id",
-                    "description": "供应商事件 ID"
-                  },
-                  "causation_id": {
-                    "anyOf": [
-                      {
-                        "type": "string",
-                        "maxLength": 200
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ],
-                    "title": "Causation Id",
-                    "description": "因果事件 ID"
-                  },
-                  "source_event_id": {
-                    "anyOf": [
-                      {
-                        "type": "string",
-                        "maxLength": 160
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ],
-                    "title": "Source Event Id",
-                    "description": "供应商幂等事件 ID"
-                  },
-                  "occurred_at": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ],
-                    "title": "Occurred At",
-                    "description": "外部事件发生时间（offset-aware ISO 8601）"
-                  },
-                  "dispatch_key": {
-                    "anyOf": [
-                      {
-                        "type": "string",
-                        "maxLength": 240
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ],
-                    "title": "Dispatch Key",
-                    "description": "异步 EFFECT 调度身份"
-                  },
-                  "data": {
-                    "anyOf": [
-                      {
-                        "additionalProperties": true,
-                        "type": "object"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ],
-                    "title": "Data",
-                    "description": "供应商业务载荷；具体字段由 callback_type 决定"
-                  }
-                },
-                "additionalProperties": true,
-                "type": "object",
-                "required": [
-                  "callback_type"
-                ],
-                "title": "CallbackExternalRequest",
-                "description": "仅用于公开多供应商 callback 的公共包络；运行时仍校验具体 typed contract。",
-                "examples": [
-                  {
-                    "callback_type": "WMS_EFFECT_STATUS_HINT",
-                    "data": {
-                      "dispatch_key": "dispatch-01JQA",
-                      "idempotency_key": "idem-01JQA",
-                      "operation_identity": "wms.fulfillment.request_rack_supply@v1"
-                    },
-                    "occurred_at": "2026-07-30T08:00:00Z",
-                    "source_event_id": "wms-event-01JQA",
-                    "source_system": "WMS",
-                    "trace_id": "trace-01JQA"
-                  }
-                ]
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CallbackExternalIngressResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CallbackExternalIngressResponse"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CallbackExternalIngressResponse"
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "Content Too Large",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CallbackHTTPExceptionResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/callback/logs/request/{request_id}": {
       "get": {
         "tags": [
           "Callback",
           "Callback"
         ],
-        "summary": "[callback:callback_log:detail] 根据请求 ID 查询回调日志",
+        "summary": "[callback:callback_log:detail-by-request-id] 根据请求 ID 查询回调日志",
         "description": "根据 request_id 查询单条回调日志记录",
         "operationId": "callback_logs_request_by_request_id_get",
         "security": [
@@ -8750,7 +8036,7 @@
           "Callback",
           "Callback"
         ],
-        "summary": "[callback:callback_log:list] 根据 Trace ID 查询回调日志",
+        "summary": "[callback:callback_log:list-by-trace-id] 根据 Trace ID 查询回调日志",
         "description": "根据 trace_id 查询所有相关的回调日志（用于串联整个流程）",
         "operationId": "callback_logs_trace_by_trace_id_get",
         "security": [
@@ -8799,7 +8085,7 @@
           "Callback",
           "Callback"
         ],
-        "summary": "[callback:callback_log:list] 根据回调主体编码查询回调日志",
+        "summary": "[callback:callback_log:list-by-subject-code] 根据回调主体编码查询回调日志",
         "description": "查询指定回调主体最近的回调记录。设备回调主体通常是 device_code。",
         "operationId": "callback_logs_subject_by_subject_code_get",
         "security": [
@@ -10733,6 +10019,242 @@
                     "timestamp",
                     "data"
                   ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/transport/debug-tasks": {
+      "post": {
+        "tags": [
+          "Transport 调试"
+        ],
+        "summary": "[ops:transport:debug-create] 创建 Transport 调试任务",
+        "operationId": "transport_debug_tasks_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/_DebugTransportTaskRequest"
+              },
+              "examples": {
+                "rack_move": {
+                  "summary": "移动货架",
+                  "value": {
+                    "client_request_id": "0198c480-5a00-7c31-8000-000000000001",
+                    "station_id": "STATION-DEBUG",
+                    "kind": "RACK_MOVE",
+                    "data": {
+                      "rack_id": "RACK-01",
+                      "source": {
+                        "kind": "RACK_POSITION",
+                        "location_code": "BUFFER-01"
+                      },
+                      "target": {
+                        "kind": "RACK_POSITION",
+                        "location_code": "LINE-01"
+                      },
+                      "target_face": "A"
+                    }
+                  }
+                },
+                "rack_rotate": {
+                  "summary": "旋转货架",
+                  "value": {
+                    "client_request_id": "0198c480-5a00-7c31-8000-000000000002",
+                    "station_id": "STATION-DEBUG",
+                    "kind": "RACK_ROTATE",
+                    "data": {
+                      "rack_id": "RACK-01",
+                      "position": {
+                        "kind": "RACK_POSITION",
+                        "location_code": "LINE-01"
+                      },
+                      "target_face": "B"
+                    }
+                  }
+                },
+                "bin_move": {
+                  "summary": "移动料箱",
+                  "value": {
+                    "client_request_id": "0198c480-5a00-7c31-8000-000000000003",
+                    "station_id": "STATION-DEBUG",
+                    "kind": "BIN_MOVE",
+                    "data": {
+                      "moves": [
+                        {
+                          "bin_id": "BIN-01",
+                          "source": {
+                            "kind": "RACK_BIN_SLOT",
+                            "rack_id": "RACK-01",
+                            "rack_face": "A",
+                            "slot_id": "SLOT-01"
+                          },
+                          "target": {
+                            "kind": "HANDOFF_POSITION",
+                            "location_code": "HANDOFF-01"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                },
+                "bin_exchange": {
+                  "summary": "交换料箱",
+                  "value": {
+                    "client_request_id": "0198c480-5a00-7c31-8000-000000000004",
+                    "station_id": "STATION-DEBUG",
+                    "kind": "BIN_EXCHANGE",
+                    "data": {
+                      "exchange_pairs": [
+                        {
+                          "left_bin_id": "BIN-01",
+                          "left_location": {
+                            "kind": "RACK_BIN_SLOT",
+                            "rack_id": "RACK-01",
+                            "rack_face": "A",
+                            "slot_id": "SLOT-01"
+                          },
+                          "right_bin_id": "BIN-02",
+                          "right_location": {
+                            "kind": "RACK_BIN_SLOT",
+                            "rack_id": "RACK-02",
+                            "rack_face": "A",
+                            "slot_id": "SLOT-01"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_DebugTransportTaskCreated_"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Transport 请求不满足领域约束",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "幂等身份或 Transport 资源冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Transport runtime 不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/transport/tasks/{transport_task_id}": {
+      "get": {
+        "tags": [
+          "Transport 调试"
+        ],
+        "summary": "[ops:transport:read] 查询本地 Transport 任务",
+        "operationId": "transport_tasks_by_transport_task_id_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "transport_task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120,
+              "title": "Transport Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_TransportTaskResponse_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "TransportTask 不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Transport runtime 不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
                 }
               }
             }
@@ -12792,33 +12314,6 @@
         ],
         "title": "Body_admin_menus_move_put"
       },
-      "Body_admin_permissions_move_put": {
-        "properties": {
-          "node_id": {
-            "type": "integer",
-            "title": "Node Id",
-            "description": "要移动的节点ID"
-          },
-          "new_parent_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "New Parent Id",
-            "description": "新的父节点ID"
-          }
-        },
-        "type": "object",
-        "required": [
-          "node_id",
-          "new_parent_id"
-        ],
-        "title": "Body_admin_permissions_move_put"
-      },
       "Body_api_auth_applications_by_id_permissions_post": {
         "properties": {
           "permission_ids": {
@@ -12834,143 +12329,6 @@
           "permission_ids"
         ],
         "title": "Body_api_auth_applications_by_id_permissions_post"
-      },
-      "CallbackExternalAcceptedResponse": {
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "submitted",
-              "duplicate"
-            ],
-            "title": "Status",
-            "description": "入口处理状态"
-          },
-          "callback_type": {
-            "type": "string",
-            "title": "Callback Type",
-            "description": "外部回调类型"
-          },
-          "request_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Request Id",
-            "description": "入口请求 ID"
-          },
-          "trace_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Trace Id",
-            "description": "Trace ID"
-          },
-          "event_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Event Id",
-            "description": "供应商事件 ID"
-          },
-          "causation_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Causation Id",
-            "description": "因果事件 ID"
-          }
-        },
-        "type": "object",
-        "required": [
-          "status",
-          "callback_type"
-        ],
-        "title": "CallbackExternalAcceptedResponse",
-        "description": "外部系统回调接收响应数据。"
-      },
-      "CallbackExternalIngressResponse": {
-        "properties": {
-          "code": {
-            "type": "string",
-            "title": "Code",
-            "description": "响应码",
-            "default": "1000",
-            "examples": [
-              "1000",
-              "2000"
-            ]
-          },
-          "message": {
-            "type": "string",
-            "title": "Message",
-            "description": "响应消息",
-            "default": "操作成功",
-            "examples": [
-              "操作成功",
-              "参数错误"
-            ]
-          },
-          "data": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/CallbackExternalAcceptedResponse"
-              },
-              {
-                "$ref": "#/components/schemas/CallbackRejectedResponse"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Data",
-            "description": "响应数据"
-          },
-          "timestamp": {
-            "type": "string",
-            "title": "Timestamp",
-            "description": "响应时间戳(ISO 8601格式)",
-            "examples": [
-              "2024-01-01T00:00:00Z"
-            ]
-          }
-        },
-        "type": "object",
-        "title": "ResponseSchemaModel[Union[CallbackExternalAcceptedResponse, CallbackRejectedResponse]]"
-      },
-      "CallbackHTTPExceptionResponse": {
-        "properties": {
-          "detail": {
-            "type": "string",
-            "title": "Detail",
-            "description": "可重试或请求体限制错误说明"
-          }
-        },
-        "type": "object",
-        "required": [
-          "detail"
-        ],
-        "title": "CallbackHTTPExceptionResponse",
-        "description": "Callback 入口由 HTTPException 返回的传输层错误。"
       },
       "CallbackLogResponse": {
         "properties": {
@@ -13194,45 +12552,6 @@
         "title": "CallbackLogTraceResponse",
         "description": "Trace 维度回调日志列表响应。"
       },
-      "CallbackRejectedResponse": {
-        "properties": {
-          "ack": {
-            "type": "boolean",
-            "const": false,
-            "title": "Ack",
-            "description": "入口是否接收",
-            "default": false
-          },
-          "reason_code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Reason Code",
-            "description": "拒收原因代码"
-          },
-          "diagnostic": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Diagnostic",
-            "description": "拒收诊断信息"
-          }
-        },
-        "type": "object",
-        "title": "CallbackRejectedResponse",
-        "description": "Callback 入口拒收响应数据。"
-      },
       "ClearWorkLineEstopRequest": {
         "properties": {
           "checks": {
@@ -13260,6 +12579,25 @@
         "type": "object",
         "title": "ClearWorkLineEstopRequest",
         "description": "人工清除 WorkLine 急停请求。"
+      },
+      "DebugTransportTaskCreated": {
+        "properties": {
+          "transport_task_id": {
+            "type": "string",
+            "title": "Transport Task Id"
+          },
+          "client_request_id": {
+            "type": "string",
+            "title": "Client Request Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "transport_task_id",
+          "client_request_id"
+        ],
+        "title": "DebugTransportTaskCreated"
       },
       "DeviceCreate": {
         "properties": {
@@ -16696,139 +16034,6 @@
         "title": "OperaStatus",
         "description": "操作日志状态"
       },
-      "PermissionCreate": {
-        "properties": {
-          "parent_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Parent Id"
-          },
-          "tree_path": {
-            "type": "string",
-            "title": "Tree Path",
-            "default": "/"
-          },
-          "level": {
-            "type": "integer",
-            "title": "Level",
-            "default": 1
-          },
-          "sort_order": {
-            "type": "integer",
-            "title": "Sort Order",
-            "default": 0
-          },
-          "has_children": {
-            "type": "boolean",
-            "title": "Has Children",
-            "default": false
-          },
-          "name": {
-            "type": "string",
-            "maxLength": 100,
-            "title": "Name",
-            "description": "权限标识，如 admin:role:create"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 255
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description",
-            "description": "权限描述"
-          },
-          "type": {
-            "type": "string",
-            "maxLength": 20,
-            "title": "Type",
-            "description": "权限类型：user_api（内部管理API）、app_api（外部应用API）",
-            "default": "user_api"
-          },
-          "category": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 50
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Category",
-            "description": "权限分类：admin、system、business 等"
-          },
-          "resource": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 50
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Resource",
-            "description": "资源类型：user、role、permission、warehouse 等"
-          },
-          "action": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 50
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Action",
-            "description": "操作：create、read、update、delete、list 等"
-          },
-          "method": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 10
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Method",
-            "description": "HTTP 方法：GET、POST、PUT、DELETE、PATCH 等"
-          },
-          "path": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 255
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Path",
-            "description": "API 路径：/admin/users/{id}、/api/v1/warehouses 等"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "name"
-        ],
-        "title": "PermissionCreate",
-        "description": "API 权限创建 Schema"
-      },
       "PermissionResponse": {
         "properties": {
           "parent_id": {
@@ -17115,181 +16320,6 @@
         ],
         "title": "PermissionTree",
         "description": "API 权限树形结构 Schema\n\n用于权限分组展示和管理（如按模块分组）"
-      },
-      "PermissionUpdate": {
-        "properties": {
-          "parent_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Parent Id"
-          },
-          "tree_path": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Tree Path"
-          },
-          "level": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Level"
-          },
-          "sort_order": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Sort Order"
-          },
-          "has_children": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Has Children"
-          },
-          "name": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 100
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Name",
-            "description": "权限标识，如 admin:role:create"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 255
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description",
-            "description": "权限描述"
-          },
-          "type": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 20
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Type",
-            "description": "权限类型：user_api（内部管理API）、app_api（外部应用API）"
-          },
-          "category": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 50
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Category",
-            "description": "权限分类：admin、system、business 等"
-          },
-          "resource": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 50
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Resource",
-            "description": "资源类型：user、role、permission、warehouse 等"
-          },
-          "action": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 50
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Action",
-            "description": "操作：create、read、update、delete、list 等"
-          },
-          "method": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 10
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Method",
-            "description": "HTTP 方法：GET、POST、PUT、DELETE、PATCH 等"
-          },
-          "path": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 255
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Path",
-            "description": "API 路径：/admin/users/{id}、/api/v1/warehouses 等"
-          },
-          "version": {
-            "type": "integer",
-            "title": "Version",
-            "description": "乐观锁版本号，更新时必传"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "version"
-        ],
-        "title": "PermissionUpdate",
-        "description": "API 权限更新 Schema"
       },
       "PlaneEdge": {
         "properties": {
@@ -17692,6 +16722,14 @@
         ],
         "title": "RackBinMountStatus",
         "description": "料箱挂载投影状态。"
+      },
+      "RackFace": {
+        "type": "string",
+        "enum": [
+          "A",
+          "B"
+        ],
+        "title": "RackFace"
       },
       "RackKind": {
         "type": "string",
@@ -19311,6 +18349,51 @@
         "type": "object",
         "title": "ResponseSchemaModel[CallbackLogTraceResponse]"
       },
+      "ResponseSchemaModel_DebugTransportTaskCreated_": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "响应码",
+            "default": "1000",
+            "examples": [
+              "1000",
+              "2000"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "响应消息",
+            "default": "操作成功",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ]
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DebugTransportTaskCreated"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp",
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ResponseSchemaModel[DebugTransportTaskCreated]"
+      },
       "ResponseSchemaModel_DeviceResponse_": {
         "properties": {
           "code": {
@@ -20159,6 +19242,51 @@
         },
         "type": "object",
         "title": "ResponseSchemaModel[RoleResponse]"
+      },
+      "ResponseSchemaModel_TransportTaskResponse_": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "响应码",
+            "default": "1000",
+            "examples": [
+              "1000",
+              "2000"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "响应消息",
+            "default": "操作成功",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ]
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TransportTaskResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp",
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ResponseSchemaModel[TransportTaskResponse]"
       },
       "ResponseSchemaModel_Union_WorkLineStartResponse__WorkLineStartErrorResponse__": {
         "properties": {
@@ -21490,6 +20618,157 @@
         "title": "SortItem",
         "description": "批量排序项"
       },
+      "TransportEvidenceResponse": {
+        "properties": {
+          "operation": {
+            "type": "string",
+            "title": "Operation"
+          },
+          "operation_id": {
+            "type": "string",
+            "title": "Operation Id"
+          },
+          "outcome_revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome Revision"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "APPLIED",
+              "CONFLICT"
+            ],
+            "title": "Status"
+          },
+          "conflict_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conflict Code"
+          },
+          "received_at": {
+            "type": "string",
+            "title": "Received At"
+          },
+          "processed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Processed At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "operation",
+          "operation_id",
+          "outcome_revision",
+          "status",
+          "conflict_code",
+          "received_at",
+          "processed_at"
+        ],
+        "title": "TransportEvidenceResponse"
+      },
+      "TransportTaskResponse": {
+        "properties": {
+          "transport_task_id": {
+            "type": "string",
+            "title": "Transport Task Id"
+          },
+          "client_request_id": {
+            "type": "string",
+            "title": "Client Request Id"
+          },
+          "submit_operation_id": {
+            "type": "string",
+            "title": "Submit Operation Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "RACK_MOVE",
+              "RACK_ROTATE",
+              "BIN_MOVE",
+              "BIN_EXCHANGE"
+            ],
+            "title": "Kind"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACCEPTED",
+              "REJECTED",
+              "SUCCEEDED",
+              "FAILED",
+              "RECONCILING"
+            ],
+            "title": "Status"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Code"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          },
+          "latest_evidence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TransportEvidenceResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "transport_task_id",
+          "client_request_id",
+          "submit_operation_id",
+          "kind",
+          "status",
+          "reason_code",
+          "created_at",
+          "updated_at",
+          "latest_evidence"
+        ],
+        "title": "TransportTaskResponse"
+      },
       "TryInvokeApplication": {
         "properties": {
           "command_name": {
@@ -22659,6 +21938,443 @@
         ],
         "title": "WorklineActiveObjectsResponse",
         "description": "WorkLine active objects 聚合响应。"
+      },
+      "_BinExchangeData": {
+        "properties": {
+          "exchange_pairs": {
+            "items": {
+              "$ref": "#/components/schemas/_BinExchangePair"
+            },
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 1,
+            "title": "Exchange Pairs"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "exchange_pairs"
+        ],
+        "title": "_BinExchangeData"
+      },
+      "_BinExchangeDebugTask": {
+        "properties": {
+          "client_request_id": {
+            "type": "string",
+            "maxLength": 36,
+            "minLength": 36,
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            "title": "Client Request Id"
+          },
+          "station_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1,
+                "pattern": ".*\\S.*"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station Id"
+          },
+          "kind": {
+            "type": "string",
+            "const": "BIN_EXCHANGE",
+            "title": "Kind"
+          },
+          "data": {
+            "$ref": "#/components/schemas/_BinExchangeData"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "client_request_id",
+          "kind",
+          "data"
+        ],
+        "title": "_BinExchangeDebugTask"
+      },
+      "_BinExchangePair": {
+        "properties": {
+          "left_bin_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Left Bin Id"
+          },
+          "left_location": {
+            "$ref": "#/components/schemas/_RackBinSlot"
+          },
+          "right_bin_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Right Bin Id"
+          },
+          "right_location": {
+            "$ref": "#/components/schemas/_RackBinSlot"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "left_bin_id",
+          "left_location",
+          "right_bin_id",
+          "right_location"
+        ],
+        "title": "_BinExchangePair"
+      },
+      "_BinMoveData": {
+        "properties": {
+          "moves": {
+            "items": {
+              "$ref": "#/components/schemas/_BinMoveMember"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Moves"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "moves"
+        ],
+        "title": "_BinMoveData"
+      },
+      "_BinMoveDebugTask": {
+        "properties": {
+          "client_request_id": {
+            "type": "string",
+            "maxLength": 36,
+            "minLength": 36,
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            "title": "Client Request Id"
+          },
+          "station_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1,
+                "pattern": ".*\\S.*"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station Id"
+          },
+          "kind": {
+            "type": "string",
+            "const": "BIN_MOVE",
+            "title": "Kind"
+          },
+          "data": {
+            "$ref": "#/components/schemas/_BinMoveData"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "client_request_id",
+          "kind",
+          "data"
+        ],
+        "title": "_BinMoveDebugTask"
+      },
+      "_BinMoveMember": {
+        "properties": {
+          "bin_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Bin Id"
+          },
+          "source": {
+            "$ref": "#/components/schemas/_BinPosition"
+          },
+          "target": {
+            "$ref": "#/components/schemas/_BinPosition"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "bin_id",
+          "source",
+          "target"
+        ],
+        "title": "_BinMoveMember"
+      },
+      "_BinPosition": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/_RackBinSlot"
+          },
+          {
+            "$ref": "#/components/schemas/_HandoffPosition"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "kind",
+          "mapping": {
+            "HANDOFF_POSITION": "#/components/schemas/_HandoffPosition",
+            "RACK_BIN_SLOT": "#/components/schemas/_RackBinSlot"
+          }
+        }
+      },
+      "_DebugTransportTaskRequest": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/_RackMoveDebugTask"
+          },
+          {
+            "$ref": "#/components/schemas/_RackRotateDebugTask"
+          },
+          {
+            "$ref": "#/components/schemas/_BinMoveDebugTask"
+          },
+          {
+            "$ref": "#/components/schemas/_BinExchangeDebugTask"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "kind",
+          "mapping": {
+            "BIN_EXCHANGE": "#/components/schemas/_BinExchangeDebugTask",
+            "BIN_MOVE": "#/components/schemas/_BinMoveDebugTask",
+            "RACK_MOVE": "#/components/schemas/_RackMoveDebugTask",
+            "RACK_ROTATE": "#/components/schemas/_RackRotateDebugTask"
+          }
+        }
+      },
+      "_HandoffPosition": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "HANDOFF_POSITION",
+            "title": "Kind"
+          },
+          "location_code": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Location Code"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "location_code"
+        ],
+        "title": "_HandoffPosition"
+      },
+      "_RackBinSlot": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "RACK_BIN_SLOT",
+            "title": "Kind"
+          },
+          "rack_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Rack Id"
+          },
+          "rack_face": {
+            "$ref": "#/components/schemas/RackFace"
+          },
+          "slot_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Slot Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "rack_id",
+          "rack_face",
+          "slot_id"
+        ],
+        "title": "_RackBinSlot"
+      },
+      "_RackMoveData": {
+        "properties": {
+          "rack_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Rack Id"
+          },
+          "source": {
+            "$ref": "#/components/schemas/_RackPosition"
+          },
+          "target": {
+            "$ref": "#/components/schemas/_RackPosition"
+          },
+          "target_face": {
+            "$ref": "#/components/schemas/RackFace"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "rack_id",
+          "source",
+          "target",
+          "target_face"
+        ],
+        "title": "_RackMoveData"
+      },
+      "_RackMoveDebugTask": {
+        "properties": {
+          "client_request_id": {
+            "type": "string",
+            "maxLength": 36,
+            "minLength": 36,
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            "title": "Client Request Id"
+          },
+          "station_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1,
+                "pattern": ".*\\S.*"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station Id"
+          },
+          "kind": {
+            "type": "string",
+            "const": "RACK_MOVE",
+            "title": "Kind"
+          },
+          "data": {
+            "$ref": "#/components/schemas/_RackMoveData"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "client_request_id",
+          "kind",
+          "data"
+        ],
+        "title": "_RackMoveDebugTask"
+      },
+      "_RackPosition": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "RACK_POSITION",
+            "title": "Kind"
+          },
+          "location_code": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Location Code"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "location_code"
+        ],
+        "title": "_RackPosition"
+      },
+      "_RackRotateData": {
+        "properties": {
+          "rack_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Rack Id"
+          },
+          "position": {
+            "$ref": "#/components/schemas/_RackPosition"
+          },
+          "target_face": {
+            "$ref": "#/components/schemas/RackFace"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "rack_id",
+          "position",
+          "target_face"
+        ],
+        "title": "_RackRotateData"
+      },
+      "_RackRotateDebugTask": {
+        "properties": {
+          "client_request_id": {
+            "type": "string",
+            "maxLength": 36,
+            "minLength": 36,
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            "title": "Client Request Id"
+          },
+          "station_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1,
+                "pattern": ".*\\S.*"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station Id"
+          },
+          "kind": {
+            "type": "string",
+            "const": "RACK_ROTATE",
+            "title": "Kind"
+          },
+          "data": {
+            "$ref": "#/components/schemas/_RackRotateData"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "client_request_id",
+          "kind",
+          "data"
+        ],
+        "title": "_RackRotateDebugTask"
       }
     },
     "securitySchemes": {

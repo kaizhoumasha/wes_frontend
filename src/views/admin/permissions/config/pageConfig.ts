@@ -1,7 +1,6 @@
 import type {
-  CreatePermissionsInput as CreatePermissionInput,
-  UpdatePermissionsInput as UpdatePermissionInput,
-  PermissionsItem as Permission
+  PermissionsItem as Permission,
+  ReadonlyInput
 } from '@/api/modules/permissions'
 import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
 import { permissionsApiMethods } from '@/api/modules/permissions'
@@ -10,13 +9,13 @@ import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
 import { permissionPageFieldConfig } from './fieldConfig'
 
-type PermissionPageConfig = CrudPageConfig<Permission, CreatePermissionInput, UpdatePermissionInput>
+type PermissionPageConfig = CrudPageConfig<Permission, ReadonlyInput, ReadonlyInput>
 
 const PERMISSION_PAGE_RESOURCE = {
   key: 'permissions',
   title: {
     text: '权限管理',
-    subtitle: '管理系统权限和API访问控制',
+    subtitle: '查看后端路由生成的 API 权限目录',
     icon: 'ep:lock'
   },
   trashTitle: {
@@ -46,38 +45,18 @@ const PERMISSION_PAGE_TABLE: Partial<PermissionPageConfig['table']> = {
 }
 
 const PERMISSION_PAGE_FEATURES: CrudPageFeatures = {
-  trash: {
-    enabled: true,
-    label: '回收站'
-  },
-  create: {
-    label: '新增权限',
-    dialogTitle: '创建权限'
-  },
-  edit: {
-    dialogTitle: '编辑权限'
-  },
-  restore: {
-    label: '恢复权限'
-  },
-  batchRestore: {
-    label: '批量恢复'
-  },
-  permanentDelete: {
-    label: '彻底删除'
-  },
-  batchPermanentDelete: {
-    label: '批量彻底删除'
-  },
-  sort: {
-    enabled: true,
-    label: '排序',
-    icon: 'lucide:arrow-down-up'
-  },
-  createChild: {
-    enabled: true,
-    label: '添加下级'
-  }
+  create: false,
+  edit: false,
+  delete: false,
+  batchDelete: false,
+  trash: false,
+  restore: false,
+  batchRestore: false,
+  permanentDelete: false,
+  batchPermanentDelete: false,
+  move: false,
+  sort: false,
+  createChild: false
 }
 
 const PERMISSION_PAGE_DETAIL: CrudPageDetailConfig<Permission> = {
@@ -108,7 +87,7 @@ const PERMISSION_PAGE_DETAIL: CrudPageDetailConfig<Permission> = {
 }
 
 export function createPermissionPageConfig(): PermissionPageConfig {
-  return createCrudPageConfigFromResource<Permission, CreatePermissionInput, UpdatePermissionInput>({
+  return createCrudPageConfigFromResource<Permission, ReadonlyInput, ReadonlyInput>({
     resource: PERMISSION_PAGE_RESOURCE,
     fieldConfig: permissionPageFieldConfig,
     table: PERMISSION_PAGE_TABLE,

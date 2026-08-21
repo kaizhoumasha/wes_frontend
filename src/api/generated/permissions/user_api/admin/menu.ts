@@ -26,8 +26,22 @@ export const ADMIN_MENU_PERMISSION = {
   restore: 'admin:menu:restore',
   /** 回收站权限 */
   trash: 'admin:menu:trash',
-  /** 批量永久删除Menu */
+  /** 批量恢复权限 */
+  batchRestore: 'admin:menu:batch_restore',
+  /** 批量永久删除权限 */
+  batchPermanentDelete: 'admin:menu:batch_permanent_delete',
+  /** get_ancestors */
+  ancestors: 'admin:menu:ancestors',
+  /** batch_sort */
+  batchSort: 'admin:menu:batch_sort',
+  /** get_children */
+  children: 'admin:menu:children',
+  /** move_node */
+  move: 'admin:menu:move',
+  /** 永久删除Menu */
   permanentDelete: 'admin:menu:permanent_delete',
+  /** get_siblings */
+  siblings: 'admin:menu:siblings',
   /** get_tree */
   tree: 'admin:menu:tree',
 } as const

@@ -34,6 +34,7 @@ interface RowActionStateLike {
     update: { value: boolean }
     delete: { value: boolean }
     restore: { value: boolean }
+    permanentDelete: { value: boolean }
   }
   tree?: {
     isTreeMode: { value: boolean }
@@ -124,7 +125,7 @@ export function useCrudPageRowActions<
       const moveLabel = features.move.label ?? '移动'
       const moveTooltip = features.move.tooltip ?? moveLabel
       const moveIcon = features.move.icon ?? 'lucide:arrow-up-down'
-      const movePermission = features.move.permission ?? config.resource.permissions?.update
+      const movePermission = features.move.permission ?? config.resource.permissions?.move
 
       actions.push({
         key: `${config.resource.key}-move`,

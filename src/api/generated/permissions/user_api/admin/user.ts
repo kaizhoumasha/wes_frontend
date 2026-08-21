@@ -28,9 +28,13 @@ export const ADMIN_USER_PERMISSION = {
   trash: 'admin:user:trash',
   /** 批量删除权限 */
   bulkDelete: 'admin:user:bulk_delete',
+  /** 批量恢复权限 */
+  batchRestore: 'admin:user:batch_restore',
+  /** 批量永久删除权限 */
+  batchPermanentDelete: 'admin:user:batch_permanent_delete',
   /** 为用户分配角色 */
   assignRoles: 'admin:user:assign-roles',
-  /** 批量永久删除User */
+  /** 永久删除User */
   permanentDelete: 'admin:user:permanent_delete',
   /** 重置用户密码 */
   resetPassword: 'admin:user:reset-password',

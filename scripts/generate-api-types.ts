@@ -172,7 +172,7 @@ export interface ModuleModelGroup {
 }
 
 export interface CrudCapabilities {
-  kind: 'none' | 'standard' | 'soft-delete'
+  kind: 'none' | 'readonly' | 'standard' | 'soft-delete'
   hasBulkDelete: boolean
 }
 
@@ -1093,16 +1093,23 @@ export function classifyCrudCapabilities(
   collectionPath: string,
   endpoints: EndpointInfo[]
 ): CrudCapabilities {
+  const hasDetailAndQuery =
+    hasParameterizedItemEndpoint(collectionPath, endpoints, 'get') &&
+    hasRelativeEndpoint(collectionPath, endpoints, 'query', 'post')
   const hasStandardCrud =
     hasRelativeEndpoint(collectionPath, endpoints, '', 'post') &&
-    hasParameterizedItemEndpoint(collectionPath, endpoints, 'get') &&
+    hasDetailAndQuery &&
     hasParameterizedItemEndpoint(collectionPath, endpoints, 'put') &&
-    hasParameterizedItemEndpoint(collectionPath, endpoints, 'delete') &&
-    hasRelativeEndpoint(collectionPath, endpoints, 'query', 'post')
+    hasParameterizedItemEndpoint(collectionPath, endpoints, 'delete')
 
   if (!hasStandardCrud) {
+    const hasCanonicalWriteEndpoint =
+      hasRelativeEndpoint(collectionPath, endpoints, '', 'post') ||
+      hasParameterizedItemEndpoint(collectionPath, endpoints, 'put') ||
+      hasParameterizedItemEndpoint(collectionPath, endpoints, 'delete')
+
     return {
-      kind: 'none',
+      kind: hasDetailAndQuery && !hasCanonicalWriteEndpoint ? 'readonly' : 'none',
       hasBulkDelete: false
     }
   }
@@ -1134,6 +1141,13 @@ function isManagedCrudEndpoint(
 ): boolean {
   if (capabilities.kind === 'none') {
     return false
+  }
+
+  if (capabilities.kind === 'readonly') {
+    return (
+      (relativePath === 'query' && method === 'post') ||
+      (isSingleParameterRelativePath(relativePath) && method === 'get')
+    )
   }
 
   if (relativePath === '' && method === 'post') {
@@ -1522,7 +1536,27 @@ function getCrudResourcePathType(capabilities: CrudCapabilities): string | null 
   return null
 }
 
-function generateModuleAutoSection(plan: ModulePlan): string {
+function getReadonlyEndpoint(
+  group: ModuleModelGroup,
+  kind: 'detail' | 'query'
+): EndpointInfo {
+  const endpoint = group.endpoints.find(candidate => {
+    const relativePath = getRelativePath(group.collectionPath, candidate.path)
+    if (kind === 'detail') {
+      return candidate.method === 'get' && !!relativePath && isSingleParameterRelativePath(relativePath)
+    }
+
+    return candidate.method === 'post' && relativePath === 'query'
+  })
+
+  if (!endpoint) {
+    throw new Error(`只读资源缺少 ${kind === 'detail' ? '详情' : '查询'} 端点: ${group.collectionPath}`)
+  }
+
+  return endpoint
+}
+
+export function generateModuleAutoSection(plan: ModulePlan): string {
   const moduleBaseName = plan.fileBaseName
   const pascalBaseName = toPascalCaseIdentifier(moduleBaseName)
   const apiName = `${moduleBaseName}Api`
@@ -1582,6 +1616,10 @@ function generateModuleAutoSection(plan: ModulePlan): string {
       `  type CrudUpdateInput,`,
       `} from '@/api/base/crud-request-adapter'`
     )
+  } else if (capabilities.kind === 'readonly') {
+    imports.push(
+      `import { createReadonlyCrudRequestAdapterFromMethods } from '@/api/base/createReadonlyCrudRequestAdapter'`
+    )
   }
 
   const lines = [...imports, '']
@@ -1597,15 +1635,23 @@ function generateModuleAutoSection(plan: ModulePlan): string {
     lines.push(`  ? Omit<TItem, 'id'> & { id: Exclude<TId, null | undefined> }`)
     lines.push(`  : TItem`)
     lines.push('')
-    lines.push(
-      `export type ${pascalBaseName}Item = EnsureEntityId<CrudItem<typeof ${collectionConst}>>`
-    )
-    lines.push(
-      `export type Create${pascalBaseName}Input = CrudCreateInput<typeof ${collectionConst}>`
-    )
-    lines.push(
-      `export type Update${pascalBaseName}Input = CrudUpdateInput<typeof ${collectionConst}>`
-    )
+    if (capabilities.kind === 'readonly') {
+      const detailEndpoint = getReadonlyEndpoint(primaryGroup, 'detail')
+      lines.push(
+        `export type ${pascalBaseName}Item = EnsureEntityId<ContractResponseData<'${detailEndpoint.path}', 'get'>>`
+      )
+      lines.push(`export type ReadonlyInput = Record<string, never>`)
+    } else {
+      lines.push(
+        `export type ${pascalBaseName}Item = EnsureEntityId<CrudItem<typeof ${collectionConst}>>`
+      )
+      lines.push(
+        `export type Create${pascalBaseName}Input = CrudCreateInput<typeof ${collectionConst}>`
+      )
+      lines.push(
+        `export type Update${pascalBaseName}Input = CrudUpdateInput<typeof ${collectionConst}>`
+      )
+    }
     lines.push('')
   }
 
@@ -1648,6 +1694,27 @@ function generateModuleAutoSection(plan: ModulePlan): string {
     lines.push('')
   }
 
+  if (plan.kind === 'resource' && capabilities.kind === 'readonly') {
+    const detailEndpoint = getReadonlyEndpoint(primaryGroup, 'detail')
+    const queryEndpoint = getReadonlyEndpoint(primaryGroup, 'query')
+    lines.push(`const base${pascalBaseName}ApiMethods = {`)
+    lines.push(
+      `  getById(params: ContractPathParams<'${detailEndpoint.path}', 'get'>, query?: ContractQueryParams<'${detailEndpoint.path}', 'get'>, config?: ContractRequestConfig) {`
+    )
+    lines.push(
+      `    return contractMethods.get('${detailEndpoint.path}', { params, query, config })`
+    )
+    lines.push(`  },`)
+    lines.push('')
+    lines.push(
+      `  query(body: ContractRequestBody<'${queryEndpoint.path}', 'post'>, config?: ContractRequestConfig) {`
+    )
+    lines.push(`    return contractMethods.post('${queryEndpoint.path}', { body, config })`)
+    lines.push(`  }`)
+    lines.push(`}`)
+    lines.push('')
+  }
+
   lines.push(`export const ${apiName}Methods = {`)
   if (plan.kind === 'resource' && capabilities.kind !== 'none') {
     lines.push(`  ...base${pascalBaseName}ApiMethods,`)
@@ -1659,6 +1726,13 @@ function generateModuleAutoSection(plan: ModulePlan): string {
     lines.push(generatedMethods.map(generateMethodFactoryCode).join(',\n\n'))
   }
   lines.push(`}`)
+
+  if (plan.kind === 'resource' && capabilities.kind === 'readonly') {
+    lines.push('')
+    lines.push(
+      `export const ${apiName} = createReadonlyCrudRequestAdapterFromMethods(${apiName}Methods)`
+    )
+  }
 
   return lines
     .filter((line, index, allLines) => !(line === '' && allLines[index - 1] === ''))

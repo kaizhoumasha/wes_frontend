@@ -13,6 +13,7 @@ import {
   CUSTOM_METHODS_END,
   CUSTOM_METHODS_START,
   deleteStaleGeneratedModules,
+  generateModuleAutoSection,
   groupEndpointsByModuleModel,
   mergeModuleWithCustomSections,
   type EndpointInfo
@@ -75,6 +76,64 @@ describe('generate-api-types helpers', () => {
     expect(capabilities.hasBulkDelete).toBe(false)
   })
 
+  it('classifies detail and query resources as readonly', () => {
+    const capabilities = classifyCrudCapabilities('/api/v1/admin/permissions', [
+      makeEndpoint('/api/v1/admin/permissions/{id}', 'get'),
+      makeEndpoint('/api/v1/admin/permissions/query', 'post')
+    ])
+
+    expect(capabilities).toEqual({
+      kind: 'readonly',
+      hasBulkDelete: false
+    })
+  })
+
+  it('does not classify partially writable resources as readonly', () => {
+    const capabilities = classifyCrudCapabilities('/api/v1/admin/permissions', [
+      makeEndpoint('/api/v1/admin/permissions', 'post'),
+      makeEndpoint('/api/v1/admin/permissions/{id}', 'get'),
+      makeEndpoint('/api/v1/admin/permissions/query', 'post')
+    ])
+
+    expect(capabilities).toEqual({
+      kind: 'none',
+      hasBulkDelete: false
+    })
+  })
+
+  it('generates readonly methods and an adapter without write inputs', () => {
+    const plans = buildModulePlans(
+      groupEndpointsByModuleModel([
+        makeEndpoint('/api/v1/admin/permissions/{id}', 'get'),
+        makeEndpoint('/api/v1/admin/permissions/query', 'post')
+      ])
+    )
+
+    expect(plans).toHaveLength(1)
+    expect(plans[0]?.kind).toBe('resource')
+
+    const source = generateModuleAutoSection(plans[0]!)
+
+    expect(source).toContain(
+      `import { createReadonlyCrudRequestAdapterFromMethods } from '@/api/base/createReadonlyCrudRequestAdapter'`
+    )
+    expect(source).toContain('export type ReadonlyInput = Record<string, never>')
+    expect(source).toContain('export const permissionsApiMethods = {')
+    expect(source).toContain(
+      `return contractMethods.get('/api/v1/admin/permissions/{id}', { params, query, config })`
+    )
+    expect(source).toContain(
+      `return contractMethods.post('/api/v1/admin/permissions/query', { body, config })`
+    )
+    expect(source).toContain(
+      'export const permissionsApi = createReadonlyCrudRequestAdapterFromMethods(permissionsApiMethods)'
+    )
+    expect(source).not.toContain('CreatePermissionsInput')
+    expect(source).not.toContain('UpdatePermissionsInput')
+    expect(source).not.toContain('createCrudRequestAdapterMethods')
+    expect(source).not.toContain('createSoftDeleteCrudRequestAdapterMethods')
+  })
+
   it('aggregates pure action resources into a module-level file', () => {
     const groups = groupEndpointsByModuleModel([
       makeEndpoint('/api/v1/auth/login', 'post'),
@@ -100,6 +159,58 @@ describe('generate-api-types helpers', () => {
       { fileBaseName: 'auth', groupKeys: ['auth:login', 'auth:my', 'auth:permissions'] },
       { fileBaseName: 'users', groupKeys: ['admin:users'] }
     ])
+  })
+
+  it('generates the Transport debug and read operations in one module', () => {
+    const plans = buildModulePlans(
+      groupEndpointsByModuleModel([
+        {
+          path: '/api/v1/transport/debug-tasks',
+          method: 'post',
+          operation: {
+            requestBody: {
+              content: {
+                'application/json': { schema: {} }
+              }
+            }
+          }
+        },
+        {
+          path: '/api/v1/transport/tasks/{transport_task_id}',
+          method: 'get',
+          operation: {
+            parameters: [
+              {
+                name: 'transport_task_id',
+                in: 'path',
+                required: true,
+                schema: {}
+              }
+            ]
+          }
+        }
+      ])
+    )
+
+    expect(plans).toHaveLength(1)
+    expect(plans[0]).toMatchObject({
+      kind: 'module-actions',
+      fileBaseName: 'transport'
+    })
+
+    const source = generateModuleAutoSection(plans[0]!)
+    expect(source).toContain(
+      `debugTasks(body: ContractRequestBody<'/api/v1/transport/debug-tasks', 'post'>`
+    )
+    expect(source).toContain(
+      `return contractMethods.post('/api/v1/transport/debug-tasks', { body, config })`
+    )
+    expect(source).toContain(
+      `getByTransportTaskId(params: ContractPathParams<'/api/v1/transport/tasks/{transport_task_id}', 'get'>`
+    )
+    expect(source).toContain(
+      `return contractMethods.get('/api/v1/transport/tasks/{transport_task_id}', { params, config })`
+    )
   })
 
   it('preserves custom blocks when regenerating module content', () => {

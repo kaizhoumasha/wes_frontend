@@ -6,7 +6,7 @@
  * ⚠️  请勿手动编辑 AUTO GENERATED 区域
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 资源: /api/v1/sys/audit-logs, /api/v1/sys/events
+ * 资源: /api/v1/sys/events
  */
 import { contractMethods } from '@/api/contract/client'
 import type {
@@ -18,35 +18,10 @@ import type {
 } from '@/api/contract/types'
 import type { components, paths } from '@/api/generated/openapi-types'
 
-export type GetByIdResult = ContractResponseData<'/api/v1/sys/audit-logs/{id}', 'get'>
-export type GetByIdPathParams = ContractPathParams<'/api/v1/sys/audit-logs/{id}', 'get'>
-export type GetByIdQuery = ContractQueryParams<'/api/v1/sys/audit-logs/{id}', 'get'>
-
-export type QueryResult = ContractResponseData<'/api/v1/sys/audit-logs/query', 'post'>
-export type QueryInput = ContractRequestBody<'/api/v1/sys/audit-logs/query', 'post'>
-
 export type StreamResult = ContractResponseData<'/api/v1/sys/events/stream', 'get'>
 export type StreamQuery = ContractQueryParams<'/api/v1/sys/events/stream', 'get'>
 
 export const sysApiMethods = {
-  /**
-   * [sys:auditlog:detail] 获取AuditLog
-   * @endpoint GET /api/v1/sys/audit-logs/{id}
-   * @returns alova method instance
-   */
-  getById(params: ContractPathParams<'/api/v1/sys/audit-logs/{id}', 'get'>, query?: ContractQueryParams<'/api/v1/sys/audit-logs/{id}', 'get'>, config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/sys/audit-logs/{id}', { params, query, config })
-  },
-
-  /**
-   * [sys:auditlog:list] 获取AuditLog列表
-   * @endpoint POST /api/v1/sys/audit-logs/query
-   * @returns alova method instance
-   */
-  query(body: ContractRequestBody<'/api/v1/sys/audit-logs/query', 'post'>, config?: ContractRequestConfig) {
-    return contractMethods.post('/api/v1/sys/audit-logs/query', { body, config })
-  },
-
   /**
    * SSE 实时事件流
    * @description 订阅 SSE 事件流，接收系统通知和业务状态更新

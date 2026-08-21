@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0.0] - 2026-08-21
+
+### Added
+
+- 新增代码生成的只读权限目录页面与请求适配器，权限树、列表和详情继续可浏览，但不再向用户暴露后端已退役的权限定义写操作。
+- 前端镜像写入自身 revision、批准的后端 revision、OpenAPI 与权限摘要，供配对 TEST 切换在暴露流量前核验不可变来源。
+
+### Changed
+
+- OpenAPI 类型、Zod Schema、API 模块和 137 条浏览器权限同步到后端 `0.27.0.0` 授权目录与 Transport 调试合同；两份 provenance 记录绑定同一后端提交。
+- CRUD 页面权限绑定区分单条删除、批量删除、恢复和永久删除；只读资源不再因生成模块存在通用写方法而误入可写分支。
+- 应用权限配置继续只管理厂商 API permission；WMS Transport callback 使用 Transport 专属合同，不再依赖旧通用外部回调权限。
+
+### Fixed
+
+- 修复并发 2012/2013 响应共享全局重试计数、刷新队列漏唤醒和旧 token 晚到后重复 refresh 的竞态；每个请求最多续期一次，并复用已经发布的新 generation token。
+- 修复刷新成功后的权限上下文请求与慢响应相互撤销 token、回退 localStorage 或误触发登出的问题。
+
+### Removed
+
+- 删除已退役 `/callback/external` 的前端合同、生成模块消费者和兼容依赖，不保留重定向或双路径。
+
+### Verification
+
+- 最终 frontend HEAD 全门禁通过：56 个测试文件、443 tests；typecheck、ESLint、Prettier、Stylelint、contract:test、contract:verify 与 permission:verify 全部通过。
+- 双轮 contract freeze、类型、Zod 与权限生成 fingerprint 一致；除两份 backendCommit provenance 记录外无生成差异。
+- 跨仓计划审计为 48 DONE、2 项等价 CHANGED、0 PARTIAL；最终 frozen-head review 为 No issues found。状态边界为 `IMPLEMENTED — NOT DEPLOYED`。
+
 ## [0.9.0.0] - 2026-08-20
 
 ### Added

@@ -74,7 +74,7 @@ export const workLinesApiMethods = {
   ...baseWorkLinesApiMethods,
 
   /**
-   * [biz:workline:detail] 查询作业线配置状态
+   * [biz:workline:configuration-status] 查询作业线配置状态
    * @description 查询 WorkLine 启用前配置状态。
    * @endpoint GET /api/v1/workline/work_lines/{id}/configuration-status
    * @returns alova method instance
@@ -133,7 +133,7 @@ export const workLinesApiMethods = {
   },
 
   /**
-   * [biz:workline:detail] 查询作业线当前 active objects
+   * [biz:workline:active-objects] 查询作业线当前 active objects
    * @description 读取 WorklineActiveObjects；API 层不直接访问 repository。
    * @endpoint GET /api/v1/workline/work_lines/{id}/active-objects
    * @returns alova method instance

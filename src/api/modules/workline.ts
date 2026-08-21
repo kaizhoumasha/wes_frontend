@@ -59,7 +59,7 @@ export type NorthboundQuery = ContractQueryParams<'/api/v1/workline/runtime-oper
 
 export const worklineApiMethods = {
   /**
-   * [biz:workline:list] 查询沙箱待处理 Outbox
+   * [biz:workline:sandbox-pending] 查询沙箱待处理 Outbox
    * @endpoint GET /api/v1/workline/operations/sandbox/pending
    * @returns alova method instance
    */
@@ -68,7 +68,7 @@ export const worklineApiMethods = {
   },
 
   /**
-   * [biz:workline:list] 查询沙箱已完成 Outbox
+   * [biz:workline:sandbox-completed] 查询沙箱已完成 Outbox
    * @endpoint GET /api/v1/workline/operations/sandbox/completed
    * @returns alova method instance
    */
@@ -77,7 +77,7 @@ export const worklineApiMethods = {
   },
 
   /**
-   * [biz:workline:update] Replay 历史 Inbox
+   * [biz:workline:replay-inbox] Replay 历史 Inbox
    * @endpoint POST /api/v1/workline/operations/replay/inboxes/{inbox_id}
    * @returns alova method instance
    */
@@ -95,7 +95,7 @@ export const worklineApiMethods = {
   },
 
   /**
-   * [biz:workline:resolve-reconciliation] 提交 EFFECT reconciliation 人工决议
+   * [biz:workline:resolve-effect-reconciliation] 提交 EFFECT reconciliation 人工决议
    * @endpoint POST /api/v1/workline/operations/reconciliations/effects/{dispatch_key}/resolve
    * @returns alova method instance
    */
@@ -104,7 +104,7 @@ export const worklineApiMethods = {
   },
 
   /**
-   * [biz:workline:update] 沙箱模拟 WorkLine 软件急停冻结
+   * [biz:workline:simulate-estop] 沙箱模拟 WorkLine 软件急停冻结
    * @description 沙箱专用安全模拟入口；不通过普通 sandbox event 流。
    * @endpoint POST /api/v1/workline/operations/sandbox/worklines/{workline_id}/simulate-estop
    * @returns alova method instance
@@ -133,7 +133,7 @@ export const worklineApiMethods = {
   },
 
   /**
-   * [biz:workline:update] 沙箱模拟 Command ACK
+   * [biz:workline:submit-sandbox-ack] 沙箱模拟 Command ACK
    * @endpoint POST /api/v1/workline/operations/sandbox/ack
    * @returns alova method instance
    */
@@ -142,7 +142,7 @@ export const worklineApiMethods = {
   },
 
   /**
-   * [biz:workline:update] 沙箱模拟 External HTTP 回调
+   * [biz:workline:submit-sandbox-external-callback] 沙箱模拟 External HTTP 回调
    * @endpoint POST /api/v1/workline/operations/sandbox/external-callbacks
    * @returns alova method instance
    */

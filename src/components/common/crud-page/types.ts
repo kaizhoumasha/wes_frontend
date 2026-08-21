@@ -101,11 +101,21 @@ export interface CrudPageTitleConfig {
 }
 
 export interface CrudPagePermissionConfig {
+  page?: string
+  list?: string
+  detail?: string
   create?: string
   update?: string
   delete?: string
+  bulkDelete?: string
   restore?: string
   trash?: string
+  batchRestore?: string
+  permanentDelete?: string
+  batchPermanentDelete?: string
+  tree?: string
+  move?: string
+  batchSort?: string
 }
 
 export interface CrudPageColumnManager {

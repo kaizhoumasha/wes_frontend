@@ -4,12 +4,14 @@
  * ⚠️ 请勿手动编辑此文件
  * 此文件由 scripts/generate-permissions.ts 自动生成
  *
- * 权限分组: app_api:api:callback
+ * 权限分组: user_api:ops:transport
  *
  * 更新权限: pnpm generate:permissions -- --backend-root /path/to/wes_backend
  */
 
-export const API_CALLBACK_PERMISSION = {
-  /** callback_external */
-  event: 'api:callback:event',
+export const OPS_TRANSPORT_PERMISSION = {
+  /** 创建 Transport 调试任务 */
+  debugCreate: 'ops:transport:debug-create',
+  /** 查询本地 Transport 任务 */
+  read: 'ops:transport:read',
 } as const

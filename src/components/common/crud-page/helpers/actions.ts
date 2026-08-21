@@ -26,6 +26,7 @@ type CrudPageControllerStateLike = {
     update: { value: boolean }
     delete: { value: boolean }
     restore: { value: boolean }
+    permanentDelete: { value: boolean }
   }
 }
 
@@ -141,17 +142,19 @@ export function buildDefaultToolbarActions<
   const batchDeleteTooltip = features.batchDelete.tooltip ?? '删除选中的数据'
   const batchDeleteIcon = features.batchDelete.icon ?? 'ep:delete'
   const batchDeletePermission =
-    features.batchDelete.permission ?? config.resource.permissions?.delete
+    features.batchDelete.permission ??
+    config.resource.permissions?.bulkDelete ??
+    config.resource.permissions?.delete
   const batchRestoreLabel = features.batchRestore.label ?? '批量恢复'
   const batchRestoreTooltip = features.batchRestore.tooltip ?? '恢复选中的数据'
   const batchRestoreIcon = features.batchRestore.icon ?? 'ep:refresh-left'
   const batchRestorePermission =
-    features.batchRestore.permission ?? config.resource.permissions?.restore
+    features.batchRestore.permission ?? config.resource.permissions?.batchRestore
   const batchPermanentDeleteLabel = features.batchPermanentDelete.label ?? '批量彻底删除'
   const batchPermanentDeleteTooltip = features.batchPermanentDelete.tooltip ?? '彻底删除选中的数据'
   const batchPermanentDeleteIcon = features.batchPermanentDelete.icon ?? 'ep:delete-filled'
   const batchPermanentDeletePermission =
-    features.batchPermanentDelete.permission ?? config.resource.permissions?.delete
+    features.batchPermanentDelete.permission ?? config.resource.permissions?.batchPermanentDelete
 
   if (state.state.viewMode.value === 'trash') {
     if (features.batchRestore.enabled) {
@@ -237,7 +240,7 @@ export function buildDefaultRowActions<
   const permanentDeleteTooltip = features.permanentDelete.tooltip ?? permanentDeleteLabel
   const permanentDeleteIcon = features.permanentDelete.icon ?? 'lucide:file-x'
   const permanentDeletePermission =
-    features.permanentDelete.permission ?? config.resource.permissions?.delete
+    features.permanentDelete.permission ?? config.resource.permissions?.permanentDelete
 
   if (state.state.viewMode.value === 'trash') {
     if (features.restore.enabled) {
@@ -263,7 +266,7 @@ export function buildDefaultRowActions<
         icon: permanentDeleteIcon,
         priority: 'secondary',
         permission: permanentDeletePermission,
-        show: createPermissionVisibility(state.permissions.delete),
+        show: createPermissionVisibility(state.permissions.permanentDelete),
         onClick: onPermanentDelete,
         popconfirm: createPermanentDeletePopconfirm<TItem>()
       })

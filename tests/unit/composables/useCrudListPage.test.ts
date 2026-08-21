@@ -1,6 +1,8 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useCrudListPage } from '@/composables/useCrudListPage'
+import { clearPermissionState, setPermissionsState } from '@/composables/permission-state'
 import type { CrudRequestAdapter, PaginationData } from '@/api/base/crud-request-adapter'
+import type { ApiPermissionInfo } from '@/api/modules/auth'
 import type { SearchFieldDef } from '@/types/search'
 
 interface TestItem {
@@ -108,6 +110,25 @@ function createTreeSoftDeleteRequestAdapterStub() {
 }
 
 describe('useCrudListPage', () => {
+  afterEach(() => {
+    clearPermissionState()
+  })
+
+  it('evaluates permanent-delete independently from delete permission', () => {
+    setPermissionsState([{ name: 'test:delete' } as ApiPermissionInfo])
+    const page = useCrudListPage({
+      adapter: createRequestAdapterStub(),
+      searchFields: SEARCH_FIELDS,
+      permissions: {
+        delete: 'test:delete',
+        permanentDelete: 'test:permanent-delete'
+      }
+    })
+
+    expect(page.permissions.delete.value).toBe(true)
+    expect(page.permissions.permanentDelete.value).toBe(false)
+  })
+
   it('refetches first page when page size changes', async () => {
     const adapter = createRequestAdapterStub()
     const page = useCrudListPage({

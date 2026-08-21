@@ -1,4 +1,4 @@
-import { sysApiMethods } from '@/api/modules/sys'
+import { auditLogsApiMethods } from '@/api/modules/auditLogs'
 import { SYS_PERMISSIONS } from '@/api/generated/permissions'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
@@ -28,7 +28,7 @@ const AUDIT_LOG_PAGE_RESOURCE = {
     subtitle: '操作审计与合规追溯',
     icon: 'ep:document'
   },
-  methods: sysApiMethods,
+  methods: auditLogsApiMethods,
   permissions: {
     create: SYS_PERMISSIONS.auditlog.list,
     update: SYS_PERMISSIONS.auditlog.detail,
