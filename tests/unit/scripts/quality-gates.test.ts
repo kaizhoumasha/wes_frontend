@@ -274,14 +274,19 @@ describe.sequential('repository quality gates', () => {
     )
     expect(jenkinsfile).toContain('env.CI_SOURCE_TREE = sourceTree')
     expect(jenkinsfile).not.toContain('readJSON(')
+    expect(jenkinsfile).not.toContain('JsonSlurperClassic')
     expect(jenkinsfile).toContain(
-      "new groovy.json.JsonSlurperClassic().parseText(readFile(file: '.contract-sync-record.json'))"
+      `awk -F'"' '$2 == "backendCommit" { print $4 }' .contract-sync-record.json`
     )
     expect(jenkinsfile).toContain(
-      "new groovy.json.JsonSlurperClassic().parseText(readFile(file: '.permission-sync-record.json'))"
+      `awk -F'"' '$2 == "backendCommit" { print $4 }' .permission-sync-record.json`
     )
-    expect(jenkinsfile).toContain('contractSyncRecord.openApiSha256')
-    expect(jenkinsfile).toContain('permissionSyncRecord.permissionsSha256')
+    expect(jenkinsfile).toContain(
+      `awk -F'"' '$2 == "openApiSha256" { print $4 }' .contract-sync-record.json`
+    )
+    expect(jenkinsfile).toContain(
+      `awk -F'"' '$2 == "permissionsSha256" { print $4 }' .permission-sync-record.json`
+    )
     expect(jenkinsfile).toContain("params.BACKEND_COMMIT_SHA?.trim()")
     expect(jenkinsfile).toContain("params.BACKEND_IMAGE_TAG?.trim()")
     expect(jenkinsfile).toContain('contractBackendCommit != approvedBackendCommit')

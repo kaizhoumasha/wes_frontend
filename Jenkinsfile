@@ -64,15 +64,13 @@ pipeline {
 
                     String fullCommit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
                     String sourceTree = sh(returnStdout: true, script: 'git rev-parse HEAD^{tree}').trim()
-                    def contractSyncRecord = new groovy.json.JsonSlurperClassic().parseText(readFile(file: '.contract-sync-record.json'))
-                    def permissionSyncRecord = new groovy.json.JsonSlurperClassic().parseText(readFile(file: '.permission-sync-record.json'))
                     String approvedBackendCommit = params.BACKEND_COMMIT_SHA?.trim()
                     String approvedBackendTag = params.BACKEND_IMAGE_TAG?.trim()
                     String approvedFrontendCommit = params.FRONTEND_COMMIT_SHA?.trim()
-                    String contractBackendCommit = contractSyncRecord.backendCommit?.toString()?.trim()
-                    String permissionsBackendCommit = permissionSyncRecord.backendCommit?.toString()?.trim()
-                    String openApiSha256 = contractSyncRecord.openApiSha256?.toString()?.trim()
-                    String permissionsSha256 = permissionSyncRecord.permissionsSha256?.toString()?.trim()
+                    String contractBackendCommit = sh(returnStdout: true, script: '''awk -F'"' '$2 == "backendCommit" { print $4 }' .contract-sync-record.json''').trim()
+                    String permissionsBackendCommit = sh(returnStdout: true, script: '''awk -F'"' '$2 == "backendCommit" { print $4 }' .permission-sync-record.json''').trim()
+                    String openApiSha256 = sh(returnStdout: true, script: '''awk -F'"' '$2 == "openApiSha256" { print $4 }' .contract-sync-record.json''').trim()
+                    String permissionsSha256 = sh(returnStdout: true, script: '''awk -F'"' '$2 == "permissionsSha256" { print $4 }' .permission-sync-record.json''').trim()
                     boolean hasAnyReleaseInput = approvedBackendCommit || approvedBackendTag || approvedFrontendCommit
                     boolean hasAllReleaseInputs = approvedBackendCommit && approvedBackendTag && approvedFrontendCommit
                     if (hasAnyReleaseInput && !hasAllReleaseInputs) {
