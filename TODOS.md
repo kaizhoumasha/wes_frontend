@@ -2,6 +2,18 @@
 
 ## To-Do
 
+### 移动端日志页筛选工具栏自适应
+
+**What**: 在 375px 宽度下让审计日志与 API 访问日志的搜索框、快速筛选和表格工具按钮在卡片内完整换行，避免搜索框右端超出视口。
+
+**Why**: 2026-08-22 Standard QA 在 `/logs/api-access` 的 375×812 视口稳定复现搜索框右侧被裁切；桌面端和筛选功能正常，因此当前为低优先级视觉问题。
+
+**Context**: 复现证据见 `.gstack/qa-reports/screenshots/front-back-2026-08-22/15-mobile-api-access.png`。
+
+**Priority**: P3
+
+---
+
 ### CI 引入死代码静态分析（knip 或 ts-prune）
 
 **What**: 在 `pnpm lint` 闸门中加一个 `knip` 步骤，自动检测未使用的 export / 未注册组件 / 未引用文件，CI 强制 0 warnings。
