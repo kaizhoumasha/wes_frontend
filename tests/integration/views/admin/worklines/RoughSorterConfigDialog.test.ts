@@ -1,6 +1,6 @@
 /* eslint-disable vue/one-component-per-file */
 import { defineComponent, h, nextTick, type PropType } from 'vue'
-import { mount, type VueWrapper } from '@vue/test-utils'
+import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { WorkLinesItem as Workline } from '@/api/modules/workLines'
 import { workLinesApiMethods } from '@/api/modules/workLines'
@@ -329,11 +329,11 @@ describe('RoughSorterConfigDialog', () => {
     await wrapper.setProps({ modelValue: false })
     response(Promise.resolve(latestB))
     await wrapper.setProps({ workline: workline(12), modelValue: true })
-    await vi.waitFor(() =>
-      expect(wrapper.find<HTMLInputElement>('[data-field="NG_POSITION"]').element.value).toBe(
-        'B-NG-01'
-      )
-    )
+    await flushPromises()
+    await nextTick()
+    const latestInput = wrapper.find<HTMLInputElement>('[data-field="NG_POSITION"]')
+    expect(latestInput.exists()).toBe(true)
+    expect(latestInput.element.value).toBe('B-NG-01')
 
     pendingA.resolve(workline(11))
     await pendingA.promise
@@ -373,11 +373,11 @@ describe('RoughSorterConfigDialog', () => {
       )
     )
     await wrapper.setProps({ workline: workline(12), modelValue: true })
-    await vi.waitFor(() =>
-      expect(wrapper.find<HTMLInputElement>('[data-field="NG_POSITION"]').element.value).toBe(
-        'B-NG-01'
-      )
-    )
+    await flushPromises()
+    await nextTick()
+    const latestInput = wrapper.find<HTMLInputElement>('[data-field="NG_POSITION"]')
+    expect(latestInput.exists()).toBe(true)
+    expect(latestInput.element.value).toBe('B-NG-01')
 
     pendingA.reject(new Error('stale A failed'))
     await pendingA.promise.catch(() => undefined)
