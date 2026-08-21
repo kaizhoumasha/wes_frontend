@@ -245,6 +245,21 @@ describe.sequential('repository quality gates', () => {
     expect(buildIndex).toBeGreaterThan(lintIndex)
   })
 
+  it('uses a cached CI tools image instead of installing tools in every quality run', () => {
+    const jenkinsfile = readFileSync(join(REPOSITORY_ROOT, 'Jenkinsfile'), 'utf-8')
+    const ciDockerfile = readFileSync(join(REPOSITORY_ROOT, 'docker/ci/Dockerfile'), 'utf-8')
+
+    expect(jenkinsfile).toContain("stage('Build Frontend CI Tools Image')")
+    expect(jenkinsfile).toContain('-f docker/ci/Dockerfile')
+    expect(jenkinsfile).toContain('docker/ci')
+    expect(jenkinsfile).toContain('"${CI_TOOLS_IMAGE}"')
+    expect(jenkinsfile).not.toContain('apt-get update -qq')
+    expect(jenkinsfile).not.toContain('corepack prepare pnpm@10.10.0 --activate')
+    expect(ciDockerfile).toContain('FROM node:22-bookworm-slim')
+    expect(ciDockerfile).toContain('apt-get install -y --no-install-recommends git')
+    expect(ciDockerfile).toContain('corepack prepare pnpm@10.10.0 --activate')
+  })
+
   it('binds the frontend image to the exact revision, source tree, and frozen authorization provenance', () => {
     const dockerfile = readFileSync(join(REPOSITORY_ROOT, 'Dockerfile'), 'utf-8')
     const jenkinsfile = readFileSync(join(REPOSITORY_ROOT, 'Jenkinsfile'), 'utf-8')
@@ -289,9 +304,11 @@ describe.sequential('repository quality gates', () => {
     )
     expect(jenkinsfile).toContain("params.BACKEND_COMMIT_SHA?.trim()")
     expect(jenkinsfile).toContain("params.BACKEND_IMAGE_TAG?.trim()")
+    expect(jenkinsfile).toContain('params.DEPLOY_SOURCE_COMMIT_SHA?.trim()')
     expect(jenkinsfile).toContain('contractBackendCommit != approvedBackendCommit')
     expect(jenkinsfile).toContain('permissionsBackendCommit != contractBackendCommit')
     expect(jenkinsfile).toContain('env.CI_BACKEND_COMMIT_SHA = contractBackendCommit')
+    expect(jenkinsfile).toContain('env.CI_DEPLOY_SOURCE_COMMIT_SHA = approvedDeploySourceCommit')
     expect(jenkinsfile).toContain('/[0-9]+-${approvedBackendCommit.take(7)}/')
     expect(jenkinsfile).toContain('openApiSha256 ==~ /[0-9a-f]{64}/')
     expect(jenkinsfile).toContain('permissionsSha256 ==~ /[0-9a-f]{64}/')
@@ -311,7 +328,7 @@ describe.sequential('repository quality gates', () => {
       "string(name: 'BACKEND_COMMIT_SHA', value: env.CI_BACKEND_COMMIT_SHA)"
     )
     expect(jenkinsfile).toContain(
-      "string(name: 'DEPLOY_SOURCE_COMMIT_SHA', value: env.CI_BACKEND_COMMIT_SHA)"
+      "string(name: 'DEPLOY_SOURCE_COMMIT_SHA', value: env.CI_DEPLOY_SOURCE_COMMIT_SHA)"
     )
     expect(jenkinsfile).toContain(
       "string(name: 'FRONTEND_COMMIT_SHA', value: env.CI_COMMIT_SHA)"
@@ -325,8 +342,9 @@ describe.sequential('repository quality gates', () => {
     expect(dockerfile).not.toMatch(/ARG WES_(?:OPENAPI|PERMISSIONS)_SHA256=/)
     expect(jenkinsfile).toContain("string(name: 'BACKEND_IMAGE_TAG', description:")
     expect(jenkinsfile).toContain("string(name: 'BACKEND_COMMIT_SHA', description:")
+    expect(jenkinsfile).toContain("string(name: 'DEPLOY_SOURCE_COMMIT_SHA', description:")
     expect(jenkinsfile).not.toMatch(
-      /string\(name: 'BACKEND_(?:IMAGE_TAG|COMMIT_SHA)', defaultValue:/
+      /string\(name: '(?:BACKEND_(?:IMAGE_TAG|COMMIT_SHA)|DEPLOY_SOURCE_COMMIT_SHA)', defaultValue:/
     )
   })
 
