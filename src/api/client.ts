@@ -64,6 +64,11 @@ async function handleResponse(response: Response, method: any): Promise<unknown>
 
     const isRefreshRequest = method.meta?.isRefreshRequest === true
     const authRefreshAttempted = method.meta?.authRefreshAttempted === true
+    const currentAccessToken = getAccessToken()
+    const currentAuthorization = currentAccessToken ? `Bearer ${currentAccessToken}` : null
+    const requestAuthorization = method.config.headers.Authorization
+    const hasNewerAccessToken =
+      currentAuthorization !== null && requestAuthorization !== currentAuthorization
     const isRefreshableAccessTokenError =
       !isRefreshRequest &&
       !authRefreshAttempted &&
@@ -73,6 +78,12 @@ async function handleResponse(response: Response, method: any): Promise<unknown>
     // 两者都先用 HttpOnly refresh cookie 续期；刷新请求自身失败时不得递归。
     if (isRefreshableAccessTokenError) {
       method.meta = { ...method.meta, authRefreshAttempted: true }
+
+      // 该响应若使用的是旧 token，说明另一请求已完成续期；直接用当前 token 有界重发。
+      if (hasNewerAccessToken) {
+        method.config.headers.Authorization = currentAuthorization
+        return await method.send()
+      }
 
       let newToken: string
       try {

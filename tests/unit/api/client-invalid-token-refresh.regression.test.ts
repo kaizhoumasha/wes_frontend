@@ -189,31 +189,51 @@ describe('invalid access-token refresh regression', () => {
     expect(handleAuthErrorMock).toHaveBeenCalledTimes(1)
   })
 
-  it('does not strand a late invalid-token response after the refreshed token is published', async () => {
+  it('reuses the published token for a late invalid-token response during context refresh', async () => {
     let releaseLateResponse!: () => void
     const lateResponseGate = new Promise<void>(resolve => {
       releaseLateResponse = resolve
     })
-    let releaseContextRefresh!: () => void
-    const contextRefreshGate = new Promise<void>(resolve => {
-      releaseContextRefresh = resolve
+    let releaseContextResponse!: () => void
+    const contextResponseGate = new Promise<void>(resolve => {
+      releaseContextResponse = resolve
     })
-    let markContextRefreshStarted!: () => void
-    const contextRefreshStarted = new Promise<void>(resolve => {
-      markContextRefreshStarted = resolve
+    let markContextRequestStarted!: () => void
+    const contextRequestStarted = new Promise<void>(resolve => {
+      markContextRequestStarted = resolve
     })
     const originalAttempts = new Map<string, number>()
-    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+    const requestAuthorizations = new Map<string, Array<string | null>>()
+    let refreshRequestCount = 0
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const path = requestPath(input)
       if (path === '/api/v1/auth/refresh') {
+        refreshRequestCount++
         return apiResponse('1000', {
-          access_token: 'refreshed-access-token',
+          access_token: `refreshed-access-token-${refreshRequestCount}`,
           expires_in: 3600
         })
       }
 
+      const headers = input instanceof Request ? input.headers : new Headers(init?.headers)
+      const requestAuthorization = headers.get('Authorization')
+      requestAuthorizations.set(path, [
+        ...(requestAuthorizations.get(path) ?? []),
+        requestAuthorization
+      ])
       const attempt = (originalAttempts.get(path) ?? 0) + 1
       originalAttempts.set(path, attempt)
+      if (path === '/api/v1/auth/my') {
+        if (attempt === 1) {
+          markContextRequestStarted()
+          await contextResponseGate
+          const currentAuthorization = `Bearer ${localStorage.getItem('access_token')}`
+          if (requestAuthorization !== currentAuthorization) {
+            return apiResponse('2012', null, 'Token 已失效')
+          }
+        }
+        return apiResponse('1000', { id: 'current-user' })
+      }
       if (path === '/api/v1/admin/users' && attempt === 1) {
         await lateResponseGate
       }
@@ -232,8 +252,7 @@ describe('invalid access-token refresh regression', () => {
     setOnTokenRefreshed(async () => {
       contextRefreshCount++
       if (contextRefreshCount === 1) {
-        markContextRefreshStarted()
-        await contextRefreshGate
+        await apiClient.Get('/api/v1/auth/my')
       }
     })
 
@@ -242,22 +261,26 @@ describe('invalid access-token refresh regression', () => {
       .then(result => result)
     const lateRequest = apiClient.Get('/api/v1/admin/users').then(result => result)
 
-    await contextRefreshStarted
+    await contextRequestStarted
     releaseLateResponse()
-    const lateOutcome = await Promise.race([
-      lateRequest.then(value => ({ settled: true as const, value })),
-      new Promise<{ settled: false }>(resolve => {
-        setTimeout(() => resolve({ settled: false }), 250)
-      })
-    ])
-    releaseContextRefresh()
+    await expect(lateRequest).resolves.toEqual({ path: '/api/v1/admin/users' })
+    releaseContextResponse()
 
     await expect(firstRequest).resolves.toEqual({ path: '/api/v1/api-auth/applications' })
-    expect(lateOutcome).toEqual({
-      settled: true,
-      value: { path: '/api/v1/admin/users' }
-    })
+    expect(refreshRequestCount).toBe(1)
+    expect(contextRefreshCount).toBe(1)
+    expect(originalAttempts.get('/api/v1/auth/my')).toBe(1)
     expect(originalAttempts.get('/api/v1/admin/users')).toBe(2)
+    expect(requestAuthorizations.get('/api/v1/api-auth/applications')?.at(-1)).toBe(
+      'Bearer refreshed-access-token-1'
+    )
+    expect(requestAuthorizations.get('/api/v1/admin/users')?.at(-1)).toBe(
+      'Bearer refreshed-access-token-1'
+    )
+    expect(requestAuthorizations.get('/api/v1/auth/my')).toEqual([
+      'Bearer refreshed-access-token-1'
+    ])
+    expect(localStorage.getItem('access_token')).toBe('refreshed-access-token-1')
     expect(handleAuthErrorMock).not.toHaveBeenCalled()
   })
 })
