@@ -64,8 +64,8 @@ pipeline {
 
                     String fullCommit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
                     String sourceTree = sh(returnStdout: true, script: 'git rev-parse HEAD^{tree}').trim()
-                    def contractSyncRecord = readJSON(file: '.contract-sync-record.json')
-                    def permissionSyncRecord = readJSON(file: '.permission-sync-record.json')
+                    def contractSyncRecord = new groovy.json.JsonSlurperClassic().parseText(readFile(file: '.contract-sync-record.json'))
+                    def permissionSyncRecord = new groovy.json.JsonSlurperClassic().parseText(readFile(file: '.permission-sync-record.json'))
                     String approvedBackendCommit = params.BACKEND_COMMIT_SHA?.trim()
                     String approvedBackendTag = params.BACKEND_IMAGE_TAG?.trim()
                     String approvedFrontendCommit = params.FRONTEND_COMMIT_SHA?.trim()

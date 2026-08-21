@@ -273,8 +273,13 @@ describe.sequential('repository quality gates', () => {
       "String sourceTree = sh(returnStdout: true, script: 'git rev-parse HEAD^{tree}').trim()"
     )
     expect(jenkinsfile).toContain('env.CI_SOURCE_TREE = sourceTree')
-    expect(jenkinsfile).toContain("readJSON(file: '.contract-sync-record.json')")
-    expect(jenkinsfile).toContain("readJSON(file: '.permission-sync-record.json')")
+    expect(jenkinsfile).not.toContain('readJSON(')
+    expect(jenkinsfile).toContain(
+      "new groovy.json.JsonSlurperClassic().parseText(readFile(file: '.contract-sync-record.json'))"
+    )
+    expect(jenkinsfile).toContain(
+      "new groovy.json.JsonSlurperClassic().parseText(readFile(file: '.permission-sync-record.json'))"
+    )
     expect(jenkinsfile).toContain('contractSyncRecord.openApiSha256')
     expect(jenkinsfile).toContain('permissionSyncRecord.permissionsSha256')
     expect(jenkinsfile).toContain("params.BACKEND_COMMIT_SHA?.trim()")
