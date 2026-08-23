@@ -26,6 +26,7 @@
  */
 
 import type { RouteLocationNormalized, Router } from 'vue-router'
+import { bootstrapAuthContext } from '@/app/bootstrap-auth-context'
 import { usePermission } from '@/composables/usePermission'
 import { withGuardErrorHandling } from '@/utils/guard-error-handler'
 
@@ -80,13 +81,16 @@ export function createPermissionGuard(_router: Router) {
     if (!requiredPermission) return
 
     // 获取权限检查函数
-    const { hasPermission, isSuperuser, permissions, isLoading, loadPermissions } = usePermission()
+    const { hasPermission, isSuperuser, permissions, isLoading } = usePermission()
 
-    // 权限预加载：如果内存中没有权限数据，先从缓存或后端加载
-    // 解决刷新页面时因内存为空被误判 403
+    // 权限预加载：刷新页面时恢复完整用户上下文，确保超级用户通配权限也被补齐。
     if (permissions.value.length === 0 && !isLoading.value) {
       const result = await withGuardErrorHandling(async () => {
-        await loadPermissions()
+        await bootstrapAuthContext({
+          forceRefresh: false,
+          preserveAccessTokenOnFallback: true,
+          loadMenusNonBlocking: true
+        })
         return true
       }, '权限守卫')
       if (result === undefined) {

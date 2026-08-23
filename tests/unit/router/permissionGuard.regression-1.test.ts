@@ -6,9 +6,14 @@ const permissionContext = vi.hoisted(() => ({
   hasPermission: vi.fn(() => false),
   isSuperuser: { value: false },
   permissions: { value: [] as unknown[] },
-  isLoading: { value: false },
-  loadPermissions: vi.fn(async () => undefined)
+  isLoading: { value: false }
 }))
+
+const authContext = vi.hoisted(() => ({
+  bootstrapAuthContext: vi.fn(async () => undefined)
+}))
+
+vi.mock('@/app/bootstrap-auth-context', () => authContext)
 
 vi.mock('@/composables/usePermission', () => ({
   usePermission: () => permissionContext
@@ -17,9 +22,26 @@ vi.mock('@/composables/usePermission', () => ({
 describe('permission guard with an empty permission list', () => {
   beforeEach(() => {
     permissionContext.hasPermission.mockReturnValue(false)
+    permissionContext.isSuperuser.value = false
     permissionContext.permissions.value = []
     permissionContext.isLoading.value = false
-    permissionContext.loadPermissions.mockReset().mockResolvedValue(undefined)
+    authContext.bootstrapAuthContext.mockReset().mockResolvedValue(undefined)
+  })
+
+  it('restores the superuser context before evaluating a protected route after refresh', async () => {
+    authContext.bootstrapAuthContext.mockImplementationOnce(async () => {
+      permissionContext.isSuperuser.value = true
+      permissionContext.permissions.value = [{ name: '*' }]
+    })
+    const guard = createPermissionGuard({} as Router)
+    const to = {
+      path: '/ops/device-diagnostics',
+      fullPath: '/ops/device-diagnostics',
+      meta: { requiresAuth: true, permission: '*' }
+    } as RouteLocationNormalized
+
+    await expect(guard(to)).resolves.toBeUndefined()
+    expect(authContext.bootstrapAuthContext).toHaveBeenCalledOnce()
   })
 
   // Regression: ISSUE-001 — an ordinary user could open the administrator diagnostics page
@@ -40,11 +62,11 @@ describe('permission guard with an empty permission list', () => {
         permission: '*'
       }
     })
-    expect(permissionContext.loadPermissions).toHaveBeenCalledOnce()
+    expect(authContext.bootstrapAuthContext).toHaveBeenCalledOnce()
   })
 
   it('fails closed when protected-route permissions cannot be loaded', async () => {
-    permissionContext.loadPermissions.mockRejectedValueOnce(new Error('permission service unavailable'))
+    authContext.bootstrapAuthContext.mockRejectedValueOnce(new Error('permission service unavailable'))
     const guard = createPermissionGuard({} as Router)
     const to = {
       path: '/ops/device-diagnostics',
