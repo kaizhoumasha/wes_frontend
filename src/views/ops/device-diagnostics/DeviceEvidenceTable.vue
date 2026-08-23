@@ -66,7 +66,6 @@ const columns: TableColumnConfig[] = [
   {
     title: '操作',
     width: 210,
-    fixed: 'right',
     slots: {
       default: ({ row }) => {
         const source = (row as EvidenceDisplayRow).source
@@ -93,7 +92,11 @@ const columns: TableColumnConfig[] = [
 const formattedPayload = computed(() => {
   const row = selectedRow.value
   if (!row) return ''
-  return JSON.stringify(row.attempt?.raw_payload ?? row.latestUpdate ?? {}, null, 2)
+  const payload =
+    row.attempt && row.latestUpdate
+      ? { attempt: row.attempt, latestUpdate: row.latestUpdate }
+      : (row.attempt ?? row.latestUpdate ?? {})
+  return JSON.stringify(payload, null, 2)
 })
 
 function toDisplayRow(source: DeviceEvidenceRow): EvidenceDisplayRow {
@@ -199,7 +202,7 @@ defineExpose({ showDetails, launchDebug, spanMethod })
 
   <StandardDrawer
     v-model="drawerOpen"
-    title="解析 JSON（非字节级原始 body）"
+    title="诊断详情（payload 为解析 JSON）"
     size="lg"
   >
     <pre class="payload-json">{{ formattedPayload }}</pre>

@@ -33,6 +33,7 @@ interface UseDeviceEvidenceStreamOptions {
 const MAX_ROWS = 200
 const MAX_PAYLOAD_BYTES = 16 * 1024 * 1024
 const MAX_RETRY_DELAY_MS = 10_000
+const PAYLOAD_ENCODER = new TextEncoder()
 
 export function useDeviceEvidenceStream(options: UseDeviceEvidenceStreamOptions = {}) {
   const connector = options.connector ?? consumeDeviceEvidenceStream
@@ -150,7 +151,7 @@ export function useDeviceEvidenceStream(options: UseDeviceEvidenceStreamOptions 
         requestId: event.payload.request_id,
         evidenceId: event.payload.evidence_id,
         gap: false,
-        payloadBytes: Math.max(0, event.payload.observed_body_bytes),
+        payloadBytes: serializedPayloadBytes(event.payload.raw_payload),
         attempt: event.payload,
         latestUpdate: null
       })
@@ -203,6 +204,10 @@ export function useDeviceEvidenceStream(options: UseDeviceEvidenceStreamOptions 
     setFilters,
     clear
   }
+}
+
+function serializedPayloadBytes(payload: Record<string, unknown> | null): number {
+  return payload === null ? 0 : PAYLOAD_ENCODER.encode(JSON.stringify(payload)).byteLength
 }
 
 function waitForRetry(delayMs: number, signal: AbortSignal): Promise<void> {

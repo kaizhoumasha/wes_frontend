@@ -86,19 +86,32 @@ export async function consumeDeviceEvidenceStream(
   )
 
   if (response.status === 401 && !options.signal.aborted) {
+    await cancelResponseBody(response)
+    if (options.signal.aborted) {
+      throw new DOMException('Aborted', 'AbortError')
+    }
     const refreshedToken = await dependencies.refreshAccessToken()
     response = await requestStream(url, options.signal, dependencies, refreshedToken)
   }
 
   if (!response.ok) {
+    await cancelResponseBody(response)
     throw new DeviceEvidenceStreamHttpError(response.status)
+  }
+  const mediaType = response.headers.get('content-type')?.split(';', 1)[0]?.trim().toLowerCase()
+  if (mediaType !== 'text/event-stream') {
+    await cancelResponseBody(response)
+    throw new DeviceEvidenceStreamProtocolError('SSE 响应 Content-Type 必须是 text/event-stream')
   }
   if (!response.body) {
     throw new Error('SSE 响应缺少可读流')
   }
 
-  options.onOpen?.()
-  await readFrames(response.body, options.onEvent)
+  await readFrames(response.body, options.onEvent, options.onOpen)
+}
+
+async function cancelResponseBody(response: Response): Promise<void> {
+  await response.body?.cancel().catch(() => undefined)
 }
 
 function buildStreamUrl(baseUrl: string, filters: StreamQuery): string {
@@ -119,7 +132,10 @@ function requestStream(
 ): Promise<Response> {
   return dependencies.fetchImpl(url, {
     method: 'GET',
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    headers: {
+      Accept: 'text/event-stream',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    },
     credentials: 'include',
     cache: 'no-store',
     signal
@@ -128,13 +144,21 @@ function requestStream(
 
 async function readFrames(
   stream: ReadableStream<Uint8Array>,
-  onEvent: (event: DeviceEvidenceStreamEvent) => void
+  onEvent: (event: DeviceEvidenceStreamEvent) => void,
+  onOpen?: () => void
 ): Promise<void> {
   const reader = stream.getReader()
   const decoder = new TextDecoder('utf-8', { fatal: true })
   const encoder = new TextEncoder()
   let buffer = ''
   let bufferedBytes = 0
+  let opened = false
+
+  const markOpen = () => {
+    if (opened) return
+    opened = true
+    onOpen?.()
+  }
 
   try {
     while (true) {
@@ -150,7 +174,7 @@ async function readFrames(
         )
       }
       const decodedBuffer = buffer + decodedChunk
-      const remaining = dispatchCompleteFrames(decodedBuffer, onEvent)
+      const remaining = dispatchCompleteFrames(decodedBuffer, onEvent, markOpen)
       if (remaining.length !== decodedBuffer.length) {
         const consumed = decodedBuffer.slice(0, decodedBuffer.length - remaining.length)
         bufferedBytes -= encoder.encode(consumed).byteLength
@@ -160,9 +184,6 @@ async function readFrames(
         await cancelWithProtocolError(reader, new DeviceEvidenceStreamProtocolError())
       }
       if (done) {
-        if (buffer.trim()) {
-          dispatchFrame(buffer, onEvent)
-        }
         return
       }
     }
@@ -185,7 +206,8 @@ async function cancelWithProtocolError(
 
 function dispatchCompleteFrames(
   buffer: string,
-  onEvent: (event: DeviceEvidenceStreamEvent) => void
+  onEvent: (event: DeviceEvidenceStreamEvent) => void,
+  onFrame: () => void
 ): string {
   let remaining = buffer
   while (true) {
@@ -195,6 +217,7 @@ function dispatchCompleteFrames(
     }
     const frame = remaining.slice(0, boundary.index)
     remaining = remaining.slice(boundary.index + boundary[0].length)
+    onFrame()
     dispatchFrame(frame, onEvent)
   }
 }

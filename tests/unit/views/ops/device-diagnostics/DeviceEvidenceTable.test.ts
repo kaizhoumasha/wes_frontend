@@ -122,11 +122,82 @@ describe('DeviceEvidenceTable', () => {
     }
     exposed.showDetails(attemptRow)
     await nextTick()
-    expect(wrapper.text()).toContain('解析 JSON（非字节级原始 body）')
+    expect(wrapper.text()).toContain('诊断详情（payload 为解析 JSON）')
     expect(wrapper.find('pre').text()).toContain('<script>alert(1)</script>')
+    expect(wrapper.find('pre').text()).toContain('"request_id": "request-1"')
     expect(wrapper.find('script').exists()).toBe(false)
 
     exposed.launchDebug(attemptRow)
     expect(wrapper.emitted('debug')).toEqual([['ARM-01', null]])
+  })
+
+  it('shows rejection metadata even when no raw payload is available', async () => {
+    const rejected: DeviceEvidenceRow = {
+      ...attemptRow,
+      rowKey: 'rejected-1',
+      attempt: {
+        ...attemptRow.attempt!,
+        disposition: 'REJECTED',
+        status_code: 400,
+        error_code: 'INVALID_ENVELOPE',
+        raw_payload: null
+      }
+    }
+    const wrapper = shallowMount(DeviceEvidenceTable, {
+      props: { rows: [rejected] },
+      global: { stubs: { DataTable: DataTableStub, StandardDrawer: StandardDrawerStub } }
+    })
+
+    ;(wrapper.vm as unknown as { showDetails: (row: DeviceEvidenceRow) => void }).showDetails(
+      rejected
+    )
+    await nextTick()
+
+    expect(wrapper.find('pre').text()).toContain('"error_code": "INVALID_ENVELOPE"')
+    expect(wrapper.find('pre').text()).toContain('"status_code": 400')
+    expect(wrapper.find('pre').text()).toContain('"raw_payload": null')
+  })
+
+  it('shows both the ingress attempt and its latest evidence update', async () => {
+    const correlated: DeviceEvidenceRow = {
+      ...attemptRow,
+      latestUpdate: {
+        evidence_id: 1,
+        kind: 'DEVICE_RESULT',
+        source_event_id: 'RESULT:CMD-001',
+        processed_at: '2026-08-23T08:00:01Z',
+        device_code: 'ARM-01',
+        command_code: 'CMD-001',
+        event_type: null,
+        apply_status: 'APPLIED'
+      }
+    }
+    const wrapper = shallowMount(DeviceEvidenceTable, {
+      props: { rows: [correlated] },
+      global: { stubs: { DataTable: DataTableStub, StandardDrawer: StandardDrawerStub } }
+    })
+
+    ;(wrapper.vm as unknown as { showDetails: (row: DeviceEvidenceRow) => void }).showDetails(
+      correlated
+    )
+    await nextTick()
+
+    const details = JSON.parse(wrapper.find('pre').text()) as Record<string, unknown>
+    expect(Object.keys(details)).toEqual(['attempt', 'latestUpdate'])
+    expect(details.attempt).toMatchObject({
+      request_id: 'request-1',
+      disposition: 'ACCEPTED',
+      raw_payload: { text: '<script>alert(1)</script>' }
+    })
+    expect(details.latestUpdate).toEqual({
+      evidence_id: 1,
+      kind: 'DEVICE_RESULT',
+      source_event_id: 'RESULT:CMD-001',
+      processed_at: '2026-08-23T08:00:01Z',
+      device_code: 'ARM-01',
+      command_code: 'CMD-001',
+      event_type: null,
+      apply_status: 'APPLIED'
+    })
   })
 })
