@@ -92,7 +92,11 @@ const columns: TableColumnConfig[] = [
 const formattedPayload = computed(() => {
   const row = selectedRow.value
   if (!row) return ''
-  return JSON.stringify(row.attempt ?? row.latestUpdate ?? {}, null, 2)
+  const payload =
+    row.attempt && row.latestUpdate
+      ? { attempt: row.attempt, latestUpdate: row.latestUpdate }
+      : (row.attempt ?? row.latestUpdate ?? {})
+  return JSON.stringify(payload, null, 2)
 })
 
 function toDisplayRow(source: DeviceEvidenceRow): EvidenceDisplayRow {

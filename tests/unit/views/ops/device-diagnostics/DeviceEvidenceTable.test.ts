@@ -157,4 +157,47 @@ describe('DeviceEvidenceTable', () => {
     expect(wrapper.find('pre').text()).toContain('"status_code": 400')
     expect(wrapper.find('pre').text()).toContain('"raw_payload": null')
   })
+
+  it('shows both the ingress attempt and its latest evidence update', async () => {
+    const correlated: DeviceEvidenceRow = {
+      ...attemptRow,
+      latestUpdate: {
+        evidence_id: 1,
+        kind: 'DEVICE_RESULT',
+        source_event_id: 'RESULT:CMD-001',
+        processed_at: '2026-08-23T08:00:01Z',
+        device_code: 'ARM-01',
+        command_code: 'CMD-001',
+        event_type: null,
+        apply_status: 'APPLIED'
+      }
+    }
+    const wrapper = shallowMount(DeviceEvidenceTable, {
+      props: { rows: [correlated] },
+      global: { stubs: { DataTable: DataTableStub, StandardDrawer: StandardDrawerStub } }
+    })
+
+    ;(wrapper.vm as unknown as { showDetails: (row: DeviceEvidenceRow) => void }).showDetails(
+      correlated
+    )
+    await nextTick()
+
+    const details = JSON.parse(wrapper.find('pre').text()) as Record<string, unknown>
+    expect(Object.keys(details)).toEqual(['attempt', 'latestUpdate'])
+    expect(details.attempt).toMatchObject({
+      request_id: 'request-1',
+      disposition: 'ACCEPTED',
+      raw_payload: { text: '<script>alert(1)</script>' }
+    })
+    expect(details.latestUpdate).toEqual({
+      evidence_id: 1,
+      kind: 'DEVICE_RESULT',
+      source_event_id: 'RESULT:CMD-001',
+      processed_at: '2026-08-23T08:00:01Z',
+      device_code: 'ARM-01',
+      command_code: 'CMD-001',
+      event_type: null,
+      apply_status: 'APPLIED'
+    })
+  })
 })
