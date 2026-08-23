@@ -66,7 +66,6 @@ const columns: TableColumnConfig[] = [
   {
     title: '操作',
     width: 210,
-    fixed: 'right',
     slots: {
       default: ({ row }) => {
         const source = (row as EvidenceDisplayRow).source
