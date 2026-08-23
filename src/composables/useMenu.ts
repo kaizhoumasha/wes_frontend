@@ -36,7 +36,44 @@ import { computed, ref } from 'vue'
 import { menusApiMethods } from '@/api/modules/menus'
 import type { MenuItem, FlatMenuItem, MenuTreeResponse } from '@/types/menu'
 import { toMenuItem, flattenMenuTree, getMenuBreadcrumb as computeBreadcrumb } from '@/types/menu'
-import { MENU_CACHE, getCachedData, setCachedData, clearCachedData, restoreFromHMR } from '@/constants/cache'
+import {
+  MENU_CACHE,
+  getCachedData,
+  setCachedData,
+  clearCachedData,
+  restoreFromHMR
+} from '@/constants/cache'
+
+export interface MenuRouteAccess {
+  permission?: string
+  navigable: boolean
+}
+
+export function filterAuthorizedMenuTree(
+  menus: readonly MenuItem[],
+  resolveAccess: (path: string) => MenuRouteAccess,
+  hasPermission: (permission: string) => boolean
+): MenuItem[] {
+  const filtered: MenuItem[] = []
+
+  for (const menu of menus) {
+    if (menu.is_hidden) {
+      continue
+    }
+    const access = resolveAccess(menu.path)
+    if (access.permission && !hasPermission(access.permission)) {
+      continue
+    }
+
+    const children = filterAuthorizedMenuTree(menu.children, resolveAccess, hasPermission)
+    if (menu.children.length > 0 && children.length === 0 && !access.navigable) {
+      continue
+    }
+    filtered.push({ ...menu, children })
+  }
+
+  return filtered
+}
 
 // ==================== 常量定义 ====================
 // 缓存常量已迁移到 @/constants/cache
@@ -203,7 +240,7 @@ export function useMenu() {
 
     // 自动展开父级菜单
     const breadcrumb = computeBreadcrumb(menuTree.value, path)
-    const pathsToOpen = breadcrumb.slice(0, -1).map((item) => item.path)
+    const pathsToOpen = breadcrumb.slice(0, -1).map(item => item.path)
     openedPaths.value = pathsToOpen
   }
 
@@ -293,7 +330,7 @@ export function useMenu() {
 
   /** 标准化菜单树，兜底修复缺失字段（children/is_hidden） */
   const normalizeMenuTree = (menus: MenuItem[]): MenuItem[] => {
-    return menus.map((menu) => ({
+    return menus.map(menu => ({
       ...menu,
       is_hidden: Boolean(menu.is_hidden),
       children: Array.isArray(menu.children) ? normalizeMenuTree(menu.children) : []
@@ -302,11 +339,7 @@ export function useMenu() {
 
   /** 从缓存获取菜单 */
   const getMenuFromCache = (): MenuItem[] | null => {
-    const cached = getCachedData<MenuItem[]>(
-      MENU_CACHE.KEY,
-      MENU_CACHE.TIME_KEY,
-      MENU_CACHE.TTL
-    )
+    const cached = getCachedData<MenuItem[]>(MENU_CACHE.KEY, MENU_CACHE.TIME_KEY, MENU_CACHE.TTL)
     if (!cached) return null
     if (!Array.isArray(cached)) return null
     return normalizeMenuTree(cached)

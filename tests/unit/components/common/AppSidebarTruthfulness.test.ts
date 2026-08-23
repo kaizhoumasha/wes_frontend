@@ -17,6 +17,7 @@ vi.mock('@/composables/useLayout', async () => {
 vi.mock('@/composables/useMenu', async () => {
   const { ref } = await vi.importActual<typeof import('vue')>('vue')
   return {
+    filterAuthorizedMenuTree: vi.fn(() => []),
     useMenu: () => ({
       menuTree: ref([]),
       selectedPath: ref(''),
@@ -25,6 +26,10 @@ vi.mock('@/composables/useMenu', async () => {
     })
   }
 })
+
+vi.mock('vue-router', () => ({
+  useRouter: () => ({ resolve: vi.fn() })
+}))
 
 describe('AppSidebar truthfulness', () => {
   it('does not display a hard-coded release version', () => {

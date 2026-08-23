@@ -3,10 +3,7 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import {
-  buildMenuManifestEntries,
-  writeMenuManifestFile,
-} from '../../../scripts/lib/menu-manifest'
+import { buildMenuManifestEntries, writeMenuManifestFile } from '../../../scripts/lib/menu-manifest'
 
 describe('menu manifest helpers', () => {
   it('builds menu manifest entries from protected titled routes', () => {
@@ -17,8 +14,8 @@ describe('menu manifest helpers', () => {
         component: '@/views/dashboard/Dashboard.vue',
         meta: {
           requiresAuth: true,
-          title: '仪表盘',
-        },
+          title: '仪表盘'
+        }
       },
       {
         path: 'admin',
@@ -29,8 +26,8 @@ describe('menu manifest helpers', () => {
           menu: {
             name: 'admin:system:menu',
             icon: 'ep:setting',
-            sortOrder: 10,
-          },
+            sortOrder: 10
+          }
         },
         children: [
           {
@@ -45,11 +42,11 @@ describe('menu manifest helpers', () => {
                 name: 'admin:user:menu',
                 parentName: 'admin:system:menu',
                 icon: 'ep:user',
-                sortOrder: 11,
-              },
-            },
-          },
-        ],
+                sortOrder: 11
+              }
+            }
+          }
+        ]
       },
       {
         path: 'debug/example',
@@ -57,9 +54,9 @@ describe('menu manifest helpers', () => {
         component: '@/views/dashboard/Dashboard.vue',
         meta: {
           requiresAuth: false,
-          title: '调试页',
-        },
-      },
+          title: '调试页'
+        }
+      }
     ]
 
     expect(buildMenuManifestEntries(routes)).toEqual([
@@ -72,7 +69,7 @@ describe('menu manifest helpers', () => {
         parentName: null,
         icon: null,
         isHidden: false,
-        permission: null,
+        permission: null
       },
       {
         name: 'admin:system:menu',
@@ -83,7 +80,7 @@ describe('menu manifest helpers', () => {
         parentName: null,
         icon: 'ep:setting',
         isHidden: false,
-        permission: null,
+        permission: null
       },
       {
         name: 'admin:user:menu',
@@ -94,8 +91,8 @@ describe('menu manifest helpers', () => {
         parentName: 'admin:system:menu',
         icon: 'ep:user',
         isHidden: false,
-        permission: 'admin:user:list',
-      },
+        permission: 'admin:user:list'
+      }
     ])
   })
 
@@ -115,10 +112,10 @@ describe('menu manifest helpers', () => {
             parentName: 'biz:system:menu',
             icon: 'ep:connection',
             isHidden: false,
-            permission: 'biz:workline:list',
-          },
+            permission: 'biz:workline:list'
+          }
         ],
-        outputFile,
+        outputFile
       )
 
       expect(JSON.parse(readFileSync(outputFile, 'utf-8'))).toEqual([
@@ -131,8 +128,8 @@ describe('menu manifest helpers', () => {
           parentName: 'biz:system:menu',
           icon: 'ep:connection',
           isHidden: false,
-          permission: 'biz:workline:list',
-        },
+          permission: 'biz:workline:list'
+        }
       ])
     } finally {
       rmSync(tempDir, { recursive: true, force: true })
@@ -144,21 +141,42 @@ describe('menu manifest helpers', () => {
     const outputFile = join(tempDir, 'menu-manifest.json')
 
     try {
-      execFileSync('pnpm', ['exec', 'tsx', 'scripts/generate-menu-manifest.ts', '--out', outputFile], {
-        cwd: process.cwd(),
-        stdio: 'pipe',
-      })
+      execFileSync(
+        'pnpm',
+        ['exec', 'tsx', 'scripts/generate-menu-manifest.ts', '--out', outputFile],
+        {
+          cwd: process.cwd(),
+          stdio: 'pipe'
+        }
+      )
 
-      const entries = JSON.parse(readFileSync(outputFile, 'utf-8')) as Array<{ name: string; path: string }>
+      const entries = JSON.parse(readFileSync(outputFile, 'utf-8')) as Array<{
+        name: string
+        path: string
+      }>
 
       expect(entries).toContainEqual(
         expect.objectContaining({
           name: 'biz:workline:menu',
-          path: '/biz/worklines',
-        }),
+          path: '/biz/worklines'
+        })
       )
       expect(entries.some(entry => entry.name.startsWith('runtime:'))).toBe(false)
       expect(entries.some(entry => entry.path.startsWith('/runtime'))).toBe(false)
+      expect(entries).toContainEqual(
+        expect.objectContaining({
+          name: 'ops:system:menu',
+          path: '/ops',
+          permission: '*'
+        })
+      )
+      expect(entries).toContainEqual(
+        expect.objectContaining({
+          name: 'ops:device-diagnostics:menu',
+          path: '/ops/device-diagnostics',
+          permission: '*'
+        })
+      )
     } finally {
       rmSync(tempDir, { recursive: true, force: true })
     }

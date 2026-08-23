@@ -1,4 +1,4 @@
-/** @openapi-sha256 e69750714ddc1ee7a83def0f920839dfe89a6bcc07e2b878189cbb13852ee97c */
+/** @openapi-sha256 64a1c8731962900eccd5097683dcbb5c06239ca1ed60eb018b641bd84016422b */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -1556,6 +1556,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/device/commands/{command_code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 查询 DeviceCommand 联调结果 */
+        get: operations["device_commands_by_command_code_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/device/commands/debug": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 创建 DeviceCommand 联调命令 */
+        post: operations["device_commands_debug_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/device/commands/debug/preflight": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 枚举 ECS 设备并检查 MANUAL_DEBUG 运行态 */
+        post: operations["device_commands_debug_preflight_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/device/devices": {
         parameters: {
             query?: never;
@@ -1688,6 +1739,23 @@ export interface paths {
         put?: never;
         /** [biz:device:batch_restore] 批量恢复Device */
         post: operations["devices_batch_restore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/device/evidences/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 实时订阅 ECS callback 与 evidence 应用状态 */
+        get: operations["device_evidences_stream_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4017,6 +4085,25 @@ export interface components {
             /** Transport Task Id */
             transport_task_id: string;
         };
+        /** DeviceCommandCallbackResponse */
+        DeviceCommandCallbackResponse: {
+            /** Apply Status */
+            apply_status: string;
+            /** Data */
+            data: {
+                [key: string]: unknown;
+            };
+            /** Error Detail */
+            error_detail: {
+                [key: string]: unknown;
+            } | null;
+            /** Received At */
+            received_at: string;
+            /** Result */
+            result: string;
+            /** Source Event Id */
+            source_event_id: string;
+        };
         /**
          * DeviceCreate
          * @description 设备创建合同。
@@ -4066,6 +4153,11 @@ export interface components {
             /** Work Line Id */
             work_line_id?: number | null;
         };
+        /**
+         * DeviceIngressKind
+         * @enum {string}
+         */
+        DeviceIngressKind: "DEVICE_RESULT" | "DEVICE_EVENT";
         /**
          * DeviceResponse
          * @description 设备静态主数据响应。
@@ -4160,9 +4252,53 @@ export interface components {
             code: number;
             /** Message */
             message: string;
-            /** Trace Id */
-            trace_id?: string | null;
         };
+        /**
+         * EcsDeviceInfo
+         * @description ECS 返回的设备静态描述。
+         */
+        EcsDeviceInfo: {
+            /** Device Code */
+            device_code: string;
+            /** Device Name */
+            device_name: string | null;
+            /** Device Type */
+            device_type: string | null;
+            /** Role */
+            role: string | null;
+            /** Supported Commands */
+            supported_commands: string[] | null;
+            /** Supported Events */
+            supported_events: string[] | null;
+        };
+        /**
+         * EcsDeviceMode
+         * @enum {string}
+         */
+        EcsDeviceMode: "AUTO" | "MANUAL" | "MAINTENANCE" | "UNKNOWN";
+        /**
+         * EcsDeviceRuntimeState
+         * @description ECS 返回的设备运行状态。
+         */
+        EcsDeviceRuntimeState: {
+            /** Current Command Code */
+            current_command_code: string | null;
+            /** Device Code */
+            device_code: string;
+            /** Is Online */
+            is_online: boolean;
+            mode: components["schemas"]["EcsDeviceMode"];
+            /** Scenario */
+            scenario: string | null;
+            status: components["schemas"]["EcsDeviceState"];
+            /** Updated At */
+            updated_at: number;
+        };
+        /**
+         * EcsDeviceState
+         * @enum {string}
+         */
+        EcsDeviceState: "IDLE" | "RUNNING" | "ERROR" | "PAUSED" | "STOPPED" | "OFFLINE" | "UNKNOWN";
         /**
          * FilterCondition
          * @description 单个过滤条件
@@ -4209,6 +4345,11 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /**
+         * InboundEvidenceApplyStatus
+         * @enum {string}
+         */
+        InboundEvidenceApplyStatus: "PENDING" | "APPLIED" | "IGNORED" | "RECONCILING";
         /**
          * LineType
          * @description 作业线类型枚举。
@@ -4395,6 +4536,97 @@ export interface components {
              * @default 0
              */
             revoked_count: number;
+        };
+        /** ManualDebugDeviceCommandCreate */
+        ManualDebugDeviceCommandCreate: {
+            /** Client Request Id */
+            client_request_id: string;
+            /** Device Code */
+            device_code: string;
+            /** Endpoint Base Url */
+            endpoint_base_url: string;
+            /** Params */
+            params?: {
+                [key: string]: unknown;
+            };
+            /** Reason */
+            reason: string;
+            /** Task Type */
+            task_type: string;
+            /** Timeout */
+            timeout: number;
+        };
+        /** ManualDebugDeviceCommandCreated */
+        ManualDebugDeviceCommandCreated: {
+            /** Client Request Id */
+            client_request_id: string;
+            /** Command Code */
+            command_code: string;
+            /** Status */
+            status: string;
+        };
+        /** ManualDebugDeviceCommandResponse */
+        ManualDebugDeviceCommandResponse: {
+            /** Ack Received At */
+            ack_received_at: string | null;
+            /** Attempt Count */
+            attempt_count: number;
+            callback: components["schemas"]["DeviceCommandCallbackResponse"] | null;
+            /** Client Request Id */
+            client_request_id: string;
+            /** Command Code */
+            command_code: string;
+            /** Command Timeout Ms */
+            command_timeout_ms: number;
+            /** Completed At */
+            completed_at: string | null;
+            /** Contract Key */
+            contract_key: string;
+            /** Contract Version */
+            contract_version: string;
+            /** Created By */
+            created_by: number;
+            /** Device Code */
+            device_code: string;
+            /** Endpoint Base Url */
+            endpoint_base_url: string;
+            /** Execution Reason */
+            execution_reason: string;
+            /** Failure Code */
+            failure_code: string | null;
+            /** Params */
+            params: {
+                [key: string]: unknown;
+            };
+            /** Reconciliation Reason */
+            reconciliation_reason: string | null;
+            /** Status */
+            status: string;
+            /** Task Type */
+            task_type: string;
+            /** Trace Id */
+            trace_id: string | null;
+        };
+        /** ManualDebugPreflightDevice */
+        ManualDebugPreflightDevice: {
+            /** Admissible */
+            admissible: boolean;
+            device: components["schemas"]["EcsDeviceInfo"];
+            /** Rejection Code */
+            rejection_code: string | null;
+            state: components["schemas"]["EcsDeviceRuntimeState"];
+        };
+        /** ManualDebugPreflightRequest */
+        ManualDebugPreflightRequest: {
+            /** Endpoint Base Url */
+            endpoint_base_url: string;
+        };
+        /** ManualDebugPreflightResponse */
+        ManualDebugPreflightResponse: {
+            /** Devices */
+            devices: components["schemas"]["ManualDebugPreflightDevice"][];
+            /** Endpoint Base Url */
+            endpoint_base_url: string;
         };
         /**
          * MaterialLocationConflictState
@@ -5762,6 +5994,12 @@ export interface components {
         ResponseSchemaModel_LoginResponse_: ApiResponse<components["schemas"]["LoginResponse"]>;
         /** ResponseSchemaModel[LogoutResponse] */
         ResponseSchemaModel_LogoutResponse_: ApiResponse<components["schemas"]["LogoutResponse"]>;
+        /** ResponseSchemaModel[ManualDebugDeviceCommandCreated] */
+        ResponseSchemaModel_ManualDebugDeviceCommandCreated_: ApiResponse<components["schemas"]["ManualDebugDeviceCommandCreated"]>;
+        /** ResponseSchemaModel[ManualDebugDeviceCommandResponse] */
+        ResponseSchemaModel_ManualDebugDeviceCommandResponse_: ApiResponse<components["schemas"]["ManualDebugDeviceCommandResponse"]>;
+        /** ResponseSchemaModel[ManualDebugPreflightResponse] */
+        ResponseSchemaModel_ManualDebugPreflightResponse_: ApiResponse<components["schemas"]["ManualDebugPreflightResponse"]>;
         /** ResponseSchemaModel[MaterialLocationResult] */
         ResponseSchemaModel_MaterialLocationResult_: ApiResponse<components["schemas"]["MaterialLocationResult"]>;
         /** ResponseSchemaModel[MenuResponse] */
@@ -9300,6 +9538,148 @@ export interface operations {
             };
         };
     };
+    device_commands_by_command_code_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                command_code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_ManualDebugDeviceCommandResponse_"];
+                };
+            };
+            /** @description MANUAL_DEBUG DeviceCommand 不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description DeviceCommand runtime 不可用 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+        };
+    };
+    device_commands_debug_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManualDebugDeviceCommandCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_ManualDebugDeviceCommandCreated_"];
+                };
+            };
+            /** @description 联调命令合同无效 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description 幂等身份或设备占用冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description DeviceCommand runtime 不可用 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+        };
+    };
+    device_commands_debug_preflight_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManualDebugPreflightRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_ManualDebugPreflightResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     devices_create: {
         parameters: {
             query?: never;
@@ -9618,6 +9998,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BatchOperationResponseModel"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    device_evidences_stream_get: {
+        parameters: {
+            query?: {
+                apply_status?: components["schemas"]["InboundEvidenceApplyStatus"] | null;
+                command_code?: string | null;
+                device_code?: string | null;
+                kind?: components["schemas"]["DeviceIngressKind"] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

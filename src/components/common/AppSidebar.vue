@@ -51,22 +51,37 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 import logoSvg from '@/assets/logo.svg'
 import SidebarMenuItem from './SidebarMenuItem.vue'
 import { useLayout } from '@/composables/useLayout'
-import { useMenu } from '@/composables/useMenu'
+import { filterAuthorizedMenuTree, useMenu } from '@/composables/useMenu'
+import { usePermission } from '@/composables/usePermission'
 
 // ==================== 状态管理 ====================
 
 const { sidebarCollapsed, isMobileMenuOpen, isMobile, closeMobileMenu } = useLayout()
 
 const { menuTree, selectedPath, openedPaths, selectMenu } = useMenu()
+const { hasPermission } = usePermission()
+const router = useRouter()
 
 // ==================== 计算属性 ====================
 
 /** 可见的菜单（过滤掉隐藏的菜单） */
 const visibleMenus = computed(() => {
-  return menuTree.value.filter(menu => !menu.is_hidden)
+  return filterAuthorizedMenuTree(
+    menuTree.value,
+    path => {
+      const route = router.resolve(path)
+      const leaf = route.matched[route.matched.length - 1]
+      return {
+        permission: typeof route.meta.permission === 'string' ? route.meta.permission : undefined,
+        navigable: Boolean(leaf?.components?.default || leaf?.redirect)
+      }
+    },
+    hasPermission
+  )
 })
 
 // ==================== 方法 ====================
