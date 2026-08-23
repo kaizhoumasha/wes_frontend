@@ -122,11 +122,39 @@ describe('DeviceEvidenceTable', () => {
     }
     exposed.showDetails(attemptRow)
     await nextTick()
-    expect(wrapper.text()).toContain('解析 JSON（非字节级原始 body）')
+    expect(wrapper.text()).toContain('诊断详情（payload 为解析 JSON）')
     expect(wrapper.find('pre').text()).toContain('<script>alert(1)</script>')
+    expect(wrapper.find('pre').text()).toContain('"request_id": "request-1"')
     expect(wrapper.find('script').exists()).toBe(false)
 
     exposed.launchDebug(attemptRow)
     expect(wrapper.emitted('debug')).toEqual([['ARM-01', null]])
+  })
+
+  it('shows rejection metadata even when no raw payload is available', async () => {
+    const rejected: DeviceEvidenceRow = {
+      ...attemptRow,
+      rowKey: 'rejected-1',
+      attempt: {
+        ...attemptRow.attempt!,
+        disposition: 'REJECTED',
+        status_code: 400,
+        error_code: 'INVALID_ENVELOPE',
+        raw_payload: null
+      }
+    }
+    const wrapper = shallowMount(DeviceEvidenceTable, {
+      props: { rows: [rejected] },
+      global: { stubs: { DataTable: DataTableStub, StandardDrawer: StandardDrawerStub } }
+    })
+
+    ;(wrapper.vm as unknown as { showDetails: (row: DeviceEvidenceRow) => void }).showDetails(
+      rejected
+    )
+    await nextTick()
+
+    expect(wrapper.find('pre').text()).toContain('"error_code": "INVALID_ENVELOPE"')
+    expect(wrapper.find('pre').text()).toContain('"status_code": 400')
+    expect(wrapper.find('pre').text()).toContain('"raw_payload": null')
   })
 })

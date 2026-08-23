@@ -44,6 +44,14 @@ interface ExtendedRouteMeta {
 /** 无权限跳转路径 */
 const UNAUTHORIZED_PATH = '/403'
 
+function unauthorizedRedirect(to: RouteLocationNormalized, permission: string) {
+  if (to.path === UNAUTHORIZED_PATH) return
+  return {
+    path: UNAUTHORIZED_PATH,
+    query: { redirect: to.fullPath, permission }
+  }
+}
+
 // ==================== 权限守卫 ====================
 
 /**
@@ -68,6 +76,9 @@ export function createPermissionGuard(_router: Router) {
       return
     }
 
+    const requiredPermission = to.meta.permission as string | undefined
+    if (!requiredPermission) return
+
     // 获取权限检查函数
     const { hasPermission, isSuperuser, permissions, isLoading, loadPermissions } = usePermission()
 
@@ -78,19 +89,9 @@ export function createPermissionGuard(_router: Router) {
         await loadPermissions()
         return true
       }, '权限守卫')
-      // 如果权限加载失败，放行导航
-      // 让后续的认证守卫或其他逻辑处理
       if (result === undefined) {
-        return
+        return unauthorizedRedirect(to, requiredPermission)
       }
-    }
-
-    // 检查是否需要权限验证
-    const requiredPermission = to.meta.permission as string | undefined
-
-    if (!requiredPermission) {
-      // 没有指定权限要求，只需登录验证
-      return
     }
 
     // 超级用户拥有所有权限
@@ -106,19 +107,7 @@ export function createPermissionGuard(_router: Router) {
     // 无权限处理
     console.warn(`[权限守卫] 无访问权限: ${to.path}, 需要权限: ${requiredPermission}`)
 
-    // 如果目标路由是 403 页面，避免循环
-    if (to.path === UNAUTHORIZED_PATH) {
-      return
-    }
-
-    // 跳转到 403 页面，并保存原始目标路径和所需权限
-    return {
-      path: UNAUTHORIZED_PATH,
-      query: {
-        redirect: to.fullPath,
-        permission: requiredPermission
-      }
-    }
+    return unauthorizedRedirect(to, requiredPermission)
   }
 }
 
@@ -152,6 +141,9 @@ export function createPermissionsGuard(_router: Router) {
       return
     }
 
+    const requiredPermissions = to.meta.permissions as string[] | undefined
+    if (!requiredPermissions || requiredPermissions.length === 0) return
+
     // 获取权限检查函数
     const { hasAnyPermission, isSuperuser, permissions, isLoading, loadPermissions } = usePermission()
 
@@ -161,18 +153,9 @@ export function createPermissionsGuard(_router: Router) {
         await loadPermissions()
         return true
       }, '权限守卫')
-      // 如果权限加载失败，放行导航
       if (result === undefined) {
-        return
+        return unauthorizedRedirect(to, requiredPermissions[0]!)
       }
-    }
-
-    // 检查是否需要权限验证
-    const requiredPermissions = to.meta.permissions as string[] | undefined
-
-    if (!requiredPermissions || requiredPermissions.length === 0) {
-      // 没有指定权限要求，只需登录验证
-      return
     }
 
     // 超级用户拥有所有权限
@@ -188,19 +171,7 @@ export function createPermissionsGuard(_router: Router) {
     // 无权限处理
     console.warn(`[权限守卫] 无访问权限: ${to.path}, 需要权限之一: ${requiredPermissions.join(', ')}`)
 
-    // 如果目标路由是 403 页面，避免循环
-    if (to.path === UNAUTHORIZED_PATH) {
-      return
-    }
-
-    // 跳转到 403 页面，并保存原始目标路径和所需权限
-    return {
-      path: UNAUTHORIZED_PATH,
-      query: {
-        redirect: to.fullPath,
-        permission: requiredPermissions[0] // 显示第一个所需权限
-      }
-    }
+    return unauthorizedRedirect(to, requiredPermissions[0]!)
   }
 }
 
@@ -234,6 +205,12 @@ export function createResourcePermissionGuard(_router: Router) {
       return
     }
 
+    const resource = to.meta.resource as string | undefined
+    const action = to.meta.action as string | undefined
+    const module = (to.meta.module as string | undefined) || 'admin'
+    if (!resource || !action) return
+    const permissionName = `${module}:${resource}:${action}`
+
     // 获取权限检查函数
     const { hasResourcePermission, isSuperuser, permissions, isLoading, loadPermissions } = usePermission()
 
@@ -243,20 +220,9 @@ export function createResourcePermissionGuard(_router: Router) {
         await loadPermissions()
         return true
       }, '权限守卫')
-      // 如果权限加载失败，放行导航
       if (result === undefined) {
-        return
+        return unauthorizedRedirect(to, permissionName)
       }
-    }
-
-    // 检查是否需要权限验证
-    const resource = to.meta.resource as string | undefined
-    const action = to.meta.action as string | undefined
-    const module = (to.meta.module as string | undefined) || 'admin'
-
-    if (!resource || !action) {
-      // 没有指定资源和操作，只需登录验证
-      return
     }
 
     // 超级用户拥有所有权限
@@ -270,22 +236,8 @@ export function createResourcePermissionGuard(_router: Router) {
     }
 
     // 无权限处理
-    const permissionName = `${module}:${resource}:${action}`
     console.warn(`[权限守卫] 无访问权限: ${to.path}, 需要权限: ${permissionName}`)
-
-    // 如果目标路由是 403 页面，避免循环
-    if (to.path === UNAUTHORIZED_PATH) {
-      return
-    }
-
-    // 跳转到 403 页面，并保存原始目标路径和所需权限
-    return {
-      path: UNAUTHORIZED_PATH,
-      query: {
-        redirect: to.fullPath,
-        permission: permissionName
-      }
-    }
+    return unauthorizedRedirect(to, permissionName)
   }
 }
 

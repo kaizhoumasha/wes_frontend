@@ -6,7 +6,7 @@ import {
   type DeviceEvidenceStreamEvent
 } from '@/api/streaming/deviceEvidenceStream'
 
-function responseFromChunks(chunks: string[], status = 200): Response {
+function responseFromChunks(chunks: string[], status = 200, contentType = 'text/event-stream'): Response {
   const encoder = new TextEncoder()
   const body = new ReadableStream<Uint8Array>({
     start(controller) {
@@ -16,7 +16,15 @@ function responseFromChunks(chunks: string[], status = 200): Response {
       controller.close()
     }
   })
-  return new Response(body, { status })
+  return new Response(body, { status, headers: { 'Content-Type': contentType } })
+}
+
+function openResponse(status: number): { response: Response; cancel: ReturnType<typeof vi.fn> } {
+  const cancel = vi.fn()
+  return {
+    response: new Response(new ReadableStream<Uint8Array>({ cancel }), { status }),
+    cancel
+  }
 }
 
 const ATTEMPT = {
@@ -138,15 +146,99 @@ describe('consumeDeviceEvidenceStream', () => {
       'http://wes.test/api/v1/device/evidences/stream?device_code=ARM+01&kind=DEVICE_EVENT&command_code=CMD%2F01&apply_status=RECONCILING'
     )
     expect(url).not.toContain('secret-token')
-    expect(init.headers).toEqual({ Authorization: 'Bearer secret-token' })
+    expect(init.headers).toEqual({
+      Accept: 'text/event-stream',
+      Authorization: 'Bearer secret-token'
+    })
     expect(init.credentials).toBe('include')
   })
 
+  it('rejects a successful non-SSE response before reporting the connection open', async () => {
+    const onOpen = vi.fn()
+    const cancel = vi.fn()
+    const body = new ReadableStream<Uint8Array>({ cancel })
+    const fetchImpl = vi.fn().mockResolvedValue(
+      new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' } })
+    )
+
+    const promise = consumeDeviceEvidenceStream(
+      {
+        baseUrl: 'http://wes.test',
+        filters: {},
+        signal: new AbortController().signal,
+        onOpen,
+        onEvent: vi.fn()
+      },
+      { fetchImpl, getAccessToken: () => null, refreshAccessToken: vi.fn() }
+    )
+
+    await expect(promise).rejects.toBeInstanceOf(DeviceEvidenceStreamProtocolError)
+    expect(onOpen).not.toHaveBeenCalled()
+    expect(cancel).toHaveBeenCalledOnce()
+  })
+
+  it('reports the connection open only after the first complete SSE frame', async () => {
+    const encoder = new TextEncoder()
+    let streamController: ReadableStreamDefaultController<Uint8Array> | undefined
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        streamController = controller
+      }
+    })
+    const onOpen = vi.fn()
+    const fetchImpl = vi.fn().mockResolvedValue(
+      new Response(body, { status: 200, headers: { 'Content-Type': 'text/event-stream' } })
+    )
+
+    const promise = consumeDeviceEvidenceStream(
+      {
+        baseUrl: 'http://wes.test',
+        filters: {},
+        signal: new AbortController().signal,
+        onOpen,
+        onEvent: vi.fn()
+      },
+      { fetchImpl, getAccessToken: () => null, refreshAccessToken: vi.fn() }
+    )
+    await vi.waitFor(() => expect(fetchImpl).toHaveBeenCalledOnce())
+    expect(onOpen).not.toHaveBeenCalled()
+
+    streamController?.enqueue(encoder.encode(': heartbeat\n\n'))
+    streamController?.close()
+    await promise
+
+    expect(onOpen).toHaveBeenCalledOnce()
+  })
+
+  it('does not dispatch an unterminated frame when the stream ends', async () => {
+    const onOpen = vi.fn()
+    const onEvent = vi.fn()
+    const fetchImpl = vi.fn().mockResolvedValue(
+      responseFromChunks([`event: device_ingress.attempted\ndata: ${JSON.stringify(ATTEMPT)}`])
+    )
+
+    await consumeDeviceEvidenceStream(
+      {
+        baseUrl: 'http://wes.test',
+        filters: {},
+        signal: new AbortController().signal,
+        onOpen,
+        onEvent
+      },
+      { fetchImpl, getAccessToken: () => null, refreshAccessToken: vi.fn() }
+    )
+
+    expect(onOpen).not.toHaveBeenCalled()
+    expect(onEvent).not.toHaveBeenCalled()
+  })
+
   it('refreshes once after the first 401 and never loops on the second 401', async () => {
+    const first = openResponse(401)
+    const second = openResponse(401)
     const fetchImpl = vi
       .fn()
-      .mockResolvedValueOnce(responseFromChunks([], 401))
-      .mockResolvedValueOnce(responseFromChunks([], 401))
+      .mockResolvedValueOnce(first.response)
+      .mockResolvedValueOnce(second.response)
     const refreshAccessToken = vi.fn().mockResolvedValue('new-token')
 
     const promise = consumeDeviceEvidenceStream(
@@ -166,13 +258,43 @@ describe('consumeDeviceEvidenceStream', () => {
     await expect(promise).rejects.toEqual(new DeviceEvidenceStreamHttpError(401))
     expect(refreshAccessToken).toHaveBeenCalledTimes(1)
     expect(fetchImpl).toHaveBeenCalledTimes(2)
+    expect(first.cancel).toHaveBeenCalledOnce()
+    expect(second.cancel).toHaveBeenCalledOnce()
     expect((fetchImpl.mock.calls[1]?.[1] as RequestInit).headers).toEqual({
+      Accept: 'text/event-stream',
       Authorization: 'Bearer new-token'
     })
   })
 
+  it('does not refresh when the request is aborted while cancelling a 401 body', async () => {
+    const controller = new AbortController()
+    const refreshAccessToken = vi.fn().mockResolvedValue('new-token')
+    const body = new ReadableStream<Uint8Array>({
+      cancel() {
+        controller.abort()
+      }
+    })
+    const fetchImpl = vi.fn().mockResolvedValue(new Response(body, { status: 401 }))
+
+    await expect(
+      consumeDeviceEvidenceStream(
+        {
+          baseUrl: 'http://wes.test',
+          filters: {},
+          signal: controller.signal,
+          onEvent: vi.fn()
+        },
+        { fetchImpl, getAccessToken: () => 'old-token', refreshAccessToken }
+      )
+    ).rejects.toMatchObject({ name: 'AbortError' })
+
+    expect(refreshAccessToken).not.toHaveBeenCalled()
+    expect(fetchImpl).toHaveBeenCalledOnce()
+  })
+
   it('reports non-2xx without leaking URL or token', async () => {
-    const fetchImpl = vi.fn().mockResolvedValue(responseFromChunks([], 503))
+    const unavailable = openResponse(503)
+    const fetchImpl = vi.fn().mockResolvedValue(unavailable.response)
 
     const promise = consumeDeviceEvidenceStream(
       {
@@ -190,6 +312,7 @@ describe('consumeDeviceEvidenceStream', () => {
 
     await expect(promise).rejects.toMatchObject({ status: 503 })
     await expect(promise).rejects.not.toThrow(/secret-token|wes\.test/)
+    expect(unavailable.cancel).toHaveBeenCalledOnce()
   })
 
   it('does not refresh an aborted request', async () => {
@@ -220,7 +343,9 @@ describe('consumeDeviceEvidenceStream', () => {
       },
       cancel
     })
-    const fetchImpl = vi.fn().mockResolvedValue(new Response(body, { status: 200 }))
+    const fetchImpl = vi.fn().mockResolvedValue(
+      new Response(body, { status: 200, headers: { 'Content-Type': 'text/event-stream' } })
+    )
 
     const promise = consumeDeviceEvidenceStream(
       {
@@ -244,7 +369,9 @@ describe('consumeDeviceEvidenceStream', () => {
         controller.close()
       }
     })
-    const fetchImpl = vi.fn().mockResolvedValue(new Response(body, { status: 200 }))
+    const fetchImpl = vi.fn().mockResolvedValue(
+      new Response(body, { status: 200, headers: { 'Content-Type': 'text/event-stream' } })
+    )
 
     const promise = consumeDeviceEvidenceStream(
       {

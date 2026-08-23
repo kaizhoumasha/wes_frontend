@@ -31,7 +31,7 @@ function createConnector() {
   return { connector, sessions }
 }
 
-function attempt(index: number, bytes = 128): DeviceEvidenceStreamEvent {
+function attempt(index: number, bytes = 128, rawText?: string): DeviceEvidenceStreamEvent {
   const payload: DeviceIngressAttemptEvent = {
     request_id: `request-${index}`,
     kind: index % 2 ? 'DEVICE_RESULT' : 'DEVICE_EVENT',
@@ -47,7 +47,7 @@ function attempt(index: number, bytes = 128): DeviceEvidenceStreamEvent {
     apply_status: 'PENDING',
     error_code: null,
     observed_body_bytes: bytes,
-    raw_payload: { index }
+    raw_payload: rawText === undefined ? { index } : { index, text: rawText }
   }
   return { type: 'device_ingress.attempted', payload }
 }
@@ -189,7 +189,7 @@ describe('useDeviceEvidenceStream', () => {
     stream.disconnect()
   })
 
-  it('evicts oldest rows beyond 200 rows or 16 MiB and clear keeps the connection alive', () => {
+  it('evicts by serialized UTF-8 payload bytes rather than observed request-body bytes', () => {
     const { connector, sessions } = createConnector()
     const stream = useDeviceEvidenceStream({ connector })
     stream.connect()
@@ -204,9 +204,18 @@ describe('useDeviceEvidenceStream', () => {
     stream.clear()
     active?.options.onEvent(attempt(301, 10 * 1024 * 1024))
     active?.options.onEvent(attempt(302, 10 * 1024 * 1024))
-    expect(stream.rows.value).toHaveLength(1)
-    expect(stream.rows.value[0]?.requestId).toBe('request-302')
-    expect(stream.totalPayloadBytes.value).toBe(10 * 1024 * 1024)
+    expect(stream.rows.value).toHaveLength(2)
+    expect(stream.totalPayloadBytes.value).toBe(
+      new TextEncoder().encode(JSON.stringify({ index: 301 })).byteLength +
+        new TextEncoder().encode(JSON.stringify({ index: 302 })).byteLength
+    )
+
+    stream.clear()
+    for (let index = 400; index < 500; index += 1) {
+      active?.options.onEvent(attempt(index, 1, '汉'.repeat(70 * 1024)))
+    }
+    expect(stream.rows.value.length).toBeLessThan(100)
+    expect(stream.totalPayloadBytes.value).toBeLessThanOrEqual(16 * 1024 * 1024)
 
     stream.clear()
     expect(stream.rows.value).toHaveLength(0)

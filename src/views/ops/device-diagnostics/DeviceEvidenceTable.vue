@@ -93,7 +93,7 @@ const columns: TableColumnConfig[] = [
 const formattedPayload = computed(() => {
   const row = selectedRow.value
   if (!row) return ''
-  return JSON.stringify(row.attempt?.raw_payload ?? row.latestUpdate ?? {}, null, 2)
+  return JSON.stringify(row.attempt ?? row.latestUpdate ?? {}, null, 2)
 })
 
 function toDisplayRow(source: DeviceEvidenceRow): EvidenceDisplayRow {
@@ -199,7 +199,7 @@ defineExpose({ showDetails, launchDebug, spanMethod })
 
   <StandardDrawer
     v-model="drawerOpen"
-    title="解析 JSON（非字节级原始 body）"
+    title="诊断详情（payload 为解析 JSON）"
     size="lg"
   >
     <pre class="payload-json">{{ formattedPayload }}</pre>
