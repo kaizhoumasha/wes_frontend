@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.1.1] - 2026-08-24
+
+### Fixed
+
+- 将 OpenAPI 与权限同步记录重新冻结到本次实际发布的后端合并提交；契约和权限哈希均未变化，只修正成对发布的来源身份。
+
+### Verification
+
+- 契约重新生成结果仅变更两份同步记录的 `backendCommit`；合同测试、合同同步、权限同步、类型检查及版本一致性检查通过。
+- 本次不改变前端运行时行为，不包含部署、真实 ECS、现场物理动作或业务验收。
+
 ## [0.11.1.0] - 2026-08-24
 
 ### Changed
