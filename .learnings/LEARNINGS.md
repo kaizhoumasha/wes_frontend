@@ -2407,12 +2407,12 @@ Docker 容器端口与宿主机服务冲突导致前端无法访问
 
 **Logged**: 2026-04-03T12:00:00Z
 **Priority**: high
-**Status**: pending
+**Status**: resolved
 **Area**: frontend
 
 ### Summary
 
-权限守卫错误处理返回 undefined 时必须显式放行导航，否则会阻塞路由跳转导致白屏
+权限守卫必须显式处理权限加载失败；受保护路由应 fail closed，而不是把 `undefined` 当作放行策略
 
 ### Details
 
@@ -2423,50 +2423,53 @@ Docker 容器端口与宿主机服务冲突导致前端无法访问
 - Vue DevTools 中 routeView 无任何渲染
 - Vue Router 状态停留在上一个路由
 
-**根本原因**：
-权限守卫中调用 `withGuardErrorHandling` 加载权限数据时，如果加载失败（返回 undefined），守卫函数没有显式返回，导致 Vue Router 等待守卫完成，永远不执行导航。
+**原记录中的误判**：
+原记录把“异步守卫未显式返回”解释为 Vue Router 永久等待。实际只要异步函数已经完成，隐式返回的 `undefined` 就会被 Vue Router 视为放行；真正未完成的 Promise 才会持续阻塞导航。
+
+当前风险是权限加载失败后继续放行受保护路由。守卫必须显式处理 `withGuardErrorHandling` 返回的 `undefined`，并按 fail-closed 策略重定向到 403，同时避免 403 页面自身形成重定向循环。
 
 **错误代码**：
 
 ```typescript
-// ❌ 错误：没有处理 undefined 返回值
+// ❌ 错误：权限加载失败后隐式返回 undefined，受保护路由被放行
 await withGuardErrorHandling(() => loadPermissions(), '权限守卫')
-// Vue Router 等待守卫完成，但函数没有返回，导航被阻塞
 ```
 
 **正确代码**：
 
 ```typescript
-// ✅ 正确：检查返回值，显式放行
+// ✅ 正确：检查返回值，受保护路由失败时进入 403
 const result = await withGuardErrorHandling(() => loadPermissions(), '权限守卫')
-// 如果权限加载失败（返回 undefined），放行导航
-// 让后续的认证守卫或其他逻辑处理
 if (result === undefined) {
-  return // 显式返回，允许导航继续
+  return unauthorizedRedirect(to, requiredPermission)
 }
 ```
 
 **技术原理**：
 
 - Vue Router beforeEach 守卫可以返回：`false`（阻止）、`RouteLocationRaw`（重定向）、`void/undefined`（放行）
-- 如果守卫函数不返回任何值（async 函数默认返回 Promise<void>），Router 会等待 Promise 完成
-- 但如果 Promise 内部没有显式 return，Router 无法判断导航意图，导致阻塞
+- 异步守卫会等待 Promise 完成；Promise 完成后得到 `undefined` 时允许导航，不会因为缺少显式 `return` 而永久等待
+- 受保护路由的权限上下文加载失败不能用 `undefined` 放行，必须返回明确的 403 重定向
 
 ### Suggested Action
 
-1. 更新 `src/router/guards/permission.ts` 的注释文档，说明错误处理逻辑
-2. 在 `docs/` 中添加路由守卫调试指南，包含：
-   - 如何诊断白屏问题（检查 Vue Router 状态）
-   - 守卫函数返回值语义
-   - 错误处理的最佳实践
+1. 保持 `src/router/guards/permission.ts` 对加载失败的显式 fail-closed 分支
+2. 保留权限加载失败进入 403、超级用户刷新恢复完整上下文的回归测试
 
 ### Metadata
 
 - Source: debugging
 - Related Files:
   - src/router/guards/permission.ts
+  - src/app/bootstrap-auth-context.ts
   - src/utils/guard-error-handler.ts
 - Tags: vue-router, navigation-guard, blocking, white-screen, error-handling
 - See Also: 无
+
+### Resolution
+
+- **Resolved**: 2026-08-24
+- **Commit**: 2f65d09
+- **Notes**: 受保护路由的权限加载失败改为明确进入 403；页面刷新通过 `bootstrapAuthContext` 恢复超级用户完整上下文，并由回归测试覆盖。
 
 ---
