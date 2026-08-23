@@ -231,7 +231,7 @@ defineExpose({ showDetails, launchDebug, spanMethod })
   min-height: 24px;
   padding: 0 8px;
   border: 1px solid currentcolor;
-  border-radius: 999px;
+  border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
 }
