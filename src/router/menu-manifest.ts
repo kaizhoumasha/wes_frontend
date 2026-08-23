@@ -4,6 +4,7 @@ import { apiAuthRoutes } from './routes/api-auth'
 import { shellBaseChildren } from './routes/base'
 import { bizRoutes } from './routes/biz'
 import { logRoutes } from './routes/logs'
+import { opsRoutes } from './routes/ops'
 
 export interface MenuManifestEntry {
   name: string
@@ -41,7 +42,16 @@ interface ManifestRoute extends Omit<RouteRecordRaw, 'children' | 'meta' | 'comp
   component?: unknown
 }
 
-const MENU_NAME_SUFFIXES = new Set(['list', 'page', 'view', 'detail', 'form', 'screen', 'route', 'index'])
+const MENU_NAME_SUFFIXES = new Set([
+  'list',
+  'page',
+  'view',
+  'detail',
+  'form',
+  'screen',
+  'route',
+  'index'
+])
 
 export function createMenuSourceRoutes(): ManifestRoute[] {
   return [
@@ -50,6 +60,7 @@ export function createMenuSourceRoutes(): ManifestRoute[] {
     bizRoutes,
     apiAuthRoutes,
     logRoutes,
+    opsRoutes
   ] as ManifestRoute[]
 }
 
@@ -65,7 +76,7 @@ export function buildMenuManifestEntries(routes: readonly ManifestRoute[]): Menu
     routeNodes: readonly ManifestRoute[],
     parentPath: string,
     inheritedAuth: boolean,
-    parentMenuName: string | null,
+    parentMenuName: string | null
   ): void {
     for (const route of routeNodes) {
       const meta = route.meta
@@ -90,7 +101,7 @@ export function buildMenuManifestEntries(routes: readonly ManifestRoute[]): Menu
           parentName: meta?.menu?.parentName ?? parentMenuName,
           icon: meta?.menu?.icon ?? null,
           isHidden: meta?.menu?.hidden ?? meta?.hidden ?? false,
-          permission,
+          permission
         }
 
         entries.push(entry)
@@ -133,7 +144,11 @@ function parseComponentPath(component: ManifestRoute['component']): string | nul
   return rawPath.startsWith('@/') ? rawPath.slice(2) : rawPath
 }
 
-function deriveMenuName(routeName: ManifestRoute['name'], routePath: string, permission: string | null): string {
+function deriveMenuName(
+  routeName: ManifestRoute['name'],
+  routePath: string,
+  permission: string | null
+): string {
   if (permission) {
     const parts = permission.split(':')
     if (parts.length >= 2) {
@@ -142,7 +157,8 @@ function deriveMenuName(routeName: ManifestRoute['name'], routePath: string, per
   }
 
   const pathSegments = routePath.split('/').filter(Boolean)
-  const category = pathSegments.length >= 2 ? normalizeCategory(pathSegments[0] || 'system') : 'system'
+  const category =
+    pathSegments.length >= 2 ? normalizeCategory(pathSegments[0] || 'system') : 'system'
   const resource =
     deriveResourceFromRouteName(typeof routeName === 'string' ? routeName : null) ??
     normalizeResource(pathSegments[pathSegments.length - 1] || 'index')

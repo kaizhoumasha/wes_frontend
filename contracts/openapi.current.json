@@ -5206,6 +5206,324 @@
         ]
       }
     },
+    "/api/v1/device/commands/debug/preflight": {
+      "post": {
+        "tags": [
+          "DeviceCommand 联调"
+        ],
+        "summary": "枚举 ECS 设备并检查 MANUAL_DEBUG 运行态",
+        "operationId": "device_commands_debug_preflight_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualDebugPreflightRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_ManualDebugPreflightResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/device/commands/debug": {
+      "post": {
+        "tags": [
+          "DeviceCommand 联调"
+        ],
+        "summary": "创建 DeviceCommand 联调命令",
+        "operationId": "device_commands_debug_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualDebugDeviceCommandCreate"
+              },
+              "examples": {
+                "onsite_station_scan1_move_forward": {
+                  "summary": "现场扫描工位前进联调",
+                  "value": {
+                    "client_request_id": "019f12d0-58d7-7b4d-a23a-1b90aa5d4471",
+                    "endpoint_base_url": "http://10.24.209.26:8080",
+                    "device_code": "STATION_SCAN1",
+                    "timeout": 30000,
+                    "task_type": "MOVE_FORWARD",
+                    "params": {
+                      "source": {
+                        "location_id": "STATION_SCAN1",
+                        "location_type": "SCAN_PLATFORM"
+                      }
+                    },
+                    "reason": "现场供应商联调"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_ManualDebugDeviceCommandCreated_"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "联调命令合同无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "幂等身份或设备占用冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "DeviceCommand runtime 不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/device/commands/{command_code}": {
+      "get": {
+        "tags": [
+          "DeviceCommand 联调"
+        ],
+        "summary": "查询 DeviceCommand 联调结果",
+        "operationId": "device_commands_by_command_code_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "command_code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "title": "Command Code"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_ManualDebugDeviceCommandResponse_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "MANUAL_DEBUG DeviceCommand 不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "DeviceCommand runtime 不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/device/evidences/stream": {
+      "get": {
+        "tags": [
+          "Device ingress diagnostics"
+        ],
+        "summary": "实时订阅 ECS callback 与 evidence 应用状态",
+        "operationId": "device_evidences_stream_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "device_code",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Device Code"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/DeviceIngressKind"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "name": "command_code",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 160,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Command Code"
+            }
+          },
+          {
+            "name": "apply_status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/InboundEvidenceApplyStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Apply Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/callback/result": {
       "post": {
         "tags": [
@@ -12599,6 +12917,54 @@
         ],
         "title": "DebugTransportTaskCreated"
       },
+      "DeviceCommandCallbackResponse": {
+        "properties": {
+          "result": {
+            "type": "string",
+            "title": "Result"
+          },
+          "data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Data"
+          },
+          "error_detail": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Detail"
+          },
+          "source_event_id": {
+            "type": "string",
+            "title": "Source Event Id"
+          },
+          "received_at": {
+            "type": "string",
+            "title": "Received At"
+          },
+          "apply_status": {
+            "type": "string",
+            "title": "Apply Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "result",
+          "data",
+          "error_detail",
+          "source_event_id",
+          "received_at",
+          "apply_status"
+        ],
+        "title": "DeviceCommandCallbackResponse"
+      },
       "DeviceCreate": {
         "properties": {
           "device_code": {
@@ -12700,6 +13066,14 @@
         ],
         "title": "DeviceCreate",
         "description": "设备创建合同。"
+      },
+      "DeviceIngressKind": {
+        "type": "string",
+        "enum": [
+          "DEVICE_RESULT",
+          "DEVICE_EVENT"
+        ],
+        "title": "DeviceIngressKind"
       },
       "DeviceResponse": {
         "properties": {
@@ -12968,17 +13342,6 @@
           "message": {
             "type": "string",
             "title": "Message"
-          },
-          "trace_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Trace Id"
           }
         },
         "additionalProperties": false,
@@ -12988,6 +13351,189 @@
           "message"
         ],
         "title": "EcsCallbackAck"
+      },
+      "EcsDeviceInfo": {
+        "properties": {
+          "device_code": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Device Code"
+          },
+          "device_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Name"
+          },
+          "device_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Type"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "supported_commands": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supported Commands"
+          },
+          "supported_events": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supported Events"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "device_code",
+          "device_name",
+          "device_type",
+          "role",
+          "supported_commands",
+          "supported_events"
+        ],
+        "title": "EcsDeviceInfo",
+        "description": "ECS 返回的设备静态描述。"
+      },
+      "EcsDeviceMode": {
+        "type": "string",
+        "enum": [
+          "AUTO",
+          "MANUAL",
+          "MAINTENANCE",
+          "UNKNOWN"
+        ],
+        "title": "EcsDeviceMode"
+      },
+      "EcsDeviceRuntimeState": {
+        "properties": {
+          "device_code": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Device Code"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/EcsDeviceMode"
+          },
+          "status": {
+            "$ref": "#/components/schemas/EcsDeviceState"
+          },
+          "is_online": {
+            "type": "boolean",
+            "title": "Is Online"
+          },
+          "current_command_code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 160,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Command Code"
+          },
+          "scenario": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scenario"
+          },
+          "updated_at": {
+            "type": "integer",
+            "maximum": 9223372036854776000,
+            "exclusiveMinimum": 0,
+            "title": "Updated At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "device_code",
+          "mode",
+          "status",
+          "is_online",
+          "current_command_code",
+          "scenario",
+          "updated_at"
+        ],
+        "title": "EcsDeviceRuntimeState",
+        "description": "ECS 返回的设备运行状态。"
+      },
+      "EcsDeviceState": {
+        "type": "string",
+        "enum": [
+          "IDLE",
+          "RUNNING",
+          "ERROR",
+          "PAUSED",
+          "STOPPED",
+          "OFFLINE",
+          "UNKNOWN"
+        ],
+        "title": "EcsDeviceState"
       },
       "FilterCondition": {
         "properties": {
@@ -13088,6 +13634,16 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "InboundEvidenceApplyStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "APPLIED",
+          "IGNORED",
+          "RECONCILING"
+        ],
+        "title": "InboundEvidenceApplyStatus"
       },
       "LineType": {
         "type": "string",
@@ -15054,6 +15610,307 @@
         ],
         "title": "LogoutResponse",
         "description": "登出响应 Schema"
+      },
+      "ManualDebugDeviceCommandCreate": {
+        "properties": {
+          "client_request_id": {
+            "type": "string",
+            "maxLength": 36,
+            "minLength": 36,
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            "title": "Client Request Id"
+          },
+          "endpoint_base_url": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Endpoint Base Url"
+          },
+          "device_code": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Device Code"
+          },
+          "timeout": {
+            "type": "integer",
+            "maximum": 2147483647,
+            "exclusiveMinimum": 0,
+            "title": "Timeout"
+          },
+          "task_type": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Task Type"
+          },
+          "params": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Params"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "client_request_id",
+          "endpoint_base_url",
+          "device_code",
+          "timeout",
+          "task_type",
+          "reason"
+        ],
+        "title": "ManualDebugDeviceCommandCreate"
+      },
+      "ManualDebugDeviceCommandCreated": {
+        "properties": {
+          "command_code": {
+            "type": "string",
+            "title": "Command Code"
+          },
+          "client_request_id": {
+            "type": "string",
+            "title": "Client Request Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "command_code",
+          "client_request_id",
+          "status"
+        ],
+        "title": "ManualDebugDeviceCommandCreated"
+      },
+      "ManualDebugDeviceCommandResponse": {
+        "properties": {
+          "command_code": {
+            "type": "string",
+            "title": "Command Code"
+          },
+          "client_request_id": {
+            "type": "string",
+            "title": "Client Request Id"
+          },
+          "device_code": {
+            "type": "string",
+            "title": "Device Code"
+          },
+          "endpoint_base_url": {
+            "type": "string",
+            "title": "Endpoint Base Url"
+          },
+          "contract_key": {
+            "type": "string",
+            "title": "Contract Key"
+          },
+          "contract_version": {
+            "type": "string",
+            "title": "Contract Version"
+          },
+          "command_timeout_ms": {
+            "type": "integer",
+            "title": "Command Timeout Ms"
+          },
+          "task_type": {
+            "type": "string",
+            "title": "Task Type"
+          },
+          "params": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Params"
+          },
+          "trace_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trace Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "attempt_count": {
+            "type": "integer",
+            "title": "Attempt Count"
+          },
+          "ack_received_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ack Received At"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "failure_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure Code"
+          },
+          "reconciliation_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reconciliation Reason"
+          },
+          "execution_reason": {
+            "type": "string",
+            "title": "Execution Reason"
+          },
+          "created_by": {
+            "type": "integer",
+            "title": "Created By"
+          },
+          "callback": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DeviceCommandCallbackResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "command_code",
+          "client_request_id",
+          "device_code",
+          "endpoint_base_url",
+          "contract_key",
+          "contract_version",
+          "command_timeout_ms",
+          "task_type",
+          "params",
+          "trace_id",
+          "status",
+          "attempt_count",
+          "ack_received_at",
+          "completed_at",
+          "failure_code",
+          "reconciliation_reason",
+          "execution_reason",
+          "created_by",
+          "callback"
+        ],
+        "title": "ManualDebugDeviceCommandResponse"
+      },
+      "ManualDebugPreflightDevice": {
+        "properties": {
+          "device": {
+            "$ref": "#/components/schemas/EcsDeviceInfo"
+          },
+          "state": {
+            "$ref": "#/components/schemas/EcsDeviceRuntimeState"
+          },
+          "admissible": {
+            "type": "boolean",
+            "title": "Admissible"
+          },
+          "rejection_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rejection Code"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "device",
+          "state",
+          "admissible",
+          "rejection_code"
+        ],
+        "title": "ManualDebugPreflightDevice"
+      },
+      "ManualDebugPreflightRequest": {
+        "properties": {
+          "endpoint_base_url": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Endpoint Base Url"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "endpoint_base_url"
+        ],
+        "title": "ManualDebugPreflightRequest"
+      },
+      "ManualDebugPreflightResponse": {
+        "properties": {
+          "endpoint_base_url": {
+            "type": "string",
+            "title": "Endpoint Base Url"
+          },
+          "devices": {
+            "items": {
+              "$ref": "#/components/schemas/ManualDebugPreflightDevice"
+            },
+            "type": "array",
+            "title": "Devices"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "endpoint_base_url",
+          "devices"
+        ],
+        "title": "ManualDebugPreflightResponse"
       },
       "MaterialLocationConflictState": {
         "type": "string",
@@ -18528,6 +19385,141 @@
         },
         "type": "object",
         "title": "ResponseSchemaModel[LogoutResponse]"
+      },
+      "ResponseSchemaModel_ManualDebugDeviceCommandCreated_": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "响应码",
+            "default": "1000",
+            "examples": [
+              "1000",
+              "2000"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "响应消息",
+            "default": "操作成功",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ]
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ManualDebugDeviceCommandCreated"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp",
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ResponseSchemaModel[ManualDebugDeviceCommandCreated]"
+      },
+      "ResponseSchemaModel_ManualDebugDeviceCommandResponse_": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "响应码",
+            "default": "1000",
+            "examples": [
+              "1000",
+              "2000"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "响应消息",
+            "default": "操作成功",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ]
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ManualDebugDeviceCommandResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp",
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ResponseSchemaModel[ManualDebugDeviceCommandResponse]"
+      },
+      "ResponseSchemaModel_ManualDebugPreflightResponse_": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "响应码",
+            "default": "1000",
+            "examples": [
+              "1000",
+              "2000"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "响应消息",
+            "default": "操作成功",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ]
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ManualDebugPreflightResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp",
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ResponseSchemaModel[ManualDebugPreflightResponse]"
       },
       "ResponseSchemaModel_MaterialLocationResult_": {
         "properties": {

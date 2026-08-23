@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0.0] - 2026-08-23
+
+### Added
+
+- 超级用户可在设备接入实时诊断页观察 `DEVICE_RESULT` 与 `DEVICE_EVENT` 的 live-only SSE 消息，并按设备、类型和处理状态筛选、清空或查看结构化详情。
+- 新增受控真实设备指令联调入口：从 ECS 状态枚举设备与 `task_type`，由用户填写参数，经不可变预览和显式二次确认后创建命令并轮询结果。
+
+### Changed
+
+- OpenAPI、TypeScript、Zod 与权限 provenance 统一同步到后端 `a6559ccc`；SSE 200 响应现在生成明确的 `text/event-stream: string` 合同，权限总数保持 137 条。
+- 运维菜单与直接 URL 统一复用现有超级用户通配权限，普通账号不会看到入口，直达页面时进入 403，不新增诊断权限或角色白名单。
+
+### Fixed
+
+- 修复 SSE 浏览器 fetch、空表格式化、空权限守卫、ECS URL 切换时旧 preflight 响应回写，以及持续 401/403 导致无限重连和重复刷新 token 的问题。
+- 不可准入设备现在直接展示实时 mode、status 与 rejection code；诊断状态徽章统一使用低饱和语义色、状态圆点和 6px 圆角。
+
+### Verification
+
+- 最终快照 66 个测试文件、485 项测试通过；lint、生产构建、contract:test、contract:verify 与 permission:verify 全部通过。
+- 双轮合同、类型、Zod 与权限生成 fingerprint 一致；行为覆盖审计为 96%，fresh pre-landing Review 无剩余问题。
+- 既有本地 Mock 浏览器 QA 覆盖管理员/普通用户、RESULT/EVENT、过滤/清空/重连、手动命令和多尺寸交互；未执行真实 ECS、现场物理动作、部署或业务验收。
+
 ## [0.10.1.0] - 2026-08-22
 
 ### Changed

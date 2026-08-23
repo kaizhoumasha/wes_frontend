@@ -19,7 +19,7 @@ import { API_CACHE_DURATION } from '@/constants/cache'
 
 const DEFAULT_API_BASE_URL = 'http://localhost:8001'
 
-function resolveApiBaseUrl(): string {
+export function resolveApiBaseUrl(): string {
   if (env.apiBaseUrl) {
     return env.apiBaseUrl
   }

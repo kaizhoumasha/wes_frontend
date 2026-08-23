@@ -5,6 +5,7 @@ import { publicRoutes, shellBaseChildren, shellRoute, fallbackRoute } from './ba
 import { bizRoutes } from './biz'
 import { createDebugRoutes } from './debug'
 import { logRoutes } from './logs'
+import { opsRoutes } from './ops'
 
 export function createRoutes(): RouteRecordRaw[] {
   return [
@@ -17,6 +18,7 @@ export function createRoutes(): RouteRecordRaw[] {
         bizRoutes,
         apiAuthRoutes,
         logRoutes,
+        opsRoutes,
         ...createDebugRoutes()
       ]
     },

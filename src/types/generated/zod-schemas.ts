@@ -1,4 +1,4 @@
-/** @openapi-sha256 e69750714ddc1ee7a83def0f920839dfe89a6bcc07e2b878189cbb13852ee97c */
+/** @openapi-sha256 385bfef349e6e832c7f9ec997098f3a96fe81190b14c621a29308582ba27a15d */
 /**
  * Zod Validation Schemas
  *
@@ -759,6 +759,22 @@ export const DebugTransportTaskCreatedSchema = z.object({
 })
 
 
+export const DeviceCommandCallbackResponseSchema = z.object({
+  /** Result */
+  result: z.string(),
+  /** Data */
+  data: z.record(z.any()),
+  /** Error Detail */
+  error_detail: z.union([z.record(z.any()), z.null()]),
+  /** Source Event Id */
+  source_event_id: z.string(),
+  /** Received At */
+  received_at: z.string(),
+  /** Apply Status */
+  apply_status: z.string(),
+})
+
+
 /**
  * 设备创建合同。
  *
@@ -789,6 +805,9 @@ export const DeviceCreateSchema = z.object({
   /** Endpoint Base Url */
   endpoint_base_url: z.union([z.string().max(255), z.null()]).optional(),
 })
+
+
+export const DeviceIngressKindSchema = z.enum(["DEVICE_RESULT", "DEVICE_EVENT"])
 
 
 /**
@@ -866,9 +885,69 @@ export const EcsCallbackAckSchema = z.object({
   code: z.number(),
   /** Message */
   message: z.string(),
-  /** Trace Id */
-  trace_id: z.union([z.string(), z.null()]).optional(),
 })
+
+
+/**
+ * ECS 返回的设备静态描述。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const EcsDeviceInfoSchema = z.object({
+  /** Device Code */
+  device_code: z.string().min(1).max(100).regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:-]*$")),
+  /** Device Name */
+  device_name: z.union([z.string().min(1).max(200), z.null()]),
+  /** Device Type */
+  device_type: z.union([z.string().min(1).max(100).regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:-]*$")), z.null()]),
+  /** Role */
+  role: z.union([z.string().min(1).max(100).regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:-]*$")), z.null()]),
+  /** Supported Commands */
+  supported_commands: z.union([z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())), z.null()]),
+  /** Supported Events */
+  supported_events: z.union([z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())), z.null()]),
+})
+
+
+export const EcsDeviceModeSchema = z.enum(["AUTO", "MANUAL", "MAINTENANCE", "UNKNOWN"])
+
+
+/**
+ * ECS 返回的设备运行状态。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const EcsDeviceRuntimeStateSchema = z.object({
+  /** Device Code */
+  device_code: z.string().min(1).max(100).regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:-]*$")),
+  mode: z.lazy(() => EcsDeviceModeSchema),
+  status: z.lazy(() => EcsDeviceStateSchema),
+  /** Is Online */
+  is_online: z.boolean(),
+  /** Current Command Code */
+  current_command_code: z.union([z.string().min(1).max(160).regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:-]*$")), z.null()]),
+  /** Scenario */
+  scenario: z.union([z.string().min(1).max(100).regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:-]*$")), z.null()]),
+  /** Updated At */
+  updated_at: z.number().max(9223372036854776000),
+})
+
+
+export const EcsDeviceStateSchema = z.enum(["IDLE", "RUNNING", "ERROR", "PAUSED", "STOPPED", "OFFLINE", "UNKNOWN"])
 
 
 /**
@@ -907,6 +986,9 @@ export const FilterGroupSchema = z.lazy((): z.ZodTypeAny => z.object({
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const FilterOperatorSchema = z.enum(["eq", "ne", "gt", "ge", "lt", "le", "in", "nin", "ilike", "between", "is_null", "not_null"])
+
+
+export const InboundEvidenceApplyStatusSchema = z.enum(["PENDING", "APPLIED", "IGNORED", "RECONCILING"])
 
 
 /**
@@ -1525,6 +1607,99 @@ export const LogoutResponseSchema = z.object({
   message: z.string(),
   /** Revoked Count */
   revoked_count: z.number().optional().default(0),
+})
+
+
+export const ManualDebugDeviceCommandCreateSchema = z.object({
+  /** Client Request Id */
+  client_request_id: z.string().min(36).max(36).regex(new RegExp("^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")),
+  /** Endpoint Base Url */
+  endpoint_base_url: z.string().min(1).max(255),
+  /** Device Code */
+  device_code: z.string().min(1).max(100).regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:-]*$")),
+  /** Timeout */
+  timeout: z.number().max(2147483647),
+  /** Task Type */
+  task_type: z.string().min(1).max(100).regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:-]*$")),
+  /** Params */
+  params: z.record(z.any()).optional(),
+  /** Reason */
+  reason: z.string().min(1).max(500),
+})
+
+
+export const ManualDebugDeviceCommandCreatedSchema = z.object({
+  /** Command Code */
+  command_code: z.string(),
+  /** Client Request Id */
+  client_request_id: z.string(),
+  /** Status */
+  status: z.string(),
+})
+
+
+export const ManualDebugDeviceCommandResponseSchema = z.object({
+  /** Command Code */
+  command_code: z.string(),
+  /** Client Request Id */
+  client_request_id: z.string(),
+  /** Device Code */
+  device_code: z.string(),
+  /** Endpoint Base Url */
+  endpoint_base_url: z.string(),
+  /** Contract Key */
+  contract_key: z.string(),
+  /** Contract Version */
+  contract_version: z.string(),
+  /** Command Timeout Ms */
+  command_timeout_ms: z.number(),
+  /** Task Type */
+  task_type: z.string(),
+  /** Params */
+  params: z.record(z.any()),
+  /** Trace Id */
+  trace_id: z.union([z.string(), z.null()]),
+  /** Status */
+  status: z.string(),
+  /** Attempt Count */
+  attempt_count: z.number(),
+  /** Ack Received At */
+  ack_received_at: z.union([z.string(), z.null()]),
+  /** Completed At */
+  completed_at: z.union([z.string(), z.null()]),
+  /** Failure Code */
+  failure_code: z.union([z.string(), z.null()]),
+  /** Reconciliation Reason */
+  reconciliation_reason: z.union([z.string(), z.null()]),
+  /** Execution Reason */
+  execution_reason: z.string(),
+  /** Created By */
+  created_by: z.number(),
+  callback: z.union([z.lazy(() => DeviceCommandCallbackResponseSchema), z.null()]),
+})
+
+
+export const ManualDebugPreflightDeviceSchema = z.object({
+  device: z.lazy(() => EcsDeviceInfoSchema),
+  state: z.lazy(() => EcsDeviceRuntimeStateSchema),
+  /** Admissible */
+  admissible: z.boolean(),
+  /** Rejection Code */
+  rejection_code: z.union([z.string(), z.null()]),
+})
+
+
+export const ManualDebugPreflightRequestSchema = z.object({
+  /** Endpoint Base Url */
+  endpoint_base_url: z.string().min(1).max(255),
+})
+
+
+export const ManualDebugPreflightResponseSchema = z.object({
+  /** Endpoint Base Url */
+  endpoint_base_url: z.string(),
+  /** Devices */
+  devices: z.array(z.lazy(() => ManualDebugPreflightDeviceSchema)),
 })
 
 
