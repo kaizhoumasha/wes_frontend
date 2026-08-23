@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.1.0] - 2026-08-24
+
+### Changed
+
+- 诊断 SSE 只有在收到首个完整 frame 后才显示已连接，并在鉴权重试、协议失败或主动取消前释放旧响应体；非 SSE、非法 UTF-8、超大或未闭合尾帧均安全失败。
+- 活动消息缓冲按 `raw_payload` 的 JSON UTF-8 实际大小执行 16 MiB 上限，关联行详情同时展示完整 ingress attempt 与 latest evidence update。
+
+### Fixed
+
+- 页面刷新后会恢复超级用户完整上下文；权限加载失败继续 fail closed，普通用户访问诊断页仍进入 403。
+- 中等视口下 Evidence 状态列保持可见，用户可通过横向滚动访问操作列，不再由固定列遮挡诊断状态。
+
+### Verification
+
+- 最终快照 66 个测试文件、493 项测试通过；typecheck、ESLint、Prettier、Stylelint、生产构建与合同校验通过，行为覆盖审计为 83%，最终 Review 无剩余问题。
+- 本地 Mock 浏览器 QA 覆盖管理员与普通用户、RESULT/EVENT、过滤、清空、重连、详情、受控手动下发和桌面/移动视口；未执行真实 ECS、现场物理动作、部署或业务验收。
+
 ## [0.11.0.0] - 2026-08-23
 
 ### Added
