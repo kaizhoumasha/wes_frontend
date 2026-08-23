@@ -85,7 +85,7 @@ pnpm contract:test
 
 ```
 src/
-├── api/           # API 请求层（base / modules / services / generated）
+├── api/           # API 请求层（base / modules / services / streaming / generated）
 ├── assets/        # 静态资源
 ├── components/    # 通用组件、UI 组件、Smart Search 组件
 ├── composables/   # 组合式函数（CRUD / 布局 / 搜索等复用逻辑）
@@ -113,10 +113,12 @@ src/
 - [智能搜索组件架构](./docs/SMART_SEARCH_COMPONENT_ARCHITECTURE.md)
 - [时区处理指南](./docs/TIMEZONE_HANDLING.md)
 - [契约同步工作流](./docs/CONTRACT_SYNC_WORKFLOW.md)
+- [契约测试指南](./docs/CONTRACT_TESTING.md)
 
 ## CI/CD
 
 - GitHub Actions: `.github/workflows/ci-cd.yml`
+- Jenkins 成对发布: `Jenkinsfile`
 - Docker: `Dockerfile`, `docker-compose.yml`
 
 ## 开发命令
