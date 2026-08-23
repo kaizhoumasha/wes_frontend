@@ -1,4 +1,4 @@
-/** @openapi-sha256 64a1c8731962900eccd5097683dcbb5c06239ca1ed60eb018b641bd84016422b */
+/** @openapi-sha256 385bfef349e6e832c7f9ec997098f3a96fe81190b14c621a29308582ba27a15d */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -10031,7 +10031,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "text/event-stream": string;
                 };
             };
             /** @description Validation Error */
