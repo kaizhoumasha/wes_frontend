@@ -142,7 +142,10 @@ function gapOrBadge(
   if ((row as EvidenceDisplayRow).source?.gap) return ''
   const text = String(value ?? '—')
   if (text === '—') return text
-  return h('span', { class: `evidence-badge evidence-badge--${tone}` }, text)
+  return h('span', { class: `evidence-badge evidence-badge--${tone}` }, [
+    h('span', { class: 'evidence-badge__dot', 'aria-hidden': 'true' }),
+    text
+  ])
 }
 
 function applyBadgeTone(value: string): 'success' | 'warning' | 'danger' | 'info' {
@@ -228,12 +231,21 @@ defineExpose({ showDetails, launchDebug, spanMethod })
 :deep(.evidence-badge) {
   display: inline-flex;
   align-items: center;
+  gap: 8px;
   min-height: 24px;
-  padding: 0 8px;
-  border: 1px solid currentcolor;
+  padding: 4px 10px;
+  background: color-mix(in srgb, currentcolor 10%, transparent);
   border-radius: 6px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
+}
+
+:deep(.evidence-badge__dot) {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background: currentcolor;
+  border-radius: 9999px;
 }
 
 :deep(.evidence-badge--success) {

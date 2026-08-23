@@ -54,6 +54,7 @@ export function useManualDebugCommand(options: UseManualDebugCommandOptions = {}
   let candidateDeviceCode: string | null = null
   let pollTimer: ReturnType<typeof window.setTimeout> | null = null
   let sessionGeneration = 0
+  let preflightGeneration = 0
 
   const selectedPreflightDevice = computed(() =>
     preflightDevices.value.find(item => item.device.device_code === form.deviceCode)
@@ -97,6 +98,8 @@ export function useManualDebugCommand(options: UseManualDebugCommandOptions = {}
       if (endpoint.trim() === preflightEndpoint.value) {
         return
       }
+      preflightGeneration += 1
+      isPreflighting.value = false
       preflightEndpoint.value = null
       preflightDevices.value = []
       form.deviceCode = ''
@@ -127,9 +130,16 @@ export function useManualDebugCommand(options: UseManualDebugCommandOptions = {}
     isPreflighting.value = true
     lastError.value = null
     const generation = sessionGeneration
+    const requestGeneration = ++preflightGeneration
     try {
       const response = await api.debugPreflight({ endpoint_base_url: endpoint }).send()
-      if (generation !== sessionGeneration) return
+      if (
+        generation !== sessionGeneration ||
+        requestGeneration !== preflightGeneration ||
+        form.endpointBaseUrl.trim() !== endpoint
+      ) {
+        return
+      }
       preflightEndpoint.value = response.endpoint_base_url.trim()
       preflightDevices.value = response.devices
       form.endpointBaseUrl = response.endpoint_base_url
@@ -140,11 +150,11 @@ export function useManualDebugCommand(options: UseManualDebugCommandOptions = {}
           : ''
       form.taskType = ''
     } catch (error) {
-      if (generation !== sessionGeneration) return
+      if (generation !== sessionGeneration || requestGeneration !== preflightGeneration) return
       lastError.value = toError(error)
       throw error
     } finally {
-      if (generation === sessionGeneration) {
+      if (generation === sessionGeneration && requestGeneration === preflightGeneration) {
         isPreflighting.value = false
       }
     }
@@ -254,6 +264,7 @@ export function useManualDebugCommand(options: UseManualDebugCommandOptions = {}
 
   function resetSession(): void {
     sessionGeneration += 1
+    preflightGeneration += 1
     stopPolling()
     Object.assign(form, initialForm())
     state.value = 'EDITING'

@@ -29,6 +29,27 @@ const apiMocks = vi.hoisted(() => ({
           },
           admissible: true,
           rejection_code: null
+        },
+        {
+          device: {
+            device_code: 'ARM-02',
+            device_name: null,
+            device_type: 'ROBOT_ARM',
+            role: null,
+            supported_commands: ['RESET'],
+            supported_events: null
+          },
+          state: {
+            device_code: 'ARM-02',
+            mode: 'MANUAL',
+            status: 'IDLE',
+            is_online: true,
+            current_command_code: null,
+            scenario: null,
+            updated_at: 1
+          },
+          admissible: false,
+          rejection_code: 'DEVICE_MODE_NOT_AUTO'
         }
       ]
     })
@@ -58,6 +79,13 @@ const ElAlertStub = defineComponent({
   props: { title: { type: String, default: '' } },
   template: '<div>{{ title }}</div>'
 })
+const ElOptionStub = defineComponent({
+  props: {
+    label: { type: String, default: '' },
+    disabled: { type: Boolean, default: false }
+  },
+  template: '<div class="el-option-stub" :data-disabled="disabled">{{ label }}</div>'
+})
 const elementStubs = {
   ElAlert: ElAlertStub,
   ElForm: SlotStub,
@@ -65,11 +93,42 @@ const elementStubs = {
   ElInput: true,
   ElInputNumber: true,
   ElSelect: SlotStub,
-  ElOption: true,
+  ElOption: ElOptionStub,
   ElCheckbox: SlotStub
 }
 
 describe('ManualDebugCommandDialog', () => {
+  it('shows ECS runtime state and rejection reason for disabled devices', async () => {
+    const wrapper = shallowMount(ManualDebugCommandDialog, {
+      global: {
+        renderStubDefaultSlot: true,
+        stubs: {
+          StandardDialog: StandardDialogStub,
+          AppButton: AppButtonStub,
+          ...elementStubs
+        }
+      }
+    })
+    const exposed = wrapper.vm as unknown as {
+      open: () => void
+      command: {
+        form: Record<string, string | number>
+        preflight: () => Promise<void>
+      }
+    }
+    exposed.open()
+    exposed.command.form.endpointBaseUrl = 'http://10.24.209.26:8080'
+    await exposed.command.preflight()
+    await nextTick()
+
+    const rejectedOption = wrapper
+      .findAll('.el-option-stub')
+      .find(option => option.text().includes('ARM-02'))
+    expect(rejectedOption?.text()).toContain('MANUAL / IDLE')
+    expect(rejectedOption?.text()).toContain('DEVICE_MODE_NOT_AUTO')
+    expect(rejectedOption?.attributes('data-disabled')).toBe('true')
+  })
+
   it('renders truthful real-device wording, immutable preview and no Authorization data', async () => {
     const wrapper = shallowMount(ManualDebugCommandDialog, {
       global: {

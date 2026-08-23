@@ -96,6 +96,7 @@ describe('DeviceEvidenceTable', () => {
       .find(column => column.field === 'disposition')
       ?.formatter?.('ACCEPTED', { disposition: 'ACCEPTED' }) as {
       props?: { class?: string }
+      children?: unknown
     }
     const applyBadge = columns
       .find(column => column.field === 'applyStatus')
@@ -103,6 +104,10 @@ describe('DeviceEvidenceTable', () => {
       props?: { class?: string }
     }
     expect(dispositionBadge.props?.class).toContain('evidence-badge--success')
+    expect(dispositionBadge.children).toEqual([
+      expect.objectContaining({ props: { class: 'evidence-badge__dot', 'aria-hidden': 'true' } }),
+      'ACCEPTED'
+    ])
     expect(applyBadge.props?.class).toContain('evidence-badge--warning')
   })
 

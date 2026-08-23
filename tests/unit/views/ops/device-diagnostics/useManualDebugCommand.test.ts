@@ -202,6 +202,26 @@ describe('useManualDebugCommand', () => {
     expect(() => command.preview()).toThrow('当前 ECS URL 尚未完成 preflight')
   })
 
+  it('ignores a delayed preflight response after the ECS endpoint changes', async () => {
+    const api = createApi()
+    const response = await createApi().debugPreflight({ endpoint_base_url: 'unused' }).send()
+    const delayedResponse = deferred<typeof response>()
+    api.debugPreflight.mockImplementationOnce(() => ({ send: () => delayedResponse.promise }))
+    const command = useManualDebugCommand({ api })
+    command.open('ARM-01')
+    command.form.endpointBaseUrl = 'http://old-ecs:8080'
+    const staleRequest = command.preflight()
+
+    command.form.endpointBaseUrl = 'http://new-ecs:8080'
+    delayedResponse.resolve({ ...response, endpoint_base_url: 'http://old-ecs:8080' })
+    await staleRequest
+
+    expect(command.form.endpointBaseUrl).toBe('http://new-ecs:8080')
+    expect(command.isPreflighting.value).toBe(false)
+    expect(command.preflightDevices.value).toEqual([])
+    expect(command.form.deviceCode).toBe('')
+  })
+
   it('requires trimmed reason and explicit confirmation and prevents duplicate submit', async () => {
     const api = createApi()
     const command = useManualDebugCommand({ api })

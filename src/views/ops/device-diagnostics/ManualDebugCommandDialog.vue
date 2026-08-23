@@ -2,6 +2,7 @@
 import { nextTick, ref } from 'vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import StandardDialog from '@/components/ui/StandardDialog/StandardDialog.vue'
+import type { DebugPreflightResult } from '@/api/modules/device'
 import { useManualDebugCommand } from './useManualDebugCommand'
 
 const command = useManualDebugCommand()
@@ -64,6 +65,13 @@ async function handleSubmit(): Promise<void> {
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
+}
+
+function formatDeviceOption(item: DebugPreflightResult['devices'][number]): string {
+  const name = item.device.device_name ? ` · ${item.device.device_name}` : ''
+  const runtimeState = `${item.state.mode} / ${item.state.status}`
+  const rejection = item.rejection_code ? ` · ${item.rejection_code}` : ''
+  return `${item.device.device_code}${name} · ${runtimeState}${rejection}`
 }
 
 defineExpose({ open, close, command })
@@ -129,7 +137,7 @@ defineExpose({ open, close, command })
             <el-option
               v-for="item in preflightDevices"
               :key="item.device.device_code"
-              :label="`${item.device.device_code}${item.device.device_name ? ` · ${item.device.device_name}` : ''}`"
+              :label="formatDeviceOption(item)"
               :value="item.device.device_code"
               :disabled="!item.admissible"
             />
