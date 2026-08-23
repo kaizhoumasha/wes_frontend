@@ -129,7 +129,7 @@ function toDisplayRow(source: DeviceEvidenceRow): EvidenceDisplayRow {
 }
 
 function gapOr(row: Record<string, unknown>, fallback: unknown) {
-  return (row as EvidenceDisplayRow).source.gap
+  return (row as EvidenceDisplayRow).source?.gap
     ? h('strong', { class: 'gap-message' }, '期间可能存在消息缺口')
     : String(fallback ?? '—')
 }

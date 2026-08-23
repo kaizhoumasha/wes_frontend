@@ -87,6 +87,11 @@ describe('DeviceEvidenceTable', () => {
     expect(exposed.spanMethod({ row: gap, columnIndex: 0 })).toEqual([1, 8])
     expect(exposed.spanMethod({ row: gap, columnIndex: 1 })).toEqual([0, 0])
 
+    expect(
+      columns
+        .find(column => column.field === 'time')
+        ?.formatter?.('2026-08-23T08:00:00Z', { time: '2026-08-23T08:00:00Z' })
+    ).toBe('2026-08-23T08:00:00Z')
     const dispositionBadge = columns
       .find(column => column.field === 'disposition')
       ?.formatter?.('ACCEPTED', { disposition: 'ACCEPTED' }) as {
