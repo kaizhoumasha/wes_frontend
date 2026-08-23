@@ -1,6 +1,7 @@
 import { computed, getCurrentScope, onScopeDispose, ref } from 'vue'
 import {
   consumeDeviceEvidenceStream,
+  DeviceEvidenceStreamHttpError,
   type DeviceEvidenceStreamEvent,
   type DeviceEvidenceStreamOptions,
   type DeviceEvidenceUpdatedEvent,
@@ -106,7 +107,15 @@ export function useDeviceEvidenceStream(options: UseDeviceEvidenceStreamOptions 
         if (activeController.signal.aborted || generation !== runGeneration) {
           return
         }
-        lastError.value = error instanceof Error ? error : new Error(String(error))
+        const normalizedError = error instanceof Error ? error : new Error(String(error))
+        lastError.value = normalizedError
+        if (
+          normalizedError instanceof DeviceEvidenceStreamHttpError &&
+          (normalizedError.status === 401 || normalizedError.status === 403)
+        ) {
+          connectionState.value = 'DISCONNECTED'
+          return
+        }
       }
 
       if (activeController.signal.aborted || generation !== runGeneration) {

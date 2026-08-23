@@ -5,6 +5,7 @@ import type {
   DeviceEvidenceStreamOptions,
   DeviceIngressAttemptEvent
 } from '@/api/streaming/deviceEvidenceStream'
+import { consumeDeviceEvidenceStream } from '@/api/streaming/deviceEvidenceStream'
 import { useDeviceEvidenceStream } from '@/views/ops/device-diagnostics/useDeviceEvidenceStream'
 
 interface StreamSession {
@@ -56,6 +57,36 @@ afterEach(() => {
 })
 
 describe('useDeviceEvidenceStream', () => {
+  it.each([
+    { status: 401, expectedFetches: 2, expectedRefreshes: 1 },
+    { status: 403, expectedFetches: 1, expectedRefreshes: 0 }
+  ])(
+    'stops reconnecting after terminal HTTP $status authentication failure',
+    async ({ status, expectedFetches, expectedRefreshes }) => {
+      vi.useFakeTimers()
+      const fetchImpl = vi.fn().mockResolvedValue(new Response(null, { status }))
+      const refreshAccessToken = vi.fn().mockResolvedValue('refreshed-token')
+      const connector = (options: DeviceEvidenceStreamOptions) =>
+        consumeDeviceEvidenceStream(options, {
+          fetchImpl,
+          getAccessToken: () => 'expired-token',
+          refreshAccessToken
+        })
+      const stream = useDeviceEvidenceStream({ connector, initialRetryDelayMs: 100 })
+
+      stream.connect()
+      await flushPromises()
+      await vi.advanceTimersByTimeAsync(1_000)
+      await flushPromises()
+
+      expect(fetchImpl).toHaveBeenCalledTimes(expectedFetches)
+      expect(refreshAccessToken).toHaveBeenCalledTimes(expectedRefreshes)
+      expect(stream.connectionState.value).toBe('DISCONNECTED')
+      expect(stream.lastError.value?.message).toBe(`SSE 连接失败（HTTP ${status}）`)
+      expect(vi.getTimerCount()).toBe(0)
+    }
+  )
+
   it('tracks CONNECTED and RECONNECTED and inserts one gap only after a live connection drops', async () => {
     vi.useFakeTimers()
     const { connector, sessions } = createConnector()
