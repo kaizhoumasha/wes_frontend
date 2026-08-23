@@ -53,7 +53,7 @@ interface DeviceEvidenceStreamDependencies {
 }
 
 const DEFAULT_DEPENDENCIES: DeviceEvidenceStreamDependencies = {
-  fetchImpl: fetch,
+  fetchImpl: (...args) => globalThis.fetch(...args),
   getAccessToken: getStoredAccessToken,
   refreshAccessToken: () => refreshStoredAccessToken(apiClient)
 }

@@ -38,6 +38,35 @@ const ATTEMPT = {
 } as const
 
 describe('consumeDeviceEvidenceStream', () => {
+  it('invokes the default browser fetch with the global receiver', async () => {
+    const originalFetch = globalThis.fetch
+    const fetchImpl = vi.fn(function (this: unknown) {
+      if (this !== globalThis) {
+        throw new TypeError('Illegal invocation')
+      }
+      return Promise.resolve(responseFromChunks([]))
+    })
+    vi.stubGlobal('fetch', fetchImpl)
+    vi.resetModules()
+
+    try {
+      const { consumeDeviceEvidenceStream: consumeWithDefaultDependencies } = await import(
+        '@/api/streaming/deviceEvidenceStream'
+      )
+      await consumeWithDefaultDependencies({
+        baseUrl: 'http://wes.test',
+        filters: {},
+        signal: new AbortController().signal,
+        onEvent: vi.fn()
+      })
+    } finally {
+      vi.stubGlobal('fetch', originalFetch)
+      vi.resetModules()
+    }
+
+    expect(fetchImpl).toHaveBeenCalledOnce()
+  })
+
   it('parses LF/CRLF, chunk boundaries, multiple frames, multiline data and heartbeat', async () => {
     const events: DeviceEvidenceStreamEvent[] = []
     const update = {
