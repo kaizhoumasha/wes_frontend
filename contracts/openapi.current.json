@@ -13342,6 +13342,16 @@
           "message": {
             "type": "string",
             "title": "Message"
+          },
+          "error_detail": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EcsCallbackRejectionDetail"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -13351,6 +13361,53 @@
           "message"
         ],
         "title": "EcsCallbackAck"
+      },
+      "EcsCallbackRejectionDetail": {
+        "properties": {
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/EcsCallbackValidationIssue"
+            },
+            "type": "array",
+            "title": "Issues"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "issues"
+        ],
+        "title": "EcsCallbackRejectionDetail"
+      },
+      "EcsCallbackValidationIssue": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "title": "Field"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "expected": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "field",
+          "code"
+        ],
+        "title": "EcsCallbackValidationIssue"
       },
       "EcsDeviceInfo": {
         "properties": {

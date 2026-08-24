@@ -1,5 +1,5 @@
 /**
- * 自动生成的 OpenAPI schema 字段元数据: EcsCallbackAck
+ * 自动生成的 OpenAPI schema 字段元数据: EcsCallbackValidationIssue
  *
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
@@ -9,30 +9,31 @@
 
 import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
-export const EcsCallbackAckMetadata = {
-  "title": "EcsCallbackAck",
+export const EcsCallbackValidationIssueMetadata = {
+  "title": "EcsCallbackValidationIssue",
   "required": [
-    "code",
-    "message"
+    "field",
+    "code"
   ],
   "additionalProperties": false,
   "fields": {
-    "code": {
-      "title": "Code",
-      "type": "integer",
-      "required": true,
-      "nullable": false
-    },
-    "message": {
-      "title": "Message",
+    "field": {
+      "title": "Field",
       "type": "string",
       "required": true,
       "nullable": false
     },
-    "error_detail": {
+    "code": {
+      "title": "Code",
+      "type": "string",
+      "required": true,
+      "nullable": false
+    },
+    "expected": {
+      "title": "Expected",
+      "type": "string",
       "required": false,
-      "nullable": true,
-      "ref": "EcsCallbackRejectionDetail"
+      "nullable": true
     }
   }
 } satisfies OpenApiSchemaMetadata
