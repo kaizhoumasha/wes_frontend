@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.2.0] - 2026-08-24
+
+### Fixed
+
+- 登录用户刷新页面后会重新恢复权限与菜单；重叠导航复用同一次认证上下文请求，临时加载失败后可在下一次导航重试，合法空权限仍保持 fail closed。
+- 桌面与移动端的导航切换按钮会按当前状态提供准确的可访问名称，辅助技术可区分收起、展开、打开和关闭动作。
+
+### Verification
+
+- 68 个测试文件、501 项测试通过；typecheck、ESLint、Prettier 与 Stylelint 全部通过，行为覆盖审计为 86%，fresh pre-landing Review 无剩余问题。
+- 本地浏览器 QA 覆盖硬刷新菜单恢复、深链与新标签页、登出回跳、移动端导航及设备诊断入口；未执行真实 ECS、现场物理动作、部署或业务验收。
+
 ## [0.11.1.1] - 2026-08-24
 
 ### Fixed

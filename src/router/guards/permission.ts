@@ -27,6 +27,7 @@
 
 import type { RouteLocationNormalized, Router } from 'vue-router'
 import { bootstrapAuthContext } from '@/app/bootstrap-auth-context'
+import { permissionInitializedState } from '@/composables/permission-state'
 import { usePermission } from '@/composables/usePermission'
 import { withGuardErrorHandling } from '@/utils/guard-error-handler'
 
@@ -81,10 +82,10 @@ export function createPermissionGuard(_router: Router) {
     if (!requiredPermission) return
 
     // 获取权限检查函数
-    const { hasPermission, isSuperuser, permissions, isLoading } = usePermission()
+    const { hasPermission, isSuperuser, isLoading } = usePermission()
 
     // 权限预加载：刷新页面时恢复完整用户上下文，确保超级用户通配权限也被补齐。
-    if (permissions.value.length === 0 && !isLoading.value) {
+    if (!permissionInitializedState.value && !isLoading.value) {
       const result = await withGuardErrorHandling(async () => {
         await bootstrapAuthContext({
           forceRefresh: false,
@@ -149,10 +150,10 @@ export function createPermissionsGuard(_router: Router) {
     if (!requiredPermissions || requiredPermissions.length === 0) return
 
     // 获取权限检查函数
-    const { hasAnyPermission, isSuperuser, permissions, isLoading, loadPermissions } = usePermission()
+    const { hasAnyPermission, isSuperuser, isLoading, loadPermissions } = usePermission()
 
-    // 权限预加载：如果内存中没有权限数据，先从缓存或后端加载
-    if (permissions.value.length === 0 && !isLoading.value) {
+    // 权限预加载：如果权限状态尚未初始化，先从缓存或后端加载
+    if (!permissionInitializedState.value && !isLoading.value) {
       const result = await withGuardErrorHandling(async () => {
         await loadPermissions()
         return true
@@ -216,10 +217,10 @@ export function createResourcePermissionGuard(_router: Router) {
     const permissionName = `${module}:${resource}:${action}`
 
     // 获取权限检查函数
-    const { hasResourcePermission, isSuperuser, permissions, isLoading, loadPermissions } = usePermission()
+    const { hasResourcePermission, isSuperuser, isLoading, loadPermissions } = usePermission()
 
-    // 权限预加载：如果内存中没有权限数据，先从缓存或后端加载
-    if (permissions.value.length === 0 && !isLoading.value) {
+    // 权限预加载：如果权限状态尚未初始化，先从缓存或后端加载
+    if (!permissionInitializedState.value && !isLoading.value) {
       const result = await withGuardErrorHandling(async () => {
         await loadPermissions()
         return true

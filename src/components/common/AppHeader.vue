@@ -4,6 +4,7 @@
     <div class="header-left">
       <button
         class="collapse-button"
+        :aria-label="sidebarToggleLabel"
         @click="toggleSidebar"
       >
         <el-icon :size="20">
@@ -153,7 +154,7 @@ import TimezoneSettings from './TimezoneSettings.vue'
 
 // ==================== 状态管理 ====================
 
-const { toggleSidebar, sidebarCollapsed } = useLayout()
+const { toggleSidebar, sidebarCollapsed, isMobile, isMobileMenuOpen } = useLayout()
 const { clearMenus } = useMenu()
 const { clearPermissions } = usePermission()
 const { currentUser, clearCurrentUser } = useCurrentUser()
@@ -188,6 +189,14 @@ const username = computed(() => {
 /** 用户头像 */
 const userAvatar = computed(() => {
   return '' // TODO: 从用户状态获取
+})
+
+/** 侧边栏切换按钮在桌面与移动端的当前动作 */
+const sidebarToggleLabel = computed(() => {
+  if (isMobile.value) {
+    return isMobileMenuOpen.value ? '关闭导航菜单' : '打开导航菜单'
+  }
+  return sidebarCollapsed.value ? '展开侧边栏' : '收起侧边栏'
 })
 
 /**
