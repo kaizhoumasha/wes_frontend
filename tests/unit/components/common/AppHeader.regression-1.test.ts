@@ -33,9 +33,19 @@ vi.mock('vue-router', () => ({
   useRoute: () => ({ path: '/dashboard' })
 }))
 
-function mountHeader(sidebarCollapsed: boolean) {
+function mountHeader({
+  sidebarCollapsed,
+  isMobile = false,
+  isMobileMenuOpen = false
+}: {
+  sidebarCollapsed: boolean
+  isMobile?: boolean
+  isMobileMenuOpen?: boolean
+}) {
   vi.mocked(useLayout).mockReturnValue({
     sidebarCollapsed: ref(sidebarCollapsed),
+    isMobile: ref(isMobile),
+    isMobileMenuOpen: ref(isMobileMenuOpen),
     toggleSidebar: vi.fn()
   } as ReturnType<typeof useLayout>)
 
@@ -61,8 +71,23 @@ function mountHeader(sidebarCollapsed: boolean) {
 // Found by /qa on 2026-08-24
 // Report: .gstack/qa-reports/qa-report-127-0-0-1-2026-08-24.md
 describe('AppHeader sidebar toggle accessibility', () => {
-  it('describes the action for both expanded and collapsed sidebar states', () => {
-    expect(mountHeader(false).find('.collapse-button').attributes('aria-label')).toBe('收起侧边栏')
-    expect(mountHeader(true).find('.collapse-button').attributes('aria-label')).toBe('展开侧边栏')
+  it('describes the action for expanded and collapsed desktop sidebar states', () => {
+    expect(
+      mountHeader({ sidebarCollapsed: false }).find('.collapse-button').attributes('aria-label')
+    ).toBe('收起侧边栏')
+    expect(
+      mountHeader({ sidebarCollapsed: true }).find('.collapse-button').attributes('aria-label')
+    ).toBe('展开侧边栏')
+  })
+
+  it('describes the action for closed and open mobile navigation states', () => {
+    expect(
+      mountHeader({ sidebarCollapsed: false, isMobile: true }).find('.collapse-button').attributes('aria-label')
+    ).toBe('打开导航菜单')
+    expect(
+      mountHeader({ sidebarCollapsed: false, isMobile: true, isMobileMenuOpen: true })
+        .find('.collapse-button')
+        .attributes('aria-label')
+    ).toBe('关闭导航菜单')
   })
 })
