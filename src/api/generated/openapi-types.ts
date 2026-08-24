@@ -1,4 +1,4 @@
-/** @openapi-sha256 385bfef349e6e832c7f9ec997098f3a96fe81190b14c621a29308582ba27a15d */
+/** @openapi-sha256 6653931532482447766eee6163bd1256d799ae8206665f43f972182b9f417a20 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -4250,8 +4250,23 @@ export interface components {
         EcsCallbackAck: {
             /** Code */
             code: number;
+            error_detail?: components["schemas"]["EcsCallbackRejectionDetail"] | null;
             /** Message */
             message: string;
+        };
+        /** EcsCallbackRejectionDetail */
+        EcsCallbackRejectionDetail: {
+            /** Issues */
+            issues: components["schemas"]["EcsCallbackValidationIssue"][];
+        };
+        /** EcsCallbackValidationIssue */
+        EcsCallbackValidationIssue: {
+            /** Code */
+            code: string;
+            /** Expected */
+            expected?: string | null;
+            /** Field */
+            field: string;
         };
         /**
          * EcsDeviceInfo
