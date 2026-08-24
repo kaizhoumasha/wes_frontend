@@ -4,6 +4,7 @@
     <div class="header-left">
       <button
         class="collapse-button"
+        :aria-label="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
         @click="toggleSidebar"
       >
         <el-icon :size="20">
