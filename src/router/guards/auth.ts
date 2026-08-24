@@ -1,8 +1,25 @@
 import type { RouteLocationNormalized, RouteLocationNormalizedLoaded } from 'vue-router'
 import { bootstrapAuthContext } from '@/app/bootstrap-auth-context'
 import { useCurrentUser } from '@/composables/useCurrentUser'
+import { permissionInitializedState } from '@/composables/permission-state'
 
 export function createAuthGuard() {
+  let authContextPromise: Promise<unknown> | null = null
+
+  const restoreAuthContext = async (): Promise<void> => {
+    authContextPromise ??= bootstrapAuthContext({
+      forceRefresh: false,
+      preserveAccessTokenOnFallback: true,
+      loadMenusNonBlocking: true
+    })
+
+    try {
+      await authContextPromise
+    } finally {
+      authContextPromise = null
+    }
+  }
+
   return async (to: RouteLocationNormalized, from: RouteLocationNormalizedLoaded) => {
     const token = localStorage.getItem('access_token')
 
@@ -16,13 +33,9 @@ export function createAuthGuard() {
     if (token) {
       const { currentUser } = useCurrentUser()
 
-      if (!currentUser.value) {
+      if (!currentUser.value || !permissionInitializedState.value) {
         try {
-          await bootstrapAuthContext({
-            forceRefresh: false,
-            preserveAccessTokenOnFallback: true,
-            loadMenusNonBlocking: true
-          })
+          await restoreAuthContext()
         } catch (error) {
           console.warn('[认证守卫] 恢复用户上下文失败:', error)
         }

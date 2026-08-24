@@ -8,6 +8,7 @@ export const permissionsState = ref<ApiPermissionInfo[]>([])
 export const permissionNamesState = ref<Set<string>>(new Set())
 export const permissionLoadingState = ref(false)
 export const permissionLoadErrorState = ref<Error | null>(null)
+export const permissionInitializedState = ref(false)
 
 export const isSuperuserState = computed(() => permissionNamesState.value.has(SUPERUSER_PERMISSION))
 
@@ -18,6 +19,7 @@ export function checkPermissionState(permissionName: string): boolean {
 export function setPermissionsState(perms: ApiPermissionInfo[]): void {
   permissionsState.value = perms
   permissionNamesState.value = new Set(perms.map(permission => permission.name))
+  permissionInitializedState.value = true
 }
 
 export function getPermissionsFromCache(): ApiPermissionInfo[] | null {
@@ -36,5 +38,6 @@ export function clearPermissionState(): void {
   permissionsState.value = []
   permissionNamesState.value = new Set()
   permissionLoadErrorState.value = null
+  permissionInitializedState.value = false
   clearCachedData(PERMISSION_CACHE.KEY, PERMISSION_CACHE.TIME_KEY)
 }
