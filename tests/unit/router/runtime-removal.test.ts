@@ -127,8 +127,7 @@ describe('legacy runtime removal', () => {
             version: 0,
             roles: []
           },
-          permissions: [],
-          menus: []
+          permissions: []
         },
         '/api/v1/auth/refresh': { access_token: 'refreshed-token', expires_in: 3600 },
         '/api/v1/auth/logout': null
