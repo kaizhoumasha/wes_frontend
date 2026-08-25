@@ -24,7 +24,6 @@ export const adminRoutes: RouteRecordRaw = {
         permission: ADMIN_PERMISSIONS.user.page,
         menu: {
           name: 'admin:user:menu',
-          parentName: 'admin:system:menu',
           icon: 'ep:user',
           sortOrder: 99
         }
@@ -40,7 +39,6 @@ export const adminRoutes: RouteRecordRaw = {
         permission: ADMIN_PERMISSIONS.role.page,
         menu: {
           name: 'admin:role:menu',
-          parentName: 'admin:system:menu',
           icon: 'ep:collection-tag',
           sortOrder: 98
         }
@@ -56,7 +54,6 @@ export const adminRoutes: RouteRecordRaw = {
         permission: ADMIN_PERMISSIONS.menu.page,
         menu: {
           name: 'admin:menu:menu',
-          parentName: 'admin:system:menu',
           icon: 'ep:menu',
           sortOrder: 97
         }
@@ -72,7 +69,6 @@ export const adminRoutes: RouteRecordRaw = {
         permission: ADMIN_PERMISSIONS.permission.page,
         menu: {
           name: 'admin:permission:menu',
-          parentName: 'admin:system:menu',
           icon: 'ep:lock',
           sortOrder: 96
         }

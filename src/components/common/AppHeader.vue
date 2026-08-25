@@ -147,7 +147,6 @@ import { apiClient } from '@/api/client'
 import { usePermission } from '@/composables/usePermission'
 import { useCurrentUser } from '@/composables/useCurrentUser'
 import { useTimezoneStore } from '@/stores/timezone'
-import type { MenuItem } from '@/types/menu'
 import { StandardDialog } from '@/components/ui/StandardDialog'
 import ThemeToggle from './ThemeToggle.vue'
 import TimezoneSettings from './TimezoneSettings.vue'
@@ -155,7 +154,7 @@ import TimezoneSettings from './TimezoneSettings.vue'
 // ==================== 状态管理 ====================
 
 const { toggleSidebar, sidebarCollapsed, isMobile, isMobileMenuOpen } = useLayout()
-const { clearMenus } = useMenu()
+const { getBreadcrumb } = useMenu()
 const { clearPermissions } = usePermission()
 const { currentUser, clearCurrentUser } = useCurrentUser()
 const timezoneStore = useTimezoneStore()
@@ -222,14 +221,10 @@ const currentTimezoneLabel = computed(() => {
 const breadcrumb = computed(() => {
   // 排除根路径
   if (route.path === '/' || route.path === '/dashboard') {
-    return [] as MenuItem[]
+    return []
   }
 
-  // TODO: 从菜单系统获取面包屑
-  return [] as MenuItem[]
-
-  // const { getBreadcrumb } = useMenu()
-  // return getBreadcrumb(route.path)
+  return getBreadcrumb(route.path)
 })
 
 // ==================== 方法 ====================
@@ -295,9 +290,8 @@ const handleLogoutConfirm = async () => {
     // 调用后端登出接口
     await logout(apiClient)
 
-    // 清除权限和菜单
+    // 清除权限和用户
     clearPermissions()
-    clearMenus()
     clearCurrentUser()
 
     logoutDialogVisible.value = false

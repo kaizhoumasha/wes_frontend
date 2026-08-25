@@ -37,14 +37,10 @@ vi.mock('@/composables/useLayout', async () => {
   }
 })
 
-vi.mock('@/composables/useMenu', async () => {
-  const { ref } = await vi.importActual<typeof import('vue')>('vue')
-
+vi.mock('@/composables/useMenu', () => {
   return {
     useMenu: () => ({
-      selectMenu: vi.fn(),
-      isMenuLoaded: ref(true),
-      loadMenus: vi.fn(),
+      selectMenu: vi.fn()
     }),
   }
 })

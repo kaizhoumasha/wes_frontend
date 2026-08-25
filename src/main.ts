@@ -35,8 +35,7 @@ initializeErrorNotification({
 setOnTokenRefreshed(async () => {
   await bootstrapAuthContext({
     forceRefresh: true,
-    preserveAccessTokenOnFallback: true,
-    loadMenusNonBlocking: true
+    preserveAccessTokenOnFallback: true
   })
 })
 

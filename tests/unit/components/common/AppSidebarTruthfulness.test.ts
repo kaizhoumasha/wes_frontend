@@ -17,7 +17,6 @@ vi.mock('@/composables/useLayout', async () => {
 vi.mock('@/composables/useMenu', async () => {
   const { ref } = await vi.importActual<typeof import('vue')>('vue')
   return {
-    filterAuthorizedMenuTree: vi.fn(() => []),
     useMenu: () => ({
       menuTree: ref([]),
       selectedPath: ref(''),

@@ -9,8 +9,7 @@ export function createAuthGuard() {
   const restoreAuthContext = async (): Promise<void> => {
     authContextPromise ??= bootstrapAuthContext({
       forceRefresh: false,
-      preserveAccessTokenOnFallback: true,
-      loadMenusNonBlocking: true
+      preserveAccessTokenOnFallback: true
     })
 
     try {

@@ -48,7 +48,7 @@ import { useMenu } from '@/composables/useMenu'
 
 const { sidebarCollapsed, contentMarginLeft, isMobile, isMobileMenuOpen, closeMobileMenu } =
   useLayout()
-const { selectMenu, isMenuLoaded, loadMenus } = useMenu()
+const { selectMenu } = useMenu()
 
 // ==================== 路由 ====================
 
@@ -56,13 +56,6 @@ const route = useRoute()
 // ==================== 生命周期 ====================
 
 onMounted(() => {
-  // 兜底初始化：刷新/新标签页进入时，确保菜单数据可用
-  if (!isMenuLoaded.value) {
-    loadMenus().catch(error => {
-      console.warn('布局初始化菜单失败:', error)
-    })
-  }
-
   // 初始化：选中当前路由对应的菜单
   selectMenu(route.path)
 })

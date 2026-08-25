@@ -44,16 +44,6 @@ export const PERMISSION_CACHE = {
   TTL: DEFAULT_CACHE_TTL
 } as const
 
-/** 菜单缓存相关 */
-export const MENU_CACHE = {
-  /** 菜单数据键 */
-  KEY: `${CACHE_KEY_PREFIX}menu-tree`,
-  /** 缓存时间戳键 */
-  TIME_KEY: `${CACHE_KEY_PREFIX}menu-time`,
-  /** 缓存过期时间 */
-  TTL: DEFAULT_CACHE_TTL
-} as const
-
 /** 布局状态缓存相关 */
 export const LAYOUT_CACHE = {
   /** 侧边栏折叠状态键 */
@@ -110,51 +100,4 @@ export function clearCachedData(
   ...keys: string[]
 ): void {
   keys.forEach((key) => sessionStorage.removeItem(key))
-}
-
-/**
- * HMR 状态恢复工具
- *
- * 当 Vite 热更新导致模块重新加载时，模块级 ref 会重置为空。
- * 此函数用于从 sessionStorage 恢复状态（无需重新请求 API）。
- *
- * @param cacheKey 缓存数据键
- * @param timeKey 缓存时间戳键
- * @param normalizeFn 数据标准化函数（可选）
- * @returns 缓存的数据，不存在时返回 null
- *
- * @example
- * ```ts
- * const menus = ref<MenuItem[]>([])
- * const cached = restoreFromHMR(
- *   MENU_CACHE.KEY,
- *   MENU_CACHE.TIME_KEY,
- *   normalizeMenuTree
- * )
- * if (cached) {
- *   menus.value = cached
- * }
- * ```
- */
-export function restoreFromHMR<T, R = T>(
-  cacheKey: string,
-  timeKey: string,
-  normalizeFn?: (data: T) => R
-): R | null {
-  const hasCached = sessionStorage.getItem(cacheKey) !== null
-  const hasCachedTime = sessionStorage.getItem(timeKey) !== null
-
-  if (!hasCached || !hasCachedTime) {
-    return null
-  }
-
-  try {
-    const cachedData = sessionStorage.getItem(cacheKey)
-    if (!cachedData) return null
-
-    const parsed = JSON.parse(cachedData) as T
-    return normalizeFn ? normalizeFn(parsed) : (parsed as unknown as R)
-  } catch {
-    return null
-  }
 }

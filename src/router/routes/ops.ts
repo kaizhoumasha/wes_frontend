@@ -25,7 +25,6 @@ export const opsRoutes: RouteRecordRaw = {
         permission: SUPERUSER_PERMISSION,
         menu: {
           name: 'ops:device-diagnostics:menu',
-          parentName: 'ops:system:menu',
           icon: 'ep:data-analysis',
           sortOrder: 1
         }
