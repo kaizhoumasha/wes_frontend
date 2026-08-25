@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
+import { ADMIN_PERMISSIONS, BIZ_PERMISSIONS } from '@/api/generated/permissions'
 import type { ApiPermissionInfo } from '@/api/modules/auth'
 
 describe('useMenu', () => {
@@ -36,6 +36,17 @@ describe('useMenu', () => {
     expect(menu.menuTree.value).toEqual([])
     expect(menu.findMenuItem('/biz/devices')).toBeUndefined()
     expect(menu.getBreadcrumb('/biz/devices')).toEqual([])
+
+    setPermissionsState([{ name: ADMIN_PERMISSIONS.user.page } as ApiPermissionInfo])
+
+    expect(menu.selectedPath.value).toBe('/biz/devices')
+    expect(menu.openedPaths.value).toEqual(['/biz'])
+    expect(menu.findMenuItem('/biz/devices')).toBeUndefined()
+    expect(menu.findMenuItem('/admin/users')?.name).toBe('admin:user:menu')
+    expect(menu.menuTree.value.map(item => item.name)).toEqual([
+      'system:dashboard:menu',
+      'admin:system:menu'
+    ])
   })
 
   it('returns only local navigation state and minimal projected menu fields', async () => {
