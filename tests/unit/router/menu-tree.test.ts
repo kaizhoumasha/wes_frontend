@@ -129,6 +129,46 @@ describe('buildAuthorizedMenuTree', () => {
     ])
   })
 
+  it('keeps an empty nested child path at its parent canonical path', () => {
+    expect(
+      buildAuthorizedMenuTree(
+        [
+          {
+            path: '/parent',
+            meta: {
+              requiresAuth: true,
+              menu: { name: 'parent:menu', title: '父级' }
+            },
+            children: [
+              {
+                path: '',
+                meta: {
+                  menu: { name: 'parent:default:menu', title: '默认页' }
+                }
+              }
+            ]
+          }
+        ],
+        new Set(),
+        false
+      )
+    ).toEqual([
+      {
+        name: 'parent:menu',
+        title: '父级',
+        path: '/parent',
+        children: [
+          {
+            name: 'parent:default:menu',
+            title: '默认页',
+            path: '/parent',
+            children: []
+          }
+        ]
+      }
+    ])
+  })
+
   it('uses explicit globally unique menu names for every protected titled route', () => {
     const names = collectProtectedTitledRouteMenuNames(createRoutes())
 

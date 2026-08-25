@@ -92,6 +92,10 @@ function resolvePath(parentPath: string, routePath: string): string {
   }
 
   const normalizedRoutePath = routePath.replace(/^\/+/, '')
+  if (!normalizedRoutePath) {
+    return parentPath.replace(/\/+$/, '') || '/'
+  }
+
   if (!parentPath || parentPath === '/') {
     return `/${normalizedRoutePath}`
   }
