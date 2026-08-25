@@ -43,6 +43,7 @@ import {
   clearPermissionState,
   getPermissionsFromCache,
   isSuperuserState,
+  permissionInitializedState,
   permissionLoadErrorState,
   permissionLoadingState,
   permissionsState,
@@ -234,6 +235,7 @@ export function usePermission() {
     // 状态
     permissions: computed(() => permissionsState.value),
     isSuperuser: isSuperuserState,
+    isInitialized: computed(() => permissionInitializedState.value),
     isLoading: computed(() => permissionLoadingState.value),
     loadError: computed(() => permissionLoadErrorState.value),
 

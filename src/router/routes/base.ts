@@ -10,6 +10,12 @@ export const publicRoutes: RouteRecordRaw[] = [
     name: 'Login',
     component: () => import('@/views/auth/Login.vue'),
     meta: { requiresAuth: false }
+  },
+  {
+    path: '/auth-context-unavailable',
+    name: 'AuthContextUnavailable',
+    component: () => import('@/views/error/AuthContextUnavailable.vue'),
+    meta: { requiresAuth: false }
   }
 ]
 

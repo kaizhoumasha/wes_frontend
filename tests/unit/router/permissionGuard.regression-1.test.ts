@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RouteLocationNormalized, Router } from 'vue-router'
+import { clearPermissionState, setPermissionsState } from '@/composables/permission-state'
 import { createPermissionGuard } from '@/router/guards/permission'
 
 const permissionContext = vi.hoisted(() => ({
@@ -21,17 +22,21 @@ vi.mock('@/composables/usePermission', () => ({
 
 describe('permission guard with an empty permission list', () => {
   beforeEach(() => {
+    clearPermissionState()
     permissionContext.hasPermission.mockReturnValue(false)
     permissionContext.isSuperuser.value = false
     permissionContext.permissions.value = []
     permissionContext.isLoading.value = false
-    authContext.bootstrapAuthContext.mockReset().mockResolvedValue(undefined)
+    authContext.bootstrapAuthContext.mockReset().mockImplementation(async () => {
+      setPermissionsState([])
+    })
   })
 
   it('restores the superuser context before evaluating a protected route after refresh', async () => {
     authContext.bootstrapAuthContext.mockImplementationOnce(async () => {
       permissionContext.isSuperuser.value = true
       permissionContext.permissions.value = [{ name: '*' }]
+      setPermissionsState([])
     })
     const guard = createPermissionGuard({} as Router)
     const to = {
@@ -65,8 +70,10 @@ describe('permission guard with an empty permission list', () => {
     expect(authContext.bootstrapAuthContext).toHaveBeenCalledOnce()
   })
 
-  it('fails closed when protected-route permissions cannot be loaded', async () => {
-    authContext.bootstrapAuthContext.mockRejectedValueOnce(new Error('permission service unavailable'))
+  it('redirects to the unavailable page when protected-route permissions cannot be loaded', async () => {
+    authContext.bootstrapAuthContext.mockRejectedValueOnce(
+      new Error('permission service unavailable')
+    )
     const guard = createPermissionGuard({} as Router)
     const to = {
       path: '/ops/device-diagnostics',
@@ -75,10 +82,9 @@ describe('permission guard with an empty permission list', () => {
     } as RouteLocationNormalized
 
     await expect(guard(to)).resolves.toMatchObject({
-      path: '/403',
+      path: '/auth-context-unavailable',
       query: {
-        redirect: '/ops/device-diagnostics',
-        permission: '*'
+        redirect: '/ops/device-diagnostics'
       }
     })
   })
