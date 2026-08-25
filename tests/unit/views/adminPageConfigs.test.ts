@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createAPIApplicationPageConfig } from '@/views/admin/api-applications/config/pageConfig'
 import { createDevicePageConfig } from '@/views/admin/devices/config/pageConfig'
-import { createMenuPageConfig } from '@/views/admin/menus/config/pageConfig'
 import { createPermissionPageConfig } from '@/views/admin/permissions/config/pageConfig'
 import { createRolePageConfig } from '@/views/admin/roles/config/pageConfig'
 import { createUserPageConfig } from '@/views/admin/users/config/pageConfig'
@@ -13,7 +12,6 @@ describe('admin page field configuration', () => {
 
     expect(() => createAPIApplicationPageConfig()).not.toThrow()
     expect(() => createDevicePageConfig()).not.toThrow()
-    expect(() => createMenuPageConfig()).not.toThrow()
     expect(() => createPermissionPageConfig()).not.toThrow()
     expect(() => createRolePageConfig()).not.toThrow()
     expect(() => createUserPageConfig(open, open)).not.toThrow()

@@ -56,17 +56,17 @@ describe('useMenu', () => {
 
     setPermissionsState([{ name: BIZ_PERMISSIONS.device.page } as ApiPermissionInfo])
 
-    const forbiddenApi = [
-      'flatMenuItems',
-      'loadMenus',
-      'hydrateMenus',
-      'clearMenus',
-      'isLoading',
-      'loadError',
-      'isMenuLoaded'
-    ]
-
-    expect(Object.keys(menu)).toEqual(expect.not.arrayContaining(forbiddenApi))
+    expect(Object.keys(menu)).toEqual([
+      'menuTree',
+      'selectedPath',
+      'openedPaths',
+      'selectMenu',
+      'toggleMenu',
+      'getBreadcrumb',
+      'findMenuItem',
+      'isMenuOpened',
+      'isMenuSelected'
+    ])
 
     const deviceMenu = menu.findMenuItem('/biz/devices')
     expect(deviceMenu).toEqual({

@@ -45,21 +45,6 @@ export const adminRoutes: RouteRecordRaw = {
       }
     },
     {
-      path: 'menus',
-      name: 'MenuList',
-      component: () => import('@/views/admin/menus/MenuListPage.vue'),
-      meta: {
-        requiresAuth: true,
-        title: '菜单管理',
-        permission: ADMIN_PERMISSIONS.menu.page,
-        menu: {
-          name: 'admin:menu:menu',
-          icon: 'ep:menu',
-          sortOrder: 97
-        }
-      }
-    },
-    {
       path: 'permissions',
       name: 'PermissionList',
       component: () => import('@/views/admin/permissions/PermissionListPage.vue'),

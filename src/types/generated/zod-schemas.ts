@@ -1,4 +1,4 @@
-/** @openapi-sha256 49b6236f4825de0ce02b98bb2b093385e38c1594399fcf01cd0dfa79fca5c343 */
+/** @openapi-sha256 76a053f98e6e3bbf6ebe4e5733083c2bb0c5c649c6e42d6f727f1c9e47ab41b0 */
 /**
  * Zod Validation Schemas
  *
@@ -269,14 +269,11 @@ export const AuditLogResponseSchema = z.object({
 一次性返回前端初始化所需核心数据：
 - 当前用户信息
 - API 权限列表
-- 菜单树
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const AuthMyResponseSchema = z.object({
-  /** Menus */
-  menus: z.array(z.lazy(() => MenuTreeResponseSimpleSchema)),
   /** Permissions */
   permissions: z.array(z.lazy(() => ApiPermissionInfoSchema)),
   /** 当前用户信息 */
@@ -354,18 +351,6 @@ export const BatchOperationResultSchema = z.object({
   success: z.number().min(0).optional().default(0),
   /** Total */
   total: z.number().min(0).optional().default(0),
-})
-
-
-/**
- * 批量排序请求
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const BatchSortRequestSchema = z.object({
-  /** Items */
-  items: z.array(z.lazy(() => SortItemSchema)),
 })
 
 
@@ -1161,18 +1146,6 @@ export const ListResponseData_DeviceResponse_Schema = z.object({
 })
 
 
-export const ListResponseData_MenuResponse_Schema = z.object({
-  /** Items */
-  items: z.array(z.lazy(() => MenuResponseSchema)).optional(),
-  /** Limit */
-  limit: z.number().min(0).optional().default(0),
-  /** Offset */
-  offset: z.number().min(0).optional().default(0),
-  /** Total */
-  total: z.number().min(0).optional().default(0),
-})
-
-
 export const ListResponseData_PermissionResponse_Schema = z.object({
   /** Items */
   items: z.array(z.lazy(() => PermissionResponseSchema)).optional(),
@@ -1430,18 +1403,6 @@ export const ListResponseSchemaModel_DeviceResponse_Schema = z.object({
   code: z.string().optional().default("1000"),
   /** 响应数据 */
   data: z.union([z.lazy(() => ListResponseData_DeviceResponse_Schema), z.null()]).optional(),
-  /** Message */
-  message: z.string().optional().default("操作成功"),
-  /** Timestamp */
-  timestamp: z.string().optional(),
-})
-
-
-export const ListResponseSchemaModel_MenuResponse_Schema = z.object({
-  /** Code */
-  code: z.string().optional().default("1000"),
-  /** 响应数据 */
-  data: z.union([z.lazy(() => ListResponseData_MenuResponse_Schema), z.null()]).optional(),
   /** Message */
   message: z.string().optional().default("操作成功"),
   /** Timestamp */
@@ -1793,188 +1754,6 @@ export const MaterialLocationResultSchema = z.object({
   query_entry: z.string(),
   /** Source */
   source: z.union([z.string(), z.null()]).optional(),
-})
-
-
-/**
- * 菜单创建 Schema
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const MenuCreateSchema = z.object({
-  /** Component */
-  component: z.union([z.string().max(200), z.null()]).optional(),
-  /** Has Children */
-  has_children: z.boolean().optional().default(false),
-  /** Icon */
-  icon: z.union([z.string().max(50), z.null()]).optional(),
-  /** Is Hidden */
-  is_hidden: z.boolean().optional().default(false),
-  /** Level */
-  level: z.number().optional().default(1),
-  /** Name */
-  name: z.string().max(50),
-  /** Parent Id */
-  parent_id: z.union([z.number(), z.null()]).optional(),
-  /** Path */
-  path: z.string().max(200),
-  /** Sort Order */
-  sort_order: z.number().optional().default(0),
-  /** Title */
-  title: z.string().max(50),
-  /** Tree Path */
-  tree_path: z.string().optional().default("/"),
-})
-
-
-/**
- * 菜单响应 Schema
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const MenuResponseSchema = z.object({
-  /** Component */
-  component: z.union([z.string().max(200), z.null()]).optional(),
-  /** Has Children */
-  has_children: z.boolean().optional().default(false),
-  /** Icon */
-  icon: z.union([z.string().max(50), z.null()]).optional(),
-  /** Id */
-  id: z.number(),
-  /** Is Hidden */
-  is_hidden: z.boolean().optional().default(false),
-  /** Level */
-  level: z.number().optional().default(1),
-  /** Name */
-  name: z.string().max(50),
-  /** Parent Id */
-  parent_id: z.union([z.number(), z.null()]).optional(),
-  /** Path */
-  path: z.string().max(200),
-  /** Roles */
-  roles: z.array(z.lazy(() => RoleResponseSchema)).optional(),
-  /** Sort Order */
-  sort_order: z.number().optional().default(0),
-  /** Title */
-  title: z.string().max(50),
-  /** Tree Path */
-  tree_path: z.string().optional().default("/"),
-  /** Version */
-  version: z.number(),
-})
-
-
-/**
- * 菜单树响应 Schema
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const MenuTreeResponseSchema = z.lazy((): z.ZodTypeAny => z.object({
-  /** Children */
-  children: z.array(z.lazy(() => MenuTreeResponseSchema)).optional(),
-  /** Component */
-  component: z.union([z.string().max(200), z.null()]).optional(),
-  /** Has Children */
-  has_children: z.boolean().optional().default(false),
-  /** Icon */
-  icon: z.union([z.string().max(50), z.null()]).optional(),
-  /** Id */
-  id: z.number(),
-  /** Is Hidden */
-  is_hidden: z.boolean().optional().default(false),
-  /** Level */
-  level: z.number().optional().default(1),
-  /** Name */
-  name: z.string().max(50),
-  /** Parent Id */
-  parent_id: z.union([z.number(), z.null()]).optional(),
-  /** Path */
-  path: z.string().max(200),
-  /** Roles */
-  roles: z.array(z.lazy(() => RoleResponseSchema)).optional(),
-  /** Sort Order */
-  sort_order: z.number().optional().default(0),
-  /** Title */
-  title: z.string().max(50),
-  /** Tree Path */
-  tree_path: z.string().optional().default("/"),
-  /** Version */
-  version: z.number(),
-}))
-
-
-/**
- * 菜单树响应 Schema
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const MenuTreeResponseSimpleSchema = z.lazy((): z.ZodTypeAny => z.object({
-  /** Children */
-  children: z.array(z.lazy(() => MenuTreeResponseSimpleSchema)).optional(),
-  /** Component */
-  component: z.union([z.string().max(200), z.null()]).optional(),
-  /** Has Children */
-  has_children: z.boolean().optional().default(false),
-  /** Icon */
-  icon: z.union([z.string().max(50), z.null()]).optional(),
-  /** Id */
-  id: z.number(),
-  /** Is Hidden */
-  is_hidden: z.boolean().optional().default(false),
-  /** Level */
-  level: z.number().optional().default(1),
-  /** Name */
-  name: z.string().max(50),
-  /** Parent Id */
-  parent_id: z.union([z.number(), z.null()]).optional(),
-  /** Path */
-  path: z.string().max(200),
-  /** Sort Order */
-  sort_order: z.number().optional().default(0),
-  /** Title */
-  title: z.string().max(50),
-  /** Tree Path */
-  tree_path: z.string().optional().default("/"),
-  /** Version */
-  version: z.number(),
-}))
-
-
-/**
- * 菜单更新 Schema
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const MenuUpdateSchema = z.object({
-  /** Component */
-  component: z.union([z.string().max(200), z.null()]).optional(),
-  /** Has Children */
-  has_children: z.union([z.boolean(), z.null()]).optional(),
-  /** Icon */
-  icon: z.union([z.string().max(50), z.null()]).optional(),
-  /** Is Hidden */
-  is_hidden: z.union([z.boolean(), z.null()]).optional(),
-  /** Level */
-  level: z.union([z.number(), z.null()]).optional(),
-  /** Name */
-  name: z.union([z.string().max(50), z.null()]).optional(),
-  /** Parent Id */
-  parent_id: z.union([z.number(), z.null()]).optional(),
-  /** Path */
-  path: z.union([z.string().max(200), z.null()]).optional(),
-  /** Sort Order */
-  sort_order: z.union([z.number(), z.null()]).optional(),
-  /** Title */
-  title: z.union([z.string().max(50), z.null()]).optional(),
-  /** Tree Path */
-  tree_path: z.union([z.string(), z.null()]).optional(),
-  /** Version */
-  version: z.number(),
 })
 
 
@@ -2851,22 +2630,6 @@ export const SortFieldSchema = z.object({
   field: z.string(),
   /** Order */
   order: z.enum(["asc", "desc"]).optional().default("desc"),
-})
-
-
-/**
- * 批量排序项
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const SortItemSchema = z.object({
-  /** Id */
-  id: z.number(),
-  /** Parent Id */
-  parent_id: z.union([z.number(), z.null()]).optional(),
-  /** Sort Order */
-  sort_order: z.number().optional().default(0),
 })
 
 

@@ -127,7 +127,6 @@ pipeline {
                             sh -lc '
                                 pnpm config set store-dir "${PNPM_STORE_DIR}" &&
                                 pnpm install --frozen-lockfile --prefer-offline &&
-                                pnpm run menu:generate &&
                                 pnpm run test &&
                                 pnpm run contract:test &&
                                 pnpm run contract:verify &&
@@ -162,7 +161,7 @@ pipeline {
                     env.WES_FRONTEND_DEPENDENCIES_SHA256 = values[3]
                     env.WES_FRONTEND_RECIPE_SHA256 = values[4]
                 }
-                archiveArtifacts artifacts: 'artifacts/menu-manifest.json,artifacts/release-consumer/*', fingerprint: true
+                archiveArtifacts artifacts: 'artifacts/release-consumer/*', fingerprint: true
             }
         }
 

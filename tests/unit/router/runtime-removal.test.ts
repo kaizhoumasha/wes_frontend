@@ -2,7 +2,6 @@ import type { RouteRecordRaw } from 'vue-router'
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
-import { buildCurrentMenuManifest } from '@/router/menu-manifest'
 import { createRoutes } from '@/router/routes'
 
 const mocks = vi.hoisted(() => ({
@@ -57,14 +56,17 @@ function flatten(routes: readonly RouteRecordRaw[]): RouteRecordRaw[] {
 }
 
 describe('legacy runtime removal', () => {
-  it('does not publish legacy runtime routes or menu entries', () => {
+  it('does not publish legacy runtime routes', () => {
     const routes = flatten(createRoutes())
-    const menu = buildCurrentMenuManifest()
 
     expect(routes.some(route => route.name === 'RuntimeRoot')).toBe(false)
     expect(routes.some(route => route.path === 'runtime')).toBe(false)
-    expect(menu.some(entry => entry.name.startsWith('runtime:'))).toBe(false)
-    expect(menu.some(entry => entry.path.startsWith('/runtime'))).toBe(false)
+  })
+
+  it('does not register the retired menu administration page', () => {
+    const routes = flatten(createRoutes())
+
+    expect(routes.some(route => route.name === 'MenuList')).toBe(false)
   })
 
   it('keeps the standard layout for a runtimeImmersive route meta', () => {

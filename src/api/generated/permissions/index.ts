@@ -7,7 +7,6 @@
  */
 
 import { API_TRY_PERMISSION } from './app_api/api/try'
-import { ADMIN_MENU_PERMISSION } from './user_api/admin/menu'
 import { ADMIN_PERMISSION } from './user_api/admin/permission'
 import { ADMIN_ROLE_PERMISSION } from './user_api/admin/role'
 import { ADMIN_USER_PERMISSION } from './user_api/admin/user'
@@ -36,7 +35,6 @@ import { SYS_RUNTIME_OPERATIONS_PERMISSION } from './user_api/sys/runtime-operat
 
 
 export { API_TRY_PERMISSION }
-export { ADMIN_MENU_PERMISSION }
 export { ADMIN_PERMISSION }
 export { ADMIN_ROLE_PERMISSION }
 export { ADMIN_USER_PERMISSION }
@@ -67,7 +65,6 @@ export { SYS_RUNTIME_OPERATIONS_PERMISSION }
  * admin 分类权限快捷导出
  */
 export const ADMIN_PERMISSIONS = {
-  menu: ADMIN_MENU_PERMISSION,
   permission: ADMIN_PERMISSION,
   role: ADMIN_ROLE_PERMISSION,
   user: ADMIN_USER_PERMISSION,

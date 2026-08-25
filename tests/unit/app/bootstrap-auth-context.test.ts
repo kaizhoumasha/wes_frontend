@@ -5,7 +5,6 @@ import type { ApiPermissionInfo, MyResult, UserInfo } from '@/api/modules/auth'
 const mocks = vi.hoisted(() => ({
   mySend: vi.fn(),
   permissionsSend: vi.fn(),
-  menuTreeSend: vi.fn(),
   getAccessToken: vi.fn(),
   setAccessToken: vi.fn()
 }))
@@ -14,12 +13,6 @@ vi.mock('@/api/modules/auth', () => ({
   authApiMethods: {
     my: () => ({ send: mocks.mySend }),
     permissions: () => ({ send: mocks.permissionsSend })
-  }
-}))
-
-vi.mock('@/api/modules/menus', () => ({
-  menusApiMethods: {
-    tree: () => ({ send: mocks.menuTreeSend })
   }
 }))
 
@@ -59,8 +52,7 @@ function createPermission(name: string): ApiPermissionInfo {
 function createMyContext(isSuperuser: boolean): MyResult {
   return {
     user: createUser(isSuperuser),
-    permissions: [createPermission(BIZ_WORKLINE_PERMISSION.list)],
-    menus: []
+    permissions: [createPermission(BIZ_WORKLINE_PERMISSION.list)]
   }
 }
 
@@ -77,7 +69,6 @@ describe('bootstrapAuthContext', () => {
     clearStorage(localStorage)
     clearStorage(sessionStorage)
     mocks.getAccessToken.mockReturnValue(null)
-    mocks.menuTreeSend.mockResolvedValue([])
     mocks.permissionsSend.mockResolvedValue({ permissions: [] })
   })
 
@@ -112,7 +103,7 @@ describe('bootstrapAuthContext', () => {
     expect(hasPermission(BIZ_WORKLINE_PERMISSION.clearEstop)).toBe(false)
   })
 
-  it('hydrates an empty /auth/my permission list without requesting permissions or menus', async () => {
+  it('hydrates an empty /auth/my permission list without requesting the legacy permissions endpoint', async () => {
     mocks.mySend.mockResolvedValue({
       ...createMyContext(false),
       permissions: []
@@ -125,6 +116,5 @@ describe('bootstrapAuthContext', () => {
     expect(usePermission().isInitialized.value).toBe(true)
     expect(usePermission().permissions.value).toEqual([])
     expect(mocks.permissionsSend).not.toHaveBeenCalled()
-    expect(mocks.menuTreeSend).not.toHaveBeenCalled()
   })
 })
