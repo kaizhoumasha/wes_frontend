@@ -30,11 +30,26 @@ pnpm install
 
 ### 开发模式
 
+仅调试前端页面且不依赖真实后端行为时：
+
 ```bash
 pnpm dev
 ```
 
 访问: http://localhost:5173
+
+需要前后端、PostgreSQL/Redis、Celery、WMS/ECS Mock 共同运行时，显式指定两个 checkout，再使用后端唯一联调入口。这样从主仓库或任意标准 worktree 执行都不会依赖目录相邻关系：
+
+```bash
+export WES_BACKEND_ROOT=/absolute/path/to/wes_backend
+export WES_FRONTEND_ROOT="$(git rev-parse --show-toplevel)"
+cd "$WES_BACKEND_ROOT"
+./scripts/dev-env.sh up
+./scripts/dev-env.sh check
+./scripts/dev-env.sh logs frontend api
+```
+
+联调容器绑定当前前端源码并启用 Vite HMR；使用 `./scripts/dev-env.sh down` 停止后会保留持久化数据和前端依赖缓存。完整规范位于后端仓库 `docs/devops/local-development-environment.md`。
 
 ### 构建生产版本
 
