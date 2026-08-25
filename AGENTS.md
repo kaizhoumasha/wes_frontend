@@ -51,8 +51,8 @@
 
 ## 配置与架构注意事项
 
-- 当前仓库是前端项目；后端是独立代码库，位于 `../wes_backend`。涉及后端实现、接口逻辑或服务端代码时，应切换到对应后端仓库处理，避免在当前前端仓库中混淆修改。
-- 完整前后端本机调试由 `../wes_backend/scripts/dev-env.sh` 唯一编排；先在后端仓库运行 `up`，用 `check` 验证，用 `logs frontend` 排障。当前仓库的 `docker-compose.yml` 只用于独立生产构建预览，不得作为联调入口。
+- 当前仓库是前端项目，后端是独立代码库。涉及后端实现、接口逻辑或服务端代码时，应通过显式 `WES_BACKEND_ROOT` 切换到实际后端 checkout；前端 worktree 不得用 `../wes_backend` 推断后端位置。
+- 完整前后端本机调试由 `$WES_BACKEND_ROOT/scripts/dev-env.sh` 唯一编排；执行前把 `WES_FRONTEND_ROOT` 设为当前前端 checkout，再在后端仓库运行 `up`，用 `check` 验证，用 `logs frontend` 排障。当前仓库的 `docker-compose.yml` 只用于独立生产构建预览，不得作为联调入口。
 - 联调容器通过源码挂载和 Vite HMR 热更新；依赖安装必须使用 frozen lockfile。`package.json` 或 `pnpm-lock.yaml` 变化后重新运行后端 `dev-env.sh up`，不得让容器隐式修改锁文件。
 - 大改动前先阅读 `CLAUDE.md`；业务代码不要直接读取 `import.meta.env`，统一通过 `src/config/env.ts` 或 `useEnv()`。
 - 认证守卫与 token 刷新逻辑已集中在 `src/router/guards/`、`src/app/bootstrap-auth-context.ts` 与 `src/api/client.ts`，扩展时优先复用现有流程。

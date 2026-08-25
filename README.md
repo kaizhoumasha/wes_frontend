@@ -38,10 +38,12 @@ pnpm dev
 
 访问: http://localhost:5173
 
-需要前后端、PostgreSQL/Redis、Celery、WMS/ECS Mock 共同运行时，从相邻后端仓库使用唯一联调入口：
+需要前后端、PostgreSQL/Redis、Celery、WMS/ECS Mock 共同运行时，显式指定两个 checkout，再使用后端唯一联调入口。这样从主仓库或任意标准 worktree 执行都不会依赖目录相邻关系：
 
 ```bash
-cd ../wes_backend
+export WES_BACKEND_ROOT=/absolute/path/to/wes_backend
+export WES_FRONTEND_ROOT="$(git rev-parse --show-toplevel)"
+cd "$WES_BACKEND_ROOT"
 ./scripts/dev-env.sh up
 ./scripts/dev-env.sh check
 ./scripts/dev-env.sh logs frontend api
