@@ -3,13 +3,6 @@ pipeline {
         label 'WES'
     }
 
-    parameters {
-        string(name: 'BACKEND_IMAGE_TAG', description: '已批准的后端不可变镜像标签（构建号-commit 前 7 位）')
-        string(name: 'BACKEND_COMMIT_SHA', description: '已批准且用于冻结前端契约的后端完整 commit SHA')
-        string(name: 'DEPLOY_SOURCE_COMMIT_SHA', description: '已批准的后端部署编排完整 commit SHA')
-        string(name: 'FRONTEND_COMMIT_SHA', description: '已批准发布的前端完整 commit SHA')
-    }
-
     environment {
         REGISTRY_URL = '192.168.0.220:5050'
         IMAGE_REPO = '192.168.0.220:5050/wes/wes_frontend'
@@ -31,12 +24,17 @@ pipeline {
                     String sourceBranch = env.gitlabSourceBranch ?: env.gitlabBranch ?: 'develop'
                     String targetBranch = env.gitlabTargetBranch ?: ''
                     String gitlabActionType = (env.gitlabActionType ?: env.GITLAB_OBJECT_KIND ?: '').trim().toUpperCase()
+                    String beforeCommit = (env.gitlabBefore ?: '').trim()
+                    String afterCommit = (env.gitlabAfter ?: '').trim()
                     boolean hasMergeRequestId = ((env.gitlabMergeRequestId ?: '').trim()) as boolean
                     boolean isMergeRequest = gitlabActionType.contains('MERGE') || hasMergeRequestId
+                    boolean isDevelopPush = gitlabActionType == 'PUSH' && sourceBranch == 'develop' && !isMergeRequest
 
                     env.CI_SOURCE_BRANCH = sourceBranch
                     env.CI_TARGET_BRANCH = targetBranch
                     env.CI_EVENT_TYPE = gitlabActionType ?: 'MANUAL'
+                    env.CI_IS_MERGE_REQUEST = isMergeRequest ? 'true' : 'false'
+                    env.CI_RELEASE_GATE_READY = 'false'
 
                     echo "📥 检出前端源码: source=${sourceBranch}, target=${targetBranch ?: '-'}, event=${env.CI_EVENT_TYPE}"
 
@@ -66,73 +64,30 @@ pipeline {
 
                     String fullCommit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
                     String sourceTree = sh(returnStdout: true, script: 'git rev-parse HEAD^{tree}').trim()
-                    String approvedBackendCommit = params.BACKEND_COMMIT_SHA?.trim()
-                    String approvedBackendTag = params.BACKEND_IMAGE_TAG?.trim()
-                    String approvedDeploySourceCommit = params.DEPLOY_SOURCE_COMMIT_SHA?.trim()
-                    String approvedFrontendCommit = params.FRONTEND_COMMIT_SHA?.trim()
-                    String contractBackendCommit = sh(returnStdout: true, script: '''awk -F'"' '$2 == "backendCommit" { print $4 }' .contract-sync-record.json''').trim()
-                    String permissionsBackendCommit = sh(returnStdout: true, script: '''awk -F'"' '$2 == "backendCommit" { print $4 }' .permission-sync-record.json''').trim()
-                    String openApiSha256 = sh(returnStdout: true, script: '''awk -F'"' '$2 == "openApiSha256" { print $4 }' .contract-sync-record.json''').trim()
-                    String permissionsSha256 = sh(returnStdout: true, script: '''awk -F'"' '$2 == "permissionsSha256" { print $4 }' .permission-sync-record.json''').trim()
-                    boolean hasAnyReleaseInput = approvedBackendCommit || approvedBackendTag || approvedDeploySourceCommit || approvedFrontendCommit
-                    boolean hasAllReleaseInputs = approvedBackendCommit && approvedBackendTag && approvedDeploySourceCommit && approvedFrontendCommit
-                    if (hasAnyReleaseInput && !hasAllReleaseInputs) {
-                        error('成对发布必须同时提供 BACKEND_IMAGE_TAG、BACKEND_COMMIT_SHA、DEPLOY_SOURCE_COMMIT_SHA 和 FRONTEND_COMMIT_SHA')
-                    }
-                    if (!(contractBackendCommit ==~ /[0-9a-f]{40}/)) {
-                        error('contract sync record 中的 backendCommit 必须是 40 位小写 commit SHA')
-                    }
-                    if (permissionsBackendCommit != contractBackendCommit) {
-                        error('contract 与 permission sync record 未绑定到同一后端 commit')
-                    }
-                    if (!(openApiSha256 ==~ /[0-9a-f]{64}/)) {
-                        error('contract sync record 中的 openApiSha256 必须是 64 位小写 SHA-256')
-                    }
-                    if (!(permissionsSha256 ==~ /[0-9a-f]{64}/)) {
-                        error('permission sync record 中的 permissionsSha256 必须是 64 位小写 SHA-256')
-                    }
-                    if (hasAllReleaseInputs) {
-                        if (!(approvedBackendCommit ==~ /[0-9a-f]{40}/)) {
-                            error('BACKEND_COMMIT_SHA 必须是已批准的 40 位小写 commit SHA')
+                    if (isDevelopPush) {
+                        if (!(beforeCommit ==~ /^[0-9a-fA-F]{40}$/) || beforeCommit ==~ /^0{40}$/) {
+                            error('Develop push requires a non-zero 40-character gitlabBefore')
                         }
-                        if (contractBackendCommit != approvedBackendCommit) {
-                            error('contract sync record 未绑定到已批准的后端 commit')
+                        if (!(afterCommit ==~ /^[0-9a-fA-F]{40}$/) || !afterCommit.equalsIgnoreCase(fullCommit)) {
+                            error('Develop push gitlabAfter must match the checked out HEAD')
                         }
-                        if (!(approvedBackendTag ==~ /[0-9]+-${approvedBackendCommit.take(7)}/)) {
-                            error('BACKEND_IMAGE_TAG 必须是已批准后端 commit 对应的不可变构建标签')
+                        int ancestryStatus = sh(
+                            returnStatus: true,
+                            script: "git merge-base --is-ancestor '${beforeCommit}' '${fullCommit}'"
+                        )
+                        if (ancestryStatus != 0) {
+                            error('Develop push must fast-forward from gitlabBefore')
                         }
-                        if (!(approvedDeploySourceCommit ==~ /[0-9a-f]{40}/)) {
-                            error('DEPLOY_SOURCE_COMMIT_SHA 必须是已批准的 40 位小写 commit SHA')
-                        }
-                        if (!(approvedFrontendCommit ==~ /[0-9a-f]{40}/)) {
-                            error('FRONTEND_COMMIT_SHA 必须是已批准的 40 位小写 commit SHA')
-                        }
-                        if (approvedFrontendCommit != fullCommit) {
-                            error('FRONTEND_COMMIT_SHA 与实际检出的前端 commit 不一致')
-                        }
-                        if (sourceBranch != 'develop') {
-                            error('成对发布只能从 develop 分支执行')
-                        }
-                        if (env.CI_EVENT_TYPE != 'MANUAL') {
-                            error('成对发布只能通过显式参数化构建执行')
-                        }
+                        env.CI_RELEASE_GATE_READY = 'true'
                     }
                     String shortCommit = fullCommit.take(7)
-                    String branchTag = sourceBranch.replaceAll(/[^A-Za-z0-9_.-]+/, '-')
 
                     env.CI_COMMIT_SHA = fullCommit
                     env.CI_SOURCE_TREE = sourceTree
-                    env.CI_BACKEND_COMMIT_SHA = contractBackendCommit
-                    env.CI_BACKEND_IMAGE_TAG = approvedBackendTag
-                    env.CI_DEPLOY_SOURCE_COMMIT_SHA = approvedDeploySourceCommit
-                    env.CI_OPENAPI_SHA256 = openApiSha256
-                    env.CI_PERMISSIONS_SHA256 = permissionsSha256
-                    env.CI_PAIRED_RELEASE = hasAllReleaseInputs ? 'true' : 'false'
                     env.CI_SHORT_COMMIT = shortCommit
-                    env.CI_BRANCH_TAG = branchTag
                     env.CI_DOCKER_IMAGE_LOCAL = "wes-frontend-ci:${env.BUILD_NUMBER}-${shortCommit}"
-                    env.CI_DOCKER_IMAGE_COMMIT = "${env.IMAGE_REPO}:${env.BUILD_NUMBER}-${shortCommit}"
-                    env.CI_DOCKER_IMAGE_BRANCH = "${env.IMAGE_REPO}:${branchTag}"
+                    env.CI_DOCKER_IMAGE_COMMIT = "${env.IMAGE_REPO}:${fullCommit}"
+                    env.CI_DOCKER_IMAGE_CHANNEL = "${env.IMAGE_REPO}:develop"
 
                     echo "🐳 前端镜像标签: ${env.CI_DOCKER_IMAGE_COMMIT}"
                 }
@@ -155,46 +110,76 @@ pipeline {
 
         stage('Frontend Quality Checks') {
             steps {
-                sh '''
-                    set -e
-                    mkdir -p /opt/jenkins_cache/pnpm-store
-                    docker run --rm \
-                        -e HUSKY=0 \
-                        -e CI=true \
-                        -e ELECTRON_SKIP_BINARY_DOWNLOAD=1 \
-                        -e ELECTRON_SKIP_DOWNLOAD=1 \
-                        -e PNPM_STORE_DIR=/pnpm/store \
-                        -v "$WORKSPACE:/app" \
-                        -v /opt/jenkins_cache/pnpm-store:/pnpm/store \
-                        -w /app \
-                        "${CI_TOOLS_IMAGE}" \
-                        sh -lc '
-                            pnpm config set store-dir "${PNPM_STORE_DIR}" &&
-                            pnpm install --frozen-lockfile --prefer-offline &&
-                            pnpm run menu:generate &&
-                            pnpm run test &&
-                            pnpm run contract:test &&
-                            pnpm run contract:verify &&
-                            pnpm run lint &&
-                            pnpm run build:dev
-                        '
-                '''
-                archiveArtifacts artifacts: 'artifacts/menu-manifest.json', fingerprint: true
+                script {
+                    sh '''
+                        set -e
+                        mkdir -p /opt/jenkins_cache/pnpm-store
+                        docker run --rm \
+                            -e HUSKY=0 \
+                            -e CI=true \
+                            -e ELECTRON_SKIP_BINARY_DOWNLOAD=1 \
+                            -e ELECTRON_SKIP_DOWNLOAD=1 \
+                            -e PNPM_STORE_DIR=/pnpm/store \
+                            -v "$WORKSPACE:/app" \
+                            -v /opt/jenkins_cache/pnpm-store:/pnpm/store \
+                            -w /app \
+                            "${CI_TOOLS_IMAGE}" \
+                            sh -lc '
+                                pnpm config set store-dir "${PNPM_STORE_DIR}" &&
+                                pnpm install --frozen-lockfile --prefer-offline &&
+                                pnpm run menu:generate &&
+                                pnpm run test &&
+                                pnpm run contract:test &&
+                                pnpm run contract:verify &&
+                                pnpm permission:verify &&
+                                pnpm export:release-consumer --out-dir artifacts/release-consumer &&
+                                pnpm run lint &&
+                                pnpm run build:dev
+                            '
+                    '''
+                    String rawFacts = sh(
+                        returnStdout: true,
+                        script: '''
+                            docker run --rm \
+                                -e PNPM_STORE_DIR=/pnpm/store \
+                                -v "$WORKSPACE:/app" \
+                                -v /opt/jenkins_cache/pnpm-store:/pnpm/store \
+                                -w /app \
+                                "${CI_TOOLS_IMAGE}" \
+                                pnpm exec tsx -e 'import { validateReleaseConsumerArtifacts } from "./scripts/lib/release-consumer.ts"; const f = validateReleaseConsumerArtifacts("artifacts/release-consumer"); console.log([f.consumer_openapi_sha256, f.required_operations_sha256, f.required_permissions_sha256, f.dependencies_sha256, f.recipe_sha256].join("\\n"))'
+                        '''
+                    )
+                    List<String> values = rawFacts.split('\n', -1) as List<String>
+                    if (values.size() != 6 || values[-1] != '') {
+                        error('Frontend release facts must contain exactly five newline-terminated values')
+                    }
+                    if (!values[0..4].every { it ==~ /^[0-9a-f]{64}$/ }) {
+                        error('Frontend release SHA-256 facts must be lowercase hex')
+                    }
+                    env.WES_CONSUMER_OPENAPI_SHA256 = values[0]
+                    env.WES_REQUIRED_OPERATIONS_SHA256 = values[1]
+                    env.WES_REQUIRED_PERMISSIONS_SHA256 = values[2]
+                    env.WES_FRONTEND_DEPENDENCIES_SHA256 = values[3]
+                    env.WES_FRONTEND_RECIPE_SHA256 = values[4]
+                }
+                archiveArtifacts artifacts: 'artifacts/menu-manifest.json,artifacts/release-consumer/*', fingerprint: true
             }
         }
 
         stage('Build Frontend Image') {
             steps {
                 sh '''
-                    set -e
+                    set -eu
                     docker build \
                         --provenance=false \
                         --sbom=false \
                         --build-arg WES_VCS_REVISION="${CI_COMMIT_SHA}" \
                         --build-arg WES_SOURCE_TREE="${CI_SOURCE_TREE}" \
-                        --build-arg WES_OPENAPI_SHA256="${CI_OPENAPI_SHA256}" \
-                        --build-arg WES_PERMISSIONS_SHA256="${CI_PERMISSIONS_SHA256}" \
-                        --build-arg WES_BACKEND_CONTRACT_REVISION="${CI_BACKEND_COMMIT_SHA}" \
+                        --build-arg WES_CONSUMER_OPENAPI_SHA256="${WES_CONSUMER_OPENAPI_SHA256}" \
+                        --build-arg WES_REQUIRED_OPERATIONS_SHA256="${WES_REQUIRED_OPERATIONS_SHA256}" \
+                        --build-arg WES_REQUIRED_PERMISSIONS_SHA256="${WES_REQUIRED_PERMISSIONS_SHA256}" \
+                        --build-arg WES_FRONTEND_DEPENDENCIES_SHA256="${WES_FRONTEND_DEPENDENCIES_SHA256}" \
+                        --build-arg WES_FRONTEND_RECIPE_SHA256="${WES_FRONTEND_RECIPE_SHA256}" \
                         --build-arg VITE_API_BASE_URL=/api/v1 \
                         --build-arg VITE_APP_DEV=false \
                         --build-arg VITE_APP_TITLE="P9 MCS" \
@@ -207,7 +192,10 @@ pipeline {
         stage('Push Frontend Image') {
             when {
                 expression {
-                    env.CI_PAIRED_RELEASE == 'true'
+                    env.CI_EVENT_TYPE == 'PUSH' &&
+                    env.CI_IS_MERGE_REQUEST != 'true' &&
+                    env.CI_SOURCE_BRANCH == 'develop' &&
+                    env.CI_RELEASE_GATE_READY == 'true'
                 }
             }
             steps {
@@ -216,37 +204,10 @@ pipeline {
                         set -e
                         printf '%s' "$GITLAB_TOKEN" | docker login "${REGISTRY_URL}" -u "$GITLAB_USER" --password-stdin
                         docker tag "${CI_DOCKER_IMAGE_LOCAL}" "${CI_DOCKER_IMAGE_COMMIT}"
-                        docker tag "${CI_DOCKER_IMAGE_LOCAL}" "${CI_DOCKER_IMAGE_BRANCH}"
+                        docker tag "${CI_DOCKER_IMAGE_LOCAL}" "${CI_DOCKER_IMAGE_CHANNEL}"
                         docker push "${CI_DOCKER_IMAGE_COMMIT}"
-                        docker push "${CI_DOCKER_IMAGE_BRANCH}"
+                        docker push "${CI_DOCKER_IMAGE_CHANNEL}"
                     '''
-                }
-            }
-        }
-
-
-        stage('Trigger Test Deploy') {
-            when {
-                expression {
-                    env.CI_PAIRED_RELEASE == 'true'
-                }
-            }
-            steps {
-                script {
-                    echo "🚀 Trigger Test Deploy: source=${env.CI_SOURCE_BRANCH}, event=${env.CI_EVENT_TYPE}, frontend_tag=${env.BUILD_NUMBER}-${env.CI_SHORT_COMMIT}"
-                    build job: 'wes_test_deploy',
-                        wait: true,
-                        propagate: true,
-                        parameters: [
-                            string(name: 'BACKEND_IMAGE_TAG', value: env.CI_BACKEND_IMAGE_TAG),
-                            string(name: 'FRONTEND_IMAGE_TAG', value: "${env.BUILD_NUMBER}-${env.CI_SHORT_COMMIT}"),
-                            string(name: 'BACKEND_COMMIT_SHA', value: env.CI_BACKEND_COMMIT_SHA),
-                            string(name: 'DEPLOY_SOURCE_COMMIT_SHA', value: env.CI_DEPLOY_SOURCE_COMMIT_SHA),
-                            string(name: 'FRONTEND_COMMIT_SHA', value: env.CI_COMMIT_SHA),
-                            string(name: 'OPENAPI_SHA256', value: env.CI_OPENAPI_SHA256),
-                            string(name: 'PERMISSIONS_SHA256', value: env.CI_PERMISSIONS_SHA256),
-                            string(name: 'SOURCE_BRANCH', value: env.CI_SOURCE_BRANCH)
-                        ]
                 }
             }
         }
@@ -257,7 +218,7 @@ pipeline {
             sh '''
                 docker image rm -f "${CI_DOCKER_IMAGE_LOCAL}" >/dev/null 2>&1 || true
                 docker image rm -f "${CI_DOCKER_IMAGE_COMMIT}" >/dev/null 2>&1 || true
-                docker image rm -f "${CI_DOCKER_IMAGE_BRANCH}" >/dev/null 2>&1 || true
+                docker image rm -f "${CI_DOCKER_IMAGE_CHANNEL}" >/dev/null 2>&1 || true
             '''
             cleanWs()
         }

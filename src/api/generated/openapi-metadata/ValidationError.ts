@@ -17,6 +17,17 @@ export const ValidationErrorMetadata = {
     "type"
   ],
   "fields": {
+    "ctx": {
+      "title": "Context",
+      "type": "object",
+      "required": false,
+      "nullable": false
+    },
+    "input": {
+      "title": "Input",
+      "required": false,
+      "nullable": false
+    },
     "loc": {
       "title": "Location",
       "type": "array",
@@ -34,17 +45,6 @@ export const ValidationErrorMetadata = {
       "title": "Error Type",
       "type": "string",
       "required": true,
-      "nullable": false
-    },
-    "input": {
-      "title": "Input",
-      "required": false,
-      "nullable": false
-    },
-    "ctx": {
-      "title": "Context",
-      "type": "object",
-      "required": false,
       "nullable": false
     }
   }

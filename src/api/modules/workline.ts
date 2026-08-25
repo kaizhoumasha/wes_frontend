@@ -18,23 +18,33 @@ import type {
 } from '@/api/contract/types'
 import type { components, paths } from '@/api/generated/openapi-types'
 
-export type SandboxPendingResult = ContractResponseData<'/api/v1/workline/operations/sandbox/pending', 'get'>
-export type SandboxPendingQuery = ContractQueryParams<'/api/v1/workline/operations/sandbox/pending', 'get'>
-
-export type SandboxCompletedResult = ContractResponseData<'/api/v1/workline/operations/sandbox/completed', 'get'>
-export type SandboxCompletedQuery = ContractQueryParams<'/api/v1/workline/operations/sandbox/completed', 'get'>
-
-export type ReplayInboxesResult = ContractResponseData<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>
-export type ReplayInboxesPathParams = ContractPathParams<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>
-export type ReplayInboxesInput = ContractRequestBody<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>
+export type ReconciliationsEffectsResolveResult = ContractResponseData<'/api/v1/workline/operations/reconciliations/effects/{dispatch_key}/resolve', 'post'>
+export type ReconciliationsEffectsResolvePathParams = ContractPathParams<'/api/v1/workline/operations/reconciliations/effects/{dispatch_key}/resolve', 'post'>
+export type ReconciliationsEffectsResolveInput = ContractRequestBody<'/api/v1/workline/operations/reconciliations/effects/{dispatch_key}/resolve', 'post'>
 
 export type ReconciliationsSessionsResolveResult = ContractResponseData<'/api/v1/workline/operations/reconciliations/sessions/{session_id}/resolve', 'post'>
 export type ReconciliationsSessionsResolvePathParams = ContractPathParams<'/api/v1/workline/operations/reconciliations/sessions/{session_id}/resolve', 'post'>
 export type ReconciliationsSessionsResolveInput = ContractRequestBody<'/api/v1/workline/operations/reconciliations/sessions/{session_id}/resolve', 'post'>
 
-export type ReconciliationsEffectsResolveResult = ContractResponseData<'/api/v1/workline/operations/reconciliations/effects/{dispatch_key}/resolve', 'post'>
-export type ReconciliationsEffectsResolvePathParams = ContractPathParams<'/api/v1/workline/operations/reconciliations/effects/{dispatch_key}/resolve', 'post'>
-export type ReconciliationsEffectsResolveInput = ContractRequestBody<'/api/v1/workline/operations/reconciliations/effects/{dispatch_key}/resolve', 'post'>
+export type ReplayInboxesResult = ContractResponseData<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>
+export type ReplayInboxesPathParams = ContractPathParams<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>
+export type ReplayInboxesInput = ContractRequestBody<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>
+
+export type SafetyWorklinesClearEstopResult = ContractResponseData<'/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop', 'post'>
+export type SafetyWorklinesClearEstopPathParams = ContractPathParams<'/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop', 'post'>
+export type SafetyWorklinesClearEstopInput = ContractRequestBody<'/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop', 'post'>
+
+export type SandboxAckResult = ContractResponseData<'/api/v1/workline/operations/sandbox/ack', 'post'>
+export type SandboxAckInput = ContractRequestBody<'/api/v1/workline/operations/sandbox/ack', 'post'>
+
+export type SandboxCompletedResult = ContractResponseData<'/api/v1/workline/operations/sandbox/completed', 'get'>
+export type SandboxCompletedQuery = ContractQueryParams<'/api/v1/workline/operations/sandbox/completed', 'get'>
+
+export type SandboxExternalCallbacksResult = ContractResponseData<'/api/v1/workline/operations/sandbox/external-callbacks', 'post'>
+export type SandboxExternalCallbacksInput = ContractRequestBody<'/api/v1/workline/operations/sandbox/external-callbacks', 'post'>
+
+export type SandboxPendingResult = ContractResponseData<'/api/v1/workline/operations/sandbox/pending', 'get'>
+export type SandboxPendingQuery = ContractQueryParams<'/api/v1/workline/operations/sandbox/pending', 'get'>
 
 export type SandboxWorklinesSimulateEstopResult = ContractResponseData<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/simulate-estop', 'post'>
 export type SandboxWorklinesSimulateEstopPathParams = ContractPathParams<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/simulate-estop', 'post'>
@@ -44,45 +54,17 @@ export type WorklinesStartResult = ContractResponseData<'/api/v1/workline/operat
 export type WorklinesStartPathParams = ContractPathParams<'/api/v1/workline/operations/worklines/{workline_id}/start', 'post'>
 export type WorklinesStartInput = ContractRequestBody<'/api/v1/workline/operations/worklines/{workline_id}/start', 'post'>
 
-export type SafetyWorklinesClearEstopResult = ContractResponseData<'/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop', 'post'>
-export type SafetyWorklinesClearEstopPathParams = ContractPathParams<'/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop', 'post'>
-export type SafetyWorklinesClearEstopInput = ContractRequestBody<'/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop', 'post'>
-
-export type SandboxAckResult = ContractResponseData<'/api/v1/workline/operations/sandbox/ack', 'post'>
-export type SandboxAckInput = ContractRequestBody<'/api/v1/workline/operations/sandbox/ack', 'post'>
-
-export type SandboxExternalCallbacksResult = ContractResponseData<'/api/v1/workline/operations/sandbox/external-callbacks', 'post'>
-export type SandboxExternalCallbacksInput = ContractRequestBody<'/api/v1/workline/operations/sandbox/external-callbacks', 'post'>
-
 export type NorthboundResult = ContractResponseData<'/api/v1/workline/runtime-operations/northbound', 'get'>
 export type NorthboundQuery = ContractQueryParams<'/api/v1/workline/runtime-operations/northbound', 'get'>
 
 export const worklineApiMethods = {
   /**
-   * [biz:workline:sandbox-pending] 查询沙箱待处理 Outbox
-   * @endpoint GET /api/v1/workline/operations/sandbox/pending
+   * [biz:workline:resolve-effect-reconciliation] 提交 EFFECT reconciliation 人工决议
+   * @endpoint POST /api/v1/workline/operations/reconciliations/effects/{dispatch_key}/resolve
    * @returns alova method instance
    */
-  sandboxPending(query?: ContractQueryParams<'/api/v1/workline/operations/sandbox/pending', 'get'>, config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/workline/operations/sandbox/pending', { query, config })
-  },
-
-  /**
-   * [biz:workline:sandbox-completed] 查询沙箱已完成 Outbox
-   * @endpoint GET /api/v1/workline/operations/sandbox/completed
-   * @returns alova method instance
-   */
-  sandboxCompleted(query?: ContractQueryParams<'/api/v1/workline/operations/sandbox/completed', 'get'>, config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/workline/operations/sandbox/completed', { query, config })
-  },
-
-  /**
-   * [biz:workline:replay-inbox] Replay 历史 Inbox
-   * @endpoint POST /api/v1/workline/operations/replay/inboxes/{inbox_id}
-   * @returns alova method instance
-   */
-  replayInboxes(params: ContractPathParams<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>, body: ContractRequestBody<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>, config?: ContractRequestConfig) {
-    return contractMethods.post('/api/v1/workline/operations/replay/inboxes/{inbox_id}', { params, body, config })
+  reconciliationsEffectsResolve(params: ContractPathParams<'/api/v1/workline/operations/reconciliations/effects/{dispatch_key}/resolve', 'post'>, body: ContractRequestBody<'/api/v1/workline/operations/reconciliations/effects/{dispatch_key}/resolve', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/workline/operations/reconciliations/effects/{dispatch_key}/resolve', { params, body, config })
   },
 
   /**
@@ -95,32 +77,12 @@ export const worklineApiMethods = {
   },
 
   /**
-   * [biz:workline:resolve-effect-reconciliation] 提交 EFFECT reconciliation 人工决议
-   * @endpoint POST /api/v1/workline/operations/reconciliations/effects/{dispatch_key}/resolve
+   * [biz:workline:replay-inbox] Replay 历史 Inbox
+   * @endpoint POST /api/v1/workline/operations/replay/inboxes/{inbox_id}
    * @returns alova method instance
    */
-  reconciliationsEffectsResolve(params: ContractPathParams<'/api/v1/workline/operations/reconciliations/effects/{dispatch_key}/resolve', 'post'>, body: ContractRequestBody<'/api/v1/workline/operations/reconciliations/effects/{dispatch_key}/resolve', 'post'>, config?: ContractRequestConfig) {
-    return contractMethods.post('/api/v1/workline/operations/reconciliations/effects/{dispatch_key}/resolve', { params, body, config })
-  },
-
-  /**
-   * [biz:workline:simulate-estop] 沙箱模拟 WorkLine 软件急停冻结
-   * @description 沙箱专用安全模拟入口；不通过普通 sandbox event 流。
-   * @endpoint POST /api/v1/workline/operations/sandbox/worklines/{workline_id}/simulate-estop
-   * @returns alova method instance
-   */
-  sandboxWorklinesSimulateEstop(params: ContractPathParams<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/simulate-estop', 'post'>, body: ContractRequestBody<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/simulate-estop', 'post'>, config?: ContractRequestConfig) {
-    return contractMethods.post('/api/v1/workline/operations/sandbox/worklines/{workline_id}/simulate-estop', { params, body, config })
-  },
-
-  /**
-   * [biz:workline:start] 启动 WorkLine 并激活运行代际
-   * @description In one transaction replay or create the complete Epoch, then wake SYSTEM outbox.
-   * @endpoint POST /api/v1/workline/operations/worklines/{workline_id}/start
-   * @returns alova method instance
-   */
-  worklinesStart(params: ContractPathParams<'/api/v1/workline/operations/worklines/{workline_id}/start', 'post'>, body: ContractRequestBody<'/api/v1/workline/operations/worklines/{workline_id}/start', 'post'>, config?: ContractRequestConfig) {
-    return contractMethods.post('/api/v1/workline/operations/worklines/{workline_id}/start', { params, body, config })
+  replayInboxes(params: ContractPathParams<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>, body: ContractRequestBody<'/api/v1/workline/operations/replay/inboxes/{inbox_id}', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/workline/operations/replay/inboxes/{inbox_id}', { params, body, config })
   },
 
   /**
@@ -142,12 +104,50 @@ export const worklineApiMethods = {
   },
 
   /**
+   * [biz:workline:sandbox-completed] 查询沙箱已完成 Outbox
+   * @endpoint GET /api/v1/workline/operations/sandbox/completed
+   * @returns alova method instance
+   */
+  sandboxCompleted(query?: ContractQueryParams<'/api/v1/workline/operations/sandbox/completed', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/operations/sandbox/completed', { query, config })
+  },
+
+  /**
    * [biz:workline:submit-sandbox-external-callback] 沙箱模拟 External HTTP 回调
    * @endpoint POST /api/v1/workline/operations/sandbox/external-callbacks
    * @returns alova method instance
    */
   sandboxExternalCallbacks(body: ContractRequestBody<'/api/v1/workline/operations/sandbox/external-callbacks', 'post'>, config?: ContractRequestConfig) {
     return contractMethods.post('/api/v1/workline/operations/sandbox/external-callbacks', { body, config })
+  },
+
+  /**
+   * [biz:workline:sandbox-pending] 查询沙箱待处理 Outbox
+   * @endpoint GET /api/v1/workline/operations/sandbox/pending
+   * @returns alova method instance
+   */
+  sandboxPending(query?: ContractQueryParams<'/api/v1/workline/operations/sandbox/pending', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/operations/sandbox/pending', { query, config })
+  },
+
+  /**
+   * [biz:workline:simulate-estop] 沙箱模拟 WorkLine 软件急停冻结
+   * @description 沙箱专用安全模拟入口；不通过普通 sandbox event 流。
+   * @endpoint POST /api/v1/workline/operations/sandbox/worklines/{workline_id}/simulate-estop
+   * @returns alova method instance
+   */
+  sandboxWorklinesSimulateEstop(params: ContractPathParams<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/simulate-estop', 'post'>, body: ContractRequestBody<'/api/v1/workline/operations/sandbox/worklines/{workline_id}/simulate-estop', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/workline/operations/sandbox/worklines/{workline_id}/simulate-estop', { params, body, config })
+  },
+
+  /**
+   * [biz:workline:start] 启动 WorkLine 并激活运行代际
+   * @description In one transaction replay or create the complete Epoch, then wake SYSTEM outbox.
+   * @endpoint POST /api/v1/workline/operations/worklines/{workline_id}/start
+   * @returns alova method instance
+   */
+  worklinesStart(params: ContractPathParams<'/api/v1/workline/operations/worklines/{workline_id}/start', 'post'>, body: ContractRequestBody<'/api/v1/workline/operations/worklines/{workline_id}/start', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/workline/operations/worklines/{workline_id}/start', { params, body, config })
   },
 
   /**

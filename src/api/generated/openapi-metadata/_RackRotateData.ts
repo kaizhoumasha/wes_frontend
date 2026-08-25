@@ -18,6 +18,11 @@ export const _RackRotateDataMetadata = {
   ],
   "additionalProperties": false,
   "fields": {
+    "position": {
+      "required": true,
+      "nullable": false,
+      "ref": "_RackPosition"
+    },
     "rack_id": {
       "title": "Rack Id",
       "type": "string",
@@ -25,11 +30,6 @@ export const _RackRotateDataMetadata = {
       "nullable": false,
       "minLength": 1,
       "maxLength": 100
-    },
-    "position": {
-      "required": true,
-      "nullable": false,
-      "ref": "_RackPosition"
     },
     "target_face": {
       "required": true,

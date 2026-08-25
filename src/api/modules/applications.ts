@@ -39,15 +39,11 @@ export type UpdateApplicationsInput = CrudUpdateInput<typeof APPLICATIONS_COLLEC
 
 export type AvailablePermissionsResult = ContractResponseData<'/api/v1/api_auth/applications/available-permissions', 'get'>
 
-export type RevokeResult = ContractResponseData<'/api/v1/api_auth/applications/{id}/revoke', 'post'>
-export type RevokePathParams = ContractPathParams<'/api/v1/api_auth/applications/{id}/revoke', 'post'>
-
-export type ResetValidityResult = ContractResponseData<'/api/v1/api_auth/applications/{id}/reset-validity', 'post'>
-export type ResetValidityPathParams = ContractPathParams<'/api/v1/api_auth/applications/{id}/reset-validity', 'post'>
-export type ResetValidityInput = ContractRequestBody<'/api/v1/api_auth/applications/{id}/reset-validity', 'post'>
-
 export type TryInvokeResult = ContractResponseData<'/api/v1/api_auth/applications/try/invoke', 'post'>
 export type TryInvokeInput = ContractRequestBody<'/api/v1/api_auth/applications/try/invoke', 'post'>
+
+export type PermanentResult = ContractResponseData<'/api/v1/api_auth/applications/{id}/permanent', 'delete'>
+export type PermanentPathParams = ContractPathParams<'/api/v1/api_auth/applications/{id}/permanent', 'delete'>
 
 export type PermissionsResult = ContractResponseData<'/api/v1/api_auth/applications/{id}/permissions', 'post'>
 export type PermissionsPathParams = ContractPathParams<'/api/v1/api_auth/applications/{id}/permissions', 'post'>
@@ -56,8 +52,12 @@ export type PermissionsInput = ContractRequestBody<'/api/v1/api_auth/application
 export type ResetSecretResult = ContractResponseData<'/api/v1/api_auth/applications/{id}/reset-secret', 'post'>
 export type ResetSecretPathParams = ContractPathParams<'/api/v1/api_auth/applications/{id}/reset-secret', 'post'>
 
-export type PermanentResult = ContractResponseData<'/api/v1/api_auth/applications/{id}/permanent', 'delete'>
-export type PermanentPathParams = ContractPathParams<'/api/v1/api_auth/applications/{id}/permanent', 'delete'>
+export type ResetValidityResult = ContractResponseData<'/api/v1/api_auth/applications/{id}/reset-validity', 'post'>
+export type ResetValidityPathParams = ContractPathParams<'/api/v1/api_auth/applications/{id}/reset-validity', 'post'>
+export type ResetValidityInput = ContractRequestBody<'/api/v1/api_auth/applications/{id}/reset-validity', 'post'>
+
+export type RevokeResult = ContractResponseData<'/api/v1/api_auth/applications/{id}/revoke', 'post'>
+export type RevokePathParams = ContractPathParams<'/api/v1/api_auth/applications/{id}/revoke', 'post'>
 
 const baseApplicationsApiMethods = createSoftDeleteCrudRequestAdapterMethods({
   collection: APPLICATIONS_COLLECTION_PATH as unknown as SoftDeleteCrudResourceCollectionPath,
@@ -83,37 +83,6 @@ export const applicationsApiMethods = {
   },
 
   /**
-   * [api-auth:api_application:revoke] 撤销 API 应用
-   * @endpoint POST /api/v1/api_auth/applications/{id}/revoke
-   * @returns alova method instance
-   */
-  revoke(params: ContractPathParams<'/api/v1/api_auth/applications/{id}/revoke', 'post'>, config?: ContractRequestConfig) {
-    return contractMethods.post('/api/v1/api_auth/applications/{id}/revoke', { params, config })
-  },
-
-  /**
-   * 重置应用有效期
-   * @description 重置应用有效期
-
-基于 created_at 重新计算 expires_at，而不是从当前时间计算。
-这样可以保证"延期"是基于原始创建时间，而不是当前时间。
-
-例如：
-- 应用创建于 2024-01-01，设置有效期 1年，过期时间为 2025-01-01
-- 2024-06-01 重置有效期为 2年，新的过期时间为 2026-01-01（而不是 2026-06-01）
-
-Args:
-    id: 应用 ID
-    data: 包含新的有效期时长和修改原因
-    db: 数据库会话
-   * @endpoint POST /api/v1/api_auth/applications/{id}/reset-validity
-   * @returns alova method instance
-   */
-  resetValidity(params: ContractPathParams<'/api/v1/api_auth/applications/{id}/reset-validity', 'post'>, body: ContractRequestBody<'/api/v1/api_auth/applications/{id}/reset-validity', 'post'>, config?: ContractRequestConfig) {
-    return contractMethods.post('/api/v1/api_auth/applications/{id}/reset-validity', { params, body, config })
-  },
-
-  /**
    * [api:try:invoke] 测试 API 调用
    * @description 测试 API 调用
 
@@ -123,6 +92,15 @@ Args:
    */
   tryInvoke(body: ContractRequestBody<'/api/v1/api_auth/applications/try/invoke', 'post'>, config?: ContractRequestConfig) {
     return contractMethods.post('/api/v1/api_auth/applications/try/invoke', { body, config })
+  },
+
+  /**
+   * [api-auth:api_application:permanent_delete] 永久删除APIApplication
+   * @endpoint DELETE /api/v1/api_auth/applications/{id}/permanent
+   * @returns alova method instance
+   */
+  permanent(params: ContractPathParams<'/api/v1/api_auth/applications/{id}/permanent', 'delete'>, config?: ContractRequestConfig) {
+    return contractMethods.delete('/api/v1/api_auth/applications/{id}/permanent', { params, config })
   },
 
   /**
@@ -148,12 +126,34 @@ Args:
   },
 
   /**
-   * [api-auth:api_application:permanent_delete] 永久删除APIApplication
-   * @endpoint DELETE /api/v1/api_auth/applications/{id}/permanent
+   * 重置应用有效期
+   * @description 重置应用有效期
+
+基于 created_at 重新计算 expires_at，而不是从当前时间计算。
+这样可以保证"延期"是基于原始创建时间，而不是当前时间。
+
+例如：
+- 应用创建于 2024-01-01，设置有效期 1年，过期时间为 2025-01-01
+- 2024-06-01 重置有效期为 2年，新的过期时间为 2026-01-01（而不是 2026-06-01）
+
+Args:
+    id: 应用 ID
+    data: 包含新的有效期时长和修改原因
+    db: 数据库会话
+   * @endpoint POST /api/v1/api_auth/applications/{id}/reset-validity
    * @returns alova method instance
    */
-  permanent(params: ContractPathParams<'/api/v1/api_auth/applications/{id}/permanent', 'delete'>, config?: ContractRequestConfig) {
-    return contractMethods.delete('/api/v1/api_auth/applications/{id}/permanent', { params, config })
+  resetValidity(params: ContractPathParams<'/api/v1/api_auth/applications/{id}/reset-validity', 'post'>, body: ContractRequestBody<'/api/v1/api_auth/applications/{id}/reset-validity', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/api_auth/applications/{id}/reset-validity', { params, body, config })
+  },
+
+  /**
+   * [api-auth:api_application:revoke] 撤销 API 应用
+   * @endpoint POST /api/v1/api_auth/applications/{id}/revoke
+   * @returns alova method instance
+   */
+  revoke(params: ContractPathParams<'/api/v1/api_auth/applications/{id}/revoke', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/api_auth/applications/{id}/revoke', { params, config })
   }
 }
 // ==================== AUTO GENERATED END ====================

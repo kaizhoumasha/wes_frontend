@@ -19,17 +19,18 @@ export const ResolveRuntimeReconciliationRequestMetadata = {
     "confirmed_at"
   ],
   "fields": {
-    "resolution": {
-      "title": "Resolution",
-      "description": "人工对账决议",
-      "type": "string",
-      "required": true,
-      "nullable": false
-    },
     "checks": {
       "title": "Checks",
       "description": "按 reconciliation_reason 要求确认的 checklist",
       "type": "object",
+      "required": true,
+      "nullable": false
+    },
+    "confirmed_at": {
+      "title": "Confirmed At",
+      "description": "现场确认时间",
+      "type": "string",
+      "format": "date-time",
       "required": true,
       "nullable": false
     },
@@ -42,20 +43,19 @@ export const ResolveRuntimeReconciliationRequestMetadata = {
       "minLength": 1,
       "maxLength": 1000
     },
+    "resolution": {
+      "title": "Resolution",
+      "description": "人工对账决议",
+      "type": "string",
+      "required": true,
+      "nullable": false
+    },
     "result_payload": {
       "title": "Result Payload",
       "description": "COMPLETED 时可补录业务结果摘要",
       "type": "object",
       "required": false,
       "nullable": true
-    },
-    "confirmed_at": {
-      "title": "Confirmed At",
-      "description": "现场确认时间",
-      "type": "string",
-      "format": "date-time",
-      "required": true,
-      "nullable": false
     }
   }
 } satisfies OpenApiSchemaMetadata

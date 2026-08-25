@@ -23,16 +23,16 @@ export const EcsCallbackAckMetadata = {
       "required": true,
       "nullable": false
     },
+    "error_detail": {
+      "required": false,
+      "nullable": true,
+      "ref": "EcsCallbackRejectionDetail"
+    },
     "message": {
       "title": "Message",
       "type": "string",
       "required": true,
       "nullable": false
-    },
-    "error_detail": {
-      "required": false,
-      "nullable": true,
-      "ref": "EcsCallbackRejectionDetail"
     }
   }
 } satisfies OpenApiSchemaMetadata

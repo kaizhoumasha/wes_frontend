@@ -18,20 +18,6 @@ export const WorkLineConfigurationStatusMetadata = {
     "can_activate"
   ],
   "fields": {
-    "workline_id": {
-      "title": "Workline Id",
-      "description": "作业线 ID",
-      "type": "integer",
-      "required": true,
-      "nullable": false
-    },
-    "is_active": {
-      "title": "Is Active",
-      "description": "是否已启用",
-      "type": "boolean",
-      "required": true,
-      "nullable": false
-    },
     "can_activate": {
       "title": "Can Activate",
       "description": "是否满足启用条件",
@@ -48,6 +34,20 @@ export const WorkLineConfigurationStatusMetadata = {
       "items": {
         "ref": "WorkLineConfigurationCheck"
       }
+    },
+    "is_active": {
+      "title": "Is Active",
+      "description": "是否已启用",
+      "type": "boolean",
+      "required": true,
+      "nullable": false
+    },
+    "workline_id": {
+      "title": "Workline Id",
+      "description": "作业线 ID",
+      "type": "integer",
+      "required": true,
+      "nullable": false
     }
   }
 } satisfies OpenApiSchemaMetadata

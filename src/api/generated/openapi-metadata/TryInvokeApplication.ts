@@ -19,14 +19,14 @@ export const TryInvokeApplicationMetadata = {
     "command_response"
   ],
   "fields": {
-    "command_name": {
-      "title": "Command Name",
+    "command_description": {
+      "title": "Command Description",
       "type": "string",
       "required": true,
       "nullable": false
     },
-    "command_description": {
-      "title": "Command Description",
+    "command_name": {
+      "title": "Command Name",
       "type": "string",
       "required": true,
       "nullable": false

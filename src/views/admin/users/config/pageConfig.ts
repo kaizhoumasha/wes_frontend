@@ -5,12 +5,31 @@ import type {
 import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
 import { type UsersItem as User, usersApiMethods } from '@/api/modules/users'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
-import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
+import type {
+  CrudPageConfig,
+  CrudPageFeatures,
+  CrudPagePermissionConfig
+} from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
 import { createUserRowActions } from './actionConfig'
 import { userPageFieldConfig } from './fieldConfig'
 
 type UserPageConfig = CrudPageConfig<User, CreateUserInput, UpdateUserInput>
+
+const USER_PAGE_PERMISSIONS = {
+  page: ADMIN_PERMISSIONS.user.page,
+  list: ADMIN_PERMISSIONS.user.list,
+  detail: ADMIN_PERMISSIONS.user.detail,
+  create: ADMIN_PERMISSIONS.user.create,
+  update: ADMIN_PERMISSIONS.user.update,
+  delete: ADMIN_PERMISSIONS.user.delete,
+  bulkDelete: ADMIN_PERMISSIONS.user.bulkDelete,
+  restore: ADMIN_PERMISSIONS.user.restore,
+  trash: ADMIN_PERMISSIONS.user.trash,
+  batchRestore: ADMIN_PERMISSIONS.user.batchRestore,
+  permanentDelete: ADMIN_PERMISSIONS.user.permanentDelete,
+  batchPermanentDelete: ADMIN_PERMISSIONS.user.batchPermanentDelete
+} satisfies CrudPagePermissionConfig
 
 const USER_PAGE_RESOURCE = {
   key: 'users',
@@ -25,7 +44,7 @@ const USER_PAGE_RESOURCE = {
     icon: 'ep:delete'
   },
   methods: usersApiMethods,
-  permissions: ADMIN_PERMISSIONS.user,
+  permissions: USER_PAGE_PERMISSIONS,
   optimisticUpdate: true,
   defaultSort: [{ field: 'updated_at', order: 'desc' as const }]
 }

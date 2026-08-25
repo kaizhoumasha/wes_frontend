@@ -17,64 +17,11 @@ export const APIApplicationResponseMetadata = {
     "remaining_days"
   ],
   "fields": {
-    "version": {
-      "title": "Version",
-      "type": "integer",
-      "required": false,
-      "nullable": false,
-      "default": 0
-    },
-    "created_at": {
-      "title": "Created At",
+    "app_id": {
+      "title": "App Id",
       "type": "string",
-      "format": "date-time",
-      "required": false,
+      "required": true,
       "nullable": false
-    },
-    "updated_at": {
-      "title": "Updated At",
-      "type": "string",
-      "format": "date-time",
-      "required": false,
-      "nullable": true
-    },
-    "id": {
-      "title": "Id",
-      "type": "integer",
-      "required": false,
-      "nullable": true
-    },
-    "deleted_by": {
-      "title": "Deleted By",
-      "type": "integer",
-      "required": false,
-      "nullable": true
-    },
-    "deleted_at": {
-      "title": "Deleted At",
-      "type": "string",
-      "format": "date-time",
-      "required": false,
-      "nullable": true
-    },
-    "is_deleted": {
-      "title": "Is Deleted",
-      "type": "boolean",
-      "required": false,
-      "nullable": false,
-      "default": false
-    },
-    "created_by": {
-      "title": "Created By",
-      "type": "integer",
-      "required": false,
-      "nullable": true
-    },
-    "updated_by": {
-      "title": "Updated By",
-      "type": "integer",
-      "required": false,
-      "nullable": true
     },
     "app_name": {
       "title": "App Name",
@@ -97,6 +44,32 @@ export const APIApplicationResponseMetadata = {
       ],
       "ref": "AppType"
     },
+    "created_at": {
+      "title": "Created At",
+      "type": "string",
+      "format": "date-time",
+      "required": false,
+      "nullable": false
+    },
+    "created_by": {
+      "title": "Created By",
+      "type": "integer",
+      "required": false,
+      "nullable": true
+    },
+    "deleted_at": {
+      "title": "Deleted At",
+      "type": "string",
+      "format": "date-time",
+      "required": false,
+      "nullable": true
+    },
+    "deleted_by": {
+      "title": "Deleted By",
+      "type": "integer",
+      "required": false,
+      "nullable": true
+    },
     "description": {
       "title": "Description",
       "description": "应用描述",
@@ -104,6 +77,19 @@ export const APIApplicationResponseMetadata = {
       "required": false,
       "nullable": true,
       "maxLength": 500
+    },
+    "expires_at": {
+      "title": "Expires At",
+      "type": "string",
+      "format": "date-time",
+      "required": false,
+      "nullable": true
+    },
+    "id": {
+      "title": "Id",
+      "type": "integer",
+      "required": false,
+      "nullable": true
     },
     "ip_whitelist": {
       "title": "Ip Whitelist",
@@ -115,15 +101,21 @@ export const APIApplicationResponseMetadata = {
         "type": "string"
       }
     },
-    "rate_limit_per_minute": {
-      "title": "Rate Limit Per Minute",
-      "description": "每分钟请求限制",
-      "type": "integer",
+    "is_deleted": {
+      "title": "Is Deleted",
+      "type": "boolean",
       "required": false,
       "nullable": false,
-      "default": 100,
-      "minimum": 1,
-      "maximum": 10000
+      "default": false
+    },
+    "permissions": {
+      "title": "Permissions",
+      "type": "array",
+      "required": false,
+      "nullable": false,
+      "items": {
+        "ref": "PermissionResponse"
+      }
     },
     "rate_limit_per_hour": {
       "title": "Rate Limit Per Hour",
@@ -134,6 +126,47 @@ export const APIApplicationResponseMetadata = {
       "default": 5000,
       "minimum": 1,
       "maximum": 1000000
+    },
+    "rate_limit_per_minute": {
+      "title": "Rate Limit Per Minute",
+      "description": "每分钟请求限制",
+      "type": "integer",
+      "required": false,
+      "nullable": false,
+      "default": 100,
+      "minimum": 1,
+      "maximum": 10000
+    },
+    "remaining_days": {
+      "title": "Remaining Days",
+      "description": "剩余天数",
+      "type": "integer",
+      "required": true,
+      "nullable": true
+    },
+    "status": {
+      "required": false,
+      "nullable": false,
+      "default": "active",
+      "enum": [
+        "active",
+        "revoked",
+        "expired"
+      ],
+      "ref": "AppStatus"
+    },
+    "updated_at": {
+      "title": "Updated At",
+      "type": "string",
+      "format": "date-time",
+      "required": false,
+      "nullable": true
+    },
+    "updated_by": {
+      "title": "Updated By",
+      "type": "integer",
+      "required": false,
+      "nullable": true
     },
     "validity_period": {
       "description": "有效期时长",
@@ -150,45 +183,12 @@ export const APIApplicationResponseMetadata = {
       ],
       "ref": "ValidityPeriod"
     },
-    "app_id": {
-      "title": "App Id",
-      "type": "string",
-      "required": true,
-      "nullable": false
-    },
-    "status": {
-      "required": false,
-      "nullable": false,
-      "default": "active",
-      "enum": [
-        "active",
-        "revoked",
-        "expired"
-      ],
-      "ref": "AppStatus"
-    },
-    "expires_at": {
-      "title": "Expires At",
-      "type": "string",
-      "format": "date-time",
-      "required": false,
-      "nullable": true
-    },
-    "permissions": {
-      "title": "Permissions",
-      "type": "array",
-      "required": false,
-      "nullable": false,
-      "items": {
-        "ref": "PermissionResponse"
-      }
-    },
-    "remaining_days": {
-      "title": "Remaining Days",
-      "description": "剩余天数",
+    "version": {
+      "title": "Version",
       "type": "integer",
-      "required": true,
-      "nullable": true
+      "required": false,
+      "nullable": false,
+      "default": 0
     }
   }
 } satisfies OpenApiSchemaMetadata

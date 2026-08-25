@@ -6,13 +6,34 @@ import type {
 import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
 import { menusApiMethods } from '@/api/modules/menus'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
-import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
+import type {
+  CrudPageConfig,
+  CrudPageFeatures,
+  CrudPagePermissionConfig
+} from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
 import { menuPageFieldConfig } from './fieldConfig'
 import { h } from 'vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
 
 type MenuPageConfig = CrudPageConfig<Menu, CreateMenuInput, UpdateMenuInput>
+
+const MENU_PAGE_PERMISSIONS = {
+  page: ADMIN_PERMISSIONS.menu.page,
+  list: ADMIN_PERMISSIONS.menu.list,
+  detail: ADMIN_PERMISSIONS.menu.detail,
+  create: ADMIN_PERMISSIONS.menu.create,
+  update: ADMIN_PERMISSIONS.menu.update,
+  delete: ADMIN_PERMISSIONS.menu.delete,
+  restore: ADMIN_PERMISSIONS.menu.restore,
+  trash: ADMIN_PERMISSIONS.menu.trash,
+  batchRestore: ADMIN_PERMISSIONS.menu.batchRestore,
+  permanentDelete: ADMIN_PERMISSIONS.menu.permanentDelete,
+  batchPermanentDelete: ADMIN_PERMISSIONS.menu.batchPermanentDelete,
+  tree: ADMIN_PERMISSIONS.menu.tree,
+  move: ADMIN_PERMISSIONS.menu.move,
+  batchSort: ADMIN_PERMISSIONS.menu.batchSort
+} satisfies CrudPagePermissionConfig
 
 const MENU_PAGE_RESOURCE = {
   key: 'menus',
@@ -27,7 +48,7 @@ const MENU_PAGE_RESOURCE = {
     icon: 'ep:delete'
   },
   methods: menusApiMethods,
-  permissions: ADMIN_PERMISSIONS.menu,
+  permissions: MENU_PAGE_PERMISSIONS,
   optimisticUpdate: true,
   defaultSort: [{ field: 'sort_order', order: 'asc' as const }],
   // 启用树形模式（非懒加载，后端一次返回完整树）
@@ -93,7 +114,11 @@ const MENU_PAGE_DETAIL: CrudPageDetailConfig<Menu> = {
         { key: 'name', layout: 'half' },
         { key: 'title', layout: 'half' },
         { key: 'path', layout: 'full' },
-        { key: 'icon', layout: 'half', formatter: (v) => v ? h(AppIcon, { icon: v as string, size: 18 }) : '' },
+        {
+          key: 'icon',
+          layout: 'half',
+          formatter: v => (v ? h(AppIcon, { icon: v as string, size: 18 }) : '')
+        },
         { key: 'is_hidden', layout: 'half' }
       ]
     },
@@ -102,7 +127,11 @@ const MENU_PAGE_DETAIL: CrudPageDetailConfig<Menu> = {
       weight: 'secondary',
       fields: [
         { key: 'component', layout: 'full' },
-        { key: 'icon', layout: 'half', formatter: (v) => v ? h(AppIcon, { icon: v as string, size: 18 }) : '' },
+        {
+          key: 'icon',
+          layout: 'half',
+          formatter: v => (v ? h(AppIcon, { icon: v as string, size: 18 }) : '')
+        },
         { key: 'is_hidden', layout: 'half' }
       ]
     }

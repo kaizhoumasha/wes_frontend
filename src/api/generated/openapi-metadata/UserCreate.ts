@@ -19,15 +19,6 @@ export const UserCreateMetadata = {
   ],
   "additionalProperties": false,
   "fields": {
-    "username": {
-      "title": "Username",
-      "description": "用户名",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 3,
-      "maxLength": 50
-    },
     "email": {
       "title": "Email",
       "description": "邮箱",
@@ -52,6 +43,15 @@ export const UserCreateMetadata = {
       "nullable": false,
       "minLength": 6,
       "maxLength": 100
+    },
+    "username": {
+      "title": "Username",
+      "description": "用户名",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "minLength": 3,
+      "maxLength": 50
     }
   }
 } satisfies OpenApiSchemaMetadata

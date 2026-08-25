@@ -6,7 +6,7 @@
  *
  * 权限分组: user_api:sys:runtime-operations
  *
- * 更新权限: pnpm generate:permissions -- --backend-root /path/to/wes_backend
+ * 更新权限: pnpm generate:permissions
  */
 
 export const SYS_RUNTIME_OPERATIONS_PERMISSION = {

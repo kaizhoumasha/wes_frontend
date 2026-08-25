@@ -19,64 +19,6 @@ export const MenuCreateMetadata = {
   ],
   "additionalProperties": false,
   "fields": {
-    "parent_id": {
-      "title": "Parent Id",
-      "type": "integer",
-      "required": false,
-      "nullable": true
-    },
-    "tree_path": {
-      "title": "Tree Path",
-      "type": "string",
-      "required": false,
-      "nullable": false,
-      "default": "/"
-    },
-    "level": {
-      "title": "Level",
-      "type": "integer",
-      "required": false,
-      "nullable": false,
-      "default": 1
-    },
-    "sort_order": {
-      "title": "Sort Order",
-      "type": "integer",
-      "required": false,
-      "nullable": false,
-      "default": 0
-    },
-    "has_children": {
-      "title": "Has Children",
-      "type": "boolean",
-      "required": false,
-      "nullable": false,
-      "default": false
-    },
-    "name": {
-      "title": "Name",
-      "description": "菜单标识，如 system:users",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "maxLength": 50
-    },
-    "title": {
-      "title": "Title",
-      "description": "显示标题",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "maxLength": 50
-    },
-    "path": {
-      "title": "Path",
-      "description": "路由路径，如 /system/users",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "maxLength": 200
-    },
     "component": {
       "title": "Component",
       "description": "组件路径，如 views/system/users.vue",
@@ -84,6 +26,13 @@ export const MenuCreateMetadata = {
       "required": false,
       "nullable": true,
       "maxLength": 200
+    },
+    "has_children": {
+      "title": "Has Children",
+      "type": "boolean",
+      "required": false,
+      "nullable": false,
+      "default": false
     },
     "icon": {
       "title": "Icon",
@@ -100,6 +49,57 @@ export const MenuCreateMetadata = {
       "required": false,
       "nullable": false,
       "default": false
+    },
+    "level": {
+      "title": "Level",
+      "type": "integer",
+      "required": false,
+      "nullable": false,
+      "default": 1
+    },
+    "name": {
+      "title": "Name",
+      "description": "菜单标识，如 system:users",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "maxLength": 50
+    },
+    "parent_id": {
+      "title": "Parent Id",
+      "type": "integer",
+      "required": false,
+      "nullable": true
+    },
+    "path": {
+      "title": "Path",
+      "description": "路由路径，如 /system/users",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "maxLength": 200
+    },
+    "sort_order": {
+      "title": "Sort Order",
+      "type": "integer",
+      "required": false,
+      "nullable": false,
+      "default": 0
+    },
+    "title": {
+      "title": "Title",
+      "description": "显示标题",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "maxLength": 50
+    },
+    "tree_path": {
+      "title": "Tree Path",
+      "type": "string",
+      "required": false,
+      "nullable": false,
+      "default": "/"
     }
   }
 } satisfies OpenApiSchemaMetadata

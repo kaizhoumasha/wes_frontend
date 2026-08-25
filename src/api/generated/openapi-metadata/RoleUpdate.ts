@@ -17,19 +17,19 @@ export const RoleUpdateMetadata = {
   ],
   "additionalProperties": false,
   "fields": {
-    "name": {
-      "title": "Name",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 100
-    },
     "description": {
       "title": "Description",
       "type": "string",
       "required": false,
       "nullable": true,
       "maxLength": 255
+    },
+    "name": {
+      "title": "Name",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 100
     },
     "version": {
       "title": "Version",

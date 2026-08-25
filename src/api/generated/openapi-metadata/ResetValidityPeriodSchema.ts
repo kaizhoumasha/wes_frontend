@@ -16,14 +16,6 @@ export const ResetValidityPeriodSchemaMetadata = {
     "validity_period"
   ],
   "fields": {
-    "version": {
-      "title": "Version",
-      "description": "数据版本",
-      "type": "integer",
-      "required": false,
-      "nullable": false,
-      "default": 0
-    },
     "validity_period": {
       "description": "新的有效期时长",
       "required": true,
@@ -37,6 +29,14 @@ export const ResetValidityPeriodSchemaMetadata = {
         "never"
       ],
       "ref": "ValidityPeriod"
+    },
+    "version": {
+      "title": "Version",
+      "description": "数据版本",
+      "type": "integer",
+      "required": false,
+      "nullable": false,
+      "default": 0
     }
   }
 } satisfies OpenApiSchemaMetadata

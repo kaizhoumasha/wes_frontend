@@ -21,14 +21,31 @@ export const UserSimpleResponseMetadata = {
     "created_at"
   ],
   "fields": {
-    "username": {
-      "title": "Username",
-      "description": "用户名",
+    "created_at": {
+      "title": "Created At",
       "type": "string",
+      "format": "date-time",
       "required": true,
-      "nullable": false,
-      "minLength": 3,
-      "maxLength": 50
+      "nullable": false
+    },
+    "created_by": {
+      "title": "Created By",
+      "type": "integer",
+      "required": false,
+      "nullable": true
+    },
+    "deleted_at": {
+      "title": "Deleted At",
+      "type": "string",
+      "format": "date-time",
+      "required": false,
+      "nullable": true
+    },
+    "deleted_by": {
+      "title": "Deleted By",
+      "type": "integer",
+      "required": false,
+      "nullable": true
     },
     "email": {
       "title": "Email",
@@ -53,37 +70,17 @@ export const UserSimpleResponseMetadata = {
       "required": true,
       "nullable": false
     },
-    "version": {
-      "title": "Version",
-      "type": "integer",
-      "required": false,
-      "nullable": false,
-      "default": 0
-    },
-    "is_superuser": {
-      "title": "Is Superuser",
-      "type": "boolean",
-      "required": true,
-      "nullable": false
-    },
     "is_multi_login": {
       "title": "Is Multi Login",
       "type": "boolean",
       "required": true,
       "nullable": false
     },
-    "created_at": {
-      "title": "Created At",
-      "type": "string",
-      "format": "date-time",
+    "is_superuser": {
+      "title": "Is Superuser",
+      "type": "boolean",
       "required": true,
       "nullable": false
-    },
-    "created_by": {
-      "title": "Created By",
-      "type": "integer",
-      "required": false,
-      "nullable": true
     },
     "updated_at": {
       "title": "Updated At",
@@ -98,18 +95,21 @@ export const UserSimpleResponseMetadata = {
       "required": false,
       "nullable": true
     },
-    "deleted_by": {
-      "title": "Deleted By",
+    "username": {
+      "title": "Username",
+      "description": "用户名",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "minLength": 3,
+      "maxLength": 50
+    },
+    "version": {
+      "title": "Version",
       "type": "integer",
       "required": false,
-      "nullable": true
-    },
-    "deleted_at": {
-      "title": "Deleted At",
-      "type": "string",
-      "format": "date-time",
-      "required": false,
-      "nullable": true
+      "nullable": false,
+      "default": 0
     }
   }
 } satisfies OpenApiSchemaMetadata

@@ -18,6 +18,7 @@ dist-ssr
 *.d.ts
 !vite-env.d.ts
 contracts/openapi.current.json
+contracts/permissions.current.json
 
 # Config files
 pnpm-lock.yaml

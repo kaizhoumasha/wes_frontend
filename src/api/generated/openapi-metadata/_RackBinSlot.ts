@@ -28,14 +28,6 @@ export const _RackBinSlotMetadata = {
         "RACK_BIN_SLOT"
       ]
     },
-    "rack_id": {
-      "title": "Rack Id",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 100
-    },
     "rack_face": {
       "required": true,
       "nullable": false,
@@ -44,6 +36,14 @@ export const _RackBinSlotMetadata = {
         "B"
       ],
       "ref": "RackFace"
+    },
+    "rack_id": {
+      "title": "Rack Id",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "minLength": 1,
+      "maxLength": 100
     },
     "slot_id": {
       "title": "Slot Id",

@@ -3,40 +3,26 @@
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { assertBackendCheckout } from './lib/backend-checkout'
 import { readContractSyncRecord } from './lib/openapi-sync'
 import {
   FRONTEND_ROOT,
   GENERATE_PERMISSIONS_COMMAND,
-  PERMISSIONS_INDEX_FILE,
   assertGeneratedPermissionFiles,
   assertPermissionRecordBackendCommit,
-  computePermissionsHash,
-  readPermissionSyncRecord,
-  scanBackendPermissions
+  readCanonicalPermissionSnapshot,
+  readPermissionSyncRecord
 } from './lib/permissions-codegen'
 
 interface CliOptions {
-  backendRoot: string
   silent: boolean
+  frontendRoot?: string
 }
 
 export function parseVerifyPermissionsArgs(argv: string[]): CliOptions {
-  let backendRoot: string | undefined
   let silent = false
 
-  for (let index = 0; index < argv.length; index += 1) {
-    const argument = argv[index]
+  for (const argument of argv) {
     if (argument === '--') {
-      continue
-    }
-    if (argument === '--backend-root') {
-      const value = argv[index + 1]
-      if (!value || value.startsWith('--')) {
-        throw new Error('`--backend-root` 缺少目录参数')
-      }
-      backendRoot = resolve(FRONTEND_ROOT, value)
-      index += 1
       continue
     }
     if (argument === '--silent') {
@@ -46,43 +32,34 @@ export function parseVerifyPermissionsArgs(argv: string[]): CliOptions {
     throw new Error(`不支持的参数: ${argument}`)
   }
 
-  if (!backendRoot) {
-    throw new Error('必须提供 `--backend-root`')
-  }
-  return { backendRoot, silent }
+  return { silent }
 }
 
 export function verifyPermissions(options: CliOptions): void {
-  if (!existsSync(PERMISSIONS_INDEX_FILE)) {
+  const frontendRoot = resolve(options.frontendRoot ?? FRONTEND_ROOT)
+  const permissionsIndexFile = resolve(frontendRoot, 'src/api/generated/permissions/index.ts')
+  const permissionsOutputDirectory = resolve(frontendRoot, 'src/api/generated/permissions')
+  if (!existsSync(permissionsIndexFile)) {
     throw new Error(`未找到生成的权限入口文件，请先运行 ${GENERATE_PERMISSIONS_COMMAND}`)
   }
 
-  const contractRecord = readContractSyncRecord(
-    resolve(FRONTEND_ROOT, '.contract-sync-record.json')
-  )
-  const backendCommit = assertBackendCheckout(options.backendRoot, contractRecord.backendCommit)
+  const contractRecord = readContractSyncRecord(resolve(frontendRoot, '.contract-sync-record.json'))
   const permissionRecord = assertPermissionRecordBackendCommit(
-    readPermissionSyncRecord(),
-    backendCommit
+    readPermissionSyncRecord(resolve(frontendRoot, '.permission-sync-record.json')),
+    contractRecord.backendCommit
   )
-  const permissions = scanBackendPermissions(options.backendRoot)
-  const backendCommitAfterScan = assertBackendCheckout(options.backendRoot)
-  if (backendCommitAfterScan !== backendCommit) {
-    throw new Error(
-      `后端 HEAD 在权限扫描期间发生变化：${backendCommit} -> ${backendCommitAfterScan}`
-    )
-  }
+  const snapshot = readCanonicalPermissionSnapshot(frontendRoot)
+  const permissions = snapshot.permissions
 
   if (permissions.length !== permissionRecord.permissionCount) {
     throw new Error(
       `权限数量不匹配：记录 ${permissionRecord.permissionCount}，当前 ${permissions.length}`
     )
   }
-  const permissionsSha256 = computePermissionsHash(permissions)
-  if (permissionsSha256 !== permissionRecord.permissionsSha256) {
-    throw new Error(`权限 SHA-256 不匹配，请重新运行 ${GENERATE_PERMISSIONS_COMMAND}`)
+  if (snapshot.sha256 !== permissionRecord.permissionsSha256) {
+    throw new Error('权限 SHA-256 不匹配，必须先运行显式 contract:freeze')
   }
-  assertGeneratedPermissionFiles(permissions)
+  assertGeneratedPermissionFiles(permissions, permissionsOutputDirectory)
 }
 
 function isCliEntry(): boolean {

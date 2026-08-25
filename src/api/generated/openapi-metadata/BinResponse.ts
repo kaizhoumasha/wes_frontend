@@ -27,14 +27,6 @@ export const BinResponseMetadata = {
       "minLength": 1,
       "maxLength": 80
     },
-    "wms_bin_id": {
-      "title": "Wms Bin Id",
-      "description": "WMS 料箱 ID",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 100
-    },
     "bin_type_code": {
       "title": "Bin Type Code",
       "description": "料箱类型编码",
@@ -44,16 +36,18 @@ export const BinResponseMetadata = {
       "minLength": 1,
       "maxLength": 50
     },
-    "status": {
-      "description": "料箱主数据状态",
+    "id": {
+      "title": "Id",
+      "type": "integer",
+      "required": true,
+      "nullable": false
+    },
+    "metadata_json": {
+      "title": "Metadata Json",
+      "description": "扩展属性",
+      "type": "object",
       "required": false,
-      "nullable": false,
-      "default": "ACTIVE",
-      "enum": [
-        "ACTIVE",
-        "DISABLED"
-      ],
-      "ref": "ResourceMasterStatus"
+      "nullable": false
     },
     "source_system": {
       "description": "来源系统",
@@ -78,18 +72,24 @@ export const BinResponseMetadata = {
       "nullable": true,
       "maxLength": 100
     },
-    "metadata_json": {
-      "title": "Metadata Json",
-      "description": "扩展属性",
-      "type": "object",
+    "status": {
+      "description": "料箱主数据状态",
       "required": false,
-      "nullable": false
+      "nullable": false,
+      "default": "ACTIVE",
+      "enum": [
+        "ACTIVE",
+        "DISABLED"
+      ],
+      "ref": "ResourceMasterStatus"
     },
-    "id": {
-      "title": "Id",
-      "type": "integer",
-      "required": true,
-      "nullable": false
+    "wms_bin_id": {
+      "title": "Wms Bin Id",
+      "description": "WMS 料箱 ID",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 100
     }
   }
 } satisfies OpenApiSchemaMetadata

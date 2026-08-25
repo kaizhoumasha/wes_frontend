@@ -28,19 +28,19 @@ type EnsureEntityId<TItem> = TItem extends { id?: infer TId }
 export type PermissionsItem = EnsureEntityId<ContractResponseData<'/api/v1/admin/permissions/{id}', 'get'>>
 export type ReadonlyInput = Record<string, never>
 
-export type TreeResult = ContractResponseData<'/api/v1/admin/permissions/tree', 'get'>
-export type TreeQuery = ContractQueryParams<'/api/v1/admin/permissions/tree', 'get'>
-
-export type SiblingsResult = ContractResponseData<'/api/v1/admin/permissions/siblings/{node_id}', 'get'>
-export type SiblingsPathParams = ContractPathParams<'/api/v1/admin/permissions/siblings/{node_id}', 'get'>
-export type SiblingsQuery = ContractQueryParams<'/api/v1/admin/permissions/siblings/{node_id}', 'get'>
-
 export type AncestorsResult = ContractResponseData<'/api/v1/admin/permissions/ancestors/{node_id}', 'get'>
 export type AncestorsPathParams = ContractPathParams<'/api/v1/admin/permissions/ancestors/{node_id}', 'get'>
 export type AncestorsQuery = ContractQueryParams<'/api/v1/admin/permissions/ancestors/{node_id}', 'get'>
 
 export type ChildrenResult = ContractResponseData<'/api/v1/admin/permissions/children/{node_id}', 'get'>
 export type ChildrenPathParams = ContractPathParams<'/api/v1/admin/permissions/children/{node_id}', 'get'>
+
+export type SiblingsResult = ContractResponseData<'/api/v1/admin/permissions/siblings/{node_id}', 'get'>
+export type SiblingsPathParams = ContractPathParams<'/api/v1/admin/permissions/siblings/{node_id}', 'get'>
+export type SiblingsQuery = ContractQueryParams<'/api/v1/admin/permissions/siblings/{node_id}', 'get'>
+
+export type TreeResult = ContractResponseData<'/api/v1/admin/permissions/tree', 'get'>
+export type TreeQuery = ContractQueryParams<'/api/v1/admin/permissions/tree', 'get'>
 
 const basePermissionsApiMethods = {
   getById(params: ContractPathParams<'/api/v1/admin/permissions/{id}', 'get'>, query?: ContractQueryParams<'/api/v1/admin/permissions/{id}', 'get'>, config?: ContractRequestConfig) {
@@ -54,26 +54,6 @@ const basePermissionsApiMethods = {
 
 export const permissionsApiMethods = {
   ...basePermissionsApiMethods,
-
-  /**
-   * Get Tree
-   * @description 获取树形结构（默认懒加载模式）
-   * @endpoint GET /api/v1/admin/permissions/tree
-   * @returns alova method instance
-   */
-  tree(query?: ContractQueryParams<'/api/v1/admin/permissions/tree', 'get'>, config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/admin/permissions/tree', { query, config })
-  },
-
-  /**
-   * Get Siblings
-   * @description 获取同级节点
-   * @endpoint GET /api/v1/admin/permissions/siblings/{node_id}
-   * @returns alova method instance
-   */
-  siblings(params: ContractPathParams<'/api/v1/admin/permissions/siblings/{node_id}', 'get'>, query?: ContractQueryParams<'/api/v1/admin/permissions/siblings/{node_id}', 'get'>, config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/admin/permissions/siblings/{node_id}', { params, query, config })
-  },
 
   /**
    * Get Ancestors
@@ -93,6 +73,26 @@ export const permissionsApiMethods = {
    */
   children(params: ContractPathParams<'/api/v1/admin/permissions/children/{node_id}', 'get'>, config?: ContractRequestConfig) {
     return contractMethods.get('/api/v1/admin/permissions/children/{node_id}', { params, config })
+  },
+
+  /**
+   * Get Siblings
+   * @description 获取同级节点
+   * @endpoint GET /api/v1/admin/permissions/siblings/{node_id}
+   * @returns alova method instance
+   */
+  siblings(params: ContractPathParams<'/api/v1/admin/permissions/siblings/{node_id}', 'get'>, query?: ContractQueryParams<'/api/v1/admin/permissions/siblings/{node_id}', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/admin/permissions/siblings/{node_id}', { params, query, config })
+  },
+
+  /**
+   * Get Tree
+   * @description 获取树形结构（默认懒加载模式）
+   * @endpoint GET /api/v1/admin/permissions/tree
+   * @returns alova method instance
+   */
+  tree(query?: ContractQueryParams<'/api/v1/admin/permissions/tree', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/admin/permissions/tree', { query, config })
   }
 }
 

@@ -23,6 +23,7 @@
     "generate:types": "tsx scripts/generate-api-types.ts",
     "generate:zod": "tsx scripts/generate-zod-from-openapi.ts",
     "generate:permissions": "tsx scripts/generate-permissions.ts",
+    "export:release-consumer": "tsx scripts/export-release-consumer.ts",
     "type:generate": "pnpm run generate:types",
     "zod:generate": "pnpm run generate:zod",
     "permission:verify": "tsx scripts/verify-permissions-sync.ts",

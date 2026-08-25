@@ -10,7 +10,11 @@ import type {
 import { API_AUTH_PERMISSIONS } from '@/api/generated/permissions'
 import { applicationsApiMethods } from '@/api/modules/applications'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
-import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
+import type {
+  CrudPageConfig,
+  CrudPageFeatures,
+  CrudPagePermissionConfig
+} from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
 import { apiApplicationPageFieldConfig } from './fieldConfig'
 import { createAPIApplicationRowActions } from './actionConfig'
@@ -20,6 +24,20 @@ type APIApplicationPageConfig = CrudPageConfig<
   CreateAPIApplicationInput,
   UpdateAPIApplicationInput
 >
+
+const API_APPLICATION_PAGE_PERMISSIONS = {
+  page: API_AUTH_PERMISSIONS.apiApplication.page,
+  list: API_AUTH_PERMISSIONS.apiApplication.list,
+  detail: API_AUTH_PERMISSIONS.apiApplication.detail,
+  create: API_AUTH_PERMISSIONS.apiApplication.create,
+  update: API_AUTH_PERMISSIONS.apiApplication.update,
+  delete: API_AUTH_PERMISSIONS.apiApplication.delete,
+  restore: API_AUTH_PERMISSIONS.apiApplication.restore,
+  trash: API_AUTH_PERMISSIONS.apiApplication.trash,
+  batchRestore: API_AUTH_PERMISSIONS.apiApplication.batchRestore,
+  permanentDelete: API_AUTH_PERMISSIONS.apiApplication.permanentDelete,
+  batchPermanentDelete: API_AUTH_PERMISSIONS.apiApplication.batchPermanentDelete
+} satisfies CrudPagePermissionConfig
 
 const API_APPLICATION_PAGE_RESOURCE = {
   key: 'api-applications',
@@ -34,7 +52,7 @@ const API_APPLICATION_PAGE_RESOURCE = {
     icon: 'ep:delete'
   },
   methods: applicationsApiMethods,
-  permissions: API_AUTH_PERMISSIONS.apiApplication,
+  permissions: API_APPLICATION_PAGE_PERMISSIONS,
   optimisticUpdate: true,
   defaultSort: [{ field: 'created_at', order: 'desc' as const }]
 }

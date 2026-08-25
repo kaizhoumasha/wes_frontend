@@ -19,22 +19,13 @@ export const QueryOptionsMetadata = {
       "nullable": true,
       "ref": "FilterGroup"
     },
-    "sort": {
-      "title": "Sort",
-      "type": "array",
-      "required": false,
-      "nullable": true,
-      "items": {
-        "ref": "SortField"
-      }
-    },
-    "offset": {
-      "title": "Offset",
-      "type": "integer",
+    "include_deleted": {
+      "title": "Include Deleted",
+      "description": "是否包含已删除记录",
+      "type": "boolean",
       "required": false,
       "nullable": false,
-      "default": 0,
-      "minimum": 0
+      "default": false
     },
     "limit": {
       "title": "Limit",
@@ -54,13 +45,22 @@ export const QueryOptionsMetadata = {
       "minimum": 0,
       "maximum": 3
     },
-    "include_deleted": {
-      "title": "Include Deleted",
-      "description": "是否包含已删除记录",
-      "type": "boolean",
+    "offset": {
+      "title": "Offset",
+      "type": "integer",
       "required": false,
       "nullable": false,
-      "default": false
+      "default": 0,
+      "minimum": 0
+    },
+    "sort": {
+      "title": "Sort",
+      "type": "array",
+      "required": false,
+      "nullable": true,
+      "items": {
+        "ref": "SortField"
+      }
     }
   }
 } satisfies OpenApiSchemaMetadata

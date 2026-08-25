@@ -20,6 +20,13 @@ export const DeviceResponseMetadata = {
     "version"
   ],
   "fields": {
+    "description": {
+      "title": "Description",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 500
+    },
     "device_code": {
       "title": "Device Code",
       "description": "独立命令资源编码",
@@ -38,34 +45,6 @@ export const DeviceResponseMetadata = {
       "minLength": 1,
       "maxLength": 100
     },
-    "work_line_id": {
-      "title": "Work Line Id",
-      "type": "integer",
-      "required": false,
-      "nullable": true
-    },
-    "description": {
-      "title": "Description",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 500
-    },
-    "is_active": {
-      "title": "Is Active",
-      "description": "是否允许进入新运行代际",
-      "type": "boolean",
-      "required": false,
-      "nullable": false,
-      "default": true
-    },
-    "sort_order": {
-      "title": "Sort Order",
-      "type": "integer",
-      "required": false,
-      "nullable": false,
-      "default": 0
-    },
     "device_role": {
       "title": "Device Role",
       "description": "物理拓扑角色",
@@ -74,20 +53,6 @@ export const DeviceResponseMetadata = {
       "nullable": false,
       "minLength": 1,
       "maxLength": 50
-    },
-    "role_index": {
-      "title": "Role Index",
-      "type": "integer",
-      "required": false,
-      "nullable": false,
-      "default": 1,
-      "minimum": 1
-    },
-    "upstream_device_id": {
-      "title": "Upstream Device Id",
-      "type": "integer",
-      "required": false,
-      "nullable": true
     },
     "diagnostic_profile": {
       "title": "Diagnostic Profile",
@@ -108,11 +73,46 @@ export const DeviceResponseMetadata = {
       "required": true,
       "nullable": false
     },
+    "is_active": {
+      "title": "Is Active",
+      "description": "是否允许进入新运行代际",
+      "type": "boolean",
+      "required": false,
+      "nullable": false,
+      "default": true
+    },
+    "role_index": {
+      "title": "Role Index",
+      "type": "integer",
+      "required": false,
+      "nullable": false,
+      "default": 1,
+      "minimum": 1
+    },
+    "sort_order": {
+      "title": "Sort Order",
+      "type": "integer",
+      "required": false,
+      "nullable": false,
+      "default": 0
+    },
+    "upstream_device_id": {
+      "title": "Upstream Device Id",
+      "type": "integer",
+      "required": false,
+      "nullable": true
+    },
     "version": {
       "title": "Version",
       "type": "integer",
       "required": true,
       "nullable": false
+    },
+    "work_line_id": {
+      "title": "Work Line Id",
+      "type": "integer",
+      "required": false,
+      "nullable": true
     }
   }
 } satisfies OpenApiSchemaMetadata

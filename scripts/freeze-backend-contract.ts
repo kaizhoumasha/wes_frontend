@@ -1,7 +1,15 @@
 #!/usr/bin/env tsx
 
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, unlinkSync } from 'node:fs'
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  unlinkSync,
+  writeFileSync
+} from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -10,24 +18,19 @@ import { writeFileAtomically } from './lib/atomic-file'
 import {
   CANONICAL_OPENAPI_SNAPSHOT_PATH,
   type ContractSyncRecord,
+  parseProviderFingerprints,
+  parseProviderOpenApiArtifact,
   serializeOpenApiDocument
 } from './lib/openapi-sync'
+import {
+  CANONICAL_PERMISSIONS_SNAPSHOT_PATH,
+  parseCanonicalPermissionSnapshot,
+  type PermissionSyncRecord
+} from './lib/permissions-codegen'
 import { computeSha256 } from './lib/sha256'
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url)
 const FRONTEND_ROOT = resolve(dirname(SCRIPT_PATH), '..')
-const PYTHON_EXTRACTOR = `
-import json
-import sys
-from pathlib import Path
-
-from main import app
-
-Path(sys.argv[1]).write_text(
-    json.dumps(app.openapi(), ensure_ascii=False),
-    encoding="utf-8",
-)
-`
 
 export interface FreezeBackendContractOptions {
   backendRoot: string
@@ -71,70 +74,121 @@ function restoreFile(path: string, previous: string | null): void {
   writeFileAtomically(path, previous)
 }
 
+function publishFreezeFiles(publications: Array<{ path: string; content: string }>): void {
+  const previous = new Map(
+    publications.map(({ path }) => [path, existsSync(path) ? readFileSync(path, 'utf-8') : null])
+  )
+  try {
+    for (const publication of publications) {
+      writeFileAtomically(publication.path, publication.content)
+    }
+  } catch (error) {
+    for (const publication of [...publications].reverse()) {
+      restoreFile(publication.path, previous.get(publication.path) ?? null)
+    }
+    throw error
+  }
+}
+
 export function freezeBackendContract(options: FreezeBackendContractOptions): ContractSyncRecord {
   const frontendRoot = resolve(options.frontendRoot ?? FRONTEND_ROOT)
   const temporaryDirectoryRoot = resolve(options.temporaryDirectoryRoot ?? tmpdir())
   const backendRoot = resolve(options.backendRoot)
   const backendCommit = assertBackendCheckout(backendRoot)
-  const extractionDirectory = mkdtempSync(join(temporaryDirectoryRoot, 'wes-openapi-'))
-  const extractedPath = join(extractionDirectory, 'openapi.json')
+  const extractionDirectory = mkdtempSync(join(temporaryDirectoryRoot, 'wes-provider-'))
+  const providerDirectory = join(extractionDirectory, 'provider')
 
-  let serialized: string
+  let openApiSerialized: string
+  let permissionsSerialized: string
+  let permissionRecord: PermissionSyncRecord
   try {
     try {
-      execFileSync('uv', ['run', 'python', '-c', PYTHON_EXTRACTOR, extractedPath], {
-        cwd: backendRoot,
-        env: process.env,
-        stdio: ['ignore', 'pipe', 'pipe']
-      })
+      execFileSync(
+        'uv',
+        ['run', 'python', 'scripts/export_release_provider.py', '--out-dir', providerDirectory],
+        {
+          cwd: backendRoot,
+          env: process.env,
+          stdio: ['ignore', 'pipe', 'pipe']
+        }
+      )
     } catch (error) {
       const cause = error as NodeJS.ErrnoException & { stderr?: string | Buffer }
       const details =
         typeof cause.stderr === 'string'
           ? cause.stderr.trim()
           : cause.stderr?.toString('utf-8').trim()
-      throw new Error(`OpenAPI Python 提取失败${details ? `: ${details}` : ''}`)
+      throw new Error(`后端 provider 导出失败${details ? `: ${details}` : ''}`)
     }
 
-    let document: unknown
-    try {
-      document = JSON.parse(readFileSync(extractedPath, 'utf-8'))
-    } catch (error) {
-      throw new Error(`提取结果不是有效 JSON: ${(error as Error).message}`)
+    const providerOpenApi = readFileSync(join(providerDirectory, 'provider-openapi.json'), 'utf-8')
+    const document = parseProviderOpenApiArtifact(providerOpenApi)
+    openApiSerialized = serializeOpenApiDocument(document)
+    permissionsSerialized = readFileSync(
+      join(providerDirectory, 'provided-permissions.json'),
+      'utf-8'
+    )
+    const permissionSnapshot = parseCanonicalPermissionSnapshot(permissionsSerialized)
+    const fingerprints = parseProviderFingerprints(
+      readFileSync(join(providerDirectory, 'provider-fingerprints.json'), 'utf-8')
+    )
+    if (computeSha256(providerOpenApi) !== fingerprints.provider_openapi_sha256) {
+      throw new Error('provider-openapi raw artifact SHA-256 与 provider fingerprints 不匹配')
     }
-    serialized = serializeOpenApiDocument(document)
+    if (permissionSnapshot.sha256 !== fingerprints.provided_permissions_sha256) {
+      throw new Error('provided-permissions raw artifact SHA-256 与 provider fingerprints 不匹配')
+    }
+
+    const backendCommitAfterExtraction = assertBackendCheckout(backendRoot)
+    if (backendCommitAfterExtraction !== backendCommit) {
+      throw new Error(
+        `后端 HEAD 在 provider 导出期间发生变化：${backendCommit} -> ${backendCommitAfterExtraction}`
+      )
+    }
+
+    const record: ContractSyncRecord = {
+      backendCommit,
+      openApiSha256: computeSha256(openApiSerialized),
+      snapshotPath: CANONICAL_OPENAPI_SNAPSHOT_PATH
+    }
+    permissionRecord = {
+      backendCommit,
+      permissionsSha256: permissionSnapshot.sha256,
+      permissionCount: permissionSnapshot.permissions.length
+    }
+    const publications = [
+      {
+        path: resolve(frontendRoot, CANONICAL_OPENAPI_SNAPSHOT_PATH),
+        content: openApiSerialized
+      },
+      {
+        path: resolve(frontendRoot, CANONICAL_PERMISSIONS_SNAPSHOT_PATH),
+        content: permissionsSerialized
+      },
+      {
+        path: resolve(frontendRoot, '.contract-sync-record.json'),
+        content: `${JSON.stringify(record, null, 2)}\n`
+      },
+      {
+        path: resolve(frontendRoot, '.permission-sync-record.json'),
+        content: `${JSON.stringify(permissionRecord, null, 2)}\n`
+      }
+    ]
+    const stagingDirectory = join(extractionDirectory, 'frontend-publication')
+    mkdirSync(stagingDirectory)
+    for (const [index, publication] of publications.entries()) {
+      const stagedPath = join(stagingDirectory, String(index))
+      writeFileSync(stagedPath, publication.content, 'utf-8')
+      if (readFileSync(stagedPath, 'utf-8') !== publication.content) {
+        throw new Error(`冻结 staging 校验失败: ${publication.path}`)
+      }
+    }
+
+    publishFreezeFiles(publications)
+    return record
   } finally {
     rmSync(extractionDirectory, { force: true, recursive: true })
   }
-
-  const backendCommitAfterExtraction = assertBackendCheckout(backendRoot)
-  if (backendCommitAfterExtraction !== backendCommit) {
-    throw new Error(
-      `后端 HEAD 在 OpenAPI 提取期间发生变化：${backendCommit} -> ${backendCommitAfterExtraction}`
-    )
-  }
-
-  const snapshotPath = resolve(frontendRoot, CANONICAL_OPENAPI_SNAPSHOT_PATH)
-  const recordPath = resolve(frontendRoot, '.contract-sync-record.json')
-  const record: ContractSyncRecord = {
-    backendCommit,
-    openApiSha256: computeSha256(serialized),
-    snapshotPath: CANONICAL_OPENAPI_SNAPSHOT_PATH
-  }
-  const previousSnapshot = existsSync(snapshotPath) ? readFileSync(snapshotPath, 'utf-8') : null
-  const previousRecord = existsSync(recordPath) ? readFileSync(recordPath, 'utf-8') : null
-
-  mkdirSync(dirname(snapshotPath), { recursive: true })
-  try {
-    writeFileAtomically(snapshotPath, serialized)
-    writeFileAtomically(recordPath, `${JSON.stringify(record, null, 2)}\n`)
-  } catch (error) {
-    restoreFile(snapshotPath, previousSnapshot)
-    restoreFile(recordPath, previousRecord)
-    throw error
-  }
-
-  return record
 }
 
 function isCliEntry(): boolean {

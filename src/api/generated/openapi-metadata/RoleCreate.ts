@@ -17,19 +17,19 @@ export const RoleCreateMetadata = {
   ],
   "additionalProperties": false,
   "fields": {
-    "name": {
-      "title": "Name",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "maxLength": 100
-    },
     "description": {
       "title": "Description",
       "type": "string",
       "required": false,
       "nullable": true,
       "maxLength": 255
+    },
+    "name": {
+      "title": "Name",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "maxLength": 100
     }
   }
 } satisfies OpenApiSchemaMetadata

@@ -18,20 +18,6 @@ export const SessionInfoMetadata = {
     "created_at"
   ],
   "fields": {
-    "session_uuid": {
-      "title": "Session Uuid",
-      "description": "会话 UUID",
-      "type": "string",
-      "required": true,
-      "nullable": false
-    },
-    "jti": {
-      "title": "Jti",
-      "description": "JWT ID",
-      "type": "string",
-      "required": true,
-      "nullable": false
-    },
     "created_at": {
       "title": "Created At",
       "description": "会话创建时间",
@@ -47,6 +33,13 @@ export const SessionInfoMetadata = {
       "required": false,
       "nullable": true
     },
+    "jti": {
+      "title": "Jti",
+      "description": "JWT ID",
+      "type": "string",
+      "required": true,
+      "nullable": false
+    },
     "last_active": {
       "title": "Last Active",
       "description": "最后活跃时间",
@@ -54,6 +47,13 @@ export const SessionInfoMetadata = {
       "format": "date-time",
       "required": false,
       "nullable": true
+    },
+    "session_uuid": {
+      "title": "Session Uuid",
+      "description": "会话 UUID",
+      "type": "string",
+      "required": true,
+      "nullable": false
     }
   }
 } satisfies OpenApiSchemaMetadata

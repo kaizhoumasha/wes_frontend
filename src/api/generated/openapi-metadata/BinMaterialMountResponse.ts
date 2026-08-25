@@ -22,31 +22,6 @@ export const BinMaterialMountResponseMetadata = {
     "id"
   ],
   "fields": {
-    "bin_cell_occupancy_id": {
-      "title": "Bin Cell Occupancy Id",
-      "description": "关联料箱格位聚合占用 ID",
-      "type": "integer",
-      "required": false,
-      "nullable": true
-    },
-    "cell_stack_position": {
-      "title": "Cell Stack Position",
-      "description": "同一料格内入格顺序，1 为最早入格",
-      "type": "integer",
-      "required": false,
-      "nullable": false,
-      "default": 1,
-      "minimum": 1
-    },
-    "bin_code": {
-      "title": "Bin Code",
-      "description": "料箱编码",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 80
-    },
     "bin_cell_code": {
       "title": "Bin Cell Code",
       "description": "料箱内部格位编码",
@@ -64,30 +39,52 @@ export const BinMaterialMountResponseMetadata = {
       "minLength": 1,
       "maxLength": 20
     },
-    "material_identity_key": {
-      "title": "Material Identity Key",
-      "description": "事件证据快照；料盘属性主源以 material_units 为准",
+    "bin_cell_occupancy_id": {
+      "title": "Bin Cell Occupancy Id",
+      "description": "关联料箱格位聚合占用 ID",
+      "type": "integer",
+      "required": false,
+      "nullable": true
+    },
+    "bin_code": {
+      "title": "Bin Code",
+      "description": "料箱编码",
       "type": "string",
       "required": true,
       "nullable": false,
       "minLength": 1,
-      "maxLength": 300
+      "maxLength": 80
     },
-    "pkg_code": {
-      "title": "Pkg Code",
-      "description": "PKG 展示字段",
-      "type": "string",
+    "cell_stack_position": {
+      "title": "Cell Stack Position",
+      "description": "同一料格内入格顺序，1 为最早入格",
+      "type": "integer",
       "required": false,
-      "nullable": true,
-      "maxLength": 200
+      "nullable": false,
+      "default": 1,
+      "minimum": 1
     },
-    "material_code": {
-      "title": "Material Code",
+    "date_code": {
+      "title": "Date Code",
       "description": "事件证据快照；料盘属性主源以 material_units 为准",
       "type": "string",
       "required": false,
       "nullable": true,
-      "maxLength": 120
+      "maxLength": 80
+    },
+    "ended_at": {
+      "title": "Ended At",
+      "description": "离开料箱格位时间",
+      "type": "string",
+      "format": "date-time",
+      "required": false,
+      "nullable": true
+    },
+    "id": {
+      "title": "Id",
+      "type": "integer",
+      "required": true,
+      "nullable": false
     },
     "lot_code": {
       "title": "Lot Code",
@@ -97,13 +94,43 @@ export const BinMaterialMountResponseMetadata = {
       "nullable": true,
       "maxLength": 120
     },
-    "date_code": {
-      "title": "Date Code",
+    "material_code": {
+      "title": "Material Code",
       "description": "事件证据快照；料盘属性主源以 material_units 为准",
       "type": "string",
       "required": false,
       "nullable": true,
-      "maxLength": 80
+      "maxLength": 120
+    },
+    "material_identity_key": {
+      "title": "Material Identity Key",
+      "description": "事件证据快照；料盘属性主源以 material_units 为准",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "minLength": 1,
+      "maxLength": 300
+    },
+    "mount_status": {
+      "description": "物料占用状态",
+      "required": false,
+      "nullable": false,
+      "default": "UNKNOWN",
+      "enum": [
+        "OCCUPIED",
+        "REMOVED",
+        "LOCKED",
+        "UNKNOWN"
+      ],
+      "ref": "BinMaterialMountStatus"
+    },
+    "pkg_code": {
+      "title": "Pkg Code",
+      "description": "PKG 展示字段",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 200
     },
     "qty_snapshot": {
       "title": "Qty Snapshot",
@@ -129,6 +156,53 @@ export const BinMaterialMountResponseMetadata = {
       "nullable": true,
       "maxLength": 80
     },
+    "source_event_id": {
+      "title": "Source Event Id",
+      "description": "来源事件 ID",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "source_system": {
+      "description": "来源系统",
+      "required": true,
+      "nullable": false,
+      "enum": [
+        "WMS",
+        "RCS",
+        "ECS",
+        "WES_RUNTIME",
+        "MANUAL_IMPORT",
+        "MANUAL"
+      ],
+      "ref": "ResourceSourceSystem"
+    },
+    "source_version": {
+      "title": "Source Version",
+      "description": "来源版本",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 100
+    },
+    "started_at": {
+      "title": "Started At",
+      "description": "占用确认时间",
+      "type": "string",
+      "format": "date-time",
+      "required": true,
+      "nullable": false
+    },
+    "trace_id": {
+      "title": "Trace Id",
+      "description": "WorkLine trace",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 100
+    },
     "wms_inventory_id": {
       "title": "Wms Inventory Id",
       "description": "WMS 库存记录引用",
@@ -145,65 +219,6 @@ export const BinMaterialMountResponseMetadata = {
       "nullable": true,
       "maxLength": 120
     },
-    "writeback_evidence_id": {
-      "title": "Writeback Evidence Id",
-      "description": "关联 WMS 回写证据",
-      "type": "integer",
-      "required": false,
-      "nullable": true
-    },
-    "mount_status": {
-      "description": "物料占用状态",
-      "required": false,
-      "nullable": false,
-      "default": "UNKNOWN",
-      "enum": [
-        "OCCUPIED",
-        "REMOVED",
-        "LOCKED",
-        "UNKNOWN"
-      ],
-      "ref": "BinMaterialMountStatus"
-    },
-    "source_system": {
-      "description": "来源系统",
-      "required": true,
-      "nullable": false,
-      "enum": [
-        "WMS",
-        "RCS",
-        "ECS",
-        "WES_RUNTIME",
-        "MANUAL_IMPORT",
-        "MANUAL"
-      ],
-      "ref": "ResourceSourceSystem"
-    },
-    "source_event_id": {
-      "title": "Source Event Id",
-      "description": "来源事件 ID",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 200
-    },
-    "source_version": {
-      "title": "Source Version",
-      "description": "来源版本",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 100
-    },
-    "trace_id": {
-      "title": "Trace Id",
-      "description": "WorkLine trace",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 100
-    },
     "workline_session_id": {
       "title": "Workline Session Id",
       "description": "关联 workline_sessions.id",
@@ -211,27 +226,12 @@ export const BinMaterialMountResponseMetadata = {
       "required": false,
       "nullable": true
     },
-    "started_at": {
-      "title": "Started At",
-      "description": "占用确认时间",
-      "type": "string",
-      "format": "date-time",
-      "required": true,
-      "nullable": false
-    },
-    "ended_at": {
-      "title": "Ended At",
-      "description": "离开料箱格位时间",
-      "type": "string",
-      "format": "date-time",
+    "writeback_evidence_id": {
+      "title": "Writeback Evidence Id",
+      "description": "关联 WMS 回写证据",
+      "type": "integer",
       "required": false,
       "nullable": true
-    },
-    "id": {
-      "title": "Id",
-      "type": "integer",
-      "required": true,
-      "nullable": false
     }
   }
 } satisfies OpenApiSchemaMetadata

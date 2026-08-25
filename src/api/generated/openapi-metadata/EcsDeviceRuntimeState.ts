@@ -23,6 +23,14 @@ export const EcsDeviceRuntimeStateMetadata = {
   ],
   "additionalProperties": false,
   "fields": {
+    "current_command_code": {
+      "title": "Current Command Code",
+      "type": "string",
+      "required": true,
+      "nullable": true,
+      "minLength": 1,
+      "maxLength": 160
+    },
     "device_code": {
       "title": "Device Code",
       "type": "string",
@@ -30,6 +38,12 @@ export const EcsDeviceRuntimeStateMetadata = {
       "nullable": false,
       "minLength": 1,
       "maxLength": 100
+    },
+    "is_online": {
+      "title": "Is Online",
+      "type": "boolean",
+      "required": true,
+      "nullable": false
     },
     "mode": {
       "required": true,
@@ -41,6 +55,14 @@ export const EcsDeviceRuntimeStateMetadata = {
         "UNKNOWN"
       ],
       "ref": "EcsDeviceMode"
+    },
+    "scenario": {
+      "title": "Scenario",
+      "type": "string",
+      "required": true,
+      "nullable": true,
+      "minLength": 1,
+      "maxLength": 100
     },
     "status": {
       "required": true,
@@ -55,28 +77,6 @@ export const EcsDeviceRuntimeStateMetadata = {
         "UNKNOWN"
       ],
       "ref": "EcsDeviceState"
-    },
-    "is_online": {
-      "title": "Is Online",
-      "type": "boolean",
-      "required": true,
-      "nullable": false
-    },
-    "current_command_code": {
-      "title": "Current Command Code",
-      "type": "string",
-      "required": true,
-      "nullable": true,
-      "minLength": 1,
-      "maxLength": 160
-    },
-    "scenario": {
-      "title": "Scenario",
-      "type": "string",
-      "required": true,
-      "nullable": true,
-      "minLength": 1,
-      "maxLength": 100
     },
     "updated_at": {
       "title": "Updated At",

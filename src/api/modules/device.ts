@@ -18,11 +18,11 @@ import type {
 } from '@/api/contract/types'
 import type { components, paths } from '@/api/generated/openapi-types'
 
-export type DebugPreflightResult = ContractResponseData<'/api/v1/device/commands/debug/preflight', 'post'>
-export type DebugPreflightInput = ContractRequestBody<'/api/v1/device/commands/debug/preflight', 'post'>
-
 export type DebugResult = ContractResponseData<'/api/v1/device/commands/debug', 'post'>
 export type DebugInput = ContractRequestBody<'/api/v1/device/commands/debug', 'post'>
+
+export type DebugPreflightResult = ContractResponseData<'/api/v1/device/commands/debug/preflight', 'post'>
+export type DebugPreflightInput = ContractRequestBody<'/api/v1/device/commands/debug/preflight', 'post'>
 
 export type GetByCommandCodeResult = ContractResponseData<'/api/v1/device/commands/{command_code}', 'get'>
 export type GetByCommandCodePathParams = ContractPathParams<'/api/v1/device/commands/{command_code}', 'get'>
@@ -32,21 +32,21 @@ export type StreamQuery = ContractQueryParams<'/api/v1/device/evidences/stream',
 
 export const deviceApiMethods = {
   /**
-   * 枚举 ECS 设备并检查 MANUAL_DEBUG 运行态
-   * @endpoint POST /api/v1/device/commands/debug/preflight
-   * @returns alova method instance
-   */
-  debugPreflight(body: ContractRequestBody<'/api/v1/device/commands/debug/preflight', 'post'>, config?: ContractRequestConfig) {
-    return contractMethods.post('/api/v1/device/commands/debug/preflight', { body, config })
-  },
-
-  /**
    * 创建 DeviceCommand 联调命令
    * @endpoint POST /api/v1/device/commands/debug
    * @returns alova method instance
    */
   debug(body: ContractRequestBody<'/api/v1/device/commands/debug', 'post'>, config?: ContractRequestConfig) {
     return contractMethods.post('/api/v1/device/commands/debug', { body, config })
+  },
+
+  /**
+   * 枚举 ECS 设备并检查 MANUAL_DEBUG 运行态
+   * @endpoint POST /api/v1/device/commands/debug/preflight
+   * @returns alova method instance
+   */
+  debugPreflight(body: ContractRequestBody<'/api/v1/device/commands/debug/preflight', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/device/commands/debug/preflight', { body, config })
   },
 
   /**

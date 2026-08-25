@@ -20,9 +20,17 @@ export const BinSlotTemplateResponseMetadata = {
     "id"
   ],
   "fields": {
-    "bin_type_code": {
-      "title": "Bin Type Code",
-      "description": "所属料箱类型编码",
+    "active": {
+      "title": "Active",
+      "description": "是否启用",
+      "type": "boolean",
+      "required": false,
+      "nullable": false,
+      "default": true
+    },
+    "bin_slot_code": {
+      "title": "Bin Slot Code",
+      "description": "料箱内槽位编码",
       "type": "string",
       "required": true,
       "nullable": false,
@@ -37,26 +45,20 @@ export const BinSlotTemplateResponseMetadata = {
       "nullable": false,
       "minimum": 1
     },
-    "bin_slot_code": {
-      "title": "Bin Slot Code",
-      "description": "料箱内槽位编码",
+    "bin_type_code": {
+      "title": "Bin Type Code",
+      "description": "所属料箱类型编码",
       "type": "string",
       "required": true,
       "nullable": false,
       "minLength": 1,
       "maxLength": 50
     },
-    "slot_size": {
-      "description": "槽位尺寸",
+    "id": {
+      "title": "Id",
+      "type": "integer",
       "required": true,
-      "nullable": false,
-      "enum": [
-        "7INCH",
-        "13INCH",
-        "15INCH",
-        "LARGE"
-      ],
-      "ref": "BinSlotSize"
+      "nullable": false
     },
     "max_depth_mm": {
       "title": "Max Depth Mm",
@@ -74,14 +76,6 @@ export const BinSlotTemplateResponseMetadata = {
       "nullable": true,
       "minimum": 1
     },
-    "active": {
-      "title": "Active",
-      "description": "是否启用",
-      "type": "boolean",
-      "required": false,
-      "nullable": false,
-      "default": true
-    },
     "metadata_json": {
       "title": "Metadata Json",
       "description": "扩展属性",
@@ -89,11 +83,17 @@ export const BinSlotTemplateResponseMetadata = {
       "required": false,
       "nullable": false
     },
-    "id": {
-      "title": "Id",
-      "type": "integer",
+    "slot_size": {
+      "description": "槽位尺寸",
       "required": true,
-      "nullable": false
+      "nullable": false,
+      "enum": [
+        "7INCH",
+        "13INCH",
+        "15INCH",
+        "LARGE"
+      ],
+      "ref": "BinSlotSize"
     }
   }
 } satisfies OpenApiSchemaMetadata

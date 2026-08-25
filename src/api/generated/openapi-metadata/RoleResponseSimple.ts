@@ -17,13 +17,6 @@ export const RoleResponseSimpleMetadata = {
     "id"
   ],
   "fields": {
-    "name": {
-      "title": "Name",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "maxLength": 100
-    },
     "description": {
       "title": "Description",
       "type": "string",
@@ -36,6 +29,13 @@ export const RoleResponseSimpleMetadata = {
       "type": "integer",
       "required": true,
       "nullable": false
+    },
+    "name": {
+      "title": "Name",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "maxLength": 100
     }
   }
 } satisfies OpenApiSchemaMetadata

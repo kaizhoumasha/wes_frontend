@@ -55,16 +55,6 @@ export const APIApplicationCreateMetadata = {
         "type": "string"
       }
     },
-    "rate_limit_per_minute": {
-      "title": "Rate Limit Per Minute",
-      "description": "每分钟请求限制",
-      "type": "integer",
-      "required": false,
-      "nullable": false,
-      "default": 100,
-      "minimum": 1,
-      "maximum": 10000
-    },
     "rate_limit_per_hour": {
       "title": "Rate Limit Per Hour",
       "description": "每小时请求限制",
@@ -74,6 +64,16 @@ export const APIApplicationCreateMetadata = {
       "default": 5000,
       "minimum": 1,
       "maximum": 1000000
+    },
+    "rate_limit_per_minute": {
+      "title": "Rate Limit Per Minute",
+      "description": "每分钟请求限制",
+      "type": "integer",
+      "required": false,
+      "nullable": false,
+      "default": 100,
+      "minimum": 1,
+      "maximum": 10000
     },
     "validity_period": {
       "description": "有效期时长",

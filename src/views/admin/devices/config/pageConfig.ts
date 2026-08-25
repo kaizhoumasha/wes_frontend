@@ -6,11 +6,29 @@ import type {
 import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
 import { devicesApiMethods } from '@/api/modules/devices'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
-import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
+import type {
+  CrudPageConfig,
+  CrudPageFeatures,
+  CrudPagePermissionConfig
+} from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
 import { devicePageFieldConfig } from './fieldConfig'
 
 type DevicePageConfig = CrudPageConfig<Device, CreateDeviceInput, UpdateDeviceInput>
+
+const DEVICE_PAGE_PERMISSIONS = {
+  page: BIZ_PERMISSIONS.device.page,
+  list: BIZ_PERMISSIONS.device.list,
+  detail: BIZ_PERMISSIONS.device.detail,
+  create: BIZ_PERMISSIONS.device.create,
+  update: BIZ_PERMISSIONS.device.update,
+  delete: BIZ_PERMISSIONS.device.delete,
+  restore: BIZ_PERMISSIONS.device.restore,
+  trash: BIZ_PERMISSIONS.device.trash,
+  batchRestore: BIZ_PERMISSIONS.device.batchRestore,
+  permanentDelete: BIZ_PERMISSIONS.device.permanentDelete,
+  batchPermanentDelete: BIZ_PERMISSIONS.device.batchPermanentDelete
+} satisfies CrudPagePermissionConfig
 
 const DEVICE_PAGE_RESOURCE = {
   key: 'devices',
@@ -25,7 +43,7 @@ const DEVICE_PAGE_RESOURCE = {
     icon: 'ep:delete'
   },
   methods: devicesApiMethods,
-  permissions: BIZ_PERMISSIONS.device,
+  permissions: DEVICE_PAGE_PERMISSIONS,
   optimisticUpdate: true,
   defaultSort: [{ field: 'id', order: 'asc' as const }]
 }

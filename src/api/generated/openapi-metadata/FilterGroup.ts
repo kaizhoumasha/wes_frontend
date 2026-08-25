@@ -14,6 +14,13 @@ export const FilterGroupMetadata = {
   "description": "过滤条件组",
   "required": [],
   "fields": {
+    "conditions": {
+      "title": "Conditions",
+      "type": "array",
+      "required": false,
+      "nullable": false,
+      "items": {}
+    },
     "couple": {
       "title": "Couple",
       "type": "string",
@@ -25,13 +32,6 @@ export const FilterGroupMetadata = {
         "or",
         "not"
       ]
-    },
-    "conditions": {
-      "title": "Conditions",
-      "type": "array",
-      "required": false,
-      "nullable": false,
-      "items": {}
     }
   }
 } satisfies OpenApiSchemaMetadata

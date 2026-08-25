@@ -27,14 +27,6 @@ export const PlaneNodeMetadata = {
       "minLength": 1,
       "maxLength": 120
     },
-    "label": {
-      "title": "Label",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 120
-    },
     "kind": {
       "title": "Kind",
       "type": "string",
@@ -42,6 +34,14 @@ export const PlaneNodeMetadata = {
       "nullable": false,
       "minLength": 1,
       "maxLength": 80
+    },
+    "label": {
+      "title": "Label",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "minLength": 1,
+      "maxLength": 120
     }
   }
 } satisfies OpenApiSchemaMetadata

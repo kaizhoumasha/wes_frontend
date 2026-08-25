@@ -21,13 +21,6 @@ export const NorthboundOperationalSnapshotMetadata = {
   ],
   "additionalProperties": false,
   "fields": {
-    "schema_version": {
-      "title": "Schema Version",
-      "type": "string",
-      "required": false,
-      "nullable": false,
-      "default": "northbound-operational-snapshot.v1"
-    },
     "catalog_version": {
       "title": "Catalog Version",
       "type": "string",
@@ -42,6 +35,28 @@ export const NorthboundOperationalSnapshotMetadata = {
       "required": true,
       "nullable": false
     },
+    "operations": {
+      "title": "Operations",
+      "type": "array",
+      "required": true,
+      "nullable": false,
+      "items": {
+        "ref": "NorthboundOperationHealth"
+      }
+    },
+    "schema_version": {
+      "title": "Schema Version",
+      "type": "string",
+      "required": false,
+      "nullable": false,
+      "default": "northbound-operational-snapshot.v1"
+    },
+    "tenant_id": {
+      "title": "Tenant Id",
+      "type": "integer",
+      "required": true,
+      "nullable": true
+    },
     "tenant_scope": {
       "title": "Tenant Scope",
       "type": "string",
@@ -52,26 +67,11 @@ export const NorthboundOperationalSnapshotMetadata = {
         "PLATFORM"
       ]
     },
-    "tenant_id": {
-      "title": "Tenant Id",
-      "type": "integer",
-      "required": true,
-      "nullable": true
-    },
     "workline_id": {
       "title": "Workline Id",
       "type": "integer",
       "required": true,
       "nullable": true
-    },
-    "operations": {
-      "title": "Operations",
-      "type": "array",
-      "required": true,
-      "nullable": false,
-      "items": {
-        "ref": "NorthboundOperationHealth"
-      }
     }
   }
 } satisfies OpenApiSchemaMetadata

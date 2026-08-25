@@ -6,7 +6,7 @@
  *
  * 权限分组: user_api:biz:workline
  *
- * 更新权限: pnpm generate:permissions -- --backend-root /path/to/wes_backend
+ * 更新权限: pnpm generate:permissions
  */
 
 export const BIZ_WORKLINE_PERMISSION = {

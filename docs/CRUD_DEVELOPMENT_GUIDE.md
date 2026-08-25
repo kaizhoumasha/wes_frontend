@@ -28,6 +28,8 @@ createCrudPageConfigFromResource()  ← 页面配置
 ## 当前架构基线（2026-04 更新）
 
 > 本指南已按当前仓库实现同步。若你在其他历史设计/任务文档中看到 `userApi`、`useCrudApi`、`src/api/base/crud-api.ts` 等旧术语，请以本文件为准。
+>
+> 菜单同步章节仅描述 frontend-owned menu convergence 实施前的当前运行基线，不属于发布兼容门禁。发布作业不读取菜单清单；菜单正文、脚本和后端持久化由既定菜单收敛计划统一删除，本阶段不新增同步工具或第二条路径。
 
 当前项目的 CRUD / API 约定如下：
 
@@ -56,8 +58,8 @@ pnpm generate:types
 # 3. 生成 Zod Schema（用于表单验证）
 pnpm generate:zod
 
-# 4. 生成权限常量
-pnpm generate:permissions -- --backend-root /path/to/wes_backend
+# 4. 从 canonical 权限快照生成权限常量（离线）
+pnpm generate:permissions
 ```
 
 **坑点预警**：如果跳过后端同步，可能出现：
@@ -306,8 +308,8 @@ pnpm generate:types
 # 3. 生成 Zod Schema（表单验证用）
 pnpm generate:zod
 
-# 4. 生成权限常量
-pnpm generate:permissions -- --backend-root /path/to/wes_backend
+# 4. 从 canonical 权限快照生成权限常量（离线）
+pnpm generate:permissions
 
 # 5. 验证生成结果
 ls src/api/generated/openapi-types.ts         # 查看生成的类型
@@ -542,7 +544,7 @@ bash scripts/data/sync_menus.sh \
 pnpm contract:freeze -- --backend-root /path/to/wes_backend
 pnpm generate:types    # 生成 TypeScript 类型
 pnpm generate:zod     # 生成 Zod Schema
-pnpm generate:permissions -- --backend-root /path/to/wes_backend  # 生成权限常量
+pnpm generate:permissions  # 从 canonical 权限快照生成权限常量
 ```
 
 **检查清单**：
@@ -550,7 +552,7 @@ pnpm generate:permissions -- --backend-root /path/to/wes_backend  # 生成权限
 - [ ] 已从指定的 clean develop checkout 冻结 canonical OpenAPI
 - [ ] 执行了 `pnpm generate:types`
 - [ ] 执行了 `pnpm generate:zod`
-- [ ] 执行了 `pnpm generate:permissions -- --backend-root /path/to/wes_backend`
+- [ ] 执行了 `pnpm generate:permissions`
 
 ---
 

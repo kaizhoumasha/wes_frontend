@@ -17,13 +17,6 @@ export const ActiveSessionsResponseMetadata = {
     "sessions"
   ],
   "fields": {
-    "total": {
-      "title": "Total",
-      "description": "活跃会话总数",
-      "type": "integer",
-      "required": true,
-      "nullable": false
-    },
     "sessions": {
       "title": "Sessions",
       "description": "会话列表",
@@ -33,6 +26,13 @@ export const ActiveSessionsResponseMetadata = {
       "items": {
         "ref": "SessionInfo"
       }
+    },
+    "total": {
+      "title": "Total",
+      "description": "活跃会话总数",
+      "type": "integer",
+      "required": true,
+      "nullable": false
     }
   }
 } satisfies OpenApiSchemaMetadata

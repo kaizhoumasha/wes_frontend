@@ -14,6 +14,13 @@ export const SimulateWorkLineEstopRequestMetadata = {
   "description": "沙箱模拟 WorkLine 软件急停请求。",
   "required": [],
   "fields": {
+    "payload": {
+      "title": "Payload",
+      "description": "模拟触发 payload",
+      "type": "object",
+      "required": false,
+      "nullable": false
+    },
     "reason": {
       "title": "Reason",
       "description": "模拟急停说明",
@@ -28,13 +35,6 @@ export const SimulateWorkLineEstopRequestMetadata = {
       "type": "integer",
       "required": false,
       "nullable": true
-    },
-    "payload": {
-      "title": "Payload",
-      "description": "模拟触发 payload",
-      "type": "object",
-      "required": false,
-      "nullable": false
     }
   }
 } satisfies OpenApiSchemaMetadata

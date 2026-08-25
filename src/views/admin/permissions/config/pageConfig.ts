@@ -1,15 +1,23 @@
-import type {
-  PermissionsItem as Permission,
-  ReadonlyInput
-} from '@/api/modules/permissions'
+import type { PermissionsItem as Permission, ReadonlyInput } from '@/api/modules/permissions'
 import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
 import { permissionsApiMethods } from '@/api/modules/permissions'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
-import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
+import type {
+  CrudPageConfig,
+  CrudPageFeatures,
+  CrudPagePermissionConfig
+} from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
 import { permissionPageFieldConfig } from './fieldConfig'
 
 type PermissionPageConfig = CrudPageConfig<Permission, ReadonlyInput, ReadonlyInput>
+
+const PERMISSION_PAGE_PERMISSIONS = {
+  page: ADMIN_PERMISSIONS.permission.page,
+  list: ADMIN_PERMISSIONS.permission.list,
+  detail: ADMIN_PERMISSIONS.permission.detail,
+  tree: ADMIN_PERMISSIONS.permission.tree
+} satisfies CrudPagePermissionConfig
 
 const PERMISSION_PAGE_RESOURCE = {
   key: 'permissions',
@@ -24,7 +32,7 @@ const PERMISSION_PAGE_RESOURCE = {
     icon: 'ep:delete'
   },
   methods: permissionsApiMethods,
-  permissions: ADMIN_PERMISSIONS.permission,
+  permissions: PERMISSION_PAGE_PERMISSIONS,
   optimisticUpdate: true,
   defaultSort: [{ field: 'sort_order', order: 'asc' as const }],
   // 启用树形模式（非懒加载，后端一次返回完整树）

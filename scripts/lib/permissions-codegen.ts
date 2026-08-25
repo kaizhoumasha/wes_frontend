@@ -1,4 +1,3 @@
-import { execFileSync } from 'node:child_process'
 import {
   existsSync,
   mkdirSync,
@@ -10,7 +9,6 @@ import {
 } from 'node:fs'
 import { dirname, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { writeFileAtomically } from './atomic-file'
 import { computeSha256 } from './sha256'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -20,12 +18,9 @@ export const FRONTEND_ROOT = resolve(__dirname, '../..')
 export const PERMISSIONS_OUTPUT_DIR = resolve(FRONTEND_ROOT, 'src/api/generated/permissions')
 export const PERMISSIONS_INDEX_FILE = resolve(PERMISSIONS_OUTPUT_DIR, 'index.ts')
 export const PERMISSION_SYNC_RECORD_FILE = resolve(FRONTEND_ROOT, '.permission-sync-record.json')
-export const UV_CACHE_DIR = resolve(FRONTEND_ROOT, 'node_modules/.cache/uv')
-
-const JSON_START_MARKER = '__PERMISSIONS_JSON_START__'
-const JSON_END_MARKER = '__PERMISSIONS_JSON_END__'
-export const GENERATE_PERMISSIONS_COMMAND =
-  'pnpm generate:permissions -- --backend-root /path/to/wes_backend'
+export const CANONICAL_PERMISSIONS_SNAPSHOT_PATH = 'contracts/permissions.current.json' as const
+export const PROVIDED_PERMISSIONS_KIND = 'wes.release.provided-permissions.v1' as const
+export const GENERATE_PERMISSIONS_COMMAND = 'pnpm generate:permissions'
 
 export interface PermissionRecord {
   name: string
@@ -88,72 +83,121 @@ export function ensureDir(path: string): void {
   }
 }
 
-function extractJsonPayload(rawOutput: string): PermissionRecord[] {
-  const startIndex = rawOutput.indexOf(JSON_START_MARKER)
-  const endIndex = rawOutput.indexOf(JSON_END_MARKER)
+const PERMISSION_FIELDS = [
+  'action',
+  'category',
+  'description',
+  'method',
+  'name',
+  'path',
+  'resource',
+  'type'
+] as const
 
-  if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
-    throw new Error('未能从后端扫描输出中提取权限 JSON，请检查后端日志或脚本实现')
-  }
-
-  const payload = rawOutput.slice(startIndex + JSON_START_MARKER.length, endIndex).trim()
-  return JSON.parse(payload) as PermissionRecord[]
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-export function scanBackendPermissions(backendRoot: string): PermissionRecord[] {
-  if (!existsSync(backendRoot)) {
-    throw new Error(`后端目录不存在: ${backendRoot}`)
-  }
+function compareText(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0
+}
 
-  const pythonCode = `
-import json
-
-from src.register import create_app
-from src.utils.permission_scanner import scan_routes_for_permissions
-
-app = create_app()
-
-print("${JSON_START_MARKER}")
-print(json.dumps(scan_routes_for_permissions(app), ensure_ascii=False))
-print("${JSON_END_MARKER}")
-`
-
-  try {
-    ensureDir(UV_CACHE_DIR)
-
-    const stdout = execFileSync('uv', ['run', 'python', '-c', pythonCode], {
-      cwd: backendRoot,
-      env: {
-        ...process.env,
-        PYTHONPATH: '.',
-        UV_CACHE_DIR
-      },
-      encoding: 'utf-8'
-    })
-
-    return extractJsonPayload(stdout)
-  } catch (error) {
-    const cause = error as NodeJS.ErrnoException & {
-      stdout?: string | Buffer
-      stderr?: string | Buffer
+function comparePermissionProviderOrder(left: PermissionRecord, right: PermissionRecord): number {
+  for (const field of ['name', 'type', 'method', 'path'] as const) {
+    const comparison = compareText(left[field] ?? '', right[field] ?? '')
+    if (comparison !== 0) {
+      return comparison
     }
-    const stderr =
-      typeof cause.stderr === 'string'
-        ? cause.stderr.trim()
-        : cause.stderr?.toString('utf-8').trim()
-    const stdout =
-      typeof cause.stdout === 'string'
-        ? cause.stdout.trim()
-        : cause.stdout?.toString('utf-8').trim()
-    const details = [stderr, stdout].filter(Boolean).join('\n')
-
-    throw new Error(
-      [
-        `后端权限扫描失败，请确认后端依赖已安装且可执行: ${backendRoot}`,
-        details || '未获取到额外错误信息'
-      ].join('\n')
-    )
   }
+  return 0
+}
+
+export function normalizePermissions(value: unknown): PermissionRecord[] {
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new Error('权限快照 permissions 必须是非空数组')
+  }
+
+  const names = new Set<string>()
+  const normalized = value.map((candidate, index) => {
+    if (!isObject(candidate)) {
+      throw new Error(`权限快照 permissions[${index}] 必须是对象`)
+    }
+    const keys = Object.keys(candidate).sort()
+    if (
+      keys.length !== PERMISSION_FIELDS.length ||
+      !keys.every((key, keyIndex) => key === PERMISSION_FIELDS[keyIndex])
+    ) {
+      throw new Error(`权限快照 permissions[${index}] 字段必须严格匹配当前格式`)
+    }
+    for (const field of PERMISSION_FIELDS) {
+      const fieldValue = candidate[field]
+      if (typeof fieldValue !== 'string' || fieldValue.trim() === '') {
+        throw new Error(`权限快照 permissions[${index}].${field} 必须是非空字符串`)
+      }
+    }
+    const name = candidate.name as string
+    if (names.has(name)) {
+      throw new Error(`权限快照包含重复权限名: ${name}`)
+    }
+    names.add(name)
+    return {
+      action: candidate.action as string,
+      category: candidate.category as string,
+      description: candidate.description as string,
+      method: candidate.method as string,
+      name,
+      path: candidate.path as string,
+      resource: candidate.resource as string,
+      type: candidate.type as string
+    }
+  })
+
+  return normalized.sort(comparePermissionProviderOrder)
+}
+
+export function serializePermissionSnapshot(permissions: unknown): string {
+  return `${JSON.stringify({
+    kind: PROVIDED_PERMISSIONS_KIND,
+    permissions: normalizePermissions(permissions)
+  })}\n`
+}
+
+export function parseCanonicalPermissionSnapshot(serialized: string): {
+  permissions: PermissionRecord[]
+  serialized: string
+  sha256: string
+} {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(serialized)
+  } catch (error) {
+    throw new Error(`权限快照不是有效 JSON: ${(error as Error).message}`)
+  }
+  if (!isObject(parsed) || Object.keys(parsed).join(',') !== 'kind,permissions') {
+    throw new Error('权限快照字段与顺序必须严格匹配 kind,permissions')
+  }
+  if (parsed.kind !== PROVIDED_PERMISSIONS_KIND) {
+    throw new Error(`权限快照 kind 必须是 ${PROVIDED_PERMISSIONS_KIND}`)
+  }
+  const permissions = normalizePermissions(parsed.permissions)
+  const canonical = serializePermissionSnapshot(permissions)
+  if (serialized !== canonical) {
+    throw new Error('权限快照未使用 canonical JSON 字段顺序或序列化')
+  }
+  return { permissions, serialized, sha256: computeSha256(canonical) }
+}
+
+export function readCanonicalPermissionSnapshot(frontendRoot: string = FRONTEND_ROOT): {
+  permissions: PermissionRecord[]
+  serialized: string
+  sha256: string
+} {
+  const snapshotPath = resolve(frontendRoot, CANONICAL_PERMISSIONS_SNAPSHOT_PATH)
+  if (!existsSync(snapshotPath)) {
+    throw new Error(`权限快照不存在: ${snapshotPath}`)
+  }
+  const serialized = readFileSync(snapshotPath, 'utf-8')
+  return parseCanonicalPermissionSnapshot(serialized)
 }
 
 function splitWords(value: string): string[] {
@@ -435,9 +479,7 @@ export function assertGeneratedPermissionFiles(
       return expectedContent === undefined || readFileSync(filePath, 'utf-8') !== expectedContent
     })
   ) {
-    throw new Error(
-      `生成权限文件与后端权限不一致，请重新运行 ${GENERATE_PERMISSIONS_COMMAND}`
-    )
+    throw new Error(`生成权限文件与权限快照不一致，请重新运行 ${GENERATE_PERMISSIONS_COMMAND}`)
   }
 }
 
@@ -474,30 +516,7 @@ export function removeStalePermissionFiles(expectedFiles: string[]): string[] {
 }
 
 export function computePermissionsHash(permissions: PermissionRecord[]): string {
-  const normalized = [...permissions]
-    .sort((left, right) => left.name.localeCompare(right.name))
-    .map(permission => ({
-      name: permission.name,
-      type: permission.type,
-      category: permission.category,
-      description: permission.description,
-      resource: permission.resource,
-      action: permission.action,
-      method: permission.method,
-      path: permission.path
-    }))
-
-  return computeSha256(JSON.stringify(normalized))
-}
-
-export function writePermissionSyncRecord(record: PermissionSyncRecord): void {
-  const content = `${JSON.stringify(record, null, 2)}\n`
-  if (
-    !existsSync(PERMISSION_SYNC_RECORD_FILE) ||
-    readFileSync(PERMISSION_SYNC_RECORD_FILE, 'utf-8') !== content
-  ) {
-    writeFileAtomically(PERMISSION_SYNC_RECORD_FILE, content)
-  }
+  return computeSha256(serializePermissionSnapshot(permissions))
 }
 
 function isExactPermissionSyncRecord(value: unknown): value is PermissionSyncRecord {

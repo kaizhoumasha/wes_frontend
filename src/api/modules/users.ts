@@ -40,16 +40,16 @@ export type UpdateUsersInput = CrudUpdateInput<typeof USERS_COLLECTION_PATH>
 
 export type StatsCacheResult = ContractResponseData<'/api/v1/admin/users/stats/cache', 'get'>
 
-export type ResetPasswordResult = ContractResponseData<'/api/v1/admin/users/{id}/reset-password', 'put'>
-export type ResetPasswordPathParams = ContractPathParams<'/api/v1/admin/users/{id}/reset-password', 'put'>
-export type ResetPasswordInput = ContractRequestBody<'/api/v1/admin/users/{id}/reset-password', 'put'>
-
 export type AssignRolesResult = ContractResponseData<'/api/v1/admin/users/{id}/assign-roles', 'put'>
 export type AssignRolesPathParams = ContractPathParams<'/api/v1/admin/users/{id}/assign-roles', 'put'>
 export type AssignRolesInput = ContractRequestBody<'/api/v1/admin/users/{id}/assign-roles', 'put'>
 
 export type PermanentResult = ContractResponseData<'/api/v1/admin/users/{id}/permanent', 'delete'>
 export type PermanentPathParams = ContractPathParams<'/api/v1/admin/users/{id}/permanent', 'delete'>
+
+export type ResetPasswordResult = ContractResponseData<'/api/v1/admin/users/{id}/reset-password', 'put'>
+export type ResetPasswordPathParams = ContractPathParams<'/api/v1/admin/users/{id}/reset-password', 'put'>
+export type ResetPasswordInput = ContractRequestBody<'/api/v1/admin/users/{id}/reset-password', 'put'>
 
 const baseUsersApiMethods = createSoftDeleteCrudRequestAdapterMethods({
   collection: USERS_COLLECTION_PATH as unknown as SoftDeleteCrudResourceCollectionPath,
@@ -78,33 +78,6 @@ export const usersApiMethods = {
    */
   statsCache(config?: ContractRequestConfig) {
     return contractMethods.get('/api/v1/admin/users/stats/cache', { config })
-  },
-
-  /**
-   * [admin:user:reset-password] 重置用户密码
-   * @description 管理员重置用户密码
-
-重置密码后，用户需要重新登录。
-
-**权限要求**：`admin:user:reset-password`
-
-**安全措施**：
-- 重置后自动撤销所有活跃会话
-- 清除权限缓存
-
-Args:
-    id: 用户 ID
-    data: 重置密码请求数据
-    db: 数据库会话
-    cache: 缓存服务
-
-Returns:
-    更新后的用户信息
-   * @endpoint PUT /api/v1/admin/users/{id}/reset-password
-   * @returns alova method instance
-   */
-  resetPassword(params: ContractPathParams<'/api/v1/admin/users/{id}/reset-password', 'put'>, body: ContractRequestBody<'/api/v1/admin/users/{id}/reset-password', 'put'>, config?: ContractRequestConfig) {
-    return contractMethods.put('/api/v1/admin/users/{id}/reset-password', { params, body, config })
   },
 
   /**
@@ -139,6 +112,33 @@ Returns:
    */
   permanent(params: ContractPathParams<'/api/v1/admin/users/{id}/permanent', 'delete'>, config?: ContractRequestConfig) {
     return contractMethods.delete('/api/v1/admin/users/{id}/permanent', { params, config })
+  },
+
+  /**
+   * [admin:user:reset-password] 重置用户密码
+   * @description 管理员重置用户密码
+
+重置密码后，用户需要重新登录。
+
+**权限要求**：`admin:user:reset-password`
+
+**安全措施**：
+- 重置后自动撤销所有活跃会话
+- 清除权限缓存
+
+Args:
+    id: 用户 ID
+    data: 重置密码请求数据
+    db: 数据库会话
+    cache: 缓存服务
+
+Returns:
+    更新后的用户信息
+   * @endpoint PUT /api/v1/admin/users/{id}/reset-password
+   * @returns alova method instance
+   */
+  resetPassword(params: ContractPathParams<'/api/v1/admin/users/{id}/reset-password', 'put'>, body: ContractRequestBody<'/api/v1/admin/users/{id}/reset-password', 'put'>, config?: ContractRequestConfig) {
+    return contractMethods.put('/api/v1/admin/users/{id}/reset-password', { params, body, config })
   }
 }
 // ==================== AUTO GENERATED END ====================

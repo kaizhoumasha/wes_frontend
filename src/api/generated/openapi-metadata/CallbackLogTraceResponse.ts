@@ -18,13 +18,6 @@ export const CallbackLogTraceResponseMetadata = {
     "items"
   ],
   "fields": {
-    "trace_id": {
-      "title": "Trace Id",
-      "description": "Trace ID",
-      "type": "string",
-      "required": true,
-      "nullable": false
-    },
     "count": {
       "title": "Count",
       "description": "回调日志数量",
@@ -42,6 +35,13 @@ export const CallbackLogTraceResponseMetadata = {
       "items": {
         "ref": "CallbackLogResponse"
       }
+    },
+    "trace_id": {
+      "title": "Trace Id",
+      "description": "Trace ID",
+      "type": "string",
+      "required": true,
+      "nullable": false
     }
   }
 } satisfies OpenApiSchemaMetadata

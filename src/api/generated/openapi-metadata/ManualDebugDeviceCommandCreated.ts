@@ -18,14 +18,14 @@ export const ManualDebugDeviceCommandCreatedMetadata = {
   ],
   "additionalProperties": false,
   "fields": {
-    "command_code": {
-      "title": "Command Code",
+    "client_request_id": {
+      "title": "Client Request Id",
       "type": "string",
       "required": true,
       "nullable": false
     },
-    "client_request_id": {
-      "title": "Client Request Id",
+    "command_code": {
+      "title": "Command Code",
       "type": "string",
       "required": true,
       "nullable": false

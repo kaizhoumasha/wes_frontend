@@ -17,12 +17,6 @@ export const ManualDebugPreflightResponseMetadata = {
   ],
   "additionalProperties": false,
   "fields": {
-    "endpoint_base_url": {
-      "title": "Endpoint Base Url",
-      "type": "string",
-      "required": true,
-      "nullable": false
-    },
     "devices": {
       "title": "Devices",
       "type": "array",
@@ -31,6 +25,12 @@ export const ManualDebugPreflightResponseMetadata = {
       "items": {
         "ref": "ManualDebugPreflightDevice"
       }
+    },
+    "endpoint_base_url": {
+      "title": "Endpoint Base Url",
+      "type": "string",
+      "required": true,
+      "nullable": false
     }
   }
 } satisfies OpenApiSchemaMetadata

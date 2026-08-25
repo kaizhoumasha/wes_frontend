@@ -26,13 +26,10 @@ export const _RackMoveDebugTaskMetadata = {
       "minLength": 36,
       "maxLength": 36
     },
-    "station_id": {
-      "title": "Station Id",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "minLength": 1,
-      "maxLength": 100
+    "data": {
+      "required": true,
+      "nullable": false,
+      "ref": "_RackMoveData"
     },
     "kind": {
       "description": "discriminator enum property added by openapi-typescript",
@@ -43,10 +40,13 @@ export const _RackMoveDebugTaskMetadata = {
         "RACK_MOVE"
       ]
     },
-    "data": {
-      "required": true,
-      "nullable": false,
-      "ref": "_RackMoveData"
+    "station_id": {
+      "title": "Station Id",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "minLength": 1,
+      "maxLength": 100
     }
   }
 } satisfies OpenApiSchemaMetadata

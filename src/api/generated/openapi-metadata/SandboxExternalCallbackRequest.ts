@@ -16,15 +16,6 @@ export const SandboxExternalCallbackRequestMetadata = {
     "dispatch_key"
   ],
   "fields": {
-    "dispatch_key": {
-      "title": "Dispatch Key",
-      "description": "External HTTP Outbox Dispatch Key",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 200
-    },
     "callback_type": {
       "title": "Callback Type",
       "description": "外部回调类型；为空时优先使用 Outbox payload.resume_callback_type",
@@ -33,44 +24,13 @@ export const SandboxExternalCallbackRequestMetadata = {
       "nullable": true,
       "maxLength": 100
     },
-    "payload": {
-      "title": "Payload",
-      "description": "回调 Payload 增量字段",
-      "type": "object",
-      "required": false,
-      "nullable": false
-    },
-    "source_system": {
-      "title": "Source System",
-      "description": "外部来源系统",
+    "dispatch_key": {
+      "title": "Dispatch Key",
+      "description": "External HTTP Outbox Dispatch Key",
       "type": "string",
-      "required": false,
+      "required": true,
       "nullable": false,
-      "default": "WMS"
-    },
-    "source_event_id": {
-      "title": "Source Event Id",
-      "description": "外部事件 ID；为空时自动生成",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 200
-    },
-    "source_version": {
-      "title": "Source Version",
-      "description": "外部来源版本",
-      "type": "string",
-      "required": false,
-      "nullable": false,
-      "default": "1",
-      "maxLength": 50
-    },
-    "request_id": {
-      "title": "Request Id",
-      "description": "外部请求 ID；为空时自动生成",
-      "type": "string",
-      "required": false,
-      "nullable": true,
+      "minLength": 1,
       "maxLength": 200
     },
     "occurred_at": {
@@ -81,13 +41,20 @@ export const SandboxExternalCallbackRequestMetadata = {
       "required": false,
       "nullable": true
     },
-    "timestamp": {
-      "title": "Timestamp",
-      "description": "外部回调时间",
-      "type": "string",
-      "format": "date-time",
+    "payload": {
+      "title": "Payload",
+      "description": "回调 Payload 增量字段",
+      "type": "object",
       "required": false,
-      "nullable": true
+      "nullable": false
+    },
+    "request_id": {
+      "title": "Request Id",
+      "description": "外部请求 ID；为空时自动生成",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 200
     },
     "signature": {
       "title": "Signature",
@@ -97,6 +64,39 @@ export const SandboxExternalCallbackRequestMetadata = {
       "nullable": false,
       "default": "sandbox",
       "maxLength": 500
+    },
+    "source_event_id": {
+      "title": "Source Event Id",
+      "description": "外部事件 ID；为空时自动生成",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 200
+    },
+    "source_system": {
+      "title": "Source System",
+      "description": "外部来源系统",
+      "type": "string",
+      "required": false,
+      "nullable": false,
+      "default": "WMS"
+    },
+    "source_version": {
+      "title": "Source Version",
+      "description": "外部来源版本",
+      "type": "string",
+      "required": false,
+      "nullable": false,
+      "default": "1",
+      "maxLength": 50
+    },
+    "timestamp": {
+      "title": "Timestamp",
+      "description": "外部回调时间",
+      "type": "string",
+      "format": "date-time",
+      "required": false,
+      "nullable": true
     }
   }
 } satisfies OpenApiSchemaMetadata

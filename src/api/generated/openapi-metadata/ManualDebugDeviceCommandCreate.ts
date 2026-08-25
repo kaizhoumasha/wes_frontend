@@ -29,14 +29,6 @@ export const ManualDebugDeviceCommandCreateMetadata = {
       "minLength": 36,
       "maxLength": 36
     },
-    "endpoint_base_url": {
-      "title": "Endpoint Base Url",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 255
-    },
     "device_code": {
       "title": "Device Code",
       "type": "string",
@@ -45,20 +37,13 @@ export const ManualDebugDeviceCommandCreateMetadata = {
       "minLength": 1,
       "maxLength": 100
     },
-    "timeout": {
-      "title": "Timeout",
-      "type": "integer",
-      "required": true,
-      "nullable": false,
-      "maximum": 2147483647
-    },
-    "task_type": {
-      "title": "Task Type",
+    "endpoint_base_url": {
+      "title": "Endpoint Base Url",
       "type": "string",
       "required": true,
       "nullable": false,
       "minLength": 1,
-      "maxLength": 100
+      "maxLength": 255
     },
     "params": {
       "title": "Params",
@@ -73,6 +58,21 @@ export const ManualDebugDeviceCommandCreateMetadata = {
       "nullable": false,
       "minLength": 1,
       "maxLength": 500
+    },
+    "task_type": {
+      "title": "Task Type",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "timeout": {
+      "title": "Timeout",
+      "type": "integer",
+      "required": true,
+      "nullable": false,
+      "maximum": 2147483647
     }
   }
 } satisfies OpenApiSchemaMetadata

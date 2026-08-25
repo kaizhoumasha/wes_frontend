@@ -22,6 +22,12 @@ export const BatchOperationResponseModelMetadata = {
       "nullable": false,
       "default": "1000"
     },
+    "data": {
+      "description": "响应数据",
+      "required": false,
+      "nullable": true,
+      "ref": "BatchOperationResult"
+    },
     "message": {
       "title": "Message",
       "description": "响应消息",
@@ -29,12 +35,6 @@ export const BatchOperationResponseModelMetadata = {
       "required": false,
       "nullable": false,
       "default": "操作成功"
-    },
-    "data": {
-      "description": "响应数据",
-      "required": false,
-      "nullable": true,
-      "ref": "BatchOperationResult"
     },
     "timestamp": {
       "title": "Timestamp",

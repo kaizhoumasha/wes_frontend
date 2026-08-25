@@ -26,39 +26,6 @@ export const NorthboundOperationHealthMetadata = {
   ],
   "additionalProperties": false,
   "fields": {
-    "provider_profile_identity": {
-      "title": "Provider Profile Identity",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 240
-    },
-    "operation_identity": {
-      "title": "Operation Identity",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 240
-    },
-    "mode": {
-      "title": "Mode",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "enum": [
-        "QUERY",
-        "EFFECT"
-      ]
-    },
-    "backlog_count": {
-      "title": "Backlog Count",
-      "type": "integer",
-      "required": true,
-      "nullable": false,
-      "minimum": 0
-    },
     "active_lease_count": {
       "title": "Active Lease Count",
       "type": "integer",
@@ -66,22 +33,8 @@ export const NorthboundOperationHealthMetadata = {
       "nullable": false,
       "minimum": 0
     },
-    "unknown_count": {
-      "title": "Unknown Count",
-      "type": "integer",
-      "required": true,
-      "nullable": false,
-      "minimum": 0
-    },
-    "oldest_queue_age_seconds": {
-      "title": "Oldest Queue Age Seconds",
-      "type": "integer",
-      "required": true,
-      "nullable": false,
-      "minimum": 0
-    },
-    "rate_limited_count": {
-      "title": "Rate Limited Count",
+    "backlog_count": {
+      "title": "Backlog Count",
       "type": "integer",
       "required": true,
       "nullable": false,
@@ -94,8 +47,55 @@ export const NorthboundOperationHealthMetadata = {
       "nullable": false,
       "minimum": 0
     },
+    "mode": {
+      "title": "Mode",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "enum": [
+        "QUERY",
+        "EFFECT"
+      ]
+    },
+    "oldest_queue_age_seconds": {
+      "title": "Oldest Queue Age Seconds",
+      "type": "integer",
+      "required": true,
+      "nullable": false,
+      "minimum": 0
+    },
+    "operation_identity": {
+      "title": "Operation Identity",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "provider_profile_identity": {
+      "title": "Provider Profile Identity",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "rate_limited_count": {
+      "title": "Rate Limited Count",
+      "type": "integer",
+      "required": true,
+      "nullable": false,
+      "minimum": 0
+    },
     "reconciliation_open_count": {
       "title": "Reconciliation Open Count",
+      "type": "integer",
+      "required": true,
+      "nullable": false,
+      "minimum": 0
+    },
+    "unknown_count": {
+      "title": "Unknown Count",
       "type": "integer",
       "required": true,
       "nullable": false,

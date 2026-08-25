@@ -32,29 +32,17 @@ export const CallbackLogResponseMetadata = {
     "updated_at"
   ],
   "fields": {
-    "id": {
-      "title": "Id",
-      "type": "integer",
-      "required": true,
-      "nullable": false
-    },
     "callback_type": {
       "title": "Callback Type",
       "type": "string",
       "required": true,
       "nullable": false
     },
-    "subject_code": {
-      "title": "Subject Code",
+    "causation_id": {
+      "title": "Causation Id",
       "type": "string",
       "required": true,
-      "nullable": false
-    },
-    "request_body": {
-      "title": "Request Body",
-      "type": "object",
-      "required": true,
-      "nullable": false
+      "nullable": true
     },
     "client_ip": {
       "title": "Client Ip",
@@ -62,20 +50,15 @@ export const CallbackLogResponseMetadata = {
       "required": true,
       "nullable": true
     },
-    "user_agent": {
-      "title": "User Agent",
+    "created_at": {
+      "title": "Created At",
       "type": "string",
+      "format": "date-time",
       "required": true,
-      "nullable": true
+      "nullable": false
     },
-    "request_id": {
-      "title": "Request Id",
-      "type": "string",
-      "required": true,
-      "nullable": true
-    },
-    "trace_id": {
-      "title": "Trace Id",
+    "error_message": {
+      "title": "Error Message",
       "type": "string",
       "required": true,
       "nullable": true
@@ -86,8 +69,32 @@ export const CallbackLogResponseMetadata = {
       "required": true,
       "nullable": true
     },
-    "causation_id": {
-      "title": "Causation Id",
+    "failure_stage": {
+      "title": "Failure Stage",
+      "type": "string",
+      "required": true,
+      "nullable": true
+    },
+    "id": {
+      "title": "Id",
+      "type": "integer",
+      "required": true,
+      "nullable": false
+    },
+    "ingress_outcome": {
+      "title": "Ingress Outcome",
+      "type": "string",
+      "required": true,
+      "nullable": true
+    },
+    "request_body": {
+      "title": "Request Body",
+      "type": "object",
+      "required": true,
+      "nullable": false
+    },
+    "request_id": {
+      "title": "Request Id",
       "type": "string",
       "required": true,
       "nullable": true
@@ -104,30 +111,17 @@ export const CallbackLogResponseMetadata = {
       "required": true,
       "nullable": false
     },
-    "error_message": {
-      "title": "Error Message",
+    "subject_code": {
+      "title": "Subject Code",
       "type": "string",
-      "required": true,
-      "nullable": true
-    },
-    "ingress_outcome": {
-      "title": "Ingress Outcome",
-      "type": "string",
-      "required": true,
-      "nullable": true
-    },
-    "failure_stage": {
-      "title": "Failure Stage",
-      "type": "string",
-      "required": true,
-      "nullable": true
-    },
-    "created_at": {
-      "title": "Created At",
-      "type": "string",
-      "format": "date-time",
       "required": true,
       "nullable": false
+    },
+    "trace_id": {
+      "title": "Trace Id",
+      "type": "string",
+      "required": true,
+      "nullable": true
     },
     "updated_at": {
       "title": "Updated At",
@@ -135,6 +129,12 @@ export const CallbackLogResponseMetadata = {
       "format": "date-time",
       "required": true,
       "nullable": false
+    },
+    "user_agent": {
+      "title": "User Agent",
+      "type": "string",
+      "required": true,
+      "nullable": true
     }
   }
 } satisfies OpenApiSchemaMetadata

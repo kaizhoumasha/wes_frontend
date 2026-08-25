@@ -2,11 +2,29 @@ import type { CreateRolesInput, UpdateRolesInput, RolesItem } from '@/api/module
 import { ADMIN_PERMISSIONS } from '@/api/generated/permissions'
 import { rolesApiMethods } from '@/api/modules/roles'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
-import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
+import type {
+  CrudPageConfig,
+  CrudPageFeatures,
+  CrudPagePermissionConfig
+} from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
 import { rolePageFieldConfig } from './fieldConfig'
 
 type RolePageConfig = CrudPageConfig<RolesItem, CreateRolesInput, UpdateRolesInput>
+
+const ROLE_PAGE_PERMISSIONS = {
+  page: ADMIN_PERMISSIONS.role.page,
+  list: ADMIN_PERMISSIONS.role.list,
+  detail: ADMIN_PERMISSIONS.role.detail,
+  create: ADMIN_PERMISSIONS.role.create,
+  update: ADMIN_PERMISSIONS.role.update,
+  delete: ADMIN_PERMISSIONS.role.delete,
+  restore: ADMIN_PERMISSIONS.role.restore,
+  trash: ADMIN_PERMISSIONS.role.trash,
+  batchRestore: ADMIN_PERMISSIONS.role.batchRestore,
+  permanentDelete: ADMIN_PERMISSIONS.role.permanentDelete,
+  batchPermanentDelete: ADMIN_PERMISSIONS.role.batchPermanentDelete
+} satisfies CrudPagePermissionConfig
 
 const ROLE_PAGE_RESOURCE = {
   key: 'roles',
@@ -21,7 +39,7 @@ const ROLE_PAGE_RESOURCE = {
     icon: 'ep:delete'
   },
   methods: rolesApiMethods,
-  permissions: ADMIN_PERMISSIONS.role,
+  permissions: ROLE_PAGE_PERMISSIONS,
   optimisticUpdate: true,
   defaultSort: [{ field: 'updated_at', order: 'desc' as const }]
 }

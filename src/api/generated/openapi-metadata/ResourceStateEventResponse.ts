@@ -33,14 +33,6 @@ export const ResourceStateEventResponseMetadata = {
       "minLength": 1,
       "maxLength": 160
     },
-    "idempotency_key": {
-      "title": "Idempotency Key",
-      "description": "资源事实幂等键",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 240
-    },
     "event_type": {
       "description": "资源事件类型",
       "required": true,
@@ -59,6 +51,76 @@ export const ResourceStateEventResponseMetadata = {
       ],
       "ref": "ResourceStateEventType"
     },
+    "external_location_code": {
+      "title": "External Location Code",
+      "description": "外部地码证据",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 120
+    },
+    "id": {
+      "title": "Id",
+      "type": "integer",
+      "required": true,
+      "nullable": false
+    },
+    "idempotency_key": {
+      "title": "Idempotency Key",
+      "description": "资源事实幂等键",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 240
+    },
+    "logic_location_code": {
+      "title": "Logic Location Code",
+      "description": "WES 逻辑位置",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 120
+    },
+    "occurred_at": {
+      "title": "Occurred At",
+      "description": "事实发生时间",
+      "type": "string",
+      "format": "date-time",
+      "required": true,
+      "nullable": false
+    },
+    "payload_json": {
+      "title": "Payload Json",
+      "description": "事件事实",
+      "type": "object",
+      "required": false,
+      "nullable": false
+    },
+    "position_code": {
+      "title": "Position Code",
+      "description": "工作线停靠位编码",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 80
+    },
+    "received_at": {
+      "title": "Received At",
+      "description": "WES 接收时间",
+      "type": "string",
+      "format": "date-time",
+      "required": true,
+      "nullable": false
+    },
+    "resource_code": {
+      "title": "Resource Code",
+      "description": "资源编码",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "minLength": 1,
+      "maxLength": 120
+    },
     "resource_type": {
       "description": "资源类型",
       "required": true,
@@ -70,14 +132,14 @@ export const ResourceStateEventResponseMetadata = {
       ],
       "ref": "ResourceType"
     },
-    "resource_code": {
-      "title": "Resource Code",
-      "description": "资源编码",
+    "source_event_id": {
+      "title": "Source Event Id",
+      "description": "来源事件 ID",
       "type": "string",
       "required": true,
       "nullable": false,
       "minLength": 1,
-      "maxLength": 120
+      "maxLength": 200
     },
     "source_system": {
       "description": "来源系统",
@@ -92,15 +154,6 @@ export const ResourceStateEventResponseMetadata = {
         "MANUAL"
       ],
       "ref": "ResourceSourceSystem"
-    },
-    "source_event_id": {
-      "title": "Source Event Id",
-      "description": "来源事件 ID",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 200
     },
     "source_version": {
       "title": "Source Version",
@@ -118,20 +171,6 @@ export const ResourceStateEventResponseMetadata = {
       "nullable": true,
       "maxLength": 100
     },
-    "workline_session_id": {
-      "title": "Workline Session Id",
-      "description": "关联 workline_sessions.id",
-      "type": "integer",
-      "required": false,
-      "nullable": true
-    },
-    "workline_id": {
-      "title": "Workline Id",
-      "description": "关联 WorkLine.id",
-      "type": "integer",
-      "required": false,
-      "nullable": true
-    },
     "workline_code": {
       "title": "Workline Code",
       "description": "工作线编码",
@@ -140,58 +179,19 @@ export const ResourceStateEventResponseMetadata = {
       "nullable": true,
       "maxLength": 50
     },
-    "position_code": {
-      "title": "Position Code",
-      "description": "工作线停靠位编码",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 80
-    },
-    "logic_location_code": {
-      "title": "Logic Location Code",
-      "description": "WES 逻辑位置",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 120
-    },
-    "external_location_code": {
-      "title": "External Location Code",
-      "description": "外部地码证据",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 120
-    },
-    "payload_json": {
-      "title": "Payload Json",
-      "description": "事件事实",
-      "type": "object",
-      "required": false,
-      "nullable": false
-    },
-    "occurred_at": {
-      "title": "Occurred At",
-      "description": "事实发生时间",
-      "type": "string",
-      "format": "date-time",
-      "required": true,
-      "nullable": false
-    },
-    "received_at": {
-      "title": "Received At",
-      "description": "WES 接收时间",
-      "type": "string",
-      "format": "date-time",
-      "required": true,
-      "nullable": false
-    },
-    "id": {
-      "title": "Id",
+    "workline_id": {
+      "title": "Workline Id",
+      "description": "关联 WorkLine.id",
       "type": "integer",
-      "required": true,
-      "nullable": false
+      "required": false,
+      "nullable": true
+    },
+    "workline_session_id": {
+      "title": "Workline Session Id",
+      "description": "关联 workline_sessions.id",
+      "type": "integer",
+      "required": false,
+      "nullable": true
     }
   }
 } satisfies OpenApiSchemaMetadata

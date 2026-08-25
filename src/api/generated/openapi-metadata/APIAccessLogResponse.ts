@@ -40,9 +40,30 @@ export const APIAccessLogResponseMetadata = {
       "nullable": false,
       "maxLength": 100
     },
-    "request_id": {
-      "title": "Request Id",
-      "description": "请求ID",
+    "created_at": {
+      "title": "Created At",
+      "type": "string",
+      "format": "date-time",
+      "required": true,
+      "nullable": false
+    },
+    "error_message": {
+      "title": "Error Message",
+      "description": "错误信息",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 1000
+    },
+    "id": {
+      "title": "Id",
+      "type": "integer",
+      "required": true,
+      "nullable": false
+    },
+    "ip_address": {
+      "title": "Ip Address",
+      "description": "客户端IP",
       "type": "string",
       "required": true,
       "nullable": false,
@@ -64,12 +85,13 @@ export const APIAccessLogResponseMetadata = {
       "nullable": false,
       "maxLength": 500
     },
-    "status_code": {
-      "title": "Status Code",
-      "description": "响应状态码",
-      "type": "integer",
+    "request_id": {
+      "title": "Request Id",
+      "description": "请求ID",
+      "type": "string",
       "required": true,
-      "nullable": false
+      "nullable": false,
+      "maxLength": 50
     },
     "response_time_ms": {
       "title": "Response Time Ms",
@@ -78,13 +100,12 @@ export const APIAccessLogResponseMetadata = {
       "required": true,
       "nullable": false
     },
-    "ip_address": {
-      "title": "Ip Address",
-      "description": "客户端IP",
-      "type": "string",
+    "status_code": {
+      "title": "Status Code",
+      "description": "响应状态码",
+      "type": "integer",
       "required": true,
-      "nullable": false,
-      "maxLength": 50
+      "nullable": false
     },
     "user_agent": {
       "title": "User Agent",
@@ -93,27 +114,6 @@ export const APIAccessLogResponseMetadata = {
       "required": false,
       "nullable": true,
       "maxLength": 500
-    },
-    "error_message": {
-      "title": "Error Message",
-      "description": "错误信息",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 1000
-    },
-    "id": {
-      "title": "Id",
-      "type": "integer",
-      "required": true,
-      "nullable": false
-    },
-    "created_at": {
-      "title": "Created At",
-      "type": "string",
-      "format": "date-time",
-      "required": true,
-      "nullable": false
     }
   }
 } satisfies OpenApiSchemaMetadata

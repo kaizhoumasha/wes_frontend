@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { buildOpenApiMarker, serializeOpenApiDocument } from '../../../scripts/lib/openapi-sync'
 import { computeSha256 } from '../../../scripts/lib/sha256'
 import { verifyContract } from '../../../scripts/verify-contract-sync'
+import { verifyPermissions } from '../../../scripts/verify-permissions-sync'
 
 const BACKEND_COMMIT = 'de034e721befae2e1658d0aff96f2f2e43a0ffbb'
 
@@ -60,5 +61,26 @@ describe('contract verifier torn-state rejection', () => {
     writeGeneratedMarkers('0'.repeat(64))
 
     expect(() => verifyContract(root)).toThrow(/生成入口 OpenAPI SHA-256 不匹配/)
+  })
+
+  it('rejects a permission snapshot whose raw-byte hash differs from its provenance record', () => {
+    const permissionSnapshot =
+      '{"kind":"wes.release.provided-permissions.v1","permissions":[{"action":"list","category":"biz","description":"设备列表","method":"GET","name":"biz:device:list","path":"/api/v1/devices","resource":"device","type":"user_api"}]}\n'
+    mkdirSync(join(root, 'src/api/generated/permissions'), { recursive: true })
+    writeFileSync(join(root, 'src/api/generated/permissions/index.ts'), '')
+    writeFileSync(join(root, 'contracts/permissions.current.json'), permissionSnapshot)
+    writeRecord(snapshotSha256)
+    writeFileSync(
+      join(root, '.permission-sync-record.json'),
+      `${JSON.stringify({
+        backendCommit: BACKEND_COMMIT,
+        permissionsSha256: '0'.repeat(64),
+        permissionCount: 1
+      })}\n`
+    )
+
+    expect(() => verifyPermissions({ frontendRoot: root, silent: true })).toThrow(
+      /权限 SHA-256 不匹配/
+    )
   })
 })
