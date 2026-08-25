@@ -103,6 +103,10 @@ describe('permission initialization and guard result handling', () => {
     })
 
     expect(routeAccess).not.toHaveBeenCalled()
+    expect(authContext.bootstrapAuthContext).toHaveBeenCalledWith({
+      forceRefresh: true,
+      preserveAccessTokenOnFallback: true
+    })
   })
 
   it('uses the shared predicate for a single permission after initialization', async () => {

@@ -117,4 +117,23 @@ describe('bootstrapAuthContext', () => {
     expect(usePermission().permissions.value).toEqual([])
     expect(mocks.permissionsSend).not.toHaveBeenCalled()
   })
+
+  it('bypasses cached permissions when a forced context restore falls back from /auth/my', async () => {
+    mocks.mySend.mockRejectedValueOnce(new Error('auth context unavailable'))
+    mocks.permissionsSend.mockResolvedValueOnce({
+      permissions: [createPermission('biz:device:page')]
+    })
+
+    const { setPermissionsToCache } = await import('@/composables/permission-state')
+    const { bootstrapAuthContext } = await import('@/app/bootstrap-auth-context')
+    const { usePermission } = await import('@/composables/usePermission')
+    setPermissionsToCache([createPermission('cached:permission:page')])
+
+    await bootstrapAuthContext({ forceRefresh: true })
+
+    expect(mocks.permissionsSend).toHaveBeenCalledOnce()
+    expect(usePermission().permissions.value.map(permission => permission.name)).toEqual([
+      'biz:device:page'
+    ])
+  })
 })

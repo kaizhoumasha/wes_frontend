@@ -27,7 +27,11 @@
 
 import type { RouteLocationNormalized, Router } from 'vue-router'
 import { bootstrapAuthContext } from '@/app/bootstrap-auth-context'
-import { permissionInitializedState, permissionNamesState } from '@/composables/permission-state'
+import {
+  clearPermissionState,
+  permissionInitializedState,
+  permissionNamesState
+} from '@/composables/permission-state'
 import { usePermission } from '@/composables/usePermission'
 import { hasRouteAccess } from '@/router/route-access'
 import { withGuardErrorHandling } from '@/utils/guard-error-handler'
@@ -93,18 +97,20 @@ export function createPermissionGuard(_router: Router) {
     // 权限预加载：刷新页面时恢复完整用户上下文，确保超级用户通配权限也被补齐。
     if (!permissionInitializedState.value && !isLoading.value) {
       const result = await withGuardErrorHandling(async () => {
-    await bootstrapAuthContext({
-      forceRefresh: false,
-      preserveAccessTokenOnFallback: true
+        await bootstrapAuthContext({
+          forceRefresh: true,
+          preserveAccessTokenOnFallback: true
         })
       }, '权限守卫')
       if (result === 'auth-redirected') return false
       if (result === 'unavailable' || !permissionInitializedState.value) {
+        clearPermissionState()
         return unavailableRedirect(to)
       }
     }
 
     if (!permissionInitializedState.value) {
+      clearPermissionState()
       return unavailableRedirect(to)
     }
 
