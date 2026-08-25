@@ -21,7 +21,11 @@ export type MenuTreeResponse = ArrayItem<ContractResponseData<MenuTreePath, 'get
 /**
  * 菜单项（前端使用，确保 children 是数组）
  */
-export type MenuItem = Omit<MenuTreeResponse, 'children'> & {
+export interface MenuItem {
+  name: string
+  title: string
+  path: string
+  icon?: string
   children: MenuItem[]
 }
 
@@ -116,10 +120,7 @@ export function flattenMenuTree(
  * @param path 路由路径
  * @returns 找到的菜单项，未找到时返回 undefined
  */
-export function findMenuItemByPath(
-  menuTree: MenuItem[],
-  path: string
-): MenuItem | undefined {
+export function findMenuItemByPath(menuTree: MenuItem[], path: string): MenuItem | undefined {
   for (const menu of menuTree) {
     if (menu.path === path) {
       return menu
@@ -143,10 +144,7 @@ export function findMenuItemByPath(
  * @param path 路由路径
  * @returns 面包屑菜单项数组（从根到当前菜单）
  */
-export function getMenuBreadcrumb(
-  menuTree: MenuItem[],
-  path: string
-): MenuItem[] {
+export function getMenuBreadcrumb(menuTree: MenuItem[], path: string): MenuItem[] {
   return findMenuBreadcrumb(menuTree, path) ?? []
 }
 

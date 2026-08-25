@@ -18,7 +18,14 @@ export const shellBaseChildren: RouteRecordRaw[] = [
     path: 'dashboard',
     name: 'Dashboard',
     component: () => import('@/views/dashboard/Dashboard.vue'),
-    meta: { requiresAuth: true, title: '仪表盘' }
+    meta: {
+      requiresAuth: true,
+      title: '仪表盘',
+      menu: {
+        name: 'system:dashboard:menu',
+        sortOrder: 0
+      }
+    }
   },
   {
     path: '403',
