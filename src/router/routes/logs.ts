@@ -24,7 +24,6 @@ export const logRoutes: RouteRecordRaw = {
         permission: SYS_PERMISSIONS.auditlog.page,
         menu: {
           name: 'logs:audit:menu',
-          parentName: 'logs:system:menu',
           icon: 'ep:document-checked',
           sortOrder: 1
         }
@@ -40,7 +39,6 @@ export const logRoutes: RouteRecordRaw = {
         permission: API_AUTH_PERMISSIONS.apiaccesslog.page,
         menu: {
           name: 'logs:api-access:menu',
-          parentName: 'logs:system:menu',
           icon: 'ep:histogram',
           sortOrder: 2
         }

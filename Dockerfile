@@ -42,8 +42,8 @@ ENV VITE_API_BASE_URL=${VITE_API_BASE_URL} \
     VITE_APP_TITLE=${VITE_APP_TITLE} \
     VITE_APP_DEV=${VITE_APP_DEV}
 
-# 先生成菜单清单，再构建生产版本
-RUN pnpm run generate:menu && pnpm run build
+# 构建生产版本
+RUN pnpm run build
 
 # Stage 2: 生产阶段
 FROM nginx:alpine AS production
@@ -65,7 +65,6 @@ LABEL org.opencontainers.image.revision="${WES_VCS_REVISION}" \
 
 # 从构建阶段复制构建产物
 COPY --from=builder /app/dist /usr/share/nginx/html
-COPY --from=builder /app/artifacts/menu-manifest.json /opt/wes/menu-manifest.json
 COPY --from=builder /app/artifacts/release-consumer/consumer-openapi.json /opt/wes/release/consumer-openapi.json
 COPY --from=builder /app/artifacts/release-consumer/required-operations.json /opt/wes/release/required-operations.json
 COPY --from=builder /app/artifacts/release-consumer/required-permissions.json /opt/wes/release/required-permissions.json

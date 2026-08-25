@@ -1,7 +1,7 @@
 # CRUD 开发指南
 
-**版本**: 1.3
-**最后更新**: 2026-04-16
+**版本**: 1.4
+**最后更新**: 2026-08-26
 **适用**: P9 MCS 前端项目
 
 ---
@@ -29,7 +29,7 @@ createCrudPageConfigFromResource()  ← 页面配置
 
 > 本指南已按当前仓库实现同步。若你在其他历史设计/任务文档中看到 `userApi`、`useCrudApi`、`src/api/base/crud-api.ts` 等旧术语，请以本文件为准。
 >
-> 菜单同步章节仅描述 frontend-owned menu convergence 实施前的当前运行基线，不属于发布兼容门禁。发布作业不读取菜单清单；菜单正文、脚本和后端持久化由既定菜单收敛计划统一删除，本阶段不新增同步工具或第二条路径。
+> 菜单由 `createRoutes()` 装配的静态路由唯一拥有。`useMenu()` 根据 `meta.menu` 与当前权限集合实时投影导航树，不请求后端菜单、不生成 menu manifest，也没有数据库同步步骤。
 
 当前项目的 CRUD / API 约定如下：
 
@@ -262,7 +262,7 @@ const config = createProductPageConfig()
 </script>
 ```
 
-### Step 5: 添加路由并同步菜单
+### Step 5: 添加路由与菜单元数据
 
 ```typescript
 // src/router/index.ts
@@ -275,7 +275,6 @@ const config = createProductPageConfig()
     permission: ADMIN_PERMISSIONS.product.page,
     menu: {
       name: 'admin:product:menu',
-      parentName: 'admin:system:menu',
       icon: 'ep:goods',
       sortOrder: 1
     }
@@ -283,12 +282,7 @@ const config = createProductPageConfig()
 }
 ```
 
-```bash
-# 同步菜单到数据库
-# ⚠️ Worktree 开发时必须指定路径！
-bash scripts/data/sync_menus.sh \
-  --frontend-path /Users/kaizhou/SynologyDrive/works/wes_frontend-worktrees/your_feature
-```
+菜单层级直接来自嵌套路由；`meta.permission` / `meta.permissions` 与路由守卫共用 `hasRouteAccess()`。权限上下文加载完成后，`useMenu()` 会自动更新，无需执行额外命令。
 
 ---
 
@@ -491,7 +485,6 @@ const ROLE_PAGE_FEATURES = {
     permission: ADMIN_PERMISSIONS.role.page,  // 页面访问权限
     menu: {
       name: 'admin:role:menu',           // 菜单唯一标识
-      parentName: 'admin:system:menu',   // 父菜单（子菜单必需）
       icon: 'ep:collection-tag',         // 菜单图标
       sortOrder: 98                      // 排序（越小越靠前）
     }
@@ -499,29 +492,13 @@ const ROLE_PAGE_FEATURES = {
 }
 ```
 
-### Step 5: 菜单同步详解
+### Step 5: 菜单投影详解
 
-**Worktree 开发坑点** ⚠️：
-
-```bash
-# ❌ 错误：默认读取主仓库，菜单不会同步到数据库
-bash ~/SynologyDrive/works/wes_backend/scripts/data/sync_menus.sh
-
-# ✅ 正确：指定 worktree 路径
-bash ~/SynologyDrive/works/wes_backend/scripts/data/sync_menus.sh \
-  --frontend-path /Users/kaizhou/SynologyDrive/works/wes_frontend-worktrees/role_manage
-
-# 预览模式（不写入数据库，仅查看解析结果）
-bash scripts/data/sync_menus.sh \
-  --frontend-path /path/to/worktree \
-  --preview
-```
-
-**为什么需要 `--frontend-path`**：
-
-- `sync_menus.sh` 默认读取 `~/SynologyDrive/works/wes_frontend`
-- Worktree 开发时代码在 `wes_frontend-worktrees/{branch}`
-- 必须显式指定路径，否则读取的是主仓库的代码（可能不包含新菜单）
+- `createRoutes()` 是生产路由树唯一装配入口，菜单层级沿用嵌套 `children`。
+- `meta.menu.name` 必须稳定且非空；标题优先使用 `meta.menu.title`，否则使用 `meta.title`。
+- `meta.menu.icon`、`sortOrder` 和 `hidden` 只描述前端展示；不要在页面或后端重复维护菜单记录。
+- `meta.permission` 表示单一必需权限，`meta.permissions` 表示任一满足；菜单投影与路由守卫复用相同判断。
+- 权限上下文未完成初始化时菜单为空；临时加载失败应走统一重试页，不能回退到未授权菜单。
 
 ---
 
@@ -638,19 +615,13 @@ export function createUserPageConfig(openAssignRolesDialog) {
 
 ---
 
-### 坑点 3: Worktree 开发时菜单同步失败
+### 坑点 3: 新路由没有出现在菜单中
 
-**现象**：运行 `sync_menus.sh` 后数据库没有新菜单。
+**现象**：页面路由可访问，但侧边栏没有对应菜单项。
 
-**原因**：脚本默认读取主仓库路径，不是当前 worktree。
+**原因**：路由缺少有效 `meta.menu.name` / 标题、被标记为 `hidden`，或当前权限集合不满足 `meta.permission(s)`。
 
-**解决**：始终使用 `--frontend-path` 参数指定 worktree 路径。
-
-```bash
-# 通用模板
-bash scripts/data/sync_menus.sh \
-  --frontend-path "$(pwd)"
-```
+**解决**：检查该路由是否由 `createRoutes()` 装配、`meta.menu` 是否完整，以及 `/auth/my` 返回的权限是否已成功 hydrate；不要增加后端菜单记录或第二份菜单 JSON。
 
 ### 坑点 3: API 端点不存在导致类型错误
 
@@ -742,16 +713,16 @@ permission: ADMIN_PERMISSIONS.role.page
 
 ## 故障排查速查
 
-| 问题                 | 排查                               | 解决                                                                  |
-| -------------------- | ---------------------------------- | --------------------------------------------------------------------- |
-| 类型/Zod/权限找不到  | 是否同步了后端契约                 | 按“Step 0: 前置准备”执行 freeze → types/Zod/permissions               |
-| 缺少回收站/额外 API  | 检查后端 OpenAPI 端点              | 使用 `createSoftDeleteCrudRequestAdapterMethods` 或 `extensions` 扩展 |
-| 菜单同步后数据库没有 | 检查 `--frontend-path` 是否正确    | 使用绝对路径指定 worktree                                             |
-| 表格列不显示         | 检查 `visibleFrom` 和 `storageKey` | 设置 `visibleFrom: 'mobile'`，确保 key 唯一                           |
-| 表单字段类型错误     | 检查 OpenAPI schema 推断           | 在 `form` 中显式覆盖 `type`                                           |
-| 权限检查不生效       | 检查权限常量引用                   | 使用 `ADMIN_PERMISSIONS.xxx`                                          |
-| 列配置不持久化       | 检查 localStorage                  | 使用命名空间前缀如 `wes-xxx`                                          |
-| 类型推断失败         | 检查泛型参数                       | 显式传递 `<Item, Create, Update>`                                     |
+| 问题                | 排查                               | 解决                                                                  |
+| ------------------- | ---------------------------------- | --------------------------------------------------------------------- |
+| 类型/Zod/权限找不到 | 是否同步了后端契约                 | 按“Step 0: 前置准备”执行 freeze → types/Zod/permissions               |
+| 缺少回收站/额外 API | 检查后端 OpenAPI 端点              | 使用 `createSoftDeleteCrudRequestAdapterMethods` 或 `extensions` 扩展 |
+| 路由未出现在菜单    | 检查 `meta.menu`、嵌套路由和权限   | 修正静态路由元数据并确认权限上下文已初始化                            |
+| 表格列不显示        | 检查 `visibleFrom` 和 `storageKey` | 设置 `visibleFrom: 'mobile'`，确保 key 唯一                           |
+| 表单字段类型错误    | 检查 OpenAPI schema 推断           | 在 `form` 中显式覆盖 `type`                                           |
+| 权限检查不生效      | 检查权限常量引用                   | 使用 `ADMIN_PERMISSIONS.xxx`                                          |
+| 列配置不持久化      | 检查 localStorage                  | 使用命名空间前缀如 `wes-xxx`                                          |
+| 类型推断失败        | 检查泛型参数                       | 显式传递 `<Item, Create, Update>`                                     |
 
 ---
 

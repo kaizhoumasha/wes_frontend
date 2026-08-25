@@ -11,23 +11,12 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
 export const AuthMyResponseMetadata = {
   "title": "AuthMyResponse",
-  "description": "当前登录用户上下文响应 Schema\n\n一次性返回前端初始化所需核心数据：\n- 当前用户信息\n- API 权限列表\n- 菜单树",
+  "description": "当前登录用户上下文响应 Schema\n\n一次性返回前端初始化所需核心数据：\n- 当前用户信息\n- API 权限列表",
   "required": [
     "user",
-    "permissions",
-    "menus"
+    "permissions"
   ],
   "fields": {
-    "menus": {
-      "title": "Menus",
-      "description": "当前用户可访问菜单树",
-      "type": "array",
-      "required": true,
-      "nullable": false,
-      "items": {
-        "ref": "MenuTreeResponseSimple"
-      }
-    },
     "permissions": {
       "title": "Permissions",
       "description": "当前用户 API 权限列表",

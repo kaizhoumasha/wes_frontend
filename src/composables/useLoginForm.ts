@@ -217,8 +217,7 @@ export function useLoginForm() {
       try {
         await bootstrapAuthContext({
           forceRefresh: true,
-          preserveAccessTokenOnFallback: true,
-          loadMenusNonBlocking: true
+          preserveAccessTokenOnFallback: true
         })
       } catch (contextError) {
         console.error('加载用户上下文失败:', contextError)

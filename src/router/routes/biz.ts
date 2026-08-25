@@ -24,7 +24,6 @@ export const bizRoutes: RouteRecordRaw = {
         permission: BIZ_PERMISSIONS.device.page,
         menu: {
           name: 'biz:device:menu',
-          parentName: 'biz:system:menu',
           icon: 'ep:cpu',
           sortOrder: 1
         }
@@ -40,7 +39,6 @@ export const bizRoutes: RouteRecordRaw = {
         permission: BIZ_PERMISSIONS.workline.page,
         menu: {
           name: 'biz:workline:menu',
-          parentName: 'biz:system:menu',
           icon: 'ep:connection',
           sortOrder: 2
         }

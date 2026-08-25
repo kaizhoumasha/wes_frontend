@@ -1,254 +1,37 @@
-/**
- * 菜单状态管理 Composable
- *
- * 提供菜单树数据管理，支持：
- * - 菜单树加载与缓存（sessionStorage + 5分钟 TTL）
- * - 活动菜单跟踪
- * - 面包屑导航生成
- * - 菜单权限过滤（后端已处理）
- *
- * ## 缓存策略
- *
- * - 使用 sessionStorage 存储菜单树
- * - 缓存键: `menu-tree`, `menu-time`
- * - 缓存过期时间: 5 分钟
- *
- * ## 使用示例
- *
- * ```ts
- * const { menuTree, loadMenus, clearMenus, flatMenuItems } = useMenu()
- *
- * // 加载菜单（登录后调用）
- * await loadMenus()
- *
- * // 强制刷新菜单
- * await loadMenus(true)
- *
- * // 登出时清除菜单
- * clearMenus()
- *
- * // 获取面包屑
- * const breadcrumb = getBreadcrumb('/system/users')
- * ```
- */
-
 import { computed, ref } from 'vue'
-import { menusApiMethods } from '@/api/modules/menus'
-import type { MenuItem, FlatMenuItem, MenuTreeResponse } from '@/types/menu'
-import { toMenuItem, flattenMenuTree, getMenuBreadcrumb as computeBreadcrumb } from '@/types/menu'
 import {
-  MENU_CACHE,
-  getCachedData,
-  setCachedData,
-  clearCachedData,
-  restoreFromHMR
-} from '@/constants/cache'
+  isSuperuserState,
+  permissionInitializedState,
+  permissionNamesState
+} from '@/composables/permission-state'
+import { buildAuthorizedMenuTree } from '@/router/menu-tree'
+import { createRoutes } from '@/router/routes'
+import { getMenuBreadcrumb } from '@/types/menu'
+import type { MenuItem } from '@/types/menu'
 
-export interface MenuRouteAccess {
-  permission?: string
-  navigable: boolean
-}
-
-export function filterAuthorizedMenuTree(
-  menus: readonly MenuItem[],
-  resolveAccess: (path: string) => MenuRouteAccess,
-  hasPermission: (permission: string) => boolean
-): MenuItem[] {
-  const filtered: MenuItem[] = []
-
-  for (const menu of menus) {
-    if (menu.is_hidden) {
-      continue
-    }
-    const access = resolveAccess(menu.path)
-    if (access.permission && !hasPermission(access.permission)) {
-      continue
-    }
-
-    const children = filterAuthorizedMenuTree(menu.children, resolveAccess, hasPermission)
-    if (menu.children.length > 0 && children.length === 0 && !access.navigable) {
-      continue
-    }
-    filtered.push({ ...menu, children })
-  }
-
-  return filtered
-}
-
-// ==================== 常量定义 ====================
-// 缓存常量已迁移到 @/constants/cache
-
-// ==================== 全局状态 ====================
-
-/** 菜单树数据（内存缓存） */
-const menuTree = ref<MenuItem[]>([])
-
-/** 扁平化菜单项（用于面包屑导航） */
-const flatMenuItems = ref<FlatMenuItem[]>([])
-
-/** 是否正在加载菜单 */
-const isLoading = ref(false)
-
-/** 菜单加载错误 */
-const loadError = ref<Error | null>(null)
-
-/** 当前选中的菜单路径 */
 const selectedPath = ref('')
-
-/** 当前展开的菜单路径数组 */
 const openedPaths = ref<string[]>([])
 
-/** 是否已尝试加载过菜单（用于区分"未加载"和"加载后为空"） */
-const hasLoaded = ref(false)
+const menuTree = computed<MenuItem[]>(() => {
+  if (!permissionInitializedState.value) {
+    return []
+  }
 
-// ==================== 计算属性 ====================
+  return buildAuthorizedMenuTree(
+    createRoutes(),
+    permissionNamesState.value,
+    isSuperuserState.value
+  )
+})
 
-/** 菜单是否已加载（只要尝试过加载就返回 true） */
-export const isMenuLoaded = computed(() => hasLoaded.value)
-
-// ==================== 菜单管理函数 ====================
-
-/**
- * 菜单状态管理 Hook
- *
- * @returns 菜单状态和方法
- *
- * @example
- * ```ts
- * const {
- *   menuTree,
- *   flatMenuItems,
- *   selectedPath,
- *   openedPaths,
- *   loadMenus,
- *   clearMenus,
- *   selectMenu,
- *   getBreadcrumb
- * } = useMenu()
- *
- * // 登录后加载菜单
- * await loadMenus()
- *
- * // 选中菜单
- * selectMenu('/system/users')
- *
- * // 获取面包屑
- * const breadcrumb = getBreadcrumb('/system/users')
- * ```
- */
 export function useMenu() {
-  /**
-   * 从后端加载菜单树
-   *
-   * @param forceRefresh 是否强制刷新（忽略缓存）
-   * @returns Promise，加载完成时 resolve
-   *
-   * @example
-   * ```ts
-   * // 登录后加载菜单
-   * await loadMenus()
-   *
-   * // 强制刷新菜单
-   * await loadMenus(true)
-   * ```
-   */
-  const loadMenus = async (forceRefresh = false): Promise<void> => {
-    // 检查缓存
-    if (!forceRefresh && hasLoaded.value) {
-      // 已加载过，直接返回（无论有没有数据）
-      return
-    }
-
-    if (!forceRefresh) {
-      const cached = getMenuFromCache()
-      if (cached) {
-        setMenuState(cached)
-        hasLoaded.value = true
-        return
-      }
-    }
-
-    isLoading.value = true
-    loadError.value = null
-
-    try {
-      // 传递 tree_depth: -1 获取完整菜单树（包含所有子节点）
-      const response = await menusApiMethods.tree({ tree_depth: -1 }).send()
-      const menus = response.map(toMenuItem)
-      setMenuState(menus)
-      setMenuToCache(menus)
-      hasLoaded.value = true
-    } catch (error) {
-      loadError.value = error as Error
-      throw error
-    } finally {
-      isLoading.value = false
-    }
-  }
-
-  /**
-   * 注入菜单数据（用于 /auth/my 聚合接口）
-   *
-   * @param menuResponses 后端菜单树响应
-   * @param persist 是否写入缓存（默认 true）
-   */
-  const hydrateMenus = (menuResponses: MenuTreeResponse[], persist = true): void => {
-    const menus = menuResponses.map(toMenuItem)
-    setMenuState(menus)
-    loadError.value = null
-    hasLoaded.value = true
-    if (persist) {
-      setMenuToCache(menus)
-    }
-  }
-
-  /**
-   * 清除菜单状态
-   *
-   * 登出时调用，清除内存缓存和 sessionStorage
-   *
-   * @example
-   * ```ts
-   * // 登出时清除菜单
-   * clearMenus()
-   * ```
-   */
-  const clearMenus = (): void => {
-    menuTree.value = []
-    flatMenuItems.value = []
-    selectedPath.value = ''
-    openedPaths.value = []
-    loadError.value = null
-    hasLoaded.value = false
-    clearCachedData(MENU_CACHE.KEY, MENU_CACHE.TIME_KEY)
-  }
-
-  /**
-   * 选中菜单
-   *
-   * 更新当前选中路径，并自动展开父级菜单
-   *
-   * @param path 菜单路径
-   *
-   * @example
-   * ```ts
-   * selectMenu('/system/users')
-   * ```
-   */
   const selectMenu = (path: string): void => {
     selectedPath.value = path
-
-    // 自动展开父级菜单
-    const breadcrumb = computeBreadcrumb(menuTree.value, path)
-    const pathsToOpen = breadcrumb.slice(0, -1).map(item => item.path)
-    openedPaths.value = pathsToOpen
+    openedPaths.value = getMenuBreadcrumb(menuTree.value, path)
+      .slice(0, -1)
+      .map(item => item.path)
   }
 
-  /**
-   * 切换菜单展开状态
-   *
-   * @param path 菜单路径
-   */
   const toggleMenu = (path: string): void => {
     const index = openedPaths.value.indexOf(path)
     if (index > -1) {
@@ -258,147 +41,31 @@ export function useMenu() {
     }
   }
 
-  /**
-   * 获取面包屑导航
-   *
-   * @param path 菜单路径
-   * @returns 面包屑菜单项数组（从根到当前菜单）
-   *
-   * @example
-   * ```ts
-   * const breadcrumb = getBreadcrumb('/system/users')
-   * // [
-   * //   { title: '系统管理', path: '/system' },
-   * //   { title: '用户管理', path: '/system/users' }
-   * // ]
-   * ```
-   */
-  const getBreadcrumb = (path: string): MenuItem[] => {
-    return computeBreadcrumb(menuTree.value, path)
-  }
+  const getBreadcrumb = (path: string): MenuItem[] => getMenuBreadcrumb(menuTree.value, path)
 
-  /**
-   * 根据路径查找菜单项（递归实现）
-   *
-   * @param path 菜单路径
-   * @param menus 菜单列表（默认使用全局菜单树）
-   * @returns 找到的菜单项，未找到时返回 undefined
-   */
-  const findMenuItem = (path: string, menus: MenuItem[] = menuTree.value): MenuItem | undefined => {
+  const findMenuItem = (
+    path: string,
+    menus: readonly MenuItem[] = menuTree.value
+  ): MenuItem | undefined => {
     for (const menu of menus) {
       if (menu.path === path) {
         return menu
       }
-      if (menu.children.length > 0) {
-        const found = findMenuItem(path, menu.children)
-        if (found) {
-          return found
-        }
+
+      const found = findMenuItem(path, menu.children)
+      if (found) {
+        return found
       }
     }
-    return undefined
   }
 
-  /**
-   * 检查菜单是否应该展开
-   *
-   * @param path 菜单路径
-   * @returns 是否展开
-   */
-  const isMenuOpened = (path: string): boolean => {
-    return openedPaths.value.includes(path)
-  }
-
-  /**
-   * 检查菜单是否被选中
-   *
-   * @param path 菜单路径
-   * @returns 是否选中
-   */
-  const isMenuSelected = (path: string): boolean => {
-    return selectedPath.value === path
-  }
-
-  // ==================== 辅助函数 ====================
-
-  /** 设置菜单状态 */
-  const setMenuState = (menus: MenuItem[]): void => {
-    const normalized = normalizeMenuTree(menus)
-    menuTree.value = normalized
-    flatMenuItems.value = flattenMenuTree(normalized)
-  }
-
-  /** 标准化菜单树，兜底修复缺失字段（children/is_hidden） */
-  const normalizeMenuTree = (menus: MenuItem[]): MenuItem[] => {
-    return menus.map(menu => ({
-      ...menu,
-      is_hidden: Boolean(menu.is_hidden),
-      children: Array.isArray(menu.children) ? normalizeMenuTree(menu.children) : []
-    }))
-  }
-
-  /** 从缓存获取菜单 */
-  const getMenuFromCache = (): MenuItem[] | null => {
-    const cached = getCachedData<MenuItem[]>(MENU_CACHE.KEY, MENU_CACHE.TIME_KEY, MENU_CACHE.TTL)
-    if (!cached) return null
-    if (!Array.isArray(cached)) return null
-    return normalizeMenuTree(cached)
-  }
-
-  /** 将菜单写入缓存 */
-  const setMenuToCache = (menus: MenuItem[]): void => {
-    setCachedData(MENU_CACHE.KEY, MENU_CACHE.TIME_KEY, menus)
-  }
-
-  // ==================== HMR 支持 ====================
-
-  /**
-   * 热更新（HMR）时恢复菜单状态
-   *
-   * 当 Vite 热更新导致模块重新加载时，模块级 ref 会重置为空。
-   * 此函数在每次调用 useMenu() 时执行，检查：
-   * - sessionStorage 中是否有有效缓存
-   * - 如果有，则恢复菜单状态（无需重新请求 API）
-   */
-  const restoreMenuStateOnHMR = (): void => {
-    if (menuTree.value.length > 0) {
-      return // 已有数据，无需恢复
-    }
-
-    const cached = restoreFromHMR<MenuItem[]>(
-      MENU_CACHE.KEY,
-      MENU_CACHE.TIME_KEY,
-      normalizeMenuTree
-    )
-
-    if (cached && cached.length > 0) {
-      setMenuState(cached)
-      hasLoaded.value = true
-      console.log('[useMenu] HMR: 从 sessionStorage 恢复菜单状态')
-    }
-  }
-
-  // 立即执行恢复检查
-  restoreMenuStateOnHMR()
-
-  // ==================== 导出 ====================
+  const isMenuOpened = (path: string): boolean => openedPaths.value.includes(path)
+  const isMenuSelected = (path: string): boolean => selectedPath.value === path
 
   return {
-    // 状态
-    menuTree: computed(() => menuTree.value),
-    flatMenuItems: computed(() => flatMenuItems.value),
+    menuTree,
     selectedPath: computed(() => selectedPath.value),
     openedPaths: computed(() => openedPaths.value),
-    isMenuLoaded,
-    isLoading: computed(() => isLoading.value),
-    loadError: computed(() => loadError.value),
-
-    // 菜单管理
-    loadMenus,
-    hydrateMenus,
-    clearMenus,
-
-    // 菜单操作
     selectMenu,
     toggleMenu,
     getBreadcrumb,
@@ -407,11 +74,3 @@ export function useMenu() {
     isMenuSelected
   }
 }
-
-// ==================== 类型导出 ====================
-
-/** 菜单加载函数类型 */
-export type LoadMenusFn = ReturnType<typeof useMenu>['loadMenus']
-
-/** 清除菜单函数类型 */
-export type ClearMenusFn = ReturnType<typeof useMenu>['clearMenus']

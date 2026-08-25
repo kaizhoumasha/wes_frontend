@@ -187,7 +187,6 @@ wes_frontend/
     │   │   ├── users.ts           # 用户管理
     │   │   ├── roles.ts           # 角色管理
     │   │   ├── perms.ts           # 权限管理
-    │   │   ├── menus.ts           # 菜单管理
     │   │   └── performance.ts     # 性能监控
     │   ├── sys/                   # 系统模块 API
     │   │   ├── audit.ts           # 审计日志
@@ -280,7 +279,6 @@ wes_frontend/
     │   │   ├── users/             # 用户管理
     │   │   ├── roles/             # 角色管理
     │   │   ├── perms/             # 权限管理
-    │   │   ├── menus/             # 菜单管理
     │   │   └── performance/       # 性能监控
     │   ├── sys/                   # 系统模块
     │   │   ├── audit/             # 审计日志查询
@@ -307,7 +305,7 @@ wes_frontend/
     └── constants/                 # 常量定义
         ├── response-code.ts       # 后端响应码
         ├── device-status.ts       # 设备状态枚举
-        └── menu.ts                # 菜单配置
+        └── cache.ts               # 前端缓存键
 ```
 
 ### 3.2 技术架构图
@@ -350,7 +348,13 @@ wes_frontend/
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 3.3 Git Worktree 开发模式
+### 3.3 前端菜单与权限投影
+
+`createRoutes()` 是生产路由树唯一装配入口。需要出现在导航中的认证路由直接声明 `meta.menu`：`name` 是稳定标识，`title` 可覆盖 `meta.title`，`icon`、`sortOrder` 和 `hidden` 只控制展示。菜单层级与路径来自嵌套路由本身，不维护第二份菜单 JSON。
+
+认证初始化通过 `/api/v1/auth/my` hydrate 当前用户和权限集合，不接收菜单字段。`buildAuthorizedMenuTree()` 对静态路由执行权限投影，并与路由守卫复用 `hasRouteAccess()`；`useMenu()` 只维护投影结果、选中项、展开项和面包屑。权限上下文未初始化或加载失败时菜单为空。后端没有菜单表、菜单 API 或 menu manifest，前端构建与 backend 部署之间也没有菜单产物同步。
+
+### 3.4 Git Worktree 开发模式
 
 #### 为什么使用 Git Worktree？
 
@@ -402,16 +406,16 @@ wes_frontend/
 
 根据后端 `src/register.py`，前端需要对接以下 API 模块：
 
-| API 模块     | 后端路由前缀       | 前端 API 目录   | 说明                             |
-| ------------ | ------------------ | --------------- | -------------------------------- |
-| **auth**     | `/api/v1/auth`     | `/api/auth`     | 登录、登出、Token 刷新           |
-| **admin**    | `/api/v1/admin`    | `/api/admin`    | 用户、角色、权限、菜单、性能监控 |
-| **sys**      | `/api/v1/sys`      | `/api/sys`      | 审计日志、系统事件               |
-| **workline** | `/api/v1/workline` | `/api/workline` | 作业线管理（区域、设备层级）     |
-| **device**   | `/api/v1/device`   | `/api/device`   | 设备管理、状态监控               |
-| **callback** | `/api/v1/callback` | `/api/callback` | 设备回调处理、回调日志           |
-| **api_auth** | `/api/v1/api_auth` | `/api/api_auth` | API 应用认证、访问日志           |
-| **demo**     | `/api/v1/demo`     | `/api/demo`     | 示例模块                         |
+| API 模块     | 后端路由前缀       | 前端 API 目录   | 说明                         |
+| ------------ | ------------------ | --------------- | ---------------------------- |
+| **auth**     | `/api/v1/auth`     | `/api/auth`     | 登录、登出、Token 刷新       |
+| **admin**    | `/api/v1/admin`    | `/api/admin`    | 用户、角色、权限、性能监控   |
+| **sys**      | `/api/v1/sys`      | `/api/sys`      | 审计日志、系统事件           |
+| **workline** | `/api/v1/workline` | `/api/workline` | 作业线管理（区域、设备层级） |
+| **device**   | `/api/v1/device`   | `/api/device`   | 设备管理、状态监控           |
+| **callback** | `/api/v1/callback` | `/api/callback` | 设备回调处理、回调日志       |
+| **api_auth** | `/api/v1/api_auth` | `/api/api_auth` | API 应用认证、访问日志       |
+| **demo**     | `/api/v1/demo`     | `/api/demo`     | 示例模块                     |
 
 ### 4.2 API 请求配置
 

@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RouteLocationNormalized, RouteLocationNormalizedLoaded, Router } from 'vue-router'
-import { setPermissionsState, clearPermissionState } from '@/composables/permission-state'
+import { ClientErrorCode } from '@/api/constants/response-codes'
+import {
+  clearPermissionState,
+  permissionInitializedState,
+  setPermissionsState
+} from '@/composables/permission-state'
 import { createAuthGuard } from '@/router/guards/auth'
 import { createPermissionGuard } from '@/router/guards/permission'
 
@@ -121,14 +126,36 @@ describe('auth guard context restoration', () => {
     expect(authContext.bootstrapAuthContext).toHaveBeenCalledOnce()
   })
 
-  it('retries bootstrap on the next navigation after a failed request', async () => {
+  it('redirects a stale privileged context to the unavailable page before an auth-only route can render', async () => {
     const bootstrapError = new Error('temporary bootstrap failure')
-    authContext.bootstrapAuthContext
-      .mockRejectedValueOnce(bootstrapError)
-      .mockImplementationOnce(async () => {
-        setPermissionsState([])
-      })
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    setPermissionsState([{ name: '*' }])
+    currentUserContext.currentUser.value = null
+    authContext.bootstrapAuthContext.mockRejectedValueOnce(bootstrapError)
+    const guard = createAuthGuard()
+    const to = {
+      path: '/dashboard',
+      fullPath: '/dashboard?view=operations',
+      meta: { requiresAuth: true }
+    } as RouteLocationNormalized
+    const from = { path: '/login' } as RouteLocationNormalizedLoaded
+
+    await expect(guard(to, from)).resolves.toEqual({
+      path: '/auth-context-unavailable',
+      query: { redirect: '/dashboard?view=operations' }
+    })
+
+    expect(authContext.bootstrapAuthContext).toHaveBeenCalledWith({
+      forceRefresh: true,
+      preserveAccessTokenOnFallback: true
+    })
+    expect(permissionInitializedState.value).toBe(false)
+  })
+
+  it('cancels protected navigation after an authentication restoration failure', async () => {
+    currentUserContext.currentUser.value = null
+    authContext.bootstrapAuthContext.mockRejectedValueOnce(
+      Object.assign(new Error('token expired'), { code: ClientErrorCode.TOKEN_EXPIRED })
+    )
     const guard = createAuthGuard()
     const to = {
       path: '/dashboard',
@@ -137,13 +164,26 @@ describe('auth guard context restoration', () => {
     } as RouteLocationNormalized
     const from = { path: '/login' } as RouteLocationNormalizedLoaded
 
-    try {
-      await guard(to, from)
-      await guard(to, from)
-    } finally {
-      warn.mockRestore()
-    }
+    await expect(guard(to, from)).resolves.toBe(false)
+  })
 
-    expect(authContext.bootstrapAuthContext).toHaveBeenCalledTimes(2)
+  it('does not restore context while navigating to public unavailable or login routes', async () => {
+    currentUserContext.currentUser.value = null
+    const guard = createAuthGuard()
+    const from = { path: '/dashboard' } as RouteLocationNormalizedLoaded
+    const unavailable = {
+      path: '/auth-context-unavailable',
+      fullPath: '/auth-context-unavailable?redirect=%2Fdashboard',
+      meta: { requiresAuth: false }
+    } as RouteLocationNormalized
+    const login = {
+      path: '/login',
+      fullPath: '/login',
+      meta: { requiresAuth: false }
+    } as RouteLocationNormalized
+
+    await expect(guard(unavailable, from)).resolves.toBeUndefined()
+    await expect(guard(login, from)).resolves.toBe('/dashboard')
+    expect(authContext.bootstrapAuthContext).not.toHaveBeenCalled()
   })
 })

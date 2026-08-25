@@ -29,8 +29,8 @@
 
     <!-- 递归渲染子菜单 -->
     <sidebar-menu-item
-      v-for="child in visibleChildren"
-      :key="child.id"
+      v-for="child in menuItem.children"
+      :key="child.name"
       :menu-item="child"
       :sidebar-collapsed="sidebarCollapsed"
       :level="level + 1"
@@ -90,11 +90,7 @@ const MENU_NOT_FOUND_SOURCE = 'menu'
 
 // ==================== 计算属性 ====================
 
-/** 是否有可见的子菜单 */
-const hasChildren = computed(() => visibleChildren.value.length > 0)
-
-/** 可见的子菜单（过滤掉隐藏的菜单） */
-const visibleChildren = computed(() => props.menuItem.children.filter(child => !child.is_hidden))
+const hasChildren = computed(() => props.menuItem.children.length > 0)
 
 // ==================== 方法 ====================
 

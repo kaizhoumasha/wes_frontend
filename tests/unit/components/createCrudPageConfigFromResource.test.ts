@@ -3,7 +3,6 @@ import { createCrudPageConfigFromResource } from '@/components/common/crud-page/
 import type { CrudPageColumnManager } from '@/components/common/crud-page/types'
 import { createAPIApplicationPageConfig } from '@/views/admin/api-applications/config/pageConfig'
 import { createDevicePageConfig } from '@/views/admin/devices/config/pageConfig'
-import { createMenuPageConfig } from '@/views/admin/menus/config/pageConfig'
 import { createPermissionPageConfig } from '@/views/admin/permissions/config/pageConfig'
 import { createRolePageConfig } from '@/views/admin/roles/config/pageConfig'
 import { createUserPageConfig } from '@/views/admin/users/config/pageConfig'
@@ -45,7 +44,6 @@ describe('createCrudPageConfigFromResource', () => {
     const configs = {
       applications: createAPIApplicationPageConfig(noop, noop),
       devices: createDevicePageConfig(),
-      menus: createMenuPageConfig(),
       permissions: createPermissionPageConfig(),
       roles: createRolePageConfig(),
       users: createUserPageConfig(noop, noop),
@@ -77,22 +75,6 @@ describe('createCrudPageConfigFromResource', () => {
       batchRestore: 'biz:device:batch_restore',
       permanentDelete: 'biz:device:permanent_delete',
       batchPermanentDelete: 'biz:device:batch_permanent_delete'
-    })
-    expect(configs.menus.resource.permissions).toEqual({
-      page: 'admin:menu:list',
-      list: 'admin:menu:list',
-      detail: 'admin:menu:detail',
-      create: 'admin:menu:create',
-      update: 'admin:menu:update',
-      delete: 'admin:menu:delete',
-      restore: 'admin:menu:restore',
-      trash: 'admin:menu:trash',
-      batchRestore: 'admin:menu:batch_restore',
-      permanentDelete: 'admin:menu:permanent_delete',
-      batchPermanentDelete: 'admin:menu:batch_permanent_delete',
-      tree: 'admin:menu:tree',
-      move: 'admin:menu:move',
-      batchSort: 'admin:menu:batch_sort'
     })
     expect(configs.permissions.resource.permissions).toEqual({
       page: 'admin:permission:list',

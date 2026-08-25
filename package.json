@@ -8,8 +8,6 @@
     "dev": "vite",
     "build": "vite build --mode production",
     "build:dev": "vite build --mode development",
-    "generate:menu": "tsx scripts/generate-menu-manifest.ts",
-    "menu:generate": "pnpm run generate:menu",
     "preview": "vite preview",
     "bootstrap": "pnpm install",
     "prepare": "husky",

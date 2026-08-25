@@ -10,6 +10,12 @@ export const publicRoutes: RouteRecordRaw[] = [
     name: 'Login',
     component: () => import('@/views/auth/Login.vue'),
     meta: { requiresAuth: false }
+  },
+  {
+    path: '/auth-context-unavailable',
+    name: 'AuthContextUnavailable',
+    component: () => import('@/views/error/AuthContextUnavailable.vue'),
+    meta: { requiresAuth: false }
   }
 ]
 
@@ -18,7 +24,14 @@ export const shellBaseChildren: RouteRecordRaw[] = [
     path: 'dashboard',
     name: 'Dashboard',
     component: () => import('@/views/dashboard/Dashboard.vue'),
-    meta: { requiresAuth: true, title: '仪表盘' }
+    meta: {
+      requiresAuth: true,
+      title: '仪表盘',
+      menu: {
+        name: 'system:dashboard:menu',
+        sortOrder: 0
+      }
+    }
   },
   {
     path: '403',

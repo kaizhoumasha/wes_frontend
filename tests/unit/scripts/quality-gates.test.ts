@@ -11,6 +11,7 @@ import {
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { PERMISSIONS } from '@/api/generated/permissions'
 
 const REPOSITORY_ROOT = process.cwd()
 
@@ -393,6 +394,21 @@ describe.sequential('repository quality gates', () => {
       readFileSync(join(REPOSITORY_ROOT, 'package.json'), 'utf-8')
     ) as { scripts: Record<string, string> }
     expect(packageJson.scripts).not.toHaveProperty('permission:generate')
+  })
+
+  it('does not publish the retired menu contract or permission family', () => {
+    const packageJson = JSON.parse(
+      readFileSync(join(REPOSITORY_ROOT, 'package.json'), 'utf-8')
+    ) as { scripts: Record<string, string> }
+    const dockerfile = readFileSync(join(REPOSITORY_ROOT, 'Dockerfile'), 'utf-8')
+    const jenkinsfile = readFileSync(join(REPOSITORY_ROOT, 'Jenkinsfile'), 'utf-8')
+    const generatedPermissions = JSON.stringify(PERMISSIONS)
+
+    expect(packageJson.scripts).not.toHaveProperty('generate:menu')
+    expect(packageJson.scripts).not.toHaveProperty('menu:generate')
+    expect(dockerfile).not.toContain('menu-manifest.json')
+    expect(jenkinsfile).not.toContain('menu-manifest.json')
+    expect(generatedPermissions).not.toContain('admin:menu:')
   })
 
   it('does not expose retired SSE build configuration', () => {

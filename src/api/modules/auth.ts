@@ -98,7 +98,7 @@ export const authApiMethods = {
 
   /**
    * 获取当前用户初始化上下文
-   * @description 一次性返回用户信息、API 权限列表和菜单树，用于前端登录后初始化
+   * @description 一次性返回用户信息和 API 权限列表，用于前端登录后初始化
    * @endpoint GET /api/v1/auth/my
    * @returns alova method instance
    */

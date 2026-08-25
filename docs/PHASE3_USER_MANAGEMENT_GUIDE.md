@@ -98,9 +98,8 @@
 
 - 当前用户信息 `user`
 - 当前用户权限 `permissions`
-- 当前用户菜单树 `menus`
 
-**结论**：阶段三用户管理接入时，页面权限和菜单展示应继续建立在 `/auth/my` 聚合能力之上，不要自行重复拼装“用户信息 + 权限 + 菜单”的初始化流程。
+**结论**：阶段三用户管理接入时，`/auth/my` 只负责 hydrate 用户与权限。菜单由 `createRoutes()` 中的 `meta.menu` 结合该权限集合投影，不请求或缓存后端菜单树。
 
 ---
 
@@ -129,15 +128,16 @@
 
 - `src/composables/usePermission.ts`
 - `src/router/guards/permission.ts`
+- `src/router/route-access.ts`
+- `src/router/menu-tree.ts`
 - `src/composables/useMenu.ts`
-- `src/api/modules/menu.ts`
 - `src/api/modules/auth.ts`
 
 **规范要求**：
 
 - 页面访问控制继续使用路由守卫与 `meta.permission`。
 - 按钮显隐继续使用 `usePermission()`。
-- 菜单渲染继续基于后端返回菜单树，不新增本地硬编码菜单树。
+- 菜单渲染从 `createRoutes()` 的嵌套路由及 `meta.menu` 投影，并与路由守卫复用 `hasRouteAccess()`；不新增第二份菜单 registry。
 - 权限仅用于前端交互控制，不作为安全边界；所有实际权限校验以后端为准。
 
 ### 3.3 表单验证层
@@ -168,7 +168,7 @@
 **规范要求**：
 
 - 用户管理页面必须接入现有默认布局。
-- 菜单图标继续使用 `AppIcon` 渲染后端返回图标。
+- 菜单图标继续使用 `AppIcon` 渲染 `meta.menu.icon`。
 - 页面内部 UI 优先使用 Element Plus 组件，样式微调用 Tailwind 工具类，不新增平行 UI 体系。
 
 ---
@@ -488,9 +488,9 @@ P0 首轮建议列：
 
 ### 10.3 菜单联动原则
 
-- 侧边栏显示继续以后端菜单树为准。
-- 前端静态路由路径必须与后端菜单 `path` 保持一致。
-- 如果后端菜单中用户管理路径不是 `/admin/users`，以前后端最终协商路径为准，不在前端自行偏离。
+- 用户管理路由必须由 `createRoutes()` 装配，并在同一条路由上声明 `meta.menu`。
+- 菜单层级来自嵌套路由，路径来自路由自身；不与后端菜单表或菜单 API 协商。
+- `meta.permission(s)` 同时约束路由访问与菜单投影；权限上下文未初始化或加载失败时保持 fail closed。
 
 ---
 
@@ -623,7 +623,7 @@ P0 首轮建议列：
 
 - 不重复实现 API 请求基础层
 - 不重复实现权限控制基础层
-- 不重复实现菜单缓存/权限缓存逻辑
+- 不重复实现菜单 registry、菜单缓存或权限缓存逻辑
 - 不手写重复验证规则
 - 目录职责清晰，页面/组件/composable 边界明确
 - 命名符合现有仓库风格
@@ -674,7 +674,7 @@ P0 首轮建议列：
 
 - 请求层复用 `userApi`、`CrudApi`、`useCrudApi`
 - 权限层复用 `usePermission` 与路由守卫
-- 菜单层复用 `/auth/my` 与 `useMenu`
+- 菜单层复用 `createRoutes()`、`meta.menu`、权限投影与 `useMenu`
 - 表单层复用 Zod 自动生成 schema + vee-validate
 - 页面层新增最小必要组件与 composable
 

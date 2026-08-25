@@ -7,7 +7,7 @@ import { useLayout } from '@/composables/useLayout'
 vi.mock('@/composables/useLayout', () => ({ useLayout: vi.fn() }))
 
 vi.mock('@/composables/useMenu', () => ({
-  useMenu: () => ({ clearMenus: vi.fn() })
+  useMenu: () => ({ getBreadcrumb: vi.fn(() => []) })
 }))
 
 vi.mock('@/composables/usePermission', () => ({

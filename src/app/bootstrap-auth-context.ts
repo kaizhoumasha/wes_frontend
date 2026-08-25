@@ -2,14 +2,12 @@ import { authApiMethods } from '@/api/modules/auth'
 import type { ApiPermissionInfo } from '@/api/modules/auth'
 import { getAccessToken, setAccessToken } from '@/api/services/token-refresh'
 import { useCurrentUser } from '@/composables/useCurrentUser'
-import { useMenu } from '@/composables/useMenu'
 import { usePermission } from '@/composables/usePermission'
 import { SUPERUSER_PERMISSION } from '@/composables/permission-state'
 
 export interface BootstrapAuthContextOptions {
   forceRefresh?: boolean
   preserveAccessTokenOnFallback?: boolean
-  loadMenusNonBlocking?: boolean
 }
 
 export interface BootstrapAuthContextResult {
@@ -42,21 +40,16 @@ function normalizeContextPermissions(
 /**
  * 统一加载当前登录用户上下文。
  *
- * 优先使用 /auth/my 聚合接口；失败时回退为权限/菜单分步加载。
+ * 优先使用 /auth/my 聚合接口；失败时回退为权限分步加载。
  * 注意：分步加载无法补齐 currentUser，因此该场景依赖登录响应或 session 缓存中的用户数据。
  */
 export async function bootstrapAuthContext(
   options: BootstrapAuthContextOptions = {}
 ): Promise<BootstrapAuthContextResult> {
-  const {
-    forceRefresh = true,
-    preserveAccessTokenOnFallback = true,
-    loadMenusNonBlocking = true
-  } = options
+  const { forceRefresh = true, preserveAccessTokenOnFallback = true } = options
 
   const { currentUser, hydrateCurrentUser } = useCurrentUser()
   const { loadPermissions, hydratePermissions } = usePermission()
-  const { loadMenus, hydrateMenus } = useMenu()
 
   const savedToken = getAccessToken()
   let initializedFromMy = false
@@ -71,17 +64,7 @@ export async function bootstrapAuthContext(
       myContext.user.is_superuser
     )
 
-    if (contextPermissions.length > 0) {
-      hydratePermissions(contextPermissions)
-    } else {
-      await loadPermissions(forceRefresh)
-    }
-
-    if (Array.isArray(myContext.menus) && myContext.menus.length > 0) {
-      hydrateMenus(myContext.menus)
-    } else {
-      await loadMenus(forceRefresh)
-    }
+    hydratePermissions(contextPermissions)
 
     initializedFromMy = true
     return { initializedFromMy }
@@ -94,16 +77,6 @@ export async function bootstrapAuthContext(
   }
 
   await loadPermissions(forceRefresh)
-
-  if (loadMenusNonBlocking) {
-    try {
-      await loadMenus(forceRefresh)
-    } catch (error) {
-      console.warn('[auth bootstrap] 菜单加载失败（非阻塞）:', error)
-    }
-  } else {
-    await loadMenus(forceRefresh)
-  }
 
   if (!currentUser.value) {
     console.warn('[auth bootstrap] 当前用户信息未恢复，将依赖登录响应或缓存中的用户数据')

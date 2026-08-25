@@ -5,8 +5,6 @@ import type { ApiPermissionInfo, MyResult, UserInfo } from '@/api/modules/auth'
 const mocks = vi.hoisted(() => ({
   mySend: vi.fn(),
   permissionsSend: vi.fn(),
-  hydrateMenus: vi.fn(),
-  loadMenus: vi.fn(),
   getAccessToken: vi.fn(),
   setAccessToken: vi.fn()
 }))
@@ -16,13 +14,6 @@ vi.mock('@/api/modules/auth', () => ({
     my: () => ({ send: mocks.mySend }),
     permissions: () => ({ send: mocks.permissionsSend })
   }
-}))
-
-vi.mock('@/composables/useMenu', () => ({
-  useMenu: () => ({
-    hydrateMenus: mocks.hydrateMenus,
-    loadMenus: mocks.loadMenus
-  })
 }))
 
 vi.mock('@/api/services/token-refresh', () => ({
@@ -61,8 +52,7 @@ function createPermission(name: string): ApiPermissionInfo {
 function createMyContext(isSuperuser: boolean): MyResult {
   return {
     user: createUser(isSuperuser),
-    permissions: [createPermission(BIZ_WORKLINE_PERMISSION.list)],
-    menus: []
+    permissions: [createPermission(BIZ_WORKLINE_PERMISSION.list)]
   }
 }
 
@@ -79,7 +69,6 @@ describe('bootstrapAuthContext', () => {
     clearStorage(localStorage)
     clearStorage(sessionStorage)
     mocks.getAccessToken.mockReturnValue(null)
-    mocks.loadMenus.mockResolvedValue(undefined)
     mocks.permissionsSend.mockResolvedValue({ permissions: [] })
   })
 
@@ -112,5 +101,39 @@ describe('bootstrapAuthContext', () => {
     expect(isSuperuser.value).toBe(false)
     expect(hasPermission(BIZ_WORKLINE_PERMISSION.list)).toBe(true)
     expect(hasPermission(BIZ_WORKLINE_PERMISSION.clearEstop)).toBe(false)
+  })
+
+  it('hydrates an empty /auth/my permission list without requesting the legacy permissions endpoint', async () => {
+    mocks.mySend.mockResolvedValue({
+      ...createMyContext(false),
+      permissions: []
+    })
+
+    const { bootstrapAuthContext } = await import('@/app/bootstrap-auth-context')
+    await bootstrapAuthContext()
+
+    const { usePermission } = await import('@/composables/usePermission')
+    expect(usePermission().isInitialized.value).toBe(true)
+    expect(usePermission().permissions.value).toEqual([])
+    expect(mocks.permissionsSend).not.toHaveBeenCalled()
+  })
+
+  it('bypasses cached permissions when a forced context restore falls back from /auth/my', async () => {
+    mocks.mySend.mockRejectedValueOnce(new Error('auth context unavailable'))
+    mocks.permissionsSend.mockResolvedValueOnce({
+      permissions: [createPermission('biz:device:page')]
+    })
+
+    const { setPermissionsToCache } = await import('@/composables/permission-state')
+    const { bootstrapAuthContext } = await import('@/app/bootstrap-auth-context')
+    const { usePermission } = await import('@/composables/usePermission')
+    setPermissionsToCache([createPermission('cached:permission:page')])
+
+    await bootstrapAuthContext({ forceRefresh: true })
+
+    expect(mocks.permissionsSend).toHaveBeenCalledOnce()
+    expect(usePermission().permissions.value.map(permission => permission.name)).toEqual([
+      'biz:device:page'
+    ])
   })
 })

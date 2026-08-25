@@ -4,29 +4,9 @@
  * 统一处理守卫中的权限加载错误，避免重复代码
  */
 
-import type { ApiResponseError } from '@/api/client'
-import { ClientErrorCode } from '@/api/constants/response-codes'
+import { isAuthError } from '@/api/services/auth-error-handler'
 
-/** 认证错误码集合 */
-const AUTH_ERROR_CODES: ReadonlySet<string> = new Set([
-  ClientErrorCode.UNAUTHORIZED,
-  ClientErrorCode.INVALID_CREDENTIALS,
-  ClientErrorCode.INVALID_TOKEN,
-  ClientErrorCode.TOKEN_EXPIRED,
-  ClientErrorCode.TOKEN_MISSING
-])
-
-/**
- * 判断是否为认证错误
- */
-function isAuthError(error: unknown): error is ApiResponseError {
-  return (
-    error instanceof Error &&
-    'code' in error &&
-    typeof (error as ApiResponseError).code === 'string' &&
-    AUTH_ERROR_CODES.has((error as ApiResponseError).code)
-  )
-}
+export type GuardActionResult = 'success' | 'auth-redirected' | 'unavailable'
 
 /**
  * 守卫错误包装器
@@ -34,7 +14,7 @@ function isAuthError(error: unknown): error is ApiResponseError {
  * 统一处理守卫中的权限加载失败，避免重复代码
  *
  * @param context 错误上下文（用于日志）
- * @returns 包装后的函数
+ * @returns 守卫操作结果
  *
  * @example
  * ```ts
@@ -44,21 +24,21 @@ function isAuthError(error: unknown): error is ApiResponseError {
  * await withGuardErrorHandling(() => loadPermissions(), '权限守卫')
  * ```
  */
-export async function withGuardErrorHandling<T>(
-  guardAction: () => Promise<T>,
+export async function withGuardErrorHandling(
+  guardAction: () => Promise<unknown>,
   context: string
-): Promise<T | undefined> {
+): Promise<GuardActionResult> {
   try {
-    return await guardAction()
+    await guardAction()
+    return 'success'
   } catch (error) {
-    // 认证错误：已在 API 客户端中处理（清除 token 并重定向）
-    // 这里静默放行，让认证守卫处理重定向
+    // 认证错误：已由 API 客户端处理清除 token 与登录跳转。
     if (isAuthError(error)) {
-      return undefined
+      return 'auth-redirected'
     }
 
-    // 其他错误：记录日志但允许导航继续
+    // 其他错误：记录日志并标记为临时不可用，由调用方关闭访问。
     console.error(`[${context}] 执行失败:`, error)
-    return undefined
+    return 'unavailable'
   }
 }
