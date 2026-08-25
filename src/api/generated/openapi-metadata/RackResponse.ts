@@ -18,6 +18,19 @@ export const RackResponseMetadata = {
     "id"
   ],
   "fields": {
+    "id": {
+      "title": "Id",
+      "type": "integer",
+      "required": true,
+      "nullable": false
+    },
+    "metadata_json": {
+      "title": "Metadata Json",
+      "description": "扩展属性",
+      "type": "object",
+      "required": false,
+      "nullable": false
+    },
     "rack_code": {
       "title": "Rack Code",
       "description": "WES 货架编码",
@@ -27,14 +40,6 @@ export const RackResponseMetadata = {
       "minLength": 1,
       "maxLength": 80
     },
-    "wms_rack_id": {
-      "title": "Wms Rack Id",
-      "description": "WMS 货架 ID",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 100
-    },
     "rack_type_code": {
       "title": "Rack Type Code",
       "description": "货架类型编码",
@@ -43,17 +48,6 @@ export const RackResponseMetadata = {
       "nullable": false,
       "minLength": 1,
       "maxLength": 50
-    },
-    "status": {
-      "description": "货架主数据状态",
-      "required": false,
-      "nullable": false,
-      "default": "ACTIVE",
-      "enum": [
-        "ACTIVE",
-        "DISABLED"
-      ],
-      "ref": "ResourceMasterStatus"
     },
     "source_system": {
       "description": "来源系统",
@@ -78,18 +72,24 @@ export const RackResponseMetadata = {
       "nullable": true,
       "maxLength": 100
     },
-    "metadata_json": {
-      "title": "Metadata Json",
-      "description": "扩展属性",
-      "type": "object",
+    "status": {
+      "description": "货架主数据状态",
       "required": false,
-      "nullable": false
+      "nullable": false,
+      "default": "ACTIVE",
+      "enum": [
+        "ACTIVE",
+        "DISABLED"
+      ],
+      "ref": "ResourceMasterStatus"
     },
-    "id": {
-      "title": "Id",
-      "type": "integer",
-      "required": true,
-      "nullable": false
+    "wms_rack_id": {
+      "title": "Wms Rack Id",
+      "description": "WMS 货架 ID",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 100
     }
   }
 } satisfies OpenApiSchemaMetadata

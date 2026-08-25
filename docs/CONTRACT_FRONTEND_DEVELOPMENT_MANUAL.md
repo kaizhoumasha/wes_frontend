@@ -13,6 +13,8 @@
 > - 页面框架内部从 `methods` 自动桥接出 `requestAdapter`
 > - 业务代码直接请求时优先使用 `xxxApiMethods(...).send()`
 > - 基础能力入口为 `src/api/base/crud-request-adapter.ts` 与 `src/composables/useCrudRequestAdapter.ts`
+>
+> 本文中的菜单资源与“获取我的菜单”只描述 frontend-owned menu convergence 实施前的当前运行基线，不属于新的发布兼容门禁。菜单接口和正文由菜单收敛计划统一删除，本阶段不提前改写或增加同步路径。
 
 ## 1. 适用范围
 
@@ -52,7 +54,7 @@
 
 团队成员操作方式：
 
-- 先执行 `pnpm contract:freeze -- --backend-root /path/to/wes_backend` 冻结指定后端 checkout，再通过 `pnpm generate:types` 更新
+- 先执行 `pnpm contract:freeze -- --backend-root /path/to/wes_backend` 从指定后端 checkout 原子冻结 OpenAPI 与权限快照，再通过离线生成命令更新
 - 接入前先查看目标路径和目标 schema
 
 #### 3.1.2 业务 API 模块
@@ -97,7 +99,7 @@
 
 团队成员操作方式：
 
-- 通过 `pnpm generate:permissions -- --backend-root /path/to/wes_backend` 更新
+- 通过 `pnpm generate:permissions` 从已提交的 canonical 权限快照更新
 - 在页面配置和动作配置中接入对应权限
 
 ### 3.2 架构层公共支撑文件
@@ -201,7 +203,8 @@
 - [ ] 执行 `pnpm contract:freeze -- --backend-root /path/to/wes_backend` 冻结指定后端 checkout
 - [ ] 执行 `pnpm generate:types`
 - [ ] 按需执行 `pnpm generate:zod`
-- [ ] 按需执行 `pnpm generate:permissions -- --backend-root /path/to/wes_backend`
+- [ ] 按需执行 `pnpm generate:permissions`
+- [ ] 执行 `pnpm permission:verify` 与 `pnpm export:release-consumer`
 - [ ] 检查新增路径、schema、operation 是否进入生成文件
 
 ### 步骤 2：识别资源结构
@@ -428,7 +431,9 @@ export const usersApiMethods = {
 pnpm contract:freeze -- --backend-root /path/to/wes_backend
 pnpm generate:types
 pnpm generate:zod
-pnpm generate:permissions -- --backend-root /path/to/wes_backend
+pnpm generate:permissions
+pnpm permission:verify
+pnpm export:release-consumer
 ```
 
 ### 9.2 质量检查

@@ -4,14 +4,15 @@
 
 四类命令回答不同问题，不能互相替代：
 
-| 命令                                                            | 证明内容                                       | 是否需要后端 checkout |
-| --------------------------------------------------------------- | ---------------------------------------------- | --------------------- |
-| `pnpm contract:test`                                            | 当前 DTO、路径、端点所有权和退役符号不变量     | 否                    |
-| `pnpm contract:verify`                                          | 已提交快照、同步记录和生成入口 marker 完全一致 | 否                    |
-| `pnpm permission:verify -- --backend-root /path/to/wes_backend` | 当前后端提交的权限扫描结果与前端基线一致       | 是                    |
-| `pnpm type:check`                                               | 当前生成类型与维护代码能够完成严格类型检查     | 否                    |
+| 命令                           | 证明内容                                                    | 是否需要后端 checkout |
+| ------------------------------ | ----------------------------------------------------------- | --------------------- |
+| `pnpm contract:test`           | 当前 DTO、路径、端点所有权和退役符号不变量                  | 否                    |
+| `pnpm contract:verify`         | 已提交 OpenAPI 快照、同步记录和生成入口 marker 完全一致     | 否                    |
+| `pnpm permission:verify`       | 已提交权限快照、同步记录与生成权限常量完全一致              | 否                    |
+| `pnpm export:release-consumer` | consumer OpenAPI、实际 operations 与 permissions 可重复导出 | 否                    |
+| `pnpm type:check`              | 当前生成类型与维护代码能够完成严格类型检查                  | 否                    |
 
-前端单仓绿灯不能证明后端权限扫描通过；合同同步通过也不能代替类型检查。
+前端单仓绿灯证明已提交 canonical 基线内部一致，但不证明任意候选后端兼容；候选兼容性由独立发布作业读取镜像 raw artifacts 判定。合同同步通过也不能代替类型检查。
 
 ## 当前合同不变量
 
@@ -41,7 +42,8 @@ pnpm type:check
 ```bash
 pnpm contract:test
 pnpm contract:verify
-pnpm permission:verify -- --backend-root /path/to/wes_backend
+pnpm permission:verify
+pnpm export:release-consumer
 pnpm type:check
 ```
 
@@ -56,7 +58,7 @@ pnpm type:check
 
 不要使用宽泛的 Git 恢复命令，以免覆盖同一工作树中的其它修改。
 
-权限验证同样 fail-closed。以下情况必须失败：后端目录缺失、不是 `develop`、工作树不干净、提交不匹配、扫描命令失败、记录格式不精确、数量或 SHA-256 漂移。
+权限验证同样 fail-closed。以下情况必须失败：canonical 权限快照缺失、记录格式不精确、OpenAPI/权限记录不是同一次 freeze、数量或 SHA-256 漂移、生成权限常量不一致。后端目录、分支和工作树只由显式 `contract:freeze` 检查；普通验证不访问后端。
 
 ## 零差异再生成
 
@@ -65,10 +67,14 @@ pnpm type:check
 ```bash
 pnpm generate:types
 pnpm generate:zod
-pnpm generate:permissions -- --backend-root /path/to/wes_backend
+pnpm generate:permissions
+pnpm permission:verify
+pnpm export:release-consumer
 git diff --exit-code -- \
   .contract-sync-record.json \
   .permission-sync-record.json \
+  contracts/openapi.current.json \
+  contracts/permissions.current.json \
   src/api/generated \
   src/api/modules \
   src/types/generated/zod-schemas.ts
@@ -78,4 +84,4 @@ git diff --exit-code -- \
 
 ## 自动门禁
 
-lint 相关 package scripts 只检查，不修改工作树。pre-commit 离线验证合同；pre-push 和 CI 都执行测试与合同门禁。前端 CI 不执行跨仓权限验证，权限基线必须在具有明确后端 checkout 的本地或集成环境完成。
+lint 相关 package scripts 只检查，不修改工作树。pre-commit 离线验证合同；pre-push 和 CI 都执行测试、合同/权限门禁与 consumer artifact 导出。只有显式 `contract:freeze` 需要明确的后端 checkout；普通生成、验证和 frontend producer 均离线于后端。

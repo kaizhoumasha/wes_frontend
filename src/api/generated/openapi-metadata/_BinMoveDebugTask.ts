@@ -26,13 +26,10 @@ export const _BinMoveDebugTaskMetadata = {
       "minLength": 36,
       "maxLength": 36
     },
-    "station_id": {
-      "title": "Station Id",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "minLength": 1,
-      "maxLength": 100
+    "data": {
+      "required": true,
+      "nullable": false,
+      "ref": "_BinMoveData"
     },
     "kind": {
       "description": "discriminator enum property added by openapi-typescript",
@@ -43,10 +40,13 @@ export const _BinMoveDebugTaskMetadata = {
         "BIN_MOVE"
       ]
     },
-    "data": {
-      "required": true,
-      "nullable": false,
-      "ref": "_BinMoveData"
+    "station_id": {
+      "title": "Station Id",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "minLength": 1,
+      "maxLength": 100
     }
   }
 } satisfies OpenApiSchemaMetadata

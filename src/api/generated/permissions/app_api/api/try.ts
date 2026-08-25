@@ -6,7 +6,7 @@
  *
  * 权限分组: app_api:api:try
  *
- * 更新权限: pnpm generate:permissions -- --backend-root /path/to/wes_backend
+ * 更新权限: pnpm generate:permissions
  */
 
 export const API_TRY_PERMISSION = {

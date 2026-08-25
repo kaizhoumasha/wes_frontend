@@ -17,12 +17,6 @@ export const MaterialLocationResultMetadata = {
     "conflict_state"
   ],
   "fields": {
-    "query_entry": {
-      "title": "Query Entry",
-      "type": "string",
-      "required": true,
-      "nullable": false
-    },
     "conflict_state": {
       "required": true,
       "nullable": false,
@@ -33,36 +27,6 @@ export const MaterialLocationResultMetadata = {
         "WMS_UNAVAILABLE"
       ],
       "ref": "MaterialLocationConflictState"
-    },
-    "object_type": {
-      "title": "Object Type",
-      "type": "string",
-      "required": false,
-      "nullable": true
-    },
-    "object_key": {
-      "title": "Object Key",
-      "type": "string",
-      "required": false,
-      "nullable": true
-    },
-    "location_scope": {
-      "title": "Location Scope",
-      "type": "string",
-      "required": false,
-      "nullable": true
-    },
-    "location_code": {
-      "title": "Location Code",
-      "type": "string",
-      "required": false,
-      "nullable": true
-    },
-    "source": {
-      "title": "Source",
-      "type": "string",
-      "required": false,
-      "nullable": true
     },
     "correlation_id": {
       "title": "Correlation Id",
@@ -78,6 +42,42 @@ export const MaterialLocationResultMetadata = {
       "items": {
         "ref": "MaterialLocationEvidence"
       }
+    },
+    "location_code": {
+      "title": "Location Code",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "location_scope": {
+      "title": "Location Scope",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "object_key": {
+      "title": "Object Key",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "object_type": {
+      "title": "Object Type",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "query_entry": {
+      "title": "Query Entry",
+      "type": "string",
+      "required": true,
+      "nullable": false
+    },
+    "source": {
+      "title": "Source",
+      "type": "string",
+      "required": false,
+      "nullable": true
     }
   }
 } satisfies OpenApiSchemaMetadata

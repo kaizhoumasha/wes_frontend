@@ -24,135 +24,6 @@ export const AuditLogResponseMetadata = {
     "id"
   ],
   "fields": {
-    "trace_id": {
-      "title": "Trace Id",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "maxLength": 64
-    },
-    "username": {
-      "title": "Username",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 32
-    },
-    "method": {
-      "title": "Method",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "maxLength": 10
-    },
-    "title": {
-      "title": "Title",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "maxLength": 100
-    },
-    "path": {
-      "title": "Path",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "maxLength": 200
-    },
-    "ip": {
-      "title": "Ip",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "maxLength": 64
-    },
-    "country": {
-      "title": "Country",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 64
-    },
-    "region": {
-      "title": "Region",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 64
-    },
-    "city": {
-      "title": "City",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 64
-    },
-    "user_agent": {
-      "title": "User Agent",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "maxLength": 500
-    },
-    "os": {
-      "title": "Os",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 64
-    },
-    "browser": {
-      "title": "Browser",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 64
-    },
-    "device": {
-      "title": "Device",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 64
-    },
-    "args": {
-      "title": "Args",
-      "type": "object",
-      "required": false,
-      "nullable": true
-    },
-    "status": {
-      "description": "操作状态",
-      "required": false,
-      "nullable": false,
-      "default": "SUCCESS",
-      "enum": [
-        "FAIL",
-        "SUCCESS"
-      ],
-      "ref": "OperaStatus"
-    },
-    "code": {
-      "title": "Code",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "maxLength": 20
-    },
-    "msg": {
-      "title": "Msg",
-      "type": "string",
-      "required": false,
-      "nullable": true
-    },
-    "object_type": {
-      "title": "Object Type",
-      "description": "审计对象类型",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 100
-    },
     "action": {
       "title": "Action",
       "description": "审计动作",
@@ -161,9 +32,14 @@ export const AuditLogResponseMetadata = {
       "nullable": true,
       "maxLength": 50
     },
-    "object_id": {
-      "title": "Object Id",
-      "description": "审计对象标识",
+    "args": {
+      "title": "Args",
+      "type": "object",
+      "required": false,
+      "nullable": true
+    },
+    "browser": {
+      "title": "Browser",
       "type": "string",
       "required": false,
       "nullable": true,
@@ -177,12 +53,82 @@ export const AuditLogResponseMetadata = {
       "nullable": true,
       "maxLength": 255
     },
+    "city": {
+      "title": "City",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 64
+    },
+    "code": {
+      "title": "Code",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "maxLength": 20
+    },
     "cost_time": {
       "title": "Cost Time",
       "type": "number",
       "required": true,
       "nullable": false,
       "minimum": 0
+    },
+    "country": {
+      "title": "Country",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 64
+    },
+    "device": {
+      "title": "Device",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 64
+    },
+    "id": {
+      "title": "Id",
+      "type": "integer",
+      "required": true,
+      "nullable": false
+    },
+    "ip": {
+      "title": "Ip",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "maxLength": 64
+    },
+    "method": {
+      "title": "Method",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "maxLength": 10
+    },
+    "msg": {
+      "title": "Msg",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "object_id": {
+      "title": "Object Id",
+      "description": "审计对象标识",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 64
+    },
+    "object_type": {
+      "title": "Object Type",
+      "description": "审计对象类型",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 100
     },
     "opera_time": {
       "title": "Opera Time",
@@ -191,11 +137,65 @@ export const AuditLogResponseMetadata = {
       "required": false,
       "nullable": false
     },
-    "id": {
-      "title": "Id",
-      "type": "integer",
+    "os": {
+      "title": "Os",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 64
+    },
+    "path": {
+      "title": "Path",
+      "type": "string",
       "required": true,
-      "nullable": false
+      "nullable": false,
+      "maxLength": 200
+    },
+    "region": {
+      "title": "Region",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 64
+    },
+    "status": {
+      "description": "操作状态",
+      "required": false,
+      "nullable": false,
+      "default": "SUCCESS",
+      "enum": [
+        "FAIL",
+        "SUCCESS"
+      ],
+      "ref": "OperaStatus"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "maxLength": 100
+    },
+    "trace_id": {
+      "title": "Trace Id",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "maxLength": 64
+    },
+    "user_agent": {
+      "title": "User Agent",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "maxLength": 500
+    },
+    "username": {
+      "title": "Username",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 32
     }
   }
 } satisfies OpenApiSchemaMetadata

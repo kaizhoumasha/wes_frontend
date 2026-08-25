@@ -20,6 +20,24 @@ export const PlaneSceneViewMetadata = {
   ],
   "additionalProperties": false,
   "fields": {
+    "edges": {
+      "title": "Edges",
+      "type": "array",
+      "required": true,
+      "nullable": false,
+      "items": {
+        "ref": "PlaneEdge"
+      }
+    },
+    "nodes": {
+      "title": "Nodes",
+      "type": "array",
+      "required": true,
+      "nullable": false,
+      "items": {
+        "ref": "PlaneNode"
+      }
+    },
     "schema_version": {
       "title": "Schema Version",
       "type": "string",
@@ -33,24 +51,6 @@ export const PlaneSceneViewMetadata = {
       "nullable": false,
       "minLength": 1,
       "maxLength": 80
-    },
-    "nodes": {
-      "title": "Nodes",
-      "type": "array",
-      "required": true,
-      "nullable": false,
-      "items": {
-        "ref": "PlaneNode"
-      }
-    },
-    "edges": {
-      "title": "Edges",
-      "type": "array",
-      "required": true,
-      "nullable": false,
-      "items": {
-        "ref": "PlaneEdge"
-      }
     }
   }
 } satisfies OpenApiSchemaMetadata

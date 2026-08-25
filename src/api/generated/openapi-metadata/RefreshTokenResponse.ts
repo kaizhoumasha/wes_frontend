@@ -30,20 +30,6 @@ export const RefreshTokenResponseMetadata = {
       "required": true,
       "nullable": false
     },
-    "access_token_jti": {
-      "title": "Access Token Jti",
-      "description": "访问令牌唯一标识符",
-      "type": "string",
-      "required": true,
-      "nullable": false
-    },
-    "refresh_token_jti": {
-      "title": "Refresh Token Jti",
-      "description": "刷新令牌唯一标识符",
-      "type": "string",
-      "required": true,
-      "nullable": false
-    },
     "access_token_expire_time": {
       "title": "Access Token Expire Time",
       "description": "访问令牌过期时间",
@@ -52,17 +38,9 @@ export const RefreshTokenResponseMetadata = {
       "required": true,
       "nullable": false
     },
-    "refresh_token_expire_time": {
-      "title": "Refresh Token Expire Time",
-      "description": "刷新令牌过期时间（令牌仅存储于 HttpOnly Cookie）",
-      "type": "string",
-      "format": "date-time",
-      "required": true,
-      "nullable": false
-    },
-    "session_uuid": {
-      "title": "Session Uuid",
-      "description": "会话 UUID",
+    "access_token_jti": {
+      "title": "Access Token Jti",
+      "description": "访问令牌唯一标识符",
       "type": "string",
       "required": true,
       "nullable": false
@@ -78,6 +56,28 @@ export const RefreshTokenResponseMetadata = {
       "title": "Refresh Expires In",
       "description": "刷新令牌过期时间（秒）",
       "type": "integer",
+      "required": true,
+      "nullable": false
+    },
+    "refresh_token_expire_time": {
+      "title": "Refresh Token Expire Time",
+      "description": "刷新令牌过期时间（令牌仅存储于 HttpOnly Cookie）",
+      "type": "string",
+      "format": "date-time",
+      "required": true,
+      "nullable": false
+    },
+    "refresh_token_jti": {
+      "title": "Refresh Token Jti",
+      "description": "刷新令牌唯一标识符",
+      "type": "string",
+      "required": true,
+      "nullable": false
+    },
+    "session_uuid": {
+      "title": "Session Uuid",
+      "description": "会话 UUID",
+      "type": "string",
       "required": true,
       "nullable": false
     }

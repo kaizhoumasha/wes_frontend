@@ -34,15 +34,62 @@ export const ManualDebugDeviceCommandResponseMetadata = {
   ],
   "additionalProperties": false,
   "fields": {
+    "ack_received_at": {
+      "title": "Ack Received At",
+      "type": "string",
+      "required": true,
+      "nullable": true
+    },
+    "attempt_count": {
+      "title": "Attempt Count",
+      "type": "integer",
+      "required": true,
+      "nullable": false
+    },
+    "callback": {
+      "required": true,
+      "nullable": true,
+      "ref": "DeviceCommandCallbackResponse"
+    },
+    "client_request_id": {
+      "title": "Client Request Id",
+      "type": "string",
+      "required": true,
+      "nullable": false
+    },
     "command_code": {
       "title": "Command Code",
       "type": "string",
       "required": true,
       "nullable": false
     },
-    "client_request_id": {
-      "title": "Client Request Id",
+    "command_timeout_ms": {
+      "title": "Command Timeout Ms",
+      "type": "integer",
+      "required": true,
+      "nullable": false
+    },
+    "completed_at": {
+      "title": "Completed At",
       "type": "string",
+      "required": true,
+      "nullable": true
+    },
+    "contract_key": {
+      "title": "Contract Key",
+      "type": "string",
+      "required": true,
+      "nullable": false
+    },
+    "contract_version": {
+      "title": "Contract Version",
+      "type": "string",
+      "required": true,
+      "nullable": false
+    },
+    "created_by": {
+      "title": "Created By",
+      "type": "integer",
       "required": true,
       "nullable": false
     },
@@ -58,29 +105,17 @@ export const ManualDebugDeviceCommandResponseMetadata = {
       "required": true,
       "nullable": false
     },
-    "contract_key": {
-      "title": "Contract Key",
+    "execution_reason": {
+      "title": "Execution Reason",
       "type": "string",
       "required": true,
       "nullable": false
     },
-    "contract_version": {
-      "title": "Contract Version",
+    "failure_code": {
+      "title": "Failure Code",
       "type": "string",
       "required": true,
-      "nullable": false
-    },
-    "command_timeout_ms": {
-      "title": "Command Timeout Ms",
-      "type": "integer",
-      "required": true,
-      "nullable": false
-    },
-    "task_type": {
-      "title": "Task Type",
-      "type": "string",
-      "required": true,
-      "nullable": false
+      "nullable": true
     },
     "params": {
       "title": "Params",
@@ -88,8 +123,8 @@ export const ManualDebugDeviceCommandResponseMetadata = {
       "required": true,
       "nullable": false
     },
-    "trace_id": {
-      "title": "Trace Id",
+    "reconciliation_reason": {
+      "title": "Reconciliation Reason",
       "type": "string",
       "required": true,
       "nullable": true
@@ -100,52 +135,17 @@ export const ManualDebugDeviceCommandResponseMetadata = {
       "required": true,
       "nullable": false
     },
-    "attempt_count": {
-      "title": "Attempt Count",
-      "type": "integer",
-      "required": true,
-      "nullable": false
-    },
-    "ack_received_at": {
-      "title": "Ack Received At",
-      "type": "string",
-      "required": true,
-      "nullable": true
-    },
-    "completed_at": {
-      "title": "Completed At",
-      "type": "string",
-      "required": true,
-      "nullable": true
-    },
-    "failure_code": {
-      "title": "Failure Code",
-      "type": "string",
-      "required": true,
-      "nullable": true
-    },
-    "reconciliation_reason": {
-      "title": "Reconciliation Reason",
-      "type": "string",
-      "required": true,
-      "nullable": true
-    },
-    "execution_reason": {
-      "title": "Execution Reason",
+    "task_type": {
+      "title": "Task Type",
       "type": "string",
       "required": true,
       "nullable": false
     },
-    "created_by": {
-      "title": "Created By",
-      "type": "integer",
+    "trace_id": {
+      "title": "Trace Id",
+      "type": "string",
       "required": true,
-      "nullable": false
-    },
-    "callback": {
-      "required": true,
-      "nullable": true,
-      "ref": "DeviceCommandCallbackResponse"
+      "nullable": true
     }
   }
 } satisfies OpenApiSchemaMetadata

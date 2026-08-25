@@ -20,6 +20,56 @@ export const RackTypeResponseMetadata = {
     "id"
   ],
   "fields": {
+    "active": {
+      "title": "Active",
+      "description": "是否启用",
+      "type": "boolean",
+      "required": false,
+      "nullable": false,
+      "default": true
+    },
+    "description": {
+      "title": "Description",
+      "description": "说明",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 500
+    },
+    "has_side": {
+      "title": "Has Side",
+      "description": "是否区分 A/B 面",
+      "type": "boolean",
+      "required": false,
+      "nullable": false,
+      "default": false
+    },
+    "id": {
+      "title": "Id",
+      "type": "integer",
+      "required": true,
+      "nullable": false
+    },
+    "metadata_json": {
+      "title": "Metadata Json",
+      "description": "扩展属性",
+      "type": "object",
+      "required": false,
+      "nullable": false
+    },
+    "rack_kind": {
+      "description": "货架物理结构类型",
+      "required": true,
+      "nullable": false,
+      "enum": [
+        "SINGLE_LAYER",
+        "FIVE_LAYER",
+        "RETURN",
+        "TRANSFER",
+        "PRODUCTION"
+      ],
+      "ref": "RackKind"
+    },
     "rack_type_code": {
       "title": "Rack Type Code",
       "description": "货架类型编码",
@@ -38,19 +88,6 @@ export const RackTypeResponseMetadata = {
       "minLength": 1,
       "maxLength": 100
     },
-    "rack_kind": {
-      "description": "货架物理结构类型",
-      "required": true,
-      "nullable": false,
-      "enum": [
-        "SINGLE_LAYER",
-        "FIVE_LAYER",
-        "RETURN",
-        "TRANSFER",
-        "PRODUCTION"
-      ],
-      "ref": "RackKind"
-    },
     "slot_count": {
       "title": "Slot Count",
       "description": "标准槽位数量",
@@ -58,43 +95,6 @@ export const RackTypeResponseMetadata = {
       "required": true,
       "nullable": false,
       "minimum": 1
-    },
-    "has_side": {
-      "title": "Has Side",
-      "description": "是否区分 A/B 面",
-      "type": "boolean",
-      "required": false,
-      "nullable": false,
-      "default": false
-    },
-    "description": {
-      "title": "Description",
-      "description": "说明",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 500
-    },
-    "active": {
-      "title": "Active",
-      "description": "是否启用",
-      "type": "boolean",
-      "required": false,
-      "nullable": false,
-      "default": true
-    },
-    "metadata_json": {
-      "title": "Metadata Json",
-      "description": "扩展属性",
-      "type": "object",
-      "required": false,
-      "nullable": false
-    },
-    "id": {
-      "title": "Id",
-      "type": "integer",
-      "required": true,
-      "nullable": false
     }
   }
 } satisfies OpenApiSchemaMetadata

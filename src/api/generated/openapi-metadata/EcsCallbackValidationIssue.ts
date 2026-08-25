@@ -17,12 +17,6 @@ export const EcsCallbackValidationIssueMetadata = {
   ],
   "additionalProperties": false,
   "fields": {
-    "field": {
-      "title": "Field",
-      "type": "string",
-      "required": true,
-      "nullable": false
-    },
     "code": {
       "title": "Code",
       "type": "string",
@@ -34,6 +28,12 @@ export const EcsCallbackValidationIssueMetadata = {
       "type": "string",
       "required": false,
       "nullable": true
+    },
+    "field": {
+      "title": "Field",
+      "type": "string",
+      "required": true,
+      "nullable": false
     }
   }
 } satisfies OpenApiSchemaMetadata

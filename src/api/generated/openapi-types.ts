@@ -1,4 +1,4 @@
-/** @openapi-sha256 6653931532482447766eee6163bd1256d799ae8206665f43f972182b9f417a20 */
+/** @openapi-sha256 49b6236f4825de0ce02b98bb2b093385e38c1594399fcf01cd0dfa79fca5c343 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *

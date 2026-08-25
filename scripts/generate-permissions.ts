@@ -4,75 +4,51 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
-  readFileSync,
   renameSync,
   rmSync,
-  unlinkSync,
   writeFileSync
 } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { assertBackendCheckout } from './lib/backend-checkout'
-import { writeFileAtomically } from './lib/atomic-file'
 import { readContractSyncRecord } from './lib/openapi-sync'
 import {
   FRONTEND_ROOT,
   PERMISSIONS_OUTPUT_DIR,
-  PERMISSION_SYNC_RECORD_FILE,
+  assertPermissionRecordBackendCommit,
   buildPermissionFileContent,
   buildPermissionsIndexContent,
-  computePermissionsHash,
   groupPermissions,
-  scanBackendPermissions,
+  readCanonicalPermissionSnapshot,
+  readPermissionSyncRecord,
   type PermissionSyncRecord
 } from './lib/permissions-codegen'
 
 interface CliOptions {
-  backendRoot: string
+  frontendRoot?: string
 }
 
 export interface PermissionPublicationPaths {
   outputDirectory: string
-  recordPath: string
 }
 
 export function parseGeneratePermissionsArgs(argv: string[]): CliOptions {
-  let backendRoot: string | undefined
-
-  for (let index = 0; index < argv.length; index += 1) {
-    const argument = argv[index]
+  for (const argument of argv) {
     if (argument === '--') {
-      continue
-    }
-    if (argument === '--backend-root') {
-      const value = argv[index + 1]
-      if (!value || value.startsWith('--')) {
-        throw new Error('`--backend-root` 缺少目录参数')
-      }
-      backendRoot = resolve(FRONTEND_ROOT, value)
-      index += 1
       continue
     }
     throw new Error(`不支持的参数: ${argument}`)
   }
-
-  if (!backendRoot) {
-    throw new Error('必须提供 `--backend-root`')
-  }
-  return { backendRoot }
+  return {}
 }
 
 export function replaceGeneratedPermissions(
   stagedDirectory: string,
-  record: PermissionSyncRecord,
   paths: PermissionPublicationPaths = {
-    outputDirectory: PERMISSIONS_OUTPUT_DIR,
-    recordPath: PERMISSION_SYNC_RECORD_FILE
+    outputDirectory: PERMISSIONS_OUTPUT_DIR
   }
 ): void {
-  const { outputDirectory, recordPath } = paths
+  const { outputDirectory } = paths
   const backupDirectory = `${stagedDirectory}-backup`
-  const previousRecord = existsSync(recordPath) ? readFileSync(recordPath, 'utf-8') : null
   const hadGeneratedDirectory = existsSync(outputDirectory)
   let backupCreated = false
   let stagedInstalled = false
@@ -84,7 +60,6 @@ export function replaceGeneratedPermissions(
     }
     renameSync(stagedDirectory, outputDirectory)
     stagedInstalled = true
-    writeFileAtomically(recordPath, `${JSON.stringify(record, null, 2)}\n`)
     if (backupCreated) {
       rmSync(backupDirectory, { force: true, recursive: true })
       backupCreated = false
@@ -96,13 +71,6 @@ export function replaceGeneratedPermissions(
     if (backupCreated) {
       renameSync(backupDirectory, outputDirectory)
     }
-    if (previousRecord === null) {
-      if (existsSync(recordPath)) {
-        unlinkSync(recordPath)
-      }
-    } else {
-      writeFileAtomically(recordPath, previousRecord)
-    }
     throw error
   } finally {
     rmSync(stagedDirectory, { force: true, recursive: true })
@@ -110,29 +78,27 @@ export function replaceGeneratedPermissions(
 }
 
 export function generatePermissions(options: CliOptions): PermissionSyncRecord {
-  const contractRecord = readContractSyncRecord(
-    resolve(FRONTEND_ROOT, '.contract-sync-record.json')
+  const frontendRoot = resolve(options.frontendRoot ?? FRONTEND_ROOT)
+  const contractRecord = readContractSyncRecord(resolve(frontendRoot, '.contract-sync-record.json'))
+  const snapshot = readCanonicalPermissionSnapshot(frontendRoot)
+  const permissions = snapshot.permissions
+  const permissionRecord = assertPermissionRecordBackendCommit(
+    readPermissionSyncRecord(resolve(frontendRoot, '.permission-sync-record.json')),
+    contractRecord.backendCommit
   )
-  const backendCommit = assertBackendCheckout(options.backendRoot, contractRecord.backendCommit)
-  const permissions = scanBackendPermissions(options.backendRoot)
-  const permissionsSha256 = computePermissionsHash(permissions)
-  const groups = groupPermissions(permissions)
-
-  const backendCommitAfterScan = assertBackendCheckout(options.backendRoot)
-  if (backendCommitAfterScan !== backendCommit) {
+  if (permissions.length !== permissionRecord.permissionCount) {
     throw new Error(
-      `后端 HEAD 在权限扫描期间发生变化：${backendCommit} -> ${backendCommitAfterScan}`
+      `权限数量不匹配：记录 ${permissionRecord.permissionCount}，当前 ${permissions.length}`
     )
   }
-
-  const generatedParent = dirname(PERMISSIONS_OUTPUT_DIR)
+  if (snapshot.sha256 !== permissionRecord.permissionsSha256) {
+    throw new Error(`权限 SHA-256 不匹配，必须先运行显式 contract:freeze`)
+  }
+  const groups = groupPermissions(permissions)
+  const outputDirectory = resolve(frontendRoot, 'src/api/generated/permissions')
+  const generatedParent = dirname(outputDirectory)
   mkdirSync(generatedParent, { recursive: true })
   const stagedDirectory = mkdtempSync(resolve(generatedParent, '.permissions-'))
-  const record: PermissionSyncRecord = {
-    backendCommit,
-    permissionsSha256,
-    permissionCount: permissions.length
-  }
   try {
     for (const group of groups) {
       const outputPath = resolve(stagedDirectory, group.relativeFilePath)
@@ -144,11 +110,11 @@ export function generatePermissions(options: CliOptions): PermissionSyncRecord {
       buildPermissionsIndexContent(groups),
       'utf-8'
     )
-    replaceGeneratedPermissions(stagedDirectory, record)
+    replaceGeneratedPermissions(stagedDirectory, { outputDirectory })
   } finally {
     rmSync(stagedDirectory, { force: true, recursive: true })
   }
-  return record
+  return permissionRecord
 }
 
 function isCliEntry(): boolean {

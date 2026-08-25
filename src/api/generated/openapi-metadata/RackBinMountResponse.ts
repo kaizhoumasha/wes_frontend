@@ -22,6 +22,42 @@ export const RackBinMountResponseMetadata = {
     "id"
   ],
   "fields": {
+    "bin_code": {
+      "title": "Bin Code",
+      "description": "料箱编码",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "ended_at": {
+      "title": "Ended At",
+      "description": "解除挂载时间",
+      "type": "string",
+      "format": "date-time",
+      "required": false,
+      "nullable": true
+    },
+    "id": {
+      "title": "Id",
+      "type": "integer",
+      "required": true,
+      "nullable": false
+    },
+    "mount_status": {
+      "description": "料箱挂载状态",
+      "required": false,
+      "nullable": false,
+      "default": "UNKNOWN",
+      "enum": [
+        "MOUNTED",
+        "UNMOUNTED",
+        "EXCHANGING",
+        "UNKNOWN"
+      ],
+      "ref": "RackBinMountStatus"
+    },
     "rack_code": {
       "title": "Rack Code",
       "description": "货架编码",
@@ -40,27 +76,14 @@ export const RackBinMountResponseMetadata = {
       "minLength": 1,
       "maxLength": 50
     },
-    "bin_code": {
-      "title": "Bin Code",
-      "description": "料箱编码",
+    "source_event_id": {
+      "title": "Source Event Id",
+      "description": "来源事件 ID",
       "type": "string",
       "required": true,
       "nullable": false,
       "minLength": 1,
-      "maxLength": 80
-    },
-    "mount_status": {
-      "description": "料箱挂载状态",
-      "required": false,
-      "nullable": false,
-      "default": "UNKNOWN",
-      "enum": [
-        "MOUNTED",
-        "UNMOUNTED",
-        "EXCHANGING",
-        "UNKNOWN"
-      ],
-      "ref": "RackBinMountStatus"
+      "maxLength": 200
     },
     "source_system": {
       "description": "来源系统",
@@ -76,15 +99,6 @@ export const RackBinMountResponseMetadata = {
       ],
       "ref": "ResourceSourceSystem"
     },
-    "source_event_id": {
-      "title": "Source Event Id",
-      "description": "来源事件 ID",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 200
-    },
     "source_version": {
       "title": "Source Version",
       "description": "来源版本",
@@ -92,6 +106,14 @@ export const RackBinMountResponseMetadata = {
       "required": false,
       "nullable": true,
       "maxLength": 100
+    },
+    "started_at": {
+      "title": "Started At",
+      "description": "挂载确认时间",
+      "type": "string",
+      "format": "date-time",
+      "required": true,
+      "nullable": false
     },
     "trace_id": {
       "title": "Trace Id",
@@ -107,28 +129,6 @@ export const RackBinMountResponseMetadata = {
       "type": "integer",
       "required": false,
       "nullable": true
-    },
-    "started_at": {
-      "title": "Started At",
-      "description": "挂载确认时间",
-      "type": "string",
-      "format": "date-time",
-      "required": true,
-      "nullable": false
-    },
-    "ended_at": {
-      "title": "Ended At",
-      "description": "解除挂载时间",
-      "type": "string",
-      "format": "date-time",
-      "required": false,
-      "nullable": true
-    },
-    "id": {
-      "title": "Id",
-      "type": "integer",
-      "required": true,
-      "nullable": false
     }
   }
 } satisfies OpenApiSchemaMetadata

@@ -14,8 +14,8 @@ export const RuntimeHoldViewMetadata = {
   "description": "Active object 关联 RuntimeHold 展示字段。",
   "required": [],
   "fields": {
-    "reason_code": {
-      "title": "Reason Code",
+    "allowed_next_effect_scope": {
+      "title": "Allowed Next Effect Scope",
       "type": "string",
       "required": false,
       "nullable": true
@@ -26,8 +26,8 @@ export const RuntimeHoldViewMetadata = {
       "required": false,
       "nullable": true
     },
-    "allowed_next_effect_scope": {
-      "title": "Allowed Next Effect Scope",
+    "reason_code": {
+      "title": "Reason Code",
       "type": "string",
       "required": false,
       "nullable": true

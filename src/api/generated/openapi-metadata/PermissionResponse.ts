@@ -18,64 +18,13 @@ export const PermissionResponseMetadata = {
     "version"
   ],
   "fields": {
-    "parent_id": {
-      "title": "Parent Id",
-      "type": "integer",
-      "required": false,
-      "nullable": true
-    },
-    "tree_path": {
-      "title": "Tree Path",
-      "type": "string",
-      "required": false,
-      "nullable": false,
-      "default": "/"
-    },
-    "level": {
-      "title": "Level",
-      "type": "integer",
-      "required": false,
-      "nullable": false,
-      "default": 1
-    },
-    "sort_order": {
-      "title": "Sort Order",
-      "type": "integer",
-      "required": false,
-      "nullable": false,
-      "default": 0
-    },
-    "has_children": {
-      "title": "Has Children",
-      "type": "boolean",
-      "required": false,
-      "nullable": false,
-      "default": false
-    },
-    "name": {
-      "title": "Name",
-      "description": "权限标识，如 admin:role:create",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "maxLength": 100
-    },
-    "description": {
-      "title": "Description",
-      "description": "权限描述",
+    "action": {
+      "title": "Action",
+      "description": "操作：create、read、update、delete、list 等",
       "type": "string",
       "required": false,
       "nullable": true,
-      "maxLength": 255
-    },
-    "type": {
-      "title": "Type",
-      "description": "权限类型：user_api（内部管理API）、app_api（外部应用API）",
-      "type": "string",
-      "required": false,
-      "nullable": false,
-      "default": "user_api",
-      "maxLength": 20
+      "maxLength": 50
     },
     "category": {
       "title": "Category",
@@ -85,21 +34,33 @@ export const PermissionResponseMetadata = {
       "nullable": true,
       "maxLength": 50
     },
-    "resource": {
-      "title": "Resource",
-      "description": "资源类型：user、role、permission、warehouse 等",
+    "description": {
+      "title": "Description",
+      "description": "权限描述",
       "type": "string",
       "required": false,
       "nullable": true,
-      "maxLength": 50
+      "maxLength": 255
     },
-    "action": {
-      "title": "Action",
-      "description": "操作：create、read、update、delete、list 等",
-      "type": "string",
+    "has_children": {
+      "title": "Has Children",
+      "type": "boolean",
       "required": false,
-      "nullable": true,
-      "maxLength": 50
+      "nullable": false,
+      "default": false
+    },
+    "id": {
+      "title": "Id",
+      "type": "integer",
+      "required": true,
+      "nullable": false
+    },
+    "level": {
+      "title": "Level",
+      "type": "integer",
+      "required": false,
+      "nullable": false,
+      "default": 1
     },
     "method": {
       "title": "Method",
@@ -109,6 +70,20 @@ export const PermissionResponseMetadata = {
       "nullable": true,
       "maxLength": 10
     },
+    "name": {
+      "title": "Name",
+      "description": "权限标识，如 admin:role:create",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "maxLength": 100
+    },
+    "parent_id": {
+      "title": "Parent Id",
+      "type": "integer",
+      "required": false,
+      "nullable": true
+    },
     "path": {
       "title": "Path",
       "description": "API 路径：/admin/users/{id}、/api/v1/warehouses 等",
@@ -117,11 +92,36 @@ export const PermissionResponseMetadata = {
       "nullable": true,
       "maxLength": 255
     },
-    "id": {
-      "title": "Id",
+    "resource": {
+      "title": "Resource",
+      "description": "资源类型：user、role、permission、warehouse 等",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 50
+    },
+    "sort_order": {
+      "title": "Sort Order",
       "type": "integer",
-      "required": true,
-      "nullable": false
+      "required": false,
+      "nullable": false,
+      "default": 0
+    },
+    "tree_path": {
+      "title": "Tree Path",
+      "type": "string",
+      "required": false,
+      "nullable": false,
+      "default": "/"
+    },
+    "type": {
+      "title": "Type",
+      "description": "权限类型：user_api（内部管理API）、app_api（外部应用API）",
+      "type": "string",
+      "required": false,
+      "nullable": false,
+      "default": "user_api",
+      "maxLength": 20
     },
     "version": {
       "title": "Version",

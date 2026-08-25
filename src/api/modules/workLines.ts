@@ -37,28 +37,28 @@ export type WorkLinesItem = EnsureEntityId<CrudItem<typeof WORK_LINES_COLLECTION
 export type CreateWorkLinesInput = CrudCreateInput<typeof WORK_LINES_COLLECTION_PATH>
 export type UpdateWorkLinesInput = CrudUpdateInput<typeof WORK_LINES_COLLECTION_PATH>
 
-export type ConfigurationStatusResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/configuration-status', 'get'>
-export type ConfigurationStatusPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/configuration-status', 'get'>
-
 export type ActivateResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/activate', 'post'>
 export type ActivatePathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/activate', 'post'>
 export type ActivateInput = ContractRequestBody<'/api/v1/workline/work_lines/{id}/activate', 'post'>
 
+export type ActiveObjectsResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/active-objects', 'get'>
+export type ActiveObjectsPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/active-objects', 'get'>
+
+export type ConfigurationStatusResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/configuration-status', 'get'>
+export type ConfigurationStatusPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/configuration-status', 'get'>
+
 export type DeactivateResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/deactivate', 'post'>
 export type DeactivatePathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/deactivate', 'post'>
 export type DeactivateInput = ContractRequestBody<'/api/v1/workline/work_lines/{id}/deactivate', 'post'>
+
+export type PermanentResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/permanent', 'delete'>
+export type PermanentPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/permanent', 'delete'>
 
 export type PlaneSceneResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/plane/scene', 'get'>
 export type PlaneScenePathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/plane/scene', 'get'>
 
 export type PlaneSnapshotResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/plane/snapshot', 'get'>
 export type PlaneSnapshotPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/plane/snapshot', 'get'>
-
-export type PermanentResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/permanent', 'delete'>
-export type PermanentPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/permanent', 'delete'>
-
-export type ActiveObjectsResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/active-objects', 'get'>
-export type ActiveObjectsPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/active-objects', 'get'>
 
 const baseWorkLinesApiMethods = createSoftDeleteCrudRequestAdapterMethods({
   collection: WORK_LINES_COLLECTION_PATH as unknown as SoftDeleteCrudResourceCollectionPath,
@@ -74,16 +74,6 @@ export const workLinesApiMethods = {
   ...baseWorkLinesApiMethods,
 
   /**
-   * [biz:workline:configuration-status] 查询作业线配置状态
-   * @description 查询 WorkLine 启用前配置状态。
-   * @endpoint GET /api/v1/workline/work_lines/{id}/configuration-status
-   * @returns alova method instance
-   */
-  configurationStatus(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/configuration-status', 'get'>, config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/workline/work_lines/{id}/configuration-status', { params, config })
-  },
-
-  /**
    * [biz:workline:activate] 启用作业线
    * @description 通过配置预检后启用 WorkLine。
    * @endpoint POST /api/v1/workline/work_lines/{id}/activate
@@ -94,6 +84,26 @@ export const workLinesApiMethods = {
   },
 
   /**
+   * [biz:workline:active-objects] 查询作业线当前 active objects
+   * @description 读取 WorklineActiveObjects；API 层不直接访问 repository。
+   * @endpoint GET /api/v1/workline/work_lines/{id}/active-objects
+   * @returns alova method instance
+   */
+  activeObjects(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/active-objects', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/work_lines/{id}/active-objects', { params, config })
+  },
+
+  /**
+   * [biz:workline:configuration-status] 查询作业线配置状态
+   * @description 查询 WorkLine 启用前配置状态。
+   * @endpoint GET /api/v1/workline/work_lines/{id}/configuration-status
+   * @returns alova method instance
+   */
+  configurationStatus(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/configuration-status', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/work_lines/{id}/configuration-status', { params, config })
+  },
+
+  /**
    * [biz:workline:deactivate] 停用作业线
    * @description 确认无未完成运行负载后停用 WorkLine。
    * @endpoint POST /api/v1/workline/work_lines/{id}/deactivate
@@ -101,6 +111,15 @@ export const workLinesApiMethods = {
    */
   deactivate(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/deactivate', 'post'>, body: ContractRequestBody<'/api/v1/workline/work_lines/{id}/deactivate', 'post'>, config?: ContractRequestConfig) {
     return contractMethods.post('/api/v1/workline/work_lines/{id}/deactivate', { params, body, config })
+  },
+
+  /**
+   * [biz:workline:permanent_delete] 永久删除WorkLine
+   * @endpoint DELETE /api/v1/workline/work_lines/{id}/permanent
+   * @returns alova method instance
+   */
+  permanent(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/permanent', 'delete'>, config?: ContractRequestConfig) {
+    return contractMethods.delete('/api/v1/workline/work_lines/{id}/permanent', { params, config })
   },
 
   /**
@@ -121,25 +140,6 @@ export const workLinesApiMethods = {
    */
   planeSnapshot(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/plane/snapshot', 'get'>, config?: ContractRequestConfig) {
     return contractMethods.get('/api/v1/workline/work_lines/{id}/plane/snapshot', { params, config })
-  },
-
-  /**
-   * [biz:workline:permanent_delete] 永久删除WorkLine
-   * @endpoint DELETE /api/v1/workline/work_lines/{id}/permanent
-   * @returns alova method instance
-   */
-  permanent(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/permanent', 'delete'>, config?: ContractRequestConfig) {
-    return contractMethods.delete('/api/v1/workline/work_lines/{id}/permanent', { params, config })
-  },
-
-  /**
-   * [biz:workline:active-objects] 查询作业线当前 active objects
-   * @description 读取 WorklineActiveObjects；API 层不直接访问 repository。
-   * @endpoint GET /api/v1/workline/work_lines/{id}/active-objects
-   * @returns alova method instance
-   */
-  activeObjects(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/active-objects', 'get'>, config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/workline/work_lines/{id}/active-objects', { params, config })
   }
 }
 // ==================== AUTO GENERATED END ====================

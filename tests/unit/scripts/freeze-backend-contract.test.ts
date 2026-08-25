@@ -17,6 +17,7 @@ import {
   parseFreezeBackendContractArgs
 } from '../../../scripts/freeze-backend-contract'
 import { writeFileAtomically } from '../../../scripts/lib/atomic-file'
+import { computeSha256 } from '../../../scripts/lib/sha256'
 
 vi.mock('../../../scripts/lib/atomic-file', async importOriginal => {
   const actual = await importOriginal<typeof import('../../../scripts/lib/atomic-file')>()
@@ -26,11 +27,10 @@ vi.mock('../../../scripts/lib/atomic-file', async importOriginal => {
   }
 })
 
-const VALID_OPENAPI = {
-  openapi: '3.1.0',
-  info: { title: 'Frozen API', version: '1.0.0' },
-  paths: { '/api/v1/health': { get: { responses: { 200: { description: 'ok' } } } } }
-}
+const PROVIDER_OPENAPI =
+  '{"info":{"title":"Frozen API","version":"1.0.0"},"openapi":"3.1.0","paths":{"/api/v1/health":{"get":{"responses":{"200":{"description":"ok"}}}}}}\n'
+const PROVIDED_PERMISSIONS =
+  '{"kind":"wes.release.provided-permissions.v1","permissions":[{"action":"list","category":"biz","description":"设备列表","method":"GET","name":"biz:device:list","path":"/api/v1/devices","resource":"device","type":"user_api"}]}\n'
 
 function git(cwd: string, ...args: string[]): string {
   return execFileSync('git', args, { cwd, encoding: 'utf-8' }).trim()
@@ -67,26 +67,48 @@ describe.sequential('freeze backend contract', () => {
       fakeUv,
       [
         '#!/bin/sh',
-        'if [ "$FAKE_UV_FAIL" = "1" ]; then exit 9; fi',
-        'for argument do output_path="$argument"; done',
-        'printf "%s" "$FAKE_OPENAPI_JSON" > "$output_path"',
-        'if [ "$FAKE_UV_CHANGE_HEAD" = "1" ]; then git commit --allow-empty -m changed >/dev/null; fi',
+        'count=0',
+        'if [ -f "$FAKE_EXPORT_COUNT_FILE" ]; then count=$(sed -n "1p" "$FAKE_EXPORT_COUNT_FILE"); fi',
+        'count=$((count + 1))',
+        'printf "%s" "$count" > "$FAKE_EXPORT_COUNT_FILE"',
+        'if [ "$FAKE_EXPORT_FAIL" = "1" ]; then exit 9; fi',
+        '[ "$1" = "run" ] && [ "$2" = "python" ] && [ "$3" = "scripts/export_release_provider.py" ] && [ "$4" = "--out-dir" ] || exit 10',
+        'output_dir="$5"',
+        'mkdir -p "$output_dir"',
+        'printf "%s" "$FAKE_PROVIDER_OPENAPI" > "$output_dir/provider-openapi.json"',
+        'printf "%s" "$FAKE_PROVIDED_PERMISSIONS" > "$output_dir/provided-permissions.json"',
+        'printf "%s" "$FAKE_PROVIDER_FINGERPRINTS" > "$output_dir/provider-fingerprints.json"',
+        'if [ "$FAKE_EXPORT_CHANGE_HEAD" = "1" ]; then git commit --allow-empty -m changed >/dev/null; fi',
         ''
       ].join('\n')
     )
     chmodSync(fakeUv, 0o755)
     previousPath = process.env.PATH ?? ''
     process.env.PATH = `${binRoot}:${previousPath}`
-    process.env.FAKE_OPENAPI_JSON = JSON.stringify(VALID_OPENAPI)
-    delete process.env.FAKE_UV_FAIL
-    delete process.env.FAKE_UV_CHANGE_HEAD
+    process.env.FAKE_PROVIDER_OPENAPI = PROVIDER_OPENAPI
+    process.env.FAKE_PROVIDED_PERMISSIONS = PROVIDED_PERMISSIONS
+    process.env.FAKE_PROVIDER_FINGERPRINTS = `${JSON.stringify({
+      dependencies_sha256: 'a'.repeat(64),
+      expected_schema_head: 'head',
+      kind: 'wes.release.backend-fingerprints.v1',
+      migration_tree_sha256: 'b'.repeat(64),
+      provided_permissions_sha256: computeSha256(PROVIDED_PERMISSIONS),
+      provider_openapi_sha256: computeSha256(PROVIDER_OPENAPI),
+      recipe_sha256: 'c'.repeat(64)
+    })}\n`
+    process.env.FAKE_EXPORT_COUNT_FILE = join(root, 'export-count')
+    delete process.env.FAKE_EXPORT_FAIL
+    delete process.env.FAKE_EXPORT_CHANGE_HEAD
   })
 
   afterEach(() => {
     process.env.PATH = previousPath
-    delete process.env.FAKE_OPENAPI_JSON
-    delete process.env.FAKE_UV_FAIL
-    delete process.env.FAKE_UV_CHANGE_HEAD
+    delete process.env.FAKE_PROVIDER_OPENAPI
+    delete process.env.FAKE_PROVIDED_PERMISSIONS
+    delete process.env.FAKE_PROVIDER_FINGERPRINTS
+    delete process.env.FAKE_EXPORT_COUNT_FILE
+    delete process.env.FAKE_EXPORT_FAIL
+    delete process.env.FAKE_EXPORT_CHANGE_HEAD
     rmSync(root, { force: true, recursive: true })
   })
 
@@ -96,7 +118,31 @@ describe.sequential('freeze backend contract', () => {
 
   function expectNoOutputs(): void {
     expect(existsSync(join(frontendRoot, 'contracts/openapi.current.json'))).toBe(false)
+    expect(existsSync(join(frontendRoot, 'contracts/permissions.current.json'))).toBe(false)
     expect(existsSync(join(frontendRoot, '.contract-sync-record.json'))).toBe(false)
+    expect(existsSync(join(frontendRoot, '.permission-sync-record.json'))).toBe(false)
+    expect(readdirSync(temporaryDirectoryRoot)).toEqual([])
+  }
+
+  function seedPreviousOutputs(): Map<string, string> {
+    const previous = new Map([
+      ['contracts/openapi.current.json', 'previous openapi\n'],
+      ['contracts/permissions.current.json', 'previous permissions\n'],
+      ['.contract-sync-record.json', 'previous contract record\n'],
+      ['.permission-sync-record.json', 'previous permission record\n']
+    ])
+    for (const [relativePath, content] of previous) {
+      const path = join(frontendRoot, relativePath)
+      mkdirSync(join(path, '..'), { recursive: true })
+      writeFileSync(path, content)
+    }
+    return previous
+  }
+
+  function expectPreviousOutputs(previous: Map<string, string>): void {
+    for (const [relativePath, content] of previous) {
+      expect(readFileSync(join(frontendRoot, relativePath), 'utf-8')).toBe(content)
+    }
     expect(readdirSync(temporaryDirectoryRoot)).toEqual([])
   }
 
@@ -120,52 +166,64 @@ describe.sequential('freeze backend contract', () => {
     expectNoOutputs()
   })
 
-  it('does not write artifacts when Python extraction fails', () => {
-    process.env.FAKE_UV_FAIL = '1'
-    expect(() => freeze()).toThrow(/提取失败/)
-    expectNoOutputs()
+  it('leaves all four previous files byte-identical when provider export fails', () => {
+    const previous = seedPreviousOutputs()
+    process.env.FAKE_EXPORT_FAIL = '1'
+    expect(() => freeze()).toThrow(/provider.*失败|导出失败/)
+    expectPreviousOutputs(previous)
   })
 
-  it('does not write artifacts for invalid OpenAPI', () => {
-    process.env.FAKE_OPENAPI_JSON = JSON.stringify({ openapi: '2.0', paths: {} })
+  it('leaves all four previous files byte-identical for invalid provider artifacts', () => {
+    const previous = seedPreviousOutputs()
+    process.env.FAKE_PROVIDED_PERMISSIONS =
+      '{"kind":"wes.release.provided-permissions.v1","permissions":[]}\n'
+    process.env.FAKE_PROVIDER_OPENAPI = '{"openapi":"2.0","paths":{}}\n'
     expect(() => freeze()).toThrow(/OpenAPI 3/)
-    expectNoOutputs()
+    expectPreviousOutputs(previous)
   })
 
-  it('does not write artifacts when backend HEAD changes during extraction', () => {
-    process.env.FAKE_UV_CHANGE_HEAD = '1'
+  it('leaves all four previous files byte-identical when raw artifact fingerprints mismatch', () => {
+    const previous = seedPreviousOutputs()
+    process.env.FAKE_PROVIDER_FINGERPRINTS = process.env.FAKE_PROVIDER_FINGERPRINTS!.replace(
+      computeSha256(PROVIDED_PERMISSIONS),
+      '0'.repeat(64)
+    )
+    expect(() => freeze()).toThrow(/provided-permissions.*SHA-256|权限.*SHA-256/)
+    expectPreviousOutputs(previous)
+  })
+
+  it('leaves all four previous files byte-identical when backend HEAD changes during export', () => {
+    const previous = seedPreviousOutputs()
+    process.env.FAKE_EXPORT_CHANGE_HEAD = '1'
     expect(() => freeze()).toThrow(/HEAD.*变化/)
-    expectNoOutputs()
+    expectPreviousOutputs(previous)
   })
 
-  it('restores the previous snapshot when final record publication fails', () => {
-    const contractsRoot = join(frontendRoot, 'contracts')
-    const snapshotPath = join(contractsRoot, 'openapi.current.json')
-    mkdirSync(contractsRoot)
-    writeFileSync(snapshotPath, 'previous snapshot\n')
+  it('restores all four previous files when final publication fails', () => {
+    const previous = seedPreviousOutputs()
     const atomicWrite = vi.mocked(writeFileAtomically)
     const realAtomicWrite = atomicWrite.getMockImplementation()
     if (!realAtomicWrite) {
       throw new Error('atomic write test double is missing its real implementation')
     }
-    atomicWrite.mockImplementationOnce(realAtomicWrite).mockImplementationOnce(() => {
-      throw new Error('simulated record publication failure')
-    })
+    atomicWrite
+      .mockImplementationOnce(realAtomicWrite)
+      .mockImplementationOnce(realAtomicWrite)
+      .mockImplementationOnce(realAtomicWrite)
+      .mockImplementationOnce(() => {
+        throw new Error('simulated record publication failure')
+      })
 
     expect(() => freeze()).toThrow('simulated record publication failure')
-
-    expect(readFileSync(snapshotPath, 'utf-8')).toBe('previous snapshot\n')
-    expect(existsSync(join(frontendRoot, '.contract-sync-record.json'))).toBe(false)
-    expect(readdirSync(contractsRoot)).toEqual(['openapi.current.json'])
-    expect(readdirSync(temporaryDirectoryRoot)).toEqual([])
+    expectPreviousOutputs(previous)
   })
 
-  it('writes the canonical snapshot and exact portable record only after success', () => {
+  it('calls the provider exporter once and publishes both snapshots with both provenance records', () => {
     const backendCommit = git(backendRoot, 'rev-parse', 'HEAD')
     const record = freeze()
     const snapshot = readFileSync(join(frontendRoot, 'contracts/openapi.current.json'), 'utf-8')
 
-    expect(snapshot).toBe(`${JSON.stringify(VALID_OPENAPI, null, 2)}\n`)
+    expect(snapshot).toBe(`${JSON.stringify(JSON.parse(PROVIDER_OPENAPI), null, 2)}\n`)
     expect(record).toEqual({
       backendCommit,
       openApiSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
@@ -174,6 +232,17 @@ describe.sequential('freeze backend contract', () => {
     expect(
       JSON.parse(readFileSync(join(frontendRoot, '.contract-sync-record.json'), 'utf-8'))
     ).toEqual(record)
+    expect(readFileSync(join(frontendRoot, 'contracts/permissions.current.json'), 'utf-8')).toBe(
+      PROVIDED_PERMISSIONS
+    )
+    expect(
+      JSON.parse(readFileSync(join(frontendRoot, '.permission-sync-record.json'), 'utf-8'))
+    ).toEqual({
+      backendCommit,
+      permissionsSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+      permissionCount: 1
+    })
+    expect(readFileSync(process.env.FAKE_EXPORT_COUNT_FILE!, 'utf-8')).toBe('1')
     expect(readdirSync(temporaryDirectoryRoot)).toEqual([])
   })
 })

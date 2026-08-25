@@ -19,27 +19,27 @@ export const ManualDebugPreflightDeviceMetadata = {
   ],
   "additionalProperties": false,
   "fields": {
-    "device": {
-      "required": true,
-      "nullable": false,
-      "ref": "EcsDeviceInfo"
-    },
-    "state": {
-      "required": true,
-      "nullable": false,
-      "ref": "EcsDeviceRuntimeState"
-    },
     "admissible": {
       "title": "Admissible",
       "type": "boolean",
       "required": true,
       "nullable": false
     },
+    "device": {
+      "required": true,
+      "nullable": false,
+      "ref": "EcsDeviceInfo"
+    },
     "rejection_code": {
       "title": "Rejection Code",
       "type": "string",
       "required": true,
       "nullable": true
+    },
+    "state": {
+      "required": true,
+      "nullable": false,
+      "ref": "EcsDeviceRuntimeState"
     }
   }
 } satisfies OpenApiSchemaMetadata

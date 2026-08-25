@@ -22,6 +22,12 @@ export const TransportEvidenceResponseMetadata = {
   ],
   "additionalProperties": false,
   "fields": {
+    "conflict_code": {
+      "title": "Conflict Code",
+      "type": "string",
+      "required": true,
+      "nullable": true
+    },
     "operation": {
       "title": "Operation",
       "type": "string",
@@ -40,19 +46,8 @@ export const TransportEvidenceResponseMetadata = {
       "required": true,
       "nullable": true
     },
-    "status": {
-      "title": "Status",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "enum": [
-        "PENDING",
-        "APPLIED",
-        "CONFLICT"
-      ]
-    },
-    "conflict_code": {
-      "title": "Conflict Code",
+    "processed_at": {
+      "title": "Processed At",
       "type": "string",
       "required": true,
       "nullable": true
@@ -63,11 +58,16 @@ export const TransportEvidenceResponseMetadata = {
       "required": true,
       "nullable": false
     },
-    "processed_at": {
-      "title": "Processed At",
+    "status": {
+      "title": "Status",
       "type": "string",
       "required": true,
-      "nullable": true
+      "nullable": false,
+      "enum": [
+        "PENDING",
+        "APPLIED",
+        "CONFLICT"
+      ]
     }
   }
 } satisfies OpenApiSchemaMetadata

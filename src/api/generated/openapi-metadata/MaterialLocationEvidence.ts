@@ -19,50 +19,8 @@ export const MaterialLocationEvidenceMetadata = {
     "object_key"
   ],
   "fields": {
-    "source": {
-      "title": "Source",
-      "type": "string",
-      "required": true,
-      "nullable": false
-    },
-    "priority": {
-      "title": "Priority",
-      "type": "integer",
-      "required": true,
-      "nullable": false
-    },
-    "object_type": {
-      "title": "Object Type",
-      "type": "string",
-      "required": true,
-      "nullable": false
-    },
-    "object_key": {
-      "title": "Object Key",
-      "type": "string",
-      "required": true,
-      "nullable": false
-    },
-    "location_scope": {
-      "title": "Location Scope",
-      "type": "string",
-      "required": false,
-      "nullable": true
-    },
-    "location_code": {
-      "title": "Location Code",
-      "type": "string",
-      "required": false,
-      "nullable": true
-    },
-    "semantic_status": {
-      "title": "Semantic Status",
-      "type": "string",
-      "required": false,
-      "nullable": true
-    },
-    "evidence_ref": {
-      "title": "Evidence Ref",
+    "correlation_id": {
+      "title": "Correlation Id",
       "type": "string",
       "required": false,
       "nullable": true
@@ -73,26 +31,8 @@ export const MaterialLocationEvidenceMetadata = {
       "required": false,
       "nullable": false
     },
-    "correlation_id": {
-      "title": "Correlation Id",
-      "type": "string",
-      "required": false,
-      "nullable": true
-    },
-    "provider_code": {
-      "title": "Provider Code",
-      "type": "string",
-      "required": false,
-      "nullable": true
-    },
-    "source_event_id": {
-      "title": "Source Event Id",
-      "type": "string",
-      "required": false,
-      "nullable": true
-    },
-    "source_version": {
-      "title": "Source Version",
+    "evidence_ref": {
+      "title": "Evidence Ref",
       "type": "string",
       "required": false,
       "nullable": true
@@ -103,10 +43,70 @@ export const MaterialLocationEvidenceMetadata = {
       "required": false,
       "nullable": true
     },
+    "location_code": {
+      "title": "Location Code",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "location_scope": {
+      "title": "Location Scope",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "object_key": {
+      "title": "Object Key",
+      "type": "string",
+      "required": true,
+      "nullable": false
+    },
+    "object_type": {
+      "title": "Object Type",
+      "type": "string",
+      "required": true,
+      "nullable": false
+    },
     "observed_at": {
       "title": "Observed At",
       "type": "string",
       "format": "date-time",
+      "required": false,
+      "nullable": true
+    },
+    "priority": {
+      "title": "Priority",
+      "type": "integer",
+      "required": true,
+      "nullable": false
+    },
+    "provider_code": {
+      "title": "Provider Code",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "semantic_status": {
+      "title": "Semantic Status",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "source": {
+      "title": "Source",
+      "type": "string",
+      "required": true,
+      "nullable": false
+    },
+    "source_event_id": {
+      "title": "Source Event Id",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "source_version": {
+      "title": "Source Version",
+      "type": "string",
       "required": false,
       "nullable": true
     }

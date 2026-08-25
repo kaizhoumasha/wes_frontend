@@ -18,17 +18,14 @@ export const WorklineActiveObjectViewMetadata = {
     "conflict_state"
   ],
   "fields": {
-    "object_type": {
-      "title": "Object Type",
-      "type": "string",
-      "required": true,
-      "nullable": false
-    },
-    "object_key": {
-      "title": "Object Key",
-      "type": "string",
-      "required": true,
-      "nullable": false
+    "all_sources": {
+      "title": "All Sources",
+      "type": "array",
+      "required": false,
+      "nullable": false,
+      "items": {
+        "type": "string"
+      }
     },
     "conflict_state": {
       "required": true,
@@ -40,37 +37,6 @@ export const WorklineActiveObjectViewMetadata = {
       ],
       "ref": "WorklineActiveObjectConflictState"
     },
-    "primary_source": {
-      "title": "Primary Source",
-      "type": "string",
-      "required": false,
-      "nullable": true
-    },
-    "all_sources": {
-      "title": "All Sources",
-      "type": "array",
-      "required": false,
-      "nullable": false,
-      "items": {
-        "type": "string"
-      }
-    },
-    "operator_hint": {
-      "title": "Operator Hint",
-      "type": "string",
-      "required": false,
-      "nullable": true
-    },
-    "location_summary": {
-      "required": false,
-      "nullable": true,
-      "ref": "MaterialLocationResult"
-    },
-    "runtime_hold": {
-      "required": false,
-      "nullable": true,
-      "ref": "RuntimeHoldView"
-    },
     "evidence_refs": {
       "title": "Evidence Refs",
       "type": "array",
@@ -79,6 +45,40 @@ export const WorklineActiveObjectViewMetadata = {
       "items": {
         "type": "string"
       }
+    },
+    "location_summary": {
+      "required": false,
+      "nullable": true,
+      "ref": "MaterialLocationResult"
+    },
+    "object_key": {
+      "title": "Object Key",
+      "type": "string",
+      "required": true,
+      "nullable": false
+    },
+    "object_type": {
+      "title": "Object Type",
+      "type": "string",
+      "required": true,
+      "nullable": false
+    },
+    "operator_hint": {
+      "title": "Operator Hint",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "primary_source": {
+      "title": "Primary Source",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "runtime_hold": {
+      "required": false,
+      "nullable": true,
+      "ref": "RuntimeHoldView"
     }
   }
 } satisfies OpenApiSchemaMetadata

@@ -6,7 +6,7 @@
  *
  * 权限分组: user_api:resource:bincontentsnapshot
  *
- * 更新权限: pnpm generate:permissions -- --backend-root /path/to/wes_backend
+ * 更新权限: pnpm generate:permissions
  */
 
 export const RESOURCE_BINCONTENTSNAPSHOT_PERMISSION = {

@@ -17,13 +17,6 @@ export const UserPermissionsResponseMetadata = {
     "permissions"
   ],
   "fields": {
-    "total": {
-      "title": "Total",
-      "description": "权限总数",
-      "type": "integer",
-      "required": true,
-      "nullable": false
-    },
     "permissions": {
       "title": "Permissions",
       "description": "用户有权限访问的 API 列表",
@@ -33,6 +26,13 @@ export const UserPermissionsResponseMetadata = {
       "items": {
         "ref": "ApiPermissionInfo"
       }
+    },
+    "total": {
+      "title": "Total",
+      "description": "权限总数",
+      "type": "integer",
+      "required": true,
+      "nullable": false
     }
   }
 } satisfies OpenApiSchemaMetadata

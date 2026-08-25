@@ -17,15 +17,6 @@ export const UserUpdateMetadata = {
   ],
   "additionalProperties": false,
   "fields": {
-    "username": {
-      "title": "Username",
-      "description": "用户名",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "minLength": 3,
-      "maxLength": 50
-    },
     "email": {
       "title": "Email",
       "description": "邮箱",
@@ -42,6 +33,15 @@ export const UserUpdateMetadata = {
       "required": false,
       "nullable": true,
       "maxLength": 100
+    },
+    "username": {
+      "title": "Username",
+      "description": "用户名",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "minLength": 3,
+      "maxLength": 50
     },
     "version": {
       "title": "Version",

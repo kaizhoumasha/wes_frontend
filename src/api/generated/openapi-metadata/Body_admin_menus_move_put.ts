@@ -16,19 +16,19 @@ export const Body_admin_menus_move_putMetadata = {
     "new_parent_id"
   ],
   "fields": {
-    "node_id": {
-      "title": "Node Id",
-      "description": "要移动的节点ID",
-      "type": "integer",
-      "required": true,
-      "nullable": false
-    },
     "new_parent_id": {
       "title": "New Parent Id",
       "description": "新的父节点ID",
       "type": "integer",
       "required": true,
       "nullable": true
+    },
+    "node_id": {
+      "title": "Node Id",
+      "description": "要移动的节点ID",
+      "type": "integer",
+      "required": true,
+      "nullable": false
     }
   }
 } satisfies OpenApiSchemaMetadata

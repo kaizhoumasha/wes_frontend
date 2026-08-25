@@ -26,13 +26,10 @@ export const _BinExchangeDebugTaskMetadata = {
       "minLength": 36,
       "maxLength": 36
     },
-    "station_id": {
-      "title": "Station Id",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "minLength": 1,
-      "maxLength": 100
+    "data": {
+      "required": true,
+      "nullable": false,
+      "ref": "_BinExchangeData"
     },
     "kind": {
       "description": "discriminator enum property added by openapi-typescript",
@@ -43,10 +40,13 @@ export const _BinExchangeDebugTaskMetadata = {
         "BIN_EXCHANGE"
       ]
     },
-    "data": {
-      "required": true,
-      "nullable": false,
-      "ref": "_BinExchangeData"
+    "station_id": {
+      "title": "Station Id",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "minLength": 1,
+      "maxLength": 100
     }
   }
 } satisfies OpenApiSchemaMetadata

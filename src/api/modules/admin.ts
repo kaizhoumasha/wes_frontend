@@ -18,29 +18,25 @@ import type {
 } from '@/api/contract/types'
 import type { components, paths } from '@/api/generated/openapi-types'
 
-export type MetricsResult = ContractResponseData<'/api/v1/admin/performance/metrics', 'get'>
+export type ConfigResult = ContractResponseData<'/api/v1/admin/performance/config', 'get'>
 
 export type HealthResult = ContractResponseData<'/api/v1/admin/performance/health', 'get'>
 
 export type LoadTestResetResult = ContractResponseData<'/api/v1/admin/performance/load-test/reset', 'post'>
 
-export type ConfigResult = ContractResponseData<'/api/v1/admin/performance/config', 'get'>
+export type MetricsResult = ContractResponseData<'/api/v1/admin/performance/metrics', 'get'>
 
 export const adminApiMethods = {
   /**
-   * 获取系统性能指标
-   * @description 获取系统性能指标
+   * 获取性能测试配置
+   * @description 获取系统配置信息
 
-返回：
-- system: CPU、内存、磁盘使用情况
-- database: 数据库连接池状态
-- redis: Redis 连接状态
-- cache: 缓存统计信息
-   * @endpoint GET /api/v1/admin/performance/metrics
+用于性能测试时了解系统配置
+   * @endpoint GET /api/v1/admin/performance/config
    * @returns alova method instance
    */
-  metrics(config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/admin/performance/metrics', { config })
+  config(config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/admin/performance/config', { config })
   },
 
   /**
@@ -68,15 +64,19 @@ export const adminApiMethods = {
   },
 
   /**
-   * 获取性能测试配置
-   * @description 获取系统配置信息
+   * 获取系统性能指标
+   * @description 获取系统性能指标
 
-用于性能测试时了解系统配置
-   * @endpoint GET /api/v1/admin/performance/config
+返回：
+- system: CPU、内存、磁盘使用情况
+- database: 数据库连接池状态
+- redis: Redis 连接状态
+- cache: 缓存统计信息
+   * @endpoint GET /api/v1/admin/performance/metrics
    * @returns alova method instance
    */
-  config(config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/admin/performance/config', { config })
+  metrics(config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/admin/performance/metrics', { config })
   }
 }
 // ==================== AUTO GENERATED END ====================

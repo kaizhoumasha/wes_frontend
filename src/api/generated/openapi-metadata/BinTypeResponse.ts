@@ -18,6 +18,14 @@ export const BinTypeResponseMetadata = {
     "id"
   ],
   "fields": {
+    "active": {
+      "title": "Active",
+      "description": "是否启用",
+      "type": "boolean",
+      "required": false,
+      "nullable": false,
+      "default": true
+    },
     "bin_type_code": {
       "title": "Bin Type Code",
       "description": "料箱类型编码",
@@ -44,25 +52,17 @@ export const BinTypeResponseMetadata = {
       "nullable": true,
       "maxLength": 500
     },
-    "active": {
-      "title": "Active",
-      "description": "是否启用",
-      "type": "boolean",
-      "required": false,
-      "nullable": false,
-      "default": true
+    "id": {
+      "title": "Id",
+      "type": "integer",
+      "required": true,
+      "nullable": false
     },
     "metadata_json": {
       "title": "Metadata Json",
       "description": "扩展属性",
       "type": "object",
       "required": false,
-      "nullable": false
-    },
-    "id": {
-      "title": "Id",
-      "type": "integer",
-      "required": true,
       "nullable": false
     }
   }

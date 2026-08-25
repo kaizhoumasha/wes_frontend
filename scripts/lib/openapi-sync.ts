@@ -55,6 +55,67 @@ export function serializeOpenApiDocument(document: unknown): string {
   return `${JSON.stringify(document, null, 2)}\n`
 }
 
+export function parseProviderOpenApiArtifact(serialized: string): Record<string, unknown> {
+  if (!serialized.endsWith('\n') || serialized.endsWith('\n\n')) {
+    throw new Error('provider OpenAPI 必须以单个换行结尾')
+  }
+  let document: unknown
+  try {
+    document = JSON.parse(serialized)
+  } catch (error) {
+    throw new Error(`provider OpenAPI 不是有效 JSON: ${(error as Error).message}`)
+  }
+  validateOpenApiDocument(document)
+  return document
+}
+
+export interface ProviderFingerprints {
+  dependencies_sha256: string
+  expected_schema_head: string
+  kind: 'wes.release.backend-fingerprints.v1'
+  migration_tree_sha256: string
+  provided_permissions_sha256: string
+  provider_openapi_sha256: string
+  recipe_sha256: string
+}
+
+export function parseProviderFingerprints(serialized: string): ProviderFingerprints {
+  let value: unknown
+  try {
+    value = JSON.parse(serialized)
+  } catch (error) {
+    throw new Error(`provider fingerprints 不是有效 JSON: ${(error as Error).message}`)
+  }
+  const expectedKeys = [
+    'dependencies_sha256',
+    'expected_schema_head',
+    'kind',
+    'migration_tree_sha256',
+    'provided_permissions_sha256',
+    'provider_openapi_sha256',
+    'recipe_sha256'
+  ]
+  if (!isObject(value) || Object.keys(value).join(',') !== expectedKeys.join(',')) {
+    throw new Error('provider fingerprints 字段与顺序必须严格匹配当前格式')
+  }
+  if (value.kind !== 'wes.release.backend-fingerprints.v1') {
+    throw new Error('provider fingerprints kind 无效')
+  }
+  for (const field of expectedKeys.filter(key => key.endsWith('_sha256'))) {
+    if (typeof value[field] !== 'string' || !/^[a-f0-9]{64}$/.test(value[field])) {
+      throw new Error(`provider fingerprints ${field} 无效`)
+    }
+  }
+  if (typeof value.expected_schema_head !== 'string' || value.expected_schema_head.trim() === '') {
+    throw new Error('provider fingerprints expected_schema_head 必须是非空字符串')
+  }
+  const fingerprints = value as unknown as ProviderFingerprints
+  if (serialized !== `${JSON.stringify(fingerprints)}\n`) {
+    throw new Error('provider fingerprints 未使用 canonical JSON 序列化')
+  }
+  return fingerprints
+}
+
 export function parseContractSyncRecord(value: unknown): ContractSyncRecord {
   if (
     !isObject(value) ||

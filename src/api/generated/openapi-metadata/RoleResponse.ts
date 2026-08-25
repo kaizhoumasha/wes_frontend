@@ -18,13 +18,6 @@ export const RoleResponseMetadata = {
     "version"
   ],
   "fields": {
-    "name": {
-      "title": "Name",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "maxLength": 100
-    },
     "description": {
       "title": "Description",
       "type": "string",
@@ -38,11 +31,12 @@ export const RoleResponseMetadata = {
       "required": true,
       "nullable": false
     },
-    "version": {
-      "title": "Version",
-      "type": "integer",
+    "name": {
+      "title": "Name",
+      "type": "string",
       "required": true,
-      "nullable": false
+      "nullable": false,
+      "maxLength": 100
     },
     "permissions": {
       "title": "Permissions",
@@ -52,6 +46,12 @@ export const RoleResponseMetadata = {
       "items": {
         "ref": "PermissionResponse"
       }
+    },
+    "version": {
+      "title": "Version",
+      "type": "integer",
+      "required": true,
+      "nullable": false
     }
   }
 } satisfies OpenApiSchemaMetadata

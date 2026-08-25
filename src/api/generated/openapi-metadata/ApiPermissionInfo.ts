@@ -18,19 +18,19 @@ export const ApiPermissionInfoMetadata = {
     "type"
   ],
   "fields": {
-    "id": {
-      "title": "Id",
-      "description": "权限 ID",
-      "type": "integer",
-      "required": true,
-      "nullable": false
-    },
-    "name": {
-      "title": "Name",
-      "description": "权限标识，如 admin:user:create",
+    "action": {
+      "title": "Action",
+      "description": "操作：create、read、update、delete、list 等",
       "type": "string",
-      "required": true,
-      "nullable": false
+      "required": false,
+      "nullable": true
+    },
+    "category": {
+      "title": "Category",
+      "description": "权限分类：admin、system、business 等",
+      "type": "string",
+      "required": false,
+      "nullable": true
     },
     "description": {
       "title": "Description",
@@ -39,16 +39,30 @@ export const ApiPermissionInfoMetadata = {
       "required": false,
       "nullable": true
     },
-    "type": {
-      "title": "Type",
-      "description": "权限类型：user_api（内部管理API）、app_api（外部应用API）",
+    "id": {
+      "title": "Id",
+      "description": "权限 ID",
+      "type": "integer",
+      "required": true,
+      "nullable": false
+    },
+    "method": {
+      "title": "Method",
+      "description": "HTTP 方法：GET、POST、PUT、DELETE、PATCH 等",
+      "type": "string",
+      "required": false,
+      "nullable": true
+    },
+    "name": {
+      "title": "Name",
+      "description": "权限标识，如 admin:user:create",
       "type": "string",
       "required": true,
       "nullable": false
     },
-    "category": {
-      "title": "Category",
-      "description": "权限分类：admin、system、business 等",
+    "path": {
+      "title": "Path",
+      "description": "API 路径：/admin/users/{id}、/api/v1/warehouses 等",
       "type": "string",
       "required": false,
       "nullable": true
@@ -60,26 +74,12 @@ export const ApiPermissionInfoMetadata = {
       "required": false,
       "nullable": true
     },
-    "action": {
-      "title": "Action",
-      "description": "操作：create、read、update、delete、list 等",
+    "type": {
+      "title": "Type",
+      "description": "权限类型：user_api（内部管理API）、app_api（外部应用API）",
       "type": "string",
-      "required": false,
-      "nullable": true
-    },
-    "method": {
-      "title": "Method",
-      "description": "HTTP 方法：GET、POST、PUT、DELETE、PATCH 等",
-      "type": "string",
-      "required": false,
-      "nullable": true
-    },
-    "path": {
-      "title": "Path",
-      "description": "API 路径：/admin/users/{id}、/api/v1/warehouses 等",
-      "type": "string",
-      "required": false,
-      "nullable": true
+      "required": true,
+      "nullable": false
     }
   }
 } satisfies OpenApiSchemaMetadata

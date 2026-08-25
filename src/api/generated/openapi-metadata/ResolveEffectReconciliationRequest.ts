@@ -17,6 +17,21 @@ export const ResolveEffectReconciliationRequestMetadata = {
   ],
   "additionalProperties": false,
   "fields": {
+    "obligation_resolution": {
+      "description": "E03/E07 同步义务 typed 对账裁决",
+      "required": false,
+      "nullable": true,
+      "ref": "WmsSyncObligationResolution"
+    },
+    "operator_note": {
+      "title": "Operator Note",
+      "description": "人工核验说明",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "minLength": 1,
+      "maxLength": 1000
+    },
     "request_id": {
       "title": "Request Id",
       "description": "通用决议稳定幂等请求 ID",
@@ -32,21 +47,6 @@ export const ResolveEffectReconciliationRequestMetadata = {
       "type": "string",
       "required": false,
       "nullable": true
-    },
-    "obligation_resolution": {
-      "description": "E03/E07 同步义务 typed 对账裁决",
-      "required": false,
-      "nullable": true,
-      "ref": "WmsSyncObligationResolution"
-    },
-    "operator_note": {
-      "title": "Operator Note",
-      "description": "人工核验说明",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 1000
     }
   }
 } satisfies OpenApiSchemaMetadata

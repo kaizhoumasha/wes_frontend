@@ -20,15 +20,6 @@ export const BinContentSnapshotResponseMetadata = {
     "id"
   ],
   "fields": {
-    "snapshot_id": {
-      "title": "Snapshot Id",
-      "description": "快照业务 ID",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 160
-    },
     "bin_code": {
       "title": "Bin Code",
       "description": "料箱编码",
@@ -38,21 +29,6 @@ export const BinContentSnapshotResponseMetadata = {
       "minLength": 1,
       "maxLength": 80
     },
-    "source_session_id": {
-      "title": "Source Session Id",
-      "description": "产生快照的 WorklineSession",
-      "type": "integer",
-      "required": false,
-      "nullable": true
-    },
-    "source_event_id": {
-      "title": "Source Event Id",
-      "description": "来源事件或命令结果",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 200
-    },
     "captured_at": {
       "title": "Captured At",
       "description": "快照时间",
@@ -61,25 +37,11 @@ export const BinContentSnapshotResponseMetadata = {
       "required": true,
       "nullable": false
     },
-    "snapshot_status": {
-      "description": "快照完整性",
-      "required": false,
-      "nullable": false,
-      "default": "UNKNOWN",
-      "enum": [
-        "COMPLETE",
-        "PARTIAL",
-        "UNKNOWN"
-      ],
-      "ref": "BinContentSnapshotStatus"
-    },
-    "snapshot_reason": {
-      "title": "Snapshot Reason",
-      "description": "快照原因",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 80
+    "id": {
+      "title": "Id",
+      "type": "integer",
+      "required": true,
+      "nullable": false
     },
     "snapshot_group_key": {
       "title": "Snapshot Group Key",
@@ -98,6 +60,50 @@ export const BinContentSnapshotResponseMetadata = {
       "minLength": 1,
       "maxLength": 128
     },
+    "snapshot_id": {
+      "title": "Snapshot Id",
+      "description": "快照业务 ID",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "snapshot_reason": {
+      "title": "Snapshot Reason",
+      "description": "快照原因",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 80
+    },
+    "snapshot_status": {
+      "description": "快照完整性",
+      "required": false,
+      "nullable": false,
+      "default": "UNKNOWN",
+      "enum": [
+        "COMPLETE",
+        "PARTIAL",
+        "UNKNOWN"
+      ],
+      "ref": "BinContentSnapshotStatus"
+    },
+    "source_event_id": {
+      "title": "Source Event Id",
+      "description": "来源事件或命令结果",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 200
+    },
+    "source_session_id": {
+      "title": "Source Session Id",
+      "description": "产生快照的 WorklineSession",
+      "type": "integer",
+      "required": false,
+      "nullable": true
+    },
     "wms_snapshot_version": {
       "title": "Wms Snapshot Version",
       "description": "WMS 查询版本或时间",
@@ -105,12 +111,6 @@ export const BinContentSnapshotResponseMetadata = {
       "required": false,
       "nullable": true,
       "maxLength": 160
-    },
-    "id": {
-      "title": "Id",
-      "type": "integer",
-      "required": true,
-      "nullable": false
     }
   }
 } satisfies OpenApiSchemaMetadata

@@ -24,20 +24,14 @@ export const TransportTaskResponseMetadata = {
   ],
   "additionalProperties": false,
   "fields": {
-    "transport_task_id": {
-      "title": "Transport Task Id",
-      "type": "string",
-      "required": true,
-      "nullable": false
-    },
     "client_request_id": {
       "title": "Client Request Id",
       "type": "string",
       "required": true,
       "nullable": false
     },
-    "submit_operation_id": {
-      "title": "Submit Operation Id",
+    "created_at": {
+      "title": "Created At",
       "type": "string",
       "required": true,
       "nullable": false
@@ -54,6 +48,17 @@ export const TransportTaskResponseMetadata = {
         "BIN_EXCHANGE"
       ]
     },
+    "latest_evidence": {
+      "required": true,
+      "nullable": true,
+      "ref": "TransportEvidenceResponse"
+    },
+    "reason_code": {
+      "title": "Reason Code",
+      "type": "string",
+      "required": true,
+      "nullable": true
+    },
     "status": {
       "title": "Status",
       "type": "string",
@@ -68,14 +73,14 @@ export const TransportTaskResponseMetadata = {
         "RECONCILING"
       ]
     },
-    "reason_code": {
-      "title": "Reason Code",
+    "submit_operation_id": {
+      "title": "Submit Operation Id",
       "type": "string",
       "required": true,
-      "nullable": true
+      "nullable": false
     },
-    "created_at": {
-      "title": "Created At",
+    "transport_task_id": {
+      "title": "Transport Task Id",
       "type": "string",
       "required": true,
       "nullable": false
@@ -85,11 +90,6 @@ export const TransportTaskResponseMetadata = {
       "type": "string",
       "required": true,
       "nullable": false
-    },
-    "latest_evidence": {
-      "required": true,
-      "nullable": true,
-      "ref": "TransportEvidenceResponse"
     }
   }
 } satisfies OpenApiSchemaMetadata

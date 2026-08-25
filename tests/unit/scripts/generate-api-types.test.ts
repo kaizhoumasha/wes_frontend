@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import {
   AUTO_GENERATED_END,
   AUTO_GENERATED_START,
+  buildGeneratedMethodCatalog,
   buildMethodNameFromRelativePath,
   buildModulePlans,
   classifyCrudCapabilities,
@@ -28,6 +29,66 @@ function makeEndpoint(path: string, method: EndpointInfo['method']): EndpointInf
 }
 
 describe('generate-api-types helpers', () => {
+  it('builds the generated method catalog from the same CRUD and action naming facts', () => {
+    const catalog = buildGeneratedMethodCatalog({
+      paths: {
+        '/api/v1/admin/users': { post: {} },
+        '/api/v1/admin/users/{id}': {
+          get: {},
+          put: {},
+          delete: {}
+        },
+        '/api/v1/admin/users/query': { post: {} },
+        '/api/v1/admin/users/{id}/reset-password': { put: {} }
+      }
+    })
+
+    expect(catalog).toEqual([
+      {
+        exportName: 'usersApiMethods',
+        method: 'post',
+        methodName: 'create',
+        modulePath: '@/api/modules/users',
+        path: '/api/v1/admin/users'
+      },
+      {
+        exportName: 'usersApiMethods',
+        method: 'delete',
+        methodName: 'delete',
+        modulePath: '@/api/modules/users',
+        path: '/api/v1/admin/users/{id}'
+      },
+      {
+        exportName: 'usersApiMethods',
+        method: 'get',
+        methodName: 'getById',
+        modulePath: '@/api/modules/users',
+        path: '/api/v1/admin/users/{id}'
+      },
+      {
+        exportName: 'usersApiMethods',
+        method: 'post',
+        methodName: 'query',
+        modulePath: '@/api/modules/users',
+        path: '/api/v1/admin/users/query'
+      },
+      {
+        exportName: 'usersApiMethods',
+        method: 'put',
+        methodName: 'resetPassword',
+        modulePath: '@/api/modules/users',
+        path: '/api/v1/admin/users/{id}/reset-password'
+      },
+      {
+        exportName: 'usersApiMethods',
+        method: 'put',
+        methodName: 'update',
+        modulePath: '@/api/modules/users',
+        path: '/api/v1/admin/users/{id}'
+      }
+    ])
+  })
+
   it('groups endpoints by module and model from path', () => {
     const groups = groupEndpointsByModuleModel([
       makeEndpoint('/api/v1/admin/users', 'post'),

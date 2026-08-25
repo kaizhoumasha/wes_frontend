@@ -1,8 +1,19 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync
+} from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { parseGeneratePermissionsArgs } from '../../../scripts/generate-permissions'
+import {
+  generatePermissions,
+  parseGeneratePermissionsArgs
+} from '../../../scripts/generate-permissions'
 import {
   assertPermissionRecordBackendCommit,
   assertGeneratedPermissionFiles,
@@ -12,9 +23,17 @@ import {
   groupPermissions,
   readPermissionSyncRecord
 } from '../../../scripts/lib/permissions-codegen'
-import { parseVerifyPermissionsArgs } from '../../../scripts/verify-permissions-sync'
+import {
+  parseVerifyPermissionsArgs,
+  verifyPermissions
+} from '../../../scripts/verify-permissions-sync'
 
 const BACKEND_COMMIT = 'de034e721befae2e1658d0aff96f2f2e43a0ffbb'
+const PERMISSION_LEAF =
+  '{"action":"list","category":"biz","description":"设备列表","method":"GET","name":"biz:device:list","path":"/api/v1/devices","resource":"device","type":"user_api"}'
+const PERMISSION_SNAPSHOT = `{"kind":"wes.release.provided-permissions.v1","permissions":[${PERMISSION_LEAF}]}\n`
+const PERMISSION_SNAPSHOT_SHA256 =
+  '27f6a72509875032eddb0fe59f3ecad2663e3b72c9b49529200d5dc422f58b38'
 const permissions = [
   {
     name: 'biz:device:list',
@@ -29,22 +48,23 @@ const permissions = [
 ]
 
 describe('permission code generation', () => {
-  it('requires an explicit backend checkout for generation and verification', () => {
-    expect(() => parseGeneratePermissionsArgs([])).toThrow(/必须提供 `--backend-root`/)
-    expect(() => parseVerifyPermissionsArgs([])).toThrow(/必须提供 `--backend-root`/)
-
-    expect(parseGeneratePermissionsArgs(['--', '--backend-root', '/tmp/wes_backend'])).toEqual({
-      backendRoot: '/tmp/wes_backend'
-    })
-    expect(
-      parseVerifyPermissionsArgs(['--backend-root', '/tmp/wes_backend', '--silent'])
-    ).toEqual({ backendRoot: '/tmp/wes_backend', silent: true })
+  it('accepts only offline generation and verification options', () => {
+    expect(parseGeneratePermissionsArgs([])).toEqual({})
+    expect(parseGeneratePermissionsArgs(['--'])).toEqual({})
+    expect(parseVerifyPermissionsArgs([])).toEqual({ silent: false })
+    expect(parseVerifyPermissionsArgs(['--', '--silent'])).toEqual({ silent: true })
+    expect(() => parseGeneratePermissionsArgs(['--backend-root', '/tmp/wes_backend'])).toThrow(
+      /不支持的参数/
+    )
+    expect(() => parseVerifyPermissionsArgs(['--backend-root', '/tmp/wes_backend'])).toThrow(
+      /不支持的参数/
+    )
   })
 
-  it('uses deterministic SHA-256 over normalized permission facts', () => {
+  it('uses deterministic SHA-256 over the canonical permission snapshot bytes', () => {
     const hash = computePermissionsHash(permissions)
 
-    expect(hash).toMatch(/^[a-f0-9]{64}$/)
+    expect(hash).toBe(PERMISSION_SNAPSHOT_SHA256)
     expect(computePermissionsHash([...permissions].reverse())).toBe(hash)
     expect(computePermissionsHash([{ ...permissions[0], path: '/api/v1/other' }])).not.toBe(hash)
     expect(
@@ -64,9 +84,177 @@ describe('permission code generation', () => {
       expect(content).toContain('scripts/generate-permissions.ts')
     }
     expect(groupContent).toContain(`权限分组: ${group.key}`)
-    expect(groupContent).toContain(
-      'pnpm generate:permissions -- --backend-root /path/to/wes_backend'
-    )
+    expect(groupContent).toContain('pnpm generate:permissions')
+    expect(groupContent).not.toContain('--backend-root')
+  })
+
+  it('generates and verifies from the checked-in snapshot without invoking uv or Python', () => {
+    const root = mkdtempSync(join(tmpdir(), 'offline-permissions-'))
+    const binRoot = join(root, 'bin')
+    const previousPath = process.env.PATH ?? ''
+
+    try {
+      mkdirSync(join(root, 'contracts'), { recursive: true })
+      mkdirSync(binRoot)
+      writeFileSync(join(root, 'contracts/permissions.current.json'), PERMISSION_SNAPSHOT)
+      writeFileSync(
+        join(root, '.contract-sync-record.json'),
+        `${JSON.stringify({
+          backendCommit: BACKEND_COMMIT,
+          openApiSha256: 'a'.repeat(64),
+          snapshotPath: 'contracts/openapi.current.json'
+        })}\n`
+      )
+      const permissionRecordContent = `${JSON.stringify(
+        {
+          backendCommit: BACKEND_COMMIT,
+          permissionsSha256: PERMISSION_SNAPSHOT_SHA256,
+          permissionCount: 1
+        },
+        null,
+        2
+      )}\n`
+      writeFileSync(join(root, '.permission-sync-record.json'), permissionRecordContent)
+      writeFileSync(join(binRoot, 'uv'), '#!/bin/sh\nexit 91\n')
+      chmodSync(join(binRoot, 'uv'), 0o755)
+      process.env.PATH = binRoot
+
+      expect(generatePermissions({ frontendRoot: root })).toEqual({
+        backendCommit: BACKEND_COMMIT,
+        permissionsSha256: PERMISSION_SNAPSHOT_SHA256,
+        permissionCount: 1
+      })
+      expect(() => verifyPermissions({ frontendRoot: root, silent: true })).not.toThrow()
+
+      const groupPath = join(root, 'src/api/generated/permissions/user_api/biz/device.ts')
+      expect(existsSync(groupPath)).toBe(true)
+      writeFileSync(groupPath, '// drift\n')
+      expect(() => verifyPermissions({ frontendRoot: root, silent: true })).toThrow(
+        /生成权限文件.*不一致/
+      )
+      expect(JSON.parse(readFileSync(join(root, '.permission-sync-record.json'), 'utf-8'))).toEqual(
+        {
+          backendCommit: BACKEND_COMMIT,
+          permissionsSha256: PERMISSION_SNAPSHOT_SHA256,
+          permissionCount: 1
+        }
+      )
+      expect(readFileSync(join(root, '.permission-sync-record.json'), 'utf-8')).toBe(
+        permissionRecordContent
+      )
+    } finally {
+      process.env.PATH = previousPath
+      rmSync(root, { force: true, recursive: true })
+    }
+  })
+
+  it.each([
+    [
+      'replaced snapshot',
+      PERMISSION_SNAPSHOT.replace('/api/v1/devices', '/api/v1/other'),
+      {
+        backendCommit: BACKEND_COMMIT,
+        permissionsSha256: PERMISSION_SNAPSHOT_SHA256,
+        permissionCount: 1
+      },
+      /权限 SHA-256 不匹配/
+    ],
+    [
+      'wrong permission count',
+      PERMISSION_SNAPSHOT,
+      {
+        backendCommit: BACKEND_COMMIT,
+        permissionsSha256: PERMISSION_SNAPSHOT_SHA256,
+        permissionCount: 2
+      },
+      /权限数量不匹配/
+    ],
+    [
+      'different backend commit',
+      PERMISSION_SNAPSHOT,
+      {
+        backendCommit: '0'.repeat(40),
+        permissionsSha256: PERMISSION_SNAPSHOT_SHA256,
+        permissionCount: 1
+      },
+      /commit 不匹配/
+    ]
+  ])('does not legalize %s or touch generated files', (_label, snapshot, record, expected) => {
+    const root = mkdtempSync(join(tmpdir(), 'permission-provenance-mismatch-'))
+    const outputDirectory = join(root, 'src/api/generated/permissions')
+    const recordPath = join(root, '.permission-sync-record.json')
+    const recordContent = `${JSON.stringify(record, null, 2)}\n`
+
+    try {
+      mkdirSync(join(root, 'contracts'), { recursive: true })
+      mkdirSync(outputDirectory, { recursive: true })
+      writeFileSync(join(root, 'contracts/permissions.current.json'), snapshot)
+      writeFileSync(
+        join(root, '.contract-sync-record.json'),
+        `${JSON.stringify({
+          backendCommit: BACKEND_COMMIT,
+          openApiSha256: 'a'.repeat(64),
+          snapshotPath: 'contracts/openapi.current.json'
+        })}\n`
+      )
+      writeFileSync(recordPath, recordContent)
+      writeFileSync(join(outputDirectory, 'index.ts'), 'old index\n')
+      writeFileSync(join(outputDirectory, 'sentinel.ts'), 'old sentinel\n')
+
+      expect(() => generatePermissions({ frontendRoot: root })).toThrow(expected)
+
+      expect(readFileSync(recordPath, 'utf-8')).toBe(recordContent)
+      expect(readFileSync(join(outputDirectory, 'index.ts'), 'utf-8')).toBe('old index\n')
+      expect(readFileSync(join(outputDirectory, 'sentinel.ts'), 'utf-8')).toBe('old sentinel\n')
+    } finally {
+      rmSync(root, { force: true, recursive: true })
+    }
+  })
+
+  it.each([
+    ['wrong kind', PERMISSION_SNAPSHOT.replace('wes.release.provided-permissions.v1', 'legacy')],
+    [
+      'extra top-level field',
+      PERMISSION_SNAPSHOT.replace(',"permissions"', ',"legacy":true,"permissions"')
+    ],
+    [
+      'extra leaf field',
+      PERMISSION_SNAPSHOT.replace('"type":"user_api"', '"type":"user_api","legacy":"x"')
+    ],
+    [
+      'empty leaf field',
+      PERMISSION_SNAPSHOT.replace('"description":"设备列表"', '"description":""')
+    ],
+    [
+      'duplicate permission name',
+      `{"kind":"wes.release.provided-permissions.v1","permissions":[${PERMISSION_LEAF},${PERMISSION_LEAF}]}\n`
+    ],
+    [
+      'non-canonical leaf order',
+      PERMISSION_SNAPSHOT.replace(
+        '{"action":"list","category":"biz"',
+        '{"category":"biz","action":"list"'
+      )
+    ]
+  ])('rejects %s in the canonical permission snapshot', (_label, snapshot) => {
+    const root = mkdtempSync(join(tmpdir(), 'invalid-permission-snapshot-'))
+    try {
+      mkdirSync(join(root, 'contracts'), { recursive: true })
+      writeFileSync(join(root, 'contracts/permissions.current.json'), snapshot)
+      writeFileSync(
+        join(root, '.contract-sync-record.json'),
+        `${JSON.stringify({
+          backendCommit: BACKEND_COMMIT,
+          openApiSha256: 'a'.repeat(64),
+          snapshotPath: 'contracts/openapi.current.json'
+        })}\n`
+      )
+      expect(() => generatePermissions({ frontendRoot: root })).toThrow(
+        /权限快照|permissions|canonical|字段|重复|非空|顺序/
+      )
+    } finally {
+      rmSync(root, { force: true, recursive: true })
+    }
   })
 
   it('rejects generated permission files that differ from the scanned permissions', () => {
@@ -81,9 +269,12 @@ describe('permission code generation', () => {
 
       expect(() => assertGeneratedPermissionFiles(permissions, outputDir)).not.toThrow()
 
-      writeFileSync(groupPath, '// valid TypeScript, but not generated from the backend permissions\n')
+      writeFileSync(
+        groupPath,
+        '// valid TypeScript, but not generated from the backend permissions\n'
+      )
       expect(() => assertGeneratedPermissionFiles(permissions, outputDir)).toThrow(
-        /生成权限文件与后端权限不一致/
+        /生成权限文件与权限快照不一致/
       )
     } finally {
       rmSync(outputDir, { force: true, recursive: true })

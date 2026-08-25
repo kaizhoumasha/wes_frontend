@@ -19,6 +19,28 @@ export const WorkLineCreateMetadata = {
   ],
   "additionalProperties": false,
   "fields": {
+    "config": {
+      "title": "Config",
+      "description": "工作线通用配置",
+      "type": "object",
+      "required": false,
+      "nullable": false
+    },
+    "description": {
+      "title": "Description",
+      "description": "作业线描述",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 500
+    },
+    "diagnostic_profile": {
+      "title": "Diagnostic Profile",
+      "description": "工作线诊断配置（软件/硬件分类偏好、展示策略等）",
+      "type": "object",
+      "required": false,
+      "nullable": false
+    },
     "line_code": {
       "title": "Line Code",
       "description": "作业线编码（业务主键）",
@@ -48,28 +70,6 @@ export const WorkLineCreateMetadata = {
       ],
       "ref": "LineType"
     },
-    "zone_name": {
-      "title": "Zone Name",
-      "description": "区域名称",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 100
-    },
-    "config": {
-      "title": "Config",
-      "description": "工作线通用配置",
-      "type": "object",
-      "required": false,
-      "nullable": false
-    },
-    "runtime_config_json": {
-      "title": "Runtime Config Json",
-      "description": "工作线运行时配置（重试、超时、会话归属等）",
-      "type": "object",
-      "required": false,
-      "nullable": false
-    },
     "run_mode": {
       "description": "工作线运行模式",
       "required": false,
@@ -82,20 +82,20 @@ export const WorkLineCreateMetadata = {
       ],
       "ref": "WorkLineRunMode"
     },
-    "diagnostic_profile": {
-      "title": "Diagnostic Profile",
-      "description": "工作线诊断配置（软件/硬件分类偏好、展示策略等）",
+    "runtime_config_json": {
+      "title": "Runtime Config Json",
+      "description": "工作线运行时配置（重试、超时、会话归属等）",
       "type": "object",
       "required": false,
       "nullable": false
     },
-    "description": {
-      "title": "Description",
-      "description": "作业线描述",
+    "zone_name": {
+      "title": "Zone Name",
+      "description": "区域名称",
       "type": "string",
       "required": false,
       "nullable": true,
-      "maxLength": 500
+      "maxLength": 100
     }
   }
 } satisfies OpenApiSchemaMetadata

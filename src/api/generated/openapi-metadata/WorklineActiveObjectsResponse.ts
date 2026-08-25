@@ -16,12 +16,6 @@ export const WorklineActiveObjectsResponseMetadata = {
     "workline_id"
   ],
   "fields": {
-    "workline_id": {
-      "title": "Workline Id",
-      "type": "integer",
-      "required": true,
-      "nullable": false
-    },
     "objects": {
       "title": "Objects",
       "type": "array",
@@ -31,6 +25,13 @@ export const WorklineActiveObjectsResponseMetadata = {
         "ref": "WorklineActiveObjectView"
       }
     },
+    "total_count": {
+      "title": "Total Count",
+      "type": "integer",
+      "required": false,
+      "nullable": false,
+      "default": 0
+    },
     "truncated": {
       "title": "Truncated",
       "type": "boolean",
@@ -38,12 +39,11 @@ export const WorklineActiveObjectsResponseMetadata = {
       "nullable": false,
       "default": false
     },
-    "total_count": {
-      "title": "Total Count",
+    "workline_id": {
+      "title": "Workline Id",
       "type": "integer",
-      "required": false,
-      "nullable": false,
-      "default": 0
+      "required": true,
+      "nullable": false
     }
   }
 } satisfies OpenApiSchemaMetadata

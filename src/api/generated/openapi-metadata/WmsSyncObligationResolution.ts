@@ -21,6 +21,28 @@ export const WmsSyncObligationResolutionMetadata = {
   ],
   "additionalProperties": false,
   "fields": {
+    "evidence_reference": {
+      "title": "Evidence Reference",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "resolution": {
+      "title": "Resolution",
+      "type": "string",
+      "required": true,
+      "nullable": false
+    },
+    "resolved_fact_version": {
+      "title": "Resolved Fact Version",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "minLength": 1,
+      "maxLength": 120
+    },
     "resolved_operation_identity": {
       "title": "Resolved Operation Identity",
       "type": "string",
@@ -31,20 +53,6 @@ export const WmsSyncObligationResolutionMetadata = {
         "wms.fulfillment.notify_pkg_binding@v1"
       ]
     },
-    "resolved_fact_version": {
-      "title": "Resolved Fact Version",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 120
-    },
-    "resolution": {
-      "title": "Resolution",
-      "type": "string",
-      "required": true,
-      "nullable": false
-    },
     "source_event_id": {
       "title": "Source Event Id",
       "type": "string",
@@ -52,14 +60,6 @@ export const WmsSyncObligationResolutionMetadata = {
       "nullable": false,
       "minLength": 1,
       "maxLength": 240
-    },
-    "evidence_reference": {
-      "title": "Evidence Reference",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 500
     }
   }
 } satisfies OpenApiSchemaMetadata

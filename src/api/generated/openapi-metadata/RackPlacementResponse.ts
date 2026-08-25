@@ -20,6 +20,73 @@ export const RackPlacementResponseMetadata = {
     "id"
   ],
   "fields": {
+    "ended_at": {
+      "title": "Ended At",
+      "description": "离开该关系的时间",
+      "type": "string",
+      "format": "date-time",
+      "required": false,
+      "nullable": true
+    },
+    "external_location_code": {
+      "title": "External Location Code",
+      "description": "外部地码证据",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 120
+    },
+    "id": {
+      "title": "Id",
+      "type": "integer",
+      "required": true,
+      "nullable": false
+    },
+    "location_code": {
+      "title": "Location Code",
+      "description": "兼容地码或逻辑位置",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 80
+    },
+    "logic_location_code": {
+      "title": "Logic Location Code",
+      "description": "WES 逻辑位置",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 120
+    },
+    "placement_status": {
+      "description": "位置投影状态",
+      "required": false,
+      "nullable": false,
+      "default": "UNKNOWN",
+      "enum": [
+        "ARRIVED",
+        "IN_TRANSIT",
+        "DEPARTED",
+        "UNKNOWN"
+      ],
+      "ref": "RackPlacementStatus"
+    },
+    "position_code": {
+      "title": "Position Code",
+      "description": "工作线停靠位编码",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 80
+    },
+    "position_role": {
+      "title": "Position Role",
+      "description": "工作线停靠位角色",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 80
+    },
     "rack_code": {
       "title": "Rack Code",
       "description": "货架编码",
@@ -42,73 +109,14 @@ export const RackPlacementResponseMetadata = {
       ],
       "ref": "RackKind"
     },
-    "location_code": {
-      "title": "Location Code",
-      "description": "兼容地码或逻辑位置",
+    "source_event_id": {
+      "title": "Source Event Id",
+      "description": "来源事件 ID",
       "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 80
-    },
-    "workline_id": {
-      "title": "Workline Id",
-      "description": "关联 WorkLine.id",
-      "type": "integer",
-      "required": false,
-      "nullable": true
-    },
-    "workline_code": {
-      "title": "Workline Code",
-      "description": "工作线编码",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 50
-    },
-    "position_code": {
-      "title": "Position Code",
-      "description": "工作线停靠位编码",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 80
-    },
-    "position_role": {
-      "title": "Position Role",
-      "description": "工作线停靠位角色",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 80
-    },
-    "logic_location_code": {
-      "title": "Logic Location Code",
-      "description": "WES 逻辑位置",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 120
-    },
-    "external_location_code": {
-      "title": "External Location Code",
-      "description": "外部地码证据",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 120
-    },
-    "placement_status": {
-      "description": "位置投影状态",
-      "required": false,
+      "required": true,
       "nullable": false,
-      "default": "UNKNOWN",
-      "enum": [
-        "ARRIVED",
-        "IN_TRANSIT",
-        "DEPARTED",
-        "UNKNOWN"
-      ],
-      "ref": "RackPlacementStatus"
+      "minLength": 1,
+      "maxLength": 200
     },
     "source_system": {
       "description": "来源系统",
@@ -132,15 +140,6 @@ export const RackPlacementResponseMetadata = {
       "nullable": true,
       "maxLength": 120
     },
-    "source_event_id": {
-      "title": "Source Event Id",
-      "description": "来源事件 ID",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 200
-    },
     "source_version": {
       "title": "Source Version",
       "description": "来源版本",
@@ -148,21 +147,6 @@ export const RackPlacementResponseMetadata = {
       "required": false,
       "nullable": true,
       "maxLength": 100
-    },
-    "trace_id": {
-      "title": "Trace Id",
-      "description": "WorkLine trace",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 100
-    },
-    "workline_session_id": {
-      "title": "Workline Session Id",
-      "description": "关联 workline_sessions.id",
-      "type": "integer",
-      "required": false,
-      "nullable": true
     },
     "started_at": {
       "title": "Started At",
@@ -172,19 +156,35 @@ export const RackPlacementResponseMetadata = {
       "required": true,
       "nullable": false
     },
-    "ended_at": {
-      "title": "Ended At",
-      "description": "离开该关系的时间",
+    "trace_id": {
+      "title": "Trace Id",
+      "description": "WorkLine trace",
       "type": "string",
-      "format": "date-time",
+      "required": false,
+      "nullable": true,
+      "maxLength": 100
+    },
+    "workline_code": {
+      "title": "Workline Code",
+      "description": "工作线编码",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 50
+    },
+    "workline_id": {
+      "title": "Workline Id",
+      "description": "关联 WorkLine.id",
+      "type": "integer",
       "required": false,
       "nullable": true
     },
-    "id": {
-      "title": "Id",
+    "workline_session_id": {
+      "title": "Workline Session Id",
+      "description": "关联 workline_sessions.id",
       "type": "integer",
-      "required": true,
-      "nullable": false
+      "required": false,
+      "nullable": true
     }
   }
 } satisfies OpenApiSchemaMetadata

@@ -17,14 +17,14 @@ export const DebugTransportTaskCreatedMetadata = {
   ],
   "additionalProperties": false,
   "fields": {
-    "transport_task_id": {
-      "title": "Transport Task Id",
+    "client_request_id": {
+      "title": "Client Request Id",
       "type": "string",
       "required": true,
       "nullable": false
     },
-    "client_request_id": {
-      "title": "Client Request Id",
+    "transport_task_id": {
+      "title": "Transport Task Id",
       "type": "string",
       "required": true,
       "nullable": false

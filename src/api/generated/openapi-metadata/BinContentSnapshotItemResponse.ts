@@ -17,15 +17,6 @@ export const BinContentSnapshotItemResponseMetadata = {
     "id"
   ],
   "fields": {
-    "snapshot_id": {
-      "title": "Snapshot Id",
-      "description": "所属快照业务 ID",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 160
-    },
     "bin_cell_code": {
       "title": "Bin Cell Code",
       "description": "料箱内部格位编码",
@@ -42,29 +33,26 @@ export const BinContentSnapshotItemResponseMetadata = {
       "nullable": true,
       "maxLength": 20
     },
-    "pkg_code": {
-      "title": "Pkg Code",
-      "description": "PKG 展示字段",
+    "date_code": {
+      "title": "Date Code",
+      "description": "Date Code",
       "type": "string",
       "required": false,
       "nullable": true,
-      "maxLength": 200
+      "maxLength": 80
     },
-    "material_code": {
-      "title": "Material Code",
-      "description": "物料编码引用",
-      "type": "string",
+    "dims_json": {
+      "title": "Dims Json",
+      "description": "尺寸",
+      "type": "object",
       "required": false,
-      "nullable": true,
-      "maxLength": 120
+      "nullable": false
     },
-    "vendor_code": {
-      "title": "Vendor Code",
-      "description": "供应商引用",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "maxLength": 120
+    "id": {
+      "title": "Id",
+      "type": "integer",
+      "required": true,
+      "nullable": false
     },
     "lot_code": {
       "title": "Lot Code",
@@ -74,13 +62,21 @@ export const BinContentSnapshotItemResponseMetadata = {
       "nullable": true,
       "maxLength": 120
     },
-    "date_code": {
-      "title": "Date Code",
-      "description": "Date Code",
+    "material_code": {
+      "title": "Material Code",
+      "description": "物料编码引用",
       "type": "string",
       "required": false,
       "nullable": true,
-      "maxLength": 80
+      "maxLength": 120
+    },
+    "pkg_code": {
+      "title": "Pkg Code",
+      "description": "PKG 展示字段",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 200
     },
     "qty_snapshot": {
       "title": "Qty Snapshot",
@@ -90,6 +86,15 @@ export const BinContentSnapshotItemResponseMetadata = {
       "nullable": true,
       "minimum": 0
     },
+    "snapshot_id": {
+      "title": "Snapshot Id",
+      "description": "所属快照业务 ID",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "minLength": 1,
+      "maxLength": 160
+    },
     "thickness_mm": {
       "title": "Thickness Mm",
       "description": "厚度",
@@ -98,12 +103,13 @@ export const BinContentSnapshotItemResponseMetadata = {
       "nullable": true,
       "minimum": 0
     },
-    "dims_json": {
-      "title": "Dims Json",
-      "description": "尺寸",
-      "type": "object",
+    "vendor_code": {
+      "title": "Vendor Code",
+      "description": "供应商引用",
+      "type": "string",
       "required": false,
-      "nullable": false
+      "nullable": true,
+      "maxLength": 120
     },
     "wms_inventory_id": {
       "title": "Wms Inventory Id",
@@ -112,12 +118,6 @@ export const BinContentSnapshotItemResponseMetadata = {
       "required": false,
       "nullable": true,
       "maxLength": 160
-    },
-    "id": {
-      "title": "Id",
-      "type": "integer",
-      "required": true,
-      "nullable": false
     }
   }
 } satisfies OpenApiSchemaMetadata

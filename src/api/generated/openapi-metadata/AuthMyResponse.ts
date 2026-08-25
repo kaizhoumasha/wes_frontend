@@ -18,11 +18,15 @@ export const AuthMyResponseMetadata = {
     "menus"
   ],
   "fields": {
-    "user": {
-      "description": "当前用户信息",
+    "menus": {
+      "title": "Menus",
+      "description": "当前用户可访问菜单树",
+      "type": "array",
       "required": true,
       "nullable": false,
-      "ref": "UserResponse"
+      "items": {
+        "ref": "MenuTreeResponseSimple"
+      }
     },
     "permissions": {
       "title": "Permissions",
@@ -34,15 +38,11 @@ export const AuthMyResponseMetadata = {
         "ref": "ApiPermissionInfo"
       }
     },
-    "menus": {
-      "title": "Menus",
-      "description": "当前用户可访问菜单树",
-      "type": "array",
+    "user": {
+      "description": "当前用户信息",
       "required": true,
       "nullable": false,
-      "items": {
-        "ref": "MenuTreeResponseSimple"
-      }
+      "ref": "UserResponse"
     }
   }
 } satisfies OpenApiSchemaMetadata

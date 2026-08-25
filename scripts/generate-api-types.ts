@@ -210,6 +210,14 @@ interface GeneratedMethodInfo {
   typeAliasBase: string
 }
 
+export interface GeneratedMethodCatalogEntry {
+  modulePath: string
+  exportName: string
+  methodName: string
+  method: HttpMethod
+  path: string
+}
+
 const NO_CRUD_CAPABILITIES = {
   kind: 'none',
   hasBulkDelete: false
@@ -1434,6 +1442,159 @@ function buildGeneratedMethodInfo(
   }
 }
 
+function buildGeneratedMethodsForPlan(plan: ModulePlan): GeneratedMethodInfo[] {
+  const capabilities = getPlanCrudCapabilities(plan)
+  const existingNames = new Set<string>()
+
+  return plan.groups.flatMap(group =>
+    getGeneratedEndpointsForGroup(plan, group, capabilities).map(endpoint =>
+      buildGeneratedMethodInfo(group, endpoint, capabilities, existingNames)
+    )
+  )
+}
+
+interface ManagedMethodFact {
+  methodName: string
+  method: HttpMethod
+  path: string
+}
+
+function buildManagedMethodFacts(
+  plan: ModulePlan,
+  capabilities: CrudCapabilities
+): ManagedMethodFact[] {
+  if (plan.kind !== 'resource' || capabilities.kind === 'none') {
+    return []
+  }
+
+  const group = plan.groups[0]
+  const detail = getReadonlyEndpoint(group, 'detail')
+  const query = getReadonlyEndpoint(group, 'query')
+
+  if (capabilities.kind === 'readonly') {
+    return [
+      { methodName: 'getById', method: detail.method, path: detail.path },
+      { methodName: 'query', method: query.method, path: query.path }
+    ]
+  }
+
+  const create = group.endpoints.find(
+    endpoint => endpoint.method === 'post' && endpoint.path === group.collectionPath
+  )
+  const update = group.endpoints.find(
+    endpoint =>
+      endpoint.method === 'put' &&
+      isSingleParameterRelativePath(getRelativePath(group.collectionPath, endpoint.path) ?? '')
+  )
+  const remove = group.endpoints.find(
+    endpoint =>
+      endpoint.method === 'delete' &&
+      isSingleParameterRelativePath(getRelativePath(group.collectionPath, endpoint.path) ?? '')
+  )
+
+  if (!create || !update || !remove) {
+    throw new Error(`CRUD 资源缺少标准端点: ${group.collectionPath}`)
+  }
+
+  const entries: ManagedMethodFact[] = [
+    { methodName: 'getById', method: detail.method, path: detail.path },
+    { methodName: 'query', method: query.method, path: query.path },
+    { methodName: 'create', method: create.method, path: create.path },
+    { methodName: 'update', method: update.method, path: update.path },
+    { methodName: 'delete', method: remove.method, path: remove.path }
+  ]
+
+  if (capabilities.kind === 'soft-delete') {
+    const requireRelative = (relativePath: string, method: HttpMethod): EndpointInfo => {
+      const endpoint = group.endpoints.find(
+        candidate =>
+          candidate.method === method &&
+          getRelativePath(group.collectionPath, candidate.path) === relativePath
+      )
+      if (!endpoint) {
+        throw new Error(
+          `软删除资源缺少 ${method.toUpperCase()} ${relativePath}: ${group.collectionPath}`
+        )
+      }
+      return endpoint
+    }
+    const restore = group.endpoints.find(endpoint => {
+      const relativePath = getRelativePath(group.collectionPath, endpoint.path)
+      const parts = relativePath?.split('/') ?? []
+      return (
+        endpoint.method === 'post' &&
+        parts.length === 2 &&
+        isParameterSegment(parts[0]) &&
+        parts[1] === 'restore'
+      )
+    })
+    if (!restore) {
+      throw new Error(`软删除资源缺少恢复端点: ${group.collectionPath}`)
+    }
+    const trash = requireRelative('trash', 'get')
+    const batchRestore = requireRelative('trash/restore', 'post')
+    const batchPermanentDelete = requireRelative('trash/permanent', 'delete')
+    const bulkDelete = group.endpoints.find(
+      endpoint =>
+        endpoint.method === 'delete' &&
+        getRelativePath(group.collectionPath, endpoint.path) === 'bulk'
+    )
+
+    entries.push(
+      { methodName: 'getTrash', method: trash.method, path: trash.path },
+      { methodName: 'restore', method: restore.method, path: restore.path },
+      { methodName: 'permanentDelete', method: remove.method, path: remove.path },
+      { methodName: 'batchRestore', method: batchRestore.method, path: batchRestore.path },
+      {
+        methodName: 'batchPermanentDelete',
+        method: batchPermanentDelete.method,
+        path: batchPermanentDelete.path
+      },
+      {
+        methodName: 'batchDelete',
+        method: bulkDelete?.method ?? remove.method,
+        path: bulkDelete?.path ?? remove.path
+      }
+    )
+  }
+
+  return entries
+}
+
+function compareCodePoint(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0
+}
+
+export function buildGeneratedMethodCatalog(spec: unknown): GeneratedMethodCatalogEntry[] {
+  const plans = buildModulePlans(groupEndpointsByModuleModel(extractEndpoints(spec)))
+  const entries = plans.flatMap(plan => {
+    const modulePath = `@/api/modules/${plan.fileBaseName}`
+    const exportName = `${plan.fileBaseName}ApiMethods`
+    const capabilities = getPlanCrudCapabilities(plan)
+    const managed = buildManagedMethodFacts(plan, capabilities)
+    const generated = buildGeneratedMethodsForPlan(plan).map(methodInfo => ({
+      methodName: methodInfo.name,
+      method: methodInfo.method,
+      path: methodInfo.path
+    }))
+
+    return [...managed, ...generated].map(entry => ({
+      modulePath,
+      exportName,
+      ...entry
+    }))
+  })
+
+  return entries.sort(
+    (left, right) =>
+      compareCodePoint(left.modulePath, right.modulePath) ||
+      compareCodePoint(left.exportName, right.exportName) ||
+      compareCodePoint(left.methodName, right.methodName) ||
+      compareCodePoint(left.path, right.path) ||
+      compareCodePoint(left.method, right.method)
+  )
+}
+
 function generateMethodTypeAliases(methodInfo: GeneratedMethodInfo): string[] {
   const lines = [`export type ${methodInfo.typeAliasBase}Result = ${methodInfo.responseType}`]
 
@@ -1536,41 +1697,61 @@ function getCrudResourcePathType(capabilities: CrudCapabilities): string | null 
   return null
 }
 
-function getReadonlyEndpoint(
-  group: ModuleModelGroup,
-  kind: 'detail' | 'query'
-): EndpointInfo {
+function getReadonlyEndpoint(group: ModuleModelGroup, kind: 'detail' | 'query'): EndpointInfo {
   const endpoint = group.endpoints.find(candidate => {
     const relativePath = getRelativePath(group.collectionPath, candidate.path)
     if (kind === 'detail') {
-      return candidate.method === 'get' && !!relativePath && isSingleParameterRelativePath(relativePath)
+      return (
+        candidate.method === 'get' && !!relativePath && isSingleParameterRelativePath(relativePath)
+      )
     }
 
     return candidate.method === 'post' && relativePath === 'query'
   })
 
   if (!endpoint) {
-    throw new Error(`只读资源缺少 ${kind === 'detail' ? '详情' : '查询'} 端点: ${group.collectionPath}`)
+    throw new Error(
+      `只读资源缺少 ${kind === 'detail' ? '详情' : '查询'} 端点: ${group.collectionPath}`
+    )
   }
 
   return endpoint
+}
+
+function requireManagedMethodFact(
+  facts: readonly ManagedMethodFact[],
+  methodName: string,
+  collectionPath: string
+): ManagedMethodFact {
+  const fact = facts.find(candidate => candidate.methodName === methodName)
+  if (!fact) throw new Error(`CRUD 资源缺少 managed method ${methodName}: ${collectionPath}`)
+  return fact
+}
+
+function renderManagedPath(
+  fact: ManagedMethodFact,
+  collectionPath: string,
+  collectionConst: string
+): string {
+  const relativePath = getRelativePath(collectionPath, fact.path)
+  if (relativePath === null) throw new Error(`managed method 不属于资源集合: ${fact.path}`)
+  return relativePath === ''
+    ? collectionConst
+    : `\`\${${collectionConst}}/${relativePath}\` as const`
 }
 
 export function generateModuleAutoSection(plan: ModulePlan): string {
   const moduleBaseName = plan.fileBaseName
   const pascalBaseName = toPascalCaseIdentifier(moduleBaseName)
   const apiName = `${moduleBaseName}Api`
-  const existingNames = new Set<string>()
   const primaryGroup = plan.groups[0]
   const capabilities = getPlanCrudCapabilities(plan)
+  const managedMethodFacts = buildManagedMethodFacts(plan, capabilities)
   const collectionConst = `${toScreamingSnakeCase(moduleBaseName)}_COLLECTION_PATH`
   const bulkConst = `${toScreamingSnakeCase(moduleBaseName)}_BULK_DELETE_PATH`
-  const generatedMethods = plan.groups.flatMap(group => {
-    const sourceEndpoints = getGeneratedEndpointsForGroup(plan, group, capabilities)
-    return sourceEndpoints.map(endpoint =>
-      buildGeneratedMethodInfo(group, endpoint, capabilities, existingNames)
-    )
-  })
+  const generatedMethods = buildGeneratedMethodsForPlan(plan)
+  const managedFact = (methodName: string): ManagedMethodFact =>
+    requireManagedMethodFact(managedMethodFacts, methodName, primaryGroup.collectionPath)
 
   const imports: string[] = [
     `/* eslint-disable @typescript-eslint/no-unused-vars */`,
@@ -1626,9 +1807,13 @@ export function generateModuleAutoSection(plan: ModulePlan): string {
   const resourcePathType = getCrudResourcePathType(capabilities)
 
   if (plan.kind === 'resource') {
-    lines.push(`const ${collectionConst} = '${primaryGroup.collectionPath}' as const`)
+    const collectionPath =
+      capabilities.kind === 'standard' || capabilities.kind === 'soft-delete'
+        ? managedFact('create').path
+        : primaryGroup.collectionPath
+    lines.push(`const ${collectionConst} = '${collectionPath}' as const`)
     if (capabilities.hasBulkDelete) {
-      lines.push(`const ${bulkConst} = '${primaryGroup.collectionPath}/bulk' as const`)
+      lines.push(`const ${bulkConst} = '${managedFact('batchDelete').path}' as const`)
     }
     lines.push('')
     lines.push(`type EnsureEntityId<TItem> = TItem extends { id?: infer TId }`)
@@ -1636,7 +1821,7 @@ export function generateModuleAutoSection(plan: ModulePlan): string {
     lines.push(`  : TItem`)
     lines.push('')
     if (capabilities.kind === 'readonly') {
-      const detailEndpoint = getReadonlyEndpoint(primaryGroup, 'detail')
+      const detailEndpoint = managedFact('getById')
       lines.push(
         `export type ${pascalBaseName}Item = EnsureEntityId<ContractResponseData<'${detailEndpoint.path}', 'get'>>`
       )
@@ -1665,12 +1850,24 @@ export function generateModuleAutoSection(plan: ModulePlan): string {
       `const base${pascalBaseName}ApiMethods = createSoftDeleteCrudRequestAdapterMethods({`
     )
     lines.push(`  collection: ${collectionConst} as unknown as ${resourcePathType},`)
-    lines.push(`  item: \`\${${collectionConst}}/{id}\` as const,`)
-    lines.push(`  query: \`\${${collectionConst}}/query\` as const,`)
-    lines.push(`  restore: \`\${${collectionConst}}/{id}/restore\` as const,`)
-    lines.push(`  trash: \`\${${collectionConst}}/trash\` as const,`)
-    lines.push(`  trashRestore: \`\${${collectionConst}}/trash/restore\` as const,`)
-    lines.push(`  trashPermanentDelete: \`\${${collectionConst}}/trash/permanent\` as const,`)
+    lines.push(
+      `  item: ${renderManagedPath(managedFact('update'), primaryGroup.collectionPath, collectionConst)},`
+    )
+    lines.push(
+      `  query: ${renderManagedPath(managedFact('query'), primaryGroup.collectionPath, collectionConst)},`
+    )
+    lines.push(
+      `  restore: ${renderManagedPath(managedFact('restore'), primaryGroup.collectionPath, collectionConst)},`
+    )
+    lines.push(
+      `  trash: ${renderManagedPath(managedFact('getTrash'), primaryGroup.collectionPath, collectionConst)},`
+    )
+    lines.push(
+      `  trashRestore: ${renderManagedPath(managedFact('batchRestore'), primaryGroup.collectionPath, collectionConst)},`
+    )
+    lines.push(
+      `  trashPermanentDelete: ${renderManagedPath(managedFact('batchPermanentDelete'), primaryGroup.collectionPath, collectionConst)},`
+    )
     if (capabilities.hasBulkDelete) {
       lines.push(`  bulkDelete: ${bulkConst},`)
     }
@@ -1683,8 +1880,12 @@ export function generateModuleAutoSection(plan: ModulePlan): string {
   if (plan.kind === 'resource' && capabilities.kind === 'standard') {
     lines.push(`const base${pascalBaseName}ApiMethods = createCrudRequestAdapterMethods({`)
     lines.push(`  collection: ${collectionConst} as unknown as ${resourcePathType},`)
-    lines.push(`  item: \`\${${collectionConst}}/{id}\` as const,`)
-    lines.push(`  query: \`\${${collectionConst}}/query\` as const,`)
+    lines.push(
+      `  item: ${renderManagedPath(managedFact('update'), primaryGroup.collectionPath, collectionConst)},`
+    )
+    lines.push(
+      `  query: ${renderManagedPath(managedFact('query'), primaryGroup.collectionPath, collectionConst)},`
+    )
     if (capabilities.hasBulkDelete) {
       lines.push(`  bulkDelete: ${bulkConst},`)
     }
@@ -1695,21 +1896,23 @@ export function generateModuleAutoSection(plan: ModulePlan): string {
   }
 
   if (plan.kind === 'resource' && capabilities.kind === 'readonly') {
-    const detailEndpoint = getReadonlyEndpoint(primaryGroup, 'detail')
-    const queryEndpoint = getReadonlyEndpoint(primaryGroup, 'query')
+    const detailEndpoint = managedFact('getById')
+    const queryEndpoint = managedFact('query')
     lines.push(`const base${pascalBaseName}ApiMethods = {`)
     lines.push(
       `  getById(params: ContractPathParams<'${detailEndpoint.path}', 'get'>, query?: ContractQueryParams<'${detailEndpoint.path}', 'get'>, config?: ContractRequestConfig) {`
     )
     lines.push(
-      `    return contractMethods.get('${detailEndpoint.path}', { params, query, config })`
+      `    return contractMethods.${detailEndpoint.method}('${detailEndpoint.path}', { params, query, config })`
     )
     lines.push(`  },`)
     lines.push('')
     lines.push(
       `  query(body: ContractRequestBody<'${queryEndpoint.path}', 'post'>, config?: ContractRequestConfig) {`
     )
-    lines.push(`    return contractMethods.post('${queryEndpoint.path}', { body, config })`)
+    lines.push(
+      `    return contractMethods.${queryEndpoint.method}('${queryEndpoint.path}', { body, config })`
+    )
     lines.push(`  }`)
     lines.push(`}`)
     lines.push('')

@@ -21,8 +21,8 @@ export const DeviceCommandCallbackResponseMetadata = {
   ],
   "additionalProperties": false,
   "fields": {
-    "result": {
-      "title": "Result",
+    "apply_status": {
+      "title": "Apply Status",
       "type": "string",
       "required": true,
       "nullable": false
@@ -39,20 +39,20 @@ export const DeviceCommandCallbackResponseMetadata = {
       "required": true,
       "nullable": true
     },
-    "source_event_id": {
-      "title": "Source Event Id",
-      "type": "string",
-      "required": true,
-      "nullable": false
-    },
     "received_at": {
       "title": "Received At",
       "type": "string",
       "required": true,
       "nullable": false
     },
-    "apply_status": {
-      "title": "Apply Status",
+    "result": {
+      "title": "Result",
+      "type": "string",
+      "required": true,
+      "nullable": false
+    },
+    "source_event_id": {
+      "title": "Source Event Id",
       "type": "string",
       "required": true,
       "nullable": false

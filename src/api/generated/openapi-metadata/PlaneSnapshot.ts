@@ -21,6 +21,30 @@ export const PlaneSnapshotMetadata = {
   ],
   "additionalProperties": false,
   "fields": {
+    "extremes": {
+      "title": "Extremes",
+      "type": "array",
+      "required": true,
+      "nullable": false,
+      "items": {
+        "ref": "PlaneExtremeState"
+      }
+    },
+    "objects": {
+      "title": "Objects",
+      "type": "array",
+      "required": true,
+      "nullable": false,
+      "items": {
+        "ref": "PlaneObjectSnapshot"
+      }
+    },
+    "scene_schema_version": {
+      "title": "Scene Schema Version",
+      "type": "string",
+      "required": true,
+      "nullable": false
+    },
     "schema_version": {
       "title": "Schema Version",
       "type": "string",
@@ -34,30 +58,6 @@ export const PlaneSnapshotMetadata = {
       "nullable": false,
       "minLength": 1,
       "maxLength": 80
-    },
-    "scene_schema_version": {
-      "title": "Scene Schema Version",
-      "type": "string",
-      "required": true,
-      "nullable": false
-    },
-    "objects": {
-      "title": "Objects",
-      "type": "array",
-      "required": true,
-      "nullable": false,
-      "items": {
-        "ref": "PlaneObjectSnapshot"
-      }
-    },
-    "extremes": {
-      "title": "Extremes",
-      "type": "array",
-      "required": true,
-      "nullable": false,
-      "items": {
-        "ref": "PlaneExtremeState"
-      }
     }
   }
 } satisfies OpenApiSchemaMetadata

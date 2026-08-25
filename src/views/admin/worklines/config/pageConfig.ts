@@ -7,7 +7,11 @@ import type {
 import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
 import { workLinesApiMethods } from '@/api/modules/workLines'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
-import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
+import type {
+  CrudPageConfig,
+  CrudPageFeatures,
+  CrudPagePermissionConfig
+} from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
 import {
   createBooleanTagFormatter,
@@ -36,6 +40,21 @@ const isActiveFormatter = createBooleanTagFormatter({
 })
 
 type WorklinePageConfig = CrudPageConfig<Workline, CreateWorklineInput, UpdateWorklineInput>
+
+const WORKLINE_PAGE_PERMISSIONS = {
+  page: BIZ_PERMISSIONS.workline.page,
+  list: BIZ_PERMISSIONS.workline.list,
+  detail: BIZ_PERMISSIONS.workline.detail,
+  create: BIZ_PERMISSIONS.workline.create,
+  update: BIZ_PERMISSIONS.workline.update,
+  delete: BIZ_PERMISSIONS.workline.delete,
+  restore: BIZ_PERMISSIONS.workline.restore,
+  trash: BIZ_PERMISSIONS.workline.trash,
+  batchRestore: BIZ_PERMISSIONS.workline.batchRestore,
+  permanentDelete: BIZ_PERMISSIONS.workline.permanentDelete,
+  batchPermanentDelete: BIZ_PERMISSIONS.workline.batchPermanentDelete
+} satisfies CrudPagePermissionConfig
+
 const WORKLINE_PAGE_RESOURCE = {
   key: 'worklines',
   title: {
@@ -49,7 +68,7 @@ const WORKLINE_PAGE_RESOURCE = {
     icon: 'ep:delete'
   },
   methods: workLinesApiMethods,
-  permissions: BIZ_PERMISSIONS.workline,
+  permissions: WORKLINE_PAGE_PERMISSIONS,
   optimisticUpdate: true,
   defaultSort: [{ field: 'id', order: 'asc' as const }]
 }

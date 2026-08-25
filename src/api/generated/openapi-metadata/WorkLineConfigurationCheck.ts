@@ -25,17 +25,12 @@ export const WorkLineConfigurationCheckMetadata = {
       "required": true,
       "nullable": false
     },
-    "status": {
-      "title": "Status",
-      "description": "检查结果",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "enum": [
-        "PASS",
-        "FAIL",
-        "WARN"
-      ]
+    "context": {
+      "title": "Context",
+      "description": "检查上下文",
+      "type": "object",
+      "required": false,
+      "nullable": false
     },
     "severity": {
       "title": "Severity",
@@ -49,12 +44,17 @@ export const WorkLineConfigurationCheckMetadata = {
         "BLOCKER"
       ]
     },
-    "context": {
-      "title": "Context",
-      "description": "检查上下文",
-      "type": "object",
-      "required": false,
-      "nullable": false
+    "status": {
+      "title": "Status",
+      "description": "检查结果",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "enum": [
+        "PASS",
+        "FAIL",
+        "WARN"
+      ]
     }
   }
 } satisfies OpenApiSchemaMetadata

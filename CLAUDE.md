@@ -67,7 +67,7 @@ pnpm lint:stylelint
 ### 契约与代码生成
 
 ```bash
-# 从指定的 clean develop checkout 冻结 canonical OpenAPI
+# 从指定的 clean develop checkout 原子冻结 canonical OpenAPI 与权限快照
 pnpm contract:freeze -- --backend-root /path/to/wes_backend
 
 # 从 canonical 快照生成 OpenAPI 类型
@@ -76,14 +76,19 @@ pnpm generate:types
 # 从 canonical 快照生成 Zod Schema
 pnpm generate:zod
 
-# 权限码生成 / 校验
-pnpm generate:permissions -- --backend-root /path/to/wes_backend
-pnpm permission:verify -- --backend-root /path/to/wes_backend
+# 从已提交的 canonical 权限快照生成 / 校验（离线）
+pnpm generate:permissions
+pnpm permission:verify
 
 # 前后端契约校验 / 测试
 pnpm contract:verify
 pnpm contract:test
+
+# 从已提交快照和生产源码导出 frontend consumer artifacts（离线）
+pnpm export:release-consumer
 ```
+
+`.contract-sync-record.json` 与 `.permission-sync-record.json` 中的 `backendCommit` 只记录同一次冻结的来源，不要求部署候选后端使用相同 Commit。运行兼容性由独立发布作业根据镜像内 raw artifacts 判断。
 
 ### Git Worktree 管理
 
@@ -739,7 +744,7 @@ const onSubmit = handleSubmit(async (values: FormValues) => {
 ### Zod Schema 生成与使用
 
 ```bash
-# 1. 从指定的 clean develop checkout 冻结 canonical OpenAPI
+# 1. 从指定的 clean develop checkout 原子冻结 canonical OpenAPI 与权限快照
 pnpm contract:freeze -- --backend-root /path/to/wes_backend
 
 # 2. 从 canonical 快照生成 Zod schemas

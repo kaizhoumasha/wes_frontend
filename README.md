@@ -55,11 +55,14 @@ pnpm type:check
 pnpm contract:freeze -- --backend-root /path/to/wes_backend
 pnpm generate:types
 pnpm generate:zod
-pnpm generate:permissions -- --backend-root /path/to/wes_backend
-pnpm permission:verify -- --backend-root /path/to/wes_backend
+pnpm generate:permissions
+pnpm permission:verify
 pnpm contract:verify
 pnpm contract:test
+pnpm export:release-consumer
 ```
+
+`contract:freeze` 是唯一需要后端 checkout 的显式冻结步骤，会原子更新 OpenAPI 与权限 canonical 快照。后续生成、验证和 consumer artifact 导出均只读取前端仓库已提交快照，可离线执行。
 
 ## Git Worktree 开发
 
@@ -118,8 +121,10 @@ src/
 ## CI/CD
 
 - GitHub Actions: `.github/workflows/ci-cd.yml`
-- Jenkins 成对发布: `Jenkinsfile`
+- Jenkins 独立 producer: `Jenkinsfile` 只构建并发布不可变前端镜像，不接收后端候选，也不自动部署
 - Docker: `Dockerfile`, `docker-compose.yml`
+
+producer 成功只表示 `PUBLISHED — NOT DEPLOYED`。TEST/生产部署由独立发布作业按镜像 digest 选择候选，并在维护态前执行方向性兼容检查。
 
 ## 开发命令
 

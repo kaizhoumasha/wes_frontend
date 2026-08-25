@@ -20,63 +20,14 @@ export const MenuTreeResponseMetadata = {
     "version"
   ],
   "fields": {
-    "parent_id": {
-      "title": "Parent Id",
-      "type": "integer",
-      "required": false,
-      "nullable": true
-    },
-    "tree_path": {
-      "title": "Tree Path",
-      "type": "string",
+    "children": {
+      "title": "Children",
+      "type": "array",
       "required": false,
       "nullable": false,
-      "default": "/"
-    },
-    "level": {
-      "title": "Level",
-      "type": "integer",
-      "required": false,
-      "nullable": false,
-      "default": 1
-    },
-    "sort_order": {
-      "title": "Sort Order",
-      "type": "integer",
-      "required": false,
-      "nullable": false,
-      "default": 0
-    },
-    "has_children": {
-      "title": "Has Children",
-      "type": "boolean",
-      "required": false,
-      "nullable": false,
-      "default": false
-    },
-    "name": {
-      "title": "Name",
-      "description": "菜单标识，如 system:users",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "maxLength": 50
-    },
-    "title": {
-      "title": "Title",
-      "description": "显示标题",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "maxLength": 50
-    },
-    "path": {
-      "title": "Path",
-      "description": "路由路径，如 /system/users",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "maxLength": 200
+      "items": {
+        "ref": "MenuTreeResponse"
+      }
     },
     "component": {
       "title": "Component",
@@ -86,6 +37,13 @@ export const MenuTreeResponseMetadata = {
       "nullable": true,
       "maxLength": 200
     },
+    "has_children": {
+      "title": "Has Children",
+      "type": "boolean",
+      "required": false,
+      "nullable": false,
+      "default": false
+    },
     "icon": {
       "title": "Icon",
       "description": "图标",
@@ -93,6 +51,12 @@ export const MenuTreeResponseMetadata = {
       "required": false,
       "nullable": true,
       "maxLength": 50
+    },
+    "id": {
+      "title": "Id",
+      "type": "integer",
+      "required": true,
+      "nullable": false
     },
     "is_hidden": {
       "title": "Is Hidden",
@@ -102,17 +66,34 @@ export const MenuTreeResponseMetadata = {
       "nullable": false,
       "default": false
     },
-    "id": {
-      "title": "Id",
+    "level": {
+      "title": "Level",
       "type": "integer",
-      "required": true,
-      "nullable": false
+      "required": false,
+      "nullable": false,
+      "default": 1
     },
-    "version": {
-      "title": "Version",
-      "type": "integer",
+    "name": {
+      "title": "Name",
+      "description": "菜单标识，如 system:users",
+      "type": "string",
       "required": true,
-      "nullable": false
+      "nullable": false,
+      "maxLength": 50
+    },
+    "parent_id": {
+      "title": "Parent Id",
+      "type": "integer",
+      "required": false,
+      "nullable": true
+    },
+    "path": {
+      "title": "Path",
+      "description": "路由路径，如 /system/users",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "maxLength": 200
     },
     "roles": {
       "title": "Roles",
@@ -123,14 +104,33 @@ export const MenuTreeResponseMetadata = {
         "ref": "RoleResponse"
       }
     },
-    "children": {
-      "title": "Children",
-      "type": "array",
+    "sort_order": {
+      "title": "Sort Order",
+      "type": "integer",
       "required": false,
       "nullable": false,
-      "items": {
-        "ref": "MenuTreeResponse"
-      }
+      "default": 0
+    },
+    "title": {
+      "title": "Title",
+      "description": "显示标题",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "maxLength": 50
+    },
+    "tree_path": {
+      "title": "Tree Path",
+      "type": "string",
+      "required": false,
+      "nullable": false,
+      "default": "/"
+    },
+    "version": {
+      "title": "Version",
+      "type": "integer",
+      "required": true,
+      "nullable": false
     }
   }
 } satisfies OpenApiSchemaMetadata

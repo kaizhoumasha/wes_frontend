@@ -19,63 +19,13 @@ export const RackSlotTemplateResponseMetadata = {
     "id"
   ],
   "fields": {
-    "rack_type_code": {
-      "title": "Rack Type Code",
-      "description": "所属货架类型编码",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 50
-    },
-    "slot_code": {
-      "title": "Slot Code",
-      "description": "货架槽位编码",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 50
-    },
-    "side": {
-      "description": "槽位面",
+    "active": {
+      "title": "Active",
+      "description": "是否启用",
+      "type": "boolean",
       "required": false,
       "nullable": false,
-      "default": "NONE",
-      "enum": [
-        "A",
-        "B",
-        "NONE"
-      ],
-      "ref": "RackSlotSide"
-    },
-    "layer_no": {
-      "title": "Layer No",
-      "description": "层号",
-      "type": "integer",
-      "required": false,
-      "nullable": false,
-      "default": 1,
-      "minimum": 1
-    },
-    "position_no": {
-      "title": "Position No",
-      "description": "同层序号",
-      "type": "integer",
-      "required": false,
-      "nullable": false,
-      "default": 1,
-      "minimum": 1
-    },
-    "slot_kind": {
-      "description": "槽位承载对象类型",
-      "required": true,
-      "nullable": false,
-      "enum": [
-        "BIN_SLOT",
-        "MATERIAL_SLOT"
-      ],
-      "ref": "RackSlotKind"
+      "default": true
     },
     "allowed_bin_types": {
       "title": "Allowed Bin Types",
@@ -97,19 +47,69 @@ export const RackSlotTemplateResponseMetadata = {
         "type": "string"
       }
     },
-    "active": {
-      "title": "Active",
-      "description": "是否启用",
-      "type": "boolean",
-      "required": false,
-      "nullable": false,
-      "default": true
-    },
     "id": {
       "title": "Id",
       "type": "integer",
       "required": true,
       "nullable": false
+    },
+    "layer_no": {
+      "title": "Layer No",
+      "description": "层号",
+      "type": "integer",
+      "required": false,
+      "nullable": false,
+      "default": 1,
+      "minimum": 1
+    },
+    "position_no": {
+      "title": "Position No",
+      "description": "同层序号",
+      "type": "integer",
+      "required": false,
+      "nullable": false,
+      "default": 1,
+      "minimum": 1
+    },
+    "rack_type_code": {
+      "title": "Rack Type Code",
+      "description": "所属货架类型编码",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "minLength": 1,
+      "maxLength": 50
+    },
+    "side": {
+      "description": "槽位面",
+      "required": false,
+      "nullable": false,
+      "default": "NONE",
+      "enum": [
+        "A",
+        "B",
+        "NONE"
+      ],
+      "ref": "RackSlotSide"
+    },
+    "slot_code": {
+      "title": "Slot Code",
+      "description": "货架槽位编码",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "minLength": 1,
+      "maxLength": 50
+    },
+    "slot_kind": {
+      "description": "槽位承载对象类型",
+      "required": true,
+      "nullable": false,
+      "enum": [
+        "BIN_SLOT",
+        "MATERIAL_SLOT"
+      ],
+      "ref": "RackSlotKind"
     }
   }
 } satisfies OpenApiSchemaMetadata

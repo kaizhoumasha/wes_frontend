@@ -35,19 +35,19 @@ export const PlaneEdgeMetadata = {
       "minLength": 1,
       "maxLength": 120
     },
+    "label": {
+      "title": "Label",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 120
+    },
     "to_code": {
       "title": "To Code",
       "type": "string",
       "required": true,
       "nullable": false,
       "minLength": 1,
-      "maxLength": 120
-    },
-    "label": {
-      "title": "Label",
-      "type": "string",
-      "required": false,
-      "nullable": true,
       "maxLength": 120
     }
   }

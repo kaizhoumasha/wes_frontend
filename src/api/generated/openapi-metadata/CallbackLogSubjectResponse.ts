@@ -18,13 +18,6 @@ export const CallbackLogSubjectResponseMetadata = {
     "items"
   ],
   "fields": {
-    "subject_code": {
-      "title": "Subject Code",
-      "description": "回调主体编码",
-      "type": "string",
-      "required": true,
-      "nullable": false
-    },
     "count": {
       "title": "Count",
       "description": "回调日志数量",
@@ -42,6 +35,13 @@ export const CallbackLogSubjectResponseMetadata = {
       "items": {
         "ref": "CallbackLogResponse"
       }
+    },
+    "subject_code": {
+      "title": "Subject Code",
+      "description": "回调主体编码",
+      "type": "string",
+      "required": true,
+      "nullable": false
     }
   }
 } satisfies OpenApiSchemaMetadata

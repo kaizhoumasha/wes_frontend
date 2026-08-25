@@ -17,15 +17,6 @@ export const LoginRequestMetadata = {
     "password"
   ],
   "fields": {
-    "username": {
-      "title": "Username",
-      "description": "用户名",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 3,
-      "maxLength": 50
-    },
     "password": {
       "title": "Password",
       "description": "密码",
@@ -34,6 +25,15 @@ export const LoginRequestMetadata = {
       "nullable": false,
       "minLength": 6,
       "maxLength": 100
+    },
+    "username": {
+      "title": "Username",
+      "description": "用户名",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "minLength": 3,
+      "maxLength": 50
     }
   }
 } satisfies OpenApiSchemaMetadata

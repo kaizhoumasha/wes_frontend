@@ -26,11 +26,24 @@ export const WorkLineStartResponseMetadata = {
     "created"
   ],
   "fields": {
-    "line_run_epoch_id": {
-      "title": "Line Run Epoch Id",
-      "type": "integer",
+    "created": {
+      "title": "Created",
+      "type": "boolean",
       "required": true,
       "nullable": false
+    },
+    "current_workline_runtime_status": {
+      "title": "Current Workline Runtime Status",
+      "type": "string",
+      "required": true,
+      "nullable": true
+    },
+    "epoch_closed_at": {
+      "title": "Epoch Closed At",
+      "type": "string",
+      "format": "date-time",
+      "required": true,
+      "nullable": true
     },
     "epoch_code": {
       "title": "Epoch Code",
@@ -38,8 +51,31 @@ export const WorkLineStartResponseMetadata = {
       "required": true,
       "nullable": false
     },
-    "workline_id": {
-      "title": "Workline Id",
+    "epoch_started_at": {
+      "title": "Epoch Started At",
+      "type": "string",
+      "format": "date-time",
+      "required": true,
+      "nullable": false
+    },
+    "epoch_status": {
+      "title": "Epoch Status",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "enum": [
+        "ACTIVE",
+        "CLOSED"
+      ]
+    },
+    "flow_mode": {
+      "title": "Flow Mode",
+      "type": "string",
+      "required": true,
+      "nullable": false
+    },
+    "line_run_epoch_id": {
+      "title": "Line Run Epoch Id",
       "type": "integer",
       "required": true,
       "nullable": false
@@ -56,45 +92,9 @@ export const WorkLineStartResponseMetadata = {
       "required": true,
       "nullable": false
     },
-    "flow_mode": {
-      "title": "Flow Mode",
-      "type": "string",
-      "required": true,
-      "nullable": false
-    },
-    "epoch_status": {
-      "title": "Epoch Status",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "enum": [
-        "ACTIVE",
-        "CLOSED"
-      ]
-    },
-    "epoch_started_at": {
-      "title": "Epoch Started At",
-      "type": "string",
-      "format": "date-time",
-      "required": true,
-      "nullable": false
-    },
-    "epoch_closed_at": {
-      "title": "Epoch Closed At",
-      "type": "string",
-      "format": "date-time",
-      "required": true,
-      "nullable": true
-    },
-    "current_workline_runtime_status": {
-      "title": "Current Workline Runtime Status",
-      "type": "string",
-      "required": true,
-      "nullable": true
-    },
-    "created": {
-      "title": "Created",
-      "type": "boolean",
+    "workline_id": {
+      "title": "Workline Id",
+      "type": "integer",
       "required": true,
       "nullable": false
     }

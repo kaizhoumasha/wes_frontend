@@ -37,16 +37,12 @@ export type MenusItem = EnsureEntityId<CrudItem<typeof MENUS_COLLECTION_PATH>>
 export type CreateMenusInput = CrudCreateInput<typeof MENUS_COLLECTION_PATH>
 export type UpdateMenusInput = CrudUpdateInput<typeof MENUS_COLLECTION_PATH>
 
-export type TreeResult = ContractResponseData<'/api/v1/admin/menus/tree', 'get'>
-export type TreeQuery = ContractQueryParams<'/api/v1/admin/menus/tree', 'get'>
-
-export type SiblingsResult = ContractResponseData<'/api/v1/admin/menus/siblings/{node_id}', 'get'>
-export type SiblingsPathParams = ContractPathParams<'/api/v1/admin/menus/siblings/{node_id}', 'get'>
-export type SiblingsQuery = ContractQueryParams<'/api/v1/admin/menus/siblings/{node_id}', 'get'>
-
 export type AncestorsResult = ContractResponseData<'/api/v1/admin/menus/ancestors/{node_id}', 'get'>
 export type AncestorsPathParams = ContractPathParams<'/api/v1/admin/menus/ancestors/{node_id}', 'get'>
 export type AncestorsQuery = ContractQueryParams<'/api/v1/admin/menus/ancestors/{node_id}', 'get'>
+
+export type BatchSortResult = ContractResponseData<'/api/v1/admin/menus/batch-sort', 'put'>
+export type BatchSortInput = ContractRequestBody<'/api/v1/admin/menus/batch-sort', 'put'>
 
 export type ChildrenResult = ContractResponseData<'/api/v1/admin/menus/children/{node_id}', 'get'>
 export type ChildrenPathParams = ContractPathParams<'/api/v1/admin/menus/children/{node_id}', 'get'>
@@ -54,10 +50,14 @@ export type ChildrenPathParams = ContractPathParams<'/api/v1/admin/menus/childre
 export type MoveResult = ContractResponseData<'/api/v1/admin/menus/move', 'put'>
 export type MoveInput = ContractRequestBody<'/api/v1/admin/menus/move', 'put'>
 
-export type BatchSortResult = ContractResponseData<'/api/v1/admin/menus/batch-sort', 'put'>
-export type BatchSortInput = ContractRequestBody<'/api/v1/admin/menus/batch-sort', 'put'>
-
 export type MyMenuResult = ContractResponseData<'/api/v1/admin/menus/my_menu', 'get'>
+
+export type SiblingsResult = ContractResponseData<'/api/v1/admin/menus/siblings/{node_id}', 'get'>
+export type SiblingsPathParams = ContractPathParams<'/api/v1/admin/menus/siblings/{node_id}', 'get'>
+export type SiblingsQuery = ContractQueryParams<'/api/v1/admin/menus/siblings/{node_id}', 'get'>
+
+export type TreeResult = ContractResponseData<'/api/v1/admin/menus/tree', 'get'>
+export type TreeQuery = ContractQueryParams<'/api/v1/admin/menus/tree', 'get'>
 
 export type PermanentResult = ContractResponseData<'/api/v1/admin/menus/{id}/permanent', 'delete'>
 export type PermanentPathParams = ContractPathParams<'/api/v1/admin/menus/{id}/permanent', 'delete'>
@@ -76,26 +76,6 @@ export const menusApiMethods = {
   ...baseMenusApiMethods,
 
   /**
-   * Get Tree
-   * @description 获取树形结构（默认懒加载模式）
-   * @endpoint GET /api/v1/admin/menus/tree
-   * @returns alova method instance
-   */
-  tree(query?: ContractQueryParams<'/api/v1/admin/menus/tree', 'get'>, config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/admin/menus/tree', { query, config })
-  },
-
-  /**
-   * Get Siblings
-   * @description 获取同级节点
-   * @endpoint GET /api/v1/admin/menus/siblings/{node_id}
-   * @returns alova method instance
-   */
-  siblings(params: ContractPathParams<'/api/v1/admin/menus/siblings/{node_id}', 'get'>, query?: ContractQueryParams<'/api/v1/admin/menus/siblings/{node_id}', 'get'>, config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/admin/menus/siblings/{node_id}', { params, query, config })
-  },
-
-  /**
    * Get Ancestors
    * @description 获取祖先节点
    * @endpoint GET /api/v1/admin/menus/ancestors/{node_id}
@@ -103,6 +83,18 @@ export const menusApiMethods = {
    */
   ancestors(params: ContractPathParams<'/api/v1/admin/menus/ancestors/{node_id}', 'get'>, query?: ContractQueryParams<'/api/v1/admin/menus/ancestors/{node_id}', 'get'>, config?: ContractRequestConfig) {
     return contractMethods.get('/api/v1/admin/menus/ancestors/{node_id}', { params, query, config })
+  },
+
+  /**
+   * Batch Sort
+   * @description 批量排序节点
+
+适用于拖拽排序场景，一次请求更新多个节点的 parent_id 和 sort_order
+   * @endpoint PUT /api/v1/admin/menus/batch-sort
+   * @returns alova method instance
+   */
+  batchSort(body: ContractRequestBody<'/api/v1/admin/menus/batch-sort', 'put'>, config?: ContractRequestConfig) {
+    return contractMethods.put('/api/v1/admin/menus/batch-sort', { body, config })
   },
 
   /**
@@ -126,18 +118,6 @@ export const menusApiMethods = {
   },
 
   /**
-   * Batch Sort
-   * @description 批量排序节点
-
-适用于拖拽排序场景，一次请求更新多个节点的 parent_id 和 sort_order
-   * @endpoint PUT /api/v1/admin/menus/batch-sort
-   * @returns alova method instance
-   */
-  batchSort(body: ContractRequestBody<'/api/v1/admin/menus/batch-sort', 'put'>, config?: ContractRequestConfig) {
-    return contractMethods.put('/api/v1/admin/menus/batch-sort', { body, config })
-  },
-
-  /**
    * 获取当前用户的菜单树
    * @description 返回当前用户可访问的菜单树（基于角色权限过滤）
    * @endpoint GET /api/v1/admin/menus/my_menu
@@ -145,6 +125,26 @@ export const menusApiMethods = {
    */
   myMenu(config?: ContractRequestConfig) {
     return contractMethods.get('/api/v1/admin/menus/my_menu', { config })
+  },
+
+  /**
+   * Get Siblings
+   * @description 获取同级节点
+   * @endpoint GET /api/v1/admin/menus/siblings/{node_id}
+   * @returns alova method instance
+   */
+  siblings(params: ContractPathParams<'/api/v1/admin/menus/siblings/{node_id}', 'get'>, query?: ContractQueryParams<'/api/v1/admin/menus/siblings/{node_id}', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/admin/menus/siblings/{node_id}', { params, query, config })
+  },
+
+  /**
+   * Get Tree
+   * @description 获取树形结构（默认懒加载模式）
+   * @endpoint GET /api/v1/admin/menus/tree
+   * @returns alova method instance
+   */
+  tree(query?: ContractQueryParams<'/api/v1/admin/menus/tree', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/admin/menus/tree', { query, config })
   },
 
   /**
