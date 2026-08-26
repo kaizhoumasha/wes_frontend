@@ -57,6 +57,14 @@
 - 大改动前先阅读 `CLAUDE.md`；业务代码不要直接读取 `import.meta.env`，统一通过 `src/config/env.ts` 或 `useEnv()`。
 - 认证守卫与 token 刷新逻辑已集中在 `src/router/guards/`、`src/app/bootstrap-auth-context.ts` 与 `src/api/client.ts`，扩展时优先复用现有流程。
 
+## 任务执行与授权
+
+- 根据变更风险选择最小充分流程；未知风险按高风险处理。大型/高风险功能或 Bug 使用 RED → DEV → GREEN；小型/低风险优先复用既有测试或可靠替代验证。
+- 纯人类可读文档、注释、规则和发布元数据不走代码式 TDD，以审阅、链接/路径、结构和 diff 检查验证。
+- 只选择覆盖当前任务的最小 Skill 集合；已批准计划、纯文档或元数据调整不重复设计流程。
+- 写入前检查工作树状态；目标路径与其他活动任务冲突时先协调或隔离，保留不相关的 dirty 现场。
+- 只读 Review、实施、Commit、Push、创建 PR、Merge 和 Deploy 分别需要独立授权。
+
 ## Skill routing
 
 When the user's request matches an available skill, invoke it via the Skill tool. When in doubt, invoke the skill.
