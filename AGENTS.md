@@ -21,7 +21,7 @@
 
 - 默认使用普通 Git Flow 分支：日常单任务开发从 `develop` 切 `feature/*`、`fix/*`、`chore/*` 等分支即可，不默认使用 worktree。
 - 基础分支统一使用 `develop`。创建功能/修复分支前先更新 `develop`，PR 默认以 `develop` 为 base；除发布、回滚、生产补丁等特殊流程外，不从 `main` 直接拉日常开发分支。
-- 仅在确实需要隔离时使用 worktree：长线重构、保留当前现场处理紧急修复、AI agent 执行大计划、PR review 期间继续其他工作，或需要并行运行两套本地环境。
+- 仅在确实需要隔离时使用 worktree：长线重构、保留当前现场处理紧急修复、PR review 期间继续其他工作，或需要并行运行两套本地环境。
 
 - 主仓库路径：`/Users/kaizhou/codeDev/wes_frontend`
 - Worktree 根目录：`/Users/kaizhou/codeDev/wes_frontend-worktrees`
