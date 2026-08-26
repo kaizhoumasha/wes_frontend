@@ -21,7 +21,7 @@
 
 - 默认使用普通 Git Flow 分支：日常单任务开发从 `develop` 切 `feature/*`、`fix/*`、`chore/*` 等分支即可，不默认使用 worktree。
 - 基础分支统一使用 `develop`。创建功能/修复分支前先更新 `develop`，PR 默认以 `develop` 为 base；除发布、回滚、生产补丁等特殊流程外，不从 `main` 直接拉日常开发分支。
-- 仅在确实需要隔离时使用 worktree：长线重构、保留当前现场处理紧急修复、AI agent 执行大计划、PR review 期间继续其他工作，或需要并行运行两套本地环境。
+- 仅在确实需要隔离时使用 worktree：长线重构、保留当前现场处理紧急修复、PR review 期间继续其他工作，或需要并行运行两套本地环境。
 
 - 主仓库路径：`/Users/kaizhou/codeDev/wes_frontend`
 - Worktree 根目录：`/Users/kaizhou/codeDev/wes_frontend-worktrees`
@@ -56,6 +56,14 @@
 - 联调容器通过源码挂载和 Vite HMR 热更新；依赖安装必须使用 frozen lockfile。`package.json` 或 `pnpm-lock.yaml` 变化后重新运行后端 `dev-env.sh up`，不得让容器隐式修改锁文件。
 - 大改动前先阅读 `CLAUDE.md`；业务代码不要直接读取 `import.meta.env`，统一通过 `src/config/env.ts` 或 `useEnv()`。
 - 认证守卫与 token 刷新逻辑已集中在 `src/router/guards/`、`src/app/bootstrap-auth-context.ts` 与 `src/api/client.ts`，扩展时优先复用现有流程。
+
+## 任务执行与授权
+
+- 根据变更风险选择最小充分流程；未知风险按高风险处理。大型/高风险功能或 Bug 使用 RED → DEV → GREEN；小型/低风险优先复用既有测试或可靠替代验证。
+- 纯人类可读文档、注释、规则和发布元数据不走代码式 TDD，以审阅、链接/路径、结构和 diff 检查验证。
+- 只选择覆盖当前任务的最小 Skill 集合；已批准计划、纯文档或元数据调整不重复设计流程。
+- 写入前检查工作树状态；目标路径与其他活动任务冲突时先协调或隔离，保留不相关的 dirty 现场。
+- 只读 Review、实施、Commit、Push、创建 PR、Merge 和 Deploy 分别需要独立授权。
 
 ## Skill routing
 

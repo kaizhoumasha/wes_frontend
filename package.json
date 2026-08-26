@@ -17,7 +17,7 @@
     "lint:stylelint": "stylelint \"./**/*.{vue,less,scss,css}\" --cache --cache-location node_modules/.cache/stylelint/",
     "lint:all": "pnpm run type:check && pnpm run lint:eslint && pnpm run lint:prettier && pnpm run lint:stylelint",
     "lint": "pnpm run lint:all",
-    "check": "pnpm run type:check && pnpm run lint",
+    "check": "pnpm run lint",
     "generate:types": "tsx scripts/generate-api-types.ts",
     "generate:zod": "tsx scripts/generate-zod-from-openapi.ts",
     "generate:permissions": "tsx scripts/generate-permissions.ts",

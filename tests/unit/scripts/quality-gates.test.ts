@@ -123,6 +123,20 @@ describe.sequential('repository quality gates', () => {
     expect(readFileSync(tracePath, 'utf-8')).not.toMatch(/(?:--fix|--write)/)
   })
 
+  it('runs type checking once through the check command chain', () => {
+    const packageJson = JSON.parse(
+      readFileSync(join(REPOSITORY_ROOT, 'package.json'), 'utf-8')
+    ) as { scripts: Record<string, string> }
+
+    expect(packageJson.scripts.check).toBe('pnpm run lint')
+    expect(packageJson.scripts.lint).toBe('pnpm run lint:all')
+    expect(
+      Object.entries(packageJson.scripts)
+        .filter(([, command]) => command.includes('type:check'))
+        .map(([name]) => name)
+    ).toEqual(['lint:all'])
+  })
+
   it('propagates an offline contract verification failure from pre-commit', () => {
     const hookPath = join(root, 'pre-commit')
     const binRoot = join(root, 'bin')
