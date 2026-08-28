@@ -1,4 +1,4 @@
-/** @openapi-sha256 1516c8abc10d01f774f1e627e6abae88d69059cd67b475534d18e3ef7ea9aba5 */
+/** @openapi-sha256 cd53f95d30acf77f3bcb4546e6d8c29c7802f1cbbd741db6a8856399ff6f83c5 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -2066,6 +2066,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/transport/debug-tasks/{transport_task_id}/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [ops:transport:debug-reset] 清理 Transport 联调任务 */
+        post: operations["transport_debug_tasks_by_transport_task_id_reset_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transport/debug-tasks/{transport_task_id}/reset-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [ops:transport:debug-preview] 预检 Transport 联调任务清理 */
+        get: operations["transport_debug_tasks_by_transport_task_id_reset_preview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/transport/evidences/stream": {
         parameters: {
             query?: never;
@@ -3860,6 +3894,39 @@ export interface components {
             /** Transport Task Id */
             transport_task_id: string;
         };
+        /** DebugTransportTaskResetPreview */
+        DebugTransportTaskResetPreview: {
+            /** Active Binding Count */
+            active_binding_count: number;
+            /** Binding Count */
+            binding_count: number;
+            /** Blockers */
+            blockers: ("STATUS_NOT_RECONCILING" | "TRANSPORT_EVIDENCE_EXISTS" | "TRANSPORT_OUTCOME_EXISTS")[];
+            /** Eligible */
+            eligible: boolean;
+            /** Evidence Count */
+            evidence_count: number;
+            /** Member Count */
+            member_count: number;
+            /** Outcome Version */
+            outcome_version: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "PENDING" | "ACCEPTED" | "REJECTED" | "SUCCEEDED" | "FAILED" | "RECONCILING";
+            /** Transport Task Id */
+            transport_task_id: string;
+        };
+        /** DebugTransportTaskResetResult */
+        DebugTransportTaskResetResult: {
+            /** Deleted Binding Count */
+            deleted_binding_count: number;
+            /** Deleted Member Count */
+            deleted_member_count: number;
+            /** Transport Task Id */
+            transport_task_id: string;
+        };
         /** DeviceCommandCallbackResponse */
         DeviceCommandCallbackResponse: {
             /** Apply Status */
@@ -5508,6 +5575,10 @@ export interface components {
         ResponseSchemaModel_CallbackLogTraceResponse_: ApiResponse<components["schemas"]["CallbackLogTraceResponse"]>;
         /** ResponseSchemaModel[DebugTransportTaskCreated] */
         ResponseSchemaModel_DebugTransportTaskCreated_: ApiResponse<components["schemas"]["DebugTransportTaskCreated"]>;
+        /** ResponseSchemaModel[DebugTransportTaskResetPreview] */
+        ResponseSchemaModel_DebugTransportTaskResetPreview_: ApiResponse<components["schemas"]["DebugTransportTaskResetPreview"]>;
+        /** ResponseSchemaModel[DebugTransportTaskResetResult] */
+        ResponseSchemaModel_DebugTransportTaskResetResult_: ApiResponse<components["schemas"]["DebugTransportTaskResetResult"]>;
         /** ResponseSchemaModel[DeviceResponse] */
         ResponseSchemaModel_DeviceResponse_: ApiResponse<components["schemas"]["DeviceResponse"]>;
         /** ResponseSchemaModel[dict[str, Any]] */
@@ -10339,6 +10410,113 @@ export interface operations {
             };
             /** @description 幂等身份或 Transport 资源冲突 */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Transport runtime 不可用 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+        };
+    };
+    transport_debug_tasks_by_transport_task_id_reset_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transport_task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_DebugTransportTaskResetResult_"];
+                };
+            };
+            /** @description TransportTask 不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description 任务已形成事实或状态不允许清理 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Transport runtime 不可用 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+        };
+    };
+    transport_debug_tasks_by_transport_task_id_reset_preview_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transport_task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_DebugTransportTaskResetPreview_"];
+                };
+            };
+            /** @description TransportTask 不存在 */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

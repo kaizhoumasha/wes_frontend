@@ -12,4 +12,8 @@
 export const OPS_TRANSPORT_PERMISSION = {
   /** 创建 Transport 调试任务 */
   debugCreate: 'ops:transport:debug-create',
+  /** 预检 Transport 联调任务清理 */
+  debugPreview: 'ops:transport:debug-preview',
+  /** 清理 Transport 联调任务 */
+  debugReset: 'ops:transport:debug-reset',
 } as const

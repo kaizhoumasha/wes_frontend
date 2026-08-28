@@ -4,6 +4,8 @@ import {
   type DebugTasksInput,
   type DebugTasksResult,
   type GetByTransportTaskIdResult,
+  type ResetPreviewResult,
+  type ResetResult,
   type TasksQuery,
   type TasksResult
 } from '@/api/modules/transport'
@@ -12,6 +14,8 @@ export interface TransportDiagnosticsApiPort {
   listTasks(query: TasksQuery): Promise<TasksResult>
   getTask(transportTaskId: string): Promise<GetByTransportTaskIdResult>
   createTask(input: DebugTasksInput): Promise<DebugTasksResult>
+  previewTaskReset(transportTaskId: string): Promise<ResetPreviewResult>
+  resetTask(transportTaskId: string): Promise<ResetResult>
 }
 
 interface UseTransportDiagnosticsOptions {
@@ -24,7 +28,11 @@ const DEFAULT_API: TransportDiagnosticsApiPort = {
   listTasks: query => transportApiMethods.tasks(query).send(),
   getTask: transportTaskId =>
     transportApiMethods.getByTransportTaskId({ transport_task_id: transportTaskId }).send(),
-  createTask: input => transportApiMethods.debugTasks(input).send()
+  createTask: input => transportApiMethods.debugTasks(input).send(),
+  previewTaskReset: transportTaskId =>
+    transportApiMethods.resetPreview({ transport_task_id: transportTaskId }).send(),
+  resetTask: transportTaskId =>
+    transportApiMethods.reset({ transport_task_id: transportTaskId }).send()
 }
 
 export function useTransportDiagnostics(options: UseTransportDiagnosticsOptions = {}) {
@@ -37,6 +45,9 @@ export function useTransportDiagnostics(options: UseTransportDiagnosticsOptions 
   const loading = ref(false)
   const loadingDetail = ref(false)
   const submitting = ref(false)
+  const previewingReset = ref(false)
+  const resetting = ref(false)
+  const resetPreview = ref<ResetPreviewResult | null>(null)
   const lastError = ref<Error | null>(null)
   let listRequestGeneration = 0
   let detailRequestGeneration = 0
@@ -76,6 +87,7 @@ export function useTransportDiagnostics(options: UseTransportDiagnosticsOptions 
   async function selectTask(transportTaskId: string): Promise<void> {
     const requestGeneration = ++detailRequestGeneration
     selectedTaskId.value = transportTaskId
+    resetPreview.value = null
     loadingDetail.value = true
     lastError.value = null
     try {
@@ -115,6 +127,49 @@ export function useTransportDiagnostics(options: UseTransportDiagnosticsOptions 
     }
   }
 
+  async function previewTaskReset(transportTaskId: string): Promise<ResetPreviewResult> {
+    if (previewingReset.value) throw new Error('Transport 任务清理预检正在执行')
+    previewingReset.value = true
+    resetPreview.value = null
+    lastError.value = null
+    try {
+      const preview = await api.previewTaskReset(transportTaskId)
+      resetPreview.value = preview
+      return preview
+    } catch (error) {
+      lastError.value = toError(error)
+      throw error
+    } finally {
+      previewingReset.value = false
+    }
+  }
+
+  async function resetTask(transportTaskId: string): Promise<ResetResult> {
+    if (resetting.value) throw new Error('Transport 任务正在清理')
+    resetting.value = true
+    lastError.value = null
+    try {
+      const result = await api.resetTask(transportTaskId)
+      if (selectedTaskId.value === transportTaskId) {
+        detailRequestGeneration += 1
+        selectedTaskId.value = null
+        detail.value = null
+      }
+      resetPreview.value = null
+      try {
+        await loadRecent()
+      } catch {
+        // 清理结果已经确定，保留 loadRecent 写入的错误供页面提示，禁止诱导重复清理。
+      }
+      return result
+    } catch (error) {
+      lastError.value = toError(error)
+      throw error
+    } finally {
+      resetting.value = false
+    }
+  }
+
   function setFilters(nextFilters: Pick<TasksQuery, 'kind' | 'status'>): void {
     filters.value = { ...nextFilters }
   }
@@ -128,12 +183,17 @@ export function useTransportDiagnostics(options: UseTransportDiagnosticsOptions 
     loading,
     loadingDetail,
     submitting,
+    previewingReset,
+    resetting,
+    resetPreview,
     lastError,
     loadRecent,
     loadMore,
     selectTask,
     handleStreamTask,
     submitTask,
+    previewTaskReset,
+    resetTask,
     setFilters
   }
 }

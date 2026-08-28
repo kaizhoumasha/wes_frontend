@@ -3,6 +3,8 @@ import { useTransportDiagnostics } from '@/views/ops/transport-diagnostics/useTr
 import type {
   DebugTasksInput,
   GetByTransportTaskIdResult,
+  ResetPreviewResult,
+  ResetResult,
   TasksResult
 } from '@/api/modules/transport'
 
@@ -32,11 +34,34 @@ const DETAIL_1: GetByTransportTaskIdResult = {
   result: null
 }
 
+const RESET_PREVIEW: ResetPreviewResult = {
+  transport_task_id: 'transport-1',
+  status: 'RECONCILING',
+  evidence_count: 0,
+  outcome_version: 0,
+  member_count: 1,
+  binding_count: 1,
+  active_binding_count: 1,
+  blockers: [],
+  eligible: true
+}
+
+const RESET_RESULT: ResetResult = {
+  transport_task_id: 'transport-1',
+  deleted_member_count: 1,
+  deleted_binding_count: 1
+}
+
 function createApi() {
   return {
     listTasks: vi.fn<(_: Record<string, unknown>) => Promise<TasksResult>>(),
     getTask: vi.fn<(_: string) => Promise<GetByTransportTaskIdResult>>(),
-    createTask: vi.fn<(_: DebugTasksInput) => Promise<{ client_request_id: string; transport_task_id: string }>>()
+    createTask:
+      vi.fn<
+        (_: DebugTasksInput) => Promise<{ client_request_id: string; transport_task_id: string }>
+      >(),
+    previewTaskReset: vi.fn<(_: string) => Promise<ResetPreviewResult>>(),
+    resetTask: vi.fn<(_: string) => Promise<ResetResult>>()
   }
 }
 
@@ -125,7 +150,9 @@ describe('useTransportDiagnostics', () => {
 
   it('creates once, refreshes recent tasks and selects the durable task identity', async () => {
     const api = createApi()
-    let resolveCreate: ((value: { client_request_id: string; transport_task_id: string }) => void) | undefined
+    let resolveCreate:
+      | ((value: { client_request_id: string; transport_task_id: string }) => void)
+      | undefined
     api.createTask.mockReturnValue(
       new Promise(resolve => {
         resolveCreate = resolve
@@ -157,5 +184,49 @@ describe('useTransportDiagnostics', () => {
     expect(api.listTasks).toHaveBeenCalledOnce()
     expect(api.getTask).toHaveBeenCalledWith('transport-1')
     expect(diagnostics.selectedTaskId.value).toBe('transport-1')
+  })
+
+  it('previews the exact selected aggregate before allowing a reset', async () => {
+    const api = createApi()
+    api.previewTaskReset.mockResolvedValue(RESET_PREVIEW)
+    const diagnostics = useTransportDiagnostics({ api })
+
+    const preview = await diagnostics.previewTaskReset('transport-1')
+
+    expect(api.previewTaskReset).toHaveBeenCalledWith('transport-1')
+    expect(preview).toEqual(RESET_PREVIEW)
+    expect(diagnostics.resetPreview.value).toEqual(RESET_PREVIEW)
+  })
+
+  it('clears the deleted selection and reloads the durable task list after reset', async () => {
+    const api = createApi()
+    api.getTask.mockResolvedValue(DETAIL_1)
+    api.resetTask.mockResolvedValue(RESET_RESULT)
+    api.listTasks.mockResolvedValue({ items: [TASK_2], next_cursor: null })
+    const diagnostics = useTransportDiagnostics({ api })
+    await diagnostics.selectTask('transport-1')
+
+    const result = await diagnostics.resetTask('transport-1')
+
+    expect(result).toEqual(RESET_RESULT)
+    expect(diagnostics.selectedTaskId.value).toBeNull()
+    expect(diagnostics.detail.value).toBeNull()
+    expect(diagnostics.resetPreview.value).toBeNull()
+    expect(diagnostics.tasks.value).toEqual([TASK_2])
+  })
+
+  it('keeps a completed reset successful when only the follow-up list refresh fails', async () => {
+    const api = createApi()
+    api.getTask.mockResolvedValue(DETAIL_1)
+    api.resetTask.mockResolvedValue(RESET_RESULT)
+    api.listTasks.mockRejectedValue(new Error('refresh unavailable'))
+    const diagnostics = useTransportDiagnostics({ api })
+    await diagnostics.selectTask('transport-1')
+
+    await expect(diagnostics.resetTask('transport-1')).resolves.toEqual(RESET_RESULT)
+
+    expect(diagnostics.selectedTaskId.value).toBeNull()
+    expect(diagnostics.detail.value).toBeNull()
+    expect(diagnostics.lastError.value?.message).toBe('refresh unavailable')
   })
 })

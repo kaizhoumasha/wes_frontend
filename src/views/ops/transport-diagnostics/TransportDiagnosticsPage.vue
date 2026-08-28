@@ -6,6 +6,7 @@ import type { DebugTasksInput, TasksQuery } from '@/api/modules/transport'
 import type { TransportEvidenceStreamEvent } from '@/api/streaming/transportEvidenceStream'
 import { usePermission } from '@/composables/usePermission'
 import TransportDebugTaskDialog from './TransportDebugTaskDialog.vue'
+import TransportDebugResetDialog from './TransportDebugResetDialog.vue'
 import TransportTaskDetail from './TransportTaskDetail.vue'
 import TransportTaskTable from './TransportTaskTable.vue'
 import { useTransportDiagnostics } from './useTransportDiagnostics'
@@ -21,9 +22,12 @@ const { hasPermission } = usePermission()
 const canRead = computed(() => hasPermission(OPS_PERMISSIONS.transportTask.read))
 const canStream = computed(() => hasPermission(OPS_PERMISSIONS.transportEvidence.stream))
 const canCreate = computed(() => hasPermission(OPS_PERMISSIONS.transport.debugCreate))
+const canPreviewReset = computed(() => hasPermission(OPS_PERMISSIONS.transport.debugPreview))
+const canReset = computed(() => hasPermission(OPS_PERMISSIONS.transport.debugReset))
 const filterForm = reactive({ kind: '', status: '' })
 const uiError = ref('')
 const dialogRef = ref<DebugDialogExpose | null>(null)
+const resetDialogOpen = ref(false)
 const stream = useTransportEvidenceStream({
   onEvent: event => void refreshFromEvent(event),
   onReconnect: () => void refreshRecent()
@@ -88,6 +92,30 @@ async function submitTask(input: DebugTasksInput): Promise<void> {
   try {
     await diagnostics.submitTask(input)
     dialogRef.value?.close()
+  } catch (error) {
+    uiError.value = errorMessage(error)
+  }
+}
+
+async function openReset(): Promise<void> {
+  const transportTaskId = diagnostics.selectedTaskId.value
+  if (!transportTaskId || !canPreviewReset.value) return
+  uiError.value = ''
+  try {
+    await diagnostics.previewTaskReset(transportTaskId)
+    resetDialogOpen.value = true
+  } catch (error) {
+    uiError.value = errorMessage(error)
+  }
+}
+
+async function confirmReset(): Promise<void> {
+  const transportTaskId = diagnostics.resetPreview.value?.transport_task_id
+  if (!transportTaskId || !canReset.value) return
+  uiError.value = ''
+  try {
+    await diagnostics.resetTask(transportTaskId)
+    resetDialogOpen.value = false
   } catch (error) {
     uiError.value = errorMessage(error)
   }
@@ -198,6 +226,15 @@ defineExpose({ filterForm, applyFilters })
         </AppButton>
         <AppButton @click="refreshRecent">刷新持久任务</AppButton>
         <AppButton
+          v-if="canPreviewReset"
+          type="danger"
+          :loading="diagnostics.previewingReset.value"
+          :disabled="!diagnostics.selectedTaskId.value"
+          @click="openReset"
+        >
+          清理联调任务
+        </AppButton>
+        <AppButton
           v-if="canCreate"
           type="danger"
           @click="openDebug"
@@ -227,6 +264,13 @@ defineExpose({ filterForm, applyFilters })
       ref="dialogRef"
       :submitting="diagnostics.submitting.value"
       @submit="submitTask"
+    />
+    <TransportDebugResetDialog
+      v-model="resetDialogOpen"
+      :preview="diagnostics.resetPreview.value"
+      :submitting="diagnostics.resetting.value"
+      :can-reset="canReset"
+      @confirm="confirmReset"
     />
   </main>
 </template>

@@ -57,6 +57,8 @@ export { CallbackLogSubjectResponseMetadata } from './CallbackLogSubjectResponse
 export { CallbackLogTraceResponseMetadata } from './CallbackLogTraceResponse'
 export { ClearWorkLineEstopRequestMetadata } from './ClearWorkLineEstopRequest'
 export { DebugTransportTaskCreatedMetadata } from './DebugTransportTaskCreated'
+export { DebugTransportTaskResetPreviewMetadata } from './DebugTransportTaskResetPreview'
+export { DebugTransportTaskResetResultMetadata } from './DebugTransportTaskResetResult'
 export { DeviceCommandCallbackResponseMetadata } from './DeviceCommandCallbackResponse'
 export { DeviceCreateMetadata } from './DeviceCreate'
 export { DeviceIngressKindMetadata } from './DeviceIngressKind'

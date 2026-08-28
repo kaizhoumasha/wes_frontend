@@ -21,6 +21,12 @@ import type { components, paths } from '@/api/generated/openapi-types'
 export type DebugTasksResult = ContractResponseData<'/api/v1/transport/debug-tasks', 'post'>
 export type DebugTasksInput = ContractRequestBody<'/api/v1/transport/debug-tasks', 'post'>
 
+export type ResetResult = ContractResponseData<'/api/v1/transport/debug-tasks/{transport_task_id}/reset', 'post'>
+export type ResetPathParams = ContractPathParams<'/api/v1/transport/debug-tasks/{transport_task_id}/reset', 'post'>
+
+export type ResetPreviewResult = ContractResponseData<'/api/v1/transport/debug-tasks/{transport_task_id}/reset-preview', 'get'>
+export type ResetPreviewPathParams = ContractPathParams<'/api/v1/transport/debug-tasks/{transport_task_id}/reset-preview', 'get'>
+
 export type StreamResult = ContractResponseData<'/api/v1/transport/evidences/stream', 'get'>
 
 export type TasksResult = ContractResponseData<'/api/v1/transport/tasks', 'get'>
@@ -37,6 +43,24 @@ export const transportApiMethods = {
    */
   debugTasks(body: ContractRequestBody<'/api/v1/transport/debug-tasks', 'post'>, config?: ContractRequestConfig) {
     return contractMethods.post('/api/v1/transport/debug-tasks', { body, config })
+  },
+
+  /**
+   * [ops:transport:debug-reset] 清理 Transport 联调任务
+   * @endpoint POST /api/v1/transport/debug-tasks/{transport_task_id}/reset
+   * @returns alova method instance
+   */
+  reset(params: ContractPathParams<'/api/v1/transport/debug-tasks/{transport_task_id}/reset', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/transport/debug-tasks/{transport_task_id}/reset', { params, config })
+  },
+
+  /**
+   * [ops:transport:debug-preview] 预检 Transport 联调任务清理
+   * @endpoint GET /api/v1/transport/debug-tasks/{transport_task_id}/reset-preview
+   * @returns alova method instance
+   */
+  resetPreview(params: ContractPathParams<'/api/v1/transport/debug-tasks/{transport_task_id}/reset-preview', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/transport/debug-tasks/{transport_task_id}/reset-preview', { params, config })
   },
 
   /**
