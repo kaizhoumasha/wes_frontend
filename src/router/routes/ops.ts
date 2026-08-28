@@ -1,5 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { SUPERUSER_PERMISSION } from '@/composables/permission-state'
+import { OPS_TRANSPORT_TASK_PERMISSION } from '@/api/generated/permissions'
 
 export const opsRoutes: RouteRecordRaw = {
   path: 'ops',
@@ -27,6 +28,21 @@ export const opsRoutes: RouteRecordRaw = {
           name: 'ops:device-diagnostics:menu',
           icon: 'ep:data-analysis',
           sortOrder: 1
+        }
+      }
+    },
+    {
+      path: 'transport-diagnostics',
+      name: 'TransportDiagnostics',
+      component: () => import('@/views/ops/transport-diagnostics/TransportDiagnosticsPage.vue'),
+      meta: {
+        requiresAuth: true,
+        title: '运输接入诊断',
+        permission: OPS_TRANSPORT_TASK_PERMISSION.list,
+        menu: {
+          name: 'ops:transport-diagnostics:menu',
+          icon: 'ep:van',
+          sortOrder: 2
         }
       }
     }

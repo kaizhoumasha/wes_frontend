@@ -1,4 +1,4 @@
-/** @openapi-sha256 76a053f98e6e3bbf6ebe4e5733083c2bb0c5c649c6e42d6f727f1c9e47ab41b0 */
+/** @openapi-sha256 1516c8abc10d01f774f1e627e6abae88d69059cd67b475534d18e3ef7ea9aba5 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -1465,6 +1465,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/device/evidences/{source_event_id}/blocker": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 查询 Device EVENT 最新命令阻塞因果 */
+        get: operations["device_evidences_by_source_event_id_blocker_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/device/evidences/{source_event_id}/blockers/{block_id}/reconcile-device-idle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 以设备实时空闲证明闭合 DELIVERY_UNKNOWN 命令 */
+        post: operations["device_evidences_by_source_event_id_blockers_by_block_id_reconcile_device_idle_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/device/evidences/{source_event_id}/blockers/{block_id}/reprocess": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 显式重新处理已闭合 blocker 的 Device EVENT */
+        post: operations["device_evidences_by_source_event_id_blockers_by_block_id_reprocess_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/device/evidences/stream": {
         parameters: {
             query?: never;
@@ -2015,6 +2066,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/transport/evidences/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [ops:transport-evidence:stream] 实时订阅 WMS Transport callback 与 evidence 应用状态 */
+        get: operations["transport_evidences_stream_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transport/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [ops:transport-task:list] 查询本地 Transport 任务列表 */
+        get: operations["transport_tasks_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/transport/tasks/{transport_task_id}": {
         parameters: {
             query?: never;
@@ -2022,7 +2107,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** [ops:transport:read] 查询本地 Transport 任务 */
+        /** [ops:transport-task:read] 查询本地 Transport 任务 */
         get: operations["transport_tasks_by_transport_task_id_get"];
         put?: never;
         post?: never;
@@ -4004,6 +4089,37 @@ export interface components {
          * @enum {string}
          */
         EcsDeviceState: "IDLE" | "RUNNING" | "ERROR" | "PAUSED" | "STOPPED" | "OFFLINE" | "UNKNOWN";
+        /** EventCommandBlockResponse */
+        EventCommandBlockResponse: {
+            /** Block Id */
+            block_id: number;
+            /** Blocked At */
+            blocked_at: string | null;
+            /** Blocking Command Code */
+            blocking_command_code: string;
+            /** Blocking Command Current Status */
+            blocking_command_current_status: string | null;
+            /** Blocking Command Detected Reconciliation Reason */
+            blocking_command_detected_reconciliation_reason: string | null;
+            /** Blocking Command Detected Status */
+            blocking_command_detected_status: string;
+            /** Blocking Command Terminal */
+            blocking_command_terminal: boolean;
+            /** Device Code */
+            device_code: string;
+            /** Reason Code */
+            reason_code: string;
+            /** Reconcile Device Idle Path */
+            reconcile_device_idle_path: string;
+            /** Reprocess Path */
+            reprocess_path: string;
+            /** Requeued At */
+            requeued_at: string | null;
+            /** Source Event Id */
+            source_event_id: string;
+            /** Status */
+            status: string;
+        };
         /**
          * FilterCondition
          * @description 单个过滤条件
@@ -4328,6 +4444,20 @@ export interface components {
             devices: components["schemas"]["ManualDebugPreflightDevice"][];
             /** Endpoint Base Url */
             endpoint_base_url: string;
+        };
+        /** ManualReconcileDeviceIdleRequest */
+        ManualReconcileDeviceIdleRequest: {
+            /** Reason */
+            reason: string;
+        };
+        /** ManualReconcileDeviceIdleResponse */
+        ManualReconcileDeviceIdleResponse: {
+            /** Command Code */
+            command_code: string;
+            /** Failure Code */
+            failure_code: string;
+            /** Status */
+            status: string;
         };
         /**
          * MaterialLocationConflictState
@@ -5131,6 +5261,20 @@ export interface components {
             /** Request Id */
             request_id: string;
         };
+        /** ReprocessBlockedEventRequest */
+        ReprocessBlockedEventRequest: {
+            /** Reason */
+            reason: string;
+        };
+        /** ReprocessBlockedEventResponse */
+        ReprocessBlockedEventResponse: {
+            /** Apply Status */
+            apply_status: string;
+            /** Block Id */
+            block_id: number;
+            /** Source Event Id */
+            source_event_id: string;
+        };
         /**
          * ResetPasswordRequest
          * @description 管理员重置密码请求
@@ -5370,6 +5514,8 @@ export interface components {
         ResponseSchemaModel_dict_str__Any__: ApiResponse<Record<string, unknown>>;
         /** ResponseSchemaModel[dict[str, str]] */
         ResponseSchemaModel_dict_str__str__: ApiResponse<Record<string, string>>;
+        /** ResponseSchemaModel[EventCommandBlockResponse] */
+        ResponseSchemaModel_EventCommandBlockResponse_: ApiResponse<components["schemas"]["EventCommandBlockResponse"]>;
         /** ResponseSchemaModel[list[Any]] */
         ResponseSchemaModel_list_Any__: ApiResponse<unknown[]>;
         /** ResponseSchemaModel[list[dict[str, Any]]] */
@@ -5388,6 +5534,8 @@ export interface components {
         ResponseSchemaModel_ManualDebugDeviceCommandResponse_: ApiResponse<components["schemas"]["ManualDebugDeviceCommandResponse"]>;
         /** ResponseSchemaModel[ManualDebugPreflightResponse] */
         ResponseSchemaModel_ManualDebugPreflightResponse_: ApiResponse<components["schemas"]["ManualDebugPreflightResponse"]>;
+        /** ResponseSchemaModel[ManualReconcileDeviceIdleResponse] */
+        ResponseSchemaModel_ManualReconcileDeviceIdleResponse_: ApiResponse<components["schemas"]["ManualReconcileDeviceIdleResponse"]>;
         /** ResponseSchemaModel[MaterialLocationResult] */
         ResponseSchemaModel_MaterialLocationResult_: ApiResponse<components["schemas"]["MaterialLocationResult"]>;
         /** ResponseSchemaModel[NoneType] */
@@ -5412,12 +5560,16 @@ export interface components {
         ResponseSchemaModel_RackTypeResponse_: ApiResponse<components["schemas"]["RackTypeResponse"]>;
         /** ResponseSchemaModel[RefreshTokenResponse] */
         ResponseSchemaModel_RefreshTokenResponse_: ApiResponse<components["schemas"]["RefreshTokenResponse"]>;
+        /** ResponseSchemaModel[ReprocessBlockedEventResponse] */
+        ResponseSchemaModel_ReprocessBlockedEventResponse_: ApiResponse<components["schemas"]["ReprocessBlockedEventResponse"]>;
         /** ResponseSchemaModel[ResourceStateEventResponse] */
         ResponseSchemaModel_ResourceStateEventResponse_: ApiResponse<components["schemas"]["ResourceStateEventResponse"]>;
         /** ResponseSchemaModel[RevokeSessionResponse] */
         ResponseSchemaModel_RevokeSessionResponse_: ApiResponse<components["schemas"]["RevokeSessionResponse"]>;
         /** ResponseSchemaModel[RoleResponse] */
         ResponseSchemaModel_RoleResponse_: ApiResponse<components["schemas"]["RoleResponse"]>;
+        /** ResponseSchemaModel[TransportTaskPageResponse] */
+        ResponseSchemaModel_TransportTaskPageResponse_: ApiResponse<components["schemas"]["TransportTaskPageResponse"]>;
         /** ResponseSchemaModel[TransportTaskResponse] */
         ResponseSchemaModel_TransportTaskResponse_: ApiResponse<components["schemas"]["TransportTaskResponse"]>;
         /** ResponseSchemaModel[Union[WorkLineStartResponse, WorkLineStartErrorResponse]] */
@@ -5688,8 +5840,90 @@ export interface components {
              */
             status: "PENDING" | "APPLIED" | "CONFLICT";
         };
+        /** TransportResultMemberResponse */
+        TransportResultMemberResponse: {
+            /** Arrival Face */
+            arrival_face: ("A" | "B") | null;
+            /** Failure Code */
+            failure_code: string | null;
+            /** Final Position */
+            final_position: {
+                [key: string]: unknown;
+            } | null;
+            /** Object Id */
+            object_id: string;
+            /** Position Unknown */
+            position_unknown: boolean;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "UNKNOWN" | "FAILED" | "SUCCEEDED";
+        };
+        /** TransportResultResponse */
+        TransportResultResponse: {
+            /** Members */
+            members: components["schemas"]["TransportResultMemberResponse"][];
+            /** Outcome Version */
+            outcome_version: number;
+            /** Reason Code */
+            reason_code: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "SUCCEEDED" | "FAILED" | "REJECTED" | "UNKNOWN";
+        };
+        /**
+         * TransportTaskKind
+         * @enum {string}
+         */
+        TransportTaskKind: "RACK_MOVE" | "RACK_ROTATE" | "BIN_MOVE" | "BIN_EXCHANGE";
+        /** TransportTaskPageResponse */
+        TransportTaskPageResponse: {
+            /** Items */
+            items: components["schemas"]["TransportTaskSummaryResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
         /** TransportTaskResponse */
         TransportTaskResponse: {
+            /** Client Request Id */
+            client_request_id: string;
+            /** Created At */
+            created_at: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "RACK_MOVE" | "RACK_ROTATE" | "BIN_MOVE" | "BIN_EXCHANGE";
+            latest_evidence: components["schemas"]["TransportEvidenceResponse"] | null;
+            /** Reason Code */
+            reason_code: string | null;
+            /** Request */
+            request: {
+                [key: string]: unknown;
+            };
+            result: components["schemas"]["TransportResultResponse"] | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "PENDING" | "ACCEPTED" | "REJECTED" | "SUCCEEDED" | "FAILED" | "RECONCILING";
+            /** Submit Operation Id */
+            submit_operation_id: string;
+            /** Transport Task Id */
+            transport_task_id: string;
+            /** Updated At */
+            updated_at: string;
+        };
+        /**
+         * TransportTaskStatus
+         * @enum {string}
+         */
+        TransportTaskStatus: "PENDING" | "ACCEPTED" | "REJECTED" | "SUCCEEDED" | "FAILED" | "RECONCILING";
+        /** TransportTaskSummaryResponse */
+        TransportTaskSummaryResponse: {
             /** Client Request Id */
             client_request_id: string;
             /** Created At */
@@ -8820,6 +9054,172 @@ export interface operations {
             };
         };
     };
+    device_evidences_by_source_event_id_blocker_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_EventCommandBlockResponse_"];
+                };
+            };
+            /** @description EVENT blocker 不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description 阻塞因果不可用 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    device_evidences_by_source_event_id_blockers_by_block_id_reconcile_device_idle_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                block_id: number;
+                source_event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManualReconcileDeviceIdleRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_ManualReconcileDeviceIdleResponse_"];
+                };
+            };
+            /** @description EVENT blocker 不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description 因果或设备状态不允许人工闭合 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description ECS 状态查询不可用 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+        };
+    };
+    device_evidences_by_source_event_id_blockers_by_block_id_reprocess_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                block_id: number;
+                source_event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReprocessBlockedEventRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_ReprocessBlockedEventResponse_"];
+                };
+            };
+            /** @description EVENT blocker 不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description 阻塞因果不允许重处理 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     device_evidences_stream_get: {
         parameters: {
             query?: {
@@ -9939,6 +10339,78 @@ export interface operations {
             };
             /** @description 幂等身份或 Transport 资源冲突 */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Transport runtime 不可用 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+        };
+    };
+    transport_evidences_stream_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": string;
+                };
+            };
+        };
+    };
+    transport_tasks_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                kind?: components["schemas"]["TransportTaskKind"] | null;
+                limit?: number;
+                status?: components["schemas"]["TransportTaskStatus"] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_TransportTaskPageResponse_"];
+                };
+            };
+            /** @description 游标或筛选条件无效 */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };

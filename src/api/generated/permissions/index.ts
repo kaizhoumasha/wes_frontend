@@ -17,6 +17,8 @@ import { BIZ_MATERIAL_PERMISSION } from './user_api/biz/material'
 import { BIZ_WORKLINE_PERMISSION } from './user_api/biz/workline'
 import { CALLBACK_CALLBACK_LOG_PERMISSION } from './user_api/callback/callback_log'
 import { OPS_TRANSPORT_PERMISSION } from './user_api/ops/transport'
+import { OPS_TRANSPORT_EVIDENCE_PERMISSION } from './user_api/ops/transport-evidence'
+import { OPS_TRANSPORT_TASK_PERMISSION } from './user_api/ops/transport-task'
 import { RESOURCE_BIN_PERMISSION } from './user_api/resource/bin'
 import { RESOURCE_BINCELLOCCUPANCY_PERMISSION } from './user_api/resource/bincelloccupancy'
 import { RESOURCE_BINCONTENTSNAPSHOT_PERMISSION } from './user_api/resource/bincontentsnapshot'
@@ -45,6 +47,8 @@ export { BIZ_MATERIAL_PERMISSION }
 export { BIZ_WORKLINE_PERMISSION }
 export { CALLBACK_CALLBACK_LOG_PERMISSION }
 export { OPS_TRANSPORT_PERMISSION }
+export { OPS_TRANSPORT_EVIDENCE_PERMISSION }
+export { OPS_TRANSPORT_TASK_PERMISSION }
 export { RESOURCE_BIN_PERMISSION }
 export { RESOURCE_BINCELLOCCUPANCY_PERMISSION }
 export { RESOURCE_BINCONTENTSNAPSHOT_PERMISSION }
@@ -106,6 +110,8 @@ export const CALLBACK_PERMISSIONS = {
  */
 export const OPS_PERMISSIONS = {
   transport: OPS_TRANSPORT_PERMISSION,
+  transportEvidence: OPS_TRANSPORT_EVIDENCE_PERMISSION,
+  transportTask: OPS_TRANSPORT_TASK_PERMISSION,
 } as const
 
 /**
