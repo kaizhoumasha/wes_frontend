@@ -1,7 +1,7 @@
 {
   "name": "mcs-frontend",
   "private": true,
-  "version": "0.11.2.0",
+  "version": "0.12.0.0",
   "type": "module",
   "description": "P9 MCS 前端项目 - 休斯顿智能物料控制系统",
   "scripts": {

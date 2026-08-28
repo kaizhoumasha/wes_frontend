@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0.0] - 2026-08-28
+
+### Added
+
+- 新增运输接入诊断页：支持按 Transport kind/status 查询持久任务、游标加载、按需查看持久详情，并明确区分提交接纳、Evidence、Transport 终态与现场物理验收。
+- 新增 Transport live-only SSE 通知与四类真实调试任务入口；真实任务必须先生成不可变请求预览并显式确认，页面不会把 ACK 或 SSE 通知描述为物理完成。
+
+### Changed
+
+- 设备与 Transport SSE 统一复用带鉴权刷新、协议边界、显式关闭及 gap 状态的共享连接实现；OpenAPI、Zod 与权限目录同步到后端 `41ab69bf`。
+
+### Fixed
+
+- 列表和详情请求增加 generation guard，避免慢响应覆盖较新的过滤结果或当前选中任务。
+
+### Verification
+
+- 最终功能快照 79 个测试文件、591 项测试通过；typecheck、ESLint、Prettier、Stylelint、生产构建、合同测试、合同同步与权限同步校验全部通过。
+- 本地浏览器 QA 覆盖菜单与深链、SSE 连接、过滤、持久详情、不可变预览及桌面/平板/移动视口；未提交真实 Transport 任务，未执行部署、现场物理动作或业务验收。
+
 ## [0.11.2.0] - 2026-08-24
 
 ### Fixed
