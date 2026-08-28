@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import AppButton from '@/components/ui/AppButton.vue'
-import {
-  OPS_TRANSPORT_EVIDENCE_PERMISSION,
-  OPS_TRANSPORT_PERMISSION,
-  OPS_TRANSPORT_TASK_PERMISSION
-} from '@/api/generated/permissions'
+import { OPS_PERMISSIONS } from '@/api/generated/permissions'
 import type { DebugTasksInput, TasksQuery } from '@/api/modules/transport'
 import type { TransportEvidenceStreamEvent } from '@/api/streaming/transportEvidenceStream'
 import { usePermission } from '@/composables/usePermission'
@@ -22,9 +18,9 @@ interface DebugDialogExpose {
 
 const diagnostics = useTransportDiagnostics()
 const { hasPermission } = usePermission()
-const canRead = computed(() => hasPermission(OPS_TRANSPORT_TASK_PERMISSION.read))
-const canStream = computed(() => hasPermission(OPS_TRANSPORT_EVIDENCE_PERMISSION.stream))
-const canCreate = computed(() => hasPermission(OPS_TRANSPORT_PERMISSION.debugCreate))
+const canRead = computed(() => hasPermission(OPS_PERMISSIONS.transportTask.read))
+const canStream = computed(() => hasPermission(OPS_PERMISSIONS.transportEvidence.stream))
+const canCreate = computed(() => hasPermission(OPS_PERMISSIONS.transport.debugCreate))
 const filterForm = reactive({ kind: '', status: '' })
 const uiError = ref('')
 const dialogRef = ref<DebugDialogExpose | null>(null)

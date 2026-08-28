@@ -1,6 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { SUPERUSER_PERMISSION } from '@/composables/permission-state'
-import { OPS_TRANSPORT_TASK_PERMISSION } from '@/api/generated/permissions'
+import { OPS_PERMISSIONS } from '@/api/generated/permissions'
 
 export const opsRoutes: RouteRecordRaw = {
   path: 'ops',
@@ -38,7 +38,7 @@ export const opsRoutes: RouteRecordRaw = {
       meta: {
         requiresAuth: true,
         title: '运输接入诊断',
-        permission: OPS_TRANSPORT_TASK_PERMISSION.list,
+        permission: OPS_PERMISSIONS.transportTask.list,
         menu: {
           name: 'ops:transport-diagnostics:menu',
           icon: 'ep:van',
