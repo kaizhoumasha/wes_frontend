@@ -1,5 +1,5 @@
 /**
- * 自动生成的 OpenAPI schema 字段元数据: TransportTaskResponse
+ * 自动生成的 OpenAPI schema 字段元数据: TransportTaskSummaryResponse
  *
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
@@ -9,8 +9,8 @@
 
 import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
-export const TransportTaskResponseMetadata = {
-  "title": "TransportTaskResponse",
+export const TransportTaskSummaryResponseMetadata = {
+  "title": "TransportTaskSummaryResponse",
   "required": [
     "transport_task_id",
     "client_request_id",
@@ -20,9 +20,7 @@ export const TransportTaskResponseMetadata = {
     "reason_code",
     "created_at",
     "updated_at",
-    "latest_evidence",
-    "request",
-    "result"
+    "latest_evidence"
   ],
   "additionalProperties": false,
   "fields": {
@@ -60,17 +58,6 @@ export const TransportTaskResponseMetadata = {
       "type": "string",
       "required": true,
       "nullable": true
-    },
-    "request": {
-      "title": "Request",
-      "type": "object",
-      "required": true,
-      "nullable": false
-    },
-    "result": {
-      "required": true,
-      "nullable": true,
-      "ref": "TransportResultResponse"
     },
     "status": {
       "title": "Status",

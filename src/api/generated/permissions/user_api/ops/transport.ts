@@ -12,6 +12,4 @@
 export const OPS_TRANSPORT_PERMISSION = {
   /** 创建 Transport 调试任务 */
   debugCreate: 'ops:transport:debug-create',
-  /** 查询本地 Transport 任务 */
-  read: 'ops:transport:read',
 } as const

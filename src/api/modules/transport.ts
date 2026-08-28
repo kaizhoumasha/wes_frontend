@@ -6,7 +6,7 @@
  * ⚠️  请勿手动编辑 AUTO GENERATED 区域
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 资源: /api/v1/transport/debug-tasks, /api/v1/transport/tasks
+ * 资源: /api/v1/transport/debug-tasks, /api/v1/transport/evidences, /api/v1/transport/tasks
  */
 import { contractMethods } from '@/api/contract/client'
 import type {
@@ -20,6 +20,11 @@ import type { components, paths } from '@/api/generated/openapi-types'
 
 export type DebugTasksResult = ContractResponseData<'/api/v1/transport/debug-tasks', 'post'>
 export type DebugTasksInput = ContractRequestBody<'/api/v1/transport/debug-tasks', 'post'>
+
+export type StreamResult = ContractResponseData<'/api/v1/transport/evidences/stream', 'get'>
+
+export type TasksResult = ContractResponseData<'/api/v1/transport/tasks', 'get'>
+export type TasksQuery = ContractQueryParams<'/api/v1/transport/tasks', 'get'>
 
 export type GetByTransportTaskIdResult = ContractResponseData<'/api/v1/transport/tasks/{transport_task_id}', 'get'>
 export type GetByTransportTaskIdPathParams = ContractPathParams<'/api/v1/transport/tasks/{transport_task_id}', 'get'>
@@ -35,7 +40,25 @@ export const transportApiMethods = {
   },
 
   /**
-   * [ops:transport:read] 查询本地 Transport 任务
+   * [ops:transport-evidence:stream] 实时订阅 WMS Transport callback 与 evidence 应用状态
+   * @endpoint GET /api/v1/transport/evidences/stream
+   * @returns alova method instance
+   */
+  stream(config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/transport/evidences/stream', { config })
+  },
+
+  /**
+   * [ops:transport-task:list] 查询本地 Transport 任务列表
+   * @endpoint GET /api/v1/transport/tasks
+   * @returns alova method instance
+   */
+  tasks(query?: ContractQueryParams<'/api/v1/transport/tasks', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/transport/tasks', { query, config })
+  },
+
+  /**
+   * [ops:transport-task:read] 查询本地 Transport 任务
    * @endpoint GET /api/v1/transport/tasks/{transport_task_id}
    * @returns alova method instance
    */

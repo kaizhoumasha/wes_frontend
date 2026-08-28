@@ -1,10 +1,10 @@
 import { nextTick } from 'vue'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
-  createUuid7,
   useManualDebugCommand,
   type ManualDebugApiPort
 } from '@/views/ops/device-diagnostics/useManualDebugCommand'
+import { createUuid7 } from '@/utils/uuid7'
 
 function method<T>(result: T) {
   return { send: vi.fn().mockResolvedValue(result) }

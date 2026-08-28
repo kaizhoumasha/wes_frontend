@@ -30,6 +30,17 @@ export type GetByCommandCodePathParams = ContractPathParams<'/api/v1/device/comm
 export type StreamResult = ContractResponseData<'/api/v1/device/evidences/stream', 'get'>
 export type StreamQuery = ContractQueryParams<'/api/v1/device/evidences/stream', 'get'>
 
+export type BlockerResult = ContractResponseData<'/api/v1/device/evidences/{source_event_id}/blocker', 'get'>
+export type BlockerPathParams = ContractPathParams<'/api/v1/device/evidences/{source_event_id}/blocker', 'get'>
+
+export type BlockersReconcileDeviceIdleResult = ContractResponseData<'/api/v1/device/evidences/{source_event_id}/blockers/{block_id}/reconcile-device-idle', 'post'>
+export type BlockersReconcileDeviceIdlePathParams = ContractPathParams<'/api/v1/device/evidences/{source_event_id}/blockers/{block_id}/reconcile-device-idle', 'post'>
+export type BlockersReconcileDeviceIdleInput = ContractRequestBody<'/api/v1/device/evidences/{source_event_id}/blockers/{block_id}/reconcile-device-idle', 'post'>
+
+export type BlockersReprocessResult = ContractResponseData<'/api/v1/device/evidences/{source_event_id}/blockers/{block_id}/reprocess', 'post'>
+export type BlockersReprocessPathParams = ContractPathParams<'/api/v1/device/evidences/{source_event_id}/blockers/{block_id}/reprocess', 'post'>
+export type BlockersReprocessInput = ContractRequestBody<'/api/v1/device/evidences/{source_event_id}/blockers/{block_id}/reprocess', 'post'>
+
 export const deviceApiMethods = {
   /**
    * 创建 DeviceCommand 联调命令
@@ -65,6 +76,33 @@ export const deviceApiMethods = {
    */
   stream(query?: ContractQueryParams<'/api/v1/device/evidences/stream', 'get'>, config?: ContractRequestConfig) {
     return contractMethods.get('/api/v1/device/evidences/stream', { query, config })
+  },
+
+  /**
+   * 查询 Device EVENT 最新命令阻塞因果
+   * @endpoint GET /api/v1/device/evidences/{source_event_id}/blocker
+   * @returns alova method instance
+   */
+  blocker(params: ContractPathParams<'/api/v1/device/evidences/{source_event_id}/blocker', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/device/evidences/{source_event_id}/blocker', { params, config })
+  },
+
+  /**
+   * 以设备实时空闲证明闭合 DELIVERY_UNKNOWN 命令
+   * @endpoint POST /api/v1/device/evidences/{source_event_id}/blockers/{block_id}/reconcile-device-idle
+   * @returns alova method instance
+   */
+  blockersReconcileDeviceIdle(params: ContractPathParams<'/api/v1/device/evidences/{source_event_id}/blockers/{block_id}/reconcile-device-idle', 'post'>, body: ContractRequestBody<'/api/v1/device/evidences/{source_event_id}/blockers/{block_id}/reconcile-device-idle', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/device/evidences/{source_event_id}/blockers/{block_id}/reconcile-device-idle', { params, body, config })
+  },
+
+  /**
+   * 显式重新处理已闭合 blocker 的 Device EVENT
+   * @endpoint POST /api/v1/device/evidences/{source_event_id}/blockers/{block_id}/reprocess
+   * @returns alova method instance
+   */
+  blockersReprocess(params: ContractPathParams<'/api/v1/device/evidences/{source_event_id}/blockers/{block_id}/reprocess', 'post'>, body: ContractRequestBody<'/api/v1/device/evidences/{source_event_id}/blockers/{block_id}/reprocess', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/device/evidences/{source_event_id}/blockers/{block_id}/reprocess', { params, body, config })
   }
 }
 // ==================== AUTO GENERATED END ====================

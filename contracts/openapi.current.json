@@ -2956,6 +2956,113 @@
         "title": "EcsDeviceState",
         "type": "string"
       },
+      "EventCommandBlockResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "block_id": {
+            "title": "Block Id",
+            "type": "integer"
+          },
+          "blocked_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blocked At"
+          },
+          "blocking_command_code": {
+            "title": "Blocking Command Code",
+            "type": "string"
+          },
+          "blocking_command_current_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blocking Command Current Status"
+          },
+          "blocking_command_detected_reconciliation_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blocking Command Detected Reconciliation Reason"
+          },
+          "blocking_command_detected_status": {
+            "title": "Blocking Command Detected Status",
+            "type": "string"
+          },
+          "blocking_command_terminal": {
+            "title": "Blocking Command Terminal",
+            "type": "boolean"
+          },
+          "device_code": {
+            "title": "Device Code",
+            "type": "string"
+          },
+          "reason_code": {
+            "title": "Reason Code",
+            "type": "string"
+          },
+          "reconcile_device_idle_path": {
+            "title": "Reconcile Device Idle Path",
+            "type": "string"
+          },
+          "reprocess_path": {
+            "title": "Reprocess Path",
+            "type": "string"
+          },
+          "requeued_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requeued At"
+          },
+          "source_event_id": {
+            "title": "Source Event Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "block_id",
+          "status",
+          "source_event_id",
+          "device_code",
+          "blocking_command_code",
+          "blocking_command_detected_status",
+          "blocking_command_detected_reconciliation_reason",
+          "blocking_command_current_status",
+          "blocking_command_terminal",
+          "reason_code",
+          "blocked_at",
+          "requeued_at",
+          "reconcile_device_idle_path",
+          "reprocess_path"
+        ],
+        "title": "EventCommandBlockResponse",
+        "type": "object"
+      },
       "FilterCondition": {
         "description": "单个过滤条件",
         "properties": {
@@ -5253,6 +5360,46 @@
         "title": "ManualDebugPreflightResponse",
         "type": "object"
       },
+      "ManualReconcileDeviceIdleRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "ManualReconcileDeviceIdleRequest",
+        "type": "object"
+      },
+      "ManualReconcileDeviceIdleResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "command_code": {
+            "title": "Command Code",
+            "type": "string"
+          },
+          "failure_code": {
+            "title": "Failure Code",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "command_code",
+          "status",
+          "failure_code"
+        ],
+        "title": "ManualReconcileDeviceIdleResponse",
+        "type": "object"
+      },
       "MaterialLocationConflictState": {
         "description": "MaterialLocationQuery 冲突状态。",
         "enum": [
@@ -6910,6 +7057,46 @@
         "title": "ReplayInboxRequest",
         "type": "object"
       },
+      "ReprocessBlockedEventRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "ReprocessBlockedEventRequest",
+        "type": "object"
+      },
+      "ReprocessBlockedEventResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "apply_status": {
+            "title": "Apply Status",
+            "type": "string"
+          },
+          "block_id": {
+            "title": "Block Id",
+            "type": "integer"
+          },
+          "source_event_id": {
+            "title": "Source Event Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_event_id",
+          "block_id",
+          "apply_status"
+        ],
+        "title": "ReprocessBlockedEventResponse",
+        "type": "object"
+      },
       "ResetPasswordRequest": {
         "description": "管理员重置密码请求",
         "properties": {
@@ -8058,6 +8245,51 @@
         "title": "ResponseSchemaModel[DeviceResponse]",
         "type": "object"
       },
+      "ResponseSchemaModel_EventCommandBlockResponse_": {
+        "properties": {
+          "code": {
+            "default": "1000",
+            "description": "响应码",
+            "examples": [
+              "1000",
+              "2000"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EventCommandBlockResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "message": {
+            "default": "操作成功",
+            "description": "响应消息",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ],
+            "title": "Message",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ],
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "title": "ResponseSchemaModel[EventCommandBlockResponse]",
+        "type": "object"
+      },
       "ResponseSchemaModel_LoginResponse_": {
         "properties": {
           "code": {
@@ -8281,6 +8513,51 @@
           }
         },
         "title": "ResponseSchemaModel[ManualDebugPreflightResponse]",
+        "type": "object"
+      },
+      "ResponseSchemaModel_ManualReconcileDeviceIdleResponse_": {
+        "properties": {
+          "code": {
+            "default": "1000",
+            "description": "响应码",
+            "examples": [
+              "1000",
+              "2000"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ManualReconcileDeviceIdleResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "message": {
+            "default": "操作成功",
+            "description": "响应消息",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ],
+            "title": "Message",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ],
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "title": "ResponseSchemaModel[ManualReconcileDeviceIdleResponse]",
         "type": "object"
       },
       "ResponseSchemaModel_MaterialLocationResult_": {
@@ -8817,6 +9094,51 @@
         "title": "ResponseSchemaModel[RefreshTokenResponse]",
         "type": "object"
       },
+      "ResponseSchemaModel_ReprocessBlockedEventResponse_": {
+        "properties": {
+          "code": {
+            "default": "1000",
+            "description": "响应码",
+            "examples": [
+              "1000",
+              "2000"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReprocessBlockedEventResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "message": {
+            "default": "操作成功",
+            "description": "响应消息",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ],
+            "title": "Message",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ],
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "title": "ResponseSchemaModel[ReprocessBlockedEventResponse]",
+        "type": "object"
+      },
       "ResponseSchemaModel_ResourceStateEventResponse_": {
         "properties": {
           "code": {
@@ -8950,6 +9272,51 @@
           }
         },
         "title": "ResponseSchemaModel[RoleResponse]",
+        "type": "object"
+      },
+      "ResponseSchemaModel_TransportTaskPageResponse_": {
+        "properties": {
+          "code": {
+            "default": "1000",
+            "description": "响应码",
+            "examples": [
+              "1000",
+              "2000"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TransportTaskPageResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "message": {
+            "default": "操作成功",
+            "description": "响应消息",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ],
+            "title": "Message",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ],
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "title": "ResponseSchemaModel[TransportTaskPageResponse]",
         "type": "object"
       },
       "ResponseSchemaModel_TransportTaskResponse_": {
@@ -10217,7 +10584,271 @@
         "title": "TransportEvidenceResponse",
         "type": "object"
       },
+      "TransportResultMemberResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "arrival_face": {
+            "anyOf": [
+              {
+                "enum": [
+                  "A",
+                  "B"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arrival Face"
+          },
+          "failure_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure Code"
+          },
+          "final_position": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Final Position"
+          },
+          "object_id": {
+            "title": "Object Id",
+            "type": "string"
+          },
+          "position_unknown": {
+            "title": "Position Unknown",
+            "type": "boolean"
+          },
+          "status": {
+            "enum": [
+              "UNKNOWN",
+              "FAILED",
+              "SUCCEEDED"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "object_id",
+          "status",
+          "final_position",
+          "position_unknown",
+          "failure_code",
+          "arrival_face"
+        ],
+        "title": "TransportResultMemberResponse",
+        "type": "object"
+      },
+      "TransportResultResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/TransportResultMemberResponse"
+            },
+            "title": "Members",
+            "type": "array"
+          },
+          "outcome_version": {
+            "title": "Outcome Version",
+            "type": "integer"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Code"
+          },
+          "status": {
+            "enum": [
+              "SUCCEEDED",
+              "FAILED",
+              "REJECTED",
+              "UNKNOWN"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "outcome_version",
+          "status",
+          "reason_code",
+          "members"
+        ],
+        "title": "TransportResultResponse",
+        "type": "object"
+      },
+      "TransportTaskKind": {
+        "enum": [
+          "RACK_MOVE",
+          "RACK_ROTATE",
+          "BIN_MOVE",
+          "BIN_EXCHANGE"
+        ],
+        "title": "TransportTaskKind",
+        "type": "string"
+      },
+      "TransportTaskPageResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TransportTaskSummaryResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "TransportTaskPageResponse",
+        "type": "object"
+      },
       "TransportTaskResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "client_request_id": {
+            "title": "Client Request Id",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "RACK_MOVE",
+              "RACK_ROTATE",
+              "BIN_MOVE",
+              "BIN_EXCHANGE"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "latest_evidence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TransportEvidenceResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Code"
+          },
+          "request": {
+            "additionalProperties": true,
+            "title": "Request",
+            "type": "object"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TransportResultResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "enum": [
+              "PENDING",
+              "ACCEPTED",
+              "REJECTED",
+              "SUCCEEDED",
+              "FAILED",
+              "RECONCILING"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "submit_operation_id": {
+            "title": "Submit Operation Id",
+            "type": "string"
+          },
+          "transport_task_id": {
+            "title": "Transport Task Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "transport_task_id",
+          "client_request_id",
+          "submit_operation_id",
+          "kind",
+          "status",
+          "reason_code",
+          "created_at",
+          "updated_at",
+          "latest_evidence",
+          "request",
+          "result"
+        ],
+        "title": "TransportTaskResponse",
+        "type": "object"
+      },
+      "TransportTaskStatus": {
+        "enum": [
+          "PENDING",
+          "ACCEPTED",
+          "REJECTED",
+          "SUCCEEDED",
+          "FAILED",
+          "RECONCILING"
+        ],
+        "title": "TransportTaskStatus",
+        "type": "string"
+      },
+      "TransportTaskSummaryResponse": {
         "additionalProperties": false,
         "properties": {
           "client_request_id": {
@@ -10295,7 +10926,7 @@
           "updated_at",
           "latest_evidence"
         ],
-        "title": "TransportTaskResponse",
+        "title": "TransportTaskSummaryResponse",
         "type": "object"
       },
       "TryInvokeApplication": {
@@ -16016,6 +16647,263 @@
         ]
       }
     },
+    "/api/v1/device/evidences/{source_event_id}/blocker": {
+      "get": {
+        "operationId": "device_evidences_by_source_event_id_blocker_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_event_id",
+            "required": true,
+            "schema": {
+              "maxLength": 300,
+              "minLength": 1,
+              "title": "Source Event Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_EventCommandBlockResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "EVENT blocker 不存在"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "阻塞因果不可用"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "查询 Device EVENT 最新命令阻塞因果",
+        "tags": [
+          "Device EVENT 对账"
+        ]
+      }
+    },
+    "/api/v1/device/evidences/{source_event_id}/blockers/{block_id}/reconcile-device-idle": {
+      "post": {
+        "operationId": "device_evidences_by_source_event_id_blockers_by_block_id_reconcile_device_idle_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_event_id",
+            "required": true,
+            "schema": {
+              "maxLength": 300,
+              "minLength": 1,
+              "title": "Source Event Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "block_id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "title": "Block Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualReconcileDeviceIdleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_ManualReconcileDeviceIdleResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "EVENT blocker 不存在"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "因果或设备状态不允许人工闭合"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "ECS 状态查询不可用"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "以设备实时空闲证明闭合 DELIVERY_UNKNOWN 命令",
+        "tags": [
+          "Device EVENT 对账"
+        ]
+      }
+    },
+    "/api/v1/device/evidences/{source_event_id}/blockers/{block_id}/reprocess": {
+      "post": {
+        "operationId": "device_evidences_by_source_event_id_blockers_by_block_id_reprocess_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_event_id",
+            "required": true,
+            "schema": {
+              "maxLength": 300,
+              "minLength": 1,
+              "title": "Source Event Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "block_id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "title": "Block Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReprocessBlockedEventRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_ReprocessBlockedEventResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "EVENT blocker 不存在"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "阻塞因果不允许重处理"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "显式重新处理已闭合 blocker 的 Device EVENT",
+        "tags": [
+          "Device EVENT 对账"
+        ]
+      }
+    },
     "/api/v1/material/material-units/location-query": {
       "get": {
         "description": "统一 MaterialLocationQuery 入口，API 层只委托查询 service。",
@@ -18154,6 +19042,152 @@
         ]
       }
     },
+    "/api/v1/transport/evidences/stream": {
+      "get": {
+        "operationId": "transport_evidences_stream_get",
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:transport-evidence:stream] 实时订阅 WMS Transport callback 与 evidence 应用状态",
+        "tags": [
+          "Transport diagnostics"
+        ]
+      }
+    },
+    "/api/v1/transport/tasks": {
+      "get": {
+        "operationId": "transport_tasks_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/TransportTaskKind"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/TransportTaskStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_TransportTaskPageResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "游标或筛选条件无效"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "Transport runtime 不可用"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:transport-task:list] 查询本地 Transport 任务列表",
+        "tags": [
+          "Transport 调试"
+        ]
+      }
+    },
     "/api/v1/transport/tasks/{transport_task_id}": {
       "get": {
         "operationId": "transport_tasks_by_transport_task_id_get",
@@ -18217,7 +19251,7 @@
             "HTTPBearer": []
           }
         ],
-        "summary": "[ops:transport:read] 查询本地 Transport 任务",
+        "summary": "[ops:transport-task:read] 查询本地 Transport 任务",
         "tags": [
           "Transport 调试"
         ]

@@ -1,4 +1,4 @@
-/** @openapi-sha256 76a053f98e6e3bbf6ebe4e5733083c2bb0c5c649c6e42d6f727f1c9e47ab41b0 */
+/** @openapi-sha256 1516c8abc10d01f774f1e627e6abae88d69059cd67b475534d18e3ef7ea9aba5 */
 /**
  * Zod Validation Schemas
  *
@@ -952,6 +952,38 @@ export const EcsDeviceRuntimeStateSchema = z.object({
 export const EcsDeviceStateSchema = z.enum(["IDLE", "RUNNING", "ERROR", "PAUSED", "STOPPED", "OFFLINE", "UNKNOWN"])
 
 
+export const EventCommandBlockResponseSchema = z.object({
+  /** Block Id */
+  block_id: z.number(),
+  /** Blocked At */
+  blocked_at: z.union([z.string(), z.null()]),
+  /** Blocking Command Code */
+  blocking_command_code: z.string(),
+  /** Blocking Command Current Status */
+  blocking_command_current_status: z.union([z.string(), z.null()]),
+  /** Blocking Command Detected Reconciliation Reason */
+  blocking_command_detected_reconciliation_reason: z.union([z.string(), z.null()]),
+  /** Blocking Command Detected Status */
+  blocking_command_detected_status: z.string(),
+  /** Blocking Command Terminal */
+  blocking_command_terminal: z.boolean(),
+  /** Device Code */
+  device_code: z.string(),
+  /** Reason Code */
+  reason_code: z.string(),
+  /** Reconcile Device Idle Path */
+  reconcile_device_idle_path: z.string(),
+  /** Reprocess Path */
+  reprocess_path: z.string(),
+  /** Requeued At */
+  requeued_at: z.union([z.string(), z.null()]),
+  /** Source Event Id */
+  source_event_id: z.string(),
+  /** Status */
+  status: z.string(),
+})
+
+
 /**
  * 单个过滤条件
  *
@@ -1681,6 +1713,22 @@ export const ManualDebugPreflightResponseSchema = z.object({
 })
 
 
+export const ManualReconcileDeviceIdleRequestSchema = z.object({
+  /** Reason */
+  reason: z.string().min(1).max(500),
+})
+
+
+export const ManualReconcileDeviceIdleResponseSchema = z.object({
+  /** Command Code */
+  command_code: z.string(),
+  /** Failure Code */
+  failure_code: z.string(),
+  /** Status */
+  status: z.string(),
+})
+
+
 /**
  * MaterialLocationQuery 冲突状态。
  *
@@ -2295,6 +2343,22 @@ export const ReplayInboxRequestSchema = z.object({
 })
 
 
+export const ReprocessBlockedEventRequestSchema = z.object({
+  /** Reason */
+  reason: z.string().min(1).max(500),
+})
+
+
+export const ReprocessBlockedEventResponseSchema = z.object({
+  /** Apply Status */
+  apply_status: z.string(),
+  /** Block Id */
+  block_id: z.number(),
+  /** Source Event Id */
+  source_event_id: z.string(),
+})
+
+
 /**
  * 管理员重置密码请求
  *
@@ -2651,7 +2715,73 @@ export const TransportEvidenceResponseSchema = z.object({
 })
 
 
+export const TransportResultMemberResponseSchema = z.object({
+  /** Arrival Face */
+  arrival_face: z.union([z.enum(["A", "B"]), z.null()]),
+  /** Failure Code */
+  failure_code: z.union([z.string(), z.null()]),
+  /** Final Position */
+  final_position: z.union([z.record(z.any()), z.null()]),
+  /** Object Id */
+  object_id: z.string(),
+  /** Position Unknown */
+  position_unknown: z.boolean(),
+  /** Status */
+  status: z.enum(["UNKNOWN", "FAILED", "SUCCEEDED"]),
+})
+
+
+export const TransportResultResponseSchema = z.object({
+  /** Members */
+  members: z.array(z.lazy(() => TransportResultMemberResponseSchema)),
+  /** Outcome Version */
+  outcome_version: z.number(),
+  /** Reason Code */
+  reason_code: z.union([z.string(), z.null()]),
+  /** Status */
+  status: z.enum(["SUCCEEDED", "FAILED", "REJECTED", "UNKNOWN"]),
+})
+
+
+export const TransportTaskKindSchema = z.enum(["RACK_MOVE", "RACK_ROTATE", "BIN_MOVE", "BIN_EXCHANGE"])
+
+
+export const TransportTaskPageResponseSchema = z.object({
+  /** Items */
+  items: z.array(z.lazy(() => TransportTaskSummaryResponseSchema)),
+  /** Next Cursor */
+  next_cursor: z.union([z.string(), z.null()]),
+})
+
+
 export const TransportTaskResponseSchema = z.object({
+  /** Client Request Id */
+  client_request_id: z.string(),
+  /** Created At */
+  created_at: z.string(),
+  /** Kind */
+  kind: z.enum(["RACK_MOVE", "RACK_ROTATE", "BIN_MOVE", "BIN_EXCHANGE"]),
+  latest_evidence: z.union([z.lazy(() => TransportEvidenceResponseSchema), z.null()]),
+  /** Reason Code */
+  reason_code: z.union([z.string(), z.null()]),
+  /** Request */
+  request: z.record(z.any()),
+  result: z.union([z.lazy(() => TransportResultResponseSchema), z.null()]),
+  /** Status */
+  status: z.enum(["PENDING", "ACCEPTED", "REJECTED", "SUCCEEDED", "FAILED", "RECONCILING"]),
+  /** Submit Operation Id */
+  submit_operation_id: z.string(),
+  /** Transport Task Id */
+  transport_task_id: z.string(),
+  /** Updated At */
+  updated_at: z.string(),
+})
+
+
+export const TransportTaskStatusSchema = z.enum(["PENDING", "ACCEPTED", "REJECTED", "SUCCEEDED", "FAILED", "RECONCILING"])
+
+
+export const TransportTaskSummaryResponseSchema = z.object({
   /** Client Request Id */
   client_request_id: z.string(),
   /** Created At */
