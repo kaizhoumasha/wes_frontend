@@ -2,6 +2,7 @@
 import { defineComponent, ref } from 'vue'
 import { shallowMount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { OPS_PERMISSIONS } from '@/api/generated/permissions'
 import TransportDiagnosticsPage from '@/views/ops/transport-diagnostics/TransportDiagnosticsPage.vue'
 
 const diagnosticsMocks = vi.hoisted(() => ({
@@ -42,29 +43,36 @@ const streamOptions = vi.hoisted(() => ({
     onReconnect: () => void
   }
 }))
+const diagnosticsState = vi.hoisted(() => ({
+  selectedTaskId: 'transport-1' as string | null,
+  resetPreview: {
+    transport_task_id: 'transport-1',
+    status: 'RECONCILING',
+    evidence_count: 0,
+    callback_receipt_count: 0,
+    position_projection_count: 0,
+    outcome_version: 0,
+    member_count: 1,
+    binding_count: 1,
+    active_binding_count: 1
+  }
+}))
+const permissionMocks = vi.hoisted(() => ({
+  granted: new Set<string>()
+}))
 
 vi.mock('@/views/ops/transport-diagnostics/useTransportDiagnostics', () => ({
   useTransportDiagnostics: () => ({
     tasks: ref([]),
     detail: ref(null),
-    selectedTaskId: ref('transport-1'),
+    selectedTaskId: ref(diagnosticsState.selectedTaskId),
     nextCursor: ref(null),
     loading: ref(false),
     loadingDetail: ref(false),
     submitting: ref(false),
     previewingReset: ref(false),
     resetting: ref(false),
-    resetPreview: ref({
-      transport_task_id: 'transport-1',
-      status: 'RECONCILING',
-      evidence_count: 0,
-      callback_receipt_count: 0,
-      position_projection_count: 0,
-      outcome_version: 0,
-      member_count: 1,
-      binding_count: 1,
-      active_binding_count: 1
-    }),
+    resetPreview: ref(diagnosticsState.resetPreview),
     lastError: ref(null),
     ...diagnosticsMocks
   })
@@ -83,13 +91,18 @@ vi.mock('@/views/ops/transport-diagnostics/useTransportEvidenceStream', () => ({
 }))
 
 vi.mock('@/composables/usePermission', () => ({
-  usePermission: () => ({ hasPermission: () => true })
+  usePermission: () => ({
+    hasPermission: (permission: string) => permissionMocks.granted.has(permission)
+  })
 }))
 
 const AppButtonStub = defineComponent({
   name: 'AppButton',
+  props: {
+    disabled: { type: Boolean, default: false }
+  },
   emits: ['click'],
-  template: '<button @click="$emit(\'click\', $event)"><slot /></button>'
+  template: '<button :disabled="disabled" @click="$emit(\'click\', $event)"><slot /></button>'
 })
 
 const TransportDebugResetDialogStub = defineComponent({
@@ -129,10 +142,25 @@ function mountPage() {
   })
 }
 
+function getResetButton(wrapper: ReturnType<typeof mountPage>) {
+  const button = wrapper
+    .findAllComponents(AppButtonStub)
+    .find(candidate => candidate.text().includes('清理联调任务'))
+  if (!button) throw new Error('Reset button not found')
+  return button
+}
+
 describe('TransportDiagnosticsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     streamOptions.value = null
+    diagnosticsState.selectedTaskId = 'transport-1'
+    permissionMocks.granted.clear()
+    permissionMocks.granted.add(OPS_PERMISSIONS.transportTask.read)
+    permissionMocks.granted.add(OPS_PERMISSIONS.transportEvidence.stream)
+    permissionMocks.granted.add(OPS_PERMISSIONS.transport.debugCreate)
+    permissionMocks.granted.add(OPS_PERMISSIONS.transport.debugPreview)
+    permissionMocks.granted.add(OPS_PERMISSIONS.transport.debugReset)
   })
 
   it('loads durable tasks, connects live notifications and refreshes the related task', async () => {
@@ -166,11 +194,9 @@ describe('TransportDiagnosticsPage', () => {
 
   it('previews the selected task before opening the reset confirmation and resets once', async () => {
     const wrapper = mountPage()
-    const resetButton = wrapper
-      .findAll('button')
-      .find(button => button.text().includes('清理联调任务'))
+    const resetButton = getResetButton(wrapper)
 
-    await resetButton?.trigger('click')
+    await resetButton.trigger('click')
     await vi.waitFor(() =>
       expect(diagnosticsMocks.previewTaskReset).toHaveBeenCalledWith('transport-1')
     )
@@ -179,5 +205,68 @@ describe('TransportDiagnosticsPage', () => {
     await wrapper.get('[data-test="confirm-reset"]').trigger('click')
     await vi.waitFor(() => expect(diagnosticsMocks.resetTask).toHaveBeenCalledWith('transport-1'))
     expect(wrapper.find('[data-test="reset-dialog"]').exists()).toBe(false)
+  })
+
+  it('hides the reset entry without preview permission', () => {
+    permissionMocks.granted.delete(OPS_PERMISSIONS.transport.debugPreview)
+
+    const wrapper = mountPage()
+
+    expect(
+      wrapper.findAll('button').some(button => button.text().includes('清理联调任务'))
+    ).toBe(false)
+  })
+
+  it('does not preview a reset without a selected task', async () => {
+    diagnosticsState.selectedTaskId = null
+    const wrapper = mountPage()
+    const resetButton = getResetButton(wrapper)
+
+    expect(resetButton.props('disabled')).toBe(true)
+    resetButton.vm.$emit('click', new MouseEvent('click'))
+    await wrapper.vm.$nextTick()
+
+    expect(diagnosticsMocks.previewTaskReset).not.toHaveBeenCalled()
+  })
+
+  it('shows a preview failure without opening the reset dialog', async () => {
+    diagnosticsMocks.previewTaskReset.mockRejectedValueOnce(new Error('preview unavailable'))
+    const wrapper = mountPage()
+    const resetButton = getResetButton(wrapper)
+
+    await resetButton.trigger('click')
+    await vi.waitFor(() => expect(wrapper.html()).toContain('preview unavailable'))
+
+    expect(wrapper.find('[data-test="reset-dialog"]').exists()).toBe(false)
+  })
+
+  it('does not reset when the operator has preview-only permission', async () => {
+    permissionMocks.granted.delete(OPS_PERMISSIONS.transport.debugReset)
+    const wrapper = mountPage()
+    const resetButton = getResetButton(wrapper)
+
+    await resetButton.trigger('click')
+    await vi.waitFor(() => expect(wrapper.find('[data-test="reset-dialog"]').exists()).toBe(true))
+    const resetDialog = wrapper.getComponent(TransportDebugResetDialogStub)
+    expect(resetDialog.props('canReset')).toBe(false)
+
+    resetDialog.vm.$emit('confirm')
+    await wrapper.vm.$nextTick()
+
+    expect(diagnosticsMocks.resetTask).not.toHaveBeenCalled()
+    expect(wrapper.find('[data-test="reset-dialog"]').exists()).toBe(true)
+  })
+
+  it('keeps the dialog open and shows the error when reset fails', async () => {
+    diagnosticsMocks.resetTask.mockRejectedValueOnce(new Error('reset rejected'))
+    const wrapper = mountPage()
+    const resetButton = getResetButton(wrapper)
+
+    await resetButton.trigger('click')
+    await vi.waitFor(() => expect(wrapper.find('[data-test="reset-dialog"]').exists()).toBe(true))
+    wrapper.getComponent(TransportDebugResetDialogStub).vm.$emit('confirm')
+    await vi.waitFor(() => expect(wrapper.html()).toContain('reset rejected'))
+
+    expect(wrapper.find('[data-test="reset-dialog"]').exists()).toBe(true)
   })
 })

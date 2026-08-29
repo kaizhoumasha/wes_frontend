@@ -9,7 +9,8 @@ const StandardDialogStub = defineComponent({
   name: 'StandardDialog',
   props: {
     modelValue: { type: Boolean, required: true },
-    confirmDisabled: { type: Boolean, required: true }
+    confirmDisabled: { type: Boolean, required: true },
+    closable: { type: Boolean, required: true }
   },
   emits: ['confirm', 'update:modelValue'],
   template: `
@@ -42,9 +43,18 @@ function preview(overrides: Partial<ResetPreviewResult> = {}): ResetPreviewResul
   }
 }
 
-function mountDialog(value: ResetPreviewResult) {
+function mountDialog(
+  value: ResetPreviewResult | null,
+  overrides: Partial<{ submitting: boolean; canReset: boolean }> = {}
+) {
   return mount(TransportDebugResetDialog, {
-    props: { modelValue: true, preview: value, submitting: false, canReset: true },
+    props: {
+      modelValue: true,
+      preview: value,
+      submitting: false,
+      canReset: true,
+      ...overrides
+    },
     global: {
       stubs: { StandardDialog: StandardDialogStub, ElAlert: ElAlertStub, ElTag: true }
     }
@@ -77,19 +87,32 @@ describe('TransportDebugResetDialog', () => {
   })
 
   it('allows preview-only operators to inspect the chain without confirming cleanup', () => {
-    const wrapper = mount(TransportDebugResetDialog, {
-      props: {
-        modelValue: true,
-        preview: preview(),
-        submitting: false,
-        canReset: false
-      },
-      global: {
-        stubs: { StandardDialog: StandardDialogStub, ElAlert: ElAlertStub, ElTag: true }
-      }
-    })
+    const wrapper = mountDialog(preview(), { canReset: false })
 
     expect(wrapper.text()).toContain('缺少清理权限')
     expect(wrapper.get('[data-test="dialog-confirm"]').attributes('disabled')).toBeDefined()
+  })
+
+  it('keeps confirmation disabled until a preview is available', () => {
+    const wrapper = mountDialog(null)
+
+    expect(wrapper.find('.reset-preview').exists()).toBe(false)
+    expect(wrapper.get('[data-test="dialog-confirm"]').attributes('disabled')).toBeDefined()
+  })
+
+  it('locks confirmation and closing while cleanup is submitting', () => {
+    const wrapper = mountDialog(preview(), { submitting: true })
+
+    expect(wrapper.get('[data-test="dialog-confirm"]').attributes('disabled')).toBeDefined()
+    expect(wrapper.getComponent(StandardDialogStub).props('closable')).toBe(false)
+  })
+
+  it('forwards dialog visibility changes to v-model', async () => {
+    const wrapper = mountDialog(preview())
+
+    wrapper.getComponent(StandardDialogStub).vm.$emit('update:modelValue', false)
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
   })
 })

@@ -249,6 +249,34 @@ describe('generate-api-types helpers', () => {
               }
             ]
           }
+        },
+        {
+          path: '/api/v1/transport/debug-tasks/{transport_task_id}/reset',
+          method: 'post',
+          operation: {
+            parameters: [
+              {
+                name: 'transport_task_id',
+                in: 'path',
+                required: true,
+                schema: {}
+              }
+            ]
+          }
+        },
+        {
+          path: '/api/v1/transport/debug-tasks/{transport_task_id}/reset-preview',
+          method: 'get',
+          operation: {
+            parameters: [
+              {
+                name: 'transport_task_id',
+                in: 'path',
+                required: true,
+                schema: {}
+              }
+            ]
+          }
         }
       ])
     )
@@ -271,6 +299,18 @@ describe('generate-api-types helpers', () => {
     )
     expect(source).toContain(
       `return contractMethods.get('/api/v1/transport/tasks/{transport_task_id}', { params, config })`
+    )
+    expect(source).toContain(
+      `reset(params: ContractPathParams<'/api/v1/transport/debug-tasks/{transport_task_id}/reset', 'post'>`
+    )
+    expect(source).toContain(
+      `return contractMethods.post('/api/v1/transport/debug-tasks/{transport_task_id}/reset', { params, config })`
+    )
+    expect(source).toContain(
+      `resetPreview(params: ContractPathParams<'/api/v1/transport/debug-tasks/{transport_task_id}/reset-preview', 'get'>`
+    )
+    expect(source).toContain(
+      `return contractMethods.get('/api/v1/transport/debug-tasks/{transport_task_id}/reset-preview', { params, config })`
     )
   })
 

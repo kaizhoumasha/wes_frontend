@@ -154,6 +154,7 @@ export function useTransportDiagnostics(options: UseTransportDiagnosticsOptions 
         detailRequestGeneration += 1
         selectedTaskId.value = null
         detail.value = null
+        loadingDetail.value = false
       }
       resetPreview.value = null
       try {
