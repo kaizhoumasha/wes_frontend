@@ -1,4 +1,4 @@
-/** @openapi-sha256 1516c8abc10d01f774f1e627e6abae88d69059cd67b475534d18e3ef7ea9aba5 */
+/** @openapi-sha256 ecf5c09a2eab922fd31dd8e6ae73e22157a551011b4c50fdbae7b06b3f36dec5 */
 /**
  * Zod Validation Schemas
  *
@@ -739,6 +739,44 @@ export const ClearWorkLineEstopRequestSchema = z.object({
 export const DebugTransportTaskCreatedSchema = z.object({
   /** Client Request Id */
   client_request_id: z.string(),
+  /** Transport Task Id */
+  transport_task_id: z.string(),
+})
+
+
+export const DebugTransportTaskResetPreviewSchema = z.object({
+  /** Active Binding Count */
+  active_binding_count: z.number(),
+  /** Binding Count */
+  binding_count: z.number(),
+  /** Callback Receipt Count */
+  callback_receipt_count: z.number(),
+  /** Evidence Count */
+  evidence_count: z.number(),
+  /** Member Count */
+  member_count: z.number(),
+  /** Outcome Version */
+  outcome_version: z.number(),
+  /** Position Projection Count */
+  position_projection_count: z.number(),
+  /** Status */
+  status: z.enum(["PENDING", "ACCEPTED", "REJECTED", "SUCCEEDED", "FAILED", "RECONCILING"]),
+  /** Transport Task Id */
+  transport_task_id: z.string(),
+})
+
+
+export const DebugTransportTaskResetResultSchema = z.object({
+  /** Deleted Binding Count */
+  deleted_binding_count: z.number(),
+  /** Deleted Callback Receipt Count */
+  deleted_callback_receipt_count: z.number(),
+  /** Deleted Evidence Count */
+  deleted_evidence_count: z.number(),
+  /** Deleted Member Count */
+  deleted_member_count: z.number(),
+  /** Deleted Position Projection Count */
+  deleted_position_projection_count: z.number(),
   /** Transport Task Id */
   transport_task_id: z.string(),
 })

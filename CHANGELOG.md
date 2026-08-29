@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.1.0] - 2026-08-28
+
+### Added
+
+- 运输接入诊断页增加按当前 `transport_task_id` 清理联调任务的入口、完整链路预检弹窗，以及独立的预检/清理权限控制。
+- 同步后端 reset API、OpenAPI types、Zod、metadata 和权限生成物，页面明确清理只影响 WES 本地链路，不会取消 WMS/RCS 请求或撤销物理动作。
+
+### Fixed
+
+- 清理成功后失效在途详情响应并结束详情加载状态，避免已删除任务的旧响应回填或页面永久停留在加载中。
+- 预检、清理失败和列表刷新失败保持可恢复状态；已成功清理不会因后续刷新失败被误判为失败并诱导重复操作。
+
+### Verification
+
+- 最终 80 个测试文件、613 项测试通过；typecheck、ESLint、Prettier、Stylelint、生产构建、合同与权限同步校验通过。
+- 覆盖审计 97%，fresh Review 与代码级设计检查无剩余意见；本次发布不包含再次 Deploy、现场物理动作或业务验收。
+
 ## [0.12.0.0] - 2026-08-28
 
 ### Added

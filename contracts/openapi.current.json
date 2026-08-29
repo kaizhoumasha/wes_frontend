@@ -2281,6 +2281,107 @@
         "title": "DebugTransportTaskCreated",
         "type": "object"
       },
+      "DebugTransportTaskResetPreview": {
+        "additionalProperties": false,
+        "properties": {
+          "active_binding_count": {
+            "title": "Active Binding Count",
+            "type": "integer"
+          },
+          "binding_count": {
+            "title": "Binding Count",
+            "type": "integer"
+          },
+          "callback_receipt_count": {
+            "title": "Callback Receipt Count",
+            "type": "integer"
+          },
+          "evidence_count": {
+            "title": "Evidence Count",
+            "type": "integer"
+          },
+          "member_count": {
+            "title": "Member Count",
+            "type": "integer"
+          },
+          "outcome_version": {
+            "title": "Outcome Version",
+            "type": "integer"
+          },
+          "position_projection_count": {
+            "title": "Position Projection Count",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "PENDING",
+              "ACCEPTED",
+              "REJECTED",
+              "SUCCEEDED",
+              "FAILED",
+              "RECONCILING"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "transport_task_id": {
+            "title": "Transport Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "transport_task_id",
+          "status",
+          "evidence_count",
+          "callback_receipt_count",
+          "position_projection_count",
+          "outcome_version",
+          "member_count",
+          "binding_count",
+          "active_binding_count"
+        ],
+        "title": "DebugTransportTaskResetPreview",
+        "type": "object"
+      },
+      "DebugTransportTaskResetResult": {
+        "additionalProperties": false,
+        "properties": {
+          "deleted_binding_count": {
+            "title": "Deleted Binding Count",
+            "type": "integer"
+          },
+          "deleted_callback_receipt_count": {
+            "title": "Deleted Callback Receipt Count",
+            "type": "integer"
+          },
+          "deleted_evidence_count": {
+            "title": "Deleted Evidence Count",
+            "type": "integer"
+          },
+          "deleted_member_count": {
+            "title": "Deleted Member Count",
+            "type": "integer"
+          },
+          "deleted_position_projection_count": {
+            "title": "Deleted Position Projection Count",
+            "type": "integer"
+          },
+          "transport_task_id": {
+            "title": "Transport Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "transport_task_id",
+          "deleted_callback_receipt_count",
+          "deleted_evidence_count",
+          "deleted_position_projection_count",
+          "deleted_member_count",
+          "deleted_binding_count"
+        ],
+        "title": "DebugTransportTaskResetResult",
+        "type": "object"
+      },
       "DeviceCommandCallbackResponse": {
         "additionalProperties": false,
         "properties": {
@@ -8198,6 +8299,96 @@
           }
         },
         "title": "ResponseSchemaModel[DebugTransportTaskCreated]",
+        "type": "object"
+      },
+      "ResponseSchemaModel_DebugTransportTaskResetPreview_": {
+        "properties": {
+          "code": {
+            "default": "1000",
+            "description": "响应码",
+            "examples": [
+              "1000",
+              "2000"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DebugTransportTaskResetPreview"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "message": {
+            "default": "操作成功",
+            "description": "响应消息",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ],
+            "title": "Message",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ],
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "title": "ResponseSchemaModel[DebugTransportTaskResetPreview]",
+        "type": "object"
+      },
+      "ResponseSchemaModel_DebugTransportTaskResetResult_": {
+        "properties": {
+          "code": {
+            "default": "1000",
+            "description": "响应码",
+            "examples": [
+              "1000",
+              "2000"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DebugTransportTaskResetResult"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "message": {
+            "default": "操作成功",
+            "description": "响应消息",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ],
+            "title": "Message",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ],
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "title": "ResponseSchemaModel[DebugTransportTaskResetResult]",
         "type": "object"
       },
       "ResponseSchemaModel_DeviceResponse_": {
@@ -19037,6 +19228,144 @@
           }
         ],
         "summary": "[ops:transport:debug-create] 创建 Transport 调试任务",
+        "tags": [
+          "Transport 调试"
+        ]
+      }
+    },
+    "/api/v1/transport/debug-tasks/{transport_task_id}/reset": {
+      "post": {
+        "operationId": "transport_debug_tasks_by_transport_task_id_reset_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "transport_task_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Transport Task Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_DebugTransportTaskResetResult_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "TransportTask 不存在"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "Transport runtime 不可用"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:transport:debug-reset] 清理 Transport 联调任务",
+        "tags": [
+          "Transport 调试"
+        ]
+      }
+    },
+    "/api/v1/transport/debug-tasks/{transport_task_id}/reset-preview": {
+      "get": {
+        "operationId": "transport_debug_tasks_by_transport_task_id_reset_preview_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "transport_task_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Transport Task Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_DebugTransportTaskResetPreview_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "TransportTask 不存在"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "Transport runtime 不可用"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:transport:debug-preview] 预检 Transport 联调任务清理",
         "tags": [
           "Transport 调试"
         ]
