@@ -32,12 +32,12 @@ function preview(overrides: Partial<ResetPreviewResult> = {}): ResetPreviewResul
     transport_task_id: 'transport-1',
     status: 'RECONCILING',
     evidence_count: 0,
+    callback_receipt_count: 0,
+    position_projection_count: 0,
     outcome_version: 0,
     member_count: 1,
     binding_count: 1,
     active_binding_count: 1,
-    blockers: [],
-    eligible: true,
     ...overrides
   }
 }
@@ -52,32 +52,31 @@ function mountDialog(value: ResetPreviewResult) {
 }
 
 describe('TransportDebugResetDialog', () => {
-  it('shows the exact aggregate counts and allows an eligible cleanup', async () => {
-    const wrapper = mountDialog(preview())
+  it('shows the complete local chain counts and allows cleanup', async () => {
+    const wrapper = mountDialog(
+      preview({ evidence_count: 2, callback_receipt_count: 1, position_projection_count: 1 })
+    )
 
     expect(wrapper.text()).toContain('transport-1')
     expect(wrapper.text()).toContain('1 个成员')
     expect(wrapper.text()).toContain('1 个资源绑定')
+    expect(wrapper.text()).toContain('2 条')
+    expect(wrapper.text()).toContain('1 条回执')
+    expect(wrapper.text()).toContain('1 条位置投影')
     expect(wrapper.get('[data-test="dialog-confirm"]').attributes('disabled')).toBeUndefined()
 
     await wrapper.get('[data-test="dialog-confirm"]').trigger('click')
     expect(wrapper.emitted('confirm')).toHaveLength(1)
   })
 
-  it('renders backend blockers and prevents cleanup when the aggregate is ineligible', () => {
-    const wrapper = mountDialog(
-      preview({
-        eligible: false,
-        evidence_count: 1,
-        blockers: ['TRANSPORT_EVIDENCE_EXISTS']
-      })
-    )
+  it('allows cleanup regardless of task status, evidence or outcome', () => {
+    const wrapper = mountDialog(preview({ status: 'ACCEPTED', evidence_count: 1, outcome_version: 2 }))
 
-    expect(wrapper.text()).toContain('已存在 Transport Evidence')
-    expect(wrapper.get('[data-test="dialog-confirm"]').attributes('disabled')).toBeDefined()
+    expect(wrapper.text()).toContain('ACCEPTED')
+    expect(wrapper.get('[data-test="dialog-confirm"]').attributes('disabled')).toBeUndefined()
   })
 
-  it('allows preview-only operators to inspect eligibility without confirming cleanup', () => {
+  it('allows preview-only operators to inspect the chain without confirming cleanup', () => {
     const wrapper = mount(TransportDebugResetDialog, {
       props: {
         modelValue: true,

@@ -38,16 +38,19 @@ const RESET_PREVIEW: ResetPreviewResult = {
   transport_task_id: 'transport-1',
   status: 'RECONCILING',
   evidence_count: 0,
+  callback_receipt_count: 0,
+  position_projection_count: 0,
   outcome_version: 0,
   member_count: 1,
   binding_count: 1,
-  active_binding_count: 1,
-  blockers: [],
-  eligible: true
+  active_binding_count: 1
 }
 
 const RESET_RESULT: ResetResult = {
   transport_task_id: 'transport-1',
+  deleted_callback_receipt_count: 0,
+  deleted_evidence_count: 0,
+  deleted_position_projection_count: 0,
   deleted_member_count: 1,
   deleted_binding_count: 1
 }

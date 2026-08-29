@@ -1,4 +1,4 @@
-/** @openapi-sha256 cd53f95d30acf77f3bcb4546e6d8c29c7802f1cbbd741db6a8856399ff6f83c5 */
+/** @openapi-sha256 ecf5c09a2eab922fd31dd8e6ae73e22157a551011b4c50fdbae7b06b3f36dec5 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -3900,16 +3900,16 @@ export interface components {
             active_binding_count: number;
             /** Binding Count */
             binding_count: number;
-            /** Blockers */
-            blockers: ("STATUS_NOT_RECONCILING" | "TRANSPORT_EVIDENCE_EXISTS" | "TRANSPORT_OUTCOME_EXISTS")[];
-            /** Eligible */
-            eligible: boolean;
+            /** Callback Receipt Count */
+            callback_receipt_count: number;
             /** Evidence Count */
             evidence_count: number;
             /** Member Count */
             member_count: number;
             /** Outcome Version */
             outcome_version: number;
+            /** Position Projection Count */
+            position_projection_count: number;
             /**
              * Status
              * @enum {string}
@@ -3922,8 +3922,14 @@ export interface components {
         DebugTransportTaskResetResult: {
             /** Deleted Binding Count */
             deleted_binding_count: number;
+            /** Deleted Callback Receipt Count */
+            deleted_callback_receipt_count: number;
+            /** Deleted Evidence Count */
+            deleted_evidence_count: number;
             /** Deleted Member Count */
             deleted_member_count: number;
+            /** Deleted Position Projection Count */
+            deleted_position_projection_count: number;
             /** Transport Task Id */
             transport_task_id: string;
         };
@@ -10459,15 +10465,6 @@ export interface operations {
             };
             /** @description TransportTask 不存在 */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
-                };
-            };
-            /** @description 任务已形成事实或状态不允许清理 */
-            409: {
                 headers: {
                     [name: string]: unknown;
                 };

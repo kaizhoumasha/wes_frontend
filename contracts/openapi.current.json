@@ -2292,21 +2292,9 @@
             "title": "Binding Count",
             "type": "integer"
           },
-          "blockers": {
-            "items": {
-              "enum": [
-                "STATUS_NOT_RECONCILING",
-                "TRANSPORT_EVIDENCE_EXISTS",
-                "TRANSPORT_OUTCOME_EXISTS"
-              ],
-              "type": "string"
-            },
-            "title": "Blockers",
-            "type": "array"
-          },
-          "eligible": {
-            "title": "Eligible",
-            "type": "boolean"
+          "callback_receipt_count": {
+            "title": "Callback Receipt Count",
+            "type": "integer"
           },
           "evidence_count": {
             "title": "Evidence Count",
@@ -2318,6 +2306,10 @@
           },
           "outcome_version": {
             "title": "Outcome Version",
+            "type": "integer"
+          },
+          "position_projection_count": {
+            "title": "Position Projection Count",
             "type": "integer"
           },
           "status": {
@@ -2340,9 +2332,9 @@
         "required": [
           "transport_task_id",
           "status",
-          "eligible",
-          "blockers",
           "evidence_count",
+          "callback_receipt_count",
+          "position_projection_count",
           "outcome_version",
           "member_count",
           "binding_count",
@@ -2358,8 +2350,20 @@
             "title": "Deleted Binding Count",
             "type": "integer"
           },
+          "deleted_callback_receipt_count": {
+            "title": "Deleted Callback Receipt Count",
+            "type": "integer"
+          },
+          "deleted_evidence_count": {
+            "title": "Deleted Evidence Count",
+            "type": "integer"
+          },
           "deleted_member_count": {
             "title": "Deleted Member Count",
+            "type": "integer"
+          },
+          "deleted_position_projection_count": {
+            "title": "Deleted Position Projection Count",
             "type": "integer"
           },
           "transport_task_id": {
@@ -2369,6 +2373,9 @@
         },
         "required": [
           "transport_task_id",
+          "deleted_callback_receipt_count",
+          "deleted_evidence_count",
+          "deleted_position_projection_count",
           "deleted_member_count",
           "deleted_binding_count"
         ],
@@ -19262,16 +19269,6 @@
               }
             },
             "description": "TransportTask 不存在"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
-                }
-              }
-            },
-            "description": "任务已形成事实或状态不允许清理"
           },
           "422": {
             "content": {

@@ -15,15 +15,7 @@ const emit = defineEmits<{
   confirm: []
 }>()
 
-const confirmDisabled = computed(
-  () => !props.preview?.eligible || !props.canReset || props.submitting
-)
-
-const blockerLabels: Record<ResetPreviewResult['blockers'][number], string> = {
-  STATUS_NOT_RECONCILING: '任务状态不是 RECONCILING',
-  TRANSPORT_EVIDENCE_EXISTS: '已存在 Transport Evidence',
-  TRANSPORT_OUTCOME_EXISTS: '已存在 Transport Outcome'
-}
+const confirmDisabled = computed(() => !props.preview || !props.canReset || props.submitting)
 </script>
 
 <template>
@@ -42,7 +34,7 @@ const blockerLabels: Record<ResetPreviewResult['blockers'][number], string> = {
     @confirm="emit('confirm')"
   >
     <el-alert
-      title="只清理当前选中的联调 Transport 聚合。已收到 Evidence 或 Outcome 的任务不会被清理。"
+      title="按 transport_task_id 清理完整的本地 Transport 链路。不会向 WMS 或 RCS 发送取消请求。"
       type="warning"
       :closable="false"
       show-icon
@@ -63,40 +55,27 @@ const blockerLabels: Record<ResetPreviewResult['blockers'][number], string> = {
       <dt>活动绑定</dt>
       <dd>{{ preview.active_binding_count }} 个活动绑定</dd>
       <dt>Evidence</dt>
-      <dd>{{ preview.evidence_count }}</dd>
+      <dd>{{ preview.evidence_count }} 条</dd>
+      <dt>Callback Receipt</dt>
+      <dd>{{ preview.callback_receipt_count }} 条回执</dd>
+      <dt>位置投影</dt>
+      <dd>{{ preview.position_projection_count }} 条位置投影</dd>
       <dt>Outcome version</dt>
       <dd>{{ preview.outcome_version }}</dd>
     </dl>
 
-    <el-alert
-      v-if="preview && !preview.eligible"
-      class="reset-blockers"
-      type="error"
-      :closable="false"
-      show-icon
-    >
-      <template #title>当前任务不可清理</template>
-      <ul>
-        <li
-          v-for="blocker in preview.blockers"
-          :key="blocker"
-        >
-          {{ blockerLabels[blocker] }}
-        </li>
-      </ul>
-    </el-alert>
-
     <p
-      v-if="preview?.eligible && !canReset"
+      v-if="preview && !canReset"
       class="permission-hint"
     >
       当前账号可查看预检结果，但缺少清理权限。
     </p>
     <p
-      v-else-if="preview?.eligible"
-      class="eligible-hint"
+      v-else-if="preview"
+      class="cleanup-hint"
     >
-      清理后该本地联调任务及其成员、资源绑定将被删除，可立即开始下一轮联调。
+      清理后该任务、Evidence、Callback Receipt、由其 Evidence
+      产生的位置投影、成员和资源绑定都会被删除，可立即开始下一轮联调。
     </p>
   </StandardDialog>
 </template>
@@ -121,22 +100,16 @@ const blockerLabels: Record<ResetPreviewResult['blockers'][number], string> = {
   overflow-wrap: anywhere;
 }
 
-.reset-blockers,
 .permission-hint,
-.eligible-hint {
+.cleanup-hint {
   margin-top: 16px;
-}
-
-.reset-blockers ul {
-  margin: 8px 0 0;
-  padding-left: 20px;
 }
 
 .permission-hint {
   color: var(--el-text-color-secondary);
 }
 
-.eligible-hint {
+.cleanup-hint {
   color: var(--el-color-danger);
 }
 

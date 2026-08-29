@@ -13,6 +13,9 @@ export const DebugTransportTaskResetResultMetadata = {
   "title": "DebugTransportTaskResetResult",
   "required": [
     "transport_task_id",
+    "deleted_callback_receipt_count",
+    "deleted_evidence_count",
+    "deleted_position_projection_count",
     "deleted_member_count",
     "deleted_binding_count"
   ],
@@ -24,8 +27,26 @@ export const DebugTransportTaskResetResultMetadata = {
       "required": true,
       "nullable": false
     },
+    "deleted_callback_receipt_count": {
+      "title": "Deleted Callback Receipt Count",
+      "type": "integer",
+      "required": true,
+      "nullable": false
+    },
+    "deleted_evidence_count": {
+      "title": "Deleted Evidence Count",
+      "type": "integer",
+      "required": true,
+      "nullable": false
+    },
     "deleted_member_count": {
       "title": "Deleted Member Count",
+      "type": "integer",
+      "required": true,
+      "nullable": false
+    },
+    "deleted_position_projection_count": {
+      "title": "Deleted Position Projection Count",
       "type": "integer",
       "required": true,
       "nullable": false

@@ -14,9 +14,9 @@ export const DebugTransportTaskResetPreviewMetadata = {
   "required": [
     "transport_task_id",
     "status",
-    "eligible",
-    "blockers",
     "evidence_count",
+    "callback_receipt_count",
+    "position_projection_count",
     "outcome_version",
     "member_count",
     "binding_count",
@@ -36,23 +36,9 @@ export const DebugTransportTaskResetPreviewMetadata = {
       "required": true,
       "nullable": false
     },
-    "blockers": {
-      "title": "Blockers",
-      "type": "array",
-      "required": true,
-      "nullable": false,
-      "items": {
-        "type": "string",
-        "enum": [
-          "STATUS_NOT_RECONCILING",
-          "TRANSPORT_EVIDENCE_EXISTS",
-          "TRANSPORT_OUTCOME_EXISTS"
-        ]
-      }
-    },
-    "eligible": {
-      "title": "Eligible",
-      "type": "boolean",
+    "callback_receipt_count": {
+      "title": "Callback Receipt Count",
+      "type": "integer",
       "required": true,
       "nullable": false
     },
@@ -70,6 +56,12 @@ export const DebugTransportTaskResetPreviewMetadata = {
     },
     "outcome_version": {
       "title": "Outcome Version",
+      "type": "integer",
+      "required": true,
+      "nullable": false
+    },
+    "position_projection_count": {
+      "title": "Position Projection Count",
       "type": "integer",
       "required": true,
       "nullable": false

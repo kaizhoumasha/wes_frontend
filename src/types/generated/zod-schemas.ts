@@ -1,4 +1,4 @@
-/** @openapi-sha256 cd53f95d30acf77f3bcb4546e6d8c29c7802f1cbbd741db6a8856399ff6f83c5 */
+/** @openapi-sha256 ecf5c09a2eab922fd31dd8e6ae73e22157a551011b4c50fdbae7b06b3f36dec5 */
 /**
  * Zod Validation Schemas
  *
@@ -749,22 +749,16 @@ export const DebugTransportTaskResetPreviewSchema = z.object({
   active_binding_count: z.number(),
   /** Binding Count */
   binding_count: z.number(),
-  /** Blockers */
-  blockers: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
-        return val
-      }, z.array(z.enum(["STATUS_NOT_RECONCILING", "TRANSPORT_EVIDENCE_EXISTS", "TRANSPORT_OUTCOME_EXISTS"]))),
-  /** Eligible */
-  eligible: z.boolean(),
+  /** Callback Receipt Count */
+  callback_receipt_count: z.number(),
   /** Evidence Count */
   evidence_count: z.number(),
   /** Member Count */
   member_count: z.number(),
   /** Outcome Version */
   outcome_version: z.number(),
+  /** Position Projection Count */
+  position_projection_count: z.number(),
   /** Status */
   status: z.enum(["PENDING", "ACCEPTED", "REJECTED", "SUCCEEDED", "FAILED", "RECONCILING"]),
   /** Transport Task Id */
@@ -775,8 +769,14 @@ export const DebugTransportTaskResetPreviewSchema = z.object({
 export const DebugTransportTaskResetResultSchema = z.object({
   /** Deleted Binding Count */
   deleted_binding_count: z.number(),
+  /** Deleted Callback Receipt Count */
+  deleted_callback_receipt_count: z.number(),
+  /** Deleted Evidence Count */
+  deleted_evidence_count: z.number(),
   /** Deleted Member Count */
   deleted_member_count: z.number(),
+  /** Deleted Position Projection Count */
+  deleted_position_projection_count: z.number(),
   /** Transport Task Id */
   transport_task_id: z.string(),
 })
