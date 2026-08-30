@@ -131,6 +131,9 @@ export default defineConfig(({ mode, command }) => {
 
     // 依赖优化
     optimizeDeps: {
+      // 懒加载路由仍可能发现新的 Element Plus 深层依赖；刷新预构建产物时继续服务旧请求，
+      // 避免冷启动导航收到 504 Outdated Optimize Dep。
+      ignoreOutdatedRequests: true,
       include: [
         'vue',
         'vue-router',
