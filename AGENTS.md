@@ -57,6 +57,24 @@
 - 大改动前先阅读 `CLAUDE.md`；业务代码不要直接读取 `import.meta.env`，统一通过 `src/config/env.ts` 或 `useEnv()`。
 - 认证守卫与 token 刷新逻辑已集中在 `src/router/guards/`、`src/app/bootstrap-auth-context.ts` 与 `src/api/client.ts`，扩展时优先复用现有流程。
 
+## Deploy Configuration (configured by /setup-deploy)
+
+- Platform: Custom，后端仓库所有的 Jenkins/orchestrator
+- Production URL:
+- Staging URL: http://100.94.216.118
+- Deploy workflow: `$WES_BACKEND_ROOT/Jenkinsfile.test-deploy`，使用 `DEPLOY_SCOPE=FRONTEND`
+- Deploy status command: 按 `$WES_BACKEND_ROOT/docs/devops/prod-release-deploy.md` 核对 immutable release evidence、frontend image digest 与 OCI source revision
+- Merge method: squash
+- Project type: web app
+- Post-deploy health check: 联调首页、静态资源、`/health` 与管理员 login/logout
+
+### Custom deploy hooks
+
+- Pre-merge: `pnpm test && pnpm lint && pnpm build && pnpm contract:test && pnpm contract:verify`
+- Deploy trigger: 只允许从后端发布链路以已批准的 frontend candidate/digest 触发；禁止从本仓库直接 Compose、SSH 或重新构建现场源码
+- Deploy status: 核对后端 release evidence、frontend 容器 image digest 与 OCI source revision 三者一致
+- Health check: `http://100.94.216.118/`、`http://100.94.216.118/health`、关键静态资源与管理员 login/logout
+
 ## 任务执行与授权
 
 - 根据变更风险选择最小充分流程；未知风险按高风险处理。大型/高风险功能或 Bug 使用 RED → DEV → GREEN；小型/低风险优先复用既有测试或可靠替代验证。
