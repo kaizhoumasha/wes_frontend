@@ -1,4 +1,4 @@
-// Regression: ISSUE-001 — cold lazy routes must not trigger dependency rediscovery and 504 responses.
+// Regression: ISSUE-001 — cold lazy routes must not return 504 while dependency rediscovery runs.
 // Found by /qa on 2026-08-30
 // Report: wes_backend/.gstack/qa-reports/qa-report-127-0-0-1-15173-2026-08-30.md
 
