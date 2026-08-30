@@ -1,6 +1,6 @@
 # TODOS
 
-## To-Do
+## QA
 
 ### 移动端日志页筛选工具栏自适应
 
@@ -10,9 +10,15 @@
 
 **Context**: 复现证据见 `.gstack/qa-reports/screenshots/front-back-2026-08-22/15-mobile-api-access.png`。
 
+**Effort**: S
+
 **Priority**: P3
 
+**Depends on**: None
+
 ---
+
+## Infrastructure
 
 ### CI 引入死代码静态分析（knip 或 ts-prune）
 
@@ -26,9 +32,11 @@
 
 **Context**: 本仓库为 Vue 3 + Vite + unplugin-vue-components 项目，knip 对该栈支持良好（参考其 docs 中的 vue plugin 配置）；ts-prune 是更轻的备选但对 Vue SFC 支持差。
 
-**Depends on**: 死代码清理 PR (`chore/dead-code-cleanup-2026-06`) 合入 develop。
+**Effort**: S
 
 **Priority**: P3
+
+**Depends on**: 死代码清理 PR (`chore/dead-code-cleanup-2026-06`) 合入 develop。
 
 ---
 
