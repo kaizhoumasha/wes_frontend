@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.1.1] - 2026-08-30
+
+### Fixed
+
+- Docker 开发环境在冷启动后首次打开懒加载页面时，即使 Vite 正在刷新新发现的依赖，也会继续完成在途请求，不再返回 `504 Outdated Optimize Dep`。
+- 增加 Vite 配置回归测试，确保保留懒加载依赖发现能力，同时冻结过期请求不中断的行为。
+
+### Verification
+
+- 81 个测试文件、614 项测试通过；typecheck、ESLint、Prettier、Stylelint 与生产构建通过。
+- 覆盖审计为 90%，fresh pre-landing Review 无剩余意见；浏览器 QA 已覆盖 6 个冷路由且无 504/console error。
+- 本次发布不包含后端接口、合同、权限、生产部署、现场物理动作或业务验收。
+
 ## [0.12.1.0] - 2026-08-28
 
 ### Added
