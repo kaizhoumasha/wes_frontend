@@ -7,7 +7,8 @@ import type {
   ResetResult,
   TasksResult
 } from '@/api/modules/transport'
-import type { TransportDebugStepConfirmationInput } from '@/api/modules/transportDebugLoop'
+import { transportApiMethods } from '@/api/modules/transport'
+import type { TransportDebugStepConfirmationInput } from '@/views/ops/transport-diagnostics/useTransportDebugLoop'
 
 const TASK_1: TasksResult['items'][number] = {
   transport_task_id: 'transport-1',
@@ -291,6 +292,47 @@ describe('useTransportDiagnostics', () => {
     await diagnostics.resetTask('transport-1', confirmation)
 
     expect(api.resetTask).toHaveBeenCalledWith('transport-1', confirmation)
+  })
+
+  it('sends confirmation and null bodies through the generated default reset method', async () => {
+    const sendReset = vi.fn().mockResolvedValue(RESET_RESULT)
+    const sendTasks = vi.fn().mockResolvedValue({ items: [], next_cursor: null })
+    const resetSpy = vi
+      .spyOn(transportApiMethods, 'reset')
+      .mockReturnValue(
+        { send: sendReset } as unknown as ReturnType<typeof transportApiMethods.reset>
+      )
+    const tasksSpy = vi
+      .spyOn(transportApiMethods, 'tasks')
+      .mockReturnValue(
+        { send: sendTasks } as unknown as ReturnType<typeof transportApiMethods.tasks>
+      )
+    const confirmation: TransportDebugStepConfirmationInput = {
+      step: 'BINS_TO_INFEED',
+      assertion: 'PHYSICAL_TARGET_REACHED'
+    }
+
+    try {
+      const diagnostics = useTransportDiagnostics()
+
+      await diagnostics.resetTask('transport-1', confirmation)
+      await diagnostics.resetTask('transport-2')
+
+      expect(resetSpy).toHaveBeenNthCalledWith(
+        1,
+        { transport_task_id: 'transport-1' },
+        confirmation
+      )
+      expect(resetSpy).toHaveBeenNthCalledWith(
+        2,
+        { transport_task_id: 'transport-2' },
+        null
+      )
+      expect(sendReset).toHaveBeenCalledTimes(2)
+    } finally {
+      resetSpy.mockRestore()
+      tasksSpy.mockRestore()
+    }
   })
 
   it('keeps a completed reset successful when only the follow-up list refresh fails', async () => {

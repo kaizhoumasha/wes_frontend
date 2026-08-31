@@ -49,7 +49,7 @@ export const WorklineActiveObjectViewMetadata = {
     "location_summary": {
       "required": false,
       "nullable": true,
-      "ref": "MaterialLocationResult"
+      "ref": "WorklineActiveObjectLocationView"
     },
     "object_key": {
       "title": "Object Key",
@@ -74,11 +74,6 @@ export const WorklineActiveObjectViewMetadata = {
       "type": "string",
       "required": false,
       "nullable": true
-    },
-    "runtime_hold": {
-      "required": false,
-      "nullable": true,
-      "ref": "RuntimeHoldView"
     }
   }
 } satisfies OpenApiSchemaMetadata

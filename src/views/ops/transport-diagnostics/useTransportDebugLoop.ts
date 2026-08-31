@@ -1,7 +1,8 @@
 import { computed, ref } from 'vue'
-import type { DebugTasksInput, DebugTasksResult } from '@/api/modules/transport'
-import type { TransportDebugStepConfirmationInput } from '@/api/modules/transportDebugLoop'
+import type { DebugTasksInput, DebugTasksResult, ResetInput } from '@/api/modules/transport'
 import { createUuid7 } from '@/utils/uuid7'
+
+export type TransportDebugStepConfirmationInput = Exclude<ResetInput, null>
 
 export type TransportDebugStepKey =
   | 'RACK_TO_STATION'

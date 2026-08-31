@@ -23,6 +23,7 @@ export type DebugTasksInput = ContractRequestBody<'/api/v1/transport/debug-tasks
 
 export type ResetResult = ContractResponseData<'/api/v1/transport/debug-tasks/{transport_task_id}/reset', 'post'>
 export type ResetPathParams = ContractPathParams<'/api/v1/transport/debug-tasks/{transport_task_id}/reset', 'post'>
+export type ResetInput = ContractRequestBody<'/api/v1/transport/debug-tasks/{transport_task_id}/reset', 'post'>
 
 export type ResetPreviewResult = ContractResponseData<'/api/v1/transport/debug-tasks/{transport_task_id}/reset-preview', 'get'>
 export type ResetPreviewPathParams = ContractPathParams<'/api/v1/transport/debug-tasks/{transport_task_id}/reset-preview', 'get'>
@@ -50,8 +51,8 @@ export const transportApiMethods = {
    * @endpoint POST /api/v1/transport/debug-tasks/{transport_task_id}/reset
    * @returns alova method instance
    */
-  reset(params: ContractPathParams<'/api/v1/transport/debug-tasks/{transport_task_id}/reset', 'post'>, config?: ContractRequestConfig) {
-    return contractMethods.post('/api/v1/transport/debug-tasks/{transport_task_id}/reset', { params, config })
+  reset(params: ContractPathParams<'/api/v1/transport/debug-tasks/{transport_task_id}/reset', 'post'>, body: ContractRequestBody<'/api/v1/transport/debug-tasks/{transport_task_id}/reset', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/transport/debug-tasks/{transport_task_id}/reset', { params, body, config })
   },
 
   /**

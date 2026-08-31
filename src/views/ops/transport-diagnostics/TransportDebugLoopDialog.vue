@@ -3,8 +3,10 @@ import { computed, nextTick, ref } from 'vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import StandardDialog from '@/components/ui/StandardDialog/StandardDialog.vue'
 import type { DebugTasksInput, DebugTasksResult, ResetResult } from '@/api/modules/transport'
-import type { TransportDebugStepConfirmationInput } from '@/api/modules/transportDebugLoop'
-import { useTransportDebugLoop } from './useTransportDebugLoop'
+import {
+  type TransportDebugStepConfirmationInput,
+  useTransportDebugLoop
+} from './useTransportDebugLoop'
 
 const props = defineProps<{
   createTask: (input: DebugTasksInput) => Promise<DebugTasksResult>

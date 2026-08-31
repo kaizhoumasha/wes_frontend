@@ -42,24 +42,8 @@ export const BIZ_WORKLINE_PERMISSION = {
   deactivate: 'biz:workline:deactivate',
   /** 永久删除WorkLine */
   permanentDelete: 'biz:workline:permanent_delete',
-  /** Replay 历史 Inbox */
-  replayInbox: 'biz:workline:replay-inbox',
-  /** 提交 EFFECT reconciliation 人工决议 */
-  resolveEffectReconciliation: 'biz:workline:resolve-effect-reconciliation',
-  /** 解除 runtime reconciliation 隔离，不重发设备命令、不重复执行超时处理、释放安全停靠队列 */
-  resolveReconciliation: 'biz:workline:resolve-reconciliation',
-  /** 查询沙箱已完成 Outbox */
-  sandboxCompleted: 'biz:workline:sandbox-completed',
-  /** 查询沙箱待处理 Outbox */
-  sandboxPending: 'biz:workline:sandbox-pending',
-  /** 沙箱模拟 WorkLine 软件急停冻结 */
-  simulateEstop: 'biz:workline:simulate-estop',
   /** 启动 WorkLine 并激活运行代际 */
   start: 'biz:workline:start',
-  /** 沙箱模拟 Command ACK */
-  submitSandboxAck: 'biz:workline:submit-sandbox-ack',
-  /** 沙箱模拟 External HTTP 回调 */
-  submitSandboxExternalCallback: 'biz:workline:submit-sandbox-external-callback',
   /** 获取作业线平面静态场景 */
   viewPlaneScene: 'biz:workline:view-plane-scene',
   /** 获取作业线平面动态快照 */

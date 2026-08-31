@@ -5501,397 +5501,6 @@
         "title": "ManualReconcileDeviceIdleResponse",
         "type": "object"
       },
-      "MaterialLocationConflictState": {
-        "description": "MaterialLocationQuery 冲突状态。",
-        "enum": [
-          "OK",
-          "NOT_FOUND",
-          "RECONCILING",
-          "WMS_UNAVAILABLE"
-        ],
-        "title": "MaterialLocationConflictState",
-        "type": "string"
-      },
-      "MaterialLocationEvidence": {
-        "description": "单个位置来源 evidence。",
-        "properties": {
-          "correlation_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Correlation Id"
-          },
-          "evidence_json": {
-            "additionalProperties": true,
-            "title": "Evidence Json",
-            "type": "object"
-          },
-          "evidence_ref": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Evidence Ref"
-          },
-          "external_reference": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "External Reference"
-          },
-          "location_code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Location Code"
-          },
-          "location_scope": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Location Scope"
-          },
-          "object_key": {
-            "title": "Object Key",
-            "type": "string"
-          },
-          "object_type": {
-            "title": "Object Type",
-            "type": "string"
-          },
-          "observed_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Observed At"
-          },
-          "priority": {
-            "title": "Priority",
-            "type": "integer"
-          },
-          "provider_code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Provider Code"
-          },
-          "semantic_status": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Semantic Status"
-          },
-          "source": {
-            "title": "Source",
-            "type": "string"
-          },
-          "source_event_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Source Event Id"
-          },
-          "source_version": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Source Version"
-          }
-        },
-        "required": [
-          "source",
-          "priority",
-          "object_type",
-          "object_key"
-        ],
-        "title": "MaterialLocationEvidence",
-        "type": "object"
-      },
-      "MaterialLocationResult": {
-        "description": "统一位置查询结果。",
-        "properties": {
-          "conflict_state": {
-            "$ref": "#/components/schemas/MaterialLocationConflictState"
-          },
-          "correlation_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Correlation Id"
-          },
-          "evidence": {
-            "items": {
-              "$ref": "#/components/schemas/MaterialLocationEvidence"
-            },
-            "title": "Evidence",
-            "type": "array"
-          },
-          "location_code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Location Code"
-          },
-          "location_scope": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Location Scope"
-          },
-          "object_key": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Object Key"
-          },
-          "object_type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Object Type"
-          },
-          "query_entry": {
-            "title": "Query Entry",
-            "type": "string"
-          },
-          "source": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Source"
-          }
-        },
-        "required": [
-          "query_entry",
-          "conflict_state"
-        ],
-        "title": "MaterialLocationResult",
-        "type": "object"
-      },
-      "NorthboundOperationHealth": {
-        "additionalProperties": false,
-        "description": "只暴露低基数 identity、operation mode 和聚合 SLI，不暴露行级证据或 payload。",
-        "properties": {
-          "active_lease_count": {
-            "minimum": 0,
-            "title": "Active Lease Count",
-            "type": "integer"
-          },
-          "backlog_count": {
-            "minimum": 0,
-            "title": "Backlog Count",
-            "type": "integer"
-          },
-          "lease_loss_count": {
-            "minimum": 0,
-            "title": "Lease Loss Count",
-            "type": "integer"
-          },
-          "mode": {
-            "enum": [
-              "QUERY",
-              "EFFECT"
-            ],
-            "title": "Mode",
-            "type": "string"
-          },
-          "oldest_queue_age_seconds": {
-            "minimum": 0,
-            "title": "Oldest Queue Age Seconds",
-            "type": "integer"
-          },
-          "operation_identity": {
-            "maxLength": 240,
-            "minLength": 1,
-            "title": "Operation Identity",
-            "type": "string"
-          },
-          "provider_profile_identity": {
-            "maxLength": 240,
-            "minLength": 1,
-            "title": "Provider Profile Identity",
-            "type": "string"
-          },
-          "rate_limited_count": {
-            "minimum": 0,
-            "title": "Rate Limited Count",
-            "type": "integer"
-          },
-          "reconciliation_open_count": {
-            "minimum": 0,
-            "title": "Reconciliation Open Count",
-            "type": "integer"
-          },
-          "unknown_count": {
-            "minimum": 0,
-            "title": "Unknown Count",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "provider_profile_identity",
-          "operation_identity",
-          "mode",
-          "backlog_count",
-          "active_lease_count",
-          "unknown_count",
-          "oldest_queue_age_seconds",
-          "rate_limited_count",
-          "lease_loss_count",
-          "reconciliation_open_count"
-        ],
-        "title": "NorthboundOperationHealth",
-        "type": "object"
-      },
-      "NorthboundOperationalSnapshot": {
-        "additionalProperties": false,
-        "description": "租户作用域的北向运维快照。",
-        "properties": {
-          "catalog_version": {
-            "const": "northbound-operation-slo.v1",
-            "default": "northbound-operation-slo.v1",
-            "title": "Catalog Version",
-            "type": "string"
-          },
-          "generated_at": {
-            "format": "date-time",
-            "title": "Generated At",
-            "type": "string"
-          },
-          "operations": {
-            "items": {
-              "$ref": "#/components/schemas/NorthboundOperationHealth"
-            },
-            "title": "Operations",
-            "type": "array"
-          },
-          "schema_version": {
-            "const": "northbound-operational-snapshot.v1",
-            "default": "northbound-operational-snapshot.v1",
-            "title": "Schema Version",
-            "type": "string"
-          },
-          "tenant_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Tenant Id"
-          },
-          "tenant_scope": {
-            "enum": [
-              "WORKLINE_OWNER",
-              "PLATFORM"
-            ],
-            "title": "Tenant Scope",
-            "type": "string"
-          },
-          "workline_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Workline Id"
-          }
-        },
-        "required": [
-          "generated_at",
-          "tenant_scope",
-          "tenant_id",
-          "workline_id",
-          "operations"
-        ],
-        "title": "NorthboundOperationalSnapshot",
-        "type": "object"
-      },
       "OperaStatus": {
         "description": "操作日志状态",
         "enum": [
@@ -7134,30 +6743,6 @@
         "title": "RefreshTokenResponse",
         "type": "object"
       },
-      "ReplayInboxRequest": {
-        "additionalProperties": false,
-        "description": "Replay 请求。",
-        "properties": {
-          "reason": {
-            "maxLength": 500,
-            "minLength": 1,
-            "title": "Reason",
-            "type": "string"
-          },
-          "request_id": {
-            "maxLength": 100,
-            "minLength": 1,
-            "title": "Request Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "request_id",
-          "reason"
-        ],
-        "title": "ReplayInboxRequest",
-        "type": "object"
-      },
       "ReprocessBlockedEventRequest": {
         "additionalProperties": false,
         "properties": {
@@ -7233,115 +6818,6 @@
           "validity_period"
         ],
         "title": "ResetValidityPeriodSchema",
-        "type": "object"
-      },
-      "ResolveEffectReconciliationRequest": {
-        "additionalProperties": false,
-        "description": "人工 EFFECT 对账决议请求。",
-        "properties": {
-          "obligation_resolution": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/WmsSyncObligationResolution"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "E03/E07 同步义务 typed 对账裁决"
-          },
-          "operator_note": {
-            "description": "人工核验说明",
-            "maxLength": 1000,
-            "minLength": 1,
-            "title": "Operator Note",
-            "type": "string"
-          },
-          "request_id": {
-            "anyOf": [
-              {
-                "maxLength": 100,
-                "minLength": 1,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "通用决议稳定幂等请求 ID",
-            "title": "Request Id"
-          },
-          "resolution": {
-            "anyOf": [
-              {
-                "pattern": "^(COMPLETED|REJECTED)$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "非 E03/E07 EFFECT 最终决议",
-            "title": "Resolution"
-          }
-        },
-        "required": [
-          "operator_note"
-        ],
-        "title": "ResolveEffectReconciliationRequest",
-        "type": "object"
-      },
-      "ResolveRuntimeReconciliationRequest": {
-        "description": "人工运行时对账解除请求。",
-        "properties": {
-          "checks": {
-            "additionalProperties": {
-              "type": "boolean"
-            },
-            "description": "按 reconciliation_reason 要求确认的 checklist",
-            "title": "Checks",
-            "type": "object"
-          },
-          "confirmed_at": {
-            "description": "现场确认时间",
-            "format": "date-time",
-            "title": "Confirmed At",
-            "type": "string"
-          },
-          "operator_note": {
-            "description": "现场确认说明",
-            "maxLength": 1000,
-            "minLength": 1,
-            "title": "Operator Note",
-            "type": "string"
-          },
-          "resolution": {
-            "description": "人工对账决议",
-            "pattern": "^(COMPLETED|FAILED|CANCELLED)$",
-            "title": "Resolution",
-            "type": "string"
-          },
-          "result_payload": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "COMPLETED 时可补录业务结果摘要",
-            "title": "Result Payload"
-          }
-        },
-        "required": [
-          "resolution",
-          "checks",
-          "operator_note",
-          "confirmed_at"
-        ],
-        "title": "ResolveRuntimeReconciliationRequest",
         "type": "object"
       },
       "ResourceMasterStatus": {
@@ -8751,51 +8227,6 @@
         "title": "ResponseSchemaModel[ManualReconcileDeviceIdleResponse]",
         "type": "object"
       },
-      "ResponseSchemaModel_MaterialLocationResult_": {
-        "properties": {
-          "code": {
-            "default": "1000",
-            "description": "响应码",
-            "examples": [
-              "1000",
-              "2000"
-            ],
-            "title": "Code",
-            "type": "string"
-          },
-          "data": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/MaterialLocationResult"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "响应数据"
-          },
-          "message": {
-            "default": "操作成功",
-            "description": "响应消息",
-            "examples": [
-              "操作成功",
-              "参数错误"
-            ],
-            "title": "Message",
-            "type": "string"
-          },
-          "timestamp": {
-            "description": "响应时间戳(ISO 8601格式)",
-            "examples": [
-              "2024-01-01T00:00:00Z"
-            ],
-            "title": "Timestamp",
-            "type": "string"
-          }
-        },
-        "title": "ResponseSchemaModel[MaterialLocationResult]",
-        "type": "object"
-      },
       "ResponseSchemaModel_NoneType_": {
         "properties": {
           "code": {
@@ -8833,51 +8264,6 @@
           }
         },
         "title": "ResponseSchemaModel[NoneType]",
-        "type": "object"
-      },
-      "ResponseSchemaModel_NorthboundOperationalSnapshot_": {
-        "properties": {
-          "code": {
-            "default": "1000",
-            "description": "响应码",
-            "examples": [
-              "1000",
-              "2000"
-            ],
-            "title": "Code",
-            "type": "string"
-          },
-          "data": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/NorthboundOperationalSnapshot"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "响应数据"
-          },
-          "message": {
-            "default": "操作成功",
-            "description": "响应消息",
-            "examples": [
-              "操作成功",
-              "参数错误"
-            ],
-            "title": "Message",
-            "type": "string"
-          },
-          "timestamp": {
-            "description": "响应时间戳(ISO 8601格式)",
-            "examples": [
-              "2024-01-01T00:00:00Z"
-            ],
-            "title": "Timestamp",
-            "type": "string"
-          }
-        },
-        "title": "ResponseSchemaModel[NorthboundOperationalSnapshot]",
         "type": "object"
       },
       "ResponseSchemaModel_PermissionResponse_": {
@@ -10205,56 +9591,6 @@
         "title": "ResponseSchemaModel[list[PermissionTree]]",
         "type": "object"
       },
-      "ResponseSchemaModel_list_dict_str__Any___": {
-        "properties": {
-          "code": {
-            "default": "1000",
-            "description": "响应码",
-            "examples": [
-              "1000",
-              "2000"
-            ],
-            "title": "Code",
-            "type": "string"
-          },
-          "data": {
-            "anyOf": [
-              {
-                "items": {
-                  "additionalProperties": true,
-                  "type": "object"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "响应数据",
-            "title": "Data"
-          },
-          "message": {
-            "default": "操作成功",
-            "description": "响应消息",
-            "examples": [
-              "操作成功",
-              "参数错误"
-            ],
-            "title": "Message",
-            "type": "string"
-          },
-          "timestamp": {
-            "description": "响应时间戳(ISO 8601格式)",
-            "examples": [
-              "2024-01-01T00:00:00Z"
-            ],
-            "title": "Timestamp",
-            "type": "string"
-          }
-        },
-        "title": "ResponseSchemaModel[list[dict[str, Any]]]",
-        "type": "object"
-      },
       "RevokeSessionResponse": {
         "description": "撤销会话响应 Schema",
         "properties": {
@@ -10420,172 +9756,6 @@
         "title": "RoleUpdate",
         "type": "object"
       },
-      "RuntimeHoldView": {
-        "description": "Active object 关联 RuntimeHold 展示字段。",
-        "properties": {
-          "allowed_next_effect_scope": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Allowed Next Effect Scope"
-          },
-          "freeze_scope": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Freeze Scope"
-          },
-          "reason_code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Reason Code"
-          }
-        },
-        "title": "RuntimeHoldView",
-        "type": "object"
-      },
-      "SandboxAckRequest": {
-        "description": "沙箱 Command ACK 模拟请求。",
-        "properties": {
-          "dispatch_key": {
-            "description": "Dispatch Key",
-            "maxLength": 200,
-            "minLength": 1,
-            "title": "Dispatch Key",
-            "type": "string"
-          }
-        },
-        "required": [
-          "dispatch_key"
-        ],
-        "title": "SandboxAckRequest",
-        "type": "object"
-      },
-      "SandboxExternalCallbackRequest": {
-        "description": "沙箱 External HTTP 回调模拟请求。",
-        "properties": {
-          "callback_type": {
-            "anyOf": [
-              {
-                "maxLength": 100,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "外部回调类型；为空时优先使用 Outbox payload.resume_callback_type",
-            "title": "Callback Type"
-          },
-          "dispatch_key": {
-            "description": "External HTTP Outbox Dispatch Key",
-            "maxLength": 200,
-            "minLength": 1,
-            "title": "Dispatch Key",
-            "type": "string"
-          },
-          "occurred_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "外部事件发生时间",
-            "title": "Occurred At"
-          },
-          "payload": {
-            "additionalProperties": true,
-            "description": "回调 Payload 增量字段",
-            "title": "Payload",
-            "type": "object"
-          },
-          "request_id": {
-            "anyOf": [
-              {
-                "maxLength": 200,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "外部请求 ID；为空时自动生成",
-            "title": "Request Id"
-          },
-          "signature": {
-            "default": "sandbox",
-            "description": "沙箱签名占位",
-            "maxLength": 500,
-            "title": "Signature",
-            "type": "string"
-          },
-          "source_event_id": {
-            "anyOf": [
-              {
-                "maxLength": 200,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "外部事件 ID；为空时自动生成",
-            "title": "Source Event Id"
-          },
-          "source_system": {
-            "default": "WMS",
-            "description": "外部来源系统",
-            "pattern": "^(WMS|RCS)$",
-            "title": "Source System",
-            "type": "string"
-          },
-          "source_version": {
-            "default": "1",
-            "description": "外部来源版本",
-            "maxLength": 50,
-            "title": "Source Version",
-            "type": "string"
-          },
-          "timestamp": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "外部回调时间",
-            "title": "Timestamp"
-          }
-        },
-        "required": [
-          "dispatch_key"
-        ],
-        "title": "SandboxExternalCallbackRequest",
-        "type": "object"
-      },
       "SessionInfo": {
         "description": "会话信息 Schema\n\n描述一个活跃的用户会话",
         "properties": {
@@ -10640,44 +9810,6 @@
         "title": "SessionInfo",
         "type": "object"
       },
-      "SimulateWorkLineEstopRequest": {
-        "description": "沙箱模拟 WorkLine 软件急停请求。",
-        "properties": {
-          "payload": {
-            "additionalProperties": true,
-            "description": "模拟触发 payload",
-            "title": "Payload",
-            "type": "object"
-          },
-          "reason": {
-            "anyOf": [
-              {
-                "maxLength": 500,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "模拟急停说明",
-            "title": "Reason"
-          },
-          "source_device_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "模拟来源设备 ID",
-            "title": "Source Device Id"
-          }
-        },
-        "title": "SimulateWorkLineEstopRequest",
-        "type": "object"
-      },
       "SortField": {
         "description": "排序字段",
         "example": {
@@ -10704,6 +9836,16 @@
         ],
         "title": "SortField",
         "type": "object"
+      },
+      "TransportDebugStep": {
+        "enum": [
+          "RACK_TO_STATION",
+          "BINS_TO_INFEED",
+          "BINS_TO_RACK",
+          "RACK_TO_STORAGE"
+        ],
+        "title": "TransportDebugStep",
+        "type": "string"
       },
       "TransportEvidenceResponse": {
         "additionalProperties": false,
@@ -11594,52 +10736,6 @@
         "title": "ValidityPeriod",
         "type": "string"
       },
-      "WmsSyncObligationResolution": {
-        "additionalProperties": false,
-        "description": "明确满足单项 E03/E07 同步义务的已关闭对账裁决。",
-        "properties": {
-          "evidence_reference": {
-            "maxLength": 500,
-            "minLength": 1,
-            "title": "Evidence Reference",
-            "type": "string"
-          },
-          "resolution": {
-            "const": "OBLIGATION_SATISFIED",
-            "title": "Resolution",
-            "type": "string"
-          },
-          "resolved_fact_version": {
-            "maxLength": 120,
-            "minLength": 1,
-            "title": "Resolved Fact Version",
-            "type": "string"
-          },
-          "resolved_operation_identity": {
-            "enum": [
-              "wms.inventory.confirm_inbound@v1",
-              "wms.fulfillment.notify_pkg_binding@v1"
-            ],
-            "title": "Resolved Operation Identity",
-            "type": "string"
-          },
-          "source_event_id": {
-            "maxLength": 240,
-            "minLength": 1,
-            "title": "Source Event Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "resolved_operation_identity",
-          "resolved_fact_version",
-          "resolution",
-          "source_event_id",
-          "evidence_reference"
-        ],
-        "title": "WmsSyncObligationResolution",
-        "type": "object"
-      },
       "WorkLineConfigurationCheck": {
         "description": "作业线启用前结构化检查项。",
         "properties": {
@@ -12180,6 +11276,36 @@
         "title": "WorklineActiveObjectConflictState",
         "type": "string"
       },
+      "WorklineActiveObjectLocationView": {
+        "description": "来自具体 Resource projection 的当前位置证据。",
+        "properties": {
+          "conflict_state": {
+            "$ref": "#/components/schemas/WorklineActiveObjectConflictState"
+          },
+          "evidence_refs": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Evidence Refs",
+            "type": "array"
+          },
+          "location_code": {
+            "title": "Location Code",
+            "type": "string"
+          },
+          "location_scope": {
+            "title": "Location Scope",
+            "type": "string"
+          }
+        },
+        "required": [
+          "location_scope",
+          "location_code",
+          "conflict_state"
+        ],
+        "title": "WorklineActiveObjectLocationView",
+        "type": "object"
+      },
       "WorklineActiveObjectView": {
         "description": "单个 active object 只读视图。",
         "properties": {
@@ -12203,7 +11329,7 @@
           "location_summary": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/MaterialLocationResult"
+                "$ref": "#/components/schemas/WorklineActiveObjectLocationView"
               },
               {
                 "type": "null"
@@ -12239,16 +11365,6 @@
               }
             ],
             "title": "Primary Source"
-          },
-          "runtime_hold": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/RuntimeHoldView"
-              },
-              {
-                "type": "null"
-              }
-            ]
           }
         },
         "required": [
@@ -12484,6 +11600,25 @@
             "$ref": "#/components/schemas/_HandoffPosition"
           }
         ]
+      },
+      "_DebugTransportStepConfirmation": {
+        "additionalProperties": false,
+        "properties": {
+          "assertion": {
+            "const": "PHYSICAL_TARGET_REACHED",
+            "title": "Assertion",
+            "type": "string"
+          },
+          "step": {
+            "$ref": "#/components/schemas/TransportDebugStep"
+          }
+        },
+        "required": [
+          "step",
+          "assertion"
+        ],
+        "title": "_DebugTransportStepConfirmation",
+        "type": "object"
       },
       "_DebugTransportTaskRequest": {
         "discriminator": {
@@ -17095,261 +16230,6 @@
         ]
       }
     },
-    "/api/v1/material/material-units/location-query": {
-      "get": {
-        "description": "统一 MaterialLocationQuery 入口，API 层只委托查询 service。",
-        "operationId": "material_material_units_location_query_get",
-        "parameters": [
-          {
-            "description": "PkgID / package_id",
-            "in": "query",
-            "name": "package_id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "PkgID / package_id",
-              "title": "Package Id"
-            }
-          },
-          {
-            "description": "料箱编码",
-            "in": "query",
-            "name": "bin_code",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "料箱编码",
-              "title": "Bin Code"
-            }
-          },
-          {
-            "description": "物料身份键",
-            "in": "query",
-            "name": "material_identity_key",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "物料身份键",
-              "title": "Material Identity Key"
-            }
-          },
-          {
-            "description": "货架编码",
-            "in": "query",
-            "name": "rack_code",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "货架编码",
-              "title": "Rack Code"
-            }
-          },
-          {
-            "description": "货架面",
-            "in": "query",
-            "name": "rack_side",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "货架面",
-              "title": "Rack Side"
-            }
-          },
-          {
-            "description": "WorkLine.id",
-            "in": "query",
-            "name": "workline_id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "integer"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "WorkLine.id",
-              "title": "Workline Id"
-            }
-          },
-          {
-            "description": "运行对象类型",
-            "in": "query",
-            "name": "object_type",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "运行对象类型",
-              "title": "Object Type"
-            }
-          },
-          {
-            "description": "运行对象键",
-            "in": "query",
-            "name": "object_key",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "运行对象键",
-              "title": "Object Key"
-            }
-          },
-          {
-            "description": "外部引用类型",
-            "in": "query",
-            "name": "external_reference_type",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "外部引用类型",
-              "title": "External Reference Type"
-            }
-          },
-          {
-            "description": "外部引用值",
-            "in": "query",
-            "name": "external_reference_value",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "外部引用值",
-              "title": "External Reference Value"
-            }
-          },
-          {
-            "description": "provider code",
-            "in": "query",
-            "name": "provider_code",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "provider code",
-              "title": "Provider Code"
-            }
-          },
-          {
-            "description": "ExecutionCorrelation.correlation_id",
-            "in": "query",
-            "name": "correlation_id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "ExecutionCorrelation.correlation_id",
-              "title": "Correlation Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_MaterialLocationResult_"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "[biz:material:location-query] 查询物料作业期位置",
-        "tags": [
-          "物料运行视图"
-        ]
-      }
-    },
     "/api/v1/resource/bin-cell-occupancies/query": {
       "post": {
         "operationId": "bin_cell_occupancies_query",
@@ -19249,6 +18129,23 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/_DebugTransportStepConfirmation"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Confirmation"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {
@@ -19259,6 +18156,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "操作员确认与任务不匹配"
           },
           "404": {
             "content": {
@@ -21351,217 +20258,6 @@
         ]
       }
     },
-    "/api/v1/workline/operations/reconciliations/effects/{dispatch_key}/resolve": {
-      "post": {
-        "operationId": "workline_operations_reconciliations_effects_by_dispatch_key_resolve_post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "dispatch_key",
-            "required": true,
-            "schema": {
-              "title": "Dispatch Key",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ResolveEffectReconciliationRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "[biz:workline:resolve-effect-reconciliation] 提交 EFFECT reconciliation 人工决议",
-        "tags": [
-          "工作线诊断操作"
-        ]
-      }
-    },
-    "/api/v1/workline/operations/reconciliations/sessions/{session_id}/resolve": {
-      "post": {
-        "operationId": "workline_operations_reconciliations_sessions_by_session_id_resolve_post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "session_id",
-            "required": true,
-            "schema": {
-              "title": "Session Id",
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ResolveRuntimeReconciliationRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "[biz:workline:resolve-reconciliation] 解除 runtime reconciliation 隔离，不重发设备命令、不重复执行超时处理、释放安全停靠队列",
-        "tags": [
-          "工作线诊断操作"
-        ]
-      }
-    },
-    "/api/v1/workline/operations/replay/inboxes/{inbox_id}": {
-      "post": {
-        "operationId": "workline_operations_replay_inboxes_by_inbox_id_post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "inbox_id",
-            "required": true,
-            "schema": {
-              "title": "Inbox Id",
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ReplayInboxRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
-                }
-              }
-            },
-            "description": "源 Inbox 当前状态不允许 Replay"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
-                }
-              }
-            },
-            "description": "源 Inbox 或所属工作线不存在"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
-                }
-              }
-            },
-            "description": "Replay 幂等身份冲突"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
-                }
-              }
-            },
-            "description": "Replay 审计证据暂时无法持久化"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "[biz:workline:replay-inbox] Replay 历史 Inbox",
-        "tags": [
-          "工作线诊断操作"
-        ]
-      }
-    },
     "/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop": {
       "post": {
         "operationId": "workline_operations_safety_worklines_by_workline_id_clear_estop_post",
@@ -21619,339 +20315,9 @@
         ]
       }
     },
-    "/api/v1/workline/operations/sandbox/ack": {
-      "post": {
-        "operationId": "workline_operations_sandbox_ack_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SandboxAckRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "[biz:workline:submit-sandbox-ack] 沙箱模拟 Command ACK",
-        "tags": [
-          "工作线诊断操作"
-        ]
-      }
-    },
-    "/api/v1/workline/operations/sandbox/completed": {
-      "get": {
-        "operationId": "workline_operations_sandbox_completed_get",
-        "parameters": [
-          {
-            "description": "最多返回条数",
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 50,
-              "description": "最多返回条数",
-              "maximum": 500,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          },
-          {
-            "description": "按工作线过滤",
-            "in": "query",
-            "name": "workline_id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "minimum": 1,
-                  "type": "integer"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "按工作线过滤",
-              "title": "Workline Id"
-            }
-          },
-          {
-            "description": "按设备过滤",
-            "in": "query",
-            "name": "device_id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "minimum": 1,
-                  "type": "integer"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "按设备过滤",
-              "title": "Device Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_list_dict_str__Any___"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "[biz:workline:sandbox-completed] 查询沙箱已完成 Outbox",
-        "tags": [
-          "工作线诊断操作"
-        ]
-      }
-    },
-    "/api/v1/workline/operations/sandbox/external-callbacks": {
-      "post": {
-        "operationId": "workline_operations_sandbox_external_callbacks_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SandboxExternalCallbackRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "[biz:workline:submit-sandbox-external-callback] 沙箱模拟 External HTTP 回调",
-        "tags": [
-          "工作线诊断操作"
-        ]
-      }
-    },
-    "/api/v1/workline/operations/sandbox/pending": {
-      "get": {
-        "operationId": "workline_operations_sandbox_pending_get",
-        "parameters": [
-          {
-            "description": "最多返回条数",
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 50,
-              "description": "最多返回条数",
-              "maximum": 500,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          },
-          {
-            "description": "按工作线过滤",
-            "in": "query",
-            "name": "workline_id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "minimum": 1,
-                  "type": "integer"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "按工作线过滤",
-              "title": "Workline Id"
-            }
-          },
-          {
-            "description": "按设备过滤",
-            "in": "query",
-            "name": "device_id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "minimum": 1,
-                  "type": "integer"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "按设备过滤",
-              "title": "Device Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_list_dict_str__Any___"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "[biz:workline:sandbox-pending] 查询沙箱待处理 Outbox",
-        "tags": [
-          "工作线诊断操作"
-        ]
-      }
-    },
-    "/api/v1/workline/operations/sandbox/worklines/{workline_id}/simulate-estop": {
-      "post": {
-        "description": "沙箱专用安全模拟入口；不通过普通 sandbox event 流。",
-        "operationId": "workline_operations_sandbox_worklines_by_workline_id_simulate_estop_post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "workline_id",
-            "required": true,
-            "schema": {
-              "title": "Workline Id",
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SimulateWorkLineEstopRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "[biz:workline:simulate-estop] 沙箱模拟 WorkLine 软件急停冻结",
-        "tags": [
-          "工作线诊断操作"
-        ]
-      }
-    },
     "/api/v1/workline/operations/worklines/{workline_id}/start": {
       "post": {
-        "description": "In one transaction replay or create the complete Epoch, then wake SYSTEM outbox.",
+        "description": "在一个事务内 replay 或创建完整 LineRunEpoch。",
         "operationId": "workline_operations_worklines_by_workline_id_start_post",
         "parameters": [
           {
@@ -22034,62 +20400,6 @@
         "summary": "[biz:workline:start] 启动 WorkLine 并激活运行代际",
         "tags": [
           "工作线诊断操作"
-        ]
-      }
-    },
-    "/api/v1/workline/runtime-operations/northbound": {
-      "get": {
-        "description": "只允许 Service 读取 owner-scoped 聚合 SLI；不得返回 payload/trace/secret。",
-        "operationId": "workline_runtime_operations_northbound_get",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "workline_id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "minimum": 1,
-                  "type": "integer"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Workline Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_NorthboundOperationalSnapshot_"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "[sys:runtime-operations:view] 获取北向 operation 运维快照",
-        "tags": [
-          "运行运维只读入口"
         ]
       }
     },

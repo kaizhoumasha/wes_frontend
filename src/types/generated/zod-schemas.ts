@@ -1,4 +1,4 @@
-/** @openapi-sha256 ecf5c09a2eab922fd31dd8e6ae73e22157a551011b4c50fdbae7b06b3f36dec5 */
+/** @openapi-sha256 be9b173a2da4114479473fd28e273e554fa12fb7951e4709720cb6ca19311349 */
 /**
  * Zod Validation Schemas
  *
@@ -1768,136 +1768,6 @@ export const ManualReconcileDeviceIdleResponseSchema = z.object({
 
 
 /**
- * MaterialLocationQuery 冲突状态。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const MaterialLocationConflictStateSchema = z.enum(["OK", "NOT_FOUND", "RECONCILING", "WMS_UNAVAILABLE"])
-
-
-/**
- * 单个位置来源 evidence。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const MaterialLocationEvidenceSchema = z.object({
-  /** Correlation Id */
-  correlation_id: z.union([z.string(), z.null()]).optional(),
-  /** Evidence Json */
-  evidence_json: z.record(z.any()).optional(),
-  /** Evidence Ref */
-  evidence_ref: z.union([z.string(), z.null()]).optional(),
-  /** External Reference */
-  external_reference: z.union([z.string(), z.null()]).optional(),
-  /** Location Code */
-  location_code: z.union([z.string(), z.null()]).optional(),
-  /** Location Scope */
-  location_scope: z.union([z.string(), z.null()]).optional(),
-  /** Object Key */
-  object_key: z.string(),
-  /** Object Type */
-  object_type: z.string(),
-  /** Observed At */
-  observed_at: z.union([z.string().datetime(), z.null()]).optional(),
-  /** Priority */
-  priority: z.number(),
-  /** Provider Code */
-  provider_code: z.union([z.string(), z.null()]).optional(),
-  /** Semantic Status */
-  semantic_status: z.union([z.string(), z.null()]).optional(),
-  /** Source */
-  source: z.string(),
-  /** Source Event Id */
-  source_event_id: z.union([z.string(), z.null()]).optional(),
-  /** Source Version */
-  source_version: z.union([z.string(), z.null()]).optional(),
-})
-
-
-/**
- * 统一位置查询结果。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const MaterialLocationResultSchema = z.object({
-  conflict_state: z.lazy(() => MaterialLocationConflictStateSchema),
-  /** Correlation Id */
-  correlation_id: z.union([z.string(), z.null()]).optional(),
-  /** Evidence */
-  evidence: z.array(z.lazy(() => MaterialLocationEvidenceSchema)).optional(),
-  /** Location Code */
-  location_code: z.union([z.string(), z.null()]).optional(),
-  /** Location Scope */
-  location_scope: z.union([z.string(), z.null()]).optional(),
-  /** Object Key */
-  object_key: z.union([z.string(), z.null()]).optional(),
-  /** Object Type */
-  object_type: z.union([z.string(), z.null()]).optional(),
-  /** Query Entry */
-  query_entry: z.string(),
-  /** Source */
-  source: z.union([z.string(), z.null()]).optional(),
-})
-
-
-/**
- * 只暴露低基数 identity、operation mode 和聚合 SLI，不暴露行级证据或 payload。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const NorthboundOperationHealthSchema = z.object({
-  /** Active Lease Count */
-  active_lease_count: z.number().min(0),
-  /** Backlog Count */
-  backlog_count: z.number().min(0),
-  /** Lease Loss Count */
-  lease_loss_count: z.number().min(0),
-  /** Mode */
-  mode: z.enum(["QUERY", "EFFECT"]),
-  /** Oldest Queue Age Seconds */
-  oldest_queue_age_seconds: z.number().min(0),
-  /** Operation Identity */
-  operation_identity: z.string().min(1).max(240),
-  /** Provider Profile Identity */
-  provider_profile_identity: z.string().min(1).max(240),
-  /** Rate Limited Count */
-  rate_limited_count: z.number().min(0),
-  /** Reconciliation Open Count */
-  reconciliation_open_count: z.number().min(0),
-  /** Unknown Count */
-  unknown_count: z.number().min(0),
-})
-
-
-/**
- * 租户作用域的北向运维快照。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const NorthboundOperationalSnapshotSchema = z.object({
-  /** Catalog Version */
-  catalog_version: z.literal("northbound-operation-slo.v1").optional().default("northbound-operation-slo.v1"),
-  /** Generated At */
-  generated_at: z.string().datetime(),
-  /** Operations */
-  operations: z.array(z.lazy(() => NorthboundOperationHealthSchema)),
-  /** Schema Version */
-  schema_version: z.literal("northbound-operational-snapshot.v1").optional().default("northbound-operational-snapshot.v1"),
-  /** Tenant Id */
-  tenant_id: z.union([z.number(), z.null()]),
-  /** Tenant Scope */
-  tenant_scope: z.enum(["WORKLINE_OWNER", "PLATFORM"]),
-  /** Workline Id */
-  workline_id: z.union([z.number(), z.null()]),
-})
-
-
-/**
  * 操作日志状态
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -2367,20 +2237,6 @@ export const RefreshTokenResponseSchema = z.object({
 })
 
 
-/**
- * Replay 请求。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const ReplayInboxRequestSchema = z.object({
-  /** Reason */
-  reason: z.string().min(1).max(500),
-  /** Request Id */
-  request_id: z.string().min(1).max(100),
-})
-
-
 export const ReprocessBlockedEventRequestSchema = z.object({
   /** Reason */
   reason: z.string().min(1).max(500),
@@ -2420,44 +2276,6 @@ export const ResetValidityPeriodSchemaSchema = z.object({
   validity_period: z.lazy(() => ValidityPeriodSchema),
   /** Version */
   version: z.number().optional().default(0),
-})
-
-
-/**
- * 人工 EFFECT 对账决议请求。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const ResolveEffectReconciliationRequestSchema = z.object({
-  /** E03/E07 同步义务 typed 对账裁决 */
-  obligation_resolution: z.union([z.lazy(() => WmsSyncObligationResolutionSchema), z.null()]).optional(),
-  /** Operator Note */
-  operator_note: z.string().min(1).max(1000),
-  /** Request Id */
-  request_id: z.union([z.string().min(1).max(100), z.null()]).optional(),
-  /** Resolution */
-  resolution: z.union([z.string().regex(new RegExp("^(COMPLETED|REJECTED)$")), z.null()]).optional(),
-})
-
-
-/**
- * 人工运行时对账解除请求。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const ResolveRuntimeReconciliationRequestSchema = z.object({
-  /** Checks */
-  checks: z.record(z.boolean()),
-  /** Confirmed At */
-  confirmed_at: z.string().datetime(),
-  /** Operator Note */
-  operator_note: z.string().min(1).max(1000),
-  /** Resolution */
-  resolution: z.string().regex(new RegExp("^(COMPLETED|FAILED|CANCELLED)$")),
-  /** Result Payload */
-  result_payload: z.union([z.record(z.any()), z.null()]).optional(),
 })
 
 
@@ -2626,64 +2444,6 @@ export const RoleUpdateSchema = z.object({
 
 
 /**
- * Active object 关联 RuntimeHold 展示字段。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const RuntimeHoldViewSchema = z.object({
-  /** Allowed Next Effect Scope */
-  allowed_next_effect_scope: z.union([z.string(), z.null()]).optional(),
-  /** Freeze Scope */
-  freeze_scope: z.union([z.string(), z.null()]).optional(),
-  /** Reason Code */
-  reason_code: z.union([z.string(), z.null()]).optional(),
-})
-
-
-/**
- * 沙箱 Command ACK 模拟请求。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const SandboxAckRequestSchema = z.object({
-  /** Dispatch Key */
-  dispatch_key: z.string().min(1).max(200),
-})
-
-
-/**
- * 沙箱 External HTTP 回调模拟请求。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const SandboxExternalCallbackRequestSchema = z.object({
-  /** Callback Type */
-  callback_type: z.union([z.string().max(100), z.null()]).optional(),
-  /** Dispatch Key */
-  dispatch_key: z.string().min(1).max(200),
-  /** Occurred At */
-  occurred_at: z.union([z.string().datetime(), z.null()]).optional(),
-  /** Payload */
-  payload: z.record(z.any()).optional(),
-  /** Request Id */
-  request_id: z.union([z.string().max(200), z.null()]).optional(),
-  /** Signature */
-  signature: z.string().max(500).optional().default("sandbox"),
-  /** Source Event Id */
-  source_event_id: z.union([z.string().max(200), z.null()]).optional(),
-  /** Source System */
-  source_system: z.string().regex(new RegExp("^(WMS|RCS)$")).optional().default("WMS"),
-  /** Source Version */
-  source_version: z.string().max(50).optional().default("1"),
-  /** Timestamp */
-  timestamp: z.union([z.string().datetime(), z.null()]).optional(),
-})
-
-
-/**
  * 会话信息 Schema
 
 描述一个活跃的用户会话
@@ -2706,22 +2466,6 @@ export const SessionInfoSchema = z.object({
 
 
 /**
- * 沙箱模拟 WorkLine 软件急停请求。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const SimulateWorkLineEstopRequestSchema = z.object({
-  /** Payload */
-  payload: z.record(z.any()).optional(),
-  /** Reason */
-  reason: z.union([z.string().max(500), z.null()]).optional(),
-  /** Source Device Id */
-  source_device_id: z.union([z.number(), z.null()]).optional(),
-})
-
-
-/**
  * 排序字段
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -2733,6 +2477,9 @@ export const SortFieldSchema = z.object({
   /** Order */
   order: z.enum(["asc", "desc"]).optional().default("desc"),
 })
+
+
+export const TransportDebugStepSchema = z.enum(["RACK_TO_STATION", "BINS_TO_INFEED", "BINS_TO_RACK", "RACK_TO_STORAGE"])
 
 
 export const TransportEvidenceResponseSchema = z.object({
@@ -3025,26 +2772,6 @@ export const ValidityPeriodSchema = z.enum(["1d", "1w", "1m", "6m", "1y", "never
 
 
 /**
- * 明确满足单项 E03/E07 同步义务的已关闭对账裁决。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const WmsSyncObligationResolutionSchema = z.object({
-  /** Evidence Reference */
-  evidence_reference: z.string().min(1).max(500),
-  /** Resolution */
-  resolution: z.literal("OBLIGATION_SATISFIED"),
-  /** Resolved Fact Version */
-  resolved_fact_version: z.string().min(1).max(120),
-  /** Resolved Operation Identity */
-  resolved_operation_identity: z.enum(["wms.inventory.confirm_inbound@v1", "wms.fulfillment.notify_pkg_binding@v1"]),
-  /** Source Event Id */
-  source_event_id: z.string().min(1).max(240),
-})
-
-
-/**
  * 作业线启用前结构化检查项。
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -3259,6 +2986,29 @@ export const WorklineActiveObjectConflictStateSchema = z.enum(["OK", "TRANSIENT"
 
 
 /**
+ * 来自具体 Resource projection 的当前位置证据。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const WorklineActiveObjectLocationViewSchema = z.object({
+  conflict_state: z.lazy(() => WorklineActiveObjectConflictStateSchema),
+  /** Evidence Refs */
+  evidence_refs: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())).optional(),
+  /** Location Code */
+  location_code: z.string(),
+  /** Location Scope */
+  location_scope: z.string(),
+})
+
+
+/**
  * 单个 active object 只读视图。
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -3282,7 +3032,7 @@ export const WorklineActiveObjectViewSchema = z.object({
         }
         return val
       }, z.array(z.string())).optional(),
-  location_summary: z.union([z.lazy(() => MaterialLocationResultSchema), z.null()]).optional(),
+  location_summary: z.union([z.lazy(() => WorklineActiveObjectLocationViewSchema), z.null()]).optional(),
   /** Object Key */
   object_key: z.string(),
   /** Object Type */
@@ -3291,7 +3041,6 @@ export const WorklineActiveObjectViewSchema = z.object({
   operator_hint: z.union([z.string(), z.null()]).optional(),
   /** Primary Source */
   primary_source: z.union([z.string(), z.null()]).optional(),
-  runtime_hold: z.union([z.lazy(() => RuntimeHoldViewSchema), z.null()]).optional(),
 })
 
 
@@ -3366,6 +3115,13 @@ export const _BinMoveMemberSchema = z.object({
 
 
 export const _BinPositionSchema = z.union([z.lazy(() => _RackBinSlotSchema), z.lazy(() => _HandoffPositionSchema)])
+
+
+export const _DebugTransportStepConfirmationSchema = z.object({
+  /** Assertion */
+  assertion: z.literal("PHYSICAL_TARGET_REACHED"),
+  step: z.lazy(() => TransportDebugStepSchema),
+})
 
 
 export const _DebugTransportTaskRequestSchema = z.union([z.lazy(() => _RackMoveDebugTaskSchema), z.lazy(() => _RackRotateDebugTaskSchema), z.lazy(() => _BinMoveDebugTaskSchema), z.lazy(() => _BinExchangeDebugTaskSchema)])

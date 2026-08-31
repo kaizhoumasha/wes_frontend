@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { schemaToZod } from '../../../scripts/generate-zod-from-openapi'
-import { WmsSyncObligationResolutionSchema } from '@/types/zod-extensions'
+import { _DebugTransportStepConfirmationSchema } from '@/types/zod-extensions'
 
 describe('generate-zod-from-openapi helpers', () => {
   it('preserves OpenAPI const constraints including false and zero', () => {
@@ -11,19 +11,16 @@ describe('generate-zod-from-openapi helpers', () => {
 
   it('rejects values that violate a generated contract constant', () => {
     const baseValue = {
-      resolved_operation_identity: 'wms.inventory.confirm_inbound@v1',
-      resolved_fact_version: 'fact-v1',
-      source_event_id: 'event-1',
-      evidence_reference: 'evidence-1',
+      step: 'BINS_TO_INFEED' as const,
     }
 
-    expect(WmsSyncObligationResolutionSchema.safeParse({
+    expect(_DebugTransportStepConfirmationSchema.safeParse({
       ...baseValue,
-      resolution: 'OBLIGATION_SATISFIED',
+      assertion: 'PHYSICAL_TARGET_REACHED',
     }).success).toBe(true)
-    expect(WmsSyncObligationResolutionSchema.safeParse({
+    expect(_DebugTransportStepConfirmationSchema.safeParse({
       ...baseValue,
-      resolution: 'WRONG',
+      assertion: 'WRONG',
     }).success).toBe(false)
   })
 })
