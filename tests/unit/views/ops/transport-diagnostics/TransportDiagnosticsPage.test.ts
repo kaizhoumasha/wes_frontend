@@ -37,6 +37,7 @@ const streamMocks = vi.hoisted(() => ({
   reconnect: vi.fn(),
   disconnect: vi.fn()
 }))
+const loopDialogMocks = vi.hoisted(() => ({ open: vi.fn() }))
 const streamOptions = vi.hoisted(() => ({
   value: null as null | {
     onEvent: (event: { payload: { transport_task_id: string | null } }) => void
@@ -122,6 +123,12 @@ const TransportDebugResetDialogStub = defineComponent({
   `
 })
 
+const TransportDebugLoopDialogStub = defineComponent({
+  name: 'TransportDebugLoopDialog',
+  methods: { open: loopDialogMocks.open },
+  template: '<div data-test="loop-dialog" />'
+})
+
 function mountPage() {
   return shallowMount(TransportDiagnosticsPage, {
     global: {
@@ -131,6 +138,7 @@ function mountPage() {
         TransportTaskTable: true,
         TransportTaskDetail: true,
         TransportDebugTaskDialog: true,
+        TransportDebugLoopDialog: TransportDebugLoopDialogStub,
         TransportDebugResetDialog: TransportDebugResetDialogStub,
         ElAlert: true,
         ElInput: true,
@@ -161,6 +169,32 @@ describe('TransportDiagnosticsPage', () => {
     permissionMocks.granted.add(OPS_PERMISSIONS.transport.debugCreate)
     permissionMocks.granted.add(OPS_PERMISSIONS.transport.debugPreview)
     permissionMocks.granted.add(OPS_PERMISSIONS.transport.debugReset)
+  })
+
+  it('opens the 510056 loop stepper inside the existing diagnostics page', async () => {
+    const wrapper = mountPage()
+    const loopButton = wrapper
+      .findAllComponents(AppButtonStub)
+      .find(candidate => candidate.text().includes('510056 联调步进'))
+
+    expect(loopButton).toBeDefined()
+    await loopButton?.trigger('click')
+
+    expect(loopDialogMocks.open).toHaveBeenCalledOnce()
+  })
+
+  it.each([
+    OPS_PERMISSIONS.transportTask.read,
+    OPS_PERMISSIONS.transport.debugCreate,
+    OPS_PERMISSIONS.transport.debugReset
+  ])('hides the 510056 loop stepper without %s', permission => {
+    permissionMocks.granted.delete(permission)
+
+    const wrapper = mountPage()
+
+    expect(
+      wrapper.findAll('button').some(button => button.text().includes('510056 联调步进'))
+    ).toBe(false)
   })
 
   it('loads durable tasks, connects live notifications and refreshes the related task', async () => {
