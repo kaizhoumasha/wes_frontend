@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.2.0] - 2026-08-31
+
+### Added
+
+- 在现有“运输接入诊断”页面增加 510056 固定联调步进，覆盖货架进站、两料箱投料、SCAN9～12 等待、料箱回架和货架回库五个步骤。
+- Transport 步骤只在操作员确认现场已完成后提交 `PHYSICAL_TARGET_REACHED`，并显示对应本地任务身份和非业务权威审计说明。
+
+### Fixed
+
+- 下一步骤下发失败时不重复确认已完成的清理；确认失败保留当前任务，快速重复操作由 busy guard 拒绝。
+- 联调入口仅对同时具备 Transport 读取、创建和清理权限的用户显示。
+
+### Verification
+
+- 83 个测试文件、623 项测试通过；typecheck、ESLint、Prettier、Stylelint、生产构建与合同校验通过。
+- 补充真实 API 接线、确认失败恢复、并发保护、下一轮重启和权限隐藏测试，覆盖审计由 61% 提升至约 94%。
+- 浏览器 QA 已覆盖桌面与移动视口且未创建真实 Transport 任务；本次验证不包含现场物理完成或业务验收。
+
 ## [0.12.1.1] - 2026-08-30
 
 ### Fixed
