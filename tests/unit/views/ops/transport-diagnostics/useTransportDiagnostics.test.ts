@@ -7,6 +7,7 @@ import type {
   ResetResult,
   TasksResult
 } from '@/api/modules/transport'
+import type { TransportDebugStepConfirmationInput } from '@/api/modules/transportDebugLoop'
 
 const TASK_1: TasksResult['items'][number] = {
   transport_task_id: 'transport-1',
@@ -70,7 +71,9 @@ function createApi() {
         (_: DebugTasksInput) => Promise<{ client_request_id: string; transport_task_id: string }>
       >(),
     previewTaskReset: vi.fn<(_: string) => Promise<ResetPreviewResult>>(),
-    resetTask: vi.fn<(_: string) => Promise<ResetResult>>()
+    resetTask: vi.fn<
+      (_: string, confirmation?: TransportDebugStepConfirmationInput) => Promise<ResetResult>
+    >()
   }
 }
 
@@ -273,6 +276,21 @@ describe('useTransportDiagnostics', () => {
     expect(diagnostics.detail.value).toBeNull()
     expect(diagnostics.resetPreview.value).toBeNull()
     expect(diagnostics.tasks.value).toEqual([TASK_2])
+  })
+
+  it('forwards the operator physical-target assertion when confirming a loop step', async () => {
+    const api = createApi()
+    api.resetTask.mockResolvedValue(RESET_RESULT)
+    api.listTasks.mockResolvedValue({ items: [], next_cursor: null })
+    const diagnostics = useTransportDiagnostics({ api })
+    const confirmation: TransportDebugStepConfirmationInput = {
+      step: 'BINS_TO_INFEED',
+      assertion: 'PHYSICAL_TARGET_REACHED'
+    }
+
+    await diagnostics.resetTask('transport-1', confirmation)
+
+    expect(api.resetTask).toHaveBeenCalledWith('transport-1', confirmation)
   })
 
   it('keeps a completed reset successful when only the follow-up list refresh fails', async () => {

@@ -9,13 +9,20 @@ import {
   type TasksQuery,
   type TasksResult
 } from '@/api/modules/transport'
+import {
+  confirmTransportDebugStep,
+  type TransportDebugStepConfirmationInput
+} from '@/api/modules/transportDebugLoop'
 
 export interface TransportDiagnosticsApiPort {
   listTasks(query: TasksQuery): Promise<TasksResult>
   getTask(transportTaskId: string): Promise<GetByTransportTaskIdResult>
   createTask(input: DebugTasksInput): Promise<DebugTasksResult>
   previewTaskReset(transportTaskId: string): Promise<ResetPreviewResult>
-  resetTask(transportTaskId: string): Promise<ResetResult>
+  resetTask(
+    transportTaskId: string,
+    confirmation?: TransportDebugStepConfirmationInput
+  ): Promise<ResetResult>
 }
 
 interface UseTransportDiagnosticsOptions {
@@ -31,8 +38,10 @@ const DEFAULT_API: TransportDiagnosticsApiPort = {
   createTask: input => transportApiMethods.debugTasks(input).send(),
   previewTaskReset: transportTaskId =>
     transportApiMethods.resetPreview({ transport_task_id: transportTaskId }).send(),
-  resetTask: transportTaskId =>
-    transportApiMethods.reset({ transport_task_id: transportTaskId }).send()
+  resetTask: (transportTaskId, confirmation) =>
+    confirmation
+      ? confirmTransportDebugStep(transportTaskId, confirmation)
+      : transportApiMethods.reset({ transport_task_id: transportTaskId }).send()
 }
 
 export function useTransportDiagnostics(options: UseTransportDiagnosticsOptions = {}) {
@@ -144,12 +153,15 @@ export function useTransportDiagnostics(options: UseTransportDiagnosticsOptions 
     }
   }
 
-  async function resetTask(transportTaskId: string): Promise<ResetResult> {
+  async function resetTask(
+    transportTaskId: string,
+    confirmation?: TransportDebugStepConfirmationInput
+  ): Promise<ResetResult> {
     if (resetting.value) throw new Error('Transport 任务正在清理')
     resetting.value = true
     lastError.value = null
     try {
-      const result = await api.resetTask(transportTaskId)
+      const result = await api.resetTask(transportTaskId, confirmation)
       if (selectedTaskId.value === transportTaskId) {
         detailRequestGeneration += 1
         selectedTaskId.value = null
