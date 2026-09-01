@@ -31,14 +31,24 @@ export const _RackRotateDataMetadata = {
       "minLength": 1,
       "maxLength": 100
     },
+    "rcs_template_id": {
+      "required": false,
+      "nullable": true,
+      "enum": [
+        "CTU01",
+        "CTU02",
+        "CTU03",
+        "F01"
+      ],
+      "ref": "RcsTemplateId"
+    },
     "target_face": {
+      "title": "Target Face",
+      "description": "Opaque non-empty face value; preserve exactly",
+      "type": "string",
       "required": true,
       "nullable": false,
-      "enum": [
-        "A",
-        "B"
-      ],
-      "ref": "RackFace"
+      "minLength": 1
     }
   }
 } satisfies OpenApiSchemaMetadata

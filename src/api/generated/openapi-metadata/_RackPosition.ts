@@ -18,10 +18,13 @@ export const _RackPositionMetadata = {
   "additionalProperties": false,
   "fields": {
     "kind": {
-      "title": "Kind",
+      "description": "discriminator enum property added by openapi-typescript",
       "type": "string",
       "required": true,
-      "nullable": false
+      "nullable": false,
+      "enum": [
+        "RACK_POSITION"
+      ]
     },
     "location_code": {
       "title": "Location Code",

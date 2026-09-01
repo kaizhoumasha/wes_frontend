@@ -1,4 +1,4 @@
-/** @openapi-sha256 be9b173a2da4114479473fd28e273e554fa12fb7951e4709720cb6ca19311349 */
+/** @openapi-sha256 cd539bae4577b69b57ee91809625ee56f115e1cc93b59ce587db7b77e81830f8 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -2527,7 +2527,11 @@ export interface components {
              * @enum {string}
              */
             kind: "RACK_BIN_SLOT";
-            rack_face: components["schemas"]["RackFace"];
+            /**
+             * Rack Face
+             * @description Opaque non-empty face value; preserve exactly
+             */
+            rack_face: string;
             /** Rack Id */
             rack_id: string;
             /** Slot Id */
@@ -2537,9 +2541,14 @@ export interface components {
         _RackMoveData: {
             /** Rack Id */
             rack_id: string;
-            source: components["schemas"]["_RackPosition"];
-            target: components["schemas"]["_RackPosition"];
-            target_face: components["schemas"]["RackFace"];
+            rcs_template_id?: components["schemas"]["RcsTemplateId"] | null;
+            source: components["schemas"]["_RackMovePosition"];
+            target: components["schemas"]["_RackMovePosition"];
+            /**
+             * Target Face
+             * @description Opaque non-empty face value; preserve exactly
+             */
+            target_face: string;
         };
         /** _RackMoveDebugTask */
         _RackMoveDebugTask: {
@@ -2554,13 +2563,24 @@ export interface components {
             /** Station Id */
             station_id?: string | null;
         };
+        _RackMovePosition: components["schemas"]["_RackReference"] | components["schemas"]["_ZonePosition"] | components["schemas"]["_RackPosition"];
         /** _RackPosition */
         _RackPosition: {
             /**
-             * Kind
-             * @constant
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
              */
             kind: "RACK_POSITION";
+            /** Location Code */
+            location_code: string;
+        };
+        /** _RackReference */
+        _RackReference: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "RACK";
             /** Location Code */
             location_code: string;
         };
@@ -2569,7 +2589,12 @@ export interface components {
             position: components["schemas"]["_RackPosition"];
             /** Rack Id */
             rack_id: string;
-            target_face: components["schemas"]["RackFace"];
+            rcs_template_id?: components["schemas"]["RcsTemplateId"] | null;
+            /**
+             * Target Face
+             * @description Opaque non-empty face value; preserve exactly
+             */
+            target_face: string;
         };
         /** _RackRotateDebugTask */
         _RackRotateDebugTask: {
@@ -2583,6 +2608,16 @@ export interface components {
             kind: "RACK_ROTATE";
             /** Station Id */
             station_id?: string | null;
+        };
+        /** _ZonePosition */
+        _ZonePosition: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "ZONE";
+            /** Location Code */
+            location_code: string;
         };
         /**
          * ActiveSessionsResponse
@@ -4706,11 +4741,6 @@ export interface components {
          */
         RackBinMountStatus: "MOUNTED" | "UNMOUNTED" | "EXCHANGING" | "UNKNOWN";
         /**
-         * RackFace
-         * @enum {string}
-         */
-        RackFace: "A" | "B";
-        /**
          * RackKind
          * @description 货架物理结构类型。
          * @enum {string}
@@ -4974,6 +5004,11 @@ export interface components {
              */
             slot_count: number;
         };
+        /**
+         * RcsTemplateId
+         * @enum {string}
+         */
+        RcsTemplateId: "CTU01" | "CTU02" | "CTU03" | "F01";
         /**
          * RefreshTokenResponse
          * @description 刷新令牌响应 Schema
@@ -5443,7 +5478,7 @@ export interface components {
         /** TransportResultMemberResponse */
         TransportResultMemberResponse: {
             /** Arrival Face */
-            arrival_face: ("A" | "B") | null;
+            arrival_face: string | null;
             /** Failure Code */
             failure_code: string | null;
             /** Final Position */
@@ -10159,8 +10194,8 @@ export interface operations {
                         final_position: {
                             /** @enum {string} */
                             kind: "RACK_BIN_SLOT";
-                            /** @enum {string} */
-                            rack_face: "A" | "B";
+                            /** @description Opaque non-empty face value; preserve exactly */
+                            rack_face: string;
                             rack_id: string;
                             slot_id: string;
                         } | {
@@ -10183,8 +10218,8 @@ export interface operations {
                     timestamp: number;
                 } | {
                     data: {
-                        /** @enum {string} */
-                        arrival_face: "A" | "B";
+                        /** @description Opaque non-empty face value; preserve exactly */
+                        arrival_face: string;
                         final_position: {
                             /** @enum {string} */
                             kind: "RACK_POSITION";
@@ -10199,8 +10234,8 @@ export interface operations {
                         status: "SUCCEEDED";
                         transport_task_id: string;
                     } | {
-                        /** @enum {string} */
-                        arrival_face: "A" | "B";
+                        /** @description Opaque non-empty face value; preserve exactly */
+                        arrival_face: string;
                         /** @enum {string} */
                         failure_code: "MANUAL_ABORTED" | "RCS_EXECUTION_FAILED" | "RCS_TASK_REJECTED";
                         final_position: {
@@ -10239,8 +10274,8 @@ export interface operations {
                             final_position: {
                                 /** @enum {string} */
                                 kind: "RACK_BIN_SLOT";
-                                /** @enum {string} */
-                                rack_face: "A" | "B";
+                                /** @description Opaque non-empty face value; preserve exactly */
+                                rack_face: string;
                                 rack_id: string;
                                 slot_id: string;
                             } | {
@@ -10257,8 +10292,8 @@ export interface operations {
                             final_position: {
                                 /** @enum {string} */
                                 kind: "RACK_BIN_SLOT";
-                                /** @enum {string} */
-                                rack_face: "A" | "B";
+                                /** @description Opaque non-empty face value; preserve exactly */
+                                rack_face: string;
                                 rack_id: string;
                                 slot_id: string;
                             } | {
@@ -10288,8 +10323,8 @@ export interface operations {
                             final_position: {
                                 /** @enum {string} */
                                 kind: "RACK_BIN_SLOT";
-                                /** @enum {string} */
-                                rack_face: "A" | "B";
+                                /** @description Opaque non-empty face value; preserve exactly */
+                                rack_face: string;
                                 rack_id: string;
                                 slot_id: string;
                             } | {
@@ -10306,8 +10341,8 @@ export interface operations {
                             final_position: {
                                 /** @enum {string} */
                                 kind: "RACK_BIN_SLOT";
-                                /** @enum {string} */
-                                rack_face: "A" | "B";
+                                /** @description Opaque non-empty face value; preserve exactly */
+                                rack_face: string;
                                 rack_id: string;
                                 slot_id: string;
                             } | {

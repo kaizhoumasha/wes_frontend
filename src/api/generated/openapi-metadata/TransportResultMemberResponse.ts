@@ -23,13 +23,11 @@ export const TransportResultMemberResponseMetadata = {
   "fields": {
     "arrival_face": {
       "title": "Arrival Face",
+      "description": "Opaque non-empty face value; preserve exactly",
       "type": "string",
       "required": true,
       "nullable": true,
-      "enum": [
-        "A",
-        "B"
-      ]
+      "minLength": 1
     },
     "failure_code": {
       "title": "Failure Code",

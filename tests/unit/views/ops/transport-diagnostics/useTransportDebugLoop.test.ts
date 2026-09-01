@@ -27,9 +27,10 @@ describe('useTransportDebugLoop', () => {
       station_id: 'CTU01',
       data: {
         rack_id: '510056',
-        source: { kind: 'RACK_POSITION', location_code: 'WH01' },
+        source: { kind: 'ZONE', location_code: 'WH01' },
         target: { kind: 'RACK_POSITION', location_code: 'KT16' },
-        target_face: 'A'
+        target_face: '90',
+        rcs_template_id: 'CTU01'
       }
     })
 
@@ -52,7 +53,7 @@ describe('useTransportDebugLoop', () => {
             source: {
               kind: 'RACK_BIN_SLOT',
               rack_id: '510056',
-              rack_face: 'A',
+              rack_face: '90',
               slot_id: '510056A3F2C101'
             },
             target: { kind: 'HANDOFF_POSITION', location_code: 'CNV0301' }
@@ -62,7 +63,7 @@ describe('useTransportDebugLoop', () => {
             source: {
               kind: 'RACK_BIN_SLOT',
               rack_id: '510056',
-              rack_face: 'A',
+              rack_face: '90',
               slot_id: '510056A2F2C101'
             },
             target: { kind: 'HANDOFF_POSITION', location_code: 'CNV0301' }
@@ -88,7 +89,7 @@ describe('useTransportDebugLoop', () => {
             target: {
               kind: 'RACK_BIN_SLOT',
               rack_id: '510056',
-              rack_face: 'A',
+              rack_face: '90',
               slot_id: '510056A3F2C101'
             }
           },
@@ -98,7 +99,7 @@ describe('useTransportDebugLoop', () => {
             target: {
               kind: 'RACK_BIN_SLOT',
               rack_id: '510056',
-              rack_face: 'A',
+              rack_face: '90',
               slot_id: '510056A2F2C101'
             }
           }
@@ -113,8 +114,9 @@ describe('useTransportDebugLoop', () => {
       data: {
         rack_id: '510056',
         source: { kind: 'RACK_POSITION', location_code: 'KT16' },
-        target: { kind: 'RACK_POSITION', location_code: 'WH01' },
-        target_face: 'A'
+        target: { kind: 'ZONE', location_code: 'WH01' },
+        target_face: '90',
+        rcs_template_id: 'CTU03'
       }
     })
 

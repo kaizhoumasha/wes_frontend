@@ -188,7 +188,8 @@ describe('useTransportDiagnostics', () => {
         rack_id: 'RACK-01',
         source: { kind: 'RACK_POSITION', location_code: 'SRC-01' },
         target: { kind: 'RACK_POSITION', location_code: 'DST-01' },
-        target_face: 'A'
+        target_face: '90',
+        rcs_template_id: 'F01'
       }
     }
 

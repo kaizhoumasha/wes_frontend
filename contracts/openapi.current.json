@@ -6199,14 +6199,6 @@
         "title": "RackBinMountStatus",
         "type": "string"
       },
-      "RackFace": {
-        "enum": [
-          "A",
-          "B"
-        ],
-        "title": "RackFace",
-        "type": "string"
-      },
       "RackKind": {
         "description": "货架物理结构类型。",
         "enum": [
@@ -6681,6 +6673,16 @@
         ],
         "title": "RackTypeResponse",
         "type": "object"
+      },
+      "RcsTemplateId": {
+        "enum": [
+          "CTU01",
+          "CTU02",
+          "CTU03",
+          "F01"
+        ],
+        "title": "RcsTemplateId",
+        "type": "string"
       },
       "RefreshTokenResponse": {
         "description": "刷新令牌响应 Schema\n\n包含新的访问令牌和刷新令牌元数据",
@@ -9923,10 +9925,8 @@
           "arrival_face": {
             "anyOf": [
               {
-                "enum": [
-                  "A",
-                  "B"
-                ],
+                "description": "Opaque non-empty face value; preserve exactly",
+                "minLength": 1,
                 "type": "string"
               },
               {
@@ -11677,7 +11677,10 @@
             "type": "string"
           },
           "rack_face": {
-            "$ref": "#/components/schemas/RackFace"
+            "description": "Opaque non-empty face value; preserve exactly",
+            "minLength": 1,
+            "title": "Rack Face",
+            "type": "string"
           },
           "rack_id": {
             "maxLength": 100,
@@ -11713,14 +11716,27 @@
             "title": "Rack Id",
             "type": "string"
           },
+          "rcs_template_id": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RcsTemplateId"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "source": {
-            "$ref": "#/components/schemas/_RackPosition"
+            "$ref": "#/components/schemas/_RackMovePosition"
           },
           "target": {
-            "$ref": "#/components/schemas/_RackPosition"
+            "$ref": "#/components/schemas/_RackMovePosition"
           },
           "target_face": {
-            "$ref": "#/components/schemas/RackFace"
+            "description": "Opaque non-empty face value; preserve exactly",
+            "minLength": 1,
+            "title": "Target Face",
+            "type": "string"
           }
         },
         "required": [
@@ -11773,6 +11789,27 @@
         "title": "_RackMoveDebugTask",
         "type": "object"
       },
+      "_RackMovePosition": {
+        "discriminator": {
+          "mapping": {
+            "RACK": "#/components/schemas/_RackReference",
+            "RACK_POSITION": "#/components/schemas/_RackPosition",
+            "ZONE": "#/components/schemas/_ZonePosition"
+          },
+          "propertyName": "kind"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/_RackReference"
+          },
+          {
+            "$ref": "#/components/schemas/_ZonePosition"
+          },
+          {
+            "$ref": "#/components/schemas/_RackPosition"
+          }
+        ]
+      },
       "_RackPosition": {
         "additionalProperties": false,
         "properties": {
@@ -11796,6 +11833,29 @@
         "title": "_RackPosition",
         "type": "object"
       },
+      "_RackReference": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "RACK",
+            "title": "Kind",
+            "type": "string"
+          },
+          "location_code": {
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Location Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "location_code"
+        ],
+        "title": "_RackReference",
+        "type": "object"
+      },
       "_RackRotateData": {
         "additionalProperties": false,
         "properties": {
@@ -11809,8 +11869,21 @@
             "title": "Rack Id",
             "type": "string"
           },
+          "rcs_template_id": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RcsTemplateId"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "target_face": {
-            "$ref": "#/components/schemas/RackFace"
+            "description": "Opaque non-empty face value; preserve exactly",
+            "minLength": 1,
+            "title": "Target Face",
+            "type": "string"
           }
         },
         "required": [
@@ -11860,6 +11933,29 @@
           "data"
         ],
         "title": "_RackRotateDebugTask",
+        "type": "object"
+      },
+      "_ZonePosition": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "ZONE",
+            "title": "Kind",
+            "type": "string"
+          },
+          "location_code": {
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "title": "Location Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "location_code"
+        ],
+        "title": "_ZonePosition",
         "type": "object"
       }
     },
@@ -17963,14 +18059,14 @@
                           "left_bin_id": "BIN-01",
                           "left_location": {
                             "kind": "RACK_BIN_SLOT",
-                            "rack_face": "A",
+                            "rack_face": "90",
                             "rack_id": "RACK-01",
                             "slot_id": "SLOT-01"
                           },
                           "right_bin_id": "BIN-02",
                           "right_location": {
                             "kind": "RACK_BIN_SLOT",
-                            "rack_face": "A",
+                            "rack_face": "90",
                             "rack_id": "RACK-02",
                             "slot_id": "SLOT-01"
                           }
@@ -17991,7 +18087,7 @@
                           "bin_id": "BIN-01",
                           "source": {
                             "kind": "RACK_BIN_SLOT",
-                            "rack_face": "A",
+                            "rack_face": "90",
                             "rack_id": "RACK-01",
                             "slot_id": "SLOT-01"
                           },
@@ -18012,6 +18108,7 @@
                     "client_request_id": "0198c480-5a00-7c31-8000-000000000001",
                     "data": {
                       "rack_id": "RACK-01",
+                      "rcs_template_id": "F01",
                       "source": {
                         "kind": "RACK_POSITION",
                         "location_code": "BUFFER-01"
@@ -18020,7 +18117,7 @@
                         "kind": "RACK_POSITION",
                         "location_code": "LINE-01"
                       },
-                      "target_face": "A"
+                      "target_face": "90"
                     },
                     "kind": "RACK_MOVE",
                     "station_id": "STATION-DEBUG"
@@ -18036,7 +18133,8 @@
                         "location_code": "LINE-01"
                       },
                       "rack_id": "RACK-01",
-                      "target_face": "B"
+                      "rcs_template_id": "CTU02",
+                      "target_face": "270"
                     },
                     "kind": "RACK_ROTATE",
                     "station_id": "STATION-DEBUG"
@@ -18585,10 +18683,8 @@
                                         "type": "string"
                                       },
                                       "rack_face": {
-                                        "enum": [
-                                          "A",
-                                          "B"
-                                        ],
+                                        "description": "Opaque non-empty face value; preserve exactly",
+                                        "minLength": 1,
                                         "type": "string"
                                       },
                                       "rack_id": {
@@ -18695,10 +18791,8 @@
                             "additionalProperties": false,
                             "properties": {
                               "arrival_face": {
-                                "enum": [
-                                  "A",
-                                  "B"
-                                ],
+                                "description": "Opaque non-empty face value; preserve exactly",
+                                "minLength": 1,
                                 "type": "string"
                               },
                               "final_position": {
@@ -18770,10 +18864,8 @@
                             "additionalProperties": false,
                             "properties": {
                               "arrival_face": {
-                                "enum": [
-                                  "A",
-                                  "B"
-                                ],
+                                "description": "Opaque non-empty face value; preserve exactly",
+                                "minLength": 1,
                                 "type": "string"
                               },
                               "failure_code": {
@@ -18947,10 +19039,8 @@
                                                   "type": "string"
                                                 },
                                                 "rack_face": {
-                                                  "enum": [
-                                                    "A",
-                                                    "B"
-                                                  ],
+                                                  "description": "Opaque non-empty face value; preserve exactly",
+                                                  "minLength": 1,
                                                   "type": "string"
                                                 },
                                                 "rack_id": {
@@ -19041,10 +19131,8 @@
                                                   "type": "string"
                                                 },
                                                 "rack_face": {
-                                                  "enum": [
-                                                    "A",
-                                                    "B"
-                                                  ],
+                                                  "description": "Opaque non-empty face value; preserve exactly",
+                                                  "minLength": 1,
                                                   "type": "string"
                                                 },
                                                 "rack_id": {
@@ -19203,10 +19291,8 @@
                                                   "type": "string"
                                                 },
                                                 "rack_face": {
-                                                  "enum": [
-                                                    "A",
-                                                    "B"
-                                                  ],
+                                                  "description": "Opaque non-empty face value; preserve exactly",
+                                                  "minLength": 1,
                                                   "type": "string"
                                                 },
                                                 "rack_id": {
@@ -19297,10 +19383,8 @@
                                                   "type": "string"
                                                 },
                                                 "rack_face": {
-                                                  "enum": [
-                                                    "A",
-                                                    "B"
-                                                  ],
+                                                  "description": "Opaque non-empty face value; preserve exactly",
+                                                  "minLength": 1,
                                                   "type": "string"
                                                 },
                                                 "rack_id": {
