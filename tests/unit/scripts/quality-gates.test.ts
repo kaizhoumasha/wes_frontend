@@ -297,6 +297,23 @@ describe.sequential('repository quality gates', () => {
     expect(ciDockerfile).toContain('corepack prepare pnpm@10.10.0 --activate')
   })
 
+  it('applies the repository retry budget before the production dependency install', () => {
+    const dockerfile = readFileSync(join(REPOSITORY_ROOT, 'Dockerfile'), 'utf-8')
+    const retryConfigIndex = dockerfile.indexOf('COPY package.json pnpm-lock.yaml .npmrc ./')
+    const installIndex = dockerfile.indexOf('RUN pnpm install --frozen-lockfile')
+    const readPnpmConfig = (name: string): string =>
+      execFileSync('pnpm', ['config', 'get', name], {
+        cwd: REPOSITORY_ROOT,
+        encoding: 'utf-8'
+      }).trim()
+
+    expect(retryConfigIndex).toBeGreaterThan(-1)
+    expect(installIndex).toBeGreaterThan(retryConfigIndex)
+    expect(readPnpmConfig('fetch-retries')).toBe('5')
+    expect(readPnpmConfig('fetch-retry-maxtimeout')).toBe('120000')
+    expect(readPnpmConfig('fetch-timeout')).toBe('300000')
+  })
+
   it('binds the frontend image to its own consumer artifacts and production inputs', () => {
     const dockerfile = readFileSync(join(REPOSITORY_ROOT, 'Dockerfile'), 'utf-8')
     const jenkinsfile = readFileSync(join(REPOSITORY_ROOT, 'Jenkinsfile'), 'utf-8')
