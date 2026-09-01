@@ -299,8 +299,11 @@ describe.sequential('repository quality gates', () => {
 
   it('applies the repository retry budget before the production dependency install', () => {
     const dockerfile = readFileSync(join(REPOSITORY_ROOT, 'Dockerfile'), 'utf-8')
+    const npmrc = readFileSync(join(REPOSITORY_ROOT, '.npmrc'), 'utf-8')
     const retryConfigIndex = dockerfile.indexOf('COPY package.json pnpm-lock.yaml .npmrc ./')
-    const installIndex = dockerfile.indexOf('RUN pnpm install --frozen-lockfile')
+    const installIndex = dockerfile.indexOf(
+      'RUN pnpm install --frozen-lockfile --registry=https://registry.npmmirror.com/'
+    )
     const readPnpmConfig = (name: string): string =>
       execFileSync('pnpm', ['config', 'get', name], {
         cwd: REPOSITORY_ROOT,
@@ -309,6 +312,7 @@ describe.sequential('repository quality gates', () => {
 
     expect(retryConfigIndex).toBeGreaterThan(-1)
     expect(installIndex).toBeGreaterThan(retryConfigIndex)
+    expect(npmrc).not.toMatch(/^registry=/m)
     expect(readPnpmConfig('fetch-retries')).toBe('5')
     expect(readPnpmConfig('fetch-retry-maxtimeout')).toBe('120000')
     expect(readPnpmConfig('fetch-timeout')).toBe('300000')
