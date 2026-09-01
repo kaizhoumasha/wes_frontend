@@ -40,16 +40,15 @@ pipeline {
 
                     echo "📥 检出前端源码: source=${sourceBranch}, target=${targetBranch ?: '-'}, event=${env.CI_EVENT_TYPE}"
 
-                    checkout([
-                        $class: 'GitSCM',
-                        branches: [[name: "origin/${sourceBranch}"]],
-                        userRemoteConfigs: [[
-                            name: 'origin',
-                            url: 'http://192.168.0.220:9080/wes/wes_frontend.git',
-                            refspec: '+refs/heads/*:refs/remotes/origin/*'
-                        ]],
-                        extensions: [[$class: 'CleanBeforeCheckout']]
-                    ])
+                    deleteDir()
+                    sh '''
+                        set -eu
+                        git init
+                        git remote add origin http://192.168.0.220:9080/wes/wes_frontend.git
+                        git fetch --no-tags --force origin \
+                            "+refs/heads/${CI_SOURCE_BRANCH}:refs/remotes/origin/${CI_SOURCE_BRANCH}"
+                        git checkout --detach "refs/remotes/origin/${CI_SOURCE_BRANCH}"
+                    '''
 
                     if (!(trustedSourceCommit ==~ /^[0-9a-fA-F]{40}$/) || trustedSourceCommit ==~ /^0{40}$/) {
                         error('Source event requires a non-zero 40-character trusted commit')

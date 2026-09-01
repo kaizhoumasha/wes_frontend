@@ -284,14 +284,19 @@ describe.sequential('repository quality gates', () => {
 
   it('checks out Jenkins builds from the internal GitLab endpoint', () => {
     const jenkinsfile = readFileSync(join(REPOSITORY_ROOT, 'Jenkinsfile'), 'utf-8')
-    const checkoutConfig = jenkinsfile.slice(
-      jenkinsfile.indexOf('userRemoteConfigs:'),
-      jenkinsfile.indexOf('String fullCommit')
-    )
 
-    expect(jenkinsfile).toContain("url: 'http://192.168.0.220:9080/wes/wes_frontend.git'")
+    expect(jenkinsfile).toContain('deleteDir()')
+    expect(jenkinsfile).toContain(
+      'git remote add origin http://192.168.0.220:9080/wes/wes_frontend.git'
+    )
+    expect(jenkinsfile).toContain(
+      '"+refs/heads/${CI_SOURCE_BRANCH}:refs/remotes/origin/${CI_SOURCE_BRANCH}"'
+    )
+    expect(jenkinsfile).toContain(
+      'git checkout --detach "refs/remotes/origin/${CI_SOURCE_BRANCH}"'
+    )
     expect(jenkinsfile).not.toContain('zt_git.happyjack.cn')
-    expect(checkoutConfig).not.toContain('credentialsId')
+    expect(jenkinsfile).not.toContain('checkout([')
     expect(jenkinsfile).toContain('env.gitlabMergeRequestLastCommit')
     expect(jenkinsfile).toContain(
       "git rev-parse \"refs/remotes/origin/${CI_SOURCE_BRANCH}^{commit}\""
