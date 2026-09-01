@@ -282,6 +282,26 @@ describe.sequential('repository quality gates', () => {
     expect(imageBuildIndex).toBeGreaterThan(buildIndex)
   })
 
+  it('checks out Jenkins builds from the internal GitLab endpoint', () => {
+    const jenkinsfile = readFileSync(join(REPOSITORY_ROOT, 'Jenkinsfile'), 'utf-8')
+    const checkoutConfig = jenkinsfile.slice(
+      jenkinsfile.indexOf('userRemoteConfigs:'),
+      jenkinsfile.indexOf('String fullCommit')
+    )
+
+    expect(jenkinsfile).toContain("url: 'http://192.168.0.220:9080/wes/wes_frontend.git'")
+    expect(jenkinsfile).not.toContain('zt_git.happyjack.cn')
+    expect(checkoutConfig).not.toContain('credentialsId')
+    expect(jenkinsfile).toContain('env.gitlabMergeRequestLastCommit')
+    expect(jenkinsfile).toContain(
+      "git rev-parse \"refs/remotes/origin/${CI_SOURCE_BRANCH}^{commit}\""
+    )
+    expect(jenkinsfile).toContain('Source event requires a non-zero 40-character trusted commit')
+    expect(jenkinsfile).toContain('Fetched source ref must match the trusted event commit')
+    expect(jenkinsfile).not.toContain('PreBuildMerge')
+    expect(jenkinsfile).not.toContain('mergeTarget')
+  })
+
   it('uses a cached CI tools image instead of installing tools in every quality run', () => {
     const jenkinsfile = readFileSync(join(REPOSITORY_ROOT, 'Jenkinsfile'), 'utf-8')
     const ciDockerfile = readFileSync(join(REPOSITORY_ROOT, 'docker/ci/Dockerfile'), 'utf-8')
