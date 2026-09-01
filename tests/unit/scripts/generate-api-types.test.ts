@@ -261,7 +261,19 @@ describe('generate-api-types helpers', () => {
                 required: true,
                 schema: {}
               }
-            ]
+            ],
+            requestBody: {
+              content: {
+                'application/json': {
+                  schema: {
+                    anyOf: [
+                      { $ref: '#/components/schemas/_DebugTransportStepConfirmation' },
+                      { type: 'null' }
+                    ]
+                  }
+                }
+              }
+            }
           }
         },
         {
@@ -301,10 +313,10 @@ describe('generate-api-types helpers', () => {
       `return contractMethods.get('/api/v1/transport/tasks/{transport_task_id}', { params, config })`
     )
     expect(source).toContain(
-      `reset(params: ContractPathParams<'/api/v1/transport/debug-tasks/{transport_task_id}/reset', 'post'>`
+      `reset(params: ContractPathParams<'/api/v1/transport/debug-tasks/{transport_task_id}/reset', 'post'>, body: ContractRequestBody<'/api/v1/transport/debug-tasks/{transport_task_id}/reset', 'post'>`
     )
     expect(source).toContain(
-      `return contractMethods.post('/api/v1/transport/debug-tasks/{transport_task_id}/reset', { params, config })`
+      `return contractMethods.post('/api/v1/transport/debug-tasks/{transport_task_id}/reset', { params, body, config })`
     )
     expect(source).toContain(
       `resetPreview(params: ContractPathParams<'/api/v1/transport/debug-tasks/{transport_task_id}/reset-preview', 'get'>`

@@ -1,4 +1,4 @@
-/** @openapi-sha256 ecf5c09a2eab922fd31dd8e6ae73e22157a551011b4c50fdbae7b06b3f36dec5 */
+/** @openapi-sha256 cd539bae4577b69b57ee91809625ee56f115e1cc93b59ce587db7b77e81830f8 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -1533,26 +1533,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/material/material-units/location-query": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * [biz:material:location-query] 查询物料作业期位置
-         * @description 统一 MaterialLocationQuery 入口，API 层只委托查询 service。
-         */
-        get: operations["material_material_units_location_query_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/resource/bin-cell-occupancies/{id}": {
         parameters: {
             query?: never;
@@ -2168,57 +2148,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/workline/operations/reconciliations/effects/{dispatch_key}/resolve": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [biz:workline:resolve-effect-reconciliation] 提交 EFFECT reconciliation 人工决议 */
-        post: operations["workline_operations_reconciliations_effects_by_dispatch_key_resolve_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/operations/reconciliations/sessions/{session_id}/resolve": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [biz:workline:resolve-reconciliation] 解除 runtime reconciliation 隔离，不重发设备命令、不重复执行超时处理、释放安全停靠队列 */
-        post: operations["workline_operations_reconciliations_sessions_by_session_id_resolve_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/operations/replay/inboxes/{inbox_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [biz:workline:replay-inbox] Replay 历史 Inbox */
-        post: operations["workline_operations_replay_inboxes_by_inbox_id_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop": {
         parameters: {
             query?: never;
@@ -2236,94 +2165,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/workline/operations/sandbox/ack": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [biz:workline:submit-sandbox-ack] 沙箱模拟 Command ACK */
-        post: operations["workline_operations_sandbox_ack_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/operations/sandbox/completed": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:workline:sandbox-completed] 查询沙箱已完成 Outbox */
-        get: operations["workline_operations_sandbox_completed_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/operations/sandbox/external-callbacks": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [biz:workline:submit-sandbox-external-callback] 沙箱模拟 External HTTP 回调 */
-        post: operations["workline_operations_sandbox_external_callbacks_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/operations/sandbox/pending": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [biz:workline:sandbox-pending] 查询沙箱待处理 Outbox */
-        get: operations["workline_operations_sandbox_pending_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/operations/sandbox/worklines/{workline_id}/simulate-estop": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * [biz:workline:simulate-estop] 沙箱模拟 WorkLine 软件急停冻结
-         * @description 沙箱专用安全模拟入口；不通过普通 sandbox event 流。
-         */
-        post: operations["workline_operations_sandbox_worklines_by_workline_id_simulate_estop_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/workline/operations/worklines/{workline_id}/start": {
         parameters: {
             query?: never;
@@ -2335,29 +2176,9 @@ export interface paths {
         put?: never;
         /**
          * [biz:workline:start] 启动 WorkLine 并激活运行代际
-         * @description In one transaction replay or create the complete Epoch, then wake SYSTEM outbox.
+         * @description 在一个事务内 replay 或创建完整 LineRunEpoch。
          */
         post: operations["workline_operations_worklines_by_workline_id_start_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline/runtime-operations/northbound": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * [sys:runtime-operations:view] 获取北向 operation 运维快照
-         * @description 只允许 Service 读取 owner-scoped 聚合 SLI；不得返回 payload/trace/secret。
-         */
-        get: operations["workline_runtime_operations_northbound_get"];
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2679,6 +2500,15 @@ export interface components {
             target: components["schemas"]["_BinPosition"];
         };
         _BinPosition: components["schemas"]["_RackBinSlot"] | components["schemas"]["_HandoffPosition"];
+        /** _DebugTransportStepConfirmation */
+        _DebugTransportStepConfirmation: {
+            /**
+             * Assertion
+             * @constant
+             */
+            assertion: "PHYSICAL_TARGET_REACHED";
+            step: components["schemas"]["TransportDebugStep"];
+        };
         _DebugTransportTaskRequest: components["schemas"]["_RackMoveDebugTask"] | components["schemas"]["_RackRotateDebugTask"] | components["schemas"]["_BinMoveDebugTask"] | components["schemas"]["_BinExchangeDebugTask"];
         /** _HandoffPosition */
         _HandoffPosition: {
@@ -2697,7 +2527,11 @@ export interface components {
              * @enum {string}
              */
             kind: "RACK_BIN_SLOT";
-            rack_face: components["schemas"]["RackFace"];
+            /**
+             * Rack Face
+             * @description Opaque non-empty face value; preserve exactly
+             */
+            rack_face: string;
             /** Rack Id */
             rack_id: string;
             /** Slot Id */
@@ -2707,9 +2541,14 @@ export interface components {
         _RackMoveData: {
             /** Rack Id */
             rack_id: string;
-            source: components["schemas"]["_RackPosition"];
-            target: components["schemas"]["_RackPosition"];
-            target_face: components["schemas"]["RackFace"];
+            rcs_template_id?: components["schemas"]["RcsTemplateId"] | null;
+            source: components["schemas"]["_RackMovePosition"];
+            target: components["schemas"]["_RackMovePosition"];
+            /**
+             * Target Face
+             * @description Opaque non-empty face value; preserve exactly
+             */
+            target_face: string;
         };
         /** _RackMoveDebugTask */
         _RackMoveDebugTask: {
@@ -2724,13 +2563,24 @@ export interface components {
             /** Station Id */
             station_id?: string | null;
         };
+        _RackMovePosition: components["schemas"]["_RackReference"] | components["schemas"]["_ZonePosition"] | components["schemas"]["_RackPosition"];
         /** _RackPosition */
         _RackPosition: {
             /**
-             * Kind
-             * @constant
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
              */
             kind: "RACK_POSITION";
+            /** Location Code */
+            location_code: string;
+        };
+        /** _RackReference */
+        _RackReference: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "RACK";
             /** Location Code */
             location_code: string;
         };
@@ -2739,7 +2589,12 @@ export interface components {
             position: components["schemas"]["_RackPosition"];
             /** Rack Id */
             rack_id: string;
-            target_face: components["schemas"]["RackFace"];
+            rcs_template_id?: components["schemas"]["RcsTemplateId"] | null;
+            /**
+             * Target Face
+             * @description Opaque non-empty face value; preserve exactly
+             */
+            target_face: string;
         };
         /** _RackRotateDebugTask */
         _RackRotateDebugTask: {
@@ -2753,6 +2608,16 @@ export interface components {
             kind: "RACK_ROTATE";
             /** Station Id */
             station_id?: string | null;
+        };
+        /** _ZonePosition */
+        _ZonePosition: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "ZONE";
+            /** Location Code */
+            location_code: string;
         };
         /**
          * ActiveSessionsResponse
@@ -4533,136 +4398,6 @@ export interface components {
             status: string;
         };
         /**
-         * MaterialLocationConflictState
-         * @description MaterialLocationQuery 冲突状态。
-         * @enum {string}
-         */
-        MaterialLocationConflictState: "OK" | "NOT_FOUND" | "RECONCILING" | "WMS_UNAVAILABLE";
-        /**
-         * MaterialLocationEvidence
-         * @description 单个位置来源 evidence。
-         */
-        MaterialLocationEvidence: {
-            /** Correlation Id */
-            correlation_id?: string | null;
-            /** Evidence Json */
-            evidence_json?: {
-                [key: string]: unknown;
-            };
-            /** Evidence Ref */
-            evidence_ref?: string | null;
-            /** External Reference */
-            external_reference?: string | null;
-            /** Location Code */
-            location_code?: string | null;
-            /** Location Scope */
-            location_scope?: string | null;
-            /** Object Key */
-            object_key: string;
-            /** Object Type */
-            object_type: string;
-            /** Observed At */
-            observed_at?: string | null;
-            /** Priority */
-            priority: number;
-            /** Provider Code */
-            provider_code?: string | null;
-            /** Semantic Status */
-            semantic_status?: string | null;
-            /** Source */
-            source: string;
-            /** Source Event Id */
-            source_event_id?: string | null;
-            /** Source Version */
-            source_version?: string | null;
-        };
-        /**
-         * MaterialLocationResult
-         * @description 统一位置查询结果。
-         */
-        MaterialLocationResult: {
-            conflict_state: components["schemas"]["MaterialLocationConflictState"];
-            /** Correlation Id */
-            correlation_id?: string | null;
-            /** Evidence */
-            evidence?: components["schemas"]["MaterialLocationEvidence"][];
-            /** Location Code */
-            location_code?: string | null;
-            /** Location Scope */
-            location_scope?: string | null;
-            /** Object Key */
-            object_key?: string | null;
-            /** Object Type */
-            object_type?: string | null;
-            /** Query Entry */
-            query_entry: string;
-            /** Source */
-            source?: string | null;
-        };
-        /**
-         * NorthboundOperationalSnapshot
-         * @description 租户作用域的北向运维快照。
-         */
-        NorthboundOperationalSnapshot: {
-            /**
-             * Catalog Version
-             * @default northbound-operation-slo.v1
-             * @constant
-             */
-            catalog_version: "northbound-operation-slo.v1";
-            /**
-             * Generated At
-             * Format: date-time
-             */
-            generated_at: string;
-            /** Operations */
-            operations: components["schemas"]["NorthboundOperationHealth"][];
-            /**
-             * Schema Version
-             * @default northbound-operational-snapshot.v1
-             * @constant
-             */
-            schema_version: "northbound-operational-snapshot.v1";
-            /** Tenant Id */
-            tenant_id: number | null;
-            /**
-             * Tenant Scope
-             * @enum {string}
-             */
-            tenant_scope: "WORKLINE_OWNER" | "PLATFORM";
-            /** Workline Id */
-            workline_id: number | null;
-        };
-        /**
-         * NorthboundOperationHealth
-         * @description 只暴露低基数 identity、operation mode 和聚合 SLI，不暴露行级证据或 payload。
-         */
-        NorthboundOperationHealth: {
-            /** Active Lease Count */
-            active_lease_count: number;
-            /** Backlog Count */
-            backlog_count: number;
-            /** Lease Loss Count */
-            lease_loss_count: number;
-            /**
-             * Mode
-             * @enum {string}
-             */
-            mode: "QUERY" | "EFFECT";
-            /** Oldest Queue Age Seconds */
-            oldest_queue_age_seconds: number;
-            /** Operation Identity */
-            operation_identity: string;
-            /** Provider Profile Identity */
-            provider_profile_identity: string;
-            /** Rate Limited Count */
-            rate_limited_count: number;
-            /** Reconciliation Open Count */
-            reconciliation_open_count: number;
-            /** Unknown Count */
-            unknown_count: number;
-        };
-        /**
          * OperaStatus
          * @description 操作日志状态
          * @enum {string}
@@ -5006,11 +4741,6 @@ export interface components {
          */
         RackBinMountStatus: "MOUNTED" | "UNMOUNTED" | "EXCHANGING" | "UNKNOWN";
         /**
-         * RackFace
-         * @enum {string}
-         */
-        RackFace: "A" | "B";
-        /**
          * RackKind
          * @description 货架物理结构类型。
          * @enum {string}
@@ -5275,6 +5005,11 @@ export interface components {
             slot_count: number;
         };
         /**
+         * RcsTemplateId
+         * @enum {string}
+         */
+        RcsTemplateId: "CTU01" | "CTU02" | "CTU03" | "F01";
+        /**
          * RefreshTokenResponse
          * @description 刷新令牌响应 Schema
          *
@@ -5324,16 +5059,6 @@ export interface components {
              */
             session_uuid: string;
         };
-        /**
-         * ReplayInboxRequest
-         * @description Replay 请求。
-         */
-        ReplayInboxRequest: {
-            /** Reason */
-            reason: string;
-            /** Request Id */
-            request_id: string;
-        };
         /** ReprocessBlockedEventRequest */
         ReprocessBlockedEventRequest: {
             /** Reason */
@@ -5372,65 +5097,6 @@ export interface components {
              * @default 0
              */
             version: number;
-        };
-        /**
-         * ResolveEffectReconciliationRequest
-         * @description 人工 EFFECT 对账决议请求。
-         */
-        ResolveEffectReconciliationRequest: {
-            /** @description E03/E07 同步义务 typed 对账裁决 */
-            obligation_resolution?: components["schemas"]["WmsSyncObligationResolution"] | null;
-            /**
-             * Operator Note
-             * @description 人工核验说明
-             */
-            operator_note: string;
-            /**
-             * Request Id
-             * @description 通用决议稳定幂等请求 ID
-             */
-            request_id?: string | null;
-            /**
-             * Resolution
-             * @description 非 E03/E07 EFFECT 最终决议
-             */
-            resolution?: string | null;
-        };
-        /**
-         * ResolveRuntimeReconciliationRequest
-         * @description 人工运行时对账解除请求。
-         */
-        ResolveRuntimeReconciliationRequest: {
-            /**
-             * Checks
-             * @description 按 reconciliation_reason 要求确认的 checklist
-             */
-            checks: {
-                [key: string]: boolean;
-            };
-            /**
-             * Confirmed At
-             * Format: date-time
-             * @description 现场确认时间
-             */
-            confirmed_at: string;
-            /**
-             * Operator Note
-             * @description 现场确认说明
-             */
-            operator_note: string;
-            /**
-             * Resolution
-             * @description 人工对账决议
-             */
-            resolution: string;
-            /**
-             * Result Payload
-             * @description COMPLETED 时可补录业务结果摘要
-             */
-            result_payload?: {
-                [key: string]: unknown;
-            } | null;
         };
         /**
          * ResourceMasterStatus
@@ -5595,8 +5261,6 @@ export interface components {
         ResponseSchemaModel_EventCommandBlockResponse_: ApiResponse<components["schemas"]["EventCommandBlockResponse"]>;
         /** ResponseSchemaModel[list[Any]] */
         ResponseSchemaModel_list_Any__: ApiResponse<unknown[]>;
-        /** ResponseSchemaModel[list[dict[str, Any]]] */
-        ResponseSchemaModel_list_dict_str__Any___: ApiResponse<Record<string, unknown>[]>;
         /** ResponseSchemaModel[list[PermissionResponse]] */
         ResponseSchemaModel_list_PermissionResponse__: ApiResponse<components["schemas"]["PermissionResponse"][]>;
         /** ResponseSchemaModel[list[PermissionTree]] */
@@ -5613,12 +5277,8 @@ export interface components {
         ResponseSchemaModel_ManualDebugPreflightResponse_: ApiResponse<components["schemas"]["ManualDebugPreflightResponse"]>;
         /** ResponseSchemaModel[ManualReconcileDeviceIdleResponse] */
         ResponseSchemaModel_ManualReconcileDeviceIdleResponse_: ApiResponse<components["schemas"]["ManualReconcileDeviceIdleResponse"]>;
-        /** ResponseSchemaModel[MaterialLocationResult] */
-        ResponseSchemaModel_MaterialLocationResult_: ApiResponse<components["schemas"]["MaterialLocationResult"]>;
         /** ResponseSchemaModel[NoneType] */
         ResponseSchemaModel_NoneType_: ApiResponse<null>;
-        /** ResponseSchemaModel[NorthboundOperationalSnapshot] */
-        ResponseSchemaModel_NorthboundOperationalSnapshot_: ApiResponse<components["schemas"]["NorthboundOperationalSnapshot"]>;
         /** ResponseSchemaModel[PermissionResponse] */
         ResponseSchemaModel_PermissionResponse_: ApiResponse<components["schemas"]["PermissionResponse"]>;
         /** ResponseSchemaModel[PlaneSceneView] */
@@ -5737,90 +5397,6 @@ export interface components {
             version: number;
         };
         /**
-         * RuntimeHoldView
-         * @description Active object 关联 RuntimeHold 展示字段。
-         */
-        RuntimeHoldView: {
-            /** Allowed Next Effect Scope */
-            allowed_next_effect_scope?: string | null;
-            /** Freeze Scope */
-            freeze_scope?: string | null;
-            /** Reason Code */
-            reason_code?: string | null;
-        };
-        /**
-         * SandboxAckRequest
-         * @description 沙箱 Command ACK 模拟请求。
-         */
-        SandboxAckRequest: {
-            /**
-             * Dispatch Key
-             * @description Dispatch Key
-             */
-            dispatch_key: string;
-        };
-        /**
-         * SandboxExternalCallbackRequest
-         * @description 沙箱 External HTTP 回调模拟请求。
-         */
-        SandboxExternalCallbackRequest: {
-            /**
-             * Callback Type
-             * @description 外部回调类型；为空时优先使用 Outbox payload.resume_callback_type
-             */
-            callback_type?: string | null;
-            /**
-             * Dispatch Key
-             * @description External HTTP Outbox Dispatch Key
-             */
-            dispatch_key: string;
-            /**
-             * Occurred At
-             * @description 外部事件发生时间
-             */
-            occurred_at?: string | null;
-            /**
-             * Payload
-             * @description 回调 Payload 增量字段
-             */
-            payload?: {
-                [key: string]: unknown;
-            };
-            /**
-             * Request Id
-             * @description 外部请求 ID；为空时自动生成
-             */
-            request_id?: string | null;
-            /**
-             * Signature
-             * @description 沙箱签名占位
-             * @default sandbox
-             */
-            signature: string;
-            /**
-             * Source Event Id
-             * @description 外部事件 ID；为空时自动生成
-             */
-            source_event_id?: string | null;
-            /**
-             * Source System
-             * @description 外部来源系统
-             * @default WMS
-             */
-            source_system: string;
-            /**
-             * Source Version
-             * @description 外部来源版本
-             * @default 1
-             */
-            source_version: string;
-            /**
-             * Timestamp
-             * @description 外部回调时间
-             */
-            timestamp?: string | null;
-        };
-        /**
          * SessionInfo
          * @description 会话信息 Schema
          *
@@ -5857,29 +5433,6 @@ export interface components {
             session_uuid: string;
         };
         /**
-         * SimulateWorkLineEstopRequest
-         * @description 沙箱模拟 WorkLine 软件急停请求。
-         */
-        SimulateWorkLineEstopRequest: {
-            /**
-             * Payload
-             * @description 模拟触发 payload
-             */
-            payload?: {
-                [key: string]: unknown;
-            };
-            /**
-             * Reason
-             * @description 模拟急停说明
-             */
-            reason?: string | null;
-            /**
-             * Source Device Id
-             * @description 模拟来源设备 ID
-             */
-            source_device_id?: number | null;
-        };
-        /**
          * SortField
          * @description 排序字段
          * @example {
@@ -5897,6 +5450,11 @@ export interface components {
              */
             order: "asc" | "desc";
         };
+        /**
+         * TransportDebugStep
+         * @enum {string}
+         */
+        TransportDebugStep: "RACK_TO_STATION" | "BINS_TO_INFEED" | "BINS_TO_RACK" | "RACK_TO_STORAGE";
         /** TransportEvidenceResponse */
         TransportEvidenceResponse: {
             /** Conflict Code */
@@ -5920,7 +5478,7 @@ export interface components {
         /** TransportResultMemberResponse */
         TransportResultMemberResponse: {
             /** Arrival Face */
-            arrival_face: ("A" | "B") | null;
+            arrival_face: string | null;
             /** Failure Code */
             failure_code: string | null;
             /** Final Position */
@@ -6232,33 +5790,24 @@ export interface components {
          */
         ValidityPeriod: "1d" | "1w" | "1m" | "6m" | "1y" | "never";
         /**
-         * WmsSyncObligationResolution
-         * @description 明确满足单项 E03/E07 同步义务的已关闭对账裁决。
-         */
-        WmsSyncObligationResolution: {
-            /** Evidence Reference */
-            evidence_reference: string;
-            /**
-             * Resolution
-             * @constant
-             */
-            resolution: "OBLIGATION_SATISFIED";
-            /** Resolved Fact Version */
-            resolved_fact_version: string;
-            /**
-             * Resolved Operation Identity
-             * @enum {string}
-             */
-            resolved_operation_identity: "wms.inventory.confirm_inbound@v1" | "wms.fulfillment.notify_pkg_binding@v1";
-            /** Source Event Id */
-            source_event_id: string;
-        };
-        /**
          * WorklineActiveObjectConflictState
          * @description WorklineActiveObjects 冲突展示状态。
          * @enum {string}
          */
         WorklineActiveObjectConflictState: "OK" | "TRANSIENT" | "RECONCILING";
+        /**
+         * WorklineActiveObjectLocationView
+         * @description 来自具体 Resource projection 的当前位置证据。
+         */
+        WorklineActiveObjectLocationView: {
+            conflict_state: components["schemas"]["WorklineActiveObjectConflictState"];
+            /** Evidence Refs */
+            evidence_refs?: string[];
+            /** Location Code */
+            location_code: string;
+            /** Location Scope */
+            location_scope: string;
+        };
         /**
          * WorklineActiveObjectsResponse
          * @description WorkLine active objects 聚合响应。
@@ -6289,7 +5838,7 @@ export interface components {
             conflict_state: components["schemas"]["WorklineActiveObjectConflictState"];
             /** Evidence Refs */
             evidence_refs?: string[];
-            location_summary?: components["schemas"]["MaterialLocationResult"] | null;
+            location_summary?: components["schemas"]["WorklineActiveObjectLocationView"] | null;
             /** Object Key */
             object_key: string;
             /** Object Type */
@@ -6298,7 +5847,6 @@ export interface components {
             operator_hint?: string | null;
             /** Primary Source */
             primary_source?: string | null;
-            runtime_hold?: components["schemas"]["RuntimeHoldView"] | null;
         };
         /**
          * WorkLineConfigurationCheck
@@ -9331,60 +8879,6 @@ export interface operations {
             };
         };
     };
-    material_material_units_location_query_get: {
-        parameters: {
-            query?: {
-                /** @description 料箱编码 */
-                bin_code?: string | null;
-                /** @description ExecutionCorrelation.correlation_id */
-                correlation_id?: string | null;
-                /** @description 外部引用类型 */
-                external_reference_type?: string | null;
-                /** @description 外部引用值 */
-                external_reference_value?: string | null;
-                /** @description 物料身份键 */
-                material_identity_key?: string | null;
-                /** @description 运行对象键 */
-                object_key?: string | null;
-                /** @description 运行对象类型 */
-                object_type?: string | null;
-                /** @description PkgID / package_id */
-                package_id?: string | null;
-                /** @description provider code */
-                provider_code?: string | null;
-                /** @description 货架编码 */
-                rack_code?: string | null;
-                /** @description 货架面 */
-                rack_side?: string | null;
-                /** @description WorkLine.id */
-                workline_id?: number | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_MaterialLocationResult_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     bin_cell_occupancies_get: {
         parameters: {
             query?: {
@@ -10452,7 +9946,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["_DebugTransportStepConfirmation"] | null;
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -10461,6 +9959,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_DebugTransportTaskResetResult_"];
+                };
+            };
+            /** @description 操作员确认与任务不匹配 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
                 };
             };
             /** @description TransportTask 不存在 */
@@ -10687,8 +10194,8 @@ export interface operations {
                         final_position: {
                             /** @enum {string} */
                             kind: "RACK_BIN_SLOT";
-                            /** @enum {string} */
-                            rack_face: "A" | "B";
+                            /** @description Opaque non-empty face value; preserve exactly */
+                            rack_face: string;
                             rack_id: string;
                             slot_id: string;
                         } | {
@@ -10711,8 +10218,8 @@ export interface operations {
                     timestamp: number;
                 } | {
                     data: {
-                        /** @enum {string} */
-                        arrival_face: "A" | "B";
+                        /** @description Opaque non-empty face value; preserve exactly */
+                        arrival_face: string;
                         final_position: {
                             /** @enum {string} */
                             kind: "RACK_POSITION";
@@ -10727,8 +10234,8 @@ export interface operations {
                         status: "SUCCEEDED";
                         transport_task_id: string;
                     } | {
-                        /** @enum {string} */
-                        arrival_face: "A" | "B";
+                        /** @description Opaque non-empty face value; preserve exactly */
+                        arrival_face: string;
                         /** @enum {string} */
                         failure_code: "MANUAL_ABORTED" | "RCS_EXECUTION_FAILED" | "RCS_TASK_REJECTED";
                         final_position: {
@@ -10767,8 +10274,8 @@ export interface operations {
                             final_position: {
                                 /** @enum {string} */
                                 kind: "RACK_BIN_SLOT";
-                                /** @enum {string} */
-                                rack_face: "A" | "B";
+                                /** @description Opaque non-empty face value; preserve exactly */
+                                rack_face: string;
                                 rack_id: string;
                                 slot_id: string;
                             } | {
@@ -10785,8 +10292,8 @@ export interface operations {
                             final_position: {
                                 /** @enum {string} */
                                 kind: "RACK_BIN_SLOT";
-                                /** @enum {string} */
-                                rack_face: "A" | "B";
+                                /** @description Opaque non-empty face value; preserve exactly */
+                                rack_face: string;
                                 rack_id: string;
                                 slot_id: string;
                             } | {
@@ -10816,8 +10323,8 @@ export interface operations {
                             final_position: {
                                 /** @enum {string} */
                                 kind: "RACK_BIN_SLOT";
-                                /** @enum {string} */
-                                rack_face: "A" | "B";
+                                /** @description Opaque non-empty face value; preserve exactly */
+                                rack_face: string;
                                 rack_id: string;
                                 slot_id: string;
                             } | {
@@ -10834,8 +10341,8 @@ export interface operations {
                             final_position: {
                                 /** @enum {string} */
                                 kind: "RACK_BIN_SLOT";
-                                /** @enum {string} */
-                                rack_face: "A" | "B";
+                                /** @description Opaque non-empty face value; preserve exactly */
+                                rack_face: string;
                                 rack_id: string;
                                 slot_id: string;
                             } | {
@@ -11042,147 +10549,6 @@ export interface operations {
             };
         };
     };
-    workline_operations_reconciliations_effects_by_dispatch_key_resolve_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                dispatch_key: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ResolveEffectReconciliationRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_operations_reconciliations_sessions_by_session_id_resolve_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                session_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ResolveRuntimeReconciliationRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_operations_replay_inboxes_by_inbox_id_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                inbox_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ReplayInboxRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
-                };
-            };
-            /** @description 源 Inbox 当前状态不允许 Replay */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
-                };
-            };
-            /** @description 源 Inbox 或所属工作线不存在 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
-                };
-            };
-            /** @description Replay 幂等身份冲突 */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-            /** @description Replay 审计证据暂时无法持久化 */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
-                };
-            };
-        };
-    };
     workline_operations_safety_worklines_by_workline_id_clear_estop_post: {
         parameters: {
             query?: never;
@@ -11195,179 +10561,6 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ClearWorkLineEstopRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_operations_sandbox_ack_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SandboxAckRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_operations_sandbox_completed_get: {
-        parameters: {
-            query?: {
-                /** @description 按设备过滤 */
-                device_id?: number | null;
-                /** @description 最多返回条数 */
-                limit?: number;
-                /** @description 按工作线过滤 */
-                workline_id?: number | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_list_dict_str__Any___"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_operations_sandbox_external_callbacks_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SandboxExternalCallbackRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_operations_sandbox_pending_get: {
-        parameters: {
-            query?: {
-                /** @description 按设备过滤 */
-                device_id?: number | null;
-                /** @description 最多返回条数 */
-                limit?: number;
-                /** @description 按工作线过滤 */
-                workline_id?: number | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_list_dict_str__Any___"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_operations_sandbox_worklines_by_workline_id_simulate_estop_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                workline_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SimulateWorkLineEstopRequest"];
             };
         };
         responses: {
@@ -11449,37 +10642,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_WorkLineStartErrorResponse_"];
-                };
-            };
-        };
-    };
-    workline_runtime_operations_northbound_get: {
-        parameters: {
-            query?: {
-                workline_id?: number | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_NorthboundOperationalSnapshot_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

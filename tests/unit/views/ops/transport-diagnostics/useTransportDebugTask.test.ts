@@ -11,7 +11,8 @@ describe('buildTransportDebugTask', () => {
         rack_id: 'RACK-01',
         source: { kind: 'RACK_POSITION', location_code: 'SRC-01' },
         target: { kind: 'RACK_POSITION', location_code: 'DST-01' },
-        target_face: 'A'
+        target_face: '90',
+        rcs_template_id: 'F01'
       }
     ],
     [
@@ -19,7 +20,8 @@ describe('buildTransportDebugTask', () => {
       {
         rack_id: 'RACK-01',
         position: { kind: 'RACK_POSITION', location_code: 'POS-01' },
-        target_face: 'B'
+        target_face: '270',
+        rcs_template_id: 'CTU02'
       }
     ],
     [
@@ -32,7 +34,7 @@ describe('buildTransportDebugTask', () => {
             target: {
               kind: 'RACK_BIN_SLOT',
               rack_id: 'RACK-01',
-              rack_face: 'A',
+              rack_face: '90',
               slot_id: 'SLOT-01'
             }
           }
@@ -48,14 +50,14 @@ describe('buildTransportDebugTask', () => {
             left_location: {
               kind: 'RACK_BIN_SLOT',
               rack_id: 'RACK-01',
-              rack_face: 'A',
+              rack_face: '90',
               slot_id: 'SLOT-01'
             },
             right_bin_id: 'BIN-02',
             right_location: {
               kind: 'RACK_BIN_SLOT',
               rack_id: 'RACK-02',
-              rack_face: 'B',
+              rack_face: '270',
               slot_id: 'SLOT-02'
             }
           }

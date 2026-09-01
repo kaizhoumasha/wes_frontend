@@ -9,10 +9,7 @@ import {
   type TasksQuery,
   type TasksResult
 } from '@/api/modules/transport'
-import {
-  confirmTransportDebugStep,
-  type TransportDebugStepConfirmationInput
-} from '@/api/modules/transportDebugLoop'
+import type { TransportDebugStepConfirmationInput } from './useTransportDebugLoop'
 
 export interface TransportDiagnosticsApiPort {
   listTasks(query: TasksQuery): Promise<TasksResult>
@@ -39,9 +36,9 @@ const DEFAULT_API: TransportDiagnosticsApiPort = {
   previewTaskReset: transportTaskId =>
     transportApiMethods.resetPreview({ transport_task_id: transportTaskId }).send(),
   resetTask: (transportTaskId, confirmation) =>
-    confirmation
-      ? confirmTransportDebugStep(transportTaskId, confirmation)
-      : transportApiMethods.reset({ transport_task_id: transportTaskId }).send()
+    transportApiMethods
+      .reset({ transport_task_id: transportTaskId }, confirmation ?? null)
+      .send()
 }
 
 export function useTransportDiagnostics(options: UseTransportDiagnosticsOptions = {}) {

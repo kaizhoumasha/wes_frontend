@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.3.0] - 2026-08-31
+
+### Changed
+
+- “运输接入诊断”的 510056 联调循环直接使用 canonical Transport reset 合同提交现场到位确认，并显式发送确认对象或 `null` 请求体。
+- OpenAPI、Zod、metadata 与权限生成物同步到后端 `develop@30d3da57`，工作线活动对象位置结构与当前后端合同保持一致。
+
+### Fixed
+
+- 可选 JSON 请求体现在可被类型生成器正确识别；无请求体操作会收紧为 `never`，避免错误接受任意 body。
+- 补齐真实默认 API 适配器、请求体类型分支和生成器回归测试，确认联调步进不会回落到临时重复模块。
+
+### Removed
+
+- 移除后端已退役的 10 个端点、10 项权限及对应的陈旧生成物和无调用模块。
+
+### Verification
+
+- 83 个测试文件、624 项测试通过；typecheck、ESLint、Prettier、Stylelint、生产构建、合同与权限同步校验全部通过。
+- 当前差异覆盖审计为 100%，fresh Review 无剩余意见；本次发布不包含再次部署、现场物理动作或业务验收。
+
 ## [0.12.2.0] - 2026-08-31
 
 ### Added

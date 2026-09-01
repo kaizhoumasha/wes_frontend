@@ -15,6 +15,12 @@ type ResponseMap<
 
 type JsonContent<T> = T extends { content: { 'application/json': infer TJson } } ? TJson : never
 
+type JsonRequestBody<T> = [NonUndefined<T>] extends [never]
+  ? never
+  : NonUndefined<T> extends { content: { 'application/json': infer TJson } }
+    ? TJson
+    : never
+
 type PreferredSuccessResponse<TResponses> =
   200 extends keyof TResponses ? TResponses[200]
     : 201 extends keyof TResponses ? TResponses[201]
@@ -106,11 +112,11 @@ export type ContractQueryParams<
 export type ContractRequestBody<
   TPath extends ContractPath,
   TMethod extends HttpMethod,
-> = ContractOperation<TPath, TMethod> extends {
-  requestBody: { content: { 'application/json': infer TBody } }
-}
-  ? TBody
-  : never
+> = JsonRequestBody<
+  ContractOperation<TPath, TMethod> extends { requestBody?: infer TRequestBody }
+    ? TRequestBody
+    : never
+>
 
 /**
  * 获取成功响应的原始 JSON body 类型。

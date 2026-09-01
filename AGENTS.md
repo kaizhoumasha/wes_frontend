@@ -14,7 +14,7 @@
 - `pnpm lint`：依次运行类型检查、ESLint、Prettier、Stylelint，是提交前的基础质量门禁。
 - `pnpm test`：运行 Vitest 单元测试；`pnpm contract:test`、`pnpm contract:verify`：执行接口契约门禁。
 - `pnpm contract:freeze -- --backend-root /path/to/wes_backend`：从指定的干净后端 `develop` checkout 冻结 canonical OpenAPI；`pnpm generate:types`、`pnpm generate:zod`：从该快照生成类型与 Zod Schema。
-- `pnpm generate:permissions -- --backend-root /path/to/wes_backend`、`pnpm permission:verify -- --backend-root /path/to/wes_backend`：生成并校验权限常量。
+- `pnpm generate:permissions`、`pnpm permission:verify`：从已冻结的本地 canonical 快照生成并校验权限常量；只有 `contract:freeze` 接收 `--backend-root`。
 - `./scripts/git-worktree.sh add feature-name`：仅在需要并行隔离时创建 worktree。
 
 ## 分支与 Worktree 流程

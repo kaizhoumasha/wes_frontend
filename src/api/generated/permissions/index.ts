@@ -13,7 +13,6 @@ import { ADMIN_USER_PERMISSION } from './user_api/admin/user'
 import { API_AUTH_API_APPLICATION_PERMISSION } from './user_api/api-auth/api_application'
 import { API_AUTH_APIACCESSLOG_PERMISSION } from './user_api/api-auth/apiaccesslog'
 import { BIZ_DEVICE_PERMISSION } from './user_api/biz/device'
-import { BIZ_MATERIAL_PERMISSION } from './user_api/biz/material'
 import { BIZ_WORKLINE_PERMISSION } from './user_api/biz/workline'
 import { CALLBACK_CALLBACK_LOG_PERMISSION } from './user_api/callback/callback_log'
 import { OPS_TRANSPORT_PERMISSION } from './user_api/ops/transport'
@@ -33,7 +32,6 @@ import { RESOURCE_RACKSLOTTEMPLATE_PERMISSION } from './user_api/resource/racksl
 import { RESOURCE_RACKTYPE_PERMISSION } from './user_api/resource/racktype'
 import { RESOURCE_RESOURCESTATEEVENT_PERMISSION } from './user_api/resource/resourcestateevent'
 import { SYS_AUDITLOG_PERMISSION } from './user_api/sys/auditlog'
-import { SYS_RUNTIME_OPERATIONS_PERMISSION } from './user_api/sys/runtime-operations'
 
 
 export { API_TRY_PERMISSION }
@@ -43,7 +41,6 @@ export { ADMIN_USER_PERMISSION }
 export { API_AUTH_API_APPLICATION_PERMISSION }
 export { API_AUTH_APIACCESSLOG_PERMISSION }
 export { BIZ_DEVICE_PERMISSION }
-export { BIZ_MATERIAL_PERMISSION }
 export { BIZ_WORKLINE_PERMISSION }
 export { CALLBACK_CALLBACK_LOG_PERMISSION }
 export { OPS_TRANSPORT_PERMISSION }
@@ -63,7 +60,6 @@ export { RESOURCE_RACKSLOTTEMPLATE_PERMISSION }
 export { RESOURCE_RACKTYPE_PERMISSION }
 export { RESOURCE_RESOURCESTATEEVENT_PERMISSION }
 export { SYS_AUDITLOG_PERMISSION }
-export { SYS_RUNTIME_OPERATIONS_PERMISSION }
 
 /**
  * admin 分类权限快捷导出
@@ -94,7 +90,6 @@ export const API_AUTH_PERMISSIONS = {
  */
 export const BIZ_PERMISSIONS = {
   device: BIZ_DEVICE_PERMISSION,
-  material: BIZ_MATERIAL_PERMISSION,
   workline: BIZ_WORKLINE_PERMISSION,
 } as const
 
@@ -138,7 +133,6 @@ export const RESOURCE_PERMISSIONS = {
  */
 export const SYS_PERMISSIONS = {
   auditlog: SYS_AUDITLOG_PERMISSION,
-  runtimeOperations: SYS_RUNTIME_OPERATIONS_PERMISSION,
 } as const
 
 /**

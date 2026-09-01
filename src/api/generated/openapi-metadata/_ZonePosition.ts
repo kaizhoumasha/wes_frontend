@@ -1,5 +1,5 @@
 /**
- * 自动生成的 OpenAPI schema 字段元数据: _RackBinSlot
+ * 自动生成的 OpenAPI schema 字段元数据: _ZonePosition
  *
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
@@ -9,13 +9,11 @@
 
 import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
-export const _RackBinSlotMetadata = {
-  "title": "_RackBinSlot",
+export const _ZonePositionMetadata = {
+  "title": "_ZonePosition",
   "required": [
     "kind",
-    "rack_id",
-    "rack_face",
-    "slot_id"
+    "location_code"
   ],
   "additionalProperties": false,
   "fields": {
@@ -25,27 +23,11 @@ export const _RackBinSlotMetadata = {
       "required": true,
       "nullable": false,
       "enum": [
-        "RACK_BIN_SLOT"
+        "ZONE"
       ]
     },
-    "rack_face": {
-      "title": "Rack Face",
-      "description": "Opaque non-empty face value; preserve exactly",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1
-    },
-    "rack_id": {
-      "title": "Rack Id",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 100
-    },
-    "slot_id": {
-      "title": "Slot Id",
+    "location_code": {
+      "title": "Location Code",
       "type": "string",
       "required": true,
       "nullable": false,

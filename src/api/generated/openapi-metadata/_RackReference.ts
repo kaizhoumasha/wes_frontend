@@ -1,5 +1,5 @@
 /**
- * 自动生成的 OpenAPI schema 字段元数据: ReplayInboxRequest
+ * 自动生成的 OpenAPI schema 字段元数据: _RackReference
  *
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
@@ -9,25 +9,25 @@
 
 import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
-export const ReplayInboxRequestMetadata = {
-  "title": "ReplayInboxRequest",
-  "description": "Replay 请求。",
+export const _RackReferenceMetadata = {
+  "title": "_RackReference",
   "required": [
-    "request_id",
-    "reason"
+    "kind",
+    "location_code"
   ],
   "additionalProperties": false,
   "fields": {
-    "reason": {
-      "title": "Reason",
+    "kind": {
+      "description": "discriminator enum property added by openapi-typescript",
       "type": "string",
       "required": true,
       "nullable": false,
-      "minLength": 1,
-      "maxLength": 500
+      "enum": [
+        "RACK"
+      ]
     },
-    "request_id": {
-      "title": "Request Id",
+    "location_code": {
+      "title": "Location Code",
       "type": "string",
       "required": true,
       "nullable": false,

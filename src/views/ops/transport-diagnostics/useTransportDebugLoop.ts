@@ -1,7 +1,8 @@
 import { computed, ref } from 'vue'
-import type { DebugTasksInput, DebugTasksResult } from '@/api/modules/transport'
-import type { TransportDebugStepConfirmationInput } from '@/api/modules/transportDebugLoop'
+import type { DebugTasksInput, DebugTasksResult, ResetInput } from '@/api/modules/transport'
 import { createUuid7 } from '@/utils/uuid7'
+
+export type TransportDebugStepConfirmationInput = Exclude<ResetInput, null>
 
 export type TransportDebugStepKey =
   | 'RACK_TO_STATION'
@@ -27,7 +28,7 @@ export interface TransportDebugLoopStep {
 
 const RACK_ID = '510056'
 const STATION_ID = 'CTU01'
-const RACK_FACE = 'A' as const
+const FACE_VALUE = '90'
 const BINS = [
   { binId: 'A000001922', slotId: '510056A3F2C101' },
   { binId: 'A000002653', slotId: '510056A2F2C101' }
@@ -37,7 +38,7 @@ const STEPS: readonly TransportDebugLoopStep[] = [
   {
     key: 'RACK_TO_STATION',
     title: '货架进站',
-    instruction: '确认 AGV 已把货架 510056 从 WH01 搬到 KT16，A 面朝向 CTU01。',
+    instruction: '确认 AGV 已把货架 510056 从 ZONE WH01 搬到点位 KT16，面向值为“90”。',
     createsTransportTask: true
   },
   {
@@ -167,9 +168,14 @@ function buildTaskInput(step: TransportDebugStepKey): DebugTasksInput | null {
       kind: 'RACK_MOVE',
       data: {
         rack_id: RACK_ID,
-        source: { kind: 'RACK_POSITION', location_code: outbound ? 'WH01' : 'KT16' },
-        target: { kind: 'RACK_POSITION', location_code: outbound ? 'KT16' : 'WH01' },
-        target_face: RACK_FACE
+        source: outbound
+          ? { kind: 'ZONE' as const, location_code: 'WH01' }
+          : { kind: 'RACK_POSITION' as const, location_code: 'KT16' },
+        target: outbound
+          ? { kind: 'RACK_POSITION' as const, location_code: 'KT16' }
+          : { kind: 'ZONE' as const, location_code: 'WH01' },
+        target_face: FACE_VALUE,
+        rcs_template_id: outbound ? ('CTU01' as const) : ('CTU03' as const)
       }
     }
   }
@@ -198,7 +204,7 @@ function rackSlot(slotId: string) {
   return {
     kind: 'RACK_BIN_SLOT' as const,
     rack_id: RACK_ID,
-    rack_face: RACK_FACE,
+    rack_face: FACE_VALUE,
     slot_id: slotId
   }
 }
