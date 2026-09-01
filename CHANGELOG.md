@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.6.0] - 2026-09-01
+
+### Fixed
+
+- 根据 Jenkins 构建节点实测撤销生产 Docker 对 `npmmirror` 的强制覆盖，恢复 lockfile 默认官方 registry，同时保留仓库级有限重试与超时预算。
+
+### Verification
+
+- registry fallback 聚焦测试完成 RED → GREEN；此前 Jenkins 官方 registry 候选已完成 727/729 个依赖，而区域镜像候选约 10 分钟仅完成 23/729 并持续发生 DNS、连接重置与 socket timeout。
+- 官方 registry 无缓存完整镜像构建在 47.6 秒内下载 729 个依赖并成功生成生产镜像；全量 630 项测试、合同/权限校验、typecheck、ESLint、Prettier、Stylelint 与生产构建通过。
+
 ## [0.12.5.0] - 2026-09-01
 
 ### Fixed
