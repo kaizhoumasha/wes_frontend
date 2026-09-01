@@ -287,8 +287,17 @@ describe.sequential('repository quality gates', () => {
 
     expect(jenkinsfile).toContain('deleteDir()')
     expect(jenkinsfile).toContain(
-      'git remote add origin http://192.168.0.220:9080/wes/wes_frontend.git'
+      'git remote add origin https://git.zontecmes.com/wes/wes_frontend.git'
     )
+    expect(jenkinsfile).not.toContain('http://192.168.0.220:9080/wes/wes_frontend.git')
+    expect(jenkinsfile).toContain("credentialsId: 'gitlab-http-creds'")
+    expect(jenkinsfile).toContain("usernameVariable: 'GITLAB_USERNAME'")
+    expect(jenkinsfile).toContain("passwordVariable: 'GITLAB_PASSWORD'")
+    expect(jenkinsfile).toContain('set +x')
+    expect(jenkinsfile).toContain('timeout --kill-after=10s 180s')
+    expect(jenkinsfile).toContain('credential.helper=!f()')
+    expect(jenkinsfile).toContain('fetch --no-tags --force origin')
+    expect(jenkinsfile).not.toContain('--depth')
     expect(jenkinsfile).toContain(
       '"+refs/heads/${CI_SOURCE_BRANCH}:refs/remotes/origin/${CI_SOURCE_BRANCH}"'
     )
