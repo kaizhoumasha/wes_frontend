@@ -83,6 +83,7 @@ widget['update'](1, {})
   write(root, 'dist/ignored.js', `api[method](path)\n`)
   write(root, 'package.json', '{"scripts":{"build":"vite build --mode production"}}\n')
   write(root, 'pnpm-lock.yaml', 'lockfileVersion: 9\n')
+  write(root, '.npmrc', 'fetch-retries=5\n')
   write(root, 'Dockerfile', 'RUN pnpm run build\nCMD ["nginx", "-g", "daemon off;"]\n')
   write(root, 'nginx.conf', 'events {}\nhttp {}\n')
   write(root, 'vite.config.ts', 'export default {}\n')
@@ -173,6 +174,21 @@ describe('release consumer exporter', () => {
         dependencies_sha256: expect.stringMatching(/^[0-9a-f]{64}$/),
         recipe_sha256: expect.stringMatching(/^[0-9a-f]{64}$/)
       })
+    } finally {
+      rmSync(fixture.root, { recursive: true, force: true })
+    }
+  })
+
+  it('binds repository package-manager settings into the frontend recipe fingerprint', () => {
+    const fixture = createFixture(SUCCESS_SOURCE)
+
+    try {
+      const first = exportReleaseConsumer({ frontendRoot: fixture.root, outputDir: fixture.outputDir })
+      write(fixture.root, '.npmrc', 'fetch-retries=6\n')
+      const second = exportReleaseConsumer({ frontendRoot: fixture.root, outputDir: fixture.outputDir })
+
+      expect(second.fingerprints.recipe_sha256).not.toBe(first.fingerprints.recipe_sha256)
+      expect(second.fingerprints.dependencies_sha256).toBe(first.fingerprints.dependencies_sha256)
     } finally {
       rmSync(fixture.root, { recursive: true, force: true })
     }

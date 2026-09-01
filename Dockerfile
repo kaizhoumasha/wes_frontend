@@ -18,8 +18,8 @@ ENV CI=true \
 # 安装 pnpm
 RUN corepack enable && corepack prepare pnpm@10.10.0 --activate
 
-# 复制 package.json 和 pnpm-lock.yaml
-COPY package.json pnpm-lock.yaml ./
+# 复制依赖清单和仓库级下载重试配置
+COPY package.json pnpm-lock.yaml .npmrc ./
 
 # 安装依赖
 RUN pnpm install --frozen-lockfile

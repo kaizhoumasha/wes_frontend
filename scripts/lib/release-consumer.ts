@@ -1230,6 +1230,7 @@ export function exportReleaseConsumer(
     dependencies_sha256: buildInputSetHash(frontendRoot, ['package.json', 'pnpm-lock.yaml']),
     kind: FRONTEND_FINGERPRINTS_KIND,
     recipe_sha256: buildInputSetHash(frontendRoot, [
+      '.npmrc',
       'Dockerfile',
       'nginx.conf',
       'package.json',

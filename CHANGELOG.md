@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.4.0] - 2026-09-01
+
+### Fixed
+
+- 生产镜像的 pnpm 下载增加有界重试和超时预算，降低 Jenkins 构建阶段因 registry 短暂连接重置而失败的概率。
+- 仓库级 `.npmrc` 纳入 Docker 依赖安装输入和 release recipe fingerprint，配置变化可被不可变制品证据检测。
+
+### Verification
+
+- pnpm 配置与 release consumer 聚焦测试 41 项通过；typecheck、ESLint、Prettier、Stylelint、生产构建、合同与权限校验通过。
+- fresh Review 无剩余 finding；本版本不包含 510056 物理动作或业务验收。
+
 ## [0.12.3.0] - 2026-08-31
 
 ### Changed
