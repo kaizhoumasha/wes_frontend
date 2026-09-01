@@ -29,6 +29,8 @@ pipeline {
                     boolean hasMergeRequestId = ((env.gitlabMergeRequestId ?: '').trim()) as boolean
                     boolean isMergeRequest = gitlabActionType.contains('MERGE') || hasMergeRequestId
                     boolean isDevelopPush = gitlabActionType == 'PUSH' && sourceBranch == 'develop' && !isMergeRequest
+                    String mergeRequestCommit = (env.gitlabMergeRequestLastCommit ?: '').trim()
+                    String trustedSourceCommit = isMergeRequest ? mergeRequestCommit : afterCommit
 
                     env.CI_SOURCE_BRANCH = sourceBranch
                     env.CI_TARGET_BRANCH = targetBranch
@@ -38,29 +40,27 @@ pipeline {
 
                     echo "📥 检出前端源码: source=${sourceBranch}, target=${targetBranch ?: '-'}, event=${env.CI_EVENT_TYPE}"
 
-                    def extensions = [[$class: 'CleanBeforeCheckout']]
-                    if (isMergeRequest && targetBranch) {
-                        extensions << [
-                            $class: 'PreBuildMerge',
-                            options: [
-                                fastForwardMode: 'FF',
-                                mergeRemote: 'origin',
-                                mergeTarget: targetBranch
-                            ]
-                        ]
-                    }
-
                     checkout([
                         $class: 'GitSCM',
                         branches: [[name: "origin/${sourceBranch}"]],
                         userRemoteConfigs: [[
                             name: 'origin',
-                            url: 'https://zt_git.happyjack.cn/wes/wes_frontend.git',
-                            credentialsId: 'gitlab-http-creds',
+                            url: 'http://192.168.0.220:9080/wes/wes_frontend.git',
                             refspec: '+refs/heads/*:refs/remotes/origin/*'
                         ]],
-                        extensions: extensions
+                        extensions: [[$class: 'CleanBeforeCheckout']]
                     ])
+
+                    if (!(trustedSourceCommit ==~ /^[0-9a-fA-F]{40}$/) || trustedSourceCommit ==~ /^0{40}$/) {
+                        error('Source event requires a non-zero 40-character trusted commit')
+                    }
+                    String fetchedSourceCommit = sh(
+                        returnStdout: true,
+                        script: 'git rev-parse "refs/remotes/origin/${CI_SOURCE_BRANCH}^{commit}"'
+                    ).trim()
+                    if (!trustedSourceCommit.equalsIgnoreCase(fetchedSourceCommit)) {
+                        error('Fetched source ref must match the trusted event commit')
+                    }
 
                     String fullCommit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
                     String sourceTree = sh(returnStdout: true, script: 'git rev-parse HEAD^{tree}').trim()

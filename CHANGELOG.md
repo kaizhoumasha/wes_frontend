@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.7.0] - 2026-09-01
+
+### Fixed
+
+- Jenkins 源码检出改用构建节点可直接匿名只读访问的内网 GitLab 地址，避免公网域名链路低速导致 10 分钟 checkout 超时，且不在明文内网连接上传输凭证。
+- 所有构建在执行源码前将远端 source ref 与 webhook 不可变 Commit 进行 fail-closed 核验；MR 不再合入无法经同一可信事件验证的 HTTP target ref。
+
+### Verification
+
+- checkout 合同测试完成 RED → GREEN，锁定内网仓库地址并禁止重新引入公网域名；聚焦质量门禁测试通过。
+
 ## [0.12.6.0] - 2026-09-01
 
 ### Fixed
