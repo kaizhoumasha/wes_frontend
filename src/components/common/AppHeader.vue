@@ -101,17 +101,6 @@
                 {{ currentTimezoneLabel }}
               </el-tag>
             </el-dropdown-item>
-            <el-dropdown-item command="profile">
-              <el-icon><User /></el-icon>
-              <span>个人资料</span>
-            </el-dropdown-item>
-            <el-dropdown-item
-              command="sessions"
-              divided
-            >
-              <el-icon><Monitor /></el-icon>
-              <span>会话管理</span>
-            </el-dropdown-item>
             <el-dropdown-item
               command="logout"
               divided
@@ -130,16 +119,7 @@
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import {
-  Fold,
-  Expand,
-  Search,
-  User,
-  ArrowDown,
-  Monitor,
-  SwitchButton,
-  Clock
-} from '@element-plus/icons-vue'
+import { Fold, Expand, Search, User, ArrowDown, SwitchButton, Clock } from '@element-plus/icons-vue'
 import { useLayout } from '@/composables/useLayout'
 import { useMenu } from '@/composables/useMenu'
 import { logout } from '@/api/services/token-refresh'
@@ -237,15 +217,6 @@ const handleUserMenuCommand = async (command: string) => {
     case 'timezone':
       // 打开时区设置对话框
       timezoneDialogVisible.value = true
-      break
-
-    case 'profile':
-      ElMessage.info('个人资料功能开发中')
-      break
-
-    case 'sessions':
-      ElMessage.info('会话管理功能开发中')
-      // TODO: 跳转到会话管理页面
       break
 
     case 'logout':

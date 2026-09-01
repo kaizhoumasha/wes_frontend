@@ -13,7 +13,11 @@ import {
   WorkLineUpdateMetadata
 } from '@/api/generated/openapi-metadata'
 import type { FormFieldConfig } from '@/composables/useTableColumns'
-import { WorkLineCreateSchema, WorkLineUpdateSchema } from '@/types/zod-extensions'
+import { z } from 'zod'
+import {
+  WorkLineCreateSchema as GeneratedWorkLineCreateSchema,
+  WorkLineUpdateSchema
+} from '@/types/zod-extensions'
 import {
   defineCrudResourceFieldBundle
 } from '@/components/common/crud-page/resourceFieldBuilder'
@@ -55,8 +59,17 @@ export const workLineSearchConfig = {
   favorites: []
 }
 
+export const WorkLineCreateFormSchema = GeneratedWorkLineCreateSchema.extend({
+  line_code: z.string().min(1, '请输入作业线编码').max(50, '作业线编码不能超过 50 个字符'),
+  line_name: z.string().min(1, '请输入作业线名称').max(100, '作业线名称不能超过 100 个字符'),
+  line_type: z.preprocess(
+    value => value === '' ? undefined : value,
+    z.enum(['AUTO', 'MANUAL', 'HYBRID'], { required_error: '请选择作业线类型' })
+  )
+})
+
 export const workLineFormConfig = {
-  createSchema: WorkLineCreateSchema,
+  createSchema: WorkLineCreateFormSchema,
   updateSchema: WorkLineUpdateSchema
 }
 
