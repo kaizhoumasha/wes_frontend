@@ -54,6 +54,9 @@ const updateEndpointInput = z.preprocess(
 )
 
 export const DeviceCreateFormSchema = GeneratedDeviceCreateSchema.extend({
+  device_code: z.string().min(1, '请输入设备编码').max(100, '设备编码不能超过 100 个字符'),
+  device_name: z.string().min(1, '请输入设备名称').max(100, '设备名称不能超过 100 个字符'),
+  device_role: z.string().min(1, '请输入设备角色').max(50, '设备角色不能超过 50 个字符'),
   endpoint_base_url: createEndpointInput
 })
 

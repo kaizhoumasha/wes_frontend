@@ -10,7 +10,11 @@ import {
   RoleResponseMetadata,
   RoleUpdateMetadata
 } from '@/api/generated/openapi-metadata'
-import { RoleCreateSchema, RoleUpdateSchema } from '@/types/zod-extensions'
+import { z } from 'zod'
+import {
+  RoleCreateSchema as GeneratedRoleCreateSchema,
+  RoleUpdateSchema
+} from '@/types/zod-extensions'
 import {
   defineCrudResourceFieldBundle
 } from '@/components/common/crud-page/resourceFieldBuilder'
@@ -30,8 +34,12 @@ export const roleSearchConfig = {
   favorites: []
 }
 
+export const RoleCreateFormSchema = GeneratedRoleCreateSchema.extend({
+  name: z.string().min(1, '请输入角色名称').max(100, '角色名称不能超过 100 个字符')
+})
+
 export const roleFormConfig = {
-  createSchema: RoleCreateSchema,
+  createSchema: RoleCreateFormSchema,
   updateSchema: RoleUpdateSchema
 }
 
