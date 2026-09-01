@@ -21,8 +21,8 @@ RUN corepack enable && corepack prepare pnpm@10.10.0 --activate
 # 复制依赖清单和仓库级下载重试配置
 COPY package.json pnpm-lock.yaml .npmrc ./
 
-# 安装依赖；仅生产镜像构建使用区域镜像，避免改变开发与 GitHub Actions 的供应链来源。
-RUN pnpm install --frozen-lockfile --registry=https://registry.npmmirror.com/
+# 安装依赖；沿用仓库级有限重试与超时预算。
+RUN pnpm install --frozen-lockfile
 
 # 复制源代码
 COPY . .
