@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.5.0] - 2026-09-01
+
+### Fixed
+
+- 仅在生产 Docker builder 的 frozen 依赖安装中使用区域 npm 镜像，避免 Jenkins 官方 registry 网络抖动，同时不改变开发机与 GitHub Actions 的默认供应链来源。
+
+### Verification
+
+- pnpm 配置与 release consumer 聚焦测试 41 项通过；Docker 零缓存从镜像下载 729 个包约 53 秒完成。
+- 全量 630 项测试、typecheck、ESLint、Prettier、Stylelint、生产构建、合同与权限校验通过；fresh Review 无剩余 finding。
+
 ## [0.12.4.0] - 2026-09-01
 
 ### Fixed
