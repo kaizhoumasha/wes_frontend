@@ -40,15 +40,25 @@ pipeline {
 
                     echo "📥 检出前端源码: source=${sourceBranch}, target=${targetBranch ?: '-'}, event=${env.CI_EVENT_TYPE}"
 
-                    deleteDir()
-                    sh '''
-                        set -eu
-                        git init
-                        git remote add origin http://192.168.0.220:9080/wes/wes_frontend.git
-                        git fetch --no-tags --force origin \
-                            "+refs/heads/${CI_SOURCE_BRANCH}:refs/remotes/origin/${CI_SOURCE_BRANCH}"
-                        git checkout --detach "refs/remotes/origin/${CI_SOURCE_BRANCH}"
-                    '''
+                    withCredentials([usernamePassword(
+                        credentialsId: 'gitlab-http-creds',
+                        usernameVariable: 'GITLAB_USERNAME',
+                        passwordVariable: 'GITLAB_PASSWORD'
+                    )]) {
+                        deleteDir()
+                        sh '''
+                            set +x
+                            set -eu
+                            git init
+                            git remote add origin https://git.zontecmes.com/wes/wes_frontend.git
+                            timeout --kill-after=10s 180s git -c credential.helper= \
+                                -c 'credential.helper=!f() { printf "%s\\n" \
+                                    "username=$GITLAB_USERNAME" "password=$GITLAB_PASSWORD"; }; f' \
+                                fetch --no-tags --force origin \
+                                "+refs/heads/${CI_SOURCE_BRANCH}:refs/remotes/origin/${CI_SOURCE_BRANCH}"
+                            git checkout --detach "refs/remotes/origin/${CI_SOURCE_BRANCH}"
+                        '''
+                    }
 
                     if (!(trustedSourceCommit ==~ /^[0-9a-fA-F]{40}$/) || trustedSourceCommit ==~ /^0{40}$/) {
                         error('Source event requires a non-zero 40-character trusted commit')
