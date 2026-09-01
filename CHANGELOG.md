@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.10.0] - 2026-09-01
+
+### Fixed
+
+- 移除未随生产镜像发布的默认 `/vite.svg` 图标引用，避免登录页每次加载产生静态资源 404。
+
+### Verification
+
+- 新增 `index.html` 资产回归测试；现场其余 JS/CSS 资源逐项返回 200。
+
 ## [0.12.9.0] - 2026-09-01
 
 ### Fixed
