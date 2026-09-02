@@ -1,7 +1,7 @@
 # CRUD 开发指南
 
-**版本**: 1.4
-**最后更新**: 2026-08-26
+**版本**: 1.5
+**最后更新**: 2026-09-01
 **适用**: P9 MCS 前端项目
 
 ---
@@ -396,6 +396,24 @@ export function createUserPageConfig(openAssignRolesDialog: (user: User) => void
 - `RoleResponse` 类型不存在 → TypeScript 报错
 - `RoleCreateSchema` 未生成 → 表单验证无法工作
 - `ADMIN_PERMISSIONS.role` 未定义 → 权限检查失效
+
+#### 从页面局部扩展打开现有创建表单
+
+页面局部的抽屉或自定义对话框需要复用现有创建表单时，通过 `extra-dialogs` 插槽取得 `openCreate` 与 `refresh`，不要再实现一套表单：
+
+```vue
+<CrudPageContainer :config="config">
+  <template #extra-dialogs="{ openCreate, refresh }">
+    <FeatureDrawer :open-create="openCreate" :refresh-list="refresh" />
+  </template>
+</CrudPageContainer>
+```
+
+- `openCreate({ initialValues })`：打开当前资源的创建表单，并只预填调用方明确提供的字段。
+- `refresh()`：刷新当前 CRUD 视图；创建成功后的标准流程仍由容器负责。
+- 无需参数的既有 `extra-dialogs` 用法保持兼容。
+
+设备管理的实际接入与边界参见 [ECS 设备发现与显式接管设计](./designs/ecs-device-discovery-onboarding.md)。
 
 ---
 
@@ -824,6 +842,7 @@ interface CrudFieldConfig {
 
 | 版本 | 日期       | 更新内容                                      |
 | ---- | ---------- | --------------------------------------------- |
+| 1.5  | 2026-09-01 | 记录 `extra-dialogs` 的创建表单与刷新桥接能力 |
 | 1.3  | 2026-03-26 | 精简结构，添加"5分钟快速开始"和"常见坑点"章节 |
 | 1.2  | 2026-03-26 | 新增标准开发流程章节                          |
 | 1.0  | 2026-03-14 | 初始版本                                      |

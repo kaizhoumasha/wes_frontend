@@ -32,6 +32,11 @@ interface CrudPageContainerProps {
   fitViewport?: boolean
 }
 
+interface ExtraDialogsSlotProps {
+  openCreate: (options?: { initialValues?: Record<string, unknown> }) => void
+  refresh: () => Promise<void>
+}
+
 const props = withDefaults(defineProps<CrudPageContainerProps>(), {
   gap: 16,
   fitViewport: true
@@ -39,7 +44,7 @@ const props = withDefaults(defineProps<CrudPageContainerProps>(), {
 
 // 声明已知插槽类型
 defineSlots<{
-  'extra-dialogs'?: (props: Record<string, never>) => unknown
+  'extra-dialogs'?: (props: ExtraDialogsSlotProps) => unknown
 }>()
 
 provideBreakpointContext()
@@ -371,7 +376,11 @@ async function handleRefreshDetailPanel(): Promise<void> {
     />
 
     <!-- 额外对话框插槽：用于放置自定义对话框，可访问 provide 的 refresh 函数 -->
-    <slot name="extra-dialogs" />
+    <slot
+      name="extra-dialogs"
+      :open-create="dialogs.openCreate"
+      :refresh="search.handleRefresh"
+    />
   </div>
 </template>
 

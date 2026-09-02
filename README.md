@@ -128,6 +128,7 @@ src/
 - [TODO 清单](./TODOS.md)
 - [技术选型文档](./docs/WES_FRONTEND_TECH_STACK.md)
 - [CRUD 开发指南](./docs/CRUD_DEVELOPMENT_GUIDE.md)
+- [ECS 设备发现与显式接管设计](./docs/designs/ecs-device-discovery-onboarding.md)
 - [智能搜索组件架构](./docs/SMART_SEARCH_COMPONENT_ARCHITECTURE.md)
 - [时区处理指南](./docs/TIMEZONE_HANDLING.md)
 - [契约同步工作流](./docs/CONTRACT_SYNC_WORKFLOW.md)

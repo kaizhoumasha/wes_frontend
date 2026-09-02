@@ -5,6 +5,7 @@ import type {
 } from '@/api/modules/devices'
 import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
 import { devicesApiMethods } from '@/api/modules/devices'
+import { SUPERUSER_PERMISSION } from '@/composables/permission-state'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import type {
   CrudPageConfig,
@@ -108,13 +109,23 @@ function createDeviceDetailConfig(): CrudPageDetailConfig<Device> {
   }
 }
 
-export function createDevicePageConfig(): DevicePageConfig {
+export function createDevicePageConfig(openDiscovery: () => void = () => {}): DevicePageConfig {
   return createCrudPageConfigFromResource<Device, CreateDeviceInput, UpdateDeviceInput>({
     resource: DEVICE_PAGE_RESOURCE,
     fieldConfig: devicePageFieldConfig,
     detail: createDeviceDetailConfig(),
     features: DEVICE_PAGE_FEATURES,
     extensions: {
+      toolbarActions: [
+        {
+          key: 'devices-ecs-discovery',
+          label: '从 ECS 发现',
+          icon: 'ep:connection',
+          permission: SUPERUSER_PERMISSION,
+          handler: openDiscovery,
+          tooltip: '从 ECS 实时状态发现并接管设备'
+        }
+      ],
       rowActions: []
     }
   })

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   buildFormValuesFromData,
   createEmptyFormValues
@@ -11,8 +11,28 @@ import {
   devicePageFieldConfig
 } from '@/views/admin/devices/config/fieldConfig'
 import { createDevicePageConfig } from '@/views/admin/devices/config/pageConfig'
+import { SUPERUSER_PERMISSION } from '@/composables/permission-state'
 
 describe('Device static master-data page', () => {
+  it('exposes ECS discovery only through the system-administrator toolbar action', async () => {
+    const openDiscovery = vi.fn()
+    const config = createDevicePageConfig(openDiscovery)
+    const action = config.extensions?.toolbarActions?.find(
+      candidate => candidate.key === 'devices-ecs-discovery'
+    )
+
+    expect(action).toMatchObject({
+      label: '从 ECS 发现',
+      permission: SUPERUSER_PERMISSION
+    })
+    await action?.handler({
+      applyQuickPreset: vi.fn(),
+      clearFilters: vi.fn(),
+      refresh: vi.fn()
+    })
+    expect(openDiscovery).toHaveBeenCalledOnce()
+  })
+
   it('keeps static topology fields and removes runtime/integration fields', () => {
     const keys = DEVICE_FIELDS.map(field => field.key)
     const config = createDevicePageConfig()
