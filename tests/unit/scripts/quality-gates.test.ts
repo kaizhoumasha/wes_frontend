@@ -315,6 +315,17 @@ describe.sequential('repository quality gates', () => {
     expect(jenkinsfile).toContain(
       "git rev-parse \"refs/remotes/origin/${CI_SOURCE_BRANCH}^{commit}\""
     )
+    expect(jenkinsfile).toContain(
+      'boolean isManualBuild = !isMergeRequest && !gitlabActionType && !beforeCommit && !afterCommit'
+    )
+    expect(jenkinsfile).toContain(
+      "env.CI_EVENT_TYPE = isManualBuild ? 'MANUAL' : (gitlabActionType ?: 'UNKNOWN')"
+    )
+    expect(jenkinsfile).toContain('if (isManualBuild)')
+    expect(jenkinsfile).toContain('trustedSourceCommit = fetchedSourceCommit')
+    expect(jenkinsfile.indexOf('git rev-parse "refs/remotes/origin/${CI_SOURCE_BRANCH}^{commit}"')).toBeLessThan(
+      jenkinsfile.indexOf('if (isManualBuild)')
+    )
     expect(jenkinsfile).toContain('Source event requires a non-zero 40-character trusted commit')
     expect(jenkinsfile).toContain('Fetched source ref must match the trusted event commit')
     expect(jenkinsfile).not.toContain('PreBuildMerge')

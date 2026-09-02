@@ -29,12 +29,13 @@ pipeline {
                     boolean hasMergeRequestId = ((env.gitlabMergeRequestId ?: '').trim()) as boolean
                     boolean isMergeRequest = gitlabActionType.contains('MERGE') || hasMergeRequestId
                     boolean isDevelopPush = gitlabActionType == 'PUSH' && sourceBranch == 'develop' && !isMergeRequest
+                    boolean isManualBuild = !isMergeRequest && !gitlabActionType && !beforeCommit && !afterCommit
                     String mergeRequestCommit = (env.gitlabMergeRequestLastCommit ?: '').trim()
                     String trustedSourceCommit = isMergeRequest ? mergeRequestCommit : afterCommit
 
                     env.CI_SOURCE_BRANCH = sourceBranch
                     env.CI_TARGET_BRANCH = targetBranch
-                    env.CI_EVENT_TYPE = gitlabActionType ?: 'MANUAL'
+                    env.CI_EVENT_TYPE = isManualBuild ? 'MANUAL' : (gitlabActionType ?: 'UNKNOWN')
                     env.CI_IS_MERGE_REQUEST = isMergeRequest ? 'true' : 'false'
                     env.CI_RELEASE_GATE_READY = 'false'
 
@@ -69,13 +70,16 @@ pipeline {
                         '''
                     }
 
-                    if (!(trustedSourceCommit ==~ /^[0-9a-fA-F]{40}$/) || trustedSourceCommit ==~ /^0{40}$/) {
-                        error('Source event requires a non-zero 40-character trusted commit')
-                    }
                     String fetchedSourceCommit = sh(
                         returnStdout: true,
                         script: 'git rev-parse "refs/remotes/origin/${CI_SOURCE_BRANCH}^{commit}"'
                     ).trim()
+                    if (isManualBuild) {
+                        trustedSourceCommit = fetchedSourceCommit
+                    }
+                    if (!(trustedSourceCommit ==~ /^[0-9a-fA-F]{40}$/) || trustedSourceCommit ==~ /^0{40}$/) {
+                        error('Source event requires a non-zero 40-character trusted commit')
+                    }
                     if (!trustedSourceCommit.equalsIgnoreCase(fetchedSourceCommit)) {
                         error('Fetched source ref must match the trusted event commit')
                     }
