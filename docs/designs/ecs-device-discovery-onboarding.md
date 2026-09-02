@@ -4,7 +4,7 @@
 - Reviewed with `/plan-eng-review` on 2026-09-01
 - Branch: `codex/feature-ecs-device-discovery`
 - Repo: `kaizhoumasha/wes_frontend`，配套后端 `wes_backend`
-- Status: IMPLEMENTED — QA/SHIP IN PROGRESS
+- Status: IMPLEMENTED — QA COMPLETE, PR PENDING
 - Scope ceiling: frontend-only reuse of the existing MANUAL_DEBUG preflight
 
 ## Problem Statement
@@ -356,7 +356,7 @@ Sequential implementation, no parallelization opportunity. T1–T4 share the sam
 
 ## Readiness
 
-Implementation may start only after this engineering review is complete and the user separately authorizes implementation. Review、implementation、commit、push、PR、merge and deploy remain separate authorization boundaries。
+Implementation and QA are complete. The branch is awaiting PR creation; merge and deploy remain separate authorization boundaries。
 
 ## GSTACK REVIEW REPORT
 
