@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.11.0] - 2026-09-01
+
+### Added
+
+- 系统管理员现在可以在设备管理页按 ECS Endpoint 主动发现设备，并按 Endpoint 冲突、信息不一致、本次未发现、待接管和已接管五种状态查看当前比对结果。
+- 发现抽屉支持优先展示有变化的设备、筛选和搜索，并在设备详情中显示实时状态、`supported_commands` 与 `supported_events`。
+
+### Changed
+
+- 待接管设备复用现有新增设备表单，仅预填设备编码、非空名称和 ECS canonical Endpoint；创建成功后自动刷新主列表与当前比对，不自动修改或删除已有设备。
+
+### Fixed
+
+- 创建表单从发现抽屉打开时使用新的对话框层级，避免被抽屉遮挡。
+
+### Verification
+
+- 658 项 Vitest 测试、类型检查、ESLint、Prettier、Stylelint、生产构建、契约与权限同步校验通过；浏览器 QA 覆盖桌面端与移动端发现、筛选、能力详情和接管预填流程。
+
 ## [0.12.10.0] - 2026-09-01
 
 ### Fixed
