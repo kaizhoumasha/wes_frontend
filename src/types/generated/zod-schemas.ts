@@ -1,4 +1,4 @@
-/** @openapi-sha256 cd539bae4577b69b57ee91809625ee56f115e1cc93b59ce587db7b77e81830f8 */
+/** @openapi-sha256 f618b51a3263d4e1850e63c49f7160548382d9c60d2efc9a5224cc1229de8c6c */
 /**
  * Zod Validation Schemas
  *
@@ -2387,7 +2387,7 @@ export const RoleCreateSchema = z.object({
   /** Description */
   description: z.union([z.string().max(255), z.null()]).optional(),
   /** Name */
-  name: z.string().max(100),
+  name: z.string().min(1).max(100),
 })
 
 
@@ -2403,7 +2403,7 @@ export const RoleResponseSchema = z.object({
   /** Id */
   id: z.number(),
   /** Name */
-  name: z.string().max(100),
+  name: z.string().min(1).max(100),
   /** Permissions */
   permissions: z.array(z.lazy(() => PermissionResponseSchema)).optional(),
   /** Version */
@@ -2423,7 +2423,7 @@ export const RoleResponseSimpleSchema = z.object({
   /** Id */
   id: z.number(),
   /** Name */
-  name: z.string().max(100),
+  name: z.string().min(1).max(100),
 })
 
 
@@ -2437,7 +2437,7 @@ export const RoleUpdateSchema = z.object({
   /** Description */
   description: z.union([z.string().max(255), z.null()]).optional(),
   /** Name */
-  name: z.union([z.string().max(100), z.null()]).optional(),
+  name: z.union([z.string().min(1).max(100), z.null()]).optional(),
   /** Version */
   version: z.number(),
 })
@@ -2502,7 +2502,7 @@ export const TransportEvidenceResponseSchema = z.object({
 
 export const TransportResultMemberResponseSchema = z.object({
   /** Arrival Face */
-  arrival_face: z.union([z.string().min(1), z.null()]),
+  arrival_face: z.union([z.string().min(1).refine((value) => value.length > 0 && !value.includes(String.fromCharCode(0))), z.null()]),
   /** Failure Code */
   failure_code: z.union([z.string(), z.null()]),
   /** Final Position */
@@ -3139,7 +3139,7 @@ export const _RackBinSlotSchema = z.object({
   /** Kind */
   kind: z.literal("RACK_BIN_SLOT"),
   /** Rack Face */
-  rack_face: z.string().min(1),
+  rack_face: z.string().min(1).refine((value) => value.length > 0 && !value.includes(String.fromCharCode(0))),
   /** Rack Id */
   rack_id: z.string().min(1).max(100).regex(new RegExp(".*\\S.*")),
   /** Slot Id */
@@ -3154,7 +3154,7 @@ export const _RackMoveDataSchema = z.object({
   source: z.lazy(() => _RackMovePositionSchema),
   target: z.lazy(() => _RackMovePositionSchema),
   /** Target Face */
-  target_face: z.string().min(1),
+  target_face: z.string().min(1).refine((value) => value.length > 0 && !value.includes(String.fromCharCode(0))),
 })
 
 
@@ -3194,7 +3194,7 @@ export const _RackRotateDataSchema = z.object({
   rack_id: z.string().min(1).max(100).regex(new RegExp(".*\\S.*")),
   rcs_template_id: z.union([z.lazy(() => RcsTemplateIdSchema), z.null()]).optional(),
   /** Target Face */
-  target_face: z.string().min(1),
+  target_face: z.string().min(1).refine((value) => value.length > 0 && !value.includes(String.fromCharCode(0))),
 })
 
 

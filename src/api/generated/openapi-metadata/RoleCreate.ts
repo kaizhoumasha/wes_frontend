@@ -29,6 +29,7 @@ export const RoleCreateMetadata = {
       "type": "string",
       "required": true,
       "nullable": false,
+      "minLength": 1,
       "maxLength": 100
     }
   }

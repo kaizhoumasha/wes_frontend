@@ -23,7 +23,7 @@ export const TransportResultMemberResponseMetadata = {
   "fields": {
     "arrival_face": {
       "title": "Arrival Face",
-      "description": "Opaque non-empty face value; preserve exactly",
+      "description": "Opaque non-empty face value without NUL; preserve exactly",
       "type": "string",
       "required": true,
       "nullable": true,

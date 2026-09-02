@@ -30,7 +30,7 @@ export const _RackBinSlotMetadata = {
     },
     "rack_face": {
       "title": "Rack Face",
-      "description": "Opaque non-empty face value; preserve exactly",
+      "description": "Opaque non-empty face value without NUL; preserve exactly",
       "type": "string",
       "required": true,
       "nullable": false,

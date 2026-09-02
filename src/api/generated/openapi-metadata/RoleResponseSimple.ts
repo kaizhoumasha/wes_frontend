@@ -35,6 +35,7 @@ export const RoleResponseSimpleMetadata = {
       "type": "string",
       "required": true,
       "nullable": false,
+      "minLength": 1,
       "maxLength": 100
     }
   }

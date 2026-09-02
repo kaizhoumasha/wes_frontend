@@ -29,6 +29,7 @@ export const RoleUpdateMetadata = {
       "type": "string",
       "required": false,
       "nullable": true,
+      "minLength": 1,
       "maxLength": 100
     },
     "version": {

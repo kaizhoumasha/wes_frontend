@@ -50,7 +50,7 @@ export const _RackMoveDataMetadata = {
     },
     "target_face": {
       "title": "Target Face",
-      "description": "Opaque non-empty face value; preserve exactly",
+      "description": "Opaque non-empty face value without NUL; preserve exactly",
       "type": "string",
       "required": true,
       "nullable": false,

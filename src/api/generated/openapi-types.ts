@@ -1,4 +1,4 @@
-/** @openapi-sha256 cd539bae4577b69b57ee91809625ee56f115e1cc93b59ce587db7b77e81830f8 */
+/** @openapi-sha256 f618b51a3263d4e1850e63c49f7160548382d9c60d2efc9a5224cc1229de8c6c */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -2140,7 +2140,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Receive Transport Event */
+        /** Receive Wms Event */
         post: operations["wms_events_post"];
         delete?: never;
         options?: never;
@@ -2529,7 +2529,7 @@ export interface components {
             kind: "RACK_BIN_SLOT";
             /**
              * Rack Face
-             * @description Opaque non-empty face value; preserve exactly
+             * @description Opaque non-empty face value without NUL; preserve exactly
              */
             rack_face: string;
             /** Rack Id */
@@ -2546,7 +2546,7 @@ export interface components {
             target: components["schemas"]["_RackMovePosition"];
             /**
              * Target Face
-             * @description Opaque non-empty face value; preserve exactly
+             * @description Opaque non-empty face value without NUL; preserve exactly
              */
             target_face: string;
         };
@@ -2592,7 +2592,7 @@ export interface components {
             rcs_template_id?: components["schemas"]["RcsTemplateId"] | null;
             /**
              * Target Face
-             * @description Opaque non-empty face value; preserve exactly
+             * @description Opaque non-empty face value without NUL; preserve exactly
              */
             target_face: string;
         };
@@ -10194,7 +10194,7 @@ export interface operations {
                         final_position: {
                             /** @enum {string} */
                             kind: "RACK_BIN_SLOT";
-                            /** @description Opaque non-empty face value; preserve exactly */
+                            /** @description Opaque non-empty face value without NUL; preserve exactly */
                             rack_face: string;
                             rack_id: string;
                             slot_id: string;
@@ -10218,7 +10218,7 @@ export interface operations {
                     timestamp: number;
                 } | {
                     data: {
-                        /** @description Opaque non-empty face value; preserve exactly */
+                        /** @description Opaque non-empty face value without NUL; preserve exactly */
                         arrival_face: string;
                         final_position: {
                             /** @enum {string} */
@@ -10234,7 +10234,7 @@ export interface operations {
                         status: "SUCCEEDED";
                         transport_task_id: string;
                     } | {
-                        /** @description Opaque non-empty face value; preserve exactly */
+                        /** @description Opaque non-empty face value without NUL; preserve exactly */
                         arrival_face: string;
                         /** @enum {string} */
                         failure_code: "MANUAL_ABORTED" | "RCS_EXECUTION_FAILED" | "RCS_TASK_REJECTED";
@@ -10274,7 +10274,7 @@ export interface operations {
                             final_position: {
                                 /** @enum {string} */
                                 kind: "RACK_BIN_SLOT";
-                                /** @description Opaque non-empty face value; preserve exactly */
+                                /** @description Opaque non-empty face value without NUL; preserve exactly */
                                 rack_face: string;
                                 rack_id: string;
                                 slot_id: string;
@@ -10292,7 +10292,7 @@ export interface operations {
                             final_position: {
                                 /** @enum {string} */
                                 kind: "RACK_BIN_SLOT";
-                                /** @description Opaque non-empty face value; preserve exactly */
+                                /** @description Opaque non-empty face value without NUL; preserve exactly */
                                 rack_face: string;
                                 rack_id: string;
                                 slot_id: string;
@@ -10323,7 +10323,7 @@ export interface operations {
                             final_position: {
                                 /** @enum {string} */
                                 kind: "RACK_BIN_SLOT";
-                                /** @description Opaque non-empty face value; preserve exactly */
+                                /** @description Opaque non-empty face value without NUL; preserve exactly */
                                 rack_face: string;
                                 rack_id: string;
                                 slot_id: string;
@@ -10341,7 +10341,7 @@ export interface operations {
                             final_position: {
                                 /** @enum {string} */
                                 kind: "RACK_BIN_SLOT";
-                                /** @description Opaque non-empty face value; preserve exactly */
+                                /** @description Opaque non-empty face value without NUL; preserve exactly */
                                 rack_face: string;
                                 rack_id: string;
                                 slot_id: string;

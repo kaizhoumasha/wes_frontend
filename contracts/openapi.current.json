@@ -9632,6 +9632,7 @@
           },
           "name": {
             "maxLength": 100,
+            "minLength": 1,
             "title": "Name",
             "type": "string"
           }
@@ -9663,6 +9664,7 @@
           },
           "name": {
             "maxLength": 100,
+            "minLength": 1,
             "title": "Name",
             "type": "string"
           },
@@ -9707,6 +9709,7 @@
           },
           "name": {
             "maxLength": 100,
+            "minLength": 1,
             "title": "Name",
             "type": "string"
           }
@@ -9738,6 +9741,7 @@
             "anyOf": [
               {
                 "maxLength": 100,
+                "minLength": 1,
                 "type": "string"
               },
               {
@@ -9925,8 +9929,9 @@
           "arrival_face": {
             "anyOf": [
               {
-                "description": "Opaque non-empty face value; preserve exactly",
+                "description": "Opaque non-empty face value without NUL; preserve exactly",
                 "minLength": 1,
+                "pattern": "^[^\\x00]+$",
                 "type": "string"
               },
               {
@@ -11677,8 +11682,9 @@
             "type": "string"
           },
           "rack_face": {
-            "description": "Opaque non-empty face value; preserve exactly",
+            "description": "Opaque non-empty face value without NUL; preserve exactly",
             "minLength": 1,
+            "pattern": "^[^\\x00]+$",
             "title": "Rack Face",
             "type": "string"
           },
@@ -11733,8 +11739,9 @@
             "$ref": "#/components/schemas/_RackMovePosition"
           },
           "target_face": {
-            "description": "Opaque non-empty face value; preserve exactly",
+            "description": "Opaque non-empty face value without NUL; preserve exactly",
             "minLength": 1,
+            "pattern": "^[^\\x00]+$",
             "title": "Target Face",
             "type": "string"
           }
@@ -11880,8 +11887,9 @@
             ]
           },
           "target_face": {
-            "description": "Opaque non-empty face value; preserve exactly",
+            "description": "Opaque non-empty face value without NUL; preserve exactly",
             "minLength": 1,
+            "pattern": "^[^\\x00]+$",
             "title": "Target Face",
             "type": "string"
           }
@@ -18683,8 +18691,9 @@
                                         "type": "string"
                                       },
                                       "rack_face": {
-                                        "description": "Opaque non-empty face value; preserve exactly",
+                                        "description": "Opaque non-empty face value without NUL; preserve exactly",
                                         "minLength": 1,
+                                        "pattern": "^[^\\u0000]+$",
                                         "type": "string"
                                       },
                                       "rack_id": {
@@ -18791,8 +18800,9 @@
                             "additionalProperties": false,
                             "properties": {
                               "arrival_face": {
-                                "description": "Opaque non-empty face value; preserve exactly",
+                                "description": "Opaque non-empty face value without NUL; preserve exactly",
                                 "minLength": 1,
+                                "pattern": "^[^\\u0000]+$",
                                 "type": "string"
                               },
                               "final_position": {
@@ -18864,8 +18874,9 @@
                             "additionalProperties": false,
                             "properties": {
                               "arrival_face": {
-                                "description": "Opaque non-empty face value; preserve exactly",
+                                "description": "Opaque non-empty face value without NUL; preserve exactly",
                                 "minLength": 1,
+                                "pattern": "^[^\\u0000]+$",
                                 "type": "string"
                               },
                               "failure_code": {
@@ -19039,8 +19050,9 @@
                                                   "type": "string"
                                                 },
                                                 "rack_face": {
-                                                  "description": "Opaque non-empty face value; preserve exactly",
+                                                  "description": "Opaque non-empty face value without NUL; preserve exactly",
                                                   "minLength": 1,
+                                                  "pattern": "^[^\\u0000]+$",
                                                   "type": "string"
                                                 },
                                                 "rack_id": {
@@ -19131,8 +19143,9 @@
                                                   "type": "string"
                                                 },
                                                 "rack_face": {
-                                                  "description": "Opaque non-empty face value; preserve exactly",
+                                                  "description": "Opaque non-empty face value without NUL; preserve exactly",
                                                   "minLength": 1,
+                                                  "pattern": "^[^\\u0000]+$",
                                                   "type": "string"
                                                 },
                                                 "rack_id": {
@@ -19291,8 +19304,9 @@
                                                   "type": "string"
                                                 },
                                                 "rack_face": {
-                                                  "description": "Opaque non-empty face value; preserve exactly",
+                                                  "description": "Opaque non-empty face value without NUL; preserve exactly",
                                                   "minLength": 1,
+                                                  "pattern": "^[^\\u0000]+$",
                                                   "type": "string"
                                                 },
                                                 "rack_id": {
@@ -19383,8 +19397,9 @@
                                                   "type": "string"
                                                 },
                                                 "rack_face": {
-                                                  "description": "Opaque non-empty face value; preserve exactly",
+                                                  "description": "Opaque non-empty face value without NUL; preserve exactly",
                                                   "minLength": 1,
+                                                  "pattern": "^[^\\u0000]+$",
                                                   "type": "string"
                                                 },
                                                 "rack_id": {
@@ -20336,9 +20351,9 @@
             "description": "对应 WMS event runtime 未就绪或无法可靠持久化"
           }
         },
-        "summary": "Receive Transport Event",
+        "summary": "Receive Wms Event",
         "tags": [
-          "WMS Transport"
+          "WMS Events"
         ]
       }
     },

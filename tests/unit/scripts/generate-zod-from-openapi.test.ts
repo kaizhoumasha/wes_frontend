@@ -9,6 +9,12 @@ describe('generate-zod-from-openapi helpers', () => {
     expect(schemaToZod({ type: 'integer', const: 0 }, {})).toBe('z.literal(0)')
   })
 
+  it('emits the non-NUL string pattern without a control-character regular expression', () => {
+    expect(schemaToZod({ type: 'string', pattern: '^[^\\x00]+$' }, {})).toBe(
+      'z.string().refine((value) => value.length > 0 && !value.includes(String.fromCharCode(0)))'
+    )
+  })
+
   it('rejects values that violate a generated contract constant', () => {
     const baseValue = {
       step: 'BINS_TO_INFEED' as const,
