@@ -50,12 +50,21 @@ pipeline {
                             set +x
                             set -eu
                             git init
-                            git remote add origin https://git.zontecmes.com/wes/wes_frontend.git
-                            timeout --kill-after=10s 180s git -c credential.helper= \
-                                -c 'credential.helper=!f() { printf "%s\\n" \
-                                    "username=$GITLAB_USERNAME" "password=$GITLAB_PASSWORD"; }; f' \
-                                fetch --no-tags --force origin \
-                                "+refs/heads/${CI_SOURCE_BRANCH}:refs/remotes/origin/${CI_SOURCE_BRANCH}"
+                            git remote add origin http://192.168.0.220:9080/wes/wes_frontend.git
+                            for attempt in 1 2 3; do
+                                if timeout --kill-after=10s 180s git -c credential.helper= \
+                                    -c 'credential.helper=!f() { printf "%s\\n" \
+                                        "username=$GITLAB_USERNAME" "password=$GITLAB_PASSWORD"; }; f' \
+                                    fetch --no-tags --force origin \
+                                    "+refs/heads/${CI_SOURCE_BRANCH}:refs/remotes/origin/${CI_SOURCE_BRANCH}"; then
+                                    break
+                                fi
+                                if [ "$attempt" -lt 3 ]; then
+                                    sleep 10
+                                else
+                                    exit 1
+                                fi
+                            done
                             git checkout --detach "refs/remotes/origin/${CI_SOURCE_BRANCH}"
                         '''
                     }
