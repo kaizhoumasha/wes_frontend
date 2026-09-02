@@ -35,6 +35,7 @@ vi.mock('@/composables/usePermission', () => ({
 }))
 
 vi.mock('element-plus', () => ({
+  useZIndex: () => ({ nextZIndex: () => 2001 }),
   ElMessage: {
     success: mocks.success,
     warning: mocks.warning,

@@ -18,6 +18,7 @@ StandardDialog - 标准对话框组件
 <script setup lang="ts">
 import { computed, ref, watch, nextTick, useId } from 'vue'
 import { useWindowSize } from '@vueuse/core'
+import { useZIndex } from 'element-plus'
 import AppIcon from '@/components/ui/AppIcon.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import { cn } from '@/utils/cn'
@@ -160,6 +161,8 @@ const bodyMinHeight = computed<string | undefined>(() => {
 const bodyRef = ref<HTMLDivElement | null>(null)
 const overlayRef = ref<HTMLDivElement | null>(null)
 const contentRendered = ref(props.modelValue || !props.destroyOnClose)
+const { nextZIndex } = useZIndex()
+const overlayZIndex = ref(props.modelValue ? nextZIndex() : undefined)
 
 // 自动记忆高度
 const rememberedHeight = ref(0)
@@ -175,6 +178,7 @@ watch(
   () => props.modelValue,
   async isOpen => {
     if (isOpen) {
+      overlayZIndex.value = nextZIndex()
       if (props.destroyOnClose) {
         contentRendered.value = true
       }
@@ -300,6 +304,7 @@ defineExpose<StandardDialogExpose>({
         v-if="modelValue"
         ref="overlayRef"
         class="standard-dialog-overlay"
+        :style="{ zIndex: overlayZIndex }"
         tabindex="-1"
         @click.self="handleOverlayClick"
         @keydown.capture="handleKeydown"
