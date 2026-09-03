@@ -1,4 +1,4 @@
-/** @openapi-sha256 2076e4cb1fa7d3f3663f0ccb6889fa112d3f8e68a2a3263c9ecdeb3f273d7191 */
+/** @openapi-sha256 886755e889b14c645dc07dada3ad8fa4a10ffca9bb4a31198c86cdb9819ca791 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -10161,7 +10161,7 @@ export interface operations {
                     "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
                 };
             };
-            /** @description 已有活动轮次或选择事实冲突 */
+            /** @description 已有活动轮次或并发状态冲突 */
             409: {
                 headers: {
                     [name: string]: unknown;

@@ -53,17 +53,10 @@ async function open(launcherElement?: HTMLElement): Promise<void> {
   launcher = launcherElement ?? null
   isOpen.value = true
   uiError.value = ''
-  const configLoad = props.canStart
-    ? config.load().then(() => null, errorMessage)
-    : Promise.resolve(null)
   const runError = await run.loadRecentRuns().then(() => null, errorMessage)
   if (generation !== lifecycleGeneration || !isOpen.value) return
   if (runError) uiError.value = runError
   stream.connect(props.canStream)
-  const configError = await configLoad
-  if (generation === lifecycleGeneration && isOpen.value && configError) {
-    uiError.value = configError
-  }
 }
 
 function close(): void {
@@ -84,9 +77,7 @@ async function start(): Promise<void> {
   if (!props.canStart || config.validationError.value) return
   uiError.value = ''
   try {
-    await run.startRun(
-      buildTransportDebugRunInput(config.selectedRackId.value, config.groups.value)
-    )
+    await run.startRun(buildTransportDebugRunInput(config.rackId.value, config.groups.value))
   } catch (error) {
     uiError.value = errorMessage(error)
   }
@@ -108,10 +99,12 @@ function addGroup(): void {
   config.addGroup()
 }
 
-function binDisabled(groupIndex: number, binCode: string): boolean {
-  return config.groups.value.some(
-    (group, index) => index !== groupIndex && group.bins.some(bin => bin.bin_code === binCode)
-  )
+function addBin(groupIndex: number): void {
+  config.addBin(groupIndex)
+}
+
+function removeBin(groupIndex: number, binIndex: number): void {
+  config.removeBin(groupIndex, binIndex)
 }
 
 function errorMessage(error: unknown): string {
@@ -137,19 +130,14 @@ defineExpose({ open, close })
     @update:model-value="value => !value && close()"
   >
     <el-alert
-      title="启动会创建真实 WMS/RCS Transport 任务。面值按输入原样下发；系统只根据持久回调与 SCAN12 Evidence 自动推进。"
+      title="启动会创建真实 WMS/RCS Transport 任务。货架、料箱和原槽位按现场实际录入；面值按输入原样下发。系统只根据持久回调与 SCAN12 Evidence 自动推进。"
       type="warning"
       :closable="false"
       show-icon
     />
     <el-alert
-      v-if="uiError || config.lastError.value || run.lastError.value || stream.lastError.value"
-      :title="
-        uiError ||
-        config.lastError.value?.message ||
-        run.lastError.value?.message ||
-        stream.lastError.value?.message
-      "
+      v-if="uiError || run.lastError.value || stream.lastError.value"
+      :title="uiError || run.lastError.value?.message || stream.lastError.value?.message"
       type="error"
       :closable="false"
       show-icon
@@ -271,26 +259,12 @@ defineExpose({ open, close })
         </AppButton>
       </section>
       <div class="config-toolbar">
-        <el-select
-          :model-value="config.selectedRackId.value"
-          filterable
-          placeholder="选择当前已挂载料箱的货架"
-          aria-label="自动联调货架"
-          @change="config.selectRack"
-        >
-          <el-option
-            v-for="rackId in config.rackIds.value"
-            :key="rackId"
-            :label="rackId"
-            :value="rackId"
-          />
-        </el-select>
-        <AppButton
-          :disabled="!config.selectedRackId.value"
-          @click="addGroup"
-        >
-          新增货架面
-        </AppButton>
+        <el-input
+          v-model="config.rackId.value"
+          placeholder="按现场实际输入货架编码，例如 510056"
+          aria-label="自动联调货架编码"
+        />
+        <AppButton @click="addGroup">新增货架面</AppButton>
       </div>
 
       <article
@@ -307,24 +281,34 @@ defineExpose({ open, close })
           :placeholder="FACE_PLACEHOLDER"
           aria-label="货架面原始值"
         />
-        <el-select
-          v-model="group.bins"
-          multiple
-          value-key="bin_code"
-          placeholder="选择本面 1～4 个料箱"
-          aria-label="货架面料箱"
+        <div
+          v-for="(bin, binIndex) in group.bins"
+          :key="binIndex"
+          class="bin-row"
         >
-          <el-option
-            v-for="bin in config.rackBins.value"
-            :key="bin.bin_code"
-            :label="`${bin.bin_code} · ${bin.rack_slot_code}`"
-            :value="bin"
-            :disabled="
-              binDisabled(groupIndex, bin.bin_code) ||
-              (group.bins.length >= 4 && !group.bins.some(item => item.bin_code === bin.bin_code))
-            "
+          <el-input
+            v-model="bin.bin_id"
+            placeholder="料箱编码，例如 A000001922"
+            aria-label="料箱编码"
           />
-        </el-select>
+          <el-input
+            v-model="bin.slot_id"
+            placeholder="原货架槽位，例如 510056A3F2C101"
+            aria-label="原货架槽位"
+          />
+          <AppButton
+            :disabled="group.bins.length <= 1"
+            @click="removeBin(groupIndex, binIndex)"
+          >
+            删除料箱
+          </AppButton>
+        </div>
+        <AppButton
+          :disabled="group.bins.length >= 4"
+          @click="addBin(groupIndex)"
+        >
+          新增料箱
+        </AppButton>
       </article>
 
       <p
@@ -384,9 +368,15 @@ defineExpose({ open, close })
   justify-content: space-between;
 }
 
-.config-toolbar :deep(.el-select),
-.face-group :deep(.el-select) {
+.config-toolbar :deep(.el-input) {
   width: 100%;
+}
+
+.bin-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
 }
 
 .face-group,
