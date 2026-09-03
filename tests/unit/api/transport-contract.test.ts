@@ -1,6 +1,7 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import type { ContractRequestBody, ContractResponseData } from '@/api/contract/types'
-import { transportApiMethods, transportDebugRunApi } from '@/api/modules/transport'
+import { transportApiMethods } from '@/api/modules/transport'
+import { useTransportDebugRun } from '@/views/ops/transport-diagnostics/useTransportDebugRun'
 
 describe('Transport automatic-run canonical contract', () => {
   it('preserves opaque faces and exposes persistent terminal/attention states', () => {
@@ -32,9 +33,9 @@ describe('Transport automatic-run canonical contract', () => {
   })
 
   it('always reads persisted run snapshots without GET cache or request sharing', async () => {
-    const send = vi.fn().mockResolvedValue({})
+    const send = vi.fn().mockResolvedValue({ run_id: 'run-1', version: 1 })
     const get = vi.spyOn(transportApiMethods, 'getByRunId').mockReturnValue({ send } as never)
-    await transportDebugRunApi.get('run-1')
+    await useTransportDebugRun().refreshRun('run-1')
     expect(get).toHaveBeenCalledWith(
       { run_id: 'run-1' },
       { cacheFor: 0, shareRequest: false }

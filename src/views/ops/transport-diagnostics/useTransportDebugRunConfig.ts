@@ -1,5 +1,5 @@
 import { computed, ref } from 'vue'
-import { rackBinMountsApi, type RackBinMountsItem } from '@/api/modules/rackBinMounts'
+import { rackBinMountsApiMethods, type RackBinMountsItem } from '@/api/modules/rackBinMounts'
 import type { DebugRunCreateInput } from '@/api/modules/transport'
 
 export type MountedBin = Pick<
@@ -12,14 +12,17 @@ export interface TransportDebugFaceGroupDraft {
   bins: MountedBin[]
 }
 
-type MountedBinQuery = NonNullable<Parameters<typeof rackBinMountsApi.query>[0]>
+type MountedBinQuery = Parameters<typeof rackBinMountsApiMethods.query>[0]
 
 interface MountedBinQueryPort {
   query(options: MountedBinQuery): Promise<{ items: MountedBin[]; total: number }>
 }
 
 const DEFAULT_QUERY: MountedBinQueryPort = {
-  query: options => rackBinMountsApi.query(options)
+  async query(options) {
+    const page = await rackBinMountsApiMethods.query(options).send()
+    return { items: page.items ?? [], total: page.total }
+  }
 }
 
 export async function loadMountedBins(

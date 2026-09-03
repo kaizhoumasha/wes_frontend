@@ -20,9 +20,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 移除固定 `510056`、固定料箱和人工确认推进的旧联调步进，改由 WMS 回调与 `SCAN12` 设备 Evidence 自动完成整轮。
 - SSE 只作为失效通知；页面始终回读持久轮次，并在无 SSE 或详情权限时使用有权限的 HTTP 查询兜底，不从 ACK 或连接状态推断物理完成。
 
+### Fixed
+
+- 自动联调直接调用可静态证明的生成 API 方法，确保 release consumer 能导出完整的联调接口需求并构建不可变前端候选。
+
 ### Verification
 
-- 682 项 Vitest 测试、类型检查、ESLint、Prettier、Stylelint、生产构建、契约与权限同步校验通过。
+- 683 项 Vitest 测试、release consumer 导出、类型检查、ESLint、Prettier、Stylelint、生产构建、契约与权限同步校验通过。
 - 本机后端编排完成 Alembic `8f3c61e57a90` 升级，并验证 API、Worker、WMS Worker、Beat、前端与 Mock 服务健康；未触发真实 Transport 自动联调轮次。
 
 ## [0.12.11.0] - 2026-09-01
