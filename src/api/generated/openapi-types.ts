@@ -1,4 +1,4 @@
-/** @openapi-sha256 f618b51a3263d4e1850e63c49f7160548382d9c60d2efc9a5224cc1229de8c6c */
+/** @openapi-sha256 2076e4cb1fa7d3f3663f0ccb6889fa112d3f8e68a2a3263c9ecdeb3f273d7191 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -2029,6 +2029,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/transport/debug-runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [ops:transport-debug-run:list] 查询 Transport 自动联调轮次 */
+        get: operations["transport_debug_runs_get"];
+        put?: never;
+        /** [ops:transport-debug-run:start] 创建 Transport 自动联调轮次 */
+        post: operations["transport_debug_runs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transport/debug-runs/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [ops:transport-debug-run:read] 查询 Transport 自动联调轮次详情 */
+        get: operations["transport_debug_runs_by_run_id_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transport/debug-runs/{run_id}/abort": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [ops:transport-debug-run:abort] 安全终止 Transport 自动联调轮次 */
+        post: operations["transport_debug_runs_by_run_id_abort_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transport/debug-runs/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [ops:transport-debug-run:stream] 实时订阅 Transport 自动联调轮次状态 */
+        get: operations["transport_debug_runs_stream_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/transport/debug-tasks": {
         parameters: {
             query?: never;
@@ -2586,7 +2655,7 @@ export interface components {
         };
         /** _RackRotateData */
         _RackRotateData: {
-            position: components["schemas"]["_RackPosition"];
+            position: components["schemas"]["_RackRotatePosition"];
             /** Rack Id */
             rack_id: string;
             rcs_template_id?: components["schemas"]["RcsTemplateId"] | null;
@@ -2609,6 +2678,7 @@ export interface components {
             /** Station Id */
             station_id?: string | null;
         };
+        _RackRotatePosition: components["schemas"]["_RackReference"] | components["schemas"]["_RackPosition"];
         /** _ZonePosition */
         _ZonePosition: {
             /**
@@ -2618,6 +2688,16 @@ export interface components {
             kind: "ZONE";
             /** Location Code */
             location_code: string;
+        };
+        /** AbortTransportDebugRunRequest */
+        AbortTransportDebugRunRequest: {
+            /**
+             * Assertion
+             * @constant
+             */
+            assertion: "PHYSICAL_STATE_VERIFIED";
+            /** Reason */
+            reason: string;
         };
         /**
          * ActiveSessionsResponse
@@ -3751,6 +3831,13 @@ export interface components {
              * @description 恢复说明
              */
             reason?: string | null;
+        };
+        /** CreateTransportDebugRunRequest */
+        CreateTransportDebugRunRequest: {
+            /** Face Groups */
+            face_groups: components["schemas"]["TransportDebugRunFaceGroupRequest"][];
+            /** Rack Id */
+            rack_id: string;
         };
         /** DebugTransportTaskCreated */
         DebugTransportTaskCreated: {
@@ -5305,6 +5392,10 @@ export interface components {
         ResponseSchemaModel_RevokeSessionResponse_: ApiResponse<components["schemas"]["RevokeSessionResponse"]>;
         /** ResponseSchemaModel[RoleResponse] */
         ResponseSchemaModel_RoleResponse_: ApiResponse<components["schemas"]["RoleResponse"]>;
+        /** ResponseSchemaModel[TransportDebugRunPageResponse] */
+        ResponseSchemaModel_TransportDebugRunPageResponse_: ApiResponse<components["schemas"]["TransportDebugRunPageResponse"]>;
+        /** ResponseSchemaModel[TransportDebugRunResponse] */
+        ResponseSchemaModel_TransportDebugRunResponse_: ApiResponse<components["schemas"]["TransportDebugRunResponse"]>;
         /** ResponseSchemaModel[TransportTaskPageResponse] */
         ResponseSchemaModel_TransportTaskPageResponse_: ApiResponse<components["schemas"]["TransportTaskPageResponse"]>;
         /** ResponseSchemaModel[TransportTaskResponse] */
@@ -5450,6 +5541,118 @@ export interface components {
              */
             order: "asc" | "desc";
         };
+        /** TransportDebugRunBinRequest */
+        TransportDebugRunBinRequest: {
+            /** Bin Id */
+            bin_id: string;
+            /** Slot Id */
+            slot_id: string;
+        };
+        /** TransportDebugRunBinResponse */
+        TransportDebugRunBinResponse: {
+            /** Bin Id */
+            bin_id: string;
+            /** Slot Id */
+            slot_id: string;
+        };
+        /** TransportDebugRunFaceGroupRequest */
+        TransportDebugRunFaceGroupRequest: {
+            /** Bins */
+            bins: components["schemas"]["TransportDebugRunBinRequest"][];
+            /**
+             * Face
+             * @description Opaque non-empty face value without NUL; preserve exactly
+             */
+            face: string;
+        };
+        /** TransportDebugRunFaceGroupResponse */
+        TransportDebugRunFaceGroupResponse: {
+            /** Bins */
+            bins: components["schemas"]["TransportDebugRunBinResponse"][];
+            /** Face */
+            face: string;
+        };
+        /** TransportDebugRunPageResponse */
+        TransportDebugRunPageResponse: {
+            /** Items */
+            items: components["schemas"]["TransportDebugRunResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /**
+         * TransportDebugRunPhase
+         * @enum {string}
+         */
+        TransportDebugRunPhase: "RACK_TO_STATION" | "BINS_TO_INFEED" | "WAIT_SCAN12" | "BINS_TO_RACK" | "ROTATE_TO_NEXT_FACE" | "RACK_TO_STORAGE";
+        /** TransportDebugRunResponse */
+        TransportDebugRunResponse: {
+            /** Aborted By User Id */
+            aborted_by_user_id: number | null;
+            /** Aborted Reason */
+            aborted_reason: string | null;
+            /** Attention Code */
+            attention_code: string | null;
+            /** Attention Detail */
+            attention_detail: string | null;
+            /** Can Abort */
+            can_abort: boolean;
+            /** Created At */
+            created_at: string;
+            /** Created By User Id */
+            created_by_user_id: number;
+            /** Current Group Index */
+            current_group_index: number;
+            current_phase: components["schemas"]["TransportDebugRunPhase"];
+            current_step: components["schemas"]["TransportDebugRunStepResponse"] | null;
+            /** Face Groups */
+            face_groups: components["schemas"]["TransportDebugRunFaceGroupResponse"][];
+            /** Observed Bin Ids */
+            observed_bin_ids: string[];
+            /** Rack Id */
+            rack_id: string;
+            /** Run Id */
+            run_id: string;
+            status: components["schemas"]["TransportDebugRunStatus"];
+            /** Updated At */
+            updated_at: string;
+            /** Version */
+            version: number;
+        };
+        /**
+         * TransportDebugRunStatus
+         * @enum {string}
+         */
+        TransportDebugRunStatus: "RUNNING" | "NEEDS_ATTENTION" | "COMPLETED" | "FAILED" | "ABORTED";
+        /** TransportDebugRunStepResponse */
+        TransportDebugRunStepResponse: {
+            /** Client Request Id */
+            client_request_id: string | null;
+            /** Created At */
+            created_at: string;
+            /** Evidence High Watermark */
+            evidence_high_watermark: number | null;
+            /** Evidence Not Before Ms */
+            evidence_not_before_ms: number | null;
+            /** Group Index */
+            group_index: number | null;
+            /** Observed Bin Ids */
+            observed_bin_ids: string[];
+            /** Ordinal */
+            ordinal: number;
+            phase: components["schemas"]["TransportDebugRunPhase"];
+            /** Reason Code */
+            reason_code: string | null;
+            status: components["schemas"]["TransportDebugRunStepStatus"];
+            /** Transport Task Id */
+            transport_task_id: string | null;
+            /** Updated At */
+            updated_at: string;
+        };
+        /**
+         * TransportDebugRunStepStatus
+         * @enum {string}
+         */
+        TransportDebugRunStepStatus: "PENDING" | "WAITING" | "SUCCEEDED" | "FAILED" | "NEEDS_ATTENTION";
         /**
          * TransportDebugStep
          * @enum {string}
@@ -9873,6 +10076,256 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    transport_debug_runs_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_TransportDebugRunPageResponse_"];
+                };
+            };
+            /** @description 分页游标无效 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Transport runtime 不可用 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+        };
+    };
+    transport_debug_runs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTransportDebugRunRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_TransportDebugRunResponse_"];
+                };
+            };
+            /** @description 自动联调请求不满足合同 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description 已有活动轮次或选择事实冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Transport runtime 不可用 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+        };
+    };
+    transport_debug_runs_by_run_id_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_TransportDebugRunResponse_"];
+                };
+            };
+            /** @description 自动联调轮次不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Transport runtime 不可用 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+        };
+    };
+    transport_debug_runs_by_run_id_abort_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AbortTransportDebugRunRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_TransportDebugRunResponse_"];
+                };
+            };
+            /** @description 终止确认不满足合同 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description 自动联调轮次不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description 关联 Transport 事实不允许终止 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Transport runtime 不可用 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+        };
+    };
+    transport_debug_runs_stream_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": string;
                 };
             };
         };

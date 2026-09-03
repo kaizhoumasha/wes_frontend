@@ -470,6 +470,28 @@
         "title": "APIApplicationUpdate",
         "type": "object"
       },
+      "AbortTransportDebugRunRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "assertion": {
+            "const": "PHYSICAL_STATE_VERIFIED",
+            "title": "Assertion",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "assertion",
+          "reason"
+        ],
+        "title": "AbortTransportDebugRunRequest",
+        "type": "object"
+      },
       "ActiveSessionsResponse": {
         "description": "活跃会话列表响应 Schema\n\n包含用户所有活跃会话",
         "properties": {
@@ -2260,6 +2282,31 @@
           }
         },
         "title": "ClearWorkLineEstopRequest",
+        "type": "object"
+      },
+      "CreateTransportDebugRunRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "face_groups": {
+            "items": {
+              "$ref": "#/components/schemas/TransportDebugRunFaceGroupRequest"
+            },
+            "minItems": 1,
+            "title": "Face Groups",
+            "type": "array"
+          },
+          "rack_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Rack Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rack_id",
+          "face_groups"
+        ],
+        "title": "CreateTransportDebugRunRequest",
         "type": "object"
       },
       "DebugTransportTaskCreated": {
@@ -8853,6 +8900,96 @@
         "title": "ResponseSchemaModel[RoleResponse]",
         "type": "object"
       },
+      "ResponseSchemaModel_TransportDebugRunPageResponse_": {
+        "properties": {
+          "code": {
+            "default": "1000",
+            "description": "响应码",
+            "examples": [
+              "1000",
+              "2000"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TransportDebugRunPageResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "message": {
+            "default": "操作成功",
+            "description": "响应消息",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ],
+            "title": "Message",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ],
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "title": "ResponseSchemaModel[TransportDebugRunPageResponse]",
+        "type": "object"
+      },
+      "ResponseSchemaModel_TransportDebugRunResponse_": {
+        "properties": {
+          "code": {
+            "default": "1000",
+            "description": "响应码",
+            "examples": [
+              "1000",
+              "2000"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TransportDebugRunResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "message": {
+            "default": "操作成功",
+            "description": "响应消息",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ],
+            "title": "Message",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ],
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "title": "ResponseSchemaModel[TransportDebugRunResponse]",
+        "type": "object"
+      },
       "ResponseSchemaModel_TransportTaskPageResponse_": {
         "properties": {
           "code": {
@@ -9842,6 +9979,404 @@
         ],
         "title": "SortField",
         "type": "object"
+      },
+      "TransportDebugRunBinRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "bin_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Bin Id",
+            "type": "string"
+          },
+          "slot_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Slot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "bin_id",
+          "slot_id"
+        ],
+        "title": "TransportDebugRunBinRequest",
+        "type": "object"
+      },
+      "TransportDebugRunBinResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "bin_id": {
+            "title": "Bin Id",
+            "type": "string"
+          },
+          "slot_id": {
+            "title": "Slot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "bin_id",
+          "slot_id"
+        ],
+        "title": "TransportDebugRunBinResponse",
+        "type": "object"
+      },
+      "TransportDebugRunFaceGroupRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "bins": {
+            "items": {
+              "$ref": "#/components/schemas/TransportDebugRunBinRequest"
+            },
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Bins",
+            "type": "array"
+          },
+          "face": {
+            "description": "Opaque non-empty face value without NUL; preserve exactly",
+            "minLength": 1,
+            "pattern": "^[^\\x00]+$",
+            "title": "Face",
+            "type": "string"
+          }
+        },
+        "required": [
+          "face",
+          "bins"
+        ],
+        "title": "TransportDebugRunFaceGroupRequest",
+        "type": "object"
+      },
+      "TransportDebugRunFaceGroupResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "bins": {
+            "items": {
+              "$ref": "#/components/schemas/TransportDebugRunBinResponse"
+            },
+            "title": "Bins",
+            "type": "array"
+          },
+          "face": {
+            "title": "Face",
+            "type": "string"
+          }
+        },
+        "required": [
+          "face",
+          "bins"
+        ],
+        "title": "TransportDebugRunFaceGroupResponse",
+        "type": "object"
+      },
+      "TransportDebugRunPageResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TransportDebugRunResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "TransportDebugRunPageResponse",
+        "type": "object"
+      },
+      "TransportDebugRunPhase": {
+        "enum": [
+          "RACK_TO_STATION",
+          "BINS_TO_INFEED",
+          "WAIT_SCAN12",
+          "BINS_TO_RACK",
+          "ROTATE_TO_NEXT_FACE",
+          "RACK_TO_STORAGE"
+        ],
+        "title": "TransportDebugRunPhase",
+        "type": "string"
+      },
+      "TransportDebugRunResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "aborted_by_user_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aborted By User Id"
+          },
+          "aborted_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aborted Reason"
+          },
+          "attention_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attention Code"
+          },
+          "attention_detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attention Detail"
+          },
+          "can_abort": {
+            "title": "Can Abort",
+            "type": "boolean"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by_user_id": {
+            "title": "Created By User Id",
+            "type": "integer"
+          },
+          "current_group_index": {
+            "title": "Current Group Index",
+            "type": "integer"
+          },
+          "current_phase": {
+            "$ref": "#/components/schemas/TransportDebugRunPhase"
+          },
+          "current_step": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TransportDebugRunStepResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "face_groups": {
+            "items": {
+              "$ref": "#/components/schemas/TransportDebugRunFaceGroupResponse"
+            },
+            "title": "Face Groups",
+            "type": "array"
+          },
+          "observed_bin_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Observed Bin Ids",
+            "type": "array"
+          },
+          "rack_id": {
+            "title": "Rack Id",
+            "type": "string"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TransportDebugRunStatus"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "run_id",
+          "status",
+          "rack_id",
+          "face_groups",
+          "current_group_index",
+          "current_phase",
+          "current_step",
+          "observed_bin_ids",
+          "attention_code",
+          "attention_detail",
+          "can_abort",
+          "version",
+          "created_by_user_id",
+          "aborted_by_user_id",
+          "aborted_reason",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "TransportDebugRunResponse",
+        "type": "object"
+      },
+      "TransportDebugRunStatus": {
+        "enum": [
+          "RUNNING",
+          "NEEDS_ATTENTION",
+          "COMPLETED",
+          "FAILED",
+          "ABORTED"
+        ],
+        "title": "TransportDebugRunStatus",
+        "type": "string"
+      },
+      "TransportDebugRunStepResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "client_request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Request Id"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "evidence_high_watermark": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence High Watermark"
+          },
+          "evidence_not_before_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Not Before Ms"
+          },
+          "group_index": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group Index"
+          },
+          "observed_bin_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Observed Bin Ids",
+            "type": "array"
+          },
+          "ordinal": {
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "phase": {
+            "$ref": "#/components/schemas/TransportDebugRunPhase"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Code"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TransportDebugRunStepStatus"
+          },
+          "transport_task_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transport Task Id"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ordinal",
+          "group_index",
+          "phase",
+          "status",
+          "client_request_id",
+          "transport_task_id",
+          "evidence_high_watermark",
+          "evidence_not_before_ms",
+          "observed_bin_ids",
+          "reason_code",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "TransportDebugRunStepResponse",
+        "type": "object"
+      },
+      "TransportDebugRunStepStatus": {
+        "enum": [
+          "PENDING",
+          "WAITING",
+          "SUCCEEDED",
+          "FAILED",
+          "NEEDS_ATTENTION"
+        ],
+        "title": "TransportDebugRunStepStatus",
+        "type": "string"
       },
       "TransportDebugStep": {
         "enum": [
@@ -11867,7 +12402,7 @@
         "additionalProperties": false,
         "properties": {
           "position": {
-            "$ref": "#/components/schemas/_RackPosition"
+            "$ref": "#/components/schemas/_RackRotatePosition"
           },
           "rack_id": {
             "maxLength": 100,
@@ -11942,6 +12477,23 @@
         ],
         "title": "_RackRotateDebugTask",
         "type": "object"
+      },
+      "_RackRotatePosition": {
+        "discriminator": {
+          "mapping": {
+            "RACK": "#/components/schemas/_RackReference",
+            "RACK_POSITION": "#/components/schemas/_RackPosition"
+          },
+          "propertyName": "kind"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/_RackReference"
+          },
+          {
+            "$ref": "#/components/schemas/_RackPosition"
+          }
+        ]
       },
       "_ZonePosition": {
         "additionalProperties": false,
@@ -18047,6 +18599,362 @@
         "summary": "SSE 实时事件流",
         "tags": [
           "系统事件"
+        ]
+      }
+    },
+    "/api/v1/transport/debug-runs": {
+      "get": {
+        "operationId": "transport_debug_runs_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_TransportDebugRunPageResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "分页游标无效"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "Transport runtime 不可用"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:transport-debug-run:list] 查询 Transport 自动联调轮次",
+        "tags": [
+          "Transport 调试"
+        ]
+      },
+      "post": {
+        "operationId": "transport_debug_runs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTransportDebugRunRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_TransportDebugRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "自动联调请求不满足合同"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "已有活动轮次或选择事实冲突"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "Transport runtime 不可用"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:transport-debug-run:start] 创建 Transport 自动联调轮次",
+        "tags": [
+          "Transport 调试"
+        ]
+      }
+    },
+    "/api/v1/transport/debug-runs/stream": {
+      "get": {
+        "operationId": "transport_debug_runs_stream_get",
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:transport-debug-run:stream] 实时订阅 Transport 自动联调轮次状态",
+        "tags": [
+          "Transport 调试"
+        ]
+      }
+    },
+    "/api/v1/transport/debug-runs/{run_id}": {
+      "get": {
+        "operationId": "transport_debug_runs_by_run_id_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 120,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_TransportDebugRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "自动联调轮次不存在"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "Transport runtime 不可用"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:transport-debug-run:read] 查询 Transport 自动联调轮次详情",
+        "tags": [
+          "Transport 调试"
+        ]
+      }
+    },
+    "/api/v1/transport/debug-runs/{run_id}/abort": {
+      "post": {
+        "operationId": "transport_debug_runs_by_run_id_abort_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 120,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AbortTransportDebugRunRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_TransportDebugRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "终止确认不满足合同"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "自动联调轮次不存在"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "关联 Transport 事实不允许终止"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "Transport runtime 不可用"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:transport-debug-run:abort] 安全终止 Transport 自动联调轮次",
+        "tags": [
+          "Transport 调试"
         ]
       }
     },

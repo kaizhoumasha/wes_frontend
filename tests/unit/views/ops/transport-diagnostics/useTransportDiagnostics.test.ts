@@ -3,12 +3,14 @@ import { useTransportDiagnostics } from '@/views/ops/transport-diagnostics/useTr
 import type {
   DebugTasksInput,
   GetByTransportTaskIdResult,
+  ResetInput,
   ResetPreviewResult,
   ResetResult,
   TasksResult
 } from '@/api/modules/transport'
 import { transportApiMethods } from '@/api/modules/transport'
-import type { TransportDebugStepConfirmationInput } from '@/views/ops/transport-diagnostics/useTransportDebugLoop'
+
+type TransportDebugStepConfirmationInput = NonNullable<ResetInput>
 
 const TASK_1: TasksResult['items'][number] = {
   transport_task_id: 'transport-1',

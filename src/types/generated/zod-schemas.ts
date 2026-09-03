@@ -1,4 +1,4 @@
-/** @openapi-sha256 f618b51a3263d4e1850e63c49f7160548382d9c60d2efc9a5224cc1229de8c6c */
+/** @openapi-sha256 2076e4cb1fa7d3f3663f0ccb6889fa112d3f8e68a2a3263c9ecdeb3f273d7191 */
 /**
  * Zod Validation Schemas
  *
@@ -138,6 +138,14 @@ export const APIApplicationUpdateSchema = z.object({
   validity_period: z.union([z.lazy(() => ValidityPeriodSchema), z.null()]).optional(),
   /** Version */
   version: z.number(),
+})
+
+
+export const AbortTransportDebugRunRequestSchema = z.object({
+  /** Assertion */
+  assertion: z.literal("PHYSICAL_STATE_VERIFIED"),
+  /** Reason */
+  reason: z.string().min(1).max(500),
 })
 
 
@@ -733,6 +741,14 @@ export const ClearWorkLineEstopRequestSchema = z.object({
   checks: z.record(z.boolean()).optional(),
   /** Reason */
   reason: z.union([z.string().max(500), z.null()]).optional(),
+})
+
+
+export const CreateTransportDebugRunRequestSchema = z.object({
+  /** Face Groups */
+  face_groups: z.array(z.lazy(() => TransportDebugRunFaceGroupRequestSchema)),
+  /** Rack Id */
+  rack_id: z.string().min(1).max(100),
 })
 
 
@@ -2479,6 +2495,128 @@ export const SortFieldSchema = z.object({
 })
 
 
+export const TransportDebugRunBinRequestSchema = z.object({
+  /** Bin Id */
+  bin_id: z.string().min(1).max(100),
+  /** Slot Id */
+  slot_id: z.string().min(1).max(100),
+})
+
+
+export const TransportDebugRunBinResponseSchema = z.object({
+  /** Bin Id */
+  bin_id: z.string(),
+  /** Slot Id */
+  slot_id: z.string(),
+})
+
+
+export const TransportDebugRunFaceGroupRequestSchema = z.object({
+  /** Bins */
+  bins: z.array(z.lazy(() => TransportDebugRunBinRequestSchema)),
+  /** Face */
+  face: z.string().min(1).refine((value) => value.length > 0 && !value.includes(String.fromCharCode(0))),
+})
+
+
+export const TransportDebugRunFaceGroupResponseSchema = z.object({
+  /** Bins */
+  bins: z.array(z.lazy(() => TransportDebugRunBinResponseSchema)),
+  /** Face */
+  face: z.string(),
+})
+
+
+export const TransportDebugRunPageResponseSchema = z.object({
+  /** Items */
+  items: z.array(z.lazy(() => TransportDebugRunResponseSchema)),
+  /** Next Cursor */
+  next_cursor: z.union([z.string(), z.null()]),
+})
+
+
+export const TransportDebugRunPhaseSchema = z.enum(["RACK_TO_STATION", "BINS_TO_INFEED", "WAIT_SCAN12", "BINS_TO_RACK", "ROTATE_TO_NEXT_FACE", "RACK_TO_STORAGE"])
+
+
+export const TransportDebugRunResponseSchema = z.object({
+  /** Aborted By User Id */
+  aborted_by_user_id: z.union([z.number(), z.null()]),
+  /** Aborted Reason */
+  aborted_reason: z.union([z.string(), z.null()]),
+  /** Attention Code */
+  attention_code: z.union([z.string(), z.null()]),
+  /** Attention Detail */
+  attention_detail: z.union([z.string(), z.null()]),
+  /** Can Abort */
+  can_abort: z.boolean(),
+  /** Created At */
+  created_at: z.string(),
+  /** Created By User Id */
+  created_by_user_id: z.number(),
+  /** Current Group Index */
+  current_group_index: z.number(),
+  current_phase: z.lazy(() => TransportDebugRunPhaseSchema),
+  current_step: z.union([z.lazy(() => TransportDebugRunStepResponseSchema), z.null()]),
+  /** Face Groups */
+  face_groups: z.array(z.lazy(() => TransportDebugRunFaceGroupResponseSchema)),
+  /** Observed Bin Ids */
+  observed_bin_ids: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())),
+  /** Rack Id */
+  rack_id: z.string(),
+  /** Run Id */
+  run_id: z.string(),
+  status: z.lazy(() => TransportDebugRunStatusSchema),
+  /** Updated At */
+  updated_at: z.string(),
+  /** Version */
+  version: z.number(),
+})
+
+
+export const TransportDebugRunStatusSchema = z.enum(["RUNNING", "NEEDS_ATTENTION", "COMPLETED", "FAILED", "ABORTED"])
+
+
+export const TransportDebugRunStepResponseSchema = z.object({
+  /** Client Request Id */
+  client_request_id: z.union([z.string(), z.null()]),
+  /** Created At */
+  created_at: z.string(),
+  /** Evidence High Watermark */
+  evidence_high_watermark: z.union([z.number(), z.null()]),
+  /** Evidence Not Before Ms */
+  evidence_not_before_ms: z.union([z.number(), z.null()]),
+  /** Group Index */
+  group_index: z.union([z.number(), z.null()]),
+  /** Observed Bin Ids */
+  observed_bin_ids: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())),
+  /** Ordinal */
+  ordinal: z.number(),
+  phase: z.lazy(() => TransportDebugRunPhaseSchema),
+  /** Reason Code */
+  reason_code: z.union([z.string(), z.null()]),
+  status: z.lazy(() => TransportDebugRunStepStatusSchema),
+  /** Transport Task Id */
+  transport_task_id: z.union([z.string(), z.null()]),
+  /** Updated At */
+  updated_at: z.string(),
+})
+
+
+export const TransportDebugRunStepStatusSchema = z.enum(["PENDING", "WAITING", "SUCCEEDED", "FAILED", "NEEDS_ATTENTION"])
+
+
 export const TransportDebugStepSchema = z.enum(["RACK_TO_STATION", "BINS_TO_INFEED", "BINS_TO_RACK", "RACK_TO_STORAGE"])
 
 
@@ -3189,7 +3327,7 @@ export const _RackReferenceSchema = z.object({
 
 
 export const _RackRotateDataSchema = z.object({
-  position: z.lazy(() => _RackPositionSchema),
+  position: z.lazy(() => _RackRotatePositionSchema),
   /** Rack Id */
   rack_id: z.string().min(1).max(100).regex(new RegExp(".*\\S.*")),
   rcs_template_id: z.union([z.lazy(() => RcsTemplateIdSchema), z.null()]).optional(),
@@ -3207,6 +3345,9 @@ export const _RackRotateDebugTaskSchema = z.object({
   /** Station Id */
   station_id: z.union([z.string().min(1).max(100).regex(new RegExp(".*\\S.*")), z.null()]).optional(),
 })
+
+
+export const _RackRotatePositionSchema = z.union([z.lazy(() => _RackReferenceSchema), z.lazy(() => _RackPositionSchema)])
 
 
 export const _ZonePositionSchema = z.object({

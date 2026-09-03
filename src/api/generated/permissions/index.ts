@@ -16,6 +16,7 @@ import { BIZ_DEVICE_PERMISSION } from './user_api/biz/device'
 import { BIZ_WORKLINE_PERMISSION } from './user_api/biz/workline'
 import { CALLBACK_CALLBACK_LOG_PERMISSION } from './user_api/callback/callback_log'
 import { OPS_TRANSPORT_PERMISSION } from './user_api/ops/transport'
+import { OPS_TRANSPORT_DEBUG_RUN_PERMISSION } from './user_api/ops/transport-debug-run'
 import { OPS_TRANSPORT_EVIDENCE_PERMISSION } from './user_api/ops/transport-evidence'
 import { OPS_TRANSPORT_TASK_PERMISSION } from './user_api/ops/transport-task'
 import { RESOURCE_BIN_PERMISSION } from './user_api/resource/bin'
@@ -44,6 +45,7 @@ export { BIZ_DEVICE_PERMISSION }
 export { BIZ_WORKLINE_PERMISSION }
 export { CALLBACK_CALLBACK_LOG_PERMISSION }
 export { OPS_TRANSPORT_PERMISSION }
+export { OPS_TRANSPORT_DEBUG_RUN_PERMISSION }
 export { OPS_TRANSPORT_EVIDENCE_PERMISSION }
 export { OPS_TRANSPORT_TASK_PERMISSION }
 export { RESOURCE_BIN_PERMISSION }
@@ -105,6 +107,7 @@ export const CALLBACK_PERMISSIONS = {
  */
 export const OPS_PERMISSIONS = {
   transport: OPS_TRANSPORT_PERMISSION,
+  transportDebugRun: OPS_TRANSPORT_DEBUG_RUN_PERMISSION,
   transportEvidence: OPS_TRANSPORT_EVIDENCE_PERMISSION,
   transportTask: OPS_TRANSPORT_TASK_PERMISSION,
 } as const

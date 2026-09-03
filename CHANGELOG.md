@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.0.0] - 2026-09-03
+
+### Added
+
+- 运输接入诊断新增持久化自动联调入口，可按当前挂载事实选择任意货架，并按货架面分组选择每面 1～4 个料箱。
+- 货架面由操作员直接输入并按原始字符串下发；页面预览 `CTU01` 进站、逐面料箱往返、`SCAN12` Evidence、跨面 `CTU02` 旋转和最终 `CTU03` 返库顺序。
+- 自动联调观察器展示冻结配置、当前阶段、关联 Transport、已扫描/待扫描料箱和 `NEEDS_ATTENTION` 持久状态。
+
+### Changed
+
+- 移除固定 `510056`、固定料箱和人工确认推进的旧联调步进，改由 WMS 回调与 `SCAN12` 设备 Evidence 自动完成整轮。
+- SSE 只作为失效通知；页面始终回读持久轮次，并在无 SSE 或详情权限时使用有权限的 HTTP 查询兜底，不从 ACK 或连接状态推断物理完成。
+
+### Verification
+
+- 682 项 Vitest 测试、类型检查、ESLint、Prettier、Stylelint、生产构建、契约与权限同步校验通过。
+- 本机后端编排完成 Alembic `8f3c61e57a90` 升级，并验证 API、Worker、WMS Worker、Beat、前端与 Mock 服务健康；未触发真实 Transport 自动联调轮次。
+
 ## [0.12.11.0] - 2026-09-01
 
 ### Added

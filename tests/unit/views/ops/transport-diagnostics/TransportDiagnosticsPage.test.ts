@@ -37,7 +37,7 @@ const streamMocks = vi.hoisted(() => ({
   reconnect: vi.fn(),
   disconnect: vi.fn()
 }))
-const loopDialogMocks = vi.hoisted(() => ({ open: vi.fn() }))
+const runDialogMocks = vi.hoisted(() => ({ open: vi.fn(), close: vi.fn() }))
 const streamOptions = vi.hoisted(() => ({
   value: null as null | {
     onEvent: (event: { payload: { transport_task_id: string | null } }) => void
@@ -123,10 +123,11 @@ const TransportDebugResetDialogStub = defineComponent({
   `
 })
 
-const TransportDebugLoopDialogStub = defineComponent({
-  name: 'TransportDebugLoopDialog',
-  methods: { open: loopDialogMocks.open },
-  template: '<div data-test="loop-dialog" />'
+const TransportDebugRunDialogStub = defineComponent({
+  name: 'TransportDebugRunDialog',
+  emits: ['select-task'],
+  methods: { open: runDialogMocks.open, close: runDialogMocks.close },
+  template: '<div data-test="run-dialog" />'
 })
 
 function mountPage() {
@@ -138,7 +139,7 @@ function mountPage() {
         TransportTaskTable: true,
         TransportTaskDetail: true,
         TransportDebugTaskDialog: true,
-        TransportDebugLoopDialog: TransportDebugLoopDialogStub,
+        TransportDebugRunDialog: TransportDebugRunDialogStub,
         TransportDebugResetDialog: TransportDebugResetDialogStub,
         ElAlert: true,
         ElInput: true,
@@ -169,32 +170,43 @@ describe('TransportDiagnosticsPage', () => {
     permissionMocks.granted.add(OPS_PERMISSIONS.transport.debugCreate)
     permissionMocks.granted.add(OPS_PERMISSIONS.transport.debugPreview)
     permissionMocks.granted.add(OPS_PERMISSIONS.transport.debugReset)
+    permissionMocks.granted.add(OPS_PERMISSIONS.transportDebugRun.list)
+    permissionMocks.granted.add(OPS_PERMISSIONS.transportDebugRun.read)
+    permissionMocks.granted.add(OPS_PERMISSIONS.transportDebugRun.start)
+    permissionMocks.granted.add(OPS_PERMISSIONS.transportDebugRun.stream)
+    permissionMocks.granted.add(OPS_PERMISSIONS.transportDebugRun.abort)
   })
 
-  it('opens the 510056 loop stepper inside the existing diagnostics page', async () => {
+  it('opens automatic runs inside the existing diagnostics page', async () => {
     const wrapper = mountPage()
-    const loopButton = wrapper
+    const runButton = wrapper
       .findAllComponents(AppButtonStub)
-      .find(candidate => candidate.text().includes('510056 联调步进'))
+      .find(candidate => candidate.text().includes('自动联调'))
 
-    expect(loopButton).toBeDefined()
-    await loopButton?.trigger('click')
+    expect(runButton).toBeDefined()
+    await runButton?.trigger('click')
 
-    expect(loopDialogMocks.open).toHaveBeenCalledOnce()
+    expect(runDialogMocks.open).toHaveBeenCalledOnce()
   })
 
   it.each([
-    OPS_PERMISSIONS.transportTask.read,
-    OPS_PERMISSIONS.transport.debugCreate,
-    OPS_PERMISSIONS.transport.debugReset
-  ])('hides the 510056 loop stepper without %s', permission => {
+    OPS_PERMISSIONS.transportDebugRun.list,
+    OPS_PERMISSIONS.transportDebugRun.read,
+    OPS_PERMISSIONS.transportDebugRun.start
+  ])('enforces the automatic run permission boundary for %s', permission => {
     permissionMocks.granted.delete(permission)
 
     const wrapper = mountPage()
+    const visible = wrapper.findAll('button').some(button => button.text().includes('自动联调'))
+    if (permission === OPS_PERMISSIONS.transportDebugRun.list) expect(visible).toBe(false)
+    else expect(visible).toBe(true)
+  })
 
-    expect(
-      wrapper.findAll('button').some(button => button.text().includes('510056 联调步进'))
-    ).toBe(false)
+  it('opens the related Transport task from an automatic run', async () => {
+    const wrapper = mountPage()
+    wrapper.findComponent(TransportDebugRunDialogStub).vm.$emit('select-task', 'transport-2')
+    await vi.waitFor(() => expect(diagnosticsMocks.selectTask).toHaveBeenCalledWith('transport-2'))
+    await vi.waitFor(() => expect(runDialogMocks.close).toHaveBeenCalledOnce())
   })
 
   it('loads durable tasks, connects live notifications and refreshes the related task', async () => {

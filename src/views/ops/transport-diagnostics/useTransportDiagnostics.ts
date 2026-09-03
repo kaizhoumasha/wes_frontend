@@ -5,11 +5,13 @@ import {
   type DebugTasksResult,
   type GetByTransportTaskIdResult,
   type ResetPreviewResult,
+  type ResetInput,
   type ResetResult,
   type TasksQuery,
   type TasksResult
 } from '@/api/modules/transport'
-import type { TransportDebugStepConfirmationInput } from './useTransportDebugLoop'
+
+type TransportDebugStepConfirmationInput = NonNullable<ResetInput>
 
 export interface TransportDiagnosticsApiPort {
   listTasks(query: TasksQuery): Promise<TasksResult>
