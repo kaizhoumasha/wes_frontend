@@ -21,7 +21,7 @@ export const _RackRotateDataMetadata = {
     "position": {
       "required": true,
       "nullable": false,
-      "ref": "_RackPosition"
+      "ref": "_RackRotatePosition"
     },
     "rack_id": {
       "title": "Rack Id",

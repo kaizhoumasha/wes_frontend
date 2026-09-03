@@ -6,7 +6,7 @@
  * ⚠️  请勿手动编辑 AUTO GENERATED 区域
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 资源: /api/v1/transport/debug-tasks, /api/v1/transport/evidences, /api/v1/transport/tasks
+ * 资源: /api/v1/transport/debug-runs, /api/v1/transport/debug-tasks, /api/v1/transport/evidences, /api/v1/transport/tasks
  */
 import { contractMethods } from '@/api/contract/client'
 import type {
@@ -18,6 +18,21 @@ import type {
 } from '@/api/contract/types'
 import type { components, paths } from '@/api/generated/openapi-types'
 
+export type DebugRunsResult = ContractResponseData<'/api/v1/transport/debug-runs', 'get'>
+export type DebugRunsQuery = ContractQueryParams<'/api/v1/transport/debug-runs', 'get'>
+
+export type CreateDebugRunsResult = ContractResponseData<'/api/v1/transport/debug-runs', 'post'>
+export type CreateDebugRunsInput = ContractRequestBody<'/api/v1/transport/debug-runs', 'post'>
+
+export type StreamResult = ContractResponseData<'/api/v1/transport/debug-runs/stream', 'get'>
+
+export type GetByRunIdResult = ContractResponseData<'/api/v1/transport/debug-runs/{run_id}', 'get'>
+export type GetByRunIdPathParams = ContractPathParams<'/api/v1/transport/debug-runs/{run_id}', 'get'>
+
+export type AbortResult = ContractResponseData<'/api/v1/transport/debug-runs/{run_id}/abort', 'post'>
+export type AbortPathParams = ContractPathParams<'/api/v1/transport/debug-runs/{run_id}/abort', 'post'>
+export type AbortInput = ContractRequestBody<'/api/v1/transport/debug-runs/{run_id}/abort', 'post'>
+
 export type DebugTasksResult = ContractResponseData<'/api/v1/transport/debug-tasks', 'post'>
 export type DebugTasksInput = ContractRequestBody<'/api/v1/transport/debug-tasks', 'post'>
 
@@ -28,7 +43,7 @@ export type ResetInput = ContractRequestBody<'/api/v1/transport/debug-tasks/{tra
 export type ResetPreviewResult = ContractResponseData<'/api/v1/transport/debug-tasks/{transport_task_id}/reset-preview', 'get'>
 export type ResetPreviewPathParams = ContractPathParams<'/api/v1/transport/debug-tasks/{transport_task_id}/reset-preview', 'get'>
 
-export type StreamResult = ContractResponseData<'/api/v1/transport/evidences/stream', 'get'>
+export type GetStreamResult = ContractResponseData<'/api/v1/transport/evidences/stream', 'get'>
 
 export type TasksResult = ContractResponseData<'/api/v1/transport/tasks', 'get'>
 export type TasksQuery = ContractQueryParams<'/api/v1/transport/tasks', 'get'>
@@ -37,6 +52,51 @@ export type GetByTransportTaskIdResult = ContractResponseData<'/api/v1/transport
 export type GetByTransportTaskIdPathParams = ContractPathParams<'/api/v1/transport/tasks/{transport_task_id}', 'get'>
 
 export const transportApiMethods = {
+  /**
+   * [ops:transport-debug-run:list] 查询 Transport 自动联调轮次
+   * @endpoint GET /api/v1/transport/debug-runs
+   * @returns alova method instance
+   */
+  debugRuns(query?: ContractQueryParams<'/api/v1/transport/debug-runs', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/transport/debug-runs', { query, config })
+  },
+
+  /**
+   * [ops:transport-debug-run:start] 创建 Transport 自动联调轮次
+   * @endpoint POST /api/v1/transport/debug-runs
+   * @returns alova method instance
+   */
+  createDebugRuns(body: ContractRequestBody<'/api/v1/transport/debug-runs', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/transport/debug-runs', { body, config })
+  },
+
+  /**
+   * [ops:transport-debug-run:stream] 实时订阅 Transport 自动联调轮次状态
+   * @endpoint GET /api/v1/transport/debug-runs/stream
+   * @returns alova method instance
+   */
+  stream(config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/transport/debug-runs/stream', { config })
+  },
+
+  /**
+   * [ops:transport-debug-run:read] 查询 Transport 自动联调轮次详情
+   * @endpoint GET /api/v1/transport/debug-runs/{run_id}
+   * @returns alova method instance
+   */
+  getByRunId(params: ContractPathParams<'/api/v1/transport/debug-runs/{run_id}', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/transport/debug-runs/{run_id}', { params, config })
+  },
+
+  /**
+   * [ops:transport-debug-run:abort] 安全终止 Transport 自动联调轮次
+   * @endpoint POST /api/v1/transport/debug-runs/{run_id}/abort
+   * @returns alova method instance
+   */
+  abort(params: ContractPathParams<'/api/v1/transport/debug-runs/{run_id}/abort', 'post'>, body: ContractRequestBody<'/api/v1/transport/debug-runs/{run_id}/abort', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/transport/debug-runs/{run_id}/abort', { params, body, config })
+  },
+
   /**
    * [ops:transport:debug-create] 创建 Transport 调试任务
    * @endpoint POST /api/v1/transport/debug-tasks
@@ -69,7 +129,7 @@ export const transportApiMethods = {
    * @endpoint GET /api/v1/transport/evidences/stream
    * @returns alova method instance
    */
-  stream(config?: ContractRequestConfig) {
+  getStream(config?: ContractRequestConfig) {
     return contractMethods.get('/api/v1/transport/evidences/stream', { config })
   },
 
@@ -94,7 +154,24 @@ export const transportApiMethods = {
 // ==================== AUTO GENERATED END ====================
 
 // ==================== CUSTOM METHODS START ====================
+export type DebugRunCreateInput = CreateDebugRunsInput
+export type DebugRunResult = GetByRunIdResult
+export type DebugRunPage = DebugRunsResult
+export type DebugRunAbortInput = AbortInput
 
+const PERSISTED_DEBUG_RUN_QUERY_CONFIG = { cacheFor: 0, shareRequest: false } as const
+
+export const transportDebugRunApi = {
+  list: (query: DebugRunsQuery = {}) =>
+    transportApiMethods.debugRuns(query, PERSISTED_DEBUG_RUN_QUERY_CONFIG).send(),
+  get: (runId: string) =>
+    transportApiMethods
+      .getByRunId({ run_id: runId }, PERSISTED_DEBUG_RUN_QUERY_CONFIG)
+      .send(),
+  create: (body: DebugRunCreateInput) => transportApiMethods.createDebugRuns(body).send(),
+  abort: (runId: string, body: DebugRunAbortInput) =>
+    transportApiMethods.abort({ run_id: runId }, body).send()
+}
 // ==================== CUSTOM METHODS END ====================
 
 // ==================== CUSTOM CONFIG START ====================
