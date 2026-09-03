@@ -158,20 +158,6 @@ export type DebugRunCreateInput = CreateDebugRunsInput
 export type DebugRunResult = GetByRunIdResult
 export type DebugRunPage = DebugRunsResult
 export type DebugRunAbortInput = AbortInput
-
-const PERSISTED_DEBUG_RUN_QUERY_CONFIG = { cacheFor: 0, shareRequest: false } as const
-
-export const transportDebugRunApi = {
-  list: (query: DebugRunsQuery = {}) =>
-    transportApiMethods.debugRuns(query, PERSISTED_DEBUG_RUN_QUERY_CONFIG).send(),
-  get: (runId: string) =>
-    transportApiMethods
-      .getByRunId({ run_id: runId }, PERSISTED_DEBUG_RUN_QUERY_CONFIG)
-      .send(),
-  create: (body: DebugRunCreateInput) => transportApiMethods.createDebugRuns(body).send(),
-  abort: (runId: string, body: DebugRunAbortInput) =>
-    transportApiMethods.abort({ run_id: runId }, body).send()
-}
 // ==================== CUSTOM METHODS END ====================
 
 // ==================== CUSTOM CONFIG START ====================

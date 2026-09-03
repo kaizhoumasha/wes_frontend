@@ -121,6 +121,26 @@ new URL('/api/v1/device/evidences/stream', baseUrl)
 `
 
 describe('release consumer exporter', () => {
+  it('exports the current production source surface', () => {
+    const outputRoot = mkdtempSync(join(tmpdir(), 'current-release-consumer-'))
+
+    try {
+      const result = exportReleaseConsumer({
+        frontendRoot: process.cwd(),
+        outputDir: join(outputRoot, 'release-consumer')
+      })
+      expect(result.requiredOperations).toEqual(
+        expect.arrayContaining([
+          { method: 'POST', path: '/api/v1/transport/debug-runs' },
+          { method: 'GET', path: '/api/v1/transport/debug-runs/{run_id}' },
+          { method: 'POST', path: '/api/v1/transport/debug-runs/{run_id}/abort' }
+        ])
+      )
+    } finally {
+      rmSync(outputRoot, { recursive: true, force: true })
+    }
+  }, 30_000)
+
   it('exports the exact deterministic production consumer surface and fingerprints', () => {
     const fixture = createFixture(SUCCESS_SOURCE)
 

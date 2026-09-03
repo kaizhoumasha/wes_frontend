@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import {
-  transportDebugRunApi,
+  transportApiMethods,
   type DebugRunAbortInput,
   type DebugRunCreateInput,
   type DebugRunPage,
@@ -14,8 +14,20 @@ export interface TransportDebugRunApiPort {
   abort(runId: string, input: DebugRunAbortInput): Promise<DebugRunResult>
 }
 
+const PERSISTED_DEBUG_RUN_QUERY_CONFIG = { cacheFor: 0, shareRequest: false } as const
+const DEFAULT_API: TransportDebugRunApiPort = {
+  list: (query = {}) =>
+    transportApiMethods.debugRuns(query, PERSISTED_DEBUG_RUN_QUERY_CONFIG).send(),
+  get: runId =>
+    transportApiMethods
+      .getByRunId({ run_id: runId }, PERSISTED_DEBUG_RUN_QUERY_CONFIG)
+      .send(),
+  create: input => transportApiMethods.createDebugRuns(input).send(),
+  abort: (runId, input) => transportApiMethods.abort({ run_id: runId }, input).send()
+}
+
 export function useTransportDebugRun(options: { api?: TransportDebugRunApiPort } = {}) {
-  const api = options.api ?? transportDebugRunApi
+  const api = options.api ?? DEFAULT_API
   const recentRuns = ref<DebugRunResult[]>([])
   const currentRun = ref<DebugRunResult | null>(null)
   const activeRun = ref<DebugRunResult | null>(null)
