@@ -129,6 +129,7 @@ src/
 - [技术选型文档](./docs/WES_FRONTEND_TECH_STACK.md)
 - [CRUD 开发指南](./docs/CRUD_DEVELOPMENT_GUIDE.md)
 - [ECS 设备发现与显式接管设计](./docs/designs/ecs-device-discovery-onboarding.md)
+- [设备联调 Epoch 历史与 WES 整链清理设计](./docs/designs/device-diagnostics-debug-epoch-history-cleanup.md)：已批准、尚未实施的专用测试 WorkLine、原子 Preview/Reset、ownership manifest、迟到消息 tombstone 与 WES-only 清理边界
 - [智能搜索组件架构](./docs/SMART_SEARCH_COMPONENT_ARCHITECTURE.md)
 - [时区处理指南](./docs/TIMEZONE_HANDLING.md)
 - [契约同步工作流](./docs/CONTRACT_SYNC_WORKFLOW.md)
