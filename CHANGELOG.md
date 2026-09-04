@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.2.0] - 2026-09-04
+
+### Added
+
+- 固定设备联调 Epoch 历史查询与 WES-only 整链清理的已批准设计，明确专用测试 WorkLine、原子 Preview/Reset、迟到消息 tombstone、审计和前后端验收边界；本版本仅交付设计，实施仍未开始。
+
+### Changed
+
+- 忽略 `artifacts/release-consumer/` 生成目录，避免导出与 Jenkins 归档产物进入版本控制。
+
 ## [0.13.1.0] - 2026-09-03
 
 ### Changed
