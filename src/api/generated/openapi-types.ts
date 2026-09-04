@@ -1,4 +1,4 @@
-/** @openapi-sha256 886755e889b14c645dc07dada3ad8fa4a10ffca9bb4a31198c86cdb9819ca791 */
+/** @openapi-sha256 11b8d6bc9a1b1a39e64161969bea2225fd7bfb803c8521d663de3672cfe2bc88 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -5613,6 +5613,8 @@ export interface components {
             /** Run Id */
             run_id: string;
             status: components["schemas"]["TransportDebugRunStatus"];
+            /** Steps */
+            steps: components["schemas"]["TransportDebugRunStepResponse"][];
             /** Updated At */
             updated_at: string;
             /** Version */

@@ -10213,6 +10213,13 @@
           "status": {
             "$ref": "#/components/schemas/TransportDebugRunStatus"
           },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/TransportDebugRunStepResponse"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
           "updated_at": {
             "title": "Updated At",
             "type": "string"
@@ -10230,6 +10237,7 @@
           "current_group_index",
           "current_phase",
           "current_step",
+          "steps",
           "observed_bin_ids",
           "attention_code",
           "attention_detail",

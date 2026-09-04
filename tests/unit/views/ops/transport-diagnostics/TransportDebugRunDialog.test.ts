@@ -25,6 +25,16 @@ const streamOptions = vi.hoisted(() => ({
 }))
 
 function snapshot() {
+  const baseStep = {
+    group_index: 0,
+    client_request_id: null,
+    evidence_high_watermark: null,
+    evidence_not_before_ms: null,
+    observed_bin_ids: [] as string[],
+    reason_code: null,
+    created_at: 'now',
+    updated_at: 'now'
+  }
   return {
     run_id: 'run-1',
     status: 'NEEDS_ATTENTION' as const,
@@ -33,19 +43,39 @@ function snapshot() {
     current_group_index: 0,
     current_phase: 'WAIT_SCAN12' as const,
     current_step: {
+      ...baseStep,
       transport_task_id: 'transport-3',
       ordinal: 2,
       phase: 'WAIT_SCAN12',
       status: 'NEEDS_ATTENTION',
-      group_index: 0,
-      client_request_id: null,
       evidence_high_watermark: 1,
       evidence_not_before_ms: 1,
-      observed_bin_ids: [],
-      reason_code: 'EVIDENCE_RECONCILING',
-      created_at: 'now',
-      updated_at: 'now'
+      reason_code: 'EVIDENCE_RECONCILING'
     },
+    steps: [
+      {
+        ...baseStep,
+        ordinal: 0,
+        phase: 'RACK_TO_STATION',
+        status: 'SUCCEEDED',
+        transport_task_id: 'transport-rack-out'
+      },
+      {
+        ...baseStep,
+        ordinal: 1,
+        phase: 'BINS_TO_INFEED',
+        status: 'SUCCEEDED',
+        transport_task_id: 'transport-bin-out'
+      },
+      {
+        ...baseStep,
+        ordinal: 2,
+        phase: 'WAIT_SCAN12',
+        status: 'NEEDS_ATTENTION',
+        transport_task_id: null,
+        observed_bin_ids: []
+      }
+    ],
     observed_bin_ids: [],
     attention_code: 'EVIDENCE_RECONCILING',
     attention_detail: '等待设备事实',
@@ -250,5 +280,97 @@ describe('TransportDebugRunDialog', () => {
     await task?.trigger('click')
     expect(wrapper.emitted('selectTask')).toEqual([['transport-3']])
     expect(wrapper.get('[data-test="run-config"]').exists()).toBe(true)
+  })
+
+  it('keeps a centralized rack and bin step history visible after the run completes', async () => {
+    const completed = snapshot()
+    runState.currentRun.value = {
+      ...completed,
+      status: 'COMPLETED',
+      current_phase: 'RACK_TO_STORAGE',
+      current_step: {
+        ...completed.current_step,
+        ordinal: 4,
+        phase: 'RACK_TO_STORAGE',
+        status: 'SUCCEEDED',
+        transport_task_id: 'transport-rack-return',
+        reason_code: null
+      },
+      steps: [
+        ...completed.steps.slice(0, 2),
+        {
+          ...completed.steps[2],
+          status: 'SUCCEEDED',
+          observed_bin_ids: ['B1']
+        },
+        {
+          ...completed.steps[0],
+          ordinal: 3,
+          phase: 'BINS_TO_RACK',
+          status: 'SUCCEEDED',
+          transport_task_id: 'transport-bin-return'
+        },
+        {
+          ...completed.steps[0],
+          ordinal: 4,
+          phase: 'RACK_TO_STORAGE',
+          status: 'SUCCEEDED',
+          transport_task_id: 'transport-rack-return'
+        }
+      ]
+    }
+
+    const wrapper = mountDialog()
+    await (wrapper.vm as unknown as { open(): Promise<void> }).open()
+
+    const progress = wrapper.get('[data-test="run-step-progress"]')
+    expect(progress.text()).toContain('货架搬至工作位')
+    expect(progress.text()).toContain('料箱搬至入库口')
+    expect(progress.text()).toContain('等待 SCAN12')
+    expect(progress.text()).toContain('料箱回架')
+    expect(progress.text()).toContain('货架返库')
+    expect(progress.text()).toContain('B1')
+    expect(progress.text()).toContain('transport-bin-return')
+    expect(wrapper.get('[data-test="run-config"]').exists()).toBe(true)
+  })
+
+  it('binds each step to the bins and face selected for that step group', async () => {
+    const multiFace = snapshot()
+    runState.activeRun.value = {
+      ...multiFace,
+      face_groups: [
+        { face: '90', bins: [{ bin_id: 'B1', slot_id: 'S1' }] },
+        { face: '270', bins: [{ bin_id: 'B2', slot_id: 'S2' }] }
+      ],
+      current_group_index: 1,
+      current_phase: 'BINS_TO_INFEED',
+      steps: [
+        ...multiFace.steps,
+        {
+          ...multiFace.steps[0],
+          ordinal: 3,
+          group_index: 1,
+          phase: 'ROTATE_TO_NEXT_FACE',
+          status: 'SUCCEEDED',
+          transport_task_id: 'transport-rotate'
+        },
+        {
+          ...multiFace.steps[1],
+          ordinal: 4,
+          group_index: 1,
+          status: 'WAITING',
+          transport_task_id: 'transport-b2-out'
+        }
+      ]
+    }
+
+    const wrapper = mountDialog()
+    await (wrapper.vm as unknown as { open(): Promise<void> }).open()
+
+    const progress = wrapper.get('[data-test="run-step-progress"]').text()
+    expect(progress).toContain('货架旋转至下一面')
+    expect(progress).toContain('货架面： 270')
+    expect(progress).toContain('料箱 B2')
+    expect(progress).toContain('槽位：S2')
   })
 })
