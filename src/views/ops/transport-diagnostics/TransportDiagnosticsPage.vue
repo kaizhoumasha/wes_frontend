@@ -140,8 +140,14 @@ function openDebugRun(event: MouseEvent): void {
 }
 
 async function selectRunTask(transportTaskId: string): Promise<void> {
-  await selectTask(transportTaskId)
-  runDialogRef.value?.close()
+  if (!canRead.value) return
+  uiError.value = ''
+  try {
+    await diagnostics.selectTask(transportTaskId)
+    runDialogRef.value?.close()
+  } catch (error) {
+    uiError.value = errorMessage(error)
+  }
 }
 
 function errorMessage(error: unknown): string {

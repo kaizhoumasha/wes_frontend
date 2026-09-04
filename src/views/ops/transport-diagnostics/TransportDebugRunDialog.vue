@@ -130,6 +130,10 @@ function stepPendingBins(step: DebugRunStep): string[] {
   return group.bins.map(bin => bin.bin_id).filter(binId => !observed.has(binId))
 }
 
+function showsStepGroup(step: DebugRunStep): boolean {
+  return step.phase !== 'RACK_TO_STORAGE' && stepGroup(step) !== null
+}
+
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
 }
@@ -252,7 +256,7 @@ defineExpose({ open, close })
                 }}
               </strong>
             </p>
-            <p v-if="stepGroup(step)">
+            <p v-if="showsStepGroup(step)">
               货架面：
               <code>{{ stepGroup(step)?.face }}</code>
               · 槽位：{{
@@ -271,7 +275,7 @@ defineExpose({ open, close })
               v-if="props.canReadTask && step.transport_task_id"
               @click="emit('selectTask', step.transport_task_id)"
             >
-              查看任务 {{ step.transport_task_id }}
+              查询任务记录 {{ step.transport_task_id }}
             </AppButton>
           </li>
         </ol>
