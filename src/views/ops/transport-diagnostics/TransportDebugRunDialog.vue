@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onUnmounted, ref } from 'vue'
+import type { DebugRunResult } from '@/api/modules/transport'
 import AppButton from '@/components/ui/AppButton.vue'
 import StandardDialog from '@/components/ui/StandardDialog/StandardDialog.vue'
 import {
@@ -22,6 +23,15 @@ const isOpen = ref(false)
 const uiError = ref('')
 const abortReason = ref('')
 const FACE_PLACEHOLDER = '原样输入，例如 "90"、"270"'
+type DebugRunStep = NonNullable<DebugRunResult['current_step']>
+const PHASE_LABELS: Record<DebugRunStep['phase'], string> = {
+  RACK_TO_STATION: '货架搬至工作位',
+  BINS_TO_INFEED: '料箱搬至入库口',
+  WAIT_SCAN12: '等待 SCAN12',
+  BINS_TO_RACK: '料箱回架',
+  ROTATE_TO_NEXT_FACE: '货架旋转至下一面',
+  RACK_TO_STORAGE: '货架返库'
+}
 let launcher: HTMLElement | null = null
 let lifecycleGeneration = 0
 const config = useTransportDebugRunConfig()
@@ -41,6 +51,7 @@ const pendingBins = computed(() => {
   const observed = new Set(snapshot.value?.observed_bin_ids ?? [])
   return currentGroup.value?.bins.map(bin => bin.bin_id).filter(binId => !observed.has(binId)) ?? []
 })
+const runSteps = computed(() => snapshot.value?.steps ?? [])
 const stream = useTransportDebugRunStream({
   visible: isOpen,
   activeRunId,
@@ -53,17 +64,10 @@ async function open(launcherElement?: HTMLElement): Promise<void> {
   launcher = launcherElement ?? null
   isOpen.value = true
   uiError.value = ''
-  const configLoad = props.canStart
-    ? config.load().then(() => null, errorMessage)
-    : Promise.resolve(null)
   const runError = await run.loadRecentRuns().then(() => null, errorMessage)
   if (generation !== lifecycleGeneration || !isOpen.value) return
   if (runError) uiError.value = runError
   stream.connect(props.canStream)
-  const configError = await configLoad
-  if (generation === lifecycleGeneration && isOpen.value && configError) {
-    uiError.value = configError
-  }
 }
 
 function close(): void {
@@ -84,9 +88,7 @@ async function start(): Promise<void> {
   if (!props.canStart || config.validationError.value) return
   uiError.value = ''
   try {
-    await run.startRun(
-      buildTransportDebugRunInput(config.selectedRackId.value, config.groups.value)
-    )
+    await run.startRun(buildTransportDebugRunInput(config.rackId.value, config.groups.value))
   } catch (error) {
     uiError.value = errorMessage(error)
   }
@@ -108,10 +110,28 @@ function addGroup(): void {
   config.addGroup()
 }
 
-function binDisabled(groupIndex: number, binCode: string): boolean {
-  return config.groups.value.some(
-    (group, index) => index !== groupIndex && group.bins.some(bin => bin.bin_code === binCode)
-  )
+function addBin(groupIndex: number): void {
+  config.addBin(groupIndex)
+}
+
+function removeBin(groupIndex: number, binIndex: number): void {
+  config.removeBin(groupIndex, binIndex)
+}
+
+function stepGroup(step: DebugRunStep) {
+  if (step.group_index === null) return null
+  return snapshot.value?.face_groups[step.group_index] ?? null
+}
+
+function stepPendingBins(step: DebugRunStep): string[] {
+  const group = stepGroup(step)
+  if (!group) return []
+  const observed = new Set(step.observed_bin_ids)
+  return group.bins.map(bin => bin.bin_id).filter(binId => !observed.has(binId))
+}
+
+function showsStepGroup(step: DebugRunStep): boolean {
+  return step.phase !== 'RACK_TO_STORAGE' && stepGroup(step) !== null
 }
 
 function errorMessage(error: unknown): string {
@@ -137,19 +157,14 @@ defineExpose({ open, close })
     @update:model-value="value => !value && close()"
   >
     <el-alert
-      title="启动会创建真实 WMS/RCS Transport 任务。面值按输入原样下发；系统只根据持久回调与 SCAN12 Evidence 自动推进。"
+      title="启动会创建真实 WMS/RCS Transport 任务。货架、料箱和原槽位按现场实际录入；面值按输入原样下发。系统只根据持久回调与 SCAN12 Evidence 自动推进。"
       type="warning"
       :closable="false"
       show-icon
     />
     <el-alert
-      v-if="uiError || config.lastError.value || run.lastError.value || stream.lastError.value"
-      :title="
-        uiError ||
-        config.lastError.value?.message ||
-        run.lastError.value?.message ||
-        stream.lastError.value?.message
-      "
+      v-if="uiError || run.lastError.value || stream.lastError.value"
+      :title="uiError || run.lastError.value?.message || stream.lastError.value?.message"
       type="error"
       :closable="false"
       show-icon
@@ -162,7 +177,7 @@ defineExpose({ open, close })
     />
 
     <section
-      v-if="observing && snapshot"
+      v-if="snapshot"
       class="run-observer"
       data-test="run-observer"
     >
@@ -194,6 +209,77 @@ defineExpose({ open, close })
         :closable="false"
         show-icon
       />
+
+      <section
+        v-if="snapshot.status === 'FAILED'"
+        class="terminal-failure"
+        data-test="terminal-failure"
+      >
+        <el-alert
+          :title="`${snapshot.attention_code || snapshot.current_step?.reason_code || 'FAILED'}：${snapshot.attention_detail || '请核对失败阶段与关联 Transport 任务'}`"
+          type="error"
+          :closable="false"
+          show-icon
+        />
+        <p>失败阶段：{{ snapshot.current_phase }}</p>
+      </section>
+
+      <section
+        class="step-progress"
+        data-test="run-step-progress"
+      >
+        <h3>整轮步骤进度</h3>
+        <ol>
+          <li
+            v-for="step in runSteps"
+            :key="step.ordinal"
+            class="step-card"
+          >
+            <header>
+              <span>步骤 {{ step.ordinal + 1 }}</span>
+              <strong>{{ PHASE_LABELS[step.phase] }}</strong>
+              <span :class="['step-status', `step-status--${step.status.toLowerCase()}`]">
+                {{ step.status }}
+              </span>
+            </header>
+            <p>
+              对象：
+              <strong v-if="step.phase.startsWith('RACK_') || step.phase === 'ROTATE_TO_NEXT_FACE'">
+                货架 {{ snapshot.rack_id }}
+              </strong>
+              <strong v-else>
+                料箱
+                {{
+                  stepGroup(step)
+                    ?.bins.map(bin => bin.bin_id)
+                    .join(' / ') || '无'
+                }}
+              </strong>
+            </p>
+            <p v-if="showsStepGroup(step)">
+              货架面：
+              <code>{{ stepGroup(step)?.face }}</code>
+              · 槽位：{{
+                stepGroup(step)
+                  ?.bins.map(bin => bin.slot_id)
+                  .join(' / ')
+              }}
+            </p>
+            <p v-if="step.phase === 'WAIT_SCAN12'">
+              已扫描：{{ step.observed_bin_ids.join(' / ') || '无' }} · 待扫描：{{
+                stepPendingBins(step).join(' / ') || '无'
+              }}
+            </p>
+            <p v-if="step.reason_code">原因：{{ step.reason_code }}</p>
+            <AppButton
+              v-if="props.canReadTask && step.transport_task_id"
+              @click="emit('selectTask', step.transport_task_id)"
+            >
+              查询任务记录 {{ step.transport_task_id }}
+            </AppButton>
+          </li>
+        </ol>
+      </section>
 
       <section class="progress-panel">
         <h3>冻结配置与当前 Evidence</h3>
@@ -241,7 +327,7 @@ defineExpose({ open, close })
     </section>
 
     <section
-      v-else
+      v-if="!observing"
       class="run-config"
       data-test="run-config"
     >
@@ -251,46 +337,13 @@ defineExpose({ open, close })
         type="info"
         :closable="false"
       />
-      <section
-        v-if="snapshot?.status === 'FAILED'"
-        class="terminal-failure"
-        data-test="terminal-failure"
-      >
-        <el-alert
-          :title="`${snapshot.attention_code || snapshot.current_step?.reason_code || 'FAILED'}：${snapshot.attention_detail || '请核对失败阶段与关联 Transport 任务'}`"
-          type="error"
-          :closable="false"
-          show-icon
-        />
-        <p>失败阶段：{{ snapshot.current_phase }}</p>
-        <AppButton
-          v-if="props.canReadTask && snapshot.current_step?.transport_task_id"
-          @click="emit('selectTask', snapshot.current_step.transport_task_id)"
-        >
-          查看任务 {{ snapshot.current_step.transport_task_id }}
-        </AppButton>
-      </section>
       <div class="config-toolbar">
-        <el-select
-          :model-value="config.selectedRackId.value"
-          filterable
-          placeholder="选择当前已挂载料箱的货架"
-          aria-label="自动联调货架"
-          @change="config.selectRack"
-        >
-          <el-option
-            v-for="rackId in config.rackIds.value"
-            :key="rackId"
-            :label="rackId"
-            :value="rackId"
-          />
-        </el-select>
-        <AppButton
-          :disabled="!config.selectedRackId.value"
-          @click="addGroup"
-        >
-          新增货架面
-        </AppButton>
+        <el-input
+          v-model="config.rackId.value"
+          placeholder="按现场实际输入货架编码，例如 510056"
+          aria-label="自动联调货架编码"
+        />
+        <AppButton @click="addGroup">新增货架面</AppButton>
       </div>
 
       <article
@@ -307,24 +360,34 @@ defineExpose({ open, close })
           :placeholder="FACE_PLACEHOLDER"
           aria-label="货架面原始值"
         />
-        <el-select
-          v-model="group.bins"
-          multiple
-          value-key="bin_code"
-          placeholder="选择本面 1～4 个料箱"
-          aria-label="货架面料箱"
+        <div
+          v-for="(bin, binIndex) in group.bins"
+          :key="binIndex"
+          class="bin-row"
         >
-          <el-option
-            v-for="bin in config.rackBins.value"
-            :key="bin.bin_code"
-            :label="`${bin.bin_code} · ${bin.rack_slot_code}`"
-            :value="bin"
-            :disabled="
-              binDisabled(groupIndex, bin.bin_code) ||
-              (group.bins.length >= 4 && !group.bins.some(item => item.bin_code === bin.bin_code))
-            "
+          <el-input
+            v-model="bin.bin_id"
+            placeholder="料箱编码，例如 A000001922"
+            aria-label="料箱编码"
           />
-        </el-select>
+          <el-input
+            v-model="bin.slot_id"
+            placeholder="原货架槽位，例如 510056A3F2C101"
+            aria-label="原货架槽位"
+          />
+          <AppButton
+            :disabled="group.bins.length <= 1"
+            @click="removeBin(groupIndex, binIndex)"
+          >
+            删除料箱
+          </AppButton>
+        </div>
+        <AppButton
+          :disabled="group.bins.length >= 4"
+          @click="addBin(groupIndex)"
+        >
+          新增料箱
+        </AppButton>
       </article>
 
       <p
@@ -369,6 +432,7 @@ defineExpose({ open, close })
 .run-config,
 .run-observer,
 .progress-panel,
+.step-progress,
 .abort-panel {
   display: grid;
   gap: 16px;
@@ -384,18 +448,66 @@ defineExpose({ open, close })
   justify-content: space-between;
 }
 
-.config-toolbar :deep(.el-select),
-.face-group :deep(.el-select) {
+.config-toolbar :deep(.el-input) {
   width: 100%;
+}
+
+.bin-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
 }
 
 .face-group,
 .progress-panel,
+.step-progress,
 .abort-panel {
   padding: 16px;
   border: 1px solid var(--el-border-color);
   border-radius: 8px;
   background: var(--el-fill-color-light);
+}
+
+.step-progress ol {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.step-card {
+  padding: 12px;
+  border: 1px solid var(--el-border-color);
+  border-left: 4px solid var(--el-border-color-darker);
+  border-radius: 6px;
+  background: var(--el-bg-color);
+}
+
+.step-card header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.step-card p {
+  margin: 8px 0 0;
+}
+
+.step-status {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+}
+
+.step-status--succeeded {
+  color: var(--el-color-success);
+}
+
+.step-status--failed,
+.step-status--needs_attention {
+  color: var(--el-color-danger);
 }
 
 .face-group {

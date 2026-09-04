@@ -19,6 +19,7 @@ export const TransportDebugRunResponseMetadata = {
     "current_group_index",
     "current_phase",
     "current_step",
+    "steps",
     "observed_bin_ids",
     "attention_code",
     "attention_detail",
@@ -139,6 +140,15 @@ export const TransportDebugRunResponseMetadata = {
         "ABORTED"
       ],
       "ref": "TransportDebugRunStatus"
+    },
+    "steps": {
+      "title": "Steps",
+      "type": "array",
+      "required": true,
+      "nullable": false,
+      "items": {
+        "ref": "TransportDebugRunStepResponse"
+      }
     },
     "updated_at": {
       "title": "Updated At",

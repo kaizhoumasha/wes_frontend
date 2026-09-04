@@ -209,6 +209,19 @@ describe('TransportDiagnosticsPage', () => {
     await vi.waitFor(() => expect(runDialogMocks.close).toHaveBeenCalledOnce())
   })
 
+  it('keeps the automatic run dialog open when a historical task no longer exists', async () => {
+    diagnosticsMocks.selectTask.mockRejectedValueOnce(new Error('TransportTask not found'))
+    const wrapper = mountPage()
+
+    wrapper.findComponent(TransportDebugRunDialogStub).vm.$emit('select-task', 'transport-deleted')
+
+    await vi.waitFor(() =>
+      expect(diagnosticsMocks.selectTask).toHaveBeenCalledWith('transport-deleted')
+    )
+    await vi.waitFor(() => expect(wrapper.html()).toContain('TransportTask not found'))
+    expect(runDialogMocks.close).not.toHaveBeenCalled()
+  })
+
   it('loads durable tasks, connects live notifications and refreshes the related task', async () => {
     mountPage()
 
@@ -258,9 +271,9 @@ describe('TransportDiagnosticsPage', () => {
 
     const wrapper = mountPage()
 
-    expect(
-      wrapper.findAll('button').some(button => button.text().includes('清理联调任务'))
-    ).toBe(false)
+    expect(wrapper.findAll('button').some(button => button.text().includes('清理联调任务'))).toBe(
+      false
+    )
   })
 
   it('does not preview a reset without a selected task', async () => {

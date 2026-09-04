@@ -1,4 +1,4 @@
-/** @openapi-sha256 2076e4cb1fa7d3f3663f0ccb6889fa112d3f8e68a2a3263c9ecdeb3f273d7191 */
+/** @openapi-sha256 11b8d6bc9a1b1a39e64161969bea2225fd7bfb803c8521d663de3672cfe2bc88 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -5613,6 +5613,8 @@ export interface components {
             /** Run Id */
             run_id: string;
             status: components["schemas"]["TransportDebugRunStatus"];
+            /** Steps */
+            steps: components["schemas"]["TransportDebugRunStepResponse"][];
             /** Updated At */
             updated_at: string;
             /** Version */
@@ -10161,7 +10163,7 @@ export interface operations {
                     "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
                 };
             };
-            /** @description 已有活动轮次或选择事实冲突 */
+            /** @description 已有活动轮次或并发状态冲突 */
             409: {
                 headers: {
                     [name: string]: unknown;

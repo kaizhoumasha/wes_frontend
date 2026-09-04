@@ -1,4 +1,4 @@
-/** @openapi-sha256 2076e4cb1fa7d3f3663f0ccb6889fa112d3f8e68a2a3263c9ecdeb3f273d7191 */
+/** @openapi-sha256 11b8d6bc9a1b1a39e64161969bea2225fd7bfb803c8521d663de3672cfe2bc88 */
 /**
  * Zod Validation Schemas
  *
@@ -2572,6 +2572,8 @@ export const TransportDebugRunResponseSchema = z.object({
   /** Run Id */
   run_id: z.string(),
   status: z.lazy(() => TransportDebugRunStatusSchema),
+  /** Steps */
+  steps: z.array(z.lazy(() => TransportDebugRunStepResponseSchema)),
   /** Updated At */
   updated_at: z.string(),
   /** Version */
