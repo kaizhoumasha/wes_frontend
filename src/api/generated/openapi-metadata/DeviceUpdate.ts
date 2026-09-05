@@ -92,12 +92,6 @@ export const DeviceUpdateMetadata = {
       "type": "integer",
       "required": true,
       "nullable": false
-    },
-    "work_line_id": {
-      "title": "Work Line Id",
-      "type": "integer",
-      "required": false,
-      "nullable": true
     }
   }
 } satisfies OpenApiSchemaMetadata

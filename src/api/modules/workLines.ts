@@ -37,12 +37,15 @@ export type WorkLinesItem = EnsureEntityId<CrudItem<typeof WORK_LINES_COLLECTION
 export type CreateWorkLinesInput = CrudCreateInput<typeof WORK_LINES_COLLECTION_PATH>
 export type UpdateWorkLinesInput = CrudUpdateInput<typeof WORK_LINES_COLLECTION_PATH>
 
-export type ActivateResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/activate', 'post'>
-export type ActivatePathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/activate', 'post'>
-export type ActivateInput = ContractRequestBody<'/api/v1/workline/work_lines/{id}/activate', 'post'>
-
 export type ActiveObjectsResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/active-objects', 'get'>
 export type ActiveObjectsPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/active-objects', 'get'>
+
+export type AvailablePluginsResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/available-plugins', 'get'>
+export type AvailablePluginsPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/available-plugins', 'get'>
+
+export type ConfigurationResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/configuration', 'put'>
+export type ConfigurationPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/configuration', 'put'>
+export type ConfigurationInput = ContractRequestBody<'/api/v1/workline/work_lines/{id}/configuration', 'put'>
 
 export type ConfigurationStatusResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/configuration-status', 'get'>
 export type ConfigurationStatusPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/configuration-status', 'get'>
@@ -74,16 +77,6 @@ export const workLinesApiMethods = {
   ...baseWorkLinesApiMethods,
 
   /**
-   * [biz:workline:activate] 启用作业线
-   * @description 通过配置预检后启用 WorkLine。
-   * @endpoint POST /api/v1/workline/work_lines/{id}/activate
-   * @returns alova method instance
-   */
-  activate(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/activate', 'post'>, body: ContractRequestBody<'/api/v1/workline/work_lines/{id}/activate', 'post'>, config?: ContractRequestConfig) {
-    return contractMethods.post('/api/v1/workline/work_lines/{id}/activate', { params, body, config })
-  },
-
-  /**
    * [biz:workline:active-objects] 查询作业线当前 active objects
    * @description 读取 WorklineActiveObjects；API 层不直接访问 repository。
    * @endpoint GET /api/v1/workline/work_lines/{id}/active-objects
@@ -91,6 +84,25 @@ export const workLinesApiMethods = {
    */
   activeObjects(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/active-objects', 'get'>, config?: ContractRequestConfig) {
     return contractMethods.get('/api/v1/workline/work_lines/{id}/active-objects', { params, config })
+  },
+
+  /**
+   * [biz:workline:available-plugins] 查询可装配业务插件
+   * @endpoint GET /api/v1/workline/work_lines/{id}/available-plugins
+   * @returns alova method instance
+   */
+  availablePlugins(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/available-plugins', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/work_lines/{id}/available-plugins', { params, config })
+  },
+
+  /**
+   * [biz:workline:configure] 保存业务插件配置与设备全集
+   * @description 在一个事务中替换插件配置和 Device 归属。
+   * @endpoint PUT /api/v1/workline/work_lines/{id}/configuration
+   * @returns alova method instance
+   */
+  configuration(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/configuration', 'put'>, body: ContractRequestBody<'/api/v1/workline/work_lines/{id}/configuration', 'put'>, config?: ContractRequestConfig) {
+    return contractMethods.put('/api/v1/workline/work_lines/{id}/configuration', { params, body, config })
   },
 
   /**

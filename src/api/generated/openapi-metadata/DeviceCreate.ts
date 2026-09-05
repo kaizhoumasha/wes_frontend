@@ -28,7 +28,6 @@ export const DeviceCreateMetadata = {
     },
     "device_code": {
       "title": "Device Code",
-      "description": "独立命令资源编码",
       "type": "string",
       "required": true,
       "nullable": false,
@@ -37,7 +36,6 @@ export const DeviceCreateMetadata = {
     },
     "device_name": {
       "title": "Device Name",
-      "description": "设备名称",
       "type": "string",
       "required": true,
       "nullable": false,
@@ -46,7 +44,6 @@ export const DeviceCreateMetadata = {
     },
     "device_role": {
       "title": "Device Role",
-      "description": "物理拓扑角色",
       "type": "string",
       "required": true,
       "nullable": false,
@@ -68,7 +65,6 @@ export const DeviceCreateMetadata = {
     },
     "is_active": {
       "title": "Is Active",
-      "description": "是否允许进入新运行代际",
       "type": "boolean",
       "required": false,
       "nullable": false,
@@ -91,12 +87,6 @@ export const DeviceCreateMetadata = {
     },
     "upstream_device_id": {
       "title": "Upstream Device Id",
-      "type": "integer",
-      "required": false,
-      "nullable": true
-    },
-    "work_line_id": {
-      "title": "Work Line Id",
       "type": "integer",
       "required": false,
       "nullable": true

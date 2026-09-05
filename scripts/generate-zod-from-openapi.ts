@@ -87,13 +87,17 @@ function writeFileIfChanged(path: string, content: string): boolean {
 
 // ==================== 工具函数 ====================
 
-function formatLiteral(value: unknown): string {
+export function formatLiteral(value: unknown): string {
   if (typeof value === 'string') {
     return JSON.stringify(value)
   }
 
   if (value === null) {
     return 'null'
+  }
+
+  if (typeof value === 'object') {
+    return JSON.stringify(value)
   }
 
   return String(value)

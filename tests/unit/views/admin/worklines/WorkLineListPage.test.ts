@@ -20,14 +20,14 @@ describe('WorkLine static master-data page', () => {
     expect(config.detail?.actions ?? []).toEqual([])
   })
 
-  it('exposes resource-local configuration and START actions only', () => {
+  it('exposes business plugin configuration and START actions only', () => {
     const openConfig = vi.fn()
     const openStart = vi.fn()
     const config = createWorkLinePageConfig(openConfig, openStart)
     const actions = config.extensions?.rowActions ?? []
 
-    expect(actions.map(action => action.key)).toEqual(['rough-sorter-config', 'workline-start'])
-    expect(actions[0]?.permission).toBe(BIZ_PERMISSIONS.workline.detail)
+    expect(actions.map(action => action.key)).toEqual(['workline-configuration', 'workline-start'])
+    expect(actions[0]?.permission).toBe(BIZ_PERMISSIONS.workline.configurationStatus)
     expect(actions[1]?.permission).toBe(BIZ_PERMISSIONS.workline.start)
     const showStart = actions[1]?.show
     expect(typeof showStart).toBe('function')

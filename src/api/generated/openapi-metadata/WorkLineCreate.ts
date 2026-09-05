@@ -19,13 +19,6 @@ export const WorkLineCreateMetadata = {
   ],
   "additionalProperties": false,
   "fields": {
-    "config": {
-      "title": "Config",
-      "description": "工作线通用配置",
-      "type": "object",
-      "required": false,
-      "nullable": false
-    },
     "description": {
       "title": "Description",
       "description": "作业线描述",

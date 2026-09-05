@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.3.0] - 2026-09-05
+
+### Added
+
+- 工作线管理新增通用“业务装配”弹窗，展示运行状态、可用插件、完整设备集合及插件专属配置。
+- 新增显式前端插件表单目录；当前提供 `rough_sorter` 配置表单，部署插件缺少对应表单时禁止保存。
+
+### Changed
+
+- 活动工作线配置保持只读；管理员停用空闲工作线后可更换业务插件和设备组合，并直接查看后端返回的阻塞原因。
+- 设备新增和编辑表单不再修改 `work_line_id`，列表与详情继续只读展示工作线归属，使 WorkLine 成为唯一装配入口。
+- 同步工作线装配 OpenAPI、权限、类型和 Zod 生成物，并修复数组默认值生成。
+
+### Verification
+
+- 100 个 Vitest 测试文件、689 个测试通过；typecheck、ESLint、Prettier、Stylelint、生产构建、契约与权限校验通过。
+- 浏览器 QA 覆盖装配弹窗、设备选择、插件兼容提示、只读状态和滚动布局，控制台无错误。
+
 ## [0.13.2.0] - 2026-09-04
 
 ### Added

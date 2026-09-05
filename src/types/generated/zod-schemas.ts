@@ -1,4 +1,4 @@
-/** @openapi-sha256 11b8d6bc9a1b1a39e64161969bea2225fd7bfb803c8521d663de3672cfe2bc88 */
+/** @openapi-sha256 3655f028b293d77f79e429513cf9e713435712a23669da940b51f92a91733d01 */
 /**
  * Zod Validation Schemas
  *
@@ -841,8 +841,6 @@ export const DeviceCreateSchema = z.object({
   sort_order: z.number().optional().default(0),
   /** Upstream Device Id */
   upstream_device_id: z.union([z.number(), z.null()]).optional(),
-  /** Work Line Id */
-  work_line_id: z.union([z.number(), z.null()]).optional(),
 })
 
 
@@ -914,8 +912,6 @@ export const DeviceUpdateSchema = z.object({
   upstream_device_id: z.union([z.number(), z.null()]).optional(),
   /** Version */
   version: z.number(),
-  /** Work Line Id */
-  work_line_id: z.union([z.number(), z.null()]).optional(),
 })
 
 
@@ -2930,6 +2926,32 @@ export const WorkLineConfigurationCheckSchema = z.object({
 
 
 /**
+ * 业务插件配置全集保存结果。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const WorkLineConfigurationResponseSchema = z.object({
+  /** Config */
+  config: z.record(z.any()),
+  /** Device Codes */
+  device_codes: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())),
+  /** Plugin Key */
+  plugin_key: z.union([z.string(), z.null()]),
+  /** Version */
+  version: z.number(),
+  /** Workline Id */
+  workline_id: z.number(),
+})
+
+
+/**
  * 作业线配置状态响应。
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -2948,14 +2970,36 @@ export const WorkLineConfigurationStatusSchema = z.object({
 
 
 /**
+ * 停用 WorkLine 的插件配置与设备全集替换请求。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const WorkLineConfigurationUpdateSchema = z.object({
+  /** Config */
+  config: z.record(z.any()).optional(),
+  /** Device Codes */
+  device_codes: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())).optional(),
+  /** Plugin Key */
+  plugin_key: z.union([z.string().min(1).max(100), z.null()]).optional(),
+  /** Version */
+  version: z.number(),
+})
+
+
+/**
  * 作业线创建 Schema。
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const WorkLineCreateSchema = z.object({
-  /** Config */
-  config: z.record(z.any()).optional(),
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
   /** Diagnostic Profile */
@@ -2972,6 +3016,34 @@ export const WorkLineCreateSchema = z.object({
   runtime_config_json: z.record(z.any()).optional(),
   /** Zone Name */
   zone_name: z.union([z.string().max(100), z.null()]).optional(),
+})
+
+
+/**
+ * 部署清单中的业务插件及当前 WorkLine 兼容性。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const WorkLinePluginSummarySchema = z.object({
+  /** Compatible */
+  compatible: z.boolean(),
+  /** Display Name */
+  display_name: z.string(),
+  /** Incompatibility Reasons */
+  incompatibility_reasons: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())).optional().default([]),
+  /** Plugin Key */
+  plugin_key: z.string(),
+  /** Plugin Version */
+  plugin_version: z.string(),
+  /** Supported Line Types */
+  supported_line_types: z.array(z.lazy(() => LineTypeSchema)),
 })
 
 
@@ -2998,6 +3070,8 @@ export const WorkLineResponseSchema = z.object({
   line_name: z.string().min(1).max(100),
   /** 作业线类型 */
   line_type: z.lazy(() => LineTypeSchema),
+  /** Plugin Key */
+  plugin_key: z.union([z.string().min(1).max(100), z.null()]).optional(),
   /** 工作线运行模式 */
   run_mode: z.lazy(() => WorkLineRunModeSchema).optional().default("AUTO"),
   /** Runtime Config Json */
@@ -3093,8 +3167,6 @@ export const WorkLineStateTransitionRequestSchema = z.object({
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const WorkLineUpdateSchema = z.object({
-  /** Config */
-  config: z.union([z.record(z.any()), z.null()]).optional(),
   /** Description */
   description: z.union([z.string().max(500), z.null()]).optional(),
   /** Diagnostic Profile */

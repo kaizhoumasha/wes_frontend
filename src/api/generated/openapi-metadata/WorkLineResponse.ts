@@ -23,7 +23,7 @@ export const WorkLineResponseMetadata = {
   "fields": {
     "config": {
       "title": "Config",
-      "description": "工作线通用配置",
+      "description": "当前业务插件配置",
       "type": "object",
       "required": false,
       "nullable": false
@@ -83,6 +83,15 @@ export const WorkLineResponseMetadata = {
         "HYBRID"
       ],
       "ref": "LineType"
+    },
+    "plugin_key": {
+      "title": "Plugin Key",
+      "description": "业务插件标识",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "minLength": 1,
+      "maxLength": 100
     },
     "run_mode": {
       "description": "工作线运行模式",

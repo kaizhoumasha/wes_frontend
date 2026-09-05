@@ -62,15 +62,21 @@ function walkTypeScriptFiles(root: string): string[] {
   })
 }
 
-function assertCurrentDtoContracts(schemas: Record<string, unknown>): void {
-  for (const schemaName of ['WorkLineCreate', 'WorkLineResponse', 'WorkLineUpdate']) {
+export function assertCurrentDtoContracts(schemas: Record<string, unknown>): void {
+  for (const schemaName of ['WorkLineCreate', 'WorkLineUpdate']) {
     assertFields(
       schemaName,
       requireSchemaProperties(schemas, schemaName),
       ['runtime_config_json', 'diagnostic_profile'],
-      ['plugin_key', 'contract_version']
+      ['plugin_key', 'config', 'contract_version']
     )
   }
+  assertFields(
+    'WorkLineResponse',
+    requireSchemaProperties(schemas, 'WorkLineResponse'),
+    ['runtime_config_json', 'diagnostic_profile', 'plugin_key', 'config'],
+    ['contract_version']
+  )
 
   const retiredDeviceFields = [
     'auth_token',
@@ -89,20 +95,30 @@ function assertCurrentDtoContracts(schemas: Record<string, unknown>): void {
     'timeout',
     'vendor_type'
   ]
-  for (const schemaName of ['DeviceCreate', 'DeviceResponse', 'DeviceUpdate']) {
+  for (const schemaName of ['DeviceCreate', 'DeviceUpdate']) {
     assertFields(
       schemaName,
       requireSchemaProperties(schemas, schemaName),
-      ['device_role', 'role_index', 'upstream_device_id', 'work_line_id', 'diagnostic_profile'],
-      retiredDeviceFields
+      ['device_role', 'role_index', 'upstream_device_id', 'diagnostic_profile'],
+      [...retiredDeviceFields, 'work_line_id']
     )
   }
+  assertFields(
+    'DeviceResponse',
+    requireSchemaProperties(schemas, 'DeviceResponse'),
+    ['device_role', 'role_index', 'upstream_device_id', 'work_line_id', 'diagnostic_profile'],
+    retiredDeviceFields
+  )
 }
 
 export function assertCurrentPaths(paths: Record<string, unknown>): void {
   for (const path of [
     '/api/v1/workline/work_lines/{id}/plane/scene',
     '/api/v1/workline/work_lines/{id}/plane/snapshot',
+    '/api/v1/workline/work_lines/{id}/available-plugins',
+    '/api/v1/workline/work_lines/{id}/configuration-status',
+    '/api/v1/workline/work_lines/{id}/configuration',
+    '/api/v1/workline/work_lines/{id}/deactivate',
     '/api/v1/wms/events',
     '/api/v1/callback/event',
     '/api/v1/callback/result'
@@ -136,10 +152,7 @@ export function assertNoSystemOwnedPathsInModules(
   }
 }
 
-function assertGeneratedArtifacts(
-  openApiSha256: string,
-  paths: Record<string, unknown>
-): void {
+function assertGeneratedArtifacts(openApiSha256: string, paths: Record<string, unknown>): void {
   const openApiTypesPath = resolve(FRONTEND_ROOT, 'src/api/generated/openapi-types.ts')
   const zodPath = resolve(FRONTEND_ROOT, 'src/types/generated/zod-schemas.ts')
   for (const filePath of [openApiTypesPath, zodPath]) {

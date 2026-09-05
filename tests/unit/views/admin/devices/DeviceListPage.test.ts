@@ -69,10 +69,11 @@ describe('Device static master-data page', () => {
     expect(config.detail?.actions ?? []).toEqual([])
   })
 
-  it('publishes writable topology fields in the actual form config', () => {
+  it('keeps WorkLine ownership out of the device edit form', () => {
     const formFieldKeys = devicePageFieldConfig.form.fieldConfig.map(field => field.key)
 
-    expect(formFieldKeys).toEqual(expect.arrayContaining(['work_line_id', 'upstream_device_id']))
+    expect(formFieldKeys).toContain('upstream_device_id')
+    expect(formFieldKeys).not.toContain('work_line_id')
   })
 
   it('publishes the optional Device Endpoint in form and detail metadata', () => {
@@ -83,6 +84,18 @@ describe('Device static master-data page', () => {
     expect(DEVICE_FIELDS.map(field => field.key)).toContain('endpoint_base_url')
     expect(formKeys).toContain('endpoint_base_url')
     expect(detailKeys).toContain('endpoint_base_url')
+  })
+
+  it('shows WorkLine ownership as read-only device information', () => {
+    const ownership = devicePageFieldConfig.table.defaultColumns.find(
+      field => field.key === 'work_line_id'
+    )
+    const createOwnership = devicePageFieldConfig.form.fieldConfig.find(
+      field => field.key === 'work_line_id'
+    )
+
+    expect(ownership).toBeDefined()
+    expect(createOwnership).toBeUndefined()
   })
 
   it('normalizes a cleared Endpoint to null before Device create or update', () => {
@@ -111,7 +124,6 @@ describe('Device static master-data page', () => {
       is_active: true,
       sort_order: 0,
       role_index: 1,
-      work_line_id: null,
       upstream_device_id: null,
       description: null,
     })
@@ -126,7 +138,6 @@ describe('Device static master-data page', () => {
   it('preserves nullable topology fields when building edit values', () => {
     const values = buildFormValuesFromData({
       data: {
-        work_line_id: null,
         upstream_device_id: null,
         description: null,
       },
@@ -138,12 +149,10 @@ describe('Device static master-data page', () => {
     })
 
     expect(values).toMatchObject({
-      work_line_id: null,
       upstream_device_id: null,
       description: null,
     })
     expect(DeviceUpdateSchema.safeParse({
-      work_line_id: values.work_line_id,
       upstream_device_id: values.upstream_device_id,
       description: values.description,
       version: 1,
