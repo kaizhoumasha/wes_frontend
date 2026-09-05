@@ -2494,21 +2494,18 @@
             "title": "Description"
           },
           "device_code": {
-            "description": "独立命令资源编码",
             "maxLength": 100,
             "minLength": 1,
             "title": "Device Code",
             "type": "string"
           },
           "device_name": {
-            "description": "设备名称",
             "maxLength": 100,
             "minLength": 1,
             "title": "Device Name",
             "type": "string"
           },
           "device_role": {
-            "description": "物理拓扑角色",
             "maxLength": 50,
             "minLength": 1,
             "title": "Device Role",
@@ -2533,7 +2530,6 @@
           },
           "is_active": {
             "default": true,
-            "description": "是否允许进入新运行代际",
             "title": "Is Active",
             "type": "boolean"
           },
@@ -2558,17 +2554,6 @@
               }
             ],
             "title": "Upstream Device Id"
-          },
-          "work_line_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Work Line Id"
           }
         },
         "required": [
@@ -2826,17 +2811,6 @@
             "description": "乐观锁版本号，更新时必传",
             "title": "Version",
             "type": "integer"
-          },
-          "work_line_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Work Line Id"
           }
         },
         "required": [
@@ -9264,6 +9238,51 @@
         "title": "ResponseSchemaModel[UserSimpleResponse]",
         "type": "object"
       },
+      "ResponseSchemaModel_WorkLineConfigurationResponse_": {
+        "properties": {
+          "code": {
+            "default": "1000",
+            "description": "响应码",
+            "examples": [
+              "1000",
+              "2000"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkLineConfigurationResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "message": {
+            "default": "操作成功",
+            "description": "响应消息",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ],
+            "title": "Message",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ],
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "title": "ResponseSchemaModel[WorkLineConfigurationResponse]",
+        "type": "object"
+      },
       "ResponseSchemaModel_WorkLineConfigurationStatus_": {
         "properties": {
           "code": {
@@ -9728,6 +9747,55 @@
           }
         },
         "title": "ResponseSchemaModel[list[PermissionTree]]",
+        "type": "object"
+      },
+      "ResponseSchemaModel_list_WorkLinePluginSummary__": {
+        "properties": {
+          "code": {
+            "default": "1000",
+            "description": "响应码",
+            "examples": [
+              "1000",
+              "2000"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/WorkLinePluginSummary"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据",
+            "title": "Data"
+          },
+          "message": {
+            "default": "操作成功",
+            "description": "响应消息",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ],
+            "title": "Message",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ],
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "title": "ResponseSchemaModel[list[WorkLinePluginSummary]]",
         "type": "object"
       },
       "RevokeSessionResponse": {
@@ -11327,6 +11395,51 @@
         "title": "WorkLineConfigurationCheck",
         "type": "object"
       },
+      "WorkLineConfigurationResponse": {
+        "description": "业务插件配置全集保存结果。",
+        "properties": {
+          "config": {
+            "additionalProperties": true,
+            "title": "Config",
+            "type": "object"
+          },
+          "device_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Device Codes",
+            "type": "array"
+          },
+          "plugin_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plugin Key"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "workline_id": {
+            "title": "Workline Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "workline_id",
+          "version",
+          "plugin_key",
+          "config",
+          "device_codes"
+        ],
+        "title": "WorkLineConfigurationResponse",
+        "type": "object"
+      },
       "WorkLineConfigurationStatus": {
         "description": "作业线配置状态响应。",
         "properties": {
@@ -11362,16 +11475,53 @@
         "title": "WorkLineConfigurationStatus",
         "type": "object"
       },
+      "WorkLineConfigurationUpdate": {
+        "description": "停用 WorkLine 的插件配置与设备全集替换请求。",
+        "properties": {
+          "config": {
+            "additionalProperties": true,
+            "description": "当前业务插件配置",
+            "title": "Config",
+            "type": "object"
+          },
+          "device_codes": {
+            "description": "目标工作线设备编码全集",
+            "items": {
+              "type": "string"
+            },
+            "title": "Device Codes",
+            "type": "array"
+          },
+          "plugin_key": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "业务插件标识",
+            "title": "Plugin Key"
+          },
+          "version": {
+            "description": "WorkLine 乐观锁版本号",
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "title": "WorkLineConfigurationUpdate",
+        "type": "object"
+      },
       "WorkLineCreate": {
         "additionalProperties": false,
         "description": "作业线创建 Schema。",
         "properties": {
-          "config": {
-            "additionalProperties": true,
-            "description": "工作线通用配置",
-            "title": "Config",
-            "type": "object"
-          },
           "description": {
             "anyOf": [
               {
@@ -11442,12 +11592,57 @@
         "title": "WorkLineCreate",
         "type": "object"
       },
+      "WorkLinePluginSummary": {
+        "description": "部署清单中的业务插件及当前 WorkLine 兼容性。",
+        "properties": {
+          "compatible": {
+            "title": "Compatible",
+            "type": "boolean"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "incompatibility_reasons": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Incompatibility Reasons",
+            "type": "array"
+          },
+          "plugin_key": {
+            "title": "Plugin Key",
+            "type": "string"
+          },
+          "plugin_version": {
+            "title": "Plugin Version",
+            "type": "string"
+          },
+          "supported_line_types": {
+            "items": {
+              "$ref": "#/components/schemas/LineType"
+            },
+            "title": "Supported Line Types",
+            "type": "array"
+          }
+        },
+        "required": [
+          "plugin_key",
+          "plugin_version",
+          "display_name",
+          "supported_line_types",
+          "compatible"
+        ],
+        "title": "WorkLinePluginSummary",
+        "type": "object"
+      },
       "WorkLineResponse": {
         "description": "作业线响应 Schema。",
         "properties": {
           "config": {
             "additionalProperties": true,
-            "description": "工作线通用配置",
+            "description": "当前业务插件配置",
             "title": "Config",
             "type": "object"
           },
@@ -11495,6 +11690,20 @@
           "line_type": {
             "$ref": "#/components/schemas/LineType",
             "description": "作业线类型"
+          },
+          "plugin_key": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "业务插件标识",
+            "title": "Plugin Key"
           },
           "run_mode": {
             "$ref": "#/components/schemas/WorkLineRunMode",
@@ -11687,19 +11896,6 @@
         "additionalProperties": false,
         "description": "作业线更新 Schema。",
         "properties": {
-          "config": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "工作线通用配置",
-            "title": "Config"
-          },
           "description": {
             "anyOf": [
               {
@@ -20923,6 +21119,75 @@
                       "data"
                     ],
                     "type": "object"
+                  },
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "data": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "dispatch_sequence": {
+                            "maximum": 9223372036854776000,
+                            "minimum": 1,
+                            "type": "integer"
+                          },
+                          "not_before": {
+                            "description": "Unix 毫秒时间戳",
+                            "format": "int64",
+                            "maximum": 9223372036854776000,
+                            "minimum": 0,
+                            "type": "integer"
+                          },
+                          "queue_revision": {
+                            "maximum": 1,
+                            "minimum": 1,
+                            "type": "integer"
+                          },
+                          "task_id": {
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+                            "type": "string"
+                          },
+                          "task_type": {
+                            "enum": [
+                              "MANUAL",
+                              "AUTO"
+                            ],
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "task_id",
+                          "task_type",
+                          "queue_revision",
+                          "dispatch_sequence"
+                        ],
+                        "type": "object"
+                      },
+                      "operation": {
+                        "enum": [
+                          "outbound.picking_task.issued@v1"
+                        ],
+                        "type": "string"
+                      },
+                      "operation_id": {
+                        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                        "type": "string"
+                      },
+                      "timestamp": {
+                        "description": "Unix 毫秒时间戳",
+                        "format": "int64",
+                        "maximum": 9223372036854776000,
+                        "minimum": 1,
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "operation_id",
+                      "operation",
+                      "timestamp",
+                      "data"
+                    ],
+                    "type": "object"
                   }
                 ]
               }
@@ -21864,64 +22129,6 @@
         ]
       }
     },
-    "/api/v1/workline/work_lines/{id}/activate": {
-      "post": {
-        "description": "通过配置预检后启用 WorkLine。",
-        "operationId": "workline_work_lines_by_id_activate_post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "title": "Id",
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/WorkLineStateTransitionRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_WorkLineResponse_"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "[biz:workline:activate] 启用作业线",
-        "tags": [
-          "作业线管理"
-        ]
-      }
-    },
     "/api/v1/workline/work_lines/{id}/active-objects": {
       "get": {
         "description": "读取 WorklineActiveObjects；API 层不直接访问 repository。",
@@ -21969,6 +22176,111 @@
         "summary": "[biz:workline:active-objects] 查询作业线当前 active objects",
         "tags": [
           "作业线运行视图"
+        ]
+      }
+    },
+    "/api/v1/workline/work_lines/{id}/available-plugins": {
+      "get": {
+        "operationId": "workline_work_lines_by_id_available_plugins_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "title": "Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_list_WorkLinePluginSummary__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[biz:workline:available-plugins] 查询可装配业务插件",
+        "tags": [
+          "作业线管理"
+        ]
+      }
+    },
+    "/api/v1/workline/work_lines/{id}/configuration": {
+      "put": {
+        "description": "在一个事务中替换插件配置和 Device 归属。",
+        "operationId": "workline_work_lines_by_id_configuration_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "title": "Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkLineConfigurationUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_WorkLineConfigurationResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[biz:workline:configure] 保存业务插件配置与设备全集",
+        "tags": [
+          "作业线管理"
         ]
       }
     },

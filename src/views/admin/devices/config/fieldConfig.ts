@@ -170,8 +170,9 @@ export const {
     },
     {
       key: 'work_line_id',
-      form: {
-        defaultValue: null
+      table: {
+        visibleFrom: 'tablet',
+        width: 100
       }
     },
     {

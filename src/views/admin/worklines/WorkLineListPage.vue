@@ -1,7 +1,7 @@
 <template>
   <CrudPageContainer :config="config">
     <template #extra-dialogs>
-      <RoughSorterConfigDialog
+      <WorkLineConfigurationDialog
         v-model="configDialogVisible"
         :workline="selectedWorkline"
       />
@@ -17,7 +17,7 @@
 import { ref } from 'vue'
 import type { WorkLinesItem as Workline } from '@/api/modules/workLines'
 import CrudPageContainer from '@/components/common/CrudPageContainer.vue'
-import RoughSorterConfigDialog from './components/RoughSorterConfigDialog.vue'
+import WorkLineConfigurationDialog from './components/WorkLineConfigurationDialog.vue'
 import WorkLineStartDialog from './components/WorkLineStartDialog.vue'
 import { createWorkLinePageConfig } from './config/pageConfig'
 

@@ -8,13 +8,13 @@ export function createWorkLineRowActions(
 ): CrudPageRowAction<Workline>[] {
   return [
     {
-      key: 'rough-sorter-config',
-      label: '粗分机配置',
-      tooltip: '查看或维护粗分机部署配置',
+      key: 'workline-configuration',
+      label: '业务装配',
+      tooltip: '选择业务插件并装配设备',
       icon: 'lucide:settings-2',
       type: 'primary',
       priority: 'secondary',
-      permission: BIZ_PERMISSIONS.workline.detail,
+      permission: BIZ_PERMISSIONS.workline.configurationStatus,
       onClick: openConfig
     },
     {

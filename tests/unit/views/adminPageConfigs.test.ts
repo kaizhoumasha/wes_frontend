@@ -23,7 +23,7 @@ describe('admin page field configuration', () => {
 
     expect(config.detail?.actions ?? []).toEqual([])
     expect(config.extensions?.rowActions?.map(action => action.key)).toEqual([
-      'rough-sorter-config',
+      'workline-configuration',
       'workline-start'
     ])
     expect(config.extensions?.toolbarActions ?? []).toEqual([])

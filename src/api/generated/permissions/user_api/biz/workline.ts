@@ -30,14 +30,16 @@ export const BIZ_WORKLINE_PERMISSION = {
   batchRestore: 'biz:workline:batch_restore',
   /** 批量永久删除权限 */
   batchPermanentDelete: 'biz:workline:batch_permanent_delete',
-  /** 启用作业线 */
-  activate: 'biz:workline:activate',
   /** 查询作业线当前 active objects */
   activeObjects: 'biz:workline:active-objects',
+  /** 查询可装配业务插件 */
+  availablePlugins: 'biz:workline:available-plugins',
   /** 人工确认 checklist 后清除工作线急停 */
   clearEstop: 'biz:workline:clear-estop',
   /** 查询作业线配置状态 */
   configurationStatus: 'biz:workline:configuration-status',
+  /** 保存业务插件配置与设备全集 */
+  configure: 'biz:workline:configure',
   /** 停用作业线 */
   deactivate: 'biz:workline:deactivate',
   /** 永久删除WorkLine */
