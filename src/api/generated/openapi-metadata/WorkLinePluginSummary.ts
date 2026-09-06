@@ -26,6 +26,16 @@ export const WorkLinePluginSummaryMetadata = {
       "required": true,
       "nullable": false
     },
+    "device_roles": {
+      "title": "Device Roles",
+      "type": "array",
+      "required": false,
+      "nullable": false,
+      "default": [],
+      "items": {
+        "ref": "WorkLineDeviceRole"
+      }
+    },
     "display_name": {
       "title": "Display Name",
       "type": "string",

@@ -14,8 +14,7 @@ export const DeviceCreateMetadata = {
   "description": "设备创建合同。",
   "required": [
     "device_code",
-    "device_name",
-    "device_role"
+    "device_name"
   ],
   "additionalProperties": false,
   "fields": {
@@ -42,14 +41,6 @@ export const DeviceCreateMetadata = {
       "minLength": 1,
       "maxLength": 100
     },
-    "device_role": {
-      "title": "Device Role",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 50
-    },
     "diagnostic_profile": {
       "title": "Diagnostic Profile",
       "type": "object",
@@ -69,14 +60,6 @@ export const DeviceCreateMetadata = {
       "required": false,
       "nullable": false,
       "default": true
-    },
-    "role_index": {
-      "title": "Role Index",
-      "type": "integer",
-      "required": false,
-      "nullable": false,
-      "default": 1,
-      "minimum": 1
     },
     "sort_order": {
       "title": "Sort Order",

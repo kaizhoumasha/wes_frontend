@@ -1,4 +1,4 @@
-/** @openapi-sha256 3655f028b293d77f79e429513cf9e713435712a23669da940b51f92a91733d01 */
+/** @openapi-sha256 cbe97671f62f080a0445f9d0fb43808cf98fc965a93e25e535dd52e4486f6f9a */
 /**
  * Zod Validation Schemas
  *
@@ -827,16 +827,12 @@ export const DeviceCreateSchema = z.object({
   device_code: z.string().min(1).max(100),
   /** Device Name */
   device_name: z.string().min(1).max(100),
-  /** Device Role */
-  device_role: z.string().min(1).max(50),
   /** Diagnostic Profile */
   diagnostic_profile: z.record(z.any()).optional(),
   /** Endpoint Base Url */
   endpoint_base_url: z.union([z.string().max(255), z.null()]).optional(),
   /** Is Active */
   is_active: z.boolean().optional().default(true),
-  /** Role Index */
-  role_index: z.number().min(1).optional().default(1),
   /** Sort Order */
   sort_order: z.number().optional().default(0),
   /** Upstream Device Id */
@@ -860,8 +856,6 @@ export const DeviceResponseSchema = z.object({
   device_code: z.string().min(1).max(100),
   /** Device Name */
   device_name: z.string().min(1).max(100),
-  /** Device Role */
-  device_role: z.string().min(1).max(50),
   /** Diagnostic Profile */
   diagnostic_profile: z.record(z.any()).optional(),
   /** Endpoint Base Url */
@@ -870,8 +864,6 @@ export const DeviceResponseSchema = z.object({
   id: z.number(),
   /** Is Active */
   is_active: z.boolean().optional().default(true),
-  /** Role Index */
-  role_index: z.number().min(1).optional().default(1),
   /** Sort Order */
   sort_order: z.number().optional().default(0),
   /** Upstream Device Id */
@@ -896,16 +888,12 @@ export const DeviceUpdateSchema = z.object({
   device_code: z.union([z.string().min(1).max(100), z.null()]).optional(),
   /** Device Name */
   device_name: z.union([z.string().min(1).max(100), z.null()]).optional(),
-  /** Device Role */
-  device_role: z.union([z.string().min(1).max(50), z.null()]).optional(),
   /** Diagnostic Profile */
   diagnostic_profile: z.union([z.record(z.any()), z.null()]).optional(),
   /** Endpoint Base Url */
   endpoint_base_url: z.union([z.string().max(255), z.null()]).optional(),
   /** Is Active */
   is_active: z.union([z.boolean(), z.null()]).optional(),
-  /** Role Index */
-  role_index: z.union([z.number().min(1), z.null()]).optional(),
   /** Sort Order */
   sort_order: z.union([z.number(), z.null()]).optional(),
   /** Upstream Device Id */
@@ -3020,6 +3008,20 @@ export const WorkLineCreateSchema = z.object({
 
 
 /**
+ * 插件声明的设备角色；前端仅展示名称并选择实体设备。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const WorkLineDeviceRoleSchema = z.object({
+  /** Display Name */
+  display_name: z.string().min(1).max(100),
+  /** Role Key */
+  role_key: z.string().min(1).max(100),
+})
+
+
+/**
  * 部署清单中的业务插件及当前 WorkLine 兼容性。
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -3028,6 +3030,8 @@ export const WorkLineCreateSchema = z.object({
 export const WorkLinePluginSummarySchema = z.object({
   /** Compatible */
   compatible: z.boolean(),
+  /** Device Roles */
+  device_roles: z.array(z.lazy(() => WorkLineDeviceRoleSchema)).optional().default([]),
   /** Display Name */
   display_name: z.string(),
   /** Incompatibility Reasons */

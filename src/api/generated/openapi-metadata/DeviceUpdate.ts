@@ -40,14 +40,6 @@ export const DeviceUpdateMetadata = {
       "minLength": 1,
       "maxLength": 100
     },
-    "device_role": {
-      "title": "Device Role",
-      "type": "string",
-      "required": false,
-      "nullable": true,
-      "minLength": 1,
-      "maxLength": 50
-    },
     "diagnostic_profile": {
       "title": "Diagnostic Profile",
       "type": "object",
@@ -66,13 +58,6 @@ export const DeviceUpdateMetadata = {
       "type": "boolean",
       "required": false,
       "nullable": true
-    },
-    "role_index": {
-      "title": "Role Index",
-      "type": "integer",
-      "required": false,
-      "nullable": true,
-      "minimum": 1
     },
     "sort_order": {
       "title": "Sort Order",

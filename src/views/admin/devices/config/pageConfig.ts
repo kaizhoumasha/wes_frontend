@@ -89,8 +89,6 @@ function createDeviceDetailConfig(): CrudPageDetailConfig<Device> {
         fields: [
           { key: 'device_code', layout: 'half' },
           { key: 'device_name', layout: 'half' },
-          { key: 'device_role', layout: 'half' },
-          { key: 'role_index', layout: 'half' },
           { key: 'is_active', layout: 'half' },
           { key: 'description', layout: 'full' }
         ]

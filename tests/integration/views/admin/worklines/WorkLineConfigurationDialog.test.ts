@@ -1,14 +1,11 @@
 /* eslint-disable vue/one-component-per-file */
-import { defineComponent, h, nextTick, type PropType } from 'vue'
+import { defineComponent, h, nextTick } from 'vue'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { DevicesItem } from '@/api/modules/devices'
 import type { WorkLinesItem as Workline } from '@/api/modules/workLines'
-import { workLinesApiMethods } from '@/api/modules/workLines'
 import { CRUD_PAGE_REFRESH_KEY } from '@/components/common/crud-page/types'
 import WorkLineConfigurationDialog from '@/views/admin/worklines/components/WorkLineConfigurationDialog.vue'
-import { createEmptyRoughSorterConfig } from '@/views/admin/worklines/config/roughSorterConfig'
-
 const mocks = vi.hoisted(() => ({
   hasPermission: vi.fn(),
   getById: vi.fn(),
@@ -110,44 +107,6 @@ const CheckboxStub = defineComponent({
   }
 })
 
-const InputStub = defineComponent({
-  name: 'ElInput',
-  inheritAttrs: false,
-  props: {
-    modelValue: { type: [String, Number] as PropType<string | number>, default: '' },
-    disabled: Boolean
-  },
-  emits: ['update:modelValue'],
-  setup(props, { attrs, emit }) {
-    return () =>
-      h('input', {
-        ...attrs,
-        value: props.modelValue,
-        disabled: props.disabled,
-        onInput: (event: Event) =>
-          emit('update:modelValue', (event.target as HTMLInputElement).value)
-      })
-  }
-})
-
-const InputNumberStub = defineComponent({
-  name: 'ElInputNumber',
-  inheritAttrs: false,
-  props: { modelValue: { type: Number, default: 0 }, disabled: Boolean },
-  emits: ['update:modelValue'],
-  setup(props, { attrs, emit }) {
-    return () =>
-      h('input', {
-        ...attrs,
-        type: 'number',
-        value: props.modelValue,
-        disabled: props.disabled,
-        onInput: (event: Event) =>
-          emit('update:modelValue', Number((event.target as HTMLInputElement).value))
-      })
-  }
-})
-
 const PassthroughStub = defineComponent({
   setup:
     (_, { slots }) =>
@@ -160,42 +119,17 @@ const AlertStub = defineComponent({
   setup: props => () => h('div', props.title)
 })
 
-function validRoughSorter() {
-  const config = createEmptyRoughSorterConfig()
-  for (const contract of Object.values(config.device_contracts)) {
-    Object.assign(contract, {
-      ecs_version: '1.0',
-      gateway_version: '1.0',
-      device_model: 'MODEL-A',
-      firmware_version: 'FW-1',
-      status_max_age_ms: 1000,
-      command_timeout_ms: 5000,
-      time_source: 'PLC',
-      allowed_clock_skew_ms: 500,
-      callback_retry_window_ms: 30000,
-      evidence_retention_days: 30
-    })
-  }
-  Object.assign(config.position_bindings, {
-    MEASUREMENT_POSITION: 'MEASURE-01',
-    PIPELINE_INLET: 'INLET-01',
-    PIPELINE_OUTLET: 'OUTLET-01',
-    NG_POSITION: 'NG-01'
-  })
-  return config
-}
-
 function workline(overrides: Partial<Workline> = {}): Workline {
   return {
     id: 11,
     line_code: 'LINE-11',
-    line_name: '一号粗分线',
+    line_name: '测试工作线',
     line_type: 'AUTO',
     run_mode: 'AUTO',
     is_active: false,
     version: 7,
-    plugin_key: 'rough_sorter',
-    config: { owner: 'WES', rough_sorter: validRoughSorter() },
+    plugin_key: 'fake',
+    config: { device_bindings: { ROLE_A: 'DEVICE-CURRENT' } },
     ...overrides
   }
 }
@@ -206,8 +140,6 @@ function device(id: number, code: string, workLineId: number | null): DevicesIte
     version: 1,
     device_code: code,
     device_name: code,
-    device_role: 'TRANSFER_DEVICE',
-    role_index: id,
     is_active: true,
     sort_order: id,
     work_line_id: workLineId
@@ -225,9 +157,13 @@ function configureLoad(latest: Workline): void {
       Promise.resolve(
         [
           {
-            plugin_key: 'rough_sorter',
+            plugin_key: 'fake',
             plugin_version: '1.0.0',
-            display_name: '粗分业务',
+            display_name: '测试业务',
+            device_roles: [
+              { role_key: 'ROLE_A', display_name: '角色甲' },
+              { role_key: 'ROLE_B', display_name: '角色乙' }
+            ],
             supported_line_types: ['AUTO', 'MANUAL', 'HYBRID'],
             compatible: true,
             incompatibility_reasons: []
@@ -237,6 +173,7 @@ function configureLoad(latest: Workline): void {
                 plugin_key: 'future_plugin',
                 plugin_version: '1.0.0',
                 display_name: '未来业务',
+                device_roles: [{ role_key: 'FUTURE_ROLE', display_name: '未来角色' }],
                 supported_line_types: ['AUTO'],
                 compatible: true,
                 incompatibility_reasons: []
@@ -279,6 +216,20 @@ function configureLoad(latest: Workline): void {
   )
 }
 
+const SelectStub = defineComponent({
+  name: 'ElSelect',
+  props: { modelValue: { type: String, default: '' }, disabled: Boolean },
+  emits: ['change'],
+  setup:
+    (props, { attrs, slots }) =>
+    () =>
+      h(
+        'div',
+        { ...attrs, 'data-value': props.modelValue, 'data-disabled': props.disabled },
+        slots.default?.()
+      )
+})
+
 function mountDialog(latest: Workline, refresh = vi.fn().mockResolvedValue(undefined)) {
   configureLoad(latest)
   return {
@@ -286,18 +237,24 @@ function mountDialog(latest: Workline, refresh = vi.fn().mockResolvedValue(undef
     wrapper: mount(WorkLineConfigurationDialog, {
       props: { workline: latest, modelValue: true },
       global: {
-        provide: { [CRUD_PAGE_REFRESH_KEY as symbol]: refresh },
+        provide: {
+          [CRUD_PAGE_REFRESH_KEY as symbol]: refresh
+        },
         stubs: {
           StandardDialog: StandardDialogStub,
           ElButton: ButtonStub,
           ElCheckbox: CheckboxStub,
-          ElInput: InputStub,
-          ElInputNumber: InputNumberStub,
           ElForm: PassthroughStub,
-          ElFormItem: PassthroughStub,
+          ElFormItem: defineComponent({
+            props: { label: { type: String, default: '' } },
+            setup:
+              (props, { slots }) =>
+              () =>
+                h('div', [h('label', props.label), slots.default?.()])
+          }),
           ElAlert: AlertStub,
           ElTag: PassthroughStub,
-          ElSelect: PassthroughStub,
+          ElSelect: SelectStub,
           ElOption: true
         }
       }
@@ -315,77 +272,277 @@ function standardDialog(wrapper: VueWrapper) {
   return wrapper.findComponent(StandardDialogStub)
 }
 
-describe('WorkLineConfigurationDialog', () => {
+function roleSelect(wrapper: VueWrapper, key: string) {
+  return wrapper
+    .findAllComponents(SelectStub)
+    .find(select => select.attributes('data-role') === key)!
+}
+async function bind(wrapper: VueWrapper, key: string, code: string) {
+  roleSelect(wrapper, key).vm.$emit('change', code)
+  await nextTick()
+}
+async function save(wrapper: VueWrapper) {
+  standardDialog(wrapper).vm.$emit('confirm')
+  await flushPromises()
+}
+describe('WorkLineConfigurationDialog generic bindings', () => {
   beforeEach(() => {
     vi.resetAllMocks()
     mocks.hasPermission.mockReturnValue(true)
   })
-
-  it('loads the three configuration sections and saves plugin config with the selected device set', async () => {
+  it('renders server roles and saves incomplete bindings plus unused selected physical devices', async () => {
     mocks.configuration.mockReturnValueOnce(method(Promise.resolve({})))
     const { wrapper, refresh } = mountDialog(workline())
     await settle()
-
-    expect(wrapper.text()).toContain('工作线状态')
-    expect(wrapper.text()).toContain('设备全集')
-    expect(wrapper.text()).toContain('业务插件')
+    expect(wrapper.text()).toContain('角色甲')
+    expect(wrapper.text()).toContain('角色乙')
+    expect(roleSelect(wrapper, 'ROLE_A').props('modelValue')).toBe('DEVICE-CURRENT')
+    expect(mocks.queryDevices).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sort: [
+          { field: 'sort_order', order: 'asc' },
+          { field: 'id', order: 'asc' }
+        ]
+      }),
+      undefined
+    )
     expect(
       wrapper.find('[aria-label="选择设备 DEVICE-OTHER"]').attributes('disabled')
     ).toBeDefined()
-
     await wrapper.find('[aria-label="选择设备 DEVICE-FREE"]').setValue(true)
-    standardDialog(wrapper).vm.$emit('confirm')
-    await vi.waitFor(() => expect(refresh).toHaveBeenCalledOnce())
-
-    expect(workLinesApiMethods.configuration).toHaveBeenCalledWith(
+    await save(wrapper)
+    expect(mocks.configuration).toHaveBeenCalledWith(
       { id: 11 },
       {
         version: 7,
-        plugin_key: 'rough_sorter',
-        config: expect.objectContaining({ owner: 'WES', rough_sorter: expect.any(Object) }),
+        plugin_key: 'fake',
+        config: { device_bindings: { ROLE_A: 'DEVICE-CURRENT' } },
         device_codes: ['DEVICE-CURRENT', 'DEVICE-FREE']
       }
     )
     expect(wrapper.emitted('update:modelValue')).toContainEqual([false])
+    expect(refresh).toHaveBeenCalledOnce()
   })
-
-  it('keeps active lines read-only and shows the unfinished-task reason when deactivation is blocked', async () => {
+  it.each([null, [], 'invalid', 42, false])('blocks a non-object bindings draft: %j', async bindings => {
+    const { wrapper } = mountDialog(workline({ config: { device_bindings: bindings } }))
+    await settle()
+    expect(wrapper.text()).toContain('设备角色绑定必须为对象')
+    expect(standardDialog(wrapper).props('confirmDisabled')).toBe(true)
+    await save(wrapper)
+    expect(mocks.configuration).not.toHaveBeenCalled()
+  })
+  it.each([{ device_roles: [] }, {}])('saves an installed plugin with no declared roles: %j', async roles => {
+    mocks.availablePlugins.mockReturnValueOnce(method(Promise.resolve([{
+      plugin_key: 'fake',
+      plugin_version: '1.0.0',
+      display_name: '无设备业务',
+      supported_line_types: ['AUTO'],
+      compatible: true,
+      incompatibility_reasons: [],
+      ...roles
+    }])))
+    mocks.configuration.mockReturnValueOnce(method(Promise.resolve({})))
+    const { wrapper } = mountDialog(workline({ config: {} }))
+    await settle()
+    expect(wrapper.findAll('[data-role]')).toHaveLength(0)
+    expect(standardDialog(wrapper).props('confirmDisabled')).toBe(false)
+    await save(wrapper)
+    expect(mocks.configuration).toHaveBeenCalledWith(
+      { id: 11 },
+      {
+        version: 7,
+        plugin_key: 'fake',
+        config: { device_bindings: {} },
+        device_codes: ['DEVICE-CURRENT']
+      }
+    )
+  })
+  it('updates role choices with physical selection and requires clearing a removed device binding', async () => {
+    const { wrapper } = mountDialog(workline())
+    await settle()
+    const choices = () => roleSelect(wrapper, 'ROLE_B')
+      .findAll('el-option-stub').map(option => option.attributes('value'))
+    expect(choices()).toEqual(['DEVICE-CURRENT'])
+    const freeDevice = wrapper.get('[aria-label="选择设备 DEVICE-FREE"]')
+    await freeDevice.setValue(true)
+    expect(choices()).toEqual(['DEVICE-CURRENT', 'DEVICE-FREE'])
+    await bind(wrapper, 'ROLE_B', 'DEVICE-FREE')
+    await freeDevice.setValue(false)
+    expect(choices()).toEqual(['DEVICE-CURRENT'])
+    await save(wrapper)
+    expect(mocks.configuration).not.toHaveBeenCalled()
+    expect(wrapper.text()).toContain('设备 DEVICE-FREE 不在本次选中的物理设备集合中')
+    expect(roleSelect(wrapper, 'ROLE_B').props('modelValue')).toBe('DEVICE-FREE')
+    await bind(wrapper, 'ROLE_B', '')
+    mocks.configuration.mockReturnValueOnce(method(Promise.resolve({})))
+    await save(wrapper)
+    expect(mocks.configuration).toHaveBeenCalledWith(
+      { id: 11 },
+      {
+        version: 7,
+        plugin_key: 'fake',
+        config: { device_bindings: { ROLE_A: 'DEVICE-CURRENT' } },
+        device_codes: ['DEVICE-CURRENT']
+      }
+    )
+  })
+  it('saves only generic bindings when the loaded config contains retired plugin settings', async () => {
+    mocks.configuration.mockReturnValueOnce(method(Promise.resolve({})))
+    const { wrapper } = mountDialog(workline({ config: {
+      device_bindings: { ROLE_A: 'DEVICE-CURRENT' },
+      rough_sorter: { position_bindings: { NG_POSITION: 'OLD-POSITION' } }
+    } }))
+    await settle()
+    await save(wrapper)
+    expect(mocks.configuration).toHaveBeenCalledWith(
+      { id: 11 },
+      {
+        version: 7,
+        plugin_key: 'fake',
+        config: { device_bindings: { ROLE_A: 'DEVICE-CURRENT' } },
+        device_codes: ['DEVICE-CURRENT']
+      }
+    )
+  })
+  it.each(['', 'future_plugin'])(
+    'clears bindings through %s and back, preserving physical devices',
+    async middle => {
+      mocks.configuration.mockReturnValueOnce(method(Promise.resolve({})))
+      const { wrapper } = mountDialog(workline())
+      await settle()
+      await wrapper.find('[aria-label="选择设备 DEVICE-FREE"]').setValue(true)
+      const plugin = wrapper.findAllComponents(SelectStub)[0]!
+      plugin.vm.$emit('change', middle)
+      await nextTick()
+      plugin.vm.$emit('change', 'fake')
+      await nextTick()
+      await save(wrapper)
+      expect(mocks.configuration).toHaveBeenCalledWith(
+        { id: 11 },
+        {
+          version: 7,
+          plugin_key: 'fake',
+          config: { device_bindings: {} },
+          device_codes: ['DEVICE-CURRENT', 'DEVICE-FREE']
+        }
+      )
+    }
+  )
+  it('allows a new server plugin without frontend registration', async () => {
+    const { wrapper } = mountDialog(workline({ plugin_key: 'future_plugin', config: {} }))
+    await settle()
+    expect(wrapper.text()).toContain('未来角色')
+    expect(standardDialog(wrapper).props('confirmDisabled')).toBe(false)
+  })
+  it('writes an empty config when no plugin is selected', async () => {
+    mocks.configuration.mockReturnValueOnce(method(Promise.resolve({})))
+    const { wrapper } = mountDialog(workline())
+    await settle()
+    wrapper.findAllComponents(SelectStub)[0]!.vm.$emit('change', '')
+    await nextTick()
+    await save(wrapper)
+    expect(mocks.configuration).toHaveBeenCalledWith(
+      { id: 11 },
+      { version: 7, plugin_key: null, config: {}, device_codes: ['DEVICE-CURRENT'] }
+    )
+  })
+  it('omits cleared roles instead of sending empty strings', async () => {
+    mocks.configuration.mockReturnValueOnce(method(Promise.resolve({})))
+    const { wrapper } = mountDialog(workline())
+    await settle()
+    await bind(wrapper, 'ROLE_A', '')
+    await save(wrapper)
+    expect(mocks.configuration.mock.calls[0]?.[1].config).toEqual({ device_bindings: {} })
+  })
+  it('rejects duplicate devices and preserves the entered bindings', async () => {
+    const { wrapper } = mountDialog(workline())
+    await settle()
+    await bind(wrapper, 'ROLE_B', 'DEVICE-CURRENT')
+    await save(wrapper)
+    expect(mocks.configuration).not.toHaveBeenCalled()
+    expect(wrapper.text()).toContain('不能重复')
+    expect(roleSelect(wrapper, 'ROLE_B').props('modelValue')).toBe('DEVICE-CURRENT')
+  })
+  it.each(['DEVICE-OTHER', 'NOT-EXISTING', 'DEVICE-FREE'])(
+    'rejects a code outside the selected physical set: %s',
+    async code => {
+      const { wrapper } = mountDialog(workline())
+      await settle()
+      await bind(wrapper, 'ROLE_A', code)
+      await save(wrapper)
+      expect(mocks.configuration).not.toHaveBeenCalled()
+      expect(wrapper.text()).toContain('不在本次选中')
+      expect(roleSelect(wrapper, 'ROLE_A').props('modelValue')).toBe(code)
+    }
+  )
+  it.each(['DEVICE-CURRENT', null])('rejects a saved unknown role with value %j', async code => {
+    const { wrapper } = mountDialog(
+      workline({ config: { device_bindings: { UNKNOWN: code } } })
+    )
+    await settle()
+    await save(wrapper)
+    expect(mocks.configuration).not.toHaveBeenCalled()
+    expect(wrapper.text()).toContain('未知设备角色')
+  })
+  it('preserves bindings on authoritative backend rejection', async () => {
+    mocks.configuration.mockReturnValueOnce({
+      send: vi.fn().mockRejectedValue(new Error('后端拒绝保存'))
+    })
+    const { wrapper } = mountDialog(workline())
+    await settle()
+    await save(wrapper)
+    expect(mocks.error).toHaveBeenCalledWith(expect.stringContaining('后端拒绝保存'))
+    expect(roleSelect(wrapper, 'ROLE_A').props('modelValue')).toBe('DEVICE-CURRENT')
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+  })
+  it.each([42, false, {}, [], ''])('rejects a non-null invalid binding: %j', async code => {
+    const { wrapper } = mountDialog(workline({ config: { device_bindings: { ROLE_A: code } } }))
+    await settle()
+    expect(wrapper.text()).toContain('设备角色绑定必须包含有效设备编码')
+    await save(wrapper)
+    expect(mocks.configuration).not.toHaveBeenCalled()
+  })
+  it('reopens an explicit null draft and allows completing the remaining role', async () => {
+    mocks.configuration.mockReturnValueOnce(method(Promise.resolve({})))
+    const first = mountDialog(workline())
+    await settle()
+    await save(first.wrapper)
+    const config = mocks.configuration.mock.calls[0]![1].config
+    first.wrapper.unmount()
+    const second = mountDialog(
+      workline({ config: { ...config, device_bindings: { ...config.device_bindings, ROLE_B: null } } })
+    )
+    await settle()
+    expect(roleSelect(second.wrapper, 'ROLE_A').props('modelValue')).toBe('DEVICE-CURRENT')
+    expect(roleSelect(second.wrapper, 'ROLE_B').props('modelValue')).toBe('')
+    await second.wrapper.find('[aria-label="选择设备 DEVICE-FREE"]').setValue(true)
+    await bind(second.wrapper, 'ROLE_B', 'DEVICE-FREE')
+    mocks.configuration.mockReturnValueOnce(method(Promise.resolve({})))
+    await save(second.wrapper)
+    expect(mocks.configuration.mock.calls[1]![1].config).toEqual({
+      device_bindings: { ROLE_A: 'DEVICE-CURRENT', ROLE_B: 'DEVICE-FREE' }
+    })
+  })
+  it('keeps active bindings and save readonly, retaining deactivation blocker evidence', async () => {
     mocks.confirm.mockResolvedValueOnce('confirm')
     mocks.deactivate.mockReturnValueOnce({
-      send: vi.fn().mockRejectedValue(new Error('存在未完成运行负载: Transport#9'))
+      send: vi.fn().mockRejectedValue(new Error('Transport#9'))
     })
     const { wrapper } = mountDialog(workline({ is_active: true }))
     await settle()
-
     expect(standardDialog(wrapper).props('confirmDisabled')).toBe(true)
-    expect(
-      wrapper.findAll('input').every(input => input.attributes('disabled') !== undefined)
-    ).toBe(true)
-
-    const deactivateButton = wrapper
-      .findAll('button')
-      .find(button => button.text().includes('停用工作线'))
-    expect(deactivateButton).toBeDefined()
-    await deactivateButton!.trigger('click')
-    await vi.waitFor(() => expect(wrapper.text()).toContain('Transport#9'))
-
-    expect(workLinesApiMethods.deactivate).toHaveBeenCalledWith({ id: 11 }, { version: 7 })
-    expect(workLinesApiMethods.configuration).not.toHaveBeenCalled()
+    expect(wrapper.findAllComponents(SelectStub).every(select => select.props('disabled'))).toBe(
+      true
+    )
+    const button = wrapper.findAll('button').find(button => button.text().includes('停用工作线'))!
+    await button.trigger('click')
+    await flushPromises()
+    expect(wrapper.text()).toContain('Transport#9')
+    expect(mocks.configuration).not.toHaveBeenCalled()
   })
-
-  it('fails closed when a deployed plugin has no frontend configuration form', async () => {
-    const { wrapper } = mountDialog(workline({ plugin_key: 'future_plugin', config: {} }))
+  it('blocks a saved plugin absent from the server list', async () => {
+    const { wrapper } = mountDialog(workline({ plugin_key: 'removed_plugin', config: {} }))
     await settle()
-
-    expect(wrapper.text()).toContain('尚无对应的前端配置表单')
-    expect(standardDialog(wrapper).props('confirmDisabled')).toBe(true)
-  })
-
-  it('fails closed when the saved plugin is absent from the deployment catalog', async () => {
-    const row = workline({ plugin_key: 'removed_plugin', config: {} })
-    const { wrapper } = mountDialog(row)
-    await settle()
-
     expect(wrapper.text()).toContain('未包含在部署清单中')
     expect(standardDialog(wrapper).props('confirmDisabled')).toBe(true)
   })

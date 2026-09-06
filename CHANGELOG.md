@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.0.0] - 2026-09-05
+
+### Changed
+
+- 工作线配置统一读取后端插件声明的设备角色，由用户绑定工作线内实体设备；支持不完整草稿，切换插件时清空角色绑定并保留设备选择。
+- 设备表单、详情和生成合同移除 device_role、role_index；业务角色仅属于插件。
+
+### Removed
+
+- 删除粗分机专属配置表单、配置目录和 Schema，前端不再维护业务插件配置实现。
+
+### Verification
+
+- 98 个测试文件、703 个测试通过；类型检查、lint、构建、契约及权限校验通过。
+- 代码审查与新增断言复核无问题；浏览器 QA 使用真实组件与替身 API，覆盖草稿、切换和保存失败保留。
+
 ## [0.13.3.0] - 2026-09-05
 
 ### Added

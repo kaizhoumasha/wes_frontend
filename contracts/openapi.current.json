@@ -2505,12 +2505,6 @@
             "title": "Device Name",
             "type": "string"
           },
-          "device_role": {
-            "maxLength": 50,
-            "minLength": 1,
-            "title": "Device Role",
-            "type": "string"
-          },
           "diagnostic_profile": {
             "additionalProperties": true,
             "title": "Diagnostic Profile",
@@ -2533,12 +2527,6 @@
             "title": "Is Active",
             "type": "boolean"
           },
-          "role_index": {
-            "default": 1,
-            "minimum": 1,
-            "title": "Role Index",
-            "type": "integer"
-          },
           "sort_order": {
             "default": 0,
             "title": "Sort Order",
@@ -2558,8 +2546,7 @@
         },
         "required": [
           "device_code",
-          "device_name",
-          "device_role"
+          "device_name"
         ],
         "title": "DeviceCreate",
         "type": "object"
@@ -2601,13 +2588,6 @@
             "title": "Device Name",
             "type": "string"
           },
-          "device_role": {
-            "description": "物理拓扑角色",
-            "maxLength": 50,
-            "minLength": 1,
-            "title": "Device Role",
-            "type": "string"
-          },
           "diagnostic_profile": {
             "additionalProperties": true,
             "title": "Diagnostic Profile",
@@ -2634,12 +2614,6 @@
             "description": "是否允许进入新运行代际",
             "title": "Is Active",
             "type": "boolean"
-          },
-          "role_index": {
-            "default": 1,
-            "minimum": 1,
-            "title": "Role Index",
-            "type": "integer"
           },
           "sort_order": {
             "default": 0,
@@ -2676,7 +2650,6 @@
         "required": [
           "device_code",
           "device_name",
-          "device_role",
           "id",
           "version"
         ],
@@ -2725,19 +2698,6 @@
             ],
             "title": "Device Name"
           },
-          "device_role": {
-            "anyOf": [
-              {
-                "maxLength": 50,
-                "minLength": 1,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Device Role"
-          },
           "diagnostic_profile": {
             "anyOf": [
               {
@@ -2772,18 +2732,6 @@
               }
             ],
             "title": "Is Active"
-          },
-          "role_index": {
-            "anyOf": [
-              {
-                "minimum": 1,
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Role Index"
           },
           "sort_order": {
             "anyOf": [
@@ -11592,12 +11540,44 @@
         "title": "WorkLineCreate",
         "type": "object"
       },
+      "WorkLineDeviceRole": {
+        "additionalProperties": false,
+        "description": "插件声明的设备角色；前端仅展示名称并选择实体设备。",
+        "properties": {
+          "display_name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Display Name",
+            "type": "string"
+          },
+          "role_key": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Role Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role_key",
+          "display_name"
+        ],
+        "title": "WorkLineDeviceRole",
+        "type": "object"
+      },
       "WorkLinePluginSummary": {
         "description": "部署清单中的业务插件及当前 WorkLine 兼容性。",
         "properties": {
           "compatible": {
             "title": "Compatible",
             "type": "boolean"
+          },
+          "device_roles": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/WorkLineDeviceRole"
+            },
+            "title": "Device Roles",
+            "type": "array"
           },
           "display_name": {
             "title": "Display Name",
@@ -21359,6 +21339,28 @@
                           },
                           "required": [
                             "transport_task_id"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "additionalProperties": false,
+                          "properties": {
+                            "reason_code": {
+                              "enum": [
+                                "MEMBER_POSITION_EVIDENCE_PENDING"
+                              ],
+                              "type": "string"
+                            },
+                            "transport_task_id": {
+                              "maxLength": 80,
+                              "minLength": 1,
+                              "pattern": ".*\\S.*",
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "transport_task_id",
+                            "reason_code"
                           ],
                           "type": "object"
                         }

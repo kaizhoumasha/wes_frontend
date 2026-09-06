@@ -79,6 +79,8 @@ export function assertCurrentDtoContracts(schemas: Record<string, unknown>): voi
   )
 
   const retiredDeviceFields = [
+    'device_role',
+    'role_index',
     'auth_token',
     'callback_path',
     'capabilities_json',
@@ -99,14 +101,14 @@ export function assertCurrentDtoContracts(schemas: Record<string, unknown>): voi
     assertFields(
       schemaName,
       requireSchemaProperties(schemas, schemaName),
-      ['device_role', 'role_index', 'upstream_device_id', 'diagnostic_profile'],
+      ['upstream_device_id', 'diagnostic_profile'],
       [...retiredDeviceFields, 'work_line_id']
     )
   }
   assertFields(
     'DeviceResponse',
     requireSchemaProperties(schemas, 'DeviceResponse'),
-    ['device_role', 'role_index', 'upstream_device_id', 'work_line_id', 'diagnostic_profile'],
+    ['upstream_device_id', 'work_line_id', 'diagnostic_profile'],
     retiredDeviceFields
   )
 }
