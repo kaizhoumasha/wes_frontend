@@ -169,6 +169,7 @@ export { WorkLineConfigurationResponseMetadata } from './WorkLineConfigurationRe
 export { WorkLineConfigurationStatusMetadata } from './WorkLineConfigurationStatus'
 export { WorkLineConfigurationUpdateMetadata } from './WorkLineConfigurationUpdate'
 export { WorkLineCreateMetadata } from './WorkLineCreate'
+export { WorkLineDeviceRoleMetadata } from './WorkLineDeviceRole'
 export { WorkLinePluginSummaryMetadata } from './WorkLinePluginSummary'
 export { WorkLineResponseMetadata } from './WorkLineResponse'
 export { WorkLineRunModeMetadata } from './WorkLineRunMode'

@@ -1,4 +1,4 @@
-/** @openapi-sha256 3655f028b293d77f79e429513cf9e713435712a23669da940b51f92a91733d01 */
+/** @openapi-sha256 cbe97671f62f080a0445f9d0fb43808cf98fc965a93e25e535dd52e4486f6f9a */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -3932,8 +3932,6 @@ export interface components {
             device_code: string;
             /** Device Name */
             device_name: string;
-            /** Device Role */
-            device_role: string;
             /** Diagnostic Profile */
             diagnostic_profile?: {
                 [key: string]: unknown;
@@ -3945,11 +3943,6 @@ export interface components {
              * @default true
              */
             is_active: boolean;
-            /**
-             * Role Index
-             * @default 1
-             */
-            role_index: number;
             /**
              * Sort Order
              * @default 0
@@ -3980,11 +3973,6 @@ export interface components {
              * @description 设备名称
              */
             device_name: string;
-            /**
-             * Device Role
-             * @description 物理拓扑角色
-             */
-            device_role: string;
             /** Diagnostic Profile */
             diagnostic_profile?: {
                 [key: string]: unknown;
@@ -3999,11 +3987,6 @@ export interface components {
              * @default true
              */
             is_active: boolean;
-            /**
-             * Role Index
-             * @default 1
-             */
-            role_index: number;
             /**
              * Sort Order
              * @default 0
@@ -4027,8 +4010,6 @@ export interface components {
             device_code?: string | null;
             /** Device Name */
             device_name?: string | null;
-            /** Device Role */
-            device_role?: string | null;
             /** Diagnostic Profile */
             diagnostic_profile?: {
                 [key: string]: unknown;
@@ -4037,8 +4018,6 @@ export interface components {
             endpoint_base_url?: string | null;
             /** Is Active */
             is_active?: boolean | null;
-            /** Role Index */
-            role_index?: number | null;
             /** Sort Order */
             sort_order?: number | null;
             /** Upstream Device Id */
@@ -6210,12 +6189,27 @@ export interface components {
             zone_name?: string | null;
         };
         /**
+         * WorkLineDeviceRole
+         * @description 插件声明的设备角色；前端仅展示名称并选择实体设备。
+         */
+        WorkLineDeviceRole: {
+            /** Display Name */
+            display_name: string;
+            /** Role Key */
+            role_key: string;
+        };
+        /**
          * WorkLinePluginSummary
          * @description 部署清单中的业务插件及当前 WorkLine 兼容性。
          */
         WorkLinePluginSummary: {
             /** Compatible */
             compatible: boolean;
+            /**
+             * Device Roles
+             * @default []
+             */
+            device_roles: components["schemas"]["WorkLineDeviceRole"][];
             /** Display Name */
             display_name: string;
             /**
@@ -11019,6 +11013,10 @@ export interface operations {
                         /** @enum {string} */
                         code: "CONFLICT";
                         data: Record<string, never> | {
+                            transport_task_id: string;
+                        } | {
+                            /** @enum {string} */
+                            reason_code: "MEMBER_POSITION_EVIDENCE_PENDING";
                             transport_task_id: string;
                         };
                         /** @description WMS 生成的小写 canonical UUIDv7 幂等号 */

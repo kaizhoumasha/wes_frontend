@@ -15,7 +15,6 @@ export const DeviceResponseMetadata = {
   "required": [
     "device_code",
     "device_name",
-    "device_role",
     "id",
     "version"
   ],
@@ -45,15 +44,6 @@ export const DeviceResponseMetadata = {
       "minLength": 1,
       "maxLength": 100
     },
-    "device_role": {
-      "title": "Device Role",
-      "description": "物理拓扑角色",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 50
-    },
     "diagnostic_profile": {
       "title": "Diagnostic Profile",
       "type": "object",
@@ -80,14 +70,6 @@ export const DeviceResponseMetadata = {
       "required": false,
       "nullable": false,
       "default": true
-    },
-    "role_index": {
-      "title": "Role Index",
-      "type": "integer",
-      "required": false,
-      "nullable": false,
-      "default": 1,
-      "minimum": 1
     },
     "sort_order": {
       "title": "Sort Order",

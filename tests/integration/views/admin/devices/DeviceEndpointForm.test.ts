@@ -65,7 +65,6 @@ describe('Device Endpoint form', () => {
       cachedData: {
         device_code: 'MEASURE-01',
         device_name: '测量设备 01',
-        device_role: 'MEASUREMENT_DEVICE',
         endpoint_base_url: 'http://192.168.10.20:8000',
         version: 3
       }
@@ -89,7 +88,6 @@ describe('Device Endpoint form', () => {
 
     await setFieldValue(wrapper, 'device_code', 'MEASURE-01')
     await setFieldValue(wrapper, 'device_name', '测量设备 01')
-    await setFieldValue(wrapper, 'device_role', 'MEASUREMENT_DEVICE')
     await setFieldValue(wrapper, 'endpoint_base_url', '')
     await wrapper.get('[data-testid="confirm"]').trigger('click')
     await flushPromises()

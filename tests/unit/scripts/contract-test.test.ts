@@ -151,15 +151,9 @@ describe('contract WorkLine and Device ownership boundaries', () => {
     WorkLineCreate: schema(['runtime_config_json', 'diagnostic_profile']),
     WorkLineUpdate: schema(['runtime_config_json', 'diagnostic_profile']),
     WorkLineResponse: schema(['runtime_config_json', 'diagnostic_profile', 'plugin_key', 'config']),
-    DeviceCreate: schema(['device_role', 'role_index', 'upstream_device_id', 'diagnostic_profile']),
-    DeviceUpdate: schema(['device_role', 'role_index', 'upstream_device_id', 'diagnostic_profile']),
-    DeviceResponse: schema([
-      'device_role',
-      'role_index',
-      'upstream_device_id',
-      'work_line_id',
-      'diagnostic_profile'
-    ])
+    DeviceCreate: schema(['upstream_device_id', 'diagnostic_profile']),
+    DeviceUpdate: schema(['upstream_device_id', 'diagnostic_profile']),
+    DeviceResponse: schema(['upstream_device_id', 'work_line_id', 'diagnostic_profile'])
   }
 
   it('keeps plugin selection and device ownership out of generic write contracts', () => {
@@ -167,14 +161,22 @@ describe('contract WorkLine and Device ownership boundaries', () => {
     expect(() =>
       assertCurrentDtoContracts({
         ...currentSchemas,
-        DeviceUpdate: schema([
-          'device_role',
-          'role_index',
-          'upstream_device_id',
-          'diagnostic_profile',
-          'work_line_id'
-        ])
+        DeviceUpdate: schema(['upstream_device_id', 'diagnostic_profile', 'work_line_id'])
       })
     ).toThrow('DeviceUpdate 仍包含已退役字段 work_line_id')
+  })
+  it.each([
+    ['DeviceCreate', 'device_role'],
+    ['DeviceCreate', 'role_index'],
+    ['DeviceUpdate', 'device_role'],
+    ['DeviceUpdate', 'role_index'],
+    ['DeviceResponse', 'device_role'],
+    ['DeviceResponse', 'role_index']
+  ] as const)('rejects retired %s.%s', (schemaName, field) => {
+    const schemas = structuredClone(currentSchemas)
+    schemas[schemaName].properties[field] = {}
+    expect(() => assertCurrentDtoContracts(schemas)).toThrow(
+      `${schemaName} 仍包含已退役字段 ${field}`
+    )
   })
 })

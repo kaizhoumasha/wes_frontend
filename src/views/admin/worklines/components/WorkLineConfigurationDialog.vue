@@ -23,7 +23,6 @@ import { CRUD_PAGE_REFRESH_KEY } from '@/components/common/crud-page/types'
 import StandardDialog from '@/components/ui/StandardDialog/StandardDialog.vue'
 import { usePermission } from '@/composables/usePermission'
 import { getSafeErrorMessage } from '@/utils/string'
-import { getWorkLinePluginConfigDefinition } from '../config/pluginConfigCatalog'
 
 const props = defineProps<{ workline: Workline | null }>()
 const modelValue = defineModel<boolean>({ default: false })
@@ -43,7 +42,7 @@ const configurationStatus = ref<ConfigurationStatusResult | null>(null)
 const devices = ref<DevicesItem[]>([])
 const selectedDeviceCodes = ref<string[]>([])
 const pluginKey = ref('')
-const pluginConfigValue = ref<unknown>(null)
+const deviceBindings = ref<Record<string, string>>({})
 const validationErrors = ref<string[]>([])
 const loadError = ref('')
 const deactivationError = ref('')
@@ -54,18 +53,16 @@ let loadSequence = 0
 
 const canConfigure = computed(() => hasPermission(BIZ_PERMISSIONS.workline.configure))
 const canDeactivate = computed(() => hasPermission(BIZ_PERMISSIONS.workline.deactivate))
-const activePluginDefinition = computed(() =>
-  getWorkLinePluginConfigDefinition(pluginKey.value || null)
-)
 const selectedPluginSummary = computed(() =>
   plugins.value.find(plugin => plugin.plugin_key === pluginKey.value)
 )
+const deviceRoles = computed(() => selectedPluginSummary.value?.device_roles ?? [])
 const selectedDeviceCodeSet = computed(() => new Set(selectedDeviceCodes.value))
+const selectedDevices = computed(() =>
+  devices.value.filter(device => selectedDeviceCodeSet.value.has(device.device_code))
+)
 const readonly = computed(() => currentWorkline.value?.is_active === true || !canConfigure.value)
 const formDisabled = computed(() => readonly.value || submitting.value || deactivating.value)
-const hasUnsupportedPluginEditor = computed(
-  () => pluginKey.value !== '' && activePluginDefinition.value === null
-)
 const hasUnavailableSelectedPlugin = computed(
   () => pluginKey.value !== '' && selectedPluginSummary.value === undefined
 )
@@ -77,8 +74,7 @@ const confirmDisabled = computed(
     readonly.value ||
     !currentWorkline.value ||
     Boolean(loadError.value) ||
-    hasUnavailableSelectedPlugin.value ||
-    hasUnsupportedPluginEditor.value
+    hasUnavailableSelectedPlugin.value
 )
 const dialogVisible = computed({
   get: () => sessionVisible.value,
@@ -96,7 +92,7 @@ function resetState(): void {
   devices.value = []
   selectedDeviceCodes.value = []
   pluginKey.value = ''
-  pluginConfigValue.value = null
+  deviceBindings.value = {}
   validationErrors.value = []
   loadError.value = ''
   deactivationError.value = ''
@@ -112,9 +108,8 @@ async function fetchAllDevices(): Promise<DevicesItem[]> {
       offset,
       limit,
       sort: [
-        { field: 'device_role', order: 'asc' },
-        { field: 'role_index', order: 'asc' },
-        { field: 'device_code', order: 'asc' }
+        { field: 'sort_order', order: 'asc' },
+        { field: 'id', order: 'asc' }
       ]
     }
     const page: PaginationData<DevicesItem> = await deviceAdapter.query(options)
@@ -128,10 +123,25 @@ async function fetchAllDevices(): Promise<DevicesItem[]> {
   return items
 }
 
-function initializePluginConfig(latest: Workline): void {
+function initializeBindings(latest: Workline): void {
   pluginKey.value = latest.plugin_key ?? ''
-  const definition = getWorkLinePluginConfigDefinition(latest.plugin_key ?? null)
-  pluginConfigValue.value = definition ? definition.read(latest.config ?? {}) : null
+  const bindings = latest.config?.device_bindings
+  if (bindings === undefined) {
+    deviceBindings.value = {}
+    return
+  }
+  if (bindings === null || typeof bindings !== 'object' || Array.isArray(bindings)) {
+    throw new Error('设备角色绑定必须为对象')
+  }
+  const roles = new Set(deviceRoles.value.map(role => role.role_key))
+  for (const role of Object.keys(bindings)) {
+    if (!roles.has(role)) throw new Error(`未知设备角色：${role}`)
+  }
+  const entries = Object.entries(bindings).filter(([, code]) => code !== null)
+  if (entries.some(([, code]) => typeof code !== 'string' || !code.trim())) {
+    throw new Error('设备角色绑定必须包含有效设备编码')
+  }
+  deviceBindings.value = Object.fromEntries(entries) as Record<string, string>
 }
 
 async function loadLatest(row: Workline): Promise<void> {
@@ -154,7 +164,7 @@ async function loadLatest(row: Workline): Promise<void> {
     selectedDeviceCodes.value = allDevices
       .filter(device => device.work_line_id === latest.id)
       .map(device => device.device_code)
-    initializePluginConfig(latest)
+    initializeBindings(latest)
   } catch (error) {
     if (sequence !== loadSequence) return
     resetState()
@@ -166,13 +176,27 @@ async function loadLatest(row: Workline): Promise<void> {
 
 function selectPlugin(value: string | null | undefined): void {
   pluginKey.value = value ?? ''
+  deviceBindings.value = {}
   validationErrors.value = []
-  if (!pluginKey.value) {
-    pluginConfigValue.value = null
-    return
+}
+
+function bindDevice(roleKey: string, code: string | null | undefined): void {
+  if (!code) delete deviceBindings.value[roleKey]
+  else deviceBindings.value = { ...deviceBindings.value, [roleKey]: code }
+}
+
+function validateBindings(): string[] {
+  const roles = new Set(deviceRoles.value.map(role => role.role_key))
+  const codes = new Set(selectedDevices.value.map(device => device.device_code))
+  const used = new Set<string>()
+  const errors: string[] = []
+  for (const [role, code] of Object.entries(deviceBindings.value)) {
+    if (!roles.has(role)) errors.push(`未知设备角色：${role}`)
+    if (!codes.has(code)) errors.push(`设备 ${code} 不在本次选中的物理设备集合中`)
+    if (used.has(code)) errors.push('设备绑定不能重复')
+    used.add(code)
   }
-  const definition = getWorkLinePluginConfigDefinition(pluginKey.value)
-  pluginConfigValue.value = definition?.read(currentWorkline.value?.config ?? {}) ?? null
+  return errors
 }
 
 function isOwnedByOtherWorkline(device: DevicesItem): boolean {
@@ -219,14 +243,11 @@ async function submit(): Promise<void> {
   if (!workline || confirmDisabled.value) return
 
   validationErrors.value = []
-  let config: Record<string, unknown> = {}
   if (pluginKey.value) {
-    const definition = activePluginDefinition.value
-    if (!definition) return
-    validationErrors.value = definition.validate(pluginConfigValue.value)
+    validationErrors.value = validateBindings()
     if (validationErrors.value.length > 0) return
-    config = definition.write(workline.config ?? {}, pluginConfigValue.value)
   }
+  const config = pluginKey.value ? { device_bindings: { ...deviceBindings.value } } : {}
 
   submitting.value = true
   try {
@@ -412,7 +433,6 @@ watch(
             <thead>
               <tr>
                 <th>选择</th>
-                <th>角色</th>
                 <th>设备编码</th>
                 <th>设备名称</th>
                 <th>当前归属</th>
@@ -431,7 +451,6 @@ watch(
                     @change="toggleDevice(device.device_code, Boolean($event))"
                   />
                 </td>
-                <td>{{ device.device_role }}</td>
                 <td>{{ device.device_code }}</td>
                 <td>{{ device.device_name }}</td>
                 <td>
@@ -446,7 +465,7 @@ watch(
               </tr>
               <tr v-if="devices.length === 0">
                 <td
-                  colspan="5"
+                  colspan="4"
                   class="workline-configuration__empty"
                 >
                   暂无可用设备
@@ -484,14 +503,7 @@ watch(
           v-if="hasUnavailableSelectedPlugin"
           type="error"
           :closable="false"
-          title="当前业务插件未包含在部署清单中，已阻止保存。请先选择当前部署提供的插件。"
-          show-icon
-        />
-        <ElAlert
-          v-else-if="hasUnsupportedPluginEditor"
-          type="error"
-          :closable="false"
-          title="该部署插件尚无对应的前端配置表单，已阻止保存。"
+          title="当前业务插件未包含在部署清单中，已阻止保存。请先恢复该插件部署。"
           show-icon
         />
         <ElAlert
@@ -513,12 +525,27 @@ watch(
             {{ error }}
           </div>
         </div>
-        <component
-          :is="activePluginDefinition.component"
-          v-if="activePluginDefinition"
-          v-model="pluginConfigValue"
-          :disabled="formDisabled"
-        />
+        <ElFormItem
+          v-for="role in deviceRoles"
+          :key="role.role_key"
+          :label="role.display_name"
+        >
+          <ElSelect
+            :model-value="deviceBindings[role.role_key] ?? ''"
+            :data-role="role.role_key"
+            :disabled="formDisabled"
+            placeholder="请选择本线设备（可暂不绑定）"
+            clearable
+            @change="bindDevice(role.role_key, $event)"
+          >
+            <ElOption
+              v-for="device in selectedDevices"
+              :key="device.id"
+              :value="device.device_code"
+              :label="`${device.device_name} (${device.device_code})`"
+            />
+          </ElSelect>
+        </ElFormItem>
       </section>
     </ElForm>
   </StandardDialog>

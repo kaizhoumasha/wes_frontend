@@ -41,7 +41,7 @@ const successResponse = {
   line_run_epoch_id: 71,
   epoch_code: 'request-7',
   workline_id: 7,
-  plugin_key: 'rough_sorter',
+  plugin_key: 'fake',
   plugin_version: '1.0.0',
   flow_mode: 'AUTO',
   epoch_status: 'CLOSED',

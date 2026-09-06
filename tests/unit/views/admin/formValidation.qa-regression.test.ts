@@ -15,17 +15,18 @@ function validationMessages(schema: { safeParse: (value: unknown) => unknown }, 
 
 describe('QA regression: CRUD create form validation', () => {
   it('rejects an empty role name with a localized message', () => {
-    expect(validationMessages(roleFormConfig.createSchema, { name: '' })).toContain('请输入角色名称')
+    expect(validationMessages(roleFormConfig.createSchema, { name: '' })).toContain(
+      '请输入角色名称'
+    )
   })
 
   it('uses localized required messages for device fields', () => {
     expect(
       validationMessages(deviceFormConfig.createSchema, {
         device_code: '',
-        device_name: '',
-        device_role: ''
+        device_name: ''
       })
-    ).toEqual(expect.arrayContaining(['请输入设备编码', '请输入设备名称', '请输入设备角色']))
+    ).toEqual(expect.arrayContaining(['请输入设备编码', '请输入设备名称']))
   })
 
   it('uses localized required messages for workline fields', () => {
