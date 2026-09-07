@@ -1,5 +1,5 @@
 /* eslint-disable vue/one-component-per-file -- test-local component stubs */
-import { defineComponent, nextTick } from 'vue'
+import { defineComponent, nextTick, type Ref } from 'vue'
 import { shallowMount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import ManualDebugCommandDialog from '@/views/ops/device-diagnostics/ManualDebugCommandDialog.vue'
@@ -163,6 +163,34 @@ describe('ManualDebugCommandDialog', () => {
     expect(wrapper.text()).toContain('确认创建真实设备命令')
     expect(wrapper.text()).toContain('不代表设备已完成')
     expect(wrapper.text()).not.toContain('Authorization')
+  })
+
+  it('shows the saved command connection and protocol independently of edited device data', async () => {
+    const wrapper = shallowMount(ManualDebugCommandDialog, {
+      global: { renderStubDefaultSlot: true, stubs: {
+        StandardDialog: StandardDialogStub, AppButton: AppButtonStub, ...elementStubs
+      } }
+    })
+    const exposed = wrapper.vm as unknown as {
+      open: () => void
+      command: {
+        createdCommand: Ref<Record<string, unknown> | null>
+        commandDetail: Ref<Record<string, unknown> | null>
+      }
+    }
+    exposed.open()
+    exposed.command.createdCommand.value = { command_code: 'CMD-001', status: 'PENDING' }
+    exposed.command.commandDetail.value = {
+      command_code: 'CMD-001', device_code: 'ARM-01', status: 'RECONCILING',
+      endpoint_base_url: 'http://saved-ecs:8080', contract_key: 'device.motion',
+      contract_version: '1.0', command_timeout_ms: 45000, attempt_count: 1
+    }
+    await nextTick()
+    expect(wrapper.text()).toContain('http://saved-ecs:8080')
+    expect(wrapper.text()).toContain('device.motion @ 1.0')
+    expect(wrapper.text()).toContain('45000 ms')
+    expect(wrapper.text()).toContain('交付结果不确定')
+    wrapper.unmount()
   })
 
   it('surfaces invalid JSON and restores launcher focus after close', async () => {

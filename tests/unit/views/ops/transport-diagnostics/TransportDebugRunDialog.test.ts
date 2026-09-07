@@ -4,7 +4,7 @@ import { shallowMount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import TransportDebugRunDialog from '@/views/ops/transport-diagnostics/TransportDebugRunDialog.vue'
 
-const bin = vi.hoisted(() => ({ bin_id: 'B1', slot_id: 'S1' }))
+const bin = vi.hoisted(() => ({ bin_code: 'B1', slot_id: 'S1' }))
 const configState = vi.hoisted(() => ({
   rackId: { value: '510056' },
   groups: { value: [] as Array<{ face: string; bins: unknown[] }> }
@@ -36,7 +36,7 @@ function snapshot() {
     client_request_id: null,
     evidence_high_watermark: null,
     evidence_not_before_ms: null,
-    observed_bin_ids: [] as string[],
+    observed_bin_codes: [] as string[],
     reason_code: null,
     created_at: 'now',
     updated_at: 'now'
@@ -45,7 +45,7 @@ function snapshot() {
     run_id: 'run-1',
     status: 'NEEDS_ATTENTION' as const,
     rack_id: '510056',
-    face_groups: [{ face: '270', bins: [{ bin_id: 'B1', slot_id: 'S1' }] }],
+    face_groups: [{ face: '270', bins: [{ bin_code: 'B1', slot_id: 'S1' }] }],
     current_group_index: 0,
     current_phase: 'WAIT_SCAN12' as const,
     current_step: {
@@ -79,10 +79,10 @@ function snapshot() {
         phase: 'WAIT_SCAN12',
         status: 'NEEDS_ATTENTION',
         transport_task_id: null,
-        observed_bin_ids: []
+        observed_bin_codes: []
       }
     ],
-    observed_bin_ids: [],
+    observed_bin_codes: [],
     attention_code: 'EVIDENCE_RECONCILING',
     attention_detail: '等待设备事实',
     can_abort: true,
@@ -98,7 +98,7 @@ function snapshot() {
 vi.mock('@/views/ops/transport-diagnostics/useTransportDebugRunConfig', () => ({
   buildTransportDebugRunInput: (rackId: string) => ({
     rack_id: rackId,
-    face_groups: [{ face: ' 90 ', bins: [{ bin_id: 'B1', slot_id: 'S1' }] }]
+    face_groups: [{ face: ' 90 ', bins: [{ bin_code: 'B1', slot_id: 'S1' }] }]
   }),
   useTransportDebugRunConfig: () => ({
     rackId: configState.rackId,
@@ -260,9 +260,9 @@ describe('TransportDebugRunDialog', () => {
         face: '90',
         bins: [
           bin,
-          { bin_id: 'B2', slot_id: 'S2' },
-          { bin_id: 'B3', slot_id: 'S3' },
-          { bin_id: 'B4', slot_id: 'S4' }
+          { bin_code: 'B2', slot_id: 'S2' },
+          { bin_code: 'B3', slot_id: 'S3' },
+          { bin_code: 'B4', slot_id: 'S4' }
         ]
       }
     ]
@@ -415,7 +415,7 @@ describe('TransportDebugRunDialog', () => {
         {
           ...completed.steps[2],
           status: 'SUCCEEDED',
-          observed_bin_ids: ['B1']
+          observed_bin_codes: ['B1']
         },
         {
           ...completed.steps[0],
@@ -456,8 +456,8 @@ describe('TransportDebugRunDialog', () => {
     runState.activeRun.value = {
       ...multiFace,
       face_groups: [
-        { face: '90', bins: [{ bin_id: 'B1', slot_id: 'S1' }] },
-        { face: '270', bins: [{ bin_id: 'B2', slot_id: 'S2' }] }
+        { face: '90', bins: [{ bin_code: 'B1', slot_id: 'S1' }] },
+        { face: '270', bins: [{ bin_code: 'B2', slot_id: 'S2' }] }
       ],
       current_group_index: 1,
       current_phase: 'BINS_TO_INFEED',
@@ -499,14 +499,14 @@ describe('TransportDebugRunDialog', () => {
         {
           face: '90',
           bins: [
-            { bin_id: 'B1', slot_id: 'S1' },
-            { bin_id: 'B2', slot_id: 'S2' }
+            { bin_code: 'B1', slot_id: 'S1' },
+            { bin_code: 'B2', slot_id: 'S2' }
           ]
         }
       ],
-      observed_bin_ids: ['B2'],
+      observed_bin_codes: ['B2'],
       steps: [
-        { ...run.steps[2]!, observed_bin_ids: ['B1'] },
+        { ...run.steps[2]!, observed_bin_codes: ['B1'] },
         {
           ...run.steps[1]!,
           ordinal: 3,
@@ -531,6 +531,8 @@ describe('TransportDebugRunDialog', () => {
     const outOfRangeStep = steps.find(step => step.text().includes('料箱回架'))
     const nullGroupStep = steps.find(step => step.text().includes('货架返库'))
     expect(scanStep?.text()).toContain('已扫描：B1 · 待扫描：B2')
+    expect(wrapper.get('.progress-panel').text()).toContain('已扫描：B1')
+    expect(wrapper.get('.progress-panel').text()).toContain('待扫描：B2')
     expect(outOfRangeStep?.text()).toContain('料箱 无')
     expect(outOfRangeStep?.text()).not.toContain('货架面：')
     expect(nullGroupStep?.text()).not.toContain('货架面：')

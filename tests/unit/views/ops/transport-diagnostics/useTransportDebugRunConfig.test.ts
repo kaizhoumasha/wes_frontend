@@ -7,8 +7,8 @@ import {
 } from '@/views/ops/transport-diagnostics/useTransportDebugRunConfig'
 
 const bins = [
-  { bin_id: ' B1 ', slot_id: ' S1 ' },
-  { bin_id: 'B2', slot_id: 'S2' }
+  { bin_code: ' B1 ', slot_id: ' S1 ' },
+  { bin_code: 'B2', slot_id: 'S2' }
 ]
 
 describe('useTransportDebugRunConfig', () => {
@@ -21,7 +21,7 @@ describe('useTransportDebugRunConfig', () => {
       face_groups: [
         {
           face: ' 90 ',
-          bins: [{ bin_id: 'B1', slot_id: 'S1' }]
+          bins: [{ bin_code: 'B1', slot_id: 'S1' }]
         }
       ]
     })
@@ -42,12 +42,12 @@ describe('useTransportDebugRunConfig', () => {
     )
     expect(
       validateTransportDebugRunConfig('R1', [
-        { face: '90', bins: [{ bin_id: ' ', slot_id: 'S1' }] }
+        { face: '90', bins: [{ bin_code: ' ', slot_id: 'S1' }] }
       ])
     ).toContain('料箱编码')
     expect(
       validateTransportDebugRunConfig('R1', [
-        { face: '90', bins: [{ bin_id: 'B1', slot_id: ' ' }] }
+        { face: '90', bins: [{ bin_code: 'B1', slot_id: ' ' }] }
       ])
     ).toContain('原货架槽位')
     expect(
@@ -59,7 +59,7 @@ describe('useTransportDebugRunConfig', () => {
     expect(
       validateTransportDebugRunConfig('R1', [
         { face: '90', bins: [bins[0]!] },
-        { face: '270', bins: [{ bin_id: 'B1', slot_id: 'S3' }] }
+        { face: '270', bins: [{ bin_code: 'B1', slot_id: 'S3' }] }
       ])
     ).toContain('料箱')
     expect(
@@ -82,11 +82,11 @@ describe('useTransportDebugRunConfig', () => {
       {
         face: ' 90 ',
         bins: [
-          { bin_id: ' B1 ', slot_id: ' S1 ' },
-          { bin_id: 'B2', slot_id: 'S2' }
+          { bin_code: ' B1 ', slot_id: ' S1 ' },
+          { bin_code: 'B2', slot_id: 'S2' }
         ]
       },
-      { face: '270', bins: [{ bin_id: 'B3', slot_id: 'S3' }] }
+      { face: '270', bins: [{ bin_code: 'B3', slot_id: 'S3' }] }
     ])
 
     expect(JSON.parse(preview)).toEqual([
@@ -102,28 +102,28 @@ describe('useTransportDebugRunConfig', () => {
         kind: 'BIN_MOVE',
         moves: [
           {
-            bin_id: 'B1',
+            bin_code: 'B1',
             source: { kind: 'RACK_BIN_SLOT', rack_id: 'R1', rack_face: ' 90 ', slot_id: 'S1' },
             target: { kind: 'HANDOFF_POSITION', location_code: 'CNV0301' }
           },
           {
-            bin_id: 'B2',
+            bin_code: 'B2',
             source: { kind: 'RACK_BIN_SLOT', rack_id: 'R1', rack_face: ' 90 ', slot_id: 'S2' },
             target: { kind: 'HANDOFF_POSITION', location_code: 'CNV0301' }
           }
         ]
       },
-      { kind: 'SCAN12', bin_ids: ['B1', 'B2'] },
+      { kind: 'SCAN12', bin_codes: ['B1', 'B2'] },
       {
         kind: 'BIN_MOVE',
         moves: [
           {
-            bin_id: 'B1',
+            bin_code: 'B1',
             source: { kind: 'HANDOFF_POSITION', location_code: 'CNV0302' },
             target: { kind: 'RACK_BIN_SLOT', rack_id: 'R1', rack_face: ' 90 ', slot_id: 'S1' }
           },
           {
-            bin_id: 'B2',
+            bin_code: 'B2',
             source: { kind: 'HANDOFF_POSITION', location_code: 'CNV0302' },
             target: { kind: 'RACK_BIN_SLOT', rack_id: 'R1', rack_face: ' 90 ', slot_id: 'S2' }
           }
@@ -140,18 +140,18 @@ describe('useTransportDebugRunConfig', () => {
         kind: 'BIN_MOVE',
         moves: [
           {
-            bin_id: 'B3',
+            bin_code: 'B3',
             source: { kind: 'RACK_BIN_SLOT', rack_id: 'R1', rack_face: '270', slot_id: 'S3' },
             target: { kind: 'HANDOFF_POSITION', location_code: 'CNV0301' }
           }
         ]
       },
-      { kind: 'SCAN12', bin_ids: ['B3'] },
+      { kind: 'SCAN12', bin_codes: ['B3'] },
       {
         kind: 'BIN_MOVE',
         moves: [
           {
-            bin_id: 'B3',
+            bin_code: 'B3',
             source: { kind: 'HANDOFF_POSITION', location_code: 'CNV0302' },
             target: { kind: 'RACK_BIN_SLOT', rack_id: 'R1', rack_face: '270', slot_id: 'S3' }
           }
@@ -162,7 +162,6 @@ describe('useTransportDebugRunConfig', () => {
         rack_id: 'R1',
         source: { kind: 'RACK', location_code: 'R1' },
         target: { kind: 'ZONE', location_code: 'WH01' },
-        target_face: '90',
         rcs_template_id: 'CTU03'
       }
     ])
@@ -173,7 +172,7 @@ describe('useTransportDebugRunConfig', () => {
 
     config.addGroup()
 
-    expect(config.groups.value).toEqual([{ face: '', bins: [{ bin_id: '', slot_id: '' }] }])
+    expect(config.groups.value).toEqual([{ face: '', bins: [{ bin_code: '', slot_id: '' }] }])
   })
 
   it('enforces one-to-four bin mutation boundaries and removes face groups explicitly', () => {

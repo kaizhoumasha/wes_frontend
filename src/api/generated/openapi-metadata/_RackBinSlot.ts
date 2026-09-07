@@ -34,7 +34,8 @@ export const _RackBinSlotMetadata = {
       "type": "string",
       "required": true,
       "nullable": false,
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 10
     },
     "rack_id": {
       "title": "Rack Id",

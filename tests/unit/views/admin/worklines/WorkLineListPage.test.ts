@@ -15,7 +15,9 @@ describe('WorkLine static master-data page', () => {
     const keys = WORKLINE_FIELDS.map(field => field.key)
     const config = createWorkLinePageConfig(vi.fn(), vi.fn())
 
-    expect(keys).not.toContain('plugin_key')
+    expect(keys).toContain('plugin_key')
+    expect(keys).toContain('plugin_version')
+    expect(workLinePageFieldConfig.form.fieldConfig.map(field => field.key)).not.toContain('plugin_key')
     expect(keys).not.toContain('contract_version')
     expect(config.detail?.actions ?? []).toEqual([])
   })
@@ -32,10 +34,10 @@ describe('WorkLine static master-data page', () => {
     const showStart = actions[1]?.show
     expect(typeof showStart).toBe('function')
     expect((showStart as (row: Workline) => boolean)({ id: 7, is_active: true } as Workline)).toBe(
-      true
+      false
     )
     expect((showStart as (row: Workline) => boolean)({ id: 8, is_active: false } as Workline)).toBe(
-      false
+      true
     )
 
     const row = { id: 7 } as Workline

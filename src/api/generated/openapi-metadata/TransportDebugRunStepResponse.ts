@@ -20,7 +20,7 @@ export const TransportDebugRunStepResponseMetadata = {
     "transport_task_id",
     "evidence_high_watermark",
     "evidence_not_before_ms",
-    "observed_bin_ids",
+    "observed_bin_codes",
     "reason_code",
     "created_at",
     "updated_at"
@@ -57,8 +57,8 @@ export const TransportDebugRunStepResponseMetadata = {
       "required": true,
       "nullable": true
     },
-    "observed_bin_ids": {
-      "title": "Observed Bin Ids",
+    "observed_bin_codes": {
+      "title": "Observed Bin Codes",
       "type": "array",
       "required": true,
       "nullable": false,

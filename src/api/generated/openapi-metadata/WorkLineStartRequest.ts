@@ -11,19 +11,17 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
 export const WorkLineStartRequestMetadata = {
   "title": "WorkLineStartRequest",
-  "description": "Stable identity for one WorkLine START attempt.",
   "required": [
-    "request_id"
+    "version"
   ],
   "additionalProperties": false,
   "fields": {
-    "request_id": {
-      "title": "Request Id",
-      "type": "string",
+    "version": {
+      "title": "Version",
+      "type": "integer",
       "required": true,
       "nullable": false,
-      "minLength": 1,
-      "maxLength": 100
+      "minimum": 0
     }
   }
 } satisfies OpenApiSchemaMetadata

@@ -14,8 +14,7 @@ export const _RackMoveDataMetadata = {
   "required": [
     "rack_id",
     "source",
-    "target",
-    "target_face"
+    "target"
   ],
   "additionalProperties": false,
   "fields": {
@@ -52,9 +51,10 @@ export const _RackMoveDataMetadata = {
       "title": "Target Face",
       "description": "Opaque non-empty face value without NUL; preserve exactly",
       "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1
+      "required": false,
+      "nullable": true,
+      "minLength": 1,
+      "maxLength": 10
     }
   }
 } satisfies OpenApiSchemaMetadata

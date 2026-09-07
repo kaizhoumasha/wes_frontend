@@ -20,7 +20,7 @@ export const TransportDebugRunResponseMetadata = {
     "current_phase",
     "current_step",
     "steps",
-    "observed_bin_ids",
+    "observed_bin_codes",
     "attention_code",
     "attention_detail",
     "can_abort",
@@ -108,8 +108,8 @@ export const TransportDebugRunResponseMetadata = {
         "ref": "TransportDebugRunFaceGroupResponse"
       }
     },
-    "observed_bin_ids": {
-      "title": "Observed Bin Ids",
+    "observed_bin_codes": {
+      "title": "Observed Bin Codes",
       "type": "array",
       "required": true,
       "nullable": false,

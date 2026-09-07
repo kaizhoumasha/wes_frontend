@@ -2,7 +2,7 @@ import { computed, ref } from 'vue'
 import type { DebugRunCreateInput } from '@/api/modules/transport'
 
 export interface TransportDebugBinDraft {
-  bin_id: string
+  bin_code: string
   slot_id: string
 }
 
@@ -18,18 +18,18 @@ export function validateTransportDebugRunConfig(
   if (!rackId.trim()) return '货架编码不能为空'
   if (groups.length === 0) return '至少配置一个货架面'
   const faces = new Set<string>()
-  const binIds = new Set<string>()
+  const binCodes = new Set<string>()
   for (const group of groups) {
     if (!group.face.trim() || group.face.includes('\0')) return '面值不能为空或只包含空白'
     if (faces.has(group.face)) return '货架面原始字符串不能重复'
     faces.add(group.face)
     if (group.bins.length < 1 || group.bins.length > 4) return '每个货架面必须录入 1～4 个料箱'
     for (const bin of group.bins) {
-      const binId = bin.bin_id.trim()
-      if (!binId) return '料箱编码不能为空'
+      const binCode = bin.bin_code.trim()
+      if (!binCode) return '料箱编码不能为空'
       if (!bin.slot_id.trim()) return '原货架槽位不能为空'
-      if (binIds.has(binId)) return '同一料箱不能出现在多个货架面'
-      binIds.add(binId)
+      if (binCodes.has(binCode)) return '同一料箱不能出现在多个货架面'
+      binCodes.add(binCode)
     }
   }
   return null
@@ -46,7 +46,7 @@ export function buildTransportDebugRunInput(
     face_groups: groups.map(group => ({
       face: group.face,
       bins: group.bins.map(bin => ({
-        bin_id: bin.bin_id.trim(),
+        bin_code: bin.bin_code.trim(),
         slot_id: bin.slot_id.trim()
       }))
     }))
@@ -82,7 +82,7 @@ export function buildTransportDebugRunPreview(
     steps.push({
       kind: 'BIN_MOVE',
       moves: group.bins.map(bin => ({
-        bin_id: bin.bin_id,
+        bin_code: bin.bin_code,
         source: {
           kind: 'RACK_BIN_SLOT',
           rack_id: input.rack_id,
@@ -92,11 +92,11 @@ export function buildTransportDebugRunPreview(
         target: { kind: 'HANDOFF_POSITION', location_code: 'CNV0301' }
       }))
     })
-    steps.push({ kind: 'SCAN12', bin_ids: group.bins.map(bin => bin.bin_id) })
+    steps.push({ kind: 'SCAN12', bin_codes: group.bins.map(bin => bin.bin_code) })
     steps.push({
       kind: 'BIN_MOVE',
       moves: group.bins.map(bin => ({
-        bin_id: bin.bin_id,
+        bin_code: bin.bin_code,
         source: { kind: 'HANDOFF_POSITION', location_code: 'CNV0302' },
         target: {
           kind: 'RACK_BIN_SLOT',
@@ -112,7 +112,6 @@ export function buildTransportDebugRunPreview(
     rack_id: input.rack_id,
     source: { kind: 'RACK', location_code: input.rack_id },
     target: { kind: 'ZONE', location_code: 'WH01' },
-    target_face: '90',
     rcs_template_id: 'CTU03'
   })
   return JSON.stringify(steps, null, 2)
@@ -127,7 +126,7 @@ export function useTransportDebugRunConfig() {
   const preview = computed(() => buildTransportDebugRunPreview(rackId.value, groups.value))
 
   function addGroup(): void {
-    groups.value.push({ face: '', bins: [{ bin_id: '', slot_id: '' }] })
+    groups.value.push({ face: '', bins: [{ bin_code: '', slot_id: '' }] })
   }
 
   function removeGroup(index: number): void {
@@ -136,7 +135,7 @@ export function useTransportDebugRunConfig() {
 
   function addBin(groupIndex: number): void {
     const group = groups.value[groupIndex]
-    if (group && group.bins.length < 4) group.bins.push({ bin_id: '', slot_id: '' })
+    if (group && group.bins.length < 4) group.bins.push({ bin_code: '', slot_id: '' })
   }
 
   function removeBin(groupIndex: number, binIndex: number): void {

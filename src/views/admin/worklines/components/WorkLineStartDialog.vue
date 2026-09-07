@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
+import { CRUD_PAGE_REFRESH_KEY } from '@/components/common/crud-page/types'
 import type { WorkLinesItem as Workline } from '@/api/modules/workLines'
 import StandardDialog from '@/components/ui/StandardDialog/StandardDialog.vue'
 import { useWorkLineStart } from '../composables/useWorkLineStart'
@@ -7,28 +8,34 @@ import type { WorkLineStartReason } from '../config/startRequest'
 
 const START_REASON_MESSAGES = {
   WORKLINE_NOT_FOUND: '工作线不存在或已删除',
-  INVALID_STATE: '当前工作线状态不允许创建新的运行代际',
-  CONFIGURATION_INVALID: '工作线、设备 Endpoint 或粗分机配置不完整或不符合合同',
-  IDEMPOTENCY_CONFLICT: '该 request_id 已属于另一条工作线',
+  INVALID_STATE: '当前工作线状态不允许启动',
+  CONFIGURATION_INVALID: '工作线、设备接入地址或所选插件配置不完整或不符合合同',
+  VERSION_CONFLICT: '工作线状态已变化，请查看当前状态后重新操作',
   SERVICE_UNAVAILABLE: 'START 服务暂不可用，本次请求未被接纳'
 } satisfies Record<WorkLineStartReason, string>
 
 const props = defineProps<{ workline: Workline | null }>()
 const modelValue = defineModel<boolean>({ default: false })
 const start = useWorkLineStart()
-const { state, result, rejectionReason, submitting } = start
+const refreshList = inject(CRUD_PAGE_REFRESH_KEY, undefined)
+const listRefreshFailed = ref(false)
 
-const showActionFooter = computed(
-  () =>
-    state.value === 'idle' ||
-    state.value === 'submitting' ||
-    state.value === 'preparation-failed' ||
-    state.value === 'delivery-unknown'
-)
+async function submit(): Promise<void> {
+  await start.submit()
+  if (start.state.value !== 'succeeded' || !refreshList) return
+  try {
+    await refreshList()
+  } catch {
+    listRefreshFailed.value = true
+  }
+}
+const { state, result, rejectionReason, submitting, refreshing, refreshFailed } = start
+
+const showActionFooter = computed(() => state.value === 'idle' || state.value === 'submitting')
 const dialogVisible = computed({
   get: () => modelValue.value,
   set: value => {
-    if (!value && submitting.value) return
+    if (!value && (submitting.value || refreshing.value)) return
     modelValue.value = value
   }
 })
@@ -42,7 +49,10 @@ const rejectionMessage = computed(() =>
 watch(
   dialogVisible,
   (isOpen, wasOpen) => {
-    if (isOpen && !wasOpen && props.workline) start.open(props.workline)
+    if (isOpen && !wasOpen && props.workline) {
+      listRefreshFailed.value = false
+      start.open(props.workline)
+    }
   },
   { immediate: true }
 )
@@ -56,33 +66,27 @@ watch(
     size="lg"
     confirm-text="确认启动"
     confirm-icon="lucide:play"
-    :closable="!submitting"
+    :closable="!submitting && !refreshing"
     :show-footer="showActionFooter"
     :hide-cancel="submitting"
     :confirm-loading="submitting"
     :confirm-disabled="submitting"
-    @confirm="start.submit"
+    @confirm="submit"
   >
     <div class="workline-start-dialog">
+      <p v-if="listRefreshFailed">工作线已启动，列表刷新失败，请手动刷新。</p>
       <p
         v-if="state === 'idle' || state === 'submitting'"
         class="workline-start-dialog__prompt"
       >
-        确认启动此 WorkLine 并创建新的运行代际？
+        确认启动此 WorkLine？
       </p>
-
-      <div
-        v-else-if="state === 'preparation-failed'"
-        class="workline-start-dialog__notice workline-start-dialog__notice--danger"
-      >
-        本地无法生成或保存 START 请求标识，未发送任何请求。请检查浏览器存储设置后重试。
-      </div>
 
       <div
         v-else-if="state === 'delivery-unknown'"
         class="workline-start-dialog__notice workline-start-dialog__notice--warning"
       >
-        上次 START 结果未知。重试将复用同一 request_id，不会创建第二个意图。
+        启动结果未知，已尝试读取当前工作线状态。请确认状态后重新操作。
       </div>
 
       <div
@@ -97,34 +101,40 @@ watch(
         class="workline-start-dialog__facts"
       >
         <div>
-          <dt>Epoch 编码</dt>
-          <dd>{{ result.epoch_code }}</dd>
+          <dt>工作线 ID</dt>
+          <dd>{{ result.workline_id }}</dd>
         </div>
         <div>
-          <dt>运行代际 ID</dt>
-          <dd>{{ result.line_run_epoch_id }}</dd>
+          <dt>版本</dt>
+          <dd>{{ result.version }}</dd>
         </div>
         <div>
-          <dt>历史 Epoch 状态</dt>
-          <dd>{{ result.epoch_status }}</dd>
+          <dt>业务插件</dt>
+          <dd>{{ result.plugin_key }} / {{ result.plugin_version }}</dd>
         </div>
         <div>
-          <dt>创建结果</dt>
-          <dd>{{ result.created ? '新建成功' : '幂等重放' }}</dd>
+          <dt>流程模式</dt>
+          <dd>{{ result.flow_mode }}</dd>
         </div>
         <div>
-          <dt>Epoch 开始时间</dt>
-          <dd>{{ result.epoch_started_at }}</dd>
-        </div>
-        <div>
-          <dt>Epoch 关闭时间</dt>
-          <dd>{{ result.epoch_closed_at ?? '—' }}</dd>
-        </div>
-        <div>
-          <dt>当前 WorkLine 投影</dt>
-          <dd>{{ result.current_workline_runtime_status ?? '—' }}</dd>
+          <dt>当前状态</dt>
+          <dd>{{ result.is_active ? '已启动' : '已停用' }}</dd>
         </div>
       </dl>
+      <div v-if="state === 'delivery-unknown' || rejectionReason === 'VERSION_CONFLICT'">
+        <p v-if="refreshing">正在读取当前工作线状态…</p>
+        <p v-else-if="refreshFailed">读取失败，请再次读取当前状态。</p>
+        <p v-else>
+          当前工作线：{{ start.workline.value?.is_active ? '已启动' : '已停用' }}，版本
+          {{ start.workline.value?.version }}
+        </p>
+        <el-button
+          :loading="refreshing"
+          @click="start.refresh"
+        >
+          刷新状态
+        </el-button>
+      </div>
     </div>
   </StandardDialog>
 </template>

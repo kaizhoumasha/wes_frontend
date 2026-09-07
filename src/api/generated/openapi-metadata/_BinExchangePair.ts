@@ -12,15 +12,15 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 export const _BinExchangePairMetadata = {
   "title": "_BinExchangePair",
   "required": [
-    "left_bin_id",
+    "left_bin_code",
     "left_location",
-    "right_bin_id",
+    "right_bin_code",
     "right_location"
   ],
   "additionalProperties": false,
   "fields": {
-    "left_bin_id": {
-      "title": "Left Bin Id",
+    "left_bin_code": {
+      "title": "Left Bin Code",
       "type": "string",
       "required": true,
       "nullable": false,
@@ -32,8 +32,8 @@ export const _BinExchangePairMetadata = {
       "nullable": false,
       "ref": "_RackBinSlot"
     },
-    "right_bin_id": {
-      "title": "Right Bin Id",
+    "right_bin_code": {
+      "title": "Right Bin Code",
       "type": "string",
       "required": true,
       "nullable": false,

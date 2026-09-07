@@ -20,12 +20,12 @@ export function createWorkLineRowActions(
     {
       key: 'workline-start',
       label: '启动',
-      tooltip: '创建或重放 WorkLine 运行代际',
+      tooltip: '按当前业务装配启动工作线',
       icon: 'lucide:play',
       type: 'primary',
       priority: 'primary',
       permission: BIZ_PERMISSIONS.workline.start,
-      show: workline => workline.is_active === true,
+      show: workline => workline.is_active === false,
       onClick: openStart
     }
   ]

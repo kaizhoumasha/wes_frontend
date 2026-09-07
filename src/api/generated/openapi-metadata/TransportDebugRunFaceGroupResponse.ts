@@ -28,9 +28,12 @@ export const TransportDebugRunFaceGroupResponseMetadata = {
     },
     "face": {
       "title": "Face",
+      "description": "Opaque non-empty face value without NUL; preserve exactly",
       "type": "string",
       "required": true,
-      "nullable": false
+      "nullable": false,
+      "minLength": 1,
+      "maxLength": 10
     }
   }
 } satisfies OpenApiSchemaMetadata

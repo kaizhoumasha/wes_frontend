@@ -37,8 +37,8 @@ export const worklineApiMethods = {
   },
 
   /**
-   * [biz:workline:start] 启动 WorkLine 并激活运行代际
-   * @description 在一个事务内 replay 或创建完整 LineRunEpoch。
+   * [biz:workline:start] 启动 WorkLine 当前插件
+   * @description 在同一事务内校验版本并启动当前插件。
    * @endpoint POST /api/v1/workline/operations/worklines/{workline_id}/start
    * @returns alova method instance
    */

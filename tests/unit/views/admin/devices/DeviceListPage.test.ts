@@ -90,6 +90,7 @@ describe('Device static master-data page', () => {
     )
 
     expect(DEVICE_FIELDS.map(field => field.key)).toContain('endpoint_base_url')
+    expect(DEVICE_FIELDS.find(field => field.key === 'endpoint_base_url')?.table).toBeDefined()
     expect(formKeys).toContain('endpoint_base_url')
     expect(detailKeys).toContain('endpoint_base_url')
   })

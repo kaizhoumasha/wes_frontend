@@ -279,7 +279,7 @@ async function deactivate(): Promise<void> {
   if (!workline?.is_active || !canDeactivate.value || deactivating.value) return
   try {
     await ElMessageBox.confirm(
-      `确认停用“${workline.line_name}”？系统会再次检查 Transport、BinExecution、MaterialExecution 等未结束任务。`,
+      `确认停用“${workline.line_name}”？请先停止接料并完成现场物理清线；系统会检查未完成任务、待处理结果和位置占用。`,
       '停用工作线',
       { confirmButtonText: '确认停用', cancelButtonText: '取消', type: 'warning' }
     )
@@ -365,6 +365,10 @@ watch(
           <div>
             <h3>工作线状态</h3>
             <p>{{ currentWorkline.line_code }} · {{ currentWorkline.line_type }}</p>
+            <p v-if="currentWorkline.plugin_key">
+              当前插件：{{ currentWorkline.plugin_key }} · 启动版本
+              {{ currentWorkline.plugin_version ?? '尚未启动' }}
+            </p>
           </div>
           <div class="workline-configuration__status-actions">
             <ElTag :type="currentWorkline.is_active ? 'success' : 'info'">

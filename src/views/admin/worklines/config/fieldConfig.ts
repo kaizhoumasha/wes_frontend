@@ -32,6 +32,8 @@ const WORKLINE_FIELD_LABEL_OVERRIDES = {
   line_type: '作业线类型',
   zone_name: '区域名称',
   config: '配置参数',
+  plugin_key: '业务插件',
+  plugin_version: '启动插件版本',
   run_mode: '运行模式',
   description: '描述',
   is_active: '是否激活',
@@ -132,6 +134,14 @@ export const {
         dataType: 'enum',
         options: LINE_TYPE_OPTIONS
       }
+    },
+    {
+      key: 'plugin_key',
+      table: { visibleFrom: 'tablet', minWidth: 180 }
+    },
+    {
+      key: 'plugin_version',
+      table: { visibleFrom: 'desktop', width: 130 }
     },
     {
       key: 'zone_name',

@@ -12,14 +12,14 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 export const _BinMoveMemberMetadata = {
   "title": "_BinMoveMember",
   "required": [
-    "bin_id",
+    "bin_code",
     "source",
     "target"
   ],
   "additionalProperties": false,
   "fields": {
-    "bin_id": {
-      "title": "Bin Id",
+    "bin_code": {
+      "title": "Bin Code",
       "type": "string",
       "required": true,
       "nullable": false,

@@ -84,7 +84,7 @@ function defaultData(kind: TransportDebugTaskKind): string {
     BIN_MOVE: {
       moves: [
         {
-          bin_id: 'BIN-01',
+          bin_code: 'BIN-01',
           source: { kind: 'HANDOFF_POSITION', location_code: 'SOURCE-01' },
           target: { kind: 'HANDOFF_POSITION', location_code: 'TARGET-01' }
         }
@@ -93,14 +93,14 @@ function defaultData(kind: TransportDebugTaskKind): string {
     BIN_EXCHANGE: {
       exchange_pairs: [
         {
-          left_bin_id: 'BIN-01',
+          left_bin_code: 'BIN-01',
           left_location: {
             kind: 'RACK_BIN_SLOT',
             rack_id: 'RACK-01',
             rack_face: '90',
             slot_id: 'SLOT-01'
           },
-          right_bin_id: 'BIN-02',
+          right_bin_code: 'BIN-02',
           right_location: {
             kind: 'RACK_BIN_SLOT',
             rack_id: 'RACK-02',

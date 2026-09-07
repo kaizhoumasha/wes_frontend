@@ -11,7 +11,6 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
 export const WorkLineStartErrorResponseMetadata = {
   "title": "WorkLineStartErrorResponse",
-  "description": "Stable machine-readable START rejection.",
   "required": [
     "reason"
   ],
@@ -25,7 +24,7 @@ export const WorkLineStartErrorResponseMetadata = {
         "WORKLINE_NOT_FOUND",
         "INVALID_STATE",
         "CONFIGURATION_INVALID",
-        "IDEMPOTENCY_CONFLICT",
+        "VERSION_CONFLICT",
         "SERVICE_UNAVAILABLE"
       ]
     }

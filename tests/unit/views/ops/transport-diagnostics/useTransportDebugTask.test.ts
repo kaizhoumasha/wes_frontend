@@ -29,7 +29,7 @@ describe('buildTransportDebugTask', () => {
       {
         moves: [
           {
-            bin_id: 'BIN-01',
+            bin_code: '000a/B-01',
             source: { kind: 'HANDOFF_POSITION', location_code: 'SRC-01' },
             target: {
               kind: 'RACK_BIN_SLOT',
@@ -46,14 +46,14 @@ describe('buildTransportDebugTask', () => {
       {
         exchange_pairs: [
           {
-            left_bin_id: 'BIN-01',
+            left_bin_code: '000a/B-01',
             left_location: {
               kind: 'RACK_BIN_SLOT',
               rack_id: 'RACK-01',
               rack_face: '90',
               slot_id: 'SLOT-01'
             },
-            right_bin_id: 'BIN-02',
+            right_bin_code: 'BIN-02',
             right_location: {
               kind: 'RACK_BIN_SLOT',
               rack_id: 'RACK-02',
@@ -71,6 +71,18 @@ describe('buildTransportDebugTask', () => {
       station_id: 'STATION-DEBUG',
       data
     })
+  })
+
+  it('rejects the retired bin_id input field', () => {
+    const data = {
+      moves: [{
+        bin_id: '000a/B-01',
+        source: { kind: 'HANDOFF_POSITION', location_code: 'SRC-01' },
+        target: { kind: 'HANDOFF_POSITION', location_code: 'DST-01' }
+      }]
+    }
+    expect(() => buildTransportDebugTask('BIN_MOVE', JSON.stringify(data), CLIENT_REQUEST_ID))
+      .toThrow('Transport 参数不符合合同')
   })
 
   it('rejects malformed JSON and data that does not satisfy the selected kind', () => {
