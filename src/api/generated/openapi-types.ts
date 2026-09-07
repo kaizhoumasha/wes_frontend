@@ -1,4 +1,4 @@
-/** @openapi-sha256 cbe97671f62f080a0445f9d0fb43808cf98fc965a93e25e535dd52e4486f6f9a */
+/** @openapi-sha256 488e296b757ed6ae167179b29ba96d33e80c7e465b774b5ee326539b225ff47c */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -1533,6 +1533,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/outbound-picking/tasks/{task_id}/plan-blockers/{blocking_evidence_id}/apply-correction": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 校验两份计划证据并原子应用修正版本 */
+        post: operations["outbound_picking_tasks_by_task_id_plan_blockers_by_blocking_evidence_id_apply_correction_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/resource/bin-cell-occupancies/{id}": {
         parameters: {
             query?: never;
@@ -2244,8 +2261,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * [biz:workline:start] 启动 WorkLine 并激活运行代际
-         * @description 在一个事务内 replay 或创建完整 LineRunEpoch。
+         * [biz:workline:start] 启动 WorkLine 当前插件
+         * @description 在同一事务内校验版本并启动当前插件。
          */
         post: operations["workline_operations_worklines_by_workline_id_start_post"];
         delete?: never;
@@ -2553,11 +2570,11 @@ export interface components {
         };
         /** _BinExchangePair */
         _BinExchangePair: {
-            /** Left Bin Id */
-            left_bin_id: string;
+            /** Left Bin Code */
+            left_bin_code: string;
             left_location: components["schemas"]["_RackBinSlot"];
-            /** Right Bin Id */
-            right_bin_id: string;
+            /** Right Bin Code */
+            right_bin_code: string;
             right_location: components["schemas"]["_RackBinSlot"];
         };
         /** _BinMoveData */
@@ -2580,8 +2597,8 @@ export interface components {
         };
         /** _BinMoveMember */
         _BinMoveMember: {
-            /** Bin Id */
-            bin_id: string;
+            /** Bin Code */
+            bin_code: string;
             source: components["schemas"]["_BinPosition"];
             target: components["schemas"]["_BinPosition"];
         };
@@ -2630,11 +2647,8 @@ export interface components {
             rcs_template_id?: components["schemas"]["RcsTemplateId"] | null;
             source: components["schemas"]["_RackMovePosition"];
             target: components["schemas"]["_RackMovePosition"];
-            /**
-             * Target Face
-             * @description Opaque non-empty face value without NUL; preserve exactly
-             */
-            target_face: string;
+            /** Target Face */
+            target_face?: string | null;
         };
         /** _RackMoveDebugTask */
         _RackMoveDebugTask: {
@@ -3003,6 +3017,26 @@ export interface components {
              * @description 权限类型：user_api（内部管理API）、app_api（外部应用API）
              */
             type: string;
+        };
+        /** ApplyPlanCorrectionRequest */
+        ApplyPlanCorrectionRequest: {
+            /** Correction Evidence Id */
+            correction_evidence_id: number;
+            /** Expected Version */
+            expected_version: number;
+            /** Reason */
+            reason: string;
+        };
+        /** ApplyPlanCorrectionResponse */
+        ApplyPlanCorrectionResponse: {
+            /** Correction Evidence Id */
+            correction_evidence_id: number;
+            /** Plan Revision */
+            plan_revision: number;
+            /** Task Id */
+            task_id: string;
+            /** Version */
+            version: number;
         };
         /**
          * AppStatus
@@ -5290,6 +5324,8 @@ export interface components {
         ResponseSchemaModel_APIAccessLogResponse_: ApiResponse<components["schemas"]["APIAccessLogResponse"]>;
         /** ResponseSchemaModel[APIApplicationResponse] */
         ResponseSchemaModel_APIApplicationResponse_: ApiResponse<components["schemas"]["APIApplicationResponse"]>;
+        /** ResponseSchemaModel[ApplyPlanCorrectionResponse] */
+        ResponseSchemaModel_ApplyPlanCorrectionResponse_: ApiResponse<components["schemas"]["ApplyPlanCorrectionResponse"]>;
         /** ResponseSchemaModel[AuditLogResponse] */
         ResponseSchemaModel_AuditLogResponse_: ApiResponse<components["schemas"]["AuditLogResponse"]>;
         /** ResponseSchemaModel[AuthMyResponse] */
@@ -5529,15 +5565,15 @@ export interface components {
         };
         /** TransportDebugRunBinRequest */
         TransportDebugRunBinRequest: {
-            /** Bin Id */
-            bin_id: string;
+            /** Bin Code */
+            bin_code: string;
             /** Slot Id */
             slot_id: string;
         };
         /** TransportDebugRunBinResponse */
         TransportDebugRunBinResponse: {
-            /** Bin Id */
-            bin_id: string;
+            /** Bin Code */
+            bin_code: string;
             /** Slot Id */
             slot_id: string;
         };
@@ -5555,7 +5591,10 @@ export interface components {
         TransportDebugRunFaceGroupResponse: {
             /** Bins */
             bins: components["schemas"]["TransportDebugRunBinResponse"][];
-            /** Face */
+            /**
+             * Face
+             * @description Opaque non-empty face value without NUL; preserve exactly
+             */
             face: string;
         };
         /** TransportDebugRunPageResponse */
@@ -5592,8 +5631,8 @@ export interface components {
             current_step: components["schemas"]["TransportDebugRunStepResponse"] | null;
             /** Face Groups */
             face_groups: components["schemas"]["TransportDebugRunFaceGroupResponse"][];
-            /** Observed Bin Ids */
-            observed_bin_ids: string[];
+            /** Observed Bin Codes */
+            observed_bin_codes: string[];
             /** Rack Id */
             rack_id: string;
             /** Run Id */
@@ -5623,8 +5662,8 @@ export interface components {
             evidence_not_before_ms: number | null;
             /** Group Index */
             group_index: number | null;
-            /** Observed Bin Ids */
-            observed_bin_ids: string[];
+            /** Observed Bin Codes */
+            observed_bin_codes: string[];
             /** Ordinal */
             ordinal: number;
             phase: components["schemas"]["TransportDebugRunPhase"];
@@ -6270,6 +6309,11 @@ export interface components {
              */
             plugin_key?: string | null;
             /**
+             * Plugin Version
+             * @description 当前已校验的精确插件版本
+             */
+            plugin_version?: string | null;
+            /**
              * @description 工作线运行模式
              * @default AUTO
              */
@@ -6295,56 +6339,31 @@ export interface components {
          * @enum {string}
          */
         WorkLineRunMode: "AUTO" | "MANUAL" | "SIMULATION";
-        /**
-         * WorkLineStartErrorResponse
-         * @description Stable machine-readable START rejection.
-         */
+        /** WorkLineStartErrorResponse */
         WorkLineStartErrorResponse: {
             /**
              * Reason
              * @enum {string}
              */
-            reason: "WORKLINE_NOT_FOUND" | "INVALID_STATE" | "CONFIGURATION_INVALID" | "IDEMPOTENCY_CONFLICT" | "SERVICE_UNAVAILABLE";
+            reason: "WORKLINE_NOT_FOUND" | "INVALID_STATE" | "CONFIGURATION_INVALID" | "VERSION_CONFLICT" | "SERVICE_UNAVAILABLE";
         };
-        /**
-         * WorkLineStartRequest
-         * @description Stable identity for one WorkLine START attempt.
-         */
+        /** WorkLineStartRequest */
         WorkLineStartRequest: {
-            /** Request Id */
-            request_id: string;
+            /** Version */
+            version: number;
         };
-        /**
-         * WorkLineStartResponse
-         * @description Frozen Epoch identity and the current WorkLine projection.
-         */
+        /** WorkLineStartResponse */
         WorkLineStartResponse: {
-            /** Created */
-            created: boolean;
-            /** Current Workline Runtime Status */
-            current_workline_runtime_status: string | null;
-            /** Epoch Closed At */
-            epoch_closed_at: string | null;
-            /** Epoch Code */
-            epoch_code: string;
-            /**
-             * Epoch Started At
-             * Format: date-time
-             */
-            epoch_started_at: string;
-            /**
-             * Epoch Status
-             * @enum {string}
-             */
-            epoch_status: "ACTIVE" | "CLOSED";
             /** Flow Mode */
             flow_mode: string;
-            /** Line Run Epoch Id */
-            line_run_epoch_id: number;
+            /** Is Active */
+            is_active: boolean;
             /** Plugin Key */
             plugin_key: string;
             /** Plugin Version */
             plugin_version: string;
+            /** Version */
+            version: number;
             /** Workline Id */
             workline_id: number;
         };
@@ -9143,6 +9162,42 @@ export interface operations {
             };
         };
     };
+    outbound_picking_tasks_by_task_id_plan_blockers_by_blocking_evidence_id_apply_correction_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                blocking_evidence_id: number;
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplyPlanCorrectionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_ApplyPlanCorrectionResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     bin_cell_occupancies_get: {
         parameters: {
             query?: {
@@ -10898,7 +10953,7 @@ export interface operations {
                             type: "NG_POSITION";
                         } | {
                             bin_cell_id: string & (unknown & unknown);
-                            bin_id: string & (unknown & unknown);
+                            bin_code: string & (unknown & unknown);
                             rack_id: string & (unknown & unknown);
                             rack_slot_code: string & (unknown & unknown);
                             /** @enum {string} */
@@ -10935,6 +10990,60 @@ export interface operations {
                     };
                     /** @enum {string} */
                     operation: "outbound.picking_task.issued@v1";
+                    operation_id: string;
+                    /**
+                     * Format: int64
+                     * @description Unix 毫秒时间戳
+                     */
+                    timestamp: number;
+                } | {
+                    data: {
+                        added_bin_source_racks?: {
+                            rack_face: string;
+                            rack_id: string;
+                        }[];
+                        added_direct_picks?: {
+                            source_locator: {
+                                rack_face: string;
+                                rack_id: string;
+                                slot_id: string;
+                                /** @enum {string} */
+                                type: "RACK_SLOT";
+                            };
+                        }[];
+                        plan_revision: number;
+                        target_rack?: {
+                            rack_face: string;
+                            rack_id: string;
+                        };
+                        task_id: string;
+                    } & ({
+                        /** @constant */
+                        plan_revision?: 1;
+                    } | ({
+                        plan_revision?: unknown;
+                    } | unknown | unknown));
+                    /** @enum {string} */
+                    operation: "outbound.picking_task.plan_delta@v1";
+                    operation_id: string;
+                    /**
+                     * Format: int64
+                     * @description Unix 毫秒时间戳
+                     */
+                    timestamp: number;
+                } | {
+                    data: {
+                        dispatch_sequence?: number;
+                        /**
+                         * Format: int64
+                         * @description Unix 毫秒时间戳
+                         */
+                        not_before?: number;
+                        queue_revision: number;
+                        task_id: string;
+                    } | unknown | unknown;
+                    /** @enum {string} */
+                    operation: "outbound.picking_task.queue_changed@v1";
                     operation_id: string;
                     /**
                      * Format: int64
@@ -11138,7 +11247,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description START 成功或幂等 replay 成功 */
+            /** @description START 成功 */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -11156,7 +11265,7 @@ export interface operations {
                     "application/json": components["schemas"]["ResponseSchemaModel_WorkLineStartErrorResponse_"];
                 };
             };
-            /** @description START 状态或幂等身份冲突 */
+            /** @description START 状态或版本冲突 */
             409: {
                 headers: {
                     [name: string]: unknown;

@@ -3,7 +3,7 @@ import { useTransportDebugRun } from '@/views/ops/transport-diagnostics/useTrans
 
 const snapshot = (version: number, status = 'RUNNING') => ({
   run_id: 'run-1', status, rack_id: '510056', face_groups: [], current_group_index: 0,
-  current_phase: 'RACK_TO_STATION', current_step: null, observed_bin_ids: [], attention_code: null,
+  current_phase: 'RACK_TO_STATION', current_step: null, observed_bin_codes: [], attention_code: null,
   attention_detail: null, can_abort: false, version, created_by_user_id: 1, aborted_by_user_id: null,
   aborted_reason: null, created_at: '2026-09-03T00:00:00Z', updated_at: '2026-09-03T00:00:00Z'
 })

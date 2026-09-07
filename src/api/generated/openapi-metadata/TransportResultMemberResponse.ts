@@ -27,7 +27,8 @@ export const TransportResultMemberResponseMetadata = {
       "type": "string",
       "required": true,
       "nullable": true,
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 10
     },
     "failure_code": {
       "title": "Failure Code",

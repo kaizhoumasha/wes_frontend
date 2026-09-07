@@ -47,9 +47,19 @@ const observing = computed(() =>
 const currentGroup = computed(
   () => snapshot.value?.face_groups[snapshot.value.current_group_index] ?? null
 )
+const observedBins = computed(
+  () =>
+    snapshot.value?.steps.find(
+      step =>
+        step.phase === 'WAIT_SCAN12' && step.group_index === snapshot.value?.current_group_index
+    )?.observed_bin_codes ?? []
+)
 const pendingBins = computed(() => {
-  const observed = new Set(snapshot.value?.observed_bin_ids ?? [])
-  return currentGroup.value?.bins.map(bin => bin.bin_id).filter(binId => !observed.has(binId)) ?? []
+  const observed = new Set(observedBins.value)
+  return (
+    currentGroup.value?.bins.map(bin => bin.bin_code).filter(binCode => !observed.has(binCode)) ??
+    []
+  )
 })
 const runSteps = computed(() => snapshot.value?.steps ?? [])
 const stream = useTransportDebugRunStream({
@@ -126,8 +136,8 @@ function stepGroup(step: DebugRunStep) {
 function stepPendingBins(step: DebugRunStep): string[] {
   const group = stepGroup(step)
   if (!group) return []
-  const observed = new Set(step.observed_bin_ids)
-  return group.bins.map(bin => bin.bin_id).filter(binId => !observed.has(binId))
+  const observed = new Set(step.observed_bin_codes)
+  return group.bins.map(bin => bin.bin_code).filter(binCode => !observed.has(binCode))
 }
 
 function showsStepGroup(step: DebugRunStep): boolean {
@@ -251,7 +261,7 @@ defineExpose({ open, close })
                 料箱
                 {{
                   stepGroup(step)
-                    ?.bins.map(bin => bin.bin_id)
+                    ?.bins.map(bin => bin.bin_code)
                     .join(' / ') || '无'
                 }}
               </strong>
@@ -266,7 +276,7 @@ defineExpose({ open, close })
               }}
             </p>
             <p v-if="step.phase === 'WAIT_SCAN12'">
-              已扫描：{{ step.observed_bin_ids.join(' / ') || '无' }} · 待扫描：{{
+              已扫描：{{ step.observed_bin_codes.join(' / ') || '无' }} · 待扫描：{{
                 stepPendingBins(step).join(' / ') || '无'
               }}
             </p>
@@ -287,7 +297,7 @@ defineExpose({ open, close })
           当前面：
           <code>{{ currentGroup?.face }}</code>
         </p>
-        <p>已扫描：{{ snapshot.observed_bin_ids.join(' / ') || '无' }}</p>
+        <p>已扫描：{{ observedBins.join(' / ') || '无' }}</p>
         <p>待扫描：{{ pendingBins.join(' / ') || '无' }}</p>
         <AppButton
           v-if="props.canReadTask && snapshot.current_step?.transport_task_id"
@@ -366,7 +376,7 @@ defineExpose({ open, close })
           class="bin-row"
         >
           <el-input
-            v-model="bin.bin_id"
+            v-model="bin.bin_code"
             placeholder="料箱编码，例如 A000001922"
             aria-label="料箱编码"
           />

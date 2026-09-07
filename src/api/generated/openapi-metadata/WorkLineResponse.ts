@@ -93,6 +93,14 @@ export const WorkLineResponseMetadata = {
       "minLength": 1,
       "maxLength": 100
     },
+    "plugin_version": {
+      "title": "Plugin Version",
+      "description": "当前已校验的精确插件版本",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "maxLength": 50
+    },
     "run_mode": {
       "description": "工作线运行模式",
       "required": false,

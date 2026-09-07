@@ -32,7 +32,8 @@ export const TransportDebugRunFaceGroupRequestMetadata = {
       "type": "string",
       "required": true,
       "nullable": false,
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 10
     }
   }
 } satisfies OpenApiSchemaMetadata

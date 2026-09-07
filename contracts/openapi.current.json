@@ -634,6 +634,64 @@
         "title": "AppType",
         "type": "string"
       },
+      "ApplyPlanCorrectionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "correction_evidence_id": {
+            "exclusiveMinimum": 0,
+            "maximum": 9223372036854776000,
+            "title": "Correction Evidence Id",
+            "type": "integer"
+          },
+          "expected_version": {
+            "exclusiveMinimum": 0,
+            "maximum": 9223372036854776000,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "reason": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "correction_evidence_id",
+          "expected_version",
+          "reason"
+        ],
+        "title": "ApplyPlanCorrectionRequest",
+        "type": "object"
+      },
+      "ApplyPlanCorrectionResponse": {
+        "properties": {
+          "correction_evidence_id": {
+            "title": "Correction Evidence Id",
+            "type": "integer"
+          },
+          "plan_revision": {
+            "title": "Plan Revision",
+            "type": "integer"
+          },
+          "task_id": {
+            "title": "Task Id",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "task_id",
+          "plan_revision",
+          "version",
+          "correction_evidence_id"
+        ],
+        "title": "ApplyPlanCorrectionResponse",
+        "type": "object"
+      },
       "AssignRolesRequest": {
         "description": "为用户分配角色请求",
         "properties": {
@@ -7163,6 +7221,51 @@
         "title": "ResponseSchemaModel[ActiveSessionsResponse]",
         "type": "object"
       },
+      "ResponseSchemaModel_ApplyPlanCorrectionResponse_": {
+        "properties": {
+          "code": {
+            "default": "1000",
+            "description": "响应码",
+            "examples": [
+              "1000",
+              "2000"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ApplyPlanCorrectionResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "message": {
+            "default": "操作成功",
+            "description": "响应消息",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ],
+            "title": "Message",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ],
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "title": "ResponseSchemaModel[ApplyPlanCorrectionResponse]",
+        "type": "object"
+      },
       "ResponseSchemaModel_AuditLogResponse_": {
         "properties": {
           "code": {
@@ -9999,10 +10102,10 @@
       "TransportDebugRunBinRequest": {
         "additionalProperties": false,
         "properties": {
-          "bin_id": {
+          "bin_code": {
             "maxLength": 100,
             "minLength": 1,
-            "title": "Bin Id",
+            "title": "Bin Code",
             "type": "string"
           },
           "slot_id": {
@@ -10013,7 +10116,7 @@
           }
         },
         "required": [
-          "bin_id",
+          "bin_code",
           "slot_id"
         ],
         "title": "TransportDebugRunBinRequest",
@@ -10022,8 +10125,8 @@
       "TransportDebugRunBinResponse": {
         "additionalProperties": false,
         "properties": {
-          "bin_id": {
-            "title": "Bin Id",
+          "bin_code": {
+            "title": "Bin Code",
             "type": "string"
           },
           "slot_id": {
@@ -10032,7 +10135,7 @@
           }
         },
         "required": [
-          "bin_id",
+          "bin_code",
           "slot_id"
         ],
         "title": "TransportDebugRunBinResponse",
@@ -10052,6 +10155,7 @@
           },
           "face": {
             "description": "Opaque non-empty face value without NUL; preserve exactly",
+            "maxLength": 10,
             "minLength": 1,
             "pattern": "^[^\\x00]+$",
             "title": "Face",
@@ -10076,6 +10180,10 @@
             "type": "array"
           },
           "face": {
+            "description": "Opaque non-empty face value without NUL; preserve exactly",
+            "maxLength": 10,
+            "minLength": 1,
+            "pattern": "^[^\\x00]+$",
             "title": "Face",
             "type": "string"
           }
@@ -10211,11 +10319,11 @@
             "title": "Face Groups",
             "type": "array"
           },
-          "observed_bin_ids": {
+          "observed_bin_codes": {
             "items": {
               "type": "string"
             },
-            "title": "Observed Bin Ids",
+            "title": "Observed Bin Codes",
             "type": "array"
           },
           "rack_id": {
@@ -10254,7 +10362,7 @@
           "current_phase",
           "current_step",
           "steps",
-          "observed_bin_ids",
+          "observed_bin_codes",
           "attention_code",
           "attention_detail",
           "can_abort",
@@ -10330,11 +10438,11 @@
             ],
             "title": "Group Index"
           },
-          "observed_bin_ids": {
+          "observed_bin_codes": {
             "items": {
               "type": "string"
             },
-            "title": "Observed Bin Ids",
+            "title": "Observed Bin Codes",
             "type": "array"
           },
           "ordinal": {
@@ -10383,7 +10491,7 @@
           "transport_task_id",
           "evidence_high_watermark",
           "evidence_not_before_ms",
-          "observed_bin_ids",
+          "observed_bin_codes",
           "reason_code",
           "created_at",
           "updated_at"
@@ -10489,6 +10597,7 @@
             "anyOf": [
               {
                 "description": "Opaque non-empty face value without NUL; preserve exactly",
+                "maxLength": 10,
                 "minLength": 1,
                 "pattern": "^[^\\x00]+$",
                 "type": "string"
@@ -11685,6 +11794,19 @@
             "description": "业务插件标识",
             "title": "Plugin Key"
           },
+          "plugin_version": {
+            "anyOf": [
+              {
+                "maxLength": 50,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "当前已校验的精确插件版本",
+            "title": "Plugin Version"
+          },
           "run_mode": {
             "$ref": "#/components/schemas/WorkLineRunMode",
             "default": "AUTO",
@@ -11736,14 +11858,13 @@
         "type": "string"
       },
       "WorkLineStartErrorResponse": {
-        "description": "Stable machine-readable START rejection.",
         "properties": {
           "reason": {
             "enum": [
               "WORKLINE_NOT_FOUND",
               "INVALID_STATE",
               "CONFIGURATION_INVALID",
-              "IDEMPOTENCY_CONFLICT",
+              "VERSION_CONFLICT",
               "SERVICE_UNAVAILABLE"
             ],
             "title": "Reason",
@@ -11758,75 +11879,28 @@
       },
       "WorkLineStartRequest": {
         "additionalProperties": false,
-        "description": "Stable identity for one WorkLine START attempt.",
         "properties": {
-          "request_id": {
-            "maxLength": 100,
-            "minLength": 1,
-            "title": "Request Id",
-            "type": "string"
+          "version": {
+            "minimum": 0,
+            "title": "Version",
+            "type": "integer"
           }
         },
         "required": [
-          "request_id"
+          "version"
         ],
         "title": "WorkLineStartRequest",
         "type": "object"
       },
       "WorkLineStartResponse": {
-        "description": "Frozen Epoch identity and the current WorkLine projection.",
         "properties": {
-          "created": {
-            "title": "Created",
-            "type": "boolean"
-          },
-          "current_workline_runtime_status": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Current Workline Runtime Status"
-          },
-          "epoch_closed_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Epoch Closed At"
-          },
-          "epoch_code": {
-            "title": "Epoch Code",
-            "type": "string"
-          },
-          "epoch_started_at": {
-            "format": "date-time",
-            "title": "Epoch Started At",
-            "type": "string"
-          },
-          "epoch_status": {
-            "enum": [
-              "ACTIVE",
-              "CLOSED"
-            ],
-            "title": "Epoch Status",
-            "type": "string"
-          },
           "flow_mode": {
             "title": "Flow Mode",
             "type": "string"
           },
-          "line_run_epoch_id": {
-            "title": "Line Run Epoch Id",
-            "type": "integer"
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
           },
           "plugin_key": {
             "title": "Plugin Key",
@@ -11836,23 +11910,22 @@
             "title": "Plugin Version",
             "type": "string"
           },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
           "workline_id": {
             "title": "Workline Id",
             "type": "integer"
           }
         },
         "required": [
-          "line_run_epoch_id",
-          "epoch_code",
           "workline_id",
+          "version",
           "plugin_key",
           "plugin_version",
           "flow_mode",
-          "epoch_status",
-          "epoch_started_at",
-          "epoch_closed_at",
-          "current_workline_runtime_status",
-          "created"
+          "is_active"
         ],
         "title": "WorkLineStartResponse",
         "type": "object"
@@ -12193,21 +12266,21 @@
       "_BinExchangePair": {
         "additionalProperties": false,
         "properties": {
-          "left_bin_id": {
+          "left_bin_code": {
             "maxLength": 100,
             "minLength": 1,
             "pattern": ".*\\S.*",
-            "title": "Left Bin Id",
+            "title": "Left Bin Code",
             "type": "string"
           },
           "left_location": {
             "$ref": "#/components/schemas/_RackBinSlot"
           },
-          "right_bin_id": {
+          "right_bin_code": {
             "maxLength": 100,
             "minLength": 1,
             "pattern": ".*\\S.*",
-            "title": "Right Bin Id",
+            "title": "Right Bin Code",
             "type": "string"
           },
           "right_location": {
@@ -12215,9 +12288,9 @@
           }
         },
         "required": [
-          "left_bin_id",
+          "left_bin_code",
           "left_location",
-          "right_bin_id",
+          "right_bin_code",
           "right_location"
         ],
         "title": "_BinExchangePair",
@@ -12286,11 +12359,11 @@
       "_BinMoveMember": {
         "additionalProperties": false,
         "properties": {
-          "bin_id": {
+          "bin_code": {
             "maxLength": 100,
             "minLength": 1,
             "pattern": ".*\\S.*",
-            "title": "Bin Id",
+            "title": "Bin Code",
             "type": "string"
           },
           "source": {
@@ -12301,7 +12374,7 @@
           }
         },
         "required": [
-          "bin_id",
+          "bin_code",
           "source",
           "target"
         ],
@@ -12402,6 +12475,7 @@
           },
           "rack_face": {
             "description": "Opaque non-empty face value without NUL; preserve exactly",
+            "maxLength": 10,
             "minLength": 1,
             "pattern": "^[^\\x00]+$",
             "title": "Rack Face",
@@ -12458,18 +12532,25 @@
             "$ref": "#/components/schemas/_RackMovePosition"
           },
           "target_face": {
-            "description": "Opaque non-empty face value without NUL; preserve exactly",
-            "minLength": 1,
-            "pattern": "^[^\\x00]+$",
-            "title": "Target Face",
-            "type": "string"
+            "anyOf": [
+              {
+                "description": "Opaque non-empty face value without NUL; preserve exactly",
+                "maxLength": 10,
+                "minLength": 1,
+                "pattern": "^[^\\x00]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Face"
           }
         },
         "required": [
           "rack_id",
           "source",
-          "target",
-          "target_face"
+          "target"
         ],
         "title": "_RackMoveData",
         "type": "object"
@@ -12607,6 +12688,7 @@
           },
           "target_face": {
             "description": "Opaque non-empty face value without NUL; preserve exactly",
+            "maxLength": 10,
             "minLength": 1,
             "pattern": "^[^\\x00]+$",
             "title": "Target Face",
@@ -17070,6 +17152,75 @@
         ]
       }
     },
+    "/api/v1/outbound-picking/tasks/{task_id}/plan-blockers/{blocking_evidence_id}/apply-correction": {
+      "post": {
+        "operationId": "outbound_picking_tasks_by_task_id_plan_blockers_by_blocking_evidence_id_apply_correction_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+              "title": "Task Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "blocking_evidence_id",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "maximum": 9223372036854776000,
+              "title": "Blocking Evidence Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyPlanCorrectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_ApplyPlanCorrectionResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "校验两份计划证据并原子应用修正版本",
+        "tags": [
+          "Outbound Picking 计划对账"
+        ]
+      }
+    },
     "/api/v1/resource/bin-cell-occupancies/query": {
       "post": {
         "operationId": "bin_cell_occupancies_query",
@@ -19156,14 +19307,14 @@
                     "data": {
                       "exchange_pairs": [
                         {
-                          "left_bin_id": "BIN-01",
+                          "left_bin_code": "BIN-01",
                           "left_location": {
                             "kind": "RACK_BIN_SLOT",
                             "rack_face": "90",
                             "rack_id": "RACK-01",
                             "slot_id": "SLOT-01"
                           },
-                          "right_bin_id": "BIN-02",
+                          "right_bin_code": "BIN-02",
                           "right_location": {
                             "kind": "RACK_BIN_SLOT",
                             "rack_face": "90",
@@ -19184,7 +19335,7 @@
                     "data": {
                       "moves": [
                         {
-                          "bin_id": "BIN-01",
+                          "bin_code": "BIN-01",
                           "source": {
                             "kind": "RACK_BIN_SLOT",
                             "rack_face": "90",
@@ -19784,6 +19935,7 @@
                                       },
                                       "rack_face": {
                                         "description": "Opaque non-empty face value without NUL; preserve exactly",
+                                        "maxLength": 10,
                                         "minLength": 1,
                                         "pattern": "^[^\\u0000]+$",
                                         "type": "string"
@@ -19893,6 +20045,7 @@
                             "properties": {
                               "arrival_face": {
                                 "description": "Opaque non-empty face value without NUL; preserve exactly",
+                                "maxLength": 10,
                                 "minLength": 1,
                                 "pattern": "^[^\\u0000]+$",
                                 "type": "string"
@@ -19967,6 +20120,7 @@
                             "properties": {
                               "arrival_face": {
                                 "description": "Opaque non-empty face value without NUL; preserve exactly",
+                                "maxLength": 10,
                                 "minLength": 1,
                                 "pattern": "^[^\\u0000]+$",
                                 "type": "string"
@@ -20143,6 +20297,7 @@
                                                 },
                                                 "rack_face": {
                                                   "description": "Opaque non-empty face value without NUL; preserve exactly",
+                                                  "maxLength": 10,
                                                   "minLength": 1,
                                                   "pattern": "^[^\\u0000]+$",
                                                   "type": "string"
@@ -20236,6 +20391,7 @@
                                                 },
                                                 "rack_face": {
                                                   "description": "Opaque non-empty face value without NUL; preserve exactly",
+                                                  "maxLength": 10,
                                                   "minLength": 1,
                                                   "pattern": "^[^\\u0000]+$",
                                                   "type": "string"
@@ -20397,6 +20553,7 @@
                                                 },
                                                 "rack_face": {
                                                   "description": "Opaque non-empty face value without NUL; preserve exactly",
+                                                  "maxLength": 10,
                                                   "minLength": 1,
                                                   "pattern": "^[^\\u0000]+$",
                                                   "type": "string"
@@ -20490,6 +20647,7 @@
                                                 },
                                                 "rack_face": {
                                                   "description": "Opaque non-empty face value without NUL; preserve exactly",
+                                                  "maxLength": 10,
                                                   "minLength": 1,
                                                   "pattern": "^[^\\u0000]+$",
                                                   "type": "string"
@@ -20748,7 +20906,7 @@
                                           "minLength": 1,
                                           "type": "string"
                                         },
-                                        "bin_id": {
+                                        "bin_code": {
                                           "allOf": [
                                             {
                                               "not": {
@@ -20807,7 +20965,7 @@
                                         "type",
                                         "rack_id",
                                         "rack_slot_code",
-                                        "bin_id",
+                                        "bin_code",
                                         "bin_cell_id"
                                       ],
                                       "type": "object"
@@ -20904,7 +21062,7 @@
                                     "minLength": 1,
                                     "type": "string"
                                   },
-                                  "bin_id": {
+                                  "bin_code": {
                                     "allOf": [
                                       {
                                         "not": {
@@ -20963,7 +21121,7 @@
                                   "type",
                                   "rack_id",
                                   "rack_slot_code",
-                                  "bin_id",
+                                  "bin_code",
                                   "bin_cell_id"
                                 ],
                                 "type": "object"
@@ -21158,6 +21316,251 @@
                         "format": "int64",
                         "maximum": 9223372036854776000,
                         "minimum": 1,
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "operation_id",
+                      "operation",
+                      "timestamp",
+                      "data"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "data": {
+                        "additionalProperties": false,
+                        "oneOf": [
+                          {
+                            "properties": {
+                              "plan_revision": {
+                                "const": 1
+                              }
+                            },
+                            "required": [
+                              "target_rack"
+                            ]
+                          },
+                          {
+                            "anyOf": [
+                              {
+                                "required": [
+                                  "added_bin_source_racks"
+                                ]
+                              },
+                              {
+                                "required": [
+                                  "added_direct_picks"
+                                ]
+                              }
+                            ],
+                            "not": {
+                              "required": [
+                                "target_rack"
+                              ]
+                            },
+                            "properties": {
+                              "plan_revision": {
+                                "minimum": 2
+                              }
+                            }
+                          }
+                        ],
+                        "properties": {
+                          "added_bin_source_racks": {
+                            "items": {
+                              "additionalProperties": false,
+                              "properties": {
+                                "rack_face": {
+                                  "maxLength": 10,
+                                  "minLength": 1,
+                                  "pattern": "^[^\\u0000\\uD800-\\uDFFF]+$",
+                                  "type": "string"
+                                },
+                                "rack_id": {
+                                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "rack_id",
+                                "rack_face"
+                              ],
+                              "type": "object"
+                            },
+                            "minItems": 1,
+                            "type": "array"
+                          },
+                          "added_direct_picks": {
+                            "items": {
+                              "additionalProperties": false,
+                              "properties": {
+                                "source_locator": {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "rack_face": {
+                                      "maxLength": 10,
+                                      "minLength": 1,
+                                      "pattern": "^[^\\u0000\\uD800-\\uDFFF]+$",
+                                      "type": "string"
+                                    },
+                                    "rack_id": {
+                                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+                                      "type": "string"
+                                    },
+                                    "slot_id": {
+                                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+                                      "type": "string"
+                                    },
+                                    "type": {
+                                      "enum": [
+                                        "RACK_SLOT"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "type",
+                                    "rack_id",
+                                    "rack_face",
+                                    "slot_id"
+                                  ],
+                                  "type": "object"
+                                }
+                              },
+                              "required": [
+                                "source_locator"
+                              ],
+                              "type": "object"
+                            },
+                            "minItems": 1,
+                            "type": "array"
+                          },
+                          "plan_revision": {
+                            "maximum": 9223372036854776000,
+                            "minimum": 1,
+                            "type": "integer"
+                          },
+                          "target_rack": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "rack_face": {
+                                "maxLength": 10,
+                                "minLength": 1,
+                                "pattern": "^[^\\u0000\\uD800-\\uDFFF]+$",
+                                "type": "string"
+                              },
+                              "rack_id": {
+                                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "rack_id",
+                              "rack_face"
+                            ],
+                            "type": "object"
+                          },
+                          "task_id": {
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "task_id",
+                          "plan_revision"
+                        ],
+                        "type": "object"
+                      },
+                      "operation": {
+                        "enum": [
+                          "outbound.picking_task.plan_delta@v1"
+                        ],
+                        "type": "string"
+                      },
+                      "operation_id": {
+                        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                        "type": "string"
+                      },
+                      "timestamp": {
+                        "description": "Unix 毫秒时间戳",
+                        "format": "int64",
+                        "maximum": 9223372036854776000,
+                        "minimum": 0,
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "operation_id",
+                      "operation",
+                      "timestamp",
+                      "data"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "data": {
+                        "additionalProperties": false,
+                        "anyOf": [
+                          {
+                            "required": [
+                              "dispatch_sequence"
+                            ]
+                          },
+                          {
+                            "required": [
+                              "not_before"
+                            ]
+                          }
+                        ],
+                        "properties": {
+                          "dispatch_sequence": {
+                            "maximum": 9223372036854776000,
+                            "minimum": 1,
+                            "type": "integer"
+                          },
+                          "not_before": {
+                            "description": "Unix 毫秒时间戳",
+                            "format": "int64",
+                            "maximum": 9223372036854776000,
+                            "minimum": 0,
+                            "type": "integer"
+                          },
+                          "queue_revision": {
+                            "maximum": 9223372036854776000,
+                            "minimum": 2,
+                            "type": "integer"
+                          },
+                          "task_id": {
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "task_id",
+                          "queue_revision"
+                        ],
+                        "type": "object"
+                      },
+                      "operation": {
+                        "enum": [
+                          "outbound.picking_task.queue_changed@v1"
+                        ],
+                        "type": "string"
+                      },
+                      "operation_id": {
+                        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                        "type": "string"
+                      },
+                      "timestamp": {
+                        "description": "Unix 毫秒时间戳",
+                        "format": "int64",
+                        "maximum": 9223372036854776000,
+                        "minimum": 0,
                         "type": "integer"
                       }
                     },
@@ -21599,7 +22002,7 @@
     },
     "/api/v1/workline/operations/worklines/{workline_id}/start": {
       "post": {
-        "description": "在一个事务内 replay 或创建完整 LineRunEpoch。",
+        "description": "在同一事务内校验版本并启动当前插件。",
         "operationId": "workline_operations_worklines_by_workline_id_start_post",
         "parameters": [
           {
@@ -21631,7 +22034,7 @@
                 }
               }
             },
-            "description": "START 成功或幂等 replay 成功"
+            "description": "START 成功"
           },
           "404": {
             "content": {
@@ -21651,7 +22054,7 @@
                 }
               }
             },
-            "description": "START 状态或幂等身份冲突"
+            "description": "START 状态或版本冲突"
           },
           "422": {
             "content": {
@@ -21679,7 +22082,7 @@
             "HTTPBearer": []
           }
         ],
-        "summary": "[biz:workline:start] 启动 WorkLine 并激活运行代际",
+        "summary": "[biz:workline:start] 启动 WorkLine 当前插件",
         "tags": [
           "工作线诊断操作"
         ]

@@ -44,7 +44,7 @@ export const BIZ_WORKLINE_PERMISSION = {
   deactivate: 'biz:workline:deactivate',
   /** 永久删除WorkLine */
   permanentDelete: 'biz:workline:permanent_delete',
-  /** 启动 WorkLine 并激活运行代际 */
+  /** 启动 WorkLine 当前插件 */
   start: 'biz:workline:start',
   /** 获取作业线平面静态场景 */
   viewPlaneScene: 'biz:workline:view-plane-scene',

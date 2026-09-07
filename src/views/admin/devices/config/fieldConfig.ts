@@ -28,10 +28,10 @@ const DEVICE_FIELD_LABEL_OVERRIDES = {
   device_name: '设备名称',
   description: '描述',
   is_active: '是否激活',
-  work_line_id: '作业线',
+  work_line_id: '所属工作线',
   upstream_device_id: '上游设备',
   sort_order: '排序号',
-  endpoint_base_url: '设备 Endpoint'
+  endpoint_base_url: '设备接入地址'
 } as const
 
 export const DEVICE_TABLE_STORAGE_KEY = 'wes-device-table-columns'
@@ -137,6 +137,7 @@ export const {
     },
     {
       key: 'endpoint_base_url',
+      table: { visibleFrom: 'desktop', minWidth: 220 },
       form: {
         type: 'input',
         defaultValue: null,

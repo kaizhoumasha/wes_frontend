@@ -210,11 +210,19 @@ defineExpose({ open, close, command })
       v-if="createdCommand"
       class="lifecycle-panel"
     >
-      <h3>持久化命令生命周期</h3>
+      <h3>设备命令执行结果</h3>
       <p>WES 已创建命令，当前状态 {{ createdCommand.status }}；不代表 ECS 已接纳或设备已完成。</p>
       <dl v-if="commandDetail">
         <dt>command_code</dt>
         <dd>{{ commandDetail.command_code }}</dd>
+        <dt>设备</dt>
+        <dd>{{ commandDetail.device_code }}</dd>
+        <dt>本次接入地址</dt>
+        <dd>{{ commandDetail.endpoint_base_url }}</dd>
+        <dt>本次协议</dt>
+        <dd>{{ commandDetail.contract_key }} @ {{ commandDetail.contract_version }}</dd>
+        <dt>本次超时</dt>
+        <dd>{{ commandDetail.command_timeout_ms }} ms</dd>
         <dt>status</dt>
         <dd>{{ commandDetail.status }}</dd>
         <dt>attempt</dt>

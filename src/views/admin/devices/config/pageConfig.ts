@@ -35,7 +35,7 @@ const DEVICE_PAGE_RESOURCE = {
   key: 'devices',
   title: {
     text: '设备管理',
-    subtitle: '管理仓储设备（PDA、AGV、堆垛机等）',
+    subtitle: '维护物理设备与接入地址；设备归属和业务角色在工作线业务装配中配置',
     icon: 'ep:cpu'
   },
   trashTitle: {

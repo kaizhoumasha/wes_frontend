@@ -1,4 +1,4 @@
-/** @openapi-sha256 cbe97671f62f080a0445f9d0fb43808cf98fc965a93e25e535dd52e4486f6f9a */
+/** @openapi-sha256 488e296b757ed6ae167179b29ba96d33e80c7e465b774b5ee326539b225ff47c */
 /**
  * Zod Validation Schemas
  *
@@ -199,6 +199,28 @@ export const AppStatusSchema = z.enum(["active", "revoked", "expired"])
 
 
 export const AppTypeSchema = z.enum(["ECS", "RCS", "WMS", "Third-Party"])
+
+
+export const ApplyPlanCorrectionRequestSchema = z.object({
+  /** Correction Evidence Id */
+  correction_evidence_id: z.number().max(9223372036854776000),
+  /** Expected Version */
+  expected_version: z.number().max(9223372036854776000),
+  /** Reason */
+  reason: z.string().min(1).max(500),
+})
+
+
+export const ApplyPlanCorrectionResponseSchema = z.object({
+  /** Correction Evidence Id */
+  correction_evidence_id: z.number(),
+  /** Plan Revision */
+  plan_revision: z.number(),
+  /** Task Id */
+  task_id: z.string(),
+  /** Version */
+  version: z.number(),
+})
 
 
 /**
@@ -2480,16 +2502,16 @@ export const SortFieldSchema = z.object({
 
 
 export const TransportDebugRunBinRequestSchema = z.object({
-  /** Bin Id */
-  bin_id: z.string().min(1).max(100),
+  /** Bin Code */
+  bin_code: z.string().min(1).max(100),
   /** Slot Id */
   slot_id: z.string().min(1).max(100),
 })
 
 
 export const TransportDebugRunBinResponseSchema = z.object({
-  /** Bin Id */
-  bin_id: z.string(),
+  /** Bin Code */
+  bin_code: z.string(),
   /** Slot Id */
   slot_id: z.string(),
 })
@@ -2499,7 +2521,7 @@ export const TransportDebugRunFaceGroupRequestSchema = z.object({
   /** Bins */
   bins: z.array(z.lazy(() => TransportDebugRunBinRequestSchema)),
   /** Face */
-  face: z.string().min(1).refine((value) => value.length > 0 && !value.includes(String.fromCharCode(0))),
+  face: z.string().min(1).max(10).refine((value) => value.length > 0 && !value.includes(String.fromCharCode(0))),
 })
 
 
@@ -2507,7 +2529,7 @@ export const TransportDebugRunFaceGroupResponseSchema = z.object({
   /** Bins */
   bins: z.array(z.lazy(() => TransportDebugRunBinResponseSchema)),
   /** Face */
-  face: z.string(),
+  face: z.string().min(1).max(10).refine((value) => value.length > 0 && !value.includes(String.fromCharCode(0))),
 })
 
 
@@ -2543,8 +2565,8 @@ export const TransportDebugRunResponseSchema = z.object({
   current_step: z.union([z.lazy(() => TransportDebugRunStepResponseSchema), z.null()]),
   /** Face Groups */
   face_groups: z.array(z.lazy(() => TransportDebugRunFaceGroupResponseSchema)),
-  /** Observed Bin Ids */
-  observed_bin_ids: z.preprocess((val) => {
+  /** Observed Bin Codes */
+  observed_bin_codes: z.preprocess((val) => {
         // 如果输入是字符串（换行符分隔），转换为数组
         if (typeof val === 'string') {
           return val.split('\n').map(s => s.trim()).filter(s => s)
@@ -2579,8 +2601,8 @@ export const TransportDebugRunStepResponseSchema = z.object({
   evidence_not_before_ms: z.union([z.number(), z.null()]),
   /** Group Index */
   group_index: z.union([z.number(), z.null()]),
-  /** Observed Bin Ids */
-  observed_bin_ids: z.preprocess((val) => {
+  /** Observed Bin Codes */
+  observed_bin_codes: z.preprocess((val) => {
         // 如果输入是字符串（换行符分隔），转换为数组
         if (typeof val === 'string') {
           return val.split('\n').map(s => s.trim()).filter(s => s)
@@ -2626,7 +2648,7 @@ export const TransportEvidenceResponseSchema = z.object({
 
 export const TransportResultMemberResponseSchema = z.object({
   /** Arrival Face */
-  arrival_face: z.union([z.string().min(1).refine((value) => value.length > 0 && !value.includes(String.fromCharCode(0))), z.null()]),
+  arrival_face: z.union([z.string().min(1).max(10).refine((value) => value.length > 0 && !value.includes(String.fromCharCode(0))), z.null()]),
   /** Failure Code */
   failure_code: z.union([z.string(), z.null()]),
   /** Final Position */
@@ -3076,6 +3098,8 @@ export const WorkLineResponseSchema = z.object({
   line_type: z.lazy(() => LineTypeSchema),
   /** Plugin Key */
   plugin_key: z.union([z.string().min(1).max(100), z.null()]).optional(),
+  /** Plugin Version */
+  plugin_version: z.union([z.string().max(50), z.null()]).optional(),
   /** 工作线运行模式 */
   run_mode: z.lazy(() => WorkLineRunModeSchema).optional().default("AUTO"),
   /** Runtime Config Json */
@@ -3096,57 +3120,29 @@ export const WorkLineResponseSchema = z.object({
 export const WorkLineRunModeSchema = z.enum(["AUTO", "MANUAL", "SIMULATION"])
 
 
-/**
- * Stable machine-readable START rejection.
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
 export const WorkLineStartErrorResponseSchema = z.object({
   /** Reason */
-  reason: z.enum(["WORKLINE_NOT_FOUND", "INVALID_STATE", "CONFIGURATION_INVALID", "IDEMPOTENCY_CONFLICT", "SERVICE_UNAVAILABLE"]),
+  reason: z.enum(["WORKLINE_NOT_FOUND", "INVALID_STATE", "CONFIGURATION_INVALID", "VERSION_CONFLICT", "SERVICE_UNAVAILABLE"]),
 })
 
 
-/**
- * Stable identity for one WorkLine START attempt.
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
 export const WorkLineStartRequestSchema = z.object({
-  /** Request Id */
-  request_id: z.string().min(1).max(100),
+  /** Version */
+  version: z.number().min(0),
 })
 
 
-/**
- * Frozen Epoch identity and the current WorkLine projection.
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
 export const WorkLineStartResponseSchema = z.object({
-  /** Created */
-  created: z.boolean(),
-  /** Current Workline Runtime Status */
-  current_workline_runtime_status: z.union([z.string(), z.null()]),
-  /** Epoch Closed At */
-  epoch_closed_at: z.union([z.string().datetime(), z.null()]),
-  /** Epoch Code */
-  epoch_code: z.string(),
-  /** Epoch Started At */
-  epoch_started_at: z.string().datetime(),
-  /** Epoch Status */
-  epoch_status: z.enum(["ACTIVE", "CLOSED"]),
   /** Flow Mode */
   flow_mode: z.string(),
-  /** Line Run Epoch Id */
-  line_run_epoch_id: z.number(),
+  /** Is Active */
+  is_active: z.boolean(),
   /** Plugin Key */
   plugin_key: z.string(),
   /** Plugin Version */
   plugin_version: z.string(),
+  /** Version */
+  version: z.number(),
   /** Workline Id */
   workline_id: z.number(),
 })
@@ -3296,11 +3292,11 @@ export const _BinExchangeDebugTaskSchema = z.object({
 
 
 export const _BinExchangePairSchema = z.object({
-  /** Left Bin Id */
-  left_bin_id: z.string().min(1).max(100).regex(new RegExp(".*\\S.*")),
+  /** Left Bin Code */
+  left_bin_code: z.string().min(1).max(100).regex(new RegExp(".*\\S.*")),
   left_location: z.lazy(() => _RackBinSlotSchema),
-  /** Right Bin Id */
-  right_bin_id: z.string().min(1).max(100).regex(new RegExp(".*\\S.*")),
+  /** Right Bin Code */
+  right_bin_code: z.string().min(1).max(100).regex(new RegExp(".*\\S.*")),
   right_location: z.lazy(() => _RackBinSlotSchema),
 })
 
@@ -3323,8 +3319,8 @@ export const _BinMoveDebugTaskSchema = z.object({
 
 
 export const _BinMoveMemberSchema = z.object({
-  /** Bin Id */
-  bin_id: z.string().min(1).max(100).regex(new RegExp(".*\\S.*")),
+  /** Bin Code */
+  bin_code: z.string().min(1).max(100).regex(new RegExp(".*\\S.*")),
   source: z.lazy(() => _BinPositionSchema),
   target: z.lazy(() => _BinPositionSchema),
 })
@@ -3355,7 +3351,7 @@ export const _RackBinSlotSchema = z.object({
   /** Kind */
   kind: z.literal("RACK_BIN_SLOT"),
   /** Rack Face */
-  rack_face: z.string().min(1).refine((value) => value.length > 0 && !value.includes(String.fromCharCode(0))),
+  rack_face: z.string().min(1).max(10).refine((value) => value.length > 0 && !value.includes(String.fromCharCode(0))),
   /** Rack Id */
   rack_id: z.string().min(1).max(100).regex(new RegExp(".*\\S.*")),
   /** Slot Id */
@@ -3370,7 +3366,7 @@ export const _RackMoveDataSchema = z.object({
   source: z.lazy(() => _RackMovePositionSchema),
   target: z.lazy(() => _RackMovePositionSchema),
   /** Target Face */
-  target_face: z.string().min(1).refine((value) => value.length > 0 && !value.includes(String.fromCharCode(0))),
+  target_face: z.union([z.string().min(1).max(10).refine((value) => value.length > 0 && !value.includes(String.fromCharCode(0))), z.null()]).optional(),
 })
 
 
@@ -3410,7 +3406,7 @@ export const _RackRotateDataSchema = z.object({
   rack_id: z.string().min(1).max(100).regex(new RegExp(".*\\S.*")),
   rcs_template_id: z.union([z.lazy(() => RcsTemplateIdSchema), z.null()]).optional(),
   /** Target Face */
-  target_face: z.string().min(1).refine((value) => value.length > 0 && !value.includes(String.fromCharCode(0))),
+  target_face: z.string().min(1).max(10).refine((value) => value.length > 0 && !value.includes(String.fromCharCode(0))),
 })
 
 

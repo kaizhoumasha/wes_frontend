@@ -12,13 +12,13 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 export const TransportDebugRunBinResponseMetadata = {
   "title": "TransportDebugRunBinResponse",
   "required": [
-    "bin_id",
+    "bin_code",
     "slot_id"
   ],
   "additionalProperties": false,
   "fields": {
-    "bin_id": {
-      "title": "Bin Id",
+    "bin_code": {
+      "title": "Bin Code",
       "type": "string",
       "required": true,
       "nullable": false

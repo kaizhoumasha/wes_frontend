@@ -9,7 +9,7 @@ describe('Transport automatic-run canonical contract', () => {
     type Run = ContractResponseData<'/api/v1/transport/debug-runs/{run_id}', 'get'>
     const input: CreateRun = {
       rack_id: '510056',
-      face_groups: [{ face: ' 90 ', bins: [{ bin_id: 'A000001922', slot_id: 'S1' }] }]
+      face_groups: [{ face: ' 90 ', bins: [{ bin_code: 'A000001922', slot_id: 'S1' }] }]
     }
     const statuses: Run['status'][] = ['RUNNING', 'NEEDS_ATTENTION', 'COMPLETED', 'FAILED', 'ABORTED']
     expect(input.face_groups[0]?.face).toBe(' 90 ')
