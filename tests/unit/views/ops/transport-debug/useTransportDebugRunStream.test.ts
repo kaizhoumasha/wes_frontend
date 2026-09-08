@@ -4,7 +4,7 @@ import type { TransportDebugRunStreamOptions } from '@/api/streaming/transportDe
 import { useTransportDebugRunStream } from '@/views/ops/transport-debug/useTransportDebugRunStream'
 
 describe('useTransportDebugRunStream', () => {
-  it('refreshes from invalidations and polls only while visible and disconnected', async () => {
+  it('refreshes from invalidations and polls while connected', async () => {
     vi.useFakeTimers()
     let attempt!: TransportDebugRunStreamOptions
     const connector = vi.fn((options: TransportDebugRunStreamOptions) => {
@@ -15,7 +15,6 @@ describe('useTransportDebugRunStream', () => {
     const loadRecentRuns = vi.fn().mockResolvedValue(undefined)
     const stream = useTransportDebugRunStream({
       connector,
-      visible: ref(true),
       activeRunId: ref('run-1'),
       refreshRun,
       loadRecentRuns,
@@ -43,7 +42,6 @@ describe('useTransportDebugRunStream', () => {
     const refreshRun = vi.fn().mockResolvedValue(undefined)
     const stream = useTransportDebugRunStream({
       connector: vi.fn(),
-      visible: ref(true),
       activeRunId: ref('run-1'),
       refreshRun,
       pollIntervalMs: 1000
@@ -61,7 +59,6 @@ describe('useTransportDebugRunStream', () => {
     const loadRecentRuns = vi.fn().mockResolvedValue(undefined)
     const stream = useTransportDebugRunStream({
       connector: vi.fn(),
-      visible: ref(true),
       activeRunId: ref(null),
       refreshRun,
       loadRecentRuns,

@@ -20,7 +20,6 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{ selectTask: [transportTaskId: string] }>()
 
-const isOpen = ref(false)
 const uiError = ref('')
 const resultWarning = ref('')
 const abortReason = ref('')
@@ -71,7 +70,6 @@ const observing = computed(() =>
   )
 )
 const stream = useTransportDebugRunStream({
-  visible: isOpen,
   activeRunId,
   refreshRun: refreshObservedRun,
   loadRecentRuns: run.loadRecentRuns
@@ -79,10 +77,9 @@ const stream = useTransportDebugRunStream({
 
 async function load(): Promise<void> {
   const generation = ++lifecycleGeneration
-  isOpen.value = true
   uiError.value = ''
   const runError = await run.loadRecentRuns().then(() => null, errorMessage)
-  if (generation !== lifecycleGeneration || !isOpen.value) return
+  if (generation !== lifecycleGeneration) return
   if (runError) uiError.value = runError
   stream.connect(props.canStream)
 }
