@@ -36,6 +36,7 @@ const columns: TableColumnConfig[] = [
     width: 130,
     formatter: (value, row) => gapOrBadge(row, value, 'info')
   },
+  { field: 'sourceLabel', title: '记录来源', width: 130 },
   { field: 'device', title: '设备', minWidth: 130 },
   { field: 'subject', title: '指令 / 事件', minWidth: 160 },
   {
@@ -90,7 +91,7 @@ const columns: TableColumnConfig[] = [
 ]
 
 const formattedPayload = computed(() => {
-  const row = selectedRow.value
+  const row = props.rows.find(row => row.rowKey === selectedRow.value?.rowKey) ?? selectedRow.value
   if (!row) return ''
   const payload =
     row.attempt && row.latestUpdate
@@ -116,7 +117,8 @@ function toDisplayRow(source: DeviceEvidenceRow): EvidenceDisplayRow {
   const update = source.latestUpdate
   return {
     source,
-    time: attempt?.received_at ?? update?.processed_at ?? '—',
+    time: attempt?.received_at ?? source.recordedAt ?? update?.processed_at ?? '—',
+    sourceLabel: attempt ? '回调尝试' : '证据记录',
     kind: attempt?.kind ?? update?.kind ?? '—',
     device: deviceCode(source) ?? '—',
     subject:

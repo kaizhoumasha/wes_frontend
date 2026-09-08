@@ -9,6 +9,8 @@ const streamMocks = vi.hoisted(() => ({
   reconnect: vi.fn(),
   disconnect: vi.fn(),
   clear: vi.fn(),
+  loadRecent: vi.fn(),
+  loadMore: vi.fn(),
   setFilters: vi.fn()
 }))
 
@@ -18,6 +20,10 @@ vi.mock('@/views/ops/device-diagnostics/useDeviceEvidenceStream', () => ({
     connectionState: ref('CONNECTED'),
     lastError: ref(null),
     totalPayloadBytes: ref(128),
+    historyError: ref(null),
+    loadingHistory: ref(false),
+    nextCursor: ref('older'),
+    historyLimitReached: ref(false),
     ...streamMocks
   })
 }))
@@ -43,7 +49,7 @@ const AppButtonStub = defineComponent({
 })
 
 describe('DeviceDiagnosticsPage', () => {
-  it('connects live-only stream, maps filters and exposes clear/reconnect controls', async () => {
+  it('connects history and stream, maps filters and exposes refresh/pagination controls', async () => {
     const wrapper = shallowMount(DeviceDiagnosticsPage, {
       global: {
         renderStubDefaultSlot: true,
@@ -78,6 +84,11 @@ describe('DeviceDiagnosticsPage', () => {
     const buttons = wrapper.findAll('button')
     await buttons.find(button => button.text().includes('清空'))?.trigger('click')
     await buttons.find(button => button.text().includes('重连'))?.trigger('click')
+    await buttons.find(button => button.text().includes('刷新历史'))?.trigger('click')
+    await buttons.find(button => button.text().includes('加载更早记录'))?.trigger('click')
+    expect(streamMocks.loadRecent).toHaveBeenCalledOnce()
+    expect(streamMocks.loadMore).toHaveBeenCalledOnce()
+    expect(wrapper.text()).toContain('HISTORY + LIVE')
     expect(streamMocks.clear).toHaveBeenCalledOnce()
     expect(streamMocks.reconnect).toHaveBeenCalledOnce()
   })

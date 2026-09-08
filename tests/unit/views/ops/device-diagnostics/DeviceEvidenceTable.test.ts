@@ -74,6 +74,7 @@ describe('DeviceEvidenceTable', () => {
     expect(titles).toEqual([
       '时间',
       '类型',
+      '记录来源',
       '设备',
       '指令 / 事件',
       'HTTP 处置',
@@ -84,7 +85,7 @@ describe('DeviceEvidenceTable', () => {
     const exposed = wrapper.vm as unknown as {
       spanMethod: (scope: { row: DeviceEvidenceRow; columnIndex: number }) => [number, number]
     }
-    expect(exposed.spanMethod({ row: gap, columnIndex: 0 })).toEqual([1, 8])
+    expect(exposed.spanMethod({ row: gap, columnIndex: 0 })).toEqual([1, 9])
     expect(exposed.spanMethod({ row: gap, columnIndex: 1 })).toEqual([0, 0])
 
     expect(
