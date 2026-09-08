@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.0.0] - 2026-09-08
+
+### Added
+
+- 新增 WMS Operation 联调控制台，实时展示 WES 观察到的出入站请求、响应、WIRE 与 PAYLOAD，并突出合同校验异常。
+- 支持近期记录查询、Operation 筛选、请求响应参数对比和脱敏快照复制；断线重连提示记录间隙，窄屏通过抽屉查看详情。
+
+### Changed
+
+- 同步后端已合并的诊断接口合同与权限，按查询、实时订阅和详情读取权限控制访问。
+
 ## [0.17.0.1] - 2026-09-07
 
 ### Changed
