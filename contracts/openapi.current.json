@@ -3479,6 +3479,412 @@
         "title": "EventCommandBlockResponse",
         "type": "object"
       },
+      "ExchangeDetail": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt_id": {
+            "maxLength": 64,
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "build_version": {
+            "default": "unknown",
+            "maxLength": 64,
+            "title": "Build Version",
+            "type": "string"
+          },
+          "business_reference": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Business Reference"
+          },
+          "comparisons": {
+            "items": {
+              "$ref": "#/components/schemas/FieldComparison"
+            },
+            "maxItems": 256,
+            "title": "Comparisons",
+            "type": "array"
+          },
+          "contract_status": {
+            "default": "NOT_VALIDATED",
+            "enum": [
+              "PASS",
+              "ERROR",
+              "NOT_VALIDATED"
+            ],
+            "title": "Contract Status",
+            "type": "string"
+          },
+          "direction": {
+            "enum": [
+              "WMS_TO_WES",
+              "WES_TO_WMS"
+            ],
+            "title": "Direction",
+            "type": "string"
+          },
+          "elapsed_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Elapsed Ms"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "exchange_id": {
+            "title": "Exchange Id",
+            "type": "string"
+          },
+          "incomplete": {
+            "default": false,
+            "title": "Incomplete",
+            "type": "boolean"
+          },
+          "method": {
+            "default": "POST",
+            "maxLength": 8,
+            "title": "Method",
+            "type": "string"
+          },
+          "observed_at": {
+            "maxLength": 40,
+            "title": "Observed At",
+            "type": "string"
+          },
+          "operation": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation"
+          },
+          "operation_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation Id"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path"
+          },
+          "request": {
+            "$ref": "#/components/schemas/WirePreview"
+          },
+          "response": {
+            "$ref": "#/components/schemas/WirePreview"
+          },
+          "result": {
+            "default": "NOT_OBSERVED",
+            "maxLength": 64,
+            "title": "Result",
+            "type": "string"
+          },
+          "status_code": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Code"
+          }
+        },
+        "required": [
+          "attempt_id",
+          "observed_at",
+          "direction",
+          "exchange_id"
+        ],
+        "title": "ExchangeDetail",
+        "type": "object"
+      },
+      "ExchangePage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ExchangeSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "retention_hours": {
+            "title": "Retention Hours",
+            "type": "integer"
+          },
+          "scan_incomplete": {
+            "title": "Scan Incomplete",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor",
+          "scan_incomplete",
+          "retention_hours"
+        ],
+        "title": "ExchangePage",
+        "type": "object"
+      },
+      "ExchangeSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt_id": {
+            "maxLength": 64,
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "business_reference": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Business Reference"
+          },
+          "contract_status": {
+            "default": "NOT_VALIDATED",
+            "enum": [
+              "PASS",
+              "ERROR",
+              "NOT_VALIDATED"
+            ],
+            "title": "Contract Status",
+            "type": "string"
+          },
+          "direction": {
+            "enum": [
+              "WMS_TO_WES",
+              "WES_TO_WMS"
+            ],
+            "title": "Direction",
+            "type": "string"
+          },
+          "elapsed_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Elapsed Ms"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "exchange_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exchange Id"
+          },
+          "incomplete": {
+            "default": false,
+            "title": "Incomplete",
+            "type": "boolean"
+          },
+          "method": {
+            "default": "POST",
+            "maxLength": 8,
+            "title": "Method",
+            "type": "string"
+          },
+          "observed_at": {
+            "maxLength": 40,
+            "title": "Observed At",
+            "type": "string"
+          },
+          "operation": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation"
+          },
+          "operation_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation Id"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path"
+          },
+          "result": {
+            "default": "NOT_OBSERVED",
+            "maxLength": 64,
+            "title": "Result",
+            "type": "string"
+          },
+          "status_code": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Code"
+          }
+        },
+        "required": [
+          "attempt_id",
+          "observed_at",
+          "direction"
+        ],
+        "title": "ExchangeSummary",
+        "type": "object"
+      },
+      "FieldComparison": {
+        "additionalProperties": false,
+        "properties": {
+          "actual_present": {
+            "title": "Actual Present",
+            "type": "boolean"
+          },
+          "actual_value": {
+            "title": "Actual Value"
+          },
+          "expected_rule": {
+            "title": "Expected Rule",
+            "type": "string"
+          },
+          "expected_value": {
+            "title": "Expected Value"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "side": {
+            "enum": [
+              "request",
+              "response"
+            ],
+            "title": "Side",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "verdict": {
+            "enum": [
+              "PASS",
+              "ERROR",
+              "NOT_VALIDATED"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "side",
+          "path",
+          "expected_rule",
+          "actual_present",
+          "verdict",
+          "source"
+        ],
+        "title": "FieldComparison",
+        "type": "object"
+      },
       "FilterCondition": {
         "description": "单个过滤条件",
         "properties": {
@@ -8364,6 +8770,96 @@
         "title": "ResponseSchemaModel[EventCommandBlockResponse]",
         "type": "object"
       },
+      "ResponseSchemaModel_ExchangeDetail_": {
+        "properties": {
+          "code": {
+            "default": "1000",
+            "description": "响应码",
+            "examples": [
+              "1000",
+              "2000"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExchangeDetail"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "message": {
+            "default": "操作成功",
+            "description": "响应消息",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ],
+            "title": "Message",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ],
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "title": "ResponseSchemaModel[ExchangeDetail]",
+        "type": "object"
+      },
+      "ResponseSchemaModel_ExchangePage_": {
+        "properties": {
+          "code": {
+            "default": "1000",
+            "description": "响应码",
+            "examples": [
+              "1000",
+              "2000"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExchangePage"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "message": {
+            "default": "操作成功",
+            "description": "响应消息",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ],
+            "title": "Message",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ],
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "title": "ResponseSchemaModel[ExchangePage]",
+        "type": "object"
+      },
       "ResponseSchemaModel_LoginResponse_": {
         "properties": {
           "code": {
@@ -11787,6 +12283,65 @@
         ],
         "title": "ValidityPeriod",
         "type": "string"
+      },
+      "WirePreview": {
+        "additionalProperties": false,
+        "properties": {
+          "body": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body"
+          },
+          "headers": {
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "type": "array"
+            },
+            "maxItems": 16,
+            "title": "Headers",
+            "type": "array"
+          },
+          "source": {
+            "default": "NOT_CAPTURED",
+            "enum": [
+              "WIRE",
+              "FROZEN_PAYLOAD",
+              "NOT_CAPTURED"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "state": {
+            "default": "NOT_CAPTURED",
+            "enum": [
+              "CAPTURED",
+              "TRUNCATED",
+              "UNSAFE_JSON",
+              "EMPTY",
+              "NOT_CAPTURED",
+              "NO_RESPONSE"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "title": "WirePreview",
+        "type": "object"
       },
       "WorkLineConfigurationCheck": {
         "description": "作业线启用前结构化检查项。",
@@ -20355,6 +20910,357 @@
         "summary": "[ops:transport-task:read] 查询本地 Transport 任务",
         "tags": [
           "Transport 调试"
+        ]
+      }
+    },
+    "/api/v1/wms-diagnostics/exchanges": {
+      "get": {
+        "operationId": "wms_diagnostics_exchanges_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "direction",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "WMS_TO_WES",
+                    "WES_TO_WMS"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Direction"
+            }
+          },
+          {
+            "in": "query",
+            "name": "operation",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Operation"
+            }
+          },
+          {
+            "in": "query",
+            "name": "operation_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Operation Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "business_reference",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Business Reference"
+            }
+          },
+          {
+            "in": "query",
+            "name": "only_errors",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Only Errors",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from_ms",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From Ms"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to_ms",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To Ms"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 48,
+                  "pattern": "^\\d+-\\d+$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_ExchangePage_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:wms-diagnostics:query] 查询近期 WMS 交互",
+        "tags": [
+          "WMS diagnostics"
+        ]
+      }
+    },
+    "/api/v1/wms-diagnostics/exchanges/stream": {
+      "get": {
+        "operationId": "wms_diagnostics_exchanges_stream_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "direction",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "WMS_TO_WES",
+                    "WES_TO_WMS"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Direction"
+            }
+          },
+          {
+            "in": "query",
+            "name": "operation",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Operation"
+            }
+          },
+          {
+            "in": "query",
+            "name": "operation_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Operation Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "business_reference",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Business Reference"
+            }
+          },
+          {
+            "in": "query",
+            "name": "only_errors",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Only Errors",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:wms-diagnostics:stream] 实时观察 WMS 请求与响应",
+        "tags": [
+          "WMS diagnostics"
+        ]
+      }
+    },
+    "/api/v1/wms-diagnostics/exchanges/{exchange_id}": {
+      "get": {
+        "operationId": "wms_diagnostics_exchanges_by_exchange_id_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "exchange_id",
+            "required": true,
+            "schema": {
+              "maxLength": 48,
+              "pattern": "^\\d+-\\d+$",
+              "title": "Exchange Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_ExchangeDetail_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:wms-diagnostics:read] 查看 WMS 交互详情",
+        "tags": [
+          "WMS diagnostics"
         ]
       }
     },

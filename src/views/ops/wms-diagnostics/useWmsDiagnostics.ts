@@ -1,0 +1,267 @@
+import { onScopeDispose, ref, shallowRef, triggerRef, watch } from 'vue'
+import {
+  wmsDiagnosticsApiMethods,
+  type ExchangesQuery,
+  type ExchangesResult,
+  type GetByExchangeIdResult,
+  type StreamQuery
+} from '@/api/modules/wmsDiagnostics'
+import {
+  createAuthenticatedSseConnection,
+  type AuthenticatedSseConnectionState
+} from '@/api/streaming/authenticatedSseStream'
+import {
+  consumeWmsDiagnosticsStream,
+  type WmsDiagnosticsEvent,
+  type WmsObservation
+} from '@/api/streaming/wmsDiagnosticsStream'
+
+export interface WmsConsoleRow {
+  phase: 'started' | 'completed' | 'recorded'
+  exchange: WmsObservation | ExchangesResult['items'][number]
+}
+interface Options {
+  api?: {
+    listExchanges(query: ExchangesQuery): Promise<ExchangesResult>
+    getExchange(id: string): Promise<GetByExchangeIdResult>
+  }
+  connectStream?: typeof consumeWmsDiagnosticsStream
+}
+
+export function useWmsDiagnostics(options: Options = {}) {
+  const api = options.api ?? {
+    listExchanges: (query: ExchangesQuery) => wmsDiagnosticsApiMethods.exchanges(query).send(),
+    getExchange: (id: string) =>
+      wmsDiagnosticsApiMethods.getByExchangeId({ exchange_id: id }).send()
+  }
+  const mode = ref<'live' | 'recent'>('live')
+  const filters = ref<ExchangesQuery>({})
+  const exchanges = shallowRef<WmsConsoleRow[]>([])
+  const detail = shallowRef<WmsObservation | GetByExchangeIdResult | null>(null)
+  const paused = ref(false)
+  const bufferBytes = ref(0)
+  const evictedCount = ref(0)
+  const pendingCount = ref(0)
+  const hasGap = ref(false)
+  const connectionState = ref<AuthenticatedSseConnectionState>('DISCONNECTED')
+  const streamError = ref<Error | null>(null)
+  const historyError = ref<Error | null>(null)
+  const detailError = ref<Error | null>(null)
+  const loading = ref(false)
+  const loadingDetail = ref(false)
+  const nextCursor = ref<string | null>(null)
+  const scanIncomplete = ref(false)
+  const retentionHours = ref<number | null>(null)
+  let bytes = 0,
+    evicted = 0,
+    pending = 0
+  let listGeneration = 0,
+    detailGeneration = 0
+  let enabled = false,
+    connectedBefore = false,
+    disposed = false
+  let flushTimer: ReturnType<typeof setTimeout> | undefined
+  const encoder = new TextEncoder()
+  const size = (row: WmsConsoleRow) => encoder.encode(JSON.stringify(row)).byteLength
+
+  function ingest(row: WmsConsoleRow) {
+    const rows = exchanges.value
+    const index = rows.findIndex(item => item.exchange.attempt_id === row.exchange.attempt_id)
+    const previous = rows[index]
+    if (previous?.phase === 'completed' && row.phase === 'started') return
+    if (row.phase === 'completed' && detail.value?.attempt_id === row.exchange.attempt_id) {
+      detail.value = row.exchange as WmsObservation
+    }
+    if (previous) {
+      bytes -= size(previous)
+      rows[index] = row
+    } else rows.push(row)
+    bytes += size(row)
+    while (rows.length > 500 || bytes > 2 * 1024 * 1024) {
+      bytes -= size(rows.shift()!)
+      evicted++
+    }
+    if (paused.value) pending++
+    // 只保留同一有界数组，避免渲染快照另外持有一份已淘汰报文。
+    flushTimer ??= setTimeout(() => {
+      flushTimer = undefined
+      bufferBytes.value = bytes
+      evictedCount.value = evicted
+      pendingCount.value = pending
+      triggerRef(exchanges)
+    }, 50)
+  }
+
+  const connection = createAuthenticatedSseConnection({
+    connector: ({ signal, onOpen }) => {
+      const { direction, operation, operation_id, business_reference, only_errors } = filters.value
+      const query: StreamQuery = {
+        direction,
+        operation,
+        operation_id,
+        business_reference,
+        only_errors
+      }
+      return (options.connectStream ?? consumeWmsDiagnosticsStream)({
+        signal,
+        onOpen,
+        query,
+        onEvent: (event: WmsDiagnosticsEvent) => {
+          if (!signal.aborted && !disposed) ingest(event)
+        }
+      })
+    },
+    onStateChange: state => {
+      connectionState.value = state
+    },
+    onError: error => {
+      streamError.value = error
+    },
+    onGap: () => {
+      hasGap.value = true
+    }
+  })
+
+  function connect() {
+    enabled = true
+    if (disposed || mode.value !== 'live' || document.visibilityState === 'hidden') return
+    if (connectedBefore) hasGap.value = true
+    connectedBefore = true
+    connection.connect()
+  }
+  function disconnect() {
+    connection.disconnect()
+  }
+  function visibilityChanged() {
+    if (document.visibilityState === 'hidden') disconnect()
+    else if (enabled) connect()
+  }
+  document.addEventListener('visibilitychange', visibilityChanged)
+  watch(paused, value => {
+    if (!value) {
+      pending = 0
+      pendingCount.value = 0
+    }
+  })
+
+  function clearRows() {
+    clearTimeout(flushTimer)
+    flushTimer = undefined
+    exchanges.value = []
+    bytes = evicted = pending = 0
+    bufferBytes.value = evictedCount.value = pendingCount.value = 0
+    detail.value = null
+    detailGeneration++
+    loadingDetail.value = false
+    detailError.value = null
+  }
+  function clearView() {
+    listGeneration++
+    loading.value = false
+    clearRows()
+  }
+  async function loadPage(append: boolean) {
+    if (mode.value !== 'recent' || (append && loading.value)) return
+    const generation = ++listGeneration
+    loading.value = true
+    historyError.value = null
+    try {
+      const page = await api.listExchanges({
+        ...filters.value,
+        page_size: 50,
+        ...(append ? { cursor: nextCursor.value } : {})
+      })
+      if (disposed || generation !== listGeneration) return
+      if (!append) clearRows()
+      page.items.forEach(exchange => ingest({ phase: 'recorded', exchange }))
+      nextCursor.value = page.next_cursor
+      scanIncomplete.value = page.scan_incomplete
+      retentionHours.value = page.retention_hours
+    } catch (error) {
+      if (generation === listGeneration)
+        historyError.value = error instanceof Error ? error : new Error(String(error))
+    } finally {
+      if (generation === listGeneration) loading.value = false
+    }
+  }
+  async function setMode(value: 'live' | 'recent') {
+    listGeneration++
+    loading.value = false
+    mode.value = value
+    disconnect()
+    clearView()
+    nextCursor.value = null
+    scanIncomplete.value = false
+    historyError.value = null
+    if (value === 'recent') await loadPage(false)
+    else connect()
+  }
+  async function applyFilters(query: ExchangesQuery) {
+    filters.value = query
+    await setMode(mode.value)
+  }
+  async function select(row: WmsConsoleRow) {
+    const generation = ++detailGeneration
+    detail.value = null
+    detailError.value = null
+    loadingDetail.value = false
+    if (row.phase !== 'recorded') {
+      detail.value = row.exchange as WmsObservation
+      return
+    }
+    if (!row.exchange.exchange_id) return
+    loadingDetail.value = true
+    try {
+      const result = await api.getExchange(row.exchange.exchange_id)
+      if (!disposed && generation === detailGeneration) detail.value = result
+    } catch (error) {
+      if (generation === detailGeneration)
+        detailError.value = error instanceof Error ? error : new Error(String(error))
+    } finally {
+      if (generation === detailGeneration) loadingDetail.value = false
+    }
+  }
+  function closeDetail() {
+    detailGeneration++
+    detail.value = null
+    detailError.value = null
+    loadingDetail.value = false
+  }
+  onScopeDispose(() => {
+    disposed = true
+    listGeneration++
+    detailGeneration++
+    disconnect()
+    clearTimeout(flushTimer)
+    document.removeEventListener('visibilitychange', visibilityChanged)
+  })
+  return {
+    mode,
+    filters,
+    exchanges,
+    detail,
+    paused,
+    bufferBytes,
+    evictedCount,
+    pendingCount,
+    hasGap,
+    connectionState,
+    streamError,
+    historyError,
+    detailError,
+    loading,
+    loadingDetail,
+    nextCursor,
+    scanIncomplete,
+    retentionHours,
+    connect,
+    disconnect,
+    clearView,
+    setMode,
+    applyFilters,
+    select,
+    closeDetail,
+    loadRecent: () => loadPage(false),
+    loadMore: () => (nextCursor.value ? loadPage(true) : Promise.resolve())
+  }
+}

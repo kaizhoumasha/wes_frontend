@@ -11,8 +11,8 @@ afterEach(() => {
 })
 
 describe('device diagnostics route', () => {
-  it('uses the superuser permission on both ops parent and diagnostics child', () => {
-    expect(opsRoutes.meta?.permission).toBe('*')
+  it('keeps device diagnostics restricted to superusers within the shared ops menu', () => {
+    expect(opsRoutes.meta?.permissions).toContain('*')
     expect(opsRoutes.children?.[0]?.meta?.permission).toBe('*')
     expect(opsRoutes.children?.[0]).toMatchObject({
       path: 'device-diagnostics',

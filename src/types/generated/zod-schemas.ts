@@ -1,4 +1,4 @@
-/** @openapi-sha256 a9de93cc6d031bc7e43ecfe47631072f6342d0b80b78cde7ccbe1435a0865f48 */
+/** @openapi-sha256 1464e875150d43ae788cdcb6d47864e3ae43855190069b2dc4901e9bf0d140fb */
 /**
  * Zod Validation Schemas
  *
@@ -1127,6 +1127,112 @@ export const EventCommandBlockResponseSchema = z.object({
   source_event_id: z.string(),
   /** Status */
   status: z.string(),
+})
+
+
+export const ExchangeDetailSchema = z.object({
+  /** Attempt Id */
+  attempt_id: z.string().max(64),
+  /** Build Version */
+  build_version: z.string().max(64).optional().default("unknown"),
+  /** Business Reference */
+  business_reference: z.union([z.string().max(128), z.null()]).optional(),
+  /** Comparisons */
+  comparisons: z.array(z.lazy(() => FieldComparisonSchema)).optional(),
+  /** Contract Status */
+  contract_status: z.enum(["PASS", "ERROR", "NOT_VALIDATED"]).optional().default("NOT_VALIDATED"),
+  /** Direction */
+  direction: z.enum(["WMS_TO_WES", "WES_TO_WMS"]),
+  /** Elapsed Ms */
+  elapsed_ms: z.union([z.number(), z.null()]).optional(),
+  /** Error Code */
+  error_code: z.union([z.string().max(128), z.null()]).optional(),
+  /** Exchange Id */
+  exchange_id: z.string(),
+  /** Incomplete */
+  incomplete: z.boolean().optional().default(false),
+  /** Method */
+  method: z.string().max(8).optional().default("POST"),
+  /** Observed At */
+  observed_at: z.string().max(40),
+  /** Operation */
+  operation: z.union([z.string().max(128), z.null()]).optional(),
+  /** Operation Id */
+  operation_id: z.union([z.string().max(128), z.null()]).optional(),
+  /** Path */
+  path: z.union([z.string().max(256), z.null()]).optional(),
+  request: z.lazy(() => WirePreviewSchema).optional(),
+  response: z.lazy(() => WirePreviewSchema).optional(),
+  /** Result */
+  result: z.string().max(64).optional().default("NOT_OBSERVED"),
+  /** Status Code */
+  status_code: z.union([z.number(), z.null()]).optional(),
+})
+
+
+export const ExchangePageSchema = z.object({
+  /** Items */
+  items: z.array(z.lazy(() => ExchangeSummarySchema)),
+  /** Next Cursor */
+  next_cursor: z.union([z.string(), z.null()]),
+  /** Retention Hours */
+  retention_hours: z.number(),
+  /** Scan Incomplete */
+  scan_incomplete: z.boolean(),
+})
+
+
+export const ExchangeSummarySchema = z.object({
+  /** Attempt Id */
+  attempt_id: z.string().max(64),
+  /** Business Reference */
+  business_reference: z.union([z.string().max(128), z.null()]).optional(),
+  /** Contract Status */
+  contract_status: z.enum(["PASS", "ERROR", "NOT_VALIDATED"]).optional().default("NOT_VALIDATED"),
+  /** Direction */
+  direction: z.enum(["WMS_TO_WES", "WES_TO_WMS"]),
+  /** Elapsed Ms */
+  elapsed_ms: z.union([z.number(), z.null()]).optional(),
+  /** Error Code */
+  error_code: z.union([z.string().max(128), z.null()]).optional(),
+  /** Exchange Id */
+  exchange_id: z.union([z.string(), z.null()]).optional(),
+  /** Incomplete */
+  incomplete: z.boolean().optional().default(false),
+  /** Method */
+  method: z.string().max(8).optional().default("POST"),
+  /** Observed At */
+  observed_at: z.string().max(40),
+  /** Operation */
+  operation: z.union([z.string().max(128), z.null()]).optional(),
+  /** Operation Id */
+  operation_id: z.union([z.string().max(128), z.null()]).optional(),
+  /** Path */
+  path: z.union([z.string().max(256), z.null()]).optional(),
+  /** Result */
+  result: z.string().max(64).optional().default("NOT_OBSERVED"),
+  /** Status Code */
+  status_code: z.union([z.number(), z.null()]).optional(),
+})
+
+
+export const FieldComparisonSchema = z.object({
+  /** Actual Present */
+  actual_present: z.boolean(),
+  /** Actual Value */
+  actual_value: z.any().optional(),
+  /** Expected Rule */
+  expected_rule: z.string(),
+  /** Expected Value */
+  expected_value: z.any().optional(),
+  /** Path */
+  path: z.string(),
+  /** Side */
+  side: z.enum(["request", "response"]),
+  /** Source */
+  source: z.string(),
+  /** Verdict */
+  verdict: z.enum(["PASS", "ERROR", "NOT_VALIDATED"]),
 })
 
 
@@ -3017,6 +3123,18 @@ export const ValidationErrorSchema = z.object({
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const ValidityPeriodSchema = z.enum(["1d", "1w", "1m", "6m", "1y", "never"])
+
+
+export const WirePreviewSchema = z.object({
+  /** Body */
+  body: z.union([z.string(), z.null()]).optional(),
+  /** Headers */
+  headers: z.array(z.array(z.any())).optional(),
+  /** Source */
+  source: z.enum(["WIRE", "FROZEN_PAYLOAD", "NOT_CAPTURED"]).optional().default("NOT_CAPTURED"),
+  /** State */
+  state: z.enum(["CAPTURED", "TRUNCATED", "UNSAFE_JSON", "EMPTY", "NOT_CAPTURED", "NO_RESPONSE"]).optional().default("NOT_CAPTURED"),
+})
 
 
 /**

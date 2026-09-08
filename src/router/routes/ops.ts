@@ -8,7 +8,13 @@ export const opsRoutes: RouteRecordRaw = {
   meta: {
     requiresAuth: true,
     title: '运维工具',
-    permission: SUPERUSER_PERMISSION,
+    permissions: [
+      SUPERUSER_PERMISSION,
+      OPS_PERMISSIONS.transportTask.list,
+      OPS_PERMISSIONS.transportDebugRun.list,
+      OPS_PERMISSIONS.wmsDiagnostics.query,
+      OPS_PERMISSIONS.wmsDiagnostics.stream
+    ],
     menu: {
       name: 'ops:system:menu',
       icon: 'ep:monitor',
@@ -59,6 +65,17 @@ export const opsRoutes: RouteRecordRaw = {
           icon: 'ep:video-play',
           sortOrder: 3
         }
+      }
+    },
+    {
+      path: 'wms-diagnostics',
+      name: 'WmsDiagnostics',
+      component: () => import('@/views/ops/wms-diagnostics/WmsDiagnosticsPage.vue'),
+      meta: {
+        requiresAuth: true,
+        title: 'WMS 联调诊断',
+        permissions: [OPS_PERMISSIONS.wmsDiagnostics.query, OPS_PERMISSIONS.wmsDiagnostics.stream],
+        menu: { name: 'ops:wms-diagnostics:menu', icon: 'ep:connection', sortOrder: 4 }
       }
     }
   ]

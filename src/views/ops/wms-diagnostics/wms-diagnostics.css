@@ -1,0 +1,171 @@
+.wms-console {
+  --diag-bg: #18232d;
+  --diag-panel: #243340;
+  --diag-border: #415361;
+  --diag-accent: #63b8cc;
+  --diag-warning: #e6b566;
+  --diag-error: #ef8278;
+  --color-text-primary: #e5edf2;
+  --color-text-secondary: #b0c0cb;
+  --el-bg-color: var(--diag-panel);
+  --el-border-color: var(--diag-border);
+
+  padding: 24px;
+  color: var(--color-text-primary);
+  background: var(--diag-bg);
+  border-radius: 8px;
+}
+.console-header,
+.console-toolbar,
+.row-top,
+.row-result,
+.list-status,
+footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.console-header,
+.list-status {
+  justify-content: space-between;
+}
+h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+.eyebrow {
+  margin: 0 0 8px;
+  font: 11px var(--font-mono, monospace);
+  letter-spacing: 0.1em;
+  color: var(--diag-accent);
+}
+.scope-note {
+  max-width: 900px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+.connection {
+  font-size: 13px;
+}
+button {
+  padding: 8px 12px;
+  color: inherit;
+  background: var(--diag-panel);
+  border: 1px solid var(--diag-border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+button[aria-pressed='true'] {
+  border-color: var(--diag-accent);
+  color: var(--diag-accent);
+}
+button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+:focus-visible {
+  outline: 2px solid var(--diag-accent);
+  outline-offset: 2px;
+}
+.notice,
+.warning {
+  color: var(--diag-warning);
+}
+.notice,
+.error-message {
+  font-size: 13px;
+  line-height: 1.6;
+}
+.error-message {
+  color: var(--diag-error);
+}
+.console-workspace {
+  display: grid;
+  grid-template-columns: minmax(380px, 1fr) minmax(400px, 1fr);
+  gap: 16px;
+}
+.console-list {
+  min-width: 0;
+  border: 1px solid var(--diag-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.list-status,
+footer {
+  padding: 12px;
+  font-size: 12px;
+  background: var(--diag-panel);
+}
+.console-list > .notice {
+  padding: 0 12px;
+}
+.console-scroll {
+  height: min(65vh, 760px);
+  min-height: 300px;
+  overflow: auto;
+  overflow-anchor: none;
+}
+.console-row {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  padding: 12px;
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid var(--diag-border);
+  border-left: 3px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.console-row:hover,
+.console-row.is-selected {
+  background: var(--diag-panel);
+}
+.console-row.is-selected {
+  border-left-color: var(--diag-accent);
+}
+.console-row.is-error {
+  border-left-color: var(--diag-error);
+}
+.is-error .row-result {
+  color: var(--diag-error);
+}
+.row-top,
+.identity,
+.console-row strong {
+  font-family: var(--font-mono, monospace);
+  font-variant-numeric: tabular-nums;
+}
+.row-top {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+}
+.direction {
+  color: var(--diag-accent);
+}
+.identity {
+  color: var(--color-text-secondary);
+}
+.row-result {
+  font-size: 11px;
+}
+.empty-state {
+  padding: 32px 20px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+@media (width <= 1000px) {
+  .wms-console {
+    padding: 16px;
+  }
+  .console-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
