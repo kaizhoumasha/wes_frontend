@@ -1,5 +1,6 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { AuthenticatedSseHttpError } from '@/api/streaming/authenticatedSseStream'
 import WmsDiagnosticsPage from '@/views/ops/wms-diagnostics/WmsDiagnosticsPage.vue'
 
 const ports = vi.hoisted(() => ({ permissions: new Set<string>(), list: vi.fn(), stream: vi.fn() }))
@@ -18,19 +19,27 @@ vi.mock('@/api/streaming/wmsDiagnosticsStream', () => ({
 
 beforeEach(() => {
   ports.permissions.clear()
-  ports.list
-    .mockReset()
-    .mockResolvedValue({
-      items: [],
-      next_cursor: null,
-      scan_incomplete: false,
-      retention_hours: 24
-    })
+  ports.list.mockReset().mockResolvedValue({
+    items: [],
+    next_cursor: null,
+    scan_incomplete: false,
+    retention_hours: 24
+  })
   ports.stream.mockReset().mockImplementation(() => new Promise(() => {}))
 })
 afterEach(() => vi.useRealTimers())
 
 describe('WMS 联调页面权限与现场含义', () => {
+  it.each([401, 403])('HTTP %s 停止重试时不承诺自动恢复', async status => {
+    ports.permissions.add('ops:wms-diagnostics:stream')
+    ports.stream.mockRejectedValue(new AuthenticatedSseHttpError(status))
+    const wrapper = mount(WmsDiagnosticsPage)
+    await flushPromises()
+    expect(wrapper.text()).toContain('已断开')
+    expect(wrapper.text()).toContain('连接已停止')
+    expect(wrapper.text()).not.toContain('正在按连接策略重试')
+    wrapper.unmount()
+  })
   it('只有查询权限时打开近期记录，不启动实时流', async () => {
     ports.permissions.add('ops:wms-diagnostics:query')
     const wrapper = mount(WmsDiagnosticsPage)

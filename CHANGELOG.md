@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 同步后端已合并的诊断接口合同与权限，按查询、实时订阅和详情读取权限控制访问。
 
+### Fixed
+
+- 诊断事件超限或结构异常时中断实时流并显示错误，释放连接；权限拒绝后明确提示连接停止，不再误报正在重试。
+
 ## [0.17.0.1] - 2026-09-07
 
 ### Changed

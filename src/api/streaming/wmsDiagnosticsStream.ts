@@ -3,6 +3,7 @@ import { ExchangeDetailSchema } from '@/types/generated/zod-schemas'
 import type { StreamQuery } from '@/api/modules/wmsDiagnostics'
 import {
   consumeAuthenticatedSse,
+  AuthenticatedSseProtocolError,
   type AuthenticatedSseOptions
 } from '@/api/streaming/authenticatedSseStream'
 
@@ -24,10 +25,11 @@ export function parseWmsDiagnosticsEvent(
 ): WmsDiagnosticsEvent | null {
   if (type !== 'wms_exchange.started' && type !== 'wms_exchange.completed') return null
   if (new TextEncoder().encode(JSON.stringify(payload)).byteLength > 32 * 1024) {
-    throw new Error('诊断事件超过 32 KiB，实时流已中断')
+    throw new AuthenticatedSseProtocolError('诊断事件超过 32 KiB，实时流已中断')
   }
   const result = observationSchema.safeParse(payload)
-  if (!result.success) throw new Error('诊断事件不符合展示合同，实时流已中断')
+  if (!result.success)
+    throw new AuthenticatedSseProtocolError('诊断事件不符合展示合同，实时流已中断')
   return { phase: type === 'wms_exchange.started' ? 'started' : 'completed', exchange: result.data }
 }
 

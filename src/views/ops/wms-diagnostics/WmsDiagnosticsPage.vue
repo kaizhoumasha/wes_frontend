@@ -161,7 +161,11 @@ onMounted(() => {
       class="error-message"
       role="alert"
     >
-      实时连接异常：{{ streamError.message }}。正在按连接策略重试。
+      实时连接异常：{{ streamError.message }}。
+      <template v-if="connectionState === 'DISCONNECTED'">
+        连接已停止，请确认登录和权限后重新连接。
+      </template>
+      <template v-else>正在按连接策略重试。</template>
     </p>
     <p
       v-if="historyError"
