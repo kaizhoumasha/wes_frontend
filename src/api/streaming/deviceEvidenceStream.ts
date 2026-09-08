@@ -1,3 +1,4 @@
+import type { components } from '@/api/generated/openapi-types'
 import type { StreamQuery } from '@/api/modules/device'
 import {
   consumeAuthenticatedSse,
@@ -9,34 +10,8 @@ export {
   AuthenticatedSseProtocolError as DeviceEvidenceStreamProtocolError
 } from '@/api/streaming/authenticatedSseStream'
 
-export interface DeviceIngressAttemptEvent {
-  request_id: string
-  kind: 'DEVICE_RESULT' | 'DEVICE_EVENT'
-  path: string
-  received_at: string
-  disposition: 'ACCEPTED' | 'DUPLICATE' | 'CONFLICT' | 'REJECTED'
-  status_code: number
-  evidence_id: number | null
-  source_event_id: string | null
-  device_code: string | null
-  command_code: string | null
-  event_type: string | null
-  apply_status: string | null
-  error_code: string | null
-  observed_body_bytes: number
-  raw_payload: Record<string, unknown> | null
-}
-
-export interface DeviceEvidenceUpdatedEvent {
-  evidence_id: number
-  kind: 'DEVICE_RESULT' | 'DEVICE_EVENT'
-  source_event_id: string
-  device_code: string
-  command_code: string | null
-  event_type: string | null
-  apply_status: string
-  processed_at: string
-}
+export type DeviceIngressAttemptEvent = components['schemas']['DeviceIngressAttempt']
+export type DeviceEvidenceUpdatedEvent = components['schemas']['DeviceEvidenceUpdate']
 
 export type DeviceEvidenceStreamEvent =
   | { type: 'device_ingress.attempted'; payload: DeviceIngressAttemptEvent }
@@ -108,6 +83,6 @@ function isUpdate(value: unknown): value is DeviceEvidenceUpdatedEvent {
     typeof value.source_event_id === 'string' &&
     typeof value.device_code === 'string' &&
     typeof value.apply_status === 'string' &&
-    typeof value.processed_at === 'string'
+    (value.processed_at === null || typeof value.processed_at === 'string')
   )
 }

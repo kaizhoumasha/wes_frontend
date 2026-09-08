@@ -11,7 +11,16 @@ interface ManualDebugDialogExpose {
 }
 
 const stream = useDeviceEvidenceStream()
-const { rows, connectionState, lastError, totalPayloadBytes } = stream
+const {
+  rows,
+  connectionState,
+  lastError,
+  totalPayloadBytes,
+  historyError,
+  loadingHistory,
+  nextCursor,
+  historyLimitReached
+} = stream
 const dialogRef = ref<ManualDebugDialogExpose | null>(null)
 const filterForm = reactive({ deviceCode: '', kind: '', commandCode: '', applyStatus: '' })
 
@@ -60,10 +69,11 @@ defineExpose({ filterForm, applyFilters })
   <main class="device-diagnostics-page">
     <header class="page-header">
       <div>
-        <p class="eyebrow">DEVICE INGRESS / LIVE ONLY</p>
+        <p class="eyebrow">DEVICE INGRESS / HISTORY + LIVE</p>
         <h1>设备接入诊断</h1>
         <p class="page-description">
-          实时查看当前页面活动期间的 RESULT、EVENT callback 尝试与 evidence 应用状态。
+          加载近期 RESULT、EVENT 回调记录，持续更新 Evidence 状态。较早的证据记录不含 HTTP
+          回调详情。
         </p>
       </div>
       <div class="connection-summary">
@@ -81,6 +91,14 @@ defineExpose({ filterForm, applyFilters })
       v-if="lastError"
       :title="lastError.message"
       type="warning"
+      :closable="false"
+      show-icon
+    />
+
+    <el-alert
+      v-if="historyError"
+      :title="`历史加载失败：${historyError.message}`"
+      type="error"
       :closable="false"
       show-icon
     />
@@ -139,7 +157,13 @@ defineExpose({ filterForm, applyFilters })
         </el-select>
         <div class="toolbar-actions">
           <AppButton @click="applyFilters">应用过滤</AppButton>
-          <AppButton @click="stream.clear">清空</AppButton>
+          <AppButton
+            :loading="loadingHistory"
+            @click="stream.loadRecent"
+          >
+            刷新历史
+          </AppButton>
+          <AppButton @click="stream.clear">清空当前列表</AppButton>
           <AppButton @click="stream.reconnect">重连</AppButton>
           <AppButton
             type="primary"
@@ -154,6 +178,20 @@ defineExpose({ filterForm, applyFilters })
         :rows="rows"
         @debug="openRowDebug"
       />
+      <div class="history-footer">
+        <span v-if="loadingHistory">正在加载历史…</span>
+        <span v-else-if="historyLimitReached">已达到当前列表容量，请缩小筛选范围。</span>
+        <span v-else-if="!rows.length && !historyError">暂无匹配记录</span>
+        <span v-else-if="!nextCursor && !historyError">已显示全部匹配记录</span>
+        <AppButton
+          v-if="nextCursor"
+          :loading="loadingHistory"
+          :disabled="historyLimitReached"
+          @click="stream.loadMore"
+        >
+          加载更早记录
+        </AppButton>
+      </div>
     </section>
 
     <ManualDebugCommandDialog ref="dialogRef" />
@@ -221,6 +259,16 @@ h1 {
   gap: 12px;
   padding: 16px;
   border-bottom: 1px solid var(--el-border-color);
+}
+
+.history-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
 }
 
 .toolbar-actions {
