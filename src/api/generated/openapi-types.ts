@@ -1,4 +1,4 @@
-/** @openapi-sha256 a9de93cc6d031bc7e43ecfe47631072f6342d0b80b78cde7ccbe1435a0865f48 */
+/** @openapi-sha256 1464e875150d43ae788cdcb6d47864e3ae43855190069b2dc4901e9bf0d140fb */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -2226,6 +2226,57 @@ export interface paths {
         };
         /** [ops:transport-task:read] 查询本地 Transport 任务 */
         get: operations["transport_tasks_by_transport_task_id_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wms-diagnostics/exchanges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [ops:wms-diagnostics:query] 查询近期 WMS 交互 */
+        get: operations["wms_diagnostics_exchanges_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wms-diagnostics/exchanges/{exchange_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [ops:wms-diagnostics:read] 查看 WMS 交互详情 */
+        get: operations["wms_diagnostics_exchanges_by_exchange_id_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wms-diagnostics/exchanges/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [ops:wms-diagnostics:stream] 实时观察 WMS 请求与响应 */
+        get: operations["wms_diagnostics_exchanges_stream_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4653,6 +4704,149 @@ export interface components {
             /** Status */
             status: string;
         };
+        /** ExchangeDetail */
+        ExchangeDetail: {
+            /** Attempt Id */
+            attempt_id: string;
+            /**
+             * Build Version
+             * @default unknown
+             */
+            build_version: string;
+            /** Business Reference */
+            business_reference?: string | null;
+            /** Comparisons */
+            comparisons?: components["schemas"]["FieldComparison"][];
+            /**
+             * Contract Status
+             * @default NOT_VALIDATED
+             * @enum {string}
+             */
+            contract_status: "PASS" | "ERROR" | "NOT_VALIDATED";
+            /**
+             * Direction
+             * @enum {string}
+             */
+            direction: "WMS_TO_WES" | "WES_TO_WMS";
+            /** Elapsed Ms */
+            elapsed_ms?: number | null;
+            /** Error Code */
+            error_code?: string | null;
+            /** Exchange Id */
+            exchange_id: string;
+            /**
+             * Incomplete
+             * @default false
+             */
+            incomplete: boolean;
+            /**
+             * Method
+             * @default POST
+             */
+            method: string;
+            /** Observed At */
+            observed_at: string;
+            /** Operation */
+            operation?: string | null;
+            /** Operation Id */
+            operation_id?: string | null;
+            /** Path */
+            path?: string | null;
+            request?: components["schemas"]["WirePreview"];
+            response?: components["schemas"]["WirePreview"];
+            /**
+             * Result
+             * @default NOT_OBSERVED
+             */
+            result: string;
+            /** Status Code */
+            status_code?: number | null;
+        };
+        /** ExchangePage */
+        ExchangePage: {
+            /** Items */
+            items: components["schemas"]["ExchangeSummary"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Retention Hours */
+            retention_hours: number;
+            /** Scan Incomplete */
+            scan_incomplete: boolean;
+        };
+        /** ExchangeSummary */
+        ExchangeSummary: {
+            /** Attempt Id */
+            attempt_id: string;
+            /** Business Reference */
+            business_reference?: string | null;
+            /**
+             * Contract Status
+             * @default NOT_VALIDATED
+             * @enum {string}
+             */
+            contract_status: "PASS" | "ERROR" | "NOT_VALIDATED";
+            /**
+             * Direction
+             * @enum {string}
+             */
+            direction: "WMS_TO_WES" | "WES_TO_WMS";
+            /** Elapsed Ms */
+            elapsed_ms?: number | null;
+            /** Error Code */
+            error_code?: string | null;
+            /** Exchange Id */
+            exchange_id?: string | null;
+            /**
+             * Incomplete
+             * @default false
+             */
+            incomplete: boolean;
+            /**
+             * Method
+             * @default POST
+             */
+            method: string;
+            /** Observed At */
+            observed_at: string;
+            /** Operation */
+            operation?: string | null;
+            /** Operation Id */
+            operation_id?: string | null;
+            /** Path */
+            path?: string | null;
+            /**
+             * Result
+             * @default NOT_OBSERVED
+             */
+            result: string;
+            /** Status Code */
+            status_code?: number | null;
+        };
+        /** FieldComparison */
+        FieldComparison: {
+            /** Actual Present */
+            actual_present: boolean;
+            /** Actual Value */
+            actual_value?: unknown;
+            /** Expected Rule */
+            expected_rule: string;
+            /** Expected Value */
+            expected_value?: unknown;
+            /** Path */
+            path: string;
+            /**
+             * Side
+             * @enum {string}
+             */
+            side: "request" | "response";
+            /** Source */
+            source: string;
+            /**
+             * Verdict
+             * @enum {string}
+             */
+            verdict: "PASS" | "ERROR" | "NOT_VALIDATED";
+        };
         /**
          * FilterCondition
          * @description 单个过滤条件
@@ -5858,6 +6052,10 @@ export interface components {
         ResponseSchemaModel_dict_str__str__: ApiResponse<Record<string, string>>;
         /** ResponseSchemaModel[EventCommandBlockResponse] */
         ResponseSchemaModel_EventCommandBlockResponse_: ApiResponse<components["schemas"]["EventCommandBlockResponse"]>;
+        /** ResponseSchemaModel[ExchangeDetail] */
+        ResponseSchemaModel_ExchangeDetail_: ApiResponse<components["schemas"]["ExchangeDetail"]>;
+        /** ResponseSchemaModel[ExchangePage] */
+        ResponseSchemaModel_ExchangePage_: ApiResponse<components["schemas"]["ExchangePage"]>;
         /** ResponseSchemaModel[list[Any]] */
         ResponseSchemaModel_list_Any__: ApiResponse<unknown[]>;
         /** ResponseSchemaModel[list[PermissionResponse]] */
@@ -6531,6 +6729,28 @@ export interface components {
          * @enum {string}
          */
         ValidityPeriod: "1d" | "1w" | "1m" | "6m" | "1y" | "never";
+        /** WirePreview */
+        WirePreview: {
+            /** Body */
+            body?: string | null;
+            /** Headers */
+            headers?: [
+                string,
+                string
+            ][];
+            /**
+             * Source
+             * @default NOT_CAPTURED
+             * @enum {string}
+             */
+            source: "WIRE" | "FROZEN_PAYLOAD" | "NOT_CAPTURED";
+            /**
+             * State
+             * @default NOT_CAPTURED
+             * @enum {string}
+             */
+            state: "CAPTURED" | "TRUNCATED" | "UNSAFE_JSON" | "EMPTY" | "NOT_CAPTURED" | "NO_RESPONSE";
+        };
         /**
          * WorklineActiveObjectConflictState
          * @description WorklineActiveObjects 冲突展示状态。
@@ -11282,6 +11502,111 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+        };
+    };
+    wms_diagnostics_exchanges_get: {
+        parameters: {
+            query?: {
+                business_reference?: string | null;
+                cursor?: string | null;
+                direction?: ("WMS_TO_WES" | "WES_TO_WMS") | null;
+                from_ms?: number | null;
+                only_errors?: boolean;
+                operation?: string | null;
+                operation_id?: string | null;
+                page_size?: number;
+                to_ms?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_ExchangePage_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    wms_diagnostics_exchanges_by_exchange_id_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exchange_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_ExchangeDetail_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    wms_diagnostics_exchanges_stream_get: {
+        parameters: {
+            query?: {
+                business_reference?: string | null;
+                direction?: ("WMS_TO_WES" | "WES_TO_WMS") | null;
+                only_errors?: boolean;
+                operation?: string | null;
+                operation_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": string;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

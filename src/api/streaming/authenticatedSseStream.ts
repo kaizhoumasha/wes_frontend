@@ -258,7 +258,15 @@ async function readFrames<TEvent>(
         )
       }
       const decodedBuffer = buffer + decodedChunk
-      const remaining = dispatchCompleteFrames(decodedBuffer, parseEvent, onEvent, markOpen)
+      let remaining: string
+      try {
+        remaining = dispatchCompleteFrames(decodedBuffer, parseEvent, onEvent, markOpen)
+      } catch (error) {
+        if (error instanceof AuthenticatedSseProtocolError) {
+          await cancelWithProtocolError(reader, error)
+        }
+        throw error
+      }
       if (remaining.length !== decodedBuffer.length) {
         bufferedBytes -= encoder.encode(
           decodedBuffer.slice(0, decodedBuffer.length - remaining.length)
@@ -324,7 +332,9 @@ function dispatchFrame<TEvent>(
   try {
     const event = parseEvent(eventType, JSON.parse(dataLines.join('\n')))
     if (event) onEvent(event)
-  } catch {
+  } catch (error) {
+    // 消费者显式报告的协议错误须中断连接，不能伪装成正常丢帧。
+    if (error instanceof AuthenticatedSseProtocolError) throw error
     // 非法 JSON 或领域 payload 不进入业务状态机。
   }
 }

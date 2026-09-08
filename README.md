@@ -79,6 +79,18 @@ pnpm export:release-consumer
 
 `contract:freeze` 是唯一需要后端 checkout 的显式冻结步骤，会原子更新 OpenAPI 与权限 canonical 快照。后续生成、验证和 consumer artifact 导出均只读取前端仓库已提交快照，可离线执行。
 
+## WMS 联调诊断
+
+在「运维工具 → WMS 联调诊断」打开控制台（`/ops/wms-diagnostics`）。页面展示 WES 观察到的 WMS 双向 Operation 请求、响应和校验日志；查询、实时订阅与详情读取分别受权限控制。
+
+- 在「实时观察」查看 SSE 推送，在「近期记录」按方向、Operation、Operation ID、业务关联或时间范围查询；「仅异常」用于缩小排查范围。
+- 点击记录，切换请求或响应，展开 WIRE / PAYLOAD，比较采集时的合同规则与实际参数，并复制脱敏快照。合法业务拒绝与合同校验错误分别显示，未知或缺失 Operation 的接入异常也会保留。
+- 「暂停滚动」仍接收更新；「清空视图」只清除当前页面记录。页面最多保留 500 条 / 2 MiB，断线期间不会补推，出现间隙提示后可手动查询近期记录。
+
+这些记录是采集时的接口快照，不是远端 WMS 内部日志，也不代表当前业务状态或物理完成。下图使用正式 Operation 的演示数据展示合同错误与合法拒绝，不代表现场验收。
+
+![WMS 联调诊断控制台演示](./docs/images/wms-integration-diagnostics.png)
+
 ## Git Worktree 开发
 
 ### 创建新的 worktree
