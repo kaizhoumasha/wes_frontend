@@ -19,9 +19,7 @@ const DEFAULT_API: TransportDebugRunApiPort = {
   list: (query = {}) =>
     transportApiMethods.debugRuns(query, PERSISTED_DEBUG_RUN_QUERY_CONFIG).send(),
   get: runId =>
-    transportApiMethods
-      .getByRunId({ run_id: runId }, PERSISTED_DEBUG_RUN_QUERY_CONFIG)
-      .send(),
+    transportApiMethods.getByRunId({ run_id: runId }, PERSISTED_DEBUG_RUN_QUERY_CONFIG).send(),
   create: input => transportApiMethods.createDebugRuns(input).send(),
   abort: (runId, input) => transportApiMethods.abort({ run_id: runId }, input).send()
 }
@@ -38,9 +36,10 @@ export function useTransportDebugRun(options: { api?: TransportDebugRunApiPort }
   let refreshGeneration = 0
 
   function accept(snapshot: DebugRunResult): void {
-    const knownSnapshot = currentRun.value?.run_id === snapshot.run_id
-      ? currentRun.value
-      : recentRuns.value.find(item => item.run_id === snapshot.run_id)
+    const knownSnapshot =
+      currentRun.value?.run_id === snapshot.run_id
+        ? currentRun.value
+        : recentRuns.value.find(item => item.run_id === snapshot.run_id)
     if (knownSnapshot && knownSnapshot.version > snapshot.version) return
     const index = recentRuns.value.findIndex(item => item.run_id === snapshot.run_id)
     if (index >= 0) recentRuns.value.splice(index, 1, snapshot)

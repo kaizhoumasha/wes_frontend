@@ -27,6 +27,9 @@ export type DebugPreflightInput = ContractRequestBody<'/api/v1/device/commands/d
 export type GetByCommandCodeResult = ContractResponseData<'/api/v1/device/commands/{command_code}', 'get'>
 export type GetByCommandCodePathParams = ContractPathParams<'/api/v1/device/commands/{command_code}', 'get'>
 
+export type HistoryResult = ContractResponseData<'/api/v1/device/evidences/history', 'get'>
+export type HistoryQuery = ContractQueryParams<'/api/v1/device/evidences/history', 'get'>
+
 export type StreamResult = ContractResponseData<'/api/v1/device/evidences/stream', 'get'>
 export type StreamQuery = ContractQueryParams<'/api/v1/device/evidences/stream', 'get'>
 
@@ -67,6 +70,15 @@ export const deviceApiMethods = {
    */
   getByCommandCode(params: ContractPathParams<'/api/v1/device/commands/{command_code}', 'get'>, config?: ContractRequestConfig) {
     return contractMethods.get('/api/v1/device/commands/{command_code}', { params, config })
+  },
+
+  /**
+   * 查询设备 callback 近期历史与当前 Evidence 状态
+   * @endpoint GET /api/v1/device/evidences/history
+   * @returns alova method instance
+   */
+  history(query?: ContractQueryParams<'/api/v1/device/evidences/history', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/device/evidences/history', { query, config })
   },
 
   /**

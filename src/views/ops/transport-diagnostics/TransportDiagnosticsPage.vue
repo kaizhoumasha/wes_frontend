@@ -6,7 +6,6 @@ import type { DebugTasksInput, TasksQuery } from '@/api/modules/transport'
 import type { TransportEvidenceStreamEvent } from '@/api/streaming/transportEvidenceStream'
 import { usePermission } from '@/composables/usePermission'
 import TransportDebugTaskDialog from './TransportDebugTaskDialog.vue'
-import TransportDebugRunDialog from './TransportDebugRunDialog.vue'
 import TransportDebugResetDialog from './TransportDebugResetDialog.vue'
 import TransportTaskDetail from './TransportTaskDetail.vue'
 import TransportTaskTable from './TransportTaskTable.vue'
@@ -25,18 +24,9 @@ const canStream = computed(() => hasPermission(OPS_PERMISSIONS.transportEvidence
 const canCreate = computed(() => hasPermission(OPS_PERMISSIONS.transport.debugCreate))
 const canPreviewReset = computed(() => hasPermission(OPS_PERMISSIONS.transport.debugPreview))
 const canReset = computed(() => hasPermission(OPS_PERMISSIONS.transport.debugReset))
-const canListDebugRuns = computed(() => hasPermission(OPS_PERMISSIONS.transportDebugRun.list))
-const canReadDebugRun = computed(() => hasPermission(OPS_PERMISSIONS.transportDebugRun.read))
-const canStartDebugRun = computed(() => hasPermission(OPS_PERMISSIONS.transportDebugRun.start))
-const canStreamDebugRun = computed(() => hasPermission(OPS_PERMISSIONS.transportDebugRun.stream))
-const canAbortDebugRun = computed(() => hasPermission(OPS_PERMISSIONS.transportDebugRun.abort))
-const canOpenDebugRun = computed(
-  () => canListDebugRuns.value && (canStartDebugRun.value || canReadDebugRun.value)
-)
 const filterForm = reactive({ kind: '', status: '' })
 const uiError = ref('')
 const dialogRef = ref<DebugDialogExpose | null>(null)
-const runDialogRef = ref<DebugDialogExpose | null>(null)
 const resetDialogOpen = ref(false)
 const stream = useTransportEvidenceStream({
   onEvent: event => void refreshFromEvent(event),
@@ -133,21 +123,6 @@ async function confirmReset(): Promise<void> {
 
 function openDebug(event: MouseEvent): void {
   dialogRef.value?.open(event.currentTarget as HTMLElement)
-}
-
-function openDebugRun(event: MouseEvent): void {
-  runDialogRef.value?.open(event.currentTarget as HTMLElement)
-}
-
-async function selectRunTask(transportTaskId: string): Promise<void> {
-  if (!canRead.value) return
-  uiError.value = ''
-  try {
-    await diagnostics.selectTask(transportTaskId)
-    runDialogRef.value?.close()
-  } catch (error) {
-    uiError.value = errorMessage(error)
-  }
 }
 
 function errorMessage(error: unknown): string {
@@ -266,13 +241,6 @@ defineExpose({ filterForm, applyFilters })
         >
           创建真实调试任务
         </AppButton>
-        <AppButton
-          v-if="canOpenDebugRun"
-          type="danger"
-          @click="openDebugRun"
-        >
-          自动联调
-        </AppButton>
       </div>
     </section>
 
@@ -296,15 +264,6 @@ defineExpose({ filterForm, applyFilters })
       ref="dialogRef"
       :submitting="diagnostics.submitting.value"
       @submit="submitTask"
-    />
-    <TransportDebugRunDialog
-      ref="runDialogRef"
-      :can-start="canStartDebugRun"
-      :can-abort="canAbortDebugRun"
-      :can-stream="canStreamDebugRun"
-      :can-read="canReadDebugRun"
-      :can-read-task="canRead"
-      @select-task="selectRunTask"
     />
     <TransportDebugResetDialog
       v-model="resetDialogOpen"

@@ -1,7 +1,7 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import type { ContractRequestBody, ContractResponseData } from '@/api/contract/types'
 import { transportApiMethods } from '@/api/modules/transport'
-import { useTransportDebugRun } from '@/views/ops/transport-diagnostics/useTransportDebugRun'
+import { useTransportDebugRun } from '@/views/ops/transport-debug/useTransportDebugRun'
 
 describe('Transport automatic-run canonical contract', () => {
   it('preserves opaque faces and exposes persistent terminal/attention states', () => {

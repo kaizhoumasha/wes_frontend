@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { describe, expect, it, vi } from 'vitest'
 import type { TransportDebugRunStreamOptions } from '@/api/streaming/transportDebugRunStream'
-import { useTransportDebugRunStream } from '@/views/ops/transport-diagnostics/useTransportDebugRunStream'
+import { useTransportDebugRunStream } from '@/views/ops/transport-debug/useTransportDebugRunStream'
 
 describe('useTransportDebugRunStream', () => {
   it('refreshes from invalidations and polls only while visible and disconnected', async () => {
@@ -14,8 +14,12 @@ describe('useTransportDebugRunStream', () => {
     const refreshRun = vi.fn().mockResolvedValue(undefined)
     const loadRecentRuns = vi.fn().mockResolvedValue(undefined)
     const stream = useTransportDebugRunStream({
-      connector, visible: ref(true), activeRunId: ref('run-1'), refreshRun,
-      loadRecentRuns, pollIntervalMs: 1000
+      connector,
+      visible: ref(true),
+      activeRunId: ref('run-1'),
+      refreshRun,
+      loadRecentRuns,
+      pollIntervalMs: 1000
     })
     stream.connect()
     await vi.waitFor(() => expect(connector).toHaveBeenCalledOnce())
@@ -38,8 +42,11 @@ describe('useTransportDebugRunStream', () => {
     vi.useFakeTimers()
     const refreshRun = vi.fn().mockResolvedValue(undefined)
     const stream = useTransportDebugRunStream({
-      connector: vi.fn(), visible: ref(true), activeRunId: ref('run-1'),
-      refreshRun, pollIntervalMs: 1000
+      connector: vi.fn(),
+      visible: ref(true),
+      activeRunId: ref('run-1'),
+      refreshRun,
+      pollIntervalMs: 1000
     })
     stream.connect(false)
     await vi.advanceTimersByTimeAsync(1000)
@@ -53,8 +60,12 @@ describe('useTransportDebugRunStream', () => {
     const refreshRun = vi.fn().mockResolvedValue(undefined)
     const loadRecentRuns = vi.fn().mockResolvedValue(undefined)
     const stream = useTransportDebugRunStream({
-      connector: vi.fn(), visible: ref(true), activeRunId: ref(null),
-      refreshRun, loadRecentRuns, pollIntervalMs: 1000
+      connector: vi.fn(),
+      visible: ref(true),
+      activeRunId: ref(null),
+      refreshRun,
+      loadRecentRuns,
+      pollIntervalMs: 1000
     })
     stream.connect(false)
     await vi.advanceTimersByTimeAsync(1000)

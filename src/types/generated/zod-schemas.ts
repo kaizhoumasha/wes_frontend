@@ -1,4 +1,4 @@
-/** @openapi-sha256 488e296b757ed6ae167179b29ba96d33e80c7e465b774b5ee326539b225ff47c */
+/** @openapi-sha256 a9de93cc6d031bc7e43ecfe47631072f6342d0b80b78cde7ccbe1435a0865f48 */
 /**
  * Zod Validation Schemas
  *
@@ -771,6 +771,8 @@ export const CreateTransportDebugRunRequestSchema = z.object({
   face_groups: z.array(z.lazy(() => TransportDebugRunFaceGroupRequestSchema)),
   /** Rack Id */
   rack_id: z.string().min(1).max(100),
+  /** Workline Code */
+  workline_code: z.string().min(1).max(100),
 })
 
 
@@ -859,6 +861,90 @@ export const DeviceCreateSchema = z.object({
   sort_order: z.number().optional().default(0),
   /** Upstream Device Id */
   upstream_device_id: z.union([z.number(), z.null()]).optional(),
+})
+
+
+/**
+ * device evidence 当前诊断快照；未处理的历史记录没有 processed_at。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const DeviceEvidenceUpdateSchema = z.object({
+  /** Apply Status */
+  apply_status: z.string(),
+  /** Command Code */
+  command_code: z.union([z.string(), z.null()]).optional(),
+  /** Device Code */
+  device_code: z.string(),
+  /** Event Type */
+  event_type: z.union([z.string(), z.null()]).optional(),
+  /** Evidence Id */
+  evidence_id: z.number(),
+  kind: z.lazy(() => DeviceIngressKindSchema),
+  /** Processed At */
+  processed_at: z.union([z.string(), z.null()]),
+  /** Source Event Id */
+  source_event_id: z.string(),
+})
+
+
+/**
+ * 一次 ECS callback HTTP 尝试的安全诊断快照。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const DeviceIngressAttemptSchema = z.object({
+  /** Apply Status */
+  apply_status: z.union([z.string(), z.null()]).optional(),
+  /** Command Code */
+  command_code: z.union([z.string(), z.null()]).optional(),
+  /** Device Code */
+  device_code: z.union([z.string(), z.null()]).optional(),
+  disposition: z.lazy(() => DeviceIngressDispositionSchema),
+  /** Error Code */
+  error_code: z.union([z.string(), z.null()]).optional(),
+  /** Event Type */
+  event_type: z.union([z.string(), z.null()]).optional(),
+  /** Evidence Id */
+  evidence_id: z.union([z.number(), z.null()]).optional(),
+  kind: z.lazy(() => DeviceIngressKindSchema),
+  /** Observed Body Bytes */
+  observed_body_bytes: z.number().min(0),
+  /** Path */
+  path: z.string(),
+  /** Raw Payload */
+  raw_payload: z.union([z.record(z.any()), z.null()]).optional(),
+  /** Received At */
+  received_at: z.string(),
+  /** Request Id */
+  request_id: z.string(),
+  /** Source Event Id */
+  source_event_id: z.union([z.string(), z.null()]).optional(),
+  /** Status Code */
+  status_code: z.number(),
+})
+
+
+export const DeviceIngressDispositionSchema = z.enum(["ACCEPTED", "DUPLICATE", "CONFLICT", "REJECTED"])
+
+
+export const DeviceIngressHistoryItemSchema = z.object({
+  attempt: z.union([z.lazy(() => DeviceIngressAttemptSchema), z.null()]),
+  latest_update: z.union([z.lazy(() => DeviceEvidenceUpdateSchema), z.null()]),
+  /** Recorded At */
+  recorded_at: z.string(),
+  /** Row Key */
+  row_key: z.string(),
+})
+
+
+export const DeviceIngressHistoryPageSchema = z.object({
+  /** Items */
+  items: z.array(z.lazy(() => DeviceIngressHistoryItemSchema)),
+  /** Next Cursor */
+  next_cursor: z.union([z.string(), z.null()]),
 })
 
 
@@ -2501,6 +2587,18 @@ export const SortFieldSchema = z.object({
 })
 
 
+export const TransportDebugReturnedBinResponseSchema = z.object({
+  /** Bin Code */
+  bin_code: z.string(),
+  /** Rack Face */
+  rack_face: z.string().min(1).max(10).refine((value) => value.length > 0 && !value.includes(String.fromCharCode(0))),
+  /** Rack Id */
+  rack_id: z.string(),
+  /** Slot Id */
+  slot_id: z.string(),
+})
+
+
 export const TransportDebugRunBinRequestSchema = z.object({
   /** Bin Code */
   bin_code: z.string().min(1).max(100),
@@ -2575,6 +2673,8 @@ export const TransportDebugRunResponseSchema = z.object({
       }, z.array(z.string())),
   /** Rack Id */
   rack_id: z.string(),
+  /** Returned Bins */
+  returned_bins: z.array(z.lazy(() => TransportDebugReturnedBinResponseSchema)),
   /** Run Id */
   run_id: z.string(),
   status: z.lazy(() => TransportDebugRunStatusSchema),
@@ -2584,6 +2684,8 @@ export const TransportDebugRunResponseSchema = z.object({
   updated_at: z.string(),
   /** Version */
   version: z.number(),
+  /** Workline Code */
+  workline_code: z.string(),
 })
 
 

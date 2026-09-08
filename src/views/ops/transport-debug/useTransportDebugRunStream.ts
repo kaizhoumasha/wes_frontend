@@ -27,20 +27,31 @@ export function useTransportDebugRunStream(options: Options) {
   let manuallyDisconnected = true
 
   const refresh = (runId: string) => {
-    void options.refreshRun(runId).catch(error => { lastError.value = toError(error) })
+    void options.refreshRun(runId).catch(error => {
+      lastError.value = toError(error)
+    })
   }
   const connection = createAuthenticatedSseConnection({
-    connector: ({ signal, onOpen }) => connector({
-      signal, onOpen, onEvent: (event: TransportDebugRunUpdatedEvent) => refresh(event.payload.run_id)
-    }),
+    connector: ({ signal, onOpen }) =>
+      connector({
+        signal,
+        onOpen,
+        onEvent: (event: TransportDebugRunUpdatedEvent) => refresh(event.payload.run_id)
+      }),
     onStateChange: state => {
       connectionState.value = state
       if ((state === 'CONNECTED' || state === 'RECONNECTED') && options.loadRecentRuns) {
-        void options.loadRecentRuns().catch(error => { lastError.value = toError(error) })
+        void options.loadRecentRuns().catch(error => {
+          lastError.value = toError(error)
+        })
       }
     },
-    onError: error => { lastError.value = error },
-    onGap: () => { hasGap.value = true }
+    onError: error => {
+      lastError.value = error
+    },
+    onGap: () => {
+      hasGap.value = true
+    }
   })
 
   function syncPoller(): void {
@@ -54,16 +65,17 @@ export function useTransportDebugRunStream(options: Options) {
       const runId = options.activeRunId.value
       if (runId) refresh(runId)
       else if (options.loadRecentRuns) {
-        void options.loadRecentRuns().catch(error => { lastError.value = toError(error) })
+        void options.loadRecentRuns().catch(error => {
+          lastError.value = toError(error)
+        })
       }
     }, options.pollIntervalMs ?? 15_000)
   }
 
-  const stopWatch = watch(
-    [options.visible, options.activeRunId, connectionState],
-    syncPoller,
-    { immediate: true, flush: 'sync' }
-  )
+  const stopWatch = watch([options.visible, options.activeRunId, connectionState], syncPoller, {
+    immediate: true,
+    flush: 'sync'
+  })
 
   function connect(enableSse = true): void {
     manuallyDisconnected = false
@@ -83,11 +95,12 @@ export function useTransportDebugRunStream(options: Options) {
     syncPoller()
   }
 
-  if (getCurrentScope()) onScopeDispose(() => {
-    stopWatch()
-    if (pollTimer !== null) window.clearInterval(pollTimer)
-    connection.disconnect()
-  })
+  if (getCurrentScope())
+    onScopeDispose(() => {
+      stopWatch()
+      if (pollTimer !== null) window.clearInterval(pollTimer)
+      connection.disconnect()
+    })
 
   return {
     connectionState,

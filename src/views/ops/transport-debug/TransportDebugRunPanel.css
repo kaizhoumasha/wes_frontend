@@ -1,0 +1,136 @@
+.run-config,
+.run-observer,
+.progress-panel,
+.step-progress,
+.abort-panel {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.config-toolbar,
+.face-group header,
+.dialog-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bin-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.face-group,
+.progress-panel,
+.step-progress,
+.abort-panel {
+  padding: 16px;
+  border: 1px solid var(--el-border-color);
+  border-radius: 8px;
+  background: var(--el-fill-color-light);
+}
+
+.step-progress ol {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.step-card {
+  padding: 12px;
+  border: 1px solid var(--el-border-color);
+  border-left: 4px solid var(--el-border-color-darker);
+  border-radius: 6px;
+  background: var(--el-bg-color);
+}
+
+.step-card header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.step-card p {
+  margin: 8px 0 0;
+}
+
+.step-status {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+}
+
+.step-status--succeeded {
+  color: var(--el-color-success);
+}
+
+.step-status--failed,
+.step-status--needs_attention {
+  color: var(--el-color-danger);
+}
+
+.face-group {
+  display: grid;
+  gap: 12px;
+}
+
+.run-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.run-summary div {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--el-border-color);
+  border-radius: 8px;
+}
+
+.run-summary span,
+.run-summary strong {
+  display: block;
+}
+
+.run-summary span,
+.evidence-hint,
+.dialog-actions span {
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+}
+
+.run-summary strong,
+code,
+pre {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.preview-panel pre {
+  max-height: 320px;
+  overflow: auto;
+  padding: 14px;
+  color: var(--el-text-color-primary);
+  background: var(--el-fill-color-darker);
+  border-radius: 8px;
+  white-space: pre-wrap;
+}
+
+.validation-error {
+  color: var(--el-color-danger);
+}
+
+@media (width < 900px) {
+  .run-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+  .config-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

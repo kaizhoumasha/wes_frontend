@@ -2358,9 +2358,16 @@
             "minLength": 1,
             "title": "Rack Id",
             "type": "string"
+          },
+          "workline_code": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Workline Code",
+            "type": "string"
           }
         },
         "required": [
+          "workline_code",
           "rack_id",
           "face_groups"
         ],
@@ -2607,6 +2614,287 @@
           "device_name"
         ],
         "title": "DeviceCreate",
+        "type": "object"
+      },
+      "DeviceEvidenceUpdate": {
+        "additionalProperties": false,
+        "description": "device evidence 当前诊断快照；未处理的历史记录没有 processed_at。",
+        "properties": {
+          "apply_status": {
+            "title": "Apply Status",
+            "type": "string"
+          },
+          "command_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Command Code"
+          },
+          "device_code": {
+            "title": "Device Code",
+            "type": "string"
+          },
+          "event_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Type"
+          },
+          "evidence_id": {
+            "title": "Evidence Id",
+            "type": "integer"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/DeviceIngressKind"
+          },
+          "processed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Processed At"
+          },
+          "source_event_id": {
+            "title": "Source Event Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "evidence_id",
+          "kind",
+          "source_event_id",
+          "device_code",
+          "apply_status",
+          "processed_at"
+        ],
+        "title": "DeviceEvidenceUpdate",
+        "type": "object"
+      },
+      "DeviceIngressAttempt": {
+        "additionalProperties": false,
+        "description": "一次 ECS callback HTTP 尝试的安全诊断快照。",
+        "properties": {
+          "apply_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Apply Status"
+          },
+          "command_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Command Code"
+          },
+          "device_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Code"
+          },
+          "disposition": {
+            "$ref": "#/components/schemas/DeviceIngressDisposition"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "event_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Type"
+          },
+          "evidence_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Id"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/DeviceIngressKind"
+          },
+          "observed_body_bytes": {
+            "minimum": 0,
+            "title": "Observed Body Bytes",
+            "type": "integer"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "raw_payload": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Payload"
+          },
+          "received_at": {
+            "title": "Received At",
+            "type": "string"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "source_event_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Event Id"
+          },
+          "status_code": {
+            "title": "Status Code",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "request_id",
+          "kind",
+          "path",
+          "received_at",
+          "disposition",
+          "status_code",
+          "observed_body_bytes"
+        ],
+        "title": "DeviceIngressAttempt",
+        "type": "object"
+      },
+      "DeviceIngressDisposition": {
+        "enum": [
+          "ACCEPTED",
+          "DUPLICATE",
+          "CONFLICT",
+          "REJECTED"
+        ],
+        "title": "DeviceIngressDisposition",
+        "type": "string"
+      },
+      "DeviceIngressHistoryItem": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DeviceIngressAttempt"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "latest_update": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DeviceEvidenceUpdate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "recorded_at": {
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "row_key": {
+            "title": "Row Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "row_key",
+          "recorded_at",
+          "attempt",
+          "latest_update"
+        ],
+        "title": "DeviceIngressHistoryItem",
+        "type": "object"
+      },
+      "DeviceIngressHistoryPage": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DeviceIngressHistoryItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "DeviceIngressHistoryPage",
         "type": "object"
       },
       "DeviceIngressKind": {
@@ -7941,6 +8229,51 @@
         "title": "ResponseSchemaModel[DebugTransportTaskResetResult]",
         "type": "object"
       },
+      "ResponseSchemaModel_DeviceIngressHistoryPage_": {
+        "properties": {
+          "code": {
+            "default": "1000",
+            "description": "响应码",
+            "examples": [
+              "1000",
+              "2000"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DeviceIngressHistoryPage"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "message": {
+            "default": "操作成功",
+            "description": "响应消息",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ],
+            "title": "Message",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ],
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "title": "ResponseSchemaModel[DeviceIngressHistoryPage]",
+        "type": "object"
+      },
       "ResponseSchemaModel_DeviceResponse_": {
         "properties": {
           "code": {
@@ -10099,6 +10432,39 @@
         "title": "SortField",
         "type": "object"
       },
+      "TransportDebugReturnedBinResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "bin_code": {
+            "title": "Bin Code",
+            "type": "string"
+          },
+          "rack_face": {
+            "description": "Opaque non-empty face value without NUL; preserve exactly",
+            "maxLength": 10,
+            "minLength": 1,
+            "pattern": "^[^\\x00]+$",
+            "title": "Rack Face",
+            "type": "string"
+          },
+          "rack_id": {
+            "title": "Rack Id",
+            "type": "string"
+          },
+          "slot_id": {
+            "title": "Slot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "bin_code",
+          "rack_id",
+          "rack_face",
+          "slot_id"
+        ],
+        "title": "TransportDebugReturnedBinResponse",
+        "type": "object"
+      },
       "TransportDebugRunBinRequest": {
         "additionalProperties": false,
         "properties": {
@@ -10330,6 +10696,13 @@
             "title": "Rack Id",
             "type": "string"
           },
+          "returned_bins": {
+            "items": {
+              "$ref": "#/components/schemas/TransportDebugReturnedBinResponse"
+            },
+            "title": "Returned Bins",
+            "type": "array"
+          },
           "run_id": {
             "title": "Run Id",
             "type": "string"
@@ -10351,9 +10724,15 @@
           "version": {
             "title": "Version",
             "type": "integer"
+          },
+          "workline_code": {
+            "title": "Workline Code",
+            "type": "string"
           }
         },
         "required": [
+          "workline_code",
+          "returned_bins",
           "run_id",
           "status",
           "rack_id",
@@ -16787,6 +17166,143 @@
         ]
       }
     },
+    "/api/v1/device/evidences/history": {
+      "get": {
+        "operationId": "device_evidences_history_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "device_code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Device Code"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/DeviceIngressKind"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "in": "query",
+            "name": "command_code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 160,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Command Code"
+            }
+          },
+          {
+            "in": "query",
+            "name": "apply_status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/InboundEvidenceApplyStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Apply Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 1024,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_DeviceIngressHistoryPage_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "查询设备 callback 近期历史与当前 Evidence 状态",
+        "tags": [
+          "Device ingress diagnostics"
+        ]
+      }
+    },
     "/api/v1/device/evidences/stream": {
       "get": {
         "operationId": "device_evidences_stream_get",
@@ -19844,10 +20360,144 @@
     },
     "/api/v1/wms/events": {
       "post": {
+        "description": "WMS 调用 WES 的唯一 Event 入口，按 `operation` 选择严格合同。\n支持 Transport 位置/结果、入库恢复决定，以及下方 PickingTask 发布、队列调整和计划增量。\n\n### Examples 的范围\n\nRequest body 的 Examples 仅用于 WMS → WES 事件：1–4 为 PickingTask，5–6 为 Transport 回报，\n7 为入库对账后继续执行。共覆盖当前入口支持的 6 种 operation，编号不是跨领域的连续业务流程。\nTransport 示例必须引用已存在的任务与真实设备事实；入库恢复示例必须引用实际待对账执行与证据。\nprepare、inbound_batch、material.decide、completion_confirm 等由 WES 调用 WMS，\n正常返回见下方「WMS 正常业务响应」，不属于此 Event 入口的请求 Examples。\n\n### 开始测试\n\n1. 使用双方约定的隔离联调环境；`Try it out → Execute` 会发送真实请求并保存业务数据。\n2. 在 **Examples** 中选择样例；如果尚未进入编辑模式，先点 **Try it out**。每轮新测试更换 `task_id`，每个新消息使用新的小写 UUIDv7\n   `operation_id`，`timestamp` 使用 UTC Unix 毫秒。货架、面、储位必须换成双方约定的实际业务编码。\n3. `Content-Type` 为 `application/json`，Body 上限 256 KiB，禁止额外字段。WMS Event 当前采用隔离局域网 NONE\n   认证，无需管理端 Bearer Token；401 表示入站策略未就绪，503 也可能表示对应运行时未就绪。\n\n### PickingTask 顺序测试\n\n| 步骤 | 操作 | 前置条件与预期 |\n| --- | --- | --- |\n| 1 | 选择「1. 发布新的 PickingTask」 | 新 `task_id`、`queue_revision=1`；首次 `202 / RECEIVED`，任务进入 QUEUED |\n| 2（可选） | 选择「2. 调整队列」 | 同一任务仍为 QUEUED；使用新 identity 和更高 queue_revision，首次 `202 / RECEIVED` |\n| 3 | 等待 WES 发起 `outbound.picking_task.prepare@v1` | WES 已通过实际业务入口选中任务和 WorkLine；WMS 在 decisions 端点返回 `202 / PREPARE_ACCEPTED`、相同 operation_id 和 `data={}` |\n| 4 | 选择「3. 首批计划」发布 revision 1 | 同一任务已绑定且 WES 保存匹配的 prepare 成功响应；必须带 target_rack，成功 `202 / RECEIVED` |\n| 5 | 选择「4. 追加来源」发布 revision 2 | revision 1 已获成功 ACK；只追加新来源，不再带 target_rack，成功 `202 / RECEIVED` |\n\n**测试边界：** 发布任务不会自动证明工作线已启动。零业务插件环境可以验证 issued/queue_changed，\n但不能仅靠这些 Swagger 请求让任务进入 PREPARING。步骤 3 未具备时，请先由 WES 联调人员确认实际 prepare 触发入口；\n不要直接对 QUEUED 任务发送计划来模拟 prepare 成功。Operation 基础接入不等于工作线完整业务流程已启用。\n\n### 预期正常结果（执行前对照）\n\n下方 **Responses → 202 → Examples** 为每个请求提供对应的完整正常响应；\n**Responses → 200 → Examples** 为同一请求提供原样重放的预期响应。\n请选择与 Request body 相同的步骤名称；Swagger 不会自动联动两个选择器。\n点击 Execute 后，实际结果显示在 **Server response**，可与预期 Example Value 对照。\n\n| 请求样例 | 首次正常响应 | WES 应保存的结果 |\n| --- | --- | --- |\n| 1. 发布新的 PickingTask | `202 / RECEIVED`，`data={}` | 创建一个 QUEUED 任务，queue_revision=1、dispatch_sequence=10 |\n| 2. 调整队列 | `202 / RECEIVED`，`data={}` | 同一任务仍为 QUEUED，queue_revision=2、dispatch_sequence=20、not_before=0（无延后准入） |\n| 3. 首批计划 | `202 / RECEIVED`，`data={}` | 在 prepare 成功前提下原子保存 revision 1、接料架面和来源，任务进入 EXECUTING |\n| 4. 追加来源 | `202 / RECEIVED`，`data={}` | last_applied_plan_revision=2，新来源只追加一次，原接料架面保持不变 |\n| 上述任一步成功后原样重放 | `200 / DUPLICATE`，`data={}` | 不重复创建、不重复应用，保留首次接收时间 |\n\n响应 `operation_id` 必须与所选请求相同，`timestamp` 是 WES 首次接收时间；示例时间不要求与实际值相等。\n任务状态和计划成员是持久化结果，不额外出现在 ACK 的 `data` 中，由 WES 联调人员核对。\n以上编码和序号按下方未修改的请求样例列出，修改请求后应按实际输入核对。\n\nPickingTask 成功 ACK 的 `data` 为 `{}`，例如首次成功（响应 operation_id 必须匹配请求）：\n\n```json\n{\"operation_id\":\"019f3400-0e17-7d2a-b944-3cf7953804da\",\"code\":\"RECEIVED\",\"timestamp\":1786060800100,\"data\":{}}\n```\n\n### WMS 侧接口与后续流程\n\n以下端点由 **WMS** 实现，不能在当前 WES 主机上 Execute。WES 调用固定的 WMS_BASE_URL；\nWMS 工程师应在自己的服务中准备响应，并与 WES 联调人员观察真实请求。\n\n| WES → WMS operation | WMS Method / Path | 成功响应与触发事实 |\n| --- | --- | --- |\n| `outbound.picking_task.prepare@v1` | POST `/api/v1/wes/decisions` | `202 / PREPARE_ACCEPTED`；随后 WMS 发布 plan_delta |\n| `outbound.return_rack.arrival_report@v1` | POST `/api/v1/wes/facts` | 退料架确定到位后 `200 / RECORDED` |\n| `outbound.bin.inbound_batch@v1` | POST `/api/v1/wes/decisions` | `200 / DECIDED`：READY / NO_BATCH / RACK_FACE_DONE |\n| `outbound.bin.work_plan@v1` | POST `/api/v1/wes/decisions` | Bin 工作位扫码后 READY / NO_WORK / WAIT |\n| `outbound.material.decide@v1` | POST `/api/v1/wes/decisions` | 料盘完整扫码后 ACCEPT / REJECT / WAIT |\n| `outbound.source.empty_decide@v1` | POST `/api/v1/wes/decisions` | 确定空取后 RETRY / WAIT / SOURCE_DONE |\n| `outbound.material.movement_report@v1` | POST `/api/v1/wes/facts` | 确定 PUT 或单盘 NG 放置后 `200 / RECORDED`；原样重放 DUPLICATE |\n| `outbound.bin.return_batch@v1` | POST `/api/v1/wes/decisions` | 退箱 FIFO 候选 READY / NO_BATCH |\n| `outbound.rack.departure_decide@v1` | POST `/api/v1/wes/decisions` | 货架满足离场条件后 READY / WAIT |\n\n表中 decision 除 prepare 外均为 `200 / DECIDED`，分支值在 `data.result`。\nWAIT / NO_BATCH 闭合本次可靠义务；后续业务重求值使用新 identity，时机由插件决定。\n`outbound.picking_task.completion_confirm@v1` 已接入基础能力；本地完成条件与任务状态推进由插件负责。\n上述流程依赖插件与实际设备证据；WMS ACK、READY 和 Swagger 请求成功均不证明设备已搬运或物料已放置。\n\n### WMS 正常业务响应（WES → WMS 请求的返回值）\n\n以下每个代码块都是完整响应体，可供 WMS 实现或 Mock 使用。下方只展开正常业务返回；\n示例 operation_id 必须替换为当前 WES 请求的 operation_id，timestamp 为 WMS 响应时间。\n这些不是下方 WMS → WES Event 接口的 Responses，不应粘贴到 Event 的请求框。\n\n- decisions 原样重放应返回首次完整业务响应，不能以空 data 或 DUPLICATE 替代决定。\n  facts 首次 RECORDED、重放 DUPLICATE；prepare 的 PREPARE_ACCEPTED 和 facts 的 data 按合同为空。\n- inbound_batch 的 READY 返回 1–4 个唯一 Bin 和来源槽位，不能超过请求 max_bin_count，rack_id/rack_face 必须匹配请求。\n  return_batch 的 READY 返回请求候选的 FIFO 前缀，sequence_no 从 1 连续，目标架面匹配请求且槽位唯一。\n- work_plan 的 cell_ids 非空且不重复。departure 的目的地必须不同于当前货架位置。\n- material ACCEPT 无准备动作时省略 target_preparation；ROTATE 使用目标架面，REPLACE 另带旧架离场目的地。\n  Cell 来源可 CONTINUE 或 SOURCE_DONE；DirectPick 只能 SOURCE_DONE。\n- empty_decide 的 RETRY 是重新尝试原来源空取；SOURCE_DONE 表示来源处理结束。\n- completion_confirm 的 COMPLETED 表示 WMS 确认当前任务业务完成；本地触发条件和任务状态推进仍由插件负责。\n\n#### outbound.picking_task.completion_confirm@v1\n\n**HTTP 200 / DECIDED — COMPLETED**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"COMPLETED\"\n  }\n}\n```\n\n#### outbound.picking_task.prepare@v1\n\n**HTTP 202 / PREPARE_ACCEPTED — PREPARE_ACCEPTED**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"PREPARE_ACCEPTED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {}\n}\n```\n\n#### outbound.return_rack.arrival_report@v1\n\n**HTTP 200 / RECORDED — RECORDED**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"RECORDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {}\n}\n```\n\n#### outbound.bin.inbound_batch@v1\n\n**HTTP 200 / DECIDED — READY**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"READY\",\n    \"bins\": [\n      {\n        \"bin_code\": \"BIN-001\",\n        \"source_locator\": {\n          \"type\": \"RACK_BIN_SLOT\",\n          \"rack_id\": \"SOURCE-RACK-01\",\n          \"rack_face\": \"A\",\n          \"slot_id\": \"A-01\"\n        }\n      }\n    ]\n  }\n}\n```\n\n**HTTP 200 / DECIDED — RACK_FACE_DONE**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"RACK_FACE_DONE\"\n  }\n}\n```\n\n#### outbound.bin.work_plan@v1\n\n**HTTP 200 / DECIDED — READY**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"READY\",\n    \"cell_ids\": [\n      \"CELL-03\",\n      \"CELL-04\"\n    ]\n  }\n}\n```\n\n**HTTP 200 / DECIDED — NO_WORK**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"NO_WORK\"\n  }\n}\n```\n\n#### outbound.material.decide@v1\n\n**HTTP 200 / DECIDED — ACCEPT**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"ACCEPT\",\n    \"target_locator\": {\n      \"type\": \"RACK_SLOT\",\n      \"rack_id\": \"TARGET-RACK-01\",\n      \"rack_face\": \"A\",\n      \"slot_id\": \"A-05\"\n    },\n    \"next_source_action\": \"CONTINUE\"\n  }\n}\n```\n\n**HTTP 200 / DECIDED — ACCEPT**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"ACCEPT\",\n    \"target_locator\": {\n      \"type\": \"RACK_SLOT\",\n      \"rack_id\": \"TARGET-RACK-01\",\n      \"rack_face\": \"A\",\n      \"slot_id\": \"A-05\"\n    },\n    \"next_source_action\": \"SOURCE_DONE\"\n  }\n}\n```\n\n**HTTP 200 / DECIDED — ACCEPT**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"ACCEPT\",\n    \"target_locator\": {\n      \"type\": \"RACK_SLOT\",\n      \"rack_id\": \"TARGET-RACK-01\",\n      \"rack_face\": \"A\",\n      \"slot_id\": \"A-05\"\n    },\n    \"next_source_action\": \"CONTINUE\",\n    \"target_preparation\": {\n      \"mode\": \"ROTATE\"\n    }\n  }\n}\n```\n\n**HTTP 200 / DECIDED — ACCEPT**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"ACCEPT\",\n    \"target_locator\": {\n      \"type\": \"RACK_SLOT\",\n      \"rack_id\": \"TARGET-RACK-01\",\n      \"rack_face\": \"A\",\n      \"slot_id\": \"A-05\"\n    },\n    \"next_source_action\": \"CONTINUE\",\n    \"target_preparation\": {\n      \"mode\": \"REPLACE\",\n      \"rack_destination\": {\n        \"type\": \"RACK_POSITION\",\n        \"location_code\": \"RACK-PARK-01\"\n      }\n    }\n  }\n}\n```\n\n#### outbound.source.empty_decide@v1\n\n**HTTP 200 / DECIDED — RETRY**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"RETRY\"\n  }\n}\n```\n\n**HTTP 200 / DECIDED — SOURCE_DONE**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"SOURCE_DONE\"\n  }\n}\n```\n\n#### outbound.material.movement_report@v1\n\n**HTTP 200 / RECORDED — RECORDED**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"RECORDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {}\n}\n```\n\n#### outbound.bin.return_batch@v1\n\n**HTTP 200 / DECIDED — READY**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"READY\",\n    \"moves\": [\n      {\n        \"sequence_no\": 1,\n        \"bin_code\": \"BIN-001\",\n        \"target\": {\n          \"type\": \"RACK_BIN_SLOT\",\n          \"rack_id\": \"RETURN-RACK-01\",\n          \"rack_face\": \"A\",\n          \"slot_id\": \"A-01\"\n        }\n      }\n    ]\n  }\n}\n```\n\n#### outbound.rack.departure_decide@v1\n\n**HTTP 200 / DECIDED — READY**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"READY\",\n    \"rack_destination\": {\n      \"type\": \"RACK_POSITION\",\n      \"location_code\": \"RACK-PARK-01\"\n    }\n  }\n}\n```\n\n### 其他返回（简要参考）\n\nWAIT / NO_BATCH 表示暂时无可执行业务；REJECT 表示业务拒绝。这里不展开这些分支的 JSON。\n原样重放不重复执行业务；技术重试保持原 operation_id 和完整请求。\n409 / 422 为确定拒绝，503 或传输结果不明时保留原请求重试；具体错误格式见下方 Responses。\n计划增量必须连续，冲突后应对账，不要通过跳版本或更换 ID 绕过。",
         "operationId": "wms_events_post",
         "requestBody": {
           "content": {
             "application/json": {
+              "examples": {
+                "01_issued": {
+                  "summary": "1. 发布新的 PickingTask（首次 202，原样重放 200）",
+                  "value": {
+                    "data": {
+                      "dispatch_sequence": 10,
+                      "queue_revision": 1,
+                      "task_id": "PICK-SWAGGER-001",
+                      "task_type": "MANUAL"
+                    },
+                    "operation": "outbound.picking_task.issued@v1",
+                    "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804da",
+                    "timestamp": 1786060800000
+                  }
+                },
+                "02_queue_changed": {
+                  "summary": "2. 调整队列（同一任务必须仍为 QUEUED）",
+                  "value": {
+                    "data": {
+                      "dispatch_sequence": 20,
+                      "not_before": 0,
+                      "queue_revision": 2,
+                      "task_id": "PICK-SWAGGER-001"
+                    },
+                    "operation": "outbound.picking_task.queue_changed@v1",
+                    "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804db",
+                    "timestamp": 1786060801000
+                  }
+                },
+                "03_plan_first": {
+                  "summary": "3. 首批计划（先由 WES 发起并保存 prepare 成功）",
+                  "value": {
+                    "data": {
+                      "added_bin_source_racks": [
+                        {
+                          "rack_face": "A",
+                          "rack_id": "SOURCE-RACK-01"
+                        }
+                      ],
+                      "plan_revision": 1,
+                      "target_rack": {
+                        "rack_face": "A",
+                        "rack_id": "TARGET-RACK-01"
+                      },
+                      "task_id": "PICK-SWAGGER-001"
+                    },
+                    "operation": "outbound.picking_task.plan_delta@v1",
+                    "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804dc",
+                    "timestamp": 1786060802000
+                  }
+                },
+                "04_plan_append": {
+                  "summary": "4. 追加来源（revision 1 成功后再发送，不重复 target_rack）",
+                  "value": {
+                    "data": {
+                      "added_direct_picks": [
+                        {
+                          "source_locator": {
+                            "rack_face": "B",
+                            "rack_id": "DIRECT-RACK-01",
+                            "slot_id": "B-01",
+                            "type": "RACK_SLOT"
+                          }
+                        }
+                      ],
+                      "plan_revision": 2,
+                      "task_id": "PICK-SWAGGER-001"
+                    },
+                    "operation": "outbound.picking_task.plan_delta@v1",
+                    "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804dd",
+                    "timestamp": 1786060803000
+                  }
+                },
+                "05_transport_position": {
+                  "description": "使用 WES 已创建的 transport_task_id 和该任务的 container_id；仅在已取得真实取起事实后发送。",
+                  "summary": "5. Transport 成员已取起",
+                  "value": {
+                    "data": {
+                      "container_id": "BIN-001",
+                      "milestone": "SOURCE_PICKED",
+                      "transport_task_id": "transport-SWAGGER-001"
+                    },
+                    "operation": "transport.task.member_position_changed@v1",
+                    "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804df",
+                    "timestamp": 1786060804000
+                  }
+                },
+                "06_transport_result": {
+                  "description": "使用已有 BIN_MOVE 任务与其成员，final_position 必须匹配冻结目标和真实完成事实。",
+                  "summary": "6. Transport 搬运成功",
+                  "value": {
+                    "data": {
+                      "kind": "BIN_MOVE",
+                      "outcome_revision": 1,
+                      "results": [
+                        {
+                          "container_id": "BIN-001",
+                          "final_position": {
+                            "kind": "HANDOFF_POSITION",
+                            "location_code": "ROLLER_IN"
+                          },
+                          "status": "SUCCEEDED"
+                        }
+                      ],
+                      "transport_task_id": "transport-SWAGGER-001"
+                    },
+                    "operation": "transport.task.resulted@v1",
+                    "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804e0",
+                    "timestamp": 1786060805000
+                  }
+                },
+                "07_inbound_recovery": {
+                  "description": "引用实际 RECONCILING 执行与证据；authoritative_position 必须来自已核实的位置事实，不能用该示例创建恢复条件。",
+                  "summary": "7. 入库对账确认后继续执行",
+                  "value": {
+                    "data": {
+                      "authoritative_position": {
+                        "location_code": "ROLLER_IN",
+                        "type": "HANDOFF_POSITION"
+                      },
+                      "decision": "CONTINUE",
+                      "material_execution_id": "EXEC-SWAGGER-001",
+                      "material_trace_id": "TRACE-SWAGGER-001",
+                      "reason_code": "MANUAL_CONFIRMED",
+                      "reconciling_evidence_id": "31",
+                      "recovery_id": "REC-SWAGGER-001"
+                    },
+                    "operation": "inbound.execution.recovery_decided@v1",
+                    "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804e1",
+                    "timestamp": 1786060806000
+                  }
+                }
+              },
               "schema": {
                 "oneOf": [
                   {
@@ -21582,6 +22232,82 @@
           "200": {
             "content": {
               "application/json": {
+                "examples": {
+                  "01_issued": {
+                    "description": "operation_id 与对应请求一致；timestamp 为示例首次接收时间，重放沿用首次时间。",
+                    "summary": "1. 发布新的 PickingTask（首次 202，原样重放 200） → 200 / DUPLICATE",
+                    "value": {
+                      "code": "DUPLICATE",
+                      "data": {},
+                      "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804da",
+                      "timestamp": 1786060800100
+                    }
+                  },
+                  "02_queue_changed": {
+                    "description": "operation_id 与对应请求一致；timestamp 为示例首次接收时间，重放沿用首次时间。",
+                    "summary": "2. 调整队列（同一任务必须仍为 QUEUED） → 200 / DUPLICATE",
+                    "value": {
+                      "code": "DUPLICATE",
+                      "data": {},
+                      "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804db",
+                      "timestamp": 1786060801100
+                    }
+                  },
+                  "03_plan_first": {
+                    "description": "operation_id 与对应请求一致；timestamp 为示例首次接收时间，重放沿用首次时间。",
+                    "summary": "3. 首批计划（先由 WES 发起并保存 prepare 成功） → 200 / DUPLICATE",
+                    "value": {
+                      "code": "DUPLICATE",
+                      "data": {},
+                      "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804dc",
+                      "timestamp": 1786060802100
+                    }
+                  },
+                  "04_plan_append": {
+                    "description": "operation_id 与对应请求一致；timestamp 为示例首次接收时间，重放沿用首次时间。",
+                    "summary": "4. 追加来源（revision 1 成功后再发送，不重复 target_rack） → 200 / DUPLICATE",
+                    "value": {
+                      "code": "DUPLICATE",
+                      "data": {},
+                      "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804dd",
+                      "timestamp": 1786060803100
+                    }
+                  },
+                  "05_transport_position": {
+                    "description": "operation_id 与对应请求一致；timestamp 为示例首次接收时间，重放沿用首次时间。",
+                    "summary": "5. Transport 成员已取起 → 200 / DUPLICATE",
+                    "value": {
+                      "code": "DUPLICATE",
+                      "data": {
+                        "transport_task_id": "transport-SWAGGER-001"
+                      },
+                      "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804df",
+                      "timestamp": 1786060804100
+                    }
+                  },
+                  "06_transport_result": {
+                    "description": "operation_id 与对应请求一致；timestamp 为示例首次接收时间，重放沿用首次时间。",
+                    "summary": "6. Transport 搬运成功 → 200 / DUPLICATE",
+                    "value": {
+                      "code": "DUPLICATE",
+                      "data": {
+                        "transport_task_id": "transport-SWAGGER-001"
+                      },
+                      "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804e0",
+                      "timestamp": 1786060805100
+                    }
+                  },
+                  "07_inbound_recovery": {
+                    "description": "operation_id 与对应请求一致；timestamp 为示例首次接收时间，重放沿用首次时间。",
+                    "summary": "7. 入库对账确认后继续执行 → 200 / DUPLICATE",
+                    "value": {
+                      "code": "DUPLICATE",
+                      "data": {},
+                      "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804e1",
+                      "timestamp": 1786060806100
+                    }
+                  }
+                },
                 "schema": {
                   "additionalProperties": false,
                   "properties": {
@@ -21644,6 +22370,82 @@
           "202": {
             "content": {
               "application/json": {
+                "examples": {
+                  "01_issued": {
+                    "description": "operation_id 与对应请求一致；timestamp 为示例首次接收时间，重放沿用首次时间。",
+                    "summary": "1. 发布新的 PickingTask（首次 202，原样重放 200） → 202 / RECEIVED",
+                    "value": {
+                      "code": "RECEIVED",
+                      "data": {},
+                      "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804da",
+                      "timestamp": 1786060800100
+                    }
+                  },
+                  "02_queue_changed": {
+                    "description": "operation_id 与对应请求一致；timestamp 为示例首次接收时间，重放沿用首次时间。",
+                    "summary": "2. 调整队列（同一任务必须仍为 QUEUED） → 202 / RECEIVED",
+                    "value": {
+                      "code": "RECEIVED",
+                      "data": {},
+                      "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804db",
+                      "timestamp": 1786060801100
+                    }
+                  },
+                  "03_plan_first": {
+                    "description": "operation_id 与对应请求一致；timestamp 为示例首次接收时间，重放沿用首次时间。",
+                    "summary": "3. 首批计划（先由 WES 发起并保存 prepare 成功） → 202 / RECEIVED",
+                    "value": {
+                      "code": "RECEIVED",
+                      "data": {},
+                      "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804dc",
+                      "timestamp": 1786060802100
+                    }
+                  },
+                  "04_plan_append": {
+                    "description": "operation_id 与对应请求一致；timestamp 为示例首次接收时间，重放沿用首次时间。",
+                    "summary": "4. 追加来源（revision 1 成功后再发送，不重复 target_rack） → 202 / RECEIVED",
+                    "value": {
+                      "code": "RECEIVED",
+                      "data": {},
+                      "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804dd",
+                      "timestamp": 1786060803100
+                    }
+                  },
+                  "05_transport_position": {
+                    "description": "operation_id 与对应请求一致；timestamp 为示例首次接收时间，重放沿用首次时间。",
+                    "summary": "5. Transport 成员已取起 → 202 / RECEIVED",
+                    "value": {
+                      "code": "RECEIVED",
+                      "data": {
+                        "transport_task_id": "transport-SWAGGER-001"
+                      },
+                      "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804df",
+                      "timestamp": 1786060804100
+                    }
+                  },
+                  "06_transport_result": {
+                    "description": "operation_id 与对应请求一致；timestamp 为示例首次接收时间，重放沿用首次时间。",
+                    "summary": "6. Transport 搬运成功 → 202 / RECEIVED",
+                    "value": {
+                      "code": "RECEIVED",
+                      "data": {
+                        "transport_task_id": "transport-SWAGGER-001"
+                      },
+                      "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804e0",
+                      "timestamp": 1786060805100
+                    }
+                  },
+                  "07_inbound_recovery": {
+                    "description": "operation_id 与对应请求一致；timestamp 为示例首次接收时间，重放沿用首次时间。",
+                    "summary": "7. 入库对账确认后继续执行 → 202 / RECEIVED",
+                    "value": {
+                      "code": "RECEIVED",
+                      "data": {},
+                      "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804e1",
+                      "timestamp": 1786060806100
+                    }
+                  }
+                },
                 "schema": {
                   "additionalProperties": false,
                   "properties": {
@@ -21713,6 +22515,19 @@
           "409": {
             "content": {
               "application/json": {
+                "examples": {
+                  "picking_task": {
+                    "summary": "PickingTask CONFLICT（operation_id 匹配请求）",
+                    "value": {
+                      "code": "CONFLICT",
+                      "data": {
+                        "reason_code": "IDEMPOTENCY_CONFLICT"
+                      },
+                      "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804da",
+                      "timestamp": 1786060800100
+                    }
+                  }
+                },
                 "schema": {
                   "additionalProperties": false,
                   "properties": {
@@ -21750,21 +22565,19 @@
                           "properties": {
                             "reason_code": {
                               "enum": [
-                                "MEMBER_POSITION_EVIDENCE_PENDING"
+                                "IDEMPOTENCY_CONFLICT",
+                                "REVISION_CONFLICT",
+                                "STATE_CONFLICT",
+                                "REFERENCE_CONFLICT"
                               ],
-                              "type": "string"
-                            },
-                            "transport_task_id": {
-                              "maxLength": 80,
-                              "minLength": 1,
-                              "pattern": ".*\\S.*",
+                              "title": "Reason Code",
                               "type": "string"
                             }
                           },
                           "required": [
-                            "transport_task_id",
                             "reason_code"
                           ],
+                          "title": "ConflictData",
                           "type": "object"
                         }
                       ]
@@ -21800,6 +22613,19 @@
           "422": {
             "content": {
               "application/json": {
+                "examples": {
+                  "picking_task": {
+                    "summary": "PickingTask REJECTED（operation_id 匹配请求）",
+                    "value": {
+                      "code": "REJECTED",
+                      "data": {
+                        "reason_code": "INVALID_DATA"
+                      },
+                      "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804da",
+                      "timestamp": 1786060800100
+                    }
+                  }
+                },
                 "schema": {
                   "additionalProperties": false,
                   "properties": {
@@ -21896,6 +22722,17 @@
           "503": {
             "content": {
               "application/json": {
+                "examples": {
+                  "picking_task": {
+                    "summary": "PickingTask UNAVAILABLE（operation_id 匹配请求）",
+                    "value": {
+                      "code": "UNAVAILABLE",
+                      "data": {},
+                      "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804da",
+                      "timestamp": 1786060800100
+                    }
+                  }
+                },
                 "schema": {
                   "additionalProperties": false,
                   "properties": {
@@ -21937,7 +22774,7 @@
             "description": "对应 WMS event runtime 未就绪或无法可靠持久化"
           }
         },
-        "summary": "Receive Wms Event",
+        "summary": "WMS 事件接收与 PickingTask 联调流程",
         "tags": [
           "WMS Events"
         ]
