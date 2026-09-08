@@ -11,7 +11,6 @@ import {
 
 interface Options {
   connector?: (options: TransportDebugRunStreamOptions) => Promise<void>
-  visible: Ref<boolean>
   activeRunId: Ref<string | null>
   refreshRun(runId: string): Promise<void>
   loadRecentRuns?: () => Promise<void>
@@ -59,7 +58,7 @@ export function useTransportDebugRunStream(options: Options) {
       window.clearInterval(pollTimer)
       pollTimer = null
     }
-    if (manuallyDisconnected || !options.visible.value) return
+    if (manuallyDisconnected) return
     if (!options.activeRunId.value && !options.loadRecentRuns) return
     pollTimer = window.setInterval(() => {
       const runId = options.activeRunId.value
@@ -72,7 +71,7 @@ export function useTransportDebugRunStream(options: Options) {
     }, options.pollIntervalMs ?? 15_000)
   }
 
-  const stopWatch = watch([options.visible, options.activeRunId, connectionState], syncPoller, {
+  const stopWatch = watch([options.activeRunId, connectionState], syncPoller, {
     immediate: true,
     flush: 'sync'
   })
@@ -80,12 +79,6 @@ export function useTransportDebugRunStream(options: Options) {
   function connect(enableSse = true): void {
     manuallyDisconnected = false
     if (enableSse) connection.connect()
-    syncPoller()
-  }
-
-  function reconnect(): void {
-    manuallyDisconnected = false
-    connection.reconnect()
     syncPoller()
   }
 
@@ -107,7 +100,6 @@ export function useTransportDebugRunStream(options: Options) {
     lastError,
     hasGap,
     connect,
-    reconnect,
     disconnect
   }
 }

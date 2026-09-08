@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.17.0.1] - 2026-09-07
+
+### Changed
+
+- 精简运输自动联调页面的连接生命周期，移除遗留弹窗可见状态和未使用的重连包装，保留轮询、SSE 自动重连及卸载后的异步防护。
+
 ## [0.17.0.0] - 2026-09-07
 
 ### Added
