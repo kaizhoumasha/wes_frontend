@@ -37,11 +37,14 @@ export function validateTransportDebugRunConfig(
 
 export function buildTransportDebugRunInput(
   rackId: string,
-  groups: readonly TransportDebugFaceGroupDraft[]
+  groups: readonly TransportDebugFaceGroupDraft[],
+  worklineCode: string
 ): DebugRunCreateInput {
   const error = validateTransportDebugRunConfig(rackId, groups)
   if (error) throw new Error(error)
+  if (!worklineCode.trim()) throw new Error('工作线编码不能为空')
   return {
+    workline_code: worklineCode.trim(),
     rack_id: rackId.trim(),
     face_groups: groups.map(group => ({
       face: group.face,
@@ -55,10 +58,11 @@ export function buildTransportDebugRunInput(
 
 export function buildTransportDebugRunPreview(
   rackId: string,
-  groups: readonly TransportDebugFaceGroupDraft[]
+  groups: readonly TransportDebugFaceGroupDraft[],
+  worklineCode: string
 ): string {
-  if (validateTransportDebugRunConfig(rackId, groups)) return ''
-  const input = buildTransportDebugRunInput(rackId, groups)
+  if (validateTransportDebugRunConfig(rackId, groups) || !worklineCode.trim()) return ''
+  const input = buildTransportDebugRunInput(rackId, groups, worklineCode)
   const steps: object[] = []
   input.face_groups.forEach((group, index) => {
     if (index === 0) {
@@ -94,17 +98,16 @@ export function buildTransportDebugRunPreview(
     })
     steps.push({ kind: 'SCAN12', bin_codes: group.bins.map(bin => bin.bin_code) })
     steps.push({
-      kind: 'BIN_MOVE',
-      moves: group.bins.map(bin => ({
+      operation: 'outbound.bin.return_batch@v1',
+      workline_code: worklineCode.trim(),
+      rack_id: input.rack_id,
+      rack_face: group.face,
+      return_candidates: group.bins.map((bin, index) => ({
+        sequence_no: index + 1,
         bin_code: bin.bin_code,
-        source: { kind: 'HANDOFF_POSITION', location_code: 'CNV0302' },
-        target: {
-          kind: 'RACK_BIN_SLOT',
-          rack_id: input.rack_id,
-          rack_face: group.face,
-          slot_id: bin.slot_id
-        }
-      }))
+        source: { type: 'HANDOFF_POSITION', location_code: 'CNV0302' }
+      })),
+      next: '取得 WMS 分配的目标槽位后创建回架任务；每箱成功到位后保存实际槽位'
     })
   })
   steps.push({
@@ -118,12 +121,33 @@ export function buildTransportDebugRunPreview(
 }
 
 export function useTransportDebugRunConfig() {
-  const rackId = ref('')
-  const groups = ref<TransportDebugFaceGroupDraft[]>([])
+  const worklineCode = ref('')
+  const rackId = ref('510056')
+  const groups = ref<TransportDebugFaceGroupDraft[]>([
+    {
+      face: '90',
+      bins: [
+        { bin_code: 'A000001922', slot_id: '510056A3F2C101' },
+        { bin_code: 'A000002653', slot_id: '510056A2F2C101' }
+      ]
+    },
+    {
+      face: '270',
+      bins: [
+        { bin_code: 'A000002704', slot_id: '510056B5F1C101' },
+        { bin_code: 'A000000770', slot_id: '510056B4F1C101' },
+        { bin_code: 'A000000940', slot_id: '510056B3F1C101' }
+      ]
+    }
+  ])
   const validationError = computed(() =>
-    validateTransportDebugRunConfig(rackId.value, groups.value)
+    !worklineCode.value.trim()
+      ? '工作线编码不能为空'
+      : validateTransportDebugRunConfig(rackId.value, groups.value)
   )
-  const preview = computed(() => buildTransportDebugRunPreview(rackId.value, groups.value))
+  const preview = computed(() =>
+    buildTransportDebugRunPreview(rackId.value, groups.value, worklineCode.value)
+  )
 
   function addGroup(): void {
     groups.value.push({ face: '', bins: [{ bin_code: '', slot_id: '' }] })
@@ -144,6 +168,7 @@ export function useTransportDebugRunConfig() {
   }
 
   return {
+    worklineCode,
     rackId,
     groups,
     validationError,

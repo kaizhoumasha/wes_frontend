@@ -1,4 +1,4 @@
-/** @openapi-sha256 488e296b757ed6ae167179b29ba96d33e80c7e465b774b5ee326539b225ff47c */
+/** @openapi-sha256 a9de93cc6d031bc7e43ecfe47631072f6342d0b80b78cde7ccbe1435a0865f48 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -1516,6 +1516,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/device/evidences/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 查询设备 callback 近期历史与当前 Evidence 状态 */
+        get: operations["device_evidences_history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/device/evidences/stream": {
         parameters: {
             query?: never;
@@ -2226,7 +2243,402 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Receive Wms Event */
+        /**
+         * WMS 事件接收与 PickingTask 联调流程
+         * @description WMS 调用 WES 的唯一 Event 入口，按 `operation` 选择严格合同。
+         *     支持 Transport 位置/结果、入库恢复决定，以及下方 PickingTask 发布、队列调整和计划增量。
+         *
+         *     ### Examples 的范围
+         *
+         *     Request body 的 Examples 仅用于 WMS → WES 事件：1–4 为 PickingTask，5–6 为 Transport 回报，
+         *     7 为入库对账后继续执行。共覆盖当前入口支持的 6 种 operation，编号不是跨领域的连续业务流程。
+         *     Transport 示例必须引用已存在的任务与真实设备事实；入库恢复示例必须引用实际待对账执行与证据。
+         *     prepare、inbound_batch、material.decide、completion_confirm 等由 WES 调用 WMS，
+         *     正常返回见下方「WMS 正常业务响应」，不属于此 Event 入口的请求 Examples。
+         *
+         *     ### 开始测试
+         *
+         *     1. 使用双方约定的隔离联调环境；`Try it out → Execute` 会发送真实请求并保存业务数据。
+         *     2. 在 **Examples** 中选择样例；如果尚未进入编辑模式，先点 **Try it out**。每轮新测试更换 `task_id`，每个新消息使用新的小写 UUIDv7
+         *        `operation_id`，`timestamp` 使用 UTC Unix 毫秒。货架、面、储位必须换成双方约定的实际业务编码。
+         *     3. `Content-Type` 为 `application/json`，Body 上限 256 KiB，禁止额外字段。WMS Event 当前采用隔离局域网 NONE
+         *        认证，无需管理端 Bearer Token；401 表示入站策略未就绪，503 也可能表示对应运行时未就绪。
+         *
+         *     ### PickingTask 顺序测试
+         *
+         *     | 步骤 | 操作 | 前置条件与预期 |
+         *     | --- | --- | --- |
+         *     | 1 | 选择「1. 发布新的 PickingTask」 | 新 `task_id`、`queue_revision=1`；首次 `202 / RECEIVED`，任务进入 QUEUED |
+         *     | 2（可选） | 选择「2. 调整队列」 | 同一任务仍为 QUEUED；使用新 identity 和更高 queue_revision，首次 `202 / RECEIVED` |
+         *     | 3 | 等待 WES 发起 `outbound.picking_task.prepare@v1` | WES 已通过实际业务入口选中任务和 WorkLine；WMS 在 decisions 端点返回 `202 / PREPARE_ACCEPTED`、相同 operation_id 和 `data={}` |
+         *     | 4 | 选择「3. 首批计划」发布 revision 1 | 同一任务已绑定且 WES 保存匹配的 prepare 成功响应；必须带 target_rack，成功 `202 / RECEIVED` |
+         *     | 5 | 选择「4. 追加来源」发布 revision 2 | revision 1 已获成功 ACK；只追加新来源，不再带 target_rack，成功 `202 / RECEIVED` |
+         *
+         *     **测试边界：** 发布任务不会自动证明工作线已启动。零业务插件环境可以验证 issued/queue_changed，
+         *     但不能仅靠这些 Swagger 请求让任务进入 PREPARING。步骤 3 未具备时，请先由 WES 联调人员确认实际 prepare 触发入口；
+         *     不要直接对 QUEUED 任务发送计划来模拟 prepare 成功。Operation 基础接入不等于工作线完整业务流程已启用。
+         *
+         *     ### 预期正常结果（执行前对照）
+         *
+         *     下方 **Responses → 202 → Examples** 为每个请求提供对应的完整正常响应；
+         *     **Responses → 200 → Examples** 为同一请求提供原样重放的预期响应。
+         *     请选择与 Request body 相同的步骤名称；Swagger 不会自动联动两个选择器。
+         *     点击 Execute 后，实际结果显示在 **Server response**，可与预期 Example Value 对照。
+         *
+         *     | 请求样例 | 首次正常响应 | WES 应保存的结果 |
+         *     | --- | --- | --- |
+         *     | 1. 发布新的 PickingTask | `202 / RECEIVED`，`data={}` | 创建一个 QUEUED 任务，queue_revision=1、dispatch_sequence=10 |
+         *     | 2. 调整队列 | `202 / RECEIVED`，`data={}` | 同一任务仍为 QUEUED，queue_revision=2、dispatch_sequence=20、not_before=0（无延后准入） |
+         *     | 3. 首批计划 | `202 / RECEIVED`，`data={}` | 在 prepare 成功前提下原子保存 revision 1、接料架面和来源，任务进入 EXECUTING |
+         *     | 4. 追加来源 | `202 / RECEIVED`，`data={}` | last_applied_plan_revision=2，新来源只追加一次，原接料架面保持不变 |
+         *     | 上述任一步成功后原样重放 | `200 / DUPLICATE`，`data={}` | 不重复创建、不重复应用，保留首次接收时间 |
+         *
+         *     响应 `operation_id` 必须与所选请求相同，`timestamp` 是 WES 首次接收时间；示例时间不要求与实际值相等。
+         *     任务状态和计划成员是持久化结果，不额外出现在 ACK 的 `data` 中，由 WES 联调人员核对。
+         *     以上编码和序号按下方未修改的请求样例列出，修改请求后应按实际输入核对。
+         *
+         *     PickingTask 成功 ACK 的 `data` 为 `{}`，例如首次成功（响应 operation_id 必须匹配请求）：
+         *
+         *     ```json
+         *     {"operation_id":"019f3400-0e17-7d2a-b944-3cf7953804da","code":"RECEIVED","timestamp":1786060800100,"data":{}}
+         *     ```
+         *
+         *     ### WMS 侧接口与后续流程
+         *
+         *     以下端点由 **WMS** 实现，不能在当前 WES 主机上 Execute。WES 调用固定的 WMS_BASE_URL；
+         *     WMS 工程师应在自己的服务中准备响应，并与 WES 联调人员观察真实请求。
+         *
+         *     | WES → WMS operation | WMS Method / Path | 成功响应与触发事实 |
+         *     | --- | --- | --- |
+         *     | `outbound.picking_task.prepare@v1` | POST `/api/v1/wes/decisions` | `202 / PREPARE_ACCEPTED`；随后 WMS 发布 plan_delta |
+         *     | `outbound.return_rack.arrival_report@v1` | POST `/api/v1/wes/facts` | 退料架确定到位后 `200 / RECORDED` |
+         *     | `outbound.bin.inbound_batch@v1` | POST `/api/v1/wes/decisions` | `200 / DECIDED`：READY / NO_BATCH / RACK_FACE_DONE |
+         *     | `outbound.bin.work_plan@v1` | POST `/api/v1/wes/decisions` | Bin 工作位扫码后 READY / NO_WORK / WAIT |
+         *     | `outbound.material.decide@v1` | POST `/api/v1/wes/decisions` | 料盘完整扫码后 ACCEPT / REJECT / WAIT |
+         *     | `outbound.source.empty_decide@v1` | POST `/api/v1/wes/decisions` | 确定空取后 RETRY / WAIT / SOURCE_DONE |
+         *     | `outbound.material.movement_report@v1` | POST `/api/v1/wes/facts` | 确定 PUT 或单盘 NG 放置后 `200 / RECORDED`；原样重放 DUPLICATE |
+         *     | `outbound.bin.return_batch@v1` | POST `/api/v1/wes/decisions` | 退箱 FIFO 候选 READY / NO_BATCH |
+         *     | `outbound.rack.departure_decide@v1` | POST `/api/v1/wes/decisions` | 货架满足离场条件后 READY / WAIT |
+         *
+         *     表中 decision 除 prepare 外均为 `200 / DECIDED`，分支值在 `data.result`。
+         *     WAIT / NO_BATCH 闭合本次可靠义务；后续业务重求值使用新 identity，时机由插件决定。
+         *     `outbound.picking_task.completion_confirm@v1` 已接入基础能力；本地完成条件与任务状态推进由插件负责。
+         *     上述流程依赖插件与实际设备证据；WMS ACK、READY 和 Swagger 请求成功均不证明设备已搬运或物料已放置。
+         *
+         *     ### WMS 正常业务响应（WES → WMS 请求的返回值）
+         *
+         *     以下每个代码块都是完整响应体，可供 WMS 实现或 Mock 使用。下方只展开正常业务返回；
+         *     示例 operation_id 必须替换为当前 WES 请求的 operation_id，timestamp 为 WMS 响应时间。
+         *     这些不是下方 WMS → WES Event 接口的 Responses，不应粘贴到 Event 的请求框。
+         *
+         *     - decisions 原样重放应返回首次完整业务响应，不能以空 data 或 DUPLICATE 替代决定。
+         *       facts 首次 RECORDED、重放 DUPLICATE；prepare 的 PREPARE_ACCEPTED 和 facts 的 data 按合同为空。
+         *     - inbound_batch 的 READY 返回 1–4 个唯一 Bin 和来源槽位，不能超过请求 max_bin_count，rack_id/rack_face 必须匹配请求。
+         *       return_batch 的 READY 返回请求候选的 FIFO 前缀，sequence_no 从 1 连续，目标架面匹配请求且槽位唯一。
+         *     - work_plan 的 cell_ids 非空且不重复。departure 的目的地必须不同于当前货架位置。
+         *     - material ACCEPT 无准备动作时省略 target_preparation；ROTATE 使用目标架面，REPLACE 另带旧架离场目的地。
+         *       Cell 来源可 CONTINUE 或 SOURCE_DONE；DirectPick 只能 SOURCE_DONE。
+         *     - empty_decide 的 RETRY 是重新尝试原来源空取；SOURCE_DONE 表示来源处理结束。
+         *     - completion_confirm 的 COMPLETED 表示 WMS 确认当前任务业务完成；本地触发条件和任务状态推进仍由插件负责。
+         *
+         *     #### outbound.picking_task.completion_confirm@v1
+         *
+         *     **HTTP 200 / DECIDED — COMPLETED**
+         *
+         *     ```json
+         *     {
+         *       "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804de",
+         *       "code": "DECIDED",
+         *       "timestamp": 1786060800100,
+         *       "data": {
+         *         "result": "COMPLETED"
+         *       }
+         *     }
+         *     ```
+         *
+         *     #### outbound.picking_task.prepare@v1
+         *
+         *     **HTTP 202 / PREPARE_ACCEPTED — PREPARE_ACCEPTED**
+         *
+         *     ```json
+         *     {
+         *       "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804de",
+         *       "code": "PREPARE_ACCEPTED",
+         *       "timestamp": 1786060800100,
+         *       "data": {}
+         *     }
+         *     ```
+         *
+         *     #### outbound.return_rack.arrival_report@v1
+         *
+         *     **HTTP 200 / RECORDED — RECORDED**
+         *
+         *     ```json
+         *     {
+         *       "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804de",
+         *       "code": "RECORDED",
+         *       "timestamp": 1786060800100,
+         *       "data": {}
+         *     }
+         *     ```
+         *
+         *     #### outbound.bin.inbound_batch@v1
+         *
+         *     **HTTP 200 / DECIDED — READY**
+         *
+         *     ```json
+         *     {
+         *       "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804de",
+         *       "code": "DECIDED",
+         *       "timestamp": 1786060800100,
+         *       "data": {
+         *         "result": "READY",
+         *         "bins": [
+         *           {
+         *             "bin_code": "BIN-001",
+         *             "source_locator": {
+         *               "type": "RACK_BIN_SLOT",
+         *               "rack_id": "SOURCE-RACK-01",
+         *               "rack_face": "A",
+         *               "slot_id": "A-01"
+         *             }
+         *           }
+         *         ]
+         *       }
+         *     }
+         *     ```
+         *
+         *     **HTTP 200 / DECIDED — RACK_FACE_DONE**
+         *
+         *     ```json
+         *     {
+         *       "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804de",
+         *       "code": "DECIDED",
+         *       "timestamp": 1786060800100,
+         *       "data": {
+         *         "result": "RACK_FACE_DONE"
+         *       }
+         *     }
+         *     ```
+         *
+         *     #### outbound.bin.work_plan@v1
+         *
+         *     **HTTP 200 / DECIDED — READY**
+         *
+         *     ```json
+         *     {
+         *       "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804de",
+         *       "code": "DECIDED",
+         *       "timestamp": 1786060800100,
+         *       "data": {
+         *         "result": "READY",
+         *         "cell_ids": [
+         *           "CELL-03",
+         *           "CELL-04"
+         *         ]
+         *       }
+         *     }
+         *     ```
+         *
+         *     **HTTP 200 / DECIDED — NO_WORK**
+         *
+         *     ```json
+         *     {
+         *       "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804de",
+         *       "code": "DECIDED",
+         *       "timestamp": 1786060800100,
+         *       "data": {
+         *         "result": "NO_WORK"
+         *       }
+         *     }
+         *     ```
+         *
+         *     #### outbound.material.decide@v1
+         *
+         *     **HTTP 200 / DECIDED — ACCEPT**
+         *
+         *     ```json
+         *     {
+         *       "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804de",
+         *       "code": "DECIDED",
+         *       "timestamp": 1786060800100,
+         *       "data": {
+         *         "result": "ACCEPT",
+         *         "target_locator": {
+         *           "type": "RACK_SLOT",
+         *           "rack_id": "TARGET-RACK-01",
+         *           "rack_face": "A",
+         *           "slot_id": "A-05"
+         *         },
+         *         "next_source_action": "CONTINUE"
+         *       }
+         *     }
+         *     ```
+         *
+         *     **HTTP 200 / DECIDED — ACCEPT**
+         *
+         *     ```json
+         *     {
+         *       "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804de",
+         *       "code": "DECIDED",
+         *       "timestamp": 1786060800100,
+         *       "data": {
+         *         "result": "ACCEPT",
+         *         "target_locator": {
+         *           "type": "RACK_SLOT",
+         *           "rack_id": "TARGET-RACK-01",
+         *           "rack_face": "A",
+         *           "slot_id": "A-05"
+         *         },
+         *         "next_source_action": "SOURCE_DONE"
+         *       }
+         *     }
+         *     ```
+         *
+         *     **HTTP 200 / DECIDED — ACCEPT**
+         *
+         *     ```json
+         *     {
+         *       "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804de",
+         *       "code": "DECIDED",
+         *       "timestamp": 1786060800100,
+         *       "data": {
+         *         "result": "ACCEPT",
+         *         "target_locator": {
+         *           "type": "RACK_SLOT",
+         *           "rack_id": "TARGET-RACK-01",
+         *           "rack_face": "A",
+         *           "slot_id": "A-05"
+         *         },
+         *         "next_source_action": "CONTINUE",
+         *         "target_preparation": {
+         *           "mode": "ROTATE"
+         *         }
+         *       }
+         *     }
+         *     ```
+         *
+         *     **HTTP 200 / DECIDED — ACCEPT**
+         *
+         *     ```json
+         *     {
+         *       "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804de",
+         *       "code": "DECIDED",
+         *       "timestamp": 1786060800100,
+         *       "data": {
+         *         "result": "ACCEPT",
+         *         "target_locator": {
+         *           "type": "RACK_SLOT",
+         *           "rack_id": "TARGET-RACK-01",
+         *           "rack_face": "A",
+         *           "slot_id": "A-05"
+         *         },
+         *         "next_source_action": "CONTINUE",
+         *         "target_preparation": {
+         *           "mode": "REPLACE",
+         *           "rack_destination": {
+         *             "type": "RACK_POSITION",
+         *             "location_code": "RACK-PARK-01"
+         *           }
+         *         }
+         *       }
+         *     }
+         *     ```
+         *
+         *     #### outbound.source.empty_decide@v1
+         *
+         *     **HTTP 200 / DECIDED — RETRY**
+         *
+         *     ```json
+         *     {
+         *       "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804de",
+         *       "code": "DECIDED",
+         *       "timestamp": 1786060800100,
+         *       "data": {
+         *         "result": "RETRY"
+         *       }
+         *     }
+         *     ```
+         *
+         *     **HTTP 200 / DECIDED — SOURCE_DONE**
+         *
+         *     ```json
+         *     {
+         *       "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804de",
+         *       "code": "DECIDED",
+         *       "timestamp": 1786060800100,
+         *       "data": {
+         *         "result": "SOURCE_DONE"
+         *       }
+         *     }
+         *     ```
+         *
+         *     #### outbound.material.movement_report@v1
+         *
+         *     **HTTP 200 / RECORDED — RECORDED**
+         *
+         *     ```json
+         *     {
+         *       "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804de",
+         *       "code": "RECORDED",
+         *       "timestamp": 1786060800100,
+         *       "data": {}
+         *     }
+         *     ```
+         *
+         *     #### outbound.bin.return_batch@v1
+         *
+         *     **HTTP 200 / DECIDED — READY**
+         *
+         *     ```json
+         *     {
+         *       "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804de",
+         *       "code": "DECIDED",
+         *       "timestamp": 1786060800100,
+         *       "data": {
+         *         "result": "READY",
+         *         "moves": [
+         *           {
+         *             "sequence_no": 1,
+         *             "bin_code": "BIN-001",
+         *             "target": {
+         *               "type": "RACK_BIN_SLOT",
+         *               "rack_id": "RETURN-RACK-01",
+         *               "rack_face": "A",
+         *               "slot_id": "A-01"
+         *             }
+         *           }
+         *         ]
+         *       }
+         *     }
+         *     ```
+         *
+         *     #### outbound.rack.departure_decide@v1
+         *
+         *     **HTTP 200 / DECIDED — READY**
+         *
+         *     ```json
+         *     {
+         *       "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804de",
+         *       "code": "DECIDED",
+         *       "timestamp": 1786060800100,
+         *       "data": {
+         *         "result": "READY",
+         *         "rack_destination": {
+         *           "type": "RACK_POSITION",
+         *           "location_code": "RACK-PARK-01"
+         *         }
+         *       }
+         *     }
+         *     ```
+         *
+         *     ### 其他返回（简要参考）
+         *
+         *     WAIT / NO_BATCH 表示暂时无可执行业务；REJECT 表示业务拒绝。这里不展开这些分支的 JSON。
+         *     原样重放不重复执行业务；技术重试保持原 operation_id 和完整请求。
+         *     409 / 422 为确定拒绝，503 或传输结果不明时保留原请求重试；具体错误格式见下方 Responses。
+         *     计划增量必须连续，冲突后应对账，不要通过跳版本或更换 ID 绕过。
+         */
         post: operations["wms_events_post"];
         delete?: never;
         options?: never;
@@ -3889,6 +4301,8 @@ export interface components {
             face_groups: components["schemas"]["TransportDebugRunFaceGroupRequest"][];
             /** Rack Id */
             rack_id: string;
+            /** Workline Code */
+            workline_code: string;
         };
         /** DebugTransportTaskCreated */
         DebugTransportTaskCreated: {
@@ -3984,6 +4398,84 @@ export interface components {
             sort_order: number;
             /** Upstream Device Id */
             upstream_device_id?: number | null;
+        };
+        /**
+         * DeviceEvidenceUpdate
+         * @description device evidence 当前诊断快照；未处理的历史记录没有 processed_at。
+         */
+        DeviceEvidenceUpdate: {
+            /** Apply Status */
+            apply_status: string;
+            /** Command Code */
+            command_code?: string | null;
+            /** Device Code */
+            device_code: string;
+            /** Event Type */
+            event_type?: string | null;
+            /** Evidence Id */
+            evidence_id: number;
+            kind: components["schemas"]["DeviceIngressKind"];
+            /** Processed At */
+            processed_at: string | null;
+            /** Source Event Id */
+            source_event_id: string;
+        };
+        /**
+         * DeviceIngressAttempt
+         * @description 一次 ECS callback HTTP 尝试的安全诊断快照。
+         */
+        DeviceIngressAttempt: {
+            /** Apply Status */
+            apply_status?: string | null;
+            /** Command Code */
+            command_code?: string | null;
+            /** Device Code */
+            device_code?: string | null;
+            disposition: components["schemas"]["DeviceIngressDisposition"];
+            /** Error Code */
+            error_code?: string | null;
+            /** Event Type */
+            event_type?: string | null;
+            /** Evidence Id */
+            evidence_id?: number | null;
+            kind: components["schemas"]["DeviceIngressKind"];
+            /** Observed Body Bytes */
+            observed_body_bytes: number;
+            /** Path */
+            path: string;
+            /** Raw Payload */
+            raw_payload?: {
+                [key: string]: unknown;
+            } | null;
+            /** Received At */
+            received_at: string;
+            /** Request Id */
+            request_id: string;
+            /** Source Event Id */
+            source_event_id?: string | null;
+            /** Status Code */
+            status_code: number;
+        };
+        /**
+         * DeviceIngressDisposition
+         * @enum {string}
+         */
+        DeviceIngressDisposition: "ACCEPTED" | "DUPLICATE" | "CONFLICT" | "REJECTED";
+        /** DeviceIngressHistoryItem */
+        DeviceIngressHistoryItem: {
+            attempt: components["schemas"]["DeviceIngressAttempt"] | null;
+            latest_update: components["schemas"]["DeviceEvidenceUpdate"] | null;
+            /** Recorded At */
+            recorded_at: string;
+            /** Row Key */
+            row_key: string;
+        };
+        /** DeviceIngressHistoryPage */
+        DeviceIngressHistoryPage: {
+            /** Items */
+            items: components["schemas"]["DeviceIngressHistoryItem"][];
+            /** Next Cursor */
+            next_cursor: string | null;
         };
         /**
          * DeviceIngressKind
@@ -5356,6 +5848,8 @@ export interface components {
         ResponseSchemaModel_DebugTransportTaskResetPreview_: ApiResponse<components["schemas"]["DebugTransportTaskResetPreview"]>;
         /** ResponseSchemaModel[DebugTransportTaskResetResult] */
         ResponseSchemaModel_DebugTransportTaskResetResult_: ApiResponse<components["schemas"]["DebugTransportTaskResetResult"]>;
+        /** ResponseSchemaModel[DeviceIngressHistoryPage] */
+        ResponseSchemaModel_DeviceIngressHistoryPage_: ApiResponse<components["schemas"]["DeviceIngressHistoryPage"]>;
         /** ResponseSchemaModel[DeviceResponse] */
         ResponseSchemaModel_DeviceResponse_: ApiResponse<components["schemas"]["DeviceResponse"]>;
         /** ResponseSchemaModel[dict[str, Any]] */
@@ -5563,6 +6057,20 @@ export interface components {
              */
             order: "asc" | "desc";
         };
+        /** TransportDebugReturnedBinResponse */
+        TransportDebugReturnedBinResponse: {
+            /** Bin Code */
+            bin_code: string;
+            /**
+             * Rack Face
+             * @description Opaque non-empty face value without NUL; preserve exactly
+             */
+            rack_face: string;
+            /** Rack Id */
+            rack_id: string;
+            /** Slot Id */
+            slot_id: string;
+        };
         /** TransportDebugRunBinRequest */
         TransportDebugRunBinRequest: {
             /** Bin Code */
@@ -5635,6 +6143,8 @@ export interface components {
             observed_bin_codes: string[];
             /** Rack Id */
             rack_id: string;
+            /** Returned Bins */
+            returned_bins: components["schemas"]["TransportDebugReturnedBinResponse"][];
             /** Run Id */
             run_id: string;
             status: components["schemas"]["TransportDebugRunStatus"];
@@ -5644,6 +6154,8 @@ export interface components {
             updated_at: string;
             /** Version */
             version: number;
+            /** Workline Code */
+            workline_code: string;
         };
         /**
          * TransportDebugRunStatus
@@ -9128,6 +9640,42 @@ export interface operations {
             };
         };
     };
+    device_evidences_history_get: {
+        parameters: {
+            query?: {
+                apply_status?: components["schemas"]["InboundEvidenceApplyStatus"] | null;
+                command_code?: string | null;
+                cursor?: string | null;
+                device_code?: string | null;
+                kind?: components["schemas"]["DeviceIngressKind"] | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_DeviceIngressHistoryPage_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     device_evidences_stream_get: {
         parameters: {
             query?: {
@@ -11124,9 +11672,11 @@ export interface operations {
                         data: Record<string, never> | {
                             transport_task_id: string;
                         } | {
-                            /** @enum {string} */
-                            reason_code: "MEMBER_POSITION_EVIDENCE_PENDING";
-                            transport_task_id: string;
+                            /**
+                             * Reason Code
+                             * @enum {string}
+                             */
+                            reason_code: "IDEMPOTENCY_CONFLICT" | "REVISION_CONFLICT" | "STATE_CONFLICT" | "REFERENCE_CONFLICT";
                         };
                         /** @description WMS 生成的小写 canonical UUIDv7 幂等号 */
                         operation_id: string;

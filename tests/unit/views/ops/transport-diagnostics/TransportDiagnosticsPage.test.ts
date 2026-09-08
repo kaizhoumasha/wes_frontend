@@ -37,7 +37,6 @@ const streamMocks = vi.hoisted(() => ({
   reconnect: vi.fn(),
   disconnect: vi.fn()
 }))
-const runDialogMocks = vi.hoisted(() => ({ open: vi.fn(), close: vi.fn() }))
 const streamOptions = vi.hoisted(() => ({
   value: null as null | {
     onEvent: (event: { payload: { transport_task_id: string | null } }) => void
@@ -123,13 +122,6 @@ const TransportDebugResetDialogStub = defineComponent({
   `
 })
 
-const TransportDebugRunDialogStub = defineComponent({
-  name: 'TransportDebugRunDialog',
-  emits: ['select-task'],
-  methods: { open: runDialogMocks.open, close: runDialogMocks.close },
-  template: '<div data-test="run-dialog" />'
-})
-
 function mountPage() {
   return shallowMount(TransportDiagnosticsPage, {
     global: {
@@ -139,7 +131,6 @@ function mountPage() {
         TransportTaskTable: true,
         TransportTaskDetail: true,
         TransportDebugTaskDialog: true,
-        TransportDebugRunDialog: TransportDebugRunDialogStub,
         TransportDebugResetDialog: TransportDebugResetDialogStub,
         ElAlert: true,
         ElInput: true,
@@ -177,49 +168,9 @@ describe('TransportDiagnosticsPage', () => {
     permissionMocks.granted.add(OPS_PERMISSIONS.transportDebugRun.abort)
   })
 
-  it('opens automatic runs inside the existing diagnostics page', async () => {
+  it('keeps automatic runs out of transport diagnostics', () => {
     const wrapper = mountPage()
-    const runButton = wrapper
-      .findAllComponents(AppButtonStub)
-      .find(candidate => candidate.text().includes('自动联调'))
-
-    expect(runButton).toBeDefined()
-    await runButton?.trigger('click')
-
-    expect(runDialogMocks.open).toHaveBeenCalledOnce()
-  })
-
-  it.each([
-    OPS_PERMISSIONS.transportDebugRun.list,
-    OPS_PERMISSIONS.transportDebugRun.read,
-    OPS_PERMISSIONS.transportDebugRun.start
-  ])('enforces the automatic run permission boundary for %s', permission => {
-    permissionMocks.granted.delete(permission)
-
-    const wrapper = mountPage()
-    const visible = wrapper.findAll('button').some(button => button.text().includes('自动联调'))
-    if (permission === OPS_PERMISSIONS.transportDebugRun.list) expect(visible).toBe(false)
-    else expect(visible).toBe(true)
-  })
-
-  it('opens the related Transport task from an automatic run', async () => {
-    const wrapper = mountPage()
-    wrapper.findComponent(TransportDebugRunDialogStub).vm.$emit('select-task', 'transport-2')
-    await vi.waitFor(() => expect(diagnosticsMocks.selectTask).toHaveBeenCalledWith('transport-2'))
-    await vi.waitFor(() => expect(runDialogMocks.close).toHaveBeenCalledOnce())
-  })
-
-  it('keeps the automatic run dialog open when a historical task no longer exists', async () => {
-    diagnosticsMocks.selectTask.mockRejectedValueOnce(new Error('TransportTask not found'))
-    const wrapper = mountPage()
-
-    wrapper.findComponent(TransportDebugRunDialogStub).vm.$emit('select-task', 'transport-deleted')
-
-    await vi.waitFor(() =>
-      expect(diagnosticsMocks.selectTask).toHaveBeenCalledWith('transport-deleted')
-    )
-    await vi.waitFor(() => expect(wrapper.html()).toContain('TransportTask not found'))
-    expect(runDialogMocks.close).not.toHaveBeenCalled()
+    expect(wrapper.findAll('button').some(button => button.text().includes('自动联调'))).toBe(false)
   })
 
   it('loads durable tasks, connects live notifications and refreshes the related task', async () => {

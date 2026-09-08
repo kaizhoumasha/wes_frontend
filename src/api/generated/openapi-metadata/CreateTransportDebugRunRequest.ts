@@ -12,6 +12,7 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 export const CreateTransportDebugRunRequestMetadata = {
   "title": "CreateTransportDebugRunRequest",
   "required": [
+    "workline_code",
     "rack_id",
     "face_groups"
   ],
@@ -28,6 +29,14 @@ export const CreateTransportDebugRunRequestMetadata = {
     },
     "rack_id": {
       "title": "Rack Id",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "workline_code": {
+      "title": "Workline Code",
       "type": "string",
       "required": true,
       "nullable": false,

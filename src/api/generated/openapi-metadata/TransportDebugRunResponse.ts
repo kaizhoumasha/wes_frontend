@@ -12,6 +12,8 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 export const TransportDebugRunResponseMetadata = {
   "title": "TransportDebugRunResponse",
   "required": [
+    "workline_code",
+    "returned_bins",
     "run_id",
     "status",
     "rack_id",
@@ -123,6 +125,15 @@ export const TransportDebugRunResponseMetadata = {
       "required": true,
       "nullable": false
     },
+    "returned_bins": {
+      "title": "Returned Bins",
+      "type": "array",
+      "required": true,
+      "nullable": false,
+      "items": {
+        "ref": "TransportDebugReturnedBinResponse"
+      }
+    },
     "run_id": {
       "title": "Run Id",
       "type": "string",
@@ -159,6 +170,12 @@ export const TransportDebugRunResponseMetadata = {
     "version": {
       "title": "Version",
       "type": "integer",
+      "required": true,
+      "nullable": false
+    },
+    "workline_code": {
+      "title": "Workline Code",
+      "type": "string",
       "required": true,
       "nullable": false
     }

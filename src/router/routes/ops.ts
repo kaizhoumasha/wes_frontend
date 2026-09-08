@@ -45,6 +45,21 @@ export const opsRoutes: RouteRecordRaw = {
           sortOrder: 2
         }
       }
+    },
+    {
+      path: 'transport-debug',
+      name: 'TransportDebug',
+      component: () => import('@/views/ops/transport-debug/TransportDebugRunPage.vue'),
+      meta: {
+        requiresAuth: true,
+        title: '自动联调',
+        permission: OPS_PERMISSIONS.transportDebugRun.list,
+        menu: {
+          name: 'ops:transport-debug:menu',
+          icon: 'ep:video-play',
+          sortOrder: 3
+        }
+      }
     }
   ]
 }

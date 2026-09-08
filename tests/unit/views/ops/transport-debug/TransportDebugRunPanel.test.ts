@@ -1,18 +1,22 @@
 /* eslint-disable vue/one-component-per-file -- local UI stubs keep the feature test isolated. */
 import { defineComponent } from 'vue'
-import { shallowMount } from '@vue/test-utils'
+import { flushPromises, shallowMount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import TransportDebugRunDialog from '@/views/ops/transport-diagnostics/TransportDebugRunDialog.vue'
+import TransportDebugRunPanel from '@/views/ops/transport-debug/TransportDebugRunPanel.vue'
 
 const bin = vi.hoisted(() => ({ bin_code: 'B1', slot_id: 'S1' }))
 const configState = vi.hoisted(() => ({
+  worklineCode: { value: 'LINE-1' },
   rackId: { value: '510056' },
   groups: { value: [] as Array<{ face: string; bins: unknown[] }> }
 }))
-const runState = vi.hoisted(() => ({
-  activeRun: { value: null as ReturnType<typeof snapshot> | null },
-  currentRun: { value: null as ReturnType<typeof snapshot> | null }
-}))
+const runState = await vi.hoisted(async () => {
+  const { shallowRef } = await import('vue')
+  return {
+    activeRun: shallowRef<ReturnType<typeof snapshot> | null>(null),
+    currentRun: shallowRef<ReturnType<typeof snapshot> | null>(null)
+  }
+})
 const actions = vi.hoisted(() => ({
   startRun: vi.fn(),
   abortRun: vi.fn(),
@@ -43,7 +47,7 @@ function snapshot() {
   }
   return {
     run_id: 'run-1',
-    status: 'NEEDS_ATTENTION' as const,
+    status: 'NEEDS_ATTENTION' as 'NEEDS_ATTENTION' | 'COMPLETED' | 'RUNNING',
     rack_id: '510056',
     face_groups: [{ face: '270', bins: [{ bin_code: 'B1', slot_id: 'S1' }] }],
     current_group_index: 0,
@@ -87,6 +91,13 @@ function snapshot() {
     attention_detail: '等待设备事实',
     can_abort: true,
     version: 7,
+    workline_code: 'LINE-1',
+    returned_bins: [] as Array<{
+      bin_code: string
+      rack_id: string
+      rack_face: string
+      slot_id: string
+    }>,
     created_by_user_id: 1,
     aborted_by_user_id: null,
     aborted_reason: null,
@@ -95,12 +106,14 @@ function snapshot() {
   }
 }
 
-vi.mock('@/views/ops/transport-diagnostics/useTransportDebugRunConfig', () => ({
+vi.mock('@/views/ops/transport-debug/useTransportDebugRunConfig', () => ({
+  validateTransportDebugRunConfig: () => null,
   buildTransportDebugRunInput: (rackId: string) => ({
     rack_id: rackId,
     face_groups: [{ face: ' 90 ', bins: [{ bin_code: 'B1', slot_id: 'S1' }] }]
   }),
   useTransportDebugRunConfig: () => ({
+    worklineCode: configState.worklineCode,
     rackId: configState.rackId,
     groups: configState.groups,
     validationError: { value: null },
@@ -108,7 +121,7 @@ vi.mock('@/views/ops/transport-diagnostics/useTransportDebugRunConfig', () => ({
     ...configActions
   })
 }))
-vi.mock('@/views/ops/transport-diagnostics/useTransportDebugRun', () => ({
+vi.mock('@/views/ops/transport-debug/useTransportDebugRun', () => ({
   useTransportDebugRun: () => ({
     ...runState,
     loading: { value: false },
@@ -118,7 +131,7 @@ vi.mock('@/views/ops/transport-diagnostics/useTransportDebugRun', () => ({
     ...actions
   })
 }))
-vi.mock('@/views/ops/transport-diagnostics/useTransportDebugRunStream', () => ({
+vi.mock('@/views/ops/transport-debug/useTransportDebugRunStream', () => ({
   useTransportDebugRunStream: (options: { refreshRun(runId: string): Promise<void> }) => {
     streamOptions.value = options
     return {
@@ -130,10 +143,6 @@ vi.mock('@/views/ops/transport-diagnostics/useTransportDebugRunStream', () => ({
   }
 }))
 
-const StandardDialogStub = defineComponent({
-  props: { modelValue: Boolean, title: { type: String, default: '' } },
-  template: '<section v-if="modelValue"><h2>{{ title }}</h2><slot/><slot name="footer"/></section>'
-})
 const AppButtonStub = defineComponent({
   props: { disabled: Boolean },
   emits: ['click'],
@@ -153,6 +162,13 @@ const ElInputStub = defineComponent({
     '<input :value="modelValue" :placeholder="placeholder" @input="$emit(\'update:modelValue\', $event.target.value)" />'
 })
 
+const ElInputNumberStub = defineComponent({
+  props: { modelValue: { type: Number, default: undefined } },
+  emits: ['update:modelValue'],
+  template:
+    '<input type="number" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value === \'\' ? undefined : Number($event.target.value))" />'
+})
+
 function mountDialog(
   props = {
     canStart: true,
@@ -162,15 +178,17 @@ function mountDialog(
     canReadTask: true
   }
 ) {
-  return shallowMount(TransportDebugRunDialog, {
+  return shallowMount(TransportDebugRunPanel, {
     props,
     global: {
       renderStubDefaultSlot: true,
       stubs: {
-        StandardDialog: StandardDialogStub,
         AppButton: AppButtonStub,
+        TransportDebugRunObserver: false,
+        TransportDebugRunForm: false,
         ElAlert: ElAlertStub,
         ElInput: ElInputStub,
+        ElInputNumber: ElInputNumberStub,
         ElSelect: true,
         ElOption: true
       }
@@ -178,19 +196,21 @@ function mountDialog(
   })
 }
 
-describe('TransportDebugRunDialog', () => {
+describe('TransportDebugRunPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     runState.activeRun.value = null
     runState.currentRun.value = null
+    configState.rackId.value = '510056'
+    configState.worklineCode.value = 'LINE-1'
     configState.groups.value = [{ face: ' 90 ', bins: [bin] }]
     actions.loadRecentRuns.mockResolvedValue(undefined)
+    actions.startRun.mockResolvedValue({ ...snapshot(), status: 'RUNNING' })
   })
 
   it('shows exact preview and starts one persisted automatic run', async () => {
     const wrapper = mountDialog()
-    await (wrapper.vm as unknown as { open(): Promise<void> }).open()
-    expect(wrapper.text()).toContain('Transport 自动联调')
+    await flushPromises()
     expect(wrapper.text()).toContain('"target_face": " 90 "')
     const start = wrapper.findAll('button').find(button => button.text().includes('启动自动联调'))
     await start?.trigger('click')
@@ -202,10 +222,88 @@ describe('TransportDebugRunDialog', () => {
     )
   })
 
+  it('starts only the first independent round and leaves it running on unmount', async () => {
+    const wrapper = mountDialog()
+    await flushPromises()
+    expect(actions.startRun).not.toHaveBeenCalled()
+    await wrapper.get('[aria-label="自动联调轮数"]').setValue('3')
+    await wrapper
+      .findAll('button')
+      .find(button => button.text().includes('启动自动联调'))
+      ?.trigger('click')
+    expect(actions.startRun).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ rack_id: '510056' })
+    )
+    wrapper.unmount()
+    expect(actions.abortRun).not.toHaveBeenCalled()
+  })
+
+  it.each(['', '0', '-1', '1.5', '1001'])(
+    'rejects invalid rounds %s before creating any task',
+    async value => {
+      const wrapper = mountDialog()
+      await flushPromises()
+      await wrapper.get('[aria-label="自动联调轮数"]').setValue(value)
+      const start = wrapper
+        .findAll('button')
+        .find(button => button.text().includes('启动自动联调'))!
+      expect(start.attributes('disabled')).toBeDefined()
+      await start.trigger('click')
+      expect(actions.startRun).not.toHaveBeenCalled()
+      wrapper.unmount()
+    }
+  )
+
+  it('blocks start until the initial persisted run lookup succeeds', async () => {
+    actions.loadRecentRuns.mockRejectedValueOnce(new Error('query failed'))
+    const wrapper = mountDialog()
+    await flushPromises()
+    const start = wrapper.findAll('button').find(button => button.text().includes('启动自动联调'))!
+    expect(start.attributes('disabled')).toBeDefined()
+    expect(wrapper.text()).toContain('query failed')
+    wrapper.unmount()
+  })
+
+  it('allows manual initialization after a historical run has no returned locations', async () => {
+    const wrapper = mountDialog()
+    await flushPromises()
+    runState.currentRun.value = { ...snapshot(), status: 'COMPLETED' }
+    await flushPromises()
+    expect(wrapper.text()).toContain('请按现场实际情况重新填写初始化数据')
+    const start = wrapper.findAll('button').find(button => button.text().includes('启动自动联调'))!
+    expect(start.attributes('disabled')).toBeUndefined()
+    await start.trigger('click')
+    expect(actions.startRun).toHaveBeenCalledOnce()
+    runState.currentRun.value = { ...snapshot(), run_id: 'new-run', status: 'RUNNING' }
+    await flushPromises()
+    expect(wrapper.text()).not.toContain('请按现场实际情况重新填写初始化数据')
+    wrapper.unmount()
+  })
+
+  it('prefills confirmed returned slots once without overwriting later manual edits', async () => {
+    const wrapper = mountDialog()
+    await flushPromises()
+    const result = {
+      ...snapshot(),
+      status: 'COMPLETED' as const,
+      returned_bins: [{ bin_code: 'B1', rack_id: '510056', rack_face: '270', slot_id: 'S2' }]
+    }
+    runState.currentRun.value = result
+    await flushPromises()
+    expect(configState.groups.value).toEqual([
+      { face: '270', bins: [{ bin_code: 'B1', slot_id: 'S2' }] }
+    ])
+    configState.rackId.value = 'manual-rack'
+    runState.currentRun.value = { ...result }
+    await flushPromises()
+    expect(configState.rackId.value).toBe('manual-rack')
+    wrapper.unmount()
+  })
+
   it('freezes into observer mode and exposes the current task without a force-advance action', async () => {
     runState.activeRun.value = snapshot()
     const wrapper = mountDialog()
-    await (wrapper.vm as unknown as { open(): Promise<void> }).open()
+    await flushPromises()
     expect(wrapper.get('[data-test="run-observer"]').text()).toContain('WAIT_SCAN12')
     expect(wrapper.text()).toContain('EVIDENCE_RECONCILING')
     expect(wrapper.text()).not.toContain('强制推进')
@@ -222,18 +320,18 @@ describe('TransportDebugRunDialog', () => {
       canRead: true,
       canReadTask: true
     })
-    await (wrapper.vm as unknown as { open(): Promise<void> }).open()
+    await flushPromises()
 
     expect(streamActions.connect).toHaveBeenCalledWith(true)
     expect(wrapper.find('[aria-label="自动联调货架编码"]').exists()).toBe(true)
     expect(wrapper.find('[aria-label="自动联调货架"]').exists()).toBe(false)
     expect(wrapper.find('[aria-label="料箱编码"]').exists()).toBe(true)
-    expect(wrapper.find('[aria-label="原货架槽位"]').exists()).toBe(true)
+    expect(wrapper.find('[aria-label="当前货架槽位"]').exists()).toBe(true)
   })
 
   it('delegates face and bin edits while enforcing the one-to-four UI boundaries', async () => {
     const oneBin = mountDialog()
-    await (oneBin.vm as unknown as { open(): Promise<void> }).open()
+    await flushPromises()
 
     await oneBin
       .findAll('button')
@@ -267,7 +365,7 @@ describe('TransportDebugRunDialog', () => {
       }
     ]
     const fourBins = mountDialog()
-    await (fourBins.vm as unknown as { open(): Promise<void> }).open()
+    await flushPromises()
 
     const addFifthBin = fourBins.findAll('button').find(button => button.text() === '新增料箱')
     const removeFirstBin = fourBins.findAll('button').find(button => button.text() === '删除料箱')
@@ -278,20 +376,20 @@ describe('TransportDebugRunDialog', () => {
   })
 
   it('uses an authorized list refresh when run detail access is unavailable', async () => {
-    const wrapper = mountDialog({
+    mountDialog({
       canStart: true,
       canAbort: false,
       canStream: true,
       canRead: false,
       canReadTask: true
     })
-    await (wrapper.vm as unknown as { open(): Promise<void> }).open()
+    await flushPromises()
     await streamOptions.value?.refreshRun('run-1')
     expect(actions.loadRecentRuns).toHaveBeenCalledTimes(2)
     expect(actions.refreshRun).not.toHaveBeenCalled()
   })
 
-  it('does not reconnect after a pending open is closed', async () => {
+  it('does not reconnect after a pending load is unmounted', async () => {
     let release!: () => void
     actions.loadRecentRuns.mockImplementationOnce(
       () =>
@@ -306,10 +404,9 @@ describe('TransportDebugRunDialog', () => {
       canRead: true,
       canReadTask: true
     })
-    const opening = (wrapper.vm as unknown as { open(): Promise<void>; close(): void }).open()
-    ;(wrapper.vm as unknown as { close(): void }).close()
+    wrapper.unmount()
     release()
-    await opening
+    await flushPromises()
     expect(streamActions.connect).not.toHaveBeenCalled()
   })
 
@@ -322,7 +419,7 @@ describe('TransportDebugRunDialog', () => {
       canRead: true,
       canReadTask: false
     })
-    await (wrapper.vm as unknown as { open(): Promise<void> }).open()
+    await flushPromises()
     expect(wrapper.findAll('button').some(button => button.text().includes('transport-3'))).toBe(
       false
     )
@@ -332,7 +429,7 @@ describe('TransportDebugRunDialog', () => {
     runState.activeRun.value = snapshot()
     actions.abortRun.mockResolvedValueOnce({ ...snapshot(), status: 'ABORTED' })
     const wrapper = mountDialog()
-    await (wrapper.vm as unknown as { open(): Promise<void> }).open()
+    await flushPromises()
 
     const reason = wrapper.get('input[placeholder="现场核验说明（必填）"]')
     const abortButton = wrapper
@@ -352,7 +449,7 @@ describe('TransportDebugRunDialog', () => {
     runState.activeRun.value = snapshot()
     actions.abortRun.mockRejectedValueOnce(new Error('仍有关联任务未终态'))
     const wrapper = mountDialog()
-    await (wrapper.vm as unknown as { open(): Promise<void> }).open()
+    await flushPromises()
 
     const reason = wrapper.get('input[placeholder="现场核验说明（必填）"]')
     await reason.setValue('现场确认机构静止')
@@ -368,7 +465,7 @@ describe('TransportDebugRunDialog', () => {
   it('does not expose abort when permission or persisted can_abort is false', async () => {
     runState.activeRun.value = { ...snapshot(), can_abort: false }
     const persistedGuard = mountDialog()
-    await (persistedGuard.vm as unknown as { open(): Promise<void> }).open()
+    await flushPromises()
     expect(persistedGuard.text()).not.toContain('确认物理状态并终止')
     persistedGuard.unmount()
 
@@ -380,14 +477,14 @@ describe('TransportDebugRunDialog', () => {
       canRead: true,
       canReadTask: true
     })
-    await (permissionGuard.vm as unknown as { open(): Promise<void> }).open()
+    await flushPromises()
     expect(permissionGuard.text()).not.toContain('确认物理状态并终止')
   })
 
   it('keeps terminal failure diagnostics and the related task accessible', async () => {
     runState.currentRun.value = { ...snapshot(), status: 'FAILED' }
     const wrapper = mountDialog()
-    await (wrapper.vm as unknown as { open(): Promise<void> }).open()
+    await flushPromises()
     expect(wrapper.get('[data-test="terminal-failure"]').text()).toContain('EVIDENCE_RECONCILING')
     expect(wrapper.get('[data-test="terminal-failure"]').text()).toContain('WAIT_SCAN12')
     const task = wrapper.findAll('button').find(button => button.text().includes('transport-3'))
@@ -435,7 +532,7 @@ describe('TransportDebugRunDialog', () => {
     }
 
     const wrapper = mountDialog()
-    await (wrapper.vm as unknown as { open(): Promise<void> }).open()
+    await flushPromises()
 
     const progress = wrapper.get('[data-test="run-step-progress"]')
     expect(progress.text()).toContain('货架搬至工作位')
@@ -482,13 +579,13 @@ describe('TransportDebugRunDialog', () => {
     }
 
     const wrapper = mountDialog()
-    await (wrapper.vm as unknown as { open(): Promise<void> }).open()
+    await flushPromises()
 
     const progress = wrapper.get('[data-test="run-step-progress"]').text()
     expect(progress).toContain('货架旋转至下一面')
     expect(progress).toContain('货架面： 270')
     expect(progress).toContain('料箱 B2')
-    expect(progress).toContain('槽位：S2')
+    expect(progress).toContain('初始槽位：S2')
   })
 
   it('uses step-level SCAN12 evidence and tolerates null or out-of-range step groups', async () => {
@@ -524,7 +621,7 @@ describe('TransportDebugRunDialog', () => {
       ]
     }
     const wrapper = mountDialog()
-    await (wrapper.vm as unknown as { open(): Promise<void> }).open()
+    await flushPromises()
 
     const steps = wrapper.get('[data-test="run-step-progress"]').findAll('li')
     const scanStep = steps.find(step => step.text().includes('等待 SCAN12'))
@@ -541,7 +638,7 @@ describe('TransportDebugRunDialog', () => {
   it('renders an empty persisted step list and an out-of-range current group safely', async () => {
     runState.activeRun.value = { ...snapshot(), current_group_index: 99, steps: [] }
     const wrapper = mountDialog()
-    await (wrapper.vm as unknown as { open(): Promise<void> }).open()
+    await flushPromises()
 
     expect(wrapper.get('[data-test="run-step-progress"]').findAll('li')).toHaveLength(0)
     expect(wrapper.get('.progress-panel').text()).toContain('待扫描：无')
