@@ -14,7 +14,7 @@ export const RetryWmsActionRequestMetadata = {
   "required": [
     "expected_version",
     "client_request_id",
-    "wms_non_receipt_confirmed",
+    "wms_original_prepare_voided_confirmed",
     "data"
   ],
   "additionalProperties": false,
@@ -39,8 +39,8 @@ export const RetryWmsActionRequestMetadata = {
       "nullable": false,
       "minimum": 0
     },
-    "wms_non_receipt_confirmed": {
-      "title": "Wms Non Receipt Confirmed",
+    "wms_original_prepare_voided_confirmed": {
+      "title": "Wms Original Prepare Voided Confirmed",
       "type": "boolean",
       "required": true,
       "nullable": false

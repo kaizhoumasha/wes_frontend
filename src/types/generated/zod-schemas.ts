@@ -1,4 +1,4 @@
-/** @openapi-sha256 5d98004e7969e244911b438be11d8c7d596e8fc23fcec2ae8ffde3a2ff6bb4f3 */
+/** @openapi-sha256 e8a923d17f0db472955fbe4f909d1787b0d34012cb23a4ed9173584fc5f1b710 */
 /**
  * Zod Validation Schemas
  *
@@ -2934,8 +2934,8 @@ export const RetryWmsActionRequestSchema = z.object({
   data: z.lazy(() => PickingTaskPrepareDataSchema),
   /** Expected Version */
   expected_version: z.number().min(0),
-  /** Wms Non Receipt Confirmed */
-  wms_non_receipt_confirmed: z.literal(true),
+  /** Wms Original Prepare Voided Confirmed */
+  wms_original_prepare_voided_confirmed: z.literal(true),
 })
 
 

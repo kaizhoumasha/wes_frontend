@@ -325,7 +325,7 @@ export const worklineIntegrationDebugApiMethods = {
   },
 
   /**
-   * [ops:workline-integration-debug:operate] 确认 WMS 未接收并重发 prepare；参数变更时使用新身份
+   * [ops:workline-integration-debug:operate] 确认 WMS 已作废原 prepare 并使用新身份重发
    * @endpoint POST /api/v1/workline-integration-debug/runs/{run_id}/wms/retry
    * @returns alova method instance
    */

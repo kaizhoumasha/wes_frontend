@@ -1,4 +1,4 @@
-/** @openapi-sha256 5d98004e7969e244911b438be11d8c7d596e8fc23fcec2ae8ffde3a2ff6bb4f3 */
+/** @openapi-sha256 e8a923d17f0db472955fbe4f909d1787b0d34012cb23a4ed9173584fc5f1b710 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -3064,7 +3064,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** [ops:workline-integration-debug:operate] 确认 WMS 未接收并重发 prepare；参数变更时使用新身份 */
+        /** [ops:workline-integration-debug:operate] 确认 WMS 已作废原 prepare 并使用新身份重发 */
         post: operations["workline_integration_debug_runs_by_run_id_wms_retry_post"];
         delete?: never;
         options?: never;
@@ -6954,10 +6954,10 @@ export interface components {
             /** Expected Version */
             expected_version: number;
             /**
-             * Wms Non Receipt Confirmed
+             * Wms Original Prepare Voided Confirmed
              * @constant
              */
-            wms_non_receipt_confirmed: true;
+            wms_original_prepare_voided_confirmed: true;
         };
         /** ReturnCandidate */
         ReturnCandidate: {

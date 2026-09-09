@@ -11981,16 +11981,16 @@
             "title": "Expected Version",
             "type": "integer"
           },
-          "wms_non_receipt_confirmed": {
+          "wms_original_prepare_voided_confirmed": {
             "const": true,
-            "title": "Wms Non Receipt Confirmed",
+            "title": "Wms Original Prepare Voided Confirmed",
             "type": "boolean"
           }
         },
         "required": [
           "expected_version",
           "client_request_id",
-          "wms_non_receipt_confirmed",
+          "wms_original_prepare_voided_confirmed",
           "data"
         ],
         "title": "RetryWmsActionRequest",
@@ -26879,7 +26879,7 @@
             "HTTPBearer": []
           }
         ],
-        "summary": "[ops:workline-integration-debug:operate] 确认 WMS 未接收并重发 prepare；参数变更时使用新身份",
+        "summary": "[ops:workline-integration-debug:operate] 确认 WMS 已作废原 prepare 并使用新身份重发",
         "tags": [
           "人工出库联调"
         ]

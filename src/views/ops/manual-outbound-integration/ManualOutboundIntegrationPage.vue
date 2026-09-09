@@ -366,7 +366,7 @@ const canReportAttention = computed(
 )
 const primaryLabel = computed(() => {
   if (!run.value) return '创建联调 Run'
-  if (retryablePrepareStep.value) return '确认 WMS 未接收并重发 prepare'
+  if (retryablePrepareStep.value) return '确认 WMS 已作废旧 prepare，使用新 ID 重发'
   if (lastRefreshableWmsStep.value) return '刷新 WMS 结果'
   if (lastRefreshableTransportStep.value) return '刷新 Transport 结果'
   if (lastRefreshableDeviceStep.value) return '刷新 ECS 指令结果'
@@ -502,8 +502,8 @@ async function primaryAction(): Promise<void> {
     const data = readWmsData()
     if (!data) return
     await ElMessageBox.confirm(
-      `WMS 团队必须已确认未接收原请求。将按当前 data JSON 重发；参数变化时使用新的 operation_id。`,
-      '确认重发 prepare',
+      `WMS 团队必须先按原 operation_id 作废或清理 prepare，并确认原请求不会再计算或发送 plan_delta。WES 将保留旧证据，按当前 data JSON 和新的 operation_id 重发。`,
+      '确认 WMS 已作废旧 prepare',
       { type: 'warning', confirmButtonText: '确认并发送' }
     )
     return invoke(() =>
@@ -511,7 +511,7 @@ async function primaryAction(): Promise<void> {
         expected_version: current.version,
         client_request_id: retryablePrepareStep.value!.client_request_id!,
         data,
-        wms_non_receipt_confirmed: true
+        wms_original_prepare_voided_confirmed: true
       } as WmsRetryInput)
     )
   }
@@ -1440,7 +1440,13 @@ onUnmounted(() => {
           </p>
           <p>
             <b>接收：</b>
-            outbound.picking_task.prepare@v1；返回 PREPARE_ACCEPTED 后再发送 plan_delta。
+            outbound.picking_task.prepare@v1；立即返回 HTTP 202、PREPARE_ACCEPTED、相同
+            operation_id、data={}。 WMS 内部计算完成后，再以新的 operation_id 发送 plan_delta。
+          </p>
+          <p>
+            <b>prepare 异常恢复：</b>
+            WMS 先按原 operation_id 作废或清理请求，并保证不再发送对应
+            plan_delta；随后由本页面使用新 operation_id 重发。禁止修改旧 operation_id 的响应正文。
           </p>
           <p>
             <b>发送：</b>
