@@ -15,7 +15,7 @@ export const RetryWmsActionRequestMetadata = {
     "expected_version",
     "client_request_id",
     "wms_non_receipt_confirmed",
-    "workline_code"
+    "data"
   ],
   "additionalProperties": false,
   "fields": {
@@ -26,6 +26,11 @@ export const RetryWmsActionRequestMetadata = {
       "nullable": false,
       "minLength": 1,
       "maxLength": 120
+    },
+    "data": {
+      "required": true,
+      "nullable": false,
+      "ref": "PickingTaskPrepareData"
     },
     "expected_version": {
       "title": "Expected Version",
@@ -39,14 +44,6 @@ export const RetryWmsActionRequestMetadata = {
       "type": "boolean",
       "required": true,
       "nullable": false
-    },
-    "workline_code": {
-      "title": "Workline Code",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 50
     }
   }
 } satisfies OpenApiSchemaMetadata

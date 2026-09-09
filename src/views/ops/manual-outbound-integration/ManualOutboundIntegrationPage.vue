@@ -10,9 +10,26 @@ import {
   type IntegrationProfile,
   type IntegrationRun,
   type IntegrationRunStep,
+  type DeviceActionInput,
   type TransportActionInput
 } from '@/api/manualOutboundIntegrationApi'
+import type {
+  WmsBinInboundBatchInput,
+  WmsBinReturnBatchInput,
+  WmsCompletionApplyReportInput,
+  WmsPrepareInput,
+  WmsRackDepartureInput,
+  WmsRetryInput,
+  WmsTaskCompletionInput,
+  WmsWorkAdmissionInput
+} from '@/api/modules/worklineIntegrationDebug'
 import { useManualOutboundIntegration } from './useManualOutboundIntegration'
+import {
+  buildDefaultDeviceData,
+  buildDefaultWmsData,
+  isWmsOutboundPhase,
+  parseEditableJsonObject
+} from './manualOutboundPayloads'
 
 const manualOutboundSite = {
   outboundRcsTemplate: 'CTU01',
@@ -58,27 +75,11 @@ const permissionAccess = computed(() => ({
 }))
 const busy = ref(false)
 const taskId = ref('')
-const wmsPrepareWorklineCode = ref('KT16')
 const binCode = ref('')
 const completionOperationId = ref('')
-const batchRackId = ref('')
-const batchRackFace = ref('')
-const returnSourceLocation = ref(manualOutboundSite.outfeedPosition)
-const rackCurrentLocation = ref(manualOutboundSite.outboundTransferPosition)
-const rackCurrentFace = ref('0')
 const scanTimestamp = ref<number>()
-const applyRevision = ref(1)
-const applyResult = ref<'APPLIED' | 'RECONCILING'>('APPLIED')
-const applyReasonCode = ref<
-  | ''
-  | 'RESULT_CONFLICT'
-  | 'FIRST_COMPLETION_OUT_OF_WINDOW'
-  | 'POINT2_BINDING_MISMATCH'
-  | 'WORKLINE_NOT_ACTIVE'
-  | 'COMPLETED_AT_INVALID'
-  | 'DEVICE_COMMAND_IDENTITY_CONFLICT'
->('')
-const applyOccurredAt = ref<number>()
+const wmsDataText = ref('{}')
+const deviceDataText = ref('{}')
 const phaseNote = ref('现场已核对并完成该步骤')
 const closeVisible = ref(false)
 const transportVisible = ref(false)
@@ -101,13 +102,6 @@ const transportForm = reactive({
   binCode: '',
   targetFace: '',
   rcsTemplateId: 'CTU01' as TransportActionInput['rcs_template_id']
-})
-const deviceForm = reactive({
-  deviceCode: 'STATION_SCAN10',
-  taskType: '',
-  paramsText: '{}',
-  timeoutMs: 30000,
-  reason: '人工出库现场联调'
 })
 const pendingActionBodies = new Map<string, object>()
 
@@ -195,6 +189,7 @@ const phaseInteractions: Record<IntegrationPhase, { direction: string; operation
 }
 
 const run = computed(() => state.currentRun.value)
+const selectedIsWmsOutbound = computed(() => isWmsOutboundPhase(selectedPhase.value))
 watch(
   () => run.value?.run_id,
   (runId, previousRunId) => {
@@ -203,10 +198,13 @@ watch(
     cleanup.site = false
     if (runId !== previousRunId) {
       scanTimestamp.value = undefined
-      applyOccurredAt.value = undefined
     }
   }
 )
+watch([() => run.value?.run_id, selectedPhase], () => resetWmsData(), {
+  immediate: true,
+  flush: 'sync'
+})
 watch(
   () => run.value,
   current => {
@@ -453,6 +451,25 @@ function selectPhase(phase: IntegrationPhase): void {
   selectedPhase.value = phase
 }
 
+function resetWmsData(): void {
+  const current = run.value
+  const phase = selectedPhase.value
+  if (!current || !isWmsOutboundPhase(phase)) {
+    wmsDataText.value = '{}'
+    return
+  }
+  wmsDataText.value = JSON.stringify(buildDefaultWmsData(current, phase), null, 2)
+}
+
+function readWmsData(): Record<string, unknown> | null {
+  try {
+    return parseEditableJsonObject(wmsDataText.value, 'WMS data')
+  } catch (error) {
+    ElMessage.warning(error instanceof Error ? error.message : String(error))
+    return null
+  }
+}
+
 async function selectRun(runId: string): Promise<void> {
   await state.select(runId)
   if (run.value) selectedPhase.value = run.value.current_phase
@@ -482,13 +499,10 @@ async function primaryAction(): Promise<void> {
     return
   }
   if (retryablePrepareStep.value?.client_request_id) {
-    const code = wmsPrepareWorklineCode.value.trim()
-    if (!code) {
-      ElMessage.warning('请填写 WMS prepare 的 workline_code')
-      return
-    }
+    const data = readWmsData()
+    if (!data) return
     await ElMessageBox.confirm(
-      `WMS 团队必须已确认未接收原请求。将按 workline_code=${code} 重发；参数变化时使用新的 operation_id。`,
+      `WMS 团队必须已确认未接收原请求。将按当前 data JSON 重发；参数变化时使用新的 operation_id。`,
       '确认重发 prepare',
       { type: 'warning', confirmButtonText: '确认并发送' }
     )
@@ -496,9 +510,9 @@ async function primaryAction(): Promise<void> {
       api.retryWms(current.run_id, {
         expected_version: current.version,
         client_request_id: retryablePrepareStep.value!.client_request_id!,
-        workline_code: code,
+        data,
         wms_non_receipt_confirmed: true
-      })
+      } as WmsRetryInput)
     )
   }
   if (lastRefreshableWmsStep.value?.client_request_id) {
@@ -534,36 +548,36 @@ async function primaryAction(): Promise<void> {
       return invoke(() =>
         api.bindTask(current.run_id, versioned(current, { task_id: taskId.value.trim() }))
       )
-    case 'TASK_PREPARE':
-      if (!wmsPrepareWorklineCode.value.trim()) {
-        ElMessage.warning('请填写 WMS prepare 的 workline_code')
-        return
-      }
+    case 'TASK_PREPARE': {
+      const data = readWmsData()
+      if (!data) return
       return invokeStableAction(
         current,
         'prepare-task',
         () =>
           versioned(current, {
             client_request_id: createUuid7(),
-            workline_code: wmsPrepareWorklineCode.value.trim()
-          }),
+            data
+          }) as WmsPrepareInput,
         body => api.prepareTask(current.run_id, body)
       )
+    }
     case 'PLAN_RECEIPT':
       return invoke(() => api.refreshPlan(current.run_id, versioned(current)))
-    case 'BIN_INBOUND_BATCH':
+    case 'BIN_INBOUND_BATCH': {
+      const data = readWmsData()
+      if (!data) return
       return invokeStableAction(
         current,
         'bin-inbound-batch',
         () =>
           versioned(current, {
             client_request_id: createUuid7(),
-            rack_id: batchRackId.value.trim(),
-            rack_face: batchRackFace.value.trim(),
-            max_bin_count: 1 as const
-          }),
+            data
+          }) as WmsBinInboundBatchInput,
         body => api.binInboundBatch(current.run_id, body)
       )
+    }
     case 'POINT2_SCAN': {
       const scannedAt = scanTimestamp.value ?? Date.now()
       scanTimestamp.value = scannedAt
@@ -574,13 +588,17 @@ async function primaryAction(): Promise<void> {
         )
       )
     }
-    case 'WORK_ADMISSION':
+    case 'WORK_ADMISSION': {
+      const data = readWmsData()
+      if (!data) return
       return invokeStableAction(
         current,
         'work-admission',
-        () => versioned(current, { client_request_id: createUuid7() }),
+        () =>
+          versioned(current, { client_request_id: createUuid7(), data }) as WmsWorkAdmissionInput,
         body => api.workAdmission(current.run_id, body)
       )
+    }
     case 'WORK_COMPLETION':
       return invoke(() =>
         api.bindCompletion(
@@ -588,56 +606,59 @@ async function primaryAction(): Promise<void> {
           versioned(current, { operation_id: completionOperationId.value.trim() })
         )
       )
-    case 'BIN_RETURN_BATCH':
+    case 'BIN_RETURN_BATCH': {
+      const data = readWmsData()
+      if (!data) return
       return invokeStableAction(
         current,
         'bin-return-batch',
         () =>
           versioned(current, {
             client_request_id: createUuid7(),
-            rack_id: batchRackId.value.trim(),
-            rack_face: batchRackFace.value.trim(),
-            source_location_code: returnSourceLocation.value.trim()
-          }),
+            data
+          }) as WmsBinReturnBatchInput,
         body => api.binReturnBatch(current.run_id, body)
       )
+    }
     case 'RACK_DEPARTURE':
       if (rackDepartureStep.value) return confirmPhase(current)
-      return invokeStableAction(
-        current,
-        'rack-departure',
-        () =>
-          versioned(current, {
-            client_request_id: createUuid7(),
-            rack_id: batchRackId.value.trim(),
-            current_location_code: rackCurrentLocation.value.trim(),
-            current_face: rackCurrentFace.value.trim()
-          }),
-        body => api.rackDeparture(current.run_id, body)
-      )
-    case 'TASK_COMPLETION':
+      {
+        const data = readWmsData()
+        if (!data) return
+        return invokeStableAction(
+          current,
+          'rack-departure',
+          () =>
+            versioned(current, {
+              client_request_id: createUuid7(),
+              data
+            }) as WmsRackDepartureInput,
+          body => api.rackDeparture(current.run_id, body)
+        )
+      }
+    case 'TASK_COMPLETION': {
+      const data = readWmsData()
+      if (!data) return
       return invokeStableAction(
         current,
         'task-completion',
-        () => versioned(current, { client_request_id: createUuid7() }),
+        () =>
+          versioned(current, { client_request_id: createUuid7(), data }) as WmsTaskCompletionInput,
         body => api.taskCompletion(current.run_id, body)
       )
+    }
     case 'COMPLETION_REPORT':
       if (boundCompletion.value?.operation_id && !applyReportStep.value) {
-        const occurredAt = applyOccurredAt.value ?? Date.now()
-        applyOccurredAt.value = occurredAt
+        const data = readWmsData()
+        if (!data) return
         return invokeStableAction(
           current,
           'completion-apply-report',
           () =>
             versioned(current, {
               client_request_id: createUuid7(),
-              completion_operation_id: boundCompletion.value!.operation_id!,
-              apply_revision: applyRevision.value,
-              apply_result: applyResult.value,
-              ...(applyReasonCode.value ? { reason_code: applyReasonCode.value } : {}),
-              occurred_at: occurredAt
-            }),
+              data
+            }) as WmsCompletionApplyReportInput,
           body => api.completionApplyReport(current.run_id, body)
         )
       }
@@ -685,16 +706,14 @@ function openTransport(): void {
     applyRackPreset()
   } else if (selectedPhase.value === 'RACK_DEPARTURE') {
     transportForm.kind = 'MOVE_RACK'
-    transportForm.rackId =
-      batchRackId.value.trim() || current.plan_resources?.target_rack.rack_id || ''
+    transportForm.rackId = current.plan_resources?.target_rack.rack_id || ''
     transportForm.sourceLocation = transportForm.rackId
     transportForm.targetLocation = manualOutboundSite.returnZoneCode
     transportForm.targetFace = ''
     transportForm.rcsTemplateId = manualOutboundSite.returnRcsTemplate
   } else {
     transportForm.kind = 'MOVE_BINS'
-    transportForm.rackId =
-      batchRackId.value.trim() || current.plan_resources?.bin_source_racks[0]?.rack_id || ''
+    transportForm.rackId = current.plan_resources?.bin_source_racks[0]?.rack_id || ''
     transportForm.sourceLocation = manualOutboundSite.outfeedPosition
     transportForm.targetLocation = manualOutboundSite.infeedPosition
     transportForm.rcsTemplateId = manualOutboundSite.outboundRcsTemplate
@@ -704,24 +723,16 @@ function openTransport(): void {
 
 function openDevice(): void {
   const current = run.value
-  if (
-    !current ||
-    !isSelectedCurrent.value ||
-    !['POINT2_RELEASE', 'POINT3_ROUTE'].includes(current.current_phase)
-  ) {
+  if (!current || !isSelectedCurrent.value) {
     ElMessage.warning('ECS 指令仅允许在当前 point2 放行或 point3 路由节点创建')
     return
   }
-  if (current.current_phase === 'POINT2_RELEASE') {
-    deviceForm.deviceCode = manualOutboundSite.scanDeviceCodes[1]
-    deviceForm.taskType = 'MOVE_FORWARD'
-  } else {
-    const completionResult = [...current.steps]
-      .reverse()
-      .find(step => step.operation === 'outbound.manual_bin.work_completed@v1')?.result.result
-    deviceForm.deviceCode = manualOutboundSite.scanDeviceCodes[2]
-    deviceForm.taskType = completionResult === 'NG' ? 'MOVE_LEFT' : 'MOVE_FORWARD'
+  const phase = current.current_phase
+  if (phase !== 'POINT2_RELEASE' && phase !== 'POINT3_ROUTE') {
+    ElMessage.warning('ECS 指令仅允许在当前 point2 放行或 point3 路由节点创建')
+    return
   }
+  deviceDataText.value = JSON.stringify(buildDefaultDeviceData(current, phase), null, 2)
   deviceVisible.value = true
 }
 
@@ -748,18 +759,30 @@ async function reportAttention(): Promise<void> {
   )
     ? (current.attention_code as (typeof allowedReasons)[number])
     : 'POINT2_BINDING_MISMATCH'
+  if (selectedPhase.value !== 'COMPLETION_REPORT') {
+    selectedPhase.value = 'COMPLETION_REPORT'
+    wmsDataText.value = JSON.stringify(
+      {
+        ...buildDefaultWmsData(current, 'COMPLETION_REPORT'),
+        apply_result: 'RECONCILING',
+        reason_code: reasonCode
+      },
+      null,
+      2
+    )
+    ElMessage.info('请核对并编辑 completion_apply_report data，再次点击上报')
+    return
+  }
+  const data = readWmsData()
+  if (!data) return
   await invokeStableAction(
     current,
     'completion-attention-report',
     () =>
       versioned(current, {
         client_request_id: createUuid7(),
-        completion_operation_id: completionOperationId,
-        apply_revision: 1,
-        apply_result: 'RECONCILING' as const,
-        reason_code: reasonCode,
-        occurred_at: Date.now()
-      }),
+        data
+      }) as WmsCompletionApplyReportInput,
     body => api.completionApplyReport(current.run_id, body)
   )
 }
@@ -879,18 +902,17 @@ async function sendDeviceCommand(): Promise<void> {
     ElMessage.warning(`当前应操作 ${phaseLabels[current.current_phase]}`)
     return
   }
-  let params: Record<string, unknown>
+  let data: Record<string, unknown>
   try {
-    const parsed = JSON.parse(deviceForm.paramsText) as unknown
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error()
-    params = parsed as Record<string, unknown>
-  } catch {
-    ElMessage.warning('ECS params 必须是 JSON object')
+    data = parseEditableJsonObject(deviceDataText.value, 'ECS 指令')
+  } catch (error) {
+    ElMessage.warning(error instanceof Error ? error.message : String(error))
     return
   }
+  const deviceCode = typeof data.device_code === 'string' ? data.device_code : ''
   if (current.profile !== 'CONTRACT_SIMULATION') {
     await ElMessageBox.confirm(
-      `将向已登记设备 ${deviceForm.deviceCode} 创建真实 DeviceCommand，请确认设备可执行。`,
+      `将向已登记设备 ${deviceCode || '（未填写）'} 创建真实 DeviceCommand，请确认设备可执行。`,
       '确认真实 ECS 指令',
       { type: 'warning', confirmButtonText: '创建命令' }
     )
@@ -901,12 +923,12 @@ async function sendDeviceCommand(): Promise<void> {
     () =>
       versioned(current, {
         client_request_id: createUuid7(),
-        device_code: deviceForm.deviceCode,
-        task_type: deviceForm.taskType.trim(),
-        params,
-        timeout_ms: deviceForm.timeoutMs,
-        reason: deviceForm.reason.trim()
-      }),
+        device_code: data.device_code,
+        task_type: data.task_type,
+        params: data.params,
+        timeout_ms: data.timeout_ms,
+        reason: data.reason
+      }) as DeviceActionInput,
     body => api.deviceCommand(current.run_id, body)
   )
   deviceVisible.value = false
@@ -1205,104 +1227,32 @@ onUnmounted(() => {
             placeholder="从右侧 Evidence 时间线复制"
           />
         </label>
-        <template v-if="['BIN_INBOUND_BATCH', 'BIN_RETURN_BATCH'].includes(selectedPhase)">
-          <label>
-            五层货架 rack_id
-            <el-input
-              v-model="batchRackId"
-              placeholder="必须来自 plan_delta.bin_source_racks"
-            />
-          </label>
-          <label>
-            rack_face
-            <el-input
-              v-model="batchRackFace"
-              placeholder="必须与 plan_delta 一致"
-            />
-          </label>
-        </template>
-        <label v-if="selectedPhase === 'BIN_INBOUND_BATCH'">
-          max_bin_count（本期固定）
-          <code>1</code>
-        </label>
-        <label v-if="selectedPhase === 'TASK_PREPARE'">
-          WMS prepare workline_code
-          <el-input
-            v-model="wmsPrepareWorklineCode"
-            placeholder="当前工作线使用 KT16"
-          />
-          <small>WES 与 WMS 的 workline_code 均为 KT16。</small>
-        </label>
-        <label v-if="selectedPhase === 'BIN_RETURN_BATCH'">
-          回流缓存 location_code
-          <el-input v-model="returnSourceLocation" />
-        </label>
-        <template v-if="selectedPhase === 'COMPLETION_REPORT'">
-          <label>
-            apply_revision
-            <el-input-number
-              v-model="applyRevision"
-              :min="1"
-            />
-          </label>
-          <label>
-            apply_result
-            <el-select v-model="applyResult">
-              <el-option
-                label="APPLIED"
-                value="APPLIED"
-              />
-              <el-option
-                label="RECONCILING"
-                value="RECONCILING"
-              />
-            </el-select>
-          </label>
-          <label>
-            reason_code
-            <el-select
-              v-model="applyReasonCode"
-              clearable
-              placeholder="APPLIED 时可留空"
+        <section
+          v-if="selectedIsWmsOutbound"
+          class="editable-payload"
+        >
+          <div class="editable-payload-heading">
+            <div>
+              <strong>WMS data JSON</strong>
+              <small>
+                发送前可编辑；task、bin、workline 等 Run
+                绑定身份必须一致，operation、operation_id、timestamp 由 WES 生成并冻结。
+              </small>
+            </div>
+            <el-button
+              size="small"
+              @click="resetWmsData"
             >
-              <el-option
-                v-for="item in [
-                  'RESULT_CONFLICT',
-                  'FIRST_COMPLETION_OUT_OF_WINDOW',
-                  'POINT2_BINDING_MISMATCH',
-                  'WORKLINE_NOT_ACTIVE',
-                  'COMPLETED_AT_INVALID',
-                  'DEVICE_COMMAND_IDENTITY_CONFLICT'
-                ]"
-                :key="item"
-                :label="item"
-                :value="item"
-              />
-            </el-select>
-          </label>
-          <label>
-            occurred_at（Unix ms）
-            <el-input-number
-              v-model="applyOccurredAt"
-              :min="1"
-              :controls="false"
-            />
-          </label>
-        </template>
-        <template v-if="selectedPhase === 'RACK_DEPARTURE' && !rackDepartureStep">
-          <label>
-            离场货架 rack_id
-            <el-input v-model="batchRackId" />
-          </label>
-          <label>
-            当前货架位置
-            <el-input v-model="rackCurrentLocation" />
-          </label>
-          <label>
-            当前朝向
-            <el-input v-model="rackCurrentFace" />
-          </label>
-        </template>
+              恢复默认
+            </el-button>
+          </div>
+          <el-input
+            v-model="wmsDataText"
+            type="textarea"
+            :rows="12"
+            spellcheck="false"
+          />
+        </section>
         <label
           v-if="
             [
@@ -1629,42 +1579,16 @@ onUnmounted(() => {
         <code>{{ manualOutboundSite.ecsEndpoint }}</code>
         。
       </p>
-      <el-form label-position="top">
-        <el-form-item label="device_code">
-          <el-select
-            v-model="deviceForm.deviceCode"
-            disabled
-          >
-            <el-option
-              v-for="item in manualOutboundSite.scanDeviceCodes"
-              :key="item"
-              :label="item"
-              :value="item"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="task_type">
-          <el-input
-            v-model="deviceForm.taskType"
-            disabled
-          />
-        </el-form-item>
-        <el-form-item label="params JSON object">
-          <el-input
-            v-model="deviceForm.paramsText"
-            type="textarea"
-            :rows="5"
-          />
-        </el-form-item>
-        <el-form-item label="timeout_ms">
-          <el-input-number
-            v-model="deviceForm.timeoutMs"
-            :min="100"
-            :max="600000"
-          />
-        </el-form-item>
-        <el-form-item label="执行原因"><el-input v-model="deviceForm.reason" /></el-form-item>
-      </el-form>
+      <p>
+        可编辑 device_code、task_type、params、timeout_ms 和
+        reason；client_request_id、command_code、timestamp、is_debug 由 WES 生成。
+      </p>
+      <el-input
+        v-model="deviceDataText"
+        type="textarea"
+        :rows="14"
+        spellcheck="false"
+      />
       <template #footer>
         <el-button @click="deviceVisible = false">取消</el-button>
         <el-button

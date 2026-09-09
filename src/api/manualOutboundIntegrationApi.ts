@@ -1,5 +1,15 @@
 import { apiClient, resolveApiBaseUrl } from '@/api/client'
-import { worklineIntegrationDebugApiMethods } from '@/api/modules/worklineIntegrationDebug'
+import {
+  worklineIntegrationDebugApiMethods,
+  type WmsBinInboundBatchInput,
+  type WmsBinReturnBatchInput,
+  type WmsCompletionApplyReportInput,
+  type WmsPrepareInput,
+  type WmsRackDepartureInput,
+  type WmsRetryInput,
+  type WmsTaskCompletionInput,
+  type WmsWorkAdmissionInput
+} from '@/api/modules/worklineIntegrationDebug'
 import { getAccessToken, refreshAccessToken } from '@/api/services/token-refresh'
 
 export type IntegrationProfile =
@@ -152,74 +162,39 @@ export const worklineIntegrationDebugApi = {
     asRun(worklineIntegrationDebugApiMethods.createRuns(body).send()),
   bindTask: (runId: string, body: VersionInput & { task_id: string }) =>
     asRun(worklineIntegrationDebugApiMethods.bindTask(runParams(runId), body).send()),
-  prepareTask: (
-    runId: string,
-    body: VersionInput & { client_request_id: string; workline_code: string }
-  ) =>
+  prepareTask: (runId: string, body: WmsPrepareInput) =>
     asRun(worklineIntegrationDebugApiMethods.wmsPrepare(runParams(runId), body).send()),
   refreshPlan: (runId: string, body: VersionInput) =>
     asRun(worklineIntegrationDebugApiMethods.planRefresh(runParams(runId), body).send()),
   point2Scan: (runId: string, body: VersionInput & { bin_code: string; scanned_at: number }) =>
     asRun(worklineIntegrationDebugApiMethods.point2Scan(runParams(runId), body).send()),
-  workAdmission: (runId: string, body: VersionInput & { client_request_id: string }) =>
+  workAdmission: (runId: string, body: WmsWorkAdmissionInput) =>
     asRun(worklineIntegrationDebugApiMethods.wmsWorkAdmission(runParams(runId), body).send()),
   refreshWms: (runId: string, body: VersionInput & { client_request_id: string }) =>
     asRun(worklineIntegrationDebugApiMethods.wmsRefresh(runParams(runId), body).send()),
   retryWms: (
     runId: string,
-    body: VersionInput & {
-      client_request_id: string
-      workline_code: string
-      wms_non_receipt_confirmed: true
-    }
+    body: WmsRetryInput
   ) => asRun(worklineIntegrationDebugApiMethods.wmsRetry(runParams(runId), body).send()),
   binInboundBatch: (
     runId: string,
-    body: VersionInput & {
-      client_request_id: string
-      rack_id: string
-      rack_face: string
-      max_bin_count: 1
-    }
+    body: WmsBinInboundBatchInput
   ) => asRun(worklineIntegrationDebugApiMethods.wmsBinInboundBatch(runParams(runId), body).send()),
   binReturnBatch: (
     runId: string,
-    body: VersionInput & {
-      client_request_id: string
-      rack_id: string
-      rack_face: string
-      source_location_code: string
-    }
+    body: WmsBinReturnBatchInput
   ) => asRun(worklineIntegrationDebugApiMethods.wmsBinReturnBatch(runParams(runId), body).send()),
   rackDeparture: (
     runId: string,
-    body: VersionInput & {
-      client_request_id: string
-      rack_id: string
-      current_location_code: string
-      current_face: string
-    }
+    body: WmsRackDepartureInput
   ) => asRun(worklineIntegrationDebugApiMethods.wmsRackDeparture(runParams(runId), body).send()),
-  taskCompletion: (runId: string, body: VersionInput & { client_request_id: string }) =>
+  taskCompletion: (runId: string, body: WmsTaskCompletionInput) =>
     asRun(worklineIntegrationDebugApiMethods.wmsTaskCompletion(runParams(runId), body).send()),
   bindCompletion: (runId: string, body: VersionInput & { operation_id: string }) =>
     asRun(worklineIntegrationDebugApiMethods.wmsBindCompletion(runParams(runId), body).send()),
   completionApplyReport: (
     runId: string,
-    body: VersionInput & {
-      client_request_id: string
-      completion_operation_id: string
-      apply_revision: number
-      apply_result: 'APPLIED' | 'RECONCILING'
-      reason_code?:
-        | 'RESULT_CONFLICT'
-        | 'FIRST_COMPLETION_OUT_OF_WINDOW'
-        | 'POINT2_BINDING_MISMATCH'
-        | 'WORKLINE_NOT_ACTIVE'
-        | 'COMPLETED_AT_INVALID'
-        | 'DEVICE_COMMAND_IDENTITY_CONFLICT'
-      occurred_at: number
-    }
+    body: WmsCompletionApplyReportInput
   ) =>
     asRun(
       worklineIntegrationDebugApiMethods.wmsCompletionApplyReport(runParams(runId), body).send()

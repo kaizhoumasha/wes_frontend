@@ -14,8 +14,7 @@ export const BinInboundBatchRequestMetadata = {
   "required": [
     "expected_version",
     "client_request_id",
-    "rack_id",
-    "rack_face"
+    "data"
   ],
   "additionalProperties": false,
   "fields": {
@@ -27,35 +26,17 @@ export const BinInboundBatchRequestMetadata = {
       "minLength": 1,
       "maxLength": 120
     },
+    "data": {
+      "required": true,
+      "nullable": false,
+      "ref": "BinInboundBatchData"
+    },
     "expected_version": {
       "title": "Expected Version",
       "type": "integer",
       "required": true,
       "nullable": false,
       "minimum": 0
-    },
-    "max_bin_count": {
-      "title": "Max Bin Count",
-      "type": "integer",
-      "required": false,
-      "nullable": false,
-      "default": 1
-    },
-    "rack_face": {
-      "title": "Rack Face",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 120
-    },
-    "rack_id": {
-      "title": "Rack Id",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 120
     }
   }
 } satisfies OpenApiSchemaMetadata
