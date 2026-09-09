@@ -1572,6 +1572,41 @@
         "title": "BinContentSnapshotStatus",
         "type": "string"
       },
+      "BinInboundBatchData": {
+        "additionalProperties": false,
+        "properties": {
+          "max_bin_count": {
+            "maximum": 4,
+            "minimum": 1,
+            "title": "Max Bin Count",
+            "type": "integer"
+          },
+          "rack_face": {
+            "maxLength": 10,
+            "minLength": 1,
+            "title": "Rack Face",
+            "type": "string"
+          },
+          "rack_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+            "title": "Rack Id",
+            "type": "string"
+          },
+          "task_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+            "title": "Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id",
+          "rack_id",
+          "rack_face",
+          "max_bin_count"
+        ],
+        "title": "BinInboundBatchData",
+        "type": "object"
+      },
       "BinInboundBatchRequest": {
         "additionalProperties": false,
         "properties": {
@@ -1581,35 +1616,19 @@
             "title": "Client Request Id",
             "type": "string"
           },
+          "data": {
+            "$ref": "#/components/schemas/BinInboundBatchData"
+          },
           "expected_version": {
             "minimum": 0,
             "title": "Expected Version",
             "type": "integer"
-          },
-          "max_bin_count": {
-            "const": 1,
-            "default": 1,
-            "title": "Max Bin Count",
-            "type": "integer"
-          },
-          "rack_face": {
-            "maxLength": 120,
-            "minLength": 1,
-            "title": "Rack Face",
-            "type": "string"
-          },
-          "rack_id": {
-            "maxLength": 120,
-            "minLength": 1,
-            "title": "Rack Id",
-            "type": "string"
           }
         },
         "required": [
           "expected_version",
           "client_request_id",
-          "rack_id",
-          "rack_face"
+          "data"
         ],
         "title": "BinInboundBatchRequest",
         "type": "object"
@@ -2042,6 +2061,44 @@
         "title": "BinResponse",
         "type": "object"
       },
+      "BinReturnBatchData": {
+        "additionalProperties": false,
+        "properties": {
+          "rack_face": {
+            "maxLength": 10,
+            "minLength": 1,
+            "title": "Rack Face",
+            "type": "string"
+          },
+          "rack_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+            "title": "Rack Id",
+            "type": "string"
+          },
+          "return_candidates": {
+            "items": {
+              "$ref": "#/components/schemas/ReturnCandidate"
+            },
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Return Candidates",
+            "type": "array"
+          },
+          "workline_code": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+            "title": "Workline Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workline_code",
+          "rack_id",
+          "rack_face",
+          "return_candidates"
+        ],
+        "title": "BinReturnBatchData",
+        "type": "object"
+      },
       "BinReturnBatchRequest": {
         "additionalProperties": false,
         "properties": {
@@ -2051,36 +2108,19 @@
             "title": "Client Request Id",
             "type": "string"
           },
+          "data": {
+            "$ref": "#/components/schemas/BinReturnBatchData"
+          },
           "expected_version": {
             "minimum": 0,
             "title": "Expected Version",
             "type": "integer"
-          },
-          "rack_face": {
-            "maxLength": 120,
-            "minLength": 1,
-            "title": "Rack Face",
-            "type": "string"
-          },
-          "rack_id": {
-            "maxLength": 120,
-            "minLength": 1,
-            "title": "Rack Id",
-            "type": "string"
-          },
-          "source_location_code": {
-            "maxLength": 120,
-            "minLength": 1,
-            "title": "Source Location Code",
-            "type": "string"
           }
         },
         "required": [
           "expected_version",
           "client_request_id",
-          "rack_id",
-          "rack_face",
-          "source_location_code"
+          "data"
         ],
         "title": "BinReturnBatchRequest",
         "type": "object"
@@ -2541,28 +2581,6 @@
         "title": "ClearWorkLineEstopRequest",
         "type": "object"
       },
-      "ClientActionRequest": {
-        "additionalProperties": false,
-        "properties": {
-          "client_request_id": {
-            "maxLength": 120,
-            "minLength": 1,
-            "title": "Client Request Id",
-            "type": "string"
-          },
-          "expected_version": {
-            "minimum": 0,
-            "title": "Expected Version",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "expected_version",
-          "client_request_id"
-        ],
-        "title": "ClientActionRequest",
-        "type": "object"
-      },
       "CloseRunRequest": {
         "additionalProperties": false,
         "properties": {
@@ -2591,70 +2609,64 @@
       "CompletionApplyReportRequest": {
         "additionalProperties": false,
         "properties": {
-          "apply_result": {
-            "enum": [
-              "APPLIED",
-              "RECONCILING"
-            ],
-            "title": "Apply Result",
-            "type": "string"
-          },
-          "apply_revision": {
-            "minimum": 1,
-            "title": "Apply Revision",
-            "type": "integer"
-          },
           "client_request_id": {
             "maxLength": 120,
             "minLength": 1,
             "title": "Client Request Id",
             "type": "string"
           },
-          "completion_operation_id": {
-            "maxLength": 120,
-            "minLength": 1,
-            "title": "Completion Operation Id",
-            "type": "string"
+          "data": {
+            "discriminator": {
+              "mapping": {
+                "APPLIED": "#/components/schemas/ManualBinApplied",
+                "RECONCILING": "#/components/schemas/ManualBinReconciling"
+              },
+              "propertyName": "apply_result"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ManualBinApplied"
+              },
+              {
+                "$ref": "#/components/schemas/ManualBinReconciling"
+              }
+            ],
+            "title": "Data"
           },
           "expected_version": {
             "minimum": 0,
             "title": "Expected Version",
             "type": "integer"
-          },
-          "occurred_at": {
-            "exclusiveMinimum": 0,
-            "title": "Occurred At",
-            "type": "integer"
-          },
-          "reason_code": {
-            "anyOf": [
-              {
-                "enum": [
-                  "RESULT_CONFLICT",
-                  "FIRST_COMPLETION_OUT_OF_WINDOW",
-                  "POINT2_BINDING_MISMATCH",
-                  "WORKLINE_NOT_ACTIVE",
-                  "COMPLETED_AT_INVALID",
-                  "DEVICE_COMMAND_IDENTITY_CONFLICT"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Reason Code"
           }
         },
         "required": [
           "expected_version",
           "client_request_id",
-          "completion_operation_id",
-          "apply_revision",
-          "apply_result",
-          "occurred_at"
+          "data"
         ],
         "title": "CompletionApplyReportRequest",
+        "type": "object"
+      },
+      "CompletionConfirmData": {
+        "additionalProperties": false,
+        "properties": {
+          "last_applied_plan_revision": {
+            "maximum": 9223372036854776000,
+            "minimum": 0,
+            "title": "Last Applied Plan Revision",
+            "type": "integer"
+          },
+          "task_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+            "title": "Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id",
+          "last_applied_plan_revision"
+        ],
+        "title": "CompletionConfirmData",
         "type": "object"
       },
       "ConfirmPhaseRequest": {
@@ -6666,6 +6678,133 @@
         "title": "LogoutResponse",
         "type": "object"
       },
+      "ManualBinAdmissionData": {
+        "additionalProperties": false,
+        "properties": {
+          "bin_code": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+            "title": "Bin Code",
+            "type": "string"
+          },
+          "scanned_at": {
+            "exclusiveMinimum": 0,
+            "maximum": 9223372036854776000,
+            "title": "Scanned At",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "bin_code",
+          "scanned_at"
+        ],
+        "title": "ManualBinAdmissionData",
+        "type": "object"
+      },
+      "ManualBinApplied": {
+        "additionalProperties": false,
+        "properties": {
+          "apply_result": {
+            "const": "APPLIED",
+            "title": "Apply Result",
+            "type": "string"
+          },
+          "apply_revision": {
+            "minimum": 1,
+            "title": "Apply Revision",
+            "type": "integer"
+          },
+          "bin_code": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+            "title": "Bin Code",
+            "type": "string"
+          },
+          "completion_operation_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            "title": "Completion Operation Id",
+            "type": "string"
+          },
+          "occurred_at": {
+            "exclusiveMinimum": 0,
+            "maximum": 9223372036854776000,
+            "title": "Occurred At",
+            "type": "integer"
+          },
+          "task_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+            "title": "Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "completion_operation_id",
+          "task_id",
+          "bin_code",
+          "apply_revision",
+          "apply_result",
+          "occurred_at"
+        ],
+        "title": "ManualBinApplied",
+        "type": "object"
+      },
+      "ManualBinReconciling": {
+        "additionalProperties": false,
+        "properties": {
+          "apply_result": {
+            "const": "RECONCILING",
+            "title": "Apply Result",
+            "type": "string"
+          },
+          "apply_revision": {
+            "minimum": 1,
+            "title": "Apply Revision",
+            "type": "integer"
+          },
+          "bin_code": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+            "title": "Bin Code",
+            "type": "string"
+          },
+          "completion_operation_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            "title": "Completion Operation Id",
+            "type": "string"
+          },
+          "occurred_at": {
+            "exclusiveMinimum": 0,
+            "maximum": 9223372036854776000,
+            "title": "Occurred At",
+            "type": "integer"
+          },
+          "reason_code": {
+            "enum": [
+              "RESULT_CONFLICT",
+              "FIRST_COMPLETION_OUT_OF_WINDOW",
+              "POINT2_BINDING_MISMATCH",
+              "WORKLINE_NOT_ACTIVE",
+              "COMPLETED_AT_INVALID",
+              "DEVICE_COMMAND_IDENTITY_CONFLICT"
+            ],
+            "title": "Reason Code",
+            "type": "string"
+          },
+          "task_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+            "title": "Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "completion_operation_id",
+          "task_id",
+          "bin_code",
+          "apply_revision",
+          "apply_result",
+          "reason_code",
+          "occurred_at"
+        ],
+        "title": "ManualBinReconciling",
+        "type": "object"
+      },
       "ManualDebugDeviceCommandCreate": {
         "additionalProperties": false,
         "properties": {
@@ -7303,6 +7442,27 @@
         "title": "PermissionTree",
         "type": "object"
       },
+      "PickingTaskPrepareData": {
+        "additionalProperties": false,
+        "properties": {
+          "task_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+            "title": "Task Id",
+            "type": "string"
+          },
+          "workline_code": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+            "title": "Workline Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id",
+          "workline_code"
+        ],
+        "title": "PickingTaskPrepareData",
+        "type": "object"
+      },
       "PlaneEdge": {
         "additionalProperties": false,
         "description": "Plane scene edge.",
@@ -7559,22 +7719,19 @@
             "title": "Client Request Id",
             "type": "string"
           },
+          "data": {
+            "$ref": "#/components/schemas/PickingTaskPrepareData"
+          },
           "expected_version": {
             "minimum": 0,
             "title": "Expected Version",
             "type": "integer"
-          },
-          "workline_code": {
-            "maxLength": 50,
-            "minLength": 1,
-            "title": "Workline Code",
-            "type": "string"
           }
         },
         "required": [
           "expected_version",
           "client_request_id",
-          "workline_code"
+          "data"
         ],
         "title": "PrepareTaskRequest",
         "type": "object"
@@ -7761,6 +7918,38 @@
         "title": "RackBinMountStatus",
         "type": "string"
       },
+      "RackDepartureData": {
+        "additionalProperties": false,
+        "properties": {
+          "current_face": {
+            "maxLength": 10,
+            "minLength": 1,
+            "title": "Current Face",
+            "type": "string"
+          },
+          "current_location": {
+            "$ref": "#/components/schemas/RackPosition"
+          },
+          "rack_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+            "title": "Rack Id",
+            "type": "string"
+          },
+          "task_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+            "title": "Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id",
+          "rack_id",
+          "current_location",
+          "current_face"
+        ],
+        "title": "RackDepartureData",
+        "type": "object"
+      },
       "RackDepartureRequest": {
         "additionalProperties": false,
         "properties": {
@@ -7770,36 +7959,19 @@
             "title": "Client Request Id",
             "type": "string"
           },
-          "current_face": {
-            "maxLength": 120,
-            "minLength": 1,
-            "title": "Current Face",
-            "type": "string"
-          },
-          "current_location_code": {
-            "maxLength": 120,
-            "minLength": 1,
-            "title": "Current Location Code",
-            "type": "string"
+          "data": {
+            "$ref": "#/components/schemas/RackDepartureData"
           },
           "expected_version": {
             "minimum": 0,
             "title": "Expected Version",
             "type": "integer"
-          },
-          "rack_id": {
-            "maxLength": 120,
-            "minLength": 1,
-            "title": "Rack Id",
-            "type": "string"
           }
         },
         "required": [
           "expected_version",
           "client_request_id",
-          "rack_id",
-          "current_location_code",
-          "current_face"
+          "data"
         ],
         "title": "RackDepartureRequest",
         "type": "object"
@@ -8064,6 +8236,27 @@
         ],
         "title": "RackPlacementStatus",
         "type": "string"
+      },
+      "RackPosition": {
+        "additionalProperties": false,
+        "properties": {
+          "location_code": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+            "title": "Location Code",
+            "type": "string"
+          },
+          "type": {
+            "const": "RACK_POSITION",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "location_code"
+        ],
+        "title": "RackPosition",
+        "type": "object"
       },
       "RackResponse": {
         "description": "货架实例响应 Schema。",
@@ -11780,6 +11973,9 @@
             "title": "Client Request Id",
             "type": "string"
           },
+          "data": {
+            "$ref": "#/components/schemas/PickingTaskPrepareData"
+          },
           "expected_version": {
             "minimum": 0,
             "title": "Expected Version",
@@ -11789,21 +11985,62 @@
             "const": true,
             "title": "Wms Non Receipt Confirmed",
             "type": "boolean"
-          },
-          "workline_code": {
-            "maxLength": 50,
-            "minLength": 1,
-            "title": "Workline Code",
-            "type": "string"
           }
         },
         "required": [
           "expected_version",
           "client_request_id",
           "wms_non_receipt_confirmed",
-          "workline_code"
+          "data"
         ],
         "title": "RetryWmsActionRequest",
+        "type": "object"
+      },
+      "ReturnCandidate": {
+        "additionalProperties": false,
+        "properties": {
+          "bin_code": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+            "title": "Bin Code",
+            "type": "string"
+          },
+          "sequence_no": {
+            "maximum": 4,
+            "minimum": 1,
+            "title": "Sequence No",
+            "type": "integer"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ReturnSource"
+          }
+        },
+        "required": [
+          "sequence_no",
+          "bin_code",
+          "source"
+        ],
+        "title": "ReturnCandidate",
+        "type": "object"
+      },
+      "ReturnSource": {
+        "additionalProperties": false,
+        "properties": {
+          "location_code": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+            "title": "Location Code",
+            "type": "string"
+          },
+          "type": {
+            "const": "HANDOFF_POSITION",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "location_code"
+        ],
+        "title": "ReturnSource",
         "type": "object"
       },
       "RevokeSessionResponse": {
@@ -12054,6 +12291,32 @@
           "field"
         ],
         "title": "SortField",
+        "type": "object"
+      },
+      "TaskCompletionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "client_request_id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Client Request Id",
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/CompletionConfirmData"
+          },
+          "expected_version": {
+            "minimum": 0,
+            "title": "Expected Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expected_version",
+          "client_request_id",
+          "data"
+        ],
+        "title": "TaskCompletionRequest",
         "type": "object"
       },
       "TransportActionRequest": {
@@ -13580,6 +13843,32 @@
           }
         },
         "title": "WirePreview",
+        "type": "object"
+      },
+      "WorkAdmissionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "client_request_id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Client Request Id",
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ManualBinAdmissionData"
+          },
+          "expected_version": {
+            "minimum": 0,
+            "title": "Expected Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expected_version",
+          "client_request_id",
+          "data"
+        ],
+        "title": "WorkAdmissionRequest",
         "type": "object"
       },
       "WorkLineBaseConfigurationResponse": {
@@ -26616,7 +26905,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ClientActionRequest"
+                "$ref": "#/components/schemas/TaskCompletionRequest"
               }
             }
           },
@@ -26675,7 +26964,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ClientActionRequest"
+                "$ref": "#/components/schemas/WorkAdmissionRequest"
               }
             }
           },

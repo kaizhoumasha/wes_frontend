@@ -1,4 +1,4 @@
-/** @openapi-sha256 d611df5f5b623c1135f5b0b3ff23c8bfc7a8f2bab94e4cadb3c573cf88888e93 */
+/** @openapi-sha256 5d98004e7969e244911b438be11d8c7d596e8fc23fcec2ae8ffde3a2ff6bb4f3 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -4423,22 +4423,24 @@ export interface components {
             /** Task Id */
             task_id: string;
         };
-        /** BinInboundBatchRequest */
-        BinInboundBatchRequest: {
-            /** Client Request Id */
-            client_request_id: string;
-            /** Expected Version */
-            expected_version: number;
-            /**
-             * Max Bin Count
-             * @default 1
-             * @constant
-             */
-            max_bin_count: 1;
+        /** BinInboundBatchData */
+        BinInboundBatchData: {
+            /** Max Bin Count */
+            max_bin_count: number;
             /** Rack Face */
             rack_face: string;
             /** Rack Id */
             rack_id: string;
+            /** Task Id */
+            task_id: string;
+        };
+        /** BinInboundBatchRequest */
+        BinInboundBatchRequest: {
+            /** Client Request Id */
+            client_request_id: string;
+            data: components["schemas"]["BinInboundBatchData"];
+            /** Expected Version */
+            expected_version: number;
         };
         /**
          * BinMaterialMountResponse
@@ -4634,18 +4636,24 @@ export interface components {
              */
             wms_bin_id?: string | null;
         };
-        /** BinReturnBatchRequest */
-        BinReturnBatchRequest: {
-            /** Client Request Id */
-            client_request_id: string;
-            /** Expected Version */
-            expected_version: number;
+        /** BinReturnBatchData */
+        BinReturnBatchData: {
             /** Rack Face */
             rack_face: string;
             /** Rack Id */
             rack_id: string;
-            /** Source Location Code */
-            source_location_code: string;
+            /** Return Candidates */
+            return_candidates: components["schemas"]["ReturnCandidate"][];
+            /** Workline Code */
+            workline_code: string;
+        };
+        /** BinReturnBatchRequest */
+        BinReturnBatchRequest: {
+            /** Client Request Id */
+            client_request_id: string;
+            data: components["schemas"]["BinReturnBatchData"];
+            /** Expected Version */
+            expected_version: number;
         };
         /**
          * BinSlotSize
@@ -4850,13 +4858,6 @@ export interface components {
              */
             reason?: string | null;
         };
-        /** ClientActionRequest */
-        ClientActionRequest: {
-            /** Client Request Id */
-            client_request_id: string;
-            /** Expected Version */
-            expected_version: number;
-        };
         /** CloseRunRequest */
         CloseRunRequest: {
             /** Expected Version */
@@ -4868,23 +4869,19 @@ export interface components {
         };
         /** CompletionApplyReportRequest */
         CompletionApplyReportRequest: {
-            /**
-             * Apply Result
-             * @enum {string}
-             */
-            apply_result: "APPLIED" | "RECONCILING";
-            /** Apply Revision */
-            apply_revision: number;
             /** Client Request Id */
             client_request_id: string;
-            /** Completion Operation Id */
-            completion_operation_id: string;
+            /** Data */
+            data: components["schemas"]["ManualBinApplied"] | components["schemas"]["ManualBinReconciling"];
             /** Expected Version */
             expected_version: number;
-            /** Occurred At */
-            occurred_at: number;
-            /** Reason Code */
-            reason_code?: ("RESULT_CONFLICT" | "FIRST_COMPLETION_OUT_OF_WINDOW" | "POINT2_BINDING_MISMATCH" | "WORKLINE_NOT_ACTIVE" | "COMPLETED_AT_INVALID" | "DEVICE_COMMAND_IDENTITY_CONFLICT") | null;
+        };
+        /** CompletionConfirmData */
+        CompletionConfirmData: {
+            /** Last Applied Plan Revision */
+            last_applied_plan_revision: number;
+            /** Task Id */
+            task_id: string;
         };
         /** ConfirmPhaseRequest */
         ConfirmPhaseRequest: {
@@ -5768,6 +5765,54 @@ export interface components {
              */
             revoked_count: number;
         };
+        /** ManualBinAdmissionData */
+        ManualBinAdmissionData: {
+            /** Bin Code */
+            bin_code: string;
+            /** Scanned At */
+            scanned_at: number;
+        };
+        /** ManualBinApplied */
+        ManualBinApplied: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            apply_result: "APPLIED";
+            /** Apply Revision */
+            apply_revision: number;
+            /** Bin Code */
+            bin_code: string;
+            /** Completion Operation Id */
+            completion_operation_id: string;
+            /** Occurred At */
+            occurred_at: number;
+            /** Task Id */
+            task_id: string;
+        };
+        /** ManualBinReconciling */
+        ManualBinReconciling: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            apply_result: "RECONCILING";
+            /** Apply Revision */
+            apply_revision: number;
+            /** Bin Code */
+            bin_code: string;
+            /** Completion Operation Id */
+            completion_operation_id: string;
+            /** Occurred At */
+            occurred_at: number;
+            /**
+             * Reason Code
+             * @enum {string}
+             */
+            reason_code: "RESULT_CONFLICT" | "FIRST_COMPLETION_OUT_OF_WINDOW" | "POINT2_BINDING_MISMATCH" | "WORKLINE_NOT_ACTIVE" | "COMPLETED_AT_INVALID" | "DEVICE_COMMAND_IDENTITY_CONFLICT";
+            /** Task Id */
+            task_id: string;
+        };
         /** ManualDebugDeviceCommandCreate */
         ManualDebugDeviceCommandCreate: {
             /** Client Request Id */
@@ -6030,6 +6075,13 @@ export interface components {
              */
             type: string;
         };
+        /** PickingTaskPrepareData */
+        PickingTaskPrepareData: {
+            /** Task Id */
+            task_id: string;
+            /** Workline Code */
+            workline_code: string;
+        };
         /**
          * PlaneEdge
          * @description Plane scene edge.
@@ -6132,10 +6184,9 @@ export interface components {
         PrepareTaskRequest: {
             /** Client Request Id */
             client_request_id: string;
+            data: components["schemas"]["PickingTaskPrepareData"];
             /** Expected Version */
             expected_version: number;
-            /** Workline Code */
-            workline_code: string;
         };
         /**
          * QueryOptions
@@ -6234,18 +6285,23 @@ export interface components {
          * @enum {string}
          */
         RackBinMountStatus: "MOUNTED" | "UNMOUNTED" | "EXCHANGING" | "UNKNOWN";
+        /** RackDepartureData */
+        RackDepartureData: {
+            /** Current Face */
+            current_face: string;
+            current_location: components["schemas"]["RackPosition"];
+            /** Rack Id */
+            rack_id: string;
+            /** Task Id */
+            task_id: string;
+        };
         /** RackDepartureRequest */
         RackDepartureRequest: {
             /** Client Request Id */
             client_request_id: string;
-            /** Current Face */
-            current_face: string;
-            /** Current Location Code */
-            current_location_code: string;
+            data: components["schemas"]["RackDepartureData"];
             /** Expected Version */
             expected_version: number;
-            /** Rack Id */
-            rack_id: string;
         };
         /**
          * RackKind
@@ -6362,6 +6418,16 @@ export interface components {
          * @enum {string}
          */
         RackPlacementStatus: "ARRIVED" | "IN_TRANSIT" | "DEPARTED" | "UNKNOWN";
+        /** RackPosition */
+        RackPosition: {
+            /** Location Code */
+            location_code: string;
+            /**
+             * Type
+             * @constant
+             */
+            type: "RACK_POSITION";
+        };
         /**
          * RackResponse
          * @description 货架实例响应 Schema。
@@ -6884,6 +6950,7 @@ export interface components {
         RetryWmsActionRequest: {
             /** Client Request Id */
             client_request_id: string;
+            data: components["schemas"]["PickingTaskPrepareData"];
             /** Expected Version */
             expected_version: number;
             /**
@@ -6891,8 +6958,24 @@ export interface components {
              * @constant
              */
             wms_non_receipt_confirmed: true;
-            /** Workline Code */
-            workline_code: string;
+        };
+        /** ReturnCandidate */
+        ReturnCandidate: {
+            /** Bin Code */
+            bin_code: string;
+            /** Sequence No */
+            sequence_no: number;
+            source: components["schemas"]["ReturnSource"];
+        };
+        /** ReturnSource */
+        ReturnSource: {
+            /** Location Code */
+            location_code: string;
+            /**
+             * Type
+             * @constant
+             */
+            type: "HANDOFF_POSITION";
         };
         /**
          * RevokeSessionResponse
@@ -7016,6 +7099,14 @@ export interface components {
              * @enum {string}
              */
             order: "asc" | "desc";
+        };
+        /** TaskCompletionRequest */
+        TaskCompletionRequest: {
+            /** Client Request Id */
+            client_request_id: string;
+            data: components["schemas"]["CompletionConfirmData"];
+            /** Expected Version */
+            expected_version: number;
         };
         /** TransportActionRequest */
         TransportActionRequest: {
@@ -7540,6 +7631,14 @@ export interface components {
              * @enum {string}
              */
             state: "CAPTURED" | "TRUNCATED" | "UNSAFE_JSON" | "EMPTY" | "NOT_CAPTURED" | "NO_RESPONSE";
+        };
+        /** WorkAdmissionRequest */
+        WorkAdmissionRequest: {
+            /** Client Request Id */
+            client_request_id: string;
+            data: components["schemas"]["ManualBinAdmissionData"];
+            /** Expected Version */
+            expected_version: number;
         };
         /**
          * WorklineActiveObjectConflictState
@@ -13776,7 +13875,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ClientActionRequest"];
+                "application/json": components["schemas"]["TaskCompletionRequest"];
             };
         };
         responses: {
@@ -13811,7 +13910,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ClientActionRequest"];
+                "application/json": components["schemas"]["WorkAdmissionRequest"];
             };
         };
         responses: {

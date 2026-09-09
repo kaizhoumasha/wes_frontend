@@ -1,4 +1,4 @@
-/** @openapi-sha256 d611df5f5b623c1135f5b0b3ff23c8bfc7a8f2bab94e4cadb3c573cf88888e93 */
+/** @openapi-sha256 5d98004e7969e244911b438be11d8c7d596e8fc23fcec2ae8ffde3a2ff6bb4f3 */
 /**
  * Zod Validation Schemas
  *
@@ -522,17 +522,24 @@ export const BinContentSnapshotResponseSchema = z.object({
 export const BinContentSnapshotStatusSchema = z.enum(["COMPLETE", "PARTIAL", "UNKNOWN"])
 
 
+export const BinInboundBatchDataSchema = z.object({
+  /** Max Bin Count */
+  max_bin_count: z.number().min(1).max(4),
+  /** Rack Face */
+  rack_face: z.string().min(1).max(10),
+  /** Rack Id */
+  rack_id: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
+  /** Task Id */
+  task_id: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
+})
+
+
 export const BinInboundBatchRequestSchema = z.object({
   /** Client Request Id */
   client_request_id: z.string().min(1).max(120),
+  data: z.lazy(() => BinInboundBatchDataSchema),
   /** Expected Version */
   expected_version: z.number().min(0),
-  /** Max Bin Count */
-  max_bin_count: z.literal(1).optional().default(1),
-  /** Rack Face */
-  rack_face: z.string().min(1).max(120),
-  /** Rack Id */
-  rack_id: z.string().min(1).max(120),
 })
 
 
@@ -645,17 +652,24 @@ export const BinResponseSchema = z.object({
 })
 
 
+export const BinReturnBatchDataSchema = z.object({
+  /** Rack Face */
+  rack_face: z.string().min(1).max(10),
+  /** Rack Id */
+  rack_id: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
+  /** Return Candidates */
+  return_candidates: z.array(z.lazy(() => ReturnCandidateSchema)),
+  /** Workline Code */
+  workline_code: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
+})
+
+
 export const BinReturnBatchRequestSchema = z.object({
   /** Client Request Id */
   client_request_id: z.string().min(1).max(120),
+  data: z.lazy(() => BinReturnBatchDataSchema),
   /** Expected Version */
   expected_version: z.number().min(0),
-  /** Rack Face */
-  rack_face: z.string().min(1).max(120),
-  /** Rack Id */
-  rack_id: z.string().min(1).max(120),
-  /** Source Location Code */
-  source_location_code: z.string().min(1).max(120),
 })
 
 
@@ -824,14 +838,6 @@ export const ClearWorkLineEstopRequestSchema = z.object({
 })
 
 
-export const ClientActionRequestSchema = z.object({
-  /** Client Request Id */
-  client_request_id: z.string().min(1).max(120),
-  /** Expected Version */
-  expected_version: z.number().min(0),
-})
-
-
 export const CloseRunRequestSchema = z.object({
   /** Expected Version */
   expected_version: z.number().min(0),
@@ -843,20 +849,20 @@ export const CloseRunRequestSchema = z.object({
 
 
 export const CompletionApplyReportRequestSchema = z.object({
-  /** Apply Result */
-  apply_result: z.enum(["APPLIED", "RECONCILING"]),
-  /** Apply Revision */
-  apply_revision: z.number().min(1),
   /** Client Request Id */
   client_request_id: z.string().min(1).max(120),
-  /** Completion Operation Id */
-  completion_operation_id: z.string().min(1).max(120),
+  /** Data */
+  data: z.union([z.lazy(() => ManualBinAppliedSchema), z.lazy(() => ManualBinReconcilingSchema)]),
   /** Expected Version */
   expected_version: z.number().min(0),
-  /** Occurred At */
-  occurred_at: z.number(),
-  /** Reason Code */
-  reason_code: z.union([z.enum(["RESULT_CONFLICT", "FIRST_COMPLETION_OUT_OF_WINDOW", "POINT2_BINDING_MISMATCH", "WORKLINE_NOT_ACTIVE", "COMPLETED_AT_INVALID", "DEVICE_COMMAND_IDENTITY_CONFLICT"]), z.null()]).optional(),
+})
+
+
+export const CompletionConfirmDataSchema = z.object({
+  /** Last Applied Plan Revision */
+  last_applied_plan_revision: z.number().min(0).max(9223372036854776000),
+  /** Task Id */
+  task_id: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
 })
 
 
@@ -2096,6 +2102,48 @@ export const LogoutResponseSchema = z.object({
 })
 
 
+export const ManualBinAdmissionDataSchema = z.object({
+  /** Bin Code */
+  bin_code: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
+  /** Scanned At */
+  scanned_at: z.number().max(9223372036854776000),
+})
+
+
+export const ManualBinAppliedSchema = z.object({
+  /** Apply Result */
+  apply_result: z.literal("APPLIED"),
+  /** Apply Revision */
+  apply_revision: z.number().min(1),
+  /** Bin Code */
+  bin_code: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
+  /** Completion Operation Id */
+  completion_operation_id: z.string().regex(new RegExp("^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")),
+  /** Occurred At */
+  occurred_at: z.number().max(9223372036854776000),
+  /** Task Id */
+  task_id: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
+})
+
+
+export const ManualBinReconcilingSchema = z.object({
+  /** Apply Result */
+  apply_result: z.literal("RECONCILING"),
+  /** Apply Revision */
+  apply_revision: z.number().min(1),
+  /** Bin Code */
+  bin_code: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
+  /** Completion Operation Id */
+  completion_operation_id: z.string().regex(new RegExp("^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")),
+  /** Occurred At */
+  occurred_at: z.number().max(9223372036854776000),
+  /** Reason Code */
+  reason_code: z.enum(["RESULT_CONFLICT", "FIRST_COMPLETION_OUT_OF_WINDOW", "POINT2_BINDING_MISMATCH", "WORKLINE_NOT_ACTIVE", "COMPLETED_AT_INVALID", "DEVICE_COMMAND_IDENTITY_CONFLICT"]),
+  /** Task Id */
+  task_id: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
+})
+
+
 export const ManualDebugDeviceCommandCreateSchema = z.object({
   /** Client Request Id */
   client_request_id: z.string().min(36).max(36).regex(new RegExp("^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")),
@@ -2296,6 +2344,14 @@ export const PermissionTreeSchema = z.lazy((): z.ZodTypeAny => z.object({
 }))
 
 
+export const PickingTaskPrepareDataSchema = z.object({
+  /** Task Id */
+  task_id: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
+  /** Workline Code */
+  workline_code: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
+})
+
+
 /**
  * Plane scene edge.
  *
@@ -2413,10 +2469,9 @@ export const Point2ScanRequestSchema = z.object({
 export const PrepareTaskRequestSchema = z.object({
   /** Client Request Id */
   client_request_id: z.string().min(1).max(120),
+  data: z.lazy(() => PickingTaskPrepareDataSchema),
   /** Expected Version */
   expected_version: z.number().min(0),
-  /** Workline Code */
-  workline_code: z.string().min(1).max(50),
 })
 
 
@@ -2484,17 +2539,23 @@ export const RackBinMountResponseSchema = z.object({
 export const RackBinMountStatusSchema = z.enum(["MOUNTED", "UNMOUNTED", "EXCHANGING", "UNKNOWN"])
 
 
+export const RackDepartureDataSchema = z.object({
+  /** Current Face */
+  current_face: z.string().min(1).max(10),
+  current_location: z.lazy(() => RackPositionSchema),
+  /** Rack Id */
+  rack_id: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
+  /** Task Id */
+  task_id: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
+})
+
+
 export const RackDepartureRequestSchema = z.object({
   /** Client Request Id */
   client_request_id: z.string().min(1).max(120),
-  /** Current Face */
-  current_face: z.string().min(1).max(120),
-  /** Current Location Code */
-  current_location_code: z.string().min(1).max(120),
+  data: z.lazy(() => RackDepartureDataSchema),
   /** Expected Version */
   expected_version: z.number().min(0),
-  /** Rack Id */
-  rack_id: z.string().min(1).max(120),
 })
 
 
@@ -2570,6 +2631,14 @@ export const RackPlacementResponseSchema = z.object({
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const RackPlacementStatusSchema = z.enum(["ARRIVED", "IN_TRANSIT", "DEPARTED", "UNKNOWN"])
+
+
+export const RackPositionSchema = z.object({
+  /** Location Code */
+  location_code: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
+  /** Type */
+  type: z.literal("RACK_POSITION"),
+})
 
 
 /**
@@ -2862,12 +2931,28 @@ export const ResourceTypeSchema = z.enum(["RACK", "BIN", "MATERIAL"])
 export const RetryWmsActionRequestSchema = z.object({
   /** Client Request Id */
   client_request_id: z.string().min(1).max(120),
+  data: z.lazy(() => PickingTaskPrepareDataSchema),
   /** Expected Version */
   expected_version: z.number().min(0),
   /** Wms Non Receipt Confirmed */
   wms_non_receipt_confirmed: z.literal(true),
-  /** Workline Code */
-  workline_code: z.string().min(1).max(50),
+})
+
+
+export const ReturnCandidateSchema = z.object({
+  /** Bin Code */
+  bin_code: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
+  /** Sequence No */
+  sequence_no: z.number().min(1).max(4),
+  source: z.lazy(() => ReturnSourceSchema),
+})
+
+
+export const ReturnSourceSchema = z.object({
+  /** Location Code */
+  location_code: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
+  /** Type */
+  type: z.literal("HANDOFF_POSITION"),
 })
 
 
@@ -2984,6 +3069,15 @@ export const SortFieldSchema = z.object({
   field: z.string(),
   /** Order */
   order: z.enum(["asc", "desc"]).optional().default("desc"),
+})
+
+
+export const TaskCompletionRequestSchema = z.object({
+  /** Client Request Id */
+  client_request_id: z.string().min(1).max(120),
+  data: z.lazy(() => CompletionConfirmDataSchema),
+  /** Expected Version */
+  expected_version: z.number().min(0),
 })
 
 
@@ -3455,6 +3549,15 @@ export const WirePreviewSchema = z.object({
   source: z.enum(["WIRE", "FROZEN_PAYLOAD", "NOT_CAPTURED"]).optional().default("NOT_CAPTURED"),
   /** State */
   state: z.enum(["CAPTURED", "TRUNCATED", "UNSAFE_JSON", "EMPTY", "NOT_CAPTURED", "NO_RESPONSE"]).optional().default("NOT_CAPTURED"),
+})
+
+
+export const WorkAdmissionRequestSchema = z.object({
+  /** Client Request Id */
+  client_request_id: z.string().min(1).max(120),
+  data: z.lazy(() => ManualBinAdmissionDataSchema),
+  /** Expected Version */
+  expected_version: z.number().min(0),
 })
 
 

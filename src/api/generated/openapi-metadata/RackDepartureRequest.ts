@@ -14,9 +14,7 @@ export const RackDepartureRequestMetadata = {
   "required": [
     "expected_version",
     "client_request_id",
-    "rack_id",
-    "current_location_code",
-    "current_face"
+    "data"
   ],
   "additionalProperties": false,
   "fields": {
@@ -28,21 +26,10 @@ export const RackDepartureRequestMetadata = {
       "minLength": 1,
       "maxLength": 120
     },
-    "current_face": {
-      "title": "Current Face",
-      "type": "string",
+    "data": {
       "required": true,
       "nullable": false,
-      "minLength": 1,
-      "maxLength": 120
-    },
-    "current_location_code": {
-      "title": "Current Location Code",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 120
+      "ref": "RackDepartureData"
     },
     "expected_version": {
       "title": "Expected Version",
@@ -50,14 +37,6 @@ export const RackDepartureRequestMetadata = {
       "required": true,
       "nullable": false,
       "minimum": 0
-    },
-    "rack_id": {
-      "title": "Rack Id",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 120
     }
   }
 } satisfies OpenApiSchemaMetadata

@@ -1,5 +1,5 @@
 /**
- * 自动生成的 OpenAPI schema 字段元数据: BinReturnBatchRequest
+ * 自动生成的 OpenAPI schema 字段元数据: WorkAdmissionRequest
  *
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
@@ -9,8 +9,8 @@
 
 import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
-export const BinReturnBatchRequestMetadata = {
-  "title": "BinReturnBatchRequest",
+export const WorkAdmissionRequestMetadata = {
+  "title": "WorkAdmissionRequest",
   "required": [
     "expected_version",
     "client_request_id",
@@ -29,7 +29,7 @@ export const BinReturnBatchRequestMetadata = {
     "data": {
       "required": true,
       "nullable": false,
-      "ref": "BinReturnBatchData"
+      "ref": "ManualBinAdmissionData"
     },
     "expected_version": {
       "title": "Expected Version",

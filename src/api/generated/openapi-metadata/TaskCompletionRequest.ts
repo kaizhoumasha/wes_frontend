@@ -1,5 +1,5 @@
 /**
- * 自动生成的 OpenAPI schema 字段元数据: ClientActionRequest
+ * 自动生成的 OpenAPI schema 字段元数据: TaskCompletionRequest
  *
  * ⚠️  请勿手动编辑此文件
  * 此文件由 scripts/generate-api-types.ts 自动生成
@@ -9,11 +9,12 @@
 
 import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
-export const ClientActionRequestMetadata = {
-  "title": "ClientActionRequest",
+export const TaskCompletionRequestMetadata = {
+  "title": "TaskCompletionRequest",
   "required": [
     "expected_version",
-    "client_request_id"
+    "client_request_id",
+    "data"
   ],
   "additionalProperties": false,
   "fields": {
@@ -24,6 +25,11 @@ export const ClientActionRequestMetadata = {
       "nullable": false,
       "minLength": 1,
       "maxLength": 120
+    },
+    "data": {
+      "required": true,
+      "nullable": false,
+      "ref": "CompletionConfirmData"
     },
     "expected_version": {
       "title": "Expected Version",

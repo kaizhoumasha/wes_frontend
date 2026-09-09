@@ -14,7 +14,7 @@ export const PrepareTaskRequestMetadata = {
   "required": [
     "expected_version",
     "client_request_id",
-    "workline_code"
+    "data"
   ],
   "additionalProperties": false,
   "fields": {
@@ -26,20 +26,17 @@ export const PrepareTaskRequestMetadata = {
       "minLength": 1,
       "maxLength": 120
     },
+    "data": {
+      "required": true,
+      "nullable": false,
+      "ref": "PickingTaskPrepareData"
+    },
     "expected_version": {
       "title": "Expected Version",
       "type": "integer",
       "required": true,
       "nullable": false,
       "minimum": 0
-    },
-    "workline_code": {
-      "title": "Workline Code",
-      "type": "string",
-      "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 50
     }
   }
 } satisfies OpenApiSchemaMetadata
