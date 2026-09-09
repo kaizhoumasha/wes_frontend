@@ -12,6 +12,7 @@ export const opsRoutes: RouteRecordRaw = {
       SUPERUSER_PERMISSION,
       OPS_PERMISSIONS.transportTask.list,
       OPS_PERMISSIONS.transportDebugRun.list,
+      'ops:workline-integration-debug:list',
       OPS_PERMISSIONS.wmsDiagnostics.query,
       OPS_PERMISSIONS.wmsDiagnostics.stream
     ],
@@ -68,6 +69,22 @@ export const opsRoutes: RouteRecordRaw = {
       }
     },
     {
+      path: 'manual-outbound-integration',
+      name: 'ManualOutboundIntegration',
+      component: () =>
+        import('@/views/ops/manual-outbound-integration/ManualOutboundIntegrationPage.vue'),
+      meta: {
+        requiresAuth: true,
+        title: '手工出库联调',
+        permission: 'ops:workline-integration-debug:list',
+        menu: {
+          name: 'ops:workline-integration-debug:menu',
+          icon: 'ep:operation',
+          sortOrder: 4
+        }
+      }
+    },
+    {
       path: 'wms-diagnostics',
       name: 'WmsDiagnostics',
       component: () => import('@/views/ops/wms-diagnostics/WmsDiagnosticsPage.vue'),
@@ -75,7 +92,7 @@ export const opsRoutes: RouteRecordRaw = {
         requiresAuth: true,
         title: 'WMS 联调诊断',
         permissions: [OPS_PERMISSIONS.wmsDiagnostics.query, OPS_PERMISSIONS.wmsDiagnostics.stream],
-        menu: { name: 'ops:wms-diagnostics:menu', icon: 'ep:connection', sortOrder: 4 }
+        menu: { name: 'ops:wms-diagnostics:menu', icon: 'ep:connection', sortOrder: 5 }
       }
     }
   ]
