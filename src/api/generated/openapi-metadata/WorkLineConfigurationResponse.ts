@@ -11,13 +11,12 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
 export const WorkLineConfigurationResponseMetadata = {
   "title": "WorkLineConfigurationResponse",
-  "description": "业务插件配置全集保存结果。",
+  "description": "业务插件关联保存结果。",
   "required": [
     "workline_id",
     "version",
     "plugin_key",
-    "config",
-    "device_codes"
+    "config"
   ],
   "fields": {
     "config": {
@@ -25,15 +24,6 @@ export const WorkLineConfigurationResponseMetadata = {
       "type": "object",
       "required": true,
       "nullable": false
-    },
-    "device_codes": {
-      "title": "Device Codes",
-      "type": "array",
-      "required": true,
-      "nullable": false,
-      "items": {
-        "type": "string"
-      }
     },
     "plugin_key": {
       "title": "Plugin Key",

@@ -1,4 +1,4 @@
-/** @openapi-sha256 1464e875150d43ae788cdcb6d47864e3ae43855190069b2dc4901e9bf0d140fb */
+/** @openapi-sha256 e20fab5245fba09335d00037fe577e884955de70f29bc616c862d0b22da58b24 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -2807,6 +2807,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workline/work_lines/{id}/base-configuration": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:workline:base-configuration] 查询工作线基础配置 */
+        get: operations["workline_work_lines_by_id_base_configuration_get"];
+        /** [biz:workline:configure-base] 保存工作位与物理设备基础配置 */
+        put: operations["workline_work_lines_by_id_base_configuration_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workline/work_lines/{id}/configuration": {
         parameters: {
             query?: never;
@@ -2816,8 +2834,8 @@ export interface paths {
         };
         get?: never;
         /**
-         * [biz:workline:configure] 保存业务插件配置与设备全集
-         * @description 在一个事务中替换插件配置和 Device 归属。
+         * [biz:workline:configure] 保存业务插件关联与角色配置
+         * @description 仅替换插件关联，保持工作位和物理设备归属。
          */
         put: operations["workline_work_lines_by_id_configuration_put"];
         post?: never;
@@ -6122,6 +6140,8 @@ export interface components {
         ResponseSchemaModel_UserSimpleResponse_: ApiResponse<components["schemas"]["UserSimpleResponse"]>;
         /** ResponseSchemaModel[WorklineActiveObjectsResponse] */
         ResponseSchemaModel_WorklineActiveObjectsResponse_: ApiResponse<components["schemas"]["WorklineActiveObjectsResponse"]>;
+        /** ResponseSchemaModel[WorkLineBaseConfigurationResponse] */
+        ResponseSchemaModel_WorkLineBaseConfigurationResponse_: ApiResponse<components["schemas"]["WorkLineBaseConfigurationResponse"]>;
         /** ResponseSchemaModel[WorkLineConfigurationResponse] */
         ResponseSchemaModel_WorkLineConfigurationResponse_: ApiResponse<components["schemas"]["WorkLineConfigurationResponse"]>;
         /** ResponseSchemaModel[WorkLineConfigurationStatus] */
@@ -6811,6 +6831,34 @@ export interface components {
             primary_source?: string | null;
         };
         /**
+         * WorkLineBaseConfigurationResponse
+         * @description 已保存基础配置，版本与业务装配共用。
+         */
+        WorkLineBaseConfigurationResponse: {
+            /** Device Codes */
+            device_codes: string[];
+            /** Is Active */
+            is_active: boolean;
+            /** Positions */
+            positions: components["schemas"]["WorkLinePositionInput"][];
+            /** Version */
+            version: number;
+            /** Workline Id */
+            workline_id: number;
+        };
+        /**
+         * WorkLineBaseConfigurationUpdate
+         * @description 稳定的工作位与物理设备全集；不包含插件配置。
+         */
+        WorkLineBaseConfigurationUpdate: {
+            /** Device Codes */
+            device_codes: string[];
+            /** Positions */
+            positions: components["schemas"]["WorkLinePositionInput"][];
+            /** Version */
+            version: number;
+        };
+        /**
          * WorkLineConfigurationCheck
          * @description 作业线启用前结构化检查项。
          */
@@ -6842,15 +6890,13 @@ export interface components {
         };
         /**
          * WorkLineConfigurationResponse
-         * @description 业务插件配置全集保存结果。
+         * @description 业务插件关联保存结果。
          */
         WorkLineConfigurationResponse: {
             /** Config */
             config: {
                 [key: string]: unknown;
             };
-            /** Device Codes */
-            device_codes: string[];
             /** Plugin Key */
             plugin_key: string | null;
             /** Version */
@@ -6886,7 +6932,7 @@ export interface components {
         };
         /**
          * WorkLineConfigurationUpdate
-         * @description 停用 WorkLine 的插件配置与设备全集替换请求。
+         * @description 仅替换插件选择与角色映射，不修改本线物理资源。
          */
         WorkLineConfigurationUpdate: {
             /**
@@ -6896,11 +6942,6 @@ export interface components {
             config?: {
                 [key: string]: unknown;
             };
-            /**
-             * Device Codes
-             * @description 目标工作线设备编码全集
-             */
-            device_codes?: string[];
             /**
              * Plugin Key
              * @description 业务插件标识
@@ -6992,9 +7033,80 @@ export interface components {
             plugin_key: string;
             /** Plugin Version */
             plugin_version: string;
+            /**
+             * Position Slots
+             * @default []
+             */
+            position_slots: components["schemas"]["WorkLinePositionSlot"][];
             /** Supported Line Types */
             supported_line_types: components["schemas"]["LineType"][];
         };
+        /**
+         * WorkLinePositionInput
+         * @description 本线静态工作位；不包含承载物身份、占用或物理到位状态。
+         */
+        WorkLinePositionInput: {
+            allowed_rack_kind?: components["schemas"]["RackKind"] | null;
+            /**
+             * Capacity
+             * @default 1
+             */
+            capacity: number;
+            /**
+             * Device Id
+             * @description 关联本线物理设备 ID，与业务插件无关
+             */
+            device_id?: number | null;
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /** External Location Code */
+            external_location_code?: string | null;
+            /** Logic Location Code */
+            logic_location_code?: string | null;
+            /** Position Code */
+            position_code: string;
+            /** Position Name */
+            position_name: string;
+            position_role?: components["schemas"]["WorklineRackPositionRole"] | null;
+            /**
+             * Position Type
+             * @default RACK_POSITION
+             * @enum {string}
+             */
+            position_type: "RACK_POSITION" | "STATION";
+            /**
+             * Priority
+             * @default 100
+             */
+            priority: number;
+        };
+        /**
+         * WorkLinePositionSlot
+         * @description 插件工作位需求；执行位置类型来自插件合同，现场编码来自工作线。
+         */
+        WorkLinePositionSlot: {
+            allowed_rack_kind?: components["schemas"]["RackKind"] | null;
+            /** Display Name */
+            display_name: string;
+            /** Location Type */
+            location_type: string;
+            /**
+             * Position Type
+             * @enum {string}
+             */
+            position_type: "RACK_POSITION" | "STATION";
+            /** Slot Key */
+            slot_key: string;
+        };
+        /**
+         * WorklineRackPositionRole
+         * @description 工作线停靠位角色。
+         * @enum {string}
+         */
+        WorklineRackPositionRole: "SMT_CLASSIFIER_SINGLE_RACK_WORK" | "SMT_RACK_EXCHANGE_AREA" | "SMT_SORTER_QUEUE" | "SMT_SORTER_STATION" | "SMT_RETURN_RACK_POSITION" | "SMT_TRANSFER_RACK_POSITION" | "SMT_EMPTY_RACK_AREA";
         /**
          * WorkLineResponse
          * @description 作业线响应 Schema。
@@ -12357,6 +12469,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_list_WorkLinePluginSummary__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_work_lines_by_id_base_configuration_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_WorkLineBaseConfigurationResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_work_lines_by_id_base_configuration_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkLineBaseConfigurationUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_WorkLineBaseConfigurationResponse_"];
                 };
             };
             /** @description Validation Error */

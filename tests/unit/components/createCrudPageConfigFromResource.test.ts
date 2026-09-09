@@ -47,7 +47,7 @@ describe('createCrudPageConfigFromResource', () => {
       permissions: createPermissionPageConfig(),
       roles: createRolePageConfig(),
       users: createUserPageConfig(noop, noop),
-      worklines: createWorkLinePageConfig(noop, noop)
+      worklines: createWorkLinePageConfig(noop, noop, noop)
     }
 
     expect(configs.applications.resource.permissions).toEqual({

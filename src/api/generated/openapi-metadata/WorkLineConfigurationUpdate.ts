@@ -11,10 +11,11 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
 export const WorkLineConfigurationUpdateMetadata = {
   "title": "WorkLineConfigurationUpdate",
-  "description": "停用 WorkLine 的插件配置与设备全集替换请求。",
+  "description": "仅替换插件选择与角色映射，不修改本线物理资源。",
   "required": [
     "version"
   ],
+  "additionalProperties": false,
   "fields": {
     "config": {
       "title": "Config",
@@ -22,16 +23,6 @@ export const WorkLineConfigurationUpdateMetadata = {
       "type": "object",
       "required": false,
       "nullable": false
-    },
-    "device_codes": {
-      "title": "Device Codes",
-      "description": "目标工作线设备编码全集",
-      "type": "array",
-      "required": false,
-      "nullable": false,
-      "items": {
-        "type": "string"
-      }
     },
     "plugin_key": {
       "title": "Plugin Key",

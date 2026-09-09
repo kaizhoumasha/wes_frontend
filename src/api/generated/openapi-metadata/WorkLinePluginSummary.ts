@@ -64,6 +64,16 @@ export const WorkLinePluginSummaryMetadata = {
       "required": true,
       "nullable": false
     },
+    "position_slots": {
+      "title": "Position Slots",
+      "type": "array",
+      "required": false,
+      "nullable": false,
+      "default": [],
+      "items": {
+        "ref": "WorkLinePositionSlot"
+      }
+    },
     "supported_line_types": {
       "title": "Supported Line Types",
       "type": "array",
