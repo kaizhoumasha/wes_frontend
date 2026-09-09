@@ -1,4 +1,4 @@
-/** @openapi-sha256 e8a923d17f0db472955fbe4f909d1787b0d34012cb23a4ed9173584fc5f1b710 */
+/** @openapi-sha256 bea10254faefe516d43d0a2c22fe98545fc5c1319476ee9aa0f02d600d10dd10 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -2312,7 +2312,7 @@ export interface paths {
          *     1. 使用双方约定的隔离联调环境；`Try it out → Execute` 会发送真实请求并保存业务数据。
          *     2. 在 **Examples** 中选择样例；如果尚未进入编辑模式，先点 **Try it out**。每轮新测试更换 `task_id`，每个新消息使用新的小写 UUIDv7
          *        `operation_id`，`timestamp` 使用 UTC Unix 毫秒。货架、面、储位必须换成双方约定的实际业务编码。
-         *     3. `Content-Type` 为 `application/json`，Body 上限 256 KiB，禁止额外字段。WMS Event 当前采用隔离局域网 NONE
+         *     3. `Content-Type` 为 `application/json`，Body 上限 256 KiB，忽略冗余字段，校验已定义字段。WMS Event 当前采用隔离局域网 NONE
          *        认证，无需管理端 Bearer Token；401 表示入站策略未就绪，503 也可能表示对应运行时未就绪。
          *
          *     ### PickingTask 顺序测试
@@ -12601,35 +12601,47 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
-                    data: {
+                "application/json": ({
+                    data: ({
                         container_id: string;
+                        final_position?: unknown;
                         /** @enum {string} */
                         milestone: "SOURCE_PICKED";
                         transport_task_id: string;
-                    } | {
+                    } & {
+                        [key: string]: unknown;
+                    }) | ({
                         container_id: string;
+                        final_position?: unknown;
                         /** @enum {string} */
                         milestone: "POSITION_UNKNOWN";
                         transport_task_id: string;
-                    } | {
+                    } & {
+                        [key: string]: unknown;
+                    }) | ({
                         container_id: string;
-                        final_position: {
+                        final_position: ({
                             /** @enum {string} */
                             kind: "RACK_BIN_SLOT";
                             /** @description Opaque non-empty face value without NUL; preserve exactly */
                             rack_face: string;
                             rack_id: string;
                             slot_id: string;
-                        } | {
+                        } & {
+                            [key: string]: unknown;
+                        }) | ({
                             /** @enum {string} */
                             kind: "HANDOFF_POSITION";
                             location_code: string;
-                        };
+                        } & {
+                            [key: string]: unknown;
+                        });
                         /** @enum {string} */
                         milestone: "TARGET_PLACED";
                         transport_task_id: string;
-                    };
+                    } & {
+                        [key: string]: unknown;
+                    });
                     /** @enum {string} */
                     operation: "transport.task.member_position_changed@v1";
                     /** @description WMS 生成的小写 canonical UUIDv7 幂等号 */
@@ -12639,24 +12651,32 @@ export interface operations {
                      * @description Unix 毫秒时间戳
                      */
                     timestamp: number;
-                } | {
-                    data: {
+                } & {
+                    [key: string]: unknown;
+                }) | ({
+                    data: ({
                         /** @description Opaque non-empty face value without NUL; preserve exactly */
                         arrival_face: string;
+                        failure_code?: unknown;
                         final_position: {
                             /** @enum {string} */
                             kind: "RACK_POSITION";
                             location_code: string;
+                        } & {
+                            [key: string]: unknown;
                         };
                         /** @enum {string} */
                         kind: "RACK_MOVE" | "RACK_ROTATE";
                         /** Format: int64 */
                         outcome_revision: number;
+                        position_unknown?: unknown;
                         rack_id: string;
                         /** @enum {string} */
                         status: "SUCCEEDED";
                         transport_task_id: string;
-                    } | {
+                    } & {
+                        [key: string]: unknown;
+                    }) | ({
                         /** @description Opaque non-empty face value without NUL; preserve exactly */
                         arrival_face: string;
                         /** @enum {string} */
@@ -12665,18 +12685,25 @@ export interface operations {
                             /** @enum {string} */
                             kind: "RACK_POSITION";
                             location_code: string;
+                        } & {
+                            [key: string]: unknown;
                         };
                         /** @enum {string} */
                         kind: "RACK_MOVE" | "RACK_ROTATE";
                         /** Format: int64 */
                         outcome_revision: number;
+                        position_unknown?: unknown;
                         rack_id: string;
                         /** @enum {string} */
                         status: "FAILED";
                         transport_task_id: string;
-                    } | {
+                    } & {
+                        [key: string]: unknown;
+                    }) | ({
+                        arrival_face?: unknown;
                         /** @enum {string} */
                         failure_code: "POSITION_UNKNOWN";
+                        final_position?: unknown;
                         /** @enum {string} */
                         kind: "RACK_MOVE" | "RACK_ROTATE";
                         /** Format: int64 */
@@ -12687,105 +12714,153 @@ export interface operations {
                         /** @enum {string} */
                         status: "FAILED";
                         transport_task_id: string;
-                    } | {
+                    } & {
+                        [key: string]: unknown;
+                    }) | ({
                         /** @enum {string} */
                         kind: "BIN_MOVE";
                         /** Format: int64 */
                         outcome_revision: number;
-                        results: ({
+                        results: (({
+                            arrival_face?: unknown;
                             container_id: string;
-                            final_position: {
+                            failure_code?: unknown;
+                            final_position: ({
                                 /** @enum {string} */
                                 kind: "RACK_BIN_SLOT";
                                 /** @description Opaque non-empty face value without NUL; preserve exactly */
                                 rack_face: string;
                                 rack_id: string;
                                 slot_id: string;
-                            } | {
+                            } & {
+                                [key: string]: unknown;
+                            }) | ({
                                 /** @enum {string} */
                                 kind: "HANDOFF_POSITION";
                                 location_code: string;
-                            };
+                            } & {
+                                [key: string]: unknown;
+                            });
+                            position_unknown?: unknown;
                             /** @enum {string} */
                             status: "SUCCEEDED";
-                        } | {
+                        } & {
+                            [key: string]: unknown;
+                        }) | ({
+                            arrival_face?: unknown;
                             container_id: string;
                             /** @enum {string} */
                             failure_code: "MANUAL_ABORTED" | "RCS_EXECUTION_FAILED" | "RCS_TASK_REJECTED";
-                            final_position: {
+                            final_position: ({
                                 /** @enum {string} */
                                 kind: "RACK_BIN_SLOT";
                                 /** @description Opaque non-empty face value without NUL; preserve exactly */
                                 rack_face: string;
                                 rack_id: string;
                                 slot_id: string;
-                            } | {
+                            } & {
+                                [key: string]: unknown;
+                            }) | ({
                                 /** @enum {string} */
                                 kind: "HANDOFF_POSITION";
                                 location_code: string;
-                            };
+                            } & {
+                                [key: string]: unknown;
+                            });
+                            position_unknown?: unknown;
                             /** @enum {string} */
                             status: "FAILED";
-                        } | {
+                        } & {
+                            [key: string]: unknown;
+                        }) | ({
+                            arrival_face?: unknown;
                             container_id: string;
                             /** @enum {string} */
                             failure_code: "POSITION_UNKNOWN";
+                            final_position?: unknown;
                             /** @enum {boolean} */
                             position_unknown: true;
                             /** @enum {string} */
                             status: "FAILED";
-                        })[];
+                        } & {
+                            [key: string]: unknown;
+                        }))[];
                         transport_task_id: string;
-                    } | {
+                    } & {
+                        [key: string]: unknown;
+                    }) | ({
                         /** @enum {string} */
                         kind: "BIN_EXCHANGE";
                         /** Format: int64 */
                         outcome_revision: number;
-                        results: ({
+                        results: (({
+                            arrival_face?: unknown;
                             container_id: string;
-                            final_position: {
+                            failure_code?: unknown;
+                            final_position: ({
                                 /** @enum {string} */
                                 kind: "RACK_BIN_SLOT";
                                 /** @description Opaque non-empty face value without NUL; preserve exactly */
                                 rack_face: string;
                                 rack_id: string;
                                 slot_id: string;
-                            } | {
+                            } & {
+                                [key: string]: unknown;
+                            }) | ({
                                 /** @enum {string} */
                                 kind: "HANDOFF_POSITION";
                                 location_code: string;
-                            };
+                            } & {
+                                [key: string]: unknown;
+                            });
+                            position_unknown?: unknown;
                             /** @enum {string} */
                             status: "SUCCEEDED";
-                        } | {
+                        } & {
+                            [key: string]: unknown;
+                        }) | ({
+                            arrival_face?: unknown;
                             container_id: string;
                             /** @enum {string} */
                             failure_code: "MANUAL_ABORTED" | "RCS_EXECUTION_FAILED" | "RCS_TASK_REJECTED";
-                            final_position: {
+                            final_position: ({
                                 /** @enum {string} */
                                 kind: "RACK_BIN_SLOT";
                                 /** @description Opaque non-empty face value without NUL; preserve exactly */
                                 rack_face: string;
                                 rack_id: string;
                                 slot_id: string;
-                            } | {
+                            } & {
+                                [key: string]: unknown;
+                            }) | ({
                                 /** @enum {string} */
                                 kind: "HANDOFF_POSITION";
                                 location_code: string;
-                            };
+                            } & {
+                                [key: string]: unknown;
+                            });
+                            position_unknown?: unknown;
                             /** @enum {string} */
                             status: "FAILED";
-                        } | {
+                        } & {
+                            [key: string]: unknown;
+                        }) | ({
+                            arrival_face?: unknown;
                             container_id: string;
                             /** @enum {string} */
                             failure_code: "POSITION_UNKNOWN";
+                            final_position?: unknown;
                             /** @enum {boolean} */
                             position_unknown: true;
                             /** @enum {string} */
                             status: "FAILED";
-                        })[];
+                        } & {
+                            [key: string]: unknown;
+                        }))[];
                         transport_task_id: string;
-                    };
+                    } & {
+                        [key: string]: unknown;
+                    });
                     /** @enum {string} */
                     operation: "transport.task.resulted@v1";
                     /** @description WMS 生成的小写 canonical UUIDv7 幂等号 */
@@ -12795,24 +12870,32 @@ export interface operations {
                      * @description Unix 毫秒时间戳
                      */
                     timestamp: number;
-                } | {
-                    data: {
-                        authoritative_position: {
+                } & {
+                    [key: string]: unknown;
+                }) | ({
+                    data: ({
+                        authoritative_position: ({
                             location_code: string & (unknown & unknown);
                             /** @enum {string} */
                             type: "HANDOFF_POSITION";
-                        } | {
+                        } & {
+                            [key: string]: unknown;
+                        }) | ({
                             location_code: string & (unknown & unknown);
                             /** @enum {string} */
                             type: "NG_POSITION";
-                        } | {
+                        } & {
+                            [key: string]: unknown;
+                        }) | ({
                             bin_cell_id: string & (unknown & unknown);
                             bin_code: string & (unknown & unknown);
                             rack_id: string & (unknown & unknown);
                             rack_slot_code: string & (unknown & unknown);
                             /** @enum {string} */
                             type: "ONE_LAYER_BIN_CELL";
-                        } | null;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
                         /** @enum {string} */
                         decision: "CONTINUE" | "ABORT";
                         material_execution_id: string & (unknown & unknown);
@@ -12820,7 +12903,9 @@ export interface operations {
                         reason_code: string & (unknown & unknown);
                         reconciling_evidence_id: string & (unknown & unknown);
                         recovery_id: string & (unknown & unknown);
-                    } & unknown;
+                    } & {
+                        [key: string]: unknown;
+                    }) & unknown;
                     /** @enum {string} */
                     operation: "inbound.execution.recovery_decided@v1";
                     operation_id: string;
@@ -12829,7 +12914,9 @@ export interface operations {
                      * @description Unix 毫秒时间戳
                      */
                     timestamp: number;
-                } | {
+                } & {
+                    [key: string]: unknown;
+                }) | ({
                     data: {
                         dispatch_sequence: number;
                         /**
@@ -12841,6 +12928,8 @@ export interface operations {
                         task_id: string;
                         /** @enum {string} */
                         task_type: "MANUAL" | "AUTO";
+                    } & {
+                        [key: string]: unknown;
                     };
                     /** @enum {string} */
                     operation: "outbound.picking_task.issued@v1";
@@ -12850,28 +12939,40 @@ export interface operations {
                      * @description Unix 毫秒时间戳
                      */
                     timestamp: number;
-                } | {
-                    data: {
-                        added_bin_source_racks?: {
+                } & {
+                    [key: string]: unknown;
+                }) | ({
+                    data: ({
+                        added_bin_source_racks?: ({
                             rack_face: string;
                             rack_id: string;
-                        }[];
-                        added_direct_picks?: {
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        added_direct_picks?: ({
                             source_locator: {
                                 rack_face: string;
                                 rack_id: string;
                                 slot_id: string;
                                 /** @enum {string} */
                                 type: "RACK_SLOT";
+                            } & {
+                                [key: string]: unknown;
                             };
-                        }[];
+                        } & {
+                            [key: string]: unknown;
+                        })[];
                         plan_revision: number;
                         target_rack?: {
                             rack_face: string;
                             rack_id: string;
+                        } & {
+                            [key: string]: unknown;
                         };
                         task_id: string;
-                    } & ({
+                    } & {
+                        [key: string]: unknown;
+                    }) & ({
                         /** @constant */
                         plan_revision?: 1;
                     } | ({
@@ -12885,8 +12986,10 @@ export interface operations {
                      * @description Unix 毫秒时间戳
                      */
                     timestamp: number;
-                } | {
-                    data: {
+                } & {
+                    [key: string]: unknown;
+                }) | ({
+                    data: ({
                         dispatch_sequence?: number;
                         /**
                          * Format: int64
@@ -12895,7 +12998,9 @@ export interface operations {
                         not_before?: number;
                         queue_revision: number;
                         task_id: string;
-                    } | unknown | unknown;
+                    } & {
+                        [key: string]: unknown;
+                    }) | unknown | unknown;
                     /** @enum {string} */
                     operation: "outbound.picking_task.queue_changed@v1";
                     operation_id: string;
@@ -12904,7 +13009,9 @@ export interface operations {
                      * @description Unix 毫秒时间戳
                      */
                     timestamp: number;
-                } | {
+                } & {
+                    [key: string]: unknown;
+                }) | ({
                     data: {
                         bin_code: string;
                         /**
@@ -12915,6 +13022,8 @@ export interface operations {
                         /** @enum {string} */
                         result: "NORMAL" | "NG";
                         task_id: string;
+                    } & {
+                        [key: string]: unknown;
                     };
                     /** @enum {string} */
                     operation: "outbound.manual_bin.work_completed@v1";
@@ -12924,7 +13033,9 @@ export interface operations {
                      * @description Unix 毫秒时间戳
                      */
                     timestamp: number;
-                };
+                } & {
+                    [key: string]: unknown;
+                });
             };
         };
         responses: {
@@ -12937,9 +13048,13 @@ export interface operations {
                     "application/json": {
                         /** @enum {string} */
                         code: "DUPLICATE";
-                        data: {
+                        data: ({
                             transport_task_id: string;
-                        } | Record<string, never>;
+                        } & {
+                            [key: string]: unknown;
+                        }) | {
+                            [key: string]: unknown;
+                        };
                         /** @description WMS 生成的小写 canonical UUIDv7 幂等号 */
                         operation_id: string;
                         /**
@@ -12947,6 +13062,8 @@ export interface operations {
                          * @description Unix 毫秒时间戳
                          */
                         timestamp: number;
+                    } & {
+                        [key: string]: unknown;
                     };
                 };
             };
@@ -12959,9 +13076,13 @@ export interface operations {
                     "application/json": {
                         /** @enum {string} */
                         code: "RECEIVED";
-                        data: {
+                        data: ({
                             transport_task_id: string;
-                        } | Record<string, never>;
+                        } & {
+                            [key: string]: unknown;
+                        }) | {
+                            [key: string]: unknown;
+                        };
                         /** @description WMS 生成的小写 canonical UUIDv7 幂等号 */
                         operation_id: string;
                         /**
@@ -12969,6 +13090,8 @@ export interface operations {
                          * @description Unix 毫秒时间戳
                          */
                         timestamp: number;
+                    } & {
+                        [key: string]: unknown;
                     };
                 };
             };
@@ -12995,9 +13118,13 @@ export interface operations {
                     "application/json": {
                         /** @enum {string} */
                         code: "CONFLICT";
-                        data: Record<string, never> | {
+                        data: {
+                            [key: string]: unknown;
+                        } | ({
                             transport_task_id: string;
-                        } | {
+                        } & {
+                            [key: string]: unknown;
+                        }) | {
                             /**
                              * Reason Code
                              * @enum {string}
@@ -13011,6 +13138,8 @@ export interface operations {
                          * @description Unix 毫秒时间戳
                          */
                         timestamp: number;
+                    } & {
+                        [key: string]: unknown;
                     };
                 };
             };
@@ -13030,17 +13159,23 @@ export interface operations {
                     "application/json": {
                         /** @enum {string} */
                         code: "REJECTED";
-                        data: {
+                        data: ({
                             /** @enum {string} */
                             reason_code: "INVALID_EVIDENCE" | "UNSUPPORTED_OPERATION";
-                        } | {
+                        } & {
+                            [key: string]: unknown;
+                        }) | ({
                             /** @enum {string} */
                             reason_code: "INVALID_EVIDENCE" | "UNSUPPORTED_OPERATION";
                             transport_task_id: string;
-                        } | {
+                        } & {
+                            [key: string]: unknown;
+                        }) | ({
                             /** @enum {string} */
                             reason_code: "INVALID_DATA" | "UNSUPPORTED_OPERATION";
-                        };
+                        } & {
+                            [key: string]: unknown;
+                        });
                         /** @description WMS 生成的小写 canonical UUIDv7 幂等号 */
                         operation_id: string;
                         /**
@@ -13048,6 +13183,8 @@ export interface operations {
                          * @description Unix 毫秒时间戳
                          */
                         timestamp: number;
+                    } & {
+                        [key: string]: unknown;
                     };
                 };
             };
@@ -13060,7 +13197,9 @@ export interface operations {
                     "application/json": {
                         /** @enum {string} */
                         code: "UNAVAILABLE";
-                        data: Record<string, never>;
+                        data: {
+                            [key: string]: unknown;
+                        };
                         /** @description WMS 生成的小写 canonical UUIDv7 幂等号 */
                         operation_id: string;
                         /**
@@ -13068,6 +13207,8 @@ export interface operations {
                          * @description Unix 毫秒时间戳
                          */
                         timestamp: number;
+                    } & {
+                        [key: string]: unknown;
                     };
                 };
             };

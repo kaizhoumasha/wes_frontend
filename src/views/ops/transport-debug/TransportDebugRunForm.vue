@@ -8,7 +8,6 @@ defineProps<{
 }>()
 const emit = defineEmits<{
   'update:totalRounds': [rounds: number | undefined]
-  'update:worklineCode': [code: string]
   'update:rackId': [rackId: string]
 }>()
 </script>
@@ -18,15 +17,6 @@ const emit = defineEmits<{
     data-test="run-config"
   >
     <div class="config-toolbar">
-      <label>
-        工作线编码
-        <el-input
-          :model-value="config.worklineCode.value"
-          aria-label="自动联调工作线编码"
-          placeholder="已启用的工作线编码"
-          @update:model-value="emit('update:worklineCode', $event)"
-        />
-      </label>
       <label>
         联调轮数
         <el-input-number

@@ -15,7 +15,6 @@ export const PickingTaskPrepareDataMetadata = {
     "task_id",
     "workline_code"
   ],
-  "additionalProperties": false,
   "fields": {
     "task_id": {
       "title": "Task Id",

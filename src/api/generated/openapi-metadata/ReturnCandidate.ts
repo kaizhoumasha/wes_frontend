@@ -16,7 +16,6 @@ export const ReturnCandidateMetadata = {
     "bin_code",
     "source"
   ],
-  "additionalProperties": false,
   "fields": {
     "bin_code": {
       "title": "Bin Code",

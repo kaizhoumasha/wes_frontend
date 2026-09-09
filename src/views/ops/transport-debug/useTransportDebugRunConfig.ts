@@ -107,7 +107,7 @@ export function buildTransportDebugRunPreview(
         bin_code: bin.bin_code,
         source: { type: 'HANDOFF_POSITION', location_code: 'CNV0302' }
       })),
-      next: '取得 WMS 分配的目标槽位后创建回架任务；每箱成功到位后保存实际槽位'
+      next: '优先使用 WMS 分配；NO_BATCH 按已成功出库记录退回原槽位；每箱成功后保存实际槽位'
     })
   })
   steps.push({
@@ -121,7 +121,7 @@ export function buildTransportDebugRunPreview(
 }
 
 export function useTransportDebugRunConfig() {
-  const worklineCode = ref('')
+  const worklineCode = ref('KT16')
   const rackId = ref('510056')
   const groups = ref<TransportDebugFaceGroupDraft[]>([
     {

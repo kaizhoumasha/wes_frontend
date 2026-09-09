@@ -19,7 +19,6 @@ export const ManualBinAppliedMetadata = {
     "apply_result",
     "occurred_at"
   ],
-  "additionalProperties": false,
   "fields": {
     "apply_result": {
       "description": "discriminator enum property added by openapi-typescript",

@@ -21,7 +21,6 @@ export const EcsDeviceRuntimeStateMetadata = {
     "scenario",
     "updated_at"
   ],
-  "additionalProperties": false,
   "fields": {
     "current_command_code": {
       "title": "Current Command Code",

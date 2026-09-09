@@ -17,7 +17,6 @@ export const BinReturnBatchDataMetadata = {
     "rack_face",
     "return_candidates"
   ],
-  "additionalProperties": false,
   "fields": {
     "rack_face": {
       "title": "Rack Face",
