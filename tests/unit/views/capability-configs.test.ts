@@ -27,7 +27,7 @@ describe('capability configs', () => {
       ),
       createRolePageConfig(),
       createDevicePageConfig(),
-      createWorkLinePageConfig(vi.fn(), vi.fn()),
+      createWorkLinePageConfig(vi.fn(), vi.fn(), vi.fn(), () => true),
       createAPIApplicationPageConfig()
     ]
 

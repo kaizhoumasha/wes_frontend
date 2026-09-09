@@ -1,4 +1,4 @@
-/** @openapi-sha256 1464e875150d43ae788cdcb6d47864e3ae43855190069b2dc4901e9bf0d140fb */
+/** @openapi-sha256 e20fab5245fba09335d00037fe577e884955de70f29bc616c862d0b22da58b24 */
 /**
  * Zod Validation Schemas
  *
@@ -3138,6 +3138,54 @@ export const WirePreviewSchema = z.object({
 
 
 /**
+ * 已保存基础配置，版本与业务装配共用。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const WorkLineBaseConfigurationResponseSchema = z.object({
+  /** Device Codes */
+  device_codes: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())),
+  /** Is Active */
+  is_active: z.boolean(),
+  /** Positions */
+  positions: z.array(z.lazy(() => WorkLinePositionInputSchema)),
+  /** Version */
+  version: z.number(),
+  /** Workline Id */
+  workline_id: z.number(),
+})
+
+
+/**
+ * 稳定的工作位与物理设备全集；不包含插件配置。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const WorkLineBaseConfigurationUpdateSchema = z.object({
+  /** Device Codes */
+  device_codes: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())),
+  /** Positions */
+  positions: z.array(z.lazy(() => WorkLinePositionInputSchema)),
+  /** Version */
+  version: z.number(),
+})
+
+
+/**
  * 作业线启用前结构化检查项。
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -3156,7 +3204,7 @@ export const WorkLineConfigurationCheckSchema = z.object({
 
 
 /**
- * 业务插件配置全集保存结果。
+ * 业务插件关联保存结果。
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
@@ -3164,14 +3212,6 @@ export const WorkLineConfigurationCheckSchema = z.object({
 export const WorkLineConfigurationResponseSchema = z.object({
   /** Config */
   config: z.record(z.any()),
-  /** Device Codes */
-  device_codes: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
-        return val
-      }, z.array(z.string())),
   /** Plugin Key */
   plugin_key: z.union([z.string(), z.null()]),
   /** Version */
@@ -3200,7 +3240,7 @@ export const WorkLineConfigurationStatusSchema = z.object({
 
 
 /**
- * 停用 WorkLine 的插件配置与设备全集替换请求。
+ * 仅替换插件选择与角色映射，不修改本线物理资源。
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
  * 如需添加自定义验证，请在扩展文件中修改
@@ -3208,14 +3248,6 @@ export const WorkLineConfigurationStatusSchema = z.object({
 export const WorkLineConfigurationUpdateSchema = z.object({
   /** Config */
   config: z.record(z.any()).optional(),
-  /** Device Codes */
-  device_codes: z.preprocess((val) => {
-        // 如果输入是字符串（换行符分隔），转换为数组
-        if (typeof val === 'string') {
-          return val.split('\n').map(s => s.trim()).filter(s => s)
-        }
-        return val
-      }, z.array(z.string())).optional(),
   /** Plugin Key */
   plugin_key: z.union([z.string().min(1).max(100), z.null()]).optional(),
   /** Version */
@@ -3288,8 +3320,59 @@ export const WorkLinePluginSummarySchema = z.object({
   plugin_key: z.string(),
   /** Plugin Version */
   plugin_version: z.string(),
+  /** Position Slots */
+  position_slots: z.array(z.lazy(() => WorkLinePositionSlotSchema)).optional().default([]),
   /** Supported Line Types */
   supported_line_types: z.array(z.lazy(() => LineTypeSchema)),
+})
+
+
+/**
+ * 本线静态工作位；不包含承载物身份、占用或物理到位状态。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const WorkLinePositionInputSchema = z.object({
+  allowed_rack_kind: z.union([z.lazy(() => RackKindSchema), z.null()]).optional(),
+  /** Capacity */
+  capacity: z.number().min(1).optional().default(1),
+  /** Device Id */
+  device_id: z.union([z.number(), z.null()]).optional(),
+  /** Enabled */
+  enabled: z.boolean().optional().default(true),
+  /** External Location Code */
+  external_location_code: z.union([z.string().min(1).max(120), z.null()]).optional(),
+  /** Logic Location Code */
+  logic_location_code: z.union([z.string().min(1).max(120), z.null()]).optional(),
+  /** Position Code */
+  position_code: z.string().min(1).max(80),
+  /** Position Name */
+  position_name: z.string().min(1).max(120),
+  position_role: z.union([z.lazy(() => WorklineRackPositionRoleSchema), z.null()]).optional(),
+  /** Position Type */
+  position_type: z.enum(["RACK_POSITION", "STATION"]).optional().default("RACK_POSITION"),
+  /** Priority */
+  priority: z.number().min(0).optional().default(100),
+})
+
+
+/**
+ * 插件工作位需求；执行位置类型来自插件合同，现场编码来自工作线。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const WorkLinePositionSlotSchema = z.object({
+  allowed_rack_kind: z.union([z.lazy(() => RackKindSchema), z.null()]).optional(),
+  /** Display Name */
+  display_name: z.string().min(1).max(100),
+  /** Location Type */
+  location_type: z.string().min(1).max(100),
+  /** Position Type */
+  position_type: z.enum(["RACK_POSITION", "STATION"]),
+  /** Slot Key */
+  slot_key: z.string().min(1).max(100),
 })
 
 
@@ -3492,6 +3575,15 @@ export const WorklineActiveObjectsResponseSchema = z.object({
   /** Workline Id */
   workline_id: z.number(),
 })
+
+
+/**
+ * 工作线停靠位角色。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const WorklineRackPositionRoleSchema = z.enum(["SMT_CLASSIFIER_SINGLE_RACK_WORK", "SMT_RACK_EXCHANGE_AREA", "SMT_SORTER_QUEUE", "SMT_SORTER_STATION", "SMT_RETURN_RACK_POSITION", "SMT_TRANSFER_RACK_POSITION", "SMT_EMPTY_RACK_AREA"])
 
 
 export const _BinExchangeDataSchema = z.object({
