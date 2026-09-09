@@ -49,6 +49,7 @@ const permissionAccess = computed(() => ({
   refreshPlan: hasPermission(PERMISSION.refreshPlan),
   refreshTransport: hasPermission(PERMISSION.refreshTransport),
   refreshWms: hasPermission(PERMISSION.refreshWms),
+  retryWms: hasPermission(PERMISSION.retryWms),
   stream: hasPermission(PERMISSION.stream),
   takeover: hasPermission(PERMISSION.takeover),
   taskCompletion: hasPermission(PERMISSION.taskCompletion),
@@ -57,6 +58,7 @@ const permissionAccess = computed(() => ({
 }))
 const busy = ref(false)
 const taskId = ref('')
+const wmsPrepareWorklineCode = ref('KT16')
 const binCode = ref('')
 const completionOperationId = ref('')
 const batchRackId = ref('')
@@ -286,6 +288,23 @@ const lastRefreshableWmsStep = computed(() =>
     .reverse()
     .find(step => step.wms_confirmation_id && isRefreshableStep(step))
 )
+const retryablePrepareStep = computed(() => {
+  if (
+    run.value?.status !== 'NEEDS_ATTENTION' ||
+    run.value.current_phase !== 'TASK_PREPARE' ||
+    run.value.attention_code !== 'WMS_CONFIRMATION_RECONCILING'
+  )
+    return undefined
+  return [...run.value.steps]
+    .reverse()
+    .find(
+      step =>
+        step.phase === 'TASK_PREPARE' &&
+        step.status === 'NEEDS_ATTENTION' &&
+        step.reason_code === 'WMS_CONFIRMATION_RECONCILING' &&
+        !!step.client_request_id
+    )
+})
 const lastRefreshableTransportStep = computed(() =>
   [...(run.value?.steps ?? [])]
     .reverse()
@@ -349,6 +368,7 @@ const canReportAttention = computed(
 )
 const primaryLabel = computed(() => {
   if (!run.value) return '创建联调 Run'
+  if (retryablePrepareStep.value) return '确认 WMS 未接收并重发 prepare'
   if (lastRefreshableWmsStep.value) return '刷新 WMS 结果'
   if (lastRefreshableTransportStep.value) return '刷新 Transport 结果'
   if (lastRefreshableDeviceStep.value) return '刷新 ECS 指令结果'
@@ -379,6 +399,7 @@ const primaryLabel = computed(() => {
 })
 const hasPrimaryPermission = computed(() => {
   if (!run.value) return permissionAccess.value.create
+  if (retryablePrepareStep.value) return permissionAccess.value.retryWms
   if (lastRefreshableWmsStep.value) return permissionAccess.value.refreshWms
   if (lastRefreshableTransportStep.value) return permissionAccess.value.refreshTransport
   if (lastRefreshableDeviceStep.value) return permissionAccess.value.refreshDevice
@@ -460,6 +481,26 @@ async function primaryAction(): Promise<void> {
     ElMessage.warning(`当前应操作 ${phaseLabels[current.current_phase]}`)
     return
   }
+  if (retryablePrepareStep.value?.client_request_id) {
+    const code = wmsPrepareWorklineCode.value.trim()
+    if (!code) {
+      ElMessage.warning('请填写 WMS prepare 的 workline_code')
+      return
+    }
+    await ElMessageBox.confirm(
+      `WMS 团队必须已确认未接收原请求。将按 workline_code=${code} 重发；参数变化时使用新的 operation_id。`,
+      '确认重发 prepare',
+      { type: 'warning', confirmButtonText: '确认并发送' }
+    )
+    return invoke(() =>
+      api.retryWms(current.run_id, {
+        expected_version: current.version,
+        client_request_id: retryablePrepareStep.value!.client_request_id!,
+        workline_code: code,
+        wms_non_receipt_confirmed: true
+      })
+    )
+  }
   if (lastRefreshableWmsStep.value?.client_request_id) {
     return invoke(() =>
       api.refreshWms(current.run_id, {
@@ -494,10 +535,18 @@ async function primaryAction(): Promise<void> {
         api.bindTask(current.run_id, versioned(current, { task_id: taskId.value.trim() }))
       )
     case 'TASK_PREPARE':
+      if (!wmsPrepareWorklineCode.value.trim()) {
+        ElMessage.warning('请填写 WMS prepare 的 workline_code')
+        return
+      }
       return invokeStableAction(
         current,
         'prepare-task',
-        () => versioned(current, { client_request_id: createUuid7() }),
+        () =>
+          versioned(current, {
+            client_request_id: createUuid7(),
+            workline_code: wmsPrepareWorklineCode.value.trim()
+          }),
         body => api.prepareTask(current.run_id, body)
       )
     case 'PLAN_RECEIPT':
@@ -1175,6 +1224,14 @@ onUnmounted(() => {
         <label v-if="selectedPhase === 'BIN_INBOUND_BATCH'">
           max_bin_count（本期固定）
           <code>1</code>
+        </label>
+        <label v-if="selectedPhase === 'TASK_PREPARE'">
+          WMS prepare workline_code
+          <el-input
+            v-model="wmsPrepareWorklineCode"
+            placeholder="sorting-3 现场使用 KT16"
+          />
+          <small>WES 工作线仍为 sorting-3；该值发送给 WMS，现场约定为 KT16。</small>
         </label>
         <label v-if="selectedPhase === 'BIN_RETURN_BATCH'">
           回流缓存 location_code

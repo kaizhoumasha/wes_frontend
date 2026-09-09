@@ -1,4 +1,4 @@
-/** @openapi-sha256 d2c516a26865f2ec2d9cea3cc151c392fa3f201253e6643f8e465b749766e76f */
+/** @openapi-sha256 d611df5f5b623c1135f5b0b3ff23c8bfc7a8f2bab94e4cadb3c573cf88888e93 */
 /**
  * Zod Validation Schemas
  *
@@ -2410,6 +2410,16 @@ export const Point2ScanRequestSchema = z.object({
 })
 
 
+export const PrepareTaskRequestSchema = z.object({
+  /** Client Request Id */
+  client_request_id: z.string().min(1).max(120),
+  /** Expected Version */
+  expected_version: z.number().min(0),
+  /** Workline Code */
+  workline_code: z.string().min(1).max(50),
+})
+
+
 /**
  * 查询选项
  *
@@ -2847,6 +2857,18 @@ export const ResourceStateEventTypeSchema = z.enum(["RACK_ARRIVED", "RACK_DEPART
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const ResourceTypeSchema = z.enum(["RACK", "BIN", "MATERIAL"])
+
+
+export const RetryWmsActionRequestSchema = z.object({
+  /** Client Request Id */
+  client_request_id: z.string().min(1).max(120),
+  /** Expected Version */
+  expected_version: z.number().min(0),
+  /** Wms Non Receipt Confirmed */
+  wms_non_receipt_confirmed: z.literal(true),
+  /** Workline Code */
+  workline_code: z.string().min(1).max(50),
+})
 
 
 /**

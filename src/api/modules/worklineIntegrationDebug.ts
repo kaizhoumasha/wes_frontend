@@ -104,6 +104,10 @@ export type WmsRefreshResult = ContractResponseData<'/api/v1/workline-integratio
 export type WmsRefreshPathParams = ContractPathParams<'/api/v1/workline-integration-debug/runs/{run_id}/wms/refresh', 'post'>
 export type WmsRefreshInput = ContractRequestBody<'/api/v1/workline-integration-debug/runs/{run_id}/wms/refresh', 'post'>
 
+export type WmsRetryResult = ContractResponseData<'/api/v1/workline-integration-debug/runs/{run_id}/wms/retry', 'post'>
+export type WmsRetryPathParams = ContractPathParams<'/api/v1/workline-integration-debug/runs/{run_id}/wms/retry', 'post'>
+export type WmsRetryInput = ContractRequestBody<'/api/v1/workline-integration-debug/runs/{run_id}/wms/retry', 'post'>
+
 export type WmsTaskCompletionResult = ContractResponseData<'/api/v1/workline-integration-debug/runs/{run_id}/wms/task-completion', 'post'>
 export type WmsTaskCompletionPathParams = ContractPathParams<'/api/v1/workline-integration-debug/runs/{run_id}/wms/task-completion', 'post'>
 export type WmsTaskCompletionInput = ContractRequestBody<'/api/v1/workline-integration-debug/runs/{run_id}/wms/task-completion', 'post'>
@@ -318,6 +322,15 @@ export const worklineIntegrationDebugApiMethods = {
    */
   wmsRefresh(params: ContractPathParams<'/api/v1/workline-integration-debug/runs/{run_id}/wms/refresh', 'post'>, body: ContractRequestBody<'/api/v1/workline-integration-debug/runs/{run_id}/wms/refresh', 'post'>, config?: ContractRequestConfig) {
     return contractMethods.post('/api/v1/workline-integration-debug/runs/{run_id}/wms/refresh', { params, body, config })
+  },
+
+  /**
+   * [ops:workline-integration-debug:operate] 确认 WMS 未接收并重发 prepare；参数变更时使用新身份
+   * @endpoint POST /api/v1/workline-integration-debug/runs/{run_id}/wms/retry
+   * @returns alova method instance
+   */
+  wmsRetry(params: ContractPathParams<'/api/v1/workline-integration-debug/runs/{run_id}/wms/retry', 'post'>, body: ContractRequestBody<'/api/v1/workline-integration-debug/runs/{run_id}/wms/retry', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/workline-integration-debug/runs/{run_id}/wms/retry', { params, body, config })
   },
 
   /**

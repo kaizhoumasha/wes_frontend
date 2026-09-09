@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.1.0] - 2026-09-09
+
+### Fixed
+
+- 手工出库联调台将 WES `sorting-3` 与 WMS prepare 的 `workline_code` 分开，现场默认值为 `KT16`，管理员可在发送前调整。
+- prepare 进入对账后，页面明确要求 WMS 团队确认未接收；参数不变时重发原身份，参数改正时发送新的 `operation_id`，不再把“刷新结果”误作重发。
+
 ## [0.20.0.0] - 2026-09-09
 
 ### Added

@@ -1,4 +1,4 @@
-/** @openapi-sha256 d2c516a26865f2ec2d9cea3cc151c392fa3f201253e6643f8e465b749766e76f */
+/** @openapi-sha256 d611df5f5b623c1135f5b0b3ff23c8bfc7a8f2bab94e4cadb3c573cf88888e93 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -3049,6 +3049,23 @@ export interface paths {
         put?: never;
         /** [ops:workline-integration-debug:operate] 按持久化 WMS 响应推进联调状态 */
         post: operations["workline_integration_debug_runs_by_run_id_wms_refresh_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline-integration-debug/runs/{run_id}/wms/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [ops:workline-integration-debug:operate] 确认 WMS 未接收并重发 prepare；参数变更时使用新身份 */
+        post: operations["workline_integration_debug_runs_by_run_id_wms_retry_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6111,6 +6128,15 @@ export interface components {
             /** Scanned At */
             scanned_at: number;
         };
+        /** PrepareTaskRequest */
+        PrepareTaskRequest: {
+            /** Client Request Id */
+            client_request_id: string;
+            /** Expected Version */
+            expected_version: number;
+            /** Workline Code */
+            workline_code: string;
+        };
         /**
          * QueryOptions
          * @description 查询选项
@@ -6854,6 +6880,20 @@ export interface components {
         ResponseSchemaModel_WorkLineStartErrorResponse_: ApiResponse<components["schemas"]["WorkLineStartErrorResponse"]>;
         /** ResponseSchemaModel[WorkLineStartResponse] */
         ResponseSchemaModel_WorkLineStartResponse_: ApiResponse<components["schemas"]["WorkLineStartResponse"]>;
+        /** RetryWmsActionRequest */
+        RetryWmsActionRequest: {
+            /** Client Request Id */
+            client_request_id: string;
+            /** Expected Version */
+            expected_version: number;
+            /**
+             * Wms Non Receipt Confirmed
+             * @constant
+             */
+            wms_non_receipt_confirmed: true;
+            /** Workline Code */
+            workline_code: string;
+        };
         /**
          * RevokeSessionResponse
          * @description 撤销会话响应 Schema
@@ -13596,7 +13636,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ClientActionRequest"];
+                "application/json": components["schemas"]["PrepareTaskRequest"];
             };
         };
         responses: {
@@ -13672,6 +13712,41 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationRunResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_integration_debug_runs_by_run_id_wms_retry_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RetryWmsActionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
