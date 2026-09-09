@@ -14,7 +14,7 @@ import {
 } from '@/api/manualOutboundIntegrationApi'
 import { useManualOutboundIntegration } from './useManualOutboundIntegration'
 
-const sorting3Site = {
+const manualOutboundSite = {
   outboundRcsTemplate: 'CTU01',
   returnRcsTemplate: 'CTU03',
   binRackPositions: ['KT16', 'KT17'],
@@ -63,8 +63,8 @@ const binCode = ref('')
 const completionOperationId = ref('')
 const batchRackId = ref('')
 const batchRackFace = ref('')
-const returnSourceLocation = ref(sorting3Site.outfeedPosition)
-const rackCurrentLocation = ref(sorting3Site.outboundTransferPosition)
+const returnSourceLocation = ref(manualOutboundSite.outfeedPosition)
+const rackCurrentLocation = ref(manualOutboundSite.outboundTransferPosition)
 const rackCurrentFace = ref('0')
 const scanTimestamp = ref<number>()
 const applyRevision = ref(1)
@@ -85,7 +85,7 @@ const transportVisible = ref(false)
 const deviceVisible = ref(false)
 const cleanup = reactive({ wms: false, site: false })
 const createForm = reactive({
-  workline_code: 'sorting-3',
+  workline_code: 'KT16',
   profile: 'CONTRACT_SIMULATION' as IntegrationProfile,
   environment_label: 'integration',
   device_code: 'STATION_SCAN10',
@@ -662,15 +662,15 @@ function applyRackPreset(): void {
   if (!current || !rackId || selectedPhase.value !== 'RACK_TRANSPORT') return
   transportForm.sourceLocation = rackId
   if (current.plan_resources?.target_rack.rack_id === rackId) {
-    transportForm.targetLocation = sorting3Site.outboundTransferPosition
+    transportForm.targetLocation = manualOutboundSite.outboundTransferPosition
     transportForm.targetFace = current.plan_resources.target_rack.rack_face
     return
   }
   const rackIndex =
     current.plan_resources?.bin_source_racks.findIndex(item => item.rack_id === rackId) ?? -1
   transportForm.targetLocation =
-    sorting3Site.binRackPositions[Math.max(0, Math.min(rackIndex, 1))] ??
-    sorting3Site.binRackPositions[0]
+    manualOutboundSite.binRackPositions[Math.max(0, Math.min(rackIndex, 1))] ??
+    manualOutboundSite.binRackPositions[0]
   transportForm.targetFace =
     current.plan_resources?.bin_source_racks.find(item => item.rack_id === rackId)?.rack_face ?? ''
 }
@@ -681,23 +681,23 @@ function openTransport(): void {
   if (selectedPhase.value === 'RACK_TRANSPORT') {
     transportForm.kind = 'MOVE_RACK'
     transportForm.rackId = current.plan_resources?.target_rack.rack_id ?? ''
-    transportForm.rcsTemplateId = sorting3Site.outboundRcsTemplate
+    transportForm.rcsTemplateId = manualOutboundSite.outboundRcsTemplate
     applyRackPreset()
   } else if (selectedPhase.value === 'RACK_DEPARTURE') {
     transportForm.kind = 'MOVE_RACK'
     transportForm.rackId =
       batchRackId.value.trim() || current.plan_resources?.target_rack.rack_id || ''
     transportForm.sourceLocation = transportForm.rackId
-    transportForm.targetLocation = sorting3Site.returnZoneCode
+    transportForm.targetLocation = manualOutboundSite.returnZoneCode
     transportForm.targetFace = ''
-    transportForm.rcsTemplateId = sorting3Site.returnRcsTemplate
+    transportForm.rcsTemplateId = manualOutboundSite.returnRcsTemplate
   } else {
     transportForm.kind = 'MOVE_BINS'
     transportForm.rackId =
       batchRackId.value.trim() || current.plan_resources?.bin_source_racks[0]?.rack_id || ''
-    transportForm.sourceLocation = sorting3Site.outfeedPosition
-    transportForm.targetLocation = sorting3Site.infeedPosition
-    transportForm.rcsTemplateId = sorting3Site.outboundRcsTemplate
+    transportForm.sourceLocation = manualOutboundSite.outfeedPosition
+    transportForm.targetLocation = manualOutboundSite.infeedPosition
+    transportForm.rcsTemplateId = manualOutboundSite.outboundRcsTemplate
   }
   transportVisible.value = true
 }
@@ -713,13 +713,13 @@ function openDevice(): void {
     return
   }
   if (current.current_phase === 'POINT2_RELEASE') {
-    deviceForm.deviceCode = sorting3Site.scanDeviceCodes[1]
+    deviceForm.deviceCode = manualOutboundSite.scanDeviceCodes[1]
     deviceForm.taskType = 'MOVE_FORWARD'
   } else {
     const completionResult = [...current.steps]
       .reverse()
       .find(step => step.operation === 'outbound.manual_bin.work_completed@v1')?.result.result
-    deviceForm.deviceCode = sorting3Site.scanDeviceCodes[2]
+    deviceForm.deviceCode = manualOutboundSite.scanDeviceCodes[2]
     deviceForm.taskType = completionResult === 'NG' ? 'MOVE_LEFT' : 'MOVE_FORWARD'
   }
   deviceVisible.value = true
@@ -1077,11 +1077,11 @@ onUnmounted(() => {
     />
 
     <section class="site-configuration">
-      <strong>sorting-3 现场参数</strong>
+      <strong>KT16 现场参数</strong>
       <span>出库：CTU01 · 货架号 → OUT65 / KT16 / KT17</span>
       <span>回库：CTU03 · 货架号 → WH05（五层货架）</span>
       <span>料箱：CNV0301 → SCAN9/10/11/12 → CNV0302</span>
-      <span>ECS：{{ sorting3Site.ecsEndpoint }}</span>
+      <span>ECS：{{ manualOutboundSite.ecsEndpoint }}</span>
     </section>
 
     <section
@@ -1118,7 +1118,7 @@ onUnmounted(() => {
         已登记 device_code
         <el-select v-model="createForm.device_code">
           <el-option
-            v-for="item in sorting3Site.scanDeviceCodes"
+            v-for="item in manualOutboundSite.scanDeviceCodes"
             :key="item"
             :label="item"
             :value="item"
@@ -1229,9 +1229,9 @@ onUnmounted(() => {
           WMS prepare workline_code
           <el-input
             v-model="wmsPrepareWorklineCode"
-            placeholder="sorting-3 现场使用 KT16"
+            placeholder="当前工作线使用 KT16"
           />
-          <small>WES 工作线仍为 sorting-3；该值发送给 WMS，现场约定为 KT16。</small>
+          <small>WES 与 WMS 的 workline_code 均为 KT16。</small>
         </label>
         <label v-if="selectedPhase === 'BIN_RETURN_BATCH'">
           回流缓存 location_code
@@ -1626,7 +1626,7 @@ onUnmounted(() => {
     >
       <p>
         endpoint 由所选 device_code 的 WES 设备登记信息解析；联调服务器应配置为
-        <code>{{ sorting3Site.ecsEndpoint }}</code>
+        <code>{{ manualOutboundSite.ecsEndpoint }}</code>
         。
       </p>
       <el-form label-position="top">
@@ -1636,7 +1636,7 @@ onUnmounted(() => {
             disabled
           >
             <el-option
-              v-for="item in sorting3Site.scanDeviceCodes"
+              v-for="item in manualOutboundSite.scanDeviceCodes"
               :key="item"
               :label="item"
               :value="item"

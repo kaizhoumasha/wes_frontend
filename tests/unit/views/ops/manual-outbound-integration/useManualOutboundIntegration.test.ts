@@ -10,7 +10,7 @@ function snapshot(
   return {
     run_id: runId,
     workline_id: 3,
-    workline_code: 'sorting-3',
+    workline_code: 'KT16',
     scenario_key: 'manual_outbound_picking@v1',
     expected_plugin_key: 'manual_bin_processing',
     profile: 'CONTRACT_SIMULATION',
@@ -61,7 +61,7 @@ describe('useManualOutboundIntegration', () => {
     await state.load()
 
     await state.create({
-      workline_code: 'sorting-3',
+      workline_code: 'KT16',
       profile: 'CONTRACT_SIMULATION',
       environment_label: 'integration',
       device_code: 'SIM-ECS-01'
@@ -83,7 +83,7 @@ describe('useManualOutboundIntegration', () => {
     }
     const state = useManualOutboundIntegration({ api })
     const creating = state.create({
-      workline_code: 'sorting-3',
+      workline_code: 'KT16',
       profile: 'CONTRACT_SIMULATION',
       environment_label: 'integration',
       device_code: 'SIM-ECS-01'
