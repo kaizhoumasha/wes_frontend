@@ -13,25 +13,33 @@ import { createWorkLinePageConfig } from '@/views/admin/worklines/config/pageCon
 describe('WorkLine static master-data page', () => {
   it('contains only current static fields and no legacy runtime detail actions', () => {
     const keys = WORKLINE_FIELDS.map(field => field.key)
-    const config = createWorkLinePageConfig(vi.fn(), vi.fn())
+    const config = createWorkLinePageConfig(vi.fn(), vi.fn(), vi.fn())
 
     expect(keys).toContain('plugin_key')
     expect(keys).toContain('plugin_version')
-    expect(workLinePageFieldConfig.form.fieldConfig.map(field => field.key)).not.toContain('plugin_key')
+    expect(workLinePageFieldConfig.form.fieldConfig.map(field => field.key)).not.toContain(
+      'plugin_key'
+    )
     expect(keys).not.toContain('contract_version')
     expect(config.detail?.actions ?? []).toEqual([])
   })
 
-  it('exposes business plugin configuration and START actions only', () => {
+  it('exposes independent base and plugin configuration alongside START', () => {
     const openConfig = vi.fn()
     const openStart = vi.fn()
-    const config = createWorkLinePageConfig(openConfig, openStart)
+    const openBase = vi.fn()
+    const config = createWorkLinePageConfig(openConfig, openStart, openBase)
     const actions = config.extensions?.rowActions ?? []
 
-    expect(actions.map(action => action.key)).toEqual(['workline-configuration', 'workline-start'])
-    expect(actions[0]?.permission).toBe(BIZ_PERMISSIONS.workline.configurationStatus)
-    expect(actions[1]?.permission).toBe(BIZ_PERMISSIONS.workline.start)
-    const showStart = actions[1]?.show
+    expect(actions.map(action => action.key)).toEqual([
+      'workline-base-configuration',
+      'workline-configuration',
+      'workline-start'
+    ])
+    expect(actions[1]?.permission).toBe(BIZ_PERMISSIONS.workline.configurationStatus)
+    expect(actions[2]?.permission).toBe(BIZ_PERMISSIONS.workline.start)
+    expect(actions[0]?.permission).toBe(BIZ_PERMISSIONS.workline.baseConfiguration)
+    const showStart = actions[2]?.show
     expect(typeof showStart).toBe('function')
     expect((showStart as (row: Workline) => boolean)({ id: 7, is_active: true } as Workline)).toBe(
       false
@@ -43,6 +51,8 @@ describe('WorkLine static master-data page', () => {
     const row = { id: 7 } as Workline
     actions[0]?.onClick(row)
     actions[1]?.onClick(row)
+    actions[2]?.onClick(row)
+    expect(openBase).toHaveBeenCalledWith(row)
     expect(openConfig).toHaveBeenCalledWith(row)
     expect(openStart).toHaveBeenCalledWith(row)
   })

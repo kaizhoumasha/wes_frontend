@@ -43,6 +43,13 @@ export type ActiveObjectsPathParams = ContractPathParams<'/api/v1/workline/work_
 export type AvailablePluginsResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/available-plugins', 'get'>
 export type AvailablePluginsPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/available-plugins', 'get'>
 
+export type BaseConfigurationResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/base-configuration', 'get'>
+export type BaseConfigurationPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/base-configuration', 'get'>
+
+export type UpdateBaseConfigurationResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/base-configuration', 'put'>
+export type UpdateBaseConfigurationPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/base-configuration', 'put'>
+export type UpdateBaseConfigurationInput = ContractRequestBody<'/api/v1/workline/work_lines/{id}/base-configuration', 'put'>
+
 export type ConfigurationResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/configuration', 'put'>
 export type ConfigurationPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/configuration', 'put'>
 export type ConfigurationInput = ContractRequestBody<'/api/v1/workline/work_lines/{id}/configuration', 'put'>
@@ -96,8 +103,26 @@ export const workLinesApiMethods = {
   },
 
   /**
-   * [biz:workline:configure] 保存业务插件配置与设备全集
-   * @description 在一个事务中替换插件配置和 Device 归属。
+   * [biz:workline:base-configuration] 查询工作线基础配置
+   * @endpoint GET /api/v1/workline/work_lines/{id}/base-configuration
+   * @returns alova method instance
+   */
+  baseConfiguration(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/base-configuration', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/work_lines/{id}/base-configuration', { params, config })
+  },
+
+  /**
+   * [biz:workline:configure-base] 保存工作位与物理设备基础配置
+   * @endpoint PUT /api/v1/workline/work_lines/{id}/base-configuration
+   * @returns alova method instance
+   */
+  updateBaseConfiguration(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/base-configuration', 'put'>, body: ContractRequestBody<'/api/v1/workline/work_lines/{id}/base-configuration', 'put'>, config?: ContractRequestConfig) {
+    return contractMethods.put('/api/v1/workline/work_lines/{id}/base-configuration', { params, body, config })
+  },
+
+  /**
+   * [biz:workline:configure] 保存业务插件关联与角色配置
+   * @description 仅替换插件关联，保持工作位和物理设备归属。
    * @endpoint PUT /api/v1/workline/work_lines/{id}/configuration
    * @returns alova method instance
    */

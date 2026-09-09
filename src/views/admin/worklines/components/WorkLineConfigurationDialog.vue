@@ -1,20 +1,12 @@
 <script setup lang="ts">
 import { computed, inject, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  createSoftDeleteCrudRequestAdapterFromMethods,
-  type PaginationData,
-  type QueryOptionsInput
-} from '@/api/base/crud-request-adapter'
-import {
-  devicesApiMethods,
-  type CreateDevicesInput,
-  type DevicesItem,
-  type UpdateDevicesInput
-} from '@/api/modules/devices'
+import type { DevicesItem } from '@/api/modules/devices'
+import { fetchWorkLineDevices } from './fetchWorkLineDevices'
 import {
   workLinesApiMethods,
   type AvailablePluginsResult,
+  type BaseConfigurationResult,
   type ConfigurationStatusResult,
   type WorkLinesItem as Workline
 } from '@/api/modules/workLines'
@@ -29,18 +21,14 @@ const modelValue = defineModel<boolean>({ default: false })
 const refresh = inject(CRUD_PAGE_REFRESH_KEY)
 const { hasPermission } = usePermission()
 
-const deviceAdapter = createSoftDeleteCrudRequestAdapterFromMethods<
-  DevicesItem,
-  CreateDevicesInput,
-  UpdateDevicesInput
->(devicesApiMethods)
-
 const sessionVisible = ref(false)
 const currentWorkline = ref<Workline | null>(null)
 const plugins = ref<AvailablePluginsResult>([])
 const configurationStatus = ref<ConfigurationStatusResult | null>(null)
 const devices = ref<DevicesItem[]>([])
-const selectedDeviceCodes = ref<string[]>([])
+const positions = ref<BaseConfigurationResult['positions']>([])
+const positionBindings = ref<Record<string, string>>({})
+const savedDraft = ref('')
 const pluginKey = ref('')
 const deviceBindings = ref<Record<string, string>>({})
 const validationErrors = ref<string[]>([])
@@ -57,10 +45,19 @@ const selectedPluginSummary = computed(() =>
   plugins.value.find(plugin => plugin.plugin_key === pluginKey.value)
 )
 const deviceRoles = computed(() => selectedPluginSummary.value?.device_roles ?? [])
-const selectedDeviceCodeSet = computed(() => new Set(selectedDeviceCodes.value))
-const selectedDevices = computed(() =>
-  devices.value.filter(device => selectedDeviceCodeSet.value.has(device.device_code))
+const positionSlots = computed(() => selectedPluginSummary.value?.position_slots ?? [])
+const draftSnapshot = computed(() =>
+  JSON.stringify({
+    plugin: pluginKey.value,
+    positions: Object.entries(positionBindings.value).sort(([left], [right]) =>
+      left.localeCompare(right)
+    ),
+    bindings: Object.entries(deviceBindings.value).sort(([left], [right]) =>
+      left.localeCompare(right)
+    )
+  })
 )
+const isDirty = computed(() => savedDraft.value !== '' && draftSnapshot.value !== savedDraft.value)
 const readonly = computed(() => currentWorkline.value?.is_active === true || !canConfigure.value)
 const formDisabled = computed(() => readonly.value || submitting.value || deactivating.value)
 const hasUnavailableSelectedPlugin = computed(
@@ -80,17 +77,37 @@ const dialogVisible = computed({
   get: () => sessionVisible.value,
   set: value => {
     if (!value && (submitting.value || deactivating.value)) return
+    if (!value && isDirty.value) {
+      void discardAndClose()
+      return
+    }
     sessionVisible.value = value
     if (modelValue.value !== value) modelValue.value = value
   }
 })
+
+async function discardAndClose(): Promise<void> {
+  try {
+    await ElMessageBox.confirm('插件关联尚未保存，确认放弃修改？', '未保存的修改', {
+      confirmButtonText: '放弃修改',
+      cancelButtonText: '继续编辑',
+      type: 'warning'
+    })
+    sessionVisible.value = false
+    modelValue.value = false
+  } catch {
+    /* 取消后保留草稿。 */
+  }
+}
 
 function resetState(): void {
   currentWorkline.value = null
   plugins.value = []
   configurationStatus.value = null
   devices.value = []
-  selectedDeviceCodes.value = []
+  positions.value = []
+  positionBindings.value = {}
+  savedDraft.value = ''
   pluginKey.value = ''
   deviceBindings.value = {}
   validationErrors.value = []
@@ -98,33 +115,21 @@ function resetState(): void {
   deactivationError.value = ''
 }
 
-async function fetchAllDevices(): Promise<DevicesItem[]> {
-  const items: DevicesItem[] = []
-  const limit = 100
-  let offset = 0
-  let total: number
-  do {
-    const options: QueryOptionsInput = {
-      offset,
-      limit,
-      sort: [
-        { field: 'sort_order', order: 'asc' },
-        { field: 'id', order: 'asc' }
-      ]
-    }
-    const page: PaginationData<DevicesItem> = await deviceAdapter.query(options)
-    items.push(...page.items)
-    total = page.total
-    if (page.items.length === 0 && items.length < total) {
-      throw new Error('设备列表分页未返回剩余数据')
-    }
-    offset += page.items.length
-  } while (items.length < total)
-  return items
-}
-
 function initializeBindings(latest: Workline): void {
   pluginKey.value = latest.plugin_key ?? ''
+  const rawPositions =
+    latest.config?.position_bindings === undefined ? {} : latest.config.position_bindings
+  if (rawPositions === null || typeof rawPositions !== 'object' || Array.isArray(rawPositions))
+    throw new Error('工作位绑定必须为对象')
+  const slots = new Set(positionSlots.value.map(slot => slot.slot_key))
+  positionBindings.value = {}
+  for (const [key, value] of Object.entries(rawPositions)) {
+    if (!slots.has(key)) throw new Error(`未知工作位插槽：${key}`)
+    if (value === null) continue
+    if (typeof value !== 'string' || !value.trim())
+      throw new Error('工作位绑定必须包含有效工作位编码')
+    positionBindings.value[key] = value
+  }
   const bindings = latest.config?.device_bindings
   if (bindings === undefined) {
     deviceBindings.value = {}
@@ -150,21 +155,22 @@ async function loadLatest(row: Workline): Promise<void> {
   if (!sessionVisible.value) return
   loading.value = true
   try {
-    const [latest, availablePlugins, status, allDevices] = await Promise.all([
+    const [latest, availablePlugins, status, allDevices, base] = await Promise.all([
       workLinesApiMethods.getById(row.id).send(),
       workLinesApiMethods.availablePlugins({ id: row.id }).send(),
       workLinesApiMethods.configurationStatus({ id: row.id }).send(),
-      fetchAllDevices()
+      fetchWorkLineDevices(),
+      workLinesApiMethods.baseConfiguration({ id: row.id }).send()
     ])
     if (sequence !== loadSequence) return
+    if (base.version !== latest.version) throw new Error('配置已变化，请重新打开后编辑')
+    positions.value = base.positions
     currentWorkline.value = latest
     plugins.value = availablePlugins
     configurationStatus.value = status
-    devices.value = allDevices
-    selectedDeviceCodes.value = allDevices
-      .filter(device => device.work_line_id === latest.id)
-      .map(device => device.device_code)
+    devices.value = allDevices.filter(device => device.work_line_id === latest.id)
     initializeBindings(latest)
+    savedDraft.value = draftSnapshot.value
   } catch (error) {
     if (sequence !== loadSequence) return
     resetState()
@@ -177,6 +183,7 @@ async function loadLatest(row: Workline): Promise<void> {
 function selectPlugin(value: string | null | undefined): void {
   pluginKey.value = value ?? ''
   deviceBindings.value = {}
+  positionBindings.value = {}
   validationErrors.value = []
 }
 
@@ -185,40 +192,52 @@ function bindDevice(roleKey: string, code: string | null | undefined): void {
   else deviceBindings.value = { ...deviceBindings.value, [roleKey]: code }
 }
 
+function bindPosition(key: string, code: string | null | undefined): void {
+  if (!code) delete positionBindings.value[key]
+  else positionBindings.value = { ...positionBindings.value, [key]: code }
+}
+
+function matchingPosition(
+  position: BaseConfigurationResult['positions'][number],
+  slot: NonNullable<AvailablePluginsResult[number]['position_slots']>[number]
+): boolean {
+  return (
+    position.enabled !== false &&
+    position.position_type === slot.position_type &&
+    (!slot.allowed_rack_kind || position.allowed_rack_kind === slot.allowed_rack_kind) &&
+    Boolean(position.logic_location_code)
+  )
+}
+
 function validateBindings(): string[] {
   const roles = new Set(deviceRoles.value.map(role => role.role_key))
-  const codes = new Set(selectedDevices.value.map(device => device.device_code))
+  const codes = new Set(devices.value.map(device => device.device_code))
   const used = new Set<string>()
   const errors: string[] = []
   for (const [role, code] of Object.entries(deviceBindings.value)) {
     if (!roles.has(role)) errors.push(`未知设备角色：${role}`)
-    if (!codes.has(code)) errors.push(`设备 ${code} 不在本次选中的物理设备集合中`)
+    if (!codes.has(code)) errors.push(`设备 ${code} 不在本线已保存的物理设备集合中`)
     if (used.has(code)) errors.push('设备绑定不能重复')
     used.add(code)
   }
-  return errors
-}
-
-function isOwnedByOtherWorkline(device: DevicesItem): boolean {
-  return device.work_line_id != null && device.work_line_id !== currentWorkline.value?.id
-}
-
-function toggleDevice(deviceCode: string, checked: boolean): void {
-  if (checked) {
-    if (!selectedDeviceCodes.value.includes(deviceCode)) {
-      selectedDeviceCodes.value.push(deviceCode)
-    }
-    return
+  const usedPositions = new Set<string>()
+  for (const [key, code] of Object.entries(positionBindings.value)) {
+    const slot = positionSlots.value.find(item => item.slot_key === key)
+    const position = positions.value.find(item => item.position_code === code)
+    if (!slot || !position || !matchingPosition(position, slot))
+      errors.push(`工作位 ${code} 不符合插槽 ${key} 要求，请检查基础配置`)
+    if (usedPositions.has(code)) errors.push('工作位绑定不能重复')
+    usedPositions.add(code)
   }
-  selectedDeviceCodes.value = selectedDeviceCodes.value.filter(code => code !== deviceCode)
+  return errors
 }
 
 function checkLabel(code: string): string {
   const labels: Record<string, string> = {
     PLUGIN_SELECTED: '已选择业务插件',
     PLUGIN_INSTALLED: '业务插件已安装',
-    PLUGIN_CONFIGURATION_COMPATIBLE: '插件配置与设备兼容',
-    RUN_MODE_SUPPORTED: '运行模式有效',
+    PLUGIN_CONFIGURATION_COMPATIBLE: '插件配置与本线资源兼容',
+    RUN_MODE_ALLOWED: '运行模式有效',
     RUNTIME_CONFIG_VALID: '运行配置有效'
   }
   return labels[code] ?? code
@@ -247,7 +266,12 @@ async function submit(): Promise<void> {
     validationErrors.value = validateBindings()
     if (validationErrors.value.length > 0) return
   }
-  const config = pluginKey.value ? { device_bindings: { ...deviceBindings.value } } : {}
+  const config = pluginKey.value
+    ? {
+        device_bindings: { ...deviceBindings.value },
+        position_bindings: { ...positionBindings.value }
+      }
+    : {}
 
   submitting.value = true
   try {
@@ -257,8 +281,7 @@ async function submit(): Promise<void> {
         {
           version: workline.version,
           plugin_key: pluginKey.value || null,
-          config,
-          device_codes: [...selectedDeviceCodes.value].sort()
+          config
         }
       )
       .send()
@@ -269,8 +292,9 @@ async function submit(): Promise<void> {
     submitting.value = false
   }
 
+  savedDraft.value = draftSnapshot.value
   dialogVisible.value = false
-  ElMessage.success('工作线业务装配保存成功')
+  ElMessage.success('工作线插件关联保存成功')
   await refreshList()
 }
 
@@ -332,7 +356,7 @@ watch(
     v-model="dialogVisible"
     :title="`业务装配${currentWorkline ? `：${currentWorkline.line_name}` : ''}`"
     size="xl"
-    confirm-text="保存装配"
+    confirm-text="保存插件关联"
     confirm-icon="lucide:save"
     :closable="!submitting && !deactivating"
     :hide-cancel="submitting || deactivating"
@@ -363,14 +387,25 @@ watch(
       <section class="workline-configuration__section">
         <div class="workline-configuration__section-heading">
           <div>
-            <h3>工作线状态</h3>
-            <p>{{ currentWorkline.line_code }} · {{ currentWorkline.line_type }}</p>
+            <h3>{{ currentWorkline.line_name }}</h3>
+            <p>
+              {{ currentWorkline.line_code }} ·
+              {{
+                { AUTO: '自动线', MANUAL: '人工线', HYBRID: '混合线' }[currentWorkline.line_type]
+              }}
+            </p>
             <p v-if="currentWorkline.plugin_key">
               当前插件：{{ currentWorkline.plugin_key }} · 启动版本
               {{ currentWorkline.plugin_version ?? '尚未启动' }}
             </p>
           </div>
           <div class="workline-configuration__status-actions">
+            <ElTag
+              v-if="isDirty"
+              type="warning"
+            >
+              未保存
+            </ElTag>
             <ElTag :type="currentWorkline.is_active ? 'success' : 'info'">
               {{ currentWorkline.is_active ? '已启用' : '已停用' }}
             </ElTag>
@@ -388,7 +423,7 @@ watch(
           v-if="currentWorkline.is_active"
           type="info"
           :closable="false"
-          title="已启用工作线只读；停用成功后才能更换插件或设备。"
+          title="已启用工作线只读；停用成功后才能更换插件或角色绑定。"
           show-icon
         />
         <ElAlert
@@ -398,6 +433,146 @@ watch(
           :title="`停用被阻止：${deactivationError}`"
           show-icon
         />
+      </section>
+
+      <section class="workline-configuration__section">
+        <div class="workline-configuration__section-heading">
+          <div>
+            <h3>业务插件</h3>
+            <p>
+              先选择插件，再将其工作位和设备插槽关联到本线资源。草稿可暂不绑定，启动前必须全部完成。
+            </p>
+          </div>
+        </div>
+        <ElFormItem label="业务插件">
+          <ElSelect
+            data-testid="plugin-select"
+            :model-value="pluginKey"
+            :disabled="formDisabled"
+            placeholder="请选择业务插件"
+            clearable
+            @change="selectPlugin"
+          >
+            <ElOption
+              v-for="plugin in plugins"
+              :key="plugin.plugin_key"
+              :label="`${plugin.display_name} (${plugin.plugin_version})`"
+              :value="plugin.plugin_key"
+              :disabled="!plugin.compatible"
+            />
+          </ElSelect>
+        </ElFormItem>
+        <ElAlert
+          v-if="plugins.length === 0 && !hasUnavailableSelectedPlugin"
+          type="info"
+          :closable="false"
+          show-icon
+          title="当前环境没有可用业务插件，请联系部署管理员配置插件。基础配置可独立维护。"
+        />
+        <ElAlert
+          v-if="hasUnavailableSelectedPlugin"
+          type="error"
+          :closable="false"
+          title="当前业务插件未包含在部署清单中，已阻止保存。请先恢复该插件部署。"
+          show-icon
+        />
+        <ElAlert
+          v-else-if="selectedPluginSummary && !selectedPluginSummary.compatible"
+          type="warning"
+          :closable="false"
+          :title="`插件不支持当前工作线类型：${selectedPluginSummary.incompatibility_reasons.join('；')}`"
+          show-icon
+        />
+        <div
+          v-if="validationErrors.length"
+          data-testid="validation-errors"
+          class="workline-configuration__errors"
+        >
+          <div
+            v-for="error in validationErrors"
+            :key="error"
+          >
+            {{ error }}
+          </div>
+        </div>
+        <template v-if="selectedPluginSummary">
+          <h4 class="workline-configuration__slot-heading">
+            工作位插槽 · {{ Object.keys(positionBindings).length }} / {{ positionSlots.length }}
+          </h4>
+          <p class="workline-configuration__hint">
+            资源来自基础配置。缺少工作位或设备时，请先到基础配置补充。
+          </p>
+          <ElFormItem
+            v-for="slot in positionSlots"
+            :key="slot.slot_key"
+            :label="`${slot.display_name} · ${slot.slot_key}`"
+          >
+            <ElSelect
+              :model-value="positionBindings[slot.slot_key] ?? ''"
+              :data-slot="slot.slot_key"
+              :disabled="formDisabled"
+              placeholder="选择本线工作位（可暂不绑定）"
+              clearable
+              @change="bindPosition(slot.slot_key, $event)"
+            >
+              <ElOption
+                v-for="position in positions"
+                :key="position.position_code"
+                :value="position.position_code"
+                :label="`${position.position_name} (${position.position_code}) → ${position.logic_location_code || '缺少执行编码'}`"
+                :disabled="
+                  !matchingPosition(position, slot) ||
+                  Object.entries(positionBindings).some(
+                    ([key, code]) => key !== slot.slot_key && code === position.position_code
+                  )
+                "
+              />
+            </ElSelect>
+          </ElFormItem>
+          <h4 class="workline-configuration__slot-heading">
+            设备插槽 · {{ Object.keys(deviceBindings).length }} / {{ deviceRoles.length }}
+          </h4>
+        </template>
+        <ElFormItem
+          v-for="role in deviceRoles"
+          :key="role.role_key"
+          :label="role.display_name"
+        >
+          <ElSelect
+            :model-value="deviceBindings[role.role_key] ?? ''"
+            :data-role="role.role_key"
+            :disabled="formDisabled"
+            placeholder="请选择已配置的本线设备（可暂不绑定）"
+            clearable
+            @change="bindDevice(role.role_key, $event)"
+          >
+            <ElOption
+              v-for="device in devices"
+              :key="device.id"
+              :value="device.device_code"
+              :disabled="
+                Object.entries(deviceBindings).some(
+                  ([key, code]) => key !== role.role_key && code === device.device_code
+                )
+              "
+              :label="`${device.device_name} (${device.device_code})`"
+            />
+          </ElSelect>
+        </ElFormItem>
+      </section>
+      <section class="workline-configuration__section workline-configuration__saved-checks">
+        <div class="workline-configuration__section-heading">
+          <h3>启用检查</h3>
+          <ElTag :type="isDirty ? 'warning' : 'info'">
+            {{ isDirty ? '草稿待校验' : '已保存配置' }}
+          </ElTag>
+        </div>
+        <p
+          v-if="isDirty"
+          class="workline-configuration__hint"
+        >
+          以下结果来自已保存配置。保存插件关联后重新检查。
+        </p>
         <div
           v-if="configurationStatus"
           class="workline-configuration__checks"
@@ -422,134 +597,7 @@ watch(
             <small v-if="checkDetail(check)">{{ checkDetail(check) }}</small>
           </div>
         </div>
-      </section>
-
-      <section class="workline-configuration__section">
-        <div class="workline-configuration__section-heading">
-          <div>
-            <h3>设备全集</h3>
-            <p>设备归属只在此处维护；已属于其他工作线的设备不可选择。</p>
-          </div>
-          <ElTag type="info">已选 {{ selectedDeviceCodes.length }} 台</ElTag>
-        </div>
-        <div class="workline-configuration__device-table-wrap">
-          <table class="workline-configuration__device-table">
-            <thead>
-              <tr>
-                <th>选择</th>
-                <th>设备编码</th>
-                <th>设备名称</th>
-                <th>当前归属</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="device in devices"
-                :key="device.id"
-              >
-                <td>
-                  <ElCheckbox
-                    :model-value="selectedDeviceCodeSet.has(device.device_code)"
-                    :disabled="formDisabled || isOwnedByOtherWorkline(device)"
-                    :aria-label="`选择设备 ${device.device_code}`"
-                    @change="toggleDevice(device.device_code, Boolean($event))"
-                  />
-                </td>
-                <td>{{ device.device_code }}</td>
-                <td>{{ device.device_name }}</td>
-                <td>
-                  {{
-                    device.work_line_id == null
-                      ? '未分配'
-                      : device.work_line_id === currentWorkline.id
-                        ? '当前工作线'
-                        : `工作线 #${device.work_line_id}`
-                  }}
-                </td>
-              </tr>
-              <tr v-if="devices.length === 0">
-                <td
-                  colspan="4"
-                  class="workline-configuration__empty"
-                >
-                  暂无可用设备
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="workline-configuration__section">
-        <div class="workline-configuration__section-heading">
-          <div>
-            <h3>业务插件</h3>
-            <p>可在停用且无未结束任务时切换。</p>
-          </div>
-        </div>
-        <ElFormItem label="业务插件">
-          <ElSelect
-            :model-value="pluginKey"
-            :disabled="formDisabled"
-            placeholder="请选择业务插件"
-            clearable
-            @change="selectPlugin"
-          >
-            <ElOption
-              v-for="plugin in plugins"
-              :key="plugin.plugin_key"
-              :label="`${plugin.display_name} (${plugin.plugin_version})`"
-              :value="plugin.plugin_key"
-            />
-          </ElSelect>
-        </ElFormItem>
-        <ElAlert
-          v-if="hasUnavailableSelectedPlugin"
-          type="error"
-          :closable="false"
-          title="当前业务插件未包含在部署清单中，已阻止保存。请先恢复该插件部署。"
-          show-icon
-        />
-        <ElAlert
-          v-else-if="selectedPluginSummary && !selectedPluginSummary.compatible"
-          type="warning"
-          :closable="false"
-          :title="`当前已保存设备不兼容：${selectedPluginSummary.incompatibility_reasons.join('；')}。修改设备全集后可一起保存，服务端会按新装配重新校验。`"
-          show-icon
-        />
-        <div
-          v-if="validationErrors.length"
-          data-testid="validation-errors"
-          class="workline-configuration__errors"
-        >
-          <div
-            v-for="error in validationErrors"
-            :key="error"
-          >
-            {{ error }}
-          </div>
-        </div>
-        <ElFormItem
-          v-for="role in deviceRoles"
-          :key="role.role_key"
-          :label="role.display_name"
-        >
-          <ElSelect
-            :model-value="deviceBindings[role.role_key] ?? ''"
-            :data-role="role.role_key"
-            :disabled="formDisabled"
-            placeholder="请选择本线设备（可暂不绑定）"
-            clearable
-            @change="bindDevice(role.role_key, $event)"
-          >
-            <ElOption
-              v-for="device in selectedDevices"
-              :key="device.id"
-              :value="device.device_code"
-              :label="`${device.device_name} (${device.device_code})`"
-            />
-          </ElSelect>
-        </ElFormItem>
+        <p class="workline-configuration__hint">保存插件关联不会启用工作线，也不会修改基础配置。</p>
       </section>
     </ElForm>
   </StandardDialog>
@@ -559,14 +607,25 @@ watch(
 .workline-configuration,
 .workline-configuration__section {
   display: grid;
-  gap: var(--spacing-md);
+  gap: var(--space-sm);
+}
+
+.workline-configuration {
+  grid-template-columns: minmax(0, 1fr);
+  color: var(--color-text-primary);
+}
+
+.workline-configuration__section :deep(.el-form-item) {
+  margin-bottom: 0;
 }
 
 .workline-configuration__section {
-  padding: var(--spacing-lg);
-  border: 1px solid var(--color-border-light);
+  min-width: 0;
+  align-content: start;
+  padding: var(--space-md);
+  border: 1px solid var(--el-border-color-light);
   border-radius: var(--radius-md);
-  background: var(--color-bg-container);
+  background: var(--el-bg-color);
 }
 
 .workline-configuration__section-heading,
@@ -575,7 +634,7 @@ watch(
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-sm);
+  gap: var(--space-2xs);
 }
 
 .workline-configuration__section-heading h3,
@@ -590,39 +649,7 @@ watch(
 
 .workline-configuration__checks {
   display: grid;
-  gap: var(--spacing-xs);
-}
-
-.workline-configuration__device-table-wrap {
-  max-height: 280px;
-  overflow: auto;
-}
-
-.workline-configuration__device-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--font-size-sm);
-}
-
-.workline-configuration__device-table th,
-.workline-configuration__device-table td {
-  padding: var(--spacing-sm);
-  border-bottom: 1px solid var(--color-border-lighter);
-  text-align: left;
-  white-space: nowrap;
-}
-
-.workline-configuration__device-table th {
-  position: sticky;
-  z-index: 1;
-  top: 0;
-  color: var(--color-text-secondary);
-  background: var(--color-bg-container);
-}
-
-.workline-configuration__device-table td.workline-configuration__empty {
-  color: var(--color-text-secondary);
-  text-align: center;
+  gap: var(--space-3xs);
 }
 
 .workline-configuration__check {
@@ -630,14 +657,24 @@ watch(
 }
 
 .workline-configuration__errors {
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--space-2xs) var(--space-sm);
   border-radius: var(--radius-sm);
   color: var(--color-danger);
-  background: var(--color-danger-light-9);
+  background: var(--el-color-danger-light-9);
+}
+
+.workline-configuration__slot-heading {
+  margin: var(--space-2xs) 0 0;
+}
+
+.workline-configuration__hint {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--el-font-size-small);
 }
 
 .workline-configuration__loading {
-  padding: var(--spacing-xl);
+  padding: var(--space-lg);
   color: var(--color-text-secondary);
   text-align: center;
 }

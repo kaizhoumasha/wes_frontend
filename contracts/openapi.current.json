@@ -10118,6 +10118,51 @@
         "title": "ResponseSchemaModel[UserSimpleResponse]",
         "type": "object"
       },
+      "ResponseSchemaModel_WorkLineBaseConfigurationResponse_": {
+        "properties": {
+          "code": {
+            "default": "1000",
+            "description": "响应码",
+            "examples": [
+              "1000",
+              "2000"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkLineBaseConfigurationResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "message": {
+            "default": "操作成功",
+            "description": "响应消息",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ],
+            "title": "Message",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ],
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "title": "ResponseSchemaModel[WorkLineBaseConfigurationResponse]",
+        "type": "object"
+      },
       "ResponseSchemaModel_WorkLineConfigurationResponse_": {
         "properties": {
           "code": {
@@ -12343,6 +12388,78 @@
         "title": "WirePreview",
         "type": "object"
       },
+      "WorkLineBaseConfigurationResponse": {
+        "additionalProperties": false,
+        "description": "已保存基础配置，版本与业务装配共用。",
+        "properties": {
+          "device_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Device Codes",
+            "type": "array"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "positions": {
+            "items": {
+              "$ref": "#/components/schemas/WorkLinePositionInput"
+            },
+            "title": "Positions",
+            "type": "array"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "workline_id": {
+            "title": "Workline Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "device_codes",
+          "positions",
+          "workline_id",
+          "is_active"
+        ],
+        "title": "WorkLineBaseConfigurationResponse",
+        "type": "object"
+      },
+      "WorkLineBaseConfigurationUpdate": {
+        "additionalProperties": false,
+        "description": "稳定的工作位与物理设备全集；不包含插件配置。",
+        "properties": {
+          "device_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Device Codes",
+            "type": "array"
+          },
+          "positions": {
+            "items": {
+              "$ref": "#/components/schemas/WorkLinePositionInput"
+            },
+            "title": "Positions",
+            "type": "array"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "device_codes",
+          "positions"
+        ],
+        "title": "WorkLineBaseConfigurationUpdate",
+        "type": "object"
+      },
       "WorkLineConfigurationCheck": {
         "description": "作业线启用前结构化检查项。",
         "properties": {
@@ -12387,19 +12504,12 @@
         "type": "object"
       },
       "WorkLineConfigurationResponse": {
-        "description": "业务插件配置全集保存结果。",
+        "description": "业务插件关联保存结果。",
         "properties": {
           "config": {
             "additionalProperties": true,
             "title": "Config",
             "type": "object"
-          },
-          "device_codes": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Device Codes",
-            "type": "array"
           },
           "plugin_key": {
             "anyOf": [
@@ -12425,8 +12535,7 @@
           "workline_id",
           "version",
           "plugin_key",
-          "config",
-          "device_codes"
+          "config"
         ],
         "title": "WorkLineConfigurationResponse",
         "type": "object"
@@ -12467,21 +12576,14 @@
         "type": "object"
       },
       "WorkLineConfigurationUpdate": {
-        "description": "停用 WorkLine 的插件配置与设备全集替换请求。",
+        "additionalProperties": false,
+        "description": "仅替换插件选择与角色映射，不修改本线物理资源。",
         "properties": {
           "config": {
             "additionalProperties": true,
             "description": "当前业务插件配置",
             "title": "Config",
             "type": "object"
-          },
-          "device_codes": {
-            "description": "目标工作线设备编码全集",
-            "items": {
-              "type": "string"
-            },
-            "title": "Device Codes",
-            "type": "array"
           },
           "plugin_key": {
             "anyOf": [
@@ -12642,6 +12744,14 @@
             "title": "Plugin Version",
             "type": "string"
           },
+          "position_slots": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/WorkLinePositionSlot"
+            },
+            "title": "Position Slots",
+            "type": "array"
+          },
           "supported_line_types": {
             "items": {
               "$ref": "#/components/schemas/LineType"
@@ -12658,6 +12768,165 @@
           "compatible"
         ],
         "title": "WorkLinePluginSummary",
+        "type": "object"
+      },
+      "WorkLinePositionInput": {
+        "additionalProperties": false,
+        "description": "本线静态工作位；不包含承载物身份、占用或物理到位状态。",
+        "properties": {
+          "allowed_rack_kind": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RackKind"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "capacity": {
+            "default": 1,
+            "minimum": 1,
+            "title": "Capacity",
+            "type": "integer"
+          },
+          "device_id": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "关联本线物理设备 ID，与业务插件无关",
+            "title": "Device Id"
+          },
+          "enabled": {
+            "default": true,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "external_location_code": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Location Code"
+          },
+          "logic_location_code": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logic Location Code"
+          },
+          "position_code": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Position Code",
+            "type": "string"
+          },
+          "position_name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Position Name",
+            "type": "string"
+          },
+          "position_role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorklineRackPositionRole"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "position_type": {
+            "default": "RACK_POSITION",
+            "enum": [
+              "RACK_POSITION",
+              "STATION"
+            ],
+            "title": "Position Type",
+            "type": "string"
+          },
+          "priority": {
+            "default": 100,
+            "minimum": 0,
+            "title": "Priority",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "position_code",
+          "position_name"
+        ],
+        "title": "WorkLinePositionInput",
+        "type": "object"
+      },
+      "WorkLinePositionSlot": {
+        "additionalProperties": false,
+        "description": "插件工作位需求；执行位置类型来自插件合同，现场编码来自工作线。",
+        "properties": {
+          "allowed_rack_kind": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RackKind"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "display_name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Display Name",
+            "type": "string"
+          },
+          "location_type": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Location Type",
+            "type": "string"
+          },
+          "position_type": {
+            "enum": [
+              "RACK_POSITION",
+              "STATION"
+            ],
+            "title": "Position Type",
+            "type": "string"
+          },
+          "slot_key": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Slot Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slot_key",
+          "display_name",
+          "position_type",
+          "location_type"
+        ],
+        "title": "WorkLinePositionSlot",
         "type": "object"
       },
       "WorkLineResponse": {
@@ -13136,6 +13405,20 @@
         ],
         "title": "WorklineActiveObjectsResponse",
         "type": "object"
+      },
+      "WorklineRackPositionRole": {
+        "description": "工作线停靠位角色。",
+        "enum": [
+          "SMT_CLASSIFIER_SINGLE_RACK_WORK",
+          "SMT_RACK_EXCHANGE_AREA",
+          "SMT_SORTER_QUEUE",
+          "SMT_SORTER_STATION",
+          "SMT_RETURN_RACK_POSITION",
+          "SMT_TRANSFER_RACK_POSITION",
+          "SMT_EMPTY_RACK_AREA"
+        ],
+        "title": "WorklineRackPositionRole",
+        "type": "string"
       },
       "_BinExchangeData": {
         "additionalProperties": false,
@@ -24374,9 +24657,111 @@
         ]
       }
     },
+    "/api/v1/workline/work_lines/{id}/base-configuration": {
+      "get": {
+        "operationId": "workline_work_lines_by_id_base_configuration_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "title": "Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_WorkLineBaseConfigurationResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[biz:workline:base-configuration] 查询工作线基础配置",
+        "tags": [
+          "作业线管理"
+        ]
+      },
+      "put": {
+        "operationId": "workline_work_lines_by_id_base_configuration_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "title": "Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkLineBaseConfigurationUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_WorkLineBaseConfigurationResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[biz:workline:configure-base] 保存工作位与物理设备基础配置",
+        "tags": [
+          "作业线管理"
+        ]
+      }
+    },
     "/api/v1/workline/work_lines/{id}/configuration": {
       "put": {
-        "description": "在一个事务中替换插件配置和 Device 归属。",
+        "description": "仅替换插件关联，保持工作位和物理设备归属。",
         "operationId": "workline_work_lines_by_id_configuration_put",
         "parameters": [
           {
@@ -24426,7 +24811,7 @@
             "HTTPBearer": []
           }
         ],
-        "summary": "[biz:workline:configure] 保存业务插件配置与设备全集",
+        "summary": "[biz:workline:configure] 保存业务插件关联与角色配置",
         "tags": [
           "作业线管理"
         ]

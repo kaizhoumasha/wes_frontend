@@ -139,7 +139,8 @@ function createWorklineDetailConfig(): CrudPageDetailConfig<Workline> {
 
 export function createWorkLinePageConfig(
   openConfig: (workline: Workline) => void,
-  openStart: (workline: Workline) => void
+  openStart: (workline: Workline) => void,
+  openBaseConfig: (workline: Workline) => void
 ): WorklinePageConfig {
   return createCrudPageConfigFromResource<Workline, CreateWorklineInput, UpdateWorklineInput>({
     resource: WORKLINE_PAGE_RESOURCE,
@@ -150,7 +151,7 @@ export function createWorkLinePageConfig(
     detail: createWorklineDetailConfig(),
     features: WORKLINE_PAGE_FEATURES,
     extensions: {
-      rowActions: createWorkLineRowActions(openConfig, openStart)
+      rowActions: createWorkLineRowActions(openConfig, openStart, openBaseConfig)
     }
   })
 }
