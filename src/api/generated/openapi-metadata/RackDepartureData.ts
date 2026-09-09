@@ -17,7 +17,6 @@ export const RackDepartureDataMetadata = {
     "current_location",
     "current_face"
   ],
-  "additionalProperties": false,
   "fields": {
     "current_face": {
       "title": "Current Face",

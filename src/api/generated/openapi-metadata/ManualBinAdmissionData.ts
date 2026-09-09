@@ -15,7 +15,6 @@ export const ManualBinAdmissionDataMetadata = {
     "bin_code",
     "scanned_at"
   ],
-  "additionalProperties": false,
   "fields": {
     "bin_code": {
       "title": "Bin Code",

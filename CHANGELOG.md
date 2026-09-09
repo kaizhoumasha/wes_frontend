@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.2.2] - 2026-09-09
+
+### Fixed
+
+- 自动联调移除工作线编码输入，统一使用 KT16；历史结果不覆盖新轮次工作线。
+- 同步 NO_BATCH 按已成功出库记录退回原槽位的提示，并冻结最新后端冗余字段处理合同。
+
 ## [0.20.2.1] - 2026-09-09
 
 ### Fixed

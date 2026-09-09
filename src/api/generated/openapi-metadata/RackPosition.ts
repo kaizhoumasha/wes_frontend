@@ -15,7 +15,6 @@ export const RackPositionMetadata = {
     "type",
     "location_code"
   ],
-  "additionalProperties": false,
   "fields": {
     "location_code": {
       "title": "Location Code",

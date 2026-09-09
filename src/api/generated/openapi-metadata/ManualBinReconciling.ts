@@ -20,7 +20,6 @@ export const ManualBinReconcilingMetadata = {
     "reason_code",
     "occurred_at"
   ],
-  "additionalProperties": false,
   "fields": {
     "apply_result": {
       "description": "discriminator enum property added by openapi-typescript",

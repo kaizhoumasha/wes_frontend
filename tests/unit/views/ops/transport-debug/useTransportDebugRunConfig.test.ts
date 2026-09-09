@@ -161,9 +161,16 @@ describe('useTransportDebugRunConfig', () => {
     })
   })
 
-  it('requires a workline code for WMS return allocation', () => {
+  it('supplies the fixed WMS identity without operator input', () => {
     const config = useTransportDebugRunConfig()
-    expect(config.validationError.value).toContain('工作线')
+    expect(config.validationError.value).toBeNull()
+    expect(
+      buildTransportDebugRunInput(
+        config.rackId.value,
+        config.groups.value,
+        config.worklineCode.value
+      ).workline_code
+    ).toBe('KT16')
     expect(() => buildTransportDebugRunInput(config.rackId.value, config.groups.value, '')).toThrow(
       '工作线'
     )

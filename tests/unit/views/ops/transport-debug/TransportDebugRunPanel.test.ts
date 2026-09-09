@@ -281,6 +281,7 @@ describe('TransportDebugRunPanel', () => {
   })
 
   it('prefills confirmed returned slots once without overwriting later manual edits', async () => {
+    configState.worklineCode.value = 'KT16'
     const wrapper = mountDialog()
     await flushPromises()
     const result = {
@@ -290,6 +291,7 @@ describe('TransportDebugRunPanel', () => {
     }
     runState.currentRun.value = result
     await flushPromises()
+    expect(configState.worklineCode.value).toBe('KT16')
     expect(configState.groups.value).toEqual([
       { face: '270', bins: [{ bin_code: 'B1', slot_id: 'S2' }] }
     ])

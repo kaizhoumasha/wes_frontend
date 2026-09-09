@@ -15,7 +15,6 @@ export const CompletionConfirmDataMetadata = {
     "task_id",
     "last_applied_plan_revision"
   ],
-  "additionalProperties": false,
   "fields": {
     "last_applied_plan_revision": {
       "title": "Last Applied Plan Revision",

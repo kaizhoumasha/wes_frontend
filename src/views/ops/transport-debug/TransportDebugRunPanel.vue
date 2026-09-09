@@ -53,7 +53,6 @@ watch(
       appliedResults.add(current.run_id)
       const input = nextRoundInput(current)
       config.rackId.value = input.rack_id
-      config.worklineCode.value = input.workline_code
       config.groups.value = input.face_groups
       resultWarning.value = ''
     } catch (error) {
@@ -141,7 +140,7 @@ onMounted(load)
 <template>
   <section class="debug-run-panel">
     <el-alert
-      title="启动会创建真实 WMS/RCS 任务。请核对工作线、货架和料箱当前槽位；回架槽位由 WMS 分配，下一轮使用确认后的实际槽位。"
+      title="启动会创建真实 WMS/RCS 任务。请核对工作线、货架和料箱当前槽位；回架优先使用 WMS 分配；NO_BATCH 按已成功出库记录退回原槽位，下一轮使用确认后的实际槽位。"
       type="warning"
       :closable="false"
       show-icon
@@ -215,7 +214,6 @@ onMounted(load)
       v-model:total-rounds="totalRounds"
       :config="config"
       :round-error="roundError"
-      @update:workline-code="config.worklineCode.value = $event"
       @update:rack-id="config.rackId.value = $event"
     />
 

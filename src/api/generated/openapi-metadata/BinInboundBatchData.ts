@@ -17,7 +17,6 @@ export const BinInboundBatchDataMetadata = {
     "rack_face",
     "max_bin_count"
   ],
-  "additionalProperties": false,
   "fields": {
     "max_bin_count": {
       "title": "Max Bin Count",

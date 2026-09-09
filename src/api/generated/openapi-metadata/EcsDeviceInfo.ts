@@ -20,7 +20,6 @@ export const EcsDeviceInfoMetadata = {
     "supported_commands",
     "supported_events"
   ],
-  "additionalProperties": false,
   "fields": {
     "device_code": {
       "title": "Device Code",
