@@ -1,4 +1,4 @@
-/** @openapi-sha256 e20fab5245fba09335d00037fe577e884955de70f29bc616c862d0b22da58b24 */
+/** @openapi-sha256 d2c516a26865f2ec2d9cea3cc151c392fa3f201253e6643f8e465b749766e76f */
 /**
  * Zod Validation Schemas
  *
@@ -522,6 +522,20 @@ export const BinContentSnapshotResponseSchema = z.object({
 export const BinContentSnapshotStatusSchema = z.enum(["COMPLETE", "PARTIAL", "UNKNOWN"])
 
 
+export const BinInboundBatchRequestSchema = z.object({
+  /** Client Request Id */
+  client_request_id: z.string().min(1).max(120),
+  /** Expected Version */
+  expected_version: z.number().min(0),
+  /** Max Bin Count */
+  max_bin_count: z.literal(1).optional().default(1),
+  /** Rack Face */
+  rack_face: z.string().min(1).max(120),
+  /** Rack Id */
+  rack_id: z.string().min(1).max(120),
+})
+
+
 /**
  * 物料料箱格位投影响应 Schema。
  *
@@ -591,6 +605,20 @@ export const BinMaterialMountResponseSchema = z.object({
 export const BinMaterialMountStatusSchema = z.enum(["OCCUPIED", "REMOVED", "LOCKED", "UNKNOWN"])
 
 
+export const BinMovePositionSchema = z.object({
+  /** Kind */
+  kind: z.enum(["HANDOFF_POSITION", "RACK_BIN_SLOT"]),
+  /** Location Code */
+  location_code: z.union([z.string().min(1).max(120), z.null()]).optional(),
+  /** Rack Face */
+  rack_face: z.union([z.string().min(1).max(120), z.null()]).optional(),
+  /** Rack Id */
+  rack_id: z.union([z.string().min(1).max(120), z.null()]).optional(),
+  /** Slot Id */
+  slot_id: z.union([z.string().min(1).max(120), z.null()]).optional(),
+})
+
+
 /**
  * 料箱实例响应 Schema。
  *
@@ -614,6 +642,20 @@ export const BinResponseSchema = z.object({
   status: z.lazy(() => ResourceMasterStatusSchema).optional().default("ACTIVE"),
   /** Wms Bin Id */
   wms_bin_id: z.union([z.string().max(100), z.null()]).optional(),
+})
+
+
+export const BinReturnBatchRequestSchema = z.object({
+  /** Client Request Id */
+  client_request_id: z.string().min(1).max(120),
+  /** Expected Version */
+  expected_version: z.number().min(0),
+  /** Rack Face */
+  rack_face: z.string().min(1).max(120),
+  /** Rack Id */
+  rack_id: z.string().min(1).max(120),
+  /** Source Location Code */
+  source_location_code: z.string().min(1).max(120),
 })
 
 
@@ -673,6 +715,22 @@ export const BinTypeResponseSchema = z.object({
   id: z.number(),
   /** Metadata Json */
   metadata_json: z.record(z.any()).optional(),
+})
+
+
+export const BindCompletionRequestSchema = z.object({
+  /** Expected Version */
+  expected_version: z.number().min(0),
+  /** Operation Id */
+  operation_id: z.string().min(1).max(120),
+})
+
+
+export const BindTaskRequestSchema = z.object({
+  /** Expected Version */
+  expected_version: z.number().min(0),
+  /** Task Id */
+  task_id: z.string().min(1).max(120),
 })
 
 
@@ -766,6 +824,63 @@ export const ClearWorkLineEstopRequestSchema = z.object({
 })
 
 
+export const ClientActionRequestSchema = z.object({
+  /** Client Request Id */
+  client_request_id: z.string().min(1).max(120),
+  /** Expected Version */
+  expected_version: z.number().min(0),
+})
+
+
+export const CloseRunRequestSchema = z.object({
+  /** Expected Version */
+  expected_version: z.number().min(0),
+  /** Site Cleanup Confirmed */
+  site_cleanup_confirmed: z.boolean(),
+  /** Wms Cleanup Confirmed */
+  wms_cleanup_confirmed: z.boolean(),
+})
+
+
+export const CompletionApplyReportRequestSchema = z.object({
+  /** Apply Result */
+  apply_result: z.enum(["APPLIED", "RECONCILING"]),
+  /** Apply Revision */
+  apply_revision: z.number().min(1),
+  /** Client Request Id */
+  client_request_id: z.string().min(1).max(120),
+  /** Completion Operation Id */
+  completion_operation_id: z.string().min(1).max(120),
+  /** Expected Version */
+  expected_version: z.number().min(0),
+  /** Occurred At */
+  occurred_at: z.number(),
+  /** Reason Code */
+  reason_code: z.union([z.enum(["RESULT_CONFLICT", "FIRST_COMPLETION_OUT_OF_WINDOW", "POINT2_BINDING_MISMATCH", "WORKLINE_NOT_ACTIVE", "COMPLETED_AT_INVALID", "DEVICE_COMMAND_IDENTITY_CONFLICT"]), z.null()]).optional(),
+})
+
+
+export const ConfirmPhaseRequestSchema = z.object({
+  /** Expected Version */
+  expected_version: z.number().min(0),
+  /** Note */
+  note: z.string().min(1).max(500),
+})
+
+
+export const CreateRunRequestSchema = z.object({
+  /** Device Code */
+  device_code: z.string().min(1).max(100),
+  /** Environment Label */
+  environment_label: z.string().min(1).max(80),
+  profile: z.lazy(() => IntegrationDebugProfileSchema),
+  /** Rack Id */
+  rack_id: z.union([z.string().min(1).max(100), z.null()]).optional(),
+  /** Workline Code */
+  workline_code: z.string().min(1).max(50),
+})
+
+
 export const CreateTransportDebugRunRequestSchema = z.object({
   /** Face Groups */
   face_groups: z.array(z.lazy(() => TransportDebugRunFaceGroupRequestSchema)),
@@ -819,6 +934,24 @@ export const DebugTransportTaskResetResultSchema = z.object({
   deleted_position_projection_count: z.number(),
   /** Transport Task Id */
   transport_task_id: z.string(),
+})
+
+
+export const DeviceActionRequestSchema = z.object({
+  /** Client Request Id */
+  client_request_id: z.string().min(1).max(120),
+  /** Device Code */
+  device_code: z.string().min(1).max(120),
+  /** Expected Version */
+  expected_version: z.number().min(0),
+  /** Params */
+  params: z.record(z.any()),
+  /** Reason */
+  reason: z.string().min(1).max(120),
+  /** Task Type */
+  task_type: z.string().min(1).max(120),
+  /** Timeout Ms */
+  timeout_ms: z.number().min(100).max(600000),
 })
 
 
@@ -1275,6 +1408,97 @@ export const FilterOperatorSchema = z.enum(["eq", "ne", "gt", "ge", "lt", "le", 
 
 
 export const InboundEvidenceApplyStatusSchema = z.enum(["PENDING", "APPLIED", "IGNORED", "RECONCILING"])
+
+
+export const IntegrationDebugProfileSchema = z.enum(["CONTRACT_SIMULATION", "DEVICE_INTEGRATION", "FULL_SITE_INTEGRATION"])
+
+
+export const IntegrationRunResponseSchema = z.object({
+  /** Attention Code */
+  attention_code: z.union([z.string(), z.null()]),
+  /** Attention Detail */
+  attention_detail: z.union([z.string(), z.null()]),
+  /** Bin Code */
+  bin_code: z.union([z.string(), z.null()]),
+  /** Created At */
+  created_at: z.string(),
+  /** Current Phase */
+  current_phase: z.string(),
+  /** Device Code */
+  device_code: z.union([z.string(), z.null()]),
+  /** Environment Label */
+  environment_label: z.string(),
+  /** Expected Plugin Key */
+  expected_plugin_key: z.literal("manual_bin_processing"),
+  /** Issued Operation Id */
+  issued_operation_id: z.union([z.string(), z.null()]),
+  /** Operation Context */
+  operation_context: z.record(z.any()),
+  /** Operator User Id */
+  operator_user_id: z.number(),
+  /** Plan Resources */
+  plan_resources: z.union([z.record(z.any()), z.null()]),
+  profile: z.lazy(() => IntegrationDebugProfileSchema),
+  /** Rack Id */
+  rack_id: z.union([z.string(), z.null()]),
+  /** Run Id */
+  run_id: z.string(),
+  /** Scenario Key */
+  scenario_key: z.literal("manual_outbound_picking@v1"),
+  /** Site Cleanup Confirmed */
+  site_cleanup_confirmed: z.boolean(),
+  /** Site Configuration */
+  site_configuration: z.record(z.any()),
+  /** Status */
+  status: z.string(),
+  /** Steps */
+  steps: z.array(z.lazy(() => IntegrationRunStepResponseSchema)),
+  /** Task Id */
+  task_id: z.union([z.string(), z.null()]),
+  /** Updated At */
+  updated_at: z.string(),
+  /** Version */
+  version: z.number(),
+  /** Wms Cleanup Confirmed */
+  wms_cleanup_confirmed: z.boolean(),
+  /** Workline Code */
+  workline_code: z.string(),
+  /** Workline Id */
+  workline_id: z.number(),
+})
+
+
+export const IntegrationRunStepResponseSchema = z.object({
+  /** Client Request Id */
+  client_request_id: z.union([z.string(), z.null()]),
+  /** Created At */
+  created_at: z.string(),
+  /** Device Command Code */
+  device_command_code: z.union([z.string(), z.null()]),
+  /** Operation */
+  operation: z.union([z.string(), z.null()]),
+  /** Operation Id */
+  operation_id: z.union([z.string(), z.null()]),
+  /** Ordinal */
+  ordinal: z.number(),
+  /** Phase */
+  phase: z.string(),
+  /** Reason Code */
+  reason_code: z.union([z.string(), z.null()]),
+  /** Request */
+  request: z.record(z.any()),
+  /** Result */
+  result: z.record(z.any()),
+  /** Status */
+  status: z.string(),
+  /** Transport Task Id */
+  transport_task_id: z.union([z.string(), z.null()]),
+  /** Wms Confirmation Id */
+  wms_confirmation_id: z.union([z.number(), z.null()]),
+})
+
+
+export const IntegrationTransportActionKindSchema = z.enum(["MOVE_RACK", "ROTATE_RACK", "MOVE_BINS"])
 
 
 /**
@@ -2176,6 +2400,16 @@ export const PlaneSnapshotSchema = z.object({
 })
 
 
+export const Point2ScanRequestSchema = z.object({
+  /** Bin Code */
+  bin_code: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
+  /** Expected Version */
+  expected_version: z.number().min(0),
+  /** Scanned At */
+  scanned_at: z.number(),
+})
+
+
 /**
  * 查询选项
  *
@@ -2240,6 +2474,20 @@ export const RackBinMountResponseSchema = z.object({
 export const RackBinMountStatusSchema = z.enum(["MOUNTED", "UNMOUNTED", "EXCHANGING", "UNKNOWN"])
 
 
+export const RackDepartureRequestSchema = z.object({
+  /** Client Request Id */
+  client_request_id: z.string().min(1).max(120),
+  /** Current Face */
+  current_face: z.string().min(1).max(120),
+  /** Current Location Code */
+  current_location_code: z.string().min(1).max(120),
+  /** Expected Version */
+  expected_version: z.number().min(0),
+  /** Rack Id */
+  rack_id: z.string().min(1).max(120),
+})
+
+
 /**
  * 货架物理结构类型。
  *
@@ -2247,6 +2495,14 @@ export const RackBinMountStatusSchema = z.enum(["MOUNTED", "UNMOUNTED", "EXCHANG
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const RackKindSchema = z.enum(["SINGLE_LAYER", "FIVE_LAYER", "RETURN", "TRANSFER", "PRODUCTION"])
+
+
+export const RackMovePositionSchema = z.object({
+  /** Kind */
+  kind: z.enum(["RACK", "ZONE", "RACK_POSITION"]),
+  /** Location Code */
+  location_code: z.string().min(1).max(120),
+})
 
 
 /**
@@ -2448,6 +2704,22 @@ export const RefreshTokenResponseSchema = z.object({
   refresh_token_jti: z.string(),
   /** Session Uuid */
   session_uuid: z.string(),
+})
+
+
+export const RefreshTransportActionRequestSchema = z.object({
+  /** Client Request Id */
+  client_request_id: z.string().min(1).max(120),
+  /** Expected Version */
+  expected_version: z.number().min(0),
+})
+
+
+export const RefreshWmsActionRequestSchema = z.object({
+  /** Client Request Id */
+  client_request_id: z.string().min(1).max(120),
+  /** Expected Version */
+  expected_version: z.number().min(0),
 })
 
 
@@ -2690,6 +2962,27 @@ export const SortFieldSchema = z.object({
   field: z.string(),
   /** Order */
   order: z.enum(["asc", "desc"]).optional().default("desc"),
+})
+
+
+export const TransportActionRequestSchema = z.object({
+  /** Bin Code */
+  bin_code: z.union([z.string().min(1).max(120), z.null()]).optional(),
+  /** Client Request Id */
+  client_request_id: z.string().min(1).max(120),
+  /** Expected Version */
+  expected_version: z.number().min(0),
+  kind: z.lazy(() => IntegrationTransportActionKindSchema),
+  /** Rack Id */
+  rack_id: z.string().min(1).max(120),
+  /** Rcs Template Id */
+  rcs_template_id: z.enum(["CTU01", "CTU02", "CTU03", "F01"]),
+  /** Source */
+  source: z.union([z.lazy(() => RackMovePositionSchema), z.lazy(() => BinMovePositionSchema)]),
+  /** Target */
+  target: z.union([z.lazy(() => RackMovePositionSchema), z.lazy(() => BinMovePositionSchema), z.null()]).optional(),
+  /** Target Face */
+  target_face: z.union([z.string().min(1).max(120), z.null()]).optional(),
 })
 
 
@@ -3123,6 +3416,12 @@ export const ValidationErrorSchema = z.object({
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const ValidityPeriodSchema = z.enum(["1d", "1w", "1m", "6m", "1y", "never"])
+
+
+export const VersionRequestSchema = z.object({
+  /** Expected Version */
+  expected_version: z.number().min(0),
+})
 
 
 export const WirePreviewSchema = z.object({

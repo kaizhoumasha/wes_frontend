@@ -20,6 +20,7 @@ import { OPS_TRANSPORT_DEBUG_RUN_PERMISSION } from './user_api/ops/transport-deb
 import { OPS_TRANSPORT_EVIDENCE_PERMISSION } from './user_api/ops/transport-evidence'
 import { OPS_TRANSPORT_TASK_PERMISSION } from './user_api/ops/transport-task'
 import { OPS_WMS_DIAGNOSTICS_PERMISSION } from './user_api/ops/wms-diagnostics'
+import { OPS_WORKLINE_INTEGRATION_DEBUG_PERMISSION } from './user_api/ops/workline-integration-debug'
 import { RESOURCE_BIN_PERMISSION } from './user_api/resource/bin'
 import { RESOURCE_BINCELLOCCUPANCY_PERMISSION } from './user_api/resource/bincelloccupancy'
 import { RESOURCE_BINCONTENTSNAPSHOT_PERMISSION } from './user_api/resource/bincontentsnapshot'
@@ -50,6 +51,7 @@ export { OPS_TRANSPORT_DEBUG_RUN_PERMISSION }
 export { OPS_TRANSPORT_EVIDENCE_PERMISSION }
 export { OPS_TRANSPORT_TASK_PERMISSION }
 export { OPS_WMS_DIAGNOSTICS_PERMISSION }
+export { OPS_WORKLINE_INTEGRATION_DEBUG_PERMISSION }
 export { RESOURCE_BIN_PERMISSION }
 export { RESOURCE_BINCELLOCCUPANCY_PERMISSION }
 export { RESOURCE_BINCONTENTSNAPSHOT_PERMISSION }
@@ -113,6 +115,7 @@ export const OPS_PERMISSIONS = {
   transportEvidence: OPS_TRANSPORT_EVIDENCE_PERMISSION,
   transportTask: OPS_TRANSPORT_TASK_PERMISSION,
   wmsDiagnostics: OPS_WMS_DIAGNOSTICS_PERMISSION,
+  worklineIntegrationDebug: OPS_WORKLINE_INTEGRATION_DEBUG_PERMISSION,
 } as const
 
 /**
