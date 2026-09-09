@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.1.1] - 2026-09-09
+
+### Fixed
+
+- 手工出库联调台使用现有 WorkLine `KT16` 创建 Run，并明确 WES、WMS 的 `workline_code` 均为 `KT16`。
+
 ## [0.20.1.0] - 2026-09-09
 
 ### Fixed
