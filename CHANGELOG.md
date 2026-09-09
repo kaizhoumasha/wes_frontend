@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.2.1] - 2026-09-09
+
+### Fixed
+
+- prepare 异常恢复改为先确认 WMS 已作废旧请求，再保留旧证据并使用新的 `operation_id` 重发；页面同步给出 C# WMS 的严格 `202 / PREPARE_ACCEPTED / data={}` 与后续异步 `plan_delta` 指引。
+- 同步后端 `2ccf05cf1534e1f18a76a9a8cfbaffc2f86ce421` 的恢复请求合同。
+
 ## [0.20.2.0] - 2026-09-09
 
 ### Changed
