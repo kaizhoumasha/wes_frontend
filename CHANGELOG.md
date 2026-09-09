@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.2.0] - 2026-09-09
+
+### Changed
+
+- 手工出库联调台允许管理员在发送前编辑各 WES→WMS Operation 的业务 `data`，并按当前 Run 恢复默认参数。
+- ECS 指令支持编辑 `device_code`、`task_type`、`params`、`timeout_ms` 和 `reason`；命令身份与时间仍由 WES 生成。
+- 同步后端 `97030c7caf8dfa5b724dbc75d25a278b3da8e821` 的严格联调请求合同。
+
 ## [0.20.1.1] - 2026-09-09
 
 ### Fixed
