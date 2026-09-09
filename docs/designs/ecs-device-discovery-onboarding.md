@@ -175,7 +175,7 @@ openCreate({
 })
 ```
 
-不预填作业线、上游设备、能力、运行状态或 MANUAL_DEBUG 准入结果。系统管理员补齐现有 Device 表单必填字段后提交。Device 主数据不再包含 `device_role`、`role_index`；设备创建后，在工作线配置中选择本线物理设备，再按后端插件 `device_roles` 声明的角色选择设备，保存为 `config.device_bindings`。角色可暂不绑定以保存草稿，前端不再提供粗分机专属配置表单。
+不预填作业线、上游设备、能力、运行状态或 MANUAL_DEBUG 准入结果。系统管理员补齐现有 Device 表单必填字段后提交。Device 主数据不再包含 `device_role`、`role_index`；设备创建后，在工作线「基础配置」中选择本线物理设备，再在「业务装配」中按后端插件 `device_roles` 声明的设备插槽选择设备，保存为 `config.device_bindings`；工作位插槽按 `position_slots` 声明绑定，保存为 `config.position_bindings`。插槽可暂不绑定以保存草稿，启动前必须完成；前端不提供粗分机专属配置表单。操作顺序见 [工作线配置](../../README.md#工作线配置)。
 
 创建成功后，现有 CRUD 流程先关闭表单并刷新主列表，再触发抽屉重新比对。若重新比对失败，Device 创建仍保持成功，抽屉显示旧结果并禁用再次接管；不回滚、不重复创建。
 
