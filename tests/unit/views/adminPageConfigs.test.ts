@@ -15,11 +15,11 @@ describe('admin page field configuration', () => {
     expect(() => createPermissionPageConfig()).not.toThrow()
     expect(() => createRolePageConfig()).not.toThrow()
     expect(() => createUserPageConfig(open, open)).not.toThrow()
-    expect(() => createWorkLinePageConfig(open, open, open)).not.toThrow()
+    expect(() => createWorkLinePageConfig(open, open, open, () => true)).not.toThrow()
   })
 
   it('does not expose runtime or debug cleanup actions from workline management', () => {
-    const config = createWorkLinePageConfig(vi.fn(), vi.fn(), vi.fn())
+    const config = createWorkLinePageConfig(vi.fn(), vi.fn(), vi.fn(), () => true)
 
     expect(config.detail?.actions ?? []).toEqual([])
     expect(config.extensions?.rowActions?.map(action => action.key)).toEqual([

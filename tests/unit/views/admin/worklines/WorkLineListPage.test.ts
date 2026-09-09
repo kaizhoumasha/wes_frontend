@@ -13,7 +13,7 @@ import { createWorkLinePageConfig } from '@/views/admin/worklines/config/pageCon
 describe('WorkLine static master-data page', () => {
   it('contains only current static fields and no legacy runtime detail actions', () => {
     const keys = WORKLINE_FIELDS.map(field => field.key)
-    const config = createWorkLinePageConfig(vi.fn(), vi.fn(), vi.fn())
+    const config = createWorkLinePageConfig(vi.fn(), vi.fn(), vi.fn(), () => true)
 
     expect(keys).toContain('plugin_key')
     expect(keys).toContain('plugin_version')
@@ -28,7 +28,7 @@ describe('WorkLine static master-data page', () => {
     const openConfig = vi.fn()
     const openStart = vi.fn()
     const openBase = vi.fn()
-    const config = createWorkLinePageConfig(openConfig, openStart, openBase)
+    const config = createWorkLinePageConfig(openConfig, openStart, openBase, () => true)
     const actions = config.extensions?.rowActions ?? []
 
     expect(actions.map(action => action.key)).toEqual([
@@ -56,6 +56,28 @@ describe('WorkLine static master-data page', () => {
     expect(openConfig).toHaveBeenCalledWith(row)
     expect(openStart).toHaveBeenCalledWith(row)
   })
+
+  it.each([
+    [BIZ_PERMISSIONS.device.list, false, false],
+    [BIZ_PERMISSIONS.workline.baseConfiguration, true, false],
+    [BIZ_PERMISSIONS.workline.detail, true, false],
+    [BIZ_PERMISSIONS.workline.availablePlugins, true, false],
+    ['', true, true]
+  ])(
+    'requires all dialog read permissions when missing %s',
+    (missing, baseVisible, pluginVisible) => {
+      const config = createWorkLinePageConfig(
+        vi.fn(),
+        vi.fn(),
+        vi.fn(),
+        permission => permission !== missing
+      )
+      const actions = config.extensions?.rowActions ?? []
+      const row = { id: 7 } as Workline
+      expect(actions[0]?.show?.(row)).toBe(baseVisible)
+      expect(actions[1]?.show?.(row)).toBe(pluginVisible)
+    }
+  )
 
   it('does not expose the retired WorkLine configuration route', () => {
     expect(bizRoutes.children?.some(route => route.name === 'WorkLineConfig')).toBe(false)

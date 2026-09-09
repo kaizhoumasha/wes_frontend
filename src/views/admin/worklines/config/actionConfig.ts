@@ -5,7 +5,8 @@ import type { CrudPageRowAction } from '@/components/common/crud-page/types'
 export function createWorkLineRowActions(
   openConfig: (workline: Workline) => void,
   openStart: (workline: Workline) => void,
-  openBaseConfig: (workline: Workline) => void
+  openBaseConfig: (workline: Workline) => void,
+  hasPermission: (permission: string) => boolean
 ): CrudPageRowAction<Workline>[] {
   return [
     {
@@ -16,6 +17,7 @@ export function createWorkLineRowActions(
       type: 'primary',
       priority: 'secondary',
       permission: BIZ_PERMISSIONS.workline.baseConfiguration,
+      show: () => hasPermission(BIZ_PERMISSIONS.device.list),
       onClick: openBaseConfig
     },
     {
@@ -26,6 +28,11 @@ export function createWorkLineRowActions(
       type: 'primary',
       priority: 'secondary',
       permission: BIZ_PERMISSIONS.workline.configurationStatus,
+      show: () =>
+        hasPermission(BIZ_PERMISSIONS.workline.baseConfiguration) &&
+        hasPermission(BIZ_PERMISSIONS.workline.detail) &&
+        hasPermission(BIZ_PERMISSIONS.workline.availablePlugins) &&
+        hasPermission(BIZ_PERMISSIONS.device.list),
       onClick: openConfig
     },
     {

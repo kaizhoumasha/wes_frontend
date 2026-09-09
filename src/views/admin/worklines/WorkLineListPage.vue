@@ -19,6 +19,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { usePermission } from '@/composables/usePermission'
 import type { WorkLinesItem as Workline } from '@/api/modules/workLines'
 import CrudPageContainer from '@/components/common/CrudPageContainer.vue'
 import WorkLineConfigurationDialog from './components/WorkLineConfigurationDialog.vue'
@@ -46,5 +47,6 @@ function openBaseConfig(workline: Workline): void {
   baseConfigDialogVisible.value = true
 }
 
-const config = createWorkLinePageConfig(openConfig, openStart, openBaseConfig)
+const { hasPermission } = usePermission()
+const config = createWorkLinePageConfig(openConfig, openStart, openBaseConfig, hasPermission)
 </script>
