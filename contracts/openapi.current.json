@@ -7550,6 +7550,35 @@
         "title": "Point2ScanRequest",
         "type": "object"
       },
+      "PrepareTaskRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "client_request_id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Client Request Id",
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "workline_code": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Workline Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_version",
+          "client_request_id",
+          "workline_code"
+        ],
+        "title": "PrepareTaskRequest",
+        "type": "object"
+      },
       "QueryOptions": {
         "description": "查询选项",
         "properties": {
@@ -11740,6 +11769,41 @@
           }
         },
         "title": "ResponseSchemaModel[list[WorkLinePluginSummary]]",
+        "type": "object"
+      },
+      "RetryWmsActionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "client_request_id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Client Request Id",
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "wms_non_receipt_confirmed": {
+            "const": true,
+            "title": "Wms Non Receipt Confirmed",
+            "type": "boolean"
+          },
+          "workline_code": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Workline Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_version",
+          "client_request_id",
+          "wms_non_receipt_confirmed",
+          "workline_code"
+        ],
+        "title": "RetryWmsActionRequest",
         "type": "object"
       },
       "RevokeSessionResponse": {
@@ -26316,7 +26380,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ClientActionRequest"
+                "$ref": "#/components/schemas/PrepareTaskRequest"
               }
             }
           },
@@ -26468,6 +26532,65 @@
           }
         ],
         "summary": "[ops:workline-integration-debug:operate] 按持久化 WMS 响应推进联调状态",
+        "tags": [
+          "人工出库联调"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs/{run_id}/wms/retry": {
+      "post": {
+        "operationId": "workline_integration_debug_runs_by_run_id_wms_retry_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RetryWmsActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_IntegrationRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:operate] 确认 WMS 未接收并重发 prepare；参数变更时使用新身份",
         "tags": [
           "人工出库联调"
         ]

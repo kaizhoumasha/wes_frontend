@@ -152,7 +152,10 @@ export const worklineIntegrationDebugApi = {
     asRun(worklineIntegrationDebugApiMethods.createRuns(body).send()),
   bindTask: (runId: string, body: VersionInput & { task_id: string }) =>
     asRun(worklineIntegrationDebugApiMethods.bindTask(runParams(runId), body).send()),
-  prepareTask: (runId: string, body: VersionInput & { client_request_id: string }) =>
+  prepareTask: (
+    runId: string,
+    body: VersionInput & { client_request_id: string; workline_code: string }
+  ) =>
     asRun(worklineIntegrationDebugApiMethods.wmsPrepare(runParams(runId), body).send()),
   refreshPlan: (runId: string, body: VersionInput) =>
     asRun(worklineIntegrationDebugApiMethods.planRefresh(runParams(runId), body).send()),
@@ -162,6 +165,14 @@ export const worklineIntegrationDebugApi = {
     asRun(worklineIntegrationDebugApiMethods.wmsWorkAdmission(runParams(runId), body).send()),
   refreshWms: (runId: string, body: VersionInput & { client_request_id: string }) =>
     asRun(worklineIntegrationDebugApiMethods.wmsRefresh(runParams(runId), body).send()),
+  retryWms: (
+    runId: string,
+    body: VersionInput & {
+      client_request_id: string
+      workline_code: string
+      wms_non_receipt_confirmed: true
+    }
+  ) => asRun(worklineIntegrationDebugApiMethods.wmsRetry(runParams(runId), body).send()),
   binInboundBatch: (
     runId: string,
     body: VersionInput & {

@@ -52,6 +52,8 @@ export const OPS_WORKLINE_INTEGRATION_DEBUG_PERMISSION = {
   refreshTransport: 'ops:workline-integration-debug:refresh-transport',
   /** 按持久化 WMS 响应推进联调状态 */
   refreshWms: 'ops:workline-integration-debug:refresh-wms',
+  /** 确认 WMS 未接收并重发 prepare；参数变更时使用新身份 */
+  retryWms: 'ops:workline-integration-debug:retry-wms',
   /** 实时订阅人工出库联调状态 */
   stream: 'ops:workline-integration-debug:stream',
   /** 接管联调 run 操作权 */
