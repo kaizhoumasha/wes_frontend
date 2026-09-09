@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.0.0] - 2026-09-09
+
+### Added
+
+- 新增 `sorting-3` 手工出库联调台，按 20 个业务节点展示并人工驱动 WMS、Transport/RCS 与 ECS 交互。
+- 支持合同模拟与真实设备可选模式，展示并编辑当前节点参数，持续接收 SSE 状态并导出联调证据。
+
+### Changed
+
+- 同步后端手工出库联调接口、严格 DTO 与管理员权限；未终态交互跨阶段保留刷新与对账入口。
+- WMS 侧清理由 WMS 团队执行，页面仅记录清理确认和现场状态。
+
 ## [0.19.0.0] - 2026-09-08
 
 ### Added
