@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { IntegrationRun } from '@/api/modules/worklineIntegrationDebug'
+import type { IntegrationRun } from '@/api/manualOutboundIntegrationApi'
 import { useManualOutboundIntegration } from '@/views/ops/manual-outbound-integration/useManualOutboundIntegration'
 
 function snapshot(
@@ -68,5 +68,99 @@ describe('useManualOutboundIntegration', () => {
     })
 
     expect(state.currentRun.value?.run_id).toBe('run-2')
+  })
+
+  it('does not replace a newer SSE snapshot with an older create response', async () => {
+    let resolveCreate!: (value: IntegrationRun) => void
+    const api = {
+      list: vi.fn().mockResolvedValue([]),
+      get: vi.fn(),
+      create: vi.fn().mockReturnValue(
+        new Promise<IntegrationRun>(resolve => {
+          resolveCreate = resolve
+        })
+      )
+    }
+    const state = useManualOutboundIntegration({ api })
+    const creating = state.create({
+      workline_code: 'sorting-3',
+      profile: 'CONTRACT_SIMULATION',
+      environment_label: 'integration',
+      device_code: 'SIM-ECS-01'
+    })
+
+    state.accept(snapshot('run-2', 2, 'WAITING_TASK'))
+    resolveCreate(snapshot('run-2', 1, 'WAITING_TASK'))
+    await creating
+
+    expect(state.currentRun.value?.version).toBe(2)
+  })
+
+  it('keeps the latest run selection when an earlier detail request finishes last', async () => {
+    let resolveRun1!: (value: IntegrationRun) => void
+    let resolveRun2!: (value: IntegrationRun) => void
+    const api = {
+      list: vi.fn().mockResolvedValue([snapshot('run-1', 1), snapshot('run-2', 1)]),
+      get: vi.fn(
+        (runId: string) =>
+          new Promise<IntegrationRun>(resolve => {
+            if (runId === 'run-1') resolveRun1 = resolve
+            else resolveRun2 = resolve
+          })
+      ),
+      create: vi.fn()
+    }
+    const state = useManualOutboundIntegration({ api })
+    await state.load()
+
+    const first = state.select('run-1')
+    const second = state.select('run-2')
+    resolveRun2(snapshot('run-2', 2))
+    await second
+    resolveRun1(snapshot('run-1', 2))
+    await first
+
+    expect(state.currentRun.value?.run_id).toBe('run-2')
+  })
+
+  it('reloads the selected run even after it falls outside the recent list', async () => {
+    const api = {
+      list: vi
+        .fn()
+        .mockResolvedValueOnce([snapshot('run-old', 1)])
+        .mockResolvedValueOnce([snapshot('run-new', 1)]),
+      get: vi.fn().mockResolvedValue(snapshot('run-old', 2)),
+      create: vi.fn()
+    }
+    const state = useManualOutboundIntegration({ api })
+    await state.load()
+
+    await state.load()
+
+    expect(api.get).toHaveBeenCalledWith('run-old')
+    expect(state.currentRun.value?.run_id).toBe('run-old')
+    expect(state.currentRun.value?.version).toBe(2)
+  })
+
+  it('does not replace a newer SSE snapshot with an older detail response', async () => {
+    let resolveDetail!: (value: IntegrationRun) => void
+    const api = {
+      list: vi.fn().mockResolvedValue([snapshot('run-1', 1)]),
+      get: vi.fn().mockReturnValue(
+        new Promise<IntegrationRun>(resolve => {
+          resolveDetail = resolve
+        })
+      ),
+      create: vi.fn()
+    }
+    const state = useManualOutboundIntegration({ api })
+    await state.load()
+
+    const selecting = state.select('run-1')
+    state.accept(snapshot('run-1', 3))
+    resolveDetail(snapshot('run-1', 2))
+    await selecting
+
+    expect(state.currentRun.value?.version).toBe(3)
   })
 })

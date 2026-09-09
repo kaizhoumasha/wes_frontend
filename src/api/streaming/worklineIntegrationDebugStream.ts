@@ -1,4 +1,4 @@
-import type { IntegrationRun } from '@/api/modules/worklineIntegrationDebug'
+import type { IntegrationRun } from '@/api/manualOutboundIntegrationApi'
 import {
   consumeAuthenticatedSse,
   type AuthenticatedSseDependencies

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { usePermission } from '@/composables/usePermission'
+import { OPS_WORKLINE_INTEGRATION_DEBUG_PERMISSION as PERMISSION } from '@/api/generated/permissions/user_api/ops/workline-integration-debug'
 import { createUuid7 } from '@/utils/uuid7'
 import {
   worklineIntegrationDebugApi as api,
@@ -10,7 +11,7 @@ import {
   type IntegrationRun,
   type IntegrationRunStep,
   type TransportActionInput
-} from '@/api/modules/worklineIntegrationDebug'
+} from '@/api/manualOutboundIntegrationApi'
 import { useManualOutboundIntegration } from './useManualOutboundIntegration'
 
 const sorting3Site = {
@@ -27,17 +28,43 @@ const sorting3Site = {
 
 const state = useManualOutboundIntegration()
 const { hasPermission } = usePermission()
+const permissionAccess = computed(() => ({
+  list: hasPermission(PERMISSION.list),
+  create: hasPermission(PERMISSION.create),
+  binInboundBatch: hasPermission(PERMISSION.binInboundBatch),
+  binReturnBatch: hasPermission(PERMISSION.binReturnBatch),
+  bindCompletion: hasPermission(PERMISSION.bindCompletion),
+  bindTask: hasPermission(PERMISSION.bindTask),
+  close: hasPermission(PERMISSION.close),
+  complete: hasPermission(PERMISSION.complete),
+  completionApplyReport: hasPermission(PERMISSION.completionApplyReport),
+  confirmPhase: hasPermission(PERMISSION.confirmPhase),
+  deviceCommand: hasPermission(PERMISSION.deviceCommand),
+  export: hasPermission(PERMISSION.export),
+  point2Scan: hasPermission(PERMISSION.point2Scan),
+  prepareTask: hasPermission(PERMISSION.prepareTask),
+  rackDeparture: hasPermission(PERMISSION.rackDeparture),
+  read: hasPermission(PERMISSION.read),
+  refreshDevice: hasPermission(PERMISSION.refreshDevice),
+  refreshPlan: hasPermission(PERMISSION.refreshPlan),
+  refreshTransport: hasPermission(PERMISSION.refreshTransport),
+  refreshWms: hasPermission(PERMISSION.refreshWms),
+  stream: hasPermission(PERMISSION.stream),
+  takeover: hasPermission(PERMISSION.takeover),
+  taskCompletion: hasPermission(PERMISSION.taskCompletion),
+  transport: hasPermission(PERMISSION.transport),
+  workAdmission: hasPermission(PERMISSION.workAdmission)
+}))
 const busy = ref(false)
 const taskId = ref('')
 const binCode = ref('')
 const completionOperationId = ref('')
 const batchRackId = ref('')
 const batchRackFace = ref('')
-const maxBinCount = ref(1)
 const returnSourceLocation = ref(sorting3Site.outfeedPosition)
 const rackCurrentLocation = ref(sorting3Site.outboundTransferPosition)
 const rackCurrentFace = ref('0')
-const scanTimestamp = ref(Date.now())
+const scanTimestamp = ref<number>()
 const applyRevision = ref(1)
 const applyResult = ref<'APPLIED' | 'RECONCILING'>('APPLIED')
 const applyReasonCode = ref<
@@ -49,7 +76,7 @@ const applyReasonCode = ref<
   | 'COMPLETED_AT_INVALID'
   | 'DEVICE_COMMAND_IDENTITY_CONFLICT'
 >('')
-const applyOccurredAt = ref(Date.now())
+const applyOccurredAt = ref<number>()
 const phaseNote = ref('现场已核对并完成该步骤')
 const closeVisible = ref(false)
 const transportVisible = ref(false)
@@ -59,7 +86,7 @@ const createForm = reactive({
   workline_code: 'sorting-3',
   profile: 'CONTRACT_SIMULATION' as IntegrationProfile,
   environment_label: 'integration',
-  device_code: 'STATION_SCAN12',
+  device_code: 'STATION_SCAN10',
   rack_id: ''
 })
 const transportForm = reactive({
@@ -74,12 +101,13 @@ const transportForm = reactive({
   rcsTemplateId: 'CTU01' as TransportActionInput['rcs_template_id']
 })
 const deviceForm = reactive({
-  deviceCode: 'STATION_SCAN12',
+  deviceCode: 'STATION_SCAN10',
   taskType: '',
   paramsText: '{}',
   timeoutMs: 30000,
   reason: '人工出库现场联调'
 })
+const pendingActionBodies = new Map<string, object>()
 
 const phases: IntegrationPhase[] = [
   'BIND_TASK',
@@ -93,8 +121,8 @@ const phases: IntegrationPhase[] = [
   'POINT2_SCAN',
   'WORK_ADMISSION',
   'WORK_COMPLETION',
-  'COMPLETION_REPORT',
   'POINT2_RELEASE',
+  'COMPLETION_REPORT',
   'POINT3_ROUTE',
   'RETURN_BUFFER',
   'BIN_RETURN_BATCH',
@@ -165,6 +193,83 @@ const phaseInteractions: Record<IntegrationPhase, { direction: string; operation
 }
 
 const run = computed(() => state.currentRun.value)
+watch(
+  () => run.value?.run_id,
+  (runId, previousRunId) => {
+    closeVisible.value = false
+    cleanup.wms = false
+    cleanup.site = false
+    if (runId !== previousRunId) {
+      scanTimestamp.value = undefined
+      applyOccurredAt.value = undefined
+    }
+  }
+)
+watch(
+  () => run.value,
+  current => {
+    if (!current) return
+    const completedIds = new Set(
+      current.steps
+        .filter(
+          step =>
+            !!step.client_request_id &&
+            (!!step.wms_confirmation_id ||
+              !!step.transport_task_id ||
+              !!step.device_command_code ||
+              ['SUCCEEDED', 'NEEDS_ATTENTION'].includes(step.status))
+        )
+        .map(step => step.client_request_id as string)
+    )
+    for (const [key, body] of pendingActionBodies) {
+      if (
+        'client_request_id' in body &&
+        typeof body.client_request_id === 'string' &&
+        completedIds.has(body.client_request_id)
+      ) {
+        pendingActionBodies.delete(key)
+      }
+    }
+    const incompleteDeviceStep = [...current.steps]
+      .reverse()
+      .find(
+        step =>
+          ['POINT2_RELEASE', 'POINT3_ROUTE'].includes(step.phase) &&
+          step.status === 'WAITING' &&
+          !!step.client_request_id &&
+          !step.device_command_code
+      )
+    const request = incompleteDeviceStep?.request
+    if (
+      incompleteDeviceStep?.client_request_id &&
+      request &&
+      typeof request.device_code === 'string' &&
+      typeof request.task_type === 'string' &&
+      request.params &&
+      typeof request.params === 'object' &&
+      !Array.isArray(request.params) &&
+      typeof request.timeout_ms === 'number' &&
+      typeof request.reason === 'string'
+    ) {
+      const key = `${current.run_id}:${incompleteDeviceStep.phase}:device-command`
+      const pending = pendingActionBodies.get(key)
+      pendingActionBodies.set(
+        key,
+        pending
+          ? { ...pending, expected_version: current.version }
+          : {
+              client_request_id: incompleteDeviceStep.client_request_id,
+              expected_version: current.version,
+              device_code: request.device_code,
+              task_type: request.task_type,
+              params: request.params,
+              timeout_ms: request.timeout_ms,
+              reason: request.reason
+            }
+      )
+    }
+  }
+)
 const isClosed = computed(() => run.value?.status === 'CLOSED_BY_OPERATOR')
 const isBinReturnTransport = computed(() => selectedPhase.value === 'BIN_RETURN_TRANSPORT')
 const isRackDepartureTransport = computed(() => selectedPhase.value === 'RACK_DEPARTURE')
@@ -173,23 +278,57 @@ const selectedSteps = computed(() =>
   (run.value?.steps ?? []).filter(step => step.phase === selectedPhase.value)
 )
 const isSelectedCurrent = computed(() => selectedPhase.value === run.value?.current_phase)
-const canCreate = computed(() => hasPermission('ops:workline-integration-debug:create'))
-const lastWaitingWmsStep = computed(() =>
+const canCreate = computed(() => permissionAccess.value.create)
+const isRefreshableStep = (step: IntegrationRunStep) =>
+  ['WAITING', 'NEEDS_ATTENTION'].includes(step.status)
+const lastRefreshableWmsStep = computed(() =>
   [...(run.value?.steps ?? [])]
     .reverse()
-    .find(step => step.wms_confirmation_id && step.status === 'WAITING')
+    .find(step => step.wms_confirmation_id && isRefreshableStep(step))
 )
-const lastWaitingTransportStep = computed(() =>
+const lastRefreshableTransportStep = computed(() =>
   [...(run.value?.steps ?? [])]
     .reverse()
-    .find(step => step.transport_task_id && step.status === 'WAITING')
+    .find(step => step.transport_task_id && isRefreshableStep(step))
+)
+const lastRefreshableDeviceStep = computed(() =>
+  [...(run.value?.steps ?? [])]
+    .reverse()
+    .find(step => step.device_command_code && isRefreshableStep(step))
 )
 const rackDepartureStep = computed(() =>
   [...(run.value?.steps ?? [])]
     .reverse()
     .find(
-      step => step.operation === 'outbound.rack.departure_decide@v1' && step.status === 'SUCCEEDED'
+      step =>
+        step.operation === 'outbound.rack.departure_decide@v1' &&
+        step.status === 'SUCCEEDED' &&
+        wmsResponseResult(step) === 'READY'
     )
+)
+const hasRefreshableStep = computed(
+  () =>
+    !!lastRefreshableWmsStep.value ||
+    !!lastRefreshableTransportStep.value ||
+    !!lastRefreshableDeviceStep.value
+)
+const isEmptyWaitingRun = computed(
+  () =>
+    run.value?.status === 'WAITING_TASK' &&
+    run.value.current_phase === 'BIND_TASK' &&
+    run.value.steps.every(
+      step =>
+        !step.client_request_id &&
+        !step.operation &&
+        !step.wms_confirmation_id &&
+        !step.transport_task_id &&
+        !step.device_command_code
+    )
+)
+const canCloseRun = computed(
+  () =>
+    !!run.value &&
+    (['COMPLETED', 'NEEDS_ATTENTION'].includes(run.value.status) || isEmptyWaitingRun.value)
 )
 const boundCompletion = computed(() =>
   [...(run.value?.steps ?? [])]
@@ -201,12 +340,20 @@ const applyReportStep = computed(() =>
     .reverse()
     .find(step => step.operation === 'outbound.manual_bin.completion_apply_report@v1')
 )
+const canReportAttention = computed(
+  () =>
+    run.value?.status === 'NEEDS_ATTENTION' &&
+    ['WORK_COMPLETION', 'POINT2_RELEASE'].includes(run.value.current_phase) &&
+    !!boundCompletion.value?.operation_id &&
+    !applyReportStep.value
+)
 const primaryLabel = computed(() => {
   if (!run.value) return '创建联调 Run'
+  if (lastRefreshableWmsStep.value) return '刷新 WMS 结果'
+  if (lastRefreshableTransportStep.value) return '刷新 Transport 结果'
+  if (lastRefreshableDeviceStep.value) return '刷新 ECS 指令结果'
   if (run.value.status === 'COMPLETED' || run.value.status === 'NEEDS_ATTENTION')
     return '确认清理并关闭'
-  if (lastWaitingWmsStep.value) return '刷新 WMS 结果'
-  if (lastWaitingTransportStep.value) return '刷新 Transport 结果'
   return {
     BIND_TASK: '选择已接收任务',
     TASK_PREPARE: '发送 prepare Operation',
@@ -230,50 +377,54 @@ const primaryLabel = computed(() => {
     CLEANUP: '标记本轮完成'
   }[run.value.current_phase]
 })
-const primaryPermission = computed(() => {
-  if (!run.value) return 'ops:workline-integration-debug:create'
+const hasPrimaryPermission = computed(() => {
+  if (!run.value) return permissionAccess.value.create
+  if (lastRefreshableWmsStep.value) return permissionAccess.value.refreshWms
+  if (lastRefreshableTransportStep.value) return permissionAccess.value.refreshTransport
+  if (lastRefreshableDeviceStep.value) return permissionAccess.value.refreshDevice
   if (run.value.status === 'COMPLETED' || run.value.status === 'NEEDS_ATTENTION')
-    return 'ops:workline-integration-debug:close'
-  if (lastWaitingWmsStep.value) return 'ops:workline-integration-debug:refresh-wms'
-  if (lastWaitingTransportStep.value) return 'ops:workline-integration-debug:refresh-transport'
+    return permissionAccess.value.close
   return {
-    BIND_TASK: 'ops:workline-integration-debug:bind-task',
-    TASK_PREPARE: 'ops:workline-integration-debug:prepare-task',
-    PLAN_RECEIPT: 'ops:workline-integration-debug:refresh-plan',
-    RACK_TRANSPORT: 'ops:workline-integration-debug:confirm-phase',
-    RACK_ARRIVAL: 'ops:workline-integration-debug:confirm-phase',
-    BIN_INBOUND_BATCH: 'ops:workline-integration-debug:bin-inbound-batch',
-    BIN_TRANSPORT: 'ops:workline-integration-debug:confirm-phase',
-    POINT1_ARRIVAL: 'ops:workline-integration-debug:confirm-phase',
-    POINT2_SCAN: 'ops:workline-integration-debug:point2-scan',
-    WORK_ADMISSION: 'ops:workline-integration-debug:work-admission',
-    WORK_COMPLETION: 'ops:workline-integration-debug:bind-completion',
-    POINT2_RELEASE: 'ops:workline-integration-debug:confirm-phase',
-    POINT3_ROUTE: 'ops:workline-integration-debug:confirm-phase',
-    RETURN_BUFFER: 'ops:workline-integration-debug:confirm-phase',
-    BIN_RETURN_BATCH: 'ops:workline-integration-debug:bin-return-batch',
-    BIN_RETURN_TRANSPORT: 'ops:workline-integration-debug:confirm-phase',
+    BIND_TASK: permissionAccess.value.bindTask,
+    TASK_PREPARE: permissionAccess.value.prepareTask,
+    PLAN_RECEIPT: permissionAccess.value.refreshPlan,
+    RACK_TRANSPORT: permissionAccess.value.confirmPhase,
+    RACK_ARRIVAL: permissionAccess.value.confirmPhase,
+    BIN_INBOUND_BATCH: permissionAccess.value.binInboundBatch,
+    BIN_TRANSPORT: permissionAccess.value.confirmPhase,
+    POINT1_ARRIVAL: permissionAccess.value.confirmPhase,
+    POINT2_SCAN: permissionAccess.value.point2Scan,
+    WORK_ADMISSION: permissionAccess.value.workAdmission,
+    WORK_COMPLETION: permissionAccess.value.bindCompletion,
+    POINT2_RELEASE: permissionAccess.value.confirmPhase,
+    POINT3_ROUTE: permissionAccess.value.confirmPhase,
+    RETURN_BUFFER: permissionAccess.value.confirmPhase,
+    BIN_RETURN_BATCH: permissionAccess.value.binReturnBatch,
+    BIN_RETURN_TRANSPORT: permissionAccess.value.confirmPhase,
     RACK_DEPARTURE: rackDepartureStep.value
-      ? 'ops:workline-integration-debug:confirm-phase'
-      : 'ops:workline-integration-debug:rack-departure',
-    TASK_COMPLETION: 'ops:workline-integration-debug:task-completion',
-    COMPLETION_REPORT: 'ops:workline-integration-debug:completion-apply-report',
-    CLEANUP: 'ops:workline-integration-debug:complete'
+      ? permissionAccess.value.confirmPhase
+      : permissionAccess.value.rackDeparture,
+    TASK_COMPLETION: permissionAccess.value.taskCompletion,
+    COMPLETION_REPORT: permissionAccess.value.completionApplyReport,
+    CLEANUP: permissionAccess.value.complete
   }[run.value.current_phase]
 })
 
-function phaseState(phase: IntegrationPhase): 'pending' | 'current' | 'done' | 'attention' {
+function phaseState(
+  phase: IntegrationPhase
+): 'pending' | 'current' | 'done' | 'skipped' | 'attention' {
   const current = run.value
   if (!current) return 'pending'
   const steps = current.steps.filter(step => step.phase === phase)
   if (steps.some(step => step.status === 'NEEDS_ATTENTION')) return 'attention'
-  if (current.status === 'CLOSED_BY_OPERATOR') return 'done'
+  if (current.status === 'CLOSED_BY_OPERATOR') {
+    if (steps.some(step => step.status === 'SUCCEEDED')) return 'done'
+    return phases.indexOf(phase) < phases.indexOf(current.current_phase) ? 'skipped' : 'pending'
+  }
   if (phase === current.current_phase) return 'current'
-  if (
-    steps.some(step => step.status === 'SUCCEEDED') ||
-    phases.indexOf(phase) < phases.indexOf(current.current_phase)
-  )
-    return 'done'
+  if (steps.some(step => step.status === 'WAITING')) return 'pending'
+  if (steps.some(step => step.status === 'SUCCEEDED')) return 'done'
+  if (phases.indexOf(phase) < phases.indexOf(current.current_phase)) return 'skipped'
   return 'pending'
 }
 
@@ -309,25 +460,33 @@ async function primaryAction(): Promise<void> {
     ElMessage.warning(`当前应操作 ${phaseLabels[current.current_phase]}`)
     return
   }
-  if (current.status === 'COMPLETED' || current.status === 'NEEDS_ATTENTION') {
-    closeVisible.value = true
-    return
-  }
-  if (lastWaitingWmsStep.value?.client_request_id) {
+  if (lastRefreshableWmsStep.value?.client_request_id) {
     return invoke(() =>
       api.refreshWms(current.run_id, {
         expected_version: current.version,
-        client_request_id: lastWaitingWmsStep.value!.client_request_id!
+        client_request_id: lastRefreshableWmsStep.value!.client_request_id!
       })
     )
   }
-  if (lastWaitingTransportStep.value?.client_request_id) {
+  if (lastRefreshableTransportStep.value?.client_request_id) {
     return invoke(() =>
       api.refreshTransport(current.run_id, {
         expected_version: current.version,
-        client_request_id: lastWaitingTransportStep.value!.client_request_id!
+        client_request_id: lastRefreshableTransportStep.value!.client_request_id!
       })
     )
+  }
+  if (lastRefreshableDeviceStep.value?.client_request_id) {
+    return invoke(() =>
+      api.refreshDevice(current.run_id, {
+        expected_version: current.version,
+        client_request_id: lastRefreshableDeviceStep.value!.client_request_id!
+      })
+    )
+  }
+  if (current.status === 'COMPLETED' || current.status === 'NEEDS_ATTENTION') {
+    openCloseRun()
+    return
   }
   switch (current.current_phase) {
     case 'BIND_TASK':
@@ -335,33 +494,43 @@ async function primaryAction(): Promise<void> {
         api.bindTask(current.run_id, versioned(current, { task_id: taskId.value.trim() }))
       )
     case 'TASK_PREPARE':
-      return invoke(() =>
-        api.prepareTask(current.run_id, versioned(current, { client_request_id: createUuid7() }))
+      return invokeStableAction(
+        current,
+        'prepare-task',
+        () => versioned(current, { client_request_id: createUuid7() }),
+        body => api.prepareTask(current.run_id, body)
       )
     case 'PLAN_RECEIPT':
       return invoke(() => api.refreshPlan(current.run_id, versioned(current)))
     case 'BIN_INBOUND_BATCH':
-      return invoke(() =>
-        api.binInboundBatch(
-          current.run_id,
+      return invokeStableAction(
+        current,
+        'bin-inbound-batch',
+        () =>
           versioned(current, {
             client_request_id: createUuid7(),
             rack_id: batchRackId.value.trim(),
             rack_face: batchRackFace.value.trim(),
-            max_bin_count: maxBinCount.value
-          })
-        )
+            max_bin_count: 1 as const
+          }),
+        body => api.binInboundBatch(current.run_id, body)
       )
-    case 'POINT2_SCAN':
+    case 'POINT2_SCAN': {
+      const scannedAt = scanTimestamp.value ?? Date.now()
+      scanTimestamp.value = scannedAt
       return invoke(() =>
         api.point2Scan(
           current.run_id,
-          versioned(current, { bin_code: binCode.value.trim(), scanned_at: scanTimestamp.value })
+          versioned(current, { bin_code: binCode.value.trim(), scanned_at: scannedAt })
         )
       )
+    }
     case 'WORK_ADMISSION':
-      return invoke(() =>
-        api.workAdmission(current.run_id, versioned(current, { client_request_id: createUuid7() }))
+      return invokeStableAction(
+        current,
+        'work-admission',
+        () => versioned(current, { client_request_id: createUuid7() }),
+        body => api.workAdmission(current.run_id, body)
       )
     case 'WORK_COMPLETION':
       return invoke(() =>
@@ -371,48 +540,56 @@ async function primaryAction(): Promise<void> {
         )
       )
     case 'BIN_RETURN_BATCH':
-      return invoke(() =>
-        api.binReturnBatch(
-          current.run_id,
+      return invokeStableAction(
+        current,
+        'bin-return-batch',
+        () =>
           versioned(current, {
             client_request_id: createUuid7(),
             rack_id: batchRackId.value.trim(),
             rack_face: batchRackFace.value.trim(),
             source_location_code: returnSourceLocation.value.trim()
-          })
-        )
+          }),
+        body => api.binReturnBatch(current.run_id, body)
       )
     case 'RACK_DEPARTURE':
       if (rackDepartureStep.value) return confirmPhase(current)
-      return invoke(() =>
-        api.rackDeparture(
-          current.run_id,
+      return invokeStableAction(
+        current,
+        'rack-departure',
+        () =>
           versioned(current, {
             client_request_id: createUuid7(),
             rack_id: batchRackId.value.trim(),
             current_location_code: rackCurrentLocation.value.trim(),
             current_face: rackCurrentFace.value.trim()
-          })
-        )
+          }),
+        body => api.rackDeparture(current.run_id, body)
       )
     case 'TASK_COMPLETION':
-      return invoke(() =>
-        api.taskCompletion(current.run_id, versioned(current, { client_request_id: createUuid7() }))
+      return invokeStableAction(
+        current,
+        'task-completion',
+        () => versioned(current, { client_request_id: createUuid7() }),
+        body => api.taskCompletion(current.run_id, body)
       )
     case 'COMPLETION_REPORT':
       if (boundCompletion.value?.operation_id && !applyReportStep.value) {
-        return invoke(() =>
-          api.completionApplyReport(
-            current.run_id,
+        const occurredAt = applyOccurredAt.value ?? Date.now()
+        applyOccurredAt.value = occurredAt
+        return invokeStableAction(
+          current,
+          'completion-apply-report',
+          () =>
             versioned(current, {
               client_request_id: createUuid7(),
               completion_operation_id: boundCompletion.value!.operation_id!,
               apply_revision: applyRevision.value,
               apply_result: applyResult.value,
               ...(applyReasonCode.value ? { reason_code: applyReasonCode.value } : {}),
-              occurred_at: applyOccurredAt.value
-            })
-          )
+              occurred_at: occurredAt
+            }),
+          body => api.completionApplyReport(current.run_id, body)
         )
       }
       ElMessage.warning('应用报告已创建，请刷新并等待 WMS RECORDED/DUPLICATE')
@@ -476,6 +653,68 @@ function openTransport(): void {
   transportVisible.value = true
 }
 
+function openDevice(): void {
+  const current = run.value
+  if (
+    !current ||
+    !isSelectedCurrent.value ||
+    !['POINT2_RELEASE', 'POINT3_ROUTE'].includes(current.current_phase)
+  ) {
+    ElMessage.warning('ECS 指令仅允许在当前 point2 放行或 point3 路由节点创建')
+    return
+  }
+  if (current.current_phase === 'POINT2_RELEASE') {
+    deviceForm.deviceCode = sorting3Site.scanDeviceCodes[1]
+    deviceForm.taskType = 'MOVE_FORWARD'
+  } else {
+    const completionResult = [...current.steps]
+      .reverse()
+      .find(step => step.operation === 'outbound.manual_bin.work_completed@v1')?.result.result
+    deviceForm.deviceCode = sorting3Site.scanDeviceCodes[2]
+    deviceForm.taskType = completionResult === 'NG' ? 'MOVE_LEFT' : 'MOVE_FORWARD'
+  }
+  deviceVisible.value = true
+}
+
+async function refreshPlanResources(): Promise<void> {
+  const current = run.value
+  if (!current) return
+  await invoke(() => api.refreshPlan(current.run_id, versioned(current)))
+}
+
+async function reportAttention(): Promise<void> {
+  const current = run.value
+  const completionOperationId = boundCompletion.value?.operation_id
+  if (!current || !completionOperationId) return
+  const allowedReasons = [
+    'RESULT_CONFLICT',
+    'FIRST_COMPLETION_OUT_OF_WINDOW',
+    'POINT2_BINDING_MISMATCH',
+    'WORKLINE_NOT_ACTIVE',
+    'COMPLETED_AT_INVALID',
+    'DEVICE_COMMAND_IDENTITY_CONFLICT'
+  ] as const
+  const reasonCode = allowedReasons.includes(
+    current.attention_code as (typeof allowedReasons)[number]
+  )
+    ? (current.attention_code as (typeof allowedReasons)[number])
+    : 'POINT2_BINDING_MISMATCH'
+  await invokeStableAction(
+    current,
+    'completion-attention-report',
+    () =>
+      versioned(current, {
+        client_request_id: createUuid7(),
+        completion_operation_id: completionOperationId,
+        apply_revision: 1,
+        apply_result: 'RECONCILING' as const,
+        reason_code: reasonCode,
+        occurred_at: Date.now()
+      }),
+    body => api.completionApplyReport(current.run_id, body)
+  )
+}
+
 async function closeRun(): Promise<void> {
   const current = run.value
   if (!current || !cleanup.wms || !cleanup.site) return
@@ -486,6 +725,12 @@ async function closeRun(): Promise<void> {
     )
   )
   closeVisible.value = false
+}
+
+function openCloseRun(): void {
+  cleanup.wms = false
+  cleanup.site = false
+  closeVisible.value = true
 }
 
 async function takeoverRun(): Promise<void> {
@@ -517,60 +762,64 @@ async function sendTransport(): Promise<void> {
       { type: 'warning', confirmButtonText: '创建任务' }
     )
   }
-  const common = {
-    client_request_id: createUuid7(),
-    kind: transportForm.kind,
-    rack_id: rackId,
-    rcs_template_id: transportForm.rcsTemplateId,
-    expected_version: current.version
-  }
-  let action: TransportActionInput
-  if (transportForm.kind === 'ROTATE_RACK') {
-    action = {
-      ...common,
-      kind: 'ROTATE_RACK',
-      source: { kind: 'RACK_POSITION', location_code: transportForm.sourceLocation.trim() },
-      target_face: transportForm.targetFace.trim()
-    }
-  } else if (transportForm.kind === 'MOVE_BINS') {
-    action = {
-      ...common,
-      kind: 'MOVE_BINS',
-      bin_code: transportForm.binCode.trim(),
-      source: isBinReturnTransport.value
-        ? { kind: 'HANDOFF_POSITION', location_code: transportForm.sourceLocation.trim() }
-        : {
-            kind: 'RACK_BIN_SLOT',
-            rack_id: rackId,
-            rack_face: transportForm.rackFace.trim(),
-            slot_id: transportForm.slotId.trim()
-          },
-      target: isBinReturnTransport.value
-        ? {
-            kind: 'RACK_BIN_SLOT',
-            rack_id: rackId,
-            rack_face: transportForm.rackFace.trim(),
-            slot_id: transportForm.slotId.trim()
-          }
-        : { kind: 'HANDOFF_POSITION', location_code: transportForm.targetLocation.trim() }
-    }
-  } else {
-    action = isRackDepartureTransport.value
-      ? {
+  await invokeStableAction(
+    current,
+    `transport-${transportForm.kind}`,
+    (): TransportActionInput => {
+      const common = {
+        client_request_id: createUuid7(),
+        rack_id: rackId,
+        rcs_template_id: transportForm.rcsTemplateId,
+        expected_version: current.version
+      }
+      if (transportForm.kind === 'ROTATE_RACK') {
+        return {
           ...common,
-          kind: 'MOVE_RACK',
-          source: { kind: 'RACK', location_code: rackId },
-          target: { kind: 'ZONE', location_code: transportForm.targetLocation.trim() }
-        }
-      : {
-          ...common,
-          kind: 'MOVE_RACK',
-          source: { kind: 'RACK', location_code: rackId },
-          target: { kind: 'RACK_POSITION', location_code: transportForm.targetLocation.trim() },
+          kind: 'ROTATE_RACK' as const,
+          source: { kind: 'RACK_POSITION', location_code: transportForm.sourceLocation.trim() },
           target_face: transportForm.targetFace.trim()
         }
-  }
-  await invoke(() => api.transport(current.run_id, action))
+      }
+      if (transportForm.kind === 'MOVE_BINS') {
+        return {
+          ...common,
+          kind: 'MOVE_BINS' as const,
+          bin_code: transportForm.binCode.trim(),
+          source: isBinReturnTransport.value
+            ? { kind: 'HANDOFF_POSITION', location_code: transportForm.sourceLocation.trim() }
+            : {
+                kind: 'RACK_BIN_SLOT',
+                rack_id: rackId,
+                rack_face: transportForm.rackFace.trim(),
+                slot_id: transportForm.slotId.trim()
+              },
+          target: isBinReturnTransport.value
+            ? {
+                kind: 'RACK_BIN_SLOT',
+                rack_id: rackId,
+                rack_face: transportForm.rackFace.trim(),
+                slot_id: transportForm.slotId.trim()
+              }
+            : { kind: 'HANDOFF_POSITION', location_code: transportForm.targetLocation.trim() }
+        }
+      }
+      return isRackDepartureTransport.value
+        ? {
+            ...common,
+            kind: 'MOVE_RACK' as const,
+            source: { kind: 'RACK', location_code: rackId },
+            target: { kind: 'ZONE', location_code: transportForm.targetLocation.trim() }
+          }
+        : {
+            ...common,
+            kind: 'MOVE_RACK' as const,
+            source: { kind: 'RACK', location_code: rackId },
+            target: { kind: 'RACK_POSITION', location_code: transportForm.targetLocation.trim() },
+            target_face: transportForm.targetFace.trim()
+          }
+    },
+    body => api.transport(current.run_id, body)
+  )
   transportVisible.value = false
 }
 
@@ -597,9 +846,10 @@ async function sendDeviceCommand(): Promise<void> {
       { type: 'warning', confirmButtonText: '创建命令' }
     )
   }
-  await invoke(() =>
-    api.deviceCommand(
-      current.run_id,
+  await invokeStableAction(
+    current,
+    'device-command',
+    () =>
       versioned(current, {
         client_request_id: createUuid7(),
         device_code: deviceForm.deviceCode,
@@ -607,8 +857,8 @@ async function sendDeviceCommand(): Promise<void> {
         params,
         timeout_ms: deviceForm.timeoutMs,
         reason: deviceForm.reason.trim()
-      })
-    )
+      }),
+    body => api.deviceCommand(current.run_id, body)
   )
   deviceVisible.value = false
 }
@@ -629,18 +879,52 @@ async function exportEvidence(): Promise<void> {
   }
 }
 
-async function invoke(call: () => Promise<IntegrationRun>): Promise<void> {
+async function invoke(
+  call: () => Promise<IntegrationRun>,
+  onSuccess?: () => void,
+  onError?: (error: unknown) => void
+): Promise<void> {
   if (busy.value) return
   busy.value = true
   try {
     const snapshot = await call()
     state.accept(snapshot)
-    selectedPhase.value = snapshot.current_phase
+    const accepted = state.currentRun.value
+    if (accepted?.run_id === snapshot.run_id) selectedPhase.value = accepted.current_phase
+    onSuccess?.()
   } catch (error) {
+    onError?.(error)
     ElMessage.error(error instanceof Error ? error.message : String(error))
   } finally {
     busy.value = false
   }
+}
+
+function invokeStableAction<T extends { client_request_id: string }>(
+  current: IntegrationRun,
+  actionName: string,
+  createBody: () => T,
+  send: (body: T) => Promise<IntegrationRun>
+): Promise<void> {
+  const key = `${current.run_id}:${current.current_phase}:${actionName}`
+  const body = (pendingActionBodies.get(key) as T | undefined) ?? createBody()
+  pendingActionBodies.set(key, body)
+  return invoke(
+    () => send(body),
+    () => pendingActionBodies.delete(key),
+    error => {
+      if (!isUncertainDelivery(error)) pendingActionBodies.delete(key)
+    }
+  )
+}
+
+function isUncertainDelivery(error: unknown): boolean {
+  if (error instanceof TypeError || (error instanceof DOMException && error.name === 'AbortError'))
+    return true
+  return (
+    error instanceof Error &&
+    /timeout|network|failed to fetch|服务器响应格式错误/i.test(error.message)
+  )
 }
 
 function versioned<T extends Record<string, unknown> = Record<never, never>>(
@@ -660,12 +944,23 @@ function stepIdentity(step: IntegrationRunStep): string {
   )
 }
 
+function wmsResponseResult(step: IntegrationRunStep): unknown {
+  if (typeof step.result.response_result === 'string') return step.result.response_result
+  const data = step.result.data
+  return data && typeof data === 'object' ? (data as Record<string, unknown>).result : undefined
+}
+
+let unmounted = false
 onMounted(async () => {
   await state.load()
+  if (unmounted) return
   if (run.value) selectedPhase.value = run.value.current_phase
   state.connect()
 })
-onUnmounted(state.disconnect)
+onUnmounted(() => {
+  unmounted = true
+  state.disconnect()
+})
 </script>
 
 <template>
@@ -699,16 +994,22 @@ onUnmounted(state.disconnect)
         </el-select>
         <el-button @click="state.load">刷新</el-button>
         <el-button
-          v-if="run && hasPermission('ops:workline-integration-debug:export')"
+          v-if="run && permissionAccess.export"
           @click="exportEvidence"
         >
           导出证据
         </el-button>
         <el-button
-          v-if="run && !isClosed && hasPermission('ops:workline-integration-debug:takeover')"
+          v-if="run && !isClosed && permissionAccess.takeover"
           @click="takeoverRun"
         >
           接管操作权
+        </el-button>
+        <el-button
+          v-if="canCloseRun && (hasRefreshableStep || isEmptyWaitingRun) && permissionAccess.close"
+          @click="openCloseRun"
+        >
+          关闭 Run
         </el-button>
       </div>
     </header>
@@ -872,12 +1173,8 @@ onUnmounted(state.disconnect)
           </label>
         </template>
         <label v-if="selectedPhase === 'BIN_INBOUND_BATCH'">
-          max_bin_count（WMS 本次最多分配数）
-          <el-input-number
-            v-model="maxBinCount"
-            :min="1"
-            :max="4"
-          />
+          max_bin_count（本期固定）
+          <code>1</code>
         </label>
         <label v-if="selectedPhase === 'BIN_RETURN_BATCH'">
           回流缓存 location_code
@@ -973,7 +1270,7 @@ onUnmounted(state.disconnect)
           type="primary"
           size="large"
           :loading="busy"
-          :disabled="!hasPermission(primaryPermission)"
+          :disabled="!hasPrimaryPermission"
           @click="primaryAction"
         >
           {{ primaryLabel }}
@@ -984,6 +1281,9 @@ onUnmounted(state.disconnect)
         >
           <template v-if="isClosed || phaseState(selectedPhase) === 'done'">
             该节点用于查看已记录的交互参数和结果。
+          </template>
+          <template v-else-if="phaseState(selectedPhase) === 'skipped'">
+            当前业务分支未执行该节点。
           </template>
           <template v-else>
             当前流程位于「{{
@@ -997,6 +1297,17 @@ onUnmounted(state.disconnect)
           <p>每次点击只创建一个任务；重复请求保留同一身份。真实动作会再次确认。</p>
           <el-button
             v-if="
+              !!run.task_id &&
+              !['BIND_TASK', 'TASK_PREPARE', 'CLEANUP'].includes(run.current_phase) &&
+              !isClosed
+            "
+            :disabled="!permissionAccess.refreshPlan"
+            @click="refreshPlanResources"
+          >
+            同步最新 plan_delta
+          </el-button>
+          <el-button
+            v-if="
               [
                 'RACK_TRANSPORT',
                 'BIN_TRANSPORT',
@@ -1004,16 +1315,25 @@ onUnmounted(state.disconnect)
                 'RACK_DEPARTURE'
               ].includes(selectedPhase)
             "
-            :disabled="!hasPermission('ops:workline-integration-debug:transport')"
+            :disabled="!permissionAccess.transport"
             @click="openTransport"
           >
             Transport / RCS
           </el-button>
           <el-button
-            :disabled="!hasPermission('ops:workline-integration-debug:device-command')"
-            @click="deviceVisible = true"
+            v-if="['POINT2_RELEASE', 'POINT3_ROUTE'].includes(selectedPhase)"
+            :disabled="!permissionAccess.deviceCommand"
+            @click="openDevice"
           >
             ECS 指令
+          </el-button>
+          <el-button
+            v-if="canReportAttention"
+            type="warning"
+            :disabled="!permissionAccess.completionApplyReport"
+            @click="reportAttention"
+          >
+            上报 RECONCILING
           </el-button>
         </div>
 
@@ -1234,11 +1554,7 @@ onUnmounted(state.disconnect)
       <template #footer>
         <el-button @click="transportVisible = false">取消</el-button>
         <el-button
-          :disabled="
-            !isSelectedCurrent ||
-            isClosed ||
-            !hasPermission('ops:workline-integration-debug:transport')
-          "
+          :disabled="!isSelectedCurrent || isClosed || !permissionAccess.transport"
           @click="sendTransport"
         >
           创建一个任务
@@ -1258,7 +1574,10 @@ onUnmounted(state.disconnect)
       </p>
       <el-form label-position="top">
         <el-form-item label="device_code">
-          <el-select v-model="deviceForm.deviceCode">
+          <el-select
+            v-model="deviceForm.deviceCode"
+            disabled
+          >
             <el-option
               v-for="item in sorting3Site.scanDeviceCodes"
               :key="item"
@@ -1267,7 +1586,12 @@ onUnmounted(state.disconnect)
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="task_type"><el-input v-model="deviceForm.taskType" /></el-form-item>
+        <el-form-item label="task_type">
+          <el-input
+            v-model="deviceForm.taskType"
+            disabled
+          />
+        </el-form-item>
         <el-form-item label="params JSON object">
           <el-input
             v-model="deviceForm.paramsText"
@@ -1287,11 +1611,7 @@ onUnmounted(state.disconnect)
       <template #footer>
         <el-button @click="deviceVisible = false">取消</el-button>
         <el-button
-          :disabled="
-            !isSelectedCurrent ||
-            isClosed ||
-            !hasPermission('ops:workline-integration-debug:device-command')
-          "
+          :disabled="!isSelectedCurrent || isClosed || !permissionAccess.deviceCommand"
           @click="sendDeviceCommand"
         >
           创建一个命令

@@ -3,7 +3,7 @@ import {
   worklineIntegrationDebugApi,
   type CreateIntegrationRunInput,
   type IntegrationRun
-} from '@/api/modules/worklineIntegrationDebug'
+} from '@/api/manualOutboundIntegrationApi'
 import {
   consumeWorklineIntegrationDebugStream,
   type WorklineIntegrationDebugEvent
@@ -27,6 +27,7 @@ export function useManualOutboundIntegration(options: { api?: IntegrationApiPort
   const lastError = ref<Error | null>(null)
   const hasGap = ref(false)
   const connectionState = ref<AuthenticatedSseConnectionState>('DISCONNECTED')
+  let selectionRevision = 0
 
   function accept(snapshot: IntegrationRun): void {
     const known = runs.value.find(item => item.run_id === snapshot.run_id)
@@ -41,10 +42,25 @@ export function useManualOutboundIntegration(options: { api?: IntegrationApiPort
   async function load(): Promise<void> {
     loading.value = true
     lastError.value = null
+    const selectedRunId = currentRun.value?.run_id
+    const selectedRevision = selectionRevision
     try {
       const snapshots = await api.list(20)
       snapshots.forEach(accept)
       if (!currentRun.value && snapshots.length) currentRun.value = snapshots[0]
+      if (
+        selectedRunId &&
+        !snapshots.some(snapshot => snapshot.run_id === selectedRunId) &&
+        selectionRevision === selectedRevision &&
+        currentRun.value?.run_id === selectedRunId
+      ) {
+        const selectedSnapshot = await api.get(selectedRunId)
+        if (selectionRevision === selectedRevision && currentRun.value?.run_id === selectedRunId) {
+          accept(selectedSnapshot)
+          currentRun.value =
+            runs.value.find(item => item.run_id === selectedRunId) ?? currentRun.value
+        }
+      }
     } catch (error) {
       lastError.value = toError(error)
     } finally {
@@ -54,9 +70,14 @@ export function useManualOutboundIntegration(options: { api?: IntegrationApiPort
 
   async function select(runId: string): Promise<void> {
     loading.value = true
+    const requestRevision = ++selectionRevision
+    const known = runs.value.find(item => item.run_id === runId)
+    if (known) currentRun.value = known
     try {
-      accept(await api.get(runId))
-      currentRun.value = runs.value.find(item => item.run_id === runId) ?? null
+      const snapshot = await api.get(runId)
+      accept(snapshot)
+      if (selectionRevision === requestRevision)
+        currentRun.value = runs.value.find(item => item.run_id === runId) ?? currentRun.value
     } catch (error) {
       lastError.value = toError(error)
       throw error
@@ -68,15 +89,18 @@ export function useManualOutboundIntegration(options: { api?: IntegrationApiPort
   async function create(input: CreateIntegrationRunInput): Promise<IntegrationRun> {
     const snapshot = await api.create(input)
     accept(snapshot)
-    currentRun.value = snapshot
-    return snapshot
+    currentRun.value = runs.value.find(item => item.run_id === snapshot.run_id) ?? snapshot
+    return currentRun.value
   }
 
   const stream = createAuthenticatedSseConnection({
     connector: attempt =>
       consumeWorklineIntegrationDebugStream({
         signal: attempt.signal,
-        onOpen: attempt.onOpen,
+        onOpen: () => {
+          attempt.onOpen()
+          void load()
+        },
         onEvent: (event: WorklineIntegrationDebugEvent) => accept(event.payload)
       }),
     onStateChange: state => (connectionState.value = state),

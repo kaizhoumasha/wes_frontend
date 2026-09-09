@@ -76,7 +76,7 @@ export const opsRoutes: RouteRecordRaw = {
       meta: {
         requiresAuth: true,
         title: '手工出库联调',
-        permission: 'ops:workline-integration-debug:list',
+        permission: SUPERUSER_PERMISSION,
         menu: {
           name: 'ops:workline-integration-debug:menu',
           icon: 'ep:operation',

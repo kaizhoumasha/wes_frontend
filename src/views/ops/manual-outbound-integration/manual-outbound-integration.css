@@ -188,6 +188,14 @@ label {
   border-color: var(--el-color-success);
 }
 
+.phase-rail li.skipped {
+  color: var(--el-text-color-placeholder);
+}
+
+.phase-rail li.skipped .phase-node-copy strong {
+  text-decoration: line-through;
+}
+
 .phase-rail li.attention {
   color: var(--el-color-danger);
 }

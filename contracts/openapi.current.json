@@ -1572,6 +1572,48 @@
         "title": "BinContentSnapshotStatus",
         "type": "string"
       },
+      "BinInboundBatchRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "client_request_id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Client Request Id",
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "max_bin_count": {
+            "const": 1,
+            "default": 1,
+            "title": "Max Bin Count",
+            "type": "integer"
+          },
+          "rack_face": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Rack Face",
+            "type": "string"
+          },
+          "rack_id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Rack Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_version",
+          "client_request_id",
+          "rack_id",
+          "rack_face"
+        ],
+        "title": "BinInboundBatchRequest",
+        "type": "object"
+      },
       "BinMaterialMountResponse": {
         "description": "物料料箱格位投影响应 Schema。",
         "properties": {
@@ -1858,6 +1900,76 @@
         "title": "BinMaterialMountStatus",
         "type": "string"
       },
+      "BinMovePosition": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "HANDOFF_POSITION",
+              "RACK_BIN_SLOT"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "location_code": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Code"
+          },
+          "rack_face": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rack Face"
+          },
+          "rack_id": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rack Id"
+          },
+          "slot_id": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slot Id"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "BinMovePosition",
+        "type": "object"
+      },
       "BinResponse": {
         "description": "料箱实例响应 Schema。",
         "properties": {
@@ -1928,6 +2040,49 @@
           "id"
         ],
         "title": "BinResponse",
+        "type": "object"
+      },
+      "BinReturnBatchRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "client_request_id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Client Request Id",
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "rack_face": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Rack Face",
+            "type": "string"
+          },
+          "rack_id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Rack Id",
+            "type": "string"
+          },
+          "source_location_code": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Source Location Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_version",
+          "client_request_id",
+          "rack_id",
+          "rack_face",
+          "source_location_code"
+        ],
+        "title": "BinReturnBatchRequest",
         "type": "object"
       },
       "BinSlotSize": {
@@ -2074,6 +2229,50 @@
           "id"
         ],
         "title": "BinTypeResponse",
+        "type": "object"
+      },
+      "BindCompletionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "minimum": 0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "operation_id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Operation Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_version",
+          "operation_id"
+        ],
+        "title": "BindCompletionRequest",
+        "type": "object"
+      },
+      "BindTaskRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "minimum": 0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "task_id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_version",
+          "task_id"
+        ],
+        "title": "BindTaskRequest",
         "type": "object"
       },
       "Body_api_auth_applications_by_id_permissions_post": {
@@ -2342,6 +2541,191 @@
         "title": "ClearWorkLineEstopRequest",
         "type": "object"
       },
+      "ClientActionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "client_request_id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Client Request Id",
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 0,
+            "title": "Expected Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expected_version",
+          "client_request_id"
+        ],
+        "title": "ClientActionRequest",
+        "type": "object"
+      },
+      "CloseRunRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "minimum": 0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "site_cleanup_confirmed": {
+            "title": "Site Cleanup Confirmed",
+            "type": "boolean"
+          },
+          "wms_cleanup_confirmed": {
+            "title": "Wms Cleanup Confirmed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "expected_version",
+          "wms_cleanup_confirmed",
+          "site_cleanup_confirmed"
+        ],
+        "title": "CloseRunRequest",
+        "type": "object"
+      },
+      "CompletionApplyReportRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "apply_result": {
+            "enum": [
+              "APPLIED",
+              "RECONCILING"
+            ],
+            "title": "Apply Result",
+            "type": "string"
+          },
+          "apply_revision": {
+            "minimum": 1,
+            "title": "Apply Revision",
+            "type": "integer"
+          },
+          "client_request_id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Client Request Id",
+            "type": "string"
+          },
+          "completion_operation_id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Completion Operation Id",
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "occurred_at": {
+            "exclusiveMinimum": 0,
+            "title": "Occurred At",
+            "type": "integer"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "enum": [
+                  "RESULT_CONFLICT",
+                  "FIRST_COMPLETION_OUT_OF_WINDOW",
+                  "POINT2_BINDING_MISMATCH",
+                  "WORKLINE_NOT_ACTIVE",
+                  "COMPLETED_AT_INVALID",
+                  "DEVICE_COMMAND_IDENTITY_CONFLICT"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Code"
+          }
+        },
+        "required": [
+          "expected_version",
+          "client_request_id",
+          "completion_operation_id",
+          "apply_revision",
+          "apply_result",
+          "occurred_at"
+        ],
+        "title": "CompletionApplyReportRequest",
+        "type": "object"
+      },
+      "ConfirmPhaseRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "minimum": 0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "note": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_version",
+          "note"
+        ],
+        "title": "ConfirmPhaseRequest",
+        "type": "object"
+      },
+      "CreateRunRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "device_code": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Device Code",
+            "type": "string"
+          },
+          "environment_label": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Environment Label",
+            "type": "string"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/IntegrationDebugProfile"
+          },
+          "rack_id": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rack Id"
+          },
+          "workline_code": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Workline Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workline_code",
+          "profile",
+          "environment_label",
+          "device_code"
+        ],
+        "title": "CreateRunRequest",
+        "type": "object"
+      },
       "CreateTransportDebugRunRequest": {
         "additionalProperties": false,
         "properties": {
@@ -2492,6 +2876,62 @@
           "deleted_binding_count"
         ],
         "title": "DebugTransportTaskResetResult",
+        "type": "object"
+      },
+      "DeviceActionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "client_request_id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Client Request Id",
+            "type": "string"
+          },
+          "device_code": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Device Code",
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "params": {
+            "additionalProperties": true,
+            "title": "Params",
+            "type": "object"
+          },
+          "reason": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          },
+          "task_type": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Task Type",
+            "type": "string"
+          },
+          "timeout_ms": {
+            "maximum": 600000,
+            "minimum": 100,
+            "title": "Timeout Ms",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expected_version",
+          "client_request_id",
+          "device_code",
+          "task_type",
+          "params",
+          "timeout_ms",
+          "reason"
+        ],
+        "title": "DeviceActionRequest",
         "type": "object"
       },
       "DeviceCommandCallbackResponse": {
@@ -3993,6 +4433,351 @@
           "RECONCILING"
         ],
         "title": "InboundEvidenceApplyStatus",
+        "type": "string"
+      },
+      "IntegrationDebugProfile": {
+        "enum": [
+          "CONTRACT_SIMULATION",
+          "DEVICE_INTEGRATION",
+          "FULL_SITE_INTEGRATION"
+        ],
+        "title": "IntegrationDebugProfile",
+        "type": "string"
+      },
+      "IntegrationRunResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "attention_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attention Code"
+          },
+          "attention_detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attention Detail"
+          },
+          "bin_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bin Code"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "current_phase": {
+            "title": "Current Phase",
+            "type": "string"
+          },
+          "device_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Code"
+          },
+          "environment_label": {
+            "title": "Environment Label",
+            "type": "string"
+          },
+          "expected_plugin_key": {
+            "const": "manual_bin_processing",
+            "title": "Expected Plugin Key",
+            "type": "string"
+          },
+          "issued_operation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued Operation Id"
+          },
+          "operation_context": {
+            "additionalProperties": true,
+            "title": "Operation Context",
+            "type": "object"
+          },
+          "operator_user_id": {
+            "title": "Operator User Id",
+            "type": "integer"
+          },
+          "plan_resources": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan Resources"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/IntegrationDebugProfile"
+          },
+          "rack_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rack Id"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "scenario_key": {
+            "const": "manual_outbound_picking@v1",
+            "title": "Scenario Key",
+            "type": "string"
+          },
+          "site_cleanup_confirmed": {
+            "title": "Site Cleanup Confirmed",
+            "type": "boolean"
+          },
+          "site_configuration": {
+            "additionalProperties": true,
+            "title": "Site Configuration",
+            "type": "object"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/IntegrationRunStepResponse"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "wms_cleanup_confirmed": {
+            "title": "Wms Cleanup Confirmed",
+            "type": "boolean"
+          },
+          "workline_code": {
+            "title": "Workline Code",
+            "type": "string"
+          },
+          "workline_id": {
+            "title": "Workline Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "run_id",
+          "workline_id",
+          "workline_code",
+          "scenario_key",
+          "expected_plugin_key",
+          "profile",
+          "environment_label",
+          "operator_user_id",
+          "status",
+          "current_phase",
+          "version",
+          "task_id",
+          "issued_operation_id",
+          "bin_code",
+          "device_code",
+          "rack_id",
+          "plan_resources",
+          "site_configuration",
+          "operation_context",
+          "attention_code",
+          "attention_detail",
+          "wms_cleanup_confirmed",
+          "site_cleanup_confirmed",
+          "created_at",
+          "updated_at",
+          "steps"
+        ],
+        "title": "IntegrationRunResponse",
+        "type": "object"
+      },
+      "IntegrationRunStepResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "client_request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Request Id"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "device_command_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Command Code"
+          },
+          "operation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation"
+          },
+          "operation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation Id"
+          },
+          "ordinal": {
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "phase": {
+            "title": "Phase",
+            "type": "string"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Code"
+          },
+          "request": {
+            "additionalProperties": true,
+            "title": "Request",
+            "type": "object"
+          },
+          "result": {
+            "additionalProperties": true,
+            "title": "Result",
+            "type": "object"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "transport_task_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transport Task Id"
+          },
+          "wms_confirmation_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wms Confirmation Id"
+          }
+        },
+        "required": [
+          "ordinal",
+          "phase",
+          "status",
+          "client_request_id",
+          "operation",
+          "operation_id",
+          "wms_confirmation_id",
+          "transport_task_id",
+          "device_command_code",
+          "request",
+          "result",
+          "reason_code",
+          "created_at"
+        ],
+        "title": "IntegrationRunStepResponse",
+        "type": "object"
+      },
+      "IntegrationTransportActionKind": {
+        "enum": [
+          "MOVE_RACK",
+          "ROTATE_RACK",
+          "MOVE_BINS"
+        ],
+        "title": "IntegrationTransportActionKind",
         "type": "string"
       },
       "LineType": {
@@ -6738,6 +7523,33 @@
         "title": "PlaneSnapshot",
         "type": "object"
       },
+      "Point2ScanRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "bin_code": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+            "title": "Bin Code",
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "scanned_at": {
+            "exclusiveMinimum": 0,
+            "title": "Scanned At",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expected_version",
+          "bin_code",
+          "scanned_at"
+        ],
+        "title": "Point2ScanRequest",
+        "type": "object"
+      },
       "QueryOptions": {
         "description": "查询选项",
         "properties": {
@@ -6920,6 +7732,49 @@
         "title": "RackBinMountStatus",
         "type": "string"
       },
+      "RackDepartureRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "client_request_id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Client Request Id",
+            "type": "string"
+          },
+          "current_face": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Current Face",
+            "type": "string"
+          },
+          "current_location_code": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Current Location Code",
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "rack_id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Rack Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_version",
+          "client_request_id",
+          "rack_id",
+          "current_location_code",
+          "current_face"
+        ],
+        "title": "RackDepartureRequest",
+        "type": "object"
+      },
       "RackKind": {
         "description": "货架物理结构类型。",
         "enum": [
@@ -6931,6 +7786,32 @@
         ],
         "title": "RackKind",
         "type": "string"
+      },
+      "RackMovePosition": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "RACK",
+              "ZONE",
+              "RACK_POSITION"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "location_code": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Location Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "location_code"
+        ],
+        "title": "RackMovePosition",
+        "type": "object"
       },
       "RackPlacementResponse": {
         "description": "货架位置投影响应 Schema。",
@@ -7464,6 +8345,50 @@
           "refresh_expires_in"
         ],
         "title": "RefreshTokenResponse",
+        "type": "object"
+      },
+      "RefreshTransportActionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "client_request_id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Client Request Id",
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 0,
+            "title": "Expected Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expected_version",
+          "client_request_id"
+        ],
+        "title": "RefreshTransportActionRequest",
+        "type": "object"
+      },
+      "RefreshWmsActionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "client_request_id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Client Request Id",
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 0,
+            "title": "Expected Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expected_version",
+          "client_request_id"
+        ],
+        "title": "RefreshWmsActionRequest",
         "type": "object"
       },
       "ReprocessBlockedEventRequest": {
@@ -8858,6 +9783,51 @@
           }
         },
         "title": "ResponseSchemaModel[ExchangePage]",
+        "type": "object"
+      },
+      "ResponseSchemaModel_IntegrationRunResponse_": {
+        "properties": {
+          "code": {
+            "default": "1000",
+            "description": "响应码",
+            "examples": [
+              "1000",
+              "2000"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IntegrationRunResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "message": {
+            "default": "操作成功",
+            "description": "响应消息",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ],
+            "title": "Message",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ],
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "title": "ResponseSchemaModel[IntegrationRunResponse]",
         "type": "object"
       },
       "ResponseSchemaModel_LoginResponse_": {
@@ -10576,6 +11546,55 @@
         "title": "ResponseSchemaModel[list[Any]]",
         "type": "object"
       },
+      "ResponseSchemaModel_list_IntegrationRunResponse__": {
+        "properties": {
+          "code": {
+            "default": "1000",
+            "description": "响应码",
+            "examples": [
+              "1000",
+              "2000"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/IntegrationRunResponse"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据",
+            "title": "Data"
+          },
+          "message": {
+            "default": "操作成功",
+            "description": "响应消息",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ],
+            "title": "Message",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ],
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "title": "ResponseSchemaModel[list[IntegrationRunResponse]]",
+        "type": "object"
+      },
       "ResponseSchemaModel_list_PermissionResponse__": {
         "properties": {
           "code": {
@@ -10971,6 +11990,102 @@
           "field"
         ],
         "title": "SortField",
+        "type": "object"
+      },
+      "TransportActionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "bin_code": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bin Code"
+          },
+          "client_request_id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Client Request Id",
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/IntegrationTransportActionKind"
+          },
+          "rack_id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Rack Id",
+            "type": "string"
+          },
+          "rcs_template_id": {
+            "enum": [
+              "CTU01",
+              "CTU02",
+              "CTU03",
+              "F01"
+            ],
+            "title": "Rcs Template Id",
+            "type": "string"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RackMovePosition"
+              },
+              {
+                "$ref": "#/components/schemas/BinMovePosition"
+              }
+            ],
+            "title": "Source"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RackMovePosition"
+              },
+              {
+                "$ref": "#/components/schemas/BinMovePosition"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target"
+          },
+          "target_face": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Face"
+          }
+        },
+        "required": [
+          "expected_version",
+          "client_request_id",
+          "kind",
+          "rack_id",
+          "source",
+          "rcs_template_id"
+        ],
+        "title": "TransportActionRequest",
         "type": "object"
       },
       "TransportDebugReturnedBinResponse": {
@@ -12328,6 +13443,21 @@
         ],
         "title": "ValidityPeriod",
         "type": "string"
+      },
+      "VersionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "minimum": 0,
+            "title": "Expected Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expected_version"
+        ],
+        "title": "VersionRequest",
+        "type": "object"
       },
       "WirePreview": {
         "additionalProperties": false,
@@ -21549,7 +22679,7 @@
     },
     "/api/v1/wms/events": {
       "post": {
-        "description": "WMS 调用 WES 的唯一 Event 入口，按 `operation` 选择严格合同。\n支持 Transport 位置/结果、入库恢复决定，以及下方 PickingTask 发布、队列调整和计划增量。\n\n### Examples 的范围\n\nRequest body 的 Examples 仅用于 WMS → WES 事件：1–4 为 PickingTask，5–6 为 Transport 回报，\n7 为入库对账后继续执行。共覆盖当前入口支持的 6 种 operation，编号不是跨领域的连续业务流程。\nTransport 示例必须引用已存在的任务与真实设备事实；入库恢复示例必须引用实际待对账执行与证据。\nprepare、inbound_batch、material.decide、completion_confirm 等由 WES 调用 WMS，\n正常返回见下方「WMS 正常业务响应」，不属于此 Event 入口的请求 Examples。\n\n### 开始测试\n\n1. 使用双方约定的隔离联调环境；`Try it out → Execute` 会发送真实请求并保存业务数据。\n2. 在 **Examples** 中选择样例；如果尚未进入编辑模式，先点 **Try it out**。每轮新测试更换 `task_id`，每个新消息使用新的小写 UUIDv7\n   `operation_id`，`timestamp` 使用 UTC Unix 毫秒。货架、面、储位必须换成双方约定的实际业务编码。\n3. `Content-Type` 为 `application/json`，Body 上限 256 KiB，禁止额外字段。WMS Event 当前采用隔离局域网 NONE\n   认证，无需管理端 Bearer Token；401 表示入站策略未就绪，503 也可能表示对应运行时未就绪。\n\n### PickingTask 顺序测试\n\n| 步骤 | 操作 | 前置条件与预期 |\n| --- | --- | --- |\n| 1 | 选择「1. 发布新的 PickingTask」 | 新 `task_id`、`queue_revision=1`；首次 `202 / RECEIVED`，任务进入 QUEUED |\n| 2（可选） | 选择「2. 调整队列」 | 同一任务仍为 QUEUED；使用新 identity 和更高 queue_revision，首次 `202 / RECEIVED` |\n| 3 | 等待 WES 发起 `outbound.picking_task.prepare@v1` | WES 已通过实际业务入口选中任务和 WorkLine；WMS 在 decisions 端点返回 `202 / PREPARE_ACCEPTED`、相同 operation_id 和 `data={}` |\n| 4 | 选择「3. 首批计划」发布 revision 1 | 同一任务已绑定且 WES 保存匹配的 prepare 成功响应；必须带 target_rack，成功 `202 / RECEIVED` |\n| 5 | 选择「4. 追加来源」发布 revision 2 | revision 1 已获成功 ACK；只追加新来源，不再带 target_rack，成功 `202 / RECEIVED` |\n\n**测试边界：** 发布任务不会自动证明工作线已启动。零业务插件环境可以验证 issued/queue_changed，\n但不能仅靠这些 Swagger 请求让任务进入 PREPARING。步骤 3 未具备时，请先由 WES 联调人员确认实际 prepare 触发入口；\n不要直接对 QUEUED 任务发送计划来模拟 prepare 成功。Operation 基础接入不等于工作线完整业务流程已启用。\n\n### 预期正常结果（执行前对照）\n\n下方 **Responses → 202 → Examples** 为每个请求提供对应的完整正常响应；\n**Responses → 200 → Examples** 为同一请求提供原样重放的预期响应。\n请选择与 Request body 相同的步骤名称；Swagger 不会自动联动两个选择器。\n点击 Execute 后，实际结果显示在 **Server response**，可与预期 Example Value 对照。\n\n| 请求样例 | 首次正常响应 | WES 应保存的结果 |\n| --- | --- | --- |\n| 1. 发布新的 PickingTask | `202 / RECEIVED`，`data={}` | 创建一个 QUEUED 任务，queue_revision=1、dispatch_sequence=10 |\n| 2. 调整队列 | `202 / RECEIVED`，`data={}` | 同一任务仍为 QUEUED，queue_revision=2、dispatch_sequence=20、not_before=0（无延后准入） |\n| 3. 首批计划 | `202 / RECEIVED`，`data={}` | 在 prepare 成功前提下原子保存 revision 1、接料架面和来源，任务进入 EXECUTING |\n| 4. 追加来源 | `202 / RECEIVED`，`data={}` | last_applied_plan_revision=2，新来源只追加一次，原接料架面保持不变 |\n| 上述任一步成功后原样重放 | `200 / DUPLICATE`，`data={}` | 不重复创建、不重复应用，保留首次接收时间 |\n\n响应 `operation_id` 必须与所选请求相同，`timestamp` 是 WES 首次接收时间；示例时间不要求与实际值相等。\n任务状态和计划成员是持久化结果，不额外出现在 ACK 的 `data` 中，由 WES 联调人员核对。\n以上编码和序号按下方未修改的请求样例列出，修改请求后应按实际输入核对。\n\nPickingTask 成功 ACK 的 `data` 为 `{}`，例如首次成功（响应 operation_id 必须匹配请求）：\n\n```json\n{\"operation_id\":\"019f3400-0e17-7d2a-b944-3cf7953804da\",\"code\":\"RECEIVED\",\"timestamp\":1786060800100,\"data\":{}}\n```\n\n### WMS 侧接口与后续流程\n\n以下端点由 **WMS** 实现，不能在当前 WES 主机上 Execute。WES 调用固定的 WMS_BASE_URL；\nWMS 工程师应在自己的服务中准备响应，并与 WES 联调人员观察真实请求。\n\n| WES → WMS operation | WMS Method / Path | 成功响应与触发事实 |\n| --- | --- | --- |\n| `outbound.picking_task.prepare@v1` | POST `/api/v1/wes/decisions` | `202 / PREPARE_ACCEPTED`；随后 WMS 发布 plan_delta |\n| `outbound.return_rack.arrival_report@v1` | POST `/api/v1/wes/facts` | 退料架确定到位后 `200 / RECORDED` |\n| `outbound.bin.inbound_batch@v1` | POST `/api/v1/wes/decisions` | `200 / DECIDED`：READY / NO_BATCH / RACK_FACE_DONE |\n| `outbound.bin.work_plan@v1` | POST `/api/v1/wes/decisions` | Bin 工作位扫码后 READY / NO_WORK / WAIT |\n| `outbound.material.decide@v1` | POST `/api/v1/wes/decisions` | 料盘完整扫码后 ACCEPT / REJECT / WAIT |\n| `outbound.source.empty_decide@v1` | POST `/api/v1/wes/decisions` | 确定空取后 RETRY / WAIT / SOURCE_DONE |\n| `outbound.material.movement_report@v1` | POST `/api/v1/wes/facts` | 确定 PUT 或单盘 NG 放置后 `200 / RECORDED`；原样重放 DUPLICATE |\n| `outbound.bin.return_batch@v1` | POST `/api/v1/wes/decisions` | 退箱 FIFO 候选 READY / NO_BATCH |\n| `outbound.rack.departure_decide@v1` | POST `/api/v1/wes/decisions` | 货架满足离场条件后 READY / WAIT |\n\n表中 decision 除 prepare 外均为 `200 / DECIDED`，分支值在 `data.result`。\nWAIT / NO_BATCH 闭合本次可靠义务；后续业务重求值使用新 identity，时机由插件决定。\n`outbound.picking_task.completion_confirm@v1` 已接入基础能力；本地完成条件与任务状态推进由插件负责。\n上述流程依赖插件与实际设备证据；WMS ACK、READY 和 Swagger 请求成功均不证明设备已搬运或物料已放置。\n\n### WMS 正常业务响应（WES → WMS 请求的返回值）\n\n以下每个代码块都是完整响应体，可供 WMS 实现或 Mock 使用。下方只展开正常业务返回；\n示例 operation_id 必须替换为当前 WES 请求的 operation_id，timestamp 为 WMS 响应时间。\n这些不是下方 WMS → WES Event 接口的 Responses，不应粘贴到 Event 的请求框。\n\n- decisions 原样重放应返回首次完整业务响应，不能以空 data 或 DUPLICATE 替代决定。\n  facts 首次 RECORDED、重放 DUPLICATE；prepare 的 PREPARE_ACCEPTED 和 facts 的 data 按合同为空。\n- inbound_batch 的 READY 返回 1–4 个唯一 Bin 和来源槽位，不能超过请求 max_bin_count，rack_id/rack_face 必须匹配请求。\n  return_batch 的 READY 返回请求候选的 FIFO 前缀，sequence_no 从 1 连续，目标架面匹配请求且槽位唯一。\n- work_plan 的 cell_ids 非空且不重复。departure 的目的地必须不同于当前货架位置。\n- material ACCEPT 无准备动作时省略 target_preparation；ROTATE 使用目标架面，REPLACE 另带旧架离场目的地。\n  Cell 来源可 CONTINUE 或 SOURCE_DONE；DirectPick 只能 SOURCE_DONE。\n- empty_decide 的 RETRY 是重新尝试原来源空取；SOURCE_DONE 表示来源处理结束。\n- completion_confirm 的 COMPLETED 表示 WMS 确认当前任务业务完成；本地触发条件和任务状态推进仍由插件负责。\n\n#### outbound.picking_task.completion_confirm@v1\n\n**HTTP 200 / DECIDED — COMPLETED**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"COMPLETED\"\n  }\n}\n```\n\n#### outbound.picking_task.prepare@v1\n\n**HTTP 202 / PREPARE_ACCEPTED — PREPARE_ACCEPTED**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"PREPARE_ACCEPTED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {}\n}\n```\n\n#### outbound.return_rack.arrival_report@v1\n\n**HTTP 200 / RECORDED — RECORDED**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"RECORDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {}\n}\n```\n\n#### outbound.bin.inbound_batch@v1\n\n**HTTP 200 / DECIDED — READY**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"READY\",\n    \"bins\": [\n      {\n        \"bin_code\": \"BIN-001\",\n        \"source_locator\": {\n          \"type\": \"RACK_BIN_SLOT\",\n          \"rack_id\": \"SOURCE-RACK-01\",\n          \"rack_face\": \"A\",\n          \"slot_id\": \"A-01\"\n        }\n      }\n    ]\n  }\n}\n```\n\n**HTTP 200 / DECIDED — RACK_FACE_DONE**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"RACK_FACE_DONE\"\n  }\n}\n```\n\n#### outbound.bin.work_plan@v1\n\n**HTTP 200 / DECIDED — READY**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"READY\",\n    \"cell_ids\": [\n      \"CELL-03\",\n      \"CELL-04\"\n    ]\n  }\n}\n```\n\n**HTTP 200 / DECIDED — NO_WORK**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"NO_WORK\"\n  }\n}\n```\n\n#### outbound.material.decide@v1\n\n**HTTP 200 / DECIDED — ACCEPT**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"ACCEPT\",\n    \"target_locator\": {\n      \"type\": \"RACK_SLOT\",\n      \"rack_id\": \"TARGET-RACK-01\",\n      \"rack_face\": \"A\",\n      \"slot_id\": \"A-05\"\n    },\n    \"next_source_action\": \"CONTINUE\"\n  }\n}\n```\n\n**HTTP 200 / DECIDED — ACCEPT**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"ACCEPT\",\n    \"target_locator\": {\n      \"type\": \"RACK_SLOT\",\n      \"rack_id\": \"TARGET-RACK-01\",\n      \"rack_face\": \"A\",\n      \"slot_id\": \"A-05\"\n    },\n    \"next_source_action\": \"SOURCE_DONE\"\n  }\n}\n```\n\n**HTTP 200 / DECIDED — ACCEPT**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"ACCEPT\",\n    \"target_locator\": {\n      \"type\": \"RACK_SLOT\",\n      \"rack_id\": \"TARGET-RACK-01\",\n      \"rack_face\": \"A\",\n      \"slot_id\": \"A-05\"\n    },\n    \"next_source_action\": \"CONTINUE\",\n    \"target_preparation\": {\n      \"mode\": \"ROTATE\"\n    }\n  }\n}\n```\n\n**HTTP 200 / DECIDED — ACCEPT**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"ACCEPT\",\n    \"target_locator\": {\n      \"type\": \"RACK_SLOT\",\n      \"rack_id\": \"TARGET-RACK-01\",\n      \"rack_face\": \"A\",\n      \"slot_id\": \"A-05\"\n    },\n    \"next_source_action\": \"CONTINUE\",\n    \"target_preparation\": {\n      \"mode\": \"REPLACE\",\n      \"rack_destination\": {\n        \"type\": \"RACK_POSITION\",\n        \"location_code\": \"RACK-PARK-01\"\n      }\n    }\n  }\n}\n```\n\n#### outbound.source.empty_decide@v1\n\n**HTTP 200 / DECIDED — RETRY**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"RETRY\"\n  }\n}\n```\n\n**HTTP 200 / DECIDED — SOURCE_DONE**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"SOURCE_DONE\"\n  }\n}\n```\n\n#### outbound.material.movement_report@v1\n\n**HTTP 200 / RECORDED — RECORDED**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"RECORDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {}\n}\n```\n\n#### outbound.bin.return_batch@v1\n\n**HTTP 200 / DECIDED — READY**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"READY\",\n    \"moves\": [\n      {\n        \"sequence_no\": 1,\n        \"bin_code\": \"BIN-001\",\n        \"target\": {\n          \"type\": \"RACK_BIN_SLOT\",\n          \"rack_id\": \"RETURN-RACK-01\",\n          \"rack_face\": \"A\",\n          \"slot_id\": \"A-01\"\n        }\n      }\n    ]\n  }\n}\n```\n\n#### outbound.rack.departure_decide@v1\n\n**HTTP 200 / DECIDED — READY**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"READY\",\n    \"rack_destination\": {\n      \"type\": \"RACK_POSITION\",\n      \"location_code\": \"RACK-PARK-01\"\n    }\n  }\n}\n```\n\n### 其他返回（简要参考）\n\nWAIT / NO_BATCH 表示暂时无可执行业务；REJECT 表示业务拒绝。这里不展开这些分支的 JSON。\n原样重放不重复执行业务；技术重试保持原 operation_id 和完整请求。\n409 / 422 为确定拒绝，503 或传输结果不明时保留原请求重试；具体错误格式见下方 Responses。\n计划增量必须连续，冲突后应对账，不要通过跳版本或更换 ID 绕过。",
+        "description": "WMS 调用 WES 的唯一 Event 入口，按 `operation` 选择严格合同。\n支持 Transport 位置/结果、入库恢复决定，以及下方 PickingTask 发布、队列调整和计划增量。\n\n### Examples 的范围\n\nRequest body 的 Examples 仅用于 WMS → WES 事件：1–4 为 PickingTask，5–6 为 Transport 回报，\n7 为入库对账后继续执行，8 为人工工作位 Bin 完成决定。共覆盖当前入口支持的 7 种 operation，编号不是跨领域的连续业务流程。\nTransport 示例必须引用已存在的任务与真实设备事实；入库恢复示例必须引用实际待对账执行与证据。\nprepare、inbound_batch、material.decide、completion_confirm 等由 WES 调用 WMS，\n正常返回见下方「WMS 正常业务响应」，不属于此 Event 入口的请求 Examples。\n\n### 开始测试\n\n1. 使用双方约定的隔离联调环境；`Try it out → Execute` 会发送真实请求并保存业务数据。\n2. 在 **Examples** 中选择样例；如果尚未进入编辑模式，先点 **Try it out**。每轮新测试更换 `task_id`，每个新消息使用新的小写 UUIDv7\n   `operation_id`，`timestamp` 使用 UTC Unix 毫秒。货架、面、储位必须换成双方约定的实际业务编码。\n3. `Content-Type` 为 `application/json`，Body 上限 256 KiB，禁止额外字段。WMS Event 当前采用隔离局域网 NONE\n   认证，无需管理端 Bearer Token；401 表示入站策略未就绪，503 也可能表示对应运行时未就绪。\n\n### PickingTask 顺序测试\n\n| 步骤 | 操作 | 前置条件与预期 |\n| --- | --- | --- |\n| 1 | 选择「1. 发布新的 PickingTask」 | 新 `task_id`、`queue_revision=1`；首次 `202 / RECEIVED`，任务进入 QUEUED |\n| 2（可选） | 选择「2. 调整队列」 | 同一任务仍为 QUEUED；使用新 identity 和更高 queue_revision，首次 `202 / RECEIVED` |\n| 3 | 等待 WES 发起 `outbound.picking_task.prepare@v1` | WES 已通过实际业务入口选中任务和 WorkLine；WMS 在 decisions 端点返回 `202 / PREPARE_ACCEPTED`、相同 operation_id 和 `data={}` |\n| 4 | 选择「3. 首批计划」发布 revision 1 | 同一任务已绑定且 WES 保存匹配的 prepare 成功响应；必须带 target_rack，成功 `202 / RECEIVED` |\n| 5 | 选择「4. 追加来源」发布 revision 2 | revision 1 已获成功 ACK；只追加新来源，不再带 target_rack，成功 `202 / RECEIVED` |\n\n**测试边界：** 发布任务不会自动证明工作线已启动。零业务插件环境可以验证 issued/queue_changed，\n但不能仅靠这些 Swagger 请求让任务进入 PREPARING。步骤 3 未具备时，请先由 WES 联调人员确认实际 prepare 触发入口；\n不要直接对 QUEUED 任务发送计划来模拟 prepare 成功。Operation 基础接入不等于工作线完整业务流程已启用。\n\n### 预期正常结果（执行前对照）\n\n下方 **Responses → 202 → Examples** 为每个请求提供对应的完整正常响应；\n**Responses → 200 → Examples** 为同一请求提供原样重放的预期响应。\n请选择与 Request body 相同的步骤名称；Swagger 不会自动联动两个选择器。\n点击 Execute 后，实际结果显示在 **Server response**，可与预期 Example Value 对照。\n\n| 请求样例 | 首次正常响应 | WES 应保存的结果 |\n| --- | --- | --- |\n| 1. 发布新的 PickingTask | `202 / RECEIVED`，`data={}` | 创建一个 QUEUED 任务，queue_revision=1、dispatch_sequence=10 |\n| 2. 调整队列 | `202 / RECEIVED`，`data={}` | 同一任务仍为 QUEUED，queue_revision=2、dispatch_sequence=20、not_before=0（无延后准入） |\n| 3. 首批计划 | `202 / RECEIVED`，`data={}` | 在 prepare 成功前提下原子保存 revision 1、接料架面和来源，任务进入 EXECUTING |\n| 4. 追加来源 | `202 / RECEIVED`，`data={}` | last_applied_plan_revision=2，新来源只追加一次，原接料架面保持不变 |\n| 上述任一步成功后原样重放 | `200 / DUPLICATE`，`data={}` | 不重复创建、不重复应用，保留首次接收时间 |\n\n响应 `operation_id` 必须与所选请求相同，`timestamp` 是 WES 首次接收时间；示例时间不要求与实际值相等。\n任务状态和计划成员是持久化结果，不额外出现在 ACK 的 `data` 中，由 WES 联调人员核对。\n以上编码和序号按下方未修改的请求样例列出，修改请求后应按实际输入核对。\n\nPickingTask 成功 ACK 的 `data` 为 `{}`，例如首次成功（响应 operation_id 必须匹配请求）：\n\n```json\n{\"operation_id\":\"019f3400-0e17-7d2a-b944-3cf7953804da\",\"code\":\"RECEIVED\",\"timestamp\":1786060800100,\"data\":{}}\n```\n\n### WMS 侧接口与后续流程\n\n以下端点由 **WMS** 实现，不能在当前 WES 主机上 Execute。WES 调用固定的 WMS_BASE_URL；\nWMS 工程师应在自己的服务中准备响应，并与 WES 联调人员观察真实请求。\n\n| WES → WMS operation | WMS Method / Path | 成功响应与触发事实 |\n| --- | --- | --- |\n| `outbound.picking_task.prepare@v1` | POST `/api/v1/wes/decisions` | `202 / PREPARE_ACCEPTED`；随后 WMS 发布 plan_delta |\n| `outbound.return_rack.arrival_report@v1` | POST `/api/v1/wes/facts` | 退料架确定到位后 `200 / RECORDED` |\n| `outbound.bin.inbound_batch@v1` | POST `/api/v1/wes/decisions` | `200 / DECIDED`：READY / NO_BATCH / RACK_FACE_DONE |\n| `outbound.bin.work_plan@v1` | POST `/api/v1/wes/decisions` | Bin 工作位扫码后 READY / NO_WORK / WAIT |\n| `outbound.material.decide@v1` | POST `/api/v1/wes/decisions` | 料盘完整扫码后 ACCEPT / REJECT / WAIT |\n| `outbound.source.empty_decide@v1` | POST `/api/v1/wes/decisions` | 确定空取后 RETRY / WAIT / SOURCE_DONE |\n| `outbound.material.movement_report@v1` | POST `/api/v1/wes/facts` | 确定 PUT 或单盘 NG 放置后 `200 / RECORDED`；原样重放 DUPLICATE |\n| `outbound.bin.return_batch@v1` | POST `/api/v1/wes/decisions` | 退箱 FIFO 候选 READY / NO_BATCH |\n| `outbound.rack.departure_decide@v1` | POST `/api/v1/wes/decisions` | 货架满足离场条件后 READY / WAIT |\n\n表中 decision 除 prepare 外均为 `200 / DECIDED`，分支值在 `data.result`。\nWAIT / NO_BATCH 闭合本次可靠义务；后续业务重求值使用新 identity，时机由插件决定。\n`outbound.picking_task.completion_confirm@v1` 已接入基础能力；本地完成条件与任务状态推进由插件负责。\n上述流程依赖插件与实际设备证据；WMS ACK、READY 和 Swagger 请求成功均不证明设备已搬运或物料已放置。\n\n### WMS 正常业务响应（WES → WMS 请求的返回值）\n\n以下每个代码块都是完整响应体，可供 WMS 实现或 Mock 使用。下方只展开正常业务返回；\n示例 operation_id 必须替换为当前 WES 请求的 operation_id，timestamp 为 WMS 响应时间。\n这些不是下方 WMS → WES Event 接口的 Responses，不应粘贴到 Event 的请求框。\n\n- decisions 原样重放应返回首次完整业务响应，不能以空 data 或 DUPLICATE 替代决定。\n  facts 首次 RECORDED、重放 DUPLICATE；prepare 的 PREPARE_ACCEPTED 和 facts 的 data 按合同为空。\n- inbound_batch 的 READY 返回 1–4 个唯一 Bin 和来源槽位，不能超过请求 max_bin_count，rack_id/rack_face 必须匹配请求。\n  return_batch 的 READY 返回请求候选的 FIFO 前缀，sequence_no 从 1 连续，目标架面匹配请求且槽位唯一。\n- work_plan 的 cell_ids 非空且不重复。departure 的目的地必须不同于当前货架位置。\n- material ACCEPT 无准备动作时省略 target_preparation；ROTATE 使用目标架面，REPLACE 另带旧架离场目的地。\n  Cell 来源可 CONTINUE 或 SOURCE_DONE；DirectPick 只能 SOURCE_DONE。\n- empty_decide 的 RETRY 是重新尝试原来源空取；SOURCE_DONE 表示来源处理结束。\n- completion_confirm 的 COMPLETED 表示 WMS 确认当前任务业务完成；本地触发条件和任务状态推进仍由插件负责。\n\n#### outbound.picking_task.completion_confirm@v1\n\n**HTTP 200 / DECIDED — COMPLETED**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"COMPLETED\"\n  }\n}\n```\n\n#### outbound.picking_task.prepare@v1\n\n**HTTP 202 / PREPARE_ACCEPTED — PREPARE_ACCEPTED**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"PREPARE_ACCEPTED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {}\n}\n```\n\n#### outbound.return_rack.arrival_report@v1\n\n**HTTP 200 / RECORDED — RECORDED**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"RECORDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {}\n}\n```\n\n#### outbound.bin.inbound_batch@v1\n\n**HTTP 200 / DECIDED — READY**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"READY\",\n    \"bins\": [\n      {\n        \"bin_code\": \"BIN-001\",\n        \"source_locator\": {\n          \"type\": \"RACK_BIN_SLOT\",\n          \"rack_id\": \"SOURCE-RACK-01\",\n          \"rack_face\": \"A\",\n          \"slot_id\": \"A-01\"\n        }\n      }\n    ]\n  }\n}\n```\n\n**HTTP 200 / DECIDED — RACK_FACE_DONE**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"RACK_FACE_DONE\"\n  }\n}\n```\n\n#### outbound.bin.work_plan@v1\n\n**HTTP 200 / DECIDED — READY**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"READY\",\n    \"cell_ids\": [\n      \"CELL-03\",\n      \"CELL-04\"\n    ]\n  }\n}\n```\n\n**HTTP 200 / DECIDED — NO_WORK**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"NO_WORK\"\n  }\n}\n```\n\n#### outbound.material.decide@v1\n\n**HTTP 200 / DECIDED — ACCEPT**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"ACCEPT\",\n    \"target_locator\": {\n      \"type\": \"RACK_SLOT\",\n      \"rack_id\": \"TARGET-RACK-01\",\n      \"rack_face\": \"A\",\n      \"slot_id\": \"A-05\"\n    },\n    \"next_source_action\": \"CONTINUE\"\n  }\n}\n```\n\n**HTTP 200 / DECIDED — ACCEPT**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"ACCEPT\",\n    \"target_locator\": {\n      \"type\": \"RACK_SLOT\",\n      \"rack_id\": \"TARGET-RACK-01\",\n      \"rack_face\": \"A\",\n      \"slot_id\": \"A-05\"\n    },\n    \"next_source_action\": \"SOURCE_DONE\"\n  }\n}\n```\n\n**HTTP 200 / DECIDED — ACCEPT**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"ACCEPT\",\n    \"target_locator\": {\n      \"type\": \"RACK_SLOT\",\n      \"rack_id\": \"TARGET-RACK-01\",\n      \"rack_face\": \"A\",\n      \"slot_id\": \"A-05\"\n    },\n    \"next_source_action\": \"CONTINUE\",\n    \"target_preparation\": {\n      \"mode\": \"ROTATE\"\n    }\n  }\n}\n```\n\n**HTTP 200 / DECIDED — ACCEPT**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"ACCEPT\",\n    \"target_locator\": {\n      \"type\": \"RACK_SLOT\",\n      \"rack_id\": \"TARGET-RACK-01\",\n      \"rack_face\": \"A\",\n      \"slot_id\": \"A-05\"\n    },\n    \"next_source_action\": \"CONTINUE\",\n    \"target_preparation\": {\n      \"mode\": \"REPLACE\",\n      \"rack_destination\": {\n        \"type\": \"RACK_POSITION\",\n        \"location_code\": \"RACK-PARK-01\"\n      }\n    }\n  }\n}\n```\n\n#### outbound.source.empty_decide@v1\n\n**HTTP 200 / DECIDED — RETRY**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"RETRY\"\n  }\n}\n```\n\n**HTTP 200 / DECIDED — SOURCE_DONE**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"SOURCE_DONE\"\n  }\n}\n```\n\n#### outbound.material.movement_report@v1\n\n**HTTP 200 / RECORDED — RECORDED**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"RECORDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {}\n}\n```\n\n#### outbound.bin.return_batch@v1\n\n**HTTP 200 / DECIDED — READY**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"READY\",\n    \"moves\": [\n      {\n        \"sequence_no\": 1,\n        \"bin_code\": \"BIN-001\",\n        \"target\": {\n          \"type\": \"RACK_BIN_SLOT\",\n          \"rack_id\": \"RETURN-RACK-01\",\n          \"rack_face\": \"A\",\n          \"slot_id\": \"A-01\"\n        }\n      }\n    ]\n  }\n}\n```\n\n#### outbound.rack.departure_decide@v1\n\n**HTTP 200 / DECIDED — READY**\n\n```json\n{\n  \"operation_id\": \"019f3400-0e17-7d2a-b944-3cf7953804de\",\n  \"code\": \"DECIDED\",\n  \"timestamp\": 1786060800100,\n  \"data\": {\n    \"result\": \"READY\",\n    \"rack_destination\": {\n      \"type\": \"RACK_POSITION\",\n      \"location_code\": \"RACK-PARK-01\"\n    }\n  }\n}\n```\n\n### 其他返回（简要参考）\n\nWAIT / NO_BATCH 表示暂时无可执行业务；REJECT 表示业务拒绝。这里不展开这些分支的 JSON。\n原样重放不重复执行业务；技术重试保持原 operation_id 和完整请求。\n409 / 422 为确定拒绝，503 或传输结果不明时保留原请求重试；具体错误格式见下方 Responses。\n计划增量必须连续，冲突后应对账，不要通过跳版本或更换 ID 绕过。",
         "operationId": "wms_events_post",
         "requestBody": {
           "content": {
@@ -21684,6 +22814,21 @@
                     "operation": "inbound.execution.recovery_decided@v1",
                     "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804e1",
                     "timestamp": 1786060806000
+                  }
+                },
+                "08_manual_bin_completed": {
+                  "description": "引用已进入手工出库联调的 MANUAL PickingTask；completed_at 不得晚于 timestamp。",
+                  "summary": "8. 人工工作位 Bin 完成决定",
+                  "value": {
+                    "data": {
+                      "bin_code": "BIN-SWAGGER-001",
+                      "completed_at": 1786060806900,
+                      "result": "NORMAL",
+                      "task_id": "PICK-SWAGGER-001"
+                    },
+                    "operation": "outbound.manual_bin.work_completed@v1",
+                    "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804e2",
+                    "timestamp": 1786060807000
                   }
                 }
               },
@@ -23410,6 +24555,69 @@
                       "data"
                     ],
                     "type": "object"
+                  },
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "data": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "bin_code": {
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+                            "type": "string"
+                          },
+                          "completed_at": {
+                            "description": "Unix 毫秒时间戳",
+                            "format": "int64",
+                            "maximum": 9223372036854776000,
+                            "minimum": 1,
+                            "type": "integer"
+                          },
+                          "result": {
+                            "enum": [
+                              "NORMAL",
+                              "NG"
+                            ],
+                            "type": "string"
+                          },
+                          "task_id": {
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "task_id",
+                          "bin_code",
+                          "result",
+                          "completed_at"
+                        ],
+                        "type": "object"
+                      },
+                      "operation": {
+                        "enum": [
+                          "outbound.manual_bin.work_completed@v1"
+                        ],
+                        "type": "string"
+                      },
+                      "operation_id": {
+                        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                        "type": "string"
+                      },
+                      "timestamp": {
+                        "description": "Unix 毫秒时间戳",
+                        "format": "int64",
+                        "maximum": 9223372036854776000,
+                        "minimum": 1,
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "operation_id",
+                      "operation",
+                      "timestamp",
+                      "data"
+                    ],
+                    "type": "object"
                   }
                 ]
               }
@@ -23494,6 +24702,16 @@
                       "data": {},
                       "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804e1",
                       "timestamp": 1786060806100
+                    }
+                  },
+                  "08_manual_bin_completed": {
+                    "description": "operation_id 与对应请求一致；timestamp 为示例首次接收时间，重放沿用首次时间。",
+                    "summary": "8. 人工工作位 Bin 完成决定 → 200 / DUPLICATE",
+                    "value": {
+                      "code": "DUPLICATE",
+                      "data": {},
+                      "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804e2",
+                      "timestamp": 1786060807100
                     }
                   }
                 },
@@ -23632,6 +24850,16 @@
                       "data": {},
                       "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804e1",
                       "timestamp": 1786060806100
+                    }
+                  },
+                  "08_manual_bin_completed": {
+                    "description": "operation_id 与对应请求一致；timestamp 为示例首次接收时间，重放沿用首次时间。",
+                    "summary": "8. 人工工作位 Bin 完成决定 → 202 / RECEIVED",
+                    "value": {
+                      "code": "RECEIVED",
+                      "data": {},
+                      "operation_id": "019f3400-0e17-7d2a-b944-3cf7953804e2",
+                      "timestamp": 1786060807100
                     }
                   }
                 },
@@ -23966,6 +25194,1400 @@
         "summary": "WMS 事件接收与 PickingTask 联调流程",
         "tags": [
           "WMS Events"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs": {
+      "get": {
+        "operationId": "workline_integration_debug_runs_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_list_IntegrationRunResponse__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:read] 查询人工出库联调 run",
+        "tags": [
+          "人工出库联调"
+        ]
+      },
+      "post": {
+        "operationId": "workline_integration_debug_runs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRunRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_IntegrationRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:operate] 创建人工出库联调 run",
+        "tags": [
+          "人工出库联调"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs/stream": {
+      "get": {
+        "operationId": "workline_integration_debug_runs_stream_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:read] 实时订阅人工出库联调状态",
+        "tags": [
+          "人工出库联调"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs/{run_id}": {
+      "get": {
+        "operationId": "workline_integration_debug_runs_by_run_id_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_IntegrationRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:read] 查看人工出库联调 run",
+        "tags": [
+          "人工出库联调"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs/{run_id}/bind-task": {
+      "post": {
+        "operationId": "workline_integration_debug_runs_by_run_id_bind_task_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BindTaskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_IntegrationRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:operate] 绑定 WMS MANUAL PickingTask",
+        "tags": [
+          "人工出库联调"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs/{run_id}/close": {
+      "post": {
+        "operationId": "workline_integration_debug_runs_by_run_id_close_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloseRunRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_IntegrationRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:operate] 记录双方人工清理并关闭 run",
+        "tags": [
+          "人工出库联调"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs/{run_id}/complete": {
+      "post": {
+        "operationId": "workline_integration_debug_runs_by_run_id_complete_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_IntegrationRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:operate] 标记本轮联调完成",
+        "tags": [
+          "人工出库联调"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs/{run_id}/confirm-phase": {
+      "post": {
+        "operationId": "workline_integration_debug_runs_by_run_id_confirm_phase_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmPhaseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_IntegrationRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:operate] 记录现场步骤人工确认并推进",
+        "tags": [
+          "人工出库联调"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs/{run_id}/device-command": {
+      "post": {
+        "operationId": "workline_integration_debug_runs_by_run_id_device_command_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_IntegrationRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:operate] 使用 Run 冻结设备创建 ECS 调试命令",
+        "tags": [
+          "人工出库联调"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs/{run_id}/device-command/refresh": {
+      "post": {
+        "operationId": "workline_integration_debug_runs_by_run_id_device_command_refresh_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTransportActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_IntegrationRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:operate] 刷新 DeviceCommand 权威终态",
+        "tags": [
+          "人工出库联调"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs/{run_id}/export": {
+      "get": {
+        "operationId": "workline_integration_debug_runs_by_run_id_export_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:read] 导出 WMS C# 联调证据包",
+        "tags": [
+          "人工出库联调"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs/{run_id}/plan/refresh": {
+      "post": {
+        "operationId": "workline_integration_debug_runs_by_run_id_plan_refresh_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_IntegrationRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:operate] 读取已应用的 plan_delta 资源并进入货架搬运",
+        "tags": [
+          "人工出库联调"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs/{run_id}/point2-scan": {
+      "post": {
+        "operationId": "workline_integration_debug_runs_by_run_id_point2_scan_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Point2ScanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_IntegrationRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:operate] 记录 point2 实际扫码",
+        "tags": [
+          "人工出库联调"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs/{run_id}/takeover": {
+      "post": {
+        "operationId": "workline_integration_debug_runs_by_run_id_takeover_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_IntegrationRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:operate] 接管联调 run 操作权",
+        "tags": [
+          "人工出库联调"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs/{run_id}/transport": {
+      "post": {
+        "operationId": "workline_integration_debug_runs_by_run_id_transport_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransportActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_IntegrationRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:operate] 模拟或创建真实 Transport 调试动作",
+        "tags": [
+          "人工出库联调"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs/{run_id}/transport/refresh": {
+      "post": {
+        "operationId": "workline_integration_debug_runs_by_run_id_transport_refresh_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTransportActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_IntegrationRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:operate] 刷新 Transport 权威终态",
+        "tags": [
+          "人工出库联调"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs/{run_id}/wms/bin-inbound-batch": {
+      "post": {
+        "operationId": "workline_integration_debug_runs_by_run_id_wms_bin_inbound_batch_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BinInboundBatchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_IntegrationRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:operate] 请求五层货架入站料箱批次",
+        "tags": [
+          "人工出库联调"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs/{run_id}/wms/bin-return-batch": {
+      "post": {
+        "operationId": "workline_integration_debug_runs_by_run_id_wms_bin_return_batch_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BinReturnBatchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_IntegrationRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:operate] 请求回流 Bin 的目标槽位",
+        "tags": [
+          "人工出库联调"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs/{run_id}/wms/bind-completion": {
+      "post": {
+        "operationId": "workline_integration_debug_runs_by_run_id_wms_bind_completion_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BindCompletionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_IntegrationRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:operate] 绑定已接收的人工 Bin 完成决定",
+        "tags": [
+          "人工出库联调"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs/{run_id}/wms/completion-apply-report": {
+      "post": {
+        "operationId": "workline_integration_debug_runs_by_run_id_wms_completion_apply_report_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompletionApplyReportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_IntegrationRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:operate] 发送完成决定应用结果 Operation",
+        "tags": [
+          "人工出库联调"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs/{run_id}/wms/prepare": {
+      "post": {
+        "operationId": "workline_integration_debug_runs_by_run_id_wms_prepare_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClientActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_IntegrationRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:operate] 为所选任务发送 PickingTask prepare Operation",
+        "tags": [
+          "人工出库联调"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs/{run_id}/wms/rack-departure": {
+      "post": {
+        "operationId": "workline_integration_debug_runs_by_run_id_wms_rack_departure_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RackDepartureRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_IntegrationRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:operate] 请求货架离场目的地",
+        "tags": [
+          "人工出库联调"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs/{run_id}/wms/refresh": {
+      "post": {
+        "operationId": "workline_integration_debug_runs_by_run_id_wms_refresh_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshWmsActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_IntegrationRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:operate] 按持久化 WMS 响应推进联调状态",
+        "tags": [
+          "人工出库联调"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs/{run_id}/wms/task-completion": {
+      "post": {
+        "operationId": "workline_integration_debug_runs_by_run_id_wms_task_completion_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClientActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_IntegrationRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:operate] 请求 PickingTask 完成确认",
+        "tags": [
+          "人工出库联调"
+        ]
+      }
+    },
+    "/api/v1/workline-integration-debug/runs/{run_id}/wms/work-admission": {
+      "post": {
+        "operationId": "workline_integration_debug_runs_by_run_id_wms_work_admission_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClientActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_IntegrationRunResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:workline-integration-debug:operate] 发送人工 Bin 任务准入 Operation",
+        "tags": [
+          "人工出库联调"
         ]
       }
     },
