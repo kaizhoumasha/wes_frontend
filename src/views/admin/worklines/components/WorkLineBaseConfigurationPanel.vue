@@ -10,7 +10,6 @@ import {
   type WorkLinesItem as Workline
 } from '@/api/modules/workLines'
 import { CRUD_PAGE_REFRESH_KEY } from '@/components/common/crud-page/types'
-import StandardDialog from '@/components/ui/StandardDialog/StandardDialog.vue'
 import { usePermission } from '@/composables/usePermission'
 import { getSafeErrorMessage } from '@/utils/string'
 import { fetchWorkLineDevices } from './fetchWorkLineDevices'
@@ -69,28 +68,22 @@ const visibleDevices = computed(() => {
     `${device.device_code} ${device.device_name}`.toLowerCase().includes(query)
   )
 })
-const dialogVisible = computed({
-  get: () => modelValue.value,
-  set: value => {
-    if (value) modelValue.value = true
-    else void close()
-  }
-})
+const confirmDisabled = computed(() => disabled.value || !current.value || Boolean(loadError.value))
+const busy = computed(() => submitting.value)
 
-async function close(): Promise<void> {
-  if (submitting.value) return
-  if (isDirty.value) {
-    try {
-      await ElMessageBox.confirm('基础配置尚未保存，确认放弃修改？', '未保存的修改', {
-        confirmButtonText: '放弃修改',
-        cancelButtonText: '继续编辑',
-        type: 'warning'
-      })
-    } catch {
-      return
-    }
+async function confirmLeave(): Promise<boolean> {
+  if (busy.value) return false
+  if (!isDirty.value) return true
+  try {
+    await ElMessageBox.confirm('基础配置尚未保存，确认放弃修改？', '未保存的修改', {
+      confirmButtonText: '放弃修改',
+      cancelButtonText: '继续编辑',
+      type: 'warning'
+    })
+    return true
+  } catch {
+    return false
   }
-  modelValue.value = false
 }
 
 async function load(): Promise<void> {
@@ -227,7 +220,7 @@ async function submit(): Promise<void> {
       )
       .send()
     savedDraft.value = snapshot.value
-    modelValue.value = false
+    await load()
     ElMessage.success('工作线基础配置保存成功')
     try {
       await refresh?.()
@@ -248,21 +241,11 @@ watch(
   },
   { immediate: true }
 )
+defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty })
 </script>
 
 <template>
-  <StandardDialog
-    v-model="dialogVisible"
-    :title="`基础配置${workline ? `：${workline.line_name}` : ''}`"
-    size="xl"
-    confirm-text="保存基础配置"
-    confirm-icon="lucide:save"
-    :closable="!submitting"
-    :hide-cancel="submitting"
-    :confirm-loading="submitting"
-    :confirm-disabled="disabled || !current || Boolean(loadError)"
-    @confirm="submit"
-  >
+  <section aria-label="基础配置">
     <p
       v-if="loading"
       class="workline-base__hint"
@@ -281,7 +264,7 @@ watch(
       class="workline-base"
     >
       <header class="workline-base__heading">
-        <p>工作位与设备独立保存，通常仅在建线、改造时修改。</p>
+        <p>先关联本线设备，再维护实际工作位。基础资源不随插件更换而移除。</p>
         <ElTag :type="isDirty ? 'warning' : 'info'">{{ isDirty ? '未保存' : '已保存配置' }}</ElTag>
       </header>
       <ElAlert
@@ -298,8 +281,54 @@ watch(
       <section>
         <div class="workline-base__heading">
           <div>
+            <h3>本线设备</h3>
+            <p>选择本线物理设备，再在工作位中关联。插件仍引用设备时，需先解除角色绑定。</p>
+          </div>
+          <ElTag type="info">已选 {{ selectedCodes.length }} 台</ElTag>
+        </div>
+        <ElInput
+          v-model="search"
+          placeholder="搜索设备名称或编码"
+          clearable
+          aria-label="搜索设备"
+        />
+        <div class="workline-base__devices">
+          <div
+            v-for="device in visibleDevices"
+            :key="device.id"
+            class="workline-base__device"
+          >
+            <ElCheckbox
+              :model-value="selectedCodes.includes(device.device_code)"
+              :disabled="disabled || otherOwner(device)"
+              @change="selectDevice(device, Boolean($event))"
+            >
+              {{ device.device_name }}
+              <code>{{ device.device_code }}</code>
+            </ElCheckbox>
+            <ElTag :type="otherOwner(device) ? 'warning' : 'info'">
+              {{
+                otherOwner(device)
+                  ? '其他线占用'
+                  : selectedCodes.includes(device.device_code)
+                    ? '本线设备'
+                    : '可选'
+              }}
+            </ElTag>
+          </div>
+          <p
+            v-if="visibleDevices.length === 0"
+            class="workline-base__empty"
+          >
+            {{ search ? '没有匹配的设备，请调整搜索条件' : '暂无设备，请先在设备管理中添加' }}
+          </p>
+        </div>
+      </section>
+      <section>
+        <div class="workline-base__heading">
+          <div>
             <h3>工作位</h3>
-            <p>定义实际工作位及对接编码，再在插件装配中关联插槽。</p>
+            <p>定义实际工作位及对接编码，再在业务配置中关联插槽。</p>
           </div>
           <ElButton
             :disabled="disabled"
@@ -461,7 +490,7 @@ watch(
             <ElSelect
               :model-value="editedPosition.device_id ?? undefined"
               clearable
-              placeholder="从下方已选本线设备中关联"
+              placeholder="从本线已选设备中关联"
               @update:model-value="editedPosition.device_id = $event || null"
             >
               <ElOption
@@ -481,52 +510,7 @@ watch(
           </ElFormItem>
         </ElForm>
       </section>
-      <section>
-        <div class="workline-base__heading">
-          <div>
-            <h3>本线设备</h3>
-            <p>选择本线物理设备，再在工作位中关联。插件仍引用设备时，需先解除角色绑定。</p>
-          </div>
-          <ElTag type="info">已选 {{ selectedCodes.length }} 台</ElTag>
-        </div>
-        <ElInput
-          v-model="search"
-          placeholder="搜索设备名称或编码"
-          clearable
-          aria-label="搜索设备"
-        />
-        <div class="workline-base__devices">
-          <div
-            v-for="device in visibleDevices"
-            :key="device.id"
-            class="workline-base__device"
-          >
-            <ElCheckbox
-              :model-value="selectedCodes.includes(device.device_code)"
-              :disabled="disabled || otherOwner(device)"
-              @change="selectDevice(device, Boolean($event))"
-            >
-              {{ device.device_name }}
-              <code>{{ device.device_code }}</code>
-            </ElCheckbox>
-            <ElTag :type="otherOwner(device) ? 'warning' : 'info'">
-              {{
-                otherOwner(device)
-                  ? '其他线占用'
-                  : selectedCodes.includes(device.device_code)
-                    ? '本线设备'
-                    : '可选'
-              }}
-            </ElTag>
-          </div>
-          <p
-            v-if="visibleDevices.length === 0"
-            class="workline-base__empty"
-          >
-            {{ search ? '没有匹配的设备，请调整搜索条件' : '暂无设备，请先在设备管理中添加' }}
-          </p>
-        </div>
-      </section>
+
       <ElAlert
         v-if="saveError"
         :title="saveError"
@@ -535,7 +519,7 @@ watch(
         show-icon
       />
     </div>
-  </StandardDialog>
+  </section>
 </template>
 
 <style scoped>

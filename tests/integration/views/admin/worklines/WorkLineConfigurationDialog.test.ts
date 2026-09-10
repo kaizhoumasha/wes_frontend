@@ -2,11 +2,11 @@
 import { defineComponent, h, nextTick } from 'vue'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
 import type { DevicesItem } from '@/api/modules/devices'
 import type { WorkLinesItem as Workline } from '@/api/modules/workLines'
 import { CRUD_PAGE_REFRESH_KEY } from '@/components/common/crud-page/types'
-import WorkLineConfigurationDialog from '@/views/admin/worklines/components/WorkLineConfigurationDialog.vue'
-import WorkLineBaseConfigurationDialog from '@/views/admin/worklines/components/WorkLineBaseConfigurationDialog.vue'
+import WorkLineConfigurationWorkspace from '@/views/admin/worklines/components/WorkLineConfigurationWorkspace.vue'
 const mocks = vi.hoisted(() => ({
   hasPermission: vi.fn(),
   getById: vi.fn(),
@@ -234,8 +234,8 @@ function mountDialog(latest: Workline, refresh = vi.fn().mockResolvedValue(undef
   configureLoad(latest)
   return {
     refresh,
-    wrapper: mount(WorkLineConfigurationDialog, {
-      props: { workline: latest, modelValue: true },
+    wrapper: mount(WorkLineConfigurationWorkspace, {
+      props: { workline: latest, modelValue: true, initialSection: 'business' },
       global: {
         provide: {
           [CRUD_PAGE_REFRESH_KEY as symbol]: refresh
@@ -289,6 +289,41 @@ describe('WorkLineConfigurationDialog generic bindings', () => {
     vi.resetAllMocks()
     mocks.hasPermission.mockReturnValue(true)
   })
+  it('offers one workspace with base and business navigation', async () => {
+    const { wrapper } = mountDialog(workline())
+    await settle()
+    expect(wrapper.find('[data-section="base"]').exists()).toBe(true)
+    expect(wrapper.find('[data-section="business"]').exists()).toBe(true)
+  })
+
+  it('guards switching to base configuration while bindings are unsaved', async () => {
+    mocks.confirm.mockRejectedValue('cancel')
+    const { wrapper } = mountDialog(workline())
+    await settle()
+    await bind(wrapper, 'ROLE_A', '')
+    const navigation = wrapper.find('[data-section="base"]')
+    expect(navigation.exists()).toBe(true)
+    await navigation.trigger('click')
+    await flushPromises()
+    expect(mocks.confirm).toHaveBeenCalledOnce()
+    expect(roleSelect(wrapper, 'ROLE_A').props('modelValue')).toBe('')
+    expect(wrapper.find('.workline-base').exists()).toBe(false)
+  })
+
+  it('refreshes the saved business version before the next save', async () => {
+    mocks.configuration.mockReturnValue(method(Promise.resolve({})))
+    const { wrapper } = mountDialog(workline())
+    await settle()
+    configureLoad({ ...workline(), version: 8 })
+    await save(wrapper)
+    expect(standardDialog(wrapper).props('confirmDisabled')).toBe(false)
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+    configureLoad({ ...workline(), version: 9 })
+    await save(wrapper)
+    expect(mocks.configuration.mock.calls.map(call => call[1].version)).toEqual([7, 8])
+    expect(wrapper.text()).not.toContain('加载失败')
+  })
+
   it('retains changed plugin roles when discard is cancelled', async () => {
     mocks.confirm.mockRejectedValue('cancel')
     const { wrapper } = mountDialog(workline())
@@ -342,7 +377,7 @@ describe('WorkLineConfigurationDialog generic bindings', () => {
         }
       }
     )
-    expect(wrapper.emitted('update:modelValue')).toContainEqual([false])
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
     expect(refresh).toHaveBeenCalledOnce()
   })
   describe.each([
@@ -701,6 +736,46 @@ describe('WorkLineConfigurationDialog generic bindings', () => {
     expect(wrapper.text()).toContain('Transport#9')
     expect(mocks.configuration).not.toHaveBeenCalled()
   })
+  it('locks navigation while deactivation confirmation is pending', async () => {
+    let cancel!: (reason: string) => void
+    mocks.confirm.mockReturnValueOnce(
+      new Promise((_, reject) => {
+        cancel = reject
+      })
+    )
+    const { wrapper } = mountDialog(workline({ is_active: true }))
+    await settle()
+    await wrapper
+      .findAll('button')
+      .find(button => button.text().includes('停用工作线'))!
+      .trigger('click')
+    expect(standardDialog(wrapper).props('closable')).toBe(false)
+    expect(wrapper.find('[data-section="base"]').attributes('disabled')).toBeDefined()
+    standardDialog(wrapper).vm.$emit('update:modelValue', false)
+    await flushPromises()
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+    cancel('cancel')
+    await flushPromises()
+    expect(mocks.deactivate).not.toHaveBeenCalled()
+    expect(standardDialog(wrapper).props('closable')).toBe(true)
+  })
+
+  it('offers a direct base configuration path for a position slot with no matching resource', async () => {
+    mocks.baseConfiguration.mockReturnValueOnce(
+      method(Promise.resolve({ ...baseConfiguration(), version: 7, positions: [] }))
+    )
+    const { wrapper } = mountDialog(workline())
+    await settle()
+    expect(wrapper.text()).toContain('暂无符合此插槽要求的工作位')
+    await wrapper
+      .findAll('button')
+      .find(button => button.text() === '前往基础配置')!
+      .trigger('click')
+    await flushPromises()
+    expect(wrapper.find('[data-section="base"]').attributes('aria-selected')).toBe('true')
+    expect(mocks.confirm).not.toHaveBeenCalled()
+  })
+
   it('blocks a saved plugin absent from the server list', async () => {
     const { wrapper } = mountDialog(workline({ plugin_key: 'removed_plugin', config: {} }))
     await settle()
@@ -767,9 +842,10 @@ function mountBase(base = baseConfiguration()) {
       })
     )
   )
-  return mount(WorkLineBaseConfigurationDialog, {
+  return mount(WorkLineConfigurationWorkspace, {
     props: { workline: workline(), modelValue: true },
     global: {
+      provide: { [CRUD_PAGE_REFRESH_KEY as symbol]: vi.fn().mockResolvedValue(undefined) },
       stubs: {
         StandardDialog: StandardDialogStub,
         ElButton: ButtonStub,
@@ -805,7 +881,49 @@ describe('WorkLine independent base configuration', () => {
       { version: 12, device_codes: base.device_codes, positions: base.positions }
     )
     expect(mocks.configuration).not.toHaveBeenCalled()
-    expect(wrapper.emitted('update:modelValue')).toContainEqual([false])
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+  })
+
+  it('keeps business endpoints private when the business tab is unavailable', async () => {
+    mocks.hasPermission.mockImplementation(
+      permission => permission !== BIZ_PERMISSIONS.workline.availablePlugins
+    )
+    const wrapper = mountBase()
+    await settle()
+    expect(wrapper.find('[data-section="business"]').attributes('disabled')).toBeDefined()
+    await wrapper.find('[data-section="business"]').trigger('click')
+    expect(mocks.availablePlugins).not.toHaveBeenCalled()
+    expect(mocks.getById).not.toHaveBeenCalled()
+    expect(mocks.configurationStatus).not.toHaveBeenCalled()
+  })
+
+  it('loads saved resources and the current version when switching from base to business', async () => {
+    const wrapper = mountBase()
+    await settle()
+    mocks.baseConfiguration.mockReturnValueOnce(
+      method(Promise.resolve({ ...baseConfiguration(), version: 13 }))
+    )
+    mocks.queryDevices.mockReturnValueOnce(
+      method(
+        Promise.resolve({
+          items: [device(1, 'DEVICE-CURRENT', 11)],
+          total: 1,
+          limit: 100,
+          offset: 0
+        })
+      )
+    )
+    await save(wrapper)
+    expect(standardDialog(wrapper).props('confirmDisabled')).toBe(false)
+    configureLoad({ ...workline(), version: 13 })
+    await wrapper.find('[data-section="business"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('[data-section="business"]').attributes('aria-selected')).toBe('true')
+    expect(roleSelect(wrapper, 'ROLE_A').props('modelValue')).toBe('DEVICE-CURRENT')
+    mocks.configuration.mockReturnValueOnce(method(Promise.resolve({})))
+    configureLoad({ ...workline(), version: 14 })
+    await save(wrapper)
+    expect(mocks.configuration.mock.calls[0]![1].version).toBe(13)
   })
 
   it('adds a generic station and requires its code before saving', async () => {
@@ -826,7 +944,10 @@ describe('WorkLine independent base configuration', () => {
     positionType.vm.$emit('change', 'STATION')
     await nextTick()
     expect(wrapper.find('.workline-base__rack').exists()).toBe(false)
-    wrapper.findAllComponents(InputStub)[0]!.vm.$emit('update:modelValue', 'CNV0301')
+    wrapper
+      .findAllComponents(InputStub)
+      .find(input => input.attributes('placeholder') === '填写现场工作位编码')!
+      .vm.$emit('update:modelValue', 'CNV0301')
     await nextTick()
     await save(wrapper)
     expect(mocks.updateBaseConfiguration.mock.calls[0]![1].positions[0]).toMatchObject({
@@ -875,7 +996,10 @@ describe('WorkLine independent base configuration', () => {
   it.each(['active', 'permission'])(
     'keeps %s configurations read-only even on forced confirm',
     async reason => {
-      if (reason === 'permission') mocks.hasPermission.mockReturnValue(false)
+      if (reason === 'permission')
+        mocks.hasPermission.mockImplementation(
+          permission => permission !== BIZ_PERMISSIONS.workline.configureBase
+        )
       const wrapper = mountBase({ ...baseConfiguration(), is_active: reason === 'active' })
       await settle()
       expect(standardDialog(wrapper).props('confirmDisabled')).toBe(true)
@@ -910,4 +1034,171 @@ describe('WorkLine independent base configuration', () => {
     expect(wrapper.emitted('update:modelValue')).toBeUndefined()
     expect(wrapper.findAll('.workline-base__card')).toHaveLength(1)
   })
+})
+
+describe('WorkLine workspace navigation and save boundaries', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+    mocks.hasPermission.mockReturnValue(true)
+  })
+
+  it('switches sections with arrow and boundary keys and restores focus to the active tab', async () => {
+    const wrapper = mountBase({ ...baseConfiguration(), version: 7 })
+    document.body.appendChild(wrapper.element)
+    try {
+      await settle()
+      for (const [key, destination] of [
+        ['ArrowRight', 'business'],
+        ['ArrowLeft', 'base'],
+        ['End', 'business'],
+        ['Home', 'base']
+      ] as const) {
+        if (destination === 'business') configureLoad(workline())
+        else {
+          mocks.baseConfiguration.mockReturnValueOnce(
+            method(Promise.resolve({ ...baseConfiguration(), version: 7 }))
+          )
+          mocks.queryDevices.mockReturnValueOnce(
+            method(
+              Promise.resolve({
+                items: [device(1, 'DEVICE-CURRENT', 11)],
+                total: 1,
+                limit: 100,
+                offset: 0
+              })
+            )
+          )
+        }
+        await wrapper.find('[role="tablist"]').trigger('keydown', { key })
+        await flushPromises()
+        const activeTab = wrapper.find(`[data-section="${destination}"]`)
+        expect(activeTab.attributes('aria-selected')).toBe('true')
+        expect(activeTab.attributes('tabindex')).toBe('0')
+        expect(document.activeElement).toBe(activeTab.element)
+        expect(wrapper.text()).not.toContain('加载失败')
+      }
+      expect(mocks.confirm).not.toHaveBeenCalled()
+    } finally {
+      wrapper.unmount()
+      wrapper.element.remove()
+    }
+  })
+
+  it.each(['base', 'business'] as const)(
+    'blocks repeated writes, closing and section changes during a pending %s save',
+    async section => {
+      let resolveSave!: (value: object) => void
+      const pendingSave = new Promise<object>(resolve => {
+        resolveSave = resolve
+      })
+      const saveMethod = section === 'base' ? mocks.updateBaseConfiguration : mocks.configuration
+      saveMethod.mockReturnValueOnce(method(pendingSave))
+      const wrapper = section === 'base' ? mountBase() : mountDialog(workline()).wrapper
+      await settle()
+      standardDialog(wrapper).vm.$emit('confirm')
+      await nextTick()
+      expect(standardDialog(wrapper).props('confirmLoading')).toBe(true)
+      expect(standardDialog(wrapper).props('closable')).toBe(false)
+      expect(standardDialog(wrapper).props('confirmDisabled')).toBe(true)
+      standardDialog(wrapper).vm.$emit('confirm')
+      standardDialog(wrapper).vm.$emit('update:modelValue', false)
+      const destination = section === 'base' ? 'business' : 'base'
+      await wrapper.find(`[data-section="${destination}"]`).trigger('click')
+      await wrapper.find('[role="tablist"]').trigger('keydown', { key: 'ArrowRight' })
+      await flushPromises()
+      expect(saveMethod).toHaveBeenCalledOnce()
+      expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+      expect(wrapper.find(`[data-section="${section}"]`).attributes('aria-selected')).toBe('true')
+      expect(mocks.confirm).not.toHaveBeenCalled()
+      if (section === 'business') configureLoad({ ...workline(), version: 8 })
+      else {
+        mocks.baseConfiguration.mockReturnValueOnce(
+          method(Promise.resolve({ ...baseConfiguration(), version: 13 }))
+        )
+        mocks.queryDevices.mockReturnValueOnce(
+          method(
+            Promise.resolve({
+              items: [device(1, 'DEVICE-CURRENT', 11)],
+              total: 1,
+              limit: 100,
+              offset: 0
+            })
+          )
+        )
+      }
+      resolveSave({})
+      await flushPromises()
+      expect(standardDialog(wrapper).props('confirmDisabled')).toBe(false)
+      expect(standardDialog(wrapper).props('closable')).toBe(true)
+      expect(wrapper.text()).not.toContain('加载失败')
+      wrapper.unmount()
+    }
+  )
+
+  it.each(['base', 'business'] as const)(
+    'prevents writing a stale version after a successful %s save cannot reload',
+    async section => {
+      let rejectReload!: (reason: Error) => void
+      const pendingReload = new Promise<object>((_, reject) => {
+        rejectReload = reject
+      })
+      const saveMethod = section === 'base' ? mocks.updateBaseConfiguration : mocks.configuration
+      saveMethod.mockReturnValueOnce(method(Promise.resolve({})))
+      const wrapper = section === 'base' ? mountBase() : mountDialog(workline()).wrapper
+      await settle()
+      if (section === 'business') {
+        mocks.getById.mockReturnValueOnce(method(pendingReload))
+        configureLoad({ ...workline(), version: 8 })
+      } else {
+        mocks.baseConfiguration.mockReturnValueOnce(method(pendingReload))
+        mocks.queryDevices.mockReturnValueOnce(
+          method(
+            Promise.resolve({
+              items: [device(1, 'DEVICE-CURRENT', 11)],
+              total: 1,
+              limit: 100,
+              offset: 0
+            })
+          )
+        )
+      }
+      await save(wrapper)
+      expect(standardDialog(wrapper).props('confirmDisabled')).toBe(true)
+      standardDialog(wrapper).vm.$emit('confirm')
+      await flushPromises()
+      expect(saveMethod).toHaveBeenCalledOnce()
+      rejectReload(new Error('配置重新读取失败'))
+      await flushPromises()
+      expect(wrapper.text()).toContain('配置重新读取失败')
+      expect(standardDialog(wrapper).props('confirmDisabled')).toBe(true)
+      await save(wrapper)
+      expect(saveMethod).toHaveBeenCalledOnce()
+      expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+      wrapper.unmount()
+    }
+  )
+
+  it.each([BIZ_PERMISSIONS.workline.baseConfiguration, BIZ_PERMISSIONS.device.list])(
+    'makes no configuration requests when required base read permission %s is missing',
+    async missing => {
+      mocks.hasPermission.mockImplementation(permission => permission !== missing)
+      const wrapper = mountBase()
+      await flushPromises()
+      expect(wrapper.text()).toContain('当前账号没有此分区的查看权限')
+      expect(standardDialog(wrapper).props('confirmDisabled')).toBe(true)
+      await wrapper.find('[role="tablist"]').trigger('keydown', { key: 'End' })
+      await save(wrapper)
+      for (const request of [
+        mocks.baseConfiguration,
+        mocks.queryDevices,
+        mocks.getById,
+        mocks.availablePlugins,
+        mocks.configurationStatus,
+        mocks.configuration,
+        mocks.updateBaseConfiguration
+      ])
+        expect(request).not.toHaveBeenCalled()
+      wrapper.unmount()
+    }
+  )
 })
