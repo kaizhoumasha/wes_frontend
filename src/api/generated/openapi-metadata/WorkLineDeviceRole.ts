@@ -11,28 +11,22 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
 export const WorkLineDeviceRoleMetadata = {
   "title": "WorkLineDeviceRole",
-  "description": "插件声明的设备角色；前端仅展示名称并选择实体设备。",
   "required": [
     "role_key",
     "display_name"
   ],
-  "additionalProperties": false,
   "fields": {
     "display_name": {
       "title": "Display Name",
       "type": "string",
       "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 100
+      "nullable": false
     },
     "role_key": {
       "title": "Role Key",
       "type": "string",
       "required": true,
-      "nullable": false,
-      "minLength": 1,
-      "maxLength": 100
+      "nullable": false
     }
   }
 } satisfies OpenApiSchemaMetadata

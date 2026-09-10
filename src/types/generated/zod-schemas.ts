@@ -1,4 +1,4 @@
-/** @openapi-sha256 68b298fb0fdd0f27800b5e19b980b8bc1077099e57726c269310c7fac7d1aa56 */
+/** @openapi-sha256 08b0b7af36ae2e88d08b3cdb8b62e09c8e85b6882e8984c461094cf7ffba7e6b */
 /**
  * Zod Validation Schemas
  *
@@ -3784,17 +3784,11 @@ export const WorkLineCreateSchema = z.object({
 })
 
 
-/**
- * 插件声明的设备角色；前端仅展示名称并选择实体设备。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
 export const WorkLineDeviceRoleSchema = z.object({
   /** Display Name */
-  display_name: z.string().min(1).max(100),
+  display_name: z.string(),
   /** Role Key */
-  role_key: z.string().min(1).max(100),
+  role_key: z.string(),
 })
 
 
@@ -3860,22 +3854,17 @@ export const WorkLinePositionInputSchema = z.object({
 })
 
 
-/**
- * 插件工作位需求；执行位置类型来自插件合同，现场编码来自工作线。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
 export const WorkLinePositionSlotSchema = z.object({
-  allowed_rack_kind: z.union([z.lazy(() => RackKindSchema), z.null()]).optional(),
+  /** Allowed Rack Kind */
+  allowed_rack_kind: z.union([z.enum(["SINGLE_LAYER", "FIVE_LAYER", "RETURN", "TRANSFER", "PRODUCTION"]), z.null()]).optional(),
   /** Display Name */
-  display_name: z.string().min(1).max(100),
+  display_name: z.string(),
   /** Location Type */
-  location_type: z.string().min(1).max(100),
+  location_type: z.string(),
   /** Position Type */
   position_type: z.enum(["RACK_POSITION", "STATION"]),
   /** Slot Key */
-  slot_key: z.string().min(1).max(100),
+  slot_key: z.string(),
 })
 
 
@@ -3940,7 +3929,7 @@ export const WorkLineStartRequestSchema = z.object({
 
 export const WorkLineStartResponseSchema = z.object({
   /** Flow Mode */
-  flow_mode: z.string(),
+  flow_mode: z.union([z.string(), z.null()]),
   /** Is Active */
   is_active: z.boolean(),
   /** Plugin Key */
