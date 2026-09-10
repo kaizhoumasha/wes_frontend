@@ -14,7 +14,9 @@ export const opsRoutes: RouteRecordRaw = {
       OPS_PERMISSIONS.transportDebugRun.list,
       'ops:workline-integration-debug:list',
       OPS_PERMISSIONS.wmsDiagnostics.query,
-      OPS_PERMISSIONS.wmsDiagnostics.stream
+      OPS_PERMISSIONS.wmsDiagnostics.stream,
+      OPS_PERMISSIONS.wmsConfirmation.read,
+      OPS_PERMISSIONS.wmsEvidence.read
     ],
     menu: {
       name: 'ops:system:menu',
@@ -91,7 +93,12 @@ export const opsRoutes: RouteRecordRaw = {
       meta: {
         requiresAuth: true,
         title: 'WMS 联调诊断',
-        permissions: [OPS_PERMISSIONS.wmsDiagnostics.query, OPS_PERMISSIONS.wmsDiagnostics.stream],
+        permissions: [
+          OPS_PERMISSIONS.wmsDiagnostics.query,
+          OPS_PERMISSIONS.wmsDiagnostics.stream,
+          OPS_PERMISSIONS.wmsConfirmation.read,
+          OPS_PERMISSIONS.wmsEvidence.read
+        ],
         menu: { name: 'ops:wms-diagnostics:menu', icon: 'ep:connection', sortOrder: 5 }
       }
     }

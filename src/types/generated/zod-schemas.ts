@@ -1,4 +1,4 @@
-/** @openapi-sha256 bea10254faefe516d43d0a2c22fe98545fc5c1319476ee9aa0f02d600d10dd10 */
+/** @openapi-sha256 68b298fb0fdd0f27800b5e19b980b8bc1077099e57726c269310c7fac7d1aa56 */
 /**
  * Zod Validation Schemas
  *
@@ -874,6 +874,31 @@ export const ConfirmPhaseRequestSchema = z.object({
 })
 
 
+export const ConfirmationObservationSchema = z.object({
+  /** Attempt Count */
+  attempt_count: z.number(),
+  /** Deadline At */
+  deadline_at: z.string(),
+  /** Last Dispatch At */
+  last_dispatch_at: z.union([z.string(), z.null()]),
+  /** Next Attempt At */
+  next_attempt_at: z.union([z.string(), z.null()]),
+  /** Operation */
+  operation: z.string(),
+  /** Operation Id */
+  operation_id: z.string(),
+  /** Response Evidence Id */
+  response_evidence_id: z.union([z.number(), z.null()]),
+  /** Response Result */
+  response_result: z.union([z.string(), z.null()]),
+  /** Retry Eligible */
+  retry_eligible: z.boolean(),
+  status: z.lazy(() => WmsConfirmationStatusSchema),
+  /** Updated At */
+  updated_at: z.union([z.string(), z.null()]),
+})
+
+
 export const CreateRunRequestSchema = z.object({
   /** Device Code */
   device_code: z.string().min(1).max(100),
@@ -1266,6 +1291,25 @@ export const EventCommandBlockResponseSchema = z.object({
   source_event_id: z.string(),
   /** Status */
   status: z.string(),
+})
+
+
+export const EvidenceObservationSchema = z.object({
+  apply_status: z.lazy(() => InboundEvidenceApplyStatusSchema),
+  /** Decision Attempt Count */
+  decision_attempt_count: z.number(),
+  /** Decision Next Attempt At */
+  decision_next_attempt_at: z.union([z.string(), z.null()]),
+  /** Operation */
+  operation: z.string(),
+  /** Operation Id */
+  operation_id: z.string(),
+  /** Processed At */
+  processed_at: z.union([z.string(), z.null()]),
+  /** Published At */
+  published_at: z.union([z.string(), z.null()]),
+  /** Received At */
+  received_at: z.string(),
 })
 
 
@@ -3102,6 +3146,24 @@ export const TransportActionRequestSchema = z.object({
 })
 
 
+export const TransportCallbackReceiptResponseSchema = z.object({
+  /** Conflict Code */
+  conflict_code: z.union([z.string(), z.null()]),
+  /** Operation */
+  operation: z.string(),
+  /** Operation Id */
+  operation_id: z.string(),
+  /** Received At */
+  received_at: z.string(),
+  /** Response Code */
+  response_code: z.string(),
+  /** Response Data */
+  response_data: z.record(z.any()),
+  /** Response Http Status */
+  response_http_status: z.number(),
+})
+
+
 export const TransportDebugReturnedBinResponseSchema = z.object({
   /** Bin Code */
   bin_code: z.string(),
@@ -3303,6 +3365,8 @@ export const TransportTaskPageResponseSchema = z.object({
 
 
 export const TransportTaskResponseSchema = z.object({
+  /** Active Binding Count */
+  active_binding_count: z.number(),
   /** Client Request Id */
   client_request_id: z.string(),
   /** Created At */
@@ -3310,13 +3374,25 @@ export const TransportTaskResponseSchema = z.object({
   /** Kind */
   kind: z.enum(["RACK_MOVE", "RACK_ROTATE", "BIN_MOVE", "BIN_EXCHANGE"]),
   latest_evidence: z.union([z.lazy(() => TransportEvidenceResponseSchema), z.null()]),
+  /** Outcome Version */
+  outcome_version: z.number(),
+  /** Pending Evidence Count */
+  pending_evidence_count: z.number(),
+  /** Published Outcome Version */
+  published_outcome_version: z.number(),
   /** Reason Code */
   reason_code: z.union([z.string(), z.null()]),
   /** Request */
   request: z.record(z.any()),
   result: z.union([z.lazy(() => TransportResultResponseSchema), z.null()]),
+  /** Result Deadline At */
+  result_deadline_at: z.union([z.string(), z.null()]),
+  /** Send Started At */
+  send_started_at: z.union([z.string(), z.null()]),
   /** Status */
   status: z.enum(["PENDING", "ACCEPTED", "REJECTED", "SUCCEEDED", "FAILED", "RECONCILING"]),
+  /** Submit Attempt Count */
+  submit_attempt_count: z.number(),
   /** Submit Operation Id */
   submit_operation_id: z.string(),
   /** Transport Task Id */
@@ -3550,6 +3626,9 @@ export const WirePreviewSchema = z.object({
   /** State */
   state: z.enum(["CAPTURED", "TRUNCATED", "UNSAFE_JSON", "EMPTY", "NOT_CAPTURED", "NO_RESPONSE"]).optional().default("NOT_CAPTURED"),
 })
+
+
+export const WmsConfirmationStatusSchema = z.enum(["PENDING", "DISPATCHING", "COMPLETED", "RECONCILING", "SUPERSEDED"])
 
 
 export const WorkAdmissionRequestSchema = z.object({

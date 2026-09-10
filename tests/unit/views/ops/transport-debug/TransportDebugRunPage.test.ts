@@ -4,7 +4,11 @@ import { OPS_PERMISSIONS } from '@/api/generated/permissions'
 import TransportDebugRunPage from '@/views/ops/transport-debug/TransportDebugRunPage.vue'
 import TransportDebugRunPanel from '@/views/ops/transport-debug/TransportDebugRunPanel.vue'
 
-const mocks = vi.hoisted(() => ({ granted: new Set<string>(), selectTask: vi.fn() }))
+const mocks = vi.hoisted(() => ({
+  granted: new Set<string>(),
+  selectTask: vi.fn(),
+  loadCallbackReceipt: vi.fn()
+}))
 vi.mock('@/composables/usePermission', () => ({
   usePermission: () => ({ hasPermission: (permission: string) => mocks.granted.has(permission) })
 }))
@@ -14,7 +18,12 @@ vi.mock('@/views/ops/transport-diagnostics/useTransportDiagnostics', () => ({
     lastError: { value: null },
     selectedTaskId: { value: null },
     detail: { value: null },
-    loadingDetail: { value: false }
+    loadingDetail: { value: false },
+    callbackReceipt: { value: null },
+    callbackReceiptUnknown: { value: false },
+    callbackReceiptError: { value: '' },
+    loadingCallbackReceipt: { value: false },
+    loadCallbackReceipt: mocks.loadCallbackReceipt
   })
 }))
 
@@ -25,6 +34,7 @@ beforeEach(() => {
     mocks.granted.add(permission)
   )
   mocks.granted.add(OPS_PERMISSIONS.transportTask.read)
+  mocks.granted.add(OPS_PERMISSIONS.transportCallbackReceipt.read)
 })
 
 describe('TransportDebugRunPage', () => {

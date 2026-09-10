@@ -2,8 +2,21 @@
 import { useMediaQuery } from '@vueuse/core'
 import { ElDrawer } from 'element-plus'
 import type { WmsObservation } from '@/api/streaming/wmsDiagnosticsStream'
+import type { ConfirmationsResult, EvidencesResult } from '@/api/modules/wmsDiagnostics'
 import WmsExchangeInspector from '@/views/ops/wms-diagnostics/WmsExchangeInspector.vue'
-defineProps<{ detail: WmsObservation | null; loadingDetail: boolean; detailError: Error | null }>()
+import WmsReliableFacts from '@/views/ops/wms-diagnostics/WmsReliableFacts.vue'
+defineProps<{
+  detail: WmsObservation | null
+  loadingDetail: boolean
+  detailError: Error | null
+  confirmation: ConfirmationsResult | null
+  evidence: EvidencesResult | null
+  confirmationError: Error | null
+  evidenceError: Error | null
+  loadingReliable: boolean
+  canReadConfirmation: boolean
+  canReadEvidence: boolean
+}>()
 const emit = defineEmits<{ close: [] }>()
 const compact = useMediaQuery('(max-width: 1000px)')
 </script>
@@ -14,7 +27,7 @@ const compact = useMediaQuery('(max-width: 1000px)')
     aria-label="交互详情"
   >
     <button
-      v-if="detail"
+      v-if="detail || confirmation || evidence || confirmationError || evidenceError"
       class="close-detail"
       @click="emit('close')"
     >
@@ -43,10 +56,30 @@ const compact = useMediaQuery('(max-width: 1000px)')
     >
       选择一条交互，查看请求、响应与合同差异。
     </p>
+    <WmsReliableFacts
+      :confirmation="confirmation"
+      :evidence="evidence"
+      :confirmation-error="confirmationError"
+      :evidence-error="evidenceError"
+      :loading="loadingReliable"
+      :can-read-confirmation="canReadConfirmation"
+      :can-read-evidence="canReadEvidence"
+    />
   </aside>
   <ElDrawer
     v-if="compact"
-    :model-value="Boolean(detail || loadingDetail || detailError)"
+    :model-value="
+      Boolean(
+        detail ||
+        loadingDetail ||
+        detailError ||
+        loadingReliable ||
+        confirmation ||
+        evidence ||
+        confirmationError ||
+        evidenceError
+      )
+    "
     title="当次交互详情"
     size="100%"
     append-to-body
@@ -62,6 +95,15 @@ const compact = useMediaQuery('(max-width: 1000px)')
     <WmsExchangeInspector
       v-else-if="detail"
       :exchange="detail"
+    />
+    <WmsReliableFacts
+      :confirmation="confirmation"
+      :evidence="evidence"
+      :confirmation-error="confirmationError"
+      :evidence-error="evidenceError"
+      :loading="loadingReliable"
+      :can-read-confirmation="canReadConfirmation"
+      :can-read-evidence="canReadEvidence"
     />
   </ElDrawer>
 </template>

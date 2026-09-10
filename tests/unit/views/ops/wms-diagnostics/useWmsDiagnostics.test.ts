@@ -41,7 +41,9 @@ function harness() {
       scan_incomplete: true,
       retention_hours: 24
     }),
-    getExchange: vi.fn()
+    getExchange: vi.fn(),
+    getConfirmation: vi.fn(),
+    getEvidence: vi.fn()
   }
   const state = scope.run(() =>
     useWmsDiagnostics({
@@ -59,6 +61,124 @@ function harness() {
 }
 
 describe('WMS 有界实时视图', () => {
+  it('不依赖近期 exchange，按 operation identity 独立读取可靠事实', async () => {
+    const { state, api, stop } = harness()
+    api.getConfirmation.mockResolvedValue({
+      operation: 'prepare@v1',
+      operation_id: 'op-1',
+      status: 'COMPLETED',
+      attempt_count: 1,
+      deadline_at: '2026-09-09T12:00:00Z',
+      last_dispatch_at: '2026-09-09T11:00:00Z',
+      next_attempt_at: null,
+      response_evidence_id: 7,
+      response_result: 'RECEIVED',
+      retry_eligible: false,
+      updated_at: '2026-09-09T11:00:01Z'
+    })
+    api.getEvidence.mockResolvedValue({
+      operation: 'prepare@v1',
+      operation_id: 'op-1',
+      apply_status: 'PENDING',
+      decision_attempt_count: 0,
+      decision_next_attempt_at: null,
+      processed_at: null,
+      published_at: null,
+      received_at: '2026-09-09T11:00:01Z'
+    })
+
+    await state.queryReliableIdentity('prepare@v1', 'op-1', {
+      confirmation: true,
+      evidence: true
+    })
+
+    expect(api.listExchanges).not.toHaveBeenCalled()
+    expect(state.confirmation.value?.status).toBe('COMPLETED')
+    expect(state.evidence.value?.apply_status).toBe('PENDING')
+    stop()
+  })
+
+  it('身份变化后丢弃旧可靠事实响应', async () => {
+    const { state, api, stop } = harness()
+    let resolveOld!: (value: unknown) => void
+    api.getConfirmation
+      .mockImplementationOnce(() => new Promise(resolve => (resolveOld = resolve)))
+      .mockResolvedValueOnce({ operation: 'prepare@v1', operation_id: 'new', status: 'PENDING' })
+
+    const old = state.queryReliableIdentity('prepare@v1', 'old', {
+      confirmation: true,
+      evidence: false
+    })
+    await state.queryReliableIdentity('prepare@v1', 'new', {
+      confirmation: true,
+      evidence: false
+    })
+    resolveOld({ operation: 'prepare@v1', operation_id: 'old', status: 'COMPLETED' })
+    await old
+
+    expect(state.confirmation.value?.operation_id).toBe('new')
+    stop()
+  })
+
+  it('手动重连和页面恢复连接时刷新当前可靠身份', async () => {
+    const { state, api, stop } = harness()
+    api.getConfirmation.mockResolvedValue({
+      operation: 'prepare@v1',
+      operation_id: 'op-1',
+      status: 'PENDING'
+    })
+    await state.queryReliableIdentity('prepare@v1', 'op-1', { confirmation: true, evidence: false })
+    state.connect()
+    state.disconnect()
+    state.connect()
+    await Promise.resolve()
+    expect(api.getConfirmation).toHaveBeenCalledTimes(2)
+
+    vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
+    document.dispatchEvent(new Event('visibilitychange'))
+    vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible')
+    document.dispatchEvent(new Event('visibilitychange'))
+    await Promise.resolve()
+    expect(api.getConfirmation).toHaveBeenCalledTimes(3)
+    vi.restoreAllMocks()
+    stop()
+  })
+
+  it('清空、关闭和选择无 identity 使在途可靠响应失效且停止恢复刷新', async () => {
+    const { state, api, stop } = harness()
+    let resolveOld!: (value: unknown) => void
+    api.getConfirmation.mockImplementationOnce(() => new Promise(resolve => (resolveOld = resolve)))
+    const old = state.queryReliableIdentity('prepare@v1', 'old', {
+      confirmation: true,
+      evidence: false
+    })
+    state.clearView()
+    resolveOld({ operation: 'prepare@v1', operation_id: 'old', status: 'COMPLETED' })
+    await old
+    expect(state.confirmation.value).toBeNull()
+
+    api.getConfirmation.mockResolvedValue({
+      operation: 'prepare@v1',
+      operation_id: 'current',
+      status: 'PENDING'
+    })
+    await state.queryReliableIdentity('prepare@v1', 'current', {
+      confirmation: true,
+      evidence: false
+    })
+    state.closeDetail()
+    expect(state.confirmation.value).toBeNull()
+    await state.select({
+      phase: 'completed',
+      exchange: { ...exchange('no-id'), operation: '', operation_id: '' }
+    })
+    state.connect()
+    state.disconnect()
+    state.connect()
+    await Promise.resolve()
+    expect(api.getConfirmation).toHaveBeenCalledTimes(2)
+    stop()
+  })
   it('已选请求收到当次响应后补齐详情，其他尝试不抢走当前选择', async () => {
     const { state, attempts, stop } = harness()
     state.connect()

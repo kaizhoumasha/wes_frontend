@@ -6,6 +6,7 @@ import type {
   ResetInput,
   ResetPreviewResult,
   ResetResult,
+  CallbackReceiptsResult,
   TasksResult
 } from '@/api/modules/transport'
 import { transportApiMethods } from '@/api/modules/transport'
@@ -34,8 +35,25 @@ const TASK_2: TasksResult['items'][number] = {
 
 const DETAIL_1: GetByTransportTaskIdResult = {
   ...TASK_1,
+  send_started_at: '2026-08-28T08:00:01Z',
+  result_deadline_at: '2026-08-28T08:05:01Z',
+  submit_attempt_count: 2,
+  outcome_version: 2,
+  published_outcome_version: 1,
+  pending_evidence_count: 1,
+  active_binding_count: 1,
   request: { kind: 'RACK_MOVE' },
   result: null
+}
+
+const RECEIPT: CallbackReceiptsResult = {
+  operation: 'transport.task.resulted@v1',
+  operation_id: '019f12d0-58d7-7000-8000-000000000099',
+  response_http_status: 409,
+  response_code: 'INVALID_EVIDENCE',
+  response_data: {},
+  received_at: '2026-08-28T08:03:00Z',
+  conflict_code: 'PAYLOAD_MISMATCH'
 }
 
 const DETAIL_2: GetByTransportTaskIdResult = {
@@ -69,14 +87,16 @@ function createApi() {
   return {
     listTasks: vi.fn<(_: Record<string, unknown>) => Promise<TasksResult>>(),
     getTask: vi.fn<(_: string) => Promise<GetByTransportTaskIdResult>>(),
+    getCallbackReceipt: vi.fn<(_: string, __: string) => Promise<CallbackReceiptsResult>>(),
     createTask:
       vi.fn<
         (_: DebugTasksInput) => Promise<{ client_request_id: string; transport_task_id: string }>
       >(),
     previewTaskReset: vi.fn<(_: string) => Promise<ResetPreviewResult>>(),
-    resetTask: vi.fn<
-      (_: string, confirmation?: TransportDebugStepConfirmationInput) => Promise<ResetResult>
-    >()
+    resetTask:
+      vi.fn<
+        (_: string, confirmation?: TransportDebugStepConfirmationInput) => Promise<ResetResult>
+      >()
   }
 }
 
@@ -89,6 +109,55 @@ function deferred<T>() {
 }
 
 describe('useTransportDiagnostics', () => {
+  it('queries a callback receipt by the exact operation identity', async () => {
+    const api = createApi()
+    api.getCallbackReceipt.mockResolvedValue(RECEIPT)
+    const diagnostics = useTransportDiagnostics({ api })
+
+    await diagnostics.loadCallbackReceipt(
+      'transport.task.resulted@v1',
+      '019f12d0-58d7-7000-8000-000000000099'
+    )
+
+    expect(api.getCallbackReceipt).toHaveBeenCalledWith(
+      'transport.task.resulted@v1',
+      '019f12d0-58d7-7000-8000-000000000099'
+    )
+    expect(diagnostics.callbackReceipt.value).toEqual(RECEIPT)
+    expect(diagnostics.callbackReceiptUnknown.value).toBe(false)
+  })
+
+  it('discards a stale receipt response after the identity input changes', async () => {
+    const api = createApi()
+    const older = deferred<CallbackReceiptsResult>()
+    api.getCallbackReceipt.mockReturnValueOnce(older.promise).mockResolvedValueOnce(RECEIPT)
+    const diagnostics = useTransportDiagnostics({ api })
+
+    const first = diagnostics.loadCallbackReceipt('old.operation', 'old-id')
+    const second = diagnostics.loadCallbackReceipt(RECEIPT.operation, RECEIPT.operation_id)
+    await second
+    older.resolve({ ...RECEIPT, operation: 'old.operation', operation_id: 'old-id' })
+    await first
+
+    expect(diagnostics.callbackReceipt.value).toEqual(RECEIPT)
+  })
+
+  it.each([
+    [404, '3000'],
+    [503, '5030']
+  ])('keeps receipt status unknown for HTTP %s API code %s', async (status, code) => {
+    const api = createApi()
+    api.getCallbackReceipt.mockRejectedValue(Object.assign(new Error(`HTTP ${status}`), { code }))
+    const diagnostics = useTransportDiagnostics({ api })
+
+    await expect(
+      diagnostics.loadCallbackReceipt('transport.task.resulted@v1', 'missing')
+    ).resolves.toBeUndefined()
+
+    expect(diagnostics.callbackReceipt.value).toBeNull()
+    expect(diagnostics.callbackReceiptUnknown.value).toBe(true)
+    expect(diagnostics.callbackReceiptError.value).toContain(String(status))
+  })
   it('does not let an older list response overwrite a newer refresh', async () => {
     const api = createApi()
     let resolveOlder: ((value: TasksResult) => void) | undefined
@@ -243,9 +312,7 @@ describe('useTransportDiagnostics', () => {
     api.previewTaskReset.mockRejectedValue(new Error('preview unavailable'))
     const diagnostics = useTransportDiagnostics({ api })
 
-    await expect(diagnostics.previewTaskReset('transport-1')).rejects.toThrow(
-      'preview unavailable'
-    )
+    await expect(diagnostics.previewTaskReset('transport-1')).rejects.toThrow('preview unavailable')
 
     expect(diagnostics.resetPreview.value).toBeNull()
     expect(diagnostics.previewingReset.value).toBe(false)
@@ -302,14 +369,14 @@ describe('useTransportDiagnostics', () => {
     const sendTasks = vi.fn().mockResolvedValue({ items: [], next_cursor: null })
     const resetSpy = vi
       .spyOn(transportApiMethods, 'reset')
-      .mockReturnValue(
-        { send: sendReset } as unknown as ReturnType<typeof transportApiMethods.reset>
-      )
+      .mockReturnValue({ send: sendReset } as unknown as ReturnType<
+        typeof transportApiMethods.reset
+      >)
     const tasksSpy = vi
       .spyOn(transportApiMethods, 'tasks')
-      .mockReturnValue(
-        { send: sendTasks } as unknown as ReturnType<typeof transportApiMethods.tasks>
-      )
+      .mockReturnValue({ send: sendTasks } as unknown as ReturnType<
+        typeof transportApiMethods.tasks
+      >)
     const confirmation: TransportDebugStepConfirmationInput = {
       step: 'BINS_TO_INFEED',
       assertion: 'PHYSICAL_TARGET_REACHED'
@@ -326,11 +393,7 @@ describe('useTransportDiagnostics', () => {
         { transport_task_id: 'transport-1' },
         confirmation
       )
-      expect(resetSpy).toHaveBeenNthCalledWith(
-        2,
-        { transport_task_id: 'transport-2' },
-        null
-      )
+      expect(resetSpy).toHaveBeenNthCalledWith(2, { transport_task_id: 'transport-2' }, null)
       expect(sendReset).toHaveBeenCalledTimes(2)
     } finally {
       resetSpy.mockRestore()
@@ -361,9 +424,7 @@ describe('useTransportDiagnostics', () => {
     const diagnostics = useTransportDiagnostics({ api })
 
     const first = diagnostics.resetTask('transport-1')
-    await expect(diagnostics.resetTask('transport-1')).rejects.toThrow(
-      'Transport 任务正在清理'
-    )
+    await expect(diagnostics.resetTask('transport-1')).rejects.toThrow('Transport 任务正在清理')
     pending.resolve(RESET_RESULT)
     await expect(first).resolves.toEqual(RESET_RESULT)
 

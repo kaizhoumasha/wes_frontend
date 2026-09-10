@@ -1,11 +1,37 @@
 <script setup lang="ts">
-import type { GetByTransportTaskIdResult } from '@/api/modules/transport'
+import { computed, ref } from 'vue'
+import AppButton from '@/components/ui/AppButton.vue'
+import type { CallbackReceiptsResult, GetByTransportTaskIdResult } from '@/api/modules/transport'
 
-defineProps<{
+const props = defineProps<{
   detail: GetByTransportTaskIdResult | null
   loading: boolean
   canRead: boolean
+  canReadCallbackReceipt: boolean
+  callbackReceipt: CallbackReceiptsResult | null
+  callbackReceiptUnknown: boolean
+  callbackReceiptError: string
+  loadingCallbackReceipt: boolean
 }>()
+
+const emit = defineEmits<{
+  lookupCallbackReceipt: [operation: string, operationId: string]
+}>()
+const receiptOperation = ref('transport.task.resulted@v1')
+const receiptOperationId = ref('')
+const publicationState = computed(() => {
+  if (!props.detail) return '—'
+  if (props.detail.outcome_version === 0) return '尚无待发布结果'
+  return props.detail.outcome_version > props.detail.published_outcome_version
+    ? '待发布'
+    : '已发布（仅表示发布完成）'
+})
+
+function lookupCallbackReceipt(): void {
+  const operation = receiptOperation.value.trim()
+  const operationId = receiptOperationId.value.trim()
+  if (operation && operationId) emit('lookupCallbackReceipt', operation, operationId)
+}
 </script>
 
 <template>
@@ -33,6 +59,14 @@ defineProps<{
           <dd>{{ detail.status }}</dd>
           <dt>reason_code</dt>
           <dd>{{ detail.reason_code ?? '—' }}</dd>
+          <dt>send_started_at</dt>
+          <dd>{{ detail.send_started_at ?? '—' }}</dd>
+          <dt>result_deadline_at（冻结）</dt>
+          <dd>{{ detail.result_deadline_at ?? '—' }}</dd>
+          <dt>submit_attempt_count</dt>
+          <dd>{{ detail.submit_attempt_count }}</dd>
+          <dt>active_binding_count</dt>
+          <dd>{{ detail.active_binding_count }}</dd>
         </dl>
         <p>WES 创建或 WMS 接纳不代表设备已执行。</p>
       </section>
@@ -42,7 +76,72 @@ defineProps<{
       </section>
       <section class="evidence-layer">
         <p class="layer-label">03 / Transport 终态</p>
+        <dl>
+          <dt>结果等待</dt>
+          <dd>{{ detail.status === 'RECONCILING' ? '等待权威结果' : '—' }}</dd>
+          <dt>outcome_version</dt>
+          <dd>{{ detail.outcome_version }}</dd>
+          <dt>published_outcome_version</dt>
+          <dd>{{ detail.published_outcome_version }}</dd>
+          <dt>publication</dt>
+          <dd>{{ publicationState }}</dd>
+          <dt>pending_evidence_count</dt>
+          <dd>{{ detail.pending_evidence_count }}</dd>
+        </dl>
         <pre>{{ JSON.stringify(detail.result, null, 2) }}</pre>
+      </section>
+      <section class="evidence-layer receipt-query">
+        <p class="layer-label">独立回调收据查询</p>
+        <p>按 operation + operation_id 精确查询；收据不与当前任务 Evidence 自动关联。</p>
+        <template v-if="canReadCallbackReceipt">
+          <el-input
+            v-model="receiptOperation"
+            aria-label="回调 operation"
+          />
+          <el-input
+            v-model="receiptOperationId"
+            aria-label="回调 operation_id"
+          />
+          <AppButton
+            :loading="loadingCallbackReceipt"
+            :disabled="!receiptOperation.trim() || !receiptOperationId.trim()"
+            @click="lookupCallbackReceipt"
+          >
+            查询收据
+          </AppButton>
+          <el-alert
+            v-if="callbackReceiptUnknown"
+            :title="`收据状态未知：${callbackReceiptError || '查询暂不可用'}`"
+            type="warning"
+            :closable="false"
+          />
+          <dl v-else-if="callbackReceipt">
+            <dt>operation</dt>
+            <dd>{{ callbackReceipt.operation }}</dd>
+            <dt>operation_id</dt>
+            <dd>{{ callbackReceipt.operation_id }}</dd>
+            <dt>response_http_status</dt>
+            <dd>{{ callbackReceipt.response_http_status }}</dd>
+            <dt>response_code</dt>
+            <dd>{{ callbackReceipt.response_code }}</dd>
+            <dt>conflict_code</dt>
+            <dd>{{ callbackReceipt.conflict_code ?? '—' }}</dd>
+            <dt>received_at</dt>
+            <dd>{{ callbackReceipt.received_at }}</dd>
+          </dl>
+          <el-alert
+            v-else-if="callbackReceiptError"
+            :title="callbackReceiptError"
+            type="error"
+            :closable="false"
+          />
+        </template>
+        <el-alert
+          v-else
+          title="缺少 Transport 回调收据查询权限"
+          type="warning"
+          :closable="false"
+        />
       </section>
       <section class="evidence-layer">
         <p class="layer-label">规范化请求</p>
@@ -114,5 +213,14 @@ pre {
   font-size: 12px;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+.receipt-query {
+  display: grid;
+  gap: 8px;
+}
+
+.receipt-query p {
+  margin: 0;
 }
 </style>

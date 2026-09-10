@@ -13,6 +13,8 @@ const { hasPermission } = usePermission()
 const canQuery = computed(() => hasPermission(OPS_PERMISSIONS.wmsDiagnostics.query))
 const canRead = computed(() => hasPermission(OPS_PERMISSIONS.wmsDiagnostics.read))
 const canStream = computed(() => hasPermission(OPS_PERMISSIONS.wmsDiagnostics.stream))
+const canReadConfirmation = computed(() => hasPermission(OPS_PERMISSIONS.wmsConfirmation.read))
+const canReadEvidence = computed(() => hasPermission(OPS_PERMISSIONS.wmsEvidence.read))
 const state = useWmsDiagnostics()
 const {
   mode,
@@ -29,12 +31,19 @@ const {
   detailError,
   loading,
   loadingDetail,
+  confirmation,
+  evidence,
+  confirmationError,
+  evidenceError,
+  loadingReliable,
   nextCursor,
   scanIncomplete,
   retentionHours
 } = state
 const consoleElement = ref<HTMLElement | null>(null)
 const selectedId = ref<string | null>(null)
+const reliableOperation = ref('')
+const reliableOperationId = ref('')
 const connectionLabel = computed(
   () =>
     ({
@@ -53,6 +62,20 @@ const isError = (row: WmsConsoleRow) =>
 function select(row: WmsConsoleRow) {
   selectedId.value = row.exchange.attempt_id
   void state.select(row)
+  if (row.exchange.operation && row.exchange.operation_id) {
+    reliableOperation.value = row.exchange.operation
+    reliableOperationId.value = row.exchange.operation_id
+    void queryReliableFacts()
+  }
+}
+function queryReliableFacts() {
+  const operation = reliableOperation.value.trim()
+  const operationId = reliableOperationId.value.trim()
+  if (!operation || !operationId) return Promise.resolve()
+  return state.queryReliableIdentity(operation, operationId, {
+    confirmation: canReadConfirmation.value,
+    evidence: canReadEvidence.value
+  })
 }
 function clear() {
   selectedId.value = null
@@ -150,6 +173,44 @@ onMounted(() => {
       :loading="loading"
       @apply="state.applyFilters"
     />
+    <form
+      class="reliable-query"
+      data-action="query-reliable"
+      @submit.prevent="queryReliableFacts"
+    >
+      <strong>按可靠身份独立查询</strong>
+      <label>
+        Operation
+        <input
+          v-model="reliableOperation"
+          aria-label="operation"
+          maxlength="128"
+        />
+      </label>
+      <label>
+        Operation ID
+        <input
+          v-model="reliableOperationId"
+          aria-label="operation_id"
+          maxlength="128"
+        />
+      </label>
+      <button
+        type="submit"
+        :disabled="
+          loadingReliable ||
+          !reliableOperation.trim() ||
+          !reliableOperationId.trim() ||
+          (!canReadConfirmation && !canReadEvidence)
+        "
+      >
+        {{
+          loadingReliable ? '查询中…' : confirmation || evidence ? '刷新可靠事实' : '查询可靠事实'
+        }}
+      </button>
+      <span v-if="!canReadConfirmation">无可靠发送义务读取权限</span>
+      <span v-if="!canReadEvidence">无接收事实读取权限</span>
+    </form>
     <p
       v-if="hasGap"
       class="notice"
@@ -268,10 +329,42 @@ onMounted(() => {
         :detail="detail"
         :loading-detail="loadingDetail"
         :detail-error="detailError"
+        :confirmation="confirmation"
+        :evidence="evidence"
+        :confirmation-error="confirmationError"
+        :evidence-error="evidenceError"
+        :loading-reliable="loadingReliable"
+        :can-read-confirmation="canReadConfirmation"
+        :can-read-evidence="canReadEvidence"
         @close="state.closeDetail()"
       />
     </div>
   </main>
 </template>
+
+<style scoped>
+.reliable-query {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  padding: 12px;
+  background: var(--diag-panel);
+  border: 1px solid var(--diag-border);
+  border-radius: 8px;
+}
+.reliable-query label {
+  display: grid;
+  gap: 4px;
+}
+.reliable-query input {
+  min-width: 240px;
+  padding: 8px;
+  color: inherit;
+  background: var(--diag-panel);
+  border: 1px solid var(--diag-border);
+  border-radius: 6px;
+}
+</style>
 
 <style scoped src="./wms-diagnostics.css"></style>
