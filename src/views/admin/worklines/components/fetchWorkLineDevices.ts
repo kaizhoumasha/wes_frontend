@@ -16,13 +16,29 @@ const deviceAdapter = createSoftDeleteCrudRequestAdapterFromMethods<
   UpdateDevicesInput
 >(devicesApiMethods)
 
-export async function fetchWorkLineDevices(): Promise<DevicesItem[]> {
+export async function queryWorkLineDevices(
+  options: QueryOptionsInput
+): Promise<PaginationData<DevicesItem>> {
+  return deviceAdapter.query({
+    ...options,
+    sort: [
+      { field: 'sort_order', order: 'asc' },
+      { field: 'id', order: 'asc' }
+    ]
+  })
+}
+
+export async function fetchWorkLineDevices(worklineId: number): Promise<DevicesItem[]> {
   const items: DevicesItem[] = []
   const limit = 100
   let offset = 0
   let total: number
   do {
     const options: QueryOptionsInput = {
+      filters: {
+        couple: 'and',
+        conditions: [{ field: 'work_line_id', op: 'eq', value: worklineId }]
+      },
       offset,
       limit,
       sort: [

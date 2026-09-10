@@ -6,6 +6,7 @@ import type { DevicesItem } from '@/api/modules/devices'
 import {
   workLinesApiMethods,
   type BaseConfigurationResult,
+  type AvailablePluginsResult,
   type UpdateBaseConfigurationInput,
   type WorkLinesItem as Workline
 } from '@/api/modules/workLines'
@@ -13,9 +14,22 @@ import { CRUD_PAGE_REFRESH_KEY } from '@/components/common/crud-page/types'
 import { usePermission } from '@/composables/usePermission'
 import { getSafeErrorMessage } from '@/utils/string'
 import { fetchWorkLineDevices } from './fetchWorkLineDevices'
+import WorkLineDevicePicker from './WorkLineDevicePicker.vue'
 
 type Position = UpdateBaseConfigurationInput['positions'][number]
-const props = defineProps<{ workline: Workline | null }>()
+const props = withDefaults(
+  defineProps<{
+    workline: Pick<Workline, 'id'> | null
+    mode?: 'devices' | 'positions'
+    positionSlot?: NonNullable<AvailablePluginsResult[number]['position_slots']>[number]
+    positionCode?: string
+    expectedVersion?: number
+  }>(),
+  { mode: 'devices', positionSlot: undefined, positionCode: undefined, expectedVersion: undefined }
+)
+const emit = defineEmits<{ saved: [base: BaseConfigurationResult, positionCode?: string] }>()
+const pickerVisible = ref(false)
+const devicePage = ref(1)
 const modelValue = defineModel<boolean>({ default: false })
 const refresh = inject(CRUD_PAGE_REFRESH_KEY)
 const { hasPermission } = usePermission()
@@ -64,12 +78,12 @@ const ownedChoices = computed(() =>
 )
 const visibleDevices = computed(() => {
   const query = search.value.trim().toLowerCase()
-  return devices.value.filter(device =>
+  return ownedChoices.value.filter(device =>
     `${device.device_code} ${device.device_name}`.toLowerCase().includes(query)
   )
 })
 const confirmDisabled = computed(() => disabled.value || !current.value || Boolean(loadError.value))
-const busy = computed(() => submitting.value)
+const busy = computed(() => submitting.value || loading.value || pickerVisible.value)
 
 async function confirmLeave(): Promise<boolean> {
   if (busy.value) return false
@@ -102,14 +116,38 @@ async function load(): Promise<void> {
   try {
     const [base, allDevices] = await Promise.all([
       workLinesApiMethods.baseConfiguration({ id: props.workline.id }).send(),
-      fetchWorkLineDevices()
+      fetchWorkLineDevices(props.workline.id)
     ])
     if (turn !== sequence) return
+    if (props.expectedVersion !== undefined && base.version !== props.expectedVersion)
+      throw new Error('配置已变化，请保存或重新加载当前配置后编辑工作位')
     current.value = base
-    devices.value = allDevices
+    devices.value = allDevices.filter(device => device.work_line_id === base.workline_id)
     selectedCodes.value = [...base.device_codes]
     positions.value = base.positions.map(position => ({ ...position }))
     savedDraft.value = snapshot.value
+    if (props.mode === 'positions' && props.positionCode) {
+      const index = positions.value.findIndex(
+        position => position.position_code === props.positionCode
+      )
+      if (index >= 0) selectedPosition.value = index
+    } else if (props.mode === 'positions' && props.positionSlot && !readonly.value) {
+      // 从声明预填类型和名称；现场编码与用途由用户确认。
+      positions.value.push({
+        position_code: '',
+        position_name: props.positionSlot.display_name,
+        position_type: props.positionSlot.position_type,
+        allowed_rack_kind: props.positionSlot.allowed_rack_kind ?? null,
+        position_role: null,
+        capacity: 1,
+        priority: 100,
+        enabled: true,
+        logic_location_code: null,
+        external_location_code: null,
+        device_id: null
+      })
+      selectedPosition.value = positions.value.length - 1
+    }
   } catch (error) {
     if (turn === sequence) loadError.value = `基础配置加载失败：${getSafeErrorMessage(error)}`
   } finally {
@@ -164,8 +202,8 @@ function selectDevice(device: DevicesItem, selected: boolean): void {
     : selectedCodes.value.filter(code => code !== device.device_code)
 }
 
-async function submit(): Promise<void> {
-  if (disabled.value || !current.value || loadError.value) return
+async function submit(): Promise<boolean> {
+  if (disabled.value || !current.value || loadError.value) return false
   saveError.value = ''
   const drafts = positions.value.map(position => ({
     ...position,
@@ -176,7 +214,7 @@ async function submit(): Promise<void> {
   }))
   if (drafts.some(position => !position.position_code || !position.position_name)) {
     saveError.value = '请填写每个工作位的编码和名称'
-    return
+    return false
   }
   if (
     drafts.some(
@@ -188,13 +226,13 @@ async function submit(): Promise<void> {
     )
   ) {
     saveError.value = '容量必须为正整数，优先级必须为非负整数'
-    return
+    return false
   }
   for (const key of ['position_code', 'logic_location_code'] as const) {
     const codes = drafts.map(position => position[key]).filter(Boolean)
     if (new Set(codes).size !== codes.length) {
       saveError.value = `${key === 'position_code' ? '工作位' : '逻辑位置'}编码不能重复`
-      return
+      return false
     }
   }
   if (
@@ -205,11 +243,32 @@ async function submit(): Promise<void> {
     )
   ) {
     saveError.value = '工作位关联设备必须属于本线设备'
-    return
+    return false
+  }
+  if (
+    props.positionSlot &&
+    editedPosition.value &&
+    (!editedPosition.value.logic_location_code?.trim() ||
+      editedPosition.value.position_type !== props.positionSlot.position_type ||
+      (props.positionSlot.allowed_rack_kind &&
+        editedPosition.value.allowed_rack_kind !== props.positionSlot.allowed_rack_kind))
+  ) {
+    saveError.value = '请补充执行位置编码，并保持工作位类型和货架类型符合插槽要求'
+    return false
+  }
+  if (
+    drafts.some(
+      position =>
+        position.position_type === 'RACK_POSITION' &&
+        (!position.position_role || !position.allowed_rack_kind)
+    )
+  ) {
+    saveError.value = '货架工作位必须指定用途和货架类型'
+    return false
   }
   submitting.value = true
   try {
-    await workLinesApiMethods
+    const saved = await workLinesApiMethods
       .updateBaseConfiguration(
         { id: current.value.workline_id },
         {
@@ -219,8 +278,11 @@ async function submit(): Promise<void> {
         }
       )
       .send()
+    const code = editedPosition.value?.position_code.trim()
+    if (props.mode === 'positions') current.value = saved
     savedDraft.value = snapshot.value
-    await load()
+    emit('saved', saved, code)
+    if (props.mode === 'devices') await load()
     ElMessage.success('工作线基础配置保存成功')
     try {
       await refresh?.()
@@ -229,9 +291,11 @@ async function submit(): Promise<void> {
     }
   } catch (error) {
     saveError.value = `保存基础配置失败：${getSafeErrorMessage(error)}`
+    return false
   } finally {
     submitting.value = false
   }
+  return !loadError.value
 }
 
 watch(
@@ -241,7 +305,21 @@ watch(
   },
   { immediate: true }
 )
-defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty })
+function addDevices(added: DevicesItem[]): void {
+  for (const device of added) {
+    if (!devices.value.some(item => item.id === device.id)) devices.value.push(device)
+    selectDevice(device, true)
+  }
+}
+watch(search, () => {
+  devicePage.value = 1
+})
+const progress = computed(() =>
+  current.value
+    ? { base: `已关联 ${selectedCodes.value.length} 台${isDirty.value ? ' · 未保存' : ''}` }
+    : {}
+)
+defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty, progress })
 </script>
 
 <template>
@@ -264,7 +342,13 @@ defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty 
       class="workline-base"
     >
       <header class="workline-base__heading">
-        <p>先关联本线设备，再维护实际工作位。基础资源不随插件更换而移除。</p>
+        <p>
+          {{
+            mode === 'devices'
+              ? '先关联本线设备，再选择业务插件。工作位将在插槽配置中补充。'
+              : '工作位属于本线基础资源，更换插件后仍会保留。'
+          }}
+        </p>
         <ElTag :type="isDirty ? 'warning' : 'info'">{{ isDirty ? '未保存' : '已保存配置' }}</ElTag>
       </header>
       <ElAlert
@@ -278,13 +362,21 @@ defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty 
         :closable="false"
         show-icon
       />
-      <section>
+      <section v-if="mode === 'devices'">
         <div class="workline-base__heading">
           <div>
             <h3>本线设备</h3>
-            <p>选择本线物理设备，再在工作位中关联。插件仍引用设备时，需先解除角色绑定。</p>
+            <p>插件仍引用设备时，需先解除角色绑定才能移除。</p>
           </div>
-          <ElTag type="info">已选 {{ selectedCodes.length }} 台</ElTag>
+          <div>
+            <ElTag type="info">已关联 {{ selectedCodes.length }} 台</ElTag>
+            <ElButton
+              :disabled="disabled"
+              @click="pickerVisible = true"
+            >
+              添加设备
+            </ElButton>
+          </div>
         </div>
         <ElInput
           v-model="search"
@@ -294,37 +386,47 @@ defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty 
         />
         <div class="workline-base__devices">
           <div
-            v-for="device in visibleDevices"
+            v-for="device in visibleDevices.slice((devicePage - 1) * 50, devicePage * 50)"
             :key="device.id"
             class="workline-base__device"
           >
-            <ElCheckbox
-              :model-value="selectedCodes.includes(device.device_code)"
-              :disabled="disabled || otherOwner(device)"
-              @change="selectDevice(device, Boolean($event))"
-            >
+            <div>
               {{ device.device_name }}
               <code>{{ device.device_code }}</code>
-            </ElCheckbox>
-            <ElTag :type="otherOwner(device) ? 'warning' : 'info'">
-              {{
-                otherOwner(device)
-                  ? '其他线占用'
-                  : selectedCodes.includes(device.device_code)
-                    ? '本线设备'
-                    : '可选'
-              }}
-            </ElTag>
+            </div>
+            <ElButton
+              :disabled="disabled"
+              text
+              type="danger"
+              :aria-label="`移除 ${device.device_code}`"
+              @click="selectDevice(device, false)"
+            >
+              移除
+            </ElButton>
           </div>
           <p
             v-if="visibleDevices.length === 0"
             class="workline-base__empty"
           >
-            {{ search ? '没有匹配的设备，请调整搜索条件' : '暂无设备，请先在设备管理中添加' }}
+            {{ search ? '没有匹配的设备，请调整搜索条件' : '尚未关联设备，点击添加设备开始配置' }}
           </p>
         </div>
+        <ElPagination
+          :current-page="devicePage"
+          :page-size="50"
+          :total="visibleDevices.length"
+          layout="prev, pager, next, total"
+          @current-change="devicePage = $event"
+        />
+        <WorkLineDevicePicker
+          v-if="pickerVisible"
+          v-model="pickerVisible"
+          :workline-id="current.workline_id"
+          :selected-codes="selectedCodes"
+          @select="addDevices"
+        />
       </section>
-      <section>
+      <section v-else>
         <div class="workline-base__heading">
           <div>
             <h3>工作位</h3>
@@ -400,6 +502,7 @@ defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty 
           >
             <ElInput
               v-model="editedPosition.position_code"
+              :disabled="!!positionCode"
               maxlength="80"
               placeholder="填写现场工作位编码"
             />
@@ -431,6 +534,7 @@ defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty 
           <ElFormItem
             v-if="editedPosition.position_type === 'RACK_POSITION'"
             label="货架位用途"
+            required
           >
             <ElSelect v-model="editedPosition.position_role">
               <ElOption
@@ -470,11 +574,14 @@ defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty 
               :precision="0"
             />
           </ElFormItem>
-          <ElFormItem label="执行位置编码（WMS / RCS）">
+          <ElFormItem
+            label="执行位置编码（WMS / RCS）"
+            :required="!!positionSlot"
+          >
             <ElInput
               :model-value="editedPosition.logic_location_code ?? ''"
               maxlength="120"
-              placeholder="选填"
+              :placeholder="positionSlot ? '填写现场执行位置编码' : '选填'"
               @update:model-value="editedPosition.logic_location_code = $event || null"
             />
           </ElFormItem>
@@ -490,6 +597,7 @@ defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty 
             <ElSelect
               :model-value="editedPosition.device_id ?? undefined"
               clearable
+              filterable
               placeholder="从本线已选设备中关联"
               @update:model-value="editedPosition.device_id = $event || null"
             >
@@ -533,12 +641,26 @@ defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty 
   align-items: center;
   justify-content: space-between;
   gap: var(--space-sm);
-  margin-bottom: var(--space-sm);
+  margin-bottom: var(--space-2xs);
 }
 .workline-base__heading h3,
 .workline-base__heading h4,
 .workline-base__heading p {
   margin: 0;
+}
+.workline-base__heading h3,
+.workline-base__heading h4 {
+  font-weight: 600;
+}
+.workline-base__heading p {
+  margin-top: var(--space-3xs);
+  font-size: var(--el-font-size-base);
+}
+.workline-base__heading > div:last-child {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
 }
 .workline-base__heading p,
 .workline-base__hint {
@@ -602,8 +724,9 @@ defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty 
   grid-column: 1 / -1;
 }
 .workline-base__devices {
-  max-height: 260px;
+  max-height: 560px;
   overflow: auto;
+  scrollbar-gutter: stable;
   margin-top: var(--space-2xs);
 }
 .workline-base__device {
@@ -611,8 +734,17 @@ defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty 
   align-items: center;
   justify-content: space-between;
   gap: var(--space-sm);
-  padding: var(--space-2xs) 0;
+  min-height: 64px;
+  padding: var(--space-2xs) var(--space-sm);
   border-bottom: 1px solid var(--el-border-color-lighter);
+}
+.workline-base__device > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.workline-base__devices + :deep(.el-pagination) {
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--el-border-color-light);
 }
 .workline-base__device code {
   display: block;

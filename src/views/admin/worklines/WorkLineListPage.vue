@@ -1,10 +1,6 @@
 <template>
   <CrudPageContainer :config="config">
     <template #extra-dialogs>
-      <WorkLineConfigurationWorkspace
-        v-model="configDialogVisible"
-        :workline="selectedWorkline"
-      />
       <WorkLineStartDialog
         v-model="startDialogVisible"
         :workline="selectedWorkline"
@@ -15,20 +11,19 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { usePermission } from '@/composables/usePermission'
 import type { WorkLinesItem as Workline } from '@/api/modules/workLines'
 import CrudPageContainer from '@/components/common/CrudPageContainer.vue'
-import WorkLineConfigurationWorkspace from './components/WorkLineConfigurationWorkspace.vue'
 import WorkLineStartDialog from './components/WorkLineStartDialog.vue'
 import { createWorkLinePageConfig } from './config/pageConfig'
 
 const selectedWorkline = ref<Workline | null>(null)
-const configDialogVisible = ref(false)
+const router = useRouter()
 const startDialogVisible = ref(false)
 
 function openConfig(workline: Workline): void {
-  selectedWorkline.value = workline
-  configDialogVisible.value = true
+  void router.push({ name: 'WorkLineConfiguration', params: { id: workline.id } })
 }
 
 function openStart(workline: Workline): void {
