@@ -3,6 +3,8 @@ import { computed, inject, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { DevicesItem } from '@/api/modules/devices'
 import { fetchWorkLineDevices } from './fetchWorkLineDevices'
+import StandardDialog from '@/components/ui/StandardDialog/StandardDialog.vue'
+import WorkLineBaseConfigurationPanel from './WorkLineBaseConfigurationPanel.vue'
 import {
   workLinesApiMethods,
   type AvailablePluginsResult,
@@ -15,9 +17,41 @@ import { CRUD_PAGE_REFRESH_KEY } from '@/components/common/crud-page/types'
 import { usePermission } from '@/composables/usePermission'
 import { getSafeErrorMessage } from '@/utils/string'
 
-const props = defineProps<{ workline: Workline | null }>()
+const props = defineProps<{ workline: Pick<Workline, 'id'> | null; step: 'plugin' | 'slots' }>()
 const modelValue = defineModel<boolean>({ default: false })
 const emit = defineEmits<{ navigateBase: [] }>()
+const positionPanel = ref<InstanceType<typeof WorkLineBaseConfigurationPanel> | null>(null)
+const positionDialog = ref(false)
+const editedSlot = ref<NonNullable<AvailablePluginsResult[number]['position_slots']>[number]>()
+const editedPositionCode = ref<string>()
+const positionVisible = computed({
+  get: () => positionDialog.value,
+  set: value => {
+    if (!value) void closePosition()
+  }
+})
+async function closePosition(): Promise<void> {
+  if (positionPanel.value && !(await positionPanel.value.confirmLeave())) return
+  positionDialog.value = false
+}
+function editPosition(
+  slot?: NonNullable<AvailablePluginsResult[number]['position_slots']>[number],
+  code?: string
+): void {
+  if (positionEditingDisabled.value) return
+  editedSlot.value = slot
+  editedPositionCode.value = code
+  positionDialog.value = true
+}
+function positionSaved(base: BaseConfigurationResult, code?: string): void {
+  if (!currentWorkline.value) return
+  positions.value = base.positions
+  currentWorkline.value = { ...currentWorkline.value, version: base.version }
+  if (canConfigure.value && editedSlot.value && code) bindPosition(editedSlot.value.slot_key, code)
+  configurationStatus.value = null
+  positionDialog.value = false
+}
+
 const refresh = inject(CRUD_PAGE_REFRESH_KEY)
 const { hasPermission } = usePermission()
 
@@ -37,6 +71,7 @@ const deactivationError = ref('')
 const loading = ref(false)
 const submitting = ref(false)
 const deactivating = ref(false)
+const changingPlugin = ref(false)
 let loadSequence = 0
 
 const canConfigure = computed(() => hasPermission(BIZ_PERMISSIONS.workline.configure))
@@ -59,7 +94,18 @@ const draftSnapshot = computed(() =>
 )
 const isDirty = computed(() => savedDraft.value !== '' && draftSnapshot.value !== savedDraft.value)
 const readonly = computed(() => currentWorkline.value?.is_active === true || !canConfigure.value)
-const formDisabled = computed(() => readonly.value || submitting.value || deactivating.value)
+const positionEditingDisabled = computed(
+  () =>
+    currentWorkline.value?.is_active === true ||
+    loading.value ||
+    submitting.value ||
+    deactivating.value ||
+    changingPlugin.value ||
+    !hasPermission(BIZ_PERMISSIONS.workline.configureBase)
+)
+const formDisabled = computed(
+  () => readonly.value || submitting.value || deactivating.value || changingPlugin.value
+)
 const hasUnavailableSelectedPlugin = computed(
   () => pluginKey.value !== '' && selectedPluginSummary.value === undefined
 )
@@ -68,12 +114,21 @@ const confirmDisabled = computed(
     loading.value ||
     submitting.value ||
     deactivating.value ||
+    changingPlugin.value ||
     readonly.value ||
     !currentWorkline.value ||
     Boolean(loadError.value) ||
+    positionDialog.value ||
     hasUnavailableSelectedPlugin.value
 )
-const busy = computed(() => submitting.value || deactivating.value)
+const busy = computed(
+  () =>
+    submitting.value ||
+    deactivating.value ||
+    loading.value ||
+    positionDialog.value ||
+    changingPlugin.value
+)
 
 async function confirmLeave(): Promise<boolean> {
   if (busy.value) return false
@@ -139,7 +194,7 @@ function initializeBindings(latest: Workline): void {
   deviceBindings.value = Object.fromEntries(entries) as Record<string, string>
 }
 
-async function loadLatest(row: Workline): Promise<void> {
+async function loadLatest(row: Pick<Workline, 'id'>): Promise<void> {
   const sequence = ++loadSequence
   resetState()
   if (!sessionVisible.value) return
@@ -149,7 +204,7 @@ async function loadLatest(row: Workline): Promise<void> {
       workLinesApiMethods.getById(row.id).send(),
       workLinesApiMethods.availablePlugins({ id: row.id }).send(),
       workLinesApiMethods.configurationStatus({ id: row.id }).send(),
-      fetchWorkLineDevices(),
+      fetchWorkLineDevices(row.id),
       workLinesApiMethods.baseConfiguration({ id: row.id }).send()
     ])
     if (sequence !== loadSequence) return
@@ -170,7 +225,22 @@ async function loadLatest(row: Workline): Promise<void> {
   }
 }
 
-function selectPlugin(value: string | null | undefined): void {
+async function selectPlugin(value: string | null | undefined): Promise<void> {
+  if (formDisabled.value || (value ?? '') === pluginKey.value) return
+  if (Object.keys(deviceBindings.value).length || Object.keys(positionBindings.value).length) {
+    changingPlugin.value = true
+    try {
+      await ElMessageBox.confirm(
+        '更换插件会清除当前插槽绑定；本线设备和工作位保留。',
+        '更换业务插件',
+        { confirmButtonText: '更换插件', cancelButtonText: '保留当前插件', type: 'warning' }
+      )
+    } catch {
+      return
+    } finally {
+      changingPlugin.value = false
+    }
+  }
   pluginKey.value = value ?? ''
   deviceBindings.value = {}
   positionBindings.value = {}
@@ -247,14 +317,14 @@ async function refreshList(): Promise<void> {
   }
 }
 
-async function submit(): Promise<void> {
+async function submit(): Promise<boolean> {
   const workline = currentWorkline.value
-  if (!workline || confirmDisabled.value) return
+  if (!workline || confirmDisabled.value) return false
 
   validationErrors.value = []
   if (pluginKey.value) {
     validationErrors.value = validateBindings()
-    if (validationErrors.value.length > 0) return
+    if (validationErrors.value.length > 0) return false
   }
   const config = pluginKey.value
     ? {
@@ -277,7 +347,7 @@ async function submit(): Promise<void> {
       .send()
   } catch (error) {
     ElMessage.error(`保存业务配置失败：${getSafeErrorMessage(error)}`)
-    return
+    return false
   } finally {
     submitting.value = false
   }
@@ -286,6 +356,7 @@ async function submit(): Promise<void> {
   await loadLatest(workline)
   ElMessage.success('业务配置已保存')
   await refreshList()
+  return !loadError.value
 }
 
 async function deactivate(): Promise<void> {
@@ -340,7 +411,16 @@ watch(
   },
   { immediate: true }
 )
-defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty })
+const progress = computed(() =>
+  currentWorkline.value
+    ? {
+        base: `已关联 ${devices.value.length} 台`,
+        plugin: selectedPluginSummary.value?.display_name ?? '尚未选择',
+        slots: `${Object.keys(deviceBindings.value).length + Object.keys(positionBindings.value).length} / ${deviceRoles.value.length + positionSlots.value.length} 已绑定${isDirty.value ? ' · 未保存' : ''}`
+      }
+    : {}
+)
+defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty, progress })
 </script>
 
 <template>
@@ -419,11 +499,20 @@ defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty 
       <section class="workline-configuration__section">
         <div class="workline-configuration__section-heading">
           <div>
-            <h3>业务插件</h3>
-            <p>先选择插件，再将设备和工作位插槽关联到本线资源。可保存未完成的草稿。</p>
+            <h3>{{ step === 'plugin' ? '选择业务插件' : '配置插件插槽' }}</h3>
+            <p>
+              {{
+                step === 'plugin'
+                  ? '选择适合本线的业务插件，再按声明配置设备和工作位。'
+                  : '从本线设备中匹配角色，按工作位插槽要求补充现场信息。可保存未完成的草稿。'
+              }}
+            </p>
           </div>
         </div>
-        <ElFormItem label="业务插件">
+        <ElFormItem
+          v-show="step === 'plugin'"
+          label="业务插件"
+        >
           <ElSelect
             data-testid="plugin-select"
             :model-value="pluginKey"
@@ -435,7 +524,7 @@ defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty 
             <ElOption
               v-for="plugin in plugins"
               :key="plugin.plugin_key"
-              :label="`${plugin.display_name} (${plugin.plugin_version})`"
+              :label="`${plugin.display_name} (${plugin.plugin_version})${plugin.compatible ? '' : ' · 不适用于本线类型'}`"
               :value="plugin.plugin_key"
               :disabled="!plugin.compatible"
             />
@@ -474,7 +563,28 @@ defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty 
             {{ error }}
           </div>
         </div>
-        <template v-if="selectedPluginSummary">
+        <div
+          v-if="step === 'plugin' && selectedPluginSummary"
+          class="workline-configuration__requirements"
+        >
+          <strong>{{ selectedPluginSummary.display_name }}</strong>
+          <p>
+            需要 {{ deviceRoles.length }} 个设备插槽、{{ positionSlots.length }} 个工作位插槽 ·
+            本线已关联 {{ devices.length }} 台设备
+          </p>
+          <p>
+            设备职责：{{ deviceRoles.map(role => role.display_name).join('、') || '无需设备插槽' }}
+          </p>
+          <p>
+            工作位要求：{{
+              positionSlots.map(slot => slot.display_name).join('、') || '无需工作位插槽'
+            }}
+          </p>
+        </div>
+        <p v-if="step === 'slots' && !selectedPluginSummary">
+          请先在第二步选择业务插件，再配置插槽。
+        </p>
+        <template v-if="step === 'slots' && selectedPluginSummary">
           <div class="workline-configuration__section-heading">
             <h4 class="workline-configuration__slot-heading">设备插槽</h4>
             <ElTag type="info">
@@ -507,6 +617,7 @@ defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty 
                 :disabled="formDisabled"
                 placeholder="选择本线设备（可暂不绑定）"
                 clearable
+                filterable
                 @change="bindDevice(role.role_key, $event)"
               >
                 <ElOption
@@ -532,7 +643,7 @@ defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty 
                   :disabled="busy"
                   @click="emit('navigateBase')"
                 >
-                  前往基础配置
+                  前往关联设备
                 </ElButton>
               </div>
             </ElFormItem>
@@ -569,6 +680,7 @@ defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty 
                 :disabled="formDisabled"
                 placeholder="选择匹配的本线工作位（可暂不绑定）"
                 clearable
+                filterable
                 @change="bindPosition(slot.slot_key, $event)"
               >
                 <ElOption
@@ -588,13 +700,24 @@ defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty 
                 class="workline-configuration__empty"
               >
                 暂无符合此插槽要求的工作位。
+              </div>
+              <div class="workline-configuration__status-actions">
                 <ElButton
                   link
                   type="primary"
-                  :disabled="busy"
-                  @click="emit('navigateBase')"
+                  :disabled="positionEditingDisabled"
+                  @click="editPosition(slot)"
                 >
-                  前往基础配置
+                  新建工作位
+                </ElButton>
+                <ElButton
+                  v-if="positionBindings[slot.slot_key]"
+                  link
+                  type="primary"
+                  :disabled="positionEditingDisabled"
+                  @click="editPosition(slot, positionBindings[slot.slot_key])"
+                >
+                  编辑工作位
                 </ElButton>
               </div>
             </ElFormItem>
@@ -603,8 +726,18 @@ defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty 
             插槽只关联本线已保存的资源；绑定数量表示配置进度，启用条件以下方检查为准。
           </p>
         </template>
+        <ElButton
+          v-if="step === 'slots'"
+          :disabled="positionEditingDisabled"
+          @click="editPosition()"
+        >
+          管理本线工作位（{{ positions.length }}）
+        </ElButton>
       </section>
-      <section class="workline-configuration__section workline-configuration__saved-checks">
+      <section
+        v-if="step === 'slots'"
+        class="workline-configuration__section workline-configuration__saved-checks"
+      >
         <div class="workline-configuration__section-heading">
           <h3>启用检查</h3>
           <ElTag :type="isDirty ? 'warning' : 'info'">
@@ -617,6 +750,7 @@ defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty 
         >
           以下结果来自已保存配置。保存业务配置后重新检查。
         </p>
+        <p v-if="!configurationStatus">工作位已更新，请保存配置后重新检查启用条件。</p>
         <div
           v-if="configurationStatus"
           class="workline-configuration__checks"
@@ -644,6 +778,28 @@ defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty 
         <p class="workline-configuration__hint">保存业务配置不会启用工作线，也不会修改基础配置。</p>
       </section>
     </ElForm>
+    <StandardDialog
+      v-model="positionVisible"
+      :title="editedSlot ? `${editedSlot.display_name} · 工作位信息` : '本线工作位'"
+      size="xl"
+      confirm-text="保存工作位"
+      :confirm-disabled="!positionPanel || positionPanel.confirmDisabled"
+      :confirm-loading="positionPanel?.submitting"
+      :closable="!positionPanel?.busy"
+      @confirm="positionPanel?.submit()"
+    >
+      <WorkLineBaseConfigurationPanel
+        v-if="positionDialog"
+        ref="positionPanel"
+        :workline="currentWorkline"
+        :expected-version="currentWorkline?.version"
+        :model-value="true"
+        mode="positions"
+        :position-slot="editedSlot"
+        :position-code="editedPositionCode"
+        @saved="positionSaved"
+      />
+    </StandardDialog>
   </section>
 </template>
 

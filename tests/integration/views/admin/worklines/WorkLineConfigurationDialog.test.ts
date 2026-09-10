@@ -6,6 +6,8 @@ import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
 import type { DevicesItem } from '@/api/modules/devices'
 import type { WorkLinesItem as Workline } from '@/api/modules/workLines'
 import { CRUD_PAGE_REFRESH_KEY } from '@/components/common/crud-page/types'
+import WorkLineBaseConfigurationPanel from '@/views/admin/worklines/components/WorkLineBaseConfigurationPanel.vue'
+import WorkLineDevicePicker from '@/views/admin/worklines/components/WorkLineDevicePicker.vue'
 import WorkLineConfigurationWorkspace from '@/views/admin/worklines/components/WorkLineConfigurationWorkspace.vue'
 const mocks = vi.hoisted(() => ({
   hasPermission: vi.fn(),
@@ -57,8 +59,8 @@ vi.mock('element-plus', () => ({
   ElMessageBox: { confirm: mocks.confirm }
 }))
 
-const StandardDialogStub = defineComponent({
-  name: 'StandardDialog',
+const ActionsStub = defineComponent({
+  name: 'WorkLineConfigurationActions',
   props: {
     modelValue: Boolean,
     confirmDisabled: Boolean,
@@ -66,7 +68,7 @@ const StandardDialogStub = defineComponent({
     closable: Boolean,
     hideCancel: Boolean
   },
-  emits: ['confirm', 'update:modelValue'],
+  emits: ['confirm', 'close', 'continue'],
   setup(_, { emit, slots }) {
     return () =>
       h('div', { class: 'standard-dialog' }, [
@@ -235,13 +237,15 @@ function mountDialog(latest: Workline, refresh = vi.fn().mockResolvedValue(undef
   return {
     refresh,
     wrapper: mount(WorkLineConfigurationWorkspace, {
-      props: { workline: latest, modelValue: true, initialSection: 'business' },
+      props: { workline: latest, modelValue: true, initialSection: 'slots' },
       global: {
         provide: {
           [CRUD_PAGE_REFRESH_KEY as symbol]: refresh
         },
         stubs: {
-          StandardDialog: StandardDialogStub,
+          WorkLineConfigurationActions: ActionsStub,
+          StandardDialog: PassthroughStub,
+          WorkLineDevicePicker: true,
           ElButton: ButtonStub,
           ElForm: PassthroughStub,
           ElFormItem: defineComponent({
@@ -254,6 +258,11 @@ function mountDialog(latest: Workline, refresh = vi.fn().mockResolvedValue(undef
           ElAlert: AlertStub,
           ElTag: PassthroughStub,
           ElSelect: SelectStub,
+          ElInput: InputStub,
+          ElInputNumber: InputStub,
+          ElSwitch: true,
+          ElCheckbox: BaseCheckboxStub,
+          ElPagination: true,
           ElOption: true
         }
       }
@@ -267,8 +276,8 @@ async function settle(): Promise<void> {
   await nextTick()
 }
 
-function standardDialog(wrapper: VueWrapper) {
-  return wrapper.findComponent(StandardDialogStub)
+function actions(wrapper: VueWrapper) {
+  return wrapper.findComponent(ActionsStub)
 }
 
 function roleSelect(wrapper: VueWrapper, key: string) {
@@ -281,7 +290,12 @@ async function bind(wrapper: VueWrapper, key: string, code: string) {
   await nextTick()
 }
 async function save(wrapper: VueWrapper) {
-  standardDialog(wrapper).vm.$emit('confirm')
+  if (wrapper.vm.$options.__name === 'WorkLineBaseConfigurationPanel') {
+    await (wrapper.vm as unknown as { submit: () => Promise<boolean> }).submit()
+    await flushPromises()
+    return
+  }
+  actions(wrapper).vm.$emit('confirm')
   await flushPromises()
 }
 describe('WorkLineConfigurationDialog generic bindings', () => {
@@ -289,11 +303,93 @@ describe('WorkLineConfigurationDialog generic bindings', () => {
     vi.resetAllMocks()
     mocks.hasPermission.mockReturnValue(true)
   })
-  it('offers one workspace with base and business navigation', async () => {
+  it('offers three configuration steps', async () => {
     const { wrapper } = mountDialog(workline())
     await settle()
     expect(wrapper.find('[data-section="base"]').exists()).toBe(true)
-    expect(wrapper.find('[data-section="business"]').exists()).toBe(true)
+    expect(wrapper.find('[data-section="plugin"]').exists()).toBe(true)
+    expect(wrapper.find('[data-section="slots"]').exists()).toBe(true)
+  })
+
+  it('keeps the draft when moving between plugin selection and slot configuration', async () => {
+    const { wrapper } = mountDialog(workline())
+    await settle()
+    await bind(wrapper, 'ROLE_A', '')
+    await wrapper.find('[data-section="plugin"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.text()).toContain('需要 2 个设备插槽、1 个工作位插槽')
+    await wrapper.find('[data-section="slots"]').trigger('click')
+    await flushPromises()
+    expect(roleSelect(wrapper, 'ROLE_A').props('modelValue')).toBe('')
+    expect(mocks.getById).toHaveBeenCalledOnce()
+    expect(mocks.confirm).not.toHaveBeenCalled()
+  })
+
+  it('confirms plugin replacement and preserves the existing bindings on cancellation', async () => {
+    let cancel!: (reason: string) => void
+    mocks.confirm.mockReturnValueOnce(
+      new Promise((_, reject) => {
+        cancel = reject
+      })
+    )
+    const { wrapper } = mountDialog(workline())
+    await settle()
+    const select = wrapper
+      .findAllComponents(SelectStub)
+      .find(item => item.attributes('data-testid') === 'plugin-select')!
+    select.vm.$emit('change', '')
+    await nextTick()
+    expect(actions(wrapper).props('closable')).toBe(false)
+    cancel('cancel')
+    await flushPromises()
+    expect(roleSelect(wrapper, 'ROLE_A').props('modelValue')).toBe('DEVICE-CURRENT')
+    expect(select.props('modelValue')).toBe('fake')
+    expect(actions(wrapper).props('closable')).toBe(true)
+  })
+
+  it('uses the newly saved position version without dropping the slot draft', async () => {
+    const { wrapper } = mountDialog(workline())
+    await settle()
+    await bind(wrapper, 'ROLE_A', '')
+    mocks.baseConfiguration.mockReturnValueOnce(
+      method(Promise.resolve({ ...baseConfiguration(), version: 7 }))
+    )
+    mocks.queryDevices.mockReturnValueOnce(
+      method(
+        Promise.resolve({
+          items: [device(1, 'DEVICE-CURRENT', 11)],
+          limit: 100,
+          offset: 0,
+          total: 1
+        })
+      )
+    )
+    await wrapper
+      .findAll('button')
+      .find(button => button.text() === '新建工作位')!
+      .trigger('click')
+    await flushPromises()
+    const base = wrapper.findComponent(WorkLineBaseConfigurationPanel)
+    expect(base.props('positionSlot')).toMatchObject({
+      slot_key: 'INPUT',
+      position_type: 'RACK_POSITION',
+      allowed_rack_kind: 'FIVE_LAYER'
+    })
+    base.vm.$emit('saved', { ...baseConfiguration(), version: 8 }, 'WORK-1')
+    await nextTick()
+    expect(roleSelect(wrapper, 'ROLE_A').props('modelValue')).toBe('')
+    mocks.configuration.mockReturnValueOnce(method(Promise.resolve({})))
+    configureLoad({ ...workline(), version: 9 })
+    await save(wrapper)
+    expect(mocks.configuration).toHaveBeenCalledWith(
+      { id: 11 },
+      {
+        version: 8,
+        plugin_key: 'fake',
+        config: { device_bindings: {}, position_bindings: { INPUT: 'WORK-1' } }
+      }
+    )
+    expect(mocks.updateBaseConfiguration).not.toHaveBeenCalled()
   })
 
   it('guards switching to base configuration while bindings are unsaved', async () => {
@@ -316,7 +412,7 @@ describe('WorkLineConfigurationDialog generic bindings', () => {
     await settle()
     configureLoad({ ...workline(), version: 8 })
     await save(wrapper)
-    expect(standardDialog(wrapper).props('confirmDisabled')).toBe(false)
+    expect(actions(wrapper).props('confirmDisabled')).toBe(false)
     expect(wrapper.emitted('update:modelValue')).toBeUndefined()
     configureLoad({ ...workline(), version: 9 })
     await save(wrapper)
@@ -329,7 +425,7 @@ describe('WorkLineConfigurationDialog generic bindings', () => {
     const { wrapper } = mountDialog(workline())
     await settle()
     await bind(wrapper, 'ROLE_A', '')
-    standardDialog(wrapper).vm.$emit('update:modelValue', false)
+    actions(wrapper).vm.$emit('close')
     await flushPromises()
     expect(mocks.confirm).toHaveBeenCalledOnce()
     expect(wrapper.emitted('update:modelValue')).toBeUndefined()
@@ -390,7 +486,7 @@ describe('WorkLineConfigurationDialog generic bindings', () => {
         const { wrapper } = mountDialog(workline({ config: { [field]: bindings } }))
         await settle()
         expect(wrapper.text()).toContain(`${label}绑定必须为对象`)
-        expect(standardDialog(wrapper).props('confirmDisabled')).toBe(true)
+        expect(actions(wrapper).props('confirmDisabled')).toBe(true)
         await save(wrapper)
         expect(mocks.configuration).not.toHaveBeenCalled()
       }
@@ -418,7 +514,7 @@ describe('WorkLineConfigurationDialog generic bindings', () => {
       const { wrapper } = mountDialog(workline({ config: {} }))
       await settle()
       expect(wrapper.findAll('[data-role]')).toHaveLength(0)
-      expect(standardDialog(wrapper).props('confirmDisabled')).toBe(false)
+      expect(actions(wrapper).props('confirmDisabled')).toBe(false)
       await save(wrapper)
       expect(mocks.configuration).toHaveBeenCalledWith(
         { id: 11 },
@@ -571,7 +667,7 @@ describe('WorkLineConfigurationDialog generic bindings', () => {
     const { wrapper } = mountDialog(workline())
     await settle()
     expect(wrapper.text()).toContain('配置已变化，请重新打开后编辑')
-    expect(standardDialog(wrapper).props('confirmDisabled')).toBe(true)
+    expect(actions(wrapper).props('confirmDisabled')).toBe(true)
     await save(wrapper)
     expect(mocks.configuration).not.toHaveBeenCalled()
   })
@@ -613,7 +709,7 @@ describe('WorkLineConfigurationDialog generic bindings', () => {
         })
       } else {
         expect(wrapper.text()).toContain('设备列表分页未返回剩余数据')
-        expect(standardDialog(wrapper).props('confirmDisabled')).toBe(true)
+        expect(actions(wrapper).props('confirmDisabled')).toBe(true)
         await save(wrapper)
         expect(mocks.configuration).not.toHaveBeenCalled()
       }
@@ -624,7 +720,7 @@ describe('WorkLineConfigurationDialog generic bindings', () => {
     const { wrapper } = mountDialog(workline({ plugin_key: 'future_plugin', config: {} }))
     await settle()
     expect(wrapper.text()).toContain('未来角色')
-    expect(standardDialog(wrapper).props('confirmDisabled')).toBe(false)
+    expect(actions(wrapper).props('confirmDisabled')).toBe(false)
   })
   it('writes an empty config when no plugin is selected', async () => {
     mocks.configuration.mockReturnValueOnce(method(Promise.resolve({})))
@@ -726,7 +822,7 @@ describe('WorkLineConfigurationDialog generic bindings', () => {
     })
     const { wrapper } = mountDialog(workline({ is_active: true }))
     await settle()
-    expect(standardDialog(wrapper).props('confirmDisabled')).toBe(true)
+    expect(actions(wrapper).props('confirmDisabled')).toBe(true)
     expect(wrapper.findAllComponents(SelectStub).every(select => select.props('disabled'))).toBe(
       true
     )
@@ -749,38 +845,33 @@ describe('WorkLineConfigurationDialog generic bindings', () => {
       .findAll('button')
       .find(button => button.text().includes('停用工作线'))!
       .trigger('click')
-    expect(standardDialog(wrapper).props('closable')).toBe(false)
+    expect(actions(wrapper).props('closable')).toBe(false)
     expect(wrapper.find('[data-section="base"]').attributes('disabled')).toBeDefined()
-    standardDialog(wrapper).vm.$emit('update:modelValue', false)
+    actions(wrapper).vm.$emit('close')
     await flushPromises()
     expect(wrapper.emitted('update:modelValue')).toBeUndefined()
     cancel('cancel')
     await flushPromises()
     expect(mocks.deactivate).not.toHaveBeenCalled()
-    expect(standardDialog(wrapper).props('closable')).toBe(true)
+    expect(actions(wrapper).props('closable')).toBe(true)
   })
 
-  it('offers a direct base configuration path for a position slot with no matching resource', async () => {
+  it('offers contextual creation for a position slot without a matching resource', async () => {
     mocks.baseConfiguration.mockReturnValueOnce(
       method(Promise.resolve({ ...baseConfiguration(), version: 7, positions: [] }))
     )
     const { wrapper } = mountDialog(workline())
     await settle()
     expect(wrapper.text()).toContain('暂无符合此插槽要求的工作位')
-    await wrapper
-      .findAll('button')
-      .find(button => button.text() === '前往基础配置')!
-      .trigger('click')
-    await flushPromises()
-    expect(wrapper.find('[data-section="base"]').attributes('aria-selected')).toBe('true')
-    expect(mocks.confirm).not.toHaveBeenCalled()
+    expect(wrapper.findAll('button').some(button => button.text() === '新建工作位')).toBe(true)
+    expect(wrapper.find('[data-section="slots"]').attributes('aria-selected')).toBe('true')
   })
 
   it('blocks a saved plugin absent from the server list', async () => {
     const { wrapper } = mountDialog(workline({ plugin_key: 'removed_plugin', config: {} }))
     await settle()
     expect(wrapper.text()).toContain('未包含在部署清单中')
-    expect(standardDialog(wrapper).props('confirmDisabled')).toBe(true)
+    expect(actions(wrapper).props('confirmDisabled')).toBe(true)
   })
 })
 
@@ -826,7 +917,7 @@ function baseConfiguration() {
     ]
   }
 }
-function mountBase(base = baseConfiguration()) {
+function mountBase(base = baseConfiguration(), positionsOnly = false) {
   mocks.baseConfiguration.mockReturnValueOnce(method(Promise.resolve(base)))
   mocks.queryDevices.mockReturnValueOnce(
     method(
@@ -842,18 +933,25 @@ function mountBase(base = baseConfiguration()) {
       })
     )
   )
-  return mount(WorkLineConfigurationWorkspace, {
-    props: { workline: workline(), modelValue: true },
+  return mount(positionsOnly ? WorkLineBaseConfigurationPanel : WorkLineConfigurationWorkspace, {
+    props: {
+      workline: workline(),
+      modelValue: true,
+      ...(positionsOnly ? { mode: 'positions' as const } : {})
+    },
     global: {
       provide: { [CRUD_PAGE_REFRESH_KEY as symbol]: vi.fn().mockResolvedValue(undefined) },
       stubs: {
-        StandardDialog: StandardDialogStub,
+        WorkLineConfigurationActions: ActionsStub,
+        StandardDialog: PassthroughStub,
+        WorkLineDevicePicker: true,
         ElButton: ButtonStub,
         ElForm: PassthroughStub,
         ElFormItem: PassthroughStub,
         ElAlert: AlertStub,
         ElTag: PassthroughStub,
         ElSelect: SelectStub,
+        ElPagination: true,
         ElOption: true,
         ElInput: InputStub,
         ElInputNumber: InputStub,
@@ -865,6 +963,17 @@ function mountBase(base = baseConfiguration()) {
 }
 
 describe('WorkLine independent base configuration', () => {
+  it('initially displays only line devices and defers positions to slot configuration', async () => {
+    const wrapper = mountBase()
+    await settle()
+    expect(wrapper.text()).toContain('添加设备')
+    expect(wrapper.text()).not.toContain('添加工作位')
+    expect(wrapper.text()).not.toContain('DEVICE-OTHER')
+    expect(mocks.queryDevices.mock.calls[0]![0].filters).toMatchObject({
+      conditions: [{ field: 'work_line_id', op: 'eq', value: 11 }]
+    })
+  })
+
   beforeEach(() => {
     vi.resetAllMocks()
     mocks.hasPermission.mockReturnValue(true)
@@ -890,10 +999,35 @@ describe('WorkLine independent base configuration', () => {
     )
     const wrapper = mountBase()
     await settle()
-    expect(wrapper.find('[data-section="business"]').attributes('disabled')).toBeDefined()
-    await wrapper.find('[data-section="business"]').trigger('click')
+    expect(wrapper.find('[data-section="plugin"]').attributes('disabled')).toBeDefined()
+    await wrapper.find('[data-section="plugin"]').trigger('click')
     expect(mocks.availablePlugins).not.toHaveBeenCalled()
     expect(mocks.getById).not.toHaveBeenCalled()
+    expect(mocks.configurationStatus).not.toHaveBeenCalled()
+  })
+
+  it('retains work-position maintenance for users with base permissions only', async () => {
+    mocks.hasPermission.mockImplementation(
+      permission => permission !== BIZ_PERMISSIONS.workline.availablePlugins
+    )
+    const wrapper = mountBase()
+    await settle()
+    mocks.baseConfiguration.mockReturnValueOnce(method(Promise.resolve(baseConfiguration())))
+    mocks.queryDevices.mockReturnValueOnce(
+      method(
+        Promise.resolve({
+          items: [device(1, 'DEVICE-CURRENT', 11)],
+          total: 1,
+          offset: 0,
+          limit: 100
+        })
+      )
+    )
+    await wrapper.find('[data-section="slots"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.text()).toContain('添加工作位')
+    expect(wrapper.text()).toContain('五层货架位')
+    expect(mocks.availablePlugins).not.toHaveBeenCalled()
     expect(mocks.configurationStatus).not.toHaveBeenCalled()
   })
 
@@ -914,11 +1048,11 @@ describe('WorkLine independent base configuration', () => {
       )
     )
     await save(wrapper)
-    expect(standardDialog(wrapper).props('confirmDisabled')).toBe(false)
+    expect(actions(wrapper).props('confirmDisabled')).toBe(false)
     configureLoad({ ...workline(), version: 13 })
-    await wrapper.find('[data-section="business"]').trigger('click')
+    await wrapper.find('[data-section="slots"]').trigger('click')
     await flushPromises()
-    expect(wrapper.find('[data-section="business"]').attributes('aria-selected')).toBe('true')
+    expect(wrapper.find('[data-section="slots"]').attributes('aria-selected')).toBe('true')
     expect(roleSelect(wrapper, 'ROLE_A').props('modelValue')).toBe('DEVICE-CURRENT')
     mocks.configuration.mockReturnValueOnce(method(Promise.resolve({})))
     configureLoad({ ...workline(), version: 14 })
@@ -927,7 +1061,7 @@ describe('WorkLine independent base configuration', () => {
   })
 
   it('adds a generic station and requires its code before saving', async () => {
-    const wrapper = mountBase({ ...baseConfiguration(), positions: [] })
+    const wrapper = mountBase({ ...baseConfiguration(), positions: [] }, true)
     await settle()
     await wrapper
       .findAll('button')
@@ -958,14 +1092,37 @@ describe('WorkLine independent base configuration', () => {
     })
   })
 
+  it('blocks leaving while the device picker owns pending selections', async () => {
+    const wrapper = mountBase()
+    await settle()
+    const workspace = wrapper.vm as unknown as {
+      busy: boolean
+      confirmLeave: () => Promise<boolean>
+    }
+    expect(await workspace.confirmLeave()).toBe(true)
+    await wrapper
+      .findAll('button')
+      .find(button => button.text() === '添加设备')!
+      .trigger('click')
+    expect(workspace.busy).toBe(true)
+    expect(await workspace.confirmLeave()).toBe(false)
+    wrapper.findComponent(WorkLineDevicePicker).vm.$emit('update:modelValue', false)
+    await nextTick()
+    expect(workspace.busy).toBe(false)
+    expect(await workspace.confirmLeave()).toBe(true)
+  })
+
   it('prevents removing a position device and selecting equipment owned by another line', async () => {
     const wrapper = mountBase()
     await settle()
-    const choices = wrapper.findAllComponents(BaseCheckboxStub)
-    expect(choices[2]!.props('disabled')).toBe(true)
-    choices[0]!.vm.$emit('change', false)
-    choices[2]!.vm.$emit('change', true)
-    choices[1]!.vm.$emit('change', true)
+    await wrapper.find('[aria-label="移除 DEVICE-CURRENT"]').trigger('click')
+    await wrapper
+      .findAll('button')
+      .find(button => button.text() === '添加设备')!
+      .trigger('click')
+    const picker = wrapper.findComponent(WorkLineDevicePicker)
+    picker.vm.$emit('select', [device(3, 'DEVICE-OTHER', 22), device(2, 'DEVICE-FREE', null)])
+    picker.vm.$emit('update:modelValue', false)
     await nextTick()
     expect(mocks.warning).toHaveBeenCalledWith('请先解除工作位与该设备的关联')
     await save(wrapper)
@@ -1002,7 +1159,7 @@ describe('WorkLine independent base configuration', () => {
         )
       const wrapper = mountBase({ ...baseConfiguration(), is_active: reason === 'active' })
       await settle()
-      expect(standardDialog(wrapper).props('confirmDisabled')).toBe(true)
+      expect(actions(wrapper).props('confirmDisabled')).toBe(true)
       await save(wrapper)
       expect(mocks.updateBaseConfiguration).not.toHaveBeenCalled()
     }
@@ -1016,19 +1173,19 @@ describe('WorkLine independent base configuration', () => {
     await settle()
     await save(wrapper)
     expect(wrapper.text()).toContain('请先解除相关角色绑定')
-    expect(wrapper.findAll('.workline-base__card')).toHaveLength(1)
+    expect(wrapper.text()).toContain('DEVICE-CURRENT')
     expect(wrapper.emitted('update:modelValue')).toBeUndefined()
   })
 
   it('keeps unsaved edits when the discard confirmation is cancelled', async () => {
     mocks.confirm.mockRejectedValue('cancel')
-    const wrapper = mountBase({ ...baseConfiguration(), positions: [] })
+    const wrapper = mountBase({ ...baseConfiguration(), positions: [] }, true)
     await settle()
     await wrapper
       .findAll('button')
       .find(button => button.text() === '添加工作位')!
       .trigger('click')
-    standardDialog(wrapper).vm.$emit('update:modelValue', false)
+    void (wrapper.vm as unknown as { confirmLeave: () => Promise<boolean> }).confirmLeave()
     await flushPromises()
     expect(mocks.confirm).toHaveBeenCalledOnce()
     expect(wrapper.emitted('update:modelValue')).toBeUndefined()
@@ -1048,12 +1205,12 @@ describe('WorkLine workspace navigation and save boundaries', () => {
     try {
       await settle()
       for (const [key, destination] of [
-        ['ArrowRight', 'business'],
+        ['ArrowRight', 'plugin'],
         ['ArrowLeft', 'base'],
-        ['End', 'business'],
+        ['End', 'slots'],
         ['Home', 'base']
       ] as const) {
-        if (destination === 'business') configureLoad(workline())
+        if (destination !== 'base') configureLoad(workline())
         else {
           mocks.baseConfiguration.mockReturnValueOnce(
             method(Promise.resolve({ ...baseConfiguration(), version: 7 }))
@@ -1084,7 +1241,7 @@ describe('WorkLine workspace navigation and save boundaries', () => {
     }
   })
 
-  it.each(['base', 'business'] as const)(
+  it.each(['base', 'slots'] as const)(
     'blocks repeated writes, closing and section changes during a pending %s save',
     async section => {
       let resolveSave!: (value: object) => void
@@ -1095,14 +1252,14 @@ describe('WorkLine workspace navigation and save boundaries', () => {
       saveMethod.mockReturnValueOnce(method(pendingSave))
       const wrapper = section === 'base' ? mountBase() : mountDialog(workline()).wrapper
       await settle()
-      standardDialog(wrapper).vm.$emit('confirm')
+      actions(wrapper).vm.$emit('confirm')
       await nextTick()
-      expect(standardDialog(wrapper).props('confirmLoading')).toBe(true)
-      expect(standardDialog(wrapper).props('closable')).toBe(false)
-      expect(standardDialog(wrapper).props('confirmDisabled')).toBe(true)
-      standardDialog(wrapper).vm.$emit('confirm')
-      standardDialog(wrapper).vm.$emit('update:modelValue', false)
-      const destination = section === 'base' ? 'business' : 'base'
+      expect(actions(wrapper).props('confirmLoading')).toBe(true)
+      expect(actions(wrapper).props('closable')).toBe(false)
+      expect(actions(wrapper).props('confirmDisabled')).toBe(true)
+      actions(wrapper).vm.$emit('confirm')
+      actions(wrapper).vm.$emit('close')
+      const destination = section === 'base' ? 'slots' : 'base'
       await wrapper.find(`[data-section="${destination}"]`).trigger('click')
       await wrapper.find('[role="tablist"]').trigger('keydown', { key: 'ArrowRight' })
       await flushPromises()
@@ -1110,7 +1267,7 @@ describe('WorkLine workspace navigation and save boundaries', () => {
       expect(wrapper.emitted('update:modelValue')).toBeUndefined()
       expect(wrapper.find(`[data-section="${section}"]`).attributes('aria-selected')).toBe('true')
       expect(mocks.confirm).not.toHaveBeenCalled()
-      if (section === 'business') configureLoad({ ...workline(), version: 8 })
+      if (section === 'slots') configureLoad({ ...workline(), version: 8 })
       else {
         mocks.baseConfiguration.mockReturnValueOnce(
           method(Promise.resolve({ ...baseConfiguration(), version: 13 }))
@@ -1128,14 +1285,14 @@ describe('WorkLine workspace navigation and save boundaries', () => {
       }
       resolveSave({})
       await flushPromises()
-      expect(standardDialog(wrapper).props('confirmDisabled')).toBe(false)
-      expect(standardDialog(wrapper).props('closable')).toBe(true)
+      expect(actions(wrapper).props('confirmDisabled')).toBe(false)
+      expect(actions(wrapper).props('closable')).toBe(true)
       expect(wrapper.text()).not.toContain('加载失败')
       wrapper.unmount()
     }
   )
 
-  it.each(['base', 'business'] as const)(
+  it.each(['base', 'slots'] as const)(
     'prevents writing a stale version after a successful %s save cannot reload',
     async section => {
       let rejectReload!: (reason: Error) => void
@@ -1146,7 +1303,7 @@ describe('WorkLine workspace navigation and save boundaries', () => {
       saveMethod.mockReturnValueOnce(method(Promise.resolve({})))
       const wrapper = section === 'base' ? mountBase() : mountDialog(workline()).wrapper
       await settle()
-      if (section === 'business') {
+      if (section === 'slots') {
         mocks.getById.mockReturnValueOnce(method(pendingReload))
         configureLoad({ ...workline(), version: 8 })
       } else {
@@ -1163,14 +1320,14 @@ describe('WorkLine workspace navigation and save boundaries', () => {
         )
       }
       await save(wrapper)
-      expect(standardDialog(wrapper).props('confirmDisabled')).toBe(true)
-      standardDialog(wrapper).vm.$emit('confirm')
+      expect(actions(wrapper).props('confirmDisabled')).toBe(true)
+      actions(wrapper).vm.$emit('confirm')
       await flushPromises()
       expect(saveMethod).toHaveBeenCalledOnce()
       rejectReload(new Error('配置重新读取失败'))
       await flushPromises()
       expect(wrapper.text()).toContain('配置重新读取失败')
-      expect(standardDialog(wrapper).props('confirmDisabled')).toBe(true)
+      expect(actions(wrapper).props('confirmDisabled')).toBe(true)
       await save(wrapper)
       expect(saveMethod).toHaveBeenCalledOnce()
       expect(wrapper.emitted('update:modelValue')).toBeUndefined()
@@ -1185,7 +1342,7 @@ describe('WorkLine workspace navigation and save boundaries', () => {
       const wrapper = mountBase()
       await flushPromises()
       expect(wrapper.text()).toContain('当前账号没有此分区的查看权限')
-      expect(standardDialog(wrapper).props('confirmDisabled')).toBe(true)
+      expect(actions(wrapper).props('confirmDisabled')).toBe(true)
       await wrapper.find('[role="tablist"]').trigger('keydown', { key: 'End' })
       await save(wrapper)
       for (const request of [

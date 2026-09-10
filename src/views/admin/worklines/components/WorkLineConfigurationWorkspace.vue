@@ -3,27 +3,42 @@ import { computed, nextTick, ref, watch } from 'vue'
 import type { WorkLinesItem as Workline } from '@/api/modules/workLines'
 import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
 import { usePermission } from '@/composables/usePermission'
-import StandardDialog from '@/components/ui/StandardDialog/StandardDialog.vue'
+import WorkLineConfigurationActions from './WorkLineConfigurationActions.vue'
 import WorkLineBaseConfigurationPanel from './WorkLineBaseConfigurationPanel.vue'
 import WorkLineBusinessConfigurationPanel from './WorkLineBusinessConfigurationPanel.vue'
 
-type Section = 'base' | 'business'
+type Section = 'base' | 'plugin' | 'slots'
 interface PanelHandle {
   confirmLeave: () => Promise<boolean>
-  submit: () => Promise<void>
+  submit: () => Promise<boolean>
   confirmDisabled: boolean
   submitting: boolean
   busy: boolean
   isDirty: boolean
+  progress: Partial<Record<Section, string>>
 }
-const props = withDefaults(defineProps<{ workline: Workline | null; initialSection?: Section }>(), {
-  initialSection: 'base'
-})
+const props = withDefaults(
+  defineProps<{
+    workline: (Pick<Workline, 'id'> & Partial<Workline>) | null
+    initialSection?: Section
+  }>(),
+  {
+    initialSection: 'base'
+  }
+)
 const modelValue = defineModel<boolean>({ default: false })
 const { hasPermission } = usePermission()
 const section = ref<Section>(props.initialSection)
 const panel = ref<PanelHandle | null>(null)
 const navigation = ref<HTMLElement | null>(null)
+const progress = ref<Partial<Record<Section, string>>>({})
+watch(
+  () => panel.value?.progress,
+  value => {
+    if (value) progress.value = { ...progress.value, ...value }
+  },
+  { deep: true }
+)
 const transitioning = ref(false)
 const canReadBase = computed(
   () =>
@@ -40,20 +55,45 @@ const canReadBusiness = computed(
     ].every(hasPermission)
 )
 const busy = computed(() => transitioning.value || panel.value?.busy === true)
-const visible = computed({
-  get: () => modelValue.value,
-  set: value => {
-    if (!value) void leave()
-  }
-})
+const steps = [
+  { key: 'base', title: '关联设备', detail: '建立本线设备清单' },
+  { key: 'plugin', title: '选择插件', detail: '确认业务能力与资源要求' },
+  { key: 'slots', title: '配置插槽', detail: '匹配设备 · 补充工作位' }
+] as const
+const saveText = computed(() => (section.value === 'slots' ? '保存配置' : '保存当前步骤'))
+async function save(advance = false): Promise<void> {
+  if (busy.value || !panel.value || panel.value.confirmDisabled) return
+  const saved = await panel.value.submit()
+  if (!saved || !advance) return
+  if (section.value === 'base' && canReadBusiness.value) section.value = 'plugin'
+  else if (section.value === 'plugin') section.value = 'slots'
+}
+async function confirmLeave(): Promise<boolean> {
+  if (busy.value) return false
+  return panel.value ? panel.value.confirmLeave() : true
+}
+defineExpose({ confirmLeave, isDirty: computed(() => panel.value?.isDirty ?? false), busy })
 
 async function leave(destination?: Section): Promise<void> {
   if (busy.value || destination === section.value) return
-  if (destination === 'business' && !canReadBusiness.value) return
+  if (destination === 'plugin' && !canReadBusiness.value) return
+  if (destination === 'slots' && !canReadBase.value) return
   if (destination === 'base' && !canReadBase.value) return
   transitioning.value = true
   try {
-    if (panel.value && !(await panel.value.confirmLeave())) return
+    if (
+      (destination === undefined || destination === 'base' || section.value === 'base') &&
+      panel.value &&
+      !(await panel.value.confirmLeave())
+    )
+      return
+    if (panel.value?.isDirty) {
+      if (section.value === 'base') delete progress.value.base
+      else {
+        delete progress.value.plugin
+        delete progress.value.slots
+      }
+    }
     if (destination) {
       section.value = destination
     } else {
@@ -69,14 +109,13 @@ async function leave(destination?: Section): Promise<void> {
 function navigate(event: KeyboardEvent): void {
   if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
   event.preventDefault()
+  const index = steps.findIndex(step => step.key === section.value)
   const destination =
     event.key === 'Home'
       ? 'base'
       : event.key === 'End'
-        ? 'business'
-        : section.value === 'base'
-          ? 'business'
-          : 'base'
+        ? 'slots'
+        : steps[(index + (event.key === 'ArrowRight' ? 1 : 2)) % 3]!.key
   void leave(destination)
 }
 
@@ -85,26 +124,29 @@ watch(
   open => {
     if (open)
       section.value =
-        props.initialSection === 'business' && canReadBusiness.value ? 'business' : 'base'
+        props.initialSection !== 'base' && canReadBusiness.value ? props.initialSection : 'base'
   },
   { immediate: true }
 )
 </script>
 
 <template>
-  <StandardDialog
-    v-model="visible"
-    :title="`工作线配置${workline ? `：${workline.line_name}` : ''}`"
-    size="xl"
-    :confirm-text="section === 'base' ? '保存基础配置' : '保存业务配置'"
-    cancel-text="关闭"
-    confirm-icon="lucide:save"
-    :confirm-disabled="busy || !panel || panel.confirmDisabled"
-    :confirm-loading="panel?.submitting"
-    :closable="!busy"
-    :hide-cancel="busy"
-    @confirm="!busy && panel?.submit()"
+  <section
+    class="configuration-page"
+    aria-label="工作线配置"
   >
+    <header class="configuration-page__header">
+      <div>
+        <h2>工作线配置 · {{ workline?.line_name || workline?.id }}</h2>
+        <p>{{ workline?.line_code }} · 首次按顺序配置，后续可直接进入需要调整的步骤。</p>
+      </div>
+      <ElButton
+        :disabled="busy"
+        @click="leave()"
+      >
+        返回工作线
+      </ElButton>
+    </header>
     <div class="configuration-workspace">
       <nav
         ref="navigation"
@@ -114,39 +156,28 @@ watch(
         @keydown="navigate"
       >
         <button
-          id="workline-base-tab"
+          v-for="(step, index) in steps"
+          :id="`workline-${step.key}-tab`"
+          :key="step.key"
           type="button"
           role="tab"
-          data-section="base"
-          :aria-selected="section === 'base'"
+          :data-section="step.key"
+          :aria-selected="section === step.key"
           aria-controls="workline-configuration-panel"
-          :tabindex="section === 'base' ? 0 : -1"
-          :disabled="busy || !canReadBase"
-          @click="leave('base')"
+          :tabindex="section === step.key ? 0 : -1"
+          :disabled="busy || (step.key === 'plugin' ? !canReadBusiness : !canReadBase)"
+          @click="leave(step.key)"
         >
-          <span>基础配置</span>
-          <small>本线设备 · 实际工作位</small>
-        </button>
-        <button
-          id="workline-business-tab"
-          type="button"
-          role="tab"
-          data-section="business"
-          :aria-selected="section === 'business'"
-          aria-controls="workline-configuration-panel"
-          :tabindex="section === 'business' ? 0 : -1"
-          :disabled="busy || !canReadBusiness"
-          @click="leave('business')"
-        >
-          <span>业务配置</span>
-          <small>选择插件 · 绑定插槽</small>
+          <span>{{ index + 1 }}. {{ step.title }}</span>
+          <small>{{ progress[step.key] || step.detail }}</small>
         </button>
       </nav>
       <div
         v-if="modelValue && workline"
         id="workline-configuration-panel"
+        class="configuration-workspace__panel"
         role="tabpanel"
-        :aria-labelledby="section === 'base' ? 'workline-base-tab' : 'workline-business-tab'"
+        :aria-labelledby="`workline-${section}-tab`"
       >
         <WorkLineBaseConfigurationPanel
           v-if="section === 'base' && canReadBase"
@@ -156,12 +187,21 @@ watch(
           :model-value="true"
         />
         <WorkLineBusinessConfigurationPanel
-          v-else-if="section === 'business' && canReadBusiness"
+          v-else-if="section !== 'base' && canReadBusiness"
           ref="panel"
           :key="`business-${workline.id}`"
+          :step="section === 'plugin' ? 'plugin' : 'slots'"
           :workline="workline"
           :model-value="true"
           @navigate-base="leave('base')"
+        />
+        <WorkLineBaseConfigurationPanel
+          v-else-if="section === 'slots' && canReadBase"
+          ref="panel"
+          :key="`positions-${workline.id}`"
+          :workline="workline"
+          :model-value="true"
+          mode="positions"
         />
         <ElAlert
           v-else
@@ -171,22 +211,65 @@ watch(
         />
       </div>
     </div>
-  </StandardDialog>
+    <WorkLineConfigurationActions
+      :confirm-text="saveText"
+      :confirm-disabled="busy || !panel || panel.confirmDisabled"
+      :confirm-loading="panel?.submitting"
+      :closable="!busy"
+      :hide-cancel="busy"
+      :dirty="panel?.isDirty"
+      :show-continue="section !== 'slots' && canReadBusiness"
+      @confirm="save(false)"
+      @continue="save(true)"
+      @close="leave()"
+    />
+  </section>
 </template>
 
 <style scoped>
+.configuration-page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--space-md);
+  color: var(--color-text-primary);
+}
+.configuration-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+.configuration-page__header h2 {
+  margin: 0;
+  font-size: var(--el-font-size-extra-large);
+  font-weight: 600;
+}
+.configuration-page__header p {
+  margin: var(--space-3xs) 0 0;
+  font-size: var(--el-font-size-base);
+  color: var(--color-text-secondary);
+}
+
 .configuration-workspace {
   display: grid;
   gap: var(--space-md);
   min-width: 0;
 }
+.configuration-workspace__panel {
+  min-width: 0;
+  padding: var(--space-md);
+  border: 1px solid var(--el-border-color-light);
+  border-radius: var(--radius-md);
+  background: var(--el-bg-color);
+}
 .configuration-workspace__tabs {
   position: sticky;
   top: 0;
   z-index: 2;
-  background: var(--el-bg-color);
+  background: transparent;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-xs);
 }
 .configuration-workspace__tabs button {
@@ -221,6 +304,13 @@ watch(
 }
 
 @media (width <= 600px) {
+  .configuration-page,
+  .configuration-workspace__panel {
+    padding: var(--space-sm);
+  }
+  .configuration-page__header {
+    align-items: flex-start;
+  }
   .configuration-workspace__tabs button {
     padding: var(--space-sm);
   }

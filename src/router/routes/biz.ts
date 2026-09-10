@@ -15,6 +15,17 @@ export const bizRoutes: RouteRecordRaw = {
   },
   children: [
     {
+      path: 'worklines/:id/configuration',
+      name: 'WorkLineConfiguration',
+      component: () => import('@/views/admin/worklines/WorkLineConfigurationPage.vue'),
+      meta: {
+        requiresAuth: true,
+        title: '工作线配置',
+        permission: BIZ_PERMISSIONS.workline.page,
+        menu: { name: 'biz:workline:configuration:menu', hidden: true }
+      }
+    },
+    {
       path: 'devices',
       name: 'DeviceList',
       component: () => import('@/views/admin/devices/DeviceListPage.vue'),
