@@ -9,7 +9,7 @@ type DebugRunStep = NonNullable<DebugRunResult['current_step']>
 const PHASE_LABELS: Record<DebugRunStep['phase'], string> = {
   RACK_TO_STATION: '货架搬至工作位',
   BINS_TO_INFEED: '料箱搬至入库口',
-  WAIT_SCAN12: '等待 SCAN12',
+  WAIT_SCAN12: '等待出料口扫码',
   BINS_TO_RACK: '料箱回架',
   ROTATE_TO_NEXT_FACE: '货架旋转至下一面',
   RACK_TO_STORAGE: '货架返库'
@@ -171,7 +171,7 @@ function showsStepGroup(step: DebugRunStep): boolean {
       </AppButton>
       <p class="evidence-hint">
         设备诊断请筛选
-        <code>device_code=SCAN12</code>
+        <code>device_code={{ snapshot?.scan_device_codes[3] }}</code>
         ，扫码值应携带料箱编码。
       </p>
     </section>

@@ -8,6 +8,10 @@ import {
 } from '@/views/ops/transport-debug/useTransportDebugSequence'
 
 const input = {
+  workstation: 'KT11',
+  infeed_position: 'CNV0101',
+  outfeed_position: 'CNV0102',
+  scan_device_codes: ['STATION_SCAN1', 'STATION_SCAN2', 'STATION_SCAN3', 'STATION_SCAN4'],
   workline_code: 'LINE-1',
   rack_id: '510056',
   face_groups: [
@@ -49,6 +53,10 @@ describe('useTransportDebugSequence', () => {
     await flushPromises()
     expect(h.startRun).toHaveBeenCalledTimes(2)
     expect(h.startRun.mock.calls[1]?.[0]).toMatchObject({
+      workstation: 'KT11',
+      infeed_position: 'CNV0101',
+      outfeed_position: 'CNV0102',
+      scan_device_codes: input.scan_device_codes,
       face_groups: [
         { face: '90', bins: [{ bin_code: 'B1', slot_id: 'NEW-1' }] },
         { face: '270', bins: [{ bin_code: 'B2', slot_id: 'NEW-2' }] }

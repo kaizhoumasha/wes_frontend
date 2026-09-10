@@ -12,6 +12,10 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 export const TransportDebugRunResponseMetadata = {
   "title": "TransportDebugRunResponse",
   "required": [
+    "workstation",
+    "infeed_position",
+    "outfeed_position",
+    "scan_device_codes",
     "workline_code",
     "returned_bins",
     "run_id",
@@ -110,6 +114,12 @@ export const TransportDebugRunResponseMetadata = {
         "ref": "TransportDebugRunFaceGroupResponse"
       }
     },
+    "infeed_position": {
+      "title": "Infeed Position",
+      "type": "string",
+      "required": true,
+      "nullable": false
+    },
     "observed_bin_codes": {
       "title": "Observed Bin Codes",
       "type": "array",
@@ -118,6 +128,12 @@ export const TransportDebugRunResponseMetadata = {
       "items": {
         "type": "string"
       }
+    },
+    "outfeed_position": {
+      "title": "Outfeed Position",
+      "type": "string",
+      "required": true,
+      "nullable": false
     },
     "rack_id": {
       "title": "Rack Id",
@@ -139,6 +155,15 @@ export const TransportDebugRunResponseMetadata = {
       "type": "string",
       "required": true,
       "nullable": false
+    },
+    "scan_device_codes": {
+      "title": "Scan Device Codes",
+      "type": "array",
+      "required": true,
+      "nullable": false,
+      "items": {
+        "type": "string"
+      }
     },
     "status": {
       "required": true,
@@ -175,6 +200,12 @@ export const TransportDebugRunResponseMetadata = {
     },
     "workline_code": {
       "title": "Workline Code",
+      "type": "string",
+      "required": true,
+      "nullable": false
+    },
+    "workstation": {
+      "title": "Workstation",
       "type": "string",
       "required": true,
       "nullable": false

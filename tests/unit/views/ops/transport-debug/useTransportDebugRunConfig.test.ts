@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  defaultTransportDebugLocations,
   buildTransportDebugRunInput,
   buildTransportDebugRunPreview,
   useTransportDebugRunConfig,
@@ -12,10 +13,22 @@ const bins = [
 ]
 
 describe('useTransportDebugRunConfig', () => {
+  it('rejects codes above the API limit and invalid WMS outfeed identifiers', () => {
+    const config = useTransportDebugRunConfig()
+    config.locations.value.workstation = 'K'.repeat(101)
+    expect(config.validationError.value).toContain('1～100')
+    config.locations.value.workstation = 'KT11'
+    config.locations.value.outfeed_position = 'invalid source'
+    expect(config.validationError.value).toContain('出料口编码')
+    config.locations.value.outfeed_position = 'CNV0102'
+    expect(config.validationError.value).toBeNull()
+  })
+
   it('prefills the field rack and both faces with editable, isolated data', () => {
     const config = useTransportDebugRunConfig()
     expect(buildTransportDebugRunInput(config.rackId.value, config.groups.value, 'LINE-1')).toEqual(
       {
+        ...defaultTransportDebugLocations(),
         workline_code: 'LINE-1',
         rack_id: '510056',
         face_groups: [
@@ -50,6 +63,7 @@ describe('useTransportDebugRunConfig', () => {
 
     expect(validateTransportDebugRunConfig(' FIELD-RACK-07 ', groups)).toBeNull()
     expect(buildTransportDebugRunInput(' FIELD-RACK-07 ', groups, 'LINE-1')).toEqual({
+      ...defaultTransportDebugLocations(),
       workline_code: 'LINE-1',
       rack_id: 'FIELD-RACK-07',
       face_groups: [
@@ -127,11 +141,11 @@ describe('useTransportDebugRunConfig', () => {
     ).toEqual([
       'RACK_MOVE',
       'BIN_MOVE',
-      'SCAN12',
+      'SCAN_COMPLETED',
       'outbound.bin.return_batch@v1',
       'RACK_ROTATE',
       'BIN_MOVE',
-      'SCAN12',
+      'SCAN_COMPLETED',
       'outbound.bin.return_batch@v1',
       'RACK_MOVE'
     ])
@@ -157,7 +171,7 @@ describe('useTransportDebugRunConfig', () => {
     expect(steps[3].moves).toBeUndefined()
     expect(steps[8]).toMatchObject({
       rcs_template_id: 'CTU03',
-      target: { kind: 'ZONE', location_code: 'WH01' }
+      target: { kind: 'ZONE', location_code: 'WH05' }
     })
   })
 
@@ -209,4 +223,27 @@ describe('useTransportDebugRunConfig', () => {
     config.removeGroup(0)
     expect(config.groups.value).toEqual([])
   })
+})
+
+it('uses editable line 1 locations and the exit scanner in payload and preview', () => {
+  const config = useTransportDebugRunConfig()
+  config.worklineCode.value = 'LINE1'
+  config.locations.value = {
+    workstation: 'KT11',
+    infeed_position: 'CNV0101',
+    outfeed_position: 'CNV0102',
+    scan_device_codes: ['STATION_SCAN1', 'STATION_SCAN2', 'STATION_SCAN3', 'STATION_SCAN4']
+  }
+  const input = buildTransportDebugRunInput(
+    config.rackId.value,
+    config.groups.value,
+    'LINE1',
+    config.locations.value
+  )
+  expect(input).toMatchObject(config.locations.value)
+  expect(config.preview.value).toContain('KT11')
+  expect(config.preview.value).toContain('CNV0101')
+  expect(config.preview.value).toContain('CNV0102')
+  expect(config.preview.value).toContain('STATION_SCAN4')
+  expect(config.preview.value).not.toContain('KT16')
 })

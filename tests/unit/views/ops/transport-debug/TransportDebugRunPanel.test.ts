@@ -7,6 +7,14 @@ import TransportDebugRunPanel from '@/views/ops/transport-debug/TransportDebugRu
 const bin = vi.hoisted(() => ({ bin_code: 'B1', slot_id: 'S1' }))
 const configState = vi.hoisted(() => ({
   worklineCode: { value: 'LINE-1' },
+  locations: {
+    value: {
+      workstation: 'KT11',
+      infeed_position: 'CNV0101',
+      outfeed_position: 'CNV0102',
+      scan_device_codes: ['STATION_SCAN1', 'STATION_SCAN2', 'STATION_SCAN3', 'STATION_SCAN4']
+    }
+  },
   rackId: { value: '510056' },
   groups: { value: [] as Array<{ face: string; bins: unknown[] }> }
 }))
@@ -46,6 +54,7 @@ function snapshot() {
     updated_at: 'now'
   }
   return {
+    ...configState.locations.value,
     run_id: 'run-1',
     status: 'NEEDS_ATTENTION' as 'NEEDS_ATTENTION' | 'COMPLETED' | 'RUNNING',
     rack_id: '510056',
@@ -114,6 +123,7 @@ vi.mock('@/views/ops/transport-debug/useTransportDebugRunConfig', () => ({
   }),
   useTransportDebugRunConfig: () => ({
     worklineCode: configState.worklineCode,
+    locations: configState.locations,
     rackId: configState.rackId,
     groups: configState.groups,
     validationError: { value: null },
@@ -539,7 +549,7 @@ describe('TransportDebugRunPanel', () => {
     const progress = wrapper.get('[data-test="run-step-progress"]')
     expect(progress.text()).toContain('货架搬至工作位')
     expect(progress.text()).toContain('料箱搬至入库口')
-    expect(progress.text()).toContain('等待 SCAN12')
+    expect(progress.text()).toContain('等待出料口扫码')
     expect(progress.text()).toContain('料箱回架')
     expect(progress.text()).toContain('货架返库')
     expect(progress.text()).toContain('B1')
@@ -626,7 +636,7 @@ describe('TransportDebugRunPanel', () => {
     await flushPromises()
 
     const steps = wrapper.get('[data-test="run-step-progress"]').findAll('li')
-    const scanStep = steps.find(step => step.text().includes('等待 SCAN12'))
+    const scanStep = steps.find(step => step.text().includes('等待出料口扫码'))
     const outOfRangeStep = steps.find(step => step.text().includes('料箱回架'))
     const nullGroupStep = steps.find(step => step.text().includes('货架返库'))
     expect(scanStep?.text()).toContain('已扫描：B1 · 待扫描：B2')
