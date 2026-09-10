@@ -1,4 +1,4 @@
-/** @openapi-sha256 08b0b7af36ae2e88d08b3cdb8b62e09c8e85b6882e8984c461094cf7ffba7e6b */
+/** @openapi-sha256 b6af4d436071430aa6af8779affac7c4c11104fbf4371d31706b1772d00d90e5 */
 /**
  * Zod Validation Schemas
  *
@@ -915,10 +915,24 @@ export const CreateRunRequestSchema = z.object({
 export const CreateTransportDebugRunRequestSchema = z.object({
   /** Face Groups */
   face_groups: z.array(z.lazy(() => TransportDebugRunFaceGroupRequestSchema)),
+  /** Infeed Position */
+  infeed_position: z.string().min(1).max(100).optional().default("CNV0301"),
+  /** Outfeed Position */
+  outfeed_position: z.string().min(1).max(100).optional().default("CNV0302"),
   /** Rack Id */
   rack_id: z.string().min(1).max(100),
+  /** Scan Device Codes */
+  scan_device_codes: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string().min(1).max(100))).optional().default(["STATION_SCAN9","STATION_SCAN10","STATION_SCAN11","STATION_SCAN12"]),
   /** Workline Code */
   workline_code: z.string().min(1).max(100),
+  /** Workstation */
+  workstation: z.string().min(1).max(100).optional().default("KT16"),
 })
 
 
@@ -3240,6 +3254,8 @@ export const TransportDebugRunResponseSchema = z.object({
   current_step: z.union([z.lazy(() => TransportDebugRunStepResponseSchema), z.null()]),
   /** Face Groups */
   face_groups: z.array(z.lazy(() => TransportDebugRunFaceGroupResponseSchema)),
+  /** Infeed Position */
+  infeed_position: z.string(),
   /** Observed Bin Codes */
   observed_bin_codes: z.preprocess((val) => {
         // 如果输入是字符串（换行符分隔），转换为数组
@@ -3248,12 +3264,22 @@ export const TransportDebugRunResponseSchema = z.object({
         }
         return val
       }, z.array(z.string())),
+  /** Outfeed Position */
+  outfeed_position: z.string(),
   /** Rack Id */
   rack_id: z.string(),
   /** Returned Bins */
   returned_bins: z.array(z.lazy(() => TransportDebugReturnedBinResponseSchema)),
   /** Run Id */
   run_id: z.string(),
+  /** Scan Device Codes */
+  scan_device_codes: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())),
   status: z.lazy(() => TransportDebugRunStatusSchema),
   /** Steps */
   steps: z.array(z.lazy(() => TransportDebugRunStepResponseSchema)),
@@ -3263,6 +3289,8 @@ export const TransportDebugRunResponseSchema = z.object({
   version: z.number(),
   /** Workline Code */
   workline_code: z.string(),
+  /** Workstation */
+  workstation: z.string(),
 })
 
 

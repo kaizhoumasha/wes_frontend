@@ -9,6 +9,9 @@ defineProps<{
 const emit = defineEmits<{
   'update:totalRounds': [rounds: number | undefined]
   'update:rackId': [rackId: string]
+  'update:worklineCode': [value: string]
+  'update:location': [key: 'workstation' | 'infeed_position' | 'outfeed_position', value: string]
+  'update:scanner': [index: number, value: string]
 }>()
 </script>
 <template>
@@ -38,6 +41,61 @@ const emit = defineEmits<{
       />
       <AppButton @click="config.addGroup()">新增货架面</AppButton>
     </div>
+
+    <section class="location-config">
+      <h3>联调区域与设备</h3>
+      <div class="location-fields">
+        <label>
+          工作线编码
+          <el-input
+            :model-value="config.worklineCode.value"
+            aria-label="工作线编码"
+            @update:model-value="emit('update:worklineCode', $event)"
+          />
+        </label>
+        <label>
+          五层货架工作区
+          <el-input
+            :model-value="config.locations.value.workstation"
+            aria-label="五层货架工作区"
+            placeholder="例如 KT11"
+            @update:model-value="emit('update:location', 'workstation', $event)"
+          />
+        </label>
+        <label>
+          投料口
+          <el-input
+            :model-value="config.locations.value.infeed_position"
+            aria-label="投料口"
+            placeholder="例如 CNV0101"
+            @update:model-value="emit('update:location', 'infeed_position', $event)"
+          />
+        </label>
+        <label>
+          出料口
+          <el-input
+            :model-value="config.locations.value.outfeed_position"
+            aria-label="出料口"
+            placeholder="例如 CNV0102"
+            @update:model-value="emit('update:location', 'outfeed_position', $event)"
+          />
+        </label>
+        <label
+          v-for="(_, index) in config.locations.value.scan_device_codes"
+          :key="index"
+        >
+          SCAN{{ index + 1 }} 设备
+          <el-input
+            :model-value="config.locations.value.scan_device_codes[index]"
+            :aria-label="`SCAN${index + 1} 设备`"
+            @update:model-value="emit('update:scanner', index, $event)"
+          />
+        </label>
+      </div>
+      <p>
+        SCAN4 为出料口扫码设备，其扫码结果触发料箱回架。启动后，本轮和后续轮次使用启动时的区域配置。
+      </p>
+    </section>
 
     <article
       v-for="(group, groupIndex) in config.groups.value"
@@ -103,5 +161,16 @@ const emit = defineEmits<{
 <style scoped>
 .config-toolbar :deep(.el-input) {
   width: 100%;
+}
+
+.location-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.location-fields label {
+  display: grid;
+  gap: 6px;
 }
 </style>

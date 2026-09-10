@@ -34,7 +34,15 @@ export function nextRoundInput(snapshot: DebugRunResult) {
   const groups = [...faceGroups].map(([face, bins]) => ({ face, bins }))
   const error = validateTransportDebugRunConfig(snapshot.rack_id, groups)
   if (error) throw new Error(`回架储位无法用于下一轮：${error}`)
-  return { workline_code: snapshot.workline_code, rack_id: snapshot.rack_id, face_groups: groups }
+  return {
+    workline_code: snapshot.workline_code,
+    workstation: snapshot.workstation,
+    infeed_position: snapshot.infeed_position,
+    outfeed_position: snapshot.outfeed_position,
+    scan_device_codes: [...snapshot.scan_device_codes],
+    rack_id: snapshot.rack_id,
+    face_groups: groups
+  }
 }
 
 export function useTransportDebugSequence(options: {

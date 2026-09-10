@@ -1,6 +1,43 @@
 import { computed, ref } from 'vue'
 import type { DebugRunCreateInput } from '@/api/modules/transport'
 
+export interface TransportDebugLocations {
+  workstation: string
+  infeed_position: string
+  outfeed_position: string
+  scan_device_codes: string[]
+}
+
+export function defaultTransportDebugLocations(): TransportDebugLocations {
+  return {
+    workstation: 'KT16',
+    infeed_position: 'CNV0301',
+    outfeed_position: 'CNV0302',
+    scan_device_codes: ['STATION_SCAN9', 'STATION_SCAN10', 'STATION_SCAN11', 'STATION_SCAN12']
+  }
+}
+
+function validateLocations(locations: TransportDebugLocations): string | null {
+  const values = [
+    locations.workstation,
+    locations.infeed_position,
+    locations.outfeed_position,
+    ...locations.scan_device_codes
+  ]
+  if (values.some(value => !value.trim() || value.trim().length > 100 || value.includes('\0')))
+    return '请填写工作区、投料口、出料口和扫码设备编码（1～100 字符）'
+  if (
+    locations.scan_device_codes.length !== 4 ||
+    new Set(locations.scan_device_codes.map(value => value.trim())).size !== 4
+  )
+    return '请配置四个不同的扫码设备'
+  if (locations.infeed_position.trim() === locations.outfeed_position.trim())
+    return '投料口和出料口不能相同'
+  if (!/^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$/.test(locations.outfeed_position.trim()))
+    return '出料口编码须以字母或数字开头，且仅含字母、数字、点、下划线、冒号、斜线或连字符'
+  return null
+}
+
 export interface TransportDebugBinDraft {
   bin_code: string
   slot_id: string
@@ -38,12 +75,17 @@ export function validateTransportDebugRunConfig(
 export function buildTransportDebugRunInput(
   rackId: string,
   groups: readonly TransportDebugFaceGroupDraft[],
-  worklineCode: string
+  worklineCode: string,
+  locations: TransportDebugLocations = defaultTransportDebugLocations()
 ): DebugRunCreateInput {
-  const error = validateTransportDebugRunConfig(rackId, groups)
+  const error = validateLocations(locations) || validateTransportDebugRunConfig(rackId, groups)
   if (error) throw new Error(error)
   if (!worklineCode.trim()) throw new Error('工作线编码不能为空')
   return {
+    workstation: locations.workstation.trim(),
+    infeed_position: locations.infeed_position.trim(),
+    outfeed_position: locations.outfeed_position.trim(),
+    scan_device_codes: locations.scan_device_codes.map(value => value.trim()),
     workline_code: worklineCode.trim(),
     rack_id: rackId.trim(),
     face_groups: groups.map(group => ({
@@ -59,10 +101,21 @@ export function buildTransportDebugRunInput(
 export function buildTransportDebugRunPreview(
   rackId: string,
   groups: readonly TransportDebugFaceGroupDraft[],
-  worklineCode: string
+  worklineCode: string,
+  locations?: TransportDebugLocations
 ): string {
-  if (validateTransportDebugRunConfig(rackId, groups) || !worklineCode.trim()) return ''
-  const input = buildTransportDebugRunInput(rackId, groups, worklineCode)
+  if (
+    validateTransportDebugRunConfig(rackId, groups) ||
+    !worklineCode.trim() ||
+    (locations && validateLocations(locations))
+  )
+    return ''
+  const input = buildTransportDebugRunInput(
+    rackId,
+    groups,
+    worklineCode,
+    locations ?? defaultTransportDebugLocations()
+  )
   const steps: object[] = []
   input.face_groups.forEach((group, index) => {
     if (index === 0) {
@@ -70,7 +123,7 @@ export function buildTransportDebugRunPreview(
         kind: 'RACK_MOVE',
         rack_id: input.rack_id,
         source: { kind: 'RACK', location_code: input.rack_id },
-        target: { kind: 'RACK_POSITION', location_code: 'KT16' },
+        target: { kind: 'RACK_POSITION', location_code: input.workstation },
         target_face: group.face,
         rcs_template_id: 'CTU01'
       })
@@ -93,10 +146,14 @@ export function buildTransportDebugRunPreview(
           rack_face: group.face,
           slot_id: bin.slot_id
         },
-        target: { kind: 'HANDOFF_POSITION', location_code: 'CNV0301' }
+        target: { kind: 'HANDOFF_POSITION', location_code: input.infeed_position }
       }))
     })
-    steps.push({ kind: 'SCAN12', bin_codes: group.bins.map(bin => bin.bin_code) })
+    steps.push({
+      kind: 'SCAN_COMPLETED',
+      device_code: input.scan_device_codes[3],
+      bin_codes: group.bins.map(bin => bin.bin_code)
+    })
     steps.push({
       operation: 'outbound.bin.return_batch@v1',
       workline_code: worklineCode.trim(),
@@ -105,7 +162,7 @@ export function buildTransportDebugRunPreview(
       return_candidates: group.bins.map((bin, index) => ({
         sequence_no: index + 1,
         bin_code: bin.bin_code,
-        source: { type: 'HANDOFF_POSITION', location_code: 'CNV0302' }
+        source: { type: 'HANDOFF_POSITION', location_code: input.outfeed_position }
       })),
       next: '优先使用 WMS 分配；NO_BATCH 按已成功出库记录退回原槽位；每箱成功后保存实际槽位'
     })
@@ -114,7 +171,7 @@ export function buildTransportDebugRunPreview(
     kind: 'RACK_MOVE',
     rack_id: input.rack_id,
     source: { kind: 'RACK', location_code: input.rack_id },
-    target: { kind: 'ZONE', location_code: 'WH01' },
+    target: { kind: 'ZONE', location_code: 'WH05' },
     rcs_template_id: 'CTU03'
   })
   return JSON.stringify(steps, null, 2)
@@ -122,6 +179,7 @@ export function buildTransportDebugRunPreview(
 
 export function useTransportDebugRunConfig() {
   const worklineCode = ref('KT16')
+  const locations = ref(defaultTransportDebugLocations())
   const rackId = ref('510056')
   const groups = ref<TransportDebugFaceGroupDraft[]>([
     {
@@ -143,10 +201,11 @@ export function useTransportDebugRunConfig() {
   const validationError = computed(() =>
     !worklineCode.value.trim()
       ? '工作线编码不能为空'
-      : validateTransportDebugRunConfig(rackId.value, groups.value)
+      : validateLocations(locations.value) ||
+        validateTransportDebugRunConfig(rackId.value, groups.value)
   )
   const preview = computed(() =>
-    buildTransportDebugRunPreview(rackId.value, groups.value, worklineCode.value)
+    buildTransportDebugRunPreview(rackId.value, groups.value, worklineCode.value, locations.value)
   )
 
   function addGroup(): void {
@@ -169,6 +228,7 @@ export function useTransportDebugRunConfig() {
 
   return {
     worklineCode,
+    locations,
     rackId,
     groups,
     validationError,

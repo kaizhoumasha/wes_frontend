@@ -2843,16 +2843,54 @@
             "title": "Face Groups",
             "type": "array"
           },
+          "infeed_position": {
+            "default": "CNV0301",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Infeed Position",
+            "type": "string"
+          },
+          "outfeed_position": {
+            "default": "CNV0302",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Outfeed Position",
+            "type": "string"
+          },
           "rack_id": {
             "maxLength": 100,
             "minLength": 1,
             "title": "Rack Id",
             "type": "string"
           },
+          "scan_device_codes": {
+            "default": [
+              "STATION_SCAN9",
+              "STATION_SCAN10",
+              "STATION_SCAN11",
+              "STATION_SCAN12"
+            ],
+            "items": {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 4,
+            "minItems": 4,
+            "title": "Scan Device Codes",
+            "type": "array"
+          },
           "workline_code": {
             "maxLength": 100,
             "minLength": 1,
             "title": "Workline Code",
+            "type": "string"
+          },
+          "workstation": {
+            "default": "KT16",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Workstation",
             "type": "string"
           }
         },
@@ -13007,12 +13045,20 @@
             "title": "Face Groups",
             "type": "array"
           },
+          "infeed_position": {
+            "title": "Infeed Position",
+            "type": "string"
+          },
           "observed_bin_codes": {
             "items": {
               "type": "string"
             },
             "title": "Observed Bin Codes",
             "type": "array"
+          },
+          "outfeed_position": {
+            "title": "Outfeed Position",
+            "type": "string"
           },
           "rack_id": {
             "title": "Rack Id",
@@ -13028,6 +13074,13 @@
           "run_id": {
             "title": "Run Id",
             "type": "string"
+          },
+          "scan_device_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Scan Device Codes",
+            "type": "array"
           },
           "status": {
             "$ref": "#/components/schemas/TransportDebugRunStatus"
@@ -13050,9 +13103,17 @@
           "workline_code": {
             "title": "Workline Code",
             "type": "string"
+          },
+          "workstation": {
+            "title": "Workstation",
+            "type": "string"
           }
         },
         "required": [
+          "workstation",
+          "infeed_position",
+          "outfeed_position",
+          "scan_device_codes",
           "workline_code",
           "returned_bins",
           "run_id",
@@ -23982,11 +24043,20 @@
                             "additionalProperties": true,
                             "properties": {
                               "arrival_face": {
-                                "description": "Opaque non-empty face value without NUL; preserve exactly",
-                                "maxLength": 10,
-                                "minLength": 1,
-                                "pattern": "^[^\\u0000]+$",
-                                "type": "string"
+                                "anyOf": [
+                                  {
+                                    "description": "Opaque non-empty face value without NUL; preserve exactly",
+                                    "maxLength": 10,
+                                    "minLength": 1,
+                                    "pattern": "^[^\\u0000]+$",
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      null
+                                    ]
+                                  }
+                                ]
                               },
                               "failure_code": {
                                 "not": {}
@@ -24054,8 +24124,7 @@
                               "outcome_revision",
                               "rack_id",
                               "status",
-                              "final_position",
-                              "arrival_face"
+                              "final_position"
                             ],
                             "type": "object"
                           },
@@ -24063,11 +24132,20 @@
                             "additionalProperties": true,
                             "properties": {
                               "arrival_face": {
-                                "description": "Opaque non-empty face value without NUL; preserve exactly",
-                                "maxLength": 10,
-                                "minLength": 1,
-                                "pattern": "^[^\\u0000]+$",
-                                "type": "string"
+                                "anyOf": [
+                                  {
+                                    "description": "Opaque non-empty face value without NUL; preserve exactly",
+                                    "maxLength": 10,
+                                    "minLength": 1,
+                                    "pattern": "^[^\\u0000]+$",
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      null
+                                    ]
+                                  }
+                                ]
                               },
                               "failure_code": {
                                 "enum": [
@@ -24141,8 +24219,7 @@
                               "rack_id",
                               "status",
                               "final_position",
-                              "failure_code",
-                              "arrival_face"
+                              "failure_code"
                             ],
                             "type": "object"
                           },

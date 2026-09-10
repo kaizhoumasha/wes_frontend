@@ -1,4 +1,4 @@
-/** @openapi-sha256 08b0b7af36ae2e88d08b3cdb8b62e09c8e85b6882e8984c461094cf7ffba7e6b */
+/** @openapi-sha256 b6af4d436071430aa6af8779affac7c4c11104fbf4371d31706b1772d00d90e5 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -4981,10 +4981,35 @@ export interface components {
         CreateTransportDebugRunRequest: {
             /** Face Groups */
             face_groups: components["schemas"]["TransportDebugRunFaceGroupRequest"][];
+            /**
+             * Infeed Position
+             * @default CNV0301
+             */
+            infeed_position: string;
+            /**
+             * Outfeed Position
+             * @default CNV0302
+             */
+            outfeed_position: string;
             /** Rack Id */
             rack_id: string;
+            /**
+             * Scan Device Codes
+             * @default [
+             *       "STATION_SCAN9",
+             *       "STATION_SCAN10",
+             *       "STATION_SCAN11",
+             *       "STATION_SCAN12"
+             *     ]
+             */
+            scan_device_codes: string[];
             /** Workline Code */
             workline_code: string;
+            /**
+             * Workstation
+             * @default KT16
+             */
+            workstation: string;
         };
         /** DebugTransportTaskCreated */
         DebugTransportTaskCreated: {
@@ -7331,14 +7356,20 @@ export interface components {
             current_step: components["schemas"]["TransportDebugRunStepResponse"] | null;
             /** Face Groups */
             face_groups: components["schemas"]["TransportDebugRunFaceGroupResponse"][];
+            /** Infeed Position */
+            infeed_position: string;
             /** Observed Bin Codes */
             observed_bin_codes: string[];
+            /** Outfeed Position */
+            outfeed_position: string;
             /** Rack Id */
             rack_id: string;
             /** Returned Bins */
             returned_bins: components["schemas"]["TransportDebugReturnedBinResponse"][];
             /** Run Id */
             run_id: string;
+            /** Scan Device Codes */
+            scan_device_codes: string[];
             status: components["schemas"]["TransportDebugRunStatus"];
             /** Steps */
             steps: components["schemas"]["TransportDebugRunStepResponse"][];
@@ -7348,6 +7379,8 @@ export interface components {
             version: number;
             /** Workline Code */
             workline_code: string;
+            /** Workstation */
+            workstation: string;
         };
         /**
          * TransportDebugRunStatus
@@ -12925,8 +12958,7 @@ export interface operations {
                     [key: string]: unknown;
                 }) | ({
                     data: ({
-                        /** @description Opaque non-empty face value without NUL; preserve exactly */
-                        arrival_face: string;
+                        arrival_face?: string | null;
                         failure_code?: unknown;
                         final_position: {
                             /** @enum {string} */
@@ -12947,8 +12979,7 @@ export interface operations {
                     } & {
                         [key: string]: unknown;
                     }) | ({
-                        /** @description Opaque non-empty face value without NUL; preserve exactly */
-                        arrival_face: string;
+                        arrival_face?: string | null;
                         /** @enum {string} */
                         failure_code: "MANUAL_ABORTED" | "RCS_EXECUTION_FAILED" | "RCS_TASK_REJECTED";
                         final_position: {

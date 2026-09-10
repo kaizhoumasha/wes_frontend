@@ -103,7 +103,8 @@ async function start(): Promise<void> {
       buildTransportDebugRunInput(
         config.rackId.value,
         config.groups.value,
-        config.worklineCode.value
+        config.worklineCode.value,
+        config.locations.value
       ),
       totalRounds.value!
     )
@@ -215,6 +216,9 @@ onMounted(load)
       :config="config"
       :round-error="roundError"
       @update:rack-id="config.rackId.value = $event"
+      @update:workline-code="config.worklineCode.value = $event"
+      @update:location="(key, value) => (config.locations.value[key] = value)"
+      @update:scanner="(index, value) => (config.locations.value.scan_device_codes[index] = value)"
     />
 
     <footer>
