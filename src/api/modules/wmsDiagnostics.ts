@@ -6,7 +6,7 @@
  * ⚠️  请勿手动编辑 AUTO GENERATED 区域
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 资源: /api/v1/wms-diagnostics/exchanges
+ * 资源: /api/v1/wms-diagnostics/confirmations, /api/v1/wms-diagnostics/evidences, /api/v1/wms-diagnostics/exchanges
  */
 import { contractMethods } from '@/api/contract/client'
 import type {
@@ -18,6 +18,12 @@ import type {
 } from '@/api/contract/types'
 import type { components, paths } from '@/api/generated/openapi-types'
 
+export type ConfirmationsResult = ContractResponseData<'/api/v1/wms-diagnostics/confirmations', 'get'>
+export type ConfirmationsQuery = ContractQueryParams<'/api/v1/wms-diagnostics/confirmations', 'get'>
+
+export type EvidencesResult = ContractResponseData<'/api/v1/wms-diagnostics/evidences', 'get'>
+export type EvidencesQuery = ContractQueryParams<'/api/v1/wms-diagnostics/evidences', 'get'>
+
 export type ExchangesResult = ContractResponseData<'/api/v1/wms-diagnostics/exchanges', 'get'>
 export type ExchangesQuery = ContractQueryParams<'/api/v1/wms-diagnostics/exchanges', 'get'>
 
@@ -28,6 +34,24 @@ export type GetByExchangeIdResult = ContractResponseData<'/api/v1/wms-diagnostic
 export type GetByExchangeIdPathParams = ContractPathParams<'/api/v1/wms-diagnostics/exchanges/{exchange_id}', 'get'>
 
 export const wmsDiagnosticsApiMethods = {
+  /**
+   * [ops:wms-confirmation:read] 查询 WMS 可靠发送义务
+   * @endpoint GET /api/v1/wms-diagnostics/confirmations
+   * @returns alova method instance
+   */
+  confirmations(query?: ContractQueryParams<'/api/v1/wms-diagnostics/confirmations', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/wms-diagnostics/confirmations', { query, config })
+  },
+
+  /**
+   * [ops:wms-evidence:read] 查询 WMS 持久化接收与应用事实
+   * @endpoint GET /api/v1/wms-diagnostics/evidences
+   * @returns alova method instance
+   */
+  evidences(query?: ContractQueryParams<'/api/v1/wms-diagnostics/evidences', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/wms-diagnostics/evidences', { query, config })
+  },
+
   /**
    * [ops:wms-diagnostics:query] 查询近期 WMS 交互
    * @endpoint GET /api/v1/wms-diagnostics/exchanges

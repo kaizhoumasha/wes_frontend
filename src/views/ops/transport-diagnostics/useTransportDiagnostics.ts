@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import {
   transportApiMethods,
+  type CallbackReceiptsResult,
   type DebugTasksInput,
   type DebugTasksResult,
   type GetByTransportTaskIdResult,
@@ -16,6 +17,7 @@ type TransportDebugStepConfirmationInput = NonNullable<ResetInput>
 export interface TransportDiagnosticsApiPort {
   listTasks(query: TasksQuery): Promise<TasksResult>
   getTask(transportTaskId: string): Promise<GetByTransportTaskIdResult>
+  getCallbackReceipt(operation: string, operationId: string): Promise<CallbackReceiptsResult>
   createTask(input: DebugTasksInput): Promise<DebugTasksResult>
   previewTaskReset(transportTaskId: string): Promise<ResetPreviewResult>
   resetTask(
@@ -34,13 +36,13 @@ const DEFAULT_API: TransportDiagnosticsApiPort = {
   listTasks: query => transportApiMethods.tasks(query).send(),
   getTask: transportTaskId =>
     transportApiMethods.getByTransportTaskId({ transport_task_id: transportTaskId }).send(),
+  getCallbackReceipt: (operation, operationId) =>
+    transportApiMethods.callbackReceipts({ operation, operation_id: operationId }).send(),
   createTask: input => transportApiMethods.debugTasks(input).send(),
   previewTaskReset: transportTaskId =>
     transportApiMethods.resetPreview({ transport_task_id: transportTaskId }).send(),
   resetTask: (transportTaskId, confirmation) =>
-    transportApiMethods
-      .reset({ transport_task_id: transportTaskId }, confirmation ?? null)
-      .send()
+    transportApiMethods.reset({ transport_task_id: transportTaskId }, confirmation ?? null).send()
 }
 
 export function useTransportDiagnostics(options: UseTransportDiagnosticsOptions = {}) {
@@ -48,10 +50,14 @@ export function useTransportDiagnostics(options: UseTransportDiagnosticsOptions 
   const tasks = ref<TaskSummary[]>([])
   const detail = ref<GetByTransportTaskIdResult | null>(null)
   const selectedTaskId = ref<string | null>(null)
+  const callbackReceipt = ref<CallbackReceiptsResult | null>(null)
+  const callbackReceiptUnknown = ref(false)
+  const callbackReceiptError = ref('')
   const nextCursor = ref<string | null>(null)
   const filters = ref<Pick<TasksQuery, 'kind' | 'status'>>({})
   const loading = ref(false)
   const loadingDetail = ref(false)
+  const loadingCallbackReceipt = ref(false)
   const submitting = ref(false)
   const previewingReset = ref(false)
   const resetting = ref(false)
@@ -59,6 +65,7 @@ export function useTransportDiagnostics(options: UseTransportDiagnosticsOptions 
   const lastError = ref<Error | null>(null)
   let listRequestGeneration = 0
   let detailRequestGeneration = 0
+  let callbackReceiptRequestGeneration = 0
 
   async function loadRecent(): Promise<void> {
     await loadPage(false)
@@ -115,6 +122,32 @@ export function useTransportDiagnostics(options: UseTransportDiagnosticsOptions 
     await loadRecent()
     if (transportTaskId && selectedTaskId.value === transportTaskId) {
       await selectTask(transportTaskId)
+    }
+  }
+
+  async function loadCallbackReceipt(operation: string, operationId: string): Promise<void> {
+    const requestGeneration = ++callbackReceiptRequestGeneration
+    callbackReceipt.value = null
+    callbackReceiptUnknown.value = false
+    callbackReceiptError.value = ''
+    loadingCallbackReceipt.value = true
+    try {
+      const receipt = await api.getCallbackReceipt(operation, operationId)
+      if (requestGeneration !== callbackReceiptRequestGeneration) return
+      callbackReceipt.value = receipt
+    } catch (error) {
+      if (requestGeneration !== callbackReceiptRequestGeneration) return
+      if (isUnknownReceiptError(error)) {
+        callbackReceiptUnknown.value = true
+        callbackReceiptError.value = toError(error).message
+        return
+      }
+      callbackReceiptError.value = toError(error).message
+      throw error
+    } finally {
+      if (requestGeneration === callbackReceiptRequestGeneration) {
+        loadingCallbackReceipt.value = false
+      }
     }
   }
 
@@ -190,10 +223,14 @@ export function useTransportDiagnostics(options: UseTransportDiagnosticsOptions 
     tasks,
     detail,
     selectedTaskId,
+    callbackReceipt,
+    callbackReceiptUnknown,
+    callbackReceiptError,
     nextCursor,
     filters,
     loading,
     loadingDetail,
+    loadingCallbackReceipt,
     submitting,
     previewingReset,
     resetting,
@@ -203,6 +240,7 @@ export function useTransportDiagnostics(options: UseTransportDiagnosticsOptions 
     loadMore,
     selectTask,
     handleStreamTask,
+    loadCallbackReceipt,
     submitTask,
     previewTaskReset,
     resetTask,
@@ -221,4 +259,27 @@ function deduplicateTasks(tasks: TaskSummary[]): TaskSummary[] {
 
 function toError(error: unknown): Error {
   return error instanceof Error ? error : new Error(String(error))
+}
+
+function httpStatus(error: unknown): number | undefined {
+  if (typeof error !== 'object' || error === null) return undefined
+  if ('status' in error && typeof error.status === 'number') return error.status
+  if ('statusCode' in error && typeof error.statusCode === 'number') return error.statusCode
+  if (
+    'response' in error &&
+    typeof error.response === 'object' &&
+    error.response !== null &&
+    'status' in error.response &&
+    typeof error.response.status === 'number'
+  ) {
+    return error.response.status
+  }
+  return undefined
+}
+
+function isUnknownReceiptError(error: unknown): boolean {
+  const status = httpStatus(error)
+  if (status === 404 || status === 503) return true
+  if (typeof error !== 'object' || error === null || !('code' in error)) return false
+  return error.code === '3000' || error.code === '5030'
 }

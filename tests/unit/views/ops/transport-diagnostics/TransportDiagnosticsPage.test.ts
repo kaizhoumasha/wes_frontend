@@ -10,6 +10,7 @@ const diagnosticsMocks = vi.hoisted(() => ({
   loadMore: vi.fn().mockResolvedValue(undefined),
   selectTask: vi.fn().mockResolvedValue(undefined),
   handleStreamTask: vi.fn().mockResolvedValue(undefined),
+  loadCallbackReceipt: vi.fn().mockResolvedValue(undefined),
   submitTask: vi.fn().mockResolvedValue(undefined),
   previewTaskReset: vi.fn().mockResolvedValue({
     transport_task_id: 'transport-1',
@@ -73,6 +74,10 @@ vi.mock('@/views/ops/transport-diagnostics/useTransportDiagnostics', () => ({
     previewingReset: ref(false),
     resetting: ref(false),
     resetPreview: ref(diagnosticsState.resetPreview),
+    callbackReceipt: ref(null),
+    callbackReceiptUnknown: ref(false),
+    callbackReceiptError: ref(''),
+    loadingCallbackReceipt: ref(false),
     lastError: ref(null),
     ...diagnosticsMocks
   })
@@ -157,6 +162,7 @@ describe('TransportDiagnosticsPage', () => {
     diagnosticsState.selectedTaskId = 'transport-1'
     permissionMocks.granted.clear()
     permissionMocks.granted.add(OPS_PERMISSIONS.transportTask.read)
+    permissionMocks.granted.add(OPS_PERMISSIONS.transportCallbackReceipt.read)
     permissionMocks.granted.add(OPS_PERMISSIONS.transportEvidence.stream)
     permissionMocks.granted.add(OPS_PERMISSIONS.transport.debugCreate)
     permissionMocks.granted.add(OPS_PERMISSIONS.transport.debugPreview)
@@ -183,7 +189,10 @@ describe('TransportDiagnosticsPage', () => {
       expect(diagnosticsMocks.handleStreamTask).toHaveBeenCalledWith('transport-1')
     )
     streamOptions.value?.onReconnect()
-    await vi.waitFor(() => expect(diagnosticsMocks.loadRecent).toHaveBeenCalledTimes(2))
+    await vi.waitFor(() =>
+      expect(diagnosticsMocks.handleStreamTask).toHaveBeenCalledWith('transport-1')
+    )
+    expect(streamMocks.connect).toHaveBeenCalledOnce()
   })
 
   it('maps explicit list filters without starting polling', async () => {

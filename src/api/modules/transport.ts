@@ -6,7 +6,7 @@
  * ⚠️  请勿手动编辑 AUTO GENERATED 区域
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 资源: /api/v1/transport/debug-runs, /api/v1/transport/debug-tasks, /api/v1/transport/evidences, /api/v1/transport/tasks
+ * 资源: /api/v1/transport/callback-receipts, /api/v1/transport/debug-runs, /api/v1/transport/debug-tasks, /api/v1/transport/evidences, /api/v1/transport/tasks
  */
 import { contractMethods } from '@/api/contract/client'
 import type {
@@ -17,6 +17,9 @@ import type {
   ContractResponseData,
 } from '@/api/contract/types'
 import type { components, paths } from '@/api/generated/openapi-types'
+
+export type CallbackReceiptsResult = ContractResponseData<'/api/v1/transport/callback-receipts', 'get'>
+export type CallbackReceiptsQuery = ContractQueryParams<'/api/v1/transport/callback-receipts', 'get'>
 
 export type DebugRunsResult = ContractResponseData<'/api/v1/transport/debug-runs', 'get'>
 export type DebugRunsQuery = ContractQueryParams<'/api/v1/transport/debug-runs', 'get'>
@@ -52,6 +55,15 @@ export type GetByTransportTaskIdResult = ContractResponseData<'/api/v1/transport
 export type GetByTransportTaskIdPathParams = ContractPathParams<'/api/v1/transport/tasks/{transport_task_id}', 'get'>
 
 export const transportApiMethods = {
+  /**
+   * [ops:transport-callback-receipt:read] 查询持久化 Transport 回调收据
+   * @endpoint GET /api/v1/transport/callback-receipts
+   * @returns alova method instance
+   */
+  callbackReceipts(query?: ContractQueryParams<'/api/v1/transport/callback-receipts', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/transport/callback-receipts', { query, config })
+  },
+
   /**
    * [ops:transport-debug-run:list] 查询 Transport 自动联调轮次
    * @endpoint GET /api/v1/transport/debug-runs

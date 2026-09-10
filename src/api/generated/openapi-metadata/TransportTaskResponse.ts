@@ -21,11 +21,24 @@ export const TransportTaskResponseMetadata = {
     "created_at",
     "updated_at",
     "latest_evidence",
+    "send_started_at",
+    "result_deadline_at",
+    "submit_attempt_count",
+    "outcome_version",
+    "published_outcome_version",
+    "pending_evidence_count",
+    "active_binding_count",
     "request",
     "result"
   ],
   "additionalProperties": false,
   "fields": {
+    "active_binding_count": {
+      "title": "Active Binding Count",
+      "type": "integer",
+      "required": true,
+      "nullable": false
+    },
     "client_request_id": {
       "title": "Client Request Id",
       "type": "string",
@@ -55,6 +68,24 @@ export const TransportTaskResponseMetadata = {
       "nullable": true,
       "ref": "TransportEvidenceResponse"
     },
+    "outcome_version": {
+      "title": "Outcome Version",
+      "type": "integer",
+      "required": true,
+      "nullable": false
+    },
+    "pending_evidence_count": {
+      "title": "Pending Evidence Count",
+      "type": "integer",
+      "required": true,
+      "nullable": false
+    },
+    "published_outcome_version": {
+      "title": "Published Outcome Version",
+      "type": "integer",
+      "required": true,
+      "nullable": false
+    },
     "reason_code": {
       "title": "Reason Code",
       "type": "string",
@@ -72,6 +103,18 @@ export const TransportTaskResponseMetadata = {
       "nullable": true,
       "ref": "TransportResultResponse"
     },
+    "result_deadline_at": {
+      "title": "Result Deadline At",
+      "type": "string",
+      "required": true,
+      "nullable": true
+    },
+    "send_started_at": {
+      "title": "Send Started At",
+      "type": "string",
+      "required": true,
+      "nullable": true
+    },
     "status": {
       "title": "Status",
       "type": "string",
@@ -85,6 +128,12 @@ export const TransportTaskResponseMetadata = {
         "FAILED",
         "RECONCILING"
       ]
+    },
+    "submit_attempt_count": {
+      "title": "Submit Attempt Count",
+      "type": "integer",
+      "required": true,
+      "nullable": false
     },
     "submit_operation_id": {
       "title": "Submit Operation Id",

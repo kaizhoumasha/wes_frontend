@@ -2688,6 +2688,103 @@
         "title": "ConfirmPhaseRequest",
         "type": "object"
       },
+      "ConfirmationObservation": {
+        "properties": {
+          "attempt_count": {
+            "title": "Attempt Count",
+            "type": "integer"
+          },
+          "deadline_at": {
+            "title": "Deadline At",
+            "type": "string"
+          },
+          "last_dispatch_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Dispatch At"
+          },
+          "next_attempt_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Attempt At"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "operation_id": {
+            "title": "Operation Id",
+            "type": "string"
+          },
+          "response_evidence_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Response Evidence Id"
+          },
+          "response_result": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Response Result"
+          },
+          "retry_eligible": {
+            "title": "Retry Eligible",
+            "type": "boolean"
+          },
+          "status": {
+            "$ref": "#/components/schemas/WmsConfirmationStatus"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "operation",
+          "operation_id",
+          "status",
+          "attempt_count",
+          "retry_eligible",
+          "next_attempt_at",
+          "deadline_at",
+          "last_dispatch_at",
+          "response_evidence_id",
+          "response_result",
+          "updated_at"
+        ],
+        "title": "ConfirmationObservation",
+        "type": "object"
+      },
       "CreateRunRequest": {
         "additionalProperties": false,
         "properties": {
@@ -3924,6 +4021,74 @@
           "reprocess_path"
         ],
         "title": "EventCommandBlockResponse",
+        "type": "object"
+      },
+      "EvidenceObservation": {
+        "properties": {
+          "apply_status": {
+            "$ref": "#/components/schemas/InboundEvidenceApplyStatus"
+          },
+          "decision_attempt_count": {
+            "title": "Decision Attempt Count",
+            "type": "integer"
+          },
+          "decision_next_attempt_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Next Attempt At"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "operation_id": {
+            "title": "Operation Id",
+            "type": "string"
+          },
+          "processed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Processed At"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "received_at": {
+            "title": "Received At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation",
+          "operation_id",
+          "apply_status",
+          "received_at",
+          "processed_at",
+          "published_at",
+          "decision_attempt_count",
+          "decision_next_attempt_at"
+        ],
+        "title": "EvidenceObservation",
         "type": "object"
       },
       "ExchangeDetail": {
@@ -9636,6 +9801,51 @@
         "title": "ResponseSchemaModel[CallbackLogTraceResponse]",
         "type": "object"
       },
+      "ResponseSchemaModel_ConfirmationObservation_": {
+        "properties": {
+          "code": {
+            "default": "1000",
+            "description": "响应码",
+            "examples": [
+              "1000",
+              "2000"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConfirmationObservation"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "message": {
+            "default": "操作成功",
+            "description": "响应消息",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ],
+            "title": "Message",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ],
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "title": "ResponseSchemaModel[ConfirmationObservation]",
+        "type": "object"
+      },
       "ResponseSchemaModel_DebugTransportTaskCreated_": {
         "properties": {
           "code": {
@@ -9904,6 +10114,51 @@
           }
         },
         "title": "ResponseSchemaModel[EventCommandBlockResponse]",
+        "type": "object"
+      },
+      "ResponseSchemaModel_EvidenceObservation_": {
+        "properties": {
+          "code": {
+            "default": "1000",
+            "description": "响应码",
+            "examples": [
+              "1000",
+              "2000"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvidenceObservation"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "message": {
+            "default": "操作成功",
+            "description": "响应消息",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ],
+            "title": "Message",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ],
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "title": "ResponseSchemaModel[EvidenceObservation]",
         "type": "object"
       },
       "ResponseSchemaModel_ExchangeDetail_": {
@@ -10933,6 +11188,51 @@
           }
         },
         "title": "ResponseSchemaModel[RoleResponse]",
+        "type": "object"
+      },
+      "ResponseSchemaModel_TransportCallbackReceiptResponse_": {
+        "properties": {
+          "code": {
+            "default": "1000",
+            "description": "响应码",
+            "examples": [
+              "1000",
+              "2000"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TransportCallbackReceiptResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "message": {
+            "default": "操作成功",
+            "description": "响应消息",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ],
+            "title": "Message",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ],
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "title": "ResponseSchemaModel[TransportCallbackReceiptResponse]",
         "type": "object"
       },
       "ResponseSchemaModel_TransportDebugRunPageResponse_": {
@@ -12402,6 +12702,58 @@
         "title": "TransportActionRequest",
         "type": "object"
       },
+      "TransportCallbackReceiptResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "conflict_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conflict Code"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "operation_id": {
+            "title": "Operation Id",
+            "type": "string"
+          },
+          "received_at": {
+            "title": "Received At",
+            "type": "string"
+          },
+          "response_code": {
+            "title": "Response Code",
+            "type": "string"
+          },
+          "response_data": {
+            "additionalProperties": true,
+            "title": "Response Data",
+            "type": "object"
+          },
+          "response_http_status": {
+            "title": "Response Http Status",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "operation",
+          "operation_id",
+          "response_http_status",
+          "response_code",
+          "response_data",
+          "received_at",
+          "conflict_code"
+        ],
+        "title": "TransportCallbackReceiptResponse",
+        "type": "object"
+      },
       "TransportDebugReturnedBinResponse": {
         "additionalProperties": false,
         "properties": {
@@ -13096,6 +13448,10 @@
       "TransportTaskResponse": {
         "additionalProperties": false,
         "properties": {
+          "active_binding_count": {
+            "title": "Active Binding Count",
+            "type": "integer"
+          },
           "client_request_id": {
             "title": "Client Request Id",
             "type": "string"
@@ -13124,6 +13480,18 @@
               }
             ]
           },
+          "outcome_version": {
+            "title": "Outcome Version",
+            "type": "integer"
+          },
+          "pending_evidence_count": {
+            "title": "Pending Evidence Count",
+            "type": "integer"
+          },
+          "published_outcome_version": {
+            "title": "Published Outcome Version",
+            "type": "integer"
+          },
           "reason_code": {
             "anyOf": [
               {
@@ -13150,6 +13518,28 @@
               }
             ]
           },
+          "result_deadline_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result Deadline At"
+          },
+          "send_started_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Send Started At"
+          },
           "status": {
             "enum": [
               "PENDING",
@@ -13161,6 +13551,10 @@
             ],
             "title": "Status",
             "type": "string"
+          },
+          "submit_attempt_count": {
+            "title": "Submit Attempt Count",
+            "type": "integer"
           },
           "submit_operation_id": {
             "title": "Submit Operation Id",
@@ -13185,6 +13579,13 @@
           "created_at",
           "updated_at",
           "latest_evidence",
+          "send_started_at",
+          "result_deadline_at",
+          "submit_attempt_count",
+          "outcome_version",
+          "published_outcome_version",
+          "pending_evidence_count",
+          "active_binding_count",
           "request",
           "result"
         ],
@@ -13831,6 +14232,17 @@
         },
         "title": "WirePreview",
         "type": "object"
+      },
+      "WmsConfirmationStatus": {
+        "enum": [
+          "PENDING",
+          "DISPATCHING",
+          "COMPLETED",
+          "RECONCILING",
+          "SUPERSEDED"
+        ],
+        "title": "WmsConfirmationStatus",
+        "type": "string"
       },
       "WorkAdmissionRequest": {
         "additionalProperties": false,
@@ -21761,6 +22173,71 @@
         ]
       }
     },
+    "/api/v1/transport/callback-receipts": {
+      "get": {
+        "operationId": "transport_callback_receipts_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "operation",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Operation",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "operation_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "title": "Operation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_TransportCallbackReceiptResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "收据不存在"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "description": "Transport runtime 不可用"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:transport-callback-receipt:read] 查询持久化 Transport 回调收据",
+        "tags": [
+          "Transport 调试"
+        ]
+      }
+    },
     "/api/v1/transport/debug-runs": {
       "get": {
         "operationId": "transport_debug_runs_get",
@@ -22663,6 +23140,136 @@
         "summary": "[ops:transport-task:read] 查询本地 Transport 任务",
         "tags": [
           "Transport 调试"
+        ]
+      }
+    },
+    "/api/v1/wms-diagnostics/confirmations": {
+      "get": {
+        "operationId": "wms_diagnostics_confirmations_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "operation",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Operation",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "operation_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "title": "Operation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_ConfirmationObservation_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "可靠义务不存在"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "description": "持久化存储不可用"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:wms-confirmation:read] 查询 WMS 可靠发送义务",
+        "tags": [
+          "WMS diagnostics"
+        ]
+      }
+    },
+    "/api/v1/wms-diagnostics/evidences": {
+      "get": {
+        "operationId": "wms_diagnostics_evidences_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "operation",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Operation",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "operation_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "title": "Operation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_EvidenceObservation_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "WMS Evidence 不存在"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "description": "持久化存储不可用"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[ops:wms-evidence:read] 查询 WMS 持久化接收与应用事实",
+        "tags": [
+          "WMS diagnostics"
         ]
       }
     },

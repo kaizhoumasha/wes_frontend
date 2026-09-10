@@ -20,6 +20,9 @@ interface DebugDialogExpose {
 const diagnostics = useTransportDiagnostics()
 const { hasPermission } = usePermission()
 const canRead = computed(() => hasPermission(OPS_PERMISSIONS.transportTask.read))
+const canReadCallbackReceipt = computed(() =>
+  hasPermission(OPS_PERMISSIONS.transportCallbackReceipt.read)
+)
 const canStream = computed(() => hasPermission(OPS_PERMISSIONS.transportEvidence.stream))
 const canCreate = computed(() => hasPermission(OPS_PERMISSIONS.transport.debugCreate))
 const canPreviewReset = computed(() => hasPermission(OPS_PERMISSIONS.transport.debugPreview))
@@ -30,7 +33,7 @@ const dialogRef = ref<DebugDialogExpose | null>(null)
 const resetDialogOpen = ref(false)
 const stream = useTransportEvidenceStream({
   onEvent: event => void refreshFromEvent(event),
-  onReconnect: () => void refreshRecent()
+  onReconnect: () => void diagnostics.handleStreamTask(diagnostics.selectedTaskId.value)
 })
 
 const connectionLabel = computed(() => {
@@ -257,6 +260,12 @@ defineExpose({ filterForm, applyFilters })
         :detail="diagnostics.detail.value"
         :loading="diagnostics.loadingDetail.value"
         :can-read="canRead"
+        :can-read-callback-receipt="canReadCallbackReceipt"
+        :callback-receipt="diagnostics.callbackReceipt.value"
+        :callback-receipt-unknown="diagnostics.callbackReceiptUnknown.value"
+        :callback-receipt-error="diagnostics.callbackReceiptError.value"
+        :loading-callback-receipt="diagnostics.loadingCallbackReceipt.value"
+        @lookup-callback-receipt="diagnostics.loadCallbackReceipt"
       />
     </section>
 

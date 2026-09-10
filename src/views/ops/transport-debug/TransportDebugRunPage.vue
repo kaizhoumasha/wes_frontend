@@ -13,6 +13,9 @@ const canRead = computed(() => hasPermission(OPS_PERMISSIONS.transportDebugRun.r
 const canStream = computed(() => hasPermission(OPS_PERMISSIONS.transportDebugRun.stream))
 const canAbort = computed(() => hasPermission(OPS_PERMISSIONS.transportDebugRun.abort))
 const canReadTask = computed(() => hasPermission(OPS_PERMISSIONS.transportTask.read))
+const canReadCallbackReceipt = computed(() =>
+  hasPermission(OPS_PERMISSIONS.transportCallbackReceipt.read)
+)
 const diagnostics = useTransportDiagnostics()
 
 async function selectTask(taskId: string): Promise<void> {
@@ -57,6 +60,12 @@ async function selectTask(taskId: string): Promise<void> {
       :detail="diagnostics.detail.value"
       :loading="diagnostics.loadingDetail.value"
       :can-read="canReadTask"
+      :can-read-callback-receipt="canReadCallbackReceipt"
+      :callback-receipt="diagnostics.callbackReceipt.value"
+      :callback-receipt-unknown="diagnostics.callbackReceiptUnknown.value"
+      :callback-receipt-error="diagnostics.callbackReceiptError.value"
+      :loading-callback-receipt="diagnostics.loadingCallbackReceipt.value"
+      @lookup-callback-receipt="diagnostics.loadCallbackReceipt"
     />
   </main>
 </template>

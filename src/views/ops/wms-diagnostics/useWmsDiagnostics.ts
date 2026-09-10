@@ -1,8 +1,10 @@
 import { onScopeDispose, ref, shallowRef, triggerRef, watch } from 'vue'
 import {
   wmsDiagnosticsApiMethods,
+  type ConfirmationsResult,
   type ExchangesQuery,
   type ExchangesResult,
+  type EvidencesResult,
   type GetByExchangeIdResult,
   type StreamQuery
 } from '@/api/modules/wmsDiagnostics'
@@ -24,6 +26,8 @@ interface Options {
   api?: {
     listExchanges(query: ExchangesQuery): Promise<ExchangesResult>
     getExchange(id: string): Promise<GetByExchangeIdResult>
+    getConfirmation(operation: string, operationId: string): Promise<ConfirmationsResult>
+    getEvidence(operation: string, operationId: string): Promise<EvidencesResult>
   }
   connectStream?: typeof consumeWmsDiagnosticsStream
 }
@@ -32,7 +36,11 @@ export function useWmsDiagnostics(options: Options = {}) {
   const api = options.api ?? {
     listExchanges: (query: ExchangesQuery) => wmsDiagnosticsApiMethods.exchanges(query).send(),
     getExchange: (id: string) =>
-      wmsDiagnosticsApiMethods.getByExchangeId({ exchange_id: id }).send()
+      wmsDiagnosticsApiMethods.getByExchangeId({ exchange_id: id }).send(),
+    getConfirmation: (operation: string, operationId: string) =>
+      wmsDiagnosticsApiMethods.confirmations({ operation, operation_id: operationId }).send(),
+    getEvidence: (operation: string, operationId: string) =>
+      wmsDiagnosticsApiMethods.evidences({ operation, operation_id: operationId }).send()
   }
   const mode = ref<'live' | 'recent'>('live')
   const filters = ref<ExchangesQuery>({})
@@ -49,6 +57,11 @@ export function useWmsDiagnostics(options: Options = {}) {
   const detailError = ref<Error | null>(null)
   const loading = ref(false)
   const loadingDetail = ref(false)
+  const confirmation = shallowRef<ConfirmationsResult | null>(null)
+  const evidence = shallowRef<EvidencesResult | null>(null)
+  const confirmationError = ref<Error | null>(null)
+  const evidenceError = ref<Error | null>(null)
+  const loadingReliable = ref(false)
   const nextCursor = ref<string | null>(null)
   const scanIncomplete = ref(false)
   const retentionHours = ref<number | null>(null)
@@ -56,7 +69,13 @@ export function useWmsDiagnostics(options: Options = {}) {
     evicted = 0,
     pending = 0
   let listGeneration = 0,
-    detailGeneration = 0
+    detailGeneration = 0,
+    reliableGeneration = 0
+  let reliableIdentity: {
+    operation: string
+    operationId: string
+    targets: { confirmation: boolean; evidence: boolean }
+  } | null = null
   let enabled = false,
     connectedBefore = false,
     disposed = false
@@ -113,6 +132,7 @@ export function useWmsDiagnostics(options: Options = {}) {
     },
     onStateChange: state => {
       connectionState.value = state
+      if (state === 'RECONNECTED' && reliableIdentity) void refreshReliableIdentity()
     },
     onError: error => {
       streamError.value = error
@@ -125,7 +145,10 @@ export function useWmsDiagnostics(options: Options = {}) {
   function connect() {
     enabled = true
     if (disposed || mode.value !== 'live' || document.visibilityState === 'hidden') return
-    if (connectedBefore) hasGap.value = true
+    if (connectedBefore) {
+      hasGap.value = true
+      if (reliableIdentity) void refreshReliableIdentity()
+    }
     connectedBefore = true
     connection.connect()
   }
@@ -159,6 +182,7 @@ export function useWmsDiagnostics(options: Options = {}) {
     listGeneration++
     loading.value = false
     clearRows()
+    clearReliableIdentity()
   }
   async function loadPage(append: boolean) {
     if (mode.value !== 'recent' || (append && loading.value)) return
@@ -201,6 +225,13 @@ export function useWmsDiagnostics(options: Options = {}) {
     await setMode(mode.value)
   }
   async function select(row: WmsConsoleRow) {
+    if (
+      !row.exchange.operation ||
+      !row.exchange.operation_id ||
+      reliableIdentity?.operation !== row.exchange.operation ||
+      reliableIdentity.operationId !== row.exchange.operation_id
+    )
+      clearReliableIdentity()
     const generation = ++detailGeneration
     detail.value = null
     detailError.value = null
@@ -226,11 +257,66 @@ export function useWmsDiagnostics(options: Options = {}) {
     detail.value = null
     detailError.value = null
     loadingDetail.value = false
+    clearReliableIdentity()
+  }
+  function clearReliableIdentity() {
+    reliableGeneration++
+    reliableIdentity = null
+    confirmation.value = null
+    evidence.value = null
+    confirmationError.value = null
+    evidenceError.value = null
+    loadingReliable.value = false
+  }
+  async function queryReliableIdentity(
+    operation: string,
+    operationId: string,
+    targets: { confirmation: boolean; evidence: boolean }
+  ) {
+    reliableIdentity = { operation, operationId, targets }
+    const generation = ++reliableGeneration
+    confirmation.value = null
+    evidence.value = null
+    confirmationError.value = null
+    evidenceError.value = null
+    loadingReliable.value = true
+    const query = { operation, operation_id: operationId }
+    const [confirmationResult, evidenceResult] = await Promise.allSettled([
+      targets.confirmation ? api.getConfirmation(query.operation, query.operation_id) : null,
+      targets.evidence ? api.getEvidence(query.operation, query.operation_id) : null
+    ])
+    if (disposed || generation !== reliableGeneration) return
+    if (targets.confirmation) {
+      if (confirmationResult.status === 'fulfilled') confirmation.value = confirmationResult.value
+      else
+        confirmationError.value =
+          confirmationResult.reason instanceof Error
+            ? confirmationResult.reason
+            : new Error(String(confirmationResult.reason))
+    }
+    if (targets.evidence) {
+      if (evidenceResult.status === 'fulfilled') evidence.value = evidenceResult.value
+      else
+        evidenceError.value =
+          evidenceResult.reason instanceof Error
+            ? evidenceResult.reason
+            : new Error(String(evidenceResult.reason))
+    }
+    loadingReliable.value = false
+  }
+  function refreshReliableIdentity() {
+    if (!reliableIdentity) return Promise.resolve()
+    return queryReliableIdentity(
+      reliableIdentity.operation,
+      reliableIdentity.operationId,
+      reliableIdentity.targets
+    )
   }
   onScopeDispose(() => {
     disposed = true
     listGeneration++
     detailGeneration++
+    reliableGeneration++
     disconnect()
     clearTimeout(flushTimer)
     document.removeEventListener('visibilitychange', visibilityChanged)
@@ -251,6 +337,11 @@ export function useWmsDiagnostics(options: Options = {}) {
     detailError,
     loading,
     loadingDetail,
+    confirmation,
+    evidence,
+    confirmationError,
+    evidenceError,
+    loadingReliable,
     nextCursor,
     scanIncomplete,
     retentionHours,
@@ -261,6 +352,8 @@ export function useWmsDiagnostics(options: Options = {}) {
     applyFilters,
     select,
     closeDetail,
+    queryReliableIdentity,
+    refreshReliableIdentity,
     loadRecent: () => loadPage(false),
     loadMore: () => (nextCursor.value ? loadPage(true) : Promise.resolve())
   }

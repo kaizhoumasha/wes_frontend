@@ -1,4 +1,4 @@
-/** @openapi-sha256 bea10254faefe516d43d0a2c22fe98545fc5c1319476ee9aa0f02d600d10dd10 */
+/** @openapi-sha256 68b298fb0fdd0f27800b5e19b980b8bc1077099e57726c269310c7fac7d1aa56 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -2063,6 +2063,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/transport/callback-receipts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [ops:transport-callback-receipt:read] 查询持久化 Transport 回调收据 */
+        get: operations["transport_callback_receipts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/transport/debug-runs": {
         parameters: {
             query?: never;
@@ -2226,6 +2243,40 @@ export interface paths {
         };
         /** [ops:transport-task:read] 查询本地 Transport 任务 */
         get: operations["transport_tasks_by_transport_task_id_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wms-diagnostics/confirmations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [ops:wms-confirmation:read] 查询 WMS 可靠发送义务 */
+        get: operations["wms_diagnostics_confirmations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wms-diagnostics/evidences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [ops:wms-evidence:read] 查询 WMS 持久化接收与应用事实 */
+        get: operations["wms_diagnostics_evidences_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4883,6 +4934,30 @@ export interface components {
             /** Task Id */
             task_id: string;
         };
+        /** ConfirmationObservation */
+        ConfirmationObservation: {
+            /** Attempt Count */
+            attempt_count: number;
+            /** Deadline At */
+            deadline_at: string;
+            /** Last Dispatch At */
+            last_dispatch_at: string | null;
+            /** Next Attempt At */
+            next_attempt_at: string | null;
+            /** Operation */
+            operation: string;
+            /** Operation Id */
+            operation_id: string;
+            /** Response Evidence Id */
+            response_evidence_id: number | null;
+            /** Response Result */
+            response_result: string | null;
+            /** Retry Eligible */
+            retry_eligible: boolean;
+            status: components["schemas"]["WmsConfirmationStatus"];
+            /** Updated At */
+            updated_at: string | null;
+        };
         /** ConfirmPhaseRequest */
         ConfirmPhaseRequest: {
             /** Expected Version */
@@ -5278,6 +5353,24 @@ export interface components {
             source_event_id: string;
             /** Status */
             status: string;
+        };
+        /** EvidenceObservation */
+        EvidenceObservation: {
+            apply_status: components["schemas"]["InboundEvidenceApplyStatus"];
+            /** Decision Attempt Count */
+            decision_attempt_count: number;
+            /** Decision Next Attempt At */
+            decision_next_attempt_at: string | null;
+            /** Operation */
+            operation: string;
+            /** Operation Id */
+            operation_id: string;
+            /** Processed At */
+            processed_at: string | null;
+            /** Published At */
+            published_at: string | null;
+            /** Received At */
+            received_at: string;
         };
         /** ExchangeDetail */
         ExchangeDetail: {
@@ -6844,6 +6937,8 @@ export interface components {
         ResponseSchemaModel_CallbackLogSubjectResponse_: ApiResponse<components["schemas"]["CallbackLogSubjectResponse"]>;
         /** ResponseSchemaModel[CallbackLogTraceResponse] */
         ResponseSchemaModel_CallbackLogTraceResponse_: ApiResponse<components["schemas"]["CallbackLogTraceResponse"]>;
+        /** ResponseSchemaModel[ConfirmationObservation] */
+        ResponseSchemaModel_ConfirmationObservation_: ApiResponse<components["schemas"]["ConfirmationObservation"]>;
         /** ResponseSchemaModel[DebugTransportTaskCreated] */
         ResponseSchemaModel_DebugTransportTaskCreated_: ApiResponse<components["schemas"]["DebugTransportTaskCreated"]>;
         /** ResponseSchemaModel[DebugTransportTaskResetPreview] */
@@ -6860,6 +6955,8 @@ export interface components {
         ResponseSchemaModel_dict_str__str__: ApiResponse<Record<string, string>>;
         /** ResponseSchemaModel[EventCommandBlockResponse] */
         ResponseSchemaModel_EventCommandBlockResponse_: ApiResponse<components["schemas"]["EventCommandBlockResponse"]>;
+        /** ResponseSchemaModel[EvidenceObservation] */
+        ResponseSchemaModel_EvidenceObservation_: ApiResponse<components["schemas"]["EvidenceObservation"]>;
         /** ResponseSchemaModel[ExchangeDetail] */
         ResponseSchemaModel_ExchangeDetail_: ApiResponse<components["schemas"]["ExchangeDetail"]>;
         /** ResponseSchemaModel[ExchangePage] */
@@ -6916,6 +7013,8 @@ export interface components {
         ResponseSchemaModel_RevokeSessionResponse_: ApiResponse<components["schemas"]["RevokeSessionResponse"]>;
         /** ResponseSchemaModel[RoleResponse] */
         ResponseSchemaModel_RoleResponse_: ApiResponse<components["schemas"]["RoleResponse"]>;
+        /** ResponseSchemaModel[TransportCallbackReceiptResponse] */
+        ResponseSchemaModel_TransportCallbackReceiptResponse_: ApiResponse<components["schemas"]["TransportCallbackReceiptResponse"]>;
         /** ResponseSchemaModel[TransportDebugRunPageResponse] */
         ResponseSchemaModel_TransportDebugRunPageResponse_: ApiResponse<components["schemas"]["TransportDebugRunPageResponse"]>;
         /** ResponseSchemaModel[TransportDebugRunResponse] */
@@ -7131,6 +7230,25 @@ export interface components {
             /** Target Face */
             target_face?: string | null;
         };
+        /** TransportCallbackReceiptResponse */
+        TransportCallbackReceiptResponse: {
+            /** Conflict Code */
+            conflict_code: string | null;
+            /** Operation */
+            operation: string;
+            /** Operation Id */
+            operation_id: string;
+            /** Received At */
+            received_at: string;
+            /** Response Code */
+            response_code: string;
+            /** Response Data */
+            response_data: {
+                [key: string]: unknown;
+            };
+            /** Response Http Status */
+            response_http_status: number;
+        };
         /** TransportDebugReturnedBinResponse */
         TransportDebugReturnedBinResponse: {
             /** Bin Code */
@@ -7339,6 +7457,8 @@ export interface components {
         };
         /** TransportTaskResponse */
         TransportTaskResponse: {
+            /** Active Binding Count */
+            active_binding_count: number;
             /** Client Request Id */
             client_request_id: string;
             /** Created At */
@@ -7349,6 +7469,12 @@ export interface components {
              */
             kind: "RACK_MOVE" | "RACK_ROTATE" | "BIN_MOVE" | "BIN_EXCHANGE";
             latest_evidence: components["schemas"]["TransportEvidenceResponse"] | null;
+            /** Outcome Version */
+            outcome_version: number;
+            /** Pending Evidence Count */
+            pending_evidence_count: number;
+            /** Published Outcome Version */
+            published_outcome_version: number;
             /** Reason Code */
             reason_code: string | null;
             /** Request */
@@ -7356,11 +7482,17 @@ export interface components {
                 [key: string]: unknown;
             };
             result: components["schemas"]["TransportResultResponse"] | null;
+            /** Result Deadline At */
+            result_deadline_at: string | null;
+            /** Send Started At */
+            send_started_at: string | null;
             /**
              * Status
              * @enum {string}
              */
             status: "PENDING" | "ACCEPTED" | "REJECTED" | "SUCCEEDED" | "FAILED" | "RECONCILING";
+            /** Submit Attempt Count */
+            submit_attempt_count: number;
             /** Submit Operation Id */
             submit_operation_id: string;
             /** Transport Task Id */
@@ -7632,6 +7764,11 @@ export interface components {
              */
             state: "CAPTURED" | "TRUNCATED" | "UNSAFE_JSON" | "EMPTY" | "NOT_CAPTURED" | "NO_RESPONSE";
         };
+        /**
+         * WmsConfirmationStatus
+         * @enum {string}
+         */
+        WmsConfirmationStatus: "PENDING" | "DISPATCHING" | "COMPLETED" | "RECONCILING" | "SUPERSEDED";
         /** WorkAdmissionRequest */
         WorkAdmissionRequest: {
             /** Client Request Id */
@@ -11945,6 +12082,52 @@ export interface operations {
             };
         };
     };
+    transport_callback_receipts_get: {
+        parameters: {
+            query: {
+                operation: string;
+                operation_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_TransportCallbackReceiptResponse_"];
+                };
+            };
+            /** @description 收据不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Transport runtime 不可用 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     transport_debug_runs_get: {
         parameters: {
             query?: {
@@ -12484,6 +12667,98 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
                 };
+            };
+        };
+    };
+    wms_diagnostics_confirmations_get: {
+        parameters: {
+            query: {
+                operation: string;
+                operation_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_ConfirmationObservation_"];
+                };
+            };
+            /** @description 可靠义务不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description 持久化存储不可用 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    wms_diagnostics_evidences_get: {
+        parameters: {
+            query: {
+                operation: string;
+                operation_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_EvidenceObservation_"];
+                };
+            };
+            /** @description WMS Evidence 不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description 持久化存储不可用 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
