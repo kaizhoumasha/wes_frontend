@@ -14568,18 +14568,12 @@
         "type": "object"
       },
       "WorkLineDeviceRole": {
-        "additionalProperties": false,
-        "description": "插件声明的设备角色；前端仅展示名称并选择实体设备。",
         "properties": {
           "display_name": {
-            "maxLength": 100,
-            "minLength": 1,
             "title": "Display Name",
             "type": "string"
           },
           "role_key": {
-            "maxLength": 100,
-            "minLength": 1,
             "title": "Role Key",
             "type": "string"
           }
@@ -14762,28 +14756,30 @@
         "type": "object"
       },
       "WorkLinePositionSlot": {
-        "additionalProperties": false,
-        "description": "插件工作位需求；执行位置类型来自插件合同，现场编码来自工作线。",
         "properties": {
           "allowed_rack_kind": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/RackKind"
+                "enum": [
+                  "SINGLE_LAYER",
+                  "FIVE_LAYER",
+                  "RETURN",
+                  "TRANSFER",
+                  "PRODUCTION"
+                ],
+                "type": "string"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Allowed Rack Kind"
           },
           "display_name": {
-            "maxLength": 100,
-            "minLength": 1,
             "title": "Display Name",
             "type": "string"
           },
           "location_type": {
-            "maxLength": 100,
-            "minLength": 1,
             "title": "Location Type",
             "type": "string"
           },
@@ -14796,8 +14792,6 @@
             "type": "string"
           },
           "slot_key": {
-            "maxLength": 100,
-            "minLength": 1,
             "title": "Slot Key",
             "type": "string"
           }
@@ -14980,8 +14974,15 @@
       "WorkLineStartResponse": {
         "properties": {
           "flow_mode": {
-            "title": "Flow Mode",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flow Mode"
           },
           "is_active": {
             "title": "Is Active",

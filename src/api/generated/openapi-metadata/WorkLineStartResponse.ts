@@ -24,7 +24,7 @@ export const WorkLineStartResponseMetadata = {
       "title": "Flow Mode",
       "type": "string",
       "required": true,
-      "nullable": false
+      "nullable": true
     },
     "is_active": {
       "title": "Is Active",

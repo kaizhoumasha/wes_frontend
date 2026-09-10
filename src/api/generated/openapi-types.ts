@@ -1,4 +1,4 @@
-/** @openapi-sha256 68b298fb0fdd0f27800b5e19b980b8bc1077099e57726c269310c7fac7d1aa56 */
+/** @openapi-sha256 08b0b7af36ae2e88d08b3cdb8b62e09c8e85b6882e8984c461094cf7ffba7e6b */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -8006,10 +8006,7 @@ export interface components {
              */
             zone_name?: string | null;
         };
-        /**
-         * WorkLineDeviceRole
-         * @description 插件声明的设备角色；前端仅展示名称并选择实体设备。
-         */
+        /** WorkLineDeviceRole */
         WorkLineDeviceRole: {
             /** Display Name */
             display_name: string;
@@ -8089,12 +8086,10 @@ export interface components {
              */
             priority: number;
         };
-        /**
-         * WorkLinePositionSlot
-         * @description 插件工作位需求；执行位置类型来自插件合同，现场编码来自工作线。
-         */
+        /** WorkLinePositionSlot */
         WorkLinePositionSlot: {
-            allowed_rack_kind?: components["schemas"]["RackKind"] | null;
+            /** Allowed Rack Kind */
+            allowed_rack_kind?: ("SINGLE_LAYER" | "FIVE_LAYER" | "RETURN" | "TRANSFER" | "PRODUCTION") | null;
             /** Display Name */
             display_name: string;
             /** Location Type */
@@ -8205,7 +8200,7 @@ export interface components {
         /** WorkLineStartResponse */
         WorkLineStartResponse: {
             /** Flow Mode */
-            flow_mode: string;
+            flow_mode: string | null;
             /** Is Active */
             is_active: boolean;
             /** Plugin Key */

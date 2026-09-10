@@ -12,12 +12,12 @@ import {
 } from '@/api/modules/workLines'
 import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
 import { CRUD_PAGE_REFRESH_KEY } from '@/components/common/crud-page/types'
-import StandardDialog from '@/components/ui/StandardDialog/StandardDialog.vue'
 import { usePermission } from '@/composables/usePermission'
 import { getSafeErrorMessage } from '@/utils/string'
 
 const props = defineProps<{ workline: Workline | null }>()
 const modelValue = defineModel<boolean>({ default: false })
+const emit = defineEmits<{ navigateBase: [] }>()
 const refresh = inject(CRUD_PAGE_REFRESH_KEY)
 const { hasPermission } = usePermission()
 
@@ -73,30 +73,20 @@ const confirmDisabled = computed(
     Boolean(loadError.value) ||
     hasUnavailableSelectedPlugin.value
 )
-const dialogVisible = computed({
-  get: () => sessionVisible.value,
-  set: value => {
-    if (!value && (submitting.value || deactivating.value)) return
-    if (!value && isDirty.value) {
-      void discardAndClose()
-      return
-    }
-    sessionVisible.value = value
-    if (modelValue.value !== value) modelValue.value = value
-  }
-})
+const busy = computed(() => submitting.value || deactivating.value)
 
-async function discardAndClose(): Promise<void> {
+async function confirmLeave(): Promise<boolean> {
+  if (busy.value) return false
+  if (!isDirty.value) return true
   try {
-    await ElMessageBox.confirm('插件关联尚未保存，确认放弃修改？', '未保存的修改', {
+    await ElMessageBox.confirm('业务配置尚未保存，确认放弃修改？', '未保存的修改', {
       confirmButtonText: '放弃修改',
       cancelButtonText: '继续编辑',
       type: 'warning'
     })
-    sessionVisible.value = false
-    modelValue.value = false
+    return true
   } catch {
-    /* 取消后保留草稿。 */
+    return false
   }
 }
 
@@ -174,7 +164,7 @@ async function loadLatest(row: Workline): Promise<void> {
   } catch (error) {
     if (sequence !== loadSequence) return
     resetState()
-    loadError.value = `工作线业务装配加载失败：${getSafeErrorMessage(error)}`
+    loadError.value = `工作线业务配置加载失败：${getSafeErrorMessage(error)}`
   } finally {
     if (sequence === loadSequence) loading.value = false
   }
@@ -286,21 +276,22 @@ async function submit(): Promise<void> {
       )
       .send()
   } catch (error) {
-    ElMessage.error(`保存业务装配失败：${getSafeErrorMessage(error)}`)
+    ElMessage.error(`保存业务配置失败：${getSafeErrorMessage(error)}`)
     return
   } finally {
     submitting.value = false
   }
 
   savedDraft.value = draftSnapshot.value
-  dialogVisible.value = false
-  ElMessage.success('工作线插件关联保存成功')
+  await loadLatest(workline)
+  ElMessage.success('业务配置已保存')
   await refreshList()
 }
 
 async function deactivate(): Promise<void> {
   const workline = currentWorkline.value
   if (!workline?.is_active || !canDeactivate.value || deactivating.value) return
+  deactivating.value = true
   try {
     await ElMessageBox.confirm(
       `确认停用“${workline.line_name}”？请先停止接料并完成现场物理清线；系统会检查未完成任务、待处理结果和位置占用。`,
@@ -308,17 +299,17 @@ async function deactivate(): Promise<void> {
       { confirmButtonText: '确认停用', cancelButtonText: '取消', type: 'warning' }
     )
   } catch (error) {
+    deactivating.value = false
     if (error === 'cancel' || error === 'close') return
     throw error
   }
 
-  deactivating.value = true
   deactivationError.value = ''
   try {
     const updated = await workLinesApiMethods
       .deactivate({ id: workline.id }, { version: workline.version })
       .send()
-    ElMessage.success('工作线已停用，可以修改业务装配')
+    ElMessage.success('工作线已停用，可以修改业务配置')
     await loadLatest(updated)
     await refreshList()
   } catch (error) {
@@ -349,21 +340,11 @@ watch(
   },
   { immediate: true }
 )
+defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty })
 </script>
 
 <template>
-  <StandardDialog
-    v-model="dialogVisible"
-    :title="`业务装配${currentWorkline ? `：${currentWorkline.line_name}` : ''}`"
-    size="xl"
-    confirm-text="保存插件关联"
-    confirm-icon="lucide:save"
-    :closable="!submitting && !deactivating"
-    :hide-cancel="submitting || deactivating"
-    :confirm-loading="submitting"
-    :confirm-disabled="confirmDisabled"
-    @confirm="submit"
-  >
+  <section aria-label="业务配置">
     <div
       v-if="loading"
       class="workline-configuration__loading"
@@ -439,9 +420,7 @@ watch(
         <div class="workline-configuration__section-heading">
           <div>
             <h3>业务插件</h3>
-            <p>
-              先选择插件，再将其工作位和设备插槽关联到本线资源。草稿可暂不绑定，启动前必须全部完成。
-            </p>
+            <p>先选择插件，再将设备和工作位插槽关联到本线资源。可保存未完成的草稿。</p>
           </div>
         </div>
         <ElFormItem label="业务插件">
@@ -496,69 +475,134 @@ watch(
           </div>
         </div>
         <template v-if="selectedPluginSummary">
-          <h4 class="workline-configuration__slot-heading">
-            工作位插槽 · {{ Object.keys(positionBindings).length }} / {{ positionSlots.length }}
-          </h4>
-          <p class="workline-configuration__hint">
-            资源来自基础配置。缺少工作位或设备时，请先到基础配置补充。
-          </p>
-          <ElFormItem
+          <div class="workline-configuration__section-heading">
+            <h4 class="workline-configuration__slot-heading">设备插槽</h4>
+            <ElTag type="info">
+              {{ Object.keys(deviceBindings).length }} / {{ deviceRoles.length }} 已绑定
+            </ElTag>
+          </div>
+          <div
+            v-for="role in deviceRoles"
+            :key="role.role_key"
+            class="workline-configuration__mapping"
+          >
+            <div class="workline-configuration__responsibility">
+              <strong>{{ role.display_name }}</strong>
+              <code>{{ role.role_key }}</code>
+            </div>
+            <span
+              class="workline-configuration__arrow"
+              aria-hidden="true"
+            >
+              →
+            </span>
+            <ElFormItem
+              :label="role.display_name"
+              class="workline-configuration__resource"
+            >
+              <ElSelect
+                :model-value="deviceBindings[role.role_key] ?? ''"
+                :data-role="role.role_key"
+                :aria-label="`${role.display_name}关联设备`"
+                :disabled="formDisabled"
+                placeholder="选择本线设备（可暂不绑定）"
+                clearable
+                @change="bindDevice(role.role_key, $event)"
+              >
+                <ElOption
+                  v-for="device in devices"
+                  :key="device.id"
+                  :value="device.device_code"
+                  :disabled="
+                    Object.entries(deviceBindings).some(
+                      ([key, code]) => key !== role.role_key && code === device.device_code
+                    )
+                  "
+                  :label="`${device.device_name} (${device.device_code})`"
+                />
+              </ElSelect>
+              <div
+                v-if="devices.length === 0"
+                class="workline-configuration__empty"
+              >
+                本线尚未关联设备。
+                <ElButton
+                  link
+                  type="primary"
+                  :disabled="busy"
+                  @click="emit('navigateBase')"
+                >
+                  前往基础配置
+                </ElButton>
+              </div>
+            </ElFormItem>
+          </div>
+          <div class="workline-configuration__section-heading">
+            <h4 class="workline-configuration__slot-heading">工作位插槽</h4>
+            <ElTag type="info">
+              {{ Object.keys(positionBindings).length }} / {{ positionSlots.length }} 已绑定
+            </ElTag>
+          </div>
+          <div
             v-for="slot in positionSlots"
             :key="slot.slot_key"
-            :label="`${slot.display_name} · ${slot.slot_key}`"
+            class="workline-configuration__mapping"
           >
-            <ElSelect
-              :model-value="positionBindings[slot.slot_key] ?? ''"
-              :data-slot="slot.slot_key"
-              :disabled="formDisabled"
-              placeholder="选择本线工作位（可暂不绑定）"
-              clearable
-              @change="bindPosition(slot.slot_key, $event)"
+            <div class="workline-configuration__responsibility">
+              <strong>{{ slot.display_name }}</strong>
+              <code>{{ slot.slot_key }}</code>
+            </div>
+            <span
+              class="workline-configuration__arrow"
+              aria-hidden="true"
             >
-              <ElOption
-                v-for="position in positions"
-                :key="position.position_code"
-                :value="position.position_code"
-                :label="`${position.position_name} (${position.position_code}) → ${position.logic_location_code || '缺少执行编码'}`"
-                :disabled="
-                  !matchingPosition(position, slot) ||
-                  Object.entries(positionBindings).some(
-                    ([key, code]) => key !== slot.slot_key && code === position.position_code
-                  )
-                "
-              />
-            </ElSelect>
-          </ElFormItem>
-          <h4 class="workline-configuration__slot-heading">
-            设备插槽 · {{ Object.keys(deviceBindings).length }} / {{ deviceRoles.length }}
-          </h4>
+              →
+            </span>
+            <ElFormItem
+              :label="slot.display_name"
+              class="workline-configuration__resource"
+            >
+              <ElSelect
+                :model-value="positionBindings[slot.slot_key] ?? ''"
+                :data-slot="slot.slot_key"
+                :aria-label="`${slot.display_name}关联工作位`"
+                :disabled="formDisabled"
+                placeholder="选择匹配的本线工作位（可暂不绑定）"
+                clearable
+                @change="bindPosition(slot.slot_key, $event)"
+              >
+                <ElOption
+                  v-for="position in positions.filter(position => matchingPosition(position, slot))"
+                  :key="position.position_code"
+                  :value="position.position_code"
+                  :label="`${position.position_name} (${position.position_code}) → ${position.logic_location_code}`"
+                  :disabled="
+                    Object.entries(positionBindings).some(
+                      ([key, code]) => key !== slot.slot_key && code === position.position_code
+                    )
+                  "
+                />
+              </ElSelect>
+              <div
+                v-if="!positions.some(position => matchingPosition(position, slot))"
+                class="workline-configuration__empty"
+              >
+                暂无符合此插槽要求的工作位。
+                <ElButton
+                  link
+                  type="primary"
+                  :disabled="busy"
+                  @click="emit('navigateBase')"
+                >
+                  前往基础配置
+                </ElButton>
+              </div>
+            </ElFormItem>
+          </div>
+          <p class="workline-configuration__hint">
+            插槽只关联本线已保存的资源；绑定数量表示配置进度，启用条件以下方检查为准。
+          </p>
         </template>
-        <ElFormItem
-          v-for="role in deviceRoles"
-          :key="role.role_key"
-          :label="role.display_name"
-        >
-          <ElSelect
-            :model-value="deviceBindings[role.role_key] ?? ''"
-            :data-role="role.role_key"
-            :disabled="formDisabled"
-            placeholder="请选择已配置的本线设备（可暂不绑定）"
-            clearable
-            @change="bindDevice(role.role_key, $event)"
-          >
-            <ElOption
-              v-for="device in devices"
-              :key="device.id"
-              :value="device.device_code"
-              :disabled="
-                Object.entries(deviceBindings).some(
-                  ([key, code]) => key !== role.role_key && code === device.device_code
-                )
-              "
-              :label="`${device.device_name} (${device.device_code})`"
-            />
-          </ElSelect>
-        </ElFormItem>
       </section>
       <section class="workline-configuration__section workline-configuration__saved-checks">
         <div class="workline-configuration__section-heading">
@@ -571,7 +615,7 @@ watch(
           v-if="isDirty"
           class="workline-configuration__hint"
         >
-          以下结果来自已保存配置。保存插件关联后重新检查。
+          以下结果来自已保存配置。保存业务配置后重新检查。
         </p>
         <div
           v-if="configurationStatus"
@@ -597,10 +641,10 @@ watch(
             <small v-if="checkDetail(check)">{{ checkDetail(check) }}</small>
           </div>
         </div>
-        <p class="workline-configuration__hint">保存插件关联不会启用工作线，也不会修改基础配置。</p>
+        <p class="workline-configuration__hint">保存业务配置不会启用工作线，也不会修改基础配置。</p>
       </section>
     </ElForm>
-  </StandardDialog>
+  </section>
 </template>
 
 <style scoped>
@@ -677,6 +721,52 @@ watch(
   padding: var(--space-lg);
   color: var(--color-text-secondary);
   text-align: center;
+}
+
+.workline-configuration__mapping {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) auto minmax(0, 2fr);
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  border: 1px solid var(--el-border-color-light);
+  border-radius: var(--radius-sm);
+  background: var(--el-fill-color-blank);
+}
+
+.workline-configuration__responsibility {
+  display: grid;
+  gap: var(--space-3xs);
+}
+.workline-configuration__responsibility code {
+  font-family: var(--font-mono);
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+.workline-configuration__arrow {
+  color: var(--el-color-primary);
+}
+.workline-configuration__resource {
+  min-width: 0;
+}
+.workline-configuration__resource :deep(.el-form-item__label) {
+  display: none;
+}
+.workline-configuration__resource :deep(.el-form-item__content) {
+  min-width: 0;
+}
+.workline-configuration__empty {
+  color: var(--color-text-secondary);
+  font-size: var(--el-font-size-small);
+}
+
+@media (width <= 600px) {
+  .workline-configuration__mapping {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .workline-configuration__arrow {
+    display: none;
+  }
 }
 
 @media (width <= 768px) {
