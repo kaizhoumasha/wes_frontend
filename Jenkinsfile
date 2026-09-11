@@ -7,6 +7,7 @@ pipeline {
         REGISTRY_URL = '192.168.0.220:5050'
         IMAGE_REPO = '192.168.0.220:5050/wes/wes_frontend'
         CI_TOOLS_IMAGE = 'wes-frontend-ci-tools:node22-pnpm10'
+        DOCKER_BUILDKIT = '1'
     }
 
     options {
@@ -135,7 +136,7 @@ pipeline {
                 script {
                     sh '''
                         set -e
-                        mkdir -p /opt/jenkins_cache/pnpm-store
+                        mkdir -p /opt/jenkins_cache/pnpm-store reports
                         docker run --rm \
                             -e HUSKY=0 \
                             -e CI=true \
@@ -149,7 +150,7 @@ pipeline {
                             sh -lc '
                                 pnpm config set store-dir "${PNPM_STORE_DIR}" &&
                                 pnpm install --frozen-lockfile --prefer-offline &&
-                                pnpm run test &&
+                                pnpm exec vitest run --reporter=default --reporter=junit --outputFile.junit=reports/vitest-junit.xml &&
                                 pnpm run contract:test &&
                                 pnpm run contract:verify &&
                                 pnpm permission:verify &&
@@ -184,6 +185,17 @@ pipeline {
                     env.WES_FRONTEND_RECIPE_SHA256 = values[4]
                 }
                 archiveArtifacts artifacts: 'artifacts/release-consumer/*', fingerprint: true
+            }
+            post {
+                always {
+                    script {
+                        if (fileExists('reports/vitest-junit.xml')) {
+                            junit testResults: 'reports/vitest-junit.xml', allowEmptyResults: false
+                        } else {
+                            echo '测试未启动，未生成 Vitest JUnit 报告。'
+                        }
+                    }
+                }
             }
         }
 

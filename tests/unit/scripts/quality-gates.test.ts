@@ -261,7 +261,7 @@ describe.sequential('repository quality gates', () => {
   it('runs repository quality gates before the Jenkins image build', () => {
     const jenkinsfile = readFileSync(join(REPOSITORY_ROOT, 'Jenkinsfile'), 'utf-8')
 
-    const testIndex = jenkinsfile.indexOf('pnpm run test')
+    const testIndex = jenkinsfile.indexOf('pnpm exec vitest run')
     const contractTestIndex = jenkinsfile.indexOf('pnpm run contract:test')
     const contractVerifyIndex = jenkinsfile.indexOf('pnpm run contract:verify')
     const permissionVerifyIndex = jenkinsfile.indexOf('pnpm permission:verify')
@@ -351,7 +351,9 @@ describe.sequential('repository quality gates', () => {
     const dockerfile = readFileSync(join(REPOSITORY_ROOT, 'Dockerfile'), 'utf-8')
     const npmrc = readFileSync(join(REPOSITORY_ROOT, '.npmrc'), 'utf-8')
     const retryConfigIndex = dockerfile.indexOf('COPY package.json pnpm-lock.yaml .npmrc ./')
-    const installIndex = dockerfile.indexOf('RUN pnpm install --frozen-lockfile')
+    const installIndex = dockerfile.indexOf(
+      'RUN --mount=type=cache,id=wes-frontend-pnpm,target=/pnpm/store'
+    )
     const readPnpmConfig = (name: string): string =>
       execFileSync('pnpm', ['config', 'get', name], {
         cwd: REPOSITORY_ROOT,
@@ -360,15 +362,31 @@ describe.sequential('repository quality gates', () => {
 
     expect(retryConfigIndex).toBeGreaterThan(-1)
     expect(installIndex).toBeGreaterThan(retryConfigIndex)
+    expect(dockerfile).toContain('pnpm fetch --frozen-lockfile --prefer-offline')
+    expect(dockerfile).toContain('pnpm install --frozen-lockfile --offline')
     expect(dockerfile).not.toMatch(/--registry(?:=|\s)/i)
     expect(dockerfile).not.toContain('registry.npmmirror.com')
     expect(dockerfile).not.toMatch(/npm_config_registry/i)
     expect(dockerfile).not.toMatch(/pnpm\s+config\s+set\s+registry/i)
     expect(npmrc).not.toMatch(/^\s*registry\s*=/m)
     expect(readPnpmConfig('registry')).toBe('https://registry.npmjs.org/')
-    expect(readPnpmConfig('fetch-retries')).toBe('5')
-    expect(readPnpmConfig('fetch-retry-maxtimeout')).toBe('120000')
-    expect(readPnpmConfig('fetch-timeout')).toBe('300000')
+    expect(readPnpmConfig('fetch-retries')).toBe('3')
+    expect(readPnpmConfig('fetch-retry-maxtimeout')).toBe('30000')
+    expect(readPnpmConfig('fetch-timeout')).toBe('120000')
+  })
+
+  it('publishes frontend test results without treating a missing report as a second failure', () => {
+    const jenkinsfile = readFileSync(join(REPOSITORY_ROOT, 'Jenkinsfile'), 'utf-8')
+
+    expect(jenkinsfile).toContain("DOCKER_BUILDKIT = '1'")
+    expect(jenkinsfile).toContain('pnpm exec vitest run --reporter=default --reporter=junit')
+    expect(jenkinsfile).not.toContain('pnpm run test -- --reporter')
+    expect(jenkinsfile).toContain('--reporter=default --reporter=junit')
+    expect(jenkinsfile).toContain('--outputFile.junit=reports/vitest-junit.xml')
+    expect(jenkinsfile).toContain("fileExists('reports/vitest-junit.xml')")
+    expect(jenkinsfile).toContain(
+      "junit testResults: 'reports/vitest-junit.xml', allowEmptyResults: false"
+    )
   })
 
   it('binds the frontend image to its own consumer artifacts and production inputs', () => {
