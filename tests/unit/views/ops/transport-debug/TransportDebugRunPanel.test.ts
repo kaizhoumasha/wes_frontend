@@ -6,6 +6,7 @@ import TransportDebugRunPanel from '@/views/ops/transport-debug/TransportDebugRu
 
 const bin = vi.hoisted(() => ({ bin_code: 'B1', slot_id: 'S1' }))
 const configState = vi.hoisted(() => ({
+  testMode: { value: false },
   worklineCode: { value: 'LINE-1' },
   locations: {
     value: {
@@ -54,6 +55,7 @@ function snapshot() {
     updated_at: 'now'
   }
   return {
+    test_mode: false,
     ...configState.locations.value,
     run_id: 'run-1',
     status: 'NEEDS_ATTENTION' as 'NEEDS_ATTENTION' | 'COMPLETED' | 'RUNNING',
@@ -117,11 +119,19 @@ function snapshot() {
 
 vi.mock('@/views/ops/transport-debug/useTransportDebugRunConfig', () => ({
   validateTransportDebugRunConfig: () => null,
-  buildTransportDebugRunInput: (rackId: string) => ({
+  buildTransportDebugRunInput: (
+    rackId: string,
+    _groups: unknown,
+    _worklineCode: string,
+    _locations: unknown,
+    testMode: boolean
+  ) => ({
+    test_mode: testMode,
     rack_id: rackId,
     face_groups: [{ face: ' 90 ', bins: [{ bin_code: 'B1', slot_id: 'S1' }] }]
   }),
   useTransportDebugRunConfig: () => ({
+    testMode: configState.testMode,
     worklineCode: configState.worklineCode,
     locations: configState.locations,
     rackId: configState.rackId,
@@ -178,6 +188,12 @@ const ElInputNumberStub = defineComponent({
   template:
     '<input type="number" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value === \'\' ? undefined : Number($event.target.value))" />'
 })
+const ElSwitchStub = defineComponent({
+  props: { modelValue: Boolean },
+  emits: ['update:modelValue'],
+  template:
+    '<input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)" />'
+})
 
 function mountDialog(
   props = {
@@ -199,6 +215,7 @@ function mountDialog(
         ElAlert: ElAlertStub,
         ElInput: ElInputStub,
         ElInputNumber: ElInputNumberStub,
+        ElSwitch: ElSwitchStub,
         ElSelect: true,
         ElOption: true
       }
@@ -212,6 +229,7 @@ describe('TransportDebugRunPanel', () => {
     runState.activeRun.value = null
     runState.currentRun.value = null
     configState.rackId.value = '510056'
+    configState.testMode.value = false
     configState.worklineCode.value = 'LINE-1'
     configState.groups.value = [{ face: ' 90 ', bins: [bin] }]
     actions.loadRecentRuns.mockResolvedValue(undefined)
@@ -230,6 +248,21 @@ describe('TransportDebugRunPanel', () => {
         face_groups: [expect.objectContaining({ face: ' 90 ' })]
       })
     )
+  })
+
+  it('shows a default-off test mode switch and freezes the enabled choice into the run', async () => {
+    const wrapper = mountDialog()
+    await flushPromises()
+    const testMode = wrapper.get('[aria-label="测试模式"]')
+    expect((testMode.element as HTMLInputElement).checked).toBe(false)
+
+    await testMode.setValue(true)
+    await wrapper
+      .findAll('button')
+      .find(button => button.text().includes('启动自动联调'))
+      ?.trigger('click')
+
+    expect(actions.startRun).toHaveBeenCalledWith(expect.objectContaining({ test_mode: true }))
   })
 
   it('starts only the first independent round and leaves it running on unmount', async () => {
@@ -315,6 +348,7 @@ describe('TransportDebugRunPanel', () => {
   it('freezes into observer mode and exposes the current task without a force-advance action', async () => {
     runState.activeRun.value = {
       ...snapshot(),
+      test_mode: true,
       scan_device_codes: ['STATION_SCAN1', 'STATION_SCAN2', 'STATION_SCAN3', 'STATION_SCAN4']
     }
     const wrapper = mountDialog()
@@ -323,6 +357,7 @@ describe('TransportDebugRunPanel', () => {
       '等待出料口扫码（STATION_SCAN4）'
     )
     expect(wrapper.get('[data-test="run-observer"]').text()).not.toContain('SCAN12')
+    expect(wrapper.get('[data-test="run-observer"]').text()).toContain('测试模式已开启')
     expect(wrapper.text()).toContain('EVIDENCE_RECONCILING')
     expect(wrapper.text()).not.toContain('强制推进')
     const task = wrapper.findAll('button').find(button => button.text().includes('transport-3'))

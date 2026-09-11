@@ -81,6 +81,10 @@ function showsStepGroup(step: DebugRunStep): boolean {
         <span>状态</span>
         <strong>{{ snapshot.status }}</strong>
       </div>
+      <div>
+        <span>测试模式</span>
+        <strong>{{ snapshot.test_mode ? '测试模式已开启' : '关闭' }}</strong>
+      </div>
     </div>
 
     <el-alert

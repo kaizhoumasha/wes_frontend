@@ -28,6 +28,7 @@ describe('useTransportDebugRunConfig', () => {
     const config = useTransportDebugRunConfig()
     expect(buildTransportDebugRunInput(config.rackId.value, config.groups.value, 'LINE-1')).toEqual(
       {
+        test_mode: false,
         ...defaultTransportDebugLocations(),
         workline_code: 'LINE-1',
         rack_id: '510056',
@@ -58,11 +59,28 @@ describe('useTransportDebugRunConfig', () => {
     expect(useTransportDebugRunConfig().groups.value[0]!.bins[0]!.slot_id).toBe('510056A3F2C101')
   })
 
+  it('defaults test mode off and freezes an enabled operator choice into the run input', () => {
+    const config = useTransportDebugRunConfig()
+    expect(config.testMode.value).toBe(false)
+
+    config.testMode.value = true
+    expect(
+      buildTransportDebugRunInput(
+        config.rackId.value,
+        config.groups.value,
+        config.worklineCode.value,
+        config.locations.value,
+        config.testMode.value
+      ).test_mode
+    ).toBe(true)
+  })
+
   it('builds a run from direct operator input while preserving the opaque face', () => {
     const groups = [{ face: ' 90 ', bins: [bins[0]!] }]
 
     expect(validateTransportDebugRunConfig(' FIELD-RACK-07 ', groups)).toBeNull()
     expect(buildTransportDebugRunInput(' FIELD-RACK-07 ', groups, 'LINE-1')).toEqual({
+      test_mode: false,
       ...defaultTransportDebugLocations(),
       workline_code: 'LINE-1',
       rack_id: 'FIELD-RACK-07',

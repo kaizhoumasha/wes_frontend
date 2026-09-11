@@ -104,7 +104,8 @@ async function start(): Promise<void> {
         config.rackId.value,
         config.groups.value,
         config.worklineCode.value,
-        config.locations.value
+        config.locations.value,
+        config.testMode.value
       ),
       totalRounds.value!
     )
@@ -215,6 +216,7 @@ onMounted(load)
       v-model:total-rounds="totalRounds"
       :config="config"
       :round-error="roundError"
+      @update:test-mode="config.testMode.value = $event"
       @update:rack-id="config.rackId.value = $event"
       @update:workline-code="config.worklineCode.value = $event"
       @update:location="(key, value) => (config.locations.value[key] = value)"

@@ -8,11 +8,16 @@ defineProps<{
 }>()
 const emit = defineEmits<{
   'update:totalRounds': [rounds: number | undefined]
+  'update:testMode': [enabled: boolean]
   'update:rackId': [rackId: string]
   'update:worklineCode': [value: string]
   'update:location': [key: 'workstation' | 'infeed_position' | 'outfeed_position', value: string]
   'update:scanner': [index: number, value: string]
 }>()
+
+function updateTestMode(value: string | number | boolean): void {
+  emit('update:testMode', Boolean(value))
+}
 </script>
 <template>
   <section
@@ -20,6 +25,14 @@ const emit = defineEmits<{
     data-test="run-config"
   >
     <div class="config-toolbar">
+      <label class="test-mode-control">
+        测试模式
+        <el-switch
+          :model-value="config.testMode.value"
+          aria-label="测试模式"
+          @update:model-value="updateTestMode"
+        />
+      </label>
       <label>
         联调轮数
         <el-input-number
@@ -41,6 +54,13 @@ const emit = defineEmits<{
       />
       <AppButton @click="config.addGroup()">新增货架面</AppButton>
     </div>
+    <el-alert
+      v-if="config.testMode.value"
+      title="测试模式已开启：活动轮次期间，STATION_SCANxx 的扫码完成事件会向同一扫码点下发真实 MOVE_FORWARD 指令。"
+      type="warning"
+      :closable="false"
+      show-icon
+    />
 
     <section class="location-config">
       <h3>联调区域与设备</h3>
@@ -172,5 +192,11 @@ const emit = defineEmits<{
 .location-fields label {
   display: grid;
   gap: 6px;
+}
+
+.test-mode-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 </style>
