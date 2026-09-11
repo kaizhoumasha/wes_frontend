@@ -17,6 +17,20 @@ export type DeviceEvidenceStreamEvent =
   | { type: 'device_ingress.attempted'; payload: DeviceIngressAttemptEvent }
   | { type: 'device_evidence.updated'; payload: DeviceEvidenceUpdatedEvent }
 
+const DEVICE_EVIDENCE_UPDATE_KEYS = new Set([
+  'apply_status',
+  'command_code',
+  'device_code',
+  'event_type',
+  'evidence_id',
+  'kind',
+  'observation',
+  'observed_at',
+  'processed_at',
+  'reason_code',
+  'source_event_id'
+])
+
 export interface DeviceEvidenceStreamOptions {
   filters: StreamQuery
   signal: AbortSignal
@@ -88,6 +102,13 @@ function isUpdate(value: unknown): value is DeviceEvidenceUpdatedEvent {
       typeof value.source_event_id === 'string' &&
       typeof value.device_code === 'string' &&
       typeof value.apply_status === 'string' &&
+      (value.command_code === null ||
+        value.command_code === undefined ||
+        typeof value.command_code === 'string') &&
+      (value.event_type === null ||
+        value.event_type === undefined ||
+        typeof value.event_type === 'string') &&
+      Object.keys(value).every(key => DEVICE_EVIDENCE_UPDATE_KEYS.has(key)) &&
       (value.processed_at === null || typeof value.processed_at === 'string')
     )
   ) {
