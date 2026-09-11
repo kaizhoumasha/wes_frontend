@@ -256,7 +256,7 @@ export function useDeviceEvidenceStream(options: UseDeviceEvidenceStreamOptions 
           rowKey,
           requestId: null,
           evidenceId: event.payload.evidence_id ?? null,
-          recordedAt: event.payload.processed_at ?? undefined,
+          recordedAt: event.payload.processed_at ?? event.payload.observed_at ?? undefined,
           gap: false,
           payloadBytes: 0,
           attempt: null,
@@ -271,6 +271,10 @@ export function useDeviceEvidenceStream(options: UseDeviceEvidenceStreamOptions 
     if (row.evidenceId !== null) {
       row.latestUpdate = newerUpdate(row.latestUpdate, recentUpdates.get(row.evidenceId) ?? null)
       row.latestUpdate = newerUpdate(row.latestUpdate, inFlightUpdates.get(row.evidenceId) ?? null)
+      if (!row.attempt && row.latestUpdate) {
+        row.recordedAt =
+          row.latestUpdate.processed_at ?? row.latestUpdate.observed_at ?? row.recordedAt
+      }
       if (!row.attempt && !row.gap) {
         const attempts = records.value.filter(
           item => item.attempt && item.evidenceId === row.evidenceId
@@ -342,10 +346,13 @@ function newerUpdate(
 ): DeviceEvidenceUpdatedEvent | null {
   if (!left) return right
   if (!right) return left
-  return Date.parse(left.processed_at ?? '1970-01-01') >
-    Date.parse(right.processed_at ?? '1970-01-01')
+  return Date.parse(updateTimestamp(left)) > Date.parse(updateTimestamp(right))
     ? left
     : right
+}
+
+function updateTimestamp(update: DeviceEvidenceUpdatedEvent): string {
+  return update.processed_at ?? update.observed_at ?? '1970-01-01'
 }
 
 function serializedPayloadBytes(payload: Record<string, unknown> | null | undefined): number {

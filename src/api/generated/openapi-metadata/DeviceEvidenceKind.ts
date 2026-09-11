@@ -1,0 +1,30 @@
+/**
+ * 自动生成的 OpenAPI schema 字段元数据: DeviceEvidenceKind
+ *
+ * ⚠️  请勿手动编辑此文件
+ * 此文件由 scripts/generate-api-types.ts 自动生成
+ *
+ * 更新类型: pnpm generate:types
+ */
+
+import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
+
+export const DeviceEvidenceKindMetadata = {
+  "title": "DeviceEvidenceKind",
+  "description": "WES 设备诊断 Evidence 分类；不属于供应商 callback wire。",
+  "required": [],
+  "fields": {
+    "__enum": {
+      "title": "DeviceEvidenceKind",
+      "description": "WES 设备诊断 Evidence 分类；不属于供应商 callback wire。",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "enum": [
+        "DEVICE_RESULT",
+        "DEVICE_EVENT",
+        "DEVICE_OBSERVATION"
+      ]
+    }
+  }
+} satisfies OpenApiSchemaMetadata

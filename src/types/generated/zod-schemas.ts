@@ -1,4 +1,4 @@
-/** @openapi-sha256 b6af4d436071430aa6af8779affac7c4c11104fbf4371d31706b1772d00d90e5 */
+/** @openapi-sha256 e721eb07bcce2b646a5e7acfacdac38a1a7a29c70fc9d68225f8f507d3e40860 */
 /**
  * Zod Validation Schemas
  *
@@ -1043,6 +1043,15 @@ export const DeviceCreateSchema = z.object({
 
 
 /**
+ * WES 设备诊断 Evidence 分类；不属于供应商 callback wire。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const DeviceEvidenceKindSchema = z.enum(["DEVICE_RESULT", "DEVICE_EVENT", "DEVICE_OBSERVATION"])
+
+
+/**
  * device evidence 当前诊断快照；未处理的历史记录没有 processed_at。
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -1059,9 +1068,15 @@ export const DeviceEvidenceUpdateSchema = z.object({
   event_type: z.union([z.string(), z.null()]).optional(),
   /** Evidence Id */
   evidence_id: z.number(),
-  kind: z.lazy(() => DeviceIngressKindSchema),
+  kind: z.lazy(() => DeviceEvidenceKindSchema),
+  /** Observation */
+  observation: z.union([z.enum(["NOT_ACCEPTED", "RESULT_UNKNOWN"]), z.null()]).optional(),
+  /** Observed At */
+  observed_at: z.union([z.string(), z.null()]).optional(),
   /** Processed At */
   processed_at: z.union([z.string(), z.null()]),
+  /** Reason Code */
+  reason_code: z.union([z.string(), z.null()]).optional(),
   /** Source Event Id */
   source_event_id: z.string(),
 })

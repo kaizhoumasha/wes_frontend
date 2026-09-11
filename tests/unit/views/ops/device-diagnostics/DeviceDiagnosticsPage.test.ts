@@ -70,14 +70,14 @@ describe('DeviceDiagnosticsPage', () => {
     }
     Object.assign(exposed.filterForm, {
       deviceCode: 'ARM-01',
-      kind: 'DEVICE_EVENT',
+      kind: 'DEVICE_OBSERVATION',
       commandCode: '',
       applyStatus: 'RECONCILING'
     })
     exposed.applyFilters()
     expect(streamMocks.setFilters).toHaveBeenCalledWith({
       device_code: 'ARM-01',
-      kind: 'DEVICE_EVENT',
+      kind: 'DEVICE_OBSERVATION',
       apply_status: 'RECONCILING'
     })
 
@@ -89,6 +89,9 @@ describe('DeviceDiagnosticsPage', () => {
     expect(streamMocks.loadRecent).toHaveBeenCalledOnce()
     expect(streamMocks.loadMore).toHaveBeenCalledOnce()
     expect(wrapper.text()).toContain('HISTORY + LIVE')
+    expect(wrapper.text()).toContain('APPLIED 仅表示 Evidence 已应用')
+    expect(wrapper.text()).toContain('结果未知不代表设备当前故障或物理失败')
+    expect(wrapper.html()).toContain('DEVICE_OBSERVATION')
     expect(streamMocks.clear).toHaveBeenCalledOnce()
     expect(streamMocks.reconnect).toHaveBeenCalledOnce()
   })

@@ -98,6 +98,14 @@ pnpm export:release-consumer
 
 ![WMS 窄屏可靠事实查询演示](./docs/images/wms-reliable-facts.png)
 
+## 设备接入诊断
+
+在「运维工具 → 设备接入诊断」（`/ops/device-diagnostics`）查看近期设备回调、Evidence 状态与 WES 本地观察，并按设备、消息类型、命令或应用状态过滤。
+
+- `DEVICE_OBSERVATION` 是 WES 对命令未接纳或结果未知的本地事实，不是供应商 callback；列表展示观察结论、原因和观察时间。
+- `APPLIED` 只表示 Evidence 已应用，不代表设备动作物理完成；结果未知也不表示设备当前故障或物理失败。
+- 页面合并历史快照与实时 SSE 更新；出现消息缺口或历史加载失败时，可刷新历史或重连恢复当前视图。
+
 ## 工作线配置
 
 在「业务管理 → 作业线管理」（`/biz/worklines`）点击「配置」，进入独立配置页面（`/biz/worklines/:id/configuration`），按「关联设备 → 选择插件 → 配置插槽」完成配置。

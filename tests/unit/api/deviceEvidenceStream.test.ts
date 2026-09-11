@@ -6,7 +6,11 @@ import {
   type DeviceEvidenceStreamEvent
 } from '@/api/streaming/deviceEvidenceStream'
 
-function responseFromChunks(chunks: string[], status = 200, contentType = 'text/event-stream'): Response {
+function responseFromChunks(
+  chunks: string[],
+  status = 200,
+  contentType = 'text/event-stream'
+): Response {
   const encoder = new TextEncoder()
   const body = new ReadableStream<Uint8Array>({
     start(controller) {
@@ -58,9 +62,8 @@ describe('consumeDeviceEvidenceStream', () => {
     vi.resetModules()
 
     try {
-      const { consumeDeviceEvidenceStream: consumeWithDefaultDependencies } = await import(
-        '@/api/streaming/deviceEvidenceStream'
-      )
+      const { consumeDeviceEvidenceStream: consumeWithDefaultDependencies } =
+        await import('@/api/streaming/deviceEvidenceStream')
       await consumeWithDefaultDependencies({
         baseUrl: 'http://wes.test',
         filters: {},
@@ -119,6 +122,47 @@ describe('consumeDeviceEvidenceStream', () => {
     ])
   })
 
+  it('accepts internal observations only as complete evidence updates', async () => {
+    const events: DeviceEvidenceStreamEvent[] = []
+    const observation = {
+      evidence_id: 2,
+      kind: 'DEVICE_OBSERVATION',
+      source_event_id: 'OBSERVATION:CMD-002',
+      device_code: 'ARM-02',
+      command_code: 'CMD-002',
+      event_type: null,
+      observation: 'RESULT_UNKNOWN',
+      reason_code: 'TRANSPORT_RESULT_TIMEOUT',
+      observed_at: '2026-08-23T08:00:02Z',
+      apply_status: 'PENDING',
+      processed_at: null
+    } as const
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue(
+        responseFromChunks([
+          `event: device_ingress.attempted\ndata: ${JSON.stringify({ ...ATTEMPT, kind: 'DEVICE_OBSERVATION' })}\n\n`,
+          `event: device_evidence.updated\ndata: ${JSON.stringify({ ...observation, reason_code: null })}\n\n`,
+          `event: device_evidence.updated\ndata: ${JSON.stringify({ ...observation, kind: 'DEVICE_RESULT' })}\n\n`,
+          `event: device_evidence.updated\ndata: ${JSON.stringify({ ...observation, event_type: 123 })}\n\n`,
+          `event: device_evidence.updated\ndata: ${JSON.stringify({ ...observation, unknown_field: true })}\n\n`,
+          `event: device_evidence.updated\ndata: ${JSON.stringify(observation)}\n\n`
+        ])
+      )
+
+    await consumeDeviceEvidenceStream(
+      {
+        baseUrl: 'http://wes.test',
+        filters: {},
+        signal: new AbortController().signal,
+        onEvent: event => events.push(event)
+      },
+      { fetchImpl, getAccessToken: () => null, refreshAccessToken: vi.fn() }
+    )
+
+    expect(events).toEqual([{ type: 'device_evidence.updated', payload: observation }])
+  })
+
   it('encodes filters and sends the token only in the Authorization header', async () => {
     const fetchImpl = vi.fn().mockResolvedValue(responseFromChunks([]))
 
@@ -157,9 +201,11 @@ describe('consumeDeviceEvidenceStream', () => {
     const onOpen = vi.fn()
     const cancel = vi.fn()
     const body = new ReadableStream<Uint8Array>({ cancel })
-    const fetchImpl = vi.fn().mockResolvedValue(
-      new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' } })
-    )
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' } })
+      )
 
     const promise = consumeDeviceEvidenceStream(
       {
@@ -186,9 +232,11 @@ describe('consumeDeviceEvidenceStream', () => {
       }
     })
     const onOpen = vi.fn()
-    const fetchImpl = vi.fn().mockResolvedValue(
-      new Response(body, { status: 200, headers: { 'Content-Type': 'text/event-stream' } })
-    )
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(body, { status: 200, headers: { 'Content-Type': 'text/event-stream' } })
+      )
 
     const promise = consumeDeviceEvidenceStream(
       {
@@ -213,9 +261,11 @@ describe('consumeDeviceEvidenceStream', () => {
   it('does not dispatch an unterminated frame when the stream ends', async () => {
     const onOpen = vi.fn()
     const onEvent = vi.fn()
-    const fetchImpl = vi.fn().mockResolvedValue(
-      responseFromChunks([`event: device_ingress.attempted\ndata: ${JSON.stringify(ATTEMPT)}`])
-    )
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue(
+        responseFromChunks([`event: device_ingress.attempted\ndata: ${JSON.stringify(ATTEMPT)}`])
+      )
 
     await consumeDeviceEvidenceStream(
       {
@@ -343,9 +393,11 @@ describe('consumeDeviceEvidenceStream', () => {
       },
       cancel
     })
-    const fetchImpl = vi.fn().mockResolvedValue(
-      new Response(body, { status: 200, headers: { 'Content-Type': 'text/event-stream' } })
-    )
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(body, { status: 200, headers: { 'Content-Type': 'text/event-stream' } })
+      )
 
     const promise = consumeDeviceEvidenceStream(
       {
@@ -369,9 +421,11 @@ describe('consumeDeviceEvidenceStream', () => {
         controller.close()
       }
     })
-    const fetchImpl = vi.fn().mockResolvedValue(
-      new Response(body, { status: 200, headers: { 'Content-Type': 'text/event-stream' } })
-    )
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(body, { status: 200, headers: { 'Content-Type': 'text/event-stream' } })
+      )
 
     const promise = consumeDeviceEvidenceStream(
       {

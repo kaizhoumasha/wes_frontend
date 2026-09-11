@@ -17,6 +17,20 @@ export type DeviceEvidenceStreamEvent =
   | { type: 'device_ingress.attempted'; payload: DeviceIngressAttemptEvent }
   | { type: 'device_evidence.updated'; payload: DeviceEvidenceUpdatedEvent }
 
+const DEVICE_EVIDENCE_UPDATE_KEYS = new Set([
+  'apply_status',
+  'command_code',
+  'device_code',
+  'event_type',
+  'evidence_id',
+  'kind',
+  'observation',
+  'observed_at',
+  'processed_at',
+  'reason_code',
+  'source_event_id'
+])
+
 export interface DeviceEvidenceStreamOptions {
   filters: StreamQuery
   signal: AbortSignal
@@ -64,6 +78,10 @@ function isIngressKind(value: unknown): value is DeviceIngressAttemptEvent['kind
   return value === 'DEVICE_RESULT' || value === 'DEVICE_EVENT'
 }
 
+function isEvidenceKind(value: unknown): value is DeviceEvidenceUpdatedEvent['kind'] {
+  return isIngressKind(value) || value === 'DEVICE_OBSERVATION'
+}
+
 function isAttempt(value: unknown): value is DeviceIngressAttemptEvent {
   return (
     isRecord(value) &&
@@ -76,13 +94,39 @@ function isAttempt(value: unknown): value is DeviceIngressAttemptEvent {
 }
 
 function isUpdate(value: unknown): value is DeviceEvidenceUpdatedEvent {
+  if (
+    !(
+      isRecord(value) &&
+      typeof value.evidence_id === 'number' &&
+      isEvidenceKind(value.kind) &&
+      typeof value.source_event_id === 'string' &&
+      typeof value.device_code === 'string' &&
+      typeof value.apply_status === 'string' &&
+      (value.command_code === null ||
+        value.command_code === undefined ||
+        typeof value.command_code === 'string') &&
+      (value.event_type === null ||
+        value.event_type === undefined ||
+        typeof value.event_type === 'string') &&
+      Object.keys(value).every(key => DEVICE_EVIDENCE_UPDATE_KEYS.has(key)) &&
+      (value.processed_at === null || typeof value.processed_at === 'string')
+    )
+  ) {
+    return false
+  }
+
+  if (value.kind === 'DEVICE_OBSERVATION') {
+    return (
+      (value.observation === 'NOT_ACCEPTED' || value.observation === 'RESULT_UNKNOWN') &&
+      typeof value.reason_code === 'string' &&
+      typeof value.observed_at === 'string' &&
+      (value.event_type === null || value.event_type === undefined)
+    )
+  }
+
   return (
-    isRecord(value) &&
-    typeof value.evidence_id === 'number' &&
-    isIngressKind(value.kind) &&
-    typeof value.source_event_id === 'string' &&
-    typeof value.device_code === 'string' &&
-    typeof value.apply_status === 'string' &&
-    (value.processed_at === null || typeof value.processed_at === 'string')
+    (value.observation === null || value.observation === undefined) &&
+    (value.reason_code === null || value.reason_code === undefined) &&
+    (value.observed_at === null || value.observed_at === undefined)
   )
 }

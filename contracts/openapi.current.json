@@ -3200,6 +3200,16 @@
         "title": "DeviceCreate",
         "type": "object"
       },
+      "DeviceEvidenceKind": {
+        "description": "WES 设备诊断 Evidence 分类；不属于供应商 callback wire。",
+        "enum": [
+          "DEVICE_RESULT",
+          "DEVICE_EVENT",
+          "DEVICE_OBSERVATION"
+        ],
+        "title": "DeviceEvidenceKind",
+        "type": "string"
+      },
       "DeviceEvidenceUpdate": {
         "additionalProperties": false,
         "description": "device evidence 当前诊断快照；未处理的历史记录没有 processed_at。",
@@ -3239,7 +3249,33 @@
             "type": "integer"
           },
           "kind": {
-            "$ref": "#/components/schemas/DeviceIngressKind"
+            "$ref": "#/components/schemas/DeviceEvidenceKind"
+          },
+          "observation": {
+            "anyOf": [
+              {
+                "enum": [
+                  "NOT_ACCEPTED",
+                  "RESULT_UNKNOWN"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
           },
           "processed_at": {
             "anyOf": [
@@ -3251,6 +3287,17 @@
               }
             ],
             "title": "Processed At"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Code"
           },
           "source_event_id": {
             "title": "Source Event Id",
@@ -19978,7 +20025,7 @@
             "schema": {
               "anyOf": [
                 {
-                  "$ref": "#/components/schemas/DeviceIngressKind"
+                  "$ref": "#/components/schemas/DeviceEvidenceKind"
                 },
                 {
                   "type": "null"
@@ -20115,7 +20162,7 @@
             "schema": {
               "anyOf": [
                 {
-                  "$ref": "#/components/schemas/DeviceIngressKind"
+                  "$ref": "#/components/schemas/DeviceEvidenceKind"
                 },
                 {
                   "type": "null"
@@ -24053,7 +24100,8 @@
                                   },
                                   {
                                     "enum": [
-                                      null
+                                      null,
+                                      ""
                                     ]
                                   }
                                 ]
@@ -24142,7 +24190,8 @@
                                   },
                                   {
                                     "enum": [
-                                      null
+                                      null,
+                                      ""
                                     ]
                                   }
                                 ]
@@ -24227,7 +24276,10 @@
                             "additionalProperties": true,
                             "properties": {
                               "arrival_face": {
-                                "not": {}
+                                "enum": [
+                                  null,
+                                  ""
+                                ]
                               },
                               "failure_code": {
                                 "enum": [

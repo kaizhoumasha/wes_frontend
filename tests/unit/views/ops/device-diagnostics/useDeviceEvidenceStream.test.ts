@@ -201,6 +201,57 @@ describe('useDeviceEvidenceStream', () => {
     stream.disconnect()
   })
 
+  it('orders internal observations by observed_at when processed_at is absent', () => {
+    const { connector, sessions } = createConnector()
+    const stream = useDeviceEvidenceStream({ connector })
+    stream.connect()
+
+    sessions[0]?.options.onEvent({
+      type: 'device_evidence.updated',
+      payload: {
+        evidence_id: 100,
+        kind: 'DEVICE_OBSERVATION',
+        source_event_id: 'OBSERVATION:CMD-100',
+        device_code: 'ARM-100',
+        command_code: 'CMD-100',
+        event_type: null,
+        observation: 'NOT_ACCEPTED',
+        reason_code: 'DELIVERY_REJECTED',
+        observed_at: '2026-08-23T08:00:01Z',
+        apply_status: 'PENDING',
+        processed_at: null
+      }
+    })
+    sessions[0]?.options.onEvent({
+      type: 'device_evidence.updated',
+      payload: {
+        evidence_id: 100,
+        kind: 'DEVICE_OBSERVATION',
+        source_event_id: 'OBSERVATION:CMD-100',
+        device_code: 'ARM-100',
+        command_code: 'CMD-100',
+        event_type: null,
+        observation: 'RESULT_UNKNOWN',
+        reason_code: 'TRANSPORT_RESULT_TIMEOUT',
+        observed_at: '2026-08-23T08:00:02Z',
+        apply_status: 'PENDING',
+        processed_at: null
+      }
+    })
+
+    expect(stream.rows.value).toMatchObject([
+      {
+        evidenceId: 100,
+        recordedAt: '2026-08-23T08:00:02Z',
+        latestUpdate: {
+          observation: 'RESULT_UNKNOWN',
+          reason_code: 'TRANSPORT_RESULT_TIMEOUT'
+        }
+      }
+    ])
+    stream.disconnect()
+  })
+
   it('evicts by serialized UTF-8 payload bytes rather than observed request-body bytes', () => {
     const { connector, sessions } = createConnector()
     const stream = useDeviceEvidenceStream({ connector })

@@ -15,6 +15,8 @@ interface EvidenceDisplayRow extends Record<string, unknown> {
   kind: string
   device: string
   subject: string
+  observation: string
+  reason: string
   disposition: string
   applyStatus: string
   httpStatus: string
@@ -39,6 +41,8 @@ const columns: TableColumnConfig[] = [
   { field: 'sourceLabel', title: '记录来源', width: 130 },
   { field: 'device', title: '设备', minWidth: 130 },
   { field: 'subject', title: '指令 / 事件', minWidth: 160 },
+  { field: 'observation', title: '观察结论', width: 120 },
+  { field: 'reason', title: '原因', minWidth: 210 },
   {
     field: 'disposition',
     title: 'HTTP 处置',
@@ -108,6 +112,8 @@ function toDisplayRow(source: DeviceEvidenceRow): EvidenceDisplayRow {
       kind: '',
       device: '',
       subject: '',
+      observation: '',
+      reason: '',
       disposition: '',
       applyStatus: '',
       httpStatus: ''
@@ -115,10 +121,16 @@ function toDisplayRow(source: DeviceEvidenceRow): EvidenceDisplayRow {
   }
   const attempt = source.attempt
   const update = source.latestUpdate
+  const isObservation = update?.kind === 'DEVICE_OBSERVATION'
   return {
     source,
-    time: attempt?.received_at ?? source.recordedAt ?? update?.processed_at ?? '—',
-    sourceLabel: attempt ? '回调尝试' : '证据记录',
+    time:
+      attempt?.received_at ??
+      (isObservation ? update.observed_at : undefined) ??
+      source.recordedAt ??
+      update?.processed_at ??
+      '—',
+    sourceLabel: attempt ? '回调尝试' : isObservation ? 'WES 本地观察' : '证据记录',
     kind: attempt?.kind ?? update?.kind ?? '—',
     device: deviceCode(source) ?? '—',
     subject:
@@ -127,10 +139,20 @@ function toDisplayRow(source: DeviceEvidenceRow): EvidenceDisplayRow {
       update?.command_code ??
       update?.event_type ??
       '—',
+    observation: observationLabel(update?.observation),
+    reason: update?.reason_code ?? '—',
     disposition: attempt?.disposition ?? '—',
     applyStatus: update?.apply_status ?? attempt?.apply_status ?? '—',
     httpStatus: attempt ? String(attempt.status_code) : '—'
   }
+}
+
+function observationLabel(
+  value: NonNullable<DeviceEvidenceRow['latestUpdate']>['observation']
+): string {
+  if (value === 'NOT_ACCEPTED') return '未接纳'
+  if (value === 'RESULT_UNKNOWN') return '结果未知'
+  return '—'
 }
 
 function gapOr(row: Record<string, unknown>, fallback: unknown) {

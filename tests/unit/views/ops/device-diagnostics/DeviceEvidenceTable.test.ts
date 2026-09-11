@@ -77,6 +77,8 @@ describe('DeviceEvidenceTable', () => {
       '记录来源',
       '设备',
       '指令 / 事件',
+      '观察结论',
+      '原因',
       'HTTP 处置',
       'Evidence 应用',
       'HTTP',
@@ -85,7 +87,7 @@ describe('DeviceEvidenceTable', () => {
     const exposed = wrapper.vm as unknown as {
       spanMethod: (scope: { row: DeviceEvidenceRow; columnIndex: number }) => [number, number]
     }
-    expect(exposed.spanMethod({ row: gap, columnIndex: 0 })).toEqual([1, 9])
+    expect(exposed.spanMethod({ row: gap, columnIndex: 0 })).toEqual([1, 11])
     expect(exposed.spanMethod({ row: gap, columnIndex: 1 })).toEqual([0, 0])
 
     expect(
@@ -110,6 +112,45 @@ describe('DeviceEvidenceTable', () => {
       'ACCEPTED'
     ])
     expect(applyBadge.props?.class).toContain('evidence-badge--warning')
+  })
+
+  it('labels WES observations with their conclusion, reason and observed time', () => {
+    const observationRow: DeviceEvidenceRow = {
+      rowKey: 'evidence:2',
+      requestId: null,
+      evidenceId: 2,
+      recordedAt: '2026-08-23T08:00:03Z',
+      gap: false,
+      payloadBytes: 0,
+      attempt: null,
+      latestUpdate: {
+        evidence_id: 2,
+        kind: 'DEVICE_OBSERVATION',
+        source_event_id: 'OBSERVATION:CMD-002',
+        device_code: 'ARM-02',
+        command_code: 'CMD-002',
+        event_type: null,
+        observation: 'RESULT_UNKNOWN',
+        reason_code: 'TRANSPORT_RESULT_TIMEOUT',
+        observed_at: '2026-08-23T08:00:02Z',
+        apply_status: 'PENDING',
+        processed_at: null
+      }
+    }
+    const wrapper = shallowMount(DeviceEvidenceTable, {
+      props: { rows: [observationRow] },
+      global: { stubs: { DataTable: DataTableStub, StandardDrawer: StandardDrawerStub } }
+    })
+
+    expect(wrapper.findComponent(DataTableStub).props('data')).toMatchObject([
+      {
+        time: '2026-08-23T08:00:02Z',
+        sourceLabel: 'WES 本地观察',
+        subject: 'CMD-002',
+        observation: '结果未知',
+        reason: 'TRANSPORT_RESULT_TIMEOUT'
+      }
+    ])
   })
 
   it('shows parsed JSON in an escaped pre and emits row-scoped real command launch', async () => {
