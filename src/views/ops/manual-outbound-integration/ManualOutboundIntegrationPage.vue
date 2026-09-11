@@ -27,6 +27,8 @@ import { useManualOutboundIntegration } from './useManualOutboundIntegration'
 import {
   buildDefaultDeviceData,
   buildDefaultWmsData,
+  buildRackTransportResources,
+  buildInboundBatchTransport,
   isWmsOutboundPhase,
   parseEditableJsonObject
 } from './manualOutboundPayloads'
@@ -103,6 +105,9 @@ const transportForm = reactive({
   targetFace: '',
   rcsTemplateId: 'CTU01' as TransportActionInput['rcs_template_id']
 })
+const rackTransportResources = computed(() =>
+  run.value ? buildRackTransportResources(run.value) : []
+)
 const pendingActionBodies = new Map<string, object>()
 
 const phases: IntegrationPhase[] = [
@@ -135,7 +140,7 @@ const phaseLabels: Record<IntegrationPhase, string> = {
   RACK_TRANSPORT: '创建任务资源货架搬运',
   RACK_ARRIVAL: '确认五层货架到位',
   BIN_INBOUND_BATCH: '请求入站料箱批次',
-  BIN_TRANSPORT: '创建料箱搬运',
+  BIN_TRANSPORT: '整批料箱投料',
   POINT1_ARRIVAL: '确认料箱到达 1 号口',
   POINT2_SCAN: 'point2 实际扫码',
   WORK_ADMISSION: 'WMS 准入决定',
@@ -271,6 +276,8 @@ watch(
   }
 )
 const isClosed = computed(() => run.value?.status === 'CLOSED_BY_OPERATOR')
+const isInboundBatchTransport = computed(() => selectedPhase.value === 'BIN_TRANSPORT')
+const inboundBatch = ref<ReturnType<typeof buildInboundBatchTransport> | null>(null)
 const isBinReturnTransport = computed(() => selectedPhase.value === 'BIN_RETURN_TRANSPORT')
 const isRackDepartureTransport = computed(() => selectedPhase.value === 'RACK_DEPARTURE')
 const selectedInteraction = computed(() => phaseInteractions[selectedPhase.value])
@@ -379,7 +386,7 @@ const primaryLabel = computed(() => {
     RACK_TRANSPORT: '确认货架搬运已完成',
     RACK_ARRIVAL: '确认五层货架到位',
     BIN_INBOUND_BATCH: '发送 inbound_batch',
-    BIN_TRANSPORT: '确认料箱搬运已完成',
+    BIN_TRANSPORT: '确认整批料箱已到达投料口',
     POINT1_ARRIVAL: '确认到达 1 号口',
     POINT2_SCAN: '记录实际扫码',
     WORK_ADMISSION: '发送准入 Operation',
@@ -681,25 +688,28 @@ function applyRackPreset(): void {
   const current = run.value
   const rackId = transportForm.rackId.trim()
   if (!current || !rackId || selectedPhase.value !== 'RACK_TRANSPORT') return
-  transportForm.sourceLocation = rackId
-  if (current.plan_resources?.target_rack.rack_id === rackId) {
-    transportForm.targetLocation = manualOutboundSite.outboundTransferPosition
-    transportForm.targetFace = current.plan_resources.target_rack.rack_face
-    return
-  }
-  const rackIndex =
-    current.plan_resources?.bin_source_racks.findIndex(item => item.rack_id === rackId) ?? -1
-  transportForm.targetLocation =
-    manualOutboundSite.binRackPositions[Math.max(0, Math.min(rackIndex, 1))] ??
-    manualOutboundSite.binRackPositions[0]
-  transportForm.targetFace =
-    current.plan_resources?.bin_source_racks.find(item => item.rack_id === rackId)?.rack_face ?? ''
+  const resource = rackTransportResources.value.find(item => item.rackId === rackId)
+  if (!resource) return
+  transportForm.sourceLocation = resource.rackId
+  transportForm.targetLocation = resource.target
+  transportForm.targetFace = resource.face
+  transportForm.rcsTemplateId = resource.template
 }
 
 function openTransport(): void {
   const current = run.value
   if (!current) return
-  if (selectedPhase.value === 'RACK_TRANSPORT') {
+  if (selectedPhase.value === 'BIN_TRANSPORT') {
+    try {
+      inboundBatch.value = buildInboundBatchTransport(current)
+    } catch (error) {
+      ElMessage.warning(error instanceof Error ? error.message : 'WMS 投料批次不可用')
+      return
+    }
+    transportForm.kind = 'MOVE_BINS'
+    transportForm.rackId = inboundBatch.value.action.rack_id
+    transportForm.rcsTemplateId = manualOutboundSite.outboundRcsTemplate
+  } else if (selectedPhase.value === 'RACK_TRANSPORT') {
     transportForm.kind = 'MOVE_RACK'
     transportForm.rackId = current.plan_resources?.target_rack.rack_id ?? ''
     transportForm.rcsTemplateId = manualOutboundSite.outboundRcsTemplate
@@ -827,9 +837,19 @@ async function sendTransport(): Promise<void> {
     ElMessage.warning(`当前应操作 ${phaseLabels[current.current_phase]}`)
     return
   }
+  if (
+    selectedPhase.value === 'RACK_TRANSPORT' &&
+    (!rackTransportResources.value.some(resource => resource.rackId === rackId) ||
+      !transportForm.targetLocation)
+  ) {
+    ElMessage.warning('请选择计划中的货架及目标工作位')
+    return
+  }
   if (current.profile === 'FULL_SITE_INTEGRATION') {
     await ElMessageBox.confirm(
-      `将为真实货架 ${rackId} 创建一个 TransportTask，请确认 RCS 和现场通道已就绪。`,
+      isInboundBatchTransport.value
+        ? `将从货架 ${rackId} 搬运整批 ${inboundBatch.value?.bins.length} 个料箱至投料口 ${current.site_configuration.infeed_position}，创建一个 TransportTask。`
+        : `将为真实货架 ${rackId} 创建一个 TransportTask，请确认 RCS 和现场通道已就绪。`,
       '确认真实 Transport',
       { type: 'warning', confirmButtonText: '创建任务' }
     )
@@ -843,6 +863,9 @@ async function sendTransport(): Promise<void> {
         rack_id: rackId,
         rcs_template_id: transportForm.rcsTemplateId,
         expected_version: current.version
+      }
+      if (isInboundBatchTransport.value) {
+        return { ...common, ...buildInboundBatchTransport(current).action }
       }
       if (transportForm.kind === 'ROTATE_RACK') {
         return {
@@ -887,7 +910,10 @@ async function sendTransport(): Promise<void> {
             kind: 'MOVE_RACK' as const,
             source: { kind: 'RACK', location_code: rackId },
             target: { kind: 'RACK_POSITION', location_code: transportForm.targetLocation.trim() },
-            target_face: transportForm.targetFace.trim()
+            target_face:
+              selectedPhase.value === 'RACK_TRANSPORT'
+                ? transportForm.targetFace
+                : transportForm.targetFace.trim()
           }
     },
     body => api.transport(current.run_id, body)
@@ -1100,7 +1126,8 @@ onUnmounted(() => {
 
     <section class="site-configuration">
       <strong>KT16 现场参数</strong>
-      <span>出库：CTU01 · 货架号 → OUT65 / KT16 / KT17</span>
+      <span>转运货架出库：F01 · 货架号 → OUT65</span>
+      <span>五层货架出库：CTU01 · 货架号 → KT16 / KT17</span>
       <span>回库：CTU03 · 货架号 → WH05（五层货架）</span>
       <span>料箱：CNV0301 → SCAN9/10/11/12 → CNV0302</span>
       <span>ECS：{{ manualOutboundSite.ecsEndpoint }}</span>
@@ -1494,75 +1521,150 @@ onUnmounted(() => {
 
     <el-dialog
       v-model="transportVisible"
-      title="创建 Transport 动作"
+      :title="isInboundBatchTransport ? '整批料箱投料' : '创建 Transport 动作'"
       width="min(620px, 92vw)"
     >
       <el-form label-position="top">
-        <el-form-item label="plan_delta rack_id">
-          <el-input
-            v-model="transportForm.rackId"
-            @input="applyRackPreset"
-          />
-        </el-form-item>
-        <el-form-item label="动作">
-          <el-select v-model="transportForm.kind">
-            <el-option
-              label="移动货架"
-              value="MOVE_RACK"
+        <template v-if="isInboundBatchTransport && inboundBatch">
+          <p>按第六步 WMS 批次搬运全部 {{ inboundBatch.bins.length }} 个料箱，合为一个任务。</p>
+          <el-table
+            :data="inboundBatch.bins"
+            row-key="bin_code"
+            aria-label="投料批次料箱清单"
+          >
+            <el-table-column
+              prop="bin_code"
+              label="料箱号"
             />
-            <el-option
-              label="旋转货架"
-              value="ROTATE_RACK"
+            <el-table-column
+              prop="source_locator.rack_id"
+              label="来源货架"
             />
-            <el-option
-              label="移动料箱"
-              value="MOVE_BINS"
+            <el-table-column
+              prop="source_locator.rack_face"
+              label="货架面"
+              width="80"
             />
-          </el-select>
-        </el-form-item>
-        <el-form-item
-          :label="
-            transportForm.kind === 'MOVE_RACK'
-              ? '来源货架号'
-              : isBinReturnTransport
-                ? '出料口编码'
-                : 'source location'
-          "
-        >
-          <el-input
-            v-model="transportForm.sourceLocation"
-            :disabled="transportForm.kind === 'MOVE_RACK'"
-          />
-        </el-form-item>
-        <el-form-item
-          v-if="transportForm.kind !== 'ROTATE_RACK' && !isBinReturnTransport"
-          :label="isRackDepartureTransport ? '回库库区代码' : '目标工作位/投料口'"
-        >
-          <el-input v-model="transportForm.targetLocation" />
-        </el-form-item>
-        <template v-if="transportForm.kind === 'MOVE_BINS'">
-          <el-form-item label="bin_code"><el-input v-model="transportForm.binCode" /></el-form-item>
-          <el-form-item label="rack_face">
-            <el-input v-model="transportForm.rackFace" />
-          </el-form-item>
-          <el-form-item label="slot_id"><el-input v-model="transportForm.slotId" /></el-form-item>
+            <el-table-column
+              prop="source_locator.slot_id"
+              label="来源储位"
+              min-width="150"
+            />
+          </el-table>
+          <p>
+            目标投料口：
+            <strong>{{ inboundBatch.action.target.location_code }}</strong>
+          </p>
         </template>
-        <el-form-item
-          v-else
-          label="target_face"
-        >
-          <el-input v-model="transportForm.targetFace" />
-        </el-form-item>
-        <el-form-item label="RCS template">
-          <el-select v-model="transportForm.rcsTemplateId">
-            <el-option
-              v-for="item in ['CTU01', 'CTU02', 'CTU03', 'F01']"
-              :key="item"
-              :label="item"
-              :value="item"
+        <template v-else>
+          <el-form-item label="plan_delta 货架资源">
+            <el-select
+              v-if="selectedPhase === 'RACK_TRANSPORT'"
+              v-model="transportForm.rackId"
+              aria-label="选择计划货架"
+              @change="applyRackPreset"
+            >
+              <el-option
+                v-for="resource in rackTransportResources"
+                :key="resource.rackId"
+                :value="resource.rackId"
+                :label="`${resource.role} · ${resource.rackId} · ${resource.template} → ${resource.target || '待选择工作位'} · 面 ${resource.face}`"
+              />
+            </el-select>
+            <el-input
+              v-else
+              v-model="transportForm.rackId"
+              @input="applyRackPreset"
             />
-          </el-select>
-        </el-form-item>
+          </el-form-item>
+          <el-form-item label="动作">
+            <el-select
+              v-model="transportForm.kind"
+              :disabled="selectedPhase === 'RACK_TRANSPORT'"
+            >
+              <el-option
+                label="移动货架"
+                value="MOVE_RACK"
+              />
+              <el-option
+                label="旋转货架"
+                value="ROTATE_RACK"
+              />
+              <el-option
+                label="移动料箱"
+                value="MOVE_BINS"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item
+            :label="
+              transportForm.kind === 'MOVE_RACK'
+                ? '来源货架号'
+                : isBinReturnTransport
+                  ? '出料口编码'
+                  : 'source location'
+            "
+          >
+            <el-input
+              v-model="transportForm.sourceLocation"
+              :disabled="transportForm.kind === 'MOVE_RACK'"
+            />
+          </el-form-item>
+          <el-form-item
+            v-if="transportForm.kind !== 'ROTATE_RACK' && !isBinReturnTransport"
+            :label="isRackDepartureTransport ? '回库库区代码' : '目标工作位/投料口'"
+          >
+            <el-select
+              v-if="selectedPhase === 'RACK_TRANSPORT'"
+              v-model="transportForm.targetLocation"
+              aria-label="目标工作位"
+            >
+              <el-option
+                v-for="position in transportForm.rcsTemplateId === 'F01'
+                  ? [run!.site_configuration.outbound_transfer_position]
+                  : run!.site_configuration.bin_rack_positions"
+                :key="position"
+                :label="position"
+                :value="position"
+              />
+            </el-select>
+            <el-input
+              v-else
+              v-model="transportForm.targetLocation"
+            />
+          </el-form-item>
+          <template v-if="transportForm.kind === 'MOVE_BINS'">
+            <el-form-item label="bin_code">
+              <el-input v-model="transportForm.binCode" />
+            </el-form-item>
+            <el-form-item label="rack_face">
+              <el-input v-model="transportForm.rackFace" />
+            </el-form-item>
+            <el-form-item label="slot_id"><el-input v-model="transportForm.slotId" /></el-form-item>
+          </template>
+          <el-form-item
+            v-else
+            label="target_face"
+          >
+            <el-input
+              v-model="transportForm.targetFace"
+              :disabled="selectedPhase === 'RACK_TRANSPORT'"
+            />
+          </el-form-item>
+          <el-form-item label="RCS template">
+            <el-select
+              v-model="transportForm.rcsTemplateId"
+              :disabled="selectedPhase === 'RACK_TRANSPORT'"
+            >
+              <el-option
+                v-for="item in ['CTU01', 'CTU02', 'CTU03', 'F01']"
+                :key="item"
+                :label="item"
+                :value="item"
+              />
+            </el-select>
+          </el-form-item>
+        </template>
       </el-form>
       <template #footer>
         <el-button @click="transportVisible = false">取消</el-button>
@@ -1570,7 +1672,11 @@ onUnmounted(() => {
           :disabled="!isSelectedCurrent || isClosed || !permissionAccess.transport"
           @click="sendTransport"
         >
-          创建一个任务
+          {{
+            isInboundBatchTransport
+              ? `创建整批投料任务（${inboundBatch?.bins.length ?? 0} 箱）`
+              : '创建一个任务'
+          }}
         </el-button>
       </template>
     </el-dialog>

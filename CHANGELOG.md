@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.23.2.0] - 2026-09-10
+
+### Fixed
+
+- 手工出库第四步按转运货架和五层货架角色带入 F01/CTU01、目标工作位及计划面向。
+- 第六步默认请求最多 4 箱，第七步展示 WMS 完整批次及每箱来源储位，整批创建一个搬往投料口的 TransportTask。
+
 ## [0.23.1.0] - 2026-09-10
 
 ### Changed
