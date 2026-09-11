@@ -68,6 +68,7 @@ export function buildDefaultWmsData(
       }
     case 'WORK_ADMISSION':
       return {
+        task_id: run.task_id ?? '',
         bin_code: run.bin_code ?? '',
         scanned_at:
           typeof point2Scan?.result.scanned_at === 'number'
