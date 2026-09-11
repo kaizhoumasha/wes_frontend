@@ -72,8 +72,10 @@ defineExpose({ filterForm, applyFilters })
         <p class="eyebrow">DEVICE INGRESS / HISTORY + LIVE</p>
         <h1>设备接入诊断</h1>
         <p class="page-description">
-          加载近期 RESULT、EVENT 回调记录，持续更新 Evidence 状态。较早的证据记录不含 HTTP
-          回调详情。
+          加载近期 RESULT、EVENT 回调与 WES 本地观察，持续更新 Evidence 状态。APPLIED 仅表示
+          Evidence
+          已应用，不代表设备动作物理成功；结果未知不代表设备当前故障或物理失败。较早的证据记录不含
+          HTTP 回调详情。
         </p>
       </div>
       <div class="connection-summary">
@@ -114,7 +116,7 @@ defineExpose({ filterForm, applyFilters })
         <el-select
           v-model="filterForm.kind"
           clearable
-          placeholder="RESULT / EVENT"
+          placeholder="RESULT / EVENT / OBSERVATION"
           aria-label="消息类型过滤"
         >
           <el-option
@@ -124,6 +126,10 @@ defineExpose({ filterForm, applyFilters })
           <el-option
             label="DEVICE_EVENT"
             value="DEVICE_EVENT"
+          />
+          <el-option
+            label="DEVICE_OBSERVATION"
+            value="DEVICE_OBSERVATION"
           />
         </el-select>
         <el-input

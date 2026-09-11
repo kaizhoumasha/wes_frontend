@@ -119,6 +119,43 @@ describe('consumeDeviceEvidenceStream', () => {
     ])
   })
 
+  it('accepts internal observations only as complete evidence updates', async () => {
+    const events: DeviceEvidenceStreamEvent[] = []
+    const observation = {
+      evidence_id: 2,
+      kind: 'DEVICE_OBSERVATION',
+      source_event_id: 'OBSERVATION:CMD-002',
+      device_code: 'ARM-02',
+      command_code: 'CMD-002',
+      event_type: null,
+      observation: 'RESULT_UNKNOWN',
+      reason_code: 'TRANSPORT_RESULT_TIMEOUT',
+      observed_at: '2026-08-23T08:00:02Z',
+      apply_status: 'PENDING',
+      processed_at: null
+    } as const
+    const fetchImpl = vi.fn().mockResolvedValue(
+      responseFromChunks([
+        `event: device_ingress.attempted\ndata: ${JSON.stringify({ ...ATTEMPT, kind: 'DEVICE_OBSERVATION' })}\n\n`,
+        `event: device_evidence.updated\ndata: ${JSON.stringify({ ...observation, reason_code: null })}\n\n`,
+        `event: device_evidence.updated\ndata: ${JSON.stringify({ ...observation, kind: 'DEVICE_RESULT' })}\n\n`,
+        `event: device_evidence.updated\ndata: ${JSON.stringify(observation)}\n\n`
+      ])
+    )
+
+    await consumeDeviceEvidenceStream(
+      {
+        baseUrl: 'http://wes.test',
+        filters: {},
+        signal: new AbortController().signal,
+        onEvent: event => events.push(event)
+      },
+      { fetchImpl, getAccessToken: () => null, refreshAccessToken: vi.fn() }
+    )
+
+    expect(events).toEqual([{ type: 'device_evidence.updated', payload: observation }])
+  })
+
   it('encodes filters and sends the token only in the Authorization header', async () => {
     const fetchImpl = vi.fn().mockResolvedValue(responseFromChunks([]))
 

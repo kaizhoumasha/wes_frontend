@@ -1,4 +1,4 @@
-/** @openapi-sha256 b6af4d436071430aa6af8779affac7c4c11104fbf4371d31706b1772d00d90e5 */
+/** @openapi-sha256 e721eb07bcce2b646a5e7acfacdac38a1a7a29c70fc9d68225f8f507d3e40860 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -5126,6 +5126,12 @@ export interface components {
             upstream_device_id?: number | null;
         };
         /**
+         * DeviceEvidenceKind
+         * @description WES 设备诊断 Evidence 分类；不属于供应商 callback wire。
+         * @enum {string}
+         */
+        DeviceEvidenceKind: "DEVICE_RESULT" | "DEVICE_EVENT" | "DEVICE_OBSERVATION";
+        /**
          * DeviceEvidenceUpdate
          * @description device evidence 当前诊断快照；未处理的历史记录没有 processed_at。
          */
@@ -5140,9 +5146,15 @@ export interface components {
             event_type?: string | null;
             /** Evidence Id */
             evidence_id: number;
-            kind: components["schemas"]["DeviceIngressKind"];
+            kind: components["schemas"]["DeviceEvidenceKind"];
+            /** Observation */
+            observation?: ("NOT_ACCEPTED" | "RESULT_UNKNOWN") | null;
+            /** Observed At */
+            observed_at?: string | null;
             /** Processed At */
             processed_at: string | null;
+            /** Reason Code */
+            reason_code?: string | null;
             /** Source Event Id */
             source_event_id: string;
         };
@@ -11013,7 +11025,7 @@ export interface operations {
                 command_code?: string | null;
                 cursor?: string | null;
                 device_code?: string | null;
-                kind?: components["schemas"]["DeviceIngressKind"] | null;
+                kind?: components["schemas"]["DeviceEvidenceKind"] | null;
                 limit?: number;
             };
             header?: never;
@@ -11048,7 +11060,7 @@ export interface operations {
                 apply_status?: components["schemas"]["InboundEvidenceApplyStatus"] | null;
                 command_code?: string | null;
                 device_code?: string | null;
-                kind?: components["schemas"]["DeviceIngressKind"] | null;
+                kind?: components["schemas"]["DeviceEvidenceKind"] | null;
             };
             header?: never;
             path?: never;
@@ -12958,7 +12970,7 @@ export interface operations {
                     [key: string]: unknown;
                 }) | ({
                     data: ({
-                        arrival_face?: string | null;
+                        arrival_face?: string | (null | "");
                         failure_code?: unknown;
                         final_position: {
                             /** @enum {string} */
@@ -12979,7 +12991,7 @@ export interface operations {
                     } & {
                         [key: string]: unknown;
                     }) | ({
-                        arrival_face?: string | null;
+                        arrival_face?: string | (null | "");
                         /** @enum {string} */
                         failure_code: "MANUAL_ABORTED" | "RCS_EXECUTION_FAILED" | "RCS_TASK_REJECTED";
                         final_position: {
@@ -13001,7 +13013,8 @@ export interface operations {
                     } & {
                         [key: string]: unknown;
                     }) | ({
-                        arrival_face?: unknown;
+                        /** @enum {unknown} */
+                        arrival_face?: null | "";
                         /** @enum {string} */
                         failure_code: "POSITION_UNKNOWN";
                         final_position?: unknown;

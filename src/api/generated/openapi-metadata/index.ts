@@ -82,6 +82,7 @@ export { DebugTransportTaskResetResultMetadata } from './DebugTransportTaskReset
 export { DeviceActionRequestMetadata } from './DeviceActionRequest'
 export { DeviceCommandCallbackResponseMetadata } from './DeviceCommandCallbackResponse'
 export { DeviceCreateMetadata } from './DeviceCreate'
+export { DeviceEvidenceKindMetadata } from './DeviceEvidenceKind'
 export { DeviceEvidenceUpdateMetadata } from './DeviceEvidenceUpdate'
 export { DeviceIngressAttemptMetadata } from './DeviceIngressAttempt'
 export { DeviceIngressDispositionMetadata } from './DeviceIngressDisposition'

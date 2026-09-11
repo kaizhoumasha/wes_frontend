@@ -57,14 +57,37 @@ export const DeviceEvidenceUpdateMetadata = {
       "nullable": false,
       "enum": [
         "DEVICE_RESULT",
-        "DEVICE_EVENT"
+        "DEVICE_EVENT",
+        "DEVICE_OBSERVATION"
       ],
-      "ref": "DeviceIngressKind"
+      "ref": "DeviceEvidenceKind"
+    },
+    "observation": {
+      "title": "Observation",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "enum": [
+        "NOT_ACCEPTED",
+        "RESULT_UNKNOWN"
+      ]
+    },
+    "observed_at": {
+      "title": "Observed At",
+      "type": "string",
+      "required": false,
+      "nullable": true
     },
     "processed_at": {
       "title": "Processed At",
       "type": "string",
       "required": true,
+      "nullable": true
+    },
+    "reason_code": {
+      "title": "Reason Code",
+      "type": "string",
+      "required": false,
       "nullable": true
     },
     "source_event_id": {
