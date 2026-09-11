@@ -313,10 +313,16 @@ describe('TransportDebugRunPanel', () => {
   })
 
   it('freezes into observer mode and exposes the current task without a force-advance action', async () => {
-    runState.activeRun.value = snapshot()
+    runState.activeRun.value = {
+      ...snapshot(),
+      scan_device_codes: ['STATION_SCAN1', 'STATION_SCAN2', 'STATION_SCAN3', 'STATION_SCAN4']
+    }
     const wrapper = mountDialog()
     await flushPromises()
-    expect(wrapper.get('[data-test="run-observer"]').text()).toContain('WAIT_SCAN12')
+    expect(wrapper.get('[data-test="run-observer"]').text()).toContain(
+      '等待出料口扫码（STATION_SCAN4）'
+    )
+    expect(wrapper.get('[data-test="run-observer"]').text()).not.toContain('SCAN12')
     expect(wrapper.text()).toContain('EVIDENCE_RECONCILING')
     expect(wrapper.text()).not.toContain('强制推进')
     const task = wrapper.findAll('button').find(button => button.text().includes('transport-3'))
@@ -498,7 +504,8 @@ describe('TransportDebugRunPanel', () => {
     const wrapper = mountDialog()
     await flushPromises()
     expect(wrapper.get('[data-test="terminal-failure"]').text()).toContain('EVIDENCE_RECONCILING')
-    expect(wrapper.get('[data-test="terminal-failure"]').text()).toContain('WAIT_SCAN12')
+    expect(wrapper.get('[data-test="terminal-failure"]').text()).toContain('等待出料口扫码')
+    expect(wrapper.get('[data-test="terminal-failure"]').text()).not.toContain('WAIT_SCAN12')
     const task = wrapper.findAll('button').find(button => button.text().includes('transport-3'))
     await task?.trigger('click')
     expect(wrapper.emitted('selectTask')).toEqual([['transport-3']])

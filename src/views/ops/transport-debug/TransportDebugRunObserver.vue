@@ -14,6 +14,11 @@ const PHASE_LABELS: Record<DebugRunStep['phase'], string> = {
   ROTATE_TO_NEXT_FACE: '货架旋转至下一面',
   RACK_TO_STORAGE: '货架返库'
 }
+function phaseLabel(phase: DebugRunStep['phase']) {
+  return phase === 'WAIT_SCAN12'
+    ? `${PHASE_LABELS[phase]}（${snapshot.value.scan_device_codes[3]}）`
+    : PHASE_LABELS[phase]
+}
 const currentGroup = computed(
   () => snapshot.value?.face_groups[snapshot.value.current_group_index] ?? null
 )
@@ -68,7 +73,9 @@ function showsStepGroup(step: DebugRunStep): boolean {
       </div>
       <div>
         <span>进度</span>
-        <strong>第 {{ snapshot.current_group_index + 1 }} 面 / {{ snapshot.current_phase }}</strong>
+        <strong>
+          第 {{ snapshot.current_group_index + 1 }} 面 / {{ phaseLabel(snapshot.current_phase) }}
+        </strong>
       </div>
       <div>
         <span>状态</span>
@@ -95,7 +102,7 @@ function showsStepGroup(step: DebugRunStep): boolean {
         :closable="false"
         show-icon
       />
-      <p>失败阶段：{{ snapshot.current_phase }}</p>
+      <p>失败阶段：{{ phaseLabel(snapshot.current_phase) }}</p>
     </section>
 
     <section
@@ -111,7 +118,7 @@ function showsStepGroup(step: DebugRunStep): boolean {
         >
           <header>
             <span>步骤 {{ step.ordinal + 1 }}</span>
-            <strong>{{ PHASE_LABELS[step.phase] }}</strong>
+            <strong>{{ phaseLabel(step.phase) }}</strong>
             <span :class="['step-status', `step-status--${step.status.toLowerCase()}`]">
               {{ step.status }}
             </span>
