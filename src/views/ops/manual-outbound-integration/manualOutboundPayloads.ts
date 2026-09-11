@@ -1,5 +1,26 @@
 import type { IntegrationPhase, IntegrationRun } from '@/api/manualOutboundIntegrationApi'
 
+export function buildRackTransportResources(run: IntegrationRun) {
+  const plan = run.plan_resources
+  if (!plan) return []
+  return [
+    {
+      rackId: plan.target_rack.rack_id,
+      role: '转运货架',
+      template: 'F01' as const,
+      target: run.site_configuration.outbound_transfer_position,
+      face: plan.target_rack.rack_face
+    },
+    ...plan.bin_source_racks.map((rack, index) => ({
+      rackId: rack.rack_id,
+      role: '五层货架',
+      template: 'CTU01' as const,
+      target: run.site_configuration.bin_rack_positions[index] ?? '',
+      face: rack.rack_face
+    }))
+  ]
+}
+
 export type WmsOutboundPhase =
   | 'TASK_PREPARE'
   | 'BIN_INBOUND_BATCH'
@@ -29,8 +50,7 @@ export function buildDefaultWmsData(
 ): Record<string, unknown> {
   const sourceRack = run.plan_resources?.bin_source_racks[0]
   const outfeedPosition = run.site_configuration?.outfeed_position ?? 'CNV0302'
-  const outboundTransferPosition =
-    run.site_configuration?.outbound_transfer_position ?? 'OUT65'
+  const outboundTransferPosition = run.site_configuration?.outbound_transfer_position ?? 'OUT65'
   const completion = [...run.steps]
     .reverse()
     .find(step => step.operation === 'outbound.manual_bin.work_completed@v1')
@@ -44,7 +64,7 @@ export function buildDefaultWmsData(
         task_id: run.task_id ?? '',
         rack_id: sourceRack?.rack_id ?? '',
         rack_face: sourceRack?.rack_face ?? '',
-        max_bin_count: 1
+        max_bin_count: 4
       }
     case 'WORK_ADMISSION':
       return {
@@ -85,7 +105,7 @@ export function buildDefaultWmsData(
         rack_id:
           typeof run.operation_context.departure_ready_rack_id === 'string'
             ? run.operation_context.departure_ready_rack_id
-            : run.plan_resources?.target_rack.rack_id ?? '',
+            : (run.plan_resources?.target_rack.rack_id ?? ''),
         current_location: {
           type: 'RACK_POSITION',
           location_code: outboundTransferPosition
@@ -131,4 +151,43 @@ export function parseEditableJsonObject(text: string, label: string): Record<str
     throw new Error(`${label} 必须是 JSON object`)
   }
   return value as Record<string, unknown>
+}
+
+interface InboundBatchBin {
+  bin_code: string
+  source_locator: { type: 'RACK_BIN_SLOT'; rack_id: string; rack_face: string; slot_id: string }
+}
+
+export function buildInboundBatchTransport(run: IntegrationRun) {
+  const value = run.operation_context.inbound_bins
+  if (!Array.isArray(value) || value.length < 1 || value.length > 4) {
+    throw new Error('请先取得 WMS 返回的完整投料批次（1–4 箱）')
+  }
+  const bins = value as InboundBatchBin[]
+  const rackId = bins[0]?.source_locator?.rack_id
+  if (
+    !rackId ||
+    bins.some(
+      bin =>
+        !bin.bin_code ||
+        bin.source_locator?.type !== 'RACK_BIN_SLOT' ||
+        bin.source_locator.rack_id !== rackId ||
+        !bin.source_locator.rack_face ||
+        !bin.source_locator.slot_id
+    )
+  ) {
+    throw new Error('WMS 投料批次缺少有效的料箱来源储位')
+  }
+  return {
+    bins,
+    action: {
+      kind: 'MOVE_BINS' as const,
+      rack_id: rackId,
+      source: { kind: 'RACK' as const, location_code: rackId },
+      target: {
+        kind: 'HANDOFF_POSITION' as const,
+        location_code: run.site_configuration.infeed_position
+      }
+    }
+  }
 }
