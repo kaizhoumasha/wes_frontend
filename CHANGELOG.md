@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.23.3.0] - 2026-09-11
+
+### Added
+
+- 设备诊断页可过滤和展示 WES 本地观察，区分未接纳、结果未知、Evidence 应用与物理完成，并显示原因和观察时间。
+
+### Changed
+
+- 历史记录与实时更新按处理时间或观察时间合并排序，并同步后端 canonical OpenAPI、TypeScript 类型与 Zod Schema。
+
+### Fixed
+
+- 设备 Evidence 实时流严格拒绝字段组合错误、可选字段类型错误或包含未知字段的更新。
+
 ## [0.23.2.0] - 2026-09-10
 
 ### Fixed
