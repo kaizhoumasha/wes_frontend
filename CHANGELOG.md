@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.24.1.0] - 2026-09-12
+
+### Fixed
+
+- 手工出库联调页固定五层货架工作位为 KT16，并按后端当前来源货架与面向循环驱动 CTU01、CTU02、CTU03 和最终 F01 操作；缺少实物上下文时不再按计划首项猜测。
+
 ## [0.24.0.0] - 2026-09-11
 
 ### Changed

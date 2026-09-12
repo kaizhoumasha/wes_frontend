@@ -3,6 +3,24 @@ import type { IntegrationPhase, IntegrationRun } from '@/api/manualOutboundInteg
 export function buildRackTransportResources(run: IntegrationRun) {
   const plan = run.plan_resources
   if (!plan) return []
+  const workPosition = run.site_configuration.bin_rack_positions[0] ?? ''
+  const activeSource = run.operation_context.current_source_rack
+  const activeRackId =
+    activeSource && typeof activeSource === 'object' && 'rack_id' in activeSource
+      ? activeSource.rack_id
+      : null
+  const activeRackFace =
+    activeSource && typeof activeSource === 'object' && 'rack_face' in activeSource
+      ? activeSource.rack_face
+      : null
+  const sourceRacks = new Map<string, (typeof plan.bin_source_racks)[number]>()
+  for (const rack of plan.bin_source_racks) {
+    const selectedFace =
+      rack.rack_id === activeRackId &&
+      typeof activeRackFace === 'string' &&
+      rack.rack_face === activeRackFace
+    if (!sourceRacks.has(rack.rack_id) || selectedFace) sourceRacks.set(rack.rack_id, rack)
+  }
   return [
     {
       rackId: plan.target_rack.rack_id,
@@ -11,11 +29,11 @@ export function buildRackTransportResources(run: IntegrationRun) {
       target: run.site_configuration.outbound_transfer_position,
       face: plan.target_rack.rack_face
     },
-    ...plan.bin_source_racks.map((rack, index) => ({
+    ...[...sourceRacks.values()].map(rack => ({
       rackId: rack.rack_id,
       role: '五层货架',
       template: 'CTU01' as const,
-      target: run.site_configuration.bin_rack_positions[index] ?? '',
+      target: workPosition,
       face: rack.rack_face
     }))
   ]
@@ -46,9 +64,29 @@ export function buildDefaultWmsData(
   run: IntegrationRun,
   phase: WmsOutboundPhase
 ): Record<string, unknown> {
-  const sourceRack = run.plan_resources?.bin_source_racks[0]
+  const activeSource = run.operation_context.current_source_rack
+  const sourceRack =
+    activeSource &&
+    typeof activeSource === 'object' &&
+    'rack_id' in activeSource &&
+    'rack_face' in activeSource &&
+    typeof activeSource.rack_id === 'string' &&
+    typeof activeSource.rack_face === 'string'
+      ? activeSource
+      : null
+  const activeDeparture = run.operation_context.departure_candidate
+  const departure =
+    activeDeparture &&
+    typeof activeDeparture === 'object' &&
+    'rack_id' in activeDeparture &&
+    'rack_face' in activeDeparture &&
+    'current_location' in activeDeparture &&
+    typeof activeDeparture.rack_id === 'string' &&
+    typeof activeDeparture.rack_face === 'string' &&
+    typeof activeDeparture.current_location === 'string'
+      ? activeDeparture
+      : null
   const outfeedPosition = run.site_configuration?.outfeed_position ?? 'CNV0302'
-  const outboundTransferPosition = run.site_configuration?.outbound_transfer_position ?? 'OUT65'
   const point2Scan = [...run.steps].reverse().find(step => step.phase === 'POINT2_SCAN')
 
   switch (phase) {
@@ -86,15 +124,12 @@ export function buildDefaultWmsData(
     case 'RACK_DEPARTURE':
       return {
         task_id: run.task_id ?? '',
-        rack_id:
-          typeof run.operation_context.departure_ready_rack_id === 'string'
-            ? run.operation_context.departure_ready_rack_id
-            : (run.plan_resources?.target_rack.rack_id ?? ''),
+        rack_id: departure?.rack_id ?? '',
         current_location: {
           type: 'RACK_POSITION',
-          location_code: outboundTransferPosition
+          location_code: departure?.current_location ?? ''
         },
-        current_face: run.plan_resources?.target_rack.rack_face ?? '0'
+        current_face: departure?.rack_face ?? ''
       }
     case 'TASK_COMPLETION':
       return {
