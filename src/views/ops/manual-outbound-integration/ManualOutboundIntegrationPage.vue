@@ -35,7 +35,7 @@ import {
 const manualOutboundSite = {
   outboundRcsTemplate: 'CTU01',
   returnRcsTemplate: 'CTU03',
-  binRackPositions: ['KT16', 'KT17'],
+  binRackPositions: ['KT16'],
   outboundTransferPosition: 'OUT65',
   returnZoneCode: 'WH05',
   infeedPosition: 'CNV0301',
@@ -106,6 +106,47 @@ const transportForm = reactive({
 const rackTransportResources = computed(() =>
   run.value ? buildRackTransportResources(run.value) : []
 )
+const currentSourceRack = computed(() => {
+  const value = run.value?.operation_context.current_source_rack
+  return value &&
+    typeof value === 'object' &&
+    'rack_id' in value &&
+    'rack_face' in value &&
+    typeof value.rack_id === 'string' &&
+    typeof value.rack_face === 'string'
+    ? { rackId: value.rack_id, rackFace: value.rack_face }
+    : null
+})
+const departureCandidate = computed(() => {
+  const value = run.value?.operation_context.departure_candidate
+  return value &&
+    typeof value === 'object' &&
+    'rack_id' in value &&
+    'rack_face' in value &&
+    'current_location' in value &&
+    typeof value.rack_id === 'string' &&
+    typeof value.rack_face === 'string' &&
+    typeof value.current_location === 'string'
+    ? {
+        rackId: value.rack_id,
+        rackFace: value.rack_face,
+        currentLocation: value.current_location,
+        role: 'role' in value && value.role === 'TARGET_RACK' ? 'TARGET_RACK' : 'SOURCE_RACK'
+      }
+    : null
+})
+const selectableRackTransportResources = computed(() => {
+  const mode = run.value?.operation_context.rack_transport_mode
+  if (!['MOVE_SOURCE_RACK', 'ROTATE_SOURCE_RACK'].includes(String(mode))) {
+    return rackTransportResources.value
+  }
+  const current = currentSourceRack.value
+  return current
+    ? rackTransportResources.value.filter(
+        resource => resource.rackId === current.rackId && resource.face === current.rackFace
+      )
+    : []
+})
 const pendingActionBodies = new Map<string, object>()
 
 const phases: IntegrationPhase[] = [
@@ -198,10 +239,20 @@ watch(
     }
   }
 )
-watch([() => run.value?.run_id, selectedPhase], () => resetWmsData(), {
-  immediate: true,
-  flush: 'sync'
-})
+watch(
+  [
+    () => run.value?.run_id,
+    selectedPhase,
+    () => run.value?.operation_context.source_cycle_no,
+    () => run.value?.operation_context.departure_candidate,
+    () => run.value?.operation_context.departure_ready_rack_id
+  ],
+  () => resetWmsData(),
+  {
+    immediate: true,
+    flush: 'sync'
+  }
+)
 watch(
   () => run.value,
   current => {
@@ -313,14 +364,23 @@ const lastRefreshableDeviceStep = computed(() =>
     .find(step => step.device_command_code && isRefreshableStep(step))
 )
 const rackDepartureStep = computed(() =>
-  [...(run.value?.steps ?? [])]
-    .reverse()
-    .find(
-      step =>
-        step.operation === 'outbound.rack.departure_decide@v1' &&
-        step.status === 'SUCCEEDED' &&
-        wmsResponseResult(step) === 'READY'
-    )
+  departureCandidate.value
+    ? [...(run.value?.steps ?? [])]
+        .reverse()
+        .find(
+          step =>
+            step.operation === 'outbound.rack.departure_decide@v1' &&
+            step.status === 'SUCCEEDED' &&
+            wmsResponseResult(step) === 'READY' &&
+            step.request.rack_id === departureCandidate.value?.rackId &&
+            step.request.current_face === departureCandidate.value?.rackFace &&
+            typeof step.request.current_location === 'object' &&
+            step.request.current_location !== null &&
+            'location_code' in step.request.current_location &&
+            step.request.current_location.location_code ===
+              departureCandidate.value?.currentLocation
+        )
+    : undefined
 )
 const hasRefreshableStep = computed(
   () =>
@@ -401,9 +461,11 @@ const hasPrimaryPermission = computed(() => {
     RETURN_BUFFER: permissionAccess.value.confirmPhase,
     BIN_RETURN_BATCH: permissionAccess.value.binReturnBatch,
     BIN_RETURN_TRANSPORT: permissionAccess.value.confirmPhase,
-    RACK_DEPARTURE: rackDepartureStep.value
-      ? permissionAccess.value.confirmPhase
-      : permissionAccess.value.rackDeparture,
+    RACK_DEPARTURE:
+      !!departureCandidate.value &&
+      (rackDepartureStep.value
+        ? permissionAccess.value.confirmPhase
+        : permissionAccess.value.rackDeparture),
     TASK_COMPLETION: permissionAccess.value.taskCompletion,
     CLEANUP: permissionAccess.value.complete
   }[run.value.current_phase]
@@ -644,7 +706,17 @@ function applyRackPreset(): void {
   const current = run.value
   const rackId = transportForm.rackId.trim()
   if (!current || !rackId || selectedPhase.value !== 'RACK_TRANSPORT') return
-  const resource = rackTransportResources.value.find(item => item.rackId === rackId)
+  const mode = current.operation_context.rack_transport_mode
+  const activeRack = currentSourceRack.value
+  if (mode === 'ROTATE_SOURCE_RACK' && activeRack) {
+    transportForm.rackId = activeRack.rackId
+    transportForm.sourceLocation = current.site_configuration.bin_rack_positions[0] ?? ''
+    transportForm.targetLocation = ''
+    transportForm.targetFace = activeRack.rackFace
+    transportForm.rcsTemplateId = 'CTU02'
+    return
+  }
+  const resource = selectableRackTransportResources.value.find(item => item.rackId === rackId)
   if (!resource) return
   transportForm.sourceLocation = resource.rackId
   transportForm.targetLocation = resource.target
@@ -666,20 +738,40 @@ function openTransport(): void {
     transportForm.rackId = inboundBatch.value.action.rack_id
     transportForm.rcsTemplateId = manualOutboundSite.outboundRcsTemplate
   } else if (selectedPhase.value === 'RACK_TRANSPORT') {
-    transportForm.kind = 'MOVE_RACK'
-    transportForm.rackId = current.plan_resources?.target_rack.rack_id ?? ''
-    transportForm.rcsTemplateId = manualOutboundSite.outboundRcsTemplate
-    applyRackPreset()
+    const mode = current.operation_context.rack_transport_mode
+    const activeRack = currentSourceRack.value
+    if (mode === 'ROTATE_SOURCE_RACK' && activeRack) {
+      transportForm.kind = 'ROTATE_RACK'
+      transportForm.rackId = activeRack.rackId
+      transportForm.sourceLocation = current.site_configuration.bin_rack_positions[0] ?? ''
+      transportForm.targetLocation = ''
+      transportForm.targetFace = activeRack.rackFace
+      transportForm.rcsTemplateId = 'CTU02'
+    } else {
+      transportForm.kind = 'MOVE_RACK'
+      transportForm.rackId =
+        mode === 'MOVE_SOURCE_RACK' && activeRack
+          ? activeRack.rackId
+          : (current.plan_resources?.target_rack.rack_id ?? '')
+      transportForm.rcsTemplateId = manualOutboundSite.outboundRcsTemplate
+      applyRackPreset()
+    }
   } else if (selectedPhase.value === 'RACK_DEPARTURE') {
+    const candidate = departureCandidate.value
+    if (!candidate) {
+      ElMessage.warning('缺少当前待离场货架的实物上下文，请先现场对账并刷新 Run')
+      return
+    }
     transportForm.kind = 'MOVE_RACK'
-    transportForm.rackId = current.plan_resources?.target_rack.rack_id || ''
-    transportForm.sourceLocation = transportForm.rackId
+    transportForm.rackId = candidate.rackId
+    transportForm.sourceLocation = candidate.rackId
     transportForm.targetLocation = manualOutboundSite.returnZoneCode
-    transportForm.targetFace = ''
-    transportForm.rcsTemplateId = manualOutboundSite.returnRcsTemplate
+    transportForm.targetFace = candidate.rackFace
+    transportForm.rcsTemplateId =
+      candidate.role === 'TARGET_RACK' ? 'F01' : manualOutboundSite.returnRcsTemplate
   } else {
     transportForm.kind = 'MOVE_BINS'
-    transportForm.rackId = current.plan_resources?.bin_source_racks[0]?.rack_id || ''
+    transportForm.rackId = currentSourceRack.value?.rackId ?? ''
     transportForm.sourceLocation = manualOutboundSite.outfeedPosition
     transportForm.targetLocation = manualOutboundSite.infeedPosition
     transportForm.rcsTemplateId = manualOutboundSite.outboundRcsTemplate
@@ -751,7 +843,7 @@ async function sendTransport(): Promise<void> {
   if (
     selectedPhase.value === 'RACK_TRANSPORT' &&
     (!rackTransportResources.value.some(resource => resource.rackId === rackId) ||
-      !transportForm.targetLocation)
+      (transportForm.kind === 'MOVE_RACK' && !transportForm.targetLocation))
   ) {
     ElMessage.warning('请选择计划中的货架及目标工作位')
     return
@@ -1038,7 +1130,7 @@ onUnmounted(() => {
     <section class="site-configuration">
       <strong>KT16 现场参数</strong>
       <span>转运货架出库：F01 · 货架号 → OUT65</span>
-      <span>五层货架出库：CTU01 · 货架号 → KT16 / KT17</span>
+      <span>五层货架出库：CTU01 · 货架号 → KT16（容量 1，逐架循环）</span>
       <span>回库：CTU03 · 货架号 → WH05（五层货架）</span>
       <span>料箱：CNV0301 → SCAN9/10/11/12 → CNV0302</span>
       <span>ECS：{{ manualOutboundSite.ecsEndpoint }}</span>
@@ -1191,6 +1283,12 @@ onUnmounted(() => {
             spellcheck="false"
           />
         </section>
+        <p
+          v-if="selectedPhase === 'RACK_DEPARTURE' && !departureCandidate"
+          class="attention"
+        >
+          缺少当前待离场货架的实物上下文，请先现场对账并刷新 Run；本页不会按计划货架猜测。
+        </p>
         <label
           v-if="
             [
@@ -1260,7 +1358,10 @@ onUnmounted(() => {
                 'RACK_DEPARTURE'
               ].includes(selectedPhase)
             "
-            :disabled="!permissionAccess.transport"
+            :disabled="
+              !permissionAccess.transport ||
+              (selectedPhase === 'RACK_DEPARTURE' && !departureCandidate)
+            "
             @click="openTransport"
           >
             Transport / RCS
@@ -1326,6 +1427,22 @@ onUnmounted(() => {
           <p>
             目标架：{{ run.plan_resources.target_rack.rack_id }} /
             {{ run.plan_resources.target_rack.rack_face }}
+          </p>
+          <p>
+            五层架工作位：{{ run.site_configuration.bin_rack_positions[0] ?? '—' }}；当前作业架：
+            {{
+              currentSourceRack
+                ? `${currentSourceRack.rackId} / ${currentSourceRack.rackFace}`
+                : '—'
+            }}
+          </p>
+          <p>
+            待处理来源架：
+            {{
+              Array.isArray(run.operation_context.pending_source_racks)
+                ? run.operation_context.pending_source_racks.length
+                : 0
+            }}
           </p>
           <p
             v-for="rack in run.plan_resources.bin_source_racks"
@@ -1464,8 +1581,8 @@ onUnmounted(() => {
               @change="applyRackPreset"
             >
               <el-option
-                v-for="resource in rackTransportResources"
-                :key="resource.rackId"
+                v-for="resource in selectableRackTransportResources"
+                :key="`${resource.rackId}-${resource.face}`"
                 :value="resource.rackId"
                 :label="`${resource.role} · ${resource.rackId} · ${resource.template} → ${resource.target || '待选择工作位'} · 面 ${resource.face}`"
               />
@@ -1507,6 +1624,15 @@ onUnmounted(() => {
             <el-input
               v-model="transportForm.sourceLocation"
               :disabled="transportForm.kind === 'MOVE_RACK'"
+            />
+          </el-form-item>
+          <el-form-item
+            v-if="isRackDepartureTransport"
+            label="当前物理位置"
+          >
+            <el-input
+              :model-value="departureCandidate?.currentLocation ?? ''"
+              disabled
             />
           </el-form-item>
           <el-form-item
