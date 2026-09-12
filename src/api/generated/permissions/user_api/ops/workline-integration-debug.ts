@@ -28,8 +28,6 @@ export const OPS_WORKLINE_INTEGRATION_DEBUG_PERMISSION = {
   close: 'ops:workline-integration-debug:close',
   /** 标记本轮联调完成 */
   complete: 'ops:workline-integration-debug:complete',
-  /** 发送完成决定应用结果 Operation */
-  completionApplyReport: 'ops:workline-integration-debug:completion-apply-report',
   /** 记录现场步骤人工确认并推进 */
   confirmPhase: 'ops:workline-integration-debug:confirm-phase',
   /** 使用 Run 冻结设备创建 ECS 调试命令 */

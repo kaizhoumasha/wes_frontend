@@ -3,7 +3,6 @@ import {
   worklineIntegrationDebugApiMethods,
   type WmsBinInboundBatchInput,
   type WmsBinReturnBatchInput,
-  type WmsCompletionApplyReportInput,
   type WmsPrepareInput,
   type WmsRackDepartureInput,
   type WmsRetryInput,
@@ -30,7 +29,6 @@ export type IntegrationPhase =
   | 'WORK_ADMISSION'
   | 'WORK_COMPLETION'
   | 'POINT2_RELEASE'
-  | 'COMPLETION_REPORT'
   | 'POINT3_ROUTE'
   | 'RETURN_BUFFER'
   | 'BIN_RETURN_BATCH'
@@ -192,13 +190,6 @@ export const worklineIntegrationDebugApi = {
     asRun(worklineIntegrationDebugApiMethods.wmsTaskCompletion(runParams(runId), body).send()),
   bindCompletion: (runId: string, body: VersionInput & { operation_id: string }) =>
     asRun(worklineIntegrationDebugApiMethods.wmsBindCompletion(runParams(runId), body).send()),
-  completionApplyReport: (
-    runId: string,
-    body: WmsCompletionApplyReportInput
-  ) =>
-    asRun(
-      worklineIntegrationDebugApiMethods.wmsCompletionApplyReport(runParams(runId), body).send()
-    ),
   transport: (runId: string, body: TransportActionInput) =>
     asRun(worklineIntegrationDebugApiMethods.transport(runParams(runId), body).send()),
   refreshTransport: (runId: string, body: VersionInput & { client_request_id: string }) =>

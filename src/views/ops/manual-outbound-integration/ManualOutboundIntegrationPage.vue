@@ -16,7 +16,6 @@ import {
 import type {
   WmsBinInboundBatchInput,
   WmsBinReturnBatchInput,
-  WmsCompletionApplyReportInput,
   WmsPrepareInput,
   WmsRackDepartureInput,
   WmsRetryInput,
@@ -56,7 +55,6 @@ const permissionAccess = computed(() => ({
   bindTask: hasPermission(PERMISSION.bindTask),
   close: hasPermission(PERMISSION.close),
   complete: hasPermission(PERMISSION.complete),
-  completionApplyReport: hasPermission(PERMISSION.completionApplyReport),
   confirmPhase: hasPermission(PERMISSION.confirmPhase),
   deviceCommand: hasPermission(PERMISSION.deviceCommand),
   export: hasPermission(PERMISSION.export),
@@ -123,7 +121,6 @@ const phases: IntegrationPhase[] = [
   'WORK_ADMISSION',
   'WORK_COMPLETION',
   'POINT2_RELEASE',
-  'COMPLETION_REPORT',
   'POINT3_ROUTE',
   'RETURN_BUFFER',
   'BIN_RETURN_BATCH',
@@ -148,7 +145,6 @@ const phaseLabels: Record<IntegrationPhase, string> = {
   POINT2_RELEASE: 'point2 放行',
   POINT3_ROUTE: 'point3 路由',
   RETURN_BUFFER: '回流缓存',
-  COMPLETION_REPORT: '完成应用报告',
   BIN_RETURN_BATCH: '请求退箱目标',
   BIN_RETURN_TRANSPORT: '创建退箱搬运',
   RACK_DEPARTURE: '货架离场决定与搬运',
@@ -172,10 +168,6 @@ const phaseInteractions: Record<IntegrationPhase, { direction: string; operation
   WORK_COMPLETION: {
     direction: 'WMS → WES',
     operation: 'outbound.manual_bin.work_completed@v1'
-  },
-  COMPLETION_REPORT: {
-    direction: 'WES → WMS',
-    operation: 'outbound.manual_bin.completion_apply_report@v1'
   },
   POINT2_RELEASE: { direction: 'WES → ECS', operation: 'point2 release command' },
   POINT3_ROUTE: { direction: 'ECS ↔ WES', operation: 'point3 route event / command' },
@@ -354,23 +346,6 @@ const canCloseRun = computed(
     !!run.value &&
     (['COMPLETED', 'NEEDS_ATTENTION'].includes(run.value.status) || isEmptyWaitingRun.value)
 )
-const boundCompletion = computed(() =>
-  [...(run.value?.steps ?? [])]
-    .reverse()
-    .find(step => step.operation === 'outbound.manual_bin.work_completed@v1')
-)
-const applyReportStep = computed(() =>
-  [...(run.value?.steps ?? [])]
-    .reverse()
-    .find(step => step.operation === 'outbound.manual_bin.completion_apply_report@v1')
-)
-const canReportAttention = computed(
-  () =>
-    run.value?.status === 'NEEDS_ATTENTION' &&
-    ['WORK_COMPLETION', 'POINT2_RELEASE'].includes(run.value.current_phase) &&
-    !!boundCompletion.value?.operation_id &&
-    !applyReportStep.value
-)
 const primaryLabel = computed(() => {
   if (!run.value) return '创建联调 Run'
   if (retryablePrepareStep.value) return '确认 WMS 已作废旧 prepare，使用新 ID 重发'
@@ -398,7 +373,6 @@ const primaryLabel = computed(() => {
     BIN_RETURN_TRANSPORT: '确认退箱搬运已完成',
     RACK_DEPARTURE: rackDepartureStep.value ? '确认货架离场搬运完成' : '发送 departure_decide',
     TASK_COMPLETION: '发送 completion_confirm',
-    COMPLETION_REPORT: '发送应用报告',
     CLEANUP: '标记本轮完成'
   }[run.value.current_phase]
 })
@@ -431,7 +405,6 @@ const hasPrimaryPermission = computed(() => {
       ? permissionAccess.value.confirmPhase
       : permissionAccess.value.rackDeparture,
     TASK_COMPLETION: permissionAccess.value.taskCompletion,
-    COMPLETION_REPORT: permissionAccess.value.completionApplyReport,
     CLEANUP: permissionAccess.value.complete
   }[run.value.current_phase]
 })
@@ -654,23 +627,6 @@ async function primaryAction(): Promise<void> {
         body => api.taskCompletion(current.run_id, body)
       )
     }
-    case 'COMPLETION_REPORT':
-      if (boundCompletion.value?.operation_id && !applyReportStep.value) {
-        const data = readWmsData()
-        if (!data) return
-        return invokeStableAction(
-          current,
-          'completion-apply-report',
-          () =>
-            versioned(current, {
-              client_request_id: createUuid7(),
-              data
-            }) as WmsCompletionApplyReportInput,
-          body => api.completionApplyReport(current.run_id, body)
-        )
-      }
-      ElMessage.warning('应用报告已创建，请刷新并等待 WMS RECORDED/DUPLICATE')
-      return
     case 'CLEANUP':
       return invoke(() => api.complete(current.run_id, versioned(current)))
     default:
@@ -750,51 +706,6 @@ async function refreshPlanResources(): Promise<void> {
   const current = run.value
   if (!current) return
   await invoke(() => api.refreshPlan(current.run_id, versioned(current)))
-}
-
-async function reportAttention(): Promise<void> {
-  const current = run.value
-  const completionOperationId = boundCompletion.value?.operation_id
-  if (!current || !completionOperationId) return
-  const allowedReasons = [
-    'RESULT_CONFLICT',
-    'FIRST_COMPLETION_OUT_OF_WINDOW',
-    'POINT2_BINDING_MISMATCH',
-    'WORKLINE_NOT_ACTIVE',
-    'COMPLETED_AT_INVALID',
-    'DEVICE_COMMAND_IDENTITY_CONFLICT'
-  ] as const
-  const reasonCode = allowedReasons.includes(
-    current.attention_code as (typeof allowedReasons)[number]
-  )
-    ? (current.attention_code as (typeof allowedReasons)[number])
-    : 'POINT2_BINDING_MISMATCH'
-  if (selectedPhase.value !== 'COMPLETION_REPORT') {
-    selectedPhase.value = 'COMPLETION_REPORT'
-    wmsDataText.value = JSON.stringify(
-      {
-        ...buildDefaultWmsData(current, 'COMPLETION_REPORT'),
-        apply_result: 'RECONCILING',
-        reason_code: reasonCode
-      },
-      null,
-      2
-    )
-    ElMessage.info('请核对并编辑 completion_apply_report data，再次点击上报')
-    return
-  }
-  const data = readWmsData()
-  if (!data) return
-  await invokeStableAction(
-    current,
-    'completion-attention-report',
-    () =>
-      versioned(current, {
-        client_request_id: createUuid7(),
-        data
-      }) as WmsCompletionApplyReportInput,
-    body => api.completionApplyReport(current.run_id, body)
-  )
 }
 
 async function closeRun(): Promise<void> {
@@ -1361,14 +1272,6 @@ onUnmounted(() => {
           >
             ECS 指令
           </el-button>
-          <el-button
-            v-if="canReportAttention"
-            type="warning"
-            :disabled="!permissionAccess.completionApplyReport"
-            @click="reportAttention"
-          >
-            上报 RECONCILING
-          </el-button>
         </div>
 
         <section class="node-payloads">
@@ -1490,10 +1393,6 @@ onUnmounted(() => {
           <p>
             <b>发送：</b>
             POST /api/v1/wms/events · work_completed@v1
-          </p>
-          <p>
-            <b>接收：</b>
-            POST /api/v1/wes/facts · completion_apply_report@v1
           </p>
           <p>
             <b>WAIT：</b>

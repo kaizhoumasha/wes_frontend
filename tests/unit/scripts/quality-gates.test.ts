@@ -389,6 +389,23 @@ describe.sequential('repository quality gates', () => {
     )
   })
 
+  it('uses the verified LAN proxy only when its npm probe succeeds', () => {
+    const jenkinsfile = readFileSync(join(REPOSITORY_ROOT, 'Jenkinsfile'), 'utf-8')
+
+    expect(jenkinsfile).toContain("BUILD_PROXY = 'http://192.168.0.225:7890'")
+    expect(jenkinsfile).not.toContain('192.168.30.111:7890')
+    expect(jenkinsfile).toContain("stage('Detect Build Proxy')")
+    expect(jenkinsfile).toContain(
+      'curl -fsSI -m 5 -x "${BUILD_PROXY}" https://registry.npmjs.org/pnpm'
+    )
+    expect(jenkinsfile).toContain("env.BUILD_PROXY_AVAILABLE = proxyStatus == 0 ? 'true' : 'false'")
+    expect(jenkinsfile.match(/PROXY_BUILD_ARGS=""/g)).toHaveLength(2)
+    expect(jenkinsfile).toContain('PROXY_RUN_ARGS=')
+    expect(jenkinsfile).toContain('-e HTTP_PROXY=${BUILD_PROXY}')
+    expect(jenkinsfile).toContain('--build-arg HTTP_PROXY=${BUILD_PROXY}')
+    expect(jenkinsfile).toContain('Build proxy unavailable, continuing without proxy')
+  })
+
   it('binds the frontend image to its own consumer artifacts and production inputs', () => {
     const dockerfile = readFileSync(join(REPOSITORY_ROOT, 'Dockerfile'), 'utf-8')
     const jenkinsfile = readFileSync(join(REPOSITORY_ROOT, 'Jenkinsfile'), 'utf-8')

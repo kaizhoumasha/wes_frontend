@@ -12,6 +12,7 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 export const ManualBinAdmissionDataMetadata = {
   "title": "ManualBinAdmissionData",
   "required": [
+    "task_id",
     "bin_code",
     "scanned_at"
   ],
@@ -28,6 +29,12 @@ export const ManualBinAdmissionDataMetadata = {
       "required": true,
       "nullable": false,
       "maximum": 9223372036854776000
+    },
+    "task_id": {
+      "title": "Task Id",
+      "type": "string",
+      "required": true,
+      "nullable": false
     }
   }
 } satisfies OpenApiSchemaMetadata

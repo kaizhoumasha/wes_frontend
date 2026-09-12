@@ -25,7 +25,6 @@ export type WmsOutboundPhase =
   | 'TASK_PREPARE'
   | 'BIN_INBOUND_BATCH'
   | 'WORK_ADMISSION'
-  | 'COMPLETION_REPORT'
   | 'BIN_RETURN_BATCH'
   | 'RACK_DEPARTURE'
   | 'TASK_COMPLETION'
@@ -34,7 +33,6 @@ const WMS_OUTBOUND_PHASES = new Set<IntegrationPhase>([
   'TASK_PREPARE',
   'BIN_INBOUND_BATCH',
   'WORK_ADMISSION',
-  'COMPLETION_REPORT',
   'BIN_RETURN_BATCH',
   'RACK_DEPARTURE',
   'TASK_COMPLETION'
@@ -51,9 +49,6 @@ export function buildDefaultWmsData(
   const sourceRack = run.plan_resources?.bin_source_racks[0]
   const outfeedPosition = run.site_configuration?.outfeed_position ?? 'CNV0302'
   const outboundTransferPosition = run.site_configuration?.outbound_transfer_position ?? 'OUT65'
-  const completion = [...run.steps]
-    .reverse()
-    .find(step => step.operation === 'outbound.manual_bin.work_completed@v1')
   const point2Scan = [...run.steps].reverse().find(step => step.phase === 'POINT2_SCAN')
 
   switch (phase) {
@@ -74,18 +69,6 @@ export function buildDefaultWmsData(
           typeof point2Scan?.result.scanned_at === 'number'
             ? point2Scan.result.scanned_at
             : Date.now()
-      }
-    case 'COMPLETION_REPORT':
-      return {
-        completion_operation_id: completion?.operation_id ?? '',
-        task_id:
-          typeof run.operation_context.admission_task_id === 'string'
-            ? run.operation_context.admission_task_id
-            : '',
-        bin_code: run.bin_code ?? '',
-        apply_revision: 1,
-        apply_result: 'APPLIED',
-        occurred_at: Date.now()
       }
     case 'BIN_RETURN_BATCH':
       return {

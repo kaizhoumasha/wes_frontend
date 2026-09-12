@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.24.0.0] - 2026-09-11
+
+### Changed
+
+- 自动联调增加默认关闭的扫码测试模式，明确真实 MOVE_FORWARD 提示并保持多轮配置；阶段显示实际扫码设备，逐箱展示已确认与待确认回架。
+- 手工出库准入绑定 task_id，删除完成应用上报步骤并同步后端契约。
+- CI 缩短依赖重试并发布测试报告；代理探测拒绝 HTTP 错误响应，支持无代理回退。
+
 ## [0.23.3.0] - 2026-09-11
 
 ### Added

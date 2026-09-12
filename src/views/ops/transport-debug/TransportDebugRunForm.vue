@@ -196,6 +196,8 @@ function updateTestMode(value: string | number | boolean): void {
 
 .test-mode-control {
   display: flex;
+  flex-shrink: 0;
+  white-space: nowrap;
   align-items: center;
   gap: 10px;
 }

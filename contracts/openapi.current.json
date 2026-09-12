@@ -2604,47 +2604,6 @@
         "title": "CloseRunRequest",
         "type": "object"
       },
-      "CompletionApplyReportRequest": {
-        "additionalProperties": false,
-        "properties": {
-          "client_request_id": {
-            "maxLength": 120,
-            "minLength": 1,
-            "title": "Client Request Id",
-            "type": "string"
-          },
-          "data": {
-            "discriminator": {
-              "mapping": {
-                "APPLIED": "#/components/schemas/ManualBinApplied",
-                "RECONCILING": "#/components/schemas/ManualBinReconciling"
-              },
-              "propertyName": "apply_result"
-            },
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/ManualBinApplied"
-              },
-              {
-                "$ref": "#/components/schemas/ManualBinReconciling"
-              }
-            ],
-            "title": "Data"
-          },
-          "expected_version": {
-            "minimum": 0,
-            "title": "Expected Version",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "expected_version",
-          "client_request_id",
-          "data"
-        ],
-        "title": "CompletionApplyReportRequest",
-        "type": "object"
-      },
       "CompletionConfirmData": {
         "properties": {
           "last_applied_plan_revision": {
@@ -2879,6 +2838,11 @@
             "minItems": 4,
             "title": "Scan Device Codes",
             "type": "array"
+          },
+          "test_mode": {
+            "default": false,
+            "title": "Test Mode",
+            "type": "boolean"
           },
           "workline_code": {
             "maxLength": 100,
@@ -6935,116 +6899,19 @@
             "maximum": 9223372036854776000,
             "title": "Scanned At",
             "type": "integer"
+          },
+          "task_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
+            "title": "Task Id",
+            "type": "string"
           }
         },
         "required": [
+          "task_id",
           "bin_code",
           "scanned_at"
         ],
         "title": "ManualBinAdmissionData",
-        "type": "object"
-      },
-      "ManualBinApplied": {
-        "properties": {
-          "apply_result": {
-            "const": "APPLIED",
-            "title": "Apply Result",
-            "type": "string"
-          },
-          "apply_revision": {
-            "minimum": 1,
-            "title": "Apply Revision",
-            "type": "integer"
-          },
-          "bin_code": {
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
-            "title": "Bin Code",
-            "type": "string"
-          },
-          "completion_operation_id": {
-            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-            "title": "Completion Operation Id",
-            "type": "string"
-          },
-          "occurred_at": {
-            "exclusiveMinimum": 0,
-            "maximum": 9223372036854776000,
-            "title": "Occurred At",
-            "type": "integer"
-          },
-          "task_id": {
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
-            "title": "Task Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "completion_operation_id",
-          "task_id",
-          "bin_code",
-          "apply_revision",
-          "apply_result",
-          "occurred_at"
-        ],
-        "title": "ManualBinApplied",
-        "type": "object"
-      },
-      "ManualBinReconciling": {
-        "properties": {
-          "apply_result": {
-            "const": "RECONCILING",
-            "title": "Apply Result",
-            "type": "string"
-          },
-          "apply_revision": {
-            "minimum": 1,
-            "title": "Apply Revision",
-            "type": "integer"
-          },
-          "bin_code": {
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
-            "title": "Bin Code",
-            "type": "string"
-          },
-          "completion_operation_id": {
-            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-            "title": "Completion Operation Id",
-            "type": "string"
-          },
-          "occurred_at": {
-            "exclusiveMinimum": 0,
-            "maximum": 9223372036854776000,
-            "title": "Occurred At",
-            "type": "integer"
-          },
-          "reason_code": {
-            "enum": [
-              "RESULT_CONFLICT",
-              "FIRST_COMPLETION_OUT_OF_WINDOW",
-              "POINT2_BINDING_MISMATCH",
-              "WORKLINE_NOT_ACTIVE",
-              "COMPLETED_AT_INVALID",
-              "DEVICE_COMMAND_IDENTITY_CONFLICT"
-            ],
-            "title": "Reason Code",
-            "type": "string"
-          },
-          "task_id": {
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
-            "title": "Task Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "completion_operation_id",
-          "task_id",
-          "bin_code",
-          "apply_revision",
-          "apply_result",
-          "reason_code",
-          "occurred_at"
-        ],
-        "title": "ManualBinReconciling",
         "type": "object"
       },
       "ManualDebugDeviceCommandCreate": {
@@ -13138,6 +13005,11 @@
             },
             "title": "Steps",
             "type": "array"
+          },
+          "test_mode": {
+            "default": false,
+            "title": "Test Mode",
+            "type": "boolean"
           },
           "updated_at": {
             "title": "Updated At",
@@ -27371,65 +27243,6 @@
           }
         ],
         "summary": "[ops:workline-integration-debug:operate] 绑定已接收的人工 Bin 完成决定",
-        "tags": [
-          "人工出库联调"
-        ]
-      }
-    },
-    "/api/v1/workline-integration-debug/runs/{run_id}/wms/completion-apply-report": {
-      "post": {
-        "operationId": "workline_integration_debug_runs_by_run_id_wms_completion_apply_report_post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "run_id",
-            "required": true,
-            "schema": {
-              "maxLength": 80,
-              "minLength": 1,
-              "title": "Run Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CompletionApplyReportRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "202": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseSchemaModel_IntegrationRunResponse_"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "[ops:workline-integration-debug:operate] 发送完成决定应用结果 Operation",
         "tags": [
           "人工出库联调"
         ]

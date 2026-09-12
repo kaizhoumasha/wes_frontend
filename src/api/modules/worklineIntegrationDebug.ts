@@ -88,10 +88,6 @@ export type WmsBindCompletionResult = ContractResponseData<'/api/v1/workline-int
 export type WmsBindCompletionPathParams = ContractPathParams<'/api/v1/workline-integration-debug/runs/{run_id}/wms/bind-completion', 'post'>
 export type WmsBindCompletionInput = ContractRequestBody<'/api/v1/workline-integration-debug/runs/{run_id}/wms/bind-completion', 'post'>
 
-export type WmsCompletionApplyReportResult = ContractResponseData<'/api/v1/workline-integration-debug/runs/{run_id}/wms/completion-apply-report', 'post'>
-export type WmsCompletionApplyReportPathParams = ContractPathParams<'/api/v1/workline-integration-debug/runs/{run_id}/wms/completion-apply-report', 'post'>
-export type WmsCompletionApplyReportInput = ContractRequestBody<'/api/v1/workline-integration-debug/runs/{run_id}/wms/completion-apply-report', 'post'>
-
 export type WmsPrepareResult = ContractResponseData<'/api/v1/workline-integration-debug/runs/{run_id}/wms/prepare', 'post'>
 export type WmsPreparePathParams = ContractPathParams<'/api/v1/workline-integration-debug/runs/{run_id}/wms/prepare', 'post'>
 export type WmsPrepareInput = ContractRequestBody<'/api/v1/workline-integration-debug/runs/{run_id}/wms/prepare', 'post'>
@@ -286,15 +282,6 @@ export const worklineIntegrationDebugApiMethods = {
    */
   wmsBindCompletion(params: ContractPathParams<'/api/v1/workline-integration-debug/runs/{run_id}/wms/bind-completion', 'post'>, body: ContractRequestBody<'/api/v1/workline-integration-debug/runs/{run_id}/wms/bind-completion', 'post'>, config?: ContractRequestConfig) {
     return contractMethods.post('/api/v1/workline-integration-debug/runs/{run_id}/wms/bind-completion', { params, body, config })
-  },
-
-  /**
-   * [ops:workline-integration-debug:operate] 发送完成决定应用结果 Operation
-   * @endpoint POST /api/v1/workline-integration-debug/runs/{run_id}/wms/completion-apply-report
-   * @returns alova method instance
-   */
-  wmsCompletionApplyReport(params: ContractPathParams<'/api/v1/workline-integration-debug/runs/{run_id}/wms/completion-apply-report', 'post'>, body: ContractRequestBody<'/api/v1/workline-integration-debug/runs/{run_id}/wms/completion-apply-report', 'post'>, config?: ContractRequestConfig) {
-    return contractMethods.post('/api/v1/workline-integration-debug/runs/{run_id}/wms/completion-apply-report', { params, body, config })
   },
 
   /**

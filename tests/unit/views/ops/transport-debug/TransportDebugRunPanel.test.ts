@@ -62,7 +62,7 @@ function snapshot() {
     rack_id: '510056',
     face_groups: [{ face: '270', bins: [{ bin_code: 'B1', slot_id: 'S1' }] }],
     current_group_index: 0,
-    current_phase: 'WAIT_SCAN12' as const,
+    current_phase: 'WAIT_SCAN12' as 'WAIT_SCAN12' | 'BINS_TO_RACK',
     current_step: {
       ...baseStep,
       transport_task_id: 'transport-3',
@@ -687,6 +687,49 @@ describe('TransportDebugRunPanel', () => {
     expect(outOfRangeStep?.text()).toContain('料箱 无')
     expect(outOfRangeStep?.text()).not.toContain('货架面：')
     expect(nullGroupStep?.text()).not.toContain('货架面：')
+  })
+
+  it('shows rack-return confirmation separately from scan evidence', async () => {
+    const run = snapshot()
+    const returnStep = {
+      ...run.steps[1]!,
+      ordinal: 3,
+      phase: 'BINS_TO_RACK',
+      status: 'RUNNING',
+      observed_bin_codes: ['B1'],
+      transport_task_id: 'transport-bin-return'
+    }
+    runState.activeRun.value = {
+      ...run,
+      current_phase: 'BINS_TO_RACK',
+      face_groups: [
+        {
+          face: '90',
+          bins: [
+            { bin_code: 'B1', slot_id: 'S1' },
+            { bin_code: 'B2', slot_id: 'S2' }
+          ]
+        }
+      ],
+      steps: [
+        ...run.steps.slice(0, 2),
+        { ...run.steps[2]!, observed_bin_codes: ['B1', 'B2'] },
+        returnStep
+      ]
+    }
+    const wrapper = mountDialog()
+    await flushPromises()
+
+    const rackReturnStep = wrapper
+      .get('[data-test="run-step-progress"]')
+      .findAll('li')
+      .find(step => step.text().includes('料箱回架'))
+    expect(rackReturnStep?.text()).toContain('已确认回架：B1 · 待确认回架：B2')
+    const currentProgress = wrapper.get('.progress-panel').text()
+    expect(currentProgress).toContain('已确认回架：B1')
+    expect(currentProgress).toContain('待确认回架：B2')
+    expect(currentProgress).not.toContain('已扫描')
+    expect(currentProgress).not.toContain('待扫描')
   })
 
   it('renders an empty persisted step list and an out-of-range current group safely', async () => {
