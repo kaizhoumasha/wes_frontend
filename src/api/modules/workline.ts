@@ -18,24 +18,11 @@ import type {
 } from '@/api/contract/types'
 import type { components, paths } from '@/api/generated/openapi-types'
 
-export type SafetyWorklinesClearEstopResult = ContractResponseData<'/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop', 'post'>
-export type SafetyWorklinesClearEstopPathParams = ContractPathParams<'/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop', 'post'>
-export type SafetyWorklinesClearEstopInput = ContractRequestBody<'/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop', 'post'>
-
 export type WorklinesStartResult = ContractResponseData<'/api/v1/workline/operations/worklines/{workline_id}/start', 'post'>
 export type WorklinesStartPathParams = ContractPathParams<'/api/v1/workline/operations/worklines/{workline_id}/start', 'post'>
 export type WorklinesStartInput = ContractRequestBody<'/api/v1/workline/operations/worklines/{workline_id}/start', 'post'>
 
 export const worklineApiMethods = {
-  /**
-   * [biz:workline:clear-estop] 人工确认 checklist 后清除工作线急停
-   * @endpoint POST /api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop
-   * @returns alova method instance
-   */
-  safetyWorklinesClearEstop(params: ContractPathParams<'/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop', 'post'>, body: ContractRequestBody<'/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop', 'post'>, config?: ContractRequestConfig) {
-    return contractMethods.post('/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop', { params, body, config })
-  },
-
   /**
    * [biz:workline:start] 启动 WorkLine 当前插件
    * @description 在同一事务内校验版本并启动当前插件。

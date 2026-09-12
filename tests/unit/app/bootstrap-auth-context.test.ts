@@ -73,9 +73,6 @@ describe('bootstrapAuthContext', () => {
   })
 
   it('hydrates wildcard permission for superuser context from /auth/my', async () => {
-    // Regression: ISSUE-002 — superuser could not clear ESTOP when /auth/my omitted the new clear-estop API permission.
-    // Found by /qa on 2026-05-08.
-    // Report: .gstack/qa-reports/qa-report-localhost-5173-2026-05-08.md
     mocks.mySend.mockResolvedValue(createMyContext(true))
 
     const { bootstrapAuthContext } = await import('@/app/bootstrap-auth-context')
@@ -85,7 +82,7 @@ describe('bootstrapAuthContext', () => {
     const { hasPermission, isSuperuser, permissions } = usePermission()
 
     expect(isSuperuser.value).toBe(true)
-    expect(hasPermission(BIZ_WORKLINE_PERMISSION.clearEstop)).toBe(true)
+    expect(hasPermission(BIZ_WORKLINE_PERMISSION.start)).toBe(true)
     expect(permissions.value.map(permission => permission.name)).toContain('*')
   })
 
@@ -100,7 +97,7 @@ describe('bootstrapAuthContext', () => {
 
     expect(isSuperuser.value).toBe(false)
     expect(hasPermission(BIZ_WORKLINE_PERMISSION.list)).toBe(true)
-    expect(hasPermission(BIZ_WORKLINE_PERMISSION.clearEstop)).toBe(false)
+    expect(hasPermission(BIZ_WORKLINE_PERMISSION.start)).toBe(false)
   })
 
   it('hydrates an empty /auth/my permission list without requesting the legacy permissions endpoint', async () => {

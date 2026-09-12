@@ -1,4 +1,4 @@
-/** @openapi-sha256 17a341dea536f6c53d732096f4c73dc2aadb1b3042699e5d6843f70d86a5c469 */
+/** @openapi-sha256 da1b0818faa5d71980c2e56181b5daeb981fa0f9d757793a0e85d04943bda8fb */
 /**
  * Zod Validation Schemas
  *
@@ -199,28 +199,6 @@ export const AppStatusSchema = z.enum(["active", "revoked", "expired"])
 
 
 export const AppTypeSchema = z.enum(["ECS", "RCS", "WMS", "Third-Party"])
-
-
-export const ApplyPlanCorrectionRequestSchema = z.object({
-  /** Correction Evidence Id */
-  correction_evidence_id: z.number().max(9223372036854776000),
-  /** Expected Version */
-  expected_version: z.number().max(9223372036854776000),
-  /** Reason */
-  reason: z.string().min(1).max(500),
-})
-
-
-export const ApplyPlanCorrectionResponseSchema = z.object({
-  /** Correction Evidence Id */
-  correction_evidence_id: z.number(),
-  /** Plan Revision */
-  plan_revision: z.number(),
-  /** Task Id */
-  task_id: z.string(),
-  /** Version */
-  version: z.number(),
-})
 
 
 /**
@@ -824,20 +802,6 @@ export const CallbackLogTraceResponseSchema = z.object({
 })
 
 
-/**
- * 人工清除 WorkLine 急停请求。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const ClearWorkLineEstopRequestSchema = z.object({
-  /** Checks */
-  checks: z.record(z.boolean()).optional(),
-  /** Reason */
-  reason: z.union([z.string().max(500), z.null()]).optional(),
-})
-
-
 export const CloseRunRequestSchema = z.object({
   /** Expected Version */
   expected_version: z.number().min(0),
@@ -937,10 +901,6 @@ export const DebugTransportTaskCreatedSchema = z.object({
 
 
 export const DebugTransportTaskResetPreviewSchema = z.object({
-  /** Active Binding Count */
-  active_binding_count: z.number(),
-  /** Binding Count */
-  binding_count: z.number(),
   /** Callback Receipt Count */
   callback_receipt_count: z.number(),
   /** Evidence Count */
@@ -959,8 +919,6 @@ export const DebugTransportTaskResetPreviewSchema = z.object({
 
 
 export const DebugTransportTaskResetResultSchema = z.object({
-  /** Deleted Binding Count */
-  deleted_binding_count: z.number(),
   /** Deleted Callback Receipt Count */
   deleted_callback_receipt_count: z.number(),
   /** Deleted Evidence Count */
@@ -1281,38 +1239,6 @@ export const EcsDeviceRuntimeStateSchema = z.object({
 
 
 export const EcsDeviceStateSchema = z.enum(["IDLE", "RUNNING", "ERROR", "PAUSED", "STOPPED", "OFFLINE", "UNKNOWN"])
-
-
-export const EventCommandBlockResponseSchema = z.object({
-  /** Block Id */
-  block_id: z.number(),
-  /** Blocked At */
-  blocked_at: z.union([z.string(), z.null()]),
-  /** Blocking Command Code */
-  blocking_command_code: z.string(),
-  /** Blocking Command Current Status */
-  blocking_command_current_status: z.union([z.string(), z.null()]),
-  /** Blocking Command Detected Reconciliation Reason */
-  blocking_command_detected_reconciliation_reason: z.union([z.string(), z.null()]),
-  /** Blocking Command Detected Status */
-  blocking_command_detected_status: z.string(),
-  /** Blocking Command Terminal */
-  blocking_command_terminal: z.boolean(),
-  /** Device Code */
-  device_code: z.string(),
-  /** Reason Code */
-  reason_code: z.string(),
-  /** Reconcile Device Idle Path */
-  reconcile_device_idle_path: z.string(),
-  /** Reprocess Path */
-  reprocess_path: z.string(),
-  /** Requeued At */
-  requeued_at: z.union([z.string(), z.null()]),
-  /** Source Event Id */
-  source_event_id: z.string(),
-  /** Status */
-  status: z.string(),
-})
 
 
 export const EvidenceObservationSchema = z.object({
@@ -2270,22 +2196,6 @@ export const ManualDebugPreflightResponseSchema = z.object({
 })
 
 
-export const ManualReconcileDeviceIdleRequestSchema = z.object({
-  /** Reason */
-  reason: z.string().min(1).max(500),
-})
-
-
-export const ManualReconcileDeviceIdleResponseSchema = z.object({
-  /** Command Code */
-  command_code: z.string(),
-  /** Failure Code */
-  failure_code: z.string(),
-  /** Status */
-  status: z.string(),
-})
-
-
 /**
  * 操作日志状态
  *
@@ -2835,22 +2745,6 @@ export const RefreshWmsActionRequestSchema = z.object({
 })
 
 
-export const ReprocessBlockedEventRequestSchema = z.object({
-  /** Reason */
-  reason: z.string().min(1).max(500),
-})
-
-
-export const ReprocessBlockedEventResponseSchema = z.object({
-  /** Apply Status */
-  apply_status: z.string(),
-  /** Block Id */
-  block_id: z.number(),
-  /** Source Event Id */
-  source_event_id: z.string(),
-})
-
-
 /**
  * 管理员重置密码请求
  *
@@ -3370,8 +3264,6 @@ export const TransportTaskPageResponseSchema = z.object({
 
 
 export const TransportTaskResponseSchema = z.object({
-  /** Active Binding Count */
-  active_binding_count: z.number(),
   /** Client Request Id */
   client_request_id: z.string(),
   /** Created At */
@@ -3379,6 +3271,8 @@ export const TransportTaskResponseSchema = z.object({
   /** Kind */
   kind: z.enum(["RACK_MOVE", "RACK_ROTATE", "BIN_MOVE", "BIN_EXCHANGE"]),
   latest_evidence: z.union([z.lazy(() => TransportEvidenceResponseSchema), z.null()]),
+  /** Next Submit At */
+  next_submit_at: z.union([z.string(), z.null()]),
   /** Outcome Version */
   outcome_version: z.number(),
   /** Pending Evidence Count */
@@ -4210,7 +4104,7 @@ export const _RackReferenceSchema = z.object({
 
 
 export const _RackRotateDataSchema = z.object({
-  position: z.lazy(() => _RackRotatePositionSchema),
+  position: z.lazy(() => _RackPositionSchema),
   /** Rack Id */
   rack_id: z.string().min(1).max(100).regex(new RegExp(".*\\S.*")),
   rcs_template_id: z.union([z.lazy(() => RcsTemplateIdSchema), z.null()]).optional(),
@@ -4228,9 +4122,6 @@ export const _RackRotateDebugTaskSchema = z.object({
   /** Station Id */
   station_id: z.union([z.string().min(1).max(100).regex(new RegExp(".*\\S.*")), z.null()]).optional(),
 })
-
-
-export const _RackRotatePositionSchema = z.union([z.lazy(() => _RackReferenceSchema), z.lazy(() => _RackPositionSchema)])
 
 
 export const _ZonePositionSchema = z.object({

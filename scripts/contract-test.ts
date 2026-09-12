@@ -111,6 +111,24 @@ export function assertCurrentDtoContracts(schemas: Record<string, unknown>): voi
     ['upstream_device_id', 'work_line_id', 'diagnostic_profile'],
     retiredDeviceFields
   )
+  assertFields(
+    'TransportTaskResponse',
+    requireSchemaProperties(schemas, 'TransportTaskResponse'),
+    ['transport_task_id', 'next_submit_at'],
+    ['active_binding_count']
+  )
+  assertFields(
+    'DebugTransportTaskResetPreview',
+    requireSchemaProperties(schemas, 'DebugTransportTaskResetPreview'),
+    ['transport_task_id', 'member_count'],
+    ['binding_count', 'active_binding_count']
+  )
+  assertFields(
+    'DebugTransportTaskResetResult',
+    requireSchemaProperties(schemas, 'DebugTransportTaskResetResult'),
+    ['transport_task_id', 'deleted_member_count'],
+    ['deleted_binding_count']
+  )
 }
 
 export function assertCurrentPaths(paths: Record<string, unknown>): void {
@@ -130,13 +148,21 @@ export function assertCurrentPaths(paths: Record<string, unknown>): void {
     }
   }
 
+  const retiredPaths = [
+    '/api/v1/callback/external',
+    '/api/v1/device/evidences/{source_event_id}/blocker',
+    '/api/v1/device/evidences/{source_event_id}/blockers/{block_id}/reconcile-device-idle',
+    '/api/v1/device/evidences/{source_event_id}/blockers/{block_id}/reprocess',
+    '/api/v1/outbound-picking/tasks/{task_id}/plan-blockers/{blocking_evidence_id}/apply-correction',
+    '/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop'
+  ]
   const retiredPath = Object.keys(paths).find(
     path =>
+      retiredPaths.includes(path) ||
       path === '/api/v1/workline/runtime' ||
       path.startsWith('/api/v1/workline/runtime/') ||
       path === '/api/v1/workline/plugins' ||
-      path.startsWith('/api/v1/workline/plugins/') ||
-      path === '/api/v1/callback/external'
+      path.startsWith('/api/v1/workline/plugins/')
   )
   if (retiredPath) {
     throw new Error(`OpenAPI 仍包含已退役路径 ${retiredPath}`)

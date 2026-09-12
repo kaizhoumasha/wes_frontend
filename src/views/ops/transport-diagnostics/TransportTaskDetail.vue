@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import type { CallbackReceiptsResult, GetByTransportTaskIdResult } from '@/api/modules/transport'
+import { buildTransportWaitingStages } from './transportDiagnosticExport'
 
 const props = defineProps<{
   detail: GetByTransportTaskIdResult | null
@@ -15,10 +16,8 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  lookupCallbackReceipt: [operation: string, operationId: string]
+  exportDiagnostic: []
 }>()
-const receiptOperation = ref('transport.task.resulted@v1')
-const receiptOperationId = ref('')
 const publicationState = computed(() => {
   if (!props.detail) return '—'
   if (props.detail.outcome_version === 0) return '尚无待发布结果'
@@ -26,12 +25,23 @@ const publicationState = computed(() => {
     ? '待发布'
     : '已发布（仅表示发布完成）'
 })
-
-function lookupCallbackReceipt(): void {
-  const operation = receiptOperation.value.trim()
-  const operationId = receiptOperationId.value.trim()
-  if (operation && operationId) emit('lookupCallbackReceipt', operation, operationId)
-}
+const waitingStages = computed(() =>
+  props.detail ? buildTransportWaitingStages(props.detail) : []
+)
+const linkedCallbackReceipt = computed(() => {
+  if (!props.detail?.latest_evidence || !props.callbackReceipt) return null
+  return props.callbackReceipt.operation === props.detail.latest_evidence.operation &&
+    props.callbackReceipt.operation_id === props.detail.latest_evidence.operation_id
+    ? props.callbackReceipt
+    : null
+})
+const acceptanceState = computed(() => {
+  if (!props.detail) return '未观察到'
+  if (props.detail.status === 'REJECTED') return '已拒绝'
+  if (['ACCEPTED', 'SUCCEEDED', 'FAILED'].includes(props.detail.status)) return '已观察到接纳'
+  if (props.detail.status === 'RECONCILING') return '接纳事实未确认'
+  return '未观察到'
+})
 </script>
 
 <template>
@@ -48,11 +58,26 @@ function lookupCallbackReceipt(): void {
       description="选择任务后按需查询持久详情"
     />
     <template v-else>
+      <div class="detail-actions">
+        <AppButton @click="emit('exportDiagnostic')">导出排查记录</AppButton>
+      </div>
       <section class="evidence-layer">
-        <p class="layer-label">01 / 提交接纳</p>
+        <p class="layer-label">01 / 任务请求与业务决策</p>
         <dl>
           <dt>transport_task_id</dt>
           <dd>{{ detail.transport_task_id }}</dd>
+          <dt>client_request_id</dt>
+          <dd>{{ detail.client_request_id }}</dd>
+          <dt>任务请求</dt>
+          <dd>已观察到</dd>
+          <dt>WMS 决策</dt>
+          <dd>未观察到（当前 Transport 合同无独立决策记录）</dd>
+        </dl>
+        <pre>{{ JSON.stringify(detail.request, null, 2) }}</pre>
+      </section>
+      <section class="evidence-layer">
+        <p class="layer-label">02 / WES 下发</p>
+        <dl>
           <dt>submit_operation_id</dt>
           <dd>{{ detail.submit_operation_id }}</dd>
           <dt>status</dt>
@@ -65,17 +90,23 @@ function lookupCallbackReceipt(): void {
           <dd>{{ detail.result_deadline_at ?? '—' }}</dd>
           <dt>submit_attempt_count</dt>
           <dd>{{ detail.submit_attempt_count }}</dd>
-          <dt>active_binding_count</dt>
-          <dd>{{ detail.active_binding_count }}</dd>
         </dl>
-        <p>WES 创建或 WMS 接纳不代表设备已执行。</p>
+        <p>WES 创建或对端接纳不代表设备已执行。</p>
       </section>
       <section class="evidence-layer">
-        <p class="layer-label">02 / 持久 Evidence</p>
-        <pre>{{ JSON.stringify(detail.latest_evidence, null, 2) }}</pre>
+        <p class="layer-label">03 / 对端接纳</p>
+        <p>{{ acceptanceState }}</p>
       </section>
       <section class="evidence-layer">
-        <p class="layer-label">03 / Transport 终态</p>
+        <p class="layer-label">04 / Evidence 与执行结果</p>
+        <p>持久 Evidence</p>
+        <pre v-if="detail.latest_evidence">{{
+          JSON.stringify(detail.latest_evidence, null, 2)
+        }}</pre>
+        <p v-else>未观察到</p>
+        <p>执行结果</p>
+        <pre v-if="detail.result">{{ JSON.stringify(detail.result, null, 2) }}</pre>
+        <p v-else>未观察到</p>
         <dl>
           <dt>结果等待</dt>
           <dd>{{ detail.status === 'RECONCILING' ? '等待权威结果' : '—' }}</dd>
@@ -88,53 +119,62 @@ function lookupCallbackReceipt(): void {
           <dt>pending_evidence_count</dt>
           <dd>{{ detail.pending_evidence_count }}</dd>
         </dl>
-        <pre>{{ JSON.stringify(detail.result, null, 2) }}</pre>
+      </section>
+      <section class="evidence-layer">
+        <p class="layer-label">05 / 等待与积压</p>
+        <p>时长按当前视图加载时计算；“未安排”表示合同中没有可展示的持久重试时间。</p>
+        <p v-if="waitingStages.length === 0">当前没有 WES 已记录的等待环节。</p>
+        <dl
+          v-for="stage in waitingStages"
+          :key="stage.stage"
+          class="waiting-stage"
+        >
+          <dt>等待环节</dt>
+          <dd>{{ stage.stage }}</dd>
+          <dt>已等待</dt>
+          <dd>{{ stage.waiting_duration }}</dd>
+          <dt>开始时间</dt>
+          <dd>{{ stage.waiting_since }}</dd>
+          <dt>最近尝试</dt>
+          <dd>{{ stage.last_attempt_at }}</dd>
+          <dt>下次重试</dt>
+          <dd>{{ stage.next_retry_at }}</dd>
+        </dl>
       </section>
       <section class="evidence-layer receipt-query">
-        <p class="layer-label">独立回调收据查询</p>
-        <p>按 operation + operation_id 精确查询；收据不与当前任务 Evidence 自动关联。</p>
+        <p class="layer-label">06 / 精确关联回调收据</p>
+        <p>
+          只使用当前任务最新 Evidence 的 operation + operation_id 查询，不按资源或时间猜测关联。
+        </p>
         <template v-if="canReadCallbackReceipt">
-          <el-input
-            v-model="receiptOperation"
-            aria-label="回调 operation"
-          />
-          <el-input
-            v-model="receiptOperationId"
-            aria-label="回调 operation_id"
-          />
-          <AppButton
-            :loading="loadingCallbackReceipt"
-            :disabled="!receiptOperation.trim() || !receiptOperationId.trim()"
-            @click="lookupCallbackReceipt"
-          >
-            查询收据
-          </AppButton>
+          <p v-if="loadingCallbackReceipt">正在查询精确关联收据…</p>
           <el-alert
             v-if="callbackReceiptUnknown"
-            :title="`收据状态未知：${callbackReceiptError || '查询暂不可用'}`"
+            title="未观察到与 Evidence 身份匹配的回调收据"
             type="warning"
             :closable="false"
           />
-          <dl v-else-if="callbackReceipt">
+          <dl v-else-if="linkedCallbackReceipt">
             <dt>operation</dt>
-            <dd>{{ callbackReceipt.operation }}</dd>
+            <dd>{{ linkedCallbackReceipt.operation }}</dd>
             <dt>operation_id</dt>
-            <dd>{{ callbackReceipt.operation_id }}</dd>
+            <dd>{{ linkedCallbackReceipt.operation_id }}</dd>
             <dt>response_http_status</dt>
-            <dd>{{ callbackReceipt.response_http_status }}</dd>
+            <dd>{{ linkedCallbackReceipt.response_http_status }}</dd>
             <dt>response_code</dt>
-            <dd>{{ callbackReceipt.response_code }}</dd>
+            <dd>{{ linkedCallbackReceipt.response_code }}</dd>
             <dt>conflict_code</dt>
-            <dd>{{ callbackReceipt.conflict_code ?? '—' }}</dd>
+            <dd>{{ linkedCallbackReceipt.conflict_code ?? '—' }}</dd>
             <dt>received_at</dt>
-            <dd>{{ callbackReceipt.received_at }}</dd>
+            <dd>{{ linkedCallbackReceipt.received_at }}</dd>
           </dl>
           <el-alert
             v-else-if="callbackReceiptError"
-            :title="callbackReceiptError"
+            :title="`查询失败，当前链路可能不完整：${callbackReceiptError}`"
             type="error"
             :closable="false"
           />
+          <p v-else-if="!loadingCallbackReceipt">未观察到与 Evidence 身份匹配的回调收据</p>
         </template>
         <el-alert
           v-else
@@ -143,12 +183,8 @@ function lookupCallbackReceipt(): void {
           :closable="false"
         />
       </section>
-      <section class="evidence-layer">
-        <p class="layer-label">规范化请求</p>
-        <pre>{{ JSON.stringify(detail.request, null, 2) }}</pre>
-      </section>
       <el-alert
-        title="04 / 物理事实与现场验收仍须结合 WMS、RCS、AGV/CTU 记录和现场观察。"
+        title="物理事实与现场验收仍须结合 WMS、RCS、AGV/CTU 记录和现场观察。"
         type="warning"
         :closable="false"
         show-icon
@@ -174,6 +210,11 @@ function lookupCallbackReceipt(): void {
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color);
   border-radius: 12px;
+}
+
+.detail-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .evidence-layer {
@@ -222,5 +263,11 @@ pre {
 
 .receipt-query p {
   margin: 0;
+}
+
+.waiting-stage + .waiting-stage {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--el-border-color);
 }
 </style>

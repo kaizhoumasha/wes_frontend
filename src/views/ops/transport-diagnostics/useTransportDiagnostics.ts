@@ -99,16 +99,32 @@ export function useTransportDiagnostics(options: UseTransportDiagnosticsOptions 
     }
   }
 
-  async function selectTask(transportTaskId: string): Promise<void> {
+  async function selectTask(
+    transportTaskId: string,
+    includeCallbackReceipt = false
+  ): Promise<void> {
     const requestGeneration = ++detailRequestGeneration
+    callbackReceiptRequestGeneration += 1
+    if (selectedTaskId.value !== transportTaskId) detail.value = null
     selectedTaskId.value = transportTaskId
     resetPreview.value = null
+    callbackReceipt.value = null
+    callbackReceiptUnknown.value = false
+    callbackReceiptError.value = ''
+    loadingCallbackReceipt.value = false
     loadingDetail.value = true
     lastError.value = null
     try {
       const nextDetail = await api.getTask(transportTaskId)
       if (requestGeneration !== detailRequestGeneration) return
       detail.value = nextDetail
+      loadingDetail.value = false
+      if (includeCallbackReceipt && nextDetail.latest_evidence) {
+        await loadCallbackReceipt(
+          nextDetail.latest_evidence.operation,
+          nextDetail.latest_evidence.operation_id
+        ).catch(() => undefined)
+      }
     } catch (error) {
       if (requestGeneration !== detailRequestGeneration) return
       lastError.value = toError(error)
@@ -118,10 +134,13 @@ export function useTransportDiagnostics(options: UseTransportDiagnosticsOptions 
     }
   }
 
-  async function handleStreamTask(transportTaskId: string | null): Promise<void> {
+  async function handleStreamTask(
+    transportTaskId: string | null,
+    includeCallbackReceipt = false
+  ): Promise<void> {
     await loadRecent()
     if (transportTaskId && selectedTaskId.value === transportTaskId) {
-      await selectTask(transportTaskId)
+      await selectTask(transportTaskId, includeCallbackReceipt)
     }
   }
 
@@ -137,12 +156,12 @@ export function useTransportDiagnostics(options: UseTransportDiagnosticsOptions 
       callbackReceipt.value = receipt
     } catch (error) {
       if (requestGeneration !== callbackReceiptRequestGeneration) return
-      if (isUnknownReceiptError(error)) {
+      if (isMissingReceiptError(error)) {
         callbackReceiptUnknown.value = true
-        callbackReceiptError.value = toError(error).message
         return
       }
       callbackReceiptError.value = toError(error).message
+      if (isUnavailableReceiptError(error)) return
       throw error
     } finally {
       if (requestGeneration === callbackReceiptRequestGeneration) {
@@ -277,9 +296,16 @@ function httpStatus(error: unknown): number | undefined {
   return undefined
 }
 
-function isUnknownReceiptError(error: unknown): boolean {
+function isMissingReceiptError(error: unknown): boolean {
   const status = httpStatus(error)
-  if (status === 404 || status === 503) return true
+  if (status === 404) return true
   if (typeof error !== 'object' || error === null || !('code' in error)) return false
-  return error.code === '3000' || error.code === '5030'
+  return error.code === '3000'
+}
+
+function isUnavailableReceiptError(error: unknown): boolean {
+  const status = httpStatus(error)
+  if (status === 503) return true
+  if (typeof error !== 'object' || error === null || !('code' in error)) return false
+  return error.code === '5030'
 }

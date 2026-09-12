@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import TransportTaskDetail from '@/views/ops/transport-diagnostics/TransportTaskDetail.vue'
 import type { CallbackReceiptsResult, GetByTransportTaskIdResult } from '@/api/modules/transport'
 
@@ -14,12 +14,12 @@ const detail: GetByTransportTaskIdResult = {
   updated_at: '2026-09-09T10:01:00Z',
   latest_evidence: null,
   send_started_at: '2026-09-09T10:00:01Z',
+  next_submit_at: null,
   result_deadline_at: '2026-09-09T10:05:01Z',
   submit_attempt_count: 2,
   outcome_version: 3,
   published_outcome_version: 2,
   pending_evidence_count: 1,
-  active_binding_count: 1,
   request: {},
   result: null
 }
@@ -34,14 +34,30 @@ const receipt: CallbackReceiptsResult = {
   conflict_code: null
 }
 
+const detailWithEvidence: GetByTransportTaskIdResult = {
+  ...detail,
+  latest_evidence: {
+    operation: receipt.operation,
+    operation_id: receipt.operation_id,
+    outcome_revision: 1,
+    status: 'PENDING',
+    conflict_code: null,
+    received_at: '2026-09-09T10:04:00Z',
+    processed_at: null
+  }
+}
+
+afterEach(() => {
+  vi.useRealTimers()
+})
+
 describe('TransportTaskDetail', () => {
   const global = {
     directives: { loading: () => undefined },
     stubs: {
-      ElInput: {
-        props: { modelValue: { type: String, default: '' } },
-        emits: ['update:modelValue'],
-        template: '<input :value="modelValue" />'
+      AppButton: {
+        emits: ['click'],
+        template: '<button @click="$emit(\'click\')"><slot /></button>'
       },
       ElAlert: {
         props: { title: { type: String, default: '' } },
@@ -102,10 +118,10 @@ describe('TransportTaskDetail', () => {
     }
   )
 
-  it('keeps an exact rejected receipt separate and displays only its recorded rejection code', async () => {
+  it('shows an exact linked chain and only the recorded receipt rejection code', () => {
     const wrapper = mount(TransportTaskDetail, {
       props: {
-        detail,
+        detail: detailWithEvidence,
         loading: false,
         canRead: true,
         canReadCallbackReceipt: true,
@@ -117,10 +133,125 @@ describe('TransportTaskDetail', () => {
       global
     })
 
-    expect(wrapper.text()).toContain('独立回调收据查询')
+    expect(wrapper.text()).toContain('任务请求')
+    expect(wrapper.text()).toContain('WMS 决策')
+    expect(wrapper.text()).toContain('未观察到')
+    expect(wrapper.text()).toContain('WES 下发')
+    expect(wrapper.text()).toContain('对端接纳')
+    expect(wrapper.text()).toContain('执行结果')
+    expect(wrapper.text()).toContain('精确关联回调收据')
     expect(wrapper.text()).toContain('INVALID_EVIDENCE')
     expect(wrapper.text()).not.toContain('缺失字段')
     expect(wrapper.text()).not.toContain('属于 transport-1')
+    expect(wrapper.find('input').exists()).toBe(false)
+  })
+
+  it('shows simultaneous wait stages, elapsed time and no invented retry schedule', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-09-09T10:10:00Z'))
+    const wrapper = mount(TransportTaskDetail, {
+      props: {
+        detail: detailWithEvidence,
+        loading: false,
+        canRead: true,
+        canReadCallbackReceipt: true,
+        callbackReceipt: receipt,
+        callbackReceiptUnknown: false,
+        callbackReceiptError: '',
+        loadingCallbackReceipt: false
+      },
+      global
+    })
+
+    expect(wrapper.text()).toContain('权威结果待确认')
+    expect(wrapper.text()).toContain('WES 本地待处理 Evidence')
+    expect(wrapper.text()).toContain('WES 本地待发布结果')
+    expect(wrapper.text()).toContain('9 分 0 秒')
+    expect(wrapper.text()).toContain('未安排')
+  })
+
+  it('shows the persisted submit backoff instead of reporting no retry schedule', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-09-09T10:10:00Z'))
+    const wrapper = mount(TransportTaskDetail, {
+      props: {
+        detail: {
+          ...detail,
+          status: 'PENDING',
+          updated_at: '2026-09-09T10:08:00Z',
+          send_started_at: null,
+          next_submit_at: '2026-09-09T10:12:00Z',
+          pending_evidence_count: 0,
+          outcome_version: 0,
+          published_outcome_version: 0
+        },
+        loading: false,
+        canRead: true,
+        canReadCallbackReceipt: true,
+        callbackReceipt: null,
+        callbackReceiptUnknown: false,
+        callbackReceiptError: '',
+        loadingCallbackReceipt: false
+      },
+      global
+    })
+
+    expect(wrapper.text()).toContain('提交退避')
+    expect(wrapper.text()).toContain('2026-09-09T10:08:00Z')
+    expect(wrapper.text()).toContain('2026-09-09T10:12:00Z')
+  })
+
+  it('reports an unobserved receipt separately from query failure', () => {
+    const missing = mount(TransportTaskDetail, {
+      props: {
+        detail: detailWithEvidence,
+        loading: false,
+        canRead: true,
+        canReadCallbackReceipt: true,
+        callbackReceipt: null,
+        callbackReceiptUnknown: true,
+        callbackReceiptError: '',
+        loadingCallbackReceipt: false
+      },
+      global
+    })
+    const failed = mount(TransportTaskDetail, {
+      props: {
+        detail: detailWithEvidence,
+        loading: false,
+        canRead: true,
+        canReadCallbackReceipt: true,
+        callbackReceipt: null,
+        callbackReceiptUnknown: false,
+        callbackReceiptError: 'receipt service unavailable',
+        loadingCallbackReceipt: false
+      },
+      global
+    })
+
+    expect(missing.text()).toContain('未观察到与 Evidence 身份匹配的回调收据')
+    expect(failed.text()).toContain('查询失败，当前链路可能不完整')
+    expect(failed.text()).toContain('receipt service unavailable')
+  })
+
+  it('requests a browser export for the currently displayed facts', async () => {
+    const wrapper = mount(TransportTaskDetail, {
+      props: {
+        detail: detailWithEvidence,
+        loading: false,
+        canRead: true,
+        canReadCallbackReceipt: true,
+        callbackReceipt: receipt,
+        callbackReceiptUnknown: false,
+        callbackReceiptError: '',
+        loadingCallbackReceipt: false
+      },
+      global
+    })
+
+    await wrapper.get('button').trigger('click')
+
+    expect(wrapper.emitted('exportDiagnostic')).toEqual([[]])
   })
 
   it('does not expose the receipt query without its separate permission', () => {

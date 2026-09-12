@@ -5,6 +5,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { OPS_PERMISSIONS } from '@/api/generated/permissions'
 import TransportDiagnosticsPage from '@/views/ops/transport-diagnostics/TransportDiagnosticsPage.vue'
 
+const exportMocks = vi.hoisted(() => ({ download: vi.fn() }))
+
+vi.mock('@/views/ops/transport-diagnostics/transportDiagnosticExport', async importOriginal => {
+  const original =
+    await importOriginal<
+      typeof import('@/views/ops/transport-diagnostics/transportDiagnosticExport')
+    >()
+  return { ...original, downloadTransportDiagnosticFile: exportMocks.download }
+})
+
 const diagnosticsMocks = vi.hoisted(() => ({
   loadRecent: vi.fn().mockResolvedValue(undefined),
   loadMore: vi.fn().mockResolvedValue(undefined),
@@ -19,17 +29,14 @@ const diagnosticsMocks = vi.hoisted(() => ({
     callback_receipt_count: 0,
     position_projection_count: 0,
     outcome_version: 0,
-    member_count: 1,
-    binding_count: 1,
-    active_binding_count: 1
+    member_count: 1
   }),
   resetTask: vi.fn().mockResolvedValue({
     transport_task_id: 'transport-1',
     deleted_callback_receipt_count: 0,
     deleted_evidence_count: 0,
     deleted_position_projection_count: 0,
-    deleted_member_count: 1,
-    deleted_binding_count: 1
+    deleted_member_count: 1
   }),
   setFilters: vi.fn()
 }))
@@ -46,6 +53,7 @@ const streamOptions = vi.hoisted(() => ({
 }))
 const diagnosticsState = vi.hoisted(() => ({
   selectedTaskId: 'transport-1' as string | null,
+  detail: null as null | Record<string, unknown>,
   resetPreview: {
     transport_task_id: 'transport-1',
     status: 'RECONCILING',
@@ -53,9 +61,7 @@ const diagnosticsState = vi.hoisted(() => ({
     callback_receipt_count: 0,
     position_projection_count: 0,
     outcome_version: 0,
-    member_count: 1,
-    binding_count: 1,
-    active_binding_count: 1
+    member_count: 1
   }
 }))
 const permissionMocks = vi.hoisted(() => ({
@@ -65,7 +71,7 @@ const permissionMocks = vi.hoisted(() => ({
 vi.mock('@/views/ops/transport-diagnostics/useTransportDiagnostics', () => ({
   useTransportDiagnostics: () => ({
     tasks: ref([]),
-    detail: ref(null),
+    detail: ref(diagnosticsState.detail),
     selectedTaskId: ref(diagnosticsState.selectedTaskId),
     nextCursor: ref(null),
     loading: ref(false),
@@ -160,6 +166,7 @@ describe('TransportDiagnosticsPage', () => {
     vi.clearAllMocks()
     streamOptions.value = null
     diagnosticsState.selectedTaskId = 'transport-1'
+    diagnosticsState.detail = null
     permissionMocks.granted.clear()
     permissionMocks.granted.add(OPS_PERMISSIONS.transportTask.read)
     permissionMocks.granted.add(OPS_PERMISSIONS.transportCallbackReceipt.read)
@@ -186,11 +193,11 @@ describe('TransportDiagnosticsPage', () => {
     expect(streamMocks.connect).toHaveBeenCalledOnce()
     streamOptions.value?.onEvent({ payload: { transport_task_id: 'transport-1' } })
     await vi.waitFor(() =>
-      expect(diagnosticsMocks.handleStreamTask).toHaveBeenCalledWith('transport-1')
+      expect(diagnosticsMocks.handleStreamTask).toHaveBeenCalledWith('transport-1', true)
     )
     streamOptions.value?.onReconnect()
     await vi.waitFor(() =>
-      expect(diagnosticsMocks.handleStreamTask).toHaveBeenCalledWith('transport-1')
+      expect(diagnosticsMocks.handleStreamTask).toHaveBeenCalledWith('transport-1', true)
     )
     expect(streamMocks.connect).toHaveBeenCalledOnce()
   })
@@ -209,6 +216,42 @@ describe('TransportDiagnosticsPage', () => {
     expect(diagnosticsMocks.loadRecent).toHaveBeenCalledTimes(2)
     expect(vi.getTimerCount()).toBe(0)
     vi.useRealTimers()
+  })
+
+  it('loads the exact linked receipt when selecting a task', async () => {
+    const wrapper = mountPage()
+
+    wrapper.getComponent({ name: 'TransportTaskTable' }).vm.$emit('select', 'transport-1')
+    await vi.waitFor(() =>
+      expect(diagnosticsMocks.selectTask).toHaveBeenCalledWith('transport-1', true)
+    )
+  })
+
+  it('surfaces a browser download failure without changing task state', async () => {
+    diagnosticsState.detail = { transport_task_id: 'transport-1' }
+    exportMocks.download.mockImplementationOnce(() => {
+      throw new Error('download unavailable')
+    })
+    const wrapper = mountPage()
+
+    wrapper.getComponent({ name: 'TransportTaskDetail' }).vm.$emit('exportDiagnostic')
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.html()).toContain('排查记录导出失败：download unavailable')
+  })
+
+  it('does not export without task detail or diagnostic read permission', async () => {
+    let wrapper = mountPage()
+    wrapper.getComponent({ name: 'TransportTaskDetail' }).vm.$emit('exportDiagnostic')
+    await wrapper.vm.$nextTick()
+    expect(exportMocks.download).not.toHaveBeenCalled()
+
+    diagnosticsState.detail = { transport_task_id: 'transport-1' }
+    permissionMocks.granted.delete(OPS_PERMISSIONS.transportTask.read)
+    wrapper = mountPage()
+    wrapper.getComponent({ name: 'TransportTaskDetail' }).vm.$emit('exportDiagnostic')
+    await wrapper.vm.$nextTick()
+    expect(exportMocks.download).not.toHaveBeenCalled()
   })
 
   it('previews the selected task before opening the reset confirmation and resets once', async () => {
