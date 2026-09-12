@@ -355,7 +355,7 @@ describe.sequential('repository quality gates', () => {
       'RUN --mount=type=cache,id=wes-frontend-pnpm,target=/pnpm/store'
     )
     const readPnpmConfig = (name: string): string =>
-      execFileSync('pnpm', ['config', 'get', name], {
+      execFileSync('corepack', ['pnpm', 'config', 'get', name], {
         cwd: REPOSITORY_ROOT,
         encoding: 'utf-8'
       }).trim()
