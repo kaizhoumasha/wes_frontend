@@ -9,6 +9,7 @@ import TransportDebugTaskDialog from './TransportDebugTaskDialog.vue'
 import TransportDebugResetDialog from './TransportDebugResetDialog.vue'
 import TransportTaskDetail from './TransportTaskDetail.vue'
 import TransportTaskTable from './TransportTaskTable.vue'
+import { downloadTransportDiagnosticFile } from './transportDiagnosticExport'
 import { useTransportDiagnostics } from './useTransportDiagnostics'
 import { useTransportEvidenceStream } from './useTransportEvidenceStream'
 
@@ -33,7 +34,11 @@ const dialogRef = ref<DebugDialogExpose | null>(null)
 const resetDialogOpen = ref(false)
 const stream = useTransportEvidenceStream({
   onEvent: event => void refreshFromEvent(event),
-  onReconnect: () => void diagnostics.handleStreamTask(diagnostics.selectedTaskId.value)
+  onReconnect: () =>
+    void diagnostics.handleStreamTask(
+      diagnostics.selectedTaskId.value,
+      canReadCallbackReceipt.value
+    )
 })
 
 const connectionLabel = computed(() => {
@@ -67,7 +72,7 @@ async function selectTask(transportTaskId: string): Promise<void> {
   if (!canRead.value) return
   uiError.value = ''
   try {
-    await diagnostics.selectTask(transportTaskId)
+    await diagnostics.selectTask(transportTaskId, canReadCallbackReceipt.value)
   } catch (error) {
     uiError.value = errorMessage(error)
   }
@@ -84,7 +89,10 @@ async function loadMore(): Promise<void> {
 
 async function refreshFromEvent(event: TransportEvidenceStreamEvent): Promise<void> {
   try {
-    await diagnostics.handleStreamTask(event.payload.transport_task_id)
+    await diagnostics.handleStreamTask(
+      event.payload.transport_task_id,
+      canReadCallbackReceipt.value
+    )
   } catch (error) {
     uiError.value = errorMessage(error)
   }
@@ -128,6 +136,21 @@ function openDebug(event: MouseEvent): void {
   dialogRef.value?.open(event.currentTarget as HTMLElement)
 }
 
+function exportDiagnostic(): void {
+  const detail = diagnostics.detail.value
+  if (!detail || !canRead.value) return
+  uiError.value = ''
+  try {
+    downloadTransportDiagnosticFile(
+      detail,
+      diagnostics.callbackReceipt.value,
+      Boolean(diagnostics.callbackReceiptError.value)
+    )
+  } catch (error) {
+    uiError.value = `排查记录导出失败：${errorMessage(error)}`
+  }
+}
+
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
 }
@@ -137,7 +160,7 @@ onMounted(() => {
   if (canStream.value) stream.connect()
 })
 
-defineExpose({ filterForm, applyFilters })
+defineExpose({ filterForm, applyFilters, exportDiagnostic })
 </script>
 
 <template>
@@ -265,7 +288,7 @@ defineExpose({ filterForm, applyFilters })
         :callback-receipt-unknown="diagnostics.callbackReceiptUnknown.value"
         :callback-receipt-error="diagnostics.callbackReceiptError.value"
         :loading-callback-receipt="diagnostics.loadingCallbackReceipt.value"
-        @lookup-callback-receipt="diagnostics.loadCallbackReceipt"
+        @export-diagnostic="exportDiagnostic"
       />
     </section>
 

@@ -37,8 +37,6 @@ function preview(overrides: Partial<ResetPreviewResult> = {}): ResetPreviewResul
     position_projection_count: 0,
     outcome_version: 0,
     member_count: 1,
-    binding_count: 1,
-    active_binding_count: 1,
     ...overrides
   }
 }
@@ -69,7 +67,6 @@ describe('TransportDebugResetDialog', () => {
 
     expect(wrapper.text()).toContain('transport-1')
     expect(wrapper.text()).toContain('1 个成员')
-    expect(wrapper.text()).toContain('1 个资源绑定')
     expect(wrapper.text()).toContain('2 条')
     expect(wrapper.text()).toContain('1 条回执')
     expect(wrapper.text()).toContain('1 条位置投影')

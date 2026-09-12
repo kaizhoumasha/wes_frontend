@@ -141,6 +141,16 @@ describe('contract required system paths', () => {
       })
     ).toThrow('/api/v1/callback/external')
   })
+
+  it.each([
+    '/api/v1/device/evidences/{source_event_id}/blocker',
+    '/api/v1/device/evidences/{source_event_id}/blockers/{block_id}/reconcile-device-idle',
+    '/api/v1/device/evidences/{source_event_id}/blockers/{block_id}/reprocess',
+    '/api/v1/outbound-picking/tasks/{task_id}/plan-blockers/{blocking_evidence_id}/apply-correction',
+    '/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop'
+  ])('rejects retired recovery path %s', retiredPath => {
+    expect(() => assertCurrentPaths({ ...currentPaths, [retiredPath]: {} })).toThrow(retiredPath)
+  })
 })
 
 describe('contract WorkLine and Device ownership boundaries', () => {
@@ -153,7 +163,10 @@ describe('contract WorkLine and Device ownership boundaries', () => {
     WorkLineResponse: schema(['runtime_config_json', 'diagnostic_profile', 'plugin_key', 'config']),
     DeviceCreate: schema(['upstream_device_id', 'diagnostic_profile']),
     DeviceUpdate: schema(['upstream_device_id', 'diagnostic_profile']),
-    DeviceResponse: schema(['upstream_device_id', 'work_line_id', 'diagnostic_profile'])
+    DeviceResponse: schema(['upstream_device_id', 'work_line_id', 'diagnostic_profile']),
+    TransportTaskResponse: schema(['transport_task_id', 'next_submit_at']),
+    DebugTransportTaskResetPreview: schema(['transport_task_id', 'member_count']),
+    DebugTransportTaskResetResult: schema(['transport_task_id', 'deleted_member_count'])
   }
 
   it('keeps plugin selection and device ownership out of generic write contracts', () => {
@@ -172,6 +185,19 @@ describe('contract WorkLine and Device ownership boundaries', () => {
     ['DeviceUpdate', 'role_index'],
     ['DeviceResponse', 'device_role'],
     ['DeviceResponse', 'role_index']
+  ] as const)('rejects retired %s.%s', (schemaName, field) => {
+    const schemas = structuredClone(currentSchemas)
+    schemas[schemaName].properties[field] = {}
+    expect(() => assertCurrentDtoContracts(schemas)).toThrow(
+      `${schemaName} 仍包含已退役字段 ${field}`
+    )
+  })
+
+  it.each([
+    ['TransportTaskResponse', 'active_binding_count'],
+    ['DebugTransportTaskResetPreview', 'binding_count'],
+    ['DebugTransportTaskResetPreview', 'active_binding_count'],
+    ['DebugTransportTaskResetResult', 'deleted_binding_count']
   ] as const)('rejects retired %s.%s', (schemaName, field) => {
     const schemas = structuredClone(currentSchemas)
     schemas[schemaName].properties[field] = {}

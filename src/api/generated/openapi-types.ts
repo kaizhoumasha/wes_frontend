@@ -1,4 +1,4 @@
-/** @openapi-sha256 17a341dea536f6c53d732096f4c73dc2aadb1b3042699e5d6843f70d86a5c469 */
+/** @openapi-sha256 da1b0818faa5d71980c2e56181b5daeb981fa0f9d757793a0e85d04943bda8fb */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -1465,57 +1465,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/device/evidences/{source_event_id}/blocker": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** 查询 Device EVENT 最新命令阻塞因果 */
-        get: operations["device_evidences_by_source_event_id_blocker_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/device/evidences/{source_event_id}/blockers/{block_id}/reconcile-device-idle": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** 以设备实时空闲证明闭合 DELIVERY_UNKNOWN 命令 */
-        post: operations["device_evidences_by_source_event_id_blockers_by_block_id_reconcile_device_idle_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/device/evidences/{source_event_id}/blockers/{block_id}/reprocess": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** 显式重新处理已闭合 blocker 的 Device EVENT */
-        post: operations["device_evidences_by_source_event_id_blockers_by_block_id_reprocess_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/device/evidences/history": {
         parameters: {
             query?: never;
@@ -1544,23 +1493,6 @@ export interface paths {
         get: operations["device_evidences_stream_get"];
         put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/outbound-picking/tasks/{task_id}/plan-blockers/{blocking_evidence_id}/apply-correction": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** 校验两份计划证据并原子应用修正版本 */
-        post: operations["outbound_picking_tasks_by_task_id_plan_blockers_by_blocking_evidence_id_apply_correction_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3157,23 +3089,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/workline/operations/safety/worklines/{workline_id}/clear-estop": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [biz:workline:clear-estop] 人工确认 checklist 后清除工作线急停 */
-        post: operations["workline_operations_safety_worklines_by_workline_id_clear_estop_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/workline/operations/worklines/{workline_id}/start": {
         parameters: {
             query?: never;
@@ -3627,7 +3542,7 @@ export interface components {
         };
         /** _RackRotateData */
         _RackRotateData: {
-            position: components["schemas"]["_RackRotatePosition"];
+            position: components["schemas"]["_RackPosition"];
             /** Rack Id */
             rack_id: string;
             rcs_template_id?: components["schemas"]["RcsTemplateId"] | null;
@@ -3650,7 +3565,6 @@ export interface components {
             /** Station Id */
             station_id?: string | null;
         };
-        _RackRotatePosition: components["schemas"]["_RackReference"] | components["schemas"]["_RackPosition"];
         /** _ZonePosition */
         _ZonePosition: {
             /**
@@ -3958,26 +3872,6 @@ export interface components {
              * @description 权限类型：user_api（内部管理API）、app_api（外部应用API）
              */
             type: string;
-        };
-        /** ApplyPlanCorrectionRequest */
-        ApplyPlanCorrectionRequest: {
-            /** Correction Evidence Id */
-            correction_evidence_id: number;
-            /** Expected Version */
-            expected_version: number;
-            /** Reason */
-            reason: string;
-        };
-        /** ApplyPlanCorrectionResponse */
-        ApplyPlanCorrectionResponse: {
-            /** Correction Evidence Id */
-            correction_evidence_id: number;
-            /** Plan Revision */
-            plan_revision: number;
-            /** Task Id */
-            task_id: string;
-            /** Version */
-            version: number;
         };
         /**
          * AppStatus
@@ -4874,24 +4768,6 @@ export interface components {
              */
             trace_id: string;
         };
-        /**
-         * ClearWorkLineEstopRequest
-         * @description 人工清除 WorkLine 急停请求。
-         */
-        ClearWorkLineEstopRequest: {
-            /**
-             * Checks
-             * @description 恢复 checklist；所有项必须为 true
-             */
-            checks?: {
-                [key: string]: boolean;
-            };
-            /**
-             * Reason
-             * @description 恢复说明
-             */
-            reason?: string | null;
-        };
         /** CloseRunRequest */
         CloseRunRequest: {
             /** Expected Version */
@@ -4999,10 +4875,6 @@ export interface components {
         };
         /** DebugTransportTaskResetPreview */
         DebugTransportTaskResetPreview: {
-            /** Active Binding Count */
-            active_binding_count: number;
-            /** Binding Count */
-            binding_count: number;
             /** Callback Receipt Count */
             callback_receipt_count: number;
             /** Evidence Count */
@@ -5023,8 +4895,6 @@ export interface components {
         };
         /** DebugTransportTaskResetResult */
         DebugTransportTaskResetResult: {
-            /** Deleted Binding Count */
-            deleted_binding_count: number;
             /** Deleted Callback Receipt Count */
             deleted_callback_receipt_count: number;
             /** Deleted Evidence Count */
@@ -5339,37 +5209,6 @@ export interface components {
          * @enum {string}
          */
         EcsDeviceState: "IDLE" | "RUNNING" | "ERROR" | "PAUSED" | "STOPPED" | "OFFLINE" | "UNKNOWN";
-        /** EventCommandBlockResponse */
-        EventCommandBlockResponse: {
-            /** Block Id */
-            block_id: number;
-            /** Blocked At */
-            blocked_at: string | null;
-            /** Blocking Command Code */
-            blocking_command_code: string;
-            /** Blocking Command Current Status */
-            blocking_command_current_status: string | null;
-            /** Blocking Command Detected Reconciliation Reason */
-            blocking_command_detected_reconciliation_reason: string | null;
-            /** Blocking Command Detected Status */
-            blocking_command_detected_status: string;
-            /** Blocking Command Terminal */
-            blocking_command_terminal: boolean;
-            /** Device Code */
-            device_code: string;
-            /** Reason Code */
-            reason_code: string;
-            /** Reconcile Device Idle Path */
-            reconcile_device_idle_path: string;
-            /** Reprocess Path */
-            reprocess_path: string;
-            /** Requeued At */
-            requeued_at: string | null;
-            /** Source Event Id */
-            source_event_id: string;
-            /** Status */
-            status: string;
-        };
         /** EvidenceObservation */
         EvidenceObservation: {
             apply_status: components["schemas"]["InboundEvidenceApplyStatus"];
@@ -5973,20 +5812,6 @@ export interface components {
             devices: components["schemas"]["ManualDebugPreflightDevice"][];
             /** Endpoint Base Url */
             endpoint_base_url: string;
-        };
-        /** ManualReconcileDeviceIdleRequest */
-        ManualReconcileDeviceIdleRequest: {
-            /** Reason */
-            reason: string;
-        };
-        /** ManualReconcileDeviceIdleResponse */
-        ManualReconcileDeviceIdleResponse: {
-            /** Command Code */
-            command_code: string;
-            /** Failure Code */
-            failure_code: string;
-            /** Status */
-            status: string;
         };
         /**
          * OperaStatus
@@ -6726,20 +6551,6 @@ export interface components {
             /** Expected Version */
             expected_version: number;
         };
-        /** ReprocessBlockedEventRequest */
-        ReprocessBlockedEventRequest: {
-            /** Reason */
-            reason: string;
-        };
-        /** ReprocessBlockedEventResponse */
-        ReprocessBlockedEventResponse: {
-            /** Apply Status */
-            apply_status: string;
-            /** Block Id */
-            block_id: number;
-            /** Source Event Id */
-            source_event_id: string;
-        };
         /**
          * ResetPasswordRequest
          * @description 管理员重置密码请求
@@ -6888,8 +6699,6 @@ export interface components {
         ResponseSchemaModel_APIAccessLogResponse_: ApiResponse<components["schemas"]["APIAccessLogResponse"]>;
         /** ResponseSchemaModel[APIApplicationResponse] */
         ResponseSchemaModel_APIApplicationResponse_: ApiResponse<components["schemas"]["APIApplicationResponse"]>;
-        /** ResponseSchemaModel[ApplyPlanCorrectionResponse] */
-        ResponseSchemaModel_ApplyPlanCorrectionResponse_: ApiResponse<components["schemas"]["ApplyPlanCorrectionResponse"]>;
         /** ResponseSchemaModel[AuditLogResponse] */
         ResponseSchemaModel_AuditLogResponse_: ApiResponse<components["schemas"]["AuditLogResponse"]>;
         /** ResponseSchemaModel[AuthMyResponse] */
@@ -6930,8 +6739,6 @@ export interface components {
         ResponseSchemaModel_dict_str__Any__: ApiResponse<Record<string, unknown>>;
         /** ResponseSchemaModel[dict[str, str]] */
         ResponseSchemaModel_dict_str__str__: ApiResponse<Record<string, string>>;
-        /** ResponseSchemaModel[EventCommandBlockResponse] */
-        ResponseSchemaModel_EventCommandBlockResponse_: ApiResponse<components["schemas"]["EventCommandBlockResponse"]>;
         /** ResponseSchemaModel[EvidenceObservation] */
         ResponseSchemaModel_EvidenceObservation_: ApiResponse<components["schemas"]["EvidenceObservation"]>;
         /** ResponseSchemaModel[ExchangeDetail] */
@@ -6960,8 +6767,6 @@ export interface components {
         ResponseSchemaModel_ManualDebugDeviceCommandResponse_: ApiResponse<components["schemas"]["ManualDebugDeviceCommandResponse"]>;
         /** ResponseSchemaModel[ManualDebugPreflightResponse] */
         ResponseSchemaModel_ManualDebugPreflightResponse_: ApiResponse<components["schemas"]["ManualDebugPreflightResponse"]>;
-        /** ResponseSchemaModel[ManualReconcileDeviceIdleResponse] */
-        ResponseSchemaModel_ManualReconcileDeviceIdleResponse_: ApiResponse<components["schemas"]["ManualReconcileDeviceIdleResponse"]>;
         /** ResponseSchemaModel[NoneType] */
         ResponseSchemaModel_NoneType_: ApiResponse<null>;
         /** ResponseSchemaModel[PermissionResponse] */
@@ -6982,8 +6787,6 @@ export interface components {
         ResponseSchemaModel_RackTypeResponse_: ApiResponse<components["schemas"]["RackTypeResponse"]>;
         /** ResponseSchemaModel[RefreshTokenResponse] */
         ResponseSchemaModel_RefreshTokenResponse_: ApiResponse<components["schemas"]["RefreshTokenResponse"]>;
-        /** ResponseSchemaModel[ReprocessBlockedEventResponse] */
-        ResponseSchemaModel_ReprocessBlockedEventResponse_: ApiResponse<components["schemas"]["ReprocessBlockedEventResponse"]>;
         /** ResponseSchemaModel[ResourceStateEventResponse] */
         ResponseSchemaModel_ResourceStateEventResponse_: ApiResponse<components["schemas"]["ResourceStateEventResponse"]>;
         /** ResponseSchemaModel[RevokeSessionResponse] */
@@ -7447,8 +7250,6 @@ export interface components {
         };
         /** TransportTaskResponse */
         TransportTaskResponse: {
-            /** Active Binding Count */
-            active_binding_count: number;
             /** Client Request Id */
             client_request_id: string;
             /** Created At */
@@ -7459,6 +7260,8 @@ export interface components {
              */
             kind: "RACK_MOVE" | "RACK_ROTATE" | "BIN_MOVE" | "BIN_EXCHANGE";
             latest_evidence: components["schemas"]["TransportEvidenceResponse"] | null;
+            /** Next Submit At */
+            next_submit_at: string | null;
             /** Outcome Version */
             outcome_version: number;
             /** Pending Evidence Count */
@@ -10404,7 +10207,7 @@ export interface operations {
                     "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
                 };
             };
-            /** @description 幂等身份或设备占用冲突 */
+            /** @description 幂等身份冲突 */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -10797,172 +10600,6 @@ export interface operations {
             };
         };
     };
-    device_evidences_by_source_event_id_blocker_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                source_event_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_EventCommandBlockResponse_"];
-                };
-            };
-            /** @description EVENT blocker 不存在 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
-                };
-            };
-            /** @description 阻塞因果不可用 */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    device_evidences_by_source_event_id_blockers_by_block_id_reconcile_device_idle_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                block_id: number;
-                source_event_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ManualReconcileDeviceIdleRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_ManualReconcileDeviceIdleResponse_"];
-                };
-            };
-            /** @description EVENT blocker 不存在 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
-                };
-            };
-            /** @description 因果或设备状态不允许人工闭合 */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-            /** @description ECS 状态查询不可用 */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
-                };
-            };
-        };
-    };
-    device_evidences_by_source_event_id_blockers_by_block_id_reprocess_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                block_id: number;
-                source_event_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ReprocessBlockedEventRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_ReprocessBlockedEventResponse_"];
-                };
-            };
-            /** @description EVENT blocker 不存在 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
-                };
-            };
-            /** @description 阻塞因果不允许重处理 */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     device_evidences_history_get: {
         parameters: {
             query?: {
@@ -11020,42 +10657,6 @@ export interface operations {
                 };
                 content: {
                     "text/event-stream": string;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    outbound_picking_tasks_by_task_id_plan_blockers_by_blocking_evidence_id_apply_correction_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                blocking_evidence_id: number;
-                task_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ApplyPlanCorrectionRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_ApplyPlanCorrectionResponse_"];
                 };
             };
             /** @description Validation Error */
@@ -12394,7 +11995,7 @@ export interface operations {
                     "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
                 };
             };
-            /** @description 幂等身份或 Transport 资源冲突 */
+            /** @description Transport 幂等身份冲突 */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -14315,41 +13916,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
-                };
-            };
-        };
-    };
-    workline_operations_safety_worklines_by_workline_id_clear_estop_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                workline_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ClearWorkLineEstopRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

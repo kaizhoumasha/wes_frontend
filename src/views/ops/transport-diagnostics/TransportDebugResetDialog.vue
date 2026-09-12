@@ -50,10 +50,6 @@ const confirmDisabled = computed(() => !props.preview || !props.canReset || prop
       <dd>{{ preview.status }}</dd>
       <dt>本地成员</dt>
       <dd>{{ preview.member_count }} 个成员</dd>
-      <dt>资源绑定</dt>
-      <dd>{{ preview.binding_count }} 个资源绑定</dd>
-      <dt>活动绑定</dt>
-      <dd>{{ preview.active_binding_count }} 个活动绑定</dd>
       <dt>Evidence</dt>
       <dd>{{ preview.evidence_count }} 条</dd>
       <dt>Callback Receipt</dt>
@@ -75,7 +71,7 @@ const confirmDisabled = computed(() => !props.preview || !props.canReset || prop
       class="cleanup-hint"
     >
       清理后该任务、Evidence、Callback Receipt、由其 Evidence
-      产生的位置投影、成员和资源绑定都会被删除，可立即开始下一轮联调。
+      产生的位置投影和成员都会被删除，可立即开始下一轮联调。
     </p>
   </StandardDialog>
 </template>

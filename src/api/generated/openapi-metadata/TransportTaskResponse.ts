@@ -22,23 +22,17 @@ export const TransportTaskResponseMetadata = {
     "updated_at",
     "latest_evidence",
     "send_started_at",
+    "next_submit_at",
     "result_deadline_at",
     "submit_attempt_count",
     "outcome_version",
     "published_outcome_version",
     "pending_evidence_count",
-    "active_binding_count",
     "request",
     "result"
   ],
   "additionalProperties": false,
   "fields": {
-    "active_binding_count": {
-      "title": "Active Binding Count",
-      "type": "integer",
-      "required": true,
-      "nullable": false
-    },
     "client_request_id": {
       "title": "Client Request Id",
       "type": "string",
@@ -67,6 +61,12 @@ export const TransportTaskResponseMetadata = {
       "required": true,
       "nullable": true,
       "ref": "TransportEvidenceResponse"
+    },
+    "next_submit_at": {
+      "title": "Next Submit At",
+      "type": "string",
+      "required": true,
+      "nullable": true
     },
     "outcome_version": {
       "title": "Outcome Version",

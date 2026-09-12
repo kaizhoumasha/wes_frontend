@@ -18,24 +18,10 @@ export const DebugTransportTaskResetPreviewMetadata = {
     "callback_receipt_count",
     "position_projection_count",
     "outcome_version",
-    "member_count",
-    "binding_count",
-    "active_binding_count"
+    "member_count"
   ],
   "additionalProperties": false,
   "fields": {
-    "active_binding_count": {
-      "title": "Active Binding Count",
-      "type": "integer",
-      "required": true,
-      "nullable": false
-    },
-    "binding_count": {
-      "title": "Binding Count",
-      "type": "integer",
-      "required": true,
-      "nullable": false
-    },
     "callback_receipt_count": {
       "title": "Callback Receipt Count",
       "type": "integer",

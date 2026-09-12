@@ -36,12 +36,12 @@ const TASK_2: TasksResult['items'][number] = {
 const DETAIL_1: GetByTransportTaskIdResult = {
   ...TASK_1,
   send_started_at: '2026-08-28T08:00:01Z',
+  next_submit_at: null,
   result_deadline_at: '2026-08-28T08:05:01Z',
   submit_attempt_count: 2,
   outcome_version: 2,
   published_outcome_version: 1,
   pending_evidence_count: 1,
-  active_binding_count: 1,
   request: { kind: 'RACK_MOVE' },
   result: null
 }
@@ -54,6 +54,19 @@ const RECEIPT: CallbackReceiptsResult = {
   response_data: {},
   received_at: '2026-08-28T08:03:00Z',
   conflict_code: 'PAYLOAD_MISMATCH'
+}
+
+const DETAIL_WITH_EVIDENCE: GetByTransportTaskIdResult = {
+  ...DETAIL_1,
+  latest_evidence: {
+    operation: RECEIPT.operation,
+    operation_id: RECEIPT.operation_id,
+    outcome_revision: 1,
+    status: 'APPLIED',
+    conflict_code: null,
+    received_at: '2026-08-28T08:02:00Z',
+    processed_at: '2026-08-28T08:02:01Z'
+  }
 }
 
 const DETAIL_2: GetByTransportTaskIdResult = {
@@ -69,9 +82,7 @@ const RESET_PREVIEW: ResetPreviewResult = {
   callback_receipt_count: 0,
   position_projection_count: 0,
   outcome_version: 0,
-  member_count: 1,
-  binding_count: 1,
-  active_binding_count: 1
+  member_count: 1
 }
 
 const RESET_RESULT: ResetResult = {
@@ -79,8 +90,7 @@ const RESET_RESULT: ResetResult = {
   deleted_callback_receipt_count: 0,
   deleted_evidence_count: 0,
   deleted_position_projection_count: 0,
-  deleted_member_count: 1,
-  deleted_binding_count: 1
+  deleted_member_count: 1
 }
 
 function createApi() {
@@ -127,6 +137,29 @@ describe('useTransportDiagnostics', () => {
     expect(diagnostics.callbackReceiptUnknown.value).toBe(false)
   })
 
+  it('loads the selected task chain through the latest evidence identity', async () => {
+    const api = createApi()
+    api.getTask.mockResolvedValue(DETAIL_WITH_EVIDENCE)
+    api.getCallbackReceipt.mockResolvedValue(RECEIPT)
+    const diagnostics = useTransportDiagnostics({ api })
+
+    await diagnostics.selectTask('transport-1', true)
+
+    expect(api.getCallbackReceipt).toHaveBeenCalledWith(RECEIPT.operation, RECEIPT.operation_id)
+    expect(diagnostics.callbackReceipt.value).toEqual(RECEIPT)
+  })
+
+  it('does not invent a receipt identity when the selected task has no evidence', async () => {
+    const api = createApi()
+    api.getTask.mockResolvedValue(DETAIL_1)
+    const diagnostics = useTransportDiagnostics({ api })
+
+    await diagnostics.selectTask('transport-1', true)
+
+    expect(api.getCallbackReceipt).not.toHaveBeenCalled()
+    expect(diagnostics.callbackReceipt.value).toBeNull()
+  })
+
   it('discards a stale receipt response after the identity input changes', async () => {
     const api = createApi()
     const older = deferred<CallbackReceiptsResult>()
@@ -142,12 +175,9 @@ describe('useTransportDiagnostics', () => {
     expect(diagnostics.callbackReceipt.value).toEqual(RECEIPT)
   })
 
-  it.each([
-    [404, '3000'],
-    [503, '5030']
-  ])('keeps receipt status unknown for HTTP %s API code %s', async (status, code) => {
+  it('marks a missing receipt as unobserved without turning it into a query failure', async () => {
     const api = createApi()
-    api.getCallbackReceipt.mockRejectedValue(Object.assign(new Error(`HTTP ${status}`), { code }))
+    api.getCallbackReceipt.mockRejectedValue(Object.assign(new Error('HTTP 404'), { code: '3000' }))
     const diagnostics = useTransportDiagnostics({ api })
 
     await expect(
@@ -156,7 +186,21 @@ describe('useTransportDiagnostics', () => {
 
     expect(diagnostics.callbackReceipt.value).toBeNull()
     expect(diagnostics.callbackReceiptUnknown.value).toBe(true)
-    expect(diagnostics.callbackReceiptError.value).toContain(String(status))
+    expect(diagnostics.callbackReceiptError.value).toBe('')
+  })
+
+  it('keeps a task visible while reporting a receipt query outage', async () => {
+    const api = createApi()
+    api.getCallbackReceipt.mockRejectedValue(Object.assign(new Error('HTTP 503'), { code: '5030' }))
+    const diagnostics = useTransportDiagnostics({ api })
+
+    await expect(
+      diagnostics.loadCallbackReceipt('transport.task.resulted@v1', 'missing')
+    ).resolves.toBeUndefined()
+
+    expect(diagnostics.callbackReceipt.value).toBeNull()
+    expect(diagnostics.callbackReceiptUnknown.value).toBe(false)
+    expect(diagnostics.callbackReceiptError.value).toContain('503')
   })
   it('does not let an older list response overwrite a newer refresh', async () => {
     const api = createApi()
@@ -194,6 +238,22 @@ describe('useTransportDiagnostics', () => {
     await first
 
     expect(diagnostics.selectedTaskId.value).toBe('transport-2')
+    expect(diagnostics.detail.value).toEqual(DETAIL_2)
+  })
+
+  it('does not show the previous task detail while a different selection is loading', async () => {
+    const api = createApi()
+    const nextDetail = deferred<GetByTransportTaskIdResult>()
+    api.getTask.mockResolvedValueOnce(DETAIL_1).mockReturnValueOnce(nextDetail.promise)
+    const diagnostics = useTransportDiagnostics({ api })
+    await diagnostics.selectTask('transport-1')
+
+    const selecting = diagnostics.selectTask('transport-2')
+
+    expect(diagnostics.selectedTaskId.value).toBe('transport-2')
+    expect(diagnostics.detail.value).toBeNull()
+    nextDetail.resolve(DETAIL_2)
+    await selecting
     expect(diagnostics.detail.value).toEqual(DETAIL_2)
   })
 

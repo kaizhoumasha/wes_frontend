@@ -16,17 +16,10 @@ export const DebugTransportTaskResetResultMetadata = {
     "deleted_callback_receipt_count",
     "deleted_evidence_count",
     "deleted_position_projection_count",
-    "deleted_member_count",
-    "deleted_binding_count"
+    "deleted_member_count"
   ],
   "additionalProperties": false,
   "fields": {
-    "deleted_binding_count": {
-      "title": "Deleted Binding Count",
-      "type": "integer",
-      "required": true,
-      "nullable": false
-    },
     "deleted_callback_receipt_count": {
       "title": "Deleted Callback Receipt Count",
       "type": "integer",

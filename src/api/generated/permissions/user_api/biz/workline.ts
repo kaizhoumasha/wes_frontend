@@ -36,8 +36,6 @@ export const BIZ_WORKLINE_PERMISSION = {
   availablePlugins: 'biz:workline:available-plugins',
   /** 查询工作线基础配置 */
   baseConfiguration: 'biz:workline:base-configuration',
-  /** 人工确认 checklist 后清除工作线急停 */
-  clearEstop: 'biz:workline:clear-estop',
   /** 查询作业线配置状态 */
   configurationStatus: 'biz:workline:configuration-status',
   /** 保存业务插件关联与角色配置 */

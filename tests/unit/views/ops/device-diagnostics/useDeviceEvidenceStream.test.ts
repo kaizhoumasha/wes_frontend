@@ -569,6 +569,58 @@ describe('device history with live stream', () => {
 })
 
 describe('device history ordering and capacity regressions', () => {
+  it('keeps a historical abnormal task beside a newer normal task when the old task is revised', async () => {
+    const { connector, sessions } = createConnector()
+    const abnormal = historyItem(1)
+    abnormal.latest_update = {
+      evidence_id: 1,
+      kind: 'DEVICE_RESULT',
+      source_event_id: 'source-1',
+      device_code: 'ARM-01',
+      command_code: 'CMD-OLD',
+      event_type: null,
+      apply_status: 'RECONCILING',
+      processed_at: '2026-08-23T08:00:01Z'
+    }
+    const normal = historyItem(2)
+    normal.recorded_at = '2026-08-23T08:00:03Z'
+    normal.latest_update = {
+      evidence_id: 2,
+      kind: 'DEVICE_RESULT',
+      source_event_id: 'source-2',
+      device_code: 'ARM-01',
+      command_code: 'CMD-NEW',
+      event_type: null,
+      apply_status: 'APPLIED',
+      processed_at: '2026-08-23T08:00:03Z'
+    }
+    const loadHistory = vi.fn().mockResolvedValue({
+      items: [normal, abnormal],
+      next_cursor: null
+    })
+    const stream = useDeviceEvidenceStream({ connector, loadHistory })
+    stream.connect()
+    await flushPromises()
+
+    sessions[0]?.options.onEvent({
+      type: 'device_evidence.updated',
+      payload: {
+        ...abnormal.latest_update,
+        apply_status: 'CONFLICT',
+        processed_at: '2026-08-23T08:00:04Z'
+      }
+    })
+
+    expect(stream.rows.value).toHaveLength(2)
+    expect(stream.rows.value.find(row => row.evidenceId === 1)?.latestUpdate?.apply_status).toBe(
+      'CONFLICT'
+    )
+    expect(stream.rows.value.find(row => row.evidenceId === 2)?.latestUpdate?.apply_status).toBe(
+      'APPLIED'
+    )
+    stream.disconnect()
+  })
+
   it('keeps a completed status when its pending attempt arrives after an idle history read', async () => {
     const { connector, sessions } = createConnector()
     const loadHistory = vi.fn().mockResolvedValue({ items: [], next_cursor: null })
