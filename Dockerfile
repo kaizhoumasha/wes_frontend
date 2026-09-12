@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # 多阶段构建 Dockerfile
 # Stage 1: 构建阶段
 FROM node:22-bookworm-slim AS builder
@@ -13,7 +14,8 @@ ARG VITE_APP_DEV=false
 ENV CI=true \
     HUSKY=0 \
     ELECTRON_SKIP_BINARY_DOWNLOAD=1 \
-    ELECTRON_SKIP_DOWNLOAD=1
+    ELECTRON_SKIP_DOWNLOAD=1 \
+    PNPM_STORE_DIR=/pnpm/store
 
 # 安装 pnpm
 RUN corepack enable && corepack prepare pnpm@10.10.0 --activate
@@ -21,8 +23,11 @@ RUN corepack enable && corepack prepare pnpm@10.10.0 --activate
 # 复制依赖清单和仓库级下载重试配置
 COPY package.json pnpm-lock.yaml .npmrc ./
 
-# 安装依赖；沿用仓库级有限重试与超时预算。
-RUN pnpm install --frozen-lockfile
+# 复用 BuildKit pnpm store；联网 fetch 有界重试，安装阶段只消费已固定的离线依赖。
+RUN --mount=type=cache,id=wes-frontend-pnpm,target=/pnpm/store \
+    pnpm config set store-dir "${PNPM_STORE_DIR}" && \
+    pnpm fetch --frozen-lockfile --prefer-offline && \
+    pnpm install --frozen-lockfile --offline
 
 # 复制源代码
 COPY . .

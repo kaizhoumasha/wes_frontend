@@ -14,6 +14,11 @@ const PHASE_LABELS: Record<DebugRunStep['phase'], string> = {
   ROTATE_TO_NEXT_FACE: '货架旋转至下一面',
   RACK_TO_STORAGE: '货架返库'
 }
+function phaseLabel(phase: DebugRunStep['phase']) {
+  return phase === 'WAIT_SCAN12'
+    ? `${PHASE_LABELS[phase]}（${snapshot.value.scan_device_codes[3]}）`
+    : PHASE_LABELS[phase]
+}
 const currentGroup = computed(
   () => snapshot.value?.face_groups[snapshot.value.current_group_index] ?? null
 )
@@ -24,7 +29,8 @@ const observedBins = computed(
       .reverse()
       .find(
         step =>
-          step.phase === 'WAIT_SCAN12' && step.group_index === snapshot.value?.current_group_index
+          step.phase === snapshot.value.current_phase &&
+          step.group_index === snapshot.value.current_group_index
       )?.observed_bin_codes ?? []
 )
 const pendingBins = computed(() => {
@@ -68,11 +74,17 @@ function showsStepGroup(step: DebugRunStep): boolean {
       </div>
       <div>
         <span>进度</span>
-        <strong>第 {{ snapshot.current_group_index + 1 }} 面 / {{ snapshot.current_phase }}</strong>
+        <strong>
+          第 {{ snapshot.current_group_index + 1 }} 面 / {{ phaseLabel(snapshot.current_phase) }}
+        </strong>
       </div>
       <div>
         <span>状态</span>
         <strong>{{ snapshot.status }}</strong>
+      </div>
+      <div>
+        <span>测试模式</span>
+        <strong>{{ snapshot.test_mode ? '测试模式已开启' : '关闭' }}</strong>
       </div>
     </div>
 
@@ -95,7 +107,7 @@ function showsStepGroup(step: DebugRunStep): boolean {
         :closable="false"
         show-icon
       />
-      <p>失败阶段：{{ snapshot.current_phase }}</p>
+      <p>失败阶段：{{ phaseLabel(snapshot.current_phase) }}</p>
     </section>
 
     <section
@@ -111,7 +123,7 @@ function showsStepGroup(step: DebugRunStep): boolean {
         >
           <header>
             <span>步骤 {{ step.ordinal + 1 }}</span>
-            <strong>{{ PHASE_LABELS[step.phase] }}</strong>
+            <strong>{{ phaseLabel(step.phase) }}</strong>
             <span :class="['step-status', `step-status--${step.status.toLowerCase()}`]">
               {{ step.status }}
             </span>
@@ -144,6 +156,11 @@ function showsStepGroup(step: DebugRunStep): boolean {
               stepPendingBins(step).join(' / ') || '无'
             }}
           </p>
+          <p v-if="step.phase === 'BINS_TO_RACK'">
+            已确认回架：{{ step.observed_bin_codes.join(' / ') || '无' }} · 待确认回架：{{
+              stepPendingBins(step).join(' / ') || '无'
+            }}
+          </p>
           <p v-if="step.reason_code">原因：{{ step.reason_code }}</p>
           <AppButton
             v-if="props.canReadTask && step.transport_task_id"
@@ -161,8 +178,14 @@ function showsStepGroup(step: DebugRunStep): boolean {
         当前面：
         <code>{{ currentGroup?.face }}</code>
       </p>
-      <p>已扫描：{{ observedBins.join(' / ') || '无' }}</p>
-      <p>待扫描：{{ pendingBins.join(' / ') || '无' }}</p>
+      <template v-if="snapshot.current_phase === 'WAIT_SCAN12'">
+        <p>已扫描：{{ observedBins.join(' / ') || '无' }}</p>
+        <p>待扫描：{{ pendingBins.join(' / ') || '无' }}</p>
+      </template>
+      <template v-else-if="snapshot.current_phase === 'BINS_TO_RACK'">
+        <p>已确认回架：{{ observedBins.join(' / ') || '无' }}</p>
+        <p>待确认回架：{{ pendingBins.join(' / ') || '无' }}</p>
+      </template>
       <AppButton
         v-if="props.canReadTask && snapshot.current_step?.transport_task_id"
         @click="emit('selectTask', snapshot.current_step.transport_task_id)"

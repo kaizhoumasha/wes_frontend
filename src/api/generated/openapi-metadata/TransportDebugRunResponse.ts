@@ -186,6 +186,13 @@ export const TransportDebugRunResponseMetadata = {
         "ref": "TransportDebugRunStepResponse"
       }
     },
+    "test_mode": {
+      "title": "Test Mode",
+      "type": "boolean",
+      "required": false,
+      "nullable": false,
+      "default": false
+    },
     "updated_at": {
       "title": "Updated At",
       "type": "string",

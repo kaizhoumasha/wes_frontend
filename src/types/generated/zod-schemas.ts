@@ -1,4 +1,4 @@
-/** @openapi-sha256 e721eb07bcce2b646a5e7acfacdac38a1a7a29c70fc9d68225f8f507d3e40860 */
+/** @openapi-sha256 17a341dea536f6c53d732096f4c73dc2aadb1b3042699e5d6843f70d86a5c469 */
 /**
  * Zod Validation Schemas
  *
@@ -848,16 +848,6 @@ export const CloseRunRequestSchema = z.object({
 })
 
 
-export const CompletionApplyReportRequestSchema = z.object({
-  /** Client Request Id */
-  client_request_id: z.string().min(1).max(120),
-  /** Data */
-  data: z.union([z.lazy(() => ManualBinAppliedSchema), z.lazy(() => ManualBinReconcilingSchema)]),
-  /** Expected Version */
-  expected_version: z.number().min(0),
-})
-
-
 export const CompletionConfirmDataSchema = z.object({
   /** Last Applied Plan Revision */
   last_applied_plan_revision: z.number().min(0).max(9223372036854776000),
@@ -929,6 +919,8 @@ export const CreateTransportDebugRunRequestSchema = z.object({
         }
         return val
       }, z.array(z.string().min(1).max(100))).optional().default(["STATION_SCAN9","STATION_SCAN10","STATION_SCAN11","STATION_SCAN12"]),
+  /** Test Mode */
+  test_mode: z.boolean().optional().default(false),
   /** Workline Code */
   workline_code: z.string().min(1).max(100),
   /** Workstation */
@@ -2180,38 +2172,6 @@ export const ManualBinAdmissionDataSchema = z.object({
   bin_code: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
   /** Scanned At */
   scanned_at: z.number().max(9223372036854776000),
-})
-
-
-export const ManualBinAppliedSchema = z.object({
-  /** Apply Result */
-  apply_result: z.literal("APPLIED"),
-  /** Apply Revision */
-  apply_revision: z.number().min(1),
-  /** Bin Code */
-  bin_code: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
-  /** Completion Operation Id */
-  completion_operation_id: z.string().regex(new RegExp("^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")),
-  /** Occurred At */
-  occurred_at: z.number().max(9223372036854776000),
-  /** Task Id */
-  task_id: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
-})
-
-
-export const ManualBinReconcilingSchema = z.object({
-  /** Apply Result */
-  apply_result: z.literal("RECONCILING"),
-  /** Apply Revision */
-  apply_revision: z.number().min(1),
-  /** Bin Code */
-  bin_code: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
-  /** Completion Operation Id */
-  completion_operation_id: z.string().regex(new RegExp("^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")),
-  /** Occurred At */
-  occurred_at: z.number().max(9223372036854776000),
-  /** Reason Code */
-  reason_code: z.enum(["RESULT_CONFLICT", "FIRST_COMPLETION_OUT_OF_WINDOW", "POINT2_BINDING_MISMATCH", "WORKLINE_NOT_ACTIVE", "COMPLETED_AT_INVALID", "DEVICE_COMMAND_IDENTITY_CONFLICT"]),
   /** Task Id */
   task_id: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
 })
@@ -3298,6 +3258,8 @@ export const TransportDebugRunResponseSchema = z.object({
   status: z.lazy(() => TransportDebugRunStatusSchema),
   /** Steps */
   steps: z.array(z.lazy(() => TransportDebugRunStepResponseSchema)),
+  /** Test Mode */
+  test_mode: z.boolean().optional().default(false),
   /** Updated At */
   updated_at: z.string(),
   /** Version */

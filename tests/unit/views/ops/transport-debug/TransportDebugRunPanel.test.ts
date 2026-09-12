@@ -6,6 +6,7 @@ import TransportDebugRunPanel from '@/views/ops/transport-debug/TransportDebugRu
 
 const bin = vi.hoisted(() => ({ bin_code: 'B1', slot_id: 'S1' }))
 const configState = vi.hoisted(() => ({
+  testMode: { value: false },
   worklineCode: { value: 'LINE-1' },
   locations: {
     value: {
@@ -54,13 +55,14 @@ function snapshot() {
     updated_at: 'now'
   }
   return {
+    test_mode: false,
     ...configState.locations.value,
     run_id: 'run-1',
     status: 'NEEDS_ATTENTION' as 'NEEDS_ATTENTION' | 'COMPLETED' | 'RUNNING',
     rack_id: '510056',
     face_groups: [{ face: '270', bins: [{ bin_code: 'B1', slot_id: 'S1' }] }],
     current_group_index: 0,
-    current_phase: 'WAIT_SCAN12' as const,
+    current_phase: 'WAIT_SCAN12' as 'WAIT_SCAN12' | 'BINS_TO_RACK',
     current_step: {
       ...baseStep,
       transport_task_id: 'transport-3',
@@ -117,11 +119,19 @@ function snapshot() {
 
 vi.mock('@/views/ops/transport-debug/useTransportDebugRunConfig', () => ({
   validateTransportDebugRunConfig: () => null,
-  buildTransportDebugRunInput: (rackId: string) => ({
+  buildTransportDebugRunInput: (
+    rackId: string,
+    _groups: unknown,
+    _worklineCode: string,
+    _locations: unknown,
+    testMode: boolean
+  ) => ({
+    test_mode: testMode,
     rack_id: rackId,
     face_groups: [{ face: ' 90 ', bins: [{ bin_code: 'B1', slot_id: 'S1' }] }]
   }),
   useTransportDebugRunConfig: () => ({
+    testMode: configState.testMode,
     worklineCode: configState.worklineCode,
     locations: configState.locations,
     rackId: configState.rackId,
@@ -178,6 +188,12 @@ const ElInputNumberStub = defineComponent({
   template:
     '<input type="number" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value === \'\' ? undefined : Number($event.target.value))" />'
 })
+const ElSwitchStub = defineComponent({
+  props: { modelValue: Boolean },
+  emits: ['update:modelValue'],
+  template:
+    '<input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)" />'
+})
 
 function mountDialog(
   props = {
@@ -199,6 +215,7 @@ function mountDialog(
         ElAlert: ElAlertStub,
         ElInput: ElInputStub,
         ElInputNumber: ElInputNumberStub,
+        ElSwitch: ElSwitchStub,
         ElSelect: true,
         ElOption: true
       }
@@ -212,6 +229,7 @@ describe('TransportDebugRunPanel', () => {
     runState.activeRun.value = null
     runState.currentRun.value = null
     configState.rackId.value = '510056'
+    configState.testMode.value = false
     configState.worklineCode.value = 'LINE-1'
     configState.groups.value = [{ face: ' 90 ', bins: [bin] }]
     actions.loadRecentRuns.mockResolvedValue(undefined)
@@ -230,6 +248,21 @@ describe('TransportDebugRunPanel', () => {
         face_groups: [expect.objectContaining({ face: ' 90 ' })]
       })
     )
+  })
+
+  it('shows a default-off test mode switch and freezes the enabled choice into the run', async () => {
+    const wrapper = mountDialog()
+    await flushPromises()
+    const testMode = wrapper.get('[aria-label="测试模式"]')
+    expect((testMode.element as HTMLInputElement).checked).toBe(false)
+
+    await testMode.setValue(true)
+    await wrapper
+      .findAll('button')
+      .find(button => button.text().includes('启动自动联调'))
+      ?.trigger('click')
+
+    expect(actions.startRun).toHaveBeenCalledWith(expect.objectContaining({ test_mode: true }))
   })
 
   it('starts only the first independent round and leaves it running on unmount', async () => {
@@ -313,10 +346,18 @@ describe('TransportDebugRunPanel', () => {
   })
 
   it('freezes into observer mode and exposes the current task without a force-advance action', async () => {
-    runState.activeRun.value = snapshot()
+    runState.activeRun.value = {
+      ...snapshot(),
+      test_mode: true,
+      scan_device_codes: ['STATION_SCAN1', 'STATION_SCAN2', 'STATION_SCAN3', 'STATION_SCAN4']
+    }
     const wrapper = mountDialog()
     await flushPromises()
-    expect(wrapper.get('[data-test="run-observer"]').text()).toContain('WAIT_SCAN12')
+    expect(wrapper.get('[data-test="run-observer"]').text()).toContain(
+      '等待出料口扫码（STATION_SCAN4）'
+    )
+    expect(wrapper.get('[data-test="run-observer"]').text()).not.toContain('SCAN12')
+    expect(wrapper.get('[data-test="run-observer"]').text()).toContain('测试模式已开启')
     expect(wrapper.text()).toContain('EVIDENCE_RECONCILING')
     expect(wrapper.text()).not.toContain('强制推进')
     const task = wrapper.findAll('button').find(button => button.text().includes('transport-3'))
@@ -498,7 +539,8 @@ describe('TransportDebugRunPanel', () => {
     const wrapper = mountDialog()
     await flushPromises()
     expect(wrapper.get('[data-test="terminal-failure"]').text()).toContain('EVIDENCE_RECONCILING')
-    expect(wrapper.get('[data-test="terminal-failure"]').text()).toContain('WAIT_SCAN12')
+    expect(wrapper.get('[data-test="terminal-failure"]').text()).toContain('等待出料口扫码')
+    expect(wrapper.get('[data-test="terminal-failure"]').text()).not.toContain('WAIT_SCAN12')
     const task = wrapper.findAll('button').find(button => button.text().includes('transport-3'))
     await task?.trigger('click')
     expect(wrapper.emitted('selectTask')).toEqual([['transport-3']])
@@ -645,6 +687,49 @@ describe('TransportDebugRunPanel', () => {
     expect(outOfRangeStep?.text()).toContain('料箱 无')
     expect(outOfRangeStep?.text()).not.toContain('货架面：')
     expect(nullGroupStep?.text()).not.toContain('货架面：')
+  })
+
+  it('shows rack-return confirmation separately from scan evidence', async () => {
+    const run = snapshot()
+    const returnStep = {
+      ...run.steps[1]!,
+      ordinal: 3,
+      phase: 'BINS_TO_RACK',
+      status: 'RUNNING',
+      observed_bin_codes: ['B1'],
+      transport_task_id: 'transport-bin-return'
+    }
+    runState.activeRun.value = {
+      ...run,
+      current_phase: 'BINS_TO_RACK',
+      face_groups: [
+        {
+          face: '90',
+          bins: [
+            { bin_code: 'B1', slot_id: 'S1' },
+            { bin_code: 'B2', slot_id: 'S2' }
+          ]
+        }
+      ],
+      steps: [
+        ...run.steps.slice(0, 2),
+        { ...run.steps[2]!, observed_bin_codes: ['B1', 'B2'] },
+        returnStep
+      ]
+    }
+    const wrapper = mountDialog()
+    await flushPromises()
+
+    const rackReturnStep = wrapper
+      .get('[data-test="run-step-progress"]')
+      .findAll('li')
+      .find(step => step.text().includes('料箱回架'))
+    expect(rackReturnStep?.text()).toContain('已确认回架：B1 · 待确认回架：B2')
+    const currentProgress = wrapper.get('.progress-panel').text()
+    expect(currentProgress).toContain('已确认回架：B1')
+    expect(currentProgress).toContain('待确认回架：B2')
+    expect(currentProgress).not.toContain('已扫描')
+    expect(currentProgress).not.toContain('待扫描')
   })
 
   it('renders an empty persisted step list and an out-of-range current group safely', async () => {

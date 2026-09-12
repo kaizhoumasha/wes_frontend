@@ -7,6 +7,9 @@ pipeline {
         REGISTRY_URL = '192.168.0.220:5050'
         IMAGE_REPO = '192.168.0.220:5050/wes/wes_frontend'
         CI_TOOLS_IMAGE = 'wes-frontend-ci-tools:node22-pnpm10'
+        DOCKER_BUILDKIT = '1'
+        BUILD_PROXY = 'http://192.168.0.225:7890'
+        BUILD_NO_PROXY = '127.0.0.1,localhost,192.168.0.220,192.168.0.221,192.168.0.225'
     }
 
     options {
@@ -116,13 +119,37 @@ pipeline {
             }
         }
 
+        stage('Detect Build Proxy') {
+            steps {
+                script {
+                    int proxyStatus = sh(
+                        returnStatus: true,
+                        script: '''
+                            curl -fsSI -m 5 -x "${BUILD_PROXY}" https://registry.npmjs.org/pnpm >/dev/null 2>&1
+                        '''
+                    )
+                    env.BUILD_PROXY_AVAILABLE = proxyStatus == 0 ? 'true' : 'false'
+                    if (env.BUILD_PROXY_AVAILABLE == 'true') {
+                        echo "🌐 Build proxy available: ${env.BUILD_PROXY}"
+                    } else {
+                        echo '⚠️ Build proxy unavailable, continuing without proxy'
+                    }
+                }
+            }
+        }
+
         stage('Build Frontend CI Tools Image') {
             steps {
                 sh '''
                     set -e
+                    PROXY_BUILD_ARGS=""
+                    if [ "${BUILD_PROXY_AVAILABLE}" = "true" ]; then
+                        PROXY_BUILD_ARGS="--build-arg HTTP_PROXY=${BUILD_PROXY} --build-arg HTTPS_PROXY=${BUILD_PROXY} --build-arg http_proxy=${BUILD_PROXY} --build-arg https_proxy=${BUILD_PROXY} --build-arg NO_PROXY=${BUILD_NO_PROXY} --build-arg no_proxy=${BUILD_NO_PROXY}"
+                    fi
                     docker build \
                         --provenance=false \
                         --sbom=false \
+                        ${PROXY_BUILD_ARGS} \
                         -f docker/ci/Dockerfile \
                         -t "${CI_TOOLS_IMAGE}" \
                         docker/ci
@@ -135,8 +162,13 @@ pipeline {
                 script {
                     sh '''
                         set -e
-                        mkdir -p /opt/jenkins_cache/pnpm-store
+                        mkdir -p /opt/jenkins_cache/pnpm-store reports
+                        PROXY_RUN_ARGS=""
+                        if [ "${BUILD_PROXY_AVAILABLE}" = "true" ]; then
+                            PROXY_RUN_ARGS="-e HTTP_PROXY=${BUILD_PROXY} -e HTTPS_PROXY=${BUILD_PROXY} -e http_proxy=${BUILD_PROXY} -e https_proxy=${BUILD_PROXY} -e NO_PROXY=${BUILD_NO_PROXY} -e no_proxy=${BUILD_NO_PROXY}"
+                        fi
                         docker run --rm \
+                            ${PROXY_RUN_ARGS} \
                             -e HUSKY=0 \
                             -e CI=true \
                             -e ELECTRON_SKIP_BINARY_DOWNLOAD=1 \
@@ -149,7 +181,7 @@ pipeline {
                             sh -lc '
                                 pnpm config set store-dir "${PNPM_STORE_DIR}" &&
                                 pnpm install --frozen-lockfile --prefer-offline &&
-                                pnpm run test &&
+                                pnpm exec vitest run --reporter=default --reporter=junit --outputFile.junit=reports/vitest-junit.xml &&
                                 pnpm run contract:test &&
                                 pnpm run contract:verify &&
                                 pnpm permission:verify &&
@@ -185,15 +217,31 @@ pipeline {
                 }
                 archiveArtifacts artifacts: 'artifacts/release-consumer/*', fingerprint: true
             }
+            post {
+                always {
+                    script {
+                        if (fileExists('reports/vitest-junit.xml')) {
+                            junit testResults: 'reports/vitest-junit.xml', allowEmptyResults: false
+                        } else {
+                            echo '测试未启动，未生成 Vitest JUnit 报告。'
+                        }
+                    }
+                }
+            }
         }
 
         stage('Build Frontend Image') {
             steps {
                 sh '''
                     set -eu
+                    PROXY_BUILD_ARGS=""
+                    if [ "${BUILD_PROXY_AVAILABLE}" = "true" ]; then
+                        PROXY_BUILD_ARGS="--build-arg HTTP_PROXY=${BUILD_PROXY} --build-arg HTTPS_PROXY=${BUILD_PROXY} --build-arg http_proxy=${BUILD_PROXY} --build-arg https_proxy=${BUILD_PROXY} --build-arg NO_PROXY=${BUILD_NO_PROXY} --build-arg no_proxy=${BUILD_NO_PROXY}"
+                    fi
                     docker build \
                         --provenance=false \
                         --sbom=false \
+                        ${PROXY_BUILD_ARGS} \
                         --build-arg WES_VCS_REVISION="${CI_COMMIT_SHA}" \
                         --build-arg WES_SOURCE_TREE="${CI_SOURCE_TREE}" \
                         --build-arg WES_CONSUMER_OPENAPI_SHA256="${WES_CONSUMER_OPENAPI_SHA256}" \

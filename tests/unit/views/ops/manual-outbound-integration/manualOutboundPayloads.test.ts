@@ -83,6 +83,7 @@ describe('manual outbound editable payloads', () => {
       workline_code: 'KT16'
     })
     expect(buildDefaultWmsData(run, 'WORK_ADMISSION')).toEqual({
+      task_id: 'TASK-001',
       bin_code: 'BIN-001',
       scanned_at: 1788980000000
     })

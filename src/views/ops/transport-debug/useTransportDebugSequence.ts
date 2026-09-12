@@ -35,6 +35,7 @@ export function nextRoundInput(snapshot: DebugRunResult) {
   const error = validateTransportDebugRunConfig(snapshot.rack_id, groups)
   if (error) throw new Error(`回架储位无法用于下一轮：${error}`)
   return {
+    test_mode: snapshot.test_mode,
     workline_code: snapshot.workline_code,
     workstation: snapshot.workstation,
     infeed_position: snapshot.infeed_position,

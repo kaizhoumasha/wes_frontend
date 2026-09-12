@@ -1,4 +1,4 @@
-/** @openapi-sha256 e721eb07bcce2b646a5e7acfacdac38a1a7a29c70fc9d68225f8f507d3e40860 */
+/** @openapi-sha256 17a341dea536f6c53d732096f4c73dc2aadb1b3042699e5d6843f70d86a5c469 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -3038,23 +3038,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/workline-integration-debug/runs/{run_id}/wms/completion-apply-report": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [ops:workline-integration-debug:operate] 发送完成决定应用结果 Operation */
-        post: operations["workline_integration_debug_runs_by_run_id_wms_completion_apply_report_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/workline-integration-debug/runs/{run_id}/wms/prepare": {
         parameters: {
             query?: never;
@@ -4918,15 +4901,6 @@ export interface components {
             /** Wms Cleanup Confirmed */
             wms_cleanup_confirmed: boolean;
         };
-        /** CompletionApplyReportRequest */
-        CompletionApplyReportRequest: {
-            /** Client Request Id */
-            client_request_id: string;
-            /** Data */
-            data: components["schemas"]["ManualBinApplied"] | components["schemas"]["ManualBinReconciling"];
-            /** Expected Version */
-            expected_version: number;
-        };
         /** CompletionConfirmData */
         CompletionConfirmData: {
             /** Last Applied Plan Revision */
@@ -5003,6 +4977,11 @@ export interface components {
              *     ]
              */
             scan_device_codes: string[];
+            /**
+             * Test Mode
+             * @default false
+             */
+            test_mode: boolean;
             /** Workline Code */
             workline_code: string;
             /**
@@ -5901,45 +5880,6 @@ export interface components {
             bin_code: string;
             /** Scanned At */
             scanned_at: number;
-        };
-        /** ManualBinApplied */
-        ManualBinApplied: {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            apply_result: "APPLIED";
-            /** Apply Revision */
-            apply_revision: number;
-            /** Bin Code */
-            bin_code: string;
-            /** Completion Operation Id */
-            completion_operation_id: string;
-            /** Occurred At */
-            occurred_at: number;
-            /** Task Id */
-            task_id: string;
-        };
-        /** ManualBinReconciling */
-        ManualBinReconciling: {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            apply_result: "RECONCILING";
-            /** Apply Revision */
-            apply_revision: number;
-            /** Bin Code */
-            bin_code: string;
-            /** Completion Operation Id */
-            completion_operation_id: string;
-            /** Occurred At */
-            occurred_at: number;
-            /**
-             * Reason Code
-             * @enum {string}
-             */
-            reason_code: "RESULT_CONFLICT" | "FIRST_COMPLETION_OUT_OF_WINDOW" | "POINT2_BINDING_MISMATCH" | "WORKLINE_NOT_ACTIVE" | "COMPLETED_AT_INVALID" | "DEVICE_COMMAND_IDENTITY_CONFLICT";
             /** Task Id */
             task_id: string;
         };
@@ -7385,6 +7325,11 @@ export interface components {
             status: components["schemas"]["TransportDebugRunStatus"];
             /** Steps */
             steps: components["schemas"]["TransportDebugRunStepResponse"][];
+            /**
+             * Test Mode
+             * @default false
+             */
+            test_mode: boolean;
             /** Updated At */
             updated_at: string;
             /** Version */
@@ -14126,41 +14071,6 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationRunResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_by_run_id_wms_completion_apply_report_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                run_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CompletionApplyReportRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            202: {
                 headers: {
                     [name: string]: unknown;
                 };

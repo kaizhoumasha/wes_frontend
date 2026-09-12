@@ -76,12 +76,14 @@ export function buildTransportDebugRunInput(
   rackId: string,
   groups: readonly TransportDebugFaceGroupDraft[],
   worklineCode: string,
-  locations: TransportDebugLocations = defaultTransportDebugLocations()
+  locations: TransportDebugLocations = defaultTransportDebugLocations(),
+  testMode = false
 ): DebugRunCreateInput {
   const error = validateLocations(locations) || validateTransportDebugRunConfig(rackId, groups)
   if (error) throw new Error(error)
   if (!worklineCode.trim()) throw new Error('工作线编码不能为空')
   return {
+    test_mode: testMode,
     workstation: locations.workstation.trim(),
     infeed_position: locations.infeed_position.trim(),
     outfeed_position: locations.outfeed_position.trim(),
@@ -178,6 +180,7 @@ export function buildTransportDebugRunPreview(
 }
 
 export function useTransportDebugRunConfig() {
+  const testMode = ref(false)
   const worklineCode = ref('KT16')
   const locations = ref(defaultTransportDebugLocations())
   const rackId = ref('510056')
@@ -227,6 +230,7 @@ export function useTransportDebugRunConfig() {
   }
 
   return {
+    testMode,
     worklineCode,
     locations,
     rackId,

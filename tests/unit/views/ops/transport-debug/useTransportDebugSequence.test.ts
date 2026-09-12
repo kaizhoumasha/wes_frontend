@@ -8,6 +8,7 @@ import {
 } from '@/views/ops/transport-debug/useTransportDebugSequence'
 
 const input = {
+  test_mode: true,
   workstation: 'KT11',
   infeed_position: 'CNV0101',
   outfeed_position: 'CNV0102',
@@ -53,6 +54,7 @@ describe('useTransportDebugSequence', () => {
     await flushPromises()
     expect(h.startRun).toHaveBeenCalledTimes(2)
     expect(h.startRun.mock.calls[1]?.[0]).toMatchObject({
+      test_mode: true,
       workstation: 'KT11',
       infeed_position: 'CNV0101',
       outfeed_position: 'CNV0102',
