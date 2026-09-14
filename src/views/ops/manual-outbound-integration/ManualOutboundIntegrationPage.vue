@@ -327,6 +327,38 @@ const selectedInteraction = computed(() => phaseInteractions[selectedPhase.value
 const selectedSteps = computed(() =>
   (run.value?.steps ?? []).filter(step => step.phase === selectedPhase.value)
 )
+const rackTransportReady = computed(() => {
+  const current = run.value
+  const source = currentSourceRack.value
+  if (!current || current.current_phase !== 'RACK_TRANSPORT' || !source) return false
+  const cycle = current.operation_context.source_cycle_no ?? 0
+  const mode = current.operation_context.rack_transport_mode
+  const succeeded = current.steps.filter(
+    step =>
+      step.phase === 'RACK_TRANSPORT' &&
+      step.status === 'SUCCEEDED' &&
+      (step.request.source_cycle_no ?? 0) === cycle
+  )
+  const sourceKind = mode === 'ROTATE_SOURCE_RACK' ? 'ROTATE_RACK' : 'MOVE_RACK'
+  const sourceReady = succeeded.some(
+    step =>
+      step.request.kind === sourceKind &&
+      step.request.rack_id === source.rackId &&
+      step.request.target_face === source.rackFace
+  )
+  if (mode === 'MOVE_SOURCE_RACK' || mode === 'ROTATE_SOURCE_RACK') return sourceReady
+  const target = current.plan_resources?.target_rack
+  return (
+    sourceReady &&
+    !!target &&
+    succeeded.some(
+      step =>
+        step.request.kind === 'MOVE_RACK' &&
+        step.request.rack_id === target.rack_id &&
+        step.request.target_face === target.rack_face
+    )
+  )
+})
 const isSelectedCurrent = computed(() => selectedPhase.value === run.value?.current_phase)
 const canCreate = computed(() => permissionAccess.value.create)
 const isRefreshableStep = (step: IntegrationRunStep) =>
@@ -448,7 +480,7 @@ const hasPrimaryPermission = computed(() => {
     BIND_TASK: permissionAccess.value.bindTask,
     TASK_PREPARE: permissionAccess.value.prepareTask,
     PLAN_RECEIPT: permissionAccess.value.refreshPlan,
-    RACK_TRANSPORT: permissionAccess.value.confirmPhase,
+    RACK_TRANSPORT: permissionAccess.value.confirmPhase && rackTransportReady.value,
     RACK_ARRIVAL: permissionAccess.value.confirmPhase,
     BIN_INBOUND_BATCH: permissionAccess.value.binInboundBatch,
     BIN_TRANSPORT: permissionAccess.value.confirmPhase,
@@ -1129,7 +1161,7 @@ onUnmounted(() => {
 
     <section class="site-configuration">
       <strong>KT16 现场参数</strong>
-      <span>转运货架出库：F01 · 货架号 → OUT65</span>
+      <span>转运货架出库：F01 · 货架号 → OUT65（须先到位，并保持至所有来源架完成）</span>
       <span>五层货架出库：CTU01 · 货架号 → KT16（容量 1，逐架循环）</span>
       <span>回库：CTU03 · 货架号 → WH05（五层货架）</span>
       <span>料箱：CNV0301 → SCAN9/10/11/12 → CNV0302</span>

@@ -14,18 +14,9 @@ export const BinInboundBatchDataMetadata = {
   "required": [
     "task_id",
     "rack_id",
-    "rack_face",
-    "max_bin_count"
+    "rack_face"
   ],
   "fields": {
-    "max_bin_count": {
-      "title": "Max Bin Count",
-      "type": "integer",
-      "required": true,
-      "nullable": false,
-      "minimum": 1,
-      "maximum": 4
-    },
     "rack_face": {
       "title": "Rack Face",
       "type": "string",

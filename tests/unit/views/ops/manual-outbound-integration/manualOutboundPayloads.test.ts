@@ -116,8 +116,7 @@ describe('manual outbound editable payloads', () => {
     expect(buildDefaultWmsData(run, 'BIN_INBOUND_BATCH')).toEqual({
       task_id: 'TASK-001',
       rack_id: '510012',
-      rack_face: '270',
-      max_bin_count: 4
+      rack_face: '270'
     })
     expect(buildDefaultWmsData(run, 'BIN_RETURN_BATCH')).toEqual({
       workline_code: 'KT16',

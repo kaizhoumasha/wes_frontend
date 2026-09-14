@@ -1,4 +1,4 @@
-/** @openapi-sha256 da1b0818faa5d71980c2e56181b5daeb981fa0f9d757793a0e85d04943bda8fb */
+/** @openapi-sha256 3c97e570ba48c16a168c47643a3cece096b7920132fce7f58f7707edd34e0d4d */
 /**
  * Zod Validation Schemas
  *
@@ -501,8 +501,6 @@ export const BinContentSnapshotStatusSchema = z.enum(["COMPLETE", "PARTIAL", "UN
 
 
 export const BinInboundBatchDataSchema = z.object({
-  /** Max Bin Count */
-  max_bin_count: z.number().min(1).max(4),
   /** Rack Face */
   rack_face: z.string().min(1).max(10),
   /** Rack Id */
@@ -1426,7 +1424,7 @@ export const IntegrationRunResponseSchema = z.object({
   /** Environment Label */
   environment_label: z.string(),
   /** Expected Plugin Key */
-  expected_plugin_key: z.literal("manual_bin_processing"),
+  expected_plugin_key: z.literal("manual-picking"),
   /** Issued Operation Id */
   issued_operation_id: z.union([z.string(), z.null()]),
   /** Operation Context */

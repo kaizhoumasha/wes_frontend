@@ -12,7 +12,7 @@ function snapshot(
     workline_id: 3,
     workline_code: 'KT16',
     scenario_key: 'manual_outbound_picking@v1',
-    expected_plugin_key: 'manual_bin_processing',
+    expected_plugin_key: 'manual-picking',
     profile: 'CONTRACT_SIMULATION',
     environment_label: 'integration',
     operator_user_id: 42,
