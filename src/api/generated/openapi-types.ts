@@ -1,4 +1,4 @@
-/** @openapi-sha256 da1b0818faa5d71980c2e56181b5daeb981fa0f9d757793a0e85d04943bda8fb */
+/** @openapi-sha256 51ebd37a2cd300c3a268285f707673b6cf054fb68d38d42cb757ba912e8fe67a */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -5446,7 +5446,7 @@ export interface components {
              * Expected Plugin Key
              * @constant
              */
-            expected_plugin_key: "manual_bin_processing";
+            expected_plugin_key: "manual-picking";
             /** Issued Operation Id */
             issued_operation_id: string | null;
             /** Operation Context */
@@ -12804,7 +12804,7 @@ export interface operations {
                 }) | ({
                     data: ({
                         added_bin_source_racks?: ({
-                            rack_face: string;
+                            rack_face: string[];
                             rack_id: string;
                         } & {
                             [key: string]: unknown;

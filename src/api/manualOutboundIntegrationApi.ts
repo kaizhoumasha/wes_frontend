@@ -67,7 +67,7 @@ export interface IntegrationRun {
   workline_id: number
   workline_code: string
   scenario_key: 'manual_outbound_picking@v1'
-  expected_plugin_key: 'manual_bin_processing'
+  expected_plugin_key: 'manual-picking'
   profile: IntegrationProfile
   environment_label: string
   operator_user_id: number

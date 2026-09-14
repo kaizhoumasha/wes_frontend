@@ -1,4 +1,4 @@
-/** @openapi-sha256 da1b0818faa5d71980c2e56181b5daeb981fa0f9d757793a0e85d04943bda8fb */
+/** @openapi-sha256 51ebd37a2cd300c3a268285f707673b6cf054fb68d38d42cb757ba912e8fe67a */
 /**
  * Zod Validation Schemas
  *
@@ -1426,7 +1426,7 @@ export const IntegrationRunResponseSchema = z.object({
   /** Environment Label */
   environment_label: z.string(),
   /** Expected Plugin Key */
-  expected_plugin_key: z.literal("manual_bin_processing"),
+  expected_plugin_key: z.literal("manual-picking"),
   /** Issued Operation Id */
   issued_operation_id: z.union([z.string(), z.null()]),
   /** Operation Context */

@@ -4517,7 +4517,7 @@
             "type": "string"
           },
           "expected_plugin_key": {
-            "const": "manual_bin_processing",
+            "const": "manual-picking",
             "title": "Expected Plugin Key",
             "type": "string"
           },
@@ -15395,9 +15395,9 @@
     }
   },
   "info": {
-    "description": "FastAPI",
-    "title": "FastAPI",
-    "version": "1.0.0"
+    "description": "英伟达休斯顿 P9 仓库自动化执行系统",
+    "title": "P9 WES",
+    "version": "0.1.0"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -22843,7 +22843,10 @@
                     "data": {
                       "added_bin_source_racks": [
                         {
-                          "rack_face": "A",
+                          "rack_face": [
+                            "90",
+                            "270"
+                          ],
                           "rack_id": "SOURCE-RACK-01"
                         }
                       ],
@@ -24566,10 +24569,14 @@
                               "additionalProperties": true,
                               "properties": {
                                 "rack_face": {
-                                  "maxLength": 10,
-                                  "minLength": 1,
-                                  "pattern": "^[^\\u0000\\uD800-\\uDFFF]+$",
-                                  "type": "string"
+                                  "items": {
+                                    "maxLength": 10,
+                                    "minLength": 1,
+                                    "pattern": "^[^\\u0000\\uD800-\\uDFFF]+$",
+                                    "type": "string"
+                                  },
+                                  "minItems": 1,
+                                  "type": "array"
                                 },
                                 "rack_id": {
                                   "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$",
