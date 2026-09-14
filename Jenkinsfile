@@ -10,13 +10,15 @@ pipeline {
         DOCKER_BUILDKIT = '1'
         BUILD_PROXY = 'http://192.168.0.225:7890'
         BUILD_NO_PROXY = '127.0.0.1,localhost,192.168.0.220,192.168.0.221,192.168.0.225'
+        REGISTRY_TOKEN_REALM = 'http://192.168.0.220:9080/jwt/auth'
     }
 
     options {
-        buildDiscarder(logRotator(daysToKeepStr: '14', numToKeepStr: '10', artifactDaysToKeepStr: '7', artifactNumToKeepStr: '3'))
+        buildDiscarder(logRotator(daysToKeepStr: '30', numToKeepStr: '30', artifactDaysToKeepStr: '7', artifactNumToKeepStr: '3'))
         timeout(time: 60, unit: 'MINUTES')
         skipDefaultCheckout(true)
         disableConcurrentBuilds(abortPrevious: true)
+        disableRestartFromStage()
         timestamps()
     }
 
@@ -119,20 +121,74 @@ pipeline {
             }
         }
 
-        stage('Detect Build Proxy') {
+        stage('Infrastructure Preflight') {
             steps {
                 script {
                     int proxyStatus = sh(
                         returnStatus: true,
                         script: '''
-                            curl -fsSI -m 5 -x "${BUILD_PROXY}" https://registry.npmjs.org/pnpm >/dev/null 2>&1
+                            set +x
+                            set -eu
+
+                            probe_via_proxy() {
+                                probe_name="$1"
+                                probe_url="$2"
+                                probe_attempt=1
+                                while [ "$probe_attempt" -le 2 ]; do
+                                    if probe_code="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
+                                        --connect-timeout 3 --max-time 20 --proxy "${BUILD_PROXY}" "${probe_url}")"; then
+                                        case "${probe_code}" in
+                                            200|204|401)
+                                                echo "INFRA_PROXY_OK: ${probe_name} HTTP ${probe_code}"
+                                                return 0
+                                                ;;
+                                        esac
+                                    fi
+                                    if [ "$probe_attempt" -lt 2 ]; then
+                                        sleep 2
+                                    fi
+                                    probe_attempt=$((probe_attempt + 1))
+                                done
+                                echo "INFRA_PROXY_UNAVAILABLE: ${probe_name} via ${BUILD_PROXY}" >&2
+                                return 1
+                            }
+
+                            probe_via_proxy docker-hub https://registry-1.docker.io/v2/
+                            probe_via_proxy npm https://registry.npmjs.org/pnpm
                         '''
                     )
-                    env.BUILD_PROXY_AVAILABLE = proxyStatus == 0 ? 'true' : 'false'
-                    if (env.BUILD_PROXY_AVAILABLE == 'true') {
-                        echo "🌐 Build proxy available: ${env.BUILD_PROXY}"
-                    } else {
-                        echo '⚠️ Build proxy unavailable, continuing without proxy'
+                    if (proxyStatus != 0) {
+                        error('INFRA_PROXY_UNAVAILABLE: required frontend dependency endpoints are unreachable')
+                    }
+                    env.BUILD_PROXY_AVAILABLE = 'true'
+
+                    if (env.CI_RELEASE_GATE_READY == 'true') {
+                        withCredentials([usernamePassword(
+                            credentialsId: 'gitlab-http-creds',
+                            usernameVariable: 'GITLAB_USER',
+                            passwordVariable: 'GITLAB_TOKEN'
+                        )]) {
+                            sh '''
+                                set +x
+                                set -eu
+                                registry_headers="$(curl --silent --show-error --head \
+                                    --connect-timeout 3 --max-time 10 "http://${REGISTRY_URL}/v2/")"
+                                expected_challenge='Www-Authenticate: Bearer realm="'"${REGISTRY_TOKEN_REALM}"'"'
+                                if ! printf '%s\n' "${registry_headers}" | tr -d '\r' | grep -Fi "${expected_challenge}" >/dev/null; then
+                                    echo "INFRA_REGISTRY_REALM_MISMATCH: expected ${REGISTRY_TOKEN_REALM}" >&2
+                                    exit 1
+                                fi
+
+                                export DOCKER_CONFIG="$(mktemp -d)"
+                                trap 'rm -rf "${DOCKER_CONFIG}"' EXIT HUP INT TERM
+                                if ! printf '%s' "${GITLAB_TOKEN}" | timeout --kill-after=5s 30s \
+                                    docker login "${REGISTRY_URL}" -u "${GITLAB_USER}" --password-stdin >/dev/null; then
+                                    echo 'INFRA_REGISTRY_AUTH_FAILED: authenticated Registry preflight failed' >&2
+                                    exit 1
+                                fi
+                                echo 'INFRA_REGISTRY_OK: realm and authenticated login verified'
+                            '''
+                        }
                     }
                 }
             }
@@ -169,6 +225,8 @@ pipeline {
                         fi
                         docker run --rm \
                             ${PROXY_RUN_ARGS} \
+                            --cpus=2 \
+                            --memory=4g \
                             -e HUSKY=0 \
                             -e CI=true \
                             -e ELECTRON_SKIP_BINARY_DOWNLOAD=1 \
@@ -270,12 +328,38 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'gitlab-http-creds', usernameVariable: 'GITLAB_USER', passwordVariable: 'GITLAB_TOKEN')]) {
                     sh '''
-                        set -e
-                        printf '%s' "$GITLAB_TOKEN" | docker login "${REGISTRY_URL}" -u "$GITLAB_USER" --password-stdin
+                        set +x
+                        set -eu
+                        export DOCKER_CONFIG="$(mktemp -d)"
+                        trap 'rm -rf "${DOCKER_CONFIG}"' EXIT HUP INT TERM
+                        login_attempt=1
+                        while ! printf '%s' "$GITLAB_TOKEN" | timeout --kill-after=5s 30s \
+                            docker login "${REGISTRY_URL}" -u "$GITLAB_USER" --password-stdin; do
+                            if [ "$login_attempt" -ge 3 ]; then
+                                echo 'PUBLISH_REGISTRY_AUTH_FAILED: Registry login failed after 3 attempts' >&2
+                                exit 1
+                            fi
+                            echo "PUBLISH_REGISTRY_AUTH_RETRY: ${login_attempt}/3"
+                            login_attempt=$((login_attempt + 1))
+                            sleep 5
+                        done
                         docker tag "${CI_DOCKER_IMAGE_LOCAL}" "${CI_DOCKER_IMAGE_COMMIT}"
                         docker tag "${CI_DOCKER_IMAGE_LOCAL}" "${CI_DOCKER_IMAGE_CHANNEL}"
-                        docker push "${CI_DOCKER_IMAGE_COMMIT}"
-                        docker push "${CI_DOCKER_IMAGE_CHANNEL}"
+                        push_image() {
+                            image="$1"
+                            push_attempt=1
+                            while ! timeout --kill-after=10s 120s docker push "${image}"; do
+                                if [ "$push_attempt" -ge 3 ]; then
+                                    echo "PUBLISH_PUSH_FAILED: ${image}" >&2
+                                    return 1
+                                fi
+                                echo "PUBLISH_PUSH_RETRY: ${image} (${push_attempt}/3)"
+                                push_attempt=$((push_attempt + 1))
+                                sleep 5
+                            done
+                        }
+                        push_image "${CI_DOCKER_IMAGE_COMMIT}"
+                        push_image "${CI_DOCKER_IMAGE_CHANNEL}"
                     '''
                 }
             }

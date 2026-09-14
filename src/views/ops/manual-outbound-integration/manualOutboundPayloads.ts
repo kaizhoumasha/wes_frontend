@@ -96,8 +96,7 @@ export function buildDefaultWmsData(
       return {
         task_id: run.task_id ?? '',
         rack_id: sourceRack?.rack_id ?? '',
-        rack_face: sourceRack?.rack_face ?? '',
-        max_bin_count: 4
+        rack_face: sourceRack?.rack_face ?? ''
       }
     case 'WORK_ADMISSION':
       return {

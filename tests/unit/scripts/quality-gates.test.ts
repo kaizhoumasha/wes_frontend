@@ -306,14 +306,12 @@ describe.sequential('repository quality gates', () => {
     expect(jenkinsfile).toContain(
       '"+refs/heads/${CI_SOURCE_BRANCH}:refs/remotes/origin/${CI_SOURCE_BRANCH}"'
     )
-    expect(jenkinsfile).toContain(
-      'git checkout --detach "refs/remotes/origin/${CI_SOURCE_BRANCH}"'
-    )
+    expect(jenkinsfile).toContain('git checkout --detach "refs/remotes/origin/${CI_SOURCE_BRANCH}"')
     expect(jenkinsfile).not.toContain('zt_git.happyjack.cn')
     expect(jenkinsfile).not.toContain('checkout([')
     expect(jenkinsfile).toContain('env.gitlabMergeRequestLastCommit')
     expect(jenkinsfile).toContain(
-      "git rev-parse \"refs/remotes/origin/${CI_SOURCE_BRANCH}^{commit}\""
+      'git rev-parse "refs/remotes/origin/${CI_SOURCE_BRANCH}^{commit}"'
     )
     expect(jenkinsfile).toContain(
       'boolean isManualBuild = !isMergeRequest && !gitlabActionType && !beforeCommit && !afterCommit'
@@ -323,9 +321,9 @@ describe.sequential('repository quality gates', () => {
     )
     expect(jenkinsfile).toContain('if (isManualBuild)')
     expect(jenkinsfile).toContain('trustedSourceCommit = fetchedSourceCommit')
-    expect(jenkinsfile.indexOf('git rev-parse "refs/remotes/origin/${CI_SOURCE_BRANCH}^{commit}"')).toBeLessThan(
-      jenkinsfile.indexOf('if (isManualBuild)')
-    )
+    expect(
+      jenkinsfile.indexOf('git rev-parse "refs/remotes/origin/${CI_SOURCE_BRANCH}^{commit}"')
+    ).toBeLessThan(jenkinsfile.indexOf('if (isManualBuild)'))
     expect(jenkinsfile).toContain('Source event requires a non-zero 40-character trusted commit')
     expect(jenkinsfile).toContain('Fetched source ref must match the trusted event commit')
     expect(jenkinsfile).not.toContain('PreBuildMerge')
@@ -389,21 +387,67 @@ describe.sequential('repository quality gates', () => {
     )
   })
 
-  it('uses the verified LAN proxy only when its npm probe succeeds', () => {
+  it('fails fast unless the required Docker Hub and npm endpoints are reachable through the LAN proxy', () => {
     const jenkinsfile = readFileSync(join(REPOSITORY_ROOT, 'Jenkinsfile'), 'utf-8')
 
     expect(jenkinsfile).toContain("BUILD_PROXY = 'http://192.168.0.225:7890'")
     expect(jenkinsfile).not.toContain('192.168.30.111:7890')
-    expect(jenkinsfile).toContain("stage('Detect Build Proxy')")
-    expect(jenkinsfile).toContain(
-      'curl -fsSI -m 5 -x "${BUILD_PROXY}" https://registry.npmjs.org/pnpm'
-    )
-    expect(jenkinsfile).toContain("env.BUILD_PROXY_AVAILABLE = proxyStatus == 0 ? 'true' : 'false'")
+    expect(jenkinsfile).toContain("stage('Infrastructure Preflight')")
+    expect(jenkinsfile).toContain('probe_via_proxy docker-hub https://registry-1.docker.io/v2/')
+    expect(jenkinsfile).toContain('probe_via_proxy npm https://registry.npmjs.org/pnpm')
+    expect(jenkinsfile).toContain('INFRA_PROXY_UNAVAILABLE')
+    expect(jenkinsfile).toContain("env.BUILD_PROXY_AVAILABLE = 'true'")
     expect(jenkinsfile.match(/PROXY_BUILD_ARGS=""/g)).toHaveLength(2)
     expect(jenkinsfile).toContain('PROXY_RUN_ARGS=')
     expect(jenkinsfile).toContain('-e HTTP_PROXY=${BUILD_PROXY}')
     expect(jenkinsfile).toContain('--build-arg HTTP_PROXY=${BUILD_PROXY}')
-    expect(jenkinsfile).toContain('Build proxy unavailable, continuing without proxy')
+    expect(jenkinsfile).not.toContain('Build proxy unavailable, continuing without proxy')
+  })
+
+  it('preflights the Registry realm and uses ephemeral credentials for login and retryable pushes', () => {
+    const jenkinsfile = readFileSync(join(REPOSITORY_ROOT, 'Jenkinsfile'), 'utf-8')
+    const preflight = jenkinsfile
+      .split("stage('Infrastructure Preflight')", 2)[1]
+      .split("stage('Build Frontend CI Tools Image')", 1)[0]
+    const push = jenkinsfile.split("stage('Push Frontend Image')", 2)[1].split('\n    post {', 1)[0]
+
+    expect(jenkinsfile).toContain("REGISTRY_TOKEN_REALM = 'http://192.168.0.220:9080/jwt/auth'")
+    expect(preflight).toContain("env.CI_RELEASE_GATE_READY == 'true'")
+    const assignment = preflight
+      .split('\n')
+      .find(line => line.includes('expected_challenge='))!
+      .trim()
+    const rendered = assignment.replaceAll('\\"', '"')
+    const challenge = execFileSync(
+      'bash',
+      ['-c', `${rendered}\nprintf '%s' "$expected_challenge"`],
+      {
+        env: { ...process.env, REGISTRY_TOKEN_REALM: 'http://registry.test/jwt/auth' },
+        encoding: 'utf-8'
+      }
+    )
+    expect(challenge).toBe('Www-Authenticate: Bearer realm="http://registry.test/jwt/auth"')
+    expect(preflight).toContain('INFRA_REGISTRY_REALM_MISMATCH')
+    expect(preflight).toContain('INFRA_REGISTRY_AUTH_FAILED')
+    for (const body of [preflight, push]) {
+      expect(body).toContain('export DOCKER_CONFIG="$(mktemp -d)"')
+      expect(body).toContain('docker login')
+      expect(body).toContain("credentialsId: 'gitlab-http-creds'")
+    }
+    expect(push).toContain('PUBLISH_REGISTRY_AUTH_RETRY')
+    expect(push).toContain('PUBLISH_PUSH_RETRY')
+    expect(push).toContain('timeout --kill-after=10s 120s docker push')
+    expect(jenkinsfile).toContain('disableRestartFromStage()')
+  })
+
+  it('bounds frontend quality checks on the shared Jenkins node', () => {
+    const jenkinsfile = readFileSync(join(REPOSITORY_ROOT, 'Jenkinsfile'), 'utf-8')
+    const quality = jenkinsfile
+      .split("stage('Frontend Quality Checks')", 2)[1]
+      .split("stage('Build Frontend Image')", 1)[0]
+
+    expect(quality).toContain('--cpus=2')
+    expect(quality).toContain('--memory=4g')
   })
 
   it('binds the frontend image to its own consumer artifacts and production inputs', () => {

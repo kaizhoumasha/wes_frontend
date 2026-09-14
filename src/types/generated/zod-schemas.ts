@@ -1,4 +1,4 @@
-/** @openapi-sha256 51ebd37a2cd300c3a268285f707673b6cf054fb68d38d42cb757ba912e8fe67a */
+/** @openapi-sha256 3c97e570ba48c16a168c47643a3cece096b7920132fce7f58f7707edd34e0d4d */
 /**
  * Zod Validation Schemas
  *
@@ -501,8 +501,6 @@ export const BinContentSnapshotStatusSchema = z.enum(["COMPLETE", "PARTIAL", "UN
 
 
 export const BinInboundBatchDataSchema = z.object({
-  /** Max Bin Count */
-  max_bin_count: z.number().min(1).max(4),
   /** Rack Face */
   rack_face: z.string().min(1).max(10),
   /** Rack Id */

@@ -201,6 +201,87 @@ describe('ManualOutboundIntegrationPage transport defaults', () => {
     wrapper.unmount()
   })
 
+  it('keeps the initial rack phase blocked until target and current source racks both arrive', async () => {
+    const current = snapshot('RACK_TRANSPORT', {
+      source_cycle_no: 0,
+      current_source_rack: { rack_id: '510012', rack_face: '270' }
+    })
+    current.steps.push({
+      ordinal: 1,
+      phase: 'RACK_TRANSPORT',
+      status: 'SUCCEEDED',
+      request: {
+        kind: 'MOVE_RACK',
+        rack_id: '510012',
+        target_face: '270',
+        source_cycle_no: 0
+      },
+      result: {},
+      created_at: '2026-09-12T00:00:00Z'
+    } as IntegrationRun['steps'][number])
+    const wrapper = await mountCurrentRun(current)
+    const primary = wrapper.findAll('button').find(button => button.text() === '确认货架搬运已完成')
+
+    expect(primary?.attributes('disabled')).toBeDefined()
+
+    runState.currentRun.value = {
+      ...current,
+      steps: [
+        ...current.steps,
+        {
+          ordinal: 2,
+          phase: 'RACK_TRANSPORT',
+          status: 'SUCCEEDED',
+          request: {
+            kind: 'MOVE_RACK',
+            rack_id: '610007',
+            target_face: '90',
+            source_cycle_no: 0
+          },
+          result: {},
+          created_at: '2026-09-12T00:00:01Z'
+        } as IntegrationRun['steps'][number]
+      ]
+    }
+    await nextTick()
+
+    expect(primary?.attributes('disabled')).toBeUndefined()
+    wrapper.unmount()
+  })
+
+  it.each([
+    ['MOVE_SOURCE_RACK', 'MOVE_RACK', 2, '270', 'SUCCEEDED', true],
+    ['ROTATE_SOURCE_RACK', 'ROTATE_RACK', 2, '270', 'SUCCEEDED', true],
+    ['ROTATE_SOURCE_RACK', 'MOVE_RACK', 2, '270', 'SUCCEEDED', false],
+    ['MOVE_SOURCE_RACK', 'MOVE_RACK', 1, '270', 'SUCCEEDED', false],
+    ['MOVE_SOURCE_RACK', 'MOVE_RACK', 2, '90', 'SUCCEEDED', false],
+    ['MOVE_SOURCE_RACK', 'MOVE_RACK', 2, '270', 'WAITING', false]
+  ] as const)(
+    'gates %s with %s cycle=%s face=%s status=%s',
+    async (mode, kind, cycle, face, status, ready) => {
+      const current = snapshot('RACK_TRANSPORT', {
+        rack_transport_mode: mode,
+        source_cycle_no: 2,
+        current_source_rack: { rack_id: '510012', rack_face: '270' }
+      })
+      current.steps.push({
+        ordinal: 1,
+        phase: 'RACK_TRANSPORT',
+        status,
+        request: { kind, rack_id: '510012', target_face: face, source_cycle_no: cycle },
+        result: {},
+        created_at: '2026-09-12T00:00:00Z'
+      } as IntegrationRun['steps'][number])
+      const wrapper = await mountCurrentRun(current)
+      const primary = wrapper
+        .findAll('button')
+        .find(button => button.text() === '确认货架搬运已完成')
+      expect(primary).toBeDefined()
+      expect(primary!.attributes('disabled') === undefined).toBe(ready)
+      wrapper.unmount()
+    }
+  )
+
   it.each([
     ['SOURCE_RACK', '510012', 'CTU03'],
     ['TARGET_RACK', '610007', 'F01']

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.24.2.0] - 2026-09-14
+
+### Fixed
+
+- 手工出库联调页仅在当前轮次、货架、面向和搬运类型匹配的成功步骤到齐后允许确认；换架与旋转不复用旧轮次结果。
+- 同步 manual-picking 插件键和 WMS 完整面批次合同，移除入站请求的 max_bin_count。
+- CI 增加基础设施与 Registry 认证预检、有限发布重试；正确保留认证头 realm 引号。
+- 同步后端最新 OpenAPI、类型、权限及发布版本元数据。
+
 ## [0.24.1.0] - 2026-09-12
 
 ### Fixed
