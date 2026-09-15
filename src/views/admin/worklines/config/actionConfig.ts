@@ -5,6 +5,7 @@ import type { CrudPageRowAction } from '@/components/common/crud-page/types'
 export function createWorkLineRowActions(
   openConfig: (workline: Workline) => void,
   openStart: (workline: Workline) => void,
+  archiveOpenWork: (workline: Workline) => void | Promise<void>,
   hasPermission: (permission: string) => boolean
 ): CrudPageRowAction<Workline>[] {
   return [
@@ -29,6 +30,23 @@ export function createWorkLineRowActions(
       permission: BIZ_PERMISSIONS.workline.start,
       show: workline => workline.is_active === false,
       onClick: openStart
+    },
+    {
+      key: 'workline-archive-open-work',
+      label: '归档/清线',
+      tooltip: '归档当前及全部未闭合任务，立即释放新任务准入',
+      icon: 'lucide:archive-x',
+      type: 'danger',
+      priority: 'secondary',
+      permission: BIZ_PERMISSIONS.workline.archiveOpenWork,
+      onClick: archiveOpenWork,
+      popconfirm: {
+        title: workline => `确认清空作业线“${workline.line_name}”的当前及未闭合任务？`,
+        confirmButtonText: '确认清线',
+        cancelButtonText: '取消',
+        confirmButtonType: 'danger',
+        width: 320
+      }
     }
   ]
 }

@@ -15,16 +15,17 @@ describe('admin page field configuration', () => {
     expect(() => createPermissionPageConfig()).not.toThrow()
     expect(() => createRolePageConfig()).not.toThrow()
     expect(() => createUserPageConfig(open, open)).not.toThrow()
-    expect(() => createWorkLinePageConfig(open, open, () => true)).not.toThrow()
+    expect(() => createWorkLinePageConfig(open, open, open, () => true)).not.toThrow()
   })
 
-  it('does not expose runtime or debug cleanup actions from workline management', () => {
-    const config = createWorkLinePageConfig(vi.fn(), vi.fn(), () => true)
+  it('keeps WorkLine-scoped clear-line in row actions without restoring legacy detail controls', () => {
+    const config = createWorkLinePageConfig(vi.fn(), vi.fn(), vi.fn(), () => true)
 
     expect(config.detail?.actions ?? []).toEqual([])
     expect(config.extensions?.rowActions?.map(action => action.key)).toEqual([
       'workline-configuration',
-      'workline-start'
+      'workline-start',
+      'workline-archive-open-work'
     ])
     expect(config.extensions?.toolbarActions ?? []).toEqual([])
   })

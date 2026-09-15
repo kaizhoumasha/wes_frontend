@@ -207,6 +207,7 @@ export { WorklineActiveObjectConflictStateMetadata } from './WorklineActiveObjec
 export { WorklineActiveObjectLocationViewMetadata } from './WorklineActiveObjectLocationView'
 export { WorklineActiveObjectsResponseMetadata } from './WorklineActiveObjectsResponse'
 export { WorklineActiveObjectViewMetadata } from './WorklineActiveObjectView'
+export { WorkLineArchiveOpenWorkResponseMetadata } from './WorkLineArchiveOpenWorkResponse'
 export { WorkLineBaseConfigurationResponseMetadata } from './WorkLineBaseConfigurationResponse'
 export { WorkLineBaseConfigurationUpdateMetadata } from './WorkLineBaseConfigurationUpdate'
 export { WorkLineConfigurationCheckMetadata } from './WorkLineConfigurationCheck'

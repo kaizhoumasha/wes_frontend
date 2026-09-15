@@ -40,6 +40,10 @@ export type UpdateWorkLinesInput = CrudUpdateInput<typeof WORK_LINES_COLLECTION_
 export type ActiveObjectsResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/active-objects', 'get'>
 export type ActiveObjectsPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/active-objects', 'get'>
 
+export type ArchiveOpenWorkResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/archive-open-work', 'post'>
+export type ArchiveOpenWorkPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/archive-open-work', 'post'>
+export type ArchiveOpenWorkInput = ContractRequestBody<'/api/v1/workline/work_lines/{id}/archive-open-work', 'post'>
+
 export type AvailablePluginsResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/available-plugins', 'get'>
 export type AvailablePluginsPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/available-plugins', 'get'>
 
@@ -91,6 +95,16 @@ export const workLinesApiMethods = {
    */
   activeObjects(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/active-objects', 'get'>, config?: ContractRequestConfig) {
     return contractMethods.get('/api/v1/workline/work_lines/{id}/active-objects', { params, config })
+  },
+
+  /**
+   * [biz:workline:archive-open-work] 一键归档当前及未闭合任务
+   * @description 原子归档本线业务任务；设备命令、搬运与 Evidence 保持原身份。
+   * @endpoint POST /api/v1/workline/work_lines/{id}/archive-open-work
+   * @returns alova method instance
+   */
+  archiveOpenWork(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/archive-open-work', 'post'>, body: ContractRequestBody<'/api/v1/workline/work_lines/{id}/archive-open-work', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/workline/work_lines/{id}/archive-open-work', { params, body, config })
   },
 
   /**

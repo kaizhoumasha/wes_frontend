@@ -1,4 +1,4 @@
-/** @openapi-sha256 3c97e570ba48c16a168c47643a3cece096b7920132fce7f58f7707edd34e0d4d */
+/** @openapi-sha256 772721628557d83168b68802b233b77c93677cc65d6afe9ea28ea58022e83ced */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -2659,8 +2659,8 @@ export interface paths {
          *       "data": {
          *         "result": "READY",
          *         "rack_destination": {
-         *           "type": "RACK_POSITION",
-         *           "location_code": "RACK-PARK-01"
+         *           "type": "ZONE",
+         *           "location_code": "WH05"
          *         }
          *       }
          *     }
@@ -3159,6 +3159,26 @@ export interface paths {
         get: operations["workline_work_lines_by_id_active_objects_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/work_lines/{id}/archive-open-work": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * [biz:workline:archive-open-work] 一键归档当前及未闭合任务
+         * @description 原子归档本线业务任务；设备命令、搬运与 Evidence 保持原身份。
+         */
+        post: operations["workline_work_lines_by_id_archive_open_work_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6811,6 +6831,8 @@ export interface components {
         ResponseSchemaModel_UserSimpleResponse_: ApiResponse<components["schemas"]["UserSimpleResponse"]>;
         /** ResponseSchemaModel[WorklineActiveObjectsResponse] */
         ResponseSchemaModel_WorklineActiveObjectsResponse_: ApiResponse<components["schemas"]["WorklineActiveObjectsResponse"]>;
+        /** ResponseSchemaModel[WorkLineArchiveOpenWorkResponse] */
+        ResponseSchemaModel_WorkLineArchiveOpenWorkResponse_: ApiResponse<components["schemas"]["WorkLineArchiveOpenWorkResponse"]>;
         /** ResponseSchemaModel[WorkLineBaseConfigurationResponse] */
         ResponseSchemaModel_WorkLineBaseConfigurationResponse_: ApiResponse<components["schemas"]["WorkLineBaseConfigurationResponse"]>;
         /** ResponseSchemaModel[WorkLineConfigurationResponse] */
@@ -7626,6 +7648,24 @@ export interface components {
             operator_hint?: string | null;
             /** Primary Source */
             primary_source?: string | null;
+        };
+        /**
+         * WorkLineArchiveOpenWorkResponse
+         * @description 一次清线归档的可核对结果。
+         */
+        WorkLineArchiveOpenWorkResponse: {
+            /** Archived Integration Runs */
+            archived_integration_runs: number;
+            /** Archived Picking Tasks */
+            archived_picking_tasks: number;
+            /** Archived Plugin Tasks */
+            archived_plugin_tasks: number;
+            /** Archived Total */
+            archived_total: number;
+            /** Version */
+            version: number;
+            /** Workline Id */
+            workline_id: number;
         };
         /**
          * WorkLineBaseConfigurationResponse
@@ -14137,6 +14177,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_WorklineActiveObjectsResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_work_lines_by_id_archive_open_work_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkLineStateTransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_WorkLineArchiveOpenWorkResponse_"];
                 };
             };
             /** @description Validation Error */
