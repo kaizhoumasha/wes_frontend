@@ -12,8 +12,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { usePermission } from '@/composables/usePermission'
-import type { WorkLinesItem as Workline } from '@/api/modules/workLines'
+import { workLinesApiMethods, type WorkLinesItem as Workline } from '@/api/modules/workLines'
 import CrudPageContainer from '@/components/common/CrudPageContainer.vue'
 import WorkLineStartDialog from './components/WorkLineStartDialog.vue'
 import { createWorkLinePageConfig } from './config/pageConfig'
@@ -31,6 +32,14 @@ function openStart(workline: Workline): void {
   startDialogVisible.value = true
 }
 
+async function archiveOpenWork(workline: Workline): Promise<void> {
+  const result = await workLinesApiMethods
+    .archiveOpenWork({ id: workline.id }, { version: workline.version })
+    .send()
+  workline.version = result.version
+  ElMessage.success(`清线完成，已归档 ${result.archived_total} 项未闭合业务任务`)
+}
+
 const { hasPermission } = usePermission()
-const config = createWorkLinePageConfig(openConfig, openStart, hasPermission)
+const config = createWorkLinePageConfig(openConfig, openStart, archiveOpenWork, hasPermission)
 </script>

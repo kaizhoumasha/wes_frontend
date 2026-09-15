@@ -32,6 +32,8 @@ export const BIZ_WORKLINE_PERMISSION = {
   batchPermanentDelete: 'biz:workline:batch_permanent_delete',
   /** 查询作业线当前 active objects */
   activeObjects: 'biz:workline:active-objects',
+  /** 一键归档当前及未闭合任务 */
+  archiveOpenWork: 'biz:workline:archive-open-work',
   /** 查询可装配业务插件 */
   availablePlugins: 'biz:workline:available-plugins',
   /** 查询工作线基础配置 */

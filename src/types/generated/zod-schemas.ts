@@ -1,4 +1,4 @@
-/** @openapi-sha256 3c97e570ba48c16a168c47643a3cece096b7920132fce7f58f7707edd34e0d4d */
+/** @openapi-sha256 772721628557d83168b68802b233b77c93677cc65d6afe9ea28ea58022e83ced */
 /**
  * Zod Validation Schemas
  *
@@ -3534,6 +3534,28 @@ export const WorkAdmissionRequestSchema = z.object({
   data: z.lazy(() => ManualBinAdmissionDataSchema),
   /** Expected Version */
   expected_version: z.number().min(0),
+})
+
+
+/**
+ * 一次清线归档的可核对结果。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const WorkLineArchiveOpenWorkResponseSchema = z.object({
+  /** Archived Integration Runs */
+  archived_integration_runs: z.number().min(0),
+  /** Archived Picking Tasks */
+  archived_picking_tasks: z.number().min(0),
+  /** Archived Plugin Tasks */
+  archived_plugin_tasks: z.number().min(0),
+  /** Archived Total */
+  archived_total: z.number().min(0),
+  /** Version */
+  version: z.number(),
+  /** Workline Id */
+  workline_id: z.number(),
 })
 
 
