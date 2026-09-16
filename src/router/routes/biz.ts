@@ -26,6 +26,17 @@ export const bizRoutes: RouteRecordRaw = {
       }
     },
     {
+      path: 'worklines/:id/activity-monitor',
+      name: 'WorkLineActivityMonitor',
+      component: () => import('@/views/admin/worklines/WorkLineActivityMonitorPage.vue'),
+      meta: {
+        requiresAuth: true,
+        title: '资源活动监控',
+        permission: BIZ_PERMISSIONS.workline.viewPlaneScene,
+        menu: { name: 'biz:workline:activity-monitor:menu', hidden: true }
+      }
+    },
+    {
       path: 'devices',
       name: 'DeviceList',
       component: () => import('@/views/admin/devices/DeviceListPage.vue'),

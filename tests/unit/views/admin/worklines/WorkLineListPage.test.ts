@@ -13,7 +13,7 @@ import { createWorkLinePageConfig } from '@/views/admin/worklines/config/pageCon
 describe('WorkLine static master-data page', () => {
   it('contains only current static fields and no legacy runtime detail actions', () => {
     const keys = WORKLINE_FIELDS.map(field => field.key)
-    const config = createWorkLinePageConfig(vi.fn(), vi.fn(), vi.fn(), () => true)
+    const config = createWorkLinePageConfig(vi.fn(), vi.fn(), vi.fn(), () => true, vi.fn())
 
     expect(keys).toContain('plugin_key')
     expect(keys).toContain('plugin_version')
@@ -28,19 +28,28 @@ describe('WorkLine static master-data page', () => {
     const openConfig = vi.fn()
     const openStart = vi.fn()
     const archiveOpenWork = vi.fn()
-    const config = createWorkLinePageConfig(openConfig, openStart, archiveOpenWork, () => true)
+    const openActivityMonitor = vi.fn()
+    const config = createWorkLinePageConfig(
+      openConfig,
+      openStart,
+      archiveOpenWork,
+      () => true,
+      openActivityMonitor
+    )
     const actions = config.extensions?.rowActions ?? []
 
     expect(actions.map(action => action.key)).toEqual([
       'workline-configuration',
       'workline-start',
+      'workline-activity-monitor',
       'workline-archive-open-work'
     ])
     expect(actions[1]?.permission).toBe(BIZ_PERMISSIONS.workline.start)
     expect(actions[0]?.permission).toBe(BIZ_PERMISSIONS.workline.baseConfiguration)
-    expect(actions[2]?.permission).toBe(BIZ_PERMISSIONS.workline.archiveOpenWork)
-    expect(actions[2]?.type).toBe('danger')
-    expect(actions[2]?.popconfirm).toMatchObject({
+    expect(actions[2]?.permission).toBe(BIZ_PERMISSIONS.workline.viewPlaneScene)
+    expect(actions[3]?.permission).toBe(BIZ_PERMISSIONS.workline.archiveOpenWork)
+    expect(actions[3]?.type).toBe('danger')
+    expect(actions[3]?.popconfirm).toMatchObject({
       confirmButtonText: '确认清线',
       confirmButtonType: 'danger'
     })
@@ -57,8 +66,10 @@ describe('WorkLine static master-data page', () => {
     actions[0]?.onClick(row)
     actions[1]?.onClick(row)
     actions[2]?.onClick(row)
+    actions[3]?.onClick(row)
     expect(openConfig).toHaveBeenCalledWith(row)
     expect(openStart).toHaveBeenCalledWith(row)
+    expect(openActivityMonitor).toHaveBeenCalledWith(row)
     expect(archiveOpenWork).toHaveBeenCalledWith(row)
   })
 
@@ -72,7 +83,8 @@ describe('WorkLine static master-data page', () => {
         vi.fn(),
         vi.fn(),
         vi.fn(),
-        permission => permission !== missing
+        permission => permission !== missing,
+        vi.fn()
       )
       expect(config.extensions?.rowActions?.[0]?.show?.({ id: 7 } as Workline)).toBe(visible)
     }

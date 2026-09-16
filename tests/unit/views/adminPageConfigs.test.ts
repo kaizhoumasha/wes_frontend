@@ -25,6 +25,7 @@ describe('admin page field configuration', () => {
     expect(config.extensions?.rowActions?.map(action => action.key)).toEqual([
       'workline-configuration',
       'workline-start',
+      'workline-activity-monitor',
       'workline-archive-open-work'
     ])
     expect(config.extensions?.toolbarActions ?? []).toEqual([])

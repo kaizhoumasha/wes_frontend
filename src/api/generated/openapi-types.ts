@@ -1,4 +1,4 @@
-/** @openapi-sha256 772721628557d83168b68802b233b77c93677cc65d6afe9ea28ea58022e83ced */
+/** @openapi-sha256 5013de1cb4d91454359e2bca4c0188048268f826923b5324e20f2e5e0be595ea */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -3165,6 +3165,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workline/work_lines/{id}/active-objects/v2": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * [biz:workline:active-objects] 查询作业线当前 active objects v2（含 scene_revision 与 resource_ref）
+         * @description 读取 Active Objects v2；与 v1 并存，互不改变语义。
+         */
+        get: operations["work_lines_by_id_active_objects_v2_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workline/work_lines/{id}/archive-open-work": {
         parameters: {
             query?: never;
@@ -3317,6 +3337,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workline/work_lines/{id}/plane/scene/v2": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * [biz:workline:view-plane-scene] 获取作业线平面场景 v2（资源分组 + 绑定状态）
+         * @description 读取 WorkLine 平面态势 scene v2；与 plane.scene.v1 并存，互不改变语义。
+         */
+        get: operations["work_lines_by_id_plane_scene_v2_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workline/work_lines/{id}/plane/snapshot": {
         parameters: {
             query?: never;
@@ -3329,6 +3369,26 @@ export interface paths {
          * @description 读取 WorkLine 平面态势动态 snapshot。
          */
         get: operations["workline_work_lines_by_id_plane_snapshot_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/work_lines/{id}/plane/snapshot/v2": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * [biz:workline:view-plane-snapshot] 获取作业线平面快照 v2（按资源聚合活动状态）
+         * @description 读取 WorkLine 平面态势 snapshot v2；与 plane.snapshot.v1 并存，互不改变语义。
+         */
+        get: operations["work_lines_by_id_plane_snapshot_v2_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5996,6 +6056,70 @@ export interface components {
             workline_code: string;
         };
         /**
+         * PlaneActiveObjectLocation
+         * @description Active Objects v2 的位置证据摘要；与 v1 同源，仅冲突状态改为字面量。
+         */
+        PlaneActiveObjectLocation: {
+            /**
+             * Conflict State
+             * @enum {string}
+             */
+            conflict_state: "OK" | "TRANSIENT" | "RECONCILING";
+            /** Evidence Refs */
+            evidence_refs?: string[];
+            /** Location Code */
+            location_code: string;
+            /** Location Scope */
+            location_scope: string;
+        };
+        /**
+         * PlaneActiveObjectsV2
+         * @description 资源中心的 WorkLine active objects；与 v1 并存，互不改变语义。
+         */
+        PlaneActiveObjectsV2: {
+            /** Objects */
+            objects?: components["schemas"]["PlaneActiveObjectView"][];
+            /** Scene Revision */
+            scene_revision?: string | null;
+            /**
+             * Total Count
+             * @default 0
+             */
+            total_count: number;
+            /**
+             * Truncated
+             * @default false
+             */
+            truncated: boolean;
+            /** Workline Id */
+            workline_id: number;
+        };
+        /**
+         * PlaneActiveObjectView
+         * @description Active Objects v2 单个对象视图；在 v1 字段基础上追加 resource_ref。
+         */
+        PlaneActiveObjectView: {
+            /** All Sources */
+            all_sources?: string[];
+            /**
+             * Conflict State
+             * @enum {string}
+             */
+            conflict_state: "OK" | "TRANSIENT" | "RECONCILING";
+            /** Evidence Refs */
+            evidence_refs?: string[];
+            location_summary?: components["schemas"]["PlaneActiveObjectLocation"] | null;
+            /** Object Key */
+            object_key: string;
+            /** Object Type */
+            object_type: string;
+            /** Operator Hint */
+            operator_hint?: string | null;
+            /** Primary Source */
+            primary_source?: string | null;
+            resource_ref?: components["schemas"]["PlaneResourceRef"] | null;
+        };
+        /**
          * PlaneEdge
          * @description Plane scene edge.
          */
@@ -6046,6 +6170,128 @@ export interface components {
             state: string;
         };
         /**
+         * PlaneOrphanBinding
+         * @description Definition 已不再声明、但历史 config 仍保留的绑定诊断。
+         */
+        PlaneOrphanBinding: {
+            /** Bound Code */
+            bound_code: string;
+            group: components["schemas"]["PlaneResourceGroup"];
+            /** Key */
+            key: string;
+            /** Reason */
+            reason: string;
+        };
+        /**
+         * PlaneResource
+         * @description Scene v2 单个资源行：Definition 声明 + WorkLine 实际绑定 + 绑定状态。
+         */
+        PlaneResource: {
+            binding?: components["schemas"]["PlaneResourceBinding"] | null;
+            binding_state: components["schemas"]["SceneBindingState"];
+            /** Declared Constraints */
+            declared_constraints?: {
+                [key: string]: string | null;
+            };
+            /** Display Name */
+            display_name: string;
+            /** Key */
+            key: string;
+            /** Stable Order */
+            stable_order: number;
+        };
+        /**
+         * PlaneResourceBinding
+         * @description Scene v2 资源行的实际绑定；只暴露编码、名称和启用状态。
+         */
+        PlaneResourceBinding: {
+            /** Code */
+            code: string;
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /** Name */
+            name?: string | null;
+            /** Type */
+            type?: string | null;
+        };
+        /**
+         * PlaneResourceGroup
+         * @description Scene v2 资源分组；只有这两组，不引入插件私有分组。
+         * @enum {string}
+         */
+        PlaneResourceGroup: "POSITION_SLOT" | "DEVICE_ROLE";
+        /**
+         * PlaneResourceGroups
+         * @description 按 Definition 资源类型分组，顺序即展示顺序。
+         */
+        PlaneResourceGroups: {
+            /** Device Role */
+            DEVICE_ROLE?: components["schemas"]["PlaneResource"][];
+            /** Position Slot */
+            POSITION_SLOT?: components["schemas"]["PlaneResource"][];
+        };
+        /**
+         * PlaneResourceRef
+         * @description Snapshot/Active Objects 关联 Scene 资源行的唯一引用；不表达绑定详情。
+         */
+        PlaneResourceRef: {
+            group: components["schemas"]["PlaneResourceGroup"];
+            /** Key */
+            key: string;
+        };
+        /**
+         * PlaneResourceState
+         * @description 单个资源在当前 Snapshot 下的活动摘要；只在 source_status=COMPLETE 时可信。
+         */
+        PlaneResourceState: {
+            /** Active Object Count */
+            active_object_count: number;
+            /**
+             * Highest Conflict State
+             * @enum {string}
+             */
+            highest_conflict_state: "OK" | "TRANSIENT" | "RECONCILING";
+            resource_ref: components["schemas"]["PlaneResourceRef"];
+        };
+        /**
+         * PlaneSceneDiagnostics
+         * @description Scene v2 附带诊断；不创建伪造资源行。
+         */
+        PlaneSceneDiagnostics: {
+            /** Orphan Bindings */
+            orphan_bindings?: components["schemas"]["PlaneOrphanBinding"][];
+        };
+        /**
+         * PlaneSceneGeneratedFrom
+         * @description Scene v2 的重新生成触发依据；用于排查 revision 变化原因。
+         */
+        PlaneSceneGeneratedFrom: {
+            /** Plugin Version */
+            plugin_version?: string | null;
+            /** Workline Version */
+            workline_version: number;
+        };
+        /**
+         * PlaneSceneV2
+         * @description 资源中心的 WorkLine plane 静态 scene；与 plane.scene.v1 并存，互不改变语义。
+         */
+        PlaneSceneV2: {
+            diagnostics: components["schemas"]["PlaneSceneDiagnostics"];
+            generated_from: components["schemas"]["PlaneSceneGeneratedFrom"];
+            resource_groups: components["schemas"]["PlaneResourceGroups"];
+            /** Scene Revision */
+            scene_revision: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "plane.scene.v2";
+            workline: components["schemas"]["PlaneWorkLineIdentityV2"];
+        };
+        /**
          * PlaneSceneView
          * @description WorkLine plane static scene view.
          */
@@ -6083,6 +6329,71 @@ export interface components {
             schema_version: "plane.snapshot.v1";
             /** Workline Code */
             workline_code: string;
+        };
+        /**
+         * PlaneSnapshotSourceStatus
+         * @description Snapshot v2 数据来源状态；非 COMPLETE 时前端不得渲染伪造的零活动。
+         * @enum {string}
+         */
+        PlaneSnapshotSourceStatus: "COMPLETE" | "PARTIAL" | "FAILED" | "STALE";
+        /**
+         * PlaneSnapshotV2
+         * @description 资源中心的 WorkLine plane 动态 snapshot；与 plane.snapshot.v1 并存，互不改变语义。
+         */
+        PlaneSnapshotV2: {
+            /** Generated At */
+            generated_at?: string | null;
+            /** Resource States */
+            resource_states?: components["schemas"]["PlaneResourceState"][];
+            /** Scene Revision */
+            scene_revision?: string | null;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "plane.snapshot.v2";
+            source_status: components["schemas"]["PlaneSnapshotSourceStatus"];
+            /**
+             * Total Count
+             * @default 0
+             */
+            total_count: number;
+            /**
+             * Truncated
+             * @default false
+             */
+            truncated: boolean;
+            /**
+             * Unmapped Object Count
+             * @default 0
+             */
+            unmapped_object_count: number;
+        };
+        /**
+         * PlaneWorkLineIdentityV2
+         * @description Scene v2 的 WorkLine 静态身份切片；不包含 config 等敏感字段。
+         */
+        PlaneWorkLineIdentityV2: {
+            /** Id */
+            id: number;
+            /** Is Active */
+            is_active: boolean;
+            /** Line Code */
+            line_code: string;
+            /** Line Name */
+            line_name: string;
+            /** Line Type */
+            line_type: string;
+            /** Plugin Display Name */
+            plugin_display_name?: string | null;
+            /** Plugin Key */
+            plugin_key?: string | null;
+            /** Plugin Version */
+            plugin_version?: string | null;
+            /** Run Mode */
+            run_mode: string;
+            /** Version */
+            version: number;
         };
         /** Point2ScanRequest */
         Point2ScanRequest: {
@@ -6789,10 +7100,16 @@ export interface components {
         ResponseSchemaModel_NoneType_: ApiResponse<null>;
         /** ResponseSchemaModel[PermissionResponse] */
         ResponseSchemaModel_PermissionResponse_: ApiResponse<components["schemas"]["PermissionResponse"]>;
+        /** ResponseSchemaModel[PlaneActiveObjectsV2] */
+        ResponseSchemaModel_PlaneActiveObjectsV2_: ApiResponse<components["schemas"]["PlaneActiveObjectsV2"]>;
+        /** ResponseSchemaModel[PlaneSceneV2] */
+        ResponseSchemaModel_PlaneSceneV2_: ApiResponse<components["schemas"]["PlaneSceneV2"]>;
         /** ResponseSchemaModel[PlaneSceneView] */
         ResponseSchemaModel_PlaneSceneView_: ApiResponse<components["schemas"]["PlaneSceneView"]>;
         /** ResponseSchemaModel[PlaneSnapshot] */
         ResponseSchemaModel_PlaneSnapshot_: ApiResponse<components["schemas"]["PlaneSnapshot"]>;
+        /** ResponseSchemaModel[PlaneSnapshotV2] */
+        ResponseSchemaModel_PlaneSnapshotV2_: ApiResponse<components["schemas"]["PlaneSnapshotV2"]>;
         /** ResponseSchemaModel[RackBinMountResponse] */
         ResponseSchemaModel_RackBinMountResponse_: ApiResponse<components["schemas"]["RackBinMountResponse"]>;
         /** ResponseSchemaModel[RackPlacementResponse] */
@@ -6945,6 +7262,12 @@ export interface components {
              */
             version: number;
         };
+        /**
+         * SceneBindingState
+         * @description Scene v2 资源行的静态绑定状态；不表达动态过程状态。
+         * @enum {string}
+         */
+        SceneBindingState: "BOUND" | "UNBOUND" | "INVALID";
         /**
          * SessionInfo
          * @description 会话信息 Schema
@@ -14190,6 +14513,38 @@ export interface operations {
             };
         };
     };
+    work_lines_by_id_active_objects_v2_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description WorkLine.id */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_PlaneActiveObjectsV2_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     workline_work_lines_by_id_archive_open_work_post: {
         parameters: {
             query?: never;
@@ -14485,6 +14840,37 @@ export interface operations {
             };
         };
     };
+    work_lines_by_id_plane_scene_v2_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_PlaneSceneV2_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     workline_work_lines_by_id_plane_snapshot_get: {
         parameters: {
             query?: never;
@@ -14503,6 +14889,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_PlaneSnapshot_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    work_lines_by_id_plane_snapshot_v2_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_PlaneSnapshotV2_"];
                 };
             };
             /** @description Validation Error */

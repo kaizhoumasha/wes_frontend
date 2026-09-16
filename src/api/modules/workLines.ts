@@ -40,6 +40,9 @@ export type UpdateWorkLinesInput = CrudUpdateInput<typeof WORK_LINES_COLLECTION_
 export type ActiveObjectsResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/active-objects', 'get'>
 export type ActiveObjectsPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/active-objects', 'get'>
 
+export type ActiveObjectsV2Result = ContractResponseData<'/api/v1/workline/work_lines/{id}/active-objects/v2', 'get'>
+export type ActiveObjectsV2PathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/active-objects/v2', 'get'>
+
 export type ArchiveOpenWorkResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/archive-open-work', 'post'>
 export type ArchiveOpenWorkPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/archive-open-work', 'post'>
 export type ArchiveOpenWorkInput = ContractRequestBody<'/api/v1/workline/work_lines/{id}/archive-open-work', 'post'>
@@ -71,8 +74,14 @@ export type PermanentPathParams = ContractPathParams<'/api/v1/workline/work_line
 export type PlaneSceneResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/plane/scene', 'get'>
 export type PlaneScenePathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/plane/scene', 'get'>
 
+export type PlaneSceneV2Result = ContractResponseData<'/api/v1/workline/work_lines/{id}/plane/scene/v2', 'get'>
+export type PlaneSceneV2PathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/plane/scene/v2', 'get'>
+
 export type PlaneSnapshotResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/plane/snapshot', 'get'>
 export type PlaneSnapshotPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/plane/snapshot', 'get'>
+
+export type PlaneSnapshotV2Result = ContractResponseData<'/api/v1/workline/work_lines/{id}/plane/snapshot/v2', 'get'>
+export type PlaneSnapshotV2PathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/plane/snapshot/v2', 'get'>
 
 const baseWorkLinesApiMethods = createSoftDeleteCrudRequestAdapterMethods({
   collection: WORK_LINES_COLLECTION_PATH as unknown as SoftDeleteCrudResourceCollectionPath,
@@ -95,6 +104,16 @@ export const workLinesApiMethods = {
    */
   activeObjects(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/active-objects', 'get'>, config?: ContractRequestConfig) {
     return contractMethods.get('/api/v1/workline/work_lines/{id}/active-objects', { params, config })
+  },
+
+  /**
+   * [biz:workline:active-objects] 查询作业线当前 active objects v2（含 scene_revision 与 resource_ref）
+   * @description 读取 Active Objects v2；与 v1 并存，互不改变语义。
+   * @endpoint GET /api/v1/workline/work_lines/{id}/active-objects/v2
+   * @returns alova method instance
+   */
+  activeObjectsV2(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/active-objects/v2', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/work_lines/{id}/active-objects/v2', { params, config })
   },
 
   /**
@@ -184,6 +203,16 @@ export const workLinesApiMethods = {
   },
 
   /**
+   * [biz:workline:view-plane-scene] 获取作业线平面场景 v2（资源分组 + 绑定状态）
+   * @description 读取 WorkLine 平面态势 scene v2；与 plane.scene.v1 并存，互不改变语义。
+   * @endpoint GET /api/v1/workline/work_lines/{id}/plane/scene/v2
+   * @returns alova method instance
+   */
+  planeSceneV2(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/plane/scene/v2', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/work_lines/{id}/plane/scene/v2', { params, config })
+  },
+
+  /**
    * [biz:workline:view-plane-snapshot] 获取作业线平面动态快照
    * @description 读取 WorkLine 平面态势动态 snapshot。
    * @endpoint GET /api/v1/workline/work_lines/{id}/plane/snapshot
@@ -191,6 +220,16 @@ export const workLinesApiMethods = {
    */
   planeSnapshot(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/plane/snapshot', 'get'>, config?: ContractRequestConfig) {
     return contractMethods.get('/api/v1/workline/work_lines/{id}/plane/snapshot', { params, config })
+  },
+
+  /**
+   * [biz:workline:view-plane-snapshot] 获取作业线平面快照 v2（按资源聚合活动状态）
+   * @description 读取 WorkLine 平面态势 snapshot v2；与 plane.snapshot.v1 并存，互不改变语义。
+   * @endpoint GET /api/v1/workline/work_lines/{id}/plane/snapshot/v2
+   * @returns alova method instance
+   */
+  planeSnapshotV2(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/plane/snapshot/v2', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/work_lines/{id}/plane/snapshot/v2', { params, config })
   }
 }
 // ==================== AUTO GENERATED END ====================

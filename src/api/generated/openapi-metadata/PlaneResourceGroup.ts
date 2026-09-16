@@ -1,0 +1,29 @@
+/**
+ * 自动生成的 OpenAPI schema 字段元数据: PlaneResourceGroup
+ *
+ * ⚠️  请勿手动编辑此文件
+ * 此文件由 scripts/generate-api-types.ts 自动生成
+ *
+ * 更新类型: pnpm generate:types
+ */
+
+import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
+
+export const PlaneResourceGroupMetadata = {
+  "title": "PlaneResourceGroup",
+  "description": "Scene v2 资源分组；只有这两组，不引入插件私有分组。",
+  "required": [],
+  "fields": {
+    "__enum": {
+      "title": "PlaneResourceGroup",
+      "description": "Scene v2 资源分组；只有这两组，不引入插件私有分组。",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "enum": [
+        "POSITION_SLOT",
+        "DEVICE_ROLE"
+      ]
+    }
+  }
+} satisfies OpenApiSchemaMetadata

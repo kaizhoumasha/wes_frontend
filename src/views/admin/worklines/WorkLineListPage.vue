@@ -27,6 +27,10 @@ function openConfig(workline: Workline): void {
   void router.push({ name: 'WorkLineConfiguration', params: { id: workline.id } })
 }
 
+function openActivityMonitor(workline: Workline): void {
+  void router.push({ name: 'WorkLineActivityMonitor', params: { id: workline.id } })
+}
+
 function openStart(workline: Workline): void {
   selectedWorkline.value = workline
   startDialogVisible.value = true
@@ -41,5 +45,11 @@ async function archiveOpenWork(workline: Workline): Promise<void> {
 }
 
 const { hasPermission } = usePermission()
-const config = createWorkLinePageConfig(openConfig, openStart, archiveOpenWork, hasPermission)
+const config = createWorkLinePageConfig(
+  openConfig,
+  openStart,
+  archiveOpenWork,
+  hasPermission,
+  openActivityMonitor
+)
 </script>
