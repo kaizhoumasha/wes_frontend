@@ -141,7 +141,8 @@ export function createWorkLinePageConfig(
   openConfig: (workline: Workline) => void,
   openStart: (workline: Workline) => void,
   archiveOpenWork: (workline: Workline) => void | Promise<void>,
-  hasPermission: (permission: string) => boolean
+  hasPermission: (permission: string) => boolean,
+  openActivityMonitor: (workline: Workline) => void
 ): WorklinePageConfig {
   return createCrudPageConfigFromResource<Workline, CreateWorklineInput, UpdateWorklineInput>({
     resource: WORKLINE_PAGE_RESOURCE,
@@ -152,7 +153,13 @@ export function createWorkLinePageConfig(
     detail: createWorklineDetailConfig(),
     features: WORKLINE_PAGE_FEATURES,
     extensions: {
-      rowActions: createWorkLineRowActions(openConfig, openStart, archiveOpenWork, hasPermission)
+      rowActions: createWorkLineRowActions(
+        openConfig,
+        openStart,
+        archiveOpenWork,
+        hasPermission,
+        openActivityMonitor
+      )
     }
   })
 }

@@ -6,7 +6,8 @@ export function createWorkLineRowActions(
   openConfig: (workline: Workline) => void,
   openStart: (workline: Workline) => void,
   archiveOpenWork: (workline: Workline) => void | Promise<void>,
-  hasPermission: (permission: string) => boolean
+  hasPermission: (permission: string) => boolean,
+  openActivityMonitor: (workline: Workline) => void
 ): CrudPageRowAction<Workline>[] {
   return [
     {
@@ -30,6 +31,16 @@ export function createWorkLineRowActions(
       permission: BIZ_PERMISSIONS.workline.start,
       show: workline => workline.is_active === false,
       onClick: openStart
+    },
+    {
+      key: 'workline-activity-monitor',
+      label: '活动监控',
+      tooltip: '查看资源绑定矩阵与当前活动对象',
+      icon: 'lucide:activity',
+      type: 'info',
+      priority: 'secondary',
+      permission: BIZ_PERMISSIONS.workline.viewPlaneScene,
+      onClick: openActivityMonitor
     },
     {
       key: 'workline-archive-open-work',

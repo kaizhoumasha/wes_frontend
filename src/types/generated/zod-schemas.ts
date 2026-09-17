@@ -1,4 +1,4 @@
-/** @openapi-sha256 772721628557d83168b68802b233b77c93677cc65d6afe9ea28ea58022e83ced */
+/** @openapi-sha256 5013de1cb4d91454359e2bca4c0188048268f826923b5324e20f2e5e0be595ea */
 /**
  * Zod Validation Schemas
  *
@@ -2294,6 +2294,88 @@ export const PickingTaskPrepareDataSchema = z.object({
 
 
 /**
+ * Active Objects v2 的位置证据摘要；与 v1 同源，仅冲突状态改为字面量。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const PlaneActiveObjectLocationSchema = z.object({
+  /** Conflict State */
+  conflict_state: z.enum(["OK", "TRANSIENT", "RECONCILING"]),
+  /** Evidence Refs */
+  evidence_refs: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())).optional(),
+  /** Location Code */
+  location_code: z.string(),
+  /** Location Scope */
+  location_scope: z.string(),
+})
+
+
+/**
+ * Active Objects v2 单个对象视图；在 v1 字段基础上追加 resource_ref。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const PlaneActiveObjectViewSchema = z.object({
+  /** All Sources */
+  all_sources: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())).optional(),
+  /** Conflict State */
+  conflict_state: z.enum(["OK", "TRANSIENT", "RECONCILING"]),
+  /** Evidence Refs */
+  evidence_refs: z.preprocess((val) => {
+        // 如果输入是字符串（换行符分隔），转换为数组
+        if (typeof val === 'string') {
+          return val.split('\n').map(s => s.trim()).filter(s => s)
+        }
+        return val
+      }, z.array(z.string())).optional(),
+  location_summary: z.union([z.lazy(() => PlaneActiveObjectLocationSchema), z.null()]).optional(),
+  /** Object Key */
+  object_key: z.string(),
+  /** Object Type */
+  object_type: z.string(),
+  /** Operator Hint */
+  operator_hint: z.union([z.string(), z.null()]).optional(),
+  /** Primary Source */
+  primary_source: z.union([z.string(), z.null()]).optional(),
+  resource_ref: z.union([z.lazy(() => PlaneResourceRefSchema), z.null()]).optional(),
+})
+
+
+/**
+ * 资源中心的 WorkLine active objects；与 v1 并存，互不改变语义。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const PlaneActiveObjectsV2Schema = z.object({
+  /** Objects */
+  objects: z.array(z.lazy(() => PlaneActiveObjectViewSchema)).optional(),
+  /** Scene Revision */
+  scene_revision: z.union([z.string().max(64), z.null()]).optional(),
+  /** Total Count */
+  total_count: z.number().min(0).optional().default(0),
+  /** Truncated */
+  truncated: z.boolean().optional().default(false),
+  /** Workline Id */
+  workline_id: z.number(),
+})
+
+
+/**
  * Plane scene edge.
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -2360,6 +2442,156 @@ export const PlaneObjectSnapshotSchema = z.object({
 
 
 /**
+ * Definition 已不再声明、但历史 config 仍保留的绑定诊断。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const PlaneOrphanBindingSchema = z.object({
+  /** Bound Code */
+  bound_code: z.string().min(1).max(120),
+  group: z.lazy(() => PlaneResourceGroupSchema),
+  /** Key */
+  key: z.string().min(1).max(100),
+  /** Reason */
+  reason: z.string().min(1).max(80),
+})
+
+
+/**
+ * Scene v2 单个资源行：Definition 声明 + WorkLine 实际绑定 + 绑定状态。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const PlaneResourceSchema = z.object({
+  binding: z.union([z.lazy(() => PlaneResourceBindingSchema), z.null()]).optional(),
+  binding_state: z.lazy(() => SceneBindingStateSchema),
+  /** Declared Constraints */
+  declared_constraints: z.record(z.union([z.string(), z.null()])).optional(),
+  /** Display Name */
+  display_name: z.string().min(1).max(100),
+  /** Key */
+  key: z.string().min(1).max(100),
+  /** Stable Order */
+  stable_order: z.number().min(0),
+})
+
+
+/**
+ * Scene v2 资源行的实际绑定；只暴露编码、名称和启用状态。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const PlaneResourceBindingSchema = z.object({
+  /** Code */
+  code: z.string().min(1).max(120),
+  /** Enabled */
+  enabled: z.boolean().optional().default(true),
+  /** Name */
+  name: z.union([z.string().max(120), z.null()]).optional(),
+  /** Type */
+  type: z.union([z.string().max(40), z.null()]).optional(),
+})
+
+
+/**
+ * Scene v2 资源分组；只有这两组，不引入插件私有分组。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const PlaneResourceGroupSchema = z.enum(["POSITION_SLOT", "DEVICE_ROLE"])
+
+
+/**
+ * 按 Definition 资源类型分组，顺序即展示顺序。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const PlaneResourceGroupsSchema = z.object({
+  /** Device Role */
+  DEVICE_ROLE: z.array(z.lazy(() => PlaneResourceSchema)).optional(),
+  /** Position Slot */
+  POSITION_SLOT: z.array(z.lazy(() => PlaneResourceSchema)).optional(),
+})
+
+
+/**
+ * Snapshot/Active Objects 关联 Scene 资源行的唯一引用；不表达绑定详情。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const PlaneResourceRefSchema = z.object({
+  group: z.lazy(() => PlaneResourceGroupSchema),
+  /** Key */
+  key: z.string().min(1).max(100),
+})
+
+
+/**
+ * 单个资源在当前 Snapshot 下的活动摘要；只在 source_status=COMPLETE 时可信。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const PlaneResourceStateSchema = z.object({
+  /** Active Object Count */
+  active_object_count: z.number().min(0),
+  /** Highest Conflict State */
+  highest_conflict_state: z.enum(["OK", "TRANSIENT", "RECONCILING"]),
+  resource_ref: z.lazy(() => PlaneResourceRefSchema),
+})
+
+
+/**
+ * Scene v2 附带诊断；不创建伪造资源行。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const PlaneSceneDiagnosticsSchema = z.object({
+  /** Orphan Bindings */
+  orphan_bindings: z.array(z.lazy(() => PlaneOrphanBindingSchema)).optional(),
+})
+
+
+/**
+ * Scene v2 的重新生成触发依据；用于排查 revision 变化原因。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const PlaneSceneGeneratedFromSchema = z.object({
+  /** Plugin Version */
+  plugin_version: z.union([z.string(), z.null()]).optional(),
+  /** Workline Version */
+  workline_version: z.number(),
+})
+
+
+/**
+ * 资源中心的 WorkLine plane 静态 scene；与 plane.scene.v1 并存，互不改变语义。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const PlaneSceneV2Schema = z.object({
+  diagnostics: z.lazy(() => PlaneSceneDiagnosticsSchema),
+  generated_from: z.lazy(() => PlaneSceneGeneratedFromSchema),
+  resource_groups: z.lazy(() => PlaneResourceGroupsSchema),
+  /** Scene Revision */
+  scene_revision: z.string().min(1).max(64),
+  /** Schema Version */
+  schema_version: z.literal("plane.scene.v2"),
+  workline: z.lazy(() => PlaneWorkLineIdentityV2Schema),
+})
+
+
+/**
  * WorkLine plane static scene view.
  *
  * 从后端 OpenAPI 自动生成，请勿手动编辑
@@ -2394,6 +2626,70 @@ export const PlaneSnapshotSchema = z.object({
   schema_version: z.literal("plane.snapshot.v1"),
   /** Workline Code */
   workline_code: z.string().min(1).max(80),
+})
+
+
+/**
+ * Snapshot v2 数据来源状态；非 COMPLETE 时前端不得渲染伪造的零活动。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const PlaneSnapshotSourceStatusSchema = z.enum(["COMPLETE", "PARTIAL", "FAILED", "STALE"])
+
+
+/**
+ * 资源中心的 WorkLine plane 动态 snapshot；与 plane.snapshot.v1 并存，互不改变语义。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const PlaneSnapshotV2Schema = z.object({
+  /** Generated At */
+  generated_at: z.union([z.string().datetime(), z.null()]).optional(),
+  /** Resource States */
+  resource_states: z.array(z.lazy(() => PlaneResourceStateSchema)).optional(),
+  /** Scene Revision */
+  scene_revision: z.union([z.string().max(64), z.null()]).optional(),
+  /** Schema Version */
+  schema_version: z.literal("plane.snapshot.v2"),
+  source_status: z.lazy(() => PlaneSnapshotSourceStatusSchema),
+  /** Total Count */
+  total_count: z.number().min(0).optional().default(0),
+  /** Truncated */
+  truncated: z.boolean().optional().default(false),
+  /** Unmapped Object Count */
+  unmapped_object_count: z.number().min(0).optional().default(0),
+})
+
+
+/**
+ * Scene v2 的 WorkLine 静态身份切片；不包含 config 等敏感字段。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const PlaneWorkLineIdentityV2Schema = z.object({
+  /** Id */
+  id: z.number(),
+  /** Is Active */
+  is_active: z.boolean(),
+  /** Line Code */
+  line_code: z.string().min(1).max(80),
+  /** Line Name */
+  line_name: z.string().min(1).max(120),
+  /** Line Type */
+  line_type: z.string(),
+  /** Plugin Display Name */
+  plugin_display_name: z.union([z.string(), z.null()]).optional(),
+  /** Plugin Key */
+  plugin_key: z.union([z.string(), z.null()]).optional(),
+  /** Plugin Version */
+  plugin_version: z.union([z.string(), z.null()]).optional(),
+  /** Run Mode */
+  run_mode: z.string(),
+  /** Version */
+  version: z.number(),
 })
 
 
@@ -2959,6 +3255,15 @@ export const RoleUpdateSchema = z.object({
   /** Version */
   version: z.number(),
 })
+
+
+/**
+ * Scene v2 资源行的静态绑定状态；不表达动态过程状态。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const SceneBindingStateSchema = z.enum(["BOUND", "UNBOUND", "INVALID"])
 
 
 /**
