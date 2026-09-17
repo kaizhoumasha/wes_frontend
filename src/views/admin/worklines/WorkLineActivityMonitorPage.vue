@@ -72,7 +72,7 @@ async function handleRefresh(): Promise<void> {
             class="activity-monitor__drawer-toggle"
             @click="drawerOpen = true"
           >
-            上下文与台账
+            资源上下文
           </button>
           <ElButton
             :loading="monitor.dynamicLoading.value"
@@ -109,19 +109,22 @@ async function handleRefresh(): Promise<void> {
             :generated-at-label="monitor.generatedAtLabel.value"
             @clear="monitor.selectResource(null)"
           />
-          <ActiveObjectLedger
-            :objects="monitor.activeObjects.value?.objects ?? []"
-            :loading="monitor.dynamicLoading.value"
-            :trustworthy="monitor.snapshot.value?.source_status === 'COMPLETE'"
-            :selected-resource-ref="monitor.selectedResourceRef.value"
-            @inspect="inspectEvidence"
-          />
         </aside>
+      </div>
+
+      <div class="activity-monitor__ledger">
+        <ActiveObjectLedger
+          :objects="monitor.activeObjects.value?.objects ?? []"
+          :loading="monitor.dynamicLoading.value"
+          :trustworthy="monitor.snapshot.value?.source_status === 'COMPLETE'"
+          :selected-resource-ref="monitor.selectedResourceRef.value"
+          @inspect="inspectEvidence"
+        />
       </div>
 
       <ElDrawer
         v-model="drawerOpen"
-        title="上下文与台账"
+        title="资源上下文"
         size="90%"
         @closed="closeSidePanelDrawer"
       >
@@ -135,13 +138,6 @@ async function handleRefresh(): Promise<void> {
           :stale-banner-text="monitor.staleBannerText.value"
           :generated-at-label="monitor.generatedAtLabel.value"
           @clear="monitor.selectResource(null)"
-        />
-        <ActiveObjectLedger
-          :objects="monitor.activeObjects.value?.objects ?? []"
-          :loading="monitor.dynamicLoading.value"
-          :trustworthy="monitor.snapshot.value?.source_status === 'COMPLETE'"
-          :selected-resource-ref="monitor.selectedResourceRef.value"
-          @inspect="inspectEvidence"
         />
       </ElDrawer>
 
@@ -205,6 +201,10 @@ async function handleRefresh(): Promise<void> {
   gap: var(--space-md);
   position: sticky;
   top: var(--space-md);
+}
+.activity-monitor__ledger {
+  min-width: 0;
+  margin-top: var(--space-md);
 }
 
 @media (width <= 1199px) {
