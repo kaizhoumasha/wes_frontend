@@ -7,7 +7,8 @@ import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { BIZ_PERMISSIONS } from '@/api/generated/permissions'
 import { usePermission } from '@/composables/usePermission'
-import type { PlaneActiveObjectView, PlaneResource } from '@/api/types/plane-v2'
+import { StandardDrawer } from '@/components/ui/StandardDrawer'
+import type { PlaneActiveObjectView, PlaneResource, PlaneResourceRef } from '@/api/types/plane-v2'
 import { useActivityMonitor } from './composables/useActivityMonitor'
 import ResourceMatrixPanel from './components/activity-monitor/ResourceMatrixPanel.vue'
 import ResourceContextPanel from './components/activity-monitor/ResourceContextPanel.vue'
@@ -16,7 +17,12 @@ import EvidenceDrawer from './components/activity-monitor/EvidenceDrawer.vue'
 
 const route = useRoute()
 const { hasPermission } = usePermission()
-const canView = computed(() => hasPermission(BIZ_PERMISSIONS.workline.viewPlaneScene))
+const canView = computed(
+  () =>
+    hasPermission(BIZ_PERMISSIONS.workline.viewPlaneScene) &&
+    hasPermission(BIZ_PERMISSIONS.workline.viewPlaneSnapshot) &&
+    hasPermission(BIZ_PERMISSIONS.workline.activeObjects)
+)
 
 const workLineId = computed<number | null>(() => {
   const id = Number(route.params.id)
@@ -37,6 +43,11 @@ const drawerToggleRef = ref<HTMLButtonElement | null>(null)
 function closeSidePanelDrawer(): void {
   drawerOpen.value = false
   drawerToggleRef.value?.focus()
+}
+
+function handleResourceSelect(resourceRef: PlaneResourceRef | null): void {
+  monitor.selectResource(resourceRef)
+  if (resourceRef) drawerOpen.value = true
 }
 
 const evidenceObject = ref<PlaneActiveObjectView | null>(null)
@@ -62,7 +73,15 @@ async function handleRefresh(): Promise<void> {
     <template v-else>
       <header class="activity-monitor__header">
         <div>
-          <h2>资源活动监控 · {{ monitor.scene.value?.workline.line_name || `#${workLineId}` }}</h2>
+          <h2>
+            资源活动监控 · {{ monitor.scene.value?.workline.line_name || `#${workLineId}` }}
+            <span
+              v-if="monitor.currentTask.value"
+              class="activity-monitor__task-id mono"
+            >
+              工单 {{ monitor.currentTask.value.task_id }}
+            </span>
+          </h2>
           <p class="mono">{{ monitor.scene.value?.workline.line_code }}</p>
         </div>
         <div class="activity-monitor__actions">
@@ -78,7 +97,7 @@ async function handleRefresh(): Promise<void> {
             :loading="monitor.dynamicLoading.value"
             @click="handleRefresh"
           >
-            刷新
+            刷新资源数据
           </ElButton>
         </div>
       </header>
@@ -93,23 +112,9 @@ async function handleRefresh(): Promise<void> {
             :loading="monitor.sceneLoading.value"
             :error="monitor.sceneError.value"
             :selected="monitor.selectedResourceRef.value"
-            @select="monitor.selectResource"
+            @select="handleResourceSelect"
           />
         </div>
-
-        <aside class="activity-monitor__side">
-          <ResourceContextPanel
-            :line-name="monitor.scene.value?.workline.line_name ?? ''"
-            :line-code="monitor.scene.value?.workline.line_code ?? ''"
-            :snapshot="monitor.snapshot.value"
-            :active-objects="monitor.activeObjects.value"
-            :selected="monitor.selectedResourceRef.value"
-            :selected-resource="selectedResource"
-            :stale-banner-text="monitor.staleBannerText.value"
-            :generated-at-label="monitor.generatedAtLabel.value"
-            @clear="monitor.selectResource(null)"
-          />
-        </aside>
       </div>
 
       <div class="activity-monitor__ledger">
@@ -122,11 +127,12 @@ async function handleRefresh(): Promise<void> {
         />
       </div>
 
-      <ElDrawer
+      <StandardDrawer
         v-model="drawerOpen"
         title="资源上下文"
-        size="90%"
-        @closed="closeSidePanelDrawer"
+        size="md"
+        append-to-body
+        @close="closeSidePanelDrawer"
       >
         <ResourceContextPanel
           :line-name="monitor.scene.value?.workline.line_name ?? ''"
@@ -137,9 +143,15 @@ async function handleRefresh(): Promise<void> {
           :selected-resource="selectedResource"
           :stale-banner-text="monitor.staleBannerText.value"
           :generated-at-label="monitor.generatedAtLabel.value"
+          :current-task="monitor.currentTask.value"
+          :current-task-loaded="monitor.currentTaskLoaded.value"
+          :current-task-loading="monitor.currentTaskLoading.value"
+          :current-task-error="monitor.currentTaskError.value"
+          :current-task-generated-at-label="monitor.currentTaskGeneratedAtLabel.value"
           @clear="monitor.selectResource(null)"
+          @load-current-task="monitor.loadCurrentTask"
         />
-      </ElDrawer>
+      </StandardDrawer>
 
       <EvidenceDrawer
         v-model="evidenceVisible"
@@ -171,6 +183,14 @@ async function handleRefresh(): Promise<void> {
   font-size: var(--el-font-size-extra-large);
   font-weight: 600;
 }
+.activity-monitor__task-id {
+  display: inline-block;
+  margin-left: var(--space-xs);
+  color: var(--color-text-secondary);
+  font-size: var(--el-font-size-base);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
 .activity-monitor__header p {
   margin: var(--space-3xs) 0 0;
   color: var(--color-text-secondary);
@@ -181,7 +201,7 @@ async function handleRefresh(): Promise<void> {
   gap: var(--space-xs);
 }
 .activity-monitor__drawer-toggle {
-  display: none;
+  display: inline-flex;
   min-height: 44px;
   padding: 0 var(--space-sm);
   border: 1px solid var(--color-border);
@@ -191,32 +211,11 @@ async function handleRefresh(): Promise<void> {
   cursor: pointer;
 }
 .activity-monitor__layout {
-  display: grid;
-  grid-template-columns: 7fr 3fr;
-  gap: var(--space-md);
-  align-items: start;
-}
-.activity-monitor__side {
-  display: grid;
-  gap: var(--space-md);
-  position: sticky;
-  top: var(--space-md);
+  min-width: 0;
 }
 .activity-monitor__ledger {
   min-width: 0;
   margin-top: var(--space-md);
-}
-
-@media (width <= 1199px) {
-  .activity-monitor__layout {
-    grid-template-columns: 1fr;
-  }
-  .activity-monitor__side {
-    display: none;
-  }
-  .activity-monitor__drawer-toggle {
-    display: inline-block;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

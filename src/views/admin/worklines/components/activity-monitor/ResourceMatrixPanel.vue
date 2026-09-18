@@ -288,4 +288,14 @@ function activitySummary(
     transition: none;
   }
 }
+
+@media (width <= 600px) {
+  .resource-matrix__section {
+    min-width: 0;
+    overflow-x: auto;
+  }
+  .resource-matrix__table {
+    min-width: 700px;
+  }
+}
 </style>

@@ -1,4 +1,4 @@
-/** @openapi-sha256 5013de1cb4d91454359e2bca4c0188048268f826923b5324e20f2e5e0be595ea */
+/** @openapi-sha256 d0cda022bdfe7572957b267a8ed3b3c1b9931f9811c8d814fbfcb3ac238167e0 */
 /**
  * Zod Validation Schemas
  *
@@ -2372,6 +2372,41 @@ export const PlaneActiveObjectsV2Schema = z.object({
   truncated: z.boolean().optional().default(false),
   /** Workline Id */
   workline_id: z.number(),
+})
+
+
+/**
+ * 按需读取的 WorkLine 当前任务采样。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const PlaneCurrentTaskV2Schema = z.object({
+  current_task: z.union([z.lazy(() => PlaneCurrentTaskViewSchema), z.null()]).optional(),
+  /** Generated At */
+  generated_at: z.string().datetime(),
+  /** Schema Version */
+  schema_version: z.literal("plane.current-task.v2"),
+})
+
+
+/**
+ * WorkLine 当前绑定的 PickingTask 及其公开 plan_delta 目标。
+ *
+ * 从后端 OpenAPI 自动生成，请勿手动编辑
+ * 如需添加自定义验证，请在扩展文件中修改
+ */
+export const PlaneCurrentTaskViewSchema = z.object({
+  /** Last Applied Plan Revision */
+  last_applied_plan_revision: z.number().min(0),
+  /** Status */
+  status: z.enum(["PREPARING", "EXECUTING"]),
+  /** Target Rack Face */
+  target_rack_face: z.union([z.string(), z.null()]).optional(),
+  /** Target Rack Id */
+  target_rack_id: z.union([z.string(), z.null()]).optional(),
+  /** Task Id */
+  task_id: z.string(),
 })
 
 

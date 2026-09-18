@@ -10,6 +10,7 @@ import { computed, onBeforeUnmount, onMounted, shallowRef, ref, watch } from 'vu
 import { workLinesApiMethods } from '@/api/modules/workLines'
 import type {
   PlaneActiveObjectsV2,
+  PlaneCurrentTaskView,
   PlaneResourceRef,
   PlaneSceneV2,
   PlaneSnapshotV2
@@ -27,6 +28,11 @@ export function useActivityMonitor(workLineId: () => number | null) {
 
   const snapshot = shallowRef<PlaneSnapshotV2 | null>(null)
   const activeObjects = shallowRef<PlaneActiveObjectsV2 | null>(null)
+  const currentTask = shallowRef<PlaneCurrentTaskView | null>(null)
+  const currentTaskLoaded = ref(false)
+  const currentTaskLoading = ref(false)
+  const currentTaskError = ref('')
+  const currentTaskGeneratedAt = ref<string | null>(null)
   // 仅首次加载（尚无任何历史数据）时为 true；轮询/刷新期间保留旧数据，不触发骨架屏闪烁。
   const dynamicLoading = ref(false)
   const dynamicError = ref('')
@@ -37,6 +43,7 @@ export function useActivityMonitor(workLineId: () => number | null) {
   let pollTimer: ReturnType<typeof setTimeout> | undefined
   let sceneSequence = 0
   let dynamicSequence = 0
+  let currentTaskSequence = 0
   let currentId: number | null = null
 
   const staleBannerText = computed<string | null>(() => {
@@ -51,6 +58,14 @@ export function useActivityMonitor(workLineId: () => number | null) {
 
   const generatedAtLabel = computed<string | null>(() => {
     const generatedAt = snapshot.value?.generated_at
+    if (!generatedAt) return null
+    const parsed = new Date(generatedAt)
+    if (Number.isNaN(parsed.getTime())) return null
+    return parsed.toLocaleTimeString('zh-CN', { hour12: false })
+  })
+
+  const currentTaskGeneratedAtLabel = computed<string | null>(() => {
+    const generatedAt = currentTaskGeneratedAt.value
     if (!generatedAt) return null
     const parsed = new Date(generatedAt)
     if (Number.isNaN(parsed.getTime())) return null
@@ -109,6 +124,31 @@ export function useActivityMonitor(workLineId: () => number | null) {
     }
   }
 
+  // current-task: IDLE -> LOADING -> LOADED_EMPTY | LOADED_TASK; failures -> ERROR -> retry.
+  // WorkLine changes/unmount increment the sequence so late success/error responses are ignored.
+  async function loadCurrentTask(): Promise<void> {
+    if (currentId === null || currentTaskLoading.value) return
+    const id = currentId
+    const turn = ++currentTaskSequence
+    currentTaskLoading.value = true
+    currentTaskError.value = ''
+    try {
+      const result = await workLinesApiMethods.planeCurrentTaskV2({ id }).send()
+      if (turn !== currentTaskSequence || currentId !== id) return
+      currentTask.value = result.current_task ?? null
+      currentTaskGeneratedAt.value = result.generated_at ?? null
+      currentTaskLoaded.value = true
+    } catch (reason) {
+      if (turn !== currentTaskSequence || currentId !== id) return
+      currentTask.value = null
+      currentTaskGeneratedAt.value = null
+      currentTaskLoaded.value = true
+      currentTaskError.value = getSafeErrorMessage(reason)
+    } finally {
+      if (turn === currentTaskSequence && currentId === id) currentTaskLoading.value = false
+    }
+  }
+
   async function refresh(): Promise<void> {
     if (currentId === null) return
     clearTimer()
@@ -127,10 +167,16 @@ export function useActivityMonitor(workLineId: () => number | null) {
 
   function start(id: number): void {
     currentId = id
+    ++currentTaskSequence
     selectedResourceRef.value = null
     scene.value = null
     snapshot.value = null
     activeObjects.value = null
+    currentTask.value = null
+    currentTaskLoaded.value = false
+    currentTaskLoading.value = false
+    currentTaskError.value = ''
+    currentTaskGeneratedAt.value = null
     dynamicError.value = ''
     consecutiveFailures.value = 0
     clearTimer()
@@ -146,6 +192,7 @@ export function useActivityMonitor(workLineId: () => number | null) {
     clearTimer()
     ++sceneSequence
     ++dynamicSequence
+    ++currentTaskSequence
   })
 
   watch(
@@ -162,6 +209,11 @@ export function useActivityMonitor(workLineId: () => number | null) {
     sceneError,
     snapshot,
     activeObjects,
+    currentTask,
+    currentTaskLoaded,
+    currentTaskLoading,
+    currentTaskError,
+    currentTaskGeneratedAtLabel,
     dynamicLoading,
     dynamicError,
     staleBannerText,
@@ -169,6 +221,7 @@ export function useActivityMonitor(workLineId: () => number | null) {
     selectedResourceRef,
     selectResource,
     refresh,
+    loadCurrentTask,
     reloadScene: () => currentId !== null && loadScene(currentId)
   }
 }
