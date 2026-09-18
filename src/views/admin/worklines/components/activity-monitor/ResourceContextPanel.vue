@@ -3,8 +3,10 @@
 -->
 <script setup lang="ts">
 import { computed } from 'vue'
+import AppButton from '@/components/ui/AppButton.vue'
 import type {
   PlaneActiveObjectsV2,
+  PlaneCurrentTaskView,
   PlaneResource,
   PlaneResourceRef,
   PlaneSnapshotV2
@@ -20,8 +22,13 @@ const props = defineProps<{
   selectedResource: PlaneResource | null
   staleBannerText: string | null
   generatedAtLabel: string | null
+  currentTask: PlaneCurrentTaskView | null
+  currentTaskLoaded: boolean
+  currentTaskLoading: boolean
+  currentTaskError: string
+  currentTaskGeneratedAtLabel: string | null
 }>()
-const emit = defineEmits<{ clear: [] }>()
+const emit = defineEmits<{ clear: []; loadCurrentTask: [] }>()
 
 const trustworthy = computed(() => props.snapshot?.source_status === 'COMPLETE')
 
@@ -37,13 +44,32 @@ const selectedResourceState = computed(() => {
   if (!props.selected || !props.snapshot) return null
   return findResourceState(props.snapshot.resource_states ?? [], props.selected)
 })
+
+const currentTaskStatusLabel = computed(() => {
+  if (!props.currentTask) return ''
+  return props.currentTask.status === 'PREPARING' ? '准备中' : '执行中'
+})
+
+const currentTaskActionLabel = computed(() => {
+  if (props.currentTaskLoading) return '正在读取'
+  if (props.currentTaskError) return '重试'
+  return props.currentTaskLoaded ? '重新读取' : '查看当前任务'
+})
+
+const currentTaskActionIcon = computed(() => {
+  if (props.currentTaskLoading) return 'ep:loading'
+  return props.currentTaskLoaded || props.currentTaskError ? 'lucide:refresh-cw' : 'lucide:eye'
+})
+
+const currentTaskActionType = computed<'danger' | 'default'>(() =>
+  props.currentTaskError ? 'danger' : 'default'
+)
 </script>
 
 <template>
   <aside
     class="context-panel"
     aria-label="上下文面板"
-    aria-live="polite"
   >
     <p
       v-if="staleBannerText"
@@ -120,6 +146,93 @@ const selectedResourceState = computed(() => {
       </dl>
       <p class="context-panel__hint">选择左侧矩阵中的资源行以查看其上下文</p>
     </template>
+
+    <section
+      class="context-panel__task"
+      aria-labelledby="current-task-title"
+    >
+      <div class="context-panel__task-header">
+        <h4 id="current-task-title">当前任务</h4>
+        <AppButton
+          :icon="currentTaskActionIcon"
+          size="small"
+          :type="currentTaskActionType"
+          plain
+          :aria-disabled="currentTaskLoading ? 'true' : undefined"
+          :aria-busy="currentTaskLoading ? 'true' : undefined"
+          @click="emit('loadCurrentTask')"
+        >
+          {{ currentTaskActionLabel }}
+        </AppButton>
+      </div>
+
+      <p
+        v-if="currentTaskLoading"
+        class="context-panel__task-status"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        正在读取当前任务
+      </p>
+      <p
+        v-else-if="currentTaskError"
+        class="context-panel__task-status context-panel__task-status--error"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        当前任务加载失败：{{ currentTaskError }}
+      </p>
+      <template v-else-if="currentTaskLoaded && currentTask">
+        <dl class="context-panel__facts context-panel__task-facts">
+          <dt>任务 ID</dt>
+          <dd class="mono">{{ currentTask.task_id }}</dd>
+          <dt>状态</dt>
+          <dd>
+            <ElTag
+              :type="currentTask.status === 'EXECUTING' ? 'success' : 'info'"
+              size="small"
+            >
+              {{ currentTaskStatusLabel }}
+            </ElTag>
+          </dd>
+          <dt>计划版本</dt>
+          <dd class="mono">{{ currentTask.last_applied_plan_revision }}</dd>
+          <dt>目标货架</dt>
+          <dd class="mono">
+            {{
+              currentTask.last_applied_plan_revision > 0
+                ? currentTask.target_rack_id || '—'
+                : '尚未生成'
+            }}
+          </dd>
+          <dt>目标货架面</dt>
+          <dd class="mono">
+            {{
+              currentTask.last_applied_plan_revision > 0
+                ? currentTask.target_rack_face || '—'
+                : '尚未生成'
+            }}
+          </dd>
+        </dl>
+      </template>
+      <p
+        v-else-if="currentTaskLoaded"
+        class="context-panel__task-status"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        当前无准备中或执行中的任务
+      </p>
+      <p
+        v-if="currentTaskLoaded && !currentTaskError && currentTaskGeneratedAtLabel"
+        class="context-panel__task-time"
+      >
+        任务读取 · {{ currentTaskGeneratedAtLabel }}
+      </p>
+    </section>
   </aside>
 </template>
 
@@ -198,5 +311,45 @@ const selectedResourceState = computed(() => {
   color: var(--color-text-secondary);
   font-size: var(--el-font-size-small);
   margin: 0;
+}
+.context-panel__task {
+  display: grid;
+  gap: var(--space-xs);
+  min-block-size: 96px;
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-border);
+}
+.context-panel__task-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
+}
+.context-panel__task-header h4 {
+  margin: 0;
+  font-size: var(--el-font-size-base);
+  font-weight: 600;
+}
+.context-panel__task-status,
+.context-panel__task-time {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--el-font-size-small);
+}
+.context-panel__task-status--error {
+  color: var(--color-danger);
+}
+.context-panel__task-facts {
+  overflow-wrap: anywhere;
+}
+.context-panel__task-time {
+  font-variant-numeric: tabular-nums;
+}
+.context-panel__task :deep(.el-button) {
+  min-height: 44px;
+}
+.context-panel__task :deep(.el-button.is-plain.el-button--default) {
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
 }
 </style>

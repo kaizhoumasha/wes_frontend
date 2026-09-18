@@ -1,4 +1,4 @@
-/** @openapi-sha256 5013de1cb4d91454359e2bca4c0188048268f826923b5324e20f2e5e0be595ea */
+/** @openapi-sha256 d0cda022bdfe7572957b267a8ed3b3c1b9931f9811c8d814fbfcb3ac238167e0 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -3317,6 +3317,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workline/work_lines/{id}/plane/current-task/v2": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * [biz:workline:view-plane-snapshot] 获取作业线当前 PickingTask v2
+         * @description 按需读取 WorkLine 当前任务；失败沿用标准 API 错误语义。
+         */
+        get: operations["work_lines_by_id_plane_current_task_v2_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workline/work_lines/{id}/plane/scene": {
         parameters: {
             query?: never;
@@ -6120,6 +6140,42 @@ export interface components {
             resource_ref?: components["schemas"]["PlaneResourceRef"] | null;
         };
         /**
+         * PlaneCurrentTaskV2
+         * @description 按需读取的 WorkLine 当前任务采样。
+         */
+        PlaneCurrentTaskV2: {
+            current_task?: components["schemas"]["PlaneCurrentTaskView"] | null;
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "plane.current-task.v2";
+        };
+        /**
+         * PlaneCurrentTaskView
+         * @description WorkLine 当前绑定的 PickingTask 及其公开 plan_delta 目标。
+         */
+        PlaneCurrentTaskView: {
+            /** Last Applied Plan Revision */
+            last_applied_plan_revision: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "PREPARING" | "EXECUTING";
+            /** Target Rack Face */
+            target_rack_face?: string | null;
+            /** Target Rack Id */
+            target_rack_id?: string | null;
+            /** Task Id */
+            task_id: string;
+        };
+        /**
          * PlaneEdge
          * @description Plane scene edge.
          */
@@ -7102,6 +7158,8 @@ export interface components {
         ResponseSchemaModel_PermissionResponse_: ApiResponse<components["schemas"]["PermissionResponse"]>;
         /** ResponseSchemaModel[PlaneActiveObjectsV2] */
         ResponseSchemaModel_PlaneActiveObjectsV2_: ApiResponse<components["schemas"]["PlaneActiveObjectsV2"]>;
+        /** ResponseSchemaModel[PlaneCurrentTaskV2] */
+        ResponseSchemaModel_PlaneCurrentTaskV2_: ApiResponse<components["schemas"]["PlaneCurrentTaskV2"]>;
         /** ResponseSchemaModel[PlaneSceneV2] */
         ResponseSchemaModel_PlaneSceneV2_: ApiResponse<components["schemas"]["PlaneSceneV2"]>;
         /** ResponseSchemaModel[PlaneSceneView] */
@@ -14796,6 +14854,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_dict_str__str__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    work_lines_by_id_plane_current_task_v2_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_PlaneCurrentTaskV2_"];
                 };
             };
             /** @description Validation Error */

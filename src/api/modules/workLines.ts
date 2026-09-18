@@ -71,6 +71,9 @@ export type DeactivateInput = ContractRequestBody<'/api/v1/workline/work_lines/{
 export type PermanentResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/permanent', 'delete'>
 export type PermanentPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/permanent', 'delete'>
 
+export type PlaneCurrentTaskV2Result = ContractResponseData<'/api/v1/workline/work_lines/{id}/plane/current-task/v2', 'get'>
+export type PlaneCurrentTaskV2PathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/plane/current-task/v2', 'get'>
+
 export type PlaneSceneResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/plane/scene', 'get'>
 export type PlaneScenePathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/plane/scene', 'get'>
 
@@ -190,6 +193,16 @@ export const workLinesApiMethods = {
    */
   permanent(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/permanent', 'delete'>, config?: ContractRequestConfig) {
     return contractMethods.delete('/api/v1/workline/work_lines/{id}/permanent', { params, config })
+  },
+
+  /**
+   * [biz:workline:view-plane-snapshot] 获取作业线当前 PickingTask v2
+   * @description 按需读取 WorkLine 当前任务；失败沿用标准 API 错误语义。
+   * @endpoint GET /api/v1/workline/work_lines/{id}/plane/current-task/v2
+   * @returns alova method instance
+   */
+  planeCurrentTaskV2(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/plane/current-task/v2', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/workline/work_lines/{id}/plane/current-task/v2', { params, config })
   },
 
   /**

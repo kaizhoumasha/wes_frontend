@@ -7484,6 +7484,90 @@
         "title": "PlaneActiveObjectsV2",
         "type": "object"
       },
+      "PlaneCurrentTaskV2": {
+        "additionalProperties": false,
+        "description": "按需读取的 WorkLine 当前任务采样。",
+        "properties": {
+          "current_task": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlaneCurrentTaskView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "plane.current-task.v2",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "generated_at"
+        ],
+        "title": "PlaneCurrentTaskV2",
+        "type": "object"
+      },
+      "PlaneCurrentTaskView": {
+        "additionalProperties": false,
+        "description": "WorkLine 当前绑定的 PickingTask 及其公开 plan_delta 目标。",
+        "properties": {
+          "last_applied_plan_revision": {
+            "minimum": 0,
+            "title": "Last Applied Plan Revision",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "PREPARING",
+              "EXECUTING"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "target_rack_face": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Rack Face"
+          },
+          "target_rack_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Rack Id"
+          },
+          "task_id": {
+            "title": "Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id",
+          "status",
+          "last_applied_plan_revision"
+        ],
+        "title": "PlaneCurrentTaskView",
+        "type": "object"
+      },
       "PlaneEdge": {
         "additionalProperties": false,
         "description": "Plane scene edge.",
@@ -10845,6 +10929,51 @@
           }
         },
         "title": "ResponseSchemaModel[PlaneActiveObjectsV2]",
+        "type": "object"
+      },
+      "ResponseSchemaModel_PlaneCurrentTaskV2_": {
+        "properties": {
+          "code": {
+            "default": "1000",
+            "description": "响应码",
+            "examples": [
+              "1000",
+              "2000"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlaneCurrentTaskV2"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "message": {
+            "default": "操作成功",
+            "description": "响应消息",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ],
+            "title": "Message",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ],
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "title": "ResponseSchemaModel[PlaneCurrentTaskV2]",
         "type": "object"
       },
       "ResponseSchemaModel_PlaneSceneV2_": {
@@ -28710,6 +28839,54 @@
         "summary": "[biz:workline:permanent_delete] 永久删除WorkLine",
         "tags": [
           "作业线管理",
+          "作业线管理"
+        ]
+      }
+    },
+    "/api/v1/workline/work_lines/{id}/plane/current-task/v2": {
+      "get": {
+        "description": "按需读取 WorkLine 当前任务；失败沿用标准 API 错误语义。",
+        "operationId": "work_lines_by_id_plane_current_task_v2_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "title": "Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_PlaneCurrentTaskV2_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[biz:workline:view-plane-snapshot] 获取作业线当前 PickingTask v2",
+        "tags": [
           "作业线管理"
         ]
       }
