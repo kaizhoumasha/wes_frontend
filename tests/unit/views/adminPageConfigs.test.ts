@@ -15,18 +15,19 @@ describe('admin page field configuration', () => {
     expect(() => createPermissionPageConfig()).not.toThrow()
     expect(() => createRolePageConfig()).not.toThrow()
     expect(() => createUserPageConfig(open, open)).not.toThrow()
-    expect(() => createWorkLinePageConfig(open, open, open, () => true)).not.toThrow()
+    expect(() => createWorkLinePageConfig(open, open, open, open, () => true)).not.toThrow()
   })
 
   it('keeps WorkLine-scoped clear-line in row actions without restoring legacy detail controls', () => {
-    const config = createWorkLinePageConfig(vi.fn(), vi.fn(), vi.fn(), () => true)
+    const config = createWorkLinePageConfig(vi.fn(), vi.fn(), vi.fn(), vi.fn(), () => true)
 
     expect(config.detail?.actions ?? []).toEqual([])
     expect(config.extensions?.rowActions?.map(action => action.key)).toEqual([
       'workline-configuration',
       'workline-start',
       'workline-activity-monitor',
-      'workline-archive-open-work'
+      'workline-archive-open-work',
+      'workline-archive-picking-task'
     ])
     expect(config.extensions?.toolbarActions ?? []).toEqual([])
   })

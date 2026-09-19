@@ -1,4 +1,4 @@
-/** @openapi-sha256 d0cda022bdfe7572957b267a8ed3b3c1b9931f9811c8d814fbfcb3ac238167e0 */
+/** @openapi-sha256 e9b94526edc4d6a4b74f838c37d8c1c231d6425aa59d6ec518adf19ee8a09aaa */
 /**
  * Zod Validation Schemas
  *
@@ -2818,7 +2818,7 @@ export const RackDepartureDataSchema = z.object({
   /** Rack Id */
   rack_id: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
   /** Task Id */
-  task_id: z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")),
+  task_id: z.union([z.string().regex(new RegExp("^[A-Za-z0-9][A-Za-z0-9._:/-]{0,99}$")), z.null()]),
 })
 
 
@@ -3890,8 +3890,14 @@ export const WorkLineArchiveOpenWorkResponseSchema = z.object({
   archived_picking_tasks: z.number().min(0),
   /** Archived Plugin Tasks */
   archived_plugin_tasks: z.number().min(0),
+  /** Archived Single Picking Task */
+  archived_single_picking_task: z.boolean().optional().default(false),
+  /** Archived Single Picking Task Id */
+  archived_single_picking_task_id: z.union([z.number(), z.null()]).optional(),
   /** Archived Total */
   archived_total: z.number().min(0),
+  /** Picking Task Status Before */
+  picking_task_status_before: z.union([z.string(), z.null()]).optional(),
   /** Version */
   version: z.number(),
   /** Workline Id */
@@ -4209,6 +4215,10 @@ export const WorkLineStartResponseSchema = z.object({
  * 如需添加自定义验证，请在扩展文件中修改
  */
 export const WorkLineStateTransitionRequestSchema = z.object({
+  /** Picking Task Id */
+  picking_task_id: z.union([z.number().min(1), z.null()]).optional(),
+  /** Task Id */
+  task_id: z.union([z.string().min(1).max(100), z.null()]).optional(),
   /** Version */
   version: z.number(),
 })

@@ -6,6 +6,7 @@ export function createWorkLineRowActions(
   openConfig: (workline: Workline) => void,
   openStart: (workline: Workline) => void,
   archiveOpenWork: (workline: Workline) => void | Promise<void>,
+  archivePickingTask: (workline: Workline) => void,
   hasPermission: (permission: string) => boolean,
   openActivityMonitor: (workline: Workline) => void
 ): CrudPageRowAction<Workline>[] {
@@ -58,6 +59,16 @@ export function createWorkLineRowActions(
         confirmButtonType: 'danger',
         width: 320
       }
+    },
+    {
+      key: 'workline-archive-picking-task',
+      label: '归档单任务',
+      tooltip: '按 picking_task_id 精准归档单个 PickingTask',
+      icon: 'lucide:archive',
+      type: 'danger',
+      priority: 'secondary',
+      permission: BIZ_PERMISSIONS.workline.archivePickingTask,
+      onClick: archivePickingTask
     }
   ]
 }

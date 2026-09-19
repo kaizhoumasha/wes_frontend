@@ -1,4 +1,4 @@
-/** @openapi-sha256 d0cda022bdfe7572957b267a8ed3b3c1b9931f9811c8d814fbfcb3ac238167e0 */
+/** @openapi-sha256 e9b94526edc4d6a4b74f838c37d8c1c231d6425aa59d6ec518adf19ee8a09aaa */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -2284,8 +2284,9 @@ export interface paths {
          *
          *     ### Examples 的范围
          *
-         *     Request body 的 Examples 仅用于 WMS → WES 事件：1–4 为 PickingTask，5–6 为 Transport 回报，
-         *     7 为入库对账后继续执行，8 为人工工作位 Bin 完成决定。共覆盖当前入口支持的 7 种 operation，编号不是跨领域的连续业务流程。
+         *     Request body 的 Examples 仅用于 WMS → WES 事件：1–5 为 PickingTask（含按成员取消），5–6 为 Transport 回报，
+         *     7 为入库对账后继续执行，8 为人工工作位 Bin 完成决定，9 为退料货架直接取料完成决定。
+         *     共 10 个示例，覆盖当前入口支持的 9 种 operation，编号不是跨领域的连续业务流程。
          *     Transport 示例必须引用已存在的任务与真实设备事实；入库恢复示例必须引用实际待对账执行与证据。
          *     prepare、inbound_batch、material.decide、completion_confirm 等由 WES 调用 WMS，
          *     正常返回见下方「WMS 正常业务响应」，不属于此 Event 入口的请求 Examples。
@@ -2569,11 +2570,7 @@ export interface paths {
          *         },
          *         "next_source_action": "CONTINUE",
          *         "target_preparation": {
-         *           "mode": "REPLACE",
-         *           "rack_destination": {
-         *             "type": "RACK_POSITION",
-         *             "location_code": "RACK-PARK-01"
-         *           }
+         *           "mode": "REPLACE"
          *         }
          *       }
          *     }
@@ -3199,6 +3196,26 @@ export interface paths {
          * @description 原子归档本线业务任务；设备命令、搬运与 Evidence 保持原身份。
          */
         post: operations["workline_work_lines_by_id_archive_open_work_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workline/work_lines/{id}/archive-picking-task": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * [biz:workline:archive-picking-task] 按 picking_task_id 精准归档单任务
+         * @description 在 WorkLine 行锁内归档单个 PickingTask；依赖 ARCHIVED 状态机阻止后续推进。
+         */
+        post: operations["workline_work_lines_by_id_archive_picking_task_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6573,7 +6590,7 @@ export interface components {
             /** Rack Id */
             rack_id: string;
             /** Task Id */
-            task_id: string;
+            task_id: string | null;
         };
         /** RackDepartureRequest */
         RackDepartureRequest: {
@@ -8041,8 +8058,17 @@ export interface components {
             archived_picking_tasks: number;
             /** Archived Plugin Tasks */
             archived_plugin_tasks: number;
+            /**
+             * Archived Single Picking Task
+             * @default false
+             */
+            archived_single_picking_task: boolean;
+            /** Archived Single Picking Task Id */
+            archived_single_picking_task_id?: number | null;
             /** Archived Total */
             archived_total: number;
+            /** Picking Task Status Before */
+            picking_task_status_before?: string | null;
             /** Version */
             version: number;
             /** Workline Id */
@@ -8429,6 +8455,16 @@ export interface components {
          * @description 作业线启停请求。
          */
         WorkLineStateTransitionRequest: {
+            /**
+             * Picking Task Id
+             * @description 单任务归档目标（与 task_id 二选一）
+             */
+            picking_task_id?: number | null;
+            /**
+             * Task Id
+             * @description WMS 业务 task_id（与 picking_task_id 二选一）
+             */
+            task_id?: string | null;
             /**
              * Version
              * @description WorkLine 乐观锁版本号
@@ -13207,6 +13243,7 @@ export interface operations {
                         task_id: string;
                         /** @enum {string} */
                         task_type: "MANUAL" | "AUTO";
+                        workline_code: string;
                     } & {
                         [key: string]: unknown;
                     };
@@ -13221,9 +13258,38 @@ export interface operations {
                 } & {
                     [key: string]: unknown;
                 }) | ({
+                    data: {
+                        /** @enum {string} */
+                        cancel_scope: "TASK";
+                        task_id: string;
+                    } | ({
+                        bin_source_racks?: {
+                            rack_face: string | string[];
+                            rack_id: string;
+                        }[];
+                        /** @enum {string} */
+                        cancel_scope: "PLAN_MEMBERS";
+                        direct_pick_sources?: {
+                            rack_face: string;
+                            rack_id: string;
+                            slot_ids: string[];
+                        }[];
+                        task_id: string;
+                    } | unknown | unknown);
+                    /** @enum {string} */
+                    operation: "outbound.picking_task.cancel@v1";
+                    operation_id: string;
+                    /**
+                     * Format: int64
+                     * @description Unix 毫秒时间戳
+                     */
+                    timestamp: number;
+                } & {
+                    [key: string]: unknown;
+                }) | ({
                     data: ({
                         added_bin_source_racks?: ({
-                            rack_face: string[];
+                            rack_face: string | string[];
                             rack_id: string;
                         } & {
                             [key: string]: unknown;
@@ -13306,6 +13372,29 @@ export interface operations {
                     };
                     /** @enum {string} */
                     operation: "outbound.manual_bin.work_completed@v1";
+                    operation_id: string;
+                    /**
+                     * Format: int64
+                     * @description Unix 毫秒时间戳
+                     */
+                    timestamp: number;
+                } & {
+                    [key: string]: unknown;
+                }) | ({
+                    data: {
+                        /**
+                         * Format: int64
+                         * @description Unix 毫秒时间戳
+                         */
+                        completed_at: number;
+                        rack_face: string;
+                        rack_id: string;
+                        task_id: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                    /** @enum {string} */
+                    operation: "outbound.manual_rack.direct_pick_completed@v1";
                     operation_id: string;
                     /**
                      * Format: int64
@@ -14604,6 +14693,41 @@ export interface operations {
         };
     };
     workline_work_lines_by_id_archive_open_work_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkLineStateTransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_WorkLineArchiveOpenWorkResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workline_work_lines_by_id_archive_picking_task_post: {
         parameters: {
             query?: never;
             header?: never;

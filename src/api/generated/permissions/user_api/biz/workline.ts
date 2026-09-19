@@ -34,6 +34,8 @@ export const BIZ_WORKLINE_PERMISSION = {
   activeObjects: 'biz:workline:active-objects',
   /** 一键归档当前及未闭合任务 */
   archiveOpenWork: 'biz:workline:archive-open-work',
+  /** 按 picking_task_id 精准归档单任务 */
+  archivePickingTask: 'biz:workline:archive-picking-task',
   /** 查询可装配业务插件 */
   availablePlugins: 'biz:workline:available-plugins',
   /** 查询工作线基础配置 */

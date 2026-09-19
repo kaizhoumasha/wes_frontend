@@ -18,9 +18,7 @@ import {
   WorkLineCreateSchema as GeneratedWorkLineCreateSchema,
   WorkLineUpdateSchema
 } from '@/types/zod-extensions'
-import {
-  defineCrudResourceFieldBundle
-} from '@/components/common/crud-page/resourceFieldBuilder'
+import { defineCrudResourceFieldBundle } from '@/components/common/crud-page/resourceFieldBuilder'
 import {
   createBooleanTagFormatter,
   createStatusTagFormatter
@@ -65,7 +63,7 @@ export const WorkLineCreateFormSchema = GeneratedWorkLineCreateSchema.extend({
   line_code: z.string().min(1, '请输入作业线编码').max(50, '作业线编码不能超过 50 个字符'),
   line_name: z.string().min(1, '请输入作业线名称').max(100, '作业线名称不能超过 100 个字符'),
   line_type: z.preprocess(
-    value => value === '' ? undefined : value,
+    value => (value === '' ? undefined : value),
     z.enum(['AUTO', 'MANUAL', 'HYBRID'], { required_error: '请选择作业线类型' })
   )
 })
@@ -75,139 +73,137 @@ export const workLineFormConfig = {
   updateSchema: WorkLineUpdateSchema
 }
 
-export const {
-  fields: WORKLINE_FIELDS,
-  fieldConfig: workLinePageFieldConfig
-} = defineCrudResourceFieldBundle<Workline, CreateWorklineInput, UpdateWorklineInput>({
-  backend: {
-    readSchema: WorkLineResponseMetadata,
-    createSchema: WorkLineCreateMetadata,
-    updateSchema: WorkLineUpdateMetadata,
-    labelOverrides: WORKLINE_FIELD_LABEL_OVERRIDES
-  },
-  fields: [
-    {
-      key: 'line_code',
-      table: {
-        visibleFrom: 'mobile',
-        fixed: 'left',
-        reorderLocked: true,
-        hideable: false,
-        width: 120
-      },
-      form: {
-        required: true
-      },
-      search: {}
+export const { fields: WORKLINE_FIELDS, fieldConfig: workLinePageFieldConfig } =
+  defineCrudResourceFieldBundle<Workline, CreateWorklineInput, UpdateWorklineInput>({
+    backend: {
+      readSchema: WorkLineResponseMetadata,
+      createSchema: WorkLineCreateMetadata,
+      updateSchema: WorkLineUpdateMetadata,
+      labelOverrides: WORKLINE_FIELD_LABEL_OVERRIDES
     },
-    {
-      key: 'line_name',
-      table: {
-        visibleFrom: 'mobile',
-        fixed: 'left',
-        reorderLocked: true,
-        hideable: false,
-        width: 150
+    fields: [
+      {
+        key: 'line_code',
+        table: {
+          visibleFrom: 'mobile',
+          fixed: 'left',
+          reorderLocked: true,
+          hideable: false,
+          width: 120
+        },
+        form: {
+          required: true
+        },
+        search: {}
       },
-      form: {
-        required: true
+      {
+        key: 'line_name',
+        table: {
+          visibleFrom: 'mobile',
+          fixed: 'left',
+          reorderLocked: true,
+          hideable: false,
+          width: 150
+        },
+        form: {
+          required: true
+        },
+        search: {}
       },
-      search: {}
-    },
-    {
-      key: 'line_type',
-      table: {
-        visibleFrom: 'mobile',
-        width: 100,
-        formatter: createStatusTagFormatter({
-          AUTO: { label: '自动线', type: 'primary' },
-          MANUAL: { label: '人工线', type: 'warning' },
-          HYBRID: { label: '混合线', type: 'success' }
-        })
+      {
+        key: 'line_type',
+        table: {
+          visibleFrom: 'mobile',
+          width: 100,
+          formatter: createStatusTagFormatter({
+            AUTO: { label: '自动线', type: 'primary' },
+            MANUAL: { label: '人工线', type: 'warning' },
+            HYBRID: { label: '混合线', type: 'success' }
+          })
+        },
+        form: {
+          required: true,
+          type: 'select',
+          options: LINE_TYPE_OPTIONS
+        },
+        search: {
+          dataType: 'enum',
+          options: LINE_TYPE_OPTIONS
+        }
       },
-      form: {
-        required: true,
-        type: 'select',
-        options: LINE_TYPE_OPTIONS
+      {
+        key: 'plugin_key',
+        table: { visibleFrom: 'tablet', minWidth: 180 }
       },
-      search: {
-        dataType: 'enum',
-        options: LINE_TYPE_OPTIONS
+      {
+        key: 'plugin_version',
+        table: { visibleFrom: 'desktop', width: 130 }
+      },
+      {
+        key: 'zone_name',
+        table: {
+          visibleFrom: 'tablet',
+          width: 120
+        },
+        form: {},
+        search: {}
+      },
+      {
+        key: 'is_active',
+        table: {
+          visibleFrom: 'mobile',
+          width: 90,
+          formatter: createBooleanTagFormatter({
+            trueLabel: '激活',
+            falseLabel: '停用',
+            trueType: 'success',
+            falseType: 'info'
+          })
+        },
+        form: {
+          type: 'switch'
+        },
+        search: {
+          dataType: 'boolean'
+        }
+      },
+      {
+        key: 'run_mode',
+        table: {
+          visibleFrom: 'tablet',
+          width: 110,
+          formatter: createStatusTagFormatter({
+            AUTO: { label: '自动运行', type: 'primary' },
+            MANUAL: { label: '人工确认', type: 'warning' },
+            SIMULATION: { label: '沙箱模拟', type: 'info' }
+          })
+        },
+        form: {
+          type: 'select',
+          defaultValue: 'AUTO',
+          options: RUN_MODE_OPTIONS
+        },
+        search: {
+          dataType: 'enum',
+          options: RUN_MODE_OPTIONS
+        }
+      },
+      {
+        key: 'description',
+        table: {
+          visibleFrom: 'desktop',
+          minWidth: 200
+        },
+        form: {
+          type: 'textarea'
+        }
       }
-    },
-    {
-      key: 'plugin_key',
-      table: { visibleFrom: 'tablet', minWidth: 180 }
-    },
-    {
-      key: 'plugin_version',
-      table: { visibleFrom: 'desktop', width: 130 }
-    },
-    {
-      key: 'zone_name',
-      table: {
-        visibleFrom: 'tablet',
-        width: 120
-      },
-      form: {},
-      search: {}
-    },
-    {
-      key: 'is_active',
-      table: {
-        visibleFrom: 'mobile',
-        width: 90,
-        formatter: createBooleanTagFormatter({
-          trueLabel: '激活',
-          falseLabel: '停用',
-          trueType: 'success',
-          falseType: 'info'
-        })
-      },
-      form: {
-        type: 'switch'
-      },
-      search: {
-        dataType: 'boolean'
-      }
-    },
-    {
-      key: 'run_mode',
-      table: {
-        visibleFrom: 'tablet',
-        width: 110,
-        formatter: createStatusTagFormatter({
-          AUTO: { label: '自动运行', type: 'primary' },
-          MANUAL: { label: '人工确认', type: 'warning' },
-          SIMULATION: { label: '沙箱模拟', type: 'info' }
-        })
-      },
-      form: {
-        type: 'select',
-        defaultValue: 'AUTO',
-        options: RUN_MODE_OPTIONS
-      },
-      search: {
-        dataType: 'enum',
-        options: RUN_MODE_OPTIONS
-      }
-    },
-    {
-      key: 'description',
-      table: {
-        visibleFrom: 'desktop',
-        minWidth: 200
-      },
-      form: {
-        type: 'textarea'
-      }
-    }
-  ],
-  storageKey: WORKLINE_TABLE_STORAGE_KEY,
-  reorderLockedKeys: ['line_code', 'line_name'],
-  search: workLineSearchConfig,
-  form: workLineFormConfig
-})
+    ],
+    storageKey: WORKLINE_TABLE_STORAGE_KEY,
+    reorderLockedKeys: ['line_code', 'line_name'],
+    search: workLineSearchConfig,
+    form: workLineFormConfig
+  })
 
 export function createWorkLineFormFieldConfig(): FormFieldConfig[] {
   return workLinePageFieldConfig.form.fieldConfig.flatMap(field => {
