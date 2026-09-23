@@ -12,7 +12,6 @@ export const opsRoutes: RouteRecordRaw = {
       SUPERUSER_PERMISSION,
       OPS_PERMISSIONS.transportTask.list,
       OPS_PERMISSIONS.transportDebugRun.list,
-      'ops:workline-integration-debug:list',
       OPS_PERMISSIONS.wmsDiagnostics.query,
       OPS_PERMISSIONS.wmsDiagnostics.stream,
       OPS_PERMISSIONS.wmsConfirmation.read,
@@ -67,22 +66,6 @@ export const opsRoutes: RouteRecordRaw = {
           name: 'ops:transport-debug:menu',
           icon: 'ep:video-play',
           sortOrder: 3
-        }
-      }
-    },
-    {
-      path: 'manual-outbound-integration',
-      name: 'ManualOutboundIntegration',
-      component: () =>
-        import('@/views/ops/manual-outbound-integration/ManualOutboundIntegrationPage.vue'),
-      meta: {
-        requiresAuth: true,
-        title: '手工出库联调',
-        permission: SUPERUSER_PERMISSION,
-        menu: {
-          name: 'ops:workline-integration-debug:menu',
-          icon: 'ep:operation',
-          sortOrder: 4
         }
       }
     },
