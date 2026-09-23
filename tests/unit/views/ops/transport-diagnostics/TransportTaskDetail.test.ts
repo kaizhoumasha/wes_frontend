@@ -1,6 +1,8 @@
 import { mount } from '@vue/test-utils'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
 import TransportTaskDetail from '@/views/ops/transport-diagnostics/TransportTaskDetail.vue'
+import { useTimezoneStore } from '@/stores/timezone'
 import type { CallbackReceiptsResult, GetByTransportTaskIdResult } from '@/api/modules/transport'
 
 const detail: GetByTransportTaskIdResult = {
@@ -52,6 +54,11 @@ afterEach(() => {
 })
 
 describe('TransportTaskDetail', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    useTimezoneStore().setUserTimezone('America/Chicago')
+  })
+
   const global = {
     directives: { loading: () => undefined },
     stubs: {
@@ -81,7 +88,7 @@ describe('TransportTaskDetail', () => {
       global
     })
 
-    expect(wrapper.text()).toContain('2026-09-09T10:05:01Z')
+    expect(wrapper.text()).toContain('2026-09-09 05:05:01')
     expect(wrapper.text()).toContain('等待权威结果')
     expect(wrapper.text()).toContain('待发布')
     expect(wrapper.text()).toContain('2')
@@ -197,8 +204,8 @@ describe('TransportTaskDetail', () => {
     })
 
     expect(wrapper.text()).toContain('提交退避')
-    expect(wrapper.text()).toContain('2026-09-09T10:08:00Z')
-    expect(wrapper.text()).toContain('2026-09-09T10:12:00Z')
+    expect(wrapper.text()).toContain('2026-09-09 05:08:00')
+    expect(wrapper.text()).toContain('2026-09-09 05:12:00')
   })
 
   it('reports an unobserved receipt separately from query failure', () => {

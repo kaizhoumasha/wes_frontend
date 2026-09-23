@@ -41,7 +41,7 @@ export const RackDepartureDataMetadata = {
       "title": "Task Id",
       "type": "string",
       "required": true,
-      "nullable": false
+      "nullable": true
     }
   }
 } satisfies OpenApiSchemaMetadata

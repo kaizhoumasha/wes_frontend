@@ -42,12 +42,31 @@ export const WorkLineArchiveOpenWorkResponseMetadata = {
       "nullable": false,
       "minimum": 0
     },
+    "archived_single_picking_task": {
+      "title": "Archived Single Picking Task",
+      "type": "boolean",
+      "required": false,
+      "nullable": false,
+      "default": false
+    },
+    "archived_single_picking_task_id": {
+      "title": "Archived Single Picking Task Id",
+      "type": "integer",
+      "required": false,
+      "nullable": true
+    },
     "archived_total": {
       "title": "Archived Total",
       "type": "integer",
       "required": true,
       "nullable": false,
       "minimum": 0
+    },
+    "picking_task_status_before": {
+      "title": "Picking Task Status Before",
+      "type": "string",
+      "required": false,
+      "nullable": true
     },
     "version": {
       "title": "Version",

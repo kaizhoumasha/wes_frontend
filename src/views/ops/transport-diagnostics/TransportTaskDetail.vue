@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import AppButton from '@/components/ui/AppButton.vue'
+import { formatDateTimeValue } from '@/components/common/table/formatters'
 import type { CallbackReceiptsResult, GetByTransportTaskIdResult } from '@/api/modules/transport'
 import { buildTransportWaitingStages } from './transportDiagnosticExport'
 
@@ -85,9 +86,9 @@ const acceptanceState = computed(() => {
           <dt>reason_code</dt>
           <dd>{{ detail.reason_code ?? '—' }}</dd>
           <dt>send_started_at</dt>
-          <dd>{{ detail.send_started_at ?? '—' }}</dd>
+          <dd>{{ formatDateTimeValue(detail.send_started_at) }}</dd>
           <dt>result_deadline_at（冻结）</dt>
-          <dd>{{ detail.result_deadline_at ?? '—' }}</dd>
+          <dd>{{ formatDateTimeValue(detail.result_deadline_at) }}</dd>
           <dt>submit_attempt_count</dt>
           <dd>{{ detail.submit_attempt_count }}</dd>
         </dl>
@@ -134,11 +135,11 @@ const acceptanceState = computed(() => {
           <dt>已等待</dt>
           <dd>{{ stage.waiting_duration }}</dd>
           <dt>开始时间</dt>
-          <dd>{{ stage.waiting_since }}</dd>
+          <dd>{{ formatDateTimeValue(stage.waiting_since) }}</dd>
           <dt>最近尝试</dt>
-          <dd>{{ stage.last_attempt_at }}</dd>
+          <dd>{{ formatDateTimeValue(stage.last_attempt_at) }}</dd>
           <dt>下次重试</dt>
-          <dd>{{ stage.next_retry_at }}</dd>
+          <dd>{{ formatDateTimeValue(stage.next_retry_at) }}</dd>
         </dl>
       </section>
       <section class="evidence-layer receipt-query">
@@ -166,7 +167,7 @@ const acceptanceState = computed(() => {
             <dt>conflict_code</dt>
             <dd>{{ linkedCallbackReceipt.conflict_code ?? '—' }}</dd>
             <dt>received_at</dt>
-            <dd>{{ linkedCallbackReceipt.received_at }}</dd>
+            <dd>{{ formatDateTimeValue(linkedCallbackReceipt.received_at) }}</dd>
           </dl>
           <el-alert
             v-else-if="callbackReceiptError"

@@ -1,7 +1,10 @@
 import { nextTick, ref } from 'vue'
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
 import { useActivityMonitor } from '@/views/admin/worklines/composables/useActivityMonitor'
+import { useTimezoneStore } from '@/stores/timezone'
+import type { PlaneSnapshotV2 } from '@/api/types/plane-v2'
 
 const apiMocks = vi.hoisted(() => ({
   scene: vi.fn(),
@@ -42,6 +45,7 @@ function createMonitor(id = 7) {
 
 describe('useActivityMonitor current task sampling', () => {
   beforeEach(() => {
+    setActivePinia(createPinia())
     vi.useFakeTimers()
     vi.clearAllMocks()
     apiMocks.scene.mockReturnValue({ send: vi.fn().mockResolvedValue({}) })
@@ -106,5 +110,17 @@ describe('useActivityMonitor current task sampling', () => {
     expect(monitor.currentTask.value).toBeNull()
     wrapper.unmount()
     vi.useRealTimers()
+  })
+
+  it('formats generated timestamps with the configured display timezone', () => {
+    useTimezoneStore().setUserTimezone('America/Chicago')
+    const { monitor, wrapper } = createMonitor()
+
+    monitor.snapshot.value = {
+      generated_at: '2026-01-01T00:00:00Z'
+    } as PlaneSnapshotV2
+
+    expect(monitor.generatedAtLabel.value).toBe('18:00:00')
+    wrapper.unmount()
   })
 })

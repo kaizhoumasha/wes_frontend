@@ -47,6 +47,10 @@ export type ArchiveOpenWorkResult = ContractResponseData<'/api/v1/workline/work_
 export type ArchiveOpenWorkPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/archive-open-work', 'post'>
 export type ArchiveOpenWorkInput = ContractRequestBody<'/api/v1/workline/work_lines/{id}/archive-open-work', 'post'>
 
+export type ArchivePickingTaskResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/archive-picking-task', 'post'>
+export type ArchivePickingTaskPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/archive-picking-task', 'post'>
+export type ArchivePickingTaskInput = ContractRequestBody<'/api/v1/workline/work_lines/{id}/archive-picking-task', 'post'>
+
 export type AvailablePluginsResult = ContractResponseData<'/api/v1/workline/work_lines/{id}/available-plugins', 'get'>
 export type AvailablePluginsPathParams = ContractPathParams<'/api/v1/workline/work_lines/{id}/available-plugins', 'get'>
 
@@ -127,6 +131,16 @@ export const workLinesApiMethods = {
    */
   archiveOpenWork(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/archive-open-work', 'post'>, body: ContractRequestBody<'/api/v1/workline/work_lines/{id}/archive-open-work', 'post'>, config?: ContractRequestConfig) {
     return contractMethods.post('/api/v1/workline/work_lines/{id}/archive-open-work', { params, body, config })
+  },
+
+  /**
+   * [biz:workline:archive-picking-task] 按 picking_task_id 精准归档单任务
+   * @description 在 WorkLine 行锁内归档单个 PickingTask；依赖 ARCHIVED 状态机阻止后续推进。
+   * @endpoint POST /api/v1/workline/work_lines/{id}/archive-picking-task
+   * @returns alova method instance
+   */
+  archivePickingTask(params: ContractPathParams<'/api/v1/workline/work_lines/{id}/archive-picking-task', 'post'>, body: ContractRequestBody<'/api/v1/workline/work_lines/{id}/archive-picking-task', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/workline/work_lines/{id}/archive-picking-task', { params, body, config })
   },
 
   /**

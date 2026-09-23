@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.26.0.0] - 2026-09-22
+
+### Added
+
+- 工作线列表新增按 PickingTask ID 或 WMS task_id 归档单任务的入口，并同步后端 OpenAPI、权限与生成类型。
+
+### Fixed
+
+- 活动监控、Transport、设备与 WMS 诊断页面按用户时区设置显示时间；WMS 时间筛选按所选时区换算为 UTC。
+- 修正前端本地时间提交时的 UTC 转换，覆盖不同时区及夏令时。
+
 ## [0.25.0.0] - 2026-09-16
 
 ### Added

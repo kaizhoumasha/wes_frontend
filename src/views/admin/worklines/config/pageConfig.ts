@@ -141,6 +141,7 @@ export function createWorkLinePageConfig(
   openConfig: (workline: Workline) => void,
   openStart: (workline: Workline) => void,
   archiveOpenWork: (workline: Workline) => void | Promise<void>,
+  archivePickingTask: (workline: Workline) => void,
   hasPermission: (permission: string) => boolean,
   openActivityMonitor: (workline: Workline) => void
 ): WorklinePageConfig {
@@ -157,6 +158,7 @@ export function createWorkLinePageConfig(
         openConfig,
         openStart,
         archiveOpenWork,
+        archivePickingTask,
         hasPermission,
         openActivityMonitor
       )

@@ -16,6 +16,23 @@ export const WorkLineStateTransitionRequestMetadata = {
     "version"
   ],
   "fields": {
+    "picking_task_id": {
+      "title": "Picking Task Id",
+      "description": "单任务归档目标（与 task_id 二选一）",
+      "type": "integer",
+      "required": false,
+      "nullable": true,
+      "minimum": 1
+    },
+    "task_id": {
+      "title": "Task Id",
+      "description": "WMS 业务 task_id（与 picking_task_id 二选一）",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "minLength": 1,
+      "maxLength": 100
+    },
     "version": {
       "title": "Version",
       "description": "WorkLine 乐观锁版本号",

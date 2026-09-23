@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { formatDateTimeValue } from '@/components/common/table/formatters'
 
 const props = defineProps<{
   attemptId: string
@@ -51,7 +52,7 @@ async function copySnapshot() {
         <h2>当次接口结果：{{ result }}</h2>
         <p>
           采集时状态 ·
-          <time>{{ observedAt }}</time>
+          <time>{{ formatDateTimeValue(observedAt) }}</time>
         </p>
       </div>
       <button

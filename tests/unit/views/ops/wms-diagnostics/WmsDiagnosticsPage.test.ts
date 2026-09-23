@@ -1,5 +1,6 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createPinia } from 'pinia'
 import { AuthenticatedSseHttpError } from '@/api/streaming/authenticatedSseStream'
 import WmsDiagnosticsPage from '@/views/ops/wms-diagnostics/WmsDiagnosticsPage.vue'
 
@@ -39,6 +40,10 @@ beforeEach(() => {
 })
 afterEach(() => vi.useRealTimers())
 
+function mountPage() {
+  return mount(WmsDiagnosticsPage, { global: { plugins: [createPinia()] } })
+}
+
 describe('WMS 联调页面权限与现场含义', () => {
   it('以各自权限独立查询并并列展示可靠发送与接收事实', async () => {
     ports.permissions.add('ops:wms-confirmation:read')
@@ -66,7 +71,7 @@ describe('WMS 联调页面权限与现场含义', () => {
       published_at: null,
       received_at: '2026-09-09T11:00:01Z'
     })
-    const wrapper = mount(WmsDiagnosticsPage)
+    const wrapper = mountPage()
     await wrapper.get('[aria-label="operation"]').setValue('transport.task.resulted@v1')
     await wrapper.get('[aria-label="operation_id"]').setValue('op-1')
     await wrapper.get('[data-action="query-reliable"]').trigger('submit')
@@ -96,7 +101,7 @@ describe('WMS 联调页面权限与现场含义', () => {
       operation_id: 'op-2',
       status: 'PENDING'
     })
-    const wrapper = mount(WmsDiagnosticsPage)
+    const wrapper = mountPage()
     await wrapper.get('[aria-label="operation"]').setValue('prepare@v1')
     await wrapper.get('[aria-label="operation_id"]').setValue('op-2')
     await wrapper.get('[data-action="query-reliable"]').trigger('submit')
@@ -113,7 +118,7 @@ describe('WMS 联调页面权限与现场含义', () => {
   ])('查询错误 code %s 保留不确定性', async (code, message) => {
     ports.permissions.add('ops:wms-confirmation:read')
     ports.confirmation.mockRejectedValue(Object.assign(new Error(`code ${code}`), { code }))
-    const wrapper = mount(WmsDiagnosticsPage)
+    const wrapper = mountPage()
     await wrapper.get('[aria-label="operation"]').setValue('prepare@v1')
     await wrapper.get('[aria-label="operation_id"]').setValue('op-3')
     await wrapper.get('[data-action="query-reliable"]').trigger('submit')
@@ -125,7 +130,7 @@ describe('WMS 联调页面权限与现场含义', () => {
   it.each([401, 403])('HTTP %s 停止重试时不承诺自动恢复', async status => {
     ports.permissions.add('ops:wms-diagnostics:stream')
     ports.stream.mockRejectedValue(new AuthenticatedSseHttpError(status))
-    const wrapper = mount(WmsDiagnosticsPage)
+    const wrapper = mountPage()
     await flushPromises()
     expect(wrapper.text()).toContain('已断开')
     expect(wrapper.text()).toContain('连接已停止')
@@ -134,7 +139,7 @@ describe('WMS 联调页面权限与现场含义', () => {
   })
   it('只有查询权限时打开近期记录，不启动实时流', async () => {
     ports.permissions.add('ops:wms-diagnostics:query')
-    const wrapper = mount(WmsDiagnosticsPage)
+    const wrapper = mountPage()
     await flushPromises()
     expect(ports.list).toHaveBeenCalledTimes(1)
     expect(ports.stream).not.toHaveBeenCalled()
@@ -145,7 +150,7 @@ describe('WMS 联调页面权限与现场含义', () => {
   it('合法业务拒绝与合同判定分开展示；暂停、清空不会触发历史查询', async () => {
     vi.useFakeTimers()
     ports.permissions.add('ops:wms-diagnostics:stream')
-    const wrapper = mount(WmsDiagnosticsPage)
+    const wrapper = mountPage()
     const options = ports.stream.mock.calls[0]![0]
     options.onEvent({
       phase: 'completed',

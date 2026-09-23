@@ -350,6 +350,7 @@ import {
 } from '@/utils/advanced-search'
 import SmartSearchBar from '@/components/search/SmartSearchBar.vue'
 import AdvancedSearchDialog from '@/components/search/AdvancedSearchDialog.vue'
+import { useTimezoneStore } from '@/stores/timezone'
 
 // ==================== 测试数据 ====================
 
@@ -529,11 +530,12 @@ interface LogEntry {
 }
 
 const logs = ref<LogEntry[]>([])
+const timezoneStore = useTimezoneStore()
 
 function addLog(type: LogEntry['type'], message: string) {
   const now = new Date()
   logs.value.unshift({
-    time: `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`,
+    time: timezoneStore.formatInCurrentTimezone(now, 'HH:mm:ss'),
     type,
     message
   })

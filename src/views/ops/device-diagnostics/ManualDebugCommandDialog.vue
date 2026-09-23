@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatDateTimeValue } from '@/components/common/table/formatters'
 import { nextTick, ref } from 'vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import StandardDialog from '@/components/ui/StandardDialog/StandardDialog.vue'
@@ -228,7 +229,13 @@ defineExpose({ open, close, command })
         <dt>attempt</dt>
         <dd>{{ commandDetail.attempt_count }}</dd>
         <dt>ACK</dt>
-        <dd>{{ commandDetail.ack_received_at ?? '未收到' }}</dd>
+        <dd>
+          {{
+            commandDetail.ack_received_at
+              ? formatDateTimeValue(commandDetail.ack_received_at)
+              : '未收到'
+          }}
+        </dd>
         <dt>callback</dt>
         <dd>{{ commandDetail.callback?.result ?? '未收到' }}</dd>
         <dt>failure</dt>
@@ -236,7 +243,7 @@ defineExpose({ open, close, command })
         <dt>reconciliation</dt>
         <dd>{{ commandDetail.reconciliation_reason ?? '—' }}</dd>
         <dt>completed_at</dt>
-        <dd>{{ commandDetail.completed_at ?? '—' }}</dd>
+        <dd>{{ formatDateTimeValue(commandDetail.completed_at) }}</dd>
       </dl>
       <el-alert
         v-if="commandDetail?.status === 'RECONCILING'"

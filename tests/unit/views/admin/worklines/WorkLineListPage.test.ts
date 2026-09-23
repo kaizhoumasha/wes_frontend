@@ -13,7 +13,7 @@ import { createWorkLinePageConfig } from '@/views/admin/worklines/config/pageCon
 describe('WorkLine static master-data page', () => {
   it('contains only current static fields and no legacy runtime detail actions', () => {
     const keys = WORKLINE_FIELDS.map(field => field.key)
-    const config = createWorkLinePageConfig(vi.fn(), vi.fn(), vi.fn(), () => true, vi.fn())
+    const config = createWorkLinePageConfig(vi.fn(), vi.fn(), vi.fn(), vi.fn(), () => true, vi.fn())
 
     expect(keys).toContain('plugin_key')
     expect(keys).toContain('plugin_version')
@@ -28,11 +28,13 @@ describe('WorkLine static master-data page', () => {
     const openConfig = vi.fn()
     const openStart = vi.fn()
     const archiveOpenWork = vi.fn()
+    const archivePickingTask = vi.fn()
     const openActivityMonitor = vi.fn()
     const config = createWorkLinePageConfig(
       openConfig,
       openStart,
       archiveOpenWork,
+      archivePickingTask,
       () => true,
       openActivityMonitor
     )
@@ -42,7 +44,8 @@ describe('WorkLine static master-data page', () => {
       'workline-configuration',
       'workline-start',
       'workline-activity-monitor',
-      'workline-archive-open-work'
+      'workline-archive-open-work',
+      'workline-archive-picking-task'
     ])
     expect(actions[1]?.permission).toBe(BIZ_PERMISSIONS.workline.start)
     expect(actions[0]?.permission).toBe(BIZ_PERMISSIONS.workline.baseConfiguration)
@@ -53,6 +56,8 @@ describe('WorkLine static master-data page', () => {
       confirmButtonText: '确认清线',
       confirmButtonType: 'danger'
     })
+    expect(actions[4]?.permission).toBe(BIZ_PERMISSIONS.workline.archivePickingTask)
+    expect(actions[4]?.type).toBe('danger')
     const showStart = actions[1]?.show
     expect(typeof showStart).toBe('function')
     expect((showStart as (row: Workline) => boolean)({ id: 7, is_active: true } as Workline)).toBe(
@@ -67,10 +72,12 @@ describe('WorkLine static master-data page', () => {
     actions[1]?.onClick(row)
     actions[2]?.onClick(row)
     actions[3]?.onClick(row)
+    actions[4]?.onClick(row)
     expect(openConfig).toHaveBeenCalledWith(row)
     expect(openStart).toHaveBeenCalledWith(row)
     expect(openActivityMonitor).toHaveBeenCalledWith(row)
     expect(archiveOpenWork).toHaveBeenCalledWith(row)
+    expect(archivePickingTask).toHaveBeenCalledWith(row)
   })
 
   it.each([
@@ -80,6 +87,7 @@ describe('WorkLine static master-data page', () => {
     'requires device read access for the workspace when missing %s',
     (missing, visible) => {
       const config = createWorkLinePageConfig(
+        vi.fn(),
         vi.fn(),
         vi.fn(),
         vi.fn(),
