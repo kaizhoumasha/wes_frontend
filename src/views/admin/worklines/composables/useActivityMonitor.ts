@@ -16,12 +16,15 @@ import type {
   PlaneSnapshotV2
 } from '@/api/types/plane-v2'
 import { getSafeErrorMessage } from '@/utils/string'
+import { parseApiTime } from '@/utils/timezone'
+import { useTimezoneStore } from '@/stores/timezone'
 import {
   nextPollDelayMs,
   SOURCE_STATUS_BANNER
 } from '../components/activity-monitor/planeV2Helpers'
 
 export function useActivityMonitor(workLineId: () => number | null) {
+  const timezoneStore = useTimezoneStore()
   const scene = shallowRef<PlaneSceneV2 | null>(null)
   const sceneLoading = ref(false)
   const sceneError = ref('')
@@ -59,17 +62,23 @@ export function useActivityMonitor(workLineId: () => number | null) {
   const generatedAtLabel = computed<string | null>(() => {
     const generatedAt = snapshot.value?.generated_at
     if (!generatedAt) return null
-    const parsed = new Date(generatedAt)
-    if (Number.isNaN(parsed.getTime())) return null
-    return parsed.toLocaleTimeString('zh-CN', { hour12: false })
+    try {
+      const parsed = parseApiTime(generatedAt)
+      return timezoneStore.formatInCurrentTimezone(parsed, 'HH:mm:ss')
+    } catch {
+      return null
+    }
   })
 
   const currentTaskGeneratedAtLabel = computed<string | null>(() => {
     const generatedAt = currentTaskGeneratedAt.value
     if (!generatedAt) return null
-    const parsed = new Date(generatedAt)
-    if (Number.isNaN(parsed.getTime())) return null
-    return parsed.toLocaleTimeString('zh-CN', { hour12: false })
+    try {
+      const parsed = parseApiTime(generatedAt)
+      return timezoneStore.formatInCurrentTimezone(parsed, 'HH:mm:ss')
+    } catch {
+      return null
+    }
   })
 
   function clearTimer(): void {

@@ -9,7 +9,7 @@
 
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { formatInTimezone } from '@/utils/timezone'
+import { APP_TIMEZONE, formatInTimezone } from '@/utils/timezone'
 
 export const useTimezoneStore = defineStore(
   'timezone',
@@ -25,11 +25,6 @@ export const useTimezoneStore = defineStore(
      * 是否使用浏览器时区（自动检测）
      */
     const useBrowserTimezone = ref(false)
-
-    /**
-     * 服务器/应用默认时区（与后端 DATETIME_TIMEZONE 对齐）
-     */
-    const APP_TIMEZONE = 'Asia/Shanghai'
 
     // ==================== 计算属性 ====================
 

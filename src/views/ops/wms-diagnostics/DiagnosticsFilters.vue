@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { fromZonedTime } from 'date-fns-tz'
 import type { ExchangesQuery } from '@/api/modules/wmsDiagnostics'
+import { useTimezoneStore } from '@/stores/timezone'
 defineProps<{ recent: boolean; loading: boolean }>()
 const emit = defineEmits<{ apply: [query: ExchangesQuery] }>()
 const direction = ref<'' | 'WMS_TO_WES' | 'WES_TO_WMS'>('')
@@ -11,9 +13,15 @@ const onlyErrors = ref(false),
   from = ref(''),
   to = ref(''),
   error = ref('')
+const timezoneStore = useTimezoneStore()
+const timeFilterLabel = computed(() => `配置时区（${timezoneStore.currentTimezone}）`)
 function apply() {
-  const fromMs = from.value ? new Date(from.value).getTime() : undefined
-  const toMs = to.value ? new Date(to.value).getTime() : undefined
+  const fromMs = from.value
+    ? fromZonedTime(from.value, timezoneStore.currentTimezone).getTime()
+    : undefined
+  const toMs = to.value
+    ? fromZonedTime(to.value, timezoneStore.currentTimezone).getTime()
+    : undefined
   if (
     (fromMs !== undefined && (!Number.isFinite(fromMs) || fromMs < 0)) ||
     (toMs !== undefined && (!Number.isFinite(toMs) || toMs < 0)) ||
@@ -74,14 +82,14 @@ function apply() {
     </label>
     <template v-if="recent">
       <label>
-        开始时间（本机）
+        开始时间（{{ timeFilterLabel }}）
         <input
           v-model="from"
           type="datetime-local"
         />
       </label>
       <label>
-        结束时间（本机）
+        结束时间（{{ timeFilterLabel }}）
         <input
           v-model="to"
           type="datetime-local"

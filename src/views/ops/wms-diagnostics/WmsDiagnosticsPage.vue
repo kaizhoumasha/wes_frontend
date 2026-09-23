@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { OPS_PERMISSIONS } from '@/api/generated/permissions'
+import { formatDateTimeValue } from '@/components/common/table/formatters'
 import { usePermission } from '@/composables/usePermission'
 import DiagnosticsFilters from '@/views/ops/wms-diagnostics/DiagnosticsFilters.vue'
 import DiagnosticsDetailPanel from '@/views/ops/wms-diagnostics/DiagnosticsDetailPanel.vue'
@@ -282,7 +283,9 @@ onMounted(() => {
             @click="select(row)"
           >
             <span class="row-top">
-              <time :title="row.exchange.observed_at">{{ row.exchange.observed_at }}</time>
+              <time :title="row.exchange.observed_at">
+                {{ formatDateTimeValue(row.exchange.observed_at) }}
+              </time>
               <span class="direction">
                 {{ row.exchange.direction === 'WMS_TO_WES' ? 'WMS → WES' : 'WES → WMS' }}
               </span>

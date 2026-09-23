@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { formatDateTimeValue } from '@/components/common/table/formatters'
 import { usePermission } from '@/composables/usePermission'
 import { OPS_WORKLINE_INTEGRATION_DEBUG_PERMISSION as PERMISSION } from '@/api/generated/permissions/user_api/ops/workline-integration-debug'
 import { createUuid7 } from '@/utils/uuid7'
@@ -1502,7 +1503,7 @@ onUnmounted(() => {
               <span>{{ step.status }}</span>
             </div>
             <code>{{ stepIdentity(step) }}</code>
-            <small>{{ step.created_at }}</small>
+            <small>{{ formatDateTimeValue(step.created_at) }}</small>
             <span
               v-if="step.reason_code"
               class="attention"

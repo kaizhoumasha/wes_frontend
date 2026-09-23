@@ -19,7 +19,7 @@ const result = ref<Awaited<ReturnType<typeof workLinesApiMethods.archivePickingT
 const errorMessage = ref('')
 
 const identifierLabel = computed(() =>
-  identifierKind.value === 'picking_task_id' ? 'PickingTask 自增 ID' : 'WMS 业务 task_id'
+  identifierKind.value === 'picking_task_id' ? 'PickingTask ID' : 'WMS 业务 task_id'
 )
 
 const canSubmit = computed(
@@ -110,15 +110,14 @@ function close(): void {
   >
     <div class="archive-picking-task-dialog">
       <p class="archive-picking-task-dialog__prompt">
-        选择识别方式并输入目标标识；归档依赖 ARCHIVED 状态机阻止后续推进，归档前冻结的 WMS
-        可靠义务仍可继续闭合原 identity。
+        选择识别方式并输入目标任务。归档后不会再为该任务发起新动作；已发出的请求仍会继续对账。
       </p>
 
       <el-radio-group
         v-model="identifierKind"
         :disabled="submitting"
       >
-        <el-radio-button value="picking_task_id">自增 ID</el-radio-button>
+        <el-radio-button value="picking_task_id">本地 ID</el-radio-button>
         <el-radio-button value="task_id">WMS task_id</el-radio-button>
       </el-radio-group>
 
@@ -163,7 +162,10 @@ function close(): void {
         </div>
       </dl>
 
-      <div class="archive-picking-task-dialog__footer">
+      <div
+        v-if="result"
+        class="archive-picking-task-dialog__footer"
+      >
         <el-button
           :disabled="submitting"
           @click="close"

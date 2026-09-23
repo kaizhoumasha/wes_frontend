@@ -56,7 +56,7 @@ import type { PropType } from 'vue'
 import { ElTag, ElPopconfirm, ElDropdown, ElDropdownMenu, ElDropdownItem, ElMessageBox } from 'element-plus'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
-import { parseApiTime } from '@/utils/timezone'
+import { APP_TIMEZONE, formatInTimezone, parseApiTime } from '@/utils/timezone'
 import { useTimezoneStore } from '@/stores/timezone'
 import { usePermission } from '@/composables/usePermission'
 import type { ColumnFormatter, ColumnSlotRender, TableColumnConfig } from '@/components/ui/table/table.types'
@@ -130,6 +130,26 @@ export interface DateTimeFormatterOptions {
   relative?: boolean
   /** 空值显示文本 */
   emptyLabel?: string
+}
+
+/** Format an API ISO timestamp with the user's configured display timezone. */
+export function formatDateTimeValue(
+  value: unknown,
+  options: Pick<DateTimeFormatterOptions, 'format' | 'emptyLabel'> = {}
+): string {
+  const { format = 'yyyy-MM-dd HH:mm:ss', emptyLabel = '—' } = options
+  if (!value) return emptyLabel
+
+  try {
+    const date = parseApiTime(String(value))
+    try {
+      return useTimezoneStore().formatInCurrentTimezone(date, format)
+    } catch {
+      return formatInTimezone(date, APP_TIMEZONE, format)
+    }
+  } catch {
+    return emptyLabel
+  }
 }
 
 /**

@@ -1,7 +1,9 @@
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
 import DiagnosticsDetailPanel from '@/views/ops/wms-diagnostics/DiagnosticsDetailPanel.vue'
+import { useTimezoneStore } from '@/stores/timezone'
 
 vi.mock('@vueuse/core', () => ({ useMediaQuery: () => ref(true) }))
 
@@ -38,6 +40,11 @@ function mountPanel(props: Record<string, unknown>) {
 }
 
 describe('WMS 窄屏可靠事实详情', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    useTimezoneStore().setUserTimezone('America/Chicago')
+  })
+
   it('没有 exchange 时仍展示可靠事实完整 identity 与时间，并可关闭', async () => {
     const wrapper = mountPanel({
       confirmation: {
@@ -61,8 +68,8 @@ describe('WMS 窄屏可靠事实详情', () => {
     })
     expect(wrapper.get('[aria-label="窄屏详情"]').exists()).toBe(true)
     expect(wrapper.text()).toContain('prepare@v1 / op-1')
-    expect(wrapper.text()).toContain('2026-09-09T11:00:01Z')
-    expect(wrapper.text()).toContain('2026-09-09T11:00:02Z')
+    expect(wrapper.text()).toContain('2026-09-09 06:00:01')
+    expect(wrapper.text()).toContain('2026-09-09 06:00:02')
     await wrapper.get('[data-close]').trigger('click')
     expect(wrapper.emitted('close')).toHaveLength(1)
   })

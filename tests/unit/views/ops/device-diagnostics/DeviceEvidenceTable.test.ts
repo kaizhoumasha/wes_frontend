@@ -2,7 +2,9 @@
 import { defineComponent, nextTick } from 'vue'
 import { shallowMount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
 import DeviceEvidenceTable from '@/views/ops/device-diagnostics/DeviceEvidenceTable.vue'
+import { useTimezoneStore } from '@/stores/timezone'
 import type { DeviceEvidenceRow } from '@/views/ops/device-diagnostics/useDeviceEvidenceStream'
 
 const attemptRow: DeviceEvidenceRow = {
@@ -50,6 +52,11 @@ const StandardDrawerStub = defineComponent({
 })
 
 describe('DeviceEvidenceTable', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    useTimezoneStore().setUserTimezone('America/Chicago')
+  })
+
   it('maps RESULT/EVENT diagnostic columns and spans gap rows across the table', () => {
     const gap: DeviceEvidenceRow = {
       rowKey: 'gap-1',
@@ -144,7 +151,7 @@ describe('DeviceEvidenceTable', () => {
 
     expect(wrapper.findComponent(DataTableStub).props('data')).toMatchObject([
       {
-        time: '2026-08-23T08:00:02Z',
+        time: '2026-08-23 03:00:02',
         sourceLabel: 'WES 本地观察',
         subject: 'CMD-002',
         observation: '结果未知',

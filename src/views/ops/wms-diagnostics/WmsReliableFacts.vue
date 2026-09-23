@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ConfirmationsResult, EvidencesResult } from '@/api/modules/wmsDiagnostics'
+import { formatDateTimeValue } from '@/components/common/table/formatters'
 
 defineProps<{
   confirmation: ConfirmationsResult | null
@@ -54,11 +55,11 @@ function errorMessage(error: Error) {
         <dt>实际状态</dt>
         <dd>{{ confirmation.status }}</dd>
         <dt>最后记录时间</dt>
-        <dd>{{ confirmation.updated_at ?? confirmation.last_dispatch_at ?? '—' }}</dd>
+        <dd>{{ formatDateTimeValue(confirmation.updated_at ?? confirmation.last_dispatch_at) }}</dd>
         <dt>响应结果</dt>
         <dd>{{ confirmation.response_result ?? '—' }}</dd>
         <dt>等待时间</dt>
-        <dd>{{ confirmation.next_attempt_at ?? confirmation.deadline_at }}</dd>
+        <dd>{{ formatDateTimeValue(confirmation.next_attempt_at ?? confirmation.deadline_at) }}</dd>
       </dl>
     </article>
     <article>
@@ -82,11 +83,11 @@ function errorMessage(error: Error) {
         <dt>实际状态</dt>
         <dd>{{ evidence.apply_status }}</dd>
         <dt>接收时间</dt>
-        <dd>{{ evidence.received_at }}</dd>
+        <dd>{{ formatDateTimeValue(evidence.received_at) }}</dd>
         <dt>处理时间</dt>
-        <dd>{{ evidence.processed_at ?? '—' }}</dd>
+        <dd>{{ formatDateTimeValue(evidence.processed_at) }}</dd>
         <dt>发布时间</dt>
-        <dd>{{ evidence.published_at ?? '—' }}</dd>
+        <dd>{{ formatDateTimeValue(evidence.published_at) }}</dd>
       </dl>
     </article>
     <p class="fact-boundary">

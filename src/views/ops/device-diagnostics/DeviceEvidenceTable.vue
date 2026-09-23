@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, h, ref } from 'vue'
 import AppButton from '@/components/ui/AppButton.vue'
+import { formatDateTimeValue } from '@/components/common/table/formatters'
 import StandardDrawer from '@/components/ui/StandardDrawer/StandardDrawer.vue'
 import { DataTable, type TableColumnConfig } from '@/components/ui/table'
 import type { DeviceEvidenceRow } from './useDeviceEvidenceStream'
@@ -124,12 +125,12 @@ function toDisplayRow(source: DeviceEvidenceRow): EvidenceDisplayRow {
   const isObservation = update?.kind === 'DEVICE_OBSERVATION'
   return {
     source,
-    time:
+    time: formatDateTimeValue(
       attempt?.received_at ??
-      (isObservation ? update.observed_at : undefined) ??
-      source.recordedAt ??
-      update?.processed_at ??
-      '—',
+        (isObservation ? update.observed_at : undefined) ??
+        source.recordedAt ??
+        update?.processed_at
+    ),
     sourceLabel: attempt ? '回调尝试' : isObservation ? 'WES 本地观察' : '证据记录',
     kind: attempt?.kind ?? update?.kind ?? '—',
     device: deviceCode(source) ?? '—',

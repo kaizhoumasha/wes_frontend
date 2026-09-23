@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AppButton from '@/components/ui/AppButton.vue'
+import { createDateTimeFormatter } from '@/components/common/table/formatters'
 import type { TasksResult } from '@/api/modules/transport'
 
 type TaskSummary = TasksResult['items'][number]
@@ -15,6 +16,17 @@ const emit = defineEmits<{
   select: [transportTaskId: string]
   loadMore: []
 }>()
+
+const updatedAtValueFormatter = createDateTimeFormatter()
+
+function formatUpdatedAt(row: TaskSummary, column: unknown, cellValue: unknown): string {
+  const formattedValue = updatedAtValueFormatter(
+    cellValue,
+    row as Record<string, unknown>,
+    column as Record<string, unknown>
+  )
+  return String(formattedValue)
+}
 
 function tagType(status: TaskSummary['status']): 'success' | 'warning' | 'danger' | 'info' {
   if (status === 'SUCCEEDED') return 'success'
@@ -65,6 +77,7 @@ function tagType(status: TaskSummary['status']): 'success' | 'warning' | 'danger
         prop="updated_at"
         label="更新时间"
         min-width="190"
+        :formatter="formatUpdatedAt"
       />
       <el-table-column
         label="Evidence"

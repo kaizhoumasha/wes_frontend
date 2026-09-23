@@ -21,7 +21,7 @@ describe('WMS 当次交互详情', () => {
     })
     expect(wrapper.text()).toContain('当次接口结果：REJECTED')
     expect(wrapper.text()).toContain('采集时状态')
-    expect(wrapper.text()).toContain(props.observedAt)
+    expect(wrapper.text()).toContain('2026-09-07 20:00:00')
     expect(wrapper.text()).toContain('采集不完整')
     expect(wrapper.text()).toContain('未保存')
     expect(wrapper.text()).toContain('请求 WIRE')

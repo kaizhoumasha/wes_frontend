@@ -19,7 +19,7 @@
  * - 详细文档: @docs/TIMEZONE_HANDLING.md
  */
 
-import { formatInTimeZone } from 'date-fns-tz'
+import { formatInTimeZone, fromZonedTime } from 'date-fns-tz'
 
 /**
  * 应用默认时区（与后端 DATETIME_TIMEZONE 对齐）
@@ -154,11 +154,7 @@ export const TIME_FORMAT_CONFIG = {
  * // "2024-01-01T12:00:00Z" (Asia/Shanghai 20:00 = UTC 12:00)
  */
 export function toApiTime(localDateTime: string): string {
-  // 使用 date-fns-tz 将应用时区时间转换为 UTC ISO 8601 格式
-  // formatInTimeZone 会自动处理时区转换
-  const utcIsoString = formatInTimeZone(localDateTime, APP_TIMEZONE, "yyyy-MM-dd'T'HH:mm:ssXXX")
-  // formatInTimeZone 返回的格式是 "2024-01-01T12:00:00+00:00"，需要转换为 "2024-01-01T12:00:00Z"
-  return utcIsoString.replace('+00:00', 'Z')
+  return fromZonedTime(localDateTime, APP_TIMEZONE).toISOString()
 }
 
 /**
@@ -277,10 +273,5 @@ export function toApiTimeFromTimezone(
   localDateTime: string,
   sourceTimezone: string
 ): string {
-  const utcIsoString = formatInTimeZone(
-    localDateTime,
-    sourceTimezone,
-    "yyyy-MM-dd'T'HH:mm:ssXXX"
-  )
-  return utcIsoString.replace('+00:00', 'Z')
+  return fromZonedTime(localDateTime, sourceTimezone).toISOString()
 }
