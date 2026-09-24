@@ -365,7 +365,7 @@ async function deactivate(): Promise<void> {
   deactivating.value = true
   try {
     await ElMessageBox.confirm(
-      `确认停用“${workline.line_name}”？请先停止接料并完成现场物理清线；系统会检查未完成任务、待处理结果和位置占用。`,
+      `确认停用“${workline.line_name}”？请先按现场 SOP 停止接料并完成物理清线；系统会检查未完成执行和待处理结果，但无法证明工作位为空。`,
       '停用工作线',
       { confirmButtonText: '确认停用', cancelButtonText: '取消', type: 'warning' }
     )
@@ -485,6 +485,13 @@ defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty,
           type="info"
           :closable="false"
           title="已启用工作线只读；停用成功后才能更换插件或角色绑定。"
+          show-icon
+        />
+        <ElAlert
+          v-else
+          type="warning"
+          :closable="false"
+          title="更换插件或角色绑定前，请按现场 SOP 确认停料和物理清线；系统无法从设备 IDLE 或缺少位置记录证明工作位为空。"
           show-icon
         />
         <ElAlert
