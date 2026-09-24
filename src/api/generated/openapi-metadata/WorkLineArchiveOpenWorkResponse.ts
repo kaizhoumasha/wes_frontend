@@ -17,17 +17,9 @@ export const WorkLineArchiveOpenWorkResponseMetadata = {
     "version",
     "archived_picking_tasks",
     "archived_plugin_tasks",
-    "archived_integration_runs",
     "archived_total"
   ],
   "fields": {
-    "archived_integration_runs": {
-      "title": "Archived Integration Runs",
-      "type": "integer",
-      "required": true,
-      "nullable": false,
-      "minimum": 0
-    },
     "archived_picking_tasks": {
       "title": "Archived Picking Tasks",
       "type": "integer",

@@ -1,4 +1,4 @@
-/** @openapi-sha256 e9b94526edc4d6a4b74f838c37d8c1c231d6425aa59d6ec518adf19ee8a09aaa */
+/** @openapi-sha256 fba9c29d858e9679af0aaf621efb10c984e666154bc7e71fd19a82e5605a9387 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -2677,415 +2677,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/workline-integration-debug/runs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [ops:workline-integration-debug:read] 查询人工出库联调 run */
-        get: operations["workline_integration_debug_runs_get"];
-        put?: never;
-        /** [ops:workline-integration-debug:operate] 创建人工出库联调 run */
-        post: operations["workline_integration_debug_runs_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline-integration-debug/runs/{run_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [ops:workline-integration-debug:read] 查看人工出库联调 run */
-        get: operations["workline_integration_debug_runs_by_run_id_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline-integration-debug/runs/{run_id}/bind-task": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [ops:workline-integration-debug:operate] 绑定 WMS MANUAL PickingTask */
-        post: operations["workline_integration_debug_runs_by_run_id_bind_task_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline-integration-debug/runs/{run_id}/close": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [ops:workline-integration-debug:operate] 记录双方人工清理并关闭 run */
-        post: operations["workline_integration_debug_runs_by_run_id_close_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline-integration-debug/runs/{run_id}/complete": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [ops:workline-integration-debug:operate] 标记本轮联调完成 */
-        post: operations["workline_integration_debug_runs_by_run_id_complete_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline-integration-debug/runs/{run_id}/confirm-phase": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [ops:workline-integration-debug:operate] 记录现场步骤人工确认并推进 */
-        post: operations["workline_integration_debug_runs_by_run_id_confirm_phase_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline-integration-debug/runs/{run_id}/device-command": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [ops:workline-integration-debug:operate] 使用 Run 冻结设备创建 ECS 调试命令 */
-        post: operations["workline_integration_debug_runs_by_run_id_device_command_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline-integration-debug/runs/{run_id}/device-command/refresh": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [ops:workline-integration-debug:operate] 刷新 DeviceCommand 权威终态 */
-        post: operations["workline_integration_debug_runs_by_run_id_device_command_refresh_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline-integration-debug/runs/{run_id}/export": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [ops:workline-integration-debug:read] 导出 WMS C# 联调证据包 */
-        get: operations["workline_integration_debug_runs_by_run_id_export_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline-integration-debug/runs/{run_id}/plan/refresh": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [ops:workline-integration-debug:operate] 读取已应用的 plan_delta 资源并进入货架搬运 */
-        post: operations["workline_integration_debug_runs_by_run_id_plan_refresh_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline-integration-debug/runs/{run_id}/point2-scan": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [ops:workline-integration-debug:operate] 记录 point2 实际扫码 */
-        post: operations["workline_integration_debug_runs_by_run_id_point2_scan_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline-integration-debug/runs/{run_id}/takeover": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [ops:workline-integration-debug:operate] 接管联调 run 操作权 */
-        post: operations["workline_integration_debug_runs_by_run_id_takeover_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline-integration-debug/runs/{run_id}/transport": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [ops:workline-integration-debug:operate] 模拟或创建真实 Transport 调试动作 */
-        post: operations["workline_integration_debug_runs_by_run_id_transport_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline-integration-debug/runs/{run_id}/transport/refresh": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [ops:workline-integration-debug:operate] 刷新 Transport 权威终态 */
-        post: operations["workline_integration_debug_runs_by_run_id_transport_refresh_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline-integration-debug/runs/{run_id}/wms/bin-inbound-batch": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [ops:workline-integration-debug:operate] 请求五层货架入站料箱批次 */
-        post: operations["workline_integration_debug_runs_by_run_id_wms_bin_inbound_batch_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline-integration-debug/runs/{run_id}/wms/bin-return-batch": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [ops:workline-integration-debug:operate] 请求回流 Bin 的目标槽位 */
-        post: operations["workline_integration_debug_runs_by_run_id_wms_bin_return_batch_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline-integration-debug/runs/{run_id}/wms/bind-completion": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [ops:workline-integration-debug:operate] 绑定已接收的人工 Bin 完成决定 */
-        post: operations["workline_integration_debug_runs_by_run_id_wms_bind_completion_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline-integration-debug/runs/{run_id}/wms/prepare": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [ops:workline-integration-debug:operate] 为所选任务发送 PickingTask prepare Operation */
-        post: operations["workline_integration_debug_runs_by_run_id_wms_prepare_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline-integration-debug/runs/{run_id}/wms/rack-departure": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [ops:workline-integration-debug:operate] 请求货架离场目的地 */
-        post: operations["workline_integration_debug_runs_by_run_id_wms_rack_departure_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline-integration-debug/runs/{run_id}/wms/refresh": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [ops:workline-integration-debug:operate] 按持久化 WMS 响应推进联调状态 */
-        post: operations["workline_integration_debug_runs_by_run_id_wms_refresh_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline-integration-debug/runs/{run_id}/wms/retry": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [ops:workline-integration-debug:operate] 确认 WMS 已作废原 prepare 并使用新身份重发 */
-        post: operations["workline_integration_debug_runs_by_run_id_wms_retry_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline-integration-debug/runs/{run_id}/wms/task-completion": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [ops:workline-integration-debug:operate] 请求 PickingTask 完成确认 */
-        post: operations["workline_integration_debug_runs_by_run_id_wms_task_completion_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline-integration-debug/runs/{run_id}/wms/work-admission": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [ops:workline-integration-debug:operate] 发送人工 Bin 任务准入 Operation */
-        post: operations["workline_integration_debug_runs_by_run_id_wms_work_admission_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workline-integration-debug/runs/stream": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [ops:workline-integration-debug:read] 实时订阅人工出库联调状态 */
-        get: operations["workline_integration_debug_runs_stream_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/workline/operations/worklines/{workline_id}/start": {
         parameters: {
             query?: never;
@@ -4454,37 +4045,6 @@ export interface components {
          * @enum {string}
          */
         BinContentSnapshotStatus: "COMPLETE" | "PARTIAL" | "UNKNOWN";
-        /** BindCompletionRequest */
-        BindCompletionRequest: {
-            /** Expected Version */
-            expected_version: number;
-            /** Operation Id */
-            operation_id: string;
-        };
-        /** BindTaskRequest */
-        BindTaskRequest: {
-            /** Expected Version */
-            expected_version: number;
-            /** Task Id */
-            task_id: string;
-        };
-        /** BinInboundBatchData */
-        BinInboundBatchData: {
-            /** Rack Face */
-            rack_face: string;
-            /** Rack Id */
-            rack_id: string;
-            /** Task Id */
-            task_id: string;
-        };
-        /** BinInboundBatchRequest */
-        BinInboundBatchRequest: {
-            /** Client Request Id */
-            client_request_id: string;
-            data: components["schemas"]["BinInboundBatchData"];
-            /** Expected Version */
-            expected_version: number;
-        };
         /**
          * BinMaterialMountResponse
          * @description 物料料箱格位投影响应 Schema。
@@ -4618,22 +4178,6 @@ export interface components {
          * @enum {string}
          */
         BinMaterialMountStatus: "OCCUPIED" | "REMOVED" | "LOCKED" | "UNKNOWN";
-        /** BinMovePosition */
-        BinMovePosition: {
-            /**
-             * Kind
-             * @enum {string}
-             */
-            kind: "HANDOFF_POSITION" | "RACK_BIN_SLOT";
-            /** Location Code */
-            location_code?: string | null;
-            /** Rack Face */
-            rack_face?: string | null;
-            /** Rack Id */
-            rack_id?: string | null;
-            /** Slot Id */
-            slot_id?: string | null;
-        };
         /**
          * BinResponse
          * @description 料箱实例响应 Schema。
@@ -4678,25 +4222,6 @@ export interface components {
              * @description WMS 料箱 ID
              */
             wms_bin_id?: string | null;
-        };
-        /** BinReturnBatchData */
-        BinReturnBatchData: {
-            /** Rack Face */
-            rack_face: string;
-            /** Rack Id */
-            rack_id: string;
-            /** Return Candidates */
-            return_candidates: components["schemas"]["ReturnCandidate"][];
-            /** Workline Code */
-            workline_code: string;
-        };
-        /** BinReturnBatchRequest */
-        BinReturnBatchRequest: {
-            /** Client Request Id */
-            client_request_id: string;
-            data: components["schemas"]["BinReturnBatchData"];
-            /** Expected Version */
-            expected_version: number;
         };
         /**
          * BinSlotSize
@@ -4883,22 +4408,6 @@ export interface components {
              */
             trace_id: string;
         };
-        /** CloseRunRequest */
-        CloseRunRequest: {
-            /** Expected Version */
-            expected_version: number;
-            /** Site Cleanup Confirmed */
-            site_cleanup_confirmed: boolean;
-            /** Wms Cleanup Confirmed */
-            wms_cleanup_confirmed: boolean;
-        };
-        /** CompletionConfirmData */
-        CompletionConfirmData: {
-            /** Last Applied Plan Revision */
-            last_applied_plan_revision: number;
-            /** Task Id */
-            task_id: string;
-        };
         /** ConfirmationObservation */
         ConfirmationObservation: {
             /** Attempt Count */
@@ -4922,25 +4431,6 @@ export interface components {
             status: components["schemas"]["WmsConfirmationStatus"];
             /** Updated At */
             updated_at: string | null;
-        };
-        /** ConfirmPhaseRequest */
-        ConfirmPhaseRequest: {
-            /** Expected Version */
-            expected_version: number;
-            /** Note */
-            note: string;
-        };
-        /** CreateRunRequest */
-        CreateRunRequest: {
-            /** Device Code */
-            device_code: string;
-            /** Environment Label */
-            environment_label: string;
-            profile: components["schemas"]["IntegrationDebugProfile"];
-            /** Rack Id */
-            rack_id?: string | null;
-            /** Workline Code */
-            workline_code: string;
         };
         /** CreateTransportDebugRunRequest */
         CreateTransportDebugRunRequest: {
@@ -5020,25 +4510,6 @@ export interface components {
             deleted_position_projection_count: number;
             /** Transport Task Id */
             transport_task_id: string;
-        };
-        /** DeviceActionRequest */
-        DeviceActionRequest: {
-            /** Client Request Id */
-            client_request_id: string;
-            /** Device Code */
-            device_code: string;
-            /** Expected Version */
-            expected_version: number;
-            /** Params */
-            params: {
-                [key: string]: unknown;
-            };
-            /** Reason */
-            reason: string;
-            /** Task Type */
-            task_type: string;
-            /** Timeout Ms */
-            timeout_ms: number;
         };
         /** DeviceCommandCallbackResponse */
         DeviceCommandCallbackResponse: {
@@ -5537,115 +5008,6 @@ export interface components {
          */
         InboundEvidenceApplyStatus: "PENDING" | "APPLIED" | "IGNORED" | "RECONCILING";
         /**
-         * IntegrationDebugProfile
-         * @enum {string}
-         */
-        IntegrationDebugProfile: "CONTRACT_SIMULATION" | "DEVICE_INTEGRATION" | "FULL_SITE_INTEGRATION";
-        /** IntegrationRunResponse */
-        IntegrationRunResponse: {
-            /** Attention Code */
-            attention_code: string | null;
-            /** Attention Detail */
-            attention_detail: string | null;
-            /** Bin Code */
-            bin_code: string | null;
-            /** Created At */
-            created_at: string;
-            /** Current Phase */
-            current_phase: string;
-            /** Device Code */
-            device_code: string | null;
-            /** Environment Label */
-            environment_label: string;
-            /**
-             * Expected Plugin Key
-             * @constant
-             */
-            expected_plugin_key: "manual-picking";
-            /** Issued Operation Id */
-            issued_operation_id: string | null;
-            /** Operation Context */
-            operation_context: {
-                [key: string]: unknown;
-            };
-            /** Operator User Id */
-            operator_user_id: number;
-            /** Plan Resources */
-            plan_resources: {
-                [key: string]: unknown;
-            } | null;
-            profile: components["schemas"]["IntegrationDebugProfile"];
-            /** Rack Id */
-            rack_id: string | null;
-            /** Run Id */
-            run_id: string;
-            /**
-             * Scenario Key
-             * @constant
-             */
-            scenario_key: "manual_outbound_picking@v1";
-            /** Site Cleanup Confirmed */
-            site_cleanup_confirmed: boolean;
-            /** Site Configuration */
-            site_configuration: {
-                [key: string]: unknown;
-            };
-            /** Status */
-            status: string;
-            /** Steps */
-            steps: components["schemas"]["IntegrationRunStepResponse"][];
-            /** Task Id */
-            task_id: string | null;
-            /** Updated At */
-            updated_at: string;
-            /** Version */
-            version: number;
-            /** Wms Cleanup Confirmed */
-            wms_cleanup_confirmed: boolean;
-            /** Workline Code */
-            workline_code: string;
-            /** Workline Id */
-            workline_id: number;
-        };
-        /** IntegrationRunStepResponse */
-        IntegrationRunStepResponse: {
-            /** Client Request Id */
-            client_request_id: string | null;
-            /** Created At */
-            created_at: string;
-            /** Device Command Code */
-            device_command_code: string | null;
-            /** Operation */
-            operation: string | null;
-            /** Operation Id */
-            operation_id: string | null;
-            /** Ordinal */
-            ordinal: number;
-            /** Phase */
-            phase: string;
-            /** Reason Code */
-            reason_code: string | null;
-            /** Request */
-            request: {
-                [key: string]: unknown;
-            };
-            /** Result */
-            result: {
-                [key: string]: unknown;
-            };
-            /** Status */
-            status: string;
-            /** Transport Task Id */
-            transport_task_id: string | null;
-            /** Wms Confirmation Id */
-            wms_confirmation_id: number | null;
-        };
-        /**
-         * IntegrationTransportActionKind
-         * @enum {string}
-         */
-        IntegrationTransportActionKind: "MOVE_RACK" | "ROTATE_RACK" | "MOVE_BINS";
-        /**
          * LineType
          * @description 作业线类型枚举。
          * @enum {string}
@@ -5827,15 +5189,6 @@ export interface components {
              * @default 0
              */
             revoked_count: number;
-        };
-        /** ManualBinAdmissionData */
-        ManualBinAdmissionData: {
-            /** Bin Code */
-            bin_code: string;
-            /** Scanned At */
-            scanned_at: number;
-            /** Task Id */
-            task_id: string;
         };
         /** ManualDebugDeviceCommandCreate */
         ManualDebugDeviceCommandCreate: {
@@ -6084,13 +5437,6 @@ export interface components {
              * @default user_api
              */
             type: string;
-        };
-        /** PickingTaskPrepareData */
-        PickingTaskPrepareData: {
-            /** Task Id */
-            task_id: string;
-            /** Workline Code */
-            workline_code: string;
         };
         /**
          * PlaneActiveObjectLocation
@@ -6468,23 +5814,6 @@ export interface components {
             /** Version */
             version: number;
         };
-        /** Point2ScanRequest */
-        Point2ScanRequest: {
-            /** Bin Code */
-            bin_code: string;
-            /** Expected Version */
-            expected_version: number;
-            /** Scanned At */
-            scanned_at: number;
-        };
-        /** PrepareTaskRequest */
-        PrepareTaskRequest: {
-            /** Client Request Id */
-            client_request_id: string;
-            data: components["schemas"]["PickingTaskPrepareData"];
-            /** Expected Version */
-            expected_version: number;
-        };
         /**
          * QueryOptions
          * @description 查询选项
@@ -6582,40 +5911,12 @@ export interface components {
          * @enum {string}
          */
         RackBinMountStatus: "MOUNTED" | "UNMOUNTED" | "EXCHANGING" | "UNKNOWN";
-        /** RackDepartureData */
-        RackDepartureData: {
-            /** Current Face */
-            current_face: string;
-            current_location: components["schemas"]["RackPosition"];
-            /** Rack Id */
-            rack_id: string;
-            /** Task Id */
-            task_id: string | null;
-        };
-        /** RackDepartureRequest */
-        RackDepartureRequest: {
-            /** Client Request Id */
-            client_request_id: string;
-            data: components["schemas"]["RackDepartureData"];
-            /** Expected Version */
-            expected_version: number;
-        };
         /**
          * RackKind
          * @description 货架物理结构类型。
          * @enum {string}
          */
         RackKind: "SINGLE_LAYER" | "FIVE_LAYER" | "RETURN" | "TRANSFER" | "PRODUCTION";
-        /** RackMovePosition */
-        RackMovePosition: {
-            /**
-             * Kind
-             * @enum {string}
-             */
-            kind: "RACK" | "ZONE" | "RACK_POSITION";
-            /** Location Code */
-            location_code: string;
-        };
         /**
          * RackPlacementResponse
          * @description 货架位置投影响应 Schema。
@@ -6715,16 +6016,6 @@ export interface components {
          * @enum {string}
          */
         RackPlacementStatus: "ARRIVED" | "IN_TRANSIT" | "DEPARTED" | "UNKNOWN";
-        /** RackPosition */
-        RackPosition: {
-            /** Location Code */
-            location_code: string;
-            /**
-             * Type
-             * @constant
-             */
-            type: "RACK_POSITION";
-        };
         /**
          * RackResponse
          * @description 货架实例响应 Schema。
@@ -6939,20 +6230,6 @@ export interface components {
              */
             session_uuid: string;
         };
-        /** RefreshTransportActionRequest */
-        RefreshTransportActionRequest: {
-            /** Client Request Id */
-            client_request_id: string;
-            /** Expected Version */
-            expected_version: number;
-        };
-        /** RefreshWmsActionRequest */
-        RefreshWmsActionRequest: {
-            /** Client Request Id */
-            client_request_id: string;
-            /** Expected Version */
-            expected_version: number;
-        };
         /**
          * ResetPasswordRequest
          * @description 管理员重置密码请求
@@ -7147,12 +6424,8 @@ export interface components {
         ResponseSchemaModel_ExchangeDetail_: ApiResponse<components["schemas"]["ExchangeDetail"]>;
         /** ResponseSchemaModel[ExchangePage] */
         ResponseSchemaModel_ExchangePage_: ApiResponse<components["schemas"]["ExchangePage"]>;
-        /** ResponseSchemaModel[IntegrationRunResponse] */
-        ResponseSchemaModel_IntegrationRunResponse_: ApiResponse<components["schemas"]["IntegrationRunResponse"]>;
         /** ResponseSchemaModel[list[Any]] */
         ResponseSchemaModel_list_Any__: ApiResponse<unknown[]>;
-        /** ResponseSchemaModel[list[IntegrationRunResponse]] */
-        ResponseSchemaModel_list_IntegrationRunResponse__: ApiResponse<components["schemas"]["IntegrationRunResponse"][]>;
         /** ResponseSchemaModel[list[PermissionResponse]] */
         ResponseSchemaModel_list_PermissionResponse__: ApiResponse<components["schemas"]["PermissionResponse"][]>;
         /** ResponseSchemaModel[list[PermissionTree]] */
@@ -7237,37 +6510,6 @@ export interface components {
         ResponseSchemaModel_WorkLineStartErrorResponse_: ApiResponse<components["schemas"]["WorkLineStartErrorResponse"]>;
         /** ResponseSchemaModel[WorkLineStartResponse] */
         ResponseSchemaModel_WorkLineStartResponse_: ApiResponse<components["schemas"]["WorkLineStartResponse"]>;
-        /** RetryWmsActionRequest */
-        RetryWmsActionRequest: {
-            /** Client Request Id */
-            client_request_id: string;
-            data: components["schemas"]["PickingTaskPrepareData"];
-            /** Expected Version */
-            expected_version: number;
-            /**
-             * Wms Original Prepare Voided Confirmed
-             * @constant
-             */
-            wms_original_prepare_voided_confirmed: true;
-        };
-        /** ReturnCandidate */
-        ReturnCandidate: {
-            /** Bin Code */
-            bin_code: string;
-            /** Sequence No */
-            sequence_no: number;
-            source: components["schemas"]["ReturnSource"];
-        };
-        /** ReturnSource */
-        ReturnSource: {
-            /** Location Code */
-            location_code: string;
-            /**
-             * Type
-             * @constant
-             */
-            type: "HANDOFF_POSITION";
-        };
         /**
          * RevokeSessionResponse
          * @description 撤销会话响应 Schema
@@ -7396,37 +6638,6 @@ export interface components {
              * @enum {string}
              */
             order: "asc" | "desc";
-        };
-        /** TaskCompletionRequest */
-        TaskCompletionRequest: {
-            /** Client Request Id */
-            client_request_id: string;
-            data: components["schemas"]["CompletionConfirmData"];
-            /** Expected Version */
-            expected_version: number;
-        };
-        /** TransportActionRequest */
-        TransportActionRequest: {
-            /** Bin Code */
-            bin_code?: string | null;
-            /** Client Request Id */
-            client_request_id: string;
-            /** Expected Version */
-            expected_version: number;
-            kind: components["schemas"]["IntegrationTransportActionKind"];
-            /** Rack Id */
-            rack_id: string;
-            /**
-             * Rcs Template Id
-             * @enum {string}
-             */
-            rcs_template_id: "CTU01" | "CTU02" | "CTU03" | "F01";
-            /** Source */
-            source: components["schemas"]["RackMovePosition"] | components["schemas"]["BinMovePosition"];
-            /** Target */
-            target?: components["schemas"]["RackMovePosition"] | components["schemas"]["BinMovePosition"] | null;
-            /** Target Face */
-            target_face?: string | null;
         };
         /** TransportCallbackReceiptResponse */
         TransportCallbackReceiptResponse: {
@@ -7948,11 +7159,6 @@ export interface components {
          * @enum {string}
          */
         ValidityPeriod: "1d" | "1w" | "1m" | "6m" | "1y" | "never";
-        /** VersionRequest */
-        VersionRequest: {
-            /** Expected Version */
-            expected_version: number;
-        };
         /** WirePreview */
         WirePreview: {
             /** Body */
@@ -7980,14 +7186,6 @@ export interface components {
          * @enum {string}
          */
         WmsConfirmationStatus: "PENDING" | "DISPATCHING" | "COMPLETED" | "RECONCILING" | "SUPERSEDED";
-        /** WorkAdmissionRequest */
-        WorkAdmissionRequest: {
-            /** Client Request Id */
-            client_request_id: string;
-            data: components["schemas"]["ManualBinAdmissionData"];
-            /** Expected Version */
-            expected_version: number;
-        };
         /**
          * WorklineActiveObjectConflictState
          * @description WorklineActiveObjects 冲突展示状态。
@@ -8052,8 +7250,6 @@ export interface components {
          * @description 一次清线归档的可核对结果。
          */
         WorkLineArchiveOpenWorkResponse: {
-            /** Archived Integration Runs */
-            archived_integration_runs: number;
             /** Archived Picking Tasks */
             archived_picking_tasks: number;
             /** Archived Plugin Tasks */
@@ -13032,6 +12228,27 @@ export interface operations {
                     } & {
                         [key: string]: unknown;
                     }) | ({
+                        arrival_face?: unknown;
+                        failure_code?: unknown;
+                        final_position?: {
+                            /** @enum {string} */
+                            kind: "RACK_POSITION";
+                            location_code: string;
+                        } & {
+                            [key: string]: unknown;
+                        };
+                        /** @enum {string} */
+                        kind: "RACK_MOVE" | "RACK_ROTATE";
+                        /** Format: int64 */
+                        outcome_revision: number;
+                        position_unknown?: unknown;
+                        rack_id: string;
+                        /** @enum {string} */
+                        status: "CANCELLED";
+                        transport_task_id: string;
+                    } & {
+                        [key: string]: unknown;
+                    }) | ({
                         /** @enum {string} */
                         kind: "BIN_MOVE";
                         /** Format: int64 */
@@ -13578,852 +12795,6 @@ export interface operations {
                     } & {
                         [key: string]: unknown;
                     };
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_get: {
-        parameters: {
-            query?: {
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_list_IntegrationRunResponse__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateRunRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationRunResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_by_run_id_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                run_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationRunResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_by_run_id_bind_task_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                run_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BindTaskRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationRunResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_by_run_id_close_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                run_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CloseRunRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationRunResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_by_run_id_complete_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                run_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["VersionRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationRunResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_by_run_id_confirm_phase_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                run_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ConfirmPhaseRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationRunResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_by_run_id_device_command_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                run_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DeviceActionRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationRunResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_by_run_id_device_command_refresh_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                run_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RefreshTransportActionRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationRunResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_by_run_id_export_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                run_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_by_run_id_plan_refresh_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                run_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["VersionRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationRunResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_by_run_id_point2_scan_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                run_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["Point2ScanRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationRunResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_by_run_id_takeover_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                run_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["VersionRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationRunResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_by_run_id_transport_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                run_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TransportActionRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationRunResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_by_run_id_transport_refresh_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                run_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RefreshTransportActionRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationRunResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_by_run_id_wms_bin_inbound_batch_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                run_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BinInboundBatchRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationRunResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_by_run_id_wms_bin_return_batch_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                run_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BinReturnBatchRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationRunResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_by_run_id_wms_bind_completion_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                run_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BindCompletionRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationRunResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_by_run_id_wms_prepare_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                run_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PrepareTaskRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationRunResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_by_run_id_wms_rack_departure_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                run_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RackDepartureRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationRunResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_by_run_id_wms_refresh_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                run_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RefreshWmsActionRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationRunResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_by_run_id_wms_retry_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                run_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RetryWmsActionRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationRunResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_by_run_id_wms_task_completion_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                run_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TaskCompletionRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationRunResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_by_run_id_wms_work_admission_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                run_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["WorkAdmissionRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_IntegrationRunResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    workline_integration_debug_runs_stream_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
                 };
             };
         };
