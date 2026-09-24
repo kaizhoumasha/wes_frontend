@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.27.0.0] - 2026-09-24
+
+### Changed
+
+- 工作线基础配置、停用和插件切换明确提示现场清线 SOP；设备空闲或缺少位置记录不再被表述为已清空。
+
+### Removed
+
+- 移除已退役 `resource_*` 接口的前端请求模块。
+
 ## [0.26.0.0] - 2026-09-22
 
 ### Added

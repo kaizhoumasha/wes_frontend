@@ -362,6 +362,13 @@ defineExpose({ confirmLeave, submit, confirmDisabled, submitting, busy, isDirty,
         :closable="false"
         show-icon
       />
+      <ElAlert
+        v-else
+        title="修改基础配置前，请按现场 SOP 确认停料和物理清线；系统无法从设备 IDLE 或缺少位置记录证明工作位为空。"
+        type="warning"
+        :closable="false"
+        show-icon
+      />
       <section v-if="mode === 'devices'">
         <div class="workline-base__heading">
           <div>
