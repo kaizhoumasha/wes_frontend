@@ -11,12 +11,10 @@ import type { OpenApiSchemaMetadata } from '../openapi-metadata-types'
 
 export const RackKindMetadata = {
   "title": "RackKind",
-  "description": "货架物理结构类型。",
   "required": [],
   "fields": {
     "__enum": {
       "title": "RackKind",
-      "description": "货架物理结构类型。",
       "type": "string",
       "required": true,
       "nullable": false,

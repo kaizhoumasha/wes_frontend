@@ -36,13 +36,13 @@ export const WorkLineStartResponseMetadata = {
       "title": "Plugin Key",
       "type": "string",
       "required": true,
-      "nullable": false
+      "nullable": true
     },
     "plugin_version": {
       "title": "Plugin Version",
       "type": "string",
       "required": true,
-      "nullable": false
+      "nullable": true
     },
     "version": {
       "title": "Version",
