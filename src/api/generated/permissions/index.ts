@@ -23,19 +23,6 @@ import { OPS_TRANSPORT_TASK_PERMISSION } from './user_api/ops/transport-task'
 import { OPS_WMS_CONFIRMATION_PERMISSION } from './user_api/ops/wms-confirmation'
 import { OPS_WMS_DIAGNOSTICS_PERMISSION } from './user_api/ops/wms-diagnostics'
 import { OPS_WMS_EVIDENCE_PERMISSION } from './user_api/ops/wms-evidence'
-import { RESOURCE_BIN_PERMISSION } from './user_api/resource/bin'
-import { RESOURCE_BINCELLOCCUPANCY_PERMISSION } from './user_api/resource/bincelloccupancy'
-import { RESOURCE_BINCONTENTSNAPSHOT_PERMISSION } from './user_api/resource/bincontentsnapshot'
-import { RESOURCE_BINCONTENTSNAPSHOTITEM_PERMISSION } from './user_api/resource/bincontentsnapshotitem'
-import { RESOURCE_BINMATERIALMOUNT_PERMISSION } from './user_api/resource/binmaterialmount'
-import { RESOURCE_BINSLOTTEMPLATE_PERMISSION } from './user_api/resource/binslottemplate'
-import { RESOURCE_BINTYPE_PERMISSION } from './user_api/resource/bintype'
-import { RESOURCE_RACK_PERMISSION } from './user_api/resource/rack'
-import { RESOURCE_RACKBINMOUNT_PERMISSION } from './user_api/resource/rackbinmount'
-import { RESOURCE_RACKPLACEMENT_PERMISSION } from './user_api/resource/rackplacement'
-import { RESOURCE_RACKSLOTTEMPLATE_PERMISSION } from './user_api/resource/rackslottemplate'
-import { RESOURCE_RACKTYPE_PERMISSION } from './user_api/resource/racktype'
-import { RESOURCE_RESOURCESTATEEVENT_PERMISSION } from './user_api/resource/resourcestateevent'
 import { SYS_AUDITLOG_PERMISSION } from './user_api/sys/auditlog'
 
 
@@ -56,19 +43,6 @@ export { OPS_TRANSPORT_TASK_PERMISSION }
 export { OPS_WMS_CONFIRMATION_PERMISSION }
 export { OPS_WMS_DIAGNOSTICS_PERMISSION }
 export { OPS_WMS_EVIDENCE_PERMISSION }
-export { RESOURCE_BIN_PERMISSION }
-export { RESOURCE_BINCELLOCCUPANCY_PERMISSION }
-export { RESOURCE_BINCONTENTSNAPSHOT_PERMISSION }
-export { RESOURCE_BINCONTENTSNAPSHOTITEM_PERMISSION }
-export { RESOURCE_BINMATERIALMOUNT_PERMISSION }
-export { RESOURCE_BINSLOTTEMPLATE_PERMISSION }
-export { RESOURCE_BINTYPE_PERMISSION }
-export { RESOURCE_RACK_PERMISSION }
-export { RESOURCE_RACKBINMOUNT_PERMISSION }
-export { RESOURCE_RACKPLACEMENT_PERMISSION }
-export { RESOURCE_RACKSLOTTEMPLATE_PERMISSION }
-export { RESOURCE_RACKTYPE_PERMISSION }
-export { RESOURCE_RESOURCESTATEEVENT_PERMISSION }
 export { SYS_AUDITLOG_PERMISSION }
 
 /**
@@ -125,25 +99,6 @@ export const OPS_PERMISSIONS = {
 } as const
 
 /**
- * resource 分类权限快捷导出
- */
-export const RESOURCE_PERMISSIONS = {
-  bin: RESOURCE_BIN_PERMISSION,
-  bincelloccupancy: RESOURCE_BINCELLOCCUPANCY_PERMISSION,
-  bincontentsnapshot: RESOURCE_BINCONTENTSNAPSHOT_PERMISSION,
-  bincontentsnapshotitem: RESOURCE_BINCONTENTSNAPSHOTITEM_PERMISSION,
-  binmaterialmount: RESOURCE_BINMATERIALMOUNT_PERMISSION,
-  binslottemplate: RESOURCE_BINSLOTTEMPLATE_PERMISSION,
-  bintype: RESOURCE_BINTYPE_PERMISSION,
-  rack: RESOURCE_RACK_PERMISSION,
-  rackbinmount: RESOURCE_RACKBINMOUNT_PERMISSION,
-  rackplacement: RESOURCE_RACKPLACEMENT_PERMISSION,
-  rackslottemplate: RESOURCE_RACKSLOTTEMPLATE_PERMISSION,
-  racktype: RESOURCE_RACKTYPE_PERMISSION,
-  resourcestateevent: RESOURCE_RESOURCESTATEEVENT_PERMISSION,
-} as const
-
-/**
  * sys 分类权限快捷导出
  */
 export const SYS_PERMISSIONS = {
@@ -160,6 +115,5 @@ export const PERMISSIONS = {
   biz: BIZ_PERMISSIONS,
   callback: CALLBACK_PERMISSIONS,
   ops: OPS_PERMISSIONS,
-  resource: RESOURCE_PERMISSIONS,
   sys: SYS_PERMISSIONS,
 } as const

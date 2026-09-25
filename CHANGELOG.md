@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.27.1.0] - 2026-09-25
+
+### Fixed
+
+- 同步当前后端接口合同，工作线启动结果允许空插件字段，并识别 ECS_TEST 运行模式。
+- 清除已退役资源接口残留的类型、Schema 和权限生成物，并同步 WMS revision 与搬运终态位置合同。
+
 ## [0.27.0.0] - 2026-09-24
 
 ### Changed

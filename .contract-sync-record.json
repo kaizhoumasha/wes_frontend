@@ -1,5 +1,5 @@
 {
-  "backendCommit": "c501c0d14af8f8ac7f3923ab78e1b54cb67739d3",
-  "openApiSha256": "fba9c29d858e9679af0aaf621efb10c984e666154bc7e71fd19a82e5605a9387",
+  "backendCommit": "e5c47d10e1232adb1ba06112f5051dc58d8fe629",
+  "openApiSha256": "a7bfb0d3efac9515ac6e227fb1532a7b5c2e9f1287b02a292b915b1fc0035029",
   "snapshotPath": "contracts/openapi.current.json"
 }

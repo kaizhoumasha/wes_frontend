@@ -68,7 +68,8 @@ export const WorkLineUpdateMetadata = {
       "enum": [
         "AUTO",
         "MANUAL",
-        "SIMULATION"
+        "SIMULATION",
+        "ECS_TEST"
       ],
       "ref": "WorkLineRunMode"
     },
