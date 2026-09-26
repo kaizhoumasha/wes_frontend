@@ -106,6 +106,21 @@ const AlertStub = defineComponent({
   props: { title: { type: String, default: '' } },
   setup: props => () => h('div', props.title)
 })
+const EcsTestPanelStub = defineComponent({
+  name: 'WorkLineEcsTestConfigurationPanel',
+  setup(_, { expose }) {
+    expose({
+      confirmLeave: async () => true,
+      submit: async () => true,
+      confirmDisabled: true,
+      submitting: false,
+      busy: false,
+      isDirty: false,
+      progress: {}
+    })
+    return () => h('div', 'ECS_TEST 配置')
+  }
+})
 
 function workline(overrides: Partial<Workline> = {}): Workline {
   return {
@@ -245,6 +260,7 @@ function mountDialog(latest: Workline, refresh = vi.fn().mockResolvedValue(undef
         stubs: {
           WorkLineConfigurationActions: ActionsStub,
           StandardDialog: PassthroughStub,
+          WorkLineEcsTestConfigurationPanel: EcsTestPanelStub,
           WorkLineDevicePicker: true,
           ElButton: ButtonStub,
           ElForm: PassthroughStub,
@@ -303,12 +319,13 @@ describe('WorkLineConfigurationDialog generic bindings', () => {
     vi.resetAllMocks()
     mocks.hasPermission.mockReturnValue(true)
   })
-  it('offers three configuration steps', async () => {
+  it('offers four configuration steps', async () => {
     const { wrapper } = mountDialog(workline())
     await settle()
     expect(wrapper.find('[data-section="base"]').exists()).toBe(true)
     expect(wrapper.find('[data-section="plugin"]').exists()).toBe(true)
     expect(wrapper.find('[data-section="slots"]').exists()).toBe(true)
+    expect(wrapper.find('[data-section="ecs-test"]').exists()).toBe(true)
   })
 
   it('keeps the draft when moving between plugin selection and slot configuration', async () => {
@@ -944,6 +961,7 @@ function mountBase(base = baseConfiguration(), positionsOnly = false) {
       stubs: {
         WorkLineConfigurationActions: ActionsStub,
         StandardDialog: PassthroughStub,
+        WorkLineEcsTestConfigurationPanel: EcsTestPanelStub,
         WorkLineDevicePicker: true,
         ElButton: ButtonStub,
         ElForm: PassthroughStub,
@@ -1207,7 +1225,7 @@ describe('WorkLine workspace navigation and save boundaries', () => {
       for (const [key, destination] of [
         ['ArrowRight', 'plugin'],
         ['ArrowLeft', 'base'],
-        ['End', 'slots'],
+        ['End', 'ecs-test'],
         ['Home', 'base']
       ] as const) {
         if (destination !== 'base') configureLoad(workline())

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.27.2.0] - 2026-09-26
+
+### Added
+
+- 新增 Device 级 ECS_TEST 默认值，仅用于预填；规则需显式应用到 WorkLine，停止状态下可确认移除已应用规则。
+
 ## [0.27.1.0] - 2026-09-25
 
 ### Fixed

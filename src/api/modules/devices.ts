@@ -37,6 +37,13 @@ export type DevicesItem = EnsureEntityId<CrudItem<typeof DEVICES_COLLECTION_PATH
 export type CreateDevicesInput = CrudCreateInput<typeof DEVICES_COLLECTION_PATH>
 export type UpdateDevicesInput = CrudUpdateInput<typeof DEVICES_COLLECTION_PATH>
 
+export type EcsTestDefaultResult = ContractResponseData<'/api/v1/device/devices/{device_code}/ecs-test-default', 'get'>
+export type EcsTestDefaultPathParams = ContractPathParams<'/api/v1/device/devices/{device_code}/ecs-test-default', 'get'>
+
+export type UpdateEcsTestDefaultResult = ContractResponseData<'/api/v1/device/devices/{device_code}/ecs-test-default', 'put'>
+export type UpdateEcsTestDefaultPathParams = ContractPathParams<'/api/v1/device/devices/{device_code}/ecs-test-default', 'put'>
+export type UpdateEcsTestDefaultInput = ContractRequestBody<'/api/v1/device/devices/{device_code}/ecs-test-default', 'put'>
+
 export type PermanentResult = ContractResponseData<'/api/v1/device/devices/{id}/permanent', 'delete'>
 export type PermanentPathParams = ContractPathParams<'/api/v1/device/devices/{id}/permanent', 'delete'>
 
@@ -52,6 +59,24 @@ const baseDevicesApiMethods = createSoftDeleteCrudRequestAdapterMethods({
 
 export const devicesApiMethods = {
   ...baseDevicesApiMethods,
+
+  /**
+   * [biz:device:detail] 读取 ECS_TEST 来源设备默认值
+   * @endpoint GET /api/v1/device/devices/{device_code}/ecs-test-default
+   * @returns alova method instance
+   */
+  ecsTestDefault(params: ContractPathParams<'/api/v1/device/devices/{device_code}/ecs-test-default', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/device/devices/{device_code}/ecs-test-default', { params, config })
+  },
+
+  /**
+   * [biz:device:update] 保存 ECS_TEST 来源设备默认值
+   * @endpoint PUT /api/v1/device/devices/{device_code}/ecs-test-default
+   * @returns alova method instance
+   */
+  updateEcsTestDefault(params: ContractPathParams<'/api/v1/device/devices/{device_code}/ecs-test-default', 'put'>, body: ContractRequestBody<'/api/v1/device/devices/{device_code}/ecs-test-default', 'put'>, config?: ContractRequestConfig) {
+    return contractMethods.put('/api/v1/device/devices/{device_code}/ecs-test-default', { params, body, config })
+  },
 
   /**
    * [biz:device:permanent_delete] 永久删除Device

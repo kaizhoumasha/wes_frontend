@@ -1,4 +1,4 @@
-/** @openapi-sha256 a7bfb0d3efac9515ac6e227fb1532a7b5c2e9f1287b02a292b915b1fc0035029 */
+/** @openapi-sha256 0fd67af6e0cfb4375480f259db0b3270a4614cd30848e6a30ff9670b9b982a19 */
 /**
  * Zod Validation Schemas
  *
@@ -3120,6 +3120,32 @@ export const _DebugTransportStepConfirmationSchema = z.object({
 
 
 export const _DebugTransportTaskRequestSchema = z.union([z.lazy(() => _RackMoveDebugTaskSchema), z.lazy(() => _RackRotateDebugTaskSchema), z.lazy(() => _BinMoveDebugTaskSchema), z.lazy(() => _BinExchangeDebugTaskSchema)])
+
+
+export const _EcsTestDefaultPutSchema = z.object({
+  default: z.union([z.lazy(() => _EcsTestDefaultRuleSchema), z.null()]),
+})
+
+
+export const _EcsTestDefaultResponseSchema = z.object({
+  default: z.union([z.lazy(() => _EcsTestDefaultRuleSchema), z.null()]),
+  /** Device Code */
+  device_code: z.string(),
+  /** Device Id */
+  device_id: z.number(),
+  /** Device Version */
+  device_version: z.number(),
+})
+
+
+export const _EcsTestDefaultRuleSchema = z.object({
+  /** Params */
+  params: z.record(z.any()),
+  /** Target Device Code */
+  target_device_code: z.string().min(1).max(100),
+  /** Task Type */
+  task_type: z.string().min(1).max(100),
+})
 
 
 export const _HandoffPositionSchema = z.object({
