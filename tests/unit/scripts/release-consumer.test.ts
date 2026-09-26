@@ -131,6 +131,8 @@ describe('release consumer exporter', () => {
       })
       expect(result.requiredOperations).toEqual(
         expect.arrayContaining([
+          { method: 'GET', path: '/api/v1/device/devices/{device_code}/ecs-test-default' },
+          { method: 'PUT', path: '/api/v1/device/devices/{device_code}/ecs-test-default' },
           { method: 'POST', path: '/api/v1/transport/debug-runs' },
           { method: 'GET', path: '/api/v1/transport/debug-runs/{run_id}' },
           { method: 'POST', path: '/api/v1/transport/debug-runs/{run_id}/abort' }

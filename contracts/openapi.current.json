@@ -7832,6 +7832,51 @@
         "title": "ResponseSchemaModel[WorklineActiveObjectsResponse]",
         "type": "object"
       },
+      "ResponseSchemaModel__EcsTestDefaultResponse_": {
+        "properties": {
+          "code": {
+            "default": "1000",
+            "description": "响应码",
+            "examples": [
+              "1000",
+              "2000"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/_EcsTestDefaultResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "响应数据"
+          },
+          "message": {
+            "default": "操作成功",
+            "description": "响应消息",
+            "examples": [
+              "操作成功",
+              "参数错误"
+            ],
+            "title": "Message",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "响应时间戳(ISO 8601格式)",
+            "examples": [
+              "2024-01-01T00:00:00Z"
+            ],
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "title": "ResponseSchemaModel[_EcsTestDefaultResponse]",
+        "type": "object"
+      },
       "ResponseSchemaModel_dict_str__Any__": {
         "properties": {
           "code": {
@@ -11321,6 +11366,89 @@
             "$ref": "#/components/schemas/_BinExchangeDebugTask"
           }
         ]
+      },
+      "_EcsTestDefaultPut": {
+        "additionalProperties": false,
+        "properties": {
+          "default": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/_EcsTestDefaultRule"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "default"
+        ],
+        "title": "_EcsTestDefaultPut",
+        "type": "object"
+      },
+      "_EcsTestDefaultResponse": {
+        "properties": {
+          "default": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/_EcsTestDefaultRule"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "device_code": {
+            "title": "Device Code",
+            "type": "string"
+          },
+          "device_id": {
+            "title": "Device Id",
+            "type": "integer"
+          },
+          "device_version": {
+            "title": "Device Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "device_id",
+          "device_code",
+          "device_version",
+          "default"
+        ],
+        "title": "_EcsTestDefaultResponse",
+        "type": "object"
+      },
+      "_EcsTestDefaultRule": {
+        "additionalProperties": false,
+        "properties": {
+          "params": {
+            "additionalProperties": true,
+            "title": "Params",
+            "type": "object"
+          },
+          "target_device_code": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Target Device Code",
+            "type": "string"
+          },
+          "task_type": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Task Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_device_code",
+          "task_type",
+          "params"
+        ],
+        "title": "_EcsTestDefaultRule",
+        "type": "object"
       },
       "_HandoffPosition": {
         "additionalProperties": false,
@@ -15366,6 +15494,132 @@
           }
         ],
         "summary": "[biz:device:batch_restore] 批量恢复Device",
+        "tags": [
+          "设备管理"
+        ]
+      }
+    },
+    "/api/v1/device/devices/{device_code}/ecs-test-default": {
+      "get": {
+        "operationId": "device_devices_by_device_code_ecs_test_default_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "device_code",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Device Code",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel__EcsTestDefaultResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "Device 不存在"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[biz:device:detail] 读取 ECS_TEST 来源设备默认值",
+        "tags": [
+          "设备管理"
+        ]
+      },
+      "put": {
+        "operationId": "device_devices_by_device_code_ecs_test_default_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "device_code",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Device Code",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/_EcsTestDefaultPut"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel__EcsTestDefaultResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseSchemaModel_dict_str__Any__"
+                }
+              }
+            },
+            "description": "Device 不存在"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "[biz:device:update] 保存 ECS_TEST 来源设备默认值",
         "tags": [
           "设备管理"
         ]

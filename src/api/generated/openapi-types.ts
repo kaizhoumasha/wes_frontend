@@ -1,4 +1,4 @@
-/** @openapi-sha256 a7bfb0d3efac9515ac6e227fb1532a7b5c2e9f1287b02a292b915b1fc0035029 */
+/** @openapi-sha256 0fd67af6e0cfb4375480f259db0b3270a4614cd30848e6a30ff9670b9b982a19 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -1338,6 +1338,24 @@ export interface paths {
         put?: never;
         /** [biz:device:create] 创建Device */
         post: operations["devices_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/device/devices/{device_code}/ecs-test-default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [biz:device:detail] 读取 ECS_TEST 来源设备默认值 */
+        get: operations["device_devices_by_device_code_ecs_test_default_get"];
+        /** [biz:device:update] 保存 ECS_TEST 来源设备默认值 */
+        put: operations["device_devices_by_device_code_ecs_test_default_put"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2735,6 +2753,31 @@ export interface components {
             step: components["schemas"]["TransportDebugStep"];
         };
         _DebugTransportTaskRequest: components["schemas"]["_RackMoveDebugTask"] | components["schemas"]["_RackRotateDebugTask"] | components["schemas"]["_BinMoveDebugTask"] | components["schemas"]["_BinExchangeDebugTask"];
+        /** _EcsTestDefaultPut */
+        _EcsTestDefaultPut: {
+            default: components["schemas"]["_EcsTestDefaultRule"] | null;
+        };
+        /** _EcsTestDefaultResponse */
+        _EcsTestDefaultResponse: {
+            default: components["schemas"]["_EcsTestDefaultRule"] | null;
+            /** Device Code */
+            device_code: string;
+            /** Device Id */
+            device_id: number;
+            /** Device Version */
+            device_version: number;
+        };
+        /** _EcsTestDefaultRule */
+        _EcsTestDefaultRule: {
+            /** Params */
+            params: {
+                [key: string]: unknown;
+            };
+            /** Target Device Code */
+            target_device_code: string;
+            /** Task Type */
+            task_type: string;
+        };
         /** _HandoffPosition */
         _HandoffPosition: {
             /**
@@ -4916,6 +4959,8 @@ export interface components {
              */
             version: number;
         };
+        /** ResponseSchemaModel[_EcsTestDefaultResponse] */
+        ResponseSchemaModel__EcsTestDefaultResponse_: ApiResponse<components["schemas"]["_EcsTestDefaultResponse"]>;
         /** ResponseSchemaModel[ActiveSessionsResponse] */
         ResponseSchemaModel_ActiveSessionsResponse_: ApiResponse<components["schemas"]["ActiveSessionsResponse"]>;
         /** ResponseSchemaModel[APIAccessLogResponse] */
@@ -8458,6 +8503,90 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResponseSchemaModel_DeviceResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    device_devices_by_device_code_ecs_test_default_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                device_code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel__EcsTestDefaultResponse_"];
+                };
+            };
+            /** @description Device 不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    device_devices_by_device_code_ecs_test_default_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                device_code: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["_EcsTestDefaultPut"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel__EcsTestDefaultResponse_"];
+                };
+            };
+            /** @description Device 不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_dict_str__Any__"];
                 };
             };
             /** @description Validation Error */

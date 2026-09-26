@@ -6,8 +6,9 @@ import { usePermission } from '@/composables/usePermission'
 import WorkLineConfigurationActions from './WorkLineConfigurationActions.vue'
 import WorkLineBaseConfigurationPanel from './WorkLineBaseConfigurationPanel.vue'
 import WorkLineBusinessConfigurationPanel from './WorkLineBusinessConfigurationPanel.vue'
+import WorkLineEcsTestConfigurationPanel from './WorkLineEcsTestConfigurationPanel.vue'
 
-type Section = 'base' | 'plugin' | 'slots'
+type Section = 'base' | 'plugin' | 'slots' | 'ecs-test'
 interface PanelHandle {
   confirmLeave: () => Promise<boolean>
   submit: () => Promise<boolean>
@@ -54,13 +55,23 @@ const canReadBusiness = computed(
       BIZ_PERMISSIONS.workline.configurationStatus
     ].every(hasPermission)
 )
+const canReadEcsTest = computed(
+  () => canReadBase.value && hasPermission(BIZ_PERMISSIONS.workline.detail)
+)
 const busy = computed(() => transitioning.value || panel.value?.busy === true)
 const steps = [
   { key: 'base', title: '关联设备', detail: '建立本线设备清单' },
   { key: 'plugin', title: '选择插件', detail: '确认业务能力与资源要求' },
-  { key: 'slots', title: '配置插槽', detail: '匹配设备 · 补充工作位' }
+  { key: 'slots', title: '配置插槽', detail: '匹配设备 · 补充工作位' },
+  { key: 'ecs-test', title: 'ECS_TEST', detail: '预填设备默认值并显式应用规则' }
 ] as const
-const saveText = computed(() => (section.value === 'slots' ? '保存配置' : '保存当前步骤'))
+const saveText = computed(() =>
+  section.value === 'ecs-test'
+    ? '应用 ECS_TEST 配置'
+    : section.value === 'slots'
+      ? '保存配置'
+      : '保存当前步骤'
+)
 async function save(advance = false): Promise<void> {
   if (busy.value || !panel.value || panel.value.confirmDisabled) return
   const saved = await panel.value.submit()
@@ -78,17 +89,23 @@ async function leave(destination?: Section): Promise<void> {
   if (busy.value || destination === section.value) return
   if (destination === 'plugin' && !canReadBusiness.value) return
   if (destination === 'slots' && !canReadBase.value) return
+  if (destination === 'ecs-test' && !canReadEcsTest.value) return
   if (destination === 'base' && !canReadBase.value) return
   transitioning.value = true
   try {
     if (
-      (destination === undefined || destination === 'base' || section.value === 'base') &&
+      (destination === undefined ||
+        destination === 'base' ||
+        destination === 'ecs-test' ||
+        section.value === 'base' ||
+        section.value === 'ecs-test') &&
       panel.value &&
       !(await panel.value.confirmLeave())
     )
       return
     if (panel.value?.isDirty) {
       if (section.value === 'base') delete progress.value.base
+      else if (section.value === 'ecs-test') delete progress.value['ecs-test']
       else {
         delete progress.value.plugin
         delete progress.value.slots
@@ -114,17 +131,24 @@ function navigate(event: KeyboardEvent): void {
     event.key === 'Home'
       ? 'base'
       : event.key === 'End'
-        ? 'slots'
-        : steps[(index + (event.key === 'ArrowRight' ? 1 : 2)) % 3]!.key
+        ? steps[steps.length - 1]!.key
+        : steps[(index + (event.key === 'ArrowRight' ? 1 : steps.length - 1)) % steps.length]!.key
   void leave(destination)
 }
 
 watch(
   modelValue,
   open => {
-    if (open)
+    if (open) {
       section.value =
-        props.initialSection !== 'base' && canReadBusiness.value ? props.initialSection : 'base'
+        props.initialSection === 'ecs-test'
+          ? canReadEcsTest.value
+            ? 'ecs-test'
+            : 'base'
+          : props.initialSection !== 'base' && canReadBusiness.value
+            ? props.initialSection
+            : 'base'
+    }
   },
   { immediate: true }
 )
@@ -165,7 +189,14 @@ watch(
           :aria-selected="section === step.key"
           aria-controls="workline-configuration-panel"
           :tabindex="section === step.key ? 0 : -1"
-          :disabled="busy || (step.key === 'plugin' ? !canReadBusiness : !canReadBase)"
+          :disabled="
+            busy ||
+            (step.key === 'plugin'
+              ? !canReadBusiness
+              : step.key === 'ecs-test'
+                ? !canReadEcsTest
+                : !canReadBase)
+          "
           @click="leave(step.key)"
         >
           <span>{{ index + 1 }}. {{ step.title }}</span>
@@ -187,13 +218,20 @@ watch(
           :model-value="true"
         />
         <WorkLineBusinessConfigurationPanel
-          v-else-if="section !== 'base' && canReadBusiness"
+          v-else-if="section !== 'base' && section !== 'ecs-test' && canReadBusiness"
           ref="panel"
           :key="`business-${workline.id}`"
           :step="section === 'plugin' ? 'plugin' : 'slots'"
           :workline="workline"
           :model-value="true"
           @navigate-base="leave('base')"
+        />
+        <WorkLineEcsTestConfigurationPanel
+          v-else-if="section === 'ecs-test' && canReadEcsTest"
+          ref="panel"
+          :key="`ecs-test-${workline.id}`"
+          :workline="workline"
+          :model-value="true"
         />
         <WorkLineBaseConfigurationPanel
           v-else-if="section === 'slots' && canReadBase"
@@ -218,7 +256,7 @@ watch(
       :closable="!busy"
       :hide-cancel="busy"
       :dirty="panel?.isDirty"
-      :show-continue="section !== 'slots' && canReadBusiness"
+      :show-continue="(section === 'base' || section === 'plugin') && canReadBusiness"
       @confirm="save(false)"
       @continue="save(true)"
       @close="leave()"
@@ -269,7 +307,7 @@ watch(
   z-index: 2;
   background: transparent;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-xs);
 }
 .configuration-workspace__tabs button {
